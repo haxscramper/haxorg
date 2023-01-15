@@ -96,7 +96,7 @@ def clangCursorTreeRepr(
 def find_enums(cursor, basefile) -> List:
     result = []
     if cursor.kind == K.ENUM_DECL and str(cursor.location.file) == basefile:
-        print(clangCursorTreeRepr(cursor))
+        # print(clangCursorTreeRepr(cursor))
         fields = []
         for field in cursor.get_children():
             fields.append(field.spelling)
@@ -117,6 +117,13 @@ clang.cindex.Config.set_library_file("/usr/lib/libclang.so.14.0.6")
 index = clang.cindex.Index.create()
 tu = index.parse(args.infile)
 enums = find_enums(tu.cursor, args.infile)
+
+import os
+
+parent_dir = os.path.dirname(args.outfile)
+
+if not os.path.exists(parent_dir):
+    os.makedirs(parent_dir)
 
 with open(args.outfile, "w+") as file:
     file.write(json.dumps(enums))

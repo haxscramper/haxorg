@@ -1,3 +1,5 @@
+#pragma once
+
 enum OrgHorizontalDirection : short int
 {
     ohdNone,   /*! No specific positioning requirements */

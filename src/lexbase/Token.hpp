@@ -62,8 +62,8 @@ struct Token {
 };
 
 
-template <typename K>
+template <StringConvertible K>
 std::ostream& operator<<(std::ostream& os, Token<K> const& value) {
-    os << "Token<" << value.kind << ">(" << value.text << ")";
+    os << "Token<" << to_string(value.kind) << ">(" << value.text << ")";
     return os;
 }

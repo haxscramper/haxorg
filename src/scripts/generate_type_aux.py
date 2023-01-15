@@ -26,7 +26,6 @@ parser.add_argument(
 args = parser.parse_args()
 
 content = json.loads(open(args.infile).read())
-print(content)
 
 header_out = []
 source_out = []
@@ -67,6 +66,15 @@ const char* to_string({name} in) {{
     }}
 }}
             """)
+
+
+import os
+
+for f in [args.out_source, args.out_header]:
+    parent_dir = os.path.dirname(f)
+
+    if not os.path.exists(parent_dir):
+        os.makedirs(parent_dir)
 
 with open(args.out_source, "w+") as file:
     file.write("\n".join(source_out))

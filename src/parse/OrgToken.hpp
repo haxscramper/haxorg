@@ -5,6 +5,7 @@
 #include <lexbase/Token.hpp>
 #include <lexbase/TokenGroup.hpp>
 #include <types/enums.hpp>
+#include <types/enum_repr.hpp>
 
 using OrgToken      = Token<OrgTokenKind>;
 using OrgTokenId    = TokenId<OrgTokenKind>;
