@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 /// Helper implementation to pass multiple types around in a 'pack'
 template <typename... Args>

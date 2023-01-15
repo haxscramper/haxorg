@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <span>
+#include <algorithm>
 
 template <typename T>
 class Vec : public std::vector<T> {

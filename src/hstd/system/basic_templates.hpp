@@ -1,5 +1,7 @@
 #pragma once
 
+#include <concepts>
+
 #include <hstd/system/basic_typedefs.hpp>
 
 /// \brief get next value
