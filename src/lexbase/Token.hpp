@@ -60,3 +60,10 @@ struct Token {
         }
     }
 };
+
+
+template <typename K>
+std::ostream& operator<<(std::ostream& os, Token<K> const& value) {
+    os << "Token<" << value.kind << ">(" << value.text << ")";
+    return os;
+}

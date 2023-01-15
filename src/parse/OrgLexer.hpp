@@ -137,8 +137,9 @@ const TypArray<char, MarkupConfigPair> markupConfig{{
 }};
 
 struct OrgLexer {
-    std::string    base;
     OrgTokenGroup* out;
+
+    OrgLexer(OrgTokenGroup* _out) : out(_out) {}
 
     Vec<OrgToken>* buffer = nullptr;
     void           setBuffer(Vec<OrgToken>* _buffer) { buffer = _buffer; }

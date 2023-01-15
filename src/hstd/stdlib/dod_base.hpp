@@ -139,6 +139,10 @@ struct Store {
         return Id(index);
     }
 
+    auto atIndex(int index) -> T& { return content.at(index); }
+    auto atIndex(int index) const -> CR<T> { return content.at(index); }
+
+
     /// Get a mutable reference to an object pointed to by the \arg id
     auto at(Id id) -> T& { return content.at(id.getIndex()); }
     /// Get a immutable reference to an object pointed to by the \arg id
