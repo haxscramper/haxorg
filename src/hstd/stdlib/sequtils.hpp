@@ -1,3 +1,7 @@
+#pragma once
+
+#include <algorithm>
+
 template <typename T, typename Ref>
 struct EnumerateState {
 
@@ -57,4 +61,15 @@ EnumerateState<typename T::const_iterator, typename T::const_iterator::value_typ
         typename T::const_iterator,
         typename T::const_iterator::value_type>(
         value.cbegin(), value.cend());
+}
+
+
+template <typename T, typename Container>
+int index_of(CR<Container> container, CR<T> item) {
+    auto pos = std::find(container.begin(), container.end(), item);
+    if (pos != container.end()) {
+        return std::distance(pos, container.begin());
+    } else {
+        return -1;
+    }
 }

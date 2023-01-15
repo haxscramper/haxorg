@@ -1,4 +1,10 @@
 #include <string>
+#include <vector>
+#include <stdexcept>
+
+#include <hstd/stdlib/charsets.hpp>
+#include <hstd/stdlib/sequtils.hpp>
+#include <hstd/system/all.hpp>
 
 enum AddfFragmentKind
 {
@@ -24,11 +30,12 @@ struct FormatStringError : public std::runtime_error {
 
 
 /*! Iterate over interpolation fragments of the `formatstr` */
-constexpr Vec<AddfFragment> addfFragments(const std::string& formatstr) {
-    Vec<AddfFragment> result{};
-    auto              i   = 0;
-    auto              num = 0;
-    const CharSet     PatternChars{
+constexpr std::vector<AddfFragment> addfFragments(
+    const std::string& formatstr) {
+    std::vector<AddfFragment> result{};
+    auto                      i   = 0;
+    auto                      num = 0;
+    const CharSet             PatternChars{
         slice('a', 'z'),
         slice('A', 'Z'),
         slice('0', '9'),
@@ -150,7 +157,7 @@ constexpr Vec<AddfFragment> addfFragments(const std::string& formatstr) {
 /*! The same as `add(s, formatstr % a)`, but more efficient. */
 void addf(
     std::string&                    s,
-    CR<Vec<AddfFragment>>           fragments,
+    CR<std::vector<AddfFragment>>   fragments,
     const std::vector<std::string>& a) {
     for (const auto fr : fragments) {
         switch (fr.kind) {
@@ -209,8 +216,8 @@ std::vector<std::string> fold_format_pairs(
 }
 
 std::string addf(
-    CR<Vec<AddfFragment>>        format,
-    CR<std::vector<std::string>> values) {
+    CR<std::vector<AddfFragment>> format,
+    CR<std::vector<std::string>>  values) {
     std::string result;
     addf(result, format, values);
     return result;
@@ -226,4 +233,23 @@ std::string operator%(
     CR<std::string>                                 format,
     CR<std::vector<Pair<std::string, std::string>>> values) {
     return addf(addfFragments(format), fold_format_pairs(values));
+}
+
+void to_string_vec_impl(std::vector<std::string>& out) {}
+
+template <typename T, typename... Tail>
+void to_string_vec_impl(
+    std::vector<std::string>& out,
+    CR<T>&                    in,
+    Tail&&... tail) requires StringConvertible<T> {
+    out.push_back(to_string(in));
+    to_string_vec_impl(out, tail...);
+}
+
+template <typename... Args>
+std::vector<std::string> to_string_vec(Args&&... args) {
+    std::vector<std::string> result{};
+    result.reserve(sizeof...(Args));
+    to_string_vec_impl(result, args...);
+    return result;
 }

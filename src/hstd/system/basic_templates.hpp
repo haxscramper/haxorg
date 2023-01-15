@@ -43,3 +43,35 @@ template <typename T>
 concept ImplementsOrd = requires(CR<T> value) {
     { ord(value) } -> std::same_as<int>;
 };
+
+
+template <>
+inline int succ(int val) {
+    return val + 1;
+}
+
+template <>
+inline char succ(char val) {
+    return val + 1;
+}
+
+template <>
+inline int ord(char c) {
+    return static_cast<unsigned char>(c);
+}
+
+template <>
+inline int ord(i8 c) {
+    return static_cast<i8>(c);
+}
+
+
+template <typename T>
+int ord(T value) requires(std::is_enum<T>::value) {
+    return static_cast<int>(value);
+}
+
+template <typename T>
+T succ(T value) requires(std::is_enum<T>::value) {
+    return static_cast<T>(ord(value) + 1);
+}

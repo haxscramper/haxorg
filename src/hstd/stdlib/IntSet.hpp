@@ -1,3 +1,10 @@
+#pragma once
+
+#include <bitset>
+
+#include <hstd/system/all.hpp>
+#include <hstd/stdlib/Slice.hpp>
+
 template <typename T, typename InT>
 concept ConvertibleToSet
     = (std::same_as<std::remove_cvref_t<InT>, T> //
