@@ -7,6 +7,7 @@ target(
         add_includedirs("src/")
         add_includedirs("deps/result/include")
         add_files("tests/t*.cpp")
+        add_files("src/**/*.cpp")
         add_packages("catch2", "result")
         after_build(
             function(target)

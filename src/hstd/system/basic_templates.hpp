@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <climits>
 
 #include <hstd/system/basic_typedefs.hpp>
 
@@ -47,27 +48,6 @@ concept ImplementsOrd = requires(CR<T> value) {
 };
 
 
-template <>
-inline int succ(int val) {
-    return val + 1;
-}
-
-template <>
-inline char succ(char val) {
-    return val + 1;
-}
-
-template <>
-inline int ord(char c) {
-    return static_cast<unsigned char>(c);
-}
-
-template <>
-inline int ord(i8 c) {
-    return static_cast<i8>(c);
-}
-
-
 template <typename T>
 int ord(T value) requires(std::is_enum<T>::value) {
     return static_cast<int>(value);
@@ -77,3 +57,13 @@ template <typename T>
 T succ(T value) requires(std::is_enum<T>::value) {
     return static_cast<T>(ord(value) + 1);
 }
+
+// clang-format off
+template <> inline int succ(int val) { return val + 1; }
+template <> inline char succ(char val) { return val + 1; }
+template <> inline int ord(char c) { return static_cast<unsigned char>(c); }
+template <> inline int ord(i8 c) { return static_cast<i8>(c); }
+
+template <> inline int low() { return INT_MIN; }
+template <> inline int high() { return INT_MAX; }
+// clang-format on

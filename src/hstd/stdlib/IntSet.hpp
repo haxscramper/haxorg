@@ -200,3 +200,19 @@ requires(sizeof(T) <= sizeof(unsigned short)) struct IntSet {
     iterator begin() const { return iterator(0, &values); }
     iterator end() const { return iterator(values.size(), &values); }
 };
+
+
+template <typename T>
+std::ostream& operator<<(std::ostream& os, IntSet<T> const& value) {
+    bool first = true;
+    os << "{";
+    for (const auto val : value) {
+        if (!first) {
+            os << ", ";
+        }
+        first = false;
+        os << val;
+    }
+    os << "}";
+    return os;
+}

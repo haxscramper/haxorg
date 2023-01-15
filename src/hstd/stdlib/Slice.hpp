@@ -1,3 +1,8 @@
+#pragma once
+
+#include <hstd/system/basic_templates.hpp>
+#include <hstd/system/string_convert.hpp>
+
 #include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/BackwardsIndex.hpp>
 
@@ -108,4 +113,10 @@ Pair<A, A> getSpan(
     }
 
     return {startPos, endPos};
+}
+
+template <typename A, typename B>
+std::ostream& operator<<(std::ostream& os, HSlice<A, B> const& value) {
+    os << "[" << value.first << ".." << value.last << "]";
+    return os;
 }

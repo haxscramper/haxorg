@@ -1,29 +1,90 @@
+#pragma once
+
+#include <type_traits>
+#include <concepts>
+#include <string>
+#include <functional>
+#include <memory>
+#include <cassert>
+
+#include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/Vec.hpp>
+
+#include <hstd/stdlib/sequtils.hpp>
+#include <hstd/stdlib/charsets.hpp>
+#include <hstd/stdlib/strformat.hpp>
+
+#include <lexbase/Token.hpp>
+
+
+struct LineCol {
+    int line;
+    int column;
+};
+
+struct ParseError : public std::runtime_error {
+    LineCol loc;
+    explicit ParseError(const std::string& message, LineCol _loc)
+        : std::runtime_error(message), loc(_loc) {}
+};
+
+struct LexerError : public ParseError {
+    explicit LexerError(const std::string& message, LineCol _loc)
+        : ParseError(message, _loc) {}
+};
+
+struct UnexpectedCharError : public LexerError {
+    explicit UnexpectedCharError(const std::string& message, LineCol _loc)
+        : LexerError(message, _loc) {}
+};
+
+
+struct UnbalancedWrapError : public LexerError {};
+struct MalformedTokenError : public LexerError {};
+
 /// Type constraint for types that can be passed into base methods of the
 /// positional string checking such as `.at()` or `.skip()` as well as all
 /// helper methods for better skipping such as `skipZeroOrMore`
 template <typename S>
-concept PosStrCheckable = (                                     //
-    std::convertible_to<std::remove_cvref_t<S>, char>           //
-    || std::convertible_to<std::remove_cvref_t<S>, CharSet>     //
-    || std::convertible_to<std::remove_cvref_t<S>, std::string> //
-    || std::convertible_to<std::remove_cvref_t<S>, StrPattern>  //
-);
+concept PosStrCheckable = (                                 //
+    std::convertible_to<std::remove_cvref_t<S>, char>       //
+    || std::convertible_to<std::remove_cvref_t<S>, CharSet> //
+    || std::convertible_to<std::remove_cvref_t<S>, std::string>);
+
+
+struct LocationResolver {
+    const char* absBase;
+
+    LineCol getLineCol(int pos) {
+        // IMPLEMENT
+        return {0, 0};
+    }
+
+    LineCol getLineCol(const char* base, int pos) {
+        return getLineCol(pos);
+    }
+};
 
 struct PosStr {
-    PosStr(
-        std::string_view inView,
-        LineCol          inLoc = {.line = 0, .column = 0},
-        int              inPos = 0)
-        : view(inView), loc(inLoc), pos(inPos) {}
+    std::shared_ptr<LocationResolver> resolver;
 
+    struct SliceStartData {
+        int pos;
+    };
+
+    Vec<SliceStartData> slices;
+    /// Underlying string view
+    std::string_view view;
+    /// Absolute offset from the start of string view
+    int pos = 0;
+
+
+    PosStr(std::string_view inView, int inPos = 0)
+        : view(inView), pos(inPos) {}
 
     PosStr(const char* data, int count, int inPos = 0)
         : view(data, count), pos(inPos) {}
 
-    struct SliceStartData {
-        LineCol loc;
-        int     pos;
-    };
 
     Str toStr() const { return Str(view); }
     int size() const { return view.size(); }
@@ -49,16 +110,7 @@ struct PosStr {
 #endif
     }
 
-    Vec<SliceStartData> slices;
-    /// Underlying string view
-    std::string_view view;
-    /// Line and column information for the current position in the string
-    /// string view
-    LineCol loc;
-    /// Absolute offset from the start of string view
-    int pos = 0;
-
-    void pushSlice() { slices.push_back({loc, pos}); }
+    void pushSlice() { slices.push_back({pos}); }
     int  getPos() const { return pos; }
     void setPos(int _pos) { pos = _pos; }
 
@@ -96,19 +148,7 @@ struct PosStr {
 
     PosStr popSlice(Offset offset = {}) {
         auto slice = slices.pop_back_v();
-        return PosStr(completeView(slice, offset), slice.loc);
-    }
-
-
-    template <typename K>
-    Token<K> tok(
-        K              kind,
-        CR<StrPattern> pattern,
-        bool           allowEmpty = false,
-        Offset         offset     = {}) {
-        pushSlice();
-        skip(pattern, 0, allowEmpty);
-        return popTok(kind, offset);
+        return PosStr(completeView(slice, offset));
     }
 
 
@@ -215,12 +255,6 @@ struct PosStr {
         return true;
     }
 
-    int getSkip(CR<StrPattern> pattern, int offset = 0) const {
-        const auto base = std::string_view(
-            view.data() + (pos + offset), view.size() - (pos + offset));
-        return pattern.matchOffset(base);
-    }
-
     int getSkip(const PosStrCheckable auto& item) const {
         int skip = 0;
         while (hasNext(skip)) {
@@ -233,34 +267,13 @@ struct PosStr {
         return -1;
     }
 
-    bool at(CR<StrPattern> pattern, int offset = 0) const {
-        return (0 <= getSkip(pattern));
-    }
-
-    void skip(
-        CR<StrPattern> pattern,
-        int            offset     = 0,
-        bool           allowEmpty = false) {
-        auto skip = getSkip(pattern);
-        if (0 < skip || (skip == 0 && allowEmpty)) {
-            next(skip);
-        } else if (skip == 0 && !allowEmpty) {
-            throw UnexpectedCharError(
-                "Pattern '$#' skipped zero characters at position $#:$#"
-                    % to_string_vec(pattern, loc.line, loc.column),
-                loc);
-        } else {
-            throw UnexpectedCharError(
-                "Skip of the pattern '$#' failed on $#:$#"
-                    % to_string_vec(pattern, loc.line, loc.column),
-                loc);
-        }
-    }
+    LineCol getLineCol() { return resolver->getLineCol(view.data(), pos); }
 
     void skip(char expected, int offset = 0, int count = 1) {
         if (get(offset) == expected) {
             next(count);
         } else {
+            auto loc = getLineCol();
             throw UnexpectedCharError(
                 "Unexpected character encountered during lexing: found "
                 "'$#' but expected '$#' on $#:$#"
@@ -270,11 +283,11 @@ struct PosStr {
         }
     }
 
-
     void skip(std::string expected) {
         if (at(expected)) {
             next(expected.size());
         } else {
+            auto loc = getLineCol();
             throw UnexpectedCharError(
                 "Unexpected character encountered during lexing: found "
                 "'$#' but expected '$#' on $#:$#"
@@ -287,6 +300,7 @@ struct PosStr {
         if (expected.contains(get(offset))) {
             next(steps);
         } else {
+            auto loc = getLineCol();
             throw UnexpectedCharError(
                 "Unexpected character encountered during lexing: fonud "
                 "'$#' but expected any of (char set) '$#' on $#:$#"
@@ -478,6 +492,7 @@ struct PosStr {
         CR<std::string> parsing   //< Description of the thing we are
                                   // parsing at the moment
     ) {
+        auto loc = getLineCol();
         return UnexpectedCharError(
             "Unexpected character encountered during lexing: found '$#' "
             "but expected $# while parsing on $#:$#"

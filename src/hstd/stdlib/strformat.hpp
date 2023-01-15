@@ -155,7 +155,7 @@ constexpr std::vector<AddfFragment> addfFragments(
 }
 
 /*! The same as `add(s, formatstr % a)`, but more efficient. */
-void addf(
+inline void addf(
     std::string&                    s,
     CR<std::vector<AddfFragment>>   fragments,
     const std::vector<std::string>& a) {
@@ -205,7 +205,7 @@ void addf(
 }
 
 
-std::vector<std::string> fold_format_pairs(
+inline std::vector<std::string> fold_format_pairs(
     CR<std::vector<Pair<std::string, std::string>>> values) {
     std::vector<std::string> tmp;
     for (const auto& [key, val] : values) {
@@ -215,7 +215,7 @@ std::vector<std::string> fold_format_pairs(
     return tmp;
 }
 
-std::string addf(
+inline std::string addf(
     CR<std::vector<AddfFragment>> format,
     CR<std::vector<std::string>>  values) {
     std::string result;
@@ -223,19 +223,19 @@ std::string addf(
     return result;
 }
 
-std::string operator%(
+inline std::string operator%(
     CR<std::string>              format,
     CR<std::vector<std::string>> values) {
     return addf(addfFragments(format), values);
 }
 
-std::string operator%(
+inline std::string operator%(
     CR<std::string>                                 format,
     CR<std::vector<Pair<std::string, std::string>>> values) {
     return addf(addfFragments(format), fold_format_pairs(values));
 }
 
-void to_string_vec_impl(std::vector<std::string>& out) {}
+inline void to_string_vec_impl(std::vector<std::string>& out) {}
 
 template <typename T, typename... Tail>
 void to_string_vec_impl(
