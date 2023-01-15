@@ -1,5 +1,10 @@
+#pragma once
+
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/system/all.hpp>
+
+#include <span>
+#include <array>
 
 template <typename T, int Size>
 struct Array : std::array<T, Size> {
@@ -62,4 +67,19 @@ struct Array : std::array<T, Size> {
 
     int high() const { return size() - 1; }
     int indexOf(CR<T> item) const { return index_of(*this, item); }
+};
+
+
+template <ImplementsOrd Key, typename Val>
+requires(sizeof(Key) <= sizeof(unsigned short)) struct TypArray
+    : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
+    using Base = Array<Val, pow_v<2, 8 * sizeof(Key)>::res>;
+    using Base::at;
+    TypArray(std::initializer_list<Pair<Key, Val>> items) {
+        for (const auto& [key, val] : items) {
+            at(key) = val;
+        }
+    }
+
+    Val& at(CR<Key> value) { return Base::at(ord(value)); }
 };

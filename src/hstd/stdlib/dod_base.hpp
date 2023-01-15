@@ -30,6 +30,7 @@ namespace dod {
 /// arithmentics or any other operations that might fail due to the
 /// overflow. Container indices can be freely converted to the pointers.
 template <std::integral IdType>
+// TODO implement support for top ID masking via top bits of the value
 struct [[nodiscard]] Id {
     using id_base_type = IdType;
     /// Create new ID value from the stored ID index.

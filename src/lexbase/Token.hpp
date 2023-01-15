@@ -1,10 +1,31 @@
 #pragma once
 
+#include <hstd/stdlib/dod_base.hpp>
+
+template <typename K>
+struct Token;
+
+template <typename K, typename IdBase = int>
+struct [[nodiscard]] TokenId : dod::Id<int> {
+    using value_type = Token<K>;
+    static auto Nil() -> TokenId { return FromValue(0); };
+    static auto FromValue(IdBase arg) -> TokenId<K> {
+        TokenId<K> res{IdBase{}};
+        res.setValue(arg);
+        return res;
+    }
+    auto operator==(TokenId<K> other) const -> bool {
+        return getValue() == other.getValue();
+    }
+    explicit TokenId(IdBase arg) : dod::Id<IdBase>(arg) {}
+};
+
 /// Generic token containing minimal required information: span of text and
 /// tag. Line/Column information can be computed on the as-needed basis
 /// from the base string.
 template <typename K>
 struct Token {
+    using id_type = TokenId<K>;
     K                kind; /// Specific kind of the token
     std::string_view text; /// Token view on the base input text
 

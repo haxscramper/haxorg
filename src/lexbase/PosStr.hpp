@@ -521,7 +521,7 @@ struct BalancedSkipArgs {
     const bool& consumeLast = true;
 };
 
-void skipBalancedSlice(PosStr& str, CR<BalancedSkipArgs> args) {
+inline void skipBalancedSlice(PosStr& str, CR<BalancedSkipArgs> args) {
     auto fullCount = args.skippedStart ? 1 : 0;
     int  count[sizeof(char) * 8];
     while (str.hasNext()) {
@@ -555,27 +555,31 @@ void skipBalancedSlice(PosStr& str, CR<BalancedSkipArgs> args) {
             str.next();
         }
     }
-    if ((0 < fullCount && args.doRaise)) {
+    if (0 < fullCount && args.doRaise) {
         throw str.makeUnexpected(
             "balanced opening/closing pair",
             "balanced opening/closing pair");
     }
 }
 
-void skipBalancedSlice(PosStr& str, char open, char close) {
+inline void skipBalancedSlice(PosStr& str, char open, char close) {
     skipBalancedSlice(
         str, {.openChars = CharSet{open}, .closeChars = CharSet{close}});
 }
 
-void skipPastEOF(PosStr& str) { assert(false && "IMPLEMENT"); }
-void skipPastEOL(PosStr& str) { str.skipPastEOL(); }
-void skipToEOL(PosStr& str) { str.skipToEOL(); }
-void skipCount(PosStr& str, int count) { str.next(count); }
-void skipBefore(PosStr& str, char item) { str.skipBefore(item); }
-void skipTo(PosStr& str, char item) { str.skipTo(item); }
-void skipOne(PosStr& str, char item) { str.skip(item); }
-void skipZeroOrMore(PosStr& str, char item) { str.skipZeroOrMore(item); }
-void skipOneOrMore(PosStr& str, char item) { str.skipOneOrMore(item); }
+inline void skipPastEOF(PosStr& str) { assert(false && "IMPLEMENT"); }
+inline void skipPastEOL(PosStr& str) { str.skipPastEOL(); }
+inline void skipToEOL(PosStr& str) { str.skipToEOL(); }
+inline void skipCount(PosStr& str, int count) { str.next(count); }
+inline void skipBefore(PosStr& str, char item) { str.skipBefore(item); }
+inline void skipTo(PosStr& str, char item) { str.skipTo(item); }
+inline void skipOne(PosStr& str, char item) { str.skip(item); }
+inline void skipZeroOrMore(PosStr& str, char item) {
+    str.skipZeroOrMore(item);
+}
+inline void skipOneOrMore(PosStr& str, char item) {
+    str.skipOneOrMore(item);
+}
 
 void skipBefore(PosStr& str, const PosStrCheckable auto& item) {
     str.skipBefore(item);
@@ -596,7 +600,7 @@ void skipOne(PosStr& str, const PosStrCheckable auto& item) {
     str.skip(item);
 }
 
-void skipStringLit(PosStr& str) {
+inline void skipStringLit(PosStr& str) {
     auto found = false;
     str.next();
     while (!found) {
@@ -605,7 +609,7 @@ void skipStringLit(PosStr& str) {
     }
 }
 
-void skipDigit(R<PosStr> str) {
+inline void skipDigit(R<PosStr> str) {
     if (str.at('-')) {
         str.next();
     }

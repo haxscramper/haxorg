@@ -1,3 +1,141 @@
+#pragma once
+
+#include <string>
+
+#include <hstd/stdlib/Array.hpp>
+#include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/charsets.hpp>
+
+#include <lexbase/PosStr.hpp>
+#include <parse/OrgToken.hpp>
+
+struct ImplementError : public std::runtime_error {
+    explicit ImplementError(const std::string& message = "")
+        : std::runtime_error(message) {}
+};
+
+
+const auto commandNameMap = std::
+    unordered_map<std::string, OrgCommandKind>{
+        {"begin", ockBeginDynamic},
+        {"end", ockEndDynamic},
+
+        {"beginsrc", ockBeginSrc},
+        {"endsrc", ockEndSrc},
+
+        {"beginquote", ockBeginQuote},
+        {"endquote", ockEndQuote},
+
+        {"beginexample", ockBeginExample},
+        {"endexample", ockEndExample},
+
+        {"beginexport", ockBeginExport},
+        {"endexport", ockEndExport},
+
+        {"begintable", ockBeginTable},
+        {"endtable", ockEndTable},
+
+        {"begincenter", ockBeginCenter},
+        {"endcenter", ockEndCenter},
+
+        {"title", ockTitle},
+        {"include", ockInclude},
+        {"language", ockLanguage},
+        {"caption", ockCaption},
+        {"name", ockName},
+        {"attrimg", ockAttrImg},
+        {"author", ockAuthor},
+        {"bind", ockBind},
+        {"creator", ockCreator},
+        {"filetags", ockFiletags},
+
+        {"htmlhead", ockHtmlHead},
+        {"attrhtml", ockAttrHtml},
+
+        {"row", ockRow},
+        {"cell", ockCell},
+        {"header", ockHeader},
+        {"options", ockOptions},
+        {"property", ockProperty},
+        {"columns", ockColumns},
+        {"results", ockResults},
+        {"call", ockCall},
+        {"latexclass", ockLatexClass},
+        {"latexcompiler", ockLatexCompiler},
+        {"latexclassoptions", ockLatexClassOptions},
+        {"beginadmonition", ockBeginAdmonition},
+        {"endadmonition", ockEndAdmonition},
+        {"latexheader", ockLatexHeader},
+    };
+
+OrgCommandKind classifyCommand(std::string const& command) {
+    return commandNameMap.at(command);
+}
+
+
+CR<CharSet> OIdentChars{
+    slice('a', 'z'),
+    slice('A', 'Z'),
+    '_',
+    '-',
+    slice('0', '9')};
+CR<CharSet> OIdentStartChars = charsets::IdentChars
+                             - CharSet{'_', '-', slice('0', '9')};
+
+// IDEA in figure some additional unicode handing might be performed, but
+// for now I just asume text is in UTF-8 and everything above 127 is a
+// unicode rune too.
+
+CR<CharSet> OWordChars = CharSet{
+    slice('a', 'z'),
+    slice('A', 'Z'),
+    slice('0', '9'),
+    slice('\x7F', '\xFF')};
+
+
+CR<CharSet> OCommandChars = charsets::IdentChars + CharSet{'-', '_'};
+
+
+CR<CharSet> OBigIdentChars  = CharSet{slice('A', 'Z')};
+const char  OEndOfFile      = '\x00';
+CR<CharSet> OBareIdentChars = charsets::AllChars - charsets::Whitespace;
+CR<CharSet> OWhitespace     = charsets::Whitespace - CharSet{'\n'};
+CR<CharSet> OEmptyChars     = OWhitespace + CharSet{OEndOfFile};
+CR<CharSet> OLinebreaks     = charsets::Newlines + CharSet{OEndOfFile};
+CR<CharSet> OMarkupChars    = CharSet{'*', '_', '/', '+', '~', '`'};
+CR<CharSet> OVerbatimChars  = CharSet{'`', '~', '='};
+CR<CharSet> OPunctChars = CharSet{'(', ')', '[', ']', '.', '?', '!', ','};
+CR<CharSet> OPunctOpenChars    = CharSet{'(', '[', '{', '<'};
+CR<CharSet> OPunctCloseChars   = CharSet{')', ']', '}', '>'};
+CR<CharSet> ONumberedListChars = CharSet{slice('0', '9')}
+                               + CharSet{slice('a', 'z')}
+                               + CharSet{slice('A', 'Z')};
+CR<CharSet> OBulletListChars = CharSet{'-', '+', '*'};
+CR<CharSet> OListChars       = ONumberedListChars + OBulletListChars;
+
+
+struct MarkupConfigPair {
+    OrgTokenKind startKind;
+    OrgTokenKind finishKind;
+    OrgTokenKind inlineKind;
+};
+
+
+const CharSet markupKeys{'*', '/', '=', '`', '~', '_', '+', '"'};
+
+/// Table of the markup config information, to reduce usage of the
+/// character literals directly in the code.
+const TypArray<char, MarkupConfigPair> markupConfig{{
+    {'*', {OTkBoldOpen, OTkBoldClose, OTkBoldInline}},
+    {'/', {OTkItalicOpen, OTkItalicClose, OTkItalicInline}},
+    {'=', {OTkVerbatimOpen, OTkVerbatimClose, OTkVerbatimInline}},
+    {'`', {OTkBacktickOpen, OTkBacktickClose, OTkBacktickInline}},
+    {'~', {OTkMonospaceOpen, OTkMonospaceClose, OTkMonospaceInline}},
+    {'_', {OTkUnderlineOpen, OTkUnderlineClose, OTkUnderlineInline}},
+    {'+', {OTkStrikeOpen, OTkStrikeClose, OTkStrikeInline}},
+    {'"', {OTkQuoteOpen, OTkQuoteClose, otNone}},
+}};
+
 struct OrgLexer {
     std::string    base;
     OrgTokenGroup* out;

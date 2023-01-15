@@ -73,3 +73,9 @@ int index_of(CR<Container> container, CR<T> item) {
         return -1;
     }
 }
+
+
+template <typename T, typename Pred>
+bool all_of(CR<T> seq, CR<Pred> pr) {
+    return std::all_of(seq.begin(), seq.end(), pr);
+}
