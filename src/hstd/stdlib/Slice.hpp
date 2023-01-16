@@ -80,6 +80,12 @@ HSlice<A, B> slice(CR<A> first, CR<B> last) {
     return {.first = first, .last = last};
 }
 
+template <typename A, typename B>
+inline std::ostream& operator<<(
+    std::ostream&       os,
+    HSlice<A, B> const& value) {
+    return os << "[" << value.first << ".." << value.last << "]";
+}
 
 template <typename A, typename B>
 Pair<A, A> getSpan(
@@ -97,26 +103,16 @@ Pair<A, A> getSpan(
         endPos = s.last;
     }
 
-    if (checkRange && size <= startPos) {
+    if (checkRange
+        && !(
+            (0 <= startPos && startPos < size)
+            && (0 <= endPos && endPos < size))) {
         throw std::out_of_range(
-            "Vector start index is out of range: span start is "
-            + std::to_string(startPos)
-            + ", but full vector length is only " + std::to_string(size));
-    }
-
-
-    if (checkRange && size <= endPos) {
-        throw std::out_of_range(
-            "Vector end index is out of range: span end is "
-            + std::to_string(startPos)
-            + ", but full vector length is only " + std::to_string(size));
+            "Container index is out of range: real span range is "
+            + std::to_string(startPos) + ".." + std::to_string(endPos)
+            + " computed from " + to_string(s)
+            + ", but full extent length is only " + std::to_string(size));
     }
 
     return {startPos, endPos};
-}
-
-template <typename A, typename B>
-std::ostream& operator<<(std::ostream& os, HSlice<A, B> const& value) {
-    os << "[" << value.first << ".." << value.last << "]";
-    return os;
 }
