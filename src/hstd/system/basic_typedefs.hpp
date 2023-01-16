@@ -20,6 +20,10 @@ inline i8 operator"" _i8(unsigned long long int value) {
     return static_cast<i8>(value);
 }
 
+inline u8 operator"" _u8(unsigned long long int value) {
+    return static_cast<u8>(value);
+}
+
 template <typename T> using R = T&;
 template <typename T> using CR   = const T&;
 template <typename T> using CP   = const T*;

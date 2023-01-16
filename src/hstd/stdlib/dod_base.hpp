@@ -29,7 +29,16 @@ namespace dod {
 /// unsigned data types. They *do not* provide any sort of pointer-like
 /// arithmentics or any other operations that might fail due to the
 /// overflow. Container indices can be freely converted to the pointers.
-template <std::integral IdType>
+template <
+    /// Base type that will be used for ID storage
+    std::integral IdType,
+    /// Return type of the mask bits, defaults to the store type for
+    /// convenience, used only for in/out values, not stored anywhere
+    std::integral MaskType = IdType,
+    /// Number of bits in the ID type mask.
+    typename MaskSizeT = std::integral_constant<MaskType, 0>
+    //
+    >
 // TODO implement support for top ID masking via top bits of the value
 struct [[nodiscard]] Id {
     using id_base_type = IdType;
@@ -44,6 +53,26 @@ struct [[nodiscard]] Id {
         return res;
     }
 
+    static const inline int mask_offset = (8 * sizeof(IdType))
+                                        - MaskSizeT::value;
+
+    static const inline int mask_size = MaskSizeT::value;
+
+    consteval int getMaskSize() const { return mask_size; }
+    inline IdType getUnmasked() const {
+        return value & ~(~0u << mask_offset);
+    }
+
+    inline MaskType getMask() const {
+        return (value & (~0u << mask_offset)) >> mask_offset;
+    }
+
+    inline void setUnmasked(IdType base) { value = getMask() | base; }
+
+    inline void setMask(MaskType mask) {
+        value = getUnmasked() | (mask << mask_offset);
+    }
+
     /// Check whether provided value is nil or not
     auto isNil() const noexcept -> bool { return value == IdType{}; }
     /// Get value stored in the ID  - this one should be used in cases
@@ -55,11 +84,13 @@ struct [[nodiscard]] Id {
     /// \note This function allows setting ID to state with zero value,
     /// making it 'nil'
     void setValue(IdType arg) noexcept { value = arg; }
-    /// Get index of the ID, for accessing the store.
+    /// Get index of the ID, for accessing the store. Returned value is
+    /// computated while accounting for masked bits so it can be different
+    /// from the `getValue()`
     ///
     /// \warning in case of a 'nil' type this might return an invalid index
     /// (`<0`)
-    auto getIndex() const noexcept -> IdType { return value - 1; }
+    auto getIndex() const noexcept -> IdType { return getUnmasked() - 1; }
     /// Get string representation of the ID value
     auto getStr() const -> std::string { return std::to_string(value); }
 
@@ -67,17 +98,13 @@ struct [[nodiscard]] Id {
     IdType value;
 };
 
-/// Declare new ID type, derived from the `dod::Id` with specified \arg
-/// __type as a template parameter. Newly declared type will have a name
-/// \arg __name and associated value type `__value`. All three parameters
-/// must be specified in order for the definition to be sound.
-///
-/// Defined type provides implementation of the `::FromValue` and `::Nil`
-/// static functions that can be used as an alternative construction
-/// methods in various cases.
-#define DECL_ID_TYPE(__value, __name, __type)                             \
+#define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)              \
     struct __value;                                                       \
-    struct [[nodiscard]] __name : dod::Id<__type> {                       \
+    struct [[nodiscard]] __name                                           \
+        : dod::Id<                                                        \
+              __type,                                                     \
+              __type,                                                     \
+              std::integral_constant<__type, __mask>> {                   \
         using value_type = __value;                                       \
         static auto Nil() -> __name { return FromValue(0); };             \
         static auto FromValue(__type arg) -> __name {                     \
@@ -88,8 +115,24 @@ struct [[nodiscard]] Id {
         auto operator==(__name other) const -> bool {                     \
             return getValue() == other.getValue();                        \
         }                                                                 \
-        explicit __name(__type arg) : dod::Id<__type>(arg) {}             \
+        explicit __name(__type arg)                                       \
+            : dod::Id<                                                    \
+                __type,                                                   \
+                __type,                                                   \
+                std::integral_constant<__type, __mask>>(arg) {}           \
     };
+
+
+/// Declare new ID type, derived from the `dod::Id` with specified \arg
+/// __type as a template parameter. Newly declared type will have a name
+/// \arg __name and associated value type `__value`. All three parameters
+/// must be specified in order for the definition to be sound.
+///
+/// Defined type provides implementation of the `::FromValue` and `::Nil`
+/// static functions that can be used as an alternative construction
+/// methods in various cases.
+#define DECL_ID_TYPE(__value, __name, __type)                             \
+    DECL_ID_TYPE_MASKED(__value, __name, __type, 0)
 
 
 /// Concent for base ID type and all it's publcily derived types
