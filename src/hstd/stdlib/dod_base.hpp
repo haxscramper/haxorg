@@ -53,10 +53,17 @@ struct [[nodiscard]] Id {
         return res;
     }
 
+
     static const inline int mask_offset = (8 * sizeof(IdType))
                                         - MaskSizeT::value;
 
     static const inline int mask_size = MaskSizeT::value;
+
+    static auto FromMasked(MaskType mask, IdType id) -> Id {
+        Id res{IdType{}};
+        res.value = id | (mask << mask_offset);
+        return res;
+    }
 
     consteval int getMaskSize() const { return mask_size; }
     inline IdType getUnmasked() const {
@@ -93,6 +100,24 @@ struct [[nodiscard]] Id {
     auto getIndex() const noexcept -> IdType { return getUnmasked() - 1; }
     /// Get string representation of the ID value
     auto getStr() const -> std::string { return std::to_string(value); }
+
+    /// Compare *unmasked* parts of the ID. Only unmasked part is compared
+    /// because mask ordering is unlikely to be any of any relevance for
+    /// ordering.
+    bool operator<(Id other) const noexcept {
+        return getUnmasked() < other.getUnmasked();
+    }
+
+    /// Compare *unmasked* parts of the ID.
+    bool operator<=(Id other) const noexcept {
+        return getUnmasked() < other.getUnmasked();
+    }
+
+    /// Compare full ID value for equality. \note This handles internal
+    /// value differently from `<` comparison
+    bool operator==(Id other) const noexcept {
+        return getValue() == other.getValue();
+    }
 
   protected:
     IdType value;

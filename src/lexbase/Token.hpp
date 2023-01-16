@@ -5,8 +5,9 @@
 template <typename K>
 struct Token;
 
-template <typename K, typename IdBase = int>
-struct [[nodiscard]] TokenId : dod::Id<int> {
+template <typename K, typename IdBase = u64, typename MaskType = IdBase>
+struct [[nodiscard]] TokenId
+    : dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
     using value_type = Token<K>;
     static auto Nil() -> TokenId { return FromValue(0); };
     static auto FromValue(IdBase arg) -> TokenId<K> {
@@ -14,10 +15,14 @@ struct [[nodiscard]] TokenId : dod::Id<int> {
         res.setValue(arg);
         return res;
     }
-    auto operator==(TokenId<K> other) const -> bool {
-        return getValue() == other.getValue();
+    auto operator==(TokenId<K, IdBase> other) const -> bool {
+        return this->getValue() == other.getValue();
     }
-    explicit TokenId(IdBase arg) : dod::Id<IdBase>(arg) {}
+    MaskType getStoreIdx() const { return this->getMask(); }
+
+    explicit TokenId(IdBase arg)
+        : dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>>(
+            arg) {}
 };
 
 /// Generic token containing minimal required information: span of text and
@@ -67,3 +72,43 @@ std::ostream& operator<<(std::ostream& os, Token<K> const& value) {
     os << "Token<" << to_string(value.kind) << ">(" << value.text << ")";
     return os;
 }
+
+
+template <typename K>
+struct TokenGroup {
+    dod::Store<TokenId<K>, Token<K>> tokens;
+
+    TokenId<K> push(CR<Token<K>> tok) { return tokens.add(tok); }
+
+    Vec<TokenId<K>> push(CR<Vec<Token<K>>> tok) {
+        Vec<TokenId<K>> result;
+        for (const auto& t : tok) {
+            result.push_back(tokens.add(t));
+        }
+        return result;
+    }
+
+    Vec<TokenId<K>> push(CR<std::span<Token<K>>> tok) {
+        Vec<TokenId<K>> result;
+        for (const auto& t : tok) {
+            result.push_back(tokens.add(t));
+        }
+        return result;
+    }
+
+    std::span<Token<K>> at(HSlice<TokenId<K>, TokenId<K>> slice) {
+        assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
+        tokens.at(slice(slice.first.getIndex(), slice.last.getIndex()));
+    }
+};
+
+template <typename K>
+struct TokenStore {
+    Vec<TokenGroup<K>> groups;
+    Token<K>& at(TokenId<K> id) { return groups.at(id.getStoreIdx()); }
+
+    std::span<Token<K>> at(HSlice<TokenId<K>, TokenId<K>> slice) {
+        assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
+        groups.at(slice.first.getStoreIdx()).at(slice);
+    }
+};

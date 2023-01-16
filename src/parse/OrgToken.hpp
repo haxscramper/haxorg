@@ -3,7 +3,6 @@
 #include <hstd/stdlib/dod_base.hpp>
 
 #include <lexbase/Token.hpp>
-#include <lexbase/TokenGroup.hpp>
 #include <types/enums.hpp>
 #include <types/enum_repr.hpp>
 
