@@ -18,11 +18,12 @@ enum class TokenKind : u8
 TEST_CASE("General node API", "[node]") {
     SECTION("Random") {
         using NodeT  = Node<NodeKind, TokenKind>;
+        using NIdT   = NodeId<NodeKind, TokenKind>;
         using TokenT = Token<TokenKind>;
         NodeGroup<NodeKind, TokenKind> nodes;
         TokenGroup<TokenKind>          tokens;
 
-        nodes.startTree(NodeT(NodeKind::K1));
+        NIdT top = nodes.startTree(NodeT(NodeKind::K1));
         nodes.token(
             NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K1))));
         nodes.token(
@@ -30,5 +31,6 @@ TEST_CASE("General node API", "[node]") {
         nodes.token(
             NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K3))));
         nodes.endTree();
+        REQUIRE(nodes.at(top).getExtent() == 3);
     }
 }

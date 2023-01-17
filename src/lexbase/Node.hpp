@@ -35,23 +35,30 @@ struct [[nodiscard]] NodeId
 
 template <typename N, typename K>
 struct Node {
-    N                                      kind;
-    std::variant<NodeId<N, K>, TokenId<K>> value;
+    N                             kind;
+    std::variant<int, TokenId<K>> value;
 
     Node(N _kind, CR<TokenId<K>> token) : kind(_kind), value(token) {}
-    Node(N _kind) : kind(_kind), value(NodeId<N, K>::Nil()) {}
+    Node(N _kind, int extent = 0) : kind(_kind), value(extent) {}
 
     bool isTerminal() const {
         return std::holds_alternative<TokenId<K>>(value);
     }
 
     bool isNonTerminal() const {
-        return std::holds_alternative<NodeId<N, K>>(value);
+        return std::holds_alternative<int>(value);
     }
 
-    void extend(NodeId<N, K> id) {
+    void extend(int extent) {
         assert(isNonTerminal());
-        value = id;
+        value = extent;
+    }
+
+    int getExtent() const { return std::get<int>(value); }
+
+    Slice<NodeId<N, K>> nestedNodes(NodeId<N, K> selfId) const {
+        assert(isNonTerminal());
+        return slice(selfId + 1, selfId + getExtent());
     }
 };
 
@@ -72,14 +79,16 @@ struct NodeGroup {
     }
 
     void endTree() {
-        IdT start = pendingTrees.pop_back_v();
-        nodes.at(start).extend(nodes.back());
+        auto start = pendingTrees.pop_back_v();
+        nodes.at(start).extend(distance(start, nodes.back()));
     }
 
     std::span<Token<K>> at(HSlice<IdT, IdT> slice) {
         assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
         nodes.at(slice(slice.first.getIndex(), slice.last.getIndex()));
     }
+
+    Node<N, K>& at(IdT id) { return nodes.at(id); }
 
     NodeT& subnode(IdT id, int index) { auto& node = nodes.at(id); }
 

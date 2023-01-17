@@ -196,10 +196,11 @@ Id& operator++(Id& id) {
     return id;
 }
 
+
 template <IsIdType Id>
-Id operator++(Id&& id, int) {
+Id operator+(Id& id, int extent) {
     return Id::FromValue(
-        id.getMaskUnshifed() | saturating_add(id.getUnmasked(), 1));
+        id.getMaskUnshifed() | saturating_add(id.getUnmasked(), extent));
 }
 
 template <IsIdType Id>
@@ -208,6 +209,11 @@ Id operator++(Id& id, int) {
     id.setValue(
         id.getMaskUnshifed() | saturating_add(id.getUnmasked(), 1));
     return res;
+}
+
+template <IsIdType Id>
+Id::id_base_type distance(CR<Id> first, CR<Id> last) {
+    return last.getUnmasked() - first.getUnmasked();
 }
 
 
