@@ -150,7 +150,7 @@ struct OrgLexer {
         if (buffer != nullptr) {
             buffer->push_back(tok);
         } else {
-            out->push(tok);
+            out->add(tok);
         }
     }
 
@@ -159,7 +159,7 @@ struct OrgLexer {
         if (buffer != nullptr) {
             buffer->append(tok);
         } else {
-            out->push(tok);
+            out->add(tok);
         }
     }
 
@@ -167,7 +167,7 @@ struct OrgLexer {
         if (buffer != nullptr) {
             buffer->append(tok);
         } else {
-            out->push(tok);
+            out->add(tok);
         }
     }
 

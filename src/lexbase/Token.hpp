@@ -35,10 +35,18 @@ struct Token {
     std::string_view text; /// Token view on the base input text
 
     Token() = default;
+    /// \brief Create token that points to the real string data
     Token(K _kind, std::string_view _text) : kind(_kind), text(_text) {}
-    Token(K _kind, int offset) : kind(_kind), text(nullptr, offset) {}
+    /// \brief Create fake token that is positioned at some point in the
+    /// base string.
+    ///
+    /// \note Default offset parameter is -1 which creates token that is
+    /// completely detached from any real position.
+    Token(K _kind, int offset = -1) : kind(_kind), text(nullptr, offset) {}
 
-    /// Check if token text is a view over real data
+    /// \brief Check if token has any offset information
+    bool hasOffset() const { return hasData() || text.size() != -1; }
+    /// \brief Check if token text is a view over real data
     bool hasData() const { return text.data() != nullptr; }
     /// Return character count for the token. If it does not contain any
     /// data return 0.
@@ -78,9 +86,9 @@ template <typename K>
 struct TokenGroup {
     dod::Store<TokenId<K>, Token<K>> tokens;
 
-    TokenId<K> push(CR<Token<K>> tok) { return tokens.add(tok); }
+    TokenId<K> add(CR<Token<K>> tok) { return tokens.add(tok); }
 
-    Vec<TokenId<K>> push(CR<Vec<Token<K>>> tok) {
+    Vec<TokenId<K>> add(CR<Vec<Token<K>>> tok) {
         Vec<TokenId<K>> result;
         for (const auto& t : tok) {
             result.push_back(tokens.add(t));
@@ -88,7 +96,7 @@ struct TokenGroup {
         return result;
     }
 
-    Vec<TokenId<K>> push(CR<std::span<Token<K>>> tok) {
+    Vec<TokenId<K>> add(CR<std::span<Token<K>>> tok) {
         Vec<TokenId<K>> result;
         for (const auto& t : tok) {
             result.push_back(tokens.add(t));

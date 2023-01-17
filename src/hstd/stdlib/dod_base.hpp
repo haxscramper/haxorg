@@ -74,6 +74,10 @@ struct [[nodiscard]] Id {
         return (value & (~0u << mask_offset)) >> mask_offset;
     }
 
+    inline MaskType getMaskUnshifed() const {
+        return (value & (~0u << mask_offset));
+    }
+
     inline void setUnmasked(IdType base) { value = getMask() | base; }
 
     inline void setMask(MaskType mask) {
@@ -119,9 +123,15 @@ struct [[nodiscard]] Id {
         return getValue() == other.getValue();
     }
 
+    bool operator!=(Id other) const noexcept {
+        return getValue() == other.getValue();
+    }
+
+
   protected:
     IdType value;
 };
+
 
 #define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)              \
     struct __value;                                                       \
@@ -164,6 +174,43 @@ struct [[nodiscard]] Id {
 template <typename D>
 concept IsIdType = is_base_of_template_v<Id, D>;
 
+template <IsIdType Id>
+Id& operator--(Id& id) {
+    id.setValue(
+        id.getMaskUnshifed() | saturating_sub(id.getUnmasked(), 1));
+    return id;
+}
+
+template <IsIdType Id>
+Id operator--(Id& id, int) {
+    Id res = id;
+    id.setValue(
+        id.getMaskUnshifed() | saturating_sub(id.getUnmasked(), 1));
+    return res;
+}
+
+template <IsIdType Id>
+Id& operator++(Id& id) {
+    id.setValue(
+        id.getMaskUnshifed() | saturating_add(id.getUnmasked(), 1));
+    return id;
+}
+
+template <IsIdType Id>
+Id operator++(Id&& id, int) {
+    return Id::FromValue(
+        id.getMaskUnshifed() | saturating_add(id.getUnmasked(), 1));
+}
+
+template <IsIdType Id>
+Id operator++(Id& id, int) {
+    Id res = id;
+    id.setValue(
+        id.getMaskUnshifed() | saturating_add(id.getUnmasked(), 1));
+    return res;
+}
+
+
 /// Type trait for accessing value type of the ID type
 template <typename T>
 struct value_type {
@@ -184,6 +231,7 @@ struct id_type {
 template <typename T>
 using id_type_t = typename id_type<T>::type;
 
+
 template <IsIdType Id, typename T>
 /// \brief Store a collection of the value types
 ///
@@ -200,25 +248,29 @@ struct Store {
         return Id(index);
     }
 
-    /// Add new item to the store and return newly created ID
+    /// \brief Add new item to the store and return newly created ID
     [[nodiscard]] auto add(const T&& value) -> Id {
         int index = content.size();
         content.push_back(value);
         return Id(index);
     }
 
+    Id back() const { return Id::FromValue(content.size()); }
+
     auto atIndex(int index) -> T& { return content.at(index); }
     auto atIndex(int index) const -> CR<T> { return content.at(index); }
 
 
-    /// Get a mutable reference to an object pointed to by the \arg id
+    /// \brief Get a mutable reference to an object pointed to by the \arg
+    /// id
     auto at(Id id) -> T& { return content.at(id.getIndex()); }
-    /// Get a immutable reference to an object pointed to by the \arg id
+    /// \brief Get a immutable reference to an object pointed to by the
+    /// \arg id
     auto at(Id id) const -> CR<T> { return content.at(id.getIndex()); }
-    /// Get a total number of the stored objects int the store
+    /// \brief Get a total number of the stored objects int the store
     auto size() const -> std::size_t { return content.size(); }
 
-    /// Get genetator for all stored indices and pairs
+    /// \brief Get genetator for all stored indices and pairs
     auto pairs() const -> generator<std::pair<Id, CP<T>>> {
         const int size = content.size();
         for (int i = 0; i < size; ++i) {
@@ -226,22 +278,23 @@ struct Store {
         }
     }
 
-    /// Return generator for stored values
+    /// \brief Return generator for stored values
     auto items() const -> generator<CP<T>> {
         for (const auto& it : content) {
             co_yield &it;
         }
     }
 
-    /// Iterate over mutable pointers to the items stored in the container
+    /// \brief Iterate over mutable pointers to the items stored in the
+    /// container
     auto items() -> generator<P<T>> {
         for (auto& it : content) {
             co_yield &it;
         }
     }
 
-    /// Insert value into the store at position, either appending to the
-    /// internal list or replacing an existing value.
+    /// \brief Insert value into the store at position, either appending to
+    /// the internal list or replacing an existing value.
     void insert(Id id, CR<T> value) {
         if (id.getIndex() == content.size()) {
             content.push_back(value);
