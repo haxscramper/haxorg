@@ -34,6 +34,12 @@ struct [[nodiscard]] NodeId
 };
 
 template <typename N, typename K>
+std::ostream& operator<<(std::ostream& os, NodeId<N, K> const& value) {
+    return value.streamTo(
+        os, std::string("NodeId<") + demangle(typeid(N).name()) + ">");
+}
+
+template <typename N, typename K>
 struct Node {
     N                             kind;
     std::variant<int, TokenId<K>> value;
@@ -54,7 +60,15 @@ struct Node {
         value = extent;
     }
 
-    int getExtent() const { return std::get<int>(value); }
+    int getExtent() const {
+        if (isTerminal()) {
+            return 0;
+        } else {
+            return std::get<int>(value);
+        }
+    }
+
+    TokenId<K> getToken() const { return std::get<TokenId<K>>(value); }
 
     Slice<NodeId<N, K>> nestedNodes(NodeId<N, K> selfId) const {
         assert(isNonTerminal());
@@ -83,19 +97,15 @@ struct NodeGroup {
         nodes.at(start).extend(distance(start, nodes.back()));
     }
 
-    std::span<Token<K>> at(HSlice<IdT, IdT> slice) {
-        assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
-        nodes.at(slice(slice.first.getIndex(), slice.last.getIndex()));
-    }
 
-    Node<N, K>& at(IdT id) { return nodes.at(id); }
+    Node<N, K>&    at(IdT id) { return nodes.at(id); }
+    CR<Node<N, K>> at(IdT id) const { return nodes.at(id); }
 
-    NodeT& subnode(IdT id, int index) { auto& node = nodes.at(id); }
 
     class iterator {
       private:
-        IdT        id;
-        NodeGroup* group;
+        IdT           id;
+        CP<NodeGroup> group;
 
       public:
         typedef std::forward_iterator_tag iterator_category;
@@ -104,12 +114,12 @@ struct NodeGroup {
         typedef IdT&                      reference;
         typedef std::ptrdiff_t            difference_type;
 
-        iterator(IdT _id, NodeGroup* _group) : id(_id), group(_group) {}
+        iterator(IdT _id, CP<NodeGroup> _group) : id(_id), group(_group) {}
 
         IdT operator*() { return id; }
 
         iterator& operator++() {
-            ++id;
+            id = id + group->at(id).getExtent() + 1;
             return *this;
         }
 
@@ -118,6 +128,46 @@ struct NodeGroup {
         }
     };
 
-    iterator begin(IdT start) { return iterator(start, this); }
-    iterator end(IdT last) { return iterator(++last, this); }
+    iterator begin(IdT start) const { return iterator(start, this); }
+    iterator end(IdT last) const { return iterator(++last, this); }
+
+    Pair<iterator, iterator> subnodesOf(IdT node) const {
+        return {begin(node + 1), end(node + at(node).getExtent())};
+    }
+
+    Slice<IdT> allSubnodesOf(IdT node) const {
+        return {node + 1, node + at(node).getExtent()};
+    }
+
+    IdT parent(IdT node) const {
+        IdT parent = node;
+        --parent;
+        while (!parent.isNil()) {
+            auto extent = allSubnodesOf(parent);
+            if (extent.contains(node)) {
+                return parent;
+            } else {
+                --parent;
+            }
+        }
+
+        return IdT::Nil();
+    }
+
+    int size(IdT node) const {
+        auto [begin, end] = subnodesOf(node);
+        int result        = 0;
+        for (; begin != end; ++begin) {
+            ++result;
+        }
+        return result;
+    }
+
+    IdT subnode(IdT node, int index) {
+        auto [begin, end] = subnodesOf(node);
+        for (int i = 0; i < index; ++i) {
+            ++begin;
+        }
+        return *begin;
+    }
 };

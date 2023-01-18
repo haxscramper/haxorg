@@ -7,6 +7,7 @@
 #include <hstd/system/generator.hpp>
 
 #include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Slice.hpp>
 
 
 /// \brief Data-oriented design primitives
@@ -114,7 +115,7 @@ struct [[nodiscard]] Id {
 
     /// Compare *unmasked* parts of the ID.
     bool operator<=(Id other) const noexcept {
-        return getUnmasked() < other.getUnmasked();
+        return getUnmasked() <= other.getUnmasked();
     }
 
     /// Compare full ID value for equality. \note This handles internal
@@ -127,11 +128,24 @@ struct [[nodiscard]] Id {
         return getValue() == other.getValue();
     }
 
+    std::ostream& streamTo(std::ostream& os, std::string name = "dod::Id")
+        const {
+        os << name << "(";
+        if (0 < mask_size) {
+            os << getMask() << ":";
+        }
+        os << getIndex() << ")";
+        return os;
+    }
 
   protected:
     IdType value;
 };
 
+template <typename A, typename B, typename C>
+std::ostream& operator<<(std::ostream& os, dod::Id<A, B, C> const& value) {
+    return value.streamTo(os);
+}
 
 #define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)              \
     struct __value;                                                       \
@@ -155,7 +169,12 @@ struct [[nodiscard]] Id {
                 __type,                                                   \
                 __type,                                                   \
                 std::integral_constant<__type, __mask>>(arg) {}           \
-    };
+    };                                                                    \
+                                                                          \
+                                                                          \
+    std::ostream& operator<<(std::ostream& os, __name const& value) {     \
+        return value.streamTo(os, #__name);                               \
+    }
 
 
 /// Declare new ID type, derived from the `dod::Id` with specified \arg
@@ -198,7 +217,7 @@ Id& operator++(Id& id) {
 
 
 template <IsIdType Id>
-Id operator+(Id& id, int extent) {
+Id operator+(Id id, int extent) {
     return Id::FromValue(
         id.getMaskUnshifed() | saturating_add(id.getUnmasked(), extent));
 }
@@ -212,8 +231,13 @@ Id operator++(Id& id, int) {
 }
 
 template <IsIdType Id>
-Id::id_base_type distance(CR<Id> first, CR<Id> last) {
-    return last.getUnmasked() - first.getUnmasked();
+typename Id::id_base_type distance(CR<Id> first, CR<Id> last) {
+    return saturating_sub(last.getUnmasked(), first.getUnmasked());
+}
+
+template <IsIdType Id>
+typename Id::id_base_type size(Slice<Id> slice) {
+    return distance(slice.first, slice.last) + 1;
 }
 
 
@@ -245,6 +269,10 @@ template <IsIdType Id, typename T>
 /// that allows user to put in a new object, returning ID, or get an
 /// existing object from an ID.
 struct Store {
+  private:
+    Vec<T> content;
+
+  public:
     Store() = default;
 
     /// Add value to the storage and return newly created ID
@@ -265,6 +293,12 @@ struct Store {
 
     auto atIndex(int index) -> T& { return content.at(index); }
     auto atIndex(int index) const -> CR<T> { return content.at(index); }
+
+    std::span<T> at(HSlice<Id, Id> slice) {
+        assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
+        return content.at(
+            slice(slice.first.getIndex(), slice.last.getIndex()));
+    }
 
 
     /// \brief Get a mutable reference to an object pointed to by the \arg
@@ -311,9 +345,6 @@ struct Store {
             // way of handing
         }
     }
-
-  private:
-    Vec<T> content;
 };
 
 

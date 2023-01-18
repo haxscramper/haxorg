@@ -12,6 +12,10 @@ template <typename A, typename B>
 struct HSlice {
     A first;
     B last;
+
+    bool operator==(CR<HSlice> other) {
+        return first == other.first && last == other.last;
+    }
 };
 
 
@@ -19,7 +23,14 @@ template <typename T>
 struct Slice : public HSlice<T, T> {
     using HSlice<T, T>::first;
     using HSlice<T, T>::last;
-    bool contains(T val) { return first <= val && val <= last; }
+    bool contains(T val) const { return first <= val && val <= last; }
+
+    /// \brief Both start and end of the other slice are contained in the
+    /// *inclusive* range [first, last]
+    bool contains(CR<Slice> other) const {
+        return contains(other.first) && contains(other.second);
+    }
+
 
     class iterator {
       private:

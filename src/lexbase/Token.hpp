@@ -104,6 +104,9 @@ struct TokenGroup {
         return result;
     }
 
+
+    Token<K>& at(TokenId<K> pos) { tokens.at(pos); }
+
     std::span<Token<K>> at(HSlice<TokenId<K>, TokenId<K>> slice) {
         assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
         tokens.at(slice(slice.first.getIndex(), slice.last.getIndex()));

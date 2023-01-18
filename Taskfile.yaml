@@ -1,0 +1,9 @@
+version: 3
+
+tasks:
+  tests:
+    desc: "Compile and run tests"
+    cmds:
+      # - xmake project -k compile_commands
+      # - run-clang-tidy
+      - xmake build --warning --yes test
