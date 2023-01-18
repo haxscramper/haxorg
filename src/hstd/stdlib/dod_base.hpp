@@ -55,43 +55,54 @@ struct [[nodiscard]] Id {
     }
 
 
+    /// \brief Start position of the least significant bit of the mask
     static const inline int mask_offset = (8 * sizeof(IdType))
                                         - MaskSizeT::value;
 
+    /// \brief Number of bits allotted for the mask value
     static const inline int mask_size = MaskSizeT::value;
 
+    /// \brief Create ID value from provided mask and underlying ID base
     static auto FromMasked(MaskType mask, IdType id) -> Id {
         Id res{IdType{}};
         res.value = id | (mask << mask_offset);
         return res;
     }
 
+    /// \brief Get number of bits in the mask
     consteval int getMaskSize() const { return mask_size; }
+    /// \brief Get unmasked *value* (do not confuse with index)
     inline IdType getUnmasked() const {
         return value & ~(~0u << mask_offset);
     }
 
+    /// \brief Get mask value
     inline MaskType getMask() const {
         return (value & (~0u << mask_offset)) >> mask_offset;
     }
 
+    /// \brief Get direct value of the mask, with right-padded zeroes that
+    /// were occupied by the value.
     inline MaskType getMaskUnshifed() const {
         return (value & (~0u << mask_offset));
     }
 
+    /// \brief Set unmasked portion of the value
     inline void setUnmasked(IdType base) { value = getMask() | base; }
 
+    /// \brief Set mask for the ID
     inline void setMask(MaskType mask) {
         value = getUnmasked() | (mask << mask_offset);
     }
 
-    /// Check whether provided value is nil or not
+    /// \brief Check whether provided value is nil or not
     auto isNil() const noexcept -> bool { return value == IdType{}; }
     /// Get value stored in the ID  - this one should be used in cases
     /// where ID is converted in some different format (for example printed
     /// out or stored in the database)
     auto getValue() const noexcept -> IdType { return value; }
-    /// Set value of the ID. This should be used for deserialization.
+    /// \brief Set value of the ID. This should be used for
+    /// deserialization.
     ///
     /// \note This function allows setting ID to state with zero value,
     /// making it 'nil'
@@ -113,21 +124,24 @@ struct [[nodiscard]] Id {
         return getUnmasked() < other.getUnmasked();
     }
 
-    /// Compare *unmasked* parts of the ID.
+    /// \brief Compare *unmasked* parts of the ID.
     bool operator<=(Id other) const noexcept {
         return getUnmasked() <= other.getUnmasked();
     }
 
-    /// Compare full ID value for equality. \note This handles internal
-    /// value differently from `<` comparison
+    /// \brief Compare full ID value for equality.
+    ///
+    /// \note This handles internal value differently from `<` comparison
     bool operator==(Id other) const noexcept {
         return getValue() == other.getValue();
     }
 
+    /// \brief  Compare full ID value for inequality
     bool operator!=(Id other) const noexcept {
         return getValue() == other.getValue();
     }
 
+    /// \brief Write strig representation of the ID into output stream
     std::ostream& streamTo(std::ostream& os, std::string name = "dod::Id")
         const {
         os << name << "(";
@@ -142,10 +156,6 @@ struct [[nodiscard]] Id {
     IdType value;
 };
 
-template <typename A, typename B, typename C>
-std::ostream& operator<<(std::ostream& os, dod::Id<A, B, C> const& value) {
-    return value.streamTo(os);
-}
 
 #define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)              \
     struct __value;                                                       \
@@ -193,6 +203,13 @@ std::ostream& operator<<(std::ostream& os, dod::Id<A, B, C> const& value) {
 template <typename D>
 concept IsIdType = is_base_of_template_v<Id, D>;
 
+/// \brief Generic ostream template for the ID types
+template <IsIdType Id>
+std::ostream& operator<<(std::ostream& os, Id const& value) {
+    return value.streamTo(os, demangle(typeid(Id).name()));
+}
+
+
 template <IsIdType Id>
 Id& operator--(Id& id) {
     id.setValue(
@@ -230,11 +247,15 @@ Id operator++(Id& id, int) {
     return res;
 }
 
+/// \brief Get distance between two IDs.
+///
+/// \note Masked portions are ignored, only unmasked indices are compared
 template <IsIdType Id>
 typename Id::id_base_type distance(CR<Id> first, CR<Id> last) {
     return saturating_sub(last.getUnmasked(), first.getUnmasked());
 }
 
+/// \brief Get number of elements that slice refers to
 template <IsIdType Id>
 typename Id::id_base_type size(Slice<Id> slice) {
     return distance(slice.first, slice.last) + 1;
@@ -244,6 +265,7 @@ typename Id::id_base_type size(Slice<Id> slice) {
 /// Type trait for accessing value type of the ID type
 template <typename T>
 struct value_type {
+    /// \brief ID value type typedef
     using type = typename T::value_type;
 };
 
@@ -254,6 +276,7 @@ using value_type_t = typename value_type<T>::type;
 /// Type trait tructure for inferring id type of the stored type
 template <typename T>
 struct id_type {
+    /// \brief Stored value ID type
     using type = typename T::id_type;
 };
 
@@ -289,13 +312,20 @@ struct Store {
         return Id(index);
     }
 
+    /// \brief Last element stored in the store (by index)
     Id back() const { return Id::FromValue(content.size()); }
 
+    /// \brief Mutable reference of the value at specific *index* (don't
+    /// confuse with ID)
     auto atIndex(int index) -> T& { return content.at(index); }
+    /// \brief Immutable reference
     auto atIndex(int index) const -> CR<T> { return content.at(index); }
 
+    /// \brief Span view over multiple values referenced by slice.
+    ///
+    /// \note Both start and end ID should ideally have the same store
+    /// index, otherwise this method does not make a lot of sense.
     std::span<T> at(HSlice<Id, Id> slice) {
-        assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
         return content.at(
             slice(slice.first.getIndex(), slice.last.getIndex()));
     }
@@ -357,8 +387,10 @@ template <IsIdType Id, typename Val>
 struct InternStore {
     InternStore() = default;
 
+    /// \brief Reverse ID mapping store
     std::unordered_map<Val, Id> id_map;
-    dod::Store<Id, Val>         content;
+    /// \brief Underlying store for values
+    dod::Store<Id, Val> content;
 
     /// Add value to the store - if the value is already contained can
     /// return previous ID
@@ -373,16 +405,22 @@ struct InternStore {
         }
     }
 
+    /// \brief Value has already been interned in the store
     auto contains(CR<Val> in) const -> bool {
         return id_map.find(in) != id_map.end();
     }
 
+    /// \brief Number of elements
     auto size() const -> std::size_t { return content.size(); }
-    /// Get mutable reference at the content pointed at by the ID
+    /// \brief Get mutable reference at the content pointed at by the ID
     auto at(Id id) -> Val& { return content.at(id); }
-    /// Get immutable references at the content pointed at by the ID
+    /// \brief Get immutable references at the content pointed at by the ID
     auto at(Id id) const -> CR<Val> { return content.at(id); }
 
+    /// \brief Insert new value to the store if it has not already been
+    /// interned
+    ///
+    /// \copydoc Store::insert
     void insert(Id id, CR<Val> value) {
         if (!contains(value)) {
             content.insert(id, value);
@@ -390,13 +428,14 @@ struct InternStore {
         }
     }
 
-    /// Return generator of the stored indices and values
+    /// \brief Return generator of the stored indices and values
     auto pairs() const -> generator<std::pair<Id, CP<Val>>> {
         return content.pairs();
     }
 
-    /// Return generator of the stored values
+    /// \copydoc Store::items
     auto items() const -> generator<CP<Val>> { return content.items(); }
+    /// \copydoc Store::items
     auto items() -> generator<P<Val>> { return content.items(); }
 };
 
@@ -413,28 +452,30 @@ template <typename... Args>
 struct MultiStore {
     inline MultiStore() {}
 
-    //// Get reference to the store that is associated with \param Val
+    //// \brief Get reference to the store that is associated with \tparam
+    /// Val
     template <typename Val>
     requires is_in_pack_v<Store<id_type_t<Val>, Val>, Args...>
     auto store() -> Store<id_type_t<Val>, Val>& {
         return std::get<Store<id_type_t<Val>, Val>>(stores);
     }
 
-    /// An overload for the interned store case
+    /// \brief An overload for the interned store case
     template <typename Val>
     requires is_in_pack_v<InternStore<id_type_t<Val>, Val>, Args...>
     auto store() -> InternStore<id_type_t<Val>, Val>& {
         return std::get<InternStore<id_type_t<Val>, Val>>(stores);
     }
 
-    //// Get reference to the store that is associated with \param Val
+    /// \brief Get reference to the store that is associated with \tparam
+    /// Val
     template <typename Val>
     requires is_in_pack_v<Store<id_type_t<Val>, Val>, Args...>
     auto store() const -> const Store<id_type_t<Val>, Val>& {
         return std::get<Store<id_type_t<Val>, Val>>(stores);
     }
 
-    /// An overload for the interned store case
+    /// \brief An overload for the interned store case
     template <typename Val>
     requires is_in_pack_v<InternStore<id_type_t<Val>, Val>, Args...>
     auto store() const -> const InternStore<id_type_t<Val>, Val>& {
@@ -455,11 +496,13 @@ struct MultiStore {
         return store<value_type_t<Id>>().at(id);
     }
 
+    /// \copydoc Store::at
     template <dod::IsIdType Id>
     auto at(Id id) const -> CR<value_type_t<Id>> {
         return store<value_type_t<Id>>().at(id);
     }
 
+    /// \copydoc Store::insert
     template <typename Id, typename Val>
     void insert(Id id, CR<Val> val) {
         return store<Val>().insert(id, val);
@@ -474,6 +517,7 @@ struct MultiStore {
 namespace std {
 template <dod::IsIdType Id>
 struct hash<Id> {
+    /// \brief Get hash (ID value)
     auto operator()(Id it) const -> std::size_t {
         // Id uniquely identifies any entry it points to, by defintion, so
         // it can be used as a perfect hash

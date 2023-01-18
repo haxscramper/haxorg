@@ -23,29 +23,6 @@ TEST_CASE("General node API", "[node]") {
     NodeGroup<NodeKind, TokenKind> nodes;
     TokenGroup<TokenKind>          tokens;
 
-    SECTION("Flat subnode with no deep nesting") {
-        NIdT top = nodes.startTree(NodeT(NodeKind::K1));
-        nodes.token(
-            NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K1))));
-        nodes.token(
-            NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K2))));
-        nodes.token(
-            NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K3))));
-        nodes.endTree();
-        REQUIRE(nodes.at(top).getExtent() == 3);
-
-        auto [begin, end] = nodes.subnodesOf(top);
-        Vec<TIdT> subtoks;
-        for (; begin != end; ++begin) {
-            subtoks.push_back(nodes.at(*begin).getToken());
-        }
-        REQUIRE(nodes.size(top) == 3);
-        REQUIRE(subtoks.size() == 3);
-        REQUIRE(subtoks.at(0).getIndex() == 0);
-        REQUIRE(subtoks.at(2).getIndex() == 2);
-        REQUIRE(tokens.at(subtoks.at(0)).kind == TokenKind::K1);
-    }
-
     SECTION("Subnode with two levels of nesting") {
         // [ T                         ]
         // [   A       B       C       ]
@@ -53,16 +30,27 @@ TEST_CASE("General node API", "[node]") {
         // {     T1 T2   T3 T4   T5 T6 }
         // [ 0 1 2  3  4 5  6  7 8  9  ]
 
+        //! [nested tree construction]
+
+        // Create toplevel node, stack of pending nodes now contains one
+        // element
         NIdT top = nodes.startTree(NodeT(NodeKind::K1));
         for (int i = 0; i < 3; ++i) {
+            // Create one more nested node, stack has two elements
             NIdT sub = nodes.startTree(NodeT(NodeKind::K2));
+            // Add two terminal subnodes
             nodes.token(
                 NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K1))));
             nodes.token(
                 NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K2))));
+            // Close pending tree
             nodes.endTree();
+            // Now (sub ("K1" "K2")) have been pushed to the node store
+            // together with associted tokens
         }
+        // Close toplevel tree
         nodes.endTree();
+        //! [nested tree construction]
 
         REQUIRE(nodes.size(top) == 3);
 
@@ -89,5 +77,28 @@ TEST_CASE("General node API", "[node]") {
         REQUIRE(size(nodes.allSubnodesOf(A1)) == 1);
         REQUIRE(size(nodes.allSubnodesOf(A)) == 2);
         REQUIRE(size(nodes.allSubnodesOf(top)) == 9);
+    }
+
+    SECTION("Flat subnode with no deep nesting") {
+        NIdT top = nodes.startTree(NodeT(NodeKind::K1));
+        nodes.token(
+            NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K1))));
+        nodes.token(
+            NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K2))));
+        nodes.token(
+            NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K3))));
+        nodes.endTree();
+        REQUIRE(nodes.at(top).getExtent() == 3);
+
+        auto [begin, end] = nodes.subnodesOf(top);
+        Vec<TIdT> subtoks;
+        for (; begin != end; ++begin) {
+            subtoks.push_back(nodes.at(*begin).getToken());
+        }
+        REQUIRE(nodes.size(top) == 3);
+        REQUIRE(subtoks.size() == 3);
+        REQUIRE(subtoks.at(0).getIndex() == 0);
+        REQUIRE(subtoks.at(2).getIndex() == 2);
+        REQUIRE(tokens.at(subtoks.at(0)).kind == TokenKind::K1);
     }
 }

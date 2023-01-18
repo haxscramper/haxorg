@@ -78,26 +78,58 @@ struct Node {
 
 template <typename N, typename K>
 struct NodeGroup {
+    /// \brief Typedef for convenience
     using NodeT = Node<N, K>;
-    using IdT   = NodeId<N, K>;
+    /// \brief Typedef for convenience
+    using IdT = NodeId<N, K>;
+
+    /// \brief Typedef for DOD store API operations
+    using id_type = NodeId<N, K>;
 
     dod::Store<IdT, NodeT> nodes;
 
     Vec<IdT> pendingTrees;
 
+    /// \brief Add token node to the list of nodes
     [[nodiscard]] IdT token(CR<NodeT> node) { return nodes.add(node); }
+
+    /// \brief Add one nonterminal node to the store and push its ID into
+    /// the opening stack
+    ///
+    /// This method is used to create nested tree structure in the manner
+    /// that closely maps implicit stack created by AST construction
+    /// functions (in parser etc.). The parent node is created using
+    /// `startTree()`, subnodes are added to it (in case of linearized AST
+    /// representation there is no direct 'add' operation, elements are
+    /// just pushed to the subtree) and then tree is 'finalized' using
+    /// endTree() call.
+    ///
+    /// For example of the tree construction see tNode.cpp test, relevant
+    /// snippet:
+    ///
+    /// \snippet tNode.cpp nested tree construction
     [[nodiscard]] IdT startTree(CR<NodeT> node) {
         auto res = nodes.add(node);
         pendingTrees.push_back(res);
         return res;
     }
 
-    void endTree() {
+    /// \brief Pop one pending tree and close it using distance from the
+    /// start to the current node position as the full node extent.
+    ///
+    /// \note Used in conjunction with startTree(), see the documentation
+    /// above.
+    ///
+    /// \returns ID of the closed node
+    IdT endTree(
+        int offset = 0 /// Offset for extending closed subnode
+    ) {
         auto start = pendingTrees.pop_back_v();
-        nodes.at(start).extend(distance(start, nodes.back()));
+        nodes.at(start).extend(distance(start, nodes.back()) + offset);
+        return start;
     }
 
-
+    /// \brief Return reference to the node *object* at specified ID
     Node<N, K>&    at(IdT id) { return nodes.at(id); }
     CR<Node<N, K>> at(IdT id) const { return nodes.at(id); }
 
@@ -131,14 +163,20 @@ struct NodeGroup {
     iterator begin(IdT start) const { return iterator(start, this); }
     iterator end(IdT last) const { return iterator(++last, this); }
 
+    /// \brief Get pair of start/end iterators for traversing content of
+    /// the subnodes
     Pair<iterator, iterator> subnodesOf(IdT node) const {
         return {begin(node + 1), end(node + at(node).getExtent())};
     }
 
+    /// \brief Get ID slice over all subnodes that are places 'in' a
+    /// specific node.
     Slice<IdT> allSubnodesOf(IdT node) const {
         return {node + 1, node + at(node).getExtent()};
     }
 
+    /// \brief Get closest left node that contains \arg node in its full
+    /// extent.
     IdT parent(IdT node) const {
         IdT parent = node;
         --parent;
@@ -154,6 +192,7 @@ struct NodeGroup {
         return IdT::Nil();
     }
 
+    /// \brief Get number of direct subnodes
     int size(IdT node) const {
         auto [begin, end] = subnodesOf(node);
         int result        = 0;
@@ -163,6 +202,7 @@ struct NodeGroup {
         return result;
     }
 
+    /// \brief Get id of the Nth subnode
     IdT subnode(IdT node, int index) {
         auto [begin, end] = subnodesOf(node);
         for (int i = 0; i < index; ++i) {
