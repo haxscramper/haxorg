@@ -7,7 +7,7 @@
 #include <hstd/stdlib/charsets.hpp>
 
 #include <lexbase/PosStr.hpp>
-#include <parse/OrgToken.hpp>
+#include <parse/OrgTypes.hpp>
 
 struct ImplementError : public std::runtime_error {
     explicit ImplementError(const std::string& message = "")
