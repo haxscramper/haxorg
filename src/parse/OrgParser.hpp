@@ -5,18 +5,14 @@ struct OrgParser {
 
     void  start(OrgNodeKind kind) { (void)group->startTree(kind); }
     OrgId end() { return group->endTree(); }
-    OrgId token(OrgTokenKind kind, Lexer& lex) {
-        return group->token(lex.get());
+    OrgId token(OrgNodeKind kind, OrgTokenId tok) {
+        return group->token(kind, tok);
+    }
+    OrgId fake(OrgNodeKind kind) {
+        return group->token(kind, OrgToken(otNone));
     }
 
-    void parseParagraph(
-        Lexer&           lex,
-        const ParseConf& parseConf,
-        const bool&      onToplevel);
-
-    void parseTop(Lexer& lex);
-
-    OrgId parseCSVArguments(Lexer& lex) {
+    OrgId parseCSVArguments(OrgLexer& lex) {
         result.add(newTree(orgIdent, lex.pop(OTkIdent)));
         if (lex.at(OTkParOpen)) {
             lex.skip(OTkParOpen);
@@ -30,7 +26,7 @@ struct OrgParser {
         }
     }
 
-    OrgNode parseMacro(Lexer& lex) {
+    OrgNode parseMacro(OrgLexer& lex) {
         OrgNode result;
         lex.skip(OTkMacroOpen);
         result = newTree(orgMacro, parseCSVArguments(lex, parseConf));
@@ -39,45 +35,37 @@ struct OrgParser {
         return result;
     };
 
-    OrgNode parseRawUrl(Lexer& lex) {
-        OrgNode result;
-        result = newTree(orgRawLink, lex.pop(OTkRawUrl));
-        ;
-        return result;
+    OrgId parseRawUrl(OrgLexer& lex) {
+        token(orgRawLink, lex.pop(OTkRawUrl));
     };
 
-    OrgNode parseLink(Lexer& lex) {
-        OrgNode result;
-        result = newTree(orgLink);
-        ;
+    OrgNode parseLink(OrgLexer& lex) {
+        start(orgLink);
         lex.skip(OTkLinkOpen);
         lex.skip(OTkLinkTargetOpen);
         if (lex[OTkLinkInternal]) {
-            result.add(newEmptyNode());
+            fake(orgEmpty);
             result.add(newTree(orgRawText, lex.pop(OTkLinkInternal)));
         } else if (lex[OTkLinkFull]) {
-            result.add(newEmptyNode());
-            result.add(newTree(orgRawText, lex.pop(OTkLinkFull)));
+            fake(orgEmpty);
+            token(orgRawText, lex.pop(OTkLinkFull));
         } else {
-            result.add(newTree(orgIdent, lex.pop(OTkLinkProtocol)));
-            result.add(newTree(orgRawText, lex.pop(OTkLinkTarget)));
-        };
+            token(orgIdent, lex.pop(OTkLinkProtocol));
+            token(orgRawText, lex.pop(OTkLinkTarget));
+        }
         lex.skip(OTkLinkTargetClose);
-        if ((((*(lex))) == (OTkLinkDescriptionOpen))) {
-
+        if (lex.at(OTkLinkDescriptionOpen)) {
             auto sub = lex.getInside(
                 {OTkLinkDescriptionOpen}, {OTkLinkDescriptionClose});
-            ;
-            ;
             result.add(newTree(orgParagraph, sub.parseText(parseConf)));
         } else {
             result.add(newEmptyNode());
-        };
+        }
         lex.skip(OTkLinkClose);
-        return result;
+        return end();
     };
 
-    OrgNode parseInlineMath(Lexer& lex) {
+    OrgNode parseInlineMath(OrgLexer& lex) {
         OrgNode result;
         /*!Parse inline math expression, starting with any of `$`, `$$`,
         `\(`, and `\[`.
@@ -115,7 +103,7 @@ struct OrgParser {
         return result;
     }
 
-    OrgNode parseSymbol(Lexer& lex) {
+    OrgNode parseSymbol(OrgLexer& lex) {
         OrgNode result;
         lex.skip(OTkSymbolStart);
         result = newTree(orgSymbol, newTree(orgIdent, lex.pop(OTkIdent)));
@@ -133,7 +121,7 @@ struct OrgParser {
         return result;
     };
 
-    OrgNode parseHashtag(Lexer& lex) {
+    OrgNode parseHashtag(OrgLexer& lex) {
         OrgNode result;
         result = newTree(
             orgHashTag, newTree(orgRawText, lex.pop(OTkHashTag)));
@@ -156,7 +144,7 @@ struct OrgParser {
         return result;
     };
 
-    OrgNode parseTime(Lexer& lex) {
+    OrgNode parseTime(OrgLexer& lex) {
         OrgNode result;
         result = newTree(
             orgTimeStamp, lex.pop({OTkBracketTime, OTkAngleTime}));
@@ -181,9 +169,9 @@ struct OrgParser {
     };
 
 
-    void parseIdent(Lexer& lex) {}
+    void parseIdent(OrgLexer& lex) {}
 
-    void parseSrcInline(Lexer& lex) {
+    void parseSrcInline(OrgLexer& lex) {
         start(orgSrcInlineCode);
         parseIdent(lex);
         result[R"(lang)"] = newTree(orgIdent, lex.pop(OTkSrcName));
@@ -194,7 +182,7 @@ struct OrgParser {
         return result;
     };
 
-    OrgNode parseTable(Lexer& lex) {
+    OrgNode parseTable(OrgLexer& lex) {
         OrgNode result;
         result = newTree(orgTable);
         ;
@@ -202,7 +190,7 @@ struct OrgParser {
         lex.skip(OTkCmdArguments);
         result.add(newEmptyNode());
 
-        OrgNode parseContent(Lexer & lex) {
+        OrgNode parseContent(OrgLexer & lex) {
             OrgNode result;
 
             auto sub = lex.getInside({OTkContentStart}, {OTkContentEnd});
@@ -281,7 +269,7 @@ struct OrgParser {
     };
 
     OrgNode parseParagraph(
-        Lexer&           lex,
+        OrgLexer&        lex,
         const ParseConf& parseConf,
         const bool&      onToplevel) {
         OrgNode result;
@@ -321,7 +309,7 @@ struct OrgParser {
         return result;
     };
 
-    OrgNode parseCommandArguments(Lexer& lex) {
+    OrgNode parseCommandArguments(OrgLexer& lex) {
         OrgNode result;
         result = newTree(orgInlineStmtList);
         ;
@@ -341,7 +329,7 @@ struct OrgParser {
         return result;
     };
 
-    OrgNode parseSrcArguments(Lexer& lex) {
+    OrgNode parseSrcArguments(OrgLexer& lex) {
         OrgNode result;
         result = newTree(orgCmdArguments);
         ;
@@ -356,7 +344,7 @@ struct OrgParser {
     };
 
     OrgNode parseTextWrapCommand(
-        Lexer&                lex,
+        OrgLexer&             lex,
         const ParseConf&      parseConf,
         const OrgCommandKind& kind) {
         OrgNode result;
@@ -394,7 +382,7 @@ struct OrgParser {
         return result;
     };
 
-    OrgNode parseSrc(Lexer& lex) {
+    OrgNode parseSrc(OrgLexer& lex) {
         OrgNode result;
         result = newTree(orgSrcCode);
         ;
@@ -483,20 +471,13 @@ struct OrgParser {
         return result;
     };
 
-    OrgNode parseNestedList(Lexer& lex) {
-        OrgNode result;
-        return result;
-    };
-
-    OrgNode parseListItemBody(Lexer& lex) {
+    OrgNode parseListItemBody(OrgLexer& lex) {
         OrgNode result;
         /*!Parse *remaining* parts of the list item into a statement list
         node. This procedure does not require a starting stmt list open
         token, and is used for both regular lists and logbook notes.
         */
-        ;
-        result = newTree(orgStmtList);
-        ;
+        start(orgStmtList);
         while ((!(lex[OTkStmtListClose]))) {
             if (lex[OTkIndent, OTkListDash]) {
                 lex.next();
@@ -506,13 +487,12 @@ struct OrgParser {
                 result.add(parseToplevelItem(lex, parseConf));
             };
         };
-        if (((result.len()) == (0))) {
+        if (result.len() == (0)) {
             result.add(newEmptyNode());
         };
-        return result;
     };
 
-    OrgNode parseListItem(Lexer& lex) {
+    OrgNode parseListItem(OrgLexer& lex) {
         OrgNode result;
         /*!Recursively (handles nested list in body) parse a single list
         item starting from the list dash token.
@@ -583,12 +563,12 @@ struct OrgParser {
         return result;
     };
 
-    OrgNode parseNestedList(Lexer& lex) {
+    OrgNode parseNestedList(OrgLexer& lex) {
         OrgNode result;
         result = newTree(orgList);
         ;
 
-        OrgNode nextLevel(Lexer & lex) {
+        OrgNode nextLevel(OrgLexer & lex) {
             OrgNode result;
             lex.skip(OTkIndent);
             result = parseNestedList(lex, parseConf);
@@ -616,7 +596,7 @@ struct OrgParser {
         return result;
     };
 
-    OrgNode parseList(Lexer& lex) {
+    OrgNode parseList(OrgLexer& lex) {
         OrgNode result;
         lex.skip(OTkListStart);
         const auto nested = lex[OTkIndent];
@@ -670,7 +650,7 @@ struct OrgParser {
     };
 
     OrgNode parseLogbookClockEntry(
-        Lexer&           lex,
+        OrgLexer&        lex,
         const ParseConf& parseConf) {
         OrgNode result;
         lex.skip(OTkListClock);
@@ -688,7 +668,7 @@ struct OrgParser {
         return result;
     };
 
-    OrgNode parseLogbookListEntry(Lexer& lex) {
+    OrgNode parseLogbookListEntry(OrgLexer& lex) {
         OrgNode result;
         lex.skip(OTkListDash);
 
@@ -705,7 +685,7 @@ struct OrgParser {
         // head_parser
         {
 
-            auto lex = initLexer(head);
+            auto lex = initOrgLexer(head);
             ;
             ;
             lex.skip(OTkStmtListOpen);
@@ -786,14 +766,14 @@ struct OrgParser {
                         OTkStmtListClose,
                         OTkParagraphEnd,
                         OTkListItemEnd});
-                auto sub          = initLexer(tokens);
+                auto sub          = initOrgLexer(tokens);
                 result[R"(text)"] = parseListItemBody(sub, parseConf);
             }
         }
         return result;
     };
 
-    void parseLogbook(Lexer& lex) {
+    void parseLogbook(OrgLexer& lex) {
         start(orgLogbook);
         lex.skip(OTkColonLogbook);
         lex.skip(OTkLogbookStart);
@@ -832,7 +812,7 @@ struct OrgParser {
         lex.skip(OTkColonEnd);
     }
 
-    OrgNode parseDrawer(Lexer& lex) {
+    OrgNode parseDrawer(OrgLexer& lex) {
         start(orgDrawer);
         while (lex.at(IntSet{
             OTkColonProperties, OTkColonLogbook, OTKColonDescription})) {
@@ -882,7 +862,7 @@ struct OrgParser {
         return result;
     };
 
-    OrgNode parseSubtree(Lexer& lex) {
+    OrgNode parseSubtree(OrgLexer& lex) {
         OrgNode result;
         result = newTree(orgSubtree);
         ;
@@ -952,14 +932,14 @@ struct OrgParser {
         return result;
     };
 
-    void skipLineCommand(Lexer& lex) {
+    void skipLineCommand(OrgLexer& lex) {
         lex.skip(OTkCommandPrefix);
         lex.skip(OTkLineCommand);
         lex.skip(OTkColon);
     };
     /*
 
-    template inDelimiters(lex: var Lexer; start, finish: OrgTokenKind;
+    template inDelimiters(lex: var OrgLexer; start, finish: OrgTokenKind;
     body: untyped): untyped = lex.skip(start) while ?lex and not
     lex[finish]: body lex.skip(finish)
 
@@ -968,14 +948,14 @@ struct OrgParser {
 
     /*
 
-    template inCommandArguments(lex: var Lexer; body: untyped): untyped =
-    inDelimiters(lex, OTkCommandArgumentsBegin, OTkCommandArgumentsEnd,
+    template inCommandArguments(lex: var OrgLexer; body: untyped): untyped
+    = inDelimiters(lex, OTkCommandArgumentsBegin, OTkCommandArgumentsEnd,
     body)
 
     */
     ;
 
-    OrgNode parseOrgFile(Lexer& lex) {
+    OrgNode parseOrgFile(OrgLexer& lex) {
         OrgNode result;
         result = newTree(orgFile);
         ;
@@ -989,7 +969,7 @@ struct OrgParser {
         return result;
     };
 
-    OrgNode parseLineCommand(Lexer& lex) {
+    OrgNode parseLineCommand(OrgLexer& lex) {
         OrgNode result;
 
         const auto kind = classifyCommand(lex.get((+(1))).strVal());
@@ -1139,7 +1119,7 @@ default: {
     }
     ;
 
-    OrgNode parseToplevelItem(Lexer& lex) {
+    OrgNode parseToplevelItem(OrgLexer& lex) {
         OrgNode result;
         /*!Parse single toplevel entry from the input token stream -
         paragraph, list, table, subtree (not recursively), source code
@@ -1262,7 +1242,7 @@ default: {
         return result;
     };
 
-    OrgNode parseTop(Lexer& lex) {
+    OrgNode parseTop(OrgLexer& lex) {
         while (lex.hasNext()) {
             if (lex.at(OTkComment)) {
                 lex.next();

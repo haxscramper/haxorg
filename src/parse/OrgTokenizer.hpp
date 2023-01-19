@@ -136,7 +136,7 @@ const TypArray<char, MarkupConfigPair> markupConfig{{
     {'"', {OTkQuoteOpen, OTkQuoteClose, otNone}},
 }};
 
-struct OrgLexer : public Tokenizer<OrgTokenKind> {
+struct OrgTokenizer : public Tokenizer<OrgTokenKind> {
     void lexAngle(PosStr& str) {
         if (str.at("<%%")) {
             push(str.tok(OTkDiaryTime, [](PosStr& str) {

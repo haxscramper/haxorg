@@ -1,9 +1,9 @@
-#include <parse/OrgLexer.hpp>
+#include <parse/OrgTokenizer.hpp>
 #include "common.hpp"
 
 TEST_CASE("Basic lexer", "[lex]") {
     OrgTokenGroup res;
-    OrgLexer      lexer{&res};
+    OrgTokenizer  lexer{&res};
     std::string   base{"word"};
     PosStr        str{base};
 

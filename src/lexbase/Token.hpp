@@ -144,39 +144,53 @@ struct Tokenizer {
     TokenGroup<K>* out;
     Tokenizer(TokenGroup<K>* _out) : out(_out) {}
     Vec<Token<K>>* buffer = nullptr;
-    void           setBuffer(Vec<Token<K>>* _buffer) { buffer = _buffer; }
-    void           clearBuffer() { buffer = nullptr; }
+    /// \brief Set new active buffer pointer
+    void setBuffer(Vec<Token<K>>* _buffer) { buffer = _buffer; }
+    void clearBuffer() { buffer = nullptr; }
 
-    void push(CR<Token<K>> tok) {
+
+    /// \name Add new token element to the list
+    ///
+    /// \returns ID of the new token or Nil if element is added to the
+    /// buffer instead.
+    ///
+    /// \warning Returns nil IDs or empty list with active buffer!
+    ///@{
+    TokenId<K> push(CR<Token<K>> tok) {
         if (buffer != nullptr) {
             buffer->push_back(tok);
+            return TokenId<K>::Nil();
         } else {
-            (void)out->add(tok);
+            return out->add(tok);
         }
     }
 
-    void push(CR<std::span<Token<K>>> tok) {
+    Vec<TokenId<K>> push(CR<std::span<Token<K>>> tok) {
         if (buffer != nullptr) {
             buffer->append(tok);
+            return Vec<TokenId<K>>();
         } else {
-            out->add(tok);
+            return out->add(tok);
         }
     }
 
-    void push(CR<Vec<Token<K>>> tok) {
+    Vec<TokenId<K>> push(CR<Vec<Token<K>>> tok) {
         if (buffer != nullptr) {
             buffer->append(tok);
+            return Vec<TokenId<K>>();
         } else {
-            out->add(tok);
+            return out->add(tok);
         }
     }
+    ///@}
 };
 
 template <typename K>
-struct Lexer {
+struct LexerCommon {
+  public:
     TokenGroup<K>* in;
-    Lexer(TokenGroup<K>* _in) : in(_in), pos(TokenId<K>(0)) {}
-    TokenId<K> pos;
+    TokenId<K>     pos;
+    LexerCommon(TokenGroup<K>* _in) : in(_in), pos(TokenId<K>(0)) {}
 
     CR<Token<K>> tok(int offset = 0) const { return in->at(get(offset)); }
     TokenId<K>   get(int offset = 0) const { return pos + offset; }
@@ -190,7 +204,6 @@ struct Lexer {
         return tok(offset).kind == kind;
     }
 
-    void next(int offset = 1) { pos = pos + offset; }
 
     bool at(Vec<K> kind, int offset = 0) const {
         for (const auto& [idx, kind] : enumerate(kind)) {
@@ -212,4 +225,48 @@ struct Lexer {
             assert(false && "TODO");
         }
     }
+
+    /// \brief Can advance for at least \arg offset tokens
+    virtual bool hasNext(int offset = 1) const = 0;
+    /// \brief Advance by \arg offset tokens
+    virtual void next(int offset = 1) = 0;
+};
+
+/// \brief Lexer specialization for iterating over all tokens in the token
+/// group
+template <typename K>
+struct Lexer : public LexerCommon<K> {
+    using LexerCommon<K>::pos;
+    using LexerCommon<K>::in;
+
+    void next(int offset = 1) override { pos = pos + offset; }
+    bool hasNext(int offset = 1) const override {
+        return (pos + in).getIndex() < in->size();
+    }
+
+    Lexer(TokenGroup<K>* in) : LexerCommon<K>(in) {}
+};
+
+/// \brief Lexer specialization for iterating over fixed sequence of IDs
+template <typename K>
+struct SubLexer : public LexerCommon<K> {
+    // FIXME without this annotation public fields of the base class are
+    // not not accessible. I don't think this is caused by the shadowing
+    // issue, but aside from that I don't really know.
+    using LexerCommon<K>::pos;
+
+    int             subPos = 0;
+    Vec<TokenId<K>> tokens;
+
+    bool hasNext(int offset = 1) const override {
+        return subPos + offset < tokens.size();
+    }
+
+    void next(int offset = 1) override {
+        // TODO boundary checking
+        subPos += offset;
+        pos = tokens[subPos];
+    }
+
+    SubLexer(TokenGroup<K>* in, Vec<TokenId<K>>) : LexerCommon<K>(in) {}
 };
