@@ -1,7 +1,11 @@
 #pragma once
 
+#include <hstd/stdlib/Str.hpp>
+
 #include <hstd/stdlib/dod_base.hpp>
+
 #include <lexbase/Token.hpp>
+
 #include <variant>
 
 template <typename N, typename K>
@@ -87,6 +91,9 @@ struct NodeGroup {
     using id_type = NodeId<N, K>;
 
     dod::Store<IdT, NodeT> nodes;
+    TokenGroup<K>*         tokens;
+
+    NodeGroup(TokenGroup<K>* _tokens) : tokens(_tokens) {}
 
     Vec<IdT> pendingTrees;
 
@@ -132,6 +139,8 @@ struct NodeGroup {
     /// \brief Return reference to the node *object* at specified ID
     Node<N, K>&    at(IdT id) { return nodes.at(id); }
     CR<Node<N, K>> at(IdT id) const { return nodes.at(id); }
+    Token<K>&      at(TokenId<K> id) { return tokens->at(id); }
+    CR<Token<K>>   at(TokenId<K> id) const { return tokens->at(id); }
 
 
     class iterator {
@@ -209,5 +218,21 @@ struct NodeGroup {
             ++begin;
         }
         return *begin;
+    }
+
+    void treeRepr(std::ostream& os, IdT node, int level) {
+        os << right_aligned(to_string(node.getMask()), 2) << ":"
+           << left_aligned(to_string(node.getUnmasked()), 4) << " ";
+        os << Str::repeat("  ", level);
+        os << to_string(at(node).kind);
+        if (at(node).isTerminal()) {
+            os << " " << at(at(node).getToken());
+        } else {
+            auto [begin, end] = subnodesOf(node);
+            for (; begin != end; ++begin) {
+                os << "\n";
+                treeRepr(os, *begin, level + 1);
+            }
+        }
     }
 };

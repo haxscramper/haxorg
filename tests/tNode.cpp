@@ -3,25 +3,28 @@
 
 enum class NodeKind : u8
 {
-    K1,
-    K2,
-    K3
+    N1,
+    N2,
+    N3
 };
 
 enum class TokenKind : u8
 {
-    K1,
-    K2,
-    K3
+    T1,
+    T2,
+    T3
 };
+
+BOOST_DESCRIBE_ENUM(TokenKind, T1, T2, T3);
+BOOST_DESCRIBE_ENUM(NodeKind, N1, N2, N3);
 
 TEST_CASE("General node API", "[node]") {
     using NodeT  = Node<NodeKind, TokenKind>;
     using NIdT   = NodeId<NodeKind, TokenKind>;
     using TIdT   = TokenId<TokenKind>;
     using TokenT = Token<TokenKind>;
-    NodeGroup<NodeKind, TokenKind> nodes;
     TokenGroup<TokenKind>          tokens;
+    NodeGroup<NodeKind, TokenKind> nodes(&tokens);
 
     SECTION("Subnode with two levels of nesting") {
         // [ T                         ]
@@ -34,22 +37,22 @@ TEST_CASE("General node API", "[node]") {
 
         // Create toplevel node, stack of pending nodes now contains one
         // element
-        NIdT top = nodes.startTree(NodeT(NodeKind::K1));
+        NIdT top = nodes.startTree(NodeT(NodeKind::N1));
         for (int i = 0; i < 3; ++i) {
             // Create one more nested node, stack has two elements
-            NIdT sub = nodes.startTree(NodeT(NodeKind::K2));
+            NIdT sub = nodes.startTree(NodeT(NodeKind::N2));
             // Add two terminal subnodes
-            nodes.token(
-                NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K1))));
-            nodes.token(
-                NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K2))));
+            (void)nodes.token(
+                NodeT(NodeKind::N3, tokens.add(TokenT(TokenKind::T1))));
+            (void)nodes.token(
+                NodeT(NodeKind::N3, tokens.add(TokenT(TokenKind::T2))));
             // Close pending tree
-            nodes.endTree();
+            (void)nodes.endTree();
             // Now (sub ("K1" "K2")) have been pushed to the node store
             // together with associted tokens
         }
         // Close toplevel tree
-        nodes.endTree();
+        (void)nodes.endTree();
         //! [nested tree construction]
 
         REQUIRE(nodes.size(top) == 3);
@@ -77,17 +80,19 @@ TEST_CASE("General node API", "[node]") {
         REQUIRE(size(nodes.allSubnodesOf(A1)) == 1);
         REQUIRE(size(nodes.allSubnodesOf(A)) == 2);
         REQUIRE(size(nodes.allSubnodesOf(top)) == 9);
+
+        nodes.treeRepr(std::cout, top, 0);
     }
 
     SECTION("Flat subnode with no deep nesting") {
-        NIdT top = nodes.startTree(NodeT(NodeKind::K1));
-        nodes.token(
-            NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K1))));
-        nodes.token(
-            NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K2))));
-        nodes.token(
-            NodeT(NodeKind::K2, tokens.add(TokenT(TokenKind::K3))));
-        nodes.endTree();
+        NIdT top = nodes.startTree(NodeT(NodeKind::N1));
+        (void)nodes.token(
+            NodeT(NodeKind::N2, tokens.add(TokenT(TokenKind::T1))));
+        (void)nodes.token(
+            NodeT(NodeKind::N2, tokens.add(TokenT(TokenKind::T2))));
+        (void)nodes.token(
+            NodeT(NodeKind::N2, tokens.add(TokenT(TokenKind::T3))));
+        (void)nodes.endTree();
         REQUIRE(nodes.at(top).getExtent() == 3);
 
         auto [begin, end] = nodes.subnodesOf(top);
@@ -99,6 +104,8 @@ TEST_CASE("General node API", "[node]") {
         REQUIRE(subtoks.size() == 3);
         REQUIRE(subtoks.at(0).getIndex() == 0);
         REQUIRE(subtoks.at(2).getIndex() == 2);
-        REQUIRE(tokens.at(subtoks.at(0)).kind == TokenKind::K1);
+        REQUIRE(tokens.at(subtoks.at(0)).kind == TokenKind::T1);
+
+        nodes.treeRepr(std::cout, top, 0);
     }
 }

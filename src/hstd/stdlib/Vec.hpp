@@ -22,46 +22,57 @@ class Vec : public std::vector<T> {
     using std::vector<T>::end;
     using std::vector<T>::insert;
 
+    /// \brief Append elements from \arg other vector
     void append(CR<Vec<T>> other) {
         insert(end(), other.begin(), other.end());
     }
 
+    /// \brief copy multiple elements referred to by span to the fector
     void append(CR<std::span<T>> other) {
         insert(end(), other.begin(), other.end());
     }
 
+    /// \brief In-place reverse of the vector content
     void reverse() { std::reverse(begin(), end()); }
 
+    /// \brief In-place sort of the vector content
     void sort() { std::sort(begin(), end()); }
 
+    /// \brief Return reversed copy of the vector
     Vec<T> reversed() const {
         Vec<T> result = *this;
         result.reverse();
         return result;
     }
 
+    /// \brief Return sorted copy of the vector
     Vec<T> sorted() const {
         Vec<T> result = *this;
         result.sort();
         return result;
     }
 
+    /// \brief Implicit conversion to the base class
     operator R<std::vector<T>>() {
         return static_cast<std::vector<T>>(*this);
     }
 
+    /// \brief implicit conversion to the base class
     operator CR<std::vector<T>>() const {
         return static_cast<std::vector<T>>(*this);
     }
 
+    /// \brief Check if vector has enough elements to access index \arg idx
     bool has(int idx) const { return idx < size(); }
 
+    /// \brief Access span of elements in mutable vector
     template <typename A, typename B>
     std::span<T> at(CR<HSlice<A, B>> s, bool checkRange = true) {
         const auto [start, end] = getSpan(size(), s, checkRange);
         return std::span(this->data() + start, end - start + 1);
     }
 
+    /// \brief  Access span of elements in immutable vector
     template <typename A, typename B>
     std::span<const T> at(CR<HSlice<A, B>> s, bool checkRange = true)
         const {

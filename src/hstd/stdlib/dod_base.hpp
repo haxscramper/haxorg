@@ -22,7 +22,7 @@ namespace dod {
 ///
 /// \note It does not have a default constructor, if you need co construct
 /// a an empyt/nil value (not recommended) for some field/argument you can
-/// use the static `::Nil` method defined in the derivations produced in
+/// use the static `Id::Nil` method defined in the derivations produced in
 /// the `DECL_ID_TYPE` macro
 ///
 /// \note ID types can be thought of as a pointers or indices into some
@@ -42,6 +42,7 @@ template <
     >
 // TODO implement support for top ID masking via top bits of the value
 struct [[nodiscard]] Id {
+    /// \brief Base type used to store value
     using id_base_type = IdType;
     /// Create new ID value from the stored ID index.
     explicit Id(IdType in) : value(in + 1) {}
@@ -73,18 +74,18 @@ struct [[nodiscard]] Id {
     consteval int getMaskSize() const { return mask_size; }
     /// \brief Get unmasked *value* (do not confuse with index)
     inline IdType getUnmasked() const {
-        return value & ~(~0u << mask_offset);
+        return value & ~(~IdType(0) << mask_offset);
     }
 
     /// \brief Get mask value
     inline MaskType getMask() const {
-        return (value & (~0u << mask_offset)) >> mask_offset;
+        return (value & (~IdType(0) << mask_offset)) >> mask_offset;
     }
 
     /// \brief Get direct value of the mask, with right-padded zeroes that
     /// were occupied by the value.
     inline MaskType getMaskUnshifed() const {
-        return (value & (~0u << mask_offset));
+        return (value & (~IdType(0) << mask_offset));
     }
 
     /// \brief Set unmasked portion of the value
@@ -153,6 +154,7 @@ struct [[nodiscard]] Id {
     }
 
   protected:
+    /// \brief Full value of the ID, including masked part
     IdType value;
 };
 
@@ -210,6 +212,8 @@ std::ostream& operator<<(std::ostream& os, Id const& value) {
 }
 
 
+/// \brief Saturated (won't overflow, stops at zero) In-place decrement of
+/// the ID
 template <IsIdType Id>
 Id& operator--(Id& id) {
     id.setValue(
@@ -217,6 +221,7 @@ Id& operator--(Id& id) {
     return id;
 }
 
+/// \brief Saturated in-place post-decrement of the ID
 template <IsIdType Id>
 Id operator--(Id& id, int) {
     Id res = id;
@@ -225,6 +230,7 @@ Id operator--(Id& id, int) {
     return res;
 }
 
+/// \brief Saturated in-place pre-increment of the ID
 template <IsIdType Id>
 Id& operator++(Id& id) {
     id.setValue(
@@ -233,12 +239,15 @@ Id& operator++(Id& id) {
 }
 
 
+/// \brief Increment ID value by \arg extent. Addition is saturated and
+/// unmasked part won't overflow
 template <IsIdType Id>
 Id operator+(Id id, int extent) {
     return Id::FromValue(
         id.getMaskUnshifed() | saturating_add(id.getUnmasked(), extent));
 }
 
+/// \brief Saturated in-place post-increment of the ID
 template <IsIdType Id>
 Id operator++(Id& id, int) {
     Id res = id;

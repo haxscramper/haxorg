@@ -150,7 +150,7 @@ struct OrgLexer {
         if (buffer != nullptr) {
             buffer->push_back(tok);
         } else {
-            out->add(tok);
+            (void)out->add(tok);
         }
     }
 

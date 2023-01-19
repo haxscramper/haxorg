@@ -77,8 +77,15 @@ struct Token {
 
 template <StringConvertible K>
 std::ostream& operator<<(std::ostream& os, Token<K> const& value) {
-    os << "Token<" << to_string(value.kind) << ">(" << value.text << ")";
-    return os;
+    os << "Token<" << to_string(value.kind) << ">(";
+    if (value.hasData()) {
+        os << escape_literal(to_string(value.text));
+    } else if (value.hasOffset()) {
+        os << "offset:" << value.text.size();
+    } else {
+        os << "?";
+    }
+    return os << ")";
 }
 
 
@@ -105,7 +112,7 @@ struct TokenGroup {
     }
 
 
-    Token<K>& at(TokenId<K> pos) { tokens.at(pos); }
+    Token<K>& at(TokenId<K> pos) { return tokens.at(pos); }
 
     std::span<Token<K>> at(HSlice<TokenId<K>, TokenId<K>> slice) {
         assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());

@@ -4,6 +4,9 @@
 #include <string>
 #include <sstream>
 
+#include <boost/mp11.hpp>
+#include <boost/describe.hpp>
+
 #ifdef __GNUG__
 #    include <cstdlib>
 #    include <memory>
@@ -45,3 +48,50 @@ template <typename T>
 concept StringConvertible = requires(T value) {
     { to_string(value) } -> std::same_as<std::string>;
 };
+
+template <typename T>
+std::string to_string(T value) requires(
+    boost::describe::has_describe_enumerators<T>::value) {
+    return boost::describe::enum_to_string(value, "<unnamed>");
+}
+
+
+/// \brief Escape string literal, converting newline and other (TODO)
+/// control characters into unicode.
+inline std::string escape_literal(std::string const& in) {
+    std::string res;
+    res.reserve(in.size() + 2);
+    res += "«";
+    for (char c : in) {
+        if (c == '\n') {
+            res += "␤";
+
+        } else {
+            res += c;
+        }
+    }
+
+    res += "»";
+
+    return res;
+}
+
+inline std::string right_aligned(
+    CR<std::string> str,
+    int             n,
+    char            c = ' ') {
+    std::string res;
+    if (str.size() < n) {
+        res.append(n - str.size(), c);
+    }
+    res.append(str);
+    return res;
+}
+
+inline std::string left_aligned(CR<std::string> str, int n, char c = ' ') {
+    auto s = str;
+    if (s.size() < n) {
+        s.append(n - s.size(), c);
+    }
+    return s;
+}

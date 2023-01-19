@@ -22,17 +22,21 @@ struct LineCol {
     int column;
 };
 
+/// \brief Base parse error
 struct ParseError : public std::runtime_error {
+    /// \brief Line and column of the error location
     LineCol loc;
     explicit ParseError(const std::string& message, LineCol _loc)
         : std::runtime_error(message), loc(_loc) {}
 };
 
+/// \brief Base lexer error type
 struct LexerError : public ParseError {
     explicit LexerError(const std::string& message, LineCol _loc)
         : ParseError(message, _loc) {}
 };
 
+/// \brief Raised when unexpected character is encountered at position
 struct UnexpectedCharError : public LexerError {
     explicit UnexpectedCharError(const std::string& message, LineCol _loc)
         : LexerError(message, _loc) {}
@@ -40,6 +44,8 @@ struct UnexpectedCharError : public LexerError {
 
 
 struct UnbalancedWrapError : public LexerError {};
+/// \brief Can be raised by user-provided lexer to indicate malformed token
+/// at position
 struct MalformedTokenError : public LexerError {};
 
 /// Type constraint for types that can be passed into base methods of the
@@ -52,41 +58,57 @@ concept PosStrCheckable = (                                 //
     || std::convertible_to<std::remove_cvref_t<S>, std::string>);
 
 
+/// \brief Resolve relative location in the string view span into an
+/// absolute line/column value
 struct LocationResolver {
+    /// \brief Pointer to the absolute base of the string being processed
     const char* absBase;
 
+    /// \brief Get line and column information using absolute position in
+    /// the string
     LineCol getLineCol(int pos) {
         // IMPLEMENT
         return {0, 0};
     }
 
+    /// \brief  Get line and column using base of the string view and
+    /// position inside of the view
     LineCol getLineCol(const char* base, int pos) {
         return getLineCol(pos);
     }
 };
 
+/// \brief String wrapper with tracked position
 struct PosStr {
+    /// \brief Resolve absolute position to specific line and column
     std::shared_ptr<LocationResolver> resolver;
 
     struct SliceStartData {
         int pos;
     };
 
+    /// \brief Pending slice content
     Vec<SliceStartData> slices;
-    /// Underlying string view
+    /// \brief Underlying string view
     std::string_view view;
-    /// Absolute offset from the start of string view
+    /// \brief Absolute offset from the start of string view
     int pos = 0;
 
 
+    /// \brief Consturct stirng using base view and starting position in
+    /// the view
     PosStr(std::string_view inView, int inPos = 0)
         : view(inView), pos(inPos) {}
 
+    /// \brief Consturct positional stirng using start view data and size
+    /// of the string
     PosStr(const char* data, int count, int inPos = 0)
         : view(data, count), pos(inPos) {}
 
 
+    /// \brief Convert underlying view to the string
     Str toStr() const { return Str(view); }
+    /// \brief Get size of hte underlying view
     int size() const { return view.size(); }
 
     std::string_view getOffsetView(int ahead = 0) const {
@@ -94,6 +116,8 @@ struct PosStr {
             view.data() + pos + ahead, view.size() - (pos + ahead));
     }
 
+    /// \brief Create new positional string using \arg s slice to cut into
+    /// underlying view.
     template <typename A, typename B>
     PosStr at(CR<HSlice<A, B>> s, bool checkRange = true) const {
         const auto base         = getOffsetView();
@@ -110,18 +134,26 @@ struct PosStr {
 #endif
     }
 
+    /// \brief Push new pending slice starting at the current position
     void pushSlice() { slices.push_back({pos}); }
-    int  getPos() const { return pos; }
+    /// \brief Get current position in slice
+    int getPos() const { return pos; }
+    /// \brief Assign new position in slice
     void setPos(int _pos) { pos = _pos; }
 
+    /// \brief User callback to advance string position
     using AdvanceCb = std::function<void(PosStr&)>;
+    /// \brief Slice pop offset parameters
     struct Offset {
+        /// \brief Offset popped slice start by N characters
         int start;
+        /// \brief Offset popped slice end by N characters
         int end;
         Offset(int _start = 0, int _end = 0) : start(_start), end(_end) {}
     };
 
 
+    /// \brief Complete view with given offset parameters
     std::string_view completeView(
         CR<SliceStartData> slice,
         Offset             offset = Offset()) const {
@@ -130,28 +162,32 @@ struct PosStr {
             pos - slice.pos + offset.end);
     }
 
+    /// \brief Create new positional substring
     PosStr sliceBetween(int start, int end) const {
         return PosStr{
             std::string_view(view.data() + start, end - start + 1)};
     }
 
+    /// \brief Create fake token starting with the current position
     template <typename K>
     Token<K> fakeTok(K kind, Offset offset = Offset()) {
         return Token(kind, pos);
     }
 
-    /// Pop last slice into a token object
+    /// \brief Pop last slice into a token object
     template <typename K>
     Token<K> popTok(K kind, Offset offset = Offset()) {
         return Token(kind, completeView(slices.pop_back_v(), offset));
     }
 
+    /// \brief Pop pending slice into new positional substring
     PosStr popSlice(Offset offset = {}) {
         auto slice = slices.pop_back_v();
         return PosStr(completeView(slice, offset));
     }
 
 
+    /// \brief User callback implemented as a regular function
     template <typename... Args>
     using AdvanceHandler = void(PosStr&, Args...);
 
@@ -204,20 +240,24 @@ struct PosStr {
         return popSlice(offset);
     }
 
+    /// \brief Any chars left in the underlying view
     bool hasNext(int shift = 1) const { return pos < view.size(); }
 
+    /// \brief Retract \arg count characters back
     void back(int count = 1) {
         for (int i = 0; i < count; ++i) {
             --pos;
         }
     }
 
+    /// \brief Advance \arg count characters forward
     void next(int count = 1) {
         for (int i = 0; i < count; ++i) {
             ++pos;
         }
     }
 
+    /// \brief Get character at current position + \arg offset
     char get(int offset = 0) const {
         char result = '\0';
         if (pos + offset < view.size()) {
@@ -226,10 +266,14 @@ struct PosStr {
         return result;
     }
 
+    /// \brief No new characters left
     bool finished() const { return get() == '\0'; }
+    /// \brief At the start of underlying view
     bool atStart() const { return pos == 0; }
+    /// \brief Has exactly one character left
     bool beforeEnd() const { return !hasNext(1); }
 
+    /// \brief Get current character and advance one step forward
     char pop() {
         char result = get();
         next();
