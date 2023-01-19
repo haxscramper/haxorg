@@ -136,41 +136,7 @@ const TypArray<char, MarkupConfigPair> markupConfig{{
     {'"', {OTkQuoteOpen, OTkQuoteClose, otNone}},
 }};
 
-struct OrgLexer {
-    OrgTokenGroup* out;
-
-    OrgLexer(OrgTokenGroup* _out) : out(_out) {}
-
-    Vec<OrgToken>* buffer = nullptr;
-    void           setBuffer(Vec<OrgToken>* _buffer) { buffer = _buffer; }
-    void           clearBuffer() { buffer = nullptr; }
-
-
-    void push(CR<OrgToken> tok) {
-        if (buffer != nullptr) {
-            buffer->push_back(tok);
-        } else {
-            (void)out->add(tok);
-        }
-    }
-
-
-    void push(CR<std::span<OrgToken>> tok) {
-        if (buffer != nullptr) {
-            buffer->append(tok);
-        } else {
-            out->add(tok);
-        }
-    }
-
-    void push(CR<Vec<OrgToken>> tok) {
-        if (buffer != nullptr) {
-            buffer->append(tok);
-        } else {
-            out->add(tok);
-        }
-    }
-
+struct OrgLexer : public Tokenizer<OrgTokenKind> {
     void lexAngle(PosStr& str) {
         if (str.at("<%%")) {
             push(str.tok(OTkDiaryTime, [](PosStr& str) {

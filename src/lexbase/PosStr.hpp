@@ -105,6 +105,10 @@ struct PosStr {
     PosStr(const char* data, int count, int inPos = 0)
         : view(data, count), pos(inPos) {}
 
+    /// \brief Consturct positional stirng using start view data and size
+    /// of the string
+    PosStr(std::string const& str, int inPos = 0)
+        : view(str.data(), str.size()), pos(inPos) {}
 
     /// \brief Convert underlying view to the string
     Str toStr() const { return Str(view); }

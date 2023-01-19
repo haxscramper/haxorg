@@ -111,10 +111,14 @@ struct [[nodiscard]] Id {
     /// Get index of the ID, for accessing the store. Returned value is
     /// computated while accounting for masked bits so it can be different
     /// from the `getValue()`
-    ///
-    /// \warning in case of a 'nil' type this might return an invalid index
-    /// (`<0`)
-    auto getIndex() const noexcept -> IdType { return getUnmasked() - 1; }
+    auto getIndex() const -> IdType {
+        if (isNil()) {
+            throw std::out_of_range(
+                "Cannot get index for nil value of DOD ID");
+        } else {
+            return (getUnmasked() - 1);
+        }
+    }
     /// Get string representation of the ID value
     auto getStr() const -> std::string { return std::to_string(value); }
 
@@ -143,13 +147,30 @@ struct [[nodiscard]] Id {
     }
 
     /// \brief Write strig representation of the ID into output stream
-    std::ostream& streamTo(std::ostream& os, std::string name = "dod::Id")
-        const {
-        os << name << "(";
-        if (0 < mask_size) {
-            os << getMask() << ":";
+    std::ostream& streamTo(
+        std::ostream& os,
+        std::string   name     = "dod::Id",
+        bool          withMask = true) const {
+        if (name.size() != 0) {
+            os << name << "(";
         }
-        os << getIndex() << ")";
+
+        if (withMask) {
+            if (0 < mask_size) {
+                os << getMask() << ":";
+            }
+        }
+
+        if (isNil()) {
+            os << "<nil>";
+        } else {
+            os << getIndex();
+        }
+
+        if (name.size() != 0) {
+            os << ")";
+        }
+
         return os;
     }
 

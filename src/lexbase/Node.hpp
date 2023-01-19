@@ -99,6 +99,10 @@ struct NodeGroup {
 
     /// \brief Add token node to the list of nodes
     [[nodiscard]] IdT token(CR<NodeT> node) { return nodes.add(node); }
+    /// \brief Create new token node
+    [[nodiscard]] IdT token(N node, TokenId<K> tok) {
+        return nodes.add(Node<N, K>(node, tok));
+    }
 
     /// \brief Add one nonterminal node to the store and push its ID into
     /// the opening stack
@@ -220,18 +224,43 @@ struct NodeGroup {
         return *begin;
     }
 
-    void treeRepr(std::ostream& os, IdT node, int level) {
-        os << right_aligned(to_string(node.getMask()), 2) << ":"
-           << left_aligned(to_string(node.getUnmasked()), 4) << " ";
+    struct TreeReprConf {
+        bool        withTokenMask = false;
+        bool        withTreeMask  = false;
+        const char* fullBase      = nullptr;
+    };
+
+    void treeRepr(
+        std::ostream&    os,
+        IdT              node,
+        int              level,
+        CR<TreeReprConf> conf = TreeReprConf()) {
+        if (conf.withTreeMask) {
+            os << right_aligned(to_string(node.getMask()), 2) << ":";
+        }
+
+        os << left_aligned(to_string(node.getUnmasked()), 4) << " ";
         os << Str::repeat("  ", level);
         os << to_string(at(node).kind);
         if (at(node).isTerminal()) {
-            os << " " << at(at(node).getToken());
+            auto tok = at(node).getToken();
+            os << " #";
+            tok.streamTo(os, "", conf.withTokenMask);
+            os << " ";
+            os << at(tok);
+            if (conf.fullBase != nullptr && at(tok).hasData()) {
+                os << " ";
+                auto start = std::distance(
+                    conf.fullBase, at(tok).text.data());
+                os << start;
+                os << "..";
+                os << start + at(tok).text.size() - 1;
+            }
         } else {
             auto [begin, end] = subnodesOf(node);
             for (; begin != end; ++begin) {
                 os << "\n";
-                treeRepr(os, *begin, level + 1);
+                treeRepr(os, *begin, level + 1, conf);
             }
         }
     }
