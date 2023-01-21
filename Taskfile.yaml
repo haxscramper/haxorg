@@ -6,3 +6,8 @@ tasks:
     cmds:
       - xmake config -m debug
       - xmake build --warning --yes test
+
+  plantuml:
+    desc: "Compile and test plantuml grammar"
+    cmds:
+      - xmake build --verbose --warning --yes plantuml_parser

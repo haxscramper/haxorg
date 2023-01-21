@@ -1,0 +1,2 @@
+This directory contains antlr grammars and support code for various DSL and
+embedded source code blocks that haxorg can interpret in the document.
