@@ -1,4 +1,6 @@
 add_requires("catch2")
+add_rules("mode.debug")
+
 
 target(
     "test",
@@ -6,6 +8,20 @@ target(
         set_languages("c++20")
         add_includedirs("src/")
         add_includedirs("deps/result/include")
+        -- add_includedirs("deps/backward-cpp")
+
+        -- add_links("dw")
+        -- add_defines("BACKWARD_HAS_DW=1")
+
+        -- add_links("bfd", "dl")
+        -- add_defines("BACKWARD_HAS_BFD=1")
+
+        -- add_links("dwarf", "backward", "")
+        -- add_defines("BACKWARD_HAS_DWARF=1")
+        -- add_includedirs("/usr/include/libdwarf/libdwarf-0/")
+
+        -- add_files("deps/backward-cpp/backward.cpp")
+
         add_files("tests/t*.cpp")
         add_files("src/**/*.cpp")
         add_packages("catch2", "result")

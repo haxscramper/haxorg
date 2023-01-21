@@ -126,6 +126,8 @@ struct TokenGroup {
         assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
         tokens.at(slice(slice.first.getIndex(), slice.last.getIndex()));
     }
+
+    int size() const { return tokens.size(); }
 };
 
 template <typename K>
@@ -195,9 +197,9 @@ struct LexerCommon {
     CR<Token<K>> tok(int offset = 0) const { return in->at(get(offset)); }
     TokenId<K>   get(int offset = 0) const { return pos + offset; }
     TokenId<K>   pop() {
-          TokenId<K> result = pos;
-          next();
-          return result;
+        TokenId<K> result = pos;
+        next();
+        return result;
     }
 
     bool at(K kind, int offset = 0) const {
@@ -241,7 +243,7 @@ struct Lexer : public LexerCommon<K> {
 
     void next(int offset = 1) override { pos = pos + offset; }
     bool hasNext(int offset = 1) const override {
-        return (pos + in).getIndex() < in->size();
+        return (pos + offset).getIndex() < in->size();
     }
 
     Lexer(TokenGroup<K>* in) : LexerCommon<K>(in) {}

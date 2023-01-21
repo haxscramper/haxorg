@@ -113,7 +113,7 @@ def find_enums(cursor, basefile) -> List:
 # library has different name. Alternative solution would be to symlink
 # correct target library but I prefer to have more localized configuration
 # in this case.
-clang.cindex.Config.set_library_file("/usr/lib/libclang.so.14.0.6")
+clang.cindex.Config.set_library_file("/usr/lib/libclang.so.15")
 index = clang.cindex.Index.create()
 tu = index.parse(args.infile)
 enums = find_enums(tu.cursor, args.infile)
