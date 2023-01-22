@@ -3,9 +3,15 @@ version: 3
 tasks:
   tests:
     desc: "Compile and run tests"
+    dir: build
+    env:
+      CLICOLOR_FORCE: 1
     cmds:
-      - xmake config -m debug
-      - xmake build --warning --yes test
+      - cmake --log-level=TRACE ..
+      - make -j8
+      - ../tests.bin
+      # - cmake -GNinja ..
+      # - ninja -v
 
   plantuml:
     desc: "Compile and test plantuml grammar"
