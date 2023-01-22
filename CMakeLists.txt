@@ -27,21 +27,6 @@ if(NOT WIN32)
   set(cBoldWhite "${Esc}[1;37m")
 endif()
 
-function(set_target_error_flags TARGET)
-  target_compile_options(${TARGET} PRIVATE -w)
-  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-    # Avoid getting flooded with compilation errors
-    set(CMAKE_CXX_COMPILER clang++)
-    target_compile_options(${TARGET} PRIVATE -ferror-limit=1)
-  endif()
-
-  if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
-    # Same configuration option for g++ compiler
-    set(CMAKE_CXX_COMPILER g++)
-    target_compile_options(${TARGET} PRIVATE -fmax-errors=1)
-  endif()
-endfunction()
-
 function(set_target_output TARGET)
   # Set target output suffix and location relative to the cmake sorce
   # directory
@@ -110,6 +95,23 @@ function(add_target_property TARGET PROPERTY VALUE)
     PROPERTY "${PROPERTY}" "${VALUE}")
 endfunction()
 
+function(set_target_error_flags TARGET)
+  add_target_property(${TARGET} COMPILE_OPTIONS -w)
+  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+    # Avoid getting flooded with compilation errors
+    set(CMAKE_CXX_COMPILER clang++)
+    add_target_property(${TARGET} COMPILE_OPTIONS -ferror-limit=1)
+  endif()
+
+  if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
+    # Same configuration option for g++ compiler
+    set(CMAKE_CXX_COMPILER g++)
+    add_target_property(${TARGET} COMPILE_OPTIONS -fmax-errors=1)
+  endif()
+endfunction()
+
+
+
 function(list_filter_files OUT GLOB REGEX)
   file(GLOB_RECURSE TMP ${GLOB})
   list(FILTER TMP INCLUDE REGEX "${REGEX}")
@@ -125,17 +127,21 @@ function(tmp TARGET PROPERTY VALUE)
     PROPERTY "${PROPERTY}" "${VALUE}")
 endfunction()
 
+find_package(antlr4-runtime REQUIRED)
+find_package(antlr4-generator REQUIRED)
+find_package(Catch2 3 REQUIRED)
+
+add_subdirectory("${BASE}/deps/backward-cpp")
+
 function(set_common_files TARGET)
   list_filter_files(SRC_FILES *.cpp "${BASE}/src/.*")
   list_filter_files(HEADER_FILES *.hpp "${BASE}/src/.*")
   add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
   add_target_property("${TARGET}" HEADERS "${HEADER_FILES}")
   add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/src")
+  add_target_property("${TARGET}" SOURCES "${BACKWARD_ENABLE}")
+  add_target_property("${TARGET}" LINK_LIBRARIES dw)
 endfunction()
-
-find_package(antlr4-runtime REQUIRED)
-find_package(antlr4-generator REQUIRED)
-find_package(Catch2 3 REQUIRED)
 
 function(add_antlr_base TARGET)
   # add directories for generated include files

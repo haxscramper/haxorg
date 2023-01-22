@@ -7,11 +7,12 @@ tasks:
     env:
       CLICOLOR_FORCE: 1
     cmds:
-      - cmake --log-level=TRACE ..
+      - rm -rf *
+      # - cmake -DCMAKE_BUILD_TYPE=Debug -GNinja --log-level=TRACE ..
+      - cmake -DCMAKE_BUILD_TYPE=Debug --log-level=TRACE ..
       - make -j8
-      - ../tests.bin
-      # - cmake -GNinja ..
       # - ninja -v
+      - ../tests.bin
 
   plantuml:
     desc: "Compile and test plantuml grammar"
