@@ -110,8 +110,6 @@ function(set_target_error_flags TARGET)
   endif()
 endfunction()
 
-
-
 function(list_filter_files OUT GLOB REGEX)
   file(GLOB_RECURSE TMP ${GLOB})
   list(FILTER TMP INCLUDE REGEX "${REGEX}")
@@ -185,5 +183,13 @@ add_custom_target(
                           "${AUTOGEN_BUILD_DIR}/autogen_enum_help.cpp")
 
 add_dependencies(tests enum_reflection)
-
 add_target_property(tests INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
+
+# generate parser
+# set(ANTLR4_JAR_LOCATION "/usr/share/java/antlr-complete.jar")
+# antlr4_generate(plantuml "${BASE}/src/grammars/PLantUML.g4" BOTH FALSE
+#                 TRUE)
+
+
+
+# add_target_property(tests SOURCES "${ANTLR4_SRC_FILES_plantuml}")

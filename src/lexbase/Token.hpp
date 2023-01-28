@@ -2,6 +2,7 @@
 
 #include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/IntSet.hpp>
+#include <hstd/stdlib/Str.hpp>
 
 template <typename K>
 struct Token;
@@ -49,6 +50,14 @@ struct Token {
     /// \note Default offset parameter is -1 which creates token that is
     /// completely detached from any real position.
     Token(K _kind, int offset = -1) : kind(_kind), text(nullptr, offset) {}
+
+    Str strVal() const {
+        if (hasData()) {
+            return Str(text.data(), text.size());
+        } else {
+            return "";
+        }
+    }
 
     /// \brief Check if token has any offset information
     bool hasOffset() const { return hasData() || text.size() != -1; }
@@ -194,11 +203,37 @@ struct LexerCommon {
     TokenId<K>     pos;
     LexerCommon(TokenGroup<K>* _in) : in(_in), pos(TokenId<K>(0)) {}
 
+    K   kind(int offset = 0) const { return tok(offset).kind; }
+    Str strVal(int offset = 0) const {
+        return in->at(get(offset)).strVal();
+    }
     CR<Token<K>> tok(int offset = 0) const { return in->at(get(offset)); }
     TokenId<K>   get(int offset = 0) const { return pos + offset; }
     TokenId<K>   pop() {
         TokenId<K> result = pos;
         next();
+        return result;
+    }
+
+
+    TokenId<K> pop(IntSet<K> kind) {
+        TokenId<K> result = get();
+        skip(kind);
+        return result;
+    }
+
+    TokenId<K> pop(K kind) {
+        TokenId<K> result = get();
+        skip(kind);
+        return result;
+    }
+
+    Vec<TokenId<K>> pop(int count) {
+        assert(0 <= count);
+        Vec<TokenId<K>> result;
+        for (int i = 0; i < count; ++i) {
+            result.push_back(pop());
+        }
         return result;
     }
 
@@ -220,7 +255,25 @@ struct LexerCommon {
         return kind.contains(tok(offset).kind);
     }
 
-    void skip(K kind) {
+    int find(CR<IntSet<K>> skip, CR<IntSet<K>> target) const {
+        int offset = 0;
+        while (at(skip, offset)) {
+            ++offset;
+        }
+
+        if (at(target, offset)) {
+            return offset;
+        } else {
+            return -1;
+        }
+    }
+
+    bool ahead(CR<IntSet<K>> skip, CR<IntSet<K>> target) const {
+        return find(skip, target) != 0;
+    }
+
+
+    void skip(CR<IntSet<K>> kind) {
         if (at(kind)) {
             next();
         } else {
@@ -228,25 +281,80 @@ struct LexerCommon {
         }
     }
 
+    void skip(K kind) {
+        if (at(kind)) {
+            next();
+        } else {
+            assert(false && "TODO");
+        }
+    }
+    void skip(K kind, CR<Str> str) {
+        if (at(kind) && strVal() == str) {
+            next();
+        } else {
+            assert(false && "TODO");
+        }
+    }
+
+    void trySkip(K kind) {
+        if (at(kind)) {
+            next();
+        }
+    }
+
+    bool finished() const { return !hasNext(0); }
     /// \brief Can advance for at least \arg offset tokens
     virtual bool hasNext(int offset = 1) const = 0;
     /// \brief Advance by \arg offset tokens
     virtual void next(int offset = 1) = 0;
-};
 
-/// \brief Lexer specialization for iterating over all tokens in the token
-/// group
-template <typename K>
-struct Lexer : public LexerCommon<K> {
-    using LexerCommon<K>::pos;
-    using LexerCommon<K>::in;
-
-    void next(int offset = 1) override { pos = pos + offset; }
-    bool hasNext(int offset = 1) const override {
-        return (pos + offset).getIndex() < in->size();
+    int find(K kind) {
+        int offset = 0;
+        while (hasNext(offset)) {
+            if (at(kind, offset)) {
+                return offset;
+            } else {
+                ++offset;
+            }
+        }
+        if (!hasNext(offset)) {
+            return -1;
+        }
     }
 
-    Lexer(TokenGroup<K>* in) : LexerCommon<K>(in) {}
+    Vec<TokenId<K>> getInside(IntSet<K> start, IntSet<K> finish) {
+        Vec<TokenId<K>> result;
+        int             count = 0;
+        while (start.contains(kind())) {
+            next();
+        }
+        count++;
+
+        while (0 < count) {
+            if (start.contains(kind())) {
+                while (start.contains(kind())) {
+                    if (0 < count) {
+                        result.push_back(pop());
+                    } else {
+                        next();
+                    }
+                }
+                count++;
+            } else if (finish.contains(kind())) {
+                while (finish.contains(kind())) {
+                    if (1 < count) {
+                        result.push_back(pop());
+                    } else {
+                        next();
+                    }
+                }
+                count--;
+            } else {
+                result.push_back(pop());
+            }
+        }
+        return result;
+    }
 };
 
 /// \brief Lexer specialization for iterating over fixed sequence of IDs
@@ -270,5 +378,29 @@ struct SubLexer : public LexerCommon<K> {
         pos = tokens[subPos];
     }
 
-    SubLexer(TokenGroup<K>* in, Vec<TokenId<K>>) : LexerCommon<K>(in) {}
+    SubLexer(TokenGroup<K>* in, Vec<TokenId<K>> _tokens)
+        : LexerCommon<K>(in), tokens(_tokens) {}
 };
+
+
+/// \brief Lexer specialization for iterating over all tokens in the token
+/// group
+template <typename K>
+struct Lexer : public LexerCommon<K> {
+    using LexerCommon<K>::pos;
+    using LexerCommon<K>::in;
+
+    void next(int offset = 1) override { pos = pos + offset; }
+    bool hasNext(int offset = 1) const override {
+        return (pos + offset).getIndex() < in->size();
+    }
+
+    Lexer(TokenGroup<K>* in) : LexerCommon<K>(in) {}
+};
+
+template <typename K>
+inline SubLexer<K> splinter(
+    LexerCommon<K>&        lex,
+    const Vec<TokenId<K>>& ids) {
+    return SubLexer<K>(lex.in, ids);
+}
