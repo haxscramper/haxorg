@@ -95,8 +95,13 @@ function(add_target_property TARGET PROPERTY VALUE)
     PROPERTY "${PROPERTY}" "${VALUE}")
 endfunction()
 
+option(TRACE_INSTRUMENT "Generate instrumentation trace")
+
 function(set_target_error_flags TARGET)
   add_target_property(${TARGET} COMPILE_OPTIONS -w)
+  if(${TRACE_INSTRUMENT})
+    add_target_property(${TARGET} COMPILE_OPTIONS -finstrument-functions)
+  endif()
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     # Avoid getting flooded with compilation errors
     set(CMAKE_CXX_COMPILER clang++)
@@ -182,11 +187,8 @@ add_custom_target(
 add_dependencies(tests enum_reflection)
 add_target_property(tests INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
 
-# generate parser
-# set(ANTLR4_JAR_LOCATION "/usr/share/java/antlr-complete.jar")
-# antlr4_generate(plantuml "${BASE}/src/grammars/PLantUML.g4" BOTH FALSE
-#                 TRUE)
-
-
+# generate parser set(ANTLR4_JAR_LOCATION
+# "/usr/share/java/antlr-complete.jar") antlr4_generate(plantuml
+# "${BASE}/src/grammars/PLantUML.g4" BOTH FALSE TRUE)
 
 # add_target_property(tests SOURCES "${ANTLR4_SRC_FILES_plantuml}")

@@ -80,8 +80,6 @@ TEST_CASE("General node API", "[node]") {
         REQUIRE(size(nodes.allSubnodesOf(A1)) == 1);
         REQUIRE(size(nodes.allSubnodesOf(A)) == 2);
         REQUIRE(size(nodes.allSubnodesOf(top)) == 9);
-
-        nodes.treeRepr(std::cout, top, 0);
     }
 
     SECTION("Flat subnode with no deep nesting") {
@@ -105,7 +103,5 @@ TEST_CASE("General node API", "[node]") {
         REQUIRE(subtoks.at(0).getIndex() == 0);
         REQUIRE(subtoks.at(2).getIndex() == 2);
         REQUIRE(tokens.at(subtoks.at(0)).kind == TokenKind::T1);
-
-        nodes.treeRepr(std::cout, top, 0);
     }
 }

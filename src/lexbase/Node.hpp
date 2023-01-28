@@ -230,6 +230,37 @@ struct NodeGroup {
         const char* fullBase      = nullptr;
     };
 
+    void lispRepr(
+        std::ostream&    os,
+        IdT              node,
+        CR<TreeReprConf> conf = TreeReprConf()) {
+        os << "(" << to_string(node.getMask()) << ":"
+           << to_string(node.getUnmasked()) << " "
+           << to_string(at(node).kind);
+
+        if (at(node).isTerminal()) {
+            auto tok = at(node).getToken();
+            os << " '";
+            tok.streamTo(os, "", true);
+            os << "'";
+            if (conf.fullBase != nullptr && at(tok).hasData()) {
+                os << " ";
+                auto start = std::distance(
+                    conf.fullBase, at(tok).text.data());
+                os << start;
+                os << "..";
+                os << start + at(tok).text.size() - 1;
+            }
+        } else {
+            auto [begin, end] = subnodesOf(node);
+            for (; begin != end; ++begin) {
+                os << " ";
+                lispRepr(os, *begin, conf);
+            }
+        }
+        os << ")";
+    }
+
     void treeRepr(
         std::ostream&    os,
         IdT              node,

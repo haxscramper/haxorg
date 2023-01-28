@@ -74,6 +74,8 @@ TEST_CASE("Core linearlized AST parser", "[node]") {
     auto                           top = parse(nodes, lexer);
 
     REQUIRE(tokens.tokens.size() == base.size());
-    nodes.treeRepr(std::cout, top, 0, {.fullBase = base.data()});
-    std::cout << "\n";
+    // nodes.lispRepr(std::cout, top, {.fullBase = base.data()});
+    // std::cout << "\n";
+    // nodes.treeRepr(std::cout, top, 0, {.fullBase = base.data()});
+    // std::cout << "\n";
 }
