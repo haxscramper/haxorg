@@ -27,6 +27,7 @@ BOOST_DESCRIBE_ENUM(NodeKind, N1, N2, N3, N4);
 
 struct L : public Tokenizer<TokenKind> {
     // using Lexer::Lexer;
+    L(TokenGroup<TokenKind>* out) : Tokenizer<TokenKind>(out) {}
     void lex_1(PosStr& str) { push(str.tok(T1, skipCount, 1)); }
     void lex_br(PosStr& str) {
         if (str.at('{')) {

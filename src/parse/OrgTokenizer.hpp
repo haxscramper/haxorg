@@ -18,6 +18,8 @@ OrgCommandKind classifyCommand(std::string const& command);
 
 
 struct OrgTokenizer : public Tokenizer<OrgTokenKind> {
+    OrgTokenizer(OrgTokenGroup* out) : Tokenizer<OrgTokenKind>(out) {}
+
     void lexAngle(PosStr& str);
 
     void lexTime(PosStr& str);

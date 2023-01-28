@@ -4,7 +4,13 @@ import lldb
 
 def simplify_name(name: str) -> str:
     replacements = [
-        ("std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>", "std::string")
+        ("std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>", "std::string"),
+        ("LexerCommon<OrgTokenKind>", "OrgLexer"),
+        ("IntSet<OrgTokenKind>", "OrgTokSet"),
+        ("unsigned long", "u32"),
+        ("long", "i32"),
+        ("unsigned long long", "u64"),
+        ("long long", "i64"),
     ]
     for (_from, _to) in replacements:
         name = name.replace(_from, _to)
@@ -21,6 +27,10 @@ def format_frame(frame, unused):
     if 0 < frame.line_entry.line < 4294967295:
         loc = frame.line_entry
         result += f" at \033[34m{loc.file.basename}:{loc.line}\033[0m"
+
+    # if "Catch" not in frame.name:
+    #     for arg in frame.args:
+    #         result += f"\n       = {arg.name:<16} = {arg.summary}"
 
     return result + "\n"
 

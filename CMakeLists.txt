@@ -96,9 +96,11 @@ function(add_target_property TARGET PROPERTY VALUE)
 endfunction()
 
 option(TRACE_INSTRUMENT "Generate instrumentation trace")
+option(USE_SINGLE_FILE_CATCH "Use single-file catch2 or installed one")
 
 function(set_target_error_flags TARGET)
   add_target_property(${TARGET} COMPILE_OPTIONS -w)
+
   if(${TRACE_INSTRUMENT})
     add_target_property(${TARGET} COMPILE_OPTIONS -finstrument-functions)
   endif()
@@ -132,7 +134,6 @@ endfunction()
 
 find_package(antlr4-runtime REQUIRED)
 find_package(antlr4-generator REQUIRED)
-find_package(Catch2 3 REQUIRED)
 
 function(set_common_files TARGET)
   list_filter_files(SRC_FILES *.cpp "${BASE}/src/.*")
@@ -156,7 +157,17 @@ set_target_error_flags(tests)
 list_filter_files(TEST_FILES "t*.cpp" "${BASE}/tests/.*")
 add_target_property(tests SOURCES "${TEST_FILES}")
 add_antlr_base(tests)
-add_target_property(tests LINK_LIBRARIES Catch2::Catch2)
+
+if(${USE_SINGLE_FILE_CATCH})
+  add_target_property(tests SOURCES "${BASE}/deps/catch2/catch_amalgamated.cpp")
+  add_target_property(tests INCLUDE_DIRECTORIES "${BASE}/deps/catch2")
+  add_target_property(tests COMPILE_DEFINITIONS "HAXORG_USE_SINGLE_FILE_CATCH")
+  add_target_property(tests COMPILE_DEFINITIONS "CATCH_AMALGAMATED_CUSTOM_MAIN")
+  add_target_property(tests COMPILE_DEFINITIONS "CATCH_CONFIG_DISABLE_EXCEPTIONS")
+else()
+  find_package(Catch2 3 REQUIRED)
+  add_target_property(tests LINK_LIBRARIES Catch2::Catch2)
+endif()
 
 set(AUTOGEN_BUILD_DIR ${BASE}/build/autogen)
 file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})

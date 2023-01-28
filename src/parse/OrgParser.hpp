@@ -6,6 +6,8 @@ using ParseCb = std::function<OrgId(OrgLexer&)>;
 
 struct OrgParser {
     OrgNodeGroup* group;
+    inline OrgParser(OrgNodeGroup* _group) : group(_group) {}
+
 
     inline void  start(OrgNodeKind kind) { (void)group->startTree(kind); }
     inline OrgId end() { return group->endTree(); }

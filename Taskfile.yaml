@@ -22,13 +22,20 @@ tasks:
     cmds:
       # - rm -rf *
       # - cmake -DCMAKE_BUILD_TYPE=Debug -GNinja --log-level=TRACE ..
-      - cmake -DCMAKE_BUILD_TYPE=Debug --log-level=TRACE ..
+      - >
+        cmake
+        -DCMAKE_BUILD_TYPE=Debug
+        -DUSE_SINGLE_FILE_CATCH=ON
+        -DCMAKE_CXX_COMPILER=clang++
+        --log-level=TRACE
+        ..
+
       - make -j8
       # - ninja -v
-      - "{{.PWD}}/tests.bin"
-      # - task: debug
-      #   vars:
-      #     IN: "{{.PWD}}/tests.bin"
+      # - "{{.PWD}}/tests.bin"
+      - task: debug
+        vars:
+          IN: "{{.PWD}}/tests.bin"
 
   plantuml:
     desc: "Compile and test plantuml grammar"

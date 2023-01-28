@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <vector>
 #include <stdexcept>
@@ -132,8 +134,8 @@ constexpr std::vector<AddfFragment> addfFragments(
                 i = j;
             } else {
                 throw FormatStringError(
-                    R"(unexpected char after $ - )"
-                    + std::string(1, formatstr[i + 1]));
+                    "unexpected char after '$' :'"
+                    + std::string(1, formatstr[i + 1]) + "'");
             }
         } else {
             auto trange = slice(i, i);
@@ -241,7 +243,9 @@ template <typename T, typename... Tail>
 void to_string_vec_impl(
     std::vector<std::string>& out,
     CR<T>&                    in,
-    Tail&&... tail) requires StringConvertible<T> {
+    Tail&&... tail)
+    requires StringConvertible<T>
+{
     out.push_back(to_string(in));
     to_string_vec_impl(out, tail...);
 }

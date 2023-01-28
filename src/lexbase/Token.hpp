@@ -3,9 +3,13 @@
 #include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/IntSet.hpp>
 #include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/strformat.hpp>
+
+#include <lexbase/Errors.hpp>
 
 template <typename K>
 struct Token;
+
 
 template <typename K, typename IdBase = u64, typename MaskType = IdBase>
 struct [[nodiscard]] TokenId
@@ -238,21 +242,25 @@ struct LexerCommon {
     }
 
     bool at(K kind, int offset = 0) const {
-        return tok(offset).kind == kind;
+        return hasNext(offset) && tok(offset).kind == kind;
     }
 
 
     bool at(Vec<K> kind, int offset = 0) const {
-        for (const auto& [idx, kind] : enumerate(kind)) {
-            if (tok(idx + offset).kind != kind) {
-                return false;
+        if (!hasNext(offset)) {
+            return false;
+        } else {
+            for (const auto& [idx, kind] : enumerate(kind)) {
+                if (tok(idx + offset).kind != kind) {
+                    return false;
+                }
             }
+            return true;
         }
-        return true;
     }
 
     bool at(IntSet<K> kind, int offset = 0) const {
-        return kind.contains(tok(offset).kind);
+        return hasNext(offset) && kind.contains(tok(offset).kind);
     }
 
     int find(CR<IntSet<K>> skip, CR<IntSet<K>> target) const {
@@ -269,30 +277,36 @@ struct LexerCommon {
     }
 
     bool ahead(CR<IntSet<K>> skip, CR<IntSet<K>> target) const {
-        return find(skip, target) != 0;
+        return find(skip, target) != -1;
     }
 
 
-    void skip(CR<IntSet<K>> kind) {
-        if (at(kind)) {
+    template <typename T>
+    void skip(T kind, CR<Str> str = "")
+        requires IsAnyOf<std::remove_cvref_t<T>, K, IntSet<K>>
+    {
+        if (at(kind) && (str.empty() || strVal() == str)) {
             next();
-        } else {
-            assert(false && "TODO");
-        }
-    }
 
-    void skip(K kind) {
-        if (at(kind)) {
-            next();
+        } else if (finished()) {
+            throw UnexpectedEndError(
+                "Unexpected end encountered while trying to skip $#"
+                    % to_string_vec(kind),
+                pos.getIndex());
+
         } else {
-            assert(false && "TODO");
-        }
-    }
-    void skip(K kind, CR<Str> str) {
-        if (at(kind) && strVal() == str) {
-            next();
-        } else {
-            assert(false && "TODO");
+            if (str.empty()) {
+                throw UnexpectedCharError(
+                    "Expected '$#' but found '$#'"
+                        % to_string_vec(kind, str, this->kind(), strVal()),
+                    pos.getIndex());
+            } else {
+                throw UnexpectedCharError(
+                    "Expected '$#' with value '$#' but found '$#' with "
+                    "value '$#'"
+                        % to_string_vec(kind, str, this->kind(), strVal()),
+                    pos.getIndex());
+            }
         }
     }
 
@@ -356,6 +370,19 @@ struct LexerCommon {
         return result;
     }
 };
+
+template <typename K>
+std::ostream& operator<<(std::ostream& os, LexerCommon<K> const& value) {
+    for (int i = 0; i < 10; ++i) {
+        if (value.hasNext(i)) {
+            if (0 < i) {
+                os << " ";
+            }
+            os << value.get(i);
+        }
+    }
+    return os;
+}
 
 /// \brief Lexer specialization for iterating over fixed sequence of IDs
 template <typename K>

@@ -34,3 +34,6 @@ template <typename T>
 CR<T> cr(CR<T> in) {
    return in;
 }
+
+template<typename T, typename ... U>
+concept IsAnyOf = (std::same_as<T, U> || ...);
