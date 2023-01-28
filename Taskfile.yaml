@@ -1,6 +1,19 @@
 version: 3
 
 tasks:
+  debug:
+    cmds:
+      - >
+        lldb
+        --batch
+        -o "command script import {{.PWD}}/lldb_script.py"
+        -o run
+        --source-on-crash {{.PWD}}/lldb-script.txt
+        --
+        {{.IN}}
+        {{.ARGS}}
+
+  
   tests:
     desc: "Compile and run tests"
     dir: build
@@ -12,7 +25,10 @@ tasks:
       - cmake -DCMAKE_BUILD_TYPE=Debug --log-level=TRACE ..
       - make -j8
       # - ninja -v
-      - ../tests.bin
+      - "{{.PWD}}/tests.bin"
+      # - task: debug
+      #   vars:
+      #     IN: "{{.PWD}}/tests.bin"
 
   plantuml:
     desc: "Compile and test plantuml grammar"

@@ -75,4 +75,5 @@ TEST_CASE("Core linearlized AST parser", "[node]") {
 
     REQUIRE(tokens.tokens.size() == base.size());
     nodes.treeRepr(std::cout, top, 0, {.fullBase = base.data()});
+    std::cout << "\n";
 }
