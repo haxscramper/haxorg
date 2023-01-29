@@ -2,6 +2,7 @@
 
 #include <parse/OrgParser.hpp>
 #include <parse/OrgTokenizer.hpp>
+#include <lexbase/AstSpec.hpp>
 
 using org = OrgNodeKind;
 using otk = OrgTokenKind;
