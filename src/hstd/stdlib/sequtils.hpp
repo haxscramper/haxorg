@@ -47,7 +47,7 @@ struct EnumerateState {
 
 template <typename T>
 EnumerateState<typename T::iterator, typename T::iterator::value_type> enumerate(
-    R<T> value) {
+    Ref<T> value) {
     return EnumerateState<
         typename T::iterator,
         typename T::iterator::value_type>(value.begin(), value.end());

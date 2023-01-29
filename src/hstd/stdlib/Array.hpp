@@ -16,7 +16,7 @@ struct Array : std::array<T, Size> {
     using std::array<T, Size>::begin;
     using std::array<T, Size>::end;
 
-    operator R<std::array<T, Size>>() {
+    operator Ref<std::array<T, Size>>() {
         return static_cast<std::array<T, Size>>(*this);
     }
 
@@ -71,8 +71,8 @@ struct Array : std::array<T, Size> {
 
 
 template <ImplementsOrd Key, typename Val>
-requires(sizeof(Key) <= sizeof(unsigned short)) struct TypArray
-    : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
+    requires(sizeof(Key) <= sizeof(unsigned short))
+struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
     using Base = Array<Val, pow_v<2, 8 * sizeof(Key)>::res>;
     using Base::at;
     TypArray(std::initializer_list<Pair<Key, Val>> items) {

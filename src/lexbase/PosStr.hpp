@@ -627,7 +627,7 @@ inline void skipStringLit(PosStr& str) {
     }
 }
 
-inline void skipDigit(R<PosStr> str) {
+inline void skipDigit(Ref<PosStr> str) {
     if (str.at('-')) {
         str.next();
     }

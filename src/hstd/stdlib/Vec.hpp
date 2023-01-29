@@ -53,7 +53,7 @@ class Vec : public std::vector<T> {
     }
 
     /// \brief Implicit conversion to the base class
-    operator R<std::vector<T>>() {
+    operator Ref<std::vector<T>>() {
         return static_cast<std::vector<T>>(*this);
     }
 

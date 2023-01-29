@@ -24,11 +24,11 @@ inline u8 operator"" _u8(unsigned long long int value) {
     return static_cast<u8>(value);
 }
 
-template <typename T> using R = T&;
-template <typename T> using CR   = const T&;
-template <typename T> using CP   = const T*;
-template <typename T> using P    = T*;
-template <typename T> using C    = const T;
+template <typename T> using Ref   = T&;
+template <typename T> using CR    = const T&;
+template <typename T> using CP    = const T*;
+template <typename T> using Ptr   = T*;
+template <typename T> using Const = const T;
 
 template <typename T>
 CR<T> cr(CR<T> in) {

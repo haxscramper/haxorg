@@ -33,7 +33,8 @@ if (flag.contains(flag2)) {
 
 */
 template <typename T>
-requires(sizeof(T) <= sizeof(unsigned short)) struct IntSet {
+    requires(sizeof(T) <= sizeof(unsigned short))
+struct IntSet {
     // constrain the size of the object to avoid blowing up the set size.
     // 2-byte value has 8192 possible states and they all must be encoded
     // into the bitset, creating an 8kb object. 3 bytes will have a size of
@@ -46,21 +47,24 @@ requires(sizeof(T) <= sizeof(unsigned short)) struct IntSet {
         return ord(value);
     }
 
-    constexpr void buildSet(R<IntSet<T>> result) {}
+    constexpr void buildSet(Ref<IntSet<T>> result) {}
 
     template <typename ValueT>
-    constexpr void buildSet(R<IntSet<T>> result, CR<ValueT> value) requires
-        ConvertibleToSet<T, ValueT> {
+    constexpr void buildSet(Ref<IntSet<T>> result, CR<ValueT> value)
+        requires ConvertibleToSet<T, ValueT>
+    {
         result.incl(value);
     }
 
     // Helper method to recurse into constructor argument list
     template <typename Value, typename... Args>
     constexpr void buildSet(
-        R<IntSet<T>> result,
-        CR<Value>    value,
-        Args&&... tail) requires
-        AllConvertibleToSet<T, Args...> && ConvertibleToSet<T, Value> {
+        Ref<IntSet<T>> result,
+        CR<Value>      value,
+        Args&&... tail)
+        requires AllConvertibleToSet<T, Args...>
+              && ConvertibleToSet<T, Value>
+    {
         result.incl(value);
         buildSet(result, tail...);
     }
@@ -149,8 +153,9 @@ requires(sizeof(T) <= sizeof(unsigned short)) struct IntSet {
     /// Variadic constructor for the set type. It accepts only types that
     /// can be directly converted to the set
     template <typename... Args>
-    constexpr IntSet(Args&&... args) requires
-        AllConvertibleToSet<T, Args...> {
+    constexpr IntSet(Args&&... args)
+        requires AllConvertibleToSet<T, Args...>
+    {
         buildSet(*this, args...);
     }
 

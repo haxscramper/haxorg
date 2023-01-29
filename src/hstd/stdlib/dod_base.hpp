@@ -387,7 +387,7 @@ struct Store {
 
     /// \brief Iterate over mutable pointers to the items stored in the
     /// container
-    auto items() -> generator<P<T>> {
+    auto items() -> generator<Ptr<T>> {
         for (auto& it : content) {
             co_yield &it;
         }
@@ -466,7 +466,7 @@ struct InternStore {
     /// \copydoc Store::items
     auto items() const -> generator<CP<Val>> { return content.items(); }
     /// \copydoc Store::items
-    auto items() -> generator<P<Val>> { return content.items(); }
+    auto items() -> generator<Ptr<Val>> { return content.items(); }
 };
 
 
@@ -485,14 +485,14 @@ struct MultiStore {
     //// \brief Get reference to the store that is associated with \tparam
     /// Val
     template <typename Val>
-    requires is_in_pack_v<Store<id_type_t<Val>, Val>, Args...>
+        requires is_in_pack_v<Store<id_type_t<Val>, Val>, Args...>
     auto store() -> Store<id_type_t<Val>, Val>& {
         return std::get<Store<id_type_t<Val>, Val>>(stores);
     }
 
     /// \brief An overload for the interned store case
     template <typename Val>
-    requires is_in_pack_v<InternStore<id_type_t<Val>, Val>, Args...>
+        requires is_in_pack_v<InternStore<id_type_t<Val>, Val>, Args...>
     auto store() -> InternStore<id_type_t<Val>, Val>& {
         return std::get<InternStore<id_type_t<Val>, Val>>(stores);
     }
@@ -500,14 +500,14 @@ struct MultiStore {
     /// \brief Get reference to the store that is associated with \tparam
     /// Val
     template <typename Val>
-    requires is_in_pack_v<Store<id_type_t<Val>, Val>, Args...>
+        requires is_in_pack_v<Store<id_type_t<Val>, Val>, Args...>
     auto store() const -> const Store<id_type_t<Val>, Val>& {
         return std::get<Store<id_type_t<Val>, Val>>(stores);
     }
 
     /// \brief An overload for the interned store case
     template <typename Val>
-    requires is_in_pack_v<InternStore<id_type_t<Val>, Val>, Args...>
+        requires is_in_pack_v<InternStore<id_type_t<Val>, Val>, Args...>
     auto store() const -> const InternStore<id_type_t<Val>, Val>& {
         return std::get<InternStore<id_type_t<Val>, Val>>(stores);
     }
