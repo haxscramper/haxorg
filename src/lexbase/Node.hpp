@@ -78,6 +78,15 @@ struct Node {
         assert(isNonTerminal());
         return slice(selfId + 1, selfId + getExtent());
     }
+
+    bool operator==(CR<Node<N, K>> other) const {
+        if (isTerminal() == other.isTerminal()) {
+            return (this->kind == other.kind)
+                && (this->value == other.value);
+        } else {
+            return false;
+        }
+    }
 };
 
 template <typename N, typename K>
@@ -296,3 +305,15 @@ struct NodeGroup {
         }
     }
 };
+
+template <typename N, typename K>
+std::ostream& operator<<(std::ostream& os, Node<N, K> const& value) {
+    os << "{" << to_string(value.kind) << " ";
+    if (value.isTerminal()) {
+        os << value.getToken();
+    } else {
+        os << value.getExtent();
+    }
+
+    return os << "}";
+}

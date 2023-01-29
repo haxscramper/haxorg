@@ -34,11 +34,15 @@ inline std::string demangle(const char* name) { return name; }
 
 template <typename T>
 concept StringStreamable = requires(T value, std::ostream& os) {
-    { os << value } -> std::same_as<std::ostream&>;
-};
+                               {
+                                   os << value
+                                   } -> std::same_as<std::ostream&>;
+                           };
 
 template <typename T>
-std::string to_string(CR<T> value) requires StringStreamable<T> {
+std::string to_string(CR<T> value)
+    requires StringStreamable<T>
+{
     std::stringstream os;
     os << value;
     return os.str();
@@ -46,15 +50,18 @@ std::string to_string(CR<T> value) requires StringStreamable<T> {
 
 template <typename T>
 concept StringConvertible = requires(T value) {
-    { to_string(value) } -> std::same_as<std::string>;
-};
+                                {
+                                    to_string(value)
+                                    } -> std::same_as<std::string>;
+                            };
 
 template <typename T>
 concept IsEnum = std::is_enum<T>::value;
 
 template <typename T>
-concept DescribedEnum = IsEnum<
-    T> && boost::describe::has_describe_enumerators<T>::value;
+concept DescribedEnum = IsEnum<T>
+                     && boost::describe::has_describe_enumerators<
+                            T>::value;
 
 template <IsEnum T>
 std::ostream& operator<<(std::ostream& os, T value) {

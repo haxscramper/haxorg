@@ -10,3 +10,7 @@ namespace org_impl {
 inline std::string to_string(OrgTokenKind k) {
     return org_impl::to_string(k);
 }
+
+inline std::string to_string(OrgNodeKind k) {
+    return org_impl::to_string(k);
+}

@@ -11,14 +11,15 @@ struct OrgParser {
 
     inline void  start(OrgNodeKind kind) { (void)group->startTree(kind); }
     inline OrgId end() { return group->endTree(); }
-    inline OrgId empty() { return token(OrgNode(orgEmpty)); }
+    inline OrgId empty() { return token(OrgNode(OrgNodeKind::Empty)); }
     inline OrgId token(CR<OrgNode> node) { return group->token(node); }
     inline OrgId token(OrgNodeKind kind, OrgTokenId tok) {
         return group->token(kind, tok);
     }
 
     inline OrgId fake(OrgNodeKind kind) {
-        return group->token(kind, group->tokens->add(OrgToken(otNone)));
+        return group->token(
+            kind, group->tokens->add(OrgToken(OrgTokenKind::None)));
     }
 
     OrgId parseCSVArguments(OrgLexer& lex);

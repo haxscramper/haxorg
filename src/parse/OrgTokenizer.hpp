@@ -187,5 +187,7 @@ indentation of the original list prefix -- dash, number or letter.
 
     void lexParagraph(PosStr& str);
 
-    void lexComment(PosStr& str) { push(str.tok(OTkComment, skipToEOL)); }
+    void lexComment(PosStr& str) {
+        push(str.tok(OrgTokenKind::Comment, skipToEOL));
+    }
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-enum OrgHorizontalDirection : short int
+enum class OrgHorizontalDirection : short int
 {
     ohdNone,   /*! No specific positioning requirements */
     ohdLeft,   /*! Align to the left */
@@ -8,7 +8,7 @@ enum OrgHorizontalDirection : short int
     ohdCenter, /*! Align to the center */
 };
 
-enum OrgVerticalDirection : short int
+enum class OrgVerticalDirection : short int
 {
     ovdNone,   /*! No specific positioning */
     ovdTop,    /*! Align to the top */
@@ -17,234 +17,234 @@ enum OrgVerticalDirection : short int
 };
 
 
-enum OrgNodeKind : short int
+enum class OrgNodeKind : short int
 {
-    orgNone,     /*!Default valye for node - invalid state */
-    orgDocument, /*!Toplevel part of the ast, not created by parser, and
-                    only used in `semorg` stage */
-    orgUserNode, /*!User-defined node [[code:OrgUserNode]] */
-    orgEmpty, /*!Empty node - valid state that does not contain any value
+    None,     /*!Default valye for node - invalid state */
+    Document, /*!Toplevel part of the ast, not created by parser, and
+                        only used in `semorg` stage */
+    UserNode, /*!User-defined node [[code:OrgUserNode]] */
+    Empty,    /*!Empty node - valid state that does not contain any value
                */
-    orgError, /*!Failed node parse - technically there are no /wrong/
-syntax in the org-mode document because everything can be considered a one
-large word or a paragraph with flat `Word` content.
+    Error,    /*!Failed node parse - technically there are no /wrong/
+       syntax in the org-mode document because everything can be considered a
+       one    large word or a paragraph with flat `Word` content.
 
-Error node can be produced by any parsing routine, although it is
-mostly used in the low-level text elements, since high-level
-structures are mostly detected based on the correct syntax - for
-example, `*** subtree` (and any title variations) can never be an
-error in itself. Title /text/ might contain an error, but invalid it
-is not possible to write an invalid subtree - it is either `*
-ANYTHING` or not a subtree at all.
-*/
-    orgInlineStmtList,
-    orgStmtList, /*!List of statements, possibly recursive. Used as
-toplevel part of the document, in recursive parsing of subtrees, or as
-regular list, in cases where multiple subnodes have to be grouped
-together.
-*/
-    orgAssocStmtList,
+       Error node can be produced by any parsing routine, although it is
+       mostly used in the low-level text elements, since high-level
+       structures are mostly detected based on the correct syntax - for
+       example, `*** subtree` (and any title variations) can never be an
+       error in itself. Title /text/ might contain an error, but invalid it
+       is not possible to write an invalid subtree - it is either `*
+       ANYTHING` or not a subtree at all.
+       */
+    InlineStmtList,
+    StmtList, /*!List of statements, possibly recursive. Used as
+    toplevel part of the document, in recursive parsing of subtrees, or as
+    regular list, in cases where multiple subnodes have to be grouped
+    together.
+    */
+    AssocStmtList,
     /*!Associated list of statements - AST elements like
 commands and links are grouped together if placed on adjacent lines
 */
-    orgSubtree,
+    Subtree,
     /*!Section subtree
      */
-    orgSubtreeTimes,
+    SubtreeTimes,
     /*!Time? associated with subtree entry
      */
-    orgSubtreeStars,
-    orgCompletion, /*!Task compleation cookie, indicated either in percents
-of completion, or as `<done>/<todo>` ratio.
-*/
-    orgCheckbox,
+    SubtreeStars,
+    Completion, /*!Task compleation cookie, indicated either in percents
+    of completion, or as `<done>/<todo>` ratio.
+    */
+    Checkbox,
     /*!Single checkbox item like `[X]` or `[-]`
      */
-    orgList,
-    orgBullet,
+    List,
+    Bullet,
     /*!List item prefix
      */
-    orgListItem,
-    orgListTag, /*!Auxilliary wrapper for the paragraph placed at the start
-of the description list.
-*/
-    orgCounter,
-    orgComment,
+    ListItem,
+    ListTag, /*!Auxilliary wrapper for the paragraph placed at the start
+    of the description list.
+    */
+    Counter,
+    Comment,
     /*!Inline or trailling comment. Can be used addition to
 `#+comment:` line or `#+begin-comment` section. Nested comment
 syntax is allowed (`#[ level1 #[ level2 ]# ]#`), but only outermost
 one is represented as separate AST node, everything else is a
 `.text`
 */
-    orgRawText,
+    RawText,
     /*!Raw string of text from input buffer. Things like
 particular syntax details of every single command, link formats are
 not handled in parser, deferring formatting to future processing
 layers
 */
-    orgUnparsed,
+    Unparsed,
     /*!Part of the org-mode document that is yet to be parsed.
 This node should not be created manually, it is only
 used for handling mutually recursive DSLs such as
 tables, which might include lists, which in turn might
 contain more tables in different bullet points.
 */
-    orgCommand,
+    Command,
     /*!Single-line command
      */
-    orgCommandTitle,
+    CommandTitle,
     /*!`#+title:` - full document title
      */
-    orgCommandAuthor,
+    CommandAuthor,
     /*!`#+author:` Document author
      */
-    orgCommandCreator,
+    CommandCreator,
     /*!`#+creator:` Document creator
      */
-    orgCommandInclude,
+    CommandInclude,
     /*!`#+include:` - include other org-mode document (or
 subsection of it), source code or backend-specific
 chunk.
 */
-    orgCommandLanguage,
+    CommandLanguage,
     /*!`#+language:`
      */
-    orgCommandAttrHtml,
+    CommandAttrHtml,
     /*!`#+attr_html:`
      */
-    orgCommandName,
+    CommandName,
     /*!`#+name:` - name of the associated entry
      */
-    orgCommandHeader,
+    CommandHeader,
     /*!`#+header:` - extended list of parameters passed to
 associated block
 */
-    orgCommandOptions,
+    CommandOptions,
     /*!`#+options:` - document-wide formatting options
      */
-    orgCommandBackendOptions,
+    CommandBackendOptions,
     /*!Backend-specific configuration options like
 `#+latex_header`, `#+latex_class` etc.
 */
-    orgAttrImg,
-    orgCommandCaption,
+    AttrImg,
+    CommandCaption,
     /*!`#+caption:` command
      */
-    orgFile,
-    orgExportCommand,
-    orgMultilineCommand,
+    File,
+    ExportCommand,
+    MultilineCommand,
     /*!Multiline command such as code block, latex
 equation, large block of passthrough code. Some built-in org-mode
 commands do not requires `#+begin` prefix, (such as `#+quote` or
 `#+example`) are represented by this type of block as well.
 */
-    orgResult,
+    Result,
     /*!Command evaluation result
      */
-    orgIdent,
+    Ident,
     /*!regular identifier - `alnum + [-_]` characters for
 punctuation. Identifiers are compared and parsed in
 style-insensetive manner, meaning `CODE_BLOCK`, `code-block` and
 `codeblock` are identical.
 */
-    orgBareIdent,
+    BareIdent,
     /*!Bare identifier - any characters are allowed
      */
-    orgAdmonitionTag,
+    AdmonitionTag,
     /*!Big ident used in conjunction with colon at the
 start of paragraph is considered an admonition tag: `NOTE: Text`,
 `WARNING: text` etc.
 */
-    orgBigIdent,
+    BigIdent,
     /*!full-uppsercase identifier such as `MUST` or `TODO`
      */
-    orgVerbatimMultilineBlock,
+    VerbatimMultilineBlock,
     /*!Verbatim mulitiline block that *might* be
 a part of `orgMultilineCommand` (in case of `#+begin-src`), but not
 necessarily. Can also be a part of =quote= and =example= multiline
 blocks.
 */
-    orgCodeLine,
+    CodeLine,
     /*!Single line of source code
      */
-    orgCodeText,
+    CodeText,
     /*!Block of source code text
      */
-    orgCodeTangle,
+    CodeTangle,
     /*!Single tangle target in the code block
      */
-    orgCodeCallout,
+    CodeCallout,
     /*!`(refs:` callout in the source code
      */
-    orgQuoteBlock,
+    QuoteBlock,
     /*!`#+quote:` block in code
      */
-    orgAdmonitionBlock,
-    orgCenterBlock,
-    orgExample,
+    AdmonitionBlock,
+    CenterBlock,
+    Example,
     /*!Verbatim example text block
      */
-    orgSrcCode,
+    SrcCode,
     /*!Block of source code - can be multiline, single-line and
 
 */
-    orgSrcInlineCode,
+    SrcInlineCode,
     /*!inline piece of code (such as `src_nim`). Latter is
 different from regular monospaced text inside of `~~` pair as it
 contains additional internal structure, optional parameter for code
 evaluation etc.
 */
-    orgCallCode,
+    CallCode,
     /*!Call to named source code block. Inline, multiline, or
 single-line.
 */
-    orgPassCode,
+    PassCode,
     /*!Passthrough block. Inline, multiline, or single-line.
 Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax
 respectively
 */
-    orgCmdArguments,
+    CmdArguments,
     /*!Command arguments
      */
-    orgCmdFlag,
+    CmdFlag,
     /*!Flag for source code block. For example `-n`, which is
 used to to make source code block export with lines
 */
-    orgCmdKey,
-    orgCmdValue,
-    orgCmdNamedValue,
+    CmdKey,
+    CmdValue,
+    CmdNamedValue,
     /*!Key-value pair for source code block call.
      */
-    orgUrgencyStatus,
+    UrgencyStatus,
     /*!Subtree importance level, such as `[#A]` or `[#B]`.
 Default org-mode only allows single character for contents inside of
 `[]`, but this parser makes it possible to use any regular
 identifier, such as `[#urgent]`.
 */
-    orgTextSeparator,
+    TextSeparator,
     /*!Long horizontal line `----`
      */
-    orgParagraph,
+    Paragraph,
     /*!Single 'paragraph' of text. Used as generic container
 for any place in AST where unordered sentence might be encountered -
 not limited to actual paragraph
 */
-    orgAnnotatedParagraph,
+    AnnotatedParagraph,
     /*!Annotated paragraph -- a wrapper around a
 regular paragraph kind with added admonition, footnote, list tag
 prefix and similar types. `[fn:ID] Some Text` is an annotated
 paragraph, just like `NOTE: Text` or `- Prefix :: Body` (in this
 case list header is an annotated paragraph)
 */
-    orgBold,
-    orgItalic,
-    orgVerbatim,
-    orgBacktick,
-    orgUnderline,
-    orgStrike,
-    orgQuote,
-    orgAngle,
-    orgMonospace,
+    Bold,
+    Italic,
+    Verbatim,
+    Backtick,
+    Underline,
+    Strike,
+    Quote,
+    Angle,
+    Monospace,
     /*!
 @multidoc{} Region of text with formatting, which contains standalone
 words - can itself contain subnodes, which allows to represent
@@ -258,31 +258,31 @@ NOTE: when structured sentences are enabled, regular punctuation
 elements like `some text (notes)` are also represented as `Word,
 Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.
 */
-    orgInlineMath,
+    InlineMath,
     /*!Inline latex math. Contains latex math body - either
 from `$dollar-wrapped$` or `\(paren-wrapped\)` inline text.
 */
-    orgDisplayMath,
+    DisplayMath,
     /*!Inline display latex math from `$$double-dollar$$` or
 `\[bracket-wrapped\]` code.
 */
-    orgSpace,
+    Space,
     /*!Space or tab character in regular text
      */
-    orgPunctuation,
-    orgWord,
+    Punctuation,
+    Word,
     /*!Regular word - technically not different from `orgIdent`,
 but defined separately to disiguish between places where special
 syntax is required and free-form text.
 */
-    orgEscaped,
+    Escaped,
     /*!Escaped formatting character in the text
      */
-    orgNewline,
-    orgRawLink,
+    Newline,
+    RawLink,
     /*!Raw unwrapped link that was pasted in text
      */
-    orgLink,
+    Link,
     /*!External or internal link. Consists of one or two elements -
 target (url, file location etc.) and description (`orgParagraph` of
 text). Description might be empty, and represented as empty node in
@@ -290,45 +290,45 @@ this case. For external links particular formatting of the address
 is not handled by parser and instead contains raw string from input
 text.
 */
-    orgMacro,
+    Macro,
     /*!Org-mode macro replacement - during export each macro is
 expanded and evaluated according to it's environment. Body of the
 macro is not parsed fully during org-mode evaluation, but is checked
 for correct parenthesis balance (as macro might contain elisp code)
 */
-    orgBackendRaw,
+    BackendRaw,
     /*!Raw content to be passed to a particular backend. This
 is the most compact way of quoting export strings, after
 `#+<backend>: <single-backend-line>` and `#+begin-export <backend>`
 `<multiple-lines>`.
 */
-    orgSymbol,
+    Symbol,
     /*!Special symbol that should be exported differently to
 various backends - greek letters (`\alpha`), mathematical notations
 and so on.
 */
-    orgTimeAssoc,
+    TimeAssoc,
     /*!Time association pair for the subtree deadlines.
      */
-    orgTimeStamp,
+    TimeStamp,
     /*!Single date and time entry (active or inactive),
 possibly with repeater interval. Is not parsed directly, and instead
 contains `orgRawText` that can be parsed later
 */
-    orgTimeRange,
+    TimeRange,
     /*!Date and time range format - two `orgDateTime` entries
      */
-    orgSimpleTime,
+    SimpleTime,
     /*!Result of the time range evaluation or trailing
 annotation a subtree
 */
-    orgDetails,
+    Details,
     /*!`#+begin_details`  section
      */
-    orgSummary,
+    Summary,
     /*!`#+begin_summary` section
      */
-    orgTable,
+    Table,
     /*!Org-mode table. Tables can be writtein in different
 formats, but in the end they are all represented using single ast
 type. NOTE: it is not guaranteed that all subnodes for table are
@@ -336,30 +336,30 @@ exactly `orgTableRow` - sometimes additional property metadata might
 be used, making AST like `Table[AssocStmtList[Command[_],
 TableRow[_]]]` possible
 */
-    orgTableRow,
+    TableRow,
     /*!Horizontal table row
      */
-    orgTableCell,
+    TableCell,
     /*!Single cell in row. Might contain anyting, including
 other tables, simple text paragraph etc.
 */
-    orgInlineFootnote,
+    InlineFootnote,
     /*!Inline footnote with text placed directly in the
 node body.
 */
-    orgFootnote,
+    Footnote,
     /*!Footnote entry. Just as regular links - internal content
 is not parsed, and instead just cut out verbatim into target AST
 node.
 */
-    orgHorizontal,
+    Horizontal,
     /*!Horizotal rule. Rule body might contain other
 subnodes, to represnt `---- some text ----` kind of formatting.
 */
-    orgFiletags,
+    Filetags,
     /*!`#+filetags:` line command
      */
-    orgOrgTag,
+    OrgTag,
     /*!Original format of org-mode tags in form of `:tagname:`.
 Might contain one or mode identifgiers, but does not provide support
 for nesting - `:tag1:tag2:`. Can only be placed within restricted
@@ -367,77 +367,76 @@ set of places such as subtree headings and has separate place in AST
 when allowed (`orgSubtree` always has subnode `№4` with either
 `orgEmpty` or `orgOrgTag`)
 */
-    orgHashTag,
+    HashTag,
     /*!More commonly used `#hashtag` format, with some
 additional extension. Can be placed anywere in the document
 (including section headers), but does not have separate place in AST
 (e.g. considered regular part of the text)
 */
-    orgMetaSymbol,
+    MetaSymbol,
     /*!`\sym{}` with explicit arguments
      */
-    orgAtMention,
+    AtMention,
     /*!`@user`
      */
-    orgBracTag,
+    BracTag,
     /*!Custom extension to org-mode. Similarly to `BigIdent`
 used to have something like informal keywords `MUST`, `OPTIONAL`,
 but instead aimed /specifically/ at commit message headers -
 `[FEATURE]`, `[FIX]` and so on.
 */
-    orgDrawer,
+    Drawer,
     /*!Single enclosed drawer like `:properties: ... :end:` or
 `:logbook: ... :end:`
 */
-    orgLatexClass,
-    orgLatexHeader,
-    orgLatexCompiler,
-    orgColumns,
+    LatexClass,
+    LatexHeader,
+    LatexCompiler,
+    Columns,
     /*!`#+columns:` line command for specifying formatting of
 the org-mode clock table visualization on per-file basis.
 */
-    orgPropertyList,
-    orgProperty,
+    PropertyList,
+    Property,
     /*!Property entry, either in `#+property:` command, or in
 `:property:` drawer
 */
-    orgPropertyAdd,
+    PropertyAdd,
     /*!Property value extensions - `:property+:`
      */
-    orgPlaceholder,
+    Placeholder,
     /*!Placeholder entry in text, usually writte like `<text
 to replace>`
 */
-    orgSubtreeDescription,
+    SubtreeDescription,
     /*!`:description:` entry
      */
-    orgLogbook,
+    Logbook,
     /*!`:logbook:` entry storing note information
      */
-    orgLogbookStateChange,
+    LogbookStateChange,
     /*!Annotation about change in the subtree todo state
      */
-    orgLogbookNote,
+    LogbookNote,
     /*!Timestamped log note on the subtree
      */
-    orgLogbookClock,
+    LogbookClock,
     /*!`CLOCK` entry in the subtree
      */
-    orgLogbookRefile,
+    LogbookRefile,
     /*!`Refile` entry in the subtree logbook drawer
      */
-    orgRadioTarget,
+    RadioTarget,
     /*!`<<<RADIO>>>`
      */
-    orgTarget,
+    Target,
     /*!`<<TARGET>>`
      */
 
-
-    org__LAST
+    __LAST
 };
 
-enum OrgTextContext : short int
+enum class OrgTextContext : short int
 {
     otcPlain,
     otcSubtree0,
@@ -462,7 +461,7 @@ enum OrgTextContext : short int
     otcMonospaceBlock,
 };
 
-enum OrgBigIdentKind : short int
+enum class OrgBigIdentKind : short int
 {
     obiNone,
     obiMust,
@@ -582,7 +581,7 @@ to real condition, `THEN` to the body and so on).
 };
 ;
 
-enum OrgMetaTagKind
+enum class OrgMetaTagKind
 {
     smtArg,
     /*!Procedure argument
@@ -664,537 +663,537 @@ lists/enums (for example if return value is mapped to an enum)
 };
 
 
-enum OrgTokenKind : short int
+enum class OrgTokenKind : short int
 {
-    otNone,
-    otEof,
-    OTkCommandPrefix,
-    OTkLineCommand,
-    OTkCommandBegin,
+    None,
+    Eof,
+    CommandPrefix,
+    LineCommand,
+    CommandBegin,
     /*!`#+begin` part of the multiline command.
 `begin_<block-type>` is split into two tokens - `begin_` prefix and
 `ockBegin<block-type>` section.
 */
-    OTkCommandEnd,
-    OTkDoubleColon,
-    OTkText,
-    OTkStmtList,
+    CommandEnd,
+    DoubleColon,
+    Text,
+    StmtList,
     /*!Unlexed group of statements - used in the list content
 to enable secondary parsing.
 */
-    OTkStmtListOpen,
+    StmtListOpen,
     /*!Start of the expanded statement list content
      */
-    OTkStmtListClose,
+    StmtListClose,
     /*!End of the expanded statement list content
      */
-    OTkListStart,
+    ListStart,
     /*!Start of the list token group
      */
-    OTkListDash,
+    ListDash,
     /*!Start of the list item element
      */
-    OTkListClock,
+    ListClock,
     /*!`CLOCK:` entry at the start of the logbook entry list
      */
-    OTkListPlus,
-    OTkListStar,
-    OTkListDescOpen,
+    ListPlus,
+    ListStar,
+    ListDescOpen,
     /*!Start of the description list key,
      */
-    OTkListDescClose,
+    ListDescClose,
     /*!End of the description list key `::`
      */
-    OTkListItemEnd,
+    ListItemEnd,
     /*!End of the list item
      */
-    OTkListEnd,
+    ListEnd,
     /*!Complete end of the list token group
      */
-    OTkCheckbox,
+    Checkbox,
     /*!List or subtree checkbox
      */
-    OTkSubtreeTodoState,
-    OTkSubtreeUrgency,
+    SubtreeTodoState,
+    SubtreeUrgency,
     /*!Subtree importance marker
      */
-    OTkSubtreeCompletion,
+    SubtreeCompletion,
     /*!Subtree completion marker
      */
-    OTkSubtreeStars,
+    SubtreeStars,
     /*!Subtree prefix
      */
-    OTkSubtreeTag,
+    SubtreeTag,
     /*!Subtree tag
      */
-    OTkSubtreeTime,
-    OTkSubtreeEnd,
-    OTkAngleTime,
+    SubtreeTime,
+    SubtreeEnd,
+    AngleTime,
     /*!Active timestamp token
      */
-    OTkDiaryTime,
+    DiaryTime,
     /*!Active timestamp with S-expression to check the time
      */
-    OTkImplicitTime,
+    ImplicitTime,
     /*!You can write time ranges without any additional
 formatting for subtrees that have a diary timestamps. For example,
 you have a complex date predicate, but event occurs for
 `18:00-21:00`, so you write it in the random place in the subtree.
 */
-    OTkTimeDuration,
+    TimeDuration,
     /*!Time duration for the `effort` property or time
 range length evaluation
 */
-    OTkBracketTime,
+    BracketTime,
     /*!Inactive timestamp token
      */
-    OTkTimeDash,
+    TimeDash,
     /*!Separator dash between two periods in the time range
 (`<start>--<finish.`)
 */
-    OTkTimeArrow,
+    TimeArrow,
     /*!Time range evaluation arrow `[from]--[to] =>`
      */
-    OTkComment,
+    Comment,
     /*!line or inline comment
      */
-    OTkListDoubleColon,
+    ListDoubleColon,
     /*!Double colon between description list tag and body
      */
-    OTkCommandArgumentsBegin,
+    CommandArgumentsBegin,
     /*!List of command arguments
      */
-    OTkCommandArgumentsEnd,
+    CommandArgumentsEnd,
     /*!End of the command arguments list
      */
-    OTkCommandKey,
-    OTkCommandValue,
-    OTkCommandFlag,
-    OTkCommandBracket,
+    CommandKey,
+    CommandValue,
+    CommandFlag,
+    CommandBracket,
     /*!`#+results[HASH...]`
      */
-    OTkColonLiteral,
+    ColonLiteral,
     /*!Literal block with `:`
      */
-    OTkColonIdent,
+    ColonIdent,
     /*!Drawer or source code block wrappers with
 colon-wrapped identifiers. `:results:`, `:end:` etc.
 */
-    OTkColonAddIdent,
+    ColonAddIdent,
     /*!Add value to the existing drawer property - `:NAME+:`
      */
-    OTkColonProperties,
+    ColonProperties,
     /*!Start of the `:PROPERTIES:` block drawer block
      */
-    OTkColonDescription,
+    ColonDescription,
     /*!Start of the `:description:` drawer block
      */
-    OTkColonEnd,
-    OTkColonLogbook,
-    OTkRawLogbook,
-    OTkLogbookStart,
-    OTkLogbookEnd,
-    OTkRawProperty,
-    OTkLink,
+    ColonEnd,
+    ColonLogbook,
+    RawLogbook,
+    LogbookStart,
+    LogbookEnd,
+    RawProperty,
+    Link,
     /*!Any kind of link
      */
-    OTkCommandContentStart,
-    OTkCommandContentEnd,
-    OTkCodeContent,
+    CommandContentStart,
+    CommandContentEnd,
+    CodeContent,
     /*!Block of code inside `#+begin_src`
      */
-    OTkCodeContentBegin,
+    CodeContentBegin,
     /*!Start of the expanded code content
      */
-    OTkCodeContentEnd,
+    CodeContentEnd,
     /*!End of the expanded code content
      */
-    OTkCodeText,
+    CodeText,
     /*!Uninterrupted text span without newlines - either a
 whole line or sub subsection of it if callout or tangle elements
 were detected
 */
-    OTkTableContent,
+    TableContent,
     /*!Block of text inside `#+table`
      */
-    OTkQuoteContent,
+    QuoteContent,
     /*!`#+quote` content
      */
-    OTkBackendPass,
+    BackendPass,
     /*!Backend-specific passthrough
      */
-    OTkLogBook,
+    LogBook,
     /*!Logbook including content
      */
-    OTkDrawer,
+    Drawer,
     /*!Drawer including content
      */
-    OTkIndent,
+    Indent,
     /*!Increase in indentation
      */
-    OTkDedent,
+    Dedent,
     /*!Decrease in indentation
      */
-    OTkSameIndent,
-    OTkNoIndent,
-    OTkBoldOpen,
-    OTkBoldClose,
-    OTkBoldInline,
-    OTkItalicOpen,
-    OTkItalicClose,
-    OTkItalicInline,
-    OTkVerbatimOpen,
-    OTkVerbatimClose,
-    OTkVerbatimInline,
-    OTkMonospaceOpen,
-    OTkMonospaceClose,
-    OTkMonospaceInline,
-    OTkBacktickOpen,
-    OTkBacktickClose,
-    OTkBacktickInline,
-    OTkUnderlineOpen,
-    OTkUnderlineClose,
-    OTkUnderlineInline,
-    OTkStrikeOpen,
-    OTkStrikeClose,
-    OTkStrikeInline,
-    OTkQuoteOpen,
-    OTkQuoteClose,
-    OTkPunctuation,
-    OTkLinkOpen,
-    OTkLinkClose,
-    OTkRawUrl,
-    OTkLinkTargetOpen,
-    OTkLinkTargetClose,
-    OTkLinkInternal,
+    SameIndent,
+    NoIndent,
+    BoldOpen,
+    BoldClose,
+    BoldInline,
+    ItalicOpen,
+    ItalicClose,
+    ItalicInline,
+    VerbatimOpen,
+    VerbatimClose,
+    VerbatimInline,
+    MonospaceOpen,
+    MonospaceClose,
+    MonospaceInline,
+    BacktickOpen,
+    BacktickClose,
+    BacktickInline,
+    UnderlineOpen,
+    UnderlineClose,
+    UnderlineInline,
+    StrikeOpen,
+    StrikeClose,
+    StrikeInline,
+    QuoteOpen,
+    QuoteClose,
+    Punctuation,
+    LinkOpen,
+    LinkClose,
+    RawUrl,
+    LinkTargetOpen,
+    LinkTargetClose,
+    LinkInternal,
     /*!No protocol is used in the link, it is targeting
 some internal named entry.
 */
-    OTkLinkProtocol,
+    LinkProtocol,
     /*!Protocol used by the link - `file:`, `https:` etc.
      */
-    OTkLinkFull,
+    LinkFull,
     /*!Full token for the link, used in cases where it does not
 make sense to fracture the token - regular https URLs
 etc.
 */
-    OTkLinkHost,
+    LinkHost,
     /*!Host part of the URI used in link
      */
-    OTkLinkPath,
+    LinkPath,
     /*!Path part of the link
      */
-    OTkLinkTarget,
+    LinkTarget,
     /*!Target of the link protocol that does not follow
 regular URI encoding scheme - for example `id:`,
 `elisp`, or `shell` links.
 */
-    OTkLinkExtraSeparator,
+    LinkExtraSeparator,
     /*!Separator of the extra content in the link, `::`
      */
-    OTkLinkExtra,
+    LinkExtra,
     /*!Additional parametrization for the link search
      */
-    OTkLinkDescriptionOpen,
-    OTkLinkDescriptionClose,
-    OTkTextSeparator,
-    OTkParagraphStart,
+    LinkDescriptionOpen,
+    LinkDescriptionClose,
+    TextSeparator,
+    ParagraphStart,
     /*!Fake token inserted by the lexer to delimit start
 of the paragraph
 */
-    OTkParagraphEnd,
-    OTkFootnoteStart,
-    OTkFootnoteEnd,
-    OTkWord,
+    ParagraphEnd,
+    FootnoteStart,
+    FootnoteEnd,
+    Word,
     /*!Regular word in the paragraph
      */
-    OTkEscaped,
+    Escaped,
     /*!Escaped character in plain text - `\*`, `\/` etc. Escaped
 characters and sequences thereof are treated like a regular plain
 text.
 */
-    OTkDoubleSlash,
+    DoubleSlash,
     /*!Put at the end of the lexer first logbook line to
 separate the note, otherwise is treated as standalone escaped slash.
 */
-    OTkNewline,
+    Newline,
     /*!Explicit newline a paragraph
      */
-    OTkMaybeWord,
-    OTkSpace,
+    MaybeWord,
+    Space,
     /*!Space in the paragraph
      */
-    OTkBigIdent,
+    BigIdent,
     /*!`TODO`, `NOTE` and similar capitalized words
      */
-    OTkRawText,
+    RawText,
     /*!Unparsed raw text, either as a part of paragraph or some
 embedded construction such as link address.
 */
-    OTkInlineSrc,
+    InlineSrc,
     /*!Start of an inline source code block: `src_nim[]{}`
      */
-    OTkInlineCall,
+    InlineCall,
     /*!Start of an inline call block: `call_name[]{}`
      */
-    OTkCurlyStart,
+    CurlyStart,
     /*!Start of the curly section of an inline source/call
      */
-    OTkCurlyEnd,
+    CurlyEnd,
     /*!End of the curly section of an inline source/call
      */
-    OTkSymbolStart,
+    SymbolStart,
     /*!Unquoted `\symbol` directly in the text
      */
-    OTkIdent,
-    OTkDollarOpen,
+    Ident,
+    DollarOpen,
     /*!Opening dollar inline latex math
      */
-    OTkDollarClose,
+    DollarClose,
     /*!Closing dollar for inline latex math
      */
-    OTkDoubleDollarOpen,
+    DoubleDollarOpen,
     /*!Opening `$` for inline latex
      */
-    OTkDoubleDollarClose,
+    DoubleDollarClose,
     /*!Closing `$` for inline latex
      */
-    OTkLatexParOpen,
+    LatexParOpen,
     /*!Opening `\(` for inline latex math
      */
-    OTkLatexParClose,
+    LatexParClose,
     /*!Closing `\)` for inline latex math
      */
-    OTkLatexBraceOpen,
+    LatexBraceOpen,
     /*!Opening `\[` for inline display latex equation
      */
-    OTkLatexBraceClose,
+    LatexBraceClose,
     /*!Closing `\]` for inline display latex equation
      */
-    OTkLatexInlineRaw,
+    LatexInlineRaw,
     /*!Content of the brace/par-enclosed math
      */
-    OTkDoubleAt,
+    DoubleAt,
     /*!Inline backend passthrough `@@`
      */
-    OTkAtBracket,
+    AtBracket,
     /*!Inline annotation
      */
-    OTkAtMention,
+    AtMention,
     /*!`@user` mention in the text
      */
-    OTkHashTag,
+    HashTag,
     /*!Start of the inline hashtag `#tag`
      */
-    OTkHashTagSub,
+    HashTagSub,
     /*!Nested hashtag separator
      */
-    OTkHashTagOpen,
+    HashTagOpen,
     /*!Start of the nested hashtag grop bracket
      */
-    OTkHashTagClose,
+    HashTagClose,
     /*!End of the nested hashtag group separator
      */
-    OTkComma,
+    Comma,
     /*!Comma - punctuation or a syntax element (e.g. for macro
 arguments)
 */
-    OTkParOpen,
+    ParOpen,
     /*!Paren open - punctuation or a syntax element
      */
-    OTkParClose,
+    ParClose,
     /*!Paren close - punctuation or a syntax element
      */
-    OTkColon,
-    OTkCircumflex,
+    Colon,
+    Circumflex,
     /*!`^` possible superscript in the text
      */
-    OTkMacroOpen,
+    MacroOpen,
     /*!Start of the macro call `{{{`
      */
-    OTkMacroClose,
+    MacroClose,
     /*!Close of the macro call `}}}`
      */
-    OTkMetaBraceOpen,
-    OTkMetaBraceBody,
-    OTkMetaBraceClose,
-    OTkMetaArgsOpen,
-    OTkMetaArgsBody,
-    OTkMetaArgsClose,
-    OTkSrcOpen,
-    OTkSrcName,
-    OTkSrcArgs,
-    OTkSrcBody,
-    OTkSrcClose,
-    OTkCallOpen,
-    OTkCallName,
-    OTkCallInsideHeader,
-    OTkCallArgs,
-    OTkEndHeader,
-    OTkCallClose,
-    OTkCmdArguments,
-    OTkTableBegin,
-    OTkTableEnd,
-    OTkCellBody,
+    MetaBraceOpen,
+    MetaBraceBody,
+    MetaBraceClose,
+    MetaArgsOpen,
+    MetaArgsBody,
+    MetaArgsClose,
+    SrcOpen,
+    SrcName,
+    SrcArgs,
+    SrcBody,
+    SrcClose,
+    CallOpen,
+    CallName,
+    CallInsideHeader,
+    CallArgs,
+    EndHeader,
+    CallClose,
+    CmdArguments,
+    TableBegin,
+    TableEnd,
+    CellBody,
     /*!Unformatted table cell body
      */
-    OTkRowSpec,
+    RowSpec,
     /*!`#+row` command together with parameters
      */
-    OTkCellSpec,
+    CellSpec,
     /*!`#+cell` command with parameters
      */
-    OTkContent,
+    Content,
     /*!Temporary token created during initial content lexing
      */
-    OTkContentStart,
+    ContentStart,
     /*!Start of the table cell content section
      */
-    OTkContentEnd,
+    ContentEnd,
     /*!End of the table cell content section
      */
-    OTkPipeOpen,
-    OTkPipeSeparator,
+    PipeOpen,
+    PipeSeparator,
     /*!Vertical pipe (`|`) cell separator
      */
-    OTkPipeClose,
-    OTkPipeCellOpen,
-    OTkDashSeparator,
+    PipeClose,
+    PipeCellOpen,
+    DashSeparator,
     /*!Horizontal dash (`---`, `:---`, `---:` or `:---:`)
 row separator
 */
-    OTkCornerPlus,
+    CornerPlus,
     /*!Corner plus (`+`)
      */
-    OTkCommand,
-    OTkCommandArgs,
-    OTkBody,
-    OTkLangName,
-    OTkDoubleAngleOpen,
+    Command,
+    CommandArgs,
+    Body,
+    LangName,
+    DoubleAngleOpen,
     /*!`<<` - open for noweb or anchor placeholder
      */
-    OTkDoubleAngleClose,
+    DoubleAngleClose,
     /*!`>>` - close for noweb or anchor placeholder
      */
-    OTkTripleAngleOpen,
+    TripleAngleOpen,
     /*!`<<<` - radio target open
      */
-    OTkTripleAngleClose,
+    TripleAngleClose,
     /*!`>>>` - radio target close
      */
-    OTkAngleOpen,
+    AngleOpen,
     /*!Placeholder open
      */
-    OTkAngleClose,
+    AngleClose,
     /*!Placeholder close
      */
-    OTkTextBlock,
+    TextBlock,
     /*!Code before noweb placeholder. Requires separate token
 to handle `##<<commented>>` - prefix comment should be
 duplicated for each line of the placeholder expansion.
 */
 };
 
-enum OrgCommandKind
+enum class OrgCommandKind
 {
-    ockNone,
-    ockInclude,
-    ockFiletags,
-    ockSetupfile,
-    ockColumns,
-    ockOtherProperty,
-    ockBeginTable,
-    ockEndTable,
+    None,
+    Include,
+    Filetags,
+    Setupfile,
+    Columns,
+    OtherProperty,
+    BeginTable,
+    EndTable,
     /*!`#+table`
      */
-    ockRow,
+    Row,
     /*!`#+row`
      */
-    ockCell,
+    Cell,
     /*!`#+cell`
      */
-    ockBeginAdmonition,
-    ockEndAdmonition,
-    ockBeginDynamic,
-    ockEndDynamic,
+    BeginAdmonition,
+    EndAdmonition,
+    BeginDynamic,
+    EndDynamic,
     /*!`#+begin:`
      */
-    ockBeginCenter,
-    ockEndCenter,
+    BeginCenter,
+    EndCenter,
     /*!`#+begin_center`
      */
-    ockBeginQuote,
-    ockEndQuote,
+    BeginQuote,
+    EndQuote,
     /*!`#+quote`
      */
-    ockBeginSrc,
-    ockEndSrc,
+    BeginSrc,
+    EndSrc,
     /*!`#+begin_src`
      */
-    ockBeginExport,
-    ockEndExport,
+    BeginExport,
+    EndExport,
     /*!`#+end_export`
      */
-    ockBeginExample,
-    ockEndExample,
-    ockBeginDetails,
-    ockEndDetails,
-    ockBeginSummary,
-    ockEndSummary,
-    ockLatexClassOptions,
+    BeginExample,
+    EndExample,
+    BeginDetails,
+    EndDetails,
+    BeginSummary,
+    EndSummary,
+    LatexClassOptions,
     /*!`#+latex_class_options`
      */
-    ockLatexClass,
-    ockLatexCompiler,
-    ockAttrLatex,
+    LatexClass,
+    LatexCompiler,
+    AttrLatex,
     /*!`#+attr_latex:`
      */
-    ockAttrImg,
+    AttrImg,
     /*!`#+attr_img:`
      */
-    ockAttrHtml,
+    AttrHtml,
     /*!`#+attr_html:`
      */
-    ockHtmlHead,
+    HtmlHead,
     /*!`#+html_head:`
      */
-    ockLanguage,
+    Language,
     /*!`#+language:`
      */
-    ockOptions,
+    Options,
     /*!`#+options: `
      */
-    ockTitle,
+    Title,
     /*!`#+title:`
      */
-    ockProperty,
+    Property,
     /*!`#+property:`
      */
-    ockAuthor,
+    Author,
     /*!`#+author:`
      */
-    ockBind,
+    Bind,
     /*!`#+bind:`
      */
-    ockCreator,
+    Creator,
     /*!`#+creator:`
      */
-    ockLatexHeader,
+    LatexHeader,
     /*!`#+latex_header`
      */
-    ockResults,
+    Results,
     /*!`#+results:`
      */
-    ockCall,
+    Call,
     /*!`#+call:`
      */
-    ockName,
+    Name,
     /*!`#+name:`
      */
-    ockCaption,
+    Caption,
     /*!`#+caption:`
      */
-    ockHeader,
+    Header,
     /*!`#+header:`
      */
 };
