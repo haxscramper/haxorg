@@ -25,7 +25,7 @@ struct MockParser : public OrgParser {
 
 TEST_CASE("Parser", "[parse]") {
     MockParser p;
-    SECTION("Test") {
+    SECTION("Parse time without brackets") {
         p.add(OTkBracketTime);
         p.parseTime(p.lex);
     }

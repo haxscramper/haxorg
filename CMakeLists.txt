@@ -97,6 +97,7 @@ endfunction()
 
 option(TRACE_INSTRUMENT "Generate instrumentation trace")
 option(USE_SINGLE_FILE_CATCH "Use single-file catch2 or installed one")
+option(TEST_COVERAGE "Enable test coverage")
 
 function(set_target_error_flags TARGET)
   add_target_property(${TARGET} COMPILE_OPTIONS -w)
@@ -108,12 +109,29 @@ function(set_target_error_flags TARGET)
     # Avoid getting flooded with compilation errors
     set(CMAKE_CXX_COMPILER clang++)
     add_target_property(${TARGET} COMPILE_OPTIONS -ferror-limit=1)
+
+    if(${TEST_COVERAGE})
+      message(INFO " Test coverage enabled")
+      target_compile_options(
+        ${TARGET} PRIVATE -fprofile-instr-generate -fcoverage-mapping
+                          -ftest-coverage)
+      target_link_options(${TARGET} PRIVATE -lgcov --coverage
+                          -fprofile-instr-generate -fcoverage-mapping)
+
+    endif()
   endif()
 
   if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
     # Same configuration option for g++ compiler
     set(CMAKE_CXX_COMPILER g++)
     add_target_property(${TARGET} COMPILE_OPTIONS -fmax-errors=1)
+
+    if(${TEST_COVERAGE})
+      message(INFO " Test coverage enabled")
+      target_compile_options(${TARGET} PRIVATE --coverage)
+      target_link_options(${TARGET} PRIVATE -lgcov --coverage)
+    endif()
+
   endif()
 endfunction()
 
@@ -159,11 +177,15 @@ add_target_property(tests SOURCES "${TEST_FILES}")
 add_antlr_base(tests)
 
 if(${USE_SINGLE_FILE_CATCH})
-  add_target_property(tests SOURCES "${BASE}/deps/catch2/catch_amalgamated.cpp")
+  add_target_property(tests SOURCES
+                      "${BASE}/deps/catch2/catch_amalgamated.cpp")
   add_target_property(tests INCLUDE_DIRECTORIES "${BASE}/deps/catch2")
-  add_target_property(tests COMPILE_DEFINITIONS "HAXORG_USE_SINGLE_FILE_CATCH")
-  add_target_property(tests COMPILE_DEFINITIONS "CATCH_AMALGAMATED_CUSTOM_MAIN")
-  add_target_property(tests COMPILE_DEFINITIONS "CATCH_CONFIG_DISABLE_EXCEPTIONS")
+  add_target_property(tests COMPILE_DEFINITIONS
+                      "HAXORG_USE_SINGLE_FILE_CATCH")
+  add_target_property(tests COMPILE_DEFINITIONS
+                      "CATCH_AMALGAMATED_CUSTOM_MAIN")
+  add_target_property(tests COMPILE_DEFINITIONS
+                      "CATCH_CONFIG_DISABLE_EXCEPTIONS")
 else()
   find_package(Catch2 3 REQUIRED)
   add_target_property(tests LINK_LIBRARIES Catch2::Catch2)

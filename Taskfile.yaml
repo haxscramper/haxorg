@@ -2,6 +2,7 @@ version: 3
 
 tasks:
   debug:
+    dir: "{{.DIR}}"
     cmds:
       - >
         lldb
@@ -13,6 +14,15 @@ tasks:
         {{.IN}}
         {{.ARGS}}
 
+  llvm_profdata:
+    dir: "{{.DIR}}"
+    cmds:
+      # Unclutter program output, save command execution to separate file
+      - llvm-profdata merge -sparse *.profraw -o coverage.profdata > profdata_output.txt
+      - llvm-cov show {{.BINARY}} -instr-profile=coverage.profdata -format=html > coverage.html
+      - llvm-cov export -format=lcov -instr-profile=coverage.profdata {{.BINARY}} > coverage.lcov
+      - llvm-cov export -format=text -instr-profile=coverage.profdata {{.BINARY}} > coverage.json
+      - genhtml -o html coverage.lcov > genhtml_output.txt
   
   tests:
     desc: "Compile and run tests"
@@ -27,6 +37,7 @@ tasks:
         -DCMAKE_BUILD_TYPE=Debug
         -DUSE_SINGLE_FILE_CATCH=ON
         -DCMAKE_CXX_COMPILER=clang++
+        -DTEST_COVERAGE=ON
         --log-level=TRACE
         ..
 
@@ -35,7 +46,13 @@ tasks:
       # - "{{.PWD}}/tests.bin"
       - task: debug
         vars:
+          DIR: "{{.PWD}}/build"
           IN: "{{.PWD}}/tests.bin"
+
+      - task: llvm_profdata
+        vars:
+          DIR: "{{.PWD}}/build"
+          BINARY: "{{.PWD}}/tests.bin"
 
   plantuml:
     desc: "Compile and test plantuml grammar"
