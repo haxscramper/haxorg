@@ -93,23 +93,27 @@ template <typename N, typename K>
 struct NodeGroup {
     /// \brief Typedef for convenience
     using NodeT = Node<N, K>;
-    /// \brief Typedef for convenience
-    using IdT = NodeId<N, K>;
 
     /// \brief Typedef for DOD store API operations
     using id_type = NodeId<N, K>;
 
-    dod::Store<IdT, NodeT> nodes;
-    TokenGroup<K>*         tokens;
+    dod::Store<NodeId<N, K>, NodeT> nodes;
+    TokenGroup<K>*                  tokens;
+
+    Str strVal(NodeId<N, K> id) const {
+        return tokens->at(at(id).getToken()).strVal();
+    }
 
     NodeGroup(TokenGroup<K>* _tokens) : tokens(_tokens) {}
 
-    Vec<IdT> pendingTrees;
+    Vec<NodeId<N, K>> pendingTrees;
 
     /// \brief Add token node to the list of nodes
-    [[nodiscard]] IdT token(CR<NodeT> node) { return nodes.add(node); }
+    [[nodiscard]] NodeId<N, K> token(CR<NodeT> node) {
+        return nodes.add(node);
+    }
     /// \brief Create new token node
-    [[nodiscard]] IdT token(N node, TokenId<K> tok) {
+    [[nodiscard]] NodeId<N, K> token(N node, TokenId<K> tok) {
         return nodes.add(Node<N, K>(node, tok));
     }
 
@@ -128,7 +132,7 @@ struct NodeGroup {
     /// snippet:
     ///
     /// \snippet tNode.cpp nested tree construction
-    [[nodiscard]] IdT startTree(CR<NodeT> node) {
+    [[nodiscard]] NodeId<N, K> startTree(CR<NodeT> node) {
         auto res = nodes.add(node);
         pendingTrees.push_back(res);
         return res;
@@ -141,7 +145,7 @@ struct NodeGroup {
     /// above.
     ///
     /// \returns ID of the closed node
-    IdT endTree(
+    NodeId<N, K> endTree(
         int offset = 0 /// Offset for extending closed subnode
     ) {
         auto start = pendingTrees.pop_back_v();
@@ -150,27 +154,28 @@ struct NodeGroup {
     }
 
     /// \brief Return reference to the node *object* at specified ID
-    Node<N, K>&    at(IdT id) { return nodes.at(id); }
-    CR<Node<N, K>> at(IdT id) const { return nodes.at(id); }
+    Node<N, K>&    at(NodeId<N, K> id) { return nodes.at(id); }
+    CR<Node<N, K>> at(NodeId<N, K> id) const { return nodes.at(id); }
     Token<K>&      at(TokenId<K> id) { return tokens->at(id); }
     CR<Token<K>>   at(TokenId<K> id) const { return tokens->at(id); }
 
 
     class iterator {
       private:
-        IdT           id;
+        NodeId<N, K>  id;
         CP<NodeGroup> group;
 
       public:
         typedef std::forward_iterator_tag iterator_category;
-        typedef IdT                       value_type;
-        typedef IdT*                      pointer;
-        typedef IdT&                      reference;
+        typedef NodeId<N, K>              value_type;
+        typedef NodeId<N, K>*             pointer;
+        typedef NodeId<N, K>&             reference;
         typedef std::ptrdiff_t            difference_type;
 
-        iterator(IdT _id, CP<NodeGroup> _group) : id(_id), group(_group) {}
+        iterator(NodeId<N, K> _id, CP<NodeGroup> _group)
+            : id(_id), group(_group) {}
 
-        IdT operator*() { return id; }
+        NodeId<N, K> operator*() { return id; }
 
         iterator& operator++() {
             id = id + group->at(id).getExtent() + 1;
@@ -182,25 +187,29 @@ struct NodeGroup {
         }
     };
 
-    iterator begin(IdT start) const { return iterator(start, this); }
-    iterator end(IdT last) const { return iterator(++last, this); }
+    iterator begin(NodeId<N, K> start) const {
+        return iterator(start, this);
+    }
+    iterator end(NodeId<N, K> last) const {
+        return iterator(++last, this);
+    }
 
     /// \brief Get pair of start/end iterators for traversing content of
     /// the subnodes
-    Pair<iterator, iterator> subnodesOf(IdT node) const {
+    Pair<iterator, iterator> subnodesOf(NodeId<N, K> node) const {
         return {begin(node + 1), end(node + at(node).getExtent())};
     }
 
     /// \brief Get ID slice over all subnodes that are places 'in' a
     /// specific node.
-    Slice<IdT> allSubnodesOf(IdT node) const {
+    Slice<NodeId<N, K>> allSubnodesOf(NodeId<N, K> node) const {
         return {node + 1, node + at(node).getExtent()};
     }
 
     /// \brief Get closest left node that contains \arg node in its full
     /// extent.
-    IdT parent(IdT node) const {
-        IdT parent = node;
+    NodeId<N, K> parent(NodeId<N, K> node) const {
+        NodeId<N, K> parent = node;
         --parent;
         while (!parent.isNil()) {
             auto extent = allSubnodesOf(parent);
@@ -211,11 +220,11 @@ struct NodeGroup {
             }
         }
 
-        return IdT::Nil();
+        return NodeId<N, K>::Nil();
     }
 
     /// \brief Get number of direct subnodes
-    int size(IdT node) const {
+    int size(NodeId<N, K> node) const {
         auto [begin, end] = subnodesOf(node);
         int result        = 0;
         for (; begin != end; ++begin) {
@@ -225,7 +234,7 @@ struct NodeGroup {
     }
 
     /// \brief Get id of the Nth subnode
-    IdT subnode(IdT node, int index) {
+    NodeId<N, K> subnode(NodeId<N, K> node, int index) {
         auto [begin, end] = subnodesOf(node);
         for (int i = 0; i < index; ++i) {
             ++begin;
@@ -241,7 +250,7 @@ struct NodeGroup {
 
     void lispRepr(
         std::ostream&    os,
-        IdT              node,
+        NodeId<N, K>     node,
         CR<TreeReprConf> conf = TreeReprConf()) {
         os << "(" << to_string(node.getMask()) << ":"
            << to_string(node.getUnmasked()) << " "
@@ -272,7 +281,7 @@ struct NodeGroup {
 
     void treeRepr(
         std::ostream&    os,
-        IdT              node,
+        NodeId<N, K>     node,
         int              level,
         CR<TreeReprConf> conf = TreeReprConf()) {
         if (conf.withTreeMask) {

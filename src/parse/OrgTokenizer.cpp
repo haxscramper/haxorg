@@ -399,9 +399,7 @@ void OrgTokenizer::lexText(PosStr& str) {
             rec = [&rec](PosStr& str) -> Vec<OrgToken> {
                 Vec<OrgToken> result;
                 result.push_back(str.tok(otk::HashTag, [](PosStr& str) {
-                    if (str.at('#')) {
-                        str.skip('#');
-                    };
+                    str.trySkip('#');
                     str.skipZeroOrMore(charsets::IdentChars);
                 }));
 
