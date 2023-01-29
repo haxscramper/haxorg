@@ -20,8 +20,15 @@ struct MockParser : public OrgParser {
         }
     }
 
-    void     add(OrgTokenKind k) { tokens.add(Token(k)); }
-    OrgNode& operator[](int idx) { return nodes.at(OrgId(idx)); }
+    void         add(OrgTokenKind k) { tokens.add(Token(k)); }
+    OrgNode&     operator[](int idx) { return nodes.at(OrgId(idx)); }
+    Vec<OrgNode> flat() const {
+        Vec<OrgNode> res;
+        for (const auto& n : nodes.nodes.items()) {
+            res.push_back(*n);
+        }
+        return res;
+    }
 };
 
 OrgNode tree(OrgNodeKind kind, int extent) {
@@ -36,6 +43,29 @@ OrgNode tok(OrgNodeKind kind, int id) {
 
 using org = OrgNodeKind;
 using otk = OrgTokenKind;
+
+struct TmpTree {
+    OrgNode      head;
+    Vec<TmpTree> sub;
+    Vec<OrgNode> flatten() const {
+        Vec<OrgNode> flatSub;
+        flatSub.push_back(head);
+        for (const auto& s : sub) {
+            flatSub.append(s.flatten());
+        }
+        if (flatSub[0].isNonTerminal()) {
+            flatSub[0].extend(flatSub.size() - 1);
+        }
+        return flatSub;
+    }
+};
+
+TmpTree t(OrgNodeKind k, CR<Vec<TmpTree>> sub = {}) {
+    return TmpTree{OrgNode(k, 0), sub};
+}
+
+TmpTree t(OrgNodeKind k, int index) { return TmpTree{tok(k, index)}; }
+TmpTree t(OrgNode node) { return TmpTree{node}; }
 
 TEST_CASE("Parser", "[parse]") {
     MockParser p;
@@ -55,6 +85,17 @@ TEST_CASE("Parser", "[parse]") {
         REQUIRE(p[2] == tok(org::TimeStamp, 2));
         REQUIRE(p[3] == empty());
         std::cout << to_string(org::TimeStamp) << std::endl;
+    }
+
+    SECTION("Compare time range with flattened tree") {
+        p.add({otk::BracketTime, otk::TimeDash, otk::BracketTime});
+        p.parseTime(p.lex);
+        auto tree = t(org::TimeRange,
+                      {t(org::TimeStamp, 0),
+                       t(org::TimeStamp, 2),
+                       t(empty())})
+                        .flatten();
+        REQUIRE(p.flat() == tree);
     }
 
     SECTION("Parse time with arrow") {
