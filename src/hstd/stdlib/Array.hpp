@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hstd/stdlib/Slice.hpp>
+#include <hstd/stdlib/Table.hpp>
 #include <hstd/system/all.hpp>
 
 #include <span>
