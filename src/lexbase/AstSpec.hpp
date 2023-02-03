@@ -273,47 +273,37 @@ std::ostream& operator<<(std::ostream& os, AstRange const& arange) {
 
 template <typename N>
 std::string toPath(const N& ast, const Vec<int>& path) {
-    std::string result;
-    constexpr if (((ast)is(/* REF TYPECLASS */))) {
-        if (isNil(ast)) {
-            return strutils.join(
-                path.mapIt((((("[") & (to_string(it)))) & ("]"))), ".");
-        }
-    }
-
-    seq[string] aux(const N& a, const Vec<int>& path) {
-        seq[string] result;
-        result.add(to_string(a.kind));
-        if (((path.len) > (1))) {
-            result.add(aux(a[path[0]], path[((1)..^ (1))]));
-        } else if (((path.len) == (1))) {
-            result.add((((("[") & (to_string(path[0])))) & ("]")));
+    std::function<Vec<std::string>(N const&, Vec<int> const&)> aux;
+    aux = [&aux](const N& a, const Vec<int>& path) {
+        Vec<std::string> result;
+        result.push_back(to_string(a.kind));
+        if (1 < path.size()) {
+            result.push_back(aux(a[path[0]], path[slice(1, 1_B)]));
+        } else if (path.size() == 1) {
+            result.push_back("[" + to_string(path[0]) + "]");
         }
         return result;
-    }
-    return strutils.join(aux(ast, path), ".");
-    return result;
+    };
+
+    return join(".", aux(ast, path));
 };
 
 template <typename K>
 bool isEmpty(const AstCheckFail<K>& fail, const bool& withNested = true) {
-    bool result;
-    ((((((fail.isMissing.!()) && (((fail.msg.len) == (0)))))
-       && (((fail.expected.len) == (0)))))
-     && (/* FIXME STMT LIST EXPR */
-         else { withNested } else {true}));
-    return result;
-};
+    return !fail.isMissing && fail.msg.size() == 0
+        && fail.expected.size() == 0
+        && (withNested ? fail.nested.size() == 0 : true);
+}
 
 template <typename K>
 int failCount(const AstCheckFail<K>& fail) {
     int result;
-    for (const auto nested : fail.nested) {
+    for (const auto& nested : fail.nested) {
         result += nested.failCount;
-    };
+    }
     if (fail.isMissing || (0 < fail.msg.len) || (0 < fail.expected.len)) {
         ++result;
-    };
+    }
     return result;
 };
 
@@ -332,9 +322,8 @@ AstCheckFail<K> findMissing(
                 if (arange.arange.contains(idx, node.len)) {
                     altFound[rangeIdx] = true;
                     for (const auto alt : arange.alts) {
-                        const auto n = findMissing(
-                            alt, node, ((path) & ((@({idx})))));
-                        if ((!(n.isEmpty()))) {
+                        const auto& n = findMissing(alt, node, path + idx);
+                        if (!isEmpty(n)) {
                             result.nested.add(n);
                         }
                     }
@@ -370,13 +359,13 @@ AstCheckFail<K> validateAst(
     const K&                subnode,
     const int&              idx,
     const int&              maxLen,
-    const Vec<int>&         path = (@({}))) {
+    const Vec<int>&         path = Vec<int>{}) {
     AstCheckFail<K> result;
     result.path = path;
     for (const auto arange : spec.ranges) {
         if (arange.arange.contains(idx, maxLen)) {
             for (const auto alt : arange.alts) {
-                if (((subnode)notin(alt.expected))) {
+                if (alt.expected.contains(subnode)) {
                     result.nested.add(AstCheckFail<K>{
                         .parent   = kind,
                         .path     = path,
@@ -392,136 +381,133 @@ AstCheckFail<K> validateAst(
 }
 
 template <typename N, typename K>
-ColoredText treeRepr(const AstSpec<N, K>& spec) {
-    ColoredText result;
-    coloredResult();
+ColText treeRepr(const AstSpec<N, K>& spec) {
+    using fg = TermColorFg8Bit;
 
-    void aux(const AstPattern<N, K>& p, const int& level) {
-        addIndent(level);
-        if (((p.doc.len) > (0))) {
-            add(toYellow(p.doc.indent(((level) + (1)))));
+    ColStream                                                s;
+    std::function<void(const AstPattern<N, K>&, const int&)> aux;
+
+    aux = [&s, &aux](const AstPattern<N, K>& p, const int& level) {
+        s.addIndent(level);
+        if (0 < p.doc.len) {
+            s << fg::Yellow << p.doc.addIndent(level + 1) << ColStyle{};
         }
         if (0 < p.expected.len) {
-            add(hshow(p.expected));
+            s << hshow(p.expected);
         }
         for (const auto arange : p.ranges) {
-            add("\n");
-            addIndent(level + 1);
-            add(toYellow(to_string(arange.arange)));
+            s << "\n";
+            s.addIndent(level + 1);
+            s << fg::Yellow << arange.arange << ColStyle{};
             if (0 < arange.arange.name.len) {
-                add(" ");
-                add(toBlue(arange.arange.name));
+                s << " " << fg::Blue << arange.arange.name << ColStyle{};
             }
 
             for (const auto alt : arange.alts) {
-                add("\n");
+                s << "\n";
                 aux(alt, level + 2);
             }
         }
-    }
+    };
+
     for (const auto [kind, pattern] : pairs(spec.spec)) {
         if (pattern.has_value()) {
-            add(hshow(kind));
-            add("\n");
+            s << hshow(kind);
+            s << "\n";
             aux(pattern.value(), 1);
-            add("\n");
+            s << "\n";
         }
     }
-    endResult();
-    return result;
+
+    return s.getBuffer();
 }
 
 template <typename N, typename K>
-ColoredText formatFail(const AstCheckFail<K>& fail, const N& node) {
-    ColoredText result;
-    coloredResult();
-    if (((failCount(fail)) == (0))) {
-        endResult();
-    }
+ColText formatFail(const AstCheckFail<K>& fail, const N& node) {
 
-    void aux(const AstCheckFail<K>& fail, const int& level) {
-        addIndent(level);
+    using fg = TermColorFg8Bit;
+    ColStream s;
+    if (failCount(fail) == 0) {}
+
+    std::function<void(const AstCheckFail<K>&, const int&)> aux;
+    aux = [&s, &aux, &node](
+              const AstCheckFail<K>& fail, const int& level) {
+        s.addIndent(level);
         auto parentFailed = false;
-        if ((!(fail.isEmpty(withNested = false)))) {
+        if (!isEmpty(fail, false)) {
             parentFailed = true;
-            if ((0 < (fail.msg.len))) {
-                add(fail.msg);
-                add(" ");
+            if (0 < fail.msg.size()) {
+                s << fail.msg << " ";
             }
-            if ((0 < (fail.expected.len))) {
+            if (0 < fail.expected.size()) {
                 if (fail.isMissing) {
-                    add("missing subnode ");
-                    add(toGreen(to_string(fail.arange)));
-                    if ((0 < (fail.arange.name.len))) {
-                        add(" (");
-                        add(toCyan(fail.arange.name));
-                        add(")");
-                    };
-                    add(" ");
-                    add(toRed(to_string(fail.expected)));
+                    s << "missing subnode " << fg::Green << fail.arange
+                      << s.end();
+                    if (0 < fail.arange.name.size()) {
+                        s << " (" << fg::Green << fail.arange.name
+                          << s.end() << ")";
+                    }
+                    s << " " << fg::Red << fail.expected << s.end();
                 } else {
-                    add("wanted ");
-                    add(toRed(to_string(fail.expected)));
-                    add(" in ");
-                    add(toGreen(to_string(fail.arange)));
-                    if ((0 < (fail.arange.name.len))) {
-                        add(" (");
-                        add(toCyan(fail.arange.name));
-                        add(")");
-                    };
+                    s << "wanted " << fg::Red << fail.expected << s.end()
+                      << " in " << fg::Green << fail.arange << s.end();
+
+                    if (0 < fail.arange.name.size()) {
+                        s << " (" << fg::Green << fail.arange.name
+                          << s.end() << ")";
+                    }
+
                     if (fail.got.has_value()) {
-                        add(", but got ");
-                        add(hshow(fail.got.value()));
-                    };
-                };
+                        s << ", but got " << hshow(s, fail.got.value());
+                    }
+                }
             } else if (fail.isMissing) {
-                add("missing subnode ");
-                add(toGreen(to_string(fail.arange)));
-                if ((0 < fail.arange.name.len)) {
-                    add(" (");
-                    add(toCyan(fail.arange.name));
-                    add(")");
-                };
-            };
-            if ((0 < (fail.path.len))) {
-                add(" on path ");
-                add(toPath(node, fail.path).toGreen());
+                s << "missing subnode " << fg::Cyan << fail.arange
+                  << s.end();
+                if (0 < fail.arange.name.size()) {
+                    s << " (" << fg::Cyan << fail.arange.name << s.end()
+                      << ")";
+                }
+            }
+
+            if (0 < fail.path.size()) {
+                s << " on path " << fg::Green << toPath(node, fail.path)
+                  << s.end();
             } else {
-                add(" for ");
-                add(toGreen(to_string(fail.parent)));
-            };
-            if (0 < fail.arange.doc.len) {
-                add("\n");
-                add(fail.arange.doc.indent(((((level) * (2))) + (2)))
-                        .toYellow());
-            };
-        };
+                s << " for " << fg::Green << fail.parent << s.end();
+            }
+
+            if (0 < fail.arange.doc.size()) {
+                s << "\n"
+                  << fg::Yellow
+                  << fail.arange.doc.addIndent((level * 2) + 2) << s.end();
+            }
+        }
 
         auto idx = 0;
-        ;
-        ;
         for (const auto nested : items(fail.nested)) {
             if (!nested.isEmpty() && 0 < failCount(nested)) {
-                if ((0 < idx)) {
-                    add("\n");
+                if (0 < idx) {
+                    s << "\n";
                 }
-                aux(nested, tern(parentFailed, ((level) + (1)), level));
+                aux(nested, parentFailed ? level + 1 : level);
                 ++idx;
             }
         }
-    }
+    };
+
     aux(fail, 0);
-    endResult();
-    return result;
+
+    return s.getBuffer();
 }
 
 template <typename N, typename K>
-ColoredText validateAst(
+ColText validateAst(
     const AstSpec<N, K>& spec,
     const N&             node,
     const N&             subnode,
     const int&           idx) {
-    ColoredText result;
+    ColText result;
     if (spec.spec[node.kind].has_value()) {
         const auto fail1 = validateAst(
             spec.spec[node.kind].value(),
@@ -529,12 +515,13 @@ ColoredText validateAst(
             subnode.kind,
             idx,
             node.len,
-            (@({idx})));
+            Vec{idx});
 
-        if (((failCount(fail1)) > (0))) {
+        if (0 < failCount(fail1)) {
             result.add(formatFail(fail1, node));
             result.add("\n");
-        };
+        }
+
         result.add(formatFail(
             findMissing(spec.spec[node.kind].value(), node), node));
     }
@@ -542,12 +529,12 @@ ColoredText validateAst(
 }
 
 template <typename N, typename K>
-std::optional[ColoredText] validateSub(
+std::optional[ColText] validateSub(
     const AstPattern<N, K>&   spec,
     const K&                  node,
     const K&                  sub,
     const int& idx const int& maxIdx, ) {
-    std::optional[ColoredText] result;
+    std::optional[ColText] result;
     const auto fail = formatFail(
         validateAst(spec, node, sub, idx, maxIdx, (@({idx}))),
         N(/* NIL LIT */));
@@ -558,12 +545,12 @@ std::optional[ColoredText] validateSub(
 };
 
 template <typename N, typename K>
-std::optional<ColoredText> validateSub(
+std::optional<ColText> validateSub(
     const AstSpec<N, K>& spec,
     const N&             node,
     const int&           idx,
     const N&             sub) {
-    std::optional<ColoredText> result;
+    std::optional<ColText> result;
     if (spec.spec[node.kind].has_value()) {
         const auto fail = formatFail(
             validateAst(
@@ -581,20 +568,20 @@ std::optional<ColoredText> validateSub(
 }
 
 template <typename N, typename K>
-std::optional[ColoredText] validateSub(
+std::optional[ColText] validateSub(
     const AstSpec<N, K>& spec,
     const N&             node,
     const int&           idx) {
-    std::optional[ColoredText] result;
+    std::optional[ColText] result;
     validateSub(spec, node, idx, node[idx]);
     return result;
 };
 
 template <typename N, typename K>
-std::optional[ColoredText] validateSelf(
+std::optional[ColText] validateSelf(
     const AstSpec<N, K>& spec,
     const N&             node) {
-    std::optional<ColoredText> result;
+    std::optional<ColText> result;
     if (spec.spec[node.kind].has_value()) {
         const auto findMissing = findMissing(
             spec.spec[node.kind].value(), node);
@@ -609,8 +596,8 @@ std::optional[ColoredText] validateSelf(
 }
 
 template <typename N, typename K>
-ColoredText validateAst(const AstSpec<N, K>& spec, const N& node) {
-    ColoredText result;
+ColText validateAst(const AstSpec<N, K>& spec, const N& node) {
+    ColText result;
     if (spec.spec[node.kind].has_value()) {
         result.add(formatFail(
             findMissing(spec.spec[node.kind].value(), node), node));

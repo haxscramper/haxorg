@@ -53,15 +53,39 @@ enum class Style : u8
 };
 
 struct ColStyle {
-    TermColorFg8Bit fg;  /*!Foreground color */
-    TermColorBg8Bit bg;  /*!Background */
+    TermColorFg8Bit fg = (TermColorFg8Bit)0; /*!Foreground color */
+    TermColorBg8Bit bg = (TermColorBg8Bit)0; /*!Background */
     IntSet<Style> style; /*!Other styling options (italic, underline, dim,
                          bright etc.) */
+
+    inline ColStyle() {}
+    inline ColStyle(TermColorFg8Bit fg) : fg(fg) {}
+    inline ColStyle(TermColorBg8Bit bg) : bg(bg) {}
+    inline ColStyle(Style _style) : style(IntSet<Style>{_style}) {}
+
+    void operator+=(CR<ColStyle> other) {
+        style = style + other.style;
+        fg    = (u8)fg == 0 ? other.fg : fg;
+        bg    = (u8)bg == 0 ? other.bg : bg;
+    }
+
+    ColStyle operator+(CR<ColStyle> other) const {
+        ColStyle result = *this;
+        result += other;
+        return result;
+    }
 };
 
+/// NOTE yes, I know it is very inefficient, but it is not a HPC solution
+/// in any case, so I'm trading current development productivity (not
+/// spending time on a more efficient range-based solution) over runtime
+/// performance. The API must stay the same in any case, so improved
+/// version can be implemented in the future.
 struct ColRune {
     wchar_t  rune;
     ColStyle style;
+    inline ColRune(CR<ColStyle> style, wchar_t rune)
+        : rune(rune), style(style) {}
 };
 
 struct ColText : Vec<ColRune> {};
@@ -77,6 +101,112 @@ concept ColModifier = IsAnyOf<
     IntSet<Style>,
     Style,
     ColStyle>;
+
+struct ColStream;
+struct StreamState {
+    ColStream& stream;
+    ColStyle   start;
+    StreamState(ColStream& stream);
+    ~StreamState();
+};
+
+struct ColStream : public ColText {
+    CR<ColText> getBuffer() const {
+        return *static_cast<ColText const*>(this);
+    }
+
+
+    ColStyle    active;
+    void        addIndent(int level) {}
+    ColStyle    end() const { return ColStyle{}; }
+    StreamState snap() { return StreamState(*this); }
+};
+
+StreamState::StreamState(ColStream& stream) : stream(stream) {
+    start = stream.active;
+}
+
+StreamState::~StreamState() { stream.active = start; }
+
+ColText merge(CR<ColStyle> style, CR<std::string> text) {
+    ColText result;
+    for (const auto& ch : text) {
+        result.push_back(ColRune(style, ch));
+    }
+    return result;
+}
+
+ColStream& operator<<(ColStream& os, ColStyle const& value) {
+    os.active = value;
+    return os;
+}
+
+ColStream& operator<<(ColStream& os, std::string const& value) {
+    os.append(merge(os.active, value));
+    return os;
+}
+
+ColStream& operator<<(ColStream& os, ColText const& value) {
+    os.append(value);
+    return os;
+}
+
+
+template <typename T>
+ColStream& operator<<(ColStream& os, CR<T> const& value)
+    requires StringStreamable<T>
+{
+    std::stringstream string;
+    string << value;
+    return os << string.str();
+}
+
+enum class HDisplayVerbosity : u8
+{
+    Minimal,
+    Normal,
+    Verbose,
+    DataDump,
+};
+
+enum class HDisplayFlag : u8
+{
+    Colored,
+    PositionIndexed,
+    PathIndexed,
+    UnicodeNewlines,
+    UnicodePPrint,
+    WithRanges,
+    SpellEmptyStrings,
+    UseBin,
+    UseDecimal,
+    UseHex,
+    TrimPrefixZeros,
+    SplitNumbers,
+    UseCommas,
+    UseQuotes
+};
+
+struct HDisplayOpts {
+    IntSet<HDisplayFlag> flags = IntSet<HDisplayFlag>{
+        HDisplayFlag::Colored,
+        HDisplayFlag::PositionIndexed,
+        HDisplayFlag::SpellEmptyStrings,
+        HDisplayFlag::UseCommas,
+        HDisplayFlag::UseQuotes,
+        HDisplayFlag::TrimPrefixZeros};
+    int  indent      = 0;
+    int  maxDepth    = 120;
+    int  maxLen      = 30;
+    bool quoteIdents = false; /// Add quotes around stings that are valid
+                              /// identifirers
+    bool              newlineBeforeMulti = true;
+    HDisplayVerbosity verbosity          = HDisplayVerbosity::Normal;
+    bool              dropPrefix         = false;
+};
+
+template <typename T>
+ColStream& hshow(ColStream& s, CR<T> value, CR<HDisplayOpts> opts);
 
 #if false
 

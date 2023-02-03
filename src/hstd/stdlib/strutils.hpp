@@ -16,3 +16,22 @@ inline Str normalize(CR<Str> in) {
     }
     return res;
 }
+
+template <typename Iterable>
+void join(std::ostream& os, CR<Str> sep, Iterable list) {
+    int index = 0;
+    for (const auto& it : list) {
+        if (0 < index) {
+            os << sep;
+        }
+        os << it;
+        ++index;
+    }
+}
+
+template <typename Iterable>
+std::string join(CR<Str> sep, Iterable list) {
+    std::stringstream os;
+    join(os, sep, list);
+    return os.str();
+}

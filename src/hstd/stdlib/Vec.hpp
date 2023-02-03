@@ -32,6 +32,24 @@ class Vec : public std::vector<T> {
         insert(end(), other.begin(), other.end());
     }
 
+    Vec<T> operator+(CR<T> other) const {
+        auto result = *this;
+        result.push_back(other);
+        return result;
+    }
+
+    Vec<T> operator+(CR<std::span<T>> other) const {
+        auto result = *this;
+        result.append(other);
+        return result;
+    }
+
+    Vec<T> operator+(CR<Vec<T>> other) const {
+        auto result = *this;
+        result.append(other);
+        return result;
+    }
+
     /// \brief In-place reverse of the vector content
     void reverse() { std::reverse(begin(), end()); }
 
