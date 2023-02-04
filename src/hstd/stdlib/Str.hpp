@@ -13,6 +13,7 @@ struct Str : public std::string {
 
     Str(std::string_view view) : std::string(view.data(), view.size()) {}
     Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
+    Str(char c) : std::string(c, 1) {}
     Str() = default;
 
     Str substr(int start, std::size_t count = npos) const {

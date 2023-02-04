@@ -3,6 +3,7 @@
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Table.hpp>
 #include <hstd/system/all.hpp>
+#include <hstd/system/generator.hpp>
 
 #include <span>
 #include <array>
@@ -90,4 +91,20 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
 
     Val& at(CR<Key> value) { return Base::at(ord(value)); }
     Val& operator[](CR<Key> value) { return Base::operator[](ord(value)); }
+    CR<Val> operator[](CR<Key> value) const {
+        return Base::operator[](ord(value));
+    }
+
+
+    generator<Pair<Key, Val const*>> pairs() const {
+        for (auto i = low<Key>(); i <= high<Key>(); i = succ(i)) {
+            co_yield {i, &this->operator[](i)};
+        }
+    }
+
+    generator<Pair<Key, Val*>> pairs() {
+        for (auto i = low<Key>(); i <= high<Key>(); i = succ(i)) {
+            co_yield {i, &this->operator[](i)};
+        }
+    }
 };

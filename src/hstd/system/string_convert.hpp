@@ -99,3 +99,32 @@ inline std::string to_string(wchar_t wc) {
     const int   ret = std::wctomb(&mb[0], wc);
     return std::string(&mb[0], ret);
 }
+
+template <typename Iterable>
+std::ostream& join(std::ostream& os, CR<std::string> sep, Iterable list) {
+    int index = 0;
+    for (const auto& it : list) {
+        if (0 < index) {
+            os << sep;
+        }
+        os << it;
+        ++index;
+    }
+    return os;
+}
+
+template <typename Iterable>
+std::string join(CR<std::string> sep, Iterable list) {
+    std::stringstream os;
+    join(os, sep, list);
+    return os.str();
+}
+
+/// \brief Small insanity to allow for `os << "[" << join(os, "", "wer")
+/// <<` and other stuff without having to break everything into multiple
+/// lines. Yes, this overload makes zero sense but whatever.
+inline std::ostream& operator<<(
+    std::ostream&       os,
+    std::ostream const& value) {
+    return os;
+}

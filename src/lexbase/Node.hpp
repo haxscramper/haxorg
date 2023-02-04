@@ -235,7 +235,7 @@ struct NodeGroup {
     }
 
     /// \brief Get id of the Nth subnode
-    NodeId<N, K> subnode(NodeId<N, K> node, int index) {
+    NodeId<N, K> subnode(NodeId<N, K> node, int index) const {
         auto [begin, end] = subnodesOf(node);
         for (int i = 0; i < index; ++i) {
             ++begin;
@@ -252,7 +252,7 @@ struct NodeGroup {
     void lispRepr(
         std::ostream&    os,
         NodeId<N, K>     node,
-        CR<TreeReprConf> conf = TreeReprConf()) {
+        CR<TreeReprConf> conf = TreeReprConf()) const {
         os << "(" << to_string(node.getMask()) << ":"
            << to_string(node.getUnmasked()) << " "
            << to_string(at(node).kind);
@@ -331,7 +331,8 @@ struct NodeAdapter {
     NodeGroup<N, K> const* group;
     NodeId<N, K>           id;
 
-    K getKind() const { return group->at(id).kind; }
+    N   getKind() const { return group->at(id).kind; }
+    int size() const { return group->size(id); }
 
     NodeAdapter<N, K>(NodeGroup<N, K> const* group, NodeId<N, K> id)
         : group(group), id(id) {}

@@ -224,6 +224,15 @@ enum class HDisplayFlag : u8
     UseQuotes
 };
 
+template <>
+HDisplayFlag low() {
+    return HDisplayFlag ::Colored;
+}
+template <>
+HDisplayFlag high() {
+    return HDisplayFlag ::UseQuotes;
+}
+
 struct HDisplayOpts {
     IntSet<HDisplayFlag> flags = IntSet<HDisplayFlag>{
         HDisplayFlag::Colored,
@@ -243,7 +252,18 @@ struct HDisplayOpts {
 };
 
 template <typename T>
-ColStream& hshow(ColStream& s, CR<T> value, CR<HDisplayOpts> opts);
+ColStream& hshow(
+    ColStream&       s,
+    CR<T>            value,
+    CR<HDisplayOpts> opts = HDisplayOpts{});
+
+template <StringConvertible T>
+ColStream& hshow(
+    ColStream&       s,
+    CR<T>            value,
+    CR<HDisplayOpts> opts = HDisplayOpts{}) {
+    return s << to_string(value);
+}
 
 /*! Create ansi escape sequence with given code */
 std::string ansiEsc(int code) {
@@ -340,7 +360,7 @@ std::string to_string(const ColRune& rune, const bool& color = true) {
 /// Convert sequence of colored runes to the std::string, with ansi escape
 /// sequences in. `color` controls whether styling is going to be applied
 /// or not.
-std::string to_string(
+std::string to_colored_string(
     const Vec<ColRune>& runes,
     const bool&         color = true) {
     std::string result;
@@ -350,11 +370,12 @@ std::string to_string(
             result += ansiDiff(prev, rune.style);
             result += to_string(rune.rune);
             prev = rune.style;
-        };
+        }
+
         if (!isDefault(prev.fg) || !isDefault(prev.bg)
             || 0 < prev.style.size()) {
             result += ansiEsc(0);
-        };
+        }
     } else {
         for (const auto rune : runes) {
             result += rune.rune;
@@ -363,6 +384,9 @@ std::string to_string(
     return result;
 }
 
+std::ostream& operator<<(std::ostream& os, ColText const& value) {
+    return os << to_colored_string(value, true);
+}
 
 #if false
 

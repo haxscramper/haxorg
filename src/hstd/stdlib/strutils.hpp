@@ -2,7 +2,7 @@
 
 #include <hstd/stdlib/charsets.hpp>
 #include <hstd/stdlib/Str.hpp>
-
+#include <hstd/stdlib/Vec.hpp>
 
 inline std::string right_aligned(
     CR<std::string> str,
@@ -24,6 +24,21 @@ inline std::string left_aligned(CR<std::string> str, int n, char c = ' ') {
     return s;
 }
 
+inline Vec<Str> split(CR<Str> str, char separator) {
+    Vec<Str> strings;
+
+    int startIndex = 0, endIndex = 0;
+    for (int i = 0; i <= str.size(); i++) {
+        if (str[i] == separator || i == str.size()) {
+            endIndex = i;
+            Str temp;
+            temp.append(str, startIndex, endIndex - startIndex);
+            strings.push_back(temp);
+            startIndex = endIndex + 1;
+        }
+    }
+    return strings;
+}
 
 inline Str normalize(CR<Str> in) {
     Str res;
@@ -49,21 +64,10 @@ inline Str repeat(CR<Str> str, int count) {
 }
 
 
-template <typename Iterable>
-void join(std::ostream& os, CR<Str> sep, Iterable list) {
-    int index = 0;
-    for (const auto& it : list) {
-        if (0 < index) {
-            os << sep;
-        }
-        os << it;
-        ++index;
+inline Str indent(CR<Str> str, int spaces, char space = ' ') {
+    auto lines = split(str, '\n');
+    for (auto& line : lines) {
+        line = repeat(Str(space), spaces) + line;
     }
-}
-
-template <typename Iterable>
-std::string join(CR<Str> sep, Iterable list) {
-    std::stringstream os;
-    join(os, sep, list);
-    return os.str();
+    return join("\n", lines);
 }

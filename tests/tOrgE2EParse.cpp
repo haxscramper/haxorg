@@ -367,6 +367,7 @@ struct MockFull : public OrgParser {
     using LexerMethod  = void (OrgTokenizer::*)(PosStr&);
     using ParserMethod = OrgId (OrgParser::*)(OrgLexer&);
 
+    OrgAdapter a(int idx) { return OrgAdapter(&nodes, OrgId(idx)); }
 
     OrgNode&    n(int idx) { return nodes.at(OrgId(idx)); }
     OrgToken&   t(int idx) { return tokens.at(OrgTokenId(idx)); }
@@ -426,6 +427,9 @@ TEST_CASE("Simple node conversion") {
         REQUIRE(p.k(0) == org::HashTag);
         REQUIRE(p.k(1) == org::RawText);
         REQUIRE(p.s(1) == "#test");
+        std::cout << "start validation output" << std::endl;
+        std::cout << spec.validateSelf(p.a(0)) << "\n";
+        std::cout << spec.treeRepr() << "\n";
     }
 
     SECTION("Nested hash tag") {

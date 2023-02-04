@@ -2,6 +2,7 @@
 
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Slice.hpp>
+#include <hstd/stdlib/Span.hpp>
 
 #include <vector>
 #include <span>
@@ -21,6 +22,10 @@ class Vec : public std::vector<T> {
     using std::vector<T>::begin;
     using std::vector<T>::end;
     using std::vector<T>::insert;
+
+    Vec() {}
+    Vec(std::size_t size, const T& value = T())
+        : std::vector<T>(size, value) {}
 
     /// \brief Append elements from \arg other vector
     void append(CR<Vec<T>> other) {
@@ -85,21 +90,20 @@ class Vec : public std::vector<T> {
 
     /// \brief Access span of elements in mutable vector
     template <typename A, typename B>
-    std::span<T> at(CR<HSlice<A, B>> s, bool checkRange = true) {
+    Span<T> at(CR<HSlice<A, B>> s, bool checkRange = true) {
         const auto [start, end] = getSpan(size(), s, checkRange);
-        return std::span(this->data() + start, end - start + 1);
+        return Span(this->data() + start, end - start + 1);
     }
 
     /// \brief  Access span of elements in immutable vector
     template <typename A, typename B>
-    std::span<const T> at(CR<HSlice<A, B>> s, bool checkRange = true)
-        const {
+    Span<const T> at(CR<HSlice<A, B>> s, bool checkRange = true) const {
         const auto [start, end] = getSpan(size(), s, checkRange);
-        return std::span(this->data() + start, end - start + 1);
+        return Span(this->data() + start, end - start + 1);
     }
 
     template <typename A, typename B>
-    std::span<T> operator[](CR<HSlice<A, B>> s) {
+    Span<T> operator[](CR<HSlice<A, B>> s) {
 #ifdef DEBUG
         return at(s, true);
 #else
@@ -108,7 +112,7 @@ class Vec : public std::vector<T> {
     }
 
     template <typename A, typename B>
-    std::span<const T> operator[](CR<HSlice<A, B>> s) const {
+    Span<const T> operator[](CR<HSlice<A, B>> s) const {
 #ifdef DEBUG
         return at(s, true);
 #else
@@ -135,3 +139,10 @@ class Vec : public std::vector<T> {
     int  indexOf(CR<T> item) const { return index_of(*this, item); }
     bool contains(CR<T> item) const { return indexOf(item) != -1; }
 };
+
+
+template <typename T>
+std::ostream& operator<<(std::ostream& os, Vec<T> const& value) {
+    os << "[" << join(os, ", ", value) << "]";
+    return os;
+}

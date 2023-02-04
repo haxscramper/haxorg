@@ -77,7 +77,7 @@ template <>
     return {name}::{fields[0]};
 }}
 
-template <{name}>
+template <>
 {name} high() {{
     return {name}::{fields[-1]};
 }}

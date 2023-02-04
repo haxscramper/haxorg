@@ -33,6 +33,24 @@ enum class AstRangeKind : u8
     MixedSlice,   /*!`idx1 .. ^idx2` */
 };
 
+template <typename N>
+Str toPath(const N& ast, const Vec<int>& path) {
+    Func<Vec<Str>(N const&, Span<const int> const&)> aux;
+    aux = [&aux](const N& a, const Span<const int>& path) {
+        Vec<Str> result;
+        result.push_back(to_string(a.getKind()));
+        if (1 < path.size()) {
+            result.append(aux(a[path[0]], path[slice(1, 1_B)]));
+        } else if (path.size() == 1) {
+            result.push_back("[" + to_string(path[0]) + "]");
+        }
+        return result;
+    };
+
+    return join(".", aux(ast, path));
+}
+
+
 /// \brief Range of AST nodes, effectively represents a field for
 /// fixed-position homogeneous AST.
 struct AstRange {
@@ -60,6 +78,7 @@ struct AstRange {
     // `std::visit` + `overload` pattern to get the values instead of
     // manually implementing switch over kind.
 
+    inline AstRange() = default;
     /// \brief Construct point AST range
     inline AstRange(int point, Str name)
         : idx(point), kind(AstRangeKind::Point), fieldName(name) {}
@@ -87,7 +106,7 @@ struct AstRange {
         , kind(AstRangeKind::InverseSlice)
         , fieldName(name) {}
 
-    Slice<int> toSlice(const int& maxLen) {
+    Slice<int> toSlice(const int& maxLen) const {
         switch (kind) {
             case AstRangeKind::Point: return slice(idx, idx);
             case AstRangeKind::InversePoint:
@@ -100,7 +119,7 @@ struct AstRange {
         }
     }
 
-    bool contains(const int& idx, const int& maxLen) {
+    bool contains(const int& idx, const int& maxLen) const {
         return toSlice(maxLen).contains(idx);
     }
 };
@@ -113,12 +132,14 @@ struct AstCheckFail {
     K         parent;
     IntSet<K> expected;
     Opt<K>    got;
-    AstRange  arange;
+    AstRange  range;
+
+    AstCheckFail() {}
 
     Vec<AstCheckFail<N, K>> nested;
 
 
-    bool isEmpty(const bool& withNested = true) {
+    bool isEmpty(const bool& withNested = true) const {
         return !isMissing && msg.size() == 0 && expected.size() == 0
             && (withNested ? nested.size() == 0 : true);
     }
@@ -156,20 +177,20 @@ struct AstCheckFail {
                 }
                 if (0 < fail.expected.size()) {
                     if (fail.isMissing) {
-                        s << "missing subnode " << fg::Green << fail.arange
+                        s << "missing subnode " << fg::Green << fail.range
                           << s.end();
-                        if (0 < fail.arange.name.size()) {
-                            s << " (" << fg::Green << fail.arange.name
+                        if (0 < fail.range.fieldName.size()) {
+                            s << " (" << fg::Green << fail.range.fieldName
                               << s.end() << ")";
                         }
                         s << " " << fg::Red << fail.expected << s.end();
                     } else {
                         s << "wanted " << fg::Red << fail.expected
-                          << s.end() << " in " << fg::Green << fail.arange
+                          << s.end() << " in " << fg::Green << fail.range
                           << s.end();
 
-                        if (0 < fail.arange.name.size()) {
-                            s << " (" << fg::Green << fail.arange.name
+                        if (0 < fail.range.fieldName.size()) {
+                            s << " (" << fg::Green << fail.range.fieldName
                               << s.end() << ")";
                         }
 
@@ -179,10 +200,10 @@ struct AstCheckFail {
                         }
                     }
                 } else if (fail.isMissing) {
-                    s << "missing subnode " << fg::Cyan << fail.arange
+                    s << "missing subnode " << fg::Cyan << fail.range
                       << s.end();
-                    if (0 < fail.arange.name.size()) {
-                        s << " (" << fg::Cyan << fail.arange.name
+                    if (0 < fail.range.fieldName.size()) {
+                        s << " (" << fg::Cyan << fail.range.fieldName
                           << s.end() << ")";
                     }
                 }
@@ -194,17 +215,17 @@ struct AstCheckFail {
                     s << " for " << fg::Green << fail.parent << s.end();
                 }
 
-                if (0 < fail.arange.doc.size()) {
+                if (0 < fail.range.fieldDoc.size()) {
                     s << "\n"
                       << fg::Yellow
-                      << fail.arange.doc.addIndent((level * 2) + 2)
+                      << indent(fail.range.fieldDoc, (level * 2) + 2)
                       << s.end();
                 }
             }
 
             auto idx = 0;
-            for (const auto nested : items(fail.nested)) {
-                if (!nested.isEmpty() && 0 < failCount(nested)) {
+            for (const auto& nested : fail.nested) {
+                if (!nested.isEmpty() && 0 < nested.count()) {
                     if (0 < idx) {
                         s << "\n";
                     }
@@ -235,13 +256,13 @@ struct AstPattern;
 template <typename N, typename K>
 struct AstPatternRange {
     AstRange              range;
-    Vec<AstPattern<N, K>> patterns;
+    Vec<AstPattern<N, K>> alts;
     AstPatternRange(CR<AstRange> range, CR<AstPattern<N, K>> pattern)
-        : range(range), patterns({pattern}) {}
+        : range(range), alts({pattern}) {}
     AstPatternRange(
         CR<AstRange>              range,
-        CR<Vec<AstPattern<N, K>>> patterns = {})
-        : range(range), patterns(patterns) {}
+        CR<Vec<AstPattern<N, K>>> alts = {})
+        : range(range), alts(alts) {}
 };
 
 /// \brief Entry describing AST structure expected at some specific point
@@ -280,7 +301,7 @@ struct AstPattern {
         const K&        subnode,
         const int&      idx,
         const int&      maxLen,
-        const Vec<int>& path = Vec<int>{}) {
+        const Vec<int>& path = Vec<int>{}) const {
         AstCheckFail<N, K> result;
         result.path = path;
         for (const auto arange : ranges) {
@@ -304,21 +325,21 @@ struct AstPattern {
 
     AstCheckFail<N, K> findMissing(
         const N&        node,
-        const Vec<int>& path = Vec<int>{}) {
+        const Vec<int>& path = Vec<int>{}) const {
         AstCheckFail<N, K> result;
         result.path = path;
-        if (0 < ranges.len) {
-            auto altFound = newSeqWith(ranges.size(), false);
+        if (0 < ranges.size()) {
+            auto altFound = Vec(ranges.size(), false);
             auto idx      = 0;
             while (idx < node.size()) {
-                for (const auto [rangeIdx, arange] : ranges) {
-                    if (arange.arange.contains(idx, node.size())) {
+                for (const auto [rangeIdx, arange] : enumerate(ranges)) {
+                    if (arange.range.contains(idx, node.size())) {
                         altFound[rangeIdx] = true;
                         for (const auto alt : arange.alts) {
-                            const auto& n = findMissing(
-                                alt, node, path + idx);
-                            if (!isEmpty(n)) {
-                                result.nested.add(n);
+                            const auto& n = alt.findMissing(
+                                node, path + idx);
+                            if (!n.isEmpty()) {
+                                result.nested.push_back(n);
                             }
                         }
                         break;
@@ -327,20 +348,21 @@ struct AstPattern {
                 ++idx;
             }
 
-            for (const auto [rangeIdx, found] : altFound) {
-                if (!found && !ranges[rangeIdx].arange.optional) {
+            for (const auto& [rangeIdx, found] : enumerate(altFound)) {
+                if (!found && !ranges[rangeIdx].range.isOptional) {
                     IntSet<K> expected;
                     for (const auto alt : ranges[rangeIdx].alts) {
                         expected.incl(alt.expected);
                     }
 
-                    result.nested.add(AstCheckFail<N, K>{
-                        .isMissing = true,
-                        .parent    = node.kind,
-                        .path      = path + rangeIdx,
-                        .arange    = ranges[rangeIdx].arange,
-                        .expected  = expected,
-                    });
+                    AstCheckFail<N, K> fail;
+                    fail.isMissing = true;
+                    fail.parent    = node.getKind();
+                    fail.path      = path + rangeIdx;
+                    fail.range     = ranges[rangeIdx].range;
+                    fail.expected  = expected;
+
+                    result.nested.push_back(fail);
                 }
             }
         }
@@ -351,7 +373,7 @@ struct AstPattern {
         const K&   node,
         const K&   sub,
         const int& idx,
-        const int& maxIdx) {
+        const int& maxIdx) const {
 
         Opt<ColText> result;
         const auto   fail = formatFail(
@@ -381,7 +403,7 @@ struct AstSpec {
 
     bool hasPattern(K kind) const { return spec[kind].has_value(); }
 
-    TypArray<K, Table<Str, AstRange>> getNodeRanges() {
+    TypArray<K, Table<Str, AstRange>> getNodeRanges() const {
         TypArray<K, Table<Str, AstRange>> result;
         for (const auto& [kind, pattern] : spec) {
             if (pattern.has_value()) {
@@ -396,24 +418,24 @@ struct AstSpec {
     }
 
 
-    ColText validateAst(const N& node) {
+    ColText validateAst(const N& node) const {
         if (spec[node.kind].has_value()) {
             return formatFail(
-                findMissing(spec[node.kind].value(), node), node);
+                spec[node.kind].value().findMissing(node), node);
         } else {
             return ColText{};
         }
     }
 
-    Opt<ColText> validateSelf(const N& node) {
+    Opt<ColText> validateSelf(const N& node) const {
         Opt<ColText> result;
-        if (spec[node.kind].has_value()) {
-            const auto missing = findMissing(
-                spec[node.kind].value(), node);
-            if (0 < failCount(missing)) {
-                const auto fail = formatFail(missing, node);
+        if (spec[node.getKind()].has_value()) {
+            const auto missing = spec[node.getKind()].value().findMissing(
+                node);
+            if (0 < missing.count()) {
+                const auto fail = missing.format(node);
                 if (0 < fail.size()) {
-                    return some(fail);
+                    return fail;
                 }
             }
         }
@@ -421,36 +443,34 @@ struct AstSpec {
     }
 
 
-    Opt<ColText> validateSub(const N& node, const int& idx, const N& sub) {
+    Opt<ColText> validateSub(const N& node, const int& idx, const N& sub)
+        const {
         Opt<ColText> result;
-        if (spec[node.kind].has_value()) {
+        if (spec[node.getKind()].has_value()) {
             const auto fail = formatFail(
-                validateAst(
-                    spec[node.kind].value(),
-                    node.kind,
-                    sub.kind,
-                    idx,
-                    node.size()),
+                spec[node.getKind()].value().validateAst(
+                    node.getKind(), sub.getKind(), idx, node.size()),
                 node);
-            if (fail.size()() > 0) {
-                return some(fail);
+            if (0 < fail.size()) {
+                return fail;
             }
         }
-        return result;
+        return std::nullopt;
     }
 
 
-    Opt<ColText> validateSub(const N& node, const int& idx) {
+    Opt<ColText> validateSub(const N& node, const int& idx) const {
         return validateSub(node, idx, node[idx]);
     }
 
-    ColText validateAst(const N& node, const N& subnode, const int& idx) {
+    ColText validateAst(const N& node, const N& subnode, const int& idx)
+        const {
         ColStream s;
-        if (spec[node.kind].has_value()) {
+        if (spec[node.getKind()].has_value()) {
             const auto fail1 = validateAst(
-                spec[node.kind].value(),
-                node.kind,
-                subnode.kind,
+                spec[node.getKind()].value(),
+                node.getKind(),
+                subnode.getKind(),
                 idx,
                 node.size(),
                 Vec<int>({idx}));
@@ -460,7 +480,7 @@ struct AstSpec {
             }
 
             s << formatFail(
-                findMissing(spec[node.kind].value(), node), node);
+                findMissing(spec[node.getKind()].value(), node), node);
         }
 
         return s.getBuffer();
@@ -476,7 +496,8 @@ struct AstSpec {
         aux = [&s, &aux](const AstPattern<N, K>& p, const int& level) {
             s.indent(level);
             if (0 < p.doc.size()) {
-                s << fg::Yellow << p.doc.addIndent(level + 1) << s.end();
+                s << fg::Yellow << indent(p.doc, 2 * (level + 1))
+                  << s.end();
             }
 
             if (0 < p.expected.size()) {
@@ -485,10 +506,11 @@ struct AstSpec {
 
             for (const auto arange : p.ranges) {
                 s << "\n"
-                  << s.indent(level + 1) << fg::Yellow << arange.arange
+                  << s.indent(level + 1) << fg::Yellow << arange.range
                   << ColStyle{};
-                if (0 < arange.arange.name.size()) {
-                    s << " " << fg::Blue << arange.arange.name << s.end();
+                if (0 < arange.range.fieldName.size()) {
+                    s << " " << fg::Blue << arange.range.fieldName
+                      << s.end();
                 }
 
                 for (const auto alt : arange.alts) {
@@ -498,10 +520,10 @@ struct AstSpec {
             }
         };
 
-        for (const auto [kind, pattern] : pairs(spec.spec)) {
-            if (pattern.has_value()) {
+        for (const auto [kind, pattern] : spec.pairs()) {
+            if (pattern->has_value()) {
                 s << hshow(s, kind) << "\n";
-                aux(pattern.value(), 1);
+                aux(pattern->value(), 1);
                 s << "\n";
             }
         }
@@ -512,18 +534,19 @@ struct AstSpec {
     int getSingleSubnodeIdx(const N& node, const Str& name) {
         int        result;
         const auto table = getNodeRanges(spec);
-        if (table[node.kind].contains(name)) {
-            const auto arange = table[node.kind][name];
+        if (table[node.getKind()].contains(name)) {
+            const auto arange = table[node.getKind()][name];
             const auto slice  = arange.toSlice(len(node));
             assertHasIdx(
                 node,
                 slice.a,
-                "Range " + name + " for node kind " + to_string(node.kind)
+                "Range " + name + " for node kind "
+                    + to_string(node.getKind())
                     + " was resolved into slice " + to_string(slice)
                     + "(required ast range is " + to_string(arange) + ")");
             return slice.a;
         } else {
-            noPositional(spec, node.kind, name);
+            noPositional(spec, node.getKind(), name);
         }
         return result;
     }
@@ -536,30 +559,30 @@ struct AstSpec {
         Vec<N> result;
 
         const auto table = getNodeRanges(spec);
-        if (table[node.kind].contains(name)) {
-            const auto arange = table[node.kind][name];
+        if (table[node.getKind()].contains(name)) {
+            const auto arange = table[node.getKind()][name];
             const auto slice  = arange.toSlice(len(node));
             for (const auto idx : slice) {
                 assertHasIdx(
                     node,
                     idx,
                     "Range " + name + " for node kind "
-                        + to_string(node.kind)
+                        + to_string(node.getKind())
                         + " was resolved into slice " + to_string(slice)
                         + "(required ast range is " + to_string(arange)
                         + ")");
                 result.add(node[idx]);
             }
         } else {
-            noPositional(spec, node.kind, name);
+            noPositional(spec, node.getKind(), name);
         }
         return result;
     }
 
     Opt<AstRange> fieldRange(const N& node, const int& idx) {
         Opt<AstRange> result;
-        if (spec.spec[node.kind].has_value()) {
-            const auto pattern = spec.spec[node.kind].get();
+        if (spec.spec[node.getKind()].has_value()) {
+            const auto pattern = spec.spec[node.getKind()].get();
             for (const auto field : pattern.ranges) {
                 if (field.arange.contains(idx, node.size())) {
                     return some(field.arange);
@@ -583,7 +606,7 @@ struct AstSpec {
         return field.has_value()
             && (IntSet<AstRangeKind>{
                     AstRangeKind::Point, AstRangeKind::InversePoint})
-                   .contains(field.value().kind);
+                   .contains(field.value().getKind());
     }
 
     Opt<Str> fieldDoc(const N& node, const int& idx) {
@@ -602,7 +625,7 @@ struct AstSpec {
         const auto table = getNodeRanges();
         if (table[kind].contains(name)) {
             const auto arange = table[kind][name];
-            if (arange.kind == AstRangeKind::Point) {
+            if (arange.getKind() == AstRangeKind::Point) {
                 return arange.idx;
             } else if (nodeLen.has_value()) {
                 return arange.toSlice(nodeLen.value()).a;
@@ -611,7 +634,8 @@ struct AstSpec {
                     "Cannot get single subnode index for element " + name
                     + " of node kind " + kind
                     + " - field exists, but allowed AST range is of kind "
-                    + arange.kind + " and requires node lenght, but it "
+                    + arange.getKind()
+                    + " and requires node lenght, but it "
                     + "wasn't specified.");
             }
         } else {
@@ -633,23 +657,6 @@ std::ostream& operator<<(std::ostream& os, AstRange const& arange) {
             return os << arange.first << "..^" << arange.last;
     }
 }
-
-template <typename N>
-Str toPath(const N& ast, const Vec<int>& path) {
-    std::function<Vec<Str>(N const&, Vec<int> const&)> aux;
-    aux = [&aux](const N& a, const Vec<int>& path) {
-        Vec<Str> result;
-        result.push_back(to_string(a.kind));
-        if (1 < path.size()) {
-            result.push_back(aux(a[path[0]], path[slice(1, 1_B)]));
-        } else if (path.size() == 1) {
-            result.push_back("[" + to_string(path[0]) + "]");
-        }
-        return result;
-    };
-
-    return join(".", aux(ast, path));
-};
 
 
 }; // namespace astspec
