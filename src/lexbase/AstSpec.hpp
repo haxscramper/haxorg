@@ -145,7 +145,7 @@ struct AstCheckFail {
     }
 
     int count() const {
-        int result;
+        int result = 0;
         for (const auto& nested : nested) {
             result += nested.count();
         }
@@ -157,10 +157,6 @@ struct AstCheckFail {
 
 
     ColText format(const N& node) const {
-        if (count() == 0) {
-            return ColText{};
-        }
-
         using fg = TermColorFg8Bit;
         ColStream s;
 
@@ -305,16 +301,17 @@ struct AstPattern {
         AstCheckFail<N, K> result;
         result.path = path;
         for (const auto arange : ranges) {
-            if (arange.arange.contains(idx, maxLen)) {
+            if (arange.range.contains(idx, maxLen)) {
                 for (const auto alt : arange.alts) {
                     if (alt.expected.contains(subnode)) {
-                        result.nested.add(AstCheckFail<N, K>{
-                            .parent   = kind,
-                            .path     = path,
-                            .expected = alt.expected,
-                            .got      = some(subnode),
-                            .arange   = arange.arange,
-                        });
+                        AstCheckFail<N, K> fail;
+                        fail.parent   = kind;
+                        fail.path     = path;
+                        fail.expected = alt.expected;
+                        fail.got      = subnode;
+                        fail.range    = arange.range;
+
+                        result.nested.push_back(fail);
                     }
                 }
             }
@@ -375,8 +372,7 @@ struct AstPattern {
         const int& idx,
         const int& maxIdx) const {
 
-        Opt<ColText> result;
-        const auto   fail = formatFail(
+        const auto fail = formatFail(
             validateAst(node, sub, idx, maxIdx, {idx}), N());
 
         if (fail.empty()) {
@@ -428,7 +424,6 @@ struct AstSpec {
     }
 
     Opt<ColText> validateSelf(const N& node) const {
-        Opt<ColText> result;
         if (spec[node.getKind()].has_value()) {
             const auto missing = spec[node.getKind()].value().findMissing(
                 node);
@@ -447,12 +442,10 @@ struct AstSpec {
         const {
         Opt<ColText> result;
         if (spec[node.getKind()].has_value()) {
-            const auto fail = formatFail(
-                spec[node.getKind()].value().validateAst(
-                    node.getKind(), sub.getKind(), idx, node.size()),
-                node);
+            const auto fail = spec[node.getKind()].value().validateAst(
+                node.getKind(), sub.getKind(), idx, node.size());
             if (fail.empty()) {
-                return fail;
+                return "Some format node " + fail.format(node);
             }
         }
         return std::nullopt;
@@ -480,7 +473,7 @@ struct AstSpec {
             }
 
             s << formatFail(
-                findMissing(spec[node.getKind()].value(), node), node);
+                spec[node.getKind()].value().findMissing(node), node);
         }
 
         return s.getBuffer();

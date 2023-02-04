@@ -31,6 +31,9 @@ const OrgSpec spec = OrgSpec(Vec<SpecPair>{
                  Range(4, "completion"),
                  OrgPattern({org::Completion, org::Empty}))})},
     SpecPair{
+        org::HashTag,
+        OrgPattern({Field(Range(0, "head"), OrgPattern(org::BigIdent))})},
+    SpecPair{
         org::Drawer,
         OrgPattern(
             {Field(
@@ -429,8 +432,7 @@ TEST_CASE("Simple node conversion") {
         REQUIRE(p.s(1) == "#test");
         std::cout << "start validation output" << std::endl;
         std::cout << spec.validateSelf(p.a(0)) << "\n";
-        std::cout << spec.treeRepr() << "\n";
-        std::cout << "End of spec tree repr\n";
+        std::cout << spec.validateSub(p.a(0), 0) << "\n";
     }
 
     SECTION("Nested hash tag") {

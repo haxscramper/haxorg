@@ -214,6 +214,21 @@ ColStream& operator<<(ColStream& os, CR<T> const& value)
     return os << string.str();
 }
 
+template <typename T>
+ColText operator+(CR<ColText> text, CR<T> other) {
+    ColStream s;
+    s << text << other;
+    return s.getBuffer();
+}
+
+
+template <typename T>
+ColText operator+(CR<T> other, CR<ColText> text) {
+    ColStream s;
+    s << other << text;
+    return s.getBuffer();
+}
+
 enum class HDisplayVerbosity : u8
 {
     Minimal,

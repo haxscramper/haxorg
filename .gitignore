@@ -357,3 +357,5 @@ CMakeLists.txt.user*
 docs/*
 .xmake
 deps
+
+**/*.profraw
