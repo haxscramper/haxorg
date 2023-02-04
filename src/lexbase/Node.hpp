@@ -3,6 +3,7 @@
 #include <hstd/stdlib/Str.hpp>
 
 #include <hstd/stdlib/dod_base.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 #include <lexbase/Token.hpp>
 
@@ -288,22 +289,19 @@ struct NodeGroup {
             os << right_aligned(to_string(node.getMask()), 2) << ":";
         }
 
-        os << left_aligned(to_string(node.getUnmasked()), 4) << " ";
-        os << Str::repeat("  ", level);
-        os << to_string(at(node).kind);
+        os << left_aligned(to_string(node.getUnmasked()), 4) << " "
+           << repeat("  ", level) << to_string(at(node).kind);
         if (at(node).isTerminal()) {
             auto tok = at(node).getToken();
             os << " #";
             tok.streamTo(os, "", conf.withTokenMask);
-            os << " ";
-            os << at(tok);
+            os << " " << at(tok);
             if (conf.fullBase != nullptr && at(tok).hasData()) {
-                os << " ";
                 auto start = std::distance(
                     conf.fullBase, at(tok).text.data());
-                os << start;
-                os << "..";
-                os << start + at(tok).text.size() - 1;
+
+                os << " " << start << ".."
+                   << start + at(tok).text.size() - 1;
             }
         } else {
             auto [begin, end] = subnodesOf(node);
@@ -326,3 +324,19 @@ std::ostream& operator<<(std::ostream& os, Node<N, K> const& value) {
 
     return os << "}";
 }
+
+/// \brief Node adapter for more convenient access operations on the tree
+template <typename N, typename K>
+struct NodeAdapter {
+    NodeGroup<N, K> const* group;
+    NodeId<N, K>           id;
+
+    K getKind() const { return group->at(id).kind; }
+
+    NodeAdapter<N, K>(NodeGroup<N, K> const* group, NodeId<N, K> id)
+        : group(group), id(id) {}
+
+    NodeAdapter<N, K> operator[](int index) const {
+        return {group, group->subnode(id, index)};
+    }
+};

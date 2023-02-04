@@ -15,15 +15,6 @@ struct Str : public std::string {
     Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
     Str() = default;
 
-    static Str repeat(CR<Str> str, int count) {
-        Str res;
-        res.reserve(str.size() * count);
-        for (int i = 0; i < count; ++i) {
-            res += str;
-        }
-        return res;
-    }
-
     Str substr(int start, std::size_t count = npos) const {
         return Str(std::string::substr(start, count));
     }

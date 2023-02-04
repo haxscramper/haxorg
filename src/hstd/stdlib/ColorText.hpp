@@ -117,7 +117,7 @@ struct ColStream : public ColText {
 
 
     ColStyle    active;
-    void        addIndent(int level) {}
+    ColStream&  indent(int level);
     ColStyle    end() const { return ColStyle{}; }
     StreamState snap() { return StreamState(*this); }
 };
@@ -134,6 +134,12 @@ ColText merge(CR<ColStyle> style, CR<std::string> text) {
         result.push_back(ColRune(style, ch));
     }
     return result;
+}
+
+
+ColStream& ColStream::indent(int level) {
+    append(merge(ColStyle{}, repeat(" ", level)));
+    return *this;
 }
 
 ColStream& operator<<(ColStream& os, ColStyle const& value) {

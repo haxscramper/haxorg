@@ -17,6 +17,16 @@ inline Str normalize(CR<Str> in) {
     return res;
 }
 
+inline Str repeat(CR<Str> str, int count) {
+    Str res;
+    res.reserve(str.size() * count);
+    for (int i = 0; i < count; ++i) {
+        res += str;
+    }
+    return res;
+}
+
+
 template <typename Iterable>
 void join(std::ostream& os, CR<Str> sep, Iterable list) {
     int index = 0;

@@ -17,6 +17,8 @@ struct Array : std::array<T, Size> {
     using std::array<T, Size>::begin;
     using std::array<T, Size>::end;
 
+    Array() {}
+
     operator Ref<std::array<T, Size>>() {
         return static_cast<std::array<T, Size>>(*this);
     }
@@ -76,6 +78,10 @@ template <ImplementsOrd Key, typename Val>
 struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
     using Base = Array<Val, pow_v<2, 8 * sizeof(Key)>::res>;
     using Base::at;
+    using Base::operator[];
+
+    TypArray() {}
+
     TypArray(std::initializer_list<Pair<Key, Val>> items) {
         for (const auto& [key, val] : items) {
             at(key) = val;
@@ -83,4 +89,5 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
     }
 
     Val& at(CR<Key> value) { return Base::at(ord(value)); }
+    Val& operator[](CR<Key> value) { return Base::operator[](ord(value)); }
 };
