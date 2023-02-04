@@ -430,6 +430,7 @@ TEST_CASE("Simple node conversion") {
         std::cout << "start validation output" << std::endl;
         std::cout << spec.validateSelf(p.a(0)) << "\n";
         std::cout << spec.treeRepr() << "\n";
+        std::cout << "End of spec tree repr\n";
     }
 
     SECTION("Nested hash tag") {

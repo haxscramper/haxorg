@@ -501,13 +501,12 @@ struct AstSpec {
             }
 
             if (0 < p.expected.size()) {
-                s << hshow(s, p.expected);
+                s << to_string(p.expected);
             }
 
             for (const auto arange : p.ranges) {
-                s << "\n"
-                  << s.indent(level + 1) << fg::Yellow << arange.range
-                  << ColStyle{};
+                s << "\n" << s.indent(level + 1);
+                s << fg::Yellow << arange.range << s.end();
                 if (0 < arange.range.fieldName.size()) {
                     s << " " << fg::Blue << arange.range.fieldName
                       << s.end();
@@ -522,7 +521,7 @@ struct AstSpec {
 
         for (const auto [kind, pattern] : spec.pairs()) {
             if (pattern->has_value()) {
-                s << hshow(s, kind) << "\n";
+                s << to_string(kind) << "\n";
                 aux(pattern->value(), 1);
                 s << "\n";
             }

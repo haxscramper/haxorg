@@ -107,7 +107,7 @@ std::ostream& join(std::ostream& os, CR<std::string> sep, Iterable list) {
         if (0 < index) {
             os << sep;
         }
-        os << it;
+        os << to_string(it);
         ++index;
     }
     return os;
@@ -128,3 +128,5 @@ inline std::ostream& operator<<(
     std::ostream const& value) {
     return os;
 }
+
+#define __xxloc() std::cout << __FILE__ << ":" << __LINE__ << "\n";

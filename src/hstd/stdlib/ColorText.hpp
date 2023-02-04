@@ -173,9 +173,25 @@ ColStream& ColStream::indent(int level) {
     return *this;
 }
 
+
+ColStream& operator<<(ColStream& os, ColStream& value) { return os; }
+
+
 ColStream& operator<<(ColStream& os, ColStyle const& value) {
     os.active = value;
     return os;
+}
+
+ColStream& operator<<(ColStream& os, TermColorFg8Bit const& value) {
+    return os << os.active + ColStyle(value);
+}
+
+ColStream& operator<<(ColStream& os, TermColorBg8Bit const& value) {
+    return os << os.active + ColStyle(value);
+}
+
+ColStream& operator<<(ColStream& os, Style const& value) {
+    return os << os.active + ColStyle(value);
 }
 
 ColStream& operator<<(ColStream& os, std::string const& value) {
@@ -265,9 +281,11 @@ ColStream& hshow(
     return s << to_string(value);
 }
 
+#define ESC_PREFIX "\033["
+
 /*! Create ansi escape sequence with given code */
 std::string ansiEsc(int code) {
-    return "\033[" + std::to_string(code) + "m";
+    return ESC_PREFIX + std::to_string(code) + "m";
 }
 
 
@@ -278,7 +296,7 @@ std::string ansiEsc(const TermColorFg8Bit& col) {
     } else if ((u8)col <= 15) { // Bright colors
         return ansiEsc(ord(col) + 30 + 60);
     } else { // Full colors
-        return "\033[38;5;" + std::to_string((u8)col) + "m";
+        return ESC_PREFIX "38;5;" + std::to_string((u8)col) + "m";
     }
 }
 
@@ -289,7 +307,7 @@ std::string ansiEsc(const TermColorBg8Bit& col) {
     } else if ((u8)col <= 15) {
         return ansiEsc(ord(col) + 40 + 60);
     } else {
-        return "\033[48;5;" + std::to_string((u8)col) + "m";
+        return ESC_PREFIX "48;5;" + std::to_string((u8)col) + "m";
     };
 }
 

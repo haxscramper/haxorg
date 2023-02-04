@@ -209,15 +209,5 @@ struct IntSet {
 
 template <typename T>
 std::ostream& operator<<(std::ostream& os, IntSet<T> const& value) {
-    bool first = true;
-    os << "{";
-    for (const auto val : value) {
-        if (!first) {
-            os << ", ";
-        }
-        first = false;
-        os << val;
-    }
-    os << "}";
-    return os;
+    return os << "{" << join(os, ", ", value) << "}";
 }
