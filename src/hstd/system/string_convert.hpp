@@ -94,22 +94,8 @@ inline std::string escape_literal(std::string const& in) {
     return res;
 }
 
-inline std::string right_aligned(
-    CR<std::string> str,
-    int             n,
-    char            c = ' ') {
-    std::string res;
-    if (str.size() < n) {
-        res.append(n - str.size(), c);
-    }
-    res.append(str);
-    return res;
-}
-
-inline std::string left_aligned(CR<std::string> str, int n, char c = ' ') {
-    auto s = str;
-    if (s.size() < n) {
-        s.append(n - s.size(), c);
-    }
-    return s;
+inline std::string to_string(wchar_t wc) {
+    std::string mb(MB_CUR_MAX, '\0');
+    const int   ret = std::wctomb(&mb[0], wc);
+    return std::string(&mb[0], ret);
 }

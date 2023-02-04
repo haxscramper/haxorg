@@ -28,7 +28,7 @@ enum class OrgNodeKind : short int
     Error,    /*!Failed node parse - technically there are no /wrong/
        syntax in the org-mode document because everything can be considered a
        one    large word or a paragraph with flat `Word` content.
-
+   
        Error node can be produced by any parsing routine, although it is
        mostly used in the low-level text elements, since high-level
        structures are mostly detected based on the correct syntax - for

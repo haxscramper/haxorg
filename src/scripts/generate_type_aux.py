@@ -52,6 +52,18 @@ const char* to_string({name} in);
 }}
             """)
 
+        source_out.append(f"""
+template <{name}>
+{name} low() {{
+    return {name}::{fields[0]};
+}}
+
+template <{name}>
+{name} high() {{
+    return {name}::{fields[-1]};
+}} """)
+
+
         if True:
             cases = []
             for f in fields:

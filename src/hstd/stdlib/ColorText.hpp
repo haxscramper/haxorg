@@ -11,33 +11,51 @@ struct TermColorFgFull {
 
 enum class TermColorBg8Bit : u8
 {
-    Black = 40, /// black
-    Red,        /// red
-    Green,      /// green
-    Yellow,     /// yellow
-    Blue,       /// blue
-    Magenta,    /// magenta
-    Cyan,       /// cyan
-    White,      /// white
-    EightBit,   /// 256-color (not supported, see `enableTrueColors`
-                /// instead.)
-    Default     /// default terminal foreground color
+    Black = 1, /// black
+    Red,       /// red
+    Green,     /// green
+    Yellow,    /// yellow
+    Blue,      /// blue
+    Magenta,   /// magenta
+    Cyan,      /// cyan
+    White,     /// white
+    EightBit,  /// 256-color (not supported, see `enableTrueColors`
+               /// instead.)
+    Default    /// default terminal foreground color
 };
+
+template <>
+TermColorBg8Bit low() {
+    return TermColorBg8Bit::Black;
+}
+template <>
+TermColorBg8Bit high() {
+    return TermColorBg8Bit::Default;
+}
 
 enum class TermColorFg8Bit : u8
 {
-    Black = 30, /// black
-    Red,        /// red
-    Green,      /// green
-    Yellow,     /// yellow
-    Blue,       /// blue
-    Magenta,    /// magenta
-    Cyan,       /// cyan
-    White,      /// white
-    EightBit,   /// 256-color (not supported, see `enableTrueColors`
-                /// instead.)
-    Default     /// default terminal foreground color
+    Black = 1, /// black
+    Red,       /// red
+    Green,     /// green
+    Yellow,    /// yellow
+    Blue,      /// blue
+    Magenta,   /// magenta
+    Cyan,      /// cyan
+    White,     /// white
+    EightBit,  /// 256-color (not supported, see `enableTrueColors`
+               /// instead.)
+    Default    /// default terminal foreground color
 };
+
+template <>
+TermColorFg8Bit low() {
+    return TermColorFg8Bit::Black;
+}
+template <>
+TermColorFg8Bit high() {
+    return TermColorFg8Bit::Default;
+}
 
 enum class Style : u8
 {
@@ -52,6 +70,19 @@ enum class Style : u8
     Strikethrough //! strikethrough
 };
 
+template <>
+Style low() {
+    return Style::Bright;
+}
+template <>
+Style high() {
+    return Style::Strikethrough;
+}
+
+bool isDefault(TermColorFg8Bit bg) { return (u8)bg == 0; }
+bool isDefault(TermColorBg8Bit bg) { return (u8)bg == 0; }
+
+
 struct ColStyle {
     TermColorFg8Bit fg = (TermColorFg8Bit)0; /*!Foreground color */
     TermColorBg8Bit bg = (TermColorBg8Bit)0; /*!Background */
@@ -65,8 +96,8 @@ struct ColStyle {
 
     void operator+=(CR<ColStyle> other) {
         style = style + other.style;
-        fg    = (u8)fg == 0 ? other.fg : fg;
-        bg    = (u8)bg == 0 ? other.bg : bg;
+        fg    = isDefault(fg) ? other.fg : fg;
+        bg    = isDefault(bg) ? other.bg : bg;
     }
 
     ColStyle operator+(CR<ColStyle> other) const {
@@ -213,6 +244,125 @@ struct HDisplayOpts {
 
 template <typename T>
 ColStream& hshow(ColStream& s, CR<T> value, CR<HDisplayOpts> opts);
+
+/*! Create ansi escape sequence with given code */
+std::string ansiEsc(int code) {
+    return "\033[" + std::to_string(code) + "m";
+}
+
+
+/*! Create ansi escape sequence with given terminal color */
+std::string ansiEsc(const TermColorFg8Bit& col) {
+    if ((u8)col <= 7) { // Regular colors
+        return ansiEsc(ord(col) + 30);
+    } else if ((u8)col <= 15) { // Bright colors
+        return ansiEsc(ord(col) + 30 + 60);
+    } else { // Full colors
+        return "\033[38;5;" + std::to_string((u8)col) + "m";
+    }
+}
+
+/*! Create ansi escape sequence with given terminal color */
+std::string ansiEsc(const TermColorBg8Bit& col) {
+    if ((u8)col <= 7) {
+        return ansiEsc(ord(col) + 40);
+    } else if ((u8)col <= 15) {
+        return ansiEsc(ord(col) + 40 + 60);
+    } else {
+        return "\033[48;5;" + std::to_string((u8)col) + "m";
+    };
+}
+
+/// Create ansi escape sequence with given style. `open` controls whether
+/// styling sequence is used for open or for close
+std::string ansiEsc(const Style& style, const bool& open) {
+    const auto diff = open ? 0 : 20;
+    switch (style) {
+        case Style::Bright: return ansiEsc(1 + diff);
+        case Style::Dim: return ansiEsc(2 + diff);
+        case Style::Italic: return ansiEsc(3 + diff);
+        case Style::Underscore: return ansiEsc(4 + diff);
+        case Style::Blink: return ansiEsc(5 + diff);
+        case Style::BlinkRapid: return ansiEsc(6 + diff);
+        case Style::Reverse: return ansiEsc(7 + diff);
+        case Style::Hidden: return ansiEsc(8 + diff);
+        case Style::Strikethrough: return ansiEsc(9 + diff);
+    }
+}
+
+/*! Generate ansi escape sequences to transition from style `s1` to style
+ * `s2` */
+Str ansiDiff(const ColStyle& s1, const ColStyle& s2) {
+    Str result;
+    if (s2.fg != s1.fg) {
+        if (isDefault(s2.fg)) {
+            result += ansiEsc(39);
+        } else {
+            result += ansiEsc(s2.fg);
+        }
+    }
+
+    if (s2.bg != s1.bg) {
+        if (isDefault(s2.bg)) {
+            result += ansiEsc(49);
+        } else {
+            result += ansiEsc(s2.bg);
+        }
+    }
+
+    for (const auto style : s1.style - s2.style) {
+        result += ansiEsc(style, false);
+    }
+
+    for (const auto style : s2.style - s1.style) {
+        result += ansiEsc(style, true);
+    }
+
+    return result;
+}
+
+
+/// Convert colored rune to regular std::string, with ansi escape
+/// sequences. `color` controls whether styling is going to be applied or
+/// not.
+std::string to_string(const ColRune& rune, const bool& color = true) {
+    std::string result;
+    if (color) {
+        result += ansiDiff(ColStyle{}, rune.style);
+        result += rune.rune;
+        result += ansiEsc(0);
+    } else {
+        result = rune.rune;
+    }
+    return result;
+}
+
+/// Convert sequence of colored runes to the std::string, with ansi escape
+/// sequences in. `color` controls whether styling is going to be applied
+/// or not.
+std::string to_string(
+    const Vec<ColRune>& runes,
+    const bool&         color = true) {
+    std::string result;
+    if (color) {
+        auto prev = ColStyle();
+        for (const auto& rune : runes) {
+            result += ansiDiff(prev, rune.style);
+            result += to_string(rune.rune);
+            prev = rune.style;
+        };
+        if (!isDefault(prev.fg) || !isDefault(prev.bg)
+            || 0 < prev.style.size()) {
+            result += ansiEsc(0);
+        };
+    } else {
+        for (const auto rune : runes) {
+            result += rune.rune;
+        }
+    }
+    return result;
+}
+
 
 #if false
 
@@ -972,128 +1122,6 @@ uint8 code(const TermColorBg8Bit& col) {
     return result;
 };
 
-std::string ansiEsc(const SomeInteger& code) {
-    std::string result;
-    /*!Create ansi escape sequence with given code
-     */
-    ;
-    ((((R"([)") & (toStr(code)))) & (R"(m)"));
-    return result;
-};
-
-std::string ansiEsc(const TermColorFg8Bit& col) {
-    std::string result;
-    /*!Create ansi escape sequence with given terminal color
-     */
-    ;
-    if (((col.uint8) <= (7))) {
-        ansiEsc(code(col));
-    } else if (((col.uint8) <= (15))) {
-        ansiEsc(((code(col)) + (60)));
-    } else {
-        ((((R"([38;5;)") & (toStr((col.uint8))))) & (R"(m)"));
-    };
-    return result;
-};
-
-std::string ansiEsc(const TermColorBg8Bit& col) {
-    std::string result;
-    /*!Create ansi escape sequence with given terminal color
-     */
-    ;
-    if (((col.uint8) <= (7))) {
-        ansiEsc(code(col));
-    } else if (((col.uint8) <= (15))) {
-        ansiEsc(((code(col)) + (60)));
-    } else {
-        ((((R"([48;5;)") & (toStr((col.uint8))))) & (R"(m)"));
-    };
-    return result;
-};
-
-std::string ansiEsc(const Style& style, const bool& open) {
-    std::string result;
-    /*!Create ansi escape sequence with given style. `open` controls
-    whether styling sequence is used for open or for close
-    */
-    ;
-
-    const auto diff = else { open }
-    else {
-        20;
-    };
-    ;
-    ;
-    switch (style) {
-        case styleBright: {
-            ansiEsc(((1) + (diff)));
-            break;
-        }
-        case styleDim: {
-            ansiEsc(((2) + (diff)));
-            break;
-        }
-        case styleItalic: {
-            ansiEsc(((3) + (diff)));
-            break;
-        }
-        case styleUnderscore: {
-            ansiEsc(((4) + (diff)));
-            break;
-        }
-        case styleBlink: {
-            ansiEsc(((5) + (diff)));
-            break;
-        }
-        case styleBlinkRapid: {
-            ansiEsc(((6) + (diff)));
-            break;
-        }
-        case styleReverse: {
-            ansiEsc(((7) + (diff)));
-            break;
-        }
-        case styleHidden: {
-            ansiEsc(((8) + (diff)));
-            break;
-        }
-        case styleStrikethrough: {
-            ansiEsc(((9) + (diff)));
-            break;
-        }
-    };
-    return result;
-};
-
-std::string ansiDiff(const ColStyle& s1 const ColStyle& s2, ) {
-    std::string result;
-    /*!Generate ansi escape sequences to transition from style `s1` to
-    style `s2`
-    */
-    ;
-    if (((s2.fg) != (s1.fg))) {
-        if (s2.fg.isDefault()) {
-            ((result) &= (ansiEsc(39)));
-        } else {
-            ((result) &= (ansiEsc(s2.fg)));
-        };
-    };
-    if (((s2.bg) != (s1.bg))) {
-        if (s2.bg.isDefault()) {
-            ((result) &= (ansiEsc(49)));
-        } else {
-            ((result) &= (ansiEsc(s2.bg)));
-        };
-    };
-    for (const auto style : (((s1.style) - (s2.style)))) {
-        ((result) &= (ansiEsc(style, false)));
-    };
-    for (const auto style : (((s2.style) - (s1.style)))) {
-        ((result) &= (ansiEsc(style, true)));
-    };
-    return result;
-};
-
 std::string lispRepr(const ColRune& rune) {
     std::string result;
     (&(R"(({rune.rune} :fg {rune.style.fg} :bg {rune.style.bg} :style {rune.style.style}))"));
@@ -1111,56 +1139,6 @@ std::string lispRepr(const ColText& rune) {
         result.append(lispRepr(rune));
     };
     ((result) &= (R"())"));
-    return result;
-};
-
-std::string toStd::String(const ColRune& rune, const bool& color = true) {
-    std::string result;
-    /*!Convert colored rune to regular std::string, with ansi escape
-    sequences. `color` controls whether styling is going to be applied or
-    not.
-    */
-    ;
-    if (color) {
-        ((result) &= (ansiDiff(default(ColStyle), rune.style)));
-        ((result) &= (toStr(rune.rune)));
-        ((result) &= (ansiEsc(0)));
-    } else {
-        result = toStr(rune.rune);
-        ;
-    };
-    return result;
-};
-
-std::string toStd::String(
-    const Vec<ColRune>& runes,
-    const bool&         color = true) {
-    std::string result;
-    /*!Convert sequence of colored runes to the std::string, with ansi
-    escape sequences in. `color` controls whether styling is going to be
-    applied or not.
-    */
-    ;
-    if (color) {
-
-        auto prev = initColStyle();
-        ;
-        ;
-        for (const auto rune : runes) {
-            ((result) &= (ansiDiff(prev, rune.style)));
-            ((result) &= (toStr(rune.rune)));
-            prev = rune.style;
-            ;
-        };
-        if ((((((!(prev.fg.isDefault()))) || ((!(prev.bg.isDefault())))))
-             || (((0) < (prev.style.len()()))))) {
-            ((result) &= (ansiEsc(0)));
-        };
-    } else {
-        for (const auto rune : runes) {
-            ((result) &= (toStr(rune.rune)));
-        };
-    };
     return result;
 };
 

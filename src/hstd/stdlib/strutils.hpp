@@ -3,6 +3,28 @@
 #include <hstd/stdlib/charsets.hpp>
 #include <hstd/stdlib/Str.hpp>
 
+
+inline std::string right_aligned(
+    CR<std::string> str,
+    int             n,
+    char            c = ' ') {
+    std::string res;
+    if (str.size() < n) {
+        res.append(n - str.size(), c);
+    }
+    res.append(str);
+    return res;
+}
+
+inline std::string left_aligned(CR<std::string> str, int n, char c = ' ') {
+    auto s = str;
+    if (s.size() < n) {
+        s.append(n - s.size(), c);
+    }
+    return s;
+}
+
+
 inline Str normalize(CR<Str> in) {
     Str res;
     for (char c : in) {
