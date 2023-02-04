@@ -139,7 +139,7 @@ struct AstCheckFail {
     Vec<AstCheckFail<N, K>> nested;
 
 
-    bool isEmpty(const bool& withNested = true) const {
+    bool empty(const bool& withNested = true) const {
         return !isMissing && msg.size() == 0 && expected.size() == 0
             && (withNested ? nested.size() == 0 : true);
     }
@@ -149,7 +149,7 @@ struct AstCheckFail {
         for (const auto& nested : nested) {
             result += nested.count();
         }
-        if (isMissing || 0 < msg.size() || 0 < expected.size()) {
+        if (isMissing || !msg.empty() || !expected.empty()) {
             ++result;
         }
         return result;
@@ -170,16 +170,16 @@ struct AstCheckFail {
                   const AstCheckFail<N, K>& fail, const int& level) {
             s.indent(level);
             auto parentFailed = false;
-            if (!fail.isEmpty(false)) {
+            if (!fail.empty(false)) {
                 parentFailed = true;
-                if (0 < fail.msg.size()) {
+                if (!fail.msg.empty()) {
                     s << fail.msg << " ";
                 }
-                if (0 < fail.expected.size()) {
+                if (!fail.expected.empty()) {
                     if (fail.isMissing) {
                         s << "missing subnode " << fg::Green << fail.range
                           << s.end();
-                        if (0 < fail.range.fieldName.size()) {
+                        if (!fail.range.fieldName.empty()) {
                             s << " (" << fg::Green << fail.range.fieldName
                               << s.end() << ")";
                         }
@@ -189,7 +189,7 @@ struct AstCheckFail {
                           << s.end() << " in " << fg::Green << fail.range
                           << s.end();
 
-                        if (0 < fail.range.fieldName.size()) {
+                        if (!fail.range.fieldName.empty()) {
                             s << " (" << fg::Green << fail.range.fieldName
                               << s.end() << ")";
                         }
@@ -202,20 +202,20 @@ struct AstCheckFail {
                 } else if (fail.isMissing) {
                     s << "missing subnode " << fg::Cyan << fail.range
                       << s.end();
-                    if (0 < fail.range.fieldName.size()) {
+                    if (!fail.range.fieldName.empty()) {
                         s << " (" << fg::Cyan << fail.range.fieldName
                           << s.end() << ")";
                     }
                 }
 
-                if (0 < fail.path.size()) {
+                if (!fail.path.empty()) {
                     s << " on path " << fg::Green
                       << toPath(node, fail.path) << s.end();
                 } else {
                     s << " for " << fg::Green << fail.parent << s.end();
                 }
 
-                if (0 < fail.range.fieldDoc.size()) {
+                if (!fail.range.fieldDoc.empty()) {
                     s << "\n"
                       << fg::Yellow
                       << indent(fail.range.fieldDoc, (level * 2) + 2)
@@ -225,7 +225,7 @@ struct AstCheckFail {
 
             auto idx = 0;
             for (const auto& nested : fail.nested) {
-                if (!nested.isEmpty() && 0 < nested.count()) {
+                if (!nested.empty() && 0 < nested.count()) {
                     if (0 < idx) {
                         s << "\n";
                     }
@@ -328,7 +328,7 @@ struct AstPattern {
         const Vec<int>& path = Vec<int>{}) const {
         AstCheckFail<N, K> result;
         result.path = path;
-        if (0 < ranges.size()) {
+        if (!ranges.empty()) {
             auto altFound = Vec(ranges.size(), false);
             auto idx      = 0;
             while (idx < node.size()) {
@@ -338,7 +338,7 @@ struct AstPattern {
                         for (const auto alt : arange.alts) {
                             const auto& n = alt.findMissing(
                                 node, path + idx);
-                            if (!n.isEmpty()) {
+                            if (!n.empty()) {
                                 result.nested.push_back(n);
                             }
                         }
@@ -379,10 +379,10 @@ struct AstPattern {
         const auto   fail = formatFail(
             validateAst(node, sub, idx, maxIdx, {idx}), N());
 
-        if (0 < fail.size()) {
-            return fail;
-        } else {
+        if (fail.empty()) {
             return std::nullopt;
+        } else {
+            return fail;
         }
     }
 };
@@ -408,7 +408,7 @@ struct AstSpec {
         for (const auto& [kind, pattern] : spec) {
             if (pattern.has_value()) {
                 for (const auto& arange : pattern.get().ranges) {
-                    if (0 < arange.arange.name.size()) {
+                    if (!arange.arange.name.empty()) {
                         result[kind][arange.arange.name] = arange.arange;
                     }
                 }
@@ -434,7 +434,7 @@ struct AstSpec {
                 node);
             if (0 < missing.count()) {
                 const auto fail = missing.format(node);
-                if (0 < fail.size()) {
+                if (!fail.empty()) {
                     return fail;
                 }
             }
@@ -451,7 +451,7 @@ struct AstSpec {
                 spec[node.getKind()].value().validateAst(
                     node.getKind(), sub.getKind(), idx, node.size()),
                 node);
-            if (0 < fail.size()) {
+            if (fail.empty()) {
                 return fail;
             }
         }
@@ -475,7 +475,7 @@ struct AstSpec {
                 node.size(),
                 Vec<int>({idx}));
 
-            if (0 < failCount(fail1)) {
+            if (0 < fail1.count()) {
                 s << formatFail(fail1, node) << "\n";
             }
 
@@ -495,19 +495,20 @@ struct AstSpec {
 
         aux = [&s, &aux](const AstPattern<N, K>& p, const int& level) {
             s.indent(level);
-            if (0 < p.doc.size()) {
-                s << fg::Yellow << indent(p.doc, 2 * (level + 1))
-                  << s.end();
+            if (!p.doc.empty()) {
+                s << fg::Yellow
+                  << indent(p.doc, 2 * (level + 1), ' ', "## ") << s.end();
             }
 
-            if (0 < p.expected.size()) {
+            if (!p.expected.empty()) {
                 s << to_string(p.expected);
             }
 
-            for (const auto arange : p.ranges) {
-                s << "\n" << s.indent(level + 1);
-                s << fg::Yellow << arange.range << s.end();
-                if (0 < arange.range.fieldName.size()) {
+            for (const auto [idx, arange] : enumerate(p.ranges)) {
+                s << "\n"
+                  << s.indent(level + 1) << fg::Yellow << arange.range
+                  << s.end();
+                if (!arange.range.fieldName.empty()) {
                     s << " " << fg::Blue << arange.range.fieldName
                       << s.end();
                 }

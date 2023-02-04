@@ -33,7 +33,6 @@ struct EnumerateState {
         }
     };
 
-
     iterator begin() { return iterator(&beginIterator); }
     iterator end() { return iterator(&endIterator); }
 

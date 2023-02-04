@@ -64,10 +64,14 @@ inline Str repeat(CR<Str> str, int count) {
 }
 
 
-inline Str indent(CR<Str> str, int spaces, char space = ' ') {
+inline Str indent(
+    CR<Str> str,
+    int     spaces,
+    char    space  = ' ',
+    Str     prefix = "") {
     auto lines = split(str, '\n');
     for (auto& line : lines) {
-        line = repeat(Str(space), spaces) + line;
+        line = prefix + repeat(Str(space), spaces) + line;
     }
     return join("\n", lines);
 }
