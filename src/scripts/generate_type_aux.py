@@ -32,6 +32,7 @@ source_out = []
 
 for entry in content:
     if entry["kind"] == "enum":
+        source_out.append("#ifdef IN_NAMESPACE")
         name = entry["name"]
         fields = entry["fields"]
         header_out.append(f"""
@@ -52,17 +53,6 @@ const char* to_string({name} in);
 }}
             """)
 
-        source_out.append(f"""
-template <{name}>
-{name} low() {{
-    return {name}::{fields[0]};
-}}
-
-template <{name}>
-{name} high() {{
-    return {name}::{fields[-1]};
-}} """)
-
 
         if True:
             cases = []
@@ -78,6 +68,22 @@ const char* to_string({name} in) {{
     }}
 }}
             """)
+
+        source_out.append("#endif")
+        source_out.append(f"""
+#ifndef IN_NAMESPACE
+template <>
+{name} low() {{
+    return {name}::{fields[0]};
+}}
+
+template <{name}>
+{name} high() {{
+    return {name}::{fields[-1]};
+}}
+#endif
+""")
+
 
 
 import os
