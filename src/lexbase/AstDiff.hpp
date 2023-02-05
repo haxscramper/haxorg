@@ -3,6 +3,7 @@
 #include <hstd/system/string_convert.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/Func.hpp>
 
 #include <iostream>
 #include <cassert>
@@ -114,11 +115,16 @@ struct ComparisonOptions {
     /// Whenever two subtrees are matched in the bottom-up phase, the
     /// optimal mapping is computed, unless the size of either subtrees
     /// exceeds this.
-    int                           MaxSize          = 100;
-    bool                          StopAfterTopDown = false;
-    std::function<ValT(IdT)>      getNodeValueImpl;
-    std::function<int(IdT)>       getNodeKindImpl;
-    std::function<bool(IdT, IdT)> isMatchingAllowedImpl;
+    int  MaxSize          = 100;
+    bool StopAfterTopDown = false;
+    /// \brief Get node value from specified ID
+    Func<ValT(IdT)> getNodeValueImpl;
+    /// \brief Get node kind in integer form (usually static cast of enum
+    /// to int)
+    Func<int(IdT)> getNodeKindImpl;
+    /// \brief Can node with these IDs be matched together? Callback can be
+    /// empty
+    Func<bool(IdT, IdT)> isMatchingAllowedImpl;
     /// Returns false if the nodes should never be matched.
     bool isMatchingAllowed(
         const Node<IdT, ValT>& N1,
@@ -127,8 +133,6 @@ struct ComparisonOptions {
             && isMatchingAllowedImpl(N1.ASTNode, N2.ASTNode)) {
             return true;
         } else {
-            // COUT << "Kind comparison " << N1.getNodeKind(*this) << " "
-            //      << N2.getNodeKind(*this) << "\n";
             return N1.getNodeKind(*this) == N2.getNodeKind(*this);
         }
     }
@@ -147,6 +151,23 @@ struct TreeMirror {
 
     Vec<TreeMirror<IdT, ValT>> subnodes; /// List of the subnodes
 };
+
+template <typename IdT, typename ValT>
+CR<TreeMirror<IdT, ValT>> getSubnodeAtTreeMirror(
+    CR<TreeMirror<IdT, ValT>> tree,
+    int                       index) {
+    return tree.subnodes.at(index);
+}
+
+template <typename IdT, typename ValT>
+int getSubnodeNumberTreeMirror(CR<TreeMirror<IdT, ValT>> tree) {
+    return tree.subnodes.size();
+}
+
+template <typename IdT, typename ValT>
+IdT getSubnodeIdTreeMirror(CR<TreeMirror<IdT, ValT>> tree) {
+    return tree.id;
+}
 
 
 /// \brief Represents an AST node, alongside some additional information.
@@ -202,10 +223,20 @@ class SyntaxTree {
 
   public:
     SyntaxTree(ComparisonOptions<IdT, ValT> const& opts);
-    /// Constructs a tree from an AST node.
-    SyntaxTree(
-        ComparisonOptions<IdT, ValT> const& opts,
-        TreeMirror<IdT, ValT> const&        N);
+    template <typename InNode>
+    struct WalkParameters {
+        /// Get subnode at position
+        Func<CR<InNode>(CR<InNode>, int)> getSubnodeAt;
+        /// Get number of subnodes for input node
+        Func<int(CR<InNode>)> getSubnodeNumber;
+        /// Get ID for subnode
+        Func<IdT(CR<InNode>)> getSubnodeId;
+    };
+
+    /// Constructs a tree from an AST node using provided accessor
+    /// callbacks
+    template <typename InNode>
+    void FromNode(InNode const& N, CR<WalkParameters<InNode>> walk);
     /// Nodes in preorder.
     Vec<Node<IdT, ValT>> Nodes;
     Vec<NodeId>          Leaves;
@@ -274,7 +305,7 @@ class SyntaxTree {
         setLeftMostDescendants();
         int PostorderId = 0;
         PostorderIds.resize(getSize());
-        std::function<void(NodeId)> PostorderTraverse = [&](NodeId Id) {
+        Func<void(NodeId)> PostorderTraverse = [&](NodeId Id) {
             for (NodeId Subnode : getNode(Id).Subnodes) {
                 PostorderTraverse(Subnode);
             }
@@ -371,20 +402,28 @@ class ASTDiff {
 };
 
 // Sets Height, Parent and Subnodes for each node.
-template <typename IdT, typename ValT>
+template <typename IdT, typename ValT, typename InNode>
 struct PreorderVisitor {
-    int                    Id = 0, Depth = 0;
+    int Id = 0, Depth = 0;
+
     NodeId                 Parent;
     SyntaxTree<IdT, ValT>& Tree;
-    PreorderVisitor(SyntaxTree<IdT, ValT>& Tree) : Tree(Tree) {}
-    std::tuple<NodeId, NodeId> PreTraverse(
-        TreeMirror<IdT, ValT> const& node) {
+
+    typename SyntaxTree<IdT, ValT>::template WalkParameters<InNode> walk;
+
+    PreorderVisitor(
+        SyntaxTree<IdT, ValT>& Tree,
+        CR<typename SyntaxTree<IdT, ValT>::template WalkParameters<InNode>>
+            walk)
+        : Tree(Tree), walk(walk) {}
+
+    std::tuple<NodeId, NodeId> PreTraverse(InNode const& node) {
         NodeId MyId = Id;
         Tree.Nodes.emplace_back();
         Node<IdT, ValT>& N = Tree.getMutableNode(MyId);
         N.Parent           = Parent;
         N.Depth            = Depth;
-        N.ASTNode          = node.id;
+        N.ASTNode          = walk.getSubnodeId(node);
 
         if (Parent.isValid()) {
             Node<IdT, ValT>& P = Tree.getMutableNode(Parent);
@@ -420,10 +459,10 @@ struct PreorderVisitor {
         }
     }
 
-    void Traverse(TreeMirror<IdT, ValT> const& node) {
+    void Traverse(CR<InNode> node) {
         auto SavedState = PreTraverse(node);
-        for (auto sub : node.subnodes) {
-            Traverse(sub);
+        for (int i = 0; i < walk.getSubnodeNumber(node); ++i) {
+            Traverse(walk.getSubnodeAt(node, i));
         }
         PostTraverse(SavedState);
     }
@@ -435,11 +474,11 @@ SyntaxTree<IdT, ValT>::SyntaxTree(
     : opts(_opts) {}
 
 template <typename IdT, typename ValT>
-SyntaxTree<IdT, ValT>::SyntaxTree(
-    ComparisonOptions<IdT, ValT> const& _opts,
-    TreeMirror<IdT, ValT> const&        N)
-    : SyntaxTree(_opts) {
-    PreorderVisitor<IdT, ValT> PreorderWalker{*this};
+template <typename InNode>
+void SyntaxTree<IdT, ValT>::FromNode(
+    InNode const&                                     N,
+    CR<SyntaxTree<IdT, ValT>::WalkParameters<InNode>> walk) {
+    PreorderVisitor<IdT, ValT, InNode> PreorderWalker(*this, walk);
     PreorderWalker.Traverse(N);
     initTree();
     // COUT << NodesBfs << "\n";
@@ -449,8 +488,8 @@ template <typename IdT, typename ValT>
 static Vec<NodeId> getSubtreePostorder(
     const SyntaxTree<IdT, ValT>& Tree,
     NodeId                       Root) {
-    Vec<NodeId>                 Postorder;
-    std::function<void(NodeId)> Traverse = [&](NodeId Id) {
+    Vec<NodeId>        Postorder;
+    Func<void(NodeId)> Traverse = [&](NodeId Id) {
         const Node<IdT, ValT>& N = Tree.getNode(Id);
         for (NodeId Subnode : N.Subnodes) {
             Traverse(Subnode);
