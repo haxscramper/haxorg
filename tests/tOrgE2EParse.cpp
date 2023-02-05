@@ -3,6 +3,7 @@
 #include <parse/OrgParser.hpp>
 #include <parse/OrgTokenizer.hpp>
 #include <lexbase/AstSpec.hpp>
+#include <lexbase/AstDiff.hpp>
 #include <hstd/stdlib/diffs.hpp>
 
 using org = OrgNodeKind;
@@ -456,5 +457,166 @@ TEST_CASE("Simple node conversion") {
         });
 
         std::cout << res[0].xIndex << res[0].yIndex;
+    }
+}
+
+using namespace diff;
+
+TEST_CASE("Ast diff") {
+    SECTION("Pointer-based nodes") {
+        struct RealNode {
+            std::string   value;
+            int           kind;
+            Vec<RealNode> sub;
+
+            using IdT  = RealNode*;
+            using ValT = std::string;
+
+            TreeMirror<IdT, ValT> toMirror() {
+                Vec<TreeMirror<IdT, ValT>> subMirror;
+                for (auto& it : sub) {
+                    subMirror.push_back(it.toMirror());
+                }
+                return TreeMirror<IdT, ValT>{this, subMirror};
+            }
+        };
+
+        using IdT  = RealNode::IdT;
+        using ValT = RealNode::ValT;
+
+        Func<Str(CR<ValT>)> toStr = [](CR<ValT> arg) -> Str {
+            return to_string(arg);
+        };
+
+        auto src = RealNode{
+            "",
+            6,
+            {RealNode{
+                 "",
+                 8,
+                 {RealNode{"**", 18},
+                  RealNode{"CLI", 39},
+                  RealNode{"", 3},
+                  RealNode{"", 55, {RealNode{"tools", 69}}},
+                  RealNode{"", 3},
+                  RealNode{"", 3},
+                  RealNode{"", 3},
+                  RealNode{"", 94, {RealNode{"", 3}, RealNode{"", 3}}},
+                  RealNode{"", 6, {}}}},
+             RealNode{
+                 "",
+                 55,
+                 {RealNode{"Nested", 69},
+                  RealNode{" ", 67},
+                  RealNode{"content", 69}}}}};
+
+        auto dst = RealNode{
+            "",
+            6,
+            {RealNode{
+                "",
+                8,
+                {RealNode{"**", 18},
+                 RealNode{"CLI", 39},
+                 RealNode{"", 3},
+                 RealNode{"", 55, {RealNode{"tools", 69}}},
+                 RealNode{"", 3},
+                 RealNode{"", 3},
+                 RealNode{"", 3},
+                 RealNode{"", 94, {RealNode{"", 3}, RealNode{"", 3}}},
+                 RealNode{
+                     "",
+                     6,
+                     {RealNode{
+                         "",
+                         55,
+                         {RealNode{"Nested", 69},
+                          RealNode{" ", 67},
+                          RealNode{"content", 69}}}}}}}}};
+
+        auto Src = src.toMirror();
+        auto Dst = dst.toMirror();
+
+        ComparisonOptions<IdT, ValT> Options{
+            .getNodeValueImpl = [](IdT id) { return id->value; },
+            .getNodeKindImpl  = [](IdT id) { return id->kind; },
+            .isMatchingAllowedImpl =
+                [](IdT id1, IdT id2) { return id1->kind == id2->kind; }};
+
+        SyntaxTree<IdT, ValT> SrcTree{Options, Src};
+        SyntaxTree<IdT, ValT> DstTree{Options, Dst};
+        ASTDiff<IdT, ValT>    Diff{SrcTree, DstTree, Options};
+
+        for (diff::NodeId Dst : DstTree) {
+            diff::NodeId Src = Diff.getMapped(DstTree, Dst);
+            if (Src.isValid()) {
+                COUT << "Match [\033[33m";
+                printNode(std::cout, SrcTree, Src, toStr);
+                std::cout << "\033[0m] to [\033[33m";
+                printNode(std::cout, DstTree, Dst, toStr);
+                std::cout << "\033[0m] ";
+            } else {
+                COUT << "Dst to [\033[32m";
+                printNode(std::cout, DstTree, Dst, toStr);
+                std::cout << "\033[0m] ";
+            }
+
+            printDstChange(std::cout, Diff, SrcTree, DstTree, Dst, toStr);
+            std::cout << "\n";
+        }
+    }
+
+    SECTION("Pointer-based nodes with variant") {
+        struct RealNode {
+            std::variant<int, double, std::string> value;
+            Vec<RealNode>                          sub;
+        };
+
+        auto src = RealNode{
+            "toplevel", {RealNode{1}, RealNode{1.2}, RealNode{"subnode"}}};
+
+        auto dst = RealNode{
+            "toplevel",
+            {RealNode{22}, RealNode{1.2}, RealNode{"subnode'"}}};
+
+        using IdT  = RealNode*;
+        using ValT = decltype(src.value);
+
+
+        Func<Str(CR<ValT>)> toStr = [](CR<ValT> arg) -> Str {
+            return variant_to_string(arg);
+        };
+
+        auto Src = TreeMirror<IdT, ValT>{
+            &src,
+            {TreeMirror<IdT, ValT>{&src.sub[0]},
+             TreeMirror<IdT, ValT>{&src.sub[1]}}};
+
+        auto Dst = TreeMirror<IdT, ValT>{
+            &dst,
+            {TreeMirror<IdT, ValT>{&dst.sub[0]},
+             TreeMirror<IdT, ValT>{&dst.sub[1]},
+             TreeMirror<IdT, ValT>{&dst.sub[2]}}};
+
+        ComparisonOptions<IdT, ValT> Options{
+            .getNodeValueImpl = [](IdT id) { return id->value; },
+            .getNodeKindImpl  = [](IdT id) { return 0; }};
+
+        SyntaxTree<IdT, ValT> SrcTree{Options, Src};
+        SyntaxTree<IdT, ValT> DstTree{Options, Dst};
+        ASTDiff<IdT, ValT>    Diff{SrcTree, DstTree, Options};
+
+        for (diff::NodeId Dst : DstTree) {
+            diff::NodeId Src = Diff.getMapped(DstTree, Dst);
+            if (Src.isValid()) {
+                std::cout << "Match ";
+                printNode(std::cout, SrcTree, Src, toStr);
+                std::cout << " to ";
+                printNode(std::cout, DstTree, Dst, toStr);
+                std::cout << "\n";
+            }
+
+            printDstChange(std::cout, Diff, SrcTree, DstTree, Dst, toStr);
+        }
     }
 }
