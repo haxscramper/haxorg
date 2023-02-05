@@ -6,6 +6,7 @@
 #include <lexbase/AstDiff.hpp>
 #include <lexbase/AstGraph.hpp>
 #include <hstd/stdlib/diffs.hpp>
+#include <sem/SemOrg.hpp>
 
 using org = OrgNodeKind;
 using otk = OrgTokenKind;

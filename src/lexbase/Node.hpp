@@ -333,9 +333,15 @@ struct NodeAdapter {
 
     N   getKind() const { return group->at(id).kind; }
     int size() const { return group->size(id); }
+    /// \brief Check if node adapter is default-constructed and does not
+    /// contain pointers to the underlying content.
+    bool empty() const {
+        return group == nullptr && id == NodeId<N, K>::Nil();
+    }
 
     NodeAdapter<N, K>(NodeGroup<N, K> const* group, NodeId<N, K> id)
         : group(group), id(id) {}
+    NodeAdapter() : group(nullptr), id(NodeId<N, K>::Nil()) {}
 
     NodeAdapter<N, K> operator[](int index) const {
         return {group, group->subnode(id, index)};

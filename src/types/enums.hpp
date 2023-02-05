@@ -1197,3 +1197,41 @@ enum class OrgCommandKind
     /*!`#+header:`
      */
 };
+
+enum class OrgPropertyKind : short int
+{
+    Title,
+    Author,
+    Date,
+    Email,
+    Language,
+    Url,
+    SourceUrl,
+    AttrImg,
+    Toplevel,
+    Blocker,
+    Created,
+    Unnumbered,
+    Trigger,
+    Ordered,
+    Noblocking,
+    ExportOptions,
+    BackendExportOptions,
+    AttrBackend,
+    ColumnSpec,
+    Name,
+    Caption,
+    LinkAbbrev,
+    Filetags,
+    TagConf,
+    LatexHeader,
+    OtherProperty,
+    Id
+};
+
+enum class OrgUnnumberedKind : short int
+{
+    Notoc,
+    True,
+    False
+};
