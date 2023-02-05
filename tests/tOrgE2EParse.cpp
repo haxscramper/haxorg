@@ -3,6 +3,7 @@
 #include <parse/OrgParser.hpp>
 #include <parse/OrgTokenizer.hpp>
 #include <lexbase/AstSpec.hpp>
+#include <hstd/stdlib/diffs.hpp>
 
 using org = OrgNodeKind;
 using otk = OrgTokenKind;
@@ -444,5 +445,16 @@ TEST_CASE("Simple node conversion") {
     SECTION("Nested hash tag") {
         p.run("#test##[a, b]", &T::lexText, &P::parseHashTag);
         p.treeRepr();
+    }
+
+    SECTION("LCS compile") {
+        Vec<int> first{1, 2, 3};
+        Vec<int> second{1, 2, 3};
+        std::cout << first << "\n";
+        auto res = lcs<int>(first, second, [](CR<int> lhs, CR<int> rhs) {
+            return lhs == rhs;
+        });
+
+        std::cout << res[0].xIndex << res[0].yIndex;
     }
 }

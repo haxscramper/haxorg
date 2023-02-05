@@ -93,10 +93,26 @@ std::ostream& join(
     return os;
 }
 
+template <typename T>
+std::ostream& join(
+    std::ostream&   os,
+    CR<std::string> sep,
+    generator<T>&&  list) {
+    auto tmp = std::move(list);
+    return join(os, sep, tmp);
+}
+
 
 template <typename T>
 std::string join(CR<std::string> sep, generator<T>& list) {
     std::stringstream os;
     join(os, sep, list);
     return os.str();
+}
+
+
+template <typename T>
+std::string join(CR<std::string> sep, generator<T>&& list) {
+    auto tmp = std::move(list);
+    join(sep, tmp);
 }

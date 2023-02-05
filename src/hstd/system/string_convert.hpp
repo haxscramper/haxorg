@@ -90,7 +90,10 @@ inline std::string to_string(wchar_t wc) {
 }
 
 template <typename Iterable>
-std::ostream& join(std::ostream& os, CR<std::string> sep, Iterable list) {
+std::ostream& join(
+    std::ostream&   os,
+    CR<std::string> sep,
+    CR<Iterable>    list) {
     int index = 0;
     for (const auto& it : list) {
         if (0 < index) {
@@ -103,7 +106,7 @@ std::ostream& join(std::ostream& os, CR<std::string> sep, Iterable list) {
 }
 
 template <typename Iterable>
-std::string join(CR<std::string> sep, Iterable list) {
+std::string join(CR<std::string> sep, CR<Iterable> list) {
     std::stringstream os;
     join(os, sep, list);
     return os.str();

@@ -9,6 +9,7 @@
 #include <hstd/stdlib/Array.hpp>
 #include <hstd/system/exceptions.hpp>
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 #include <unordered_map>
 #include <functional>

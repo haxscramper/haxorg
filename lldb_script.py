@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import lldb
+import re
 
 def simplify_name(name: str) -> str:
     replacements = [
@@ -11,9 +12,11 @@ def simplify_name(name: str) -> str:
         ("long", "i32"),
         ("unsigned long long", "u64"),
         ("long long", "i64"),
+        (r"std::vector<(.*?), std::allocator<\1>>", r"std::vector<\1>"),
+        (r"std::_Vector_base<(.*?), std::allocator<\1>>", r"std::_Vector_base<\1>")
     ]
     for (_from, _to) in replacements:
-        name = name.replace(_from, _to)
+        name = re.sub(_from, _to, name)
 
     return name
 

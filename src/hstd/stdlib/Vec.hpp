@@ -23,6 +23,8 @@ class Vec : public std::vector<T> {
     using std::vector<T>::end;
     using std::vector<T>::insert;
 
+    static Vec<T> FromValue(CR<Vec<T>> values) { return values; }
+
     Vec() {}
     Vec(std::size_t size, const T& value = T())
         : std::vector<T>(size, value) {}
