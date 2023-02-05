@@ -1,5 +1,6 @@
 #include "common.hpp"
 #include <lexbase/Node.hpp>
+#include <hstd/system/reflection.hpp>
 
 enum class NodeKind : u8
 {

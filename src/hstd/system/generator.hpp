@@ -7,7 +7,7 @@
 template <typename T>
 struct generator {
     struct promise_type {
-        std::optional<T>    current_value;
+        std::optional<T>    current_value = std::nullopt;
         std::suspend_always yield_value(T value) {
             this->current_value = value;
             return {};

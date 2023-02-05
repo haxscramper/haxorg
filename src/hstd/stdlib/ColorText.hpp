@@ -1,5 +1,9 @@
+#pragma once
+
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/stdlib/IntSet.hpp>
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Str.hpp>
 
 struct TermColorBgFull {
     u8 color;

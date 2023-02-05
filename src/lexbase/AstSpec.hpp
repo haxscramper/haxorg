@@ -6,15 +6,12 @@
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Table.hpp>
+#include <hstd/stdlib/Array.hpp>
+#include <hstd/system/exceptions.hpp>
+#include <hstd/system/reflection.hpp>
 
 #include <unordered_map>
-#include <stdexcept>
 #include <functional>
-
-struct GetterError : public std::runtime_error {
-    explicit GetterError(const std::string& message)
-        : std::runtime_error(message) {}
-};
 
 namespace astspec {
 
@@ -32,6 +29,17 @@ enum class AstRangeKind : u8
     InverseSlice, /*!`^idx1 .. ^idx2` */
     MixedSlice,   /*!`idx1 .. ^idx2` */
 };
+
+BOOST_DESCRIBE_ENUM(
+    AstRangeKind,
+    Point,
+    InversePoint,
+    DirectSlice,
+    InverseSlice,
+    MixedSlice);
+
+
+auto tmp = low<AstRangeKind>();
 
 template <typename N>
 Str toPath(const N& ast, const Vec<int>& path) {
@@ -126,10 +134,10 @@ struct AstRange {
 
 template <typename N, typename K>
 struct AstCheckFail {
-    bool      isMissing;
+    bool      isMissing = false;
     Str       msg;
     Vec<int>  path;
-    K         parent;
+    K         parent = low<K>();
     IntSet<K> expected;
     Opt<K>    got;
     AstRange  range;
@@ -192,7 +200,7 @@ struct AstCheckFail {
 
                         if (fail.got.has_value()) {
                             s << ", but got "
-                              << hshow(s, fail.got.value());
+                              << to_string(fail.got.value());
                         }
                     }
                 } else if (fail.isMissing) {
@@ -208,7 +216,8 @@ struct AstCheckFail {
                     s << " on path " << fg::Green
                       << toPath(node, fail.path) << s.end();
                 } else {
-                    s << " for " << fg::Green << fail.parent << s.end();
+                    s << " for subnode of " << fg::Green
+                      << to_string(fail.parent) << s.end();
                 }
 
                 if (!fail.range.fieldDoc.empty()) {
@@ -303,7 +312,7 @@ struct AstPattern {
         for (const auto arange : ranges) {
             if (arange.range.contains(idx, maxLen)) {
                 for (const auto alt : arange.alts) {
-                    if (alt.expected.contains(subnode)) {
+                    if (!alt.expected.contains(subnode)) {
                         AstCheckFail<N, K> fail;
                         fail.parent   = kind;
                         fail.path     = path;
@@ -385,12 +394,30 @@ struct AstPattern {
 
 template <typename N, typename K>
 struct AstSpec {
+  private:
     TypArray<K, Opt<AstPattern<N, K>>> spec;
+    TypArray<K, Table<Str, AstRange>>  nodeRanges;
 
+    TypArray<K, Table<Str, AstRange>> getNodeRanges() const {
+        TypArray<K, Table<Str, AstRange>> result;
+        for (const auto& [kind, pattern] : spec.pairs()) {
+            if (pattern->has_value()) {
+                for (const auto& range : pattern->value().ranges) {
+                    if (!range.range.fieldName.empty()) {
+                        result[kind][range.range.fieldName] = range.range;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+  public:
     AstSpec(const Vec<Pair<K, AstPattern<N, K>>>& patterns) {
         for (const auto& [kind, pattern] : patterns) {
             spec[kind] = pattern;
         }
+        nodeRanges = getNodeRanges();
     }
 
     AstPattern<N, K> getPattern(const K& kind) const {
@@ -398,20 +425,6 @@ struct AstSpec {
     }
 
     bool hasPattern(K kind) const { return spec[kind].has_value(); }
-
-    TypArray<K, Table<Str, AstRange>> getNodeRanges() const {
-        TypArray<K, Table<Str, AstRange>> result;
-        for (const auto& [kind, pattern] : spec) {
-            if (pattern.has_value()) {
-                for (const auto& arange : pattern.get().ranges) {
-                    if (!arange.arange.name.empty()) {
-                        result[kind][arange.arange.name] = arange.arange;
-                    }
-                }
-            }
-        }
-        return result;
-    }
 
 
     ColText validateAst(const N& node) const {
@@ -444,8 +457,8 @@ struct AstSpec {
         if (spec[node.getKind()].has_value()) {
             const auto fail = spec[node.getKind()].value().validateAst(
                 node.getKind(), sub.getKind(), idx, node.size());
-            if (fail.empty()) {
-                return "Some format node " + fail.format(node);
+            if (!fail.empty()) {
+                return fail.format(node);
             }
         }
         return std::nullopt;
@@ -524,115 +537,123 @@ struct AstSpec {
         return s.getBuffer();
     }
 
-    int getSingleSubnodeIdx(const N& node, const Str& name) {
-        int        result;
-        const auto table = getNodeRanges(spec);
-        if (table[node.getKind()].contains(name)) {
-            const auto arange = table[node.getKind()][name];
-            const auto slice  = arange.toSlice(len(node));
-            assertHasIdx(
-                node,
-                slice.a,
-                "Range " + name + " for node kind "
-                    + to_string(node.getKind())
-                    + " was resolved into slice " + to_string(slice)
-                    + "(required ast range is " + to_string(arange) + ")");
-            return slice.a;
-        } else {
-            noPositional(spec, node.getKind(), name);
-        }
-        return result;
-    }
-
-    N getSingleSubnode(const N& node, const Str& name) {
-        return node[getSingleSubnodeIDx(spec, node, name)];
-    }
-
-    Vec<N> getMultipleSubnode(const N& node, const Str& name) {
-        Vec<N> result;
-
-        const auto table = getNodeRanges(spec);
-        if (table[node.getKind()].contains(name)) {
-            const auto arange = table[node.getKind()][name];
-            const auto slice  = arange.toSlice(len(node));
-            for (const auto idx : slice) {
-                assertHasIdx(
-                    node,
-                    idx,
-                    "Range " + name + " for node kind "
-                        + to_string(node.getKind())
-                        + " was resolved into slice " + to_string(slice)
-                        + "(required ast range is " + to_string(arange)
-                        + ")");
-                result.add(node[idx]);
-            }
-        } else {
-            noPositional(spec, node.getKind(), name);
-        }
-        return result;
-    }
-
-    Opt<AstRange> fieldRange(const N& node, const int& idx) {
-        Opt<AstRange> result;
-        if (spec.spec[node.getKind()].has_value()) {
-            const auto pattern = spec.spec[node.getKind()].get();
-            for (const auto field : pattern.ranges) {
-                if (field.arange.contains(idx, node.size())) {
-                    return some(field.arange);
-                }
-            }
-        }
-        return result;
-    }
-
-    Opt<Str> fieldName(const N& node, const int& idx) {
-        Opt<Str>   result;
-        const auto field = spec.fieldRange(node, idx);
-        if (field.has_value()) {
-            return some(field.value().name);
-        }
-        return result;
-    }
-
-    bool isSingleField(const N& node, const int& idx) {
-        const auto field = spec.fieldRange(node, idx);
-        return field.has_value()
-            && (IntSet<AstRangeKind>{
-                    AstRangeKind::Point, AstRangeKind::InversePoint})
-                   .contains(field.value().getKind());
-    }
-
-    Opt<Str> fieldDoc(const N& node, const int& idx) {
-        Opt<Str>   result;
-        const auto field = spec.fieldRange(node, idx);
-        if (field.has_value()) {
-            return some(field.value().doc);
-        }
-        return result;
-    }
-
     int getSingleSubnodeIdx(
         const K&        kind,
         const Str&      name,
-        const Opt<int>& nodeLen = Opt<int>{}) {
-        const auto table = getNodeRanges();
-        if (table[kind].contains(name)) {
-            const auto arange = table[kind][name];
-            if (arange.getKind() == AstRangeKind::Point) {
-                return arange.idx;
+        const Opt<int>& nodeLen = Opt<int>{}) const {
+        if (nodeRanges.at(kind).contains(name)) {
+            const auto range = nodeRanges.at(kind).at(name);
+            if (range.kind == AstRangeKind::Point) {
+                return range.idx;
             } else if (nodeLen.has_value()) {
-                return arange.toSlice(nodeLen.value()).a;
+                return range.toSlice(nodeLen.value()).first;
             } else {
-                throw newUnexpectedKindError(
-                    "Cannot get single subnode index for element " + name
-                    + " of node kind " + kind
+                throw UnexpectedKindError(
+                    "Cannot get single subnode index for element "
+                    + to_string(name) + " of node kind " + to_string(kind)
                     + " - field exists, but allowed AST range is of kind "
-                    + arange.getKind()
+                    + enum_to_string(range.kind)
                     + " and requires node lenght, but it "
                     + "wasn't specified.");
             }
         } else {
-            noPositional(spec, kind, name);
+            throw makeMissingPositional(kind, name);
+        }
+    }
+
+    int getSingleSubnodeIdx(const N& node, const Str& name) const {
+        if (nodeRanges[node.getKind()].contains(name)) {
+            const auto range = nodeRanges.at(node.getKind()).at(name);
+            const auto slice = range.toSlice(node.size());
+            assert_has_idx(
+                node.size(),
+                slice.first,
+                "Range " + name + " for node kind "
+                    + to_string(node.getKind())
+                    + " was resolved into slice " + to_string(slice)
+                    + "(required ast range is " + to_string(range) + ")");
+            return slice.first;
+        } else {
+            throw makeMissingPositional(node.getKind(), name);
+        }
+    }
+
+    FieldAccessError makeMissingPositional(K kind, CR<Str> name) const {
+        Str names;
+        if (nodeRanges.at(kind).empty()) {
+            names = "No named subnodes specified.";
+        } else {
+            names = "Available names - "
+                  + join(", ", nodeRanges.at(kind).keys());
+        }
+
+        return FieldAccessError(
+            "Cannot get positional node with name '" + name
+            + "' from node of kind '" + to_string(kind) + "'. " + names);
+    }
+
+    N getSingleSubnode(const N& node, const Str& name) const {
+        return node.at(getSingleSubnodeIDx(spec, node, name));
+    }
+
+    Vec<N> getMultipleSubnode(const N& node, const Str& name) const {
+        if (nodeRanges[node.getKind()].contains(name)) {
+            Vec<N>     result;
+            const auto range = nodeRanges.at(node.getKind()).at(name);
+            const auto slice = range.toSlice(node.size());
+            for (const auto idx : slice) {
+                assert_has_idx(
+                    node.size(),
+                    idx,
+                    "Range " + name + " for node kind "
+                        + to_string(node.getKind())
+                        + " was resolved into slice " + to_string(slice)
+                        + "(required ast range is " + to_string(range)
+                        + ")");
+
+                result.push_back(node[idx]);
+            }
+            return result;
+        } else {
+            throw makeMissingPositional(node.getKind(), name);
+        }
+    }
+
+    Opt<AstRange> fieldRange(const N& node, const int& idx) const {
+        if (spec.at(node.getKind()).has_value()) {
+            const auto pattern = spec.at(node.getKind()).value();
+            for (const auto field : pattern.ranges) {
+                if (field.range.contains(idx, node.size())) {
+                    return field.range;
+                }
+            }
+        }
+        return std::nullopt;
+    }
+
+    Opt<Str> fieldName(const N& node, const int& idx) const {
+        const auto field = fieldRange(node, idx);
+        if (field.has_value()) {
+            return field.value().fieldName;
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    bool isSingleField(const N& node, const int& idx) const {
+        const auto field = fieldRange(node, idx);
+        return field.has_value()
+            && IntSet<
+                   AstRangeKind>{AstRangeKind::Point, AstRangeKind::InversePoint}
+                   .contains(field.value().kind);
+    }
+
+    Opt<Str> fieldDoc(const N& node, const int& idx) const {
+        const auto field = fieldRange(node, idx);
+        if (field.has_value()) {
+            return field.value().fieldDoc;
+        } else {
+            return std::nullopt;
         }
     }
 };

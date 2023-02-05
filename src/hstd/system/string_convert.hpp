@@ -58,21 +58,10 @@ concept StringConvertible = requires(T value) {
 template <typename T>
 concept IsEnum = std::is_enum<T>::value;
 
-template <typename T>
-concept DescribedEnum = IsEnum<T>
-                     && boost::describe::has_describe_enumerators<
-                            T>::value;
-
 template <IsEnum T>
 std::ostream& operator<<(std::ostream& os, T value) {
     return os << std::to_string((int)value);
 }
-
-template <DescribedEnum T>
-std::ostream& operator<<(std::ostream& os, T value) {
-    return os << boost::describe::enum_to_string(value, "<unnamed>");
-}
-
 
 /// \brief Escape string literal, converting newline and other (TODO)
 /// control characters into unicode.

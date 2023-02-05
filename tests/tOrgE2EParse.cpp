@@ -433,6 +433,12 @@ TEST_CASE("Simple node conversion") {
         std::cout << "start validation output" << std::endl;
         std::cout << spec.validateSelf(p.a(0)) << "\n";
         std::cout << spec.validateSub(p.a(0), 0) << "\n";
+        std::cout << spec.getSingleSubnodeIdx(p.a(0), "head");
+        spec.getSingleSubnodeIdx(org::HashTag, "head");
+        spec.getMultipleSubnode(p.a(0), "head");
+        spec.fieldName(p.a(0), 0);
+        spec.isSingleField(p.a(0), 0);
+        spec.fieldDoc(p.a(0), 0);
     }
 
     SECTION("Nested hash tag") {

@@ -75,3 +75,28 @@ inline Str indent(
     }
     return join("\n", lines);
 }
+
+
+template <typename T>
+std::ostream& join(
+    std::ostream&   os,
+    CR<std::string> sep,
+    generator<T>&   list) {
+    int index = 0;
+    for (const auto& it : list) {
+        if (0 < index) {
+            os << sep;
+        }
+        os << to_string(it);
+        ++index;
+    }
+    return os;
+}
+
+
+template <typename T>
+std::string join(CR<std::string> sep, generator<T>& list) {
+    std::stringstream os;
+    join(os, sep, list);
+    return os.str();
+}

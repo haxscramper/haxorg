@@ -71,3 +71,10 @@ struct Str : public std::string {
         return at(s, false);
     }
 };
+
+template <>
+struct std::hash<Str> {
+    std::size_t operator()(Str const& s) const noexcept {
+        return std::hash<std::string>{}(s);
+    }
+};

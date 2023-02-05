@@ -89,7 +89,8 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
         }
     }
 
-    Val& at(CR<Key> value) { return Base::at(ord(value)); }
+    Val&    at(CR<Key> value) { return Base::at(ord(value)); }
+    CR<Val> at(CR<Key> value) const { return Base::at(ord(value)); }
     Val& operator[](CR<Key> value) { return Base::operator[](ord(value)); }
     CR<Val> operator[](CR<Key> value) const {
         return Base::operator[](ord(value));
