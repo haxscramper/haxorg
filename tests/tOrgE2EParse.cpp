@@ -4,6 +4,7 @@
 #include <parse/OrgTokenizer.hpp>
 #include <lexbase/AstSpec.hpp>
 #include <lexbase/AstDiff.hpp>
+#include <lexbase/AstGraph.hpp>
 #include <hstd/stdlib/diffs.hpp>
 
 using org = OrgNodeKind;
@@ -481,6 +482,22 @@ TEST_CASE("Simple node conversion") {
             [&p](OrgId id) -> Str { return p.nodes.strVal(id); });
     }
 
+
+    SECTION("Graph repr") {
+        p.run("#test##[a, b]", &T::lexText, &P::parseHashTag);
+        auto g = graphRepr(&p.nodes, OrgId(0));
+
+        boost::write_graphviz(
+            std::cout,
+            g,
+            [&g, &p](
+                std::ostream&                       os,
+                VertDesc<OrgNodeKind, OrgTokenKind> vert) {
+                os << "[label=\"" << to_string(p.nodes.at(g[vert].id).kind)
+                   << "\"]";
+            });
+    }
+
     SECTION("LCS compile") {
         Vec<int> first{1, 2, 3};
         Vec<int> second{1, 2, 3};
@@ -578,9 +595,19 @@ TEST_CASE("Ast diff") {
             .isMatchingAllowedImpl =
                 [](IdT id1, IdT id2) { return id1->kind == id2->kind; }};
 
-        SyntaxTree<IdT, ValT> SrcTree{Options, Src};
-        SyntaxTree<IdT, ValT> DstTree{Options, Dst};
-        ASTDiff<IdT, ValT>    Diff{SrcTree, DstTree, Options};
+        SyntaxTree<IdT, ValT>::WalkParameters<TreeMirror<IdT, ValT>> walk{
+            .getSubnodeAt     = diff::getSubnodeAtTreeMirror<IdT, ValT>,
+            .getSubnodeNumber = diff::
+                getSubnodeNumberTreeMirror<IdT, ValT>,
+            .getSubnodeId = diff::getSubnodeIdTreeMirror<IdT, ValT>,
+        };
+
+        SyntaxTree<IdT, ValT> SrcTree{Options};
+        SrcTree.FromNode<TreeMirror<IdT, ValT>>(Src, walk);
+        SyntaxTree<IdT, ValT> DstTree{Options};
+        DstTree.FromNode(Dst, walk);
+
+        ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
 
         for (diff::NodeId Dst : DstTree) {
             diff::NodeId Src = Diff.getMapped(DstTree, Dst);
@@ -637,9 +664,19 @@ TEST_CASE("Ast diff") {
             .getNodeValueImpl = [](IdT id) { return id->value; },
             .getNodeKindImpl  = [](IdT id) { return 0; }};
 
-        SyntaxTree<IdT, ValT> SrcTree{Options, Src};
-        SyntaxTree<IdT, ValT> DstTree{Options, Dst};
-        ASTDiff<IdT, ValT>    Diff{SrcTree, DstTree, Options};
+        SyntaxTree<IdT, ValT>::WalkParameters<TreeMirror<IdT, ValT>> walk{
+            .getSubnodeAt     = diff::getSubnodeAtTreeMirror<IdT, ValT>,
+            .getSubnodeNumber = diff::
+                getSubnodeNumberTreeMirror<IdT, ValT>,
+            .getSubnodeId = diff::getSubnodeIdTreeMirror<IdT, ValT>,
+        };
+
+        SyntaxTree<IdT, ValT> SrcTree{Options};
+        SrcTree.FromNode<TreeMirror<IdT, ValT>>(Src, walk);
+        SyntaxTree<IdT, ValT> DstTree{Options};
+        DstTree.FromNode(Dst, walk);
+
+        ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
 
         for (diff::NodeId Dst : DstTree) {
             diff::NodeId Src = Diff.getMapped(DstTree, Dst);
