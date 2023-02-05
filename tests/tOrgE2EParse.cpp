@@ -419,6 +419,29 @@ struct MockFull : public OrgParser {
 using T = OrgTokenizer;
 using P = OrgParser;
 
+
+template <
+    /// Node kind
+    typename N,
+    /// Token kind
+    typename K,
+    /// Node value kind
+    typename Val>
+diff::ComparisonOptions<NodeId<N, K>, Val> nodeAdapterComparisonOptions(
+    /// Map DOD node ID to the node object
+    Func<CR<Node<N, K>>(NodeId<N, K>)> getNode,
+    /// Map DOD node value from node object
+    Func<CR<Val>(NodeId<N, K>)> getValue) {
+    return {
+        .getNodeValueImpl =
+            [getValue](NodeId<N, K> id) { return getValue(id); },
+        .getNodeKindImpl =
+            [getNode](NodeId<N, K> id) {
+                return static_cast<int>(getNode(id).kind);
+            }};
+}
+
+
 TEST_CASE("Simple node conversion") {
     MockFull p;
     SECTION("Single hash tag token") {
@@ -448,6 +471,16 @@ TEST_CASE("Simple node conversion") {
         p.treeRepr();
     }
 
+    SECTION("Diff compilation") {
+        p.run("#test##[a, b]", &T::lexText, &P::parseHashTag);
+        auto cmp = nodeAdapterComparisonOptions<
+            OrgNodeKind,
+            OrgTokenKind,
+            Str>(
+            [&p](OrgId id) -> OrgNode { return p.nodes.at(id); },
+            [&p](OrgId id) -> Str { return p.nodes.strVal(id); });
+    }
+
     SECTION("LCS compile") {
         Vec<int> first{1, 2, 3};
         Vec<int> second{1, 2, 3};
@@ -460,7 +493,9 @@ TEST_CASE("Simple node conversion") {
     }
 }
 
+
 using namespace diff;
+
 
 TEST_CASE("Ast diff") {
     SECTION("Pointer-based nodes") {
