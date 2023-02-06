@@ -425,6 +425,20 @@ std::ostream& operator<<(std::ostream& os, ColText const& value) {
     return os << to_colored_string(value, true);
 }
 
+template <typename T>
+ColText join(CR<ColText> separator, CR<T> container) {
+    ColStream out;
+    bool      first = true;
+    for (const auto& item : container) {
+        if (!first) {
+            out << separator;
+        }
+        first = false;
+        out << item;
+    }
+    return out.getBuffer();
+}
+
 #if false
 
 /*!Convert foreground color to human-readble representation */

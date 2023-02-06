@@ -509,6 +509,64 @@ TEST_CASE("Simple node conversion") {
 
         std::cout << res[0].xIndex << res[0].yIndex;
     }
+
+    SECTION("Myers diff compile") {
+        Vec<int> first{1, 2, 3};
+        Vec<int> second{1, 2, 3};
+        auto     res = myersDiff<int>(
+            first, second, [](CR<int> lhs, CR<int> rhs) {
+                return lhs == rhs;
+            });
+    }
+}
+
+template <typename T>
+Vec<T> expandOn(CR<BacktrackRes> back, CR<Vec<T>> in, bool onX) {
+    Vec<T> result;
+    if (onX) {
+        for (int i : back.xIndex) {
+            result.push_back(in[i]);
+        }
+    } else {
+        for (int i : back.yIndex) {
+            result.push_back(in[i]);
+        }
+    }
+    return result;
+}
+
+
+TEST_CASE("longestCommonSubsequence", "[LCS]") {
+    Func<bool(CR<int>, CR<int>)> cmp =
+        [](CR<int> lhs, CR<int> rhs) -> bool { return lhs == rhs; };
+
+    SECTION("Both input sequences are empty") {
+        Vec<int> a1       = {};
+        Vec<int> b1       = {};
+        Vec<int> expected = {};
+        REQUIRE(expandOn(lcs(a1, b1, cmp)[0], a1, true) == expected);
+    }
+
+    SECTION("One of the input sequences is empty") {
+        Vec<int> a2       = {1, 2, 3};
+        Vec<int> b2       = {};
+        Vec<int> expected = {};
+        REQUIRE(expandOn(lcs(a2, b2, cmp)[0], a2, true) == expected);
+    }
+
+    // SECTION("Input sequences have common elements") {
+    //     Vec<int> a3       = {1, 2, 3, 4};
+    //     Vec<int> b3       = {2, 4, 3, 1};
+    //     Vec<int> expected = {1, 2, 3, 4};
+    //     REQUIRE(expandOn(lcs(a3, b3, cmp)[0], a3, true) == expected);
+    // }
+
+    SECTION("Input sequences do not have any common elements") {
+        Vec<int> a4       = {1, 2, 3, 4};
+        Vec<int> b4       = {5, 6, 7, 8};
+        Vec<int> expected = {};
+        REQUIRE(expandOn(lcs(a4, b4, cmp)[0], a4, true) == expected);
+    }
 }
 
 

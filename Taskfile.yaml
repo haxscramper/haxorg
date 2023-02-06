@@ -42,7 +42,7 @@ tasks:
         ..
 
       - make -j8
-      # - ninja -v
+      # - ninja -v -d explain
       # - "{{.PWD}}/tests.bin"
       - task: debug
         vars:
