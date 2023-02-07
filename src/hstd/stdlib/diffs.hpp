@@ -351,41 +351,95 @@ struct ShiftedDiff {
     }
 };
 
+Vec<Str> split_keep_separator(const Str& str, IntSet<char> sep = {' '}) {
+    Vec<Str> result;
+    int      prev = 0, curr = 0;
+    while (curr < str.length()) {
+        if (sep.contains(str[curr])) {
+            if (prev != curr) {
+                result.push_back(str.substr(prev, curr - prev));
+            }
+            prev = curr;
+            while (curr < str.length() - 1 && str[curr + 1] == str[curr]) {
+                curr++;
+            }
+            result.push_back(str.substr(prev, curr - prev + 1));
+            curr++;
+            prev = curr;
+        } else {
+            curr++;
+        }
+    }
+    if (prev < curr) {
+        result.push_back(str.substr(prev, curr - prev));
+    }
+    return result;
+}
+
 /// Diff formatting configuration
 struct DiffFormatConf {
     /// Max number of the unchanged lines after which they will be no
     /// longer show. Can be used to compact large diffs with small
     /// mismatched parts.
-    int maxUnchanged;
+    ///
+    /// By default set to high int in order to avoid hiding lines
+    int maxUnchanged = high<int>();
     /// Max number of the unchanged words in a single line. Can be used to
     /// compact long lines with small mismatches
-    int maxUnchangedWords;
+    int maxUnchangedWords = high<int>();
     /// Show line numbers in the generated diffs
-    bool showLines;
-    /// Split line into chunks for formatting
-    Func<Vec<Str>(Str)> lineSplit;
+    bool showLines = false;
     /// Show line diff with side-by-side (aka github 'split' view) or on
     /// top of each other (aka 'unified')
-    bool sideBySide;
+    bool sideBySide = false;
     /// If diff contains invisible characters - trailing whitespaces,
     /// control characters, escapes and ANSI SGR formatting - show them
     /// directly.
-    bool explainInvisible;
+    bool explainInvisible = true;
     /// Text to separate words in the inline split
     ColText inlineDiffSeparator;
+    /// For multiline edit operations - group consecutive Edit operations
+    /// into single chunks.
+    bool groupLine = true;
+    /// For inline edit operations - group consecutive edit operations into
+    /// single chunks.
+    bool groupInline = true;
     /// Format mismatched text. `mode` is the mismatch kind, `secondary` is
     /// used for `sekChanged` to annotated which part was deleted and which
     /// part was added.
-    Func<ColText(Str, SeqEditKind, SeqEditKind, bool)> formatChunk;
-    /// For multiline edit operations - group consecutive Edit operations
-    /// into single chunks.
-    bool groupLine;
-    /// For inline edit operations - group consecutive edit operations into
-    /// single chunks.
-    bool groupInline;
+    Func<ColText(CR<Str>, SeqEditKind, SeqEditKind, bool)> formatChunk =
+        [](CR<Str>     word,
+           SeqEditKind mode,
+           SeqEditKind secondary,
+           bool        isInline) {
+            using fg = TermColorFg8Bit;
+            switch (mode) {
+                case SeqEditKind::Delete: return merge(fg::Red, word);
+                case SeqEditKind::Insert: return merge(fg::Green, word);
+                case SeqEditKind::Keep: return merge(fg::Default, word);
+                case SeqEditKind::None: return merge(fg::Default, word);
+                case SeqEditKind::Replace:
+                case SeqEditKind::Transpose:
+                    if (isInline && secondary == SeqEditKind::Delete) {
+                        return "[" + merge(fg::Yellow, word) + " -> ";
+                    } else if (
+                        isInline && secondary == SeqEditKind::Insert) {
+                        return merge(fg::Yellow, word) + "]";
+                    } else {
+                        return merge(fg::Yellow, word);
+                    }
+            }
+        };
+    /// Split line into chunks for formatting
+    Func<Vec<Str>(CR<Str>)> lineSplit = [](CR<Str> a) -> Vec<Str> {
+        return split_keep_separator(a, '\n');
+    };
     /// Convert invisible character (whitespace or control) to
     /// human-readable representation -
-    Func<Str(char)> explainChar;
+    Func<Str(char)> explainChar = [](char ch) -> Str {
+        const auto [uc, ascii] = visibleName(ch);
+        return uc;
+    };
 
 
     /// Format text mismatch chunk using `formatChunk` callback
@@ -454,57 +508,16 @@ Pair<ColText, ColText> formatDiffed(
 }
 
 
-/// Get visible name of the character.
-Pair<Str, Str> visibleName(char ch) {
-    switch (ch) {
-        case '\x00': return {"␀", "[NUL]"};
-        case '\x01': return {"␁", "[SOH]"};
-        case '\x02': return {"␂", "[STX]"};
-        case '\x03': return {"␃", "[ETX]"};
-        case '\x04': return {"␄", "[EOT]"};
-        case '\x05': return {"␅", "[ENQ]"};
-        case '\x06': return {"␆", "[ACK]"};
-        case '\x07': return {"␇", "[BEL]"};
-        case '\x08': return {"␈", "[BS]"};
-        case '\x09': return {"␉", "[HT]"};
-        case '\x0A': return {"␤", "[LF]"};
-        case '\x0B': return {"␋", "[VT]"};
-        case '\x0C': return {"␌", "[FF]"};
-        case '\x0D': return {"␍", "[CR]"};
-        case '\x0E': return {"␎", "[SO]"};
-        case '\x0F': return {"␏", "[SI]"};
-        case '\x10': return {"␐", "[DLE]"};
-        case '\x11': return {"␑", "[DC1]"};
-        case '\x12': return {"␒", "[DC2]"};
-        case '\x13': return {"␓", "[DC3]"};
-        case '\x14': return {"␔", "[DC4]"};
-        case '\x15': return {"␕", "[NAK]"};
-        case '\x16': return {"␖", "[SYN]"};
-        case '\x17': return {"␗", "[ETB]"};
-        case '\x18': return {"␘", "[CAN]"};
-        case '\x19': return {"␙", "[EM]"};
-        case '\x1A': return {"␚", "[SUB]"};
-        case '\x1B': return {"␛", "[ESC]"};
-        case '\x1C': return {"␜", "[FS]"};
-        case '\x1D': return {"␝", "[GS]"};
-        case '\x1E': return {"␞", "[RS]"};
-        case '\x1F': return {"␟", "[US]"};
-        case '\x7f': return {"␡", "[DEL]"};
-        case ' ': return {"␣", "[SPC]"}; // Space
-        default: return {std::to_string(ch), std::to_string(ch)};
-    }
-}
-
 template <typename T>
-Pair<int, std::vector<SeqEdit>> levenshteinDistance(
-    const std::vector<T>& str1,
-    const std::vector<T>& str2) {
+Pair<int, Vec<SeqEdit>> levenshteinDistance(
+    const Vec<T>& str1,
+    const Vec<T>& str2) {
     int l1 = str1.size();
     int l2 = str2.size();
 
-    std::vector<std::vector<int>> m(l1 + 1, std::vector<int>(l2 + 1, 0));
-    std::vector<std::vector<std::pair<int, int>>> paths(
-        l1 + 1, std::vector<std::pair<int, int>>(l2 + 1, {0, 0}));
+    Vec<Vec<int>>                 m(l1 + 1, Vec<int>(l2 + 1, 0));
+    Vec<Vec<std::pair<int, int>>> paths(
+        l1 + 1, Vec<std::pair<int, int>>(l2 + 1, {0, 0}));
 
     for (int i = 0; i <= l1; ++i) {
         m[i][0]     = i;
@@ -542,7 +555,7 @@ Pair<int, std::vector<SeqEdit>> levenshteinDistance(
         SeqEditKind t;
     };
 
-    std::vector<Item> levenpath;
+    Vec<Item> levenpath;
 
     int i = l1, j = l2;
     while (i >= 0 && j >= 0) {
@@ -556,7 +569,7 @@ Pair<int, std::vector<SeqEdit>> levenshteinDistance(
     }
 
     std::reverse(levenpath.begin(), levenpath.end());
-    std::vector<SeqEdit> resultOperations;
+    Vec<SeqEdit> resultOperations;
 
     for (int i = 1; i < levenpath.size(); i++) {
         auto last = levenpath[i - 1];

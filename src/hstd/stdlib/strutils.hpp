@@ -116,3 +116,44 @@ std::string join(CR<std::string> sep, generator<T>&& list) {
     auto tmp = std::move(list);
     join(sep, tmp);
 }
+
+/// Get visible name of the character.
+inline Pair<Str, Str> visibleName(char ch) {
+    switch (ch) {
+        case '\x00': return {"␀", "[NUL]"};
+        case '\x01': return {"␁", "[SOH]"};
+        case '\x02': return {"␂", "[STX]"};
+        case '\x03': return {"␃", "[ETX]"};
+        case '\x04': return {"␄", "[EOT]"};
+        case '\x05': return {"␅", "[ENQ]"};
+        case '\x06': return {"␆", "[ACK]"};
+        case '\x07': return {"␇", "[BEL]"};
+        case '\x08': return {"␈", "[BS]"};
+        case '\x09': return {"␉", "[HT]"};
+        case '\x0A': return {"␤", "[LF]"};
+        case '\x0B': return {"␋", "[VT]"};
+        case '\x0C': return {"␌", "[FF]"};
+        case '\x0D': return {"␍", "[CR]"};
+        case '\x0E': return {"␎", "[SO]"};
+        case '\x0F': return {"␏", "[SI]"};
+        case '\x10': return {"␐", "[DLE]"};
+        case '\x11': return {"␑", "[DC1]"};
+        case '\x12': return {"␒", "[DC2]"};
+        case '\x13': return {"␓", "[DC3]"};
+        case '\x14': return {"␔", "[DC4]"};
+        case '\x15': return {"␕", "[NAK]"};
+        case '\x16': return {"␖", "[SYN]"};
+        case '\x17': return {"␗", "[ETB]"};
+        case '\x18': return {"␘", "[CAN]"};
+        case '\x19': return {"␙", "[EM]"};
+        case '\x1A': return {"␚", "[SUB]"};
+        case '\x1B': return {"␛", "[ESC]"};
+        case '\x1C': return {"␜", "[FS]"};
+        case '\x1D': return {"␝", "[GS]"};
+        case '\x1E': return {"␞", "[RS]"};
+        case '\x1F': return {"␟", "[US]"};
+        case '\x7f': return {"␡", "[DEL]"};
+        case ' ': return {"␣", "[SPC]"}; // Space
+        default: return {std::to_string(ch), std::to_string(ch)};
+    }
+}
