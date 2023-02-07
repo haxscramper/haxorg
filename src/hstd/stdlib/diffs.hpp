@@ -166,64 +166,190 @@ Vec<SeqEdit> myersDiff(
     return Vec<SeqEdit>();
 }
 
+template <typename T>
+generator<Pair<T const*, T const*>> zip(CR<Vec<T>> lhs, CR<Vec<T>> rhs) {
+    int max = std::max<int>(lhs.size(), rhs.size());
+    for (int i = 0; i < max; ++i) {
+        if (i < lhs.size() && i < rhs.size()) {
+            co_yield {&lhs[i], &rhs[i]};
+        } else if (i < lhs.size()) {
+            co_yield {&lhs[i], nullptr};
+        } else if (i < rhs.size()) {
+            co_yield {nullptr, &rhs[i]};
+        }
+    }
+}
+
 
 struct ShiftedDiff {
-    Vec<Pair<SeqEditKind, int>> oldShifted;
-    Vec<Pair<SeqEditKind, int>> newShifted;
-};
+    struct Item {
+        SeqEditKind kind;
+        int         item;
+    };
 
-ShiftedDiff shiftDiffed(Vec<SeqEdit>& diff) {
-    // Align diff operations against each other, for further formatting.
-    ShiftedDiff result;
-    using sek = SeqEditKind;
-    for (auto line : diff) {
-        switch (line.kind) {
-            case sek::Replace:
-                result.oldShifted.push_back(
-                    {sek::Replace, line.sourcePos});
-                break;
+    Vec<Item> oldShifted;
+    Vec<Item> newShifted;
 
-            case sek::None:
-                assert(false && "Input diff sequence should not contain empty operations");
-                break;
+    ShiftedDiff(CR<Vec<SeqEdit>>& diff) {
+        // Align diff operations against each other, for further
+        // formatting.
+        using sek = SeqEditKind;
+        for (auto line : diff) {
+            switch (line.kind) {
+                case sek::Replace:
+                    oldShifted.push_back({sek::Replace, line.sourcePos});
+                    break;
 
-            case sek::Transpose:
-                assert(false && "Input diff sequence should not contain transpose operations");
-                break;
+                case sek::None:
+                    assert(false && "Input diff sequence should not contain empty operations");
+                    break;
 
-            case sek::Delete:
-                result.oldShifted.push_back({sek::Delete, line.sourcePos});
-                break;
+                case sek::Transpose:
+                    assert(false && "Input diff sequence should not contain transpose operations");
+                    break;
 
-            case sek::Insert:
-                result.newShifted.push_back({sek::Insert, line.targetPos});
-                break;
+                case sek::Delete:
+                    oldShifted.push_back({sek::Delete, line.sourcePos});
+                    break;
 
-            case sek::Keep:
-                int oldLen = result.oldShifted.size();
-                int newLen = result.newShifted.size();
+                case sek::Insert:
+                    newShifted.push_back({sek::Insert, line.targetPos});
+                    break;
 
-                if (oldLen < newLen) {
-                    while (oldLen < newLen) {
-                        result.oldShifted.push_back({sek::None, 0});
-                        oldLen++;
+                case sek::Keep:
+                    int oldLen = oldShifted.size();
+                    int newLen = newShifted.size();
+
+                    if (oldLen < newLen) {
+                        while (oldLen < newLen) {
+                            oldShifted.push_back({sek::None, 0});
+                            oldLen++;
+                        }
+
+                    } else if (newLen < oldLen) {
+                        while (newLen < oldLen) {
+                            newShifted.push_back({sek::None, 0});
+                            newLen++;
+                        }
                     }
 
-                } else if (newLen < oldLen) {
-                    while (newLen < oldLen) {
-                        result.newShifted.push_back({sek::None, 0});
-                        newLen++;
-                    }
-                }
-
-                result.oldShifted.push_back({sek::Keep, line.sourcePos});
-                result.newShifted.push_back({sek::Keep, line.targetPos});
-                break;
+                    oldShifted.push_back({sek::Keep, line.sourcePos});
+                    newShifted.push_back({sek::Keep, line.targetPos});
+                    break;
+            }
         }
     }
 
-    return result;
-}
+
+    Str formatDiffed(
+        CR<Vec<Str>> oldSeq,
+        CR<Vec<Str>> newSeq,
+        bool         sideBySide,
+        bool         showLineNumbers = false) {
+
+        using sek = SeqEditKind;
+
+        /// Diffed sequence of items
+        struct Item {
+            Str  text;    /// formatted line
+            bool changed; /// Whether line has changed. Used in unified
+                          /// diff formatting to avoid duplicate string
+                          /// printing.
+        };
+
+        Vec<Item> oldText;
+        Vec<Item> newText;
+
+        int maxLhsIdx = std::to_string(oldShifted[1_B].item).size();
+        int maxRhsIdx = std::to_string(newShifted[1_B].item).size();
+
+        auto editFmt =
+            [showLineNumbers, maxLhsIdx, maxRhsIdx](
+                SeqEditKind fmt, int idx, bool isLhs) -> std::string {
+            if (showLineNumbers) {
+                std::string num;
+                if (fmt == sek::None) {
+                    left_aligned(std::to_string(' '), maxLhsIdx);
+                } else if (isLhs) {
+                    num = left_aligned(std::to_string(idx), maxLhsIdx);
+                } else {
+                    num = left_aligned(std::to_string(idx), maxRhsIdx);
+                }
+
+                switch (fmt) {
+                    case sek::Delete: return "-" + num;
+                    case sek::Insert: return "+" + num;
+                    case sek::Keep: return "~" + num;
+                    case sek::None: return "?" + num;
+                    case sek::Replace: return "-+" + num;
+                    case sek::Transpose: return "^v" + num;
+                    default: return "";
+                }
+            } else {
+                switch (fmt) {
+                    case sek::Delete: return "-";
+                    case sek::Insert: return "+";
+                    case sek::Replace: return "-+";
+                    case sek::Keep: return "~";
+                    case sek::Transpose: return "^v";
+                    case sek::None: return (isLhs ? "?" : "");
+                    default: return "";
+                }
+            }
+        };
+
+        int lhsMax = 0;
+
+        for (int i = 0; i < oldShifted.size(); i++) {
+            auto& lhs        = oldShifted[i];
+            auto& rhs        = newShifted[i];
+            auto  lhsDefault = oldShifted.size() <= i;
+            auto  rhsDefault = newShifted.size() <= i;
+
+            oldText.push_back({editFmt(lhs.kind, lhs.item, true), true});
+            newText.push_back(
+                {editFmt(rhs.kind, rhs.item, false),
+                 !sideBySide && rhs.kind == sek::Insert});
+
+            if (!lhsDefault && !rhsDefault && lhs.kind == sek::Delete
+                && rhs.kind == sek::Insert) {
+                oldText.back().text.append(oldSeq[lhs.item]);
+                newText.back().text.append(newSeq[rhs.item]);
+            } else if (rhs.kind == sek::Insert) {
+                newText.back().text.append(newSeq[rhs.item]);
+            } else if (lhs.kind == sek::Delete) {
+                oldText.back().text.append(oldSeq[lhs.item]);
+            } else {
+                oldText.back().text.append(oldSeq[lhs.item]);
+                newText.back().text.append(newSeq[rhs.item]);
+            }
+
+            lhsMax = std::max<int>(oldText.back().text.size(), lhsMax);
+        }
+
+        Str  result;
+        bool first = true;
+        for (const auto& [lhs, rhs] : zip(oldText, newText)) {
+            if (lhs != nullptr && rhs != nullptr) {
+                if (!first) {
+                    result.append("\n");
+                }
+                first = false;
+
+                if (sideBySide) {
+                    result.append(left_aligned(lhs->text, lhsMax + 3));
+                    result.append(rhs->text);
+                } else {
+                    result.append(lhs->text);
+                    if (rhs->changed) {
+                        result.append("\n");
+                        result.append(rhs->text);
+                    }
+                }
+            }
+        }
+    }
+};
 
 /// Diff formatting configuration
 struct DiffFormatConf {
@@ -271,6 +397,7 @@ struct DiffFormatConf {
         return formatChunk(text, mode, secondary, isInline);
     }
 };
+
 
 //! Generate colored formatting for the levenshtein edit operation using
 //! format configuration. Return old formatted line and new formatted
@@ -366,4 +493,95 @@ Pair<Str, Str> visibleName(char ch) {
         case ' ': return {"␣", "[SPC]"}; // Space
         default: return {std::to_string(ch), std::to_string(ch)};
     }
+}
+
+template <typename T>
+Pair<int, std::vector<SeqEdit>> levenshteinDistance(
+    const std::vector<T>& str1,
+    const std::vector<T>& str2) {
+    int l1 = str1.size();
+    int l2 = str2.size();
+
+    std::vector<std::vector<int>> m(l1 + 1, std::vector<int>(l2 + 1, 0));
+    std::vector<std::vector<std::pair<int, int>>> paths(
+        l1 + 1, std::vector<std::pair<int, int>>(l2 + 1, {0, 0}));
+
+    for (int i = 0; i <= l1; ++i) {
+        m[i][0]     = i;
+        paths[i][0] = {i - 1, 0};
+    }
+
+    for (int j = 0; j <= l2; ++j) {
+        m[0][j]     = j;
+        paths[0][j] = {0, j - 1};
+    }
+
+    for (int i = 1; i <= l1; ++i) {
+        for (int j = 1; j <= l2; ++j) {
+            if (str1[i - 1] == str2[j - 1]) {
+                m[i][j]     = m[i - 1][j - 1];
+                paths[i][j] = {i - 1, j - 1};
+            } else {
+                int min_val = std::min(
+                    {m[i - 1][j], m[i][j - 1], m[i - 1][j - 1]});
+                m[i][j] = min_val + 1;
+                if (m[i - 1][j] == min_val) {
+                    paths[i][j] = {i - 1, j};
+                } else if (m[i][j - 1] == min_val) {
+                    paths[i][j] = {i, j - 1};
+                } else if (m[i - 1][j - 1] == min_val) {
+                    paths[i][j] = {i - 1, j - 1};
+                }
+            }
+        }
+    }
+
+    struct Item {
+        int         i;
+        int         j;
+        SeqEditKind t;
+    };
+
+    std::vector<Item> levenpath;
+
+    int i = l1, j = l2;
+    while (i >= 0 && j >= 0) {
+        j = l2;
+        while (i >= 0 && j >= 0) {
+            levenpath.emplace_back(i, j, SeqEditKind::None);
+            int t = i;
+            i     = paths[i][j].first;
+            j     = paths[t][j].second;
+        }
+    }
+
+    std::reverse(levenpath.begin(), levenpath.end());
+    std::vector<SeqEdit> resultOperations;
+
+    for (int i = 1; i < levenpath.size(); i++) {
+        auto last = levenpath[i - 1];
+        auto cur  = levenpath[i];
+
+        if (i != 0) {
+            if (cur.i == last.i + 1 && cur.j == last.j + 1
+                && m[cur.i][cur.j] != m[last.i][last.j]) {
+                resultOperations.push_back(
+                    SeqEdit{SeqEditKind::Replace, 0, 0});
+            } else if (cur.i == last.i && cur.j == last.j + 1) {
+                resultOperations.push_back(
+                    SeqEdit{SeqEditKind::Insert, 0, 0});
+            } else if (cur.i == last.i + 1 && cur.j == last.j) {
+                resultOperations.push_back(
+                    SeqEdit{SeqEditKind::Delete, 0, 0});
+            } else {
+                resultOperations.push_back(
+                    SeqEdit{SeqEditKind::Keep, 0, 0});
+            }
+
+            resultOperations.back().sourcePos = cur.i - 1;
+            resultOperations.back().targetPos = cur.j - 1;
+        }
+    }
+
+    return {m[levenpath.back().i][levenpath.back().j], resultOperations};
 }
