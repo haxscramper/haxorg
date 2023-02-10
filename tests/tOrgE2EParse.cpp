@@ -569,6 +569,26 @@ TEST_CASE("longestCommonSubsequence", "[LCS]") {
     }
 }
 
+TEST_CASE("Fuzzy match configurable", "[fuzzy]") {
+    FuzzyMatcher<char const> matcher;
+    matcher.isEqual = [](CR<char> lhs, CR<char> rhs) -> bool {
+        std::cout << lhs << " == " << rhs << "\n";
+        return lhs == rhs;
+    };
+    matcher.isSeparator = [](CR<char> sep) -> bool { return false; };
+
+    auto getMatches = [&](Str lhs, Str rhs) -> Array<int, 256> {
+        std::cout << "score "
+                  << matcher.get_score(lhs.toSpan(), rhs.toSpan()) << "\n";
+        return matcher.matches;
+    };
+
+    SECTION("Full match") {
+        auto m = getMatches("123", "010233");
+        std::cout << std::endl << "---\n" << m << std::endl;
+    }
+}
+
 
 using namespace diff;
 

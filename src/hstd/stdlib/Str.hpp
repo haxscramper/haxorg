@@ -3,6 +3,7 @@
 #include <string>
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/stdlib/Slice.hpp>
+#include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Pair.hpp>
 
 struct Str : public std::string {
@@ -69,6 +70,11 @@ struct Str : public std::string {
     template <typename A, typename B>
     const std::string_view operator[](CR<HSlice<A, B>> s) const {
         return at(s, false);
+    }
+
+    Span<char const> toSpan() {
+        auto view = this->at(slice(0, static_cast<int>(size()) - 1));
+        return Span<char const>(view.data(), view.size());
     }
 };
 

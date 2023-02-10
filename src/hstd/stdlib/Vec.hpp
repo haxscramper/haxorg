@@ -140,6 +140,10 @@ class Vec : public std::vector<T> {
 
     int  indexOf(CR<T> item) const { return index_of(*this, item); }
     bool contains(CR<T> item) const { return indexOf(item) != -1; }
+
+    Span<T> toSpan() {
+        return this->at(slice(0, static_cast<int>(size()) - 1));
+    }
 };
 
 

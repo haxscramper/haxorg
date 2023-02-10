@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Table.hpp>
 #include <hstd/system/all.hpp>
 #include <hstd/system/generator.hpp>
+#include <hstd/system/string_convert.hpp>
 
 #include <span>
 #include <array>
@@ -18,7 +19,7 @@ struct Array : std::array<T, Size> {
     using std::array<T, Size>::begin;
     using std::array<T, Size>::end;
 
-    Array() {}
+    Array() : std::array<T, Size>() {}
 
     operator Ref<std::array<T, Size>>() {
         return static_cast<std::array<T, Size>>(*this);
@@ -109,3 +110,8 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
         }
     }
 };
+
+template <typename T, int Size>
+std::ostream& operator<<(std::ostream& os, Array<T, Size> const& value) {
+    return os << "[" << join(os, ", ", value) << "]";
+}

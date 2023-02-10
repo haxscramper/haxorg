@@ -598,3 +598,217 @@ Pair<int, Vec<SeqEdit>> levenshteinDistance(
 
     return {m[levenpath.back().i][levenpath.back().j], resultOperations};
 }
+
+
+template <
+    typename T,
+    int MatchBufferSize        = 256,
+    typename MatchPositionType = int>
+struct FuzzyMatcher {
+    Func<bool(CR<T>, CR<T>)> isEqual;
+    Func<bool(CR<T>)>        isSeparator;
+
+    int recursionLimit = 10;
+    /// bonus for adjacent matches
+    int sequential_bonus = 15;
+    /// bonus if match occurs after a separator
+    int separator_bonus = 30;
+    /// bonus if match is uppercase and prev is lower
+    int camel_bonus = 30;
+    /// bonus if the first letter is matched
+    int first_letter_bonus = 15;
+    /// penalty applied for every letter in str before the first match
+    int leading_letter_penalty = -5;
+    /// maximum penalty for leading letters
+    int max_leading_letter_penalty = -15;
+    /// penalty for every letter that doesn't matter
+    int unmatched_letter_penalty = -1;
+    int start_score              = 100;
+
+    Array<MatchPositionType, MatchBufferSize> matches;
+
+    bool fuzzy_match_recursive(
+        Span<T>                  pattern,
+        Span<T>                  str,
+        int&                     outScore,
+        Span<T>                  strBegin,
+        const MatchPositionType* srcMatches,
+        MatchPositionType*       matches,
+        int                      nextMatch,
+        int&                     recursionCount) {
+        // Count recursions
+        ++recursionCount;
+        if (recursionLimit <= recursionCount) {
+            return false;
+        }
+
+        // Detect end of strings
+        if (!pattern.hasData() || !str.hasData()) {
+            return false;
+        }
+
+        // Recursion params
+        bool              recursiveMatch = false;
+        MatchPositionType bestRecursiveMatches[MatchBufferSize];
+        int               bestRecursiveScore = 0;
+
+        // Loop through pattern and str looking for a match
+        bool first_match = true;
+        while (pattern.hasData() && str.hasData()) {
+
+            // Found match
+            if (this->isEqual(pattern.front(), str.front())) {
+
+                // Supplied matches buffer was too short
+                if (MatchBufferSize <= nextMatch) {
+                    return false;
+                }
+
+                // "Copy-on-Write" srcMatches into matches
+                if (first_match && srcMatches) {
+                    memcpy(matches, srcMatches, nextMatch);
+                    first_match = false;
+                }
+
+                // Recursive call that "skips" this match
+                MatchPositionType recursiveMatches[MatchBufferSize];
+                int               recursiveScore;
+                str.moveStart(1);
+                if (fuzzy_match_recursive(
+                        pattern,
+                        str,
+                        recursiveScore,
+                        strBegin,
+                        matches,
+                        recursiveMatches,
+                        nextMatch,
+                        recursionCount)) {
+
+                    // Pick best recursive score
+                    if (!recursiveMatch
+                        || bestRecursiveScore < recursiveScore) {
+                        memcpy(
+                            bestRecursiveMatches,
+                            recursiveMatches,
+                            MatchBufferSize);
+                        bestRecursiveScore = recursiveScore;
+                    }
+                    recursiveMatch = true;
+                }
+
+                // Advance
+                matches[nextMatch++] = std::distance(
+                    str.data(), strBegin.data());
+                pattern.moveStart(1);
+            }
+            str.moveStart(1);
+        }
+
+        // Determine if full pattern was matched
+        bool matched = !pattern.hasData();
+
+        // Calculate score
+        if (matched) {
+
+            // Iterate str to end
+            while (str.hasData()) {
+                str.moveStart(1);
+            }
+
+            // Initialize score
+            outScore = start_score;
+
+            // Apply leading letter penalty
+            int penalty = leading_letter_penalty * matches[0];
+            if (penalty < max_leading_letter_penalty) {
+                penalty = max_leading_letter_penalty;
+            }
+            outScore += penalty;
+
+            // Apply unmatched penalty
+            int unmatched = std::distance(str.data(), strBegin.data())
+                          - nextMatch;
+            outScore += unmatched_letter_penalty * unmatched;
+
+            // Apply ordering bonuses
+            for (int i = 0; i < nextMatch; ++i) {
+                MatchPositionType currIdx = matches[i];
+
+                if (i > 0) {
+                    MatchPositionType prevIdx = matches[i - 1];
+
+                    // Sequential
+                    if (currIdx == (prevIdx + 1)) {
+                        outScore += sequential_bonus;
+                    }
+                }
+
+                // Check for bonuses based on neighbor character value
+                if (0 < currIdx) {
+                    // Camel case
+                    const T& neighbor = strBegin[currIdx - 1];
+                    const T& curr     = strBegin[currIdx];
+                    // TODO implement in generic manner
+                    // if (neighbor.isLower() && curr.isLower()) {
+                    //     outScore += camel_bonus;
+                    // }
+
+                    // Separator
+                    if (isSeparator(neighbor)) {
+                        outScore += separator_bonus;
+                    }
+                } else {
+                    // First letter
+                    outScore += first_letter_bonus;
+                }
+            }
+        }
+
+        // Return best result
+        if (recursiveMatch
+            && (!matched || outScore < bestRecursiveScore)) {
+            // Recursive score is better than "this"
+            memcpy(matches, bestRecursiveMatches, MatchBufferSize);
+            outScore = bestRecursiveScore;
+            return true;
+        } else if (matched) {
+            // "this" score is better than recursive
+            return true;
+        } else {
+            // no match
+            return false;
+        }
+    }
+
+
+    bool fuzzy_match(
+        Span<T>            pattern,
+        Span<T>            str,
+        int&               outScore,
+        MatchPositionType* matches) {
+        int recursionCount = 0;
+
+        return fuzzy_match_recursive(
+            pattern,
+            str,
+            outScore,
+            str,
+            nullptr,
+            matches,
+            0,
+            recursionCount);
+    }
+
+    bool fuzzy_match(Span<T> pattern, Span<T> str, int& outScore) {
+        return fuzzy_match(pattern, str, outScore, &matches[0]);
+    }
+
+    int get_score(Span<T> item, Span<T> pattern) {
+        int score;
+        if (fuzzy_match(pattern, item, score)) {
+            return score;
+        } else {
+            return -1;
+        }
+    }
+};
