@@ -11,22 +11,24 @@ struct BacktrackRes {
 
 template <typename T>
 Vec<BacktrackRes> lcs(
-    CR<Vec<T>>               x,
-    CR<Vec<T>>               y,
-    Func<bool(CR<T>, CR<T>)> itemCmp) {
+    CR<Vec<T>>                x,
+    CR<Vec<T>>                y,
+    Func<bool(CR<T>, CR<T>)>  itemCmp,
+    Func<float(CR<T>, CR<T>)> itemEqualityMetric) {
 
     if (x.empty() || y.empty()) {
         return {{}};
     }
 
-    Table<Pair<int, int>, int> mem;
-    Func<int(int, int)>        lcs;
-    lcs = [&](int i, int j) -> int {
+    Table<Pair<int, int>, float> mem;
+    Func<float(int, int)>        lcs;
+    lcs = [&](int i, int j) -> float {
         if (mem.count({i, j}) == 0) {
             if (i == -1 || j == -1) {
                 mem[{i, j}] = 0;
             } else if (itemCmp(x[i], y[j])) {
-                mem[{i, j}] = lcs(i - 1, j - 1) + 1;
+                mem[{i, j}] = lcs(i - 1, j - 1)
+                            + itemEqualityMetric(x[i], y[j]);
             } else {
                 mem[{i, j}] = std::max(lcs(i, j - 1), lcs(i - 1, j));
             }

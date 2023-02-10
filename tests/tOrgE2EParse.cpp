@@ -503,9 +503,17 @@ TEST_CASE("Simple node conversion") {
         Vec<int> first{1, 2, 3};
         Vec<int> second{1, 2, 3};
         std::cout << first << "\n";
-        auto res = lcs<int>(first, second, [](CR<int> lhs, CR<int> rhs) {
-            return lhs == rhs;
-        });
+        auto res = lcs<int>(
+            first,
+            second,
+            [](CR<int> lhs, CR<int> rhs) { return lhs == rhs; },
+            [](CR<int> lhs, CR<int> rhs) {
+                if (lhs == rhs) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
 
         std::cout << res[0].xIndex << res[0].yIndex;
     }
@@ -540,18 +548,25 @@ TEST_CASE("longestCommonSubsequence", "[LCS]") {
     Func<bool(CR<int>, CR<int>)> cmp =
         [](CR<int> lhs, CR<int> rhs) -> bool { return lhs == rhs; };
 
+    Func<float(CR<int>, CR<int>)> cmpValue = [](CR<int> lhs,
+                                                CR<int> rhs) -> float {
+        return lhs == rhs ? 1.0 : 0.0;
+    };
+
     SECTION("Both input sequences are empty") {
         Vec<int> a1       = {};
         Vec<int> b1       = {};
         Vec<int> expected = {};
-        REQUIRE(expandOn(lcs(a1, b1, cmp)[0], a1, true) == expected);
+        REQUIRE(
+            expandOn(lcs(a1, b1, cmp, cmpValue)[0], a1, true) == expected);
     }
 
     SECTION("One of the input sequences is empty") {
         Vec<int> a2       = {1, 2, 3};
         Vec<int> b2       = {};
         Vec<int> expected = {};
-        REQUIRE(expandOn(lcs(a2, b2, cmp)[0], a2, true) == expected);
+        REQUIRE(
+            expandOn(lcs(a2, b2, cmp, cmpValue)[0], a2, true) == expected);
     }
 
     // SECTION("Input sequences have common elements") {
@@ -565,7 +580,8 @@ TEST_CASE("longestCommonSubsequence", "[LCS]") {
         Vec<int> a4       = {1, 2, 3, 4};
         Vec<int> b4       = {5, 6, 7, 8};
         Vec<int> expected = {};
-        REQUIRE(expandOn(lcs(a4, b4, cmp)[0], a4, true) == expected);
+        REQUIRE(
+            expandOn(lcs(a4, b4, cmp, cmpValue)[0], a4, true) == expected);
     }
 }
 
