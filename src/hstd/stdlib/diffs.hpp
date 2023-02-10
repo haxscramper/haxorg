@@ -4,90 +4,94 @@
 #include <hstd/stdlib/Func.hpp>
 
 struct BacktrackRes {
-    Vec<int> xIndex = {};
-    Vec<int> yIndex = {};
+    Vec<int> lhsIndex = {};
+    Vec<int> rhsIndex = {};
 };
 
 
 template <typename T>
-Vec<BacktrackRes> lcs(
-    CR<Vec<T>>                x,
-    CR<Vec<T>>                y,
+Vec<BacktrackRes> longestCommonSubsequence(
+    CR<Vec<T>>                lhs,
+    CR<Vec<T>>                rhs,
     Func<bool(CR<T>, CR<T>)>  itemCmp,
     Func<float(CR<T>, CR<T>)> itemEqualityMetric) {
 
-    if (x.empty() || y.empty()) {
+    if (lhs.empty() || rhs.empty()) {
         return {{}};
     }
 
     Table<Pair<int, int>, float> mem;
     Func<float(int, int)>        lcs;
-    lcs = [&](int i, int j) -> float {
-        if (mem.count({i, j}) == 0) {
-            if (i == -1 || j == -1) {
-                mem[{i, j}] = 0;
-            } else if (itemCmp(x[i], y[j])) {
-                mem[{i, j}] = lcs(i - 1, j - 1)
-                            + itemEqualityMetric(x[i], y[j]);
+    lcs = [&](int lhsIdx, int rhsIdx) -> float {
+        if (mem.count({lhsIdx, rhsIdx}) == 0) {
+            if (lhsIdx == -1 || rhsIdx == -1) {
+                mem[{lhsIdx, rhsIdx}] = 0;
+            } else if (itemCmp(lhs[lhsIdx], rhs[rhsIdx])) {
+                mem[{lhsIdx, rhsIdx}] = lcs(lhsIdx - 1, rhsIdx - 1)
+                                      + itemEqualityMetric(
+                                            lhs[lhsIdx], rhs[rhsIdx]);
             } else {
-                mem[{i, j}] = std::max(lcs(i, j - 1), lcs(i - 1, j));
+                mem[{lhsIdx, rhsIdx}] = std::max(
+                    lcs(lhsIdx, rhsIdx - 1), lcs(lhsIdx - 1, rhsIdx));
             }
         }
 
-        return mem[{i, j}];
+        return mem[{lhsIdx, rhsIdx}];
     };
 
-    int m = x.size() - 1;
-    int n = y.size() - 1;
+    int m = lhs.size() - 1;
+    int n = rhs.size() - 1;
 
     Func<Vec<BacktrackRes>(int, int)> backtrack;
 
-    backtrack = [&](int i, int j) -> Vec<BacktrackRes> {
-        if (lcs(i, j) == 0) {
+    backtrack = [&](int lhsIdx, int rhsIdx) -> Vec<BacktrackRes> {
+        if (lcs(lhsIdx, rhsIdx) == 0) {
             return {{}};
-        } else if (i == 0) {
-            int jRes = j;
+        } else if (lhsIdx == 0) {
+            int rhsIdxRes = rhsIdx;
             while (true) {
-                if (mem.contains({i, jRes - 1})
-                    && lcs(i, jRes - 1) == lcs(i, j)) {
-                    --jRes;
+                if (mem.contains({lhsIdx, rhsIdxRes - 1})
+                    && lcs(lhsIdx, rhsIdxRes - 1) == lcs(lhsIdx, rhsIdx)) {
+                    --rhsIdxRes;
                 } else {
                     break;
                 }
             }
 
             return {
-                {.xIndex = Vec<int>::FromValue({i}),
-                 .yIndex = Vec<int>::FromValue({jRes})}};
-        } else if (j == 0) {
-            int iRes = i;
+                {.lhsIndex = Vec<int>::FromValue({lhsIdx}),
+                 .rhsIndex = Vec<int>::FromValue({rhsIdxRes})}};
+        } else if (rhsIdx == 0) {
+            int lhsIdxRes = lhsIdx;
             while (true) {
-                if (mem.contains({iRes - 1, j})
-                    && lcs(iRes - 1, j) == lcs(i, j)) {
-                    --iRes;
+                if (mem.contains({lhsIdxRes - 1, rhsIdx})
+                    && lcs(lhsIdxRes - 1, rhsIdx) == lcs(lhsIdx, rhsIdx)) {
+                    --lhsIdxRes;
                 } else {
                     break;
                 }
             }
 
             return {
-                {.xIndex = Vec<int>::FromValue({iRes}),
-                 .yIndex = Vec<int>::FromValue({j})}};
-        } else if (itemCmp(x[i], y[j])) {
-            auto              back = backtrack(i - 1, j - 1);
+                {.lhsIndex = Vec<int>::FromValue({lhsIdxRes}),
+                 .rhsIndex = Vec<int>::FromValue({rhsIdx})}};
+        } else if (itemCmp(lhs[lhsIdx], rhs[rhsIdx])) {
+            auto              back = backtrack(lhsIdx - 1, rhsIdx - 1);
             Vec<BacktrackRes> res;
             for (const auto& t : back) {
                 res.push_back(
-                    {.xIndex = t.xIndex + i, .yIndex = t.yIndex + j});
+                    {.lhsIndex = t.lhsIndex + lhsIdx,
+                     .rhsIndex = t.rhsIndex + rhsIdx});
             }
 
             return res;
-        } else if (lcs(i, j - 1) > lcs(i - 1, j)) {
-            return backtrack(i, j - 1);
-        } else if (lcs(i, j - 1) < lcs(i - 1, j)) {
-            return backtrack(i - 1, j);
+        } else if (lcs(lhsIdx, rhsIdx - 1) > lcs(lhsIdx - 1, rhsIdx)) {
+            return backtrack(lhsIdx, rhsIdx - 1);
+        } else if (lcs(lhsIdx, rhsIdx - 1) < lcs(lhsIdx - 1, rhsIdx)) {
+            return backtrack(lhsIdx - 1, rhsIdx);
         } else {
-            return backtrack(i - 1, j) + backtrack(i - 1, j);
+            return backtrack(lhsIdx - 1, rhsIdx)
+                 + backtrack(lhsIdx - 1, rhsIdx);
         }
     };
 
