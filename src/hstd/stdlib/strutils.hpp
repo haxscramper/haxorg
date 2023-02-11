@@ -157,3 +157,30 @@ inline Pair<Str, Str> visibleName(char ch) {
         default: return {std::to_string(ch), std::to_string(ch)};
     }
 }
+
+inline Vec<Str> split_keep_separator(
+    const Str&   str,
+    IntSet<char> sep = {' '}) {
+    Vec<Str> result;
+    int      prev = 0, curr = 0;
+    while (curr < str.length()) {
+        if (sep.contains(str[curr])) {
+            if (prev != curr) {
+                result.push_back(str.substr(prev, curr - prev));
+            }
+            prev = curr;
+            while (curr < str.length() - 1 && str[curr + 1] == str[curr]) {
+                curr++;
+            }
+            result.push_back(str.substr(prev, curr - prev + 1));
+            curr++;
+            prev = curr;
+        } else {
+            curr++;
+        }
+    }
+    if (prev < curr) {
+        result.push_back(str.substr(prev, curr - prev));
+    }
+    return result;
+}

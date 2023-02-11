@@ -9,6 +9,116 @@ struct BacktrackRes {
 };
 
 
+enum class SeqEditKind : u8
+{
+    None,     /// Empty edit operation
+    Keep,     /// Keep original element unchanged
+    Insert,   /// Insert new element into target sequence
+    Replace,  /// Replace source element with the target
+    Delete,   /// Delete element from the source sequence
+    Transpose /// Transpose two elements
+};
+
+template <>
+SeqEditKind low() {
+    return SeqEditKind::None;
+}
+
+template <>
+SeqEditKind high() {
+    return SeqEditKind::Transpose;
+}
+
+struct SeqEdit {
+    SeqEditKind kind;      /// Sequence edit operation kind
+    int         sourcePos; /// Position in the original sequence
+    int         targetPos; /// Position in the target sequence
+
+    SeqEdit(SeqEditKind kind, int sourcePos = -1, int targetPos = -1)
+        : kind(kind), sourcePos(sourcePos), targetPos(targetPos) {}
+};
+
+
+/// Diff formatting configuration
+struct DiffFormatConf {
+    /// Max number of the unchanged lines after which they will be no
+    /// longer show. Can be used to compact large diffs with small
+    /// mismatched parts.
+    ///
+    /// By default set to high int in order to avoid hiding lines
+    int maxUnchanged = high<int>();
+    /// Max number of the unchanged words in a single line. Can be used
+    /// to compact long lines with small mismatches
+    int maxUnchangedWords = high<int>();
+    /// Show line numbers in the generated diffs
+    bool showLines = false;
+    /// Show line diff with side-by-side (aka github 'split' view) or
+    /// on top of each other (aka 'unified')
+    bool sideBySide = false;
+    /// If diff contains invisible characters - trailing whitespaces,
+    /// control characters, escapes and ANSI SGR formatting - show them
+    /// directly.
+    bool explainInvisible = true;
+    /// Text to separate words in the inline split
+    ColText inlineDiffSeparator;
+    /// For multiline edit operations - group consecutive Edit
+    /// operations into single chunks.
+    bool groupLine = true;
+    /// For inline edit operations - group consecutive edit operations
+    /// into single chunks.
+    bool groupInline = true;
+    /// Format mismatched text. `mode` is the mismatch kind,
+    /// `secondary` is used for `sekChanged` to annotated which part
+    /// was deleted and which part was added.
+    Func<ColText(CR<Str>, SeqEditKind, SeqEditKind, bool)> formatChunk =
+        [](CR<Str>     word,
+           SeqEditKind mode,
+           SeqEditKind secondary,
+           bool        isInline) {
+            using fg = TermColorFg8Bit;
+            switch (mode) {
+                case SeqEditKind::Delete: return merge(fg::Red, word);
+                case SeqEditKind::Insert: return merge(fg::Green, word);
+                case SeqEditKind::Keep: return merge(fg::Default, word);
+                case SeqEditKind::None: return merge(fg::Default, word);
+                case SeqEditKind::Replace:
+                case SeqEditKind::Transpose:
+                    if (isInline && secondary == SeqEditKind::Delete) {
+                        return "[" + merge(fg::Yellow, word) + " -> ";
+                    } else if (
+                        isInline && secondary == SeqEditKind::Insert) {
+                        return merge(fg::Yellow, word) + "]";
+                    } else {
+                        return merge(fg::Yellow, word);
+                    }
+            }
+        };
+    /// Split line into chunks for formatting
+    Func<Vec<Str>(CR<Str>)> lineSplit = [](CR<Str> a) -> Vec<Str> {
+        return split_keep_separator(a, '\n');
+    };
+    /// Convert invisible character (whitespace or control) to
+    /// human-readable representation -
+    Func<Str(char)> explainChar = [](char ch) -> Str {
+        const auto [uc, ascii] = visibleName(ch);
+        return uc;
+    };
+
+
+    /// Format text mismatch chunk using `formatChunk` callback
+    ColText chunk(
+        Str         text,
+        SeqEditKind mode,
+        SeqEditKind secondary,
+        bool        isInline = false) const {
+        return formatChunk(text, mode, secondary, isInline);
+    }
+
+    /// Check if config is used to build unified diff
+    bool unified() const { return !sideBySide; }
+};
+
+
 template <typename T>
 Vec<BacktrackRes> longestCommonSubsequence(
     CR<Vec<T>>                lhs,
@@ -98,25 +208,6 @@ Vec<BacktrackRes> longestCommonSubsequence(
     return backtrack(m, n);
 }
 
-enum class SeqEditKind : u8
-{
-    None,     /// Empty edit operation
-    Keep,     /// Keep original element unchanged
-    Insert,   /// Insert new element into target sequence
-    Replace,  /// Replace source element with the target
-    Delete,   /// Delete element from the source sequence
-    Transpose /// Transpose two elements
-};
-
-struct SeqEdit {
-    SeqEditKind kind;      /// Sequence edit operation kind
-    int         sourcePos; /// Position in the original sequence
-    int         targetPos; /// Position in the target sequence
-
-    SeqEdit(SeqEditKind kind, int sourcePos = -1, int targetPos = -1)
-        : kind(kind), sourcePos(sourcePos), targetPos(targetPos) {}
-};
-
 template <typename T>
 Vec<SeqEdit> myersDiff(
     const Vec<T>&                    aSeq,
@@ -186,333 +277,32 @@ generator<Pair<T const*, T const*>> zip(CR<Vec<T>> lhs, CR<Vec<T>> rhs) {
     }
 }
 
-
-struct ShiftedDiff {
-    struct Item {
-        SeqEditKind kind;
-        int         item;
-    };
-
-    Vec<Item> oldShifted;
-    Vec<Item> newShifted;
-
-    ShiftedDiff(CR<Vec<SeqEdit>>& diff) {
-        // Align diff operations against each other, for further
-        // formatting.
-        using sek = SeqEditKind;
-        for (auto line : diff) {
-            switch (line.kind) {
-                case sek::Replace:
-                    oldShifted.push_back({sek::Replace, line.sourcePos});
-                    break;
-
-                case sek::None:
-                    assert(false && "Input diff sequence should not contain empty operations");
-                    break;
-
-                case sek::Transpose:
-                    assert(false && "Input diff sequence should not contain transpose operations");
-                    break;
-
-                case sek::Delete:
-                    oldShifted.push_back({sek::Delete, line.sourcePos});
-                    break;
-
-                case sek::Insert:
-                    newShifted.push_back({sek::Insert, line.targetPos});
-                    break;
-
-                case sek::Keep:
-                    int oldLen = oldShifted.size();
-                    int newLen = newShifted.size();
-
-                    if (oldLen < newLen) {
-                        while (oldLen < newLen) {
-                            oldShifted.push_back({sek::None, 0});
-                            oldLen++;
-                        }
-
-                    } else if (newLen < oldLen) {
-                        while (newLen < oldLen) {
-                            newShifted.push_back({sek::None, 0});
-                            newLen++;
-                        }
-                    }
-
-                    oldShifted.push_back({sek::Keep, line.sourcePos});
-                    newShifted.push_back({sek::Keep, line.targetPos});
-                    break;
-            }
-        }
-    }
-
-
-    Str formatDiffed(
-        CR<Vec<Str>> oldSeq,
-        CR<Vec<Str>> newSeq,
-        bool         sideBySide,
-        bool         showLineNumbers = false) {
-
-        using sek = SeqEditKind;
-
-        /// Diffed sequence of items
-        struct Item {
-            Str  text;    /// formatted line
-            bool changed; /// Whether line has changed. Used in unified
-                          /// diff formatting to avoid duplicate string
-                          /// printing.
-        };
-
-        Vec<Item> oldText;
-        Vec<Item> newText;
-
-        int maxLhsIdx = std::to_string(oldShifted[1_B].item).size();
-        int maxRhsIdx = std::to_string(newShifted[1_B].item).size();
-
-        auto editFmt =
-            [showLineNumbers, maxLhsIdx, maxRhsIdx](
-                SeqEditKind fmt, int idx, bool isLhs) -> std::string {
-            if (showLineNumbers) {
-                std::string num;
-                if (fmt == sek::None) {
-                    left_aligned(std::to_string(' '), maxLhsIdx);
-                } else if (isLhs) {
-                    num = left_aligned(std::to_string(idx), maxLhsIdx);
-                } else {
-                    num = left_aligned(std::to_string(idx), maxRhsIdx);
-                }
-
-                switch (fmt) {
-                    case sek::Delete: return "-" + num;
-                    case sek::Insert: return "+" + num;
-                    case sek::Keep: return "~" + num;
-                    case sek::None: return "?" + num;
-                    case sek::Replace: return "-+" + num;
-                    case sek::Transpose: return "^v" + num;
-                    default: return "";
-                }
-            } else {
-                switch (fmt) {
-                    case sek::Delete: return "-";
-                    case sek::Insert: return "+";
-                    case sek::Replace: return "-+";
-                    case sek::Keep: return "~";
-                    case sek::Transpose: return "^v";
-                    case sek::None: return (isLhs ? "?" : "");
-                    default: return "";
-                }
-            }
-        };
-
-        int lhsMax = 0;
-
-        for (int i = 0; i < oldShifted.size(); i++) {
-            auto& lhs        = oldShifted[i];
-            auto& rhs        = newShifted[i];
-            auto  lhsDefault = oldShifted.size() <= i;
-            auto  rhsDefault = newShifted.size() <= i;
-
-            oldText.push_back({editFmt(lhs.kind, lhs.item, true), true});
-            newText.push_back(
-                {editFmt(rhs.kind, rhs.item, false),
-                 !sideBySide && rhs.kind == sek::Insert});
-
-            if (!lhsDefault && !rhsDefault && lhs.kind == sek::Delete
-                && rhs.kind == sek::Insert) {
-                oldText.back().text.append(oldSeq[lhs.item]);
-                newText.back().text.append(newSeq[rhs.item]);
-            } else if (rhs.kind == sek::Insert) {
-                newText.back().text.append(newSeq[rhs.item]);
-            } else if (lhs.kind == sek::Delete) {
-                oldText.back().text.append(oldSeq[lhs.item]);
-            } else {
-                oldText.back().text.append(oldSeq[lhs.item]);
-                newText.back().text.append(newSeq[rhs.item]);
-            }
-
-            lhsMax = std::max<int>(oldText.back().text.size(), lhsMax);
-        }
-
-        Str  result;
-        bool first = true;
-        for (const auto& [lhs, rhs] : zip(oldText, newText)) {
-            if (lhs != nullptr && rhs != nullptr) {
-                if (!first) {
-                    result.append("\n");
-                }
-                first = false;
-
-                if (sideBySide) {
-                    result.append(left_aligned(lhs->text, lhsMax + 3));
-                    result.append(rhs->text);
-                } else {
-                    result.append(lhs->text);
-                    if (rhs->changed) {
-                        result.append("\n");
-                        result.append(rhs->text);
-                    }
-                }
-            }
-        }
-    }
-};
-
-Vec<Str> split_keep_separator(const Str& str, IntSet<char> sep = {' '}) {
-    Vec<Str> result;
-    int      prev = 0, curr = 0;
-    while (curr < str.length()) {
-        if (sep.contains(str[curr])) {
-            if (prev != curr) {
-                result.push_back(str.substr(prev, curr - prev));
-            }
-            prev = curr;
-            while (curr < str.length() - 1 && str[curr + 1] == str[curr]) {
-                curr++;
-            }
-            result.push_back(str.substr(prev, curr - prev + 1));
-            curr++;
-            prev = curr;
-        } else {
-            curr++;
-        }
-    }
-    if (prev < curr) {
-        result.push_back(str.substr(prev, curr - prev));
-    }
-    return result;
-}
-
-/// Diff formatting configuration
-struct DiffFormatConf {
-    /// Max number of the unchanged lines after which they will be no
-    /// longer show. Can be used to compact large diffs with small
-    /// mismatched parts.
-    ///
-    /// By default set to high int in order to avoid hiding lines
-    int maxUnchanged = high<int>();
-    /// Max number of the unchanged words in a single line. Can be used to
-    /// compact long lines with small mismatches
-    int maxUnchangedWords = high<int>();
-    /// Show line numbers in the generated diffs
-    bool showLines = false;
-    /// Show line diff with side-by-side (aka github 'split' view) or on
-    /// top of each other (aka 'unified')
-    bool sideBySide = false;
-    /// If diff contains invisible characters - trailing whitespaces,
-    /// control characters, escapes and ANSI SGR formatting - show them
-    /// directly.
-    bool explainInvisible = true;
-    /// Text to separate words in the inline split
-    ColText inlineDiffSeparator;
-    /// For multiline edit operations - group consecutive Edit operations
-    /// into single chunks.
-    bool groupLine = true;
-    /// For inline edit operations - group consecutive edit operations into
-    /// single chunks.
-    bool groupInline = true;
-    /// Format mismatched text. `mode` is the mismatch kind, `secondary` is
-    /// used for `sekChanged` to annotated which part was deleted and which
-    /// part was added.
-    Func<ColText(CR<Str>, SeqEditKind, SeqEditKind, bool)> formatChunk =
-        [](CR<Str>     word,
-           SeqEditKind mode,
-           SeqEditKind secondary,
-           bool        isInline) {
-            using fg = TermColorFg8Bit;
-            switch (mode) {
-                case SeqEditKind::Delete: return merge(fg::Red, word);
-                case SeqEditKind::Insert: return merge(fg::Green, word);
-                case SeqEditKind::Keep: return merge(fg::Default, word);
-                case SeqEditKind::None: return merge(fg::Default, word);
-                case SeqEditKind::Replace:
-                case SeqEditKind::Transpose:
-                    if (isInline && secondary == SeqEditKind::Delete) {
-                        return "[" + merge(fg::Yellow, word) + " -> ";
-                    } else if (
-                        isInline && secondary == SeqEditKind::Insert) {
-                        return merge(fg::Yellow, word) + "]";
-                    } else {
-                        return merge(fg::Yellow, word);
-                    }
-            }
-        };
-    /// Split line into chunks for formatting
-    Func<Vec<Str>(CR<Str>)> lineSplit = [](CR<Str> a) -> Vec<Str> {
-        return split_keep_separator(a, '\n');
-    };
-    /// Convert invisible character (whitespace or control) to
-    /// human-readable representation -
-    Func<Str(char)> explainChar = [](char ch) -> Str {
-        const auto [uc, ascii] = visibleName(ch);
-        return uc;
-    };
-
-
-    /// Format text mismatch chunk using `formatChunk` callback
-    ColText chunk(
-        Str         text,
-        SeqEditKind mode,
-        SeqEditKind secondary,
-        bool        isInline) {
-        return formatChunk(text, mode, secondary, isInline);
-    }
-};
-
-
-//! Generate colored formatting for the levenshtein edit operation using
-//! format configuration. Return old formatted line and new formatted
-//! line.
 template <typename T>
-Pair<ColText, ColText> formatDiffed(
-    const Vec<SeqEdit>&   ops,
-    const Vec<T>&         oldSeq,
-    const Vec<T>&         newSeq,
-    const DiffFormatConf& conf) {
+struct ZipToMaxResult {
+    T    lhs;
+    T    rhs;
+    bool rhsDefault;
+    bool lhsDefault;
+    int  idx;
+};
 
-    using sek              = SeqEditKind;
-    int          unchanged = 0;
-    Vec<ColText> oldLine, newLine;
-    for (int idx = 0; idx < ops.size(); ++idx) {
-        const SeqEdit& op = ops[idx];
-        switch (op.kind) {
-            case sek::Keep:
-                if (unchanged < conf.maxUnchanged) {
-                    oldLine.push_back(
-                        conf.chunk(oldSeq[op.sourcePos], sek::Keep));
-                    newLine.push_back(
-                        conf.chunk(newSeq[op.targetPos], sek::Keep));
-                    ++unchanged;
-                }
-                break;
-            case sek::Delete:
-                oldLine.push_back(
-                    conf.chunk(oldSeq[op.sourcePos], sek::Delete));
-                unchanged = 0;
-                break;
-            case sek::Insert:
-                newLine.push_back(
-                    conf.chunk(newSeq[op.targetPos], sek::Insert));
-                unchanged = 0;
-                break;
-            case sek::Replace:
-                oldLine.push_back(conf.chunk(
-                    oldSeq[op.sourcePos], sek::Replace, sek::Delete));
-                newLine.push_back(conf.chunk(
-                    newSeq[op.targetPos], sek::Replace, sek::Insert));
-                unchanged = 0;
-                break;
-            case sek::None:
-                assert(false && "Original formatting sequence should not contain 'none' fillers");
-                break;
-            case sek::Transpose: break;
+template <typename T>
+generator<ZipToMaxResult<T>> zipToMax(
+    CR<Vec<T>> lhs,
+    CR<Vec<T>> rhs,
+    T          fill = T()) {
+    int idx = 0;
+    while (idx < std::max(lhs.size(), rhs.size())) {
+        if (idx < lhs.size() && idx < rhs.size()) {
+            co_yield {lhs[idx], rhs[idx], false, false, idx};
+        } else if (idx < lhs.size()) {
+            co_yield {lhs[idx], fill, false, true, idx};
+        } else {
+            co_yield {fill, rhs[idx], true, false, idx};
         }
+        ++idx;
     }
-
-    return {
-        join(conf.inlineDiffSeparator, oldLine),
-        join(conf.inlineDiffSeparator, newLine)};
 }
-
 
 struct LevenshteinDistanceResult {
     int          score;
@@ -572,7 +362,7 @@ LevenshteinDistanceResult levenshteinDistance(
     while (i >= 0 && j >= 0) {
         j = l2;
         while (i >= 0 && j >= 0) {
-            levenpath.emplace_back(i, j, SeqEditKind::None);
+            levenpath.push_back({i, j, SeqEditKind::None});
             int t = i;
             i     = paths[i][j].first;
             j     = paths[t][j].second;
@@ -610,20 +400,19 @@ LevenshteinDistanceResult levenshteinDistance(
     return {m[levenpath.back().i][levenpath.back().j], resultOperations};
 }
 
-
 Const<CharSet> Invis{slice('\x00', '\x1F'), '\x7F'};
 
 
 bool scanInvisible(CR<Str> text, CharSet& invisSet) {
-    // Scan string for invisible characters from right to left, updating
-    // active invisible set as needed.
+    // Scan string for invisible characters from right to left,
+    // updating active invisible set as needed.
     for (int chIdx = text.length() - 1; chIdx >= 0; --chIdx) {
         // If character is in the 'invisible' set return true
         if (invisSet.contains(text[chIdx])) {
             return true;
         } else {
-            // Otherwise reset to the default set - this ensures that we
-            // react to trailing whitespace only if is the rightmost
+            // Otherwise reset to the default set - this ensures that
+            // we react to trailing whitespace only if is the rightmost
             // character.
             invisSet = Invis;
         }
@@ -631,7 +420,79 @@ bool scanInvisible(CR<Str> text, CharSet& invisSet) {
     return false;
 }
 
-Str toVisibleNames(DiffFormatConf& conf, const Str& str) {
+
+bool hasInvisibleChanges(
+    Vec<SeqEdit>& diff,
+    Vec<Str>&     oldSeq,
+    Vec<Str>&     newSeq) {
+    // Is any change in the edit sequence invisible?
+    IntSet<char> start = Invis + ' ';
+
+    auto invis = [&start](Str text) { return scanInvisible(text, start); };
+
+    // Iterate over all edits from right to left, updating active set of
+    // invisible characters as we got.
+    int idx = diff.size() - 1;
+    while (idx >= 0) {
+        SeqEdit& edit = diff[idx];
+        switch (edit.kind) {
+            case SeqEditKind::Delete:
+                if (invis(oldSeq[edit.sourcePos])) {
+                    return true;
+                }
+                break;
+            case SeqEditKind::Insert:
+                if (invis(newSeq[edit.targetPos])) {
+                    return true;
+                }
+                break;
+            case SeqEditKind::None:
+            case SeqEditKind::Transpose: break;
+            case SeqEditKind::Keep:
+                // Check for kept characters - this will update 'invisible'
+                // set if any found, so edits like `" X" -> "X"` are not
+                // considered as 'has invisible'
+                if (invis(oldSeq[edit.sourcePos])) {}
+                break;
+            case SeqEditKind::Replace:
+                if (invis(oldSeq[edit.sourcePos])
+                    || invis(newSeq[edit.targetPos])) {
+                    return true;
+                }
+                break;
+        }
+        idx--;
+    }
+    return false;
+}
+
+bool hasInvisible(
+    std::string  text,
+    IntSet<char> startSet = Invis + CharSet{' '}) {
+    // Does string have significant invisible characters?
+    IntSet<char> invisSet = startSet;
+    if (scanInvisible(text, invisSet)) {
+        return true;
+    }
+    return false;
+}
+
+bool hasInvisible(CR<Vec<Str>> text) {
+    // Do any of strings in text have signficant invisible characters.
+    IntSet<char> invisSet = Invis + CharSet{' '};
+    for (int idx = text.size() - 1; idx >= 0; idx--) {
+        // Iterate over all items from right to left - until we find the
+        // first visible character, space is also considered significant,
+        // but removed afterwards, so `" a"/"a"` is not considered to have
+        // invisible characters.
+        if (scanInvisible(text[idx], invisSet)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+Str toVisibleNames(CR<DiffFormatConf> conf, const Str& str) {
     Str result;
     // Convert all characters in the string into visible ones
     for (const char& ch : str) {
@@ -640,6 +501,16 @@ Str toVisibleNames(DiffFormatConf& conf, const Str& str) {
     return result;
 }
 
+Vec<Str> toVisibleNames(CR<DiffFormatConf> conf, const Vec<Str>& split) {
+    Vec<Str> result;
+    // Convert all characters in all strings into visible ones.
+    if (split.size() > 0) {
+        for (const Str& part : split) {
+            result.push_back(toVisibleNames(conf, part));
+        }
+    }
+    return result;
+}
 
 template <typename T, typename F>
 Vec<Span<T const>> partition(
@@ -667,7 +538,271 @@ Vec<Span<T const>> partition(
     return result;
 }
 
-Vec<ColText> formatInlineDiff(
+struct ShiftedDiff {
+    struct Item {
+        SeqEditKind kind;
+        int         item;
+    };
+
+    Vec<Item> oldShifted;
+    Vec<Item> newShifted;
+
+    ShiftedDiff(CR<Vec<SeqEdit>>& diff) {
+        // Align diff operations against each other, for further
+        // formatting.
+        using sek = SeqEditKind;
+        for (auto line : diff) {
+            switch (line.kind) {
+                case sek::Replace:
+                    oldShifted.push_back({sek::Replace, line.sourcePos});
+                    break;
+
+                case sek::None:
+                    assert(false && "Input diff sequence should not contain empty operations");
+                    break;
+
+                case sek::Transpose:
+                    assert(false && "Input diff sequence should not contain transpose operations");
+                    break;
+
+                case sek::Delete:
+                    oldShifted.push_back({sek::Delete, line.sourcePos});
+                    break;
+
+                case sek::Insert:
+                    newShifted.push_back({sek::Insert, line.targetPos});
+                    break;
+
+                case sek::Keep:
+                    int oldLen = oldShifted.size();
+                    int newLen = newShifted.size();
+
+                    if (oldLen < newLen) {
+                        while (oldLen < newLen) {
+                            oldShifted.push_back({sek::None, 0});
+                            oldLen++;
+                        }
+
+                    } else if (newLen < oldLen) {
+                        while (newLen < oldLen) {
+                            newShifted.push_back({sek::None, 0});
+                            newLen++;
+                        }
+                    }
+
+                    oldShifted.push_back({sek::Keep, line.sourcePos});
+                    newShifted.push_back({sek::Keep, line.targetPos});
+                    break;
+            }
+        }
+    }
+};
+
+struct BufItem {
+    ColText     text;
+    bool        changed;
+    SeqEditKind kind;
+};
+
+
+template <typename T>
+Pair<ColText, ColText> formatDiffed(
+    const Vec<SeqEdit>&   ops,
+    const Vec<T>&         oldSeq,
+    const Vec<T>&         newSeq,
+    const DiffFormatConf& conf) {
+    int unchanged = 0;
+    using sek     = SeqEditKind;
+    Vec<ColText> oldLine;
+    Vec<ColText> newLine;
+    for (int i = 0; i < ops.size(); ++i) {
+        switch (ops[i].kind) {
+            case sek::Keep:
+                if (unchanged < conf.maxUnchanged) {
+                    oldLine.push_back(conf.chunk(
+                        oldSeq[ops[i].sourcePos], sek::Keep, sek::Keep));
+                    newLine.push_back(conf.chunk(
+                        newSeq[ops[i].targetPos], sek::Keep, sek::Keep));
+                    ++unchanged;
+                }
+                break;
+            case sek::Delete:
+                oldLine.push_back(conf.chunk(
+                    oldSeq[ops[i].sourcePos], sek::Delete, sek::Delete));
+                unchanged = 0;
+                break;
+            case sek::Insert:
+                newLine.push_back(conf.chunk(
+                    newSeq[ops[i].targetPos], sek::Insert, sek::Insert));
+                unchanged = 0;
+                break;
+            case sek::Replace:
+                oldLine.push_back(conf.chunk(
+                    oldSeq[ops[i].sourcePos], sek::Replace, sek::Delete));
+                newLine.push_back(conf.chunk(
+                    newSeq[ops[i].targetPos], sek::Replace, sek::Insert));
+                unchanged = 0;
+                break;
+            case sek::None:
+                assert(false && "Original formatting sequence should not contain 'none' fillers");
+                break;
+            case sek::Transpose: break;
+        }
+    }
+
+    return {
+        join(conf.inlineDiffSeparator, oldLine),
+        join(conf.inlineDiffSeparator, newLine)};
+}
+
+
+std::tuple<ColText, ColText> formatLineDiff(
+    const Str&            oldLine,
+    const Str&            newLine,
+    const DiffFormatConf& conf) {
+    // Format single line diff into oldLine/newLine line edits. Optionally
+    // explain all differences using options from `conf`
+
+    auto oldLineSplit = conf.lineSplit(oldLine);
+    auto newLineSplit = conf.lineSplit(newLine);
+    auto diffed = levenshteinDistance<Str>(oldLineSplit, newLineSplit);
+
+    ColText oldLineLine, newLineLine;
+
+    if (conf.explainInvisible
+        && (hasInvisibleChanges(
+                diffed.operations, oldLineSplit, newLineSplit)
+            || hasInvisible(oldLineSplit) || hasInvisible(newLineSplit))) {
+        const auto& [oldLineLine, newLineLine] = formatDiffed(
+            diffed.operations,
+            toVisibleNames(conf, oldLineSplit),
+            toVisibleNames(conf, newLineSplit),
+            conf);
+
+    } else {
+        const auto& [oldLineLine, newLineLine] = formatDiffed(
+            diffed.operations, oldLineSplit, newLineSplit, conf);
+    }
+
+    return {oldLineLine, newLineLine};
+}
+
+
+Vec<Str> formatDiffed(
+    const ShiftedDiff& shifted,
+    const Vec<Str>&    oldSeq,
+    const Vec<Str>&    newSeq,
+    DiffFormatConf     conf = DiffFormatConf{}) {
+    Vec<BufItem> oldText, newText;
+
+    // Max line number len for left and right side
+    int maxLhsIdx = to_string(shifted.oldShifted.back().item).size();
+    int maxRhsIdx = to_string(shifted.newShifted.back().item).size();
+
+    using sek    = SeqEditKind;
+    auto editFmt = [&](SeqEditKind edit, int idx, bool isLhs) {
+        // Format prefix for edit operation for line at index `idx`
+        TypArray<SeqEditKind, Str> editOps = {
+            {sek::None, "?"},
+            {sek::Keep, "~"},
+            {sek::Insert, "+"},
+            {sek::Replace, "-+"},
+            {sek::Delete, "-"},
+            {sek::Transpose, "^v"}};
+
+        Str change;
+        // Make a `"+ "` or other prefix
+        if (edit == sek::None && !isLhs) {
+            // no trailing newlines for the filler lines on the rhs
+            change = editOps[edit];
+        } else {
+            change = left_aligned(editOps[edit], 2);
+        }
+
+        // Optionally add line annotation
+        if (conf.showLines) {
+            if (edit == sek::None) {
+                change += right_aligned(" ", maxLhsIdx);
+            } else if (isLhs) {
+                change += right_aligned(to_string(idx), maxLhsIdx);
+            } else {
+                change += right_aligned(to_string(idx), maxRhsIdx);
+            }
+        }
+
+        // Wrap change chunk via provided callback and return the prefix
+        if (edit == sek::Replace) {
+            return conf.chunk(
+                change, edit, (isLhs ? sek::Delete : sek::Insert));
+        } else {
+            return conf.chunk(change, edit, edit);
+        }
+    };
+
+    int unchanged = 0;
+    for (auto [lhs, rhs, lhsDefault, rhsDefault, idx] :
+         zipToMax(shifted.oldShifted, shifted.newShifted)) {
+        if (lhs.kind == sek::Keep && rhs.kind == sek::Keep) {
+            if (unchanged < conf.maxUnchanged) {
+                ++unchanged;
+            } else {
+                continue;
+            }
+        } else {
+            unchanged = 0;
+        }
+        // Start new entry on the old line
+        oldText.push_back(
+            {editFmt(lhs.kind, lhs.item, true),
+             // Only case where lhs can have unchanged lines is for unified
+             // diff+filler
+             conf.unified() && lhs.kind != sek::None,
+             lhs.kind});
+
+        // New entry on the new line
+        newText.push_back(
+            {editFmt(rhs.kind, rhs.item, false),
+             // Only newly inserted lines need to be formatted for the
+             // unified diff, everything else is displayed on the
+             // 'original' version.
+             conf.unified() && rhs.kind == sek::Insert,
+             rhs.kind});
+
+        // Determine whether any of the lines is empty (old/new has len ==
+        // 0)
+        bool lhsEmpty, rhsEmpty;
+        if (!lhsDefault && !rhsDefault && lhs.kind == sek::Delete
+            && rhs.kind == sek::Insert) {
+            // Old part is deleted, new is inserted directly in place, show
+            // the line diff between those two (more detailed highlight of
+            // the modified parts in each version)
+
+            auto [oldLine, newLine] = formatLineDiff(
+                oldSeq[lhs.item], newSeq[rhs.item], conf);
+
+            oldText.back().text.append(oldLine);
+            newText.back().text.append(newLine);
+
+        } else if (rhs.kind == sek::Insert) {
+            // Insert new and wrap in formatter
+            auto tmp = newSeq[rhs.item];
+            rhsEmpty = (tmp.length() == 0);
+            // Append to the trailing new line
+            newText.back().text.append(
+                conf.chunk(tmp, sek::Insert, sek::Insert));
+
+        } else if (lhs.kind == sek::Delete) {
+            // Same as above, but for deletion and old text
+            auto tmp = oldSeq[lhs.item];
+            lhsEmpty = (tmp.length() == 0);
+            oldText.back().text.append(
+                conf.chunk(tmp, sek::Delete, sek::Delete));
+        }
+    }
+}
+
+
+ColText formatInlineDiff(
     const Vec<Str>&     src,
     const Vec<Str>&     target,
     const Vec<SeqEdit>& diffed,
@@ -695,32 +830,63 @@ Vec<ColText> formatInlineDiff(
         }
     };
 
-    Vec<Vec<SeqEdit>> groups;
+    Vec<Span<SeqEdit const>> groups;
     if (conf.groupInline) {
-        /* groupByIt(diffed, it.kind) */
-        groups.clear();
-        for (const auto& d : diffed) {
-            bool added = false;
-            for (auto& group : groups) {
-                if (group.empty() || group.back().kind == d.kind) {
-                    group.push_back(d);
-                    added = true;
-                    break;
-                }
-            }
-            if (!added) {
-                groups.push_back({d});
-            }
-        }
+        groups = partition<SeqEdit, SeqEditKind>(
+            diffed, [](CR<SeqEdit> edit) { return edit.kind; });
     } else {
-        /* mapIt(diffed, @[it]) */
-        groups.resize(diffed.size());
         for (int i = 0; i < diffed.size(); ++i) {
-            groups[i] = {diffed[i]};
+            groups[i] = {diffed[slice(i, i)]};
         }
     }
 
-    return chunks;
+    using sek = SeqEditKind;
+    int gIdx  = groups.size() - 1;
+    while (0 <= gIdx) {
+        switch (groups[gIdx][0].kind) {
+            case sek::Keep: {
+                Str buf;
+                for (const auto& op : groups[gIdx]) {
+                    buf.append(src[op.sourcePos]);
+                }
+                push(buf, sek::Keep, sek::Keep);
+                break;
+            }
+            case sek::None:
+            case sek::Transpose: break;
+            case sek::Insert: {
+                Str buf;
+                for (const auto& op : groups[gIdx]) {
+                    buf.append(target[op.targetPos]);
+                }
+                push(buf, sek::Insert, sek::Insert);
+                break;
+            }
+            case sek::Delete: {
+                Str buf;
+                for (const auto& op : groups[gIdx]) {
+                    buf.append(src[op.sourcePos]);
+                }
+                push(buf, sek::Delete, sek::Delete);
+                break;
+            }
+            case sek::Replace: {
+                Str sourceBuf, targetBuf;
+                for (const auto& op : groups[gIdx]) {
+                    sourceBuf.append(src[op.sourcePos]);
+                    targetBuf.append(target[op.targetPos]);
+                }
+                push(sourceBuf, sek::Replace, sek::Delete, true);
+                push(targetBuf, sek::Replace, sek::Insert, true, true);
+                break;
+            }
+        }
+        gIdx--;
+    }
+
+    // Because we iterated from right to left, all edit operations are
+    // placed in reverse as well, so this needs to be fixed
+    return join(conf.inlineDiffSeparator, chunks);
 }
 
 
@@ -766,7 +932,7 @@ struct FuzzyMatcher {
             return false;
         }
 
-        // Detect end of strings
+        // Detect end of Strs
         if (!pattern.hasData() || !str.hasData()) {
             return false;
         }
