@@ -3,10 +3,7 @@
 #include <hstd/stdlib/diffs.hpp>
 
 template <typename T>
-Str formatDiffed(
-    CR<Vec<SeqEdit>> ops,
-    CR<Vec<T>>       oldSeq,
-    CR<Vec<T>>       newSeq) {
+Str formatDiffedEx(CR<Vec<SeqEdit>> ops, Span<T> oldSeq, Span<T> newSeq) {
     Str result;
     for (const auto& op : ops) {
         switch (op.kind) {
@@ -51,6 +48,30 @@ Vec<T> expandOn(CR<BacktrackRes> back, CR<Vec<T>> in, bool onX) {
         }
     }
     return result;
+}
+
+
+Str levEditText(const Str& a, const Str& b) {
+    Vec<SeqEdit> ops = levenshteinDistance<const char>(
+                           a.toSpan(), b.toSpan())
+                           .operations;
+    std::cout << "Got N operatoins " << ops.size() << "\n";
+    return formatDiffedEx(ops, a.toSpan(), b.toSpan());
+}
+
+TEST_CASE("Levenshtein edit operations", "[TARGET]") {
+    SECTION("Simple edits") {
+        const Vec<std::tuple<Str, Str, Str>> testCases = {
+            {"a", "b", "[repl a -> b]"},
+            {"ab", "b", "[del a]b"},
+            {"ab", "bb", "[repl a -> b]b"},
+            {"a", "aa", "[ins a]a"}};
+
+        for (const auto& [a, b, edit] : testCases) {
+            const Str lev = levEditText(a, b);
+            // REQUIRE(lev == edit);
+        }
+    }
 }
 
 

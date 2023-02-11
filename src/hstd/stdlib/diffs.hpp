@@ -312,9 +312,7 @@ struct LevenshteinDistanceResult {
 };
 
 template <typename T>
-LevenshteinDistanceResult levenshteinDistance(
-    const Vec<T>& str1,
-    const Vec<T>& str2) {
+LevenshteinDistanceResult levenshteinDistance(Span<T> str1, Span<T> str2) {
     int l1 = str1.size();
     int l2 = str2.size();
 
@@ -612,9 +610,9 @@ struct BufItem {
 template <typename T>
 Pair<ColText, ColText> formatDiffed(
     const Vec<SeqEdit>&   ops,
-    const Vec<T>&         oldSeq,
-    const Vec<T>&         newSeq,
-    const DiffFormatConf& conf) {
+    Span<T>               oldSeq,
+    Span<T>               newSeq,
+    const DiffFormatConf& conf = DiffFormatConf{}) {
     int unchanged = 0;
     using sek     = SeqEditKind;
     Vec<ColText> oldLine;
@@ -677,15 +675,22 @@ inline Pair<ColText, ColText> formatLineDiff(
         && (hasInvisibleChanges(
                 diffed.operations, oldLineSplit, newLineSplit)
             || hasInvisible(oldLineSplit) || hasInvisible(newLineSplit))) {
+
+        auto oldVisible = toVisibleNames(conf, oldLineSplit);
+        auto newVisible = toVisibleNames(conf, newLineSplit);
+
         const auto& [oldLineLine, newLineLine] = formatDiffed(
             diffed.operations,
-            toVisibleNames(conf, oldLineSplit),
-            toVisibleNames(conf, newLineSplit),
+            oldVisible.toSpan(),
+            newVisible.toSpan(),
             conf);
 
     } else {
         const auto& [oldLineLine, newLineLine] = formatDiffed(
-            diffed.operations, oldLineSplit, newLineSplit, conf);
+            diffed.operations,
+            oldLineSplit.toSpan(),
+            newLineSplit.toSpan(),
+            conf);
     }
 
     return {oldLineLine, newLineLine};
