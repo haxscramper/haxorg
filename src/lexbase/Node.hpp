@@ -339,11 +339,20 @@ struct NodeAdapter {
         return group == nullptr && id == NodeId<N, K>::Nil();
     }
 
+    CR<Node<N, K>> get() { return group->at(id); }
+
     NodeAdapter<N, K>(NodeGroup<N, K> const* group, NodeId<N, K> id)
         : group(group), id(id) {}
     NodeAdapter() : group(nullptr), id(NodeId<N, K>::Nil()) {}
 
     NodeAdapter<N, K> operator[](int index) const {
         return {group, group->subnode(id, index)};
+    }
+
+    generator<NodeAdapter<N, K>> items() {
+        auto [begin, end] = group->subnodesOf(id);
+        for (int i = 0; i < group->size(id); ++i) {
+            co_yield this->operator[](i);
+        }
     }
 };

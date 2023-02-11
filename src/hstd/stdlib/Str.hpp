@@ -85,6 +85,8 @@ struct Str : public std::string {
         auto view = this->at(slice(0, static_cast<int>(size()) - 1));
         return Span<char const>(view.data(), view.size());
     }
+
+    std::string toBase() { return *this; }
 };
 
 template <>

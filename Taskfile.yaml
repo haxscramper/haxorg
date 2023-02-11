@@ -1,5 +1,10 @@
 version: 3
 
+vars:
+  REL_CONAN: "build/dependencies/conan"
+  CONAN_DIR: |
+    {{env "PWD"}}/build/dependencies/conan
+
 tasks:
   debug:
     dir: "{{.DIR}}"
@@ -23,10 +28,26 @@ tasks:
       - llvm-cov export -format=lcov -instr-profile=coverage.profdata {{.BINARY}} > coverage.lcov
       - llvm-cov export -format=text -instr-profile=coverage.profdata {{.BINARY}} > coverage.json
       - genhtml -o html coverage.lcov > genhtml_output.txt
+
+  conan_install:
+    cmds:
+      - >
+        conan
+        install
+        .
+        -if {{.REL_CONAN}}
+        --build=missing
+        --settings compiler.version=15
+        --settings compiler=clang
+
+    status:
+      - test -e {{.CONAN_DIR}}
+
   
   tests:
     desc: "Compile and run tests"
     dir: build
+    deps: [conan_install]
     env:
       CLICOLOR_FORCE: 1
       GENERATOR: Ninja
@@ -49,12 +70,12 @@ tasks:
       - task: debug
         vars:
           DIR: "{{.PWD}}/build"
-          IN: "{{.PWD}}/tests.bin"
+          IN: "{{.PWD}}/build/bin/tests.bin"
 
       - task: llvm_profdata
         vars:
           DIR: "{{.PWD}}/build"
-          BINARY: "{{.PWD}}/tests.bin"
+          BINARY: "{{.PWD}}/build/bin/tests.bin"
 
   plantuml:
     desc: "Compile and test plantuml grammar"

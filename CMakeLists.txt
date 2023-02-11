@@ -6,6 +6,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(haxorg LANGUAGES CXX)
 set(BASE "${CMAKE_SOURCE_DIR}")
 
+set(DEPS_DIR ${BASE}/build/dependencies/conan)
+list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
+include(${DEPS_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
+
 if(NOT WIN32)
   string(ASCII 27 Esc)
   set(cColorReset "${Esc}[m")
@@ -152,6 +157,8 @@ endfunction()
 
 find_package(antlr4-runtime REQUIRED)
 find_package(antlr4-generator REQUIRED)
+find_package(fmt REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 function(set_common_files TARGET)
   list_filter_files(SRC_FILES *.cpp "${BASE}/src/.*")
@@ -175,6 +182,7 @@ set_target_error_flags(tests)
 list_filter_files(TEST_FILES "t*.cpp" "${BASE}/tests/.*")
 add_target_property(tests SOURCES "${TEST_FILES}")
 add_antlr_base(tests)
+target_link_libraries(tests PUBLIC fmt::fmt yaml-cpp::yaml-cpp)
 
 if(${USE_SINGLE_FILE_CATCH})
   add_target_property(tests SOURCES

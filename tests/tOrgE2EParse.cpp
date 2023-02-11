@@ -5,6 +5,7 @@
 #include <lexbase/AstSpec.hpp>
 #include <lexbase/AstDiff.hpp>
 #include <lexbase/AstGraph.hpp>
+#include <lexbase/YamlIO.hpp>
 #include <hstd/stdlib/diffs.hpp>
 #include <sem/SemOrg.hpp>
 
@@ -471,6 +472,8 @@ TEST_CASE("Simple node conversion") {
     SECTION("Nested hash tag") {
         p.run("#test##[a, b]", &T::lexText, &P::parseHashTag);
         p.treeRepr();
+        auto node = yamlRepr(p.a(0));
+        std::cout << "yaml node\n" << node << "\nend yaml node\n";
     }
 
     SECTION("Diff compilation") {
