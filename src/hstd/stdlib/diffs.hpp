@@ -688,7 +688,100 @@ std::tuple<ColText, ColText> formatLineDiff(
 }
 
 
-Vec<Str> formatDiffed(
+ColText joinBuffer(
+    const Vec<BufItem>&   oldText,
+    const Vec<BufItem>&   newText,
+    const DiffFormatConf& conf) {
+    bool    first = true;
+    ColText result;
+
+    auto addl = [&result, &first]() {
+        if (!first) {
+            result.append(merge(ColStyle{}, "\n"));
+        }
+        first = false;
+    };
+
+    if (conf.groupLine) {
+        // Grouping line edits is not possible in the side-by-side
+        // representation, so going directly for unified one.
+        Vec<BufItem> lhsBuf = {oldText[0]};
+        Vec<BufItem> rhsBuf = {newText[0]};
+
+        auto addBuffers = [&addl, &result, &lhsBuf, &rhsBuf]() {
+            for (const BufItem& line : lhsBuf) {
+                if (line.changed) {
+                    addl();
+                    result.append(line.text);
+                }
+            }
+
+            for (const BufItem& line : rhsBuf) {
+                if (line.changed) {
+                    result.append(merge(ColStyle{}, "\n"));
+                    result.append(line.text);
+                }
+            }
+        };
+
+        for (auto it = oldText.begin() + 1, jt = newText.begin() + 1;
+             it != oldText.end() - 1;
+             ++it, ++jt) {
+            if (it->kind != lhsBuf.back().kind
+                || jt->kind != rhsBuf.back().kind) {
+                // If one of the edit streaks finished, dump both results
+                // to output and continue
+                //
+                // - removed + added    - removed
+                // - removed + added    - removed
+                // - removed ?          + added
+                // ~ kept    ~ kept     + added
+                // ~ kept    ~ kept     - removed
+                //                      ~ kept
+                //                      ~ kept
+                addBuffers();
+                lhsBuf = {*it};
+                rhsBuf = {*jt};
+            } else {
+                lhsBuf.push_back(*it);
+                rhsBuf.push_back(*jt);
+            }
+        }
+
+        addBuffers();
+
+    } else {
+        // Ungrouped lines either with unified or side-by-side
+        // representation
+        int lhsMax = 0;
+        if (conf.sideBySide) {
+            for (const BufItem& item : oldText) {
+                lhsMax = std::max(item.text.size(), lhsMax);
+            }
+        }
+
+        for (auto it = oldText.begin(), jt = newText.begin();
+             it != oldText.end();
+             ++it, ++jt) {
+            addl();
+            if (conf.sideBySide) {
+                result.append(left_aligned(it->text, lhsMax + 3));
+                result.append(jt->text);
+            } else {
+                result.append(it->text);
+                if (jt->changed) {
+                    result.push_back(ColRune('\n'));
+                    result.append(jt->text);
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+
+ColText formatDiffed(
     const ShiftedDiff& shifted,
     const Vec<Str>&    oldSeq,
     const Vec<Str>&    newSeq,
@@ -797,8 +890,31 @@ Vec<Str> formatDiffed(
             lhsEmpty = (tmp.length() == 0);
             oldText.back().text.append(
                 conf.chunk(tmp, sek::Delete, sek::Delete));
+        } else {
+            auto ltmp = oldSeq[lhs.item];
+            lhsEmpty  = ltmp.size() == 0;
+            oldText.back().text.append(
+                conf.chunk(ltmp, lhs.kind, lhs.kind));
+
+            auto rtmp = newSeq[rhs.item];
+            rhsEmpty  = rtmp.size() == 0;
+            newText.back().text.append(
+                conf.chunk(rtmp, rhs.kind, rhs.kind));
+        }
+
+        if (lhsEmpty && idx < shifted.oldShifted.high()) {
+            oldText.back().text.append(conf.chunk(
+                toVisibleNames(conf, "\n"), sek::Delete, sek::Delete));
+        }
+
+        if (rhsEmpty && idx < shifted.newShifted.high()) {
+            newText.back().text.append(conf.chunk(
+                toVisibleNames(conf, "\n"), sek::Insert, sek::Insert));
         }
     }
+
+
+    return joinBuffer(oldText, newText, conf);
 }
 
 
@@ -1102,3 +1218,27 @@ struct FuzzyMatcher {
         }
     }
 };
+
+template <typename T>
+ColText formatDiffed(
+    const Vec<T>&                  oldSeq,
+    const Vec<T>&                  newSeq,
+    const DiffFormatConf&          conf = DiffFormatConf{},
+    Func<bool(const T&, const T&)> eqCmp =
+        [](const T& a, const T& b) { return a == b; },
+    Func<Str(const T&)> strConv =
+        [](const T& a) { return to_string(a); }) {
+
+    auto        diff = myersDiff(oldSeq, newSeq, eqCmp);
+    ShiftedDiff shifted{diff};
+
+    return formatDiffed(
+        shifted, oldSeq.map(strConv), newSeq.map(strConv), conf);
+}
+
+ColText formatDiffed(
+    const Str&            text1,
+    const Str&            text2,
+    const DiffFormatConf& conf = DiffFormatConf{}) {
+    return formatDiffed(split(text1, '\n'), split(text2, '\n'), conf);
+}

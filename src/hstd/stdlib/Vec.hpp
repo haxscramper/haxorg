@@ -3,6 +3,7 @@
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Span.hpp>
+#include <functional>
 
 #include <vector>
 #include <span>
@@ -163,6 +164,15 @@ class Vec : public std::vector<T> {
 
     Span<T> toSpan() {
         return this->at(slice(0, static_cast<int>(size()) - 1));
+    }
+
+    template <typename R>
+    Vec<R> map(std::function<R(CR<T>)> cb) const {
+        Vec<R> result;
+        for (const auto& it : *this) {
+            result.push_back(cb(it));
+        }
+        return result;
     }
 };
 

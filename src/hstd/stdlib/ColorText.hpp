@@ -119,6 +119,7 @@ struct ColStyle {
 struct ColRune {
     wchar_t  rune;
     ColStyle style;
+    inline ColRune(char ch) : rune(ch) {}
     inline ColRune(CR<ColStyle> style, wchar_t rune)
         : rune(rune), style(style) {}
 };
@@ -175,6 +176,17 @@ ColText merge(CR<ColStyle> style, CR<std::string> text) {
 ColStream& ColStream::indent(int level) {
     append(merge(ColStyle{}, repeat(" ", level)));
     return *this;
+}
+
+inline ColText left_aligned(
+    CR<ColText> str,
+    int         n,
+    ColRune     c = ColRune{' '}) {
+    auto s = str;
+    while (s.size() < n) {
+        s.push_back(c);
+    }
+    return s;
 }
 
 
