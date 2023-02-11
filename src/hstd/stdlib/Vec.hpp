@@ -182,3 +182,6 @@ std::ostream& operator<<(std::ostream& os, Vec<T> const& value) {
     os << "[" << join(os, ", ", value) << "]";
     return os;
 }
+
+template <typename T>
+using CVec = CR<Vec<T>>;

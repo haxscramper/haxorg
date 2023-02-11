@@ -2,7 +2,7 @@
 
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/ColorText.hpp>
+#include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Table.hpp>

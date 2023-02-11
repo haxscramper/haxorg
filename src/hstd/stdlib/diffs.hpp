@@ -2,6 +2,8 @@
 
 #include <hstd/stdlib/Table.hpp>
 #include <hstd/stdlib/Func.hpp>
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/ColText.hpp>
 
 struct BacktrackRes {
     Vec<int> lhsIndex = {};
@@ -20,12 +22,12 @@ enum class SeqEditKind : u8
 };
 
 template <>
-SeqEditKind low() {
+inline SeqEditKind low() {
     return SeqEditKind::None;
 }
 
 template <>
-SeqEditKind high() {
+inline SeqEditKind high() {
     return SeqEditKind::Transpose;
 }
 
@@ -121,8 +123,8 @@ struct DiffFormatConf {
 
 template <typename T>
 Vec<BacktrackRes> longestCommonSubsequence(
-    CR<Vec<T>>                lhs,
-    CR<Vec<T>>                rhs,
+    CVec<T>                   lhs,
+    CVec<T>                   rhs,
     Func<bool(CR<T>, CR<T>)>  itemCmp,
     Func<float(CR<T>, CR<T>)> itemEqualityMetric) {
 
@@ -264,7 +266,7 @@ Vec<SeqEdit> myersDiff(
 }
 
 template <typename T>
-generator<Pair<T const*, T const*>> zip(CR<Vec<T>> lhs, CR<Vec<T>> rhs) {
+generator<Pair<T const*, T const*>> zip(CVec<T> lhs, CVec<T> rhs) {
     int max = std::max<int>(lhs.size(), rhs.size());
     for (int i = 0; i < max; ++i) {
         if (i < lhs.size() && i < rhs.size()) {
@@ -288,9 +290,9 @@ struct ZipToMaxResult {
 
 template <typename T>
 generator<ZipToMaxResult<T>> zipToMax(
-    CR<Vec<T>> lhs,
-    CR<Vec<T>> rhs,
-    T          fill = T()) {
+    CVec<T> lhs,
+    CVec<T> rhs,
+    T       fill = T()) {
     int idx = 0;
     while (idx < std::max(lhs.size(), rhs.size())) {
         if (idx < lhs.size() && idx < rhs.size()) {
@@ -403,7 +405,7 @@ LevenshteinDistanceResult levenshteinDistance(
 Const<CharSet> Invis{slice('\x00', '\x1F'), '\x7F'};
 
 
-bool scanInvisible(CR<Str> text, CharSet& invisSet) {
+inline bool scanInvisible(CR<Str> text, CharSet& invisSet) {
     // Scan string for invisible characters from right to left,
     // updating active invisible set as needed.
     for (int chIdx = text.length() - 1; chIdx >= 0; --chIdx) {
@@ -421,7 +423,7 @@ bool scanInvisible(CR<Str> text, CharSet& invisSet) {
 }
 
 
-bool hasInvisibleChanges(
+inline bool hasInvisibleChanges(
     Vec<SeqEdit>& diff,
     Vec<Str>&     oldSeq,
     Vec<Str>&     newSeq) {
@@ -466,7 +468,7 @@ bool hasInvisibleChanges(
     return false;
 }
 
-bool hasInvisible(
+inline bool hasInvisible(
     std::string  text,
     IntSet<char> startSet = Invis + CharSet{' '}) {
     // Does string have significant invisible characters?
@@ -477,7 +479,7 @@ bool hasInvisible(
     return false;
 }
 
-bool hasInvisible(CR<Vec<Str>> text) {
+inline bool hasInvisible(CR<Vec<Str>> text) {
     // Do any of strings in text have signficant invisible characters.
     IntSet<char> invisSet = Invis + CharSet{' '};
     for (int idx = text.size() - 1; idx >= 0; idx--) {
@@ -492,7 +494,7 @@ bool hasInvisible(CR<Vec<Str>> text) {
     return false;
 }
 
-Str toVisibleNames(CR<DiffFormatConf> conf, const Str& str) {
+inline Str toVisibleNames(CR<DiffFormatConf> conf, const Str& str) {
     Str result;
     // Convert all characters in the string into visible ones
     for (const char& ch : str) {
@@ -501,7 +503,9 @@ Str toVisibleNames(CR<DiffFormatConf> conf, const Str& str) {
     return result;
 }
 
-Vec<Str> toVisibleNames(CR<DiffFormatConf> conf, const Vec<Str>& split) {
+inline Vec<Str> toVisibleNames(
+    CR<DiffFormatConf> conf,
+    const Vec<Str>&    split) {
     Vec<Str> result;
     // Convert all characters in all strings into visible ones.
     if (split.size() > 0) {
@@ -547,7 +551,7 @@ struct ShiftedDiff {
     Vec<Item> oldShifted;
     Vec<Item> newShifted;
 
-    ShiftedDiff(CR<Vec<SeqEdit>>& diff) {
+    inline ShiftedDiff(CR<Vec<SeqEdit>>& diff) {
         // Align diff operations against each other, for further
         // formatting.
         using sek = SeqEditKind;
@@ -656,7 +660,7 @@ Pair<ColText, ColText> formatDiffed(
 }
 
 
-std::tuple<ColText, ColText> formatLineDiff(
+inline Pair<ColText, ColText> formatLineDiff(
     const Str&            oldLine,
     const Str&            newLine,
     const DiffFormatConf& conf) {
@@ -688,7 +692,7 @@ std::tuple<ColText, ColText> formatLineDiff(
 }
 
 
-ColText joinBuffer(
+inline ColText joinBuffer(
     const Vec<BufItem>&   oldText,
     const Vec<BufItem>&   newText,
     const DiffFormatConf& conf) {
@@ -781,7 +785,7 @@ ColText joinBuffer(
 }
 
 
-ColText formatDiffed(
+inline ColText formatDiffed(
     const ShiftedDiff& shifted,
     const Vec<Str>&    oldSeq,
     const Vec<Str>&    newSeq,
@@ -918,7 +922,7 @@ ColText formatDiffed(
 }
 
 
-ColText formatInlineDiff(
+inline ColText formatInlineDiff(
     const Vec<Str>&     src,
     const Vec<Str>&     target,
     const Vec<SeqEdit>& diffed,
@@ -1236,7 +1240,7 @@ ColText formatDiffed(
         shifted, oldSeq.map(strConv), newSeq.map(strConv), conf);
 }
 
-ColText formatDiffed(
+inline ColText formatDiffed(
     const Str&            text1,
     const Str&            text2,
     const DiffFormatConf& conf = DiffFormatConf{}) {

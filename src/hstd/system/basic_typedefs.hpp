@@ -1,4 +1,5 @@
 #pragma once
+#include <concepts>
 #include <cstdint>
 
 /// Helper implementation to pass multiple types around in a 'pack'

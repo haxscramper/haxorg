@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hstd/stdlib/charsets.hpp>
+#include <hstd/system/generator.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Vec.hpp>
 

@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <hstd/system/generator.hpp>
+#include <hstd/system/basic_typedefs.hpp>
 
 template <
     template <typename, typename>
