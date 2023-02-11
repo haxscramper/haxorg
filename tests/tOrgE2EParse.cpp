@@ -488,8 +488,9 @@ TEST_CASE("Simple node conversion") {
         p.run("#test##[a, b]", &T::lexText, &P::parseHashTag);
         auto g = graphRepr(&p.nodes, OrgId(0));
 
+        std::stringstream os;
         boost::write_graphviz(
-            std::cout,
+            os,
             g,
             [&g, &p](
                 std::ostream&                       os,
@@ -601,20 +602,21 @@ TEST_CASE("longestCommonSubsequence", "[LCS]") {
 TEST_CASE("Fuzzy match configurable", "[fuzzy]") {
     FuzzyMatcher<char const> matcher;
     matcher.isEqual = [](CR<char> lhs, CR<char> rhs) -> bool {
-        std::cout << lhs << " == " << rhs << "\n";
+        // std::cout << lhs << " == " << rhs << "\n";
         return lhs == rhs;
     };
     matcher.isSeparator = [](CR<char> sep) -> bool { return false; };
 
     auto getMatches = [&](Str lhs, Str rhs) -> Array<int, 256> {
-        std::cout << "score "
-                  << matcher.get_score(lhs.toSpan(), rhs.toSpan()) << "\n";
+        // std::cout << "score "
+        //           << matcher.get_score(lhs.toSpan(), rhs.toSpan()) <<
+        //           "\n";
         return matcher.matches;
     };
 
     SECTION("Full match") {
         auto m = getMatches("123", "010233");
-        std::cout << std::endl << "---\n" << m << std::endl;
+        // std::cout << std::endl << "---\n" << m << std::endl;
     }
 }
 
@@ -717,22 +719,24 @@ TEST_CASE("Ast diff") {
 
         ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
 
+
+        std::stringstream os;
         for (diff::NodeId Dst : DstTree) {
             diff::NodeId Src = Diff.getMapped(DstTree, Dst);
             if (Src.isValid()) {
-                COUT << "Match [\033[33m";
-                printNode(std::cout, SrcTree, Src, toStr);
-                std::cout << "\033[0m] to [\033[33m";
-                printNode(std::cout, DstTree, Dst, toStr);
-                std::cout << "\033[0m] ";
+                os << "Match [\033[33m";
+                printNode(os, SrcTree, Src, toStr);
+                os << "\033[0m] to [\033[33m";
+                printNode(os, DstTree, Dst, toStr);
+                os << "\033[0m] ";
             } else {
-                COUT << "Dst to [\033[32m";
-                printNode(std::cout, DstTree, Dst, toStr);
-                std::cout << "\033[0m] ";
+                os << "Dst to [\033[32m";
+                printNode(os, DstTree, Dst, toStr);
+                os << "\033[0m] ";
             }
 
-            printDstChange(std::cout, Diff, SrcTree, DstTree, Dst, toStr);
-            std::cout << "\n";
+            printDstChange(os, Diff, SrcTree, DstTree, Dst, toStr);
+            os << "\n";
         }
     }
 
@@ -786,17 +790,18 @@ TEST_CASE("Ast diff") {
 
         ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
 
+        std::stringstream os;
         for (diff::NodeId Dst : DstTree) {
             diff::NodeId Src = Diff.getMapped(DstTree, Dst);
             if (Src.isValid()) {
-                std::cout << "Match ";
-                printNode(std::cout, SrcTree, Src, toStr);
-                std::cout << " to ";
-                printNode(std::cout, DstTree, Dst, toStr);
-                std::cout << "\n";
+                os << "Match ";
+                printNode(os, SrcTree, Src, toStr);
+                os << " to ";
+                printNode(os, DstTree, Dst, toStr);
+                os << "\n";
             }
 
-            printDstChange(std::cout, Diff, SrcTree, DstTree, Dst, toStr);
+            printDstChange(os, Diff, SrcTree, DstTree, Dst, toStr);
         }
     }
 }

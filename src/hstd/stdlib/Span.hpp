@@ -9,11 +9,23 @@ template <typename T>
 class Span : public std::span<T> {
   public:
     using std::span<T>::span; // Inherit constructor
-    using std::span<T>::size;
     using std::span<T>::data;
     using std::span<T>::operator[];
 
-    Span(T* data, std::size_t size) : std::span<T>(data, size) {}
+
+    // Why override to unsigned? Because `size() - 1` should not equal
+    // 'crash your app'. Also I guess that span of 2147483647 elements is
+    // just abour right for what most people do, and those who don't will
+    // use custom data structures that better fit their needs anyway.
+    int size() const {
+        return std::clamp(
+            std::span<T>::size(),
+            0uz,
+            static_cast<std::size_t>(high<int>()));
+    }
+
+    Span(T* data, int size) : std::span<T>(data, size) {}
+    T const* cdata() const { return data(); }
 
     /// \brief Get data at specified offset from the current 'position' if
     /// it is available (offset fits in size) or `nullptr` otherwise.
@@ -32,54 +44,46 @@ class Span : public std::span<T> {
 
     bool hasData() const { return data() != nullptr && 0 < size(); }
 
+    int clampSize(int size, T const* data, T const* end) const {
+        return std::clamp<int>(size, 0uz, std::distance(data, end) + 1);
+    }
+
     /// \brief Move current span 'forward', updating data and size by a
     /// certain number of pointer steps.
     void moveStart(
         ///< Number of elements to move step forward
         int steps,
+        /// Maximum possible end point position
+        T const* maxEnd,
         ///< Whether size of the span should be fixed (moving window) or
         ///< should the end position stay fixed instead (flexible window)
-        bool fixSize = false,
-        /// Maximum possible end point position
-        std::size_t maxEndPos = high<std::size_t>()) {
+        bool fixSize = false) {
+        auto data = dataAtOffset(steps);
         if (fixSize) {
-            *this = Span<T>(
-                dataAtOffset(steps), std::clamp(size(), 0uz, maxEndPos));
+            *this = Span<T>(data, clampSize(size(), data, maxEnd));
         } else {
-            *this = Span<T>(
-                dataAtOffset(steps),
-                std::clamp(
-                    std::clamp(size() - steps, 0uz, size()),
-                    0uz,
-                    maxEndPos));
+            *this = Span<T>(data, clampSize(size() - steps, data, maxEnd));
         }
     }
 
     /// \brief Move end part of the current span 'forward', updating data
-    /// and size in the same manner as `moveStart`.
+    /// and size in the same manner as `moveStart`. By default (non-fixed
+    /// size) this function effectively acts as `changeSize()`
     void moveEnd(
         /// Number of steps for the end element
-        int steps,
+        int      steps,
+        T const* maxEnd,
         /// Whether size should be fixed. Behavior is exactly the same as
         /// start mover function. Defaults to behavior that provides window
         /// with flexible size: start stays put and end moves in different
         /// directions.
-        bool        fixSize   = false,
-        std::size_t maxEndPos = high<std::size_t>()) {
+        bool fixSize = false) {
         if (fixSize) {
-            *this = Span<T>(
-                dataAtOffset(steps),
-                std::clamp(
-                    size() + steps,
-                    0uz,
-                    std::clamp(size(), 0uz, maxEndPos)));
+            auto data = dataAtOffset(steps);
+            *this = Span<T>(data, clampSize(size() + steps, data, maxEnd));
         } else {
             *this = Span<T>(
-                data(),
-                std::clamp(
-                    std::clamp(size() + steps, 0uz, size()),
-                    0uz,
-                    maxEndPos));
+                data(), clampSize(size() + steps, data(), maxEnd));
         }
     }
 

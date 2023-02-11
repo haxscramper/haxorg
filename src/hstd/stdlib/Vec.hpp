@@ -13,7 +13,6 @@ class Vec : public std::vector<T> {
   public:
     using std::vector<T>::vector; // Inherit constructor from
                                   // std::vector
-    using std::vector<T>::size;
     using std::vector<T>::at;
     using std::vector<T>::operator[];
     using std::vector<T>::push_back;
@@ -25,9 +24,16 @@ class Vec : public std::vector<T> {
 
     static Vec<T> FromValue(CR<Vec<T>> values) { return values; }
 
+
+    int size() const {
+        return std::clamp(
+            std::vector<T>::size(),
+            0uz,
+            static_cast<std::size_t>(::high<int>()));
+    }
+
     Vec() {}
-    Vec(std::size_t size, const T& value = T())
-        : std::vector<T>(size, value) {}
+    Vec(int size, const T& value = T()) : std::vector<T>(size, value) {}
 
     /// \brief Append elements from \arg other vector
     void append(CR<Vec<T>> other) {

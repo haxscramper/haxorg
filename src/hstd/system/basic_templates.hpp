@@ -2,6 +2,7 @@
 
 #include <concepts>
 #include <limits>
+#include <algorithm>
 
 #include <hstd/system/basic_typedefs.hpp>
 
