@@ -529,6 +529,53 @@ TEST_CASE("Simple node conversion") {
     }
 }
 
+TEST_CASE("Algorithms", "[algorithm]") {
+    SECTION("Partitioning") {
+        Vec<int> it{1, 1, 2, 2, 3, 3, 4, 4, 3};
+        auto     spans = partition<int, int>(
+            it, [](CR<int> v) -> int { return v; });
+        REQUIRE(spans.size() == 5);
+        REQUIRE(spans[0].size() == 2);
+        REQUIRE(spans[1].size() == 2);
+        REQUIRE(spans[1_B].size() == 1);
+    }
+    SECTION("Partitioning an empty vector returns an empty vector") {
+        Vec<int> input;
+        auto     result = partition<int, int>(
+            input, [](CR<int> i) { return i % 2 == 0; });
+        REQUIRE(result.empty());
+    }
+
+    SECTION(
+        "Partitioning single-element vector returns single-element "
+        "vector") {
+        Vec<int> input  = {1};
+        auto     result = partition<int, int>(
+            input, [](CR<int> i) { return i % 2 == 0; });
+        REQUIRE(result.size() == 1);
+        REQUIRE(result[0] == input);
+    }
+
+    SECTION("Partitioning by odd/even numbers") {
+        Vec<int> input  = {1, 2, 3, 4, 5};
+        auto     result = partition<int, int>(
+            input, [](CR<int> i) { return i % 2 == 0; });
+        REQUIRE(result.size() == 5);
+        REQUIRE(result[0] == Vec<int>({1}));
+        REQUIRE(result[1] == Vec<int>({2}));
+    }
+
+    SECTION("Partitioning by positive/negative numbers") {
+        Vec<int> input  = {-1, -2, 3, 4, -5};
+        auto     result = partition<int, int>(
+            input, [](CR<int> i) { return 0 <= i; });
+        REQUIRE(result.size() == 3);
+        REQUIRE(result[0] == Vec<int>({-1, -2}));
+        REQUIRE(result[1] == Vec<int>({3, 4}));
+        REQUIRE(result[2] == Vec<int>({-5}));
+    }
+}
+
 template <typename T>
 Vec<T> expandOn(CR<BacktrackRes> back, CR<Vec<T>> in, bool onX) {
     Vec<T> result;

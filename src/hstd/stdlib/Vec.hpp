@@ -45,6 +45,20 @@ class Vec : public std::vector<T> {
         insert(end(), other.begin(), other.end());
     }
 
+    template <typename Indexable>
+    bool operator==(CR<Indexable> other) const {
+        if (this->size() == other.size()) {
+            for (int i = 0; i < size(); ++i) {
+                if (at(i) != other.at(i)) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     Vec<T> operator+(CR<T> other) const {
         auto result = *this;
         result.push_back(other);

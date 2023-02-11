@@ -514,8 +514,13 @@ Pair<ColText, ColText> formatDiffed(
 }
 
 
+struct LevenshteinDistanceResult {
+    int          score;
+    Vec<SeqEdit> operations;
+};
+
 template <typename T>
-Pair<int, Vec<SeqEdit>> levenshteinDistance(
+LevenshteinDistanceResult levenshteinDistance(
     const Vec<T>& str1,
     const Vec<T>& str2) {
     int l1 = str1.size();
@@ -603,6 +608,119 @@ Pair<int, Vec<SeqEdit>> levenshteinDistance(
     }
 
     return {m[levenpath.back().i][levenpath.back().j], resultOperations};
+}
+
+
+Const<CharSet> Invis{slice('\x00', '\x1F'), '\x7F'};
+
+
+bool scanInvisible(CR<Str> text, CharSet& invisSet) {
+    // Scan string for invisible characters from right to left, updating
+    // active invisible set as needed.
+    for (int chIdx = text.length() - 1; chIdx >= 0; --chIdx) {
+        // If character is in the 'invisible' set return true
+        if (invisSet.contains(text[chIdx])) {
+            return true;
+        } else {
+            // Otherwise reset to the default set - this ensures that we
+            // react to trailing whitespace only if is the rightmost
+            // character.
+            invisSet = Invis;
+        }
+    }
+    return false;
+}
+
+Str toVisibleNames(DiffFormatConf& conf, const Str& str) {
+    Str result;
+    // Convert all characters in the string into visible ones
+    for (const char& ch : str) {
+        result += conf.explainChar(ch);
+    }
+    return result;
+}
+
+
+template <typename T, typename F>
+Vec<Span<T const>> partition(
+    const Vec<T>&  elements,
+    Func<F(CR<T>)> callback) {
+    Vec<Span<T const>> result;
+    Span<T const>      currentSpan;
+    F                  currentValue;
+    T const*           max = &elements.back();
+    for (int i = 0; i < elements.size(); ++i) {
+        F newValue = callback(elements[i]);
+        if (currentSpan.empty() || currentValue != newValue) {
+            if (!currentSpan.empty()) {
+                result.push_back(currentSpan);
+            }
+            currentSpan  = elements[slice(i, i)];
+            currentValue = newValue;
+        } else {
+            currentSpan.moveEnd(1, max);
+        }
+    }
+    if (!currentSpan.empty()) {
+        result.push_back(currentSpan);
+    }
+    return result;
+}
+
+Vec<ColText> formatInlineDiff(
+    const Vec<Str>&     src,
+    const Vec<Str>&     target,
+    const Vec<SeqEdit>& diffed,
+    DiffFormatConf      conf) {
+    CharSet      start = Invis + CharSet{' '};
+    Vec<ColText> chunks;
+
+    auto push = [&](const Str&  text,
+                    SeqEditKind mode,
+                    SeqEditKind secondary,
+                    bool        toLast   = false,
+                    bool        isInline = false) {
+        ColText chunk;
+        if (conf.explainInvisible && scanInvisible(text, start)) {
+            chunk = conf.chunk(
+                toVisibleNames(conf, text), mode, secondary, isInline);
+        } else {
+            chunk = conf.chunk(text, mode, secondary, isInline);
+        }
+
+        if (toLast) {
+            chunks.back().append(chunk);
+        } else {
+            chunks.push_back(chunk);
+        }
+    };
+
+    Vec<Vec<SeqEdit>> groups;
+    if (conf.groupInline) {
+        /* groupByIt(diffed, it.kind) */
+        groups.clear();
+        for (const auto& d : diffed) {
+            bool added = false;
+            for (auto& group : groups) {
+                if (group.empty() || group.back().kind == d.kind) {
+                    group.push_back(d);
+                    added = true;
+                    break;
+                }
+            }
+            if (!added) {
+                groups.push_back({d});
+            }
+        }
+    } else {
+        /* mapIt(diffed, @[it]) */
+        groups.resize(diffed.size());
+        for (int i = 0; i < diffed.size(); ++i) {
+            groups[i] = {diffed[i]};
+        }
+    }
+
+    return chunks;
 }
 
 
