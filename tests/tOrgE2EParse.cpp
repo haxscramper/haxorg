@@ -1,4 +1,5 @@
 #include "common.hpp"
+#include <filesystem>
 
 #include <parse/OrgParser.hpp>
 #include <parse/OrgTokenizer.hpp>
@@ -8,6 +9,7 @@
 #include <lexbase/AstDiff.hpp>
 #include <lexbase/AstGraph.hpp>
 #include <lexbase/NodeIO.hpp>
+#include <lexbase/NodeTest.hpp>
 
 #include <hstd/stdlib/diffs.hpp>
 
@@ -105,6 +107,15 @@ diff::ComparisonOptions<NodeId<N, K>, Val> nodeAdapterComparisonOptions(
             }};
 }
 
+namespace fs = std::filesystem;
+
+TEST_CASE("Test files") {
+    fs::path   current(__FILE__);
+    YAML::Node spec = YAML::LoadFile(current.parent_path() / "spec.yaml");
+    ParseSpecFile parsed(spec);
+    std::cout << spec << "\n";
+    std::cout << parsed.source << "\n";
+}
 
 TEST_CASE("Simple node conversion") {
     MockFull p;
@@ -136,22 +147,20 @@ TEST_CASE("Simple node conversion") {
         auto node = yamlRepr(p.a(0));
         yamlRepr(p.nodes);
         yamlRepr(p.tokens);
-        auto hash = convertHashTag(nullptr, p.a(0));
-        std::cout << hash->toJson() << std::endl;
-        std::cout << "yaml node\n"
-                  << yamlRepr(spec, p.a(0)) << "\nend yaml node\n";
-        std::cout << "json node\n"
-                  << jsonRepr(spec, p.a(0)) << "\nend json node\n";
-        std::cout << "flat repr\n"
-                  << jsonRepr(p.nodes) << "\nend flat nodes\n";
-        std::cout << "token repr\n"
-                  << jsonRepr(p.tokens) << "\nend flat tokens\n";
-        std::cout << "yaml node\n"
-                  << yamlRepr(p.a(0)) << "\nend yaml node\n";
-        std::cout << "flat repr\n"
-                  << yamlRepr(p.nodes) << "\nend flat nodes\n";
-        std::cout << "token repr\n"
-                  << yamlRepr(p.tokens) << "\nend flat tokens\n";
+        auto              hash = convertHashTag(nullptr, p.a(0));
+        std::stringstream ss;
+        ss << hash->toJson() << std::endl;
+        ss << "yaml node\n"
+           << yamlRepr(spec, p.a(0)) << "\nend yaml node\n";
+        ss << "json node\n"
+           << jsonRepr(spec, p.a(0)) << "\nend json node\n";
+        ss << "flat repr\n" << jsonRepr(p.nodes) << "\nend flat nodes\n";
+        ss << "token repr\n"
+           << jsonRepr(p.tokens) << "\nend flat tokens\n";
+        ss << "yaml node\n" << yamlRepr(p.a(0)) << "\nend yaml node\n";
+        ss << "flat repr\n" << yamlRepr(p.nodes) << "\nend flat nodes\n";
+        ss << "token repr\n"
+           << yamlRepr(p.tokens) << "\nend flat tokens\n";
     }
 
     SECTION("Diff compilation") {
