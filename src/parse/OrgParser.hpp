@@ -1,3 +1,5 @@
+#pragma once
+
 #include <parse/OrgTypes.hpp>
 #include <parse/OrgTokenizer.hpp>
 #include <hstd/stdlib/sequtils.hpp>

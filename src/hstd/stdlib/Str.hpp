@@ -86,7 +86,7 @@ struct Str : public std::string {
         return Span<char const>(view.data(), view.size());
     }
 
-    std::string toBase() { return *this; }
+    std::string toBase() const { return *this; }
 };
 
 template <>
