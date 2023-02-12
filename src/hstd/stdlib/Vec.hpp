@@ -3,12 +3,9 @@
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Span.hpp>
-#include <hstd/stdlib/Func.hpp>
-#include <functional>
 
 #include <vector>
 #include <span>
-#include <algorithm>
 
 template <typename T>
 class Vec : public std::vector<T> {
@@ -79,28 +76,6 @@ class Vec : public std::vector<T> {
         return result;
     }
 
-    /// \brief In-place reverse of the vector content
-    void reverse() { std::reverse(begin(), end()); }
-
-    /// \brief In-place sort of the vector content
-    void sort(Func<bool(CR<T>, CR<T>)> cmp) {
-        std::sort(begin(), end(), cmp);
-    }
-
-    /// \brief Return reversed copy of the vector
-    Vec<T> reversed() const {
-        Vec<T> result = *this;
-        result.reverse();
-        return result;
-    }
-
-    /// \brief Return sorted copy of the vector
-    Vec<T> sorted(Func<bool(CR<T>, CR<T>)> cmp) const {
-        Vec<T> result = *this;
-        result.sort(cmp);
-        return result;
-    }
-
     /// \brief Implicit conversion to the base class
     operator Ref<std::vector<T>>() {
         return static_cast<std::vector<T>>(*this);
@@ -167,15 +142,6 @@ class Vec : public std::vector<T> {
 
     Span<T> toSpan() const {
         return Span<T>(const_cast<T*>(this->data()), size());
-    }
-
-    template <typename R>
-    Vec<R> map(std::function<R(CR<T>)> cb) const {
-        Vec<R> result;
-        for (const auto& it : *this) {
-            result.push_back(cb(it));
-        }
-        return result;
     }
 };
 

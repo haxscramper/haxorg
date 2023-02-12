@@ -541,10 +541,10 @@ struct AstSpec {
             }
         }
 
-        result.sort([](CR<Pair<Str, Slice<int>>> lhs,
-                       CR<Pair<Str, Slice<int>>> rhs) {
-            return lhs.first < rhs.first;
-        });
+        sort<Pair<Str, Slice<int>>>(
+            result, [](auto const& lhs, auto const& rhs) {
+                return lhs.first < rhs.first;
+            });
 
         for (const auto& [lhs, rhs] : carthesian(result, result)) {
             if (lhs == rhs) {

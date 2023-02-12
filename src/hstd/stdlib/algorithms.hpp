@@ -2,8 +2,48 @@
 
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Span.hpp>
+#include <hstd/stdlib/Func.hpp>
 
 #include <hstd/system/generator.hpp>
+
+
+/// \brief In-place reverse of the vector content
+template <typename T>
+void reverse(Vec<T>& vec) {
+    std::reverse(vec.begin(), vec.end());
+}
+
+/// \brief In-place sort of the vector content
+template <typename T>
+void sort(Vec<T>& vec, Func<bool(CR<T>, CR<T>)> cmp) {
+    std::sort(vec.begin(), vec.end(), cmp);
+}
+
+/// \brief Return reversed copy of the vector
+template <typename T>
+Vec<T> reversed(CR<Vec<T>> vec) {
+    Vec<T> result = vec;
+    reverse(result);
+    return result;
+}
+
+/// \brief Return sorted copy of the vector
+template <typename T>
+Vec<T> sorted(CR<Vec<T>> vec, Func<bool(CR<T>, CR<T>)> cmp) {
+    Vec<T> result = vec;
+    result.sort(cmp);
+    return result;
+}
+
+
+template <typename T, typename R>
+Vec<R> map(CR<Vec<T>> vec, Func<R(CR<T>)> cb) {
+    Vec<R> result;
+    for (const auto& it : vec) {
+        result.push_back(cb(it));
+    }
+    return result;
+}
 
 template <typename T, typename F>
 Vec<Span<T const>> partition(

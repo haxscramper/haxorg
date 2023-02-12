@@ -1218,7 +1218,7 @@ ColText formatDiffed(
     ShiftedDiff shifted{diff};
 
     return formatDiffed(
-        shifted, oldSeq.map(strConv), newSeq.map(strConv), conf);
+        shifted, map(oldSeq, strConv), map(newSeq, strConv), conf);
 }
 
 inline ColText formatDiffed(

@@ -1,4 +1,5 @@
 #include "OrgTokenizer.hpp"
+#include <hstd/stdlib/algorithms.hpp>
 
 using ock = OrgCommandKind;
 using otk = OrgTokenKind;
@@ -884,7 +885,7 @@ void OrgTokenizer::lexSubtreeTitle(PosStr& str) {
         auto       slice = str.sliceBetween(start, finish);
         headerTokens.push_back(Token(otk::Text, slice.view));
     }
-    push(headerTokens.reversed());
+    push(reversed(headerTokens));
 }
 
 void OrgTokenizer::lexSubtreeTimes(PosStr& str) {
