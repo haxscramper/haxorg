@@ -2,6 +2,7 @@
 
 #include <hstd/stdlib/Table.hpp>
 #include <hstd/stdlib/Func.hpp>
+#include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/ColText.hpp>
 
@@ -514,31 +515,6 @@ inline Vec<Str> toVisibleNames(
     return result;
 }
 
-template <typename T, typename F>
-Vec<Span<T const>> partition(
-    const Vec<T>&  elements,
-    Func<F(CR<T>)> callback) {
-    Vec<Span<T const>> result;
-    Span<T const>      currentSpan;
-    F                  currentValue;
-    T const*           max = &elements.back();
-    for (int i = 0; i < elements.size(); ++i) {
-        F newValue = callback(elements[i]);
-        if (currentSpan.empty() || currentValue != newValue) {
-            if (!currentSpan.empty()) {
-                result.push_back(currentSpan);
-            }
-            currentSpan  = elements[slice(i, i)];
-            currentValue = newValue;
-        } else {
-            currentSpan.moveEnd(1, max);
-        }
-    }
-    if (!currentSpan.empty()) {
-        result.push_back(currentSpan);
-    }
-    return result;
-}
 
 struct ShiftedDiff {
     struct Item {

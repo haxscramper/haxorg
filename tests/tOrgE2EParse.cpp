@@ -7,7 +7,7 @@
 #include <lexbase/AstSpec.hpp>
 #include <lexbase/AstDiff.hpp>
 #include <lexbase/AstGraph.hpp>
-#include <lexbase/YamlIO.hpp>
+#include <lexbase/NodeIO.hpp>
 
 #include <hstd/stdlib/diffs.hpp>
 
@@ -140,6 +140,8 @@ TEST_CASE("Simple node conversion") {
         std::cout << hash->toJson() << std::endl;
         std::cout << "yaml node\n"
                   << yamlRepr(spec, p.a(0)) << "\nend yaml node\n";
+        std::cout << "json node\n"
+                  << jsonRepr(spec, p.a(0)) << "\nend json node\n";
         std::cout << "yaml node\n"
                   << yamlRepr(p.a(0)) << "\nend yaml node\n";
         // std::cout << "flat repr\n"
