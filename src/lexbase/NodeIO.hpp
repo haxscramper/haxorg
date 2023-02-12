@@ -24,6 +24,7 @@ YAML::Node yamlRepr(NodeAdapter<N, K> node) {
         Token<K> const& token   = g->tokens->at(tokenId);
         result["tok"]           = to_string(token.kind);
         result["tok_idx"]       = to_string(tokenId.getIndex());
+        result.SetStyle(YAML::EmitterStyle::Flow);
     } else {
         for (NodeAdapter<N, K> const& sub : node.items()) {
             result["sub"].push_back(yamlRepr(sub));
@@ -78,6 +79,7 @@ YAML::Node yamlRepr(
         Token<K> const& token   = g->tokens->at(tokenId);
         result["tok"]           = to_string(token.kind);
         result["tok_idx"]       = to_string(tokenId.getIndex());
+        result.SetStyle(YAML::EmitterStyle::Flow);
     } else {
         Vec<Pair<Str, Slice<int>>> expanded = spec.resolveNodeFields(
             node.get().kind, node.size());
@@ -107,6 +109,8 @@ YAML::Node yamlRepr(CR<NodeGroup<N, K>> group, bool withStrings = true) {
         } else {
             item["extent"] = node->getExtent();
         }
+
+        item.SetStyle(YAML::EmitterStyle::Flow);
         out.push_back(item);
     }
     return out;
@@ -142,6 +146,7 @@ YAML::Node yamlRepr(CR<TokenGroup<K>> group) {
         item["idx"]  = id.getIndex();
         item["kind"] = to_string(token->kind);
         item["str"]  = token->strVal().toBase();
+        item.SetStyle(YAML::EmitterStyle::Flow);
         out.push_back(item);
     }
     return out;

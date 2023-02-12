@@ -161,6 +161,8 @@ TEST_CASE("Simple node conversion") {
         ss << "flat repr\n" << yamlRepr(p.nodes) << "\nend flat nodes\n";
         ss << "token repr\n"
            << yamlRepr(p.tokens) << "\nend flat tokens\n";
+
+        std::cout << ss.str() << "\n";
     }
 
     SECTION("Diff compilation") {
