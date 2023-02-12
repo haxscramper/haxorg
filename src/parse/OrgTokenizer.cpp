@@ -78,7 +78,7 @@ CR<CharSet> OWordChars = CharSet{
     slice('a', 'z'),
     slice('A', 'Z'),
     slice('0', '9'),
-    slice('\x7F', '\xFF')};
+    slice('\x7F', high<char>())};
 
 
 CR<CharSet> OCommandChars = charsets::IdentChars + CharSet{'-', '_'};

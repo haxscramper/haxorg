@@ -359,3 +359,4 @@ docs/*
 deps
 
 **/*.profraw
+.vscode

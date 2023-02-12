@@ -40,7 +40,7 @@ BOOST_DESCRIBE_ENUM(
     MixedSlice);
 
 
-auto tmp = low<AstRangeKind>();
+inline auto tmp = low<AstRangeKind>();
 
 template <typename N>
 Str toPath(const N& ast, const Vec<int>& path) {
@@ -115,23 +115,51 @@ struct AstRange {
         , kind(AstRangeKind::InverseSlice)
         , fieldName(name) {}
 
-    Slice<int> toSlice(const int& maxLen) const {
+    /// \brief Get resolved subnode slice if the range is applicable for
+    /// node of provided range size. Otherwise return empty option.
+    Opt<Slice<int>> toSlice(const int& maxLen) const {
+        Pair<int, int> range;
         switch (kind) {
-            case AstRangeKind::Point: return slice(idx, idx);
+            case AstRangeKind::Point: range = {idx, idx}; break;
             case AstRangeKind::InversePoint:
-                return slice(maxLen - idx, maxLen - idx);
-            case AstRangeKind::DirectSlice: return slice(first, last);
+                range = {maxLen - idx, maxLen - idx};
+                break;
+            case AstRangeKind::DirectSlice: range = {first, last}; break;
             case AstRangeKind::InverseSlice:
-                return slice(maxLen - first, maxLen - last);
+                range = {maxLen - first, maxLen - last};
+                break;
             case AstRangeKind::MixedSlice:
-                return slice(first, maxLen - last);
+                range = {first, maxLen - last};
+                break;
+        }
+
+        if (range.first <= range.second && range.second <= maxLen) {
+            return slice(range.first, range.second);
+        } else {
+            return std::nullopt;
         }
     }
 
     bool contains(const int& idx, const int& maxLen) const {
-        return toSlice(maxLen).contains(idx);
+        auto slice = toSlice(maxLen);
+        return slice.has_value() && slice->contains(idx);
     }
 };
+
+
+inline std::ostream& operator<<(std::ostream& os, AstRange const& arange) {
+    switch (arange.kind) {
+        case AstRangeKind::Point: return os << arange.idx;
+        case AstRangeKind::InversePoint: return os << "^" << arange.idx;
+        case AstRangeKind::DirectSlice:
+            return os << arange.first << ".." << arange.last;
+        case AstRangeKind::InverseSlice:
+            return os << "^" << arange.first << "..^" << arange.last;
+        case AstRangeKind::MixedSlice:
+            return os << arange.first << "..^" << arange.last;
+    }
+}
+
 
 template <typename N, typename K>
 struct AstCheckFail {
@@ -427,7 +455,6 @@ struct AstSpec {
 
     bool hasPattern(K kind) const { return spec[kind].has_value(); }
 
-
     ColText validateAst(const N& node) const {
         if (spec[node.kind].has_value()) {
             return formatFail(
@@ -468,6 +495,10 @@ struct AstSpec {
 
     Opt<ColText> validateSub(const N& node, const int& idx) const {
         return validateSub(node, idx, node[idx]);
+    }
+
+    Table<Str, AstRange> nodeFields(K kind) const {
+        return nodeRanges.at(kind);
     }
 
     ColText validateAst(const N& node, const N& subnode, const int& idx)
@@ -547,14 +578,19 @@ struct AstSpec {
             if (range.kind == AstRangeKind::Point) {
                 return range.idx;
             } else if (nodeLen.has_value()) {
-                return range.toSlice(nodeLen.value()).first;
+                auto slice = range.toSlice(nodeLen.value());
+                if (slice.has_value()) {
+                    return slice->first;
+                } else {
+                    throw makeMissingSlice(kind, name, slice, range);
+                }
             } else {
                 throw UnexpectedKindError(
                     "Cannot get single subnode index for element "
                     + to_string(name) + " of node kind " + to_string(kind)
                     + " - field exists, but allowed AST range is of kind "
                     + enum_to_string(range.kind)
-                    + " and requires node lenght, but it "
+                    + " and requires node length, but it "
                     + "wasn't specified.");
             }
         } else {
@@ -566,17 +602,25 @@ struct AstSpec {
         if (nodeRanges[node.getKind()].contains(name)) {
             const auto range = nodeRanges.at(node.getKind()).at(name);
             const auto slice = range.toSlice(node.size());
-            assert_has_idx(
-                node.size(),
-                slice.first,
-                "Range " + name + " for node kind "
-                    + to_string(node.getKind())
-                    + " was resolved into slice " + to_string(slice)
-                    + "(required ast range is " + to_string(range) + ")");
-            return slice.first;
+            if (slice.has_value()) {
+                return slice->first;
+            } else {
+                throw makeMissingSlice(node.getKind(), name, slice, range);
+            }
         } else {
             throw makeMissingPositional(node.getKind(), name);
         }
+    }
+
+    FieldAccessError makeMissingSlice(
+        K               kind,
+        CR<Str>         name,
+        Opt<Slice<int>> slice,
+        CR<AstRange>    range) const {
+        return FieldAccessError(
+            "Range " + name + " for node kind " + to_string(kind)
+            + " was resolved into slice " + to_string(slice)
+            + "(required ast range is " + to_string(range) + ")");
     }
 
     FieldAccessError makeMissingPositional(K kind, CR<Str> name) const {
@@ -602,17 +646,8 @@ struct AstSpec {
             Vec<N>     result;
             const auto range = nodeRanges.at(node.getKind()).at(name);
             const auto slice = range.toSlice(node.size());
-            for (const auto idx : slice) {
-                assert_has_idx(
-                    node.size(),
-                    idx,
-                    "Range " + name + " for node kind "
-                        + to_string(node.getKind())
-                        + " was resolved into slice " + to_string(slice)
-                        + "(required ast range is " + to_string(range)
-                        + ")");
-
-                result.push_back(node[idx]);
+            if (!slice.has_value()) {
+                throw makeMissingSlice(node.getKind(), name, slice, range);
             }
             return result;
         } else {
@@ -658,20 +693,6 @@ struct AstSpec {
         }
     }
 };
-
-
-std::ostream& operator<<(std::ostream& os, AstRange const& arange) {
-    switch (arange.kind) {
-        case AstRangeKind::Point: return os << arange.idx;
-        case AstRangeKind::InversePoint: return os << "^" << arange.idx;
-        case AstRangeKind::DirectSlice:
-            return os << arange.first << ".." << arange.last;
-        case AstRangeKind::InverseSlice:
-            return os << "^" << arange.first << "..^" << arange.last;
-        case AstRangeKind::MixedSlice:
-            return os << arange.first << "..^" << arange.last;
-    }
-}
 
 
 }; // namespace astspec

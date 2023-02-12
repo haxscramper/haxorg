@@ -23,12 +23,25 @@ template <typename T>
 struct Slice : public HSlice<T, T> {
     using HSlice<T, T>::first;
     using HSlice<T, T>::last;
+    using HSlice<T, T>::operator==;
+
     bool contains(T val) const { return first <= val && val <= last; }
+    bool isValid() const { return first <= last; }
 
     /// \brief Both start and end of the other slice are contained in the
     /// *inclusive* range [first, last]
     bool contains(CR<Slice> other) const {
         return contains(other.first) && contains(other.second);
+    }
+
+    std::optional<Slice<T>> overlap(const Slice<T>& other) const {
+        if (first < other.last && other.first < last) {
+            int overlap_start = std::max(first, other.first);
+            int overlap_end   = std::min(last, other.last);
+            return Slice<int>{overlap_start, overlap_end};
+        } else {
+            return std::nullopt;
+        }
     }
 
 
@@ -82,6 +95,26 @@ struct Slice : public HSlice<T, T> {
 /// Return homogeneous inclusive slice of values
 template <typename T>
 constexpr Slice<T> slice(CR<T> first, CR<T> last) {
+    if (!(first <= last)) {
+        if constexpr (std::is_integral_v<T> && sizeof(T) <= sizeof(u64)) {
+            if constexpr (std::is_signed_v<T>) {
+                throw std::range_error(
+                    "Expected first <= last but got first='"
+                    + to_string(static_cast<i64>(first)) + "' last='"
+                    + to_string(static_cast<i64>(last)) + "'");
+            } else {
+                throw std::range_error(
+                    "Expected first <= last but got first='"
+                    + to_string(static_cast<u64>(first)) + "' last='"
+                    + to_string(static_cast<u64>(last)) + "'");
+            }
+
+        } else {
+            throw std::range_error(
+                "Expected first <= last but got first='" + to_string(first)
+                + "' last='" + to_string(last) + "'");
+        }
+    }
     return {first, last};
 }
 

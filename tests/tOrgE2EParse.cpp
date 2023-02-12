@@ -14,6 +14,8 @@
 #include <sem/SemOrg.hpp>
 #include <sem/SemConvert.hpp>
 
+using org = OrgNodeKind;
+using otk = OrgTokenKind;
 
 struct MockFull : public OrgParser {
     OrgTokenGroup       tokens;
@@ -136,7 +138,10 @@ TEST_CASE("Simple node conversion") {
         yamlRepr(p.tokens);
         auto hash = convertHashTag(nullptr, p.a(0));
         std::cout << hash->toJson() << std::endl;
-        // std::cout << "yaml node\n" << node << "\nend yaml node\n";
+        std::cout << "yaml node\n"
+                  << yamlRepr(spec, p.a(0)) << "\nend yaml node\n";
+        std::cout << "yaml node\n"
+                  << yamlRepr(p.a(0)) << "\nend yaml node\n";
         // std::cout << "flat repr\n"
         //           << yamlRepr(p.nodes) << "\nend flat nodes\n";
         // std::cout << "token repr\n"

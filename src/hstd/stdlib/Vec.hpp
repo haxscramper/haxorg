@@ -3,6 +3,7 @@
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Span.hpp>
+#include <hstd/stdlib/Func.hpp>
 #include <functional>
 
 #include <vector>
@@ -82,7 +83,9 @@ class Vec : public std::vector<T> {
     void reverse() { std::reverse(begin(), end()); }
 
     /// \brief In-place sort of the vector content
-    void sort() { std::sort(begin(), end()); }
+    void sort(Func<bool(CR<T>, CR<T>)> cmp) {
+        std::sort(begin(), end(), cmp);
+    }
 
     /// \brief Return reversed copy of the vector
     Vec<T> reversed() const {
@@ -92,9 +95,9 @@ class Vec : public std::vector<T> {
     }
 
     /// \brief Return sorted copy of the vector
-    Vec<T> sorted() const {
+    Vec<T> sorted(Func<bool(CR<T>, CR<T>)> cmp) const {
         Vec<T> result = *this;
-        result.sort();
+        result.sort(cmp);
         return result;
     }
 

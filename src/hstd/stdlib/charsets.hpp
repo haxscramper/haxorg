@@ -6,7 +6,7 @@ using CharSet = IntSet<char>;
 
 namespace charsets {
 /// All character values
-Const<CharSet> AllChars{slice('\x00', '\xFF')};
+Const<CharSet> AllChars{slice(low<char>(), high<char>())};
 /// Arabic digits
 Const<CharSet> Digits{slice('0', '9')};
 /// Characters that can be used in C++-style identifiers
