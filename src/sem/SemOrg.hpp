@@ -101,6 +101,16 @@ struct Table : public Org {
 
 BOOST_DESCRIBE_STRUCT(Table, (Org), (rows));
 
+struct HashTag : public Org {
+    using Org::Org;
+    Str          head;
+    Vec<HashTag> subtags;
+
+    virtual json toJson() const override;
+};
+
+BOOST_DESCRIBE_STRUCT(HashTag, (), (head, subtags));
+
 // template <typename T>
 // json to_json(CR<T> it);
 
@@ -141,4 +151,5 @@ json to_json(T const& t) {
 
 inline json Table::toJson() const { return to_json(*this); }
 inline json Row::toJson() const { return to_json(*this); }
+inline json HashTag::toJson() const { return to_json(*this); }
 }; // namespace sem

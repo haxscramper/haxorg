@@ -2,6 +2,15 @@
 #include "common.hpp"
 
 TEST_CASE("String operations", "[str]") {
+    SECTION("String views") {
+        Str  base{"test"};
+        auto span = base.toSpan();
+        REQUIRE(span.data() == &base[0]);
+        REQUIRE(span.size() == base.size());
+        REQUIRE(span.size() == 4);
+        REQUIRE(base == Str(span));
+    }
+
     SECTION("Basic operations") {
         Str s1{"Hello"};
         Str s2{"World"};

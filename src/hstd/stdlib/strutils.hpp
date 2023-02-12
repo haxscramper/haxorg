@@ -185,3 +185,22 @@ inline Vec<Str> split_keep_separator(
     }
     return result;
 }
+
+inline Str strip(
+    CR<Str>     string,
+    CR<CharSet> leading,
+    CR<CharSet> trailing) {
+    if (0 < string.size()) {
+        Span<char> view = string.toSpan();
+        auto       end  = &string.back();
+        while (leading.contains(view.at(0))) {
+            view.moveStart(1, end);
+        }
+        while (trailing.contains(view.at(1_B))) {
+            view.moveEnd(-1, end);
+        }
+        return Str(view);
+    } else {
+        return Str();
+    }
+}

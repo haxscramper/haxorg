@@ -284,7 +284,7 @@ struct NodeGroup {
         std::ostream&    os,
         NodeId<N, K>     node,
         int              level,
-        CR<TreeReprConf> conf = TreeReprConf()) {
+        CR<TreeReprConf> conf = TreeReprConf()) const {
         if (conf.withTreeMask) {
             os << right_aligned(to_string(node.getMask()), 2) << ":";
         }
@@ -339,20 +339,44 @@ struct NodeAdapter {
         return group == nullptr && id == NodeId<N, K>::Nil();
     }
 
+    Str strVal() const { return group->strVal(id); }
+
     CR<Node<N, K>> get() { return group->at(id); }
 
     NodeAdapter<N, K>(NodeGroup<N, K> const* group, NodeId<N, K> id)
         : group(group), id(id) {}
     NodeAdapter() : group(nullptr), id(NodeId<N, K>::Nil()) {}
 
+    NodeAdapter<N, K> at(int index) const {
+        return {group, group->subnode(id, index)};
+    }
+
     NodeAdapter<N, K> operator[](int index) const {
         return {group, group->subnode(id, index)};
     }
 
+
+    void treeRepr(
+        std::ostream&                              os,
+        int                                        level = 0,
+        CR<typename NodeGroup<N, K>::TreeReprConf> conf =
+            typename NodeGroup<N, K>::TreeReprConf()) const {
+        group->treeRepr(os, id, level, conf);
+    }
+
     generator<NodeAdapter<N, K>> items() {
-        auto [begin, end] = group->subnodesOf(id);
         for (int i = 0; i < group->size(id); ++i) {
             co_yield this->operator[](i);
         }
+    }
+
+    template <typename H, typename L>
+    Vec<NodeAdapter<N, K>> at(HSlice<H, L> range) {
+        Vec<NodeAdapter<N, K>> result;
+        const auto [start, end] = getSpan(group->size(id), range, true);
+        for (const auto& i : slice(start, end)) {
+            result.push_back(this->operator[](i));
+        }
+        return result;
     }
 };

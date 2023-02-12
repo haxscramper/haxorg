@@ -13,7 +13,10 @@ struct Str : public std::string {
     using std::string::reserve;
 
 
-    Str(std::string_view view) : std::string(view.data(), view.size()) {}
+    explicit Str(Span<char> view)
+        : std::string(view.data(), view.size()) {}
+    explicit Str(std::string_view view)
+        : std::string(view.data(), view.size()) {}
     Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
     Str(char c) : std::string(c, 1) {}
     Str() = default;
@@ -76,14 +79,8 @@ struct Str : public std::string {
         return at(s, false);
     }
 
-    Span<char> toSpan() {
-        auto view = this->at(slice(0, static_cast<int>(size()) - 1));
-        return Span<char>(const_cast<char*>(view.data()), view.size());
-    }
-
-    Span<char const> toSpan() const {
-        auto view = this->at(slice(0, static_cast<int>(size()) - 1));
-        return Span<char const>(view.data(), view.size());
+    Span<char> toSpan() const {
+        return Span<char>(const_cast<char*>(this->data()), size());
     }
 
     std::string toBase() const { return *this; }

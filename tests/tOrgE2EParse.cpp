@@ -132,11 +132,15 @@ TEST_CASE("Simple node conversion") {
         p.run("#test##[a, b]", &T::lexText, &P::parseHashTag);
         p.treeRepr();
         auto node = yamlRepr(p.a(0));
-        std::cout << "yaml node\n" << node << "\nend yaml node\n";
-        std::cout << "flat repr\n"
-                  << yamlRepr(p.nodes) << "\nend flat nodes\n";
-        std::cout << "token repr\n"
-                  << yamlRepr(p.tokens) << "\nend flat tokens\n";
+        yamlRepr(p.nodes);
+        yamlRepr(p.tokens);
+        auto hash = convertHashTag(nullptr, p.a(0));
+        std::cout << hash->toJson() << std::endl;
+        // std::cout << "yaml node\n" << node << "\nend yaml node\n";
+        // std::cout << "flat repr\n"
+        //           << yamlRepr(p.nodes) << "\nend flat nodes\n";
+        // std::cout << "token repr\n"
+        //           << yamlRepr(p.tokens) << "\nend flat tokens\n";
     }
 
     SECTION("Diff compilation") {
