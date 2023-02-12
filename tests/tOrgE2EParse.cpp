@@ -142,12 +142,16 @@ TEST_CASE("Simple node conversion") {
                   << yamlRepr(spec, p.a(0)) << "\nend yaml node\n";
         std::cout << "json node\n"
                   << jsonRepr(spec, p.a(0)) << "\nend json node\n";
+        std::cout << "flat repr\n"
+                  << jsonRepr(p.nodes) << "\nend flat nodes\n";
+        std::cout << "token repr\n"
+                  << jsonRepr(p.tokens) << "\nend flat tokens\n";
         std::cout << "yaml node\n"
                   << yamlRepr(p.a(0)) << "\nend yaml node\n";
-        // std::cout << "flat repr\n"
-        //           << yamlRepr(p.nodes) << "\nend flat nodes\n";
-        // std::cout << "token repr\n"
-        //           << yamlRepr(p.tokens) << "\nend flat tokens\n";
+        std::cout << "flat repr\n"
+                  << yamlRepr(p.nodes) << "\nend flat nodes\n";
+        std::cout << "token repr\n"
+                  << yamlRepr(p.tokens) << "\nend flat tokens\n";
     }
 
     SECTION("Diff compilation") {
