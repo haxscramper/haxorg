@@ -11,20 +11,11 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/Set.hpp>
 
 #include <unordered_set>
 #include <unordered_map>
 #include <functional>
-
-template <typename T>
-std::unordered_set<T> set_difference(
-    std::unordered_set<T>     lhs,
-    CR<std::unordered_set<T>> rhs) {
-    for (const auto& it : rhs) {
-        lhs.erase(it);
-    }
-    return lhs;
-}
 
 template <typename T>
 std::ostream& operator<<(
@@ -570,8 +561,8 @@ struct AstSpec {
             }
         }
 
-        int                     max = result.back().second.last;
-        std::unordered_set<int> visited;
+        int               max = result.back().second.last;
+        UnorderedSet<int> visited;
         for (const auto& [_, range] : result) {
             max = std::max(max, range.last);
             for (const auto& value : range) {
@@ -579,12 +570,12 @@ struct AstSpec {
             }
         }
 
-        std::unordered_set<int> all;
+        UnorderedSet<int> all;
         for (int i = 0; i < max; ++i) {
             all.insert(i);
         }
 
-        auto diff = set_difference(all, visited);
+        auto diff = all - visited;
         if (!diff.empty()) {
             throw astspec::FieldAccessError(
                 "Indices missing from the field description $# are not "
