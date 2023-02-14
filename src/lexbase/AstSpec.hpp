@@ -5,7 +5,7 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Table.hpp>
+#include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Array.hpp>
 #include <hstd/system/exceptions.hpp>
 #include <hstd/system/reflection.hpp>
@@ -451,11 +451,11 @@ struct AstPattern {
 template <typename N, typename K>
 struct AstSpec {
   private:
-    TypArray<K, Opt<AstPattern<N, K>>> spec;
-    TypArray<K, Table<Str, AstRange>>  nodeRanges;
+    TypArray<K, Opt<AstPattern<N, K>>>       spec;
+    TypArray<K, UnorderedMap<Str, AstRange>> nodeRanges;
 
-    TypArray<K, Table<Str, AstRange>> getNodeRanges() const {
-        TypArray<K, Table<Str, AstRange>> result;
+    TypArray<K, UnorderedMap<Str, AstRange>> getNodeRanges() const {
+        TypArray<K, UnorderedMap<Str, AstRange>> result;
         for (const auto& [kind, pattern] : spec.pairs()) {
             if (pattern->has_value()) {
                 for (const auto& range : pattern->value().ranges) {
@@ -524,7 +524,7 @@ struct AstSpec {
         return validateSub(node, idx, node[idx]);
     }
 
-    Table<Str, AstRange> nodeFields(K kind) const {
+    UnorderedMap<Str, AstRange> nodeFields(K kind) const {
         return nodeRanges.at(kind);
     }
 

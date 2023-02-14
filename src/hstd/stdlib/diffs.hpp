@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/stdlib/Table.hpp>
+#include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Vec.hpp>
@@ -133,8 +133,8 @@ Vec<BacktrackRes> longestCommonSubsequence(
         return {{}};
     }
 
-    Table<Pair<int, int>, float> mem;
-    Func<float(int, int)>        lcs;
+    UnorderedMap<Pair<int, int>, float> mem;
+    Func<float(int, int)>               lcs;
     lcs = [&](int lhsIdx, int rhsIdx) -> float {
         if (mem.count({lhsIdx, rhsIdx}) == 0) {
             if (lhsIdx == -1 || rhsIdx == -1) {

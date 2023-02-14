@@ -6,12 +6,12 @@
 
 template <
     template <typename, typename>
-    typename TableType,
+    typename MapType,
     typename K,
     typename V>
-struct TableBase : public TableType<K, V> {
-    TableBase() {}
-    using Base = TableType<K, V>;
+struct MapBase : public MapType<K, V> {
+    MapBase() {}
+    using Base = MapType<K, V>;
 
     inline V&   operator[](CR<K> key) { return Base::operator[](key); }
     inline bool contains(CR<K> key) const { return Base::count(key) != 0; }
@@ -28,4 +28,4 @@ struct UnorderedMapAdaptor : public std::unordered_map<K, V> {
 };
 
 template <typename K, typename V>
-struct Table : public TableBase<UnorderedMapAdaptor, K, V> {};
+struct UnorderedMap : public MapBase<UnorderedMapAdaptor, K, V> {};
