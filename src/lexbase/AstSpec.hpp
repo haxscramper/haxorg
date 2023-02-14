@@ -574,15 +574,16 @@ struct AstSpec {
         std::unordered_set<int> visited;
         for (const auto& [_, range] : result) {
             max = std::max(max, range.last);
-            std::cout << range << "\n";
             for (const auto& value : range) {
                 visited.insert(value);
             }
         }
+
         std::unordered_set<int> all;
         for (int i = 0; i < max; ++i) {
             all.insert(i);
         }
+
         auto diff = set_difference(all, visited);
         if (!diff.empty()) {
             throw astspec::FieldAccessError(

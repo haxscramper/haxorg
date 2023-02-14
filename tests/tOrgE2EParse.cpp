@@ -113,8 +113,6 @@ TEST_CASE("Test files") {
     fs::path   current(__FILE__);
     YAML::Node spec = YAML::LoadFile(current.parent_path() / "spec.yaml");
     ParseSpecFile parsed(spec);
-    std::cout << spec << "\n";
-    std::cout << parsed.source << "\n";
 }
 
 TEST_CASE("Simple node conversion") {
@@ -130,10 +128,11 @@ TEST_CASE("Simple node conversion") {
         REQUIRE(p.k(0) == org::HashTag);
         REQUIRE(p.k(1) == org::RawText);
         REQUIRE(p.s(1) == "#test");
-        std::cout << "start validation output" << std::endl;
-        std::cout << spec.validateSelf(p.a(0)) << "\n";
-        std::cout << spec.validateSub(p.a(0), 0) << "\n";
-        std::cout << spec.getSingleSubnodeIdx(p.a(0), "head");
+        std::stringstream ss;
+        ss << "start validation output" << std::endl;
+        ss << spec.validateSelf(p.a(0)) << "\n";
+        ss << spec.validateSub(p.a(0), 0) << "\n";
+        ss << spec.getSingleSubnodeIdx(p.a(0), "head");
         spec.getSingleSubnodeIdx(org::HashTag, "head");
         spec.getMultipleSubnode(p.a(0), "head");
         spec.fieldName(p.a(0), 0);
@@ -143,7 +142,6 @@ TEST_CASE("Simple node conversion") {
 
     SECTION("Nested hash tag") {
         p.run("#test##[a, b]", &T::lexText, &P::parseHashTag);
-        p.treeRepr();
         auto node = yamlRepr(p.a(0));
         yamlRepr(p.nodes);
         yamlRepr(p.tokens);
@@ -162,7 +160,7 @@ TEST_CASE("Simple node conversion") {
         ss << "token repr\n"
            << yamlRepr(p.tokens) << "\nend flat tokens\n";
 
-        std::cout << ss.str() << "\n";
+        // std::cout << ss.str() << "\n";
     }
 
     SECTION("Diff compilation") {
@@ -195,8 +193,7 @@ TEST_CASE("Simple node conversion") {
     SECTION("LCS compile") {
         Vec<int> first{1, 2, 3};
         Vec<int> second{1, 2, 3};
-        std::cout << first << "\n";
-        auto res = longestCommonSubsequence<int>(
+        auto     res = longestCommonSubsequence<int>(
             first,
             second,
             [](CR<int> lhs, CR<int> rhs) { return lhs == rhs; },
@@ -207,8 +204,6 @@ TEST_CASE("Simple node conversion") {
                     return 0;
                 }
             });
-
-        std::cout << res[0].lhsIndex << res[0].rhsIndex;
     }
 
     SECTION("Myers diff compile") {

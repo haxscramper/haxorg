@@ -55,7 +55,6 @@ Str levEditText(const Str& a, const Str& b) {
     Vec<SeqEdit> ops = levenshteinDistance<const char>(
                            a.toSpan(), b.toSpan())
                            .operations;
-    std::cout << "Got N operatoins " << ops.size() << "\n";
     return formatDiffedEx(ops, a.toSpan(), b.toSpan());
 }
 

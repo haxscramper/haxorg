@@ -8,6 +8,4 @@ TEST_CASE("Basic lexer", "[lex]") {
     PosStr        str{base};
 
     lexer.lexText(str);
-    std::cout << res.tokens.size() << std::endl;
-    std::cout << res.tokens.atIndex(0) << std::endl;
 }

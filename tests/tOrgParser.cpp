@@ -84,7 +84,6 @@ TEST_CASE("Parser", "[parse]") {
         // Time dash token is skipped
         REQUIRE(p[2] == tok(org::TimeStamp, 2));
         REQUIRE(p[3] == empty());
-        std::cout << to_string(org::TimeStamp) << std::endl;
     }
 
     SECTION("Compare time range with flattened tree") {
