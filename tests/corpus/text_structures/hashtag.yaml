@@ -1,0 +1,3 @@
+source: "#test##a"
+lex: "Text"
+parse: "HashTag"

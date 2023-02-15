@@ -5,7 +5,7 @@
 #include <lexbase/Node.hpp>
 #include <lexbase/Token.hpp>
 
-struct ParseSpecFile {
+struct ParseSpec {
     Opt<YAML::Node>      expected;
     Opt<Vec<YAML::Node>> tokens;
     Str                  source;
@@ -33,7 +33,14 @@ struct ParseSpecFile {
 
     ExpectedMode expectedMode;
 
-    ParseSpecFile(CR<YAML::Node> node) {
+    ParseSpec(CR<YAML::Node> node) {
+        if (node["lex"]) {
+            lexImplName = node["lex"].as<std::string>();
+        }
+        if (node["parse"]) {
+            parseImplName = node["parse"].as<std::string>();
+        }
+
         if (node["source"]) {
             source = node["source"].as<std::string>();
         } else {
@@ -63,3 +70,13 @@ struct ParseSpecFile {
         return result;
     }
 };
+
+inline bool isSingleTest(CR<YAML::Node> node) {
+    if (node["source"]) {
+        return true;
+    } else if (node["items"]) {
+        return false;
+    } else {
+        assert(false && "TODO");
+    }
+}

@@ -11,18 +11,19 @@
 #include <hstd/stdlib/Filesystem.hpp>
 
 #define CB(name)                                                          \
-    { Str(#name), &OrgTokenizer::name }
+    { Str(#name), &OrgTokenizer::lex##name }
 
 const UnorderedMap<Str, MockFull::LexerMethod> lexers({
-    CB(lexText),
-    CB(lexList),
-    CB(lexParagraph),
+    CB(Text),
+    CB(List),
+    CB(Paragraph),
 });
 #undef CB
 
-#define CB
+#define CB(name)                                                          \
+    { Str(#name), &OrgParser::parse##name }
 const UnorderedMap<Str, MockFull::ParserMethod> parsers{
-
+    CB(HashTag),
 };
 #undef CB
 
@@ -53,6 +54,17 @@ MockFull::LexerMethod getLexer(CR<Opt<Str>> name) {
     }
 }
 
+void runSpec(CR<YAML::Node> spec) {
+    ParseSpec              parsed(spec);
+    MockFull::LexerMethod  lexCb   = getLexer(parsed.lexImplName);
+    MockFull::ParserMethod parseCb = getParser(parsed.parseImplName);
+
+    MockFull p;
+    p.run(parsed.source, lexCb, parseCb);
+
+    p.treeRepr();
+}
+
 TEST_CASE("Parse corpus") {
     for (fs::directory_entry const& path :
          fs::recursive_directory_iterator(
@@ -60,8 +72,14 @@ TEST_CASE("Parse corpus") {
 
         if (path.is_regular_file()) {
             std::cout << path;
-            YAML::Node    spec = YAML::LoadFile(path.path());
-            ParseSpecFile parsed(spec);
+            YAML::Node spec = YAML::LoadFile(path.path());
+            if (isSingleTest(spec)) {
+                runSpec(spec);
+            } else {
+                for (const auto& spec : spec["items"]) {
+                    runSpec(spec);
+                }
+            }
         }
     }
 };

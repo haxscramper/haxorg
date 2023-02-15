@@ -38,7 +38,7 @@ diff::ComparisonOptions<NodeId<N, K>, Val> nodeAdapterComparisonOptions(
 
 TEST_CASE("Test files") {
     YAML::Node spec = YAML::LoadFile(__CURRENT_FILE_DIR__ / "spec.yaml");
-    ParseSpecFile parsed(spec);
+    ParseSpec  parsed(spec);
 }
 
 TEST_CASE("Simple node conversion") {
