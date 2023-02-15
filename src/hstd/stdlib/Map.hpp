@@ -7,7 +7,8 @@
 #include <hstd/system/all.hpp>
 
 template <typename Map, typename K, typename V>
-struct MapBase {
+struct MapBase : public CRTP_this_method<Map> {
+    using CRTP_this_method<Map>::_this;
     inline bool contains(CR<K> key) const {
         return _this()->count(key) != 0;
     }
@@ -17,8 +18,6 @@ struct MapBase {
             co_yield key;
         }
     }
-
-    CRTP_this_method(Map);
 };
 
 template <typename K, typename V>

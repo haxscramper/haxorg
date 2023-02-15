@@ -28,9 +28,9 @@ bool isNil(T* ptr) {
     return ptr == nullptr;
 }
 
-#define CRTP_this_method(__target)                                          \
-  protected:                                                                \
-    inline __target*       _this() { return static_cast<__target*>(this); } \
-    inline __target const* _this() const {                                  \
-        return static_cast<__target const*>(this);                          \
-    }
+template <typename T>
+struct CRTP_this_method {
+  protected:
+    inline T*       _this() { return static_cast<T*>(this); }
+    inline T const* _this() const { return static_cast<T const*>(this); }
+};

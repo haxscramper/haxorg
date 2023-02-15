@@ -4,7 +4,8 @@
 #include <hstd/stdlib/Slice.hpp>
 
 template <typename Set, typename Val>
-struct SetBase {
+struct SetBase : public CRTP_this_method<Set> {
+    using CRTP_this_method<Set>::_this;
     Set operator&(CR<Set> other) {
         Set result;
         for (const auto& it : other) {
@@ -69,6 +70,4 @@ struct SetBase {
     bool operator<=(CR<Set> other) const {
         return other.contains(*_this());
     }
-
-    CRTP_this_method(Set);
 };
