@@ -10,6 +10,18 @@ struct ParseSpecFile {
     Opt<Vec<YAML::Node>> tokens;
     Str                  source;
 
+    /// Name of the method to call for lexing or parsing. Pointer to
+    /// implementation is resolved externally, spec file just contains the
+    /// required name.
+    Opt<Str> lexImplName;
+    Opt<Str> parseImplName;
+
+    struct SpecValidationError : public std::runtime_error {
+        explicit SpecValidationError(const std::string& message)
+            : std::runtime_error(message) {}
+    };
+
+
     enum class ExpectedMode
     {
         Flat,
@@ -22,7 +34,14 @@ struct ParseSpecFile {
     ExpectedMode expectedMode;
 
     ParseSpecFile(CR<YAML::Node> node) {
-        source = node["source"].as<std::string>();
+        if (node["source"]) {
+            source = node["source"].as<std::string>();
+        } else {
+            throw SpecValidationError(
+                "Input spec must contain 'source' string field");
+        }
+
+
         if (node["expected"]) {
             expectedMode = string_to_enum<ExpectedMode>(
                                node["expected"].as<std::string>())

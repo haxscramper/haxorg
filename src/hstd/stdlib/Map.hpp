@@ -1,31 +1,45 @@
 #pragma once
 
 #include <unordered_map>
+#include <map>
+
 #include <hstd/system/generator.hpp>
-#include <hstd/system/basic_typedefs.hpp>
+#include <hstd/system/all.hpp>
 
-template <
-    template <typename, typename>
-    typename MapType,
-    typename K,
-    typename V>
-struct MapBase : public MapType<K, V> {
-    MapBase() {}
-    using Base = MapType<K, V>;
+template <typename Map, typename K, typename V>
+struct MapBase {
+    inline bool contains(CR<K> key) const {
+        return _this()->count(key) != 0;
+    }
 
-    inline V&   operator[](CR<K> key) { return Base::operator[](key); }
-    inline bool contains(CR<K> key) const { return Base::count(key) != 0; }
     generator<K> keys() const {
-        for (const auto& [key, value] : *this) {
+        for (const auto& [key, value] : *_this()) {
             co_yield key;
         }
     }
+
+    CRTP_this_method(Map);
 };
 
 template <typename K, typename V>
-struct UnorderedMapAdaptor : public std::unordered_map<K, V> {
-    UnorderedMapAdaptor() : std::unordered_map<K, V>() {}
+struct UnorderedMap
+    : public std::unordered_map<K, V>
+    , public MapBase<UnorderedMap<K, V>, K, V> {
+    using Base = std::unordered_map<K, V>;
+    using API  = MapBase<UnorderedMap<K, V>, K, V>;
+    using API::contains;
+    using API::keys;
+    using Base::Base;
 };
 
+
 template <typename K, typename V>
-struct UnorderedMap : public MapBase<UnorderedMapAdaptor, K, V> {};
+struct SortedMap
+    : public std::map<K, V>
+    , public MapBase<SortedMap<K, V>, K, V> {
+    using Base = std::map<K, V>;
+    using API  = MapBase<SortedMap<K, V>, K, V>;
+    using API::contains;
+    using API::keys;
+    using Base::Base;
+};

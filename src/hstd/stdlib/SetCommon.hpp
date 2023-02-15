@@ -70,9 +70,5 @@ struct SetBase {
         return other.contains(*_this());
     }
 
-  private:
-    inline Set*       _this() { return static_cast<Set*>(this); }
-    inline Set const* _this() const {
-        return static_cast<Set const*>(this);
-    }
+    CRTP_this_method(Set);
 };
