@@ -2,12 +2,24 @@
 
 #include <hstd/system/all.hpp>
 #include <hstd/system/string_convert.hpp>
+#include <hstd/stdlib/SetCommon.hpp>
 #include <unordered_set>
 #include <set>
 
 template <typename T>
-struct UnorderedSet : public std::unordered_set<T> {
+struct UnorderedSet
+    : public std::unordered_set<T>
+    , public SetBase<UnorderedSet<T>, T> {
     using Base = std::unordered_set<T>;
+    using API  = SetBase<UnorderedSet<T>, T>;
+    using API::operator-;
+    using API::operator&;
+    using API::operator^;
+    using API::operator|;
+    using API::operator+;
+    using API::operator<;
+    using API::operator<=;
+
     using Base::Base;
     using Base::begin;
     using Base::count;
@@ -30,45 +42,6 @@ struct UnorderedSet : public std::unordered_set<T> {
         for (const auto& it : value) {
             this->erase(it);
         }
-    }
-
-
-    UnorderedSet<T> operator&(CR<UnorderedSet<T>> other) {
-        UnorderedSet<T> result;
-        for (const auto& it : other) {
-            if (this->contains(it)) {
-                result.incl(it);
-            }
-        }
-        return result;
-    }
-
-    UnorderedSet<T> operator^(CR<UnorderedSet<T>> other) {
-        UnorderedSet<T> result;
-        for (const auto& it : other) {
-            if (!this->contains(it)) {
-                result.incl(it);
-            }
-        }
-        for (const auto& it : *this) {
-            if (!other.contains(it)) {
-                result.incl(it);
-            }
-        }
-
-        return result;
-    }
-
-    UnorderedSet<T> operator+(CR<UnorderedSet<T>> other) {
-        UnorderedSet<T> result = *this;
-        result.incl(other);
-        return result;
-    }
-
-    UnorderedSet<T> operator-(CR<UnorderedSet<T>> other) {
-        UnorderedSet<T> result = *this;
-        result.excl(other);
-        return result;
     }
 };
 

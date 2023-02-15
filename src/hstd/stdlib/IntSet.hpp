@@ -4,6 +4,7 @@
 
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Slice.hpp>
+#include <hstd/stdlib/SetCommon.hpp>
 
 template <typename T, typename InT>
 concept ConvertibleToSet
@@ -34,7 +35,7 @@ if (flag.contains(flag2)) {
 */
 template <typename T>
     requires(sizeof(T) <= sizeof(unsigned short))
-struct IntSet {
+struct IntSet : public SetBase<IntSet<T>, T> {
     // constrain the size of the object to avoid blowing up the set size.
     // 2-byte value has 8192 possible states and they all must be encoded
     // into the bitset, creating an 8kb object. 3 bytes will have a size of
@@ -71,6 +72,15 @@ struct IntSet {
 
 
   public:
+    using API = SetBase<IntSet<T>, T>;
+    using API::excl;
+    using API::incl;
+    using API::operator-;
+    using API::operator|;
+    using API::operator+;
+    using API::operator<;
+    using API::operator<=;
+
     using BitsetT = std::bitset<pow_v<2, 8 * sizeof(T)>::res>;
     BitsetT values;
 
@@ -88,29 +98,9 @@ struct IntSet {
     constexpr void excl(CR<IntSet<T>> other) { values &= ~other.values; }
     constexpr void incl(CR<T> value) { values.set(toIdx(value)); }
     constexpr void excl(CR<T> value) { values.reset(toIdx(value)); }
-    constexpr void incl(CR<Slice<T>> range) {
-        for (const auto val : range) {
-            incl(val);
-        }
-    }
-
-    constexpr void excl(CR<Slice<T>> range) {
-        for (const auto val : range) {
-            excl(val);
-        }
-    }
-
 
     bool operator==(CR<IntSet<T>> other) const {
         return values == other.values;
-    }
-
-    bool operator<(CR<IntSet<T>> other) const {
-        return other.contains(*this) && this->size() < other.size();
-    }
-
-    bool operator<=(CR<IntSet<T>> other) const {
-        return other.contains(*this);
     }
 
     IntSet<T> operator^(CR<IntSet<T>> other) const {
@@ -122,24 +112,6 @@ struct IntSet {
     IntSet<T> operator&(CR<IntSet<T>> other) const {
         IntSet<T> result;
         result.values = this->values & other.values;
-        return result;
-    }
-
-    IntSet<T> operator|(CR<IntSet<T>> other) const {
-        IntSet<T> result;
-        result.values = this->values | other.values;
-        return result;
-    }
-
-    IntSet<T> operator-(CR<IntSet<T>> other) const {
-        IntSet<T> result = *this;
-        result.excl(other);
-        return result;
-    }
-
-    IntSet<T> operator+(CR<IntSet<T>> other) const {
-        IntSet<T> result = *this;
-        result.incl(other);
         return result;
     }
 
