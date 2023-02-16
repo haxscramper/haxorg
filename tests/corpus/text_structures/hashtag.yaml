@@ -4,3 +4,8 @@ items:
   - source: "#test##a"
   - source: "#test##[a, b]"
   - source: "#test"
+    subnodes:
+      kind: "HashTag"
+      idx: 0
+      subnodes:
+        - {kind: RawText, idx: 1, str: "#test", tok: HashTag, tok_idx: 0}

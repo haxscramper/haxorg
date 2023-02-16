@@ -2,6 +2,8 @@
 
 #include <sem/SemOrg.hpp>
 #include <sem/SemConvert.hpp>
+#include <parse/OrgSpec.hpp>
+#include <lexbase/NodeIO.hpp>
 
 using org = OrgNodeKind;
 using otk = OrgTokenKind;
@@ -60,6 +62,16 @@ struct MockFull : public OrgParser {
         std::cout << "\n";
         nodes.treeRepr(std::cout, OrgId(0), 0, {.fullBase = base.data()});
         std::cout << std::endl;
+    }
+
+    void jsonRepr() { std::cout << ::jsonRepr(spec, a(0)) << "\n"; }
+
+    void yamlRepr(bool withNames = true) {
+        if (withNames) {
+            std::cout << ::yamlRepr(spec, a(0)) << "\n";
+        } else {
+            std::cout << ::yamlRepr(a(0)) << "\n";
+        }
     }
 
     void tokenRepr() {

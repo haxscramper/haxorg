@@ -49,6 +49,8 @@ E string_to_enum(char const* name) {
 }
 }; // namespace boost::describe
 
+template <typename T>
+std::optional<T> string_to_enum(std::string const&);
 
 template <DescribedEnum T>
 std::optional<T> string_to_enum(std::string const& value) {

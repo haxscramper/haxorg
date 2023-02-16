@@ -6,7 +6,7 @@
 #include <lexbase/Token.hpp>
 
 struct ParseSpec {
-    Opt<YAML::Node>      expected;
+    Opt<YAML::Node>      subnodes;
     Opt<Vec<YAML::Node>> tokens;
     Str                  source;
 
@@ -48,6 +48,9 @@ struct ParseSpec {
                 "Input spec must contain 'source' string field");
         }
 
+        if (node["subnodes"]) {
+            subnodes = node["subnodes"];
+        }
 
         if (node["expected"]) {
             expectedMode = string_to_enum<ExpectedMode>(

@@ -95,6 +95,27 @@ YAML::Node yamlRepr(
 }
 
 template <typename N, typename K>
+NodeTree<N, K> fromHomogeneous(CR<YAML::Node> node) {
+    Opt<N> kind = string_to_enum<N>(node["kind"].as<std::string>());
+    if (node["subnodes"]) {
+        Vec<NodeTree<N, K>> subnodes;
+        for (const auto& it : node["subnodes"]) {
+            subnodes.push_back(fromHomogeneous<N, K>(it));
+        }
+        return NodeTree<N, K>(kind.value(), subnodes);
+    } else {
+        std::cout << node << std::endl;
+        typename NodeTree<N, K>::TreeToken token = {
+            .index = node["tok_idx"].as<int>(),
+            .str   = node["str"].as<std::string>(),
+            .kind  = string_to_enum<K>(node["tok"].as<std::string>())
+                        .value()};
+
+        return NodeTree<N, K>(kind.value(), token);
+    }
+}
+
+template <typename N, typename K>
 YAML::Node yamlRepr(CR<NodeGroup<N, K>> group, bool withStrings = true) {
     YAML::Node out;
     for (const auto& [id, node] : group.nodes.pairs()) {

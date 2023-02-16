@@ -1,6 +1,8 @@
 #pragma once
 
 #include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/Opt.hpp>
 
 #include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/strutils.hpp>
@@ -324,6 +326,33 @@ std::ostream& operator<<(std::ostream& os, Node<N, K> const& value) {
 
     return os << "}";
 }
+
+
+/// Nested representation of the tree, intended to be used as intermediate
+/// representation for converting from nested formats to a flat linearized
+/// representation.
+template <typename N, typename K>
+struct NodeTree {
+
+    struct TreeToken {
+        int index;
+        Str str;
+        K   kind;
+    };
+
+    NodeTree(N kind, CR<TreeToken> tok, Opt<int> index = std::nullopt)
+        : kind(kind), content(tok), indexInParent(index) {}
+    NodeTree(
+        N                       kind,
+        CR<Vec<NodeTree<N, K>>> subnodes,
+        Opt<int>                index = std::nullopt)
+        : kind(kind), content(subnodes), indexInParent(index) {}
+
+    Opt<int>                                    indexInParent;
+    N                                           kind;
+    Variant<TreeToken, Vec<NodeTree<N, K>>>     content;
+    inline Pair<NodeGroup<N, K>, TokenGroup<K>> flatten() const {}
+};
 
 /// \brief Node adapter for more convenient access operations on the tree
 template <typename N, typename K>

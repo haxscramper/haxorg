@@ -64,7 +64,14 @@ void runSpec(CR<YAML::Node> group) {
         MockFull p;
         p.run(spec.source, lexCb, parseCb);
 
-        p.treeRepr();
+        // p.treeRepr();
+        std::cout << "----------------\n";
+        p.yamlRepr();
+
+        if (spec.subnodes.has_value()) {
+            auto tree = fromHomogeneous<OrgNodeKind, OrgTokenKind>(
+                spec.subnodes.value());
+        }
     }
 }
 
