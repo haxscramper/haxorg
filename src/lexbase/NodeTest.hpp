@@ -71,12 +71,26 @@ struct ParseSpec {
     }
 };
 
-inline bool isSingleTest(CR<YAML::Node> node) {
-    if (node["source"]) {
-        return true;
-    } else if (node["items"]) {
-        return false;
-    } else {
-        assert(false && "TODO");
+struct ParseSpecGroup {
+    ParseSpecGroup(CR<YAML::Node> node) {
+        if (node["items"]) {
+            for (const auto& it : node["items"]) {
+                auto spec = ParseSpec(it);
+
+                if (!spec.lexImplName && node["lex"]) {
+                    spec.lexImplName = node["lex"].as<std::string>();
+                }
+
+                if (!spec.parseImplName && node["parse"]) {
+                    spec.parseImplName = node["parse"].as<std::string>();
+                }
+
+                specs.push_back(spec);
+            }
+        } else {
+            specs.push_back(ParseSpec(node));
+        }
     }
-}
+
+    Vec<ParseSpec> specs;
+};

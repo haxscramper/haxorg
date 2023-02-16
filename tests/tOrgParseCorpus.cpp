@@ -54,15 +54,18 @@ MockFull::LexerMethod getLexer(CR<Opt<Str>> name) {
     }
 }
 
-void runSpec(CR<YAML::Node> spec) {
-    ParseSpec              parsed(spec);
-    MockFull::LexerMethod  lexCb   = getLexer(parsed.lexImplName);
-    MockFull::ParserMethod parseCb = getParser(parsed.parseImplName);
+void runSpec(CR<YAML::Node> group) {
+    ParseSpecGroup parsed(group);
 
-    MockFull p;
-    p.run(parsed.source, lexCb, parseCb);
+    for (const auto& spec : parsed.specs) {
+        MockFull::LexerMethod  lexCb   = getLexer(spec.lexImplName);
+        MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
 
-    p.treeRepr();
+        MockFull p;
+        p.run(spec.source, lexCb, parseCb);
+
+        p.treeRepr();
+    }
 }
 
 TEST_CASE("Parse corpus") {
@@ -73,13 +76,7 @@ TEST_CASE("Parse corpus") {
         if (path.is_regular_file()) {
             std::cout << path;
             YAML::Node spec = YAML::LoadFile(path.path());
-            if (isSingleTest(spec)) {
-                runSpec(spec);
-            } else {
-                for (const auto& spec : spec["items"]) {
-                    runSpec(spec);
-                }
-            }
+            runSpec(spec);
         }
     }
 };

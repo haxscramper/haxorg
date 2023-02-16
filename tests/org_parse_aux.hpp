@@ -57,6 +57,7 @@ struct MockFull : public OrgParser {
         parse(parseMethod);
     }
     void treeRepr() {
+        std::cout << "\n";
         nodes.treeRepr(std::cout, OrgId(0), 0, {.fullBase = base.data()});
         std::cout << std::endl;
     }

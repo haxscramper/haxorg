@@ -1,3 +1,6 @@
-source: "#test##a"
 lex: "Text"
 parse: "HashTag"
+items:
+  - source: "#test##a"
+  - source: "#test##[a, b]"
+  - source: "#test"
