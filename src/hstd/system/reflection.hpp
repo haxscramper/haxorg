@@ -87,3 +87,39 @@ E high() {
     constexpr auto D = describe_enumerators_as_array<E>();
     return D[sizeof(D) / sizeof(E) - 1];
 }
+
+
+template <
+    class T,
+    class Bd = boost::describe::
+        describe_bases<T, boost::describe::mod_any_access>,
+    class Md = boost::describe::
+        describe_members<T, boost::describe::mod_any_access>,
+    class En = std::enable_if_t<!std::is_union<T>::value>>
+std::ostream& described_class_printer(std::ostream& os, T const& t) {
+    os << "{";
+
+    bool first = true;
+
+    boost::mp11::mp_for_each<Bd>([&](auto D) {
+        if (!first) {
+            os << ", ";
+        }
+        first = false;
+
+        using B = typename decltype(D)::type;
+        os << (B const&)t;
+    });
+
+    boost::mp11::mp_for_each<Md>([&](auto D) {
+        if (!first) {
+            os << ", ";
+        }
+        first = false;
+
+        os << "." << D.name << " = " << t.*D.pointer;
+    });
+
+    os << "}";
+    return os;
+}

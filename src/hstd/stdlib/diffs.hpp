@@ -6,11 +6,20 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/ColText.hpp>
 
+#include <hstd/system/reflection.hpp>
+
 struct BacktrackRes {
     Vec<int> lhsIndex = {};
     Vec<int> rhsIndex = {};
 };
 
+BOOST_DESCRIBE_STRUCT(BacktrackRes, (), (lhsIndex, rhsIndex));
+
+inline std::ostream& operator<<(
+    std::ostream&       os,
+    BacktrackRes const& value) {
+    return os << described_class_printer(os, value);
+}
 
 enum class SeqEditKind : u8
 {
@@ -122,6 +131,9 @@ struct DiffFormatConf {
 };
 
 
+/// TODO use 'indexable' concept that will work with stdlib vectors,
+/// arrays, other data structures, plain text blocks, wide strings and so
+/// on.
 template <typename T>
 Vec<BacktrackRes> longestCommonSubsequence(
     CVec<T>                   lhs,
@@ -209,6 +221,18 @@ Vec<BacktrackRes> longestCommonSubsequence(
     };
 
     return backtrack(m, n);
+}
+
+
+template <typename T>
+Vec<BacktrackRes> longestCommonSubsequence(
+    CVec<T>                  lhs,
+    CVec<T>                  rhs,
+    Func<bool(CR<T>, CR<T>)> itemCmp) {
+    return longestCommonSubsequence<T>(
+        lhs, rhs, itemCmp, [&itemCmp](CR<T> lhs, CR<T> rhs) -> float {
+            return itemCmp(lhs, rhs) ? 1.0 : 0.0;
+        });
 }
 
 template <typename T>

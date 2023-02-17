@@ -10,6 +10,8 @@
 
 #include <hstd/stdlib/Filesystem.hpp>
 
+#include <hstd/stdlib/diffs.hpp>
+
 #define CB(name)                                                          \
     { Str(#name), &OrgTokenizer::lex##name }
 
@@ -73,13 +75,35 @@ void runSpec(CR<YAML::Node> group) {
             Str buffer;
             auto [nodes, tokens] = tree.flatten(buffer);
             std::cout << "----------------\n";
-            std::cout << buffer << std::endl;
+            std::cout << "[" << buffer << "]" << std::endl;
             std::cout << tokens << std::endl;
             nodes.tokens = &tokens;
             std::cout << "nodes yaml repr:\n"
                       << yamlRepr(nodes) << std::endl;
             std::cout << "tokens yaml repr:\n"
                       << yamlRepr(tokens) << std::endl;
+
+            BacktrackRes tokenSimilarity = longestCommonSubsequence<
+                OrgToken>(
+                p.tokens.tokens.content,
+                tokens.tokens.content,
+                [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
+                    std::cout << lhs << " " << rhs << "\n";
+                    return lhs.kind == rhs.kind
+                        && Str(lhs.text) == Str(rhs.text);
+                })[0];
+
+            std::cout << "token similarity " << tokenSimilarity << "\n";
+
+            BacktrackRes nodeSimilarity = longestCommonSubsequence<
+                OrgNode>(
+                p.nodes.nodes.content,
+                nodes.nodes.content,
+                [](CR<OrgNode> lhs, CR<OrgNode> rhs) -> bool {
+                    return lhs.kind == rhs.kind;
+                })[0];
+
+            std::cout << "node similarity " << nodeSimilarity << "\n";
         }
     }
 }

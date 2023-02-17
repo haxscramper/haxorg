@@ -395,8 +395,8 @@ struct NodeTree {
                 auto id    = TokenId<K>(tok.index);
                 auto start = text.size();
                 text += tok.str;
-                tokens.at(id).text = text.at(
-                    slice(start, start + tok.str.size() - 1));
+                tokens.at(id).text = std::string_view(
+                    text.data() + start, tok.str.size());
                 tokens.at(id).kind = tok.kind;
                 std::cout << tokens.at(id).text << std::endl;
                 nodes.token(tree.kind, id);

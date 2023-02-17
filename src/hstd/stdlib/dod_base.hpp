@@ -322,10 +322,8 @@ template <IsIdType Id, typename T>
 /// that allows user to put in a new object, returning ID, or get an
 /// existing object from an ID.
 struct Store {
-  private:
     Vec<T> content;
 
-  public:
     Store() = default;
     void resize(int size, T const& value = T()) {
         content.resize(size, value);
