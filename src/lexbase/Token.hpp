@@ -4,6 +4,7 @@
 #include <hstd/stdlib/IntSet.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/strformat.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 #include <lexbase/Errors.hpp>
 
@@ -142,6 +143,15 @@ struct TokenGroup {
 
     int size() const { return tokens.size(); }
 };
+
+template <StringConvertible K>
+std::ostream& operator<<(std::ostream& os, TokenGroup<K> const& tokens) {
+    for (const auto& [idx, tok] : tokens.tokens.pairs()) {
+        os << left_aligned(to_string(idx), 16) << " | " << *tok << "\n";
+    }
+    return os;
+}
+
 
 template <typename K>
 struct TokenStore {

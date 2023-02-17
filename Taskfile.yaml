@@ -61,7 +61,7 @@ tasks:
       - >
         cmake
         -DCMAKE_BUILD_TYPE=Debug
-        -DUSE_SINGLE_FILE_CATCH=OFF
+        -DUSE_SINGLE_FILE_CATCH=ON
         -DCMAKE_CXX_COMPILER=clang++
         -DTEST_COVERAGE=ON
         --log-level=TRACE

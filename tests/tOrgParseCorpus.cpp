@@ -65,12 +65,21 @@ void runSpec(CR<YAML::Node> group) {
         p.run(spec.source, lexCb, parseCb);
 
         // p.treeRepr();
-        std::cout << "----------------\n";
-        p.yamlRepr();
+        // p.yamlRepr();
 
         if (spec.subnodes.has_value()) {
             auto tree = fromHomogeneous<OrgNodeKind, OrgTokenKind>(
                 spec.subnodes.value());
+            Str buffer;
+            auto [nodes, tokens] = tree.flatten(buffer);
+            std::cout << "----------------\n";
+            std::cout << buffer << std::endl;
+            std::cout << tokens << std::endl;
+            nodes.tokens = &tokens;
+            std::cout << "nodes yaml repr:\n"
+                      << yamlRepr(nodes) << std::endl;
+            std::cout << "tokens yaml repr:\n"
+                      << yamlRepr(tokens) << std::endl;
         }
     }
 }

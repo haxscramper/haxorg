@@ -327,6 +327,11 @@ struct Store {
 
   public:
     Store() = default;
+    void resize(int size, T const& value = T()) {
+        content.resize(size, value);
+    }
+
+    void reserve(int size) { content.reserve(size); }
 
     /// Add value to the storage and return newly created ID
     [[nodiscard]] auto add(const T& value) -> Id {

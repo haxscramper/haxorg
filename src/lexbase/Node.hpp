@@ -3,6 +3,7 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Func.hpp>
 
 #include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/strutils.hpp>
@@ -104,10 +105,11 @@ struct NodeGroup {
     TokenGroup<K>*                  tokens;
 
     Str strVal(NodeId<N, K> id) const {
+        assert(notNil(tokens));
         return tokens->at(at(id).getToken()).strVal();
     }
 
-    NodeGroup(TokenGroup<K>* _tokens) : tokens(_tokens) {}
+    NodeGroup(TokenGroup<K>* _tokens = nullptr) : tokens(_tokens) {}
 
     Vec<NodeId<N, K>> pendingTrees;
 
@@ -159,8 +161,14 @@ struct NodeGroup {
     /// \brief Return reference to the node *object* at specified ID
     Node<N, K>&    at(NodeId<N, K> id) { return nodes.at(id); }
     CR<Node<N, K>> at(NodeId<N, K> id) const { return nodes.at(id); }
-    Token<K>&      at(TokenId<K> id) { return tokens->at(id); }
-    CR<Token<K>>   at(TokenId<K> id) const { return tokens->at(id); }
+    Token<K>&      at(TokenId<K> id) {
+        assert(notNil(tokens));
+        return tokens->at(id);
+    }
+    CR<Token<K>> at(TokenId<K> id) const {
+        assert(notNil(tokens));
+        return tokens->at(id);
+    }
 
 
     class iterator {
@@ -348,10 +356,62 @@ struct NodeTree {
         Opt<int>                index = std::nullopt)
         : kind(kind), content(subnodes), indexInParent(index) {}
 
-    Opt<int>                                    indexInParent;
-    N                                           kind;
-    Variant<TreeToken, Vec<NodeTree<N, K>>>     content;
-    inline Pair<NodeGroup<N, K>, TokenGroup<K>> flatten() const {}
+    Opt<int>                                indexInParent;
+    N                                       kind;
+    Variant<TreeToken, Vec<NodeTree<N, K>>> content;
+
+    inline bool isToken() const {
+        return std::holds_alternative<TreeToken>(content);
+    }
+
+    inline CR<TreeToken> getToken() const {
+        return std::get<TreeToken>(content);
+    }
+
+    inline CR<Vec<NodeTree<N, K>>> getSubnodes() const {
+        return std::get<Vec<NodeTree<N, K>>>(content);
+    }
+
+    inline int maxTokenIndex() const {
+        if (isToken()) {
+            return getToken().index;
+        } else {
+            int result = 0;
+            for (const auto& sub : getSubnodes()) {
+                result = std::max(result, sub.maxTokenIndex());
+            }
+            return result;
+        }
+    }
+
+    inline Pair<NodeGroup<N, K>, TokenGroup<K>> flatten(Str& text) const {
+        TokenGroup<K>                  tokens;
+        NodeGroup<N, K>                nodes;
+        Func<void(CR<NodeTree<N, K>>)> aux;
+        tokens.tokens.resize(maxTokenIndex() + 1, Token<K>());
+        aux = [&](CR<NodeTree<N, K>> tree) {
+            if (tree.isToken()) {
+                auto tok   = tree.getToken();
+                auto id    = TokenId<K>(tok.index);
+                auto start = text.size();
+                text += tok.str;
+                tokens.at(id).text = text.at(
+                    slice(start, start + tok.str.size() - 1));
+                tokens.at(id).kind = tok.kind;
+                std::cout << tokens.at(id).text << std::endl;
+                nodes.token(tree.kind, id);
+            } else {
+                auto head = nodes.startTree(Node<N, K>(tree.kind));
+                for (const auto& sub : tree.getSubnodes()) {
+                    aux(sub);
+                }
+                nodes.endTree();
+            }
+        };
+
+        aux(*this);
+        return {nodes, tokens};
+    }
 };
 
 /// \brief Node adapter for more convenient access operations on the tree
