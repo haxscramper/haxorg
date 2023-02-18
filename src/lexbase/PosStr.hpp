@@ -468,7 +468,7 @@ struct PosStr {
     int getColumn() const {
         int result;
         int offset = 0;
-        while (!at('\n', offset)) {
+        while (0 <= offset && !at('\n', offset)) {
             ++result;
             --offset;
         }

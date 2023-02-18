@@ -1618,6 +1618,7 @@ void OrgTokenizer::lexList(PosStr& str) {
 }
 
 void OrgTokenizer::lexParagraph(PosStr& str) {
+    // Pick out large standalone paragraph block
     const auto indent = str.getIndent();
     auto       ended  = false;
     str.pushSlice();
@@ -1644,22 +1645,23 @@ void OrgTokenizer::lexParagraph(PosStr& str) {
         }
     }
 
-    int endOffset = -1;
+    int paragraphEndOffset = str.finished() ? 0 : -1;
     if (ended) {
         // last trailing newline and pargraph separator newline
         if (!str.finished()) {
             if (atConstructStart(str)) {
-                endOffset = -1;
+                paragraphEndOffset = -1;
             } else {
-                endOffset = -3;
+                paragraphEndOffset = -3;
             }
         } else {
-            endOffset = -2;
+            paragraphEndOffset = -2;
         }
     }
 
-    const auto slice = str.popSlice(endOffset);
-    push(Token(otk::Text, slice.view));
+    // Put it for the recursive processing
+    pushResolved(
+        str.popTok(otk::Text, PosStr::Offset(0, paragraphEndOffset)));
 }
 
 void OrgTokenizer::lexTableState(
@@ -1796,10 +1798,11 @@ void OrgTokenizer::lexStructure(PosStr& str) {
     // This procedure dispatches into toplevel lexer routines that are
     // meant to produce entries for the high-level document structure -
     // paragraphs, lists, subtrees, command blocks and so on.
-    switch (str.at(0)) {
+    std::cout << "[" << str.get(0) << "]" << std::endl;
+    switch (str.get(0)) {
         case '\x00': break;
         case '#': {
-            switch (str.at(1)) {
+            switch (str.get(1)) {
                 case '+': {
                     if (str.at("#+begin-table")
                         || str.at("#+begin_table")) {
@@ -1814,7 +1817,7 @@ void OrgTokenizer::lexStructure(PosStr& str) {
                     break;
                 }
                 default: {
-                    if (charsets::IdentChars.contains(str.at(1))) {
+                    if (charsets::IdentChars.contains(str.get(1))) {
                         lexParagraph(str);
                         break;
                     } else {
@@ -1832,6 +1835,7 @@ void OrgTokenizer::lexStructure(PosStr& str) {
             // either subtree or a unordered list.
             bool hasSpace = str.at(CharSet{'*'}, 0)
                          && str.at(CharSet{' '}, 1);
+
             if (str.getColumn() == 0) {
                 if (hasSpace) {
                     // `*bold*` world at the start of the paragraph
@@ -1874,7 +1878,7 @@ void OrgTokenizer::lexStructure(PosStr& str) {
 
         default: {
             if ((charsets::MaybeLetters + CharSet{'~', '['})
-                    .contains(str.at(0))) {
+                    .contains(str.get(0))) {
                 lexParagraph(str);
             } else {
                 // Text starts with inline or display latex math equation,
@@ -1882,5 +1886,64 @@ void OrgTokenizer::lexStructure(PosStr& str) {
                 lexParagraph(str);
             }
         }
+    }
+}
+
+void OrgTokenizer::pushResolved(CR<OrgToken> token) {
+    auto str = PosStr(token.text);
+    switch (token.kind) {
+        case otk::Text: {
+            push(str.fakeTok(otk::ParagraphStart));
+            while (!str.finished()) {
+                lexText(str);
+            }
+            push(str.fakeTok(otk::ParagraphEnd));
+            break;
+        }
+
+        case otk::RawLogbook: {
+            auto str = PosStr(token.text);
+            push(str.fakeTok(otk::LogbookStart));
+            while (!str.finished()) {
+                if (atLogClock(str)) {
+                    push(str.tok(otk::Text, skipToEOL));
+                    if (str.at(charsets::Newline)) {
+                        str.next();
+                        if (!atLogClock(str)) {
+                            str.space();
+                        }
+                    }
+                } else {
+                    lexList(str);
+                }
+            }
+            push(str.fakeTok(otk::LogbookEnd));
+            break;
+        }
+
+        case otk::Content: {
+            push(str.fakeTok(otk::ContentStart));
+            lexGlobal(str);
+            push(str.fakeTok(otk::ContentEnd));
+            break;
+        }
+
+        case otk::StmtList: {
+            push(str.fakeTok(otk::StmtListOpen));
+            lexGlobal(str);
+            push(str.fakeTok(otk::StmtListClose));
+            break;
+        }
+
+        default: {
+            push(token);
+            break;
+        }
+    }
+}
+
+void OrgTokenizer::lexGlobal(PosStr& str) {
+    while (!str.finished()) {
+        lexStructure(str);
     }
 }

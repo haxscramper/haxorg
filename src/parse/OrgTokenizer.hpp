@@ -20,6 +20,16 @@ OrgCommandKind classifyCommand(std::string const& command);
 struct OrgTokenizer : public Tokenizer<OrgTokenKind> {
     OrgTokenizer(OrgTokenGroup* out) : Tokenizer<OrgTokenKind>(out) {}
 
+    /// Push complex token into recursive processing pipeline. Used for
+    /// table content (which might contain more blocks of texts, some
+    /// paragraph elements, more content etc), regular `Text` token
+    /// (contained in a lot of places, first picked out from the
+    /// 'surrounding' and then re-lexed again (the best example where this
+    /// might be needed is `#+title:` followed by regular paragraph, but
+    /// things like link descriptions might contain nested paragraphs as
+    /// well))
+    void pushResolved(CR<OrgToken> token);
+
     void lexAngle(PosStr& str);
 
     void lexTime(PosStr& str);
@@ -199,6 +209,11 @@ indentation of the original list prefix -- dash, number or letter.
     void lexList(PosStr& str);
 
     void lexParagraph(PosStr& str);
+    void lexParagraphExpand(PosStr& str);
+    void lexLogbookExpand(PosStr& str);
+    void lexContentExpand(PosStr& str);
+    void lexStmtListExpand(PosStr& str);
+
 
     void lexComment(PosStr& str) {
         push(str.tok(OrgTokenKind::Comment, skipToEOL));
@@ -207,4 +222,5 @@ indentation of the original list prefix -- dash, number or letter.
     void lexTableState(PosStr& str, LexerState<OrgBlockLexerState>& state);
     void lexTable(PosStr& str);
     void lexStructure(PosStr& str);
+    void lexGlobal(PosStr& str);
 };
