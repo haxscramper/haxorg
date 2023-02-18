@@ -33,7 +33,17 @@ OrgId OrgParser::parseRawUrl(OrgLexer& lex) {
     token(org::RawLink, lex.pop(otk::RawUrl));
 }
 
-OrgId OrgParser::parseText(OrgLexer& lex) { assert(false && "TODO"); }
+void OrgParser::parseTextFoldPass(OrgLexer& lex) {}
+
+void OrgParser::parseTextRecursiveFold(Slice<OrgId> range) {}
+
+Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
+    OrgId first = back();
+    parseTextFoldPass(lex);
+    OrgId last = back();
+    parseTextRecursiveFold(slice(first, last));
+    return slice(first, last);
+}
 
 OrgId OrgParser::parseLink(OrgLexer& lex) {
     start(org::Link);
@@ -166,7 +176,7 @@ OrgId OrgParser::parseTime(OrgLexer& lex) {
     }
 }
 
-void OrgParser::parseIdent(OrgLexer& lex) {}
+OrgId OrgParser::parseIdent(OrgLexer& lex) { assert(false); }
 
 OrgId OrgParser::parseSrcInline(OrgLexer& lex) {
     start(org::SrcInlineCode);
@@ -288,8 +298,23 @@ OrgId OrgParser::parseTable(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
-    assert(false && "TODO");
+    Vec<OrgTokenId> paragraphTokens = lex.getInside(
+        IntSet<OrgTokenKind>{otk::ParagraphStart},
+        IntSet<OrgTokenKind>{otk::ParagraphEnd});
+
+    SubLexer<OrgTokenKind> sub   = splinter(lex, paragraphTokens);
+    auto                   nodes = parseText(sub);
 }
+
+OrgId OrgParser::parseInlineParagraph(OrgLexer& lex) {
+    return parseParagraph(lex, false);
+}
+
+
+OrgId OrgParser::parseTopParagraph(OrgLexer& lex) {
+    return parseParagraph(lex, false);
+}
+
 
 OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
     start(org::InlineStmtList);
@@ -677,7 +702,7 @@ OrgId OrgParser::parseLogbookListEntry(OrgLexer& lex) {
     return end();
 }
 
-void OrgParser::parseLogbook(OrgLexer& lex) {
+OrgId OrgParser::parseLogbook(OrgLexer& lex) {
     start(org::Logbook);
     lex.skip(otk::ColonLogbook);
     lex.skip(otk::LogbookStart);
@@ -714,6 +739,7 @@ void OrgParser::parseLogbook(OrgLexer& lex) {
     lex.skip(otk::ListEnd);
     lex.skip(otk::LogbookEnd);
     lex.skip(otk::ColonEnd);
+    return end();
 }
 
 OrgId OrgParser::parseDrawer(OrgLexer& lex) {

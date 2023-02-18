@@ -16,17 +16,66 @@
     { Str(#name), &OrgTokenizer::lex##name }
 
 const UnorderedMap<Str, MockFull::LexerMethod> lexers({
+    CB(Angle),
+    CB(Time),
+    CB(LinkTarget),
+    CB(Bracket),
+    CB(TextChars),
+    CB(ParenArguments),
     CB(Text),
+    CB(Logbook),
+    CB(Properties),
+    CB(Description),
+    CB(Drawer),
+    CB(SubtreeTodo),
+    CB(SubtreeUrgency),
+    CB(SubtreeTitle),
+    CB(SubtreeTimes),
+    CB(Subtree),
+    CB(SourceBlockContent),
+    CB(CommandBlock),
     CB(List),
     CB(Paragraph),
+    CB(Comment),
+    CB(Table),
+    CB(Structure),
 });
 #undef CB
 
 #define CB(name)                                                          \
     { Str(#name), &OrgParser::parse##name }
-const UnorderedMap<Str, MockFull::ParserMethod> parsers{
+const UnorderedMap<Str, MockFull::ParserMethod> parsers({
     CB(HashTag),
-};
+    CB(CSVArguments),
+    CB(Macro),
+    CB(RawUrl),
+    CB(Link),
+    CB(InlineMath),
+    CB(Symbol),
+    CB(HashTag),
+    CB(Time),
+    CB(Ident),
+    CB(SrcInline),
+    CB(Table),
+    CB(CommandArguments),
+    CB(SrcArguments),
+    CB(Src),
+    CB(ListItemBody),
+    CB(ListItem),
+    CB(TopParagraph),
+    CB(InlineParagraph),
+    CB(NestedList),
+    CB(List),
+    CB(LogbookClockEntry),
+    CB(LogbookListEntry),
+    CB(Logbook),
+    CB(Drawer),
+    CB(Subtree),
+    CB(OrgFile),
+    CB(LineCommand),
+    CB(ToplevelItem),
+    CB(Top),
+});
 #undef CB
 
 
@@ -64,7 +113,9 @@ void runSpec(CR<YAML::Node> group) {
         MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
 
         MockFull p;
-        p.run(spec.source, lexCb, parseCb);
+        p.tokenize(spec.source, lexCb);
+        std::cout << "\n---\n" << p.tokens << std::endl;
+        p.parse(parseCb);
 
         // p.treeRepr();
         // p.yamlRepr();

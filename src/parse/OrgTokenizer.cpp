@@ -681,8 +681,7 @@ void OrgTokenizer::lexText(PosStr& str) {
     }
 }
 
-void OrgTokenizer::lexProperties(const PosStr& id, PosStr& str) {
-    push(Token(otk::ColonProperties, id.view));
+void OrgTokenizer::lexProperties(PosStr& str) {
     auto hasEnd = false;
     while (!str.finished() && !hasEnd) {
         str.space();
@@ -719,8 +718,7 @@ void OrgTokenizer::lexProperties(const PosStr& id, PosStr& str) {
     }
 }
 
-void OrgTokenizer::lexDescription(const PosStr& id, PosStr& str) {
-    push(Token(otk::ColonDescription, id.view));
+void OrgTokenizer::lexDescription(PosStr& str) {
     str.pushSlice();
     auto hasEnd = false;
     while (!str.finished() && !hasEnd) {
@@ -738,8 +736,7 @@ void OrgTokenizer::lexDescription(const PosStr& id, PosStr& str) {
     }
 }
 
-void OrgTokenizer::lexLogbook(const PosStr& id, PosStr& str) {
-    push(Token(otk::ColonLogbook, id.view));
+void OrgTokenizer::lexLogbook(PosStr& str) {
     str.pushSlice();
     auto hasEnd = false;
     while (!str.finished() && !hasEnd) {
@@ -773,11 +770,14 @@ void OrgTokenizer::lexDrawer(PosStr& str) {
         str.skip('\n');
         const Str norm = normalize(id.toStr());
         if (norm == ":properties:") {
-            lexProperties(id, str);
+            push(Token(otk::ColonProperties, id.view));
+            lexProperties(str);
         } else if (norm == ":logbook:") {
-            lexLogbook(id, str);
+            push(Token(otk::ColonLogbook, id.view));
+            lexLogbook(str);
         } else if (norm == ":description:") {
-            lexDescription(id, str);
+            push(Token(otk::ColonDescription, id.view));
+            lexDescription(str);
         } else {
             assert(false && "FIXME IMPLEMENT");
             // throw newImplementKindError(norm, toStr(str));
@@ -1384,8 +1384,8 @@ bool OrgTokenizer::atConstructStart(PosStr& str) {
     return result;
 }
 
-void OrgTokenizer::skipIndents(HsLexerStateSimple& state, PosStr& str) {
-    using LK           = HsLexerStateSimple::LexerIndentKind;
+void OrgTokenizer::skipIndents(LexerStateSimple& state, PosStr& str) {
+    using LK           = LexerStateSimple::LexerIndentKind;
     const auto skipped = state.skipIndent(str);
     for (const auto indent : skipped) {
         switch (indent) {
@@ -1488,9 +1488,9 @@ bool OrgTokenizer::listAhead(PosStr& str) {
 }
 
 void OrgTokenizer::lexListItem(
-    PosStr&             str,
-    const int&          indent,
-    HsLexerStateSimple& state) {
+    PosStr&           str,
+    const int&        indent,
+    LexerStateSimple& state) {
     if (str.at("\\[[Xx - ]\\]")) {
         push(str.tok(otk::Checkbox, [](PosStr& str) {
             str.skip('[');
@@ -1570,7 +1570,7 @@ void OrgTokenizer::lexListItem(
     push(str.fakeTok(otk::ListItemEnd));
 }
 
-void OrgTokenizer::lexListItems(PosStr& str, HsLexerStateSimple& state) {
+void OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
     assert(!str.at('\n'));
     while (listAhead(str) || atLogClock(str)) {
         assert(!str.at('\n'));
@@ -1600,7 +1600,7 @@ void OrgTokenizer::lexListItems(PosStr& str, HsLexerStateSimple& state) {
 }
 
 void OrgTokenizer::lexList(PosStr& str) {
-    auto state = HsLexerStateSimple();
+    auto state = LexerStateSimple();
     push(str.fakeTok(otk::ListStart));
     Vec<OrgToken> tokens;
     setBuffer(&tokens);
@@ -1660,4 +1660,227 @@ void OrgTokenizer::lexParagraph(PosStr& str) {
 
     const auto slice = str.popSlice(endOffset);
     push(Token(otk::Text, slice.view));
+}
+
+void OrgTokenizer::lexTableState(
+    PosStr&                         str,
+    LexerState<OrgBlockLexerState>& state) {
+    switch (str.at(0)) {
+        case '#': {
+            auto pos        = str.getPos();
+            bool isTableCmd = true;
+            str.next();
+            if (str.at('+')) {
+                str.skip('+');
+                auto tmp = str.tok(
+                    otk::TableBegin, skipOneOrMore, OCommandChars);
+                auto kind = classifyCommand(tmp.strVal());
+                switch (kind) {
+                    case ock::BeginTable:
+                        tmp.kind = otk::TableBegin;
+                        break;
+                    case ock::Row: tmp.kind = otk::RowSpec; break;
+                    case ock::Cell: tmp.kind = otk::CellSpec; break;
+                    case ock::EndTable: tmp.kind = otk::TableEnd; break;
+                    default: isTableCmd = false; break;
+                }
+                if (isTableCmd) {
+                    state.toFlag(OrgBlockLexerState::InHeader);
+                    str.space();
+                    if (!str.finished()) {
+                        if (at(back()).kind == otk::TableEnd) {
+                            state.toFlag(OrgBlockLexerState::Complete);
+                        } else {
+                            push(str.tok(otk::CmdArguments, skipTo, '\n'));
+                            if (!str.finished()) {
+                                str.skip('\n');
+                                state.toFlag(OrgBlockLexerState::InBody);
+                            }
+                        }
+                    }
+                } else {
+                    str.setPos(pos);
+                    push(str.tok(otk::Content, skipPastEOL));
+                }
+                break;
+            }
+        }
+        case '|': {
+            auto pos = str.getPos();
+            str.skipBeforeEOL();
+            if (str.at('|')) {
+                str.setPos(pos);
+                bool first = true;
+                while (!str.finished() && str.at('|')) {
+                    push(str.tok(
+                        first ? otk::PipeOpen : otk::PipeSeparator,
+                        skipOne,
+                        '|'));
+
+                    first = false;
+                    str.space();
+                    if (!str.finished() && !str.at('\n')) {
+                        push(str.tok(otk::Content, [](PosStr& str) {
+                            str.skipBefore(CharSet{'|', '\n'});
+                            if (str.at(' ')) {
+                                while (str.at(' ')) {
+                                    str.back();
+                                }
+                                if (!str.at(' ')) {
+                                    str.next();
+                                }
+                            } else {
+                                str.next();
+                            }
+                        }));
+
+                        str.space();
+                    }
+                }
+
+                push(str.fakeTok(otk::PipeClose));
+            } else {
+                str.setPos(pos);
+                push(str.tok(otk::PipeCellOpen, skipOne, '|'));
+                str.space();
+                push(str.tok(otk::Content, skipToEOL));
+                if (!str.finished()) {
+                    str.skip('\n');
+                }
+            }
+            break;
+        }
+        case '\n': {
+            str.next();
+            lexTableState(str, state);
+            break;
+        }
+        default: {
+            if (state.topFlag() == OrgBlockLexerState::InHeader) {
+                push(str.tok(otk::CmdArguments, skipPastEOL));
+            } else {
+                push(str.tok(otk::Content, [](PosStr& str) {
+                    while (!str.finished() && !str.at(CharSet{'|', '#'})) {
+                        str.skipPastEOL();
+                    }
+                    if (!str.finished()) {
+                        str.back();
+                    }
+                }));
+
+                if (!str.finished()) {
+                    str.next();
+                }
+            }
+        }
+    }
+}
+
+void OrgTokenizer::lexTable(PosStr& str) {
+    OrgTokenizer::LexerState<OrgBlockLexerState> state;
+    state.lift(OrgBlockLexerState::None);
+
+    while (!str.finished()
+           && !(state.topFlag() == OrgBlockLexerState::Complete)) {
+        lexTableState(str, state);
+    }
+
+    if (state.topFlag() == OrgBlockLexerState::Complete) {
+        if (str.at(charsets::Newline)) {
+            str.next();
+        }
+    }
+}
+
+void OrgTokenizer::lexStructure(PosStr& str) {
+    // This procedure dispatches into toplevel lexer routines that are
+    // meant to produce entries for the high-level document structure -
+    // paragraphs, lists, subtrees, command blocks and so on.
+    switch (str.at(0)) {
+        case '\x00': break;
+        case '#': {
+            switch (str.at(1)) {
+                case '+': {
+                    if (str.at("#+begin-table")
+                        || str.at("#+begin_table")) {
+                        lexTable(str);
+                    } else {
+                        lexCommandBlock(str);
+                    }
+                    break;
+                }
+                case ' ': { // `# some text`
+                    lexComment(str);
+                    break;
+                }
+                default: {
+                    if (charsets::IdentChars.contains(str.at(1))) {
+                        lexParagraph(str);
+                        break;
+                    } else {
+                        assert(false);
+                        // throw newImplementError(str);
+                    }
+                }
+            }
+            break;
+        }
+
+        case '*': {
+            // No whitespace between a start and a character means it
+            // is a bold word, otherwise it is a structural element -
+            // either subtree or a unordered list.
+            bool hasSpace = str.at(CharSet{'*'}, 0)
+                         && str.at(CharSet{' '}, 1);
+            if (str.getColumn() == 0) {
+                if (hasSpace) {
+                    // `*bold*` world at the start of the paragraph
+                    lexSubtree(str);
+                } else {
+                    // `* subtree` starting on the first line
+                    lexParagraph(str);
+                }
+            } else {
+                if (hasSpace) {
+                    // `__* list item` on a line
+                    lexList(str);
+                } else {
+                    lexParagraph(str);
+                }
+            }
+            break;
+        }
+
+        case '-': {
+            if (atConstructStart(str)) {
+                push(str.tok(otk::TextSeparator, skipOneOrMore, '-'));
+                str.skip('\n');
+            } else {
+                lexList(str);
+            }
+            break;
+        }
+
+        case '\n':
+        case ' ': {
+            if (listAhead(str)) {
+                lexList(str);
+            } else {
+                str.skipZeroOrMore(CharSet{' ', '\n'});
+                lexStructure(str);
+            }
+            break;
+        }
+
+        default: {
+            if ((charsets::MaybeLetters + CharSet{'~', '['})
+                    .contains(str.at(0))) {
+                lexParagraph(str);
+            } else {
+                // Text starts with inline or display latex math equation,
+                // `\symbol`, macro call or any other type of the text.
+                lexParagraph(str);
+            }
+        }
+    }
 }

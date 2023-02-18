@@ -129,6 +129,10 @@ class Vec : public std::vector<T> {
         return this->at(this->size() - idx.value);
     }
 
+    T const& at(BackwardsIndex idx) const {
+        return this->at(this->size() - idx.value);
+    }
+
     T pop_back_v() {
         auto result = back();
         pop_back();

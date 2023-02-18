@@ -11,6 +11,7 @@ struct OrgParser {
     inline OrgParser(OrgNodeGroup* _group) : group(_group) {}
 
 
+    inline OrgId back() const { return group->nodes.back(); }
     inline void  start(OrgNodeKind kind) { (void)group->startTree(kind); }
     inline OrgId end() { return group->endTree(); }
     inline OrgId empty() { return token(OrgNode(OrgNodeKind::Empty)); }
@@ -30,7 +31,17 @@ struct OrgParser {
 
     OrgId parseRawUrl(OrgLexer& lex);
 
-    OrgId parseText(OrgLexer& lex);
+    Slice<OrgId> parseText(OrgLexer& lex);
+
+    /// First pass of the text processing pass. Fold all known text
+    /// structures into larger nodes, convert opening markup tokens into
+    /// `XOpen` and `XClose` nodes.
+    void parseTextFoldPass(OrgLexer& lex);
+
+    /// Recursively fold text block in the specified range, updating nested
+    /// markup nodes and converting `XOpen/XClose` elements to `X/Empty`
+    /// nodes as needed.
+    void parseTextRecursiveFold(Slice<OrgId> range);
 
     OrgId parseLink(OrgLexer& lex);
 
@@ -42,13 +53,15 @@ struct OrgParser {
 
     OrgId parseTime(OrgLexer& lex);
 
-    void parseIdent(OrgLexer& lex);
+    OrgId parseIdent(OrgLexer& lex);
 
     OrgId parseSrcInline(OrgLexer& lex);
 
     OrgId parseTable(OrgLexer& lex);
 
     OrgId parseParagraph(OrgLexer& lex, bool onToplevel);
+    OrgId parseTopParagraph(OrgLexer& lex);
+    OrgId parseInlineParagraph(OrgLexer& lex);
 
     OrgId parseCommandArguments(OrgLexer& lex);
 
@@ -70,7 +83,7 @@ struct OrgParser {
 
     OrgId parseLogbookListEntry(OrgLexer& lex);
 
-    void parseLogbook(OrgLexer& lex);
+    OrgId parseLogbook(OrgLexer& lex);
 
     OrgId parseDrawer(OrgLexer& lex);
 

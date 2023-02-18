@@ -172,7 +172,10 @@ struct Tokenizer {
     /// \brief Set new active buffer pointer
     void setBuffer(Vec<Token<K>>* _buffer) { buffer = _buffer; }
     void clearBuffer() { buffer = nullptr; }
-
+    /// \brief Get reference to token with specified ID
+    Token<K>& at(TokenId<K> id) { return out->at(id); }
+    /// \brief Get ID of the last token
+    TokenId<K> back() const { return out->tokens.back(); }
 
     /// \name Add new token element to the list
     ///

@@ -2,27 +2,26 @@
 
 enum class OrgHorizontalDirection : short int
 {
-    ohdNone,   /*! No specific positioning requirements */
-    ohdLeft,   /*! Align to the left */
-    ohdRight,  /*! Align to the right */
-    ohdCenter, /*! Align to the center */
+    ohdNone,   ///  No specific positioning requirements
+    ohdLeft,   ///  Align to the left
+    ohdRight,  ///  Align to the right
+    ohdCenter, ///  Align to the center
 };
 
 enum class OrgVerticalDirection : short int
 {
-    ovdNone,   /*! No specific positioning */
-    ovdTop,    /*! Align to the top */
-    ovdCenter, /*! Center */
-    ovdBottom, /*! Bottom */
+    ovdNone,   ///  No specific positioning
+    ovdTop,    ///  Align to the top
+    ovdCenter, ///  Center
+    ovdBottom, ///  Bottom
 };
-
 
 enum class OrgNodeKind : short int
 {
-    None,     /*!Default valye for node - invalid state */
+    None,     /// Default valye for node - invalid state
     Document, /*!Toplevel part of the ast, not created by parser, and
                         only used in `semorg` stage */
-    UserNode, /*!User-defined node [[code:OrgUserNode]] */
+    UserNode, /// User-defined node [[code:OrgUserNode]]
     Empty,    /*!Empty node - valid state that does not contain any value
                */
     Error,    /*!Failed node parse - technically there are no /wrong/
@@ -47,23 +46,15 @@ enum class OrgNodeKind : short int
     /*!Associated list of statements - AST elements like
 commands and links are grouped together if placed on adjacent lines
 */
-    Subtree,
-    /*!Section subtree
-     */
-    SubtreeTimes,
-    /*!Time? associated with subtree entry
-     */
+    Subtree,      /// Section subtree
+    SubtreeTimes, /// Time? associated with subtree entry
     SubtreeStars,
     Completion, /*!Task compleation cookie, indicated either in percents
     of completion, or as `<done>/<todo>` ratio.
     */
-    Checkbox,
-    /*!Single checkbox item like `[X]` or `[-]`
-     */
+    Checkbox,   /// Single checkbox item like `[X]` or `[-]`
     List,
-    Bullet,
-    /*!List item prefix
-     */
+    Bullet, /// List item prefix
     ListItem,
     ListTag, /*!Auxilliary wrapper for the paragraph placed at the start
     of the description list.
@@ -89,47 +80,29 @@ used for handling mutually recursive DSLs such as
 tables, which might include lists, which in turn might
 contain more tables in different bullet points.
 */
-    Command,
-    /*!Single-line command
-     */
-    CommandTitle,
-    /*!`#+title:` - full document title
-     */
-    CommandAuthor,
-    /*!`#+author:` Document author
-     */
-    CommandCreator,
-    /*!`#+creator:` Document creator
-     */
+    Command,        /// Single-line command
+    CommandTitle,   /// `#+title:` - full document title
+    CommandAuthor,  /// `#+author:` Document author
+    CommandCreator, /// `#+creator:` Document creator
     CommandInclude,
     /*!`#+include:` - include other org-mode document (or
 subsection of it), source code or backend-specific
 chunk.
 */
-    CommandLanguage,
-    /*!`#+language:`
-     */
-    CommandAttrHtml,
-    /*!`#+attr_html:`
-     */
-    CommandName,
-    /*!`#+name:` - name of the associated entry
-     */
+    CommandLanguage, /// `#+language:`
+    CommandAttrHtml, /// `#+attr_html:`
+    CommandName,     /// `#+name:` - name of the associated entry
     CommandHeader,
     /*!`#+header:` - extended list of parameters passed to
 associated block
 */
-    CommandOptions,
-    /*!`#+options:` - document-wide formatting options
-     */
+    CommandOptions, /// `#+options:` - document-wide formatting options
     CommandBackendOptions,
     /*!Backend-specific configuration options like
 `#+latex_header`, `#+latex_class` etc.
 */
     AttrImg,
-    CommandCaption,
-    /*!`#+caption:` command
-     */
+    CommandCaption, /// `#+caption:` command
     File,
     ExportCommand,
     MultilineCommand,
@@ -138,9 +111,7 @@ equation, large block of passthrough code. Some built-in org-mode
 commands do not requires `#+begin` prefix, (such as `#+quote` or
 `#+example`) are represented by this type of block as well.
 */
-    Result,
-    /*!Command evaluation result
-     */
+    Result, /// Command evaluation result
     Ident,
     /*!regular identifier - `alnum + [-_]` characters for
 punctuation. Identifiers are compared and parsed in
@@ -164,26 +135,14 @@ a part of `orgMultilineCommand` (in case of `#+begin-src`), but not
 necessarily. Can also be a part of =quote= and =example= multiline
 blocks.
 */
-    CodeLine,
-    /*!Single line of source code
-     */
-    CodeText,
-    /*!Block of source code text
-     */
-    CodeTangle,
-    /*!Single tangle target in the code block
-     */
-    CodeCallout,
-    /*!`(refs:` callout in the source code
-     */
-    QuoteBlock,
-    /*!`#+quote:` block in code
-     */
+    CodeLine,    /// Single line of source code
+    CodeText,    /// Block of source code text
+    CodeTangle,  /// Single tangle target in the code block
+    CodeCallout, /// `(refs:` callout in the source code
+    QuoteBlock,  /// `#+quote:` block in code
     AdmonitionBlock,
     CenterBlock,
-    Example,
-    /*!Verbatim example text block
-     */
+    Example, /// Verbatim example text block
     SrcCode,
     /*!Block of source code - can be multiline, single-line and
 
@@ -203,9 +162,7 @@ single-line.
 Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax
 respectively
 */
-    CmdArguments,
-    /*!Command arguments
-     */
+    CmdArguments, /// Command arguments
     CmdFlag,
     /*!Flag for source code block. For example `-n`, which is
 used to to make source code block export with lines
@@ -221,21 +178,32 @@ Default org-mode only allows single character for contents inside of
 `[]`, but this parser makes it possible to use any regular
 identifier, such as `[#urgent]`.
 */
-    TextSeparator,
-    /*!Long horizontal line `----`
-     */
+    TextSeparator, /// Long horizontal line `----`
     Paragraph,
     /*!Single 'paragraph' of text. Used as generic container
 for any place in AST where unordered sentence might be encountered -
 not limited to actual paragraph
 */
+    /// Annotated paragraph -- a wrapper around a regular paragraph kind
+    /// with added admonition, footnote, list tag prefix and similar types.
+    /// `[fn:ID] Some Text` is an annotated paragraph, just like `NOTE:
+    /// Text` or `- Prefix :: Body` (in this case list header is an
+    /// annotated paragraph)
     AnnotatedParagraph,
-    /*!Annotated paragraph -- a wrapper around a
-regular paragraph kind with added admonition, footnote, list tag
-prefix and similar types. `[fn:ID] Some Text` is an annotated
-paragraph, just like `NOTE: Text` or `- Prefix :: Body` (in this
-case list header is an annotated paragraph)
-*/
+
+
+    ///@{
+    ///
+    /// Region of text with formatting, which contains standalone words -
+    /// can itself contain subnodes, which allows to represent nested
+    /// formatting regions, such as `*bold /italic/*` text. Particular type
+    /// of identifier is stored in string form in `str` field for `OrgNode`
+    /// -- bold is represented as `"*"`, italic as `/` and so on. In case
+    /// of explicit open/close pairs only opening one is stored.
+    ///
+    /// NOTE: when structured sentences are enabled, regular punctuation
+    /// elements like `some text (notes)` are also represented as `Word,
+    /// Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.
     Bold,
     Italic,
     Verbatim,
@@ -245,19 +213,36 @@ case list header is an annotated paragraph)
     Quote,
     Angle,
     Monospace,
-    /*!
-@multidoc{} Region of text with formatting, which contains standalone
-words - can itself contain subnodes, which allows to represent
-nested formatting regions, such as `*bold /italic/*` text.
-Particular type of identifier is stored in string form in `str`
-field for `OrgNode` - bold is represented as `"*"`, italic as `/`
-and so on. In case of explicit open/close pairs only opening one is
-stored.
 
-NOTE: when structured sentences are enabled, regular punctuation
-elements like `some text (notes)` are also represented as `Word,
-Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.
-*/
+    ///@{
+    /// Incomplete opening nodes generated in the starting passes. Might be
+    /// converted to complete versions.
+    BoldOpen,
+    ItalicOpen,
+    VerbatimOpen,
+    BacktickOpen,
+    UnderlineOpen,
+    StrikeOpen,
+    QuoteOpen,
+    AngleOpen,
+    MonospaceOpen,
+    ///@}
+
+    ///@{
+    /// Incomplete closing nodes generated in the starting passes of the
+    /// text parsing
+    BoldClose,
+    ItalicClose,
+    VerbatimClose,
+    BacktickClose,
+    UnderlineClose,
+    StrikeClose,
+    QuoteClose,
+    AngleClose,
+    MonospaceClose,
+    ///@}
+    ///@}
+
     InlineMath,
     /*!Inline latex math. Contains latex math body - either
 from `$dollar-wrapped$` or `\(paren-wrapped\)` inline text.
@@ -266,22 +251,16 @@ from `$dollar-wrapped$` or `\(paren-wrapped\)` inline text.
     /*!Inline display latex math from `$$double-dollar$$` or
 `\[bracket-wrapped\]` code.
 */
-    Space,
-    /*!Space or tab character in regular text
-     */
+    Space, /// Space or tab character in regular text
     Punctuation,
     Word,
     /*!Regular word - technically not different from `orgIdent`,
 but defined separately to disiguish between places where special
 syntax is required and free-form text.
 */
-    Escaped,
-    /*!Escaped formatting character in the text
-     */
+    Escaped, /// Escaped formatting character in the text
     Newline,
-    RawLink,
-    /*!Raw unwrapped link that was pasted in text
-     */
+    RawLink, /// Raw unwrapped link that was pasted in text
     Link,
     /*!External or internal link. Consists of one or two elements -
 target (url, file location etc.) and description (`orgParagraph` of
@@ -322,12 +301,8 @@ contains `orgRawText` that can be parsed later
     /*!Result of the time range evaluation or trailing
 annotation a subtree
 */
-    Details,
-    /*!`#+begin_details`  section
-     */
-    Summary,
-    /*!`#+begin_summary` section
-     */
+    Details, /// `#+begin_details`  section
+    Summary, /// `#+begin_summary` section
     Table,
     /*!Org-mode table. Tables can be writtein in different
 formats, but in the end they are all represented using single ast
@@ -336,9 +311,7 @@ exactly `orgTableRow` - sometimes additional property metadata might
 be used, making AST like `Table[AssocStmtList[Command[_],
 TableRow[_]]]` possible
 */
-    TableRow,
-    /*!Horizontal table row
-     */
+    TableRow, /// Horizontal table row
     TableCell,
     /*!Single cell in row. Might contain anyting, including
 other tables, simple text paragraph etc.
@@ -356,9 +329,7 @@ node.
     /*!Horizotal rule. Rule body might contain other
 subnodes, to represnt `---- some text ----` kind of formatting.
 */
-    Filetags,
-    /*!`#+filetags:` line command
-     */
+    Filetags, /// `#+filetags:` line command
     OrgTag,
     /*!Original format of org-mode tags in form of `:tagname:`.
 Might contain one or mode identifgiers, but does not provide support
@@ -373,12 +344,8 @@ additional extension. Can be placed anywere in the document
 (including section headers), but does not have separate place in AST
 (e.g. considered regular part of the text)
 */
-    MetaSymbol,
-    /*!`\sym{}` with explicit arguments
-     */
-    AtMention,
-    /*!`@user`
-     */
+    MetaSymbol, /// `\sym{}` with explicit arguments
+    AtMention,  /// `@user`
     BracTag,
     /*!Custom extension to org-mode. Similarly to `BigIdent`
 used to have something like informal keywords `MUST`, `OPTIONAL`,
@@ -408,30 +375,15 @@ the org-mode clock table visualization on per-file basis.
     /*!Placeholder entry in text, usually writte like `<text
 to replace>`
 */
-    SubtreeDescription,
-    /*!`:description:` entry
-     */
-    Logbook,
-    /*!`:logbook:` entry storing note information
-     */
-    LogbookStateChange,
-    /*!Annotation about change in the subtree todo state
-     */
-    LogbookNote,
-    /*!Timestamped log note on the subtree
-     */
-    LogbookClock,
-    /*!`CLOCK` entry in the subtree
-     */
-    LogbookRefile,
-    /*!`Refile` entry in the subtree logbook drawer
-     */
-    RadioTarget,
-    /*!`<<<RADIO>>>`
-     */
-    Target,
-    /*!`<<TARGET>>`
-     */
+    SubtreeDescription, /// `:description:` entry
+    Logbook,            /// `:logbook:` entry storing note information
+    LogbookStateChange, /// Annotation about change in the subtree todo
+                        /// state
+    LogbookNote,        /// Timestamped log note on the subtree
+    LogbookClock,       /// `CLOCK` entry in the subtree
+    LogbookRefile,      /// `Refile` entry in the subtree logbook drawer
+    RadioTarget,        /// `<<<RADIO>>>`
+    Target,             /// `<<TARGET>>`
 
     __LAST
 };
@@ -583,62 +535,25 @@ to real condition, `THEN` to the body and so on).
 
 enum class OrgMetaTagKind
 {
-    smtArg,
-    /*!Procedure argument
-     */
-    smtParam,
-    /*!Generic entry parameter
-     */
-    smtRet,
-    /*!Procedure return value
-     */
-    smtEnum,
-    /*!Reference enum, enum value, or set of values.
-     */
-    smtGlobal,
-    /*!Reference to global variable or constant
-     */
-    smtAccs,
-    /*!Documented access to external state (most often
-global variable, file, or environment variable)
-*/
-    smtField,
-    /*!Entry field
-     */
-    smtCat,
-    /*!Entry category name
-     */
-    smtFile,
-    /*!Filesystem filename
-     */
-    smtDir,
-    /*!Filesystem directory
-     */
-    smtEnv,
-    /*!Environment variable
-     */
-    smtKbdChord,
-    /*!Keyboard chord (multiple key combinations)
-     */
-    smtKbdKey,
-    /*!Single keyboard key combination (key + modifiers)
-     */
-    smtOption,
-    /*!CLI option
-     */
-    smtSh,
-    /*!Execute (simple) shell command
-     */
-    smtAbbr,
-    /*!Abbreviation like CPS, CLI
-     */
-    smtInject,
-    /*!Identifier injected in scope
-     */
-    smtEDSL,
-    /*!Embedded DSL syntax description in Extended BNF
-notation
-*/
+    smtArg,      /// Procedure argument
+    smtParam,    /// Generic entry parameter
+    smtRet,      /// Procedure return value
+    smtEnum,     /// Reference enum, enum value, or set of values.
+    smtGlobal,   /// Reference to global variable or constant
+    smtAccs,     /// Documented access to external state (most often global
+                 /// variable, file, or environment variable)
+    smtField,    /// Entry field
+    smtCat,      /// Entry category name
+    smtFile,     /// Filesystem filename
+    smtDir,      /// Filesystem directory
+    smtEnv,      /// Environment variable
+    smtKbdChord, /// Keyboard chord (multiple key combinations)
+    smtKbdKey,   /// Single keyboard key combination (key + modifiers)
+    smtOption,   /// CLI option
+    smtSh,       /// Execute (simple) shell command
+    smtAbbr,     /// Abbreviation like CPS, CLI
+    smtInject,   /// Identifier injected in scope
+    smtEDSL, /// Embedded DSL syntax description in Extended BNF notation
     smtPatt,
     smtImport,
     smtUnresolved,
@@ -681,59 +596,27 @@ enum class OrgTokenKind : short int
     /*!Unlexed group of statements - used in the list content
 to enable secondary parsing.
 */
-    StmtListOpen,
-    /*!Start of the expanded statement list content
-     */
-    StmtListClose,
-    /*!End of the expanded statement list content
-     */
-    ListStart,
-    /*!Start of the list token group
-     */
-    ListDash,
-    /*!Start of the list item element
-     */
-    ListClock,
-    /*!`CLOCK:` entry at the start of the logbook entry list
-     */
+    StmtListOpen,  /// Start of the expanded statement list content
+    StmtListClose, /// End of the expanded statement list content
+    ListStart,     /// Start of the list token group
+    ListDash,      /// Start of the list item element
+    ListClock, /// `CLOCK:` entry at the start of the logbook entry list
     ListPlus,
     ListStar,
-    ListDescOpen,
-    /*!Start of the description list key,
-     */
-    ListDescClose,
-    /*!End of the description list key `::`
-     */
-    ListItemEnd,
-    /*!End of the list item
-     */
-    ListEnd,
-    /*!Complete end of the list token group
-     */
-    Checkbox,
-    /*!List or subtree checkbox
-     */
+    ListDescOpen,  /// Start of the description list key,
+    ListDescClose, /// End of the description list key `::`
+    ListItemEnd,   /// End of the list item
+    ListEnd,       /// Complete end of the list token group
+    Checkbox,      /// List or subtree checkbox
     SubtreeTodoState,
-    SubtreeUrgency,
-    /*!Subtree importance marker
-     */
-    SubtreeCompletion,
-    /*!Subtree completion marker
-     */
-    SubtreeStars,
-    /*!Subtree prefix
-     */
-    SubtreeTag,
-    /*!Subtree tag
-     */
+    SubtreeUrgency,    /// Subtree importance marker
+    SubtreeCompletion, /// Subtree completion marker
+    SubtreeStars,      /// Subtree prefix
+    SubtreeTag,        /// Subtree tag
     SubtreeTime,
     SubtreeEnd,
-    AngleTime,
-    /*!Active timestamp token
-     */
-    DiaryTime,
-    /*!Active timestamp with S-expression to check the time
-     */
+    AngleTime, /// Active timestamp token
+    DiaryTime, /// Active timestamp with S-expression to check the time
     ImplicitTime,
     /*!You can write time ranges without any additional
 formatting for subtrees that have a diary timestamps. For example,
@@ -744,96 +627,54 @@ you have a complex date predicate, but event occurs for
     /*!Time duration for the `effort` property or time
 range length evaluation
 */
-    BracketTime,
-    /*!Inactive timestamp token
-     */
+    BracketTime, /// Inactive timestamp token
     TimeDash,
     /*!Separator dash between two periods in the time range
 (`<start>--<finish.`)
 */
-    TimeArrow,
-    /*!Time range evaluation arrow `[from]--[to] =>`
-     */
-    Comment,
-    /*!line or inline comment
-     */
-    ListDoubleColon,
-    /*!Double colon between description list tag and body
-     */
-    CommandArgumentsBegin,
-    /*!List of command arguments
-     */
-    CommandArgumentsEnd,
-    /*!End of the command arguments list
-     */
+    TimeArrow,       /// Time range evaluation arrow `[from]--[to] =>`
+    Comment,         /// line or inline comment
+    ListDoubleColon, /*!Double colon between description list tag and body
+                      */
+    CommandArgumentsBegin, /// List of command arguments
+    CommandArgumentsEnd,   /// End of the command arguments list
     CommandKey,
     CommandValue,
     CommandFlag,
-    CommandBracket,
-    /*!`#+results[HASH...]`
-     */
-    ColonLiteral,
-    /*!Literal block with `:`
-     */
+    CommandBracket, /// `#+results[HASH...]`
+    ColonLiteral,   /// Literal block with `:`
     ColonIdent,
     /*!Drawer or source code block wrappers with
 colon-wrapped identifiers. `:results:`, `:end:` etc.
 */
-    ColonAddIdent,
-    /*!Add value to the existing drawer property - `:NAME+:`
-     */
-    ColonProperties,
-    /*!Start of the `:PROPERTIES:` block drawer block
-     */
-    ColonDescription,
-    /*!Start of the `:description:` drawer block
-     */
+    ColonAddIdent, /*!Add value to the existing drawer property - `:NAME+:`
+                    */
+    ColonProperties,  /// Start of the `:PROPERTIES:` block drawer block
+    ColonDescription, /// Start of the `:description:` drawer block
     ColonEnd,
     ColonLogbook,
     RawLogbook,
     LogbookStart,
     LogbookEnd,
     RawProperty,
-    Link,
-    /*!Any kind of link
-     */
+    Link, /// Any kind of link
     CommandContentStart,
     CommandContentEnd,
-    CodeContent,
-    /*!Block of code inside `#+begin_src`
-     */
-    CodeContentBegin,
-    /*!Start of the expanded code content
-     */
-    CodeContentEnd,
-    /*!End of the expanded code content
-     */
+    CodeContent,      /// Block of code inside `#+begin_src`
+    CodeContentBegin, /// Start of the expanded code content
+    CodeContentEnd,   /// End of the expanded code content
     CodeText,
     /*!Uninterrupted text span without newlines - either a
 whole line or sub subsection of it if callout or tangle elements
 were detected
 */
-    TableContent,
-    /*!Block of text inside `#+table`
-     */
-    QuoteContent,
-    /*!`#+quote` content
-     */
-    BackendPass,
-    /*!Backend-specific passthrough
-     */
-    LogBook,
-    /*!Logbook including content
-     */
-    Drawer,
-    /*!Drawer including content
-     */
-    Indent,
-    /*!Increase in indentation
-     */
-    Dedent,
-    /*!Decrease in indentation
-     */
+    TableContent, /// Block of text inside `#+table`
+    QuoteContent, /// `#+quote` content
+    BackendPass,  /// Backend-specific passthrough
+    LogBook,      /// Logbook including content
+    Drawer,       /// Drawer including content
+    Indent,       /// Increase in indentation
+    Dedent,       /// Decrease in indentation
     SameIndent,
     NoIndent,
     BoldOpen,
@@ -930,90 +771,36 @@ separate the note, otherwise is treated as standalone escaped slash.
     /*!Unparsed raw text, either as a part of paragraph or some
 embedded construction such as link address.
 */
-    InlineSrc,
-    /*!Start of an inline source code block: `src_nim[]{}`
-     */
-    InlineCall,
-    /*!Start of an inline call block: `call_name[]{}`
-     */
-    CurlyStart,
-    /*!Start of the curly section of an inline source/call
-     */
-    CurlyEnd,
-    /*!End of the curly section of an inline source/call
-     */
-    SymbolStart,
-    /*!Unquoted `\symbol` directly in the text
-     */
+    InlineSrc,   /// Start of an inline source code block: `src_nim[]{}`
+    InlineCall,  /// Start of an inline call block: `call_name[]{}`
+    CurlyStart,  /// Start of the curly section of an inline source/call
+    CurlyEnd,    /// End of the curly section of an inline source/call
+    SymbolStart, /// Unquoted `\symbol` directly in the text
     Ident,
-    DollarOpen,
-    /*!Opening dollar inline latex math
-     */
-    DollarClose,
-    /*!Closing dollar for inline latex math
-     */
-    DoubleDollarOpen,
-    /*!Opening `$` for inline latex
-     */
-    DoubleDollarClose,
-    /*!Closing `$` for inline latex
-     */
-    LatexParOpen,
-    /*!Opening `\(` for inline latex math
-     */
-    LatexParClose,
-    /*!Closing `\)` for inline latex math
-     */
-    LatexBraceOpen,
-    /*!Opening `\[` for inline display latex equation
-     */
-    LatexBraceClose,
-    /*!Closing `\]` for inline display latex equation
-     */
-    LatexInlineRaw,
-    /*!Content of the brace/par-enclosed math
-     */
-    DoubleAt,
-    /*!Inline backend passthrough `@@`
-     */
-    AtBracket,
-    /*!Inline annotation
-     */
-    AtMention,
-    /*!`@user` mention in the text
-     */
-    HashTag,
-    /*!Start of the inline hashtag `#tag`
-     */
-    HashTagSub,
-    /*!Nested hashtag separator
-     */
-    HashTagOpen,
-    /*!Start of the nested hashtag grop bracket
-     */
-    HashTagClose,
-    /*!End of the nested hashtag group separator
-     */
-    Comma,
-    /*!Comma - punctuation or a syntax element (e.g. for macro
-arguments)
-*/
-    ParOpen,
-    /*!Paren open - punctuation or a syntax element
-     */
-    ParClose,
-    /*!Paren close - punctuation or a syntax element
-     */
+    DollarOpen,        /// Opening dollar inline latex math
+    DollarClose,       /// Closing dollar for inline latex math
+    DoubleDollarOpen,  /// Opening `$` for inline latex
+    DoubleDollarClose, /// Closing `$` for inline latex
+    LatexParOpen,      /// Opening `\(` for inline latex math
+    LatexParClose,     /// Closing `\)` for inline latex math
+    LatexBraceOpen,    /// Opening `\[` for inline display latex equation
+    LatexBraceClose,   /// Closing `\]` for inline display latex equation
+    LatexInlineRaw,    /// Content of the brace/par-enclosed math
+    DoubleAt,          /// Inline backend passthrough `@@`
+    AtBracket,         /// Inline annotation
+    AtMention,         /// `@user` mention in the text
+    HashTag,           /// Start of the inline hashtag `#tag`
+    HashTagSub,        /// Nested hashtag separator
+    HashTagOpen,       /// Start of the nested hashtag grop bracket
+    HashTagClose,      /// End of the nested hashtag group separator
+    Comma,    /*!Comma - punctuation or a syntax element (e.g. for macro
+                 arguments) */
+    ParOpen,  /// Paren open - punctuation or a syntax element
+    ParClose, /// Paren close - punctuation or a syntax element
     Colon,
-    Circumflex,
-    /*!`^` possible superscript in the text
-     */
-    MacroOpen,
-    /*!Start of the macro call `{{{`
-     */
-    MacroClose,
-    /*!Close of the macro call `}}}`
-     */
+    Circumflex, /// `^` possible superscript in the text
+    MacroOpen,  /// Start of the macro call `{{{`
+    MacroClose, /// Close of the macro call `}}}`
     MetaBraceOpen,
     MetaBraceBody,
     MetaBraceClose,
@@ -1034,59 +821,29 @@ arguments)
     CmdArguments,
     TableBegin,
     TableEnd,
-    CellBody,
-    /*!Unformatted table cell body
-     */
-    RowSpec,
-    /*!`#+row` command together with parameters
-     */
-    CellSpec,
-    /*!`#+cell` command with parameters
-     */
-    Content,
-    /*!Temporary token created during initial content lexing
-     */
-    ContentStart,
-    /*!Start of the table cell content section
-     */
-    ContentEnd,
-    /*!End of the table cell content section
-     */
+    CellBody,     /// Unformatted table cell body
+    RowSpec,      /// `#+row` command together with parameters
+    CellSpec,     /// `#+cell` command with parameters
+    Content,      /// Temporary token created during initial content lexing
+    ContentStart, /// Start of the table cell content section
+    ContentEnd,   /// End of the table cell content section
     PipeOpen,
-    PipeSeparator,
-    /*!Vertical pipe (`|`) cell separator
-     */
+    PipeSeparator, /// Vertical pipe (`|`) cell separator
     PipeClose,
     PipeCellOpen,
-    DashSeparator,
-    /*!Horizontal dash (`---`, `:---`, `---:` or `:---:`)
-row separator
-*/
-    CornerPlus,
-    /*!Corner plus (`+`)
-     */
+    DashSeparator, /*!Horizontal dash (`---`, `:---`, `---:` or `:---:`)
+                      row separator */
+    CornerPlus,    /// Corner plus (`+`)
     Command,
     CommandArgs,
     Body,
     LangName,
-    DoubleAngleOpen,
-    /*!`<<` - open for noweb or anchor placeholder
-     */
-    DoubleAngleClose,
-    /*!`>>` - close for noweb or anchor placeholder
-     */
-    TripleAngleOpen,
-    /*!`<<<` - radio target open
-     */
-    TripleAngleClose,
-    /*!`>>>` - radio target close
-     */
-    AngleOpen,
-    /*!Placeholder open
-     */
-    AngleClose,
-    /*!Placeholder close
-     */
+    DoubleAngleOpen,  /// `<<` - open for noweb or anchor placeholder
+    DoubleAngleClose, /// `>>` - close for noweb or anchor placeholder
+    TripleAngleOpen,  /// `<<<` - radio target open
+    TripleAngleClose, /// `>>>` - radio target close
+    AngleOpen,        /// Placeholder open
+    AngleClose,       /// Placeholder close
     TextBlock,
     /*!Code before noweb placeholder. Requires separate token
 to handle `##<<commented>>` - prefix comment should be
@@ -1103,99 +860,47 @@ enum class OrgCommandKind
     Columns,
     OtherProperty,
     BeginTable,
-    EndTable,
-    /*!`#+table`
-     */
-    Row,
-    /*!`#+row`
-     */
-    Cell,
-    /*!`#+cell`
-     */
+    EndTable, /// `#+table`
+    Row,      /// `#+row`
+    Cell,     /// `#+cell`
     BeginAdmonition,
     EndAdmonition,
     BeginDynamic,
-    EndDynamic,
-    /*!`#+begin:`
-     */
+    EndDynamic, /// `#+begin:`
     BeginCenter,
-    EndCenter,
-    /*!`#+begin_center`
-     */
+    EndCenter, /// `#+begin_center`
     BeginQuote,
-    EndQuote,
-    /*!`#+quote`
-     */
+    EndQuote, /// `#+quote`
     BeginSrc,
-    EndSrc,
-    /*!`#+begin_src`
-     */
+    EndSrc, /// `#+begin_src`
     BeginExport,
-    EndExport,
-    /*!`#+end_export`
-     */
+    EndExport, /// `#+end_export`
     BeginExample,
     EndExample,
     BeginDetails,
     EndDetails,
     BeginSummary,
     EndSummary,
-    LatexClassOptions,
-    /*!`#+latex_class_options`
-     */
+    LatexClassOptions, /// `#+latex_class_options`
     LatexClass,
     LatexCompiler,
-    AttrLatex,
-    /*!`#+attr_latex:`
-     */
-    AttrImg,
-    /*!`#+attr_img:`
-     */
-    AttrHtml,
-    /*!`#+attr_html:`
-     */
-    HtmlHead,
-    /*!`#+html_head:`
-     */
-    Language,
-    /*!`#+language:`
-     */
-    Options,
-    /*!`#+options: `
-     */
-    Title,
-    /*!`#+title:`
-     */
-    Property,
-    /*!`#+property:`
-     */
-    Author,
-    /*!`#+author:`
-     */
-    Bind,
-    /*!`#+bind:`
-     */
-    Creator,
-    /*!`#+creator:`
-     */
-    LatexHeader,
-    /*!`#+latex_header`
-     */
-    Results,
-    /*!`#+results:`
-     */
-    Call,
-    /*!`#+call:`
-     */
-    Name,
-    /*!`#+name:`
-     */
-    Caption,
-    /*!`#+caption:`
-     */
-    Header,
-    /*!`#+header:`
-     */
+    AttrLatex,   /// `#+attr_latex:`
+    AttrImg,     /// `#+attr_img:`
+    AttrHtml,    /// `#+attr_html:`
+    HtmlHead,    /// `#+html_head:`
+    Language,    /// `#+language:`
+    Options,     /// `#+options: `
+    Title,       /// `#+title:`
+    Property,    /// `#+property:`
+    Author,      /// `#+author:`
+    Bind,        /// `#+bind:`
+    Creator,     /// `#+creator:`
+    LatexHeader, /// `#+latex_header`
+    Results,     /// `#+results:`
+    Call,        /// `#+call:`
+    Name,        /// `#+name:`
+    Caption,     /// `#+caption:`
+    Header,      /// `#+header:`
 };
 
 enum class OrgPropertyKind : short int
@@ -1234,4 +939,14 @@ enum class OrgUnnumberedKind : short int
     Notoc,
     True,
     False
+};
+
+
+enum class OrgBlockLexerState : short int
+{
+    None,
+    InHeader,
+    InBody,
+    Ended,
+    Complete,
 };

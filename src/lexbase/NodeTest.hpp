@@ -77,19 +77,26 @@ struct ParseSpec {
 struct ParseSpecGroup {
     ParseSpecGroup(CR<YAML::Node> node) {
         if (node["items"]) {
-            for (const auto& it : node["items"]) {
-                auto spec = ParseSpec(it);
+            if (node["items"].IsSequence()) {
+                for (const auto& it : node["items"]) {
+                    auto spec = ParseSpec(it);
 
-                if (!spec.lexImplName && node["lex"]) {
-                    spec.lexImplName = node["lex"].as<std::string>();
+                    if (!spec.lexImplName && node["lex"]) {
+                        spec.lexImplName = node["lex"].as<std::string>();
+                    }
+
+                    if (!spec.parseImplName && node["parse"]) {
+                        spec.parseImplName = node["parse"]
+                                                 .as<std::string>();
+                    }
+
+                    specs.push_back(spec);
                 }
-
-                if (!spec.parseImplName && node["parse"]) {
-                    spec.parseImplName = node["parse"].as<std::string>();
-                }
-
-                specs.push_back(spec);
+            } else {
+                throw ParseSpec::SpecValidationError(
+                    "Spec group 'items' field must be a sequence");
             }
+
         } else {
             specs.push_back(ParseSpec(node));
         }

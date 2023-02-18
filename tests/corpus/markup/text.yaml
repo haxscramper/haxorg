@@ -1,0 +1,4 @@
+lex: "Structure"
+parse: "InlineParagraph"
+items:
+  - source: "*bold*"

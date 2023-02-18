@@ -36,11 +36,11 @@ struct OrgTokenizer : public Tokenizer<OrgTokenKind> {
      */
     void lexText(PosStr& str);
 
-    void lexProperties(const PosStr& id, PosStr& str);
+    void lexProperties(PosStr& str);
 
-    void lexDescription(const PosStr& id, PosStr& str);
+    void lexDescription(PosStr& str);
 
-    void lexLogbook(const PosStr& id, PosStr& str);
+    void lexLogbook(PosStr& str);
 
     void lexDrawer(PosStr& str);
 
@@ -83,13 +83,26 @@ struct OrgTokenizer : public Tokenizer<OrgTokenKind> {
 
     // Store common types of the lexer state
     template <typename Flag>
-    struct HsLexerState {
+    struct LexerState {
         Vec<Flag> flagStack;
         Vec<int>  indent; /// Indentation steps encountered by the lexer
                           /// state
         /*!Check if state has any indentation levels stored
          */
         bool hasIndent() { return 0 < indent.size(); }
+
+        Flag toFlag(Flag flag) {
+            auto old         = flagStack.back();
+            flagStack.back() = flag;
+        }
+        void lift(Flag flag) { flagStack.push_back(flag); }
+        void drop(Flag flag) { flagStack.pop_back_v(); }
+
+        Flag topFlag() const { return flagStack.at(1_B); }
+
+        bool hasFlag(Flag flag) const {
+            return flagStack.find(flag) != -1;
+        }
 
         enum LexerIndentKind
         {
@@ -161,9 +174,9 @@ struct OrgTokenizer : public Tokenizer<OrgTokenKind> {
     };
 
 
-    using HsLexerStateSimple = HsLexerState<char>;
+    using LexerStateSimple = LexerState<char>;
 
-    void skipIndents(HsLexerStateSimple& state, PosStr& str);
+    void skipIndents(LexerStateSimple& state, PosStr& str);
 
 
     /*!Attempt to parse list start dash
@@ -177,11 +190,11 @@ struct OrgTokenizer : public Tokenizer<OrgTokenKind> {
 indentation of the original list prefix -- dash, number or letter.
 */
     void lexListItem(
-        PosStr&             str,
-        const int&          indent,
-        HsLexerStateSimple& state);
+        PosStr&           str,
+        const int&        indent,
+        LexerStateSimple& state);
 
-    void lexListItems(PosStr& str, HsLexerStateSimple& state);
+    void lexListItems(PosStr& str, LexerStateSimple& state);
 
     void lexList(PosStr& str);
 
@@ -190,4 +203,8 @@ indentation of the original list prefix -- dash, number or letter.
     void lexComment(PosStr& str) {
         push(str.tok(OrgTokenKind::Comment, skipToEOL));
     }
+
+    void lexTableState(PosStr& str, LexerState<OrgBlockLexerState>& state);
+    void lexTable(PosStr& str);
+    void lexStructure(PosStr& str);
 };
