@@ -12,6 +12,8 @@
 
 #include <hstd/stdlib/diffs.hpp>
 
+#include <fnmatch.h>
+
 #define CB(name)                                                          \
     { Str(#name), &OrgTokenizer::lex##name }
 
@@ -114,8 +116,9 @@ void runSpec(CR<YAML::Node> group) {
 
         MockFull p;
         p.tokenize(spec.source, lexCb);
-        std::cout << "\n---\n" << p.tokens << std::endl;
+        std::cout << "\nLexed tokens\n" << p.tokens << std::endl;
         p.parse(parseCb);
+        std::cout << "\nParsed nodes\n" << p.nodes << std::endl;
 
         // p.treeRepr();
         // p.yamlRepr();
@@ -159,15 +162,26 @@ void runSpec(CR<YAML::Node> group) {
     }
 }
 
-TEST_CASE("Parse corpus") {
+TEST_CASE("Parse corpus", "[corpus]") {
     for (fs::directory_entry const& path :
          fs::recursive_directory_iterator(
              __CURRENT_FILE_DIR__ / "corpus")) {
 
         if (path.is_regular_file()) {
-            std::cout << path;
-            YAML::Node spec = YAML::LoadFile(path.path());
-            runSpec(spec);
+            if (testParameters.corpusGlob.empty()) {
+                YAML::Node spec = YAML::LoadFile(path.path());
+                runSpec(spec);
+            } else {
+                std::string path_str = path.path();
+                int         matchRes = fnmatch(
+                    testParameters.corpusGlob.c_str(),
+                    path_str.c_str(),
+                    FNM_EXTMATCH);
+                if (!(matchRes == FNM_NOMATCH)) {
+                    YAML::Node spec = YAML::LoadFile(path.path());
+                    runSpec(spec);
+                }
+            }
         }
     }
 };

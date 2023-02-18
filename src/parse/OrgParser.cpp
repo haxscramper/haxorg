@@ -302,8 +302,10 @@ OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
         IntSet<OrgTokenKind>{otk::ParagraphStart},
         IntSet<OrgTokenKind>{otk::ParagraphEnd});
 
-    SubLexer<OrgTokenKind> sub   = splinter(lex, paragraphTokens);
-    auto                   nodes = parseText(sub);
+    SubLexer<OrgTokenKind> sub = splinter(lex, paragraphTokens);
+    start(org::Paragraph);
+    auto nodes = parseText(sub);
+    return end();
 }
 
 OrgId OrgParser::parseInlineParagraph(OrgLexer& lex) {

@@ -22,8 +22,23 @@ extern "C" __attribute__((no_instrument_function)) void __cyg_profile_func_exit(
     }
 }
 
+TestParameters testParameters;
+
+using namespace Catch::Clara;
+
+
 int main(int argc, const char** argv) {
     trace_out = fopen("/tmp/cyg_profile_trace.log", "w");
-    finally close{[]() { fclose(trace_out); }};
-    return Catch::Session().run(argc, argv);
+    finally        close{[]() { fclose(trace_out); }};
+    Catch::Session session;
+
+    auto cli = session.cli()
+             | Opt(testParameters.corpusGlob,
+                   "Glob pattern")["--corpus-glob"]("Corpus glob pattern");
+    session.cli(cli);
+    auto ret = session.applyCommandLine(argc, argv);
+    if (ret) {
+        return ret;
+    }
+    return session.run(argc, argv);
 }

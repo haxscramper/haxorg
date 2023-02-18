@@ -323,6 +323,7 @@ struct NodeGroup {
     }
 };
 
+
 template <typename N, typename K>
 std::ostream& operator<<(std::ostream& os, Node<N, K> const& value) {
     os << "{" << to_string(value.kind) << " ";
@@ -335,6 +336,14 @@ std::ostream& operator<<(std::ostream& os, Node<N, K> const& value) {
     return os << "}";
 }
 
+
+template <StringConvertible N, StringConvertible K>
+std::ostream& operator<<(std::ostream& os, NodeGroup<N, K> const& nodes) {
+    for (const auto& [idx, node] : nodes.nodes.pairs()) {
+        os << left_aligned(to_string(idx), 16) << " | " << *node << "\n";
+    }
+    return os;
+}
 
 /// Nested representation of the tree, intended to be used as intermediate
 /// representation for converting from nested formats to a flat linearized

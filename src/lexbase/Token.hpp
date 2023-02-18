@@ -368,7 +368,7 @@ struct LexerCommon {
                 }
                 count++;
             } else if (finish.contains(kind())) {
-                while (finish.contains(kind())) {
+                while (!finished() && finish.contains(kind())) {
                     if (1 < count) {
                         result.push_back(pop());
                     } else {

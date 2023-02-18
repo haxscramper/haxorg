@@ -15,6 +15,12 @@ using Catch::Matchers::EndsWith;
 using Catch::Matchers::Message;
 using Catch::Matchers::StartsWith;
 
+struct TestParameters {
+    std::string corpusGlob;
+};
+
+extern TestParameters testParameters;
+
 #define __TEST_MAIN                                                       \
     int main(int argc, const char** argv) {                               \
         return Catch::Session().run(argc, argv);                          \
