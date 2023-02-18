@@ -218,7 +218,8 @@ struct LexerCommon {
   public:
     TokenGroup<K>* in;
     TokenId<K>     pos;
-    LexerCommon(TokenGroup<K>* _in) : in(_in), pos(TokenId<K>(0)) {}
+    LexerCommon(TokenGroup<K>* _in, TokenId<K> startPos = TokenId<K>(0))
+        : in(_in), pos(startPos) {}
 
     K   kind(int offset = 0) const { return tok(offset).kind; }
     Str strVal(int offset = 0) const {
@@ -226,7 +227,8 @@ struct LexerCommon {
     }
     CR<Token<K>> tok(int offset = 0) const { return in->at(get(offset)); }
     TokenId<K>   get(int offset = 0) const { return pos + offset; }
-    TokenId<K>   pop() {
+
+    TokenId<K> pop() {
         TokenId<K> result = pos;
         next();
         return result;
@@ -356,7 +358,6 @@ struct LexerCommon {
             next();
         }
         count++;
-
         while (0 < count) {
             if (start.contains(kind())) {
                 while (start.contains(kind())) {
@@ -391,7 +392,7 @@ std::ostream& operator<<(std::ostream& os, LexerCommon<K> const& value) {
             if (0 < i) {
                 os << " ";
             }
-            os << value.get(i);
+            os << value.tok(i);
         }
     }
     return os;
@@ -419,7 +420,7 @@ struct SubLexer : public LexerCommon<K> {
     }
 
     SubLexer(TokenGroup<K>* in, Vec<TokenId<K>> _tokens)
-        : LexerCommon<K>(in), tokens(_tokens) {}
+        : LexerCommon<K>(in, _tokens.at(0)), tokens(_tokens) {}
 };
 
 
@@ -437,10 +438,3 @@ struct Lexer : public LexerCommon<K> {
 
     Lexer(TokenGroup<K>* in) : LexerCommon<K>(in) {}
 };
-
-template <typename K>
-inline SubLexer<K> splinter(
-    LexerCommon<K>&        lex,
-    const Vec<TokenId<K>>& ids) {
-    return SubLexer<K>(lex.in, ids);
-}

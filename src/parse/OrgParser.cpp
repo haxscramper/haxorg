@@ -33,7 +33,33 @@ OrgId OrgParser::parseRawUrl(OrgLexer& lex) {
     token(org::RawLink, lex.pop(otk::RawUrl));
 }
 
-void OrgParser::parseTextFoldPass(OrgLexer& lex) {}
+void OrgParser::parseTextFoldPass(OrgLexer& lex) {
+    while (!lex.finished()) {
+        switch (lex.kind()) {
+            case otk::BoldOpen: {
+                start(org::Bold);
+                lex.next();
+                break;
+            }
+            case otk::BoldClose: {
+                end();
+                lex.next();
+                break;
+            }
+
+            case otk::Word: {
+                token(org::Word, lex.pop(otk::Word));
+                break;
+            }
+
+            default: {
+                std::cout << "unhandled token kind "
+                          << to_string(lex.kind()) << std::endl;
+                assert(false);
+            }
+        }
+    }
+}
 
 void OrgParser::parseTextRecursiveFold(Slice<OrgId> range) {}
 
@@ -61,8 +87,8 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
     }
     lex.skip(otk::LinkTargetClose);
     if (lex.at(otk::LinkDescriptionOpen)) {
-        auto sub = splinter(
-            lex,
+        auto sub = SubLexer(
+            lex.in,
             lex.getInside(
                 {otk::LinkDescriptionOpen}, {otk::LinkDescriptionClose}));
         start(org::Paragraph);
@@ -198,8 +224,9 @@ OrgId OrgParser::parseTable(OrgLexer& lex) {
     empty();
 
     ParseCb parseContent = [this](OrgLexer& lex) {
-        auto sub = splinter(
-            lex, lex.getInside({otk::ContentStart}, {otk::ContentEnd}));
+        auto sub = SubLexer(
+            lex.in, lex.getInside({otk::ContentStart}, {otk::ContentEnd}));
+
         return parseTop(sub);
     };
 
@@ -298,11 +325,13 @@ OrgId OrgParser::parseTable(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
-    Vec<OrgTokenId> paragraphTokens = lex.getInside(
+    std::cout << "pos " << lex.pos << std::endl;
+    const auto& paragraphTokens = lex.getInside(
         IntSet<OrgTokenKind>{otk::ParagraphStart},
         IntSet<OrgTokenKind>{otk::ParagraphEnd});
 
-    SubLexer<OrgTokenKind> sub = splinter(lex, paragraphTokens);
+    SubLexer<OrgTokenKind> sub = SubLexer<OrgTokenKind>(
+        lex.in, paragraphTokens);
     start(org::Paragraph);
     auto nodes = parseText(sub);
     return end();
@@ -630,7 +659,7 @@ OrgId OrgParser::parseLogbookListEntry(OrgLexer& lex) {
         pos == -1 ? lex.find(otk::ListItemEnd) - 1 : pos);
     // head_parser
     {
-        auto sub = splinter(lex, head);
+        auto sub = SubLexer(lex.in, head);
         sub.skip(otk::StmtListOpen);
         sub.skip(otk::ParagraphStart);
         if (sub.at(otk::Word) && sub.strVal() == "State") {
@@ -697,7 +726,7 @@ OrgId OrgParser::parseLogbookListEntry(OrgLexer& lex) {
                 {otk::StmtListOpen, otk::ParagraphStart},
                 {otk::StmtListClose, otk::ParagraphEnd, otk::ListItemEnd});
 
-            auto sub = splinter(lex, tokens);
+            auto sub = SubLexer(lex.in, tokens);
             parseListItemBody(sub);
         }
     }

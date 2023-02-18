@@ -155,7 +155,7 @@ inline Pair<Str, Str> visibleName(char ch) {
         case '\x1F': return {"␟", "[US]"};  // Unit separator
         case '\x7f': return {"␡", "[DEL]"}; // Delete
         case ' ': return {"␣", "[SPC]"};    // Space
-        default: return {std::to_string(ch), std::to_string(ch)};
+        default: return {std::string(1, ch), std::string(1, ch)};
     }
 }
 

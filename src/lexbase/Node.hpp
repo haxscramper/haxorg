@@ -158,6 +158,16 @@ struct NodeGroup {
         return start;
     }
 
+    NodeId<N, K> failTree(Node<N, K> replacement) {
+        auto start      = pendingTrees.pop_back_v();
+        nodes.at(start) = replacement;
+        return start;
+    }
+
+    CR<Node<N, K>> lastPending() const {
+        return nodes.at(pendingTrees.back());
+    }
+
     /// \brief Return reference to the node *object* at specified ID
     Node<N, K>&    at(NodeId<N, K> id) { return nodes.at(id); }
     CR<Node<N, K>> at(NodeId<N, K> id) const { return nodes.at(id); }

@@ -215,7 +215,9 @@ struct PosStr {
     }
 
     /// \brief Any chars left in the underlying view
-    bool hasNext(int shift = 1) const { return pos < view.size(); }
+    bool hasNext(int shift = 1) const {
+        return 0 <= pos + shift && pos + shift < view.size();
+    }
 
     /// \brief Retract \arg count characters back
     void back(int count = 1) {
@@ -466,9 +468,10 @@ struct PosStr {
     }
 
     int getColumn() const {
-        int result;
+        int result = 0;
         int offset = 0;
-        while (0 <= offset && !at('\n', offset)) {
+        while (hasNext(offset) && !at('\n', offset)) {
+            std::cout << offset << std::endl;
             ++result;
             --offset;
         }
@@ -643,4 +646,16 @@ inline void skipDigit(Ref<PosStr> str) {
         str.skip(charsets::Digits);
         str.skipZeroOrMore(charsets::Digits + CharSet{'_', '.'});
     }
+}
+
+inline std::ostream& operator<<(std::ostream& os, PosStr const& value) {
+    for (int i = 0; i < 10; ++i) {
+        if (value.hasNext(i)) {
+            if (0 < i) {
+                os << " ";
+            }
+            os << visibleName(value.get(i)).first;
+        }
+    }
+    return os;
 }

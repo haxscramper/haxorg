@@ -1836,6 +1836,9 @@ void OrgTokenizer::lexStructure(PosStr& str) {
             bool hasSpace = str.at(CharSet{'*'}, 0)
                          && str.at(CharSet{' '}, 1);
 
+            std::cout << str.getColumn() << " column " << hasSpace << " "
+                      << str << std::endl;
+
             if (str.getColumn() == 0) {
                 if (hasSpace) {
                     // `*bold*` world at the start of the paragraph
