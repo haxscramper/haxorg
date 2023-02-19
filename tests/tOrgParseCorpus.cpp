@@ -107,6 +107,60 @@ MockFull::LexerMethod getLexer(CR<Opt<Str>> name) {
     }
 }
 
+void compareNodes(
+    CR<NodeGroup<OrgNodeKind, OrgTokenKind>> parsed,
+    CR<NodeGroup<OrgNodeKind, OrgTokenKind>> expected) {
+    if (parsed.size() != expected.size()) {
+        BacktrackRes nodeSimilarity = longestCommonSubsequence<OrgNode>(
+            parsed.nodes.content,
+            expected.nodes.content,
+            [](CR<OrgNode> lhs, CR<OrgNode> rhs) -> bool {
+                return lhs.kind == rhs.kind;
+            })[0];
+
+
+        ShiftedDiff nodeDiff{
+            nodeSimilarity, parsed.size(), expected.size()};
+    }
+}
+
+void compareTokens(
+    CR<TokenGroup<OrgTokenKind>> lexed,
+    CR<TokenGroup<OrgTokenKind>> expected) {
+    BacktrackRes tokenSimilarity = longestCommonSubsequence<OrgToken>(
+        lexed.tokens.content,
+        expected.tokens.content,
+        [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
+            if (lhs.kind != rhs.kind) {
+                return false;
+            } else if (lhs.hasData() != rhs.hasData()) {
+                return false;
+            } else if (lhs.hasData() && Str(lhs.text) != Str(rhs.text)) {
+                return false;
+            } else {
+                return true;
+            }
+        })[0];
+
+    if (tokenSimilarity.lhsIndex.size() != lexed.size()
+        || tokenSimilarity.rhsIndex.size() != expected.size()) {
+        ShiftedDiff tokenDiff{
+            tokenSimilarity, lexed.size(), expected.size()};
+
+        Func<Str(CR<OrgToken>)> conv = [](CR<OrgToken> tok) -> Str {
+            return to_string(tok);
+        };
+
+        Vec<Str> lexedStr    = map(lexed.tokens.content, conv);
+        Vec<Str> expectedStr = map(expected.tokens.content, conv);
+
+        ColText text = formatDiffed(tokenDiff, lexedStr, expectedStr);
+        std::cout << "token differences\n";
+        std::cout << text << std::endl;
+        std::cout << "--------\n";
+    }
+}
+
 void runSpec(CR<YAML::Node> group) {
     ParseSpecGroup parsed(group);
 
@@ -117,48 +171,52 @@ void runSpec(CR<YAML::Node> group) {
         MockFull p;
         p.tokenize(spec.source, lexCb);
         YAML::Emitter emitter;
-        std::cout << "\nLexed tokens\n" << yamlRepr(p.tokens) << std::endl;
         p.parse(parseCb);
-        std::cout << "\nParsed nodes\n" << yamlRepr(p.nodes) << std::endl;
-
-        // p.treeRepr();
-        // p.yamlRepr();
+        // std::cout << "\nLexed tokens\n" << yamlRepr(p.tokens) <<
+        // std::endl; std::cout << "\nParsed nodes\n" << yamlRepr(p.nodes)
+        // << std::endl; p.treeRepr(); p.yamlRepr();
 
         if (spec.subnodes.has_value()) {
-            auto tree = fromHomogeneous<OrgNodeKind, OrgTokenKind>(
-                spec.subnodes.value());
-            Str buffer;
-            auto [nodes, tokens] = tree.flatten(buffer);
-            std::cout << "----------------\n";
-            std::cout << "[" << buffer << "]" << std::endl;
-            std::cout << tokens << std::endl;
-            nodes.tokens = &tokens;
-            std::cout << "nodes yaml repr:\n"
-                      << yamlRepr(nodes) << std::endl;
-            std::cout << "tokens yaml repr:\n"
-                      << yamlRepr(tokens) << std::endl;
+            Str           buffer;
+            OrgNodeGroup  nodes;
+            OrgTokenGroup tokens;
 
-            BacktrackRes tokenSimilarity = longestCommonSubsequence<
-                OrgToken>(
-                p.tokens.tokens.content,
-                tokens.tokens.content,
-                [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
-                    std::cout << lhs << " " << rhs << "\n";
-                    return lhs.kind == rhs.kind
-                        && Str(lhs.text) == Str(rhs.text);
-                })[0];
+            if (spec.expectedMode == ParseSpec::ExpectedMode::Nested) {
+                auto tree = fromHomogeneous<OrgNodeKind, OrgTokenKind>(
+                    spec.subnodes.value());
+                auto flatResult = tree.flatten(buffer);
+                nodes           = flatResult.first;
+                tokens          = flatResult.second;
+            } else {
+                nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind>(
+                    spec.subnodes.value());
+                if (spec.tokens.has_value()) {
+                    tokens = fromFlatTokens<OrgTokenKind>(
+                        spec.tokens.value(), buffer);
+                }
+            }
 
-            std::cout << "token similarity " << tokenSimilarity << "\n";
+            // std::cout << "----------------\n";
+            // std::cout << "[" << buffer << "]" << std::endl;
+            // std::cout << tokens << std::endl;
+            // nodes.tokens = &tokens;
+            // std::cout << "nodes yaml repr:\n"
+            //           << yamlRepr(nodes) << std::endl;
+            // std::cout << "tokens yaml repr:\n"
+            //           << yamlRepr(tokens) << std::endl;
 
-            BacktrackRes nodeSimilarity = longestCommonSubsequence<
-                OrgNode>(
-                p.nodes.nodes.content,
-                nodes.nodes.content,
-                [](CR<OrgNode> lhs, CR<OrgNode> rhs) -> bool {
-                    return lhs.kind == rhs.kind;
-                })[0];
+            // std::cout << "----------------\n";
+            // std::cout << p.tokens << std::endl;
+            // std::cout << tokens << std::endl;
+            // std::cout << "^^^^^^^^^^^\n";
 
-            std::cout << "node similarity " << nodeSimilarity << "\n";
+
+            // std::cout << "token similarity " << tokenSimilarity << "\n";
+            // std::cout << "node similarity " << nodeSimilarity << "\n";
+
+
+            compareTokens(p.tokens, tokens);
+            compareNodes(p.nodes, nodes);
         }
     }
 }

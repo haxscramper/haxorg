@@ -86,7 +86,14 @@ inline std::string escape_literal(std::string const& in) {
 inline std::string to_string(wchar_t wc) {
     std::string mb(MB_CUR_MAX, '\0');
     const int   ret = std::wctomb(&mb[0], wc);
-    return std::string(&mb[0], ret);
+    if (ret == -1) {
+        std::cout << "Could not convert to string " << (u64)wc << "\n";
+        // HACK temporary fix for the malformed runes that are coming
+        // somewhere from text formatting.
+        return std::string("@");
+    } else {
+        return std::string(&mb[0], ret);
+    }
 }
 
 template <typename Iterable>

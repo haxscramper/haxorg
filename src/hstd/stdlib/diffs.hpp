@@ -66,7 +66,7 @@ struct DiffFormatConf {
     bool showLines = false;
     /// Show line diff with side-by-side (aka github 'split' view) or
     /// on top of each other (aka 'unified')
-    bool sideBySide = false;
+    bool sideBySide = true;
     /// If diff contains invisible characters - trailing whitespaces,
     /// control characters, escapes and ANSI SGR formatting - show them
     /// directly.
@@ -75,10 +75,14 @@ struct DiffFormatConf {
     ColText inlineDiffSeparator;
     /// For multiline edit operations - group consecutive Edit
     /// operations into single chunks.
-    bool groupLine = true;
+    bool groupLine = false;
     /// For inline edit operations - group consecutive edit operations
     /// into single chunks.
     bool groupInline = true;
+    /// Piece of text that is placed into resulting sequence in place of
+    /// 'None' operation -- empty space that does not correspond to any
+    /// sequence edit operation.
+    ColText emptyChunk;
     /// Format mismatched text. `mode` is the mismatch kind,
     /// `secondary` is used for `sekChanged` to annotated which part
     /// was deleted and which part was added.
@@ -313,6 +317,10 @@ struct ZipToMaxResult {
     int  idx;
 };
 
+
+/// Iterate each argument to the end, filling in missing values with `fill`
+/// argument. This is an opposite of the std built-in `zip` which iterates
+/// up until `min(lhs.len, rhs.len)`.
 template <typename T>
 generator<ZipToMaxResult<T>> zipToMax(
     CVec<T> lhs,
@@ -540,6 +548,7 @@ inline Vec<Str> toVisibleNames(
 }
 
 
+/// \brief Intermediate version of shifted diff sequences.
 struct ShiftedDiff {
     struct Item {
         SeqEditKind kind;
@@ -548,6 +557,34 @@ struct ShiftedDiff {
 
     Vec<Item> oldShifted;
     Vec<Item> newShifted;
+
+    /// \brief Construct shifted diff pairing from LCS trace information
+    inline ShiftedDiff(CR<BacktrackRes> track, int oldMax, int newMax) {
+        using sek = SeqEditKind;
+        if (!track.lhsIndex.empty()) {
+            int fullSize = std::max(oldMax, newMax);
+            int prevLhs  = 0;
+            int prevRhs  = 0;
+            for (int pos = 0; pos < track.lhsIndex.size(); ++pos) {
+                int lhsPos = track.lhsIndex.at(pos);
+                int rhsPos = track.rhsIndex.at(pos);
+                for (int i = prevLhs; i < lhsPos; ++i) {
+                    newShifted.push_back(Item{sek::None, 0});
+                    oldShifted.push_back(Item{sek::Delete, i});
+                }
+
+                for (int i = prevRhs; i < rhsPos; ++i) {
+                    newShifted.push_back(Item{sek::Insert, i});
+                    oldShifted.push_back(Item{sek::None, i});
+                }
+
+                newShifted.push_back(Item{sek::Keep, rhsPos});
+                oldShifted.push_back(Item{sek::Keep, lhsPos});
+                prevLhs = lhsPos + 1;
+                prevRhs = rhsPos + 1;
+            }
+        }
+    }
 
     inline ShiftedDiff(CR<Vec<SeqEdit>>& diff) {
         // Align diff operations against each other, for further
@@ -619,6 +656,11 @@ Pair<ColText, ColText> formatDiffed(
     Vec<ColText> newLine;
     for (int i = 0; i < ops.size(); ++i) {
         switch (ops[i].kind) {
+            case sek::None:
+                oldLine.push_back(conf.emptyChunk);
+                newLine.push_back(conf.emptyChunk);
+                break;
+
             case sek::Keep:
                 if (unchanged < conf.maxUnchanged) {
                     oldLine.push_back(conf.chunk(
@@ -644,9 +686,6 @@ Pair<ColText, ColText> formatDiffed(
                 newLine.push_back(conf.chunk(
                     newSeq[ops[i].targetPos], sek::Replace, sek::Insert));
                 unchanged = 0;
-                break;
-            case sek::None:
-                assert(false && "Original formatting sequence should not contain 'none' fillers");
                 break;
             case sek::Transpose: break;
         }
@@ -712,6 +751,7 @@ inline ColText joinBuffer(
     };
 
     if (conf.groupLine) {
+        assert(!conf.sideBySide);
         // Grouping line edits is not possible in the side-by-side
         // representation, so going directly for unified one.
         Vec<BufItem> lhsBuf = {oldText[0]};
@@ -790,6 +830,16 @@ inline ColText joinBuffer(
 }
 
 
+/// Plaintext format diff edit script for printing. Provides pretty
+/// barebones implementation of the formatting - no coloring, diff
+/// formatting is not configurable.
+///
+/// Generated diff formatting does not contain trailing newline
+///
+/// TODO rewrite to use generalized output formatting instead of colored
+/// string. Resulting type might have structure very similar to the final
+/// formatting result: `Vec<>` of `{int lineIndex; SeqEditKind linePrefix;
+/// ...}`
 inline ColText formatDiffed(
     const ShiftedDiff& shifted,
     const Vec<Str>&    oldSeq,

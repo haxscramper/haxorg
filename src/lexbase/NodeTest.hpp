@@ -6,9 +6,9 @@
 #include <lexbase/Token.hpp>
 
 struct ParseSpec {
-    Opt<YAML::Node>      subnodes;
-    Opt<Vec<YAML::Node>> tokens;
-    Str                  source;
+    Opt<YAML::Node> subnodes;
+    Opt<YAML::Node> tokens;
+    Str             source;
 
     /// Name of the method to call for lexing or parsing. Pointer to
     /// implementation is resolved externally, spec file just contains the
@@ -31,7 +31,7 @@ struct ParseSpec {
 
     BOOST_DESCRIBE_NESTED_ENUM(ExpectedMode, Flat, Nested, Named);
 
-    ExpectedMode expectedMode;
+    ExpectedMode expectedMode = ExpectedMode::Nested;
 
     ParseSpec(CR<YAML::Node> node) {
         if (node["lex"]) {
@@ -50,6 +50,10 @@ struct ParseSpec {
 
         if (node["subnodes"]) {
             subnodes = node["subnodes"];
+        }
+
+        if (node["tokens"]) {
+            tokens = node["tokens"];
         }
 
         if (node["expected"]) {
@@ -88,6 +92,14 @@ struct ParseSpecGroup {
                     if (!spec.parseImplName && node["parse"]) {
                         spec.parseImplName = node["parse"]
                                                  .as<std::string>();
+                    }
+
+                    if (!it["expected"] && node["expected"]) {
+                        spec.expectedMode =
+                            //
+                            string_to_enum<ParseSpec::ExpectedMode>(
+                                node["expected"].as<std::string>())
+                                .value_or(ParseSpec::ExpectedMode::Nested);
                     }
 
                     specs.push_back(spec);

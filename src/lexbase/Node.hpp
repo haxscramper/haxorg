@@ -104,6 +104,12 @@ struct NodeGroup {
     dod::Store<NodeId<N, K>, NodeT> nodes;
     TokenGroup<K>*                  tokens;
 
+    int size() const { return nodes.size(); }
+
+    bool hasData(NodeId<N, K> id) const {
+        return tokens->at(at(id).getToken()).hasData();
+    }
+
     Str strVal(NodeId<N, K> id) const {
         assert(notNil(tokens));
         return tokens->at(at(id).getToken()).strVal();
@@ -362,9 +368,9 @@ template <typename N, typename K>
 struct NodeTree {
 
     struct TreeToken {
-        int index;
-        Str str;
-        K   kind;
+        int      index;
+        Opt<Str> str;
+        K        kind;
     };
 
     NodeTree(N kind, CR<TreeToken> tok, Opt<int> index = std::nullopt)
@@ -413,11 +419,13 @@ struct NodeTree {
                 auto tok   = tree.getToken();
                 auto id    = TokenId<K>(tok.index);
                 auto start = text.size();
-                text += tok.str;
-                tokens.at(id).text = std::string_view(
-                    text.data() + start, tok.str.size());
+                if (tok.str.has_value()) {
+                    text += tok.str.value();
+                    tokens.at(id).text = std::string_view(
+                        text.data() + start, tok.str.value().size());
+                }
+
                 tokens.at(id).kind = tok.kind;
-                std::cout << tokens.at(id).text << std::endl;
                 nodes.token(tree.kind, id);
             } else {
                 auto head = nodes.startTree(Node<N, K>(tree.kind));

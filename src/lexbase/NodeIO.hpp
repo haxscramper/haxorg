@@ -19,7 +19,9 @@ YAML::Node yamlRepr(NodeAdapter<N, K> node) {
     result["kind"] = to_string(node.get().kind);
     result["idx"]  = to_string(node.id.getIndex());
     if (node.get().isTerminal()) {
-        result["str"]           = g->strVal(node.id).toBase();
+        if (g->hasData(node.id)) {
+            result["str"] = g->strVal(node.id).toBase();
+        }
         TokenId<K>      tokenId = g->at(node.id).getToken();
         Token<K> const& token   = g->tokens->at(tokenId);
         result["tok"]           = to_string(token.kind);
@@ -43,7 +45,9 @@ json jsonRepr(
     result["kind"] = to_string(node.get().kind);
     result["idx"]  = to_string(node.id.getIndex());
     if (node.get().isTerminal()) {
-        result["str"]           = g->strVal(node.id).toBase();
+        if (g->hasData(node.id)) {
+            result["str"] = g->strVal(node.id).toBase();
+        }
         TokenId<K>      tokenId = g->at(node.id).getToken();
         Token<K> const& token   = g->tokens->at(tokenId);
         result["tok"]           = to_string(token.kind);
@@ -74,7 +78,9 @@ YAML::Node yamlRepr(
     result["kind"] = to_string(node.get().kind);
     result["idx"]  = to_string(node.id.getIndex());
     if (node.get().isTerminal()) {
-        result["str"]           = g->strVal(node.id).toBase();
+        if (g->hasData(node.id)) {
+            result["str"] = g->strVal(node.id).toBase();
+        }
         TokenId<K>      tokenId = g->at(node.id).getToken();
         Token<K> const& token   = g->tokens->at(tokenId);
         result["tok"]           = to_string(token.kind);
@@ -107,12 +113,59 @@ NodeTree<N, K> fromHomogeneous(CR<YAML::Node> node) {
         std::cout << node << std::endl;
         typename NodeTree<N, K>::TreeToken token = {
             .index = node["tok_idx"].as<int>(),
-            .str   = node["str"].as<std::string>(),
+            .str   = node["str"] ? Opt<Str>(node["str"].as<std::string>())
+                                 : Opt<Str>(std::nullopt),
             .kind  = string_to_enum<K>(node["tok"].as<std::string>())
                         .value()};
 
         return NodeTree<N, K>(kind.value(), token);
     }
+}
+
+
+template <typename K>
+TokenGroup<K> fromFlatTokens(CR<YAML::Node> node, Str& buf) {
+    TokenGroup<K> result;
+    result.tokens.resize(node.size());
+    int index = 0;
+    for (const auto& it : node) {
+        auto start         = buf.size();
+        auto id            = TokenId<K>(index);
+        result.at(id).kind = string_to_enum<K>(
+                                 it["kind"].as<std::string>())
+                                 .value();
+
+        if (it["str"]) {
+            std::string str = it["str"].as<std::string>();
+            buf += str;
+            result.at(id).text = std::string_view(
+                buf.data() + start, str.size());
+        }
+
+        ++index;
+    }
+
+    return result;
+}
+
+template <typename N, typename K>
+NodeGroup<N, K> fromFlatNodes(CR<YAML::Node> node) {
+    NodeGroup<N, K> result;
+    result.nodes.resize(node.size(), Node(low<N>(), TokenId<K>::Nil()));
+    int index = 0;
+    for (const auto& it : node) {
+        N kind = string_to_enum<N>(it["kind"].as<std::string>()).value();
+        if (it["extent"]) {
+            result.at(NodeId<N, K>(index)) = Node<N, K>(
+                kind, it["extent"].as<int>());
+        } else {
+            result.at(NodeId<N, K>(index)) = Node<N, K>(
+                kind, TokenId<K>(it["tok_idx"].as<int>()));
+        }
+        ++index;
+    }
+
+    return result;
 }
 
 template <typename N, typename K>
@@ -124,7 +177,7 @@ YAML::Node yamlRepr(CR<NodeGroup<N, K>> group, bool withStrings = true) {
         if (node->isTerminal()) {
             TokenId<K> tokenId = node->getToken();
             item["tok_idx"]    = tokenId.getIndex();
-            if (withStrings) {
+            if (withStrings && group.hasData(id)) {
                 item["str"] = group.strVal(id).toBase();
             }
         } else {
@@ -147,7 +200,7 @@ json jsonRepr(CR<NodeGroup<N, K>> group, bool withStrings = true) {
         if (node->isTerminal()) {
             TokenId<K> tokenId = node->getToken();
             item["tok_idx"]    = tokenId.getIndex();
-            if (withStrings) {
+            if (withStrings && group.hasData(id)) {
                 item["str"] = group.strVal(id).toBase();
             }
         } else {
@@ -166,7 +219,9 @@ YAML::Node yamlRepr(CR<TokenGroup<K>> group) {
         YAML::Node item;
         item["idx"]  = id.getIndex();
         item["kind"] = to_string(token->kind);
-        item["str"]  = token->strVal().toBase();
+        if (token->hasData()) {
+            item["str"] = token->strVal().toBase();
+        }
         item.SetStyle(YAML::EmitterStyle::Flow);
         out.push_back(item);
     }
@@ -180,7 +235,9 @@ json jsonRepr(CR<TokenGroup<K>> group) {
         json item;
         item["idx"]  = id.getIndex();
         item["kind"] = to_string(token->kind);
-        item["str"]  = token->strVal().toBase();
+        if (token->hasData()) {
+            item["str"] = token->strVal().toBase();
+        }
         out.push_back(item);
     }
     return out;

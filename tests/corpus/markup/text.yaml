@@ -1,6 +1,17 @@
 lex: "Structure"
 parse: "InlineParagraph"
+expected: "Flat"
 items:
   - source: "*bold*"
+    tokens:
+      - {idx: 0, kind: ParagraphStart}
+      - {idx: 1, kind: BoldOpen, str: "*"}
+      - {idx: 2, kind: Word, str: "boldq"}
+      - {idx: 3, kind: BoldClose, str: "*"}
+      - {idx: 4, kind: ParagraphEnd}
+    subnodes:
+      - {kind: Paragraph, extent: 2}
+      - {kind: Bold, extent: 1}
+      - {kind: Word, tok_idx: 2, str: "bold"}
   - source: "/italic/"
   - source: "[[link][description]]"

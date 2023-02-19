@@ -7,6 +7,9 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Array.hpp>
 
+#include <locale>
+#include <codecvt>
+
 struct TermColorBgFull {
     u8 color;
 };
@@ -121,7 +124,7 @@ struct ColStyle {
 /// performance. The API must stay the same in any case, so improved
 /// version can be implemented in the future.
 struct ColRune {
-    wchar_t  rune;
+    wchar_t  rune = U' ';
     ColStyle style;
     inline ColRune(char ch) : rune(ch) {}
     inline ColRune(CR<ColStyle> style, wchar_t rune)
@@ -169,8 +172,11 @@ inline StreamState::StreamState(ColStream& stream) : stream(stream) {
 inline StreamState::~StreamState() { stream.active = start; }
 
 inline ColText merge(CR<ColStyle> style, CR<std::string> text) {
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::wstring wide = converter.from_bytes(text);
+
     ColText result;
-    for (const auto& ch : text) {
+    for (const auto& ch : wide) {
         result.push_back(ColRune(style, ch));
     }
     return result;
