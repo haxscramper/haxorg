@@ -11,7 +11,7 @@ items:
       - {idx: 4, kind: ParagraphEnd}
     subnodes:
       - {kind: Paragraph, extent: 2}
-      - {kind: Bold, extent: 1}
+      - {kind: Bold, extent: 2}
       - {kind: Word, tok_idx: 2, str: "bold"}
   - source: "/italic/"
   - source: "[[link][description]]"

@@ -110,17 +110,41 @@ MockFull::LexerMethod getLexer(CR<Opt<Str>> name) {
 void compareNodes(
     CR<NodeGroup<OrgNodeKind, OrgTokenKind>> parsed,
     CR<NodeGroup<OrgNodeKind, OrgTokenKind>> expected) {
-    if (parsed.size() != expected.size()) {
-        BacktrackRes nodeSimilarity = longestCommonSubsequence<OrgNode>(
-            parsed.nodes.content,
-            expected.nodes.content,
-            [](CR<OrgNode> lhs, CR<OrgNode> rhs) -> bool {
-                return lhs.kind == rhs.kind;
-            })[0];
+    BacktrackRes nodeSimilarity = longestCommonSubsequence<OrgNode>(
+        parsed.nodes.content,
+        expected.nodes.content,
+        [](CR<OrgNode> lhs, CR<OrgNode> rhs) -> bool {
+            if (lhs.kind != rhs.kind) {
+                return false;
+            } else {
+                if (lhs.isTerminal()) {
+                    return lhs.getToken() == rhs.getToken();
+                } else {
+                    return lhs.getExtent() == rhs.getExtent();
+                }
+            }
+        })[0];
 
 
+    ShiftedDiff nodeDiff{nodeSimilarity, parsed.size(), expected.size()};
+
+
+    if (nodeSimilarity.lhsIndex.size() != parsed.size()
+        || nodeSimilarity.rhsIndex.size() != expected.size()) {
         ShiftedDiff nodeDiff{
             nodeSimilarity, parsed.size(), expected.size()};
+
+        Func<Str(CR<OrgNode>)> conv = [](CR<OrgNode> tok) -> Str {
+            return to_string(tok);
+        };
+
+        Vec<Str> parsedStr   = map(parsed.nodes.content, conv);
+        Vec<Str> expectedStr = map(expected.nodes.content, conv);
+
+        ColText text = formatDiffed(nodeDiff, parsedStr, expectedStr);
+        std::cout << "node differences\n";
+        std::cout << text << std::endl;
+        std::cout << "--------\n";
     }
 }
 
