@@ -4,6 +4,8 @@
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/ColText.hpp>
 
 #include <hstd/system/reflection.hpp>
@@ -638,9 +640,11 @@ struct ShiftedDiff {
 };
 
 struct BufItem {
-    ColText     text;
+    int         originalIndex;
     bool        changed;
     SeqEditKind kind;
+
+    Opt<int> lineIndex;
 };
 
 
@@ -735,19 +739,48 @@ inline Pair<ColText, ColText> formatLineDiff(
     return {oldLineLine, newLineLine};
 }
 
+struct FormattedDiff {
+    /// Single line of unified/stacked diff
+    struct DiffLine {
+        /// Visible numeration on the resulting line
+        Opt<int> lineIndex;
+        /// Type of the line operation
+        SeqEditKind prefix;
+        /// Whether line represents element from the lhs sequence of rhs
+        /// one
+        bool isLhs;
+        /// Index of the item in original (lhs/rhs) sequence
+        int originalIndex;
+    };
 
-inline ColText joinBuffer(
+    struct StackedDiff {
+        Vec<DiffLine> elements;
+    };
+
+    struct UnifiedDiff {
+        Vec<DiffLine> lhs;
+        Vec<DiffLine> rhs;
+    };
+
+    Variant<StackedDiff, UnifiedDiff> content;
+
+    StackedDiff& stacked() { return std::get<StackedDiff>(content); }
+    UnifiedDiff& unified() { return std::get<UnifiedDiff>(content); }
+};
+
+
+inline FormattedDiff joinBuffer(
     const Vec<BufItem>&   oldText,
     const Vec<BufItem>&   newText,
     const DiffFormatConf& conf) {
-    bool    first = true;
-    ColText result;
+    bool          first = true;
+    FormattedDiff result;
 
     auto addl = [&result, &first]() {
-        if (!first) {
-            result.append(merge(ColStyle{}, "\n"));
-        }
-        first = false;
+        // if (!first) {
+        //     result.append(merge(ColStyle{}, "\n"));
+        // }
+        // first = false;
     };
 
     if (conf.groupLine) {
@@ -760,15 +793,21 @@ inline ColText joinBuffer(
         auto addBuffers = [&addl, &result, &lhsBuf, &rhsBuf]() {
             for (const BufItem& line : lhsBuf) {
                 if (line.changed) {
-                    addl();
-                    result.append(line.text);
+                    result.stacked().elements.push_back(
+                        {.lineIndex     = line.lineIndex,
+                         .prefix        = line.kind,
+                         .isLhs         = true,
+                         .originalIndex = line.originalIndex});
                 }
             }
 
             for (const BufItem& line : rhsBuf) {
                 if (line.changed) {
-                    result.append(merge(ColStyle{}, "\n"));
-                    result.append(line.text);
+                    result.stacked().elements.push_back(
+                        {.lineIndex     = line.lineIndex,
+                         .prefix        = line.kind,
+                         .isLhs         = false,
+                         .originalIndex = line.originalIndex});
                 }
             }
         };
@@ -803,24 +842,35 @@ inline ColText joinBuffer(
         // Ungrouped lines either with unified or side-by-side
         // representation
         int lhsMax = 0;
-        if (conf.sideBySide) {
-            for (const BufItem& item : oldText) {
-                lhsMax = std::max(item.text.size(), lhsMax);
-            }
-        }
-
-        for (auto it = oldText.begin(), jt = newText.begin();
-             it != oldText.end();
-             ++it, ++jt) {
+        for (auto oldIt = oldText.begin(), newIt = newText.begin();
+             oldIt != oldText.end();
+             ++oldIt, ++newIt) {
             addl();
             if (conf.sideBySide) {
-                result.append(left_aligned(it->text, lhsMax + 3));
-                result.append(jt->text);
+                result.unified().lhs.push_back(FormattedDiff::DiffLine{
+                    .originalIndex = oldIt->originalIndex,
+                    .isLhs         = true,
+                    .prefix        = oldIt->kind,
+                    .lineIndex     = oldIt->lineIndex});
+
+                result.unified().rhs.push_back(FormattedDiff::DiffLine{
+                    .originalIndex = newIt->originalIndex,
+                    .isLhs         = false,
+                    .prefix        = newIt->kind,
+                    .lineIndex     = newIt->lineIndex});
             } else {
-                result.append(it->text);
-                if (jt->changed) {
-                    result.push_back(ColRune('\n'));
-                    result.append(jt->text);
+                result.unified().lhs.push_back(FormattedDiff::DiffLine{
+                    .originalIndex = oldIt->originalIndex,
+                    .isLhs         = true,
+                    .prefix        = oldIt->kind,
+                    .lineIndex     = oldIt->lineIndex});
+
+                if (newIt->changed) {
+                    result.unified().rhs.push_back(FormattedDiff::DiffLine{
+                        .originalIndex = newIt->originalIndex,
+                        .isLhs         = false,
+                        .prefix        = newIt->kind,
+                        .lineIndex     = newIt->lineIndex});
                 }
             }
         }
@@ -840,58 +890,14 @@ inline ColText joinBuffer(
 /// string. Resulting type might have structure very similar to the final
 /// formatting result: `Vec<>` of `{int lineIndex; SeqEditKind linePrefix;
 /// ...}`
-inline ColText formatDiffed(
+inline FormattedDiff formatDiffed(
     const ShiftedDiff& shifted,
-    const Vec<Str>&    oldSeq,
-    const Vec<Str>&    newSeq,
     DiffFormatConf     conf = DiffFormatConf{}) {
     Vec<BufItem> oldText, newText;
 
-    // Max line number len for left and right side
-    int maxLhsIdx = to_string(shifted.oldShifted.back().item).size();
-    int maxRhsIdx = to_string(shifted.newShifted.back().item).size();
-
-    using sek    = SeqEditKind;
-    auto editFmt = [&](SeqEditKind edit, int idx, bool isLhs) {
-        // Format prefix for edit operation for line at index `idx`
-        TypArray<SeqEditKind, Str> editOps = {
-            {sek::None, "?"},
-            {sek::Keep, "~"},
-            {sek::Insert, "+"},
-            {sek::Replace, "-+"},
-            {sek::Delete, "-"},
-            {sek::Transpose, "^v"}};
-
-        Str change;
-        // Make a `"+ "` or other prefix
-        if (edit == sek::None && !isLhs) {
-            // no trailing newlines for the filler lines on the rhs
-            change = editOps[edit];
-        } else {
-            change = left_aligned(editOps[edit], 2);
-        }
-
-        // Optionally add line annotation
-        if (conf.showLines) {
-            if (edit == sek::None) {
-                change += right_aligned(" ", maxLhsIdx);
-            } else if (isLhs) {
-                change += right_aligned(to_string(idx), maxLhsIdx);
-            } else {
-                change += right_aligned(to_string(idx), maxRhsIdx);
-            }
-        }
-
-        // Wrap change chunk via provided callback and return the prefix
-        if (edit == sek::Replace) {
-            return conf.chunk(
-                change, edit, (isLhs ? sek::Delete : sek::Insert));
-        } else {
-            return conf.chunk(change, edit, edit);
-        }
-    };
-
+    using sek     = SeqEditKind;
     int unchanged = 0;
+
     for (auto [lhs, rhs, lhsDefault, rhsDefault, idx] :
          zipToMax(shifted.oldShifted, shifted.newShifted)) {
         if (lhs.kind == sek::Keep && rhs.kind == sek::Keep) {
@@ -904,74 +910,22 @@ inline ColText formatDiffed(
             unchanged = 0;
         }
         // Start new entry on the old line
-        oldText.push_back(
-            {editFmt(lhs.kind, lhs.item, true),
-             // Only case where lhs can have unchanged lines is for unified
-             // diff+filler
-             conf.unified() && lhs.kind != sek::None,
-             lhs.kind});
+        oldText.push_back(BufItem{
+            .originalIndex = lhs.item,
+            // Only case where lhs can have unchanged lines is for unified
+            // diff+filler
+            .changed = conf.unified() && lhs.kind != sek::None,
+            .kind    = lhs.kind});
 
         // New entry on the new line
-        newText.push_back(
-            {editFmt(rhs.kind, rhs.item, false),
-             // Only newly inserted lines need to be formatted for the
-             // unified diff, everything else is displayed on the
-             // 'original' version.
-             conf.unified() && rhs.kind == sek::Insert,
-             rhs.kind});
-
-        // Determine whether any of the lines is empty (old/new has len ==
-        // 0)
-        bool lhsEmpty, rhsEmpty;
-        if (!lhsDefault && !rhsDefault && lhs.kind == sek::Delete
-            && rhs.kind == sek::Insert) {
-            // Old part is deleted, new is inserted directly in place, show
-            // the line diff between those two (more detailed highlight of
-            // the modified parts in each version)
-
-            auto [oldLine, newLine] = formatLineDiff(
-                oldSeq[lhs.item], newSeq[rhs.item], conf);
-
-            oldText.back().text.append(oldLine);
-            newText.back().text.append(newLine);
-
-        } else if (rhs.kind == sek::Insert) {
-            // Insert new and wrap in formatter
-            auto tmp = newSeq[rhs.item];
-            rhsEmpty = (tmp.length() == 0);
-            // Append to the trailing new line
-            newText.back().text.append(
-                conf.chunk(tmp, sek::Insert, sek::Insert));
-
-        } else if (lhs.kind == sek::Delete) {
-            // Same as above, but for deletion and old text
-            auto tmp = oldSeq[lhs.item];
-            lhsEmpty = (tmp.length() == 0);
-            oldText.back().text.append(
-                conf.chunk(tmp, sek::Delete, sek::Delete));
-        } else {
-            auto ltmp = oldSeq[lhs.item];
-            lhsEmpty  = ltmp.size() == 0;
-            oldText.back().text.append(
-                conf.chunk(ltmp, lhs.kind, lhs.kind));
-
-            auto rtmp = newSeq[rhs.item];
-            rhsEmpty  = rtmp.size() == 0;
-            newText.back().text.append(
-                conf.chunk(rtmp, rhs.kind, rhs.kind));
-        }
-
-        if (lhsEmpty && idx < shifted.oldShifted.high()) {
-            oldText.back().text.append(conf.chunk(
-                toVisibleNames(conf, "\n"), sek::Delete, sek::Delete));
-        }
-
-        if (rhsEmpty && idx < shifted.newShifted.high()) {
-            newText.back().text.append(conf.chunk(
-                toVisibleNames(conf, "\n"), sek::Insert, sek::Insert));
-        }
+        newText.push_back(BufItem{
+            .originalIndex = rhs.item,
+            // Only newly inserted lines need to be formatted for the
+            // unified diff, everything else is displayed on the
+            // 'original' version.
+            .changed = conf.unified() && rhs.kind == sek::Insert,
+            .kind    = rhs.kind});
     }
-
 
     return joinBuffer(oldText, newText, conf);
 }
@@ -1288,11 +1242,11 @@ ColText formatDiffed(
     Func<Str(const T&)> strConv =
         [](const T& a) { return to_string(a); }) {
 
-    auto        diff = myersDiff(oldSeq, newSeq, eqCmp);
-    ShiftedDiff shifted{diff};
-
-    return formatDiffed(
-        shifted, map(oldSeq, strConv), map(newSeq, strConv), conf);
+    auto          diff = myersDiff(oldSeq, newSeq, eqCmp);
+    ShiftedDiff   shifted{diff};
+    FormattedDiff formatted = formatDiffed(shifted, conf);
+    return ColText{};
+    // map(oldSeq, strConv), map(newSeq, strConv),
 }
 
 inline ColText formatDiffed(
