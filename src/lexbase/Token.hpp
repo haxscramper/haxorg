@@ -221,10 +221,13 @@ struct LexerCommon {
     LexerCommon(TokenGroup<K>* _in, TokenId<K> startPos = TokenId<K>(0))
         : in(_in), pos(startPos) {}
 
-    K   kind(int offset = 0) const { return tok(offset).kind; }
     Str strVal(int offset = 0) const {
         return in->at(get(offset)).strVal();
     }
+
+    K            kind(int offset = 0) const { return tok(offset).kind; }
+    Token<K>&    tok(TokenId<K> id) { return in->at(id); }
+    CR<Token<K>> tok(TokenId<K> id) const { return in->at(id); }
     CR<Token<K>> tok(int offset = 0) const { return in->at(get(offset)); }
     TokenId<K>   get(int offset = 0) const { return pos + offset; }
 

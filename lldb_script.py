@@ -22,6 +22,9 @@ def simplify_name(name: str) -> str:
 
 
 def format_frame(frame, unused):
+    if "Catch" in frame.name or "__gnu" in frame.name or "__libc" in frame.name:
+        return ""
+
     result = f"\033[35m{frame.idx:>2}\033[0m: {simplify_name(frame.name)}"
     # 'A read only property that returns the 1 based line number for this
     # line entry, a return value of zero indicates that no line information

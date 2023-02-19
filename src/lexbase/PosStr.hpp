@@ -53,6 +53,24 @@ struct PosStr {
     /// \brief Resolve absolute position to specific line and column
     std::shared_ptr<LocationResolver> resolver;
 
+    struct PrintParams {
+        int maxTokens = 10;
+    };
+
+    void print() { print(PrintParams()); }
+    void print(CR<PrintParams> params) {
+        auto& os = std::cout;
+        os << "PosStr at #" << pos;
+        for (int i = 0; i < params.maxTokens; ++i) {
+            if (hasNext(i)) {
+                os << " '" << visibleName(get(i)).first << "'";
+            }
+        }
+
+        os << std::endl;
+    }
+
+
     struct SliceStartData {
         int pos;
     };
@@ -404,16 +422,14 @@ struct PosStr {
     /// on the last character in the string, or closest newline.
     void skipToEOL() { skipTo(charsets::Newline); }
 
-    void skipToEOF() { assert(false && "IMPLEMENT"); }
-    void skipPastEOF() {
-        skipToEOF();
-        next();
-    }
-    void skipToSOF() { assert(false && "IMPLEMENT"); }
+    void skipToEOF() { pos = view.size() - 1; }
+    void skipPastEOF() { pos = view.size(); }
+    void skipToSOF() { pos = 0; }
 
     /// Skip past the end of the line - that is, for `111\n2222` put cursor
     /// at the first `2` on the second line.
     void skipPastEOL() { skipPast(charsets::Newline); }
+
 
     /*! If string is positioned on the empty line skip it, and return
     `true`. Otherwise return `false` */
@@ -588,7 +604,7 @@ inline void skipBalancedSlice(PosStr& str, char open, char close) {
         str, {.openChars = CharSet{open}, .closeChars = CharSet{close}});
 }
 
-inline void skipPastEOF(PosStr& str) { assert(false && "IMPLEMENT"); }
+inline void skipPastEOF(PosStr& str) { str.skipPastEOF(); }
 inline void skipPastEOL(PosStr& str) { str.skipPastEOL(); }
 inline void skipToEOL(PosStr& str) { str.skipToEOL(); }
 inline void skipCount(PosStr& str, int count) { str.next(count); }
@@ -646,16 +662,4 @@ inline void skipDigit(Ref<PosStr> str) {
         str.skip(charsets::Digits);
         str.skipZeroOrMore(charsets::Digits + CharSet{'_', '.'});
     }
-}
-
-inline std::ostream& operator<<(std::ostream& os, PosStr const& value) {
-    for (int i = 0; i < 10; ++i) {
-        if (value.hasNext(i)) {
-            if (0 < i) {
-                os << " ";
-            }
-            os << visibleName(value.get(i)).first;
-        }
-    }
-    return os;
 }

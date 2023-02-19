@@ -1,5 +1,9 @@
 #include "OrgParser.hpp"
 
+#pragma clang diagnostic push
+// #pragma clang diagnostic error "-Wswitch-enum"
+// #pragma clang diagnostic error "-Wswitch-enum"
+
 using otk = OrgTokenKind;
 using org = OrgNodeKind;
 using ock = OrgCommandKind;
@@ -33,41 +37,95 @@ OrgId OrgParser::parseRawUrl(OrgLexer& lex) {
     token(org::RawLink, lex.pop(otk::RawUrl));
 }
 
-void OrgParser::parseTextFoldPass(OrgLexer& lex) {
+void OrgParser::textFold(OrgLexer& lex) {
+#define CASE_MARKUP(Kind)                                                 \
+    case otk::Kind##Open: {                                               \
+        start(org::Kind, lex);                                            \
+        textFold(lex);                                                    \
+        break;                                                            \
+    }                                                                     \
+                                                                          \
+    case otk::Kind##Close: {                                              \
+        if (pending().kind == org::Kind) {                                \
+            end(lex);                                                     \
+        } else {                                                          \
+            fail(lex.pop());                                              \
+        }                                                                 \
+        break;                                                            \
+    }
+
     while (!lex.finished()) {
         switch (lex.kind()) {
-            case otk::BoldOpen: {
-                start(org::Bold);
-                lex.next();
-                break;
-            }
-            case otk::BoldClose: {
-                end();
-                lex.next();
+            CASE_MARKUP(Bold);
+            CASE_MARKUP(Italic);
+            CASE_MARKUP(Underline);
+            CASE_MARKUP(Strike);
+            CASE_MARKUP(Verbatim);
+            CASE_MARKUP(Angle);
+            CASE_MARKUP(Quote);
+            CASE_MARKUP(Par);
+
+            case otk::Space: token(org::Space, lex.pop()); break;
+            case otk::Escaped: token(org::Escaped, lex.pop()); break;
+            case otk::RawText: token(org::RawText, lex.pop()); break;
+            case otk::Newline: token(org::Newline, lex.pop()); break;
+            case otk::Word: token(org::Word, lex.pop()); break;
+
+            case otk::SrcOpen: parseTime(lex); break;
+            case otk::AngleTime: parseTime(lex); break;
+            case otk::BracketTime: parseTime(lex); break;
+            case otk::HashTag: parseHashTag(lex); break;
+            case otk::LinkOpen: parseLink(lex); break;
+            case otk::MacroOpen: parseMacro(lex); break;
+            case otk::RawUrl: parseRawUrl(lex); break;
+            case otk::FootnoteStart: parseFootnote(lex); break;
+
+            case otk::DollarOpen:
+            case otk::LatexParOpen:
+            case otk::DoubleDollarOpen:
+            case otk::LatexBraceOpen: parseInlineMath(lex); break;
+
+
+            case otk::DoubleAngleOpen: {
+                lex.skip(otk::DoubleAngleOpen);
+                token(org::Target, lex.pop(otk::RawText));
+                lex.skip(otk::DoubleAngleClose);
                 break;
             }
 
-            case otk::Word: {
-                token(org::Word, lex.pop(otk::Word));
+            case otk::TripleAngleOpen: {
+                lex.skip(otk::TripleAngleOpen);
+                token(org::RadioTarget, lex.pop(otk::RawText));
+                lex.skip(otk::TripleAngleClose);
                 break;
             }
 
-            default: {
-                std::cout << "unhandled token kind "
-                          << to_string(lex.kind()) << std::endl;
-                assert(false);
-            }
+            case otk::BoldInline:
+            case otk::ItalicInline:
+            case otk::VerbatimInline:
+            case otk::MonospaceInline:
+            case otk::BacktickInline:
+            case otk::UnderlineInline:
+            case otk::StrikeInline:
+                assert(
+                    "Non-directional inline markup token incountered "
+                    "during text parsing");
+
+                // default: {
+                //     std::cout << "unhandled token kind "
+                //               << to_string(lex.kind()) << std::endl;
+                //     assert(false);
+                // }
         }
     }
-}
 
-void OrgParser::parseTextRecursiveFold(Slice<OrgId> range) {}
+#undef CASE_MARKUP
+}
 
 Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
     OrgId first = back();
-    parseTextFoldPass(lex);
+    textFold(lex);
     OrgId last = back();
-    parseTextRecursiveFold(slice(first, last));
     return slice(first, last);
 }
 
@@ -202,7 +260,26 @@ OrgId OrgParser::parseTime(OrgLexer& lex) {
     }
 }
 
-OrgId OrgParser::parseIdent(OrgLexer& lex) { assert(false); }
+OrgId OrgParser::parseFootnote(OrgLexer& lex) {
+    // TODO replace 'footnote start' + '::' with a 'inline footnote start'
+    // / 'footnote start nodes'
+    lex.skip(otk::FootnoteStart);
+    if (lex.at(otk::Colon)) {
+        start(org::Footnote);
+        lex.skip(otk::Colon);
+        parseIdent(lex);
+    } else {
+        start(org::InlineFootnote);
+        lex.skip(otk::DoubleColon);
+        parseInlineParagraph(lex);
+    }
+    lex.skip(otk::FootnoteEnd);
+    return end();
+}
+
+OrgId OrgParser::parseIdent(OrgLexer& lex) {
+    token(org::Ident, lex.pop(otk::Ident));
+}
 
 OrgId OrgParser::parseSrcInline(OrgLexer& lex) {
     start(org::SrcInlineCode);
@@ -332,6 +409,59 @@ OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
 
     SubLexer<OrgTokenKind> sub = SubLexer<OrgTokenKind>(
         lex.in, paragraphTokens);
+
+    UnorderedMap<OrgTokenKind, bool> lastClosing({
+        {otk::BoldInline, true},
+        {otk::ItalicInline, true},
+        {otk::VerbatimInline, true},
+        {otk::MonospaceInline, true},
+        {otk::BacktickInline, true},
+        {otk::UnderlineInline, true},
+        {otk::StrikeInline, true},
+    });
+
+    for (const auto& tok : sub.tokens) {
+        auto kind = sub.tok(tok).kind;
+        if (lastClosing.contains(kind)) {
+            if (lastClosing.at(kind)) {
+                switch (kind) {
+#define MarkupOpen(Kind)                                                  \
+    case otk::Kind##Inline:                                               \
+        sub.tok(tok).kind = otk::Kind##InlineOpen;                        \
+        break;
+
+                    MarkupOpen(Bold);
+                    MarkupOpen(Italic);
+                    MarkupOpen(Verbatim);
+                    MarkupOpen(Monospace);
+                    MarkupOpen(Backtick);
+                    MarkupOpen(Underline);
+                    MarkupOpen(Strike);
+
+#undef MarkupOpen
+                }
+            } else {
+                switch (kind) {
+#define MarkupClose(Kind)                                                 \
+    case otk::Kind##Inline:                                               \
+        sub.tok(tok).kind = otk::Kind##InlineClose;                       \
+        break;
+
+                    MarkupClose(Bold);
+                    MarkupClose(Italic);
+                    MarkupClose(Verbatim);
+                    MarkupClose(Monospace);
+                    MarkupClose(Backtick);
+                    MarkupClose(Underline);
+                    MarkupClose(Strike);
+
+#undef MarkupClose
+                }
+            }
+        }
+    }
+
+
     start(org::Paragraph);
     auto nodes = parseText(sub);
     return end();
@@ -1047,3 +1177,5 @@ OrgId OrgParser::parseTop(OrgLexer& lex) {
     }
     return end();
 }
+
+#pragma clang diagnostic pop

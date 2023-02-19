@@ -116,9 +116,10 @@ void runSpec(CR<YAML::Node> group) {
 
         MockFull p;
         p.tokenize(spec.source, lexCb);
-        std::cout << "\nLexed tokens\n" << p.tokens << std::endl;
+        YAML::Emitter emitter;
+        std::cout << "\nLexed tokens\n" << yamlRepr(p.tokens) << std::endl;
         p.parse(parseCb);
-        std::cout << "\nParsed nodes\n" << p.nodes << std::endl;
+        std::cout << "\nParsed nodes\n" << yamlRepr(p.nodes) << std::endl;
 
         // p.treeRepr();
         // p.yamlRepr();

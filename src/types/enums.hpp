@@ -24,18 +24,30 @@ enum class OrgNodeKind : short int
     UserNode, /// User-defined node [[code:OrgUserNode]]
     Empty,    /*!Empty node - valid state that does not contain any value
                */
-    Error,    /*!Failed node parse - technically there are no /wrong/
-       syntax in the org-mode document because everything can be considered a
-       one    large word or a paragraph with flat `Word` content.
-   
-       Error node can be produced by any parsing routine, although it is
-       mostly used in the low-level text elements, since high-level
-       structures are mostly detected based on the correct syntax - for
-       example, `*** subtree` (and any title variations) can never be an
-       error in itself. Title /text/ might contain an error, but invalid it
-       is not possible to write an invalid subtree - it is either `*
-       ANYTHING` or not a subtree at all.
-       */
+
+    /// Failed node parse - technically there are no /wrong/ syntax in the
+    /// org-mode document because everything can be considered a one large
+    /// word or a paragraph with flat `Word` content.
+    ///
+    /// Error node's extent covers all subnodes that were constructed
+    /// during nested content parsing plus ErrorTerminator node with error
+    /// token (description of the parsing failure). So failure node will be
+    /// structured as `[Error <some content> <ErrorToken>
+    /// <ErrorTermiator>]`. Second-to-last is the invalid token itself,
+    /// error terminator will hold fake token that referes to an error.
+    ///
+    /// Error node can be produced by any parsing routine, although it is
+    /// mostly used in the low-level text elements, since high-level
+    /// structures are mostly detected based on the correct syntax - for
+    /// example, `*** subtree` (and any title variations) can never be an
+    /// error in itself. Title /text/ might contain an error, but invalid
+    /// it is not possible to write an invalid subtree - it is either `*
+    /// ANYTHING` or not a subtree at all.
+    Error,
+    /// Terminator node for failure in nested structure parsing
+    ErrorTerminator,
+    /// Single invalid token
+    ErrorToken,
     InlineStmtList,
     StmtList, /*!List of statements, possibly recursive. Used as
     toplevel part of the document, in recursive parsing of subtrees, or as
@@ -118,17 +130,13 @@ punctuation. Identifiers are compared and parsed in
 style-insensetive manner, meaning `CODE_BLOCK`, `code-block` and
 `codeblock` are identical.
 */
-    BareIdent,
-    /*!Bare identifier - any characters are allowed
-     */
+    BareIdent, /*!Bare identifier - any characters are allowed */
     AdmonitionTag,
     /*!Big ident used in conjunction with colon at the
 start of paragraph is considered an admonition tag: `NOTE: Text`,
 `WARNING: text` etc.
 */
-    BigIdent,
-    /*!full-uppsercase identifier such as `MUST` or `TODO`
-     */
+    BigIdent, /*!full-uppsercase identifier such as `MUST` or `TODO` */
     VerbatimMultilineBlock,
     /*!Verbatim mulitiline block that *might* be
 a part of `orgMultilineCommand` (in case of `#+begin-src`), but not
@@ -143,10 +151,7 @@ blocks.
     AdmonitionBlock,
     CenterBlock,
     Example, /// Verbatim example text block
-    SrcCode,
-    /*!Block of source code - can be multiline, single-line and
-
-*/
+    SrcCode, /*!Block of source code - can be multiline, single-line and */
     SrcInlineCode,
     /*!inline piece of code (such as `src_nim`). Latter is
 different from regular monospaced text inside of `~~` pair as it
@@ -169,9 +174,7 @@ used to to make source code block export with lines
 */
     CmdKey,
     CmdValue,
-    CmdNamedValue,
-    /*!Key-value pair for source code block call.
-     */
+    CmdNamedValue, /*!Key-value pair for source code block call. */
     UrgencyStatus,
     /*!Subtree importance level, such as `[#A]` or `[#B]`.
 Default org-mode only allows single character for contents inside of
@@ -213,34 +216,7 @@ not limited to actual paragraph
     Quote,
     Angle,
     Monospace,
-
-    ///@{
-    /// Incomplete opening nodes generated in the starting passes. Might be
-    /// converted to complete versions.
-    BoldOpen,
-    ItalicOpen,
-    VerbatimOpen,
-    BacktickOpen,
-    UnderlineOpen,
-    StrikeOpen,
-    QuoteOpen,
-    AngleOpen,
-    MonospaceOpen,
-    ///@}
-
-    ///@{
-    /// Incomplete closing nodes generated in the starting passes of the
-    /// text parsing
-    BoldClose,
-    ItalicClose,
-    VerbatimClose,
-    BacktickClose,
-    UnderlineClose,
-    StrikeClose,
-    QuoteClose,
-    AngleClose,
-    MonospaceClose,
-    ///@}
+    Par,
     ///@}
 
     InlineMath,
@@ -286,17 +262,13 @@ is the most compact way of quoting export strings, after
 various backends - greek letters (`\alpha`), mathematical notations
 and so on.
 */
-    TimeAssoc,
-    /*!Time association pair for the subtree deadlines.
-     */
+    TimeAssoc, /*!Time association pair for the subtree deadlines. */
     TimeStamp,
     /*!Single date and time entry (active or inactive),
 possibly with repeater interval. Is not parsed directly, and instead
 contains `orgRawText` that can be parsed later
 */
-    TimeRange,
-    /*!Date and time range format - two `orgDateTime` entries
-     */
+    TimeRange, /*!Date and time range format - two `orgDateTime` entries */
     SimpleTime,
     /*!Result of the time range evaluation or trailing
 annotation a subtree
@@ -368,9 +340,7 @@ the org-mode clock table visualization on per-file basis.
     /*!Property entry, either in `#+property:` command, or in
 `:property:` drawer
 */
-    PropertyAdd,
-    /*!Property value extensions - `:property+:`
-     */
+    PropertyAdd, /*!Property value extensions - `:property+:` */
     Placeholder,
     /*!Placeholder entry in text, usually writte like `<text
 to replace>`
@@ -496,24 +466,12 @@ feature the option provides.)
     obiImportant,
     obiCaution,
     obiWarning,
-    obiUserCodeComment,
-    /*!User-defined comment message
-     */
-    obiUserCommitMsg,
-    /*!User-defined commit message ident
-     */
-    obiUserTaskState,
-    /*!User-defined task state
-     */
-    obiUserAdmonition,
-    /*!User-defined admonition label
-     */
-    obiOther,
-    /*!User-defined big-idents, not included in default set.
-     */
-    obiStructIf,
-    /*!@pushgroup{structured-english}
-     */
+    obiUserCodeComment, /// User-defined comment message
+    obiUserCommitMsg,   /// User-defined commit message ident
+    obiUserTaskState,   /// User-defined task state
+    obiUserAdmonition,  /// User-defined admonition label
+    obiOther,    /// User-defined big-idents, not included in default set.
+    obiStructIf, /// @pushgroup{structured-english}
     obiStructAnd,
     obiStructOr,
     obiStructNot,
@@ -582,6 +540,7 @@ enum class OrgTokenKind : short int
 {
     None,
     Eof,
+    ErrorTerminator,
     CommandPrefix,
     LineCommand,
     CommandBegin,
@@ -677,27 +636,15 @@ were detected
     Dedent,       /// Decrease in indentation
     SameIndent,
     NoIndent,
-    BoldOpen,
-    BoldClose,
-    BoldInline,
-    ItalicOpen,
-    ItalicClose,
-    ItalicInline,
-    VerbatimOpen,
-    VerbatimClose,
-    VerbatimInline,
-    MonospaceOpen,
-    MonospaceClose,
-    MonospaceInline,
-    BacktickOpen,
-    BacktickClose,
-    BacktickInline,
-    UnderlineOpen,
-    UnderlineClose,
-    UnderlineInline,
-    StrikeOpen,
-    StrikeClose,
-    StrikeInline,
+    // clang-format off
+    BoldOpen,      BoldClose,      BoldInline,      BoldInlineOpen,      BoldInlineClose,
+    ItalicOpen,    ItalicClose,    ItalicInline,    ItalicInlineOpen,    ItalicInlineClose,
+    VerbatimOpen,  VerbatimClose,  VerbatimInline,  VerbatimInlineOpen,  VerbatimInlineClose,
+    MonospaceOpen, MonospaceClose, MonospaceInline, MonospaceInlineOpen, MonospaceInlineClose,
+    BacktickOpen,  BacktickClose,  BacktickInline,  BacktickInlineOpen,  BacktickInlineClose,
+    UnderlineOpen, UnderlineClose, UnderlineInline, UnderlineInlineOpen, UnderlineInlineClose,
+    StrikeOpen,    StrikeClose,    StrikeInline,    StrikeInlineOpen,    StrikeInlineClose,
+    // clang-format on
     QuoteOpen,
     QuoteClose,
     Punctuation,

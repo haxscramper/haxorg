@@ -2,3 +2,5 @@ lex: "Structure"
 parse: "InlineParagraph"
 items:
   - source: "*bold*"
+  - source: "/italic/"
+  - source: "[[link][description]]"

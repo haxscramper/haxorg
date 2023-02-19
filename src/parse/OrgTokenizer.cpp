@@ -185,34 +185,26 @@ void OrgTokenizer::lexTime(PosStr& str) {
 }
 
 void OrgTokenizer::lexLinkTarget(PosStr& str) {
-    if (str.at(R"(https)") || str.at(R"(http)")) {
+    if (str.at("https") || str.at("http")) {
         assert(false && "FIXME");
     } else if (
-        str.at(R"(file)")          //
-        || str.at(R"(attachment)") //
-        || str.at(R"(docview)")    //
-        || str.at('/')             //
-        || str.at(R"(./)")) {
+        str.at("file") || str.at("attachment") || str.at("docview")
+        || str.at('/') || str.at("./")) {
 
         if (str.at('.') || str.at('/')) {
-            assert(false && "FIXME");
-            // push(
-            //     result,
-            //     str,
-            //     result.add(
-            //         initFakeTok(str, otk::LinkProtocol, R"(file)")));
+            push(str.fakeTok(otk::LinkProtocol));
         } else {
             push(str.tok(otk::LinkProtocol, skipTo, ':'));
             str.skip(':');
         }
 
         push(str.tok(otk::LinkTarget, [](PosStr& str) {
-            while (!str.finished() && !str.at(R"(::)")) {
+            while (!str.finished() && !str.at("::")) {
                 str.next();
             }
         }));
 
-        if (str.at(R"(::)")) {
+        if (str.at("::")) {
             push(str.tok(otk::LinkExtraSeparator, skipCount, 2));
             push(str.tok(otk::LinkExtra, skipPastEOF));
         }
@@ -233,8 +225,9 @@ void OrgTokenizer::lexBracket(PosStr& str) {
         // link_token
         {
             push(str.tok(otk::LinkTargetOpen, skipOne, '['));
-            PosStr target = str.slice(skipBefore, ']');
+            PosStr target = str.slice(skipTo, ']');
             lexLinkTarget(target);
+            str.print({.maxTokens = 30});
             push(str.tok(otk::LinkTargetClose, skipOne, ']'));
         };
         // description_token
@@ -1835,9 +1828,6 @@ void OrgTokenizer::lexStructure(PosStr& str) {
             // either subtree or a unordered list.
             bool hasSpace = str.at(CharSet{'*'}, 0)
                          && str.at(CharSet{' '}, 1);
-
-            std::cout << str.getColumn() << " column " << hasSpace << " "
-                      << str << std::endl;
 
             if (str.getColumn() == 0) {
                 if (hasSpace) {
