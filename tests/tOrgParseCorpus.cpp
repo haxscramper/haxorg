@@ -138,13 +138,10 @@ void compareNodes(
             return to_string(tok);
         };
 
-        Vec<Str> parsedStr   = map(parsed.nodes.content, conv);
-        Vec<Str> expectedStr = map(expected.nodes.content, conv);
-
-        ColText text = formatDiffed(nodeDiff, parsedStr, expectedStr);
-        std::cout << "node differences\n";
-        std::cout << text << std::endl;
-        std::cout << "--------\n";
+        FormattedDiff text{nodeDiff};
+        // std::cout << "node differences\n";
+        // std::cout << text << std::endl;
+        // std::cout << "--------\n";
     }
 }
 
@@ -175,13 +172,40 @@ void compareTokens(
             return to_string(tok);
         };
 
-        Vec<Str> lexedStr    = map(lexed.tokens.content, conv);
-        Vec<Str> expectedStr = map(expected.tokens.content, conv);
+        // Vec<Str> lexedStr    = map(lexed.tokens.content, conv);
+        // Vec<Str> expectedStr = map(expected.tokens.content, conv);
 
-        ColText text = formatDiffed(tokenDiff, lexedStr, expectedStr);
+        FormattedDiff text{tokenDiff};
+
         std::cout << "token differences\n";
-        std::cout << text << std::endl;
-        std::cout << "--------\n";
+        if (text.isUnified()) {
+            std::cout << "unified\n";
+            for (const auto& [lhs, rhs] : text.unifiedLines()) {
+                auto lhsStyle = toStyle(lhs.prefix);
+                auto rhsStyle = toStyle(rhs.prefix);
+                std::cout
+                    //
+                    << merge(
+                           lhsStyle, left_aligned(toPrefix(lhs.prefix), 2))
+                    << merge(
+                           lhsStyle,
+                           left_aligned(
+                               to_string(lexed.tokens.content.at(
+                                   lhs.originalIndex)),
+                               48))
+                    << merge(
+                           rhsStyle, left_aligned(toPrefix(rhs.prefix), 2))
+                    << merge(
+                           rhsStyle,
+                           left_aligned(
+                               to_string(expected.tokens.content.at(
+                                   rhs.originalIndex)),
+                               16))
+                    << std::endl;
+            }
+        }
+        // std::cout << text << std::endl;
+        // std::cout << "--------\n";
     }
 }
 
