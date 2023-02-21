@@ -159,96 +159,29 @@ struct DiffFormatConf {
 };
 
 
-/// TODO use 'indexable' concept that will work with stdlib vectors,
-/// arrays, other data structures, plain text blocks, wide strings and so
-/// on.
+Vec<BacktrackRes> longestCommonSubsequence(
+    int                   lhsSize,
+    int                   rhsSize,
+    Func<bool(int, int)>  itemCmp,
+    Func<float(int, int)> itemEqualityMetric);
+
+
 template <typename T>
 Vec<BacktrackRes> longestCommonSubsequence(
     CVec<T>                   lhs,
     CVec<T>                   rhs,
     Func<bool(CR<T>, CR<T>)>  itemCmp,
     Func<float(CR<T>, CR<T>)> itemEqualityMetric) {
-
-    if (lhs.empty() || rhs.empty()) {
-        return {{}};
-    }
-
-    UnorderedMap<Pair<int, int>, float> mem;
-    Func<float(int, int)>               lcs;
-    lcs = [&](int lhsIdx, int rhsIdx) -> float {
-        if (mem.count({lhsIdx, rhsIdx}) == 0) {
-            if (lhsIdx == -1 || rhsIdx == -1) {
-                mem[{lhsIdx, rhsIdx}] = 0;
-            } else if (itemCmp(lhs[lhsIdx], rhs[rhsIdx])) {
-                mem[{lhsIdx, rhsIdx}] = lcs(lhsIdx - 1, rhsIdx - 1)
-                                      + itemEqualityMetric(
-                                            lhs[lhsIdx], rhs[rhsIdx]);
-            } else {
-                mem[{lhsIdx, rhsIdx}] = std::max(
-                    lcs(lhsIdx, rhsIdx - 1), lcs(lhsIdx - 1, rhsIdx));
-            }
-        }
-
-        return mem[{lhsIdx, rhsIdx}];
-    };
-
-    int m = lhs.size() - 1;
-    int n = rhs.size() - 1;
-
-    Func<Vec<BacktrackRes>(int, int)> backtrack;
-
-    backtrack = [&](int lhsIdx, int rhsIdx) -> Vec<BacktrackRes> {
-        if (lcs(lhsIdx, rhsIdx) == 0) {
-            return {{}};
-        } else if (lhsIdx == 0) {
-            int rhsIdxRes = rhsIdx;
-            while (true) {
-                if (mem.contains({lhsIdx, rhsIdxRes - 1})
-                    && lcs(lhsIdx, rhsIdxRes - 1) == lcs(lhsIdx, rhsIdx)) {
-                    --rhsIdxRes;
-                } else {
-                    break;
-                }
-            }
-
-            return {
-                {.lhsIndex = Vec<int>::FromValue({lhsIdx}),
-                 .rhsIndex = Vec<int>::FromValue({rhsIdxRes})}};
-        } else if (rhsIdx == 0) {
-            int lhsIdxRes = lhsIdx;
-            while (true) {
-                if (mem.contains({lhsIdxRes - 1, rhsIdx})
-                    && lcs(lhsIdxRes - 1, rhsIdx) == lcs(lhsIdx, rhsIdx)) {
-                    --lhsIdxRes;
-                } else {
-                    break;
-                }
-            }
-
-            return {
-                {.lhsIndex = Vec<int>::FromValue({lhsIdxRes}),
-                 .rhsIndex = Vec<int>::FromValue({rhsIdx})}};
-        } else if (itemCmp(lhs[lhsIdx], rhs[rhsIdx])) {
-            auto              back = backtrack(lhsIdx - 1, rhsIdx - 1);
-            Vec<BacktrackRes> res;
-            for (const auto& t : back) {
-                res.push_back(
-                    {.lhsIndex = t.lhsIndex + lhsIdx,
-                     .rhsIndex = t.rhsIndex + rhsIdx});
-            }
-
-            return res;
-        } else if (lcs(lhsIdx, rhsIdx - 1) > lcs(lhsIdx - 1, rhsIdx)) {
-            return backtrack(lhsIdx, rhsIdx - 1);
-        } else if (lcs(lhsIdx, rhsIdx - 1) < lcs(lhsIdx - 1, rhsIdx)) {
-            return backtrack(lhsIdx - 1, rhsIdx);
-        } else {
-            return backtrack(lhsIdx - 1, rhsIdx)
-                 + backtrack(lhsIdx - 1, rhsIdx);
-        }
-    };
-
-    return backtrack(m, n);
+    return longestCommonSubsequence(
+        lhs.size(),
+        rhs.size(),
+        [&lhs, &rhs, &itemCmp](int lhsIdx, int rhsIdx) -> bool {
+            return itemCmp(lhs[lhsIdx], rhs[rhsIdx]);
+        },
+        [&lhs, &rhs, &itemEqualityMetric](
+            int lhsIdx, int rhsIdx) -> float {
+            return itemEqualityMetric(lhs[lhsIdx], rhs[rhsIdx]);
+        });
 }
 
 
@@ -258,64 +191,32 @@ Vec<BacktrackRes> longestCommonSubsequence(
     CVec<T>                  rhs,
     Func<bool(CR<T>, CR<T>)> itemCmp) {
     return longestCommonSubsequence<T>(
-        lhs, rhs, itemCmp, [&itemCmp](CR<T> lhs, CR<T> rhs) -> float {
-            return itemCmp(lhs, rhs) ? 1.0 : 0.0;
+        lhs,
+        rhs,
+        itemCmp,
+        [&lhs, &rhs, &itemCmp](CR<T> lhsIt, CR<T> rhsIt) -> float {
+            return itemCmp(lhsIt, rhsIt) ? 1.0 : 0.0;
         });
 }
 
+
+Vec<SeqEdit> myersDiff(
+    int                          aSize,
+    int                          bSize,
+    Func<bool(int lhs, int rhs)> itemCmp);
+
+
 template <typename T>
 Vec<SeqEdit> myersDiff(
-    const Vec<T>&                    aSeq,
-    const Vec<T>&                    bSeq,
+    const Vec<T>&                    lhsSeq,
+    const Vec<T>&                    rhsSeq,
     Func<bool(const T& x, const T&)> itemCmp) {
-    using sek = SeqEditKind;
-
-    Vec<Pair<int, Vec<SeqEdit>>> front(aSeq.size() + bSeq.size() + 3);
-
-    front[1].first = 0;
-
-    int aMax = aSeq.size();
-    int bMax = bSeq.size();
-
-    for (int d = 0; d <= aMax + bMax; d++) {
-        for (int k = -d; k <= d; k += 2) {
-            bool goDown
-                = (k == -d
-                   || (k != d && front[k - 1].first < front[k + 1].first));
-            int          x, y;
-            Vec<SeqEdit> history;
-
-            if (goDown) {
-                x       = front[k + 1].first;
-                history = front[k + 1].second;
-            } else {
-                x       = front[k - 1].first + 1;
-                history = front[k - 1].second;
-            }
-            y = x - k;
-
-            if (y >= 1 && y <= bMax && goDown) {
-                history.push_back(SeqEdit(sek::Insert, -1, y - 1));
-            } else if (x >= 1 && x <= aMax) {
-                history.push_back(SeqEdit(sek::Delete, x - 1, -1));
-            }
-
-            while (x < aMax && y < bMax && itemCmp(aSeq[x], bSeq[y])) {
-                x++;
-                y++;
-                history.push_back(SeqEdit(sek::Keep, x - 1, y - 1));
-            }
-
-            if (x >= aMax && y >= bMax) {
-                return history;
-            } else {
-                front[k].first  = x;
-                front[k].second = history;
-            }
-        }
-    }
-
-    return Vec<SeqEdit>();
+    return myersDiff(
+        lhsSeq.size(),
+        rhsSeq.size(),
+        [&lhsSeq, &rhsSeq, &itemCmp](int lhs, int rhs) -> bool {
+            return itemCmp(lhsSeq[lhs], rhsSeq[rhs]);
+        });
 }
 
 template <typename T>
