@@ -185,22 +185,20 @@ void compareTokens(
                 auto rhsStyle = toStyle(rhs.prefix);
                 std::cout
                     //
-                    << merge(
-                           lhsStyle, left_aligned(toPrefix(lhs.prefix), 2))
-                    << merge(
-                           lhsStyle,
-                           left_aligned(
-                               to_string(lexed.tokens.content.at(
-                                   lhs.originalIndex)),
-                               48))
-                    << merge(
-                           rhsStyle, left_aligned(toPrefix(rhs.prefix), 2))
-                    << merge(
-                           rhsStyle,
-                           left_aligned(
-                               to_string(expected.tokens.content.at(
-                                   rhs.originalIndex)),
-                               16))
+                    << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= 2)
+                    << ((lhs.empty() ? ColText("")
+                                     : ColText(
+                                         lhsStyle,
+                                         lexed.tokens.content.at(
+                                             lhs.index().value())))
+                        <<= 48)
+                    << (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= 2)
+                    << ((rhs.empty() ? ColText("")
+                                     : ColText(
+                                         rhsStyle,
+                                         expected.tokens.content.at(
+                                             rhs.index().value())))
+                        <<= 16)
                     << std::endl;
             }
         }

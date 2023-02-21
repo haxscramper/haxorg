@@ -131,7 +131,55 @@ struct ColRune {
         : rune(rune), style(style) {}
 };
 
-struct ColText : Vec<ColRune> {};
+struct ColText : Vec<ColRune> {
+    using Base = Vec<ColRune>;
+    using Base::append;
+
+    ColText() = default;
+
+    ColText(CR<ColStyle> style, CR<std::string> text) {
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        std::wstring wide = converter.from_bytes(text);
+
+        for (const auto& ch : wide) {
+            push_back(ColRune(style, ch));
+        }
+    }
+
+
+    template <typename T>
+    explicit ColText(CR<T> it) : ColText(ColStyle{}, to_string(it)) {}
+
+    template <typename T>
+    explicit ColText(CR<ColStyle> style, CR<T> it)
+        : ColText(style, to_string(it)) {}
+
+    inline ColText operator<<=(int n) const { return leftAligned(n); }
+    inline ColText operator>>=(int n) const { return rightAligned(n); }
+
+    inline void append(int repeat, ColRune c) {
+        for (int i = 0; i < repeat; ++i) {
+            push_back(c);
+        }
+    }
+
+    inline ColText rightAligned(int n, ColRune c = ColRune{' '}) const {
+        ColText res;
+        if (size() < n) {
+            res.append(n - size(), c);
+        }
+        res.append(*this);
+        return res;
+    }
+
+    inline ColText leftAligned(int n, ColRune c = ColRune{' '}) const {
+        auto s = *this;
+        while (s.size() < n) {
+            s.push_back(c);
+        }
+        return s;
+    }
+};
 
 using ColRuneLine = Vec<ColRune>;
 using ColRuneGrid = Vec<ColRuneLine>;
@@ -171,34 +219,11 @@ inline StreamState::StreamState(ColStream& stream) : stream(stream) {
 
 inline StreamState::~StreamState() { stream.active = start; }
 
-inline ColText merge(CR<ColStyle> style, CR<std::string> text) {
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    std::wstring wide = converter.from_bytes(text);
-
-    ColText result;
-    for (const auto& ch : wide) {
-        result.push_back(ColRune(style, ch));
-    }
-    return result;
-}
-
 
 inline ColStream& ColStream::indent(int level) {
-    append(merge(ColStyle{}, repeat(" ", level)));
+    append(ColText(ColStyle{}, repeat(" ", level)));
     return *this;
 }
-
-inline ColText left_aligned(
-    CR<ColText> str,
-    int         n,
-    ColRune     c = ColRune{' '}) {
-    auto s = str;
-    while (s.size() < n) {
-        s.push_back(c);
-    }
-    return s;
-}
-
 
 inline ColStream& operator<<(ColStream& os, ColStream& value) {
     return os;
@@ -223,7 +248,7 @@ inline ColStream& operator<<(ColStream& os, Style const& value) {
 }
 
 inline ColStream& operator<<(ColStream& os, std::string const& value) {
-    os.append(merge(os.active, value));
+    os.append(ColText(os.active, value));
     return os;
 }
 

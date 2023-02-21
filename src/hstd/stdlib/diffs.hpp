@@ -117,19 +117,19 @@ struct DiffFormatConf {
            bool        isInline) {
             using fg = TermColorFg8Bit;
             switch (mode) {
-                case SeqEditKind::Delete: return merge(fg::Red, word);
-                case SeqEditKind::Insert: return merge(fg::Green, word);
-                case SeqEditKind::Keep: return merge(fg::Default, word);
-                case SeqEditKind::None: return merge(fg::Default, word);
+                case SeqEditKind::Delete: return ColText(fg::Red, word);
+                case SeqEditKind::Insert: return ColText(fg::Green, word);
+                case SeqEditKind::Keep: return ColText(fg::Default, word);
+                case SeqEditKind::None: return ColText(fg::Default, word);
                 case SeqEditKind::Replace:
                 case SeqEditKind::Transpose:
                     if (isInline && secondary == SeqEditKind::Delete) {
-                        return "[" + merge(fg::Yellow, word) + " -> ";
+                        return "[" + ColText(fg::Yellow, word) + " -> ";
                     } else if (
                         isInline && secondary == SeqEditKind::Insert) {
-                        return merge(fg::Yellow, word) + "]";
+                        return ColText(fg::Yellow, word) + "]";
                     } else {
-                        return merge(fg::Yellow, word);
+                        return ColText(fg::Yellow, word);
                     }
             }
         };
@@ -771,8 +771,18 @@ struct FormattedDiff {
         /// Whether line represents element from the lhs sequence of rhs
         /// one
         bool isLhs;
+
+        bool     empty() const { return prefix == SeqEditKind::None; }
+        Opt<int> index() const {
+            if (empty()) {
+                return std::nullopt;
+            } else {
+                return originalIndex;
+            }
+        }
+
         /// Index of the item in original (lhs/rhs) sequence
-        int originalIndex;
+        int originalIndex = -1;
     };
 
     struct StackedDiff {
