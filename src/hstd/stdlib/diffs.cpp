@@ -141,3 +141,95 @@ Vec<SeqEdit> myersDiff(
 
     return Vec<SeqEdit>();
 }
+
+
+LevenshteinDistanceResult levenshteinDistance(
+    int                  lhsMax,
+    int                  rhsMax,
+    Func<bool(int, int)> itemEq) {
+
+    Vec<Vec<int>>                 m(lhsMax + 1, Vec<int>(rhsMax + 1, 0));
+    Vec<Vec<std::pair<int, int>>> paths(
+        lhsMax + 1, Vec<std::pair<int, int>>(rhsMax + 1, {0, 0}));
+
+    for (int lsh = 0; lsh <= lhsMax; ++lsh) {
+        m[lsh][0]     = lsh;
+        paths[lsh][0] = {lsh - 1, 0};
+    }
+
+    for (int rhs = 0; rhs <= rhsMax; ++rhs) {
+        m[0][rhs]     = rhs;
+        paths[0][rhs] = {0, rhs - 1};
+    }
+
+    for (int lhs = 1; lhs <= lhsMax; ++lhs) {
+        for (int rhs = 1; rhs <= rhsMax; ++rhs) {
+            if (itemEq(lhs - 1, rhs - 1)) {
+                m[lhs][rhs]     = m[lhs - 1][rhs - 1];
+                paths[lhs][rhs] = {lhs - 1, rhs - 1};
+            } else {
+                int min_val = std::min(
+                    {m[lhs - 1][rhs],
+                     m[lhs][rhs - 1],
+                     m[lhs - 1][rhs - 1]});
+                m[lhs][rhs] = min_val + 1;
+                if (m[lhs - 1][rhs] == min_val) {
+                    paths[lhs][rhs] = {lhs - 1, rhs};
+                } else if (m[lhs][rhs - 1] == min_val) {
+                    paths[lhs][rhs] = {lhs, rhs - 1};
+                } else if (m[lhs - 1][rhs - 1] == min_val) {
+                    paths[lhs][rhs] = {lhs - 1, rhs - 1};
+                }
+            }
+        }
+    }
+
+    struct Item {
+        int         i;
+        int         j;
+        SeqEditKind t;
+    };
+
+    Vec<Item> levenpath;
+
+    int i = lhsMax, j = rhsMax;
+    while (i >= 0 && j >= 0) {
+        j = rhsMax;
+        while (i >= 0 && j >= 0) {
+            levenpath.push_back({i, j, SeqEditKind::None});
+            int t = i;
+            i     = paths[i][j].first;
+            j     = paths[t][j].second;
+        }
+    }
+
+    std::reverse(levenpath.begin(), levenpath.end());
+    Vec<SeqEdit> resultOperations;
+
+    for (int i = 1; i < levenpath.size(); i++) {
+        auto last = levenpath[i - 1];
+        auto cur  = levenpath[i];
+
+        if (i != 0) {
+            if (cur.i == last.i + 1 && cur.j == last.j + 1
+                && m[cur.i][cur.j] != m[last.i][last.j]) {
+                resultOperations.push_back(
+                    SeqEdit{SeqEditKind::Replace, 0, 0});
+            } else if (cur.i == last.i && cur.j == last.j + 1) {
+                resultOperations.push_back(
+                    SeqEdit{SeqEditKind::Insert, 0, 0});
+            } else if (cur.i == last.i + 1 && cur.j == last.j) {
+                resultOperations.push_back(
+                    SeqEdit{SeqEditKind::Delete, 0, 0});
+            } else {
+                resultOperations.push_back(
+                    SeqEdit{SeqEditKind::Keep, 0, 0});
+            }
+
+            resultOperations.back().sourcePos = cur.i - 1;
+            resultOperations.back().targetPos = cur.j - 1;
+        }
+    }
+
+    return {m[levenpath.back().i][levenpath.back().j], resultOperations};
+}

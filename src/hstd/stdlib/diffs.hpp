@@ -269,93 +269,18 @@ struct LevenshteinDistanceResult {
     Vec<SeqEdit> operations;
 };
 
+LevenshteinDistanceResult levenshteinDistance(
+    int                  lhsMax,
+    int                  rhsMax,
+    Func<bool(int, int)> itemEq);
+
+
 template <typename T>
 LevenshteinDistanceResult levenshteinDistance(Span<T> str1, Span<T> str2) {
-    int l1 = str1.size();
-    int l2 = str2.size();
-
-    Vec<Vec<int>>                 m(l1 + 1, Vec<int>(l2 + 1, 0));
-    Vec<Vec<std::pair<int, int>>> paths(
-        l1 + 1, Vec<std::pair<int, int>>(l2 + 1, {0, 0}));
-
-    for (int i = 0; i <= l1; ++i) {
-        m[i][0]     = i;
-        paths[i][0] = {i - 1, 0};
-    }
-
-    for (int j = 0; j <= l2; ++j) {
-        m[0][j]     = j;
-        paths[0][j] = {0, j - 1};
-    }
-
-    for (int i = 1; i <= l1; ++i) {
-        for (int j = 1; j <= l2; ++j) {
-            if (str1[i - 1] == str2[j - 1]) {
-                m[i][j]     = m[i - 1][j - 1];
-                paths[i][j] = {i - 1, j - 1};
-            } else {
-                int min_val = std::min(
-                    {m[i - 1][j], m[i][j - 1], m[i - 1][j - 1]});
-                m[i][j] = min_val + 1;
-                if (m[i - 1][j] == min_val) {
-                    paths[i][j] = {i - 1, j};
-                } else if (m[i][j - 1] == min_val) {
-                    paths[i][j] = {i, j - 1};
-                } else if (m[i - 1][j - 1] == min_val) {
-                    paths[i][j] = {i - 1, j - 1};
-                }
-            }
-        }
-    }
-
-    struct Item {
-        int         i;
-        int         j;
-        SeqEditKind t;
-    };
-
-    Vec<Item> levenpath;
-
-    int i = l1, j = l2;
-    while (i >= 0 && j >= 0) {
-        j = l2;
-        while (i >= 0 && j >= 0) {
-            levenpath.push_back({i, j, SeqEditKind::None});
-            int t = i;
-            i     = paths[i][j].first;
-            j     = paths[t][j].second;
-        }
-    }
-
-    std::reverse(levenpath.begin(), levenpath.end());
-    Vec<SeqEdit> resultOperations;
-
-    for (int i = 1; i < levenpath.size(); i++) {
-        auto last = levenpath[i - 1];
-        auto cur  = levenpath[i];
-
-        if (i != 0) {
-            if (cur.i == last.i + 1 && cur.j == last.j + 1
-                && m[cur.i][cur.j] != m[last.i][last.j]) {
-                resultOperations.push_back(
-                    SeqEdit{SeqEditKind::Replace, 0, 0});
-            } else if (cur.i == last.i && cur.j == last.j + 1) {
-                resultOperations.push_back(
-                    SeqEdit{SeqEditKind::Insert, 0, 0});
-            } else if (cur.i == last.i + 1 && cur.j == last.j) {
-                resultOperations.push_back(
-                    SeqEdit{SeqEditKind::Delete, 0, 0});
-            } else {
-                resultOperations.push_back(
-                    SeqEdit{SeqEditKind::Keep, 0, 0});
-            }
-
-            resultOperations.back().sourcePos = cur.i - 1;
-            resultOperations.back().targetPos = cur.j - 1;
-        }
-    }
-
-    return {m[levenpath.back().i][levenpath.back().j], resultOperations};
+    levenshteinDistance(
+        str1.size(), str2.size(), [&](int lhs, int rhs) -> bool {
+            return str1[lhs] == str2[rhs];
+        });
 }
 
 Const<CharSet> Invis{slice('\x00', '\x1F'), '\x7F'};
