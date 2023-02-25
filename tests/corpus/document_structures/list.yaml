@@ -1,0 +1,10 @@
+lex: "Structure"
+expected: "Flat"
+items:
+  - source: "- item"
+    tokens:
+      - {idx: 0, kind: ListStart}
+      - {idx: 1, kind: ParagraphStart}
+      - {idx: 2, kind: Word, str: item}
+      - {idx: 3, kind: ParagraphEnd}
+      - {idx: 4, kind: ListEnd}

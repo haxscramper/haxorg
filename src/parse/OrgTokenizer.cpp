@@ -1,6 +1,43 @@
 #include "OrgTokenizer.hpp"
 #include <hstd/stdlib/algorithms.hpp>
 
+#include <boost/preprocessor/facilities/overload.hpp>
+#include <boost/preprocessor/facilities/empty.hpp>
+
+#define define_close()
+
+#define __trace2(__subname, __str)                                        \
+    report(Report{                                                        \
+        .line     = __LINE__,                                             \
+        .location = __CURRENT_FILE_PATH__,                                \
+        .name     = __func__,                                             \
+        .entering = true,                                                 \
+        .subname  = __subname,                                            \
+        .str      = &__str,                                               \
+    });                                                                   \
+                                                                          \
+    finally CONCAT(close, __COUNTER__) = finally::init<Str>(              \
+        ([&](CR<Str> name) {                                              \
+            report(Report{                                                \
+                .line     = __LINE__,                                     \
+                .location = __CURRENT_FILE_PATH__,                        \
+                .name     = name,                                         \
+                .entering = false,                                        \
+                .subname  = __subname,                                    \
+                .str      = &__str,                                       \
+            });                                                           \
+        }),                                                               \
+        Str(__func__));
+
+
+#define __trace1(__subname) __trace2(__subname, str)
+#define __trace0() __trace2(std::nullopt, str)
+
+#define __trace(...)                                                      \
+    BOOST_PP_CAT(                                                         \
+        BOOST_PP_OVERLOAD(__trace, __VA_ARGS__)(__VA_ARGS__),             \
+        BOOST_PP_EMPTY())
+
 using ock = OrgCommandKind;
 using otk = OrgTokenKind;
 
@@ -130,6 +167,7 @@ const CharSet ListStart = CharSet{'-', '+', '*'} + charsets::Digits
                         + charsets::AsciiLetters;
 
 void OrgTokenizer::lexAngle(PosStr& str) {
+    __trace();
     if (str.at("<%%")) {
         push(str.tok(otk::DiaryTime, [](PosStr& str) {
             str.skip("<%%");
@@ -165,6 +203,7 @@ void OrgTokenizer::lexAngle(PosStr& str) {
 }
 
 void OrgTokenizer::lexTime(PosStr& str) {
+    __trace();
     if (str.at('<')) {
         lexAngle(str);
     } else if (str.at('[')) {
@@ -185,6 +224,7 @@ void OrgTokenizer::lexTime(PosStr& str) {
 }
 
 void OrgTokenizer::lexLinkTarget(PosStr& str) {
+    __trace();
     if (str.at("https") || str.at("http")) {
         assert(false && "FIXME");
     } else if (
@@ -220,6 +260,7 @@ void OrgTokenizer::lexLinkTarget(PosStr& str) {
 }
 
 void OrgTokenizer::lexBracket(PosStr& str) {
+    __trace();
     if (str.at(R"([[)")) {
         push(str.tok(otk::LinkOpen, skipOne, '['));
         // link_token
@@ -275,6 +316,7 @@ void OrgTokenizer::lexBracket(PosStr& str) {
 }
 
 void OrgTokenizer::lexTextChars(PosStr& str) {
+    __trace();
     bool isStructure = false;
     auto skipCurly   = [](PosStr& str) {
         skipBalancedSlice(
@@ -360,6 +402,7 @@ void OrgTokenizer::lexTextChars(PosStr& str) {
 }
 
 void OrgTokenizer::lexParenArguments(PosStr& str) {
+    __trace();
     push(str.tok(otk::ParOpen, skipOne, '('));
     while (!str.at(')')) {
         push(str.tok(otk::RawText, skipBefore, cr(CharSet{',', ')'})));
@@ -372,6 +415,7 @@ void OrgTokenizer::lexParenArguments(PosStr& str) {
 }
 
 void OrgTokenizer::lexText(PosStr& str) {
+    __trace();
     const auto NonText = charsets::TextLineChars - charsets::AsciiLetters
                        - charsets::Utf8Any + CharSet{'\n', '/'};
 
@@ -675,6 +719,7 @@ void OrgTokenizer::lexText(PosStr& str) {
 }
 
 void OrgTokenizer::lexProperties(PosStr& str) {
+    __trace();
     auto hasEnd = false;
     while (!str.finished() && !hasEnd) {
         str.space();
@@ -712,6 +757,7 @@ void OrgTokenizer::lexProperties(PosStr& str) {
 }
 
 void OrgTokenizer::lexDescription(PosStr& str) {
+    __trace();
     str.pushSlice();
     auto hasEnd = false;
     while (!str.finished() && !hasEnd) {
@@ -730,6 +776,7 @@ void OrgTokenizer::lexDescription(PosStr& str) {
 }
 
 void OrgTokenizer::lexLogbook(PosStr& str) {
+    __trace();
     str.pushSlice();
     auto hasEnd = false;
     while (!str.finished() && !hasEnd) {
@@ -751,6 +798,7 @@ void OrgTokenizer::lexLogbook(PosStr& str) {
 }
 
 void OrgTokenizer::lexDrawer(PosStr& str) {
+    __trace();
     auto strEnded = false;
     while (!str.finished() && !strEnded) {
         str.space();
@@ -792,6 +840,7 @@ void OrgTokenizer::lexDrawer(PosStr& str) {
 }
 
 void OrgTokenizer::lexSubtreeTodo(PosStr& str) {
+    __trace();
     auto tmp = str;
     tmp.pushSlice();
     tmp.skipZeroOrMore(charsets::HighAsciiLetters);
@@ -802,6 +851,7 @@ void OrgTokenizer::lexSubtreeTodo(PosStr& str) {
 }
 
 void OrgTokenizer::lexSubtreeUrgency(PosStr& str) {
+    __trace();
     if (str.at("[#")) {
         str.pushSlice();
         str.next(2);
@@ -814,6 +864,7 @@ void OrgTokenizer::lexSubtreeUrgency(PosStr& str) {
 }
 
 void OrgTokenizer::lexSubtreeTitle(PosStr& str) {
+    __trace();
     auto          body = str.slice(skipToEOL);
     Vec<OrgToken> headerTokens;
     body.skipToEOF();
@@ -882,6 +933,7 @@ void OrgTokenizer::lexSubtreeTitle(PosStr& str) {
 }
 
 void OrgTokenizer::lexSubtreeTimes(PosStr& str) {
+    __trace();
     str.space();
     auto hadTimes = false;
     while (str.at(charsets::HighAsciiLetters)) {
@@ -910,6 +962,7 @@ void OrgTokenizer::lexSubtreeTimes(PosStr& str) {
 }
 
 void OrgTokenizer::lexSubtree(PosStr& str) {
+    __trace();
     push(str.tok(otk::SubtreeStars, skipZeroOrMore, '*'));
     str.skip(' ');
     str.space();
@@ -929,6 +982,7 @@ void OrgTokenizer::lexSubtree(PosStr& str) {
 }
 
 void OrgTokenizer::lexSourceBlockContent(PosStr& str) {
+    __trace();
     while (!str.finished()) {
         if (str.at(R"(<<)")) {
             auto          failedAt = -1;
@@ -998,6 +1052,7 @@ void OrgTokenizer::lexSourceBlockContent(PosStr& str) {
 void OrgTokenizer::lexCommandContent(
     PosStr&               str,
     const OrgCommandKind& kind) {
+    __trace();
     push(str.fakeTok(otk::CommandContentStart));
     switch (kind) {
         case ock::BeginQuote:
@@ -1049,6 +1104,7 @@ Vec<OrgToken> OrgTokenizer::lexDelimited(
     const Pair<char, OrgTokenKind>& start,
     const Pair<char, OrgTokenKind>& finish,
     const OrgTokenKind&             middle) {
+    __trace();
     Vec<OrgToken> result;
     result.push_back(str.tok(start.second, skipOne, start.first));
     result.push_back(str.tok(middle, [&finish](PosStr& str) {
@@ -1069,6 +1125,7 @@ Vec<OrgToken> OrgTokenizer::lexDelimited(
 void OrgTokenizer::lexCommandArguments(
     PosStr&               str,
     const OrgCommandKind& kind) {
+    __trace();
     OrgTokenKind wrapStart = otk::CommandArgumentsBegin;
     OrgTokenKind wrapEnd   = otk::CommandArgumentsEnd;
     switch (kind) {
@@ -1285,6 +1342,7 @@ void OrgTokenizer::lexCommandArguments(
 }
 
 void OrgTokenizer::lexCommandBlock(PosStr& str) {
+    __trace();
     const auto column = str.getColumn();
     push(str.tok(otk::CommandPrefix, skipOne, "#+"));
     const auto id = str.slice(skipZeroOrMore, OCommandChars);
@@ -1332,6 +1390,7 @@ void OrgTokenizer::lexCommandBlock(PosStr& str) {
 }
 
 bool OrgTokenizer::isFirstOnLine(PosStr& str) {
+    __trace();
     const auto set = charsets::Newline + CharSet{'\0'};
     if (str.at(set, -1)) {
         return true;
@@ -1345,7 +1404,9 @@ bool OrgTokenizer::isFirstOnLine(PosStr& str) {
 }
 
 bool OrgTokenizer::atLogClock(PosStr& str) {
-    const auto ahead = str.slice(skipTo, '[');
+    __trace();
+    PosStr     tmp   = str;
+    const auto ahead = tmp.slice(skipTo, '[');
     const auto space = ahead.getSkip('C');
     if (0 <= space) {
         for (const auto ch : ahead[slice(0, space - 1)].view) {
@@ -1361,6 +1422,7 @@ bool OrgTokenizer::atLogClock(PosStr& str) {
 }
 
 bool OrgTokenizer::atConstructStart(PosStr& str) {
+    __trace();
     bool result;
     if (!isFirstOnLine(str)) {
         return false;
@@ -1378,6 +1440,7 @@ bool OrgTokenizer::atConstructStart(PosStr& str) {
 }
 
 void OrgTokenizer::skipIndents(LexerStateSimple& state, PosStr& str) {
+    __trace();
     using LK           = LexerStateSimple::LexerIndentKind;
     const auto skipped = state.skipIndent(str);
     for (const auto indent : skipped) {
@@ -1407,6 +1470,7 @@ void OrgTokenizer::skipIndents(LexerStateSimple& state, PosStr& str) {
 }
 
 Vec<OrgToken> OrgTokenizer::tryListStart(PosStr& str) {
+    __trace();
     Vec<OrgToken> result;
     if (atConstructStart(str)) {
         return {};
@@ -1460,6 +1524,7 @@ Vec<OrgToken> OrgTokenizer::tryListStart(PosStr& str) {
 }
 
 bool OrgTokenizer::listAhead(PosStr& str) {
+    __trace();
     bool result;
     if (!isFirstOnLine(str)) {
         return false;
@@ -1484,6 +1549,7 @@ void OrgTokenizer::lexListItem(
     PosStr&           str,
     const int&        indent,
     LexerStateSimple& state) {
+    __trace();
     if (str.at("\\[[Xx - ]\\]")) {
         push(str.tok(otk::Checkbox, [](PosStr& str) {
             str.skip('[');
@@ -1564,10 +1630,12 @@ void OrgTokenizer::lexListItem(
 }
 
 void OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
+    __trace();
     assert(!str.at('\n'));
     while (listAhead(str) || atLogClock(str)) {
         assert(!str.at('\n'));
         if (atLogClock(str)) {
+            __trace("Lex log clock list");
             push(str.fakeTok(otk::ListClock));
             str.pushSlice();
             str.skipToEOL();
@@ -1581,8 +1649,10 @@ void OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
             auto       tmp    = str;
             const auto tokens = tryListStart(tmp);
             if (tokens.empty()) {
+                __trace("Lexing paragraph content");
                 lexParagraph(str);
             } else {
+                __trace("Lexing nested list item");
                 str = tmp;
                 push(tokens);
                 lexListItem(str, indent, state);
@@ -1593,6 +1663,7 @@ void OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
 }
 
 void OrgTokenizer::lexList(PosStr& str) {
+    __trace();
     auto state = LexerStateSimple();
     push(str.fakeTok(otk::ListStart));
     Vec<OrgToken> tokens;
@@ -1611,6 +1682,7 @@ void OrgTokenizer::lexList(PosStr& str) {
 }
 
 void OrgTokenizer::lexParagraph(PosStr& str) {
+    __trace();
     // Pick out large standalone paragraph block
     const auto indent = str.getIndent();
     auto       ended  = false;
@@ -1660,6 +1732,7 @@ void OrgTokenizer::lexParagraph(PosStr& str) {
 void OrgTokenizer::lexTableState(
     PosStr&                         str,
     LexerState<OrgBlockLexerState>& state) {
+    __trace();
     switch (str.at(0)) {
         case '#': {
             auto pos        = str.getPos();
@@ -1772,6 +1845,7 @@ void OrgTokenizer::lexTableState(
 }
 
 void OrgTokenizer::lexTable(PosStr& str) {
+    __trace();
     OrgTokenizer::LexerState<OrgBlockLexerState> state;
     state.lift(OrgBlockLexerState::None);
 
@@ -1788,10 +1862,10 @@ void OrgTokenizer::lexTable(PosStr& str) {
 }
 
 void OrgTokenizer::lexStructure(PosStr& str) {
+    __trace();
     // This procedure dispatches into toplevel lexer routines that are
     // meant to produce entries for the high-level document structure -
     // paragraphs, lists, subtrees, command blocks and so on.
-    std::cout << "[" << str.get(0) << "]" << std::endl;
     switch (str.get(0)) {
         case '\x00': break;
         case '#': {
@@ -1936,6 +2010,7 @@ void OrgTokenizer::pushResolved(CR<OrgToken> token) {
 }
 
 void OrgTokenizer::lexGlobal(PosStr& str) {
+    __trace();
     while (!str.finished()) {
         lexStructure(str);
     }

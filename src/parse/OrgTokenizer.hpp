@@ -4,7 +4,9 @@
 
 #include <hstd/stdlib/Array.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/charsets.hpp>
+#include <hstd/stdlib/ColText.hpp>
 
 #include <lexbase/PosStr.hpp>
 #include <parse/OrgTypes.hpp>
@@ -18,7 +20,54 @@ OrgCommandKind classifyCommand(std::string const& command);
 
 
 struct OrgTokenizer : public Tokenizer<OrgTokenKind> {
-    OrgTokenizer(OrgTokenGroup* out) : Tokenizer<OrgTokenKind>(out) {}
+  private:
+    struct Report {
+        fs::path location;
+        int      line;
+        Str      name;
+        bool     entering;
+        Opt<Str> subname;
+        PosStr*  str = nullptr;
+    };
+
+    bool trace = false;
+    int  depth = 0;
+    void report(CR<Report> in) {
+        if (!trace) {
+            return;
+        }
+
+        using fg = TermColorFg8Bit;
+        if (in.entering) {
+            ++depth;
+        }
+        ColStream os{std::cout};
+
+        os << repeat("  ", depth) << (in.entering ? "> " : "< ")
+           << fg::Green << in.name << os.end() << ":" << fg::Cyan
+           << in.line << os.end();
+
+        if (in.str != nullptr) {
+            os << " [";
+            in.str->print(PosStr::PrintParams({.withEnd = false}));
+            os << "]";
+        }
+
+        if (in.subname.has_value()) {
+            os << " " << in.subname.value();
+        }
+
+        std::cout << "\n";
+
+        if (!in.entering) {
+            --depth;
+        }
+    }
+
+
+  public:
+    OrgTokenizer(OrgTokenGroup* out, bool trace = false)
+        : Tokenizer<OrgTokenKind>(out), trace(trace) {}
 
     /// Push complex token into recursive processing pipeline. Used for
     /// table content (which might contain more blocks of texts, some
@@ -30,55 +79,12 @@ struct OrgTokenizer : public Tokenizer<OrgTokenKind> {
     /// well))
     void pushResolved(CR<OrgToken> token);
 
-    void lexAngle(PosStr& str);
-
-    void lexTime(PosStr& str);
-
-    void lexLinkTarget(PosStr& str);
-
-    void lexBracket(PosStr& str);
-
-    void lexTextChars(PosStr& str);
-
-    void lexParenArguments(PosStr& str);
-
-    /*!Lex single text entry starting at current position
-     */
-    void lexText(PosStr& str);
-
-    void lexProperties(PosStr& str);
-
-    void lexDescription(PosStr& str);
-
-    void lexLogbook(PosStr& str);
-
-    void lexDrawer(PosStr& str);
-
-    void lexSubtreeTodo(PosStr& str);
-
-    void lexSubtreeUrgency(PosStr& str);
-
-    void lexSubtreeTitle(PosStr& str);
-
-    void lexSubtreeTimes(PosStr& str);
-
-    void lexSubtree(PosStr& str);
-
-    void lexSourceBlockContent(PosStr& str);
-
-    void lexCommandContent(PosStr& str, const OrgCommandKind& kind);
-
     Vec<OrgToken> lexDelimited(
         PosStr&                         str,
         const Pair<char, OrgTokenKind>& start,
         const Pair<char, OrgTokenKind>& finish,
         const OrgTokenKind&             middle);
 
-    void lexCommandArguments(PosStr& str, const OrgCommandKind& kind);
-
-    void lexCommandBlock(PosStr& str);
-
-    bool isFirstOnLine(PosStr& str);
 
     /*!Check if the string is positioned at the start of a logbook
     `CLOCK:` entry.
@@ -89,7 +95,6 @@ struct OrgTokenizer : public Tokenizer<OrgTokenKind> {
     construct.
     */
     bool atConstructStart(PosStr& str);
-
 
     // Store common types of the lexer state
     template <typename Flag>
@@ -196,6 +201,7 @@ struct OrgTokenizer : public Tokenizer<OrgTokenKind> {
 
     bool listAhead(PosStr& str);
 
+
     /*!Lex head starting from current position onwards. `indent` is the
 indentation of the original list prefix -- dash, number or letter.
 */
@@ -204,23 +210,41 @@ indentation of the original list prefix -- dash, number or letter.
         const int&        indent,
         LexerStateSimple& state);
 
+    void lexComment(PosStr& str) {
+        push(str.tok(OrgTokenKind::Comment, skipToEOL));
+    }
+
+
     void lexListItems(PosStr& str, LexerStateSimple& state);
-
     void lexList(PosStr& str);
-
     void lexParagraph(PosStr& str);
     void lexParagraphExpand(PosStr& str);
     void lexLogbookExpand(PosStr& str);
     void lexContentExpand(PosStr& str);
     void lexStmtListExpand(PosStr& str);
-
-
-    void lexComment(PosStr& str) {
-        push(str.tok(OrgTokenKind::Comment, skipToEOL));
-    }
-
     void lexTableState(PosStr& str, LexerState<OrgBlockLexerState>& state);
     void lexTable(PosStr& str);
     void lexStructure(PosStr& str);
     void lexGlobal(PosStr& str);
+    void lexAngle(PosStr& str);
+    void lexTime(PosStr& str);
+    void lexLinkTarget(PosStr& str);
+    void lexBracket(PosStr& str);
+    void lexTextChars(PosStr& str);
+    void lexParenArguments(PosStr& str);
+    void lexText(PosStr& str);
+    void lexProperties(PosStr& str);
+    void lexDescription(PosStr& str);
+    void lexLogbook(PosStr& str);
+    void lexDrawer(PosStr& str);
+    void lexSubtreeTodo(PosStr& str);
+    void lexSubtreeUrgency(PosStr& str);
+    void lexSubtreeTitle(PosStr& str);
+    void lexSubtreeTimes(PosStr& str);
+    void lexSubtree(PosStr& str);
+    void lexSourceBlockContent(PosStr& str);
+    void lexCommandContent(PosStr& str, const OrgCommandKind& kind);
+    void lexCommandArguments(PosStr& str, const OrgCommandKind& kind);
+    void lexCommandBlock(PosStr& str);
+    bool isFirstOnLine(PosStr& str);
 };

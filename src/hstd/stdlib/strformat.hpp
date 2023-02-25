@@ -8,15 +8,15 @@
 #include <hstd/stdlib/sequtils.hpp>
 #include <hstd/system/all.hpp>
 
-enum AddfFragmentKind
+enum class AddfFragmentKind
 {
-    addfText,        /// Regular text fragment
-    addfPositional,  /// Positional fragment `$#`
-    addfIndexed,     /// Indexed fragment `$1`
-    addfDollar,      /// Dollar literal `$$`
-    addfBackIndexed, /// Negative indexed fragment `$-1`
-    addfVar,         /// Interpolated variable `$name`
-    addfExpr,        /// Expression in braces `${some expr}`
+    Text,        /// Regular text fragment
+    Positional,  /// Positional fragment `$#`
+    Indexed,     /// Indexed fragment `$1`
+    Dollar,      /// Dollar literal `$$`
+    BackIndexed, /// Negative indexed fragment `$-1`
+    Var,         /// Interpolated variable `$name`
+    Expr,        /// Expression in braces `${some expr}`
 };
 
 struct AddfFragment {
@@ -48,12 +48,13 @@ constexpr std::vector<AddfFragment> addfFragments(
         if (((formatstr[i] == '$') && ((i + 1) < formatstr.size()))) {
             const auto c = formatstr[i + 1];
             if (c == '#') {
-                result.push_back({.kind = addfIndexed, .idx = num});
+                result.push_back(
+                    {.kind = AddfFragmentKind::Indexed, .idx = num});
                 i += 2;
                 num += 1;
             } else if (c == '$') {
                 i += 2;
-                result.push_back({.kind = addfDollar});
+                result.push_back({.kind = AddfFragmentKind::Dollar});
 
             } else if (charsets::Digits.contains(c) || c == '|') {
                 auto j = 0;
@@ -70,9 +71,11 @@ constexpr std::vector<AddfFragment> addfFragments(
                     i += 1;
                 }
                 if (negative) {
-                    result.push_back({.kind = addfBackIndexed, .idx = j});
+                    result.push_back(
+                        {.kind = AddfFragmentKind::BackIndexed, .idx = j});
                 } else {
-                    result.push_back({.kind = addfIndexed, .idx = j - 1});
+                    result.push_back(
+                        {.kind = AddfFragmentKind::Indexed, .idx = j - 1});
                 }
             } else if (c == '{') {
                 auto       j        = i + 2;
@@ -100,10 +103,12 @@ constexpr std::vector<AddfFragment> addfFragments(
                 if (isNumber == 1) {
                     if (negative) {
                         result.push_back(
-                            {.kind = addfBackIndexed, .idx = k});
+                            {.kind = AddfFragmentKind::BackIndexed,
+                             .idx  = k});
                     } else {
                         result.push_back(
-                            {.kind = addfIndexed, .idx = k - 1});
+                            {.kind = AddfFragmentKind::Indexed,
+                             .idx  = k - 1});
                     }
                 } else {
                     const auto first = i + 2;
@@ -111,7 +116,7 @@ constexpr std::vector<AddfFragment> addfFragments(
                     const auto count = last - first + 1;
 
                     result.push_back(
-                        {.kind = addfExpr,
+                        {.kind = AddfFragmentKind::Expr,
                          .text = formatstr.substr(first, count)});
                 }
                 i = j + 1;
@@ -129,7 +134,7 @@ constexpr std::vector<AddfFragment> addfFragments(
                 const auto last  = j - 1;
 
                 result.push_back(
-                    {.kind = addfVar,
+                    {.kind = AddfFragmentKind::Var,
                      .text = formatstr.substr(first, last - first + 1)});
                 i = j;
             } else {
@@ -146,7 +151,7 @@ constexpr std::vector<AddfFragment> addfFragments(
             }
             trange.last -= 1;
             result.push_back(
-                {.kind = addfText,
+                {.kind = AddfFragmentKind::Text,
                  .text = formatstr.substr(
                      trange.first, trange.last - trange.first + 1)});
             i = trange.last;
@@ -163,15 +168,15 @@ inline void addf(
     const std::vector<std::string>& a) {
     for (const auto fr : fragments) {
         switch (fr.kind) {
-            case addfDollar: {
+            case AddfFragmentKind::Dollar: {
                 s += '$';
                 break;
             }
-            case addfPositional:
-            case addfIndexed:
-            case addfBackIndexed: {
+            case AddfFragmentKind::Positional:
+            case AddfFragmentKind::Indexed:
+            case AddfFragmentKind::BackIndexed: {
                 int idx;
-                if ((fr.kind) == (addfBackIndexed)) {
+                if (fr.kind == AddfFragmentKind::BackIndexed) {
                     idx = a.size() - fr.idx;
                 } else {
                     idx = fr.idx;
@@ -186,24 +191,24 @@ inline void addf(
                 s += a[idx];
                 break;
             }
-            case addfText: {
+            case AddfFragmentKind::Text: {
                 s += fr.text;
                 break;
             }
-            case addfVar:
-            case addfExpr: {
+            case AddfFragmentKind::Var:
+            case AddfFragmentKind::Expr: {
                 auto x = index_of(a, fr.text);
-                if ((0 <= x) && (x < (a.size() - 1))) {
+                if (0 <= x && x < a.size() - 1) {
                     s += a[x + 1];
                 } else {
                     throw FormatStringError(
                         "No interpolation argument named '" + fr.text
                         + "'");
-                };
+                }
                 break;
             }
-        };
-    };
+        }
+    }
 }
 
 

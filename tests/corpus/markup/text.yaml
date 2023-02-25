@@ -6,7 +6,7 @@ items:
     tokens:
       - {idx: 0, kind: ParagraphStart}
       - {idx: 1, kind: BoldOpen, str: "*"}
-      - {idx: 2, kind: Word, str: "boldq"}
+      - {idx: 2, kind: Word, str: "bold"}
       - {idx: 3, kind: BoldClose, str: "*"}
       - {idx: 4, kind: ParagraphEnd}
     subnodes:

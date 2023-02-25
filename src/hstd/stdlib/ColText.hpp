@@ -181,6 +181,47 @@ struct ColText : Vec<ColRune> {
     }
 };
 
+
+#define ESC_PREFIX "\033["
+
+/*! Create ansi escape sequence with given code */
+inline std::string ansiEsc(int code) {
+    return ESC_PREFIX + std::to_string(code) + "m";
+}
+
+
+/*! Create ansi escape sequence with given terminal color */
+std::string ansiEsc(const TermColorFg8Bit& col);
+
+/*! Create ansi escape sequence with given terminal color */
+std::string ansiEsc(const TermColorBg8Bit& col);
+
+/// Create ansi escape sequence with given style. `open` controls whether
+/// styling sequence is used for open or for close
+std::string ansiEsc(const Style& style, const bool& open);
+
+/// Generate ansi escape sequences to transition from style `s1` to style
+/// `s2`
+Str ansiDiff(const ColStyle& s1, const ColStyle& s2);
+
+
+/// Convert colored rune to regular std::string, with ansi escape
+/// sequences. `color` controls whether styling is going to be applied or
+/// not.
+std::string to_string(const ColRune& rune, const bool& color = true);
+
+/// Convert sequence of colored runes to the std::string, with ansi escape
+/// sequences in. `color` controls whether styling is going to be applied
+/// or not.
+std::string to_colored_string(
+    const Vec<ColRune>& runes,
+    const bool&         color = true);
+
+inline std::ostream& operator<<(std::ostream& os, ColText const& value) {
+    return os << to_colored_string(value, true);
+}
+
+
 using ColRuneLine = Vec<ColRune>;
 using ColRuneGrid = Vec<ColRuneLine>;
 
@@ -202,15 +243,28 @@ struct StreamState {
 };
 
 struct ColStream : public ColText {
+    std::ostream* ostream = nullptr;
+    bool          buffered;
+    bool          colored = true;
+
     CR<ColText> getBuffer() const {
         return *static_cast<ColText const*>(this);
     }
 
+    ColStream() : buffered(true){};
+    ColStream(std::ostream& os) : ostream(&os), buffered(false) {}
 
     ColStyle    active;
     ColStream&  indent(int level);
     ColStyle    end() const { return ColStyle{}; }
     StreamState snap() { return StreamState(*this); }
+    void        write(ColText const& text) {
+        if (buffered) {
+            append(text);
+        } else {
+            (*ostream) << to_colored_string(text, colored);
+        }
+    }
 };
 
 inline StreamState::StreamState(ColStream& stream) : stream(stream) {
@@ -228,7 +282,6 @@ inline ColStream& ColStream::indent(int level) {
 inline ColStream& operator<<(ColStream& os, ColStream& value) {
     return os;
 }
-
 
 inline ColStream& operator<<(ColStream& os, ColStyle const& value) {
     os.active = value;
@@ -248,7 +301,7 @@ inline ColStream& operator<<(ColStream& os, Style const& value) {
 }
 
 inline ColStream& operator<<(ColStream& os, std::string const& value) {
-    os.append(ColText(os.active, value));
+    os.write(ColText(os.active, value));
     return os;
 }
 
@@ -347,45 +400,6 @@ ColStream& hshow(
     CR<T>            value,
     CR<HDisplayOpts> opts = HDisplayOpts{}) {
     return s << to_string(value);
-}
-
-#define ESC_PREFIX "\033["
-
-/*! Create ansi escape sequence with given code */
-inline std::string ansiEsc(int code) {
-    return ESC_PREFIX + std::to_string(code) + "m";
-}
-
-
-/*! Create ansi escape sequence with given terminal color */
-std::string ansiEsc(const TermColorFg8Bit& col);
-
-/*! Create ansi escape sequence with given terminal color */
-std::string ansiEsc(const TermColorBg8Bit& col);
-
-/// Create ansi escape sequence with given style. `open` controls whether
-/// styling sequence is used for open or for close
-std::string ansiEsc(const Style& style, const bool& open);
-
-/*! Generate ansi escape sequences to transition from style `s1` to style
- * `s2` */
-Str ansiDiff(const ColStyle& s1, const ColStyle& s2);
-
-
-/// Convert colored rune to regular std::string, with ansi escape
-/// sequences. `color` controls whether styling is going to be applied or
-/// not.
-std::string to_string(const ColRune& rune, const bool& color = true);
-
-/// Convert sequence of colored runes to the std::string, with ansi escape
-/// sequences in. `color` controls whether styling is going to be applied
-/// or not.
-std::string to_colored_string(
-    const Vec<ColRune>& runes,
-    const bool&         color = true);
-
-inline std::ostream& operator<<(std::ostream& os, ColText const& value) {
-    return os << to_colored_string(value, true);
 }
 
 template <typename T>

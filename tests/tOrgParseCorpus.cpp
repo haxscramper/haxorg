@@ -81,7 +81,7 @@ const UnorderedMap<Str, MockFull::ParserMethod> parsers({
 #undef CB
 
 
-MockFull::ParserMethod getParser(CR<Opt<Str>> name) {
+Opt<MockFull::ParserMethod> getParser(CR<Opt<Str>> name) {
     if (name.has_value()) {
         if (parsers.contains(name.value())) {
             return parsers.at(name.value());
@@ -90,20 +90,15 @@ MockFull::ParserMethod getParser(CR<Opt<Str>> name) {
                 name.value() + " is missing from method table");
         }
     } else {
-        return &OrgParser::parseTop;
+        return std::nullopt;
     }
 }
 
 MockFull::LexerMethod getLexer(CR<Opt<Str>> name) {
-    if (name.has_value()) {
-        if (lexers.contains(name.value())) {
-            return lexers.at(name.value());
-        } else {
-            throw GetterError(
-                name.value() + " is missing from method table");
-        }
+    if (name.has_value() && lexers.contains(name.value())) {
+        return lexers.at(name.value());
     } else {
-        return &OrgTokenizer::lexText;
+        throw GetterError(name.value() + " is missing from method table");
     }
 }
 
@@ -211,58 +206,50 @@ void runSpec(CR<YAML::Node> group) {
     ParseSpecGroup parsed(group);
 
     for (const auto& spec : parsed.specs) {
-        MockFull::LexerMethod  lexCb   = getLexer(spec.lexImplName);
-        MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
+        MockFull::LexerMethod       lexCb   = getLexer(spec.lexImplName);
+        Opt<MockFull::ParserMethod> parseCb = getParser(
+            spec.parseImplName);
 
         MockFull p;
         p.tokenize(spec.source, lexCb);
         YAML::Emitter emitter;
-        p.parse(parseCb);
-        // std::cout << "\nLexed tokens\n" << yamlRepr(p.tokens) <<
-        // std::endl; std::cout << "\nParsed nodes\n" << yamlRepr(p.nodes)
-        // << std::endl; p.treeRepr(); p.yamlRepr();
 
-        if (spec.subnodes.has_value()) {
-            Str           buffer;
-            OrgNodeGroup  nodes;
-            OrgTokenGroup tokens;
+        Str           buffer;
+        OrgNodeGroup  nodes;
+        OrgTokenGroup tokens;
 
-            if (spec.expectedMode == ParseSpec::ExpectedMode::Nested) {
-                auto tree = fromHomogeneous<OrgNodeKind, OrgTokenKind>(
-                    spec.subnodes.value());
-                auto flatResult = tree.flatten(buffer);
-                nodes           = flatResult.first;
-                tokens          = flatResult.second;
-            } else {
-                nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind>(
-                    spec.subnodes.value());
-                if (spec.tokens.has_value()) {
-                    tokens = fromFlatTokens<OrgTokenKind>(
-                        spec.tokens.value(), buffer);
-                }
+        if (spec.expectedMode == ParseSpec::ExpectedMode::Nested) {
+            auto tree = fromHomogeneous<OrgNodeKind, OrgTokenKind>(
+                spec.subnodes.value());
+            auto flatResult = tree.flatten(buffer);
+            nodes           = flatResult.first;
+            tokens          = flatResult.second;
+        } else {
+            if (spec.tokens.has_value()) {
+                tokens = fromFlatTokens<OrgTokenKind>(
+                    spec.tokens.value(), buffer);
             }
 
-            // std::cout << "----------------\n";
-            // std::cout << "[" << buffer << "]" << std::endl;
-            // std::cout << tokens << std::endl;
-            // nodes.tokens = &tokens;
-            // std::cout << "nodes yaml repr:\n"
-            //           << yamlRepr(nodes) << std::endl;
-            // std::cout << "tokens yaml repr:\n"
-            //           << yamlRepr(tokens) << std::endl;
 
-            // std::cout << "----------------\n";
-            // std::cout << p.tokens << std::endl;
-            // std::cout << tokens << std::endl;
-            // std::cout << "^^^^^^^^^^^\n";
+            if (spec.subnodes.has_value()) {
+                nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind>(
+                    spec.subnodes.value());
+            }
+        }
 
-
-            // std::cout << "token similarity " << tokenSimilarity << "\n";
-            // std::cout << "node similarity " << nodeSimilarity << "\n";
-
-
+        if (spec.tokens.has_value()) {
             compareTokens(p.tokens, tokens);
-            compareNodes(p.nodes, nodes);
+        } else {
+            std::cout << yamlRepr(p.tokens) << std::endl;
+        }
+
+        if (parseCb.has_value()) {
+            p.parse(parseCb.value());
+            if (spec.subnodes.has_value()) {
+                compareNodes(p.nodes, nodes);
+            } else {
+                std::cout << yamlRepr(p.nodes) << std::endl;
+            }
         }
     }
 }

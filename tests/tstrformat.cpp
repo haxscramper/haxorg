@@ -9,28 +9,28 @@ TEST_CASE("String formatting", "[str]") {
             auto f = addfFragments("${A}+${B}");
             REQUIRE(f.size() == 3);
             REQUIRE(f[0].text == "A");
-            REQUIRE(f[0].kind == addfExpr);
-            REQUIRE(f[1].kind == addfText);
+            REQUIRE(f[0].kind == AddfFragmentKind::Expr);
+            REQUIRE(f[1].kind == AddfFragmentKind::Text);
             REQUIRE(f[1].text == "+");
-            REQUIRE(f[2].kind == addfExpr);
+            REQUIRE(f[2].kind == AddfFragmentKind::Expr);
             REQUIRE(f[2].text == "B");
         }
         {
             auto f = addfFragments("A");
             REQUIRE(f.size() == 1);
-            REQUIRE(f[0].kind == addfText);
+            REQUIRE(f[0].kind == AddfFragmentKind::Text);
             REQUIRE(f[0].text == "A");
         }
         {
             auto f = addfFragments("$A");
             REQUIRE(f.size() == 1);
-            REQUIRE(f[0].kind == addfVar);
+            REQUIRE(f[0].kind == AddfFragmentKind::Var);
             REQUIRE(f[0].text == "A");
         }
         {
             auto f = addfFragments("${A}");
             REQUIRE(f.size() == 1);
-            REQUIRE(f[0].kind == addfExpr);
+            REQUIRE(f[0].kind == AddfFragmentKind::Expr);
             REQUIRE(f[0].text == "A");
         }
     }

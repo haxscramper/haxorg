@@ -6,9 +6,13 @@
 #include <lexbase/Token.hpp>
 
 struct ParseSpec {
-    Opt<YAML::Node> subnodes;
-    Opt<YAML::Node> tokens;
-    Str             source;
+    Opt<YAML::Node>  subnodes;
+    Opt<YAML::Node>  tokens;
+    Str              source;
+    Opt<std::string> testName;
+
+    bool traceLex   = false;
+    bool traceParse = false;
 
     /// Name of the method to call for lexing or parsing. Pointer to
     /// implementation is resolved externally, spec file just contains the
@@ -34,9 +38,25 @@ struct ParseSpec {
     ExpectedMode expectedMode = ExpectedMode::Nested;
 
     ParseSpec(CR<YAML::Node> node) {
+        if (node["debug"]) {
+            auto dbg = node["debug"];
+            if (dbg["trace_lex"]) {
+                traceLex = dbg["trace_lex"].as<bool>();
+            }
+
+            if (dbg["trace_parse"]) {
+                traceParse = dbg["trace_parse"].as<bool>();
+            }
+        }
+
         if (node["lex"]) {
             lexImplName = node["lex"].as<std::string>();
         }
+
+        if (node["name"]) {
+            testName = node["name"].as<std::string>();
+        }
+
         if (node["parse"]) {
             parseImplName = node["parse"].as<std::string>();
         }
@@ -92,6 +112,13 @@ struct ParseSpecGroup {
                     if (!spec.parseImplName && node["parse"]) {
                         spec.parseImplName = node["parse"]
                                                  .as<std::string>();
+                    }
+
+                    if (!spec.testName) {
+                        if (node["name"]) {
+                            spec.testName = node["name"].as<std::string>();
+                        } else {
+                        }
                     }
 
                     if (!it["expected"] && node["expected"]) {

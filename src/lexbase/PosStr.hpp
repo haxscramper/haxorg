@@ -11,6 +11,8 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Vec.hpp>
 
+#include <hstd/stdlib/ColText.hpp>
+
 #include <hstd/stdlib/sequtils.hpp>
 #include <hstd/stdlib/charsets.hpp>
 #include <hstd/stdlib/strformat.hpp>
@@ -54,21 +56,34 @@ struct PosStr {
     std::shared_ptr<LocationResolver> resolver;
 
     struct PrintParams {
-        int maxTokens = 10;
+        int  maxTokens = 10;
+        bool withPos   = true;
+        bool withEnd   = true;
+        bool withColor = true;
     };
 
-    void print() { print(PrintParams()); }
-    void print(CR<PrintParams> params) {
-        auto& os = std::cout;
-        os << "PosStr at #" << pos;
-        for (int i = 0; i < params.maxTokens; ++i) {
-            if (hasNext(i)) {
-                os << " '" << visibleName(get(i)).first << "'";
-            }
+
+    void print(ColStream& os, CR<PrintParams> params) {
+        if (params.withPos) {
+            os << "#" << pos;
+        }
+        for (int i = 0; i < params.maxTokens && hasNext(i); ++i) {
+            os << TermColorFg8Bit::Yellow << " '"
+               << visibleName(get(i)).first << "'" << os.end();
         }
 
-        os << std::endl;
+        if (params.withEnd) {
+            os << "\n";
+        }
     }
+
+    void print() { print(std::cout, PrintParams()); }
+    void print(ColStream& os) { print(os, PrintParams()); }
+    void print(std::ostream& os, CR<PrintParams> params) {
+        ColStream stream{os};
+        print(stream, params);
+    }
+    void print(CR<PrintParams> params) { print(std::cout, params); }
 
 
     struct SliceStartData {
@@ -377,13 +392,13 @@ struct PosStr {
     }
 
     void skipTo(const PosStrCheckable auto& item) {
-        while (!at(item)) {
+        while (!finished() && !at(item)) {
             next();
         }
     }
 
     void skipBefore(const PosStrCheckable auto& item) {
-        while (!at(item, 1)) {
+        while (!finished() && !at(item, 1)) {
             next();
         }
     }
