@@ -1421,20 +1421,17 @@ bool OrgTokenizer::atLogClock(PosStr& str) {
 
 bool OrgTokenizer::atConstructStart(PosStr& str) {
     __trace();
-    bool result;
     if (!isFirstOnLine(str)) {
         return false;
-    }
-    if (str.getIndent() == 0 && str.at('*')) {
+    } else if (str.getIndent() == 0 && str.at('*')) {
         auto shift = 0;
         while (str.at('*', shift)) {
             ++shift;
         }
-        result = str.at(' ', shift);
+        return str.at(' ', shift);
     } else {
-        result = str.at(R"(#+)") || str.at(R"(---)");
+        return str.at(R"(#+)") || str.at(R"(---)");
     }
-    return result;
 }
 
 void OrgTokenizer::skipIndents(LexerStateSimple& state, PosStr& str) {
@@ -1467,78 +1464,57 @@ void OrgTokenizer::skipIndents(LexerStateSimple& state, PosStr& str) {
     }
 }
 
-Vec<OrgToken> OrgTokenizer::tryListStart(PosStr& str) {
+bool OrgTokenizer::atListStart(CR<PosStr> tmp) {
+    auto str = tmp;
     __trace();
     Vec<OrgToken> result;
     if (atConstructStart(str)) {
-        return {};
-    }
-    auto tmp = str;
-
-    if (tmp.at(CharSet{'-', '+'})
-        || (0 < tmp.getIndent()) && tmp.at('*')) {
-        result.push_back(tmp.tok(otk::ListDash, skipOne, ListStart));
-
-        if (!tmp.trySkip(' ')) {
-            return {};
-        }
-        tmp.space();
-    } else if (tmp.at(charsets::Digits + charsets::AsciiLetters)) {
-        result.push_back(tmp.tok(otk::ListDash, [](PosStr& str) {
+        return false;
+    } else if (
+        str.at(CharSet{'-', '+'})
+        || (0 < str.getIndent() && str.at('*'))) {
+        str.skip(ListStart);
+        return str.at(' ');
+    } else if (str.at(charsets::Digits + charsets::AsciiLetters)) {
+        str.tok(otk::ListDash, [](PosStr& str) {
             if (str.at(charsets::Digits + charsets::AsciiLetters)) {
                 str.next();
             } else {
                 return;
             }
-        }));
+        });
 
-        if (tmp.at(')') || tmp.at('.')) {
-            tmp.next();
-        } else {
-            return {};
-        }
-
-        if (tmp.at(' ')) {
-            tmp.next();
-        } else {
-            return {};
-        }
+        return str.at(')') || str.at('.');
     } else {
-        if (tmp.at(CharSet{'-', '+', '*'})) {
-            tmp.next();
+        if (str.at(CharSet{'-', '+', '*'})) {
+            str.next();
         } else {
-            return {};
+            return false;
         }
 
-        if (tmp.at(' ')) {
-            tmp.next();
-        } else {
-            return {};
-        }
+        return str.at(' ');
     }
-    str = tmp;
-    return result;
 }
 
+/// REFACTOR don't mutate argument string, offload this to the proper
+/// parsing procedure
 bool OrgTokenizer::listAhead(PosStr& str) {
     __trace();
-    bool result;
     if (!isFirstOnLine(str)) {
         return false;
-    }
-
-    const auto init = str.toStr();
-    auto       tmp  = str;
-    tmp.space();
-    if (tmp.at(ListStart)) {
-        if (tryListStart(tmp).empty()) {
-            return false;
-        } else {
-            str = tmp;
-            return true;
-        }
     } else {
-        return false;
+        auto tmp = str;
+        tmp.space();
+        if (tmp.at(ListStart)) {
+            if (atListStart(tmp)) {
+                return true;
+            } else {
+                str = tmp;
+                return true;
+            }
+        } else {
+            return false;
+        }
     }
 }
 
@@ -1547,6 +1523,23 @@ void OrgTokenizer::lexListItem(
     const int&        indent,
     LexerStateSimple& state) {
     __trace();
+
+    if (str.at(CharSet{'-', '+'})
+        || (0 < str.getIndent() && str.at('*'))) {
+        __trace("At bullet list start");
+        push(str.tok(otk::ListStart, skipOne, cr(CharSet{'-', '+', '*'})));
+        str.space();
+    } else {
+        __trace("At numbered list start");
+        push(str.tok(
+            otk::ListStart,
+            skipOne,
+            cr(charsets::Digits + charsets::AsciiLetters)));
+
+        str.skip(cr(CharSet{')', '.'}));
+        str.space();
+    }
+
     if (str.at("\\[[Xx - ]\\]")) {
         push(str.tok(otk::Checkbox, [](PosStr& str) {
             str.skip('[');
@@ -1643,16 +1636,12 @@ void OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
         } else {
             skipIndents(state, str);
             const auto indent = str.getColumn();
-            auto       tmp    = str;
-            const auto tokens = tryListStart(tmp);
-            if (tokens.empty()) {
+            if (atListStart(str)) {
+                __trace("Lexing nested list item");
+                lexListItem(str, indent, state);
+            } else {
                 __trace("Lexing paragraph content");
                 lexParagraph(str);
-            } else {
-                __trace("Lexing nested list item");
-                str = tmp;
-                push(tokens);
-                lexListItem(str, indent, state);
             }
         }
     }

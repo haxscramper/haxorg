@@ -34,6 +34,9 @@ struct OperationsTracer {
             stream << "\n";
         } else {
             *(stream.ostream) << std::endl;
+            if (traceToFile) {
+                file->flush();
+            }
         }
     }
 };

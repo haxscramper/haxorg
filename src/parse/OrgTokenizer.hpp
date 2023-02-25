@@ -167,9 +167,9 @@ struct OrgTokenizer
     void skipIndents(LexerStateSimple& state, PosStr& str);
 
 
-    /*!Attempt to parse list start dash
-     */
-    Vec<OrgToken> tryListStart(PosStr& str);
+    /*!Attempt to parse list start dash */
+    bool atListStart(CR<PosStr> str);
+    bool lexListStart(PosStr& str);
 
 
     bool listAhead(PosStr& str);
