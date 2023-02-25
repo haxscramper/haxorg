@@ -11,8 +11,10 @@ struct ParseSpec {
     Str              source;
     Opt<std::string> testName;
 
-    bool traceLex   = false;
-    bool traceParse = false;
+    bool traceLex    = false;
+    bool traceParse  = false;
+    bool lexToFile   = false;
+    bool parseToFile = false;
 
     /// Name of the method to call for lexing or parsing. Pointer to
     /// implementation is resolved externally, spec file just contains the
@@ -46,6 +48,14 @@ struct ParseSpec {
 
             if (dbg["trace_parse"]) {
                 traceParse = dbg["trace_parse"].as<bool>();
+            }
+
+            if (dbg["lex_to_file"]) {
+                lexToFile = dbg["lex_to_file"].as<bool>();
+            }
+
+            if (dbg["parse_to_file"]) {
+                parseToFile = dbg["parse_to_file"].as<bool>();
             }
         }
 

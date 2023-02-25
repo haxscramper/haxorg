@@ -4,8 +4,6 @@
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
 
-#define define_close()
-
 #define __trace2(__subname, __str)                                        \
     report(Report{                                                        \
         .line     = __LINE__,                                             \

@@ -308,21 +308,28 @@ struct LexerCommon {
 
         } else if (finished()) {
             throw UnexpectedEndError(
-                "Unexpected end encountered while trying to skip $#"
-                    % to_string_vec(kind),
+                "Unexpected end encountered while trying to skip $# token "
+                "at index $#"
+                    % to_string_vec(kind, pos.getIndex()),
                 pos.getIndex());
 
         } else {
             if (str.empty()) {
                 throw UnexpectedCharError(
-                    "Expected '$#' but found '$#'"
-                        % to_string_vec(kind, str, this->kind(), strVal()),
+                    "Expected '$#' but found '$#' at index $#"
+                        % to_string_vec(
+                            kind, this->kind(), pos.getIndex()),
                     pos.getIndex());
             } else {
                 throw UnexpectedCharError(
                     "Expected '$#' with value '$#' but found '$#' with "
-                    "value '$#'"
-                        % to_string_vec(kind, str, this->kind(), strVal()),
+                    "value '$#' at index $#"
+                        % to_string_vec(
+                            kind,
+                            str,
+                            this->kind(),
+                            strVal(),
+                            pos.getIndex()),
                     pos.getIndex());
             }
         }

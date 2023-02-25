@@ -7,6 +7,85 @@
 using ParseCb = std::function<OrgId(OrgLexer&)>;
 
 struct OrgParser {
+  public:
+    bool trace = false;
+
+  private:
+    enum class ReportKind
+    {
+        EnterParse,
+        LeaveParse,
+        StartNode,
+        EndNode,
+        AddToken
+    };
+
+    struct Report {
+        ReportKind kind;
+        fs::path   location;
+        int        line;
+        Opt<Str>   name;
+        Opt<Str>   subname;
+        Opt<OrgId> node;
+        OrgLexer*  lex = nullptr;
+    };
+
+    int  depth = 0;
+    void report(CR<Report> in) {
+        using fg = TermColorFg8Bit;
+
+        bool entering = false;
+        if (!trace) {
+            return;
+        }
+
+        if (in.kind == ReportKind::EnterParse
+            || in.kind == ReportKind::StartNode) {
+            ++depth;
+        }
+
+        ColStream os{std::cout};
+        os << repeat("  ", depth);
+
+        switch (in.kind) {
+            case ReportKind::AddToken: {
+                os << " # " << in.node << " " << in.line;
+                break;
+            }
+
+            case ReportKind::StartNode:
+            case ReportKind::EndNode: {
+                os << " + " << in.node << " " << in.line;
+                break;
+            }
+
+            case ReportKind::EnterParse:
+            case ReportKind::LeaveParse: {
+                os << (in.kind == ReportKind::EnterParse ? "> " : "< ")
+                   << fg::Green << in.name.value() << os.end() << ":"
+                   << fg::Cyan << in.line << os.end();
+
+                if (in.lex != nullptr) {
+                    os << " [";
+                    os << "]";
+                }
+
+                if (in.subname.has_value()) {
+                    os << " " << in.subname.value();
+                }
+                break;
+            }
+        }
+
+        std::cout << "\n";
+
+        if (in.kind == ReportKind::LeaveParse
+            || in.kind == ReportKind::EndNode) {
+            --depth;
+        }
+    }
+
+  public:
     OrgNodeGroup* group;
     inline OrgParser(OrgNodeGroup* _group) : group(_group) {}
 
@@ -22,11 +101,14 @@ struct OrgParser {
     }
 
     inline OrgId back() const { return group->nodes.back(); }
-    inline void  start(OrgNodeKind kind, OrgLexer& lex) {
-        start(kind);
+
+    inline OrgId start(OrgNodeKind kind, OrgLexer& lex) {
+        OrgId result = start(kind);
         lex.next();
+        return result;
     }
-    inline void  start(OrgNodeKind kind) { (void)group->startTree(kind); }
+
+    inline OrgId start(OrgNodeKind kind) { return group->startTree(kind); }
     inline OrgId end() { return group->endTree(); }
     inline OrgId end(OrgLexer& lex) {
         lex.next();

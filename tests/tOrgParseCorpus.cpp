@@ -81,7 +81,7 @@ const UnorderedMap<Str, MockFull::ParserMethod> parsers({
 #undef CB
 
 
-Opt<MockFull::ParserMethod> getParser(CR<Opt<Str>> name) {
+MockFull::ParserMethod getParser(CR<Opt<Str>> name) {
     if (name.has_value()) {
         if (parsers.contains(name.value())) {
             return parsers.at(name.value());
@@ -90,7 +90,7 @@ Opt<MockFull::ParserMethod> getParser(CR<Opt<Str>> name) {
                 name.value() + " is missing from method table");
         }
     } else {
-        return std::nullopt;
+        return &OrgParser::parseTop;
     }
 }
 
@@ -206,11 +206,13 @@ void runSpec(CR<YAML::Node> group) {
     ParseSpecGroup parsed(group);
 
     for (const auto& spec : parsed.specs) {
-        MockFull::LexerMethod       lexCb   = getLexer(spec.lexImplName);
-        Opt<MockFull::ParserMethod> parseCb = getParser(
-            spec.parseImplName);
+        MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
 
         MockFull p;
+
+        p.trace = spec.traceParse;
+        p.tokenizer.configureTrace(spec.traceLex, spec.lexToFile);
+
         p.tokenize(spec.source, lexCb);
         YAML::Emitter emitter;
 
@@ -243,13 +245,13 @@ void runSpec(CR<YAML::Node> group) {
             std::cout << yamlRepr(p.tokens) << std::endl;
         }
 
-        if (parseCb.has_value()) {
-            p.parse(parseCb.value());
-            if (spec.subnodes.has_value()) {
-                compareNodes(p.nodes, nodes);
-            } else {
-                std::cout << yamlRepr(p.nodes) << std::endl;
-            }
+        MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
+
+        p.parse(parseCb);
+        if (spec.subnodes.has_value()) {
+            compareNodes(p.nodes, nodes);
+        } else {
+            std::cout << yamlRepr(p.nodes) << std::endl;
         }
     }
 }

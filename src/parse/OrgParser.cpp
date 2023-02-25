@@ -1,14 +1,89 @@
 #include "OrgParser.hpp"
 
+#include <boost/preprocessor/facilities/overload.hpp>
+#include <boost/preprocessor/facilities/empty.hpp>
+
 #pragma clang diagnostic push
 // #pragma clang diagnostic error "-Wswitch-enum"
 // #pragma clang diagnostic error "-Wswitch-enum"
+
+
+#define __INIT_REPORT(__subname, __lex)                                   \
+    (Report{                                                              \
+        .line     = __LINE__,                                             \
+        .location = __CURRENT_FILE_PATH__,                                \
+        .lex      = &__lex,                                               \
+        .subname  = __subname,                                            \
+    })
+
+#define __trace2(__subname, __lex)                                        \
+    {                                                                     \
+        Report rep = __INIT_REPORT(__subname, __lex);                     \
+        rep.kind   = ReportKind::EnterParse;                              \
+        rep.name   = __func__;                                            \
+        report(rep);                                                      \
+    }                                                                     \
+                                                                          \
+    finally CONCAT(close, __COUNTER__) = finally::init<Str>(              \
+        ([&](CR<Str> name) {                                              \
+            Report rep = __INIT_REPORT(__subname, __lex);                 \
+            rep.kind   = ReportKind::LeaveParse;                          \
+            rep.name   = name;                                            \
+            report(rep);                                                  \
+        }),                                                               \
+        Str(__func__));
+
+
+#define __end2(__subname, __lex)                                          \
+    OrgId CONCAT(tmpNode, __LINE__) = end();                              \
+    {                                                                     \
+        Report rep = __INIT_REPORT(__subname, __lex);                     \
+        rep.kind   = ReportKind::EndNode;                                 \
+        rep.node   = CONCAT(tmpNode, __LINE__);                           \
+    }                                                                     \
+    CONCAT(tmpNode, __LINE__)
+
+
+#define __end1(__subname) __end2(__subname, lex)
+#define __end0() __end2(std::nullopt, lex);
+
+#define __end(...)                                                        \
+    BOOST_PP_CAT(                                                         \
+        BOOST_PP_OVERLOAD(__end, __VA_ARGS__)(__VA_ARGS__),               \
+        BOOST_PP_EMPTY())
+
+#define __start3(__node, __subname, __lex)                                \
+    OrgId CONCAT(tmpNode, __LINE__) = start(__node);                      \
+    {                                                                     \
+        Report rep = __INIT_REPORT(__subname, __lex);                     \
+        rep.kind   = ReportKind::StartNode;                               \
+        rep.node   = CONCAT(tmpNode, __LINE__);                           \
+    }                                                                     \
+    CONCAT(tmpNode, __LINE__)
+
+
+#define __start2(__node, __subname) __start3(__node, __subname, lex)
+#define __start1(__node) __start3(__node, std::nullopt, lex);
+
+#define __start(...)                                                      \
+    BOOST_PP_CAT(                                                         \
+        BOOST_PP_OVERLOAD(__start, __VA_ARGS__)(__VA_ARGS__),             \
+        BOOST_PP_EMPTY())
+
+#define __trace1(__subname) __trace2(__subname, lex)
+#define __trace0() __trace2(std::nullopt, lex)
+
+#define __trace(...)                                                      \
+    BOOST_PP_CAT(                                                         \
+        BOOST_PP_OVERLOAD(__trace, __VA_ARGS__)(__VA_ARGS__),             \
+        BOOST_PP_EMPTY())
 
 using otk = OrgTokenKind;
 using org = OrgNodeKind;
 using ock = OrgCommandKind;
 
 OrgId OrgParser::parseCSVArguments(OrgLexer& lex) {
+    __trace();
     start(org::Ident);
     lex.skip(otk::Ident);
 
@@ -26,6 +101,7 @@ OrgId OrgParser::parseCSVArguments(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseMacro(OrgLexer& lex) {
+    __trace();
     start(org::Macro);
     lex.skip(otk::MacroOpen);
     parseCSVArguments(lex);
@@ -34,10 +110,12 @@ OrgId OrgParser::parseMacro(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseRawUrl(OrgLexer& lex) {
+    __trace();
     token(org::RawLink, lex.pop(otk::RawUrl));
 }
 
 void OrgParser::textFold(OrgLexer& lex) {
+    __trace();
 #define CASE_MARKUP(Kind)                                                 \
     case otk::Kind##Open: {                                               \
         start(org::Kind, lex);                                            \
@@ -123,6 +201,7 @@ void OrgParser::textFold(OrgLexer& lex) {
 }
 
 Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
+    __trace();
     OrgId first = back();
     textFold(lex);
     OrgId last = back();
@@ -130,7 +209,8 @@ Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseLink(OrgLexer& lex) {
-    start(org::Link);
+    __trace();
+    __start(org::Link);
     lex.skip(otk::LinkOpen);
     lex.skip(otk::LinkTargetOpen);
     if (lex.at(otk::LinkInternal)) {
@@ -157,10 +237,12 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
         empty();
     }
     lex.skip(otk::LinkClose);
-    return end();
+    __end();
+    return back();
 }
 
 OrgId OrgParser::parseInlineMath(OrgLexer& lex) {
+    __trace();
     const auto startKind = lex.tok().kind;
     const auto regular   = OrgTokSet{otk::DollarOpen, otk::LatexParOpen};
     const auto display   = OrgTokSet{
@@ -197,6 +279,7 @@ OrgId OrgParser::parseInlineMath(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseSymbol(OrgLexer& lex) {
+    __trace();
     lex.skip(otk::SymbolStart);
     start(org::Symbol);
     token(org::Ident, lex.pop(otk::Ident));
@@ -217,6 +300,7 @@ OrgId OrgParser::parseSymbol(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseHashTag(OrgLexer& lex) {
+    __trace();
     start(org::HashTag);
     token(org::RawText, lex.pop(otk::HashTag));
 
@@ -240,6 +324,7 @@ OrgId OrgParser::parseHashTag(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseTime(OrgLexer& lex) {
+    __trace();
     const OrgTokSet times{otk::BracketTime, otk::AngleTime};
     if (lex.ahead(times, OrgTokSet{otk::TimeDash})) {
         start(org::TimeRange);
@@ -261,6 +346,7 @@ OrgId OrgParser::parseTime(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseFootnote(OrgLexer& lex) {
+    __trace();
     // TODO replace 'footnote start' + '::' with a 'inline footnote start'
     // / 'footnote start nodes'
     lex.skip(otk::FootnoteStart);
@@ -278,10 +364,12 @@ OrgId OrgParser::parseFootnote(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseIdent(OrgLexer& lex) {
+    __trace();
     token(org::Ident, lex.pop(otk::Ident));
 }
 
 OrgId OrgParser::parseSrcInline(OrgLexer& lex) {
+    __trace();
     start(org::SrcInlineCode);
     {
         parseIdent(lex);
@@ -295,6 +383,7 @@ OrgId OrgParser::parseSrcInline(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseTable(OrgLexer& lex) {
+    __trace();
     start(org::Table);
     lex.skip(otk::TableBegin);
     lex.skip(otk::CmdArguments);
@@ -402,6 +491,7 @@ OrgId OrgParser::parseTable(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
+    __trace();
     std::cout << "pos " << lex.pos << std::endl;
     const auto& paragraphTokens = lex.getInside(
         IntSet<OrgTokenKind>{otk::ParagraphStart},
@@ -468,16 +558,19 @@ OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
 }
 
 OrgId OrgParser::parseInlineParagraph(OrgLexer& lex) {
+    __trace();
     return parseParagraph(lex, false);
 }
 
 
 OrgId OrgParser::parseTopParagraph(OrgLexer& lex) {
+    __trace();
     return parseParagraph(lex, false);
 }
 
 
 OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
+    __trace();
     start(org::InlineStmtList);
     while (lex.at(OrgTokSet{otk::CommandValue, otk::CommandKey})) {
         if (lex.at(otk::CommandKey)) {
@@ -501,6 +594,7 @@ OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseSrcArguments(OrgLexer& lex) {
+    __trace();
     start(org::CmdArguments);
     start(org::InlineStmtList);
 
@@ -513,6 +607,7 @@ OrgId OrgParser::parseSrcArguments(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind) {
+    __trace();
     switch (kind) {
         case ock::BeginCenter: {
             start(org::CenterBlock);
@@ -548,6 +643,7 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind) {
 }
 
 OrgId OrgParser::parseSrc(OrgLexer& lex) {
+    __trace();
     start(org::SrcCode);
     lex.skip(otk::CommandPrefix);
     lex.skip(otk::CommandBegin);
@@ -628,6 +724,7 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseListItemBody(OrgLexer& lex) {
+    __trace();
     start(org::StmtList);
     while ((!(lex.at(otk::StmtListClose)))) {
         if (lex.at(Vec<OrgTokenKind>{otk::Indent, otk::ListDash})) {
@@ -642,6 +739,7 @@ OrgId OrgParser::parseListItemBody(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseListItem(OrgLexer& lex) {
+    __trace();
     start(org::ListItem);
     // prefix
     { token(org::RawText, lex.pop(otk::ListDash)); }
@@ -683,6 +781,7 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseNestedList(OrgLexer& lex) {
+    __trace();
     ParseCb nextLevel = [this](OrgLexer& lex) {
         lex.skip(otk::Indent);
         auto result = parseNestedList(lex);
@@ -690,7 +789,7 @@ OrgId OrgParser::parseNestedList(OrgLexer& lex) {
         return result;
     };
 
-    start(org::List);
+    __start(org::List);
     while (lex.at(otk::ListDash)) {
         parseListItem(lex);
         if (lex.at(otk::SameIndent)) {
@@ -705,11 +804,12 @@ OrgId OrgParser::parseNestedList(OrgLexer& lex) {
             assert(false);
         }
     }
-    return end();
+    __end();
+    return back();
 }
 
 OrgId OrgParser::parseList(OrgLexer& lex) {
-
+    __trace();
     lex.skip(otk::ListStart);
     const auto nested = lex.at(otk::Indent);
     if (nested) {
@@ -763,6 +863,7 @@ Vec<OrgTokenId> strip(
 }
 
 OrgId OrgParser::parseLogbookClockEntry(OrgLexer& lex) {
+    __trace();
     start(org::LogbookClock);
     // CLOCK:
     lex.skip(otk::ListClock);
@@ -781,6 +882,7 @@ OrgId OrgParser::parseLogbookClockEntry(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseLogbookListEntry(OrgLexer& lex) {
+    __trace();
     lex.skip(otk::ListDash);
     const auto pos = lex.find(
         OrgTokSet{otk::DoubleSlash}, OrgTokSet{otk::ListItemEnd});
@@ -864,6 +966,7 @@ OrgId OrgParser::parseLogbookListEntry(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseLogbook(OrgLexer& lex) {
+    __trace();
     start(org::Logbook);
     lex.skip(otk::ColonLogbook);
     lex.skip(otk::LogbookStart);
@@ -904,6 +1007,7 @@ OrgId OrgParser::parseLogbook(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseDrawer(OrgLexer& lex) {
+    __trace();
     start(org::Drawer);
     while (lex.at(OrgTokSet{
         otk::ColonProperties, otk::ColonLogbook, otk::ColonDescription})) {
@@ -951,6 +1055,7 @@ OrgId OrgParser::parseDrawer(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseSubtree(OrgLexer& lex) {
+    __trace();
     start(org::Subtree);
     // prefix
     { token(org::RawText, lex.pop(otk::SubtreeStars)); };
@@ -1004,12 +1109,14 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
 }
 
 void OrgParser::skipLineCommand(OrgLexer& lex) {
+    __trace();
     lex.skip(otk::CommandPrefix);
     lex.skip(otk::LineCommand);
     lex.skip(otk::Colon);
 }
 
 OrgId OrgParser::parseOrgFile(OrgLexer& lex) {
+    __trace();
     start(org::File);
     if (lex.at(otk::QuoteOpen)) {
         lex.next();
@@ -1022,6 +1129,7 @@ OrgId OrgParser::parseOrgFile(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
+    __trace();
     const auto kind           = classifyCommand(lex.strVal(+1));
     auto       skipLineComand = [](OrgLexer& lex) {
         lex.skip(otk::CommandPrefix);
@@ -1137,6 +1245,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseToplevelItem(OrgLexer& lex) {
+    __trace();
     switch (lex.kind()) {
         case otk::ParagraphStart: return parseParagraph(lex, true);
         case otk::TableBegin: return parseTable(lex);
@@ -1167,6 +1276,7 @@ OrgId OrgParser::parseToplevelItem(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseTop(OrgLexer& lex) {
+    __trace();
     start(org::StmtList);
     while (lex.hasNext()) {
         if (lex.at(otk::Comment)) {

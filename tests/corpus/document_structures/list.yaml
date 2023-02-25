@@ -2,6 +2,13 @@ lex: "Structure"
 expected: "Flat"
 items:
   - source: "- item"
+    name: "Single item"
+    debug:
+      trace_parse: true
+      trace_lex: true
+      lex_to_file: true
+      parse_to_file: true
+
     tokens:
       - {idx: 0, kind: ListStart}
       - {idx: 1, kind: ParagraphStart}
