@@ -12,6 +12,8 @@
 #include <lexbase/PosStr.hpp>
 #include <parse/OrgTypes.hpp>
 
+#include <lexbase/TraceBase.hpp>
+
 struct ImplementError : public std::runtime_error {
     explicit inline ImplementError(const std::string& message = "")
         : std::runtime_error(message) {}
@@ -20,20 +22,9 @@ struct ImplementError : public std::runtime_error {
 OrgCommandKind classifyCommand(std::string const& command);
 
 
-struct OrgTokenizer : public Tokenizer<OrgTokenKind> {
-  public:
-    bool           trace       = false;
-    bool           traceToFile = false;
-    std::ofstream* file        = nullptr;
-
-    void configureTrace(bool doTrace, bool toFile) {
-        trace       = doTrace;
-        traceToFile = toFile;
-        if (toFile) {
-            file = new std::ofstream{"/tmp/random.txt"};
-        }
-    }
-
+struct OrgTokenizer
+    : public Tokenizer<OrgTokenKind>
+    , public OperationsTracer {
   private:
     struct Report {
         fs::path location;
@@ -45,56 +36,11 @@ struct OrgTokenizer : public Tokenizer<OrgTokenKind> {
     };
 
     int  depth = 0;
-    void report(CR<Report> in) {
-        if (!trace) {
-            return;
-        }
-
-        using fg = TermColorFg8Bit;
-        if (in.entering) {
-            ++depth;
-        }
-
-        ColStream os;
-
-        if (traceToFile) {
-            os         = ColStream{*file};
-            os.colored = false;
-        } else {
-            os = ColStream{std::cout};
-        }
-
-        os << repeat("  ", depth) << (in.entering ? "> " : "< ")
-           << fg::Green << in.name << os.end() << ":" << fg::Cyan
-           << in.line << os.end();
-
-        if (in.str != nullptr) {
-            os << " [";
-            in.str->print(os, PosStr::PrintParams({.withEnd = false}));
-            os << "]";
-        }
-
-        if (in.subname.has_value()) {
-            os << " " << in.subname.value();
-        }
-
-        *(os.ostream) << std::endl;
-
-        if (!in.entering) {
-            --depth;
-        }
-    }
+    void report(CR<Report> in);
 
 
   public:
-    OrgTokenizer(OrgTokenGroup* out, bool trace = false)
-        : Tokenizer<OrgTokenKind>(out), trace(trace) {}
-
-    ~OrgTokenizer() {
-        if (file != nullptr) {
-            delete file;
-        }
-    }
+    OrgTokenizer(OrgTokenGroup* out) : Tokenizer<OrgTokenKind>(out) {}
 
     /// Push complex token into recursive processing pipeline. Used for
     /// table content (which might contain more blocks of texts, some

@@ -211,7 +211,15 @@ void runSpec(CR<YAML::Node> group) {
         MockFull p;
 
         p.trace = spec.traceParse;
-        p.tokenizer.configureTrace(spec.traceLex, spec.lexToFile);
+        if (spec.parseToFile) {
+            p.setTraceFile("/tmp/parse.txt");
+        }
+
+        p.tokenizer.trace = spec.traceLex;
+        if (spec.lexToFile) {
+            p.tokenizer.setTraceFile("/tmp/random.txt");
+        }
+
 
         p.tokenize(spec.source, lexCb);
         YAML::Emitter emitter;

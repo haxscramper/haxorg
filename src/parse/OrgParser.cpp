@@ -200,6 +200,60 @@ void OrgParser::textFold(OrgLexer& lex) {
 #undef CASE_MARKUP
 }
 
+void OrgParser::report(CR<Report> in) {
+    using fg = TermColorFg8Bit;
+
+    bool entering = false;
+    if (!trace) {
+        return;
+    }
+
+    if (in.kind == ReportKind::EnterParse
+        || in.kind == ReportKind::StartNode) {
+        ++depth;
+    }
+
+    ColStream os = getStream();
+    os << repeat("  ", depth);
+
+    switch (in.kind) {
+        case ReportKind::AddToken: {
+            os << " # " << in.node << " " << in.line;
+            break;
+        }
+
+        case ReportKind::StartNode:
+        case ReportKind::EndNode: {
+            os << " + " << in.node << " " << in.line;
+            break;
+        }
+
+        case ReportKind::EnterParse:
+        case ReportKind::LeaveParse: {
+            os << (in.kind == ReportKind::EnterParse ? "> " : "< ")
+               << fg::Green << in.name.value() << os.end() << ":"
+               << fg::Cyan << in.line << os.end();
+
+            if (in.lex != nullptr) {
+                os << " [";
+                os << "]";
+            }
+
+            if (in.subname.has_value()) {
+                os << " " << in.subname.value();
+            }
+            break;
+        }
+    }
+
+    endStream(os);
+
+    if (in.kind == ReportKind::LeaveParse
+        || in.kind == ReportKind::EndNode) {
+        --depth;
+    }
+}
+
 Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
     __trace();
     OrgId first = back();

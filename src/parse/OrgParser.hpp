@@ -4,12 +4,11 @@
 #include <parse/OrgTokenizer.hpp>
 #include <hstd/stdlib/sequtils.hpp>
 
+#include <lexbase/TraceBase.hpp>
+
 using ParseCb = std::function<OrgId(OrgLexer&)>;
 
-struct OrgParser {
-  public:
-    bool trace = false;
-
+struct OrgParser : public OperationsTracer {
   private:
     enum class ReportKind
     {
@@ -31,59 +30,7 @@ struct OrgParser {
     };
 
     int  depth = 0;
-    void report(CR<Report> in) {
-        using fg = TermColorFg8Bit;
-
-        bool entering = false;
-        if (!trace) {
-            return;
-        }
-
-        if (in.kind == ReportKind::EnterParse
-            || in.kind == ReportKind::StartNode) {
-            ++depth;
-        }
-
-        ColStream os{std::cout};
-        os << repeat("  ", depth);
-
-        switch (in.kind) {
-            case ReportKind::AddToken: {
-                os << " # " << in.node << " " << in.line;
-                break;
-            }
-
-            case ReportKind::StartNode:
-            case ReportKind::EndNode: {
-                os << " + " << in.node << " " << in.line;
-                break;
-            }
-
-            case ReportKind::EnterParse:
-            case ReportKind::LeaveParse: {
-                os << (in.kind == ReportKind::EnterParse ? "> " : "< ")
-                   << fg::Green << in.name.value() << os.end() << ":"
-                   << fg::Cyan << in.line << os.end();
-
-                if (in.lex != nullptr) {
-                    os << " [";
-                    os << "]";
-                }
-
-                if (in.subname.has_value()) {
-                    os << " " << in.subname.value();
-                }
-                break;
-            }
-        }
-
-        std::cout << "\n";
-
-        if (in.kind == ReportKind::LeaveParse
-            || in.kind == ReportKind::EndNode) {
-            --depth;
-        }
-    }
+    void report(CR<Report> in);
 
   public:
     OrgNodeGroup* group;

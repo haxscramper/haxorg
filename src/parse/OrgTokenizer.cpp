@@ -1475,7 +1475,6 @@ Vec<OrgToken> OrgTokenizer::tryListStart(PosStr& str) {
     }
     auto tmp = str;
 
-
     if (tmp.at(CharSet{'-', '+'})
         || (0 < tmp.getIndent()) && tmp.at('*')) {
         result.push_back(tmp.tok(otk::ListDash, skipOne, ListStart));
@@ -1951,6 +1950,38 @@ void OrgTokenizer::lexStructure(PosStr& str) {
                 lexParagraph(str);
             }
         }
+    }
+}
+
+void OrgTokenizer::report(CR<Report> in) {
+    if (!trace) {
+        return;
+    }
+
+    using fg = TermColorFg8Bit;
+    if (in.entering) {
+        ++depth;
+    }
+
+    ColStream os = getStream();
+
+    os << repeat("  ", depth) << (in.entering ? "> " : "< ") << fg::Green
+       << in.name << os.end() << ":" << fg::Cyan << in.line << os.end();
+
+    if (in.str != nullptr) {
+        os << " [";
+        in.str->print(os, PosStr::PrintParams({.withEnd = false}));
+        os << "]";
+    }
+
+    if (in.subname.has_value()) {
+        os << " " << in.subname.value();
+    }
+
+    endStream(os);
+
+    if (!in.entering) {
+        --depth;
     }
 }
 
