@@ -118,6 +118,46 @@ struct ColStyle {
     }
 };
 
+
+#define ESC_PREFIX "\033["
+
+struct ColRune;
+struct ColText;
+
+/*! Create ansi escape sequence with given code */
+inline std::string ansiEsc(int code) {
+    return ESC_PREFIX + std::to_string(code) + "m";
+}
+
+
+/*! Create ansi escape sequence with given terminal color */
+std::string ansiEsc(const TermColorFg8Bit& col);
+
+/*! Create ansi escape sequence with given terminal color */
+std::string ansiEsc(const TermColorBg8Bit& col);
+
+/// Create ansi escape sequence with given style. `open` controls whether
+/// styling sequence is used for open or for close
+std::string ansiEsc(const Style& style, const bool& open);
+
+/// Generate ansi escape sequences to transition from style `s1` to style
+/// `s2`
+Str ansiDiff(const ColStyle& s1, const ColStyle& s2);
+
+
+/// Convert colored rune to regular std::string, with ansi escape
+/// sequences. `color` controls whether styling is going to be applied or
+/// not.
+std::string to_string(const ColRune& rune, const bool& color = true);
+
+/// Convert sequence of colored runes to the std::string, with ansi escape
+/// sequences in. `color` controls whether styling is going to be applied
+/// or not.
+std::string to_colored_string(
+    const Vec<ColRune>& runes,
+    const bool&         color = true);
+
+
 /// NOTE yes, I know it is very inefficient, but it is not a HPC solution
 /// in any case, so I'm trading current development productivity (not
 /// spending time on a more efficient range-based solution) over runtime
@@ -135,13 +175,13 @@ struct ColText : Vec<ColRune> {
     using Base = Vec<ColRune>;
     using Base::append;
 
+    std::string toString(bool colored = true) {
+        return to_colored_string(*this, colored);
+    }
     ColText() = default;
 
     ColText(CR<ColStyle> style, CR<std::string> text) {
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-        std::wstring wide = converter.from_bytes(text);
-
-        for (const auto& ch : wide) {
+        for (const auto& ch : to_wstring(text)) {
             push_back(ColRune(style, ch));
         }
     }
@@ -181,42 +221,6 @@ struct ColText : Vec<ColRune> {
     }
 };
 
-
-#define ESC_PREFIX "\033["
-
-/*! Create ansi escape sequence with given code */
-inline std::string ansiEsc(int code) {
-    return ESC_PREFIX + std::to_string(code) + "m";
-}
-
-
-/*! Create ansi escape sequence with given terminal color */
-std::string ansiEsc(const TermColorFg8Bit& col);
-
-/*! Create ansi escape sequence with given terminal color */
-std::string ansiEsc(const TermColorBg8Bit& col);
-
-/// Create ansi escape sequence with given style. `open` controls whether
-/// styling sequence is used for open or for close
-std::string ansiEsc(const Style& style, const bool& open);
-
-/// Generate ansi escape sequences to transition from style `s1` to style
-/// `s2`
-Str ansiDiff(const ColStyle& s1, const ColStyle& s2);
-
-
-/// Convert colored rune to regular std::string, with ansi escape
-/// sequences. `color` controls whether styling is going to be applied or
-/// not.
-std::string to_string(const ColRune& rune, const bool& color = true);
-
-/// Convert sequence of colored runes to the std::string, with ansi escape
-/// sequences in. `color` controls whether styling is going to be applied
-/// or not.
-std::string to_colored_string(
-    const Vec<ColRune>& runes,
-    const bool&         color = true);
-
 inline std::ostream& operator<<(std::ostream& os, ColText const& value) {
     return os << to_colored_string(value, true);
 }
@@ -254,6 +258,11 @@ struct ColStream : public ColText {
     ColStream() : buffered(true){};
     ColStream(std::ostream& os) : ostream(&os), buffered(false) {}
 
+    ColStream& red() {
+        active.fg = TermColorFg8Bit::Red;
+        return *this;
+    }
+
     ColStyle    active;
     ColStream&  indent(int level);
     ColStyle    end() const { return ColStyle{}; }
@@ -266,6 +275,7 @@ struct ColStream : public ColText {
         }
     }
 };
+
 
 inline StreamState::StreamState(ColStream& stream) : stream(stream) {
     start = stream.active;
@@ -401,6 +411,45 @@ ColStream& hshow(
     CR<HDisplayOpts> opts = HDisplayOpts{}) {
     return s << to_string(value);
 }
+
+
+template <>
+inline ColStream& hshow(
+    ColStream&       os,
+    CR<Str>          value,
+    CR<HDisplayOpts> opts) {
+    bool first = true;
+    for (Str const& it : visibleName(to_wstring(value))) {
+        if (!first) {
+            os << " ";
+        }
+        first = false;
+        os << "'" + it + "'";
+    }
+
+    return os;
+}
+
+template <>
+inline ColStream& hshow(
+    ColStream&           os,
+    CR<std::string_view> value,
+    CR<HDisplayOpts>     opts) {
+    if (value.data() == nullptr) {
+        return os << os.red() << "nil" << os.end();
+    } else {
+        return hshow(os, Str(to_string(value)), opts);
+    }
+}
+
+
+template <StringConvertible T>
+ColText hshow(CR<T> value, CR<HDisplayOpts> opts = HDisplayOpts{}) {
+    ColStream out;
+    hshow(out, value, opts);
+    return out.getBuffer();
+}
+
 
 template <typename T>
 ColText join(CR<ColText> separator, CR<T> container) {

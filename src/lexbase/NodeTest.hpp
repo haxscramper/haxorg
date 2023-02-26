@@ -11,10 +11,17 @@ struct ParseSpec {
     Str              source;
     Opt<std::string> testName;
 
-    bool traceLex    = false;
-    bool traceParse  = false;
-    bool lexToFile   = false;
-    bool parseToFile = false;
+    struct Dbg {
+        bool traceLex    = false;
+        bool traceParse  = false;
+        bool lexToFile   = false;
+        bool parseToFile = false;
+        bool printLexed  = false;
+        bool printParsed = false;
+    };
+
+    Dbg dbg;
+
 
     /// Name of the method to call for lexing or parsing. Pointer to
     /// implementation is resolved externally, spec file just contains the
@@ -41,21 +48,29 @@ struct ParseSpec {
 
     ParseSpec(CR<YAML::Node> node) {
         if (node["debug"]) {
-            auto dbg = node["debug"];
-            if (dbg["trace_lex"]) {
-                traceLex = dbg["trace_lex"].as<bool>();
+            auto debug = node["debug"];
+            if (debug["trace_lex"]) {
+                dbg.traceLex = debug["trace_lex"].as<bool>();
             }
 
-            if (dbg["trace_parse"]) {
-                traceParse = dbg["trace_parse"].as<bool>();
+            if (debug["trace_parse"]) {
+                dbg.traceParse = debug["trace_parse"].as<bool>();
             }
 
-            if (dbg["lex_to_file"]) {
-                lexToFile = dbg["lex_to_file"].as<bool>();
+            if (debug["lex_to_file"]) {
+                dbg.lexToFile = debug["lex_to_file"].as<bool>();
             }
 
-            if (dbg["parse_to_file"]) {
-                parseToFile = dbg["parse_to_file"].as<bool>();
+            if (debug["parse_to_file"]) {
+                dbg.parseToFile = debug["parse_to_file"].as<bool>();
+            }
+
+            if (debug["print_lexed"]) {
+                dbg.printLexed = debug["print_lexed"].as<bool>();
+            }
+
+            if (debug["print_parsed"]) {
+                dbg.printLexed = debug["print_parsed"].as<bool>();
             }
         }
 

@@ -13,6 +13,9 @@
 #include <hstd/stdlib/diffs.hpp>
 
 #include <fnmatch.h>
+#include <ranges>
+
+namespace rs = std::views;
 
 #define CB(name)                                                          \
     { Str(#name), &OrgTokenizer::lex##name }
@@ -172,6 +175,7 @@ void compareTokens(
 
         FormattedDiff text{tokenDiff};
 
+
         if (text.isUnified()) {
             std::cout << (ColText("Lexed") <<= 48) << (ColText("Expected"))
                       << "\n";
@@ -181,9 +185,8 @@ void compareTokens(
                 auto format   = [&](int          id,
                                   CR<OrgToken> tok) -> std::string {
                     return to_string(id) + " " + to_string(tok.kind) + " "
-                         + (tok.hasData()
-                                  ? escape_literal(to_string(tok.text))
-                                  : "");
+                         + hshow(tok.text).toString(false) + " "
+                         + to_string((u64)tok.text.data());
                 };
                 std::cout
                     //
@@ -207,8 +210,6 @@ void compareTokens(
                         <<= 16)
                     << std::endl;
             }
-
-            std::cout << yamlRepr(lexed) << std::endl;
         }
         // std::cout << text << std::endl;
         // std::cout << "--------\n";
@@ -219,17 +220,21 @@ void runSpec(CR<YAML::Node> group) {
     ParseSpecGroup parsed(group);
 
     for (const auto& spec : parsed.specs) {
+        if (spec.testName.has_value()) {
+            std::cout << spec.testName << "\n";
+        }
+
         MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
 
         MockFull p;
 
-        p.trace = spec.traceParse;
-        if (spec.parseToFile) {
+        p.trace = spec.dbg.traceParse;
+        if (spec.dbg.parseToFile) {
             p.setTraceFile("/tmp/parse.txt");
         }
 
-        p.tokenizer.trace = spec.traceLex;
-        if (spec.lexToFile) {
+        p.tokenizer.trace = spec.dbg.traceLex;
+        if (spec.dbg.lexToFile) {
             p.tokenizer.setTraceFile("/tmp/random.txt");
         }
 
@@ -253,26 +258,30 @@ void runSpec(CR<YAML::Node> group) {
                     spec.tokens.value(), buffer);
             }
 
-
             if (spec.subnodes.has_value()) {
                 nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind>(
                     spec.subnodes.value());
             }
         }
 
+        if (spec.dbg.printLexed) {
+            std::cout << yamlRepr(p.tokens) << std::endl;
+        }
+
         if (spec.tokens.has_value()) {
             compareTokens(p.tokens, tokens);
-        } else {
-            std::cout << yamlRepr(p.tokens) << std::endl;
         }
 
         MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
 
         p.parse(parseCb);
+
+        if (spec.dbg.printParsed) {
+            std::cout << yamlRepr(p.nodes) << std::endl;
+        }
+
         if (spec.subnodes.has_value()) {
             compareNodes(p.nodes, nodes);
-        } else {
-            std::cout << yamlRepr(p.nodes) << std::endl;
         }
     }
 }

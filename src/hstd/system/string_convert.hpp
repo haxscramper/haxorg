@@ -7,6 +7,9 @@
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
 
+#include <locale>
+#include <codecvt>
+
 #ifdef __GNUG__
 #    include <cstdlib>
 #    include <memory>
@@ -94,6 +97,11 @@ inline std::string to_string(wchar_t wc) {
     } else {
         return std::string(&mb[0], ret);
     }
+}
+
+inline std::wstring to_wstring(std::string const& text) {
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    return converter.from_bytes(text);
 }
 
 template <typename Iterable>

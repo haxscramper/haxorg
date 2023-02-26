@@ -159,6 +159,19 @@ inline Pair<Str, Str> visibleName(char ch) {
     }
 }
 
+inline Vec<Str> visibleName(std::wstring str) {
+    Vec<Str> result;
+    for (wchar_t ch : str) {
+        if (ch <= 127) {
+            result.push_back(visibleName((char)ch).first);
+        } else {
+            result.push_back(to_string(ch));
+        }
+    }
+
+    return result;
+}
+
 inline Vec<Str> split_keep_separator(
     const Str&   str,
     IntSet<char> sep = {' '}) {

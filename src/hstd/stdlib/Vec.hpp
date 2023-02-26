@@ -148,6 +148,9 @@ class Vec : public std::vector<T> {
     Span<T> toSpan() const {
         return Span<T>(const_cast<T*>(this->data()), size());
     }
+
+
+    std::vector<T> toBase() const { return *this; }
 };
 
 

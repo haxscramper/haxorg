@@ -558,7 +558,7 @@ to enable secondary parsing.
     StmtListOpen,  /// Start of the expanded statement list content
     StmtListClose, /// End of the expanded statement list content
     ListStart,     /// Start of the list token group
-    ListDash,      /// Start of the list item element
+    ListItemStart, /// Start of the list item element
     ListClock, /// `CLOCK:` entry at the start of the logbook entry list
     ListPlus,
     ListStar,

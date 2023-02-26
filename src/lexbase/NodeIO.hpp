@@ -127,6 +127,16 @@ template <typename K>
 TokenGroup<K> fromFlatTokens(CR<YAML::Node> node, Str& buf) {
     TokenGroup<K> result;
     result.tokens.resize(node.size());
+    int bufferSize = 0;
+    for (const auto& it : node) {
+        if (it["str"]) {
+            bufferSize += it["str"].as<std::string>().size();
+        }
+    }
+
+    buf.reserve(bufferSize);
+    auto data = buf.data();
+
     int index = 0;
     for (const auto& it : node) {
         auto start         = buf.size();
@@ -139,7 +149,7 @@ TokenGroup<K> fromFlatTokens(CR<YAML::Node> node, Str& buf) {
             std::string str = it["str"].as<std::string>();
             buf += str;
             result.at(id).text = std::string_view(
-                buf.data() + start, str.size());
+                data + start, str.size());
         }
 
         ++index;

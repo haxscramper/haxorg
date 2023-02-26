@@ -3,15 +3,9 @@ expected: "Flat"
 items:
   - source: "- item"
     name: "Single item"
-    debug:
-      trace_parse: true
-      trace_lex: true
-      lex_to_file: true
-      parse_to_file: true
-
     tokens:
       - {idx: 0, kind: ListStart}
-      - {idx: 1, kind: ListDash, str: "-"}
+      - {idx: 1, kind: ListItemStart, str: "-"}
       - {idx: 2, kind: StmtListOpen}
       - {idx: 3, kind: ParagraphStart}
       - {idx: 4, kind: Word, str: "item"}
@@ -19,3 +13,73 @@ items:
       - {idx: 6, kind: StmtListClose}
       - {idx: 7, kind: ListItemEnd}
       - {idx: 8, kind: ListEnd}
+
+  - name: "List with two items"
+    source: |
+      - Item1
+      - Item2
+
+    tokens:
+      - {idx: 0, kind: ListStart}
+
+      # First list item
+      - {idx: 1, kind: ListItemStart, str: "-"}
+      - {idx: 2, kind: StmtListOpen}
+      - {idx: 3, kind: ParagraphStart}
+      - {idx: 4, kind: Word, str: Item1}
+      - {idx: 5, kind: Newline, str: "\n"}
+      - {idx: 6, kind: ParagraphEnd}
+      - {idx: 7, kind: StmtListClose}
+      - {idx: 8, kind: ListItemEnd}
+
+      # Intermediate indentation
+      - {idx: 9, kind: SameIndent}
+
+      # Second list item
+      - {idx: 10, kind: ListItemStart, str: "-"}
+      - {idx: 11, kind: StmtListOpen}
+      - {idx: 12, kind: ParagraphStart}
+      - {idx: 13, kind: Word, str: Item2}
+      - {idx: 14, kind: Newline, str: "\n"}
+      - {idx: 15, kind: ParagraphEnd}
+      - {idx: 16, kind: StmtListClose}
+      - {idx: 17, kind: ListItemEnd}
+
+      - {idx: 18, kind: ListEnd}
+
+  - name: "List with two adjacent items, first one is multiline"
+    source: |
+      - Item1
+        Line1
+      - Item2
+
+    tokens:
+      - {idx: 0, kind: ListStart}
+      - {idx: 1, kind: ListItemStart, str: "-"}
+      - {idx: 2, kind: StmtListOpen}
+      - {idx: 3, kind: ParagraphStart}
+
+      # First content block in the input
+      - {idx: 4, kind: Word, str: "Item1"}
+      - {idx: 5, kind: Newline, str: "\n"}
+      # Leading indentation is not stripped during lexing, it can be
+      # removed in the parser later on
+      - {idx: 6, kind: Space, str: "  "}
+      - {idx: 7, kind: Word, str: "Line1"}
+      - {idx: 8, kind: Newline, str: "\n"}
+
+      - {idx: 9, kind: ParagraphEnd}
+      - {idx: 10, kind: StmtListClose}
+      - {idx: 11, kind: ListItemEnd}
+      - {idx: 12, kind: SameIndent}
+      - {idx: 13, kind: ListItemStart, str: "-"}
+      - {idx: 14, kind: StmtListOpen}
+      - {idx: 15, kind: ParagraphStart}
+      # Second item
+      - {idx: 16, kind: Word, str: "Item2"}
+      - {idx: 17, kind: Newline, str: "\n"}
+
+      - {idx: 18, kind: ParagraphEnd}
+      - {idx: 19, kind: StmtListClose}
+      - {idx: 20, kind: ListItemEnd}
+      - {idx: 21, kind: ListEnd}

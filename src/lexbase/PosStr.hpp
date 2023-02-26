@@ -512,7 +512,6 @@ struct PosStr {
         int result = 0;
         int offset = 0;
         while (hasNext(offset) && !at('\n', offset)) {
-            std::cout << offset << std::endl;
             ++result;
             --offset;
         }

@@ -546,7 +546,6 @@ OrgId OrgParser::parseTable(OrgLexer& lex) {
 
 OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
     __trace();
-    std::cout << "pos " << lex.pos << std::endl;
     const auto& paragraphTokens = lex.getInside(
         IntSet<OrgTokenKind>{otk::ParagraphStart},
         IntSet<OrgTokenKind>{otk::ParagraphEnd});
@@ -781,7 +780,7 @@ OrgId OrgParser::parseListItemBody(OrgLexer& lex) {
     __trace();
     start(org::StmtList);
     while (!lex.at(otk::StmtListClose)) {
-        if (lex.at(Vec<OrgTokenKind>{otk::Indent, otk::ListDash})) {
+        if (lex.at(Vec<OrgTokenKind>{otk::Indent, otk::ListItemStart})) {
             lex.next();
             parseNestedList(lex);
             lex.skip(otk::Dedent);
@@ -796,7 +795,7 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
     __trace();
     start(org::ListItem);
     // prefix
-    { token(org::RawText, lex.pop(otk::ListDash)); }
+    { token(org::RawText, lex.pop(otk::ListItemStart)); }
     // counter
     {
         empty(); // TODO parse counter
@@ -846,7 +845,7 @@ OrgId OrgParser::parseNestedList(OrgLexer& lex) {
     };
 
     __start(org::List);
-    while (lex.at(otk::ListDash)) {
+    while (lex.at(otk::ListItemStart)) {
         parseListItem(lex);
         if (lex.at(otk::SameIndent)) {
             lex.next();
@@ -939,7 +938,7 @@ OrgId OrgParser::parseLogbookClockEntry(OrgLexer& lex) {
 
 OrgId OrgParser::parseLogbookListEntry(OrgLexer& lex) {
     __trace();
-    lex.skip(otk::ListDash);
+    lex.skip(otk::ListItemStart);
     const auto pos = lex.find(
         OrgTokSet{otk::DoubleSlash}, OrgTokSet{otk::ListItemEnd});
 
@@ -1034,7 +1033,7 @@ OrgId OrgParser::parseLogbook(OrgLexer& lex) {
     }
     while (!lex.at(indented ? otk::Dedent : otk::ListEnd)) {
         switch (lex.tok().kind) {
-            case otk::ListDash: {
+            case otk::ListItemStart: {
                 parseLogbookListEntry(lex);
                 break;
             }

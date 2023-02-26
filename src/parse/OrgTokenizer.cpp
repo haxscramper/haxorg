@@ -1483,7 +1483,7 @@ bool OrgTokenizer::atListStart(CR<PosStr> tmp) {
         str.skip(ListStart);
         return str.at(' ');
     } else if (str.at(charsets::Digits + charsets::AsciiLetters)) {
-        str.tok(otk::ListDash, [](PosStr& str) {
+        str.tok(otk::ListItemStart, [](PosStr& str) {
             if (str.at(charsets::Digits + charsets::AsciiLetters)) {
                 str.next();
             } else {
@@ -1524,7 +1524,7 @@ void OrgTokenizer::lexListBullet(
         || (0 < str.getIndent() && str.at('*'))) {
         __trace("At bullet list start");
         auto tok = str.tok(
-            otk::ListDash, skipOne, cr(CharSet{'-', '+', '*'}));
+            otk::ListItemStart, skipOne, cr(CharSet{'-', '+', '*'}));
         __push(tok);
         str.space();
     } else {
