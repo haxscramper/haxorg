@@ -10,25 +10,25 @@
 template <typename T>
 class Vec : public std::vector<T> {
   public:
+    using Base = std::vector<T>;
     using std::vector<T>::vector; // Inherit constructor from
                                   // std::vector
-    using std::vector<T>::at;
-    using std::vector<T>::operator[];
-    using std::vector<T>::push_back;
-    using std::vector<T>::back;
-    using std::vector<T>::pop_back;
-    using std::vector<T>::begin;
-    using std::vector<T>::end;
-    using std::vector<T>::insert;
+
+    using Base::at;
+    using Base::operator[];
+    using Base::back;
+    using Base::begin;
+    using Base::end;
+    using Base::insert;
+    using Base::pop_back;
+    using Base::push_back;
 
     static Vec<T> FromValue(CR<Vec<T>> values) { return values; }
 
 
     int size() const {
         return std::clamp(
-            std::vector<T>::size(),
-            0uz,
-            static_cast<std::size_t>(::high<int>()));
+            Base::size(), 0uz, static_cast<std::size_t>(::high<int>()));
     }
 
     Vec() {}
@@ -134,7 +134,13 @@ class Vec : public std::vector<T> {
         return this->at(this->size() - idx.value);
     }
 
+    void pop_back() {
+        assert(0 < size());
+        Base::pop_back();
+    }
+
     T pop_back_v() {
+        assert(0 < size());
         auto result = back();
         pop_back();
         return result;

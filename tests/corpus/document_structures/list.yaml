@@ -83,3 +83,9 @@ items:
       - {idx: 19, kind: StmtListClose}
       - {idx: 20, kind: ListItemEnd}
       - {idx: 21, kind: ListEnd}
+  - name: "Nested list with two items"
+    source: |
+      - Item1
+        - Nested1
+        - Nested2
+      - Item2

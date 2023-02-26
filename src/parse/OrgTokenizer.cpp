@@ -1691,7 +1691,7 @@ void OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
 
 void OrgTokenizer::lexList(PosStr& str) {
     __trace();
-    auto state = LexerStateSimple();
+    LexerStateSimple state{};
     __push(str.fakeTok(otk::ListStart));
     Vec<OrgToken> tokens;
     setBuffer(&tokens);

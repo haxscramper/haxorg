@@ -86,9 +86,9 @@ struct OrgTokenizer
     // Store common types of the lexer state
     template <typename Flag>
     struct LexerState {
-        Vec<Flag> flagStack;
-        Vec<int>  indent; /// Indentation steps encountered by the lexer
-                          /// state
+        Vec<Flag> flagStack = Vec<Flag>();
+        Vec<int>  indent = Vec<int>(); /// Indentation steps encountered by
+                                      /// the lexer state
         /*!Check if state has any indentation levels stored
          */
         bool hasIndent() { return 0 < indent.size(); }
