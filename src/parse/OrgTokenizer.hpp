@@ -32,16 +32,19 @@ struct OrgTokenizer
     {
         Enter,
         Leave,
-        Push
+        Push,
+        SetBuffer,
+        ClearBuffer,
+        PushResolved
     };
 
     struct Report {
         ReportKind kind;
-        fs::path   location;
-        int        line;
         Str        name;
         OrgToken   tok;
         OrgTokenId id = OrgTokenId::Nil();
+        fs::path   location;
+        int        line;
         Opt<Str>   subname;
         PosStr*    str = nullptr;
     };
@@ -73,12 +76,12 @@ struct OrgTokenizer
     /*!Check if the string is positioned at the start of a logbook
     `CLOCK:` entry.
     */
-    bool atLogClock(PosStr& str);
+    bool atLogClock(CR<PosStr> str);
 
     /*!Check if string is positioned at the start of toplevel language
     construct.
     */
-    bool atConstructStart(PosStr& str);
+    bool atConstructStart(CR<PosStr> str);
 
     // Store common types of the lexer state
     template <typename Flag>
@@ -183,7 +186,7 @@ struct OrgTokenizer
     bool lexListStart(PosStr& str);
 
 
-    bool listAhead(PosStr& str);
+    bool atListAhead(CR<PosStr> str);
 
 
     /*!Lex head starting from current position onwards. `indent` is the
@@ -194,17 +197,32 @@ indentation of the original list prefix -- dash, number or letter.
         const int&        indent,
         LexerStateSimple& state);
 
+    void lexListBullet(PosStr& str, int indent, LexerStateSimple& state);
+    void lexListDescription(
+        PosStr&           str,
+        int               indent,
+        LexerStateSimple& state);
+
+    PosStr popListBody(PosStr& str, int indent, LexerStateSimple& state);
+
     void lexComment(PosStr& str) {
         push(str.tok(OrgTokenKind::Comment, skipToEOL));
     }
 
 
-    void push(CR<std::span<OrgToken>> tok) { Base::push(tok); }
-    void push(CR<Vec<OrgToken>> tok) { Base::push(tok); }
-    void push(CR<Token<OrgTokenKind>> tok) {
-        OrgTokenId id = Base::push(tok);
-        report(Report{.kind = ReportKind::Push, .id = id, .tok = tok});
+    void setBuffer(Vec<OrgToken>* buffer) {
+        report(Report{.kind = ReportKind::SetBuffer});
+        Base::setBuffer(buffer);
     }
+
+    void clearBuffer() {
+        report(Report{.kind = ReportKind::ClearBuffer});
+        Base::clearBuffer();
+    }
+
+    void       push(CR<std::span<OrgToken>> tok) { Base::push(tok); }
+    void       push(CR<Vec<OrgToken>> tok) { Base::push(tok); }
+    OrgTokenId push(CR<OrgToken> tok) { return Base::push(tok); }
 
     void lexListItems(PosStr& str, LexerStateSimple& state);
     void lexList(PosStr& str);
@@ -237,5 +255,5 @@ indentation of the original list prefix -- dash, number or letter.
     void lexCommandContent(PosStr& str, const OrgCommandKind& kind);
     void lexCommandArguments(PosStr& str, const OrgCommandKind& kind);
     void lexCommandBlock(PosStr& str);
-    bool isFirstOnLine(PosStr& str);
+    bool isFirstOnLine(CR<PosStr> str);
 };

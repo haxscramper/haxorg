@@ -175,24 +175,37 @@ void compareTokens(
         std::cout << "token differences\n";
         if (text.isUnified()) {
             std::cout << "unified\n";
+            std::cout << (ColText("Lexed") <<= 48) << (ColText("Expected"))
+                      << "\n";
             for (const auto& [lhs, rhs] : text.unifiedLines()) {
                 auto lhsStyle = toStyle(lhs.prefix);
                 auto rhsStyle = toStyle(rhs.prefix);
+                auto format   = [&](int          id,
+                                  CR<OrgToken> tok) -> std::string {
+                    return to_string(id) + " " + to_string(tok.kind) + " "
+                         + (tok.hasData()
+                                  ? escape_literal(to_string(tok.text))
+                                  : "");
+                };
                 std::cout
                     //
                     << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= 2)
                     << ((lhs.empty() ? ColText("")
                                      : ColText(
                                          lhsStyle,
-                                         lexed.tokens.content.at(
-                                             lhs.index().value())))
+                                         format(
+                                             lhs.index().value(),
+                                             lexed.tokens.content.at(
+                                                 lhs.index().value()))))
                         <<= 48)
                     << (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= 2)
                     << ((rhs.empty() ? ColText("")
                                      : ColText(
                                          rhsStyle,
-                                         expected.tokens.content.at(
-                                             rhs.index().value())))
+                                         format(
+                                             rhs.index().value(),
+                                             expected.tokens.content.at(
+                                                 rhs.index().value()))))
                         <<= 16)
                     << std::endl;
             }

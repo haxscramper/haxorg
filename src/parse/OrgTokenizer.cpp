@@ -4,29 +4,41 @@
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
 
-#define __trace2(__subname, __str)                                        \
-    report(Report{                                                        \
+#define __INIT_REPORT(__subname, __str)                                   \
+    (Report{                                                              \
         .line     = __LINE__,                                             \
         .location = __CURRENT_FILE_PATH__,                                \
-        .name     = __func__,                                             \
-        .kind     = ReportKind::Enter,                                    \
-        .subname  = __subname,                                            \
         .str      = &__str,                                               \
-    });                                                                   \
+        .subname  = __subname,                                            \
+    })
+
+#define __trace2(__subname, __str)                                        \
+    {                                                                     \
+        Report rep = __INIT_REPORT(__subname, __str);                     \
+        rep.kind   = ReportKind::Enter;                                   \
+        rep.name   = __func__;                                            \
+        report(rep);                                                      \
+    }                                                                     \
                                                                           \
     finally CONCAT(close, __COUNTER__) = finally::init<Str>(              \
         ([&](CR<Str> name) {                                              \
-            report(Report{                                                \
-                .line     = __LINE__,                                     \
-                .location = __CURRENT_FILE_PATH__,                        \
-                .name     = name,                                         \
-                .kind     = ReportKind::Leave,                            \
-                .subname  = __subname,                                    \
-                .str      = &__str,                                       \
-            });                                                           \
+            Report rep = __INIT_REPORT(__subname, __str);                 \
+            rep.kind   = ReportKind::Leave;                               \
+            rep.name   = name;                                            \
+            report(rep);                                                  \
         }),                                                               \
         Str(__func__));
 
+
+#define __push(token)                                                     \
+    {                                                                     \
+        Report rep = __INIT_REPORT(std::nullopt, str);                    \
+        rep.kind   = ReportKind::Push;                                    \
+        rep.tok    = token;                                               \
+        auto id    = push(token);                                         \
+        rep.id     = id;                                                  \
+        report(rep);                                                      \
+    }
 
 #define __trace1(__subname) __trace2(__subname, str)
 #define __trace0() __trace2(std::nullopt, str)
@@ -167,19 +179,20 @@ const CharSet ListStart = CharSet{'-', '+', '*'} + charsets::Digits
 void OrgTokenizer::lexAngle(PosStr& str) {
     __trace();
     if (str.at("<%%")) {
-        push(str.tok(otk::DiaryTime, [](PosStr& str) {
+        auto tok = str.tok(otk::DiaryTime, [](PosStr& str) {
             str.skip("<%%");
             skipBalancedSlice(
                 str,
                 {.openChars = CharSet{'('}, .closeChars = CharSet{')'}});
             str.skip(">");
-        }));
+        });
+        __push(tok);
     } else if (str.at("<<<")) {
-        push(str.tok(otk::TripleAngleOpen, skipCount, 3));
+        __push((str.tok(otk::TripleAngleOpen, skipCount, 3)));
     } else if (str.at("<<")) {
-        push(str.tok(otk::DoubleAngleOpen, skipCount, 2));
-        push(str.tok(otk::RawText, skipTo, '>'));
-        push(str.tok(otk::RawText, skipOne, ">>"));
+        __push((str.tok(otk::DoubleAngleOpen, skipCount, 2)));
+        __push((str.tok(otk::RawText, skipTo, '>')));
+        __push((str.tok(otk::RawText, skipOne, ">>")));
     } else if (str.at(charsets::Digits, 1)) {
         auto skipAngles = [](PosStr& str) {
             str.skip('<');
@@ -187,16 +200,16 @@ void OrgTokenizer::lexAngle(PosStr& str) {
             str.skip('>');
         };
 
-        push(str.tok(otk::AngleTime, skipAngles));
+        __push((str.tok(otk::AngleTime, skipAngles)));
 
         if (str.at("--")) {
-            push(str.tok(otk::TimeDash, skipCount, 2));
-            push(str.tok(otk::AngleTime, skipAngles));
+            __push((str.tok(otk::TimeDash, skipCount, 2)));
+            __push((str.tok(otk::AngleTime, skipAngles)));
         }
     } else {
-        push(str.tok(otk::AngleOpen, skipCount, 1));
-        push(str.tok(otk::RawText, skipTo, '>'));
-        push(str.tok(otk::AngleClose, skipOne, '>'));
+        __push((str.tok(otk::AngleOpen, skipCount, 1)));
+        __push((str.tok(otk::RawText, skipTo, '>')));
+        __push((str.tok(otk::AngleClose, skipOne, '>')));
     }
 }
 
@@ -211,10 +224,10 @@ void OrgTokenizer::lexTime(PosStr& str) {
             str.skip(']');
         };
 
-        push(str.tok(otk::BracketTime, skipBracket));
+        __push((str.tok(otk::BracketTime, skipBracket)));
         if (str.at("--")) {
-            push(str.tok(otk::TimeDash, skipCount, 2));
-            push(str.tok(otk::BracketTime, skipBracket));
+            __push((str.tok(otk::TimeDash, skipCount, 2)));
+            __push((str.tok(otk::BracketTime, skipBracket)));
         }
     } else {
         throw str.makeUnexpected("'<' or '['", "time");
@@ -1387,8 +1400,7 @@ void OrgTokenizer::lexCommandBlock(PosStr& str) {
     }
 }
 
-bool OrgTokenizer::isFirstOnLine(PosStr& str) {
-    __trace();
+bool OrgTokenizer::isFirstOnLine(CR<PosStr> str) {
     const auto set = charsets::Newline + CharSet{'\0'};
     if (str.at(set, -1)) {
         return true;
@@ -1401,8 +1413,7 @@ bool OrgTokenizer::isFirstOnLine(PosStr& str) {
     return str.at(set, pos);
 }
 
-bool OrgTokenizer::atLogClock(PosStr& str) {
-    __trace();
+bool OrgTokenizer::atLogClock(CR<PosStr> str) {
     PosStr     tmp   = str;
     const auto ahead = tmp.slice(skipTo, '[');
     const auto space = ahead.getSkip('C');
@@ -1419,8 +1430,7 @@ bool OrgTokenizer::atLogClock(PosStr& str) {
     }
 }
 
-bool OrgTokenizer::atConstructStart(PosStr& str) {
-    __trace();
+bool OrgTokenizer::atConstructStart(CR<PosStr> str) {
     if (!isFirstOnLine(str)) {
         return false;
     } else if (str.getIndent() == 0 && str.at('*')) {
@@ -1435,7 +1445,6 @@ bool OrgTokenizer::atConstructStart(PosStr& str) {
 }
 
 void OrgTokenizer::skipIndents(LexerStateSimple& state, PosStr& str) {
-    __trace();
     using LK           = LexerStateSimple::LexerIndentKind;
     const auto skipped = state.skipIndent(str);
     for (const auto indent : skipped) {
@@ -1465,8 +1474,7 @@ void OrgTokenizer::skipIndents(LexerStateSimple& state, PosStr& str) {
 }
 
 bool OrgTokenizer::atListStart(CR<PosStr> tmp) {
-    auto str = tmp;
-    __trace();
+    auto          str = tmp;
     Vec<OrgToken> result;
     if (atConstructStart(str)) {
         return false;
@@ -1498,111 +1506,107 @@ bool OrgTokenizer::atListStart(CR<PosStr> tmp) {
 
 /// REFACTOR don't mutate argument string, offload this to the proper
 /// parsing procedure
-bool OrgTokenizer::listAhead(PosStr& str) {
-    __trace();
+bool OrgTokenizer::atListAhead(CR<PosStr> str) {
     if (!isFirstOnLine(str)) {
         return false;
     } else {
         auto tmp = str;
         tmp.space();
-        if (tmp.at(ListStart)) {
-            if (atListStart(tmp)) {
-                return true;
-            } else {
-                str = tmp;
-                return true;
-            }
-        } else {
-            return false;
-        }
+        return atListStart(tmp);
     }
 }
 
-void OrgTokenizer::lexListItem(
+void OrgTokenizer::lexListBullet(
     PosStr&           str,
-    const int&        indent,
+    int               indent,
     LexerStateSimple& state) {
     __trace();
-
     if (str.at(CharSet{'-', '+'})
         || (0 < str.getIndent() && str.at('*'))) {
         __trace("At bullet list start");
-        push(str.tok(otk::ListStart, skipOne, cr(CharSet{'-', '+', '*'})));
+        auto tok = str.tok(
+            otk::ListDash, skipOne, cr(CharSet{'-', '+', '*'}));
+        __push(tok);
         str.space();
     } else {
         __trace("At numbered list start");
-        push(str.tok(
+        __push((str.tok(
             otk::ListStart,
             skipOne,
-            cr(charsets::Digits + charsets::AsciiLetters)));
+            cr(charsets::Digits + charsets::AsciiLetters))));
 
         str.skip(cr(CharSet{')', '.'}));
         str.space();
     }
 
     if (str.at("\\[[Xx - ]\\]")) {
-        push(str.tok(otk::Checkbox, [](PosStr& str) {
+        __push((str.tok(otk::Checkbox, [](PosStr& str) {
             str.skip('[');
             str.skip(CharSet{'X', 'x', ' ', '-'});
             str.skip(']');
-        }));
+        })));
 
         str.space();
     }
-    //
-    {
-        auto tmp = str;
-        auto buf = Vec<OrgToken>{
-            tmp.fakeTok(otk::ListDescOpen),
-            tmp.fakeTok(otk::ParagraphStart)};
+}
 
-        while (!tmp.finished() && !tmp.at(charsets::Newline)) {
-            if (tmp.at(':') && tmp.at("::")) {
-                buf.push_back(tmp.fakeTok(otk::ParagraphEnd));
-                buf.push_back(tmp.fakeTok(otk::ListDescClose));
-                buf.push_back(tmp.tok(otk::DoubleColon, skipOne, "::"));
-                str = tmp;
-                push(buf);
-                break;
-            } else {
-                setBuffer(&buf);
-                lexText(tmp);
-                clearBuffer();
-            }
+void OrgTokenizer::lexListDescription(
+    PosStr&           str,
+    int               indent,
+    LexerStateSimple& state) {
+    __trace("Try parsing list header");
+    auto tmp = str;
+    auto buf = Vec<OrgToken>{
+        tmp.fakeTok(otk::ListDescOpen), tmp.fakeTok(otk::ParagraphStart)};
+
+    while (!tmp.finished() && !tmp.at(charsets::Newline)) {
+        if (tmp.at(':') && tmp.at("::")) {
+            buf.push_back(tmp.fakeTok(otk::ParagraphEnd));
+            buf.push_back(tmp.fakeTok(otk::ListDescClose));
+            buf.push_back(tmp.tok(otk::DoubleColon, skipOne, "::"));
+            str = tmp;
+            push(buf);
+            break;
+        } else {
+            setBuffer(&buf);
+            lexText(tmp);
+            clearBuffer();
         }
     }
+}
 
+PosStr OrgTokenizer::popListBody(
+    PosStr&           str,
+    int               indent,
+    LexerStateSimple& state) {
+    __trace("List body");
     str.pushSlice();
     auto atEnd = false;
     // extend slice until new list start is not found - either via new
     // nested item or by indentation decrease.
     while (!str.finished() && !atEnd) {
-        __ploc();
         if (atLogClock(str)) {
-            __ploc();
-            // Special handlig of `CLOCK:` entries in the subtree logging
-            // drawer to
-            // make sure the content is skipped in the right place.
+            // Special handlig of `CLOCK:` entries in the subtree
+            // logging drawer to make sure the content is skipped in
+            // the right place.
 
             str.next();
             atEnd = true;
         } else if (atConstructStart(str) && (str.getIndent() <= indent)) {
-            __ploc();
-            // If we are at the language construct start and it is placed
-            // at the same level as prefix dash, treat it as list end
+            // If we are at the language construct start and it is
+            // placed at the same level as prefix dash, treat it as
+            // list end
             atEnd = true;
-        } else if (listAhead(str)) {
-            __ploc();
-            // check if we are at the start of the new list - if we are,
-            // stop parsing completely and apply all withheld lexer
-            // changes, otherwise don't touch `atEnd` in order to continue
-            // parsing.
+        } else if (atListAhead(str)) {
+            // check if we are at the start of the new list - if we
+            // are, stop parsing completely and apply all withheld
+            // lexer changes, otherwise don't touch `atEnd` in order to
+            // continue parsing.
             atEnd = true;
         } else {
-            __ploc();
             {
-                // Two empty lines after list items should be treated as
-                // list separator.
+                // Two empty lines after list items should be treated
+                // as list separator.
                 auto testTwoSpace = str;
                 testTwoSpace.space();
                 if (testTwoSpace.at(charsets::Newline)) {
@@ -1613,11 +1617,10 @@ void OrgTokenizer::lexListItem(
                     }
                 }
             }
-            __ploc();
+
             if (!atEnd) {
                 auto testIndent = str;
                 // go to the start of the next line
-                __ploc();
                 testIndent.skipPastEOL();
                 while (testIndent.trySkipEmptyLine()) {}
                 // Decide based on the indentation what to do next
@@ -1627,7 +1630,8 @@ void OrgTokenizer::lexListItem(
                     // Non-list content that matches indentation of the
                     // current list item start.
                 } else if (
-                    testIndent.getIndent() == indent && !listAhead(str)) {
+                    testIndent.getIndent() == indent
+                    && !atListAhead(str)) {
                     atEnd = true;
                 }
                 str.skipPastEOL();
@@ -1636,33 +1640,43 @@ void OrgTokenizer::lexListItem(
         }
     }
 
+    return str.popSlice();
+}
 
-    __ploc();
-    auto slice = str.popSlice(-1);
-    __ploc();
+
+void OrgTokenizer::lexListItem(
+    PosStr&           str,
+    const int&        indent,
+    LexerStateSimple& state) {
+    __trace();
+    lexListBullet(str, indent, state);
+    lexListDescription(str, indent, state);
+
+    auto slice = popListBody(str, indent, state);
     while (str.view.at(slice.view.size()) == '\n') {
         slice.view.remove_suffix(1);
     }
-    __ploc();
 
-    push(Token(otk::StmtList, slice.view));
-    push(str.fakeTok(otk::ListItemEnd));
+    auto token = Token(otk::StmtList, slice.view);
+    std::cout << token << std::endl;
+    pushResolved(token);
+    __push(str.fakeTok(otk::ListItemEnd));
 }
 
 void OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
     __trace();
     assert(!str.at('\n'));
-    while (listAhead(str) || atLogClock(str)) {
+    while (atListAhead(str) || atLogClock(str)) {
         assert(!str.at('\n'));
         if (atLogClock(str)) {
             __trace("Lex log clock list");
-            push(str.fakeTok(otk::ListClock));
+            __push(str.fakeTok(otk::ListClock));
             str.pushSlice();
             str.skipToEOL();
             auto slice = str.popSlice();
             lexParagraph(slice);
             str.next();
-            push(str.fakeTok(otk::ListItemEnd));
+            __push(str.fakeTok(otk::ListItemEnd));
         } else {
             skipIndents(state, str);
             const auto indent = str.getColumn();
@@ -1681,20 +1695,25 @@ void OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
 void OrgTokenizer::lexList(PosStr& str) {
     __trace();
     auto state = LexerStateSimple();
-    push(str.fakeTok(otk::ListStart));
+    __push(str.fakeTok(otk::ListStart));
     Vec<OrgToken> tokens;
     setBuffer(&tokens);
     lexListItems(str, state);
     clearBuffer();
+
     if (tokens[0].kind != otk::SameIndent) {
-        push(tokens[0]);
+        __push(tokens[0]);
     }
-    push(tokens[slice(1, 1_B)]);
+
+    for (const auto& tok : tokens[slice(1, 1_B)]) {
+        __push(tok);
+    }
+
     while (state.hasIndent()) {
         state.popIndent();
-        push(str.fakeTok(otk::Dedent));
+        __push(str.fakeTok(otk::Dedent));
     }
-    push(str.fakeTok(otk::ListEnd));
+    __push(str.fakeTok(otk::ListEnd));
 }
 
 void OrgTokenizer::lexParagraph(PosStr& str) {
@@ -1703,9 +1722,10 @@ void OrgTokenizer::lexParagraph(PosStr& str) {
     const auto indent = str.getIndent();
     auto       ended  = false;
     str.pushSlice();
+    str.print();
     while (!str.finished() && !ended) {
         if (str.getIndent() == indent
-            && (atConstructStart(str) || listAhead(str))) {
+            && (atConstructStart(str) || atListAhead(str))) {
             ended = true;
         } else if (str.at('\n')) {
             str.next();
@@ -1739,10 +1759,12 @@ void OrgTokenizer::lexParagraph(PosStr& str) {
             paragraphEndOffset = -2;
         }
     }
+    paragraphEndOffset = 0;
 
+    auto recTok = str.popTok(
+        otk::Text, PosStr::Offset(0, paragraphEndOffset));
     // Put it for the recursive processing
-    pushResolved(
-        str.popTok(otk::Text, PosStr::Offset(0, paragraphEndOffset)));
+    pushResolved(recTok);
 }
 
 void OrgTokenizer::lexTableState(
@@ -1775,7 +1797,8 @@ void OrgTokenizer::lexTableState(
                         if (at(back()).kind == otk::TableEnd) {
                             state.toFlag(OrgBlockLexerState::Complete);
                         } else {
-                            push(str.tok(otk::CmdArguments, skipTo, '\n'));
+                            __push(
+                                str.tok(otk::CmdArguments, skipTo, '\n'));
                             if (!str.finished()) {
                                 str.skip('\n');
                                 state.toFlag(OrgBlockLexerState::InBody);
@@ -1784,7 +1807,7 @@ void OrgTokenizer::lexTableState(
                     }
                 } else {
                     str.setPos(pos);
-                    push(str.tok(otk::Content, skipPastEOL));
+                    __push(str.tok(otk::Content, skipPastEOL));
                 }
                 break;
             }
@@ -1796,15 +1819,15 @@ void OrgTokenizer::lexTableState(
                 str.setPos(pos);
                 bool first = true;
                 while (!str.finished() && str.at('|')) {
-                    push(str.tok(
+                    __push((str.tok(
                         first ? otk::PipeOpen : otk::PipeSeparator,
                         skipOne,
-                        '|'));
+                        '|')));
 
                     first = false;
                     str.space();
                     if (!str.finished() && !str.at('\n')) {
-                        push(str.tok(otk::Content, [](PosStr& str) {
+                        __push((str.tok(otk::Content, [](PosStr& str) {
                             str.skipBefore(CharSet{'|', '\n'});
                             if (str.at(' ')) {
                                 while (str.at(' ')) {
@@ -1816,7 +1839,7 @@ void OrgTokenizer::lexTableState(
                             } else {
                                 str.next();
                             }
-                        }));
+                        })));
 
                         str.space();
                     }
@@ -1950,7 +1973,7 @@ void OrgTokenizer::lexStructure(PosStr& str) {
 
         case '\n':
         case ' ': {
-            if (listAhead(str)) {
+            if (atListAhead(str)) {
                 lexList(str);
             } else {
                 str.skipZeroOrMore(CharSet{' ', '\n'});
@@ -1983,21 +2006,30 @@ void OrgTokenizer::report(CR<Report> in) {
     }
 
     ColStream os = getStream();
+    os << repeat("  ", depth);
+
 
     switch (in.kind) {
+        case ReportKind::SetBuffer: os << "  ! set buffer"; break;
+        case ReportKind::ClearBuffer: os << "  ! clear buffer"; break;
+        case ReportKind::PushResolved: {
+            os << "  + push resolved " << in.tok;
+            break;
+        }
+
         case ReportKind::Push: {
-            os << repeat("  ", depth + 1) << " + ";
             if (in.id.isNil()) {
-                os << " buffer token " << in.tok;
+                os << "  + buffer token " << in.tok;
             } else {
-                os << " add token " << in.id << " " << at(in.id);
+                os << "  + add token " << in.id.getIndex() << " "
+                   << at(in.id);
             }
+            os << " at " << fg::Cyan << in.line << os.end();
             break;
         }
         case ReportKind::Enter:
         case ReportKind::Leave: {
-            os << repeat("  ", depth)
-               << (in.kind == ReportKind::Enter ? "> " : "< ") << fg::Green
+            os << (in.kind == ReportKind::Enter ? "> " : "< ") << fg::Green
                << in.name << os.end() << ":" << fg::Cyan << in.line
                << os.end();
 
@@ -2024,23 +2056,26 @@ void OrgTokenizer::report(CR<Report> in) {
 }
 
 void OrgTokenizer::pushResolved(CR<OrgToken> token) {
+    std::cout << "Push resolved " << token << std::endl;
+    report(Report{.kind = ReportKind::PushResolved, .tok = token});
+
     auto str = PosStr(token.text);
     switch (token.kind) {
         case otk::Text: {
-            push(str.fakeTok(otk::ParagraphStart));
+            __push(str.fakeTok(otk::ParagraphStart));
             while (!str.finished()) {
                 lexText(str);
             }
-            push(str.fakeTok(otk::ParagraphEnd));
+            __push(str.fakeTok(otk::ParagraphEnd));
             break;
         }
 
         case otk::RawLogbook: {
             auto str = PosStr(token.text);
-            push(str.fakeTok(otk::LogbookStart));
+            __push(str.fakeTok(otk::LogbookStart));
             while (!str.finished()) {
                 if (atLogClock(str)) {
-                    push(str.tok(otk::Text, skipToEOL));
+                    __push(str.tok(otk::Text, skipToEOL));
                     if (str.at(charsets::Newline)) {
                         str.next();
                         if (!atLogClock(str)) {
@@ -2051,12 +2086,12 @@ void OrgTokenizer::pushResolved(CR<OrgToken> token) {
                     lexList(str);
                 }
             }
-            push(str.fakeTok(otk::LogbookEnd));
+            __push(str.fakeTok(otk::LogbookEnd));
             break;
         }
 
         case otk::Content: {
-            push(str.fakeTok(otk::ContentStart));
+            __push(str.fakeTok(otk::ContentStart));
             lexGlobal(str);
             push(str.fakeTok(otk::ContentEnd));
             break;

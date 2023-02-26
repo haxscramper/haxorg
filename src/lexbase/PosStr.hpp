@@ -424,7 +424,7 @@ struct PosStr {
             --before;
         }
 
-        if (!at(before)) {
+        if (!at(charsets::Newline, before)) {
             return false;
         }
 
@@ -432,7 +432,7 @@ struct PosStr {
         while (at(charsets::HorizontalSpace, after)) {
             ++after;
         }
-        if (!at(after)) {
+        if (!at(charsets::Newline, after)) {
             return false;
         }
         return true;
@@ -449,8 +449,10 @@ struct PosStr {
     /// Skip past the end of the line - that is, for `111\n2222` put cursor
     /// at the first `2` on the second line.
     void skipPastEOL() {
-        skipToEOL();
-        next();
+        skipTo(charsets::Newline);
+        if (!finished() && at(charsets::Newline)) {
+            next();
+        }
     }
 
 

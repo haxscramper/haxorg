@@ -168,10 +168,10 @@ template <typename K>
 struct Tokenizer {
     TokenGroup<K>* out;
     Tokenizer(TokenGroup<K>* _out) : out(_out) {}
-    Vec<Token<K>>* buffer = nullptr;
+    Vec<Vec<Token<K>>*> buffer;
     /// \brief Set new active buffer pointer
-    void setBuffer(Vec<Token<K>>* _buffer) { buffer = _buffer; }
-    void clearBuffer() { buffer = nullptr; }
+    void setBuffer(Vec<Token<K>>* _buffer) { buffer.push_back(_buffer); }
+    void clearBuffer() { buffer.pop_back(); }
     /// \brief Get reference to token with specified ID
     Token<K>& at(TokenId<K> id) { return out->at(id); }
     /// \brief Get ID of the last token
@@ -185,29 +185,29 @@ struct Tokenizer {
     /// \warning Returns nil IDs or empty list with active buffer!
     ///@{
     TokenId<K> push(CR<Token<K>> tok) {
-        if (buffer != nullptr) {
-            buffer->push_back(tok);
-            return TokenId<K>::Nil();
-        } else {
+        if (buffer.empty()) {
             return out->add(tok);
+        } else {
+            buffer.back()->push_back(tok);
+            return TokenId<K>::Nil();
         }
     }
 
     Vec<TokenId<K>> push(CR<std::span<Token<K>>> tok) {
-        if (buffer != nullptr) {
-            buffer->append(tok);
-            return Vec<TokenId<K>>();
-        } else {
+        if (buffer.empty()) {
             return out->add(tok);
+        } else {
+            buffer.back()->append(tok);
+            return Vec<TokenId<K>>();
         }
     }
 
     Vec<TokenId<K>> push(CR<Vec<Token<K>>> tok) {
-        if (buffer != nullptr) {
-            buffer->append(tok);
-            return Vec<TokenId<K>>();
-        } else {
+        if (buffer.empty()) {
             return out->add(tok);
+        } else {
+            buffer.back()->append(tok);
+            return Vec<TokenId<K>>();
         }
     }
     ///@}
