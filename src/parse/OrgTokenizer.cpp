@@ -9,7 +9,7 @@
         .line     = __LINE__,                                             \
         .location = __CURRENT_FILE_PATH__,                                \
         .name     = __func__,                                             \
-        .entering = true,                                                 \
+        .kind     = ReportKind::Enter,                                    \
         .subname  = __subname,                                            \
         .str      = &__str,                                               \
     });                                                                   \
@@ -20,7 +20,7 @@
                 .line     = __LINE__,                                     \
                 .location = __CURRENT_FILE_PATH__,                        \
                 .name     = name,                                         \
-                .entering = false,                                        \
+                .kind     = ReportKind::Leave,                            \
                 .subname  = __subname,                                    \
                 .str      = &__str,                                       \
             });                                                           \
@@ -1574,17 +1574,35 @@ void OrgTokenizer::lexListItem(
 
     str.pushSlice();
     auto atEnd = false;
+    // extend slice until new list start is not found - either via new
+    // nested item or by indentation decrease.
     while (!str.finished() && !atEnd) {
+        __ploc();
         if (atLogClock(str)) {
+            __ploc();
+            // Special handlig of `CLOCK:` entries in the subtree logging
+            // drawer to
+            // make sure the content is skipped in the right place.
+
             str.next();
             atEnd = true;
         } else if (atConstructStart(str) && (str.getIndent() <= indent)) {
+            __ploc();
+            // If we are at the language construct start and it is placed
+            // at the same level as prefix dash, treat it as list end
             atEnd = true;
         } else if (listAhead(str)) {
+            __ploc();
+            // check if we are at the start of the new list - if we are,
+            // stop parsing completely and apply all withheld lexer
+            // changes, otherwise don't touch `atEnd` in order to continue
+            // parsing.
             atEnd = true;
         } else {
-            //
+            __ploc();
             {
+                // Two empty lines after list items should be treated as
+                // list separator.
                 auto testTwoSpace = str;
                 testTwoSpace.space();
                 if (testTwoSpace.at(charsets::Newline)) {
@@ -1595,25 +1613,37 @@ void OrgTokenizer::lexListItem(
                     }
                 }
             }
+            __ploc();
             if (!atEnd) {
                 auto testIndent = str;
+                // go to the start of the next line
+                __ploc();
                 testIndent.skipPastEOL();
                 while (testIndent.trySkipEmptyLine()) {}
+                // Decide based on the indentation what to do next
+                // indentation decreased, end of the list item
                 if (testIndent.getIndent() < indent) {
                     atEnd = true;
+                    // Non-list content that matches indentation of the
+                    // current list item start.
                 } else if (
                     testIndent.getIndent() == indent && !listAhead(str)) {
                     atEnd = true;
                 }
                 str.skipPastEOL();
+                str.print();
             }
         }
     }
 
+
+    __ploc();
     auto slice = str.popSlice(-1);
+    __ploc();
     while (str.view.at(slice.view.size()) == '\n') {
         slice.view.remove_suffix(1);
     }
+    __ploc();
 
     push(Token(otk::StmtList, slice.view));
     push(str.fakeTok(otk::ListItemEnd));
@@ -1948,28 +1978,47 @@ void OrgTokenizer::report(CR<Report> in) {
     }
 
     using fg = TermColorFg8Bit;
-    if (in.entering) {
+    if (in.kind == ReportKind::Enter) {
         ++depth;
     }
 
     ColStream os = getStream();
 
-    os << repeat("  ", depth) << (in.entering ? "> " : "< ") << fg::Green
-       << in.name << os.end() << ":" << fg::Cyan << in.line << os.end();
+    switch (in.kind) {
+        case ReportKind::Push: {
+            os << repeat("  ", depth + 1) << " + ";
+            if (in.id.isNil()) {
+                os << " buffer token " << in.tok;
+            } else {
+                os << " add token " << in.id << " " << at(in.id);
+            }
+            break;
+        }
+        case ReportKind::Enter:
+        case ReportKind::Leave: {
+            os << repeat("  ", depth)
+               << (in.kind == ReportKind::Enter ? "> " : "< ") << fg::Green
+               << in.name << os.end() << ":" << fg::Cyan << in.line
+               << os.end();
 
-    if (in.str != nullptr) {
-        os << " [";
-        in.str->print(os, PosStr::PrintParams({.withEnd = false}));
-        os << "]";
+            if (in.str != nullptr) {
+                os << " [";
+                in.str->print(os, PosStr::PrintParams({.withEnd = false}));
+                os << "]";
+            }
+
+            if (in.subname.has_value()) {
+                os << " " << in.subname.value();
+            }
+
+            break;
+        }
     }
 
-    if (in.subname.has_value()) {
-        os << " " << in.subname.value();
-    }
 
     endStream(os);
 
-    if (!in.entering) {
+    if (in.kind == ReportKind::Leave) {
         --depth;
     }
 }

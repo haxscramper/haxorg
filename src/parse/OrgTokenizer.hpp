@@ -25,14 +25,25 @@ OrgCommandKind classifyCommand(std::string const& command);
 struct OrgTokenizer
     : public Tokenizer<OrgTokenKind>
     , public OperationsTracer {
+    using Base = Tokenizer<OrgTokenKind>;
+
   private:
+    enum class ReportKind
+    {
+        Enter,
+        Leave,
+        Push
+    };
+
     struct Report {
-        fs::path location;
-        int      line;
-        Str      name;
-        bool     entering;
-        Opt<Str> subname;
-        PosStr*  str = nullptr;
+        ReportKind kind;
+        fs::path   location;
+        int        line;
+        Str        name;
+        OrgToken   tok;
+        OrgTokenId id = OrgTokenId::Nil();
+        Opt<Str>   subname;
+        PosStr*    str = nullptr;
     };
 
     int  depth = 0;
@@ -187,6 +198,13 @@ indentation of the original list prefix -- dash, number or letter.
         push(str.tok(OrgTokenKind::Comment, skipToEOL));
     }
 
+
+    void push(CR<std::span<OrgToken>> tok) { Base::push(tok); }
+    void push(CR<Vec<OrgToken>> tok) { Base::push(tok); }
+    void push(CR<Token<OrgTokenKind>> tok) {
+        OrgTokenId id = Base::push(tok);
+        report(Report{.kind = ReportKind::Push, .id = id, .tok = tok});
+    }
 
     void lexListItems(PosStr& str, LexerStateSimple& state);
     void lexList(PosStr& str);

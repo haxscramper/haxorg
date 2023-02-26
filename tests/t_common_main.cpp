@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include <hstd/system/aux_utils.hpp>
+#include <iostream>
 
 
 FILE* trace_out;
@@ -42,5 +43,7 @@ int main(int argc, const char** argv) {
     if (ret) {
         return ret;
     }
-    return session.run(argc, argv);
+    auto result = session.run(argc, argv);
+    std::cout << "Done test execution" << std::endl;
+    return result;
 }

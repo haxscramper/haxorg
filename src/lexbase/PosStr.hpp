@@ -67,6 +67,11 @@ struct PosStr {
         if (params.withPos) {
             os << "#" << pos;
         }
+
+        if (finished()) {
+            os << TermColorFg8Bit::Red << " finished " << os.end();
+        }
+
         for (int i = 0; i < params.maxTokens && hasNext(i); ++i) {
             os << TermColorFg8Bit::Yellow << " '"
                << visibleName(get(i)).first << "'" << os.end();
@@ -443,7 +448,10 @@ struct PosStr {
 
     /// Skip past the end of the line - that is, for `111\n2222` put cursor
     /// at the first `2` on the second line.
-    void skipPastEOL() { skipPast(charsets::Newline); }
+    void skipPastEOL() {
+        skipToEOL();
+        next();
+    }
 
 
     /*! If string is positioned on the empty line skip it, and return
