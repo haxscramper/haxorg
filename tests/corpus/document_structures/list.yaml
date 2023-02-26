@@ -11,7 +11,11 @@ items:
 
     tokens:
       - {idx: 0, kind: ListStart}
-      - {idx: 1, kind: ParagraphStart}
-      - {idx: 2, kind: Word, str: item}
-      - {idx: 3, kind: ParagraphEnd}
-      - {idx: 4, kind: ListEnd}
+      - {idx: 1, kind: ListDash, str: "-"}
+      - {idx: 2, kind: StmtListOpen}
+      - {idx: 3, kind: ParagraphStart}
+      - {idx: 4, kind: Word, str: "item"}
+      - {idx: 5, kind: ParagraphEnd}
+      - {idx: 6, kind: StmtListClose}
+      - {idx: 7, kind: ListItemEnd}
+      - {idx: 8, kind: ListEnd}

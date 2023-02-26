@@ -279,7 +279,6 @@ void OrgTokenizer::lexBracket(PosStr& str) {
             push(str.tok(otk::LinkTargetOpen, skipOne, '['));
             PosStr target = str.slice(skipTo, ']');
             lexLinkTarget(target);
-            str.print({.maxTokens = 30});
             push(str.tok(otk::LinkTargetClose, skipOne, ']'));
         };
         // description_token
@@ -1635,7 +1634,6 @@ PosStr OrgTokenizer::popListBody(
                     atEnd = true;
                 }
                 str.skipPastEOL();
-                str.print();
             }
         }
     }
@@ -1658,7 +1656,6 @@ void OrgTokenizer::lexListItem(
     }
 
     auto token = Token(otk::StmtList, slice.view);
-    std::cout << token << std::endl;
     pushResolved(token);
     __push(str.fakeTok(otk::ListItemEnd));
 }
@@ -1722,7 +1719,6 @@ void OrgTokenizer::lexParagraph(PosStr& str) {
     const auto indent = str.getIndent();
     auto       ended  = false;
     str.pushSlice();
-    str.print();
     while (!str.finished() && !ended) {
         if (str.getIndent() == indent
             && (atConstructStart(str) || atListAhead(str))) {
@@ -2056,9 +2052,7 @@ void OrgTokenizer::report(CR<Report> in) {
 }
 
 void OrgTokenizer::pushResolved(CR<OrgToken> token) {
-    std::cout << "Push resolved " << token << std::endl;
     report(Report{.kind = ReportKind::PushResolved, .tok = token});
-
     auto str = PosStr(token.text);
     switch (token.kind) {
         case otk::Text: {

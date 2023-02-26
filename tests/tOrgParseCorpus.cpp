@@ -172,9 +172,7 @@ void compareTokens(
 
         FormattedDiff text{tokenDiff};
 
-        std::cout << "token differences\n";
         if (text.isUnified()) {
-            std::cout << "unified\n";
             std::cout << (ColText("Lexed") <<= 48) << (ColText("Expected"))
                       << "\n";
             for (const auto& [lhs, rhs] : text.unifiedLines()) {
@@ -209,6 +207,8 @@ void compareTokens(
                         <<= 16)
                     << std::endl;
             }
+
+            std::cout << yamlRepr(lexed) << std::endl;
         }
         // std::cout << text << std::endl;
         // std::cout << "--------\n";

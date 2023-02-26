@@ -780,7 +780,7 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
 OrgId OrgParser::parseListItemBody(OrgLexer& lex) {
     __trace();
     start(org::StmtList);
-    while ((!(lex.at(otk::StmtListClose)))) {
+    while (!lex.at(otk::StmtListClose)) {
         if (lex.at(Vec<OrgTokenKind>{otk::Indent, otk::ListDash})) {
             lex.next();
             parseNestedList(lex);
@@ -828,7 +828,9 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
     }
     // completion
     {
-        assert(false && "TODO"); //
+        lex.skip(otk::StmtListOpen);
+        parseListItemBody(lex);
+        lex.skip(otk::StmtListClose);
     }
     lex.skip(otk::ListItemEnd);
     return end();
