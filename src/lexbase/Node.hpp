@@ -42,9 +42,9 @@ struct [[nodiscard]] NodeId
 };
 
 template <typename N, typename K>
-std::ostream& operator<<(std::ostream& os, NodeId<N, K> const& value) {
+QTextStream& operator<<(QTextStream& os, NodeId<N, K> const& value) {
     return value.streamTo(
-        os, std::string("NodeId<") + demangle(typeid(N).name()) + ">");
+        os, QString("NodeId<") + demangle(typeid(N).name()) + ">");
 }
 
 template <typename N, typename K>
@@ -270,13 +270,13 @@ struct NodeGroup {
     }
 
     struct TreeReprConf {
-        bool        withTokenMask = false;
-        bool        withTreeMask  = false;
-        const char* fullBase      = nullptr;
+        bool         withTokenMask = false;
+        bool         withTreeMask  = false;
+        const QChar* fullBase      = nullptr;
     };
 
     void lispRepr(
-        std::ostream&    os,
+        QTextStream&     os,
         NodeId<N, K>     node,
         CR<TreeReprConf> conf = TreeReprConf()) const {
         os << "(" << to_string(node.getMask()) << ":"
@@ -307,7 +307,7 @@ struct NodeGroup {
     }
 
     void treeRepr(
-        std::ostream&    os,
+        QTextStream&     os,
         NodeId<N, K>     node,
         int              level,
         CR<TreeReprConf> conf = TreeReprConf()) const {
@@ -341,7 +341,7 @@ struct NodeGroup {
 
 
 template <typename N, typename K>
-std::ostream& operator<<(std::ostream& os, Node<N, K> const& value) {
+QTextStream& operator<<(QTextStream& os, Node<N, K> const& value) {
     os << "{" << to_string(value.kind) << " ";
     if (value.isTerminal()) {
         os << value.getToken();
@@ -354,7 +354,7 @@ std::ostream& operator<<(std::ostream& os, Node<N, K> const& value) {
 
 
 template <StringConvertible N, StringConvertible K>
-std::ostream& operator<<(std::ostream& os, NodeGroup<N, K> const& nodes) {
+QTextStream& operator<<(QTextStream& os, NodeGroup<N, K> const& nodes) {
     for (const auto& [idx, node] : nodes.nodes.pairs()) {
         os << left_aligned(to_string(idx), 16) << " | " << *node << "\n";
     }
@@ -421,7 +421,7 @@ struct NodeTree {
                 auto start = text.size();
                 if (tok.str.has_value()) {
                     text += tok.str.value();
-                    tokens.at(id).text = std::string_view(
+                    tokens.at(id).text = QStringView(
                         text.data() + start, tok.str.value().size());
                 }
 
@@ -473,7 +473,7 @@ struct NodeAdapter {
 
 
     void treeRepr(
-        std::ostream&                              os,
+        QTextStream&                               os,
         int                                        level = 0,
         CR<typename NodeGroup<N, K>::TreeReprConf> conf =
             typename NodeGroup<N, K>::TreeReprConf()) const {

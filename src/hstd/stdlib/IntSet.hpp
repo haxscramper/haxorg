@@ -14,6 +14,30 @@ concept ConvertibleToSet
 template <typename T, typename... U>
 concept AllConvertibleToSet = (ConvertibleToSet<T, U> && ...);
 
+template <typename T>
+T value_from_bitset_index(int index);
+
+template <typename T>
+T value_from_bitset_index(int index) {
+    return static_cast<T>(index);
+}
+
+template <>
+inline QChar value_from_bitset_index(int index) {
+    return QChar(index);
+}
+
+template <>
+inline int ord(QChar c) {
+    return static_cast<int>(c.unicode());
+}
+
+template <>
+inline QChar succ(QChar c) {
+    return QChar(c.unicode() + 1);
+}
+
+
 /*!
 \brief Packet set of integral values
 
@@ -153,7 +177,7 @@ struct IntSet : public SetBase<IntSet<T>, T> {
             }
         }
 
-        T operator*() { return static_cast<T>(index); }
+        T operator*() { return value_from_bitset_index<T>(index); }
 
         iterator& operator++() {
             // If current value is ok, step over it once
@@ -180,6 +204,6 @@ struct IntSet : public SetBase<IntSet<T>, T> {
 
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, IntSet<T> const& value) {
+QTextStream& operator<<(QTextStream& os, IntSet<T> const& value) {
     return os << "{" << join(os, ", ", value) << "}";
 }

@@ -36,7 +36,7 @@ TEST_CASE("String formatting", "[str]") {
     }
 
     SECTION("Interpolate values by index") {
-        REQUIRE(to_string_vec("#") == std::vector<std::string>({"#"}));
+        REQUIRE(to_string_vec("#") == std::vector<QString>({"#"}));
         REQUIRE("$1" % to_string_vec("#") == "#");
         REQUIRE("$1+$2" % to_string_vec("@", "@") == "@+@");
         // If interpolation placeholder starts with integer value it won't

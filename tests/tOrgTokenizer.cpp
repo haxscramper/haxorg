@@ -4,7 +4,7 @@
 TEST_CASE("Basic lexer", "[lex]") {
     OrgTokenGroup res;
     OrgTokenizer  lexer{&res};
-    std::string   base{"word"};
+    QString       base{"word"};
     PosStr        str{base};
 
     lexer.lexText(str);

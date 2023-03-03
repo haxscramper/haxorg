@@ -134,7 +134,7 @@ class Span : public std::span<T> {
 };
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, Span<T> const& value) {
+QTextStream& operator<<(QTextStream& os, Span<T> const& value) {
     os << "[" << join(os, ", ", value) << "]";
     return os;
 }

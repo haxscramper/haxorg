@@ -1,37 +1,38 @@
 #pragma once
 
-#include <string>
 #include <hstd/system/string_convert.hpp>
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Pair.hpp>
 
-struct Str : public std::string {
-    using std::string::string;
-    using std::string::operator[];
-    using std::string::at;
-    using std::string::reserve;
+struct Str : public QString {
+    using QString::QString;
+    using QString::operator[];
+    using QString::at;
+    using QString::reserve;
 
 
-    explicit Str(Span<char> view)
-        : std::string(view.data(), view.size()) {}
-    explicit Str(std::string_view view)
-        : std::string(view.data(), view.size()) {}
-    Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
-    Str(char c) : std::string(c, 1) {}
-    Str(wchar_t c) : std::string(to_string(c)) {}
+    explicit Str(Span<QChar> view) : QString(view.data(), view.size()) {}
+    explicit Str(QStringView view) : QString(view.data(), view.size()) {}
+    Str(CR<QString> it) : QString(it.data(), it.size()) {}
+    Str(char c) : QString(c, 1) {}
+    Str(wchar_t c) : QString(to_string(c)) {}
     Str() = default;
 
-    char*       data() { return std::string::data(); }
-    const char* data() const { return std::string::data(); }
+    QChar*       data() { return QString::data(); }
+    const QChar* data() const { return QString::data(); }
 
-    Str substr(int start, std::size_t count = npos) const {
-        return Str(std::string::substr(start, count));
+    Str substr(int start, int count = -1) const {
+        return Str(QString::mid(start, count));
     }
 
-    bool startsWith(const std::string& prefix) const {
-        return find(prefix) == 0;
+
+    template <StringConvertible T>
+    Str operator+(T const& other) const {
+        Str result = *this;
+        result.append(other);
+        return result;
     }
 
     Str dropPrefix(CR<Str> prefix) const {
@@ -50,47 +51,54 @@ struct Str : public std::string {
         }
     }
 
-    bool endsWith(const std::string& suffix) const {
-        return rfind(suffix) == length() - suffix.length();
-    }
-
-    bool contains(const std::string& sub) const {
-        return find(sub) != std::string::npos;
-    }
-
     template <typename A, typename B>
-    std::string_view at(CR<HSlice<A, B>> s, bool checkRange = true) {
+    QStringView at(CR<HSlice<A, B>> s, bool checkRange = true) {
         const auto [start, end] = getSpan(size(), s, checkRange);
-        return std::string_view(this->data() + start, end);
+        return QStringView(this->data() + start, end);
     }
 
     template <typename A, typename B>
-    const std::string_view at(CR<HSlice<A, B>> s, bool checkRange = true)
+    const QStringView at(CR<HSlice<A, B>> s, bool checkRange = true)
         const {
         const auto [start, end] = getSpan(size(), s, checkRange);
-        return std::string_view(this->data() + start, end);
+        return QStringView(this->data() + start, end);
     }
 
     template <typename A, typename B>
-    std::string_view operator[](CR<HSlice<A, B>> s) {
+    QStringView operator[](CR<HSlice<A, B>> s) {
         return at(s, false);
     }
 
     template <typename A, typename B>
-    const std::string_view operator[](CR<HSlice<A, B>> s) const {
+    const QStringView operator[](CR<HSlice<A, B>> s) const {
         return at(s, false);
     }
 
-    Span<char> toSpan() const {
-        return Span<char>(const_cast<char*>(this->data()), size());
+    Span<QChar> toSpan() const {
+        return Span<QChar>(const_cast<QChar*>(this->data()), size());
     }
 
-    std::string toBase() const { return *this; }
+    bool    empty() const { return size() == 0; }
+    QString toBase() const { return *this; }
 };
 
 template <>
 struct std::hash<Str> {
     std::size_t operator()(Str const& s) const noexcept {
-        return std::hash<std::string>{}(s);
+        return std::hash<QString>{}(s);
     }
 };
+
+inline Str operator+(CR<QString> in, CR<Str> other) {
+    Str res;
+    res.append(in);
+    res.append(other);
+    return res;
+}
+
+inline Str operator+(const char* in, CR<Str> other) {
+    Str res;
+    res.append(in);
+    res.append(other);
+    return res;
+}

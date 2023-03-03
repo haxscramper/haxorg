@@ -16,16 +16,16 @@ concept DescribedEnum = IsEnum<T>
                             T>::value;
 
 template <DescribedEnum T>
-std::string enum_to_string(T value) {
+QString enum_to_string(T value) {
     return boost::describe::enum_to_string(value, "<unnamed>");
 }
 
 namespace boost::describe {
 
 inline void throw_invalid_name(char const* name, char const* type) {
-    throw std::runtime_error(
-        std::string("Invalid enumerator name '") + name
-        + "' for enum type '" + type + "'");
+    throw std::runtime_error((QString("Invalid enumerator name '") + name
+                              + "' for enum type '" + type + "'")
+                                 .toStdString());
 }
 
 template <class E>
@@ -50,17 +50,18 @@ E string_to_enum(char const* name) {
 }; // namespace boost::describe
 
 template <typename T>
-std::optional<T> string_to_enum(std::string const&);
+std::optional<T> string_to_enum(QString const&);
 
 template <DescribedEnum T>
-std::optional<T> string_to_enum(std::string const& value) {
+std::optional<T> string_to_enum(QString const& value) {
     try {
-        return boost::describe::string_to_enum<T>(value.c_str());
+        std::string tmp = value.toStdString();
+        return boost::describe::string_to_enum<T>(tmp.c_str());
     } catch (...) { return std::nullopt; }
 }
 
 template <DescribedEnum T>
-std::ostream& operator<<(std::ostream& os, T value) {
+QTextStream& operator<<(QTextStream& os, T value) {
     return os << enum_to_string(value);
 }
 
@@ -96,7 +97,7 @@ template <
     class Md = boost::describe::
         describe_members<T, boost::describe::mod_any_access>,
     class En = std::enable_if_t<!std::is_union<T>::value>>
-std::ostream& described_class_printer(std::ostream& os, T const& t) {
+QTextStream& described_class_printer(QTextStream& os, T const& t) {
     os << "{";
 
     bool first = true;

@@ -12,7 +12,7 @@ struct MockFull : public OrgParser {
     OrgTokenGroup       tokens;
     OrgTokenizer        tokenizer;
     OrgNodeGroup        nodes;
-    std::string         base;
+    QString             base;
     Lexer<OrgTokenKind> lex;
 
     MockFull()
@@ -33,7 +33,7 @@ struct MockFull : public OrgParser {
     OrgToken&   t(int idx) { return tokens.at(OrgTokenId(idx)); }
     OrgNodeKind k(int idx) { return n(idx).kind; }
 
-    std::string s(int idx) {
+    QString s(int idx) {
         if (nodes.at(OrgId(idx)).isTerminal()) {
             return nodes.strVal(OrgId(idx));
         } else {
@@ -41,7 +41,7 @@ struct MockFull : public OrgParser {
         }
     }
 
-    void tokenize(CR<std::string> content, LexerMethod lexMethod) {
+    void tokenize(CR<QString> content, LexerMethod lexMethod) {
         base = content;
         PosStr str{base};
         (tokenizer.*lexMethod)(str);
@@ -52,15 +52,16 @@ struct MockFull : public OrgParser {
     }
 
     void run(
-        CR<std::string> content,
-        LexerMethod     lexMethod,
-        ParserMethod    parseMethod) {
+        CR<QString>  content,
+        LexerMethod  lexMethod,
+        ParserMethod parseMethod) {
         tokenize(content, lexMethod);
         parse(parseMethod);
     }
     void treeRepr() {
         std::cout << "\n";
-        nodes.treeRepr(std::cout, OrgId(0), 0, {.fullBase = base.data()});
+        QTextStream out(stdout, QIODevice::WriteOnly);
+        nodes.treeRepr(out, OrgId(0), 0, {.fullBase = base.data()});
         std::cout << std::endl;
     }
 
@@ -76,8 +77,8 @@ struct MockFull : public OrgParser {
 
     void tokenRepr() {
         for (const auto& [idx, tok] : tokens.tokens.pairs()) {
-            std::cout << left_aligned(to_string(idx), 16) << " | " << *tok
-                      << std::endl;
+            qcout << left_aligned(to_string(idx), 16) << " | " << *tok
+                  << Qt::endl;
         }
     }
 };

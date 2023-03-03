@@ -14,8 +14,8 @@ inline BackwardsIndex operator"" _B(unsigned long long int value) {
     return backIndex(value);
 }
 
-inline std::ostream& operator<<(
-    std::ostream&         os,
+inline QTextStream& operator<<(
+    QTextStream&          os,
     BackwardsIndex const& value) {
-    return os << "^" << std::to_string(value.value);
+    return os << "^" << QString::number(value.value);
 }

@@ -3,32 +3,35 @@
 #include <memory>
 #include <fstream>
 #include <string>
+#include <QFile>
 
 #include <hstd/stdlib/ColText.hpp>
 
 struct OperationsTracer {
-    bool                            trace         = false;
-    bool                            traceToFile   = false;
-    std::unique_ptr<std::wofstream> file          = nullptr;
-    bool                            traceToBuffer = false;
+    bool trace         = false;
+    bool traceToFile   = false;
+    bool traceToBuffer = false;
 
-    inline void setTraceFile(std::string const& outfile) {
-        traceToFile                   = true;
-        const std::locale utf8_locale = std::locale(
-            std::locale(), new std::codecvt_utf8<wchar_t>());
-        file.reset(new std::wofstream{outfile});
-        file->imbue(utf8_locale);
+    Pair<QFile, QTextStream> file;
+
+    inline void setTraceFile(QString const& outfile) {
+        traceToFile = true;
+        file.first.setFileName(outfile);
+        if (file.first.open(QIODevice::ReadWrite)) {
+            file.second.setDevice(&file.first);
+        }
     }
 
     ColStream getStream() {
         if (traceToBuffer) {
             return ColStream{};
         } else if (traceToFile) {
-            auto os    = ColStream{*file};
+            auto os    = ColStream{file.second};
             os.colored = false;
             return os;
         } else {
-            return ColStream{std::wcout};
+            QTextStream out(stdout, QIODevice::WriteOnly);
+            return ColStream{out};
         }
     }
 
@@ -36,10 +39,7 @@ struct OperationsTracer {
         if (traceToBuffer) {
             stream << "\n";
         } else {
-            *(stream.ostream) << std::endl;
-            if (traceToFile) {
-                file->flush();
-            }
+            (*stream.ostream) << Qt::endl;
         }
     }
 };

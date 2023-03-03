@@ -25,9 +25,9 @@
 /// helper methods for better skipping such as `skipZeroOrMore`
 template <typename S>
 concept PosStrCheckable = (                                 //
-    std::convertible_to<std::remove_cvref_t<S>, char>       //
+    std::convertible_to<std::remove_cvref_t<S>, QChar>      //
     || std::convertible_to<std::remove_cvref_t<S>, CharSet> //
-    || std::convertible_to<std::remove_cvref_t<S>, std::string>);
+    || std::convertible_to<std::remove_cvref_t<S>, QString>);
 
 
 /// \brief Resolve relative location in the string view span into an
@@ -45,7 +45,7 @@ struct LocationResolver {
 
     /// \brief  Get line and column using base of the string view and
     /// position inside of the view
-    LineCol getLineCol(const char* base, int pos) {
+    LineCol getLineCol(const QChar* base, int pos) {
         return getLineCol(pos);
     }
 };
@@ -85,13 +85,19 @@ struct PosStr {
         }
     }
 
-    void print() const { print(std::wcout, PrintParams()); }
+    void print() const {
+        QTextStream out(stdout, QIODevice::WriteOnly);
+        print(out, PrintParams());
+    }
     void print(ColStream& os) const { print(os, PrintParams()); }
-    void print(std::wostream& os, CR<PrintParams> params) const {
+    void print(QTextStream& os, CR<PrintParams> params) const {
         ColStream stream{os};
         print(stream, params);
     }
-    void print(CR<PrintParams> params) const { print(std::wcout, params); }
+    void print(CR<PrintParams> params) const {
+        QTextStream out(stdout, QIODevice::WriteOnly);
+        print(out, params);
+    }
 
 
     struct SliceStartData {
@@ -101,24 +107,23 @@ struct PosStr {
     /// \brief Pending slice content
     Vec<SliceStartData> slices;
     /// \brief Underlying string view
-    std::string_view view;
+    QStringView view;
     /// \brief Absolute offset from the start of string view
     int pos = 0;
 
 
     /// \brief Consturct stirng using base view and starting position in
     /// the view
-    PosStr(std::string_view inView, int inPos = 0)
-        : view(inView), pos(inPos) {}
+    PosStr(QStringView inView, int inPos = 0) : view(inView), pos(inPos) {}
 
     /// \brief Consturct positional stirng using start view data and size
     /// of the string
-    PosStr(const char* data, int count, int inPos = 0)
+    PosStr(const QChar* data, int count, int inPos = 0)
         : view(data, count), pos(inPos) {}
 
     /// \brief Consturct positional stirng using start view data and size
     /// of the string
-    PosStr(std::string const& str, int inPos = 0)
+    PosStr(QString const& str, int inPos = 0)
         : view(str.data(), str.size()), pos(inPos) {}
 
     /// \brief Convert underlying view to the string
@@ -126,8 +131,8 @@ struct PosStr {
     /// \brief Get size of hte underlying view
     int size() const { return view.size(); }
 
-    std::string_view getOffsetView(int ahead = 0) const {
-        return std::string_view(
+    QStringView getOffsetView(int ahead = 0) const {
+        return QStringView(
             view.data() + pos + ahead, view.size() - (pos + ahead));
     }
 
@@ -169,18 +174,17 @@ struct PosStr {
 
 
     /// \brief Complete view with given offset parameters
-    std::string_view completeView(
+    QStringView completeView(
         CR<SliceStartData> slice,
         Offset             offset = Offset()) const {
-        return std::string_view(
+        return QStringView(
             view.data() + slice.pos + offset.start,
             pos - slice.pos + offset.end);
     }
 
     /// \brief Create new positional substring
     PosStr sliceBetween(int start, int end) const {
-        return PosStr{
-            std::string_view(view.data() + start, end - start + 1)};
+        return PosStr{QStringView(view.data() + start, end - start + 1)};
     }
 
     /// \brief Create fake token starting with the current position
@@ -275,8 +279,8 @@ struct PosStr {
     }
 
     /// \brief Get character at current position + \arg offset
-    char get(int offset = 0) const {
-        char result = '\0';
+    QChar get(int offset = 0) const {
+        QChar result = QChar(QChar('\0'));
         if (pos + offset < view.size()) {
             result = view[pos + offset];
         }
@@ -284,22 +288,22 @@ struct PosStr {
     }
 
     /// \brief No new characters left
-    bool finished() const { return get() == '\0'; }
+    bool finished() const { return get() == QChar('\0'); }
     /// \brief At the start of underlying view
     bool atStart() const { return pos == 0; }
     /// \brief Has exactly one character left
     bool beforeEnd() const { return !hasNext(1); }
 
     /// \brief Get current character and advance one step forward
-    char pop() {
-        char result = get();
+    QChar pop() {
+        QChar result = get();
         next();
         return result;
     }
 
     /// Check if the current position (with given \arg offset) contains
     /// expected character.
-    bool at(char expected, int offset = 0) const {
+    bool at(QChar expected, int offset = 0) const {
         return get(offset) == expected;
     }
 
@@ -307,11 +311,13 @@ struct PosStr {
         return expected.contains(get(offset));
     }
 
-    bool at(CR<std::string> expected, int offset = 0) const {
-        for (const auto& [idx, ch] : enumerate(expected)) {
+    bool at(CR<QString> expected, int offset = 0) const {
+        int idx = 0;
+        for (const auto& ch : expected) {
             if (get(offset + idx) != ch) {
                 return false;
             }
+            ++idx;
         }
         return true;
     }
@@ -330,28 +336,28 @@ struct PosStr {
 
     LineCol getLineCol() { return resolver->getLineCol(view.data(), pos); }
 
-    void skip(char expected, int offset = 0, int count = 1) {
+    void skip(QChar expected, int offset = 0, int count = 1) {
         if (get(offset) == expected) {
             next(count);
         } else {
             auto loc = getLineCol();
             throw UnexpectedCharError(
                 "Unexpected character encountered during lexing: found "
-                "'$#' but expected '$#' on $#:$#"
+                "QChar('$#') but expected QChar('$#') on $#:$#"
                     % to_string_vec(
                         get(offset), expected, loc.line, loc.column),
                 loc);
         }
     }
 
-    void skip(std::string expected) {
+    void skip(QString expected) {
         if (at(expected)) {
             next(expected.size());
         } else {
             auto loc = getLineCol();
             throw UnexpectedCharError(
                 "Unexpected character encountered during lexing: found "
-                "'$#' but expected '$#' on $#:$#"
+                "QChar('$#') but expected QChar('$#') on $#:$#"
                     % to_string_vec(get(), expected, loc.line, loc.column),
                 loc);
         }
@@ -364,7 +370,8 @@ struct PosStr {
             auto loc = getLineCol();
             throw UnexpectedCharError(
                 "Unexpected character encountered during lexing: fonud "
-                "'$#' but expected any of (char set) '$#' on $#:$#"
+                "QChar('$#') but expected any of (char set) QChar('$#') "
+                "on $#:$#"
                     % to_string_vec(
                         get(offset), expected, loc.line, loc.column),
                 loc);
@@ -394,7 +401,7 @@ struct PosStr {
 
     void space(bool requireOne = false) {
         if (requireOne) {
-            skip(' ');
+            skip(QChar(' '));
         }
         skipZeroOrMore(charsets::HorizontalSpace);
     }
@@ -514,7 +521,7 @@ struct PosStr {
     int getColumn() const {
         int result = 0;
         int offset = 0;
-        while (hasNext(offset) && !at('\n', offset)) {
+        while (hasNext(offset) && !at(QChar('\n'), offset)) {
             ++result;
             --offset;
         }
@@ -549,16 +556,17 @@ struct PosStr {
         skipZeroOrMore(chars);
     }
 
-    /// Create new 'unexpected character' error at the current string
-    /// parsing position.
+    /// Create new QChar('unexpected character') error at the current
+    /// string parsing position.
     UnexpectedCharError makeUnexpected(
-        CR<std::string> expected, //< What we expected to find?
-        CR<std::string> parsing   //< Description of the thing we are
-                                  // parsing at the moment
+        CR<QString> expected, //< What we expected to find?
+        CR<QString> parsing   //< Description of the thing we are
+                              // parsing at the moment
     ) {
         auto loc = getLineCol();
         return UnexpectedCharError(
-            "Unexpected character encountered during lexing: found '$#' "
+            "Unexpected character encountered during lexing: found "
+            "QChar('$#') "
             "but expected $# while parsing on $#:$#"
                 % to_string_vec(
                     get(), expected, parsing, loc.line, loc.column),
@@ -589,7 +597,7 @@ inline void skipBalancedSlice(PosStr& str, CR<BalancedSkipArgs> args) {
     auto fullCount = args.skippedStart ? 1 : 0;
     int  count[sizeof(char) * 8];
     while (str.hasNext()) {
-        if (args.allowEscape && str.at('\\')) {
+        if (args.allowEscape && str.at(QChar('\\'))) {
             str.next();
             str.next();
         } else if (str.at(args.openChars)) {
@@ -626,7 +634,7 @@ inline void skipBalancedSlice(PosStr& str, CR<BalancedSkipArgs> args) {
     }
 }
 
-inline void skipBalancedSlice(PosStr& str, char open, char close) {
+inline void skipBalancedSlice(PosStr& str, QChar open, QChar close) {
     skipBalancedSlice(
         str, {.openChars = CharSet{open}, .closeChars = CharSet{close}});
 }
@@ -635,13 +643,13 @@ inline void skipPastEOF(PosStr& str) { str.skipPastEOF(); }
 inline void skipPastEOL(PosStr& str) { str.skipPastEOL(); }
 inline void skipToEOL(PosStr& str) { str.skipToEOL(); }
 inline void skipCount(PosStr& str, int count) { str.next(count); }
-inline void skipBefore(PosStr& str, char item) { str.skipBefore(item); }
-inline void skipTo(PosStr& str, char item) { str.skipTo(item); }
-inline void skipOne(PosStr& str, char item) { str.skip(item); }
-inline void skipZeroOrMore(PosStr& str, char item) {
+inline void skipBefore(PosStr& str, QChar item) { str.skipBefore(item); }
+inline void skipTo(PosStr& str, QChar item) { str.skipTo(item); }
+inline void skipOne(PosStr& str, QChar item) { str.skip(item); }
+inline void skipZeroOrMore(PosStr& str, QChar item) {
     str.skipZeroOrMore(item);
 }
-inline void skipOneOrMore(PosStr& str, char item) {
+inline void skipOneOrMore(PosStr& str, QChar item) {
     str.skipOneOrMore(item);
 }
 
@@ -668,25 +676,26 @@ inline void skipStringLit(PosStr& str) {
     auto found = false;
     str.next();
     while (!found) {
-        found = str.at('"') && !str.at('\\', -1);
+        found = str.at(QChar('"')) && !str.at(QChar('\\'), -1);
         str.next();
     }
 }
 
 inline void skipDigit(Ref<PosStr> str) {
-    if (str.at('-')) {
+    if (str.at(QChar('-'))) {
         str.next();
     }
     if (str.at("0x")) {
         str.next(2);
         str.skip(charsets::HexDigits);
-        str.skipZeroOrMore(charsets::HexDigits + CharSet{'_'});
+        str.skipZeroOrMore(charsets::HexDigits + CharSet{QChar('_')});
     } else if (str.at("0b")) {
         str.next(2);
-        str.skip(CharSet{'0', '1'});
-        str.skipZeroOrMore(CharSet{'0', '1'});
+        str.skip(CharSet{QChar('0'), QChar('1')});
+        str.skipZeroOrMore(CharSet{QChar('0'), QChar('1')});
     } else {
         str.skip(charsets::Digits);
-        str.skipZeroOrMore(charsets::Digits + CharSet{'_', '.'});
+        str.skipZeroOrMore(
+            charsets::Digits + CharSet{QChar('_'), QChar('.')});
     }
 }

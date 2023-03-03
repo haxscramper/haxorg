@@ -14,11 +14,12 @@ UPtr<sem::Table> convertTable(Org* parent, OrgAdapter adapter) {
 UPtr<sem::HashTag> convertHashTag(Org* parent, OrgAdapter adapter) {
     auto result = std::make_unique<sem::HashTag>(parent, adapter);
     Func<HashTag(OrgAdapter)> aux;
-    result->head = strip(adapter.at(0).strVal(), CharSet{'#'}, CharSet{});
-    aux          = [parent, &aux](OrgAdapter adapter) -> HashTag {
+    result->head = strip(
+        adapter.at(0).strVal(), CharSet{QChar('#')}, CharSet{});
+    aux = [parent, &aux](OrgAdapter adapter) -> HashTag {
         HashTag result{parent, adapter};
         result.head = strip(
-            adapter.at(0).strVal(), CharSet{'#'}, CharSet{});
+            adapter.at(0).strVal(), CharSet{QChar('#')}, CharSet{});
         if (1 < adapter.size()) {
             for (const auto& node : adapter.at(slice(1, 1_B))) {
                 result.subtags.push_back(aux(node));

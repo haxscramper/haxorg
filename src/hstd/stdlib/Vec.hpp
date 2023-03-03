@@ -161,7 +161,7 @@ class Vec : public std::vector<T> {
 
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, Vec<T> const& value) {
+QTextStream& operator<<(QTextStream& os, Vec<T> const& value) {
     os << "[" << join(os, ", ", value) << "]";
     return os;
 }

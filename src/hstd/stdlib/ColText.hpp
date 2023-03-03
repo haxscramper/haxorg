@@ -125,35 +125,35 @@ struct ColRune;
 struct ColText;
 
 /*! Create ansi escape sequence with given code */
-inline std::string ansiEsc(int code) {
-    return ESC_PREFIX + std::to_string(code) + "m";
+inline QString ansiEsc(int code) {
+    return ESC_PREFIX + QString::number(code) + "m";
 }
 
 
 /*! Create ansi escape sequence with given terminal color */
-std::string ansiEsc(const TermColorFg8Bit& col);
+QString ansiEsc(const TermColorFg8Bit& col);
 
 /*! Create ansi escape sequence with given terminal color */
-std::string ansiEsc(const TermColorBg8Bit& col);
+QString ansiEsc(const TermColorBg8Bit& col);
 
 /// Create ansi escape sequence with given style. `open` controls whether
 /// styling sequence is used for open or for close
-std::string ansiEsc(const Style& style, const bool& open);
+QString ansiEsc(const Style& style, const bool& open);
 
 /// Generate ansi escape sequences to transition from style `s1` to style
 /// `s2`
 Str ansiDiff(const ColStyle& s1, const ColStyle& s2);
 
 
-/// Convert colored rune to regular std::string, with ansi escape
+/// Convert colored rune to regular QString, with ansi escape
 /// sequences. `color` controls whether styling is going to be applied or
 /// not.
-std::string to_string(const ColRune& rune, const bool& color = true);
+QString to_string(const ColRune& rune, const bool& color = true);
 
-/// Convert sequence of colored runes to the std::string, with ansi escape
+/// Convert sequence of colored runes to the QString, with ansi escape
 /// sequences in. `color` controls whether styling is going to be applied
 /// or not.
-std::string to_colored_string(
+QString to_colored_string(
     const Vec<ColRune>& runes,
     const bool&         color = true);
 
@@ -164,10 +164,10 @@ std::string to_colored_string(
 /// performance. The API must stay the same in any case, so improved
 /// version can be implemented in the future.
 struct ColRune {
-    wchar_t  rune = U' ';
+    QChar    rune = U' ';
     ColStyle style;
     inline ColRune(char ch) : rune(ch) {}
-    inline ColRune(CR<ColStyle> style, wchar_t rune)
+    inline ColRune(CR<ColStyle> style, QChar rune)
         : rune(rune), style(style) {}
 };
 
@@ -175,23 +175,20 @@ struct ColText : Vec<ColRune> {
     using Base = Vec<ColRune>;
     using Base::append;
 
-    std::string toString(bool colored = true) {
+    QString toString(bool colored = true) {
         return to_colored_string(*this, colored);
     }
 
     ColText() = default;
-    ColText(CR<ColStyle> style, CR<std::wstring> text) {
+    ColText(CR<ColStyle> style, CR<QString> text) {
         for (const auto& ch : text) {
             push_back(ColRune(style, ch));
         }
     }
 
-    ColText(CR<ColStyle> style, CR<std::string> text)
-        : ColText(style, to_wstring(text)) {}
+    ColText(CR<QString> text) : ColText(ColStyle{}, text) {}
 
-    ColText(CR<std::wstring> text) : ColText(ColStyle{}, text) {}
-
-    ColText(CR<ColStyle> style, wchar_t text)
+    ColText(CR<ColStyle> style, QChar text)
         : Vec<ColRune>({ColRune(style, text)}) {}
 
 
@@ -229,7 +226,7 @@ struct ColText : Vec<ColRune> {
     }
 };
 
-inline std::ostream& operator<<(std::ostream& os, ColText const& value) {
+inline QTextStream& operator<<(QTextStream& os, ColText const& value) {
     return os << to_colored_string(value, true);
 }
 
@@ -255,16 +252,16 @@ struct StreamState {
 };
 
 struct ColStream : public ColText {
-    std::wostream* ostream = nullptr;
-    bool           buffered;
-    bool           colored = true;
+    QTextStream* ostream = nullptr;
+    bool         buffered;
+    bool         colored = true;
 
     CR<ColText> getBuffer() const {
         return *static_cast<ColText const*>(this);
     }
 
     ColStream() : buffered(true){};
-    ColStream(std::wostream& os) : ostream(&os), buffered(false) {}
+    ColStream(QTextStream& os) : ostream(&os), buffered(false) {}
 
     ColStream& red() {
         active.fg = TermColorFg8Bit::Red;
@@ -279,7 +276,7 @@ struct ColStream : public ColText {
         if (buffered) {
             append(text);
         } else {
-            (*ostream) << to_wstring(to_colored_string(text, colored));
+            (*ostream) << to_colored_string(text, colored);
         }
     }
 };
@@ -318,17 +315,12 @@ inline ColStream& operator<<(ColStream& os, Style const& value) {
     return os << os.active + ColStyle(value);
 }
 
-inline ColStream& operator<<(ColStream& os, std::string const& value) {
+inline ColStream& operator<<(ColStream& os, QChar const& value) {
     os.write(ColText(os.active, value));
     return os;
 }
 
-inline ColStream& operator<<(ColStream& os, wchar_t const& value) {
-    os.write(ColText(os.active, value));
-    return os;
-}
-
-inline ColStream& operator<<(ColStream& os, std::wstring const& value) {
+inline ColStream& operator<<(ColStream& os, QString const& value) {
     os.write(ColText(os.active, value));
     return os;
 }
@@ -343,9 +335,10 @@ template <typename T>
 ColStream& operator<<(ColStream& os, CR<T> const& value)
     requires StringStreamable<T>
 {
-    std::stringstream string;
+    QString     out;
+    QTextStream string{&out};
     string << value;
-    return os << string.str();
+    return os << out;
 }
 
 template <typename T>
@@ -437,12 +430,12 @@ inline ColStream& hshow(
     CR<Str>          value,
     CR<HDisplayOpts> opts) {
     bool first = true;
-    for (Str const& it : visibleName(to_wstring(value))) {
+    for (Str const& it : visibleUnicodeName(value)) {
         if (!first) {
             os << " ";
         }
         first = false;
-        os << "'" + it + "'";
+        os << Str("'") + it + Str("'");
     }
 
     return os;
@@ -450,9 +443,9 @@ inline ColStream& hshow(
 
 template <>
 inline ColStream& hshow(
-    ColStream&           os,
-    CR<std::string_view> value,
-    CR<HDisplayOpts>     opts) {
+    ColStream&       os,
+    CR<QStringView>  value,
+    CR<HDisplayOpts> opts) {
     if (value.data() == nullptr) {
         return os << os.red() << "nil" << os.end();
     } else {
@@ -486,9 +479,9 @@ ColText join(CR<ColText> separator, CR<T> container) {
 #if false
 
 /*!Convert foreground color to human-readble representation */
-std::string operator<<(std::ostream& os, const TermColorFg8Bit& fg) {
+QString operator<<(QTextStream& os, const TermColorFg8Bit& fg) {
     os << fg;
-    std::string result = std::to_string(static_cast<u8>(fg));
+    QString result = QString::number(static_cast<u8>(fg));
     if (static_cast<u8>(fg) < 15) {
         result.append((
             (R"(($1))")
@@ -499,8 +492,8 @@ std::string operator<<(std::ostream& os, const TermColorFg8Bit& fg) {
 }
 
 /*!Convert background color to human-readable representation */
-std::string operator<<(std::ostream& os, const TermColorBg8Bit& bg) {
-    std::string result;
+QString operator<<(QTextStream& os, const TermColorBg8Bit& bg) {
+    QString result;
     result = toStr(static_cast<u8>(bg));
     if (((static_cast<u8>(bg)) < (15))) {
         result.append((
@@ -667,7 +660,7 @@ ColStyle default(const typedesc<ColStyle>& style) {
 
 Rune uc(const static<Str>& s) {
     Rune result;
-    /*!Create single unicode rune from std::string literal - `uc"⮰"`
+    /*!Create single unicode rune from QString literal - `uc"⮰"`
      */
     ;
     runeAt(s, 0);
@@ -841,7 +834,7 @@ ColText toColText(const ColRune& rune) {
 
 ColText clt(const Str& str) {
     ColText result;
-    /*!Shorthand to construct colored text std::string with default value
+    /*!Shorthand to construct colored text QString with default value
     (`clt"default"`)
     */
     ;
@@ -1074,8 +1067,8 @@ void add(ColText& colored, const ColRune& rune) {
     colored.runes.append(rune);
 };
 
-void add(ColText& colored, const((std::string) | (char)) & ch) {
-    /*!Add std::string or character with default style to colored text,
+void add(ColText& colored, const((QString) | (char)) & ch) {
+    /*!Add QString or character with default style to colored text,
      */
     ;
     colored.append(((ch) + (default(ColStyle))));
@@ -1201,7 +1194,7 @@ ColText operator&(const ColText& t1, const ColText& t2) {
 
 ColText operator&(const ColText& t1, const Str& t2) {
     ColText result;
-    /*!Concatenate colored text and regular std::string (with default
+    /*!Concatenate colored text and regular QString (with default
      * style)
      */
     ;
@@ -1213,7 +1206,7 @@ ColText operator&(const ColText& t1, const Str& t2) {
 
 ColText operator&(const Str& t1, const ColText& t2) {
     ColText result;
-    /*!Concatenate colored text and regular std::string (with default
+    /*!Concatenate colored text and regular QString (with default
      * style)
      */
     ;
@@ -1241,14 +1234,14 @@ uint8 code(const TermColorBg8Bit& col) {
     return result;
 };
 
-std::string lispRepr(const ColRune& rune) {
-    std::string result;
+QString lispRepr(const ColRune& rune) {
+    QString result;
     (&(R"(({rune.rune} :fg {rune.style.fg} :bg {rune.style.bg} :style {rune.style.style}))"));
     return result;
 };
 
-std::string lispRepr(const ColText& rune) {
-    std::string result;
+QString lispRepr(const ColText& rune) {
+    QString result;
     result = R"(()";
     ;
     for (const auto [idx, rune] : rune.runes) {
@@ -1261,12 +1254,12 @@ std::string lispRepr(const ColText& rune) {
     return result;
 };
 
-std::string toStd::String(const ColText& text, const bool& color = true) {
-    std::string result;
-    /*!Convert colored text to std::string with ansi escape sequences
+QString toQString(const ColText& text, const bool& color = true) {
+    QString result;
+    /*!Convert colored text to QString with ansi escape sequences
      */
     ;
-    toStd::String(text.runes, color);
+    toQString(text.runes, color);
     return result;
 };
 

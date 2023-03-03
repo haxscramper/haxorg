@@ -1,21 +1,18 @@
 #pragma once
 
 #include <unordered_set>
-
-#include <yaml-cpp/yaml.h>
 #include <lexbase/Node.hpp>
 #include <lexbase/Token.hpp>
 #include <lexbase/AstSpec.hpp>
 #include <hstd/stdlib/algorithms.hpp>
-#include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
-
+#include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/Yaml.hpp>
 
 template <typename N, typename K>
-YAML::Node yamlRepr(NodeAdapter<N, K> node) {
-    YAML::Node result;
-    auto       g   = node.group;
+yaml yamlRepr(NodeAdapter<N, K> node) {
+    yaml result;
+    auto g         = node.group;
     result["kind"] = to_string(node.get().kind);
     result["idx"]  = to_string(node.id.getIndex());
     if (node.get().isTerminal()) {
@@ -62,7 +59,7 @@ json jsonRepr(
             for (int idx : range) {
                 items.push_back(jsonRepr(spec, node.at(idx)));
             }
-            subnodes[name.toBase()] = items;
+            subnodes[name.toStdString()] = items;
         }
         result["subnodes"] = subnodes;
     }
@@ -70,11 +67,11 @@ json jsonRepr(
 }
 
 template <typename N, typename K>
-YAML::Node yamlRepr(
+yaml yamlRepr(
     CR<astspec::AstSpec<NodeAdapter<N, K>, N>> spec,
     NodeAdapter<N, K>                          node) {
-    YAML::Node result;
-    auto       g   = node.group;
+    yaml result;
+    auto g         = node.group;
     result["kind"] = to_string(node.get().kind);
     result["idx"]  = to_string(node.id.getIndex());
     if (node.get().isTerminal()) {
@@ -101,8 +98,8 @@ YAML::Node yamlRepr(
 }
 
 template <typename N, typename K>
-NodeTree<N, K> fromHomogeneous(CR<YAML::Node> node) {
-    Opt<N> kind = string_to_enum<N>(node["kind"].as<std::string>());
+NodeTree<N, K> fromHomogeneous(CR<yaml> node) {
+    Opt<N> kind = string_to_enum<N>(node["kind"].as<QString>());
     if (node["subnodes"]) {
         Vec<NodeTree<N, K>> subnodes;
         for (const auto& it : node["subnodes"]) {
@@ -113,10 +110,9 @@ NodeTree<N, K> fromHomogeneous(CR<YAML::Node> node) {
         std::cout << node << std::endl;
         typename NodeTree<N, K>::TreeToken token = {
             .index = node["tok_idx"].as<int>(),
-            .str   = node["str"] ? Opt<Str>(node["str"].as<std::string>())
+            .str   = node["str"] ? Opt<Str>(node["str"].as<QString>())
                                  : Opt<Str>(std::nullopt),
-            .kind  = string_to_enum<K>(node["tok"].as<std::string>())
-                        .value()};
+            .kind  = string_to_enum<K>(node["tok"].as<QString>()).value()};
 
         return NodeTree<N, K>(kind.value(), token);
     }
@@ -124,13 +120,13 @@ NodeTree<N, K> fromHomogeneous(CR<YAML::Node> node) {
 
 
 template <typename K>
-TokenGroup<K> fromFlatTokens(CR<YAML::Node> node, Str& buf) {
+TokenGroup<K> fromFlatTokens(CR<yaml> node, Str& buf) {
     TokenGroup<K> result;
     result.tokens.resize(node.size());
     int bufferSize = 0;
     for (const auto& it : node) {
         if (it["str"]) {
-            bufferSize += it["str"].as<std::string>().size();
+            bufferSize += it["str"].as<QString>().size();
         }
     }
 
@@ -141,15 +137,13 @@ TokenGroup<K> fromFlatTokens(CR<YAML::Node> node, Str& buf) {
     for (const auto& it : node) {
         auto start         = buf.size();
         auto id            = TokenId<K>(index);
-        result.at(id).kind = string_to_enum<K>(
-                                 it["kind"].as<std::string>())
+        result.at(id).kind = string_to_enum<K>(it["kind"].as<QString>())
                                  .value();
 
         if (it["str"]) {
-            std::string str = it["str"].as<std::string>();
+            QString str = it["str"].as<QString>();
             buf += str;
-            result.at(id).text = std::string_view(
-                data + start, str.size());
+            result.at(id).text = QStringView(data + start, str.size());
         }
 
         ++index;
@@ -159,12 +153,12 @@ TokenGroup<K> fromFlatTokens(CR<YAML::Node> node, Str& buf) {
 }
 
 template <typename N, typename K>
-NodeGroup<N, K> fromFlatNodes(CR<YAML::Node> node) {
+NodeGroup<N, K> fromFlatNodes(CR<yaml> node) {
     NodeGroup<N, K> result;
     result.nodes.resize(node.size(), Node(low<N>(), TokenId<K>::Nil()));
     int index = 0;
     for (const auto& it : node) {
-        N kind = string_to_enum<N>(it["kind"].as<std::string>()).value();
+        N kind = string_to_enum<N>(it["kind"].as<QString>()).value();
         if (it["extent"]) {
             result.at(NodeId<N, K>(index)) = Node<N, K>(
                 kind, it["extent"].as<int>());
@@ -179,10 +173,10 @@ NodeGroup<N, K> fromFlatNodes(CR<YAML::Node> node) {
 }
 
 template <typename N, typename K>
-YAML::Node yamlRepr(CR<NodeGroup<N, K>> group, bool withStrings = true) {
-    YAML::Node out;
+yaml yamlRepr(CR<NodeGroup<N, K>> group, bool withStrings = true) {
+    yaml out;
     for (const auto& [id, node] : group.nodes.pairs()) {
-        YAML::Node item;
+        yaml item;
         item["kind"] = to_string(node->kind);
         if (node->isTerminal()) {
             TokenId<K> tokenId = node->getToken();
@@ -223,10 +217,10 @@ json jsonRepr(CR<NodeGroup<N, K>> group, bool withStrings = true) {
 
 
 template <typename K>
-YAML::Node yamlRepr(CR<TokenGroup<K>> group) {
-    YAML::Node out;
+yaml yamlRepr(CR<TokenGroup<K>> group) {
+    yaml out;
     for (const auto& [id, token] : group.tokens.pairs()) {
-        YAML::Node item;
+        yaml item;
         item["idx"]  = id.getIndex();
         item["kind"] = to_string(token->kind);
         if (token->hasData()) {

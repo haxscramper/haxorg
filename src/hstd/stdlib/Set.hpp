@@ -46,6 +46,6 @@ struct UnorderedSet
 };
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, UnorderedSet<T> const& value) {
+QTextStream& operator<<(QTextStream& os, UnorderedSet<T> const& value) {
     return os << "{" << join(os, ", ", value) << "}";
 }

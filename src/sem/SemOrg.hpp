@@ -9,9 +9,8 @@
 #include <parse/OrgTypes.hpp>
 
 #include <boost/describe.hpp>
-#include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
+#include <hstd/stdlib/Json.hpp>
 
 namespace sem {
 
@@ -118,24 +117,6 @@ BOOST_DESCRIBE_STRUCT(HashTag, (), (head, subtags));
 template <typename T>
 concept DescribedMembers = boost::describe::has_describe_members<T>::value;
 
-template <typename T>
-inline json to_json(CR<Vec<T>> str) {
-    json res = json::array();
-    for (const auto& it : str) {
-        res.push_back(to_json(it));
-    }
-    return res;
-}
-
-inline json to_json(CR<std::string> str) {
-    json res = str;
-    return res;
-}
-
-inline json to_json(CR<Str> str) {
-    json res = str.toBase();
-    return res;
-}
 
 template <
     DescribedMembers T,

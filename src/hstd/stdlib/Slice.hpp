@@ -3,6 +3,7 @@
 #include <hstd/system/basic_templates.hpp>
 #include <hstd/system/string_convert.hpp>
 
+#include <hstd/system/exceptions.hpp>
 #include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/BackwardsIndex.hpp>
 
@@ -98,19 +99,19 @@ constexpr Slice<T> slice(CR<T> first, CR<T> last) {
     if (!(first <= last)) {
         if constexpr (std::is_integral_v<T> && sizeof(T) <= sizeof(u64)) {
             if constexpr (std::is_signed_v<T>) {
-                throw std::range_error(
+                throw RangeError(
                     "Expected first <= last but got first='"
                     + to_string(static_cast<i64>(first)) + "' last='"
                     + to_string(static_cast<i64>(last)) + "'");
             } else {
-                throw std::range_error(
+                throw RangeError(
                     "Expected first <= last but got first='"
                     + to_string(static_cast<u64>(first)) + "' last='"
                     + to_string(static_cast<u64>(last)) + "'");
             }
 
         } else {
-            throw std::range_error(
+            throw RangeError(
                 "Expected first <= last but got first='" + to_string(first)
                 + "' last='" + to_string(last) + "'");
         }
@@ -125,8 +126,8 @@ HSlice<A, B> slice(CR<A> first, CR<B> last) {
 }
 
 template <typename A, typename B>
-inline std::ostream& operator<<(
-    std::ostream&       os,
+inline QTextStream& operator<<(
+    QTextStream&        os,
     HSlice<A, B> const& value) {
     return os << "[" << value.first << ".." << value.last << "]";
 }
@@ -151,11 +152,11 @@ Pair<A, A> getSpan(
         && !(
             (0 <= startPos && startPos < size)
             && (0 <= endPos && endPos < size))) {
-        throw std::out_of_range(
+        throw OutOfRangeError(
             "Container index is out of range: real span range is "
-            + std::to_string(startPos) + ".." + std::to_string(endPos)
+            + QString::number(startPos) + ".." + QString::number(endPos)
             + " computed from " + to_string(s)
-            + ", but full extent length is only " + std::to_string(size));
+            + ", but full extent length is only " + QString::number(size));
     }
 
     return {startPos, endPos};

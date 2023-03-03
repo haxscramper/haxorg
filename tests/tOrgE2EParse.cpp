@@ -52,8 +52,9 @@ TEST_CASE("Simple node conversion") {
         REQUIRE(p.k(0) == org::HashTag);
         REQUIRE(p.k(1) == org::RawText);
         REQUIRE(p.s(1) == "#test");
-        std::stringstream ss;
-        ss << "start validation output" << std::endl;
+        QString     buf;
+        QTextStream ss{&buf};
+        ss << "start validation output" << Qt::endl;
         ss << spec.validateSelf(p.a(0)) << "\n";
         ss << spec.validateSub(p.a(0), 0) << "\n";
         ss << spec.getSingleSubnodeIdx(p.a(0), "head");
@@ -69,9 +70,10 @@ TEST_CASE("Simple node conversion") {
         auto node = yamlRepr(p.a(0));
         yamlRepr(p.nodes);
         yamlRepr(p.tokens);
-        auto              hash = convertHashTag(nullptr, p.a(0));
-        std::stringstream ss;
-        ss << hash->toJson() << std::endl;
+        auto        hash = convertHashTag(nullptr, p.a(0));
+        QString     buf;
+        QTextStream ss{&buf};
+        ss << hash->toJson() << Qt::endl;
         ss << "yaml node\n"
            << yamlRepr(spec, p.a(0)) << "\nend yaml node\n";
         ss << "json node\n"
@@ -194,12 +196,12 @@ using namespace diff;
 TEST_CASE("Ast diff") {
     SECTION("Pointer-based nodes") {
         struct RealNode {
-            std::string   value;
+            QString       value;
             int           kind;
             Vec<RealNode> sub;
 
             using IdT  = RealNode*;
-            using ValT = std::string;
+            using ValT = QString;
 
             TreeMirror<IdT, ValT> toMirror() {
                 Vec<TreeMirror<IdT, ValT>> subMirror;
@@ -287,7 +289,8 @@ TEST_CASE("Ast diff") {
         ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
 
 
-        std::stringstream os;
+        QString     buf;
+        QTextStream os;
         for (diff::NodeId Dst : DstTree) {
             diff::NodeId Src = Diff.getMapped(DstTree, Dst);
             if (Src.isValid()) {
@@ -309,8 +312,8 @@ TEST_CASE("Ast diff") {
 
     SECTION("Pointer-based nodes with variant") {
         struct RealNode {
-            std::variant<int, double, std::string> value;
-            Vec<RealNode>                          sub;
+            std::variant<int, double, QString> value;
+            Vec<RealNode>                      sub;
         };
 
         auto src = RealNode{
@@ -357,7 +360,8 @@ TEST_CASE("Ast diff") {
 
         ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
 
-        std::stringstream os;
+        QString     buf;
+        QTextStream os{&buf};
         for (diff::NodeId Dst : DstTree) {
             diff::NodeId Src = Diff.getMapped(DstTree, Dst);
             if (Src.isValid()) {

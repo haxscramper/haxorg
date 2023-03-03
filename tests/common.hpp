@@ -15,8 +15,10 @@ using Catch::Matchers::EndsWith;
 using Catch::Matchers::Message;
 using Catch::Matchers::StartsWith;
 
+#include <hstd/stdlib/Str.hpp>
+
 struct TestParameters {
-    std::string corpusGlob;
+    Str corpusGlob;
 };
 
 extern TestParameters testParameters;

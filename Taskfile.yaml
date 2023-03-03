@@ -65,10 +65,12 @@ tasks:
         -DUSE_SINGLE_FILE_CATCH=ON
         -DCMAKE_CXX_COMPILER=clang++
         -DTEST_COVERAGE=ON
+        -DMAX_COMPILE_ERRORS=1
         --log-level=TRACE
         ..
 
-      - make -j8
+      # - make -j8 2> /tmp/compile.txt
+      - make -j1 2> /tmp/compile.txt
       # - ninja -v -d explain
       - task: debug
         vars:

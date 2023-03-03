@@ -6,10 +6,10 @@
 #include <lexbase/Token.hpp>
 
 struct ParseSpec {
-    Opt<YAML::Node>  subnodes;
-    Opt<YAML::Node>  tokens;
-    Str              source;
-    Opt<std::string> testName;
+    Opt<YAML::Node> subnodes;
+    Opt<YAML::Node> tokens;
+    Str             source;
+    Opt<QString>    testName;
 
     struct Dbg {
         bool traceLex    = false;
@@ -30,8 +30,8 @@ struct ParseSpec {
     Opt<Str> parseImplName;
 
     struct SpecValidationError : public std::runtime_error {
-        explicit SpecValidationError(const std::string& message)
-            : std::runtime_error(message) {}
+        explicit SpecValidationError(const QString& message)
+            : std::runtime_error(message.toStdString()) {}
     };
 
 
@@ -75,19 +75,19 @@ struct ParseSpec {
         }
 
         if (node["lex"]) {
-            lexImplName = node["lex"].as<std::string>();
+            lexImplName = node["lex"].as<QString>();
         }
 
         if (node["name"]) {
-            testName = node["name"].as<std::string>();
+            testName = node["name"].as<QString>();
         }
 
         if (node["parse"]) {
-            parseImplName = node["parse"].as<std::string>();
+            parseImplName = node["parse"].as<QString>();
         }
 
         if (node["source"]) {
-            source = node["source"].as<std::string>();
+            source = node["source"].as<QString>();
         } else {
             throw SpecValidationError(
                 "Input spec must contain 'source' string field");
@@ -103,7 +103,7 @@ struct ParseSpec {
 
         if (node["expected"]) {
             expectedMode = string_to_enum<ExpectedMode>(
-                               node["expected"].as<std::string>())
+                               node["expected"].as<QString>())
                                .value_or(ExpectedMode::Nested);
         }
     }
@@ -131,17 +131,16 @@ struct ParseSpecGroup {
                     auto spec = ParseSpec(it);
 
                     if (!spec.lexImplName && node["lex"]) {
-                        spec.lexImplName = node["lex"].as<std::string>();
+                        spec.lexImplName = node["lex"].as<QString>();
                     }
 
                     if (!spec.parseImplName && node["parse"]) {
-                        spec.parseImplName = node["parse"]
-                                                 .as<std::string>();
+                        spec.parseImplName = node["parse"].as<QString>();
                     }
 
                     if (!spec.testName) {
                         if (node["name"]) {
-                            spec.testName = node["name"].as<std::string>();
+                            spec.testName = node["name"].as<QString>();
                         } else {
                         }
                     }
@@ -150,7 +149,7 @@ struct ParseSpecGroup {
                         spec.expectedMode =
                             //
                             string_to_enum<ParseSpec::ExpectedMode>(
-                                node["expected"].as<std::string>())
+                                node["expected"].as<QString>())
                                 .value_or(ParseSpec::ExpectedMode::Nested);
                     }
 

@@ -103,10 +103,13 @@ endfunction()
 option(TRACE_INSTRUMENT "Generate instrumentation trace")
 option(USE_SINGLE_FILE_CATCH "Use single-file catch2 or installed one")
 option(TEST_COVERAGE "Enable test coverage")
+option(MAX_COMPILE_ERRORS
+       "Max number of compilation errors before compiler stops" 1)
 
 function(set_target_flags TARGET)
   # add_target_property(${TARGET} COMPILE_OPTIONS -w)
-  add_target_property(${TARGET} COMPILE_OPTIONS @${BASE}/scripts/warning_config.txt)
+  add_target_property(${TARGET} COMPILE_OPTIONS
+                      @${BASE}/scripts/warning_config.txt)
 
   if(${TRACE_INSTRUMENT})
     add_target_property(${TARGET} COMPILE_OPTIONS -finstrument-functions)
@@ -114,7 +117,8 @@ function(set_target_flags TARGET)
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     # Avoid getting flooded with compilation errors
     set(CMAKE_CXX_COMPILER clang++)
-    add_target_property(${TARGET} COMPILE_OPTIONS -ferror-limit=1)
+    add_target_property(${TARGET} COMPILE_OPTIONS
+                        "-ferror-limit=${MAX_COMPILE_ERRORS}")
 
     if(${TEST_COVERAGE})
       message(INFO " Test coverage enabled")
@@ -130,7 +134,8 @@ function(set_target_flags TARGET)
   if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
     # Same configuration option for g++ compiler
     set(CMAKE_CXX_COMPILER g++)
-    add_target_property(${TARGET} COMPILE_OPTIONS -fmax-errors=1)
+    add_target_property(${TARGET} COMPILE_OPTIONS
+                        "-fmax-errors=${MAX_COMPILE_ERRORS}")
 
     if(${TEST_COVERAGE})
       message(INFO " Test coverage enabled")
@@ -161,6 +166,10 @@ find_package(antlr4-generator REQUIRED)
 find_package(fmt REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+trace(">>>>>>>>> ${QT_VERSION_MAJOR}")
+
 function(set_common_files TARGET)
   list_filter_files(SRC_FILES *.cpp "${BASE}/src/.*")
   list_filter_files(HEADER_FILES *.hpp "${BASE}/src/.*")
@@ -183,7 +192,8 @@ set_target_flags(tests)
 list_filter_files(TEST_FILES "t*.cpp" "${BASE}/tests/.*")
 add_target_property(tests SOURCES "${TEST_FILES}")
 add_antlr_base(tests)
-target_link_libraries(tests PUBLIC fmt::fmt yaml-cpp::yaml-cpp)
+target_link_libraries(tests PUBLIC fmt::fmt yaml-cpp::yaml-cpp
+                                   "Qt${QT_VERSION_MAJOR}::Core")
 
 if(${USE_SINGLE_FILE_CATCH})
   add_target_property(tests SOURCES

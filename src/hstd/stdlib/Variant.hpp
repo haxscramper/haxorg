@@ -11,13 +11,14 @@ using Variant = std::variant<Types...>;
 // implicit conversion from value types. Not sure this can be circumvented
 // by disallowing to-argument conversion in some way.
 template <typename... Types>
-std::string variant_to_string(Variant<Types...> const& value) {
-    std::stringstream os;
+QString variant_to_string(Variant<Types...> const& value) {
+    QString     out;
+    QTextStream os{&out};
     std::visit(
         [&os](const auto& value) {
             os << value;
             return 0;
         },
         value);
-    return os.str();
+    return out;
 }

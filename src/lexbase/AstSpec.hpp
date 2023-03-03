@@ -18,24 +18,25 @@
 #include <functional>
 
 template <typename T>
-std::ostream& operator<<(
-    std::ostream&                os,
+QTextStream& operator<<(
+    QTextStream&                 os,
     std::unordered_set<T> const& value) {
     return os << "{" << join(os, ", ", value) << "}";
 }
 
 template <typename T>
-std::string to_string(std::unordered_set<T> const& value) {
-    std::stringstream os;
+QString to_string(std::unordered_set<T> const& value) {
+    QString     out;
+    QTextStream os{&out};
     os << value;
-    return os.str();
+    return out;
 }
 
 
 namespace astspec {
 
 struct FieldAccessError : public GetterError {
-    explicit FieldAccessError(const std::string& message)
+    explicit FieldAccessError(const QString& message)
         : GetterError(message) {}
 };
 
@@ -165,7 +166,7 @@ struct AstRange {
 };
 
 
-inline std::ostream& operator<<(std::ostream& os, AstRange const& arange) {
+inline QTextStream& operator<<(QTextStream& os, AstRange const& arange) {
     switch (arange.kind) {
         case AstRangeKind::Point: return os << arange.idx;
         case AstRangeKind::InversePoint: return os << "^" << arange.idx;

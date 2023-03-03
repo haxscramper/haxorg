@@ -5,50 +5,31 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Vec.hpp>
 
-inline std::string right_aligned(
-    CR<std::string> str,
-    int             n,
-    char            c = ' ') {
-    std::string res;
+inline QString right_aligned(CR<QString> str, int n, QChar c = ' ') {
+    QString res;
     if (str.size() < n) {
-        res.append(n - str.size(), c);
+        res.append(QString(c).repeated(n - str.size()));
     }
     res.append(str);
     return res;
 }
 
-inline std::string left_aligned(CR<std::string> str, int n, char c = ' ') {
+inline QString left_aligned(CR<QString> str, int n, QChar c = ' ') {
     auto s = str;
     if (s.size() < n) {
-        s.append(n - s.size(), c);
+        s.append(QString(c).repeated(n - s.size()));
     }
     return s;
 }
 
-inline Vec<Str> split(CR<Str> str, char separator) {
-    Vec<Str> strings;
-
-    int startIndex = 0, endIndex = 0;
-    for (int i = 0; i <= str.size(); i++) {
-        if (str[i] == separator || i == str.size()) {
-            endIndex = i;
-            Str temp;
-            temp.append(str, startIndex, endIndex - startIndex);
-            strings.push_back(temp);
-            startIndex = endIndex + 1;
-        }
-    }
-    return strings;
-}
-
 inline Str normalize(CR<Str> in) {
     Str res;
-    for (char c : in) {
+    for (QChar c : in) {
         if (!(c == '_' || c == '-')) {
             if (charsets::LowerAsciiLetters.contains(c)) {
                 res += c;
             } else if (charsets::HighAsciiLetters.contains(c)) {
-                res += tolower(c);
+                res += c.toLower();
             }
         }
     }
@@ -70,7 +51,7 @@ inline Str indent(
     int     spaces,
     char    space  = ' ',
     Str     prefix = "") {
-    auto lines = split(str, '\n');
+    auto lines = str.split('\n');
     for (auto& line : lines) {
         line = prefix + repeat(Str(space), spaces) + line;
     }
@@ -79,10 +60,7 @@ inline Str indent(
 
 
 template <typename T>
-std::ostream& join(
-    std::ostream&   os,
-    CR<std::string> sep,
-    generator<T>&   list) {
+QTextStream& join(QTextStream& os, CR<QString> sep, generator<T>& list) {
     int index = 0;
     for (const auto& it : list) {
         if (0 < index) {
@@ -95,38 +73,30 @@ std::ostream& join(
 }
 
 template <typename T>
-std::ostream& join(
-    std::ostream&   os,
-    CR<std::string> sep,
-    generator<T>&&  list) {
+QTextStream& join(QTextStream& os, CR<QString> sep, generator<T>&& list) {
     auto tmp = std::move(list);
     return join(os, sep, tmp);
 }
 
 
 template <typename T>
-std::string join(CR<std::string> sep, generator<T>& list) {
-    std::stringstream os;
+QString join(CR<QString> sep, generator<T>& list) {
+    QString     out;
+    QTextStream os{&out};
     join(os, sep, list);
-    return os.str();
+    return out;
 }
 
 
 template <typename T>
-std::string join(CR<std::string> sep, generator<T>&& list) {
+QString join(CR<QString> sep, generator<T>&& list) {
     auto tmp = std::move(list);
     join(sep, tmp);
 }
 
-inline wchar_t convertCharToWchar(char c) {
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.from_bytes(std::string(1, c))[0];
-}
-
-
 /// Get visible name of the character.
-inline Pair<wchar_t, std::string> visibleName(char ch) {
-    switch (ch) {
+inline Pair<QChar, QString> visibleName(QChar ch) {
+    switch (ch.unicode()) {
         case '\x00': return {L'␀', "[NUL]"}; // Null character
         case '\x01': return {L'␁', "[SOH]"}; // Start of header
         case '\x02': return {L'␂', "[STX]"}; // Start of text
@@ -161,17 +131,17 @@ inline Pair<wchar_t, std::string> visibleName(char ch) {
         case '\x1F': return {L'␟', "[US]"};  // Unit separator
         case '\x7f': return {L'␡', "[DEL]"}; // Delete
         case ' ': return {L'␣', "[SPC]"};    // Space
-        default: return {convertCharToWchar(ch), std::string(1, ch)};
+        default: return {QChar(ch), QString(ch)};
     }
 }
 
-inline Vec<Str> visibleName(std::wstring str) {
+inline Vec<Str> visibleUnicodeName(QString str) {
     Vec<Str> result;
-    for (wchar_t ch : str) {
+    for (QChar ch : str) {
         if (ch <= 127) {
-            result.push_back(visibleName((char)ch).first);
+            result.push_back(visibleName(ch).first);
         } else {
-            result.push_back(to_string(ch));
+            result.push_back(ch);
         }
     }
 
@@ -179,8 +149,8 @@ inline Vec<Str> visibleName(std::wstring str) {
 }
 
 inline Vec<Str> split_keep_separator(
-    const Str&   str,
-    IntSet<char> sep = {' '}) {
+    const Str& str,
+    CharSet    sep = {QChar(' ')}) {
     Vec<Str> result;
     int      prev = 0, curr = 0;
     while (curr < str.length()) {
@@ -210,8 +180,8 @@ inline Str strip(
     CR<CharSet> leading,
     CR<CharSet> trailing) {
     if (0 < string.size()) {
-        Span<char> view = string.toSpan();
-        auto       end  = &string.back();
+        Span<QChar> view = string.toSpan();
+        auto        end  = &string.back();
         while (leading.contains(view.at(0))) {
             view.moveStart(1, end);
         }
@@ -222,4 +192,12 @@ inline Str strip(
     } else {
         return Str();
     }
+}
+
+inline Vec<Str> split(CR<Str> str, QChar ch) {
+    Vec<Str> res;
+    for (const auto& it : str.split(ch)) {
+        res.push_back(it);
+    }
+    return res;
 }

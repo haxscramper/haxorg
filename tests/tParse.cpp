@@ -39,7 +39,7 @@ struct L : public Tokenizer<TokenKind> {
 
     void lex(PosStr& str) {
         while (!str.finished()) {
-            switch (str.get()) {
+            switch (str.get().unicode()) {
                 case '{':
                 case '}': lex_br(str); break;
                 default: lex_1(str);
@@ -65,7 +65,7 @@ NodeId<NodeKind, TokenKind> parse(
 }
 
 TEST_CASE("Core linearlized AST parser", "[node]") {
-    std::string           base{"{{{{{{DDD}{WEWE}{VVVV}}}{EEEE}}}}"};
+    QString               base{"{{{{{{DDD}{WEWE}{VVVV}}}{EEEE}}}}"};
     TokenGroup<TokenKind> tokens;
     PosStr                str(base);
     L                     tokenizer(&tokens);

@@ -5,7 +5,7 @@ TEST_CASE("String operations", "[str]") {
     SECTION("String views") {
         Str  base{"test"};
         auto span = base.toSpan();
-        REQUIRE(span.data() == &base[0]);
+        REQUIRE(span[0] == base[0]);
         REQUIRE(span.size() == base.size());
         REQUIRE(span.size() == 4);
         REQUIRE(base == Str(span));
@@ -25,8 +25,8 @@ TEST_CASE("String operations", "[str]") {
         REQUIRE(empty.empty());
         REQUIRE(s1[1] == 'e');
         // String slices are inclusive
-        REQUIRE(s1[Slice<int>{1, 3}] == "ell");
-        REQUIRE((s1 + s2) == "HelloWorld");
+        REQUIRE(s1[Slice<int>{1, 3}] == QString("ell"));
+        REQUIRE((s1 + s2) == QString("HelloWorld"));
     }
 
     SECTION("String mutations") {
@@ -38,7 +38,7 @@ TEST_CASE("String operations", "[str]") {
         s1[0] = '!';
         REQUIRE(s1 == "!1234");
         // Try to change the first character of empty to 'X'
-        REQUIRE_THROWS_AS((empty.at(0) = 'X'), std::out_of_range);
+        REQUIRE_THROWS_AS((empty.at(0) == QChar('X')), std::out_of_range);
         // Try to change the last two characters of empty to "zz" using the
         // slice operator
         REQUIRE_THROWS_AS((empty.at(Slice<int>{1, 2})), std::out_of_range);

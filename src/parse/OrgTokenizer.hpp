@@ -15,11 +15,11 @@
 #include <lexbase/TraceBase.hpp>
 
 struct ImplementError : public std::runtime_error {
-    explicit inline ImplementError(const std::string& message = "")
-        : std::runtime_error(message) {}
+    explicit inline ImplementError(const QString& message = "")
+        : std::runtime_error(message.toStdString()) {}
 };
 
-OrgCommandKind classifyCommand(std::string const& command);
+OrgCommandKind classifyCommand(QString const& command);
 
 
 struct OrgTokenizer
@@ -67,10 +67,10 @@ struct OrgTokenizer
     void pushResolved(CR<OrgToken> token);
 
     Vec<OrgToken> lexDelimited(
-        PosStr&                         str,
-        const Pair<char, OrgTokenKind>& start,
-        const Pair<char, OrgTokenKind>& finish,
-        const OrgTokenKind&             middle);
+        PosStr&                          str,
+        const Pair<QChar, OrgTokenKind>& start,
+        const Pair<QChar, OrgTokenKind>& finish,
+        const OrgTokenKind&              middle);
 
 
     /*!Check if the string is positioned at the start of a logbook

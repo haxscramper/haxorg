@@ -1,15 +1,16 @@
 #include <hstd/stdlib/IntSet.hpp>
+#include <hstd/stdlib/charsets.hpp>
 #include "common.hpp"
 
 TEST_CASE("Test integral set operations", "[contains]") {
-    IntSet<char> s;
-    IntSet<char> other;
+    CharSet s;
+    CharSet other;
     SECTION("Initial set content") {
         // Default-initialized set does not contain any values and has
         // `.size()` zero
         REQUIRE(s.size() == 0);
         // You can include values to the set using `.incl` method
-        s.incl('a');
+        s.incl(QChar('a'));
         // `.size()` shows the number of values included in the set
         REQUIRE(s.size() == 1);
     }
@@ -17,15 +18,15 @@ TEST_CASE("Test integral set operations", "[contains]") {
     SECTION("Contains for a single item") {
         // Presence of specific element can be tested using `.contains()`
         // value
-        REQUIRE(!s.contains('c'));
+        REQUIRE(!s.contains(QChar('c')));
         // Elements can be added
-        s.incl('c');
+        s.incl(QChar('c'));
         // Tested again
-        REQUIRE(s.contains('c'));
+        REQUIRE(s.contains(QChar('c')));
         // Then excluded
-        s.excl('c');
+        s.excl(QChar('c'));
         // And then tested again, now for absence
-        REQUIRE(!s.contains('c'));
+        REQUIRE(!s.contains(QChar('c')));
     }
 
     SECTION("Contains for set operations") {
@@ -37,7 +38,7 @@ TEST_CASE("Test integral set operations", "[contains]") {
         REQUIRE(other.size() == 0);
         REQUIRE(s.size() == 0);
         // After adding element to the set  this no longer holds
-        s.incl('s');
+        s.incl(QChar('s'));
         REQUIRE(s.contains(other));
         REQUIRE(!other.contains(s));
         // You can test for subset relation using `<` operator: it tests
@@ -46,7 +47,7 @@ TEST_CASE("Test integral set operations", "[contains]") {
         // You can also test for a regular subset operation, using `<=`
         // operator which is analogous to the `s.contains(other)`
         REQUIRE(other <= s);
-        other.incl('s');
+        other.incl(QChar('s'));
         // After including the same element in the set `<` no longer holds
         REQUIRE(!(other < s));
         // But regular subset check is ok
@@ -59,9 +60,9 @@ TEST_CASE("Test integral set operations", "[contains]") {
     SECTION("Set operations") {
         REQUIRE((s + other).size() == 0);
         REQUIRE((s - other).size() == 0);
-        REQUIRE(s < (s + IntSet<char>{'1'}));
-        REQUIRE(s < (s | IntSet<char>{'1'}));
-        REQUIRE(s == (s & IntSet<char>{'1'}));
+        REQUIRE(s < (s + CharSet{QChar('1')}));
+        REQUIRE(s < (s | CharSet{QChar('1')}));
+        REQUIRE(s == (s & CharSet{QChar('1')}));
     }
 
     SECTION("Integer set operators") {

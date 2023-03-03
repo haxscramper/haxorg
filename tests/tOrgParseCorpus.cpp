@@ -177,18 +177,17 @@ void compareTokens(
 
 
         if (text.isUnified()) {
-            std::cout << (ColText("Lexed") <<= 48) << (ColText("Expected"))
-                      << "\n";
+            qcout << (ColText("Lexed") <<= 48) << (ColText("Expected"))
+                  << "\n";
             for (const auto& [lhs, rhs] : text.unifiedLines()) {
                 auto lhsStyle = toStyle(lhs.prefix);
                 auto rhsStyle = toStyle(rhs.prefix);
-                auto format   = [&](int          id,
-                                  CR<OrgToken> tok) -> std::string {
+                auto format   = [&](int id, CR<OrgToken> tok) -> QString {
                     return to_string(id) + " " + to_string(tok.kind) + " "
                          + hshow(tok.text).toString(false) + " "
                          + to_string((u64)tok.text.data());
                 };
-                std::cout
+                qcout
                     //
                     << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= 2)
                     << ((lhs.empty() ? ColText("")
@@ -208,7 +207,7 @@ void compareTokens(
                                              expected.tokens.content.at(
                                                  rhs.index().value()))))
                         <<= 16)
-                    << std::endl;
+                    << Qt::endl;
             }
         }
         // std::cout << text << std::endl;
@@ -221,7 +220,7 @@ void runSpec(CR<YAML::Node> group) {
 
     for (const auto& spec : parsed.specs) {
         if (spec.testName.has_value()) {
-            std::cout << spec.testName << "\n";
+            qcout << spec.testName << "\n";
         }
 
         MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
@@ -287,6 +286,7 @@ void runSpec(CR<YAML::Node> group) {
 }
 
 TEST_CASE("Parse corpus", "[corpus]") {
+    std::string glob = testParameters.corpusGlob.toStdString();
     for (fs::directory_entry const& path :
          fs::recursive_directory_iterator(
              __CURRENT_FILE_DIR__ / "corpus")) {
@@ -298,9 +298,7 @@ TEST_CASE("Parse corpus", "[corpus]") {
             } else {
                 std::string path_str = path.path();
                 int         matchRes = fnmatch(
-                    testParameters.corpusGlob.c_str(),
-                    path_str.c_str(),
-                    FNM_EXTMATCH);
+                    glob.c_str(), path_str.c_str(), FNM_EXTMATCH);
                 if (!(matchRes == FNM_NOMATCH)) {
                     YAML::Node spec = YAML::LoadFile(path.path());
                     runSpec(spec);

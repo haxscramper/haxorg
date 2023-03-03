@@ -2,48 +2,48 @@
 #include "common.hpp"
 
 TEST_CASE("Positional string cursor movements", "[str]") {
-    std::string base{"01234"};
-    PosStr      str{base};
+    QString base{"01234"};
+    PosStr  str{base};
     SECTION("Check for characters on the position ahead") {
-        REQUIRE(str.at('0'));
-        REQUIRE(str.at('1', 1));
-        REQUIRE(str.at('2', 2));
+        REQUIRE(str.at(QChar('0')));
+        REQUIRE(str.at(QChar('1'), 1));
+        REQUIRE(str.at(QChar('2'), 2));
     }
 
     SECTION("Check for character set on the position ahead") {
-        REQUIRE(str.at({slice('0', '9')}));
+        REQUIRE(str.at({slice(QChar('0'), QChar('9'))}));
         REQUIRE(str.at(charsets::Digits));
         REQUIRE(!str.at(charsets::Letters));
     }
 
     SECTION("Skip while single character") {
-        str.skipZeroOrMore('0');
-        REQUIRE(str.at('1'));
+        str.skipZeroOrMore(QChar('0'));
+        REQUIRE(str.at(QChar('1')));
     }
 
     SECTION("Skip while character set") {
-        REQUIRE(str.at('0'));
-        str.skipZeroOrMore(CharSet{'0', '1', '2'});
-        REQUIRE(str.at('3'));
+        REQUIRE(str.at(QChar('0')));
+        str.skipZeroOrMore(CharSet{QChar('0'), QChar('1'), QChar('2')});
+        REQUIRE(str.at(QChar('3')));
     }
 
     SECTION("Skip before a character") {
-        str.skipBefore('3');
-        REQUIRE(str.at('2'));
+        str.skipBefore(QChar('3'));
+        REQUIRE(str.at(QChar('2')));
     }
 
     SECTION("Skip to a character") {
-        str.skipTo('3');
-        REQUIRE(str.at('3'));
+        str.skipTo(QChar('3'));
+        REQUIRE(str.at(QChar('3')));
     }
 
     SECTION("Skip until one of the caracters") {
-        str.skipBefore(CharSet{'3', '4'});
-        REQUIRE(str.at('2'));
+        str.skipBefore(CharSet{QChar('3'), QChar('4')});
+        REQUIRE(str.at(QChar('2')));
     }
 
     SECTION("Skip until a string is found") {
         str.skipBefore("34");
-        REQUIRE(str.at('2'));
+        REQUIRE(str.at(QChar('2')));
     }
 }

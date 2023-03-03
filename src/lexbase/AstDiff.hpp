@@ -21,7 +21,7 @@
 
 namespace diff {
 template <int Idx, typename... Args>
-void writeIfIndex(std::ostream& os, std::variant<Args...> const& var) {
+void writeIfIndex(QTextStream& os, std::variant<Args...> const& var) {
     if constexpr (Idx == 0) {
         os << Idx << " " << std::get<Idx>(var);
     } else {
@@ -191,13 +191,13 @@ struct Node {
     bool isLeaf() const { return Subnodes.empty(); }
 };
 
-std::ostream& operator<<(std::ostream& os, NodeId id) {
+QTextStream& operator<<(QTextStream& os, NodeId id) {
     os << id.Offset;
     return os;
 }
 
 template <typename IdT, typename ValT>
-std::ostream& operator<<(std::ostream& os, Node<IdT, ValT> const& node) {
+QTextStream& operator<<(QTextStream& os, Node<IdT, ValT> const& node) {
     os << "{H:" << node.Height << ", D:" << node.Depth
        << ", S:" << node.Shift << ", P:" << node.Parent
        << ", L:" << node.LeftMostDescendant
@@ -1090,7 +1090,7 @@ void ASTDiff<IdT, ValT>::computeChangeKinds(Mapping& M) {
 
 template <typename IdT, typename ValT>
 static void printNode(
-    std::ostream&          OS,
+    QTextStream&           OS,
     SyntaxTree<IdT, ValT>& Tree,
     NodeId                 Id,
     Func<Str(CR<ValT>)>    valToStr) {
@@ -1106,7 +1106,7 @@ static void printNode(
 
 template <typename IdT, typename ValT>
 static void printDstChange(
-    std::ostream&          OS,
+    QTextStream&           OS,
     ASTDiff<IdT, ValT>&    Diff,
     SyntaxTree<IdT, ValT>& SrcTree,
     SyntaxTree<IdT, ValT>& DstTree,

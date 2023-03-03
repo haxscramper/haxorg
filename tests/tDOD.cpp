@@ -5,8 +5,9 @@
 DECL_ID_TYPE_MASKED(Value1, Id1, u8, 2);
 
 template <typename T>
-std::string bits(T val) {
-    return std::bitset<8 * sizeof(T)>(val).to_string();
+QString bits(T val) {
+    return QString::fromStdString(
+        std::bitset<8 * sizeof(T)>(val).to_string());
 }
 
 TEST_CASE("DOD containers", "[dod]") {
@@ -17,7 +18,7 @@ TEST_CASE("DOD containers", "[dod]") {
         REQUIRE(id.getValue() == 1_u8);
         REQUIRE(id.getValue() == 0b1_u8);
         id.setMask(2_u8);
-        REQUIRE(bits(id.getValue()) == "10000001");
+        REQUIRE(bits(id.getValue()) == QString("10000001"));
         REQUIRE(id.getMask() == 2_u8);
         REQUIRE(id.getIndex() == 0);
         {

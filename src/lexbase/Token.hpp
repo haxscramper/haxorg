@@ -33,7 +33,7 @@ struct [[nodiscard]] TokenId
 };
 
 template <typename K>
-std::ostream& operator<<(std::ostream& os, TokenId<K> const& value) {
+QTextStream& operator<<(QTextStream& os, TokenId<K> const& value) {
     return value.streamTo(os, demangle(typeid(K).name()));
 }
 
@@ -43,18 +43,19 @@ std::ostream& operator<<(std::ostream& os, TokenId<K> const& value) {
 template <typename K>
 struct Token {
     using id_type = TokenId<K>;
-    K                kind; /// Specific kind of the token
-    std::string_view text; /// Token view on the base input text
+    K           kind; /// Specific kind of the token
+    QStringView text; /// Token view on the base input text
 
     Token() = default;
     /// \brief Create token that points to the real string data
-    Token(K _kind, std::string_view _text) : kind(_kind), text(_text) {}
+    Token(K _kind, QStringView _text) : kind(_kind), text(_text) {}
     /// \brief Create fake token that is positioned at some point in the
     /// base string.
     ///
     /// \note Default offset parameter is -1 which creates token that is
     /// completely detached from any real position.
-    Token(K _kind, int offset = -1) : kind(_kind), text(nullptr, offset) {}
+    Token(K _kind, int offset = -1)
+        : kind(_kind), text(static_cast<const QChar*>(nullptr), offset) {}
 
     Str strVal() const {
         if (hasData()) {
@@ -85,7 +86,7 @@ struct Token {
     /// starting point of the view that was used in the originating
     /// positional string and so the behavior with 'fake' token is going to
     /// be invalid when used with any other position in the string.
-    std::size_t offsetFrom(const char* start) const {
+    std::size_t offsetFrom(const QChar* start) const {
         if (hasData()) {
             return std::distance(text.data(), start);
         } else {
@@ -96,7 +97,7 @@ struct Token {
 
 
 template <StringConvertible K>
-std::ostream& operator<<(std::ostream& os, Token<K> const& value) {
+QTextStream& operator<<(QTextStream& os, Token<K> const& value) {
     os << "Token<" << to_string(value.kind) << ">(";
     if (value.hasData()) {
         os << escape_literal(to_string(value.text));
@@ -145,7 +146,7 @@ struct TokenGroup {
 };
 
 template <StringConvertible K>
-std::ostream& operator<<(std::ostream& os, TokenGroup<K> const& tokens) {
+QTextStream& operator<<(QTextStream& os, TokenGroup<K> const& tokens) {
     for (const auto& [idx, tok] : tokens.tokens.pairs()) {
         os << left_aligned(to_string(idx), 16) << " | " << *tok << "\n";
     }
@@ -396,7 +397,7 @@ struct LexerCommon {
 };
 
 template <typename K>
-std::ostream& operator<<(std::ostream& os, LexerCommon<K> const& value) {
+QTextStream& operator<<(QTextStream& os, LexerCommon<K> const& value) {
     for (int i = 0; i < 10; ++i) {
         if (value.hasNext(i)) {
             if (0 < i) {

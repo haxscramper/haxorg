@@ -17,8 +17,8 @@ struct BacktrackRes {
 
 BOOST_DESCRIBE_STRUCT(BacktrackRes, (), (lhsIndex, rhsIndex));
 
-inline std::ostream& operator<<(
-    std::ostream&       os,
+inline QTextStream& operator<<(
+    QTextStream&        os,
     BacktrackRes const& value) {
     return os << described_class_printer(os, value);
 }
@@ -88,8 +88,8 @@ struct DiffFormatConf {
     int maxUnchangedWords = high<int>();
     /// Show line numbers in the generated diffs
     bool showLines = false;
-    /// Show line diff with side-by-side (aka github 'split' view) or
-    /// on top of each other (aka 'unified')
+    /// Show line diff with side-by-side (aka github QChar('split') view)
+    /// or on top of each other (aka QChar('unified'))
     bool sideBySide = true;
     /// If diff contains invisible characters - trailing whitespaces,
     /// control characters, escapes and ANSI SGR formatting - show them
@@ -104,8 +104,8 @@ struct DiffFormatConf {
     /// into single chunks.
     bool groupInline = true;
     /// Piece of text that is placed into resulting sequence in place of
-    /// 'None' operation -- empty space that does not correspond to any
-    /// sequence edit operation.
+    /// QChar('None') operation -- empty space that does not correspond to
+    /// any sequence edit operation.
     ColText emptyChunk;
     /// Format mismatched text. `mode` is the mismatch kind,
     /// `secondary` is used for `sekChanged` to annotated which part
@@ -135,11 +135,11 @@ struct DiffFormatConf {
         };
     /// Split line into chunks for formatting
     Func<Vec<Str>(CR<Str>)> lineSplit = [](CR<Str> a) -> Vec<Str> {
-        return split_keep_separator(a, '\n');
+        return split_keep_separator(a, QChar(QChar('\n')));
     };
     /// Convert invisible character (whitespace or control) to
     /// human-readable representation -
-    Func<Str(char)> explainChar = [](char ch) -> Str {
+    Func<Str(QChar)> explainChar = [](QChar ch) -> Str {
         const auto [uc, ascii] = visibleName(ch);
         return uc;
     };
@@ -283,14 +283,14 @@ LevenshteinDistanceResult levenshteinDistance(Span<T> str1, Span<T> str2) {
         });
 }
 
-Const<CharSet> Invis{slice('\x00', '\x1F'), '\x7F'};
+Const<CharSet> Invis{slice(QChar('\x00'), QChar('\x1F')), QChar('\x7F')};
 
 
 inline bool scanInvisible(CR<Str> text, CharSet& invisSet) {
     // Scan string for invisible characters from right to left,
     // updating active invisible set as needed.
     for (int chIdx = text.length() - 1; chIdx >= 0; --chIdx) {
-        // If character is in the 'invisible' set return true
+        // If character is in the QChar('invisible') set return true
         if (invisSet.contains(text[chIdx])) {
             return true;
         } else {
@@ -309,7 +309,7 @@ inline bool hasInvisibleChanges(
     Vec<Str>&     oldSeq,
     Vec<Str>&     newSeq) {
     // Is any change in the edit sequence invisible?
-    IntSet<char> start = Invis + ' ';
+    CharSet start = Invis + QChar(' ');
 
     auto invis = [&start](Str text) { return scanInvisible(text, start); };
 
@@ -332,9 +332,9 @@ inline bool hasInvisibleChanges(
             case SeqEditKind::None:
             case SeqEditKind::Transpose: break;
             case SeqEditKind::Keep:
-                // Check for kept characters - this will update 'invisible'
-                // set if any found, so edits like `" X" -> "X"` are not
-                // considered as 'has invisible'
+                // Check for kept characters - this will update
+                // QChar('invisible') set if any found, so edits like `" X"
+                // -> "X"` are not considered as QChar('has invisible')
                 if (invis(oldSeq[edit.sourcePos])) {}
                 break;
             case SeqEditKind::Replace:
@@ -350,10 +350,10 @@ inline bool hasInvisibleChanges(
 }
 
 inline bool hasInvisible(
-    std::string  text,
-    IntSet<char> startSet = Invis + CharSet{' '}) {
+    QString text,
+    CharSet startSet = Invis + CharSet{QChar(' ')}) {
     // Does string have significant invisible characters?
-    IntSet<char> invisSet = startSet;
+    CharSet invisSet = startSet;
     if (scanInvisible(text, invisSet)) {
         return true;
     }
@@ -362,7 +362,7 @@ inline bool hasInvisible(
 
 inline bool hasInvisible(CR<Vec<Str>> text) {
     // Do any of strings in text have signficant invisible characters.
-    IntSet<char> invisSet = Invis + CharSet{' '};
+    CharSet invisSet = Invis + CharSet{QChar(' ')};
     for (int idx = text.size() - 1; idx >= 0; idx--) {
         // Iterate over all items from right to left - until we find the
         // first visible character, space is also considered significant,
@@ -378,7 +378,7 @@ inline bool hasInvisible(CR<Vec<Str>> text) {
 inline Str toVisibleNames(CR<DiffFormatConf> conf, const Str& str) {
     Str result;
     // Convert all characters in the string into visible ones
-    for (const char& ch : str) {
+    for (const auto& ch : str) {
         result += conf.explainChar(ch);
     }
     return result;
@@ -703,7 +703,7 @@ struct FormattedDiff {
                 .originalIndex = rhs.item,
                 // Only newly inserted lines need to be formatted for the
                 // unified diff, everything else is displayed on the
-                // 'original' version.
+                // QChar('original') version.
                 .changed = conf.unified() && rhs.kind == sek::Insert,
                 .kind    = rhs.kind});
         }
@@ -819,7 +819,7 @@ inline ColText formatInlineDiff(
     const Vec<Str>&     target,
     const Vec<SeqEdit>& diffed,
     DiffFormatConf      conf) {
-    CharSet      start = Invis + CharSet{' '};
+    CharSet      start = Invis + CharSet{QChar(' ')};
     Vec<ColText> chunks;
 
     auto push = [&](const Str&  text,
@@ -1136,5 +1136,6 @@ inline ColText formatDiffed(
     const Str&            text1,
     const Str&            text2,
     const DiffFormatConf& conf = DiffFormatConf{}) {
-    return formatDiffed(split(text1, '\n'), split(text2, '\n'), conf);
+    return formatDiffed(
+        split(text1, QChar('\n')), split(text2, QChar('\n')), conf);
 }
