@@ -56,14 +56,15 @@ struct PosStr {
     std::shared_ptr<LocationResolver> resolver;
 
     struct PrintParams {
-        int  maxTokens = 10;
-        bool withPos   = true;
-        bool withEnd   = true;
-        bool withColor = true;
+        int  maxTokens   = 10;
+        bool withPos     = true;
+        bool withEnd     = true;
+        bool withColor   = true;
+        int  startOffset = 0;
     };
 
 
-    void print(ColStream& os, CR<PrintParams> params) {
+    void print(ColStream& os, CR<PrintParams> params) const {
         if (params.withPos) {
             os << "#" << pos;
         }
@@ -72,7 +73,9 @@ struct PosStr {
             os << TermColorFg8Bit::Red << " finished " << os.end();
         }
 
-        for (int i = 0; i < params.maxTokens && hasNext(i); ++i) {
+        for (int i = params.startOffset;
+             i < params.maxTokens && hasNext(i);
+             ++i) {
             os << TermColorFg8Bit::Yellow << " '"
                << visibleName(get(i)).first << "'" << os.end();
         }
@@ -82,13 +85,13 @@ struct PosStr {
         }
     }
 
-    void print() { print(std::cout, PrintParams()); }
-    void print(ColStream& os) { print(os, PrintParams()); }
-    void print(std::ostream& os, CR<PrintParams> params) {
+    void print() const { print(std::wcout, PrintParams()); }
+    void print(ColStream& os) const { print(os, PrintParams()); }
+    void print(std::wostream& os, CR<PrintParams> params) const {
         ColStream stream{os};
         print(stream, params);
     }
-    void print(CR<PrintParams> params) { print(std::cout, params); }
+    void print(CR<PrintParams> params) const { print(std::wcout, params); }
 
 
     struct SliceStartData {
@@ -501,7 +504,7 @@ struct PosStr {
     /// space indentation is considered to be zero. `"\n____text" -> 0`,
     /// but `"____test" -> 4`
     int getIndent() const {
-        int result;
+        int result = 0;
         while (at(charsets::HorizontalSpace, result)) {
             ++result;
         }
@@ -521,7 +524,7 @@ struct PosStr {
 
     bool hasMoreIndent(const int& indent, const bool& exactIndent = false)
         const {
-        bool result;
+        bool result      = false;
         int  foundIndent = 0;
         while (at(charsets::HorizontalSpace, foundIndent)) {
             ++foundIndent;

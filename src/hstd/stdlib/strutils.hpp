@@ -118,44 +118,50 @@ std::string join(CR<std::string> sep, generator<T>&& list) {
     join(sep, tmp);
 }
 
+inline wchar_t convertCharToWchar(char c) {
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    return converter.from_bytes(std::string(1, c))[0];
+}
+
+
 /// Get visible name of the character.
-inline Pair<Str, Str> visibleName(char ch) {
+inline Pair<wchar_t, std::string> visibleName(char ch) {
     switch (ch) {
-        case '\x00': return {"␀", "[NUL]"}; // Null character
-        case '\x01': return {"␁", "[SOH]"}; // Start of header
-        case '\x02': return {"␂", "[STX]"}; // Start of text
-        case '\x03': return {"␃", "[ETX]"}; // End of text
-        case '\x04': return {"␄", "[EOT]"}; // End of transmission
-        case '\x05': return {"␅", "[ENQ]"}; // Enquiry
-        case '\x06': return {"␆", "[ACK]"}; // Acknowledge
-        case '\x07': return {"␇", "[BEL]"}; // Bell
-        case '\x08': return {"␈", "[BS]"};  // Backspace
-        case '\x09': return {"␉", "[HT]"};  // Horizontal tab
-        case '\x0A': return {"␤", "[LF]"};  // Line feed
-        case '\x0B': return {"␋", "[VT]"};  // Vertical tab
-        case '\x0C': return {"␌", "[FF]"};  // Form feed
-        case '\x0D': return {"␍", "[CR]"};  // Carriage return
-        case '\x0E': return {"␎", "[SO]"};  // Shift out
-        case '\x0F': return {"␏", "[SI]"};  // Shift in
-        case '\x10': return {"␐", "[DLE]"}; // Data link escape
-        case '\x11': return {"␑", "[DC1]"}; // Device control 1
-        case '\x12': return {"␒", "[DC2]"}; // Device control 2
-        case '\x13': return {"␓", "[DC3]"}; // Device control 3
-        case '\x14': return {"␔", "[DC4]"}; // Device control 4
-        case '\x15': return {"␕", "[NAK]"}; // Negative acknowledge
-        case '\x16': return {"␖", "[SYN]"}; // Synchronous idle
-        case '\x17': return {"␗", "[ETB]"}; // End of transmission block
-        case '\x18': return {"␘", "[CAN]"}; // Cancel
-        case '\x19': return {"␙", "[EM]"};  // End of medium
-        case '\x1A': return {"␚", "[SUB]"}; // Substitute
-        case '\x1B': return {"␛", "[ESC]"}; // Escape
-        case '\x1C': return {"␜", "[FS]"};  // File separator
-        case '\x1D': return {"␝", "[GS]"};  // Group separator
-        case '\x1E': return {"␞", "[RS]"};  // Record separator
-        case '\x1F': return {"␟", "[US]"};  // Unit separator
-        case '\x7f': return {"␡", "[DEL]"}; // Delete
-        case ' ': return {"␣", "[SPC]"};    // Space
-        default: return {std::string(1, ch), std::string(1, ch)};
+        case '\x00': return {L'␀', "[NUL]"}; // Null character
+        case '\x01': return {L'␁', "[SOH]"}; // Start of header
+        case '\x02': return {L'␂', "[STX]"}; // Start of text
+        case '\x03': return {L'␃', "[ETX]"}; // End of text
+        case '\x04': return {L'␄', "[EOT]"}; // End transmission
+        case '\x05': return {L'␅', "[ENQ]"}; // Enquiry
+        case '\x06': return {L'␆', "[ACK]"}; // Acknowledge
+        case '\x07': return {L'␇', "[BEL]"}; // Bell
+        case '\x08': return {L'␈', "[BS]"};  // Backspace
+        case '\x09': return {L'␉', "[HT]"};  // Horizontal tab
+        case '\x0A': return {L'␤', "[LF]"};  // Line feed
+        case '\x0B': return {L'␋', "[VT]"};  // Vertical tab
+        case '\x0C': return {L'␌', "[FF]"};  // Form feed
+        case '\x0D': return {L'␍', "[CR]"};  // Carriage return
+        case '\x0E': return {L'␎', "[SO]"};  // Shift out
+        case '\x0F': return {L'␏', "[SI]"};  // Shift in
+        case '\x10': return {L'␐', "[DLE]"}; // Data link escape
+        case '\x11': return {L'␑', "[DC1]"}; // Device control 1
+        case '\x12': return {L'␒', "[DC2]"}; // Device control 2
+        case '\x13': return {L'␓', "[DC3]"}; // Device control 3
+        case '\x14': return {L'␔', "[DC4]"}; // Device control 4
+        case '\x15': return {L'␕', "[NAK]"}; // Negative ack
+        case '\x16': return {L'␖', "[SYN]"}; // Synchronous idle
+        case '\x17': return {L'␗', "[ETB]"}; // End tr. block
+        case '\x18': return {L'␘', "[CAN]"}; // Cancel
+        case '\x19': return {L'␙', "[EM]"};  // End of medium
+        case '\x1A': return {L'␚', "[SUB]"}; // Substitute
+        case '\x1B': return {L'␛', "[ESC]"}; // Escape
+        case '\x1C': return {L'␜', "[FS]"};  // File separator
+        case '\x1D': return {L'␝', "[GS]"};  // Group separator
+        case '\x1E': return {L'␞', "[RS]"};  // Record separator
+        case '\x1F': return {L'␟', "[US]"};  // Unit separator
+        case '\x7f': return {L'␡', "[DEL]"}; // Delete
+        case ' ': return {L'␣', "[SPC]"};    // Space
+        default: return {convertCharToWchar(ch), std::string(1, ch)};
     }
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <hstd/system/string_convert.hpp>
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Span.hpp>
@@ -19,6 +20,7 @@ struct Str : public std::string {
         : std::string(view.data(), view.size()) {}
     Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
     Str(char c) : std::string(c, 1) {}
+    Str(wchar_t c) : std::string(to_string(c)) {}
     Str() = default;
 
     char*       data() { return std::string::data(); }

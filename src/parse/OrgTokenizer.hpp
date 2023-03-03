@@ -88,7 +88,7 @@ struct OrgTokenizer
     struct LexerState {
         Vec<Flag> flagStack = Vec<Flag>();
         Vec<int>  indent = Vec<int>(); /// Indentation steps encountered by
-                                      /// the lexer state
+                                       /// the lexer state
         /*!Check if state has any indentation levels stored
          */
         bool hasIndent() { return 0 < indent.size(); }
@@ -121,7 +121,7 @@ struct OrgTokenizer
 
         /// Get total indentation level from the state
         int getIndent() const {
-            int result;
+            int result = 0;
             for (const auto& level : indent) {
                 result += level;
             }

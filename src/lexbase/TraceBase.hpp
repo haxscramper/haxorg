@@ -7,14 +7,17 @@
 #include <hstd/stdlib/ColText.hpp>
 
 struct OperationsTracer {
-    bool                           trace         = false;
-    bool                           traceToFile   = false;
-    std::unique_ptr<std::ofstream> file          = nullptr;
-    bool                           traceToBuffer = false;
+    bool                            trace         = false;
+    bool                            traceToFile   = false;
+    std::unique_ptr<std::wofstream> file          = nullptr;
+    bool                            traceToBuffer = false;
 
     inline void setTraceFile(std::string const& outfile) {
-        traceToFile = true;
-        file.reset(new std::ofstream{outfile});
+        traceToFile                   = true;
+        const std::locale utf8_locale = std::locale(
+            std::locale(), new std::codecvt_utf8<wchar_t>());
+        file.reset(new std::wofstream{outfile});
+        file->imbue(utf8_locale);
     }
 
     ColStream getStream() {
@@ -25,7 +28,7 @@ struct OperationsTracer {
             os.colored = false;
             return os;
         } else {
-            return ColStream{std::cout};
+            return ColStream{std::wcout};
         }
     }
 

@@ -178,13 +178,21 @@ struct ColText : Vec<ColRune> {
     std::string toString(bool colored = true) {
         return to_colored_string(*this, colored);
     }
-    ColText() = default;
 
-    ColText(CR<ColStyle> style, CR<std::string> text) {
-        for (const auto& ch : to_wstring(text)) {
+    ColText() = default;
+    ColText(CR<ColStyle> style, CR<std::wstring> text) {
+        for (const auto& ch : text) {
             push_back(ColRune(style, ch));
         }
     }
+
+    ColText(CR<ColStyle> style, CR<std::string> text)
+        : ColText(style, to_wstring(text)) {}
+
+    ColText(CR<std::wstring> text) : ColText(ColStyle{}, text) {}
+
+    ColText(CR<ColStyle> style, wchar_t text)
+        : Vec<ColRune>({ColRune(style, text)}) {}
 
 
     template <typename T>
@@ -247,16 +255,16 @@ struct StreamState {
 };
 
 struct ColStream : public ColText {
-    std::ostream* ostream = nullptr;
-    bool          buffered;
-    bool          colored = true;
+    std::wostream* ostream = nullptr;
+    bool           buffered;
+    bool           colored = true;
 
     CR<ColText> getBuffer() const {
         return *static_cast<ColText const*>(this);
     }
 
     ColStream() : buffered(true){};
-    ColStream(std::ostream& os) : ostream(&os), buffered(false) {}
+    ColStream(std::wostream& os) : ostream(&os), buffered(false) {}
 
     ColStream& red() {
         active.fg = TermColorFg8Bit::Red;
@@ -271,7 +279,7 @@ struct ColStream : public ColText {
         if (buffered) {
             append(text);
         } else {
-            (*ostream) << to_colored_string(text, colored);
+            (*ostream) << to_wstring(to_colored_string(text, colored));
         }
     }
 };
@@ -311,6 +319,16 @@ inline ColStream& operator<<(ColStream& os, Style const& value) {
 }
 
 inline ColStream& operator<<(ColStream& os, std::string const& value) {
+    os.write(ColText(os.active, value));
+    return os;
+}
+
+inline ColStream& operator<<(ColStream& os, wchar_t const& value) {
+    os.write(ColText(os.active, value));
+    return os;
+}
+
+inline ColStream& operator<<(ColStream& os, std::wstring const& value) {
     os.write(ColText(os.active, value));
     return os;
 }

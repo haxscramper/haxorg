@@ -89,3 +89,111 @@ items:
         - Nested1
         - Nested2
       - Item2
+
+    tokens:
+      - {idx: 0, kind: ListStart}
+
+      # First list
+      - {idx: 1, kind: ListItemStart, str: "-"}
+
+      ## Content of the first list
+      - {idx: 2, kind: StmtListOpen}
+      - {idx: 3, kind: ParagraphStart}
+      - {idx: 4, kind: Word, str: Item1}
+      - {idx: 5, kind: Newline, str: "\n"}
+      - {idx: 6, kind: ParagraphEnd}
+      - {idx: 7, kind: StmtListClose}
+
+      - {idx: 8, kind: ListItemEnd}
+
+      # Increase internal indentation
+      - {idx: 9, kind: Indent}
+
+      # Start of the second list item
+      - {idx: 10, kind: ListItemStart, str: "-"}
+
+      # Second list item content
+      - {idx: 11, kind: StmtListOpen}
+      - {idx: 12, kind: ParagraphStart}
+      - {idx: 13, kind: Word, str: Nested1}
+      - {idx: 14, kind: Newline, str: "\n"}
+      - {idx: 15, kind: ParagraphEnd}
+      - {idx: 16, kind: StmtListClose}
+
+      - {idx: 17, kind: ListItemEnd}
+
+      # Another list item on the same level
+      - {idx: 18, kind: SameIndent}
+
+      - {idx: 19, kind: ListItemStart, str: "-"}
+      - {idx: 20, kind: StmtListOpen}
+      - {idx: 21, kind: ParagraphStart}
+      - {idx: 22, kind: Word, str: Nested2}
+      - {idx: 23, kind: Newline, str: "\n"}
+      - {idx: 24, kind: ParagraphEnd}
+      - {idx: 25, kind: StmtListClose}
+      - {idx: 26, kind: ListItemEnd}
+
+      # Decrease list item indentation, return on one level up
+      - {idx: 27, kind: Dedent}
+      - {idx: 28, kind: ListItemStart, str: "-"}
+      - {idx: 29, kind: StmtListOpen}
+      - {idx: 30, kind: ParagraphStart}
+      - {idx: 31, kind: Word, str: Item2}
+      - {idx: 32, kind: Newline, str: "\n"}
+      - {idx: 33, kind: ParagraphEnd}
+      - {idx: 34, kind: StmtListClose}
+      - {idx: 35, kind: ListItemEnd}
+      # End of the whole list
+      - {idx: 36, kind: ListEnd}
+  - name: "List with space in the nested content"
+    source: |
+      - Item1
+        - Nested1
+
+          Nested2
+
+    tokens:
+      - {idx: 0, kind: ListStart}
+      - {idx: 1, kind: ListItemStart, str: "-"}
+      - {idx: 2, kind: StmtListOpen}
+      - {idx: 3, kind: ParagraphStart}
+      - {idx: 4, kind: Word, str: "Item1"}
+      - {idx: 5, kind: Newline, str: "\n"}
+      - {idx: 6, kind: ParagraphEnd}
+      - {idx: 7, kind: StmtListClose}
+      - {idx: 8, kind: ListItemEnd}
+      - {idx: 9, kind: Indent}
+      - {idx: 10, kind: ListItemStart, str: "-"}
+
+      # Second level of list nesting contains more than one paragraph of
+      # text
+      - {idx: 11, kind: StmtListOpen}
+
+      - {idx: 12, kind: ParagraphStart}
+      - {idx: 13, kind: Word, str: "Nested1"}
+      - {idx: 14, kind: Newline, str: "\n"}
+      - {idx: 15, kind: Newline, str: "\n"}
+      - {idx: 16, kind: ParagraphEnd}
+
+      - {idx: 17, kind: ParagraphStart}
+      - {idx: 18, kind: Word, str: "Nested2"}
+      - {idx: 19, kind: Newline, str: "\n"}
+      - {idx: 20, kind: ParagraphEnd}
+
+      - {idx: 21, kind: StmtListClose}
+
+      - {idx: 22, kind: ListItemEnd}
+      - {idx: 23, kind: Dedent}
+      - {idx: 24, kind: ListEnd}
+  - name: "List with unindented source code block"
+    debug:
+      print_lexed: true
+      lex_to_file: true
+      trace_lex: true
+
+    source: |
+      - Item1
+        #+begin_src nim
+      unindented_content
+        #+end_src

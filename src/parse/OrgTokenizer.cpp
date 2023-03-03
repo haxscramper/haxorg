@@ -1401,12 +1401,15 @@ void OrgTokenizer::lexCommandBlock(PosStr& str) {
 
 bool OrgTokenizer::isFirstOnLine(CR<PosStr> str) {
     const auto set = charsets::Newline + CharSet{'\0'};
+    auto       os  = getStream();
     if (str.at(set, -1)) {
+        // str.print(os);
         return true;
     }
 
     auto pos = 0;
     while (str.at(charsets::HorizontalSpace, pos)) {
+        // str.print(os, {.startOffset = pos});
         --pos;
     }
     return str.at(set, pos);
@@ -1439,7 +1442,7 @@ bool OrgTokenizer::atConstructStart(CR<PosStr> str) {
         }
         return str.at(' ', shift);
     } else {
-        return str.at(R"(#+)") || str.at(R"(---)");
+        return str.at("#+") || str.at("---");
     }
 }
 
@@ -1720,6 +1723,15 @@ void OrgTokenizer::lexParagraph(PosStr& str) {
     auto       ended  = false;
     str.pushSlice();
     while (!str.finished() && !ended) {
+        __trace(
+            ("Lexer iteration, get indent: $#, current indent $#, at "
+             "construct $#, at list $#, is first on line $#"
+             % to_string_vec(
+                 str.getIndent(),
+                 indent,
+                 atConstructStart(str),
+                 atListAhead(str),
+                 isFirstOnLine(str))));
         if (str.getIndent() == indent
             && (atConstructStart(str) || atListAhead(str))) {
             ended = true;

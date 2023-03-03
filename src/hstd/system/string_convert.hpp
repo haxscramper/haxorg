@@ -43,13 +43,15 @@ concept StringStreamable = requires(T value, std::ostream& os) {
                            };
 
 template <typename T>
-std::string to_string(CR<T> value)
+std::string to_string(T const& value)
     requires StringStreamable<T>
 {
     std::stringstream os;
     os << value;
     return os.str();
 }
+
+inline std::string to_string(bool b) { return b ? "true" : "false"; }
 
 template <typename T>
 concept StringConvertible = requires(T value) {
@@ -90,7 +92,8 @@ inline std::string to_string(wchar_t wc) {
     std::string mb(MB_CUR_MAX, '\0');
     const int   ret = std::wctomb(&mb[0], wc);
     if (ret == -1) {
-        std::cout << "Could not convert to string " << (u64)wc << "\n";
+        std::cout << "Could not convert to string "
+                  << (unsigned long long int)wc << "\n";
         // HACK temporary fix for the malformed runes that are coming
         // somewhere from text formatting.
         return std::string("@");
@@ -106,9 +109,9 @@ inline std::wstring to_wstring(std::string const& text) {
 
 template <typename Iterable>
 std::ostream& join(
-    std::ostream&   os,
-    CR<std::string> sep,
-    CR<Iterable>    list) {
+    std::ostream&      os,
+    std::string const& sep,
+    Iterable const&    list) {
     int index = 0;
     for (const auto& it : list) {
         if (0 < index) {
@@ -121,7 +124,7 @@ std::ostream& join(
 }
 
 template <typename Iterable>
-std::string join(CR<std::string> sep, CR<Iterable> list) {
+std::string join(std::string const& sep, Iterable const& list) {
     std::stringstream os;
     join(os, sep, list);
     return os.str();
