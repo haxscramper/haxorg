@@ -66,14 +66,14 @@ TEST_CASE("Simple node conversion") {
     }
 
     SECTION("Nested hash tag") {
+        p.setTraceFile("/tmp/hashtag_parse.txt");
+        p.tokenizer.setTraceFile("/tmp/hashtag_lex.txt");
         p.run("#test##[a, b]", &T::lexText, &P::parseHashTag);
         auto node = yamlRepr(p.a(0));
         yamlRepr(p.nodes);
         yamlRepr(p.tokens);
-        auto        hash = convertHashTag(nullptr, p.a(0));
         QString     buf;
         QTextStream ss{&buf};
-        ss << hash->toJson() << Qt::endl;
         ss << "yaml node\n"
            << yamlRepr(spec, p.a(0)) << "\nend yaml node\n";
         ss << "json node\n"
@@ -86,7 +86,9 @@ TEST_CASE("Simple node conversion") {
         ss << "token repr\n"
            << yamlRepr(p.tokens) << "\nend flat tokens\n";
 
-        // std::cout << ss.str() << "\n";
+        qcout << buf << Qt::endl;
+        auto hash = convertHashTag(nullptr, p.a(0));
+        ss << hash->toJson() << Qt::endl;
     }
 
     SECTION("Diff compilation") {

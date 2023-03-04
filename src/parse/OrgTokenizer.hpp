@@ -35,18 +35,19 @@ struct OrgTokenizer
         Push,
         SetBuffer,
         ClearBuffer,
-        PushResolved
+        PushResolved,
+        Print
     };
 
     struct Report {
-        ReportKind kind;
-        Str        name;
-        OrgToken   tok;
-        OrgTokenId id = OrgTokenId::Nil();
-        fs::path   location;
-        int        line;
-        Opt<Str>   subname;
-        PosStr*    str = nullptr;
+        ReportKind    kind;
+        Str           name;
+        OrgToken      tok;
+        OrgTokenId    id = OrgTokenId::Nil();
+        fs::path      location;
+        int           line;
+        Opt<Str>      subname;
+        PosStr const* str = nullptr;
     };
 
     int  depth = 0;
@@ -255,5 +256,6 @@ indentation of the original list prefix -- dash, number or letter.
     void lexCommandContent(PosStr& str, const OrgCommandKind& kind);
     void lexCommandArguments(PosStr& str, const OrgCommandKind& kind);
     void lexCommandBlock(PosStr& str);
+    void lexHashTag(PosStr& str);
     bool isFirstOnLine(CR<PosStr> str);
 };

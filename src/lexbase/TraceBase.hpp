@@ -15,6 +15,7 @@ struct OperationsTracer {
     Pair<QFile, QTextStream> file;
 
     inline void setTraceFile(QString const& outfile) {
+        trace       = true;
         traceToFile = true;
         file.first.setFileName(outfile);
         if (file.first.open(QIODevice::ReadWrite)) {

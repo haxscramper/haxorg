@@ -14,6 +14,12 @@ struct GetterError : public std::runtime_error {
         : std::runtime_error(message.toStdString()) {}
 };
 
+struct KeyError : public std::runtime_error {
+    explicit KeyError(const QString& message)
+        : std::runtime_error(message.toStdString()) {}
+};
+
+
 struct LogicError : public std::logic_error {
     explicit inline LogicError(const QString& message)
         : std::logic_error(message.toStdString()) {}

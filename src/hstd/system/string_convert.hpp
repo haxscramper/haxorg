@@ -71,6 +71,10 @@ QTextStream& operator<<(QTextStream& os, T value) {
     return os << QString::number((int)value);
 }
 
+inline QTextStream& operator<<(QTextStream& os, std::string const& value) {
+    return os << QString::fromStdString(value);
+}
+
 /// \brief Escape string literal, converting newline and other (TODO)
 /// control characters into unicode.
 inline QString escape_literal(QString const& in) {
