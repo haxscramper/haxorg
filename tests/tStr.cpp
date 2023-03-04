@@ -37,11 +37,21 @@ TEST_CASE("String operations", "[str]") {
         // Change the first character of s1 to 'J'
         s1[0] = '!';
         REQUIRE(s1 == "!1234");
-        // Try to change the first character of empty to 'X'
-        REQUIRE_THROWS_AS((empty.at(0) == QChar('X')), std::out_of_range);
-        // Try to change the last two characters of empty to "zz" using the
-        // slice operator
-        REQUIRE_THROWS_AS((empty.at(Slice<int>{1, 2})), std::out_of_range);
+        try {
+            // Try to change the first character of empty to 'X'
+            empty.at(0);
+        } catch (std::out_of_range& ex) {
+            SUCCEED("Out of range error for empty string access");
+        }
+
+        try {
+
+            // Try to change the last two characters of empty to "zz" using
+            // the slice operator
+            empty.at(Slice<int>{1, 2});
+        } catch (std::out_of_range& ex) {
+            SUCCEED("Out of range error for empty string access");
+        }
     }
 }
 

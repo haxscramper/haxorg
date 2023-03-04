@@ -291,10 +291,10 @@ struct NodeGroup {
             if (conf.fullBase != nullptr && at(tok).hasData()) {
                 os << " ";
                 auto start = std::distance(
-                    conf.fullBase, at(tok).text.data());
+                    conf.fullBase, at(tok).getText().data());
                 os << start;
                 os << "..";
-                os << start + at(tok).text.size() - 1;
+                os << start + at(tok).getText().size() - 1;
             }
         } else {
             auto [begin, end] = subnodesOf(node);
@@ -324,10 +324,10 @@ struct NodeGroup {
             os << " " << at(tok);
             if (conf.fullBase != nullptr && at(tok).hasData()) {
                 auto start = std::distance(
-                    conf.fullBase, at(tok).text.data());
+                    conf.fullBase, at(tok).getText().data());
 
                 os << " " << start << ".."
-                   << start + at(tok).text.size() - 1;
+                   << start + at(tok).getText().size() - 1;
             }
         } else {
             auto [begin, end] = subnodesOf(node);
@@ -421,11 +421,14 @@ struct NodeTree {
                 auto start = text.size();
                 if (tok.str.has_value()) {
                     text += tok.str.value();
-                    tokens.at(id).text = QStringView(
-                        text.data() + start, tok.str.value().size());
+                    tokens.at(id) = Token<K>(
+                        tok.kind,
+                        QStringView(
+                            text.data() + start, tok.str.value().size()));
+                } else {
+                    tokens.at(id) = Token<K>(tok.kind);
                 }
 
-                tokens.at(id).kind = tok.kind;
                 nodes.token(tree.kind, id);
             } else {
                 auto head = nodes.startTree(Node<N, K>(tree.kind));

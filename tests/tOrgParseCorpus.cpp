@@ -84,24 +84,23 @@ const UnorderedMap<Str, MockFull::ParserMethod> parsers({
 #undef CB
 
 
-MockFull::ParserMethod getParser(CR<Opt<Str>> name) {
-    if (name.has_value()) {
-        if (parsers.contains(name.value())) {
-            return parsers.at(name.value());
-        } else {
-            throw GetterError(
-                name.value() + " is missing from method table");
-        }
+MockFull::ParserMethod getParser(CR<Str> name) {
+    if (parsers.contains(name)) {
+        return parsers.at(name);
     } else {
-        return &OrgParser::parseTop;
+        throw GetterError(
+            "'$#$#' is missing from parser method table"
+            % to_string_vec(name, name.empty() ? "(empty)" : ""));
     }
 }
 
-MockFull::LexerMethod getLexer(CR<Opt<Str>> name) {
-    if (name.has_value() && lexers.contains(name.value())) {
-        return lexers.at(name.value());
+MockFull::LexerMethod getLexer(CR<Str> name) {
+    if (lexers.contains(name)) {
+        return lexers.at(name);
     } else {
-        throw GetterError(name.value() + " is missing from method table");
+        throw GetterError(
+            "'$#$#' is missing from lexer method table"
+            % to_string_vec(name, name.empty() ? "(empty)" : ""));
     }
 }
 
@@ -154,7 +153,9 @@ void compareTokens(
                 return false;
             } else if (lhs.hasData() != rhs.hasData()) {
                 return false;
-            } else if (lhs.hasData() && Str(lhs.text) != Str(rhs.text)) {
+            } else if (
+                lhs.hasData()
+                && Str(lhs.getText()) != Str(rhs.getText())) {
                 return false;
             } else {
                 return true;
@@ -183,10 +184,14 @@ void compareTokens(
                 auto lhsStyle = toStyle(lhs.prefix);
                 auto rhsStyle = toStyle(rhs.prefix);
                 auto format   = [&](int id, CR<OrgToken> tok) -> QString {
-                    return to_string(id) + " " + to_string(tok.kind) + " "
-                         + hshow(tok.text).toString(false) + " "
-                         + to_string((u64)tok.text.data());
+                    return "$# $# $#, d: $#"
+                         % to_string_vec(
+                               id,
+                               tok.kind,
+                               hshow(tok.strVal()).toString(false),
+                               tok.hasData());
                 };
+
                 qcout
                     //
                     << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= 2)
@@ -215,8 +220,8 @@ void compareTokens(
     }
 }
 
-void runSpec(CR<YAML::Node> group) {
-    ParseSpecGroup parsed(group);
+void runSpec(CR<YAML::Node> group, CR<QString> from) {
+    ParseSpecGroup parsed{group, from};
 
     for (const auto& spec : parsed.specs) {
         if (spec.testName.has_value()) {
@@ -296,14 +301,14 @@ TEST_CASE("Parse corpus", "[corpus]") {
         if (path.is_regular_file()) {
             if (testParameters.corpusGlob.empty()) {
                 YAML::Node spec = YAML::LoadFile(path.path());
-                runSpec(spec);
+                runSpec(spec, QString::fromStdString(path.path()));
             } else {
                 std::string path_str = path.path();
                 int         matchRes = fnmatch(
                     glob.c_str(), path_str.c_str(), FNM_EXTMATCH);
                 if (!(matchRes == FNM_NOMATCH)) {
                     YAML::Node spec = YAML::LoadFile(path.path());
-                    runSpec(spec);
+                    runSpec(spec, QString::fromStdString(path.path()));
                 }
             }
         }

@@ -168,6 +168,17 @@ CR<CharSet> OBulletListChars = CharSet{QChar('-'), QChar('+'), QChar('*')};
 CR<CharSet> OListChars       = ONumberedListChars + OBulletListChars;
 
 
+const QChar OSubtreeStart   = QChar('*');
+const QChar OSubtreeOrList  = QChar('*');
+const QChar OBulletListStar = QChar('*');
+const QChar OSpace          = QChar(' ');
+const QChar ONewline        = QChar('\n');
+
+const CR<CharSet> OBulletListStart = CharSet{
+    QChar('-'),
+    QChar('+'),
+    QChar('*')};
+
 struct MarkupConfigPair {
     OrgTokenKind startKind;
     OrgTokenKind finishKind;
@@ -465,8 +476,7 @@ void OrgTokenizer::lexParenArguments(PosStr& str) {
 void OrgTokenizer::lexText(PosStr& str) {
     __trace();
     const auto NonText = charsets::TextLineChars - charsets::AsciiLetters
-                       - charsets::Utf8Any
-                       + CharSet{QChar('\n'), QChar('/')};
+                       - charsets::Utf8Any + CharSet{ONewline, QChar('/')};
 
     switch (str.get().unicode()) {
         case '\n': {
@@ -475,7 +485,7 @@ void OrgTokenizer::lexText(PosStr& str) {
         }
         case ' ': {
             push(str.tok(otk::Space, [](PosStr& str) {
-                while (!str.finished() && str.at(QChar(' '))) {
+                while (!str.finished() && str.at(OSpace)) {
                     str.next();
                 }
             }));
@@ -813,7 +823,7 @@ void OrgTokenizer::lexProperties(PosStr& str) {
             }
             str.space();
             push(str.tok(otk::RawProperty, skipToEOL));
-            str.skip(QChar('\n'));
+            str.skip(ONewline);
         }
     }
 }
@@ -870,7 +880,7 @@ void OrgTokenizer::lexDrawer(PosStr& str) {
             str.skip(QChar(':'));
         });
 
-        str.skip(QChar('\n'));
+        str.skip(ONewline);
         const Str norm = normalize(id.toStr());
         if (norm == ":properties:") {
             push(Token(otk::ColonProperties, id.view));
@@ -888,7 +898,7 @@ void OrgTokenizer::lexDrawer(PosStr& str) {
 
         auto ahead = str;
         ahead.space();
-        if (ahead.trySkip(QChar('\n'))) {
+        if (ahead.trySkip(ONewline)) {
             ahead.space();
             if (!ahead.at(QChar(':'))) {
                 strEnded = true;
@@ -896,7 +906,7 @@ void OrgTokenizer::lexDrawer(PosStr& str) {
             }
         }
         if (!strEnded) {
-            str.skipZeroOrMore(QChar('\n'));
+            str.skipZeroOrMore(ONewline);
         }
     }
 }
@@ -906,7 +916,7 @@ void OrgTokenizer::lexSubtreeTodo(PosStr& str) {
     auto tmp = str;
     tmp.pushSlice();
     tmp.skipZeroOrMore(charsets::HighAsciiLetters);
-    if (tmp.at(QChar(' '))) {
+    if (tmp.at(OSpace)) {
         push(tmp.popTok(otk::SubtreeTodoState));
         str = tmp;
     }
@@ -946,11 +956,11 @@ void OrgTokenizer::lexSubtreeTitle(PosStr& str) {
             body.skip(QChar(':'), -1);
             headerTokens.push_back(Token(
                 otk::SubtreeTag, body.sliceBetween(start, finish).view));
-            if (body.at(QChar(' '))) {
+            if (body.at(OSpace)) {
                 tagEnded = true;
             }
         }
-        while (body.at(QChar(' '))) {
+        while (body.at(OSpace)) {
             body.back();
         }
     }
@@ -979,7 +989,7 @@ void OrgTokenizer::lexSubtreeTitle(PosStr& str) {
             headerTokens.push_back(Token(
                 otk::SubtreeCompletion,
                 tmp.sliceBetween(start, finish).view));
-            while (body.at(QChar(' '))) {
+            while (body.at(OSpace)) {
                 body.next(-1);
             }
         } catch (UnexpectedCharError& err) { ; };
@@ -1021,21 +1031,21 @@ void OrgTokenizer::lexSubtreeTimes(PosStr& str) {
         times.space();
     }
     if (hadTimes) {
-        str.skip(QChar('\n'));
+        str.skip(ONewline);
     }
 }
 
 void OrgTokenizer::lexSubtree(PosStr& str) {
     __trace();
-    push(str.tok(otk::SubtreeStars, skipZeroOrMore, QChar('*')));
-    str.skip(QChar(' '));
+    push(str.tok(otk::SubtreeStars, skipZeroOrMore, OSubtreeStart));
+    str.skip(OSpace);
     str.space();
     lexSubtreeTodo(str);
     str.space();
     lexSubtreeUrgency(str);
     str.space();
     lexSubtreeTitle(str);
-    str.trySkip(QChar('\n'));
+    str.trySkip(ONewline);
     lexSubtreeTimes(str);
     auto drawer = str;
     drawer.space();
@@ -1097,7 +1107,7 @@ void OrgTokenizer::lexSourceBlockContent(PosStr& str) {
                 cr(charsets::IdentChars + CharSet{QChar('-')})));
             push(str.tok(otk::ParClose, skipOne, QChar(')')));
 
-        } else if (str.at(QChar('\n'))) {
+        } else if (str.at(ONewline)) {
             push(str.tok(otk::Newline, skipCount, 1));
         } else {
             push(str.tok(otk::CodeText, [](PosStr& str) {
@@ -1105,7 +1115,7 @@ void OrgTokenizer::lexSourceBlockContent(PosStr& str) {
                        && !(
                            str.at(R"(<<)")     //
                            || str.at("(refs:") //
-                           || str.at(QChar('\n')))) {
+                           || str.at(ONewline))) {
                     str.next();
                 }
             }));
@@ -1142,8 +1152,8 @@ void OrgTokenizer::lexCommandContent(
             {
                 lexSourceBlockContent(str);
                 if (code.back().kind == otk::CodeText
-                    && all_of(code.back().text, [](QChar c) {
-                           return c == QChar(' ');
+                    && all_of(code.back().getText(), [](QChar c) {
+                           return c == OSpace;
                        })) {
                     code.pop_back();
                 }
@@ -1342,12 +1352,10 @@ void OrgTokenizer::lexCommandArguments(
         case ock::Property: {
             str.space();
             push(str.tok(
-                otk::Ident,
-                skipBefore,
-                cr(CharSet{QChar(' '), QChar(':')})));
+                otk::Ident, skipBefore, cr(CharSet{OSpace, QChar(':')})));
             if (str.at(QChar(':'))) {
                 push(str.tok(otk::Colon, skipCount, 1));
-                push(str.tok(otk::Ident, skipBefore, QChar(' ')));
+                push(str.tok(otk::Ident, skipBefore, OSpace));
             }
             str.space();
             push(str.tok(otk::RawProperty, skipPastEOF));
@@ -1456,13 +1464,12 @@ void OrgTokenizer::lexCommandBlock(PosStr& str) {
         auto args = str.slice(skipToEOL);
         lexCommandArguments(args, classifyCommand(id.toStr()));
         if (!str.finished()) {
-            str.skip(QChar('\n'));
+            str.skip(ONewline);
         }
     }
 }
 
 bool OrgTokenizer::isFirstOnLine(CR<PosStr> str) {
-    qDebug() << str;
     const auto set = charsets::Newline + CharSet{QChar('\0')};
     auto       os  = getStream();
     if (str.at(set, -1)) {
@@ -1484,7 +1491,7 @@ bool OrgTokenizer::atLogClock(CR<PosStr> str) {
     const auto space = ahead.getSkip(QChar('C'));
     if (0 <= space) {
         for (const auto ch : ahead[slice(0, space - 1)].view) {
-            if (ch != QChar(' ')) {
+            if (ch != OSpace) {
                 return false;
             }
         }
@@ -1498,12 +1505,12 @@ bool OrgTokenizer::atLogClock(CR<PosStr> str) {
 bool OrgTokenizer::atConstructStart(CR<PosStr> str) {
     if (!isFirstOnLine(str)) {
         return false;
-    } else if (str.getIndent() == 0 && str.at(QChar('*'))) {
+    } else if (str.getIndent() == 0 && str.at(OSubtreeStart)) {
         auto shift = 0;
-        while (str.at(QChar('*'), shift)) {
+        while (str.at(OSubtreeStart, shift)) {
             ++shift;
         }
-        return str.at(QChar(' '), shift);
+        return str.at(OSpace, shift);
     } else {
         return str.at("#+") || str.at("---");
     }
@@ -1545,9 +1552,9 @@ bool OrgTokenizer::atListStart(CR<PosStr> tmp) {
         return false;
     } else if (
         str.at(CharSet{QChar('-'), QChar('+')})
-        || (0 < str.getIndent() && str.at(QChar('*')))) {
+        || (0 < str.getIndent() && str.at(OSubtreeStart))) {
         str.skip(ListStart);
-        return str.at(QChar(' '));
+        return str.at(OSpace);
     } else if (str.at(charsets::Digits + charsets::AsciiLetters)) {
         str.tok(otk::ListItemStart, [](PosStr& str) {
             if (str.at(charsets::Digits + charsets::AsciiLetters)) {
@@ -1559,13 +1566,13 @@ bool OrgTokenizer::atListStart(CR<PosStr> tmp) {
 
         return str.at(QChar(')')) || str.at(QChar('.'));
     } else {
-        if (str.at(CharSet{QChar('-'), QChar('+'), QChar('*')})) {
+        if (str.at(OBulletListStart)) {
             str.next();
         } else {
             return false;
         }
 
-        return str.at(QChar(' '));
+        return str.at(OSpace);
     }
 }
 
@@ -1587,12 +1594,9 @@ void OrgTokenizer::lexListBullet(
     LexerStateSimple& state) {
     __trace();
     if (str.at(CharSet{QChar('-'), QChar('+')})
-        || (0 < str.getIndent() && str.at(QChar('*')))) {
+        || (0 < str.getIndent() && str.at(OBulletListStar))) {
         __trace("At bullet list start");
-        auto tok = str.tok(
-            otk::ListItemStart,
-            skipOne,
-            cr(CharSet{QChar('-'), QChar('+'), QChar('*')}));
+        auto tok = str.tok(otk::ListItemStart, skipOne, OBulletListStart);
         __push(tok);
         str.space();
     } else {
@@ -1609,8 +1613,7 @@ void OrgTokenizer::lexListBullet(
     if (str.at("\\[[Xx - ]\\]")) {
         __push((str.tok(otk::Checkbox, [](PosStr& str) {
             str.skip(QChar('['));
-            str.skip(
-                CharSet{QChar('X'), QChar('x'), QChar(' '), QChar('-')});
+            str.skip(CharSet{QChar('X'), QChar('x'), OSpace, QChar('-')});
             str.skip(QChar(']'));
         })));
 
@@ -1720,7 +1723,7 @@ void OrgTokenizer::lexListItem(
     lexListDescription(str, indent, state);
 
     auto slice = popListBody(str, indent, state);
-    while (str.view.at(slice.view.size()) == QChar('\n')) {
+    while (str.view.at(slice.view.size()) == ONewline) {
         slice.view.chop(1);
     }
 
@@ -1731,9 +1734,9 @@ void OrgTokenizer::lexListItem(
 
 void OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
     __trace();
-    assert(!str.at(QChar('\n')));
+    assert(!str.at(ONewline));
     while (atListAhead(str) || atLogClock(str)) {
-        assert(!str.at(QChar('\n')));
+        assert(!str.at(ONewline));
         if (atLogClock(str)) {
             __trace("Lex log clock list");
             __push(str.fakeTok(otk::ListClock));
@@ -1801,18 +1804,18 @@ void OrgTokenizer::lexParagraph(PosStr& str) {
         if (str.getIndent() == indent
             && (atConstructStart(str) || atListAhead(str))) {
             ended = true;
-        } else if (str.at(QChar('\n'))) {
+        } else if (str.at(ONewline)) {
             str.next();
             if (str.finished()) {
                 ended = true;
             } else {
                 if (str.at(charsets::TextLineChars)) {
-                } else if (str.at(QChar('\n'))) {
+                } else if (str.at(ONewline)) {
                     str.next();
                     ended = true;
                 } else {
                     throw str.makeUnexpected(
-                        "text line character or newline", R"(paragraph)");
+                        "text line character or newline", "paragraph");
                 }
             }
         } else {
@@ -1872,9 +1875,9 @@ void OrgTokenizer::lexTableState(
                             state.toFlag(OrgBlockLexerState::Complete);
                         } else {
                             __push(str.tok(
-                                otk::CmdArguments, skipTo, QChar('\n')));
+                                otk::CmdArguments, skipTo, ONewline));
                             if (!str.finished()) {
-                                str.skip(QChar('\n'));
+                                str.skip(ONewline);
                                 state.toFlag(OrgBlockLexerState::InBody);
                             }
                         }
@@ -1900,15 +1903,14 @@ void OrgTokenizer::lexTableState(
 
                     first = false;
                     str.space();
-                    if (!str.finished() && !str.at(QChar('\n'))) {
+                    if (!str.finished() && !str.at(ONewline)) {
                         __push((str.tok(otk::Content, [](PosStr& str) {
-                            str.skipBefore(
-                                CharSet{QChar('|'), QChar('\n')});
-                            if (str.at(QChar(' '))) {
-                                while (str.at(QChar(' '))) {
+                            str.skipBefore(CharSet{QChar('|'), ONewline});
+                            if (str.at(OSpace)) {
+                                while (str.at(OSpace)) {
                                     str.back();
                                 }
-                                if (!str.at(QChar(' '))) {
+                                if (!str.at(OSpace)) {
                                     str.next();
                                 }
                             } else {
@@ -1927,7 +1929,7 @@ void OrgTokenizer::lexTableState(
                 str.space();
                 push(str.tok(otk::Content, skipToEOL));
                 if (!str.finished()) {
-                    str.skip(QChar('\n'));
+                    str.skip(ONewline);
                 }
             }
             break;
@@ -2015,8 +2017,8 @@ void OrgTokenizer::lexStructure(PosStr& str) {
             // No whitespace between a start and a character means it
             // is a bold word, otherwise it is a structural element -
             // either subtree or a unordered list.
-            bool hasSpace = str.at(CharSet{QChar('*')}, 0)
-                         && str.at(CharSet{QChar(' ')}, 1);
+            bool hasSpace = str.at(OSubtreeOrList, 0)
+                         && str.at(CharSet{OSpace}, 1);
 
             if (str.getColumn() == 0) {
                 if (hasSpace) {
@@ -2041,7 +2043,7 @@ void OrgTokenizer::lexStructure(PosStr& str) {
             if (atConstructStart(str)) {
                 push(str.tok(
                     otk::TextSeparator, skipOneOrMore, QChar('-')));
-                str.skip(QChar('\n'));
+                str.skip(ONewline);
             } else {
                 lexList(str);
             }
@@ -2053,7 +2055,7 @@ void OrgTokenizer::lexStructure(PosStr& str) {
             if (atListAhead(str)) {
                 lexList(str);
             } else {
-                str.skipZeroOrMore(CharSet{QChar(' '), QChar('\n')});
+                str.skipZeroOrMore(CharSet{OSpace, ONewline});
                 lexStructure(str);
             }
             break;
@@ -2134,7 +2136,7 @@ void OrgTokenizer::report(CR<Report> in) {
 
 void OrgTokenizer::pushResolved(CR<OrgToken> token) {
     report(Report{.kind = ReportKind::PushResolved, .tok = token});
-    auto str = PosStr(token.text);
+    auto str = PosStr(token.getText());
     switch (token.kind) {
         case otk::Text: {
             __push(str.fakeTok(otk::ParagraphStart));
@@ -2146,7 +2148,7 @@ void OrgTokenizer::pushResolved(CR<OrgToken> token) {
         }
 
         case otk::RawLogbook: {
-            auto str = PosStr(token.text);
+            auto str = PosStr(token.getText());
             __push(str.fakeTok(otk::LogbookStart));
             while (!str.finished()) {
                 if (atLogClock(str)) {

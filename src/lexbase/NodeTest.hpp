@@ -26,8 +26,8 @@ struct ParseSpec {
     /// Name of the method to call for lexing or parsing. Pointer to
     /// implementation is resolved externally, spec file just contains the
     /// required name.
-    Opt<Str> lexImplName;
-    Opt<Str> parseImplName;
+    Str lexImplName;
+    Str parseImplName;
 
     struct SpecValidationError : public std::runtime_error {
         explicit SpecValidationError(const QString& message)
@@ -124,19 +124,34 @@ struct ParseSpec {
 };
 
 struct ParseSpecGroup {
-    ParseSpecGroup(CR<YAML::Node> node) {
+    ParseSpecGroup(CR<YAML::Node> node, CR<QString> from) {
+        auto validate = [&](CR<ParseSpec> spec) {
+            if (spec.parseImplName.empty() || spec.lexImplName.empty()) {
+                throw ParseSpec::SpecValidationError(
+                    "$# function name missing from specifiction "
+                    "-- must be provided as `$#` in either "
+                    "specific parser test case on toplevel of the "
+                    "test file or in specific test in $#"
+                    % to_string_vec(
+                        spec.parseImplName.empty() ? "Parser" : "Lexer",
+                        spec.parseImplName.empty() ? "lex" : "parse",
+                        from));
+            }
+        };
         if (node["items"]) {
             if (node["items"].IsSequence()) {
                 for (const auto& it : node["items"]) {
                     auto spec = ParseSpec(it);
 
-                    if (!spec.lexImplName && node["lex"]) {
+                    if (spec.lexImplName.empty() && node["lex"]) {
                         spec.lexImplName = node["lex"].as<QString>();
                     }
 
-                    if (!spec.parseImplName && node["parse"]) {
+                    if (spec.parseImplName.empty() && node["parse"]) {
                         spec.parseImplName = node["parse"].as<QString>();
                     }
+
+                    validate(spec);
 
                     if (!spec.testName) {
                         if (node["name"]) {
@@ -161,7 +176,9 @@ struct ParseSpecGroup {
             }
 
         } else {
-            specs.push_back(ParseSpec(node));
+            auto tmp = ParseSpec(node);
+            validate(tmp);
+            specs.push_back(tmp);
         }
     }
 

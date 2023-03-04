@@ -5,6 +5,7 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/strformat.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/Variant.hpp>
 
 #include <lexbase/Errors.hpp>
 
@@ -43,34 +44,42 @@ QTextStream& operator<<(QTextStream& os, TokenId<K> const& value) {
 template <typename K>
 struct Token {
     using id_type = TokenId<K>;
-    K           kind; /// Specific kind of the token
-    QStringView text; /// Token view on the base input text
+    K kind; /// Specific kind of the token
+    /// Token view on the base input text or offset position in case the
+    /// token is not attached to real data (fake token).
+    Variant<int, QStringView> text;
 
     Token() = default;
     /// \brief Create token that points to the real string data
     Token(K _kind, QStringView _text) : kind(_kind), text(_text) {}
     /// \brief Create fake token that is positioned at some point in the
     /// base string.
-    Token(K _kind, int offset = 0)
-        : kind(_kind), text(static_cast<const QChar*>(nullptr), offset) {}
+    Token(K _kind, int offset = 0) : kind(_kind), text(offset) {}
 
     Str strVal() const {
         if (hasData()) {
-            return Str(text.data(), text.size());
+            return Str(getText().data(), getText().size());
         } else {
             return "";
         }
     }
 
     /// \brief Check if token has any offset information
-    bool hasOffset() const { return hasData() || text.size() != -1; }
+    bool hasOffset() const { return std::holds_alternative<int>(text); }
     /// \brief Check if token text is a view over real data
-    bool hasData() const { return text.data() != nullptr; }
+    bool hasData() const {
+        return std::holds_alternative<QStringView>(text);
+    }
+    int                getOffset() const { return std::get<int>(text); }
+    QStringView&       getText() { return std::get<QStringView>(text); }
+    QStringView const& getText() const {
+        return std::get<QStringView>(text);
+    }
     /// Return character count for the token. If it does not contain any
     /// data return 0.
     int size() const {
         if (hasData()) {
-            return text.size();
+            return getText().size();
         } else {
             return 0;
         }
@@ -85,9 +94,9 @@ struct Token {
     /// be invalid when used with any other position in the string.
     std::size_t offsetFrom(const QChar* start) const {
         if (hasData()) {
-            return std::distance(text.data(), start);
+            return std::distance(getText().data(), start);
         } else {
-            return text.size();
+            return getText().size();
         }
     }
 };
@@ -97,9 +106,9 @@ template <StringConvertible K>
 QTextStream& operator<<(QTextStream& os, Token<K> const& value) {
     os << "Token<" << to_string(value.kind) << ">(";
     if (value.hasData()) {
-        os << escape_literal(to_string(value.text));
+        os << escape_literal(to_string(value.getText()));
     } else if (value.hasOffset()) {
-        os << "offset:" << value.text.size();
+        os << "offset:" << value.getOffset();
     } else {
         os << "?";
     }

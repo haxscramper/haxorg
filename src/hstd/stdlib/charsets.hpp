@@ -15,7 +15,7 @@ inline QChar high() {
 
 namespace charsets {
 /// All character values
-Const<CharSet> AllChars{slice(low<QChar>(), high<QChar>())};
+Const<CharSet> AllChars{slice(QChar('\x00'), QChar('\x7F'))};
 /// Arabic digits
 Const<CharSet> Digits{slice(QChar('0'), QChar('9'))};
 /// Characters that can be used in C++-style identifiers

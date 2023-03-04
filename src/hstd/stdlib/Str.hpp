@@ -9,7 +9,6 @@
 struct Str : public QString {
     using QString::QString;
     using QString::operator[];
-    using QString::at;
     using QString::reserve;
 
 
@@ -50,6 +49,18 @@ struct Str : public QString {
             return *this;
         }
     }
+
+    QCharRef at(int pos) {
+        if (0 <= pos && pos < size()) {
+            return QString::operator[](pos);
+        } else {
+            throw std::out_of_range(
+                "String index out of range wanted " + std::to_string(pos)
+                + " but size() is " + std::to_string(size()));
+        }
+    }
+
+    QCharRef at(BackwardsIndex pos) { return at(size() - pos.value); }
 
     template <typename A, typename B>
     QStringView at(CR<HSlice<A, B>> s, bool checkRange = true) {

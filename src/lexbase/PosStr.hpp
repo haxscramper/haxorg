@@ -276,8 +276,9 @@ struct PosStr {
     /// \brief Get character at current position + \arg offset
     QChar get(int offset = 0) const {
         QChar result = QChar(QChar('\0'));
-        if (pos + offset < view.size()) {
-            result = view[pos + offset];
+        auto  target = pos + offset;
+        if (0 <= target && target < view.size()) {
+            result = view[target];
         }
         return result;
     }
