@@ -40,6 +40,12 @@
         Str(__func__));
 
 
+#define __push_rep()                                                      \
+    Report {                                                              \
+        .line = __LINE__, .kind = ReportKind::Push,                       \
+        .location = __CURRENT_FILE_PATH__                                 \
+    }
+
 #define __push(token)                                                     \
     {                                                                     \
         Report rep = __INIT_REPORT(std::nullopt, str);                    \
@@ -488,6 +494,7 @@ void OrgTokenizer::lexParenArguments(PosStr& str) {
 }
 
 void OrgTokenizer::lexTextDollar(PosStr& str) {
+    __trace();
     auto          tmp = str;
     Vec<OrgToken> buf;
     try {
@@ -523,6 +530,7 @@ void OrgTokenizer::lexTextDollar(PosStr& str) {
 }
 
 void OrgTokenizer::lexTextSlash(PosStr& str) {
+    __trace();
     switch (str.get(1).unicode()) {
         case '[':
         case '(': {
@@ -596,6 +604,7 @@ const auto NonText = charsets::TextLineChars - charsets::AsciiLetters
 
 
 void OrgTokenizer::lexTextVerbatim(PosStr& str) {
+    __trace();
     const auto start = str.get();
     if (str.at(start, 1)) {
         push(str.tok(markupConfig[start].inlineKind, skipCount, 2));
@@ -620,6 +629,7 @@ void OrgTokenizer::lexTextVerbatim(PosStr& str) {
 }
 
 void OrgTokenizer::lexTextCurly(PosStr& str) {
+    __trace();
     if (str.at("{{{")) {
         push(str.tok(otk::MacroOpen, skipCount, 3));
         push(str.tok(otk::Ident, [](PosStr& str) {
@@ -641,16 +651,21 @@ void OrgTokenizer::lexTextCurly(PosStr& str) {
 }
 
 void OrgTokenizer::lexTextMarkup(PosStr& str) {
+    __trace();
     const auto ch                        = str.get();
     const auto& [kOpen, kClose, kInline] = markupConfig[ch];
     if (str.at(ch, +1)) {
-        push(str.tok(kInline, skipCount, 2));
+        auto tmp = (str.tok(kInline, skipCount, 2));
+        __push(tmp);
     } else if (str.at(NonText, -1) || str.atStart()) {
-        push(str.tok(kOpen, skipCount, 1));
+        auto tmp = (str.tok(kOpen, skipCount, 1));
+        __push(tmp);
     } else if (str.at(NonText, 1) || str.beforeEnd()) {
-        push(str.tok(kClose, skipCount, 1));
+        auto tmp = (str.tok(kClose, skipCount, 1));
+        __push(tmp);
     } else {
-        push(str.tok(otk::Word, skipCount, 1));
+        auto tmp = (str.tok(otk::Word, skipCount, 1));
+        __push(tmp);
     }
 }
 
@@ -1443,7 +1458,8 @@ void OrgTokenizer::lexCommandBlock(PosStr& str) {
     push(str.tok(otk::CommandPrefix, skipOne, "#+"));
     const auto id = str.slice(skipZeroOrMore, OCommandChars);
     if (normalize(id.toStr()).startsWith("begin")) {
-        push(Token(otk::CommandBegin, id.view));
+        auto begin = (Token(otk::CommandBegin, id.view));
+        __push(begin);
         const auto sectionName = normalize(id.toStr()).dropPrefix("begin");
         const auto kind        = classifyCommand(id.toStr());
         if (kind == ock::BeginDynamic) {
@@ -1462,12 +1478,17 @@ void OrgTokenizer::lexCommandBlock(PosStr& str) {
             assert(!str.finished());
             const auto   prefix = str.slice(skipCount, 2);
             const PosStr id     = str.slice(skipZeroOrMore, OCommandChars);
-            if (normalize(id.toStr()) == sectionName + "end") {
+            if (normalize(id.toStr()) == "end" + sectionName) {
                 found      = true;
-                auto slice = str.popSlice(-(1 + id.size() + 3));
+                auto slice = str.popSlice(
+                    -(1           /* Default offset */
+                      + id.size() /* `end_<xxx>` */
+                      + 3 /* and trailing newline */));
                 lexCommandContent(slice, kind);
-                push(Token(otk::CommandPrefix, prefix.view));
-                push(Token(otk::CommandEnd, id.view));
+                auto pt = (Token(otk::CommandPrefix, prefix.view));
+                __push(pt);
+                auto end = (Token(otk::CommandEnd, id.view));
+                __push(end);
             } else {
                 throw LexerError(
                     "Missing closing 'end' for section block "
@@ -1479,8 +1500,10 @@ void OrgTokenizer::lexCommandBlock(PosStr& str) {
             str.skip(QChar(':'));
         }
     } else {
-        push(Token(otk::LineCommand, id.view));
-        push(str.tok(otk::Colon, skipOne, QChar(':')));
+        auto line = (Token(otk::LineCommand, id.view));
+        __push(line);
+        auto colon = (str.tok(otk::Colon, skipOne, QChar(':')));
+        __push(colon);
         str.space();
         auto args = str.slice(skipToEOL);
         lexCommandArguments(args, classifyCommand(id.toStr()));

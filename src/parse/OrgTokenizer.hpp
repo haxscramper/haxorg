@@ -224,14 +224,13 @@ indentation of the original list prefix -- dash, number or letter.
     void       push(CR<std::span<OrgToken>> tok) { Base::push(tok); }
     void       push(CR<Vec<OrgToken>> tok) { Base::push(tok); }
     OrgTokenId push(CR<OrgToken> tok) { return Base::push(tok); }
-
-    void lexListItems(PosStr& str, LexerStateSimple& state);
-    void lexList(PosStr& str);
-    void lexParagraph(PosStr& str);
-    void lexParagraphExpand(PosStr& str);
-    void lexLogbookExpand(PosStr& str);
-    void lexContentExpand(PosStr& str);
-    void lexStmtListExpand(PosStr& str);
+    void       lexListItems(PosStr& str, LexerStateSimple& state);
+    void       lexList(PosStr& str);
+    void       lexParagraph(PosStr& str);
+    void       lexParagraphExpand(PosStr& str);
+    void       lexLogbookExpand(PosStr& str);
+    void       lexContentExpand(PosStr& str);
+    void       lexStmtListExpand(PosStr& str);
     void lexTableState(PosStr& str, LexerState<OrgBlockLexerState>& state);
     void lexTable(PosStr& str);
     void lexStructure(PosStr& str);
