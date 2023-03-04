@@ -249,78 +249,86 @@ void compareTokens(
     }
 }
 
-void runSpec(CR<YAML::Node> group, CR<QString> from) {
-    ParseSpecGroup parsed{group, from};
+void runSpec(CR<ParseSpec> spec, CR<QString> from) {
+    MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
+    MockFull              p;
 
-    for (const auto& spec : parsed.specs) {
-        if (spec.testName.has_value()) {
-            qcout << spec.testName << "\n";
+    p.trace = spec.dbg.traceParse;
+    if (spec.dbg.parseToFile) {
+        p.setTraceFile("/tmp/parse.txt");
+    }
+
+    p.tokenizer.trace = spec.dbg.traceLex;
+    if (spec.dbg.lexToFile) {
+        p.tokenizer.setTraceFile("/tmp/random.txt");
+    }
+
+
+    p.tokenize(spec.source, lexCb);
+    YAML::Emitter emitter;
+
+    Str           buffer;
+    OrgNodeGroup  nodes;
+    OrgTokenGroup tokens;
+
+    if (spec.expectedMode == ParseSpec::ExpectedMode::Nested) {
+        if (spec.subnodes.has_value()) {
+            auto tree = fromHomogeneous<OrgNodeKind, OrgTokenKind>(
+                spec.subnodes.value());
+            auto flatResult = tree.flatten(buffer);
+            nodes           = flatResult.first;
+            tokens          = flatResult.second;
         }
-
-        MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
-
-        MockFull p;
-
-        p.trace = spec.dbg.traceParse;
-        if (spec.dbg.parseToFile) {
-            p.setTraceFile("/tmp/parse.txt");
-        }
-
-        p.tokenizer.trace = spec.dbg.traceLex;
-        if (spec.dbg.lexToFile) {
-            p.tokenizer.setTraceFile("/tmp/random.txt");
-        }
-
-
-        p.tokenize(spec.source, lexCb);
-        YAML::Emitter emitter;
-
-        Str           buffer;
-        OrgNodeGroup  nodes;
-        OrgTokenGroup tokens;
-
-        if (spec.expectedMode == ParseSpec::ExpectedMode::Nested) {
-            if (spec.subnodes.has_value()) {
-                auto tree = fromHomogeneous<OrgNodeKind, OrgTokenKind>(
-                    spec.subnodes.value());
-                auto flatResult = tree.flatten(buffer);
-                nodes           = flatResult.first;
-                tokens          = flatResult.second;
-            }
-        } else {
-            if (spec.tokens.has_value()) {
-                tokens = fromFlatTokens<OrgTokenKind>(
-                    spec.tokens.value(), buffer);
-            }
-
-            if (spec.subnodes.has_value()) {
-                nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind>(
-                    spec.subnodes.value());
-            }
-        }
-
-        p.nodes.tokens = &p.tokens;
-        nodes.tokens   = &tokens;
-
-        if (spec.dbg.printLexed) {
-            std::cout << yamlRepr(p.tokens) << std::endl;
-        }
-
+    } else {
         if (spec.tokens.has_value()) {
-            compareTokens(p.tokens, tokens);
-        }
-
-        MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
-
-        p.parse(parseCb);
-
-        if (spec.dbg.printParsed) {
-            std::cout << yamlRepr(p.nodes) << std::endl;
+            tokens = fromFlatTokens<OrgTokenKind>(
+                spec.tokens.value(), buffer);
         }
 
         if (spec.subnodes.has_value()) {
-            compareNodes(p.nodes, nodes);
+            nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind>(
+                spec.subnodes.value());
         }
+    }
+
+    p.nodes.tokens = &p.tokens;
+    nodes.tokens   = &tokens;
+
+    if (spec.dbg.printLexed) {
+        std::cout << yamlRepr(p.tokens) << std::endl;
+    }
+
+    if (spec.tokens.has_value()) {
+        compareTokens(p.tokens, tokens);
+    }
+
+    MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
+
+    p.parse(parseCb);
+
+    if (spec.dbg.printParsed) {
+        std::cout << yamlRepr(p.nodes) << std::endl;
+    }
+
+    if (spec.subnodes.has_value()) {
+        compareNodes(p.nodes, nodes);
+    }
+}
+
+void runSpec(CR<YAML::Node> group, CR<QString> from) {
+    ParseSpecGroup parsed{group, from};
+    auto           sectionName = [&](CR<ParseSpec> spec) {
+        return ("$# at $#"
+                % to_string_vec(
+                    spec.testName.has_value() ? spec.testName.value()
+                                              : QString("<spec>"),
+                    from))
+            .toStdString();
+    };
+
+
+    for (const auto& spec : parsed.specs) {
+        SECTION(sectionName(spec)) { runSpec(spec, from); }
     }
 }
 
