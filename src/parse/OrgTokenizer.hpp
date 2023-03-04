@@ -257,5 +257,10 @@ indentation of the original list prefix -- dash, number or letter.
     void lexCommandArguments(PosStr& str, const OrgCommandKind& kind);
     void lexCommandBlock(PosStr& str);
     void lexHashTag(PosStr& str);
+    void lexTextDollar(PosStr& str);
+    void lexTextSlash(PosStr& str);
+    void lexTextVerbatim(PosStr& str);
+    void lexTextCurly(PosStr& str);
+    void lexTextMarkup(PosStr& str);
     bool isFirstOnLine(CR<PosStr> str);
 };

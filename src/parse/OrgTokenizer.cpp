@@ -487,6 +487,173 @@ void OrgTokenizer::lexParenArguments(PosStr& str) {
     push(str.tok(otk::ParOpen, skipOne, QChar(')')));
 }
 
+void OrgTokenizer::lexTextDollar(PosStr& str) {
+    auto          tmp = str;
+    Vec<OrgToken> buf;
+    try {
+        if (tmp.at(QChar('$'), 1)) {
+            buf.push_back(tmp.tok(otk::DollarOpen, skipOne, "$$"));
+            tmp.pushSlice();
+            bool hasEnd = false;
+            while (!tmp.finished() && !hasEnd) {
+                while (!tmp.finished() && !tmp.at(QChar('$'))) {
+                    tmp.next();
+                }
+                if (tmp.at("$$")) {
+                    buf.push_back(tmp.popTok(otk::LatexInlineRaw));
+                    hasEnd = true;
+                } else {
+                    throw ImplementError();
+                }
+            }
+            // FIXME
+            // buf.add(tmp.tok(skip otk::DollarClose,
+            // QChar('$'), QChar('$')));
+        } else {
+            buf.push_back(tmp.tok(otk::DollarOpen, skipOne, QChar('$')));
+            buf.push_back(
+                tmp.tok(otk::LatexInlineRaw, skipBefore, QChar('$')));
+            buf.push_back(tmp.tok(otk::DollarClose, skipOne, QChar('$')));
+        }
+        push(buf);
+        str = tmp;
+    } catch (UnexpectedCharError& err) {
+        push(str.tok(otk::Punctuation, skipZeroOrMore, QChar('$')));
+    }
+}
+
+void OrgTokenizer::lexTextSlash(PosStr& str) {
+    switch (str.get(1).unicode()) {
+        case '[':
+        case '(': {
+            const auto isInline = str.at(QChar('('), 1);
+            if (isInline) {
+                push(str.tok(otk::LatexParOpen, skipOne, "\\("));
+            } else {
+                push(str.tok(otk::LatexBraceOpen, skipOne, "\\["));
+            }
+            push(str.tok(otk::LatexInlineRaw, [&isInline](PosStr& str) {
+                while (!str.at(isInline ? "\\)" : "\\]")) {
+                    str.next();
+                }
+            }));
+            if (isInline) {
+                push(str.tok(otk::LatexParClose, skipOne, ")"));
+            } else {
+                push(str.tok(otk::LatexBraceClose, skipOne, "]"));
+            }
+            break;
+        }
+        case '\\': {
+            push(str.tok(otk::DoubleSlash, skipOne, "\\"));
+            break;
+        }
+        default: {
+            if (str.at(OMarkupChars, 1)) {
+                push(str.tok(otk::Escaped, skipCount, 1));
+            } else if (str.at(
+                           charsets::IdentStartChars - CharSet{QChar('_')},
+                           1)) {
+                push(str.tok(otk::SymbolStart, skipOne, QChar('\\')));
+                push(str.tok(
+                    otk::Ident, skipZeroOrMore, charsets::IdentChars));
+                if (str.at(QChar('['))) {
+                    push(str.tok(otk::MetaBraceOpen, skipOne, QChar('[')));
+                    push(str.tok(otk::MetaBraceBody, [](PosStr& str) {
+                        skipBalancedSlice(
+                            str,
+                            {.openChars    = {QChar('[')},
+                             .closeChars   = {QChar(']')},
+                             .skippedStart = true,
+                             .consumeLast  = false});
+                    }));
+                    push(
+                        str.tok(otk::MetaBraceClose, skipOne, QChar(']')));
+                }
+                while (str.at(QChar('{'))) {
+                    push(str.tok(otk::MetaArgsOpen, skipOne, QChar('{')));
+                    push(str.tok(otk::MetaBraceBody, [](PosStr& str) {
+                        skipBalancedSlice(
+                            str,
+                            {.openChars    = {QChar('{')},
+                             .closeChars   = {QChar('}')},
+                             .skippedStart = true,
+                             .consumeLast  = false});
+                    }));
+
+                    push(str.tok(otk::MetaArgsClose, skipOne, QChar('}')));
+                }
+                break;
+            } else {
+                push(str.tok(otk::Escaped, skipCount, 2));
+            }
+        }
+    }
+}
+
+const auto NonText = charsets::TextLineChars - charsets::AsciiLetters
+                   - charsets::Utf8Any + CharSet{ONewline, QChar('/')};
+
+
+void OrgTokenizer::lexTextVerbatim(PosStr& str) {
+    const auto start = str.get();
+    if (str.at(start, 1)) {
+        push(str.tok(markupConfig[start].inlineKind, skipCount, 2));
+        push(str.tok(otk::RawText, [start](PosStr& str) {
+            while (!(str.at(start, 0) && str.at(start, 1))) {
+                str.next();
+            }
+        }));
+        push(str.tok(markupConfig[start].inlineKind, skipCount, 2));
+    } else {
+        if (str.at(NonText, -1) || str.atStart()) {
+            push(str.tok(markupConfig[start].startKind, skipCount, 1));
+            push(str.tok(otk::RawText, skipTo, start));
+            if (str.at(NonText, 1) || str.beforeEnd()) {
+                push(
+                    str.tok(markupConfig[start].finishKind, skipCount, 1));
+            }
+        } else {
+            push(str.tok(otk::Punctuation, skipCount, 1));
+        }
+    }
+}
+
+void OrgTokenizer::lexTextCurly(PosStr& str) {
+    if (str.at("{{{")) {
+        push(str.tok(otk::MacroOpen, skipCount, 3));
+        push(str.tok(otk::Ident, [](PosStr& str) {
+            while (!str.finished() && !str.at(QChar('('))
+                   && !str.at("}}}")) {
+                str.next();
+            }
+        }));
+
+        if (str.at(QChar('('))) {
+            lexParenArguments(str);
+        }
+        if (!str.finished()) {
+            push(str.tok(otk::MacroOpen, skipOne, "}}}"));
+        }
+    } else {
+        push(str.tok(otk::MaybeWord, skipCount, 1));
+    }
+}
+
+void OrgTokenizer::lexTextMarkup(PosStr& str) {
+    const auto ch                        = str.get();
+    const auto& [kOpen, kClose, kInline] = markupConfig[ch];
+    if (str.at(ch, +1)) {
+        push(str.tok(kInline, skipCount, 2));
+    } else if (str.at(NonText, -1) || str.atStart()) {
+        push(str.tok(kOpen, skipCount, 1));
+    } else if (str.at(NonText, 1) || str.beforeEnd()) {
+        push(str.tok(kClose, skipCount, 1));
+    } else {
+        push(str.tok(otk::Word, skipCount, 1));
+    }
+}
+
 void OrgTokenizer::lexHashTag(PosStr& str) {
     __trace();
     auto head = (str.tok(otk::HashTag, [](PosStr& str) {
@@ -528,8 +695,6 @@ void OrgTokenizer::lexHashTag(PosStr& str) {
 
 void OrgTokenizer::lexText(PosStr& str) {
     __trace();
-    const auto NonText = charsets::TextLineChars - charsets::AsciiLetters
-                       - charsets::Utf8Any + CharSet{ONewline, QChar('/')};
 
     switch (str.get().unicode()) {
         case '\n': {
@@ -561,149 +726,17 @@ void OrgTokenizer::lexText(PosStr& str) {
             break;
         }
         case '$': {
-            auto          tmp = str;
-            Vec<OrgToken> buf;
-            try {
-                if (tmp.at(QChar('$'), 1)) {
-                    buf.push_back(tmp.tok(otk::DollarOpen, skipOne, "$$"));
-                    tmp.pushSlice();
-                    bool hasEnd = false;
-                    while (!tmp.finished() && !hasEnd) {
-                        while (!tmp.finished() && !tmp.at(QChar('$'))) {
-                            tmp.next();
-                        }
-                        if (tmp.at("$$")) {
-                            buf.push_back(tmp.popTok(otk::LatexInlineRaw));
-                            hasEnd = true;
-                        } else {
-                            throw ImplementError();
-                        }
-                    }
-                    // FIXME
-                    // buf.add(tmp.tok(skip otk::DollarClose,
-                    // QChar('$'), QChar('$')));
-                } else {
-                    buf.push_back(
-                        tmp.tok(otk::DollarOpen, skipOne, QChar('$')));
-                    buf.push_back(tmp.tok(
-                        otk::LatexInlineRaw, skipBefore, QChar('$')));
-                    buf.push_back(
-                        tmp.tok(otk::DollarClose, skipOne, QChar('$')));
-                }
-                push(buf);
-                str = tmp;
-            } catch (UnexpectedCharError& err) {
-                push(
-                    str.tok(otk::Punctuation, skipZeroOrMore, QChar('$')));
-            }
+            lexTextDollar(str);
             break;
         }
         case '\\': {
-            switch (str.get(1).unicode()) {
-                case '[':
-                case '(': {
-                    const auto isInline = str.at(QChar('('), 1);
-                    if (isInline) {
-                        push(str.tok(otk::LatexParOpen, skipOne, "\\("));
-                    } else {
-                        push(str.tok(otk::LatexBraceOpen, skipOne, "\\["));
-                    }
-                    push(str.tok(
-                        otk::LatexInlineRaw, [&isInline](PosStr& str) {
-                            while (!str.at(isInline ? "\\)" : "\\]")) {
-                                str.next();
-                            }
-                        }));
-                    if (isInline) {
-                        push(str.tok(otk::LatexParClose, skipOne, ")"));
-                    } else {
-                        push(str.tok(otk::LatexBraceClose, skipOne, "]"));
-                    }
-                    break;
-                }
-                case '\\': {
-                    push(str.tok(otk::DoubleSlash, skipOne, "\\"));
-                    break;
-                }
-                default: {
-                    if (str.at(OMarkupChars, 1)) {
-                        push(str.tok(otk::Escaped, skipCount, 1));
-                    } else if (str.at(
-                                   charsets::IdentStartChars
-                                       - CharSet{QChar('_')},
-                                   1)) {
-                        push(str.tok(
-                            otk::SymbolStart, skipOne, QChar('\\')));
-                        push(str.tok(
-                            otk::Ident,
-                            skipZeroOrMore,
-                            charsets::IdentChars));
-                        if (str.at(QChar('['))) {
-                            push(str.tok(
-                                otk::MetaBraceOpen, skipOne, QChar('[')));
-                            push(str.tok(
-                                otk::MetaBraceBody, [](PosStr& str) {
-                                    skipBalancedSlice(
-                                        str,
-                                        {.openChars    = {QChar('[')},
-                                         .closeChars   = {QChar(']')},
-                                         .skippedStart = true,
-                                         .consumeLast  = false});
-                                }));
-                            push(str.tok(
-                                otk::MetaBraceClose, skipOne, QChar(']')));
-                        }
-                        while (str.at(QChar('{'))) {
-                            push(str.tok(
-                                otk::MetaArgsOpen, skipOne, QChar('{')));
-                            push(str.tok(
-                                otk::MetaBraceBody, [](PosStr& str) {
-                                    skipBalancedSlice(
-                                        str,
-                                        {.openChars    = {QChar('{')},
-                                         .closeChars   = {QChar('}')},
-                                         .skippedStart = true,
-                                         .consumeLast  = false});
-                                }));
-
-                            push(str.tok(
-                                otk::MetaArgsClose, skipOne, QChar('}')));
-                        }
-                        break;
-                    } else {
-                        push(str.tok(otk::Escaped, skipCount, 2));
-                    }
-                }
-            };
+            lexTextSlash(str);
             break;
         }
         case '~':
         case '`':
         case '=': {
-            const auto start = str.get();
-            if (str.at(start, 1)) {
-                push(
-                    str.tok(markupConfig[start].inlineKind, skipCount, 2));
-                push(str.tok(otk::RawText, [start](PosStr& str) {
-                    while (!(str.at(start, 0) && str.at(start, 1))) {
-                        str.next();
-                    }
-                }));
-                push(
-                    str.tok(markupConfig[start].inlineKind, skipCount, 2));
-            } else {
-                if (str.at(NonText, -1) || str.atStart()) {
-                    push(str.tok(
-                        markupConfig[start].startKind, skipCount, 1));
-                    push(str.tok(otk::RawText, skipTo, start));
-                    if (str.at(NonText, 1) || str.beforeEnd()) {
-                        push(str.tok(
-                            markupConfig[start].finishKind, skipCount, 1));
-                    }
-                } else {
-                    push(str.tok(otk::Punctuation, skipCount, 1));
-                }
-            }
+            lexTextVerbatim(str);
             break;
         }
         case '<': {
@@ -747,24 +780,7 @@ void OrgTokenizer::lexText(PosStr& str) {
             break;
         }
         case '{': {
-            if (str.at("{{{")) {
-                push(str.tok(otk::MacroOpen, skipCount, 3));
-                push(str.tok(otk::Ident, [](PosStr& str) {
-                    while (!str.finished() && !str.at(QChar('('))
-                           && !str.at("}}}")) {
-                        str.next();
-                    }
-                }));
-
-                if (str.at(QChar('('))) {
-                    lexParenArguments(str);
-                }
-                if (!str.finished()) {
-                    push(str.tok(otk::MacroOpen, skipOne, "}}}"));
-                }
-            } else {
-                push(str.tok(otk::MaybeWord, skipCount, 1));
-            }
+            lexTextCurly(str);
             break;
         }
         case '^': {
@@ -781,18 +797,7 @@ void OrgTokenizer::lexText(PosStr& str) {
                                QChar('~'),
                                QChar('`'),
                                QChar('=')})) {
-                const auto ch                        = str.get();
-                const auto& [kOpen, kClose, kInline] = markupConfig[ch];
-                if (str.at(ch, +1)) {
-                    push(str.tok(kInline, skipCount, 2));
-                } else if (str.at(NonText, -1) || str.atStart()) {
-                    push(str.tok(kOpen, skipCount, 1));
-                } else if (str.at(NonText, 1) || str.beforeEnd()) {
-                    push(str.tok(kClose, skipCount, 1));
-                } else {
-                    push(str.tok(otk::Word, skipCount, 1));
-                }
-                break;
+                lexTextMarkup(str);
             } else {
                 throw str.makeUnexpected("any text character", "text");
             }
@@ -1529,6 +1534,7 @@ bool OrgTokenizer::atConstructStart(CR<PosStr> str) {
         return str.at("#+") || str.at("---");
     }
 }
+
 
 void OrgTokenizer::skipIndents(LexerStateSimple& state, PosStr& str) {
     using LK           = LexerStateSimple::LexerIndentKind;
