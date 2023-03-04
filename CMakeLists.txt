@@ -203,6 +203,20 @@ if(${USE_SINGLE_FILE_CATCH})
                       "HAXORG_USE_SINGLE_FILE_CATCH")
   add_target_property(tests COMPILE_DEFINITIONS
                       "CATCH_AMALGAMATED_CUSTOM_MAIN")
+  # This option is does not seem to be configurable at runtime and instead
+  # I have to set it directly during compilation. This is a hack, but at
+  # least this way it won't break custom formatted output.
+  #
+  # FIXME actually this does not work properly either -- they wanted to
+  # have 'nice' formatting experience by printing N dots to separate tests,
+  # where N equals to ... compile-time console width, right. So I either
+  # get mangled text in FAIL or I get 120k dots that make the output
+  # unreadable.
+  #
+  # add_target_property(tests COMPILE_DEFINITIONS
+  #                     "CATCH_CONFIG_CONSOLE_WIDTH=1200000")
+
+
   add_target_property(tests COMPILE_DEFINITIONS
                       "CATCH_CONFIG_DISABLE_EXCEPTIONS")
 else()

@@ -112,7 +112,11 @@ struct NodeGroup {
 
     Str strVal(NodeId<N, K> id) const {
         assert(notNil(tokens));
-        return tokens->at(at(id).getToken()).strVal();
+        if (at(id).isTerminal()) {
+            return tokens->at(at(id).getToken()).strVal();
+        } else {
+            return "";
+        }
     }
 
     NodeGroup(TokenGroup<K>* _tokens = nullptr) : tokens(_tokens) {}

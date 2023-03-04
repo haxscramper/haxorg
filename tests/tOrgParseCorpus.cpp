@@ -104,6 +104,37 @@ MockFull::LexerMethod getLexer(CR<Str> name) {
     }
 }
 
+inline void format(
+    QTextStream&             os,
+    CR<FormattedDiff>        text,
+    Func<QString(int, bool)> formatCb,
+    int                      lhsSize = 48,
+    int                      rhsSize = 16) {
+    if (text.isUnified()) {
+        os << (ColText("Given") <<= lhsSize) << (ColText("Expected"))
+           << "\n";
+        for (const auto& [lhs, rhs] : text.unifiedLines()) {
+            auto lhsStyle = toStyle(lhs.prefix);
+            auto rhsStyle = toStyle(rhs.prefix);
+            os
+                //
+                << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= 2)
+                << ((lhs.empty() ? ColText("")
+                                 : ColText(
+                                     lhsStyle,
+                                     formatCb(lhs.index().value(), true)))
+                    <<= lhsSize)
+                << (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= 2)
+                << ((rhs.empty() ? ColText("")
+                                 : ColText(
+                                     rhsStyle,
+                                     formatCb(rhs.index().value(), false)))
+                    <<= rhsSize)
+                << Qt::endl;
+        }
+    }
+}
+
 void compareNodes(
     CR<NodeGroup<OrgNodeKind, OrgTokenKind>> parsed,
     CR<NodeGroup<OrgNodeKind, OrgTokenKind>> expected) {
@@ -126,8 +157,10 @@ void compareNodes(
     ShiftedDiff nodeDiff{nodeSimilarity, parsed.size(), expected.size()};
 
 
-    if (nodeSimilarity.lhsIndex.size() != parsed.size()
-        || nodeSimilarity.rhsIndex.size() != expected.size()) {
+    if (nodeSimilarity.lhsIndex.size() == parsed.size()
+        && nodeSimilarity.rhsIndex.size() == expected.size()) {
+        SUCCEED("Parsed tree structure match");
+    } else {
         ShiftedDiff nodeDiff{
             nodeSimilarity, parsed.size(), expected.size()};
 
@@ -136,9 +169,27 @@ void compareNodes(
         };
 
         FormattedDiff text{nodeDiff};
-        // std::cout << "node differences\n";
-        // std::cout << text << std::endl;
-        // std::cout << "--------\n";
+        QString       buffer;
+        QTextStream   os{&buffer};
+        format(os, text, [&](int id, bool isLhs) -> QString {
+            auto node = isLhs ? parsed.nodes.content.at(id)
+                              : expected.nodes.content.at(id);
+
+            auto group = isLhs ? &parsed : &expected;
+
+            return "$# $# $#($# $# $#)"
+                 % to_string_vec(
+                       id,
+                       node.kind,
+                       hshow(group->strVal(OrgId(id))).toString(false),
+                       node.kind,
+                       node.isTerminal(),
+                       node.isTerminal() ? to_string(node.getToken())
+                                         : to_string(node.getExtent()));
+        });
+
+        qcout << buffer << Qt::endl;
+        FAIL("Parsed tree structure mismatch");
     }
 }
 
@@ -162,8 +213,10 @@ void compareTokens(
             }
         })[0];
 
-    if (tokenSimilarity.lhsIndex.size() != lexed.size()
-        || tokenSimilarity.rhsIndex.size() != expected.size()) {
+    if (tokenSimilarity.lhsIndex.size() == lexed.size()
+        && tokenSimilarity.rhsIndex.size() == expected.size()) {
+        SUCCEED("Token lexer execution correct");
+    } else {
         ShiftedDiff tokenDiff{
             tokenSimilarity, lexed.size(), expected.size()};
 
@@ -176,47 +229,23 @@ void compareTokens(
 
         FormattedDiff text{tokenDiff};
 
+        QString     buffer;
+        QTextStream os{&buffer};
+        format(os, text, [&](int id, bool isLhs) -> QString {
+            auto tok = isLhs ? lexed.tokens.content.at(id)
+                             : expected.tokens.content.at(id);
 
-        if (text.isUnified()) {
-            qcout << (ColText("Lexed") <<= 48) << (ColText("Expected"))
-                  << "\n";
-            for (const auto& [lhs, rhs] : text.unifiedLines()) {
-                auto lhsStyle = toStyle(lhs.prefix);
-                auto rhsStyle = toStyle(rhs.prefix);
-                auto format   = [&](int id, CR<OrgToken> tok) -> QString {
-                    return "$# $# $#, d: $#"
-                         % to_string_vec(
-                               id,
-                               tok.kind,
-                               hshow(tok.strVal()).toString(false),
-                               tok.hasData());
-                };
 
-                qcout
-                    //
-                    << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= 2)
-                    << ((lhs.empty() ? ColText("")
-                                     : ColText(
-                                         lhsStyle,
-                                         format(
-                                             lhs.index().value(),
-                                             lexed.tokens.content.at(
-                                                 lhs.index().value()))))
-                        <<= 48)
-                    << (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= 2)
-                    << ((rhs.empty() ? ColText("")
-                                     : ColText(
-                                         rhsStyle,
-                                         format(
-                                             rhs.index().value(),
-                                             expected.tokens.content.at(
-                                                 rhs.index().value()))))
-                        <<= 16)
-                    << Qt::endl;
-            }
-        }
-        // std::cout << text << std::endl;
-        // std::cout << "--------\n";
+            return "$# $# $#"
+                 % to_string_vec(
+                       id,
+                       tok.kind,
+                       hshow(tok.strVal()).toString(false),
+                       tok.hasData());
+        });
+
+        qcout << buffer << Qt::endl;
+        FAIL("Lexed token mismatch");
     }
 }
 
@@ -269,6 +298,9 @@ void runSpec(CR<YAML::Node> group, CR<QString> from) {
                     spec.subnodes.value());
             }
         }
+
+        p.nodes.tokens = &p.tokens;
+        nodes.tokens   = &tokens;
 
         if (spec.dbg.printLexed) {
             std::cout << yamlRepr(p.tokens) << std::endl;

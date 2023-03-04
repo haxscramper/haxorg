@@ -664,7 +664,7 @@ struct FormattedDiff {
         }
     }
 
-    generator<Pair<DiffLine, DiffLine>> unifiedLines() {
+    generator<Pair<DiffLine, DiffLine>> unifiedLines() const {
         assert(unified().lhs.size() == unified().rhs.size());
         for (int i = 0; i < unified().lhs.size(); ++i) {
             co_yield {unified().lhs.at(i), unified().rhs.at(i)};
