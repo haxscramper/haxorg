@@ -19,6 +19,9 @@ struct OperationsTracer {
         file.first.setFileName(outfile);
         if (file.first.open(QIODevice::ReadWrite)) {
             file.second.setDevice(&file.first);
+        } else {
+            std::cerr << "Could not open file " << outfile << "\n";
+            abort();
         }
     }
 
@@ -30,8 +33,7 @@ struct OperationsTracer {
             os.colored = false;
             return os;
         } else {
-            QTextStream out(stdout, QIODevice::WriteOnly);
-            return ColStream{out};
+            return ColStream{qcout};
         }
     }
 

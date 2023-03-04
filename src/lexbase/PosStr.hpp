@@ -19,6 +19,7 @@
 
 #include <lexbase/Token.hpp>
 #include <lexbase/Errors.hpp>
+#include <QDebug>
 
 /// Type constraint for types that can be passed into base methods of the
 /// positional string checking such as `.at()` or `.skip()` as well as all
@@ -85,19 +86,13 @@ struct PosStr {
         }
     }
 
-    void print() const {
-        QTextStream out(stdout, QIODevice::WriteOnly);
-        print(out, PrintParams());
-    }
+    void print() const { print(qcout, PrintParams()); }
     void print(ColStream& os) const { print(os, PrintParams()); }
     void print(QTextStream& os, CR<PrintParams> params) const {
         ColStream stream{os};
         print(stream, params);
     }
-    void print(CR<PrintParams> params) const {
-        QTextStream out(stdout, QIODevice::WriteOnly);
-        print(out, params);
-    }
+    void print(CR<PrintParams> params) const { print(qcout, params); }
 
 
     struct SliceStartData {
@@ -698,4 +693,14 @@ inline void skipDigit(Ref<PosStr> str) {
         str.skipZeroOrMore(
             charsets::Digits + CharSet{QChar('_'), QChar('.')});
     }
+}
+
+inline QDebug operator<<(QDebug os, PosStr const& value) {
+    QString     str;
+    QTextStream stream{&str};
+    ColStream   col{stream};
+    value.print(col, {.withEnd = false});
+    QDebugStateSaver saver{os};
+    os.noquote() << str;
+    return os;
 }

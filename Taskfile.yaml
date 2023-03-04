@@ -76,10 +76,10 @@ tasks:
         vars:
           DIR: "{{.PWD}}/build"
           IN: "{{.PWD}}/build/bin/tests.bin"
-          ARGS: >
-            [corpus]
-            --corpus-glob
-            *list.yaml
+          # ARGS: >
+          #   [corpus]
+          #   --corpus-glob
+          #   *list.yaml
 
       # - task: debug
       #   vars:

@@ -21,6 +21,7 @@ struct convert<QString> {
     }
     static bool decode(Node const& in, QString& out) {
         out = QString::fromStdString(in.as<std::string>());
+        return true;
     }
 };
 }; // namespace YAML

@@ -277,7 +277,7 @@ LevenshteinDistanceResult levenshteinDistance(
 
 template <typename T>
 LevenshteinDistanceResult levenshteinDistance(Span<T> str1, Span<T> str2) {
-    levenshteinDistance(
+    return levenshteinDistance(
         str1.size(), str2.size(), [&](int lhs, int rhs) -> bool {
             return str1[lhs] == str2[rhs];
         });

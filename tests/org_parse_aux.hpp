@@ -60,8 +60,7 @@ struct MockFull : public OrgParser {
     }
     void treeRepr() {
         std::cout << "\n";
-        QTextStream out(stdout, QIODevice::WriteOnly);
-        nodes.treeRepr(out, OrgId(0), 0, {.fullBase = base.data()});
+        nodes.treeRepr(qcout, OrgId(0), 0, {.fullBase = base.data()});
         std::cout << std::endl;
     }
 

@@ -1,8 +1,11 @@
 #include "OrgTokenizer.hpp"
+
 #include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
+
 
 #define __INIT_REPORT(__subname, __str)                                   \
     (Report{                                                              \
@@ -119,16 +122,6 @@ CR<CharSet> OIdentStartChars = charsets::IdentChars
                                  QChar('_'),
                                  QChar('-'),
                                  slice(QChar('0'), QChar('9'))};
-
-// IDEA in figure some additional unicode handing might be performed, but
-// for now I just asume text is in UTF-8 and everything above 127 is a
-// unicode rune too.
-
-CR<CharSet> OWordChars = CharSet{
-    slice(QChar('a'), QChar('z')),
-    slice(QChar('A'), QChar('Z')),
-    slice(QChar('0'), QChar('9')),
-    slice(QChar('\x7F'), high<QChar>())};
 
 
 CR<CharSet> OCommandChars = charsets::IdentChars
@@ -1469,6 +1462,7 @@ void OrgTokenizer::lexCommandBlock(PosStr& str) {
 }
 
 bool OrgTokenizer::isFirstOnLine(CR<PosStr> str) {
+    qDebug() << str;
     const auto set = charsets::Newline + CharSet{QChar('\0')};
     auto       os  = getStream();
     if (str.at(set, -1)) {

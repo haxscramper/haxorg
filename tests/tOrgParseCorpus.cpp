@@ -246,11 +246,13 @@ void runSpec(CR<YAML::Node> group) {
         OrgTokenGroup tokens;
 
         if (spec.expectedMode == ParseSpec::ExpectedMode::Nested) {
-            auto tree = fromHomogeneous<OrgNodeKind, OrgTokenKind>(
-                spec.subnodes.value());
-            auto flatResult = tree.flatten(buffer);
-            nodes           = flatResult.first;
-            tokens          = flatResult.second;
+            if (spec.subnodes.has_value()) {
+                auto tree = fromHomogeneous<OrgNodeKind, OrgTokenKind>(
+                    spec.subnodes.value());
+                auto flatResult = tree.flatten(buffer);
+                nodes           = flatResult.first;
+                tokens          = flatResult.second;
+            }
         } else {
             if (spec.tokens.has_value()) {
                 tokens = fromFlatTokens<OrgTokenKind>(

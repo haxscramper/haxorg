@@ -290,7 +290,7 @@ TEST_CASE("Ast diff") {
 
 
         QString     buf;
-        QTextStream os;
+        QTextStream os{&buf};
         for (diff::NodeId Dst : DstTree) {
             diff::NodeId Src = Diff.getMapped(DstTree, Dst);
             if (Src.isValid()) {

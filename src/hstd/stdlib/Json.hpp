@@ -35,5 +35,6 @@ inline void to_json(json& target, CR<QString> str) {
 inline QTextStream& operator<<(QTextStream& os, json const& value) {
     std::stringstream ss;
     ss << value;
-    return os << ss.str();
+    os << QString::fromStdString(ss.str());
+    return os;
 }

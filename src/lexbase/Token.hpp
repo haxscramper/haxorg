@@ -51,10 +51,7 @@ struct Token {
     Token(K _kind, QStringView _text) : kind(_kind), text(_text) {}
     /// \brief Create fake token that is positioned at some point in the
     /// base string.
-    ///
-    /// \note Default offset parameter is -1 which creates token that is
-    /// completely detached from any real position.
-    Token(K _kind, int offset = -1)
+    Token(K _kind, int offset = 0)
         : kind(_kind), text(static_cast<const QChar*>(nullptr), offset) {}
 
     Str strVal() const {

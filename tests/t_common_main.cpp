@@ -5,6 +5,7 @@
 #include <iostream>
 #include <hstd/system/string_convert.hpp>
 #include <QFile>
+#include <hstd/stdlib/Debug.hpp>
 
 FILE* trace_out;
 
@@ -35,6 +36,10 @@ int main(int argc, const char** argv) {
     QFile file;
     file.open(stdout, QIODevice::WriteOnly);
     qcout.setDevice(&file);
+
+    QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
+    Q_CHECK_PTR(old);
+
     trace_out = fopen("/tmp/cyg_profile_trace.log", "w");
     finally        close{[]() { fclose(trace_out); }};
     Catch::Session session;
