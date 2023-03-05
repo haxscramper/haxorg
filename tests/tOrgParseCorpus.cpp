@@ -20,6 +20,21 @@ namespace rs = std::views;
 #define CB(name)                                                          \
     { Str(#name), &OrgTokenizer::lex##name }
 
+void writeFileOrStdout(
+    fs::path const& target,
+    QString const&  content,
+    bool            useStdout) {
+    if (useStdout) {
+        writeFile(target, content);
+    } else {
+        QFile file;
+        file.open(stdout, QIODevice::WriteOnly);
+        QTextStream stream{&file};
+        stream << content;
+    }
+}
+
+
 const UnorderedMap<Str, MockFull::LexerMethod> lexers({
     CB(Angle),
     CB(Time),
@@ -304,7 +319,10 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
     nodes.tokens   = &tokens;
 
     if (spec.dbg.printLexed) {
-        std::cout << yamlRepr(p.tokens) << std::endl;
+        writeFileOrStdout(
+            "/tmp/lexed.yaml",
+            to_string(yamlRepr(p.tokens)),
+            spec.dbg.printLexedToFile);
     }
 
     if (spec.dbg.doLex) {
@@ -318,7 +336,10 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
             p.parse(parseCb);
 
             if (spec.dbg.printParsed) {
-                std::cout << yamlRepr(p.nodes) << std::endl;
+                writeFileOrStdout(
+                    "/tmp/parsed.yaml",
+                    to_string(yamlRepr(p.nodes)),
+                    spec.dbg.printParsedToFile);
             }
 
             if (spec.subnodes.has_value()) {

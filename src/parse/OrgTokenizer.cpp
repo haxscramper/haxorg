@@ -928,7 +928,7 @@ void OrgTokenizer::lexProperties(PosStr& str) {
             str.skip(QChar(':'));
         });
 
-        if (normalize(id.toStr()) == ":end:") {
+        if (normalize(id.toStr()) == "end") {
             hasEnd   = true;
             auto end = Token(otk::ColonEnd, id.view);
             __push(end);
@@ -1014,21 +1014,23 @@ void OrgTokenizer::lexDrawer(PosStr& str) {
 
         str.skip(ONewline);
         const Str norm = normalize(id.toStr());
-        if (norm == ":properties:") {
+        if (norm == "properties") {
             auto prop = Token(otk::ColonProperties, id.view);
             __push(prop);
             lexProperties(str);
-        } else if (norm == ":logbook:") {
+        } else if (norm == "logbook") {
             auto log = Token(otk::ColonLogbook, id.view);
             __push(log);
             lexLogbook(str);
-        } else if (norm == ":description:") {
+        } else if (norm == "description") {
             auto desc = Token(otk::ColonDescription, id.view);
             __push(desc);
             lexDescription(str);
         } else {
-            assert(false && "FIXME IMPLEMENT");
-            // throw newImplementKindError(norm, toStr(str));
+            throw ImplementError(
+                "Drawer element '$#' has not been implemented yet "
+                "(normalized as '$#')"
+                % to_string_vec(id.toStr(), norm));
         }
 
         auto ahead = str;
@@ -1080,27 +1082,25 @@ void OrgTokenizer::lexSubtreeTitle(PosStr& str) {
     if (body.at(QChar(':'))) {
         body.back();
         auto tagEnded = false;
-        while (!body.finished() && !tagEnded) {
-            const auto finish = body.getPos();
-            while (!body.finished()
-                   && !body.at(
-                       charsets::IdentChars
-                       + CharSet{QChar('#'), QChar('@')})) {
-                body.back();
-            }
+        int  finish   = body.getPos();
+        int  start    = finish;
 
-            const auto start = body.getPos() + 1;
-            body.skip(QChar(':'), -1);
-            headerTokens.push_back(Token(
-                otk::SubtreeTag, body.sliceBetween(start, finish).view));
-            if (body.at(OSpace)) {
-                tagEnded = true;
-            }
+        while (
+            !body.finished()
+            && !(
+                body.at(CharSet{QChar(':'), QChar('#'), QChar('@')}, start)
+                || body.get(start).isLetter())) {
+            --start;
         }
+
+        headerTokens.push_back(
+            Token(otk::SubtreeTag, body.sliceBetween(start, finish).view));
+        body.setPos(start - 1);
         while (body.at(OSpace)) {
             body.back();
         }
     }
+
     if (body.at(QChar(']'))) {
         auto tmp = body;
         try {

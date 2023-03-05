@@ -449,6 +449,8 @@ struct ShiftedDiff {
                     newShifted.push_back(Item{sek::Insert, rhsPos});
                 }
             }
+        } else {
+            // IMPLEMENT for case with zero common elements between diffs
         }
     }
 

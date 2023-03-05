@@ -35,20 +35,46 @@ concept PosStrCheckable = (                                 //
 /// absolute line/column value
 struct LocationResolver {
     /// \brief Pointer to the absolute base of the string being processed
-    const char* absBase;
+    const QChar* absBase = nullptr;
 
     /// \brief Get line and column information using absolute position in
-    /// the string
+    /// the string. NOTE: this function is not particularly effective and
+    /// is meant to be used as quicky debugging tool for working with
+    /// tokens that don't have to store location information.
     LineCol getLineCol(int pos) {
-        // IMPLEMENT
-        return {0, 0};
+        if (absBase == nullptr) {
+            return {0, -1};
+        } else {
+            int column = 0;
+            while (absBase[pos] != QChar('\n')) {
+                --pos;
+                ++column;
+            }
+
+            int line = 0;
+            while (0 < pos) {
+                if (absBase[pos] == QChar('\n')) {
+                    ++line;
+                }
+                --pos;
+            }
+
+
+            return {line, column};
+        }
     }
 
     /// \brief  Get line and column using base of the string view and
     /// position inside of the view
-    LineCol getLineCol(const QChar* base, int pos) {
-        return getLineCol(pos);
+    LineCol getLineCol(QChar const* base, int pos) {
+        return getLineCol(
+            // (((std::size_t)(base) / sizeof(QChar))
+            //  - ((std::size_t)(absBase) / sizeof(QChar)))
+            // +
+            pos);
     }
+
+    LocationResolver(QChar const* base = nullptr) : absBase(base) {}
 };
 
 /// \brief String wrapper with tracked position
@@ -360,11 +386,11 @@ struct PosStr {
 
     int getColumn() const;
 
-    bool hasMoreIndent(const int& indent, const bool& exactIndent = false)
+    bool hasMoreIndent(int const& indent, bool const& exactIndent = false)
         const;
 
 
-    void skipIdent(const CharSet& chars = charsets::IdentChars);
+    void skipIdent(CharSet const& chars = charsets::IdentChars);
 
     /// Create new QChar('unexpected character') error at the current
     /// string parsing position.

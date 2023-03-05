@@ -12,15 +12,17 @@ struct ParseSpec {
     Opt<QString>    testName;
 
     struct Dbg {
-        bool traceLex    = false;
-        bool traceParse  = false;
-        bool lexToFile   = false;
-        bool parseToFile = false;
-        bool printLexed  = false;
-        bool printParsed = false;
-        bool printSource = false;
-        bool doParse     = true;
-        bool doLex       = true;
+        bool traceLex          = false;
+        bool traceParse        = false;
+        bool lexToFile         = false;
+        bool parseToFile       = false;
+        bool printLexed        = false;
+        bool printParsed       = false;
+        bool printSource       = false;
+        bool doParse           = true;
+        bool doLex             = true;
+        bool printLexedToFile  = false;
+        bool printParsedToFile = false;
     };
 
     Dbg dbg;
@@ -52,41 +54,23 @@ struct ParseSpec {
     ParseSpec(CR<YAML::Node> node) {
         if (node["debug"]) {
             auto debug = node["debug"];
-            if (debug["trace_lex"]) {
-                dbg.traceLex = debug["trace_lex"].as<bool>();
-            }
+            auto opt   = [&](bool& target, std::string name) {
+                if (debug[name]) {
+                    target = debug[name].as<bool>();
+                }
+            };
 
-            if (debug["do_lex"]) {
-                dbg.doParse = debug["do_lex"].as<bool>();
-            }
-
-            if (debug["do_parse"]) {
-                dbg.doParse = debug["do_parse"].as<bool>();
-            }
-
-            if (debug["trace_parse"]) {
-                dbg.traceParse = debug["trace_parse"].as<bool>();
-            }
-
-            if (debug["lex_to_file"]) {
-                dbg.lexToFile = debug["lex_to_file"].as<bool>();
-            }
-
-            if (debug["parse_to_file"]) {
-                dbg.parseToFile = debug["parse_to_file"].as<bool>();
-            }
-
-            if (debug["print_lexed"]) {
-                dbg.printLexed = debug["print_lexed"].as<bool>();
-            }
-
-            if (debug["print_parsed"]) {
-                dbg.printLexed = debug["print_parsed"].as<bool>();
-            }
-
-            if (debug["print_source"]) {
-                dbg.printSource = debug["print_source"].as<bool>();
-            }
+            opt(dbg.traceLex, "trace_lex");
+            opt(dbg.doParse, "do_lex");
+            opt(dbg.doParse, "do_parse");
+            opt(dbg.traceParse, "trace_parse");
+            opt(dbg.lexToFile, "lex_to_file");
+            opt(dbg.parseToFile, "parse_to_file");
+            opt(dbg.printLexed, "print_lexed");
+            opt(dbg.printParsed, "print_parsed");
+            opt(dbg.printLexedToFile, "print_lexed_to_file");
+            opt(dbg.printParsedToFile, "print_parsed_to_file");
+            opt(dbg.printSource, "print_source");
         }
 
         if (node["lex"]) {

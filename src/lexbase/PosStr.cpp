@@ -82,8 +82,10 @@ PosStr PosStr::sliceBetween(int start, int end) const {
 }
 
 PosStr PosStr::popSlice(Offset offset) {
-    auto slice = slices.pop_back_v();
-    return PosStr(completeView(slice, offset));
+    auto slice      = slices.pop_back_v();
+    auto result     = PosStr(completeView(slice, offset));
+    result.resolver = resolver;
+    return result;
 }
 
 PosStr PosStr::slice(AdvanceCb cb, Offset offset) {
@@ -149,7 +151,11 @@ bool PosStr::at(CR<QString> expected, int offset) const {
 }
 
 LineCol PosStr::getLineCol() {
-    return resolver->getLineCol(view.data(), pos);
+    if (resolver != nullptr) {
+        return resolver->getLineCol(view.data(), pos);
+    } else {
+        return {0, -1};
+    }
 }
 
 void PosStr::skip(QString expected) {

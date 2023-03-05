@@ -26,9 +26,9 @@ inline Str normalize(CR<Str> in) {
     Str res;
     for (QChar c : in) {
         if (!(c == '_' || c == '-')) {
-            if (charsets::LowerAsciiLetters.contains(c)) {
+            if (c.isLower()) {
                 res += c;
-            } else if (charsets::HighAsciiLetters.contains(c)) {
+            } else if (c.isUpper()) {
                 res += c.toLower();
             }
         }

@@ -33,6 +33,11 @@ items:
       - {idx: 3, kind: Word, str: "Tools"}
       - {idx: 4, kind: ParagraphEnd}
       - {idx: 5, kind: SubtreeEnd}
+      - {idx: 6, kind: ParagraphStart}
+      - {idx: 7, kind: Word, str: Nested}
+      - {idx: 8, kind: Space, str: " "}
+      - {idx: 9, kind: Word, str: content}
+      - {idx: 10, kind: ParagraphEnd}
 
   - name: "Lorem ipsum subtree"
     source: |
@@ -59,7 +64,7 @@ items:
 
       *** 2022-03-01 Tuesday
 
-      **** [2022-03-01 Tue 01:07:00] :from_tg:nim##bug:todo:
+      **** [2022-03-01 Tue 01:07:00] content :from_tg:nim##bug:todo:
            :PROPERTIES:
            :CREATED:  [2022-03-01 Tue 01:07:00]
            :ID:       a5a2076a-5c7f-46b2-8144-e7a65e9a440e
@@ -78,5 +83,5 @@ items:
       trace_parse: true
       trace_lex: true
       do_parse: false
-      print_source: true
-      # lex_to_file: true
+      lex_to_file: true
+      print_lexed_to_file: true
