@@ -92,7 +92,22 @@ struct PosStr {
         ColStream stream{os};
         print(stream, params);
     }
+
     void print(CR<PrintParams> params) const { print(qcout, params); }
+
+    QString printToString(bool colored = false) {
+        return printToString(PrintParams{}, colored);
+    }
+
+    QString printToString(PrintParams params, bool colored = false) {
+        QString     result;
+        QTextStream stream{&result};
+        ColStream   out{stream};
+        params.withEnd = false;
+        out.colored    = colored;
+        print(out, params);
+        return result;
+    }
 
 
     struct SliceStartData {

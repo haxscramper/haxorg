@@ -192,13 +192,46 @@ items:
       - {idx: 23, kind: Dedent}
       - {idx: 24, kind: ListEnd}
   - name: "List with unindented source code block"
-    debug:
-      print_lexed: true
-      lex_to_file: true
-      trace_lex: true
-
     source: |
       - Item1
         #+begin_src nim
-      unindented_content
+        indented
+        two_lines
         #+end_src
+
+    tokens:
+      - {idx: 0, kind: ListStart}
+      - {idx: 1, kind: ListItemStart, str: "-"}
+      - {idx: 2, kind: StmtListOpen}
+
+      # First paragraph of text in the list
+      - {idx: 3, kind: ParagraphStart}
+      - {idx: 4, kind: Word, str: Item1}
+      - {idx: 5, kind: Newline, str: "\n"}
+      - {idx: 6, kind: Space, str: "  "}
+      - {idx: 7, kind: ParagraphEnd}
+
+      # Source code block in the resulting text
+      - {idx: 8, kind: CommandPrefix, str: "#+"}
+      - {idx: 9, kind: CommandBegin, str: "begin_src"}
+      - {idx: 10, kind: CommandArgumentsBegin}
+      - {idx: 11, kind: Word, str: "nim"}
+      - {idx: 12, kind: CommandArgumentsEnd}
+
+      - {idx: 13, kind: CommandContentStart}
+
+      - {idx: 14, kind: CodeContentBegin}
+      - {idx: 15, kind: CodeText, str: "indented"}
+      - {idx: 16, kind: Newline, str: "\n"}
+      - {idx: 17, kind: CodeText, str: "  two_lines"}
+      - {idx: 18, kind: Newline, str: "\n"}
+      - {idx: 19, kind: CodeContentEnd}
+
+      - {idx: 20, kind: CommandContentEnd}
+
+      - {idx: 21, kind: CommandPrefix, str: "#+"}
+      - {idx: 22, kind: CommandEnd, str: "end_src"}
+
+      - {idx: 23, kind: StmtListClose}
+      - {idx: 24, kind: ListItemEnd}
+      - {idx: 25, kind: ListEnd}
