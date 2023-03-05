@@ -77,7 +77,7 @@ tasks:
           DIR: "{{.PWD}}/build"
           IN: "{{.PWD}}/build/bin/tests.bin"
           # ARGS: >
-          #   [corpus]
+          #   [str]
           #   --corpus-glob
           #   *list.yaml
 

@@ -1,6 +1,10 @@
 #include <lexbase/PosStr.hpp>
 #include "common.hpp"
 
+#define __init(text)                                                      \
+    QString base{text};                                                   \
+    PosStr  str{base};
+
 TEST_CASE("Positional string cursor movements", "[str]") {
     QString base{"01234"};
     PosStr  str{base};
@@ -45,5 +49,32 @@ TEST_CASE("Positional string cursor movements", "[str]") {
     SECTION("Skip until a string is found") {
         str.skipBefore("34");
         REQUIRE(str.at(QChar('2')));
+    }
+}
+
+TEST_CASE("Positional string API", "[str]") {
+    SECTION("Column at the start of the text") {
+        __init("* Random");
+        REQUIRE(str.getColumn() == 0);
+        str.next();
+        REQUIRE(str.getColumn() == 1);
+    }
+
+    SECTION("Column compute and newlines") {
+        __init("\n\n\n");
+        REQUIRE(str.getColumn() == 0);
+        str.next();
+        REQUIRE(str.getColumn() == 0);
+        str.next();
+        REQUIRE(str.getColumn() == 0);
+    }
+
+    SECTION("Column compute and split text") {
+        __init("0\n1\n2\n");
+        REQUIRE(str.getColumn() == 0);
+        REQUIRE(str.get() == '0');
+        str.next();
+        REQUIRE(str.getColumn() == 1);
+        REQUIRE(str.get() == '\n');
     }
 }

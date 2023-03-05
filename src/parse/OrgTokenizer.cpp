@@ -2285,6 +2285,10 @@ void OrgTokenizer::lexStructure(PosStr& str) {
             bool hasSpace = str.at(OSubtreeOrList, 0)
                          && str.at(CharSet{OSpace}, 1);
 
+            __print(
+                "Has space? $#, str: $#, column: $#"
+                % to_string_vec(
+                    hasSpace, str.printToString(), str.getColumn()));
             if (str.getColumn() == 0) {
                 if (hasSpace) {
                     // `*bold*` world at the start of the paragraph

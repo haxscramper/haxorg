@@ -1,0 +1,11 @@
+lex: "Structure"
+parse: "Top"
+expected: "Flat"
+items:
+  - name: "Regular subtree"
+    debug:
+      print_lexed: true
+      lex_to_file: true
+      trace_lex: true
+
+    source: "* Subtree"
