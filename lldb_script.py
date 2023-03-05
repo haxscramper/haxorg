@@ -3,9 +3,13 @@
 import lldb
 import re
 
+
 def simplify_name(name: str) -> str:
     replacements = [
-        ("std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>", "std::string"),
+        (
+            "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>",
+            "std::string",
+        ),
         ("LexerCommon<OrgTokenKind>", "OrgLexer"),
         ("IntSet<OrgTokenKind>", "OrgTokSet"),
         ("unsigned long", "u32"),
@@ -13,7 +17,10 @@ def simplify_name(name: str) -> str:
         ("unsigned long long", "u64"),
         ("long long", "i64"),
         (r"std::vector<(.*?), std::allocator<\1>>", r"std::vector<\1>"),
-        (r"std::_Vector_base<(.*?), std::allocator<\1>>", r"std::_Vector_base<\1>")
+        (
+            r"std::_Vector_base<(.*?), std::allocator<\1>>",
+            r"std::_Vector_base<\1>",
+        ),
     ]
     for (_from, _to) in replacements:
         name = re.sub(_from, _to, name)
@@ -22,7 +29,18 @@ def simplify_name(name: str) -> str:
 
 
 def format_frame(frame, unused):
-    if "Catch" in frame.name or "__gnu" in frame.name or "__libc" in frame.name:
+    if (
+        "Catch" in frame.name
+        or "__gnu" in frame.name
+        or "__libc" in frame.name
+        or (
+            frame.line_entry.file.basename
+            and (
+                "std_function" in frame.line_entry.file.basename
+                or "invoke.h" in frame.line_entry.file.basename
+            )
+        )
+    ):
         return ""
 
     result = f"\033[35m{frame.idx:>2}\033[0m: {simplify_name(frame.name)}"
@@ -39,6 +57,7 @@ def format_frame(frame, unused):
     #         result += f"\n       = {arg.name:<16} = {arg.summary}"
 
     return result + "\n"
+
 
 def __lldb_init_module(debugger, internal_dict):
     print("Install")

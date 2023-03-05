@@ -83,11 +83,12 @@ struct PosStr {
     std::shared_ptr<LocationResolver> resolver;
 
     struct PrintParams {
-        int  maxTokens   = 10;
-        bool withPos     = true;
-        bool withEnd     = true;
-        bool withColor   = true;
-        int  startOffset = 0;
+        int  maxTokens      = 10;
+        bool withPos        = true;
+        bool withEnd        = true;
+        bool withColor      = true;
+        int  startOffset    = 0;
+        bool withSeparation = true;
     };
 
 

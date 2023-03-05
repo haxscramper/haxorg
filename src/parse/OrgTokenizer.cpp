@@ -1079,29 +1079,42 @@ void OrgTokenizer::lexSubtreeTitle(PosStr& str) {
     auto          body = str.slice(skipToEOL);
     Vec<OrgToken> headerTokens;
     body.skipToEOF();
+    int max = body.getPos();
     if (body.at(QChar(':'))) {
-        body.back();
-        auto tagEnded = false;
-        int  finish   = body.getPos();
-        int  start    = finish;
-
+        int tagback = 0;
         while (
-            !body.finished()
-            && !(
-                body.at(CharSet{QChar(':'), QChar('#'), QChar('@')}, start)
-                || body.get(start).isLetter())) {
-            --start;
+            (body.at(
+                 CharSet{QChar(':'), QChar('#'), QChar('@'), QChar('_')},
+                 -tagback)
+             || body.get(-tagback).isLetter())) {
+            // __print(
+            //     "Skipping character $#, moving start from $#, max is $#"
+            //     % to_string_vec(body.get(-tagback), -tagback, max));
+            ++tagback;
         }
+
+
+        body.setPos(max - tagback);
 
         headerTokens.push_back(
-            Token(otk::SubtreeTag, body.sliceBetween(start, finish).view));
-        body.setPos(start - 1);
-        while (body.at(OSpace)) {
-            body.back();
+            Token(otk::SubtreeTag, body.sliceBetween(0, tagback).view));
+
+        body.skipToEOF();
+        body.next(-tagback);
+        while (body.at(OSpace, -tagback)) {
+            ++tagback;
         }
+
+        body.setPos(0);
+        body = body.sliceBetween(0, max - tagback);
+        // __trace("Set new body content", body);
+        body.skipToEOF();
+        max = body.getPos();
     }
 
+    // __trace(body.printToString());
     if (body.at(QChar(']'))) {
+        // __trace("At progress ", body);
         auto tmp = body;
         try {
             const auto finish = tmp.getPos();
@@ -1126,17 +1139,23 @@ void OrgTokenizer::lexSubtreeTitle(PosStr& str) {
             headerTokens.push_back(Token(
                 otk::SubtreeCompletion,
                 tmp.sliceBetween(start, finish).view));
+            // __trace("Added progress", body);
             while (body.at(OSpace)) {
                 body.next(-1);
             }
-        } catch (UnexpectedCharError& err) { ; };
+        } catch (UnexpectedCharError& err) {
+            // __trace("Not a progress", body);
+        };
     }
     //
     {
+        // __trace("Starting subtree content", body);
         auto finish = body.getPos();
         body.skipToSOF();
         const auto start = body.getPos();
-        auto       slice = body.sliceBetween(start, finish);
+        // __trace("After skip to start", body);
+        // __print("[$#, $#]" % to_string_vec(start, finish));
+        auto slice = body.sliceBetween(start, finish);
         headerTokens.push_back(Token(otk::Text, slice.view));
     }
 
@@ -2403,7 +2422,12 @@ void OrgTokenizer::report(CR<Report> in) {
 
             if (in.str != nullptr) {
                 os << " [";
-                in.str->print(os, PosStr::PrintParams({.withEnd = false}));
+                in.str->print(
+                    os,
+                    PosStr::PrintParams(
+                        {.withEnd        = false,
+                         .maxTokens      = 100,
+                         .withSeparation = false}));
                 os << "]";
             }
 

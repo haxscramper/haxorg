@@ -18,7 +18,7 @@ struct OperationsTracer {
         trace       = true;
         traceToFile = true;
         file.first.setFileName(outfile);
-        if (file.first.open(QIODevice::ReadWrite)) {
+        if (file.first.open(QIODevice::ReadWrite | QFile::Truncate)) {
             file.second.setDevice(&file.first);
         } else {
             std::cerr << "Could not open file " << outfile << "\n";

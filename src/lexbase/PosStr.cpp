@@ -8,13 +8,24 @@ void PosStr::print(ColStream& os, CR<PrintParams> params) const {
 
     if (finished()) {
         os << TermColorFg8Bit::Red << " finished " << os.end();
+    } else if (!params.withSeparation) {
+        os << " ";
     }
+
 
     for (int i = params.startOffset; i < params.maxTokens && hasNext(i);
          ++i) {
-        os << TermColorFg8Bit::Yellow << " '" << visibleName(get(i)).first
-           << "'" << os.end();
+
+        os << TermColorFg8Bit::Yellow;
+        if (params.withSeparation) {
+            os << " '" << visibleName(get(i)).first << "'";
+        } else {
+            os << visibleName(get(i)).first;
+        }
+        os << os.end();
     }
+
+    os << " ";
 
     if (params.withEnd) {
         os << "\n";
@@ -68,7 +79,10 @@ void PosStr::pushSlice() { slices.push_back({pos}); }
 
 int PosStr::getPos() const { return pos; }
 
-void PosStr::setPos(int _pos) { pos = _pos; }
+void PosStr::setPos(int _pos) {
+    assert(0 <= _pos && _pos < view.size());
+    pos = _pos;
+}
 
 QStringView PosStr::completeView(CR<SliceStartData> slice, Offset offset)
     const {
