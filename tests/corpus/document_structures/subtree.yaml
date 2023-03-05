@@ -1,11 +1,82 @@
-lex: "Structure"
+lex: "Global"
 parse: "Top"
 expected: "Flat"
 items:
   - name: "Regular subtree"
+    source: "* Subtree"
+    tokens:
+      - {idx: 0, kind: SubtreeStars, str: "*"}
+      - {idx: 1, kind: ParagraphStart}
+      - {idx: 2, kind: Word, str: "Subtree"}
+      - {idx: 3, kind: ParagraphEnd}
+      - {idx: 4, kind: SubtreeEnd}
+
+  - name: "Subtree with time annotations"
+    source: "* [2023-03-05] Subtree title"
+    tokens:
+      - {idx: 0, kind: SubtreeStars, str: "*"}
+      - {idx: 1, kind: ParagraphStart}
+      - {idx: 2, kind: BracketTime, str: "[2023-03-05]"}
+      - {idx: 3, kind: Space, str: " "}
+      - {idx: 4, kind: Word, str: Subtree}
+      - {idx: 5, kind: Space, str: " "}
+      - {idx: 6, kind: Word, str: title}
+      - {idx: 7, kind: ParagraphEnd}
+      - {idx: 8, kind: SubtreeEnd}
+
+  - name: "Subtree with nested content"
+    source: "** CLI Tools\n\nNested content"
+    tokens:
+      - {idx: 0, kind: SubtreeStars, str: "**"}
+      - {idx: 1, kind: SubtreeTodoState, str: "CLI"}
+      - {idx: 2, kind: ParagraphStart}
+      - {idx: 3, kind: Word, str: "Tools"}
+      - {idx: 4, kind: ParagraphEnd}
+      - {idx: 5, kind: SubtreeEnd}
+
+  - name: "Lorem ipsum subtree"
+    source: |
+      #+title: TITLE WORDS
+      #+FILETAGS: :DO_NOT_ORG_ROAM:
+      #+property: header-args :exports code
+      #+columns: %7TODO(To do) %40ITEM(Task)
+      #+options: broken-links:mark
+
+      * 2020
+
+      ** 2020-03 March
+
+      *** [2020-03-22 Sun]
+
+      Lorem
+
+      * 2022
+        :PROPERTIES:
+        :ID:       14825771-5b1c-44d2-b0a4-996d0cf2b6b2
+        :END:
+
+      ** 2022-03 March
+
+      *** 2022-03-01 Tuesday
+
+      **** [2022-03-01 Tue 01:07:00] :from_tg:nim##bug:todo:
+           :PROPERTIES:
+           :CREATED:  [2022-03-01 Tue 01:07:00]
+           :ID:       a5a2076a-5c7f-46b2-8144-e7a65e9a440e
+           :END:
+
+      #todo Lorem
+
+      #+begin_src nim
+      iterator b() {.closure.} =
+      #+end_src
+
+
+
     debug:
       print_lexed: true
-      lex_to_file: true
+      trace_parse: true
       trace_lex: true
-
-    source: "* Subtree"
+      do_parse: false
+      print_source: true
+      # lex_to_file: true

@@ -44,6 +44,7 @@ const UnorderedMap<Str, MockFull::LexerMethod> lexers({
     CB(Comment),
     CB(Table),
     CB(Structure),
+    CB(Global),
 });
 #undef CB
 
@@ -111,6 +112,7 @@ inline void format(
     int                      lhsSize = 48,
     int                      rhsSize = 16) {
     if (text.isUnified()) {
+        qDebug() << text.unified().lhs.size() << text.unified().rhs.size();
         os << (ColText("Given") <<= lhsSize) << (ColText("Expected"))
            << "\n";
         for (const auto& [lhs, rhs] : text.unifiedLines()) {
@@ -263,8 +265,15 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
         p.tokenizer.setTraceFile("/tmp/random.txt");
     }
 
+    if (spec.dbg.printSource) {
+        qDebug().noquote().nospace()
+            << "\n------------------\n"
+            << spec.source << "\n------------------\n";
+    }
 
-    p.tokenize(spec.source, lexCb);
+    if (spec.dbg.doLex) {
+        p.tokenize(spec.source, lexCb);
+    }
     YAML::Emitter emitter;
 
     Str           buffer;
@@ -298,20 +307,24 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
         std::cout << yamlRepr(p.tokens) << std::endl;
     }
 
-    if (spec.tokens.has_value()) {
-        compareTokens(p.tokens, tokens);
-    }
+    if (spec.dbg.doLex) {
+        if (spec.tokens.has_value()) {
+            compareTokens(p.tokens, tokens);
+        }
 
-    MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
+        if (spec.dbg.doParse) {
+            MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
 
-    p.parse(parseCb);
+            p.parse(parseCb);
 
-    if (spec.dbg.printParsed) {
-        std::cout << yamlRepr(p.nodes) << std::endl;
-    }
+            if (spec.dbg.printParsed) {
+                std::cout << yamlRepr(p.nodes) << std::endl;
+            }
 
-    if (spec.subnodes.has_value()) {
-        compareNodes(p.nodes, nodes);
+            if (spec.subnodes.has_value()) {
+                compareNodes(p.nodes, nodes);
+            }
+        }
     }
 }
 

@@ -18,6 +18,9 @@ struct ParseSpec {
         bool parseToFile = false;
         bool printLexed  = false;
         bool printParsed = false;
+        bool printSource = false;
+        bool doParse     = true;
+        bool doLex       = true;
     };
 
     Dbg dbg;
@@ -53,6 +56,14 @@ struct ParseSpec {
                 dbg.traceLex = debug["trace_lex"].as<bool>();
             }
 
+            if (debug["do_lex"]) {
+                dbg.doParse = debug["do_lex"].as<bool>();
+            }
+
+            if (debug["do_parse"]) {
+                dbg.doParse = debug["do_parse"].as<bool>();
+            }
+
             if (debug["trace_parse"]) {
                 dbg.traceParse = debug["trace_parse"].as<bool>();
             }
@@ -71,6 +82,10 @@ struct ParseSpec {
 
             if (debug["print_parsed"]) {
                 dbg.printLexed = debug["print_parsed"].as<bool>();
+            }
+
+            if (debug["print_source"]) {
+                dbg.printSource = debug["print_source"].as<bool>();
             }
         }
 

@@ -7,6 +7,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
 #include <hstd/system/reflection.hpp>
 
@@ -409,10 +410,10 @@ struct ShiftedDiff {
     Vec<Item> newShifted;
 
     /// \brief Construct shifted diff pairing from LCS trace information
-    inline ShiftedDiff(CR<BacktrackRes> track, int oldMax, int newMax) {
+    inline ShiftedDiff(CR<BacktrackRes> track, int lhsMax, int rhsMax) {
         using sek = SeqEditKind;
         if (!track.lhsIndex.empty()) {
-            int fullSize = std::max(oldMax, newMax);
+            int fullSize = std::max(lhsMax, rhsMax);
             int prevLhs  = 0;
             int prevRhs  = 0;
             for (int pos = 0; pos < track.lhsIndex.size(); ++pos) {
@@ -425,13 +426,28 @@ struct ShiftedDiff {
 
                 for (int i = prevRhs; i < rhsPos; ++i) {
                     newShifted.push_back(Item{sek::Insert, i});
-                    oldShifted.push_back(Item{sek::None, i});
+                    oldShifted.push_back(Item{sek::None, 0});
                 }
 
                 newShifted.push_back(Item{sek::Keep, rhsPos});
                 oldShifted.push_back(Item{sek::Keep, lhsPos});
                 prevLhs = lhsPos + 1;
                 prevRhs = rhsPos + 1;
+            }
+
+
+            if (prevLhs < lhsMax) {
+                for (int lhsPos = prevLhs; lhsPos < lhsMax; ++lhsPos) {
+                    oldShifted.push_back(Item{sek::Delete, lhsPos});
+                    newShifted.push_back(Item{sek::None, 0});
+                }
+            }
+
+            if (prevRhs < rhsMax) {
+                for (int rhsPos = prevRhs; rhsPos < rhsMax; ++rhsPos) {
+                    oldShifted.push_back(Item{sek::None, 0});
+                    newShifted.push_back(Item{sek::Insert, rhsPos});
+                }
             }
         }
     }

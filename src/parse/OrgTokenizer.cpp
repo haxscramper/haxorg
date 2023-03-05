@@ -284,10 +284,13 @@ void OrgTokenizer::lexTime(PosStr& str) {
             str.skip(QChar(']'));
         };
 
-        __push((str.tok(otk::BracketTime, skipBracket)));
+        auto time = str.tok(otk::BracketTime, skipBracket);
+        __push(time);
         if (str.at("--")) {
-            __push((str.tok(otk::TimeDash, skipCount, 2)));
-            __push((str.tok(otk::BracketTime, skipBracket)));
+            auto sep = str.tok(otk::TimeDash, skipCount, 2);
+            __push(sep);
+            auto time = str.tok(otk::BracketTime, skipBracket);
+            __push(time);
         }
     } else {
         throw str.makeUnexpected("QChar('<') or QChar('[')", "time");
@@ -407,9 +410,7 @@ void OrgTokenizer::lexBracket(PosStr& str) {
         auto end = str.tok(otk::FootnoteEnd, skipOne, QChar(']'));
         __push(end);
     } else {
-        assert(false);
-        // FIXME
-        // push(trySpecific(str, otk::Punctuation, 1, lexTime));
+        lexTime(str);
     }
 }
 
@@ -1132,15 +1133,15 @@ void OrgTokenizer::lexSubtreeTitle(PosStr& str) {
     }
     //
     {
-
         auto finish = body.getPos();
         body.skipToSOF();
         const auto start = body.getPos();
-        auto       slice = str.sliceBetween(start, finish);
+        auto       slice = body.sliceBetween(start, finish);
         headerTokens.push_back(Token(otk::Text, slice.view));
     }
+
     for (const auto& tok : reversed(headerTokens)) {
-        __push(tok);
+        pushResolved(tok);
     }
 }
 
@@ -1193,6 +1194,8 @@ void OrgTokenizer::lexSubtree(PosStr& str) {
         lexDrawer(drawer);
         str = drawer;
     }
+    auto end = str.fakeTok(otk::SubtreeEnd);
+    __push(end);
 }
 
 void OrgTokenizer::lexSourceBlockContent(PosStr& str) {
@@ -1733,15 +1736,23 @@ bool OrgTokenizer::atLogClock(CR<PosStr> str) {
     }
 }
 
-bool OrgTokenizer::atConstructStart(CR<PosStr> str) {
-    if (!isFirstOnLine(str)) {
-        return false;
-    } else if (str.getIndent() == 0 && str.at(OSubtreeStart)) {
+bool OrgTokenizer::atSubtreeStart(CR<PosStr> str) {
+    if (str.getIndent() == 0 && str.at(OSubtreeStart)) {
         auto shift = 0;
         while (str.at(OSubtreeStart, shift)) {
             ++shift;
         }
         return str.at(OSpace, shift);
+    } else {
+        return false;
+    }
+}
+
+bool OrgTokenizer::atConstructStart(CR<PosStr> str) {
+    if (!isFirstOnLine(str)) {
+        return false;
+    } else if (atSubtreeStart(str)) {
+        return true;
     } else {
         return str.at("#+") || str.at("---");
     }
@@ -2279,18 +2290,11 @@ void OrgTokenizer::lexStructure(PosStr& str) {
         }
 
         case '*': {
-            // No whitespace between a start and a character means it
-            // is a bold word, otherwise it is a structural element -
-            // either subtree or a unordered list.
-            bool hasSpace = str.at(OSubtreeOrList, 0)
-                         && str.at(CharSet{OSpace}, 1);
-
-            __print(
-                "Has space? $#, str: $#, column: $#"
-                % to_string_vec(
-                    hasSpace, str.printToString(), str.getColumn()));
+            // No whitespace between a start and a character means it is a
+            // bold word, otherwise it is a structural element - either
+            // subtree or a unordered list.
             if (str.getColumn() == 0) {
-                if (hasSpace) {
+                if (atSubtreeStart(str)) {
                     // `*bold*` world at the start of the paragraph
                     lexSubtree(str);
                 } else {
@@ -2298,7 +2302,8 @@ void OrgTokenizer::lexStructure(PosStr& str) {
                     lexParagraph(str);
                 }
             } else {
-                if (hasSpace) {
+                if (str.at(OSubtreeOrList, 0)
+                    && str.at(CharSet{OSpace}, 1)) {
                     // `__* list item` on a line
                     lexList(str);
                 } else {

@@ -83,6 +83,7 @@ struct OrgTokenizer
     construct.
     */
     bool atConstructStart(CR<PosStr> str);
+    bool atSubtreeStart(CR<PosStr> str);
 
     // Store common types of the lexer state
     template <typename Flag>
