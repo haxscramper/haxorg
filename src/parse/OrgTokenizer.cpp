@@ -820,18 +820,7 @@ void OrgTokenizer::lexText(PosStr& str) {
             break;
         }
         case '@': {
-            const auto AtChars = charsets::IdentChars + charsets::Utf8Any;
-            if (str.at(AtChars, 1)) {
-                auto mention = (str.tok(
-                    otk::AtMention, [&AtChars](PosStr& str) {
-                        str.skip(QChar('@'));
-                        str.skipZeroOrMore(AtChars);
-                    }));
-                __push(mention);
-            } else {
-                auto punct = (str.tok(otk::Punctuation, skipCount, 1));
-                __push(punct);
-            }
+            lexTextAtSign(str);
             break;
         }
         case '$': {
@@ -1365,6 +1354,212 @@ Vec<OrgToken> OrgTokenizer::lexDelimited(
     return result;
 }
 
+void OrgTokenizer::lexCommandProperty(PosStr& str) {
+    __trace();
+    str.space();
+    auto ident = (str.tok(
+        otk::Ident, skipBefore, cr(CharSet{OSpace, QChar(':')})));
+    __push(ident);
+    if (str.at(QChar(':'))) {
+        auto colon = (str.tok(otk::Colon, skipCount, 1));
+        __push(colon);
+        auto ident = (str.tok(otk::Ident, skipBefore, OSpace));
+        __push(ident);
+    }
+    str.space();
+    auto prop = (str.tok(otk::RawProperty, skipPastEOF));
+    __push(prop);
+}
+
+void OrgTokenizer::lexTextAtSign(PosStr& str) {
+    __trace();
+    const auto AtChars = charsets::IdentChars + charsets::Utf8Any;
+    if (str.at(AtChars, 1)) {
+        auto mention = (str.tok(otk::AtMention, [&AtChars](PosStr& str) {
+            str.skip(QChar('@'));
+            str.skipZeroOrMore(AtChars);
+        }));
+        __push(mention);
+    } else {
+        auto punct = (str.tok(otk::Punctuation, skipCount, 1));
+        __push(punct);
+    }
+}
+
+void OrgTokenizer::lexCommandBlockDelimited(
+    PosStr& str,
+    PosStr  id,
+    int     column) {
+    __trace();
+    auto begin = (Token(otk::CommandBegin, id.view));
+    __push(begin);
+    const auto sectionName = normalize(id.toStr()).dropPrefix("begin");
+    const auto kind        = classifyCommand(id.toStr());
+    if (kind == ock::BeginDynamic) {
+        str.skip(QChar(':'));
+    }
+    str.space();
+    auto arguments = str.slice({0, -2}, skipPastEOL);
+    lexCommandArguments(arguments, kind);
+    auto found = false;
+    str.pushSlice();
+    while (!found && !str.finished()) {
+        while (!str.finished()
+               && !(str.getColumn() == column && str.at("#+"))) {
+            str.next();
+        }
+        assert(!str.finished());
+        const auto   prefix = str.slice(skipCount, 2);
+        const PosStr id     = str.slice(skipZeroOrMore, OCommandChars);
+        if (normalize(id.toStr()) == "end" + sectionName) {
+            found      = true;
+            auto slice = str.popSlice(
+                -(1           /* Default offset */
+                  + id.size() /* `end_<xxx>` */
+                  + 3 /* and trailing newline */));
+            lexCommandContent(slice, kind);
+            auto pt = (Token(otk::CommandPrefix, prefix.view));
+            __push(pt);
+            auto end = (Token(otk::CommandEnd, id.view));
+            __push(end);
+        } else {
+            throw LexerError(
+                "Missing closing 'end' for section block " + sectionName,
+                0);
+        }
+    }
+    if (kind == ock::BeginDynamic) {
+        str.skip(QChar(':'));
+    }
+}
+
+void OrgTokenizer::lexCommandCall(PosStr& str) {
+    __trace();
+    str.space();
+    auto call = (str.tok(
+        otk::CallName, skipZeroOrMore, charsets::IdentChars));
+    __push(call);
+    if (str.at(QChar('['))) {
+        auto header = (str.tok(
+            otk::CallInsideHeader,
+            skipBalancedSlice,
+            QChar('['),
+            QChar(']')));
+        __push(header);
+    }
+
+    auto args = (str.tok(
+        otk::CallArgs, skipBalancedSlice, QChar('('), QChar(')')));
+    __push(args);
+    if (!str.finished()) {
+        auto text = (str.tok(otk::RawText, skipPastEOF));
+        __push(text);
+    }
+}
+
+void OrgTokenizer::lexCommandOptions(PosStr& str) {
+    __trace();
+    while (!str.finished()) {
+        switch (str.get().unicode()) {
+            case '\'':
+            case '*':
+            case '|':
+            case ':':
+            case '<':
+            case '\n':
+            case '^': {
+                auto text = (str.tok(otk::RawText, skipCount, 1));
+                __push(text);
+                break;
+            }
+            case ' ': {
+                str.space();
+                break;
+            }
+            default: {
+                auto raw = (str.tok(otk::RawText, [](PosStr& str) {
+                    while (!str.finished()
+                           && !str.at(charsets::HorizontalSpace)) {
+                        str.next();
+                    }
+                }));
+                __push(raw);
+            }
+        }
+    }
+}
+
+void OrgTokenizer::lexCommandInclude(PosStr& str) {
+    __trace();
+    str.space();
+    if (str.at(QChar('"'))) {
+        lexDelimited(
+            str,
+            {QChar('"'), otk::QuoteOpen},
+            {QChar('"'), otk::QuoteClose},
+            otk::RawText);
+    } else {
+        auto text = (str.tok(otk::RawText, [](PosStr& str) {
+            while (!str.finished() && !str.at(charsets::HorizontalSpace)) {
+                str.next();
+            }
+        }));
+        __push(text);
+    }
+    lexCommandKeyValue(str);
+}
+
+void OrgTokenizer::lexCommandKeyValue(PosStr& str) {
+    __trace();
+    while (!str.finished()) {
+        switch (str.get().unicode()) {
+            case '-': {
+                auto flag = (str.tok(
+                    otk::CommandFlag,
+                    skipZeroOrMore,
+                    cr(CharSet{QChar('-')} + charsets::IdentChars)));
+                __push(flag);
+                break;
+            }
+            case ':': {
+                auto command = (str.tok(
+                    otk::CommandKey,
+                    skipZeroOrMore,
+                    cr(charsets::IdentChars
+                       + CharSet{QChar('-'), QChar(':')})));
+                __push(command);
+                break;
+            }
+            case ' ': {
+                str.space();
+                break;
+            }
+            default: {
+                auto value = (str.tok(otk::CommandValue, [](PosStr& str) {
+                    auto hasColon = false;
+                    while (!str.finished() && !hasColon) {
+                        while (!str.finished()
+                               && !str.at(charsets::HorizontalSpace)) {
+                            str.next();
+                        }
+                        if (!str.finished()) {
+                            auto tmp = str;
+                            tmp.space();
+                            if (!tmp.at(QChar(':'))) {
+                                tmp.next();
+                                str = tmp;
+                            } else {
+                                hasColon = true;
+                            }
+                        }
+                    }
+                }));
+                __push(value);
+            }
+        }
+    }
+}
+
 void OrgTokenizer::lexCommandArguments(
     PosStr&               str,
     const OrgCommandKind& kind) {
@@ -1380,59 +1575,6 @@ void OrgTokenizer::lexCommandArguments(
 
     auto start = (str.fakeTok(wrapStart));
     __push(start);
-    std::function<void(PosStr&)> lexKeyValue;
-    lexKeyValue = [this](PosStr& str) {
-        while (!str.finished()) {
-            switch (str.get().unicode()) {
-                case '-': {
-                    auto flag = (str.tok(
-                        otk::CommandFlag,
-                        skipZeroOrMore,
-                        cr(CharSet{QChar('-')} + charsets::IdentChars)));
-                    __push(flag);
-                    break;
-                }
-                case ':': {
-                    auto command = (str.tok(
-                        otk::CommandKey,
-                        skipZeroOrMore,
-                        cr(charsets::IdentChars
-                           + CharSet{QChar('-'), QChar(':')})));
-                    __push(command);
-                    break;
-                }
-                case ' ': {
-                    str.space();
-                    break;
-                }
-                default: {
-                    auto value = (str.tok(
-                        otk::CommandValue, [](PosStr& str) {
-                            auto hasColon = false;
-                            while (!str.finished() && !hasColon) {
-                                while (!str.finished()
-                                       && !str.at(
-                                           charsets::HorizontalSpace)) {
-                                    str.next();
-                                }
-                                if (!str.finished()) {
-                                    auto tmp = str;
-                                    tmp.space();
-                                    if (!tmp.at(QChar(':'))) {
-                                        tmp.next();
-                                        str = tmp;
-                                    } else {
-                                        hasColon = true;
-                                    }
-                                }
-                            }
-                        }));
-                    __push(value);
-                }
-            }
-        }
-    };
-
     switch (kind) {
         case ock::BeginQuote: {
             break;
@@ -1444,34 +1586,7 @@ void OrgTokenizer::lexCommandArguments(
             break;
         }
         case ock::Options: {
-            while (!str.finished()) {
-                switch (str.get().unicode()) {
-                    case '\'':
-                    case '*':
-                    case '|':
-                    case ':':
-                    case '<':
-                    case '\n':
-                    case '^': {
-                        auto text = (str.tok(otk::RawText, skipCount, 1));
-                        __push(text);
-                        break;
-                    }
-                    case ' ': {
-                        str.space();
-                        break;
-                    }
-                    default: {
-                        auto raw = (str.tok(otk::RawText, [](PosStr& str) {
-                            while (!str.finished()
-                                   && !str.at(charsets::HorizontalSpace)) {
-                                str.next();
-                            }
-                        }));
-                        __push(raw);
-                    }
-                }
-            }
+            lexCommandOptions(str);
             break;
         }
         case ock::Caption: {
@@ -1480,26 +1595,7 @@ void OrgTokenizer::lexCommandArguments(
             break;
         }
         case ock::Call: {
-            str.space();
-            auto call = (str.tok(
-                otk::CallName, skipZeroOrMore, charsets::IdentChars));
-            __push(call);
-            if (str.at(QChar('['))) {
-                auto header = (str.tok(
-                    otk::CallInsideHeader,
-                    skipBalancedSlice,
-                    QChar('['),
-                    QChar(']')));
-                __push(header);
-            }
-
-            auto args = (str.tok(
-                otk::CallArgs, skipBalancedSlice, QChar('('), QChar(')')));
-            __push(args);
-            if (!str.finished()) {
-                auto text = (str.tok(otk::RawText, skipPastEOF));
-                __push(text);
-            }
+            lexCommandCall(str);
             break;
         }
         case ock::BeginSrc: {
@@ -1507,12 +1603,12 @@ void OrgTokenizer::lexCommandArguments(
                 otk::Word, skipZeroOrMore, charsets::IdentChars));
             __push(src);
             str.space();
-            lexKeyValue(str);
+            lexCommandKeyValue(str);
             break;
         }
         case ock::BeginTable:
         case ock::AttrHtml: {
-            lexKeyValue(str);
+            lexCommandKeyValue(str);
             break;
         }
         case ock::BeginDynamic: {
@@ -1520,12 +1616,12 @@ void OrgTokenizer::lexCommandArguments(
                 otk::Word, skipZeroOrMore, charsets::IdentChars));
             __push(dyn);
             str.space();
-            lexKeyValue(str);
+            lexCommandKeyValue(str);
             break;
         }
         case ock::Header: {
             str.space();
-            lexKeyValue(str);
+            lexCommandKeyValue(str);
             break;
         }
         case ock::Author:
@@ -1537,19 +1633,7 @@ void OrgTokenizer::lexCommandArguments(
             break;
         }
         case ock::Property: {
-            str.space();
-            auto ident = (str.tok(
-                otk::Ident, skipBefore, cr(CharSet{OSpace, QChar(':')})));
-            __push(ident);
-            if (str.at(QChar(':'))) {
-                auto colon = (str.tok(otk::Colon, skipCount, 1));
-                __push(colon);
-                auto ident = (str.tok(otk::Ident, skipBefore, OSpace));
-                __push(ident);
-            }
-            str.space();
-            auto prop = (str.tok(otk::RawProperty, skipPastEOF));
-            __push(prop);
+            lexCommandProperty(str);
             break;
         }
         case ock::Filetags: {
@@ -1569,23 +1653,7 @@ void OrgTokenizer::lexCommandArguments(
             break;
         }
         case ock::Include: {
-            str.space();
-            if (str.at(QChar('"'))) {
-                lexDelimited(
-                    str,
-                    {QChar('"'), otk::QuoteOpen},
-                    {QChar('"'), otk::QuoteClose},
-                    otk::RawText);
-            } else {
-                auto text = (str.tok(otk::RawText, [](PosStr& str) {
-                    while (!str.finished()
-                           && !str.at(charsets::HorizontalSpace)) {
-                        str.next();
-                    }
-                }));
-                __push(text);
-            }
-            lexKeyValue(str);
+            lexCommandInclude(str);
             break;
         }
         case ock::Name:
@@ -1627,47 +1695,7 @@ void OrgTokenizer::lexCommandBlock(PosStr& str) {
     __push(prefix);
     const auto id = str.slice(skipZeroOrMore, OCommandChars);
     if (normalize(id.toStr()).startsWith("begin")) {
-        auto begin = (Token(otk::CommandBegin, id.view));
-        __push(begin);
-        const auto sectionName = normalize(id.toStr()).dropPrefix("begin");
-        const auto kind        = classifyCommand(id.toStr());
-        if (kind == ock::BeginDynamic) {
-            str.skip(QChar(':'));
-        }
-        str.space();
-        auto arguments = str.slice({0, -2}, skipPastEOL);
-        lexCommandArguments(arguments, kind);
-        auto found = false;
-        str.pushSlice();
-        while (!found && !str.finished()) {
-            while (!str.finished()
-                   && !(str.getColumn() == column && str.at("#+"))) {
-                str.next();
-            }
-            assert(!str.finished());
-            const auto   prefix = str.slice(skipCount, 2);
-            const PosStr id     = str.slice(skipZeroOrMore, OCommandChars);
-            if (normalize(id.toStr()) == "end" + sectionName) {
-                found      = true;
-                auto slice = str.popSlice(
-                    -(1           /* Default offset */
-                      + id.size() /* `end_<xxx>` */
-                      + 3 /* and trailing newline */));
-                lexCommandContent(slice, kind);
-                auto pt = (Token(otk::CommandPrefix, prefix.view));
-                __push(pt);
-                auto end = (Token(otk::CommandEnd, id.view));
-                __push(end);
-            } else {
-                throw LexerError(
-                    "Missing closing 'end' for section block "
-                        + sectionName,
-                    0);
-            }
-        }
-        if (kind == ock::BeginDynamic) {
-            str.skip(QChar(':'));
-        }
+        lexCommandBlockDelimited(str, id, column);
     } else {
         auto line = (Token(otk::LineCommand, id.view));
         __push(line);
