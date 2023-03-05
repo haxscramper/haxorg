@@ -327,6 +327,9 @@ void OrgTokenizer::lexLinkTarget(PosStr& str) {
             __push(extra);
         }
     } else {
+        // Simple, non-URI protocols that don't have trailing extra
+        // separator parametrization and all other cases (including
+        // user-provided link templates)
         if (str.hasAhead(QChar(':'))) {
             auto protocol = (str.tok(
                 otk::LinkProtocol, skipTo, QChar(':')));
@@ -407,6 +410,7 @@ void OrgTokenizer::lexBracket(PosStr& str) {
         auto end = (str.tok(otk::FootnoteEnd, skipOne, QChar(']')));
         __push(end);
     } else {
+        assert(false);
         // FIXME
         // push(trySpecific(str, otk::Punctuation, 1, lexTime));
     }
@@ -522,15 +526,22 @@ void OrgTokenizer::lexParenArguments(PosStr& str) {
     auto open = (str.tok(otk::ParOpen, skipOne, QChar('(')));
     __push(open);
     while (!str.at(QChar(')'))) {
+        // Read argument until the first comma or closing parent
         auto raw = (str.tok(
             otk::RawText,
             skipBefore,
+
+            // TODO handle quoted strings and escaped commas
             cr(CharSet{QChar(','), QChar(')')})));
         __push(raw);
+
+        // maybe lex comma
         if (str.at(QChar(','))) {
             auto comma = (str.tok(otk::Comma, skipOne, QChar(',')));
             __push(comma);
         }
+
+        // optional space, not significant for argument passing
         str.space();
     }
     auto close = (str.tok(otk::ParClose, skipOne, QChar(')')));
@@ -1690,6 +1701,11 @@ void OrgTokenizer::lexCommandArguments(
 
 void OrgTokenizer::lexCommandBlock(PosStr& str) {
     __trace();
+
+    // Store position of the command start - content be dedented or
+    // indented
+    // arbitrarily, so `#+begin_src` starting at column 2 might have content
+    // that starts on the column 0.
     const auto column = str.getColumn();
     auto       prefix = (str.tok(otk::CommandPrefix, skipOne, "#+"));
     __push(prefix);
@@ -1800,6 +1816,15 @@ bool OrgTokenizer::atListStart(CR<PosStr> tmp) {
         str.skip(ListStart);
         return str.at(OSpace);
     } else if (str.at(charsets::Digits + charsets::AsciiLetters)) {
+        // HACK only handle lists that start with 1-3 characters, `AAAAA.`
+        // won't be hadled. This is a temporary workaround to allow
+        // `regularWord.` at the start of the text. Ideally list detection
+        // should consider the context.
+        // for _ in 0 .. 2:
+        //
+        // NOTE seems like org-mode only handles list elements with a
+        // single starting letter and I don't think there is any reason to
+        // implement a different handlig mode.
         str.tok(otk::ListItemStart, [](PosStr& str) {
             if (str.at(charsets::Digits + charsets::AsciiLetters)) {
                 str.next();
@@ -1982,9 +2007,15 @@ void OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
     __trace();
     assert(!str.at(ONewline));
     while (atListAhead(str) || atLogClock(str)) {
+        // Minor hack -- in order to avoid logic duplication for logbook
+        // and non-logbook parsers this function handles both edge cases.
+        // The `CLOCK` entries are simply skipped, so the list lexer is not
+        // especially troubled by the indentation levels: from the
+        // standpoint of `skipIndents()` processing only happens on the
+        // well-formed and well-indented list (not sure how often this
+        // holds in reality though)
         assert(!str.at(ONewline));
         if (atLogClock(str)) {
-            __trace("Lex log clock list");
             __push(str.fakeTok(otk::ListClock));
             str.pushSlice();
             str.skipToEOL();
@@ -1993,13 +2024,16 @@ void OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
             str.next();
             __push(str.fakeTok(otk::ListItemEnd));
         } else {
+            // List start detection should handle several edge cases that
+            // are hard to distinguish from each other, so first lexing is
+            // /tried/, on success all changes are applied, on failure
+            // entry is processed like a normal text element, without going
+            // into deeper nesting levels.
             skipIndents(state, str);
             const auto indent = str.getColumn();
             if (atListStart(str)) {
-                __trace("Lexing nested list item");
                 lexListItem(str, indent, state);
             } else {
-                __trace("Lexing paragraph content");
                 lexParagraph(str);
             }
         }
@@ -2254,6 +2288,7 @@ void OrgTokenizer::lexStructure(PosStr& str) {
                 }
                 default: {
                     if (charsets::IdentChars.contains(str.get(1))) {
+                        // Paragraph starts with hashtag `#testing something`
                         lexParagraph(str);
                         break;
                     } else {
@@ -2396,6 +2431,12 @@ void OrgTokenizer::pushResolved(CR<OrgToken> token) {
     auto str = PosStr(token.getText());
     switch (token.kind) {
         case otk::Text: {
+            // generic 'text' token was found somewhere in the main
+            // structure of
+            // the document - list content, `#+caption` element etc. In that
+            // context it only had defined boundaries but further lexing
+            // was deferred until now, to avoid repeating the same
+            // construct dozen times.
             __push(str.fakeTok(otk::ParagraphStart));
             while (!str.finished()) {
                 lexText(str);
@@ -2407,11 +2448,21 @@ void OrgTokenizer::pushResolved(CR<OrgToken> token) {
         case otk::RawLogbook: {
             auto str = PosStr(token.getText());
             __push(str.fakeTok(otk::LogbookStart));
+            // Logbook is made up of several list entries which in turn
+            // (that's why the first pass is constrained to list and second
+            // is not constrained to anything) might contain complex nested
+            // elements
             while (!str.finished()) {
                 if (atLogClock(str)) {
                     __push(str.tok(otk::Text, skipToEOL));
+                    // text processing about should not include end of
+                    // line.
                     if (str.at(charsets::Newline)) {
                         str.next();
+                        // If this is a joined list of log entires skip
+                        // only newline, otherwise cut all leading spaces
+                        // to avoid messing up indentation in the list
+                        // parser.
                         if (!atLogClock(str)) {
                             str.space();
                         }
@@ -2426,6 +2477,11 @@ void OrgTokenizer::pushResolved(CR<OrgToken> token) {
 
         case otk::Content: {
             __push(str.fakeTok(otk::ContentStart));
+            // Table might contain any structure, including more complex
+            // elements such as lists, code blocks, other tables and so on.
+            // This is an imporvement on top of the regular org-mode syntax
+            // (although IIUC elisp parser would also allow for structures
+            // like these)
             lexGlobal(str);
             auto end = (str.fakeTok(otk::ContentEnd));
             __push(end);
