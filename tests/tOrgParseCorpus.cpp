@@ -400,3 +400,13 @@ TEST_CASE("Parse corpus", "[corpus]") {
         }
     }
 };
+
+TEST_CASE("Parse file", "[corpus]") {
+    MockFull p;
+    QString  source = readFile(
+        "/mnt/workspace/repos/personal/indexed/notes.org");
+    p.tokenizer.setTraceFile("/tmp/file_parse_trace.txt");
+    p.tokenize(source, &OrgTokenizer::lexGlobal);
+    writeFile(
+        "/tmp/file_parsed.yml", to_string(yamlRepr(p.tokens)) + "\n");
+}

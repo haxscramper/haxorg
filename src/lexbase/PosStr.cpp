@@ -96,9 +96,8 @@ PosStr PosStr::sliceBetween(int start, int end) const {
 }
 
 PosStr PosStr::popSlice(Offset offset) {
-    auto slice      = slices.pop_back_v();
-    auto result     = PosStr(completeView(slice, offset));
-    result.resolver = resolver;
+    auto slice  = slices.pop_back_v();
+    auto result = PosStr(completeView(slice, offset));
     return result;
 }
 
@@ -164,24 +163,14 @@ bool PosStr::at(CR<QString> expected, int offset) const {
     return true;
 }
 
-LineCol PosStr::getLineCol() {
-    if (resolver != nullptr) {
-        return resolver->getLineCol(view.data(), pos);
-    } else {
-        return {0, -1};
-    }
-}
-
 void PosStr::skip(QString expected) {
     if (at(expected)) {
         next(expected.size());
     } else {
-        auto loc = getLineCol();
         throw UnexpectedCharError(
             "Unexpected character encountered during lexing: found "
-            "QChar('$#') but expected QChar('$#') on $#:$#"
-                % to_string_vec(get(), expected, loc.line, loc.column),
-            loc);
+            "QChar('$#') but expected QChar('$#')"
+            % to_string_vec(get(), expected));
     }
 }
 
@@ -189,13 +178,10 @@ void PosStr::skip(QChar expected, int offset, int count) {
     if (get(offset) == expected) {
         next(count);
     } else {
-        auto loc = getLineCol();
         throw UnexpectedCharError(
             "Unexpected character encountered during lexing: found "
             "QChar('$#') but expected QChar('$#') on $#:$#"
-                % to_string_vec(
-                    get(offset), expected, loc.line, loc.column),
-            loc);
+            % to_string_vec(get(offset), expected));
     }
 }
 
@@ -203,14 +189,10 @@ void PosStr::skip(CR<CharSet> expected, int offset, int steps) {
     if (expected.contains(get(offset))) {
         next(steps);
     } else {
-        auto loc = getLineCol();
         throw UnexpectedCharError(
             "Unexpected character encountered during lexing: found "
-            "QChar('$#') but expected any of (char set) QChar('$#') "
-            "on $#:$#"
-                % to_string_vec(
-                    get(offset), expected, loc.line, loc.column),
-            loc);
+            "QChar('$#') but expected any of (char set) QChar('$#')"
+            % to_string_vec(get(offset), expected));
     }
 }
 
@@ -327,14 +309,10 @@ UnexpectedCharError PosStr::makeUnexpected(
     CR<QString> parsing   //< Description of the thing we are
                           // parsing at the moment
 ) {
-    auto loc = getLineCol();
     return UnexpectedCharError(
         "Unexpected character encountered during lexing: found "
-        "QChar('$#') "
-        "but expected $# while parsing on $#:$#"
-            % to_string_vec(
-                get(), expected, parsing, loc.line, loc.column),
-        loc);
+        "QChar('$#') but expected $# while parsing $#"
+        % to_string_vec(get(), expected, parsing));
 }
 
 

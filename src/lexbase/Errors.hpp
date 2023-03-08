@@ -13,7 +13,7 @@ struct ParseError : public std::runtime_error {
     /// offset
     std::variant<LineCol, int> loc;
 
-    explicit ParseError(const QString& message, LineCol _loc)
+    explicit ParseError(const QString& message, LineCol _loc = LineCol{})
         : std::runtime_error(message.toStdString()), loc(_loc) {}
 
     explicit ParseError(const QString& message, int _loc)
@@ -22,7 +22,7 @@ struct ParseError : public std::runtime_error {
 
 /// \brief Base lexer error type
 struct LexerError : public ParseError {
-    explicit LexerError(const QString& message, LineCol _loc)
+    explicit LexerError(const QString& message, LineCol _loc = LineCol{})
         : ParseError(message, _loc) {}
 
     explicit LexerError(const QString& message, int _loc)
@@ -31,7 +31,9 @@ struct LexerError : public ParseError {
 
 /// \brief Raised when unexpected character is encountered at position
 struct UnexpectedCharError : public LexerError {
-    explicit UnexpectedCharError(const QString& message, LineCol _loc)
+    explicit UnexpectedCharError(
+        const QString& message,
+        LineCol        _loc = LineCol{})
         : LexerError(message, _loc) {}
 
     explicit UnexpectedCharError(const QString& message, int pos)
@@ -41,7 +43,9 @@ struct UnexpectedCharError : public LexerError {
 
 /// \brief Raised when string unexpectedly ended
 struct UnexpectedEndError : public LexerError {
-    explicit UnexpectedEndError(const QString& message, LineCol _loc)
+    explicit UnexpectedEndError(
+        const QString& message,
+        LineCol        _loc = LineCol{})
         : LexerError(message, _loc) {}
 
     explicit UnexpectedEndError(const QString& message, int pos)

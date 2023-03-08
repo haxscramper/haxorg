@@ -31,57 +31,9 @@ concept PosStrCheckable = (                                 //
     || std::convertible_to<std::remove_cvref_t<S>, QString>);
 
 
-/// \brief Resolve relative location in the string view span into an
-/// absolute line/column value
-struct LocationResolver {
-    /// \brief Pointer to the absolute base of the string being processed
-    const QChar* absBase = nullptr;
-
-    /// \brief Get line and column information using absolute position in
-    /// the string. NOTE: this function is not particularly effective and
-    /// is meant to be used as quicky debugging tool for working with
-    /// tokens that don't have to store location information.
-    LineCol getLineCol(int pos) {
-        if (absBase == nullptr) {
-            return {0, -1};
-        } else {
-            int column = 0;
-            while (absBase[pos] != QChar('\n')) {
-                --pos;
-                ++column;
-            }
-
-            int line = 0;
-            while (0 < pos) {
-                if (absBase[pos] == QChar('\n')) {
-                    ++line;
-                }
-                --pos;
-            }
-
-
-            return {line, column};
-        }
-    }
-
-    /// \brief  Get line and column using base of the string view and
-    /// position inside of the view
-    LineCol getLineCol(QChar const* base, int pos) {
-        return getLineCol(
-            // (((std::size_t)(base) / sizeof(QChar))
-            //  - ((std::size_t)(absBase) / sizeof(QChar)))
-            // +
-            pos);
-    }
-
-    LocationResolver(QChar const* base = nullptr) : absBase(base) {}
-};
-
 /// \brief String wrapper with tracked position
 struct PosStr {
     /// \brief Resolve absolute position to specific line and column
-    std::shared_ptr<LocationResolver> resolver;
-
     struct PrintParams {
         int  maxTokens      = 10;
         bool withPos        = true;

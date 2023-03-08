@@ -19,13 +19,28 @@ struct FilesystemError : public std::runtime_error {
 inline void writeFile(fs::path const& target, QString const& content) {
     QFile file;
     file.setFileName(QString::fromStdString(target.native()));
-    if (file.open(QIODevice::WriteOnly)) {
+    if (file.open(QIODevice::WriteOnly | QFile::Truncate)) {
         QTextStream stream{&file};
         stream << content;
         file.close();
     } else {
         throw FilesystemError(
             "Could not write to file "
+            + QString::fromStdString(target.native()));
+    }
+}
+
+inline QString readFile(fs::path const& target) {
+    QFile file;
+    file.setFileName(QString::fromStdString(target.native()));
+    if (file.open(QIODevice::ReadOnly)) {
+        QTextStream stream{&file};
+        QString     result = stream.readAll();
+        file.close();
+        return result;
+    } else {
+        throw FilesystemError(
+            "Could not open file "
             + QString::fromStdString(target.native()));
     }
 }

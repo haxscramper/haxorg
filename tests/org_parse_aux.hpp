@@ -44,7 +44,6 @@ struct MockFull : public OrgParser {
     void tokenize(CR<QString> content, LexerMethod lexMethod) {
         base = content;
         PosStr str{base};
-        str.resolver = std::make_shared<LocationResolver>(base.data());
         (tokenizer.*lexMethod)(str);
     }
 
