@@ -2,6 +2,7 @@
 
 #include <hstd/system/basic_templates.hpp>
 #include <hstd/system/string_convert.hpp>
+#include <boost/container_hash/hash.hpp>
 
 #include <hstd/system/exceptions.hpp>
 #include <hstd/stdlib/Pair.hpp>
@@ -14,7 +15,7 @@ struct HSlice {
     A first;
     B last;
 
-    bool operator==(CR<HSlice> other) {
+    bool operator==(CR<HSlice<A, B>> other) const {
         return first == other.first && last == other.last;
     }
 };
@@ -131,6 +132,17 @@ inline QTextStream& operator<<(
     HSlice<A, B> const& value) {
     return os << "[" << value.first << ".." << value.last << "]";
 }
+
+template <typename T>
+struct std::hash<Slice<T>> {
+    std::size_t operator()(Slice<T> const& it) const noexcept {
+        std::size_t result = 0;
+        boost::hash_combine(result, it.first);
+        boost::hash_combine(result, it.last);
+        return result;
+    }
+};
+
 
 template <typename A, typename B>
 Pair<A, A> getSpan(

@@ -8,47 +8,48 @@
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Vec.hpp>
 
+#include <hstd/stdlib/Ptrs.hpp>
+
 template <typename T>
 class RangeTree {
   public:
     struct Node {
-        Slice<T> range;
-        Node*    left;
-        Node*    right;
-
+        Slice<T>   range;
+        UPtr<Node> left;
+        UPtr<Node> right = nullptr;
         Node(
             const Slice<T>& r,
-            Node*           left  = nullptr,
-            Node*           right = nullptr)
-            : range(r), left(left), right(right) {}
+            UPtrIn<Node>    left  = nullptr,
+            UPtrIn<Node>    right = nullptr)
+            : range(r), left(std::move(left)), right(std::move(right)) {}
     };
 
-    RangeTree(const Vec<Slice<T>>& slices) {
+    RangeTree(const Vec<Slice<T>>& slices = Vec<Slice<T>>()) {
         root = build(slices, 0, slices.size() - 1);
     }
 
-    Node* build(const Vec<Slice<T>>& slices, int start, int end) {
+    UPtr<Node> build(const Vec<Slice<T>>& slices, int start, int end) {
         if (start > end) {
             return nullptr;
+        } else if (start == end) {
+            return std::make_unique<Node>(slices[start]);
+        } else {
+            int        mid   = (start + end) / 2;
+            UPtr<Node> left  = build(slices, start, mid);
+            UPtr<Node> right = build(slices, mid + 1, end);
+            return std::make_unique<Node>(
+                slices[mid], std::move(left), std::move(right));
         }
-        if (start == end) {
-            return new Node(slices[start]);
-        }
-
-        int   mid   = (start + end) / 2;
-        Node* left  = build(slices, start, mid);
-        Node* right = build(slices, mid + 1, end);
-        return new Node(slices[mid], left, right);
     }
 
     Opt<Slice<T>> query(CR<T> point) const {
-        Node* curr = root;
+        Node* curr = root.get();
 
         while (curr != nullptr) {
             if (point < curr->range.first) {
-                curr = curr->left;
+                curr = curr->left.get();
             } else if (curr->range.last < point) {
-                curr = curr->right;
+                curr = curr->right.get();
             } else {
                 if (curr->range.contains(point)) {
                     return curr->range;
@@ -56,13 +57,39 @@ class RangeTree {
             }
         }
 
-        // point is not within any range
         return std::nullopt;
     }
 
-  private:
-    Node* root;
+    UPtr<Node> root;
 };
+
+
+template <typename T>
+QTextStream& operator<<(
+    QTextStream&                       os,
+    typename RangeTree<T>::Node const& node) {
+    os << node.range << "{ ";
+    if (node.left != nullptr) {
+        operator<< <T>(os, *(node.left));
+    }
+
+    os << ", ";
+    if (node.right != nullptr) {
+        operator<< <T>(os, *(node.right));
+    }
+    os << "}";
+
+    return os;
+}
+
+template <typename T>
+QTextStream& operator<<(QTextStream& os, RangeTree<T> const& value) {
+    if (value.root == nullptr) {
+        return os << "nil";
+    } else {
+        return operator<< <T>(os, *(value.root));
+    }
+}
 
 // int main() {
 //     Vec<Slice> slices = {Slice(1, 5), Slice(6, 8), Slice(10, 12)};

@@ -70,7 +70,7 @@ tasks:
         ..
 
       # - make -j8 2> /tmp/compile.txt
-      - make -j1 2> /tmp/compile.txt
+      - make -j8 2> /tmp/compile.txt
       # - ninja -v -d explain
       - task: debug
         vars:
