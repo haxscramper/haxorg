@@ -10,6 +10,23 @@ struct ParseSpec {
     Opt<YAML::Node> tokens;
     Str             source;
     Opt<QString>    testName;
+    YAML::Mark      specLocation;
+    YAML::Mark      sourceLocation;
+
+
+    struct Conf {
+        enum class MatchMode
+        {
+            Full,
+            ExpectedSubset
+        };
+
+        MatchMode tokenMatchMode = MatchMode::Full;
+        MatchMode nodeMatchMode  = MatchMode::Full;
+        BOOST_DESCRIBE_NESTED_ENUM(MatchMode, Full, ExpectedSubset);
+    };
+
+    Conf conf;
 
     struct Dbg {
         bool traceLex          = false;
@@ -52,41 +69,40 @@ struct ParseSpec {
     ExpectedMode expectedMode = ExpectedMode::Nested;
 
     ParseSpec(CR<YAML::Node> node) {
+        specLocation = node.Mark();
+
+        if (node["conf"]) {
+            auto c = node["conf"];
+            maybe_field<Conf::MatchMode>(
+                c, conf.tokenMatchMode, "token_match");
+            maybe_field<Conf::MatchMode>(
+                c, conf.nodeMatchMode, "node_match");
+        }
+
         if (node["debug"]) {
             auto debug = node["debug"];
-            auto opt   = [&](bool& target, std::string name) {
-                if (debug[name]) {
-                    target = debug[name].as<bool>();
-                }
-            };
-
-            opt(dbg.traceLex, "trace_lex");
-            opt(dbg.doParse, "do_lex");
-            opt(dbg.doParse, "do_parse");
-            opt(dbg.traceParse, "trace_parse");
-            opt(dbg.lexToFile, "lex_to_file");
-            opt(dbg.parseToFile, "parse_to_file");
-            opt(dbg.printLexed, "print_lexed");
-            opt(dbg.printParsed, "print_parsed");
-            opt(dbg.printLexedToFile, "print_lexed_to_file");
-            opt(dbg.printParsedToFile, "print_parsed_to_file");
-            opt(dbg.printSource, "print_source");
+            maybe_field<bool>(debug, dbg.traceLex, "trace_lex");
+            maybe_field<bool>(debug, dbg.doParse, "do_lex");
+            maybe_field<bool>(debug, dbg.doParse, "do_parse");
+            maybe_field<bool>(debug, dbg.traceParse, "trace_parse");
+            maybe_field<bool>(debug, dbg.lexToFile, "lex_to_file");
+            maybe_field<bool>(debug, dbg.parseToFile, "parse_to_file");
+            maybe_field<bool>(debug, dbg.printLexed, "print_lexed");
+            maybe_field<bool>(debug, dbg.printParsed, "print_parsed");
+            maybe_field<bool>(
+                debug, dbg.printLexedToFile, "print_lexed_to_file");
+            maybe_field<bool>(
+                debug, dbg.printParsedToFile, "print_parsed_to_file");
+            maybe_field<bool>(debug, dbg.printSource, "print_source");
         }
 
-        if (node["lex"]) {
-            lexImplName = node["lex"].as<QString>();
-        }
-
-        if (node["name"]) {
-            testName = node["name"].as<QString>();
-        }
-
-        if (node["parse"]) {
-            parseImplName = node["parse"].as<QString>();
-        }
+        maybe_field<QString>(node, lexImplName, "lex");
+        maybe_field<Opt<QString>>(node, testName, "name");
+        maybe_field<QString>(node, parseImplName, "parse");
 
         if (node["source"]) {
-            source = node["source"].as<QString>();
+            sourceLocation = node["source"].Mark();
+            source         = node["source"].as<QString>();
         } else {
             throw SpecValidationError(
                 "Input spec must contain 'source' string field");
@@ -100,11 +116,7 @@ struct ParseSpec {
             tokens = node["tokens"];
         }
 
-        if (node["expected"]) {
-            expectedMode = string_to_enum<ExpectedMode>(
-                               node["expected"].as<QString>())
-                               .value_or(ExpectedMode::Nested);
-        }
+        maybe_field<ExpectedMode>(node, expectedMode, "expected");
     }
 
     template <typename N, typename K>

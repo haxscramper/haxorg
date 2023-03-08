@@ -1743,9 +1743,11 @@ bool OrgTokenizer::atLogClock(CR<PosStr> str) {
     const auto ahead = tmp.slice(skipTo, QChar('['));
     const auto space = ahead.getSkip(QChar('C'));
     if (0 <= space) {
-        for (const auto ch : ahead[slice(0, space - 1)].view) {
-            if (ch != OSpace) {
-                return false;
+        if (0 < space) {
+            for (const auto ch : ahead[slice(0, space - 1)].view) {
+                if (ch != OSpace) {
+                    return false;
+                }
             }
         }
 

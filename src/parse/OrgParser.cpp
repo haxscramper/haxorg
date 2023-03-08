@@ -2,6 +2,7 @@
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
 #pragma clang diagnostic push
 // #pragma clang diagnostic error "-Wswitch-enum"
@@ -148,6 +149,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::RawText: token(org::RawText, lex.pop()); break;
             case otk::Newline: token(org::Newline, lex.pop()); break;
             case otk::Word: token(org::Word, lex.pop()); break;
+            case otk::BigIdent: token(org::BigIdent, lex.pop()); break;
 
             case otk::SrcOpen: parseTime(lex); break;
             case otk::AngleTime: parseTime(lex); break;
@@ -189,11 +191,11 @@ void OrgParser::textFold(OrgLexer& lex) {
                     "Non-directional inline markup token incountered "
                     "during text parsing");
 
-                // default: {
-                //     std::cout << "unhandled token kind "
-                //               << to_string(lex.kind()) << std::endl;
-                //     assert(false);
-                // }
+            default: {
+                std::cout << "unhandled token kind "
+                          << to_string(lex.kind()) << std::endl;
+                assert(false);
+            }
         }
     }
 
@@ -1281,6 +1283,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             start(newk);
             token(org::Ident, lex.pop());
             end();
+            break;
         }
 
         case ock::Property: {

@@ -127,7 +127,6 @@ inline void format(
     int                      lhsSize = 48,
     int                      rhsSize = 16) {
     if (text.isUnified()) {
-        qDebug() << text.unified().lhs.size() << text.unified().rhs.size();
         os << (ColText("Given") <<= lhsSize) << (ColText("Expected"))
            << "\n";
         for (const auto& [lhs, rhs] : text.unifiedLines()) {
@@ -212,7 +211,9 @@ void compareNodes(
 
 void compareTokens(
     CR<TokenGroup<OrgTokenKind>> lexed,
-    CR<TokenGroup<OrgTokenKind>> expected) {
+    CR<TokenGroup<OrgTokenKind>> expected,
+    ParseSpec::Conf::MatchMode   match) {
+    using Mode                   = ParseSpec::Conf::MatchMode;
     BacktrackRes tokenSimilarity = longestCommonSubsequence<OrgToken>(
         lexed.tokens.content,
         expected.tokens.content,
@@ -230,10 +231,14 @@ void compareTokens(
             }
         })[0];
 
-    if (tokenSimilarity.lhsIndex.size() == lexed.size()
-        && tokenSimilarity.rhsIndex.size() == expected.size()) {
+    if ((match == Mode::Full
+         && tokenSimilarity.lhsIndex.size() == lexed.size()
+         && tokenSimilarity.rhsIndex.size() == expected.size())
+        || (match == Mode::ExpectedSubset
+            && tokenSimilarity.rhsIndex.size() == expected.size())) {
         SUCCEED("Token lexer execution correct");
     } else {
+        qDebug() << match;
         ShiftedDiff tokenDiff{
             tokenSimilarity, lexed.size(), expected.size()};
 
@@ -269,6 +274,13 @@ void compareTokens(
 void runSpec(CR<ParseSpec> spec, CR<QString> from) {
     MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
     MockFull              p;
+
+    // qDebug().noquote() << ((
+    //     "$# at $#:$#"
+    //     % to_string_vec(
+    //         spec.testName,
+    //         spec.specLocation.line,
+    //         spec.specLocation.column)));
 
     p.trace = spec.dbg.traceParse;
     if (spec.dbg.parseToFile) {
@@ -321,13 +333,13 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
     if (spec.dbg.printLexed) {
         writeFileOrStdout(
             "/tmp/lexed.yaml",
-            to_string(yamlRepr(p.tokens)),
+            to_string(yamlRepr(p.tokens)) + "\n",
             spec.dbg.printLexedToFile);
     }
 
     if (spec.dbg.doLex) {
         if (spec.tokens.has_value()) {
-            compareTokens(p.tokens, tokens);
+            compareTokens(p.tokens, tokens, spec.conf.tokenMatchMode);
         }
 
         if (spec.dbg.doParse) {
@@ -338,7 +350,7 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
             if (spec.dbg.printParsed) {
                 writeFileOrStdout(
                     "/tmp/parsed.yaml",
-                    to_string(yamlRepr(p.nodes)),
+                    to_string(yamlRepr(p.nodes)) + "\n",
                     spec.dbg.printParsedToFile);
             }
 

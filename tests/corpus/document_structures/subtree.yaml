@@ -39,7 +39,37 @@ items:
       - {idx: 9, kind: Word, str: content}
       - {idx: 10, kind: ParagraphEnd}
 
+  - name: "Headline after paragraph"
+    source: |
+      Paragraph text
+      * New headline
+
+    tokens:
+      - {idx: 0, kind: ParagraphStart}
+      - {idx: 1, kind: Word, str: Paragraph}
+      - {idx: 2, kind: Space, str: " "}
+      - {idx: 3, kind: Word, str: text}
+      - {idx: 4, kind: Newline, str: "\n"}
+      - {idx: 5, kind: ParagraphEnd}
+      - {idx: 6, kind: SubtreeStars, str: "*"}
+      - {idx: 7, kind: ParagraphStart}
+      - {idx: 8, kind: Word, str: New}
+      - {idx: 9, kind: Space, str: " "}
+      - {idx: 10, kind: Word, str: headline}
+      - {idx: 11, kind: ParagraphEnd}
+      - {idx: 12, kind: SubtreeEnd}
+
+
+
   - name: "Lorem ipsum subtree"
+    debug:
+      do_parse: false
+    #   print_lexed: true
+    #   trace_parse: true
+    #   trace_lex: true
+    #   lex_to_file: true
+    #   print_lexed_to_file: true
+
     source: |
       #+title: TITLE WORDS
       #+FILETAGS: :DO_NOT_ORG_ROAM:
@@ -75,13 +105,3 @@ items:
       #+begin_src nim
       iterator b() {.closure.} =
       #+end_src
-
-
-
-    debug:
-      print_lexed: true
-      trace_parse: true
-      trace_lex: true
-      do_parse: false
-      lex_to_file: true
-      print_lexed_to_file: true
