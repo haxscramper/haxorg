@@ -50,3 +50,27 @@ struct CRTP_this_method {
 #define __ploc()                                                          \
     std::cout << __FILE__ << ":" << __LINE__ << " at " << __func__        \
               << std::endl;
+
+
+template <typename T>
+bool is_within_memory_block(
+    T const*    ptr,
+    T const*    start,
+    std::size_t size) {
+    // calculate the end of the memory block
+    T const* end = start + size;
+
+    // check if the pointer is within the memory block
+    return start <= ptr && ptr < end;
+}
+
+template <typename T>
+bool is_pointer_valid(T const* ptr, T const* start, std::size_t size) {
+    // check if the pointer is null or not within the memory block
+    return ptr != nullptr && is_within_memory_block(ptr, start, size);
+}
+
+template <typename T>
+std::ptrdiff_t pointer_distance(T const* first, T const* last) {
+    return last - first;
+}

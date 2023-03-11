@@ -27,6 +27,69 @@ struct OrgTokenizer
     , public OperationsTracer {
     using Base = Tokenizer<OrgTokenKind>;
 
+  public:
+    struct Errors {
+        struct Base : std::runtime_error {
+            QStringView view;
+            int         pos;
+            Base(CR<PosStr> str, CR<QString> message)
+                : std::runtime_error(message.toStdString())
+                , view(str.view)
+                , pos(str.pos) {}
+        };
+
+        struct None : Base {
+            None() : Base(PosStr("", 1), "") {}
+        };
+
+        struct UnexpectedChar : Base {
+            PosStr::CheckableSkip wanted;
+            UnexpectedChar(CR<PosStr> str, PosStr::CheckableSkip wanted)
+                : Base(
+                    str,
+                    "Expected " + variant_to_string(wanted) + " but got '"
+                        + str.printToString(false) + "'")
+                , wanted(wanted) {}
+        };
+
+        struct UnknownConstruct : Base {
+            UnknownConstruct(CR<PosStr> str)
+                : Base(
+                    str,
+                    "Unexpected construct '" + str.printToString(false)
+                        + "'") {}
+        };
+    };
+
+    using Error = Variant<
+        Errors::UnexpectedChar,
+        Errors::UnknownConstruct,
+        Errors::None>;
+
+    struct TokenizerError : std::runtime_error {
+        Error err;
+        TokenizerError() : std::runtime_error(""), err(Errors::None()) {}
+        explicit TokenizerError(CR<Error> err)
+            : std::runtime_error(""), err(err) {}
+        QStringView getView() const {
+            return std::visit([](auto const& in) { return in.view; }, err);
+        }
+
+        int getPos() const {
+            return std::visit([](auto const& in) { return in.pos; }, err);
+        }
+        const char* what() const noexcept {
+            return std::visit(
+                [](auto const& in) { return in.what(); }, err);
+        }
+    };
+
+    Vec<TokenizerError> errors;
+
+  public:
+    OrgToken error(CR<TokenizerError> in);
+
+
   private:
     enum class ReportKind
     {
@@ -36,18 +99,20 @@ struct OrgTokenizer
         SetBuffer,
         ClearBuffer,
         PushResolved,
-        Print
+        Print,
+        Error
     };
 
     struct Report {
-        ReportKind    kind;
-        Str           name;
-        OrgToken      tok;
-        OrgTokenId    id = OrgTokenId::Nil();
-        fs::path      location;
-        int           line;
-        Opt<Str>      subname;
-        PosStr const* str = nullptr;
+        ReportKind     kind;
+        Str            name;
+        OrgToken       tok;
+        OrgTokenId     id = OrgTokenId::Nil();
+        fs::path       location;
+        int            line;
+        Opt<Str>       subname;
+        PosStr const*  str = nullptr;
+        TokenizerError error;
     };
 
     int  depth = 0;
@@ -56,6 +121,9 @@ struct OrgTokenizer
 
   public:
     OrgTokenizer(OrgTokenGroup* out) : Tokenizer<OrgTokenKind>(out) {}
+    /// Resolve positional string into line and column information
+    Func<LineCol(CR<PosStr>)> locationResolver;
+
 
     /// Push complex token into recursive processing pipeline. Used for
     /// table content (which might contain more blocks of texts, some
@@ -74,14 +142,12 @@ struct OrgTokenizer
         const OrgTokenKind&              middle);
 
 
-    /*!Check if the string is positioned at the start of a logbook
-    `CLOCK:` entry.
-    */
+    /// Check if the string is positioned at the start of a logbook
+    /// `CLOCK:` entry.
     bool atLogClock(CR<PosStr> str);
 
-    /*!Check if string is positioned at the start of toplevel language
-    construct.
-    */
+    /// Check if string is positioned at the start of toplevel language
+    /// construct.
     bool atConstructStart(CR<PosStr> str);
     bool atSubtreeStart(CR<PosStr> str);
 
@@ -91,8 +157,7 @@ struct OrgTokenizer
         Vec<Flag> flagStack = Vec<Flag>();
         Vec<int>  indent = Vec<int>(); /// Indentation steps encountered by
                                        /// the lexer state
-        /*!Check if state has any indentation levels stored
-         */
+        /// Check if state has any indentation levels stored
         bool hasIndent() { return 0 < indent.size(); }
 
         Flag toFlag(Flag flag) {
@@ -183,31 +248,29 @@ struct OrgTokenizer
     void skipIndents(LexerStateSimple& state, PosStr& str);
 
 
-    /*!Attempt to parse list start dash */
+    /// Attempt to parse list start dash
     bool atListStart(CR<PosStr> str);
+    bool atListAhead(CR<PosStr> str);
+    int  getVerticalSpaceCount(CR<PosStr> str);
+
     bool lexListStart(PosStr& str);
 
-
-    bool atListAhead(CR<PosStr> str);
-
-
-    /*!Lex head starting from current position onwards. `indent` is the
-indentation of the original list prefix -- dash, number or letter.
-*/
-    void lexListItem(
+    /// Lex head starting from current position onwards. `indent` is the
+    /// indentation of the original list prefix -- dash, number or letter.
+    bool lexListItem(
         PosStr&           str,
         const int&        indent,
         LexerStateSimple& state);
 
-    void lexListBullet(PosStr& str, int indent, LexerStateSimple& state);
-    void lexListDescription(
+    bool lexListBullet(PosStr& str, int indent, LexerStateSimple& state);
+    bool lexListDescription(
         PosStr&           str,
         int               indent,
         LexerStateSimple& state);
+    void lexListBody(PosStr& str, int indent, LexerStateSimple& state);
 
-    PosStr popListBody(PosStr& str, int indent, LexerStateSimple& state);
 
-    void lexComment(PosStr& str) {
+    bool lexComment(PosStr& str) {
         push(str.tok(OrgTokenKind::Comment, skipToEOL));
     }
 
@@ -225,50 +288,51 @@ indentation of the original list prefix -- dash, number or letter.
     void       push(CR<std::span<OrgToken>> tok) { Base::push(tok); }
     void       push(CR<Vec<OrgToken>> tok) { Base::push(tok); }
     OrgTokenId push(CR<OrgToken> tok) { return Base::push(tok); }
-    void       lexListItems(PosStr& str, LexerStateSimple& state);
-    void       lexList(PosStr& str);
-    void       lexParagraph(PosStr& str);
-    void       lexParagraphExpand(PosStr& str);
-    void       lexLogbookExpand(PosStr& str);
-    void       lexContentExpand(PosStr& str);
-    void       lexStmtListExpand(PosStr& str);
-    void lexTableState(PosStr& str, LexerState<OrgBlockLexerState>& state);
-    void lexTable(PosStr& str);
-    void lexStructure(PosStr& str);
-    void lexGlobal(PosStr& str);
-    void lexAngle(PosStr& str);
-    void lexTime(PosStr& str);
-    void lexLinkTarget(PosStr& str);
-    void lexBracket(PosStr& str);
-    void lexTextChars(PosStr& str);
-    void lexParenArguments(PosStr& str);
-    void lexText(PosStr& str);
-    void lexProperties(PosStr& str);
-    void lexDescription(PosStr& str);
-    void lexLogbook(PosStr& str);
-    void lexDrawer(PosStr& str);
-    void lexSubtreeTodo(PosStr& str);
-    void lexSubtreeUrgency(PosStr& str);
-    void lexSubtreeTitle(PosStr& str);
-    void lexSubtreeTimes(PosStr& str);
-    void lexSubtree(PosStr& str);
-    void lexSourceBlockContent(PosStr& str);
-    void lexCommandContent(PosStr& str, const OrgCommandKind& kind);
-    void lexCommandArguments(PosStr& str, const OrgCommandKind& kind);
-    void lexCommandKeyValue(PosStr& str);
-    void lexCommandInclude(PosStr& str);
-    void lexCommandOptions(PosStr& str);
-    void lexCommandCall(PosStr& str);
-    void lexCommandBlock(PosStr& str);
-    void lexCommandProperty(PosStr& str);
-    void lexCommandBlockDelimited(PosStr& str, PosStr id, int column);
 
-    void lexHashTag(PosStr& str);
-    void lexTextDollar(PosStr& str);
-    void lexTextSlash(PosStr& str);
-    void lexTextVerbatim(PosStr& str);
-    void lexTextCurly(PosStr& str);
-    void lexTextMarkup(PosStr& str);
-    void lexTextAtSign(PosStr& str);
+    bool lexListItems(PosStr& str, LexerStateSimple& state);
+    bool lexList(PosStr& str);
+    bool lexParagraph(PosStr& str);
+    bool lexParagraphExpand(PosStr& str);
+    bool lexLogbookExpand(PosStr& str);
+    bool lexContentExpand(PosStr& str);
+    bool lexStmtListExpand(PosStr& str);
+    bool lexTableState(PosStr& str, LexerState<OrgBlockLexerState>& state);
+    bool lexTable(PosStr& str);
+    bool lexStructure(PosStr& str);
+    bool lexGlobal(PosStr& str);
+    bool lexAngle(PosStr& str);
+    bool lexTime(PosStr& str);
+    bool lexLinkTarget(PosStr& str);
+    bool lexBracket(PosStr& str);
+    bool lexTextChars(PosStr& str);
+    bool lexParenArguments(PosStr& str);
+    bool lexText(PosStr& str);
+    bool lexProperties(PosStr& str);
+    bool lexDescription(PosStr& str);
+    bool lexLogbook(PosStr& str);
+    bool lexDrawer(PosStr& str);
+    bool lexSubtreeTodo(PosStr& str);
+    bool lexSubtreeUrgency(PosStr& str);
+    bool lexSubtreeTitle(PosStr& str);
+    bool lexSubtreeTimes(PosStr& str);
+    bool lexSubtree(PosStr& str);
+    bool lexSourceBlockContent(PosStr& str);
+    bool lexCommandContent(PosStr& str, const OrgCommandKind& kind);
+    bool lexCommandArguments(PosStr& str, const OrgCommandKind& kind);
+    bool lexCommandKeyValue(PosStr& str);
+    bool lexCommandInclude(PosStr& str);
+    bool lexCommandOptions(PosStr& str);
+    bool lexCommandCall(PosStr& str);
+    bool lexCommandBlock(PosStr& str);
+    bool lexCommandProperty(PosStr& str);
+    bool lexCommandBlockDelimited(PosStr& str, PosStr id, int column);
+
+    bool lexHashTag(PosStr& str);
+    bool lexTextDollar(PosStr& str);
+    bool lexTextSlash(PosStr& str);
+    bool lexTextVerbatim(PosStr& str);
+    bool lexTextCurly(PosStr& str);
+    bool lexTextMarkup(PosStr& str);
+    bool lexTextAtSign(PosStr& str);
     bool isFirstOnLine(CR<PosStr> str);
 };

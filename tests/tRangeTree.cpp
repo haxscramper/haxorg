@@ -4,6 +4,7 @@
 #include <hstd/stdlib/RangeTree.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <lexbase/Token.hpp>
 
 bool operator==(Slice<int> lhs, Slice<int> rhs) {
     return lhs.operator==(rhs);
@@ -56,54 +57,10 @@ TEST_CASE("RangeTree queries", "[RangeTree]") {
     }
 }
 
-struct LineColInfo {
-    UnorderedMap<Slice<int>, int> lines;
-    RangeTree<int>                lineRanges;
-
-    int whichLine(int pos) {
-        auto range = lineRanges.query(pos);
-        if (range.has_value() && lines.contains(range.value())) {
-            return lines.at(range.value());
-        } else {
-            return -1;
-        }
-    }
-
-    int whichColumn(int pos) {
-        auto range = lineRanges.query(pos);
-        if (range.has_value()) {
-            return pos - range.value().first;
-        } else {
-            return -1;
-        }
-    }
-
-    Opt<Slice<int>> whichRange(int pos) { return lineRanges.query(pos); }
-};
-
 
 TEST_CASE("Line and column information using range tree", "[RangeTree]") {
     auto rangeInfo = [](QString const& text) -> LineColInfo {
-        Vec<Slice<int>> slices;
-        int             start = 0;
-        for (int i = 0; i < text.size(); ++i) {
-            if (text.at(i) == '\n') {
-                slices.push_back(slice(start, i));
-                start = i + 1;
-            }
-        }
-
-        if (start != text.size()) {
-            slices.push_back(slice(start, text.size() - 1));
-        }
-
-        LineColInfo result;
-        for (int line = 0; line < slices.size(); ++line) {
-            result.lines[slices.at(line)] = line;
-        }
-
-        result.lineRanges = RangeTree<int>(slices);
-        return result;
+        return LineColInfo(text);
     };
 
     SECTION("Line range information from empty string") {

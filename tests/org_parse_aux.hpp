@@ -24,7 +24,7 @@ struct MockFull : public OrgParser {
         tokenizer.out = &tokens;
     }
 
-    using LexerMethod  = void (OrgTokenizer::*)(PosStr&);
+    using LexerMethod  = bool (OrgTokenizer::*)(PosStr&);
     using ParserMethod = OrgId (OrgParser::*)(OrgLexer&);
 
     OrgAdapter a(int idx) { return OrgAdapter(&nodes, OrgId(idx)); }

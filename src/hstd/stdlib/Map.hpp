@@ -29,6 +29,8 @@ struct UnorderedMap
     using API::contains;
     using API::keys;
     using Base::Base;
+    using Base::begin;
+    using Base::end;
 };
 
 
@@ -42,3 +44,18 @@ struct SortedMap
     using API::keys;
     using Base::Base;
 };
+
+template <typename K, typename V>
+QTextStream& operator<<(QTextStream& os, UnorderedMap<K, V> const& map) {
+    os << "{";
+    bool first = true;
+    for (const auto& [key, value] : map) {
+        if (!first) {
+            os << ", ";
+        }
+        first = false;
+        os << key << ": " << value;
+    }
+    os << "}";
+    return os;
+}

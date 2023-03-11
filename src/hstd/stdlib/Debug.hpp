@@ -10,7 +10,7 @@ QDebug operator<<(QDebug debug, T const& value) {
     QString          result;
     QTextStream      stream{&result};
     QDebugStateSaver saver{debug};
-    stream << value;
+    stream << to_string(value);
     debug.nospace().noquote() << result;
     return debug;
 }

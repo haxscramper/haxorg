@@ -44,17 +44,13 @@ struct PosStr {
     };
 
 
-    void print(ColStream& os, CR<PrintParams> params) const;
-
-    void print() const;
-    void print(ColStream& os) const;
-    void print(QTextStream& os, CR<PrintParams> params) const;
-
-    void print(CR<PrintParams> params) const;
-
-    QString printToString(bool colored = false);
-
-    QString printToString(PrintParams params, bool colored = false);
+    void    print(ColStream& os, CR<PrintParams> params) const;
+    void    print() const;
+    void    print(ColStream& os) const;
+    void    print(QTextStream& os, CR<PrintParams> params) const;
+    void    print(CR<PrintParams> params) const;
+    QString printToString(bool colored = false) const;
+    QString printToString(PrintParams params, bool colored = false) const;
 
     struct SliceStartData {
         int pos;
@@ -219,13 +215,6 @@ struct PosStr {
     /// \brief Get current character and advance one step forward
     QChar pop();
 
-    /// Check if the current position (with given \arg offset) contains
-    /// expected character.
-    bool at(QChar expected, int offset = 0) const;
-
-    bool at(CR<CharSet> expected, int offset = 0) const;
-
-    bool at(CR<QString> expected, int offset = 0) const;
 
     int getSkip(const PosStrCheckable auto& item) const {
         int skip = 0;
@@ -241,11 +230,21 @@ struct PosStr {
 
     LineCol getLineCol();
 
-    void skip(QChar expected, int offset = 0, int count = 1);
+    using CheckableSkip = Variant<CharSet, QString, QChar>;
 
-    void skip(QString expected);
-
+    /// Skip \arg count steps  ahead if character at \arg offset is equal
+    /// to \arg expected
+    void skip(QChar expected, int offset = 0, int steps = 1);
+    void skip(QString expected, int offset = 0);
     void skip(CR<CharSet> expected, int offset = 0, int steps = 1);
+    void skipAny(CR<CheckableSkip> expected, int offset = 0);
+
+    /// Check if the current position (with given \arg offset) contains
+    /// expected character.
+    bool at(QChar expected, int offset = 0) const;
+    bool at(CR<CharSet> expected, int offset = 0) const;
+    bool at(CR<QString> expected, int offset = 0) const;
+    bool atAny(CR<CheckableSkip> expected, int offset = 0) const;
 
 
     bool trySkip(const PosStrCheckable auto& item) {
@@ -318,9 +317,10 @@ struct PosStr {
 
     void skipBeforeEOL();
 
-    bool hasAhead(
-        const PosStrCheckable auto& item,
-        int                         maxLimit = INT_MAX) {
+    QString getAhead(Slice<int> slice) const;
+    bool    hasAhead(
+           const PosStrCheckable auto& item,
+           int                         maxLimit = INT_MAX) {
         bool result;
         int  pos = 0;
         while (hasNext(pos) && pos < maxLimit) {
@@ -336,12 +336,10 @@ struct PosStr {
     /// space indentation is considered to be zero. `"\n____text" -> 0`,
     /// but `"____test" -> 4`
     int getIndent() const;
-
     int getColumn() const;
 
     bool hasMoreIndent(int const& indent, bool const& exactIndent = false)
         const;
-
 
     void skipIdent(CharSet const& chars = charsets::IdentChars);
 

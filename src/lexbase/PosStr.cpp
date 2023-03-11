@@ -3,7 +3,7 @@
 
 void PosStr::print(ColStream& os, CR<PrintParams> params) const {
     if (params.withPos) {
-        os << "#" << pos;
+        os << "#" << pos << "/" << view.size();
     }
 
     if (finished()) {
@@ -33,22 +33,19 @@ void PosStr::print(ColStream& os, CR<PrintParams> params) const {
 }
 
 void PosStr::print() const { print(qcout, PrintParams()); }
-
 void PosStr::print(ColStream& os) const { print(os, PrintParams()); }
-
+void PosStr::print(CR<PrintParams> params) const { print(qcout, params); }
 void PosStr::print(QTextStream& os, CR<PrintParams> params) const {
     ColStream stream{os};
     print(stream, params);
 }
 
-void PosStr::print(CR<PrintParams> params) const { print(qcout, params); }
 
-QString PosStr::printToString(bool colored) {
+QString PosStr::printToString(bool colored) const {
     return printToString(PrintParams{}, colored);
 }
 
-
-QString PosStr::printToString(PrintParams params, bool colored) {
+QString PosStr::printToString(PrintParams params, bool colored) const {
     QString     result;
     QTextStream stream{&result};
     ColStream   out{stream};
@@ -163,8 +160,32 @@ bool PosStr::at(CR<QString> expected, int offset) const {
     return true;
 }
 
-void PosStr::skip(QString expected) {
-    if (at(expected)) {
+QString PosStr::getAhead(Slice<int> slice) const {
+    QString result;
+    for (int idx : slice) {
+        result += get(idx);
+    }
+    return result;
+}
+
+void PosStr::skipAny(CR<PosStr::CheckableSkip> expected, int offset) {
+    switch (expected.index()) {
+        case 0: skip(std::get<0>(expected), offset); break;
+        case 1: skip(std::get<1>(expected), offset); break;
+        case 2: skip(std::get<2>(expected), offset); break;
+    }
+}
+
+bool PosStr::atAny(CR<PosStr::CheckableSkip> expected, int offset) const {
+    switch (expected.index()) {
+        case 0: return at(std::get<0>(expected), offset);
+        case 1: return at(std::get<1>(expected), offset);
+        case 2: return at(std::get<2>(expected), offset);
+    }
+}
+
+void PosStr::skip(QString expected, int offset) {
+    if (at(expected, offset)) {
         next(expected.size());
     } else {
         throw UnexpectedCharError(
@@ -174,13 +195,14 @@ void PosStr::skip(QString expected) {
     }
 }
 
+
 void PosStr::skip(QChar expected, int offset, int count) {
     if (get(offset) == expected) {
         next(count);
     } else {
         throw UnexpectedCharError(
             "Unexpected character encountered during lexing: found "
-            "QChar('$#') but expected QChar('$#') on $#:$#"
+            "QChar('$#') but expected QChar('$#')"
             % to_string_vec(get(offset), expected));
     }
 }

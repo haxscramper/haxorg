@@ -6,6 +6,8 @@
 #include <hstd/stdlib/strformat.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/RangeTree.hpp>
+#include <hstd/stdlib/Map.hpp>
 
 #include <lexbase/Errors.hpp>
 
@@ -119,9 +121,9 @@ QTextStream& operator<<(QTextStream& os, Token<K> const& value) {
 template <typename K>
 struct TokenGroup {
     dod::Store<TokenId<K>, Token<K>> tokens;
+    Opt<QStringView>                 base;
 
-    TokenGroup() {}
-
+    TokenGroup(Opt<QStringView> base = std::nullopt) : base(base) {}
     TokenId<K> add(CR<Token<K>> tok) { return tokens.add(tok); }
 
     Vec<TokenId<K>> add(CR<Vec<Token<K>>> tok) {
@@ -148,7 +150,18 @@ struct TokenGroup {
         tokens.at(slice(slice.first.getIndex(), slice.last.getIndex()));
     }
 
-    int size() const { return tokens.size(); }
+    int        size() const { return tokens.size(); }
+    Slice<int> toAbsolute(QStringView view) {
+        if (base.has_value()) {
+            auto main = base.value();
+            assert(is_within_memory_block<QChar>(
+                view.data(), main.data(), main.size()));
+            int offset = static_cast<int>(
+                pointer_distance(main.data(), view.data()));
+            return slice<int>(
+                offset, static_cast<int>(offset + view.size()));
+        }
+    }
 };
 
 template <StringConvertible K>
@@ -454,4 +467,51 @@ struct Lexer : public LexerCommon<K> {
     }
 
     Lexer(TokenGroup<K>* in) : LexerCommon<K>(in) {}
+};
+
+struct LineColInfo {
+    UnorderedMap<Slice<int>, int> lines;
+    RangeTree<int>                lineRanges;
+
+    int whichLine(int pos) {
+        auto range = lineRanges.query(pos);
+        if (range.has_value() && lines.contains(range.value())) {
+            return lines.at(range.value());
+        } else {
+            return -1;
+        }
+    }
+
+    int whichColumn(int pos) {
+        auto range = lineRanges.query(pos);
+        if (range.has_value()) {
+            return pos - range.value().first;
+        } else {
+            return -1;
+        }
+    }
+
+    Opt<Slice<int>> whichRange(int pos) { return lineRanges.query(pos); }
+
+    LineColInfo() = default;
+    LineColInfo(QString const& text) {
+        Vec<Slice<int>> slices;
+        int             start = 0;
+        for (int i = 0; i < text.size(); ++i) {
+            if (text.at(i) == '\n') {
+                slices.push_back(slice(start, i));
+                start = i + 1;
+            }
+        }
+
+        if (start != text.size()) {
+            slices.push_back(slice(start, text.size() - 1));
+        }
+
+        for (int line = 0; line < slices.size(); ++line) {
+            lines[slices.at(line)] = line;
+        }
+
+        lineRanges = RangeTree<int>(slices);
+    }
 };

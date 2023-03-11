@@ -4,11 +4,11 @@
 #include <parse/OrgParser.hpp>
 #include <parse/OrgTokenizer.hpp>
 #include <parse/OrgSpec.hpp>
-
 #include <lexbase/NodeIO.hpp>
 #include <lexbase/NodeTest.hpp>
 
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
 #include <hstd/stdlib/diffs.hpp>
 
@@ -401,12 +401,49 @@ TEST_CASE("Parse corpus", "[corpus]") {
     }
 };
 
-TEST_CASE("Parse file", "[corpus]") {
+TEST_CASE("Parse file", "[corpus][notes]") {
     MockFull p;
     QString  source = readFile(
         "/mnt/workspace/repos/personal/indexed/notes.org");
     p.tokenizer.setTraceFile("/tmp/file_parse_trace.txt");
-    p.tokenize(source, &OrgTokenizer::lexGlobal);
+    p.tokens.base = source.data();
+    LineColInfo info{source};
+    p.tokenizer.locationResolver = [&](CR<PosStr> str) -> LineCol {
+        Slice<int> absolute = p.tokens.toAbsolute(str.view);
+        return {
+            info.whichLine(absolute.first + str.pos),
+            info.whichColumn(absolute.first + str.pos),
+        };
+    };
+    // using It = Pair<Slice<int>, int>;
+    // Vec<It> lines;
+    // for (const auto& [key, val] : info.lines) {
+    //     lines.push_back({key, val});
+    // }
+
+    // sort<It>(lines, [](CR<It> lhs, CR<It> rhs) {
+    //     return lhs.first.first < rhs.first.first;
+    // });
+
+    // for (const auto& it : lines) {
+    //     qDebug() << it;
+    // }
+
+    if (true) {
+        p.tokenize(source, &OrgTokenizer::lexGlobal);
+    } else {
+        try {
+            p.tokenize(source, &OrgTokenizer::lexGlobal);
+        } catch (OrgTokenizer::Errors::Base& err) {
+            Slice<int> absolute = p.tokens.toAbsolute(err.view);
+            qDebug() << absolute << err.pos;
+            qDebug() << info.whichLine(absolute.first + err.pos)
+                     << info.whichColumn(absolute.first + err.pos)
+                     << err.what();
+            throw;
+        }
+    }
+
     writeFile(
         "/tmp/file_parsed.yml", to_string(yamlRepr(p.tokens)) + "\n");
 }
