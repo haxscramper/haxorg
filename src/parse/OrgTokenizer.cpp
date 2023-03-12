@@ -2619,13 +2619,14 @@ bool OrgTokenizer::lexStructure(PosStr& str) {
 }
 
 void OrgTokenizer::report(CR<Report> in) {
+    if (reportHook) {
+        reportHook(in);
+    }
+
     if (!trace) {
         return;
     }
 
-    if (reportHook) {
-        reportHook(in);
-    }
 
     using fg = TermColorFg8Bit;
     if (in.kind == ReportKind::Enter) {

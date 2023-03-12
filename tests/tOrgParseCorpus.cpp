@@ -406,7 +406,9 @@ TEST_CASE("Parse file", "[corpus][notes]") {
     QString  source = readFile(
         "/mnt/workspace/repos/personal/indexed/notes.org");
     // QString source = readFile("/tmp/doc.org");
-    p.tokenizer.setTraceFile("/tmp/file_parse_trace.txt");
+
+    // p.tokenizer.setTraceFile("/tmp/file_parse_trace.txt");
+    // p.tokenizer.trace = false;
     p.tokens.base = source.data();
     LineColInfo info{source};
     p.tokenizer.locationResolver = [&](CR<PosStr> str) -> LineCol {
