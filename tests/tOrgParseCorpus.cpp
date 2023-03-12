@@ -405,6 +405,7 @@ TEST_CASE("Parse file", "[corpus][notes]") {
     MockFull p;
     QString  source = readFile(
         "/mnt/workspace/repos/personal/indexed/notes.org");
+    // QString source = readFile("/tmp/doc.org");
     p.tokenizer.setTraceFile("/tmp/file_parse_trace.txt");
     p.tokens.base = source.data();
     LineColInfo info{source};
@@ -459,7 +460,73 @@ TEST_CASE("Parse file", "[corpus][notes]") {
     }
 
     QString csvOutput;
-    QString tableOutput = R"(
+    QString tableOutput;
+    QString annotatedOutput;
+
+    int       index          = 0;
+    const int cutoff         = 6000;
+    auto      writeAnnotated = [&]() {
+        QString htmlDoc = R"(
+<!DOCTYPE html>
+<html>
+<style>
+html * { font-family: Iosevka !important; }
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-left: 1px dotted black;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: max-content;
+  background-color: black;
+  color: #fff;
+  text-align: left;
+  padding: 5px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+</style>
+<body>
+<pre>
+$#
+</pre>
+</body>
+</html>
+)";
+        writeFile(
+            ("/tmp/annotated_$#.html" % to_string_vec(index / cutoff))
+                .toStdString(),
+            htmlDoc % to_string_vec(annotatedOutput));
+    };
+
+    auto writeHtml = [&]() {
+        QString htmlDoc = R"(
+<!DOCTYPE html>
+<html>
+<style>
+html * { font-family: Iosevka !important; }
+table, th, td { border: 1px solid black; padding: 0; margin: 0; }
+td { line-height: 0; }
+th {
+  background: white;
+  position: sticky;
+  top: 0; /* Don't forget this, required for the stickiness */
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+}
+</style>
+<body>
 <table>
 <tr>
   <th>Pushed on</th>
@@ -470,7 +537,18 @@ TEST_CASE("Parse file", "[corpus][notes]") {
   <th>Kind</th>
   <th>Text</th>
 </tr>
-)";
+$#
+</table>
+</body>
+</html>)";
+
+        qDebug() << index;
+        writeFile(
+            ("/tmp/table_$#.html" % to_string_vec(index / cutoff))
+                .toStdString(),
+            htmlDoc % to_string_vec(tableOutput));
+        tableOutput = "";
+    };
 
     for (const auto& [id, token] : p.tokens.tokens.pairs()) {
         if (pushedOn.contains(id)) {
@@ -506,34 +584,36 @@ TEST_CASE("Parse file", "[corpus][notes]") {
 </tr>
 )" % formatting;
 
+            // annotatedOutput += token->strVal();
+            annotatedOutput += "<span title=\"$#\">$#</span>"
+                             % to_string_vec(
+                                   R"(pushed=$#
+index=$#
+absolute=$#
+line=$#
+column=$#
+kind=$#
+)" % formatting,
+                                   hasStr ? token->strVal().replace(
+                                       "\n", "␤\n")
+                                          : "␣");
+
+            ++index;
+            if (index % cutoff == 0) {
+                writeHtml();
+                writeAnnotated();
+            }
+
         } else {
             qWarning() << "Token " << *token << " with id " << id
                        << " was not pushed using reporting";
         }
     }
 
-    tableOutput += "\n</table>";
-
-    QString htmlDoc = R"(
-<!DOCTYPE html>
-<html>
-<style>
-html * { font-family: Iosevka !important; }
-table, th, td { border: 1px solid black; }
-th {
-  background: white;
-  position: sticky;
-  top: 0; /* Don't forget this, required for the stickiness */
-  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
-}
-</style>
-<body>
-$#
-</body>
-</html>)";
-
+    index += cutoff;
+    writeHtml();
+    writeAnnotated();
     writeFile("/tmp/tokens.csv", csvOutput);
-    writeFile("/tmp/table.html", htmlDoc % to_string_vec(tableOutput));
 
     writeFile(
         "/tmp/file_parsed.yml", to_string(yamlRepr(p.tokens)) + "\n");

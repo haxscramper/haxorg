@@ -3,7 +3,7 @@
 set -o nounset
 set -o errexit
 
-lim=3000000
+lim=9000000
 
 ulimit -v $lim
 ulimit -m $lim

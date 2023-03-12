@@ -171,7 +171,7 @@ struct OrgTokenizer
     /// Resolve positional string into line and column information
     Func<LineCol(CR<PosStr>)> locationResolver;
     Func<void(CR<Report>)>    reportHook;
-
+    QString                   debugPos(CR<PosStr> str) const;
 
     /// Push complex token into recursive processing pipeline. Used for
     /// table content (which might contain more blocks of texts, some
@@ -350,6 +350,8 @@ struct OrgTokenizer
     bool lexGlobal(PosStr& str);
     bool lexAngle(PosStr& str);
     bool lexTime(PosStr& str);
+    bool lexLink(PosStr& str);
+    bool lexFootnote(PosStr& str);
     bool lexLinkTarget(PosStr& str);
     bool lexBracket(PosStr& str);
     bool lexTextChars(PosStr& str);
@@ -378,6 +380,8 @@ struct OrgTokenizer
     bool lexHashTag(PosStr& str);
     bool lexTextDollar(PosStr& str);
     bool lexTextSlash(PosStr& str);
+    bool lexSlashMath(PosStr& str);
+    bool lexSlashEntity(PosStr& str);
     bool lexTextVerbatim(PosStr& str);
     bool lexTextCurly(PosStr& str);
     bool lexTextMarkup(PosStr& str);

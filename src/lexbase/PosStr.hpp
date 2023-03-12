@@ -245,7 +245,12 @@ struct PosStr {
     bool at(CR<CharSet> expected, int offset = 0) const;
     bool at(CR<QString> expected, int offset = 0) const;
     bool atAny(CR<CheckableSkip> expected, int offset = 0) const;
-
+    /// Check if the string is not positioned at a specific item. Always
+    /// returns false for finished strings, effectively is `!finished() &&
+    /// !at()`
+    bool notAt(const PosStrCheckable auto& item, int offset = 0) const {
+        return !finished() && !at(item, offset);
+    }
 
     bool trySkip(const PosStrCheckable auto& item) {
         if (at(item)) {
