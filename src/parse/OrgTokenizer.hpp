@@ -30,40 +30,72 @@ struct OrgTokenizer
   public:
     struct Errors {
         struct Base : std::runtime_error {
-            QStringView view;
-            int         pos;
-            Base(CR<PosStr> str, CR<QString> message)
-                : std::runtime_error(message.toStdString())
-                , view(str.view)
-                , pos(str.pos) {}
+            QStringView  view;
+            int          pos;
+            Opt<LineCol> loc;
+
+            QString getLocMsg() const {
+                return "on $# ($#:$#)"
+                     % to_string_vec(
+                           pos,
+                           loc ? loc->line : -1,
+                           loc ? loc->column : -1);
+            }
+
+            Base(CR<PosStr> str)
+                : std::runtime_error(""), view(str.view), pos(str.pos) {}
         };
 
         struct None : Base {
-            None() : Base(PosStr("", 1), "") {}
+            None() : Base(PosStr("", 1)) {}
         };
 
         struct UnexpectedChar : Base {
             PosStr::CheckableSkip wanted;
+            const char*           what() const noexcept override {
+                QString msg = "Expected " + variant_to_string(wanted)
+                            + " but got '"
+                            + PosStr(view, pos).printToString(false) + "' "
+                            + getLocMsg();
+
+                return strdup(msg.toStdString().c_str());
+            }
             UnexpectedChar(CR<PosStr> str, PosStr::CheckableSkip wanted)
-                : Base(
-                    str,
-                    "Expected " + variant_to_string(wanted) + " but got '"
-                        + str.printToString(false) + "'")
-                , wanted(wanted) {}
+                : Base(str), wanted(wanted) {}
+        };
+
+        struct MissingElement : Base {
+            QString     missing;
+            QString     where;
+            const char* what() const noexcept override {
+                QString msg = "Missing '$#' for $# $#"
+                            % to_string_vec(missing, where, getLocMsg());
+                return strdup(msg.toStdString().c_str());
+            }
+
+            MissingElement(
+                CR<PosStr>  str,
+                CR<QString> missing,
+                CR<QString> where)
+                : Base(str), missing(missing), where(where) {}
         };
 
         struct UnknownConstruct : Base {
-            UnknownConstruct(CR<PosStr> str)
-                : Base(
-                    str,
-                    "Unexpected construct '" + str.printToString(false)
-                        + "'") {}
+            const char* what() const noexcept override {
+                QString msg = "Unexpected construct '"
+                            + PosStr(view, pos).printToString(false) + "' "
+                            + getLocMsg();
+
+                return strdup(msg.toStdString().c_str());
+            }
+            UnknownConstruct(CR<PosStr> str) : Base(str) {}
         };
     };
 
     using Error = Variant<
         Errors::UnexpectedChar,
         Errors::UnknownConstruct,
+        Errors::MissingElement,
         Errors::None>;
 
     struct TokenizerError : std::runtime_error {
@@ -78,6 +110,21 @@ struct OrgTokenizer
         int getPos() const {
             return std::visit([](auto const& in) { return in.pos; }, err);
         }
+
+
+        void setLoc(CR<LineCol> loc) {
+            std::visit(
+                [&loc](auto& in) {
+                    in.loc = loc;
+                    return 0;
+                },
+                err);
+        }
+
+        Opt<LineCol> getLoc() const {
+            return std::visit([](auto const& in) { return in.loc; }, err);
+        }
+
         const char* what() const noexcept {
             return std::visit(
                 [](auto const& in) { return in.what(); }, err);
@@ -90,7 +137,7 @@ struct OrgTokenizer
     OrgToken error(CR<TokenizerError> in);
 
 
-  private:
+  public:
     enum class ReportKind
     {
         Enter,
@@ -123,6 +170,7 @@ struct OrgTokenizer
     OrgTokenizer(OrgTokenGroup* out) : Tokenizer<OrgTokenKind>(out) {}
     /// Resolve positional string into line and column information
     Func<LineCol(CR<PosStr>)> locationResolver;
+    Func<void(CR<Report>)>    reportHook;
 
 
     /// Push complex token into recursive processing pipeline. Used for

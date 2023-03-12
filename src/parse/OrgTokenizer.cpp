@@ -263,6 +263,11 @@ void oskipOne(PosStr& str, const PosStrCheckable auto& item) {
 }
 
 OrgToken OrgTokenizer::error(CR<TokenizerError> err) {
+    auto tmp = err;
+    if (locationResolver) {
+        PosStr str{err.getView(), err.getPos()};
+        tmp.setLoc(locationResolver(str));
+    }
     errors.push_back(err);
     return Token(otk::ErrorTerminator, errors.high());
 }
@@ -279,9 +284,14 @@ OrgToken OrgTokenizer::error(CR<TokenizerError> err) {
 
 #define __report_and_throw(expr)                                          \
     {                                                                     \
-        auto err = TokenizerError(expr);                                  \
-        __report_error(err);                                              \
-        throw err;                                                        \
+        auto __err = TokenizerError(expr);                                \
+        if (locationResolver) {                                           \
+            PosStr str{__err.getView(), __err.getPos()};                  \
+            __err.setLoc(locationResolver(str));                          \
+        }                                                                 \
+                                                                          \
+        __report_error(__err);                                            \
+        throw __err;                                                      \
     }
 
 #define __start(str)                                                      \
@@ -1097,8 +1107,11 @@ bool OrgTokenizer::lexLogbook(PosStr& str) {
         str.pushSlice();
         auto hasEnd = false;
         while (!str.finished() && !hasEnd) {
-            while (!str.finished() && !str.at(":end:")) {
-                str.next();
+            qDebug() << str;
+            str.space();
+            if (!str.finished() && !(str.at(":end:") || str.at(":END"))) {
+                str.skipToNextLine();
+                continue;
             }
 
             auto raw = Token(otk::RawLogbook, str.popSlice().view);
@@ -1551,7 +1564,6 @@ bool OrgTokenizer::lexCommandBlockDelimited(
     str.pushSlice();
     __trace("Search for block end");
     while (!found && !str.finished()) {
-
         while (!str.finished()
                && !(str.getColumn() == column && str.at("#+"))) {
             str.next();
@@ -1572,9 +1584,9 @@ bool OrgTokenizer::lexCommandBlockDelimited(
             auto end = Token(otk::CommandEnd, id.view);
             __push(end);
         } else {
-            throw LexerError(
-                "Missing closing 'end' for section block " + sectionName,
-                0);
+            auto err = Errors::MissingElement(
+                str, "closing end", "section block " + sectionName);
+            __report_and_throw((err));
         }
     }
 
@@ -2219,11 +2231,11 @@ bool OrgTokenizer::lexList(PosStr& str) {
     clearBuffer();
 
     if (tokens[0].kind != otk::SameIndent) {
-        push(tokens[0]);
+        __push(tokens[0]);
     }
 
     for (const auto& tok : tokens[slice(1, 1_B)]) {
-        push(tok);
+        __push(tok);
     }
 
     while (state.hasIndent()) {
@@ -2543,6 +2555,10 @@ bool OrgTokenizer::lexStructure(PosStr& str) {
 void OrgTokenizer::report(CR<Report> in) {
     if (!trace) {
         return;
+    }
+
+    if (reportHook) {
+        reportHook(in);
     }
 
     using fg = TermColorFg8Bit;

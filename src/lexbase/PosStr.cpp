@@ -248,6 +248,10 @@ bool PosStr::isEmptyLine() {
 }
 
 void PosStr::skipToEOL() { skipTo(charsets::Newline); }
+void PosStr::skipToNextLine() {
+    skipToEOL();
+    next();
+}
 
 void PosStr::skipToEOF() { pos = view.size() - 1; }
 void PosStr::skipPastEOF() { pos = view.size(); }

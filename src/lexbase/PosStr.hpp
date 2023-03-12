@@ -298,6 +298,9 @@ struct PosStr {
     /// Skip to the end of current line. After parsing cursor is positioned
     /// on the last character in the string, or closest newline.
     void skipToEOL();
+    /// Skip to the start of the next line. After parsing cursor is
+    /// positioning on the first character after the newline.
+    void skipToNextLine();
 
     void skipToEOF();
     void skipPastEOF();

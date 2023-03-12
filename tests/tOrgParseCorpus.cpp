@@ -415,6 +415,20 @@ TEST_CASE("Parse file", "[corpus][notes]") {
             info.whichColumn(absolute.first + str.pos),
         };
     };
+
+    UnorderedMap<OrgTokenId, OrgTokenizer::Report> pushedOn;
+
+    using R = OrgTokenizer::ReportKind;
+
+    p.tokenizer.reportHook = [&](CR<OrgTokenizer::Report> report) {
+        switch (report.kind) {
+            case R::Push: {
+                pushedOn[report.id] = report;
+                break;
+            }
+        }
+    };
+
     // using It = Pair<Slice<int>, int>;
     // Vec<It> lines;
     // for (const auto& [key, val] : info.lines) {
@@ -443,6 +457,83 @@ TEST_CASE("Parse file", "[corpus][notes]") {
             throw;
         }
     }
+
+    QString csvOutput;
+    QString tableOutput = R"(
+<table>
+<tr>
+  <th>Pushed on</th>
+  <th>Index</th>
+  <th>Slice</th>
+  <th>Line</th>
+  <th>Column</th>
+  <th>Kind</th>
+  <th>Text</th>
+</tr>
+)";
+
+    for (const auto& [id, token] : p.tokens.tokens.pairs()) {
+        if (pushedOn.contains(id)) {
+            bool hasStr = token->hasData();
+
+            Slice<int> absolute = hasStr
+                                    ? p.tokens.toAbsolute(token->getText())
+                                    : slice(-1, -1);
+
+            int  line   = hasStr ? info.whichLine(absolute.first) : -1;
+            int  column = hasStr ? info.whichColumn(absolute.first) : -1;
+            auto rep    = pushedOn.at(id);
+
+            auto formatting = to_string_vec(
+                rep.line,
+                id.getIndex(),
+                absolute,
+                line,
+                column,
+                token->kind,
+                token->strVal());
+
+            csvOutput += "$#\t$#\t$#\t$#\t$#\t$#\t$#\n" % formatting;
+            tableOutput += R"(
+<tr>
+<td><pre>$#</pre></td>
+<td><pre>$#</pre></td>
+<td><pre>$#</pre></td>
+<td><pre>$#</pre></td>
+<td><pre>$#</pre></td>
+<td><pre>$#</pre></td>
+<td><pre>$#</pre></td>
+</tr>
+)" % formatting;
+
+        } else {
+            qWarning() << "Token " << *token << " with id " << id
+                       << " was not pushed using reporting";
+        }
+    }
+
+    tableOutput += "\n</table>";
+
+    QString htmlDoc = R"(
+<!DOCTYPE html>
+<html>
+<style>
+html * { font-family: Iosevka !important; }
+table, th, td { border: 1px solid black; }
+th {
+  background: white;
+  position: sticky;
+  top: 0; /* Don't forget this, required for the stickiness */
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+}
+</style>
+<body>
+$#
+</body>
+</html>)";
+
+    writeFile("/tmp/tokens.csv", csvOutput);
+    writeFile("/tmp/table.html", htmlDoc % to_string_vec(tableOutput));
 
     writeFile(
         "/tmp/file_parsed.yml", to_string(yamlRepr(p.tokens)) + "\n");
