@@ -387,4 +387,7 @@ struct OrgTokenizer
     bool lexTextMarkup(PosStr& str);
     bool lexTextAtSign(PosStr& str);
     bool isFirstOnLine(CR<PosStr> str);
+
+    void spaceSkip(PosStr& str, bool require = false);
+    void newlineSkip(PosStr& str);
 };

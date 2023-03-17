@@ -16,6 +16,7 @@
 #include <hstd/stdlib/sequtils.hpp>
 #include <hstd/stdlib/charsets.hpp>
 #include <hstd/stdlib/strformat.hpp>
+#include <hstd/stdlib/Func.hpp>
 
 #include <lexbase/Token.hpp>
 #include <lexbase/Errors.hpp>
@@ -228,12 +229,29 @@ struct PosStr {
         return -1;
     }
 
+
+    int getSkip(
+        const PosStrCheckable auto& item,
+        Func<bool(CR<PosStr>, int)> earlyReturn) const {
+        int skip = 0;
+        while (hasNext(skip)) {
+            if (at(item, skip)) {
+                return skip;
+            } else if (earlyReturn(*this, skip)) {
+                return -1;
+            } else {
+                ++skip;
+            }
+        }
+        return -1;
+    }
+
     LineCol getLineCol();
 
     using CheckableSkip = Variant<CharSet, QString, QChar>;
 
-    /// Skip \arg count steps  ahead if character at \arg offset is equal
-    /// to \arg expected
+    /// Skip \arg count steps  ahead if character at \arg offset is
+    /// equal to \arg expected
     void skip(QChar expected, int offset = 0, int steps = 1);
     void skip(QString expected, int offset = 0);
     void skip(CR<CharSet> expected, int offset = 0, int steps = 1);
@@ -245,9 +263,9 @@ struct PosStr {
     bool at(CR<CharSet> expected, int offset = 0) const;
     bool at(CR<QString> expected, int offset = 0) const;
     bool atAny(CR<CheckableSkip> expected, int offset = 0) const;
-    /// Check if the string is not positioned at a specific item. Always
-    /// returns false for finished strings, effectively is `!finished() &&
-    /// !at()`
+    /// Check if the string is not positioned at a specific item.
+    /// Always returns false for finished strings, effectively is
+    /// `!finished() && !at()`
     bool notAt(const PosStrCheckable auto& item, int offset = 0) const {
         return !finished() && !at(item, offset);
     }
@@ -294,14 +312,15 @@ struct PosStr {
     }
 
 
-    /*!Check string is positioned on the empty line - `\n____\n` where `_`
-    is any horizontal space character. Check can be executed at any
+    /*!Check string is positioned on the empty line - `\n____\n` where
+    `_` is any horizontal space character. Check can be executed at any
     position on the line.
     */
     bool isEmptyLine();
 
-    /// Skip to the end of current line. After parsing cursor is positioned
-    /// on the last character in the string, or closest newline.
+    /// Skip to the end of current line. After parsing cursor is
+    /// positioned on the last character in the string, or closest
+    /// newline.
     void skipToEOL();
     /// Skip to the start of the next line. After parsing cursor is
     /// positioning on the first character after the newline.
@@ -311,16 +330,16 @@ struct PosStr {
     void skipPastEOF();
     void skipToSOF();
 
-    /// Skip past the end of the line - that is, for `111\n2222` put cursor
-    /// at the first `2` on the second line.
+    /// Skip past the end of the line - that is, for `111\n2222` put
+    /// cursor at the first `2` on the second line.
     void skipPastEOL();
 
 
     /*! If string is positioned on the empty line skip it, and return
     `true`. Otherwise return `false` */
     bool trySkipEmptyLine();
-    /// Skip any number of horizontal whitespaces starting from the current
-    /// position and return a number of spaces skipped.
+    /// Skip any number of horizontal whitespaces starting from the
+    /// current position and return a number of spaces skipped.
     int skipIndent(const int& maxIndent = INT_MAX);
 
     void skipBeforeEOL();
@@ -339,10 +358,10 @@ struct PosStr {
         };
         return false;
     }
-    /// Get number of horizontal spaces starting from the current position.
-    /// NOTE: if string is positioned on the newline or any other vertical
-    /// space indentation is considered to be zero. `"\n____text" -> 0`,
-    /// but `"____test" -> 4`
+    /// Get number of horizontal spaces starting from the current
+    /// position. NOTE: if string is positioned on the newline or any
+    /// other vertical space indentation is considered to be zero.
+    /// `"\n____text" -> 0`, but `"____test" -> 4`
     int getIndent() const;
     int getColumn() const;
 

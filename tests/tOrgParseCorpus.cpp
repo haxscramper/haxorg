@@ -403,11 +403,12 @@ TEST_CASE("Parse corpus", "[corpus]") {
 
 TEST_CASE("Parse file", "[corpus][notes]") {
     MockFull p;
-    QString  source = readFile(
-        "/mnt/workspace/repos/personal/indexed/notes.org");
-    // QString source = readFile("/tmp/doc.org");
+    // QString  source = readFile(
+    //     "/mnt/workspace/repos/personal/indexed/notes.org");
+    QString source = readFile("/tmp/doc.org");
 
     // p.tokenizer.setTraceFile("/tmp/file_parse_trace.txt");
+
     // p.tokenizer.trace = false;
     p.tokens.base = source.data();
     LineColInfo info{source};
@@ -544,7 +545,7 @@ $#
 </body>
 </html>)";
 
-        qDebug() << index;
+        // qDebug() << index;
         writeFile(
             ("/tmp/table_$#.html" % to_string_vec(index / cutoff))
                 .toStdString(),
@@ -587,18 +588,20 @@ $#
 )" % formatting;
 
             // annotatedOutput += token->strVal();
-            annotatedOutput += "<span title=\"$#\">$#</span>"
-                             % to_string_vec(
-                                   R"(pushed=$#
+            if (hasStr) {
+                annotatedOutput += "<span title=\"$#\">$#</span>"
+                                 % to_string_vec(
+                                       R"(pushed=$#
 index=$#
 absolute=$#
 line=$#
 column=$#
 kind=$#
 )" % formatting,
-                                   hasStr ? token->strVal().replace(
-                                       "\n", "␤\n")
-                                          : "␣");
+                                       hasStr ? token->strVal().replace(
+                                           "\n", "␤\n")
+                                              : "⩨");
+            }
 
             ++index;
             if (index % cutoff == 0) {

@@ -632,6 +632,10 @@ enum class OrgTokenKind : short int
     /// note, otherwise is treated as standalone escaped slash.
     Newline,
     /// Explicit newline a paragraph
+    SkipSpace,
+    SkipNewline,
+    SkipAny,
+
     MaybeWord,
     Space,
     /// Space in the paragraph
