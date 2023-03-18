@@ -272,7 +272,9 @@ struct LexerCommon {
                  i < params.maxTokens && hasNext(i);
                  ++i) {
                 const auto& t = tok(i);
-                os << " " << to_string(t.kind);
+                os << " "
+                   << styledUnicodeMapping(
+                          to_string(t.kind), AsciiStyle::Bold);
                 if (t.hasData()) {
                     os << " '";
                     hshow(
@@ -359,13 +361,15 @@ struct LexerCommon {
     }
 
 
+    /// Check if the lexer is positioned on the appropriate token kind
+    /// (and lexeme value if it is supplied). Raise exception if the
+    /// token does not match and return true otherwise.
     template <typename T>
-    void skip(T kind, CR<Str> str = "")
+    bool expect(T kind, CR<Str> str = "")
         requires IsAnyOf<std::remove_cvref_t<T>, K, IntSet<K>>
     {
         if (at(kind) && (str.empty() || strVal() == str)) {
-            next();
-
+            return true;
         } else if (finished()) {
             throw UnexpectedEndError(
                 "Unexpected end encountered while trying to skip $# token "
@@ -392,6 +396,15 @@ struct LexerCommon {
                             pos.getIndex()),
                     pos.getIndex());
             }
+        }
+    }
+
+    template <typename T>
+    void skip(T kind, CR<Str> str = "")
+        requires IsAnyOf<std::remove_cvref_t<T>, K, IntSet<K>>
+    {
+        if (expect(kind, str)) {
+            next();
         }
     }
 

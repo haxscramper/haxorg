@@ -135,6 +135,7 @@ inline Pair<QChar, QString> visibleName(QChar ch) {
     }
 }
 
+
 inline Vec<Str> visibleUnicodeName(QString str) {
     Vec<Str> result;
     for (QChar ch : str) {
@@ -201,3 +202,27 @@ inline Vec<Str> split(CR<Str> str, QChar ch) {
     }
     return res;
 }
+
+
+enum class AsciiStyle
+{
+    Regular             = 0,
+    Inverted            = 1,
+    Fraktur             = 2,
+    BoldFraktur         = 3,
+    DoubleStruck        = 4,
+    Bold                = 5,
+    Italic              = 6,
+    BoldItalic          = 7,
+    Script              = 8,
+    BoldScript          = 9,
+    SansSerif           = 10,
+    BoldSansSerif       = 11,
+    ItalicSansSerif     = 12,
+    ItalicBoldSansSerif = 13,
+    Monospace           = 14
+};
+
+
+QString styledUnicodeMapping(QChar ch, AsciiStyle style);
+QString styledUnicodeMapping(QString const& str, AsciiStyle style);

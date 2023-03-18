@@ -219,7 +219,7 @@ void OrgParser::textFold(OrgLexer& lex) {
 void OrgParser::report(CR<Report> in) {
     using fg = TermColorFg8Bit;
 
-    qDebug() << "Called report" << trace;
+    // qDebug() << "Called report" << trace;
     bool entering = false;
     if (!trace) {
         return;
@@ -566,6 +566,7 @@ OrgId OrgParser::parseTable(OrgLexer& lex) {
 
 OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
     __trace();
+    lex.expect(otk::ParagraphStart);
     const auto& paragraphTokens = lex.getInside(
         IntSet<OrgTokenKind>{otk::ParagraphStart},
         IntSet<OrgTokenKind>{otk::ParagraphEnd});
@@ -1146,6 +1147,7 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
     }
     // urgency
     { empty(); }
+    skipSpace(lex);
     // subtree_title
     { parseParagraph(lex, false); }
     // subtree_completion
