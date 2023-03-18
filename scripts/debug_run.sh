@@ -15,4 +15,5 @@ lldb \
     --source-on-crash $IN_PWD/lldb-script.txt \
     -- \
     $IN \
-    $ARGS
+    $ARGS |
+    rg -v "(is a Catch2|Run with -\? for options|Catch will terminate|\(lldb\)|frame-format|  0x|libc\.so|Process \d{2,}|Executing commands in|Terminate called without|\.{10,}|-{10,}|~{10,}|Test failure requires aborting|terminate called without)"

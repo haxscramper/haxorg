@@ -2070,6 +2070,13 @@ bool OrgTokenizer::atConstructStart(CR<PosStr> str) {
 
 
 void OrgTokenizer::skipIndents(LexerStateSimple& state, PosStr& str) {
+    if (str.getColumn() != 0) {
+        qCritical() << str << str.getColumn();
+        qFatal(
+            "Indentation can be skipped only starting from the 0th "
+            "column");
+    }
+
     using LK           = LexerStateSimple::LexerIndentKind;
     const auto skipped = state.skipIndent(str);
     for (const auto indent : skipped) {
@@ -2223,7 +2230,7 @@ bool OrgTokenizer::lexListDescription(
 
 void OrgTokenizer::lexListBody(
     PosStr&           str,
-    int               indent,
+    int               column,
     LexerStateSimple& state) {
     __trace("List body");
     auto start = str.fakeTok(otk::StmtListOpen);
@@ -2241,7 +2248,7 @@ void OrgTokenizer::lexListBody(
 
             str.next();
             atEnd = true;
-        } else if (atConstructStart(str) && (str.getColumn() <= indent)) {
+        } else if (atConstructStart(str) && (str.getColumn() <= column)) {
             __print("Found dedented construct");
             // If we are at the language construct start and it is
             // placed at the same level as prefix dash, treat it as
@@ -2260,27 +2267,20 @@ void OrgTokenizer::lexListBody(
             // as list separator.
             atEnd = true;
         } else {
-
             auto tmp = str;
             tmp.space();
             __trace(
-                "Process non-ending list content, indent: current=$#, "
+                "Process non-ending list content, column: current=$#, "
                 "given=$#, skipped=$#"
-                % to_string_vec(str.getIndent(), indent, tmp.getIndent()));
+                % to_string_vec(str.getColumn(), column, tmp.getColumn()));
 
             // Decide based on the indentation what to do next
             // indentation decreased, end of the list item
-            if (tmp.getIndent() < indent) {
+            if (tmp.getColumn() < column) {
                 // Non-list content that matches indentation of the
                 // current list item start.
                 __print("Dedented non-list content");
                 atEnd = true;
-                // } else if (tmp.getIndent() == indent &&
-                // !atListAhead(str)) {
-                //     __print(
-                //         ("Content with the same indentation $# == $#"
-                //          % to_string_vec(tmp.getIndent(), indent)));
-                //     atEnd = true;
             } else {
                 spaceSkip(str);
                 if (str.at("#+")) {
@@ -2289,6 +2289,15 @@ void OrgTokenizer::lexListBody(
                 } else {
                     __print("Text paragrapah");
                     lexParagraph(str);
+                    // After paragraph has been lexed string will be
+                    // positioned at the start of the next line
+                }
+
+                // Skip newline after the paragraph construct. Only one
+                // line is optionally skipped because any larger number of
+                // spaces is treated as list content break.
+                if (str.at(ONewline)) {
+                    newlineSkip(str);
                 }
             }
         }
@@ -2301,12 +2310,12 @@ void OrgTokenizer::lexListBody(
 
 bool OrgTokenizer::lexListItem(
     PosStr&           str,
-    const int&        indent,
+    const int&        column,
     LexerStateSimple& state) {
     __trace();
-    lexListBullet(str, indent, state);
-    lexListDescription(str, indent, state);
-    lexListBody(str, indent, state);
+    lexListBullet(str, column, state);
+    lexListDescription(str, column, state);
+    lexListBody(str, column, state);
     __push(str.fakeTok(otk::ListItemEnd));
     return true;
 }
@@ -2338,9 +2347,9 @@ bool OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
             // entry is processed like a normal text element, without going
             // into deeper nesting levels.
             skipIndents(state, str);
-            const auto indent = str.getColumn();
+            const auto column = str.getColumn();
             if (atListStart(str)) {
-                lexListItem(str, indent, state);
+                lexListItem(str, column, state);
             } else {
                 lexParagraph(str);
             }
@@ -2392,52 +2401,47 @@ int OrgTokenizer::getVerticalSpaceCount(CR<PosStr> str) {
 
 bool OrgTokenizer::lexParagraph(PosStr& str) {
     __trace();
-    // Pick out large standalone paragraph block
-    const auto indent = str.getIndent();
+    // Pick out large standalone paragraph block until some construct is
+    // encountered or empty line is reached.
+    const auto column = str.getColumn();
     auto       ended  = false;
     str.pushSlice();
     while (!str.finished() && !ended) {
-        if (str.getIndent() == indent
-            && (atConstructStart(str) || atListAhead(str))) {
+        if (atConstructStart(str) //
+            || atListAhead(str)   //
+            || str.finished()     //
+            || 1 < getVerticalSpaceCount(str)) {
             ended = true;
-        } else if (str.at(ONewline)) {
-            str.next();
-            if (str.finished()) {
-                ended = true;
-            } else {
-                if (str.at(charsets::TextLineChars)) {
-                } else if (str.at(ONewline)) {
-                    str.next();
-                    ended = true;
-                } else {
-                    throw str.makeUnexpected(
-                        "text line character or newline", "paragraph");
-                }
-            }
         } else {
             str.next();
         }
     }
 
-    int paragraphEndOffset = str.finished() ? 0 : -1;
-    if (ended) {
-        // last trailing newline and pargraph separator newline
-        if (!str.finished()) {
-            if (atConstructStart(str)) {
-                paragraphEndOffset = -1;
-            } else {
-                paragraphEndOffset = -3;
-            }
-        } else {
-            paragraphEndOffset = -2;
+    // Skip roll back extra spaces that were captured in the paragraph.
+    // This is made in order to avoid cutting too much text in case of `-
+    // Item\n__- Nested List` -- in this case nested list element will have
+    // it's prefix indentation lexed by the 'Item' paragraph, which is not
+    // desirable.
+    while (str.at(ONewline, -1)) {
+        str.back();
+        while (str.at(OSpace, -1)) {
+            str.back();
         }
     }
-    paragraphEndOffset = 0;
 
-    auto recTok = str.popTok(
-        otk::Text, PosStr::Offset(0, paragraphEndOffset));
-    // Put it for the recursive processing
+    // Add last trailing newline. The paragraph will be comprised of
+    // `some_text\n`. After paragraph finished lexing positional string
+    // will be placed at the start of the subsequent line
+    if (str.at(ONewline)) {
+        str.next();
+    }
+
+    auto recTok = str.popTok(otk::Text);
+    // Put it for the recursive processing, paragraph start/end elements
+    // will be added there.
     pushResolved(recTok);
+    // Paragraph processing itself does not need wrapping group and always
+    // succeds.
     return true;
 }
 

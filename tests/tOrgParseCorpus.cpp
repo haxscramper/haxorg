@@ -378,28 +378,6 @@ void runSpec(CR<YAML::Node> group, CR<QString> from) {
     }
 }
 
-TEST_CASE("Parse corpus", "[corpus]") {
-    std::string glob = testParameters.corpusGlob.toStdString();
-    for (fs::directory_entry const& path :
-         fs::recursive_directory_iterator(
-             __CURRENT_FILE_DIR__ / "corpus")) {
-
-        if (path.is_regular_file()) {
-            if (testParameters.corpusGlob.empty()) {
-                YAML::Node spec = YAML::LoadFile(path.path());
-                runSpec(spec, QString::fromStdString(path.path()));
-            } else {
-                std::string path_str = path.path();
-                int         matchRes = fnmatch(
-                    glob.c_str(), path_str.c_str(), FNM_EXTMATCH);
-                if (!(matchRes == FNM_NOMATCH)) {
-                    YAML::Node spec = YAML::LoadFile(path.path());
-                    runSpec(spec, QString::fromStdString(path.path()));
-                }
-            }
-        }
-    }
-};
 
 TEST_CASE("Parse file", "[corpus][notes]") {
     MockFull p;
@@ -407,7 +385,7 @@ TEST_CASE("Parse file", "[corpus][notes]") {
     //     "/mnt/workspace/repos/personal/indexed/notes.org");
     QString source = readFile("/tmp/doc.org");
 
-    // p.tokenizer.setTraceFile("/tmp/file_parse_trace.txt");
+    p.tokenizer.setTraceFile("/tmp/file_parse_trace.txt");
 
     // p.tokenizer.trace = false;
     p.tokens.base = source.data();
@@ -593,21 +571,31 @@ $#
                 switch (token->kind) {
                     case otk::GroupStart: special = "⋖"; break;
                     case otk::GroupEnd: special = "⋗"; break;
+                    case otk::StmtListOpen: special = "⟦"; break;
+                    case otk::StmtListClose: special = "⟧"; break;
+                    case otk::ParagraphStart: special = "⟪"; break;
+                    case otk::ParagraphEnd: special = "⟫"; break;
+                    case otk::ListItemStart: special = "⁅"; break;
+                    case otk::ListItemEnd: special = "⁆"; break;
+                    case otk::SameIndent: special = "⫩"; break;
+                    case otk::Indent: special = "⫧"; break;
+                    case otk::Dedent: special = "⫨"; break;
                 }
 
 
-                annotatedOutput += "<span title=\"$#\">$#</span>"
-                                 % to_string_vec(
-                                       R"(pushed=$#
+                annotatedOutput
+                    += "<span title=\"$#\" style=\"$#\">$#</span>"
+                     % to_string_vec(
+                           R"(pushed=$#
 index=$#
 absolute=$#
 line=$#
 column=$#
 kind=$#
 )" % formatting,
-                                       hasStr ? token->strVal().replace(
-                                           "\n", "␤\n")
-                                              : special);
+                           hasStr ? "" : "foreground-color:gray",
+                           hasStr ? token->strVal().replace("\n", "␤\n")
+                                  : special);
             }
 
             ++index;
@@ -630,3 +618,27 @@ kind=$#
     writeFile(
         "/tmp/file_parsed.yml", to_string(yamlRepr(p.tokens)) + "\n");
 }
+
+
+TEST_CASE("Parse corpus", "[corpus]") {
+    std::string glob = testParameters.corpusGlob.toStdString();
+    for (fs::directory_entry const& path :
+         fs::recursive_directory_iterator(
+             __CURRENT_FILE_DIR__ / "corpus")) {
+
+        if (path.is_regular_file()) {
+            if (testParameters.corpusGlob.empty()) {
+                YAML::Node spec = YAML::LoadFile(path.path());
+                runSpec(spec, QString::fromStdString(path.path()));
+            } else {
+                std::string path_str = path.path();
+                int         matchRes = fnmatch(
+                    glob.c_str(), path_str.c_str(), FNM_EXTMATCH);
+                if (!(matchRes == FNM_NOMATCH)) {
+                    YAML::Node spec = YAML::LoadFile(path.path());
+                    runSpec(spec, QString::fromStdString(path.path()));
+                }
+            }
+        }
+    }
+};

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <hstd/system/string_convert.hpp>
+#include <hstd/stdlib/ColText.hpp>
+
 #include <QDebug>
 #include <QString>
 #include <QTextStream>
@@ -19,19 +21,24 @@ inline void tracedMessageHandler(
     QtMsgType                 type,
     const QMessageLogContext& context,
     const QString&            msg) {
+    ColStream os{qcout};
+
     QString res;
+    os.magenta();
     switch (type) {
-        case QtMsgType::QtInfoMsg: res += "INFO "; break;
-        case QtMsgType::QtDebugMsg: res += "DEBUG"; break;
-        case QtMsgType::QtWarningMsg: res += "WARNG"; break;
-        case QtMsgType::QtCriticalMsg: res += "CRITC"; break;
-        case QtMsgType::QtFatalMsg: res += "FATAL"; break;
+        case QtMsgType::QtInfoMsg: os << "INFO "; break;
+        case QtMsgType::QtDebugMsg: os << "DEBUG"; break;
+        case QtMsgType::QtWarningMsg: os << "WARNG"; break;
+        case QtMsgType::QtCriticalMsg: os << "CRITC"; break;
+        case QtMsgType::QtFatalMsg: os << "FATAL"; break;
     }
+    os << os.end();
 
-    res += QString(" [%1] %2 %3")
-               .arg(context.line)
-               .arg(context.category)
-               .arg(msg);
+    os << " [" << os.cyan() << context.line << os.end() << "]";
+    if (context.category != "default") {
+        os << " " << os.green() << context.category << os.end();
+    }
+    os << " " << msg;
 
-    qcout << res << Qt::endl;
+    qcout << Qt::endl;
 }

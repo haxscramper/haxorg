@@ -263,10 +263,15 @@ struct ColStream : public ColText {
     ColStream() : buffered(true){};
     ColStream(QTextStream& os) : ostream(&os), buffered(false) {}
 
-    ColStream& red() {
-        active.fg = TermColorFg8Bit::Red;
-        return *this;
-    }
+    // clang-format off
+    ColStream& red() { active.fg = TermColorFg8Bit::Red; return *this; }
+    ColStream& blue() { active.fg = TermColorFg8Bit::Blue; return *this; }
+    ColStream& green() { active.fg = TermColorFg8Bit::Green; return *this; }
+    ColStream& yellow() { active.fg = TermColorFg8Bit::Yellow; return *this; }
+    ColStream& cyan() { active.fg = TermColorFg8Bit::Cyan; return *this; }
+    ColStream& magenta() { active.fg = TermColorFg8Bit::Magenta; return *this; }
+    ColStream& white() { active.fg = TermColorFg8Bit::White; return *this; }
+    // clang-format on
 
     ColStyle    active;
     ColStream&  indent(int level);
