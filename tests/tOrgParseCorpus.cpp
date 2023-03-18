@@ -588,7 +588,14 @@ $#
 )" % formatting;
 
             // annotatedOutput += token->strVal();
-            if (hasStr) {
+            if (hasStr || true) {
+                QString special = "⩨";
+                switch (token->kind) {
+                    case otk::GroupStart: special = "⋖"; break;
+                    case otk::GroupEnd: special = "⋗"; break;
+                }
+
+
                 annotatedOutput += "<span title=\"$#\">$#</span>"
                                  % to_string_vec(
                                        R"(pushed=$#
@@ -600,7 +607,7 @@ kind=$#
 )" % formatting,
                                        hasStr ? token->strVal().replace(
                                            "\n", "␤\n")
-                                              : "⩨");
+                                              : special);
             }
 
             ++index;

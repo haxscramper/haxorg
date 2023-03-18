@@ -165,6 +165,10 @@ struct OrgTokenizer
     int  depth = 0;
     void report(CR<Report> in);
 
+  public:
+    Vec<OrgTokenId> groupStack;
+    void            startGroup(PosStr& str);
+    void            endGroup(PosStr& str);
 
   public:
     OrgTokenizer(OrgTokenGroup* out) : Tokenizer<OrgTokenKind>(out) {}

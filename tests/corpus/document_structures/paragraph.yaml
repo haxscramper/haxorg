@@ -5,9 +5,8 @@ items:
   - name: "Paragraph"
     source: "word insert"
     tokens:
-      - {idx: 0, kind: ParagraphStart}
-      - {idx: 1, kind: Word, str: word}
-      - {idx: 2, kind: Space, str: " "}
-      - {idx: 3, kind: Word, str: insert}
-      - {idx: 4, kind: ParagraphEnd}
-
+      - {kind: ParagraphStart}
+      - {kind: Word, str: word}
+      - {kind: Space, str: " "}
+      - {kind: Word, str: insert}
+      - {kind: ParagraphEnd}

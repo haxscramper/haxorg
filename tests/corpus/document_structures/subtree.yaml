@@ -5,39 +5,39 @@ items:
   - name: "Regular subtree"
     source: "* Subtree"
     tokens:
-      - {idx: 0, kind: SubtreeStars, str: "*"}
-      - {idx: 1, kind: ParagraphStart}
-      - {idx: 2, kind: Word, str: "Subtree"}
-      - {idx: 3, kind: ParagraphEnd}
-      - {idx: 4, kind: SubtreeEnd}
+      - {kind: SubtreeStars, str: "*"}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "Subtree"}
+      - {kind: ParagraphEnd}
+      - {kind: SubtreeEnd}
 
   - name: "Subtree with time annotations"
     source: "* [2023-03-05] Subtree title"
     tokens:
-      - {idx: 0, kind: SubtreeStars, str: "*"}
-      - {idx: 1, kind: ParagraphStart}
-      - {idx: 2, kind: BracketTime, str: "[2023-03-05]"}
-      - {idx: 3, kind: Space, str: " "}
-      - {idx: 4, kind: Word, str: Subtree}
-      - {idx: 5, kind: Space, str: " "}
-      - {idx: 6, kind: Word, str: title}
-      - {idx: 7, kind: ParagraphEnd}
-      - {idx: 8, kind: SubtreeEnd}
+      - {kind: SubtreeStars, str: "*"}
+      - {kind: ParagraphStart}
+      - {kind: BracketTime, str: "[2023-03-05]"}
+      - {kind: Space, str: " "}
+      - {kind: Word, str: Subtree}
+      - {kind: Space, str: " "}
+      - {kind: Word, str: title}
+      - {kind: ParagraphEnd}
+      - {kind: SubtreeEnd}
 
   - name: "Subtree with nested content"
     source: "** CLI Tools\n\nNested content"
     tokens:
-      - {idx: 0, kind: SubtreeStars, str: "**"}
-      - {idx: 1, kind: SubtreeTodoState, str: "CLI"}
-      - {idx: 2, kind: ParagraphStart}
-      - {idx: 3, kind: Word, str: "Tools"}
-      - {idx: 4, kind: ParagraphEnd}
-      - {idx: 5, kind: SubtreeEnd}
-      - {idx: 6, kind: ParagraphStart}
-      - {idx: 7, kind: Word, str: Nested}
-      - {idx: 8, kind: Space, str: " "}
-      - {idx: 9, kind: Word, str: content}
-      - {idx: 10, kind: ParagraphEnd}
+      - {kind: SubtreeStars, str: "**"}
+      - {kind: SubtreeTodoState, str: "CLI"}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "Tools"}
+      - {kind: ParagraphEnd}
+      - {kind: SubtreeEnd}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: Nested}
+      - {kind: Space, str: " "}
+      - {kind: Word, str: content}
+      - {kind: ParagraphEnd}
 
   - name: "Headline after paragraph"
     source: |
@@ -45,19 +45,19 @@ items:
       * New headline
 
     tokens:
-      - {idx: 0, kind: ParagraphStart}
-      - {idx: 1, kind: Word, str: Paragraph}
-      - {idx: 2, kind: Space, str: " "}
-      - {idx: 3, kind: Word, str: text}
-      - {idx: 4, kind: Newline, str: "\n"}
-      - {idx: 5, kind: ParagraphEnd}
-      - {idx: 6, kind: SubtreeStars, str: "*"}
-      - {idx: 7, kind: ParagraphStart}
-      - {idx: 8, kind: Word, str: New}
-      - {idx: 9, kind: Space, str: " "}
-      - {idx: 10, kind: Word, str: headline}
-      - {idx: 11, kind: ParagraphEnd}
-      - {idx: 12, kind: SubtreeEnd}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: Paragraph}
+      - {kind: Space, str: " "}
+      - {kind: Word, str: text}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: SubtreeStars, str: "*"}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: New}
+      - {kind: Space, str: " "}
+      - {kind: Word, str: headline}
+      - {kind: ParagraphEnd}
+      - {kind: SubtreeEnd}
 
 
 

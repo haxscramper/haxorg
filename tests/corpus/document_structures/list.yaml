@@ -4,53 +4,52 @@ expected: "Flat"
 items:
   - source: "- item"
     name: "Single item"
-    debug:
-      trace_lex: true
-      lex_to_file: true
-
     tokens:
-      - {idx: 0, kind: ListStart}
-      - {idx: 1, kind: ListItemStart, str: "-"}
-      - {idx: 2, kind: StmtListOpen}
-      - {idx: 3, kind: ParagraphStart}
-      - {idx: 4, kind: Word, str: "item"}
-      - {idx: 5, kind: ParagraphEnd}
-      - {idx: 6, kind: StmtListClose}
-      - {idx: 7, kind: ListItemEnd}
-      - {idx: 8, kind: ListEnd}
+      - {kind: ListStart}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: SkipSpace, str: " "}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: item}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: ListEnd}
 
   - name: "List with two items"
+    debug:
+      print_lexed: true
     source: |
       - Item1
       - Item2
 
     tokens:
-      - {idx: 0, kind: ListStart}
+      - {kind: ListStart}
 
       # First list item
-      - {idx: 1, kind: ListItemStart, str: "-"}
-      - {idx: 2, kind: StmtListOpen}
-      - {idx: 3, kind: ParagraphStart}
-      - {idx: 4, kind: Word, str: Item1}
-      - {idx: 5, kind: Newline, str: "\n"}
-      - {idx: 6, kind: ParagraphEnd}
-      - {idx: 7, kind: StmtListClose}
-      - {idx: 8, kind: ListItemEnd}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: Item1}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
 
       # Intermediate indentation
-      - {idx: 9, kind: SameIndent}
+      - {kind: SameIndent}
 
       # Second list item
-      - {idx: 10, kind: ListItemStart, str: "-"}
-      - {idx: 11, kind: StmtListOpen}
-      - {idx: 12, kind: ParagraphStart}
-      - {idx: 13, kind: Word, str: Item2}
-      - {idx: 14, kind: Newline, str: "\n"}
-      - {idx: 15, kind: ParagraphEnd}
-      - {idx: 16, kind: StmtListClose}
-      - {idx: 17, kind: ListItemEnd}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: Item2}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
 
-      - {idx: 18, kind: ListEnd}
+      - {kind: ListEnd}
 
   - name: "List with two adjacent items, first one is multiline"
     source: |
@@ -59,35 +58,35 @@ items:
       - Item2
 
     tokens:
-      - {idx: 0, kind: ListStart}
-      - {idx: 1, kind: ListItemStart, str: "-"}
-      - {idx: 2, kind: StmtListOpen}
-      - {idx: 3, kind: ParagraphStart}
+      - {kind: ListStart}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
 
       # First content block in the input
-      - {idx: 4, kind: Word, str: "Item1"}
-      - {idx: 5, kind: Newline, str: "\n"}
+      - {kind: Word, str: "Item1"}
+      - {kind: Newline, str: "\n"}
       # Leading indentation is not stripped during lexing, it can be
       # removed in the parser later on
-      - {idx: 6, kind: Space, str: "  "}
-      - {idx: 7, kind: Word, str: "Line1"}
-      - {idx: 8, kind: Newline, str: "\n"}
+      - {kind: Space, str: "  "}
+      - {kind: Word, str: "Line1"}
+      - {kind: Newline, str: "\n"}
 
-      - {idx: 9, kind: ParagraphEnd}
-      - {idx: 10, kind: StmtListClose}
-      - {idx: 11, kind: ListItemEnd}
-      - {idx: 12, kind: SameIndent}
-      - {idx: 13, kind: ListItemStart, str: "-"}
-      - {idx: 14, kind: StmtListOpen}
-      - {idx: 15, kind: ParagraphStart}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: SameIndent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
       # Second item
-      - {idx: 16, kind: Word, str: "Item2"}
-      - {idx: 17, kind: Newline, str: "\n"}
+      - {kind: Word, str: "Item2"}
+      - {kind: Newline, str: "\n"}
 
-      - {idx: 18, kind: ParagraphEnd}
-      - {idx: 19, kind: StmtListClose}
-      - {idx: 20, kind: ListItemEnd}
-      - {idx: 21, kind: ListEnd}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: ListEnd}
   - name: "Nested list with two items"
     source: |
       - Item1
@@ -96,61 +95,61 @@ items:
       - Item2
 
     tokens:
-      - {idx: 0, kind: ListStart}
+      - {kind: ListStart}
 
       # First list
-      - {idx: 1, kind: ListItemStart, str: "-"}
+      - {kind: ListItemStart, str: "-"}
 
       ## Content of the first list
-      - {idx: 2, kind: StmtListOpen}
-      - {idx: 3, kind: ParagraphStart}
-      - {idx: 4, kind: Word, str: Item1}
-      - {idx: 5, kind: Newline, str: "\n"}
-      - {idx: 6, kind: ParagraphEnd}
-      - {idx: 7, kind: StmtListClose}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: Item1}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
 
-      - {idx: 8, kind: ListItemEnd}
+      - {kind: ListItemEnd}
 
       # Increase internal indentation
-      - {idx: 9, kind: Indent}
+      - {kind: Indent}
 
       # Start of the second list item
-      - {idx: 10, kind: ListItemStart, str: "-"}
+      - {kind: ListItemStart, str: "-"}
 
       # Second list item content
-      - {idx: 11, kind: StmtListOpen}
-      - {idx: 12, kind: ParagraphStart}
-      - {idx: 13, kind: Word, str: Nested1}
-      - {idx: 14, kind: Newline, str: "\n"}
-      - {idx: 15, kind: ParagraphEnd}
-      - {idx: 16, kind: StmtListClose}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: Nested1}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
 
-      - {idx: 17, kind: ListItemEnd}
+      - {kind: ListItemEnd}
 
       # Another list item on the same level
-      - {idx: 18, kind: SameIndent}
+      - {kind: SameIndent}
 
-      - {idx: 19, kind: ListItemStart, str: "-"}
-      - {idx: 20, kind: StmtListOpen}
-      - {idx: 21, kind: ParagraphStart}
-      - {idx: 22, kind: Word, str: Nested2}
-      - {idx: 23, kind: Newline, str: "\n"}
-      - {idx: 24, kind: ParagraphEnd}
-      - {idx: 25, kind: StmtListClose}
-      - {idx: 26, kind: ListItemEnd}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: Nested2}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
 
       # Decrease list item indentation, return on one level up
-      - {idx: 27, kind: Dedent}
-      - {idx: 28, kind: ListItemStart, str: "-"}
-      - {idx: 29, kind: StmtListOpen}
-      - {idx: 30, kind: ParagraphStart}
-      - {idx: 31, kind: Word, str: Item2}
-      - {idx: 32, kind: Newline, str: "\n"}
-      - {idx: 33, kind: ParagraphEnd}
-      - {idx: 34, kind: StmtListClose}
-      - {idx: 35, kind: ListItemEnd}
+      - {kind: Dedent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: Item2}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
       # End of the whole list
-      - {idx: 36, kind: ListEnd}
+      - {kind: ListEnd}
   - name: "List with space in the nested content"
     source: |
       - Item1
@@ -159,38 +158,38 @@ items:
           Nested2
 
     tokens:
-      - {idx: 0, kind: ListStart}
-      - {idx: 1, kind: ListItemStart, str: "-"}
-      - {idx: 2, kind: StmtListOpen}
-      - {idx: 3, kind: ParagraphStart}
-      - {idx: 4, kind: Word, str: "Item1"}
-      - {idx: 5, kind: Newline, str: "\n"}
-      - {idx: 6, kind: ParagraphEnd}
-      - {idx: 7, kind: StmtListClose}
-      - {idx: 8, kind: ListItemEnd}
-      - {idx: 9, kind: Indent}
-      - {idx: 10, kind: ListItemStart, str: "-"}
+      - {kind: ListStart}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "Item1"}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: Indent}
+      - {kind: ListItemStart, str: "-"}
 
       # Second level of list nesting contains more than one paragraph of
       # text
-      - {idx: 11, kind: StmtListOpen}
+      - {kind: StmtListOpen}
 
-      - {idx: 12, kind: ParagraphStart}
-      - {idx: 13, kind: Word, str: "Nested1"}
-      - {idx: 14, kind: Newline, str: "\n"}
-      - {idx: 15, kind: Newline, str: "\n"}
-      - {idx: 16, kind: ParagraphEnd}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "Nested1"}
+      - {kind: Newline, str: "\n"}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
 
-      - {idx: 17, kind: ParagraphStart}
-      - {idx: 18, kind: Word, str: "Nested2"}
-      - {idx: 19, kind: Newline, str: "\n"}
-      - {idx: 20, kind: ParagraphEnd}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "Nested2"}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
 
-      - {idx: 21, kind: StmtListClose}
+      - {kind: StmtListClose}
 
-      - {idx: 22, kind: ListItemEnd}
-      - {idx: 23, kind: Dedent}
-      - {idx: 24, kind: ListEnd}
+      - {kind: ListItemEnd}
+      - {kind: Dedent}
+      - {kind: ListEnd}
   - name: "List with unindented source code block"
     source: |
       - Item1
@@ -200,41 +199,41 @@ items:
         #+end_src
 
     tokens:
-      - {idx: 0, kind: ListStart}
-      - {idx: 1, kind: ListItemStart, str: "-"}
-      - {idx: 2, kind: StmtListOpen}
+      - {kind: ListStart}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
 
       # First paragraph of text in the list
-      - {idx: 3, kind: ParagraphStart}
-      - {idx: 4, kind: Word, str: Item1}
-      - {idx: 5, kind: Newline, str: "\n"}
-      - {idx: 6, kind: Space, str: "  "}
-      - {idx: 7, kind: ParagraphEnd}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: Item1}
+      - {kind: Newline, str: "\n"}
+      - {kind: Space, str: "  "}
+      - {kind: ParagraphEnd}
 
       # Source code block in the resulting text
-      - {idx: 8, kind: CommandPrefix, str: "#+"}
-      - {idx: 9, kind: CommandBegin, str: "begin_src"}
-      - {idx: 10, kind: CommandArgumentsBegin}
-      - {idx: 11, kind: Word, str: "nim"}
-      - {idx: 12, kind: CommandArgumentsEnd}
+      - {kind: CommandPrefix, str: "#+"}
+      - {kind: CommandBegin, str: "begin_src"}
+      - {kind: CommandArgumentsBegin}
+      - {kind: Word, str: "nim"}
+      - {kind: CommandArgumentsEnd}
 
-      - {idx: 13, kind: CommandContentStart}
+      - {kind: CommandContentStart}
 
-      - {idx: 14, kind: CodeContentBegin}
-      - {idx: 15, kind: CodeText, str: "indented"}
-      - {idx: 16, kind: Newline, str: "\n"}
-      - {idx: 17, kind: CodeText, str: "  two_lines"}
-      - {idx: 18, kind: Newline, str: "\n"}
-      - {idx: 19, kind: CodeContentEnd}
+      - {kind: CodeContentBegin}
+      - {kind: CodeText, str: "indented"}
+      - {kind: Newline, str: "\n"}
+      - {kind: CodeText, str: "  two_lines"}
+      - {kind: Newline, str: "\n"}
+      - {kind: CodeContentEnd}
 
-      - {idx: 20, kind: CommandContentEnd}
+      - {kind: CommandContentEnd}
 
-      - {idx: 21, kind: CommandPrefix, str: "#+"}
-      - {idx: 22, kind: CommandEnd, str: "end_src"}
+      - {kind: CommandPrefix, str: "#+"}
+      - {kind: CommandEnd, str: "end_src"}
 
-      - {idx: 23, kind: StmtListClose}
-      - {idx: 24, kind: ListItemEnd}
-      - {idx: 25, kind: ListEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: ListEnd}
 
   - name: "Indent and dedent long list"
     debug:
@@ -261,147 +260,147 @@ items:
                 - item14111
         - item3
     tokens:
-      - {idx: 0, kind: ListStart}
+      - {kind: ListStart}
 
-      - {idx: 1, kind: ListItemStart, str: "-"}
-      - {idx: 2, kind: StmtListOpen}
-      - {idx: 3, kind: ParagraphStart}
-      - {idx: 4, kind: Word, str: "item1"}
-      - {idx: 5, kind: Newline, str: "\n"}
-      - {idx: 6, kind: ParagraphEnd}
-      - {idx: 7, kind: StmtListClose}
-      - {idx: 8, kind: ListItemEnd}
-      - {idx: 9, kind: SameIndent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item1"}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: SameIndent}
 
-      - {idx: 10, kind: ListItemStart, str: "-"}
-      - {idx: 11, kind: StmtListOpen}
-      - {idx: 12, kind: ParagraphStart}
-      - {idx: 13, kind: Word, str: "item2"}
-      - {idx: 14, kind: Newline, str: "\n"}
-      - {idx: 15, kind: ParagraphEnd}
-      - {idx: 16, kind: StmtListClose}
-      - {idx: 17, kind: ListItemEnd}
-      - {idx: 18, kind: Indent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item2"}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: Indent}
 
-      - {idx: 19, kind: ListItemStart, str: "-"}
-      - {idx: 20, kind: StmtListOpen}
-      - {idx: 21, kind: ParagraphStart}
-      - {idx: 22, kind: Word, str: "item11"}
-      - {idx: 23, kind: ParagraphEnd}
-      - {idx: 24, kind: StmtListClose}
-      - {idx: 25, kind: ListItemEnd}
-      - {idx: 26, kind: Indent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item11"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: Indent}
 
-      - {idx: 27, kind: ListItemStart, str: "-"}
-      - {idx: 28, kind: StmtListOpen}
-      - {idx: 29, kind: ParagraphStart}
-      - {idx: 30, kind: Word, str: "item111"}
-      - {idx: 31, kind: Newline, str: "\n"}
-      - {idx: 32, kind: ParagraphEnd}
-      - {idx: 33, kind: StmtListClose}
-      - {idx: 34, kind: ListItemEnd}
-      - {idx: 35, kind: SameIndent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item111"}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: SameIndent}
 
-      - {idx: 36, kind: ListItemStart, str: "-"}
-      - {idx: 37, kind: StmtListOpen}
-      - {idx: 38, kind: ParagraphStart}
-      - {idx: 39, kind: Word, str: "item112"}
-      - {idx: 40, kind: Newline, str: "\n"}
-      - {idx: 41, kind: ParagraphEnd}
-      - {idx: 42, kind: StmtListClose}
-      - {idx: 43, kind: ListItemEnd}
-      - {idx: 44, kind: Dedent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item112"}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: Dedent}
 
-      - {idx: 45, kind: ListItemStart, str: "-"}
-      - {idx: 46, kind: StmtListOpen}
-      - {idx: 47, kind: ParagraphStart}
-      - {idx: 48, kind: Word, str: "item12"}
-      - {idx: 49, kind: ParagraphEnd}
-      - {idx: 50, kind: StmtListClose}
-      - {idx: 51, kind: ListItemEnd}
-      - {idx: 52, kind: SameIndent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item12"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: SameIndent}
 
-      - {idx: 53, kind: ListItemStart, str: "-"}
-      - {idx: 54, kind: StmtListOpen}
-      - {idx: 55, kind: ParagraphStart}
-      - {idx: 56, kind: Word, str: "item13"}
-      - {idx: 57, kind: ParagraphEnd}
-      - {idx: 58, kind: StmtListClose}
-      - {idx: 59, kind: ListItemEnd}
-      - {idx: 60, kind: Indent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item13"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: Indent}
 
-      - {idx: 61, kind: ListItemStart, str: "-"}
-      - {idx: 62, kind: StmtListOpen}
-      - {idx: 63, kind: ParagraphStart}
-      - {idx: 64, kind: Word, str: "item131"}
-      - {idx: 65, kind: Newline, str: "\n"}
-      - {idx: 66, kind: ParagraphEnd}
-      - {idx: 67, kind: StmtListClose}
-      - {idx: 68, kind: ListItemEnd}
-      - {idx: 69, kind: Indent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item131"}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: Indent}
 
-      - {idx: 70, kind: ListItemStart, str: "-"}
-      - {idx: 71, kind: StmtListOpen}
-      - {idx: 72, kind: ParagraphStart}
-      - {idx: 73, kind: Word, str: "item1311"}
-      - {idx: 74, kind: Newline, str: "\n"}
-      - {idx: 75, kind: ParagraphEnd}
-      - {idx: 76, kind: StmtListClose}
-      - {idx: 77, kind: ListItemEnd}
-      - {idx: 78, kind: Dedent}
-      - {idx: 79, kind: Dedent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item1311"}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: Dedent}
+      - {kind: Dedent}
 
-      - {idx: 80, kind: ListItemStart, str: "-"}
-      - {idx: 81, kind: StmtListOpen}
-      - {idx: 82, kind: ParagraphStart}
-      - {idx: 83, kind: Word, str: "item14"}
-      - {idx: 84, kind: ParagraphEnd}
-      - {idx: 85, kind: StmtListClose}
-      - {idx: 86, kind: ListItemEnd}
-      - {idx: 87, kind: Indent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item14"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: Indent}
 
-      - {idx: 88, kind: ListItemStart, str: "-"}
-      - {idx: 89, kind: StmtListOpen}
-      - {idx: 90, kind: ParagraphStart}
-      - {idx: 91, kind: Word, str: "item141"}
-      - {idx: 92, kind: Newline, str: "\n"}
-      - {idx: 93, kind: ParagraphEnd}
-      - {idx: 94, kind: StmtListClose}
-      - {idx: 95, kind: ListItemEnd}
-      - {idx: 96, kind: Indent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item141"}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: Indent}
 
-      - {idx: 97, kind: ListItemStart, str: "-"}
-      - {idx: 98, kind: StmtListOpen}
-      - {idx: 99, kind: ParagraphStart}
-      - {idx: 100, kind: Word, str: "item1411"}
-      - {idx: 101, kind: Newline, str: "\n"}
-      - {idx: 102, kind: ParagraphEnd}
-      - {idx: 103, kind: StmtListClose}
-      - {idx: 104, kind: ListItemEnd}
-      - {idx: 105, kind: Indent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item1411"}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: Indent}
 
-      - {idx: 106, kind: ListItemStart, str: "-"}
-      - {idx: 107, kind: StmtListOpen}
-      - {idx: 108, kind: ParagraphStart}
-      - {idx: 109, kind: Word, str: "item14111"}
-      - {idx: 110, kind: Newline, str: "\n"}
-      - {idx: 111, kind: ParagraphEnd}
-      - {idx: 112, kind: StmtListClose}
-      - {idx: 113, kind: ListItemEnd}
-      - {idx: 114, kind: Dedent}
-      - {idx: 115, kind: Dedent}
-      - {idx: 116, kind: Dedent}
-      - {idx: 117, kind: Dedent}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item14111"}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: Dedent}
+      - {kind: Dedent}
+      - {kind: Dedent}
+      - {kind: Dedent}
 
-      - {idx: 118, kind: ListItemStart, str: "-"}
-      - {idx: 119, kind: StmtListOpen}
-      - {idx: 120, kind: ParagraphStart}
-      - {idx: 121, kind: Word, str: "item3"}
-      - {idx: 122, kind: Newline, str: "\n"}
-      - {idx: 123, kind: ParagraphEnd}
-      - {idx: 124, kind: StmtListClose}
-      - {idx: 125, kind: ListItemEnd}
-      - {idx: 126, kind: ListEnd}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: StmtListOpen}
+      - {kind: ParagraphStart}
+      - {kind: Word, str: "item3"}
+      - {kind: Newline, str: "\n"}
+      - {kind: ParagraphEnd}
+      - {kind: StmtListClose}
+      - {kind: ListItemEnd}
+      - {kind: ListEnd}
 
   - name: "Indent and dedent long list, subset"
     conf:

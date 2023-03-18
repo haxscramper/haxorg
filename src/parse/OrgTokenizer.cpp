@@ -294,16 +294,8 @@ OrgToken OrgTokenizer::error(CR<TokenizerError> err) {
         throw __err;                                                      \
     }
 
-#define __start(str)                                                      \
-    {                                                                     \
-        auto tok = str.fakeTok(otk::GroupStart);                          \
-        __push(tok);                                                      \
-    }
-#define __end(str)                                                        \
-    {                                                                     \
-        auto tok = str.fakeTok(otk::GroupEnd);                            \
-        __push(tok);                                                      \
-    }
+#define __start(str) startGroup(str);
+#define __end(str) endGroup(str);
 
 #define __fail_group(err)                                                 \
     auto tok = error(err);                                                \
@@ -325,6 +317,30 @@ void OrgTokenizer::spaceSkip(PosStr& str, bool require) {
     if (0 < tmp.size()) {
         __push(tmp);
     }
+}
+
+void OrgTokenizer::startGroup(PosStr& str) {
+    auto   token = str.fakeTok(otk::GroupStart);
+    Report rep   = __INIT_REPORT(std::nullopt, str);
+    rep.kind     = ReportKind::Push;
+    rep.tok      = token;
+    auto id      = push(token);
+    rep.id       = id;
+    report(rep);
+    groupStack.push_back(id);
+}
+
+
+void OrgTokenizer::endGroup(PosStr& str) {
+    auto   token = str.fakeTok(otk::GroupEnd);
+    Report rep   = __INIT_REPORT(std::nullopt, str);
+    rep.kind     = ReportKind::Push;
+    rep.tok      = token;
+    auto id      = push(token);
+    rep.id       = id;
+    report(rep);
+    OrgTokenId start = groupStack.pop_back_v();
+    at(start).text   = static_cast<int>(distance(start, id));
 }
 
 void OrgTokenizer::newlineSkip(PosStr& str) {

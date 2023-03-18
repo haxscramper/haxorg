@@ -217,11 +217,13 @@ json jsonRepr(CR<NodeGroup<N, K>> group, bool withStrings = true) {
 
 
 template <typename K>
-yaml yamlRepr(CR<TokenGroup<K>> group) {
+yaml yamlRepr(CR<TokenGroup<K>> group, bool withIdx = false) {
     yaml out;
     for (const auto& [id, token] : group.tokens.pairs()) {
         yaml item;
-        item["idx"]  = id.getIndex();
+        if (withIdx) {
+            item["idx"] = id.getIndex();
+        }
         item["kind"] = to_string(token->kind);
         if (token->hasData()) {
             item["str"] = token->strVal().toBase();
@@ -233,11 +235,13 @@ yaml yamlRepr(CR<TokenGroup<K>> group) {
 }
 
 template <typename K>
-json jsonRepr(CR<TokenGroup<K>> group) {
+json jsonRepr(CR<TokenGroup<K>> group, bool withIdx = false) {
     json out = json::array();
     for (const auto& [id, token] : group.tokens.pairs()) {
         json item;
-        item["idx"]  = id.getIndex();
+        if (withIdx) {
+            item["idx"] = id.getIndex();
+        }
         item["kind"] = to_string(token->kind);
         if (token->hasData()) {
             item["str"] = token->strVal().toBase();

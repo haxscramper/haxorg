@@ -83,6 +83,20 @@ using otk = OrgTokenKind;
 using org = OrgNodeKind;
 using ock = OrgCommandKind;
 
+void space(OrgLexer& lex) {
+    while (lex.at(otk::Space) || lex.at(otk::SkipSpace)) {
+        lex.next();
+    }
+}
+
+
+void skipSpace(OrgLexer& lex) {
+    while (lex.at(otk::SkipSpace)) {
+        lex.next();
+    }
+}
+
+
 OrgId OrgParser::parseCSVArguments(OrgLexer& lex) {
     __trace();
     start(org::Ident);
@@ -358,6 +372,7 @@ OrgId OrgParser::parseSymbol(OrgLexer& lex) {
 OrgId OrgParser::parseHashTag(OrgLexer& lex) {
     __trace();
     start(org::HashTag);
+    space(lex);
     token(org::RawText, lex.pop(otk::HashTag));
 
     if (lex.at(otk::HashTagSub)) {
@@ -371,7 +386,7 @@ OrgId OrgParser::parseHashTag(OrgLexer& lex) {
                 parseHashTag(lex);
                 if (lex.at(otk::Comma)) {
                     lex.next();
-                };
+                }
             }
             lex.skip(otk::HashTagClose);
         };
@@ -798,6 +813,7 @@ OrgId OrgParser::parseListItem(OrgLexer& lex) {
     start(org::ListItem);
     // prefix
     { token(org::RawText, lex.pop(otk::ListItemStart)); }
+    skipSpace(lex);
     // counter
     {
         empty(); // TODO parse counter
@@ -925,14 +941,14 @@ OrgId OrgParser::parseLogbookClockEntry(OrgLexer& lex) {
     // CLOCK:
     lex.skip(otk::ListClock);
     lex.skip(otk::ParagraphStart);
-    lex.trySkip(otk::Space);
+    space(lex);
     lex.skip(otk::BigIdent);
     lex.skip(otk::Colon);
-    lex.trySkip(otk::Space);
+    space(lex);
 
     parseTime(lex);
 
-    lex.trySkip(otk::Space);
+    space(lex);
     lex.skip(otk::ParagraphEnd);
     lex.skip(otk::ListItemEnd);
     return end();
@@ -970,25 +986,25 @@ OrgId OrgParser::parseLogbookListEntry(OrgLexer& lex) {
         } else if (lex.at(otk::Word) && lex.strVal() == "Refiled") {
             start(org::LogbookRefile);
             lex.skip(otk::Word, "Refiled");
-            lex.trySkip(otk::Space);
+            space(lex);
             lex.skip(otk::Word, "on");
-            lex.trySkip(otk::Space);
+            space(lex);
             parseTime(lex);
-            lex.trySkip(otk::Space);
+            space(lex);
             lex.skip(otk::Word, "from");
-            lex.trySkip(otk::Space);
+            space(lex);
             parseLink(lex);
             end();
         } else if (lex.at(otk::Word) && lex.strVal() == "Note") {
             start(org::LogbookNote);
             lex.skip(otk::Word, "Note");
-            lex.trySkip(otk::Space);
+            space(lex);
             lex.skip(otk::Word, "taken");
-            lex.trySkip(otk::Space);
+            space(lex);
             lex.skip(otk::Word, "on");
-            lex.trySkip(otk::Space);
+            space(lex);
             parseTime(lex);
-            lex.trySkip(otk::Space);
+            space(lex);
             if (lex.at(otk::DoubleSlash)) {
                 lex.skip(otk::DoubleSlash);
             };
