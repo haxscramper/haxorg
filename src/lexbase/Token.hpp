@@ -276,7 +276,6 @@ struct LexerCommon {
             for (int i = params.startOffset;
                  i < params.maxTokens && hasNext(i);
                  ++i) {
-                qDebug() << i << pos;
                 const auto& t = tok(i);
                 os << " "
                    << styledUnicodeMapping(
@@ -505,10 +504,11 @@ struct SubLexer : public LexerCommon<K> {
 
     void next(int offset = 1) override {
         // TODO boundary checking
-        subPos += offset;
         if (hasNext(offset)) {
+            subPos += offset;
             pos = tokens.at(subPos);
         } else {
+            subPos += offset;
             pos = TokenId<K>::Nil();
         }
     }

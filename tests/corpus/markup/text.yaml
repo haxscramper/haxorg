@@ -2,7 +2,12 @@ lex: "Structure"
 parse: "InlineParagraph"
 expected: "Flat"
 items:
-  - source: "*bold*"
+  - name: "Bold text"
+    debug:
+      # trace_parse: true
+      # parse_to_file: true
+
+    source: "*bold*"
     tokens:
       - {kind: ParagraphStart}
       - {kind: BoldOpen, str: "*"}

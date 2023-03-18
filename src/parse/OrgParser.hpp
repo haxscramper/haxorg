@@ -49,18 +49,8 @@ struct OrgParser : public OperationsTracer {
 
     inline OrgId back() const { return group->nodes.back(); }
 
-    inline OrgId start(OrgNodeKind kind, OrgLexer& lex) {
-        OrgId result = start(kind);
-        lex.next();
-        return result;
-    }
-
     inline OrgId start(OrgNodeKind kind) { return group->startTree(kind); }
     inline OrgId end() { return group->endTree(); }
-    inline OrgId end(OrgLexer& lex) {
-        lex.next();
-        return end();
-    }
     inline OrgId empty() { return token(OrgNode(OrgNodeKind::Empty)); }
     inline OrgId token(CR<OrgNode> node) { return group->token(node); }
     inline OrgId token(OrgNodeKind kind, OrgTokenId tok) {

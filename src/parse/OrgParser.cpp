@@ -35,14 +35,23 @@
         Str(__func__));
 
 
+#define __trace1(__subname) __trace2(__subname, lex)
+#define __trace0() __trace2(std::nullopt, lex)
+
+#define __trace(...)                                                      \
+    BOOST_PP_CAT(                                                         \
+        BOOST_PP_OVERLOAD(__trace, __VA_ARGS__)(__VA_ARGS__),             \
+        BOOST_PP_EMPTY())
+
+
 #define __end2(__subname, __lex)                                          \
     OrgId CONCAT(tmpNode, __LINE__) = end();                              \
     {                                                                     \
         Report rep = __INIT_REPORT(__subname, __lex);                     \
         rep.kind   = ReportKind::EndNode;                                 \
         rep.node   = CONCAT(tmpNode, __LINE__);                           \
-    }                                                                     \
-    CONCAT(tmpNode, __LINE__)
+        report(rep);                                                      \
+    }
 
 
 #define __end1(__subname) __end2(__subname, lex)
@@ -59,8 +68,8 @@
         Report rep = __INIT_REPORT(__subname, __lex);                     \
         rep.kind   = ReportKind::StartNode;                               \
         rep.node   = CONCAT(tmpNode, __LINE__);                           \
-    }                                                                     \
-    CONCAT(tmpNode, __LINE__)
+        report(rep);                                                      \
+    }
 
 
 #define __start2(__node, __subname) __start3(__node, __subname, lex)
@@ -71,12 +80,21 @@
         BOOST_PP_OVERLOAD(__start, __VA_ARGS__)(__VA_ARGS__),             \
         BOOST_PP_EMPTY())
 
-#define __trace1(__subname) __trace2(__subname, lex)
-#define __trace0() __trace2(std::nullopt, lex)
 
-#define __trace(...)                                                      \
+#define __token3(__node, __subname, __lex)                                \
+    {                                                                     \
+        Report rep = __INIT_REPORT(__subname, __lex);                     \
+        rep.kind   = ReportKind::AddToken;                                \
+        rep.node   = __node;                                              \
+        report(rep);                                                      \
+    }
+
+#define __token2(__node, __subname) __token3(__node, __subname, lex)
+#define __token1(__node) __token3(__node, std::nullopt, lex);
+
+#define __token(...)                                                      \
     BOOST_PP_CAT(                                                         \
-        BOOST_PP_OVERLOAD(__trace, __VA_ARGS__)(__VA_ARGS__),             \
+        BOOST_PP_OVERLOAD(__token, __VA_ARGS__)(__VA_ARGS__),             \
         BOOST_PP_EMPTY())
 
 using otk = OrgTokenKind;
@@ -92,6 +110,13 @@ void space(OrgLexer& lex) {
 
 void skipSpace(OrgLexer& lex) {
     while (lex.at(otk::SkipSpace)) {
+        lex.next();
+    }
+}
+
+
+void newline(OrgLexer& lex) {
+    while (lex.at(otk::Newline) || lex.at(otk::SkipNewline)) {
         lex.next();
     }
 }
@@ -133,14 +158,16 @@ void OrgParser::textFold(OrgLexer& lex) {
     __trace();
 #define CASE_MARKUP(Kind)                                                 \
     case otk::Kind##Open: {                                               \
-        start(org::Kind, lex);                                            \
+        __start(org::Kind);                                               \
+        lex.next();                                                       \
         textFold(lex);                                                    \
         break;                                                            \
     }                                                                     \
                                                                           \
     case otk::Kind##Close: {                                              \
         if (pending().kind == org::Kind) {                                \
-            end(lex);                                                     \
+            __end();                                                      \
+            lex.next();                                                   \
         } else {                                                          \
             fail(lex.pop());                                              \
         }                                                                 \
@@ -148,6 +175,7 @@ void OrgParser::textFold(OrgLexer& lex) {
     }
 
     while (!lex.finished()) {
+        // qDebug() << lex;
         switch (lex.kind()) {
             CASE_MARKUP(Bold);
             CASE_MARKUP(Italic);
@@ -158,12 +186,41 @@ void OrgParser::textFold(OrgLexer& lex) {
             CASE_MARKUP(Quote);
             CASE_MARKUP(Par);
 
-            case otk::Space: token(org::Space, lex.pop()); break;
-            case otk::Escaped: token(org::Escaped, lex.pop()); break;
-            case otk::RawText: token(org::RawText, lex.pop()); break;
-            case otk::Newline: token(org::Newline, lex.pop()); break;
-            case otk::Word: token(org::Word, lex.pop()); break;
-            case otk::BigIdent: token(org::BigIdent, lex.pop()); break;
+            case otk::Space: {
+                auto t = token(org::Space, lex.pop());
+                __token(t);
+                break;
+            }
+
+            case otk::Escaped: {
+                auto t = token(org::Escaped, lex.pop());
+                __token(t);
+                break;
+            }
+
+            case otk::RawText: {
+                auto t = token(org::RawText, lex.pop());
+                __token(t);
+                break;
+            }
+
+            case otk::Newline: {
+                auto t = token(org::Newline, lex.pop());
+                __token(t);
+                break;
+            }
+
+            case otk::Word: {
+                auto t = token(org::Word, lex.pop());
+                __token(t);
+                break;
+            }
+
+            case otk::BigIdent: {
+                auto t = token(org::BigIdent, lex.pop());
+                __token(t);
+                break;
+            }
 
             case otk::SrcOpen: parseTime(lex); break;
             case otk::AngleTime: parseTime(lex); break;
@@ -182,14 +239,17 @@ void OrgParser::textFold(OrgLexer& lex) {
 
             case otk::DoubleAngleOpen: {
                 lex.skip(otk::DoubleAngleOpen);
-                token(org::Target, lex.pop(otk::RawText));
+                auto tmp = token(org::Target, lex.pop(otk::RawText));
+                __token(tmp);
                 lex.skip(otk::DoubleAngleClose);
                 break;
             }
 
             case otk::TripleAngleOpen: {
                 lex.skip(otk::TripleAngleOpen);
-                token(org::RadioTarget, lex.pop(otk::RawText));
+                auto target = token(
+                    org::RadioTarget, lex.pop(otk::RawText));
+                __token(target);
                 lex.skip(otk::TripleAngleClose);
                 break;
             }
@@ -219,7 +279,6 @@ void OrgParser::textFold(OrgLexer& lex) {
 void OrgParser::report(CR<Report> in) {
     using fg = TermColorFg8Bit;
 
-    // qDebug() << "Called report" << trace;
     bool entering = false;
     if (!trace) {
         return;
@@ -235,13 +294,26 @@ void OrgParser::report(CR<Report> in) {
 
     switch (in.kind) {
         case ReportKind::AddToken: {
-            os << " # " << in.node << " " << in.line;
+            auto id = in.node.value();
+            os << " # add [" << id.getIndex() << "] "
+               << to_string(group->at(id).kind) << " at " << in.line;
             break;
         }
 
         case ReportKind::StartNode:
         case ReportKind::EndNode: {
-            os << " + " << in.node << " " << in.line;
+            auto id = in.node.value();
+            if (in.kind == ReportKind::StartNode) {
+                os << " + start";
+            } else {
+                os << " - end";
+            }
+
+            os << " [" << id.getIndex() << "] "
+               << to_string(group->at(id).kind) << " at " << in.line;
+            if (in.kind == ReportKind::EndNode) {
+                os << " ext=" << group->at(id).getExtent();
+            }
             break;
         }
 
@@ -626,9 +698,10 @@ OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
     }
 
 
-    start(org::Paragraph);
+    __start(org::Paragraph);
     auto nodes = parseText(sub);
-    return end();
+    __end();
+    return back();
 }
 
 OrgId OrgParser::parseInlineParagraph(OrgLexer& lex) {
@@ -648,19 +721,23 @@ OrgId OrgParser::parseCommandArguments(OrgLexer& lex) {
     start(org::InlineStmtList);
     while (lex.at(OrgTokSet{otk::CommandValue, otk::CommandKey})) {
         if (lex.at(otk::CommandKey)) {
-            start(org::CmdValue);
+            __start(org::CmdValue);
             {
-                token(org::Ident, lex.pop(otk::CommandKey));
-                token(org::RawText, lex.pop(otk::CommandValue));
+                auto ident = token(org::Ident, lex.pop(otk::CommandKey));
+                __token(ident);
+                auto raw = token(org::RawText, lex.pop(otk::CommandValue));
+                __token(raw);
             }
-            end();
+            __end();
         } else {
-            start(org::CmdValue);
+            __start(org::CmdValue);
             {
-                empty();
-                token(org::RawText, lex.pop(otk::CommandValue));
+                auto em = empty();
+                __token(em);
+                auto raw = token(org::RawText, lex.pop(otk::CommandValue));
+                __token(raw);
             }
-            end();
+            __end();
         }
     }
 
@@ -1136,9 +1213,11 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
     __trace();
     start(org::Subtree);
     // prefix
+
     { token(org::RawText, lex.pop(otk::SubtreeStars)); };
     // todo_status
     {
+        skipSpace(lex);
         if (lex.at(otk::SubtreeTodoState)) {
             token(org::BigIdent, lex.pop(otk::SubtreeTodoState));
         } else {
@@ -1146,10 +1225,15 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
         };
     }
     // urgency
-    { empty(); }
-    skipSpace(lex);
+    {
+        skipSpace(lex);
+        empty();
+    }
     // subtree_title
-    { parseParagraph(lex, false); }
+    {
+        skipSpace(lex);
+        parseParagraph(lex, false);
+    }
     // subtree_completion
     { empty(); }
     // tree_tags
@@ -1183,6 +1267,7 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
     };
     // tree_drawer
     { parseDrawer(lex); };
+    newline(lex);
     lex.skip(otk::SubtreeEnd);
     return end();
 }

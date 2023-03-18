@@ -4,9 +4,6 @@ expected: "Flat"
 items:
   - name: "Regular subtree"
     source: "* Subtree"
-    debug:
-      parse_to_file: true
-
     tokens:
       - {kind: SubtreeStars, str: "*"}
       - {kind: SkipSpace, str: " "}
@@ -19,6 +16,7 @@ items:
     source: "* [2023-03-05] Subtree title"
     tokens:
       - {kind: SubtreeStars, str: "*"}
+      - {kind: SkipSpace, str: " "}
       - {kind: ParagraphStart}
       - {kind: BracketTime, str: "[2023-03-05]"}
       - {kind: Space, str: " "}
@@ -32,11 +30,15 @@ items:
     source: "** CLI Tools\n\nNested content"
     tokens:
       - {kind: SubtreeStars, str: "**"}
+      - {kind: SkipSpace, str: " "}
       - {kind: SubtreeTodoState, str: "CLI"}
+      - {kind: SkipSpace, str: " "}
       - {kind: ParagraphStart}
       - {kind: Word, str: "Tools"}
       - {kind: ParagraphEnd}
+      - {kind: SkipNewline, str: "\n"}
       - {kind: SubtreeEnd}
+      - {kind: SkipNewline, str: "\n"}
       - {kind: ParagraphStart}
       - {kind: Word, str: Nested}
       - {kind: Space, str: " "}
@@ -56,11 +58,13 @@ items:
       - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
       - {kind: SubtreeStars, str: "*"}
+      - {kind: SkipSpace, str: " "}
       - {kind: ParagraphStart}
       - {kind: Word, str: New}
       - {kind: Space, str: " "}
       - {kind: Word, str: headline}
       - {kind: ParagraphEnd}
+      - {kind: SkipNewline, str: "\n"}
       - {kind: SubtreeEnd}
 
 

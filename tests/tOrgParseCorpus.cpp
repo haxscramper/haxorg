@@ -193,15 +193,21 @@ void compareNodes(
 
             auto group = isLhs ? &parsed : &expected;
 
-            return "$# $# $#($# $# $#)"
+            return "$# $# $#($# $#)"
                  % to_string_vec(
                        id,
                        node.kind,
-                       hshow(group->strVal(OrgId(id))).toString(false),
+                       node.isTerminal() ? escape_literal(
+                           hshow(
+                               group->strVal(OrgId(id)),
+                               HDisplayOpts().excl(
+                                   HDisplayFlag::UseQuotes))
+                               .toString(false))
+                                         : QString(""),
                        node.kind,
-                       node.isTerminal(),
-                       node.isTerminal() ? to_string(node.getToken())
-                                         : to_string(node.getExtent()));
+                       node.isTerminal()
+                           ? "tok=" + to_string(node.getToken().getIndex())
+                           : "ext=" + to_string(node.getExtent()));
         });
 
         qcout << buffer << Qt::endl;
@@ -375,7 +381,7 @@ void runSpec(CR<YAML::Node> group, CR<QString> from) {
 
 
     for (const auto& spec : parsed.specs) {
-        qDebug() << sectionName(spec);
+        // qDebug() << sectionName(spec);
         SECTION(sectionName(spec)) { runSpec(spec, from); }
     }
 }
