@@ -9,6 +9,7 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/RangeTree.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
 #include <lexbase/Errors.hpp>
 
@@ -262,7 +263,11 @@ struct LexerCommon {
 
     void print(ColStream& os, CR<PrintParams> params) const {
         if (params.withPos) {
-            os << "#" << pos.getIndex() << "/" << in->size();
+            if (pos.isNil()) {
+                os << "#" << os.red() << "nil" << os.end();
+            } else {
+                os << "#" << pos.getIndex() << "/" << in->size();
+            }
         }
 
         if (finished()) {
@@ -271,10 +276,11 @@ struct LexerCommon {
             for (int i = params.startOffset;
                  i < params.maxTokens && hasNext(i);
                  ++i) {
+                qDebug() << i << pos;
                 const auto& t = tok(i);
                 os << " "
                    << styledUnicodeMapping(
-                          to_string(t.kind), AsciiStyle::Bold);
+                          to_string(t.kind), AsciiStyle::Italic);
                 if (t.hasData()) {
                     os << " '";
                     hshow(
@@ -494,13 +500,17 @@ struct SubLexer : public LexerCommon<K> {
 
 
     bool hasNext(int offset = 1) const override {
-        return subPos + offset < tokens.size();
+        return !pos.isNil() && (subPos + offset < tokens.size());
     }
 
     void next(int offset = 1) override {
         // TODO boundary checking
         subPos += offset;
-        pos = tokens[subPos];
+        if (hasNext(offset)) {
+            pos = tokens.at(subPos);
+        } else {
+            pos = TokenId<K>::Nil();
+        }
     }
 
     SubLexer(TokenGroup<K>* in, Vec<TokenId<K>> _tokens)
@@ -515,9 +525,16 @@ struct Lexer : public LexerCommon<K> {
     using LexerCommon<K>::pos;
     using LexerCommon<K>::in;
 
-    void next(int offset = 1) override { pos = pos + offset; }
+    void next(int offset = 1) override {
+        if (hasNext(offset)) {
+            pos = pos + offset;
+        } else {
+            pos = TokenId<K>::Nil();
+        }
+    }
+
     bool hasNext(int offset = 1) const override {
-        return (pos + offset).getIndex() < in->size();
+        return !pos.isNil() && (pos + offset).getIndex() < in->size();
     }
 
     Lexer(TokenGroup<K>* in) : LexerCommon<K>(in) {}
@@ -569,3 +586,15 @@ struct LineColInfo {
         lineRanges = RangeTree<int>(slices);
     }
 };
+
+template <typename K>
+QDebug operator<<(QDebug os, LexerCommon<K> const& value) {
+    QString     str;
+    QTextStream stream{&str};
+    ColStream   col{stream};
+    using P = typename LexerCommon<K>::PrintParams;
+    value.print(col, P{});
+    QDebugStateSaver saver{os};
+    os.noquote() << str;
+    return os;
+}
