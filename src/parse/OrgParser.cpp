@@ -219,6 +219,7 @@ void OrgParser::textFold(OrgLexer& lex) {
 void OrgParser::report(CR<Report> in) {
     using fg = TermColorFg8Bit;
 
+    qDebug() << "Called report" << trace;
     bool entering = false;
     if (!trace) {
         return;
@@ -252,6 +253,8 @@ void OrgParser::report(CR<Report> in) {
 
             if (in.lex != nullptr) {
                 os << " [";
+                OrgLexer::PrintParams params;
+                in.lex->print(os, params);
                 os << "]";
             }
 
@@ -719,6 +722,7 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
     lex.skip(otk::CommandBegin);
     // header_args_lang
     {
+        skipSpace(lex);
         lex.skip(otk::CommandArgumentsBegin);
 
         const auto lang = lex.pop(otk::Word);
@@ -1321,6 +1325,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 OrgId OrgParser::parseToplevelItem(OrgLexer& lex) {
     __trace();
     switch (lex.kind()) {
+        case otk::SkipNewline: return token(org::SkipNewline, lex.pop());
         case otk::ParagraphStart: return parseParagraph(lex, true);
         case otk::TableBegin: return parseTable(lex);
         case otk::SubtreeStars: return parseSubtree(lex);
@@ -1344,7 +1349,9 @@ OrgId OrgParser::parseToplevelItem(OrgLexer& lex) {
             break;
         }
         default: {
-            assert(false && "TODO");
+            throw UnexpectedKindError(
+                "Unexpected top-level item entry '$#'"
+                % to_string_vec(lex.kind()));
         }
     }
 }

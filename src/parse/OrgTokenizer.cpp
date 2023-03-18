@@ -1475,20 +1475,24 @@ bool OrgTokenizer::lexSubtree(PosStr& str) {
         newlineSkip(str);
     }
 
-    auto ahead = normalize(str.getAhead(slice(0, str.getSkip('\n'))));
-    if (ahead.contains("deadline:") || ahead.contains("closed:")
-        || ahead.contains("scheduled:")) {
-        lexSubtreeTimes(str);
+    int skip = str.getSkip('\n');
+    if (0 <= skip) {
+        auto ahead = normalize(str.getAhead(slice(0, skip)));
+        if (ahead.contains("deadline:") || ahead.contains("closed:")
+            || ahead.contains("scheduled:")) {
+            lexSubtreeTimes(str);
+        }
+
+        if (str.getSkip(
+                ':',
+                [](CR<PosStr> str, int skip) -> bool {
+                    return str.notAt(' ', skip);
+                })
+            != -1) {
+            lexDrawer(str);
+        }
     }
 
-    if (str.getSkip(
-            ':',
-            [](CR<PosStr> str, int skip) -> bool {
-                return str.notAt(' ', skip);
-            })
-        != -1) {
-        lexDrawer(str);
-    }
     auto end = str.fakeTok(otk::SubtreeEnd);
     __push(end);
     return true;
@@ -1600,7 +1604,6 @@ bool OrgTokenizer::lexCommandContent(
             break;
         }
         case ock::BeginSrc: {
-            spaceSkip(str);
             auto content = str.fakeTok(otk::CodeContentBegin);
             __push(content);
             lexSourceBlockContent(str);
@@ -1695,7 +1698,7 @@ bool OrgTokenizer::lexCommandBlockDelimited(
     str.pushSlice();
     __trace("Search for block end");
     while (!found && !str.finished()) {
-        spaceSkip(str);
+        str.space();
         if (!str.finished()
             && !(
                 str.getColumn() == column
@@ -2282,7 +2285,6 @@ void OrgTokenizer::lexListBody(
                 __print("Dedented non-list content");
                 atEnd = true;
             } else {
-                spaceSkip(str);
                 if (str.at("#+")) {
                     __print("Command block");
                     lexCommandBlock(str);

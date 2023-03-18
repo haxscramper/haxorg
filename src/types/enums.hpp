@@ -205,6 +205,8 @@ enum class OrgNodeKind : short int
     /// is required and free-form text.
     Escaped, /// Escaped formatting character in the text
     Newline,
+    SkipNewline,
+    SkipSpace,
     RawLink, /// Raw unwrapped link that was pasted in text
     Link,
     /// External or internal link. Consists of one or two elements - target

@@ -3,6 +3,7 @@
 #include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/IntSet.hpp>
 #include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/strformat.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/Variant.hpp>
@@ -251,6 +252,45 @@ struct LexerCommon {
     CR<Token<K>> tok(int offset = 0) const { return in->at(get(offset)); }
     TokenId<K>   get(int offset = 0) const { return pos + offset; }
 
+    struct PrintParams {
+        int  maxTokens   = 10;
+        int  startOffset = 0;
+        bool withPos     = true;
+        bool withColor   = true;
+        bool withOffsets = false;
+    };
+
+    void print(ColStream& os, CR<PrintParams> params) const {
+        if (params.withPos) {
+            os << "#" << pos.getIndex() << "/" << in->size();
+        }
+
+        if (finished()) {
+            os << os.red() << " finished" << os.end();
+        } else {
+            for (int i = params.startOffset;
+                 i < params.maxTokens && hasNext(i);
+                 ++i) {
+                const auto& t = tok(i);
+                os << " " << to_string(t.kind);
+                if (t.hasData()) {
+                    os << " '";
+                    hshow(
+                        os,
+                        t.getText(),
+                        HDisplayOpts().excl(HDisplayFlag::UseQuotes));
+                    os << "'";
+                } else {
+                    if (params.withOffsets) {
+                        os << " " << os.cyan() << t.getOffset()
+                           << os.end();
+                    }
+                }
+            }
+        }
+    }
+
+
     TokenId<K> pop() {
         TokenId<K> result = pos;
         next();
@@ -438,6 +478,7 @@ struct SubLexer : public LexerCommon<K> {
 
     int             subPos = 0;
     Vec<TokenId<K>> tokens;
+
 
     bool hasNext(int offset = 1) const override {
         return subPos + offset < tokens.size();

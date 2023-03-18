@@ -257,12 +257,13 @@ void compareTokens(
             auto tok = isLhs ? lexed.tokens.content.at(id)
                              : expected.tokens.content.at(id);
 
-
+            HDisplayOpts opts{};
+            opts.flags.excl(HDisplayFlag::UseQuotes);
             return "$# $# $#"
                  % to_string_vec(
                        id,
                        tok.kind,
-                       hshow(tok.strVal()).toString(false),
+                       hshow(tok.strVal(), opts).toString(false),
                        tok.hasData());
         });
 
@@ -374,6 +375,7 @@ void runSpec(CR<YAML::Node> group, CR<QString> from) {
 
 
     for (const auto& spec : parsed.specs) {
+        qDebug() << sectionName(spec);
         SECTION(sectionName(spec)) { runSpec(spec, from); }
     }
 }
@@ -385,9 +387,9 @@ TEST_CASE("Parse file", "[corpus][notes]") {
     //     "/mnt/workspace/repos/personal/indexed/notes.org");
     QString source = readFile("/tmp/doc.org");
 
-    p.tokenizer.setTraceFile("/tmp/file_parse_trace.txt");
+    // p.tokenizer.setTraceFile("/tmp/file_lex_trace.txt");
+    // p.setTraceFile("/tmp/file_parse_trace.txt");
 
-    // p.tokenizer.trace = false;
     p.tokens.base = source.data();
     LineColInfo info{source};
     p.tokenizer.locationResolver = [&](CR<PosStr> str) -> LineCol {

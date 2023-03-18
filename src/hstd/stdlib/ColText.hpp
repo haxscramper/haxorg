@@ -412,6 +412,28 @@ struct HDisplayOpts {
     bool              newlineBeforeMulti = true;
     HDisplayVerbosity verbosity          = HDisplayVerbosity::Normal;
     bool              dropPrefix         = false;
+
+
+    HDisplayOpts& cond(HDisplayFlag flag, bool doAdd) {
+        if (doAdd) {
+            flags.incl(flag);
+        } else {
+            flags.excl(flag);
+        }
+        return *this;
+    }
+    HDisplayOpts& incl(HDisplayFlag flag) {
+        flags.incl(flag);
+        return *this;
+    }
+    HDisplayOpts& excl(HDisplayFlag flag) {
+        flags.excl(flag);
+        return *this;
+    }
+    HDisplayOpts& with(IntSet<HDisplayFlag> flag) {
+        flags = flag;
+        return *this;
+    }
 };
 
 template <typename T>
@@ -435,12 +457,18 @@ inline ColStream& hshow(
     CR<Str>          value,
     CR<HDisplayOpts> opts) {
     bool first = true;
-    for (Str const& it : visibleUnicodeName(value)) {
-        if (!first) {
-            os << " ";
+    if (opts.flags.contains(HDisplayFlag::UseQuotes)) {
+        for (Str const& it : visibleUnicodeName(value)) {
+            if (!first) {
+                os << " ";
+            }
+            first = false;
+            os << Str("'") + it + Str("'");
         }
-        first = false;
-        os << Str("'") + it + Str("'");
+    } else {
+        for (const auto& it : visibleUnicodeName(value)) {
+            os << it;
+        }
     }
 
     return os;

@@ -4,8 +4,12 @@ expected: "Flat"
 items:
   - name: "Regular subtree"
     source: "* Subtree"
+    debug:
+      parse_to_file: true
+
     tokens:
       - {kind: SubtreeStars, str: "*"}
+      - {kind: SkipSpace, str: " "}
       - {kind: ParagraphStart}
       - {kind: Word, str: "Subtree"}
       - {kind: ParagraphEnd}

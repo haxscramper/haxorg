@@ -17,8 +17,6 @@ items:
       - {kind: ListEnd}
 
   - name: "List with two items"
-    debug:
-      print_lexed: true
     source: |
       - Item1
       - Item2
@@ -194,6 +192,8 @@ items:
                                        # list item level
 
       - {kind: ParagraphStart}
+      - {kind: Space, str: "    "} # Leading indentation for paragraph is
+                                   # not stripped or implicitly discarded.
       - {kind: Word, str: "Nested2"}
       - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
@@ -227,6 +227,7 @@ items:
       # Source code block in the resulting text
       - {kind: CommandPrefix, str: "#+"}
       - {kind: CommandBegin, str: "begin_src"}
+      - {kind: SkipSpace, str: " "}
       - {kind: CommandArgumentsBegin}
       - {kind: Word, str: "nim"}
       - {kind: CommandArgumentsEnd}
@@ -234,7 +235,7 @@ items:
       - {kind: CommandContentStart}
 
       - {kind: CodeContentBegin}
-      - {kind: CodeText, str: "indented"}
+      - {kind: CodeText, str: "  indented"}
       - {kind: Newline, str: "\n"}
       - {kind: CodeText, str: "  two_lines"}
       - {kind: Newline, str: "\n"}
@@ -244,6 +245,7 @@ items:
 
       - {kind: CommandPrefix, str: "#+"}
       - {kind: CommandEnd, str: "end_src"}
+      - {kind: SkipNewline, str: "\n"}
 
       - {kind: StmtListClose}
       - {kind: ListItemEnd}
@@ -303,6 +305,7 @@ items:
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item11"}
+      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
       - {kind: StmtListClose}
       - {kind: ListItemEnd}
@@ -335,6 +338,7 @@ items:
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item12"}
+      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
       - {kind: StmtListClose}
       - {kind: ListItemEnd}
@@ -345,6 +349,7 @@ items:
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item13"}
+      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
       - {kind: StmtListClose}
       - {kind: ListItemEnd}
@@ -378,6 +383,7 @@ items:
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item14"}
+      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
       - {kind: StmtListClose}
       - {kind: ListItemEnd}
