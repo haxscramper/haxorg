@@ -446,7 +446,8 @@ inline QDebug operator<<(QDebug os, PosStr const& value) {
     QString     str;
     QTextStream stream{&str};
     ColStream   col{stream};
-    value.print(col, {.withEnd = false});
+    value.print(
+        col, {.withEnd = false, .withSeparation = false, .maxTokens = 40});
     QDebugStateSaver saver{os};
     os.noquote() << str;
     return os;

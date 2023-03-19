@@ -604,7 +604,10 @@ bool OrgTokenizer::lexTextChars(PosStr& str) {
                 .openChars = {QChar('[')}, .closeChars = {QChar(']')}});
     };
 
-    if (str.at("src[_-]?\\w+(\\[|\\{)")) {
+    if (str.at("src_") && str.getSkip('{', [](CR<PosStr> str, int offset) {
+            return str.get(offset).isLetterOrNumber()
+                || str.get(offset) == '_';
+        })) {
         __trace("Lex inline source");
         const auto    pos = str.getPos();
         Vec<OrgToken> buf;
@@ -879,8 +882,15 @@ bool OrgTokenizer::lexTextSlash(PosStr& str) {
     return true;
 }
 
-const auto NonText = charsets::TextLineChars - charsets::AsciiLetters
-                   - charsets::Utf8Any + CharSet{ONewline, QChar('/')};
+const auto NonText = CharSet{
+    ONewline,
+    OSpace,
+    QChar(','),
+    QChar('.'),
+    QChar('\''),
+    QChar('"'),
+    QChar('/'),
+} + charsets::PunctChars + charsets::AllSpace;
 
 
 bool OrgTokenizer::lexTextVerbatim(PosStr& str) {
@@ -903,13 +913,24 @@ bool OrgTokenizer::lexTextVerbatim(PosStr& str) {
             auto open = str.tok(
                 markupConfig[start].startKind, skipCount, 1);
             __push(open);
-            auto text = str.tok(otk::RawText, skipTo, start);
+            auto text = str.tok(otk::RawText, [this, &start](PosStr& str) {
+                bool ended = false;
+                while (!str.finished() && !ended) {
+                    while (str.notAt(start)) {
+                        str.next();
+                    }
+                    if (str.at(start) && str.at(NonText, +1)) {
+                        ended = true;
+                    } else {
+                        str.next();
+                    }
+                }
+            });
+
             __push(text);
-            if (str.at(NonText, 1) || str.beforeEnd()) {
-                auto end = str.tok(
-                    markupConfig[start].finishKind, skipCount, 1);
-                __push(end);
-            }
+            auto end = str.tok(
+                markupConfig[start].finishKind, skipCb(start));
+            __push(end);
         } else {
             auto punct = str.tok(otk::Punctuation, skipCount, 1);
             __push(punct);

@@ -35,11 +35,11 @@ struct OrgTokenizer
             Opt<LineCol> loc;
 
             QString getLocMsg() const {
-                return "on $# ($#:$#)"
+                return "on $#:$# (pos $#)"
                      % to_string_vec(
-                           pos,
                            loc ? loc->line : -1,
-                           loc ? loc->column : -1);
+                           loc ? loc->column : -1,
+                           pos);
             }
 
             Base(CR<PosStr> str)

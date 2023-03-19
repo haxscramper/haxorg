@@ -401,23 +401,28 @@ TEST_CASE("Parse file", "[corpus][notes]") {
     p.tokenizer.locationResolver = [&](CR<PosStr> str) -> LineCol {
         Slice<int> absolute = p.tokens.toAbsolute(str.view);
         return {
-            info.whichLine(absolute.first + str.pos),
+            info.whichLine(absolute.first + str.pos) + 1,
             info.whichColumn(absolute.first + str.pos),
         };
     };
 
-    auto target = slice(1647, 2000);
+    int  start  = 3185;
+    auto target = slice(start, start + 20);
 
     p.tokenizer.traceUpdateHook =
         [&](CR<OrgTokenizer::Report> in, bool& doTrace, bool first) {
-            if (in.kind == OrgTokenizer::ReportKind::Push) {
-                if (in.addBuffered) {
-                    doTrace = !first;
-                }
-            } else if (in.str != nullptr) {
+            if (in.str != nullptr) {
                 LineCol loc = p.tokenizer.locationResolver(*(in.str));
-                if (loc.line != -1) {
-                    doTrace = target.contains(loc.line);
+                if (target.contains(loc.line)) {
+                    if (in.kind == OrgTokenizer::ReportKind::Push) {
+                        if (in.addBuffered) {
+                            doTrace = !first;
+                        }
+                    } else {
+                        doTrace = true;
+                    }
+                } else if (loc.line != -1) {
+                    doTrace = false;
                 }
             }
         };
