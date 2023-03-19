@@ -53,12 +53,10 @@ struct OrgTokenizer
         struct UnexpectedChar : Base {
             PosStr::CheckableSkip wanted;
             const char*           what() const noexcept override {
-                QString msg = "Expected " + variant_to_string(wanted)
-                            + " but got '"
-                            + PosStr(view, pos).printToString(false) + "' "
-                            + getLocMsg();
-
-                return strdup(msg.toStdString().c_str());
+                return strdup(
+                    "Expected " + variant_to_string(wanted) + " but got '"
+                    + PosStr(view, pos).printToString(false) + "' "
+                    + getLocMsg());
             }
             UnexpectedChar(CR<PosStr> str, PosStr::CheckableSkip wanted)
                 : Base(str), wanted(wanted) {}
@@ -68,9 +66,9 @@ struct OrgTokenizer
             QString     missing;
             QString     where;
             const char* what() const noexcept override {
-                QString msg = "Missing '$#' for $# $#"
-                            % to_string_vec(missing, where, getLocMsg());
-                return strdup(msg.toStdString().c_str());
+                return strdup(
+                    "Missing '$#' for $# $#"
+                    % to_string_vec(missing, where, getLocMsg()));
             }
 
             MissingElement(
@@ -80,13 +78,23 @@ struct OrgTokenizer
                 : Base(str), missing(missing), where(where) {}
         };
 
+        struct UnexpectedConstruct : Base {
+            const char* what() const noexcept override {
+                return strdup(
+                    "Unexpected construct at $#: $#"
+                    % to_string_vec(getLocMsg(), desc));
+            }
+            QString desc;
+            UnexpectedConstruct(CR<PosStr> str, CR<QString> desc)
+                : Base(str), desc(desc) {}
+        };
+
         struct UnknownConstruct : Base {
             const char* what() const noexcept override {
-                QString msg = "Unexpected construct '"
-                            + PosStr(view, pos).printToString(false) + "' "
-                            + getLocMsg();
-
-                return strdup(msg.toStdString().c_str());
+                return strdup(
+                    "Unexpected construct '"
+                    + PosStr(view, pos).printToString(false) + "' "
+                    + getLocMsg());
             }
             UnknownConstruct(CR<PosStr> str) : Base(str) {}
         };
@@ -94,6 +102,7 @@ struct OrgTokenizer
 
     using Error = Variant<
         Errors::UnexpectedChar,
+        Errors::UnexpectedConstruct,
         Errors::UnknownConstruct,
         Errors::MissingElement,
         Errors::None>;
@@ -151,6 +160,7 @@ struct OrgTokenizer
     };
 
     struct Report {
+        bool           addBuffered = false;
         ReportKind     kind;
         Str            name;
         OrgToken       tok;
@@ -172,10 +182,22 @@ struct OrgTokenizer
 
   public:
     OrgTokenizer(OrgTokenGroup* out) : Tokenizer<OrgTokenKind>(out) {}
+    Opt<LineCol> getLoc(CR<PosStr> str) {
+        if (locationResolver) {
+            return locationResolver(str);
+        } else {
+            return std::nullopt;
+        }
+    }
     /// Resolve positional string into line and column information
     Func<LineCol(CR<PosStr>)> locationResolver;
     Func<void(CR<Report>)>    reportHook;
-    QString                   debugPos(CR<PosStr> str) const;
+    /// Update trace enable/disable state. Called before and after each
+    /// report is processed. First argument is the report, second is the
+    /// reference to the `trace` member and the last one provides
+    /// information about call location (before report or after report).
+    Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
+    QString                             debugPos(CR<PosStr> str) const;
 
     /// Push complex token into recursive processing pipeline. Used for
     /// table content (which might contain more blocks of texts, some
@@ -324,6 +346,7 @@ struct OrgTokenizer
 
     bool lexComment(PosStr& str) {
         push(str.tok(OrgTokenKind::Comment, skipToEOL));
+        return true;
     }
 
 

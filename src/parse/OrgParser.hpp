@@ -9,7 +9,7 @@
 using ParseCb = std::function<OrgId(OrgLexer&)>;
 
 struct OrgParser : public OperationsTracer {
-  private:
+  public:
     enum class ReportKind
     {
         EnterParse,
@@ -31,6 +31,9 @@ struct OrgParser : public OperationsTracer {
 
     int  depth = 0;
     void report(CR<Report> in);
+
+    Func<void(CR<Report>)>              reportHook;
+    Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
 
   public:
     OrgNodeGroup* group;

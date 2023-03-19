@@ -1,11 +1,18 @@
 #pragma once
 
+#include <hstd/stdlib/strformat.hpp>
+#include <hstd/system/string_convert.hpp>
 #include <variant>
 
 struct LineCol {
     int line;
     int column;
 };
+
+inline QTextStream& operator<<(QTextStream& os, LineCol const& value) {
+    return os << "{.line = $#, .column = $#}"
+                     % to_string_vec(value.line, value.column);
+}
 
 /// \brief Base parse error
 struct ParseError : public std::runtime_error {

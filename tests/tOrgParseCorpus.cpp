@@ -393,8 +393,8 @@ TEST_CASE("Parse file", "[corpus][notes]") {
     //     "/mnt/workspace/repos/personal/indexed/notes.org");
     QString source = readFile("/tmp/doc.org");
 
-    // p.tokenizer.setTraceFile("/tmp/file_lex_trace.txt");
-    // p.setTraceFile("/tmp/file_parse_trace.txt");
+    p.tokenizer.setTraceFile("/tmp/file_lex_trace.txt");
+    p.setTraceFile("/tmp/file_parse_trace.txt");
 
     p.tokens.base = source.data();
     LineColInfo info{source};
@@ -405,6 +405,39 @@ TEST_CASE("Parse file", "[corpus][notes]") {
             info.whichColumn(absolute.first + str.pos),
         };
     };
+
+    auto target = slice(1920, 2000);
+
+    p.tokenizer.traceUpdateHook =
+        [&](CR<OrgTokenizer::Report> in, bool& doTrace, bool first) {
+            if (in.kind == OrgTokenizer::ReportKind::Push) {
+                if (in.addBuffered) {
+                    doTrace = !first;
+                }
+            } else if (in.str != nullptr) {
+                LineCol loc = p.tokenizer.locationResolver(*(in.str));
+                if (loc.line != -1) {
+                    doTrace = target.contains(loc.line);
+                }
+            }
+        };
+
+    p.traceUpdateHook =
+        [&](CR<OrgParser::Report> in, bool& doTrace, bool first) {
+            if (in.node.has_value()) {
+                OrgId node = in.node.value();
+                if (p.nodes.at(node).isTerminal()) {
+                    auto tok = p.tokens.at(p.nodes.at(node).getToken());
+                    if (tok.hasData()) {
+                        LineCol loc = p.tokenizer.locationResolver(
+                            tok.getText());
+                        if (loc.line != -1) {
+                            doTrace = target.contains(loc.line);
+                        }
+                    }
+                }
+            }
+        };
 
     UnorderedMap<OrgTokenId, OrgTokenizer::Report> pushedOn;
 
@@ -624,7 +657,13 @@ kind=$#
     writeFile("/tmp/tokens.csv", csvOutput);
 
     writeFile(
-        "/tmp/file_parsed.yml", to_string(yamlRepr(p.tokens)) + "\n");
+        "/tmp/file_lexed.yaml", to_string(yamlRepr(p.tokens)) + "\n");
+
+    p.parse(&OrgParser::parseTop);
+
+
+    writeFile(
+        "/tmp/file_parsed.yaml", to_string(yamlRepr(p.nodes)) + "\n");
 }
 
 

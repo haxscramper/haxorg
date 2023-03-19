@@ -49,15 +49,23 @@
         .location = __CURRENT_FILE_PATH__                                 \
     }
 
-#define __push(token)                                                     \
+#define __push2(token, __is_buffered)                                     \
     {                                                                     \
-        Report rep = __INIT_REPORT(std::nullopt, str);                    \
-        rep.kind   = ReportKind::Push;                                    \
-        rep.tok    = token;                                               \
-        auto id    = push(token);                                         \
-        rep.id     = id;                                                  \
+        Report rep      = __INIT_REPORT(std::nullopt, str);               \
+        rep.kind        = ReportKind::Push;                               \
+        rep.tok         = token;                                          \
+        auto id         = push(token);                                    \
+        rep.id          = id;                                             \
+        rep.addBuffered = __is_buffered;                                  \
         report(rep);                                                      \
     }
+
+#define __push1(token) __push2(token, false);
+
+#define __push(...)                                                       \
+    BOOST_PP_CAT(                                                         \
+        BOOST_PP_OVERLOAD(__push, __VA_ARGS__)(__VA_ARGS__),              \
+        BOOST_PP_EMPTY())
 
 #define __trace1(__subname) __trace2(__subname, str)
 #define __trace0() __trace2(std::nullopt, str)
@@ -340,7 +348,10 @@ void OrgTokenizer::endGroup(PosStr& str) {
     rep.id       = id;
     report(rep);
     OrgTokenId start = groupStack.pop_back_v();
-    at(start).text   = static_cast<int>(distance(start, id));
+    // might be nil if we are in the buffered lexer at the moment
+    if (!start.isNil()) {
+        at(start).text = static_cast<int>(distance(start, id));
+    }
 }
 
 void OrgTokenizer::newlineSkip(PosStr& str) {
@@ -746,6 +757,8 @@ bool OrgTokenizer::lexTextDollar(PosStr& str) {
             // buf.add(tmp.tok(skip otk::DollarClose,
             // QChar('$'), QChar('$')));
         } else {
+            qDebug() << getLoc(str) << str;
+
             buf.push_back(
                 tmp.tok(otk::DollarOpen, oskipOne, cr(QChar('$'))));
             buf.push_back(
@@ -1431,8 +1444,7 @@ bool OrgTokenizer::lexSubtreeTimes(PosStr& str) {
         bool hadTimes = false;
         while (!done) {
             spaceSkip(str);
-            auto ahead = normalize(str.getAhead(
-                slice(0, 10 /* deadline/closed/scheduled */)));
+            auto ahead = str.getAhead(slice(0, 10)).toLower();
             if (ahead.startsWith("deadline:")
                 || ahead.startsWith("closed:")
                 || ahead.startsWith("scheduled:")) {
@@ -1471,16 +1483,22 @@ bool OrgTokenizer::lexSubtree(PosStr& str) {
     lexSubtreeUrgency(str);
     spaceSkip(str);
     lexSubtreeTitle(str);
+    __print(str.printToString());
     if (str.at(ONewline)) {
         newlineSkip(str);
     }
 
+    __print(str.printToString());
     int skip = str.getSkip('\n');
+    __print("Has next line? $#" % to_string_vec(skip));
     if (0 <= skip) {
-        auto ahead = normalize(str.getAhead(slice(0, skip)));
+        auto ahead = str.getAhead(slice(0, skip)).toLower();
+        __print("Parse subtree etc. " + ahead);
         if (ahead.contains("deadline:") || ahead.contains("closed:")
             || ahead.contains("scheduled:")) {
             lexSubtreeTimes(str);
+        } else {
+            __print("No subtree times detected");
         }
 
         if (str.getSkip(
@@ -1490,6 +1508,8 @@ bool OrgTokenizer::lexSubtree(PosStr& str) {
                 })
             != -1) {
             lexDrawer(str);
+        } else {
+            __print("No subtree drawer detected");
         }
     }
 
@@ -1540,7 +1560,7 @@ bool OrgTokenizer::lexSourceBlockContent(PosStr& str) {
                 str.setPos(failedAt);
             } else {
                 for (const auto& tok : tmpRes) {
-                    __push(tok);
+                    __push(tok, true);
                 }
                 str = tmp;
             }
@@ -2010,10 +2030,11 @@ bool OrgTokenizer::lexCommandBlock(PosStr& str) {
         spaceSkip(str);
         auto args = str.slice(skipToEOL);
         lexCommandArguments(args, classifyCommand(id.toStr()));
-        if (!str.finished()) {
-            newlineSkip(str);
-        }
     }
+    if (!str.finished()) {
+        newlineSkip(str);
+    }
+
     return true;
 }
 
@@ -2357,7 +2378,7 @@ bool OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
             }
         }
     }
-    str.skipToEOL();
+
     return true;
 }
 
@@ -2371,11 +2392,11 @@ bool OrgTokenizer::lexList(PosStr& str) {
     clearBuffer();
 
     if (tokens[0].kind != otk::SameIndent) {
-        __push(tokens[0]);
+        __push(tokens[0], true);
     }
 
     for (const auto& tok : tokens[slice(1, 1_B)]) {
-        __push(tok);
+        __push(tok, true);
     }
 
     while (state.hasIndent()) {
@@ -2405,8 +2426,9 @@ bool OrgTokenizer::lexParagraph(PosStr& str) {
     __trace();
     // Pick out large standalone paragraph block until some construct is
     // encountered or empty line is reached.
-    const auto column = str.getColumn();
-    auto       ended  = false;
+    const auto column   = str.getColumn();
+    auto       ended    = false;
+    int        startPos = str.getPos();
     str.pushSlice();
     while (!str.finished() && !ended) {
         if (atConstructStart(str) //
@@ -2438,13 +2460,23 @@ bool OrgTokenizer::lexParagraph(PosStr& str) {
         str.next();
     }
 
-    auto recTok = str.popTok(otk::Text);
-    // Put it for the recursive processing, paragraph start/end elements
-    // will be added there.
-    pushResolved(recTok);
-    // Paragraph processing itself does not need wrapping group and always
-    // succeds.
-    return true;
+    if (startPos < str.getPos()) {
+        // Depleted case with no paragraph content, for example we tried to
+        // parse `\n\n\n` or some similar location. In this case backward
+        // walk for trimming trailing spacing might reduce the position
+        auto recTok = str.popTok(otk::Text);
+        // Put it for the recursive processing, paragraph start/end
+        // elements will be added there.
+        pushResolved(recTok);
+        // Paragraph processing itself does not need wrapping group and
+        // always succeds.
+        return true;
+    } else {
+        str.setPos(startPos);
+        auto skip = str.tok(otk::SkipAny, skipCount, 1);
+        __push(skip);
+        return false;
+    }
 }
 
 bool OrgTokenizer::lexTableState(
@@ -2664,18 +2696,24 @@ bool OrgTokenizer::lexStructure(PosStr& str) {
             break;
         }
 
-        case '\n':
+        case '\n': {
+            newlineSkip(str);
+            break;
+        }
         case ' ': {
+            spaceSkip(str);
             if (atListAhead(str)) {
-                lexList(str);
+                qDebug() << str;
+                auto err = Errors::UnexpectedConstruct(
+                    str,
+                    "encountered indented list during top-level "
+                    "lexing. Column was $#, but top-level lists "
+                    "should only start the 0th column. Either dedent "
+                    "the list accordingly or reduce preceding "
+                    "vertical spacing (if this is a dangling list)"
+                        % to_string_vec(str.getColumn()));
+                __report_and_throw(err);
             } else {
-                while (str.at(CharSet{OSpace, ONewline})) {
-                    if (str.at(OSpace)) {
-                        spaceSkip(str);
-                    } else {
-                        newlineSkip(str);
-                    }
-                }
                 lexStructure(str);
             }
             break;
@@ -2705,7 +2743,13 @@ void OrgTokenizer::report(CR<Report> in) {
         reportHook(in);
     }
 
+    if (traceUpdateHook) {
+        traceUpdateHook(in, trace, true);
+    }
     if (!trace) {
+        if (traceUpdateHook) {
+            traceUpdateHook(in, trace, false);
+        }
         return;
     }
 
@@ -2798,6 +2842,10 @@ void OrgTokenizer::report(CR<Report> in) {
 
     if (in.kind == ReportKind::Leave) {
         --depth;
+    }
+
+    if (traceUpdateHook) {
+        traceUpdateHook(in, trace, false);
     }
 }
 

@@ -279,8 +279,17 @@ void OrgParser::textFold(OrgLexer& lex) {
 void OrgParser::report(CR<Report> in) {
     using fg = TermColorFg8Bit;
 
-    bool entering = false;
+    if (reportHook) {
+        reportHook(in);
+    }
+
+    if (traceUpdateHook) {
+        traceUpdateHook(in, trace, true);
+    }
     if (!trace) {
+        if (traceUpdateHook) {
+            traceUpdateHook(in, trace, false);
+        }
         return;
     }
 
@@ -342,6 +351,10 @@ void OrgParser::report(CR<Report> in) {
     if (in.kind == ReportKind::LeaveParse
         || in.kind == ReportKind::EndNode) {
         --depth;
+    }
+
+    if (traceUpdateHook) {
+        traceUpdateHook(in, trace, false);
     }
 }
 
