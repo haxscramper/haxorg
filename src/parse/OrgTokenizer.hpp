@@ -107,6 +107,12 @@ struct OrgTokenizer
         Errors::MissingElement,
         Errors::None>;
 
+
+    void oskipOne(PosStr& str, CR<PosStr::CheckableSkip> item);
+    PosStr::AdvanceCb skipCb(CR<PosStr::CheckableSkip> item) {
+        return [item, this](PosStr& str) { oskipOne(str, item); };
+    }
+
     struct TokenizerError : std::runtime_error {
         Error err;
         TokenizerError() : std::runtime_error(""), err(Errors::None()) {}
@@ -139,6 +145,15 @@ struct OrgTokenizer
                 [](auto const& in) { return in.what(); }, err);
         }
     };
+
+    TokenizerError wrapError(CR<Error> err) {
+        TokenizerError result{err};
+        if (locationResolver) {
+            PosStr str{result.getView(), result.getPos()};
+            result.setLoc(locationResolver(str));
+        }
+        return result;
+    }
 
     Vec<TokenizerError> errors;
 

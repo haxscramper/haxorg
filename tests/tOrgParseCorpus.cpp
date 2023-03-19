@@ -389,9 +389,9 @@ void runSpec(CR<YAML::Node> group, CR<QString> from) {
 
 TEST_CASE("Parse file", "[corpus][notes]") {
     MockFull p;
-    // QString  source = readFile(
-    //     "/mnt/workspace/repos/personal/indexed/notes.org");
-    QString source = readFile("/tmp/doc.org");
+    QString  source = readFile(
+        "/mnt/workspace/repos/personal/indexed/notes.org");
+    // QString source = readFile("/tmp/doc.org");
 
     p.tokenizer.setTraceFile("/tmp/file_lex_trace.txt");
     p.setTraceFile("/tmp/file_parse_trace.txt");
@@ -406,7 +406,7 @@ TEST_CASE("Parse file", "[corpus][notes]") {
         };
     };
 
-    auto target = slice(1920, 2000);
+    auto target = slice(1647, 2000);
 
     p.tokenizer.traceUpdateHook =
         [&](CR<OrgTokenizer::Report> in, bool& doTrace, bool first) {
