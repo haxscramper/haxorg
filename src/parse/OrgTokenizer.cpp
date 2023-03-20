@@ -249,6 +249,35 @@ const TypArray<QChar, MarkupConfigPair> markupConfig{{
 // clang-format on
 
 
+struct AdvCheck {
+    int           pos = 0;
+    CR<PosStr>    str;
+    OrgTokenizer* tok;
+    QString       func;
+    struct Error : public std::runtime_error {
+        explicit Error(QString const& msg)
+            : std::runtime_error(msg.toStdString()) {}
+    };
+
+    AdvCheck(CR<PosStr> str, OrgTokenizer* tok, CR<QString> func)
+        : pos(str.getPos()), str(str), tok(tok), func(func) {}
+    ~AdvCheck() {
+        if (!(pos < str.getPos())) {
+            throw Error(
+                "Positional string did not advance at $# in $#: position "
+                "remained equal to $#. Str: '$#'"
+                % to_string_vec(
+                    tok->getLoc(str),
+                    func,
+                    pos,
+                    str.printToString({.withSeparation = false}, false)));
+        }
+    }
+};
+
+#define __adv_check()                                                     \
+    AdvCheck CONCAT(advance, __COUNTER__){str, this, __func__};
+
 const CharSet ListStart = CharSet{QChar('-'), QChar('+'), QChar('*')}
                         + charsets::Digits + charsets::AsciiLetters;
 using Err = OrgTokenizer::Errors;
@@ -715,6 +744,7 @@ bool OrgTokenizer::lexTextWord(PosStr& str) {
 /// `call_`, regular word, etc.
 bool OrgTokenizer::lexTextChars(PosStr& str) {
     __trace();
+    __adv_check();
     bool isStructure = false;
 
     if (str.at("src_") && str.getSkip('{', [](CR<PosStr> str, int offset) {
@@ -2269,27 +2299,41 @@ bool OrgTokenizer::lexListDescription(
     LexerStateSimple& state) {
     __trace("Try parsing list header");
     Opt<PosStr> descriptionSlice;
-    PosStr      tmp = str;
-    tmp.pushSlice();
-    while (tmp.notAt(charsets::Newline)) {
-        if (tmp.at("::")) {
-            descriptionSlice = tmp.popSlice();
-            break;
-        } else {
-            tmp.next();
-        }
+
+    // Start temporary buffer and and string
+    PosStr        tmp = str;
+    Vec<OrgToken> buffer;
+    setBuffer(&buffer);
+    int skip = tmp.getSkip('\n');
+    // Remember max position
+    int maxPos = tmp.getPos() + skip;
+
+    // Assume we know the description colon is present
+    __push(tmp.fakeTok(otk::ListDescOpen));
+    __push(tmp.fakeTok(otk::ParagraphStart));
+    // Lex until the maximum position is reached
+    while (tmp.getPos() < maxPos && tmp.notAt("::")) {
+        // Char lexer will buffer content
+        lexText(tmp);
     }
 
-    if (descriptionSlice.has_value()) {
-        auto open = str.fakeTok(otk::ListDescOpen);
-        __push(open);
-        auto desc  = Token(otk::Text, descriptionSlice.value().view);
-        auto close = str.fakeTok(otk::ListDescClose);
-        __push(close);
+    // If we are indeed on the double colon separator, skip remaining parts
+    if (tmp.at("::")) {
+        __push(tmp.fakeTok(otk::ParagraphEnd));
+        // Colon separator
         auto colon = tmp.tok(otk::DoubleColon, skipCb("::"));
         __push(colon);
+        __push(tmp.fakeTok(otk::ListDescClose));
+        // Move tokens from buffer
+        for (const auto& tok : buffer) {
+            __push(tok, true);
+        }
+        // Set updated string.
         str = tmp;
     }
+
+    clearBuffer();
+
     return true;
 }
 

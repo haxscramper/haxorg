@@ -1,0 +1,9 @@
+* Subtree =ends with= :and_tag:
+
+------
+
+=random=-dashed
+
+------
+
+~ssh-copy-id -i ~/.ssh/id_rsa.pub $E:VSC_TV_ACCESS~

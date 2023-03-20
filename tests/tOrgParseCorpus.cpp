@@ -406,8 +406,8 @@ TEST_CASE("Parse file", "[corpus][notes]") {
         };
     };
 
-    int  start  = 300;
-    auto target = slice(start, start + 20);
+    int  start  = 7830;
+    auto target = slice(start, start + 200);
 
     p.tokenizer.traceUpdateHook =
         [&](CR<OrgTokenizer::Report> in, bool& doTrace, bool first) {
