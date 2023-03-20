@@ -584,26 +584,32 @@ void skipCurly(PosStr& str) {
     skipBalancedSlice(
         str,
         BalancedSkipArgs{
-            .openChars = {QChar('{')}, .closeChars = {QChar('}')}});
+            .openChars  = {QChar('{')},
+            .endChars   = CharSet{},
+            .closeChars = {QChar('}')}});
 }
 
 void skipParen(PosStr& str) {
     skipBalancedSlice(
         str,
         BalancedSkipArgs{
-            .openChars = {QChar('(')}, .closeChars = {QChar(')')}});
+            .openChars  = {QChar('(')},
+            .endChars   = CharSet{},
+            .closeChars = {QChar(')')}});
 }
 
 void skipBrace(PosStr& str) {
     skipBalancedSlice(
         str,
         BalancedSkipArgs{
-            .openChars = {QChar('[')}, .closeChars = {QChar(']')}});
+            .openChars  = {QChar('[')},
+            .endChars   = CharSet{},
+            .closeChars = {QChar(']')}});
 }
 
 
 bool OrgTokenizer::lexTextSrc(PosStr& str) {
-    __trace("Lex inline source");
+    __trace();
     const auto    pos = str.getPos();
     Vec<OrgToken> buf;
     // Starting `src_` prefix
@@ -615,10 +621,11 @@ bool OrgTokenizer::lexTextSrc(PosStr& str) {
     }
 
     if (str.at(charsets::IdentStartChars)) {
-        // FIXME push buffer only if the whole sequence is
-        // determined to be a valid structure
+        // TODO push buffer only if the whole sequence is determined to be
+        // a valid structure, otherwise roll back to the starting position
+        // and lex things as 'maybe words'.
         for (const auto& tok : buf) {
-            __push(tok);
+            __push(tok, true);
         }
         auto name = str.tok(
             otk::SrcName, skipZeroOrMore, charsets::IdentChars);
@@ -629,18 +636,24 @@ bool OrgTokenizer::lexTextSrc(PosStr& str) {
         }
 
         auto body = str.tok(otk::SrcBody, skipCurly, {1, -2});
+        // TODO issue a warning if content contains too much elements that
+        // might be invalid in particular context. Maybe this should be
+        // done on a higher level, when language elements are decided.
+        // Another possible solution is to provide diagnostic if there are
+        // more than 3 lines of text in the source code. Something like
+        // "are you sure you don't want to use source *block* instead?"
         __push(body);
         auto close = str.fakeTok(otk::SrcClose);
         __push(close);
-        return true;
     } else {
         str.setPos(pos);
-        return false;
+        lexTextWord(str);
     }
+    return true;
 }
 
 bool OrgTokenizer::lexTextCall(PosStr& str) {
-    __trace("Lex inline call");
+    __trace();
     const auto    pos = str.getPos();
     Vec<OrgToken> buf;
     buf.push_back(str.tok(otk::CallOpen, skipCb("call")));
@@ -649,7 +662,7 @@ bool OrgTokenizer::lexTextCall(PosStr& str) {
     }
     if (str.at(charsets::IdentStartChars)) {
         for (const auto& tok : buf) {
-            __push(tok);
+            __push(tok, true);
         }
         auto name = str.tok(
             otk::SrcName, skipZeroOrMore, charsets::IdentChars);
@@ -663,13 +676,43 @@ bool OrgTokenizer::lexTextCall(PosStr& str) {
         __push(args);
         auto close = str.fakeTok(otk::CallClose);
         __push(close);
-        return true;
     } else {
         str.setPos(pos);
-        return false;
+        lexTextWord(str);
     }
+    return true;
 }
 
+
+bool OrgTokenizer::lexTextWord(PosStr& str) {
+    __trace();
+    // TODO handle other cases like
+    //
+    // - Possible link google.com
+    // - Possible e-mail address random@zyx.org
+    // - Other URL formats
+    // - words with dashes
+
+    bool allUp = true;
+    auto tok   = str.tok(otk::Word, [&](PosStr& str) {
+        while (!str.finished() && str.get().isLetterOrNumber()) {
+            if (!str.get().isTitleCase()) {
+                allUp = false;
+            }
+            str.next();
+        }
+    });
+
+    if (allUp) {
+        tok.kind = otk::BigIdent;
+    }
+
+    __push(tok);
+    return true;
+}
+
+/// Lex single text element that starts with an character -- `src_`,
+/// `call_`, regular word, etc.
 bool OrgTokenizer::lexTextChars(PosStr& str) {
     __trace();
     bool isStructure = false;
@@ -678,33 +721,16 @@ bool OrgTokenizer::lexTextChars(PosStr& str) {
             return str.get(offset).isLetterOrNumber()
                 || str.get(offset) == '_';
         })) {
-        isStructure = lexTextSrc(str);
+        lexTextSrc(str);
     } else if (str.at("call[_-]?\\w+(\\[|\\{)")) {
-        isStructure = lexTextCall(str);
+        lexTextCall(str);
     } else if (str.at("https://") || str.at("http://")) {
         auto url = str.tok(otk::RawUrl, skipBefore, charsets::Whitespace);
         __push(url);
-    }
-
-    if (!isStructure) {
-        bool allUp = true;
-        auto tok   = str.tok(otk::Word, [&](PosStr& str) {
-            while (!str.finished() && str.get().isLetterOrNumber()) {
-                if (!str.get().isTitleCase()) {
-                    allUp = false;
-                }
-                str.next();
-            }
-        });
-
-        if (allUp) {
-            tok.kind = otk::BigIdent;
-        }
-
-        __push(tok);
     } else {
-        __report_and_throw(Errors::UnknownConstruct(str));
+        lexTextWord(str);
     }
+
     return true;
 }
 

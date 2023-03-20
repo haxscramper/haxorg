@@ -431,6 +431,7 @@ struct OrgTokenizer
     bool lexTextAtSign(PosStr& str);
     bool lexTextSrc(PosStr& str);
     bool lexTextCall(PosStr& str);
+    bool lexTextWord(PosStr& str);
 
     bool isFirstOnLine(CR<PosStr> str);
 
