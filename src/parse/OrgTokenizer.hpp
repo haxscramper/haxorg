@@ -93,8 +93,9 @@ struct OrgTokenizer
             const char* what() const noexcept override {
                 return strdup(
                     "Unexpected construct '"
-                    + PosStr(view, pos).printToString(false) + "' "
-                    + getLocMsg());
+                    + PosStr(view, pos).printToString(
+                        {.withSeparation = false}, false)
+                    + "' " + getLocMsg());
             }
             UnknownConstruct(CR<PosStr> str) : Base(str) {}
         };
@@ -428,6 +429,9 @@ struct OrgTokenizer
     bool lexTextCurly(PosStr& str);
     bool lexTextMarkup(PosStr& str);
     bool lexTextAtSign(PosStr& str);
+    bool lexTextSrc(PosStr& str);
+    bool lexTextCall(PosStr& str);
+
     bool isFirstOnLine(CR<PosStr> str);
 
     void spaceSkip(PosStr& str, bool require = false);

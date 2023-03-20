@@ -406,7 +406,7 @@ TEST_CASE("Parse file", "[corpus][notes]") {
         };
     };
 
-    int  start  = 3185;
+    int  start  = 300;
     auto target = slice(start, start + 20);
 
     p.tokenizer.traceUpdateHook =

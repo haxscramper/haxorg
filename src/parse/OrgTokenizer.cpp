@@ -580,96 +580,107 @@ bool OrgTokenizer::lexBracket(PosStr& str) {
     return true;
 }
 
+void skipCurly(PosStr& str) {
+    skipBalancedSlice(
+        str,
+        BalancedSkipArgs{
+            .openChars = {QChar('{')}, .closeChars = {QChar('}')}});
+}
+
+void skipParen(PosStr& str) {
+    skipBalancedSlice(
+        str,
+        BalancedSkipArgs{
+            .openChars = {QChar('(')}, .closeChars = {QChar(')')}});
+}
+
+void skipBrace(PosStr& str) {
+    skipBalancedSlice(
+        str,
+        BalancedSkipArgs{
+            .openChars = {QChar('[')}, .closeChars = {QChar(']')}});
+}
+
+
+bool OrgTokenizer::lexTextSrc(PosStr& str) {
+    __trace("Lex inline source");
+    const auto    pos = str.getPos();
+    Vec<OrgToken> buf;
+    // Starting `src_` prefix
+    {
+        buf.push_back(str.tok(otk::SrcOpen, skipCb("src")));
+        if (str.at(CharSet{QChar('_'), QChar('-')})) {
+            str.next();
+        }
+    }
+
+    if (str.at(charsets::IdentStartChars)) {
+        // FIXME push buffer only if the whole sequence is
+        // determined to be a valid structure
+        for (const auto& tok : buf) {
+            __push(tok);
+        }
+        auto name = str.tok(
+            otk::SrcName, skipZeroOrMore, charsets::IdentChars);
+        __push(name);
+        if (str.at(QChar('['))) {
+            auto args = str.tok(otk::SrcArgs, skipBrace, {1, -2});
+            __push(args);
+        }
+
+        auto body = str.tok(otk::SrcBody, skipCurly, {1, -2});
+        __push(body);
+        auto close = str.fakeTok(otk::SrcClose);
+        __push(close);
+        return true;
+    } else {
+        str.setPos(pos);
+        return false;
+    }
+}
+
+bool OrgTokenizer::lexTextCall(PosStr& str) {
+    __trace("Lex inline call");
+    const auto    pos = str.getPos();
+    Vec<OrgToken> buf;
+    buf.push_back(str.tok(otk::CallOpen, skipCb("call")));
+    if (str.at(CharSet{QChar('_'), QChar('-')})) {
+        str.next();
+    }
+    if (str.at(charsets::IdentStartChars)) {
+        for (const auto& tok : buf) {
+            __push(tok);
+        }
+        auto name = str.tok(
+            otk::SrcName, skipZeroOrMore, charsets::IdentChars);
+        __push(name);
+        if (str.at(QChar('['))) {
+            auto header = str.tok(
+                otk::CallInsideHeader, skipBrace, {1, -2});
+            __push(header);
+        };
+        auto args = str.tok(otk::CallArgs, skipParen, {1, -2});
+        __push(args);
+        auto close = str.fakeTok(otk::CallClose);
+        __push(close);
+        return true;
+    } else {
+        str.setPos(pos);
+        return false;
+    }
+}
+
 bool OrgTokenizer::lexTextChars(PosStr& str) {
     __trace();
     bool isStructure = false;
-    auto skipCurly   = [](PosStr& str) {
-        skipBalancedSlice(
-            str,
-            BalancedSkipArgs{
-                  .openChars = {QChar('{')}, .closeChars = {QChar('}')}});
-    };
-
-    auto skipParen = [](PosStr& str) {
-        skipBalancedSlice(
-            str,
-            BalancedSkipArgs{
-                .openChars = {QChar('(')}, .closeChars = {QChar(')')}});
-    };
-
-    auto skipBrace = [](PosStr& str) {
-        skipBalancedSlice(
-            str,
-            BalancedSkipArgs{
-                .openChars = {QChar('[')}, .closeChars = {QChar(']')}});
-    };
 
     if (str.at("src_") && str.getSkip('{', [](CR<PosStr> str, int offset) {
             return str.get(offset).isLetterOrNumber()
                 || str.get(offset) == '_';
         })) {
-        __trace("Lex inline source");
-        const auto    pos = str.getPos();
-        Vec<OrgToken> buf;
-        // Starting `src_` prefix
-        {
-            buf.push_back(str.tok(otk::SrcOpen, skipCb("src")));
-            if (str.at(CharSet{QChar('_'), QChar('-')})) {
-                str.next();
-            }
-        }
-
-        if (str.at(charsets::IdentStartChars)) {
-            // FIXME push buffer only if the whole sequence is
-            // determined to be a valid structure
-            for (const auto& tok : buf) {
-                __push(tok);
-            }
-            auto name = str.tok(
-                otk::SrcName, skipZeroOrMore, charsets::IdentChars);
-            __push(name);
-            if (str.at(QChar('['))) {
-                auto args = str.tok(otk::SrcArgs, skipBrace, {1, -2});
-                __push(args);
-            }
-
-            auto body = str.tok(otk::SrcBody, skipCurly, {1, -2});
-            __push(body);
-            auto close = str.fakeTok(otk::SrcClose);
-            __push(close);
-            isStructure = true;
-        } else {
-            str.setPos(pos);
-        }
-
+        isStructure = lexTextSrc(str);
     } else if (str.at("call[_-]?\\w+(\\[|\\{)")) {
-        __trace("Lex inline call");
-        const auto    pos = str.getPos();
-        Vec<OrgToken> buf;
-        buf.push_back(str.tok(otk::CallOpen, skipCb("call")));
-        if (str.at(CharSet{QChar('_'), QChar('-')})) {
-            str.next();
-        }
-        if (str.at(charsets::IdentStartChars)) {
-            for (const auto& tok : buf) {
-                __push(tok);
-            }
-            auto name = str.tok(
-                otk::SrcName, skipZeroOrMore, charsets::IdentChars);
-            __push(name);
-            if (str.at(QChar('['))) {
-                auto header = str.tok(
-                    otk::CallInsideHeader, skipBrace, {1, -2});
-                __push(header);
-            };
-            auto args = str.tok(otk::CallArgs, skipParen, {1, -2});
-            __push(args);
-            auto close = str.fakeTok(otk::CallClose);
-            __push(close);
-            isStructure = true;
-        } else {
-            str.setPos(pos);
-        }
+        isStructure = lexTextCall(str);
     } else if (str.at("https://") || str.at("http://")) {
         auto url = str.tok(otk::RawUrl, skipBefore, charsets::Whitespace);
         __push(url);
