@@ -394,13 +394,13 @@ bool OrgTokenizer::lexAngle(PosStr& str) {
     __start(str);
     try {
         if (str.at("<%%")) {
-            auto tok = str.tok(otk::DiaryTime, [](PosStr& str) {
-                str.skip("<%%");
+            auto tok = str.tok(otk::DiaryTime, [this](PosStr& str) {
+                oskipOne(str, "<%%");
                 skipBalancedSlice(
                     str,
                     {.openChars  = CharSet{QChar('(')},
                      .closeChars = CharSet{QChar(')')}});
-                str.skip(">");
+                oskipOne(str, ">");
             });
             __push(tok);
         } else if (str.at("<<<")) {
@@ -410,10 +410,10 @@ bool OrgTokenizer::lexAngle(PosStr& str) {
             __push((str.tok(otk::RawText, skipTo, QChar('>'))));
             __push((str.tok(otk::RawText, skipCb(">>"))));
         } else if (str.at(charsets::Digits, 1)) {
-            auto skipAngles = [](PosStr& str) {
-                str.skip(QChar('<'));
+            auto skipAngles = [this](PosStr& str) {
+                oskipOne(str, QChar('<'));
                 str.skipTo(QChar('>'));
-                str.skip(QChar('>'));
+                oskipOne(str, QChar('>'));
             };
 
             __push((str.tok(otk::AngleTime, skipAngles)));
@@ -439,10 +439,10 @@ bool OrgTokenizer::lexTime(PosStr& str) {
     if (str.at(QChar('<'))) {
         lexAngle(str);
     } else if (str.at(QChar('['))) {
-        auto skipBracket = [](PosStr& str) {
-            str.skip(QChar('['));
+        auto skipBracket = [this](PosStr& str) {
+            oskipOne(str, QChar('['));
             str.skipTo(QChar(']'));
-            str.skip(QChar(']'));
+            oskipOne(str, QChar(']'));
         };
 
         auto time = str.tok(otk::BracketTime, skipBracket);
@@ -478,7 +478,7 @@ bool OrgTokenizer::lexLinkTarget(PosStr& str) {
         } else {
             auto protocol = str.tok(otk::LinkProtocol, skipTo, QChar(':'));
             __push(protocol);
-            str.skip(QChar(':'));
+            oskipOne(str, QChar(':'));
         }
 
         auto target = str.tok(otk::LinkTarget, [](PosStr& str) {
@@ -502,7 +502,7 @@ bool OrgTokenizer::lexLinkTarget(PosStr& str) {
         if (str.hasAhead(QChar(':'))) {
             auto protocol = str.tok(otk::LinkProtocol, skipTo, QChar(':'));
             __push(protocol);
-            str.skip(QChar(':'));
+            oskipOne(str, QChar(':'));
             auto target = str.tok(otk::LinkTarget, skipPastEOF);
             __push(target);
         } else {
@@ -1063,8 +1063,8 @@ bool OrgTokenizer::lexHashTag(PosStr& str) {
     while (str.at("##") && str.notAt("##[")) {
         auto sub = str.tok(otk::HashTagSub, skipCb(('#')));
         __push(sub);
-        auto hash = str.tok(otk::HashTag, [](PosStr& str) {
-            str.skip(QChar('#'));
+        auto hash = str.tok(otk::HashTag, [this](PosStr& str) {
+            oskipOne(str, QChar('#'));
             str.skipZeroOrMore(charsets::IdentChars);
         });
         __push(hash);
@@ -1222,13 +1222,13 @@ bool OrgTokenizer::lexProperties(PosStr& str) {
         while (!str.finished() && !hasEnd) {
             spaceSkip(str);
             auto       isAdd = false;
-            const auto id    = str.slice([&isAdd](PosStr& str) {
-                str.skip(QChar(':'));
+            const auto id    = str.slice([this, &isAdd](PosStr& str) {
+                oskipOne(str, QChar(':'));
                 str.skipZeroOrMore(charsets::IdentChars);
                 if (str.at(QChar('+'))) {
                     isAdd = true;
                 }
-                str.skip(QChar(':'));
+                oskipOne(str, QChar(':'));
             });
 
             if (normalize(id.toStr()) == "end") {
@@ -1254,7 +1254,7 @@ bool OrgTokenizer::lexProperties(PosStr& str) {
                         }
                     });
                     __push(ident);
-                    str.skip(QChar(':'));
+                    oskipOne(str, QChar(':'));
                 }
                 spaceSkip(str);
                 auto prop = str.tok(otk::RawProperty, skipToEOL);
@@ -1280,10 +1280,10 @@ bool OrgTokenizer::lexDescription(PosStr& str) {
         }
         auto text = Token(otk::Text, str.popSlice().view);
         __push(text);
-        const auto id  = str.slice([](PosStr& str) {
-            str.skip(QChar(':'));
+        const auto id  = str.slice([this](PosStr& str) {
+            oskipOne(str, QChar(':'));
             str.skipZeroOrMore(charsets::IdentChars);
-            str.skip(QChar(':'));
+            oskipOne(str, QChar(':'));
         });
         auto       end = Token(otk::ColonEnd, id.view);
         __push(end);
