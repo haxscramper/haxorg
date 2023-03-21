@@ -406,6 +406,8 @@ TEST_CASE("Parse file", "[corpus][notes]") {
         };
     };
 
+    p.locationResolver = p.tokenizer.locationResolver;
+
     int  start  = 7830;
     auto target = slice(start, start + 200);
 

@@ -7,3 +7,12 @@
 ------
 
 ~ssh-copy-id -i ~/.ssh/id_rsa.pub $E:VSC_TV_ACCESS~
+
+------
+
+
+**** COMPLETED Try =atmospace= :test##assesment##viability:
+
+-----
+
+***** COMPLETED Update sizes of the setting grid element to use ~@scale~

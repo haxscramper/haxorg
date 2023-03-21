@@ -10,13 +10,89 @@ using ParseCb = std::function<OrgId(OrgLexer&)>;
 
 struct OrgParser : public OperationsTracer {
   public:
+    struct Errors {
+        struct Base : std::exception {
+            Opt<OrgToken> token;
+            OrgTokenId    id;
+            Opt<LineCol>  loc;
+            QString       getLocMsg() const {
+                return "$#:$# (pos $#)"
+                     % to_string_vec(
+                           loc ? loc->line : -1,
+                           loc ? loc->column : -1,
+                           id.isNil() ? "<none>"
+                                            : to_string(id.getIndex()));
+            }
+
+            Base(CR<OrgLexer> lex, Opt<LineCol> loc = std::nullopt)
+                : token(lex.tok()), id(lex.pos), loc(loc) {}
+        };
+
+        struct None : Base {
+            None()
+                : Base(
+                    SubLexer<OrgTokenKind>{nullptr, Vec<OrgTokenId>{}},
+                    std::nullopt) {}
+        };
+
+        struct UnexpectedToken : Base {
+            Vec<OrgToken> wanted;
+            UnexpectedToken(
+                CR<OrgLexer>      lex,
+                Opt<LineCol>      loc,
+                CR<Vec<OrgToken>> wanted)
+                : Base(lex, loc), wanted(wanted) {}
+
+            const char* what() const noexcept override {
+                return strdup(
+                    "Expected $#, but got $# at $#"
+                    % to_string_vec(wanted, token, getLocMsg()));
+            }
+        };
+
+        struct UnhandledToken : Base {
+            using Base::Base;
+            const char* what() const noexcept override {
+                return strdup(
+                    "Encountered $# at $#, which is was not expected"
+                    % to_string_vec(token, getLocMsg()));
+            }
+        };
+    };
+
+    using Error = Variant<
+        Errors::None,
+        Errors::UnhandledToken,
+        Errors::UnexpectedToken>;
+
+    struct ParserError : std::exception {
+        Error err;
+        ParserError() : err(Errors::None()) {}
+        explicit ParserError(CR<Error> err) : err(err) {}
+        const char* what() const noexcept override {
+            return std::visit(
+                [](auto const& in) { return in.what(); }, err);
+        }
+        void setLoc(CR<LineCol> loc) {
+            std::visit([&loc](auto& in) { in.loc = loc; }, err);
+        }
+    };
+
+    Func<LineCol(CR<PosStr>)> locationResolver;
+
+    ParserError wrapError(CR<Error> err, CR<OrgLexer> lex);
+
+    Opt<LineCol> getLoc(CR<OrgLexer> lex);
+
+  public:
     enum class ReportKind
     {
         EnterParse,
         LeaveParse,
         StartNode,
         EndNode,
-        AddToken
+        AddToken,
+        Error
     };
 
     struct Report {
