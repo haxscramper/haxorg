@@ -10,6 +10,17 @@ using ParseCb = std::function<OrgId(OrgLexer&)>;
 
 struct OrgParser : public OperationsTracer {
   public:
+    struct TokenWithValue {
+        OrgTokenKind kind;
+        QString      value;
+    };
+
+    using OrgExpectable = Variant<
+        OrgTokenKind,
+        OrgTokSet,
+        TokenWithValue,
+        Vec<OrgTokenKind>>;
+
     struct Errors {
         struct Base : std::exception {
             Opt<OrgToken> token;
@@ -36,17 +47,30 @@ struct OrgParser : public OperationsTracer {
         };
 
         struct UnexpectedToken : Base {
-            Vec<OrgToken> wanted;
+            OrgExpectable wanted;
             UnexpectedToken(
                 CR<OrgLexer>      lex,
                 Opt<LineCol>      loc,
-                CR<Vec<OrgToken>> wanted)
+                CR<OrgExpectable> wanted)
                 : Base(lex, loc), wanted(wanted) {}
 
             const char* what() const noexcept override {
                 return strdup(
                     "Expected $#, but got $# at $#"
-                    % to_string_vec(wanted, token, getLocMsg()));
+                    % to_string_vec(
+                        std::visit(
+                            overloaded{
+                                [](CR<TokenWithValue> it) {
+                                    return "$# ('$#')"
+                                         % to_string_vec(
+                                               it.kind, it.value);
+                                },
+                                [](auto const& it) {
+                                    return to_string(it);
+                                }},
+                            wanted),
+                        token,
+                        getLocMsg()));
             }
         };
 
@@ -141,6 +165,8 @@ struct OrgParser : public OperationsTracer {
             kind, group->tokens->add(OrgToken(OrgTokenKind::None)));
     }
 
+    OrgTokenId pop(OrgLexer& lex, CR<OrgExpectable> item);
+    void       skip(OrgLexer& lex, CR<OrgExpectable> item);
 
     Slice<OrgId> parseText(OrgLexer& lex);
 

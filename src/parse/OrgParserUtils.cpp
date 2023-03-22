@@ -2,7 +2,6 @@
 #include <hstd/stdlib/Debug.hpp>
 
 Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
-    qDebug() << "get location for" << lex;
     if (lex.finished()) {
         return std::nullopt;
     } else {
@@ -28,6 +27,8 @@ Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
 }
 
 
+using Err = OrgParser::Errors;
+
 OrgParser::ParserError OrgParser::wrapError(
     CR<Error>    err,
     CR<OrgLexer> lex) {
@@ -39,6 +40,40 @@ OrgParser::ParserError OrgParser::wrapError(
     }
 
     return result;
+}
+
+bool at(CR<OrgLexer> lex, CR<OrgParser::OrgExpectable> item) {
+    if (item.index() == 0 && lex.at(std::get<0>(item))) {
+        return true;
+    } else if (item.index() == 1 && lex.at(std::get<1>(item))) {
+        return true;
+    } else if (
+        item.index() == 2 //
+        && lex.at(std::get<2>(item).kind)
+        && lex.tok().strVal() == std::get<2>(item).value) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+OrgTokenId OrgParser::pop(
+    OrgLexer&                    lex,
+    CR<OrgParser::OrgExpectable> tok) {
+    if (at(lex, tok)) {
+        return lex.pop();
+    } else {
+        throw wrapError(
+            Err::UnexpectedToken(lex, getLoc(lex), {tok}), lex);
+    }
+}
+
+void OrgParser::skip(OrgLexer& lex, CR<OrgParser::OrgExpectable> item) {
+    if (at(lex, item)) {
+        lex.next();
+    } else {
+        throw wrapError(Err::UnexpectedToken(lex, getLoc(lex), item), lex);
+    }
 }
 
 
