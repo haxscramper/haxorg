@@ -408,7 +408,7 @@ TEST_CASE("Parse file", "[corpus][notes]") {
 
     p.locationResolver = p.tokenizer.locationResolver;
 
-    int  start  = 7830;
+    int  start  = 0;
     auto target = slice(start, start + 200);
 
     p.tokenizer.traceUpdateHook =
@@ -669,8 +669,12 @@ kind=$#
     p.parse(&OrgParser::parseTop);
 
 
+    qDebug() << "Lex OK";
     writeFile(
         "/tmp/file_parsed.yaml", to_string(yamlRepr(p.nodes)) + "\n");
+    qDebug() << "Parse OK";
+
+    SUCCEED("Parsed input corpus file");
 }
 
 

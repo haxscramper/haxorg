@@ -1490,9 +1490,9 @@ bool OrgTokenizer::lexSubtreeTitle(PosStr& str) {
     }
 
 
-    qDebug() << "Full" << full;
-    qDebug() << "Completion" << completion;
-    qDebug() << "Tags" << tags;
+    // qDebug() << "Full" << full;
+    // qDebug() << "Completion" << completion;
+    // qDebug() << "Tags" << tags;
 
     pushResolved(Token(otk::Text, full));
 

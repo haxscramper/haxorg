@@ -91,6 +91,7 @@ void OrgParser::report(CR<Report> in) {
         if (traceUpdateHook) {
             traceUpdateHook(in, trace, false);
         }
+
         return;
     }
 
@@ -133,6 +134,10 @@ void OrgParser::report(CR<Report> in) {
                << fg::Green << in.name.value() << os.end() << ":"
                << fg::Cyan << in.line << os.end();
 
+            if (in.subname.has_value()) {
+                os << " <@" << in.subname.value() << ">";
+            }
+
             if (in.lex != nullptr) {
                 os << " [";
                 OrgLexer::PrintParams params;
@@ -140,9 +145,6 @@ void OrgParser::report(CR<Report> in) {
                 os << "]";
             }
 
-            if (in.subname.has_value()) {
-                os << " " << in.subname.value();
-            }
             break;
         }
     }
