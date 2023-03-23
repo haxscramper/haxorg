@@ -120,6 +120,14 @@ constexpr Slice<T> slice(CR<T> first, CR<T> last) {
     return {first, last};
 }
 
+
+/// Another construction function for homogeneous slices, should be used if
+/// both arguments must be coerced to the same type.
+template <typename T>
+constexpr Slice<T> slice1(CR<T> first, CR<T> last) {
+    return slice(first, last);
+}
+
 /// Return heterogeneous inclusive slice of values
 template <typename A, typename B>
 HSlice<A, B> slice(CR<A> first, CR<B> last) {

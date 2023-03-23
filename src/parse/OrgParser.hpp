@@ -202,11 +202,21 @@ struct OrgParser : public OperationsTracer {
     OrgId parseListItem(OrgLexer& lex);
     OrgId parseNestedList(OrgLexer& lex);
     OrgId parseList(OrgLexer& lex);
-    OrgId parseLogbookClockEntry(OrgLexer& lex);
-    OrgId parseLogbookListEntry(OrgLexer& lex);
-    OrgId parseLogbook(OrgLexer& lex);
-    OrgId parseDrawer(OrgLexer& lex);
+
     OrgId parseSubtree(OrgLexer& lex);
+    OrgId parseSubtreeTodo(OrgLexer& str);
+    OrgId parseSubtreeUrgency(OrgLexer& str);
+    OrgId parseSubtreeDrawer(OrgLexer& lex);
+    OrgId parseSubtreeTags(OrgLexer& lex);
+    OrgId parseSubtreeTitle(OrgLexer& str);
+    OrgId parseSubtreeTimes(OrgLexer& str);
+
+    OrgId parseSubtreeLogbookClockEntry(OrgLexer& lex);
+    OrgId parseSubtreeLogbookListEntry(OrgLexer& lex);
+    OrgId parseSubtreeLogbook(OrgLexer& lex);
+    OrgId parseSubtreeProperties(OrgLexer& lex);
+
+
     OrgId parseOrgFile(OrgLexer& lex);
     OrgId parseLineCommand(OrgLexer& lex);
     OrgId parseToplevelItem(OrgLexer& lex);

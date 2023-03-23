@@ -576,7 +576,7 @@ struct LineColInfo {
         }
 
         if (start != text.size()) {
-            slices.push_back(slice(start, text.size() - 1));
+            slices.push_back(slice1<int>(start, text.size() - 1));
         }
 
         for (int line = 0; line < slices.size(); ++line) {

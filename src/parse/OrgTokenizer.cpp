@@ -1417,92 +1417,128 @@ bool OrgTokenizer::lexSubtreeUrgency(PosStr& str) {
 bool OrgTokenizer::lexSubtreeTitle(PosStr& str) {
     __trace();
     spaceSkip(str);
-    auto          body = str.slice(skipToEOL);
-    Vec<OrgToken> headerTokens;
-    body.skipToEOF();
-    int max = body.getPos();
-    if (body.at(QChar(':'))) {
-        int tagback = 0;
-        while (
-            (body.at(
-                 CharSet{QChar(':'), QChar('#'), QChar('@'), QChar('_')},
-                 -tagback)
-             || body.get(-tagback).isLetter())) {
-            // __print(
-            //     "Skipping character $#, moving start from $#, max is $#"
-            //     % to_string_vec(body.get(-tagback), -tagback, max));
-            ++tagback;
+    auto body = str.slice(skipToEOL);
+
+    QStringView      full = body.view;
+    Opt<QStringView> tags;
+    Opt<QStringView> completion;
+    QStringView      title;
+
+    if (full.endsWith(':')) {
+        int shift = full.size() - 1;
+        while (0 <= shift
+               && (CharSet{QChar(':'), QChar('#'), QChar('@'), QChar('_')}
+                       .contains(full.at(shift))
+                   || full.at(shift).isLetter())) {
+            --shift;
         }
 
-
-        body.setPos(max - tagback);
-
-        headerTokens.push_back(
-            Token(otk::SubtreeTag, body.sliceBetween(0, tagback).view));
-
-        body.skipToEOF();
-        body.next(-tagback);
-        while (body.at(OSpace, -tagback)) {
-            ++tagback;
-        }
-
-        body.setPos(0);
-        body = body.sliceBetween(0, max - tagback);
-        // __trace("Set new body content", body);
-        body.skipToEOF();
-        max = body.getPos();
+        tags = full.sliced(shift + 1, full.size() - shift - 1);
+        full = full.sliced(0, shift).trimmed();
     }
 
-    // __trace(body.printToString());
-    if (body.at(QChar(']'))) {
-        // __trace("At progress ", body);
-        auto tmp = body;
-        try {
-            const auto finish = tmp.getPos();
-            tmp.skip(QChar(']'), -1);
-            tmp.skip(charsets::Digits, -1);
-            while (tmp.at(charsets::Digits)) {
-                tmp.back();
-            }
-            if (str.at(QChar('%'))) {
-                tmp.back();
-            } else {
-                tmp.skip(QChar('/'), -1);
-                tmp.skip(charsets::Digits, -1);
-                while (tmp.at(charsets::Digits)) {
-                    tmp.back();
+    if (full.endsWith(']')) {
+        int shift = full.size() - 1;
+        if (full.at(shift) == ']') {
+            --shift;
+        } else {
+            goto not_progress;
+        }
+
+        if (full.at(shift) == '%') {
+            --shift;
+            if (full.at(shift).isDigit()) {
+                while (full.at(shift).isDigit()) {
+                    --shift;
                 }
+            } else {
+                goto not_progress;
             }
-            tmp.skip(QChar('['), -1, -1);
 
-            const auto start = tmp.getPos() + 1;
-            body             = tmp;
-            headerTokens.push_back(Token(
-                otk::SubtreeCompletion,
-                tmp.sliceBetween(start, finish).view));
-            // __trace("Added progress", body);
-            while (body.at(OSpace)) {
-                body.next(-1);
+            if (full.at(shift) == '[') {
+                --shift;
+            } else {
+                goto not_progress;
             }
-        } catch (UnexpectedCharError& err) {
-            // __trace("Not a progress", body);
-        };
-    }
-    //
-    {
-        // __trace("Starting subtree content", body);
-        auto finish = body.getPos();
-        body.skipToSOF();
-        const auto start = body.getPos();
-        // __trace("After skip to start", body);
-        // __print("[$#, $#]" % to_string_vec(start, finish));
-        auto slice = body.sliceBetween(start, finish);
-        headerTokens.push_back(Token(otk::Text, slice.view));
+
+        } else if (full.at(shift).isDigit()) {
+            while (full.at(shift).isDigit()) {
+                --shift;
+            }
+
+            if (full.at(shift) == '/') {
+                --shift;
+            } else {
+                goto not_progress;
+            }
+
+            if (full.at(shift).isDigit()) {
+                while (full.at(shift).isDigit()) {
+                    --shift;
+                }
+            } else {
+                goto not_progress;
+            }
+        } else {
+            goto not_progress;
+        }
+
+        completion = full.sliced(shift + 1, full.size() - 1 - shift);
+        full       = full.sliced(0, shift).trimmed();
+
+    not_progress : {}
     }
 
-    for (const auto& tok : reversed(headerTokens)) {
-        pushResolved(tok);
+
+    qDebug() << "Full" << full;
+    qDebug() << "Completion" << completion;
+    qDebug() << "Tags" << tags;
+
+    pushResolved(Token(otk::Text, full));
+
+    if (completion.has_value()) {
+
+        //   const auto finish = tmp.getPos();
+        // tmp.skip(QChar(']'), -1);
+        // tmp.skip(charsets::Digits, -1);
+        // while (tmp.at(charsets::Digits)) {
+        //     tmp.back();
+        // }
+        // if (str.at(QChar('%'))) {
+        //     tmp.back();
+        // } else {
+        //     tmp.skip(QChar('/'), -1);
+        //     tmp.skip(charsets::Digits, -1);
+        //     while (tmp.at(charsets::Digits)) {
+        //         tmp.back();
+        //     }
+        // }
+        // tmp.skip(QChar('['), -1, -1);
+
+        // const auto start = tmp.getPos() + 1;
+        // body             = tmp;
+        // headerTokens.push_back(Token(
+        //     otk::SubtreeCompletion,
+        //     tmp.sliceBetween(start, finish).view));
+        // // __trace("Added progress", body);
+        // while (body.at(OSpace)) {
+        //     body.next(-1);
+        // }
     }
+
+
+    if (tags.has_value()) {
+        PosStr str{tags.value()};
+        while (str.at(':') && str.hasNext(1)) {
+            auto sep = str.tok(otk::SubtreeTagSeparator, skipCount, 1);
+            __push(sep);
+            lexHashTag(str);
+        }
+
+        auto sep = str.tok(otk::SubtreeTagSeparator, skipCount, 1);
+        __push(sep);
+    }
+
     return true;
 }
 
@@ -2030,18 +2066,15 @@ bool OrgTokenizer::lexCommandArguments(
             break;
         }
         case ock::Filetags: {
-            while (str.at(QChar(':'))) {
-                oskipOne(str, QChar(':'));
-                if (!str.finished()) {
-                    auto subtree = str.tok(
-                        otk::SubtreeTag, [](PosStr& str) {
-                            while (str.notAt(QChar(':'))) {
-                                str.next();
-                            }
-                        });
-                    __push(subtree);
-                }
+            while (str.at(':') && str.hasNext(1)) {
+                auto sep = str.tok(otk::SubtreeTagSeparator, skipCount, 1);
+                __push(sep);
+                lexHashTag(str);
             }
+
+            auto sep = str.tok(otk::SubtreeTagSeparator, skipCount, 1);
+            __push(sep);
+
             break;
         }
         case ock::Include: {

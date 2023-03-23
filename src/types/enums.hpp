@@ -489,8 +489,6 @@ enum class OrgTokenKind : short int
     /// Tokenizer token group end
     GroupEnd,
 
-    GroupSubtreeTimes,
-
 
     ErrorTerminator,
     CommandPrefix,
@@ -521,7 +519,7 @@ enum class OrgTokenKind : short int
     SubtreeUrgency,    /// Subtree importance marker
     SubtreeCompletion, /// Subtree completion marker
     SubtreeStars,      /// Subtree prefix
-    SubtreeTag,        /// Subtree tag
+    SubtreeTagSeparator,
     SubtreeTime,
     SubtreeEnd,
     AngleTime, /// Active timestamp token

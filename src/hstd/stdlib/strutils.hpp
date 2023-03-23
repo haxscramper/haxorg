@@ -97,40 +97,40 @@ QString join(CR<QString> sep, generator<T>&& list) {
 /// Get visible name of the character.
 inline Pair<QChar, QString> visibleName(QChar ch) {
     switch (ch.unicode()) {
-        case '\x00': return {L'␀', "[NUL]"}; // Null character
-        case '\x01': return {L'␁', "[SOH]"}; // Start of header
-        case '\x02': return {L'␂', "[STX]"}; // Start of text
-        case '\x03': return {L'␃', "[ETX]"}; // End of text
-        case '\x04': return {L'␄', "[EOT]"}; // End transmission
-        case '\x05': return {L'␅', "[ENQ]"}; // Enquiry
-        case '\x06': return {L'␆', "[ACK]"}; // Acknowledge
-        case '\x07': return {L'␇', "[BEL]"}; // Bell
-        case '\x08': return {L'␈', "[BS]"};  // Backspace
-        case '\x09': return {L'␉', "[HT]"};  // Horizontal tab
-        case '\x0A': return {L'␤', "[LF]"};  // Line feed
-        case '\x0B': return {L'␋', "[VT]"};  // Vertical tab
-        case '\x0C': return {L'␌', "[FF]"};  // Form feed
-        case '\x0D': return {L'␍', "[CR]"};  // Carriage return
-        case '\x0E': return {L'␎', "[SO]"};  // Shift out
-        case '\x0F': return {L'␏', "[SI]"};  // Shift in
-        case '\x10': return {L'␐', "[DLE]"}; // Data link escape
-        case '\x11': return {L'␑', "[DC1]"}; // Device control 1
-        case '\x12': return {L'␒', "[DC2]"}; // Device control 2
-        case '\x13': return {L'␓', "[DC3]"}; // Device control 3
-        case '\x14': return {L'␔', "[DC4]"}; // Device control 4
-        case '\x15': return {L'␕', "[NAK]"}; // Negative ack
-        case '\x16': return {L'␖', "[SYN]"}; // Synchronous idle
-        case '\x17': return {L'␗', "[ETB]"}; // End tr. block
-        case '\x18': return {L'␘', "[CAN]"}; // Cancel
-        case '\x19': return {L'␙', "[EM]"};  // End of medium
-        case '\x1A': return {L'␚', "[SUB]"}; // Substitute
-        case '\x1B': return {L'␛', "[ESC]"}; // Escape
-        case '\x1C': return {L'␜', "[FS]"};  // File separator
-        case '\x1D': return {L'␝', "[GS]"};  // Group separator
-        case '\x1E': return {L'␞', "[RS]"};  // Record separator
-        case '\x1F': return {L'␟', "[US]"};  // Unit separator
-        case '\x7f': return {L'␡', "[DEL]"}; // Delete
-        case ' ': return {L'␣', "[SPC]"};    // Space
+        case '\x00': return {QChar(L'␀'), "[NUL]"}; // Null character
+        case '\x01': return {QChar(L'␁'), "[SOH]"}; // Start of header
+        case '\x02': return {QChar(L'␂'), "[STX]"}; // Start of text
+        case '\x03': return {QChar(L'␃'), "[ETX]"}; // End of text
+        case '\x04': return {QChar(L'␄'), "[EOT]"}; // End transmission
+        case '\x05': return {QChar(L'␅'), "[ENQ]"}; // Enquiry
+        case '\x06': return {QChar(L'␆'), "[ACK]"}; // Acknowledge
+        case '\x07': return {QChar(L'␇'), "[BEL]"}; // Bell
+        case '\x08': return {QChar(L'␈'), "[BS]"};  // Backspace
+        case '\x09': return {QChar(L'␉'), "[HT]"};  // Horizontal tab
+        case '\x0A': return {QChar(L'␤'), "[LF]"};  // Line feed
+        case '\x0B': return {QChar(L'␋'), "[VT]"};  // Vertical tab
+        case '\x0C': return {QChar(L'␌'), "[FF]"};  // Form feed
+        case '\x0D': return {QChar(L'␍'), "[CR]"};  // Carriage return
+        case '\x0E': return {QChar(L'␎'), "[SO]"};  // Shift out
+        case '\x0F': return {QChar(L'␏'), "[SI]"};  // Shift in
+        case '\x10': return {QChar(L'␐'), "[DLE]"}; // Data link escape
+        case '\x11': return {QChar(L'␑'), "[DC1]"}; // Device control 1
+        case '\x12': return {QChar(L'␒'), "[DC2]"}; // Device control 2
+        case '\x13': return {QChar(L'␓'), "[DC3]"}; // Device control 3
+        case '\x14': return {QChar(L'␔'), "[DC4]"}; // Device control 4
+        case '\x15': return {QChar(L'␕'), "[NAK]"}; // Negative ack
+        case '\x16': return {QChar(L'␖'), "[SYN]"}; // Synchronous idle
+        case '\x17': return {QChar(L'␗'), "[ETB]"}; // End tr. block
+        case '\x18': return {QChar(L'␘'), "[CAN]"}; // Cancel
+        case '\x19': return {QChar(L'␙'), "[EM]"};  // End of medium
+        case '\x1A': return {QChar(L'␚'), "[SUB]"}; // Substitute
+        case '\x1B': return {QChar(L'␛'), "[ESC]"}; // Escape
+        case '\x1C': return {QChar(L'␜'), "[FS]"};  // File separator
+        case '\x1D': return {QChar(L'␝'), "[GS]"};  // Group separator
+        case '\x1E': return {QChar(L'␞'), "[RS]"};  // Record separator
+        case '\x1F': return {QChar(L'␟'), "[US]"};  // Unit separator
+        case '\x7f': return {QChar(L'␡'), "[DEL]"}; // Delete
+        case ' ': return {QChar(L'␣'), "[SPC]"};    // Space
         default: return {QChar(ch), QString(ch)};
     }
 }
@@ -139,7 +139,7 @@ inline Pair<QChar, QString> visibleName(QChar ch) {
 inline Vec<Str> visibleUnicodeName(QString str) {
     Vec<Str> result;
     for (QChar ch : str) {
-        if (ch <= 127) {
+        if (ch.unicode() <= 127) {
             result.push_back(visibleName(ch).first);
         } else {
             result.push_back(ch);

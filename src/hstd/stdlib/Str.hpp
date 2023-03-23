@@ -6,6 +6,8 @@
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Pair.hpp>
 
+#include <QHash>
+
 struct Str : public QString {
     using QString::QString;
     using QString::operator[];
@@ -15,7 +17,7 @@ struct Str : public QString {
     explicit Str(Span<QChar> view) : QString(view.data(), view.size()) {}
     explicit Str(QStringView view) : QString(view.data(), view.size()) {}
     Str(CR<QString> it) : QString(it.data(), it.size()) {}
-    Str(char c) : QString(c, 1) {}
+    Str(char c) : QString(c) {}
     Str(wchar_t c) : QString(to_string(c)) {}
     Str() = default;
 
@@ -50,7 +52,7 @@ struct Str : public QString {
         }
     }
 
-    QCharRef at(int pos) {
+    QChar& at(int pos) {
         if (0 <= pos && pos < size()) {
             return QString::operator[](pos);
         } else {
@@ -60,7 +62,7 @@ struct Str : public QString {
         }
     }
 
-    QCharRef at(BackwardsIndex pos) { return at(size() - pos.value); }
+    QChar& at(BackwardsIndex pos) { return at(size() - pos.value); }
 
     template <typename A, typename B>
     QStringView at(CR<HSlice<A, B>> s, bool checkRange = true) {
@@ -96,7 +98,7 @@ struct Str : public QString {
 template <>
 struct std::hash<Str> {
     std::size_t operator()(Str const& s) const noexcept {
-        return std::hash<QString>{}(s);
+        return qHash(static_cast<QString>(s));
     }
 };
 

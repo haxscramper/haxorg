@@ -87,10 +87,10 @@ const UnorderedMap<Str, MockFull::ParserMethod> parsers({
     CB(InlineParagraph),
     CB(NestedList),
     CB(List),
-    CB(LogbookClockEntry),
-    CB(LogbookListEntry),
-    CB(Logbook),
-    CB(Drawer),
+    CB(SubtreeLogbookClockEntry),
+    CB(SubtreeLogbookListEntry),
+    CB(SubtreeLogbook),
+    CB(SubtreeDrawer),
     CB(Subtree),
     CB(OrgFile),
     CB(LineCommand),
@@ -389,9 +389,9 @@ void runSpec(CR<YAML::Node> group, CR<QString> from) {
 
 TEST_CASE("Parse file", "[corpus][notes]") {
     MockFull p;
-    QString  source = readFile(
-        "/mnt/workspace/repos/personal/indexed/notes.org");
-    // QString source = readFile("/tmp/doc.org");
+    // QString  source = readFile(
+    //     "/mnt/workspace/repos/personal/indexed/notes.org");
+    QString source = readFile("/tmp/doc.org");
 
     p.tokenizer.setTraceFile("/tmp/file_lex_trace.txt");
     p.setTraceFile("/tmp/file_parse_trace.txt");
