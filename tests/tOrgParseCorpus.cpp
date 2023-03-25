@@ -386,7 +386,16 @@ void runSpec(CR<YAML::Node> group, CR<QString> from) {
     }
 }
 
-QString htmlRepr(CR<OrgId> root, CR<OrgNodeGroup> nodes, CR<QString> src) {
+struct NodeOperations {
+    UnorderedMap<OrgId, OrgParser::Report> started, ended, pushed;
+};
+
+
+QString htmlRepr(
+    CR<OrgId>          root,
+    CR<OrgNodeGroup>   nodes,
+    CR<QString>        src,
+    CR<NodeOperations> ops) {
     struct Result {
         int     level;
         QString content;
@@ -419,7 +428,7 @@ QString htmlRepr(CR<OrgId> root, CR<OrgNodeGroup> nodes, CR<QString> src) {
     };
 
     Func<Result(CR<OrgId>)> aux;
-    const int               baseColspan = 5;
+    const int               baseColspan = 6;
     aux                                 = [&](CR<OrgId> root) -> Result {
         if (nodes.at(root).isTerminal()
             || nodes.at(root).kind == org::Empty) {
@@ -433,12 +442,14 @@ QString htmlRepr(CR<OrgId> root, CR<OrgNodeGroup> nodes, CR<QString> src) {
         <th class="content1"></th>
         <th class="content2"></th>
         <th class="content3"></th>
+        <th class="content4"></th>
       </tr>
       <tr>
         <td class="padding_fill"></td>
         <td>${index}</td>
         <td>${kind}</td>
         <td>${value}</td>
+        <td>${record}</td>
         ${rangeClick}
       </tr>
     </table>
@@ -452,6 +463,12 @@ QString htmlRepr(CR<OrgId> root, CR<OrgNodeGroup> nodes, CR<QString> src) {
                 first = textRange->first;
                 last  = textRange->last;
             }
+
+            QString record = "<none>";
+            if (ops.pushed.contains(root)) {
+                record = "@" + to_string(ops.pushed.at(root).line);
+            }
+
             QString range = getRangeClick(first, last);
             return {
                                                 .level   = 1,
@@ -461,6 +478,7 @@ QString htmlRepr(CR<OrgId> root, CR<OrgNodeGroup> nodes, CR<QString> src) {
                              {"colspan", to_string(baseColspan)},
                              {"index", to_string(root.getIndex())},
                              {"kind", to_string(nodes.at(root).kind)},
+                             {"record", record},
                              {"value",
                               to_string(
                                   nodes.strVal(root).replace("\n", "␤"))},
@@ -493,6 +511,7 @@ QString htmlRepr(CR<OrgId> root, CR<OrgNodeGroup> nodes, CR<QString> src) {
         <th class="content1"></th>
         <th class="content2"></th>
         <th class="content3"></th>
+        <th class="content4"></th>
       </tr>
       <tr> <!-- First nested table row -->
         <td id="collapseButton" onclick="collapse(this)">+</td>
@@ -500,6 +519,7 @@ QString htmlRepr(CR<OrgId> root, CR<OrgNodeGroup> nodes, CR<QString> src) {
         <td>${index}/${level}/${extentStart}..${extentEnd}</td>
         <td>${kind}</td>
         <td></td>
+        <td>${record}</td>
         ${rangeClick}
       </tr>
       <tr> <!-- Nested table content row -->
@@ -519,6 +539,17 @@ ${nested}
             Slice<OrgId> allsub = nodes.allSubnodesOf(root);
             Opt<int>     textStart;
             Opt<int>     textEnd;
+
+            QString record;
+            if (ops.started.contains(root) && ops.ended.contains(root)) {
+                record = "+@$#/-@$#"
+                       % to_string_vec(
+                             ops.started.at(root).line,
+                             ops.ended.at(root).line);
+            } else {
+                record = "<none>";
+            }
+
 
             for (const auto& id : allsub) {
                 if (nodes.at(id).isTerminal()) {
@@ -545,6 +576,7 @@ ${nested}
                              {"index", to_string(root.getIndex())},
                              {"kind", to_string(nodes.at(root).kind)},
                              {"nested", nested},
+                             {"record", record},
                              {"level", to_string(level)},
                              {"extentStart",
                               to_string(allsub.first.getIndex())},
@@ -622,6 +654,7 @@ ${nested}
   th.content1 { min-width: 200px; width: 200px; }
   th.content2 { min-width: 200px; width: 200px; }
   th.content3 { min-width: 150px; width: 150px; }
+  th.content4 { min-width: 150px; width: 150px; }
   th.button { min-width: 10; width: 10px; }
   th.inner_content { visibility: hidden; height: 0; }
   table th, td {
@@ -643,6 +676,7 @@ ${nested}
             <th class="content1">Kind</th>
             <th class="content2">Text</th>
             <th class="content3">Range</th>
+            <th class="content4">Pushed</th>
           </tr>
 ${table}
         </table>
@@ -724,8 +758,18 @@ TEST_CASE("Parse file", "[corpus][notes]") {
         };
 
     UnorderedMap<OrgTokenId, OrgTokenizer::Report> pushedOn;
+    NodeOperations                                 ops;
 
     using R = OrgTokenizer::ReportKind;
+
+    p.reportHook = [&](CR<OrgParser::Report> report) {
+        using R = OrgParser::ReportKind;
+        switch (report.kind) {
+            case R::StartNode: ops.started[*report.node] = report; break;
+            case R::EndNode: ops.ended[*report.node] = report; break;
+            case R::AddToken: ops.pushed[*report.node] = report; break;
+        }
+    };
 
     p.tokenizer.reportHook = [&](CR<OrgTokenizer::Report> report) {
         switch (report.kind) {
@@ -952,7 +996,7 @@ kind=$#
     qDebug() << "Parse OK";
 
     writeFile(
-        "/tmp/parsed_tree.html", htmlRepr(OrgId(0), p.nodes, source));
+        "/tmp/parsed_tree.html", htmlRepr(OrgId(0), p.nodes, source, ops));
 
     qDebug() << "Wrote parsed tree representation";
     SUCCEED("Parsed input corpus file");
