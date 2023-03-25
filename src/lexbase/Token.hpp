@@ -298,6 +298,19 @@ struct LexerCommon {
     }
 
 
+    QString printToString(bool colored = false) const {
+        return printToString(PrintParams{}, colored);
+    }
+
+    QString printToString(PrintParams params, bool colored = false) const {
+        QString     result;
+        QTextStream stream{&result};
+        ColStream   out{stream};
+        out.colored = colored;
+        print(out, params);
+        return result;
+    }
+
     TokenId<K> pop() {
         TokenId<K> result = pos;
         next();
@@ -365,6 +378,9 @@ struct LexerCommon {
         return find(skip, target) != -1;
     }
 
+    bool ahead(CR<K> skip, CR<K> target) const {
+        return find(IntSet<K>{skip}, IntSet<K>{target}) != -1;
+    }
 
     /// Check if the lexer is positioned on the appropriate token kind
     /// (and lexeme value if it is supplied). Raise exception if the

@@ -926,9 +926,10 @@ $#
 <html>
 <style>
 html * { font-family: Iosevka !important; }
-table, th, td { border: 1px solid black; padding: 0; margin: 0; }
-td { line-height: 0; }
+table, th, td { padding: 0; margin: 0; }
+td { line-height: 0; outline: 1px dashed; }
 th {
+  margin: 0;
   background: white;
   position: sticky;
   top: 0; /* Don't forget this, required for the stickiness */

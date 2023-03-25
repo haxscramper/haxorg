@@ -26,6 +26,7 @@ struct OrgParser : public OperationsTracer {
             Opt<OrgToken> token;
             OrgTokenId    id;
             Opt<LineCol>  loc;
+            QString       extraMsg;
             QString       getLocMsg() const {
                 return "$#:$# (pos $#)"
                      % to_string_vec(
@@ -36,7 +37,9 @@ struct OrgParser : public OperationsTracer {
             }
 
             Base(CR<OrgLexer> lex, Opt<LineCol> loc = std::nullopt)
-                : token(lex.tok()), id(lex.pos), loc(loc) {}
+                : token(lex.tok()), id(lex.pos), loc(loc) {
+                extraMsg = lex.printToString(false);
+            }
         };
 
         struct None : Base {
@@ -56,7 +59,7 @@ struct OrgParser : public OperationsTracer {
 
             const char* what() const noexcept override {
                 return strdup(
-                    "Expected $#, but got $# at $#"
+                    "Expected $#, but got $# at $# ($#)"
                     % to_string_vec(
                         std::visit(
                             overloaded{
@@ -70,7 +73,8 @@ struct OrgParser : public OperationsTracer {
                                 }},
                             wanted),
                         token,
-                        getLocMsg()));
+                        getLocMsg(),
+                        extraMsg));
             }
         };
 
@@ -78,8 +82,8 @@ struct OrgParser : public OperationsTracer {
             using Base::Base;
             const char* what() const noexcept override {
                 return strdup(
-                    "Encountered $# at $#, which is was not expected"
-                    % to_string_vec(token, getLocMsg()));
+                    "Encountered $# at $#, which is was not expected ($#)"
+                    % to_string_vec(token, getLocMsg(), extraMsg));
             }
         };
     };
@@ -116,7 +120,8 @@ struct OrgParser : public OperationsTracer {
         StartNode,
         EndNode,
         AddToken,
-        Error
+        Error,
+        Print
     };
 
     struct Report {
@@ -165,6 +170,7 @@ struct OrgParser : public OperationsTracer {
             kind, group->tokens->add(OrgToken(OrgTokenKind::None)));
     }
 
+    void       expect(CR<OrgLexer> lex, CR<OrgExpectable> item);
     OrgTokenId pop(OrgLexer& lex, CR<OrgExpectable> item);
     void       skip(OrgLexer& lex, CR<OrgExpectable> item);
 

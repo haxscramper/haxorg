@@ -57,23 +57,25 @@ bool at(CR<OrgLexer> lex, CR<OrgParser::OrgExpectable> item) {
     }
 }
 
-OrgTokenId OrgParser::pop(
-    OrgLexer&                    lex,
-    CR<OrgParser::OrgExpectable> tok) {
-    if (at(lex, tok)) {
-        return lex.pop();
-    } else {
+void OrgParser::expect(
+    CR<OrgLexer>                 lex,
+    CR<OrgParser::OrgExpectable> item) {
+    if (!(at(lex, item))) {
         throw wrapError(
-            Err::UnexpectedToken(lex, getLoc(lex), {tok}), lex);
+            Err::UnexpectedToken(lex, getLoc(lex), {item}), lex);
     }
 }
 
+OrgTokenId OrgParser::pop(
+    OrgLexer&                    lex,
+    CR<OrgParser::OrgExpectable> tok) {
+    expect(lex, tok);
+    return lex.pop();
+}
+
 void OrgParser::skip(OrgLexer& lex, CR<OrgParser::OrgExpectable> item) {
-    if (at(lex, item)) {
-        lex.next();
-    } else {
-        throw wrapError(Err::UnexpectedToken(lex, getLoc(lex), item), lex);
-    }
+    expect(lex, item);
+    lex.next();
 }
 
 
@@ -103,7 +105,34 @@ void OrgParser::report(CR<Report> in) {
     ColStream os = getStream();
     os << repeat("  ", depth);
 
+    auto printTokens = [&]() {
+        if (in.lex != nullptr) {
+            os << " [";
+            OrgLexer::PrintParams params;
+            in.lex->print(os, params);
+            os << "]";
+        }
+    };
+
+    auto getLoc = [&]() -> QString {
+        QString res;
+        if (locationResolver && in.lex != nullptr) {
+            Opt<LineCol> loc = this->getLoc(*in.lex);
+            if (loc.has_value()) {
+                res = "$#:$# " % to_string_vec(loc->line, loc->column);
+            }
+        }
+        return res;
+    };
+
+
     switch (in.kind) {
+        case ReportKind::Print: {
+            os << "  " << in.line << getLoc() << ":" << in.subname.value();
+            printTokens();
+            break;
+        }
+
         case ReportKind::AddToken: {
             auto id = in.node.value();
             os << " # add [" << id.getIndex() << "] "
@@ -138,12 +167,7 @@ void OrgParser::report(CR<Report> in) {
                 os << " <@" << in.subname.value() << ">";
             }
 
-            if (in.lex != nullptr) {
-                os << " [";
-                OrgLexer::PrintParams params;
-                in.lex->print(os, params);
-                os << "]";
-            }
+            printTokens();
 
             break;
         }

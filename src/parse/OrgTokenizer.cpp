@@ -25,6 +25,12 @@
 
 #define __print1(__text) __print2(__text, &str)
 
+#define __print(...)                                                      \
+    BOOST_PP_CAT(                                                         \
+        BOOST_PP_OVERLOAD(__print, __VA_ARGS__)(__VA_ARGS__),             \
+        BOOST_PP_EMPTY())
+
+
 #define __trace2(__subname, __str)                                        \
     {                                                                     \
         Report rep = __INIT_REPORT(__subname, __str);                     \
@@ -70,11 +76,6 @@
 #define __trace1(__subname) __trace2(__subname, str)
 #define __trace0() __trace2(std::nullopt, str)
 
-
-#define __print(...)                                                      \
-    BOOST_PP_CAT(                                                         \
-        BOOST_PP_OVERLOAD(__print, __VA_ARGS__)(__VA_ARGS__),             \
-        BOOST_PP_EMPTY())
 
 #define __trace(...)                                                      \
     BOOST_PP_CAT(                                                         \
@@ -986,7 +987,8 @@ bool OrgTokenizer::lexTextVerbatim(PosStr& str) {
                     while (str.notAt(start)) {
                         str.next();
                     }
-                    if (str.at(start) && str.at(NonText, +1)) {
+                    if (str.at(start)
+                        && (str.at(NonText, +1) || !str.hasNext(1))) {
                         ended = true;
                     } else {
                         str.next();
@@ -1429,7 +1431,7 @@ bool OrgTokenizer::lexSubtreeTitle(PosStr& str) {
         while (0 <= shift
                && (CharSet{QChar(':'), QChar('#'), QChar('@'), QChar('_')}
                        .contains(full.at(shift))
-                   || full.at(shift).isLetter())) {
+                   || full.at(shift).isLetterOrNumber())) {
             --shift;
         }
 
@@ -1490,9 +1492,8 @@ bool OrgTokenizer::lexSubtreeTitle(PosStr& str) {
     }
 
 
-    // qDebug() << "Full" << full;
-    // qDebug() << "Completion" << completion;
-    // qDebug() << "Tags" << tags;
+    __print(
+        ("Title parts: $# $# $#" % to_string_vec(full, completion, tags)));
 
     pushResolved(Token(otk::Text, full));
 
@@ -1714,8 +1715,7 @@ bool OrgTokenizer::lexCommandContent(
         case ock::BeginQuote:
         case ock::BeginCenter:
         case ock::BeginAdmonition: {
-            auto text = str.tok(otk::Text, skipPastEOF);
-            __push(text);
+            pushResolved(str.tok(otk::Text, skipPastEOF));
             break;
         }
         case ock::BeginExample: {

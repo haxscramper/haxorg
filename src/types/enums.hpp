@@ -199,6 +199,7 @@ enum class OrgNodeKind : short int
     /// `\[bracket-wrapped\]` code.
     Space, /// Space or tab character in regular text
     Punctuation,
+    Colon,
     Word,
     /// Regular word - technically not different from `orgIdent`, but
     /// defined separately to disiguish between places where special syntax
