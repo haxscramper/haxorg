@@ -615,10 +615,15 @@ QString htmlRepr(
                            {"range", getRangeClick(first, last, "")},
                            {"headerRows", headerRows},
                            {"colspan", to_string(baseColspan)},
-                           {"index", to_string(root.getIndex())},
+                           {"index",
+                            "$# [$#]"
+                                % to_string_vec(
+                                    root.getIndex(), indexInParent)},
                            {"kind", to_string(nodes.at(root).kind)},
                            {"subnodeName",
-                            subnodeName.value_or("?").toBase()},
+                            "$#"
+                                % to_string_vec(
+                                    subnodeName.value_or("?"))},
                            {"record", record},
                            {"value",
                             to_string(
@@ -689,9 +694,14 @@ QString htmlRepr(
                                         allsub.last.getIndex()))},
                            {"width", to_string(level * 10)},
                            {"subnodeName",
-                            subnodeName.value_or("").toBase()},
+                            "$#"
+                                % to_string_vec(
+                                    subnodeName.value_or("?"))},
                            {"colspan", to_string(baseColspan + level)},
-                           {"index", to_string(root.getIndex())},
+                           {"index",
+                            "$# [$#]"
+                                % to_string_vec(
+                                    root.getIndex(), indexInParent)},
                            {"kind", to_string(nodes.at(root).kind)},
                            {"nested", nested},
                            {"record", record},
@@ -713,7 +723,7 @@ QString htmlRepr(
     QString headerWidths;
 
 
-    auto v = Vec<int>{40, 100, 100, 150, 150, 150};
+    auto v = Vec<int>{100, 100, 100, 150, 150, 150};
     for (const auto& [idx, width] : enumerate(v)) {
         qDebug() << idx << width;
         headerWidths.push_back(
