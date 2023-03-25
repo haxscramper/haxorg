@@ -422,6 +422,16 @@ OrgId OrgParser::parseTime(OrgLexer& lex) {
         } else {
             empty();
         }
+
+        if (lex.ahead(otk::SkipSpace, otk::TimeArrow)) {
+            space(lex);
+            skip(lex, otk::TimeArrow);
+            space(lex);
+            token(org::SimpleTime, pop(lex, otk::TimeDuration));
+        } else {
+            empty();
+        }
+
         __end_return();
     } else {
         return token(org::TimeStamp, pop(lex, times));
@@ -965,7 +975,7 @@ OrgId OrgParser::parseSubtreeLogbookClockEntry(OrgLexer& lex) {
 
     space(lex);
     skip(lex, otk::ParagraphEnd);
-    skip(lex, otk::ListItemEnd);
+    newline(lex);
     __end_return();
 }
 
@@ -1071,6 +1081,8 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
     if (indented) {
         skip(lex, otk::Indent);
     }
+
+    skipSpace(lex);
     while (!lex.at(indented ? otk::Dedent : otk::ListEnd)) {
         switch (lex.tok().kind) {
             case otk::ListItemStart: {

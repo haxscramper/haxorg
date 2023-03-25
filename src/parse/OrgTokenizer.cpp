@@ -477,6 +477,7 @@ bool OrgTokenizer::lexTime(PosStr& str) {
                 || str.trySkip("AM") //
                 || str.trySkip("PM");
         });
+        __push(dur);
     }
 
     return true;
@@ -748,7 +749,10 @@ bool OrgTokenizer::lexTextWord(PosStr& str) {
     bool allUp = true;
     auto tok   = str.tok(otk::Word, [&](PosStr& str) {
         while (!str.finished() && str.get().isLetterOrNumber()) {
-            if (!str.get().isTitleCase()) {
+            if (str.get().toUpper() != str.get()) {
+                __print(
+                    ("'$#' is not a title case"
+                     % to_string_vec(str.get())));
                 allUp = false;
             }
             str.next();
@@ -2999,6 +3003,8 @@ void OrgTokenizer::pushResolved(CR<OrgToken> token) {
                 tmp.space();
                 if (atLogClock(tmp)) {
                     spaceSkip(str);
+                    auto clock = str.fakeTok(otk::ListClock);
+                    __push(clock);
                     auto log = str.tok(otk::Text, skipToEOL);
                     pushResolved(log);
                     // text processing about should not include end of
