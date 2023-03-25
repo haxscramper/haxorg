@@ -1063,8 +1063,9 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
     __trace();
     __start(org::Logbook);
     skip(lex, otk::ColonLogbook);
+    newline(lex);
+    skip(lex, otk::GroupStart);
     skip(lex, otk::LogbookStart);
-    skip(lex, otk::ListStart);
 
     const auto indented = lex.at(otk::Indent);
     if (indented) {
@@ -1085,7 +1086,7 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
                 break;
             }
             default: {
-                assert(false);
+                throw wrapError(Err::UnhandledToken(lex), lex);
             }
         }
     }
@@ -1094,7 +1095,6 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
         skip(lex, otk::Dedent);
     }
 
-    skip(lex, otk::ListEnd);
     skip(lex, otk::LogbookEnd);
     skip(lex, otk::ColonEnd);
     __end_return();
@@ -1135,6 +1135,7 @@ OrgId OrgParser::parseSubtreeDrawer(OrgLexer& lex) {
     skip(lex, otk::GroupStart);
     skip(lex, otk::SkipSpace);
     __start(org::Drawer);
+
     while (lex.at(OrgTokSet{
         otk::ColonProperties, otk::ColonLogbook, otk::ColonDescription})) {
         switch (lex.tok().kind) {
@@ -1151,7 +1152,11 @@ OrgId OrgParser::parseSubtreeDrawer(OrgLexer& lex) {
                 break;
             }
         }
+
+        newline(lex);
+        space(lex);
     }
+
     skip(lex, otk::GroupEnd);
     __end_return();
 }
@@ -1160,7 +1165,9 @@ OrgId OrgParser::parseSubtreeTodo(OrgLexer& lex) {
     __trace();
     skipSpace(lex);
     if (lex.at(otk::SubtreeTodoState)) {
-        return token(org::BigIdent, pop(lex, otk::SubtreeTodoState));
+        auto tmp = token(org::BigIdent, pop(lex, otk::SubtreeTodoState));
+        __token(tmp);
+        return tmp;
     } else {
         return empty();
     }
@@ -1212,10 +1219,12 @@ OrgId OrgParser::parseSubtreeTimes(OrgLexer& lex) {
             } else {
                 empty();
             }
+            space(lex);
             token(org::TimeStamp, pop(lex, otk::BracketTime));
             __end();
         }
 
+        newline(lex);
         skip(lex, otk::GroupEnd);
     } else {
         __print("No subtree time");

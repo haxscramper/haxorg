@@ -457,6 +457,28 @@ bool OrgTokenizer::lexTime(PosStr& str) {
     } else {
         throw str.makeUnexpected("QChar('<') or QChar('[')", "time");
     }
+
+    if (str.at(" => ")) {
+        spaceSkip(str);
+        auto arr = str.tok(otk::TimeArrow, skipOne, "=>");
+        __push(arr);
+        spaceSkip(str);
+        auto dur = str.tok(otk::TimeDuration, [this](PosStr& str) {
+            while (str.get().isDigit()) {
+                str.next();
+            }
+            oskipOne(str, ':');
+            while (str.get().isDigit()) {
+                str.next();
+            }
+
+            str.trySkip("am")        //
+                || str.trySkip("pm") //
+                || str.trySkip("AM") //
+                || str.trySkip("PM");
+        });
+    }
+
     return true;
 }
 
@@ -1301,14 +1323,15 @@ bool OrgTokenizer::lexLogbook(PosStr& str) {
         str.pushSlice();
         auto hasEnd = false;
         while (!str.finished() && !hasEnd) {
-            spaceSkip(str);
+            str.space();
             if (!str.finished() && !(str.at(":end:") || str.at(":END"))) {
                 str.skipToNextLine();
                 continue;
             }
 
-            auto raw = Token(otk::RawLogbook, str.popSlice().view);
-            __push(raw);
+            auto slice = str.popSlice();
+            auto raw   = Token(otk::RawLogbook, slice.view);
+            pushResolved(raw);
 
             const auto id = str.slice([this](PosStr& str) {
                 oskipOne(str, QChar(':'));
@@ -2168,7 +2191,7 @@ bool OrgTokenizer::atLogClock(CR<PosStr> str) {
             }
         }
 
-        return ahead[slice(space, 1_B)].at("CLOCK:::");
+        return ahead[slice(space, 1_B)].at("CLOCK:");
     } else {
         return false;
     }
@@ -2993,19 +3016,17 @@ void OrgTokenizer::pushResolved(CR<OrgToken> token) {
             // is not constrained to anything) might contain complex nested
             // elements
             while (!str.finished()) {
-                if (atLogClock(str)) {
-                    __push(str.tok(otk::Text, skipToEOL));
+                __trace("Logbook element group");
+                auto tmp = str;
+                tmp.space();
+                if (atLogClock(tmp)) {
+                    spaceSkip(str);
+                    auto log = str.tok(otk::Text, skipToEOL);
+                    pushResolved(log);
                     // text processing about should not include end of
                     // line.
-                    if (str.at(charsets::Newline)) {
-                        str.next();
-                        // If this is a joined list of log entires skip
-                        // only newline, otherwise cut all leading spaces
-                        // to avoid messing up indentation in the list
-                        // parser.
-                        if (!atLogClock(str)) {
-                            spaceSkip(str);
-                        }
+                    if (!str.finished()) {
+                        newlineSkip(str);
                     }
                 } else {
                     lexList(str);
