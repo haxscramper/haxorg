@@ -391,205 +391,7 @@ struct NodeOperations {
 };
 
 
-QString htmlRepr(
-    CR<OrgId>          root,
-    CR<OrgNodeGroup>   nodes,
-    CR<QString>        src,
-    CR<NodeOperations> ops) {
-    struct Result {
-        int     level;
-        QString content;
-    };
-
-    auto getTokTextRange = [&](CR<OrgTokenId> tokId) -> Opt<Slice<int>> {
-        OrgToken const& tok = nodes.tokens->at(tokId);
-        if (tok.hasData()) {
-            return nodes.tokens->toAbsolute(tok.getText());
-        } else {
-            return std::nullopt;
-        }
-    };
-
-    auto getNodeTextRange = [&](CR<OrgId> id) -> Opt<Slice<int>> {
-        if (nodes.at(id).isTerminal()) {
-            OrgTokenId tokId = nodes.at(id).getToken();
-            return getTokTextRange(tokId);
-        } else {
-            return std::nullopt;
-        }
-    };
-
-    auto getRangeClick = [&](CR<Opt<int>> textStart,
-                             CR<Opt<int>> textEnd) -> QString {
-        return (textStart.has_value() && textEnd.has_value())
-                 ? R"html(<td onclick="selectAndHighlightRange('target', $1, $2)">[$1..$2]</td>)html"
-                       % to_string_vec(*textStart, *textEnd)
-                 : QString("<none>");
-    };
-
-    Func<Result(CR<OrgId>)> aux;
-    const int               baseColspan = 6;
-    aux                                 = [&](CR<OrgId> root) -> Result {
-        if (nodes.at(root).isTerminal()
-            || nodes.at(root).kind == org::Empty) {
-            QString table = R"RAW(
-<tr id="hidden"> <!-- From token node -->
-  <td colspan=${colspan}>
-    <table>
-      <tr>
-        <th style="width:0px;"></th>
-        <th class="content0"></th>
-        <th class="content1"></th>
-        <th class="content2"></th>
-        <th class="content3"></th>
-        <th class="content4"></th>
-      </tr>
-      <tr>
-        <td class="padding_fill"></td>
-        <td>${index}</td>
-        <td>${kind}</td>
-        <td>${value}</td>
-        <td>${record}</td>
-        ${rangeClick}
-      </tr>
-    </table>
-  </td>
-</tr>
-)RAW";
-
-            Opt<Slice<int>> textRange = getNodeTextRange(root);
-            Opt<int>        first, last;
-            if (textRange) {
-                first = textRange->first;
-                last  = textRange->last;
-            }
-
-            QString record = "<none>";
-            if (ops.pushed.contains(root)) {
-                record = "@" + to_string(ops.pushed.at(root).line);
-            }
-
-            QString range = getRangeClick(first, last);
-            return {
-                                                .level   = 1,
-                                                .content = table
-                         % fold_format_pairs({
-                             {"rangeClick", range},
-                             {"colspan", to_string(baseColspan)},
-                             {"index", to_string(root.getIndex())},
-                             {"kind", to_string(nodes.at(root).kind)},
-                             {"record", record},
-                             {"value",
-                              to_string(
-                                  nodes.strVal(root).replace("\n", "␤"))},
-                             {"start", to_string(0)},
-                             {"end", to_string(1)},
-                         })};
-        } else {
-            Vec<Result> sub;
-            auto [begin, end] = nodes.subnodesOf(root);
-            for (; begin != end; ++begin) {
-                sub.push_back(aux(*begin));
-            }
-
-            QString nested;
-            int     level = 0;
-            for (const auto& it : sub) {
-                nested += it.content + "\n";
-                level = std::max(it.level, level);
-            }
-
-            QString table = R"RAW(
-<tr id="hidden"> <!-- Main nested table content row -->
-  <td colspan=${colspan}>
-    <!-- From nested node, index=${index}, level=${level} -->
-    <table>
-      <tr> <!-- Nested table header -->
-        <th class="button"></th>
-        <th style="width:${width}px;" class="padding_fill"></th>
-        <th class="content0"></th>
-        <th class="content1"></th>
-        <th class="content2"></th>
-        <th class="content3"></th>
-        <th class="content4"></th>
-      </tr>
-      <tr> <!-- First nested table row -->
-        <td id="collapseButton" onclick="collapse(this)">+</td>
-        <td class="padding_fill"></td>
-        <td>${index}/${level}/${extentStart}..${extentEnd}</td>
-        <td>${kind}</td>
-        <td></td>
-        <td>${record}</td>
-        ${rangeClick}
-      </tr>
-      <tr> <!-- Nested table content row -->
-        <td colspan="${colspan}">
-          <table>
-<!-- START Nested nodes for subtree -->
-${nested}
-<!-- END Nested nodes for subtree -->
-          </table>
-        </td>
-      </tr>
-    </table>
-  </td>
-</tr>
-)RAW";
-
-            Slice<OrgId> allsub = nodes.allSubnodesOf(root);
-            Opt<int>     textStart;
-            Opt<int>     textEnd;
-
-            QString record;
-            if (ops.started.contains(root) && ops.ended.contains(root)) {
-                record = "+@$#/-@$#"
-                       % to_string_vec(
-                             ops.started.at(root).line,
-                             ops.ended.at(root).line);
-            } else {
-                record = "<none>";
-            }
-
-
-            for (const auto& id : allsub) {
-                if (nodes.at(id).isTerminal()) {
-                    auto absolute = getNodeTextRange(id);
-                    if (absolute.has_value()) {
-                        if (!textStart) {
-                            textStart = absolute->first;
-                        }
-
-                        textEnd = absolute->last;
-                    }
-                }
-            }
-
-            QString range = getRangeClick(textStart, textEnd);
-
-            return Result{
-                                                .level   = level + 1,
-                                                .content = table
-                         % fold_format_pairs({
-                             {"rangeClick", range},
-                             {"width", to_string(level * 10)},
-                             {"colspan", to_string(baseColspan + level)},
-                             {"index", to_string(root.getIndex())},
-                             {"kind", to_string(nodes.at(root).kind)},
-                             {"nested", nested},
-                             {"record", record},
-                             {"level", to_string(level)},
-                             {"extentStart",
-                              to_string(allsub.first.getIndex())},
-                             {"extentEnd",
-                              to_string(allsub.last.getIndex())},
-                         })};
-        }
-    };
-
-    Result  top       = aux(root);
-    QString mainTable = top.content;
-
-    return R"RAW(
+const QString mainDoc = R"RAW(
 <!DOCTYPE html>
 <html>
 <head>
@@ -650,11 +452,7 @@ ${nested}
     // margin-bottom: 4px;
   }
 
-  th.content0 { min-width: 200px; width: 200px; }
-  th.content1 { min-width: 200px; width: 200px; }
-  th.content2 { min-width: 200px; width: 200px; }
-  th.content3 { min-width: 150px; width: 150px; }
-  th.content4 { min-width: 150px; width: 150px; }
+${headerWidths}
   th.button { min-width: 10; width: 10px; }
   th.inner_content { visibility: hidden; height: 0; }
   table th, td {
@@ -672,11 +470,7 @@ ${nested}
           <tr>
             <th></th>
             <th style="min-width:${width}px; width:${width}px;"></th>
-            <th class="content0">Index</th>
-            <th class="content1">Kind</th>
-            <th class="content2">Text</th>
-            <th class="content3">Range</th>
-            <th class="content4">Pushed</th>
+${headerRows}
           </tr>
 ${table}
         </table>
@@ -690,11 +484,266 @@ ${text}
   </table>
 </body>
 </html>
-)RAW"
-         % fold_format_pairs(
-               {{"width", to_string(top.level * 10)},
-                {"table", mainTable},
-                {"text", src}});
+)RAW";
+
+
+const QString tokenTable = R"RAW(
+<tr id="hidden"> <!-- From token node -->
+  <td colspan=${colspan}>
+    <table>
+      <tr>
+        <th style="width:0px;"></th>
+${headerRows}
+      </tr>
+      <tr>
+        <td class="padding_fill"></td>
+        <td>${index}</td>
+        <td>${kind}</td>
+        <td>${subnodeName}</td>
+        <td>${value}</td>
+        <td>${record}</td>
+        ${range}
+      </tr>
+    </table>
+  </td>
+</tr>
+)RAW";
+
+const QString nestedTable = R"RAW(
+<tr id="hidden"> <!-- Main nested table content row -->
+  <td colspan=${colspan}>
+    <!-- From nested node, index=${index}, level=${level} -->
+    <table>
+      <tr> <!-- Nested table header -->
+        <th class="button"></th>
+        <th style="width:${width}px;" class="padding_fill"></th>
+        ${headerRows}
+      </tr>
+      <tr> <!-- First nested table row -->
+        <td id="collapseButton" onclick="collapse(this)">+</td>
+        <td class="padding_fill"></td>
+        <td>${index}</td>
+        <td>${kind}</td>
+        <td>${subnodeName}</td>
+        <td></td>
+        <td>${record}</td>
+        ${range}
+      </tr>
+      <tr> <!-- Nested table content row -->
+        <td colspan="${colspan}">
+          <table>
+<!-- START Nested nodes for subtree -->
+${nested}
+<!-- END Nested nodes for subtree -->
+          </table>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+)RAW";
+
+
+QString htmlRepr(
+    CR<OrgId>          root,
+    CR<OrgNodeGroup>   nodes,
+    CR<QString>        src,
+    CR<NodeOperations> ops) {
+    struct Result {
+        int     level;
+        QString content;
+    };
+
+    auto getTokTextRange = [&](CR<OrgTokenId> tokId) -> Opt<Slice<int>> {
+        OrgToken const& tok = nodes.tokens->at(tokId);
+        if (tok.hasData()) {
+            return nodes.tokens->toAbsolute(tok.getText());
+        } else {
+            return std::nullopt;
+        }
+    };
+
+    auto getNodeTextRange = [&](CR<OrgId> id) -> Opt<Slice<int>> {
+        if (nodes.at(id).isTerminal()) {
+            OrgTokenId tokId = nodes.at(id).getToken();
+            return getTokTextRange(tokId);
+        } else {
+            return std::nullopt;
+        }
+    };
+
+    auto getRangeClick = [&](CR<Opt<int>> textStart,
+                             CR<Opt<int>> textEnd,
+                             CR<QString>  text) -> QString {
+        return (textStart.has_value() && textEnd.has_value())
+                 ? R"html(<td onclick="selectAndHighlightRange('target', $1, $2)">[$1..$2]$3</td>)html"
+                       % to_string_vec(*textStart, *textEnd, text)
+                 : "<td>none$#</td>" % to_string_vec(text);
+    };
+
+    const int dataColNum  = 6;
+    const int baseColspan = dataColNum + 1;
+
+    Func<Result(CR<OrgId>, Opt<Str>, int)> aux;
+    aux = [&](CR<OrgId> root,
+              Opt<Str>  subnodeName,
+              int       indexInParent) -> Result {
+        QString headerRows;
+        for (int i = 0; i < dataColNum; ++i) {
+            headerRows += (R"(<th class="content$#"></th>)"
+                           "\n")
+                        % to_string_vec(to_string(i));
+        }
+
+        if (nodes.at(root).isTerminal()
+            || nodes.at(root).kind == org::Empty) {
+
+            Opt<Slice<int>> textRange = getNodeTextRange(root);
+            Opt<int>        first, last;
+            if (textRange) {
+                first = textRange->first;
+                last  = textRange->last;
+            }
+
+            QString record = "<none>";
+            if (ops.pushed.contains(root)) {
+                record = "@" + to_string(ops.pushed.at(root).line);
+            }
+
+            auto table = tokenTable
+                       % fold_format_pairs({
+                           {"range", getRangeClick(first, last, "")},
+                           {"headerRows", headerRows},
+                           {"colspan", to_string(baseColspan)},
+                           {"index", to_string(root.getIndex())},
+                           {"kind", to_string(nodes.at(root).kind)},
+                           {"subnodeName",
+                            subnodeName.value_or("?").toBase()},
+                           {"record", record},
+                           {"value",
+                            to_string(
+                                nodes.strVal(root).replace("\n", "␤"))},
+                           {"start", to_string(0)},
+                           {"end", to_string(1)},
+                       });
+
+            return {.level = 1, .content = table};
+        } else {
+            Vec<Result> sub;
+            auto [begin, end] = nodes.subnodesOf(root);
+            int index         = 0;
+            for (; begin != end; ++begin) {
+                sub.push_back(
+                    aux(*begin,
+                        spec.fieldName(OrgAdapter(&nodes, root), index),
+                        index));
+                ++index;
+            }
+
+            QString nested;
+            int     level = 0;
+            for (const auto& it : sub) {
+                nested += it.content + "\n";
+                level = std::max(it.level, level);
+            }
+
+
+            Slice<OrgId> allsub = nodes.allSubnodesOf(root);
+            Opt<int>     textStart;
+            Opt<int>     textEnd;
+
+            QString record;
+            if (ops.started.contains(root) && ops.ended.contains(root)) {
+                record = "+@$#/-@$#"
+                       % to_string_vec(
+                             ops.started.at(root).line,
+                             ops.ended.at(root).line);
+            } else {
+                record = "<none>";
+            }
+
+
+            for (const auto& id : allsub) {
+                if (nodes.at(id).isTerminal()) {
+                    auto absolute = getNodeTextRange(id);
+                    if (absolute.has_value()) {
+                        if (!textStart) {
+                            textStart = absolute->first;
+                        }
+
+                        textEnd = absolute->last;
+                    }
+                }
+            }
+
+            auto table = nestedTable
+                       % fold_format_pairs({
+                           {"headerRows", headerRows},
+                           {"range",
+                            getRangeClick(
+                                textStart,
+                                textEnd,
+                                ", $#..$#"
+                                    % to_string_vec(
+                                        allsub.first.getIndex(),
+                                        allsub.last.getIndex()))},
+                           {"width", to_string(level * 10)},
+                           {"subnodeName",
+                            subnodeName.value_or("").toBase()},
+                           {"colspan", to_string(baseColspan + level)},
+                           {"index", to_string(root.getIndex())},
+                           {"kind", to_string(nodes.at(root).kind)},
+                           {"nested", nested},
+                           {"record", record},
+                           {"level", to_string(level)},
+                           {"extentStart",
+                            to_string(allsub.first.getIndex())},
+                           {"extentEnd",
+                            to_string(allsub.last.getIndex())},
+                       });
+
+            return Result{.level = level + 1, .content = table};
+        }
+    };
+
+    Result  top       = aux(root, std::nullopt, 0);
+    QString mainTable = top.content;
+
+
+    QString headerWidths;
+
+
+    auto v = Vec<int>{40, 100, 100, 150, 150, 150};
+    for (const auto& [idx, width] : enumerate(v)) {
+        qDebug() << idx << width;
+        headerWidths.push_back(
+            (R"(th.content$1 { min-width: $2px; width: $2px; })"
+             "\n")
+            % to_string_vec(idx, width));
+    }
+
+    std::vector<QString> res;
+    for (int i = 0; i < dataColNum; ++i) {
+        res.push_back(to_string(i));
+    }
+
+    QString headerRows = repeat(
+                             (R"(<th class="content$#">$$#</th>)"
+                              "\n"),
+                             dataColNum)
+                       % res;
+
+    return mainDoc
+         % fold_format_pairs({
+             {"width", to_string(top.level * 10)},
+             {"table", mainTable},
+             {"headerWidths", headerWidths},
+             {"headerRows",
+              headerRows
+                  % to_string_vec(
+                      "Index", "Kind", "Name", "Text", "Pushed", "Range")},
+             {"text", src},
+         });
 }
 
 

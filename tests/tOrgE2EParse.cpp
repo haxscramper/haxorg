@@ -61,6 +61,7 @@ TEST_CASE("Simple node conversion") {
         spec.getSingleSubnodeIdx(org::HashTag, "head");
         spec.getMultipleSubnode(p.a(0), "head");
         spec.fieldName(p.a(0), 0);
+
         spec.isSingleField(p.a(0), 0);
         spec.fieldDoc(p.a(0), 0);
     }

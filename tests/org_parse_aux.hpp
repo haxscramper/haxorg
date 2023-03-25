@@ -28,6 +28,7 @@ struct MockFull : public OrgParser {
     using ParserMethod = OrgId (OrgParser::*)(OrgLexer&);
 
     OrgAdapter a(int idx) { return OrgAdapter(&nodes, OrgId(idx)); }
+    OrgAdapter a(OrgId id) { return OrgAdapter(&nodes, id); }
 
     OrgNode&    n(int idx) { return nodes.at(OrgId(idx)); }
     OrgToken&   t(int idx) { return tokens.at(OrgTokenId(idx)); }
