@@ -386,6 +386,232 @@ void runSpec(CR<YAML::Node> group, CR<QString> from) {
     }
 }
 
+QString htmlRepr(CR<OrgId> root, CR<OrgNodeGroup> nodes, CR<QString> src) {
+    struct Result {
+        int     level;
+        QString content;
+    };
+
+    Func<Result(CR<OrgId>)> aux;
+    const int               baseColspan = 5;
+    aux                                 = [&](CR<OrgId> root) -> Result {
+        if (nodes.at(root).isTerminal()
+            || nodes.at(root).kind == org::Empty) {
+            QString table = R"RAW(
+<tr id="hidden"> <!-- From token node -->
+  <td colspan=${colspan}>
+    <table>
+      <tr>
+        <th style="width:0px;"></th>
+        <th class="content0"></th>
+        <th class="content1"></th>
+        <th class="content2"></th>
+        <th class="content3"></th>
+      </tr>
+      <tr>
+        <td class="padding_fill"></td>
+        <td>${index}</td>
+        <td>${kind}</td>
+        <td>${value}</td>
+        <td onclick="selectAndHighlightRange('target', ${start}, ${end})">[${start}..${end}]</td>
+      </tr>
+    </table>
+  </td>
+</tr>
+)RAW";
+
+            return {
+                                                .level   = 1,
+                                                .content = table
+                         % fold_format_pairs({
+                             {"colspan", to_string(baseColspan)},
+                             {"index", to_string(root.getIndex())},
+                             {"kind", to_string(nodes.at(root).kind)},
+                             {"value",
+                              to_string(
+                                  nodes.strVal(root).replace("\n", "␤"))},
+                             {"start", to_string(0)},
+                             {"end", to_string(1)},
+                         })};
+        } else {
+            Vec<Result> sub;
+            auto [begin, end] = nodes.subnodesOf(root);
+            for (; begin != end; ++begin) {
+                sub.push_back(aux(*begin));
+            }
+
+            QString nested;
+            int     level = 0;
+            for (const auto& it : sub) {
+                nested += it.content + "\n";
+                level = std::max(it.level, level);
+            }
+
+            QString table = R"RAW(
+<tr id="hidden"> <!-- Main nested table content row -->
+  <td colspan=${colspan}>
+    <!-- From nested node, index=${index}, level=${level} -->
+    <table>
+      <tr> <!-- Nested table header -->
+        <th class="button"></th>
+        <th style="width:${width}px;" class="padding_fill"></th>
+        <th class="content0"></th>
+        <th class="content1"></th>
+        <th class="content2"></th>
+        <th class="content3"></th>
+      </tr>
+      <tr> <!-- First nested table row -->
+        <td id="collapseButton" onclick="collapse(this)">+</td>
+        <td class="padding_fill"></td>
+        <td>${index}/${level}/${extentStart}..${extentEnd}</td>
+        <td>${kind}</td>
+        <td></td>
+        <td onclick="selectAndHighlightRange('target', ${start}, ${end})">[${start}..${end}]</td>
+      </tr>
+      <tr> <!-- Nested table content row -->
+        <td colspan="${colspan}">
+          <table>
+<!-- START Nested nodes for subtree -->
+${nested}
+<!-- END Nested nodes for subtree -->
+          </table>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+)RAW";
+
+            auto allsub = nodes.allSubnodesOf(root);
+            return Result{
+                                                .level   = level + 1,
+                                                .content = table
+                         % fold_format_pairs({
+                             {"width", to_string(level * 10)},
+                             {"colspan", to_string(baseColspan + level)},
+                             {"index", to_string(root.getIndex())},
+                             {"kind", to_string(nodes.at(root).kind)},
+                             {"start", to_string(0)},
+                             {"end", to_string(1)},
+                             {"nested", nested},
+                             {"level", to_string(level)},
+                             {"extentStart",
+                              to_string(allsub.first.getIndex())},
+                             {"extentEnd",
+                              to_string(allsub.last.getIndex())},
+                         })};
+        }
+    };
+
+    Result  top       = aux(root);
+    QString mainTable = top.content;
+
+    return R"RAW(
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+  function collapse(cell) {
+    var row = cell.parentElement;
+    for (i = row.rowIndex + 1; i < row.parentElement.children.length; ++i) {
+      var target_row = row.parentElement.children[i];
+      if (target_row.style.display == 'table-row') {
+        cell.innerHTML = '+';
+        target_row.style.display = 'none';
+      } else {
+        cell.innerHTML = '-';
+        target_row.style.display = 'table-row';
+      }
+    }
+  }
+
+  function selectAndHighlightRange(id, start, end) {
+    const preElement = document.getElementById(id);
+    const textContent = preElement.textContent;
+
+    if (start < 0 || textContent.length <= end) {
+      console.error("Invalid range.");
+      return;
+    }
+
+    const beforeHighlight = textContent.substring(0, start - 1);
+    const highlightedText = textContent.substring(start - 1, end);
+    const afterHighlight = textContent.substring(end);
+
+    preElement.innerHTML = `$${beforeHighlight}<span class="highlight">$${highlightedText}</span>$${afterHighlight}`;
+  }
+
+</script>
+<style>
+  * { font-family: Iosevka; }
+  .collapseButton { vertical-align: text-top; }
+  th, td {
+    padding: 0em;
+    text-align: right;
+    // outline: 1px dotted #00000055;
+  }
+  td.padding_fill { background-color: red; }
+  .Table { margin-left: 0em; margin-top: 0em; margin-right: 0em; }
+  table {
+    border-collapse: collapse;
+    outline: 1px solid;
+  }
+  .highlight { background-color: yellow; }
+  table table {
+    width: auto;
+    margin-left: auto;
+    margin-right: 0;
+    display: table;
+
+    // margin-top: 4px;
+    // margin-bottom: 4px;
+  }
+
+  th.content0 { min-width: 200px; width: 200px; }
+  th.content1 { min-width: 200px; width: 200px; }
+  th.content2 { min-width: 200px; width: 200px; }
+  th.content3 { min-width: 150px; width: 150px; }
+  th.button { min-width: 10; width: 10px; }
+  th.inner_content { visibility: hidden; height: 0; }
+  table th, td {
+    text-align: left;
+    // padding: 4px;
+  }
+  #collapseButton:hover { background-color: red; }
+</style>
+</head>
+<body>
+  <table>
+    <tr>
+      <td>
+        <table>
+          <tr>
+            <th></th>
+            <th style="min-width:${width}px; width:${width}px;"></th>
+            <th class="content0">Index</th>
+            <th class="content1">Kind</th>
+            <th class="content2">Text</th>
+            <th class="content3">Range</th>
+          </tr>
+${table}
+        </table>
+      </td>
+      <td style="vertical-align:top;">
+        <pre id="target">
+${text}
+        </pre>
+      </td>
+    <tr>
+  </table>
+</body>
+</html>
+)RAW"
+         % fold_format_pairs(
+               {{"width", to_string(top.level * 10)},
+                {"table", mainTable},
+                {"text", src}});
+}
+
 
 TEST_CASE("Parse file", "[corpus][notes]") {
     MockFull p;
@@ -674,6 +900,10 @@ kind=$#
         "/tmp/file_parsed.yaml", to_string(yamlRepr(p.nodes)) + "\n");
     qDebug() << "Parse OK";
 
+    writeFile(
+        "/tmp/parsed_tree.html", htmlRepr(OrgId(0), p.nodes, source));
+
+    qDebug() << "Wrote parsed tree representation";
     SUCCEED("Parsed input corpus file");
 }
 

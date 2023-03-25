@@ -227,6 +227,14 @@ struct NodeGroup {
 
     /// \brief Get pair of start/end iterators for traversing content of
     /// the subnodes
+    ///
+    /// Returns two iterators that can be used in the regular for loop,
+    /// ```cpp
+    /// auto [begin, end] = group.subnodesOf(root);
+    /// for (; begin != end; ++begin) {
+    ///     call_(*begin);
+    /// }
+    /// ```
     Pair<iterator, iterator> subnodesOf(NodeId<N, K> node) const {
         return {begin(node + 1), end(node + at(node).getExtent())};
     }

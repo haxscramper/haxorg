@@ -67,7 +67,7 @@ template <typename T, typename Container>
 int index_of(CR<Container> container, CR<T> item) {
     auto pos = std::find(container.begin(), container.end(), item);
     if (pos != container.end()) {
-        return std::distance(pos, container.begin());
+        return std::distance(container.begin(), pos);
     } else {
         return -1;
     }
