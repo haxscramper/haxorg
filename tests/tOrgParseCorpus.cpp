@@ -392,6 +392,32 @@ QString htmlRepr(CR<OrgId> root, CR<OrgNodeGroup> nodes, CR<QString> src) {
         QString content;
     };
 
+    auto getTokTextRange = [&](CR<OrgTokenId> tokId) -> Opt<Slice<int>> {
+        OrgToken const& tok = nodes.tokens->at(tokId);
+        if (tok.hasData()) {
+            return nodes.tokens->toAbsolute(tok.getText());
+        } else {
+            return std::nullopt;
+        }
+    };
+
+    auto getNodeTextRange = [&](CR<OrgId> id) -> Opt<Slice<int>> {
+        if (nodes.at(id).isTerminal()) {
+            OrgTokenId tokId = nodes.at(id).getToken();
+            return getTokTextRange(tokId);
+        } else {
+            return std::nullopt;
+        }
+    };
+
+    auto getRangeClick = [&](CR<Opt<int>> textStart,
+                             CR<Opt<int>> textEnd) -> QString {
+        return (textStart.has_value() && textEnd.has_value())
+                 ? R"html(<td onclick="selectAndHighlightRange('target', $1, $2)">[$1..$2]</td>)html"
+                       % to_string_vec(*textStart, *textEnd)
+                 : QString("<none>");
+    };
+
     Func<Result(CR<OrgId>)> aux;
     const int               baseColspan = 5;
     aux                                 = [&](CR<OrgId> root) -> Result {
@@ -413,17 +439,25 @@ QString htmlRepr(CR<OrgId> root, CR<OrgNodeGroup> nodes, CR<QString> src) {
         <td>${index}</td>
         <td>${kind}</td>
         <td>${value}</td>
-        <td onclick="selectAndHighlightRange('target', ${start}, ${end})">[${start}..${end}]</td>
+        ${rangeClick}
       </tr>
     </table>
   </td>
 </tr>
 )RAW";
 
+            Opt<Slice<int>> textRange = getNodeTextRange(root);
+            Opt<int>        first, last;
+            if (textRange) {
+                first = textRange->first;
+                last  = textRange->last;
+            }
+            QString range = getRangeClick(first, last);
             return {
                                                 .level   = 1,
                                                 .content = table
                          % fold_format_pairs({
+                             {"rangeClick", range},
                              {"colspan", to_string(baseColspan)},
                              {"index", to_string(root.getIndex())},
                              {"kind", to_string(nodes.at(root).kind)},
@@ -466,7 +500,7 @@ QString htmlRepr(CR<OrgId> root, CR<OrgNodeGroup> nodes, CR<QString> src) {
         <td>${index}/${level}/${extentStart}..${extentEnd}</td>
         <td>${kind}</td>
         <td></td>
-        <td onclick="selectAndHighlightRange('target', ${start}, ${end})">[${start}..${end}]</td>
+        ${rangeClick}
       </tr>
       <tr> <!-- Nested table content row -->
         <td colspan="${colspan}">
@@ -482,17 +516,34 @@ ${nested}
 </tr>
 )RAW";
 
-            auto allsub = nodes.allSubnodesOf(root);
+            Slice<OrgId> allsub = nodes.allSubnodesOf(root);
+            Opt<int>     textStart;
+            Opt<int>     textEnd;
+
+            for (const auto& id : allsub) {
+                if (nodes.at(id).isTerminal()) {
+                    auto absolute = getNodeTextRange(id);
+                    if (absolute.has_value()) {
+                        if (!textStart) {
+                            textStart = absolute->first;
+                        }
+
+                        textEnd = absolute->last;
+                    }
+                }
+            }
+
+            QString range = getRangeClick(textStart, textEnd);
+
             return Result{
                                                 .level   = level + 1,
                                                 .content = table
                          % fold_format_pairs({
+                             {"rangeClick", range},
                              {"width", to_string(level * 10)},
                              {"colspan", to_string(baseColspan + level)},
                              {"index", to_string(root.getIndex())},
                              {"kind", to_string(nodes.at(root).kind)},
-                             {"start", to_string(0)},
-                             {"end", to_string(1)},
                              {"nested", nested},
                              {"level", to_string(level)},
                              {"extentStart",

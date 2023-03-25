@@ -63,7 +63,8 @@ struct Slice : public HSlice<T, T> {
         typedef T*                        pointer;
         typedef std::ptrdiff_t            difference_type;
 
-        iterator(T value, T _last) : now(value), last(_last) {}
+        iterator(T value, T _last, bool pastLast = false)
+            : now(value), last(_last), pastLast(pastLast) {}
         iterator() : pastLast(true) {}
 
         T operator*() { return now; }
@@ -91,7 +92,7 @@ struct Slice : public HSlice<T, T> {
 
 
     iterator begin() const { return iterator(first, last); }
-    iterator end() const { return iterator(); }
+    iterator end() const { return iterator(first, last, true); }
 };
 
 /// Return homogeneous inclusive slice of values
