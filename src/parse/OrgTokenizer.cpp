@@ -2488,35 +2488,13 @@ bool OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
     __trace();
     assert(!str.at(ONewline));
     while (atListAhead(str) || atLogClock(str)) {
-        // Minor hack -- in order to avoid logic duplication for logbook
-        // and non-logbook parsers this function handles both edge cases.
-        // The `CLOCK` entries are simply skipped, so the list lexer is not
-        // especially troubled by the indentation levels: from the
-        // standpoint of `skipIndents()` processing only happens on the
-        // well-formed and well-indented list (not sure how often this
-        // holds in reality though)
         assert(!str.at(ONewline));
-        if (atLogClock(str)) {
-            __push(str.fakeTok(otk::ListClock));
-            str.pushSlice();
-            str.skipToEOL();
-            auto slice = str.popSlice();
-            lexParagraph(slice);
-            str.next();
-            __push(str.fakeTok(otk::ListItemEnd));
+        skipIndents(state, str);
+        const auto column = str.getColumn();
+        if (atListStart(str)) {
+            lexListItem(str, column, state);
         } else {
-            // List start detection should handle several edge cases that
-            // are hard to distinguish from each other, so first lexing is
-            // /tried/, on success all changes are applied, on failure
-            // entry is processed like a normal text element, without going
-            // into deeper nesting levels.
-            skipIndents(state, str);
-            const auto column = str.getColumn();
-            if (atListStart(str)) {
-                lexListItem(str, column, state);
-            } else {
-                lexParagraph(str);
-            }
+            lexParagraph(str);
         }
     }
 
