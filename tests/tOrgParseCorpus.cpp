@@ -1047,13 +1047,13 @@ kind=$#
     writeFile(
         "/tmp/file_lexed.yaml", to_string(yamlRepr(p.tokens)) + "\n");
 
+    qDebug() << "Lex ok";
     p.parse(&OrgParser::parseTop);
 
-
-    qDebug() << "Lex OK";
+    qDebug() << "Top parse";
     writeFile(
         "/tmp/file_parsed.yaml", to_string(yamlRepr(p.nodes)) + "\n");
-    qDebug() << "Parse OK";
+    qDebug() << "Wrote parsed representation into yaml";
 
     writeFile(
         "/tmp/parsed_tree.html", htmlRepr(OrgId(0), p.nodes, source, ops));

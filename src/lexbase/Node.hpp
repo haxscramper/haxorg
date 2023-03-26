@@ -129,6 +129,8 @@ struct NodeGroup {
 
     Vec<NodeId<N, K>> pendingTrees;
 
+    int treeDepth() const { return pendingTrees.size(); }
+
     /// \brief Add token node to the list of nodes
     [[nodiscard]] NodeId<N, K> token(CR<NodeT> node) {
         return nodes.add(node);

@@ -204,6 +204,25 @@ void OrgParser::textFold(OrgLexer& lex) {
         break;                                                            \
     }
 
+#define CASE_INLINE(Kind)                                                 \
+    case otk::Kind##InlineOpen: {                                         \
+        __start(org::Kind);                                               \
+        lex.next();                                                       \
+        textFold(lex);                                                    \
+        break;                                                            \
+    }                                                                     \
+                                                                          \
+    case otk::Kind##InlineClose: {                                        \
+        if (pending().kind == org::Kind) {                                \
+            __end();                                                      \
+            lex.next();                                                   \
+        } else {                                                          \
+            fail(pop(lex, otk::Kind##InlineClose));                       \
+        }                                                                 \
+        break;                                                            \
+    }
+
+
     while (!lex.finished()) {
         switch (lex.kind()) {
             CASE_MARKUP(Bold);
@@ -215,7 +234,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             CASE_MARKUP(Quote);
             CASE_MARKUP(Par);
             CASE_MARKUP(Monospace);
-
+            CASE_MARKUP(Backtick);
 
             CASE_SINGLE(Space);
             CASE_SINGLE(Escaped);
@@ -225,6 +244,10 @@ void OrgParser::textFold(OrgLexer& lex) {
             CASE_SINGLE(BigIdent);
             CASE_SINGLE(Punctuation);
             CASE_SINGLE(Colon);
+
+            CASE_INLINE(Bold);
+            CASE_INLINE(Italic);
+            CASE_INLINE(Backtick);
 
             case otk::SrcOpen: parseSrcInline(lex); break;
             case otk::AngleTime: parseTime(lex); break;
@@ -281,6 +304,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::GroupStart: {
                 switch (lex.kind(+1)) {
                     case otk::LinkOpen: parseLink(lex); break;
+                    case otk::FootnoteStart: parseFootnote(lex); break;
                     default:
                         throw wrapError(Err::UnhandledToken(lex), lex);
                 }
@@ -295,12 +319,16 @@ void OrgParser::textFold(OrgLexer& lex) {
 
 #undef CASE_MARKUP
 #undef CASE_SINGLE
+#undef CASE_INLINE
 }
 
 Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
     __trace();
-    OrgId first = back();
+    OrgId first     = back();
+    int   treeStart = treeDepth();
     textFold(lex);
+    int treeEnd = treeDepth();
+    // Q_ASSERT(treeStart == treeEnd);
     OrgId last = back();
     return slice(first, last);
 }
@@ -461,6 +489,7 @@ OrgId OrgParser::parseTime(OrgLexer& lex) {
 
 OrgId OrgParser::parseFootnote(OrgLexer& lex) {
     __trace();
+    skip(lex, otk::GroupStart);
     // TODO replace 'footnote start' + '::' with a 'inline footnote start'
     // / 'footnote start nodes'
     skip(lex, otk::FootnoteStart);
@@ -476,16 +505,19 @@ OrgId OrgParser::parseFootnote(OrgLexer& lex) {
         __end();
     }
     skip(lex, otk::FootnoteEnd);
+    skip(lex, otk::GroupEnd);
+
     __end_return();
 }
 
 OrgId OrgParser::parseIdent(OrgLexer& lex) {
     __trace();
-    token(org::Ident, pop(lex, otk::Ident));
+    auto tok = token(org::Ident, pop(lex, otk::Ident));
+    __token(tok);
+    return tok;
 }
 
 OrgId OrgParser::parseSrcInline(OrgLexer& lex) {
-    qDebug() << lex;
     __trace();
     __start(org::SrcInlineCode);
     skip(lex, otk::SrcOpen);
@@ -1120,6 +1152,7 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
                 }
                 skip(lex, otk::Dedent);
                 skip(lex, otk::ListEnd);
+                space(lex);
                 break;
             }
             case otk::ListClock: {
@@ -1132,6 +1165,7 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
         }
     }
 
+    space(lex);
     skip(lex, otk::LogbookEnd);
     skip(lex, otk::ColonEnd);
     __end_return();

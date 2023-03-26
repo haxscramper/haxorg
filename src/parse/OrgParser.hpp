@@ -162,10 +162,12 @@ struct OrgParser : public OperationsTracer {
         token(OrgNodeKind::ErrorTerminator, OrgTokenId::Nil());
         OrgId failed           = end();
         group->at(failed).kind = OrgNodeKind::Error;
+        return failed;
     }
 
     inline OrgId back() const { return group->nodes.back(); }
 
+    int          treeDepth() const { return group->treeDepth(); }
     inline OrgId start(OrgNodeKind kind) { return group->startTree(kind); }
     inline OrgId end() { return group->endTree(); }
     inline OrgId empty() { return token(OrgNode(OrgNodeKind::Empty)); }
