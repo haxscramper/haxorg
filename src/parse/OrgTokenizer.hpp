@@ -31,7 +31,7 @@ struct OrgTokenizer
     struct Errors {
         struct Base : std::runtime_error {
             QStringView  view;
-            int          pos;
+            int          pos = 0;
             Opt<LineCol> loc;
 
             QString getLocMsg() const {

@@ -226,7 +226,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             CASE_SINGLE(Punctuation);
             CASE_SINGLE(Colon);
 
-            case otk::SrcOpen: parseTime(lex); break;
+            case otk::SrcOpen: parseSrcInline(lex); break;
             case otk::AngleTime: parseTime(lex); break;
             case otk::BracketTime: parseTime(lex); break;
             case otk::HashTag: parseHashTag(lex); break;
@@ -485,16 +485,16 @@ OrgId OrgParser::parseIdent(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseSrcInline(OrgLexer& lex) {
+    qDebug() << lex;
     __trace();
     __start(org::SrcInlineCode);
+    skip(lex, otk::SrcOpen);
     {
-        parseIdent(lex);
         token(org::Ident, pop(lex, otk::SrcName));
         __start(org::CodeLine);
         token(org::CodeText, pop(lex, otk::SrcBody));
         __end();
     }
-    __end();
     skip(lex, otk::SrcClose);
     __end_return();
 }
@@ -1041,7 +1041,6 @@ OrgId OrgParser::parseSubtreeLogbookListEntry(OrgLexer& lex) {
         __start(org::LogbookStateChange);
         {
 
-            qDebug() << lex;
             skip(lex, V{otk::Word, "State"});
             space(lex);
             skip(lex, otk::QuoteOpen);

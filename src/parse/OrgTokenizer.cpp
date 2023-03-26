@@ -148,6 +148,11 @@ OrgCommandKind classifyCommand(QString const& command) {
     }
 }
 
+PosStr spaced(PosStr tmp) {
+    tmp.space();
+    return tmp;
+}
+
 
 CR<CharSet> OIdentChars{
     slice(QChar('a'), QChar('z')),
@@ -750,9 +755,6 @@ bool OrgTokenizer::lexTextWord(PosStr& str) {
     auto tok   = str.tok(otk::Word, [&](PosStr& str) {
         while (!str.finished() && str.get().isLetterOrNumber()) {
             if (str.get().toUpper() != str.get()) {
-                __print(
-                    ("'$#' is not a title case"
-                     % to_string_vec(str.get())));
                 allUp = false;
             }
             str.next();
@@ -2304,8 +2306,6 @@ bool OrgTokenizer::atListStart(CR<PosStr> tmp) {
     }
 }
 
-/// REFACTOR don't mutate argument string, offload this to the proper
-/// parsing procedure
 bool OrgTokenizer::atListAhead(CR<PosStr> str) {
     if (!isFirstOnLine(str)) {
         return false;
@@ -2409,7 +2409,11 @@ void OrgTokenizer::lexListBody(
     // extend slice until new list start is not found - either via new
     // nested item or by indentation decrease.
     while (!str.finished() && !atEnd) {
-        if (atLogClock(str)) {
+        __print(
+            ("Testing list parser at $#"
+             % to_string_vec(str.printToString())));
+
+        if (atLogClock(spaced(str))) {
             __print("Found log lock in list body, stopping");
             // Special handlig of `CLOCK:` entries in the subtree
             // logging drawer to make sure the content is skipped in
@@ -2491,7 +2495,7 @@ bool OrgTokenizer::lexListItem(
 bool OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
     __trace();
     assert(!str.at(ONewline));
-    while (atListAhead(str) || atLogClock(str)) {
+    while (atListAhead(str)) {
         assert(!str.at(ONewline));
         skipIndents(state, str);
         const auto column = str.getColumn();
@@ -2554,9 +2558,14 @@ bool OrgTokenizer::lexParagraph(PosStr& str) {
     int        startPos = str.getPos();
     str.pushSlice();
     while (!str.finished() && !ended) {
-        if (atConstructStart(str) //
-            || atListAhead(str)   //
-            || str.finished()     //
+        if (atConstructStart(str)      //
+            || atListAhead(str)        //
+            || str.finished()          //
+            || atLogClock(spaced(str)) // HACK for now this is used to make
+                                       // paragraph lexing more uniform,
+                                       // but in general it should be moved
+                                       // to a more complex parsing
+                                       // strategy
             || 1 < getVerticalSpaceCount(str)) {
             ended = true;
         } else {
@@ -2950,10 +2959,11 @@ void OrgTokenizer::report(CR<Report> in) {
                << getLoc() << in.name << os.end() << ":" << fg::Cyan
                << in.line << os.end();
 
-            printString();
             if (in.subname.has_value()) {
                 os << " " << in.subname.value();
             }
+
+            printString();
 
             break;
         }
@@ -2997,11 +3007,10 @@ void OrgTokenizer::pushResolved(CR<OrgToken> token) {
             // (that's why the first pass is constrained to list and second
             // is not constrained to anything) might contain complex nested
             // elements
-            while (!str.finished()) {
+            bool finished = false;
+            while (!finished) {
                 __trace("Logbook element group");
-                auto tmp = str;
-                tmp.space();
-                if (atLogClock(tmp)) {
+                if (atLogClock(spaced(str)) && isFirstOnLine(str)) {
                     spaceSkip(str);
                     auto clock = str.fakeTok(otk::ListClock);
                     __push(clock);
@@ -3012,10 +3021,14 @@ void OrgTokenizer::pushResolved(CR<OrgToken> token) {
                     if (!str.finished()) {
                         newlineSkip(str);
                     }
-                } else {
+                } else if (
+                    atListAhead(spaced(str)) && isFirstOnLine(str)) {
                     lexList(str);
+                } else {
+                    finished = true;
                 }
             }
+            spaceSkip(str);
             __push(str.fakeTok(otk::LogbookEnd));
             break;
         }

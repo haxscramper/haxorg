@@ -93,7 +93,7 @@ BOOST_DESCRIBE_ENUM(
     UpdateMove);
 
 struct ASTNodeKind {
-    int value;
+    int value = 0;
     ASTNodeKind(int kind) : value(kind) {}
     bool operator==(ASTNodeKind const& other) const {
         return value == other.value;

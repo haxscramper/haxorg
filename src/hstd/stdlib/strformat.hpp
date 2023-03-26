@@ -22,7 +22,7 @@ enum class AddfFragmentKind
 struct AddfFragment {
     AddfFragmentKind kind;
     QString          text;
-    int              idx;
+    int              idx = 0;
 };
 
 struct FormatStringError : public std::runtime_error {

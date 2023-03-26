@@ -87,9 +87,9 @@ struct AstRange {
     Str          fieldName;          /*!Field name */
     AstRangeKind kind = AstRangeKind::Point;
 
-    int idx;   /*!Single subnode with either direct or inverse index */
-    int first; /*!first of the subnode range, left part of `..` */
-    int last;  /*!End of the subnode range, right part of `..` */
+    int idx   = 0; /*!Single subnode with either direct or inverse index */
+    int first = 0; /*!first of the subnode range, left part of `..` */
+    int last  = 0; /*!End of the subnode range, right part of `..` */
 
     /// \brief Set field documentation
     AstRange& doc(CR<Str> _doc) {

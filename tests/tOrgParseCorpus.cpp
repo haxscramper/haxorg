@@ -778,8 +778,8 @@ TEST_CASE("Parse file", "[corpus][notes]") {
 
     p.locationResolver = p.tokenizer.locationResolver;
 
-    int  start  = 0;
-    auto target = slice(start, start + 200);
+    int  start  = 430;
+    auto target = slice(start, start + 100);
 
     p.tokenizer.traceUpdateHook =
         [&](CR<OrgTokenizer::Report> in, bool& doTrace, bool first) {
