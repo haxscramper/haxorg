@@ -491,15 +491,7 @@ struct LexerCommon {
 
 template <typename K>
 QTextStream& operator<<(QTextStream& os, LexerCommon<K> const& value) {
-    for (int i = 0; i < 10; ++i) {
-        if (value.hasNext(i)) {
-            if (0 < i) {
-                os << " ";
-            }
-            os << value.tok(i);
-        }
-    }
-    return os;
+    return os << value.printToString();
 }
 
 /// \brief Lexer specialization for iterating over fixed sequence of IDs
@@ -515,7 +507,8 @@ struct SubLexer : public LexerCommon<K> {
 
 
     bool hasNext(int offset = 1) const override {
-        return !pos.isNil() && (subPos + offset < tokens.size());
+        auto idx = subPos + offset;
+        return !pos.isNil() && (0 <= idx) && (idx < tokens.size());
     }
 
     void next(int offset = 1) override {
@@ -550,7 +543,12 @@ struct Lexer : public LexerCommon<K> {
     }
 
     bool hasNext(int offset = 1) const override {
-        return !pos.isNil() && (pos + offset).getIndex() < in->size();
+        if (pos.isNil()) {
+            return false;
+        } else {
+            auto idx = (pos + offset).getIndex();
+            return (0 <= idx) && (idx < in->size());
+        }
     }
 
     Lexer(TokenGroup<K>* in) : LexerCommon<K>(in) {}

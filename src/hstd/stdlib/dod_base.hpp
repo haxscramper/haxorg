@@ -265,7 +265,8 @@ Id& operator++(Id& id) {
 template <IsIdType Id>
 Id operator+(Id id, int extent) {
     return Id::FromValue(
-        id.getMaskUnshifed() | saturating_add(id.getUnmasked(), extent));
+        id.getMaskUnshifed()
+        | saturating_add_any(id.getUnmasked(), extent));
 }
 
 /// \brief Saturated in-place post-increment of the ID

@@ -93,3 +93,12 @@ T saturating_sub(T value, Other change) {
     }
     return res;
 }
+
+template <std::integral T, std::integral Other>
+T saturating_add_any(T value, Other change) {
+    if (0 <= change) {
+        return saturating_add(value, change);
+    } else {
+        return saturating_sub(value, std::abs(change));
+    }
+}

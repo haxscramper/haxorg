@@ -205,7 +205,6 @@ void OrgParser::textFold(OrgLexer& lex) {
     }
 
     while (!lex.finished()) {
-        // qDebug() << lex;
         switch (lex.kind()) {
             CASE_MARKUP(Bold);
             CASE_MARKUP(Italic);
@@ -215,6 +214,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             CASE_MARKUP(Angle);
             CASE_MARKUP(Quote);
             CASE_MARKUP(Par);
+            CASE_MARKUP(Monospace);
 
 
             CASE_SINGLE(Space);
@@ -240,6 +240,11 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::DoubleDollarOpen:
             case otk::LatexBraceOpen: parseInlineMath(lex); break;
 
+            case otk::SkipAny: {
+                auto any = token(org::SkipAny, pop(lex, otk::SkipAny));
+                __token(any);
+                break;
+            }
 
             case otk::DoubleAngleOpen: {
                 skip(lex, otk::DoubleAngleOpen);
@@ -264,10 +269,23 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::MonospaceInline:
             case otk::BacktickInline:
             case otk::UnderlineInline:
-            case otk::StrikeInline:
-                assert(
-                    "Non-directional inline markup token incountered "
-                    "during text parsing");
+            case otk::StrikeInline: {
+                throw wrapError(
+                    Err::UnhandledToken(
+                        lex,
+                        "Non-directional inline markup token incountered "
+                        "during text parsing"),
+                    lex);
+            }
+
+            case otk::GroupStart: {
+                switch (lex.kind(+1)) {
+                    case otk::LinkOpen: parseLink(lex); break;
+                    default:
+                        throw wrapError(Err::UnhandledToken(lex), lex);
+                }
+                break;
+            }
 
             default: {
                 throw wrapError(Err::UnhandledToken(lex), lex);
@@ -290,6 +308,7 @@ Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
 OrgId OrgParser::parseLink(OrgLexer& lex) {
     __trace();
     __start(org::Link);
+    skip(lex, otk::GroupStart);
     skip(lex, otk::LinkOpen);
     skip(lex, otk::LinkTargetOpen);
     if (lex.at(otk::LinkInternal)) {
@@ -319,7 +338,9 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
     } else {
         empty();
     }
+
     skip(lex, otk::LinkClose);
+    skip(lex, otk::GroupEnd);
     __end_return();
 }
 
@@ -981,91 +1002,73 @@ OrgId OrgParser::parseSubtreeLogbookClockEntry(OrgLexer& lex) {
 
 OrgId OrgParser::parseSubtreeLogbookListEntry(OrgLexer& lex) {
     __trace();
+    __start(org::LogbookEntry);
+    using V = TokenWithValue;
+
     skip(lex, otk::ListItemStart);
-    const auto pos = lex.find(
-        OrgTokSet{otk::DoubleSlash}, OrgTokSet{otk::ListItemEnd});
+    skipSpace(lex);
+    skip(lex, otk::StmtListOpen);
+    skip(lex, otk::ParagraphStart);
+    if (lex.at(otk::Word) && lex.strVal() == "State") {
+        // - State "WIP" from "TODO" [2023-01-01 Sun 23:32:22]
+        __start(org::LogbookStateChange);
+        {
 
-    const auto head = lex.pop(
-        pos == -1 ? lex.find(otk::ListItemEnd) - 1 : pos);
-    // head_parser
-    {
-        auto sub = SubLexer(lex.in, head);
-        sub.skip(otk::StmtListOpen);
-        sub.skip(otk::ParagraphStart);
-        if (sub.at(otk::Word) && sub.strVal() == "State") {
-            __start(org::LogbookStateChange);
-            {
-                sub.skip(otk::Word);
-                sub.trySkip(otk::Space);
-                sub.skip(otk::QuoteOpen);
-                token(org::BigIdent, sub.pop(otk::BigIdent));
-                sub.skip(otk::QuoteClose);
-                sub.trySkip(otk::Space);
-                if (sub.at(otk::QuoteOpen)) {
-                    sub.skip(otk::QuoteOpen);
-                    token(org::BigIdent, sub.pop(otk::BigIdent));
-                    sub.skip(otk::QuoteClose);
-                    sub.trySkip(otk::Space);
-                }
-                parseTime(lex);
-            }
-            __end();
-        } else if (lex.at(otk::Word) && lex.strVal() == "Refiled") {
-            __start(org::LogbookRefile);
-            {
-                skip(lex, TokenWithValue{otk::Word, "Refiled"});
-                space(lex);
-                skip(lex, TokenWithValue{otk::Word, "on"});
-                space(lex);
-                parseTime(lex);
-                space(lex);
-                skip(lex, TokenWithValue{otk::Word, "from"});
-                space(lex);
-                parseLink(lex);
-            }
-            __end();
-        } else if (lex.at(otk::Word) && lex.strVal() == "Note") {
-            __start(org::LogbookNote);
-            {
-                skip(lex, TokenWithValue{otk::Word, "Note"});
-                space(lex);
-                skip(lex, TokenWithValue{otk::Word, "taken"});
-                space(lex);
-                skip(lex, TokenWithValue{otk::Word, "on"});
-                space(lex);
-                parseTime(lex);
-                space(lex);
-                if (lex.at(otk::DoubleSlash)) {
-                    skip(lex, otk::DoubleSlash);
-                }
-            }
-            __end();
-        } else {
-            assert(false);
+            qDebug() << lex;
+            skip(lex, V{otk::Word, "State"});
+            space(lex);
+            skip(lex, otk::QuoteOpen);
+            token(org::BigIdent, pop(lex, otk::BigIdent));
+            skip(lex, otk::QuoteClose);
+            space(lex);
+            skip(lex, V{otk::Word, "from"});
+            space(lex);
+            skip(lex, otk::QuoteOpen);
+            token(org::BigIdent, pop(lex, otk::BigIdent));
+            skip(lex, otk::QuoteClose);
+            space(lex);
+            parseTime(lex);
         }
-    }
-    // body_parser
-    {
-        if (pos == -1) {
-            empty();
-            skip(lex, otk::ListItemEnd);
-        } else {
-            Vec<OrgTokenId> tokens;
-            tokens.push_back(lex.in->add(OrgToken(otk::ParagraphStart)));
-            tokens.append(lex.pop(lex.find(otk::ListItemEnd)));
-
-            tokens = strip(
-                lex,
-                tokens,
-                {otk::Newline, otk::Space},
-                {otk::Newline, otk::Space},
-                {otk::StmtListOpen, otk::ParagraphStart},
-                {otk::StmtListClose, otk::ParagraphEnd, otk::ListItemEnd});
-
-            auto sub = SubLexer(lex.in, tokens);
-            parseListItemBody(sub);
+        __end();
+    } else if (lex.at(otk::Word) && lex.strVal() == "Refiled") {
+        __start(org::LogbookRefile);
+        {
+            skip(lex, V{otk::Word, "Refiled"});
+            space(lex);
+            skip(lex, V{otk::Word, "on"});
+            space(lex);
+            parseTime(lex);
+            space(lex);
+            skip(lex, V{otk::Word, "from"});
+            space(lex);
+            parseLink(lex);
         }
+        __end();
+    } else if (lex.at(otk::Word) && lex.strVal() == "Note") {
+        __start(org::LogbookNote);
+        {
+            skip(lex, V{otk::Word, "Note"});
+            space(lex);
+            skip(lex, V{otk::Word, "taken"});
+            space(lex);
+            skip(lex, V{otk::Word, "on"});
+            space(lex);
+            parseTime(lex);
+            space(lex);
+            if (lex.at(otk::DoubleSlash)) {
+                skip(lex, otk::DoubleSlash);
+            }
+        }
+        __end();
     }
+
+    newline(lex);
+    space(lex);
+    skip(lex, otk::ParagraphEnd);
+    skip(lex, otk::StmtListClose);
+    skip(lex, otk::ListItemEnd);
+
+    // TODO handle optional logbook entry description or note
     __end_return();
 }
 
@@ -1077,34 +1080,30 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
     skip(lex, otk::GroupStart);
     skip(lex, otk::LogbookStart);
 
-    const auto indented = lex.at(otk::Indent);
-    if (indented) {
-        skip(lex, otk::Indent);
-    }
-
     skipSpace(lex);
-    while (!lex.at(indented ? otk::Dedent : otk::ListEnd)) {
+    while (lex.at(otk::ListStart) || lex.at(otk::ListClock)) {
         switch (lex.tok().kind) {
-            case otk::ListItemStart: {
-                parseSubtreeLogbookListEntry(lex);
+            case otk::ListStart: {
+                skip(lex, otk::ListStart);
+                skip(lex, otk::Indent);
+                while (lex.at(otk::ListItemStart)) {
+                    parseSubtreeLogbookListEntry(lex);
+                    if (lex.at(otk::SameIndent)) {
+                        lex.next();
+                    }
+                }
+                skip(lex, otk::Dedent);
+                skip(lex, otk::ListEnd);
                 break;
             }
             case otk::ListClock: {
                 parseSubtreeLogbookClockEntry(lex);
                 break;
             }
-            case otk::SameIndent: {
-                skip(lex, otk::SameIndent);
-                break;
-            }
             default: {
                 throw wrapError(Err::UnhandledToken(lex), lex);
             }
         }
-    }
-
-    if (indented) {
-        skip(lex, otk::Dedent);
     }
 
     skip(lex, otk::LogbookEnd);
@@ -1344,6 +1343,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         }
 
         case ock::Caption: {
+            qDebug() << lex;
             skipLineCommand(lex);
             __start(org::CommandCaption);
             parseParagraph(lex, false);
@@ -1428,6 +1428,8 @@ OrgId OrgParser::parseToplevelItem(OrgLexer& lex) {
         case otk::TableBegin: return parseTable(lex);
         case otk::SubtreeStars: return parseSubtree(lex);
         case otk::ListStart: return parseList(lex);
+        case otk::SkipAny:
+            return token(org::SkipAny, pop(lex, otk::SkipAny));
         case otk::SkipSpace:
             return token(org::SkipSpace, pop(lex, otk::SkipSpace));
         case otk::SkipNewline:

@@ -208,6 +208,7 @@ enum class OrgNodeKind : short int
     Newline,
     SkipNewline,
     SkipSpace,
+    SkipAny,
     RawLink, /// Raw unwrapped link that was pasted in text
     Link,
     /// External or internal link. Consists of one or two elements - target
@@ -298,6 +299,7 @@ enum class OrgNodeKind : short int
     /// Placeholder entry in text, usually writte like `<text to replace>`
     SubtreeDescription, /// `:description:` entry
     Logbook,            /// `:logbook:` entry storing note information
+    LogbookEntry,
     LogbookStateChange, /// Annotation about change in the subtree todo
                         /// state
     LogbookNote,        /// Timestamped log note on the subtree
