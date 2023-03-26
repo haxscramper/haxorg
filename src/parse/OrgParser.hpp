@@ -213,6 +213,7 @@ struct OrgParser : public OperationsTracer {
     OrgId parseCommandArguments(OrgLexer& lex);
     OrgId parseSrcArguments(OrgLexer& lex);
     OrgId parseSrc(OrgLexer& lex);
+    OrgId parseExample(OrgLexer& lex);
     OrgId parseListItemBody(OrgLexer& lex);
     OrgId parseListItem(OrgLexer& lex);
     OrgId parseNestedList(OrgLexer& lex);

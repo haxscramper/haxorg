@@ -8,8 +8,10 @@ namespace org_impl {
 #include <hstd/system/reflection.hpp>
 
 inline QString to_string(OrgTokenKind k) { return org_impl::to_string(k); }
-
 inline QString to_string(OrgNodeKind k) { return org_impl::to_string(k); }
+inline QString to_string(OrgCommandKind k) {
+    return org_impl::to_string(k);
+}
 
 template <>
 inline std::optional<OrgNodeKind> string_to_enum(QString const& str) {

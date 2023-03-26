@@ -757,6 +757,33 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind) {
     __end_return();
 }
 
+OrgId OrgParser::parseExample(OrgLexer& lex) {
+    __trace();
+    __start(org::Example);
+
+    skip(lex, otk::CommandPrefix);
+    skip(lex, otk::CommandBegin);
+
+    { // command arguments
+        skip(lex, otk::CommandArgumentsBegin);
+        auto args = token(org::RawText, pop(lex, otk::RawText));
+        __token(args);
+        skip(lex, otk::CommandArgumentsEnd);
+    }
+
+    { // command content
+        skip(lex, otk::CommandContentStart);
+        auto body = token(org::RawText, pop(lex, otk::RawText));
+        __token(body);
+        skip(lex, otk::CommandContentEnd);
+    }
+
+    skip(lex, otk::CommandPrefix);
+    skip(lex, otk::CommandEnd);
+
+    __end_return();
+}
+
 OrgId OrgParser::parseSrc(OrgLexer& lex) {
     __trace();
     __start(org::SrcCode);
@@ -1343,8 +1370,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         }
 
         case ock::Caption: {
-            qDebug() << lex;
             skipLineCommand(lex);
+            space(lex);
             __start(org::CommandCaption);
             parseParagraph(lex, false);
             __end();
@@ -1414,7 +1441,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
         default: {
-            assert(false && "TODO");
+            throw wrapError(
+                Err::UnhandledToken(lex, to_string(kind)), lex);
         }
     }
 
@@ -1441,14 +1469,13 @@ OrgId OrgParser::parseToplevelItem(OrgLexer& lex) {
             const auto kind = classifyCommand(lex.strVal(1));
             switch (kind) {
                 case ock::BeginSrc: return parseSrc(lex);
+                case ock::BeginExample: return parseExample(lex);
                 case ock::BeginQuote:
                 case ock::BeginCenter:
-                case ock::BeginAdmonition: {
+                case ock::BeginAdmonition:
                     return parseTextWrapCommand(lex, kind);
-                }
-                default: {
-                    return parseLineCommand(lex);
-                }
+
+                default: return parseLineCommand(lex);
             }
             break;
         }

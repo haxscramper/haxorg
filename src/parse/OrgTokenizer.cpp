@@ -1307,7 +1307,7 @@ bool OrgTokenizer::lexDescription(PosStr& str) {
             str.next();
         }
         auto text = Token(otk::Text, str.popSlice().view);
-        __push(text);
+        pushResolved(text);
         const auto id  = str.slice([this](PosStr& str) {
             oskipOne(str, QChar(':'));
             str.skipZeroOrMore(charsets::IdentChars);
@@ -1753,7 +1753,7 @@ bool OrgTokenizer::lexCommandContent(
         case ock::BeginDynamic: {
             spaceSkip(str);
             auto text = str.tok(otk::Text, skipPastEOF);
-            __push(text);
+            pushResolved(text);
             break;
         }
         case ock::BeginSrc: {
@@ -2047,7 +2047,7 @@ bool OrgTokenizer::lexCommandArguments(
         }
         case ock::Caption: {
             auto caption = str.tok(otk::Text, skipPastEOF);
-            __push(caption);
+            pushResolved(caption);
             break;
         }
         case ock::Call: {
