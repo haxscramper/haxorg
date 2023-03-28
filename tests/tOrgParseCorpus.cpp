@@ -653,9 +653,10 @@ QString htmlRepr(
             }
 
 
-            Slice<OrgId> allsub = nodes.allSubnodesOf(root);
-            Opt<int>     textStart;
-            Opt<int>     textEnd;
+            Opt<Slice<OrgId>> allsub = nodes.allSubnodesOf(root);
+
+            Opt<int> textStart;
+            Opt<int> textEnd;
 
             QString record;
             if (ops.started.contains(root) && ops.ended.contains(root)) {
@@ -668,15 +669,17 @@ QString htmlRepr(
             }
 
 
-            for (const auto& id : allsub) {
-                if (nodes.at(id).isTerminal()) {
-                    auto absolute = getNodeTextRange(id);
-                    if (absolute.has_value()) {
-                        if (!textStart) {
-                            textStart = absolute->first;
-                        }
+            if (allsub.has_value()) {
+                for (const auto& id : allsub.value()) {
+                    if (nodes.at(id).isTerminal()) {
+                        auto absolute = getNodeTextRange(id);
+                        if (absolute.has_value()) {
+                            if (!textStart) {
+                                textStart = absolute->first;
+                            }
 
-                        textEnd = absolute->last;
+                            textEnd = absolute->last;
+                        }
                     }
                 }
             }
@@ -688,10 +691,12 @@ QString htmlRepr(
                             getRangeClick(
                                 textStart,
                                 textEnd,
-                                ", $#..$#"
-                                    % to_string_vec(
-                                        allsub.first.getIndex(),
-                                        allsub.last.getIndex()))},
+                                allsub
+                                    ? (", $#..$#"
+                                       % to_string_vec(
+                                           allsub->first.getIndex(),
+                                           allsub->last.getIndex()))
+                                    : QString(""))},
                            {"width", to_string(level * 10)},
                            {"subnodeName",
                             "$#"
@@ -707,9 +712,11 @@ QString htmlRepr(
                            {"record", record},
                            {"level", to_string(level)},
                            {"extentStart",
-                            to_string(allsub.first.getIndex())},
+                            allsub ? to_string(allsub->first.getIndex())
+                                   : QString("")},
                            {"extentEnd",
-                            to_string(allsub.last.getIndex())},
+                            allsub ? to_string(allsub->last.getIndex())
+                                   : QString("")},
                        });
 
             return Result{.level = level + 1, .content = table};
@@ -723,9 +730,8 @@ QString htmlRepr(
     QString headerWidths;
 
 
-    auto v = Vec<int>{100, 100, 100, 150, 150, 150};
+    auto v = Vec<int>{100, 100, 100, 150, 150, 200};
     for (const auto& [idx, width] : enumerate(v)) {
-        qDebug() << idx << width;
         headerWidths.push_back(
             (R"(th.content$1 { min-width: $2px; width: $2px; })"
              "\n")
@@ -778,8 +784,8 @@ TEST_CASE("Parse file", "[corpus][notes]") {
 
     p.locationResolver = p.tokenizer.locationResolver;
 
-    int  start  = 430;
-    auto target = slice(start, start + 100);
+    int  start  = 0;
+    auto target = slice(start, start + 200);
 
     p.tokenizer.traceUpdateHook =
         [&](CR<OrgTokenizer::Report> in, bool& doTrace, bool first) {

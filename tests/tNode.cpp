@@ -78,9 +78,9 @@ TEST_CASE("General node API", "[node]") {
         REQUIRE(nodes.parent(A) == top);
         REQUIRE(nodes.parent(A1) == A);
 
-        REQUIRE(size(nodes.allSubnodesOf(A1)) == 1);
-        REQUIRE(size(nodes.allSubnodesOf(A)) == 2);
-        REQUIRE(size(nodes.allSubnodesOf(top)) == 9);
+        REQUIRE(!(nodes.allSubnodesOf(A1).has_value()));
+        REQUIRE(size(nodes.allSubnodesOf(A).value()) == 2);
+        REQUIRE(size(nodes.allSubnodesOf(top).value()) == 9);
     }
 
     SECTION("Flat subnode with no deep nesting") {

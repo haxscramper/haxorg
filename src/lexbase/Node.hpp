@@ -70,7 +70,8 @@ struct Node {
     }
 
     void extend(int extent) {
-        assert(isNonTerminal());
+        Q_ASSERT(isNonTerminal());
+        Q_ASSERT(0 <= extent);
         value = extent;
     }
 
@@ -248,9 +249,17 @@ struct NodeGroup {
     }
 
     /// \brief Get ID slice over all subnodes that are places 'in' a
-    /// specific node.
-    Slice<NodeId<N, K>> allSubnodesOf(NodeId<N, K> node) const {
-        return {node + 1, node + at(node).getExtent()};
+    /// specific node. For nodes without any nested elements returns empty
+    /// option as `Slice` type is not intended to provde 'zero-size' ranges
+    /// -- it always has the first and the last element, in some cases they
+    /// might be equal, but that's all
+    Opt<Slice<NodeId<N, K>>> allSubnodesOf(NodeId<N, K> node) const {
+        if (0 < at(node).getExtent()) {
+            return slice<NodeId<N, K>>(
+                node + 1, node + at(node).getExtent());
+        } else {
+            return std::nullopt;
+        }
     }
 
     /// \brief Get closest left node that contains \arg node in its full
@@ -260,10 +269,12 @@ struct NodeGroup {
         --parent;
         while (!parent.isNil()) {
             auto extent = allSubnodesOf(parent);
-            if (extent.contains(node)) {
-                return parent;
-            } else {
-                --parent;
+            if (extent.has_value()) {
+                if (extent->contains(node)) {
+                    return parent;
+                } else {
+                    --parent;
+                }
             }
         }
 

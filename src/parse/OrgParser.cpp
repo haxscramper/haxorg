@@ -1182,14 +1182,23 @@ OrgId OrgParser::parseSubtreeProperties(OrgLexer& lex) {
         __trace("Parse single subtree property");
         __start(
             lex.at(otk::ColonIdent) ? org::Property : org::PropertyAdd);
-        token(
+        auto add = token(
             org::RawText,
             pop(lex, OrgTokSet{otk::ColonIdent, otk::ColonAddIdent}));
 
-        skip(lex, otk::SkipSpace);
+
+        __token(add);
+
+        // Optional sub-ident for the property name, like
+        // `:header-args:cpp:`
         if (lex.at(otk::Ident)) {
-            token(org::Ident, pop(lex, otk::Ident));
+            auto sub = token(org::Ident, pop(lex, otk::Ident));
+            __token(sub);
+        } else {
+            empty();
         }
+
+        skip(lex, otk::SkipSpace);
 
         token(org::RawText, pop(lex, otk::RawProperty));
         skip(lex, otk::SkipNewline);
@@ -1215,6 +1224,7 @@ OrgId OrgParser::parseSubtreeDrawer(OrgLexer& lex) {
             case otk::ColonDescription: {
                 skip(lex, otk::ColonDescription);
                 __start(org::SubtreeDescription);
+                newline(lex);
                 {
                     parseParagraph(lex, false);
                     skip(lex, otk::ColonEnd);
