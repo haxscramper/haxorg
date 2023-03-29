@@ -4,15 +4,28 @@
 using namespace sem;
 using namespace properties;
 
-UPtr<sem::Table> convertTable(Org* parent, OrgAdapter adapter) {
-    auto result = std::make_unique<sem::Table>(parent, adapter);
+using org = OrgNodeKind;
+using otk = OrgTokenKind;
+using Err = OrgConverter::Errors;
+
+template <typename T>
+UPtr<T> Sem(sem::Org* parent, OrgAdapter adapter) {
+    return std::make_unique<T>(parent, adapter);
+}
+
+UPtr<sem::Table> OrgConverter::convertTable(
+    Org*       parent,
+    OrgAdapter adapter) {
+    auto result = Sem<Table>(parent, adapter);
 
     return result;
 };
 
 
-UPtr<sem::HashTag> convertHashTag(Org* parent, OrgAdapter adapter) {
-    auto result = std::make_unique<sem::HashTag>(parent, adapter);
+UPtr<sem::HashTag> OrgConverter::convertHashTag(
+    Org*       parent,
+    OrgAdapter adapter) {
+    auto                      result = Sem<HashTag>(parent, adapter);
     Func<HashTag(OrgAdapter)> aux;
     result->head = strip(
         adapter.at(0).strVal(), CharSet{QChar('#')}, CharSet{});
@@ -21,7 +34,7 @@ UPtr<sem::HashTag> convertHashTag(Org* parent, OrgAdapter adapter) {
         result.head = strip(
             adapter.at(0).strVal(), CharSet{QChar('#')}, CharSet{});
         if (1 < adapter.size()) {
-            for (const auto& node : adapter.at(slice(1, 1_B))) {
+            for (auto& node : adapter.at(slice(1, 1_B))) {
                 result.subtags.push_back(aux(node));
             }
         }
@@ -29,10 +42,37 @@ UPtr<sem::HashTag> convertHashTag(Org* parent, OrgAdapter adapter) {
     };
 
     if (1 < adapter.size()) {
-        for (const auto& node : adapter.at(slice(1, 1_B))) {
+        for (auto& node : adapter.at(slice(1, 1_B))) {
             result->subtags.push_back(aux(node));
         }
     }
 
     return result;
 };
+
+UPtr<sem::Subtree> OrgConverter::convertSubtree(
+    sem::Org*  parent,
+    OrgAdapter adapter) {}
+
+UPtr<sem::StmtList> OrgConverter::convertStmtList(
+    sem::Org*  parent,
+    OrgAdapter adapter) {
+    auto stmt = Sem<StmtList>(parent, adapter);
+
+    for (OrgAdapter const& sub : adapter) {
+        stmt->push_back(convert(stmt.get(), sub));
+    }
+
+    return stmt;
+}
+
+
+UPtr<sem::Org> OrgConverter::convert(
+    sem::Org*  parent,
+    OrgAdapter adapter) {
+    switch (adapter.kind()) {
+        case org::StmtList: return convertStmtList(parent, adapter); break;
+        default:
+            throw wrapError(Err::UnhandledKind(adapter.kind()), adapter);
+    }
+}

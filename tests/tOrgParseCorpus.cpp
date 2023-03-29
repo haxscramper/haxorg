@@ -767,7 +767,8 @@ TEST_CASE("Parse file", "[corpus][notes]") {
     MockFull p;
     // QString  source = readFile(
     //     "/mnt/workspace/repos/personal/indexed/notes.org");
-    QString source = readFile("/tmp/doc.org");
+    QString source = readFile(
+        "/mnt/workspace/repos/fic/wiki/timeline_real.org");
 
     p.tokenizer.setTraceFile("/tmp/file_lex_trace.txt");
     p.setTraceFile("/tmp/file_parse_trace.txt");
@@ -1065,6 +1066,11 @@ kind=$#
         "/tmp/parsed_tree.html", htmlRepr(OrgId(0), p.nodes, source, ops));
 
     qDebug() << "Wrote parsed tree representation";
+
+    sem::OrgConverter converter;
+    converter.locationResolver = p.tokenizer.locationResolver;
+    converter.convert(nullptr, p.a(0));
+
     SUCCEED("Parsed input corpus file");
 }
 

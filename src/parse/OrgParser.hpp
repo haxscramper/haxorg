@@ -116,10 +116,8 @@ struct OrgParser : public OperationsTracer {
     };
 
     Func<LineCol(CR<PosStr>)> locationResolver;
-
-    ParserError wrapError(CR<Error> err, CR<OrgLexer> lex);
-
-    Opt<LineCol> getLoc(CR<OrgLexer> lex);
+    ParserError               wrapError(CR<Error> err, CR<OrgLexer> lex);
+    Opt<LineCol>              getLoc(CR<OrgLexer> lex);
 
   public:
     enum class ReportKind

@@ -88,7 +88,7 @@ TEST_CASE("Simple node conversion") {
            << yamlRepr(p.tokens) << "\nend flat tokens\n";
 
         // qcout << buf << Qt::endl;
-        auto hash = convertHashTag(nullptr, p.a(0));
+        auto hash = sem::OrgConverter{}.convertHashTag(nullptr, p.a(0));
         ss << hash->toJson() << Qt::endl;
     }
 

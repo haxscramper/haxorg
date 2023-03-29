@@ -77,15 +77,24 @@ struct Org {
 
     // TODO replace with custom list of kinds -- place enum in the
     // `enums.hpp`
-    OrgNodeKind getKind() const { return original.getKind(); }
-    bool        isGenerated() const { return original.empty(); }
-    Vec<std::unique_ptr<Org>> subnodes;
+    OrgNodeKind    getKind() const { return original.getKind(); }
+    bool           isGenerated() const { return original.empty(); }
+    Vec<UPtr<Org>> subnodes;
     Vec<properties::Property> properties;
 
     virtual json toJson() const = 0;
+
+    void push_back(UPtr<Org>&& sub) { subnodes.push_back(std::move(sub)); }
 };
 
 BOOST_DESCRIBE_STRUCT(Org, (), (parent, subnodes, properties));
+
+struct StmtList : public Org {
+    using Org::Org;
+    virtual json toJson() const override;
+};
+
+BOOST_DESCRIBE_STRUCT(StmtList, (Org), ());
 
 struct Row : public Org {
     using Org::Org;
@@ -370,4 +379,5 @@ json to_json(T const& t) {
 inline json Table::toJson() const { return to_json(*this); }
 inline json Row::toJson() const { return to_json(*this); }
 inline json HashTag::toJson() const { return to_json(*this); }
+inline json StmtList::toJson() const { return to_json(*this); }
 }; // namespace sem

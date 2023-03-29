@@ -201,7 +201,7 @@ struct NodeGroup {
 
 
     class iterator {
-      private:
+      public:
         NodeId<N, K>  id;
         CP<NodeGroup> group;
 
@@ -230,6 +230,7 @@ struct NodeGroup {
     iterator begin(NodeId<N, K> start) const {
         return iterator(start, this);
     }
+
     iterator end(NodeId<N, K> last) const {
         return iterator(++last, this);
     }
@@ -245,6 +246,7 @@ struct NodeGroup {
     /// }
     /// ```
     Pair<iterator, iterator> subnodesOf(NodeId<N, K> node) const {
+        // TODO return empty range for iterator start
         return {begin(node + 1), end(node + at(node).getExtent())};
     }
 
@@ -490,8 +492,10 @@ struct NodeAdapter {
     }
 
     Str strVal() const { return group->strVal(id); }
+    N   kind() const { return group->at(id).kind; }
 
     CR<Node<N, K>> get() { return group->at(id); }
+
 
     NodeAdapter<N, K>(NodeGroup<N, K> const* group, NodeId<N, K> id)
         : group(group), id(id) {}
@@ -528,5 +532,40 @@ struct NodeAdapter {
             result.push_back(this->operator[](i));
         }
         return result;
+    }
+
+    class iterator {
+      private:
+        typename NodeGroup<N, K>::iterator iter;
+
+      public:
+        typedef std::forward_iterator_tag iterator_category;
+        typedef NodeAdapter<N, K>         value_type;
+        typedef NodeAdapter<N, K>*        pointer;
+        typedef NodeAdapter<N, K>&        reference;
+        typedef std::ptrdiff_t            difference_type;
+
+        iterator(typename NodeGroup<N, K>::iterator iter) : iter(iter) {}
+
+        NodeAdapter<N, K> operator*() {
+            // get current value
+            return NodeAdapter<N, K>(iter.group, iter.id);
+        }
+
+        iterator& operator++() {
+            // increment current iterator state
+            ++iter;
+            return *this;
+        }
+
+        bool operator!=(const iterator& other) {
+            // implement iterator inequality comparison
+            return this->iter != other.iter;
+        }
+    };
+
+    iterator begin() { return iterator(group->begin(id + 1)); }
+    iterator end() {
+        return iterator(group->end(id + group->at(id).getExtent()));
     }
 };
