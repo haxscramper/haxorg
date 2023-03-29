@@ -16,6 +16,10 @@ OrgConverter::ConvertError OrgConverter::wrapError(
     ConvertError result{err};
     auto         loc = getLoc(adapter);
 
+    if (!result.getAdapter().has_value()) {
+        result.setAdapter(adapter);
+    }
+
     if (loc.has_value()) {
         result.setLoc(loc.value());
     }

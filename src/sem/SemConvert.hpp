@@ -59,6 +59,18 @@ struct OrgConverter {
         void setLoc(CR<LineCol> loc) {
             std::visit([&loc](auto& in) { in.loc = loc; }, err);
         }
+
+        void setAdapter(CR<OrgAdapter> adapter) {
+            std::visit(
+                [&adapter](auto& in) { in.adapter = adapter; }, err);
+        }
+
+
+        Opt<OrgAdapter> getAdapter() const {
+            return std::visit(
+                [](auto& in) -> Opt<OrgAdapter> { return in.adapter; },
+                err);
+        }
     };
 
     Func<LineCol(CR<PosStr>)> locationResolver;
