@@ -184,19 +184,19 @@ inline QTextStream& operator<<(
 }
 
 
-template <typename N, typename K, typename Name>
+template <typename Node, typename Kind, typename Name>
 struct AstCheckFail {
     bool           isMissing = false;
     Str            msg;
     Vec<int>       path;
-    K              parent = low<K>();
-    IntSet<K>      expected;
-    Opt<K>         got;
+    Kind           parent = low<Kind>();
+    IntSet<Kind>   expected;
+    Opt<Kind>      got;
     AstRange<Name> range;
 
     AstCheckFail() {}
 
-    Vec<AstCheckFail<N, K, Name>> nested;
+    Vec<AstCheckFail<Node, Kind, Name>> nested;
 
     bool empty(const bool& withNested = true) const {
         return !isMissing && msg.size() == 0 && expected.size() == 0
@@ -215,14 +215,15 @@ struct AstCheckFail {
     };
 
 
-    ColText format(const N& node) const {
+    ColText format(Node const& node) const {
         using fg = TermColorFg8Bit;
         ColStream s;
 
-        Func<void(const AstCheckFail<N, K, Name>&, const int&)> aux;
+        Func<void(const AstCheckFail<Node, Kind, Name>&, const int&)> aux;
 
         aux = [&s, &aux, &node](
-                  const AstCheckFail<N, K, Name>& fail, const int& level) {
+                  const AstCheckFail<Node, Kind, Name>& fail,
+                  const int&                            level) {
             s.indent(level);
             auto parentFailed = false;
             if (!fail.empty(false)) {
@@ -301,73 +302,73 @@ struct AstCheckError : public std::runtime_error {};
 
 
 /// \brief User-defined validation callback
-template <typename N, typename K, typename Name>
-using AstCheckProc = Func<Opt<AstCheckFail<N, K, Name>>(N)>;
+template <typename Node, typename Kind, typename Name>
+using AstCheckProc = Func<Opt<AstCheckFail<Node, Kind, Name>>(Node)>;
 
 
-template <typename N, typename K, typename Name>
+template <typename Node, typename Kind, typename Name>
 struct AstPattern;
 
 /// \brief Description of the AST field with provided structural pattern
-template <typename N, typename K, typename Name>
+template <typename Node, typename Kind, typename Name>
 struct AstPatternRange {
-    AstRange<Name>              range;
-    Vec<AstPattern<N, K, Name>> alts;
+    AstRange<Name>                    range;
+    Vec<AstPattern<Node, Kind, Name>> alts;
     AstPatternRange(
-        CR<AstRange<Name>>         range,
-        CR<AstPattern<N, K, Name>> pattern)
+        CR<AstRange<Name>>               range,
+        CR<AstPattern<Node, Kind, Name>> pattern)
         : range(range), alts({pattern}) {}
     AstPatternRange(
-        CR<AstRange<Name>>              range,
-        CR<Vec<AstPattern<N, K, Name>>> alts = {})
+        CR<AstRange<Name>>                    range,
+        CR<Vec<AstPattern<Node, Kind, Name>>> alts = {})
         : range(range), alts(alts) {}
 };
 
 /// \brief Entry describing AST structure expected at some specific point
 /// in the tree comparison.
-template <typename N, typename K, typename Name>
+template <typename Node, typename Kind, typename Name>
 struct AstPattern {
     /// \brief Documentation for AST pattern at specific place in the tree
     Str doc;
     /// \brief Extra user-provided validation procedure
-    AstCheckProc<N, K, Name> check;
+    AstCheckProc<Node, Kind, Name> check;
     /// \brief Set of node kinds expected at point, mostly used for
     /// leaf-level nodes
-    IntSet<K> expected;
+    IntSet<Kind> expected;
     /// \brief List of subnode ranges, mostly used for describing the
     /// structure of upper-level nodes
-    Vec<AstPatternRange<N, K, Name>> ranges;
+    Vec<AstPatternRange<Node, Kind, Name>> ranges;
 
     /// \brief Construt upper-level AST patter specification, containing
     /// one or more pattern ranges for fields
-    AstPattern(CR<Vec<AstPatternRange<N, K, Name>>> ranges)
+    AstPattern(CR<Vec<AstPatternRange<Node, Kind, Name>>> ranges)
         : ranges(ranges) {}
     /// \brief Construct leaf-level AST pattern specification, containing
     /// set of expected nodes
-    AstPattern(CR<IntSet<K>> expected) : expected(expected) {}
-    AstPattern(K expected) : expected(IntSet<K>{expected}) {}
+    AstPattern(CR<IntSet<Kind>> expected) : expected(expected) {}
+    AstPattern(Kind expected) : expected(IntSet<Kind>{expected}) {}
     /// \brief Appent subranges to the already constructed pattern object.
     /// Used for constructing patterns that have constrained kind and
     /// pattern range.
-    AstPattern& sub(CR<Vec<AstPatternRange<N, K, Name>>> subr) {
+    AstPattern& sub(CR<Vec<AstPatternRange<Node, Kind, Name>>> subr) {
         ranges.append(subr);
         return *this;
     }
 
 
-    AstCheckFail<N, K, Name> validateAst(
-        const K&        kind,
-        const K&        subnode,
+    AstCheckFail<Node, Kind, Name> validateAst(
+        Kind const&     kind,
+        Kind const&     subnode,
         const int&      idx,
         const int&      maxLen,
         const Vec<int>& path = Vec<int>{}) const {
-        AstCheckFail<N, K, Name> result;
+        AstCheckFail<Node, Kind, Name> result;
         result.path = path;
         for (const auto arange : ranges) {
             if (arange.range.contains(idx, maxLen)) {
                 for (const auto alt : arange.alts) {
                     if (!alt.expected.contains(subnode)) {
-                        AstCheckFail<N, K, Name> fail;
+                        AstCheckFail<Node, Kind, Name> fail;
                         fail.parent   = kind;
                         fail.path     = path;
                         fail.expected = alt.expected;
@@ -383,10 +384,10 @@ struct AstPattern {
     }
 
 
-    AstCheckFail<N, K, Name> findMissing(
-        const N&        node,
+    AstCheckFail<Node, Kind, Name> findMissing(
+        Node const&     node,
         const Vec<int>& path = Vec<int>{}) const {
-        AstCheckFail<N, K, Name> result;
+        AstCheckFail<Node, Kind, Name> result;
         result.path = path;
         if (!ranges.empty()) {
             auto altFound = Vec(ranges.size(), false);
@@ -410,12 +411,12 @@ struct AstPattern {
 
             for (const auto& [rangeIdx, found] : enumerate(altFound)) {
                 if (!found && !ranges[rangeIdx].range.isOptional) {
-                    IntSet<K> expected;
+                    IntSet<Kind> expected;
                     for (const auto alt : ranges[rangeIdx].alts) {
                         expected.incl(alt.expected);
                     }
 
-                    AstCheckFail<N, K, Name> fail;
+                    AstCheckFail<Node, Kind, Name> fail;
                     fail.isMissing = true;
                     fail.parent    = node.getKind();
                     fail.path      = path + rangeIdx;
@@ -430,13 +431,13 @@ struct AstPattern {
     }
 
     Opt<ColText> validateSub(
-        const K&   node,
-        const K&   sub,
-        const int& idx,
-        const int& maxIdx) const {
+        Kind const& node,
+        Kind const& sub,
+        const int&  idx,
+        const int&  maxIdx) const {
 
         const auto fail = formatFail(
-            validateAst(node, sub, idx, maxIdx, {idx}), N());
+            validateAst(node, sub, idx, maxIdx, {idx}), Node());
 
         if (fail.empty()) {
             return std::nullopt;
@@ -446,14 +447,15 @@ struct AstPattern {
     }
 };
 
-template <typename N, typename K, typename Name>
+template <typename Node, typename Kind, typename Name>
 struct AstSpec {
   private:
-    TypArray<K, Opt<AstPattern<N, K, Name>>>       spec;
-    TypArray<K, UnorderedMap<Str, AstRange<Name>>> nodeRanges;
+    TypArray<Kind, Opt<AstPattern<Node, Kind, Name>>> spec;
+    TypArray<Kind, UnorderedMap<Str, AstRange<Name>>> nodeRanges;
 
-    TypArray<K, UnorderedMap<Str, AstRange<Name>>> getNodeRanges() const {
-        TypArray<K, UnorderedMap<Str, AstRange<Name>>> result;
+    TypArray<Kind, UnorderedMap<Str, AstRange<Name>>> getNodeRanges()
+        const {
+        TypArray<Kind, UnorderedMap<Str, AstRange<Name>>> result;
         for (const auto& [kind, pattern] : spec.pairs()) {
             if (pattern->has_value()) {
                 for (const auto& range : pattern->value().ranges) {
@@ -467,20 +469,21 @@ struct AstSpec {
     }
 
   public:
-    AstSpec(const Vec<Pair<K, AstPattern<N, K, Name>>>& patterns) {
+    AstSpec(
+        const Vec<Pair<Kind, AstPattern<Node, Kind, Name>>>& patterns) {
         for (const auto& [kind, pattern] : patterns) {
             spec[kind] = pattern;
         }
         nodeRanges = getNodeRanges();
     }
 
-    AstPattern<N, K, Name> getPattern(const K& kind) const {
+    AstPattern<Node, Kind, Name> getPattern(Kind const& kind) const {
         return spec[kind].get();
     }
 
-    bool hasPattern(K kind) const { return spec[kind].has_value(); }
+    bool hasPattern(Kind kind) const { return spec[kind].has_value(); }
 
-    ColText validateAst(const N& node) const {
+    ColText validateAst(Node const& node) const {
         if (spec[node.kind].has_value()) {
             return formatFail(
                 spec[node.kind].value().findMissing(node), node);
@@ -489,7 +492,7 @@ struct AstSpec {
         }
     }
 
-    Opt<ColText> validateSelf(const N& node) const {
+    Opt<ColText> validateSelf(Node const& node) const {
         if (spec[node.getKind()].has_value()) {
             const auto missing = spec[node.getKind()].value().findMissing(
                 node);
@@ -504,8 +507,10 @@ struct AstSpec {
     }
 
 
-    Opt<ColText> validateSub(const N& node, const int& idx, const N& sub)
-        const {
+    Opt<ColText> validateSub(
+        Node const& node,
+        const int&  idx,
+        Node const& sub) const {
         Opt<ColText> result;
         if (spec[node.getKind()].has_value()) {
             const auto fail = spec[node.getKind()].value().validateAst(
@@ -518,15 +523,16 @@ struct AstSpec {
     }
 
 
-    Opt<ColText> validateSub(const N& node, const int& idx) const {
+    Opt<ColText> validateSub(Node const& node, const int& idx) const {
         return validateSub(node, idx, node[idx]);
     }
 
-    UnorderedMap<Str, AstRange<Name>> nodeFields(K kind) const {
+    UnorderedMap<Str, AstRange<Name>> nodeFields(Kind kind) const {
         return nodeRanges.at(kind);
     }
 
-    Vec<Pair<Str, Slice<int>>> resolveNodeFields(K kind, int size) const {
+    Vec<Pair<Str, Slice<int>>> resolveNodeFields(Kind kind, int size)
+        const {
         Vec<Pair<Str, Slice<int>>> result;
         if (size == 0 && nodeRanges.at(kind).size() == 0) {
             return result;
@@ -593,8 +599,10 @@ struct AstSpec {
         return result;
     }
 
-    ColText validateAst(const N& node, const N& subnode, const int& idx)
-        const {
+    ColText validateAst(
+        Node const& node,
+        Node const& subnode,
+        const int&  idx) const {
         ColStream s;
         if (spec[node.getKind()].has_value()) {
             const auto fail1 = validateAst(
@@ -621,10 +629,11 @@ struct AstSpec {
 
         ColStream s;
 
-        Func<void(const AstPattern<N, K, Name>&, const int&)> aux;
+        Func<void(const AstPattern<Node, Kind, Name>&, const int&)> aux;
 
-        aux = [&s,
-               &aux](const AstPattern<N, K, Name>& p, const int& level) {
+        aux = [&s, &aux](
+                  const AstPattern<Node, Kind, Name>& p,
+                  const int&                          level) {
             s.indent(level);
             if (!p.doc.empty()) {
                 s << fg::Yellow
@@ -663,7 +672,7 @@ struct AstSpec {
     }
 
     int getSingleSubnodeIdx(
-        const K&        kind,
+        Kind const&     kind,
         const Str&      name,
         const Opt<int>& nodeLen = Opt<int>{}) const {
         if (nodeRanges.at(kind).contains(name)) {
@@ -691,7 +700,7 @@ struct AstSpec {
         }
     }
 
-    int getSingleSubnodeIdx(const N& node, const Str& name) const {
+    int getSingleSubnodeIdx(Node const& node, const Str& name) const {
         if (nodeRanges[node.getKind()].contains(name)) {
             const auto range = nodeRanges.at(node.getKind()).at(name);
             const auto slice = range.toSlice(node.size());
@@ -706,7 +715,7 @@ struct AstSpec {
     }
 
     FieldAccessError makeMissingSlice(
-        K                  kind,
+        Kind               kind,
         CR<Str>            name,
         Opt<Slice<int>>    slice,
         CR<AstRange<Name>> range) const {
@@ -716,7 +725,7 @@ struct AstSpec {
             + "(required ast range is " + to_string(range) + ")");
     }
 
-    FieldAccessError makeMissingPositional(K kind, CR<Str> name) const {
+    FieldAccessError makeMissingPositional(Kind kind, CR<Str> name) const {
         Name names;
         if (nodeRanges.at(kind).empty()) {
             names = "No named subnodes specified.";
@@ -730,13 +739,13 @@ struct AstSpec {
             + "' from node of kind '" + to_string(kind) + "'. " + names);
     }
 
-    N getSingleSubnode(const N& node, const Str& name) const {
+    Node getSingleSubnode(Node const& node, const Str& name) const {
         return node.at(getSingleSubnodeIDx(spec, node, name));
     }
 
-    Vec<N> getMultipleSubnode(const N& node, const Str& name) const {
+    Vec<Node> getMultipleSubnode(Node const& node, const Str& name) const {
         if (nodeRanges[node.getKind()].contains(name)) {
-            Vec<N>     result;
+            Vec<Node>  result;
             const auto range = nodeRanges.at(node.getKind()).at(name);
             const auto slice = range.toSlice(node.size());
             if (!slice.has_value()) {
@@ -748,7 +757,8 @@ struct AstSpec {
         }
     }
 
-    Opt<AstRange<Name>> fieldRange(const N& node, const int& idx) const {
+    Opt<AstRange<Name>> fieldRange(Node const& node, const int& idx)
+        const {
         if (spec.at(node.getKind()).has_value()) {
             const auto pattern = spec.at(node.getKind()).value();
             for (const auto field : pattern.ranges) {
@@ -760,7 +770,7 @@ struct AstSpec {
         return std::nullopt;
     }
 
-    Opt<Str> fieldName(const N& node, const int& idx) const {
+    Opt<Str> fieldName(Node const& node, const int& idx) const {
         const auto field = fieldRange(node, idx);
         if (field.has_value()) {
             return field.value().fieldName;
@@ -769,7 +779,7 @@ struct AstSpec {
         }
     }
 
-    bool isSingleField(const N& node, const int& idx) const {
+    bool isSingleField(Node const& node, const int& idx) const {
         const auto field = fieldRange(node, idx);
         return field.has_value()
             && IntSet<
@@ -777,7 +787,7 @@ struct AstSpec {
                    .contains(field.value().kind);
     }
 
-    Opt<Str> fieldDoc(const N& node, const int& idx) const {
+    Opt<Str> fieldDoc(Node const& node, const int& idx) const {
         const auto field = fieldRange(node, idx);
         if (field.has_value()) {
             return field.value().fieldDoc;
