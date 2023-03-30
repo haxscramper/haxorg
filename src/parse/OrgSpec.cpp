@@ -2,63 +2,67 @@
 
 using org        = OrgNodeKind;
 using otk        = OrgTokenKind;
-using OrgPattern = astspec::AstPattern<OrgAdapter, OrgNodeKind, Str>;
-using SpecPair   = Pair<org, OrgPattern>;
-using Field      = astspec::AstPatternRange<OrgAdapter, OrgNodeKind, Str>;
-using Range      = astspec::AstRange<Str>;
+using OrgPattern = astspec::
+    AstPattern<OrgAdapter, OrgNodeKind, OrgSpecName>;
+using SpecPair = Pair<org, OrgPattern>;
+using Field    = astspec::
+    AstPatternRange<OrgAdapter, OrgNodeKind, OrgSpecName>;
+using Range = astspec::AstRange<OrgSpecName>;
 
+using N = OrgSpecName;
 
 OrgSpec spec = OrgSpec(Vec<SpecPair>{
     SpecPair{
         org::Subtree,
         OrgPattern(
-            {Field(Range(0, "prefix"), OrgPattern(org::RawText)),
+            {Field(Range(0, N::Prefix), OrgPattern(org::RawText)),
              Field(
-                 Range(1, "todo"),
+                 Range(1, N::Todo),
                  OrgPattern({org::BigIdent, org::Empty})),
              Field(
-                 Range(2, "urgency"),
+                 Range(2, N::Urgency),
                  OrgPattern({org::UrgencyStatus, org::Empty})),
-             Field(Range(3, "title"), OrgPattern(org::Paragraph)),
+             Field(Range(3, N::Title), OrgPattern(org::Paragraph)),
              Field(
-                 Range(4, "completion"),
+                 Range(4, N::Completion),
                  OrgPattern({org::Completion, org::Empty}))})},
     SpecPair{
         org::HashTag,
         OrgPattern(
-            {Field(Range(0, "head"), OrgPattern(org::BigIdent)),
+            {Field(Range(0, N::Head), OrgPattern(org::BigIdent)),
              Field(
-                 Range(slice(1, 1_B), "subnodes"),
+                 Range(slice(1, 1_B), N::Subnodes),
                  OrgPattern(org::HashTag))})},
     SpecPair{
         org::Drawer,
         OrgPattern(
             {Field(
-                 Range(0, "properties"),
+                 Range(0, N::Properties),
                  OrgPattern({org::PropertyList, org::Empty})),
              Field(
-                 Range(1, "logbook"),
+                 Range(1, N::Logbook),
                  OrgPattern({org::Logbook, org::Empty})),
              Field(
-                 Range(2, "description"),
+                 Range(2, N::Description),
                  OrgPattern({org::SubtreeDescription, org::Empty}))})},
     SpecPair{
         org::SubtreeDescription,
-        OrgPattern({Field(Range(0, "text"), OrgPattern(org::Paragraph))})},
+        OrgPattern(
+            {Field(Range(0, N::Text), OrgPattern(org::Paragraph))})},
     SpecPair{
         org::AnnotatedParagraph,
         OrgPattern(
             {Field(
-                 Range(0, "prefix"),
+                 Range(0, N::Prefix),
                  OrgPattern(
                      {org::ListTag, org::Footnote, org::AdmonitionTag})),
              Field(
-                 Range(1, "body"),
+                 Range(1, N::Body),
                  OrgPattern({org::Paragraph, org::Empty}))})},
     SpecPair{
         org::Logbook,
         OrgPattern({Field(
-            Range(slice(0, 1_B), "logs"),
+            Range(slice(0, 1_B), N::Logs),
             OrgPattern(
                 {org::LogbookStateChange,
                  org::LogbookNote,
@@ -68,271 +72,275 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
         org::LogbookStateChange,
         OrgPattern(
             {Field(
-                 Range(0, "newstate"),
+                 Range(0, N::Newstate),
                  OrgPattern({org::BigIdent, org::Empty})),
              Field(
-                 Range(1, "oldstate"),
+                 Range(1, N::Oldstate),
                  OrgPattern({org::BigIdent, org::Empty})),
              Field(
-                 Range(2, "time"),
+                 Range(2, N::Time),
                  OrgPattern({org::TimeStamp, org::Empty})),
              Field(
-                 Range(3, "text"),
+                 Range(3, N::Text),
                  OrgPattern({org::StmtList, org::Empty}))})},
     SpecPair{
         org::LogbookRefile,
         OrgPattern({
-            Field(Range(0, "time"), OrgPattern(org::TimeStamp)),
-            Field(Range(1, "from"), OrgPattern(org::Link)),
+            Field(Range(0, N::Time), OrgPattern(org::TimeStamp)),
+            Field(Range(1, N::From), OrgPattern(org::Link)),
             Field(
-                Range(2, "text"),
+                Range(2, N::Text),
                 OrgPattern({org::StmtList, org::Empty})),
         })},
     SpecPair{
         org::CallCode,
         OrgPattern({
-            Field(Range(0, "name"), OrgPattern({org::Ident})),
+            Field(Range(0, N::Name), OrgPattern({org::Ident})),
             Field(
-                Range(1, "header-args"),
+                Range(1, N::HeaderArgs),
                 OrgPattern({org::CmdArguments, org::Empty})),
-            Field(Range(2, "args")),
-            Field(Range(3, "end-args")),
+            Field(Range(2, N::Args)),
+            Field(Range(3, N::EndArgs)),
             Field(
-                Range(4, "result"),
+                Range(4, N::Result),
                 OrgPattern({org::RawText, org::Empty})),
         })},
     SpecPair{
         org::LogbookNote,
         OrgPattern({
-            Field(Range(0, "time"), OrgPattern(org::TimeStamp)),
+            Field(Range(0, N::Time), OrgPattern(org::TimeStamp)),
             Field(
-                Range(1, "text"),
+                Range(1, N::Text),
                 OrgPattern({org::StmtList, org::Empty})),
         })},
     SpecPair{
         org::SrcInlineCode,
         OrgPattern({
-            Field(Range(0, "lang"), OrgPattern({org::Ident, org::Empty})),
+            Field(Range(0, N::Lang), OrgPattern({org::Ident, org::Empty})),
             Field(
-                Range(1, "header-args"),
+                Range(1, N::HeaderArgs),
                 OrgPattern({org::CmdArguments, org::Empty})),
-            Field(Range(2, "body"), OrgPattern({org::CodeLine})),
+            Field(Range(2, N::Body), OrgPattern({org::CodeLine})),
             Field(
-                Range(3, "result"),
+                Range(3, N::Result),
                 OrgPattern({org::RawText, org::Empty})),
         })},
     SpecPair{
         org::CmdArguments,
         OrgPattern({
             Field(
-                Range(0, "flags"),
+                Range(0, N::Flags),
                 {OrgPattern(org::InlineStmtList)
                      .sub({Field(
-                         Range(slice(0, 1_B), "flags"),
+                         Range(slice(0, 1_B), N::Flags),
                          OrgPattern(org::CmdFlag))})}),
         })},
     SpecPair{
         org::CmdValue,
-        OrgPattern({Field(Range(0, "name")), Field(Range(1, "value"))}),
+        OrgPattern({Field(Range(0, N::Name)), Field(Range(1, N::Value))}),
     },
     SpecPair{
         org::AssocStmtList,
-        OrgPattern({Field(Range(0, "assoc")), Field(Range(1, "main"))})},
+        OrgPattern({Field(Range(0, N::Assoc)), Field(Range(1, N::Main))})},
     SpecPair{
         org::Result,
-        OrgPattern({Field(Range(0, "hash")), Field(Range(1, "body"))})},
+        OrgPattern({Field(Range(0, N::Hash)), Field(Range(1, N::Body))})},
     SpecPair{
         org::ListItem,
         OrgPattern(
-            {Field(Range(0, "bullet")
-                       .doc("List prefix - either dash/plus/star (for "
+            {Field(Range(0, N::Bullet)
+                       .doc("list prefix - either dash/plus/star (for "
                             "unordered lists), or `<idx>.`/`<name>.`")),
-
-             Field(Range(1, "counter")),
+             Field(Range(1, N::Counter)),
 
              Field(
-                 Range(2, "checkbox").doc("Optional checkbox"),
+                 Range(2, N::Checkbox).doc("optional checkbox"),
                  OrgPattern({org::Checkbox, org::Empty})),
              Field(
-                 Range(3, "header").doc("Main part of the list"),
+                 Range(3, N::Header).doc("Main part of the list"),
                  OrgPattern(
                      {org::Paragraph,
                       org::AnnotatedParagraph,
                       org::Empty})),
              Field(
-                 Range(4, "completion")
+                 Range(4, N::Completion)
                      .doc("Cumulative completion progress for all "
                           "subnodes"),
                  OrgPattern({org::Completion, org::Empty})),
              Field(
-                 Range(5, "body").doc(
-                     "Additional list items - more sublists, extended "
-                     "body (with code blocks, extra parargaphs etc.)"),
+                 Range(5, N::Body)
+                     .doc("Additional list items - more sublists, "
+                          "extended N::Body (with code blocks, extra "
+                          "parargaphs etc.)"),
                  OrgPattern({org::StmtList, org::Empty}))})},
     SpecPair{
         org::TimeAssoc,
         OrgPattern({
             Field(
-                Range(0, "name"),
+                Range(0, N::Name),
                 OrgPattern({org::BigIdent, org::Empty})),
             Field(
-                Range(1, "time"),
+                Range(1, N::Time),
                 OrgPattern({org::TimeStamp, org::TimeRange})),
         })},
     SpecPair{
         org::LogbookClock,
         OrgPattern({
             Field(
-                Range(0, "time"),
+                Range(0, N::Time),
                 OrgPattern({org::TimeRange, org::TimeStamp})),
         })},
     SpecPair{
         org::TimeRange,
         OrgPattern({
-            Field(Range(0, "from"), OrgPattern({org::TimeStamp})),
-            Field(Range(1, "to"), OrgPattern({org::TimeStamp})),
+            Field(Range(0, N::From), OrgPattern({org::TimeStamp})),
+            Field(Range(1, N::To), OrgPattern({org::TimeStamp})),
             Field(
-                Range(2, "diff"),
+                Range(2, N::Diff),
                 OrgPattern({org::SimpleTime, org::Empty})),
         })},
 
     SpecPair{
         org::PropertyList,
         OrgPattern({Field(
-            Range(slice(0, 1_B), ""),
+            Range(slice(0, 1_B), N::Property),
             OrgPattern({org::Property, org::PropertyAdd}))})},
     SpecPair{
         org::PropertyAdd,
         OrgPattern({
-            Field(Range(0, "name"), OrgPattern({org::RawText})),
+            Field(Range(0, N::Name), OrgPattern({org::RawText})),
             Field(
-                Range(1, "subname"),
+                Range(1, N::Subname),
                 OrgPattern({org::Empty, org::Ident})),
-            Field(Range(2, "values"), OrgPattern({org::RawText})),
+            Field(Range(2, N::Values), OrgPattern({org::RawText})),
         })},
     SpecPair{
         org::TableRow,
         OrgPattern(
             {Field(
-                 Range(0, "args").doc(
-                     "Optional arguments for row - can be specified using "
-                     "`#+row`. For pipe formatting this is not supported, "
-                     "so arguments would be an empty node."),
+                 Range(0, N::Args)
+                     .doc("N::Optional arguments for row - can be "
+                          "specified using N::`#+row`. For pipe "
+                          "formatting this is not supported, N::So "
+                          "arguments would be an empty node."),
                  OrgPattern({org::CmdArguments, org::Empty})),
              Field(
-                 Range(1, "text").doc(
-                     "It is possible to put text on the *row* level."),
+                 Range(1, N::Text)
+                     .doc("N::It is possible to put text on the* row* "
+                          "level."),
                  OrgPattern({org::Paragraph, org::Empty})),
              Field(
-                 Range(2, "body"),
+                 Range(2, N::Body),
                  OrgPattern({Field(
-                     Range(slice(0, 1_B), "cells"),
+                     Range(slice(0, 1_B), N::Cells),
                      OrgPattern(org::TableCell))}))})},
     SpecPair{
         org::Property,
         OrgPattern({
-            Field(Range(0, "name"), OrgPattern({org::RawText})),
+            Field(Range(0, N::Name), OrgPattern({org::RawText})),
             Field(
-                Range(1, "subname"),
+                Range(1, N::Subname),
                 OrgPattern({org::Empty, org::Ident})),
-            Field(Range(2, "values"), OrgPattern({org::RawText})),
+            Field(Range(2, N::Values), OrgPattern({org::RawText})),
         })},
     SpecPair{
         org::MultilineCommand,
         OrgPattern(
-            {Field(Range(0, "name"), OrgPattern({org::Ident})),
+            {Field(Range(0, N::Name), OrgPattern({org::Ident})),
              Field(
-                 Range(1, "args"),
+                 Range(1, N::Args),
                  OrgPattern({org::CmdArguments, org::Empty})),
-             Field(Range(2, "body"))})},
+             Field(Range(2, N::Body))})},
     SpecPair{
         org::MetaSymbol,
         OrgPattern({
-            Field(Range(0, "name"), OrgPattern({org::Ident})),
+            Field(Range(0, N::Name), OrgPattern({org::Ident})),
             Field(
-                Range(1, "args"),
+                Range(1, N::Args),
                 OrgPattern({org::CmdArguments, org::Empty})),
-            Field(Range(2, "body"), OrgPattern({org::RawText})),
+            Field(Range(2, N::Body), OrgPattern({org::RawText})),
         })},
     SpecPair{
         org::Table,
         OrgPattern({
             Field(
-                Range(0, "args"),
+                Range(0, N::Args),
                 OrgPattern({org::CmdArguments, org::Empty})),
             Field(
-                Range(slice(1, 1_B), "rows"),
+                Range(slice(1, 1_B), N::Rows),
                 OrgPattern({org::TableRow})),
         })},
     SpecPair{
         org::TableCell,
         OrgPattern({
             Field(
-                Range(0, "args"),
+                Range(0, N::Args),
                 OrgPattern({org::CmdArguments, org::Empty})),
             Field(
-                Range(1, "text"),
+                Range(1, N::Text),
                 OrgPattern({org::Empty, org::StmtList})),
         })},
     SpecPair{
         org::Command,
         OrgPattern({
-            Field(Range(0, "name"), OrgPattern({org::Ident})),
+            Field(Range(0, N::Name), OrgPattern({org::Ident})),
             Field(
-                Range(1, "args"),
+                Range(1, N::Args),
                 OrgPattern({org::CmdArguments, org::Empty})),
         })},
     SpecPair{
         org::CommandCaption,
         OrgPattern({
-            Field(Range(0, "text"), OrgPattern({org::Paragraph})),
+            Field(Range(0, N::Text), OrgPattern({org::Paragraph})),
         })},
     SpecPair{
         org::CommandInclude,
         OrgPattern({
-            Field(Range(0, "file"), OrgPattern({org::File})),
-            Field(Range(1, "kind"), OrgPattern({org::Empty, org::Ident})),
-            Field(Range(2, "lang"), OrgPattern({org::Empty, org::Ident})),
+            Field(Range(0, N::File), OrgPattern({org::File})),
+            Field(Range(1, N::Kind), OrgPattern({org::Empty, org::Ident})),
+            Field(Range(2, N::Lang), OrgPattern({org::Empty, org::Ident})),
             Field(
-                Range(3, "args"),
+                Range(3, N::Args),
                 OrgPattern({org::Empty, org::CmdArguments})),
         })},
     SpecPair{
         org::SrcCode,
         OrgPattern(
-            {Field(Range(0, "lang"), OrgPattern({org::Ident, org::Empty})),
+            {Field(
+                 Range(0, N::Lang),
+                 OrgPattern({org::Ident, org::Empty})),
              Field(
-                 Range(1, "header-args"),
+                 Range(1, N::HeaderArgs),
                  OrgPattern({org::CmdArguments, org::Empty})),
              Field(
-                 Range(2, "body"),
+                 Range(2, N::Body),
                  OrgPattern(org::StmtList)
                      .sub({Field(
-                         Range(slice(0, 1_B), "lines"),
+                         Range(slice(0, 1_B), N::Lines),
                          OrgPattern(org::CodeLine))})),
              Field(
-                 Range(3, "result"),
+                 Range(3, N::Result),
                  OrgPattern({org::RawText, org::Empty}))})},
     SpecPair{
         org::Footnote,
         OrgPattern(
-            {Field(Range(0, "name")), Field(Range(1, "definition"))})},
+            {Field(Range(0, N::Name)), Field(Range(1, N::Definition))})},
     SpecPair{
         org::CommandHeader,
         OrgPattern({
             Field(
-                Range(0, "args"),
+                Range(0, N::Args),
                 OrgPattern({org::Empty, org::CmdArguments})),
         })},
     SpecPair{
         org::CommandOptions,
         OrgPattern({Field(
-            Range(slice(0, 1_B), "args"),
+            Range(slice(0, 1_B), N::Args),
             OrgPattern(org::RawText))})},
     SpecPair{
         org::CodeLine,
         OrgPattern({Field(
-            Range(slice(0, 1_B), "chunks"),
+            Range(slice(0, 1_B), N::Chunks),
             OrgPattern(
                 {org::CodeText,
                  org::CodeTangle,
@@ -341,9 +349,9 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
     SpecPair{
         org::Link,
         OrgPattern(
-            {Field(Range(0, "protocol")),
-             Field(Range(1, "link")),
-             Field(Range(2, "desc"))})}
+            {Field(Range(0, N::Protocol)),
+             Field(Range(1, N::Link)),
+             Field(Range(2, N::Desc))})}
 
     //
 });

@@ -584,10 +584,10 @@ QString htmlRepr(
     const int dataColNum  = 6;
     const int baseColspan = dataColNum + 1;
 
-    Func<Result(CR<OrgId>, Opt<Str>, int)> aux;
-    aux = [&](CR<OrgId> root,
-              Opt<Str>  subnodeName,
-              int       indexInParent) -> Result {
+    Func<Result(CR<OrgId>, Opt<OrgSpecName>, int)> aux;
+    aux = [&](CR<OrgId>        root,
+              Opt<OrgSpecName> subnodeName,
+              int              indexInParent) -> Result {
         QString headerRows;
         for (int i = 0; i < dataColNum; ++i) {
             headerRows += (R"(<th class="content$#"></th>)"
@@ -622,8 +622,8 @@ QString htmlRepr(
                            {"kind", to_string(nodes.at(root).kind)},
                            {"subnodeName",
                             "$#"
-                                % to_string_vec(
-                                    subnodeName.value_or("?"))},
+                                % to_string_vec(subnodeName.value_or(
+                                    OrgSpecName::Unnamed))},
                            {"record", record},
                            {"value",
                             to_string(
@@ -700,8 +700,8 @@ QString htmlRepr(
                            {"width", to_string(level * 10)},
                            {"subnodeName",
                             "$#"
-                                % to_string_vec(
-                                    subnodeName.value_or("?"))},
+                                % to_string_vec(subnodeName.value_or(
+                                    OrgSpecName::Unnamed))},
                            {"colspan", to_string(baseColspan + level)},
                            {"index",
                             "$# [$#]"

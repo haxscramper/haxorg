@@ -57,9 +57,9 @@ TEST_CASE("Simple node conversion") {
         ss << "start validation output" << Qt::endl;
         ss << spec.validateSelf(p.a(0)) << "\n";
         ss << spec.validateSub(p.a(0), 0) << "\n";
-        ss << spec.getSingleSubnodeIdx(p.a(0), "head");
-        spec.getSingleSubnodeIdx(org::HashTag, "head");
-        spec.getMultipleSubnode(p.a(0), "head");
+        ss << spec.getSingleSubnodeIdx(p.a(0), OrgSpecName::Head);
+        spec.getSingleSubnodeIdx(org::HashTag, OrgSpecName::Head);
+        spec.getMultipleSubnode(p.a(0), OrgSpecName::Head);
         spec.fieldName(p.a(0), 0);
 
         spec.isSingleField(p.a(0), 0);

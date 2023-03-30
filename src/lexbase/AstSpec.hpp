@@ -235,20 +235,20 @@ struct AstCheckFail {
                     if (fail.isMissing) {
                         s << "missing subnode " << fg::Green << fail.range
                           << s.end();
-                        if (!fail.range.fieldName.empty()) {
-                            s << " (" << fg::Green << fail.range.fieldName
-                              << s.end() << ")";
-                        }
+                        // if (!fail.range.fieldName.empty()) {
+                        s << " (" << fg::Green << fail.range.fieldName
+                          << s.end() << ")";
+                        // }
                         s << " " << fg::Red << fail.expected << s.end();
                     } else {
                         s << "wanted " << fg::Red << fail.expected
                           << s.end() << " in " << fg::Green << fail.range
                           << s.end();
 
-                        if (!fail.range.fieldName.empty()) {
-                            s << " (" << fg::Green << fail.range.fieldName
-                              << s.end() << ")";
-                        }
+                        // if (!fail.range.fieldName.empty()) {
+                        s << " (" << fg::Green << fail.range.fieldName
+                          << s.end() << ")";
+                        // }
 
                         if (fail.got.has_value()) {
                             s << ", but got "
@@ -258,10 +258,10 @@ struct AstCheckFail {
                 } else if (fail.isMissing) {
                     s << "missing subnode " << fg::Cyan << fail.range
                       << s.end();
-                    if (!fail.range.fieldName.empty()) {
-                        s << " (" << fg::Cyan << fail.range.fieldName
-                          << s.end() << ")";
-                    }
+                    // if (!fail.range.fieldName.empty()) {
+                    s << " (" << fg::Cyan << fail.range.fieldName
+                      << s.end() << ")";
+                    // }
                 }
 
                 if (!fail.path.empty()) {
@@ -450,18 +450,18 @@ struct AstPattern {
 template <typename Node, typename Kind, typename Name>
 struct AstSpec {
   private:
-    TypArray<Kind, Opt<AstPattern<Node, Kind, Name>>> spec;
-    TypArray<Kind, UnorderedMap<Str, AstRange<Name>>> nodeRanges;
+    TypArray<Kind, Opt<AstPattern<Node, Kind, Name>>>  spec;
+    TypArray<Kind, UnorderedMap<Name, AstRange<Name>>> nodeRanges;
 
-    TypArray<Kind, UnorderedMap<Str, AstRange<Name>>> getNodeRanges()
+    TypArray<Kind, UnorderedMap<Name, AstRange<Name>>> getNodeRanges()
         const {
-        TypArray<Kind, UnorderedMap<Str, AstRange<Name>>> result;
+        TypArray<Kind, UnorderedMap<Name, AstRange<Name>>> result;
         for (const auto& [kind, pattern] : spec.pairs()) {
             if (pattern->has_value()) {
                 for (const auto& range : pattern->value().ranges) {
-                    if (!range.range.fieldName.empty()) {
-                        result[kind][range.range.fieldName] = range.range;
-                    }
+                    // if (!range.range.fieldName.empty()) {
+                    result[kind][range.range.fieldName] = range.range;
+                    // }
                 }
             }
         }
@@ -527,13 +527,13 @@ struct AstSpec {
         return validateSub(node, idx, node[idx]);
     }
 
-    UnorderedMap<Str, AstRange<Name>> nodeFields(Kind kind) const {
+    UnorderedMap<Name, AstRange<Name>> nodeFields(Kind kind) const {
         return nodeRanges.at(kind);
     }
 
-    Vec<Pair<Str, Slice<int>>> resolveNodeFields(Kind kind, int size)
+    Vec<Pair<Name, Slice<int>>> resolveNodeFields(Kind kind, int size)
         const {
-        Vec<Pair<Str, Slice<int>>> result;
+        Vec<Pair<Name, Slice<int>>> result;
         if (size == 0 && nodeRanges.at(kind).size() == 0) {
             return result;
         }
@@ -545,7 +545,7 @@ struct AstSpec {
             }
         }
 
-        sort<Pair<Str, Slice<int>>>(
+        sort<Pair<Name, Slice<int>>>(
             result, [](auto const& lhs, auto const& rhs) {
                 return lhs.first < rhs.first;
             });
@@ -673,7 +673,7 @@ struct AstSpec {
 
     int getSingleSubnodeIdx(
         Kind const&     kind,
-        const Str&      name,
+        const Name&     name,
         const Opt<int>& nodeLen = Opt<int>{}) const {
         if (nodeRanges.at(kind).contains(name)) {
             const auto range = nodeRanges.at(kind).at(name);
@@ -700,7 +700,7 @@ struct AstSpec {
         }
     }
 
-    int getSingleSubnodeIdx(Node const& node, const Str& name) const {
+    int getSingleSubnodeIdx(Node const& node, Name const& name) const {
         if (nodeRanges[node.getKind()].contains(name)) {
             const auto range = nodeRanges.at(node.getKind()).at(name);
             const auto slice = range.toSlice(node.size());
@@ -716,34 +716,41 @@ struct AstSpec {
 
     FieldAccessError makeMissingSlice(
         Kind               kind,
-        CR<Str>            name,
+        CR<Name>           name,
         Opt<Slice<int>>    slice,
         CR<AstRange<Name>> range) const {
         return FieldAccessError(
-            "Range " + name + " for node kind " + to_string(kind)
-            + " was resolved into slice " + to_string(slice)
-            + "(required ast range is " + to_string(range) + ")");
+            "Range " + to_string(name) + " for node kind "
+            + to_string(kind) + " was resolved into slice "
+            + to_string(slice) + "(required ast range is "
+            + to_string(range) + ")");
     }
 
-    FieldAccessError makeMissingPositional(Kind kind, CR<Str> name) const {
-        Name names;
+    FieldAccessError makeMissingPositional(Kind kind, CR<Name> name)
+        const {
+        Str names;
         if (nodeRanges.at(kind).empty()) {
             names = "No named subnodes specified.";
         } else {
-            names = "Available names - "
-                  + join(", ", nodeRanges.at(kind).keys());
+            Vec<Str> tmp;
+            for (const auto& key : nodeRanges.at(kind).keys()) {
+                tmp.push_back(to_string(key));
+            }
+
+            names = "Available names: " + join(", ", tmp);
         }
 
         return FieldAccessError(
-            "Cannot get positional node with name '" + name
+            "Cannot get positional node with name '" + to_string(name)
             + "' from node of kind '" + to_string(kind) + "'. " + names);
     }
 
-    Node getSingleSubnode(Node const& node, const Str& name) const {
+    Node getSingleSubnode(Node const& node, Name const& name) const {
         return node.at(getSingleSubnodeIDx(spec, node, name));
     }
 
-    Vec<Node> getMultipleSubnode(Node const& node, const Str& name) const {
+    Vec<Node> getMultipleSubnode(Node const& node, Name const& name)
+        const {
         if (nodeRanges[node.getKind()].contains(name)) {
             Vec<Node>  result;
             const auto range = nodeRanges.at(node.getKind()).at(name);
@@ -770,7 +777,7 @@ struct AstSpec {
         return std::nullopt;
     }
 
-    Opt<Str> fieldName(Node const& node, const int& idx) const {
+    Opt<Name> fieldName(Node const& node, const int& idx) const {
         const auto field = fieldRange(node, idx);
         if (field.has_value()) {
             return field.value().fieldName;

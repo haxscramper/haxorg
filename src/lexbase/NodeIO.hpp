@@ -50,7 +50,7 @@ json jsonRepr(
         result["tok"]           = to_string(token.kind);
         result["tok_idx"]       = to_string(tokenId.getIndex());
     } else {
-        Vec<Pair<Str, Slice<int>>> expanded = spec.resolveNodeFields(
+        Vec<Pair<Name, Slice<int>>> expanded = spec.resolveNodeFields(
             node.get().kind, node.size());
 
         json subnodes = json::object();
@@ -59,7 +59,7 @@ json jsonRepr(
             for (int idx : range) {
                 items.push_back(jsonRepr(spec, node.at(idx)));
             }
-            subnodes[name.toStdString()] = items;
+            subnodes[to_string(name).toStdString()] = items;
         }
         result["subnodes"] = subnodes;
     }
@@ -84,12 +84,12 @@ yaml yamlRepr(
         result["tok_idx"]       = to_string(tokenId.getIndex());
         result.SetStyle(YAML::EmitterStyle::Flow);
     } else {
-        Vec<Pair<Str, Slice<int>>> expanded = spec.resolveNodeFields(
+        Vec<Pair<Name, Slice<int>>> expanded = spec.resolveNodeFields(
             node.get().kind, node.size());
 
         for (const auto& [name, range] : expanded) {
             for (int idx : range) {
-                result[name.toBase()].push_back(
+                result[to_string(name).toStdString()].push_back(
                     yamlRepr(spec, node.at(idx)));
             }
         }
