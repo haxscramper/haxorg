@@ -2,10 +2,10 @@
 
 using org        = OrgNodeKind;
 using otk        = OrgTokenKind;
-using OrgPattern = astspec::AstPattern<OrgAdapter, OrgNodeKind>;
+using OrgPattern = astspec::AstPattern<OrgAdapter, OrgNodeKind, Str>;
 using SpecPair   = Pair<org, OrgPattern>;
-using Field      = astspec::AstPatternRange<OrgAdapter, OrgNodeKind>;
-using Range      = astspec::AstRange;
+using Field      = astspec::AstPatternRange<OrgAdapter, OrgNodeKind, Str>;
+using Range      = astspec::AstRange<Str>;
 
 
 OrgSpec spec = OrgSpec(Vec<SpecPair>{

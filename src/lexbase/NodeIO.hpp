@@ -33,10 +33,10 @@ yaml yamlRepr(NodeAdapter<N, K> node) {
 }
 
 
-template <typename N, typename K>
+template <typename N, typename K, typename Name>
 json jsonRepr(
-    CR<astspec::AstSpec<NodeAdapter<N, K>, N>> spec,
-    NodeAdapter<N, K>                          node) {
+    CR<astspec::AstSpec<NodeAdapter<N, K>, N, Name>> spec,
+    NodeAdapter<N, K>                                node) {
     json result;
     auto g         = node.group;
     result["kind"] = to_string(node.get().kind);
@@ -66,10 +66,10 @@ json jsonRepr(
     return result;
 }
 
-template <typename N, typename K>
+template <typename N, typename K, typename Name>
 yaml yamlRepr(
-    CR<astspec::AstSpec<NodeAdapter<N, K>, N>> spec,
-    NodeAdapter<N, K>                          node) {
+    CR<astspec::AstSpec<NodeAdapter<N, K>, N, Name>> spec,
+    NodeAdapter<N, K>                                node) {
     yaml result;
     auto g         = node.group;
     result["kind"] = to_string(node.get().kind);
