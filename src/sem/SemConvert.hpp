@@ -100,10 +100,12 @@ struct OrgConverter {
     Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
 
   public:
-    virtual UPtr<Table>    convertTable(Up, In);
-    virtual UPtr<HashTag>  convertHashTag(Up, In);
-    virtual UPtr<Subtree>  convertSubtree(Up, In);
-    virtual UPtr<StmtList> convertStmtList(Up, In);
+    virtual UPtr<Table>       convertTable(Up, In);
+    virtual UPtr<HashTag>     convertHashTag(Up, In);
+    virtual UPtr<Subtree>     convertSubtree(Up, In);
+    virtual UPtr<StmtList>    convertStmtList(Up, In);
+    virtual UPtr<SkipNewline> convertSkipNewline(Up, In);
+    virtual UPtr<Word>        convertWord(Up, In);
 
     virtual UPtr<Org> convert(Up, In);
 };

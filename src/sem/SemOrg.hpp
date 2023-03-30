@@ -85,6 +85,15 @@ struct Org {
     virtual json toJson() const = 0;
 
     void push_back(UPtr<Org>&& sub) { subnodes.push_back(std::move(sub)); }
+    void subnodesJson(json& res) const {
+        if (!subnodes.empty()) {
+            json tmp = json::array();
+            for (const auto& sub : subnodes) {
+                tmp.push_back(sub->toJson());
+            }
+            res["subnodes"] = tmp;
+        }
+    }
 };
 
 BOOST_DESCRIBE_STRUCT(Org, (), (parent, subnodes, properties));
@@ -305,6 +314,8 @@ struct TimeRange : public Org {
     virtual json toJson() const override;
 };
 
+BOOST_DESCRIBE_STRUCT(TimeRange, (Org), (start, finish));
+
 struct SubtreeLog : public Org {
     using Org::Org;
     struct Note {
@@ -338,15 +349,17 @@ struct SubtreeLog : public Org {
     virtual json toJson() const override;
 };
 
+BOOST_DESCRIBE_STRUCT(SubtreeLog, (Org), (log));
+
 struct Subtree : public Org {
     using Org::Org;
-    int             level;
-    Opt<Str>        todo;
-    Opt<Completion> completion;
-    Vec<HashTag>    tags;
-    UPtr<Org>       title;
-    Opt<UPtr<Org>>  description;
-    Vec<SubtreeLog> logbook;
+    int                   level;
+    Opt<Str>              todo;
+    Opt<UPtr<Completion>> completion;
+    Vec<UPtr<HashTag>>    tags;
+    UPtr<Org>             title;
+    Opt<UPtr<Org>>        description;
+    Vec<UPtr<SubtreeLog>> logbook;
 
     virtual json toJson() const override;
 };
@@ -356,28 +369,19 @@ BOOST_DESCRIBE_STRUCT(
     (),
     (level, todo, completion, tags, title, description, logbook));
 
-// template <typename T>
-// json to_json(CR<T> it);
+struct SkipNewline : public Org {
+    using Org::Org;
+    virtual json toJson() const override { return json(); }
+};
 
+struct Word : public Org {
+    using Org::Org;
+    Str          word;
+    virtual json toJson() const override {
+        json res;
+        res["word"] = word;
+        return res;
+    }
+};
 
-template <typename T>
-concept DescribedMembers = boost::describe::has_describe_members<T>::value;
-
-
-template <
-    DescribedMembers T,
-    class D1 = boost::describe::describe_members<
-        T,
-        boost::describe::mod_public | boost::describe::mod_protected>>
-json to_json(T const& t) {
-    json obj;
-    boost::mp11::mp_for_each<D1>(
-        [&](auto D) { obj[D.name] = to_json(t.*D.pointer); });
-    return obj;
-}
-
-inline json Table::toJson() const { return to_json(*this); }
-inline json Row::toJson() const { return to_json(*this); }
-inline json HashTag::toJson() const { return to_json(*this); }
-inline json StmtList::toJson() const { return to_json(*this); }
 }; // namespace sem

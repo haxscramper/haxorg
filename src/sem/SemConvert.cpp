@@ -13,36 +13,34 @@ UPtr<T> Sem(sem::Org* parent, OrgAdapter adapter) {
     return std::make_unique<T>(parent, adapter);
 }
 
-UPtr<sem::Table> OrgConverter::convertTable(
-    Org*       parent,
-    OrgAdapter adapter) {
-    auto result = Sem<Table>(parent, adapter);
+#define __args Org *p, OrgAdapter a
+
+UPtr<sem::Table> OrgConverter::convertTable(__args) {
+    auto result = Sem<Table>(p, a);
 
     return result;
 };
 
 
-UPtr<sem::HashTag> OrgConverter::convertHashTag(
-    Org*       parent,
-    OrgAdapter adapter) {
-    auto                      result = Sem<HashTag>(parent, adapter);
+UPtr<sem::HashTag> OrgConverter::convertHashTag(__args) {
+    auto                      result = Sem<HashTag>(p, a);
     Func<HashTag(OrgAdapter)> aux;
-    result->head = strip(
-        adapter.at(0).strVal(), CharSet{QChar('#')}, CharSet{});
-    aux = [parent, &aux](OrgAdapter adapter) -> HashTag {
-        HashTag result{parent, adapter};
+    result->head = strip(a.at(0).strVal(), CharSet{QChar('#')}, CharSet{});
+
+    aux = [p, &aux](OrgAdapter a) -> HashTag {
+        HashTag result{p, a};
         result.head = strip(
-            adapter.at(0).strVal(), CharSet{QChar('#')}, CharSet{});
-        if (1 < adapter.size()) {
-            for (auto& node : adapter.at(slice(1, 1_B))) {
+            a.at(0).strVal(), CharSet{QChar('#')}, CharSet{});
+        if (1 < a.size()) {
+            for (auto& node : a.at(slice(1, 1_B))) {
                 result.subtags.push_back(aux(node));
             }
         }
         return result;
     };
 
-    if (1 < adapter.size()) {
-        for (auto& node : adapter.at(slice(1, 1_B))) {
+    if (1 < a.size()) {
+        for (auto& node : a.at(slice(1, 1_B))) {
             result->subtags.push_back(aux(node));
         }
     }
@@ -50,29 +48,36 @@ UPtr<sem::HashTag> OrgConverter::convertHashTag(
     return result;
 };
 
-UPtr<sem::Subtree> OrgConverter::convertSubtree(
-    sem::Org*  parent,
-    OrgAdapter adapter) {}
+UPtr<sem::Subtree> OrgConverter::convertSubtree(__args) {
+    auto tree = Sem<Subtree>(p, a);
 
-UPtr<sem::StmtList> OrgConverter::convertStmtList(
-    sem::Org*  parent,
-    OrgAdapter adapter) {
-    auto stmt = Sem<StmtList>(parent, adapter);
+    return tree;
+}
 
-    for (OrgAdapter const& sub : adapter) {
+UPtr<sem::StmtList> OrgConverter::convertStmtList(__args) {
+    auto stmt = Sem<StmtList>(p, a);
+
+    for (OrgAdapter const& sub : a) {
         stmt->push_back(convert(stmt.get(), sub));
     }
 
     return stmt;
 }
 
+UPtr<sem::Word> OrgConverter::convertWord(__args) {
+    auto word = Sem<Word>(p, a);
+    return word;
+}
 
-UPtr<sem::Org> OrgConverter::convert(
-    sem::Org*  parent,
-    OrgAdapter adapter) {
-    switch (adapter.kind()) {
-        case org::StmtList: return convertStmtList(parent, adapter); break;
-        default:
-            throw wrapError(Err::UnhandledKind(adapter.kind()), adapter);
+UPtr<sem::SkipNewline> OrgConverter::convertSkipNewline(__args) {
+    return Sem<SkipNewline>(p, a);
+}
+
+UPtr<sem::Org> OrgConverter::convert(__args) {
+    switch (a.kind()) {
+        case org::SkipNewline: return convertSkipNewline(p, a); break;
+        case org::StmtList: return convertStmtList(p, a); break;
+        case org::Subtree: return convertSubtree(p, a); break;
+        default: throw wrapError(Err::UnhandledKind(a.kind()), a);
     }
 }

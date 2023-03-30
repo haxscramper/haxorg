@@ -3,33 +3,33 @@
 #include <nlohmann/json.hpp>
 #include <QString>
 #include <sstream>
+#include <memory>
 
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Vec.hpp>
 
-using json = nlohmann::json;
+#include <boost/describe.hpp>
 
-template <typename T>
-inline json to_json(CR<Vec<T>> str) {
-    json res = json::array();
-    for (const auto& it : str) {
-        res.push_back(to_json(it));
-    }
-    return res;
+using json   = nlohmann::json;
+namespace ns = nlohmann;
+
+inline void to_json(json& j, int i) { ns::to_json(j, i); }
+
+inline void to_json(json& j, CR<QString> str) {
+    ns::to_json(j, str.toStdString());
 }
 
-template <typename T>
-inline json __jconvert(CR<T> in) {
-    json tmp = in;
-    return tmp;
+inline void to_json(json& j, CR<Str> str) { to_json(j, str.toBase()); }
+
+
+inline QString to_string(json const& j) {
+    return QString::fromStdString(nlohmann::to_string(j));
 }
 
-inline json to_json(CR<std::string> str) { return __jconvert(str); }
-inline json to_json(CR<QString> str) { return to_json(str.toStdString()); }
-inline json to_json(CR<Str> str) { return to_json(str.toBase()); }
 
-inline void to_json(json& target, CR<QString> str) {
-    target = to_json(str);
+inline QDebug operator<<(QDebug os, json const& value) {
+    QDebugStateSaver saved{os};
+    return os << to_string(value);
 }
 
 inline QTextStream& operator<<(QTextStream& os, json const& value) {
@@ -37,4 +37,57 @@ inline QTextStream& operator<<(QTextStream& os, json const& value) {
     ss << value;
     os << QString::fromStdString(ss.str());
     return os;
+}
+
+template <typename T>
+concept DescribedMembers = boost::describe::has_describe_members<T>::value;
+
+
+template <typename T>
+inline void to_json(json& res, CR<Opt<T>> str);
+
+template <typename T>
+inline void to_json(json& res, CR<Vec<T>> str);
+
+template <typename T>
+inline void to_json(json& res, std::unique_ptr<T> const& value);
+
+template <DescribedMembers T>
+void to_json(json& obj, T const& t) {
+    using D1 = boost::describe::
+        describe_members<T, boost::describe::mod_public>;
+    obj = json::object();
+    boost::mp11::mp_for_each<D1>([&](auto D) {
+        json tmp;
+        to_json(tmp, t.*D.pointer);
+        obj[D.name] = tmp;
+    });
+}
+
+template <typename T>
+inline void to_json(json& res, CR<Vec<T>> str) {
+    for (const auto& it : str) {
+        json tmp;
+        to_json(tmp, it);
+        res.push_back(tmp);
+    }
+}
+
+
+template <typename T>
+inline void to_json(json& res, CR<Opt<T>> str) {
+    if (str.has_value()) {
+        to_json(res, str.value());
+    } else {
+        res = json();
+    }
+}
+
+template <typename T>
+inline void to_json(json& res, std::unique_ptr<T> const& value) {
+    if (value.get() != nullptr) {
+        to_json(res, *value);
+    } else {
+        res = json();
+    }
 }
