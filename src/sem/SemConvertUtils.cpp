@@ -60,3 +60,64 @@ Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
 
     return std::nullopt;
 }
+
+void OrgConverter::report(CR<OrgConverter::Report> in) {
+    using fg = TermColorFg8Bit;
+
+    if (reportHook) {
+        reportHook(in);
+    }
+
+    if (traceUpdateHook) {
+        traceUpdateHook(in, trace, true);
+    }
+    if (!trace) {
+        if (traceUpdateHook) {
+            traceUpdateHook(in, trace, false);
+        }
+
+        return;
+    }
+
+
+    auto getLoc = [&]() -> QString {
+        QString res;
+        if (locationResolver && in.node.has_value()) {
+            Opt<LineCol> loc = this->getLoc(in.node.value());
+            if (loc.has_value()) {
+                res = "$#:$# " % to_string_vec(loc->line, loc->column);
+            }
+        }
+        return res;
+    };
+
+    if (in.kind == ReportKind::Enter) {
+        ++depth;
+    }
+
+    ColStream os = getStream();
+    os << repeat("  ", depth);
+
+
+    switch (in.kind) {
+        case ReportKind::Enter: {
+            os << "> " << in.name.value() << " " << getLoc();
+            break;
+        }
+        case ReportKind::Leave: {
+            os << "< " << in.name.value() << " " << getLoc();
+            break;
+        }
+    }
+
+    endStream(os);
+
+
+    if (in.kind == ReportKind::Leave) {
+        --depth;
+    }
+
+    if (traceUpdateHook) {
+        traceUpdateHook(in, trace, false);
+    }
+}

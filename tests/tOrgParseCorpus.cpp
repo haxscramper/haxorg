@@ -1068,6 +1068,7 @@ kind=$#
     qDebug() << "Wrote parsed tree representation";
 
     sem::OrgConverter converter;
+    converter.setTraceFile("/tmp/convert_trace.txt");
     converter.locationResolver = p.tokenizer.locationResolver;
     sem::Wrap<sem::Org> node   = converter.convert(nullptr, p.a(0));
 

@@ -5,7 +5,7 @@
 #include <parse/OrgParser.hpp>
 
 namespace sem {
-struct OrgConverter {
+struct OrgConverter : public OperationsTracer {
     using Up = Org*;
     using In = OrgAdapter;
 
