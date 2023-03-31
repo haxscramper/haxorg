@@ -72,7 +72,7 @@ TEST_CASE("Parser", "[parse]") {
     SECTION("Parse single time entry") {
         p.add(otk::BracketTime);
         p.parseTime(p.lex);
-        REQUIRE(p[0] == tok(org::TimeStamp, 0));
+        REQUIRE(p[0] == tok(org::Time, 0));
     }
 
     SECTION("Parse time range") {
@@ -80,9 +80,9 @@ TEST_CASE("Parser", "[parse]") {
         p.parseTime(p.lex);
         REQUIRE(p[0] == tree(org::TimeRange, 3));
         // start of the time range extent, two elements
-        REQUIRE(p[1] == tok(org::TimeStamp, 0));
+        REQUIRE(p[1] == tok(org::Time, 0));
         // Time dash token is skipped
-        REQUIRE(p[2] == tok(org::TimeStamp, 2));
+        REQUIRE(p[2] == tok(org::Time, 2));
         REQUIRE(p[3] == empty());
     }
 
@@ -90,9 +90,7 @@ TEST_CASE("Parser", "[parse]") {
         p.add({otk::BracketTime, otk::TimeDash, otk::BracketTime});
         p.parseTime(p.lex);
         auto tree = t(org::TimeRange,
-                      {t(org::TimeStamp, 0),
-                       t(org::TimeStamp, 2),
-                       t(empty())})
+                      {t(org::Time, 0), t(org::Time, 2), t(empty())})
                         .flatten();
         REQUIRE(p.flat() == tree);
     }

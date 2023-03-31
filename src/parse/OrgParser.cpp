@@ -462,9 +462,9 @@ OrgId OrgParser::parseTime(OrgLexer& lex) {
         __start(org::TimeRange);
         // IMPLEMENT check for identical start/end bracket categories:
         // `[]--[]` or `<>--<>` but not `<>--[]`
-        token(org::TimeStamp, pop(lex, times));
+        token(org::Time, pop(lex, times));
         skip(lex, otk::TimeDash);
-        token(org::TimeStamp, pop(lex, times));
+        token(org::Time, pop(lex, times));
         if (lex.at(otk::TimeArrow)) {
             skip(lex, otk::TimeArrow);
             token(org::SimpleTime, pop(lex, otk::TimeDuration));
@@ -483,7 +483,7 @@ OrgId OrgParser::parseTime(OrgLexer& lex) {
 
         __end_return();
     } else {
-        return token(org::TimeStamp, pop(lex, times));
+        return token(org::Time, pop(lex, times));
     }
 }
 
@@ -1301,7 +1301,7 @@ OrgId OrgParser::parseSubtreeTimes(OrgLexer& lex) {
                 empty();
             }
             space(lex);
-            token(org::TimeStamp, pop(lex, otk::BracketTime));
+            token(org::Time, pop(lex, otk::BracketTime));
             __end();
         }
 

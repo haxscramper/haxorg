@@ -1069,9 +1069,9 @@ kind=$#
 
     sem::OrgConverter converter;
     converter.locationResolver = p.tokenizer.locationResolver;
-    UPtr<sem::Org> node        = converter.convert(nullptr, p.a(0));
+    sem::Wrap<sem::Org> node   = converter.convert(nullptr, p.a(0));
 
-    qDebug().noquote() << node->toJson();
+    writeFile("/tmp/parse_corpus.json", to_string(node->toJson()));
 
     SUCCEED("Parsed input corpus file");
 }

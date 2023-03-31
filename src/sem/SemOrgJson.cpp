@@ -53,6 +53,7 @@ json Completion::toJson() const {
     return res;
 }
 
+
 json Subtree::toJson() const {
     json res;
     subnodesJson(res);
@@ -72,8 +73,35 @@ json SubtreeLog::toJson() const {
     return res;
 }
 
-json TimeRange::toJson() const {
+json Paragraph::toJson() const {
     json res;
     subnodesJson(res);
+    return res;
+}
+
+json Link::toJson() const {
+    json res;
+
+
+    return res;
+}
+
+json Time::toJson() const {
+    json res;
+    if (std::holds_alternative<Time::Static>(time)) {
+        res["kind"]        = "static";
+        res["static_time"] = "TODO static time";
+    } else {
+        res["kind"]         = "dynamic";
+        res["dynamic_time"] = "TODO dynamic time";
+    }
+
+    return res;
+}
+
+json TimeRange::toJson() const {
+    json res;
+    res["from"] = from->toJson();
+    res["to"]   = to->toJson();
     return res;
 }

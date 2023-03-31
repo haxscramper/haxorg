@@ -16,6 +16,59 @@ enum class OrgVerticalDirection : short int
     ovdBottom, ///  Bottom
 };
 
+enum class OrgSpecName
+{
+    Unnamed,
+    Result,
+    Link,
+    Protocol,
+    Desc,
+    Args,
+    Name,
+    Definition,
+    Body,
+    HeaderArgs,
+    File,
+    Kind,
+    Lang,
+    Prefix,
+    Text,
+    Todo,
+    Urgency,
+    Title,
+    Completion,
+    Head,
+    Subnodes,
+    Properties,
+    Logbook,
+    Description,
+    Logs,
+    Newstate,
+    Oldstate,
+    Time,
+    From,
+    EndArgs,
+    Flags,
+    Value,
+    Assoc,
+    Main,
+    Hash,
+    Bullet,
+    Counter,
+    Checkbox,
+    Header,
+    To,
+    Diff,
+    Property,
+    Subname,
+    Values,
+    Cells,
+    Rows,
+    Lines,
+    Chunks,
+};
+
+
 enum class OrgNodeKind : short int
 {
     None,     /// Default valye for node - invalid state
@@ -232,7 +285,7 @@ enum class OrgNodeKind : short int
     /// backends - greek letters (`\alpha`), mathematical notations and so
     /// on.
     TimeAssoc, /// Time association pair for the subtree deadlines.
-    TimeStamp,
+    Time,
     /// Single date and time entry (active or inactive), possibly with
     /// repeater interval. Is not parsed directly, and instead contains
     /// `orgRawText` that can be parsed later

@@ -518,6 +518,13 @@ struct NodeAdapter {
         group->treeRepr(os, id, level, conf);
     }
 
+    QString treeRepr() const {
+        QString     buffer;
+        QTextStream os{&buffer};
+        treeRepr(os);
+        return buffer;
+    }
+
     generator<NodeAdapter<N, K>> items() {
         for (int i = 0; i < group->size(id); ++i) {
             co_yield this->operator[](i);

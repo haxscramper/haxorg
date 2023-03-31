@@ -77,16 +77,14 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
              Field(
                  Range(1, N::Oldstate),
                  OrgPattern({org::BigIdent, org::Empty})),
-             Field(
-                 Range(2, N::Time),
-                 OrgPattern({org::TimeStamp, org::Empty})),
+             Field(Range(2, N::Time), OrgPattern({org::Time, org::Empty})),
              Field(
                  Range(3, N::Text),
                  OrgPattern({org::StmtList, org::Empty}))})},
     SpecPair{
         org::LogbookRefile,
         OrgPattern({
-            Field(Range(0, N::Time), OrgPattern(org::TimeStamp)),
+            Field(Range(0, N::Time), OrgPattern(org::Time)),
             Field(Range(1, N::From), OrgPattern(org::Link)),
             Field(
                 Range(2, N::Text),
@@ -108,7 +106,7 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
     SpecPair{
         org::LogbookNote,
         OrgPattern({
-            Field(Range(0, N::Time), OrgPattern(org::TimeStamp)),
+            Field(Range(0, N::Time), OrgPattern(org::Time)),
             Field(
                 Range(1, N::Text),
                 OrgPattern({org::StmtList, org::Empty})),
@@ -181,20 +179,20 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
                 OrgPattern({org::BigIdent, org::Empty})),
             Field(
                 Range(1, N::Time),
-                OrgPattern({org::TimeStamp, org::TimeRange})),
+                OrgPattern({org::Time, org::TimeRange})),
         })},
     SpecPair{
         org::LogbookClock,
         OrgPattern({
             Field(
                 Range(0, N::Time),
-                OrgPattern({org::TimeRange, org::TimeStamp})),
+                OrgPattern({org::TimeRange, org::Time})),
         })},
     SpecPair{
         org::TimeRange,
         OrgPattern({
-            Field(Range(0, N::From), OrgPattern({org::TimeStamp})),
-            Field(Range(1, N::To), OrgPattern({org::TimeStamp})),
+            Field(Range(0, N::From), OrgPattern({org::Time})),
+            Field(Range(1, N::To), OrgPattern({org::Time})),
             Field(
                 Range(2, N::Diff),
                 OrgPattern({org::SimpleTime, org::Empty})),

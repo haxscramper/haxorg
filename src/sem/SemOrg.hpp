@@ -20,6 +20,9 @@ struct TreeId {
 
 BOOST_DESCRIBE_STRUCT(TreeId, (), (id));
 
+template <typename T>
+using Wrap = std::shared_ptr<T>;
+
 namespace properties {
     struct Ordered {
         bool isOrdered;
@@ -79,12 +82,12 @@ struct Org {
     // `enums.hpp`
     OrgNodeKind    getKind() const { return original.getKind(); }
     bool           isGenerated() const { return original.empty(); }
-    Vec<UPtr<Org>> subnodes;
+    Vec<Wrap<Org>> subnodes;
     Vec<properties::Property> properties;
 
     virtual json toJson() const = 0;
 
-    void push_back(UPtr<Org>&& sub) { subnodes.push_back(std::move(sub)); }
+    void push_back(Wrap<Org>&& sub) { subnodes.push_back(std::move(sub)); }
     void subnodesJson(json& res) const {
         if (!subnodes.empty()) {
             json tmp = json::array();
@@ -176,7 +179,7 @@ struct Center : public Format {
 
 struct Block : public Org {
     using Org::Org;
-    Opt<UPtr<Org>> caption;
+    Opt<Wrap<Org>> caption;
 };
 
 struct Quote : public Block {
@@ -290,6 +293,7 @@ struct Time : public Org {
             Hour,
             Minute,
         };
+
         Period period;
         int    count;
     };
@@ -309,12 +313,12 @@ struct Time : public Org {
 /// Time range delimited by two points
 struct TimeRange : public Org {
     using Org::Org;
-    Time         start;
-    Time         finish;
+    Wrap<Time>   from;
+    Wrap<Time>   to;
     virtual json toJson() const override;
 };
 
-BOOST_DESCRIBE_STRUCT(TimeRange, (Org), (start, finish));
+BOOST_DESCRIBE_STRUCT(TimeRange, (Org), (from, to));
 
 struct SubtreeLog : public Org {
     using Org::Org;
@@ -355,11 +359,11 @@ struct Subtree : public Org {
     using Org::Org;
     int                   level;
     Opt<Str>              todo;
-    Opt<UPtr<Completion>> completion;
-    Vec<UPtr<HashTag>>    tags;
-    UPtr<Org>             title;
-    Opt<UPtr<Org>>        description;
-    Vec<UPtr<SubtreeLog>> logbook;
+    Opt<Wrap<Completion>> completion;
+    Vec<Wrap<HashTag>>    tags;
+    Wrap<Org>             title;
+    Opt<Wrap<Org>>        description;
+    Vec<Wrap<SubtreeLog>> logbook;
 
     virtual json toJson() const override;
 };
@@ -369,19 +373,43 @@ BOOST_DESCRIBE_STRUCT(
     (),
     (level, todo, completion, tags, title, description, logbook));
 
-struct SkipNewline : public Org {
+struct Leaf : public Org {
+    Str text;
     using Org::Org;
-    virtual json toJson() const override { return json(); }
-};
-
-struct Word : public Org {
-    using Org::Org;
-    Str          word;
     virtual json toJson() const override {
         json res;
-        res["word"] = word;
+        res["text"] = text;
         return res;
     }
+};
+
+struct SkipNewline : public Leaf {
+    using Leaf::Leaf;
+};
+
+struct SkipSpace : public Leaf {
+    using Leaf::Leaf;
+};
+
+struct Space : public Leaf {
+    using Leaf::Leaf;
+};
+
+struct Word : public Leaf {
+    using Leaf::Leaf;
+};
+
+struct Punctuation : public Leaf {
+    using Leaf::Leaf;
+};
+
+struct Link : public Org {
+    using Org::Org;
+    virtual json toJson() const override;
+};
+
+struct BigIdent : public Leaf {
+    using Leaf::Leaf;
 };
 
 }; // namespace sem

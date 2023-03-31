@@ -673,7 +673,7 @@ struct AstSpec {
 
     int getSingleSubnodeIdx(
         Kind const&     kind,
-        const Name&     name,
+        Name const&     name,
         const Opt<int>& nodeLen = Opt<int>{}) const {
         if (nodeRanges.at(kind).contains(name)) {
             const auto range = nodeRanges.at(kind).at(name);
@@ -746,7 +746,7 @@ struct AstSpec {
     }
 
     Node getSingleSubnode(Node const& node, Name const& name) const {
-        return node.at(getSingleSubnodeIDx(spec, node, name));
+        return node.at(getSingleSubnodeIdx(node, name));
     }
 
     Vec<Node> getMultipleSubnode(Node const& node, Name const& name)

@@ -100,13 +100,20 @@ struct OrgConverter {
     Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
 
   public:
-    virtual UPtr<Table>       convertTable(Up, In);
-    virtual UPtr<HashTag>     convertHashTag(Up, In);
-    virtual UPtr<Subtree>     convertSubtree(Up, In);
-    virtual UPtr<StmtList>    convertStmtList(Up, In);
-    virtual UPtr<SkipNewline> convertSkipNewline(Up, In);
-    virtual UPtr<Word>        convertWord(Up, In);
+    virtual Wrap<Table>       convertTable(Up, In);
+    virtual Wrap<HashTag>     convertHashTag(Up, In);
+    virtual Wrap<Subtree>     convertSubtree(Up, In);
+    virtual Wrap<StmtList>    convertStmtList(Up, In);
+    virtual Wrap<SkipNewline> convertSkipNewline(Up, In);
+    virtual Wrap<Word>        convertWord(Up, In);
+    virtual Wrap<Space>       convertSpace(Up, In);
+    virtual Wrap<Paragraph>   convertParagraph(Up, In);
+    virtual Wrap<TimeRange>   convertTimeRange(Up, In);
+    virtual Wrap<Time>        convertTime(Up, In);
+    virtual Wrap<Punctuation> convertPunctuation(Up, In);
+    virtual Wrap<Link>        convertLink(Up, In);
+    virtual Wrap<BigIdent>    convertBigIdent(Up, In);
 
-    virtual UPtr<Org> convert(Up, In);
+    virtual Wrap<Org> convert(Up, In);
 };
 }; // namespace sem
