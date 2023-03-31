@@ -11,6 +11,7 @@
     (Report{                                                              \
         .line     = __LINE__,                                             \
         .location = __CURRENT_FILE_PATH__,                                \
+        .name     = __func__,                                             \
         .node     = __node,                                               \
         .subname  = __subname,                                            \
     })
@@ -46,7 +47,6 @@
     {                                                                     \
         Report rep = __INIT_REPORT(__subname, __lex);                     \
         rep.kind   = ReportKind::EnterField;                              \
-        rep.name   = __func__;                                            \
         rep.field  = __field;                                             \
         report(rep);                                                      \
     }                                                                     \
@@ -70,6 +70,22 @@
         BOOST_PP_OVERLOAD(__field, __VA_ARGS__)(__VA_ARGS__),             \
         BOOST_PP_EMPTY())
 
+
+#define __json3(__org_node, __subname, __a)                               \
+    {                                                                     \
+        Report rep    = __INIT_REPORT(__subname, __a);                    \
+        rep.kind      = ReportKind::Json;                                 \
+        rep.semResult = (__org_node).get();                               \
+        report(rep);                                                      \
+    }
+
+#define __json2(__org_node, __subname) __json3(__org_node, __subname, a);
+#define __json1(__org_node) __json3(__org_node, std::nullopt, a);
+
+#define __json(...)                                                       \
+    BOOST_PP_CAT(                                                         \
+        BOOST_PP_OVERLOAD(__json, __VA_ARGS__)(__VA_ARGS__),              \
+        BOOST_PP_EMPTY())
 
 using namespace sem;
 using namespace properties;
@@ -154,6 +170,8 @@ Wrap<Time> OrgConverter::convertTime(__args) {
     __trace();
     auto time = Sem<Time>(p, a);
 
+
+    __json(time);
     return time;
 }
 

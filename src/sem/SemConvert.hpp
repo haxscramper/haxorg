@@ -84,6 +84,7 @@ struct OrgConverter : public OperationsTracer {
         Leave,
         EnterField,
         LeaveField,
+        Json,
     };
 
     struct Report {
@@ -94,6 +95,7 @@ struct OrgConverter : public OperationsTracer {
         Opt<Str>         subname;
         Opt<OrgAdapter>  node;
         Opt<OrgSpecName> field;
+        Org*             semResult;
     };
 
     int  depth = 0;

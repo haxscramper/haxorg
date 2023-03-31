@@ -105,8 +105,14 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
             os << "@{ " << to_string(in.field.value()) << " " << getLoc();
             break;
         }
+
         case ReportKind::LeaveField: {
             os << "@} " << to_string(in.field.value()) << " " << getLoc();
+            break;
+        }
+
+        case ReportKind::Json: {
+            os << "  " << to_string(in.semResult->toJson());
             break;
         }
 
