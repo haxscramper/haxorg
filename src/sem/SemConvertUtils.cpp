@@ -91,7 +91,8 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
         return res;
     };
 
-    if (in.kind == ReportKind::Enter) {
+    if (in.kind == ReportKind::Enter
+        || in.kind == ReportKind::EnterField) {
         ++depth;
     }
 
@@ -100,8 +101,20 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
 
 
     switch (in.kind) {
+        case ReportKind::EnterField: {
+            os << "@{ " << to_string(in.field.value()) << " " << getLoc();
+            break;
+        }
+        case ReportKind::LeaveField: {
+            os << "@} " << to_string(in.field.value()) << " " << getLoc();
+            break;
+        }
+
         case ReportKind::Enter: {
             os << "> " << in.name.value() << " " << getLoc();
+            if (in.node.has_value() && in.node->get().isTerminal()) {
+                os << escape_literal(in.node->strVal());
+            }
             break;
         }
         case ReportKind::Leave: {
@@ -113,7 +126,8 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
     endStream(os);
 
 
-    if (in.kind == ReportKind::Leave) {
+    if (in.kind == ReportKind::Leave
+        || in.kind == ReportKind::LeaveField) {
         --depth;
     }
 

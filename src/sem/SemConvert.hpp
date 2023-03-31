@@ -82,15 +82,18 @@ struct OrgConverter : public OperationsTracer {
     {
         Enter,
         Leave,
+        EnterField,
+        LeaveField,
     };
 
     struct Report {
-        ReportKind      kind;
-        fs::path        location;
-        int             line;
-        Opt<Str>        name;
-        Opt<Str>        subname;
-        Opt<OrgAdapter> node;
+        ReportKind       kind;
+        fs::path         location;
+        int              line;
+        Opt<Str>         name;
+        Opt<Str>         subname;
+        Opt<OrgAdapter>  node;
+        Opt<OrgSpecName> field;
     };
 
     int  depth = 0;

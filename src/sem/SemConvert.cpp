@@ -42,6 +42,35 @@
         BOOST_PP_EMPTY())
 
 
+#define __field3(__field, __subname, __lex)                               \
+    {                                                                     \
+        Report rep = __INIT_REPORT(__subname, __lex);                     \
+        rep.kind   = ReportKind::EnterField;                              \
+        rep.name   = __func__;                                            \
+        rep.field  = __field;                                             \
+        report(rep);                                                      \
+    }                                                                     \
+                                                                          \
+    finally CONCAT(close, __COUNTER__) = finally::init<Str>(              \
+        ([&](CR<Str> name) {                                              \
+            Report rep = __INIT_REPORT(__subname, __lex);                 \
+            rep.kind   = ReportKind::LeaveField;                          \
+            rep.name   = name;                                            \
+            rep.field  = __field;                                         \
+            report(rep);                                                  \
+        }),                                                               \
+        Str(__func__));
+
+
+#define __field2(__field, __subname) __field3(__field, __subname, a)
+#define __field1(__field) __field3(__field, std::nullopt, a)
+
+#define __field(...)                                                      \
+    BOOST_PP_CAT(                                                         \
+        BOOST_PP_OVERLOAD(__field, __VA_ARGS__)(__VA_ARGS__),             \
+        BOOST_PP_EMPTY())
+
+
 using namespace sem;
 using namespace properties;
 
@@ -111,8 +140,12 @@ Wrap<HashTag> OrgConverter::convertHashTag(__args) {
 
 Wrap<Subtree> OrgConverter::convertSubtree(__args) {
     __trace();
-    auto tree   = Sem<Subtree>(p, a);
-    tree->title = convertParagraph(tree.get(), one(a, N::Title));
+    auto tree = Sem<Subtree>(p, a);
+
+    {
+        __field(N::Title);
+        tree->title = convertParagraph(tree.get(), one(a, N::Title));
+    }
 
     return tree;
 }
@@ -126,9 +159,15 @@ Wrap<Time> OrgConverter::convertTime(__args) {
 
 Wrap<TimeRange> OrgConverter::convertTimeRange(__args) {
     __trace();
-    auto range  = Sem<TimeRange>(p, a);
-    range->from = convertTime(range.get(), one(a, N::From));
-    range->to   = convertTime(range.get(), one(a, N::To));
+    auto range = Sem<TimeRange>(p, a);
+    {
+        __field(N::From);
+        range->from = convertTime(range.get(), one(a, N::From));
+    }
+    {
+        __field(N::To);
+        range->to = convertTime(range.get(), one(a, N::To));
+    }
     return range;
 }
 

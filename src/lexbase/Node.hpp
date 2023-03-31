@@ -494,7 +494,7 @@ struct NodeAdapter {
     Str strVal() const { return group->strVal(id); }
     N   kind() const { return group->at(id).kind; }
 
-    CR<Node<N, K>> get() { return group->at(id); }
+    CR<Node<N, K>> get() const { return group->at(id); }
 
 
     NodeAdapter<N, K>(NodeGroup<N, K> const* group, NodeId<N, K> id)
