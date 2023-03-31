@@ -69,6 +69,9 @@ namespace properties {
 } // namespace properties
 
 
+#define GET_KIND(Kind)                                                    \
+    virtual OrgSemKind getKind() const { return OrgSemKind::Kind; }
+
 struct Org {
     /// Pointer to the parent node in sem tree, might be null.
     Org* parent;
@@ -80,14 +83,22 @@ struct Org {
 
     // TODO replace with custom list of kinds -- place enum in the
     // `enums.hpp`
-    OrgNodeKind    getKind() const { return original.getKind(); }
-    bool           isGenerated() const { return original.empty(); }
-    Vec<Wrap<Org>> subnodes;
+    OrgNodeKind getOriginalKind() const { return original.getKind(); }
+    virtual OrgSemKind getKind() const = 0;
+    bool               isGenerated() const { return original.empty(); }
+    Vec<Wrap<Org>>     subnodes;
     Vec<properties::Property> properties;
 
     virtual json toJson() const = 0;
 
     void push_back(Wrap<Org>&& sub) { subnodes.push_back(std::move(sub)); }
+
+    json newJson() const {
+        json res;
+        res["kind"] = to_string(getKind());
+        return res;
+    }
+
     void subnodesJson(json& res) const {
         if (!subnodes.empty()) {
             json tmp = json::array();
@@ -104,6 +115,7 @@ BOOST_DESCRIBE_STRUCT(Org, (), (parent, subnodes, properties));
 struct StmtList : public Org {
     using Org::Org;
     virtual json toJson() const override;
+    GET_KIND(StmtList);
 };
 
 BOOST_DESCRIBE_STRUCT(StmtList, (Org), ());
@@ -111,6 +123,7 @@ BOOST_DESCRIBE_STRUCT(StmtList, (Org), ());
 struct Row : public Org {
     using Org::Org;
     virtual json toJson() const override;
+    GET_KIND(Row);
 };
 
 BOOST_DESCRIBE_STRUCT(Row, (Org), ());
@@ -119,6 +132,7 @@ struct Table : public Org {
     using Org::Org;
     Vec<Row>     rows;
     virtual json toJson() const override;
+    GET_KIND(Table);
 };
 
 BOOST_DESCRIBE_STRUCT(Table, (Org), (rows));
@@ -129,6 +143,7 @@ struct HashTag : public Org {
     Vec<HashTag> subtags;
 
     virtual json toJson() const override;
+    GET_KIND(HashTag);
 };
 
 BOOST_DESCRIBE_STRUCT(HashTag, (), (head, subtags));
@@ -143,6 +158,7 @@ struct Completion : Org {
     bool isPercent = false;
 
     virtual json toJson() const override;
+    GET_KIND(Completion);
 };
 BOOST_DESCRIBE_STRUCT(Completion, (), (done, full, isPercent));
 
@@ -150,22 +166,31 @@ BOOST_DESCRIBE_STRUCT(Completion, (), (done, full, isPercent));
 struct Paragraph : public Org {
     using Org::Org;
     virtual json toJson() const override;
+    GET_KIND(Paragraph);
 };
 
 struct Markup : public Org {
     using Org::Org;
-    enum class Kind
-    {
-        Bold,
-        Italic,
-        Underline,
-        Strike,
-        Monospace,
-        Verbatim,
-        Backtick
-    };
+};
 
+struct Bold : public Markup {
+    using Markup::Markup;
     virtual json toJson() const override;
+    GET_KIND(Bold);
+};
+
+
+struct Italic : public Markup {
+    using Markup::Markup;
+    virtual json toJson() const override;
+    GET_KIND(Italic);
+};
+
+
+struct Strike : public Markup {
+    using Markup::Markup;
+    virtual json toJson() const override;
+    GET_KIND(Strike);
 };
 
 struct Format : public Org {
@@ -175,6 +200,7 @@ struct Format : public Org {
 struct Center : public Format {
     using Format::Format;
     virtual json toJson() const override;
+    GET_KIND(Center);
 };
 
 struct Block : public Org {
@@ -185,16 +211,19 @@ struct Block : public Org {
 struct Quote : public Block {
     using Block::Block;
     virtual json toJson() const override;
+    GET_KIND(Quote);
 };
 
 struct Example : public Block {
     using Block::Block;
     virtual json toJson() const override;
+    GET_KIND(Example);
 };
 
 /// \brief Base class for all code blocks
 struct Code : public Block {
     using Block::Block;
+    GET_KIND(Code);
 
     /// \brief Extra configuration switches that can be used to control
     /// representation of the rendered code block. This field does not
@@ -266,6 +295,7 @@ struct Code : public Block {
 
 
 struct Time : public Org {
+    GET_KIND(Time);
     using Org::Org;
 
     /// Repetition for static time
@@ -312,6 +342,7 @@ struct Time : public Org {
 
 /// Time range delimited by two points
 struct TimeRange : public Org {
+    GET_KIND(TimeRange);
     using Org::Org;
     Wrap<Time>   from;
     Wrap<Time>   to;
@@ -321,6 +352,7 @@ struct TimeRange : public Org {
 BOOST_DESCRIBE_STRUCT(TimeRange, (Org), (from, to));
 
 struct SubtreeLog : public Org {
+    GET_KIND(SubtreeLog);
     using Org::Org;
     struct Note {
         Time on;
@@ -356,6 +388,7 @@ struct SubtreeLog : public Org {
 BOOST_DESCRIBE_STRUCT(SubtreeLog, (Org), (log));
 
 struct Subtree : public Org {
+    GET_KIND(Subtree);
     using Org::Org;
     int                   level;
     Opt<Str>              todo;
@@ -384,32 +417,41 @@ struct Leaf : public Org {
 };
 
 struct SkipNewline : public Leaf {
+    GET_KIND(SkipNewline);
     using Leaf::Leaf;
 };
 
 struct SkipSpace : public Leaf {
+    GET_KIND(SkipSpace);
     using Leaf::Leaf;
 };
 
 struct Space : public Leaf {
+    GET_KIND(Space);
     using Leaf::Leaf;
 };
 
 struct Word : public Leaf {
+    GET_KIND(Word);
     using Leaf::Leaf;
 };
 
 struct Punctuation : public Leaf {
+    GET_KIND(Punctuation);
     using Leaf::Leaf;
 };
 
 struct Link : public Org {
+    GET_KIND(Link);
     using Org::Org;
     virtual json toJson() const override;
 };
 
 struct BigIdent : public Leaf {
+    GET_KIND(BigIdent);
     using Leaf::Leaf;
 };
 
 }; // namespace sem
+
+#undef GET_KIND

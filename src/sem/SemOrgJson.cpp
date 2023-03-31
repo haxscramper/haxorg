@@ -21,32 +21,32 @@ json opt_convert(Opt<T> const& value) {
 }
 
 json Row::toJson() const {
-    json res;
+    json res = newJson();
     subnodesJson(res);
     return res;
 }
 
 json Table::toJson() const {
-    json res;
+    json res = newJson();
     subnodesJson(res);
     return res;
 }
 
 json HashTag::toJson() const {
-    json res;
+    json res = newJson();
     subnodesJson(res);
     return res;
 }
 
 json StmtList::toJson() const {
-    json res;
+    json res = newJson();
     subnodesJson(res);
     return res;
 }
 
 
 json Completion::toJson() const {
-    json res;
+    json res         = newJson();
     res["done"]      = done;
     res["full"]      = full;
     res["isPercent"] = isPercent;
@@ -55,7 +55,7 @@ json Completion::toJson() const {
 
 
 json Subtree::toJson() const {
-    json res;
+    json res = newJson();
     subnodesJson(res);
     res["level"]       = level;
     res["todo"]        = todo;
@@ -68,26 +68,26 @@ json Subtree::toJson() const {
 }
 
 json SubtreeLog::toJson() const {
-    json res;
+    json res = newJson();
     subnodesJson(res);
     return res;
 }
 
 json Paragraph::toJson() const {
-    json res;
+    json res = newJson();
     subnodesJson(res);
     return res;
 }
 
 json Link::toJson() const {
-    json res;
+    json res = newJson();
 
 
     return res;
 }
 
 json Time::toJson() const {
-    json res;
+    json res = newJson();
     if (std::holds_alternative<Time::Static>(time)) {
         res["kind"]        = "static";
         res["static_time"] = "TODO static time";
@@ -100,7 +100,7 @@ json Time::toJson() const {
 }
 
 json TimeRange::toJson() const {
-    json res;
+    json res    = newJson();
     res["from"] = from->toJson();
     res["to"]   = to->toJson();
     return res;

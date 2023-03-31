@@ -364,6 +364,35 @@ enum class OrgNodeKind : short int
     __LAST
 };
 
+enum class OrgSemKind
+{
+    StmtList,
+    Row,
+    Table,
+    HashTag,
+    Completion,
+    Paragraph,
+    BigIdent,
+    Link,
+    Bold,
+    Italic,
+    Strike,
+    Center,
+    Quote,
+    Example,
+    Code,
+    Time,
+    SubtreeLog,
+    TimeRange,
+    Subtree,
+    SkipNewline,
+    SkipSpace,
+    Space,
+    Word,
+    Punctuation,
+};
+
+
 enum class OrgTextContext : short int
 {
     otcPlain,
