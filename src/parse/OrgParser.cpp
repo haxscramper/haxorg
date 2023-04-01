@@ -1541,4 +1541,44 @@ OrgId OrgParser::parseTop(OrgLexer& lex) {
     __end_return();
 }
 
+void OrgParser::extendSubtreeTrails(OrgId position) {
+    Func<OrgId(OrgId, int)> aux;
+    aux = [&](OrgId id, int level) -> OrgId {
+        OrgId const start = id;
+        // Iterate over all nodes until the end of the group or until exit
+        // condition is met. This assumes non-restructured tree that has
+        // subnodes positioned flatlyl on the top level
+        while (id < group->nodes.back()) {
+            OrgNode node = group->at(id);
+            if (node.kind == org::Subtree) {
+                OrgId const tree  = id;
+                OrgId       subId = group->subnode(tree, 0);
+                int         sub   = group->strVal(subId).size();
+                if (level < sub) {
+                    id = aux(subId, sub);
+                    // AUX returns next position to start looping from, so
+                    // the tree size is 'end - start - 1' to account for
+                    // the offset.
+                    int size = (id - tree) - 1;
+                    // Extend the tree size with new content
+                    group->at(tree).extend(size);
+                } else {
+                    // Found subtree on the same level or above
+                    break;
+                }
+            } else {
+                // Node is not a subtree, skipping.
+                ++id;
+            }
+        }
+
+        // Return next starting position for the caller start
+        return id;
+    };
+
+    aux(position, 0);
+}
+
+void OrgParser::extendAttachedTrails(OrgId position) {}
+
 #pragma clang diagnostic pop

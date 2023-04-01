@@ -16,4 +16,5 @@ lldb \
     -- \
     $IN \
     $ARGS |
-    rg -v "(is a Catch2|Run with -\? for options|Catch will terminate|\(lldb\)|frame-format|  0x|libc\.so|Process \d{2,}|Executing commands in|Terminate called without|\.{10,}|-{10,}|~{10,}|Test failure requires aborting|terminate called without)"
+    rg -v "(is a Catch2|Run with -\? for options|Catch will terminate|\(lldb\)|frame-format|  0x|libc\.so|Process \d{2,}|Executing commands in|Terminate called without|\.{10,}|-{10,}|~{10,}|Test failure requires aborting|terminate called without)" |
+    tee /tmp/haxorg_run.txt

@@ -259,6 +259,10 @@ Id& operator++(Id& id) {
     return id;
 }
 
+template <IsIdType Id>
+auto operator-(Id lhs, Id rhs) {
+    return lhs.getUnmasked() - rhs.getUnmasked();
+}
 
 /// \brief Increment ID value by \arg extent. Addition is saturated and
 /// unmasked part won't overflow
@@ -348,6 +352,7 @@ struct Store {
 
     /// \brief Last element stored in the store (by index)
     Id back() const { return Id::FromValue(content.size()); }
+    Id high() const { return Id::FromValue(content.size() - 1); }
 
     /// \brief Mutable reference of the value at specific *index* (don't
     /// confuse with ID)

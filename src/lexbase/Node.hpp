@@ -75,6 +75,17 @@ struct Node {
         value = extent;
     }
 
+
+    /// \brief Get full size of the node, including itself and nested
+    /// content.
+    int getFullSize() const {
+        if (isTerminal()) {
+            return 1;
+        } else {
+            return std::get<int>(value) + 1;
+        }
+    }
+
     int getExtent() const {
         if (isTerminal()) {
             return 0;
@@ -303,9 +314,18 @@ struct NodeGroup {
     }
 
     struct TreeReprConf {
-        bool         withTokenMask = false;
-        bool         withTreeMask  = false;
-        const QChar* fullBase      = nullptr;
+        bool withTokenMask  = false;
+        bool withTreeMask   = false;
+        bool withTreeId     = true;
+        bool withSubnodeIdx = true;
+        enum class WritePos
+        {
+            LineStart,
+            AfterKind,
+            LineEnd,
+        };
+
+        Func<void(QTextStream&, NodeId<N, K>, WritePos)> customWrite;
     };
 
     void lispRepr(
@@ -343,30 +363,36 @@ struct NodeGroup {
         QTextStream&     os,
         NodeId<N, K>     node,
         int              level,
-        CR<TreeReprConf> conf = TreeReprConf()) const {
-        if (conf.withTreeMask) {
-            os << right_aligned(to_string(node.getMask()), 2) << ":";
+        CR<TreeReprConf> conf       = TreeReprConf(),
+        int              subnodeIdx = 0) const {
+
+        os << repeat("  ", level);
+
+        os << to_string(at(node).kind);
+        if (conf.withSubnodeIdx) {
+            os << "[" << subnodeIdx << "]";
         }
 
-        os << left_aligned(to_string(node.getUnmasked()), 4) << " "
-           << repeat("  ", level) << to_string(at(node).kind);
+        if (conf.withTreeMask) {
+            os << " MASK:" << to_string(node.getMask());
+        }
+
+        if (conf.withTreeId) {
+            os << " ID:" << to_string(node.getUnmasked());
+        }
+
         if (at(node).isTerminal()) {
             auto tok = at(node).getToken();
             os << " #";
             tok.streamTo(os, "", conf.withTokenMask);
             os << " " << at(tok);
-            if (conf.fullBase != nullptr && at(tok).hasData()) {
-                auto start = std::distance(
-                    conf.fullBase, at(tok).getText().data());
-
-                os << " " << start << ".."
-                   << start + at(tok).getText().size() - 1;
-            }
         } else {
             auto [begin, end] = subnodesOf(node);
+            int idx           = 0;
             for (; begin != end; ++begin) {
                 os << "\n";
-                treeRepr(os, *begin, level + 1, conf);
+                treeRepr(os, *begin, level + 1, conf, idx);
+                ++idx;
             }
         }
     }

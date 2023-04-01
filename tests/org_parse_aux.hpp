@@ -59,9 +59,10 @@ struct MockFull : public OrgParser {
         tokenize(content, lexMethod);
         parse(parseMethod);
     }
+
     void treeRepr() {
         std::cout << "\n";
-        nodes.treeRepr(qcout, OrgId(0), 0, {.fullBase = base.data()});
+        nodes.treeRepr(qcout, OrgId(0), 0);
         std::cout << std::endl;
     }
 

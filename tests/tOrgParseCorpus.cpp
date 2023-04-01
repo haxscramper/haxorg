@@ -1064,8 +1064,22 @@ kind=$#
 
     writeFile(
         "/tmp/parsed_tree.html", htmlRepr(OrgId(0), p.nodes, source, ops));
+    writeFile("/tmp/parsed_tree.txt", p.a(0).treeRepr());
 
-    qDebug() << "Wrote parsed tree representation";
+    qDebug() << "Wrote parsed tree representation before group sweep";
+
+    qDebug() << "Extending subtree trails";
+    p.extendSubtreeTrails(OrgId(0));
+    p.extendAttachedTrails(OrgId(0));
+
+    writeFile("/tmp/file_sweep.yaml", to_string(yamlRepr(p.nodes)) + "\n");
+
+    writeFile("/tmp/parsed_sweep.txt", p.a(0).treeRepr());
+    writeFile(
+        "/tmp/parsed_sweep.html",
+        htmlRepr(OrgId(0), p.nodes, source, ops));
+
+    qDebug() << "Wrote parsed tree representation after group sweep";
 
     sem::OrgConverter converter;
     converter.setTraceFile("/tmp/convert_trace.txt");

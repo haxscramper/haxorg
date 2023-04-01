@@ -115,10 +115,14 @@ function(set_target_flags TARGET)
     add_target_property(${TARGET} COMPILE_OPTIONS -finstrument-functions)
   endif()
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+    message(INFO "Using clang compiler")
     # Avoid getting flooded with compilation errors
     set(CMAKE_CXX_COMPILER clang++)
     add_target_property(${TARGET} COMPILE_OPTIONS
                         "-ferror-limit=${MAX_COMPILE_ERRORS}")
+
+    add_target_property(${TARGET} COMPILE_OPTIONS
+                        "-fdiagnostics-format=sarif")
 
     if(${TEST_COVERAGE})
       message(INFO " Test coverage enabled")
@@ -214,8 +218,7 @@ if(${USE_SINGLE_FILE_CATCH})
   # unreadable.
   #
   # add_target_property(tests COMPILE_DEFINITIONS
-  #                     "CATCH_CONFIG_CONSOLE_WIDTH=1200000")
-
+  # "CATCH_CONFIG_CONSOLE_WIDTH=1200000")
 
   add_target_property(tests COMPILE_DEFINITIONS
                       "CATCH_CONFIG_DISABLE_EXCEPTIONS")

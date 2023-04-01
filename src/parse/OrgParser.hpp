@@ -240,4 +240,7 @@ struct OrgParser : public OperationsTracer {
 
     OrgId parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind);
     void  skipLineCommand(OrgLexer& lex);
+
+    void extendSubtreeTrails(OrgId position);
+    void extendAttachedTrails(OrgId position);
 };
