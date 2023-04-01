@@ -203,7 +203,8 @@ struct OrgParser : public OperationsTracer {
     OrgId parseInlineMath(OrgLexer& lex);
     OrgId parseSymbol(OrgLexer& lex);
     OrgId parseHashTag(OrgLexer& lex);
-    OrgId parseTime(OrgLexer& lex);
+    OrgId parseTimeRange(OrgLexer& lex);
+    OrgId parseTimeStamp(OrgLexer& lex);
     OrgId parseIdent(OrgLexer& lex);
     OrgId parseSrcInline(OrgLexer& lex);
     OrgId parseTable(OrgLexer& lex);

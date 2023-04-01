@@ -250,8 +250,8 @@ void OrgParser::textFold(OrgLexer& lex) {
             CASE_INLINE(Backtick);
 
             case otk::SrcOpen: parseSrcInline(lex); break;
-            case otk::AngleTime: parseTime(lex); break;
-            case otk::BracketTime: parseTime(lex); break;
+            case otk::ActiveTimeBegin:
+            case otk::InactiveTimeBegin: parseTimeRange(lex); break;
             case otk::HashTag: parseHashTag(lex); break;
             case otk::LinkOpen: parseLink(lex); break;
             case otk::MacroOpen: parseMacro(lex); break;
@@ -455,27 +455,90 @@ OrgId OrgParser::parseHashTag(OrgLexer& lex) {
     __end_return();
 }
 
-OrgId OrgParser::parseTime(OrgLexer& lex) {
-    __trace();
-    const OrgTokSet times{otk::BracketTime, otk::AngleTime};
-    if (lex.ahead(times, OrgTokSet{otk::TimeDash})) {
-        __start(org::TimeRange);
-        // IMPLEMENT check for identical start/end bracket categories:
-        // `[]--[]` or `<>--<>` but not `<>--[]`
-        token(org::Time, pop(lex, times));
-        skip(lex, otk::TimeDash);
-        token(org::Time, pop(lex, times));
-        if (lex.at(otk::TimeArrow)) {
-            skip(lex, otk::TimeArrow);
-            token(org::SimpleTime, pop(lex, otk::TimeDuration));
+OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
+    expect(lex, OrgTokSet{otk::InactiveTimeBegin, otk::ActiveTimeBegin});
+    bool active = lex.at(otk::ActiveTimeBegin);
+    skip(lex, active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin);
+    if (!lex.at(otk::DynamicTimeContent)) {
+        if (active) {
+            __start(org::StaticActiveTime);
         } else {
+            __start(org::StaticInactiveTime);
+        }
+        auto year = token(org::RawText, pop(lex, otk::StaticTimeDatePart));
+        __token(year);
+        skipSpace(lex);
+        if (lex.at(otk::StaticTimeDayPart)) {
+            auto day = token(
+                org::RawText, pop(lex, otk::StaticTimeDayPart));
+            __token(day);
+
+            skipSpace(lex);
+            if (lex.at(otk::StaticTimeClockPart)) {
+                auto clock = token(
+                    org::RawText, pop(lex, otk::StaticTimeClockPart));
+                __token(clock);
+                if (lex.at(otk::StaticTimeRepeater)) {
+                    auto repeater = token(
+                        org::RawText, pop(lex, otk::StaticTimeRepeater));
+                    __token(repeater);
+                } else {
+                    empty();
+                }
+
+            } else {
+                empty();
+                empty();
+            }
+
+        } else {
+            empty();
+            empty();
             empty();
         }
 
-        if (lex.ahead(otk::SkipSpace, otk::TimeArrow)) {
-            space(lex);
+        __end();
+
+    } else {
+        if (active) {
+            __start(org::DynamicActiveTime);
+        } else {
+            __start(org::DynamicInactiveTime);
+        }
+
+        auto sub = token(org::RawText, pop(lex, otk::DynamicTimeContent));
+
+        __end();
+    }
+
+    skip(lex, active ? otk::ActiveTimeEnd : otk::InactiveTimeEnd);
+    return back();
+}
+
+OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
+    __trace();
+    const OrgTokSet times{
+        otk::InactiveTimeBegin,
+        otk::InactiveTimeEnd,
+        otk::ActiveTimeBegin,
+        otk::ActiveTimeEnd,
+        otk::DynamicTimeContent,
+        otk::StaticTimeDatePart,
+        otk::StaticTimeDayPart,
+        otk::StaticTimeClockPart,
+        otk::StaticTimeRepeater,
+    };
+
+
+    if (lex.ahead(times, OrgTokSet{otk::TimeDash})) {
+        __start(org::TimeRange);
+        parseTimeStamp(lex);
+        skip(lex, otk::TimeDash);
+        parseTimeStamp(lex);
+        skipSpace(lex);
+        if (lex.at(otk::TimeArrow)) {
             skip(lex, otk::TimeArrow);
-            space(lex);
+            skipSpace(lex);
             token(org::SimpleTime, pop(lex, otk::TimeDuration));
         } else {
             empty();
@@ -483,8 +546,33 @@ OrgId OrgParser::parseTime(OrgLexer& lex) {
 
         __end_return();
     } else {
-        return token(org::Time, pop(lex, times));
+        return parseTimeStamp(lex);
     }
+
+
+    // __end_return();
+
+    // if (lex.ahead(times, OrgTokSet{otk::TimeDash})) {
+    //     __start(org::TimeRange);
+    //     // IMPLEMENT check for identical start/end bracket categories:
+    //     // `[]--[]` or `<>--<>` but not `<>--[]`
+    //     token(org::Time, pop(lex, times));
+    //     skip(lex, otk::TimeDash);
+    //     token(org::Time, pop(lex, times));
+
+    //     if (lex.ahead(otk::SkipSpace, otk::TimeArrow)) {
+    //         space(lex);
+    //         skip(lex, otk::TimeArrow);
+    //         space(lex);
+    //         token(org::SimpleTime, pop(lex, otk::TimeDuration));
+    //     } else {
+    //         empty();
+    //     }
+
+    //     __end_return();
+    // } else {
+    //     return token(org::Time, pop(lex, times));
+    // }
 }
 
 OrgId OrgParser::parseFootnote(OrgLexer& lex) {
@@ -1051,7 +1139,7 @@ OrgId OrgParser::parseSubtreeLogbookClockEntry(OrgLexer& lex) {
     skip(lex, otk::Colon);
     space(lex);
 
-    parseTime(lex);
+    parseTimeStamp(lex);
 
     space(lex);
     skip(lex, otk::ParagraphEnd);
@@ -1085,7 +1173,7 @@ OrgId OrgParser::parseSubtreeLogbookListEntry(OrgLexer& lex) {
             token(org::BigIdent, pop(lex, otk::BigIdent));
             skip(lex, otk::QuoteClose);
             space(lex);
-            parseTime(lex);
+            parseTimeStamp(lex);
         }
         __end();
     } else if (lex.at(otk::Word) && lex.strVal() == "Refiled") {
@@ -1095,7 +1183,7 @@ OrgId OrgParser::parseSubtreeLogbookListEntry(OrgLexer& lex) {
             space(lex);
             skip(lex, V{otk::Word, "on"});
             space(lex);
-            parseTime(lex);
+            parseTimeStamp(lex);
             space(lex);
             skip(lex, V{otk::Word, "from"});
             space(lex);
@@ -1111,7 +1199,7 @@ OrgId OrgParser::parseSubtreeLogbookListEntry(OrgLexer& lex) {
             space(lex);
             skip(lex, V{otk::Word, "on"});
             space(lex);
-            parseTime(lex);
+            parseTimeStamp(lex);
             space(lex);
             if (lex.at(otk::DoubleSlash)) {
                 skip(lex, otk::DoubleSlash);
@@ -1300,11 +1388,11 @@ OrgId OrgParser::parseSubtreeTimes(OrgLexer& lex) {
     __start(org::StmtList);
     if (lex.ahead(
             OrgTokSet{otk::SkipSpace, otk::GroupStart},
-            OrgTokSet{otk::SubtreeTime, otk::BracketTime})) {
+            OrgTokSet{otk::SubtreeTime})) {
         skip(lex, otk::GroupStart);
         skip(lex, otk::SkipSpace);
 
-        while (lex.at(otk::SubtreeTime) || lex.at(otk::BracketTime)) {
+        while (lex.at(otk::SubtreeTime)) {
             __start(org::TimeAssoc);
             if (lex.at(otk::SubtreeTime)) {
                 token(org::BigIdent, pop(lex, otk::SubtreeTime));
@@ -1312,7 +1400,7 @@ OrgId OrgParser::parseSubtreeTimes(OrgLexer& lex) {
                 empty();
             }
             space(lex);
-            token(org::Time, pop(lex, otk::BracketTime));
+            parseTimeStamp(lex);
             __end();
         }
 

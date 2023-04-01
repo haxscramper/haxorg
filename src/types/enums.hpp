@@ -288,7 +288,10 @@ enum class OrgNodeKind : short int
     /// backends - greek letters (`\alpha`), mathematical notations and so
     /// on.
     TimeAssoc, /// Time association pair for the subtree deadlines.
-    Time,
+    StaticActiveTime,
+    StaticInactiveTime,
+    DynamicActiveTime,
+    DynamicInactiveTime,
     /// Single date and time entry (active or inactive), possibly with
     /// repeater interval. Is not parsed directly, and instead contains
     /// `orgRawText` that can be parsed later
@@ -610,8 +613,6 @@ enum class OrgTokenKind : short int
     SubtreeTagSeparator,
     SubtreeTime,
     SubtreeEnd,
-    AngleTime, /// Active timestamp token
-    DiaryTime, /// Active timestamp with S-expression to check the time
     ImplicitTime,
     /// You can write time ranges without any additional formatting for
     /// subtrees that have a diary timestamps. For example, you have a
@@ -620,7 +621,16 @@ enum class OrgTokenKind : short int
     TimeDuration,
     /// Time duration for the `effort` property or time range length
     /// evaluation
-    BracketTime, /// Inactive timestamp token
+    InactiveTimeBegin, /// Start of the inactive timestamp (`[2022-03-12]`)
+    InactiveTimeEnd,
+    ActiveTimeBegin, /// Start of the active timestamp `<2030-02-03>`
+    ActiveTimeEnd,
+    DynamicTimeContent,  /// Dynamic time content
+    StaticTimeDatePart,  /// year-month-day part of the timestamp
+    StaticTimeDayPart,   /// weekday part of the timestamp
+    StaticTimeClockPart, /// Clock part of the timestamp
+    StaticTimeRepeater,  /// Type of the time repeater: `+`, `++`, `.+`
+
     TimeDash,
     /// Separator dash between two periods in the time range
     /// (`<start>--<finish.`)

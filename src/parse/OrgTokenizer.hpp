@@ -392,7 +392,13 @@ struct OrgTokenizer
     bool lexStructure(PosStr& str);
     bool lexGlobal(PosStr& str);
     bool lexAngle(PosStr& str);
-    bool lexTime(PosStr& str);
+    /// Lex two sequential time stamps optionally followed by the time
+    /// duration
+    bool lexTimeRange(PosStr& str);
+    bool lexTimeStamp(PosStr& str);
+    /// Lex full static time entry -- active or inactive
+    bool lexStaticTime(PosStr& str);
+
     bool lexLink(PosStr& str);
     bool lexFootnote(PosStr& str);
     bool lexLinkTarget(PosStr& str);

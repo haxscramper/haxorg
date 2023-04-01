@@ -258,13 +258,16 @@ Wrap<Org> OrgConverter::convert(__args) {
         CASE(StmtList);
         CASE(Subtree);
         CASE(TimeRange);
-        CASE(Time);
         CASE(Paragraph);
         CASE(Space);
         CASE(Word);
         CASE(Punctuation);
         CASE(Link);
         CASE(BigIdent);
+        case org::StaticActiveTime:
+        case org::StaticInactiveTime:
+        case org::DynamicActiveTime:
+        case org::DynamicInactiveTime: return convertTime(p, a);
         default: throw wrapError(Err::UnhandledKind(a.kind()), a);
     }
 #undef CASE

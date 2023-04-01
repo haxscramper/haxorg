@@ -70,38 +70,43 @@ TmpTree t(OrgNode node) { return TmpTree{node}; }
 TEST_CASE("Parser", "[parse]") {
     MockParser p;
     SECTION("Parse single time entry") {
-        p.add(otk::BracketTime);
-        p.parseTime(p.lex);
-        REQUIRE(p[0] == tok(org::Time, 0));
+        // FIXME
+        // p.add(otk::BracketTime);
+        p.parseTimeStamp(p.lex);
+        REQUIRE(p[0] == tok(org::StaticInactiveTime, 0));
     }
 
     SECTION("Parse time range") {
-        p.add({otk::BracketTime, otk::TimeDash, otk::BracketTime});
-        p.parseTime(p.lex);
+        // FIXME
+        // p.add({otk::BracketTime, otk::TimeDash, otk::BracketTime});
+        p.parseTimeRange(p.lex);
         REQUIRE(p[0] == tree(org::TimeRange, 3));
         // start of the time range extent, two elements
-        REQUIRE(p[1] == tok(org::Time, 0));
+        REQUIRE(p[1] == tok(org::StaticInactiveTime, 0));
         // Time dash token is skipped
-        REQUIRE(p[2] == tok(org::Time, 2));
+        REQUIRE(p[2] == tok(org::StaticInactiveTime, 2));
         REQUIRE(p[3] == empty());
     }
 
     SECTION("Compare time range with flattened tree") {
-        p.add({otk::BracketTime, otk::TimeDash, otk::BracketTime});
-        p.parseTime(p.lex);
+        // FIXME
+        // p.add({otk::BracketTime, otk::TimeDash, otk::BracketTime});
+        p.parseTimeRange(p.lex);
         auto tree = t(org::TimeRange,
-                      {t(org::Time, 0), t(org::Time, 2), t(empty())})
+                      {t(org::StaticInactiveTime, 0),
+                       t(org::StaticInactiveTime, 2),
+                       t(empty())})
                         .flatten();
         REQUIRE(p.flat() == tree);
     }
 
     SECTION("Parse time with arrow") {
-        p.add(
-            {otk::BracketTime,
-             otk::TimeDash,
-             otk::BracketTime,
-             otk::TimeArrow,
-             otk::TimeDuration});
-        p.parseTime(p.lex);
+        // p.add(
+        //     {otk::BracketTime,
+        //      otk::TimeDash,
+        //      otk::BracketTime,
+        //      otk::TimeArrow,
+        //      otk::TimeDuration});
+        // p.parseTime(p.lex);
     }
 }

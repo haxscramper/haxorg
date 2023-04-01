@@ -11,6 +11,12 @@ using Range = astspec::AstRange<OrgSpecName>;
 
 using N = OrgSpecName;
 
+const IntSet<OrgNodeKind> anyTime{
+    org::StaticActiveTime,
+    org::StaticInactiveTime,
+    org::DynamicActiveTime,
+    org::DynamicInactiveTime};
+
 OrgSpec spec = OrgSpec(Vec<SpecPair>{
     SpecPair{
         org::Subtree,
@@ -111,23 +117,37 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
         org::LogbookStateChange,
         OrgPattern({
             Field(
-                Range(0, N::Newstate),
+                Range(0, N::Newstate)
+                    .doc("State that subtree was transitioned from"),
                 OrgPattern({org::BigIdent, org::Empty})),
             Field(
-                Range(1, N::Oldstate),
+                Range(1, N::Oldstate)
+                    .doc("State that subtree was transitioned to"),
                 OrgPattern({org::BigIdent, org::Empty})),
-            Field(Range(2, N::Time), OrgPattern({org::Time, org::Empty})),
             Field(
-                Range(3, N::Text),
+                Range(2, N::Time).doc("Transition time"),
+                OrgPattern(anyTime + IntSet<OrgNodeKind>{org::Empty})),
+            Field(
+                Range(3, N::Text)
+                    .doc("Additional optional annotations for the state "
+                         "transition entry"),
                 OrgPattern({org::StmtList, org::Empty})),
         })},
     SpecPair{
         org::LogbookRefile,
         OrgPattern({
-            Field(Range(0, N::Time), OrgPattern(org::Time)),
-            Field(Range(1, N::From), OrgPattern(org::Link)),
             Field(
-                Range(2, N::Text),
+                Range(0, N::Time).doc("Time when refiling took place"),
+                OrgPattern(anyTime)),
+            Field(
+                Range(1, N::From)
+                    .doc("Link of the original subtree that was refiled "
+                         "from"),
+                OrgPattern(org::Link)),
+            Field(
+                Range(2, N::Text)
+                    .doc(
+                        "Optional annotation for the refiling transition"),
                 OrgPattern({org::StmtList, org::Empty})),
         })},
     SpecPair{
@@ -146,7 +166,7 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
     SpecPair{
         org::LogbookNote,
         OrgPattern({
-            Field(Range(0, N::Time), OrgPattern(org::Time)),
+            Field(Range(0, N::Time), OrgPattern(anyTime)),
             Field(
                 Range(1, N::Text),
                 OrgPattern({org::StmtList, org::Empty})),
@@ -220,20 +240,20 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
                 OrgPattern({org::BigIdent, org::Empty})),
             Field(
                 Range(1, N::Time),
-                OrgPattern({org::Time, org::TimeRange})),
+                OrgPattern(anyTime + IntSet<OrgNodeKind>{org::TimeRange})),
         })},
     SpecPair{
         org::LogbookClock,
         OrgPattern({
             Field(
                 Range(0, N::Time),
-                OrgPattern({org::TimeRange, org::Time})),
+                OrgPattern(anyTime + IntSet<OrgNodeKind>{org::TimeRange})),
         })},
     SpecPair{
         org::TimeRange,
         OrgPattern({
-            Field(Range(0, N::From), OrgPattern({org::Time})),
-            Field(Range(1, N::To), OrgPattern({org::Time})),
+            Field(Range(0, N::From), OrgPattern(anyTime)),
+            Field(Range(1, N::To), OrgPattern(anyTime)),
             Field(
                 Range(2, N::Diff),
                 OrgPattern({org::SimpleTime, org::Empty})),

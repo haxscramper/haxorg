@@ -400,15 +400,7 @@ bool OrgTokenizer::lexAngle(PosStr& str) {
     __start(str);
     try {
         if (str.at("<%%")) {
-            auto tok = str.tok(otk::DiaryTime, [this](PosStr& str) {
-                oskipOne(str, "<%%");
-                skipBalancedSlice(
-                    str,
-                    {.openChars  = CharSet{QChar('(')},
-                     .closeChars = CharSet{QChar(')')}});
-                oskipOne(str, ">");
-            });
-            __push(tok);
+            lexTimeStamp(str);
         } else if (str.at("<<<")) {
             __push((str.tok(otk::TripleAngleOpen, skipCount, 3)));
         } else if (str.at("<<")) {
@@ -416,18 +408,7 @@ bool OrgTokenizer::lexAngle(PosStr& str) {
             __push((str.tok(otk::RawText, skipTo, QChar('>'))));
             __push((str.tok(otk::RawText, skipCb(">>"))));
         } else if (str.at(charsets::Digits, 1)) {
-            auto skipAngles = [this](PosStr& str) {
-                oskipOne(str, QChar('<'));
-                str.skipTo(QChar('>'));
-                oskipOne(str, QChar('>'));
-            };
-
-            __push((str.tok(otk::AngleTime, skipAngles)));
-
-            if (str.at("--")) {
-                __push((str.tok(otk::TimeDash, skipCount, 2)));
-                __push((str.tok(otk::AngleTime, skipAngles)));
-            }
+            lexTimeStamp(str);
         } else {
             __push((str.tok(otk::AngleOpen, skipCount, 1)));
             __push((str.tok(otk::RawText, skipTo, QChar('>'))));
@@ -440,49 +421,136 @@ bool OrgTokenizer::lexAngle(PosStr& str) {
     }
 }
 
-bool OrgTokenizer::lexTime(PosStr& str) {
+bool OrgTokenizer::lexTimeStamp(PosStr& str) {
     __trace();
-    if (str.at(QChar('<'))) {
-        lexAngle(str);
-    } else if (str.at(QChar('['))) {
-        auto skipBracket = [this](PosStr& str) {
-            oskipOne(str, QChar('['));
-            str.skipTo(QChar(']'));
-            oskipOne(str, QChar(']'));
-        };
+    bool active = str.at(QChar('<'));
 
-        auto time = str.tok(otk::BracketTime, skipBracket);
-        __push(time);
-        if (str.at("--")) {
-            auto sep = str.tok(otk::TimeDash, skipCount, 2);
-            __push(sep);
-            auto time = str.tok(otk::BracketTime, skipBracket);
-            __push(time);
+    if (str.at("<%%") || str.at("[%%")) {
+        // Lex dynamic timestamp
+        auto begin = str.tok(
+            active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin,
+            skipCb(active ? "<%%" : "[%%"));
+        __push(begin);
+
+        auto tok = str.tok(otk::DynamicTimeContent, [this](PosStr& str) {
+            skipBalancedSlice(
+                str,
+                {.openChars  = CharSet{QChar('(')},
+                 .closeChars = CharSet{QChar(')')}});
+        });
+        __push(tok);
+
+        auto end = str.tok(
+            active ? otk::ActiveTimeEnd : otk::InactiveTimeEnd,
+            skipCb(active ? ">" : "]"));
+
+        __push(end);
+
+    } else if (str.at("<") || str.at("[")) {
+        /// Lex static timestamp
+        auto begin = str.tok(
+            active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin,
+            skipCb(active ? "<" : "["));
+        __push(begin);
+
+        auto date = str.tok(otk::StaticTimeDatePart, [this](PosStr& str) {
+            while (str.at('-') || str.at('/') || str.get().isDigit()) {
+                str.next();
+            }
+        });
+        __push(date);
+        spaceSkip(str);
+
+        if (str.get().isLetter()) {
+            __trace("Static time day");
+            auto day = str.tok(
+                otk::StaticTimeDayPart, [this](PosStr& str) {
+                    while (str.get().isLetter()) {
+                        str.next();
+                    }
+                });
+            __push(day);
+            spaceSkip(str);
         }
+
+        if (str.get().isNumber()) {
+            __trace("Static time clock");
+            auto day = str.tok(
+                otk::StaticTimeClockPart, [this](PosStr& str) {
+                    while (str.get().isLetter()) {
+                        str.next();
+                    }
+                });
+            __push(day);
+            spaceSkip(str);
+        }
+
+        if (str.at('+') || str.at('.')) {
+            __trace("Static time repeater");
+            // Lex static time repeater kind
+            auto repeater = str.tok(
+                otk::StaticTimeRepeater, [this](PosStr& str) {
+                    if (str.at('.')) {
+                        oskipOne(str, QChar('.'));
+                        oskipOne(str, QChar('+'));
+                    } else {
+                        oskipOne(str, QChar('+'));
+                        if (str.at('+')) {
+                            oskipOne(str, QChar('+'));
+                        }
+                    }
+                    while (str.get().isNumber()) {
+                        str.next();
+                    }
+                    while (str.get().isLetter()) {
+                        str.next();
+                    }
+                });
+            __push(repeater);
+            spaceSkip(str);
+        }
+
+
+        auto end = str.tok(
+            active ? otk::ActiveTimeEnd : otk::InactiveTimeEnd,
+            skipCb(active ? ">" : "]"));
+
+        __push(end);
+
+        return true;
     } else {
         throw str.makeUnexpected("QChar('<') or QChar('[')", "time");
     }
+}
 
-    if (str.at(" => ")) {
-        spaceSkip(str);
-        auto arr = str.tok(otk::TimeArrow, skipOne, "=>");
-        __push(arr);
-        spaceSkip(str);
-        auto dur = str.tok(otk::TimeDuration, [this](PosStr& str) {
-            while (str.get().isDigit()) {
-                str.next();
-            }
-            oskipOne(str, ':');
-            while (str.get().isDigit()) {
-                str.next();
-            }
+bool OrgTokenizer::lexTimeRange(PosStr& str) {
+    __trace();
+    lexTimeStamp(str);
+    if (str.at("--")) {
+        auto sep = str.tok(otk::TimeDash, skipCount, 2);
+        __push(sep);
+        lexTimeStamp(str);
+        if (spaced(str).at("=>")) {
+            spaceSkip(str);
+            auto arr = str.tok(otk::TimeArrow, skipOne, "=>");
+            __push(arr);
+            spaceSkip(str);
+            auto dur = str.tok(otk::TimeDuration, [this](PosStr& str) {
+                while (str.get().isDigit()) {
+                    str.next();
+                }
+                oskipOne(str, ':');
+                while (str.get().isDigit()) {
+                    str.next();
+                }
 
-            str.trySkip("am")        //
-                || str.trySkip("pm") //
-                || str.trySkip("AM") //
-                || str.trySkip("PM");
-        });
-        __push(dur);
+                str.trySkip("am")        //
+                    || str.trySkip("pm") //
+                    || str.trySkip("AM") //
+                    || str.trySkip("PM");
+            });
+            __push(dur);
+        }
     }
 
     return true;
@@ -633,7 +701,7 @@ bool OrgTokenizer::lexBracket(PosStr& str) {
     } else if (str.at("[fn:") || str.at("[FN:")) {
         lexFootnote(str);
     } else {
-        lexTime(str);
+        lexTimeRange(str);
     }
     return true;
 }
@@ -1591,7 +1659,7 @@ bool OrgTokenizer::lexSubtreeTimes(PosStr& str) {
                 __push(tag);
                 oskipOne(str, ':');
                 spaceSkip(str);
-                lexTime(str);
+                lexTimeStamp(str);
                 hadTimes = true;
             } else {
                 done = true;
