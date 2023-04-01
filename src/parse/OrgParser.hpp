@@ -223,6 +223,7 @@ struct OrgParser : public OperationsTracer {
     OrgId parseSubtreeTodo(OrgLexer& str);
     OrgId parseSubtreeUrgency(OrgLexer& str);
     OrgId parseSubtreeDrawer(OrgLexer& lex);
+    OrgId parseSubtreeCompletion(OrgLexer& lexer);
     OrgId parseSubtreeTags(OrgLexer& lex);
     OrgId parseSubtreeTitle(OrgLexer& str);
     OrgId parseSubtreeTimes(OrgLexer& str);

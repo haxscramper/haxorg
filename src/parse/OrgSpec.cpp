@@ -14,18 +14,25 @@ using N = OrgSpecName;
 OrgSpec spec = OrgSpec(Vec<SpecPair>{
     SpecPair{
         org::Subtree,
-        OrgPattern(
-            {Field(Range(0, N::Prefix), OrgPattern(org::RawText)),
-             Field(
-                 Range(1, N::Todo),
-                 OrgPattern({org::BigIdent, org::Empty})),
-             Field(
-                 Range(2, N::Urgency),
-                 OrgPattern({org::UrgencyStatus, org::Empty})),
-             Field(Range(3, N::Title), OrgPattern(org::Paragraph)),
-             Field(
-                 Range(4, N::Completion),
-                 OrgPattern({org::Completion, org::Empty}))})},
+        OrgPattern({
+            Field(Range(0, N::Prefix), OrgPattern(org::RawText)),
+            Field(
+                Range(1, N::Todo),
+                OrgPattern({org::BigIdent, org::Empty})),
+            Field(
+                Range(2, N::Urgency),
+                OrgPattern({org::UrgencyStatus, org::Empty})),
+            Field(Range(3, N::Title), OrgPattern(org::Paragraph)),
+            Field(
+                Range(4, N::Tags),
+                OrgPattern({org::InlineStmtList, org::Empty})),
+            Field(
+                Range(5, N::Completion),
+                OrgPattern({org::Completion, org::Empty})),
+            Field(Range(6, N::Times), OrgPattern({org::StmtList})),
+            Field(Range(7, N::Drawer), OrgPattern({org::Drawer})),
+            Field(Range(8, N::Body), OrgPattern({org::StmtList})),
+        })},
     SpecPair{
         org::HashTag,
         OrgPattern(

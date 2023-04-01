@@ -509,7 +509,7 @@ struct AstSpec {
 
     Opt<ColText> validateSub(
         Node const& node,
-        const int&  idx,
+        int const&  idx,
         Node const& sub) const {
         Opt<ColText> result;
         if (spec[node.getKind()].has_value()) {

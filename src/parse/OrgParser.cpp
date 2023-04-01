@@ -1242,6 +1242,17 @@ OrgId OrgParser::parseSubtreeDrawer(OrgLexer& lex) {
     __end_return();
 }
 
+OrgId OrgParser::parseSubtreeCompletion(OrgLexer& lex) {
+    __trace();
+    if (!lex.at(otk::SkipNewline)) {
+        __start(org::Completion);
+        qDebug() << lex;
+        __end_return();
+    } else {
+        return empty();
+    }
+}
+
 OrgId OrgParser::parseSubtreeTodo(OrgLexer& lex) {
     __trace();
     skipSpace(lex);
@@ -1320,22 +1331,30 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
     __start(org::Subtree);
     // prefix
 
-    token(org::RawText, pop(lex, otk::SubtreeStars));
-    parseSubtreeTodo(lex);
-    parseSubtreeUrgency(lex);
-    parseSubtreeTitle(lex);
-    parseSubtreeTags(lex);
+    token(org::RawText, pop(lex, otk::SubtreeStars)); // 0
+    parseSubtreeTodo(lex);                            // 1
+    parseSubtreeUrgency(lex);                         // 2
+    parseSubtreeTitle(lex);                           // 3
+    parseSubtreeCompletion(lex);                      // 4
+    parseSubtreeTags(lex);                            // 5
     skip(lex, otk::SkipNewline);
 
-    if (!lex.at(otk::SubtreeEnd)) {
+    if (!lex.at(otk::SubtreeEnd)) { // 6
         parseSubtreeTimes(lex);
         newline(lex);
+    } else {
+        empty();
     }
 
-    if (!lex.at(otk::SubtreeEnd)) {
+    if (!lex.at(otk::SubtreeEnd)) { // 7
         parseSubtreeDrawer(lex);
         newline(lex);
+    } else {
+        empty();
     }
+
+    start(org::StmtList); // 8
+    end();
 
     skip(lex, otk::SubtreeEnd);
     __end_return();
@@ -1548,20 +1567,25 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
         // Iterate over all nodes until the end of the group or until exit
         // condition is met. This assumes non-restructured tree that has
         // subnodes positioned flatlyl on the top level
-        while (id < group->nodes.back()) {
-            OrgNode node = group->at(id);
+        auto& g = *group;
+        while (id < g.nodes.back()) {
+            OrgNode node = g.at(id);
             if (node.kind == org::Subtree) {
                 OrgId const tree  = id;
-                OrgId       subId = group->subnode(tree, 0);
-                int         sub   = group->strVal(subId).size();
+                OrgId       subId = g.subnode(tree, 0);
+                int         sub   = g.strVal(subId).size();
                 if (level < sub) {
-                    id = aux(subId, sub);
+                    OrgId stmt = g.subnode(tree, 8);
+                    Q_ASSERT(g.at(stmt).kind == org::StmtList);
+                    id = aux(stmt + 1, sub);
+                    Q_ASSERT(stmt + 1 <= id);
                     // AUX returns next position to start looping from, so
                     // the tree size is 'end - start - 1' to account for
                     // the offset.
-                    int size = (id - tree) - 1;
-                    // Extend the tree size with new content
-                    group->at(tree).extend(size);
+
+                    // Extend the tree itself and nested statement list
+                    g.at(tree).extend((id - tree) - 1);
+                    g.at(stmt).extend((id - stmt) - 1);
                 } else {
                     // Found subtree on the same level or above
                     break;

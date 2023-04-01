@@ -163,6 +163,15 @@ Wrap<Subtree> OrgConverter::convertSubtree(__args) {
         tree->title = convertParagraph(tree.get(), one(a, N::Title));
     }
 
+    { __field(N::Todo); }
+
+    {
+        __field(N::Body);
+        for (auto const& sub : one(a, N::Body)) {
+            tree->push_back(convert(tree.get(), sub));
+        }
+    }
+
     return tree;
 }
 
@@ -241,6 +250,7 @@ Wrap<Link> OrgConverter::convertLink(__args) {
 }
 
 Wrap<Org> OrgConverter::convert(__args) {
+    __trace();
 #define CASE(Kind)                                                        \
     case org::Kind: return convert##Kind(p, a);
     switch (a.kind()) {
