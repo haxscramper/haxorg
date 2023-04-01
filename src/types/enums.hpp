@@ -20,6 +20,10 @@ enum class OrgSpecName
 {
     Unnamed,
     Result,
+    Year,
+    Day,
+    Clock,
+    Repeater,
     Link,
     Tags,
     Protocol,

@@ -17,7 +17,16 @@ const IntSet<OrgNodeKind> anyTime{
     org::DynamicActiveTime,
     org::DynamicInactiveTime};
 
+const OrgPattern timeSpecPattern = OrgPattern({
+    Field(Range(0, N::Year), OrgPattern({org::RawText, org::Empty})),
+    Field(Range(1, N::Day), OrgPattern({org::RawText, org::Empty})),
+    Field(Range(2, N::Clock), OrgPattern({org::RawText, org::Empty})),
+    Field(Range(3, N::Repeater), OrgPattern({org::RawText, org::Empty})),
+});
+
 OrgSpec spec = OrgSpec(Vec<SpecPair>{
+    SpecPair{org::StaticActiveTime, timeSpecPattern},
+    SpecPair{org::StaticInactiveTime, timeSpecPattern},
     SpecPair{
         org::Subtree,
         OrgPattern({

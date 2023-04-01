@@ -87,13 +87,22 @@ json Link::toJson() const {
 }
 
 json Time::toJson() const {
-    json res = newJson();
-    if (std::holds_alternative<Time::Static>(time)) {
-        res["kind"]        = "static";
-        res["static_time"] = "TODO static time";
+    json res        = newJson();
+    res["isActive"] = isActive;
+    res["isStatic"] = isStatic();
+    if (isStatic()) {
+        Time::Static const& impl = getStatic();
+        json                repeat;
+        if (impl.repeat.has_value()) {
+            auto& r        = *impl.repeat;
+            repeat["mode"] = to_string(r.mode);
+        }
+        json jtime;
+        jtime["repeat"] = repeat;
+        jtime["time"]   = impl.time.toString(Qt::ISODate);
+        res["static"]   = jtime;
     } else {
-        res["kind"]         = "dynamic";
-        res["dynamic_time"] = "TODO dynamic time";
+        res["dynamic"] = getDynamic().expr;
     }
 
     return res;

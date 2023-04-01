@@ -12,6 +12,8 @@
 
 #include <hstd/stdlib/Json.hpp>
 
+#include <QDateTime>
+
 namespace sem {
 
 struct TreeId {
@@ -303,11 +305,13 @@ struct Time : public Org {
         enum class Mode
         {
             None,
+            Exact,
             /// Repeat on the first matching day in the future
             FirstMatch,
             /// Repeat task on the same day next week/month/year etc.
             SameDay
         };
+        BOOST_DESCRIBE_NESTED_ENUM(Mode, None, Exact, FirstMatch, SameDay);
 
         Mode mode;
 
@@ -329,14 +333,23 @@ struct Time : public Org {
     };
 
     struct Static {
-        bool        isActive; /// Active `<time>` or passive `[time]`
         Opt<Repeat> repeat;
+        QDateTime   time;
     };
     /// Active timestamp with evaluatable code expression inside, also
     /// called diary time
-    struct Dynamic {};
+    struct Dynamic {
+        Str expr;
+    };
     Variant<Static, Dynamic> time;
-    virtual json             toJson() const override;
+    bool isStatic() const { return std::holds_alternative<Static>(time); }
+    Static&        getStatic() { return std::get<Static>(time); }
+    Dynamic&       getDynamic() { return std::get<Dynamic>(time); }
+    Static const&  getStatic() const { return std::get<Static>(time); }
+    Dynamic const& getDynamic() const { return std::get<Dynamic>(time); }
+
+    bool         isActive; /// Active `<time>` or passive `[time]`
+    virtual json toJson() const override;
 };
 
 

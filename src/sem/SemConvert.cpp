@@ -1,7 +1,7 @@
 #include <sem/SemConvert.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <parse/OrgSpec.hpp>
-
+#include <QDateTime>
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
@@ -177,8 +177,71 @@ Wrap<Subtree> OrgConverter::convertSubtree(__args) {
 
 Wrap<Time> OrgConverter::convertTime(__args) {
     __trace();
-    auto time = Sem<Time>(p, a);
+    auto time      = Sem<Time>(p, a);
+    time->isActive = (a.kind() == org::DynamicActiveTime)
+                  || (a.kind() == org::StaticActiveTime);
 
+    if (a.kind() == org::DynamicInactiveTime
+        || a.kind() == org::DynamicActiveTime) {
+        time->time = Time::Dynamic{.expr = a.strVal()};
+    } else {
+        Str repeat      = one(a, N::Repeater).strVal();
+        using Mode      = Time::Repeat::Mode;
+        Mode repeatMode = Mode::None;
+
+        if (0 < repeat.size()) {
+            if (repeat.startsWith("++")) {
+                repeatMode = Mode::FirstMatch;
+                repeat     = repeat.dropPrefix("++");
+            } else if (repeat.startsWith(".+")) {
+                repeatMode = Mode::SameDay;
+                repeat     = repeat.dropPrefix(".+");
+            } else if (repeat.startsWith("+")) {
+                repeatMode = Mode::Exact;
+                repeat     = repeat.dropPrefix("+");
+            }
+        }
+
+        QString datetime;
+        datetime += one(a, N::Year).strVal();
+        if (one(a, N::Clock).kind() != org::Empty) {
+            datetime += " ";
+            datetime += one(a, N::Clock).strVal();
+        }
+
+        Vec<QString> formats = {
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy/MM/dd HH:mm:ss",
+            "dd-MM-yyyy HH:mm:ss",
+            "dd/MM/yyyy HH:mm:ss",
+            "yyyy-MM-dd",
+            // Add other formats as needed
+        };
+
+        QDateTime parsedDateTime;
+        for (const auto& format : formats) {
+            parsedDateTime = QDateTime::fromString(datetime, format);
+            if (parsedDateTime.isValid()) {
+                break;
+            }
+        }
+
+        if (!parsedDateTime.isValid()) {
+            // TODO implement proper, non-fatal error reporting
+            qFatal(strdup(
+                "Could not parse date time entry in format: $#"
+                % to_string_vec(datetime)));
+        }
+
+        time->time = Time::Static{
+            .time = parsedDateTime,
+        };
+        if (repeatMode != Mode::None) {
+            time->getStatic().repeat = Time::Repeat{
+                .mode = repeatMode,
+            };
+        }
+    }
 
     __json(time);
     return time;
