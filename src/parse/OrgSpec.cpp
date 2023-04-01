@@ -15,79 +15,112 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
     SpecPair{
         org::Subtree,
         OrgPattern({
-            Field(Range(0, N::Prefix), OrgPattern(org::RawText)),
             Field(
-                Range(1, N::Todo),
+                Range(0, N::Prefix).doc("Starting prefix of the subtree"),
+                OrgPattern(org::RawText)),
+            Field(
+                Range(1, N::Todo)
+                    .doc("Optional TODO state of the subtree"),
                 OrgPattern({org::BigIdent, org::Empty})),
             Field(
-                Range(2, N::Urgency),
+                Range(2, N::Urgency)
+                    .doc("Optional urgency marker for the subtree"),
                 OrgPattern({org::UrgencyStatus, org::Empty})),
-            Field(Range(3, N::Title), OrgPattern(org::Paragraph)),
             Field(
-                Range(4, N::Tags),
+                Range(3, N::Title)
+                    .doc("Paragraph of text -- title of the subtree"),
+                OrgPattern(org::Paragraph)),
+            Field(
+                Range(4, N::Completion)
+                    .doc("Cumulative or direct completion of the nested "
+                         "tree elements"),
+                OrgPattern({org::Completion, org::Empty})),
+            Field(
+                Range(5, N::Tags).doc("Trailing list of hashtags"),
                 OrgPattern({org::InlineStmtList, org::Empty})),
             Field(
-                Range(5, N::Completion),
-                OrgPattern({org::Completion, org::Empty})),
-            Field(Range(6, N::Times), OrgPattern({org::StmtList})),
-            Field(Range(7, N::Drawer), OrgPattern({org::Drawer})),
-            Field(Range(8, N::Body), OrgPattern({org::StmtList})),
+                Range(6, N::Times)
+                    .doc("Scheduled, closed, and/or deadline times for "
+                         "the subtree"),
+                OrgPattern({org::StmtList})),
+            Field(
+                Range(7, N::Drawer)
+                    .doc("Logbook, properties, description"),
+                OrgPattern({org::Drawer})),
+            Field(
+                Range(8, N::Body)
+                    .doc("Statement list of the nested nodes"),
+                OrgPattern({org::StmtList})),
         })},
     SpecPair{
         org::HashTag,
-        OrgPattern(
-            {Field(Range(0, N::Head), OrgPattern(org::BigIdent)),
-             Field(
-                 Range(slice(1, 1_B), N::Subnodes),
-                 OrgPattern(org::HashTag))})},
+        OrgPattern({
+            Field(
+                Range(0, N::Head)
+                    .doc("First item in the hash tag name: #tag"),
+                OrgPattern(org::BigIdent)),
+            Field(
+                Range(slice(1, 1_B), N::Subnodes)
+                    .doc("Zero or more nested elements for nested tag "
+                         "path"),
+                OrgPattern(org::HashTag)),
+        })},
     SpecPair{
         org::Drawer,
-        OrgPattern(
-            {Field(
-                 Range(0, N::Properties),
-                 OrgPattern({org::PropertyList, org::Empty})),
-             Field(
-                 Range(1, N::Logbook),
-                 OrgPattern({org::Logbook, org::Empty})),
-             Field(
-                 Range(2, N::Description),
-                 OrgPattern({org::SubtreeDescription, org::Empty}))})},
+        OrgPattern({
+            Field(
+                Range(0, N::Properties).doc("Optional list of properties"),
+                OrgPattern({org::PropertyList, org::Empty})),
+            Field(
+                Range(1, N::Logbook)
+                    .doc("Optional list of log entries attached to the "
+                         "subtree"),
+                OrgPattern({org::Logbook, org::Empty})),
+            Field(
+                Range(2, N::Description)
+                    .doc("Optional subtree description paragraph"),
+                OrgPattern({org::SubtreeDescription, org::Empty})),
+        })},
     SpecPair{
         org::SubtreeDescription,
         OrgPattern(
             {Field(Range(0, N::Text), OrgPattern(org::Paragraph))})},
     SpecPair{
         org::AnnotatedParagraph,
-        OrgPattern(
-            {Field(
-                 Range(0, N::Prefix),
-                 OrgPattern(
-                     {org::ListTag, org::Footnote, org::AdmonitionTag})),
-             Field(
-                 Range(1, N::Body),
-                 OrgPattern({org::Paragraph, org::Empty}))})},
+        OrgPattern({
+            Field(
+                Range(0, N::Prefix),
+                OrgPattern(
+                    {org::ListTag, org::Footnote, org::AdmonitionTag})),
+            Field(
+                Range(1, N::Body),
+                OrgPattern({org::Paragraph, org::Empty})),
+        })},
     SpecPair{
         org::Logbook,
-        OrgPattern({Field(
-            Range(slice(0, 1_B), N::Logs),
-            OrgPattern(
-                {org::LogbookStateChange,
-                 org::LogbookNote,
-                 org::LogbookRefile,
-                 org::LogbookClock}))})},
+        OrgPattern({
+            Field(
+                Range(slice(0, 1_B), N::Logs),
+                OrgPattern(
+                    {org::LogbookStateChange,
+                     org::LogbookNote,
+                     org::LogbookRefile,
+                     org::LogbookClock})),
+        })},
     SpecPair{
         org::LogbookStateChange,
-        OrgPattern(
-            {Field(
-                 Range(0, N::Newstate),
-                 OrgPattern({org::BigIdent, org::Empty})),
-             Field(
-                 Range(1, N::Oldstate),
-                 OrgPattern({org::BigIdent, org::Empty})),
-             Field(Range(2, N::Time), OrgPattern({org::Time, org::Empty})),
-             Field(
-                 Range(3, N::Text),
-                 OrgPattern({org::StmtList, org::Empty}))})},
+        OrgPattern({
+            Field(
+                Range(0, N::Newstate),
+                OrgPattern({org::BigIdent, org::Empty})),
+            Field(
+                Range(1, N::Oldstate),
+                OrgPattern({org::BigIdent, org::Empty})),
+            Field(Range(2, N::Time), OrgPattern({org::Time, org::Empty})),
+            Field(
+                Range(3, N::Text),
+                OrgPattern({org::StmtList, org::Empty})),
+        })},
     SpecPair{
         org::LogbookRefile,
         OrgPattern({
@@ -152,32 +185,33 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
         OrgPattern({Field(Range(0, N::Hash)), Field(Range(1, N::Body))})},
     SpecPair{
         org::ListItem,
-        OrgPattern(
-            {Field(Range(0, N::Bullet)
-                       .doc("list prefix - either dash/plus/star (for "
-                            "unordered lists), or `<idx>.`/`<name>.`")),
-             Field(Range(1, N::Counter)),
+        OrgPattern({
+            Field(Range(0, N::Bullet)
+                      .doc("list prefix - either dash/plus/star (for "
+                           "unordered lists), or `<idx>.`/`<name>.`")),
+            Field(Range(1, N::Counter)),
 
-             Field(
-                 Range(2, N::Checkbox).doc("optional checkbox"),
-                 OrgPattern({org::Checkbox, org::Empty})),
-             Field(
-                 Range(3, N::Header).doc("Main part of the list"),
-                 OrgPattern(
-                     {org::Paragraph,
-                      org::AnnotatedParagraph,
-                      org::Empty})),
-             Field(
-                 Range(4, N::Completion)
-                     .doc("Cumulative completion progress for all "
-                          "subnodes"),
-                 OrgPattern({org::Completion, org::Empty})),
-             Field(
-                 Range(5, N::Body)
-                     .doc("Additional list items - more sublists, "
-                          "extended N::Body (with code blocks, extra "
-                          "parargaphs etc.)"),
-                 OrgPattern({org::StmtList, org::Empty}))})},
+            Field(
+                Range(2, N::Checkbox).doc("optional checkbox"),
+                OrgPattern({org::Checkbox, org::Empty})),
+            Field(
+                Range(3, N::Header).doc("Main part of the list"),
+                OrgPattern(
+                    {org::Paragraph,
+                     org::AnnotatedParagraph,
+                     org::Empty})),
+            Field(
+                Range(4, N::Completion)
+                    .doc("Cumulative completion progress for all "
+                         "subnodes"),
+                OrgPattern({org::Completion, org::Empty})),
+            Field(
+                Range(5, N::Body)
+                    .doc("Additional list items - more sublists, "
+                         "extended N::Body (with code blocks, extra "
+                         "parargaphs etc.)"),
+                OrgPattern({org::StmtList, org::Empty})),
+        })},
     SpecPair{
         org::TimeAssoc,
         OrgPattern({
@@ -207,9 +241,11 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
 
     SpecPair{
         org::PropertyList,
-        OrgPattern({Field(
-            Range(slice(0, 1_B), N::Property),
-            OrgPattern({org::Property, org::PropertyAdd}))})},
+        OrgPattern({
+            Field(
+                Range(slice(0, 1_B), N::Property),
+                OrgPattern({org::Property, org::PropertyAdd})),
+        })},
     SpecPair{
         org::PropertyAdd,
         OrgPattern({
@@ -221,24 +257,25 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
         })},
     SpecPair{
         org::TableRow,
-        OrgPattern(
-            {Field(
-                 Range(0, N::Args)
-                     .doc("N::Optional arguments for row - can be "
-                          "specified using N::`#+row`. For pipe "
-                          "formatting this is not supported, N::So "
-                          "arguments would be an empty node."),
-                 OrgPattern({org::CmdArguments, org::Empty})),
-             Field(
-                 Range(1, N::Text)
-                     .doc("N::It is possible to put text on the* row* "
-                          "level."),
-                 OrgPattern({org::Paragraph, org::Empty})),
-             Field(
-                 Range(2, N::Body),
-                 OrgPattern({Field(
-                     Range(slice(0, 1_B), N::Cells),
-                     OrgPattern(org::TableCell))}))})},
+        OrgPattern({
+            Field(
+                Range(0, N::Args)
+                    .doc("N::Optional arguments for row - can be "
+                         "specified using N::`#+row`. For pipe "
+                         "formatting this is not supported, N::So "
+                         "arguments would be an empty node."),
+                OrgPattern({org::CmdArguments, org::Empty})),
+            Field(
+                Range(1, N::Text)
+                    .doc("N::It is possible to put text on the* row* "
+                         "level."),
+                OrgPattern({org::Paragraph, org::Empty})),
+            Field(
+                Range(2, N::Body),
+                OrgPattern({Field(
+                    Range(slice(0, 1_B), N::Cells),
+                    OrgPattern(org::TableCell))})),
+        })},
     SpecPair{
         org::Property,
         OrgPattern({
@@ -310,22 +347,21 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
         })},
     SpecPair{
         org::SrcCode,
-        OrgPattern(
-            {Field(
-                 Range(0, N::Lang),
-                 OrgPattern({org::Ident, org::Empty})),
-             Field(
-                 Range(1, N::HeaderArgs),
-                 OrgPattern({org::CmdArguments, org::Empty})),
-             Field(
-                 Range(2, N::Body),
-                 OrgPattern(org::StmtList)
-                     .sub({Field(
-                         Range(slice(0, 1_B), N::Lines),
-                         OrgPattern(org::CodeLine))})),
-             Field(
-                 Range(3, N::Result),
-                 OrgPattern({org::RawText, org::Empty}))})},
+        OrgPattern({
+            Field(Range(0, N::Lang), OrgPattern({org::Ident, org::Empty})),
+            Field(
+                Range(1, N::HeaderArgs),
+                OrgPattern({org::CmdArguments, org::Empty})),
+            Field(
+                Range(2, N::Body),
+                OrgPattern(org::StmtList)
+                    .sub({Field(
+                        Range(slice(0, 1_B), N::Lines),
+                        OrgPattern(org::CodeLine))})),
+            Field(
+                Range(3, N::Result),
+                OrgPattern({org::RawText, org::Empty})),
+        })},
     SpecPair{
         org::Footnote,
         OrgPattern(
@@ -344,13 +380,15 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
             OrgPattern(org::RawText))})},
     SpecPair{
         org::CodeLine,
-        OrgPattern({Field(
-            Range(slice(0, 1_B), N::Chunks),
-            OrgPattern(
-                {org::CodeText,
-                 org::CodeTangle,
-                 org::CodeCallout,
-                 org::Empty}))})},
+        OrgPattern({
+            Field(
+                Range(slice(0, 1_B), N::Chunks),
+                OrgPattern(
+                    {org::CodeText,
+                     org::CodeTangle,
+                     org::CodeCallout,
+                     org::Empty})),
+        })},
     SpecPair{
         org::Link,
         OrgPattern(
