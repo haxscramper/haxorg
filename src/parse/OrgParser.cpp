@@ -177,6 +177,18 @@ OrgId OrgParser::parseRawUrl(OrgLexer& lex) {
     return tok;
 }
 
+OrgId OrgParser::parsePlaceholder(OrgLexer& lex) {
+    __trace();
+    skip(lex, otk::GroupStart);
+    skip(lex, otk::AngleOpen);
+    auto tok = token(org::Placeholder, pop(lex, otk::RawText));
+    __token(tok);
+    skip(lex, otk::AngleClose);
+    skip(lex, otk::GroupEnd);
+
+    return tok;
+}
+
 void OrgParser::textFold(OrgLexer& lex) {
     __trace();
 #define CASE_MARKUP(Kind)                                                 \
@@ -305,6 +317,7 @@ void OrgParser::textFold(OrgLexer& lex) {
                 switch (lex.kind(+1)) {
                     case otk::LinkOpen: parseLink(lex); break;
                     case otk::FootnoteStart: parseFootnote(lex); break;
+                    case otk::AngleOpen: parsePlaceholder(lex); break;
                     default:
                         throw wrapError(Err::UnhandledToken(lex), lex);
                 }
@@ -324,11 +337,18 @@ void OrgParser::textFold(OrgLexer& lex) {
 
 Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
     __trace();
-    OrgId first     = back();
-    int   treeStart = treeDepth();
+    OrgId   first     = back();
+    QString forMsg    = getLocMsg(lex);
+    int     treeStart = treeDepth();
     textFold(lex);
     int treeEnd = treeDepth();
-    // Q_ASSERT(treeStart == treeEnd);
+    Q_ASSERT_X(
+        treeStart == treeEnd,
+        "parseText",
+        ("Text fold created unbalanced tree - starting with depth $# "
+         "ended up on depth $# on position $# (starting from $#)"
+         % to_string_vec(treeStart, treeEnd, getLocMsg(lex), forMsg)));
+
     OrgId last = back();
     return slice(first, last);
 }
@@ -456,6 +476,7 @@ OrgId OrgParser::parseHashTag(OrgLexer& lex) {
 }
 
 OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
+    __trace();
     expect(lex, OrgTokSet{otk::InactiveTimeBegin, otk::ActiveTimeBegin});
     bool active = lex.at(otk::ActiveTimeBegin);
     skip(lex, active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin);
@@ -465,37 +486,41 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
         } else {
             __start(org::StaticInactiveTime);
         }
+
+        // Year part of the timestamp is not optional
         auto year = token(org::RawText, pop(lex, otk::StaticTimeDatePart));
         __token(year);
         skipSpace(lex);
+
+        // Day can sometimes be added to the timestamp
         if (lex.at(otk::StaticTimeDayPart)) {
             auto day = token(
                 org::RawText, pop(lex, otk::StaticTimeDayPart));
             __token(day);
 
             skipSpace(lex);
-            if (lex.at(otk::StaticTimeClockPart)) {
-                auto clock = token(
-                    org::RawText, pop(lex, otk::StaticTimeClockPart));
-                __token(clock);
-                if (lex.at(otk::StaticTimeRepeater)) {
-                    auto repeater = token(
-                        org::RawText, pop(lex, otk::StaticTimeRepeater));
-                    __token(repeater);
-                } else {
-                    empty();
-                }
-
-            } else {
-                empty();
-                empty();
-            }
-
         } else {
             empty();
-            empty();
+        }
+
+        if (lex.at(otk::StaticTimeClockPart)) {
+            auto clock = token(
+                org::RawText, pop(lex, otk::StaticTimeClockPart));
+            __token(clock);
+            skipSpace(lex);
+        } else {
             empty();
         }
+
+        if (lex.at(otk::StaticTimeRepeater)) {
+            auto repeater = token(
+                org::RawText, pop(lex, otk::StaticTimeRepeater));
+            __token(repeater);
+            skipSpace(lex);
+        } else {
+            empty();
+        }
+
 
         __end();
 
@@ -518,6 +543,7 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
 OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
     __trace();
     const OrgTokSet times{
+        otk::SkipSpace,
         otk::InactiveTimeBegin,
         otk::InactiveTimeEnd,
         otk::ActiveTimeBegin,
@@ -585,13 +611,12 @@ OrgId OrgParser::parseFootnote(OrgLexer& lex) {
         __start(org::Footnote);
         skip(lex, otk::Colon);
         parseIdent(lex);
-        __end();
     } else {
         __start(org::InlineFootnote);
         skip(lex, otk::DoubleColon);
         parseInlineParagraph(lex);
-        __end();
     }
+
     skip(lex, otk::FootnoteEnd);
     skip(lex, otk::GroupEnd);
 
@@ -1332,12 +1357,13 @@ OrgId OrgParser::parseSubtreeDrawer(OrgLexer& lex) {
 
 OrgId OrgParser::parseSubtreeCompletion(OrgLexer& lex) {
     __trace();
-    if (!lex.at(otk::SkipNewline)) {
-        __start(org::Completion);
-        qDebug() << lex;
-        __end_return();
-    } else {
+    if (lex.at(otk::SkipNewline) || lex.at(otk::SubtreeTagSeparator)) {
         return empty();
+
+    } else {
+        __start(org::Completion);
+        qDebug() << "Parse subtree completion" << lex;
+        __end_return();
     }
 }
 

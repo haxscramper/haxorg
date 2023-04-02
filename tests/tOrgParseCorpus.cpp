@@ -754,7 +754,7 @@ TEST_CASE("Parse file", "[corpus][notes]") {
     // QString  source = readFile(
     //     "/mnt/workspace/repos/personal/indexed/notes.org");
     QString source = readFile(
-        "/mnt/workspace/repos/fic/wiki/timeline_real.org");
+        "/mnt/workspace/repos/fic/wiki/timeline.org");
 
     p.tokenizer.setTraceFile("/tmp/file_lex_trace.txt");
     p.setTraceFile("/tmp/file_parse_trace.txt");
@@ -771,7 +771,7 @@ TEST_CASE("Parse file", "[corpus][notes]") {
 
     p.locationResolver = p.tokenizer.locationResolver;
 
-    int  start  = 0;
+    int  start  = 200;
     auto target = slice(start, start + 200);
 
     p.tokenizer.traceUpdateHook =

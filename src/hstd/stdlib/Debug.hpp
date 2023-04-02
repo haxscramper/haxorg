@@ -42,3 +42,11 @@ inline void tracedMessageHandler(
 
     qcout << Qt::endl;
 }
+
+inline void qt_assert_x(
+    CR<QString> where,
+    CR<QString> what,
+    const char* file,
+    int         line) noexcept {
+    qt_assert_x(strdup(where), strdup(what), file, line);
+}

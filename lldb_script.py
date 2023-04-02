@@ -77,6 +77,8 @@ def should_skip_frame(frame):
         "Catch" in frame.name
         or "__gnu" in frame.name
         or "__libc" in frame.name
+        or "CATCH2_INTERNAL" in frame.name
+        or "___lldb_unnamed" in frame.name
         or (
             frame.line_entry.file.basename
             and (
@@ -94,10 +96,17 @@ def skip_backtrace(debugger, command, result, internal_dict):
     if columns != 0:
         debugger.SetTerminalWidth(columns)
 
-    for frame in thread:
+    frames = reversed([frame for frame in thread])
+
+    for frame in frames:
         function_name = frame.GetFunctionName()
-        if not should_skip_frame(frame):
+        if "__cxa_throw" in function_name:
+            break
+
+        elif not should_skip_frame(frame):
             filtered_frames.append(frame)
+
+    filtered_frames = reversed(filtered_frames)
 
     for index, frame in enumerate(filtered_frames):
         print("{frame}".format(index=index, frame=frame))

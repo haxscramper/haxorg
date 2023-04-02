@@ -118,6 +118,7 @@ struct OrgParser : public OperationsTracer {
     Func<LineCol(CR<PosStr>)> locationResolver;
     ParserError               wrapError(CR<Error> err, CR<OrgLexer> lex);
     Opt<LineCol>              getLoc(CR<OrgLexer> lex);
+    QString                   getLocMsg(CR<OrgLexer> lex);
 
   public:
     enum class ReportKind
@@ -209,6 +210,7 @@ struct OrgParser : public OperationsTracer {
     OrgId parseSrcInline(OrgLexer& lex);
     OrgId parseTable(OrgLexer& lex);
     OrgId parseParagraph(OrgLexer& lex, bool onToplevel);
+    OrgId parsePlaceholder(OrgLexer& lex);
     OrgId parseTopParagraph(OrgLexer& lex);
     OrgId parseInlineParagraph(OrgLexer& lex);
     OrgId parseCommandArguments(OrgLexer& lex);

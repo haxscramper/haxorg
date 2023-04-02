@@ -78,6 +78,20 @@ void OrgParser::skip(OrgLexer& lex, CR<OrgParser::OrgExpectable> item) {
     lex.next();
 }
 
+QString OrgParser::getLocMsg(CR<OrgLexer> lex) {
+    QString result;
+    QString pos = lex.pos.isNil() ? "<nil>"
+                                  : to_string(lex.pos.getIndex());
+
+    if (auto loc = getLoc(lex)) {
+        result = "$#:$# (pos $#)"
+               % to_string_vec(loc->line, loc->column, pos);
+    } else {
+        result = "(pos $#)" % to_string_vec(pos);
+    }
+
+    return result;
+}
 
 void OrgParser::report(CR<Report> in) {
     using fg = TermColorFg8Bit;

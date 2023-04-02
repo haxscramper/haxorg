@@ -397,27 +397,40 @@ QString OrgTokenizer::debugPos(CR<PosStr> str) const {
 
 bool OrgTokenizer::lexAngle(PosStr& str) {
     __trace();
-    __start(str);
-    try {
-        if (str.at("<%%")) {
-            lexTimeStamp(str);
-        } else if (str.at("<<<")) {
-            __push((str.tok(otk::TripleAngleOpen, skipCount, 3)));
-        } else if (str.at("<<")) {
-            __push((str.tok(otk::DoubleAngleOpen, skipCount, 2)));
-            __push((str.tok(otk::RawText, skipTo, QChar('>'))));
-            __push((str.tok(otk::RawText, skipCb(">>"))));
-        } else if (str.at(charsets::Digits, 1)) {
-            lexTimeStamp(str);
-        } else {
-            __push((str.tok(otk::AngleOpen, skipCount, 1)));
-            __push((str.tok(otk::RawText, skipTo, QChar('>'))));
-            __push((str.tok(otk::AngleClose, skipCb('>'))));
+    if (str.at("<%%") || str.at(charsets::Digits, 1)) {
+        return lexTimeStamp(str);
+    } else {
+        try {
+            __start(str);
+            if (str.at("<<<")) {
+                auto open = str.tok(otk::TripleAngleOpen, skipCount, 3);
+                __push(open);
+                auto target = str.tok(otk::RawText, skipTo, ">>>");
+                __push(target);
+                auto tok = str.tok(otk::TripleAngleClose, skipCb(">>>"));
+                __push(tok);
+            } else if (str.at("<<")) {
+                auto open = str.tok(otk::DoubleAngleOpen, skipCount, 2);
+                __push(open);
+                auto target = str.tok(otk::RawText, skipTo, ">>");
+                __push(target);
+                auto tok = str.tok(otk::DoubleAngleClose, skipCb(">>"));
+                __push(tok);
+            } else {
+                auto open = str.tok(otk::AngleOpen, skipCount, 1);
+                __push(open);
+                auto content = str.tok(otk::RawText, skipTo, QChar('>'));
+                __push(content);
+                auto close = str.tok(otk::AngleClose, skipCb('>'));
+                __push(close);
+            }
+
+            __end(str);
+            return true;
+        } catch (TokenizerError& err) {
+            __fail_group(err);
+            return false;
         }
-        return true;
-    } catch (TokenizerError& err) {
-        __fail_group(err);
-        return false;
     }
 }
 
@@ -477,7 +490,7 @@ bool OrgTokenizer::lexTimeStamp(PosStr& str) {
             __trace("Static time clock");
             auto day = str.tok(
                 otk::StaticTimeClockPart, [this](PosStr& str) {
-                    while (str.get().isLetter()) {
+                    while (str.at(':') || str.get().isNumber()) {
                         str.next();
                     }
                 });
@@ -933,14 +946,9 @@ bool OrgTokenizer::lexTextDollar(PosStr& str) {
 
 bool OrgTokenizer::lexSlashEntity(PosStr& str) {
     __trace();
-    __start(str);
     try {
-        if (str.at(OMarkupChars, 1)) {
-            auto esc = str.tok(otk::Escaped, skipCount, 1);
-            __push(esc);
-        } else if (str.at(
-                       charsets::IdentStartChars - CharSet{QChar('_')},
-                       1)) {
+        if (str.at(charsets::IdentStartChars - CharSet{QChar('_')}, 1)) {
+            __start(str);
             auto sym = str.tok(otk::SymbolStart, skipCb('\\'));
             __push(sym);
             auto ident = str.tok(
@@ -961,6 +969,7 @@ bool OrgTokenizer::lexSlashEntity(PosStr& str) {
                 auto close = str.tok(otk::MetaBraceClose, skipCb(']'));
                 __push(close);
             }
+
             while (str.at(QChar('{'))) {
                 auto open = str.tok(otk::MetaArgsOpen, skipCb('{'));
                 __push(open);
@@ -977,10 +986,13 @@ bool OrgTokenizer::lexSlashEntity(PosStr& str) {
                 auto close = str.tok(otk::MetaArgsClose, skipCb('}'));
                 __push(close);
             }
+
+            __end(str);
         } else {
             auto esc = str.tok(otk::Escaped, skipCount, 2);
             __push(esc);
         }
+
         return true;
     } catch (TokenizerError& err) {
         __fail_group(err);
