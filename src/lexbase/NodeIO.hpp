@@ -173,11 +173,18 @@ NodeGroup<N, K> fromFlatNodes(CR<yaml> node) {
 }
 
 template <typename N, typename K>
-yaml yamlRepr(CR<NodeGroup<N, K>> group, bool withStrings = true) {
+yaml yamlRepr(
+    CR<NodeGroup<N, K>> group,
+    bool                withStrings = true,
+    bool                withId      = false) {
     yaml out;
     for (const auto& [id, node] : group.nodes.pairs()) {
         yaml item;
         item["kind"] = to_string(node->kind);
+        if (withId) {
+            item["id"] = id.getUnmasked();
+        }
+
         if (node->isTerminal()) {
             TokenId<K> tokenId = node->getToken();
             item["tok_idx"]    = tokenId.getIndex();

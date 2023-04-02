@@ -62,7 +62,8 @@ struct MockFull : public OrgParser {
 
     void treeRepr() {
         std::cout << "\n";
-        nodes.treeRepr(qcout, OrgId(0), 0);
+        ColStream os{qcout};
+        nodes.treeRepr(os, OrgId(0), 0);
         std::cout << std::endl;
     }
 

@@ -865,7 +865,7 @@ bool OrgTokenizer::lexTextChars(PosStr& str) {
     } else if (str.at("call[_-]?\\w+(\\[|\\{)")) {
         lexTextCall(str);
     } else if (str.at("https://") || str.at("http://")) {
-        auto url = str.tok(otk::RawUrl, skipBefore, charsets::Whitespace);
+        auto url = str.tok(otk::RawUrl, skipTo, charsets::Whitespace);
         __push(url);
     } else {
         lexTextWord(str);
@@ -1005,14 +1005,11 @@ bool OrgTokenizer::lexSlashMath(PosStr& str) {
     __start(str);
     try {
         const auto isInline = str.at(QChar('('), 1);
+        auto       open     = str.tok(
+            isInline ? otk::LatexParOpen : otk::LatexBraceOpen,
+            skipCb(isInline ? "\\(" : "\\["));
+        __push(open);
 
-        if (isInline) {
-            auto open = str.tok(otk::LatexParOpen, skipCb("\\("));
-            __push(open);
-        } else {
-            auto open = str.tok(otk::LatexBraceOpen, skipCb("\\["));
-            __push(open);
-        }
 
         auto latex = str.tok(
             otk::LatexInlineRaw, [&isInline](PosStr& str) {
@@ -1022,13 +1019,10 @@ bool OrgTokenizer::lexSlashMath(PosStr& str) {
             });
         __push(latex);
 
-        if (isInline) {
-            auto close = str.tok(otk::LatexParClose, skipCb(")"));
-            __push(close);
-        } else {
-            auto close = str.tok(otk::LatexBraceClose, skipCb("]"));
-            __push(close);
-        }
+        auto close = str.tok(
+            isInline ? otk::LatexParClose : otk::LatexBraceClose,
+            skipCb(isInline ? "\\)" : "\\]"));
+        __push(close);
 
         __end(str);
         return true;
@@ -1047,7 +1041,7 @@ bool OrgTokenizer::lexTextSlash(PosStr& str) {
             break;
         }
         case '\\': {
-            auto slash = str.tok(otk::DoubleSlash, skipCb("\\"));
+            auto slash = str.tok(otk::DoubleSlash, skipCb("\\\\"));
             __push(slash);
             break;
         }

@@ -48,7 +48,7 @@ Graph<N, K> graphRepr(NodeGroup<N, K>* group, NodeId<N, K> root) {
         }
 
         if (!group->at(node).isTerminal()) {
-            auto [begin, end] = group->subnodesOf(node);
+            auto [begin, end] = group->subnodesOf(node).value();
             int node_index    = 0;
             for (; begin != end; ++begin) {
                 aux(*begin, vertex, node_index);

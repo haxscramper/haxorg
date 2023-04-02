@@ -149,7 +149,7 @@ void OrgParser::report(CR<Report> in) {
 
         case ReportKind::AddToken: {
             auto id = in.node.value();
-            os << " # add [" << id.getIndex() << "] "
+            os << "  # add [" << id.getIndex() << "] "
                << to_string(group->at(id).kind) << " at " << in.line;
             break;
         }
@@ -158,9 +158,9 @@ void OrgParser::report(CR<Report> in) {
         case ReportKind::EndNode: {
             auto id = in.node.value();
             if (in.kind == ReportKind::StartNode) {
-                os << " + start";
+                os << "+ start";
             } else {
-                os << " - end";
+                os << "- end";
             }
 
             os << " [" << id.getIndex() << "] "

@@ -7,6 +7,7 @@
 
 #include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/ColText.hpp>
 
 #include <lexbase/Token.hpp>
 
@@ -226,24 +227,37 @@ struct NodeGroup {
         iterator(NodeId<N, K> _id, CP<NodeGroup> _group)
             : id(_id), group(_group) {}
 
-        NodeId<N, K> operator*() { return id; }
+        NodeId<N, K> operator*() const {
+            check();
+            return id;
+        }
+
+        void check() const {
+            Q_ASSERT_X(
+                !id.isNil() && id.getIndex() < group->size(),
+                "Check node id iterator",
+                "$# < $#" % to_string_vec(id.getIndex(), group->size()));
+        }
 
         iterator& operator++() {
             id = id + group->at(id).getExtent() + 1;
             return *this;
         }
 
-        bool operator!=(const iterator& other) {
+        bool operator!=(const iterator& other) const {
             return this->id != other.id;
         }
     };
 
     iterator begin(NodeId<N, K> start) const {
-        return iterator(start, this);
+        auto result = iterator(start, this);
+        result.check();
+        return result;
     }
 
     iterator end(NodeId<N, K> last) const {
-        return iterator(++last, this);
+        ++last;
+        return iterator(last, this);
     }
 
     /// \brief Get pair of start/end iterators for traversing content of
@@ -256,9 +270,18 @@ struct NodeGroup {
     ///     call_(*begin);
     /// }
     /// ```
-    Pair<iterator, iterator> subnodesOf(NodeId<N, K> node) const {
+    Opt<Pair<iterator, iterator>> subnodesOf(NodeId<N, K> node) const {
         // TODO return empty range for iterator start
-        return {begin(node + 1), end(node + at(node).getExtent())};
+        if (at(node).isTerminal()) {
+            return std::nullopt;
+
+        } else {
+            auto begini = begin(node + 1);
+            auto endi   = end(node + at(node).getExtent());
+            Q_ASSERT(begini.id <= endi.id);
+
+            return Pair<iterator, iterator>{begini, endi};
+        }
     }
 
     /// \brief Get ID slice over all subnodes that are places 'in' a
@@ -296,21 +319,37 @@ struct NodeGroup {
 
     /// \brief Get number of direct subnodes
     int size(NodeId<N, K> node) const {
-        auto [begin, end] = subnodesOf(node);
-        int result        = 0;
-        for (; begin != end; ++begin) {
-            ++result;
+        if (auto pair = subnodesOf(node)) {
+            auto [begin, end] = *pair;
+            int result        = 0;
+            for (; begin != end; ++begin) {
+                ++result;
+            }
+            return result;
+
+        } else {
+            return 0;
         }
-        return result;
     }
 
     /// \brief Get id of the Nth subnode
     NodeId<N, K> subnode(NodeId<N, K> node, int index) const {
-        auto [begin, end] = subnodesOf(node);
-        for (int i = 0; i < index; ++i) {
-            ++begin;
+        if (auto pair = subnodesOf(node)) {
+            auto [begin, end] = *pair;
+            int i             = 0;
+            for (; begin != end; ++begin, ++i) {
+                if (i == index) {
+                    return *begin;
+                }
+            }
+
+            throw RangeError(
+                "Could not get subnode with index $# for node with id $# "
+                "-- it contains only $# items"
+                % to_string_vec(index, node.getUnmasked(), i));
+        } else {
+            qFatal("Cannot get subnode for token, TODO error msg");
         }
-        return *begin;
     }
 
     struct TreeReprConf {
@@ -339,7 +378,10 @@ struct NodeGroup {
         if (at(node).isTerminal()) {
             auto tok = at(node).getToken();
             os << " '";
-            tok.streamTo(os, "", true);
+            QString     str;
+            QTextStream stream{&str};
+            tok.streamTo(stream, "", true);
+            os << str;
             os << "'";
             if (conf.fullBase != nullptr && at(tok).hasData()) {
                 os << " ";
@@ -360,7 +402,7 @@ struct NodeGroup {
     }
 
     void treeRepr(
-        QTextStream&     os,
+        ColStream&       os,
         NodeId<N, K>     node,
         int              level,
         CR<TreeReprConf> conf       = TreeReprConf(),
@@ -382,14 +424,18 @@ struct NodeGroup {
         }
 
         if (at(node).isTerminal()) {
-            auto tok = at(node).getToken();
-            os << " #";
-            tok.streamTo(os, "", conf.withTokenMask);
-            os << " " << at(tok);
+            auto        tok = at(node).getToken();
+            QString     str;
+            QTextStream stream{&str};
+            tok.streamTo(stream, "", conf.withTokenMask);
+            os << " #" << str << " " << at(tok);
         } else {
-            auto [begin, end] = subnodesOf(node);
-            int idx           = 0;
+            auto [begin, end] = subnodesOf(node).value();
+            int  idx          = 0;
+            auto id           = end.id;
             for (; begin != end; ++begin) {
+                Q_ASSERT(id == end.id);
+                Q_ASSERT(begin.id != end.id);
                 os << "\n";
                 treeRepr(os, *begin, level + 1, conf, idx);
                 ++idx;
@@ -537,7 +583,7 @@ struct NodeAdapter {
 
 
     void treeRepr(
-        QTextStream&                               os,
+        ColStream&                                 os,
         int                                        level = 0,
         CR<typename NodeGroup<N, K>::TreeReprConf> conf =
             typename NodeGroup<N, K>::TreeReprConf()) const {
@@ -547,7 +593,8 @@ struct NodeAdapter {
     QString treeRepr() const {
         QString     buffer;
         QTextStream os{&buffer};
-        treeRepr(os);
+        ColStream   text{os};
+        treeRepr(text);
         return buffer;
     }
 

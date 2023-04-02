@@ -24,6 +24,8 @@ def simplify_name(name: str) -> str:
         ("unsigned long long", "u64"),
         ("long long", "i64"),
         ("std::variant", "Variant"),
+        ("NodeGroup<OrgNodeKind, OrgTokenKind>", "OrgNodeGroup"),
+        ("NodeId<OrgNodeKind, OrgTokenKind, u32, u32>", "OrgNodeId"),
         (r"::'lambda'.*?operator\(\)", "lambda"),
         (r"std::vector<(.*?), std::allocator<\1>>", r"std::vector<\1>"),
         (
@@ -77,7 +79,6 @@ def should_skip_frame(frame):
         "Catch" in frame.name
         or "__gnu" in frame.name
         or "__libc" in frame.name
-        or "CATCH2_INTERNAL" in frame.name
         or "___lldb_unnamed" in frame.name
         or (
             frame.line_entry.file.basename

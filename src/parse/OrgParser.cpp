@@ -189,6 +189,17 @@ OrgId OrgParser::parsePlaceholder(OrgLexer& lex) {
     return tok;
 }
 
+OrgId OrgParser::parseLatex(OrgLexer& lex) {
+    __trace();
+    skip(lex, otk::GroupStart);
+    skip(lex, otk::LatexParOpen);
+    auto tok = token(org::InlineMath, pop(lex, otk::LatexInlineRaw));
+    __token(tok);
+    skip(lex, otk::LatexParClose);
+    skip(lex, otk::GroupEnd);
+    return tok;
+}
+
 void OrgParser::textFold(OrgLexer& lex) {
     __trace();
 #define CASE_MARKUP(Kind)                                                 \
@@ -318,6 +329,7 @@ void OrgParser::textFold(OrgLexer& lex) {
                     case otk::LinkOpen: parseLink(lex); break;
                     case otk::FootnoteStart: parseFootnote(lex); break;
                     case otk::AngleOpen: parsePlaceholder(lex); break;
+                    case otk::LatexParOpen: parseLatex(lex); break;
                     default:
                         throw wrapError(Err::UnhandledToken(lex), lex);
                 }
@@ -341,6 +353,12 @@ Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
     QString forMsg    = getLocMsg(lex);
     int     treeStart = treeDepth();
     textFold(lex);
+
+    while (treeStart < treeDepth()) {
+        __print("Warn, force closing content on " + getLocMsg(lex));
+        __end();
+    }
+
     int treeEnd = treeDepth();
     Q_ASSERT_X(
         treeStart == treeEnd,
@@ -1226,18 +1244,41 @@ OrgId OrgParser::parseSubtreeLogbookListEntry(OrgLexer& lex) {
             space(lex);
             parseTimeStamp(lex);
             space(lex);
-            if (lex.at(otk::DoubleSlash)) {
-                skip(lex, otk::DoubleSlash);
-            }
         }
         __end();
     }
 
     newline(lex);
     space(lex);
-    skip(lex, otk::ParagraphEnd);
-    skip(lex, otk::StmtListClose);
-    skip(lex, otk::ListItemEnd);
+    if (lex.at(otk::DoubleSlash)) {
+        __start(org::StmtList);
+        skip(lex, otk::DoubleSlash);
+        skip(lex, otk::Newline);
+
+        Vec<OrgTokenId> firstParagraph;
+        while (!lex.at(otk::ParagraphEnd)) {
+            firstParagraph.push_back(lex.pop());
+        }
+
+        auto sub = SubLexer(lex.in, firstParagraph);
+
+        skip(lex, otk::ParagraphEnd);
+
+        while (!lex.at(otk::StmtListClose)) {
+            parseToplevelItem(lex);
+        }
+
+        skip(lex, otk::StmtListClose);
+        skip(lex, otk::ListItemEnd);
+        __end();
+
+    } else {
+        skip(lex, otk::ParagraphEnd);
+        skip(lex, otk::StmtListClose);
+        skip(lex, otk::ListItemEnd);
+        empty();
+    }
+
 
     // TODO handle optional logbook entry description or note
     __end_return();

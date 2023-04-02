@@ -94,7 +94,7 @@ TEST_CASE("General node API", "[node]") {
         (void)nodes.endTree();
         REQUIRE(nodes.at(top).getExtent() == 3);
 
-        auto [begin, end] = nodes.subnodesOf(top);
+        auto [begin, end] = nodes.subnodesOf(top).value();
         Vec<TIdT> subtoks;
         for (; begin != end; ++begin) {
             subtoks.push_back(nodes.at(*begin).getToken());

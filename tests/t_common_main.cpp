@@ -47,8 +47,8 @@ int main(int argc, const char** argv) {
 
     std::string glob;
     auto        cli = session.cli()
-             | Opt(glob,
-                   "Glob pattern")["--corpus-glob"]("Corpus glob pattern");
+             | Catch::Clara::Opt(glob, "Glob pattern")["--corpus-glob"](
+                   "Corpus glob pattern");
     session.cli(cli);
     auto ret = session.applyCommandLine(argc, argv);
     if (ret) {

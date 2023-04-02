@@ -621,7 +621,7 @@ QString htmlRepr(
             return {.level = 1, .content = table};
         } else {
             Vec<Result> sub;
-            auto [begin, end] = nodes.subnodesOf(root);
+            auto [begin, end] = nodes.subnodesOf(root).value();
             int index         = 0;
             for (; begin != end; ++begin) {
                 sub.push_back(
@@ -771,7 +771,7 @@ TEST_CASE("Parse file", "[corpus][notes]") {
 
     p.locationResolver = p.tokenizer.locationResolver;
 
-    int  start  = 200;
+    int  start  = 500;
     auto target = slice(start, start + 200);
 
     p.tokenizer.traceUpdateHook =
@@ -1045,7 +1045,8 @@ kind=$#
 
     qDebug() << "Top parse";
     writeFile(
-        "/tmp/file_parsed.yaml", to_string(yamlRepr(p.nodes)) + "\n");
+        "/tmp/file_parsed.yaml",
+        to_string(yamlRepr(p.nodes, true, true)) + "\n");
     qDebug() << "Wrote parsed representation into yaml";
 
     writeFile(
@@ -1058,9 +1059,14 @@ kind=$#
     p.extendSubtreeTrails(OrgId(0));
     p.extendAttachedTrails(OrgId(0));
 
-    writeFile("/tmp/file_sweep.yaml", to_string(yamlRepr(p.nodes)) + "\n");
+    writeFile(
+        "/tmp/file_sweep.yaml",
+        to_string(yamlRepr(p.nodes, true, true)) + "\n");
 
+    // ColStream os{qcout};
+    // p.a(0).treeRepr(os);
     writeFile("/tmp/parsed_sweep.txt", p.a(0).treeRepr());
+
     writeFile(
         "/tmp/parsed_sweep.html",
         htmlRepr(OrgId(0), p.nodes, source, ops));
