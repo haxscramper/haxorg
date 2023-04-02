@@ -357,6 +357,7 @@ struct NodeGroup {
         bool withTreeMask   = false;
         bool withTreeId     = true;
         bool withSubnodeIdx = true;
+        bool flushEach      = false;
         enum class WritePos
         {
             LineStart,
@@ -430,16 +431,51 @@ struct NodeGroup {
             tok.streamTo(stream, "", conf.withTokenMask);
             os << " #" << str << " " << at(tok);
         } else {
+            auto pref         = QString("  ").repeated(level);
             auto [begin, end] = subnodesOf(node).value();
-            int  idx          = 0;
-            auto id           = end.id;
-            for (; begin != end; ++begin) {
+            Q_ASSERT(begin.id <= end.id);
+            begin.check();
+            int  idx = 0;
+            auto id  = end.id;
+            for (; begin != end &&
+                  (begin.id <= end.id
+                  /* FIXME hack to handle tree that is created by the sweep operation  */);) {
                 Q_ASSERT(id == end.id);
                 Q_ASSERT(begin.id != end.id);
+                Q_ASSERT(begin.id <= end.id);
+                if (conf.flushEach) {
+                    os.flush();
+                }
                 os << "\n";
                 treeRepr(os, *begin, level + 1, conf, idx);
+
+                if (conf.flushEach) {
+                    os.flush();
+                }
                 ++idx;
+                NodeId<N, K> before = begin.id;
+                ++begin;
+                // Q_ASSERT_X(
+                //     begin.id <= end.id,
+                //     "treeRepr",
+                //     "Increment of the starting operator should not go "
+                //     "over the end, but transitioning over subnode [$#] "
+                //     "for tree $# caused jump $# -> $# which is over the "
+                //     "end ($#). Full extent of the subnode is $#, extent "
+                //     "of the wrapping tree is $#"
+                //         % to_string_vec(
+                //             idx,
+                //             node.getUnmasked(),
+                //             before.getUnmasked(),
+                //             begin.id.getUnmasked(),
+                //             end.id.getUnmasked(),
+                //             at(before).getExtent(),
+                //             at(node).getExtent()));
             }
+        }
+
+        if (conf.flushEach) {
+            os.flush();
         }
     }
 };

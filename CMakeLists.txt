@@ -181,13 +181,13 @@ function(set_common_files TARGET)
   add_target_property("${TARGET}" SOURCES "${HEADER_FILES}")
   add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/src")
   add_target_property("${TARGET}" LINK_LIBRARIES dw)
-  target_precompile_headers(
-    "${TARGET}"
-    PRIVATE
-    src/lexbase/PosStr.hpp
-    src/lexbase/Node.hpp
-    src/lexbase/Token.hpp
-  )
+  # target_precompile_headers(
+  #   "${TARGET}"
+  #   PRIVATE
+  #   src/lexbase/PosStr.hpp
+  #   src/lexbase/Node.hpp
+  #   src/lexbase/Token.hpp
+  # )
 
 endfunction()
 

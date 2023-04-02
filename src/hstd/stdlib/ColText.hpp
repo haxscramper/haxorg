@@ -277,7 +277,12 @@ struct ColStream : public ColText {
     ColStream&  indent(int level);
     ColStyle    end() const { return ColStyle{}; }
     StreamState snap() { return StreamState(*this); }
-    void        write(ColText const& text) {
+    void        flush() {
+        if (!buffered) {
+            ostream->flush();
+        }
+    }
+    void write(ColText const& text) {
         if (buffered) {
             append(text);
         } else {

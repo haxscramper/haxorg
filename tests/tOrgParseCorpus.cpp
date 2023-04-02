@@ -623,7 +623,7 @@ QString htmlRepr(
             Vec<Result> sub;
             auto [begin, end] = nodes.subnodesOf(root).value();
             int index         = 0;
-            for (; begin != end; ++begin) {
+            for (; begin != end && (begin.id <= end.id); ++begin) {
                 sub.push_back(
                     aux(*begin,
                         spec.fieldName(OrgAdapter(&nodes, root), index),
@@ -1051,13 +1051,22 @@ kind=$#
 
     writeFile(
         "/tmp/parsed_tree.html", htmlRepr(OrgId(0), p.nodes, source, ops));
+
     writeFile("/tmp/parsed_tree.txt", p.a(0).treeRepr());
 
     qDebug() << "Wrote parsed tree representation before group sweep";
 
     qDebug() << "Extending subtree trails";
+    int beforeSweep = p.nodes.size();
+
     p.extendSubtreeTrails(OrgId(0));
     p.extendAttachedTrails(OrgId(0));
+
+    Q_ASSERT_X(
+        beforeSweep == p.nodes.size(),
+        "sweep size check",
+        "$# == $#" % to_string_vec(beforeSweep, p.nodes.size()));
+
 
     writeFile(
         "/tmp/file_sweep.yaml",
@@ -1065,6 +1074,14 @@ kind=$#
 
     // ColStream os{qcout};
     // p.a(0).treeRepr(os);
+    QFile       file{"/tmp/parsed_sweep_1.txt"};
+    QTextStream stream{&file};
+    file.open(QIODevice::WriteOnly | QFile::Truncate);
+    ColStream os{stream};
+    p.a(0).treeRepr(os, 0, {.flushEach = true});
+    file.close();
+
+
     writeFile("/tmp/parsed_sweep.txt", p.a(0).treeRepr());
 
     writeFile(

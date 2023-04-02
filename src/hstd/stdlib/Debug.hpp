@@ -50,3 +50,6 @@ inline void qt_assert_x(
     int         line) noexcept {
     qt_assert_x(strdup(where), strdup(what), file, line);
 }
+
+#define qDebugIndent(indent)                                              \
+    qDebug().noquote() << QString("  ").repeated(indent)

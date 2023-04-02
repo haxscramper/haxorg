@@ -33,7 +33,7 @@ struct Slice : public HSlice<T, T> {
     /// \brief Both start and end of the other slice are contained in the
     /// *inclusive* range [first, last]
     bool contains(CR<Slice> other) const {
-        return contains(other.first) && contains(other.second);
+        return contains(other.first) && contains(other.last);
     }
 
     std::optional<Slice<T>> overlap(const Slice<T>& other) const {

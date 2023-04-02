@@ -1741,6 +1741,19 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
                     // Extend the tree itself and nested statement list
                     g.at(tree).extend((id - tree) - 1);
                     g.at(stmt).extend((id - stmt) - 1);
+                    auto treeSlice = g.allSubnodesOf(tree).value();
+                    auto stmtSlice = g.allSubnodesOf(tree).value();
+                    Q_ASSERT(treeSlice.last < g.nodes.back());
+                    Q_ASSERT(stmtSlice.last < g.nodes.back());
+                    Q_ASSERT_X(
+                        treeSlice.last == stmtSlice.last,
+                        "extend tree",
+                        "$# -- $#" % to_string_vec(treeSlice, stmtSlice));
+                    Q_ASSERT_X(
+                        treeSlice.contains(stmtSlice),
+                        "statement containment",
+                        "$# -- $#" % to_string_vec(treeSlice, stmtSlice));
+
                 } else {
                     // Found subtree on the same level or above
                     break;
