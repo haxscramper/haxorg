@@ -171,29 +171,6 @@ struct Paragraph : public Org {
     GET_KIND(Paragraph);
 };
 
-struct Markup : public Org {
-    using Org::Org;
-};
-
-struct Bold : public Markup {
-    using Markup::Markup;
-    virtual json toJson() const override;
-    GET_KIND(Bold);
-};
-
-
-struct Italic : public Markup {
-    using Markup::Markup;
-    virtual json toJson() const override;
-    GET_KIND(Italic);
-};
-
-
-struct Strike : public Markup {
-    using Markup::Markup;
-    virtual json toJson() const override;
-    GET_KIND(Strike);
-};
 
 struct Format : public Org {
     using Org::Org;
@@ -429,35 +406,69 @@ struct Leaf : public Org {
     }
 };
 
-struct SkipNewline : public Leaf {
-    GET_KIND(SkipNewline);
-    using Leaf::Leaf;
+// clang-format off
+struct Newline : public Leaf { GET_KIND(Newline); using Leaf::Leaf; };
+struct Space : public Leaf { GET_KIND(Space); using Leaf::Leaf; };
+struct Word : public Leaf { GET_KIND(Word); using Leaf::Leaf; };
+struct RawText : public Leaf { GET_KIND(RawText); using Leaf::Leaf; };
+struct Punctuation : public Leaf { GET_KIND(Punctuation); using Leaf::Leaf; };
+// clang-format on
+
+struct Markup : public Org {
+    using Org::Org;
+    virtual json toJson() const override;
 };
 
-struct SkipSpace : public Leaf {
-    GET_KIND(SkipSpace);
-    using Leaf::Leaf;
+// clang-format off
+struct Bold : public Markup { using Markup::Markup; GET_KIND(Bold); };
+struct Monospace : public Markup { using Markup::Markup; GET_KIND(Monospace); };
+struct MarkQuote : public Markup { using Markup::Markup; GET_KIND(MarkQuote); };
+struct Verbatim : public Markup { using Markup::Markup; GET_KIND(Verbatim); };
+struct Italic : public Markup { using Markup::Markup; GET_KIND(Italic); };
+struct Strike : public Markup { using Markup::Markup; GET_KIND(Strike); };
+struct Par : public Markup { using Markup::Markup; GET_KIND(Par); };
+// clang-format on
+
+
+struct List : public Org {
+    using Org::Org;
+    GET_KIND(List);
+    virtual json toJson() const override;
 };
 
-struct Space : public Leaf {
-    GET_KIND(Space);
-    using Leaf::Leaf;
-};
+struct ListItem : public Org {
+    using Org::Org;
+    GET_KIND(ListItem);
+    virtual json toJson() const override;
+    enum class Checkbox
+    {
+        None,
+        Done,
+        Empty
+    };
 
-struct Word : public Leaf {
-    GET_KIND(Word);
-    using Leaf::Leaf;
-};
-
-struct Punctuation : public Leaf {
-    GET_KIND(Punctuation);
-    using Leaf::Leaf;
+    Opt<Wrap<Paragraph>> header;
 };
 
 struct Link : public Org {
     GET_KIND(Link);
     using Org::Org;
     virtual json toJson() const override;
+
+
+    struct Raw {
+        Str text;
+    };
+
+    using Data = Variant<Raw>;
+
+    Data data;
+
+    Raw&       getRaw() { return std::get<Raw>(data); }
+    Raw const& getRaw() const { return std::get<Raw>(data); }
+
+
+    Opt<Wrap<Paragraph>> description;
 };
 
 struct BigIdent : public Leaf {

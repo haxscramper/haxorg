@@ -224,7 +224,7 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
                 Range(2, N::Checkbox).doc("optional checkbox"),
                 OrgPattern({org::Checkbox, org::Empty})),
             Field(
-                Range(3, N::Header).doc("Main part of the list"),
+                Range(3, N::Header).doc("Header part of the list"),
                 OrgPattern(
                     {org::Paragraph,
                      org::AnnotatedParagraph,

@@ -281,57 +281,94 @@ Wrap<StmtList> OrgConverter::convertStmtList(__args) {
     return stmt;
 }
 
-Wrap<Word> OrgConverter::convertWord(__args) {
-    __trace();
-    return SemLeaf<Word>(p, a);
-}
-
-Wrap<SkipNewline> OrgConverter::convertSkipNewline(__args) {
-    __trace();
-    return SemLeaf<SkipNewline>(p, a);
-}
-
-Wrap<Space> OrgConverter::convertSpace(__args) {
-    return SemLeaf<Space>(p, a);
-}
-
-Wrap<Punctuation> OrgConverter::convertPunctuation(__args) {
-    __trace();
-    return SemLeaf<Punctuation>(p, a);
-}
-
-Wrap<BigIdent> OrgConverter::convertBigIdent(__args) {
-    __trace();
-    return SemLeaf<BigIdent>(p, a);
-}
 
 Wrap<Link> OrgConverter::convertLink(__args) {
     __trace();
     auto link = Sem<Link>(p, a);
+    if (a.kind() == org::RawLink) {
+        link->data = Link::Raw{.text = a.strVal()};
+
+    } else {
+        Str protocol = normalize(one(a, N::Protocol).strVal());
+        if (false) {
+
+        } else {
+            qCritical() << "Unhandled protocol kind" << protocol;
+        }
+    }
 
     return link;
 }
+
+Wrap<List> OrgConverter::convertList(__args) {
+    __trace();
+    auto list = Sem<List>(p, a);
+    for (const auto& it : a) {
+        list->push_back(convert(list.get(), it));
+    }
+
+    return list;
+}
+
+Wrap<ListItem> OrgConverter::convertListItem(__args) {
+    __trace();
+    auto item = Sem<ListItem>(p, a);
+
+    return item;
+}
+
+// clang-format off
+Wrap<Word> OrgConverter::convertWord(__args) { __trace(); return SemLeaf<Word>(p, a); }
+Wrap<Newline> OrgConverter::convertNewline(__args) { __trace(); return SemLeaf<Newline>(p, a); }
+Wrap<Space> OrgConverter::convertSpace(__args) { return SemLeaf<Space>(p, a); }
+Wrap<RawText> OrgConverter::convertRawText(__args) { return SemLeaf<RawText>(p, a); }
+Wrap<Punctuation> OrgConverter::convertPunctuation(__args) { __trace(); return SemLeaf<Punctuation>(p, a); }
+Wrap<BigIdent> OrgConverter::convertBigIdent(__args) { __trace(); return SemLeaf<BigIdent>(p, a); }
+// clang-format on
+
+
+// clang-format off
+Wrap<MarkQuote> OrgConverter::convertMarkQuote(__args) { __trace(); return convertAllSubnodes<MarkQuote>(p, a); }
+Wrap<Verbatim> OrgConverter::convertVerbatim(__args) { __trace(); return convertAllSubnodes<Verbatim>(p, a); }
+Wrap<Bold> OrgConverter::convertBold(__args) { __trace(); return convertAllSubnodes<Bold>(p, a); }
+Wrap<Par> OrgConverter::convertPar(__args) { __trace(); return convertAllSubnodes<Par>(p, a); }
+Wrap<Italic> OrgConverter::convertItalic(__args) { __trace(); return convertAllSubnodes<Italic>(p, a); }
+// clang-format on
 
 Wrap<Org> OrgConverter::convert(__args) {
     __trace();
 #define CASE(Kind)                                                        \
     case org::Kind: return convert##Kind(p, a);
     switch (a.kind()) {
-        CASE(SkipNewline);
+        CASE(Newline);
         CASE(StmtList);
         CASE(Subtree);
         CASE(TimeRange);
         CASE(Paragraph);
         CASE(Space);
         CASE(Word);
+        CASE(Bold);
+        CASE(Italic);
         CASE(Punctuation);
         CASE(Link);
+        CASE(Par);
         CASE(BigIdent);
+        CASE(Verbatim);
+        CASE(RawText);
+        CASE(List);
+        CASE(ListItem);
+        case org::RawLink: return convertLink(p, a);
         case org::StaticActiveTime:
         case org::StaticInactiveTime:
         case org::DynamicActiveTime:
         case org::DynamicInactiveTime: return convertTime(p, a);
-        default: throw wrapError(Err::UnhandledKind(a.kind()), a);
+        case org::SkipSpace: return convertSpace(p, a);
+        case org::SkipNewline: return convertNewline(p, a);
+        case org::Quote: return convertMarkQuote(p, a);
+        default:
+            qCritical() << "Unhandled node type";
+            qCritical().noquote() << a.treeRepr();
+            throw wrapError(Err::UnhandledKind(a.kind()), a);
     }
 #undef CASE
 }

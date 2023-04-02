@@ -387,7 +387,13 @@ enum class OrgSemKind
     Bold,
     Italic,
     Strike,
+    Monospace,
+    Verbatim,
+    RawText,
+    List,
+    ListItem,
     Center,
+    Par,
     Quote,
     Example,
     Code,
@@ -395,11 +401,11 @@ enum class OrgSemKind
     SubtreeLog,
     TimeRange,
     Subtree,
-    SkipNewline,
-    SkipSpace,
+    Newline,
     Space,
     Word,
     Punctuation,
+    MarkQuote,
 };
 
 

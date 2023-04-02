@@ -626,10 +626,11 @@ struct NodeAdapter {
         group->treeRepr(os, id, level, conf);
     }
 
-    QString treeRepr() const {
+    QString treeRepr(bool colored = true) const {
         QString     buffer;
         QTextStream os{&buffer};
         ColStream   text{os};
+        text.colored = colored;
         treeRepr(text);
         return buffer;
     }

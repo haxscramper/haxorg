@@ -38,6 +38,27 @@ json HashTag::toJson() const {
     return res;
 }
 
+json List::toJson() const {
+    json res = newJson();
+    subnodesJson(res);
+    return res;
+}
+
+json ListItem::toJson() const {
+    json res = newJson();
+
+    res["header"] = header ? header.value()->toJson() : json();
+    subnodesJson(res);
+
+    return res;
+}
+
+json Markup::toJson() const {
+    json res = newJson();
+    subnodesJson(res);
+    return res;
+}
+
 json StmtList::toJson() const {
     json res = newJson();
     subnodesJson(res);

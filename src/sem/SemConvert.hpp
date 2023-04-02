@@ -109,7 +109,7 @@ struct OrgConverter : public OperationsTracer {
     virtual Wrap<HashTag>     convertHashTag(Up, In);
     virtual Wrap<Subtree>     convertSubtree(Up, In);
     virtual Wrap<StmtList>    convertStmtList(Up, In);
-    virtual Wrap<SkipNewline> convertSkipNewline(Up, In);
+    virtual Wrap<Newline>     convertNewline(Up, In);
     virtual Wrap<Word>        convertWord(Up, In);
     virtual Wrap<Space>       convertSpace(Up, In);
     virtual Wrap<Paragraph>   convertParagraph(Up, In);
@@ -118,6 +118,25 @@ struct OrgConverter : public OperationsTracer {
     virtual Wrap<Punctuation> convertPunctuation(Up, In);
     virtual Wrap<Link>        convertLink(Up, In);
     virtual Wrap<BigIdent>    convertBigIdent(Up, In);
+    virtual Wrap<MarkQuote>   convertMarkQuote(Up, In);
+    virtual Wrap<Verbatim>    convertVerbatim(Up, In);
+    virtual Wrap<Italic>      convertItalic(Up, In);
+    virtual Wrap<Par>         convertPar(Up, In);
+    virtual Wrap<Bold>        convertBold(Up, In);
+    virtual Wrap<RawText>     convertRawText(Up, In);
+    virtual Wrap<List>        convertList(Up, In);
+    virtual Wrap<ListItem>    convertListItem(Up, In);
+
+    template <typename T>
+    Wrap<T> convertAllSubnodes(Up p, In a) {
+        Wrap<T> res = std::make_shared<T>(p, a);
+
+        for (const auto& sub : a) {
+            res->push_back(convert(res.get(), sub));
+        }
+
+        return res;
+    }
 
     virtual Wrap<Org> convert(Up, In);
 };
