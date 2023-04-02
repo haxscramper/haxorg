@@ -8,6 +8,8 @@ lim=9000000
 ulimit -v $lim
 ulimit -m $lim
 
+export LLDB_CUSTOM_TERM_WIDTH=$(tput cols)
+
 lldb \
     --batch \
     -o "command script import $IN_PWD/lldb_script.py" \
