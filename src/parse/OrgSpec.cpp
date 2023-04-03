@@ -362,18 +362,29 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
     SpecPair{
         org::CommandCaption,
         OrgPattern({
-            Field(Range(0, N::Text), OrgPattern({org::Paragraph})),
+            Field(
+                Range(0, N::Args),
+                OrgPattern({OrgPattern({
+                    Field(Range(0, N::Text), OrgPattern({org::Paragraph})),
+                })})),
+            Field(Range(1, N::Body), OrgPattern({org::StmtList})),
         })},
     SpecPair{
         org::CommandInclude,
-        OrgPattern({
-            Field(Range(0, N::File), OrgPattern({org::File})),
-            Field(Range(1, N::Kind), OrgPattern({org::Empty, org::Ident})),
-            Field(Range(2, N::Lang), OrgPattern({org::Empty, org::Ident})),
-            Field(
-                Range(3, N::Args),
-                OrgPattern({org::Empty, org::CmdArguments})),
-        })},
+        OrgPattern({Field(
+            Range(0, N::Args),
+            OrgPattern({OrgPattern({
+                Field(Range(0, N::File), OrgPattern({org::File})),
+                Field(
+                    Range(1, N::Kind),
+                    OrgPattern({org::Empty, org::Ident})),
+                Field(
+                    Range(2, N::Lang),
+                    OrgPattern({org::Empty, org::Ident})),
+                Field(
+                    Range(3, N::Args),
+                    OrgPattern({org::Empty, org::CmdArguments})),
+            })}))})},
     SpecPair{
         org::SrcCode,
         OrgPattern({

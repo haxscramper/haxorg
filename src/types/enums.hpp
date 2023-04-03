@@ -141,10 +141,12 @@ enum class OrgNodeKind : short int
     /// should not be created manually, it is only used for handling
     /// mutually recursive DSLs such as tables, which might include lists,
     /// which in turn might contain more tables in different bullet points.
-    Command,        /// Single-line command
-    CommandTitle,   /// `#+title:` - full document title
-    CommandAuthor,  /// `#+author:` Document author
-    CommandCreator, /// `#+creator:` Document creator
+    Command, /// Undefined single-line command -- most likely custom
+             /// user-provided oe
+    CommandArguments, /// Arguments for the command block
+    CommandTitle,     /// `#+title:` - full document title
+    CommandAuthor,    /// `#+author:` Document author
+    CommandCreator,   /// `#+creator:` Document creator
     CommandInclude,
     /// `#+include:` - include other org-mode document (or subsection of
     /// it), source code or backend-specific chunk.
@@ -406,6 +408,7 @@ enum class OrgSemKind
     Word,
     Punctuation,
     MarkQuote,
+    Caption,
 };
 
 

@@ -44,6 +44,11 @@ json List::toJson() const {
     return res;
 }
 
+json Block::attachedJson() const {
+    json res;
+    return res;
+}
+
 json ListItem::toJson() const {
     json res = newJson();
 

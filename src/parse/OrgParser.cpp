@@ -1565,15 +1565,14 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 
             parseSrcArguments(lex);
             skip(lex, otk::CommandArgumentsEnd);
-            __end();
             break;
         }
+
         case ock::AttrHtml: {
             skipLineCommand(lex);
             skip(lex, otk::CommandArgumentsBegin);
             __start(org::CommandAttrHtml);
             parseSrcArguments(lex);
-            __end();
             skip(lex, otk::CommandArgumentsEnd);
             break;
         }
@@ -1582,7 +1581,6 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skipLineCommand(lex);
             __start(org::CommandTitle);
             parseParagraph(lex, false);
-            __end();
             break;
         }
 
@@ -1590,6 +1588,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skipLineCommand(lex);
             space(lex);
             __start(org::CommandCaption);
+            __start(org::CommandArguments);
             parseParagraph(lex, false);
             __end();
             break;
@@ -1619,7 +1618,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
                 token(org::RawText, pop(lex, otk::RawText));
                 skip(lex, otk::CommandArgumentsEnd);
             }
-            __end();
+
             break;
         }
 
@@ -1631,7 +1630,6 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
                 parseHashTag(lex);
             }
             skip(lex, otk::SubtreeTagSeparator);
-            __end();
             break;
         }
         case ock::LatexClass:
@@ -1644,7 +1642,6 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             skipLineCommand(lex);
             __start(newk);
             token(org::Ident, pop(lex, otk::RawText));
-            __end();
             break;
         }
 
@@ -1654,7 +1651,6 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             token(org::RawText, pop(lex, otk::Ident));
             empty();
             token(org::RawText, pop(lex, otk::RawProperty));
-            __end();
             break;
         }
         default: {
@@ -1662,6 +1658,13 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
                 Err::UnhandledToken(lex, to_string(kind)), lex);
         }
     }
+
+    // Placeholder statement list that might be extended in a latter pass
+    __start(org::StmtList);
+    __end();
+    // End main tree that was started in the case statement
+    __end();
+
 
     return back();
 }
@@ -1771,6 +1774,74 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
     aux(position, 0);
 }
 
-void OrgParser::extendAttachedTrails(OrgId position) {}
+void OrgParser::extendAttachedTrails(OrgId position) {
+    Func<OrgId(OrgId)>        aux;
+    const IntSet<OrgNodeKind> commands{
+        org::CommandCaption,
+        org::CommandInclude,
+    };
+
+    const IntSet<OrgNodeKind> trailables{
+        org::SrcCode,
+        org::QuoteBlock,
+    };
+
+    aux = [&](OrgId id) -> OrgId {
+        auto& g = *group;
+
+        OrgNode node = g.at(id);
+        if (commands.contains(node.kind)) {
+            OrgId const annotation = id;
+            // Get ID of the nested statement list
+            OrgId const stmt = g.subnode(annotation, 1);
+            Q_ASSERT(g.at(stmt).kind == org::StmtList);
+            // Next element after command block is the non-optional newline
+            // to separate them.
+            Q_ASSERT(g.at(stmt + 1).kind == org::SkipNewline);
+            OrgId   nextId = stmt + 2;
+            OrgNode next   = g.at(nextId);
+
+            // qDebug() << "Next element from" << annotation << "has kind"
+            //          << next.kind << "at" << nextId;
+
+            if (commands.contains(next.kind)) {
+                // Nested annotations are recursively placed inside
+                // each other by extending the trail
+                id = aux(nextId);
+                g.at(annotation).extend((id - annotation) - 1);
+                g.at(stmt).extend((id - stmt) - 1);
+
+            } else if (trailables.contains(next.kind)) {
+                // Element that can be put as the final part of the
+                // trailable statement
+                if (auto nextSub = g.allSubnodesOf(nextId)) {
+                    OrgId const end = nextSub->last;
+                    g.at(annotation).extend(end - annotation);
+                    g.at(stmt).extend(end - stmt);
+                    id = end + 1;
+                } else {
+                    qWarning()
+                        << "No subnodes found in the next node" << nextId;
+                    ++id;
+                }
+
+            } else {
+                // Next element after line command is neither trailable
+                // nor another command. Switching the subnode kind to
+                // empty.
+                g.at(stmt).kind = org::Empty;
+                ++id;
+            }
+        } else {
+            ++id;
+        }
+
+        return id;
+    };
+
+    while (position < group->nodes.back()) {
+        position = aux(position);
+    }
+}
 
 #pragma clang diagnostic pop

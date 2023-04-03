@@ -182,9 +182,34 @@ struct Center : public Format {
     GET_KIND(Center);
 };
 
+struct LineCommand : public Org {
+    using Org::Org;
+};
+
+struct Attached : public LineCommand {
+    using LineCommand::LineCommand;
+};
+
+struct Caption : public Attached {
+    using Attached::Attached;
+    virtual json toJson() const override;
+    GET_KIND(Caption);
+};
+
 struct Block : public Org {
     using Org::Org;
-    Opt<Wrap<Org>> caption;
+    Vec<Wrap<Attached>> attached;
+
+    json attachedJson() const;
+
+    template <typename T>
+    Opt<Wrap<T>> getAttached() {
+        if (false) {
+
+        } else {
+            return std::nullopt;
+        }
+    }
 };
 
 struct Quote : public Block {
