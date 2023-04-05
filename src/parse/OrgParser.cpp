@@ -1775,22 +1775,12 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
 }
 
 void OrgParser::extendAttachedTrails(OrgId position) {
-    Func<OrgId(OrgId)>        aux;
-    const IntSet<OrgNodeKind> commands{
-        org::CommandCaption,
-        org::CommandInclude,
-    };
-
-    const IntSet<OrgNodeKind> trailables{
-        org::SrcCode,
-        org::QuoteBlock,
-    };
-
+    Func<OrgId(OrgId)> aux;
     aux = [&](OrgId id) -> OrgId {
         auto& g = *group;
 
         OrgNode node = g.at(id);
-        if (commands.contains(node.kind)) {
+        if (OrgAttachableCommands.contains(node.kind)) {
             OrgId const annotation = id;
             // Get ID of the nested statement list
             OrgId const stmt = g.subnode(annotation, 1);
@@ -1804,14 +1794,14 @@ void OrgParser::extendAttachedTrails(OrgId position) {
             // qDebug() << "Next element from" << annotation << "has kind"
             //          << next.kind << "at" << nextId;
 
-            if (commands.contains(next.kind)) {
+            if (OrgAttachableCommands.contains(next.kind)) {
                 // Nested annotations are recursively placed inside
                 // each other by extending the trail
                 id = aux(nextId);
                 g.at(annotation).extend((id - annotation) - 1);
                 g.at(stmt).extend((id - stmt) - 1);
 
-            } else if (trailables.contains(next.kind)) {
+            } else if (OrgTrailableCommands.contains(next.kind)) {
                 // Element that can be put as the final part of the
                 // trailable statement
                 if (auto nextSub = g.allSubnodesOf(nextId)) {

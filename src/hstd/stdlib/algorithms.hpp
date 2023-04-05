@@ -50,23 +50,26 @@ Vec<Span<T const>> partition(
     const Vec<T>&  elements,
     Func<F(CR<T>)> callback) {
     Vec<Span<T const>> result;
-    Span<T const>      currentSpan;
-    F                  currentValue;
-    T const*           max = &elements.back();
-    for (int i = 0; i < elements.size(); ++i) {
-        F newValue = callback(elements[i]);
-        if (currentSpan.empty() || currentValue != newValue) {
-            if (!currentSpan.empty()) {
-                result.push_back(currentSpan);
+    if (!elements.empty()) {
+        Span<T const> currentSpan;
+        F             currentValue;
+        T const*      max = &elements.back();
+
+        for (int i = 0; i < elements.size(); ++i) {
+            F newValue = callback(elements[i]);
+            if (currentSpan.empty() || currentValue != newValue) {
+                if (!currentSpan.empty()) {
+                    result.push_back(currentSpan);
+                }
+                currentSpan  = elements[slice(i, i)];
+                currentValue = newValue;
+            } else {
+                currentSpan.moveEnd(1, max);
             }
-            currentSpan  = elements[slice(i, i)];
-            currentValue = newValue;
-        } else {
-            currentSpan.moveEnd(1, max);
         }
-    }
-    if (!currentSpan.empty()) {
-        result.push_back(currentSpan);
+        if (!currentSpan.empty()) {
+            result.push_back(currentSpan);
+        }
     }
     return result;
 }

@@ -126,6 +126,9 @@ struct OrgConverter : public OperationsTracer {
     virtual Wrap<RawText>     convertRawText(Up, In);
     virtual Wrap<List>        convertList(Up, In);
     virtual Wrap<ListItem>    convertListItem(Up, In);
+    virtual Wrap<Caption>     convertCaption(Up, In);
+
+    virtual Vec<Wrap<Org>> flatConvertAttached(Up, In);
 
     template <typename T>
     Wrap<T> convertAllSubnodes(Up p, In a) {

@@ -51,5 +51,7 @@ inline void qt_assert_x(
     qt_assert_x(strdup(where), strdup(what), file, line);
 }
 
+inline void fatal(CR<QString> msg) { fatal(strdup(msg)); }
+
 #define qDebugIndent(indent)                                              \
     qDebug().noquote() << QString("  ").repeated(indent)

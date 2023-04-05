@@ -20,3 +20,12 @@ using OrgNodeGroup = NodeGroup<OrgNodeKind, OrgTokenKind>;
 using OrgLexer   = LexerCommon<OrgTokenKind>;
 using OrgTokSet  = IntSet<OrgTokenKind>;
 using OrgAdapter = NodeAdapter<OrgNodeKind, OrgTokenKind>;
+using OrgSet     = IntSet<OrgNodeKind>;
+
+using SemSet = IntSet<OrgSemKind>;
+
+extern const OrgSet OrgAttachableCommands;
+extern const OrgSet OrgTrailableCommands;
+
+extern const SemSet SemAttachableCommands;
+extern const SemSet SemTrailableCommands;

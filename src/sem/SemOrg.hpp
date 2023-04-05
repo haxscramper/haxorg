@@ -14,6 +14,7 @@
 
 #include <QDateTime>
 
+
 namespace sem {
 
 struct TreeId {
@@ -74,7 +75,7 @@ namespace properties {
 #define GET_KIND(Kind)                                                    \
     virtual OrgSemKind getKind() const { return OrgSemKind::Kind; }
 
-struct Org {
+struct Org : public std::enable_shared_from_this<Org> {
     /// Pointer to the parent node in sem tree, might be null.
     Org* parent;
     /// Adapter to the original parsed node.
@@ -101,6 +102,29 @@ struct Org {
         return res;
     }
 
+    template <typename T>
+    Wrap<T> as() {
+        Wrap<T> result = std::static_pointer_cast<T>(shared_from_this());
+        Q_ASSERT_X(
+            result.get() != nullptr,
+            "org-base cast",
+            "Could not convert $# to $#"
+                % to_string_vec(getKind(), demangle(typeid(T).name())));
+        return result;
+    }
+
+    template <typename T>
+    Wrap<T> as() const {
+        Wrap<T> result = std::static_pointer_cast<T>(shared_from_this());
+        Q_ASSERT_X(
+            result.get() != nullptr,
+            "org-base cast",
+            "Could not convert $# to $#"
+                % to_string_vec(getKind(), demangle(typeid(T).name())));
+        return result;
+    }
+
+
     void subnodesJson(json& res) const {
         if (!subnodes.empty()) {
             json tmp = json::array();
@@ -113,6 +137,25 @@ struct Org {
 };
 
 BOOST_DESCRIBE_STRUCT(Org, (), (parent, subnodes, properties));
+
+class Attached;
+
+/// \brief Base class for all document-level entries. Note that some node
+/// kinds might also have inline entries (examples include links, source
+/// code blocks, call blocks)
+struct Stmt : public Org {
+    using Org::Org;
+
+    Vec<Wrap<Attached>> attached;
+    json                attachedJson() const;
+
+    template <typename T>
+    Opt<Wrap<T>> getAttached(OrgSemKind kind);
+};
+
+struct Inline : public Org {
+    using Org::Org;
+};
 
 struct StmtList : public Org {
     using Org::Org;
@@ -130,8 +173,8 @@ struct Row : public Org {
 
 BOOST_DESCRIBE_STRUCT(Row, (Org), ());
 
-struct Table : public Org {
-    using Org::Org;
+struct Table : public Stmt {
+    using Stmt::Stmt;
     Vec<Row>     rows;
     virtual json toJson() const override;
     GET_KIND(Table);
@@ -139,8 +182,8 @@ struct Table : public Org {
 
 BOOST_DESCRIBE_STRUCT(Table, (Org), (rows));
 
-struct HashTag : public Org {
-    using Org::Org;
+struct HashTag : public Inline {
+    using Inline::Inline;
     Str          head;
     Vec<HashTag> subtags;
 
@@ -151,8 +194,8 @@ struct HashTag : public Org {
 BOOST_DESCRIBE_STRUCT(HashTag, (), (head, subtags));
 
 /// \brief Completion status of the subtree or list element
-struct Completion : Org {
-    using Org::Org;
+struct Completion : public Inline {
+    using Inline::Inline;
     /// \brief Number of completed tasks
     int done = 0;
     /// \brief Full number of tasks
@@ -162,11 +205,12 @@ struct Completion : Org {
     virtual json toJson() const override;
     GET_KIND(Completion);
 };
+
 BOOST_DESCRIBE_STRUCT(Completion, (), (done, full, isPercent));
 
 
-struct Paragraph : public Org {
-    using Org::Org;
+struct Paragraph : public Stmt {
+    using Stmt::Stmt;
     virtual json toJson() const override;
     GET_KIND(Paragraph);
 };
@@ -182,34 +226,43 @@ struct Center : public Format {
     GET_KIND(Center);
 };
 
-struct LineCommand : public Org {
-    using Org::Org;
+/// \brief Base class for block or line commands
+struct Command : public Stmt {
+    using Stmt::Stmt;
 };
 
+struct LineCommand : public Command {
+    using Command::Command;
+};
+
+struct Standalone : public LineCommand {
+    using LineCommand::LineCommand;
+};
+
+/// \brief Line command that might get attached to some block element
 struct Attached : public LineCommand {
     using LineCommand::LineCommand;
 };
 
+
 struct Caption : public Attached {
     using Attached::Attached;
-    virtual json toJson() const override;
+    virtual json    toJson() const override;
+    Wrap<Paragraph> text;
     GET_KIND(Caption);
 };
 
-struct Block : public Org {
-    using Org::Org;
-    Vec<Wrap<Attached>> attached;
+/// \brief Multiple attachable commands will get grouped into this element
+/// unless it is possible to attached them to some adjacent block command
+struct CommandGroup : public Stmt {
+    using Stmt::Stmt;
+    virtual json toJson() const override;
+    GET_KIND(CommandGroup);
+};
 
-    json attachedJson() const;
-
-    template <typename T>
-    Opt<Wrap<T>> getAttached() {
-        if (false) {
-
-        } else {
-            return std::nullopt;
-        }
-    }
+/// \brief Block command type
+struct Block : public Command {
+    using Command::Command;
 };
 
 struct Quote : public Block {
@@ -500,6 +553,18 @@ struct BigIdent : public Leaf {
     GET_KIND(BigIdent);
     using Leaf::Leaf;
 };
+
+
+template <typename T>
+Opt<Wrap<T>> Stmt::getAttached(OrgSemKind kind) {
+    for (const auto& sub : attached) {
+        if (sub->getKind() == kind) {
+            return sub->as<T>();
+        }
+    }
+
+    return std::nullopt;
+}
 
 }; // namespace sem
 

@@ -134,6 +134,19 @@ class Vec : public std::vector<T> {
         return this->at(this->size() - idx.value);
     }
 
+    T& back() {
+        // It will cause segfault anyway, just in a way that you least
+        // expect, so easier to check things here than get absolutely
+        // destroyed by some bug later on.
+        assert(0 < size());
+        return Base::back();
+    }
+
+    T const& back() const {
+        assert(0 < size());
+        return Base::back();
+    }
+
     void pop_back() {
         assert(0 < size());
         Base::pop_back();

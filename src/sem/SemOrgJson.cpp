@@ -44,11 +44,6 @@ json List::toJson() const {
     return res;
 }
 
-json Block::attachedJson() const {
-    json res;
-    return res;
-}
-
 json ListItem::toJson() const {
     json res = newJson();
 
@@ -106,9 +101,20 @@ json Paragraph::toJson() const {
 }
 
 json Link::toJson() const {
-    json res = newJson();
+    json res    = newJson();
+    res["TODO"] = __LINE__;
+    return res;
+}
 
+json Caption::toJson() const {
+    json res    = newJson();
+    res["text"] = text->toJson();
+    return res;
+}
 
+json CommandGroup::toJson() const {
+    json res;
+    res["TODO"] = __LINE__;
     return res;
 }
 

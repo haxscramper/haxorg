@@ -3,6 +3,8 @@
 #include <parse/OrgSpec.hpp>
 #include <QDateTime>
 
+#include <hstd/stdlib/Debug.hpp>
+
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
 
@@ -317,6 +319,14 @@ Wrap<ListItem> OrgConverter::convertListItem(__args) {
     return item;
 }
 
+Wrap<Caption> OrgConverter::convertCaption(__args) {
+    __trace();
+    auto caption  = Sem<Caption>(p, a);
+    caption->text = convertParagraph(caption.get(), one(a, N::Args)[0]);
+
+    return caption;
+}
+
 // clang-format off
 Wrap<Word> OrgConverter::convertWord(__args) { __trace(); return SemLeaf<Word>(p, a); }
 Wrap<Newline> OrgConverter::convertNewline(__args) { __trace(); return SemLeaf<Newline>(p, a); }
@@ -334,6 +344,33 @@ Wrap<Bold> OrgConverter::convertBold(__args) { __trace(); return convertAllSubno
 Wrap<Par> OrgConverter::convertPar(__args) { __trace(); return convertAllSubnodes<Par>(p, a); }
 Wrap<Italic> OrgConverter::convertItalic(__args) { __trace(); return convertAllSubnodes<Italic>(p, a); }
 // clang-format on
+
+
+Vec<Wrap<Org>> OrgConverter::flatConvertAttached(__args) {
+    Vec<Wrap<Org>>         result;
+    Func<void(OrgAdapter)> aux;
+    qDebug() << "Fat convert of" << a.kind();
+    aux = [&](OrgAdapter a) {
+        qDebug() << "Recursing over" << a.kind();
+        Wrap<Org> res;
+        switch (a.kind()) {
+            case org::CommandCaption: res = convertCaption(p, a); break;
+            default:
+                qFatal(strdup(
+                    "TODO unhandled kind $#" % to_string_vec(a.kind())));
+        }
+
+        Q_CHECK_PTR(res);
+        result.push_back(res);
+        if (OrgTrailableCommands.contains(a.kind())) {
+            aux(one(a, N::Body));
+        }
+    };
+
+    aux(a);
+
+    return result;
+}
 
 Wrap<Org> OrgConverter::convert(__args) {
     __trace();
@@ -365,6 +402,38 @@ Wrap<Org> OrgConverter::convert(__args) {
         case org::SkipSpace: return convertSpace(p, a);
         case org::SkipNewline: return convertNewline(p, a);
         case org::Quote: return convertMarkQuote(p, a);
+        case org::CommandCaption: {
+            // TODO update parent nodes after restructuring
+            Vec<Wrap<Org>> nested = flatConvertAttached(p, a);
+            for (const auto& it : nested) {
+                Q_CHECK_PTR(it);
+            }
+
+            Q_ASSERT_X(
+                !nested.empty(),
+                "nested command wrap",
+                "Nested command result had size 0");
+
+            if (nested.size() == 1) {
+                return nested[0];
+            } else if (SemTrailableCommands.contains(
+                           nested.back()->getKind())) {
+                // Get last wrapped statement
+                Wrap<Stmt> trailed = nested.back()->as<Stmt>();
+                for (const auto& it : nested[slice(0, 2_B)]) {
+                    trailed->attached.push_back(it->as<Attached>());
+                }
+                return trailed;
+
+            } else {
+                Wrap<CommandGroup> group = Sem<CommandGroup>(p, a);
+                for (const auto& it : nested) {
+                    group->attached.push_back(it->as<Attached>());
+                }
+                return group;
+            }
+        }
+
         default:
             qCritical() << "Unhandled node type";
             qCritical().noquote() << a.treeRepr();

@@ -376,7 +376,7 @@ enum class OrgNodeKind : short int
     __LAST
 };
 
-enum class OrgSemKind
+enum class OrgSemKind : short int
 {
     StmtList,
     Row,
@@ -409,6 +409,7 @@ enum class OrgSemKind
     Punctuation,
     MarkQuote,
     Caption,
+    CommandGroup,
 };
 
 
