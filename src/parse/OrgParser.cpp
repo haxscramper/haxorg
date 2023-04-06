@@ -1718,6 +1718,66 @@ OrgId OrgParser::parseTop(OrgLexer& lex) {
     __end_return();
 }
 
+void assertValidStructure(OrgNodeGroup* group, OrgId id) {
+    using Id = OrgNodeGroup::Id;
+
+    Func<void(Id)> aux;
+    aux = [&](Id top) {
+        Q_ASSERT(group->nodes.contains(top));
+        if (group->at(top).isTerminal() || group->at(top).isMono()) {
+            return;
+        }
+
+        Id start = top + 1;
+        Id id    = start;
+
+        if (Opt<Slice<Id>> extentOpt = group->allSubnodesOf(top)) {
+            Slice<Id> extent = extentOpt.value();
+            Q_ASSERT(group->nodes.contains(extent.first));
+            Q_ASSERT(group->nodes.contains(extent.last));
+
+            int index = 0;
+            while (extent.contains(id)) {
+                Q_ASSERT(group->nodes.contains(id));
+                aux(id);
+
+                id = id + group->at(id).getExtent();
+                Q_ASSERT_X(
+                    group->nodes.contains(id),
+                    "next subnode",
+                    "Step over the subnode of $# with extent $# yielded "
+                    "id $# which is outsize of the group range (index is "
+                    "$#, group size is $#), subnode index is $#, size "
+                    "overflow is $#"
+                        % to_string_vec(
+                            start,
+                            extent,
+                            id,
+                            id.getIndex(),
+                            group->size(),
+                            index,
+                            id - group->nodes.back()));
+
+
+                id = id + 1;
+                ++index;
+            }
+
+            Q_ASSERT_X(
+                extent.last + 1 == id,
+                "range end",
+                "Iteration over subnode ranges for $# did not end at the "
+                "$# -- combined subnode extent strides summed up to $#. "
+                "Total subnode count is $#, full extent is $#"
+                    % to_string_vec(
+                        top, extent.last + 1, id, index, extent));
+        }
+    };
+
+    aux(id);
+}
+
+
 void OrgParser::extendSubtreeTrails(OrgId position) {
     Func<OrgId(OrgId, int)> aux;
     aux = [&](OrgId id, int level) -> OrgId {
@@ -1741,9 +1801,16 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
                     // the tree size is 'end - start - 1' to account for
                     // the offset.
 
+                    assertValidStructure(group, tree);
                     // Extend the tree itself and nested statement list
-                    g.at(tree).extend((id - tree) - 1);
+                    qDebug().noquote() << *group;
+                    qDebug().noquote() << group->treeRepr(stmt);
                     g.at(stmt).extend((id - stmt) - 1);
+                    qDebug().noquote() << *group;
+                    qDebug().noquote() << group->treeRepr(stmt);
+                    assertValidStructure(group, stmt);
+                    g.at(tree).extend((id - tree) - 1);
+                    assertValidStructure(group, tree);
                     auto treeSlice = g.allSubnodesOf(tree).value();
                     auto stmtSlice = g.allSubnodesOf(tree).value();
                     Q_ASSERT(treeSlice.last < g.nodes.back());
@@ -1757,6 +1824,7 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
                         "statement containment",
                         "$# -- $#" % to_string_vec(treeSlice, stmtSlice));
 
+
                 } else {
                     // Found subtree on the same level or above
                     break;
@@ -1768,11 +1836,14 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
         }
 
         // Return next starting position for the caller start
+        qDebug() << "Returning ID" << id;
         return id;
     };
 
     aux(position, 0);
+    assertValidStructure(group, position);
 }
+
 
 void OrgParser::extendAttachedTrails(OrgId position) {
     Func<OrgId(OrgId)> aux;
@@ -1819,7 +1890,7 @@ void OrgParser::extendAttachedTrails(OrgId position) {
                 // Next element after line command is neither trailable
                 // nor another command. Switching the subnode kind to
                 // empty.
-                g.at(stmt).kind = org::Empty;
+                g.at(stmt) = getEmpty();
                 ++id;
             }
         } else {

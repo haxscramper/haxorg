@@ -118,6 +118,17 @@ json CommandGroup::toJson() const {
     return res;
 }
 
+json Quote::toJson() const {
+    json res    = newJson();
+    res["text"] = text->toJson();
+    return res;
+}
+
+json InlineMath::toJson() const {
+    json res = newJson();
+    return res;
+}
+
 json Time::toJson() const {
     json res        = newJson();
     res["isActive"] = isActive;

@@ -267,7 +267,8 @@ struct Block : public Command {
 
 struct Quote : public Block {
     using Block::Block;
-    virtual json toJson() const override;
+    Wrap<Paragraph> text;
+    virtual json    toJson() const override;
     GET_KIND(Quote);
 };
 
@@ -474,6 +475,18 @@ BOOST_DESCRIBE_STRUCT(
     (),
     (level, todo, completion, tags, title, description, logbook));
 
+
+struct LatexBody : public Org {
+    using Org::Org;
+};
+
+struct InlineMath : public LatexBody {
+    using LatexBody::LatexBody;
+    GET_KIND(InlineMath);
+    virtual json toJson() const override;
+};
+
+
 struct Leaf : public Org {
     Str text;
     using Org::Org;
@@ -490,6 +503,7 @@ struct Space : public Leaf { GET_KIND(Space); using Leaf::Leaf; };
 struct Word : public Leaf { GET_KIND(Word); using Leaf::Leaf; };
 struct RawText : public Leaf { GET_KIND(RawText); using Leaf::Leaf; };
 struct Punctuation : public Leaf { GET_KIND(Punctuation); using Leaf::Leaf; };
+struct Placeholder : public Leaf { GET_KIND(Placeholder); using Leaf::Leaf; };
 // clang-format on
 
 struct Markup : public Org {
@@ -538,7 +552,11 @@ struct Link : public Org {
         Str text;
     };
 
-    using Data = Variant<Raw>;
+    struct Footnote {
+        Str target;
+    };
+
+    using Data = Variant<Raw, Footnote>;
 
     Data data;
 

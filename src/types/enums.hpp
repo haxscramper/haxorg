@@ -410,6 +410,8 @@ enum class OrgSemKind : short int
     MarkQuote,
     Caption,
     CommandGroup,
+    Placeholder,
+    InlineMath,
 };
 
 

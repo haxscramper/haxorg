@@ -169,9 +169,10 @@ struct OrgParser : public OperationsTracer {
     int          treeDepth() const { return group->treeDepth(); }
     inline OrgId start(OrgNodeKind kind) { return group->startTree(kind); }
     inline OrgId end() { return group->endTree(); }
-    inline OrgId empty() { return token(OrgNode(OrgNodeKind::Empty)); }
-    inline OrgId token(CR<OrgNode> node) { return group->token(node); }
-    inline OrgId token(OrgNodeKind kind, OrgTokenId tok) {
+    inline OrgId empty() { return token(getEmpty()); }
+    inline OrgNode getEmpty() { return OrgNode::Mono(OrgNodeKind::Empty); }
+    inline OrgId   token(CR<OrgNode> node) { return group->token(node); }
+    inline OrgId   token(OrgNodeKind kind, OrgTokenId tok) {
         return group->token(kind, tok);
     }
 

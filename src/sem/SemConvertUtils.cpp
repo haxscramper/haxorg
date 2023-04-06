@@ -118,13 +118,14 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
 
         case ReportKind::Enter: {
             os << "> " << in.name.value();
-            if (in.node.has_value()) {
+            if (in.node.has_value() && in.node->isValid()) {
                 os << " " << to_string(in.node->kind())
                    << " ID:" << in.node->id.getUnmasked();
             }
 
             os << " " << getLoc();
-            if (in.node.has_value() && in.node->get().isTerminal()) {
+            if (in.node.has_value() && in.node->isValid()
+                && in.node->get().isTerminal()) {
                 os << escape_literal(in.node->strVal());
             }
             break;

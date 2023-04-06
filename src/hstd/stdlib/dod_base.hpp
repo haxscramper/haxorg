@@ -336,6 +336,14 @@ struct Store {
 
     void reserve(int size) { content.reserve(size); }
 
+
+    bool contains(Id id) const {
+        // TODO add support for dedicated store mask that will be compared
+        // in order to get better checking. Implement checking using
+        // `sameMask()` method that could be called separately.
+        return !id.isNil() && id.getIndex() < content.size();
+    }
+
     /// Add value to the storage and return newly created ID
     [[nodiscard]] auto add(const T& value) -> Id {
         int index = content.size();

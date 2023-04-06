@@ -56,11 +56,20 @@ QTextStream& operator<<(QTextStream& os, NodeId<N, K> const& value) {
 
 template <typename N, typename K>
 struct Node {
-    N                             kind;
-    std::variant<int, TokenId<K>> value;
+    N                                             kind;
+    std::variant<int, TokenId<K>, std::monostate> value;
 
     Node(N _kind, CR<TokenId<K>> token) : kind(_kind), value(token) {}
     Node(N _kind, int extent = 0) : kind(_kind), value(extent) {}
+    Node(N _kind, std::monostate mono) : kind(_kind), value(mono) {}
+
+    static inline Node Mono(N _kind) {
+        return Node(_kind, std::monostate());
+    }
+
+    bool isMono() const {
+        return std::holds_alternative<std::monostate>(value);
+    }
 
     bool isTerminal() const {
         return std::holds_alternative<TokenId<K>>(value);
@@ -80,7 +89,7 @@ struct Node {
     /// \brief Get full size of the node, including itself and nested
     /// content.
     int getFullSize() const {
-        if (isTerminal()) {
+        if (isTerminal() || isMono()) {
             return 1;
         } else {
             return std::get<int>(value) + 1;
@@ -88,7 +97,7 @@ struct Node {
     }
 
     int getExtent() const {
-        if (isTerminal()) {
+        if (isTerminal() || isMono()) {
             return 0;
         } else {
             return std::get<int>(value);
@@ -106,6 +115,8 @@ struct Node {
         if (isTerminal() == other.isTerminal()) {
             return (this->kind == other.kind)
                 && (this->value == other.value);
+        } else if (isMono() == other.isMono()) {
+            return this->kind == other.kind;
         } else {
             return false;
         }
@@ -118,18 +129,18 @@ struct NodeGroup {
     using NodeT = Node<N, K>;
 
     /// \brief Typedef for DOD store API operations
-    using id_type = NodeId<N, K>;
+    using Id = NodeId<N, K>;
 
-    dod::Store<NodeId<N, K>, NodeT> nodes;
-    TokenGroup<K>*                  tokens;
+    dod::Store<Id, NodeT> nodes;
+    TokenGroup<K>*        tokens;
 
     int size() const { return nodes.size(); }
 
-    bool hasData(NodeId<N, K> id) const {
+    bool hasData(Id id) const {
         return tokens->at(at(id).getToken()).hasData();
     }
 
-    Str strVal(NodeId<N, K> id) const {
+    Str strVal(Id id) const {
         assert(notNil(tokens));
         if (at(id).isTerminal()) {
             return tokens->at(at(id).getToken()).strVal();
@@ -140,16 +151,14 @@ struct NodeGroup {
 
     NodeGroup(TokenGroup<K>* _tokens = nullptr) : tokens(_tokens) {}
 
-    Vec<NodeId<N, K>> pendingTrees;
+    Vec<Id> pendingTrees;
 
     int treeDepth() const { return pendingTrees.size(); }
 
     /// \brief Add token node to the list of nodes
-    [[nodiscard]] NodeId<N, K> token(CR<NodeT> node) {
-        return nodes.add(node);
-    }
+    [[nodiscard]] Id token(CR<NodeT> node) { return nodes.add(node); }
     /// \brief Create new token node
-    [[nodiscard]] NodeId<N, K> token(N node, TokenId<K> tok) {
+    [[nodiscard]] Id token(N node, TokenId<K> tok) {
         return nodes.add(Node<N, K>(node, tok));
     }
 
@@ -168,7 +177,7 @@ struct NodeGroup {
     /// snippet:
     ///
     /// \snippet tNode.cpp nested tree construction
-    [[nodiscard]] NodeId<N, K> startTree(CR<NodeT> node) {
+    [[nodiscard]] Id startTree(CR<NodeT> node) {
         auto res = nodes.add(node);
         pendingTrees.push_back(res);
         return res;
@@ -181,7 +190,7 @@ struct NodeGroup {
     /// above.
     ///
     /// \returns ID of the closed node
-    NodeId<N, K> endTree(
+    Id endTree(
         int offset = 0 /// Offset for extending closed subnode
     ) {
         auto start = pendingTrees.pop_back_v();
@@ -189,7 +198,7 @@ struct NodeGroup {
         return start;
     }
 
-    NodeId<N, K> failTree(Node<N, K> replacement) {
+    Id failTree(Node<N, K> replacement) {
         auto start      = pendingTrees.pop_back_v();
         nodes.at(start) = replacement;
         return start;
@@ -200,12 +209,13 @@ struct NodeGroup {
     }
 
     /// \brief Return reference to the node *object* at specified ID
-    Node<N, K>&    at(NodeId<N, K> id) { return nodes.at(id); }
-    CR<Node<N, K>> at(NodeId<N, K> id) const { return nodes.at(id); }
+    Node<N, K>&    at(Id id) { return nodes.at(id); }
+    CR<Node<N, K>> at(Id id) const { return nodes.at(id); }
     Token<K>&      at(TokenId<K> id) {
         assert(notNil(tokens));
         return tokens->at(id);
     }
+
     CR<Token<K>> at(TokenId<K> id) const {
         assert(notNil(tokens));
         return tokens->at(id);
@@ -214,20 +224,19 @@ struct NodeGroup {
 
     class iterator {
       public:
-        NodeId<N, K>  id;
+        Id            id;
         CP<NodeGroup> group;
 
       public:
         typedef std::forward_iterator_tag iterator_category;
-        typedef NodeId<N, K>              value_type;
-        typedef NodeId<N, K>*             pointer;
-        typedef NodeId<N, K>&             reference;
+        typedef Id                        value_type;
+        typedef Id*                       pointer;
+        typedef Id&                       reference;
         typedef std::ptrdiff_t            difference_type;
 
-        iterator(NodeId<N, K> _id, CP<NodeGroup> _group)
-            : id(_id), group(_group) {}
+        iterator(Id _id, CP<NodeGroup> _group) : id(_id), group(_group) {}
 
-        NodeId<N, K> operator*() const {
+        Id operator*() const {
             check();
             return id;
         }
@@ -240,7 +249,10 @@ struct NodeGroup {
         }
 
         iterator& operator++() {
-            id = id + group->at(id).getExtent() + 1;
+            Q_ASSERT(group->nodes.contains(id));
+            int        extent = group->at(id).getExtent();
+            const auto start  = id;
+            id                = id + extent + 1;
             return *this;
         }
 
@@ -249,13 +261,13 @@ struct NodeGroup {
         }
     };
 
-    iterator begin(NodeId<N, K> start) const {
+    iterator begin(Id start) const {
         auto result = iterator(start, this);
         result.check();
         return result;
     }
 
-    iterator end(NodeId<N, K> last) const {
+    iterator end(Id last) const {
         ++last;
         return iterator(last, this);
     }
@@ -270,7 +282,7 @@ struct NodeGroup {
     ///     call_(*begin);
     /// }
     /// ```
-    Opt<Pair<iterator, iterator>> subnodesOf(NodeId<N, K> node) const {
+    Opt<Pair<iterator, iterator>> subnodesOf(Id node) const {
         // TODO return empty range for iterator start
         if (at(node).isTerminal()) {
             return std::nullopt;
@@ -289,10 +301,9 @@ struct NodeGroup {
     /// option as `Slice` type is not intended to provde 'zero-size' ranges
     /// -- it always has the first and the last element, in some cases they
     /// might be equal, but that's all
-    Opt<Slice<NodeId<N, K>>> allSubnodesOf(NodeId<N, K> node) const {
+    Opt<Slice<Id>> allSubnodesOf(Id node) const {
         if (0 < at(node).getExtent()) {
-            return slice<NodeId<N, K>>(
-                node + 1, node + at(node).getExtent());
+            return slice<Id>(node + 1, node + at(node).getExtent());
         } else {
             return std::nullopt;
         }
@@ -300,8 +311,8 @@ struct NodeGroup {
 
     /// \brief Get closest left node that contains \arg node in its full
     /// extent.
-    NodeId<N, K> parent(NodeId<N, K> node) const {
-        NodeId<N, K> parent = node;
+    Id parent(Id node) const {
+        Id parent = node;
         --parent;
         while (!parent.isNil()) {
             auto extent = allSubnodesOf(parent);
@@ -314,11 +325,11 @@ struct NodeGroup {
             }
         }
 
-        return NodeId<N, K>::Nil();
+        return Id::Nil();
     }
 
     /// \brief Get number of direct subnodes
-    int size(NodeId<N, K> node) const {
+    int size(Id node) const {
         if (auto pair = subnodesOf(node)) {
             auto [begin, end] = *pair;
             int result        = 0;
@@ -333,7 +344,7 @@ struct NodeGroup {
     }
 
     /// \brief Get id of the Nth subnode
-    NodeId<N, K> subnode(NodeId<N, K> node, int index) const {
+    Id subnode(Id node, int index) const {
         if (auto pair = subnodesOf(node)) {
             auto [begin, end] = *pair;
             int i             = 0;
@@ -358,6 +369,8 @@ struct NodeGroup {
         bool withTreeId     = true;
         bool withSubnodeIdx = true;
         bool flushEach      = false;
+        bool withExt        = true;
+
         enum class WritePos
         {
             LineStart,
@@ -365,12 +378,12 @@ struct NodeGroup {
             LineEnd,
         };
 
-        Func<void(QTextStream&, NodeId<N, K>, WritePos)> customWrite;
+        Func<void(QTextStream&, Id, WritePos)> customWrite;
     };
 
     void lispRepr(
         QTextStream&     os,
-        NodeId<N, K>     node,
+        Id               node,
         CR<TreeReprConf> conf = TreeReprConf()) const {
         os << "(" << to_string(node.getMask()) << ":"
            << to_string(node.getUnmasked()) << " "
@@ -402,9 +415,10 @@ struct NodeGroup {
         os << ")";
     }
 
+
     void treeRepr(
         ColStream&       os,
-        NodeId<N, K>     node,
+        Id               node,
         int              level,
         CR<TreeReprConf> conf       = TreeReprConf(),
         int              subnodeIdx = 0) const {
@@ -431,7 +445,10 @@ struct NodeGroup {
             tok.streamTo(stream, "", conf.withTokenMask);
             os << " #" << str << " " << at(tok);
         } else {
-            auto pref         = QString("  ").repeated(level);
+            if (conf.withExt) {
+                os << " EXT: " << to_string(at(node).getExtent());
+            }
+
             auto [begin, end] = subnodesOf(node).value();
             Q_ASSERT(begin.id <= end.id);
             begin.check();
@@ -453,7 +470,7 @@ struct NodeGroup {
                     os.flush();
                 }
                 ++idx;
-                NodeId<N, K> before = begin.id;
+                Id before = begin.id;
                 ++begin;
                 // Q_ASSERT_X(
                 //     begin.id <= end.id,
@@ -478,6 +495,15 @@ struct NodeGroup {
             os.flush();
         }
     }
+
+    QString treeRepr(Id node, CR<TreeReprConf> conf = TreeReprConf())
+        const {
+        QString     buffer;
+        QTextStream os{&buffer};
+        ColStream   text{os};
+        treeRepr(text, node, 0, conf);
+        return buffer;
+    }
 };
 
 
@@ -497,7 +523,8 @@ QTextStream& operator<<(QTextStream& os, Node<N, K> const& value) {
 template <StringConvertible N, StringConvertible K>
 QTextStream& operator<<(QTextStream& os, NodeGroup<N, K> const& nodes) {
     for (const auto& [idx, node] : nodes.nodes.pairs()) {
-        os << left_aligned(to_string(idx), 16) << " | " << *node << "\n";
+        os << left_aligned(to_string(idx.getUnmasked()), 16) << " | "
+           << *node << "\n";
     }
     return os;
 }
@@ -606,8 +633,19 @@ struct NodeAdapter {
 
 
     NodeAdapter<N, K>(NodeGroup<N, K> const* group, NodeId<N, K> id)
-        : group(group), id(id) {}
+        : group(group), id(id) {
+        Q_ASSERT(group->nodes.contains(id));
+    }
+
     NodeAdapter() : group(nullptr), id(NodeId<N, K>::Nil()) {}
+
+    // FIXME temporary workaround until I figure out how to properly fix
+    // invalid index genenerated by the tree sweep in parser in certain
+    // cases. At the moment it is not fully clear what is causing creation
+    // of a separate node group.
+    bool isValid() const {
+        return !id.isNil() && id.getIndex() < group->size();
+    }
 
     NodeAdapter<N, K> at(int index) const {
         return {group, group->subnode(id, index)};

@@ -264,6 +264,10 @@ Wrap<TimeRange> OrgConverter::convertTimeRange(__args) {
 }
 
 Wrap<Paragraph> OrgConverter::convertParagraph(__args) {
+    // TODO detect admonition paragraphs during conversion and store
+    // information about this -- right now `NOTE:` is represented using
+    // first two starting elements for paragraph subnodes.
+
     __trace();
     auto par = Sem<Paragraph>(p, a);
     for (const auto& item : a) {
@@ -289,6 +293,9 @@ Wrap<Link> OrgConverter::convertLink(__args) {
     auto link = Sem<Link>(p, a);
     if (a.kind() == org::RawLink) {
         link->data = Link::Raw{.text = a.strVal()};
+
+    } else if (a.kind() == org::Footnote) {
+        link->data = Link::Footnote{.target = a.strVal()};
 
     } else {
         Str protocol = normalize(one(a, N::Protocol).strVal());
@@ -329,6 +336,7 @@ Wrap<Caption> OrgConverter::convertCaption(__args) {
 
 // clang-format off
 Wrap<Word> OrgConverter::convertWord(__args) { __trace(); return SemLeaf<Word>(p, a); }
+Wrap<Placeholder> OrgConverter::convertPlaceholder(__args) { __trace(); return SemLeaf<Placeholder>(p, a); }
 Wrap<Newline> OrgConverter::convertNewline(__args) { __trace(); return SemLeaf<Newline>(p, a); }
 Wrap<Space> OrgConverter::convertSpace(__args) { return SemLeaf<Space>(p, a); }
 Wrap<RawText> OrgConverter::convertRawText(__args) { return SemLeaf<RawText>(p, a); }
@@ -345,6 +353,23 @@ Wrap<Par> OrgConverter::convertPar(__args) { __trace(); return convertAllSubnode
 Wrap<Italic> OrgConverter::convertItalic(__args) { __trace(); return convertAllSubnodes<Italic>(p, a); }
 // clang-format on
 
+
+Wrap<Quote> OrgConverter::convertQuote(__args) {
+    Wrap<Quote> quote = Sem<Quote>(p, a);
+    quote->text       = convertParagraph(quote.get(), a[0]);
+    return quote;
+}
+
+Wrap<LatexBody> OrgConverter::convertMath(__args) {
+    Wrap<LatexBody> result;
+    if (a.kind() == org::InlineMath) {
+        result = Sem<InlineMath>(p, a);
+    } else {
+        qFatal("Unhanled kind for inline math TODO");
+    }
+
+    return result;
+}
 
 Vec<Wrap<Org>> OrgConverter::flatConvertAttached(__args) {
     Vec<Wrap<Org>>         result;
@@ -374,6 +399,11 @@ Vec<Wrap<Org>> OrgConverter::flatConvertAttached(__args) {
 
 Wrap<Org> OrgConverter::convert(__args) {
     __trace();
+    if (!a.isValid()) {
+        qWarning() << "Invalid node encountered during conversion" << a.id;
+        return Sem<Space>(p, a);
+    }
+
 #define CASE(Kind)                                                        \
     case org::Kind: return convert##Kind(p, a);
     switch (a.kind()) {
@@ -394,6 +424,8 @@ Wrap<Org> OrgConverter::convert(__args) {
         CASE(RawText);
         CASE(List);
         CASE(ListItem);
+        CASE(Placeholder);
+        case org::InlineMath: return convertMath(p, a);
         case org::RawLink: return convertLink(p, a);
         case org::StaticActiveTime:
         case org::StaticInactiveTime:
@@ -402,6 +434,16 @@ Wrap<Org> OrgConverter::convert(__args) {
         case org::SkipSpace: return convertSpace(p, a);
         case org::SkipNewline: return convertNewline(p, a);
         case org::Quote: return convertMarkQuote(p, a);
+        case org::QuoteBlock: return convertQuote(p, a);
+        case org::Colon: return convertPunctuation(p, a);
+        case org::Footnote: {
+            if (a.size() == 1) {
+                return convertLink(p, a);
+            } else {
+                qFatal("TODO");
+            }
+        }
+
         case org::CommandCaption: {
             // TODO update parent nodes after restructuring
             Vec<Wrap<Org>> nested = flatConvertAttached(p, a);

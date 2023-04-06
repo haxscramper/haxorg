@@ -751,10 +751,9 @@ QString htmlRepr(
 
 TEST_CASE("Parse file", "[corpus][notes]") {
     MockFull p;
-    // QString  source = readFile(
-    //     "/mnt/workspace/repos/personal/indexed/notes.org");
-    QString source = readFile(
-        "/mnt/workspace/repos/fic/wiki/timeline.org");
+    QString  source = readFile("/tmp/doc.org");
+    // QString source = readFile(
+    //     "/mnt/workspace/repos/fic/wiki/timeline.org");
 
     p.tokenizer.setTraceFile("/tmp/file_lex_trace.txt");
     p.setTraceFile("/tmp/file_parse_trace.txt");
