@@ -1094,6 +1094,8 @@ kind=$#
     converter.locationResolver = p.tokenizer.locationResolver;
     sem::Wrap<sem::Org> node   = converter.convert(nullptr, p.a(0));
 
+    ColStream colcout{qcout};
+    node->treeRepr(colcout, {}, {});
     writeFile("/tmp/parse_corpus.json", to_string(node->toJson()));
 
     SUCCEED("Parsed input corpus file");

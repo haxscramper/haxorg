@@ -10,6 +10,7 @@
 
 #include <boost/describe.hpp>
 
+#include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Json.hpp>
 
 #include <QDateTime>
@@ -95,6 +96,15 @@ struct Org : public std::enable_shared_from_this<Org> {
     virtual json toJson() const = 0;
 
     void push_back(Wrap<Org>&& sub) { subnodes.push_back(std::move(sub)); }
+
+
+    struct TreeReprConf {};
+    struct TreeReprCtx {
+        int level = 0;
+    };
+
+    virtual void treeRepr(ColStream& os, CR<TreeReprConf>, CR<TreeReprCtx>)
+        const;
 
     json newJson() const {
         json res;
