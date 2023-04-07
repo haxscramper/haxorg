@@ -1723,40 +1723,43 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
 
     Func<void(Id)> aux;
     aux = [&](Id top) {
-        Q_ASSERT(group->nodes.contains(top));
-        if (group->at(top).isTerminal() || group->at(top).isMono()) {
+        auto& g = *group;
+        Q_ASSERT(g.nodes.contains(top));
+        if (g.at(top).isTerminal() || g.at(top).isMono()) {
             return;
         }
+
+        Q_ASSERT(g.at(top).kind != org::Empty);
 
         Id start = top + 1;
         Id id    = start;
 
-        if (Opt<Slice<Id>> extentOpt = group->allSubnodesOf(top)) {
+        if (Opt<Slice<Id>> extentOpt = g.allSubnodesOf(top)) {
             Slice<Id> extent = extentOpt.value();
-            Q_ASSERT(group->nodes.contains(extent.first));
-            Q_ASSERT(group->nodes.contains(extent.last));
+            Q_ASSERT(g.nodes.contains(extent.first));
+            Q_ASSERT(g.nodes.contains(extent.last));
 
             int index = 0;
             while (extent.contains(id)) {
-                Q_ASSERT(group->nodes.contains(id));
+                Q_ASSERT(g.nodes.contains(id));
                 aux(id);
 
-                id = id + group->at(id).getExtent();
+                id = id + g.at(id).getExtent();
                 Q_ASSERT_X(
-                    group->nodes.contains(id),
+                    g.nodes.contains(id),
                     "next subnode",
                     "Step over the subnode of $# with extent $# yielded "
                     "id $# which is outsize of the group range (index is "
                     "$#, group size is $#), subnode index is $#, size "
                     "overflow is $#"
                         % to_string_vec(
-                            start,
+                            start.getUnmasked(),
                             extent,
-                            id,
+                            id.getUnmasked(),
                             id.getIndex(),
-                            group->size(),
+                            g.size(),
                             index,
-                            id - group->nodes.back()));
+                            id - g.nodes.back()));
 
 
                 id = id + 1;
@@ -1770,7 +1773,11 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
                 "$# -- combined subnode extent strides summed up to $#. "
                 "Total subnode count is $#, full extent is $#"
                     % to_string_vec(
-                        top, extent.last + 1, id, index, extent));
+                        top.getUnmasked(),
+                        (extent.last + 1).getUnmasked(),
+                        id.getUnmasked(),
+                        index,
+                        extent));
         }
     };
 
@@ -1786,7 +1793,8 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
         // condition is met. This assumes non-restructured tree that has
         // subnodes positioned flatlyl on the top level
         auto& g = *group;
-        while (id < g.nodes.back()) {
+        while (id <= g.nodes.back()) {
+            // NOTE: 'back' returns the last node, not one-past-last
             OrgNode node = g.at(id);
             if (node.kind == org::Subtree) {
                 OrgId const tree  = id;
@@ -1801,20 +1809,20 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
                     // the tree size is 'end - start - 1' to account for
                     // the offset.
 
-                    assertValidStructure(group, tree);
                     // Extend the tree itself and nested statement list
-                    qDebug().noquote() << *group;
-                    qDebug().noquote() << group->treeRepr(stmt);
                     g.at(stmt).extend((id - stmt) - 1);
-                    qDebug().noquote() << *group;
-                    qDebug().noquote() << group->treeRepr(stmt);
-                    assertValidStructure(group, stmt);
+
                     g.at(tree).extend((id - tree) - 1);
-                    assertValidStructure(group, tree);
+
                     auto treeSlice = g.allSubnodesOf(tree).value();
                     auto stmtSlice = g.allSubnodesOf(tree).value();
-                    Q_ASSERT(treeSlice.last < g.nodes.back());
-                    Q_ASSERT(stmtSlice.last < g.nodes.back());
+
+                    // Structural correctness checks -- mostly for
+                    // debugging of the implementation, malformed incoming
+                    // data is not expected.
+                    assertValidStructure(group, tree);
+                    Q_ASSERT(treeSlice.last <= g.nodes.back());
+                    Q_ASSERT(stmtSlice.last <= g.nodes.back());
                     Q_ASSERT_X(
                         treeSlice.last == stmtSlice.last,
                         "extend tree",
@@ -1836,7 +1844,6 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
         }
 
         // Return next starting position for the caller start
-        qDebug() << "Returning ID" << id;
         return id;
     };
 

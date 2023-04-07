@@ -523,7 +523,7 @@ QTextStream& operator<<(QTextStream& os, Node<N, K> const& value) {
 template <StringConvertible N, StringConvertible K>
 QTextStream& operator<<(QTextStream& os, NodeGroup<N, K> const& nodes) {
     for (const auto& [idx, node] : nodes.nodes.pairs()) {
-        os << left_aligned(to_string(idx.getUnmasked()), 16) << " | "
+        os << left_aligned(to_string(idx.getUnmasked()), 5) << " | "
            << *node << "\n";
     }
     return os;
