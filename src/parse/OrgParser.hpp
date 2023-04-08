@@ -118,7 +118,8 @@ struct OrgParser : public OperationsTracer {
         }
     };
 
-    void                 setLocationResolver(Func<LineCol(CR<PosStr>)>);
+    void setLocationResolver(Func<LineCol(CR<PosStr>)>);
+
     ParserError          wrapError(CR<Error> err, CR<OrgLexer> lex);
     virtual Opt<LineCol> getLoc(CR<OrgLexer> lex);
     QString              getLocMsg(CR<OrgLexer> lex);
@@ -145,50 +146,14 @@ struct OrgParser : public OperationsTracer {
         OrgLexer*  lex = nullptr;
     };
 
-    int  depth = 0;
-    void report(CR<Report> in);
-
-    Func<void(CR<Report>)>              reportHook;
-    Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
+    void setReportHook(Func<void(CR<Report>)>);
+    void setTraceUpdateHook(Func<void(CR<Report>, bool&, bool)>);
 
   public:
-    OrgNodeGroup*                      group = nullptr;
-    std::shared_ptr<OrgParserImplBase> impl  = nullptr;
-    OrgParser(OrgNodeGroup* _group) : group(_group) {}
-    void initImpl(bool doTrace);
+    std::shared_ptr<OrgParserImplBase> impl = nullptr;
+    OrgParser() {}
+    void initImpl(OrgNodeGroup* _group, bool doTrace);
 
-
-    inline CR<OrgNode> pending() const { return group->lastPending(); }
-
-    inline OrgId fail(OrgTokenId invalid) {
-        token(OrgNodeKind::ErrorToken, invalid);
-        /// TODO insert token with error description
-        token(OrgNodeKind::ErrorTerminator, OrgTokenId::Nil());
-        OrgId failed           = end();
-        group->at(failed).kind = OrgNodeKind::Error;
-        return failed;
-    }
-
-    inline OrgId back() const { return group->nodes.back(); }
-
-    int          treeDepth() const { return group->treeDepth(); }
-    inline OrgId start(OrgNodeKind kind) { return group->startTree(kind); }
-    inline OrgId end() { return group->endTree(); }
-    inline OrgId empty() { return token(getEmpty()); }
-    inline OrgNode getEmpty() { return OrgNode::Mono(OrgNodeKind::Empty); }
-    inline OrgId   token(CR<OrgNode> node) { return group->token(node); }
-    inline OrgId   token(OrgNodeKind kind, OrgTokenId tok) {
-        return group->token(kind, tok);
-    }
-
-    inline OrgId fake(OrgNodeKind kind) {
-        return group->token(
-            kind, group->tokens->add(OrgToken(OrgTokenKind::None)));
-    }
-
-    void       expect(CR<OrgLexer> lex, CR<OrgExpectable> item);
-    OrgTokenId pop(OrgLexer& lex, CR<OrgExpectable> item);
-    void       skip(OrgLexer& lex, CR<OrgExpectable> item);
 
     virtual OrgId parseFootnote(OrgLexer& lex);
     virtual OrgId parseCSVArguments(OrgLexer& lex);
@@ -239,7 +204,6 @@ struct OrgParser : public OperationsTracer {
 
     virtual OrgId parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind);
 
-    void skipLineCommand(OrgLexer& lex);
     void extendSubtreeTrails(OrgId position);
     void extendAttachedTrails(OrgId position);
 };

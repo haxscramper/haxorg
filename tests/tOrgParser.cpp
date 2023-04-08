@@ -7,7 +7,8 @@ struct MockParser : public OrgParser {
     OrgNodeGroup        nodes;
     Lexer<OrgTokenKind> lex;
     MockParser(Vec<OrgTokenKind> kinds = {})
-        : OrgParser(&nodes), nodes(nullptr), lex(&tokens) {
+        : nodes(nullptr), lex(&tokens) {
+        initImpl(&nodes, false);
         nodes.tokens = &tokens;
         for (const auto k : kinds) {
             tokens.add(Token(k));

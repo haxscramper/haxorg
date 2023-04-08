@@ -16,11 +16,8 @@ struct MockFull : public OrgParser {
     Lexer<OrgTokenKind> lex;
 
     MockFull()
-        : tokenizer(nullptr)
-        , OrgParser(&nodes)
-        , nodes(nullptr)
-        , lex(&tokens) {
-        this->initImpl(false);
+        : tokenizer(nullptr), OrgParser(), nodes(nullptr), lex(&tokens) {
+        this->initImpl(&nodes, false);
         nodes.tokens  = &tokens;
         tokenizer.out = &tokens;
     }

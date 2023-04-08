@@ -791,7 +791,7 @@ TEST_CASE("Parse file", "[corpus][notes]") {
             }
         };
 
-    p.traceUpdateHook =
+    p.setTraceUpdateHook(
         [&](CR<OrgParser::Report> in, bool& doTrace, bool first) {
             if (in.node.has_value()) {
                 OrgId node = in.node.value();
@@ -806,21 +806,21 @@ TEST_CASE("Parse file", "[corpus][notes]") {
                     }
                 }
             }
-        };
+        });
 
     UnorderedMap<OrgTokenId, OrgTokenizer::Report> pushedOn;
     NodeOperations                                 ops;
 
     using R = OrgTokenizer::ReportKind;
 
-    p.reportHook = [&](CR<OrgParser::Report> report) {
+    p.setReportHook([&](CR<OrgParser::Report> report) {
         using R = OrgParser::ReportKind;
         switch (report.kind) {
             case R::StartNode: ops.started[*report.node] = report; break;
             case R::EndNode: ops.ended[*report.node] = report; break;
             case R::AddToken: ops.pushed[*report.node] = report; break;
         }
-    };
+    });
 
     p.tokenizer.reportHook = [&](CR<OrgTokenizer::Report> report) {
         switch (report.kind) {

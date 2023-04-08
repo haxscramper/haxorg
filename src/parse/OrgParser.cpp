@@ -9,7 +9,88 @@ using Err = OrgParser::Errors;
 
 
 class OrgParserImplBase : public OrgParser {
+
+  protected:
+    void skipLineCommand(OrgLexer& lex) {
+        skip(lex, otk::CommandPrefix);
+        skip(lex, otk::LineCommand);
+        skip(lex, otk::Colon);
+    }
+
+    inline CR<OrgNode> pending() const { return group->lastPending(); }
+
+    inline OrgId fail(OrgTokenId invalid) {
+        token(OrgNodeKind::ErrorToken, invalid);
+        /// TODO insert token with error description
+        token(OrgNodeKind::ErrorTerminator, OrgTokenId::Nil());
+        OrgId failed           = end();
+        group->at(failed).kind = OrgNodeKind::Error;
+        return failed;
+    }
+
+    inline OrgId back() const { return group->nodes.back(); }
+
+    int          treeDepth() const { return group->treeDepth(); }
+    inline OrgId start(OrgNodeKind kind) { return group->startTree(kind); }
+    inline OrgId end() { return group->endTree(); }
+    inline OrgId empty() { return token(getEmpty()); }
+    inline OrgNode getEmpty() { return OrgNode::Mono(OrgNodeKind::Empty); }
+    inline OrgId   token(CR<OrgNode> node) { return group->token(node); }
+    inline OrgId   token(OrgNodeKind kind, OrgTokenId tok) {
+        return group->token(kind, tok);
+    }
+
+    inline OrgId fake(OrgNodeKind kind) {
+        return group->token(
+            kind, group->tokens->add(OrgToken(OrgTokenKind::None)));
+    }
+
+
+    bool at(CR<OrgLexer> lex, CR<OrgParser::OrgExpectable> item) {
+        if (item.index() == 0 && lex.at(std::get<0>(item))) {
+            return true;
+        } else if (item.index() == 1 && lex.at(std::get<1>(item))) {
+            return true;
+        } else if (
+            item.index() == 2 //
+            && lex.at(std::get<2>(item).kind)
+            && lex.tok().strVal() == std::get<2>(item).value) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    void expect(CR<OrgLexer> lex, CR<OrgParser::OrgExpectable> item) {
+        if (!(at(lex, item))) {
+            throw wrapError(
+                Err::UnexpectedToken(lex, getLoc(lex), {item}), lex);
+        }
+    }
+
+    OrgTokenId pop(OrgLexer& lex, CR<OrgParser::OrgExpectable> tok) {
+        expect(lex, tok);
+        return lex.pop();
+    }
+
+    void skip(OrgLexer& lex, CR<OrgParser::OrgExpectable> item) {
+        expect(lex, item);
+        lex.next();
+    }
+
+
   public:
+    int  depth = 0;
+    void report(CR<Report> in);
+
+    Func<void(CR<Report>)>              reportHook;
+    Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
+    OrgNodeGroup*                       group = nullptr;
+    OrgParserImplBase(OrgNodeGroup* _group) : group(_group) {}
+
+    void extendSubtreeTrails(OrgId position);
+    void extendAttachedTrails(OrgId position);
+
     using OrgParser::OrgParser;
     Func<LineCol(CR<PosStr>)> locationResolver;
 
@@ -95,8 +176,7 @@ namespace {
 
 template <bool DoTrace>
 struct OrgParserImpl : public OrgParserImplBase {
-    OrgParserImpl(OrgNodeGroup* _group) : OrgParserImplBase(_group) {}
-
+    using OrgParserImplBase::OrgParserImplBase;
     Slice<OrgId> parseText(OrgLexer& lex);
 
     /// First pass of the text processing pass. Fold all known text
@@ -215,7 +295,7 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind) {
     return impl->parseTextWrapCommand(lex, kind);
 }
 
-void OrgParser::initImpl(bool doTrace) {
+void OrgParser::initImpl(OrgNodeGroup* group, bool doTrace) {
     if (doTrace) {
         impl = std::shared_ptr<OrgParserImpl<true>>(
             new OrgParserImpl<true>(group));
@@ -223,14 +303,6 @@ void OrgParser::initImpl(bool doTrace) {
         impl = std::shared_ptr<OrgParserImpl<false>>(
             new OrgParserImpl<false>(group));
     }
-}
-
-
-void OrgParser::skipLineCommand(OrgLexer& lex) {
-    __trace();
-    skip(lex, otk::CommandPrefix);
-    skip(lex, otk::LineCommand);
-    skip(lex, otk::Colon);
 }
 
 
@@ -301,7 +373,7 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
 }
 
 
-void OrgParser::extendSubtreeTrails(OrgId position) {
+void OrgParserImplBase::extendSubtreeTrails(OrgId position) {
     Func<OrgId(OrgId, int)> aux;
     aux = [&](OrgId id, int level) -> OrgId {
         OrgId const start = id;
@@ -368,7 +440,7 @@ void OrgParser::extendSubtreeTrails(OrgId position) {
 }
 
 
-void OrgParser::extendAttachedTrails(OrgId position) {
+void OrgParserImplBase::extendAttachedTrails(OrgId position) {
     Func<OrgId(OrgId)> aux;
     aux = [&](OrgId id) -> OrgId {
         auto& g = *group;
@@ -428,6 +500,26 @@ void OrgParser::extendAttachedTrails(OrgId position) {
     }
 }
 
+void OrgParser::extendSubtreeTrails(OrgId position) {
+    impl->extendSubtreeTrails(position);
+}
+
+void OrgParser::extendAttachedTrails(OrgId position) {
+    impl->extendAttachedTrails(position);
+}
+
+
+void OrgParser::setReportHook(Func<void(CR<Report>)> locationResolver) {
+    Q_CHECK_PTR(impl);
+    impl->reportHook = locationResolver;
+}
+
+void OrgParser::setTraceUpdateHook(
+    Func<void(CR<Report>, bool&, bool)> locationResolver) {
+    Q_CHECK_PTR(impl);
+    impl->traceUpdateHook = locationResolver;
+}
+
 void OrgParser::setLocationResolver(
     Func<LineCol(CR<PosStr>)> locationResolver) {
     Q_CHECK_PTR(impl);
@@ -437,4 +529,111 @@ void OrgParser::setLocationResolver(
 Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
     Q_CHECK_PTR(impl);
     return impl->getLoc(lex);
+}
+
+
+void OrgParserImplBase::report(CR<Report> in) {
+    using fg = TermColorFg8Bit;
+
+    if (reportHook) {
+        reportHook(in);
+    }
+
+    if (traceUpdateHook) {
+        traceUpdateHook(in, trace, true);
+    }
+    if (!trace) {
+        if (traceUpdateHook) {
+            traceUpdateHook(in, trace, false);
+        }
+
+        return;
+    }
+
+    if (in.kind == ReportKind::EnterParse
+        || in.kind == ReportKind::StartNode) {
+        ++depth;
+    }
+
+    ColStream os = getStream();
+    os << repeat("  ", depth);
+
+    auto printTokens = [&]() {
+        if (in.lex != nullptr) {
+            os << " [";
+            OrgLexer::PrintParams params;
+            in.lex->print(os, params);
+            os << "]";
+        }
+    };
+
+    auto getLoc = [&]() -> QString {
+        QString res;
+        if (in.lex != nullptr) {
+            Opt<LineCol> loc = this->getLoc(*in.lex);
+            if (loc.has_value()) {
+                res = "$#:$# " % to_string_vec(loc->line, loc->column);
+            }
+        }
+        return res;
+    };
+
+
+    switch (in.kind) {
+        case ReportKind::Print: {
+            os << "  " << in.line << getLoc() << ":" << in.subname.value();
+            printTokens();
+            break;
+        }
+
+        case ReportKind::AddToken: {
+            auto id = in.node.value();
+            os << "  # add [" << id.getIndex() << "] "
+               << to_string(group->at(id).kind) << " at " << in.line;
+            break;
+        }
+
+        case ReportKind::StartNode:
+        case ReportKind::EndNode: {
+            auto id = in.node.value();
+            if (in.kind == ReportKind::StartNode) {
+                os << "+ start";
+            } else {
+                os << "- end";
+            }
+
+            os << " [" << id.getIndex() << "] "
+               << to_string(group->at(id).kind) << " at " << in.line;
+            if (in.kind == ReportKind::EndNode) {
+                os << " ext=" << group->at(id).getExtent();
+            }
+            break;
+        }
+
+        case ReportKind::EnterParse:
+        case ReportKind::LeaveParse: {
+            os << (in.kind == ReportKind::EnterParse ? "> " : "< ")
+               << fg::Green << in.name.value() << os.end() << ":"
+               << fg::Cyan << in.line << os.end();
+
+            if (in.subname.has_value()) {
+                os << " <@" << in.subname.value() << ">";
+            }
+
+            printTokens();
+
+            break;
+        }
+    }
+
+    endStream(os);
+
+    if (in.kind == ReportKind::LeaveParse
+        || in.kind == ReportKind::EndNode) {
+        --depth;
+    }
+
+    if (traceUpdateHook) {
+        traceUpdateHook(in, trace, false);
+    }
 }
