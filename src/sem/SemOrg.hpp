@@ -595,11 +595,15 @@ struct Link : public Org {
         Str text;
     };
 
+    struct Id {
+        Str text;
+    };
+
     struct Footnote {
         Str target;
     };
 
-    using Data = Variant<Raw, Footnote>;
+    using Data = Variant<Raw, Footnote, Id>;
 
     Data data;
 

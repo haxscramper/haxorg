@@ -180,7 +180,6 @@ Wrap<Subtree> OrgConverter::convertSubtree(__args) {
                                 res.backend = prop[1].strVal();
                                 for (QString const& pair :
                                      prop[2].strVal().split(' ')) {
-                                    qDebug() << pair;
                                     auto kv           = pair.split(':');
                                     res.values[kv[0]] = kv[1];
                                 }
@@ -335,10 +334,21 @@ Wrap<Link> OrgConverter::convertLink(__args) {
 
     } else {
         Str protocol = normalize(one(a, N::Protocol).strVal());
-        if (false) {
-
+        if (protocol == "") {
+            link->data = Link::Raw{.text = one(a, N::Link).strVal()};
+        } else if (protocol == "id") {
+            link->data = Link::Id{.text = one(a, N::Link).strVal()};
         } else {
-            qCritical() << "Unhandled protocol kind" << protocol;
+            qCritical().noquote()
+                << "Unhandled protocol kind" << protocol << "\n"
+                << a.treeRepr();
+        }
+    }
+
+    if (a.kind() == org::Link) {
+        if (one(a, N::Desc).kind() == org::Paragraph) {
+            link->description = convertParagraph(
+                link.get(), one(a, N::Desc));
         }
     }
 
