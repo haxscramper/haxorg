@@ -8,6 +8,8 @@
 
 using ParseCb = std::function<OrgId(OrgLexer&)>;
 
+struct OrgParserImplBase;
+
 struct OrgParser : public OperationsTracer {
   public:
     struct TokenWithValue {
@@ -58,7 +60,7 @@ struct OrgParser : public OperationsTracer {
                     std::nullopt) {}
         };
 
-        struct UnexpectedToken : Base {
+        struct UnexpectedToken : public Base {
             OrgExpectable wanted;
             UnexpectedToken(
                 CR<OrgLexer>      lex,
@@ -81,26 +83,27 @@ struct OrgParser : public OperationsTracer {
                                     return to_string(it);
                                 }},
                             wanted),
-                        token,
+                        this->token,
                         getLocMsg(),
-                        extraMsg));
+                        this->extraMsg));
             }
         };
 
-        struct UnhandledToken : Base {
+        struct UnhandledToken : public Base {
             using Base::Base;
             const char* what() const noexcept override {
                 return strdup(
                     "Encountered $# at $#, which is was not expected ($#)"
-                    % to_string_vec(token, getLocMsg(), extraMsg));
+                    % to_string_vec(
+                        this->token, getLocMsg(), this->extraMsg));
             }
         };
     };
 
     using Error = Variant<
-        Errors::None,
-        Errors::UnhandledToken,
-        Errors::UnexpectedToken>;
+        typename Errors::None,
+        typename Errors::UnhandledToken,
+        typename Errors::UnexpectedToken>;
 
     struct ParserError : std::exception {
         Error err;
@@ -149,8 +152,10 @@ struct OrgParser : public OperationsTracer {
     Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
 
   public:
-    OrgNodeGroup* group;
-    inline OrgParser(OrgNodeGroup* _group) : group(_group) {}
+    std::shared_ptr<OrgParserImplBase> impl = nullptr;
+    OrgNodeGroup*                      group;
+    OrgParser(OrgNodeGroup* _group) : group(_group) {}
+    void initImpl(bool doTrace);
 
 
     inline CR<OrgNode> pending() const { return group->lastPending(); }
@@ -185,68 +190,56 @@ struct OrgParser : public OperationsTracer {
     OrgTokenId pop(OrgLexer& lex, CR<OrgExpectable> item);
     void       skip(OrgLexer& lex, CR<OrgExpectable> item);
 
-    Slice<OrgId> parseText(OrgLexer& lex);
+    virtual OrgId parseFootnote(OrgLexer& lex);
+    virtual OrgId parseCSVArguments(OrgLexer& lex);
+    virtual OrgId parseMacro(OrgLexer& lex);
+    virtual OrgId parseRawUrl(OrgLexer& lex);
+    virtual OrgId parseLink(OrgLexer& lex);
+    virtual OrgId parseInlineMath(OrgLexer& lex);
+    virtual OrgId parseSymbol(OrgLexer& lex);
+    virtual OrgId parseHashTag(OrgLexer& lex);
+    virtual OrgId parseTimeRange(OrgLexer& lex);
+    virtual OrgId parseTimeStamp(OrgLexer& lex);
+    virtual OrgId parseIdent(OrgLexer& lex);
+    virtual OrgId parseSrcInline(OrgLexer& lex);
+    virtual OrgId parseTable(OrgLexer& lex);
+    virtual OrgId parseParagraph(OrgLexer& lex, bool onToplevel);
+    virtual OrgId parsePlaceholder(OrgLexer& lex);
+    virtual OrgId parseTopParagraph(OrgLexer& lex);
+    virtual OrgId parseInlineParagraph(OrgLexer& lex);
+    virtual OrgId parseCommandArguments(OrgLexer& lex);
+    virtual OrgId parseSrcArguments(OrgLexer& lex);
+    virtual OrgId parseSrc(OrgLexer& lex);
+    virtual OrgId parseExample(OrgLexer& lex);
+    virtual OrgId parseListItemBody(OrgLexer& lex);
+    virtual OrgId parseListItem(OrgLexer& lex);
+    virtual OrgId parseNestedList(OrgLexer& lex);
+    virtual OrgId parseList(OrgLexer& lex);
+    virtual OrgId parseLatex(OrgLexer& lex);
 
-    /// First pass of the text processing pass. Fold all known text
-    /// structures into larger nodes, convert opening markup tokens into
-    /// `XOpen` and `XClose` nodes.
-    void textFold(OrgLexer& lex);
+    virtual OrgId parseSubtree(OrgLexer& lex);
+    virtual OrgId parseSubtreeTodo(OrgLexer& str);
+    virtual OrgId parseSubtreeUrgency(OrgLexer& str);
+    virtual OrgId parseSubtreeDrawer(OrgLexer& lex);
+    virtual OrgId parseSubtreeCompletion(OrgLexer& lexer);
+    virtual OrgId parseSubtreeTags(OrgLexer& lex);
+    virtual OrgId parseSubtreeTitle(OrgLexer& str);
+    virtual OrgId parseSubtreeTimes(OrgLexer& str);
 
-    /// Recursively fold text block in the specified range, updating nested
-    /// markup nodes and converting `XOpen/XClose` elements to `X/Empty`
-    /// nodes as needed.
-    void parseTextRecursiveFold(Slice<OrgId> range);
-
-    OrgId parseFootnote(OrgLexer& lex);
-    OrgId parseCSVArguments(OrgLexer& lex);
-    OrgId parseMacro(OrgLexer& lex);
-    OrgId parseRawUrl(OrgLexer& lex);
-    OrgId parseLink(OrgLexer& lex);
-    OrgId parseInlineMath(OrgLexer& lex);
-    OrgId parseSymbol(OrgLexer& lex);
-    OrgId parseHashTag(OrgLexer& lex);
-    OrgId parseTimeRange(OrgLexer& lex);
-    OrgId parseTimeStamp(OrgLexer& lex);
-    OrgId parseIdent(OrgLexer& lex);
-    OrgId parseSrcInline(OrgLexer& lex);
-    OrgId parseTable(OrgLexer& lex);
-    OrgId parseParagraph(OrgLexer& lex, bool onToplevel);
-    OrgId parsePlaceholder(OrgLexer& lex);
-    OrgId parseTopParagraph(OrgLexer& lex);
-    OrgId parseInlineParagraph(OrgLexer& lex);
-    OrgId parseCommandArguments(OrgLexer& lex);
-    OrgId parseSrcArguments(OrgLexer& lex);
-    OrgId parseSrc(OrgLexer& lex);
-    OrgId parseExample(OrgLexer& lex);
-    OrgId parseListItemBody(OrgLexer& lex);
-    OrgId parseListItem(OrgLexer& lex);
-    OrgId parseNestedList(OrgLexer& lex);
-    OrgId parseList(OrgLexer& lex);
-    OrgId parseLatex(OrgLexer& lex);
-
-    OrgId parseSubtree(OrgLexer& lex);
-    OrgId parseSubtreeTodo(OrgLexer& str);
-    OrgId parseSubtreeUrgency(OrgLexer& str);
-    OrgId parseSubtreeDrawer(OrgLexer& lex);
-    OrgId parseSubtreeCompletion(OrgLexer& lexer);
-    OrgId parseSubtreeTags(OrgLexer& lex);
-    OrgId parseSubtreeTitle(OrgLexer& str);
-    OrgId parseSubtreeTimes(OrgLexer& str);
-
-    OrgId parseSubtreeLogbookClockEntry(OrgLexer& lex);
-    OrgId parseSubtreeLogbookListEntry(OrgLexer& lex);
-    OrgId parseSubtreeLogbook(OrgLexer& lex);
-    OrgId parseSubtreeProperties(OrgLexer& lex);
+    virtual OrgId parseSubtreeLogbookClockEntry(OrgLexer& lex);
+    virtual OrgId parseSubtreeLogbookListEntry(OrgLexer& lex);
+    virtual OrgId parseSubtreeLogbook(OrgLexer& lex);
+    virtual OrgId parseSubtreeProperties(OrgLexer& lex);
 
 
-    OrgId parseOrgFile(OrgLexer& lex);
-    OrgId parseLineCommand(OrgLexer& lex);
-    OrgId parseToplevelItem(OrgLexer& lex);
-    OrgId parseTop(OrgLexer& lex);
+    virtual OrgId parseOrgFile(OrgLexer& lex);
+    virtual OrgId parseLineCommand(OrgLexer& lex);
+    virtual OrgId parseToplevelItem(OrgLexer& lex);
+    virtual OrgId parseTop(OrgLexer& lex);
 
-    OrgId parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind);
-    void  skipLineCommand(OrgLexer& lex);
+    virtual OrgId parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind);
 
+    void skipLineCommand(OrgLexer& lex);
     void extendSubtreeTrails(OrgId position);
     void extendAttachedTrails(OrgId position);
 };

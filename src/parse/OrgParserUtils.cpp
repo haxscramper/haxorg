@@ -2,6 +2,10 @@
 #include <hstd/stdlib/Debug.hpp>
 
 Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
+    if (!locationResolver) {
+        return std::nullopt;
+    }
+
     if (lex.finished()) {
         return std::nullopt;
     } else {

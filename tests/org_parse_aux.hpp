@@ -20,6 +20,7 @@ struct MockFull : public OrgParser {
         , OrgParser(&nodes)
         , nodes(nullptr)
         , lex(&tokens) {
+        this->initImpl(false);
         nodes.tokens  = &tokens;
         tokenizer.out = &tokens;
     }
