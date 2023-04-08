@@ -102,12 +102,26 @@ struct Org : public std::enable_shared_from_this<Org> {
     struct TreeReprConf {
         bool withLineCol    = true;
         bool withOriginalId = true;
-    };
-    struct TreeReprCtx {
-        int level = 0;
+        bool withSubnodeIdx = true;
+
+        SemSet skipNodes;
+        SemSet skipSubnodesOf;
+
+        bool doSkipSubnodesOf(Org const* org) const {
+            return skipSubnodesOf.contains(org->getKind());
+        }
+
+        bool doSkip(Org const* org) const {
+            return skipNodes.contains(org->getKind());
+        }
     };
 
-    virtual void treeRepr(ColStream& os, CR<TreeReprConf>, CR<TreeReprCtx>)
+    struct TreeReprCtx {
+        int level      = 0;
+        int subnodeIdx = -1;
+    };
+
+    virtual void treeRepr(ColStream& os, CR<TreeReprConf>, TreeReprCtx)
         const;
 
     json newJson() const {
@@ -482,6 +496,8 @@ struct Subtree : public Org {
     Vec<Wrap<SubtreeLog>> logbook;
 
     virtual json toJson() const override;
+    virtual void treeRepr(ColStream&, CR<TreeReprConf>, TreeReprCtx)
+        const override;
 };
 
 BOOST_DESCRIBE_STRUCT(
@@ -510,7 +526,7 @@ struct Leaf : public Org {
         return res;
     }
 
-    virtual void treeRepr(ColStream&, CR<TreeReprConf>, CR<TreeReprCtx>)
+    virtual void treeRepr(ColStream&, CR<TreeReprConf>, TreeReprCtx)
         const override;
 };
 
