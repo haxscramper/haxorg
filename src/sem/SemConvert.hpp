@@ -144,6 +144,22 @@ struct OrgConverter : public OperationsTracer {
         return res;
     }
 
+    template <typename T>
+    Wrap<T> Sem(sem::Org* parent, OrgAdapter adapter) {
+        Wrap<T> res = std::make_shared<T>(parent, adapter);
+        res->loc    = getLoc(adapter);
+        return res;
+    }
+
+    template <typename T>
+    Wrap<T> SemLeaf(sem::Org* parent, OrgAdapter adapter) {
+        auto res  = Sem<T>(parent, adapter);
+        res->text = adapter.strVal();
+        res->loc  = getLoc(adapter);
+        return res;
+    }
+
+
     virtual Wrap<Org> convert(Up, In);
 };
 }; // namespace sem

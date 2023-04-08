@@ -28,6 +28,10 @@ OrgConverter::ConvertError OrgConverter::wrapError(
 }
 
 Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
+    if (!locationResolver) {
+        return std::nullopt;
+    }
+
     int   offset  = 0;
     auto& g       = *adapter.group;
     bool  inRange = true;

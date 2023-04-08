@@ -96,18 +96,6 @@ using org = OrgNodeKind;
 using otk = OrgTokenKind;
 using Err = OrgConverter::Errors;
 
-template <typename T>
-Wrap<T> Sem(sem::Org* parent, OrgAdapter adapter) {
-    return std::make_shared<T>(parent, adapter);
-}
-
-template <typename T>
-Wrap<T> SemLeaf(sem::Org* parent, OrgAdapter adapter) {
-    auto res  = Sem<T>(parent, adapter);
-    res->text = adapter.strVal();
-    return res;
-}
-
 #define __args Org *p, OrgAdapter a
 
 using N = OrgSpecName;

@@ -90,6 +90,7 @@ struct Org : public std::enable_shared_from_this<Org> {
     OrgNodeKind getOriginalKind() const { return original.getKind(); }
     virtual OrgSemKind getKind() const = 0;
     bool               isGenerated() const { return original.empty(); }
+    Opt<LineCol>       loc = std::nullopt;
     Vec<Wrap<Org>>     subnodes;
     Vec<properties::Property> properties;
 
@@ -98,7 +99,10 @@ struct Org : public std::enable_shared_from_this<Org> {
     void push_back(Wrap<Org>&& sub) { subnodes.push_back(std::move(sub)); }
 
 
-    struct TreeReprConf {};
+    struct TreeReprConf {
+        bool withLineCol    = true;
+        bool withOriginalId = true;
+    };
     struct TreeReprCtx {
         int level = 0;
     };
@@ -505,6 +509,9 @@ struct Leaf : public Org {
         res["text"] = text;
         return res;
     }
+
+    virtual void treeRepr(ColStream&, CR<TreeReprConf>, CR<TreeReprCtx>)
+        const override;
 };
 
 // clang-format off

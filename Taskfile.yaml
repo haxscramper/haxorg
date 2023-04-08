@@ -72,6 +72,12 @@ tasks:
       # - make -j8 2> /tmp/compile.txt
       - make -j8 2> /tmp/compile.txt
       # - ninja -v -d explain
+      # - "{{.PWD}}/build/bin/tests.bin"
+      # - task: perf_run
+      #   vars:
+      #     DIR: "{{.PWD}}/build"
+      #     IN: "{{.PWD}}/build/bin/tests.bin"
+
       - task: debug
         vars:
           DIR: "{{.PWD}}/build"
@@ -91,7 +97,7 @@ tasks:
           DIR: "{{.PWD}}/build"
           BINARY: "{{.PWD}}/build/bin/tests.bin"
 
-  plantuml:
-    desc: "Compile and test plantuml grammar"
+  perf_run:
+    dir: "{{.DIR}}"
     cmds:
-      - xmake build --verbose --warning --yes plantuml_parser
+      - "perf record {{.IN}}"
