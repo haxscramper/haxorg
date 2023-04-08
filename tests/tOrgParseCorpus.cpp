@@ -768,7 +768,7 @@ TEST_CASE("Parse file", "[corpus][notes]") {
         };
     };
 
-    p.locationResolver = p.tokenizer.locationResolver;
+    p.setLocationResolver(p.tokenizer.locationResolver);
 
     int  start  = 500;
     auto target = slice(start, start + 200);
@@ -831,6 +831,8 @@ TEST_CASE("Parse file", "[corpus][notes]") {
         }
     };
 
+    Q_CHECK_PTR(p.impl);
+
     // using It = Pair<Slice<int>, int>;
     // Vec<It> lines;
     // for (const auto& [key, val] : info.lines) {
@@ -845,6 +847,7 @@ TEST_CASE("Parse file", "[corpus][notes]") {
     //     qDebug() << it;
     // }
 
+    Q_CHECK_PTR(p.impl);
     if (true) {
         p.tokenize(source, &OrgTokenizer::lexGlobal);
     } else {
@@ -1040,6 +1043,7 @@ kind=$#
         "/tmp/file_lexed.yaml", to_string(yamlRepr(p.tokens)) + "\n");
 
     qDebug() << "Lex ok";
+    Q_CHECK_PTR(p.impl);
     p.parse(&OrgParser::parseTop);
 
     qDebug() << "Top parse";

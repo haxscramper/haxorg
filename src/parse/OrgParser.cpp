@@ -9,7 +9,39 @@ using Err = OrgParser::Errors;
 
 
 class OrgParserImplBase : public OrgParser {
+  public:
     using OrgParser::OrgParser;
+    Func<LineCol(CR<PosStr>)> locationResolver;
+
+    virtual Opt<LineCol> getLoc(CR<OrgLexer> lex) override {
+        if (!locationResolver) {
+            return std::nullopt;
+        }
+
+        if (lex.finished()) {
+            return std::nullopt;
+        } else {
+            for (int offset = 0;
+                 lex.hasNext(-offset) || lex.hasNext(offset);
+                 ++offset) {
+                // Try incrementally widening lookarounds on the current
+                // lexer position until there is a token that has proper
+                // location information.
+                for (int i : Vec{-1, 1}) {
+                    if (lex.hasNext(offset * i)) {
+                        OrgToken tok = lex.tok(offset * i);
+                        if (tok.hasData()) {
+                            PosStr str{tok.getText()};
+                            return locationResolver(str);
+                        }
+                        // If offset falls out of the lexer range on both
+                        // ends, terminate lookup.
+                    }
+                }
+            }
+            return std::nullopt;
+        }
+    }
 };
 
 #define EACH_METHOD(__IMPL)                                               \
@@ -191,8 +223,6 @@ void OrgParser::initImpl(bool doTrace) {
         impl = std::shared_ptr<OrgParserImpl<false>>(
             new OrgParserImpl<false>(group));
     }
-
-    impl->locationResolver = locationResolver;
 }
 
 
@@ -396,4 +426,15 @@ void OrgParser::extendAttachedTrails(OrgId position) {
     while (position < group->nodes.back()) {
         position = aux(position);
     }
+}
+
+void OrgParser::setLocationResolver(
+    Func<LineCol(CR<PosStr>)> locationResolver) {
+    Q_CHECK_PTR(impl);
+    impl->locationResolver = locationResolver;
+}
+
+Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
+    Q_CHECK_PTR(impl);
+    return impl->getLoc(lex);
 }

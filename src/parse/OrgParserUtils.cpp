@@ -1,35 +1,6 @@
 #include <parse/OrgParser.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
-Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
-    if (!locationResolver) {
-        return std::nullopt;
-    }
-
-    if (lex.finished()) {
-        return std::nullopt;
-    } else {
-        for (int offset = 0; lex.hasNext(-offset) || lex.hasNext(offset);
-             ++offset) {
-            // Try incrementally widening lookarounds on the current lexer
-            // position until there is a token that has proper location
-            // information.
-            for (int i : Vec{-1, 1}) {
-                if (lex.hasNext(offset * i)) {
-                    OrgToken tok = lex.tok(offset * i);
-                    if (tok.hasData()) {
-                        PosStr str{tok.getText()};
-                        return locationResolver(str);
-                    }
-                    // If offset falls out of the lexer range on both ends,
-                    // terminate lookup.
-                }
-            }
-        }
-        return std::nullopt;
-    }
-}
-
 
 using Err = OrgParser::Errors;
 
@@ -134,7 +105,7 @@ void OrgParser::report(CR<Report> in) {
 
     auto getLoc = [&]() -> QString {
         QString res;
-        if (locationResolver && in.lex != nullptr) {
+        if (in.lex != nullptr) {
             Opt<LineCol> loc = this->getLoc(*in.lex);
             if (loc.has_value()) {
                 res = "$#:$# " % to_string_vec(loc->line, loc->column);

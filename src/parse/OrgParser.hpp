@@ -118,10 +118,10 @@ struct OrgParser : public OperationsTracer {
         }
     };
 
-    Func<LineCol(CR<PosStr>)> locationResolver;
-    ParserError               wrapError(CR<Error> err, CR<OrgLexer> lex);
-    Opt<LineCol>              getLoc(CR<OrgLexer> lex);
-    QString                   getLocMsg(CR<OrgLexer> lex);
+    void                 setLocationResolver(Func<LineCol(CR<PosStr>)>);
+    ParserError          wrapError(CR<Error> err, CR<OrgLexer> lex);
+    virtual Opt<LineCol> getLoc(CR<OrgLexer> lex);
+    QString              getLocMsg(CR<OrgLexer> lex);
 
   public:
     enum class ReportKind
@@ -152,8 +152,8 @@ struct OrgParser : public OperationsTracer {
     Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
 
   public:
-    std::shared_ptr<OrgParserImplBase> impl = nullptr;
-    OrgNodeGroup*                      group;
+    OrgNodeGroup*                      group = nullptr;
+    std::shared_ptr<OrgParserImplBase> impl  = nullptr;
     OrgParser(OrgNodeGroup* _group) : group(_group) {}
     void initImpl(bool doTrace);
 
