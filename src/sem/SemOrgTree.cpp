@@ -68,6 +68,7 @@ void writeField(CR<QString> name, CR<T> field, __args) {
 template <typename T>
 void writeField(CR<QString> name, CR<Wrap<T>> field, __args) {
     fieldInit(name, os, ctx);
+    os << "\n";
     field->treeRepr(os, conf, {.level = ctx.level + 1});
 }
 

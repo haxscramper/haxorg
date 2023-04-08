@@ -20,30 +20,6 @@ json opt_convert(Opt<T> const& value) {
     return res;
 }
 
-json Row::toJson() const {
-    json res = newJson();
-    subnodesJson(res);
-    return res;
-}
-
-json Table::toJson() const {
-    json res = newJson();
-    subnodesJson(res);
-    return res;
-}
-
-json HashTag::toJson() const {
-    json res = newJson();
-    subnodesJson(res);
-    return res;
-}
-
-json List::toJson() const {
-    json res = newJson();
-    subnodesJson(res);
-    return res;
-}
-
 json ListItem::toJson() const {
     json res = newJson();
 
@@ -52,19 +28,6 @@ json ListItem::toJson() const {
 
     return res;
 }
-
-json Markup::toJson() const {
-    json res = newJson();
-    subnodesJson(res);
-    return res;
-}
-
-json StmtList::toJson() const {
-    json res = newJson();
-    subnodesJson(res);
-    return res;
-}
-
 
 json Completion::toJson() const {
     json res         = newJson();
@@ -76,6 +39,9 @@ json Completion::toJson() const {
 
 
 json Subtree::toJson() const {
+    using Prop = Subtree::Properties;
+    using k    = Prop::PropertyKind;
+
     json res = newJson();
     subnodesJson(res);
     res["level"]       = level;
@@ -85,18 +51,40 @@ json Subtree::toJson() const {
     res["description"] = opt_convert(description);
     res["completion"]  = opt_convert(completion);
     res["title"]       = title ? title->toJson() : json();
-    return res;
-}
 
-json SubtreeLog::toJson() const {
-    json res = newJson();
-    subnodesJson(res);
-    return res;
-}
+    json drawer = json::object();
+    {
+        json props = json::array();
+        for (const auto& prop : properties) {
+            json exp;
+            std::visit(
+                [&](auto const& prop) {
+                    exp["kind"] = to_string(prop.getKind());
+                },
+                prop);
 
-json Paragraph::toJson() const {
-    json res = newJson();
-    subnodesJson(res);
+            std::visit(
+                overloaded{
+                    [&](CR<Prop::ExportOptions> prop) {
+                        exp["backend"] = prop.backend;
+                        exp["args"]    = prop.values;
+                    },
+                    [](auto&&) {}},
+                prop);
+
+            props.push_back(exp);
+        }
+
+        drawer["props"] = props;
+    }
+
+    {
+        json log      = json::object();
+        drawer["log"] = log;
+    }
+
+    res["drawer"] = drawer;
+
     return res;
 }
 

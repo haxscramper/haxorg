@@ -723,4 +723,9 @@ struct NodeAdapter {
     iterator end() {
         return iterator(group->end(id + group->at(id).getExtent()));
     }
+
+    iterator begin() const { return iterator(group->begin(id + 1)); }
+    iterator end() const {
+        return iterator(group->end(id + group->at(id).getExtent()));
+    }
 };

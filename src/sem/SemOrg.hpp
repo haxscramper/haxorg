@@ -27,52 +27,6 @@ BOOST_DESCRIBE_STRUCT(TreeId, (), (id));
 template <typename T>
 using Wrap = std::shared_ptr<T>;
 
-namespace properties {
-    struct Ordered {
-        bool isOrdered;
-    };
-
-    BOOST_DESCRIBE_STRUCT(Ordered, (), (isOrdered));
-
-    struct Nonblocking {
-        bool isBlocking;
-    };
-
-    BOOST_DESCRIBE_STRUCT(Nonblocking, (), (isBlocking));
-
-    struct Trigger {
-        struct Dependency {
-            TreeId   id;
-            Opt<Str> state;
-        };
-    };
-
-    struct Blocker {
-        Vec<Str> blockers;
-    };
-
-    BOOST_DESCRIBE_STRUCT(Blocker, (), (blockers));
-
-    struct Unnumbered {};
-    BOOST_DESCRIBE_STRUCT(Unnumbered, (), ());
-
-    struct Created {};
-    BOOST_DESCRIBE_STRUCT(Created, (), ());
-
-    using Property = Variant<
-        //
-        Ordered,
-        Nonblocking,
-        Trigger,
-        Blocker,
-        Unnumbered,
-        Created
-        //
-        >;
-
-} // namespace properties
-
-
 #define GET_KIND(Kind)                                                    \
     virtual OrgSemKind getKind() const { return OrgSemKind::Kind; }
 
@@ -92,12 +46,14 @@ struct Org : public std::enable_shared_from_this<Org> {
     bool               isGenerated() const { return original.empty(); }
     Opt<LineCol>       loc = std::nullopt;
     Vec<Wrap<Org>>     subnodes;
-    Vec<properties::Property> properties;
 
-    virtual json toJson() const = 0;
+    virtual json toJson() const {
+        json res = newJson();
+        subnodesJson(res);
+        return res;
+    }
 
     void push_back(Wrap<Org>&& sub) { subnodes.push_back(std::move(sub)); }
-
 
     struct TreeReprConf {
         bool withLineCol    = true;
@@ -127,6 +83,16 @@ struct Org : public std::enable_shared_from_this<Org> {
     json newJson() const {
         json res;
         res["kind"] = to_string(getKind());
+        if (loc.has_value()) {
+            auto& [line, col] = loc.value();
+            json tmp;
+            tmp["line"] = line;
+            tmp["col"]  = col;
+            res["loc"]  = tmp;
+        } else {
+            res["loc"] = json();
+        }
+        subnodesJson(res);
         return res;
     }
 
@@ -154,17 +120,13 @@ struct Org : public std::enable_shared_from_this<Org> {
 
 
     void subnodesJson(json& res) const {
-        if (!subnodes.empty()) {
-            json tmp = json::array();
-            for (const auto& sub : subnodes) {
-                tmp.push_back(sub->toJson());
-            }
-            res["subnodes"] = tmp;
+        json tmp = json::array();
+        for (const auto& sub : subnodes) {
+            tmp.push_back(sub->toJson());
         }
+        res["subnodes"] = tmp;
     }
 };
-
-BOOST_DESCRIBE_STRUCT(Org, (), (parent, subnodes, properties));
 
 class Attached;
 
@@ -187,11 +149,8 @@ struct Inline : public Org {
 
 struct StmtList : public Org {
     using Org::Org;
-    virtual json toJson() const override;
     GET_KIND(StmtList);
 };
-
-BOOST_DESCRIBE_STRUCT(StmtList, (Org), ());
 
 struct Row : public Org {
     using Org::Org;
@@ -199,27 +158,19 @@ struct Row : public Org {
     GET_KIND(Row);
 };
 
-BOOST_DESCRIBE_STRUCT(Row, (Org), ());
-
 struct Table : public Stmt {
     using Stmt::Stmt;
-    Vec<Row>     rows;
-    virtual json toJson() const override;
+    Vec<Row> rows;
     GET_KIND(Table);
 };
-
-BOOST_DESCRIBE_STRUCT(Table, (Org), (rows));
 
 struct HashTag : public Inline {
     using Inline::Inline;
     Str          head;
     Vec<HashTag> subtags;
 
-    virtual json toJson() const override;
     GET_KIND(HashTag);
 };
-
-BOOST_DESCRIBE_STRUCT(HashTag, (), (head, subtags));
 
 /// \brief Completion status of the subtree or list element
 struct Completion : public Inline {
@@ -239,7 +190,6 @@ BOOST_DESCRIBE_STRUCT(Completion, (), (done, full, isPercent));
 
 struct Paragraph : public Stmt {
     using Stmt::Stmt;
-    virtual json toJson() const override;
     GET_KIND(Paragraph);
 };
 
@@ -487,24 +437,86 @@ BOOST_DESCRIBE_STRUCT(SubtreeLog, (Org), (log));
 struct Subtree : public Org {
     GET_KIND(Subtree);
     using Org::Org;
-    int                   level;
-    Opt<Str>              todo;
-    Opt<Wrap<Completion>> completion;
-    Vec<Wrap<HashTag>>    tags;
-    Wrap<Org>             title;
-    Opt<Wrap<Org>>        description;
-    Vec<Wrap<SubtreeLog>> logbook;
+
+    struct Properties {
+        enum class PropertyKind
+        {
+            Ordered,
+            Nonblocking,
+            Trigger,
+            Blocker,
+            Unnumbered,
+            Created,
+            ExportOptions,
+        };
+
+#define PROP_KIND(Kind)                                                   \
+    PropertyKind getKind() const { return PropertyKind::Kind; }
+
+        struct Ordered {
+            bool isOrdered;
+            PROP_KIND(Ordered);
+        };
+
+        struct ExportOptions {
+            Str                    backend;
+            UnorderedMap<Str, Str> values;
+            PROP_KIND(ExportOptions);
+        };
+
+        struct Nonblocking {
+            bool isBlocking;
+            PROP_KIND(Nonblocking);
+        };
+
+        struct Trigger {
+            PROP_KIND(Trigger);
+            struct Dependency {
+                TreeId   id;
+                Opt<Str> state;
+            };
+        };
+
+        struct Blocker {
+            PROP_KIND(Blocker);
+            Vec<Str> blockers;
+        };
+
+        struct Unnumbered {
+            PROP_KIND(Unnumbered);
+        };
+        struct Created {
+            PROP_KIND(Created);
+        };
+
+        using Property = Variant<
+            //
+            Ordered,
+            Nonblocking,
+            Trigger,
+            Blocker,
+            Unnumbered,
+            Created,
+            ExportOptions
+            //
+            >;
+    };
+
+
+    int                       level = 0;
+    Opt<Str>                  id;
+    Opt<Str>                  todo;
+    Opt<Wrap<Completion>>     completion;
+    Vec<Wrap<HashTag>>        tags;
+    Wrap<Org>                 title;
+    Opt<Wrap<Org>>            description;
+    Vec<Wrap<SubtreeLog>>     logbook;
+    Vec<Properties::Property> properties;
 
     virtual json toJson() const override;
     virtual void treeRepr(ColStream&, CR<TreeReprConf>, TreeReprCtx)
         const override;
 };
-
-BOOST_DESCRIBE_STRUCT(
-    Subtree,
-    (),
-    (level, todo, completion, tags, title, description, logbook));
-
 
 struct LatexBody : public Org {
     using Org::Org;
@@ -521,7 +533,7 @@ struct Leaf : public Org {
     Str text;
     using Org::Org;
     virtual json toJson() const override {
-        json res;
+        json res    = newJson();
         res["text"] = text;
         return res;
     }
@@ -541,7 +553,6 @@ struct Placeholder : public Leaf { GET_KIND(Placeholder); using Leaf::Leaf; };
 
 struct Markup : public Org {
     using Org::Org;
-    virtual json toJson() const override;
 };
 
 // clang-format off
@@ -558,7 +569,6 @@ struct Par : public Markup { using Markup::Markup; GET_KIND(Par); };
 struct List : public Org {
     using Org::Org;
     GET_KIND(List);
-    virtual json toJson() const override;
 };
 
 struct ListItem : public Org {

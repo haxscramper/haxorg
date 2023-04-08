@@ -3,7 +3,6 @@
 
 
 using namespace sem;
-using namespace properties;
 
 using org = OrgNodeKind;
 using otk = OrgTokenKind;

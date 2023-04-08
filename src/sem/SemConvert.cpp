@@ -90,11 +90,11 @@
         BOOST_PP_EMPTY())
 
 using namespace sem;
-using namespace properties;
 
-using org = OrgNodeKind;
-using otk = OrgTokenKind;
-using Err = OrgConverter::Errors;
+using org  = OrgNodeKind;
+using otk  = OrgTokenKind;
+using Err  = OrgConverter::Errors;
+using Prop = Subtree::Properties;
 
 #define __args Org *p, OrgAdapter a
 
@@ -148,12 +148,60 @@ Wrap<Subtree> OrgConverter::convertSubtree(__args) {
     __trace();
     auto tree = Sem<Subtree>(p, a);
 
+    tree->level = one(a, N::Prefix).strVal().size();
+
     {
         __field(N::Title);
         tree->title = convertParagraph(tree.get(), one(a, N::Title));
     }
 
     { __field(N::Todo); }
+
+    {
+        __field(N::Drawer);
+        OrgAdapter drawer = one(a, N::Drawer);
+        if (drawer.kind() != org::Empty) {
+            for (const auto& group : drawer) {
+                switch (group.kind()) {
+                    case org::SubtreeDescription: {
+                        tree->description = convertParagraph(
+                            tree.get(), group[0]);
+                        break;
+                    }
+
+                    case org::PropertyList: {
+                        for (const auto& prop : group) {
+                            QString name = normalize(strip(
+                                prop[0].strVal(),
+                                CharSet{QChar(':')},
+                                CharSet{QChar(':')}));
+                            if (name == "exportoptions") {
+                                Prop::ExportOptions res;
+                                res.backend = prop[1].strVal();
+                                for (QString const& pair :
+                                     prop[2].strVal().split(' ')) {
+                                    qDebug() << pair;
+                                    auto kv           = pair.split(':');
+                                    res.values[kv[0]] = kv[1];
+                                }
+                                tree->properties.push_back(res);
+
+                            } else if (name == "id") {
+                                tree->id = prop[2].strVal();
+
+                            } else {
+                                qCritical().noquote()
+                                    << "Unknown property name" << name
+                                    << "\n"
+                                    << prop.treeRepr();
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
 
     {
         __field(N::Body);
