@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <map>
+#include <optional>
 
 #include <hstd/system/generator.hpp>
 #include <hstd/system/all.hpp>
@@ -11,6 +12,14 @@ struct MapBase : public CRTP_this_method<Map> {
     using CRTP_this_method<Map>::_this;
     inline bool contains(CR<K> key) const {
         return _this()->count(key) != 0;
+    }
+
+    std::optional<V> get(K const& key) const {
+        if (contains(key)) {
+            return _this()->at(key);
+        } else {
+            return std::nullopt;
+        }
     }
 
     generator<K> keys() const {
@@ -27,6 +36,7 @@ struct UnorderedMap
     using Base = std::unordered_map<K, V>;
     using API  = MapBase<UnorderedMap<K, V>, K, V>;
     using API::contains;
+    using API::get;
     using API::keys;
     using Base::Base;
     using Base::begin;
@@ -41,6 +51,7 @@ struct SortedMap
     using Base = std::map<K, V>;
     using API  = MapBase<SortedMap<K, V>, K, V>;
     using API::contains;
+    using API::get;
     using API::keys;
     using Base::Base;
 };

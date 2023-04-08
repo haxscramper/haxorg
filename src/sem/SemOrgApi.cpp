@@ -2,6 +2,7 @@
 
 using namespace sem;
 
+
 Vec<Org*> Org::getParentChain(bool withSelf) const {
     Vec<Org*> result;
 
@@ -13,6 +14,16 @@ Vec<Org*> Org::getParentChain(bool withSelf) const {
     }
 
     return result;
+}
+
+
+Opt<Wrap<Document>> Org::getDocument() const {
+    for (const auto& item : getParentChain()) {
+        if (item->getKind() == OrgSemKind::Document) {
+            return item->as<Document>();
+        }
+    }
+    return std::nullopt;
 }
 
 Opt<Wrap<Subtree>> Org::getParentSubtree() const {

@@ -31,14 +31,16 @@ using Wrap = std::shared_ptr<T>;
     virtual OrgSemKind getKind() const { return OrgSemKind::Kind; }
 
 class Subtree;
+class Document;
 
 struct Org : public std::enable_shared_from_this<Org> {
     inline bool hasParent() const { return parent != nullptr; }
     Org*        getParent() { return parent; }
     Org const*  getParent() const { return parent; }
 
-    Vec<Org*>          getParentChain(bool withSelf = false) const;
-    Opt<Wrap<Subtree>> getParentSubtree() const;
+    Vec<Org*>           getParentChain(bool withSelf = false) const;
+    Opt<Wrap<Subtree>>  getParentSubtree() const;
+    Opt<Wrap<Document>> getDocument() const;
 
     /// Pointer to the parent node in sem tree, might be null.
     Org* parent = nullptr;
@@ -636,6 +638,8 @@ struct Document : public Org {
     UnorderedMap<Str, Org*>          nameTable;
     UnorderedMap<Str, Org*>          anchorTable;
     UnorderedMap<Str, Org*>          footnoteTable;
+
+    Opt<Wrap<Subtree>> getSubtree(CR<Str> id) { return idTable.get(id); }
 };
 
 
