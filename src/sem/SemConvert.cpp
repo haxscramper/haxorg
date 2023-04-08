@@ -98,7 +98,8 @@ using Prop = Subtree::Properties;
 
 #define __args Org *p, OrgAdapter a
 
-using N = OrgSpecName;
+using N   = OrgSpecName;
+using osk = OrgSemKind;
 
 
 OrgAdapter one(OrgAdapter node, OrgSpecName name) {
@@ -528,4 +529,51 @@ Wrap<Org> OrgConverter::convert(__args) {
             throw wrapError(Err::UnhandledKind(a.kind()), a);
     }
 #undef CASE
+}
+
+Wrap<Document> OrgConverter::toDocument(OrgAdapter adapter) {
+    Wrap<Document> doc = Sem<Document>(nullptr, adapter);
+
+    doc->subnodes.push_back(convert(doc.get(), adapter));
+
+    Func<void(Org*)> auxDocument;
+    auxDocument = [&](Org* org) {
+        switch (org->getKind()) {
+            case osk::Subtree: {
+                auto subtree = org->as<Subtree>();
+                if (auto id = subtree->id) {
+                    doc->idTable[id.value()] = subtree;
+                }
+
+                for (const auto& item : org->subnodes) {
+                    auxDocument(item.get());
+                }
+                break;
+            }
+
+            default: {
+                for (const auto& item : org->subnodes) {
+                    auxDocument(item.get());
+                }
+                break;
+            }
+
+                // case orgAnnotatedParagraph:
+                //     switch (org.paragraph.kind) {
+                //         case aopFootnote:
+                //             doc.footnoteTable[org.paragraph.footnote.ident]
+                //             = org; break;
+
+                //         default:
+                //             break;
+                //     }
+                //     break;
+
+                // default:
+                //     break;
+        }
+    };
+
+
+    return doc;
 }

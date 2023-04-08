@@ -412,6 +412,7 @@ enum class OrgSemKind : short int
     CommandGroup,
     Placeholder,
     InlineMath,
+    Document,
 };
 
 

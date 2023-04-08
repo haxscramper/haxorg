@@ -159,7 +159,8 @@ struct OrgConverter : public OperationsTracer {
         return res;
     }
 
-
     virtual Wrap<Org> convert(Up, In);
+
+    Wrap<Document> toDocument(OrgAdapter tree);
 };
 }; // namespace sem

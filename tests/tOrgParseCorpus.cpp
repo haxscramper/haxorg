@@ -1095,8 +1095,9 @@ kind=$#
 
     sem::OrgConverter converter;
     converter.setTraceFile("/tmp/convert_trace.txt");
-    converter.locationResolver = p.tokenizer.locationResolver;
-    sem::Wrap<sem::Org> node   = converter.convert(nullptr, p.a(0));
+
+    converter.locationResolver    = p.tokenizer.locationResolver;
+    sem::Wrap<sem::Document> node = converter.toDocument(p.a(0));
 
     // ColStream colcout{qcout};
     // node->treeRepr(

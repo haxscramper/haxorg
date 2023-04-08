@@ -30,9 +30,18 @@ using Wrap = std::shared_ptr<T>;
 #define GET_KIND(Kind)                                                    \
     virtual OrgSemKind getKind() const { return OrgSemKind::Kind; }
 
+class Subtree;
+
 struct Org : public std::enable_shared_from_this<Org> {
+    inline bool hasParent() const { return parent != nullptr; }
+    Org*        getParent() { return parent; }
+    Org const*  getParent() const { return parent; }
+
+    Vec<Org*>          getParentChain(bool withSelf = false) const;
+    Opt<Wrap<Subtree>> getParentSubtree() const;
+
     /// Pointer to the parent node in sem tree, might be null.
-    Org* parent;
+    Org* parent = nullptr;
     /// Adapter to the original parsed node.
     OrgAdapter original;
 
@@ -617,6 +626,16 @@ struct Link : public Org {
 struct BigIdent : public Leaf {
     GET_KIND(BigIdent);
     using Leaf::Leaf;
+};
+
+struct Document : public Org {
+    using Org::Org;
+    GET_KIND(Document);
+
+    UnorderedMap<Str, Wrap<Subtree>> idTable;
+    UnorderedMap<Str, Org*>          nameTable;
+    UnorderedMap<Str, Org*>          anchorTable;
+    UnorderedMap<Str, Org*>          footnoteTable;
 };
 
 
