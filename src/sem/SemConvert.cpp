@@ -534,7 +534,14 @@ Wrap<Org> OrgConverter::convert(__args) {
 Wrap<Document> OrgConverter::toDocument(OrgAdapter adapter) {
     Wrap<Document> doc = Sem<Document>(nullptr, adapter);
 
-    doc->subnodes.push_back(convert(doc.get(), adapter));
+    if (adapter.kind() == org::StmtList) {
+        for (const auto& sub : adapter) {
+            doc->subnodes.push_back(convert(doc.get(), sub));
+        }
+    } else {
+        doc->subnodes.push_back(convert(doc.get(), adapter));
+    }
+
 
     Func<void(Org*)> auxDocument;
     auxDocument = [&](Org* org) {
