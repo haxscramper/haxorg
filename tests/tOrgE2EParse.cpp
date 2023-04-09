@@ -89,7 +89,6 @@ TEST_CASE("Simple node conversion") {
 
         // qcout << buf << Qt::endl;
         auto hash = sem::OrgConverter{}.convertHashTag(nullptr, p.a(0));
-        ss << hash->toJson() << Qt::endl;
     }
 
     SECTION("Diff compilation") {

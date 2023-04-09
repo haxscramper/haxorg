@@ -58,12 +58,6 @@ struct Org : public std::enable_shared_from_this<Org> {
     Opt<LineCol>       loc = std::nullopt;
     Vec<Wrap<Org>>     subnodes;
 
-    virtual json toJson() const {
-        json res = newJson();
-        subnodesJson(res);
-        return res;
-    }
-
     void push_back(Wrap<Org>&& sub) { subnodes.push_back(std::move(sub)); }
 
     struct TreeReprConf {
@@ -93,21 +87,6 @@ struct Org : public std::enable_shared_from_this<Org> {
 
     inline Wrap<Org> at(int idx) { return subnodes[idx]; }
 
-    json newJson() const {
-        json res;
-        res["kind"] = to_string(getKind());
-        if (loc.has_value()) {
-            auto& [line, col] = loc.value();
-            json tmp;
-            tmp["line"] = line;
-            tmp["col"]  = col;
-            res["loc"]  = tmp;
-        } else {
-            res["loc"] = json();
-        }
-        subnodesJson(res);
-        return res;
-    }
 
     template <typename T>
     Wrap<T> as() {
@@ -129,15 +108,6 @@ struct Org : public std::enable_shared_from_this<Org> {
             "Could not convert $# to $#"
                 % to_string_vec(getKind(), demangle(typeid(T).name())));
         return result;
-    }
-
-
-    void subnodesJson(json& res) const {
-        json tmp = json::array();
-        for (const auto& sub : subnodes) {
-            tmp.push_back(sub->toJson());
-        }
-        res["subnodes"] = tmp;
     }
 };
 
@@ -167,7 +137,6 @@ struct StmtList : public Org {
 
 struct Row : public Org {
     using Org::Org;
-    virtual json toJson() const override;
     GET_KIND(Row);
 };
 
@@ -194,7 +163,6 @@ struct Completion : public Inline {
     int  full      = 0;
     bool isPercent = false;
 
-    virtual json toJson() const override;
     GET_KIND(Completion);
 };
 
@@ -213,7 +181,6 @@ struct Format : public Org {
 
 struct Center : public Format {
     using Format::Format;
-    virtual json toJson() const override;
     GET_KIND(Center);
 };
 
@@ -238,7 +205,6 @@ struct Attached : public LineCommand {
 
 struct Caption : public Attached {
     using Attached::Attached;
-    virtual json    toJson() const override;
     Wrap<Paragraph> text;
     GET_KIND(Caption);
 };
@@ -247,7 +213,6 @@ struct Caption : public Attached {
 /// unless it is possible to attached them to some adjacent block command
 struct CommandGroup : public Stmt {
     using Stmt::Stmt;
-    virtual json toJson() const override;
     GET_KIND(CommandGroup);
 };
 
@@ -259,13 +224,11 @@ struct Block : public Command {
 struct Quote : public Block {
     using Block::Block;
     Wrap<Paragraph> text;
-    virtual json    toJson() const override;
     GET_KIND(Quote);
 };
 
 struct Example : public Block {
     using Block::Block;
-    virtual json toJson() const override;
     GET_KIND(Example);
 };
 
@@ -395,8 +358,7 @@ struct Time : public Org {
     Static const&  getStatic() const { return std::get<Static>(time); }
     Dynamic const& getDynamic() const { return std::get<Dynamic>(time); }
 
-    bool         isActive; /// Active `<time>` or passive `[time]`
-    virtual json toJson() const override;
+    bool isActive; /// Active `<time>` or passive `[time]`
 };
 
 
@@ -404,9 +366,8 @@ struct Time : public Org {
 struct TimeRange : public Org {
     GET_KIND(TimeRange);
     using Org::Org;
-    Wrap<Time>   from;
-    Wrap<Time>   to;
-    virtual json toJson() const override;
+    Wrap<Time> from;
+    Wrap<Time> to;
 };
 
 BOOST_DESCRIBE_STRUCT(TimeRange, (Org), (from, to));
@@ -441,8 +402,6 @@ struct SubtreeLog : public Org {
     };
 
     Variant<Note, Refile, Clock, State> log;
-
-    virtual json toJson() const override;
 };
 
 BOOST_DESCRIBE_STRUCT(SubtreeLog, (Org), (log));
@@ -560,7 +519,6 @@ struct Subtree : public Org {
     Opt<Properties::Property> getProperty(
         Properties::PropertyKind kind) const;
 
-    virtual json toJson() const override;
     virtual void treeRepr(ColStream&, CR<TreeReprConf>, TreeReprCtx)
         const override;
 };
@@ -572,19 +530,12 @@ struct LatexBody : public Org {
 struct InlineMath : public LatexBody {
     using LatexBody::LatexBody;
     GET_KIND(InlineMath);
-    virtual json toJson() const override;
 };
 
 
 struct Leaf : public Org {
     Str text;
     using Org::Org;
-    virtual json toJson() const override {
-        json res    = newJson();
-        res["text"] = text;
-        return res;
-    }
-
     virtual void treeRepr(ColStream&, CR<TreeReprConf>, TreeReprCtx)
         const override;
 };
@@ -621,7 +572,6 @@ struct List : public Org {
 struct ListItem : public Org {
     using Org::Org;
     GET_KIND(ListItem);
-    virtual json toJson() const override;
     enum class Checkbox
     {
         None,
@@ -635,9 +585,6 @@ struct ListItem : public Org {
 struct Link : public Org {
     GET_KIND(Link);
     using Org::Org;
-    virtual json toJson() const override;
-
-
     struct Raw {
         Str text;
     };

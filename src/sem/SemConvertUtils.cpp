@@ -115,7 +115,6 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
         }
 
         case ReportKind::Json: {
-            os << "  " << to_string(in.semResult->toJson());
             break;
         }
 

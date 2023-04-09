@@ -7,6 +7,8 @@
 #include <lexbase/NodeIO.hpp>
 #include <lexbase/NodeTest.hpp>
 
+#include <exporters/ExporterJson.hpp>
+
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
@@ -1104,7 +1106,10 @@ kind=$#
     //     colcout, {.skipSubnodesOf = SemSet{OrgSemKind::Paragraph}}, {});
     // qcout << Qt::endl;
 
-    writeFile("/tmp/parse_corpus.json", to_string(node->toJson()));
+    ExporterJson exporter;
+    Exporter::Wrap<ExporterJson::Result>
+        result = exporter.exportNode(node)->as<ExporterJson::Result>();
+    writeFile("/tmp/parse_corpus.json", to_string(result->value));
 
 
     SUCCEED("Parsed input corpus file");
