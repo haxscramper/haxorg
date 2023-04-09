@@ -59,6 +59,13 @@ struct Org : public std::enable_shared_from_this<Org> {
     Vec<Wrap<Org>>     subnodes;
 
     void push_back(Wrap<Org>&& sub) { subnodes.push_back(std::move(sub)); }
+    using VisitCb = Func<void(Wrap<Org>)>;
+    virtual void visit(VisitCb cb) {
+        cb(shared_from_this());
+        for (auto& sub : subnodes) {
+            sub->visit(cb);
+        }
+    }
 
     struct TreeReprConf {
         bool withLineCol    = true;
