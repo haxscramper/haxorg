@@ -483,6 +483,24 @@ struct Subtree : public Org {
             ExportOptions
             //
             >;
+
+        template <typename T>
+        static T& as(Property& prop) {
+            return std::get<T>(prop);
+        }
+
+        template <typename T>
+        static T const& as(Property const& prop) {
+            return std::get<T>(prop);
+        }
+
+        static PropertyKind kind(CR<Property> prop) {
+            return std::visit(
+                [](auto const& it) -> PropertyKind {
+                    return it.getKind();
+                },
+                prop);
+        }
     };
 
 
@@ -515,9 +533,17 @@ struct Subtree : public Org {
 
 
     Vec<Properties::Property> getProperties(
-        Properties::PropertyKind kind) const;
+        PropKind    kind,
+        CR<QString> subkind = "") const;
     Opt<Properties::Property> getProperty(
-        Properties::PropertyKind kind) const;
+        PropKind    kind,
+        CR<QString> subkind = "") const;
+    Vec<Properties::Property> getContextualProperties(
+        PropKind    kind,
+        CR<QString> subkind = "") const;
+    Opt<Properties::Property> getContextualProperty(
+        PropKind    kind,
+        CR<QString> subkind = "") const;
 
     virtual void treeRepr(ColStream&, CR<TreeReprConf>, TreeReprCtx)
         const override;

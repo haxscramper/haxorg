@@ -36,22 +36,79 @@ Opt<Wrap<Subtree>> Org::getParentSubtree() const {
     return std::nullopt;
 }
 
-Vec<Prop::Property> Subtree::getProperties(Prop::PropertyKind kind) const {
+Vec<Prop::Property> Subtree::getProperties(
+    Prop::PropertyKind kind,
+    CR<QString>        subkind) const {
     Vec<Prop::Property> result;
     for (const auto& prop : properties) {
         std::visit(
-            [&](auto const& it) {
-                if (it.getKind() == kind) {
-                    result.push_back(prop);
-                }
-            },
+            overloaded{
+                [&](Prop::ExportOptions& it) {
+                    if (it.getKind() == kind
+                        && normalize(it.backend) == normalize(subkind)) {
+                        result.push_back(prop);
+                    }
+                },
+                [&](auto const& it) {
+                    if (it.getKind() == kind) {
+                        result.push_back(prop);
+                    }
+                }},
             prop);
     }
     return result;
 }
 
-Opt<Prop::Property> Subtree::getProperty(Prop::PropertyKind kind) const {
-    auto props = getProperties(kind);
+Vec<Prop::Property> Subtree::getContextualProperties(
+    Prop::PropertyKind kind,
+    CR<QString>        subkind) const {
+    Subtree const*      now = this;
+    Vec<Prop::Property> result;
+    while (now != nullptr) {
+        result.append(now->getProperties(kind));
+        if (auto sup = now->getParentSubtree()) {
+            now = sup.value().get();
+        } else {
+            now = nullptr;
+        }
+    }
+    std::reverse(result.begin(), result.end());
+    return result;
+}
+
+Opt<Prop::Property> Subtree::getContextualProperty(
+    Prop::PropertyKind kind,
+    CR<QString>        subkind) const {
+    Vec<Prop::Property> props = getContextualProperties(kind);
+    if (props.empty()) {
+        return std::nullopt;
+    } else {
+        switch (Prop::kind(props[0])) {
+            case PropKind::Nonblocking:
+            case PropKind::Unnumbered:
+            case PropKind::Ordered:
+            case PropKind::Created: return props[0];
+            case PropKind::ExportOptions: {
+                Prop::ExportOptions res;
+                for (const auto& it : props) {
+                    Prop::ExportOptions const& tmp = Properties::as<
+                        Prop::ExportOptions>(it);
+                    for (auto const& [k, v] : tmp.values) {
+                        if (!res.values.contains(k)) {
+                            res.values[k] = v;
+                        }
+                    }
+                }
+                return res;
+            }
+        }
+    }
+}
+
+Opt<Prop::Property> Subtree::getProperty(
+    Prop::PropertyKind kind,
+    CR<QString>        subkind) const {
+    auto props = getProperties(kind, subkind);
     if (props.empty()) {
         return std::nullopt;
     } else {
