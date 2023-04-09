@@ -148,8 +148,9 @@ struct Table : public Stmt {
 
 struct HashTag : public Inline {
     using Inline::Inline;
-    Str          head;
-    Vec<HashTag> subtags;
+    Str                head;
+    Vec<Wrap<HashTag>> subtags;
+    bool               prefixMatch(CR<Vec<Str>> prefix) const;
 
     GET_KIND(HashTag);
 };

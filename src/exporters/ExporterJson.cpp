@@ -25,6 +25,10 @@ Exporter::Wrap<Exporter::ExporterResult> ExporterJson::exportHashTag(
     sem::Wrap<sem::HashTag> node) {
     Wrap<ExporterJson::Result> w_res = newJson(node);
     json&                      res   = w_res->value;
+    res["head"]                      = node->head;
+    for (const auto& sub : node->subtags) {
+        res["subtags"].push_back(exportTo(sub));
+    }
     return w_res;
 }
 

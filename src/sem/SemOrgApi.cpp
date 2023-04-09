@@ -76,6 +76,26 @@ Vec<Prop::Property> Subtree::getContextualProperties(
     return result;
 }
 
+bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
+    if (prefix.empty() || (prefix.size() == 1 && prefix[0] == head)) {
+        return true;
+    } else if (prefix[0] != head) {
+        return false;
+    } else {
+        Vec<Str> tmp;
+        for (const auto& it : prefix[slice(1, 1_B)]) {
+            tmp.push_back(it);
+        }
+
+        for (const auto& sub : subtags) {
+            if (sub->prefixMatch(tmp)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
 Opt<Prop::Property> Subtree::getContextualProperty(
     Prop::PropertyKind kind,
     CR<QString>        subkind) const {

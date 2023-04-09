@@ -120,17 +120,17 @@ Wrap<Table> OrgConverter::convertTable(__args) {
 
 Wrap<HashTag> OrgConverter::convertHashTag(__args) {
     __trace();
-    auto                      result = Sem<HashTag>(p, a);
-    Func<HashTag(OrgAdapter)> aux;
+    auto                            result = Sem<HashTag>(p, a);
+    Func<Wrap<HashTag>(OrgAdapter)> aux;
     result->head = strip(a.at(0).strVal(), CharSet{QChar('#')}, CharSet{});
 
-    aux = [p, &aux](OrgAdapter a) -> HashTag {
-        HashTag result{p, a};
-        result.head = strip(
+    aux = [p, &aux, this](OrgAdapter a) -> Wrap<HashTag> {
+        Wrap<HashTag> result = Sem<HashTag>(p, a);
+        result->head         = strip(
             a.at(0).strVal(), CharSet{QChar('#')}, CharSet{});
         if (1 < a.size()) {
             for (auto& node : a.at(slice(1, 1_B))) {
-                result.subtags.push_back(aux(node));
+                result->subtags.push_back(aux(node));
             }
         }
         return result;
@@ -157,6 +157,13 @@ Wrap<Subtree> OrgConverter::convertSubtree(__args) {
     }
 
     { __field(N::Todo); }
+
+    {
+        __field(N::Tags);
+        for (const auto& hash : one(a, N::Tags)) {
+            tree->tags.push_back(convertHashTag(tree.get(), hash));
+        }
+    }
 
     {
         __field(N::Drawer);
