@@ -536,7 +536,11 @@ Wrap<Document> OrgConverter::toDocument(OrgAdapter adapter) {
 
     if (adapter.kind() == org::StmtList) {
         for (const auto& sub : adapter) {
-            doc->subnodes.push_back(convert(doc.get(), sub));
+            if (sub.kind() == org::CommandTitle) {
+                doc->title = convertParagraph(doc.get(), sub[0]);
+            } else {
+                doc->subnodes.push_back(convert(doc.get(), sub));
+            }
         }
     } else {
         doc->subnodes.push_back(convert(doc.get(), adapter));

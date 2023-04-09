@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CXX_STANDARD 20)
 
 project(haxorg LANGUAGES CXX)
 set(BASE "${CMAKE_SOURCE_DIR}")
@@ -104,7 +105,7 @@ option(TRACE_INSTRUMENT "Generate instrumentation trace")
 option(USE_SINGLE_FILE_CATCH "Use single-file catch2 or installed one")
 option(TEST_COVERAGE "Enable test coverage")
 option(MAX_COMPILE_ERRORS
-       "Max number of compilation errors before compiler stops" 1)
+       "Max number of compilation errors before compiler stops")
 
 function(set_target_flags TARGET)
   # add_target_property(${TARGET} COMPILE_OPTIONS -w)
@@ -118,8 +119,11 @@ function(set_target_flags TARGET)
     message(INFO "Using clang compiler")
     # Avoid getting flooded with compilation errors
     set(CMAKE_CXX_COMPILER clang++)
-    add_target_property(${TARGET} COMPILE_OPTIONS
-                        "-ferror-limit=${MAX_COMPILE_ERRORS}")
+    if(NOT ${MAX_COMPILE_ERRORS} MATCHES ON)
+        add_target_property(${TARGET} COMPILE_OPTIONS
+                            "-ferror-limit=${MAX_COMPILE_ERRORS}")
+    endif()
+
 
     add_target_property(${TARGET} COMPILE_OPTIONS
                         "-fdiagnostics-format=sarif")
@@ -177,6 +181,10 @@ trace(">>>>>>>>> ${QT_VERSION_MAJOR}")
 function(set_common_files TARGET)
   list_filter_files(SRC_FILES *.cpp "${BASE}/src/.*")
   list_filter_files(HEADER_FILES *.hpp "${BASE}/src/.*")
+  set_target_properties("${TARGET}"
+      PROPERTIES
+      CMAKE_CXX_STANDARD 20
+      CXX_STANDARD 20)
   add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
   add_target_property("${TARGET}" SOURCES "${HEADER_FILES}")
   add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/src")

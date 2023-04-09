@@ -91,6 +91,8 @@ struct Org : public std::enable_shared_from_this<Org> {
     virtual void treeRepr(ColStream& os, CR<TreeReprConf>, TreeReprCtx)
         const;
 
+    inline Wrap<Org> at(int idx) { return subnodes[idx]; }
+
     json newJson() const {
         json res;
         res["kind"] = to_string(getKind());
@@ -461,6 +463,16 @@ struct Subtree : public Org {
             ExportOptions,
         };
 
+        BOOST_DESCRIBE_NESTED_ENUM(
+            PropertyKind,
+            Ordered,
+            Nonblocking,
+            Trigger,
+            Blocker,
+            Unnumbered,
+            Created,
+            ExportOptions);
+
 #define PROP_KIND(Kind)                                                   \
     PropertyKind getKind() const { return PropertyKind::Kind; }
 
@@ -498,6 +510,7 @@ struct Subtree : public Org {
         };
         struct Created {
             PROP_KIND(Created);
+            QDateTime time;
         };
 
         using Property = Variant<
@@ -519,10 +532,33 @@ struct Subtree : public Org {
     Opt<Str>                  todo;
     Opt<Wrap<Completion>>     completion;
     Vec<Wrap<HashTag>>        tags;
-    Wrap<Org>                 title;
-    Opt<Wrap<Org>>            description;
+    Wrap<Paragraph>           title;
+    Opt<Wrap<Paragraph>>      description;
     Vec<Wrap<SubtreeLog>>     logbook;
     Vec<Properties::Property> properties;
+
+    Opt<Wrap<Time>> closed;
+    Opt<Wrap<Time>> deadline;
+    Opt<Wrap<Time>> scheduled;
+
+    using PropKind = Properties::PropertyKind;
+
+    inline Opt<QDateTime> getCreated() const {
+        if (auto created = getProperty(PropKind::Created)) {
+            return std::get<Properties::Created>(created.value()).time;
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    Opt<Wrap<Time>> getStart() const;
+    Opt<Wrap<Time>> getEnd() const;
+
+
+    Vec<Properties::Property> getProperties(
+        Properties::PropertyKind kind) const;
+    Opt<Properties::Property> getProperty(
+        Properties::PropertyKind kind) const;
 
     virtual json toJson() const override;
     virtual void treeRepr(ColStream&, CR<TreeReprConf>, TreeReprCtx)
@@ -634,6 +670,28 @@ struct Document : public Org {
     using Org::Org;
     GET_KIND(Document);
 
+    Opt<Wrap<Paragraph>> title;
+    Opt<Wrap<Paragraph>> author;
+    Opt<Wrap<Paragraph>> creator;
+    Opt<Wrap<RawText>>   email;
+    Opt<Vec<Str>>        language;
+    Opt<Str>             exportFileName;
+
+    struct Options {
+        bool smartQuotes         = false;
+        bool emphasizedText      = false;
+        bool specialStrings      = false;
+        bool fixedWidthSections  = false;
+        bool includeTimestamps   = false;
+        bool preserveLineBreaks  = false;
+        bool plaintextSubscripts = false;
+        bool exportArchived      = false;
+        bool exportWithAuthor    = false;
+        bool exportBrokenLinks   = false;
+        bool exportWithClock     = false;
+        bool exportWithCreator   = false;
+    };
+
     UnorderedMap<Str, Wrap<Subtree>> idTable;
     UnorderedMap<Str, Org*>          nameTable;
     UnorderedMap<Str, Org*>          anchorTable;
@@ -642,6 +700,10 @@ struct Document : public Org {
     Opt<Wrap<Subtree>> getSubtree(CR<Str> id) { return idTable.get(id); }
 };
 
+struct DocumentGroup : public Org {
+    using Org::Org;
+    GET_KIND(DocumentGroup);
+};
 
 template <typename T>
 Opt<Wrap<T>> Stmt::getAttached(OrgSemKind kind) {

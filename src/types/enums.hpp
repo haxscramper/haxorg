@@ -413,7 +413,46 @@ enum class OrgSemKind : short int
     Placeholder,
     InlineMath,
     Document,
+    DocumentGroup,
 };
+
+#define EACH_SEM_ORG_KIND(__IMPL)                                         \
+    __IMPL(StmtList)                                                      \
+    __IMPL(Row)                                                           \
+    __IMPL(Table)                                                         \
+    __IMPL(HashTag)                                                       \
+    __IMPL(Completion)                                                    \
+    __IMPL(Paragraph)                                                     \
+    __IMPL(BigIdent)                                                      \
+    __IMPL(Link)                                                          \
+    __IMPL(Bold)                                                          \
+    __IMPL(Italic)                                                        \
+    __IMPL(Strike)                                                        \
+    __IMPL(Monospace)                                                     \
+    __IMPL(Verbatim)                                                      \
+    __IMPL(RawText)                                                       \
+    __IMPL(List)                                                          \
+    __IMPL(ListItem)                                                      \
+    __IMPL(Center)                                                        \
+    __IMPL(Par)                                                           \
+    __IMPL(Quote)                                                         \
+    __IMPL(Example)                                                       \
+    __IMPL(Code)                                                          \
+    __IMPL(Time)                                                          \
+    __IMPL(SubtreeLog)                                                    \
+    __IMPL(TimeRange)                                                     \
+    __IMPL(Subtree)                                                       \
+    __IMPL(Newline)                                                       \
+    __IMPL(Space)                                                         \
+    __IMPL(Word)                                                          \
+    __IMPL(Punctuation)                                                   \
+    __IMPL(MarkQuote)                                                     \
+    __IMPL(Caption)                                                       \
+    __IMPL(CommandGroup)                                                  \
+    __IMPL(Placeholder)                                                   \
+    __IMPL(InlineMath)                                                    \
+    __IMPL(Document)                                                      \
+    __IMPL(DocumentGroup)
 
 
 enum class OrgTextContext : short int
