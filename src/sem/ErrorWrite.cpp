@@ -75,6 +75,7 @@ struct MarginContext {
     _field(bool, is_ellipsis, false);
     _field(int, line_no_width, 0);
     _field(bool, draw_labels, false);
+    Line const&                         line;
     std::optional<std::pair<int, bool>> report_row = std::nullopt;
     MarginContext& with_report_row(std::pair<int, bool> const& value) {
         report_row = value;
@@ -125,9 +126,9 @@ std::optional<LineLabel> get_margin_label(
 
 void write_margin(MarginContext const& c);
 
+
 bool sort_line_labels(
     MarginContext const& c,
-    Line const&          line,
     bool&                is_ellipsis,
     Vec<LineLabel>&      line_labels) {
     // Skip this line if we don't have labels for it
@@ -136,7 +137,7 @@ bool sort_line_labels(
             c.multi_labels.begin(),
             c.multi_labels.end(),
             [&](const Label* label) {
-                return label->span->contains(line.span().first);
+                return label->span->contains(c.line.span().first);
             });
         if (!is_ellipsis && within_label) {
             is_ellipsis = true;
@@ -392,6 +393,93 @@ auto get_highlight(
              ? *it
              : nullptr;
 };
+
+
+auto get_underline(MarginContext const& c, int col) -> Opt<LineLabel> {
+
+    Vec<LineLabel>::const_iterator it = std::min_element(
+        c.line_labels.begin(),
+        c.line_labels.end(),
+        [&](const auto& a, const auto& b) {
+            return std::make_tuple(-a.label.priority, a.label.span->len())
+                 < std::make_tuple(-b.label.priority, b.label.span->len());
+        });
+
+    if (it != c.line_labels.end() && c.config.underlines && !it->multi
+        && it->label.span->contains(c.line.offset + col)) {
+        return *it;
+    } else {
+        return std::nullopt;
+    }
+};
+
+void whatever(MarginContext const& c, int row, int arrow_len) {
+    // Margin alternate
+    write_margin(
+        c.clone().with_draw_labels(true).with_report_row({row, false}));
+
+    // Lines alternate
+    auto chars = c.line.chars.begin();
+    for (int col = 0; col < arrow_len; ++col) {
+        int width = (chars != c.line.chars.end())
+                      ? c.config.char_width(*chars, col).second
+                      : 1;
+
+        // let underline =
+        // get_underline(col).filter(|_| row == 0); I
+        // think it translates like this, but fuck this
+        // Rust garbage
+        Opt<LineLabel> underline = std::nullopt;
+        if (row == 0) {
+            if (Opt<LineLabel> tmp = get_underline(c, col)) {
+                underline = tmp;
+            }
+        }
+
+        std::array<QChar, 2> ct_array;
+        if (auto vbar_ll = get_vbar(
+                col, row, c.line_labels, c.margin_label)) {
+            std::array<QChar, 2> ct_inner;
+            if (underline) {
+                if (vbar_ll->label.span->len() <= 1 || true) {
+                    ct_inner = {c.draw.underbar, c.draw.underline};
+                } else if (
+                    c.line.offset + col == vbar_ll->label.span->start()) {
+                    ct_inner = {c.draw.ltop, c.draw.underbar};
+                } else if (
+                    c.line.offset + col == vbar_ll->label.last_offset()) {
+                    ct_inner = {c.draw.rtop, c.draw.underbar};
+                } else {
+                    ct_inner = {c.draw.underbar, c.draw.underline};
+                }
+            } else if (
+                vbar_ll->multi && row == 0 && c.config.multiline_arrows) {
+                ct_inner = {c.draw.uarrow, ' '};
+            } else {
+                ct_inner = {c.draw.vbar, ' '};
+            }
+            ct_array = {
+                fg(ct_inner[0], vbar_ll->label.color),
+                fg(ct_inner[1], vbar_ll->label.color)};
+        } else if (underline) {
+            ct_array = {
+                fg(c.draw.underline, underline->label.color),
+                fg(c.draw.underline, underline->label.color)};
+        } else {
+            ct_array = {fg(' ', std::nullopt), fg(' ', std::nullopt)};
+        }
+
+        for (int i = 0; i < width; ++i) {
+            c.w << ((i == 0) ? ct_array[0] : ct_array[1]);
+        }
+
+        if (chars != c.line.chars.end()) {
+            ++chars;
+        }
+    }
+    c.w << "\n";
+}
+
 
 void build_multi_labels(
     Vec<const Label*>     multi_labels,
@@ -688,10 +776,11 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                 .src           = src,
                 .idx           = idx,
                 .line_no_width = line_no_width,
+                .line          = line,
             };
 
             bool do_skip = sort_line_labels(
-                base, line, is_ellipsis, line_labels);
+                base, is_ellipsis, line_labels);
 
             if (do_skip) {
                 continue;
@@ -716,26 +805,6 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                                 })
                           + arrow_end_space;
 
-
-            auto get_underline = [&](int col) -> Opt<LineLabel> {
-                Vec<LineLabel>::iterator it = std::min_element(
-                    line_labels.begin(),
-                    line_labels.end(),
-                    [&](const auto& a, const auto& b) {
-                        return std::make_tuple(
-                                   -a.label.priority, a.label.span->len())
-                             < std::make_tuple(
-                                   -b.label.priority, b.label.span->len());
-                    });
-
-                if (it != line_labels.end() && config.underlines
-                    && !it->multi
-                    && it->label.span->contains(line.offset + col)) {
-                    return *it;
-                } else {
-                    return std::nullopt;
-                }
-            };
 
             // Margin
             write_margin(base.clone()
@@ -775,82 +844,10 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                 const auto& line_label = line_labels[row];
 
                 if (!config.compact) {
-                    // Margin alternate
-                    write_margin(base.clone()
-                                     .with_is_ellipsis(is_ellipsis)
-                                     .with_draw_labels(true)
-                                     .with_report_row({row, false}));
-
-                    // Lines alternate
-                    auto chars = line.chars.begin();
-                    for (int col = 0; col < arrow_len; ++col) {
-                        int width = (chars != line.chars.end())
-                                      ? config.char_width(*chars, col)
-                                            .second
-                                      : 1;
-
-                        // let underline =
-                        // get_underline(col).filter(|_| row == 0); I
-                        // think it translates like this, but fuck this
-                        // Rust garbage
-                        Opt<LineLabel> underline = std::nullopt;
-                        if (row == 0) {
-                            if (Opt<LineLabel> tmp = get_underline(col)) {
-                                underline = tmp;
-                            }
-                        }
-
-                        std::array<QChar, 2> ct_array;
-                        if (auto vbar_ll = get_vbar(
-                                col, row, line_labels, margin_label)) {
-                            std::array<QChar, 2> ct_inner;
-                            if (underline) {
-                                if (vbar_ll->label.span->len() <= 1
-                                    || true) {
-                                    ct_inner = {
-                                        draw.underbar, draw.underline};
-                                } else if (
-                                    line.offset + col
-                                    == vbar_ll->label.span->start()) {
-                                    ct_inner = {draw.ltop, draw.underbar};
-                                } else if (
-                                    line.offset + col
-                                    == vbar_ll->label.last_offset()) {
-                                    ct_inner = {draw.rtop, draw.underbar};
-                                } else {
-                                    ct_inner = {
-                                        draw.underbar, draw.underline};
-                                }
-                            } else if (
-                                vbar_ll->multi && row == 0
-                                && config.multiline_arrows) {
-                                ct_inner = {draw.uarrow, ' '};
-                            } else {
-                                ct_inner = {draw.vbar, ' '};
-                            }
-                            ct_array = {
-                                fg(ct_inner[0], vbar_ll->label.color),
-                                fg(ct_inner[1], vbar_ll->label.color)};
-                        } else if (underline) {
-                            ct_array = {
-                                fg(draw.underline, underline->label.color),
-                                fg(draw.underline,
-                                   underline->label.color)};
-                        } else {
-                            ct_array = {
-                                fg(' ', std::nullopt),
-                                fg(' ', std::nullopt)};
-                        }
-
-                        for (int i = 0; i < width; ++i) {
-                            w << ((i == 0) ? ct_array[0] : ct_array[1]);
-                        }
-
-                        if (chars != line.chars.end()) {
-                            ++chars;
-                        }
-                    }
-                    w << "\n";
+                    whatever(
+                        base.with_is_ellipsis(is_ellipsis),
+                        row,
+                        arrow_len);
                 }
 
                 // Margin
@@ -884,6 +881,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
             .is_line       = false,
             .is_ellipsis   = false,
             .report_row    = std::pair{0, false},
+            .line          = Line{},
         };
 
 

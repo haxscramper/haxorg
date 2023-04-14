@@ -781,7 +781,7 @@ TEST_CASE("Print Error", "[err]") {
                 .with_color(a))
         .with_label(
             Label(std::make_shared<TupleCodeSpan>(b_id, slice(17, 20 - 1)))
-                .with_message("This is of type " + strColorized)
+                .with_message("This is of typee " + strColorized)
                 .with_color(b))
         .with_label(
             Label(std::make_shared<TupleCodeSpan>(b_id, slice(15, 16 - 1)))
