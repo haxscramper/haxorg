@@ -422,7 +422,7 @@ struct Config {
         return color ? std::make_optional(Color::Fixed) : std::nullopt;
     }
 
-    std::pair<QChar, int> char_width(QChar c, int col) {
+    std::pair<QChar, int> char_width(QChar c, int col) const {
         if (c == '\t') {
             // Find the column that the tab should end at
             int tab_end = (col / tab_width + 1) * tab_width;

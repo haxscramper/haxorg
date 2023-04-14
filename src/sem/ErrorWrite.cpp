@@ -1,5 +1,6 @@
 #include <sem/ErrorWrite.hpp>
 #include <QChar>
+#include <hstd/stdlib/Opt.hpp>
 
 Characters unicode() {
     return Characters{
@@ -217,6 +218,112 @@ void Report::write_margin(MarginContext c) {
         }
     }
 }
+
+namespace {
+struct WriteForStreamCtx {};
+
+// Should we draw a vertical bar as part of a label arrow
+// on this line?
+auto get_vbar(
+    int                           col,
+    int                           row,
+    Vec<Report::LineLabel> const& line_labels,
+    Opt<Report::LineLabel> const& margin_label)
+    -> std::optional<Report::LineLabel> {
+    for (const auto& ll : line_labels) {
+        if (ll.label.msg
+            && (!margin_label.has_value()
+                || ll.label != margin_label->label)
+            && ll.col == col
+            && ((row <= &ll - &line_labels[0] && !ll.multi)
+                || (row <= &ll - &line_labels[0] && ll.multi))) {
+            return ll;
+        }
+    }
+    return std::nullopt;
+};
+
+
+void write_lines(
+    Line const&                   line,
+    int                           arrow_len,
+    Config const&                 config,
+    Report::LineLabel const&      line_label,
+    Characters const&             draw,
+    Opt<Report::LineLabel> const& margin_label,
+    int                           row,
+    Vec<Report::LineLabel> const& line_labels,
+    QTextStream&                  w) {
+    // Lines
+    auto chars = line.chars.begin();
+    for (int col = 0; col < arrow_len; ++col) {
+        int width = (chars != line.chars.end())
+                      ? config.char_width(*chars, col).second
+                      : 1;
+
+        bool is_hbar = (((col > line_label.col) ^ line_label.multi)
+                        || (line_label.label.msg && line_label.draw_msg
+                            && col > line_label.col))
+                    && line_label.label.msg;
+        std::array<QChar, 2> ct_array;
+        if (col == line_label.col && line_label.label.msg
+            && (!margin_label.has_value()
+                || line_label.label != margin_label->label)) {
+            ct_array = {
+                fg((line_label.multi
+                        ? (line_label.draw_msg ? draw.mbot : draw.rbot)
+                        : draw.lbot),
+                   line_label.label.color),
+                fg(draw.hbar, line_label.label.color),
+            };
+        } else if (std::optional<Report::LineLabel> vbar_ll = std::nullopt;
+                   (vbar_ll = get_vbar(
+                        col, row, line_labels, margin_label))
+                   && (col != line_label.col || line_label.label.msg)) {
+            if (!config.cross_gap && is_hbar) {
+                ct_array = {
+                    fg(draw.xbar, line_label.label.color),
+                    fg(' ', line_label.label.color),
+                };
+            } else if (is_hbar) {
+                ct_array = {
+                    fg(draw.hbar, line_label.label.color),
+                    fg(draw.hbar, line_label.label.color),
+                };
+            } else {
+                ct_array = {
+                    fg((vbar_ll->multi && row == 0 && config.compact
+                            ? draw.uarrow
+                            : draw.vbar),
+                       vbar_ll->label.color),
+                    fg(' ', line_label.label.color),
+                };
+            }
+        } else if (is_hbar) {
+            ct_array = {
+                fg(draw.hbar, line_label.label.color),
+                fg(draw.hbar, line_label.label.color),
+            };
+        } else {
+            ct_array = {
+                fg(' ', std::nullopt),
+                fg(' ', std::nullopt),
+            };
+        }
+
+        if (width > 0) {
+            w << ct_array[0];
+        }
+        for (int i = 1; i < width; ++i) {
+            w << ct_array[1];
+        }
+
+        if (chars != line.chars.end()) {
+            ++chars;
+        }
+    }
+}
+}; // namespace
 
 void Report::write_for_stream(Cache& cache, QTextStream& w) {
     qDebug() << "Write for stream requested";
@@ -487,23 +594,6 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                                 })
                           + arrow_end_space;
 
-            // Should we draw a vertical bar as part of a label arrow
-            // on this line?
-            auto get_vbar = [&](int col, int row) -> LineLabel* {
-                auto it = std::find_if(
-                    line_labels.begin(),
-                    line_labels.end(),
-                    [&](const auto& ll) {
-                        return ll.label.msg
-                            && (!margin_label.has_value()
-                                || ll.label != margin_label->label)
-                            && ll.col == col
-                            && ((row <= &ll - &line_labels[0] && !ll.multi)
-                                || (row <= &ll - &line_labels[0]
-                                    && ll.multi));
-                    });
-                return it != line_labels.end() ? &(*it) : nullptr;
-            };
 
             auto get_highlight = [&](int col) {
                 Vec<const Label*> candidates;
@@ -538,7 +628,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                          : nullptr;
             };
 
-            auto get_underline = [&](int col) -> LineLabel* {
+            auto get_underline = [&](int col) -> Opt<LineLabel> {
                 Vec<LineLabel>::iterator it = std::min_element(
                     line_labels.begin(),
                     line_labels.end(),
@@ -549,11 +639,13 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                                    -b.label.priority, b.label.span->len());
                     });
 
-                return (it != line_labels.end() && config.underlines
-                        && !it->multi
-                        && it->label.span->contains(line.offset + col))
-                         ? &(*it)
-                         : nullptr;
+                if (it != line_labels.end() && config.underlines
+                    && !it->multi
+                    && it->label.span->contains(line.offset + col)) {
+                    return *it;
+                } else {
+                    return std::nullopt;
+                }
             };
 
             // Margin
@@ -568,15 +660,6 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                 .line_labels   = line_labels,
                 .multi_labels  = multi_labels,
             });
-            //                write_margin(
-            //                    w,
-            //                    idx,
-            //                    true,
-            //                    is_ellipsis,
-            //                    true,
-            //                    std::nullopt,
-            //                    line_labels,
-            //                    margin_label);
 
             // Line
             if (!is_ellipsis) {
@@ -616,15 +699,6 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                         .multi_labels  = multi_labels,
                         .report_row    = std::pair{row, false},
                     });
-                    //                        write_margin(
-                    //                            w,
-                    //                            idx,
-                    //                            false,
-                    //                            is_ellipsis,
-                    //                            true,
-                    //                            std::make_optional(std::make_pair(row,
-                    //                            false)), line_labels,
-                    //                            margin_label);
 
                     // Lines alternate
                     auto chars = line.chars.begin();
@@ -634,24 +708,22 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                                             .second
                                       : 1;
 
-                        auto vbar = get_vbar(col, row);
-
                         // let underline =
                         // get_underline(col).filter(|_| row == 0); I
                         // think it translates like this, but fuck this
                         // Rust garbage
-                        LineLabel* underline = nullptr;
+                        Opt<LineLabel> underline = std::nullopt;
                         if (row == 0) {
-                            if (LineLabel* tmp = get_underline(col)) {
+                            if (Opt<LineLabel> tmp = get_underline(col)) {
                                 underline = tmp;
                             }
                         }
 
                         std::array<QChar, 2> ct_array;
-                        if (auto vbar_ll = vbar) {
+                        if (auto vbar_ll = get_vbar(
+                                col, row, line_labels, margin_label)) {
                             std::array<QChar, 2> ct_inner;
                             if (underline) {
-                                // TODO: Is this good?
                                 if (vbar_ll->label.span->len() <= 1
                                     || true) {
                                     ct_inner = {
@@ -712,88 +784,17 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                     .multi_labels  = multi_labels,
                     .report_row    = std::pair{row, true},
                 });
-                //                    write_margin(
-                //                        w,
-                //                        idx,
-                //                        false,
-                //                        is_ellipsis,
-                //                        true,
-                //                        std::make_optional(std::make_pair(row,
-                //                        true)), line_labels,
-                //                        margin_label);
 
-                // Lines
-                auto chars = line.chars.begin();
-                for (int col = 0; col < arrow_len; ++col) {
-                    int width = (chars != line.chars.end())
-                                  ? config.char_width(*chars, col).second
-                                  : 1;
-
-                    bool is_hbar = (((col > line_label.col)
-                                     ^ line_label.multi)
-                                    || (line_label.label.msg
-                                        && line_label.draw_msg
-                                        && col > line_label.col))
-                                && line_label.label.msg;
-                    std::array<QChar, 2> ct_array;
-                    if (col == line_label.col && line_label.label.msg
-                        && (!margin_label.has_value()
-                            || line_label.label != margin_label->label)) {
-                        ct_array = {
-                            fg((line_label.multi
-                                    ? (line_label.draw_msg ? draw.mbot
-                                                           : draw.rbot)
-                                    : draw.lbot),
-                               line_label.label.color),
-                            fg(draw.hbar, line_label.label.color),
-                        };
-                    } else if (LineLabel* vbar_ll = nullptr;
-                               (vbar_ll = get_vbar(col, row))
-                               && (col != line_label.col
-                                   || line_label.label.msg)) {
-                        if (!config.cross_gap && is_hbar) {
-                            ct_array = {
-                                fg(draw.xbar, line_label.label.color),
-                                fg(' ', line_label.label.color),
-                            };
-                        } else if (is_hbar) {
-                            ct_array = {
-                                fg(draw.hbar, line_label.label.color),
-                                fg(draw.hbar, line_label.label.color),
-                            };
-                        } else {
-                            ct_array = {
-                                fg((vbar_ll->multi && row == 0
-                                            && config.compact
-                                        ? draw.uarrow
-                                        : draw.vbar),
-                                   vbar_ll->label.color),
-                                fg(' ', line_label.label.color),
-                            };
-                        }
-                    } else if (is_hbar) {
-                        ct_array = {
-                            fg(draw.hbar, line_label.label.color),
-                            fg(draw.hbar, line_label.label.color),
-                        };
-                    } else {
-                        ct_array = {
-                            fg(' ', std::nullopt),
-                            fg(' ', std::nullopt),
-                        };
-                    }
-
-                    if (width > 0) {
-                        w << ct_array[0];
-                    }
-                    for (int i = 1; i < width; ++i) {
-                        w << ct_array[1];
-                    }
-
-                    if (chars != line.chars.end()) {
-                        ++chars;
-                    }
-                }
+                write_lines(
+                    line,
+                    arrow_len,
+                    config,
+                    line_label,
+                    draw,
+                    margin_label,
+                    row,
+                    line_labels,
+                    w);
 
                 if (line_label.draw_msg) {
                     w << " " << line_label.label.msg.value();
@@ -818,15 +819,6 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                     .multi_labels  = multi_labels,
                     .report_row    = std::pair{0, false},
                 });
-                //                    write_margin(
-                //                        w,
-                //                        0,
-                //                        false,
-                //                        false,
-                //                        true,
-                //                        std::make_pair(0, false),
-                //                        {},
-                //                        std::nullopt);
                 w << "\n";
             }
             write_margin({
@@ -840,15 +832,6 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                 .multi_labels  = multi_labels,
                 .report_row    = std::pair{0, false},
             });
-            //                write_margin(
-            //                    w,
-            //                    0,
-            //                    false,
-            //                    false,
-            //                    true,
-            //                    std::make_pair(0, false),
-            //                    {},
-            //                    std::nullopt);
             w << "Help"
               << ": " << help.value() << "\n";
         }
@@ -867,15 +850,6 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                     .multi_labels  = multi_labels,
                     .report_row    = std::pair{0, false},
                 });
-                //                    write_margin(
-                //                        w,
-                //                        0,
-                //                        false,
-                //                        false,
-                //                        true,
-                //                        std::make_pair(0, false),
-                //                        {},
-                //                        std::nullopt);
                 w << "\n";
             }
             write_margin({
@@ -889,15 +863,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                 .multi_labels  = multi_labels,
                 .report_row    = std::pair{0, false},
             });
-            //                write_margin(
-            //                    w,
-            //                    0,
-            //                    false,
-            //                    false,
-            //                    true,
-            //                    std::make_pair(0, false),
-            //                    {},
-            //                    std::nullopt);
+
             w << "Note"
               << ": " << note.value() << "\n";
         }
