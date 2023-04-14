@@ -355,8 +355,7 @@ struct Config {
         , underlines(true)
         , multiline_arrows(true)
         , color(true)
-        , tab_width(4)
-        , char_set(MessageCharSet::Unicode) {}
+        , tab_width(4) {}
 
     inline Config& with_cross_gap(bool cross_gap) {
         this->cross_gap = cross_gap;
@@ -611,7 +610,7 @@ class Report {
         int                                 line_no_width = 0;
         std::shared_ptr<Source>             src;
         Vec<const Label*>&                  multi_labels;
-        Characters                          draw;
+        Characters const&                   draw;
     };
 
     void write_margin(MarginContext c);

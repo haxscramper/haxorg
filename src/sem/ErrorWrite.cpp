@@ -50,6 +50,7 @@ Characters ascii() {
     };
 }
 
+
 void Report::write_margin(MarginContext c) {
     QString line_no_margin;
     if (c.is_line && !c.is_ellipsis) {
@@ -67,6 +68,7 @@ void Report::write_margin(MarginContext c) {
     c.w << " " << line_no_margin << (config.compact ? "" : " ");
 
 
+    // Multi-line margins
     if (c.draw_labels) {
         for (int col = 0;
              col < c.multi_labels.size() + (c.multi_labels.size() > 0);
@@ -242,6 +244,60 @@ auto get_vbar(
     }
     return std::nullopt;
 };
+
+
+auto get_highlight(
+    int                              col,
+    Vec<const Label*>                multi_labels,
+    Line const&                      line,
+    Vec<Report::LineLabel>&          line_labels,
+    std::optional<Report::LineLabel> margin_label) -> const Label* {
+    Vec<const Label*> candidates;
+
+    if (margin_label) {
+        candidates.push_back(&margin_label->label);
+    }
+
+    for (const auto& l : multi_labels) {
+        candidates.push_back(l);
+    }
+
+    for (const auto& l : line_labels) {
+        candidates.push_back(&l.label);
+    }
+
+    auto it = std::min_element(
+        candidates.begin(),
+        candidates.end(),
+        [&](const auto& a, const auto& b) {
+            return std::make_tuple(-a->priority, a->span->len())
+                 < std::make_tuple(-b->priority, b->span->len());
+        });
+
+    return (it != candidates.end()
+            && (*it)->span->contains(line.offset + col))
+             ? *it
+             : nullptr;
+};
+
+void build_multi_labels(
+    Vec<const Label*>     multi_labels,
+    Vec<LabelInfo> const& labels) {
+    for (LabelInfo const& label_info : labels) {
+        if (label_info.kind == LabelKind::Multiline) {
+            multi_labels.push_back(&label_info.label);
+        }
+    }
+
+
+    // Sort multiline labels by length
+    std::sort(
+        multi_labels.begin(),
+        multi_labels.end(),
+        [](Label const* a, Label const* b) {
+            return (a->span->len()) > (b->span->len());
+        });
+}
 
 void build_line_labels(
     Vec<Report::LineLabel>&       line_labels,
@@ -488,21 +544,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
 
         // Generate a list of multi-line labels
         Vec<const Label*> multi_labels;
-        for (LabelInfo const& label_info : labels) {
-            if (label_info.kind == LabelKind::Multiline) {
-                multi_labels.push_back(&label_info.label);
-            }
-        }
-
-
-        // Sort multiline labels by length
-        std::sort(
-            multi_labels.begin(),
-            multi_labels.end(),
-            [](Label const* a, Label const* b) {
-                return (a->span->len()) > (b->span->len());
-            });
-
+        build_multi_labels(multi_labels, labels);
 
         bool is_ellipsis = false;
         for (int idx = line_range.first; idx <= line_range.last; ++idx) {
@@ -568,6 +610,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                             .src           = src,
                             .line_labels   = line_labels,
                             .multi_labels  = multi_labels,
+                            .draw          = draw,
                         });
                         w << "\n";
                     }
@@ -613,39 +656,6 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                           + arrow_end_space;
 
 
-            auto get_highlight = [&](int col) {
-                Vec<const Label*> candidates;
-
-                // TODO fixme
-                //                    for (const auto& ll :
-                //                    margin_label) {
-                //                        candidates.push_back(&ll.label);
-                //                    }
-
-                for (const auto& l : multi_labels) {
-                    candidates.push_back(l);
-                }
-
-                for (const auto& l : line_labels) {
-                    candidates.push_back(&l.label);
-                }
-
-                auto it = std::min_element(
-                    candidates.begin(),
-                    candidates.end(),
-                    [&](const auto& a, const auto& b) {
-                        return std::make_tuple(
-                                   -a->priority, a->span->len())
-                             < std::make_tuple(
-                                   -b->priority, b->span->len());
-                    });
-
-                return (it != candidates.end()
-                        && (*it)->span->contains(line.offset + col))
-                         ? *it
-                         : nullptr;
-            };
-
             auto get_underline = [&](int col) -> Opt<LineLabel> {
                 Vec<LineLabel>::iterator it = std::min_element(
                     line_labels.begin(),
@@ -677,15 +687,22 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                 .src           = src,
                 .line_labels   = line_labels,
                 .multi_labels  = multi_labels,
+                .draw          = draw,
             });
 
             // Line
             if (!is_ellipsis) {
                 int col = 0;
                 for (QChar c : line.chars) {
-                    auto highlight   = get_highlight(col);
-                    auto color       = highlight ? highlight->color
-                                                 : config.unimportant_color();
+                    Label const* highlight = get_highlight(
+                        col,
+                        multi_labels,
+                        line,
+                        line_labels,
+                        margin_label);
+                    Opt<Color> color = highlight
+                                         ? highlight->color
+                                         : config.unimportant_color();
                     auto [wc, width] = config.char_width(c, col);
 
                     if (c.isSpace()) {
@@ -716,6 +733,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                         .line_labels   = line_labels,
                         .multi_labels  = multi_labels,
                         .report_row    = std::pair{row, false},
+                        .draw          = draw,
                     });
 
                     // Lines alternate
@@ -801,6 +819,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                     .line_labels   = line_labels,
                     .multi_labels  = multi_labels,
                     .report_row    = std::pair{row, true},
+                    .draw          = draw,
                 });
 
                 write_lines(
@@ -836,6 +855,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                     .src           = src,
                     .multi_labels  = multi_labels,
                     .report_row    = std::pair{0, false},
+                    .draw          = draw,
                 });
                 w << "\n";
             }
@@ -849,6 +869,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                 .src           = src,
                 .multi_labels  = multi_labels,
                 .report_row    = std::pair{0, false},
+                .draw          = draw,
             });
             w << "Help"
               << ": " << help.value() << "\n";
@@ -867,6 +888,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                     .src           = src,
                     .multi_labels  = multi_labels,
                     .report_row    = std::pair{0, false},
+                    .draw          = draw,
                 });
                 w << "\n";
             }
@@ -880,6 +902,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                 .src           = src,
                 .multi_labels  = multi_labels,
                 .report_row    = std::pair{0, false},
+                .draw          = draw,
             });
 
             w << "Note"
