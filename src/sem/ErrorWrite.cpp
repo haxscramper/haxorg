@@ -243,6 +243,96 @@ auto get_vbar(
     return std::nullopt;
 };
 
+void build_line_labels(
+    Vec<Report::LineLabel>&       line_labels,
+    Config const&                 config,
+    Line const&                   line,
+    Vec<LabelInfo> const&         labels,
+    Opt<Report::LineLabel> const& margin_label,
+    Vec<const Label*>             multi_labels) {
+    for (const Label* label : multi_labels) {
+        bool is_start = line.span().contains(label->span->start());
+        bool is_end   = line.span().contains(label->last_offset());
+        bool different_from_margin_label
+            = (!margin_label.has_value()
+               || reinterpret_cast<const void*>(label)
+                      != reinterpret_cast<const void*>(
+                          &margin_label->label));
+
+        if ((is_start && different_from_margin_label) || is_end) {
+            Report::LineLabel ll{
+                .col = (is_start ? label->span->start()
+                                 : label->last_offset())
+                     - line.offset,
+                .label    = *label,
+                .multi    = true,
+                .draw_msg = is_end,
+            };
+
+
+            line_labels.push_back(ll);
+        }
+    }
+
+    for (const LabelInfo& label_info : labels) {
+        if (label_info.label.span->start() >= line.span().first
+            && label_info.label.span->end() <= line.span().last) {
+            if (label_info.kind == LabelKind::Inline) {
+                int position = 0;
+                switch (config.label_attach) {
+                    case LabelAttach::Start:
+                        position = label_info.label.span->start();
+                        break;
+                    case LabelAttach::Middle:
+                        position = (label_info.label.span->start()
+                                    + label_info.label.span->end())
+                                 / 2;
+                        break;
+                    case LabelAttach::End:
+                        position = label_info.label.last_offset();
+                        break;
+                }
+
+                Report::LineLabel ll{
+                    .col = std::max(
+                               position, label_info.label.span->start())
+                         - line.offset,
+                    .label    = label_info.label,
+                    .multi    = false,
+                    .draw_msg = true,
+                };
+
+
+                line_labels.push_back(ll);
+            }
+        }
+    }
+}
+
+int get_line_no_width(Vec<SourceGroup> const& groups, Cache& cache) {
+    int line_no_width = 0;
+    for (const auto& group : groups) {
+        QString src_name = cache.display(group.src_id)
+                               .value_or("<unknown>");
+
+        try {
+            auto src = cache.fetch(group.src_id);
+
+            auto line_range = src->get_line_range(
+                RangeCodeSpan(group.span));
+            int width = 0;
+            for (uint32_t x = 1, y = 1; line_range.last / y != 0;
+                 x *= 10, y        = std::pow(10, x)) {
+                ++width;
+            }
+            line_no_width = std::max(line_no_width, width);
+        } catch (const std::exception& e) {
+            std::cerr << "Unable to fetch source " << src_name << ": "
+                      << e.what() << std::endl;
+        }
+    }
+    return line_no_width;
+}
 
 void write_lines(
     Line const&                   line,
@@ -358,28 +448,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
     auto groups = get_source_groups(&cache);
 
     // Line number maximum width
-    int line_no_width = 0;
-    for (const auto& group : groups) {
-        QString src_name = cache.display(group.src_id)
-                               .value_or("<unknown>");
-
-        try {
-            auto src = cache.fetch(group.src_id);
-
-            auto line_range = src->get_line_range(
-                RangeCodeSpan(group.span));
-            int width = 0;
-            for (uint32_t x = 1, y = 1; line_range.last / y != 0;
-                 x *= 10, y        = std::pow(10, x)) {
-                ++width;
-            }
-            line_no_width = std::max(line_no_width, width);
-        } catch (const std::exception& e) {
-            std::cerr << "Unable to fetch source " << src_name << ": "
-                      << e.what() << std::endl;
-        }
-    }
-
+    int line_no_width = get_line_no_width(groups, cache);
     // --- Source sections ---
     for (int group_idx = 0; group_idx < groups.size(); ++group_idx) {
         SourceGroup const& group               = groups[group_idx];
@@ -471,64 +540,13 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
             }
 
             Vec<LineLabel> line_labels;
-            for (const Label* label : multi_labels) {
-                bool is_start = line.span().contains(label->span->start());
-                bool is_end   = line.span().contains(label->last_offset());
-                bool different_from_margin_label
-                    = (!margin_label.has_value()
-                       || reinterpret_cast<const void*>(label)
-                              != reinterpret_cast<const void*>(
-                                  &margin_label->label));
-
-                if ((is_start && different_from_margin_label) || is_end) {
-                    LineLabel ll{
-                        .col = (is_start ? label->span->start()
-                                         : label->last_offset())
-                             - line.offset,
-                        .label    = *label,
-                        .multi    = true,
-                        .draw_msg = is_end,
-                    };
-
-
-                    line_labels.push_back(ll);
-                }
-            }
-
-            for (const LabelInfo& label_info : labels) {
-                if (label_info.label.span->start() >= line.span().first
-                    && label_info.label.span->end() <= line.span().last) {
-                    if (label_info.kind == LabelKind::Inline) {
-                        int position = 0;
-                        switch (config.label_attach) {
-                            case LabelAttach::Start:
-                                position = label_info.label.span->start();
-                                break;
-                            case LabelAttach::Middle:
-                                position = (label_info.label.span->start()
-                                            + label_info.label.span->end())
-                                         / 2;
-                                break;
-                            case LabelAttach::End:
-                                position = label_info.label.last_offset();
-                                break;
-                        }
-
-                        LineLabel ll{
-                            .col = std::max(
-                                       position,
-                                       label_info.label.span->start())
-                                 - line.offset,
-                            .label    = label_info.label,
-                            .multi    = false,
-                            .draw_msg = true,
-                        };
-
-
-                        line_labels.push_back(ll);
-                    }
-                }
-            }
+            build_line_labels(
+                line_labels,
+                config,
+                line,
+                labels,
+                margin_label,
+                multi_labels);
 
             // Skip this line if we don't have labels for it
             if (line_labels.size() == 0 && !margin_label.has_value()) {
