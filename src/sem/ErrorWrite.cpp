@@ -51,7 +51,48 @@ Characters ascii() {
 }
 
 
-void Report::write_margin(MarginContext c) {
+namespace {
+struct LineLabel {
+    int   col;
+    Label label;
+    bool  multi;
+    bool  draw_msg;
+};
+
+
+#define _field(Type, Name, Default)                                       \
+    Type           Name = Default;                                        \
+    MarginContext& with_##Name(Type const& value) {                       \
+        Name = value;                                                     \
+        return *this;                                                     \
+    }
+
+struct MarginContext {
+    QTextStream&  w;
+    MarginContext clone() { return *this; }
+    _field(int, idx, 0);
+    _field(bool, is_line, false);
+    _field(bool, is_ellipsis, false);
+    _field(int, line_no_width, 0);
+    _field(bool, draw_labels, false);
+    std::optional<std::pair<int, bool>> report_row = std::nullopt;
+    MarginContext& with_report_row(std::pair<int, bool> const& value) {
+        report_row = value;
+        return *this;
+    }
+
+
+    const Vec<LineLabel>&           line_labels;
+    const std::optional<LineLabel>& margin_label = std::nullopt;
+    //    int                                 line_no_width = 0;
+    std::shared_ptr<Source>  src;
+    Vec<const Label*> const& multi_labels;
+    Characters const&        draw;
+    Config const&            config;
+};
+
+
+void write_margin(MarginContext c) {
     QString line_no_margin;
     if (c.is_line && !c.is_ellipsis) {
         int line_no    = c.idx + 1;
@@ -65,7 +106,7 @@ void Report::write_margin(MarginContext c) {
                                         : c.draw.vbar_break);
     }
 
-    c.w << " " << line_no_margin << (config.compact ? "" : " ");
+    c.w << " " << line_no_margin << (c.config.compact ? "" : " ");
 
 
     // Multi-line margins
@@ -178,7 +219,7 @@ void Report::write_margin(MarginContext c) {
                     fg(c.draw.hbar, label->color),
                 };
             } else if (auto label = hbar.value();
-                       vbar.has_value() && !config.cross_gap) {
+                       vbar.has_value() && !c.config.cross_gap) {
                 ab = {
                     fg(c.draw.xbar, label->color),
                     fg(c.draw.hbar, label->color)};
@@ -221,17 +262,14 @@ void Report::write_margin(MarginContext c) {
     }
 }
 
-namespace {
-struct WriteForStreamCtx {};
 
 // Should we draw a vertical bar as part of a label arrow
 // on this line?
 auto get_vbar(
-    int                           col,
-    int                           row,
-    Vec<Report::LineLabel> const& line_labels,
-    Opt<Report::LineLabel> const& margin_label)
-    -> std::optional<Report::LineLabel> {
+    int                   col,
+    int                   row,
+    Vec<LineLabel> const& line_labels,
+    Opt<LineLabel> const& margin_label) -> std::optional<LineLabel> {
     for (const auto& ll : line_labels) {
         if (ll.label.msg
             && (!margin_label.has_value()
@@ -247,11 +285,11 @@ auto get_vbar(
 
 
 auto get_highlight(
-    int                              col,
-    Vec<const Label*>                multi_labels,
-    Line const&                      line,
-    Vec<Report::LineLabel>&          line_labels,
-    std::optional<Report::LineLabel> margin_label) -> const Label* {
+    int                      col,
+    Vec<const Label*>        multi_labels,
+    Line const&              line,
+    Vec<LineLabel>&          line_labels,
+    std::optional<LineLabel> margin_label) -> const Label* {
     Vec<const Label*> candidates;
 
     if (margin_label) {
@@ -300,12 +338,12 @@ void build_multi_labels(
 }
 
 void build_line_labels(
-    Vec<Report::LineLabel>&       line_labels,
-    Config const&                 config,
-    Line const&                   line,
-    Vec<LabelInfo> const&         labels,
-    Opt<Report::LineLabel> const& margin_label,
-    Vec<const Label*>             multi_labels) {
+    Vec<LineLabel>&       line_labels,
+    Config const&         config,
+    Line const&           line,
+    Vec<LabelInfo> const& labels,
+    Opt<LineLabel> const& margin_label,
+    Vec<const Label*>     multi_labels) {
     for (const Label* label : multi_labels) {
         bool is_start = line.span().contains(label->span->start());
         bool is_end   = line.span().contains(label->last_offset());
@@ -316,7 +354,7 @@ void build_line_labels(
                           &margin_label->label));
 
         if ((is_start && different_from_margin_label) || is_end) {
-            Report::LineLabel ll{
+            LineLabel ll{
                 .col = (is_start ? label->span->start()
                                  : label->last_offset())
                      - line.offset,
@@ -349,7 +387,7 @@ void build_line_labels(
                         break;
                 }
 
-                Report::LineLabel ll{
+                LineLabel ll{
                     .col = std::max(
                                position, label_info.label.span->start())
                          - line.offset,
@@ -391,15 +429,15 @@ int get_line_no_width(Vec<SourceGroup> const& groups, Cache& cache) {
 }
 
 void write_lines(
-    Line const&                   line,
-    int                           arrow_len,
-    Config const&                 config,
-    Report::LineLabel const&      line_label,
-    Characters const&             draw,
-    Opt<Report::LineLabel> const& margin_label,
-    int                           row,
-    Vec<Report::LineLabel> const& line_labels,
-    QTextStream&                  w) {
+    Line const&           line,
+    int                   arrow_len,
+    Config const&         config,
+    LineLabel const&      line_label,
+    Characters const&     draw,
+    Opt<LineLabel> const& margin_label,
+    int                   row,
+    Vec<LineLabel> const& line_labels,
+    QTextStream&          w) {
     // Lines
     auto chars = line.chars.begin();
     for (int col = 0; col < arrow_len; ++col) {
@@ -422,7 +460,7 @@ void write_lines(
                    line_label.label.color),
                 fg(draw.hbar, line_label.label.color),
             };
-        } else if (std::optional<Report::LineLabel> vbar_ll = std::nullopt;
+        } else if (std::optional<LineLabel> vbar_ll = std::nullopt;
                    (vbar_ll = get_vbar(
                         col, row, line_labels, margin_label))
                    && (col != line_label.col || line_label.label.msg)) {
@@ -546,6 +584,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
         Vec<const Label*> multi_labels;
         build_multi_labels(multi_labels, labels);
 
+
         bool is_ellipsis = false;
         for (int idx = line_range.first; idx <= line_range.last; ++idx) {
             auto line_opt = src->line(idx);
@@ -590,6 +629,18 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                 margin_label,
                 multi_labels);
 
+
+            MarginContext base{
+                .w             = w,
+                .config        = config,
+                .draw          = draw,
+                .multi_labels  = multi_labels,
+                .line_labels   = line_labels,
+                .src           = src,
+                .idx           = idx,
+                .line_no_width = line_no_width,
+            };
+
             // Skip this line if we don't have labels for it
             if (line_labels.size() == 0 && !margin_label.has_value()) {
                 bool within_label = std::any_of(
@@ -602,16 +653,9 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                     is_ellipsis = true;
                 } else {
                     if (!config.compact && !is_ellipsis) {
-                        write_margin({
-                            .line_no_width = line_no_width,
-                            .w             = w,
-                            .idx           = idx,
-                            .is_ellipsis   = is_ellipsis,
-                            .src           = src,
-                            .line_labels   = line_labels,
-                            .multi_labels  = multi_labels,
-                            .draw          = draw,
-                        });
+                        write_margin(
+                            base.clone().with_is_ellipsis(is_ellipsis));
+
                         w << "\n";
                     }
                     is_ellipsis = true;
@@ -677,18 +721,10 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
             };
 
             // Margin
-            write_margin({
-                .line_no_width = line_no_width,
-                .w             = w,
-                .idx           = idx,
-                .is_line       = true,
-                .is_ellipsis   = is_ellipsis,
-                .draw_labels   = true,
-                .src           = src,
-                .line_labels   = line_labels,
-                .multi_labels  = multi_labels,
-                .draw          = draw,
-            });
+            write_margin(base.clone()
+                             .with_is_line(true)
+                             .with_is_ellipsis(is_ellipsis)
+                             .with_draw_labels(true));
 
             // Line
             if (!is_ellipsis) {
@@ -723,18 +759,10 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
 
                 if (!config.compact) {
                     // Margin alternate
-                    write_margin({
-                        .line_no_width = line_no_width,
-                        .w             = w,
-                        .idx           = idx,
-                        .is_ellipsis   = is_ellipsis,
-                        .draw_labels   = true,
-                        .src           = src,
-                        .line_labels   = line_labels,
-                        .multi_labels  = multi_labels,
-                        .report_row    = std::pair{row, false},
-                        .draw          = draw,
-                    });
+                    write_margin(base.clone()
+                                     .with_is_ellipsis(is_ellipsis)
+                                     .with_draw_labels(true)
+                                     .with_report_row({row, false}));
 
                     // Lines alternate
                     auto chars = line.chars.begin();
@@ -809,18 +837,10 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                 }
 
                 // Margin
-                write_margin({
-                    .line_no_width = line_no_width,
-                    .w             = w,
-                    .idx           = idx,
-                    .is_ellipsis   = is_ellipsis,
-                    .draw_labels   = true,
-                    .src           = src,
-                    .line_labels   = line_labels,
-                    .multi_labels  = multi_labels,
-                    .report_row    = std::pair{row, true},
-                    .draw          = draw,
-                });
+                write_margin(base.clone()
+                                 .with_is_ellipsis(is_ellipsis)
+                                 .with_report_row({row, true})
+                                 .with_draw_labels(true));
 
                 write_lines(
                     line,
@@ -842,35 +862,29 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
 
         bool is_final_group = group_idx + 1 == groups.size();
 
+        MarginContext base{
+            .w             = w,
+            .config        = config,
+            .draw          = draw,
+            .multi_labels  = multi_labels,
+            .line_labels   = {},
+            .src           = src,
+            .idx           = 0,
+            .line_no_width = line_no_width,
+            .draw_labels   = true,
+            .is_line       = false,
+            .is_ellipsis   = false,
+            .report_row    = std::pair{0, false},
+        };
+
+
         // Help
         if (help.has_value() && is_final_group) {
             if (!config.compact) {
-                write_margin({
-                    .line_no_width = line_no_width,
-                    .w             = w,
-                    .idx           = 0,
-                    .is_line       = false,
-                    .is_ellipsis   = false,
-                    .draw_labels   = true,
-                    .src           = src,
-                    .multi_labels  = multi_labels,
-                    .report_row    = std::pair{0, false},
-                    .draw          = draw,
-                });
+                write_margin(base);
                 w << "\n";
             }
-            write_margin({
-                .line_no_width = line_no_width,
-                .w             = w,
-                .idx           = 0,
-                .is_line       = false,
-                .is_ellipsis   = false,
-                .draw_labels   = true,
-                .src           = src,
-                .multi_labels  = multi_labels,
-                .report_row    = std::pair{0, false},
-                .draw          = draw,
-            });
+            write_margin(base);
             w << "Help"
               << ": " << help.value() << "\n";
         }
@@ -878,32 +892,10 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
         // Note
         if (note.has_value() && is_final_group) {
             if (!config.compact) {
-                write_margin({
-                    .line_no_width = line_no_width,
-                    .w             = w,
-                    .idx           = 0,
-                    .is_line       = false,
-                    .is_ellipsis   = false,
-                    .draw_labels   = true,
-                    .src           = src,
-                    .multi_labels  = multi_labels,
-                    .report_row    = std::pair{0, false},
-                    .draw          = draw,
-                });
+                write_margin(base);
                 w << "\n";
             }
-            write_margin({
-                .line_no_width = line_no_width,
-                .w             = w,
-                .idx           = 0,
-                .is_line       = false,
-                .is_ellipsis   = false,
-                .draw_labels   = true,
-                .src           = src,
-                .multi_labels  = multi_labels,
-                .report_row    = std::pair{0, false},
-                .draw          = draw,
-            });
+            write_margin(base);
 
             w << "Note"
               << ": " << note.value() << "\n";

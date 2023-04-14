@@ -590,32 +590,6 @@ class Report {
     // In most cases, eprint is the more correct function to use.
     inline void print(Cache& cache) { write(cache, qcout); }
 
-    struct LineLabel {
-        int   col;
-        Label label;
-        bool  multi;
-        bool  draw_msg;
-    };
-
-
-    struct MarginContext {
-        QTextStream&                        w;
-        int                                 idx;
-        bool                                is_line       = false;
-        bool                                is_ellipsis   = false;
-        bool                                draw_labels   = false;
-        std::optional<std::pair<int, bool>> report_row    = std::nullopt;
-        const Vec<LineLabel>&               line_labels   = {};
-        const std::optional<LineLabel>&     margin_label  = std::nullopt;
-        int                                 line_no_width = 0;
-        std::shared_ptr<Source>             src;
-        Vec<const Label*>&                  multi_labels;
-        Characters const&                   draw;
-    };
-
-    void write_margin(MarginContext c);
-    ;
-
 
     void write_for_stream(Cache& cache, QTextStream& w);
 };
