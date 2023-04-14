@@ -753,17 +753,12 @@ QString htmlRepr(
 
 
 TEST_CASE("Print Error", "[err]") {
-    std::string a_tao = R"''(
-def five = 5
-)''";
+    QString a_tao = R"''(def five = 5)''";
+    QString b_tao = R"''(def six = five + "1")''";
 
-    std::string b_tao = R"''(
-def six = five + "1"
-)''";
-
-    std::string natColorized  = "Nat";
-    std::string strColorized  = "Str";
-    std::string fiveColorized = "5";
+    QString natColorized  = "Nat";
+    QString strColorized  = "Str";
+    QString fiveColorized = "5";
 
     Id a_id = 1;
     Id b_id = 2;
@@ -773,7 +768,6 @@ def six = five + "1"
     Color b;
     Color c;
 
-    auto     p = [](size_t a, size_t b) { return std::make_pair(a, b); };
     StrCache sources;
     sources.add(a_id, a_tao);
     sources.add(b_id, b_tao);
@@ -781,20 +775,23 @@ def six = five + "1"
     Report(ReportKind::Error, b_id, 10)
         .with_code("3")
         .with_message("Cannot add types Nat and Str")
-        .with_label(Label(std::make_shared<TupleCodeSpan>(b_id, p(10, 14)))
-                        .with_message("This is of type " + natColorized)
-                        .with_color(a))
-        .with_label(Label(std::make_shared<TupleCodeSpan>(b_id, p(17, 20)))
-                        .with_message("This is of type " + strColorized)
-                        .with_color(b))
-        .with_label(Label(std::make_shared<TupleCodeSpan>(b_id, p(15, 16)))
-                        .with_message(
-                            natColorized + " and " + strColorized
-                            + " undergo addition here")
-                        .with_color(c)
-                        .with_order(10))
         .with_label(
-            Label(std::make_shared<TupleCodeSpan>(a_id, p(4, 8)))
+            Label(std::make_shared<TupleCodeSpan>(b_id, slice(10, 14 - 1)))
+                .with_message("This is of type " + natColorized)
+                .with_color(a))
+        .with_label(
+            Label(std::make_shared<TupleCodeSpan>(b_id, slice(17, 20 - 1)))
+                .with_message("This is of type " + strColorized)
+                .with_color(b))
+        .with_label(
+            Label(std::make_shared<TupleCodeSpan>(b_id, slice(15, 16 - 1)))
+                .with_message(
+                    natColorized + " and " + strColorized
+                    + " undergo addition here")
+                .with_color(c)
+                .with_order(10))
+        .with_label(
+            Label(std::make_shared<TupleCodeSpan>(a_id, slice(4, 8 - 1)))
                 .with_message(
                     "Original definition of " + fiveColorized + " is here")
                 .with_color(a))
@@ -802,6 +799,8 @@ def six = five + "1"
             natColorized
             + " is a number and can only be added to other numbers")
         .print(sources);
+
+    qDebug() << "Corpus write complete";
 }
 
 
