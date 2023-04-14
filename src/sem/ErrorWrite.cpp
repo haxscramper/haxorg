@@ -69,7 +69,7 @@ struct LineLabel {
 
 struct MarginContext {
     QTextStream&  w;
-    MarginContext clone() { return *this; }
+    MarginContext clone() const { return *this; }
     _field(int, idx, 0);
     _field(bool, is_line, false);
     _field(bool, is_ellipsis, false);
@@ -92,7 +92,82 @@ struct MarginContext {
 };
 
 
-void write_margin(MarginContext c) {
+std::optional<LineLabel> get_margin_label(
+    Line const&              line,
+    Vec<const Label*> const& multi_labels) {
+    std::optional<LineLabel> margin_label;
+    int                      min_key = std::numeric_limits<int>::max();
+    for (int i = 0; i < multi_labels.size(); ++i) {
+        const Label* label    = multi_labels[i];
+        bool         is_start = line.span().contains(label->span->start());
+        bool         is_end   = line.span().contains(label->last_offset());
+
+        if (is_start || is_end) {
+            LineLabel ll{
+                .col = (is_start ? label->span->start()
+                                 : label->last_offset())
+                     - line.offset,
+                .label    = *label,
+                .multi    = true,
+                .draw_msg = is_end,
+            };
+
+
+            int key = (ll.col << 1) | (!label->span->start());
+            if (key < min_key) {
+                min_key      = key;
+                margin_label = ll;
+            }
+        }
+    }
+    return margin_label;
+}
+
+void write_margin(MarginContext const& c);
+
+bool sort_line_labels(
+    MarginContext const& c,
+    Line const&          line,
+    bool&                is_ellipsis,
+    Vec<LineLabel>&      line_labels) {
+    // Skip this line if we don't have labels for it
+    if (line_labels.size() == 0 && !c.margin_label.has_value()) {
+        bool within_label = std::any_of(
+            c.multi_labels.begin(),
+            c.multi_labels.end(),
+            [&](const Label* label) {
+                return label->span->contains(line.span().first);
+            });
+        if (!is_ellipsis && within_label) {
+            is_ellipsis = true;
+        } else {
+            if (!c.config.compact && !is_ellipsis) {
+                write_margin(c.clone().with_is_ellipsis(is_ellipsis));
+
+                c.w << "\n";
+            }
+            is_ellipsis = true;
+            return true;
+        }
+    } else {
+        is_ellipsis = false;
+    }
+
+    // Sort the labels by their columns
+    std::sort(
+        line_labels.begin(),
+        line_labels.end(),
+        [](const LineLabel& a, const LineLabel& b) {
+            return std::make_tuple(
+                       a.label.order, a.col, !a.label.span->start())
+                 < std::make_tuple(
+                       b.label.order, b.col, !b.label.span->start());
+        });
+
+    return false;
+}
+
+void write_margin(MarginContext const& c) {
     QString line_no_margin;
     if (c.is_line && !c.is_ellipsis) {
         int line_no    = c.idx + 1;
@@ -429,20 +504,16 @@ int get_line_no_width(Vec<SourceGroup> const& groups, Cache& cache) {
 }
 
 void write_lines(
-    Line const&           line,
-    int                   arrow_len,
-    Config const&         config,
-    LineLabel const&      line_label,
-    Characters const&     draw,
-    Opt<LineLabel> const& margin_label,
-    int                   row,
-    Vec<LineLabel> const& line_labels,
-    QTextStream&          w) {
+    MarginContext const& c,
+    Line const&          line,
+    int                  arrow_len,
+    LineLabel const&     line_label,
+    int                  row) {
     // Lines
     auto chars = line.chars.begin();
     for (int col = 0; col < arrow_len; ++col) {
         int width = (chars != line.chars.end())
-                      ? config.char_width(*chars, col).second
+                      ? c.config.char_width(*chars, col).second
                       : 1;
 
         bool is_hbar = (((col > line_label.col) ^ line_label.multi)
@@ -451,42 +522,42 @@ void write_lines(
                     && line_label.label.msg;
         std::array<QChar, 2> ct_array;
         if (col == line_label.col && line_label.label.msg
-            && (!margin_label.has_value()
-                || line_label.label != margin_label->label)) {
+            && (!c.margin_label.has_value()
+                || line_label.label != c.margin_label->label)) {
             ct_array = {
                 fg((line_label.multi
-                        ? (line_label.draw_msg ? draw.mbot : draw.rbot)
-                        : draw.lbot),
+                        ? (line_label.draw_msg ? c.draw.mbot : c.draw.rbot)
+                        : c.draw.lbot),
                    line_label.label.color),
-                fg(draw.hbar, line_label.label.color),
+                fg(c.draw.hbar, line_label.label.color),
             };
         } else if (std::optional<LineLabel> vbar_ll = std::nullopt;
                    (vbar_ll = get_vbar(
-                        col, row, line_labels, margin_label))
+                        col, row, c.line_labels, c.margin_label))
                    && (col != line_label.col || line_label.label.msg)) {
-            if (!config.cross_gap && is_hbar) {
+            if (!c.config.cross_gap && is_hbar) {
                 ct_array = {
-                    fg(draw.xbar, line_label.label.color),
+                    fg(c.draw.xbar, line_label.label.color),
                     fg(' ', line_label.label.color),
                 };
             } else if (is_hbar) {
                 ct_array = {
-                    fg(draw.hbar, line_label.label.color),
-                    fg(draw.hbar, line_label.label.color),
+                    fg(c.draw.hbar, line_label.label.color),
+                    fg(c.draw.hbar, line_label.label.color),
                 };
             } else {
                 ct_array = {
-                    fg((vbar_ll->multi && row == 0 && config.compact
-                            ? draw.uarrow
-                            : draw.vbar),
+                    fg((vbar_ll->multi && row == 0 && c.config.compact
+                            ? c.draw.uarrow
+                            : c.draw.vbar),
                        vbar_ll->label.color),
                     fg(' ', line_label.label.color),
                 };
             }
         } else if (is_hbar) {
             ct_array = {
-                fg(draw.hbar, line_label.label.color),
-                fg(draw.hbar, line_label.label.color),
+                fg(c.draw.hbar, line_label.label.color),
+                fg(c.draw.hbar, line_label.label.color),
             };
         } else {
             ct_array = {
@@ -496,10 +567,10 @@ void write_lines(
         }
 
         if (width > 0) {
-            w << ct_array[0];
+            c.w << ct_array[0];
         }
         for (int i = 1; i < width; ++i) {
-            w << ct_array[1];
+            c.w << ct_array[1];
         }
 
         if (chars != line.chars.end()) {
@@ -594,31 +665,9 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
 
             Line line = line_opt.value();
 
-            std::optional<LineLabel> margin_label;
-            int min_key = std::numeric_limits<int>::max();
-            for (int i = 0; i < multi_labels.size(); ++i) {
-                const Label* label = multi_labels[i];
-                bool is_start = line.span().contains(label->span->start());
-                bool is_end   = line.span().contains(label->last_offset());
 
-                if (is_start || is_end) {
-                    LineLabel ll{
-                        .col = (is_start ? label->span->start()
-                                         : label->last_offset())
-                             - line.offset,
-                        .label    = *label,
-                        .multi    = true,
-                        .draw_msg = is_end,
-                    };
-
-
-                    int key = (ll.col << 1) | (!label->span->start());
-                    if (key < min_key) {
-                        min_key      = key;
-                        margin_label = ll;
-                    }
-                }
-            }
+            std::optional<LineLabel> margin_label = get_margin_label(
+                line, multi_labels);
 
             Vec<LineLabel> line_labels;
             build_line_labels(
@@ -641,44 +690,12 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                 .line_no_width = line_no_width,
             };
 
-            // Skip this line if we don't have labels for it
-            if (line_labels.size() == 0 && !margin_label.has_value()) {
-                bool within_label = std::any_of(
-                    multi_labels.begin(),
-                    multi_labels.end(),
-                    [&](const Label* label) {
-                        return label->span->contains(line.span().first);
-                    });
-                if (!is_ellipsis && within_label) {
-                    is_ellipsis = true;
-                } else {
-                    if (!config.compact && !is_ellipsis) {
-                        write_margin(
-                            base.clone().with_is_ellipsis(is_ellipsis));
+            bool do_skip = sort_line_labels(
+                base, line, is_ellipsis, line_labels);
 
-                        w << "\n";
-                    }
-                    is_ellipsis = true;
-                    continue;
-                }
-            } else {
-                is_ellipsis = false;
+            if (do_skip) {
+                continue;
             }
-
-            // Sort the labels by their columns
-            std::sort(
-                line_labels.begin(),
-                line_labels.end(),
-                [](const LineLabel& a, const LineLabel& b) {
-                    return std::make_tuple(
-                               a.label.order,
-                               a.col,
-                               !a.label.span->start())
-                         < std::make_tuple(
-                               b.label.order,
-                               b.col,
-                               !b.label.span->start());
-                });
 
             // Determine label bounds so we know where to put error
             // messages
@@ -843,15 +860,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                                  .with_draw_labels(true));
 
                 write_lines(
-                    line,
-                    arrow_len,
-                    config,
-                    line_label,
-                    draw,
-                    margin_label,
-                    row,
-                    line_labels,
-                    w);
+                    base.clone(), line, arrow_len, line_label, row);
 
                 if (line_label.draw_msg) {
                     w << " " << line_label.label.msg.value();
