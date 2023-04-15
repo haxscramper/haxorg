@@ -440,7 +440,7 @@ struct Config {
     bool           cross_gap;
     LabelAttach    label_attach;
     bool           compact;
-    bool           underlines;
+    bool           underlines = true;
     bool           multiline_arrows;
     bool           color;
     int            tab_width;

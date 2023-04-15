@@ -753,62 +753,223 @@ QString htmlRepr(
 
 
 TEST_CASE("Print Error", "[err]") {
-    QString a_tao = R"''(def five = 5)''";
-    QString b_tao = R"''(def six = five + "1")''";
+    {
+        QString a_tao = R"''(def five = 5)''";
+        QString b_tao = R"''(def six = five + "1")''";
 
-    QString natColorized  = "Nat";
-    QString strColorized  = "Str";
-    QString fiveColorized = "5";
+        QString natColorized  = "Nat";
+        QString strColorized  = "Str";
+        QString fiveColorized = "5";
 
-    Id a_id = 1;
-    Id b_id = 2;
+        Id a_id = 1;
+        Id b_id = 2;
 
 
-    Color a;
-    Color b;
-    Color c;
+        Color a;
+        Color b;
+        Color c;
 
-    StrCache sources;
-    sources.add(a_id, a_tao);
-    sources.add(b_id, b_tao);
+        StrCache sources;
+        sources.add(a_id, a_tao);
+        sources.add(b_id, b_tao);
 
-    Report(ReportKind::Error, b_id, 10)
-        .with_code("3")
-        .with_message("Cannot add types Nat and Str")
-        .with_label(
-            Label(std::make_shared<TupleCodeSpan>(b_id, slice(10, 14 - 1)))
-                .with_message("This is of type " + natColorized)
-                .with_color(a))
-        .with_label(
-            Label(std::make_shared<TupleCodeSpan>(b_id, slice(17, 20 - 1)))
-                .with_message("This is of typee " + strColorized)
-                .with_color(b))
-        .with_label(
-            Label(std::make_shared<TupleCodeSpan>(b_id, slice(15, 16 - 1)))
-                .with_message(
-                    natColorized + " and " + strColorized
-                    + " undergo addition here")
-                .with_color(c)
-                .with_order(10))
-        .with_label(
-            Label(std::make_shared<TupleCodeSpan>(a_id, slice(4, 8 - 1)))
-                .with_message(
-                    "Original definition of " + fiveColorized + " is here")
-                .with_color(a))
-        .with_note(
-            natColorized
-            + " is a number and can only be added to other numbers")
-        .print(sources);
+        QString     buf;
+        QTextStream os{&buf};
+        Report(ReportKind::Error, b_id, 10)
+            .with_code("3")
+            .with_message("Cannot add types Nat and Str")
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(b_id, slice(10, 14)))
+                    .with_message("This is of type " + natColorized)
+                    .with_color(a))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(b_id, slice(17, 20)))
+                    .with_message("This is of typee " + strColorized)
+                    .with_color(b))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(b_id, slice(15, 16)))
+                    .with_message(
+                        natColorized + " and " + strColorized
+                        + " undergo addition here")
+                    .with_color(c)
+                    .with_order(10))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(a_id, slice(4, 8)))
+                    .with_message(
+                        "Original definition of " + fiveColorized
+                        + " is here")
+                    .with_color(a))
+            .with_note(
+                natColorized
+                + " is a number and can only be added to other numbers")
+            .write(sources, os);
 
-    qDebug() << "Corpus write complete";
+        qDebug().noquote() << "\n" << buf;
+        qDebug() << "First error run complete complete";
+    }
+
+    {
+        Id       id   = 0;
+        QString  code = R"(def fives = ["5", 5]
+
+def sixes = ["6", 6, True, (), []]
+
+def multiline :: Str = match Some 5 in {
+    | Some x => x
+    | None => 0
+})";
+        StrCache sources;
+        sources.add(id, code);
+        Report(ReportKind::Error, id, 13)
+            .with_code("3")
+            .with_message(("Incompatible types"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(id, slice(0, 1 + 1)))
+                    .with_message("Color"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(id, slice(1, 2 + 1)))
+                    .with_message("Color"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(id, slice(2, 3 + 1)))
+                    .with_message("Color"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(id, slice(3, 4 + 1)))
+                    .with_message("Color"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(id, slice(4, 5 + 1)))
+                    .with_message("Color"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(id, slice(5, 6 + 1)))
+                    .with_message("Color"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(id, slice(6, 7 + 1)))
+                    .with_message("Color"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(id, slice(7, 8 + 1)))
+                    .with_message("Color"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(id, slice(8, 9 + 1)))
+                    .with_message("Color"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(9, 10 + 1)))
+                            .with_message("Color"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(10, 11 + 1)))
+                            .with_message("Color"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(11, 12 + 1)))
+                            .with_message("Color"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(12, 13 + 1)))
+                            .with_message("Color"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(13, 14 + 1)))
+                            .with_message("Color"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(14, 15 + 1)))
+                            .with_message("Color"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(15, 16 + 1)))
+                            .with_message("Color"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(16, 17 + 1)))
+                            .with_message("Color"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(17, 18 + 1)))
+                            .with_message("Color"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(18, 19 + 1)))
+                            .with_message("Color"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(19, 20 + 1)))
+                            .with_message("Color"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(20, 21 + 1)))
+                            .with_message("Color"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(18, 19 + 1)))
+                            .with_message("This is of type Nat"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(13, 16 + 1)))
+                            .with_message("This is of type Str"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(40, 41 + 1)))
+                            .with_message("This is of type Nat"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(43, 47 + 1)))
+                            .with_message("This is of type Bool"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(49, 51 + 1)))
+                            .with_message("This is of type ()"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(53, 55 + 1)))
+                            .with_message("This is of type [_]"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(25, 78 + 1)))
+                            .with_message("This is of type Str"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(81, 124 + 1)))
+                            .with_message("This is of type Nat"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(100, 126 + 1)))
+                            .with_message("This is an inner multi-line"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(
+                          id, slice(106, 120 + 1)))
+                    .with_message("This is another inner multi-line"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(
+                          id, slice(108, 122 + 1)))
+                    .with_message("This is *really* nested multi-line"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(
+                          id, slice(110, 111 + 1)))
+                    .with_message("This is an inline within the nesting!"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(111, 112 + 1)))
+                            .with_message("And another!"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(
+                          id, slice(103, 123 + 1)))
+                    .with_message("This is *really* nested multi-line"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(
+                          id, slice(105, 125 + 1)))
+                    .with_message("This is *really* nested multi-line"))
+            .with_label(
+                Label(std::make_shared<TupleCodeSpan>(
+                          id, slice(112, 116 + 1)))
+                    .with_message("This is *really* nested multi-line"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(26, 100 + 1)))
+                            .with_message("Hahaha!"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(85, 110 + 1)))
+                            .with_message("Oh god, no more 1"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(84, 114 + 1)))
+                            .with_message("Oh god, no more 2"))
+            .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                  id, slice(89, 113 + 1)))
+                            .with_message("Oh god, no more 3"))
+            .with_config(Config()
+                             .with_cross_gap(false)
+                             .with_compact(true)
+                             .with_underlines(true)
+                             .with_tab_width(4))
+            //            .print(sources)
+            ;
+    }
 }
 
 
 TEST_CASE("Parse file", "[corpus][notes]") {
     MockFull p;
     // QString  source = readFile("/tmp/doc.org");
-    QString source = readFile(
-        "/mnt/workspace/repos/fic/wiki/timeline.org");
+    //    QString source = readFile(
+    //        "/mnt/workspace/repos/fic/wiki/timeline.org");
+
+    QString source = "test";
 
     p.tokenizer.setTraceFile("/tmp/file_lex_trace.txt");
     p.setTraceFile("/tmp/file_parse_trace.txt");

@@ -1,3 +1,4 @@
+#include <hstd/stdlib/sequtils.hpp>
 #include <sem/ErrorWrite.hpp>
 #include <QChar>
 #include <hstd/stdlib/Opt.hpp>
@@ -396,21 +397,27 @@ auto get_highlight(
 
 
 auto get_underline(MarginContext const& c, int col) -> Opt<LineLabel> {
+    Vec<std::reference_wrapper<LineLabel const>> candidates;
+    for (const auto& it : c.line_labels) {
+        if (c.config.underlines && !it.multi
+            && it.label.span->contains(c.line.offset + col)) {
+            candidates.push_back(it);
+        }
+    }
 
-    Vec<LineLabel>::const_iterator it = std::min_element(
-        c.line_labels.begin(),
-        c.line_labels.end(),
-        [&](const auto& a, const auto& b) {
-            return std::make_tuple(-a.label.priority, a.label.span->len())
-                 < std::make_tuple(-b.label.priority, b.label.span->len());
-        });
-
-    if (it != c.line_labels.end() && c.config.underlines && !it->multi
-        && it->label.span->contains(c.line.offset + col)) {
-        return *it;
-    } else {
+    if (candidates.empty()) {
         return std::nullopt;
     }
+
+    return *std::min_element(
+        candidates.begin(),
+        candidates.end(),
+        [&](const auto& a, const auto& b) {
+            return std::make_tuple(
+                       -a.get().label.priority, a.get().label.span->len())
+                 < std::make_tuple(
+                       -b.get().label.priority, b.get().label.span->len());
+        });
 };
 
 void whatever(MarginContext const& c, int row, int arrow_len) {
@@ -425,46 +432,42 @@ void whatever(MarginContext const& c, int row, int arrow_len) {
                       ? c.config.char_width(*chars, col).second
                       : 1;
 
-        // let underline =
-        // get_underline(col).filter(|_| row == 0); I
-        // think it translates like this, but fuck this
-        // Rust garbage
-        Opt<LineLabel> underline = std::nullopt;
-        if (row == 0) {
-            if (Opt<LineLabel> tmp = get_underline(c, col)) {
-                underline = tmp;
-            }
+        Opt<LineLabel> underline = get_underline(c, col);
+        if (row != 0) {
+            underline.reset();
         }
 
         std::array<QChar, 2> ct_array;
-        if (auto vbar_ll = get_vbar(
+        if (Opt<LineLabel> vbar = get_vbar(
                 col, row, c.line_labels, c.margin_label)) {
             std::array<QChar, 2> ct_inner;
             if (underline) {
-                if (vbar_ll->label.span->len() <= 1 || true) {
+                if (vbar->label.span->len() <= 1 || true) {
                     ct_inner = {c.draw.underbar, c.draw.underline};
                 } else if (
-                    c.line.offset + col == vbar_ll->label.span->start()) {
+                    c.line.offset + col == vbar->label.span->start()) {
                     ct_inner = {c.draw.ltop, c.draw.underbar};
                 } else if (
-                    c.line.offset + col == vbar_ll->label.last_offset()) {
+                    c.line.offset + col == vbar->label.last_offset()) {
                     ct_inner = {c.draw.rtop, c.draw.underbar};
                 } else {
                     ct_inner = {c.draw.underbar, c.draw.underline};
                 }
             } else if (
-                vbar_ll->multi && row == 0 && c.config.multiline_arrows) {
+                vbar->multi && row == 0 && c.config.multiline_arrows) {
                 ct_inner = {c.draw.uarrow, ' '};
             } else {
                 ct_inner = {c.draw.vbar, ' '};
             }
             ct_array = {
-                fg(ct_inner[0], vbar_ll->label.color),
-                fg(ct_inner[1], vbar_ll->label.color)};
+                fg(ct_inner[0], vbar->label.color),
+                fg(ct_inner[1], vbar->label.color),
+            };
         } else if (underline) {
             ct_array = {
                 fg(c.draw.underline, underline->label.color),
-                fg(c.draw.underline, underline->label.color)};
+                fg(c.draw.underline, underline->label.color),
+            };
         } else {
             ct_array = {fg(' ', std::nullopt), fg(' ', std::nullopt)};
         }
@@ -788,22 +791,18 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
 
             // Determine label bounds so we know where to put error
             // messages
-            int arrow_end_space = config.compact ? 1 : 2;
-            int arrow_len       = std::accumulate(
-                                line_labels.begin(),
-                                line_labels.end(),
-                                0,
-                                [&](int l, const auto& ll) {
-                                    if (ll.multi) {
-                                        return line.get_len();
-                                    } else {
-                                        return std::max(
-                                            l,
-                                            ll.label.span->end()
-                                                - line.offset);
-                                    }
-                                })
-                          + arrow_end_space;
+            int arrow_len = 0;
+            ;
+            for (const auto& ll : line_labels) {
+                if (ll.multi) {
+                    arrow_len = line.get_len();
+                } else {
+                    arrow_len = std::max(
+                        arrow_len, ll.label.span->end() - line.offset);
+                }
+            }
+
+            arrow_len += config.compact ? 1 : 2;
 
 
             // Margin
