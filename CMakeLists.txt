@@ -175,11 +175,17 @@ find_package(yaml-cpp REQUIRED)
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
-trace(">>>>>>>>> ${QT_VERSION_MAJOR}")
+
+function(glob_add_sources TARGET EXT_GLOB LS_REGEX)
+    list_filter_files(SRC_FILES ${EXT_GLOB} "${LS_REGEX}")
+    add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
+endfunction()
+
+
+set(AUTOGEN_BUILD_DIR ${BASE}/build/autogen)
+file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})
 
 function(set_common_files TARGET)
-  list_filter_files(SRC_FILES *.cpp "${BASE}/src/.*")
-  list_filter_files(HEADER_FILES *.hpp "${BASE}/src/.*")
   set_target_properties("${TARGET}"
       PROPERTIES
       CMAKE_CXX_STANDARD 20
@@ -188,6 +194,8 @@ function(set_common_files TARGET)
   add_target_property("${TARGET}" SOURCES "${HEADER_FILES}")
   add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/src")
   add_target_property("${TARGET}" LINK_LIBRARIES dw)
+  add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
+
   # target_precompile_headers(
   #   "${TARGET}"
   #   PRIVATE
@@ -204,21 +212,16 @@ function(add_antlr_base TARGET)
   add_target_property(${TARGET} LINK_LIBRARIES antlr4_shared)
 endfunction()
 
-add_executable(tests)
-set_common_files(tests)
-set_target_output(tests)
-set_target_flags(tests)
-list_filter_files(TEST_FILES "t*.cpp" "${BASE}/tests/.*")
-add_target_property(tests SOURCES "${TEST_FILES}")
-add_antlr_base(tests)
-target_link_libraries(tests PUBLIC fmt::fmt yaml-cpp::yaml-cpp
+add_library(haxorg)
+set_common_files(haxorg)
+glob_add_sources(haxorg *.cpp "${BASE}/src/.*")
+glob_add_sources(haxorg *.hpp "${BASE}/src/.*")
+set_target_output(haxorg)
+set_target_flags(haxorg)
+target_link_libraries(haxorg PUBLIC fmt::fmt yaml-cpp::yaml-cpp
                                    "Qt${QT_VERSION_MAJOR}::Core")
 
 
-add_target_property(tests LINK_LIBRARIES gtest)
-
-set(AUTOGEN_BUILD_DIR ${BASE}/build/autogen)
-file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})
 set(SCRIPT_DIR "${BASE}/src/scripts")
 
 add_custom_command(
@@ -245,8 +248,19 @@ add_custom_target(
   enum_reflection DEPENDS "${AUTOGEN_BUILD_DIR}/autogen_enum_help.hpp"
                           "${AUTOGEN_BUILD_DIR}/autogen_enum_help.cpp")
 
-add_dependencies(tests enum_reflection)
-add_target_property(tests INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
+add_dependencies(haxorg enum_reflection)
+
+
+
+add_executable(tests)
+target_link_libraries(tests PUBLIC haxorg)
+set_common_files(tests)
+set_target_output(tests)
+set_target_flags(tests)
+glob_add_sources(tests "t*.cpp" "${BASE}/tests/.*")
+target_link_libraries(tests PUBLIC fmt::fmt yaml-cpp::yaml-cpp haxorg gtest
+                                   "Qt${QT_VERSION_MAJOR}::Core")
+
 
 # generate parser set(ANTLR4_JAR_LOCATION
 # "/usr/share/java/antlr-complete.jar") antlr4_generate(plantuml
