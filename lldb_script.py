@@ -101,11 +101,11 @@ def skip_backtrace(debugger, command, result, internal_dict):
 
     for frame in frames:
         function_name = frame.GetFunctionName()
-        if "__cxa_throw" in function_name:
-            break
+        # if "__cxa_throw" in function_name:
+        #     break
 
-        elif not should_skip_frame(frame):
-            filtered_frames.append(frame)
+        # elif not should_skip_frame(frame):
+        filtered_frames.append(frame)
 
     filtered_frames = reversed(filtered_frames)
 

@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     qcout.setDevice(&file);
 
 
-    // QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
+    QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
     // Q_CHECK_PTR(old);
 
     // trace_out = fopen("/tmp/cyg_profile_trace.log", "w");

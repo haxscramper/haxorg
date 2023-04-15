@@ -1327,18 +1327,21 @@ TEST(ParseFile, CorpusAll) {
          fs::recursive_directory_iterator(
              __CURRENT_FILE_DIR__ / "corpus")) {
 
+        std::string p = path.path();
         if (path.is_regular_file()
-            && QString::fromStdString(path.path()).endsWith(".yaml")) {
+            && QString::fromStdString(p).endsWith(".yaml")) {
             if (/*testParameters.corpusGlob.empty()*/ true) {
-                YAML::Node spec = YAML::LoadFile(path.path());
-                runSpec(spec, QString::fromStdString(path.path()));
+                //                qDebug() << p;
+                YAML::Node spec = YAML::LoadFile(p);
+                runSpec(spec, QString::fromStdString(p));
             } else {
-                std::string path_str = path.path();
+                std::string path_str = p;
                 int         matchRes = fnmatch(
                     glob.c_str(), path_str.c_str(), FNM_EXTMATCH);
                 if (!(matchRes == FNM_NOMATCH)) {
-                    YAML::Node spec = YAML::LoadFile(path.path());
-                    runSpec(spec, QString::fromStdString(path.path()));
+                    //                    qDebug() << p;
+                    YAML::Node spec = YAML::LoadFile(p);
+                    runSpec(spec, QString::fromStdString(p));
                 }
             }
         }
