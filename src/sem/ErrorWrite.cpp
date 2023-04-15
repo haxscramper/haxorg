@@ -672,7 +672,6 @@ void write_lines(
 }; // namespace
 
 void Report::write_for_stream(Cache& cache, QTextStream& w) {
-    qDebug() << "Write for stream requested";
     Characters draw;
     switch (config.char_set) {
         case MessageCharSet::Unicode: draw = unicode(); break;

@@ -39,7 +39,10 @@ struct OrgParser : public OperationsTracer {
             }
 
             Base(CR<OrgLexer> lex, Opt<LineCol> loc = std::nullopt)
-                : token(lex.tok()), id(lex.pos), loc(loc) {
+                : id(lex.pos), loc(loc) {
+                if (!lex.finished()) {
+                    token = lex.tok();
+                }
                 extraMsg = lex.printToString(false);
             }
 
@@ -47,10 +50,11 @@ struct OrgParser : public OperationsTracer {
                 CR<OrgLexer> lex,
                 CR<QString>  extraMsg,
                 Opt<LineCol> loc = std::nullopt)
-                : token(lex.tok())
-                , id(lex.pos)
-                , loc(loc)
-                , extraMsg(extraMsg) {}
+                : id(lex.pos), loc(loc), extraMsg(extraMsg) {
+                if (!lex.finished()) {
+                    token = lex.tok();
+                }
+            }
         };
 
         struct None : Base {

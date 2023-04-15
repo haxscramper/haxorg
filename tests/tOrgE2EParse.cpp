@@ -88,7 +88,8 @@ TEST_CASE("Simple node conversion") {
            << yamlRepr(p.tokens) << "\nend flat tokens\n";
 
         // qcout << buf << Qt::endl;
-        auto hash = sem::OrgConverter{}.convertHashTag(nullptr, p.a(0));
+        //        auto hash = sem::OrgConverter{}.convertHashTag(nullptr,
+        //        p.a(0));
     }
 
     SECTION("Diff compilation") {

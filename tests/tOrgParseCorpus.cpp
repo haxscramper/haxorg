@@ -1336,7 +1336,8 @@ TEST_CASE("Parse corpus", "[corpus]") {
          fs::recursive_directory_iterator(
              __CURRENT_FILE_DIR__ / "corpus")) {
 
-        if (path.is_regular_file()) {
+        if (path.is_regular_file()
+            && QString::fromStdString(path.path()).endsWith(".yaml")) {
             if (testParameters.corpusGlob.empty()) {
                 YAML::Node spec = YAML::LoadFile(path.path());
                 runSpec(spec, QString::fromStdString(path.path()));

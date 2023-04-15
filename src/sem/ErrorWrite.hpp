@@ -133,7 +133,6 @@ struct Source {
             };
 
             offset += l.len;
-            qDebug() << l;
             lines.push_back(l);
         }
         len = offset;

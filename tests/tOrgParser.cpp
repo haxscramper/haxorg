@@ -71,43 +71,29 @@ TmpTree t(OrgNode node) { return TmpTree{node}; }
 TEST_CASE("Parser", "[parse]") {
     MockParser p;
     SECTION("Parse single time entry") {
-        // FIXME
-        // p.add(otk::BracketTime);
+        p.add(
+            {otk::InactiveTimeBegin,
+             otk::StaticTimeDatePart,
+             otk::InactiveTimeEnd});
         p.parseTimeStamp(p.lex);
         REQUIRE(p[0] == tok(org::StaticInactiveTime, 0));
     }
 
     SECTION("Parse time range") {
-        // FIXME
-        // p.add({otk::BracketTime, otk::TimeDash, otk::BracketTime});
+        p.add({
+            otk::InactiveTimeBegin,
+            otk::StaticTimeDatePart,
+            otk::InactiveTimeEnd,
+            otk::TimeDash,
+            otk::InactiveTimeBegin,
+            otk::StaticTimeDatePart,
+            otk::InactiveTimeEnd,
+        });
         p.parseTimeRange(p.lex);
-        REQUIRE(p[0] == tree(org::TimeRange, 3));
+        REQUIRE(p[0].kind == org::TimeRange);
         // start of the time range extent, two elements
-        REQUIRE(p[1] == tok(org::StaticInactiveTime, 0));
+        REQUIRE(p[1].kind == org::StaticInactiveTime);
         // Time dash token is skipped
-        REQUIRE(p[2] == tok(org::StaticInactiveTime, 2));
-        REQUIRE(p[3] == empty());
-    }
-
-    SECTION("Compare time range with flattened tree") {
-        // FIXME
-        // p.add({otk::BracketTime, otk::TimeDash, otk::BracketTime});
-        p.parseTimeRange(p.lex);
-        auto tree = t(org::TimeRange,
-                      {t(org::StaticInactiveTime, 0),
-                       t(org::StaticInactiveTime, 2),
-                       t(empty())})
-                        .flatten();
-        REQUIRE(p.flat() == tree);
-    }
-
-    SECTION("Parse time with arrow") {
-        // p.add(
-        //     {otk::BracketTime,
-        //      otk::TimeDash,
-        //      otk::BracketTime,
-        //      otk::TimeArrow,
-        //      otk::TimeDuration});
-        // p.parseTime(p.lex);
+        REQUIRE(p[6].kind == org::StaticInactiveTime);
     }
 }

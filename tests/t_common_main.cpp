@@ -32,10 +32,12 @@ TestParameters testParameters;
 using namespace Catch::Clara;
 
 int main(int argc, const char** argv) {
+
     setlocale(LC_ALL, "en_US.utf8");
     QFile file;
     file.open(stdout, QIODevice::WriteOnly);
     qcout.setDevice(&file);
+
 
     QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
     Q_CHECK_PTR(old);

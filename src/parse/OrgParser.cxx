@@ -1484,9 +1484,9 @@ OrgId OrgParserImpl<TRACE_STATE>::parseSubtree(OrgLexer& lex) {
     parseSubtreeTitle(lex);                           // 3
     parseSubtreeCompletion(lex);                      // 4
     parseSubtreeTags(lex);                            // 5
-    skip(lex, otk::SkipNewline);
 
     if (!lex.at(otk::SubtreeEnd)) { // 6
+        skip(lex, otk::SkipNewline);
         parseSubtreeTimes(lex);
         newline(lex);
     } else {
