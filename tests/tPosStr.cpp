@@ -1,80 +1,104 @@
 #include <lexbase/PosStr.hpp>
-#include "common.hpp"
+//#include "common.hpp"
+#include <gtest/gtest.h>
 
 #define __init(text)                                                      \
     QString base{text};                                                   \
     PosStr  str{base};
 
-TEST_CASE("Positional string cursor movements", "[str]") {
+
+TEST(
+    PositionalStringCursorMovementsTest,
+    CheckForCharactersOnPositionAhead) {
     QString base{"01234"};
     PosStr  str{base};
-    SECTION("Check for characters on the position ahead") {
-        REQUIRE(str.at(QChar('0')));
-        REQUIRE(str.at(QChar('1'), 1));
-        REQUIRE(str.at(QChar('2'), 2));
-    }
 
-    SECTION("Check for character set on the position ahead") {
-        REQUIRE(str.at({slice(QChar('0'), QChar('9'))}));
-        REQUIRE(str.at(charsets::Digits));
-        REQUIRE(!str.at(charsets::Letters));
-    }
-
-    SECTION("Skip while single character") {
-        str.skipZeroOrMore(QChar('0'));
-        REQUIRE(str.at(QChar('1')));
-    }
-
-    SECTION("Skip while character set") {
-        REQUIRE(str.at(QChar('0')));
-        str.skipZeroOrMore(CharSet{QChar('0'), QChar('1'), QChar('2')});
-        REQUIRE(str.at(QChar('3')));
-    }
-
-    SECTION("Skip before a character") {
-        str.skipBefore(QChar('3'));
-        REQUIRE(str.at(QChar('2')));
-    }
-
-    SECTION("Skip to a character") {
-        str.skipTo(QChar('3'));
-        REQUIRE(str.at(QChar('3')));
-    }
-
-    SECTION("Skip until one of the caracters") {
-        str.skipBefore(CharSet{QChar('3'), QChar('4')});
-        REQUIRE(str.at(QChar('2')));
-    }
-
-    SECTION("Skip until a string is found") {
-        str.skipBefore("34");
-        REQUIRE(str.at(QChar('2')));
-    }
+    EXPECT_TRUE(str.at(QChar('0')));
+    EXPECT_TRUE(str.at(QChar('1'), 1));
+    EXPECT_TRUE(str.at(QChar('2'), 2));
 }
 
-TEST_CASE("Positional string API", "[str]") {
-    SECTION("Column at the start of the text") {
-        __init("* Random");
-        REQUIRE(str.getColumn() == 0);
-        str.next();
-        REQUIRE(str.getColumn() == 1);
-    }
+TEST(
+    PositionalStringCursorMovementsTest,
+    CheckForCharacterSetOnPositionAhead) {
+    QString base{"01234"};
+    PosStr  str{base};
 
-    SECTION("Column compute and newlines") {
-        __init("\n\n\n");
-        REQUIRE(str.getColumn() == 0);
-        str.next();
-        REQUIRE(str.getColumn() == 0);
-        str.next();
-        REQUIRE(str.getColumn() == 0);
-    }
+    EXPECT_TRUE(str.at({slice(QChar('0'), QChar('9'))}));
+    EXPECT_TRUE(str.at(charsets::Digits));
+    EXPECT_FALSE(str.at(charsets::Letters));
+}
 
-    SECTION("Column compute and split text") {
-        __init("0\n1\n2\n");
-        REQUIRE(str.getColumn() == 0);
-        REQUIRE(str.get() == '0');
-        str.next();
-        REQUIRE(str.getColumn() == 1);
-        REQUIRE(str.get() == '\n');
-    }
+TEST(PositionalStringCursorMovementsTest, SkipWhileSingleCharacter) {
+    QString base{"01234"};
+    PosStr  str{base};
+
+    str.skipZeroOrMore(QChar('0'));
+    EXPECT_TRUE(str.at(QChar('1')));
+}
+
+TEST(PositionalStringCursorMovementsTest, SkipWhileCharacterSet) {
+    QString base{"01234"};
+    PosStr  str{base};
+
+    EXPECT_TRUE(str.at(QChar('0')));
+    str.skipZeroOrMore(CharSet{QChar('0'), QChar('1'), QChar('2')});
+    EXPECT_TRUE(str.at(QChar('3')));
+}
+
+TEST(PositionalStringCursorMovementsTest, SkipBeforeCharacter) {
+    QString base{"01234"};
+    PosStr  str{base};
+
+    str.skipBefore(QChar('3'));
+    EXPECT_TRUE(str.at(QChar('2')));
+}
+
+TEST(PositionalStringCursorMovementsTest, SkipToCharacter) {
+    QString base{"01234"};
+    PosStr  str{base};
+
+    str.skipTo(QChar('3'));
+    EXPECT_TRUE(str.at(QChar('3')));
+}
+
+TEST(PositionalStringCursorMovementsTest, SkipUntilOneOfCharacters) {
+    QString base{"01234"};
+    PosStr  str{base};
+
+    str.skipBefore(CharSet{QChar('3'), QChar('4')});
+    EXPECT_TRUE(str.at(QChar('2')));
+}
+
+TEST(PositionalStringCursorMovementsTest, SkipUntilStringIsFound) {
+    QString base{"01234"};
+    PosStr  str{base};
+
+    str.skipBefore("34");
+    EXPECT_TRUE(str.at(QChar('2')));
+}
+
+TEST(PositionalStringApiTest, ColumnAtStartOfText) {
+    __init("* Random");
+    EXPECT_EQ(str.getColumn(), 0);
+    str.next();
+    EXPECT_EQ(str.getColumn(), 1);
+}
+
+TEST(PositionalStringApiTest, ColumnComputeAndNewlines) {
+    __init("\n\n\n");
+    EXPECT_EQ(str.getColumn(), 0);
+    str.next();
+    EXPECT_EQ(str.getColumn(), 0);
+    str.next();
+    EXPECT_EQ(str.getColumn(), 0);
+}
+
+TEST(PositionalStringApiTest, ColumnComputeAndSplitText) {
+    __init("0\n1\n2\n");
+    EXPECT_EQ(str.getColumn(), 0);
+    EXPECT_EQ(str.get(), '0');
+    str.next();
+    EXPECT_EQ(str.getColumn(), 1);
+    EXPECT_EQ(str.get(), '\n');
 }

@@ -1,70 +1,81 @@
 #include <hstd/stdlib/strformat.hpp>
-#include "common.hpp"
+//#include "common.hpp"
+#include <gtest/gtest.h>
 
-TEST_CASE("String formatting", "[str]") {
-    SECTION("Plaintext") { REQUIRE("A" % to_string_vec("a") == "A"); }
+TEST(StringFormatting, Plaintext) {
+    EXPECT_EQ("A" % to_string_vec("a"), "A");
+}
 
-    SECTION("Basic interpolation fragment parsing") {
-        {
-            auto f = addfFragments("${A}+${B}");
-            REQUIRE(f.size() == 3);
-            REQUIRE(f[0].text == "A");
-            REQUIRE(f[0].kind == AddfFragmentKind::Expr);
-            REQUIRE(f[1].kind == AddfFragmentKind::Text);
-            REQUIRE(f[1].text == "+");
-            REQUIRE(f[2].kind == AddfFragmentKind::Expr);
-            REQUIRE(f[2].text == "B");
-        }
-        {
-            auto f = addfFragments("A");
-            REQUIRE(f.size() == 1);
-            REQUIRE(f[0].kind == AddfFragmentKind::Text);
-            REQUIRE(f[0].text == "A");
-        }
-        {
-            auto f = addfFragments("$A");
-            REQUIRE(f.size() == 1);
-            REQUIRE(f[0].kind == AddfFragmentKind::Var);
-            REQUIRE(f[0].text == "A");
-        }
-        {
-            auto f = addfFragments("${A}");
-            REQUIRE(f.size() == 1);
-            REQUIRE(f[0].kind == AddfFragmentKind::Expr);
-            REQUIRE(f[0].text == "A");
-        }
+TEST(StringFormatting, BasicInterpolationFragmentParsing) {
+    {
+        auto f = addfFragments("${A}+${B}");
+        EXPECT_EQ(f.size(), 3);
+        EXPECT_EQ(f[0].text, "A");
+        EXPECT_EQ(f[0].kind, AddfFragmentKind::Expr);
+        EXPECT_EQ(f[1].kind, AddfFragmentKind::Text);
+        EXPECT_EQ(f[1].text, "+");
+        EXPECT_EQ(f[2].kind, AddfFragmentKind::Expr);
+        EXPECT_EQ(f[2].text, "B");
+    }
+    {
+        auto f = addfFragments("A");
+        EXPECT_EQ(f.size(), 1);
+        EXPECT_EQ(f[0].kind, AddfFragmentKind::Text);
+        EXPECT_EQ(f[0].text, "A");
+    }
+    {
+        auto f = addfFragments("$A");
+        EXPECT_EQ(f.size(), 1);
+        EXPECT_EQ(f[0].kind, AddfFragmentKind::Var);
+        EXPECT_EQ(f[0].text, "A");
+    }
+    {
+        auto f = addfFragments("${A}");
+        EXPECT_EQ(f.size(), 1);
+        EXPECT_EQ(f[0].kind, AddfFragmentKind::Expr);
+        EXPECT_EQ(f[0].text, "A");
+    }
+}
+
+#define EXPECT_THROW_WITH_MESSAGE(stmt, etype, whatstring)                \
+    try {                                                                 \
+        stmt;                                                             \
+        FAIL() << "Expected " << #etype << " with message \""             \
+               << whatstring << "\"";                                     \
+    } catch (const etype& e) {                                            \
+        EXPECT_EQ(std::string(e.what()), std::string(whatstring));        \
+    } catch (...) {                                                       \
+        FAIL() << "Expected " << #etype << " with message \""             \
+               << whatstring << "\"";                                     \
     }
 
-    SECTION("Interpolate values by index") {
-        REQUIRE(to_string_vec("#") == std::vector<QString>({"#"}));
-        REQUIRE("$1" % to_string_vec("#") == "#");
-        REQUIRE("$1+$2" % to_string_vec("@", "@") == "@+@");
-        // If interpolation placeholder starts with integer value it won't
-        // be treated as a name
-        REQUIRE("$1A" % to_string_vec("@") == "@A");
-        // If you want to make a name that starts with an integer use `${}`
-        REQUIRE("${1A}" % to_string_vec("1A", "VALUE") == "VALUE");
-        // If element at the required index is not found
-        // `FormatStringError` exception is raised. Note that elements use
-        // zero-based indexing.
-        REQUIRE_THROWS_MATCHES(
-            "$1000" % to_string_vec(),
-            FormatStringError,
-            Message(
-                "Argument index out of bounds. Accessed [999], but only "
-                "0 arguments were supplied"));
-    }
 
-    SECTION("Interpolate values by names") {
-        REQUIRE("$name" % to_string_vec("name", "VALUE") == "VALUE");
-        REQUIRE("${name}" % to_string_vec("name", "VALUE") == "VALUE");
-        REQUIRE(
-            "${name}*${name}" % to_string_vec("name", "VALUE")
-            == "VALUE*VALUE");
+TEST(StringFormatting, InterpolateValuesByIndex) {
+    EXPECT_EQ(to_string_vec("#"), std::vector<QString>({"#"}));
+    EXPECT_EQ("$1" % to_string_vec("#"), "#");
+    EXPECT_EQ("$1+$2" % to_string_vec("@", "@"), "@+@");
+    EXPECT_EQ("$1A" % to_string_vec("@"), "@A");
+    EXPECT_EQ("${1A}" % to_string_vec("1A", "VALUE"), "VALUE");
 
-        REQUIRE_THROWS_MATCHES(
-            "${RANDOM}" % to_string_vec(),
-            FormatStringError,
-            Message("No interpolation argument named 'RANDOM'"));
-    }
+    // Use a lambda function to test for exception cases
+    auto test_function = []() { return "$1000" % to_string_vec(); };
+    EXPECT_THROW_WITH_MESSAGE(
+        test_function(),
+        FormatStringError,
+        "Argument index out of bounds. Accessed [999], but only 0 "
+        "arguments were supplied");
+}
+
+TEST(StringFormatting, InterpolateValuesByNames) {
+    EXPECT_EQ("$name" % to_string_vec("name", "VALUE"), "VALUE");
+    EXPECT_EQ("${name}" % to_string_vec("name", "VALUE"), "VALUE");
+    EXPECT_EQ(
+        "${name}*${name}" % to_string_vec("name", "VALUE"), "VALUE*VALUE");
+
+    // Use a lambda function to test for exception cases
+    auto test_function = []() { return "${RANDOM}" % to_string_vec(); };
+    EXPECT_THROW_WITH_MESSAGE(
+        test_function(),
+        FormatStringError,
+        "No interpolation argument named 'RANDOM'");
 }

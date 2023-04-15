@@ -1,7 +1,8 @@
-#include "common.hpp"
+//#include "common.hpp"
 #include <lexbase/Node.hpp>
 #include <lexbase/Token.hpp>
 #include <lexbase/PosStr.hpp>
+#include <gtest/gtest.h>
 
 #include <boost/describe/enum.hpp>
 
@@ -64,7 +65,7 @@ NodeId<NodeKind, TokenKind> parse(
     }
 }
 
-TEST_CASE("Core linearlized AST parser", "[node]") {
+TEST(CoreLinearlizedASTParserTest, Node) {
     QString               base{"{{{{{{DDD}{WEWE}{VVVV}}}{EEEE}}}}"};
     TokenGroup<TokenKind> tokens;
     PosStr                str(base);
@@ -74,7 +75,7 @@ TEST_CASE("Core linearlized AST parser", "[node]") {
     NodeGroup<NodeKind, TokenKind> nodes(&tokens);
     auto                           top = parse(nodes, lexer);
 
-    REQUIRE(tokens.tokens.size() == base.size());
+    ASSERT_EQ(tokens.tokens.size(), base.size());
     // nodes.lispRepr(std::cout, top, {.fullBase = base.data()});
     // std::cout << "\n";
     // nodes.treeRepr(std::cout, top, 0, {.fullBase = base.data()});

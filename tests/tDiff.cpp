@@ -1,5 +1,4 @@
-#include "common.hpp"
-
+#include <gtest/gtest.h>
 #include <hstd/stdlib/diffs.hpp>
 
 template <typename T>
@@ -54,93 +53,83 @@ Str levEditText(const Str& a, const Str& b) {
     return formatDiffedEx(ops, a.toSpan(), b.toSpan());
 }
 
-TEST_CASE("Levenshtein edit operations", "[TARGET]") {
-    SECTION("Simple edits") {
-        const Vec<std::tuple<Str, Str, Str>> testCases = {
-            {"a", "b", "[repl a -> b]"},
-            {"ab", "b", "[del a]b"},
-            {"ab", "bb", "[repl a -> b]b"},
-            {"a", "aa", "[ins a]a"}};
+class LevenshteinEditOperationsTest : public ::testing::Test {};
 
-        for (const auto& [a, b, edit] : testCases) {
-            const Str lev = levEditText(a, b);
-            // REQUIRE(lev == edit);
-        }
+TEST_F(LevenshteinEditOperationsTest, SimpleEdits) {
+    const Vec<std::tuple<Str, Str, Str>> testCases = {
+        {"a", "b", "[repl a -> b]"},
+        {"ab", "b", "[del a]b"},
+        {"ab", "bb", "[repl a -> b]b"},
+        {"a", "aa", "[ins a]a"}};
+
+    for (const auto& [a, b, edit] : testCases) {
+        const Str lev = levEditText(a, b);
+        EXPECT_EQ(lev, edit);
     }
 }
 
+class LongestCommonSubsequenceTest : public ::testing::Test {
+  protected:
+    void SetUp() override {
+        cmp = [](CR<int> lhs, CR<int> rhs) -> bool { return lhs == rhs; };
 
-TEST_CASE("longestCommonSubsequence", "[LCS]") {
-    Func<bool(CR<int>, CR<int>)> cmp =
-        [](CR<int> lhs, CR<int> rhs) -> bool { return lhs == rhs; };
-
-    Func<float(CR<int>, CR<int>)> cmpValue = [](CR<int> lhs,
-                                                CR<int> rhs) -> float {
-        return lhs == rhs ? 1.0 : 0.0;
-    };
-
-    SECTION("Both input sequences are empty") {
-        Vec<int> a1       = {};
-        Vec<int> b1       = {};
-        Vec<int> expected = {};
-        REQUIRE(
-            expandOn(
-                longestCommonSubsequence(a1, b1, cmp, cmpValue)[0],
-                a1,
-                true)
-            == expected);
+        cmpValue = [](CR<int> lhs, CR<int> rhs) -> float {
+            return lhs == rhs ? 1.0 : 0.0;
+        };
     }
 
-    SECTION("One of the input sequences is empty") {
-        Vec<int> a2       = {1, 2, 3};
-        Vec<int> b2       = {};
-        Vec<int> expected = {};
-        REQUIRE(
-            expandOn(
-                longestCommonSubsequence(a2, b2, cmp, cmpValue)[0],
-                a2,
-                true)
-            == expected);
-    }
+    Func<bool(CR<int>, CR<int>)>  cmp;
+    Func<float(CR<int>, CR<int>)> cmpValue;
+};
 
-    // SECTION("Input sequences have common elements") {
-    //     Vec<int> a3       = {1, 2, 3, 4};
-    //     Vec<int> b3       = {2, 4, 3, 1};
-    //     Vec<int> expected = {1, 2, 3, 4};
-    //     REQUIRE(expandOn(longestCommonSubsequence(a3, b3, cmp)[0], a3,
-    //     true) == expected);
-    // }
-
-    SECTION("Input sequences do not have any common elements") {
-        Vec<int> a4       = {1, 2, 3, 4};
-        Vec<int> b4       = {5, 6, 7, 8};
-        Vec<int> expected = {};
-        REQUIRE(
-            expandOn(
-                longestCommonSubsequence(a4, b4, cmp, cmpValue)[0],
-                a4,
-                true)
-            == expected);
-    }
+TEST_F(LongestCommonSubsequenceTest, BothInputSequencesAreEmpty) {
+    Vec<int> a1       = {};
+    Vec<int> b1       = {};
+    Vec<int> expected = {};
+    EXPECT_EQ(
+        expandOn(
+            longestCommonSubsequence(a1, b1, cmp, cmpValue)[0], a1, true),
+        expected);
 }
 
-TEST_CASE("Fuzzy match configurable", "[fuzzy]") {
+TEST_F(LongestCommonSubsequenceTest, OneOfTheInputSequencesIsEmpty) {
+    Vec<int> a2       = {1, 2, 3};
+    Vec<int> b2       = {};
+    Vec<int> expected = {};
+    EXPECT_EQ(
+        expandOn(
+            longestCommonSubsequence(a2, b2, cmp, cmpValue)[0], a2, true),
+        expected);
+}
+
+TEST_F(
+    LongestCommonSubsequenceTest,
+    InputSequencesDoNotHaveAnyCommonElements) {
+    Vec<int> a4       = {1, 2, 3, 4};
+    Vec<int> b4       = {5, 6, 7, 8};
+    Vec<int> expected = {};
+    EXPECT_EQ(
+        expandOn(
+            longestCommonSubsequence(a4, b4, cmp, cmpValue)[0], a4, true),
+        expected);
+}
+
+class FuzzyMatchConfigurableTest : public ::testing::Test {
+  protected:
+    void SetUp() override {
+        matcher.isEqual = [](CR<char> lhs, CR<char> rhs) -> bool {
+            return lhs == rhs;
+        };
+        matcher.isSeparator = [](CR<char> sep) -> bool { return false; };
+    }
+
     FuzzyMatcher<char const> matcher;
-    matcher.isEqual = [](CR<char> lhs, CR<char> rhs) -> bool {
-        // std::cout << lhs << " == " << rhs << "\n";
-        return lhs == rhs;
-    };
-    matcher.isSeparator = [](CR<char> sep) -> bool { return false; };
 
-    auto getMatches = [&](Str lhs, Str rhs) -> Array<int, 256> {
-        // std::cout << "score "
-        //           << matcher.get_score(lhs.toSpan(), rhs.toSpan()) <<
-        //           "\n";
+    auto getMatches(const Str& lhs, const Str& rhs) -> Array<int, 256> {
         return matcher.matches;
-    };
-
-    SECTION("Full match") {
-        auto m = getMatches("123", "010233");
-        // std::cout << std::endl << "---\n" << m << std::endl;
     }
+};
+
+TEST_F(FuzzyMatchConfigurableTest, FullMatch) {
+    auto m = getMatches("123", "010233");
 }

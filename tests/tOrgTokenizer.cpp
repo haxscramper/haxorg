@@ -1,7 +1,8 @@
 #include <parse/OrgTokenizer.hpp>
-#include "common.hpp"
+//#include "common.hpp"
+#include <gtest/gtest.h>
 
-TEST_CASE("Basic lexer", "[lex]") {
+TEST(BasicLexerTest, Lex) {
     OrgTokenGroup res;
     OrgTokenizer  lexer{&res};
     QString       base{"word"};

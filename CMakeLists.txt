@@ -214,33 +214,8 @@ add_antlr_base(tests)
 target_link_libraries(tests PUBLIC fmt::fmt yaml-cpp::yaml-cpp
                                    "Qt${QT_VERSION_MAJOR}::Core")
 
-if(${USE_SINGLE_FILE_CATCH})
-  add_target_property(tests SOURCES
-                      "${BASE}/deps/catch2/catch_amalgamated.cpp")
-  add_target_property(tests INCLUDE_DIRECTORIES "${BASE}/deps/catch2")
-  add_target_property(tests COMPILE_DEFINITIONS
-                      "HAXORG_USE_SINGLE_FILE_CATCH")
-  add_target_property(tests COMPILE_DEFINITIONS
-                      "CATCH_AMALGAMATED_CUSTOM_MAIN")
-  # This option is does not seem to be configurable at runtime and instead
-  # I have to set it directly during compilation. This is a hack, but at
-  # least this way it won't break custom formatted output.
-  #
-  # FIXME actually this does not work properly either -- they wanted to
-  # have 'nice' formatting experience by printing N dots to separate tests,
-  # where N equals to ... compile-time console width, right. So I either
-  # get mangled text in FAIL or I get 120k dots that make the output
-  # unreadable.
-  #
-  # add_target_property(tests COMPILE_DEFINITIONS
-  # "CATCH_CONFIG_CONSOLE_WIDTH=1200000")
 
-  add_target_property(tests COMPILE_DEFINITIONS
-                      "CATCH_CONFIG_DISABLE_EXCEPTIONS")
-else()
-  find_package(Catch2 3 REQUIRED)
-  add_target_property(tests LINK_LIBRARIES Catch2::Catch2)
-endif()
+add_target_property(tests LINK_LIBRARIES gtest)
 
 set(AUTOGEN_BUILD_DIR ${BASE}/build/autogen)
 file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})

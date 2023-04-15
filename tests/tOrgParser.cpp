@@ -1,5 +1,4 @@
-#include "common.hpp"
-
+#include <gtest/gtest.h>
 #include <parse/OrgParser.hpp>
 
 struct MockParser : public OrgParser {
@@ -68,32 +67,34 @@ TmpTree t(OrgNodeKind k, CR<Vec<TmpTree>> sub = {}) {
 TmpTree t(OrgNodeKind k, int index) { return TmpTree{tok(k, index)}; }
 TmpTree t(OrgNode node) { return TmpTree{node}; }
 
-TEST_CASE("Parser", "[parse]") {
+class ParserTest : public ::testing::Test {
+  protected:
     MockParser p;
-    SECTION("Parse single time entry") {
-        p.add(
-            {otk::InactiveTimeBegin,
-             otk::StaticTimeDatePart,
-             otk::InactiveTimeEnd});
-        p.parseTimeStamp(p.lex);
-        REQUIRE(p[0] == tok(org::StaticInactiveTime, 0));
-    }
+};
 
-    SECTION("Parse time range") {
-        p.add({
-            otk::InactiveTimeBegin,
-            otk::StaticTimeDatePart,
-            otk::InactiveTimeEnd,
-            otk::TimeDash,
-            otk::InactiveTimeBegin,
-            otk::StaticTimeDatePart,
-            otk::InactiveTimeEnd,
-        });
-        p.parseTimeRange(p.lex);
-        REQUIRE(p[0].kind == org::TimeRange);
-        // start of the time range extent, two elements
-        REQUIRE(p[1].kind == org::StaticInactiveTime);
-        // Time dash token is skipped
-        REQUIRE(p[6].kind == org::StaticInactiveTime);
-    }
+TEST_F(ParserTest, ParseSingleTimeEntry) {
+    p.add(
+        {otk::InactiveTimeBegin,
+         otk::StaticTimeDatePart,
+         otk::InactiveTimeEnd});
+    p.parseTimeStamp(p.lex);
+    EXPECT_EQ(p[0], tok(org::StaticInactiveTime, 0));
+}
+
+TEST_F(ParserTest, ParseTimeRange) {
+    p.add({
+        otk::InactiveTimeBegin,
+        otk::StaticTimeDatePart,
+        otk::InactiveTimeEnd,
+        otk::TimeDash,
+        otk::InactiveTimeBegin,
+        otk::StaticTimeDatePart,
+        otk::InactiveTimeEnd,
+    });
+    p.parseTimeRange(p.lex);
+    EXPECT_EQ(p[0].kind, org::TimeRange);
+    // start of the time range extent, two elements
+    EXPECT_EQ(p[1].kind, org::StaticInactiveTime);
+    // Time dash token is skipped
+    EXPECT_EQ(p[6].kind, org::StaticInactiveTime);
 }
