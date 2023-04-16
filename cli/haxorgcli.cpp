@@ -4,6 +4,7 @@
 #include <exporters/ExporterJson.hpp>
 #include <QElapsedTimer>
 #include <parse/OrgSpec.hpp>
+#include <sem/ErrorWrite.hpp>
 
 
 struct NodeOperations {
@@ -660,12 +661,53 @@ void HaxorgCli::exec() {
 
     PosStr        str{source};
     QElapsedTimer timer;
+    StrCache      sources;
+    Id            inId = 0;
+    sources.add(inId, source, config.sourceFile.fileName());
 
     timer.start();
     processStatus.reports.push_back({});
     ProcessStatus::FileReport& rep = processStatus.reports.back();
     rep.file                       = config.sourceFile;
-    tokenizer.lexGlobal(str);
+
+
+    try {
+        tokenizer.lexGlobal(str);
+    } catch (OrgTokenizer::TokenizerError& err) {
+        QStringView  view = err.getView();
+        Opt<LineCol> loc  = err.getLoc();
+        int          pos  = err.getPos();
+        using E           = OrgTokenizer::Errors;
+
+        auto msg = QString(std::visit(
+            overloaded{
+                [](E::UnexpectedChar const&) -> QString {
+                    return "UnexpectedChar"_qs;
+                },
+                [](E::UnexpectedConstruct const&) -> QString {
+                    return "UnexpectedConstruct"_qs;
+                },
+                [](E::UnknownConstruct const&) -> QString {
+                    return "UnknownConstruct"_qs;
+                },
+                [](E::MissingElement const&) -> QString {
+                    return "MissingElement"_qs;
+                },
+                [](E::None const&) -> QString { return "None"_qs; },
+                [](const auto& it) -> QString { return ""_qs; }},
+            err.err));
+
+        auto r = Report(ReportKind::Error, inId, pos - 1)
+                     .with_message(QString(err.what()))
+                     .with_code("03")
+                     .with_label(Label(std::make_shared<TupleCodeSpan>(
+                                           inId, slice(pos - 1, pos - 1)))
+                                     .with_message(msg));
+
+        r.write(sources, qcout);
+        return;
+    }
+
     rep.lexNs = timer.nsecsElapsed();
 
     using Target = HaxorgCli::Config::Target;

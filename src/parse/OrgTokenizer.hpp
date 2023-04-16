@@ -120,6 +120,7 @@ struct OrgTokenizer
   public:
     struct Errors {
         struct Base : std::runtime_error {
+            // TODO add extent information about the error
             QStringView  view;
             int          pos = 0;
             Opt<LineCol> loc;

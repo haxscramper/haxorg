@@ -393,8 +393,8 @@ TEST(PrintError, MultipleFiles) {
     ColStyle c;
 
     StrCache sources;
-    sources.add(a_id, a_tao);
-    sources.add(b_id, b_tao);
+    sources.add(a_id, a_tao, "a_tao");
+    sources.add(b_id, b_tao, "b_tao");
 
     QString     buf;
     QTextStream os{&buf};
@@ -441,7 +441,7 @@ def multiline :: Str = match Some 5 in {
     | None => 0
 })";
     StrCache sources;
-    sources.add(id, code);
+    sources.add(id, code, "tao");
     QString     buf;
     QTextStream os{&buf};
     Report(ReportKind::Error, id, 13)

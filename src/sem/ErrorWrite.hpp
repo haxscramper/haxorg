@@ -157,41 +157,12 @@ struct Source {
     // Get the line that the given offset appears on, and the line/column
     // numbers of the offset. Note that the line/column numbers are
     // zero-indexed.
-    std::optional<OffsetLine> get_offset_line(int offset) {
-        if (offset <= len) {
-            auto it = std::lower_bound(
-                lines.begin(),
-                lines.end(),
-                offset,
-                [](const Line& line, int offset) {
-                    return line.offset < offset;
-                });
-            if (it != lines.begin()) {
-                --it;
-            }
-            int         idx  = std::distance(lines.begin(), it);
-            const Line& line = lines[idx];
-            assert(offset >= line.offset);
-            return OffsetLine{std::ref(line), idx, offset - line.offset};
-        } else {
-            return std::nullopt;
-        }
-    }
+    std::optional<OffsetLine> get_offset_line(int offset);
 
     // Get the range of lines that this Codespan runs across.
     // The resulting range is guaranteed to contain valid line indices
     // (i.e: those that can be used for Source::line()).
-    Slice<int> get_line_range(const CodeSpan& Codespan) {
-        std::optional<OffsetLine> start = get_offset_line(
-            Codespan.start());
-        std::optional<OffsetLine> end = get_offset_line(Codespan.end());
-
-        if (start && end) {
-            return {start->idx, end->idx};
-        } else {
-            return {0, lines.size()};
-        }
-    }
+    Slice<int> get_line_range(const CodeSpan& span);
 };
 
 class StrCache : public Cache {
@@ -199,9 +170,12 @@ class StrCache : public Cache {
 
     // Cache interface
   public:
-    std::unordered_map<Id, std::shared_ptr<Source>> sources;
-    inline void add(Id id, QString const& source) {
+    UnorderedMap<Id, std::shared_ptr<Source>> sources;
+    UnorderedMap<Id, QString>                 names;
+
+    inline void add(Id id, QString const& source, QString const& name) {
         sources[id] = std::make_shared<Source>(source);
+        names[id]   = name;
     }
 
     inline std::shared_ptr<Source> fetch(const Id& id) override {
@@ -209,7 +183,7 @@ class StrCache : public Cache {
     }
 
     inline std::optional<QString> display(const Id& id) const override {
-        return "";
+        return names.get(id);
     }
 };
 
@@ -395,20 +369,7 @@ struct Config {
     ColStyle unimportant_color = ColStyle{} + TermColorBg8Bit::Default;
     ColStyle note_color        = ColStyle{} + TermColorBg8Bit::Cyan;
 
-    std::pair<QChar, int> char_width(QChar c, int col) const {
-        if (c == '\t') {
-            // Find the column that the tab should end at
-            int tab_end = (col / tab_width + 1) * tab_width;
-            return std::make_pair(' ', tab_end - col);
-        } else if (c.isSpace()) {
-            return std::make_pair(' ', 1);
-        } else {
-            // Assuming you have a function called 'width()' to get the
-            // character width.
-            int char_width = 1;
-            return std::make_pair(c, char_width);
-        }
-    }
+    std::pair<QChar, int> char_width(QChar c, int col) const;
 
 
     bool           cross_gap;
@@ -499,56 +460,7 @@ class Report {
     inline Report(ReportKind kind, Id id, int offset)
         : kind(kind), location({id, offset}) {}
 
-    Vec<SourceGroup> get_source_groups(Cache* cache) {
-        Vec<SourceGroup> groups;
-        for (const auto& label : labels) {
-            auto src_display = cache->display(label.span->source());
-            std::shared_ptr<Source> src = cache->fetch(
-                label.span->source());
-            if (!src) {
-                continue;
-            }
-
-            assert(label.span->start() <= label.span->end());
-
-            // "Label start is after its end");
-            auto start_line = src->get_offset_line(label.span->start())
-                                  .value()
-                                  .idx;
-
-            auto end_line = src->get_offset_line(std::max(
-                                                     label.span->end() - 1,
-                                                     label.span->start()))
-                                .value()
-                                .idx;
-
-            LabelInfo label_info{
-                .kind  = (start_line == end_line) ? LabelKind::Inline
-                                                  : LabelKind::Multiline,
-                .label = label};
-
-            auto group_it = std::find_if(
-                groups.begin(),
-                groups.end(),
-                [&](const SourceGroup& group) {
-                    return group.src_id == label.span->source();
-                });
-
-            if (group_it != groups.end()) {
-                group_it->span.first = std::min(
-                    group_it->span.first, label.span->start());
-                group_it->span.last = std::max(
-                    group_it->span.last, label.span->end());
-                group_it->labels.push_back(label_info);
-            } else {
-                groups.push_back(SourceGroup{
-                    .src_id = label.span->source(),
-                    .span = slice(label.span->start(), label.span->end()),
-                    .labels = {label_info}});
-            }
-        }
-        return groups;
-    }
+    Vec<SourceGroup> get_source_groups(Cache* cache);
 
 
     inline void write(Cache& cache, QTextStream& w) {

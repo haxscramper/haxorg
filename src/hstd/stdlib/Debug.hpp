@@ -36,3 +36,9 @@ inline void fatal(CR<QString> msg) { fatal(strdup(msg)); }
 
 #define qDebugIndent(indent)                                              \
     qDebug().noquote() << QString("  ").repeated(indent)
+
+#define _dbg(expr)                                                        \
+    ([](auto const& it) {                                                 \
+        qDebug() << (#expr) << " = " << it;                               \
+        return it;                                                        \
+    }((expr)))

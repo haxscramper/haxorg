@@ -2,6 +2,7 @@
 #include <sem/ErrorWrite.hpp>
 #include <QChar>
 #include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
 Characters unicode() {
     return Characters{
@@ -176,14 +177,15 @@ void write_margin(MarginContext const& c) {
         line_no_margin = QString(" ").repeated(
                              c.line_no_width
                              - QString::number(line_no).length())
-                       + QString::number(line_no) + c.draw.vbar;
+                       + QString::number(line_no) + " " + c.draw.vbar;
     } else {
         line_no_margin = QString(" ").repeated(c.line_no_width + 1)
                        + (c.is_ellipsis ? c.draw.vbar_gap
                                         : c.draw.vbar_break);
     }
 
-    c.w << " " << line_no_margin << (c.config.compact ? "" : " ");
+    c.w << " " << line_no_margin + c.config.margin_color
+        << (c.config.compact ? "" : " ");
 
 
     // Multi-line margins
@@ -581,11 +583,7 @@ int get_line_no_width(Vec<SourceGroup> const& groups, Cache& cache) {
 
             auto line_range = src->get_line_range(
                 RangeCodeSpan(group.span));
-            int width = 0;
-            for (uint32_t x = 1, y = 1; line_range.last / y != 0;
-                 x *= 10, y        = std::pow(10, x)) {
-                ++width;
-            }
+            int width     = QString::number(line_range.last).size();
             line_no_width = std::max(line_no_width, width);
         } catch (const std::exception& e) {
             std::cerr << "Unable to fetch source " << src_name << ": "
@@ -674,8 +672,57 @@ void write_lines(
 }
 }; // namespace
 
+Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
+    Vec<SourceGroup> groups;
+    for (const auto& label : labels) {
+        auto src_display            = cache->display(label.span->source());
+        std::shared_ptr<Source> src = cache->fetch(label.span->source());
+        if (!src) {
+            continue;
+        }
+
+        assert(label.span->start() <= label.span->end());
+
+        // "Label start is after its end");
+        auto start_line = src->get_offset_line(label.span->start())
+                              .value()
+                              .idx;
+
+        auto end_line = src->get_offset_line(std::max(
+                                                 label.span->end() - 1,
+                                                 label.span->start()))
+                            .value()
+                            .idx;
+
+        LabelInfo label_info{
+            .kind  = (start_line == end_line) ? LabelKind::Inline
+                                              : LabelKind::Multiline,
+            .label = label};
+
+        auto group_it = std::find_if(
+            groups.begin(), groups.end(), [&](const SourceGroup& group) {
+                return group.src_id == label.span->source();
+            });
+
+        if (group_it != groups.end()) {
+            group_it->span.first = std::min(
+                group_it->span.first, label.span->start());
+            group_it->span.last = std::max(
+                group_it->span.last, label.span->end());
+            group_it->labels.push_back(label_info);
+        } else {
+            groups.push_back(SourceGroup{
+                .src_id = label.span->source(),
+                .span   = slice(label.span->start(), label.span->end()),
+                .labels = {label_info}});
+        }
+    }
+    return groups;
+}
+
 void Report::write_for_stream(Cache& cache, QTextStream& stream) {
-    ColStream  w{stream};
+    ColStream w{stream};
+    w.colored = true;
     Characters draw;
     switch (config.char_set) {
         case MessageCharSet::Unicode: draw = unicode(); break;
@@ -683,24 +730,38 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
     }
 
     // --- Header ---
-    QString id;
-    if (code.has_value()) {
-        id = "[" + *code + "] ";
-    }
-    id += ":";
 
-    std::optional<ColStyle> kind_color;
+
+    ColStyle kind_color;
+    QString  kindName;
     switch (kind) {
-        case ReportKind::Error: kind_color = config.error_color; break;
-        case ReportKind::Warning: kind_color = config.warning_color; break;
-        case ReportKind::Advice: kind_color = config.advice_color; break;
-        case ReportKind::Custom:
-            kind_color = config.unimportant_color;
+        case ReportKind::Error: {
+            kind_color = config.error_color;
+            kindName   = "Error";
             break;
+        }
+        case ReportKind::Warning: {
+            kind_color = config.warning_color;
+            kindName   = "Warning";
+            break;
+        }
+        case ReportKind::Advice: {
+            kind_color = config.advice_color;
+            kindName   = "Advice";
+            break;
+        }
+        case ReportKind::Custom: {
+            kind_color = config.unimportant_color;
+            kindName   = "Custom";
+            break;
+        }
     }
 
-    //        fmt::print(w, "{} {}", id.ColRune(kind_color, s),
-    //        Show(msg.as_ref()));
+    if (code.has_value()) {
+        w << ("[" + *code + "] ") + kind_color;
+    }
+
+    w << kindName + kind_color << ": " << msg.value() << "\n";
 
     auto groups = get_source_groups(&cache);
 
@@ -722,8 +783,12 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
             continue;
         }
 
-        Slice<int> line_range = src->get_line_range(
-            RangeCodeSpan(Codespan));
+        w << QString(" ").repeated(line_no_width + 2) //
+          << (group_idx == 0 ? ColRune(draw.ltop) : ColRune(draw.lcross))
+                 + config.margin_color                //
+          << ColRune(draw.hbar) + config.margin_color //
+          << ColRune(draw.lbox) + config.margin_color //
+          << src_name;                                // Source file name
 
         // File name & reference
         int location = (src_id == this->location.first)
@@ -731,22 +796,30 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
                          : labels[0].label.span->start();
 
         auto offset_line = src->get_offset_line(location);
-        std::pair<QString, QString> line_col;
+
+        // Error line and column number in the error message header
         if (offset_line) {
-            line_col = {
-                QString::number(offset_line->idx + 1),
-                QString::number(offset_line->col + 1)};
+            w << ":" << offset_line->idx + 1 << ":"
+              << offset_line->col + 1;
         } else {
-            line_col = {"?", "?"};
+            w << ":?:?";
         }
 
-        if (!config.compact) {}
+        w << ColRune(draw.rbox) + config.margin_color << "\n";
+
+        if (!config.compact) {
+            w << QString(" ").repeated(line_no_width + 2)
+              << ColRune(draw.vbar) + config.margin_color << "\n";
+        }
 
 
         // Generate a list of multi-line labels
         Vec<const Label*> multi_labels;
         build_multi_labels(multi_labels, labels);
 
+
+        Slice<int> line_range = src->get_line_range(
+            RangeCodeSpan(Codespan));
 
         bool is_ellipsis = false;
         for (int idx = line_range.first; idx <= line_range.last; ++idx) {
@@ -755,9 +828,8 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
                 continue;
             }
 
-            Line line = line_opt.value();
 
-
+            Line                     line         = line_opt.value();
             std::optional<LineLabel> margin_label = get_margin_label(
                 line, multi_labels);
 
@@ -793,7 +865,6 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
             // Determine label bounds so we know where to put error
             // messages
             int arrow_len = 0;
-            ;
             for (const auto& ll : line_labels) {
                 if (ll.multi) {
                     arrow_len = line.get_len();
@@ -804,7 +875,6 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
             }
 
             arrow_len += config.compact ? 1 : 2;
-
 
             // Margin
             write_margin(base.clone()
@@ -921,4 +991,51 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
     }
 
     qDebug() << w.getBuffer();
+}
+
+std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
+    if (offset <= len) {
+        auto it = std::lower_bound(
+            lines.begin(),
+            lines.end(),
+            offset,
+            [](const Line& line, int offset) {
+                return line.offset < offset;
+            });
+        if (it != lines.begin()) {
+            --it;
+        }
+        int         idx  = std::distance(lines.begin(), it);
+        const Line& line = lines[idx];
+        assert(offset >= line.offset);
+        return OffsetLine{std::ref(line), idx, offset - line.offset};
+    } else {
+        return std::nullopt;
+    }
+}
+
+Slice<int> Source::get_line_range(const CodeSpan& span) {
+    std::optional<OffsetLine> start = get_offset_line(span.start());
+    std::optional<OffsetLine> end   = get_offset_line(span.end());
+
+    if (start && end) {
+        return {start->idx, end->idx};
+    } else {
+        return {0, lines.size()};
+    }
+}
+
+std::pair<QChar, int> Config::char_width(QChar c, int col) const {
+    if (c == '\t') {
+        // Find the column that the tab should end at
+        int tab_end = (col / tab_width + 1) * tab_width;
+        return std::make_pair(' ', tab_end - col);
+    } else if (c.isSpace()) {
+        return std::make_pair(' ', 1);
+    } else {
+        // Assuming you have a function called 'width()' to get the
+        // character width.
+        int char_width = 1;
+        return std::make_pair(c, char_width);
+    }
 }
