@@ -76,6 +76,39 @@ constexpr auto describe_enumerators_as_array() {
         boost::describe::describe_enumerators<E>());
 }
 
+template <class E>
+struct EnumFieldDesc {
+    QString name;
+    E       value;
+    int     index;
+};
+
+template <class E>
+std::vector<EnumFieldDesc<E>> describe_enumerators() {
+    constexpr auto D = describe_enumerators_as_array<E>();
+
+    std::vector<EnumFieldDesc<E>> result;
+    for (int i = 0; i < D.size(); ++i) {
+        result.push_back(EnumFieldDesc<E>{
+            .index = i,
+            .value = D[i],
+            .name  = enum_to_string(D[i]),
+        });
+    }
+
+    return result;
+}
+
+template <class E>
+std::vector<QString> enumerator_names() {
+    auto                 tmp = describe_enumerators<E>();
+    std::vector<QString> result;
+    for (const auto& it : tmp) {
+        result.push_back(it.name);
+    }
+    return result;
+}
+
 template <DescribedEnum E>
 E low() {
     constexpr auto D = describe_enumerators_as_array<E>();

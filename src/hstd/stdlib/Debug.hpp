@@ -17,31 +17,12 @@ QDebug operator<<(QDebug debug, T const& value) {
     return debug;
 }
 
-inline void tracedMessageHandler(
+void tracedMessageHandler(
     QtMsgType                 type,
     const QMessageLogContext& context,
-    const QString&            msg) {
-    ColStream os{qcout};
+    const QString&            msg);
 
-    QString res;
-    os.magenta();
-    switch (type) {
-        case QtMsgType::QtInfoMsg: os << "INFO "; break;
-        case QtMsgType::QtDebugMsg: os << "DEBUG"; break;
-        case QtMsgType::QtWarningMsg: os << "WARNG"; break;
-        case QtMsgType::QtCriticalMsg: os << "CRITC"; break;
-        case QtMsgType::QtFatalMsg: os << "FATAL"; break;
-    }
-    os << os.end();
-
-    os << " [" << os.cyan() << context.line << os.end() << "]";
-    if (context.category != "default") {
-        os << " " << os.green() << context.category << os.end();
-    }
-    os << " " << msg;
-
-    qcout << Qt::endl;
-}
+void setMessageStream(QTextStream& stream);
 
 inline void qt_assert_x(
     CR<QString> where,

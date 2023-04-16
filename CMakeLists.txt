@@ -39,5 +39,6 @@ include(autogen_enums.cmake)
 add_dependencies(haxorg autogen_enums)
 
 include(target_tests.cmake)
+include(target_cli.cmake)
 
 

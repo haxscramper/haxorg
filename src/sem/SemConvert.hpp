@@ -89,7 +89,7 @@ struct OrgConverter : public OperationsTracer {
 
     struct Report {
         ReportKind       kind;
-        fs::path         location;
+        QFileInfo        location;
         int              line;
         Opt<Str>         name;
         Opt<Str>         subname;

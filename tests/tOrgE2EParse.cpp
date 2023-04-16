@@ -37,8 +37,9 @@ diff::ComparisonOptions<NodeId<N, K>, Val> nodeAdapterComparisonOptions(
 }
 
 TEST(TestFiles, Spec) {
-    YAML::Node spec = YAML::LoadFile(__CURRENT_FILE_DIR__ / "spec.yaml");
-    ParseSpec  parsed(spec);
+    YAML::Node spec = YAML::LoadFile(
+        (__CURRENT_FILE_DIR__ / "spec.yaml").toStdString());
+    ParseSpec parsed(spec);
 }
 
 TEST(SimpleNodeConversion, SingleHashTagToken) {
@@ -70,8 +71,6 @@ TEST(SimpleNodeConversion, DoubleHashTag) {
 
 TEST(SimpleNodeConversion, NestedHashTag) {
     MockFull p;
-    p.setTraceFile("/tmp/hashtag_parse.txt");
-    p.tokenizer.setTraceFile("/tmp/hashtag_lex.txt");
     p.run("#test##[a, b]", &T::lexText, &P::parseHashTag);
     auto node = yamlRepr(p.a(0));
     yamlRepr(p.nodes);

@@ -7,6 +7,7 @@
 #include <lexbase/NodeTest.hpp>
 #include <sem/ErrorWrite.hpp>
 #include <gtest/gtest.h>
+#include <QDirIterator>
 
 #include <exporters/ExporterJson.hpp>
 
@@ -24,9 +25,9 @@ namespace rs = std::views;
     { Str(#name), &OrgTokenizer::lex##name }
 
 void writeFileOrStdout(
-    fs::path const& target,
-    QString const&  content,
-    bool            useStdout) {
+    QFileInfo const& target,
+    QString const&   content,
+    bool             useStdout) {
     if (useStdout) {
         writeFile(target, content);
     } else {
@@ -280,12 +281,12 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
 
     p.trace = spec.dbg.traceParse;
     if (spec.dbg.parseToFile) {
-        p.setTraceFile("/tmp/parse.txt");
+        p.setTraceFile(QFileInfo("/tmp/parse.txt"_qs));
     }
 
     p.tokenizer.trace = spec.dbg.traceLex;
     if (spec.dbg.lexToFile) {
-        p.tokenizer.setTraceFile("/tmp/random.txt");
+        p.tokenizer.setTraceFile(QFileInfo("/tmp/random.txt"_qs));
     }
 
     if (spec.dbg.printSource) {
@@ -328,7 +329,7 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
 
     if (spec.dbg.printLexed) {
         writeFileOrStdout(
-            "/tmp/lexed.yaml",
+            QFileInfo("/tmp/lexed.yaml"),
             to_string(yamlRepr(p.tokens)) + "\n",
             spec.dbg.printLexedToFile);
     }
@@ -345,7 +346,7 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
 
             if (spec.dbg.printParsed) {
                 writeFileOrStdout(
-                    "/tmp/parsed.yaml",
+                    QFileInfo("/tmp/parsed.yaml"),
                     to_string(yamlRepr(p.nodes)) + "\n",
                     spec.dbg.printParsedToFile);
             }
@@ -962,8 +963,8 @@ TEST(ParseFile, CorpusSingle) {
 
     QString source = "test";
 
-    p.tokenizer.setTraceFile("/tmp/file_lex_trace.txt");
-    p.setTraceFile("/tmp/file_parse_trace.txt");
+    p.tokenizer.setTraceFile(QFileInfo("/tmp/file_lex_trace.txt"_qs));
+    p.setTraceFile(QFileInfo("/tmp/file_parse_trace.txt"_qs));
 
     p.tokens.base = source.data();
     LineColInfo info{source};
@@ -1117,8 +1118,8 @@ $#
 </html>
 )";
         writeFile(
-            ("/tmp/annotated_$#.html" % to_string_vec(index / cutoff))
-                .toStdString(),
+            QFileInfo(
+                "/tmp/annotated_$#.html" % to_string_vec(index / cutoff)),
             htmlDoc % to_string_vec(annotatedOutput));
     };
 
@@ -1156,8 +1157,8 @@ $#
 
         // qDebug() << index;
         writeFile(
-            ("/tmp/table_$#.html" % to_string_vec(index / cutoff))
-                .toStdString(),
+            QFileInfo(
+                "/tmp/table_$#.html" % to_string_vec(index / cutoff)),
             htmlDoc % to_string_vec(tableOutput));
         tableOutput = "";
     };
@@ -1244,10 +1245,11 @@ kind=$#
     index += cutoff;
     writeHtml();
     writeAnnotated();
-    writeFile("/tmp/tokens.csv", csvOutput);
+    writeFile(QFileInfo("/tmp/tokens.csv"), csvOutput);
 
     writeFile(
-        "/tmp/file_lexed.yaml", to_string(yamlRepr(p.tokens)) + "\n");
+        QFileInfo("/tmp/file_lexed.yaml"),
+        to_string(yamlRepr(p.tokens)) + "\n");
 
     qDebug() << "Lex ok";
     Q_CHECK_PTR(p.impl);
@@ -1255,14 +1257,15 @@ kind=$#
 
     qDebug() << "Top parse";
     writeFile(
-        "/tmp/file_parsed.yaml",
+        QFileInfo("/tmp/file_parsed.yaml"),
         to_string(yamlRepr(p.nodes, true, true)) + "\n");
     qDebug() << "Wrote parsed representation into yaml";
 
     writeFile(
-        "/tmp/parsed_tree.html", htmlRepr(OrgId(0), p.nodes, source, ops));
+        QFileInfo("/tmp/parsed_tree.html"),
+        htmlRepr(OrgId(0), p.nodes, source, ops));
 
-    writeFile("/tmp/parsed_tree.txt", p.a(0).treeRepr());
+    writeFile(QFileInfo("/tmp/parsed_tree.txt"), p.a(0).treeRepr());
 
     qDebug() << "Wrote parsed tree representation before group sweep";
 
@@ -1279,7 +1282,7 @@ kind=$#
 
 
     writeFile(
-        "/tmp/file_sweep.yaml",
+        QFileInfo("/tmp/file_sweep.yaml"),
         to_string(yamlRepr(p.nodes, true, true)) + "\n");
 
     // ColStream os{qcout};
@@ -1292,16 +1295,16 @@ kind=$#
     file.close();
 
 
-    writeFile("/tmp/parsed_sweep.txt", p.a(0).treeRepr());
+    writeFile(QFileInfo("/tmp/parsed_sweep.txt"), p.a(0).treeRepr());
 
     writeFile(
-        "/tmp/parsed_sweep.html",
+        QFileInfo("/tmp/parsed_sweep.html"),
         htmlRepr(OrgId(0), p.nodes, source, ops));
 
     qDebug() << "Wrote parsed tree representation after group sweep";
 
     sem::OrgConverter converter;
-    converter.setTraceFile("/tmp/convert_trace.txt");
+    converter.setTraceFile(QFileInfo("/tmp/convert_trace.txt"));
 
     converter.locationResolver    = p.tokenizer.locationResolver;
     sem::Wrap<sem::Document> node = converter.toDocument(p.a(0));
@@ -1314,7 +1317,8 @@ kind=$#
     ExporterJson exporter;
     Exporter::Wrap<ExporterJson::Result>
         result = exporter.exportNode(node)->as<ExporterJson::Result>();
-    writeFile("/tmp/parse_corpus.json", to_string(result->value));
+    writeFile(
+        QFileInfo("/tmp/parse_corpus.json"), to_string(result->value));
 
 
     SUCCEED();
@@ -1322,26 +1326,25 @@ kind=$#
 
 
 TEST(ParseFile, CorpusAll) {
-    std::string glob; // = testParameters.corpusGlob.toStdString();
-    for (fs::directory_entry const& path :
-         fs::recursive_directory_iterator(
-             __CURRENT_FILE_DIR__ / "corpus")) {
-
-        std::string p = path.path();
-        if (path.is_regular_file()
-            && QString::fromStdString(p).endsWith(".yaml")) {
+    std::string  glob; // = testParameters.corpusGlob.toStdString();
+    QDirIterator it(
+        __CURRENT_FILE_DIR__ / "corpus"_qs, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        QFileInfo path{it.next()};
+        if (path.isFile() && path.fileName().endsWith(".yaml")) {
+            std::string p = path.filePath().toStdString();
             if (/*testParameters.corpusGlob.empty()*/ true) {
                 //                qDebug() << p;
                 YAML::Node spec = YAML::LoadFile(p);
-                runSpec(spec, QString::fromStdString(p));
+                runSpec(spec, path.filePath());
             } else {
-                std::string path_str = p;
-                int         matchRes = fnmatch(
-                    glob.c_str(), path_str.c_str(), FNM_EXTMATCH);
+
+                int matchRes = fnmatch(
+                    glob.c_str(), p.c_str(), FNM_EXTMATCH);
                 if (!(matchRes == FNM_NOMATCH)) {
                     //                    qDebug() << p;
                     YAML::Node spec = YAML::LoadFile(p);
-                    runSpec(spec, QString::fromStdString(p));
+                    runSpec(spec, path.filePath());
                 }
             }
         }

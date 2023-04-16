@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <QFile>
+#include <QFileInfo>
 
 #include <hstd/stdlib/ColText.hpp>
 
@@ -14,14 +15,15 @@ struct OperationsTracer {
 
     Pair<QFile, QTextStream> file;
 
-    inline void setTraceFile(QString const& outfile) {
+    inline void setTraceFile(QFileInfo const& outfile) {
         trace       = true;
         traceToFile = true;
-        file.first.setFileName(outfile);
+        file.first.setFileName(outfile.fileName());
         if (file.first.open(QIODevice::ReadWrite | QFile::Truncate)) {
             file.second.setDevice(&file.first);
         } else {
-            std::cerr << "Could not open file " << outfile << "\n";
+            std::cerr << "Could not open file " << outfile.fileName()
+                      << "\n";
             abort();
         }
     }

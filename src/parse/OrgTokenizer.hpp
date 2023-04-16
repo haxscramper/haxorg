@@ -181,7 +181,7 @@ struct OrgTokenizer
         Str            name;
         OrgToken       tok;
         OrgTokenId     id = OrgTokenId::Nil();
-        fs::path       location;
+        QFileInfo      location;
         int            line;
         Opt<Str>       subname;
         PosStr const*  str = nullptr;
