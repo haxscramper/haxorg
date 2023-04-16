@@ -22,6 +22,96 @@ struct ImplementError : public std::runtime_error {
 OrgCommandKind classifyCommand(QString const& command);
 
 
+// Store common types of the lexer state
+template <typename Flag>
+struct LexerState {
+    Vec<Flag> flagStack = Vec<Flag>();
+    Vec<int>  indent    = Vec<int>(); /// Indentation steps encountered by
+                                      /// the lexer state
+    /// Check if state has any indentation levels stored
+    bool hasIndent() { return 0 < indent.size(); }
+
+    Flag toFlag(Flag flag) {
+        auto old         = flagStack.back();
+        flagStack.back() = flag;
+    }
+    void lift(Flag flag) { flagStack.push_back(flag); }
+    void drop(Flag flag) { flagStack.pop_back_v(); }
+
+    Flag topFlag() const { return flagStack.at(1_B); }
+
+    bool hasFlag(Flag flag) const { return flagStack.find(flag) != -1; }
+
+    enum LexerIndentKind
+    {
+        likIncIndent,  /// Indentation increased on current position
+        likDecIndent,  /// Decreased on current position
+        likSameIndent, /// No indentation change
+        likEmptyLine,  /// Multiple whitespaces followed by newline -
+                       /// special case for indented blocks.
+        likNoIndent,   /// Not at position where indentation can be
+                       /// determine (e.g. is inside of a identifier or
+                       /// at the start of the line)
+    };
+
+
+    /// Get total indentation level from the state
+    int getIndent() const {
+        int result = 0;
+        for (const auto& level : indent) {
+            result += level;
+        }
+        return result;
+    }
+
+    void addIndent(int ind) { indent.push_back(ind); }
+
+    int popIndent() { return indent.pop_back_v(); }
+
+    /// Skip all indentation levels in the lexer - consume leading
+    /// whitespaces and calculate list of the indentation level
+    /// changes.
+    ///
+    /// NOTE: indentation calculations are independent from the actual
+    /// column values and are only based on the actual spaces used in
+    /// the input.
+    Vec<LexerIndentKind> skipIndent(PosStr& str) {
+        Vec<LexerIndentKind> result;
+        if (str.at(charsets::Newline)) {
+            str.next();
+        }
+
+        int skip = 0;
+        while (str.at(charsets::HorizontalSpace, skip)) {
+            ++skip;
+        }
+
+        str.next(skip);
+        if (str.at(charsets::Newline)) {
+            result.push_back(likEmptyLine);
+        } else {
+            const int now = getIndent();
+            if (skip == now) {
+                result.push_back(likSameIndent);
+            } else if (now < skip) {
+                result.push_back(likIncIndent);
+                // add single indentation level;
+                addIndent(skip - now);
+            } else if (skip < now) { // indentation level decreased
+                                     // from the current one - pop all
+                // indentation levels until it will be the same.
+                while (skip < getIndent()) {
+                    popIndent();
+                    result.push_back(likDecIndent);
+                }
+            }
+        }
+
+        return result;
+    }
+};
+
+
 struct OrgTokenizer
     : public Tokenizer<OrgTokenKind>
     , public OperationsTracer {
@@ -33,14 +123,7 @@ struct OrgTokenizer
             QStringView  view;
             int          pos = 0;
             Opt<LineCol> loc;
-
-            QString getLocMsg() const {
-                return "on $#:$# (pos $#)"
-                     % to_string_vec(
-                           loc ? loc->line : -1,
-                           loc ? loc->column : -1,
-                           pos);
-            }
+            QString      getLocMsg() const;
 
             Base(CR<PosStr> str)
                 : std::runtime_error(""), view(str.view), pos(str.pos) {}
@@ -52,12 +135,7 @@ struct OrgTokenizer
 
         struct UnexpectedChar : Base {
             PosStr::CheckableSkip wanted;
-            const char*           what() const noexcept override {
-                return strdup(
-                    "Expected " + variant_to_string(wanted) + " but got '"
-                    + PosStr(view, pos).printToString(false) + "' "
-                    + getLocMsg());
-            }
+            const char*           what() const noexcept override;
             UnexpectedChar(CR<PosStr> str, PosStr::CheckableSkip wanted)
                 : Base(str), wanted(wanted) {}
         };
@@ -65,38 +143,23 @@ struct OrgTokenizer
         struct MissingElement : Base {
             QString     missing;
             QString     where;
-            const char* what() const noexcept override {
-                return strdup(
-                    "Missing '$#' for $# $#"
-                    % to_string_vec(missing, where, getLocMsg()));
-            }
+            const char* what() const noexcept override;
 
             MissingElement(
                 CR<PosStr>  str,
                 CR<QString> missing,
-                CR<QString> where)
-                : Base(str), missing(missing), where(where) {}
+                CR<QString> where);
         };
 
         struct UnexpectedConstruct : Base {
-            const char* what() const noexcept override {
-                return strdup(
-                    "Unexpected construct at $#: $#"
-                    % to_string_vec(getLocMsg(), desc));
-            }
-            QString desc;
+            const char* what() const noexcept override;
+            QString     desc;
             UnexpectedConstruct(CR<PosStr> str, CR<QString> desc)
                 : Base(str), desc(desc) {}
         };
 
         struct UnknownConstruct : Base {
-            const char* what() const noexcept override {
-                return strdup(
-                    "Unexpected construct '"
-                    + PosStr(view, pos).printToString(
-                        {.withSeparation = false}, false)
-                    + "' " + getLocMsg());
-            }
+            const char* what() const noexcept override;
             UnknownConstruct(CR<PosStr> str) : Base(str) {}
         };
     };
@@ -119,42 +182,14 @@ struct OrgTokenizer
         TokenizerError() : std::runtime_error(""), err(Errors::None()) {}
         explicit TokenizerError(CR<Error> err)
             : std::runtime_error(""), err(err) {}
-        QStringView getView() const {
-            return std::visit([](auto const& in) { return in.view; }, err);
-        }
-
-        int getPos() const {
-            return std::visit([](auto const& in) { return in.pos; }, err);
-        }
-
-
-        void setLoc(CR<LineCol> loc) {
-            std::visit(
-                [&loc](auto& in) {
-                    in.loc = loc;
-                    return 0;
-                },
-                err);
-        }
-
-        Opt<LineCol> getLoc() const {
-            return std::visit([](auto const& in) { return in.loc; }, err);
-        }
-
-        const char* what() const noexcept {
-            return std::visit(
-                [](auto const& in) { return in.what(); }, err);
-        }
+        QStringView  getView() const;
+        int          getPos() const;
+        void         setLoc(CR<LineCol> loc);
+        Opt<LineCol> getLoc() const;
+        const char*  what() const noexcept override;
     };
 
-    TokenizerError wrapError(CR<Error> err) {
-        TokenizerError result{err};
-        if (locationResolver) {
-            PosStr str{result.getView(), result.getPos()};
-            result.setLoc(locationResolver(str));
-        }
-        return result;
-    }
+    TokenizerError wrapError(CR<Error> err);
 
     Vec<TokenizerError> errors;
 
@@ -240,98 +275,6 @@ struct OrgTokenizer
     /// construct.
     bool atConstructStart(CR<PosStr> str);
     bool atSubtreeStart(CR<PosStr> str);
-
-    // Store common types of the lexer state
-    template <typename Flag>
-    struct LexerState {
-        Vec<Flag> flagStack = Vec<Flag>();
-        Vec<int>  indent = Vec<int>(); /// Indentation steps encountered by
-                                       /// the lexer state
-        /// Check if state has any indentation levels stored
-        bool hasIndent() { return 0 < indent.size(); }
-
-        Flag toFlag(Flag flag) {
-            auto old         = flagStack.back();
-            flagStack.back() = flag;
-        }
-        void lift(Flag flag) { flagStack.push_back(flag); }
-        void drop(Flag flag) { flagStack.pop_back_v(); }
-
-        Flag topFlag() const { return flagStack.at(1_B); }
-
-        bool hasFlag(Flag flag) const {
-            return flagStack.find(flag) != -1;
-        }
-
-        enum LexerIndentKind
-        {
-            likIncIndent,  /// Indentation increased on current position
-            likDecIndent,  /// Decreased on current position
-            likSameIndent, /// No indentation change
-            likEmptyLine,  /// Multiple whitespaces followed by newline -
-                           /// special case for indented blocks.
-            likNoIndent,   /// Not at position where indentation can be
-                           /// determine (e.g. is inside of a identifier or
-                           /// at the start of the line)
-        };
-
-
-        /// Get total indentation level from the state
-        int getIndent() const {
-            int result = 0;
-            for (const auto& level : indent) {
-                result += level;
-            }
-            return result;
-        }
-
-        void addIndent(int ind) { indent.push_back(ind); }
-
-        int popIndent() { return indent.pop_back_v(); }
-
-        /// Skip all indentation levels in the lexer - consume leading
-        /// whitespaces and calculate list of the indentation level
-        /// changes.
-        ///
-        /// NOTE: indentation calculations are independent from the actual
-        /// column values and are only based on the actual spaces used in
-        /// the input.
-        Vec<LexerIndentKind> skipIndent(PosStr& str) {
-            Vec<LexerIndentKind> result;
-            if (str.at(charsets::Newline)) {
-                str.next();
-            }
-
-            int skip = 0;
-            while (str.at(charsets::HorizontalSpace, skip)) {
-                ++skip;
-            }
-
-            str.next(skip);
-            if (str.at(charsets::Newline)) {
-                result.push_back(likEmptyLine);
-            } else {
-                const int now = getIndent();
-                if (skip == now) {
-                    result.push_back(likSameIndent);
-                } else if (now < skip) {
-                    result.push_back(likIncIndent);
-                    // add single indentation level;
-                    addIndent(skip - now);
-                } else if (skip < now) { // indentation level decreased
-                                         // from the current one - pop all
-                    // indentation levels until it will be the same.
-                    while (skip < getIndent()) {
-                        popIndent();
-                        result.push_back(likDecIndent);
-                    }
-                }
-            }
-
-            return result;
-        }
-    };
-
 
     using LexerStateSimple = LexerState<char>;
 

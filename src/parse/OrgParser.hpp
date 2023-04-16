@@ -29,32 +29,14 @@ struct OrgParser : public OperationsTracer {
             OrgTokenId    id;
             Opt<LineCol>  loc;
             QString       extraMsg;
-            QString       getLocMsg() const {
-                return "$#:$# (pos $#)"
-                     % to_string_vec(
-                           loc ? loc->line : -1,
-                           loc ? loc->column : -1,
-                           id.isNil() ? "<none>"
-                                            : to_string(id.getIndex()));
-            }
+            QString       getLocMsg() const;
 
-            Base(CR<OrgLexer> lex, Opt<LineCol> loc = std::nullopt)
-                : id(lex.pos), loc(loc) {
-                if (!lex.finished()) {
-                    token = lex.tok();
-                }
-                extraMsg = lex.printToString(false);
-            }
+            Base(CR<OrgLexer> lex, Opt<LineCol> loc = std::nullopt);
 
             Base(
                 CR<OrgLexer> lex,
                 CR<QString>  extraMsg,
-                Opt<LineCol> loc = std::nullopt)
-                : id(lex.pos), loc(loc), extraMsg(extraMsg) {
-                if (!lex.finished()) {
-                    token = lex.tok();
-                }
-            }
+                Opt<LineCol> loc = std::nullopt);
         };
 
         struct None : Base {
@@ -72,35 +54,12 @@ struct OrgParser : public OperationsTracer {
                 CR<OrgExpectable> wanted)
                 : Base(lex, loc), wanted(wanted) {}
 
-            const char* what() const noexcept override {
-                return strdup(
-                    "Expected $#, but got $# at $# ($#)"
-                    % to_string_vec(
-                        std::visit(
-                            overloaded{
-                                [](CR<TokenWithValue> it) {
-                                    return "$# ('$#')"
-                                         % to_string_vec(
-                                               it.kind, it.value);
-                                },
-                                [](auto const& it) {
-                                    return to_string(it);
-                                }},
-                            wanted),
-                        this->token,
-                        getLocMsg(),
-                        this->extraMsg));
-            }
+            const char* what() const noexcept override;
         };
 
         struct UnhandledToken : public Base {
             using Base::Base;
-            const char* what() const noexcept override {
-                return strdup(
-                    "Encountered $# at $#, which is was not expected ($#)"
-                    % to_string_vec(
-                        this->token, getLocMsg(), this->extraMsg));
-            }
+            const char* what() const noexcept override;
         };
     };
 

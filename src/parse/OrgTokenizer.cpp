@@ -296,15 +296,6 @@ void OrgTokenizer::oskipOne(PosStr& str, CR<PosStr::CheckableSkip> skip) {
     }
 }
 
-OrgToken OrgTokenizer::error(CR<TokenizerError> err) {
-    auto tmp = err;
-    if (locationResolver) {
-        PosStr str{err.getView(), err.getPos()};
-        tmp.setLoc(locationResolver(str));
-    }
-    errors.push_back(err);
-    return Token(otk::ErrorTerminator, errors.high());
-}
 
 #define __report_error(err)                                               \
     {                                                                     \
@@ -2809,7 +2800,7 @@ bool OrgTokenizer::lexTableState(
 
 bool OrgTokenizer::lexTable(PosStr& str) {
     __trace();
-    OrgTokenizer::LexerState<OrgBlockLexerState> state;
+    LexerState<OrgBlockLexerState> state;
     state.lift(OrgBlockLexerState::None);
 
     while (!str.finished()
