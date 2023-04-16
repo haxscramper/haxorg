@@ -24,16 +24,18 @@ class HaxorgCli {
     struct ProcessStatus {
         /// Information about file processing
         struct FileReport {
-            QFileInfo file;
-            int       lexMsec;
-            int       parseMsec;
-            int       convertMsec;
-            int       exportMsec;
+            QFileInfo   file;
+            Opt<qint64> lexNs;
+            Opt<qint64> parseNs;
+            Opt<qint64> convertNs;
+            Opt<qint64> exportNs;
         };
 
         Vec<FileReport> reports;
 
     } processStatus;
+
+    void timeStats();
 
     struct Config {
         enum class Target

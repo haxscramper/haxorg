@@ -152,5 +152,6 @@ int main(int argc, char** argv) {
     }
 
     cli.exec();
+    cli.timeStats();
     return 0;
 }

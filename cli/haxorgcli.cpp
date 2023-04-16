@@ -2,10 +2,27 @@
 
 #include <lexbase/NodeIO.hpp>
 #include <exporters/ExporterJson.hpp>
+#include <QElapsedTimer>
 
+
+void HaxorgCli::timeStats() {
+    for (const auto& rep : processStatus.reports) {
+        qInfo().noquote()
+            << R"(Processing of '$#' took:
+lex:     $#s
+parse:   $#s
+convert: $#s
+export:  $#s)"
+                   % to_string_vec(
+                       rep.file.filePath(),
+                       float(rep.lexNs.value_or(0)) / 1000000,
+                       float(rep.parseNs.value_or(0)) / 1000000,
+                       float(rep.convertNs.value_or(0)) / 1000000,
+                       float(rep.exportNs.value_or(0)) / 1000000);
+    }
+}
 
 HaxorgCli::HaxorgCli() : tokenizer(nullptr), nodes(nullptr), lex(&tokens) {
-    parser.initImpl(&nodes, false);
     nodes.tokens  = &tokens;
     tokenizer.out = &tokens;
 }
@@ -14,6 +31,8 @@ void HaxorgCli::exec() {
     source      = readFile(config.sourceFile);
     tokens.base = source.data();
     info        = LineColInfo{source};
+
+    parser.initImpl(&nodes, config.trace.parse.doTrace);
 
     Func<LineCol(CR<PosStr>)> locationResolver =
         [&](CR<PosStr> str) -> LineCol {
@@ -72,8 +91,15 @@ void HaxorgCli::exec() {
         }
     });
 
-    PosStr str{source};
+    PosStr        str{source};
+    QElapsedTimer timer;
+
+    timer.start();
+    processStatus.reports.push_back({});
+    ProcessStatus::FileReport& rep = processStatus.reports.back();
+    rep.file                       = config.sourceFile;
     tokenizer.lexGlobal(str);
+    rep.lexNs = timer.nsecsElapsed();
 
     using Target = HaxorgCli::Config::Target;
 
@@ -87,9 +113,11 @@ void HaxorgCli::exec() {
         return;
     }
 
+    timer.restart();
     parser.parseTop(lex);
     parser.extendSubtreeTrails(OrgId(0));
     parser.extendAttachedTrails(OrgId(0));
+    rep.lexNs = timer.nsecsElapsed();
 
     if (config.target == Target::YamlParse) {
         writeFile(config.outFile, to_string(yamlRepr(nodes)) + "\n");
@@ -103,12 +131,17 @@ void HaxorgCli::exec() {
         return;
     }
 
+    timer.restart();
     sem::Wrap<sem::Document> node = converter.toDocument(
         OrgAdapter(&nodes, OrgId(0)));
+    rep.convertNs = timer.nsecsElapsed();
 
+    timer.restart();
     ExporterJson exporter;
     Exporter::Wrap<ExporterJson::Result>
-        result = exporter.exportNode(node)->as<ExporterJson::Result>();
+        result   = exporter.exportNode(node)->as<ExporterJson::Result>();
+    rep.exportNs = timer.nsecsElapsed();
+
     writeFile(config.outFile, to_string(result->value));
     qInfo() << "Wrote JSON SEM representation into " << config.outFile;
 
