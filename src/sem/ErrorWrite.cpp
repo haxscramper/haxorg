@@ -69,7 +69,7 @@ struct LineLabel {
     }
 
 struct MarginContext {
-    QTextStream&  w;
+    ColStream&    w;
     MarginContext clone() const { return *this; }
     _field(int, idx, 0);
     _field(bool, is_line, false);
@@ -286,32 +286,32 @@ void write_margin(MarginContext const& c) {
                          : std::nullopt;
             }
 
-            std::pair<QChar, QChar> ab;
+            std::pair<ColRune, ColRune> ab;
 
             if (auto corner_value = corner; corner_value.has_value()) {
                 auto [label, is_start] = *corner_value;
                 ab                     = {
-                    is_start ? fg(c.draw.ltop, label->color)
-                                                 : fg(c.draw.lbot, label->color),
-                    fg(c.draw.hbar, label->color),
+                    is_start ? ColRune(c.draw.ltop, label->color)
+                                                 : ColRune(c.draw.lbot, label->color),
+                    ColRune(c.draw.hbar, label->color),
                 };
             } else if (auto label = hbar.value();
                        vbar.has_value() && !c.config.cross_gap) {
                 ab = {
-                    fg(c.draw.xbar, label->color),
-                    fg(c.draw.hbar, label->color)};
+                    ColRune(c.draw.xbar, label->color),
+                    ColRune(c.draw.hbar, label->color)};
             } else if (hbar.has_value()) {
                 auto label = hbar.value();
                 ab         = {
-                    fg(c.draw.hbar, label->color),
-                    fg(c.draw.hbar, label->color),
+                    ColRune(c.draw.hbar, label->color),
+                    ColRune(c.draw.hbar, label->color),
                 };
             } else if (vbar.has_value()) {
                 auto label = vbar.value();
                 ab         = {
-                    c.is_ellipsis ? fg(c.draw.vbar_gap, label->color)
-                                          : fg(c.draw.vbar, label->color),
-                    fg(' ', Color::Default),
+                    c.is_ellipsis ? ColRune(c.draw.vbar_gap, label->color)
+                                          : ColRune(c.draw.vbar, label->color),
+                    ColRune(' '),
                 };
             } else if (auto margin_ptr_value = margin_ptr;
                        margin_ptr_value.has_value() && c.is_line) {
@@ -320,19 +320,20 @@ void write_margin(MarginContext const& c) {
                                           : false;
                 bool is_limit = col == c.multi_labels.size();
                 ab            = {
-                    is_limit ? fg(c.draw.rarrow, margin->label.color)
+                    is_limit ? ColRune(c.draw.rarrow, margin->label.color)
                                : is_col
                                    ? (is_start
-                                          ? fg(c.draw.ltop, margin->label.color)
-                                          : fg(c.draw.lcross, margin->label.color))
-                                   : fg(c.draw.hbar, margin->label.color),
-                    !is_limit ? fg(c.draw.hbar, margin->label.color)
-                              : fg(' ', Color::Default),
+                                          ? ColRune(c.draw.ltop, margin->label.color)
+                                          : ColRune(
+                                   c.draw.lcross, margin->label.color))
+                                   : ColRune(c.draw.hbar, margin->label.color),
+                    !is_limit ? ColRune(c.draw.hbar, margin->label.color)
+                              : ColRune(' '),
                 };
             } else {
                 ab = {
-                    fg(' ', Color::Default),
-                    fg(' ', Color::Default),
+                    ColRune(' '),
+                    ColRune(' '),
                 };
             }
         }
@@ -437,7 +438,7 @@ void whatever(MarginContext const& c, int row, int arrow_len) {
             underline.reset();
         }
 
-        std::array<QChar, 2> ct_array;
+        std::array<ColRune, 2> ct_array;
         if (Opt<LineLabel> vbar = get_vbar(
                 col, row, c.line_labels, c.margin_label)) {
             std::array<QChar, 2> ct_inner;
@@ -460,16 +461,16 @@ void whatever(MarginContext const& c, int row, int arrow_len) {
                 ct_inner = {c.draw.vbar, ' '};
             }
             ct_array = {
-                fg(ct_inner[0], vbar->label.color),
-                fg(ct_inner[1], vbar->label.color),
+                ColRune(ct_inner[0], vbar->label.color),
+                ColRune(ct_inner[1], vbar->label.color),
             };
         } else if (underline) {
             ct_array = {
-                fg(c.draw.underline, underline->label.color),
-                fg(c.draw.underline, underline->label.color),
+                ColRune(c.draw.underline, underline->label.color),
+                ColRune(c.draw.underline, underline->label.color),
             };
         } else {
-            ct_array = {fg(' ', std::nullopt), fg(' ', std::nullopt)};
+            ct_array = {ColRune(' '), ColRune(' ')};
         }
 
         for (int i = 0; i < width; ++i) {
@@ -611,16 +612,17 @@ void write_lines(
                         || (line_label.label.msg && line_label.draw_msg
                             && col > line_label.col))
                     && line_label.label.msg;
-        std::array<QChar, 2> ct_array;
+        std::array<ColRune, 2> ct_array;
         if (col == line_label.col && line_label.label.msg
             && (!c.margin_label.has_value()
                 || line_label.label != c.margin_label->label)) {
             ct_array = {
-                fg((line_label.multi
-                        ? (line_label.draw_msg ? c.draw.mbot : c.draw.rbot)
-                        : c.draw.lbot),
-                   line_label.label.color),
-                fg(c.draw.hbar, line_label.label.color),
+                ColRune(
+                    (line_label.multi ? (
+                         line_label.draw_msg ? c.draw.mbot : c.draw.rbot)
+                                      : c.draw.lbot),
+                    line_label.label.color),
+                ColRune(c.draw.hbar, line_label.label.color),
             };
         } else if (std::optional<LineLabel> vbar_ll = std::nullopt;
                    (vbar_ll = get_vbar(
@@ -628,32 +630,33 @@ void write_lines(
                    && (col != line_label.col || line_label.label.msg)) {
             if (!c.config.cross_gap && is_hbar) {
                 ct_array = {
-                    fg(c.draw.xbar, line_label.label.color),
-                    fg(' ', line_label.label.color),
+                    ColRune(c.draw.xbar, line_label.label.color),
+                    ColRune(' ', line_label.label.color),
                 };
             } else if (is_hbar) {
                 ct_array = {
-                    fg(c.draw.hbar, line_label.label.color),
-                    fg(c.draw.hbar, line_label.label.color),
+                    ColRune(c.draw.hbar, line_label.label.color),
+                    ColRune(c.draw.hbar, line_label.label.color),
                 };
             } else {
                 ct_array = {
-                    fg((vbar_ll->multi && row == 0 && c.config.compact
-                            ? c.draw.uarrow
-                            : c.draw.vbar),
-                       vbar_ll->label.color),
-                    fg(' ', line_label.label.color),
+                    ColRune(
+                        (vbar_ll->multi && row == 0 && c.config.compact
+                             ? c.draw.uarrow
+                             : c.draw.vbar),
+                        vbar_ll->label.color),
+                    ColRune(' ', line_label.label.color),
                 };
             }
         } else if (is_hbar) {
             ct_array = {
-                fg(c.draw.hbar, line_label.label.color),
-                fg(c.draw.hbar, line_label.label.color),
+                ColRune(c.draw.hbar, line_label.label.color),
+                ColRune(c.draw.hbar, line_label.label.color),
             };
         } else {
             ct_array = {
-                fg(' ', std::nullopt),
-                fg(' ', std::nullopt),
+                ColRune(' '),
+                ColRune(' '),
             };
         }
 
@@ -671,7 +674,8 @@ void write_lines(
 }
 }; // namespace
 
-void Report::write_for_stream(Cache& cache, QTextStream& w) {
+void Report::write_for_stream(Cache& cache, QTextStream& stream) {
+    ColStream  w{stream};
     Characters draw;
     switch (config.char_set) {
         case MessageCharSet::Unicode: draw = unicode(); break;
@@ -685,19 +689,17 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
     }
     id += ":";
 
-    std::optional<Color> kind_color;
+    std::optional<ColStyle> kind_color;
     switch (kind) {
-        case ReportKind::Error: kind_color = config.error_color(); break;
-        case ReportKind::Warning:
-            kind_color = config.warning_color();
-            break;
-        case ReportKind::Advice: kind_color = config.advice_color(); break;
+        case ReportKind::Error: kind_color = config.error_color; break;
+        case ReportKind::Warning: kind_color = config.warning_color; break;
+        case ReportKind::Advice: kind_color = config.advice_color; break;
         case ReportKind::Custom:
-            kind_color = config.unimportant_color();
+            kind_color = config.unimportant_color;
             break;
     }
 
-    //        fmt::print(w, "{} {}", id.fg(kind_color, s),
+    //        fmt::print(w, "{} {}", id.ColRune(kind_color, s),
     //        Show(msg.as_ref()));
 
     auto groups = get_source_groups(&cache);
@@ -820,17 +822,17 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
                         line,
                         line_labels,
                         margin_label);
-                    Opt<Color> color = highlight
-                                         ? highlight->color
-                                         : config.unimportant_color();
+                    ColStyle color = highlight ? highlight->color
+                                               : config.unimportant_color;
+
                     auto [wc, width] = config.char_width(c, col);
 
                     if (c.isSpace()) {
                         for (int i = 0; i < width; ++i) {
-                            w << fg(wc, color);
+                            w << ColRune(wc, color);
                         }
                     } else {
-                        w << fg(wc, color);
+                        w << ColRune(wc, color);
                     }
 
                     col++;
@@ -917,4 +919,6 @@ void Report::write_for_stream(Cache& cache, QTextStream& w) {
             }
         }
     }
+
+    qDebug() << w.getBuffer();
 }

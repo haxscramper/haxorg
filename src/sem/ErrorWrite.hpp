@@ -20,6 +20,7 @@
 #include <boost/describe.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/ColText.hpp>
 
 class Source;
 
@@ -239,72 +240,63 @@ struct Characters {
     QChar underline;
 };
 
-Characters unicode();
-
-Characters ascii();
-
 enum LabelKind
 {
     Inline,
     Multiline
 };
 
-enum class Color
-{
-    Unset,
-    Default,
-    Black,
-    Red,
-    Green,
-    Yellow,
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    Fixed,
-    RGB,
-};
-
 struct Label {
     // Give this label a message
-    inline Label with_message(const QString& msg) {
+    inline Label with_message(const ColText& msg) {
         this->msg = msg;
         return *this;
     }
 
     // Give this label a highlight color
-    inline Label with_color(const Color& color) {
+    inline Label with_color(const ColStyle& color) {
         this->color = color;
         return *this;
     }
 
     // Specify the order of this label relative to other labels
-    inline Label with_order(int32_t order) {
+    inline Label with_order(int order) {
         this->order = order;
         return *this;
     }
 
     // Specify the priority of this label relative to other labels
-    inline Label with_priority(int32_t priority) {
+    inline Label with_priority(int priority) {
         this->priority = priority;
         return *this;
     }
 
     inline Label(const std::shared_ptr<CodeSpan>& Codespan)
-        : span(Codespan), msg(""), color(Color()), order(0), priority(0) {}
+        : span(Codespan) {}
 
     std::shared_ptr<CodeSpan> span;
-    std::optional<QString>    msg;
-    Color                     color;
-    int32_t                   order;
-    int32_t                   priority;
+    std::optional<ColText>    msg;
+    ColStyle                  color;
+    int                       order    = 0;
+    int                       priority = 0;
 
-    bool operator==(Label const& other) const { return msg == other.msg; }
+    bool operator==(Label const& other) const {
+        if (msg.has_value() != other.msg.has_value()) {
+            return false;
+        } else {
+            if (msg && msg.value() != other.msg.value()) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
 
     inline int last_offset() const {
         return std::max(span->end() - 1, span->start());
     }
 };
+
 struct LabelInfo {
     LabelKind   kind;
     const Label label;
@@ -396,29 +388,12 @@ struct Config {
         return *this;
     }
 
-    inline std::optional<Color> error_color() {
-        return color ? std::make_optional(Color::Red) : std::nullopt;
-    }
-
-    inline std::optional<Color> warning_color() {
-        return color ? std::make_optional(Color::Yellow) : std::nullopt;
-    }
-
-    inline std::optional<Color> advice_color() {
-        return color ? std::make_optional(Color::Fixed) : std::nullopt;
-    }
-
-    inline std::optional<Color> margin_color() {
-        return color ? std::make_optional(Color::Fixed) : std::nullopt;
-    }
-
-    inline std::optional<Color> unimportant_color() {
-        return color ? std::make_optional(Color::Fixed) : std::nullopt;
-    }
-
-    inline std::optional<Color> note_color() {
-        return color ? std::make_optional(Color::Fixed) : std::nullopt;
-    }
+    ColStyle error_color       = ColStyle{} + TermColorBg8Bit::Red;
+    ColStyle warning_color     = ColStyle{} + TermColorBg8Bit::Yellow;
+    ColStyle advice_color      = ColStyle{} + TermColorBg8Bit::Magenta;
+    ColStyle margin_color      = ColStyle{} + TermColorBg8Bit::White;
+    ColStyle unimportant_color = ColStyle{} + TermColorBg8Bit::Default;
+    ColStyle note_color        = ColStyle{} + TermColorBg8Bit::Cyan;
 
     std::pair<QChar, int> char_width(QChar c, int col) const {
         if (c == '\t') {
@@ -446,15 +421,13 @@ struct Config {
     MessageCharSet char_set = MessageCharSet::Unicode;
 };
 
-auto fg = [](QChar ch, std::optional<Color> col) { return ch; };
-
 class Report {
   public:
     ReportKind             kind;
     std::optional<QString> code;
-    std::optional<QString> msg;
-    std::optional<QString> note;
-    std::optional<QString> help;
+    std::optional<ColText> msg;
+    std::optional<ColText> note;
+    std::optional<ColText> help;
     std::pair<Id, int>     location;
     Vec<Label>             labels;
     Config                 config;
@@ -468,28 +441,28 @@ class Report {
     }
 
     // Set the message of this report.
-    inline void set_message(const QString& msg) { this->msg = msg; }
+    inline void set_message(const ColText& msg) { this->msg = msg; }
 
     // Add a message to this report.
-    inline Report& with_message(const QString& msg) {
+    inline Report& with_message(const ColText& msg) {
         set_message(msg);
         return *this;
     }
 
     // Set the note of this report.
-    inline void set_note(const QString& note) { this->note = note; }
+    inline void set_note(const ColText& note) { this->note = note; }
 
     // Set the note of this report.
-    inline Report& with_note(const QString& note) {
+    inline Report& with_note(const ColText& note) {
         set_note(note);
         return *this;
     }
 
     // Set the help message of this report.
-    inline void set_help(const QString& help) { this->help = help; }
+    inline void set_help(const ColText& help) { this->help = help; }
 
     // Set the help message of this report.
-    Report& with_help(const QString& help) {
+    Report& with_help(const ColText& help) {
         set_help(help);
         return *this;
     }

@@ -9,10 +9,10 @@ void HaxorgCli::timeStats() {
     for (const auto& rep : processStatus.reports) {
         qInfo().noquote()
             << R"(Processing of '$#' took:
-lex:     $#s
-parse:   $#s
-convert: $#s
-export:  $#s)"
+  lex:     $#s
+  parse:   $#s
+  convert: $#s
+  export:  $#s)"
                    % to_string_vec(
                        rep.file.filePath(),
                        float(rep.lexNs.value_or(0)) / 1000000,

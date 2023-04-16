@@ -116,6 +116,12 @@ struct ColStyle {
         result += other;
         return result;
     }
+
+    bool operator==(CR<ColStyle> other) const {
+        return fg == other.fg && bg == other.bg && style == other.style;
+    }
+
+    bool operator!=(CR<ColStyle> other) const { return !(*this == other); }
 };
 
 
@@ -166,9 +172,20 @@ QString to_colored_string(
 struct ColRune {
     QChar    rune = QChar(L' ');
     ColStyle style;
-    inline ColRune(char ch) : rune(ch) {}
-    inline ColRune(CR<ColStyle> style, QChar rune)
+    inline ColRune(QChar rune = ' ', CR<ColStyle> style = ColStyle{})
         : rune(rune), style(style) {}
+
+    ColRune operator+(ColStyle const& other) const {
+        return ColRune(rune, this->style + other);
+    }
+
+    bool operator==(ColRune const& other) const {
+        return rune == other.rune && style == other.style;
+    }
+
+    bool operator!=(ColRune const& other) const {
+        return !(*this == other);
+    }
 };
 
 struct ColText : Vec<ColRune> {
@@ -182,14 +199,14 @@ struct ColText : Vec<ColRune> {
     ColText() = default;
     ColText(CR<ColStyle> style, CR<QString> text) {
         for (const auto& ch : text) {
-            push_back(ColRune(style, ch));
+            push_back(ColRune(ch, style));
         }
     }
 
     ColText(CR<QString> text) : ColText(ColStyle{}, text) {}
 
     ColText(CR<ColStyle> style, QChar text)
-        : Vec<ColRune>({ColRune(style, text)}) {}
+        : Vec<ColRune>({ColRune(text, style)}) {}
 
 
     template <typename T>
@@ -207,6 +224,8 @@ struct ColText : Vec<ColRune> {
             push_back(c);
         }
     }
+
+    inline void append(ColRune c) { push_back(c); }
 
     inline ColText rightAligned(int n, ColRune c = ColRune{' '}) const {
         ColText res;
@@ -256,6 +275,7 @@ struct ColStream : public ColText {
     bool         buffered;
     bool         colored = true;
 
+
     CR<ColText> getBuffer() const {
         return *static_cast<ColText const*>(this);
     }
@@ -282,6 +302,15 @@ struct ColStream : public ColText {
             ostream->flush();
         }
     }
+
+    void write(ColRune const& text) {
+        if (buffered) {
+            append(text);
+        } else {
+            (*ostream) << to_colored_string({text}, colored);
+        }
+    }
+
     void write(ColText const& text) {
         if (buffered) {
             append(text);
@@ -336,7 +365,12 @@ inline ColStream& operator<<(ColStream& os, QString const& value) {
 }
 
 inline ColStream& operator<<(ColStream& os, ColText const& value) {
-    os.append(value);
+    os.write(value);
+    return os;
+}
+
+inline ColStream& operator<<(ColStream& os, ColRune const& value) {
+    os.write(value);
     return os;
 }
 
@@ -349,6 +383,12 @@ ColStream& operator<<(ColStream& os, CR<T> const& value)
     QTextStream string{&out};
     string << value;
     return os << out;
+}
+
+inline ColText operator+(CR<ColText> text, CR<ColText> other) {
+    ColStream s;
+    s << text << other;
+    return s.getBuffer();
 }
 
 template <typename T>
