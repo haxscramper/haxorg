@@ -153,7 +153,7 @@ struct TokenGroup {
     }
 
     int        size() const { return tokens.size(); }
-    Slice<int> toAbsolute(QStringView view) {
+    Slice<int> toAbsolute(QStringView view) const {
         if (base.has_value()) {
             auto main = base.value();
             assert(is_within_memory_block<QChar>(
@@ -558,7 +558,7 @@ struct LineColInfo {
     UnorderedMap<Slice<int>, int> lines;
     RangeTree<int>                lineRanges;
 
-    int whichLine(int pos) {
+    int whichLine(int pos) const {
         auto range = lineRanges.query(pos);
         if (range.has_value() && lines.contains(range.value())) {
             return lines.at(range.value());
@@ -567,7 +567,7 @@ struct LineColInfo {
         }
     }
 
-    int whichColumn(int pos) {
+    int whichColumn(int pos) const {
         auto range = lineRanges.query(pos);
         if (range.has_value()) {
             return pos - range.value().first;

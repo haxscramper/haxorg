@@ -47,6 +47,8 @@ class HaxorgCli {
             YamlLex,   /// Token list in YAML format
             HtmlLex,   /// HTML table for the processed document
             HtmlParse, /// Linearized DOD tree representation in HTML form
+            AnnotatedLex,
+            CsvLex,
         };
 
         BOOST_DESCRIBE_NESTED_ENUM(
@@ -57,7 +59,9 @@ class HaxorgCli {
             YamlParse,
             YamlLex,
             HtmlLex,
-            HtmlParse);
+            HtmlParse,
+            AnnotatedLex,
+            CsvLex);
 
         // TODO multiple writing targets and multiple output files
         Target target = Target::Json;
