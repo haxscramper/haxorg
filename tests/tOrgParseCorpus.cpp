@@ -439,6 +439,7 @@ def sixes = ["6", 6, True, (), []]
 def multiline :: Str = match Some 5 in {
     | Some x => x
     | None => 0
+
 })";
     StrCache sources;
     sources.add(id, code, "tao");

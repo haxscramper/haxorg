@@ -88,35 +88,35 @@ struct MarginContext {
     const Vec<LineLabel>&           line_labels;
     const std::optional<LineLabel>& margin_label = std::nullopt;
     //    int                                 line_no_width = 0;
-    std::shared_ptr<Source>  src;
-    Vec<const Label*> const& multi_labels;
-    Characters const&        draw;
-    Config const&            config;
+    std::shared_ptr<Source> src;
+    Vec<Label> const&       multi_labels;
+    Characters const&       draw;
+    Config const&           config;
 };
 
 
 std::optional<LineLabel> get_margin_label(
-    Line const&              line,
-    Vec<const Label*> const& multi_labels) {
+    Line const&       line,
+    Vec<Label> const& multi_labels) {
     std::optional<LineLabel> margin_label;
     int                      min_key = std::numeric_limits<int>::max();
     for (int i = 0; i < multi_labels.size(); ++i) {
-        const Label* label    = multi_labels[i];
-        bool         is_start = line.span().contains(label->span->start());
-        bool         is_end   = line.span().contains(label->last_offset());
+        Label const& label    = multi_labels[i];
+        bool         is_start = line.span().contains(label.span->start());
+        bool         is_end   = line.span().contains(label.last_offset());
 
         if (is_start || is_end) {
             LineLabel ll{
-                .col = (is_start ? label->span->start()
-                                 : label->last_offset())
+                .col = (is_start ? label.span->start()
+                                 : label.last_offset())
                      - line.offset,
-                .label    = *label,
+                .label    = label,
                 .multi    = true,
                 .draw_msg = is_end,
             };
 
 
-            int key = (ll.col << 1) | (!label->span->start());
+            int key = (ll.col << 1) | (!label.span->start());
             if (key < min_key) {
                 min_key      = key;
                 margin_label = ll;
@@ -138,8 +138,8 @@ bool sort_line_labels(
         bool within_label = std::any_of(
             c.multi_labels.begin(),
             c.multi_labels.end(),
-            [&](const Label* label) {
-                return label->span->contains(c.line.span().first);
+            [&](Label const& label) {
+                return label.span->contains(c.line.span().first);
             });
         if (!is_ellipsis && within_label) {
             is_ellipsis = true;
@@ -170,6 +170,7 @@ bool sort_line_labels(
     return false;
 }
 
+
 void write_margin(MarginContext const& c) {
     QString line_no_margin;
     if (c.is_line && !c.is_ellipsis) {
@@ -194,20 +195,18 @@ void write_margin(MarginContext const& c) {
              col < c.multi_labels.size() + (c.multi_labels.size() > 0);
              ++col) {
             std::optional<std::pair<const Label*, bool>>
-                                        corner = std::nullopt;
-            std::optional<const Label*> hbar   = std::nullopt;
-            std::optional<const Label*> vbar   = std::nullopt;
+                                 corner = std::nullopt;
+            std::optional<Label> hbar   = std::nullopt;
+            std::optional<Label> vbar   = std::nullopt;
             std::optional<std::pair<const LineLabel*, bool>>
                 margin_ptr = std::nullopt;
 
-            const Label* multi_label = (col < c.multi_labels.size())
-                                         ? &multi_label[col]
-                                         : nullptr;
-            auto         line_span   = c.src->line(c.idx).value().span();
+            Opt<CRw<Label>> multi_label = c.multi_labels.get(col);
+            auto            line_span = c.src->line(c.idx).value().span();
 
             for (int i = 0; i < std::min(col + 1, c.multi_labels.size());
                  ++i) {
-                const auto& label  = multi_label[i];
+                const auto& label  = c.multi_labels.at(i);
                 auto        margin = c.margin_label
                                        ? (label == c.margin_label->label
                                               ? &(*c.margin_label)
@@ -224,8 +223,9 @@ void write_margin(MarginContext const& c) {
                     if (margin && c.is_line) {
                         margin_ptr = std::make_pair(margin, is_start);
                     } else if (!is_start && (!is_end || c.is_line)) {
-                        vbar = vbar ? vbar
-                                    : (!is_parent ? &label : nullptr);
+                        if (!vbar && !is_parent) {
+                            vbar = label;
+                        }
                     } else if (c.report_row.has_value()) {
                         auto report_row_value = c.report_row.value();
                         int  label_row        = 0;
@@ -238,33 +238,35 @@ void write_margin(MarginContext const& c) {
 
                         if (report_row_value.first == label_row) {
                             if (margin) {
-                                vbar = (col == i) ? &margin->label
-                                                  : nullptr;
+                                if (col == i) {
+                                    vbar = margin->label;
+                                } else {
+                                    vbar = std::nullopt;
+                                }
+
                                 if (is_start) {
                                     continue;
                                 }
                             }
 
                             if (report_row_value.second) {
-                                hbar = &label;
+                                hbar = label;
                                 if (!is_parent) {
                                     corner = std::make_pair(
                                         &label, is_start);
                                 }
                             } else if (!is_start) {
-                                vbar = vbar
-                                         ? vbar
-                                         : (!is_parent ? &label : nullptr);
+                                if (!vbar && !is_parent) {
+                                    vbar = label;
+                                }
                             }
                         } else {
-                            vbar = vbar ? vbar
-                                        : (!is_parent
-                                                   && (is_start
-                                                       ^ (report_row_value
-                                                              .first
-                                                          < label_row))
-                                               ? &label
-                                               : nullptr);
+                            if (!vbar && !is_parent
+                                && (is_start
+                                    ^ (report_row_value.first
+                                       < label_row))) {
+                                vbar = label;
+                            }
                         }
                     }
                 }
@@ -278,14 +280,13 @@ void write_margin(MarginContext const& c) {
                                           : false;
                 bool is_limit = col + 1 == c.multi_labels.size();
                 if (!is_col && !is_limit) {
-                    hbar = hbar.value_or(&margin->label);
+                    hbar = hbar.value_or(margin->label);
                 }
             }
 
-            if (hbar.has_value()) {
-                hbar = **hbar != c.margin_label->label || !c.is_line
-                         ? hbar
-                         : std::nullopt;
+            if (hbar.has_value()
+                && !(*hbar != c.margin_label->label || !c.is_line)) {
+                hbar = std::nullopt;
             }
 
             std::pair<ColRune, ColRune> ab;
@@ -297,22 +298,22 @@ void write_margin(MarginContext const& c) {
                                                  : ColRune(c.draw.lbot, label->color),
                     ColRune(c.draw.hbar, label->color),
                 };
-            } else if (auto label = hbar.value();
-                       vbar.has_value() && !c.config.cross_gap) {
+            } else if (
+                hbar.has_value() && vbar.has_value()
+                && !c.config.cross_gap) {
                 ab = {
-                    ColRune(c.draw.xbar, label->color),
-                    ColRune(c.draw.hbar, label->color)};
+                    ColRune(c.draw.xbar, hbar->color),
+                    ColRune(c.draw.hbar, hbar->color),
+                };
             } else if (hbar.has_value()) {
-                auto label = hbar.value();
-                ab         = {
-                    ColRune(c.draw.hbar, label->color),
-                    ColRune(c.draw.hbar, label->color),
+                ab = {
+                    ColRune(c.draw.hbar, hbar->color),
+                    ColRune(c.draw.hbar, hbar->color),
                 };
             } else if (vbar.has_value()) {
-                auto label = vbar.value();
-                ab         = {
-                    c.is_ellipsis ? ColRune(c.draw.vbar_gap, label->color)
-                                          : ColRune(c.draw.vbar, label->color),
+                ab = {
+                    c.is_ellipsis ? ColRune(c.draw.vbar_gap, vbar->color)
+                                  : ColRune(c.draw.vbar, vbar->color),
                     ColRune(' '),
                 };
             } else if (auto margin_ptr_value = margin_ptr;
@@ -364,16 +365,16 @@ auto get_vbar(
 };
 
 
-auto get_highlight(
+Opt<CRw<Label>> get_highlight(
     int                      col,
-    Vec<const Label*>        multi_labels,
+    Vec<Label> const&        multi_labels,
     Line const&              line,
     Vec<LineLabel>&          line_labels,
-    std::optional<LineLabel> margin_label) -> const Label* {
-    Vec<const Label*> candidates;
+    std::optional<LineLabel> margin_label) {
+    Vec<CRw<Label>> candidates;
 
     if (margin_label) {
-        candidates.push_back(&margin_label->label);
+        candidates.push_back(margin_label->label);
     }
 
     for (const auto& l : multi_labels) {
@@ -381,21 +382,24 @@ auto get_highlight(
     }
 
     for (const auto& l : line_labels) {
-        candidates.push_back(&l.label);
+        candidates.push_back(l.label);
     }
 
     auto it = std::min_element(
         candidates.begin(),
         candidates.end(),
         [&](const auto& a, const auto& b) {
-            return std::make_tuple(-a->priority, a->span->len())
-                 < std::make_tuple(-b->priority, b->span->len());
+            return std::make_tuple(-a.get().priority, a.get().span->len())
+                 < std::make_tuple(-b.get().priority, b.get().span->len());
         });
 
-    return (it != candidates.end()
-            && (*it)->span->contains(line.offset + col))
-             ? *it
-             : nullptr;
+
+    if (it != candidates.end()
+        && it->get().span->contains(line.offset + col)) {
+        return *it;
+    } else {
+        return std::nullopt;
+    }
 };
 
 
@@ -488,11 +492,11 @@ void whatever(MarginContext const& c, int row, int arrow_len) {
 
 
 void build_multi_labels(
-    Vec<const Label*>     multi_labels,
+    Vec<Label>&           multi_labels,
     Vec<LabelInfo> const& labels) {
     for (LabelInfo const& label_info : labels) {
         if (label_info.kind == LabelKind::Multiline) {
-            multi_labels.push_back(&label_info.label);
+            multi_labels.push_back(label_info.label);
         }
     }
 
@@ -501,8 +505,8 @@ void build_multi_labels(
     std::sort(
         multi_labels.begin(),
         multi_labels.end(),
-        [](Label const* a, Label const* b) {
-            return (a->span->len()) > (b->span->len());
+        [](Label const& a, Label const& b) {
+            return (a.span->len()) > (b.span->len());
         });
 }
 
@@ -512,22 +516,19 @@ void build_line_labels(
     Line const&           line,
     Vec<LabelInfo> const& labels,
     Opt<LineLabel> const& margin_label,
-    Vec<const Label*>     multi_labels) {
-    for (const Label* label : multi_labels) {
-        bool is_start = line.span().contains(label->span->start());
-        bool is_end   = line.span().contains(label->last_offset());
+    Vec<Label>            multi_labels) {
+    for (CR<Label> label : multi_labels) {
+        bool is_start = line.span().contains(label.span->start());
+        bool is_end   = line.span().contains(label.last_offset());
         bool different_from_margin_label
-            = (!margin_label.has_value()
-               || reinterpret_cast<const void*>(label)
-                      != reinterpret_cast<const void*>(
-                          &margin_label->label));
+            = (!margin_label.has_value() || label != margin_label->label);
 
         if ((is_start && different_from_margin_label) || is_end) {
             LineLabel ll{
-                .col = (is_start ? label->span->start()
-                                 : label->last_offset())
+                .col = (is_start ? label.span->start()
+                                 : label.last_offset())
                      - line.offset,
-                .label    = *label,
+                .label    = label,
                 .multi    = true,
                 .draw_msg = is_end,
             };
@@ -814,7 +815,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
 
 
         // Generate a list of multi-line labels
-        Vec<const Label*> multi_labels;
+        Vec<Label> multi_labels;
         build_multi_labels(multi_labels, labels);
 
 
@@ -886,13 +887,14 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
             if (!is_ellipsis) {
                 int col = 0;
                 for (QChar c : line.chars) {
-                    Label const* highlight = get_highlight(
+                    Opt<CRw<Label>> highlight = get_highlight(
                         col,
                         multi_labels,
                         line,
                         line_labels,
                         margin_label);
-                    ColStyle color = highlight ? highlight->color
+
+                    ColStyle color = highlight ? highlight->get().color
                                                : config.unimportant_color;
 
                     auto [wc, width] = config.char_width(c, col);

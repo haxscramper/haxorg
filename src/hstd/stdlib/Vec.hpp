@@ -88,7 +88,7 @@ class Vec : public std::vector<T> {
     }
 
     /// \brief Check if vector has enough elements to access index \arg idx
-    bool has(int idx) const { return idx < size(); }
+    bool has(int idx) const { return 0 <= idx && idx < size(); }
 
     /// \brief Access span of elements in mutable vector
     template <typename A, typename B>
@@ -102,6 +102,22 @@ class Vec : public std::vector<T> {
     Span<const T> at(CR<HSlice<A, B>> s, bool checkRange = true) const {
         const auto [start, end] = getSpan(size(), s, checkRange);
         return Span(this->data() + start, end - start + 1);
+    }
+
+    std::optional<Rw<T>> get(int index) {
+        if (has(index)) {
+            return at(index);
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    std::optional<CRw<T>> get(int index) const {
+        if (has(index)) {
+            return at(index);
+        } else {
+            return std::nullopt;
+        }
     }
 
     template <typename A, typename B>

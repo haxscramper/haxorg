@@ -35,6 +35,8 @@ template <typename T> using CR    = const T&;
 template <typename T> using CP    = const T*;
 template <typename T> using Ptr   = T*;
 template <typename T> using Const = const T;
+template <typename T> using Rw = std::reference_wrapper<T>;
+template <typename T> using CRw = std::reference_wrapper<const T>;
 
 template <typename T>
 CR<T> cr(CR<T> in) {
