@@ -32,6 +32,7 @@ QString ansiEsc(const Style& style, const bool& open) {
         case Style::Reverse: return ansiEsc(7 + diff);
         case Style::Hidden: return ansiEsc(8 + diff);
         case Style::Strikethrough: return ansiEsc(9 + diff);
+        default: return "";
     }
 }
 

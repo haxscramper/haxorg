@@ -170,6 +170,145 @@ bool sort_line_labels(
     return false;
 }
 
+void fill_margin_elements(
+    MarginContext const&             c,
+    int                              col,
+    Opt<Pair<CRw<Label>, bool>>&     corner,
+    Opt<Pair<CRw<LineLabel>, bool>>& margin_ptr,
+    Opt<Label>&                      vbar,
+    Opt<Label>&                      hbar) {
+
+    Slice<int> line_span = c.src->line(c.idx).value().span();
+    for (int i = 0; i < std::min(col + 1, c.multi_labels.size()); ++i) {
+        const auto&         label = c.multi_labels.at(i);
+        Opt<CRw<LineLabel>> margin;
+        if (c.margin_label && label == c.margin_label->label) {
+            margin = c.margin_label;
+        }
+
+        if (label.span->start() <= line_span.last
+            && line_span.first < label.span->end()) {
+            bool is_parent = i != col;
+            bool is_start  = line_span.contains(label.span->start());
+            bool is_end    = line_span.contains(label.last_offset());
+
+            if (margin && c.is_line) {
+                margin_ptr = std::make_pair(margin.value(), is_start);
+            } else if (!is_start && (!is_end || c.is_line)) {
+                if (!vbar && !is_parent) {
+                    vbar = label;
+                }
+            } else if (c.report_row.has_value()) {
+                auto report_row_value = c.report_row.value();
+                int  label_row        = 0;
+                for (int r = 0; r < c.line_labels.size(); ++r) {
+                    if (label == c.line_labels[r].label) {
+                        label_row = r;
+                        break;
+                    }
+                }
+
+                if (report_row_value.first == label_row) {
+                    if (margin) {
+                        if (col == i) {
+                            vbar = margin->get().label;
+                        } else {
+                            vbar = std::nullopt;
+                        }
+
+                        if (is_start) {
+                            continue;
+                        }
+                    }
+
+                    if (report_row_value.second) {
+                        hbar = label;
+                        if (!is_parent) {
+                            corner = std::make_pair(label, is_start);
+                        }
+                    } else if (!is_start) {
+                        if (!vbar && !is_parent) {
+                            vbar = label;
+                        }
+                    }
+                } else {
+                    if (!vbar && !is_parent
+                        && (is_start
+                            ^ (report_row_value.first < label_row))) {
+                        vbar = label;
+                    }
+                }
+            }
+        }
+    }
+}
+
+Pair<ColRune, ColRune> get_corner_elements(
+    MarginContext const&                c,
+    int                                 col,
+    CR<Opt<Pair<CRw<Label>, bool>>>     corner,
+    CR<Opt<Label>>                      vbar,
+    CR<Opt<Label>>                      hbar,
+    CR<Opt<Pair<CRw<LineLabel>, bool>>> margin_ptr,
+    CR<Opt<CRw<Label>>>                 multi_label) {
+    std::pair<ColRune, ColRune> ab;
+
+    if (corner) {
+        auto [label, is_start] = *corner;
+        ab                     = {
+            is_start ? ColRune(c.draw.ltop, label.get().color)
+                                         : ColRune(c.draw.lbot, label.get().color),
+            ColRune(c.draw.hbar, label.get().color),
+        };
+    } else if (hbar && vbar && !c.config.cross_gap) {
+        ab = {
+            ColRune(c.draw.xbar, hbar->color),
+            ColRune(c.draw.hbar, hbar->color),
+        };
+    } else if (hbar) {
+        ab = {
+            ColRune(c.draw.hbar, hbar->color),
+            ColRune(c.draw.hbar, hbar->color),
+        };
+    } else if (vbar) {
+        ab = {
+            c.is_ellipsis ? ColRune(c.draw.vbar_gap, vbar->color)
+                          : ColRune(c.draw.vbar, vbar->color),
+            ColRune(' '),
+        };
+    } else if (margin_ptr && c.is_line) {
+        auto [margin, is_start] = *margin_ptr;
+        bool is_col             = multi_label
+                                    ? (multi_label->get() == margin.get().label)
+                                    : false;
+        bool is_limit           = col == c.multi_labels.size();
+        if (is_limit) {
+            ab.first = ColRune(c.draw.rarrow, margin.get().label.color);
+        } else if (is_col) {
+            if (is_start) {
+                ab.first = ColRune(c.draw.ltop, margin.get().label.color);
+            } else {
+                ab.first = ColRune(
+                    c.draw.lcross, margin.get().label.color);
+            }
+        } else {
+            ab.first = ColRune(c.draw.hbar, margin.get().label.color);
+        }
+
+        if (!is_limit) {
+            ab.second = ColRune(c.draw.hbar, margin.get().label.color);
+        } else {
+            ab.second = ColRune(' ');
+        }
+    } else {
+        ab = {
+            ColRune(' '),
+            ColRune(' '),
+        };
+    }
+
+    return ab;
+}
 
 void write_margin(MarginContext const& c) {
     QString line_no_margin;
@@ -191,153 +330,41 @@ void write_margin(MarginContext const& c) {
 
     // Multi-line margins
     if (c.draw_labels) {
-        for (int col = 0;
-             col < c.multi_labels.size() + (c.multi_labels.size() > 0);
+        for (int col = 0; col < c.multi_labels.size()
+                                    + (0 < c.multi_labels.size() ? 1 : 0);
              ++col) {
-            std::optional<std::pair<const Label*, bool>>
-                                 corner = std::nullopt;
-            std::optional<Label> hbar   = std::nullopt;
-            std::optional<Label> vbar   = std::nullopt;
-            std::optional<std::pair<const LineLabel*, bool>>
-                margin_ptr = std::nullopt;
+            Opt<Pair<CRw<Label>, bool>>     corner     = std::nullopt;
+            Opt<Label>                      hbar       = std::nullopt;
+            Opt<Label>                      vbar       = std::nullopt;
+            Opt<Pair<CRw<LineLabel>, bool>> margin_ptr = std::nullopt;
 
             Opt<CRw<Label>> multi_label = c.multi_labels.get(col);
-            auto            line_span = c.src->line(c.idx).value().span();
 
-            for (int i = 0; i < std::min(col + 1, c.multi_labels.size());
-                 ++i) {
-                const auto& label  = c.multi_labels.at(i);
-                auto        margin = c.margin_label
-                                       ? (label == c.margin_label->label
-                                              ? &(*c.margin_label)
-                                              : nullptr)
-                                       : nullptr;
+            fill_margin_elements(c, col, corner, margin_ptr, vbar, hbar);
 
-                if (label.span->start() <= line_span.last
-                    && line_span.first < label.span->end()) {
-                    bool is_parent = i != col;
-                    bool is_start  = line_span.contains(
-                        label.span->start());
-                    bool is_end = line_span.contains(label.last_offset());
+            if (margin_ptr && c.is_line) {
+                bool is_col = multi_label
+                           && (*multi_label
+                               == margin_ptr->first.get().label);
 
-                    if (margin && c.is_line) {
-                        margin_ptr = std::make_pair(margin, is_start);
-                    } else if (!is_start && (!is_end || c.is_line)) {
-                        if (!vbar && !is_parent) {
-                            vbar = label;
-                        }
-                    } else if (c.report_row.has_value()) {
-                        auto report_row_value = c.report_row.value();
-                        int  label_row        = 0;
-                        for (int r = 0; r < c.line_labels.size(); ++r) {
-                            if (label == c.line_labels[r].label) {
-                                label_row = r;
-                                break;
-                            }
-                        }
-
-                        if (report_row_value.first == label_row) {
-                            if (margin) {
-                                if (col == i) {
-                                    vbar = margin->label;
-                                } else {
-                                    vbar = std::nullopt;
-                                }
-
-                                if (is_start) {
-                                    continue;
-                                }
-                            }
-
-                            if (report_row_value.second) {
-                                hbar = label;
-                                if (!is_parent) {
-                                    corner = std::make_pair(
-                                        &label, is_start);
-                                }
-                            } else if (!is_start) {
-                                if (!vbar && !is_parent) {
-                                    vbar = label;
-                                }
-                            }
-                        } else {
-                            if (!vbar && !is_parent
-                                && (is_start
-                                    ^ (report_row_value.first
-                                       < label_row))) {
-                                vbar = label;
-                            }
-                        }
-                    }
-                }
-            }
-
-
-            if (auto margin_ptr_value = margin_ptr;
-                margin_ptr_value.has_value() && c.is_line) {
-                auto [margin, _is_start] = *margin_ptr_value;
-                bool is_col = multi_label ? (*multi_label == margin->label)
-                                          : false;
                 bool is_limit = col + 1 == c.multi_labels.size();
                 if (!is_col && !is_limit) {
-                    hbar = hbar.value_or(margin->label);
+                    hbar = hbar.value_or(margin_ptr->first.get().label);
                 }
             }
 
-            if (hbar.has_value()
-                && !(*hbar != c.margin_label->label || !c.is_line)) {
+            if (hbar
+                && !((*hbar != c.margin_label->label) || !c.is_line)) {
                 hbar = std::nullopt;
             }
 
-            std::pair<ColRune, ColRune> ab;
 
-            if (auto corner_value = corner; corner_value.has_value()) {
-                auto [label, is_start] = *corner_value;
-                ab                     = {
-                    is_start ? ColRune(c.draw.ltop, label->color)
-                                                 : ColRune(c.draw.lbot, label->color),
-                    ColRune(c.draw.hbar, label->color),
-                };
-            } else if (
-                hbar.has_value() && vbar.has_value()
-                && !c.config.cross_gap) {
-                ab = {
-                    ColRune(c.draw.xbar, hbar->color),
-                    ColRune(c.draw.hbar, hbar->color),
-                };
-            } else if (hbar.has_value()) {
-                ab = {
-                    ColRune(c.draw.hbar, hbar->color),
-                    ColRune(c.draw.hbar, hbar->color),
-                };
-            } else if (vbar.has_value()) {
-                ab = {
-                    c.is_ellipsis ? ColRune(c.draw.vbar_gap, vbar->color)
-                                  : ColRune(c.draw.vbar, vbar->color),
-                    ColRune(' '),
-                };
-            } else if (auto margin_ptr_value = margin_ptr;
-                       margin_ptr_value.has_value() && c.is_line) {
-                auto [margin, is_start] = *margin_ptr_value;
-                bool is_col = multi_label ? (*multi_label == margin->label)
-                                          : false;
-                bool is_limit = col == c.multi_labels.size();
-                ab            = {
-                    is_limit ? ColRune(c.draw.rarrow, margin->label.color)
-                               : is_col
-                                   ? (is_start
-                                          ? ColRune(c.draw.ltop, margin->label.color)
-                                          : ColRune(
-                                   c.draw.lcross, margin->label.color))
-                                   : ColRune(c.draw.hbar, margin->label.color),
-                    !is_limit ? ColRune(c.draw.hbar, margin->label.color)
-                              : ColRune(' '),
-                };
-            } else {
-                ab = {
-                    ColRune(' '),
-                    ColRune(' '),
-                };
+            Pair<ColRune, ColRune> ab = get_corner_elements(
+                c, col, corner, vbar, hbar, margin_ptr, multi_label);
+
+            c.w << ab.first;
+            if (!c.config.compact) {
+                c.w << ab.second;
             }
         }
     }
@@ -508,6 +535,9 @@ void build_multi_labels(
         [](Label const& a, Label const& b) {
             return (a.span->len()) > (b.span->len());
         });
+
+    _dbg(labels.size());
+    _dbg(multi_labels.size());
 }
 
 void build_line_labels(
@@ -698,7 +728,8 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
         LabelInfo label_info{
             .kind  = (start_line == end_line) ? LabelKind::Inline
                                               : LabelKind::Multiline,
-            .label = label};
+            .label = label,
+        };
 
         auto group_it = std::find_if(
             groups.begin(), groups.end(), [&](const SourceGroup& group) {
