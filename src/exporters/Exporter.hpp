@@ -16,9 +16,47 @@ struct Exporter {
         }
     };
 
+    template <typename T>
+    void recVisit(CR<Opt<sem::Wrap<T>>> value) {
+        if (value) {
+            recVisit(value.value());
+        }
+    }
+
+    template <typename T>
+    void recVisit(CR<Vec<sem::Wrap<T>>> value) {
+        for (const auto& it : value) {
+            recVisit(it);
+        }
+    }
+
+    template <typename T>
+    void recVisit(CR<sem::Wrap<T>> value) {
+        if constexpr (std::is_same_v<T, sem::Subtree>) {
+            recVisit(value->title);
+            recVisit(value->completion);
+            recVisit(value->tags);
+            recVisit(value->description);
+            recVisit(value->logbook);
+            recVisit(value->closed);
+            recVisit(value->deadline);
+            recVisit(value->scheduled);
+        } else if constexpr (std::is_same_v<T, sem::TimeRange>) {
+            recVisit(value->from);
+            recVisit(value->to);
+        }
+
+        for (const auto& sub : value->subnodes) {
+            recVisit(sub);
+        }
+    }
+
 
 #define __define(Kind)                                                    \
-    virtual Wrap<ExporterResult> export##Kind(sem::Wrap<sem::Kind>) = 0;
+    virtual Wrap<ExporterResult> export##Kind(sem::Wrap<sem::Kind> arg) { \
+        recVisit(arg);                                                    \
+        return nullptr;                                                   \
+    };
 
     EACH_SEM_ORG_KIND(__define);
 

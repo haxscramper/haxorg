@@ -318,6 +318,7 @@ struct Time : public Org {
     GET_KIND(Time);
     using Org::Org;
 
+
     /// Repetition for static time
     struct Repeat {
         enum class Mode
@@ -350,9 +351,15 @@ struct Time : public Org {
         int    count;
     };
 
+    Time(CR<QDateTime> time)
+        : time(Static{.time = time}), Org(nullptr, OrgAdapter()) {}
+
     struct Static {
         Opt<Repeat> repeat;
         QDateTime   time;
+        /// Simplified time such as `12:20` can be used in subtree
+        /// titles in conjunction with dynamic (diary) times.
+        bool simpleTime;
     };
     /// Active timestamp with evaluatable code expression inside, also
     /// called diary time
@@ -417,6 +424,39 @@ BOOST_DESCRIBE_STRUCT(SubtreeLog, (Org), (log));
 struct Subtree : public Org {
     GET_KIND(Subtree);
     using Org::Org;
+
+    struct Period {
+        enum class Kind : short int
+        {
+            /// Time period of the task execution.
+            Clocked,
+            /// Date of task execution start plus it's estimated effort
+            /// duration. If the latter one is missing then only a single
+            /// time point is returned
+            Scheduled,
+            /// Single point or time range used in title. Single point can
+            /// also be a simple time, such as `12:20`
+            Titled,
+            /// Date of task completion. Must be a single time point
+            Deadline,
+            /// When the subtree was created
+            Created,
+            /// Last repeat time of the recurring tasks
+            Repeated,
+        };
+
+        Wrap<Time>&      getTime() { return std::get<Wrap<Time>>(period); }
+        Wrap<TimeRange>& getTimeRange() {
+            return std::get<Wrap<TimeRange>>(period);
+        }
+
+        Variant<Wrap<Time>, Wrap<TimeRange>> period;
+        Kind                                 kind;
+        Period(CR<Variant<Wrap<Time>, Wrap<TimeRange>>> period, Kind kind)
+            : period(period), kind(kind) {}
+    };
+
+    Vec<Period> getTimePeriods(IntSet<Period::Kind> kinds);
 
     struct Properties {
         enum class PropertyKind
@@ -527,18 +567,6 @@ struct Subtree : public Org {
     Opt<Wrap<Time>> scheduled;
 
     using PropKind = Properties::PropertyKind;
-
-    inline Opt<QDateTime> getCreated() const {
-        if (auto created = getProperty(PropKind::Created)) {
-            return std::get<Properties::Created>(created.value()).time;
-        } else {
-            return std::nullopt;
-        }
-    }
-
-    Opt<Wrap<Time>> getStart() const;
-    Opt<Wrap<Time>> getEnd() const;
-
 
     Vec<Properties::Property> getProperties(
         PropKind    kind,

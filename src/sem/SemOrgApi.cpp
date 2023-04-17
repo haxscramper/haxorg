@@ -36,6 +36,33 @@ Opt<Wrap<Subtree>> Org::getParentSubtree() const {
     return std::nullopt;
 }
 
+Vec<Subtree::Period> Subtree::getTimePeriods(IntSet<Period::Kind> kinds) {
+    Vec<Period> res;
+    for (const auto& it : title->subnodes) {
+        if (it->getKind() == osk::Time) {
+            res.push_back(Period(it->as<Time>(), Period::Kind::Titled));
+        } else if (it->getKind() == osk::TimeRange) {
+            res.push_back(
+                Period(it->as<TimeRange>(), Period::Kind::Titled));
+        }
+    }
+
+    for (const auto& prop : properties) {
+        std::visit(
+            overloaded{
+                [&](Prop::Created const& cr) {
+                    res.push_back(Period(
+                        std::make_shared<Time>(cr.time),
+                        Period::Kind::Created));
+                },
+                [](auto const&) {}},
+            prop);
+    }
+
+
+    return res;
+}
+
 Vec<Prop::Property> Subtree::getProperties(
     Prop::PropertyKind kind,
     CR<QString>        subkind) const {
@@ -133,23 +160,5 @@ Opt<Prop::Property> Subtree::getProperty(
         return std::nullopt;
     } else {
         return props[0];
-    }
-}
-
-Opt<Wrap<Time>> Subtree::getStart() const {
-    if (scheduled) {
-        return scheduled;
-    } else if (title->at(0)->getKind() == osk::TimeRange) {
-        return title->at(0)->as<TimeRange>()->from;
-    } else {
-        return std::nullopt;
-    }
-}
-
-Opt<Wrap<Time>> Subtree::getEnd() const {
-    if (title->at(0)->getKind() == osk::TimeRange) {
-        return title->at(0)->as<TimeRange>()->to;
-    } else {
-        return std::nullopt;
     }
 }
