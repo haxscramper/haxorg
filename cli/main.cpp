@@ -3,6 +3,7 @@
 #include <QCommandLineParser>
 #include <QFileInfo>
 #include <QString>
+#include <hstd/wrappers/graphviz.hpp>
 
 QTextStream qcout;
 
@@ -141,6 +142,15 @@ bool parseArgs(int argc, char** argv, HaxorgCli::Config& config) {
 }
 
 int main(int argc, char** argv) {
+    Graphviz        ctx;
+    Graphviz::Graph graph("g");
+    auto            n = graph.node("test");
+    ctx.renderToFile(
+        graph,
+        Graphviz::LayoutType::Dot,
+        Graphviz::RenderFormat::PNG,
+        "/tmp/res.png");
+
     QFile file;
     file.open(stdout, QIODevice::WriteOnly);
     qcout.setDevice(&file);
