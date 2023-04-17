@@ -10,6 +10,224 @@
 using ock = OrgCommandKind;
 using otk = OrgTokenKind;
 
+using Err = OrgTokenizer::Errors;
+
+struct OrgTokenizerImplBase
+    : public Tokenizer<OrgTokenKind>
+    , public OrgTokenizer {
+
+  public:
+    TokenizerError wrapError(CR<Error> err) {
+        TokenizerError result{err};
+        if (locationResolver) {
+            PosStr str{result.getView(), result.getPos()};
+            result.setLoc(locationResolver(str));
+        }
+        return result;
+    }
+
+    OrgToken error(CR<TokenizerError> err) {
+        auto tmp = err;
+        if (locationResolver) {
+            PosStr str{err.getView(), err.getPos()};
+            tmp.setLoc(locationResolver(str));
+        }
+        errors.push_back(err);
+        return Token(OrgTokenKind::ErrorTerminator, errors.high());
+    }
+
+
+    /// Resolve positional string into line and column information
+    OrgTokenizer::LocationResolverCb locationResolver;
+    OrgTokenizer::ReportHookCb       reportHook;
+    /// Update trace enable/disable state. Called before and after each
+    /// report is processed. First argument is the report, second is the
+    /// reference to the `trace` member and the last one provides
+    /// information about call location (before report or after report).
+    OrgTokenizer::TraceUpdateHookCb traceUpdateHook;
+
+
+    Opt<LineCol> getLoc(CR<PosStr> str) {
+        if (locationResolver) {
+            return locationResolver(str);
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    OrgTokenizerImplBase(OrgTokenGroup* out)
+        : Tokenizer<OrgTokenKind>(out) {}
+
+
+    QString debugPos(CR<PosStr> str) const {
+        QString res;
+        if (locationResolver) {
+            auto loc = locationResolver(str);
+            res      = "$#:$#" % to_string_vec(loc.line, loc.column);
+        }
+
+        return res;
+    }
+
+    void setBuffer(Vec<OrgToken>* buffer) {
+        report(Report{.kind = ReportKind::SetBuffer});
+        Base::setBuffer(buffer);
+    }
+
+    void clearBuffer() {
+        report(Report{.kind = ReportKind::ClearBuffer});
+        Base::clearBuffer();
+    }
+
+    void       push(CR<std::span<OrgToken>> tok) { Base::push(tok); }
+    void       push(CR<Vec<OrgToken>> tok) { Base::push(tok); }
+    OrgTokenId push(CR<OrgToken> tok) { return Base::push(tok); }
+
+    int  depth = 0;
+    void report(CR<Report> in) {
+        if (reportHook) {
+            reportHook(in);
+        }
+
+        if (traceUpdateHook) {
+            traceUpdateHook(in, trace, true);
+        }
+        if (!trace) {
+            if (traceUpdateHook) {
+                traceUpdateHook(in, trace, false);
+            }
+            return;
+        }
+
+
+        using fg = TermColorFg8Bit;
+        if (in.kind == ReportKind::Enter) {
+            ++depth;
+        }
+
+        ColStream os = getStream();
+        os << repeat("  ", depth);
+
+
+        auto getLoc = [&]() -> QString {
+            QString res;
+            if (locationResolver && in.str != nullptr) {
+                LineCol loc = locationResolver(*in.str);
+                res = "$#:$# " % to_string_vec(loc.line, loc.column);
+            }
+            return res;
+        };
+
+        auto printString = [&]() {
+            if (in.str != nullptr) {
+                os << " [";
+                in.str->print(
+                    os,
+                    PosStr::PrintParams(
+                        {.withEnd        = false,
+                         .maxTokens      = 100,
+                         .withSeparation = false}));
+                os << "]";
+            }
+        };
+
+        switch (in.kind) {
+            case ReportKind::Print: {
+                os << "  " << in.line << getLoc() << ":"
+                   << in.subname.value();
+                printString();
+                break;
+            }
+
+            case ReportKind::SetBuffer: {
+                os << "  ! set buffer";
+                break;
+            }
+
+            case ReportKind::Error: {
+                os << "  ! error " << in.error.what();
+                break;
+            }
+
+            case ReportKind::ClearBuffer: {
+                os << "  ! clear buffer" << getLoc();
+                break;
+            }
+
+            case ReportKind::PushResolved: {
+                os << "  + push resolved" << getLoc();
+                break;
+            }
+
+            case ReportKind::Push: {
+                if (in.id.isNil()) {
+                    os << "  + buffer token " << getLoc() << in.tok;
+                } else {
+                    os << "  + add token " << getLoc() << in.id.getIndex()
+                       << " " << at(in.id);
+                }
+                os << " at " << fg::Cyan << in.line << os.end();
+                break;
+            }
+            case ReportKind::Enter:
+            case ReportKind::Leave: {
+                os << (in.kind == ReportKind::Enter ? "> " : "< ")
+                   << fg::Green << getLoc() << in.name << os.end() << ":"
+                   << fg::Cyan << in.line << os.end();
+
+                if (in.subname.has_value()) {
+                    os << " " << in.subname.value();
+                }
+
+                printString();
+
+                break;
+            }
+        }
+
+
+        endStream(os);
+
+        if (in.kind == ReportKind::Leave) {
+            --depth;
+        }
+
+        if (traceUpdateHook) {
+            traceUpdateHook(in, trace, false);
+        }
+    }
+
+
+    void oskipOne(PosStr& str, CR<PosStr::CheckableSkip> skip) {
+        if (str.atAny(skip)) {
+            str.skipAny(skip);
+        } else {
+            throw wrapError(Err::UnexpectedChar(str, skip));
+        }
+    }
+
+    PosStr::AdvanceCb skipCb(CR<PosStr::CheckableSkip> item) {
+        return [item, this](PosStr& str) { oskipOne(str, item); };
+    }
+
+
+    int getVerticalSpaceCount(CR<PosStr> str) {
+        int  spaceCount = 0;
+        auto tmp        = str;
+        while (true) {
+            tmp.space();
+            if (tmp.at(charsets::Newline)) {
+                tmp.next();
+                ++spaceCount;
+            } else {
+                return spaceCount;
+            }
+        }
+        return spaceCount;
+    }
+};
+
+
 const auto commandNameMap = std::unordered_map<QString, OrgCommandKind>{
     {"begin", ock::BeginDynamic},
     {"end", ock::EndDynamic},
@@ -72,6 +290,10 @@ OrgCommandKind classifyCommand(QString const& command) {
             % to_string_vec(command, norm));
     }
 }
+
+
+namespace {
+
 
 PosStr spaced(PosStr tmp) {
     tmp.space();
@@ -209,119 +431,10 @@ struct AdvCheck {
 #define __adv_check()                                                     \
     AdvCheck CONCAT(advance, __COUNTER__){str, this, __func__};
 
+
 const CharSet ListStart = CharSet{QChar('-'), QChar('+'), QChar('*')}
                         + charsets::Digits + charsets::AsciiLetters;
-using Err = OrgTokenizer::Errors;
 
-struct OrgTokenizerImplBase
-    : public Tokenizer<OrgTokenKind>
-    , public OrgTokenizer {
-
-  public:
-    TokenizerError wrapError(CR<Error> err);
-    OrgToken       error(CR<TokenizerError> in);
-
-
-    /// Resolve positional string into line and column information
-    OrgTokenizer::LocationResolverCb locationResolver;
-    OrgTokenizer::ReportHookCb       reportHook;
-    /// Update trace enable/disable state. Called before and after each
-    /// report is processed. First argument is the report, second is the
-    /// reference to the `trace` member and the last one provides
-    /// information about call location (before report or after report).
-    OrgTokenizer::TraceUpdateHookCb traceUpdateHook;
-
-
-    Opt<LineCol> getLoc(CR<PosStr> str) {
-        if (locationResolver) {
-            return locationResolver(str);
-        } else {
-            return std::nullopt;
-        }
-    }
-
-    OrgTokenizerImplBase(OrgTokenGroup* out)
-        : Tokenizer<OrgTokenKind>(out) {}
-
-
-    QString debugPos(CR<PosStr> str) const {
-        QString res;
-        if (locationResolver) {
-            auto loc = locationResolver(str);
-            res      = "$#:$#" % to_string_vec(loc.line, loc.column);
-        }
-
-        return res;
-    }
-
-    void setBuffer(Vec<OrgToken>* buffer) {
-        report(Report{.kind = ReportKind::SetBuffer});
-        Base::setBuffer(buffer);
-    }
-
-    void clearBuffer() {
-        report(Report{.kind = ReportKind::ClearBuffer});
-        Base::clearBuffer();
-    }
-
-    void       push(CR<std::span<OrgToken>> tok) { Base::push(tok); }
-    void       push(CR<Vec<OrgToken>> tok) { Base::push(tok); }
-    OrgTokenId push(CR<OrgToken> tok) { return Base::push(tok); }
-
-    int  depth = 0;
-    void report(CR<Report> in);
-
-
-    void oskipOne(PosStr& str, CR<PosStr::CheckableSkip> skip) {
-        if (str.atAny(skip)) {
-            str.skipAny(skip);
-        } else {
-            throw wrapError(Err::UnexpectedChar(str, skip));
-        }
-    }
-
-    PosStr::AdvanceCb skipCb(CR<PosStr::CheckableSkip> item) {
-        return [item, this](PosStr& str) { oskipOne(str, item); };
-    }
-
-
-    int getVerticalSpaceCount(CR<PosStr> str) {
-        int  spaceCount = 0;
-        auto tmp        = str;
-        while (true) {
-            tmp.space();
-            if (tmp.at(charsets::Newline)) {
-                tmp.next();
-                ++spaceCount;
-            } else {
-                return spaceCount;
-            }
-        }
-        return spaceCount;
-    }
-};
-
-Opt<LineCol> OrgTokenizer::getLoc(CR<PosStr> str) {
-    return impl->getLoc(str);
-}
-
-void OrgTokenizer::setReportHook(
-    Func<void(CR<OrgTokenizer::Report>)> locationResolver) {
-    Q_CHECK_PTR(impl);
-    impl->reportHook = locationResolver;
-}
-
-void OrgTokenizer::setTraceUpdateHook(
-    Func<void(CR<Report>, bool&, bool)> locationResolver) {
-    Q_CHECK_PTR(impl);
-    impl->traceUpdateHook = locationResolver;
-}
-
-void OrgTokenizer::setLocationResolver(
-    Func<LineCol(CR<PosStr>)> locationResolver) {
-    Q_CHECK_PTR(impl);
-    impl->locationResolver = locationResolver;
-}
 
 template <bool TraceState>
 struct OrgTokenizerImpl : OrgTokenizerImplBase {
@@ -412,14 +525,6 @@ struct OrgTokenizerImpl : OrgTokenizerImplBase {
     virtual void newlineSkip(PosStr& str) override;
 };
 
-void OrgTokenizer::initImpl(OrgTokenGroup* out, bool doTrace) {
-    if (doTrace) {
-        impl = std::make_shared<OrgTokenizerImpl<true>>(out);
-    } else {
-        impl = std::make_shared<OrgTokenizerImpl<false>>(out);
-    }
-}
-
 
 const auto NonText = CharSet{
     ONewline,
@@ -459,6 +564,7 @@ void skipBrace(PosStr& str) {
             .closeChars = {QChar(']')}});
 }
 
+
 #define TRACE_STATE true
 #include <parse/OrgTokenizer.cxx>
 #define TRACE_STATE false
@@ -467,136 +573,36 @@ void skipBrace(PosStr& str) {
 // -----------
 
 
-OrgTokenizer::TokenizerError OrgTokenizerImplBase::wrapError(
-    CR<Error> err) {
-    TokenizerError result{err};
-    if (locationResolver) {
-        PosStr str{result.getView(), result.getPos()};
-        result.setLoc(locationResolver(str));
-    }
-    return result;
+} // namespace
+
+Opt<LineCol> OrgTokenizer::getLoc(CR<PosStr> str) {
+    return impl->getLoc(str);
 }
 
-OrgToken OrgTokenizerImplBase::error(CR<TokenizerError> err) {
-    auto tmp = err;
-    if (locationResolver) {
-        PosStr str{err.getView(), err.getPos()};
-        tmp.setLoc(locationResolver(str));
-    }
-    errors.push_back(err);
-    return Token(OrgTokenKind::ErrorTerminator, errors.high());
+void OrgTokenizer::setReportHook(
+    Func<void(CR<OrgTokenizer::Report>)> locationResolver) {
+    Q_CHECK_PTR(impl);
+    impl->reportHook = locationResolver;
+}
+
+void OrgTokenizer::setTraceUpdateHook(
+    Func<void(CR<Report>, bool&, bool)> locationResolver) {
+    Q_CHECK_PTR(impl);
+    impl->traceUpdateHook = locationResolver;
+}
+
+void OrgTokenizer::setLocationResolver(
+    Func<LineCol(CR<PosStr>)> locationResolver) {
+    Q_CHECK_PTR(impl);
+    impl->locationResolver = locationResolver;
 }
 
 
-void OrgTokenizerImplBase::report(CR<Report> in) {
-    if (reportHook) {
-        reportHook(in);
-    }
-
-    if (traceUpdateHook) {
-        traceUpdateHook(in, trace, true);
-    }
-    if (!trace) {
-        if (traceUpdateHook) {
-            traceUpdateHook(in, trace, false);
-        }
-        return;
-    }
-
-
-    using fg = TermColorFg8Bit;
-    if (in.kind == ReportKind::Enter) {
-        ++depth;
-    }
-
-    ColStream os = getStream();
-    os << repeat("  ", depth);
-
-
-    auto getLoc = [&]() -> QString {
-        QString res;
-        if (locationResolver && in.str != nullptr) {
-            LineCol loc = locationResolver(*in.str);
-            res         = "$#:$# " % to_string_vec(loc.line, loc.column);
-        }
-        return res;
-    };
-
-    auto printString = [&]() {
-        if (in.str != nullptr) {
-            os << " [";
-            in.str->print(
-                os,
-                PosStr::PrintParams(
-                    {.withEnd        = false,
-                     .maxTokens      = 100,
-                     .withSeparation = false}));
-            os << "]";
-        }
-    };
-
-    switch (in.kind) {
-        case ReportKind::Print: {
-            os << "  " << in.line << getLoc() << ":" << in.subname.value();
-            printString();
-            break;
-        }
-
-        case ReportKind::SetBuffer: {
-            os << "  ! set buffer";
-            break;
-        }
-
-        case ReportKind::Error: {
-            os << "  ! error " << in.error.what();
-            break;
-        }
-
-        case ReportKind::ClearBuffer: {
-            os << "  ! clear buffer" << getLoc();
-            break;
-        }
-
-        case ReportKind::PushResolved: {
-            os << "  + push resolved" << getLoc();
-            break;
-        }
-
-        case ReportKind::Push: {
-            if (in.id.isNil()) {
-                os << "  + buffer token " << getLoc() << in.tok;
-            } else {
-                os << "  + add token " << getLoc() << in.id.getIndex()
-                   << " " << at(in.id);
-            }
-            os << " at " << fg::Cyan << in.line << os.end();
-            break;
-        }
-        case ReportKind::Enter:
-        case ReportKind::Leave: {
-            os << (in.kind == ReportKind::Enter ? "> " : "< ") << fg::Green
-               << getLoc() << in.name << os.end() << ":" << fg::Cyan
-               << in.line << os.end();
-
-            if (in.subname.has_value()) {
-                os << " " << in.subname.value();
-            }
-
-            printString();
-
-            break;
-        }
-    }
-
-
-    endStream(os);
-
-    if (in.kind == ReportKind::Leave) {
-        --depth;
-    }
-
-    if (traceUpdateHook) {
-        traceUpdateHook(in, trace, false);
+void OrgTokenizer::initImpl(OrgTokenGroup* out, bool doTrace) {
+    if (doTrace) {
+        impl = std::make_shared<OrgTokenizerImpl<true>>(out);
+    } else {
+        impl = std::make_shared<OrgTokenizerImpl<false>>(out);
     }
 }
 

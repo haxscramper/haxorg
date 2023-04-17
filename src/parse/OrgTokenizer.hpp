@@ -21,7 +21,6 @@ struct ImplementError : public std::runtime_error {
 
 OrgCommandKind classifyCommand(QString const& command);
 
-
 // Store common types of the lexer state
 template <typename Flag>
 struct LexerState {
