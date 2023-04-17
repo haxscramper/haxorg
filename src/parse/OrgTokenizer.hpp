@@ -111,13 +111,16 @@ struct LexerState {
     }
 };
 
+struct OrgTokenizerImplBase;
 
-struct OrgTokenizer
-    : public Tokenizer<OrgTokenKind>
-    , public OperationsTracer {
+struct OrgTokenizer : public OperationsTracer {
     using Base = Tokenizer<OrgTokenKind>;
 
+    std::shared_ptr<OrgTokenizerImplBase> impl = nullptr;
+
   public:
+    void initImpl(OrgTokenGroup* out, bool doTrace);
+
     struct Errors {
         struct Base : std::runtime_error {
             // TODO add extent information about the error
@@ -173,11 +176,6 @@ struct OrgTokenizer
         Errors::None>;
 
 
-    void oskipOne(PosStr& str, CR<PosStr::CheckableSkip> item);
-    PosStr::AdvanceCb skipCb(CR<PosStr::CheckableSkip> item) {
-        return [item, this](PosStr& str) { oskipOne(str, item); };
-    }
-
     struct TokenizerError : std::runtime_error {
         Error err;
         TokenizerError() : std::runtime_error(""), err(Errors::None()) {}
@@ -190,12 +188,8 @@ struct OrgTokenizer
         const char*  what() const noexcept override;
     };
 
-    TokenizerError wrapError(CR<Error> err);
 
     Vec<TokenizerError> errors;
-
-  public:
-    OrgToken error(CR<TokenizerError> in);
 
 
   public:
@@ -224,8 +218,6 @@ struct OrgTokenizer
         TokenizerError error;
     };
 
-    int  depth = 0;
-    void report(CR<Report> in);
 
   public:
     Vec<OrgTokenId> groupStack;
@@ -233,35 +225,16 @@ struct OrgTokenizer
     void            endGroup(PosStr& str);
 
   public:
-    OrgTokenizer(OrgTokenGroup* out) : Tokenizer<OrgTokenKind>(out) {}
-    Opt<LineCol> getLoc(CR<PosStr> str) {
-        if (locationResolver) {
-            return locationResolver(str);
-        } else {
-            return std::nullopt;
-        }
-    }
-    /// Resolve positional string into line and column information
-    Func<LineCol(CR<PosStr>)> locationResolver;
-    Func<void(CR<Report>)>    reportHook;
-    /// Update trace enable/disable state. Called before and after each
-    /// report is processed. First argument is the report, second is the
-    /// reference to the `trace` member and the last one provides
-    /// information about call location (before report or after report).
-    Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
-    QString                             debugPos(CR<PosStr> str) const;
+    using LocationResolverCb = Func<LineCol(CR<PosStr>)>;
+    using ReportHookCb       = Func<void(CR<Report>)>;
+    using TraceUpdateHookCb  = Func<void(CR<Report>, bool&, bool)>;
 
-    /// Push complex token into recursive processing pipeline. Used for
-    /// table content (which might contain more blocks of texts, some
-    /// paragraph elements, more content etc), regular `Text` token
-    /// (contained in a lot of places, first picked out from the
-    /// 'surrounding' and then re-lexed again (the best example where this
-    /// might be needed is `#+title:` followed by regular paragraph, but
-    /// things like link descriptions might contain nested paragraphs as
-    /// well))
-    void pushResolved(CR<OrgToken> token);
+    void setReportHook(ReportHookCb);
+    void setTraceUpdateHook(TraceUpdateHookCb);
+    void setLocationResolver(LocationResolverCb);
 
-    Vec<OrgToken> lexDelimited(
+
+    virtual Vec<OrgToken> lexDelimited(
         PosStr&                          str,
         const Pair<QChar, OrgTokenKind>& start,
         const Pair<QChar, OrgTokenKind>& finish,
@@ -270,121 +243,116 @@ struct OrgTokenizer
 
     /// Check if the string is positioned at the start of a logbook
     /// `CLOCK:` entry.
-    bool atLogClock(CR<PosStr> str);
+    virtual bool atLogClock(CR<PosStr> str);
 
     /// Check if string is positioned at the start of toplevel language
     /// construct.
-    bool atConstructStart(CR<PosStr> str);
-    bool atSubtreeStart(CR<PosStr> str);
+    virtual bool atConstructStart(CR<PosStr> str);
+    virtual bool atSubtreeStart(CR<PosStr> str);
 
     using LexerStateSimple = LexerState<char>;
 
-    void skipIndents(LexerStateSimple& state, PosStr& str);
+    virtual void skipIndents(LexerStateSimple& state, PosStr& str);
 
 
     /// Attempt to parse list start dash
-    bool atListStart(CR<PosStr> str);
-    bool atListAhead(CR<PosStr> str);
-    int  getVerticalSpaceCount(CR<PosStr> str);
-
-    bool lexListStart(PosStr& str);
+    virtual bool atListStart(CR<PosStr> str);
+    virtual bool atListAhead(CR<PosStr> str);
 
     /// Lex head starting from current position onwards. `indent` is the
     /// indentation of the original list prefix -- dash, number or letter.
-    bool lexListItem(
+    virtual bool lexListItem(
         PosStr&           str,
         const int&        indent,
         LexerStateSimple& state);
 
-    bool lexListBullet(PosStr& str, int indent, LexerStateSimple& state);
-    bool lexListDescription(
+    virtual bool lexListBullet(
         PosStr&           str,
         int               indent,
         LexerStateSimple& state);
-    void lexListBody(PosStr& str, int indent, LexerStateSimple& state);
+    virtual bool lexListDescription(
+        PosStr&           str,
+        int               indent,
+        LexerStateSimple& state);
+    virtual void lexListBody(
+        PosStr&           str,
+        int               indent,
+        LexerStateSimple& state);
 
 
-    bool lexComment(PosStr& str) {
-        push(str.tok(OrgTokenKind::Comment, skipToEOL));
-        return true;
-    }
+    virtual bool lexListItems(PosStr& str, LexerStateSimple& state);
+    virtual bool lexTableState(
+        PosStr&                         str,
+        LexerState<OrgBlockLexerState>& state);
+    virtual bool lexCommandContent(
+        PosStr&               str,
+        const OrgCommandKind& kind);
+    virtual bool lexCommandArguments(
+        PosStr&               str,
+        const OrgCommandKind& kind);
+    virtual bool lexCommandBlockDelimited(
+        PosStr& str,
+        PosStr  id,
+        int     column);
 
 
-    void setBuffer(Vec<OrgToken>* buffer) {
-        report(Report{.kind = ReportKind::SetBuffer});
-        Base::setBuffer(buffer);
-    }
+    virtual bool isFirstOnLine(CR<PosStr> str);
 
-    void clearBuffer() {
-        report(Report{.kind = ReportKind::ClearBuffer});
-        Base::clearBuffer();
-    }
+    virtual void spaceSkip(PosStr& str, bool require = false);
+    virtual void newlineSkip(PosStr& str);
 
-    void       push(CR<std::span<OrgToken>> tok) { Base::push(tok); }
-    void       push(CR<Vec<OrgToken>> tok) { Base::push(tok); }
-    OrgTokenId push(CR<OrgToken> tok) { return Base::push(tok); }
+    Opt<LineCol> getLoc(CR<PosStr> str);
 
-    bool lexListItems(PosStr& str, LexerStateSimple& state);
-    bool lexList(PosStr& str);
-    bool lexParagraph(PosStr& str);
-    bool lexParagraphExpand(PosStr& str);
-    bool lexLogbookExpand(PosStr& str);
-    bool lexContentExpand(PosStr& str);
-    bool lexStmtListExpand(PosStr& str);
-    bool lexTableState(PosStr& str, LexerState<OrgBlockLexerState>& state);
-    bool lexTable(PosStr& str);
-    bool lexStructure(PosStr& str);
-    bool lexGlobal(PosStr& str);
-    bool lexAngle(PosStr& str);
-    /// Lex two sequential time stamps optionally followed by the time
-    /// duration
-    bool lexTimeRange(PosStr& str);
-    bool lexTimeStamp(PosStr& str);
-    /// Lex full static time entry -- active or inactive
-    bool lexStaticTime(PosStr& str);
+#define EACH_SIMPLE_TOKENIZER_METHOD(__IMPL)                              \
+    __IMPL(Comment);                                                      \
+    __IMPL(List);                                                         \
+    __IMPL(Paragraph);                                                    \
+    __IMPL(Table);                                                        \
+    __IMPL(Structure);                                                    \
+    __IMPL(Global);                                                       \
+    __IMPL(Angle);                                                        \
+    __IMPL(TimeRange);                                                    \
+    __IMPL(TimeStamp);                                                    \
+                                                                          \
+    __IMPL(Link);                                                         \
+    __IMPL(Footnote);                                                     \
+    __IMPL(LinkTarget);                                                   \
+    __IMPL(Bracket);                                                      \
+    __IMPL(TextChars);                                                    \
+    __IMPL(ParenArguments);                                               \
+    __IMPL(Text);                                                         \
+    __IMPL(Properties);                                                   \
+    __IMPL(Description);                                                  \
+    __IMPL(Logbook);                                                      \
+    __IMPL(Drawer);                                                       \
+    __IMPL(SubtreeTodo);                                                  \
+    __IMPL(SubtreeUrgency);                                               \
+    __IMPL(SubtreeTitle);                                                 \
+    __IMPL(SubtreeTimes);                                                 \
+    __IMPL(Subtree);                                                      \
+    __IMPL(SourceBlockContent);                                           \
+                                                                          \
+    __IMPL(CommandKeyValue);                                              \
+    __IMPL(CommandInclude);                                               \
+    __IMPL(CommandOptions);                                               \
+    __IMPL(CommandCall);                                                  \
+    __IMPL(CommandBlock);                                                 \
+    __IMPL(CommandProperty);                                              \
+                                                                          \
+    __IMPL(HashTag);                                                      \
+    __IMPL(TextDollar);                                                   \
+    __IMPL(TextSlash);                                                    \
+    __IMPL(SlashMath);                                                    \
+    __IMPL(SlashEntity);                                                  \
+    __IMPL(TextVerbatim);                                                 \
+    __IMPL(TextCurly);                                                    \
+    __IMPL(TextMarkup);                                                   \
+    __IMPL(TextAtSign);                                                   \
+    __IMPL(TextSrc);                                                      \
+    __IMPL(TextCall);                                                     \
+    __IMPL(TextWord);
 
-    bool lexLink(PosStr& str);
-    bool lexFootnote(PosStr& str);
-    bool lexLinkTarget(PosStr& str);
-    bool lexBracket(PosStr& str);
-    bool lexTextChars(PosStr& str);
-    bool lexParenArguments(PosStr& str);
-    bool lexText(PosStr& str);
-    bool lexProperties(PosStr& str);
-    bool lexDescription(PosStr& str);
-    bool lexLogbook(PosStr& str);
-    bool lexDrawer(PosStr& str);
-    bool lexSubtreeTodo(PosStr& str);
-    bool lexSubtreeUrgency(PosStr& str);
-    bool lexSubtreeTitle(PosStr& str);
-    bool lexSubtreeTimes(PosStr& str);
-    bool lexSubtree(PosStr& str);
-    bool lexSourceBlockContent(PosStr& str);
-    bool lexCommandContent(PosStr& str, const OrgCommandKind& kind);
-    bool lexCommandArguments(PosStr& str, const OrgCommandKind& kind);
-    bool lexCommandKeyValue(PosStr& str);
-    bool lexCommandInclude(PosStr& str);
-    bool lexCommandOptions(PosStr& str);
-    bool lexCommandCall(PosStr& str);
-    bool lexCommandBlock(PosStr& str);
-    bool lexCommandProperty(PosStr& str);
-    bool lexCommandBlockDelimited(PosStr& str, PosStr id, int column);
-
-    bool lexHashTag(PosStr& str);
-    bool lexTextDollar(PosStr& str);
-    bool lexTextSlash(PosStr& str);
-    bool lexSlashMath(PosStr& str);
-    bool lexSlashEntity(PosStr& str);
-    bool lexTextVerbatim(PosStr& str);
-    bool lexTextCurly(PosStr& str);
-    bool lexTextMarkup(PosStr& str);
-    bool lexTextAtSign(PosStr& str);
-    bool lexTextSrc(PosStr& str);
-    bool lexTextCall(PosStr& str);
-    bool lexTextWord(PosStr& str);
-
-    bool isFirstOnLine(CR<PosStr> str);
-
-    void spaceSkip(PosStr& str, bool require = false);
-    void newlineSkip(PosStr& str);
+#define _def(Kind) virtual bool lex##Kind(PosStr& str);
+    EACH_SIMPLE_TOKENIZER_METHOD(_def);
+#undef _def
 };

@@ -566,9 +566,8 @@ void HaxorgCli::timeStats() {
     }
 }
 
-HaxorgCli::HaxorgCli() : tokenizer(nullptr), nodes(nullptr), lex(&tokens) {
-    nodes.tokens  = &tokens;
-    tokenizer.out = &tokens;
+HaxorgCli::HaxorgCli() : tokenizer(), nodes(nullptr), lex(&tokens) {
+    nodes.tokens = &tokens;
 }
 
 void HaxorgCli::exec() {
@@ -577,6 +576,7 @@ void HaxorgCli::exec() {
     info        = LineColInfo{source};
 
     parser.initImpl(&nodes, config.trace.parse.doTrace);
+    tokenizer.initImpl(&tokens, config.trace.lex.doTrace);
 
     Func<LineCol(CR<PosStr>)> locationResolver =
         [&](CR<PosStr> str) -> LineCol {
@@ -587,8 +587,8 @@ void HaxorgCli::exec() {
         };
     };
 
-    tokenizer.locationResolver = locationResolver;
     converter.locationResolver = locationResolver;
+    tokenizer.setLocationResolver(locationResolver);
     parser.setLocationResolver(locationResolver);
 
     if (config.trace.lex.doTrace) {
@@ -598,10 +598,10 @@ void HaxorgCli::exec() {
         }
     }
 
-    tokenizer.traceUpdateHook =
+    tokenizer.setTraceUpdateHook(
         [&](CR<OrgTokenizer::Report> in, bool& doTrace, bool first) {
             if (in.str != nullptr) {
-                LineCol loc = tokenizer.locationResolver(*(in.str));
+                LineCol loc = locationResolver(*(in.str));
                 if (config.trace.lex.traceExtent.contains(loc.line)) {
                     if (in.kind == OrgTokenizer::ReportKind::Push) {
                         if (in.addBuffered) {
@@ -614,7 +614,7 @@ void HaxorgCli::exec() {
                     doTrace = false;
                 }
             }
-        };
+        });
 
     parser.setTraceUpdateHook([&](CR<OrgParser::Report> in,
                                   bool&                 doTrace,
@@ -624,8 +624,7 @@ void HaxorgCli::exec() {
             if (nodes.at(node).isTerminal()) {
                 auto tok = tokens.at(nodes.at(node).getToken());
                 if (tok.hasData()) {
-                    LineCol loc = tokenizer.locationResolver(
-                        tok.getText());
+                    LineCol loc = locationResolver(tok.getText());
                     if (loc.line != -1) {
                         doTrace = config.trace.parse.traceExtent.contains(
                             loc.line);
@@ -649,14 +648,14 @@ void HaxorgCli::exec() {
         }
     });
 
-    tokenizer.reportHook = [&](CR<OrgTokenizer::Report> report) {
+    tokenizer.setReportHook([&](CR<OrgTokenizer::Report> report) {
         switch (report.kind) {
             case R::Push: {
                 pushedOn[report.id] = report;
                 break;
             }
         }
-    };
+    });
 
 
     PosStr        str{source};

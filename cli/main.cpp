@@ -144,7 +144,7 @@ bool parseArgs(int argc, char** argv, HaxorgCli::Config& config) {
 int main(int argc, char** argv) {
     Graphviz        ctx;
     Graphviz::Graph graph("g");
-    auto            n = graph.node("test");
+    graph.node("test");
     ctx.renderToFile(
         graph,
         Graphviz::LayoutType::Dot,

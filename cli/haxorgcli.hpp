@@ -49,6 +49,7 @@ class HaxorgCli {
             HtmlParse, /// Linearized DOD tree representation in HTML form
             AnnotatedLex,
             CsvLex,
+            GanttPlantuml
         };
 
         BOOST_DESCRIBE_NESTED_ENUM(
@@ -61,7 +62,8 @@ class HaxorgCli {
             HtmlLex,
             HtmlParse,
             AnnotatedLex,
-            CsvLex);
+            CsvLex,
+            GanttPlantuml);
 
         // TODO multiple writing targets and multiple output files
         Target target = Target::Json;

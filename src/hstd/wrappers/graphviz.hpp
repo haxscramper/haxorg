@@ -214,6 +214,9 @@ class Graphviz {
 
     class Graph {
       public:
+        Vec<Edge> edges;
+        Vec<Node> nodes;
+
         Graph(const QString& name, Agdesc_t desc = Agdirected) {
             Agraph_t* graph_ = agopen(
                 const_cast<char*>(name.toStdString().c_str()),
@@ -259,12 +262,16 @@ class Graphviz {
 
         Node node(QString const& name) {
             Q_CHECK_PTR(graph.get());
-            return Node(graph.get(), name);
+            auto tmp = Node(graph.get(), name);
+            nodes.push_back(tmp);
+            return tmp;
         }
 
         Edge edge(CR<Node> head, CR<Node> tail) {
             Q_CHECK_PTR(graph.get());
-            return Edge(graph.get(), head, tail);
+            auto tmp = Edge(graph.get(), head, tail);
+            edges.push_back(tmp);
+            return tmp;
         }
 
         Agraph_t*       get() { return graph.get(); }

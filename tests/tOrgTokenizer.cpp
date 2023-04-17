@@ -4,9 +4,10 @@
 
 TEST(BasicLexerTest, Lex) {
     OrgTokenGroup res;
-    OrgTokenizer  lexer{&res};
-    QString       base{"word"};
-    PosStr        str{base};
+    OrgTokenizer  lexer;
+    lexer.initImpl(&res, false);
+    QString base{"word"};
+    PosStr  str{base};
 
     lexer.lexText(str);
 }

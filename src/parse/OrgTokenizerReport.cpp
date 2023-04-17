@@ -65,23 +65,3 @@ Opt<LineCol> OrgTokenizer::TokenizerError::getLoc() const {
 const char* OrgTokenizer::TokenizerError::what() const noexcept {
     return std::visit([](auto const& in) { return in.what(); }, err);
 }
-
-
-OrgTokenizer::TokenizerError OrgTokenizer::wrapError(CR<Error> err) {
-    TokenizerError result{err};
-    if (locationResolver) {
-        PosStr str{result.getView(), result.getPos()};
-        result.setLoc(locationResolver(str));
-    }
-    return result;
-}
-
-OrgToken OrgTokenizer::error(CR<TokenizerError> err) {
-    auto tmp = err;
-    if (locationResolver) {
-        PosStr str{err.getView(), err.getPos()};
-        tmp.setLoc(locationResolver(str));
-    }
-    errors.push_back(err);
-    return Token(OrgTokenKind::ErrorTerminator, errors.high());
-}

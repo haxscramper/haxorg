@@ -16,10 +16,10 @@ struct MockFull : public OrgParser {
     Lexer<OrgTokenKind> lex;
 
     MockFull()
-        : tokenizer(nullptr), OrgParser(), nodes(nullptr), lex(&tokens) {
+        : tokenizer(), OrgParser(), nodes(nullptr), lex(&tokens) {
         this->initImpl(&nodes, false);
+        tokenizer.initImpl(&tokens, false);
         nodes.tokens  = &tokens;
-        tokenizer.out = &tokens;
     }
 
     using LexerMethod  = bool (OrgTokenizer::*)(PosStr&);
