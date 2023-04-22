@@ -4,6 +4,15 @@ using namespace sem;
 using osk  = OrgSemKind;
 using Prop = Subtree::Properties;
 
+OrgVariant asVariant(Ptr<Org> org) {
+#define __case(__Kind)                                                    \
+    case OrgSemKind::__Kind: return org->as<__Kind>();
+
+    switch (org->getKind()) { EACH_SEM_ORG_KIND(__case) }
+
+#undef __case
+}
+
 Vec<Org*> Org::getParentChain(bool withSelf) const {
     Vec<Org*> result;
 

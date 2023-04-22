@@ -575,8 +575,8 @@ void HaxorgCli::exec() {
     tokens.base = source.data();
     info        = LineColInfo{source};
 
-    parser = OrgParser::initImpl(&nodes, config.trace.parse.doTrace);
-    tokenizer->initImpl(&tokens, config.trace.lex.doTrace);
+    parser    = OrgParser::initImpl(&nodes, config.trace.parse.doTrace);
+    tokenizer = OrgTokenizer::initImpl(&tokens, config.trace.lex.doTrace);
 
     Func<LineCol(CR<PosStr>)> locationResolver =
         [&](CR<PosStr> str) -> LineCol {
@@ -772,11 +772,12 @@ void HaxorgCli::exec() {
 
     timer.restart();
     ExporterJson exporter;
-    Exporter::Wrap<ExporterJson::Result>
-        result   = exporter.exportNode(node)->as<ExporterJson::Result>();
+    ColStream    os{qcout};
+    node->treeRepr(os);
+    json result  = exporter.visit(node);
     rep.exportNs = timer.nsecsElapsed();
 
-    writeFile(config.outFile, to_string(result->value));
+    writeFile(config.outFile, to_string(result));
     qInfo() << "Wrote JSON SEM representation into " << config.outFile;
 
     return;

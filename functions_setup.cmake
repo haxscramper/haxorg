@@ -10,10 +10,10 @@ function(set_target_flags TARGET)
     message(INFO "Using clang compiler")
     # Avoid getting flooded with compilation errors
     set(CMAKE_CXX_COMPILER clang++)
-    if(NOT ${MAX_COMPILE_ERRORS} MATCHES ON)
-        add_target_property(${TARGET} COMPILE_OPTIONS
-                            "-ferror-limit=${MAX_COMPILE_ERRORS}")
-    endif()
+#    if(NOT ${MAX_COMPILE_ERRORS} MATCHES ON)
+#        add_target_property(${TARGET} COMPILE_OPTIONS
+#                            "-ferror-limit=${MAX_COMPILE_ERRORS}")
+#    endif()
 
     add_target_property(${TARGET} COMPILE_OPTIONS
                         "-fdiagnostics-format=sarif")

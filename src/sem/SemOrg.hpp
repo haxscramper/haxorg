@@ -92,6 +92,10 @@ struct Org : public std::enable_shared_from_this<Org> {
     virtual void treeRepr(ColStream& os, CR<TreeReprConf>, TreeReprCtx)
         const;
 
+    void treeRepr(ColStream& os) {
+        treeRepr(os, TreeReprConf{}, TreeReprCtx{});
+    }
+
     inline Wrap<Org> at(int idx) { return subnodes[idx]; }
 
 
@@ -142,6 +146,7 @@ struct StmtList : public Org {
     GET_KIND(StmtList);
 };
 
+
 struct Row : public Org {
     using Org::Org;
     GET_KIND(Row);
@@ -149,7 +154,7 @@ struct Row : public Org {
 
 struct Table : public Stmt {
     using Stmt::Stmt;
-    Vec<Row> rows;
+    Vec<Wrap<Row>> rows;
     GET_KIND(Table);
 };
 
@@ -297,6 +302,8 @@ struct Code : public Block {
         Replace,
     };
 
+    BOOST_DESCRIBE_NESTED_ENUM(Results, Replace);
+
     enum class Exports
     {
         None,
@@ -304,6 +311,8 @@ struct Code : public Block {
         Code,
         Results
     };
+
+    BOOST_DESCRIBE_NESTED_ENUM(Exports, None, Both, Code, Results);
 
     Exports exports = Exports::Both;
     bool    cache   = false;
@@ -347,6 +356,15 @@ struct Time : public Org {
             Minute,
         };
 
+        BOOST_DESCRIBE_NESTED_ENUM(
+            Period,
+            Year,
+            Month,
+            Week,
+            Day,
+            Hour,
+            Minute);
+
         Period period;
         int    count;
     };
@@ -366,14 +384,14 @@ struct Time : public Org {
     struct Dynamic {
         Str expr;
     };
-    Variant<Static, Dynamic> time;
+    bool isActive     = false;
+    using TimeVariant = Variant<Static, Dynamic>;
+    TimeVariant time;
     bool isStatic() const { return std::holds_alternative<Static>(time); }
     Static&        getStatic() { return std::get<Static>(time); }
     Dynamic&       getDynamic() { return std::get<Dynamic>(time); }
     Static const&  getStatic() const { return std::get<Static>(time); }
     Dynamic const& getDynamic() const { return std::get<Dynamic>(time); }
-
-    bool isActive; /// Active `<time>` or passive `[time]`
 };
 
 
@@ -391,21 +409,26 @@ struct SubtreeLog : public Org {
     GET_KIND(SubtreeLog);
     using Org::Org;
     struct Note {
-        Time on;
+        Wrap<Time> on;
     };
 
     struct Refile {
-        Time on;
+        Wrap<Time> on;
     };
 
     struct Clock {
-        Variant<Time, TimeRange> range;
+        Variant<Wrap<Time>, Wrap<TimeRange>> range;
     };
 
     struct State {
         OrgBigIdentKind from;
         OrgBigIdentKind to;
-        Time            on;
+        Wrap<Time>      on;
+    };
+
+    struct Tag {
+        Wrap<HashTag> tag;
+        bool          added = false;
     };
 
     enum class Kind
@@ -413,10 +436,14 @@ struct SubtreeLog : public Org {
         Note,
         Refile,
         Clock,
-        State
+        State,
+        Tag
     };
 
-    Variant<Note, Refile, Clock, State> log;
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, Note, Refile, Clock, State, Tag);
+
+    using LogEntry = Variant<Note, Refile, Clock, State, Tag>;
+    LogEntry log;
 };
 
 BOOST_DESCRIBE_STRUCT(SubtreeLog, (Org), (log));
@@ -609,6 +636,8 @@ struct Word : public Leaf { GET_KIND(Word); using Leaf::Leaf; };
 struct RawText : public Leaf { GET_KIND(RawText); using Leaf::Leaf; };
 struct Punctuation : public Leaf { GET_KIND(Punctuation); using Leaf::Leaf; };
 struct Placeholder : public Leaf { GET_KIND(Placeholder); using Leaf::Leaf; };
+struct BigIdent : public Leaf { GET_KIND(BigIdent); using Leaf::Leaf; };
+
 // clang-format on
 
 struct Markup : public Org {
@@ -641,6 +670,10 @@ struct ListItem : public Org {
         Empty
     };
 
+    BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty);
+
+    Checkbox checkbox;
+
     Opt<Wrap<Paragraph>> header;
 };
 
@@ -670,10 +703,6 @@ struct Link : public Org {
     Opt<Wrap<Paragraph>> description;
 };
 
-struct BigIdent : public Leaf {
-    GET_KIND(BigIdent);
-    using Leaf::Leaf;
-};
 
 struct Document : public Org {
     using Org::Org;
@@ -724,6 +753,23 @@ Opt<Wrap<T>> Stmt::getAttached(OrgSemKind kind) {
 
     return std::nullopt;
 }
+
+#define COMMA ,
+#define skip1(op, ...) __VA_ARGS__
+#define skip(op, ...) skip1(op)
+#define __id(I) , SPtr<I>
+#define __variant() std::variant<skip(EACH_SEM_ORG_KIND(__id))>;
+
+using OrgVariant = __variant();
+
+#undef __id
+#undef skip
+#undef skip1
+#undef COMMA
+#undef __variant
+
+OrgVariant asVariant(Ptr<Org> org);
+
 
 }; // namespace sem
 

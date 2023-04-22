@@ -1,5 +1,7 @@
 #include <exporters/ExporterJson.hpp>
 
+#if false
+
 Exporter::Wrap<Exporter::ExporterResult> ExporterJson::exportStmtList(
     sem::Wrap<sem::StmtList> node) {
     Wrap<ExporterJson::Result> w_res = newJson(node);
@@ -325,3 +327,5 @@ Exporter::Wrap<Exporter::ExporterResult> ExporterJson::exportDocumentGroup(
     json&                      res   = w_res->value;
     return w_res;
 }
+
+#endif

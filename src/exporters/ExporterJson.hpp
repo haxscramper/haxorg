@@ -1,107 +1,79 @@
 #include <exporters/Exporter.hpp>
 
-struct ExporterJson : public Exporter {
-    struct Result : public ExporterResult {
-        json value;
-    };
-
-    json exportTo(sem::Wrap<sem::Org> node) {
-        Wrap<ExporterResult> j_sub = exportNode(node);
-        return j_sub->as<Result>()->value;
-    }
+struct ExporterJson : public Exporter<ExporterJson, json> {
+#define __ExporterBase Exporter<ExporterJson, json>
+    EXPORTER_USING()
+#undef __ExporterBase
 
     template <typename T>
-    json for_each_convert(Vec<T> const& values) {
-        json res = json::array();
-        for (const auto& it : values) {
-            res.push_back(exportTo(it));
-        }
+    json newRes(CR<T> arg) {
+        return json::object();
+    }
+
+    template <typename... Args>
+    json newRes(CR<Variant<Args...>> var) {
+        return std::visit(
+            [](auto const& it) -> json {
+                json tmp    = json::object();
+                tmp["kind"] = demangle(typeid(it).name());
+                return tmp;
+            },
+            var);
+    }
+
+    template <DescribedEnum E>
+    json newRes(CR<E> value) {
+        return json(to_string(value).toStdString());
+    }
+
+    json newRes(CR<Str> value) { return json(value); }
+    json newRes(CR<int> value) { return json(value); }
+
+    void eachSub(json& j, sem::Wrap<sem::Org> org) {
+        j["subnodes"] = visit(org->subnodes);
+    }
+
+    json newRes(sem::Wrap<sem::Org> org) {
+        json res    = json::object();
+        res["kind"] = to_string(org->getKind());
         return res;
     }
 
     template <typename T>
-    json opt_convert(Opt<T> const& value) {
-        json res = json();
-        if (value.has_value()) {
-            res = exportTo(value.value());
-        }
-        return res;
-    }
-
-
-    inline Wrap<Result> newJson(sem::Wrap<sem::Org> node) {
-        Wrap<Result> res = std::make_shared<Result>();
-
-        json j;
-        j["kind"] = to_string(node->getKind());
-        if (node->loc.has_value()) {
-            auto& [line, col] = node->loc.value();
-            json tmp;
-            tmp["line"] = line;
-            tmp["col"]  = col;
-            j["loc"]    = tmp;
+    void visitField(json& j, const char* name, CR<Opt<T>> value) {
+        if (value) {
+            j[name] = visit(value.value());
         } else {
-            j["loc"] = json();
+            j[name] = json();
         }
-
-        json tmp = json::array();
-        for (const auto& sub : node->subnodes) {
-            tmp.push_back(exportTo(sub));
-        }
-        j["subnodes"] = tmp;
-
-        res->value = j;
-
-        return res;
     }
 
-    // Exporter interface
-  public:
-    Wrap<ExporterResult> exportStmtList(sem::Wrap<sem::StmtList>) override;
-    Wrap<ExporterResult> exportRow(sem::Wrap<sem::Row>) override;
-    Wrap<ExporterResult> exportTable(sem::Wrap<sem::Table>) override;
-    Wrap<ExporterResult> exportHashTag(sem::Wrap<sem::HashTag>) override;
-    Wrap<ExporterResult> exportCompletion(
-        sem::Wrap<sem::Completion>) override;
-    Wrap<ExporterResult> exportParagraph(
-        sem::Wrap<sem::Paragraph>) override;
-    Wrap<ExporterResult> exportBigIdent(sem::Wrap<sem::BigIdent>) override;
-    Wrap<ExporterResult> exportLink(sem::Wrap<sem::Link>) override;
-    Wrap<ExporterResult> exportBold(sem::Wrap<sem::Bold>) override;
-    Wrap<ExporterResult> exportItalic(sem::Wrap<sem::Italic>) override;
-    Wrap<ExporterResult> exportStrike(sem::Wrap<sem::Strike>) override;
-    Wrap<ExporterResult> exportMonospace(
-        sem::Wrap<sem::Monospace>) override;
-    Wrap<ExporterResult> exportVerbatim(sem::Wrap<sem::Verbatim>) override;
-    Wrap<ExporterResult> exportRawText(sem::Wrap<sem::RawText>) override;
-    Wrap<ExporterResult> exportList(sem::Wrap<sem::List>) override;
-    Wrap<ExporterResult> exportListItem(sem::Wrap<sem::ListItem>) override;
-    Wrap<ExporterResult> exportCenter(sem::Wrap<sem::Center>) override;
-    Wrap<ExporterResult> exportPar(sem::Wrap<sem::Par>) override;
-    Wrap<ExporterResult> exportQuote(sem::Wrap<sem::Quote>) override;
-    Wrap<ExporterResult> exportExample(sem::Wrap<sem::Example>) override;
-    Wrap<ExporterResult> exportCode(sem::Wrap<sem::Code>) override;
-    Wrap<ExporterResult> exportTime(sem::Wrap<sem::Time>) override;
-    Wrap<ExporterResult> exportSubtreeLog(
-        sem::Wrap<sem::SubtreeLog>) override;
-    Wrap<ExporterResult> exportTimeRange(
-        sem::Wrap<sem::TimeRange>) override;
-    Wrap<ExporterResult> exportSubtree(sem::Wrap<sem::Subtree>) override;
-    Wrap<ExporterResult> exportNewline(sem::Wrap<sem::Newline>) override;
-    Wrap<ExporterResult> exportSpace(sem::Wrap<sem::Space>) override;
-    Wrap<ExporterResult> exportWord(sem::Wrap<sem::Word>) override;
-    Wrap<ExporterResult> exportPunctuation(
-        sem::Wrap<sem::Punctuation>) override;
-    Wrap<ExporterResult> exportMarkQuote(
-        sem::Wrap<sem::MarkQuote>) override;
-    Wrap<ExporterResult> exportCaption(sem::Wrap<sem::Caption>) override;
-    Wrap<ExporterResult> exportCommandGroup(
-        sem::Wrap<sem::CommandGroup>) override;
-    Wrap<ExporterResult> exportPlaceholder(
-        sem::Wrap<sem::Placeholder>) override;
-    Wrap<ExporterResult> exportInlineMath(
-        sem::Wrap<sem::InlineMath>) override;
-    Wrap<ExporterResult> exportDocument(sem::Wrap<sem::Document>) override;
-    Wrap<ExporterResult> exportDocumentGroup(
-        sem::Wrap<sem::DocumentGroup>) override;
+    template <typename T>
+    json visit(CR<Vec<T>> values) {
+        json tmp = json::array();
+        for (const auto& it : values) {
+            tmp.push_back(visit(it));
+        }
+        return tmp;
+    }
+
+    template <typename T>
+    json visit(CR<UnorderedMap<Str, T>> map) {
+        json tmp = json::object();
+        for (const auto& [key, val] : map) {
+            tmp[key.toStdString()] = visit(val);
+        }
+        return tmp;
+    }
+
+    template <typename T>
+    void visitField(json& j, const char* name, CR<T> field) {
+        j[name] = visit(field);
+    }
+
+    void visitDocument(json& j, sem::Wrap<sem::Document> doc) {
+        qDebug() << "Visiting document";
+        eachSub(j, doc);
+        qDebug() << j;
+    }
 };
