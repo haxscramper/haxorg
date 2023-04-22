@@ -17,9 +17,9 @@ class OrgParserImplBase : public OrgParser {
         skip(lex, otk::Colon);
     }
 
-    inline CR<OrgNode> pending() const { return group->lastPending(); }
+    CR<OrgNode> pending() const { return group->lastPending(); }
 
-    inline OrgId fail(OrgTokenId invalid) {
+    OrgId fail(OrgTokenId invalid) {
         token(OrgNodeKind::ErrorToken, invalid);
         /// TODO insert token with error description
         token(OrgNodeKind::ErrorTerminator, OrgTokenId::Nil());
@@ -28,19 +28,19 @@ class OrgParserImplBase : public OrgParser {
         return failed;
     }
 
-    inline OrgId back() const { return group->nodes.back(); }
+    OrgId back() const { return group->nodes.back(); }
 
-    int          treeDepth() const { return group->treeDepth(); }
-    inline OrgId start(OrgNodeKind kind) { return group->startTree(kind); }
-    inline OrgId end() { return group->endTree(); }
-    inline OrgId empty() { return token(getEmpty()); }
-    inline OrgNode getEmpty() { return OrgNode::Mono(OrgNodeKind::Empty); }
-    inline OrgId   token(CR<OrgNode> node) { return group->token(node); }
-    inline OrgId   token(OrgNodeKind kind, OrgTokenId tok) {
+    int     treeDepth() const { return group->treeDepth(); }
+    OrgId   start(OrgNodeKind kind) { return group->startTree(kind); }
+    OrgId   end() { return group->endTree(); }
+    OrgId   empty() { return token(getEmpty()); }
+    OrgNode getEmpty() { return OrgNode::Mono(OrgNodeKind::Empty); }
+    OrgId   token(CR<OrgNode> node) { return group->token(node); }
+    OrgId   token(OrgNodeKind kind, OrgTokenId tok) {
         return group->token(kind, tok);
     }
 
-    inline OrgId fake(OrgNodeKind kind) {
+    OrgId fake(OrgNodeKind kind) {
         return group->token(
             kind, group->tokens->add(OrgToken(OrgTokenKind::None)));
     }
@@ -88,11 +88,27 @@ class OrgParserImplBase : public OrgParser {
     OrgNodeGroup*                       group = nullptr;
     OrgParserImplBase(OrgNodeGroup* _group) : group(_group) {}
 
-    void extendSubtreeTrails(OrgId position);
-    void extendAttachedTrails(OrgId position);
+    void extendSubtreeTrails(OrgId position) override;
+    void extendAttachedTrails(OrgId position) override;
 
     using OrgParser::OrgParser;
     Func<LineCol(CR<PosStr>)> locationResolver;
+
+
+    void setReportHook(Func<void(CR<Report>)> locationResolver) override {
+        reportHook = locationResolver;
+    }
+
+    void setTraceUpdateHook(
+        Func<void(CR<Report>, bool&, bool)> locationResolver) override {
+        traceUpdateHook = locationResolver;
+    }
+
+    void setLocationResolver(
+        Func<LineCol(CR<PosStr>)> locationResolver) override {
+        locationResolver = locationResolver;
+    }
+
 
     virtual Opt<LineCol> getLoc(CR<OrgLexer> lex) override {
         if (!locationResolver) {
@@ -277,31 +293,11 @@ EACH_METHOD(SPECIALIZE)
 
 } // namespace
 
-
-#define IMPL(Kind)                                                        \
-    OrgId OrgParser::parse##Kind(OrgLexer& lex) {                         \
-        return impl->parse##Kind(lex);                                    \
-    }
-
-EACH_METHOD(IMPL);
-#undef IMPL
-
-
-OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onTopLevel) {
-    return impl->parseParagraph(lex, onTopLevel);
-}
-
-OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind) {
-    return impl->parseTextWrapCommand(lex, kind);
-}
-
-void OrgParser::initImpl(OrgNodeGroup* group, bool doTrace) {
+SPtr<OrgParser> OrgParser::initImpl(OrgNodeGroup* group, bool doTrace) {
     if (doTrace) {
-        impl = std::shared_ptr<OrgParserImpl<true>>(
-            new OrgParserImpl<true>(group));
+        return SPtr<OrgParserImpl<true>>(new OrgParserImpl<true>(group));
     } else {
-        impl = std::shared_ptr<OrgParserImpl<false>>(
-            new OrgParserImpl<false>(group));
+        return SPtr<OrgParserImpl<false>>(new OrgParserImpl<false>(group));
     }
 }
 
@@ -499,38 +495,6 @@ void OrgParserImplBase::extendAttachedTrails(OrgId position) {
         position = aux(position);
     }
 }
-
-void OrgParser::extendSubtreeTrails(OrgId position) {
-    impl->extendSubtreeTrails(position);
-}
-
-void OrgParser::extendAttachedTrails(OrgId position) {
-    impl->extendAttachedTrails(position);
-}
-
-
-void OrgParser::setReportHook(Func<void(CR<Report>)> locationResolver) {
-    Q_CHECK_PTR(impl);
-    impl->reportHook = locationResolver;
-}
-
-void OrgParser::setTraceUpdateHook(
-    Func<void(CR<Report>, bool&, bool)> locationResolver) {
-    Q_CHECK_PTR(impl);
-    impl->traceUpdateHook = locationResolver;
-}
-
-void OrgParser::setLocationResolver(
-    Func<LineCol(CR<PosStr>)> locationResolver) {
-    Q_CHECK_PTR(impl);
-    impl->locationResolver = locationResolver;
-}
-
-Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
-    Q_CHECK_PTR(impl);
-    return impl->getLoc(lex);
-}
-
 
 void OrgParserImplBase::report(CR<Report> in) {
     using fg = TermColorFg8Bit;

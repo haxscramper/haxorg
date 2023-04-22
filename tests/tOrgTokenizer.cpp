@@ -3,11 +3,11 @@
 #include <gtest/gtest.h>
 
 TEST(BasicLexerTest, Lex) {
-    OrgTokenGroup res;
-    OrgTokenizer  lexer;
-    lexer.initImpl(&res, false);
+    OrgTokenGroup      res;
+    SPtr<OrgTokenizer> lexer;
+    lexer = OrgTokenizer::initImpl(&res, false);
     QString base{"word"};
     PosStr  str{base};
 
-    lexer.lexText(str);
+    lexer->lexText(str);
 }

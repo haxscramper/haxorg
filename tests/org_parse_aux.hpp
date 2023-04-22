@@ -8,18 +8,18 @@
 using org = OrgNodeKind;
 using otk = OrgTokenKind;
 
-struct MockFull : public OrgParser {
+struct MockFull {
     OrgTokenGroup       tokens;
-    OrgTokenizer        tokenizer;
+    SPtr<OrgTokenizer>  tokenizer;
     OrgNodeGroup        nodes;
     QString             base;
     Lexer<OrgTokenKind> lex;
+    SPtr<OrgParser>     parser;
 
-    MockFull()
-        : tokenizer(), OrgParser(), nodes(nullptr), lex(&tokens) {
-        this->initImpl(&nodes, false);
-        tokenizer.initImpl(&tokens, false);
-        nodes.tokens  = &tokens;
+    MockFull() : tokenizer(), nodes(nullptr), lex(&tokens) {
+        parser       = OrgParser::initImpl(&nodes, false);
+        tokenizer    = OrgTokenizer::initImpl(&tokens, false);
+        nodes.tokens = &tokens;
     }
 
     using LexerMethod  = bool (OrgTokenizer::*)(PosStr&);
@@ -43,11 +43,11 @@ struct MockFull : public OrgParser {
     void tokenize(CR<QString> content, LexerMethod lexMethod) {
         base = content;
         PosStr str{base};
-        (tokenizer.*lexMethod)(str);
+        ((*tokenizer).*lexMethod)(str);
     }
 
     void parse(ParserMethod parseMethod) {
-        (this->*parseMethod)(this->lex);
+        ((*parser).*parseMethod)(this->lex);
     }
 
     void run(

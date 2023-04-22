@@ -3,12 +3,11 @@
 #include <parse/OrgTypes.hpp>
 #include <parse/OrgTokenizer.hpp>
 #include <hstd/stdlib/sequtils.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
 
 #include <lexbase/TraceBase.hpp>
 
 using ParseCb = std::function<OrgId(OrgLexer&)>;
-
-struct OrgParserImplBase;
 
 struct OrgParser : public OperationsTracer {
   public:
@@ -81,10 +80,10 @@ struct OrgParser : public OperationsTracer {
         }
     };
 
-    void setLocationResolver(Func<LineCol(CR<PosStr>)>);
+    virtual void setLocationResolver(Func<LineCol(CR<PosStr>)>) = 0;
 
     ParserError          wrapError(CR<Error> err, CR<OrgLexer> lex);
-    virtual Opt<LineCol> getLoc(CR<OrgLexer> lex);
+    virtual Opt<LineCol> getLoc(CR<OrgLexer> lex) = 0;
     QString              getLocMsg(CR<OrgLexer> lex);
 
   public:
@@ -109,64 +108,63 @@ struct OrgParser : public OperationsTracer {
         OrgLexer*  lex = nullptr;
     };
 
-    void setReportHook(Func<void(CR<Report>)>);
-    void setTraceUpdateHook(Func<void(CR<Report>, bool&, bool)>);
+    virtual void setReportHook(Func<void(CR<Report>)>) = 0;
+    virtual void setTraceUpdateHook(Func<void(CR<Report>, bool&, bool)>) = 0;
 
   public:
-    std::shared_ptr<OrgParserImplBase> impl = nullptr;
     OrgParser() {}
-    void initImpl(OrgNodeGroup* _group, bool doTrace);
+    static SPtr<OrgParser> initImpl(OrgNodeGroup* _group, bool doTrace);
 
 
-    virtual OrgId parseFootnote(OrgLexer& lex);
-    virtual OrgId parseCSVArguments(OrgLexer& lex);
-    virtual OrgId parseMacro(OrgLexer& lex);
-    virtual OrgId parseRawUrl(OrgLexer& lex);
-    virtual OrgId parseLink(OrgLexer& lex);
-    virtual OrgId parseInlineMath(OrgLexer& lex);
-    virtual OrgId parseSymbol(OrgLexer& lex);
-    virtual OrgId parseHashTag(OrgLexer& lex);
-    virtual OrgId parseTimeRange(OrgLexer& lex);
-    virtual OrgId parseTimeStamp(OrgLexer& lex);
-    virtual OrgId parseIdent(OrgLexer& lex);
-    virtual OrgId parseSrcInline(OrgLexer& lex);
-    virtual OrgId parseTable(OrgLexer& lex);
-    virtual OrgId parseParagraph(OrgLexer& lex, bool onToplevel);
-    virtual OrgId parsePlaceholder(OrgLexer& lex);
-    virtual OrgId parseTopParagraph(OrgLexer& lex);
-    virtual OrgId parseInlineParagraph(OrgLexer& lex);
-    virtual OrgId parseCommandArguments(OrgLexer& lex);
-    virtual OrgId parseSrcArguments(OrgLexer& lex);
-    virtual OrgId parseSrc(OrgLexer& lex);
-    virtual OrgId parseExample(OrgLexer& lex);
-    virtual OrgId parseListItemBody(OrgLexer& lex);
-    virtual OrgId parseListItem(OrgLexer& lex);
-    virtual OrgId parseNestedList(OrgLexer& lex);
-    virtual OrgId parseList(OrgLexer& lex);
-    virtual OrgId parseLatex(OrgLexer& lex);
+    virtual OrgId parseFootnote(OrgLexer& lex)                   = 0;
+    virtual OrgId parseCSVArguments(OrgLexer& lex)               = 0;
+    virtual OrgId parseMacro(OrgLexer& lex)                      = 0;
+    virtual OrgId parseRawUrl(OrgLexer& lex)                     = 0;
+    virtual OrgId parseLink(OrgLexer& lex)                       = 0;
+    virtual OrgId parseInlineMath(OrgLexer& lex)                 = 0;
+    virtual OrgId parseSymbol(OrgLexer& lex)                     = 0;
+    virtual OrgId parseHashTag(OrgLexer& lex)                    = 0;
+    virtual OrgId parseTimeRange(OrgLexer& lex)                  = 0;
+    virtual OrgId parseTimeStamp(OrgLexer& lex)                  = 0;
+    virtual OrgId parseIdent(OrgLexer& lex)                      = 0;
+    virtual OrgId parseSrcInline(OrgLexer& lex)                  = 0;
+    virtual OrgId parseTable(OrgLexer& lex)                      = 0;
+    virtual OrgId parseParagraph(OrgLexer& lex, bool onToplevel) = 0;
+    virtual OrgId parsePlaceholder(OrgLexer& lex)                = 0;
+    virtual OrgId parseTopParagraph(OrgLexer& lex)               = 0;
+    virtual OrgId parseInlineParagraph(OrgLexer& lex)            = 0;
+    virtual OrgId parseCommandArguments(OrgLexer& lex)           = 0;
+    virtual OrgId parseSrcArguments(OrgLexer& lex)               = 0;
+    virtual OrgId parseSrc(OrgLexer& lex)                        = 0;
+    virtual OrgId parseExample(OrgLexer& lex)                    = 0;
+    virtual OrgId parseListItemBody(OrgLexer& lex)               = 0;
+    virtual OrgId parseListItem(OrgLexer& lex)                   = 0;
+    virtual OrgId parseNestedList(OrgLexer& lex)                 = 0;
+    virtual OrgId parseList(OrgLexer& lex)                       = 0;
+    virtual OrgId parseLatex(OrgLexer& lex)                      = 0;
 
-    virtual OrgId parseSubtree(OrgLexer& lex);
-    virtual OrgId parseSubtreeTodo(OrgLexer& str);
-    virtual OrgId parseSubtreeUrgency(OrgLexer& str);
-    virtual OrgId parseSubtreeDrawer(OrgLexer& lex);
-    virtual OrgId parseSubtreeCompletion(OrgLexer& lexer);
-    virtual OrgId parseSubtreeTags(OrgLexer& lex);
-    virtual OrgId parseSubtreeTitle(OrgLexer& str);
-    virtual OrgId parseSubtreeTimes(OrgLexer& str);
+    virtual OrgId parseSubtree(OrgLexer& lex)             = 0;
+    virtual OrgId parseSubtreeTodo(OrgLexer& str)         = 0;
+    virtual OrgId parseSubtreeUrgency(OrgLexer& str)      = 0;
+    virtual OrgId parseSubtreeDrawer(OrgLexer& lex)       = 0;
+    virtual OrgId parseSubtreeCompletion(OrgLexer& lexer) = 0;
+    virtual OrgId parseSubtreeTags(OrgLexer& lex)         = 0;
+    virtual OrgId parseSubtreeTitle(OrgLexer& str)        = 0;
+    virtual OrgId parseSubtreeTimes(OrgLexer& str)        = 0;
 
-    virtual OrgId parseSubtreeLogbookClockEntry(OrgLexer& lex);
-    virtual OrgId parseSubtreeLogbookListEntry(OrgLexer& lex);
-    virtual OrgId parseSubtreeLogbook(OrgLexer& lex);
-    virtual OrgId parseSubtreeProperties(OrgLexer& lex);
+    virtual OrgId parseSubtreeLogbookClockEntry(OrgLexer& lex) = 0;
+    virtual OrgId parseSubtreeLogbookListEntry(OrgLexer& lex)  = 0;
+    virtual OrgId parseSubtreeLogbook(OrgLexer& lex)           = 0;
+    virtual OrgId parseSubtreeProperties(OrgLexer& lex)        = 0;
 
 
-    virtual OrgId parseOrgFile(OrgLexer& lex);
-    virtual OrgId parseLineCommand(OrgLexer& lex);
-    virtual OrgId parseToplevelItem(OrgLexer& lex);
-    virtual OrgId parseTop(OrgLexer& lex);
+    virtual OrgId parseOrgFile(OrgLexer& lex)      = 0;
+    virtual OrgId parseLineCommand(OrgLexer& lex)  = 0;
+    virtual OrgId parseToplevelItem(OrgLexer& lex) = 0;
+    virtual OrgId parseTop(OrgLexer& lex)          = 0;
 
-    virtual OrgId parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind);
+    virtual OrgId parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind) = 0;
 
-    void extendSubtreeTrails(OrgId position);
-    void extendAttachedTrails(OrgId position);
+    virtual void extendSubtreeTrails(OrgId position)  = 0;
+    virtual void extendAttachedTrails(OrgId position) = 0;
 };

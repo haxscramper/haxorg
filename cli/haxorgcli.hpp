@@ -12,9 +12,9 @@
 class HaxorgCli {
     // TODO support processing multiple files, token groups
     OrgTokenGroup       tokens;
-    OrgTokenizer        tokenizer;
+    SPtr<OrgTokenizer>  tokenizer;
     OrgNodeGroup        nodes;
-    OrgParser           parser;
+    SPtr<OrgParser>     parser;
     QString             source;
     sem::OrgConverter   converter;
     LineColInfo         info;

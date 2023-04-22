@@ -46,8 +46,21 @@ struct OrgTokenizerImplBase
     /// information about call location (before report or after report).
     OrgTokenizer::TraceUpdateHookCb traceUpdateHook;
 
+    void setReportHook(Func<void(CR<Report>)> locationResolver) override {
+        reportHook = locationResolver;
+    }
 
-    Opt<LineCol> getLoc(CR<PosStr> str) {
+    void setTraceUpdateHook(
+        Func<void(CR<Report>, bool&, bool)> locationResolver) override {
+        traceUpdateHook = locationResolver;
+    }
+
+    void setLocationResolver(
+        Func<LineCol(CR<PosStr>)> locationResolver) override {
+        locationResolver = locationResolver;
+    }
+
+    Opt<LineCol> getLoc(CR<PosStr> str) override {
         if (locationResolver) {
             return locationResolver(str);
         } else {
@@ -575,144 +588,13 @@ void skipBrace(PosStr& str) {
 
 } // namespace
 
-Opt<LineCol> OrgTokenizer::getLoc(CR<PosStr> str) {
-    return impl->getLoc(str);
-}
 
-void OrgTokenizer::setReportHook(
-    Func<void(CR<OrgTokenizer::Report>)> locationResolver) {
-    Q_CHECK_PTR(impl);
-    impl->reportHook = locationResolver;
-}
-
-void OrgTokenizer::setTraceUpdateHook(
-    Func<void(CR<Report>, bool&, bool)> locationResolver) {
-    Q_CHECK_PTR(impl);
-    impl->traceUpdateHook = locationResolver;
-}
-
-void OrgTokenizer::setLocationResolver(
-    Func<LineCol(CR<PosStr>)> locationResolver) {
-    Q_CHECK_PTR(impl);
-    impl->locationResolver = locationResolver;
-}
-
-
-void OrgTokenizer::initImpl(OrgTokenGroup* out, bool doTrace) {
+SPtr<OrgTokenizer> OrgTokenizer::initImpl(
+    OrgTokenGroup* out,
+    bool           doTrace) {
     if (doTrace) {
-        impl = std::make_shared<OrgTokenizerImpl<true>>(out);
+        return std::make_shared<OrgTokenizerImpl<true>>(out);
     } else {
-        impl = std::make_shared<OrgTokenizerImpl<false>>(out);
+        return std::make_shared<OrgTokenizerImpl<false>>(out);
     }
 }
-
-
-Vec<OrgToken> OrgTokenizer::lexDelimited(
-    PosStr&                          str,
-    const Pair<QChar, OrgTokenKind>& start,
-    const Pair<QChar, OrgTokenKind>& finish,
-    const OrgTokenKind&              middle) {
-    return impl->lexDelimited(str, start, finish, middle);
-}
-
-
-bool OrgTokenizer::atLogClock(CR<PosStr> str) {
-    return impl->atLogClock(str);
-}
-
-bool OrgTokenizer::atConstructStart(CR<PosStr> str) {
-    return impl->atConstructStart(str);
-}
-
-bool OrgTokenizer::atSubtreeStart(CR<PosStr> str) {
-    return impl->atSubtreeStart(str);
-}
-
-void OrgTokenizer::skipIndents(LexerStateSimple& state, PosStr& str) {
-    impl->skipIndents(state, str);
-}
-
-bool OrgTokenizer::atListStart(CR<PosStr> str) {
-    return impl->atListStart(str);
-}
-
-bool OrgTokenizer::atListAhead(CR<PosStr> str) {
-    return impl->atListAhead(str);
-}
-
-bool OrgTokenizer::isFirstOnLine(CR<PosStr> str) {
-    return impl->isFirstOnLine(str);
-}
-
-void OrgTokenizer::spaceSkip(PosStr& str, bool require) {
-    return impl->spaceSkip(str, require);
-}
-
-void OrgTokenizer::newlineSkip(PosStr& str) {
-    return impl->newlineSkip(str);
-}
-
-
-bool OrgTokenizer::lexListItem(
-    PosStr&                         str,
-    const int&                      indent,
-    OrgTokenizer::LexerStateSimple& state) {
-    return impl->lexListItem(str, indent, state);
-}
-
-bool OrgTokenizer::lexListBullet(
-    PosStr&                         str,
-    int                             indent,
-    OrgTokenizer::LexerStateSimple& state) {
-    return impl->lexListBullet(str, indent, state);
-}
-
-bool OrgTokenizer::lexListDescription(
-    PosStr&                         str,
-    int                             indent,
-    OrgTokenizer::LexerStateSimple& state) {
-    return impl->lexListDescription(str, indent, state);
-}
-
-void OrgTokenizer::lexListBody(
-    PosStr&                         str,
-    int                             indent,
-    OrgTokenizer::LexerStateSimple& state) {
-    return impl->lexListBody(str, indent, state);
-}
-
-bool OrgTokenizer::lexListItems(PosStr& str, LexerStateSimple& state) {
-    return impl->lexListItems(str, state);
-}
-
-bool OrgTokenizer::lexTableState(
-    PosStr&                         str,
-    LexerState<OrgBlockLexerState>& state) {
-    return impl->lexTableState(str, state);
-}
-
-bool OrgTokenizer::lexCommandContent(
-    PosStr&               str,
-    const OrgCommandKind& kind) {
-    return impl->lexCommandContent(str, kind);
-}
-
-bool OrgTokenizer::lexCommandArguments(
-    PosStr&               str,
-    const OrgCommandKind& kind) {
-    return impl->lexCommandArguments(str, kind);
-}
-
-bool OrgTokenizer::lexCommandBlockDelimited(
-    PosStr& str,
-    PosStr  id,
-    int     column) {
-    return impl->lexCommandBlockDelimited(str, id, column);
-}
-
-#define _call(Kind)                                                       \
-    bool OrgTokenizer::lex##Kind(PosStr& str) {                           \
-        return impl->lex##Kind(str);                                      \
-    }
-EACH_SIMPLE_TOKENIZER_METHOD(_call)
-#undef _call

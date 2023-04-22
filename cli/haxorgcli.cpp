@@ -575,8 +575,8 @@ void HaxorgCli::exec() {
     tokens.base = source.data();
     info        = LineColInfo{source};
 
-    parser.initImpl(&nodes, config.trace.parse.doTrace);
-    tokenizer.initImpl(&tokens, config.trace.lex.doTrace);
+    parser = OrgParser::initImpl(&nodes, config.trace.parse.doTrace);
+    tokenizer->initImpl(&tokens, config.trace.lex.doTrace);
 
     Func<LineCol(CR<PosStr>)> locationResolver =
         [&](CR<PosStr> str) -> LineCol {
@@ -588,17 +588,17 @@ void HaxorgCli::exec() {
     };
 
     converter.locationResolver = locationResolver;
-    tokenizer.setLocationResolver(locationResolver);
-    parser.setLocationResolver(locationResolver);
+    tokenizer->setLocationResolver(locationResolver);
+    parser->setLocationResolver(locationResolver);
 
     if (config.trace.lex.doTrace) {
-        tokenizer.trace = true;
+        tokenizer->trace = true;
         if (config.trace.lex.traceTo.has_value()) {
-            tokenizer.setTraceFile(config.trace.lex.traceTo.value());
+            tokenizer->setTraceFile(config.trace.lex.traceTo.value());
         }
     }
 
-    tokenizer.setTraceUpdateHook(
+    tokenizer->setTraceUpdateHook(
         [&](CR<OrgTokenizer::Report> in, bool& doTrace, bool first) {
             if (in.str != nullptr) {
                 LineCol loc = locationResolver(*(in.str));
@@ -616,9 +616,9 @@ void HaxorgCli::exec() {
             }
         });
 
-    parser.setTraceUpdateHook([&](CR<OrgParser::Report> in,
-                                  bool&                 doTrace,
-                                  bool                  first) {
+    parser->setTraceUpdateHook([&](CR<OrgParser::Report> in,
+                                   bool&                 doTrace,
+                                   bool                  first) {
         if (in.node.has_value()) {
             OrgId node = in.node.value();
             if (nodes.at(node).isTerminal()) {
@@ -639,7 +639,7 @@ void HaxorgCli::exec() {
 
     using R = OrgTokenizer::ReportKind;
 
-    parser.setReportHook([&](CR<OrgParser::Report> report) {
+    parser->setReportHook([&](CR<OrgParser::Report> report) {
         using R = OrgParser::ReportKind;
         switch (report.kind) {
             case R::StartNode: ops.started[*report.node] = report; break;
@@ -648,7 +648,7 @@ void HaxorgCli::exec() {
         }
     });
 
-    tokenizer.setReportHook([&](CR<OrgTokenizer::Report> report) {
+    tokenizer->setReportHook([&](CR<OrgTokenizer::Report> report) {
         switch (report.kind) {
             case R::Push: {
                 pushedOn[report.id] = report;
@@ -671,7 +671,7 @@ void HaxorgCli::exec() {
 
 
     try {
-        tokenizer.lexGlobal(str);
+        tokenizer->lexGlobal(str);
     } catch (OrgTokenizer::TokenizerError& err) {
         QStringView  view = err.getView();
         Opt<LineCol> loc  = err.getLoc();
@@ -744,9 +744,9 @@ void HaxorgCli::exec() {
     }
 
     timer.restart();
-    parser.parseTop(lex);
-    parser.extendSubtreeTrails(OrgId(0));
-    parser.extendAttachedTrails(OrgId(0));
+    parser->parseTop(lex);
+    parser->extendSubtreeTrails(OrgId(0));
+    parser->extendAttachedTrails(OrgId(0));
     rep.lexNs = timer.nsecsElapsed();
 
     if (config.target == Target::YamlParse) {

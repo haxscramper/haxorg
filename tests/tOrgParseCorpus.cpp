@@ -279,14 +279,14 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
     //         spec.specLocation.line,
     //         spec.specLocation.column)));
 
-    p.trace = spec.dbg.traceParse;
+    p.parser->trace = spec.dbg.traceParse;
     if (spec.dbg.parseToFile) {
-        p.setTraceFile(QFileInfo("/tmp/parse.txt"_qs));
+        p.parser->setTraceFile(QFileInfo("/tmp/parse.txt"_qs));
     }
 
-    p.tokenizer.trace = spec.dbg.traceLex;
+    p.tokenizer->trace = spec.dbg.traceLex;
     if (spec.dbg.lexToFile) {
-        p.tokenizer.setTraceFile(QFileInfo("/tmp/random.txt"_qs));
+        p.tokenizer->setTraceFile(QFileInfo("/tmp/random.txt"_qs));
     }
 
     if (spec.dbg.printSource) {

@@ -1,13 +1,14 @@
 #include <gtest/gtest.h>
 #include <parse/OrgParser.hpp>
 
-struct MockParser : public OrgParser {
+struct MockParser {
     OrgTokenGroup       tokens;
     OrgNodeGroup        nodes;
+    SPtr<OrgParser>     parser;
     Lexer<OrgTokenKind> lex;
     MockParser(Vec<OrgTokenKind> kinds = {})
         : nodes(nullptr), lex(&tokens) {
-        initImpl(&nodes, false);
+        parser       = OrgParser::initImpl(&nodes, false);
         nodes.tokens = &tokens;
         for (const auto k : kinds) {
             tokens.add(Token(k));
@@ -77,7 +78,7 @@ TEST_F(ParserTest, ParseSingleTimeEntry) {
         {otk::InactiveTimeBegin,
          otk::StaticTimeDatePart,
          otk::InactiveTimeEnd});
-    p.parseTimeStamp(p.lex);
+    p.parser->parseTimeStamp(p.lex);
     EXPECT_EQ(p[0], tok(org::StaticInactiveTime, 0));
 }
 
@@ -91,7 +92,7 @@ TEST_F(ParserTest, ParseTimeRange) {
         otk::StaticTimeDatePart,
         otk::InactiveTimeEnd,
     });
-    p.parseTimeRange(p.lex);
+    p.parser->parseTimeRange(p.lex);
     EXPECT_EQ(p[0].kind, org::TimeRange);
     // start of the time range extent, two elements
     EXPECT_EQ(p[1].kind, org::StaticInactiveTime);
