@@ -12,6 +12,8 @@
 #include <QPointF>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Variant.hpp>
 
 
 #define _attr(Method, key, Type)                                          \
@@ -34,6 +36,65 @@ class Graphviz {
   public:
     class Node {
       public:
+        struct Record {
+            Record(Str const& content, Opt<Str> const& tag = std::nullopt)
+                : content(content), tag(tag) {}
+
+            Record(Vec<Record> const& sub) : content(sub) {}
+
+            void push_back(CR<Vec<Str>> cells) {
+                Vec<Record> row;
+                for (const auto& it : cells) {
+                    row.push_back(it);
+                }
+                getNested().push_back(Record(row));
+            }
+
+            bool isFinal() const {
+                return std::holds_alternative<Str>(content);
+            }
+
+            bool       isRecord() const { return !isFinal(); }
+            Str&       getLabel() { return std::get<Str>(content); }
+            Str const& getLabel() const { return std::get<Str>(content); }
+            Vec<Record>&       getNested() { return std::get<1>(content); }
+            Vec<Record> const& getNested() const {
+                return std::get<1>(content);
+            }
+
+            Opt<Str>                  tag;
+            Variant<Str, Vec<Record>> content;
+            Str                       toString(bool braceCount = 0) const {
+                Str result;
+                if (isFinal()) {
+                    if (tag) {
+                        result += "<" + *tag + "> ";
+                    }
+                    result += getLabel();
+                } else {
+                    const auto& c = getNested();
+                    if (!c.empty()) {
+                        result += Str("{").repeated(braceCount);
+                        for (int i = 0; i < c.size(); ++i) {
+                            if (0 < i) {
+                                result += "|";
+                            }
+                            result += c[i].toString(1);
+                        }
+                        result += Str("}").repeated(braceCount);
+                    }
+                }
+
+                return result;
+            }
+        };
+
+        Node(Agraph_t* graph, QString const& name, Record const& record)
+            : Node(graph, name) {
+            setShape(Shape::record);
+            setLabel(record.toString());
+        }
+
         Node(Agraph_t* graph, const QString& name) {
             auto node_ = agnode(
                 graph, const_cast<char*>(name.toStdString().c_str()), 1);
@@ -72,13 +133,65 @@ class Graphviz {
             shape,
             //
             box,
-            circle,
-            diamond,
+            polygon,
             ellipse,
-            hexagon,
-            octagon,
+            oval,
+            circle,
+            point,
+            egg,
+            triangle,
+            plaintext,
+            plain,
+            diamond,
+            trapezium,
             parallelogram,
-            triangle);
+            house,
+            pentagon,
+            hexagon,
+            septagon,
+            octagon,
+            doublecircle,
+            doubleoctagon,
+            tripleoctagon,
+            invtriangle,
+            invtrapezium,
+            invhouse,
+            Mdiamond,
+            Msquare,
+            Mcircle,
+            rect,
+            rectangle,
+            square,
+            star,
+            none,
+            underline,
+            cylinder,
+            note,
+            tab,
+            folder,
+            box3d,
+            component,
+            promoter,
+            cds,
+            terminator,
+            utr,
+            primersite,
+            restrictionsite,
+            fivepoverhang,
+            threepoverhang,
+            noverhang,
+            assembly,
+            signature,
+            insulator,
+            ribosite,
+            record,
+            rnastab,
+            proteasesite,
+            proteinstab,
+            rpromoter,
+            rarrow,
+            larrow,
+            lpromoter);
 
         _e_enum(
             ArrowType,

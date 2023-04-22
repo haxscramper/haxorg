@@ -5,6 +5,7 @@
 #include <QElapsedTimer>
 #include <parse/OrgSpec.hpp>
 #include <sem/ErrorWrite.hpp>
+#include <exporters/exporterdot.hpp>
 #include <exporters/exportertree.hpp>
 
 
@@ -786,6 +787,8 @@ void HaxorgCli::exec() {
     tree.visit(node);
     os << "Visit end\n";
 
+    ExporterDot dot;
+    dot.visit(node);
 
     return;
 }
