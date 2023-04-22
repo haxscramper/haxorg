@@ -67,37 +67,7 @@ struct Org : public std::enable_shared_from_this<Org> {
         }
     }
 
-    struct TreeReprConf {
-        bool withLineCol    = true;
-        bool withOriginalId = true;
-        bool withSubnodeIdx = true;
-
-        SemSet skipNodes;
-        SemSet skipSubnodesOf;
-
-        bool doSkipSubnodesOf(Org const* org) const {
-            return skipSubnodesOf.contains(org->getKind());
-        }
-
-        bool doSkip(Org const* org) const {
-            return skipNodes.contains(org->getKind());
-        }
-    };
-
-    struct TreeReprCtx {
-        int level      = 0;
-        int subnodeIdx = -1;
-    };
-
-    virtual void treeRepr(ColStream& os, CR<TreeReprConf>, TreeReprCtx)
-        const;
-
-    void treeRepr(ColStream& os) {
-        treeRepr(os, TreeReprConf{}, TreeReprCtx{});
-    }
-
     inline Wrap<Org> at(int idx) { return subnodes[idx]; }
-
 
     template <typename T>
     Wrap<T> as() {
@@ -607,9 +577,6 @@ struct Subtree : public Org {
     Opt<Properties::Property> getContextualProperty(
         PropKind    kind,
         CR<QString> subkind = "") const;
-
-    virtual void treeRepr(ColStream&, CR<TreeReprConf>, TreeReprCtx)
-        const override;
 };
 
 struct LatexBody : public Org {
@@ -625,8 +592,6 @@ struct InlineMath : public LatexBody {
 struct Leaf : public Org {
     Str text;
     using Org::Org;
-    virtual void treeRepr(ColStream&, CR<TreeReprConf>, TreeReprCtx)
-        const override;
 };
 
 // clang-format off

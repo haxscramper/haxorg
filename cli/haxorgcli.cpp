@@ -5,6 +5,7 @@
 #include <QElapsedTimer>
 #include <parse/OrgSpec.hpp>
 #include <sem/ErrorWrite.hpp>
+#include <exporters/exportertree.hpp>
 
 
 struct NodeOperations {
@@ -770,15 +771,21 @@ void HaxorgCli::exec() {
         OrgAdapter(&nodes, OrgId(0)));
     rep.convertNs = timer.nsecsElapsed();
 
+
     timer.restart();
     ExporterJson exporter;
     ColStream    os{qcout};
-    node->treeRepr(os);
-    json result  = exporter.visit(node);
-    rep.exportNs = timer.nsecsElapsed();
+    json         result = exporter.visit(node);
+    rep.exportNs        = timer.nsecsElapsed();
 
     writeFile(config.outFile, to_string(result));
     qInfo() << "Wrote JSON SEM representation into " << config.outFile;
+
+    ExporterTree tree{os};
+    os << "Visit start\n";
+    tree.visit(node);
+    os << "Visit end\n";
+
 
     return;
 }

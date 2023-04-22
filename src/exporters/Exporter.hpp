@@ -1,3 +1,5 @@
+#pragma once
+
 #include <sem/SemOrg.hpp>
 
 
@@ -8,14 +10,21 @@ struct Exporter {
 
 #define EXPORTER_USING()                                                  \
     using __ExporterBase::visitField;                                     \
+    using __ExporterBase::visitVariantField;                              \
     using __ExporterBase::visitSubnode;                                   \
     using __ExporterBase::pushVisit;                                      \
+    using __ExporterBase::popVisit;                                       \
     using __ExporterBase::visit;                                          \
+    using __ExporterBase::visitDispatchHook;                              \
     EACH_SEM_ORG_KIND(__EXPORTER_USING_DEFINE)
 
 
     template <typename T>
     void visitField(R& arg, const char* name, T const& val) {}
+
+    void visitField(R& arg, const char* name, sem::Wrap<sem::Org> org) {
+        visit(org);
+    }
 
     template <typename T>
     void visitVariantField(R& arg, const char* type, T const& val) {
@@ -25,17 +34,21 @@ struct Exporter {
     void visitSubnode(R&, int, sem::Wrap<sem::Org> const& val) {
         visit(val);
     }
+
     R newRes(sem::Wrap<sem::Org> const) { return R{}; }
 
     void pushVisit(sem::Wrap<sem::Org> const) {}
     void popVisit(sem::Wrap<sem::Org> const) {}
+    void visitDispatchHook(sem::Wrap<sem::Org> const) {}
 
     R visitDispatch(R& res, sem::Wrap<sem::Org> const arg) {
+
         switch (arg->getKind()) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: {                                            \
         sem::Wrap<sem::__Kind> tmp = arg->as<sem::__Kind>();              \
         _this()->pushVisit(tmp);                                          \
+        _this()->visitDispatchHook(arg);                                  \
         _this()->visit##__Kind(res, tmp);                                 \
         _this()->popVisit(tmp);                                           \
         return res;                                                       \
@@ -55,7 +68,7 @@ struct Exporter {
     template <typename T>
     R visit(CR<T> arg) {
         R tmp = _this()->newRes(arg);
-        visit(tmp, arg);
+        _this()->visit(tmp, arg);
         return tmp;
     }
 
