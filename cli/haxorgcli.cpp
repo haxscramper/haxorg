@@ -7,7 +7,7 @@
 #include <sem/ErrorWrite.hpp>
 #include <exporters/exporterdot.hpp>
 #include <exporters/exportertree.hpp>
-
+#include <exporters/exportergantt.hpp>
 
 struct NodeOperations {
     UnorderedMap<OrgId, OrgParser::Report> started, ended, pushed;
@@ -792,12 +792,17 @@ void HaxorgCli::exec() {
     ExporterDot dot("g");
     dot.visitTop(node);
 
-    gvc.writeFile(*dot.graph, "/tmp/graph.dot");
+    gvc.writeFile("/tmp/graph.dot", *dot.graph);
 
     gvc.renderToFile(
-        *dot.graph, "/tmp/graph.png", Graphviz::RenderFormat::PNG);
+        "/tmp/graph.png", *dot.graph, Graphviz::RenderFormat::PNG);
 
     qDebug() << "Graphviz ok";
+
+    ExporterGantt gantt;
+    gantt.visitTop(node);
+
+    writeFile(QFileInfo("/tmp/gantt.puml"_qs), gantt.gantt.toString());
 
     return;
 }

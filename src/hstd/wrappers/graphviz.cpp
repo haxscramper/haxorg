@@ -89,8 +89,8 @@ void Graphviz::Graph::eachEdge(Func<void(Edge)> cb) {
 }
 
 void Graphviz::writeFile(
-    CR<Graph>      graph,
     const QString& fileName,
+    CR<Graph>      graph,
     RenderFormat   format) {
     if (format == RenderFormat::DOT) {
         FILE* output_file = fopen(fileName.toStdString().c_str(), "w");
@@ -118,19 +118,19 @@ void Graphviz::writeFile(
 }
 
 void Graphviz::renderToFile(
-    CR<Graph>      graph,
     const QString& fileName,
+    CR<Graph>      graph,
     RenderFormat   format,
     LayoutType     layout) {
     Q_CHECK_PTR(graph.get());
     Q_CHECK_PTR(gvc);
     if (format == RenderFormat::DOT) {
-        writeFile(graph, fileName, format);
+        writeFile(fileName, graph, format);
 
     } else {
 
         createLayout(graph, layout);
-        writeFile(graph, fileName, format);
+        writeFile(fileName, graph, format);
         freeLayout(graph);
     }
 }

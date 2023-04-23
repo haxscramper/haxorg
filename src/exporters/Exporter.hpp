@@ -8,6 +8,10 @@ struct Exporter {
 #define __EXPORTER_USING_DEFINE(__Kind)                                   \
     using __ExporterBase::visit##__Kind;
 
+    template <typename T>
+    using In = CR<sem::Wrap<T>>;
+
+
 #define EXPORTER_USING()                                                  \
     using __ExporterBase::visitField;                                     \
     using __ExporterBase::visitVariantField;                              \
@@ -19,6 +23,7 @@ struct Exporter {
     using __ExporterBase::visitStart;                                     \
     using __ExporterBase::visitEnd;                                       \
     using __ExporterBase::visitTop;                                       \
+    using __ExporterBase::In;                                             \
     EACH_SEM_ORG_KIND(__EXPORTER_USING_DEFINE)
 
 
@@ -32,7 +37,7 @@ struct Exporter {
         }
     }
 
-    void visitField(R& arg, const char* name, sem::Wrap<sem::Org> org) {
+    void visitField(R& arg, const char* name, In<sem::Org> org) {
         visit(org);
     }
 
@@ -41,27 +46,25 @@ struct Exporter {
         visitField(arg, type, val);
     }
 
-    void visitSubnode(R&, int, sem::Wrap<sem::Org> const& val) {
-        visit(val);
-    }
+    void visitSubnode(R&, int, In<sem::Org> val) { visit(val); }
 
-    R newRes(sem::Wrap<sem::Org> const) { return R{}; }
+    R newRes(In<sem::Org>) { return R{}; }
 
-    void pushVisit(R&, sem::Wrap<sem::Org> const) {}
-    void popVisit(R&, sem::Wrap<sem::Org> const) {}
-    void visitDispatchHook(R&, sem::Wrap<sem::Org> const) {}
-    void visitStart(sem::Wrap<sem::Org> const) {}
-    void visitEnd(sem::Wrap<sem::Org> const) {}
+    void pushVisit(R&, In<sem::Org>) {}
+    void popVisit(R&, In<sem::Org>) {}
+    void visitDispatchHook(R&, In<sem::Org>) {}
+    void visitStart(In<sem::Org>) {}
+    void visitEnd(In<sem::Org>) {}
 
-    void visitDispatch(R& res, sem::Wrap<sem::Org> const arg) {
-
-        switch (arg->getKind()) {
+    void visitDispatch(R& res, In<sem::Org> arg) {
+        auto kind = arg->getKind();
+        switch (kind) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: {                                            \
-        sem::Wrap<sem::__Kind> tmp = arg->as<sem::__Kind>();              \
+        In<sem::__Kind> tmp = arg->as<sem::__Kind>();                     \
         _this()->pushVisit(res, tmp);                                     \
         _this()->visitDispatchHook(res, arg);                             \
-        _this()->visit##__Kind(res, tmp);                                 \
+        _this()->visit(res, tmp);                                         \
         _this()->popVisit(res, tmp);                                      \
         break;                                                            \
     }
@@ -74,9 +77,16 @@ struct Exporter {
     }
 
 
-    void visit(R& res, sem::Wrap<sem::Org> const arg) {
-        visitDispatch(res, arg);
+    void visit(R& res, In<sem::Org> arg) { visitDispatch(res, arg); }
+
+#define __visit(__Kind)                                                   \
+    void visit(R& res, In<sem::__Kind> org) {                             \
+        _this()->visit##__Kind(res, org);                                 \
     }
+
+    EACH_SEM_ORG_KIND(__visit)
+
+#undef __visit
 
     template <typename T>
     R visit(CR<T> arg) {
@@ -85,14 +95,14 @@ struct Exporter {
         return tmp;
     }
 
-    R visitTop(sem::Wrap<sem::Org> org) {
+    R visitTop(In<sem::Org> org) {
         _this()->visitStart(org);
         R tmp = _this()->visit(org);
         _this()->visitEnd(org);
         return tmp;
     }
 
-    void eachSub(R& res, sem::Wrap<sem::Org> org) {
+    void eachSub(R& res, In<sem::Org> org) {
         int idx = 0;
         for (const auto& it : org->subnodes) {
             _this()->visitSubnode(res, idx, it);
@@ -154,39 +164,39 @@ struct Exporter {
             time);
     }
 
-    void visitLink(R& res, sem::Wrap<sem::Link> link) {
+    void visitLink(R& res, In<sem::Link> link) {
         __field(res, link, description);
         __field(res, link, data);
         _this()->eachSub(res, link);
     }
 
-    void visitHashTag(R& res, sem::Wrap<sem::HashTag> tag) {
+    void visitHashTag(R& res, In<sem::HashTag> tag) {
         __field(res, tag, subtags);
         __field(res, tag, head);
         _this()->eachSub(res, tag);
     }
 
-    void visitTime(R& res, sem::Wrap<sem::Time> time) {
+    void visitTime(R& res, In<sem::Time> time) {
         __field(res, time, time);
         __field(res, time, isActive);
     }
 
-    void visitTable(R& res, sem::Wrap<sem::Table> table) {
+    void visitTable(R& res, In<sem::Table> table) {
         __field(res, table, rows);
     }
 
-    void visitTimeRange(R& res, sem::Wrap<sem::TimeRange> range) {
+    void visitTimeRange(R& res, In<sem::TimeRange> range) {
         __field(res, range, from);
         __field(res, range, to);
     }
 
-    void visitCaption(R& res, sem::Wrap<sem::Caption> range) {
+    void visitCaption(R& res, In<sem::Caption> range) {
         __field(res, range, text);
     }
 
-    void visitInlineMath(R& res, sem::Wrap<sem::InlineMath> math) {}
+    void visitInlineMath(R& res, In<sem::InlineMath> math) {}
 
-    void visitDocument(R& res, sem::Wrap<sem::Document> doc) {
+    void visitDocument(R& res, In<sem::Document> doc) {
         __field(res, doc, title);
         __field(res, doc, author);
         __field(res, doc, creator);
@@ -200,11 +210,11 @@ struct Exporter {
         _this()->eachSub(res, doc);
     }
 
-    void visitDocumentGroup(R& res, sem::Wrap<sem::DocumentGroup> doc) {
+    void visitDocumentGroup(R& res, In<sem::DocumentGroup> doc) {
         _this()->eachSub(res, doc);
     }
 
-    void visitCompletion(R& res, sem::Wrap<sem::Completion> completion) {
+    void visitCompletion(R& res, In<sem::Completion> completion) {
         __field(res, completion, done);
         __field(res, completion, full);
         __field(res, completion, isPercent);
@@ -234,7 +244,7 @@ struct Exporter {
             entry);
     }
 
-    void visitSubtreeLog(R& res, sem::Wrap<sem::SubtreeLog> log) {
+    void visitSubtreeLog(R& res, In<sem::SubtreeLog> log) {
         __field(res, log, log);
     }
 
@@ -242,7 +252,7 @@ struct Exporter {
         /// TODO
     }
 
-    void visitSubtree(R& res, sem::Wrap<sem::Subtree> tree) {
+    void visitSubtree(R& res, In<sem::Subtree> tree) {
         __field(res, tree, level);
         __field(res, tree, id);
         __field(res, tree, todo);
@@ -259,17 +269,17 @@ struct Exporter {
     }
 
 
-    void visitListItem(R& res, sem::Wrap<sem::ListItem> item) {
+    void visitListItem(R& res, In<sem::ListItem> item) {
         __field(res, item, header);
         __field(res, item, checkbox);
         _this()->eachSub(res, item);
     }
 
-    void visitQuote(R& res, sem::Wrap<sem::Quote> quote) {
+    void visitQuote(R& res, In<sem::Quote> quote) {
         __field(res, quote, text);
     }
 
-    void visitCode(R& res, sem::Wrap<sem::Code> code) {
+    void visitCode(R& res, In<sem::Code> code) {
         __field(res, code, exports);
         __field(res, code, cache);
         __field(res, code, eval);
@@ -280,7 +290,7 @@ struct Exporter {
 
 
 #define __only_sub(__Kind)                                                \
-    void visit##__Kind(R& res, sem::Wrap<sem::__Kind> p) {                \
+    void visit##__Kind(R& res, In<sem::__Kind> p) {                       \
         _this()->eachSub(res, p);                                         \
     }
 
@@ -307,7 +317,7 @@ struct Exporter {
 #undef __only_sub
 
 #define __only_leaf(__Kind)                                               \
-    void visit##__Kind(R& res, sem::Wrap<sem::__Kind> leaf) {             \
+    void visit##__Kind(R& res, In<sem::__Kind> leaf) {                    \
         __field(res, leaf, text);                                         \
     }
 

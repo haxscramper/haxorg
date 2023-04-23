@@ -44,11 +44,9 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     }
 
     void popIndent() { stack.pop_back(); }
-    void pushVisit(int&, sem::Wrap<sem::Org> org) { pushIndent(); }
-    void popVisit(int&, sem::Wrap<sem::Org> org) { popIndent(); }
-    void visitDispatchHook(int&, sem::Wrap<sem::Org> const org) {
-        init(org);
-    }
+    void pushVisit(int&, In<sem::Org> org) { pushIndent(); }
+    void popVisit(int&, In<sem::Org> org) { popIndent(); }
+    void visitDispatchHook(int&, In<sem::Org> org) { init(org); }
     void indent() { os << QString("  ").repeated(stack.back().level); }
 
     struct ScopedField {
@@ -66,7 +64,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     }
 
 
-    void init(sem::Wrap<sem::Org> org) {
+    void init(In<sem::Org> org) {
         auto ctx = stack.back();
         indent();
         os << os.green() << to_string(org->getKind()) << os.end();
@@ -87,7 +85,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     }
 
     template <typename T>
-    void visit(int& arg, CR<Vec<T>> const& value) {
+    void visit(int& arg, CR<Vec<T>> value) {
         __scope();
         if (value.empty()) {
             indent();
@@ -132,7 +130,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         }
     }
 
-    void visitField(int& arg, const char* name, sem::Wrap<sem::Org> org) {
+    void visitField(int& arg, const char* name, In<sem::Org> org) {
         __scope();
         indent();
         os << name << ":"

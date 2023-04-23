@@ -519,13 +519,13 @@ class Graphviz {
     }
 
     void writeFile(
-        CR<Graph>      graph,
         QString const& fileName,
+        CR<Graph>      graph,
         RenderFormat   format = RenderFormat::DOT);
 
     void renderToFile(
-        CR<Graph>      graph,
         const QString& fileName,
+        CR<Graph>      graph,
         RenderFormat   format = RenderFormat::PNG,
         LayoutType     layout = LayoutType::Dot);
 

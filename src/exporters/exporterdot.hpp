@@ -10,6 +10,11 @@ class ExporterDot : public Exporter<ExporterDot, Graphviz::Node> {
     using Graph  = Graphviz::Graph;
 
   public:
+#define __ExporterBase Exporter<ExporterDot, Graphviz::Node>
+    EXPORTER_USING()
+#undef __ExporterBase
+
+
     SPtr<Graphviz::Graph> graph;
     struct NodeCtx {
         Graphviz::Node last;
@@ -25,9 +30,9 @@ class ExporterDot : public Exporter<ExporterDot, Graphviz::Node> {
     }
 
     void visitField(
-        Graphviz::Node&         record,
-        char const*             name,
-        CR<sem::Wrap<sem::Org>> value) {
+        Graphviz::Node& record,
+        char const*     name,
+        In<sem::Org>    value) {
         Graphviz::Node target = visit(value);
     }
 
@@ -59,7 +64,7 @@ class ExporterDot : public Exporter<ExporterDot, Graphviz::Node> {
         return node;
     }
 
-    void pushVisit(Graphviz::Node& node, sem::Wrap<sem::Org> org) {
+    void pushVisit(Graphviz::Node& node, In<sem::Org> org) {
         node.getNodeRecord()->set(
             "kind", Graphviz::Node::Record(to_string(org->getKind())));
 
@@ -70,13 +75,13 @@ class ExporterDot : public Exporter<ExporterDot, Graphviz::Node> {
         nodes.push_back({.last = node});
     }
 
-    void popVisit(Graphviz::Node& record, sem::Wrap<sem::Org> org) {
+    void popVisit(Graphviz::Node& record, In<sem::Org> org) {
         if (!nodes.empty()) {
             nodes.pop_back();
         }
     }
 
-    void visitEnd(sem::Wrap<sem::Org> org) {
+    void visitEnd(In<sem::Org> org) {
         graph->eachNode([](Graphviz::Node node) { node.finishRecord(); });
     }
 };

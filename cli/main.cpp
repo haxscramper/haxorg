@@ -146,8 +146,8 @@ int main(int argc, char** argv) {
     Graphviz::Graph graph("g");
     graph.node("test");
     ctx.renderToFile(
-        graph,
         "/tmp/res.png",
+        graph,
         Graphviz::RenderFormat::PNG,
         Graphviz::LayoutType::Dot);
 

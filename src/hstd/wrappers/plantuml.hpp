@@ -7,6 +7,7 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Vec.hpp>
 
+
 namespace puml {
 
 #define _property(name, field, type) Opt<type> field;
@@ -49,11 +50,13 @@ struct Gantt {
         QString    name;
         Opt<int>   completion;
         Vec<Event> nested;
+
+        QString toString() const;
     };
 
     Vec<Event> events;
 
-    QString toString() {}
+    QString toString() const;
 };
 
 }; // namespace puml

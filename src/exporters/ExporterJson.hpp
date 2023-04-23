@@ -29,11 +29,11 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     json newRes(CR<Str> value) { return json(value); }
     json newRes(CR<int> value) { return json(value); }
 
-    void eachSub(json& j, sem::Wrap<sem::Org> org) {
+    void eachSub(json& j, In<sem::Org> org) {
         j["subnodes"] = visit(org->subnodes);
     }
 
-    json newRes(sem::Wrap<sem::Org> org) {
+    json newRes(In<sem::Org> org) {
         json res    = json::object();
         res["kind"] = to_string(org->getKind());
         return res;
@@ -71,7 +71,5 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
         j[name] = visit(field);
     }
 
-    void visitDocument(json& j, sem::Wrap<sem::Document> doc) {
-        eachSub(j, doc);
-    }
+    void visitDocument(json& j, In<sem::Document> doc) { eachSub(j, doc); }
 };

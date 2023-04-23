@@ -4,14 +4,20 @@
 #include <hstd/wrappers/plantuml.hpp>
 #include <exporters/Exporter.hpp>
 
-struct GanttExporter : Exporter<GanttExporter, int> {
+struct ExporterGantt : Exporter<ExporterGantt, int> {
 
-#define __ExporterBase Exporter<GanttExporter, int>
+#define __ExporterBase Exporter<ExporterGantt, int>
     EXPORTER_USING()
 #undef __ExporterBase
 
     using Event = puml::Gantt::Event;
-    Vec<Event> stack;
+    puml::Gantt gantt;
+    struct Ctx {
+        Event event;
+        bool  filled = false;
+    };
+
+    Vec<Ctx> stack;
 
     void pushVisit(int&, sem::Wrap<sem::Subtree> tree);
 
