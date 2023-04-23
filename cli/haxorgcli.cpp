@@ -791,6 +791,8 @@ void HaxorgCli::exec() {
     ExporterDot dot("g");
     dot.visitTop(node);
 
+    gvc.writeFile(*dot.graph, "/tmp/graph.dot");
+
     gvc.renderToFile(
         *dot.graph, "/tmp/graph.png", Graphviz::RenderFormat::PNG);
 

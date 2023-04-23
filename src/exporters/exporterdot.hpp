@@ -19,9 +19,13 @@ class ExporterDot : public Exporter<ExporterDot, int> {
         graph = std::make_shared<Graphviz::Graph>(name);
     }
 
+
     void pushVisit(sem::Wrap<sem::Org> org) {
         Graphviz::Node node = graph->node(QString::number(++counter));
-        node.setLabel(to_string(org->getKind()));
+        node.startRecord();
+        node.getNodeRecord()->set(
+            "kind", Graphviz::Node::Record(to_string(org->getKind())));
+
         if (!nodes.empty()) {
             graph->edge(node, nodes.back().last);
         }
@@ -32,6 +36,10 @@ class ExporterDot : public Exporter<ExporterDot, int> {
         if (!nodes.empty()) {
             nodes.pop_back();
         }
+    }
+
+    void visitEnd(sem::Wrap<sem::Org> org) {
+        graph->eachNode([](Graphviz::Node node) { node.finishRecord(); });
     }
 };
 

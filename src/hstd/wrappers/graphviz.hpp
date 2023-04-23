@@ -52,7 +52,7 @@ class Graphviz {
                 sizeof(Rec),
                 false);
             if (result != nullptr) {
-                result = new (result) T(std::forward<Args>(args)...);
+                result = new (result) Rec(std::forward<Args>(args)...);
                 return result;
             } else {
                 return nullptr;
@@ -93,6 +93,7 @@ class Graphviz {
     class Node : public GraphvizObjBase<Node> {
       public:
         struct Record {
+            Record() {}
             Record(Str const& content, Opt<Str> const& tag = std::nullopt)
                 : content(content), tag(tag) {}
 
@@ -106,8 +107,30 @@ class Graphviz {
                 getNested().push_back(Record(row));
             }
 
+            void push_back(CR<Record> rec) { getNested().push_back(rec); }
+
             bool isFinal() const {
                 return std::holds_alternative<Str>(content);
+            }
+
+            void set(QString const& columnKey, CR<Record> value) {
+                if (isFinal()) {
+                    content = Vec<Record>{
+                        Record({Record(columnKey), value})};
+                } else {
+                    for (auto& it : getNested()) {
+                        if (it.isRecord()) {
+                            if (it.getNested()[0].isFinal()
+                                && it.getNested()[0].getLabel()
+                                       == columnKey) {
+                                it.getNested()[1] = value;
+                                return;
+                            }
+                        }
+                    }
+
+                    push_back(Record({Record(columnKey), value}));
+                }
             }
 
             bool       isRecord() const { return !isFinal(); }
@@ -144,6 +167,15 @@ class Graphviz {
                 return result;
             }
         };
+
+        void startRecord() {
+            setShape(Shape::record);
+            bindRecord<Record>("record");
+        }
+
+        Record* getNodeRecord() { return getRecord<Record>("record"); }
+
+        void finishRecord() { setLabel(getNodeRecord()->toString()); }
 
         Node(Agraph_t* graph, QString const& name, Record const& record)
             : Node(graph, name) {
@@ -511,7 +543,8 @@ class Graphviz {
         GIF,  /// Graphics Interchange Format
         TIF,  /// Tagged Image File Format
         BMP,  /// Windows Bitmap format
-        XDOT  /// Extended dot format
+        XDOT, /// Extended dot format
+        DOT,  /// Write original DOT file
     };
 
 
@@ -542,6 +575,48 @@ class Graphviz {
         }
     }
 
+    void createLayout(
+        CR<Graph>  graph,
+        LayoutType layout = LayoutType::Dot) {
+        gvLayout(
+            gvc,
+            const_cast<Agraph_t*>(graph.get()),
+            strdup(layoutTypeToString(layout)));
+    }
+
+    void freeLayout(CR<Graph> graph) {
+        gvFreeLayout(gvc, const_cast<Agraph_t*>(graph.get()));
+    }
+
+    void writeFile(
+        CR<Graph>      graph,
+        QString const& fileName,
+        RenderFormat   format = RenderFormat::DOT) {
+        if (format == RenderFormat::DOT) {
+            FILE* output_file = fopen(fileName.toStdString().c_str(), "w");
+            if (output_file == NULL) {
+                perror("Error opening output file");
+                return 1;
+            }
+
+            agwrite(const_cast<Agraph_t*>(graph.get()), output_file);
+            fclose(output_file);
+
+        } else {
+            Q_ASSERT_X(
+                GD_drawing(graph.get()) != nullptr,
+                "render to file",
+                "Writing non-DOT format to file requires layout. Call "
+                "`createLayout()` before writing or use 'renderToFile' to "
+                "execute render in one step");
+            gvRenderFilename(
+                gvc,
+                const_cast<Agraph_t*>(graph.get()),
+                strdup(renderFormatToString(format)),
+                strdup(fileName));
+        }
+    }
+
     void renderToFile(
         CR<Graph>      graph,
         const QString& fileName,
@@ -549,18 +624,15 @@ class Graphviz {
         LayoutType     layout = LayoutType::Dot) {
         Q_CHECK_PTR(graph.get());
         Q_CHECK_PTR(gvc);
-        gvLayout(
-            gvc,
-            const_cast<Agraph_t*>(graph.get()),
-            strdup(layoutTypeToString(layout)));
+        if (format == RenderFormat::DOT) {
+            writeFile(graph, fileName, format);
 
-        gvRenderFilename(
-            gvc,
-            const_cast<Agraph_t*>(graph.get()),
-            strdup(renderFormatToString(format)),
-            strdup(fileName));
+        } else {
 
-        gvFreeLayout(gvc, const_cast<Agraph_t*>(graph.get()));
+            createLayout(graph, layout);
+            writeFile(graph, fileName, format);
+            freeLayout(graph);
+        }
     }
 
   private:
