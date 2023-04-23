@@ -9,6 +9,7 @@
 #include <parse/OrgTypes.hpp>
 
 #include <boost/describe.hpp>
+#include <hstd/system/aux_utils.hpp>
 
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Json.hpp>
@@ -225,7 +226,7 @@ struct Code : public Block {
     /// exactly correspond to the `-XX` parameters that can be passed
     /// directly in the field, but also works with attached `#+options`
     /// from the block
-    struct Switches {
+    struct Switch {
         /// \brief Enumerate code lines starting from `start` value instead
         /// of default indexing.
         struct LineStart {
@@ -251,14 +252,21 @@ struct Code : public Block {
         struct Dedent {
             int value;
         };
+
+        SUB_VARIANTS(
+            Kind,
+            Data,
+            data,
+            getKind,
+            LineStart,
+            CalloutFormat,
+            RemoveCallout,
+            EmphasizeLine,
+            Dedent);
+
+        Data data;
     };
 
-    using Switch = Variant<
-        Switches::LineStart,
-        Switches::CalloutFormat,
-        Switches::EmphasizeLine,
-        Switches::Dedent,
-        Switches::RemoveCallout>;
 
     Vec<Switch> switches;
 
@@ -401,18 +409,16 @@ struct SubtreeLog : public Org {
         bool          added = false;
     };
 
-    enum class Kind
-    {
+    SUB_VARIANTS(
+        Kind,
+        LogEntry,
+        log,
+        getLogKind,
         Note,
         Refile,
         Clock,
         State,
-        Tag
-    };
-
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, Note, Refile, Clock, State, Tag);
-
-    using LogEntry = Variant<Note, Refile, Clock, State, Tag>;
+        Tag);
     LogEntry log;
 };
 
@@ -455,49 +461,21 @@ struct Subtree : public Org {
 
     Vec<Period> getTimePeriods(IntSet<Period::Kind> kinds);
 
-    struct Properties {
-        enum class PropertyKind
-        {
-            Ordered,
-            Nonblocking,
-            Trigger,
-            Blocker,
-            Unnumbered,
-            Created,
-            ExportOptions,
-        };
-
-        BOOST_DESCRIBE_NESTED_ENUM(
-            PropertyKind,
-            Ordered,
-            Nonblocking,
-            Trigger,
-            Blocker,
-            Unnumbered,
-            Created,
-            ExportOptions);
-
-#define PROP_KIND(Kind)                                                   \
-    PropertyKind getKind() const { return PropertyKind::Kind; }
-
+    struct Property {
         struct Ordered {
             bool isOrdered;
-            PROP_KIND(Ordered);
         };
 
         struct ExportOptions {
             Str                    backend;
             UnorderedMap<Str, Str> values;
-            PROP_KIND(ExportOptions);
         };
 
         struct Nonblocking {
             bool isBlocking;
-            PROP_KIND(Nonblocking);
         };
 
         struct Trigger {
-            PROP_KIND(Trigger);
             struct Dependency {
                 TreeId   id;
                 Opt<Str> state;
@@ -505,78 +483,60 @@ struct Subtree : public Org {
         };
 
         struct Blocker {
-            PROP_KIND(Blocker);
             Vec<Str> blockers;
         };
 
-        struct Unnumbered {
-            PROP_KIND(Unnumbered);
-        };
+        struct Unnumbered {};
+
         struct Created {
-            PROP_KIND(Created);
             QDateTime time;
         };
 
-        using Property = Variant<
-            //
+        SUB_VARIANTS(
+            Kind,
+            Data,
+            data,
+            getKind,
             Ordered,
+            ExportOptions,
             Nonblocking,
             Trigger,
             Blocker,
             Unnumbered,
-            Created,
-            ExportOptions
-            //
-            >;
+            Created);
 
-        template <typename T>
-        static T& as(Property& prop) {
-            return std::get<T>(prop);
-        }
-
-        template <typename T>
-        static T const& as(Property const& prop) {
-            return std::get<T>(prop);
-        }
-
-        static PropertyKind kind(CR<Property> prop) {
-            return std::visit(
-                [](auto const& it) -> PropertyKind {
-                    return it.getKind();
-                },
-                prop);
-        }
+        Data data;
+        Property(CR<Data> data) : data(data) {}
     };
 
 
-    int                       level = 0;
-    Opt<Str>                  id;
-    Opt<Str>                  todo;
-    Opt<Wrap<Completion>>     completion;
-    Vec<Wrap<HashTag>>        tags;
-    Wrap<Paragraph>           title;
-    Opt<Wrap<Paragraph>>      description;
-    Vec<Wrap<SubtreeLog>>     logbook;
-    Vec<Properties::Property> properties;
+    int                   level = 0;
+    Opt<Str>              id;
+    Opt<Str>              todo;
+    Opt<Wrap<Completion>> completion;
+    Vec<Wrap<HashTag>>    tags;
+    Wrap<Paragraph>       title;
+    Opt<Wrap<Paragraph>>  description;
+    Vec<Wrap<SubtreeLog>> logbook;
+    Vec<Property>         properties;
 
     Opt<Wrap<Time>> closed;
     Opt<Wrap<Time>> deadline;
     Opt<Wrap<Time>> scheduled;
 
-    using PropKind = Properties::PropertyKind;
 
-    Vec<Properties::Property> getProperties(
-        PropKind    kind,
-        CR<QString> subkind = "") const;
-    Opt<Properties::Property> getProperty(
-        PropKind    kind,
-        CR<QString> subkind = "") const;
-    Vec<Properties::Property> getContextualProperties(
-        PropKind    kind,
-        CR<QString> subkind = "") const;
-    Opt<Properties::Property> getContextualProperty(
-        PropKind    kind,
-        CR<QString> subkind = "") const;
+    Vec<Property> getProperties(
+        Property::Kind kind,
+        CR<QString>    subkind = "") const;
+    Opt<Property> getProperty(
+        Property::Kind kind,
+        CR<QString>    subkind = "") const;
+    Vec<Property> getContextualProperties(
+        Property::Kind kind,
+        CR<QString>    subkind = "") const;
+    Opt<Property> getContextualProperty(
+        Property::Kind kind,
+        CR<QString>    subkind = "") const;
 };
 
 struct LatexBody : public Org {
@@ -657,13 +617,8 @@ struct Link : public Org {
         Str target;
     };
 
-    using Data = Variant<Raw, Footnote, Id>;
-
+    SUB_VARIANTS(Kind, Data, data, getLinkKind, Raw, Footnote, Id);
     Data data;
-
-    Raw&       getRaw() { return std::get<Raw>(data); }
-    Raw const& getRaw() const { return std::get<Raw>(data); }
-
 
     Opt<Wrap<Paragraph>> description;
 };

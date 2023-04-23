@@ -10,6 +10,7 @@
 #include <hstd/system/string_convert.hpp>
 #include <hstd/system/basic_typedefs.hpp>
 
+
 template <typename T>
 concept DescribedEnum = IsEnum<T>
                      && boost::describe::has_describe_enumerators<

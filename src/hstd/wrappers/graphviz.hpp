@@ -23,15 +23,9 @@
 
 #define _attrx(Method, key, Type) void set##Method(Type const& value);
 
-#define _e_enum(Name, ...)                                                \
-    enum class Name                                                       \
-    {                                                                     \
-        __VA_ARGS__                                                       \
-    };                                                                    \
-    BOOST_DESCRIBE_NESTED_ENUM(Name, __VA_ARGS__);
 
 #define _eattr(Name, key, ...)                                            \
-    _e_enum(Name, __VA_ARGS__);                                           \
+    DECL_DESCRIBED_ENUM(Name, __VA_ARGS__);                               \
     void set##Name(Name value) { set(#key, enum_to_string(value)); }
 
 class Graphviz {
@@ -239,7 +233,7 @@ class Graphviz {
             larrow,
             lpromoter);
 
-        _e_enum(
+        DECL_DESCRIBED_ENUM(
             ArrowType,
             normal,
             inv,

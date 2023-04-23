@@ -1,8 +1,8 @@
 #include <sem/SemOrg.hpp>
 
 using namespace sem;
-using osk  = OrgSemKind;
-using Prop = Subtree::Properties;
+using osk      = OrgSemKind;
+using Property = Subtree::Property;
 
 OrgVariant asVariant(Ptr<Org> org) {
 #define __case(__Kind)                                                    \
@@ -59,47 +59,41 @@ Vec<Subtree::Period> Subtree::getTimePeriods(IntSet<Period::Kind> kinds) {
     for (const auto& prop : properties) {
         std::visit(
             overloaded{
-                [&](Prop::Created const& cr) {
+                [&](Property::Created const& cr) {
                     res.push_back(Period(
                         std::make_shared<Time>(cr.time),
                         Period::Kind::Created));
                 },
                 [](auto const&) {}},
-            prop);
+            prop.data);
     }
 
 
     return res;
 }
 
-Vec<Prop::Property> Subtree::getProperties(
-    Prop::PropertyKind kind,
-    CR<QString>        subkind) const {
-    Vec<Prop::Property> result;
+Vec<Property> Subtree::getProperties(
+    Property::Kind kind,
+    CR<QString>    subkind) const {
+    Vec<Property> result;
     for (const auto& prop : properties) {
-        std::visit(
-            overloaded{
-                [&](Prop::ExportOptions& it) {
-                    if (it.getKind() == kind
-                        && normalize(it.backend) == normalize(subkind)) {
-                        result.push_back(prop);
-                    }
-                },
-                [&](auto const& it) {
-                    if (it.getKind() == kind) {
-                        result.push_back(prop);
-                    }
-                }},
-            prop);
+        if (prop.getKind() == kind) {
+            result.push_back(prop);
+        } else if (
+            prop.getKind() == Property::Kind::ExportOptions
+            && normalize(prop.getExportOptions().backend)
+                   == normalize(subkind)) {
+            result.push_back(prop);
+        }
     }
     return result;
 }
 
-Vec<Prop::Property> Subtree::getContextualProperties(
-    Prop::PropertyKind kind,
-    CR<QString>        subkind) const {
-    Subtree const*      now = this;
-    Vec<Prop::Property> result;
+Vec<Property> Subtree::getContextualProperties(
+    Property::Kind kind,
+    CR<QString>    subkind) const {
+    Subtree const* now = this;
+    Vec<Property>  result;
     while (now != nullptr) {
         result.append(now->getProperties(kind));
         if (auto sup = now->getParentSubtree()) {
@@ -132,38 +126,37 @@ bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
     }
 }
 
-Opt<Prop::Property> Subtree::getContextualProperty(
-    Prop::PropertyKind kind,
-    CR<QString>        subkind) const {
-    Vec<Prop::Property> props = getContextualProperties(kind);
+Opt<Property> Subtree::getContextualProperty(
+    Property::Kind kind,
+    CR<QString>    subkind) const {
+    Vec<Property> props = getContextualProperties(kind);
     if (props.empty()) {
         return std::nullopt;
     } else {
-        switch (Prop::kind(props[0])) {
-            case PropKind::Nonblocking:
-            case PropKind::Unnumbered:
-            case PropKind::Ordered:
-            case PropKind::Created: return props[0];
-            case PropKind::ExportOptions: {
-                Prop::ExportOptions res;
+        switch (props[0].getKind()) {
+            case Property::Kind::Nonblocking:
+            case Property::Kind::Unnumbered:
+            case Property::Kind::Ordered:
+            case Property::Kind::Created: return props[0];
+            case Property::Kind::ExportOptions: {
+                Property::ExportOptions res;
                 for (const auto& it : props) {
-                    Prop::ExportOptions const& tmp = Properties::as<
-                        Prop::ExportOptions>(it);
+                    Property::ExportOptions const& tmp = it.getExportOptions();
                     for (auto const& [k, v] : tmp.values) {
                         if (!res.values.contains(k)) {
                             res.values[k] = v;
                         }
                     }
                 }
-                return res;
+                return Property(res);
             }
         }
     }
 }
 
-Opt<Prop::Property> Subtree::getProperty(
-    Prop::PropertyKind kind,
-    CR<QString>        subkind) const {
+Opt<Property> Subtree::getProperty(
+    Property::Kind kind,
+    CR<QString>    subkind) const {
     auto props = getProperties(kind, subkind);
     if (props.empty()) {
         return std::nullopt;

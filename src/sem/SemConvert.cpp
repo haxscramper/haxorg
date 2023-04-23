@@ -91,10 +91,10 @@
 
 using namespace sem;
 
-using org  = OrgNodeKind;
-using otk  = OrgTokenKind;
-using Err  = OrgConverter::Errors;
-using Prop = Subtree::Properties;
+using org      = OrgNodeKind;
+using otk      = OrgTokenKind;
+using Err      = OrgConverter::Errors;
+using Property = sem::Subtree::Property;
 
 #define __args Org *p, OrgAdapter a
 
@@ -184,14 +184,14 @@ Wrap<Subtree> OrgConverter::convertSubtree(__args) {
                                 CharSet{QChar(':')},
                                 CharSet{QChar(':')}));
                             if (name == "exportoptions") {
-                                Prop::ExportOptions res;
+                                Property::ExportOptions res;
                                 res.backend = prop[1].strVal();
                                 for (QString const& pair :
                                      prop[2].strVal().split(' ')) {
                                     auto kv           = pair.split(':');
                                     res.values[kv[0]] = kv[1];
                                 }
-                                tree->properties.push_back(res);
+                                tree->properties.push_back(Property(res));
 
                             } else if (name == "id") {
                                 tree->id = prop[2].strVal();

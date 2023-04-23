@@ -238,7 +238,7 @@ struct Exporter {
         __field(res, log, log);
     }
 
-    void visit(R& res, CR<sem::Subtree::Properties::Property> prop) {
+    void visit(R& res, CR<sem::Subtree::Property> prop) {
         /// TODO
     }
 
