@@ -147,9 +147,9 @@ int main(int argc, char** argv) {
     graph.node("test");
     ctx.renderToFile(
         graph,
-        Graphviz::LayoutType::Dot,
+        "/tmp/res.png",
         Graphviz::RenderFormat::PNG,
-        "/tmp/res.png");
+        Graphviz::LayoutType::Dot);
 
     QFile file;
     file.open(stdout, QIODevice::WriteOnly);

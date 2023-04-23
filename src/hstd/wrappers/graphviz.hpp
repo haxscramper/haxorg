@@ -14,6 +14,8 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Variant.hpp>
+#include <new>
+#include <hstd/stdlib/Func.hpp>
 
 
 #define _attr(Method, key, Type)                                          \
@@ -34,7 +36,61 @@
 
 class Graphviz {
   public:
-    class Node {
+    struct UserDataBase {
+        Agrec_t header;
+    };
+
+    template <typename T>
+    struct GraphvizObjBase : CRTP_this_method<T> {
+        using CRTP_this_method<T>::_this;
+
+        template <typename Rec, typename... Args>
+        Rec* bindRecord(QString const& name, Args&&... args) {
+            Rec* result = (Rec*)agbindrec(
+                _this()->get(),
+                name.toStdString().c_str(),
+                sizeof(Rec),
+                false);
+            if (result != nullptr) {
+                result = new (result) T(std::forward<Args>(args)...);
+                return result;
+            } else {
+                return nullptr;
+            }
+        }
+
+        template <typename Rec>
+        Rec* getRecord(QString const& name) {
+            return (Rec*)aggetrec(
+                _this()->get(), name.toStdString().c_str(), false);
+        }
+
+        void delRecord(QString const& name) {
+            agdelrec(_this()->get(), name.toStdString().c_str());
+        }
+
+        void set(const QString& attribute, const QString& value) {
+            agsafeset(
+                _this()->get(),
+                const_cast<char*>(attribute.toStdString().c_str()),
+                const_cast<char*>(value.toStdString().c_str()),
+                const_cast<char*>(""));
+        }
+
+        void set(QString const& key, int value) {
+            _this()->set(key, QString::number(value));
+        }
+
+        void set(QString const& key, QPointF value) {
+            _this()->set(key, QString("%1,%2").arg(value.x(), value.y()));
+        }
+
+        void set(QString const& key, double value) {
+            _this()->set(key, QString::number(value));
+        }
+    };
+
+    class Node : public GraphvizObjBase<Node> {
       public:
         struct Record {
             Record(Str const& content, Opt<Str> const& tag = std::nullopt)
@@ -95,38 +151,22 @@ class Graphviz {
             setLabel(record.toString());
         }
 
+        Node(Agraph_t* graph, Agnode_t* node_)
+            : node(node_), graph(graph) {}
+
         Node(Agraph_t* graph, const QString& name) {
             auto node_ = agnode(
                 graph, const_cast<char*>(name.toStdString().c_str()), 1);
             if (!node_) {
                 throw std::runtime_error("Failed to create node");
             } else {
-                node = std::shared_ptr<Agnode_t>(node_);
+                node = node_;
             }
         }
 
-        Agnode_t*       get() { return node.get(); }
-        Agnode_t const* get() const { return node.get(); }
+        Agnode_t*       get() { return node; }
+        Agnode_t const* get() const { return node; }
 
-        void set(const QString& attribute, const QString& value) {
-            agsafeset(
-                node.get(),
-                const_cast<char*>(attribute.toStdString().c_str()),
-                const_cast<char*>(value.toStdString().c_str()),
-                const_cast<char*>(""));
-        }
-
-        void set(QString const& key, int value) {
-            set(key, QString::number(value));
-        }
-
-        void set(QString const& key, QPointF value) {
-            set(key, QString("%1,%2").arg(value.x(), value.y()));
-        }
-
-        void set(QString const& key, double value) {
-            set(key, QString::number(value));
-        }
 
         _eattr(
             Shape,
@@ -260,12 +300,15 @@ class Graphviz {
         _attr(XLabelPosition, xlabelpos, QPointF);
 
       private:
-        SPtr<Agnode_t> node;
-        friend class Graph;
+        Agnode_t* node;
+        Agraph_t* graph;
     };
 
-    class Edge {
+    class Edge : public GraphvizObjBase<Edge> {
       public:
+        Edge(Agraph_t* graph, Agedge_t* edge)
+            : edge_(edge), graph(graph) {}
+
         Edge(Agraph_t* graph, CR<Node> head, CR<Node> tail)
             : graph(graph) {
             Q_CHECK_PTR(graph);
@@ -278,28 +321,13 @@ class Graphviz {
 
             if (!edge) {
                 throw std::runtime_error("Failed to create edge");
+            } else {
+                edge_ = edge;
             }
         }
 
-        void set(const QString& attribute, const QString& value) {
-            agsafeset(
-                edge_.get(),
-                const_cast<char*>(attribute.toStdString().c_str()),
-                const_cast<char*>(value.toStdString().c_str()),
-                const_cast<char*>(""));
-        }
-
-        void set(QString const& key, int value) {
-            set(key, QString::number(value));
-        }
-
-        void set(QString const& key, double value) {
-            set(key, QString::number(value));
-        }
-
-        void set(QString const& key, QPointF value) {
-            set(key, QString("%1,%2").arg(value.x(), value.y()));
-        }
+        Agedge_t*       get() { return edge_; }
+        Agedge_t const* get() const { return edge_; }
 
         /// \brief Color of the edge
         _attr(Color, color, QString /*QColor*/);
@@ -321,15 +349,12 @@ class Graphviz {
         _attr(URL, URL, QString);
 
       private:
-        Agraph_t*      graph;
-        SPtr<Agedge_t> edge_;
+        Agraph_t* graph;
+        Agedge_t* edge_;
     };
 
-    class Graph {
+    class Graph : public GraphvizObjBase<Graph> {
       public:
-        Vec<Edge> edges;
-        Vec<Node> nodes;
-
         Graph(const QString& name, Agdesc_t desc = Agdirected) {
             Agraph_t* graph_ = agopen(
                 const_cast<char*>(name.toStdString().c_str()),
@@ -342,27 +367,8 @@ class Graphviz {
             }
         }
 
-
-        void set(const QString& attribute, const QString& value) {
-            agsafeset(
-                graph.get(),
-                const_cast<char*>(attribute.toStdString().c_str()),
-                const_cast<char*>(value.toStdString().c_str()),
-                const_cast<char*>(""));
-        }
-
-        void set(QString const& key, int value) {
-            set(key, QString::number(value));
-        }
-
-        void set(QString const& key, double value) {
-            set(key, QString::number(value));
-        }
-
-        void set(QString const& key, QPointF value) {
-            set(key, QString("%1,%2").arg(value.x(), value.y()));
-        }
-
+        Agraph_t*       get() { return graph.get(); }
+        Agraph_t const* get() const { return graph.get(); }
 
         enum class Splines
         {
@@ -373,22 +379,35 @@ class Graphviz {
 
         void setSplines(Splines splines);
 
+        void eachNode(Func<void(Node)> cb) {
+            Agnode_t* node;
+            for (node = agfstnode(get()); node;
+                 node = agnxtnode(get(), node)) {
+                cb(Node(get(), node));
+            }
+        }
+
+        void eachEdge(Func<void(Edge)> cb) {
+            for (Agnode_t* node = agfstnode(get()); node;
+                 node           = agnxtnode(get(), node)) {
+                for (Agedge_t* edge = agfstedge(get(), node); edge;
+                     edge           = agnxtedge(get(), edge, node)) {
+                    cb(Edge(get(), edge));
+                }
+            }
+        }
+
         Node node(QString const& name) {
             Q_CHECK_PTR(graph.get());
             auto tmp = Node(graph.get(), name);
-            nodes.push_back(tmp);
             return tmp;
         }
 
         Edge edge(CR<Node> head, CR<Node> tail) {
             Q_CHECK_PTR(graph.get());
             auto tmp = Edge(graph.get(), head, tail);
-            edges.push_back(tmp);
             return tmp;
         }
-
-        Agraph_t*       get() { return graph.get(); }
-        Agraph_t const* get() const { return graph.get(); }
 
         /// \brief Damping factor for force-directed layout
         _attr(Damping, Damping, double);
@@ -525,9 +544,9 @@ class Graphviz {
 
     void renderToFile(
         CR<Graph>      graph,
-        LayoutType     layout,
-        RenderFormat   format,
-        const QString& fileName) {
+        const QString& fileName,
+        RenderFormat   format = RenderFormat::PNG,
+        LayoutType     layout = LayoutType::Dot) {
         Q_CHECK_PTR(graph.get());
         Q_CHECK_PTR(gvc);
         gvLayout(

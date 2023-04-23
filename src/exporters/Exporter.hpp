@@ -16,11 +16,21 @@ struct Exporter {
     using __ExporterBase::popVisit;                                       \
     using __ExporterBase::visit;                                          \
     using __ExporterBase::visitDispatchHook;                              \
+    using __ExporterBase::visitStart;                                     \
+    using __ExporterBase::visitEnd;                                       \
+    using __ExporterBase::visitTop;                                       \
     EACH_SEM_ORG_KIND(__EXPORTER_USING_DEFINE)
 
 
     template <typename T>
     void visitField(R& arg, const char* name, T const& val) {}
+
+    template <typename T>
+    void visitField(R& arg, const char* name, Opt<T> const& value) {
+        if (value) {
+            visitField(arg, name, *value);
+        }
+    }
 
     void visitField(R& arg, const char* name, sem::Wrap<sem::Org> org) {
         visit(org);
@@ -40,8 +50,10 @@ struct Exporter {
     void pushVisit(sem::Wrap<sem::Org> const) {}
     void popVisit(sem::Wrap<sem::Org> const) {}
     void visitDispatchHook(sem::Wrap<sem::Org> const) {}
+    void visitStart(sem::Wrap<sem::Org> const) {}
+    void visitEnd(sem::Wrap<sem::Org> const) {}
 
-    R visitDispatch(R& res, sem::Wrap<sem::Org> const arg) {
+    void visitDispatch(R& res, sem::Wrap<sem::Org> const arg) {
 
         switch (arg->getKind()) {
 #define __case(__Kind)                                                    \
@@ -51,7 +63,7 @@ struct Exporter {
         _this()->visitDispatchHook(arg);                                  \
         _this()->visit##__Kind(res, tmp);                                 \
         _this()->popVisit(tmp);                                           \
-        return res;                                                       \
+        break;                                                            \
     }
 
 
@@ -61,6 +73,7 @@ struct Exporter {
         }
     }
 
+
     void visit(R& res, sem::Wrap<sem::Org> const arg) {
         visitDispatch(res, arg);
     }
@@ -69,6 +82,13 @@ struct Exporter {
     R visit(CR<T> arg) {
         R tmp = _this()->newRes(arg);
         _this()->visit(tmp, arg);
+        return tmp;
+    }
+
+    R visitTop(sem::Wrap<sem::Org> org) {
+        _this()->visitStart(org);
+        R tmp = _this()->visit(org);
+        _this()->visitEnd(org);
         return tmp;
     }
 
@@ -235,6 +255,7 @@ struct Exporter {
         __field(res, tree, closed);
         __field(res, tree, deadline);
         __field(res, tree, scheduled);
+        eachSub(res, tree);
     }
 
 

@@ -776,7 +776,7 @@ void HaxorgCli::exec() {
     timer.restart();
     ExporterJson exporter;
     ColStream    os{qcout};
-    json         result = exporter.visit(node);
+    json         result = exporter.visitTop(node);
     rep.exportNs        = timer.nsecsElapsed();
 
     writeFile(config.outFile, to_string(result));
@@ -784,11 +784,15 @@ void HaxorgCli::exec() {
 
     ExporterTree tree{os};
     os << "Visit start\n";
-    tree.visit(node);
+    tree.visitTop(node);
     os << "Visit end\n";
 
-    ExporterDot dot;
-    dot.visit(node);
+    Graphviz    gvc;
+    ExporterDot dot("g");
+    dot.visitTop(node);
+
+    gvc.renderToFile(
+        *dot.graph, "/tmp/graph.png", Graphviz::RenderFormat::PNG);
 
     return;
 }
