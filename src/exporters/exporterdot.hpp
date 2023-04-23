@@ -4,7 +4,10 @@
 #include <exporters/Exporter.hpp>
 #include <hstd/wrappers/graphviz.hpp>
 
-class ExporterDot : public Exporter<ExporterDot, int> {
+class ExporterDot : public Exporter<ExporterDot, Graphviz::Node> {
+    using Node   = Graphviz::Node;
+    using Record = Node::Record;
+    using Graph  = Graphviz::Graph;
 
   public:
     SPtr<Graphviz::Graph> graph;
@@ -17,22 +20,57 @@ class ExporterDot : public Exporter<ExporterDot, int> {
 
     ExporterDot(QString const& name) {
         graph = std::make_shared<Graphviz::Graph>(name);
+        graph->setRankDirection(Graphviz::Graph::RankDirection::LR);
+        graph->setFontName("Iosevka");
     }
 
+    void visitField(
+        Graphviz::Node&         record,
+        char const*             name,
+        CR<sem::Wrap<sem::Org>> value) {
+        Graphviz::Node target = visit(value);
+    }
 
-    void pushVisit(sem::Wrap<sem::Org> org) {
+    template <typename T>
+    void visitField(Node& node, char const* name, CR<Opt<T>> value) {
+        if (value) {
+            visitField(node, name, *value);
+        } else {
+            node.getNodeRecord()->set(
+                name, Record("<none>" + demangle(typeid(T).name())));
+        }
+    }
+
+    template <typename T>
+    void visitField(
+        Graphviz::Node& record,
+        char const*     name,
+        CR<T>           value) {
+        if constexpr (std::is_same_v<T, int>) {
+            record.getNodeRecord()->set(
+                name, Graphviz::Node::Record(QString::number(value)));
+        }
+    }
+
+    template <typename T>
+    Graphviz::Node newRes(CR<T> value) {
         Graphviz::Node node = graph->node(QString::number(++counter));
         node.startRecord();
+        return node;
+    }
+
+    void pushVisit(Graphviz::Node& node, sem::Wrap<sem::Org> org) {
         node.getNodeRecord()->set(
             "kind", Graphviz::Node::Record(to_string(org->getKind())));
 
         if (!nodes.empty()) {
             graph->edge(node, nodes.back().last);
         }
+
         nodes.push_back({.last = node});
     }
 
-    void popVisit(sem::Wrap<sem::Org> org) {
+    void popVisit(Graphviz::Node& record, sem::Wrap<sem::Org> org) {
         if (!nodes.empty()) {
             nodes.pop_back();
         }

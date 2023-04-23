@@ -47,9 +47,9 @@ struct Exporter {
 
     R newRes(sem::Wrap<sem::Org> const) { return R{}; }
 
-    void pushVisit(sem::Wrap<sem::Org> const) {}
-    void popVisit(sem::Wrap<sem::Org> const) {}
-    void visitDispatchHook(sem::Wrap<sem::Org> const) {}
+    void pushVisit(R&, sem::Wrap<sem::Org> const) {}
+    void popVisit(R&, sem::Wrap<sem::Org> const) {}
+    void visitDispatchHook(R&, sem::Wrap<sem::Org> const) {}
     void visitStart(sem::Wrap<sem::Org> const) {}
     void visitEnd(sem::Wrap<sem::Org> const) {}
 
@@ -59,10 +59,10 @@ struct Exporter {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: {                                            \
         sem::Wrap<sem::__Kind> tmp = arg->as<sem::__Kind>();              \
-        _this()->pushVisit(tmp);                                          \
-        _this()->visitDispatchHook(arg);                                  \
+        _this()->pushVisit(res, tmp);                                     \
+        _this()->visitDispatchHook(res, arg);                             \
         _this()->visit##__Kind(res, tmp);                                 \
-        _this()->popVisit(tmp);                                           \
+        _this()->popVisit(res, tmp);                                      \
         break;                                                            \
     }
 

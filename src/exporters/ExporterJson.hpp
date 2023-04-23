@@ -72,8 +72,6 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     }
 
     void visitDocument(json& j, sem::Wrap<sem::Document> doc) {
-        qDebug() << "Visiting document";
         eachSub(j, doc);
-        qDebug() << j;
     }
 };

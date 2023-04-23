@@ -784,9 +784,10 @@ void HaxorgCli::exec() {
 
     ExporterTree tree{os};
     os << "Visit start\n";
-    tree.visitTop(node);
+    //    tree.visitTop(node);
     os << "Visit end\n";
 
+    qDebug() << "Json repr ok";
     Graphviz    gvc;
     ExporterDot dot("g");
     dot.visitTop(node);
@@ -795,6 +796,8 @@ void HaxorgCli::exec() {
 
     gvc.renderToFile(
         *dot.graph, "/tmp/graph.png", Graphviz::RenderFormat::PNG);
+
+    qDebug() << "Graphviz ok";
 
     return;
 }

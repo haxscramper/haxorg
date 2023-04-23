@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/system/string_convert.hpp>
 #include <span>
+#include <QDebug>
 
 template <typename T>
 class Span : public std::span<T> {
@@ -46,7 +47,10 @@ class Span : public std::span<T> {
     bool empty() const { return !(0 < size()); }
 
     int clampSize(int size, T const* data, T const* end) const {
-        return std::clamp<int>(size, 0uz, std::distance(data, end) + 1);
+        Q_ASSERT(data <= end);
+        auto d_raw    = std::distance(data, end);
+        int  distance = static_cast<int>(d_raw + 1);
+        return std::clamp<int>(size, 0, distance);
     }
 
     /// \brief Move current span 'forward', updating data and size by a
@@ -59,12 +63,14 @@ class Span : public std::span<T> {
         ///< Whether size of the span should be fixed (moving window) or
         ///< should the end position stay fixed instead (flexible window)
         bool fixSize = false) {
-        auto data = dataAtOffset(steps);
-        if (fixSize) {
-            *this = Span<T>(data, clampSize(size(), data, maxEnd));
-        } else {
-            *this = Span<T>(data, clampSize(size() - steps, data, maxEnd));
-        }
+        auto data    = dataAtOffset(steps);
+        int  oldSize = size();
+        int  newSize = fixSize ? clampSize(size(), data, maxEnd)
+                               : clampSize(size() - steps, data, maxEnd);
+
+        Q_ASSERT(0 <= newSize && newSize <= oldSize);
+
+        *this = Span<T>(data, newSize);
     }
 
     /// \brief Move end part of the current span 'forward', updating data

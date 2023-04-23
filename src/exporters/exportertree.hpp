@@ -44,9 +44,11 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     }
 
     void popIndent() { stack.pop_back(); }
-    void pushVisit(sem::Wrap<sem::Org> org) { pushIndent(); }
-    void popVisit(sem::Wrap<sem::Org> org) { popIndent(); }
-    void visitDispatchHook(sem::Wrap<sem::Org> const org) { init(org); }
+    void pushVisit(int&, sem::Wrap<sem::Org> org) { pushIndent(); }
+    void popVisit(int&, sem::Wrap<sem::Org> org) { popIndent(); }
+    void visitDispatchHook(int&, sem::Wrap<sem::Org> const org) {
+        init(org);
+    }
     void indent() { os << QString("  ").repeated(stack.back().level); }
 
     struct ScopedField {

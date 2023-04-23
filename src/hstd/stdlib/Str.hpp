@@ -88,6 +88,7 @@ struct Str : public QString {
     }
 
     Span<QChar> toSpan() const {
+        Q_CHECK_PTR(this->data());
         return Span<QChar>(const_cast<QChar*>(this->data()), size());
     }
 

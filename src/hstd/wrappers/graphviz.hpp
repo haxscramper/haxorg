@@ -93,6 +93,19 @@ class Graphviz {
     class Node : public GraphvizObjBase<Node> {
       public:
         struct Record {
+            static QString escape(const QString& input) {
+                QString escaped = input;
+                escaped.replace("\\", "\\\\");
+                escaped.replace("\"", "\\\"");
+                escaped.replace("<", "\\<");
+                escaped.replace(">", "\\>");
+                escaped.replace("|", "\\|");
+                escaped.replace("{", "\\{");
+                escaped.replace("}", "\\}");
+                return escaped;
+            }
+
+
             Record() {}
             Record(Str const& content, Opt<Str> const& tag = std::nullopt)
                 : content(content), tag(tag) {}
@@ -113,25 +126,7 @@ class Graphviz {
                 return std::holds_alternative<Str>(content);
             }
 
-            void set(QString const& columnKey, CR<Record> value) {
-                if (isFinal()) {
-                    content = Vec<Record>{
-                        Record({Record(columnKey), value})};
-                } else {
-                    for (auto& it : getNested()) {
-                        if (it.isRecord()) {
-                            if (it.getNested()[0].isFinal()
-                                && it.getNested()[0].getLabel()
-                                       == columnKey) {
-                                it.getNested()[1] = value;
-                                return;
-                            }
-                        }
-                    }
-
-                    push_back(Record({Record(columnKey), value}));
-                }
-            }
+            void set(QString const& columnKey, CR<Record> value);
 
             bool       isRecord() const { return !isFinal(); }
             Str&       getLabel() { return std::get<Str>(content); }
@@ -143,29 +138,8 @@ class Graphviz {
 
             Opt<Str>                  tag;
             Variant<Str, Vec<Record>> content;
-            Str                       toString(bool braceCount = 0) const {
-                Str result;
-                if (isFinal()) {
-                    if (tag) {
-                        result += "<" + *tag + "> ";
-                    }
-                    result += getLabel();
-                } else {
-                    const auto& c = getNested();
-                    if (!c.empty()) {
-                        result += Str("{").repeated(braceCount);
-                        for (int i = 0; i < c.size(); ++i) {
-                            if (0 < i) {
-                                result += "|";
-                            }
-                            result += c[i].toString(1);
-                        }
-                        result += Str("}").repeated(braceCount);
-                    }
-                }
 
-                return result;
-            }
+            Str toString(bool braceCount = 1) const;
         };
 
         void startRecord() {
@@ -341,22 +315,7 @@ class Graphviz {
         Edge(Agraph_t* graph, Agedge_t* edge)
             : edge_(edge), graph(graph) {}
 
-        Edge(Agraph_t* graph, CR<Node> head, CR<Node> tail)
-            : graph(graph) {
-            Q_CHECK_PTR(graph);
-            Agedge_t* edge = agedge(
-                graph,
-                const_cast<Agnode_t*>(tail.get()),
-                const_cast<Agnode_t*>(head.get()),
-                nullptr,
-                1);
-
-            if (!edge) {
-                throw std::runtime_error("Failed to create edge");
-            } else {
-                edge_ = edge;
-            }
-        }
+        Edge(Agraph_t* graph, CR<Node> head, CR<Node> tail);
 
         Agedge_t*       get() { return edge_; }
         Agedge_t const* get() const { return edge_; }
@@ -387,17 +346,7 @@ class Graphviz {
 
     class Graph : public GraphvizObjBase<Graph> {
       public:
-        Graph(const QString& name, Agdesc_t desc = Agdirected) {
-            Agraph_t* graph_ = agopen(
-                const_cast<char*>(name.toStdString().c_str()),
-                desc,
-                nullptr);
-            if (!graph_) {
-                throw std::runtime_error("Failed to create graph");
-            } else {
-                graph = std::shared_ptr<Agraph_t>(graph_);
-            }
-        }
+        Graph(const QString& name, Agdesc_t desc = Agdirected);
 
         Agraph_t*       get() { return graph.get(); }
         Agraph_t const* get() const { return graph.get(); }
@@ -411,23 +360,9 @@ class Graphviz {
 
         void setSplines(Splines splines);
 
-        void eachNode(Func<void(Node)> cb) {
-            Agnode_t* node;
-            for (node = agfstnode(get()); node;
-                 node = agnxtnode(get(), node)) {
-                cb(Node(get(), node));
-            }
-        }
+        void eachNode(Func<void(Node)> cb);
 
-        void eachEdge(Func<void(Edge)> cb) {
-            for (Agnode_t* node = agfstnode(get()); node;
-                 node           = agnxtnode(get(), node)) {
-                for (Agedge_t* edge = agfstedge(get(), node); edge;
-                     edge           = agnxtedge(get(), edge, node)) {
-                    cb(Edge(get(), edge));
-                }
-            }
-        }
+        void eachEdge(Func<void(Edge)> cb);
 
         Node node(QString const& name) {
             Q_CHECK_PTR(graph.get());
@@ -440,6 +375,9 @@ class Graphviz {
             auto tmp = Edge(graph.get(), head, tail);
             return tmp;
         }
+
+        /// \brief Direction of layout ranks
+        _eattr(RankDirection, rankdir, LR, TB, BT, RL);
 
         /// \brief Damping factor for force-directed layout
         _attr(Damping, Damping, double);
@@ -489,8 +427,6 @@ class Graphviz {
         _attr(PageWidth, pagewidth, double);
         /// \brief Cluster quantum scale factor
         _attr(Quantum, quantum, double);
-        /// \brief Direction of layout ranks
-        _attr(RankDirection, rankdir, QString);
         /// \brief Minimum separation between ranks
         _attr(RankSeparation, ranksep, double);
         /// \brief Resolution (dpi) of the output image
@@ -591,49 +527,13 @@ class Graphviz {
     void writeFile(
         CR<Graph>      graph,
         QString const& fileName,
-        RenderFormat   format = RenderFormat::DOT) {
-        if (format == RenderFormat::DOT) {
-            FILE* output_file = fopen(fileName.toStdString().c_str(), "w");
-            if (output_file == NULL) {
-                perror("Error opening output file");
-                return 1;
-            }
-
-            agwrite(const_cast<Agraph_t*>(graph.get()), output_file);
-            fclose(output_file);
-
-        } else {
-            Q_ASSERT_X(
-                GD_drawing(graph.get()) != nullptr,
-                "render to file",
-                "Writing non-DOT format to file requires layout. Call "
-                "`createLayout()` before writing or use 'renderToFile' to "
-                "execute render in one step");
-            gvRenderFilename(
-                gvc,
-                const_cast<Agraph_t*>(graph.get()),
-                strdup(renderFormatToString(format)),
-                strdup(fileName));
-        }
-    }
+        RenderFormat   format = RenderFormat::DOT);
 
     void renderToFile(
         CR<Graph>      graph,
         const QString& fileName,
         RenderFormat   format = RenderFormat::PNG,
-        LayoutType     layout = LayoutType::Dot) {
-        Q_CHECK_PTR(graph.get());
-        Q_CHECK_PTR(gvc);
-        if (format == RenderFormat::DOT) {
-            writeFile(graph, fileName, format);
-
-        } else {
-
-            createLayout(graph, layout);
-            writeFile(graph, fileName, format);
-            freeLayout(graph);
-        }
-    }
+        LayoutType     layout = LayoutType::Dot);
 
   private:
     GVC_t* gvc;
