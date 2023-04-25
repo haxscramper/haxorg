@@ -113,6 +113,18 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         // TODO
     }
 
+    void eachSub(int&, In<sem::Org> org) {
+        __scope();
+        indent();
+        os << "subnodes:\n";
+        for (const auto& [idx, sub] : enumerate(org->subnodes)) {
+            __scope();
+            indent();
+            os << "[" << idx << "]:\n";
+            visit(sub);
+        }
+    }
+
     template <typename T>
     void visitField(int& arg, const char* name, CR<T> value) {
         __scope();

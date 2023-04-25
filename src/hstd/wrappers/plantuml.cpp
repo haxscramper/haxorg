@@ -1,10 +1,19 @@
 #include <hstd/wrappers/plantuml.hpp>
 #include <hstd/stdlib/strformat.hpp>
+#include <hstd/stdlib/Func.hpp>
 
 QString puml::Gantt::toString() const {
     QString result;
 
+
+    Slice<QDate> convex = events[0].convex();
+    for (const auto& it : events) {
+        convex = convex.widen(it.convex());
+    }
+
     result += "@startgantt\n";
+    result += "Project starts on  " + convex.first.toString(Qt::ISODate)
+            + "\n";
 
     for (const auto& it : events) {
         result += it.toString() + "\n";
@@ -15,15 +24,54 @@ QString puml::Gantt::toString() const {
     return result;
 }
 
+
+Slice<QDate> puml::Gantt::Event::convex() const {
+    Slice<QDate> convex = slice(start, stop);
+    for (const auto& it : nested) {
+        convex = convex.widen(it.convex());
+    }
+
+    return convex;
+}
+
 QString puml::Gantt::Event::toString() const {
     QString result;
-    result += "[${name}] starts on ${start}\n"
-            "[${name}] ends on ${end}\n" %
-            fold_format_pairs({{"name", name},
-                               {"start", start.toString(Qt::ISODate)},
-                               {"end", stop.toString(Qt::ISODate)}})
-            ;
+    struct PassCtx {
+        CR<Event>  e;
+        Opt<Event> parent;
+    };
 
+    Func<void(CR<PassCtx>)> aux;
+
+
+    aux = [&result, &aux](CR<PassCtx> ctx) {
+        if (ctx.parent) {
+            int days = ctx.parent->start.daysTo(ctx.e.start);
+            result += "[${name}] starts ${start} days ${direction} [${parent}]'s start and ends on ${end}\n"
+                    % fold_format_pairs(
+                          {{"name", ctx.e.name},
+                           {"parent", ctx.parent->name},
+                           {"direction", to_string(0 < days ? "before"  : "after")},
+                           {"start", to_string(std::abs(days))},
+                           {"end",  ctx.e.stop.toString(Qt::ISODate)}});
+
+        } else {
+            result += "[${name}] starts on ${start} and ends on ${end}\n"
+                    % fold_format_pairs(
+                          {{"name", ctx.e.name},
+                           {"start", ctx.e.start.toString(Qt::ISODate)},
+                           {"end", ctx.e.stop.toString(Qt::ISODate)}});
+        }
+
+
+        if (!ctx.e.nested.empty()) {
+            for (const auto& it : ctx.e.nested) {
+                aux({.e = it, .parent = ctx.e});
+            }
+        }
+    };
+
+    aux(PassCtx{.e = *this, .parent = std::nullopt});
 
     return result;
 }

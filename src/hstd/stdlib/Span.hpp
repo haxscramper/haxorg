@@ -48,6 +48,8 @@ class Span : public std::span<T> {
 
     int clampSize(int size, T const* data, T const* end) const {
         Q_ASSERT(data <= end);
+        Q_CHECK_PTR(data);
+        Q_CHECK_PTR(end);
         auto d_raw    = std::distance(data, end);
         int  distance = static_cast<int>(d_raw + 1);
         return std::clamp<int>(size, 0, distance);
@@ -63,14 +65,19 @@ class Span : public std::span<T> {
         ///< Whether size of the span should be fixed (moving window) or
         ///< should the end position stay fixed instead (flexible window)
         bool fixSize = false) {
-        auto data    = dataAtOffset(steps);
-        int  oldSize = size();
-        int  newSize = fixSize ? clampSize(size(), data, maxEnd)
-                               : clampSize(size() - steps, data, maxEnd);
+        auto data = dataAtOffset(steps);
+        if (data != nullptr) {
+            int oldSize = size();
+            int newSize = fixSize
+                            ? clampSize(size(), data, maxEnd)
+                            : clampSize(size() - steps, data, maxEnd);
 
-        Q_ASSERT(0 <= newSize && newSize <= oldSize);
+            Q_ASSERT(0 <= newSize && newSize <= oldSize);
 
-        *this = Span<T>(data, newSize);
+            *this = Span<T>(data, newSize);
+        } else {
+            *this = Span<T>(nullptr, 0);
+        }
     }
 
     /// \brief Move end part of the current span 'forward', updating data

@@ -22,13 +22,38 @@ struct HSlice {
 
 
 template <typename T>
+struct Slice;
+
+template <typename T>
+constexpr Slice<T> slice(CR<T> first, CR<T> last);
+
+template <typename T>
 struct Slice : public HSlice<T, T> {
     using HSlice<T, T>::first;
     using HSlice<T, T>::last;
     using HSlice<T, T>::operator==;
 
-    bool contains(T val) const { return first <= val && val <= last; }
-    bool isValid() const { return first <= last; }
+    bool     contains(T val) const { return first <= val && val <= last; }
+    bool     isValid() const { return first <= last; }
+    Slice<T> narrow(Slice<T> const& other) {
+        return slice(
+            // If the other boundary is in the range then move ot to the
+            // right as maximum as possible
+            contains(other.first) ? std::max(other.first, first) : first,
+            // Move right boundary as left/minimum as possible
+            contains(other.last) ? std::min(other.last, last) : last
+            //
+        );
+    }
+
+    Slice<T> widen(Slice<T> const& other) {
+        return slice(
+            // Leftmost of two boundaries -- extend left
+            std::min(other.first, first),
+            // Rightmost of two boundaries -- extend right
+            std::max(other.last, last) //
+        );
+    }
 
     /// \brief Both start and end of the other slice are contained in the
     /// *inclusive* range [first, last]
@@ -112,10 +137,13 @@ constexpr Slice<T> slice(CR<T> first, CR<T> last) {
                     + to_string(static_cast<u64>(last)) + "'");
             }
 
-        } else {
+        } else if constexpr (requires { to_string(first); }) {
             throw RangeError(
                 "Expected first <= last but got first='" + to_string(first)
                 + "' last='" + to_string(last) + "'");
+        } else {
+            throw RangeError(
+                "Expected first <= last but got <unformattable type>");
         }
     }
     return {first, last};

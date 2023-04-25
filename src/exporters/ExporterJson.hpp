@@ -7,18 +7,38 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
 
     template <typename T>
     json newRes(CR<T> arg) {
-        return json::object();
+        json tmp    = json::object();
+        tmp["kind"] = demangle(typeid(arg).name());
+        return tmp;
+    }
+
+    json newRes(CR<sem::Time::Static> time) {
+        json res          = json::object();
+        res["time"]       = time.time.toString(Qt::ISODate);
+        res["simpleTime"] = time.simpleTime;
+        json repeat;
+        if (time.repeat) {
+            repeat["count"]  = time.repeat->count;
+            repeat["period"] = to_string(time.repeat->period);
+            repeat["mode"]   = to_string(time.repeat->mode);
+        }
+        res["repeat"] = repeat;
+        return res;
+    }
+
+    template <typename T>
+    json newRes(CR<Opt<T>> arg) {
+        if (arg) {
+            return newRes(*arg);
+        } else {
+            return json();
+        }
     }
 
     template <typename... Args>
     json newRes(CR<Variant<Args...>> var) {
         return std::visit(
-            [](auto const& it) -> json {
-                json tmp    = json::object();
-                tmp["kind"] = demangle(typeid(it).name());
-                return tmp;
-            },
-            var);
+            [this](auto const& it) -> json { return visit(it); }, var);
     }
 
     template <DescribedEnum E>
@@ -36,6 +56,13 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     json newRes(In<sem::Org> org) {
         json res    = json::object();
         res["kind"] = to_string(org->getKind());
+        json loc    = json::object();
+        loc["line"] = org->loc ? json(org->loc->line) : json();
+        loc["col"]  = org->loc ? json(org->loc->column) : json();
+        loc["id"]   = org->original.id.isNil()
+                        ? json()
+                        : json(org->original.id.getValue());
+        res["loc"]  = loc;
         return res;
     }
 

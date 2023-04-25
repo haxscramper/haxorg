@@ -51,6 +51,8 @@ struct Gantt {
         Opt<int>   completion;
         Vec<Event> nested;
 
+        Slice<QDate> convex() const;
+
         QString toString() const;
     };
 

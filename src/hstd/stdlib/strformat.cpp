@@ -5,7 +5,7 @@ void addf(
     QString&                      s,
     CR<std::vector<AddfFragment>> fragments,
     const std::vector<QString>&   a) {
-    for (const auto fr : fragments) {
+    for (const auto& fr : fragments) {
         switch (fr.kind) {
             case AddfFragmentKind::Dollar: {
                 s += QChar('$');

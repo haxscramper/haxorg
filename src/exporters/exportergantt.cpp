@@ -3,11 +3,15 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <exporters/ExporterUltraplain.hpp>
 #include <exporters/exportertree.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 using osk = OrgSemKind;
 
 QString getStr(sem::Wrap<sem::Org> node) {
-    return ExporterUltraplain().visitTop(node);
+    return strip(
+        ExporterUltraplain().visitTop(node),
+        CharSet{QChar(' ')},
+        CharSet{QChar(' ')});
 }
 
 void treeRepr(sem::Wrap<sem::Org> org) {
@@ -32,8 +36,6 @@ void ExporterGantt::pushVisit(int&, sem::Wrap<sem::Subtree> tree) {
             end   = std::get<1>(period.period)->to->getStatic().time;
         }
 
-        //        treeRepr(tree->title);
-        qDebug() << "Get name title" << getStr(tree->title);
         stack.back().event.name  = getStr(tree->title);
         stack.back().event.start = start.date();
         stack.back().event.stop  = end.date();
@@ -45,8 +47,9 @@ void ExporterGantt::pushVisit(int&, sem::Wrap<sem::Subtree> tree) {
 void ExporterGantt::popVisit(int&, sem::Wrap<sem::Subtree> tree) {
     auto last = stack.pop_back_v();
     if (stack.empty()) {
-        gantt.events.push_back(last.event);
-
+        if (last.filled) {
+            gantt.events.push_back(last.event);
+        }
     } else {
         if (last.filled) {
             stack.back().event.nested.push_back(last.event);

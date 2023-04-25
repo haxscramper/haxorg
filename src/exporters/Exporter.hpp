@@ -64,7 +64,7 @@ struct Exporter {
         In<sem::__Kind> tmp = arg->as<sem::__Kind>();                     \
         _this()->pushVisit(res, tmp);                                     \
         _this()->visitDispatchHook(res, arg);                             \
-        _this()->visit(res, tmp);                                         \
+        _this()->visit##__Kind(res, tmp);                                 \
         _this()->popVisit(res, tmp);                                      \
         break;                                                            \
     }
@@ -79,14 +79,6 @@ struct Exporter {
 
     void visit(R& res, In<sem::Org> arg) { visitDispatch(res, arg); }
 
-#define __visit(__Kind)                                                   \
-    void visit(R& res, In<sem::__Kind> org) {                             \
-        _this()->visit##__Kind(res, org);                                 \
-    }
-
-    EACH_SEM_ORG_KIND(__visit)
-
-#undef __visit
 
     template <typename T>
     R visit(CR<T> arg) {
@@ -265,7 +257,7 @@ struct Exporter {
         __field(res, tree, closed);
         __field(res, tree, deadline);
         __field(res, tree, scheduled);
-        eachSub(res, tree);
+        _this()->eachSub(res, tree);
     }
 
 

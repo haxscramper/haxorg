@@ -9,13 +9,20 @@ struct ExporterUltraplain : public Exporter<ExporterUltraplain, QString> {
         visit(res, org);
     }
 
+    void visitLink(QString& res, In<sem::Link> link);
+
 #define __visit(__Kind)                                                   \
-    void visit(QString& res, In<sem::__Kind> const& leaf) {               \
+    void visit##__Kind(QString& res, In<sem::__Kind> const& leaf) {       \
         res += leaf->text;                                                \
     }
 
     __visit(Word);
     __visit(Space);
+    __visit(Punctuation);
+    __visit(BigIdent);
+    __visit(Placeholder);
+    __visit(RawText);
+    __visit(Newline);
 
 
 #undef __visit
