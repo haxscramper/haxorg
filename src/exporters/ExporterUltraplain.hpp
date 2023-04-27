@@ -11,6 +11,14 @@ struct ExporterUltraplain : public Exporter<ExporterUltraplain, QString> {
 
     void visitLink(QString& res, In<sem::Link> link);
 
+    template <typename T>
+    void visit(QString& res, CR<T> value) {}
+
+    template <typename T>
+    void visitField(QString& res, const char* name, CR<T> field) {
+        visit(res, field);
+    }
+
 #define __visit(__Kind)                                                   \
     void visit##__Kind(QString& res, In<sem::__Kind> const& leaf) {       \
         res += leaf->text;                                                \

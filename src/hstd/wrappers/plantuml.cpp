@@ -5,10 +5,11 @@
 QString puml::Gantt::toString() const {
     QString result;
 
-
-    Slice<QDate> convex = events[0].convex();
-    for (const auto& it : events) {
-        convex = convex.widen(it.convex());
+    Slice<QDate> convex = timeSpan ? *timeSpan : events[0].convex();
+    if (!timeSpan) {
+        for (const auto& it : events) {
+            convex = convex.widen(it.convex());
+        }
     }
 
     result += "@startgantt\n";
@@ -51,7 +52,7 @@ QString puml::Gantt::Event::toString() const {
                     % fold_format_pairs(
                           {{"name", ctx.e.name},
                            {"parent", ctx.parent->name},
-                           {"direction", to_string(0 < days ? "before"  : "after")},
+                           {"direction", to_string(0 < days ? "after"  : "before")},
                            {"start", to_string(std::abs(days))},
                            {"end",  ctx.e.stop.toString(Qt::ISODate)}});
 

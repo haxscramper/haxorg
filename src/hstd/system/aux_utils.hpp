@@ -100,11 +100,11 @@ std::ptrdiff_t pointer_distance(T const* first, T const* last) {
 
 
 #define __SUB_VARIANT_GETTER(fieldName, Type)                             \
-    Type&       get##Type() { std::get<Type>(fieldName); }                \
-    Type const& get##Type() const { std::get<Type>(fieldName); }
+    Type&       get##Type() { return std::get<Type>(fieldName); }         \
+    Type const& get##Type() const { return std::get<Type>(fieldName); }
 
 #define __SUB_VARIANT_KIND_LAMBDA(EnumName, Type)                         \
-    [](Type const&) { return EnumName::Type; },
+    [](Type const&) -> EnumName { return EnumName::Type; },
 
 #define DECL_DESCRIBED_ENUM(Name, ...)                                    \
     enum class Name                                                       \
@@ -119,9 +119,10 @@ std::ptrdiff_t pointer_distance(T const* first, T const* last) {
     using VariantName = std::variant<__VA_ARGS__>;                        \
     FOR_EACH_CALL_WITH_PASS(                                              \
         __SUB_VARIANT_GETTER, (fieldName), __VA_ARGS__)                   \
-    EnumName kindGetterName() const {                                     \
-        std::visit(                                                       \
+    static EnumName kindGetterName(CR<VariantName> __input) {             \
+        return std::visit(                                                \
             overloaded{FOR_EACH_CALL_WITH_PASS(                           \
                 __SUB_VARIANT_KIND_LAMBDA, (EnumName), __VA_ARGS__)},     \
-            fieldName);                                                   \
-    }
+            __input);                                                     \
+    }                                                                     \
+    EnumName kindGetterName() const { return kindGetterName(fieldName); }

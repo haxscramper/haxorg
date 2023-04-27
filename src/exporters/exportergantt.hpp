@@ -22,6 +22,9 @@ struct ExporterGantt : Exporter<ExporterGantt, int> {
     void pushVisit(int&, sem::Wrap<sem::Subtree> tree);
 
     void popVisit(int&, sem::Wrap<sem::Subtree> tree);
+
+    template <typename T>
+    void visitField(int&, const char*, CR<T>) {}
 };
 
 #endif // EXPORTERGANTT_HPP

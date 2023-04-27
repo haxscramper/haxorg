@@ -29,11 +29,12 @@ class ExporterDot : public Exporter<ExporterDot, Graphviz::Node> {
         graph->setFontName("Iosevka");
     }
 
+
     void visitField(
         Graphviz::Node& record,
         char const*     name,
         In<sem::Org>    value) {
-        Graphviz::Node target = visit(value);
+        Graphviz::Node target = newRes(value);
     }
 
     template <typename T>

@@ -56,6 +56,8 @@ struct Gantt {
         QString toString() const;
     };
 
+    Opt<Slice<QDate>> timeSpan;
+
     Vec<Event> events;
 
     QString toString() const;

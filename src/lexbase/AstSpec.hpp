@@ -742,7 +742,8 @@ struct AstSpec {
 
         return FieldAccessError(
             "Cannot get positional node with name '" + to_string(name)
-            + "' from node of kind '" + to_string(kind) + "'. " + names);
+            + "' from node of kind '" + to_string(kind) + "'. "
+            + names.toBase());
     }
 
     Node getSingleSubnode(Node const& node, Name const& name) const {

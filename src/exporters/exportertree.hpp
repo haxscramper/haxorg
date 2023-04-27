@@ -108,12 +108,30 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         }
     }
 
+    template <typename T>
+    void visit(int& arg, CR<T> opt)
+        requires(std::is_enum<T>::value)
+    {
+        __scope();
+        indent();
+        os << os.red() << to_string(opt) << os.end() << "\n";
+    }
+
+    template <typename T>
+    void visit(int& arg, CR<T> opt)
+        requires(!std::is_enum<T>::value)
+    {
+        __scope();
+        indent();
+        os << os.red() << demangle(typeid(T).name()) << os.end() << "\n";
+    }
+
     template <typename K, typename V>
     void visit(int& arg, CR<UnorderedMap<K, V>> opt) {
         // TODO
     }
 
-    void eachSub(int&, In<sem::Org> org) {
+    void eachSub(int& i, In<sem::Org> org) {
         __scope();
         indent();
         os << "subnodes:\n";
@@ -121,9 +139,10 @@ class ExporterTree : public Exporter<ExporterTree, int> {
             __scope();
             indent();
             os << "[" << idx << "]:\n";
-            visit(sub);
+            visit(i, sub);
         }
     }
+
 
     template <typename T>
     void visitField(int& arg, const char* name, CR<T> value) {

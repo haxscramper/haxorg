@@ -1,7 +1,8 @@
 #include <exporters/Exporter.hpp>
 
 struct ExporterJson : public Exporter<ExporterJson, json> {
-#define __ExporterBase Exporter<ExporterJson, json>
+    using Base = Exporter<ExporterJson, json>;
+#define __ExporterBase Base
     EXPORTER_USING()
 #undef __ExporterBase
 
@@ -10,6 +11,19 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
         json tmp    = json::object();
         tmp["kind"] = demangle(typeid(arg).name());
         return tmp;
+    }
+
+
+    json newRes(CR<sem::Subtree::Property> p) {
+        json res    = json::object();
+        res["kind"] = to_string(p.getKind());
+        std::visit(
+            [&, this](auto const& it) {
+                //
+                visit(res, it);
+            },
+            p.data);
+        return res;
     }
 
     json newRes(CR<sem::Time::Static> time) {
@@ -41,13 +55,29 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
             [this](auto const& it) -> json { return visit(it); }, var);
     }
 
-    template <DescribedEnum E>
-    json newRes(CR<E> value) {
+    json visit(CR<Str> value) { return json(value); }
+    json visit(CR<bool> value) { return json(value); }
+    json visit(CR<int> value) { return json(value); }
+    json visit(CR<QDateTime> value) {
+        return json(value.toString(Qt::ISODate).toStdString());
+    }
+
+
+    template <typename E>
+    json visit(E value)
+        requires(std::is_enum<E>::value)
+    {
         return json(to_string(value).toStdString());
     }
 
-    json newRes(CR<Str> value) { return json(value); }
-    json newRes(CR<int> value) { return json(value); }
+    template <typename T>
+    json visit(CR<T> arg)
+        requires(!std::is_enum<T>::value)
+    {
+        json tmp = _this()->newRes(arg);
+        _this()->visit(tmp, arg);
+        return tmp;
+    }
 
     void eachSub(json& j, In<sem::Org> org) {
         j["subnodes"] = visit(org->subnodes);

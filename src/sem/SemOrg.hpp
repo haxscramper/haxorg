@@ -362,14 +362,18 @@ struct Time : public Org {
     struct Dynamic {
         Str expr;
     };
-    bool isActive     = false;
-    using TimeVariant = Variant<Static, Dynamic>;
+    bool isActive = false;
+
+    SUB_VARIANTS(
+        TimeKind,
+        TimeVariant,
+        time,
+        getTimeKind,
+        Static,
+        Dynamic);
+
     TimeVariant time;
     bool isStatic() const { return std::holds_alternative<Static>(time); }
-    Static&        getStatic() { return std::get<Static>(time); }
-    Dynamic&       getDynamic() { return std::get<Dynamic>(time); }
-    Static const&  getStatic() const { return std::get<Static>(time); }
-    Dynamic const& getDynamic() const { return std::get<Dynamic>(time); }
 };
 
 

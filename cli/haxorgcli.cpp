@@ -794,12 +794,13 @@ void HaxorgCli::exec() {
 
     gvc.writeFile("/tmp/graph.dot", *dot.graph);
 
-    gvc.renderToFile(
-        "/tmp/graph.png", *dot.graph, Graphviz::RenderFormat::PNG);
+    //    gvc.renderToFile(
+    //        "/tmp/graph.png", *dot.graph, Graphviz::RenderFormat::PNG);
 
     qDebug() << "Graphviz ok";
 
     ExporterGantt gantt;
+    gantt.gantt.timeSpan = slice(QDate(), QDate());
     gantt.visitTop(node);
 
     writeFile(QFileInfo("/tmp/gantt.puml"_qs), gantt.gantt.toString());

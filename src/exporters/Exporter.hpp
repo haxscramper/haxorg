@@ -14,7 +14,6 @@ struct Exporter {
 
 #define EXPORTER_USING()                                                  \
     using __ExporterBase::visitField;                                     \
-    using __ExporterBase::visitVariantField;                              \
     using __ExporterBase::visitSubnode;                                   \
     using __ExporterBase::pushVisit;                                      \
     using __ExporterBase::popVisit;                                       \
@@ -26,27 +25,14 @@ struct Exporter {
     using __ExporterBase::In;                                             \
     EACH_SEM_ORG_KIND(__EXPORTER_USING_DEFINE)
 
-
-    template <typename T>
-    void visitField(R& arg, const char* name, T const& val) {}
-
-    template <typename T>
-    void visitField(R& arg, const char* name, Opt<T> const& value) {
-        if (value) {
-            visitField(arg, name, *value);
-        }
-    }
-
     void visitField(R& arg, const char* name, In<sem::Org> org) {
-        visit(org);
+        _this()->visit(arg, org);
     }
 
-    template <typename T>
-    void visitVariantField(R& arg, const char* type, T const& val) {
-        visitField(arg, type, val);
-    }
 
-    void visitSubnode(R&, int, In<sem::Org> val) { visit(val); }
+    void visitSubnode(R& tmp, int, In<sem::Org> val) {
+        _this()->visit(tmp, val);
+    }
 
     R newRes(In<sem::Org>) { return R{}; }
 
@@ -80,16 +66,10 @@ struct Exporter {
     void visit(R& res, In<sem::Org> arg) { visitDispatch(res, arg); }
 
 
-    template <typename T>
-    R visit(CR<T> arg) {
-        R tmp = _this()->newRes(arg);
-        _this()->visit(tmp, arg);
-        return tmp;
-    }
-
     R visitTop(In<sem::Org> org) {
         _this()->visitStart(org);
-        R tmp = _this()->visit(org);
+        R tmp = _this()->newRes(org);
+        _this()->visit(tmp, org);
         _this()->visitEnd(org);
         return tmp;
     }
@@ -104,57 +84,53 @@ struct Exporter {
 
     V* _this() { return static_cast<V*>(this); }
 
-    void visit(R& res, int value) { res = _this()->newRes(value); }
-    void visit(R& res, CR<Str> value) { res = _this()->newRes(value); }
-
-    template <typename E>
-    void visit(R& res, E value)
-        requires(std::is_enum<E>::value)
-    {
-        res = _this()->newRes(value);
-    }
-
 #define __field(res, obj, name) _this()->visitField(res, #name, obj->name);
 #define __obj_field(res, obj, name)                                       \
     _this()->visitField(res, #name, obj.name);
-#define __var_field(res, type, value, field)                              \
-    _this()->visitVariantField(res, #type, value.field);
 
 
-    void visit(R& res, CR<sem::Link::Data> data) {
-        std::visit(
-            overloaded{
-                [&](CR<sem::Link::Id> id) {
-                    __var_field(res, Id, id, text);
-                },
-                [&](CR<sem::Link::Footnote> id) {
-                    __var_field(res, Footnote, id, target);
-                },
-                [&](CR<sem::Link::Raw> raw) {
-                    __var_field(res, Raw, raw, text);
-                }},
-            data);
-    }
-
+    // Time specializations
     void visit(R& res, CR<sem::Time::Repeat> repeat) {
         __obj_field(res, repeat, period);
         __obj_field(res, repeat, count);
         __obj_field(res, repeat, mode);
     }
+    void visit(R& res, CR<sem::Time::Static> time) {
+        __obj_field(res, time, simpleTime);
+        __obj_field(res, time, time);
+        __obj_field(res, time, repeat);
+    }
+
+    void visit(R& res, CR<sem::Time::Dynamic> time) {
+        __obj_field(res, time, expr);
+    }
 
     void visit(R& res, CR<sem::Time::TimeVariant> time) {
+        _this()->visitField(res, "kind", sem::Time::getTimeKind(time));
         std::visit(
-            overloaded{
-                [&](CR<sem::Time::Static> time) {
-                    __var_field(res, Static, time, simpleTime);
-                    __var_field(res, Static, time, time);
-                    __var_field(res, Static, time, repeat);
-                },
-                [&](CR<sem::Time::Dynamic> time) {
-                    __var_field(res, Dynamic, time, expr);
-                }},
-            time);
+            [&, this](const auto& it) { _this()->visit(res, it); }, time);
     }
+    // End of time specializations
+
+    // Link content specializations
+    void visit(R& res, CR<sem::Link::Id> id) {
+        __obj_field(res, id, text);
+    }
+
+    void visit(R& res, CR<sem::Link::Footnote> id) {
+        __obj_field(res, id, target);
+    }
+
+    void visit(R& res, CR<sem::Link::Raw> raw) {
+        __obj_field(res, raw, text);
+    }
+
+    void visit(R& res, CR<sem::Link::Data> data) {
+        _this()->visitField(res, "kind", sem::Link::getLinkKind(data));
+        std::visit(
+            [&, this](const auto& it) { _this()->visit(res, it); }, data);
+    }
+    // End of link specializations
 
     void visitLink(R& res, In<sem::Link> link) {
         __field(res, link, description);
@@ -212,36 +188,74 @@ struct Exporter {
         __field(res, completion, isPercent);
     }
 
-    void visit(R& res, CR<sem::SubtreeLog::LogEntry> entry) {
+    // Log entry speciazliations
+
+    void visit(R& res, CR<sem::SubtreeLog::State> state) {
+        __obj_field(res, state, from);
+        __obj_field(res, state, to);
+        __obj_field(res, state, on);
+    }
+
+    void visit(R& res, CR<sem::SubtreeLog::Clock> state) {
         std::visit(
-            overloaded{
-                [&](CR<sem::SubtreeLog::State> state) {
-                    __var_field(res, State, state, from);
-                    __var_field(res, State, state, to);
-                    __var_field(res, State, state, on);
-                },
-                [&](CR<sem::SubtreeLog::Clock> state) {
-                    __var_field(res, Clock, state, range);
-                },
-                [&](CR<sem::SubtreeLog::Tag> state) {
-                    __var_field(res, Tag, state, tag);
-                    __var_field(res, Tag, state, added);
-                },
-                [&](CR<sem::SubtreeLog::Refile> state) {
-                    __var_field(res, Refile, state, on);
-                },
-                [&](CR<sem::SubtreeLog::Note> state) {
-                    __var_field(res, Note, state, on);
-                }},
-            entry);
+            [&, this](const auto& it) {
+                _this()->visitField(res, "range", it);
+            },
+            state.range);
+    }
+
+    void visit(R& res, CR<sem::SubtreeLog::Tag> state) {
+        __obj_field(res, state, tag);
+        __obj_field(res, state, added);
+    }
+
+    void visit(R& res, CR<sem::SubtreeLog::Refile> state) {
+        __obj_field(res, state, on);
+    }
+
+    void visit(R& res, CR<sem::SubtreeLog::Note> state) {
+        __obj_field(res, state, on);
+    }
+
+    void visit(R& res, CR<sem::SubtreeLog::LogEntry> entry) {
+        _this()->visitField(
+            res, "kind", sem::SubtreeLog::getLogKind(entry));
+        std::visit(
+            [&, this](const auto& it) { _this()->visit(res, it); }, entry);
     }
 
     void visitSubtreeLog(R& res, In<sem::SubtreeLog> log) {
         __field(res, log, log);
     }
+    // end
+
+    // subtree specializations
+    void visit(R& res, CR<sem::Subtree::Property::Ordered> p) {
+        __obj_field(res, p, isOrdered);
+    }
+
+    void visit(R& res, CR<sem::Subtree::Property::ExportOptions> p) {
+        __obj_field(res, p, backend);
+        __obj_field(res, p, values);
+    }
+
+    void visit(R& res, CR<sem::Subtree::Property::Nonblocking> o) {
+        __obj_field(res, o, isBlocking);
+    }
+
+    void visit(R& res, CR<sem::Subtree::Property::Blocker> o) {
+        __obj_field(res, o, blockers);
+    }
 
     void visit(R& res, CR<sem::Subtree::Property> prop) {
-        /// TODO
+        _this()->visit(res, prop.data);
+    }
+
+    void visit(R& res, CR<sem::Subtree::Property::Data> prop) {
+        _this()->visitField(
+            res, "kind", sem::Subtree::Property::getKind(prop));
+        std::visit(
+            [&, this](const auto& it) { _this()->visit(res, it); }, prop);
     }
 
     void visitSubtree(R& res, In<sem::Subtree> tree) {
@@ -259,6 +273,7 @@ struct Exporter {
         __field(res, tree, scheduled);
         _this()->eachSub(res, tree);
     }
+    // end
 
 
     void visitListItem(R& res, In<sem::ListItem> item) {
