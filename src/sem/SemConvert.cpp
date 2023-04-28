@@ -180,21 +180,24 @@ Wrap<Subtree> OrgConverter::convertSubtree(__args) {
                     case org::PropertyList: {
                         for (const auto& prop : group) {
                             QString name = normalize(strip(
-                                prop[0].strVal(),
+                                one(prop, N::Name).strVal(),
                                 CharSet{QChar(':')},
                                 CharSet{QChar(':')}));
                             if (name == "exportoptions") {
                                 Property::ExportOptions res;
-                                res.backend = prop[1].strVal();
+                                res.backend = one(prop, N::Subname)
+                                                  .strVal();
                                 for (QString const& pair :
-                                     prop[2].strVal().split(' ')) {
+                                     one(prop, N::Values)
+                                         .strVal()
+                                         .split(' ')) {
                                     auto kv           = pair.split(':');
                                     res.values[kv[0]] = kv[1];
                                 }
                                 tree->properties.push_back(Property(res));
 
                             } else if (name == "id") {
-                                tree->id = prop[2].strVal();
+                                tree->id = one(prop, N::Values).strVal();
 
                             } else {
                                 qCritical().noquote()

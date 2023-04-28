@@ -509,6 +509,16 @@ struct Subtree : public Org {
             Unnumbered,
             Created);
 
+        DECL_DESCRIBED_ENUM(AdditionMode, None, Add, Subtract);
+        DECL_DESCRIBED_ENUM(
+            InheritanceMode,
+            Default,
+            ExcludeThis,
+            ExcludeSub);
+
+        AdditionMode    additionMode;
+        InheritanceMode inheritanceMode;
+
         Data data;
         Property(CR<Data> data) : data(data) {}
     };

@@ -273,16 +273,7 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
         OrgPattern({
             Field(
                 Range(slice(0, 1_B), N::Property),
-                OrgPattern({org::Property, org::PropertyAdd})),
-        })},
-    SpecPair{
-        org::PropertyAdd,
-        OrgPattern({
-            Field(Range(0, N::Name), OrgPattern({org::RawText})),
-            Field(
-                Range(1, N::Subname),
-                OrgPattern({org::Empty, org::Ident})),
-            Field(Range(2, N::Values), OrgPattern({org::RawText})),
+                OrgPattern(org::Property)),
         })},
     SpecPair{
         org::TableRow,
@@ -308,11 +299,20 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
     SpecPair{
         org::Property,
         OrgPattern({
-            Field(Range(0, N::Name), OrgPattern({org::RawText})),
             Field(
-                Range(1, N::Subname),
+                Range(0, N::ExclusionRule),
+                OrgPattern({org::Empty, org::Punctuation})),
+            Field(Range(1, N::Name), OrgPattern({org::RawText})),
+            Field(
+                Range(2, N::MainSetRule),
+                OrgPattern({org::Empty, org::Punctuation})),
+            Field(
+                Range(3, N::Subname),
                 OrgPattern({org::Empty, org::Ident})),
-            Field(Range(2, N::Values), OrgPattern({org::RawText})),
+            Field(
+                Range(4, N::SubSetRule),
+                OrgPattern({org::Empty, org::Punctuation})),
+            Field(Range(5, N::Values), OrgPattern({org::RawText})),
         })},
     SpecPair{
         org::MultilineCommand,

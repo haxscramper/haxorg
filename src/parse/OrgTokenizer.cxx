@@ -161,7 +161,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexCommandArguments(
 
 
 template <>
-void OrgTokenizerImpl<TRACE_STATE>::pushResolved(CR<OrgToken> token) ;
+void OrgTokenizerImpl<TRACE_STATE>::pushResolved(CR<OrgToken> token);
 
 template <>
 void OrgTokenizerImpl<TRACE_STATE>::endGroup(PosStr& str) {
@@ -520,7 +520,6 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexBracket(PosStr& str) {
     }
     return true;
 }
-
 
 
 template <>
@@ -1435,15 +1434,32 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexProperties(PosStr& str) {
         auto hasEnd = false;
         while (!str.finished() && !hasEnd) {
             spaceSkip(str);
-            auto       isAdd = false;
-            const auto id    = str.slice([this, &isAdd](PosStr& str) {
-                oskipOne(str, QChar(':'));
+            auto isAdd = false;
+            oskipOne(str, QChar(':'));
+
+
+            if (str.at("!!")) {
+                // Exclude this this tree specifically from all nested
+                // elements
+                auto exclude1 = str.tok(otk::Punctuation, skipCount, 2);
+                __push(exclude1);
+            } else if (str.at(QChar('!'))) {
+                // Exclude all subnodes from inheriting the property
+                auto exclude2 = str.tok(otk::Punctuation, skipCount, 1);
+                __push(exclude2);
+            }
+
+
+            const auto id = str.slice([this, &isAdd](PosStr& str) {
                 str.skipZeroOrMore(charsets::IdentChars);
-                if (str.at(QChar('+'))) {
-                    isAdd = true;
-                }
-                oskipOne(str, QChar(':'));
             });
+
+            if (str.at(QChar('+')) || str.at(QChar('-'))) {
+                auto edit = str.tok(otk::Punctuation, skipCount, 1);
+                __push(edit);
+            }
+
+            oskipOne(str, QChar(':'));
 
             if (normalize(id.toStr()) == "end") {
                 hasEnd   = true;
@@ -1455,11 +1471,10 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexProperties(PosStr& str) {
                     str, "closing :end:", "property drawer");
                 __report_and_throw((err));
             } else {
-                auto ident = Token(
-                    isAdd ? otk::ColonAddIdent : otk::ColonIdent, id.view);
+                auto ident = Token(otk::ColonIdent, id.view);
                 __push(ident);
                 if (str.at(charsets::IdentStartChars)) {
-                    auto ident = str.tok(otk::Ident, [](PosStr& str) {
+                    auto ident = str.tok(otk::ColonIdent, [](PosStr& str) {
                         while (!str.finished()
                                && str.at(
                                    charsets::DashIdentChars
@@ -1468,6 +1483,11 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexProperties(PosStr& str) {
                         }
                     });
                     __push(ident);
+                    if (str.at(QChar('+')) || str.at(QChar('-'))) {
+                        auto edit = str.tok(
+                            otk::Punctuation, skipCount, 1);
+                        __push(edit);
+                    }
                     oskipOne(str, QChar(':'));
                 }
                 spaceSkip(str);
@@ -2426,7 +2446,6 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexList(PosStr& str) {
     __push(str.fakeTok(otk::ListEnd));
     return true;
 }
-
 
 
 template <>

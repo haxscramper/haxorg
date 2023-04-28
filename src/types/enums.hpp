@@ -73,6 +73,9 @@ enum class OrgSpecName
     Rows,
     Lines,
     Chunks,
+    ExclusionRule,
+    MainSetRule,
+    SubSetRule,
 };
 
 
@@ -359,7 +362,6 @@ enum class OrgNodeKind : short int
     PropertyList,
     Property,
     /// Property entry, either in `#+property:` command, or in `:property:` drawer
-    PropertyAdd, /*!Property value extensions - `:property+:` */
     Placeholder,
     /// Placeholder entry in text, usually writte like `<text to replace>`
     SubtreeDescription, /// `:description:` entry
@@ -703,8 +705,6 @@ enum class OrgTokenKind : short int
     ColonIdent,
     /// Drawer or source code block wrappers with colon-wrapped
     /// identifiers. `:results:`, `:end:` etc.
-    ColonAddIdent,    /// Add value to the existing drawer property -
-                      /// `:NAME+:`
     ColonProperties,  /// Start of the `:PROPERTIES:` block drawer block
     ColonDescription, /// Start of the `:description:` drawer block
     ColonEnd,

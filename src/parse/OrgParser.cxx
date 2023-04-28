@@ -1316,21 +1316,41 @@ OrgId OrgParserImpl<TRACE_STATE>::parseSubtreeProperties(OrgLexer& lex) {
     skip(lex, otk::GroupStart);
     skip(lex, otk::SkipSpace);
     __start(org::PropertyList);
-    while (lex.at(OrgTokSet{otk::ColonIdent, otk::ColonAddIdent})) {
+    while (lex.at(otk::ColonIdent)) {
         __trace("Parse single subtree property");
-        __start(
-            lex.at(otk::ColonIdent) ? org::Property : org::PropertyAdd);
-        auto add = token(
-            org::RawText,
-            pop(lex, OrgTokSet{otk::ColonIdent, otk::ColonAddIdent}));
+        __start(org::Property);
+        // Optional exclusion rule description
+        if(lex.at(otk::Punctuation)) {
+            auto sub = token(org::Punctuation, pop(lex, otk::Punctuation));
+            __token(sub);
+        } else {
+            empty();
+        }
 
-
+        // First ident
+        auto add = token(org::RawText, pop(lex, otk::ColonIdent));
         __token(add);
+
+        // Set rule for main property specification
+        if(lex.at(otk::Punctuation)) {
+            auto sub = token(org::Punctuation, pop(lex, otk::Punctuation));
+            __token(sub);
+        } else {
+            empty();
+        }
 
         // Optional sub-ident for the property name, like
         // `:header-args:cpp:`
-        if (lex.at(otk::Ident)) {
-            auto sub = token(org::Ident, pop(lex, otk::Ident));
+        if (lex.at(otk::ColonIdent)) {
+            auto sub = token(org::Ident, pop(lex, otk::ColonIdent));
+            __token(sub);
+        } else {
+            empty();
+        }
+
+        // Set rule for sub-property specification
+        if(lex.at(otk::Punctuation)) {
+            auto sub = token(org::Punctuation, pop(lex, otk::Punctuation));
             __token(sub);
         } else {
             empty();
