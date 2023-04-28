@@ -300,7 +300,7 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
         org::Property,
         OrgPattern({
             Field(
-                Range(0, N::ExclusionRule),
+                Range(0, N::InheritanceMode),
                 OrgPattern({org::Empty, org::Punctuation})),
             Field(Range(1, N::Name), OrgPattern({org::RawText})),
             Field(

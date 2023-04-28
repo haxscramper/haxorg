@@ -509,15 +509,16 @@ struct Subtree : public Org {
             Unnumbered,
             Created);
 
-        DECL_DESCRIBED_ENUM(AdditionMode, None, Add, Subtract);
+        DECL_DESCRIBED_ENUM(SetMode, Override, Add, Subtract);
         DECL_DESCRIBED_ENUM(
             InheritanceMode,
-            Default,
-            ExcludeThis,
-            ExcludeSub);
+            ThisAndSub,
+            OnlyThis,
+            OnlySub);
 
-        AdditionMode    additionMode;
-        InheritanceMode inheritanceMode;
+        SetMode         mainSetRule     = SetMode::Override;
+        SetMode         subSetRule      = SetMode::Override;
+        InheritanceMode inheritanceMode = InheritanceMode::ThisAndSub;
 
         Data data;
         Property(CR<Data> data) : data(data) {}

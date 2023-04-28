@@ -113,7 +113,27 @@ Vec<Property> Subtree::getContextualProperties(
         }
     }
     std::reverse(result.begin(), result.end());
-    return result;
+
+
+    Vec<Property> rulesApplied;
+    for (int i = 0; i < result.size(); ++i) {
+        const auto& prop = result[i];
+        if (prop.inheritanceMode
+            == Property::InheritanceMode::ThisAndSub) {
+            rulesApplied.push_back(prop);
+        } else if (
+            prop.inheritanceMode == Property::InheritanceMode::OnlyThis
+            && i == result.size() - 1) {
+            // 'this' is the target node
+            rulesApplied.push_back(prop);
+        } else if (
+            prop.inheritanceMode == Property::InheritanceMode::OnlySub
+            && i != result.size() - 1) {
+            rulesApplied.push_back(prop);
+        }
+    }
+
+    return rulesApplied;
 }
 
 bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {

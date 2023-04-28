@@ -1316,7 +1316,7 @@ OrgId OrgParserImpl<TRACE_STATE>::parseSubtreeProperties(OrgLexer& lex) {
     skip(lex, otk::GroupStart);
     skip(lex, otk::SkipSpace);
     __start(org::PropertyList);
-    while (lex.at(otk::ColonIdent)) {
+    while (lex.at(otk::ColonIdent) || lex.at(otk::Punctuation)) {
         __trace("Parse single subtree property");
         __start(org::Property);
         // Optional exclusion rule description

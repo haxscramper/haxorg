@@ -145,6 +145,78 @@ Wrap<HashTag> OrgConverter::convertHashTag(__args) {
     return result;
 };
 
+void OrgConverter::convertSubtreeDrawer(Wrap<Subtree>& tree, In drawer) {
+    if (drawer.kind() != org::Empty) {
+        for (const auto& group : drawer) {
+            switch (group.kind()) {
+                case org::SubtreeDescription: {
+                    tree->description = convertParagraph(
+                        tree.get(), group[0]);
+                    break;
+                }
+
+                case org::PropertyList: {
+                    for (const auto& prop : group) {
+                        convertPropertyList(tree, prop);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void OrgConverter::convertPropertyList(Wrap<Subtree>& tree, In prop) {
+    QString       name = normalize(strip(
+        one(prop, N::Name).strVal(),
+        CharSet{QChar(':')},
+        CharSet{QChar(':')}));
+    Opt<Property> result;
+    if (name == "exportoptions") {
+        Property::ExportOptions res;
+        res.backend = one(prop, N::Subname).strVal();
+        for (QString const& pair :
+             one(prop, N::Values).strVal().split(' ')) {
+            auto kv           = pair.split(':');
+            res.values[kv[0]] = kv[1];
+        }
+
+        result = Property(res);
+
+    } else if (name == "id") {
+        tree->id = one(prop, N::Values).strVal();
+
+    } else {
+        qCritical().noquote() << "Unknown property name" << name << "\n"
+                              << prop.treeRepr();
+    }
+
+    if (result) {
+        const auto inh = one(prop, N::InheritanceMode).strVal();
+        if (inh == "!!") {
+            result->inheritanceMode = Property::InheritanceMode::OnlyThis;
+        } else if (inh == "!") {
+            result->inheritanceMode = Property::InheritanceMode::OnlySub;
+        }
+
+        const auto sub = one(prop, N::SubSetRule).strVal();
+        if (sub == "+") {
+            result->subSetRule = Property::SetMode::Add;
+        } else if (sub == "-") {
+            result->subSetRule = Property::SetMode::Subtract;
+        }
+
+        const auto main = one(prop, N::MainSetRule).strVal();
+        if (main == "+") {
+            result->subSetRule = Property::SetMode::Add;
+        } else if (main == "-") {
+            result->subSetRule = Property::SetMode::Subtract;
+        }
+
+        tree->properties.push_back(*result);
+    }
+}
+
 Wrap<Subtree> OrgConverter::convertSubtree(__args) {
     __trace();
     auto tree = Sem<Subtree>(p, a);
@@ -167,50 +239,7 @@ Wrap<Subtree> OrgConverter::convertSubtree(__args) {
 
     {
         __field(N::Drawer);
-        OrgAdapter drawer = one(a, N::Drawer);
-        if (drawer.kind() != org::Empty) {
-            for (const auto& group : drawer) {
-                switch (group.kind()) {
-                    case org::SubtreeDescription: {
-                        tree->description = convertParagraph(
-                            tree.get(), group[0]);
-                        break;
-                    }
-
-                    case org::PropertyList: {
-                        for (const auto& prop : group) {
-                            QString name = normalize(strip(
-                                one(prop, N::Name).strVal(),
-                                CharSet{QChar(':')},
-                                CharSet{QChar(':')}));
-                            if (name == "exportoptions") {
-                                Property::ExportOptions res;
-                                res.backend = one(prop, N::Subname)
-                                                  .strVal();
-                                for (QString const& pair :
-                                     one(prop, N::Values)
-                                         .strVal()
-                                         .split(' ')) {
-                                    auto kv           = pair.split(':');
-                                    res.values[kv[0]] = kv[1];
-                                }
-                                tree->properties.push_back(Property(res));
-
-                            } else if (name == "id") {
-                                tree->id = one(prop, N::Values).strVal();
-
-                            } else {
-                                qCritical().noquote()
-                                    << "Unknown property name" << name
-                                    << "\n"
-                                    << prop.treeRepr();
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-        }
+        convertSubtreeDrawer(tree, one(a, N::Drawer));
     }
 
     {

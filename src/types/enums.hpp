@@ -73,7 +73,7 @@ enum class OrgSpecName
     Rows,
     Lines,
     Chunks,
-    ExclusionRule,
+    InheritanceMode,
     MainSetRule,
     SubSetRule,
 };

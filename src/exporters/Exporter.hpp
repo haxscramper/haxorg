@@ -248,7 +248,10 @@ struct Exporter {
     }
 
     void visit(R& res, CR<sem::Subtree::Property> prop) {
-        _this()->visit(res, prop.data);
+        __obj_field(res, prop, data);
+        __obj_field(res, prop, mainSetRule);
+        __obj_field(res, prop, subSetRule);
+        __obj_field(res, prop, inheritanceMode);
     }
 
     void visit(R& res, CR<sem::Subtree::Property::Data> prop) {

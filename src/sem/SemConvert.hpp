@@ -107,6 +107,8 @@ struct OrgConverter : public OperationsTracer {
   public:
     virtual Wrap<Table>       convertTable(Up, In);
     virtual Wrap<HashTag>     convertHashTag(Up, In);
+    virtual void              convertSubtreeDrawer(Wrap<Subtree>&, In);
+    virtual void              convertPropertyList(Wrap<Subtree>&, In);
     virtual Wrap<Subtree>     convertSubtree(Up, In);
     virtual Wrap<StmtList>    convertStmtList(Up, In);
     virtual Wrap<Newline>     convertNewline(Up, In);
