@@ -27,6 +27,9 @@ struct LytStrSpan {
     /// Span of multiple layout strings
     Vec<LytStr> strs;
     int         len;
+    LytStrSpan() = default;
+    LytStrSpan(CR<LytStr> str) : strs({str}) {}
+    LytStrSpan(CR<Vec<LytStr>> strs) : strs(strs) {}
 };
 
 struct LayoutElement;
@@ -231,6 +234,7 @@ struct Solution : public SharedPtrApi<Solution> {
 };
 
 struct Block : public SharedPtrApi<Block> {
+
     struct Verb {
         Vec<LytStrSpan> textLines;
         bool            firstNl;
@@ -272,6 +276,18 @@ struct Block : public SharedPtrApi<Block> {
         Line,
         Empty);
 
+    int size() const {
+        return std::visit(
+            overloaded{
+                [](CR<Wrap> w) { return w.wrapElements.size(); },
+                [](CR<Stack> s) { return s.elements.size(); },
+                [](CR<Choice> s) { return s.elements.size(); },
+                [](CR<Line> s) { return s.elements.size(); },
+                [](const auto&) { return 0; },
+            },
+            data);
+    } // namespace layout
+
     struct SolutionHash {
         template <typename T>
         std::size_t operator()(CR<Opt<T>> opt) const {
@@ -297,9 +313,17 @@ struct Block : public SharedPtrApi<Block> {
 
     UnorderedMap<Opt<Solution::Ptr>, Opt<Solution::Ptr>, SolutionHash>
          layoutCache;
-    bool isBreaking; /// Whether or not this block should end the line
+    bool isBreaking; /// Whether or not this block should end the
+                     /// line
     int  breakMult;  /// Local line break cost change
     Data data;
+
+    Block() = default;
+    Block(CR<Data> data) : data(data) {}
+
+    static Block::Ptr text(CR<LytStrSpan> t) {
+        return Block::shared(Text{.text = t});
+    }
 };
 
 

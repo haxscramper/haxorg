@@ -455,3 +455,214 @@ Opt<Solution::Ptr> doOptTextLayout(
 
     return withRestOfLine(result, rest, opts);
 }
+
+Opt<Solution::Ptr> doOptLineLayout(
+    Block::Ptr&         self,
+    Opt<Solution::Ptr>& rest,
+    CR<Options>         opts) {
+    Q_CHECK_PTR(self);
+
+    Block::Line& line = self->getLine();
+    /// Procedure to perform optimal line layout.
+    if (line.elements.size() == 0) {
+        return rest;
+    }
+
+    Vec<Vec<Block::Ptr>> elementLines;
+    elementLines.push_back(Vec<Block::Ptr>());
+
+    for (size_t i = 0; i < line.elements.size(); ++i) {
+        Block::Ptr elt = line.elements[i];
+        elementLines.back().push_back(elt);
+        if (i < line.elements.size() - 1 && elt->isBreaking) {
+            elementLines.push_back(Vec<Block::Ptr>());
+        }
+    }
+
+    if (elementLines.size() > 1) {
+        assert(opts.formatPolicy.breakElementLines != nullptr);
+        elementLines = opts.formatPolicy.breakElementLines(elementLines);
+    }
+
+    Vec<Solution::Ptr> lineSolns;
+
+    for (size_t i = 0; i < elementLines.size(); ++i) {
+        auto&              ln       = elementLines[i];
+        Opt<Solution::Ptr> lnLayout = (i == elementLines.size() - 1)
+                                        ? rest
+                                        : Opt<Solution::Ptr>();
+
+        for (int idx = ln.size() - 1; idx >= 0; --idx) {
+            Block::Ptr elt = ln[idx];
+            lnLayout       = optLayout(elt, lnLayout, opts);
+        }
+
+        if (lnLayout.has_value()) {
+            lineSolns.push_back(lnLayout.value());
+        }
+    }
+
+    Solution::Ptr soln = vSumSolution(lineSolns);
+
+    return Opt<Solution::Ptr>(soln->plusConst(
+        static_cast<float>(opts.linebreakCost * (lineSolns.size() - 1))));
+}
+
+Opt<Solution::Ptr> doOptChoiceLayout(
+    Block::Ptr&         self,
+    Opt<Solution::Ptr>& rest,
+    CR<Options>         opts) {
+    Block::Choice& choice = self->getChoice();
+    /// Optimum layout of this block is the piecewise minimum of its
+    /// elements' layouts.
+    Vec<Solution::Ptr> tmp;
+    for (auto& it : choice.elements) {
+        Opt<Solution::Ptr> lyt = optLayout(it, rest, opts);
+        if (lyt.has_value()) {
+            tmp.push_back(lyt.value());
+        }
+    }
+    return minSolution(tmp);
+}
+
+Opt<Solution::Ptr> doOptStackLayout(
+    Block::Ptr&         self,
+    Opt<Solution::Ptr>& rest,
+    CR<Options>         opts) {
+    Block::Stack& stack = self->getStack();
+    /// Optimum layout for this block arranges the elements vertically.
+    if (stack.elements.size() == 0) {
+        return rest;
+    }
+
+    Vec<Solution::Ptr> solnCandidates;
+    for (size_t idx = 0; idx < stack.elements.size(); ++idx) {
+        auto& elem = stack.elements[idx];
+        if (idx < stack.elements.size() - 1) {
+            Opt<Solution::Ptr> it;
+            auto               opt = optLayout(elem, it, opts);
+            if (opt) {
+                solnCandidates.push_back(*opt);
+            }
+        } else {
+            auto opt = optLayout(elem, rest, opts);
+            if (opt) {
+                solnCandidates.push_back(*opt);
+            }
+        }
+    }
+
+    Solution::Ptr soln = vSumSolution(solnCandidates);
+
+    // Under some odd circumstances involving comments, we may have a
+    // degenerate solution. WARNING
+    if (soln->layouts.size() == 0) {
+        return rest;
+    }
+
+    // Add the cost of the line breaks between the elements.
+    return Opt<Solution::Ptr>(soln->plusConst(static_cast<float>(
+        opts.linebreakCost * self->breakMult
+        * std::max(static_cast<int>(stack.elements.size() - 1), 0))));
+}
+
+Opt<Solution::Ptr> doOptWrapLayout(
+    Block::Ptr&         self,
+    Opt<Solution::Ptr>& rest,
+    CR<Options>         opts) {
+    /// Computing the optimum layout for this class of block involves
+    /// finding the optimal packing of elements into lines, a problem
+    /// which we address using dynamic programming.
+    Block::Wrap&       wrap              = self->getWrap();
+    Block::Ptr         initTextBlock_sep = Block::text(wrap.sep);
+    Opt<Solution::Ptr> none_Solution;
+    Opt<Solution::Ptr> sepLayout = optLayout(
+        initTextBlock_sep, none_Solution, opts);
+
+    Opt<Solution::Ptr> prefixLayout;
+    if (wrap.prefix.has_value()) {
+        Block::Ptr initTextBlock_prefix = Block::text(wrap.prefix.value());
+
+        prefixLayout = doOptLayout(
+            initTextBlock_prefix, none_Solution, opts);
+    }
+
+    Vec<Opt<Solution::Ptr>> eltLayouts;
+    for (auto& it : wrap.wrapElements) {
+        Opt<Solution::Ptr> tmp;
+        eltLayouts.push_back(optLayout(it, tmp, opts));
+    }
+
+    // Entry i in the list wrapSolutions contains the optimum layout for
+    // the last n - i elements of the block.
+    Vec<Opt<Solution::Ptr>> wrapSolutions(
+        self->size(), Opt<Solution::Ptr>());
+
+    // Note that we compute the entries for wrapSolutions in reverse
+    // order, at each iteration considering all the elements from i ... n
+    // - 1 (the actual number of elements considered increases by one on
+    // each iteration). This means that the complete solution, with
+    // elements 0 ... n - 1 is computed last.
+    for (int i = self->size() - 1; i >= 0; --i) {
+        // To calculate wrapSolutions[i], consider breaking the last n - i
+        // elements after element j, for j = i ... n - 1. By induction,
+        // wrapSolutions contains the optimum layout of the elements after
+        // the break, so the full layout is calculated by composing a line
+        // with the elements before the break with the entry from
+        // wrapSolutions corresponding to the elements after the break.
+        // The optimum layout to be entered into wrapSolutions[i] is then
+        // simply the minimum of the full layouts calculated for each j.
+        Vec<Solution::Ptr> solutionsI;
+        // The layout of the elements before the break is built up
+        // incrementally in lineLayout.
+        Opt<Solution::Ptr> lineLayout = prefixLayout.has_value()
+                                          ? withRestOfLine(
+                                              prefixLayout,
+                                              eltLayouts[i],
+                                              opts)
+                                          : eltLayouts[i];
+
+        bool breakOut     = false;
+        bool lastBreaking = wrap.wrapElements[i]->isBreaking;
+        for (int j = i; j < self->size() - 1; ++j) {
+            // Stack solutions for two lines on each other. NOTE this part
+            // is different from the reference implementation, but I think
+            // this is just a minor bug on the other side.
+            Solution::Ptr fullSoln = vSumSolution(
+                {withRestOfLine(lineLayout, sepLayout, opts).value(),
+                 // Solutions for the previous lines
+                 wrapSolutions[j + 1].value()});
+            // We adjust the cost of the full solution by adding the cost
+            // of the line break we've introduced, and a small penalty
+            // (Options.cpack) to favor (ceteris paribus) layouts with
+            // elements packed into earlier lines.
+            solutionsI.push_back(fullSoln->plusConst(static_cast<float>(
+                opts.linebreakCost * self->breakMult
+                + opts.cpack * (self->size() - j))));
+            // If the element at the end of the line mandates a following
+            // line break, we're done.
+            if (lastBreaking) {
+                breakOut = true;
+                break;
+            }
+            // Otherwise, add a separator and the next element to the line
+            // layout and continue.
+            Opt<Solution::Ptr> sepEltLayout = withRestOfLine(
+                sepLayout, eltLayouts[j + 1], opts);
+
+            lineLayout   = withRestOfLine(lineLayout, sepEltLayout, opts);
+            lastBreaking = wrap.wrapElements[j + 1]->isBreaking;
+        }
+
+        if (!breakOut) {
+            Opt<Solution::Ptr> line = withRestOfLine(
+                lineLayout, rest, opts);
+            solutionsI.push_back(line.value());
+        }
+
+        wrapSolutions[i] = minSolution(solutionsI);
+    }
+    // Once wrapSolutions is complete, the optimum layout for the entire
+    // block is the optimum layout for the last n - 0 elements.
+    return wrapSolutions[0];
+}
