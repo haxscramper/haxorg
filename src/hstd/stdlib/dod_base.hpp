@@ -205,7 +205,8 @@ struct [[nodiscard]] Id {
     };                                                                    \
                                                                           \
                                                                           \
-    QTextStream& operator<<(QTextStream& os, __name const& value) {       \
+    inline QTextStream& operator<<(                                       \
+        QTextStream& os, __name const& value) {                           \
         return value.streamTo(os, #__name);                               \
     }
 

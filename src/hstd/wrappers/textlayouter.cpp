@@ -1,5 +1,6 @@
 #include "textlayouter.hpp"
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/system/generator.hpp>
 
 using namespace layout;
 
@@ -480,8 +481,8 @@ Opt<Solution::Ptr> doOptLineLayout(
     }
 
     if (elementLines.size() > 1) {
-        assert(opts.formatPolicy.breakElementLines != nullptr);
-        elementLines = opts.formatPolicy.breakElementLines(elementLines);
+        assert(opts.formatPolicy != nullptr);
+        elementLines = opts.formatPolicy(elementLines);
     }
 
     Vec<Solution::Ptr> lineSolns;
@@ -665,4 +666,242 @@ Opt<Solution::Ptr> doOptWrapLayout(
     // Once wrapSolutions is complete, the optimum layout for the entire
     // block is the optimum layout for the last n - 0 elements.
     return wrapSolutions[0];
+}
+
+Opt<Solution::Ptr> doOptVerbLayout(
+    Block::Ptr&         self,
+    Opt<Solution::Ptr>& rest,
+    CR<Options>         opts) {
+    // The solution for this block is essentially that of a TextBlock(''),
+    // with an abberant layout calculated as follows.
+    Vec<LayoutElement::Ptr> lElts;
+    Block::Verb&            verb = self->getVerb();
+
+    for (size_t i = 0; i < verb.textLines.size(); ++i) {
+        const auto& ln = verb.textLines[i];
+        if (i > 0 || verb.firstNl) {
+            lElts.push_back(LayoutElement::newline());
+        }
+
+        lElts.push_back(LayoutElement::string({ln}));
+    }
+
+    Layout::Ptr   layout = Layout::shared(lElts);
+    int           span   = 0;
+    Solution::Ptr sf;
+    if (opts.leftMargin > 0) { // Prevent incoherent solutions
+        sf->add(0, span, 0, 0, layout);
+    }
+    // opts.rightMargin == 0 is absurd
+    sf->add(opts.leftMargin - span, span, 0, opts.leftMarginCost, layout);
+    sf->add(
+        opts.rightMargin - span,
+        span,
+        (opts.rightMargin - opts.leftMargin) * opts.leftMarginCost,
+        opts.leftMarginCost + opts.rightMarginCost,
+        layout);
+
+    return Opt<Solution::Ptr>(sf);
+}
+
+
+Opt<Solution::Ptr> doOptLayout(
+    Block::Ptr&         self,
+    Opt<Solution::Ptr>& rest,
+    CR<Options>         opts) {
+    switch (self->getKind()) {
+        case Block::Kind::Empty: return std::nullopt;
+        case Block::Kind::Verb: return doOptVerbLayout(self, rest, opts);
+        case Block::Kind::Wrap: return doOptWrapLayout(self, rest, opts);
+        case Block::Kind::Line: return doOptLineLayout(self, rest, opts);
+        case Block::Kind::Text: return doOptTextLayout(self, rest, opts);
+        case Block::Kind::Stack: return doOptStackLayout(self, rest, opts);
+        case Block::Kind::Choice:
+            return doOptChoiceLayout(self, rest, opts);
+    }
+}
+
+generator<Event> layout::formatEvents(Layout::Ptr const& lyt) {
+    /// Generate formatting events for the given layout. The events are
+    /// backend-agnostic and can be interpreted further by the user
+    /// depending on their needs.
+    OutConsole                  buf;
+    Vec<Pair<Layout::Ptr, int>> stack;
+    stack.push_back({lyt, 0});
+
+    auto top  = [&]() -> decltype(auto) { return stack.back(); };
+    using lek = LayoutElement::Kind;
+
+    buf.addMargin(buf.hPos);
+    while (!stack.empty()) {
+        while (std::get<1>(top()) < std::get<0>(top())->elements.size()) {
+            const auto& elem = std::get<0>(top())
+                                   ->elements[std::get<1>(top())];
+            std::get<1>(top())++;
+            buf.hPos = std::max(buf.hPos, buf.margin());
+            switch (elem->getKind()) {
+                case lek::String: {
+                    for (const auto& item : elem->getString().text.strs) {
+                        if (item.id == LytSpacesId) {
+                            if (item.len != 0) {
+                                co_yield Event(Event::Spaces{item.len});
+                            }
+                            buf.hPos += item.len;
+                        } else if (!item.id.isNil()) {
+                            co_yield Event(Event::Text{item});
+                            buf.hPos += item.len;
+                        }
+                    }
+                    break;
+                }
+
+                case lek::Newline:
+                case lek::NewlineSpace: {
+                    co_yield Event(Event::Newline{});
+
+                    buf.hPos = 0;
+                    int mar  = buf.margin();
+                    if (mar != 0) {
+                        co_yield Event(Event::Spaces{mar});
+                        buf.hPos += mar;
+                    }
+
+                    if (elem->getKind() == lek::NewlineSpace
+                        && elem->getNewlineSpace().spaceNum != 0) {
+                        co_yield Event(Event::Spaces{
+                            elem->getNewlineSpace().spaceNum});
+                        buf.hPos += elem->getNewlineSpace().spaceNum;
+                    }
+                    break;
+                }
+
+                case lek::LayoutPrint: {
+                    stack.push_back({elem->getLayoutPrint().layout, 0});
+                    buf.addMargin(buf.hPos);
+                    break;
+                }
+            }
+        }
+        stack.pop_back();
+        buf.popMargin();
+    }
+}
+
+int Block::size() const {
+    return std::visit(
+        overloaded{
+            [](CR<Wrap> w) { return w.wrapElements.size(); },
+            [](CR<Stack> s) { return s.elements.size(); },
+            [](CR<Choice> s) { return s.elements.size(); },
+            [](CR<Line> s) { return s.elements.size(); },
+            [](const auto&) { return 0; },
+        },
+        data);
+}
+
+void Block::add(CR<Ptr> other) {
+    return std::visit(
+        overloaded{
+            [&](Line& w) { w.elements.push_back(other); },
+            [&](Stack& w) { w.elements.push_back(other); },
+            [&](Choice& w) { w.elements.push_back(other); },
+            [&](Wrap& w) { w.wrapElements.push_back(other); },
+            [&](const auto&) { qFatal("TODO ERRMSG"); },
+        },
+        data);
+}
+
+Block::Ptr Block::text(CR<LytStrSpan> t) {
+    return Block::shared(Text{.text = t});
+}
+
+Block::Ptr Block::line(CR<Vec<Ptr>> l) {
+    return Block::shared(Line{.elements = l});
+}
+
+Block::Ptr Block::stack(CR<Vec<Ptr>> l) {
+    return Block::shared(Stack{.elements = l});
+}
+
+Block::Ptr Block::choice(CR<Vec<Ptr>> l) {
+    return Block::shared(Choice{.elements = l});
+}
+
+Block::Ptr Block::wrap(CR<Vec<Ptr>> elems, LytStr sep, int breakMult) {
+
+    auto res = Block::shared(Wrap{
+        .wrapElements = elems,
+        .sep          = sep,
+    });
+
+    res->isBreaking = false;
+    res->breakMult  = breakMult;
+    return res;
+}
+
+Block::Ptr Block::indent(int indent, CR<Ptr> block, int breakMult) {
+    if (indent == 0) {
+        return block;
+    } else {
+        return line({text(LytStr(LytSpacesId, indent)), block});
+    }
+}
+
+Block::Ptr Block::vertical(const Vec<Ptr>& blocks, const Ptr& sep) {
+    Block::Ptr result = stack({});
+
+    for (size_t idx = 0; idx < blocks.size(); ++idx) {
+        const auto& item = blocks[idx];
+        if (idx < blocks.size() - 1) {
+            result->add(line({item, sep}));
+        } else {
+            result->add(item);
+        }
+    }
+
+    return result;
+}
+
+Block::Ptr Block::horizontal(const Vec<Ptr>& blocks, const Ptr& sep) {
+    Block::Ptr result = line({});
+
+    for (size_t idx = 0; idx < blocks.size(); ++idx) {
+        const auto& item = blocks[idx];
+        if (idx > 0) {
+            result->add(sep);
+        }
+        result->add(item);
+    }
+
+    return result;
+}
+
+Vec<Layout::Ptr> Block::toLayouts(const Options& opts) {
+    Opt<Solution::Ptr> rest;
+    Block::Ptr         this_ptr = shared_from_this();
+    auto               sln      = doOptLayout(this_ptr, rest, opts);
+    return sln.value()->layouts;
+}
+
+Vec<Vec<Block::Ptr>> Options::defaultFormatPolicy(
+    const Vec<Vec<Block::Ptr>>& blc) {
+    Vec<Vec<Block::Ptr>> result;
+
+    auto strippedLine = [](const Vec<Block::Ptr>& line) -> Block::Ptr {
+        return Block::line(line);
+    };
+
+    result.push_back({blc[0]});
+    if (blc.size() > 1) {
+        Vec<Block::Ptr> mapped;
+        for (const auto& line : blc[slice(1, 1_B)]) {
+            mapped.push_back(strippedLine(line));
+        }
+
+        Block::Ptr ind = Block::indent(2 * 2, Block::stack(mapped));
+
+        result.push_back({ind});
+    }
+
+    return result;
 }

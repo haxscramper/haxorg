@@ -186,7 +186,7 @@ Pair<A, A> getSpan(
     int          containerSize, /// Size of the container to get span over
     HSlice<A, B> s,             /// Span slice
     bool         checkRange = true /// Ensure that slice does not go out of
-                                   /// container bounds
+                                   /// container bounds9
 ) {
     const A    startPos = s.first;
     A          endPos;

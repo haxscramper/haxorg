@@ -7,21 +7,31 @@
 #include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Opt.hpp>
+#include <hstd/system/generator.hpp>
 
 namespace layout {
 
 DECL_ID_TYPE_MASKED(LytStr, LytStrId, u64, 8);
+
+inline const auto LytSpacesId = LytStrId::FromValue(high<int>() - 120);
 
 struct LytStr {
     using id_type = LytStrId;
     /// Single layout string object. It contains all the information
     /// required to perform the layout and refer back to the original
     /// string piece if needed.
-    LytStrId id; /// Id of the original piece of text
-    int len; /// It's length in units (units are specified - can be ASCII
-             /// or
-    /// unicode or anything else)
+    LytStrId id = LytStrId::Nil(); /// Id of the original piece of text
+    int len     = 0; /// It's length in units (units are specified - can be
+                     /// ASCII or unicode or anything else)
+
+    LytStr() = default;
+    LytStr(LytStrId id, int len) : id(id), len(len) {}
+    LytStr(int idx, int len) : id(LytStrId::FromValue(idx)), len(len) {}
+    int  toIndex() const { return id.getIndex(); }
+    bool isSpaces() const { return id == LytSpacesId; }
 };
+
+inline const auto LytEmptyStr = LytStr(LytStrId::FromValue(0), 0);
 
 struct LytStrSpan {
     /// Span of multiple layout strings
@@ -37,7 +47,7 @@ struct Layout;
 
 template <typename T>
 struct SharedPtrApi
-    : public std::enable_shared_from_this<SharedPtrApi<T>>
+    : public std::enable_shared_from_this<T>
     , public CRTP_this_method<T> {
     using CRTP_this_method<T>::_this;
     template <typename... Args>
@@ -108,6 +118,9 @@ struct LayoutElement : public SharedPtrApi<LayoutElement> {
     bool indent;
 
     LayoutElement(CR<Data> data) : data(data) {}
+
+    static Ptr newline() { return shared(Newline()); }
+    static Ptr string(CR<String> str) { return shared(str); }
 };
 
 struct Event {
@@ -123,30 +136,12 @@ struct Event {
 
     SUB_VARIANTS(Kind, Data, data, getKind, Text, Spaces, Newline);
     Data data;
+    Event(CR<Data> data) : data(data) {}
+    Event() = default;
 };
 
 struct Block;
 
-struct FormatPolicy {
-    std::function<Vec<Vec<SPtr<Block>>>(Vec<Vec<SPtr<Block>>>)>
-        breakElementLines; /// Hook
-};
-
-struct Options {
-    int leftMargin;  /// position of the first right margin. Expected 0
-    int rightMargin; /// position of the second right margin. Set for 80
-    /// to wrap on default column limit.
-    float leftMarginCost; /// cost (per character) beyond margin 0.
-    /// Expected value ~0.05
-    float rightMarginCost; /// cost (per character) beyond margin 1. Should
-    /// be much higher than c0. Expected value
-    /// ~100
-    int   linebreakCost; /// cost per line-break
-    int   indentSpaces;  /// spaces per indent
-    float cpack; /// cost (per element) for packing justified layouts.
-    /// Expected value ~0.001
-    FormatPolicy formatPolicy;
-};
 
 struct Solution : public SharedPtrApi<Solution> {
     /// A Solution object effectively maps an integer (the left margin at
@@ -233,6 +228,8 @@ struct Solution : public SharedPtrApi<Solution> {
         Layout::Ptr layout);
 };
 
+struct Options;
+
 struct Block : public SharedPtrApi<Block> {
 
     struct Verb {
@@ -276,17 +273,9 @@ struct Block : public SharedPtrApi<Block> {
         Line,
         Empty);
 
-    int size() const {
-        return std::visit(
-            overloaded{
-                [](CR<Wrap> w) { return w.wrapElements.size(); },
-                [](CR<Stack> s) { return s.elements.size(); },
-                [](CR<Choice> s) { return s.elements.size(); },
-                [](CR<Line> s) { return s.elements.size(); },
-                [](const auto&) { return 0; },
-            },
-            data);
-    } // namespace layout
+    int  size() const;
+    void add(CR<Block::Ptr> other);
+
 
     struct SolutionHash {
         template <typename T>
@@ -313,19 +302,79 @@ struct Block : public SharedPtrApi<Block> {
 
     UnorderedMap<Opt<Solution::Ptr>, Opt<Solution::Ptr>, SolutionHash>
          layoutCache;
-    bool isBreaking; /// Whether or not this block should end the
-                     /// line
-    int  breakMult;  /// Local line break cost change
+    bool isBreaking = false; /// Whether or not this block should end the
+                             /// line
+    int  breakMult = 1;      /// Local line break cost change
     Data data;
 
     Block() = default;
     Block(CR<Data> data) : data(data) {}
 
-    static Block::Ptr text(CR<LytStrSpan> t) {
-        return Block::shared(Text{.text = t});
+    static Block::Ptr text(CR<LytStrSpan> t);
+
+    static Block::Ptr line(CR<Vec<Block::Ptr>> l);
+
+    static Block::Ptr stack(CR<Vec<Block::Ptr>> l);
+
+    static Block::Ptr choice(CR<Vec<Block::Ptr>> l);
+
+    static Block::Ptr wrap(
+        CR<Vec<Block::Ptr>> elems,
+        LytStr              sep,
+        int                 breakMult = 1);
+
+    static Block::Ptr indent(
+        int            indent,
+        CR<Block::Ptr> block,
+        int            breakMult = 1);
+
+    static Block::Ptr vertical(
+        const Vec<Block::Ptr>& blocks,
+        const Block::Ptr&      sep);
+
+    static Block::Ptr horizontal(
+        const Vec<Block::Ptr>& blocks,
+        const Block::Ptr&      sep);
+
+
+    /// Return all possible formatting layouts for a given block with
+    /// provided options. The best layout will be the first in the returned
+    /// sequence.
+    Vec<Layout::Ptr> toLayouts(const Options& opts);
+
+    /// Return first best formatting layout for a given block. This is the
+    /// procedure you should be using unless you need to have access to all
+    /// the possible layouts.
+    Layout::Ptr toLayout(const Options& opts) {
+        return toLayouts(opts)[0];
     }
 };
 
+
+struct Options {
+    int leftMargin  = 0; /// position of the first right margin. Expected 0
+    int rightMargin = 80; /// position of the second right margin. Set for
+                          /// 80
+    /// to wrap on default column limit.
+    float leftMarginCost = 0.05; /// cost (per character) beyond margin 0.
+    /// Expected value ~0.05
+    float rightMarginCost = 100; /// cost (per character) beyond margin 1.
+                                 /// Should be much higher than c0.
+                                 /// Expected value ~100
+    int   linebreakCost = 5;     /// cost per line-break
+    int   indentSpaces  = 2;     /// spaces per indent
+    float cpack = 0.001; /// cost (per element) for packing justified
+                         /// layouts. Expected value ~0.001
+
+
+    using FormatPolicy = std::function<Vec<Vec<Block::Ptr>>(
+        Vec<Vec<Block::Ptr>>)>;
+
+    static Vec<Vec<Block::Ptr>> defaultFormatPolicy(
+        const Vec<Vec<Block::Ptr>>& blc);
+
+    FormatPolicy formatPolicy = defaultFormatPolicy;
+};
 
 struct OutConsole {
     int      leftMargin;
@@ -335,9 +384,10 @@ struct OutConsole {
 
     int  margin() const { return margins.back(); }
     void addMargin(int m) { margins.push_back(m); }
-    void popMargin(int m) { margins.pop_back(); }
+    void popMargin() { margins.pop_back(); }
 };
 
+generator<Event> formatEvents(Layout::Ptr const& lyt);
 
 } // namespace layout
 
