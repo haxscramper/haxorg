@@ -6,38 +6,13 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     EXPORTER_USING()
 #undef __ExporterBase
 
-    template <typename T>
-    json newRes(CR<T> arg) {
-        json tmp    = json::object();
-        tmp["kind"] = demangle(typeid(arg).name());
-        return tmp;
-    }
-
-
-    json newRes(CR<sem::Subtree::Property> p) {
-        json res    = json::object();
-        res["kind"] = to_string(p.getKind());
-        std::visit(
-            [&, this](auto const& it) {
-                //
-                visit(res, it);
-            },
-            p.data);
-        return res;
-    }
-
-    json newRes(CR<sem::Time::Static> time) {
-        json res          = json::object();
-        res["time"]       = time.time.toString(Qt::ISODate);
-        res["simpleTime"] = time.simpleTime;
-        json repeat;
-        if (time.repeat) {
-            repeat["count"]  = time.repeat->count;
-            repeat["period"] = to_string(time.repeat->period);
-            repeat["mode"]   = to_string(time.repeat->mode);
-        }
-        res["repeat"] = repeat;
-        return res;
+    json newRes(CR<sem::Link::Data>) { return json::object(); }
+    json newRes(CR<sem::Time::TimeVariant>) { return json::object(); }
+    json newRes(CR<sem::Time::Repeat>) { return json::object(); }
+    json newRes(CR<sem::SubtreeLog::LogEntry>) { return json::object(); }
+    json newRes(CR<sem::Subtree::Property>) { return json::object(); }
+    json newRes(CR<sem::Subtree::Property::Data>) {
+        return json::object();
     }
 
     template <typename T>

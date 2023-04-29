@@ -8,6 +8,7 @@
 #include <exporters/exporterdot.hpp>
 #include <exporters/exportertree.hpp>
 #include <exporters/exportergantt.hpp>
+#include <exporters/exporteryaml.hpp>
 
 struct NodeOperations {
     UnorderedMap<OrgId, OrgParser::Report> started, ended, pushed;
@@ -804,6 +805,14 @@ void HaxorgCli::exec() {
     gantt.visitTop(node);
 
     writeFile(QFileInfo("/tmp/gantt.puml"_qs), gantt.gantt.toString());
+
+    {
+        ExporterYaml  exporter;
+        yaml          result = exporter.visitTop(node);
+        std::ofstream of{"/tmp/result.yaml"};
+        of << result;
+        qDebug() << "Yaml OK";
+    }
 
     return;
 }

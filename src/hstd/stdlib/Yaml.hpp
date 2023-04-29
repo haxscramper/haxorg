@@ -3,6 +3,7 @@
 #include <yaml-cpp/yaml.h>
 #include <QString>
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/strformat.hpp>
 
 struct BadTypeConversion : public YAML::RepresentationException {
     explicit BadTypeConversion(YAML::Mark mark, const QString& message)
