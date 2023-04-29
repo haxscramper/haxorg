@@ -23,8 +23,7 @@ struct LytStr {
     /// unicode or anything else)
 };
 
-class LytStrSpan {
-  public:
+struct LytStrSpan {
     /// Span of multiple layout strings
     Vec<LytStr> strs;
     int         len;
@@ -40,7 +39,7 @@ struct SharedPtrApi
     using CRTP_this_method<T>::_this;
     template <typename... Args>
     static std::shared_ptr<T> shared(Args&&... args) {
-        return std::make_shared<T>(std::forward<Args...>(args)...);
+        return std::make_shared<T>(std::forward<Args>(args)...);
     }
 
     std::shared_ptr<T> clone_this() {
@@ -78,11 +77,16 @@ struct LayoutElement : public SharedPtrApi<LayoutElement> {
     /// solver
     /// ('Solution') which is used to determine the precise layout
     /// choosen for a given block.
-    struct String {};
+    struct String {
+        LytStrSpan text;
+    };
+
     struct Newline {};
+
     struct LayoutPrint {
         SPtr<Layout> layout;
     };
+
     struct NewlineSpace {
         int spaceNum = 0;
     };
@@ -91,6 +95,7 @@ struct LayoutElement : public SharedPtrApi<LayoutElement> {
         Kind,
         Data,
         data,
+        getKind,
         String,
         Newline,
         LayoutPrint,
@@ -113,7 +118,7 @@ struct Event {
 
     struct Newline {};
 
-    SUB_VARIANTS(Kind, Data, data, Text, Spaces, Newline);
+    SUB_VARIANTS(Kind, Data, data, getKind, Text, Spaces, Newline);
     Data data;
 };
 
@@ -258,6 +263,7 @@ struct Block : public SharedPtrApi<Block> {
         Kind,
         Data,
         data,
+        getKind,
         Verb,
         Text,
         Wrap,
@@ -266,7 +272,31 @@ struct Block : public SharedPtrApi<Block> {
         Line,
         Empty);
 
-    UnorderedMap<Opt<Solution>, Opt<Solution>> layoutCache;
+    struct SolutionHash {
+        template <typename T>
+        std::size_t operator()(CR<Opt<T>> opt) const {
+            if (opt) {
+                return operator()(*opt);
+            } else {
+                return 0;
+            }
+        }
+
+        template <typename T>
+        std::size_t operator()(CR<Vec<T>> items) const {
+            qFatal("TODO");
+        }
+
+        std::size_t operator()(CR<Solution>) const { qFatal("TODO"); }
+
+        template <typename T>
+        std::size_t operator()(CR<SPtr<T>> opt) const {
+            qFatal("TODO");
+        }
+    };
+
+    UnorderedMap<Opt<Solution::Ptr>, Opt<Solution::Ptr>, SolutionHash>
+         layoutCache;
     bool isBreaking; /// Whether or not this block should end the line
     int  breakMult;  /// Local line break cost change
     Data data;

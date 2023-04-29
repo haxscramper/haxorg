@@ -29,11 +29,11 @@ struct MapBase : public CRTP_this_method<Map> {
     }
 };
 
-template <typename K, typename V>
+template <typename K, typename V, typename Hash = std::hash<K>>
 struct UnorderedMap
-    : public std::unordered_map<K, V>
+    : public std::unordered_map<K, V, Hash>
     , public MapBase<UnorderedMap<K, V>, K, V> {
-    using Base = std::unordered_map<K, V>;
+    using Base = std::unordered_map<K, V, Hash>;
     using API  = MapBase<UnorderedMap<K, V>, K, V>;
     using API::contains;
     using API::get;

@@ -309,13 +309,11 @@ Solution::Ptr hPlusSolution(
             s1->curSpan() + s2->curSpan(),
             iCur,
             gCur,
-            Layout::shared(
-                // TODO
-                //                {
-                //                // lytPrint(s1->curLayout()),
-                //                lytPrint(s2->curLayout())
-                //            }
-                ));
+            Layout::shared(Vec<LayoutElement::Ptr>{
+                LayoutElement::shared(
+                    LayoutElement::LayoutPrint({s1->curLayout()})),
+                LayoutElement::shared(
+                    LayoutElement::LayoutPrint({s2->curLayout()}))}));
 
         // Move to the knot closest to the margin of the corresponding
         // component.
@@ -367,4 +365,93 @@ Opt<Solution::Ptr> withRestOfLine(
         return Opt<Solution::Ptr>(
             hPlusSolution(self.value(), rest.value(), opts));
     }
+}
+
+Opt<Solution::Ptr> doOptLayout(
+    Block::Ptr&         self,
+    Opt<Solution::Ptr>& rest,
+    CR<Options>         opts);
+
+Opt<Solution::Ptr> optLayout(
+    Block::Ptr&         self,
+    Opt<Solution::Ptr>& rest,
+    CR<Options>         opts) {
+    /// Retrieve or compute the least-cost (optimum) layout for this block.
+    /// - @arg{rest} :: text to the right of this block.
+    /// - @ret{} :: Optimal layout for this block and the rest of the line.
+    // Deeply-nested choice block may result in the same continuation
+    // supplied repeatedly to the same block. Without memoisation, this
+    // may result in an exponential blow-up in the layout algorithm.
+    if (self->layoutCache.contains(rest)) {
+        self->layoutCache[rest] = doOptLayout(self, rest, opts);
+    }
+
+    return self->layoutCache[rest];
+}
+
+Opt<Solution::Ptr> doOptTextLayout(
+    Block::Ptr&         self,
+    Opt<Solution::Ptr>& rest,
+    CR<Options>         opts) {
+
+    Opt<Solution::Ptr> result;
+    int                span = self->getText().text.len;
+
+    Layout::Ptr layout = Layout::shared(
+        Vec<LayoutElement::Ptr>{LayoutElement::shared(
+            LayoutElement::String{.text = self->getText().text})});
+
+    // The costs associated with the layout of this block may require 1, 2
+    // or 3 knots, depending on how the length of the text compares with
+    // the two margins (leftMargin and rightMargin) in opts. Note that we
+    // assume opts.rightMargin >= opts.leftMargin >= 0, as asserted in
+    // base.Options.Check().
+    if (span >= opts.rightMargin) {
+        Solution::Ptr temp = Solution::shared(
+            Vec<int>{0},
+            Vec<int>{span},
+            Vec<float>{static_cast<float>(
+                (span - opts.leftMargin) * opts.leftMarginCost
+                + (span - opts.rightMargin) * opts.rightMargin)},
+            Vec<float>{static_cast<float>(
+                opts.leftMarginCost + opts.rightMarginCost)},
+            Vec<Layout::Ptr>{layout});
+
+        result = Opt<Solution::Ptr>(temp);
+    } else if (span >= opts.leftMargin) {
+        Solution::Ptr temp = Solution::shared(
+            Vec<int>{0, opts.rightMargin - span},
+            Vec<int>{span, span},
+            Vec<float>{
+                static_cast<float>(
+                    (span - opts.leftMargin) * opts.leftMarginCost),
+                static_cast<float>(
+                    (opts.rightMargin - opts.leftMargin)
+                    * opts.leftMarginCost)},
+            Vec<float>{
+                static_cast<float>(opts.leftMarginCost),
+                static_cast<float>(
+                    opts.leftMarginCost + opts.rightMarginCost)},
+            Vec<Layout::Ptr>{layout, layout});
+        result = Opt<Solution::Ptr>(temp);
+    } else {
+        Solution::Ptr temp = Solution::shared(
+            Vec<int>{0, opts.leftMargin - span, opts.rightMargin - span},
+            Vec<int>{span, span, span},
+            Vec<float>{
+                static_cast<float>(0),
+                static_cast<float>(0),
+                static_cast<float>(
+                    (opts.rightMargin - opts.leftMargin)
+                    * opts.leftMarginCost)},
+            Vec<float>{
+                static_cast<float>(0),
+                static_cast<float>(opts.leftMarginCost),
+                static_cast<float>(
+                    opts.leftMarginCost + opts.rightMarginCost)},
+            Vec<Layout::Ptr>{layout, layout, layout});
+        result = Opt<Solution::Ptr>(temp);
+    }
+
+    return withRestOfLine(result, rest, opts);
 }
