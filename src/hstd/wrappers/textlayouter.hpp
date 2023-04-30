@@ -8,6 +8,7 @@
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/system/generator.hpp>
+#include <hstd/system/reflection.hpp>
 
 namespace layout {
 
@@ -26,21 +27,34 @@ struct LytStr {
 
     LytStr() = default;
     LytStr(LytStrId id, int len) : id(id), len(len) {}
-    LytStr(int idx, int len) : id(LytStrId::FromValue(idx)), len(len) {}
+    LytStr(int idx, int len) : id(LytStrId(idx)), len(len) {}
     int  toIndex() const { return id.getIndex(); }
     bool isSpaces() const { return id == LytSpacesId; }
+    bool operator==(CR<LytStr> s) const {
+        return id == s.id && len == s.len;
+    }
 };
 
-inline const auto LytEmptyStr = LytStr(LytStrId::FromValue(0), 0);
+BOOST_DESCRIBE_STRUCT(LytStr, (), (id, len));
+REFL_DEFINE_DESCRIBED_OSTREAM(LytStr);
+
+inline const auto LytEmptyStr = LytStr(LytStrId::Nil(), 0);
 
 struct LytStrSpan {
     /// Span of multiple layout strings
     Vec<LytStr> strs;
-    int         len;
-    LytStrSpan() = default;
-    LytStrSpan(CR<LytStr> str) : strs({str}) {}
-    LytStrSpan(CR<Vec<LytStr>> strs) : strs(strs) {}
+    int         len = 0;
+    LytStrSpan()    = default;
+    LytStrSpan(CR<LytStr> str) : strs({str}), len(str.len) {}
+    LytStrSpan(CR<Vec<LytStr>> strs) : strs(strs) {
+        for (const auto& str : strs) {
+            len += str.len;
+        }
+    }
 };
+
+BOOST_DESCRIBE_STRUCT(LytStrSpan, (), (strs, len));
+REFL_DEFINE_DESCRIBED_OSTREAM(LytStrSpan);
 
 struct LayoutElement;
 struct Layout;
@@ -114,8 +128,8 @@ struct LayoutElement : public SharedPtrApi<LayoutElement> {
         LayoutPrint,
         NewlineSpace);
     Data data;
-    int  id;
-    bool indent;
+    int  id     = 0;
+    bool indent = false;
 
     LayoutElement(CR<Data> data) : data(data) {}
 
@@ -123,22 +137,47 @@ struct LayoutElement : public SharedPtrApi<LayoutElement> {
     static Ptr string(CR<String> str) { return shared(str); }
 };
 
+
 struct Event {
     struct Text {
         LytStr str;
+        bool   operator==(CR<Text> s) const { return str == s.str; }
     };
+
 
     struct Spaces {
-        int spaces;
+        int  spaces;
+        bool operator==(CR<Spaces> s) const { return spaces == s.spaces; }
     };
 
-    struct Newline {};
+
+    struct Newline {
+        bool operator==(CR<Newline>) const { return true; }
+    };
+
+
+    bool operator==(CR<Event> other) const { return data == other.data; }
 
     SUB_VARIANTS(Kind, Data, data, getKind, Text, Spaces, Newline);
     Data data;
     Event(CR<Data> data) : data(data) {}
     Event() = default;
 };
+
+BOOST_DESCRIBE_STRUCT(Event::Text, (), (str));
+BOOST_DESCRIBE_STRUCT(Event::Spaces, (), (spaces));
+BOOST_DESCRIBE_STRUCT(Event::Newline, (), ());
+
+REFL_DEFINE_DESCRIBED_OSTREAM(Event::Text);
+REFL_DEFINE_DESCRIBED_OSTREAM(Event::Spaces);
+REFL_DEFINE_DESCRIBED_OSTREAM(Event::Newline);
+
+
+inline QTextStream& operator<<(QTextStream& os, CR<Event> const& value) {
+    return os << "{ .kind = " << value.getKind()
+              << ", data = " << variant_to_string(value.data) << "}";
+}
+
 
 struct Block;
 
@@ -190,6 +229,7 @@ struct Solution : public SharedPtrApi<Solution> {
         , spans(spans)
         , intercepts(intercepts)
         , gradients(gradients)
+        , layouts(layouts)
         , index(0) {}
 
     /// The value (cost) extrapolated for margin m from the current knot.
@@ -296,7 +336,8 @@ struct Block : public SharedPtrApi<Block> {
 
         template <typename T>
         std::size_t operator()(CR<SPtr<T>> opt) const {
-            qFatal("TODO");
+            Q_CHECK_PTR(opt);
+            return std::hash<T*>{}(opt.get());
         }
     };
 
@@ -311,12 +352,10 @@ struct Block : public SharedPtrApi<Block> {
     Block(CR<Data> data) : data(data) {}
 
     static Block::Ptr text(CR<LytStrSpan> t);
-
     static Block::Ptr line(CR<Vec<Block::Ptr>> l);
-
     static Block::Ptr stack(CR<Vec<Block::Ptr>> l);
-
     static Block::Ptr choice(CR<Vec<Block::Ptr>> l);
+    static Block::Ptr space(int count);
 
     static Block::Ptr wrap(
         CR<Vec<Block::Ptr>> elems,
@@ -346,7 +385,9 @@ struct Block : public SharedPtrApi<Block> {
     /// procedure you should be using unless you need to have access to all
     /// the possible layouts.
     Layout::Ptr toLayout(const Options& opts) {
-        return toLayouts(opts)[0];
+        Vec<Layout::Ptr> layouts = toLayouts(opts);
+        Q_ASSERT(!layouts.empty());
+        return layouts[0];
     }
 };
 
@@ -377,9 +418,9 @@ struct Options {
 };
 
 struct OutConsole {
-    int      leftMargin;
-    int      rightMargin;
-    int      hPos; /// Horizontal position on the output console
+    int      leftMargin  = 0;
+    int      rightMargin = 0;
+    int      hPos        = 0; /// Horizontal position on the output console
     Vec<int> margins;
 
     int  margin() const { return margins.back(); }

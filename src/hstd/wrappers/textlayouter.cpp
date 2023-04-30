@@ -4,10 +4,13 @@
 
 using namespace layout;
 
+const auto infty = 1024 * 1024 * 1024;
+
+bool isInf(int a) { return (infty - 4096 <= a) && (a <= infty + 4096); }
 
 int Solution::nextKnot() {
     if (index + 1 >= knots.size()) {
-        return std::numeric_limits<int>::max();
+        return infty;
     } else {
         return knots[index + 1];
     }
@@ -19,8 +22,7 @@ void Solution::moveToMargin(int margin) {
             retreat();
         }
     } else {
-        while (nextKnot() <= margin
-               && nextKnot() != std::numeric_limits<int>::max()) {
+        while (nextKnot() <= margin && nextKnot() != infty) {
             advance();
         }
     }
@@ -61,7 +63,6 @@ void Solution::add(
     layouts.push_back(layout);
 }
 
-const auto infty = 1024 * 1024 * 1024;
 
 /// Form the piecewise minimum of a sequence of Solutions.
 ///
@@ -78,7 +79,7 @@ Opt<Solution::Ptr> minSolution(Vec<Solution::Ptr> solutions) {
 
     Solution::Ptr factory = Solution::shared();
     for (auto& s : solutions) {
-        s.reset();
+        s->reset();
     }
 
     int n            = solutions.size();
@@ -88,7 +89,6 @@ Opt<Solution::Ptr> minSolution(Vec<Solution::Ptr> solutions) {
                            // solution
 
     while (kL < infty) {
-
         Vec<Solution::Ptr>::iterator min = std::min_element(
             solutions.begin(),
             solutions.end(),
@@ -201,44 +201,57 @@ Solution::Ptr vSumSolution(Vec<Solution::Ptr> solutions) {
     }
 
     for (auto& s : solutions) {
-        s.reset();
+        s->reset();
     }
 
     int           margin = 0; // Margin for all components
-    Solution::Ptr result;
+    Solution::Ptr result = Solution::shared();
     while (true) {
         Vec<Layout::Ptr> stacked;
         for (const auto& it : solutions) {
             stacked.push_back(it->curLayout());
         }
+        float curValue = std::accumulate(
+            solutions.begin(),
+            solutions.end(),
+            0.0f,
+            [margin](float sum, const Solution::Ptr& s) {
+                return sum + s->curValueAt(margin);
+            });
+
+        float curGradient = std::accumulate(
+            solutions.begin(),
+            solutions.end(),
+            0.0f,
+            [](float sum, const Solution::Ptr& s) {
+                return sum + s->curGradient();
+            });
+
+        auto curStacked = getStacked(stacked);
+
         result->add(
             margin,
             solutions.back()->curSpan(),
-            std::accumulate(
-                solutions.begin(),
-                solutions.end(),
-                0.0f,
-                [margin](float sum, const Solution::Ptr& s) {
-                    return sum + s->curValueAt(margin);
-                }),
-            std::accumulate(
-                solutions.begin(),
-                solutions.end(),
-                0.0f,
-                [](float sum, const Solution::Ptr& s) {
-                    return sum + s->curGradient();
-                }),
-            getStacked(stacked));
+            curValue,
+            curGradient,
+            curStacked);
 
         // The distance to the closest next knot from the current margin.
-        int dStar = std::numeric_limits<int>::max();
+        int  dStar      = 0;
+        bool firstMatch = true;
         for (const auto& s : solutions) {
-            if (s->nextKnot() > margin) {
-                dStar = std::min(dStar, s->nextKnot() - margin);
+            int knot = s->nextKnot();
+            if (margin < knot) {
+                if (firstMatch) {
+                    dStar      = knot - margin;
+                    firstMatch = false;
+                } else {
+                    dStar = std::min(dStar, knot - margin);
+                }
             }
         }
 
-        if (dStar == std::numeric_limits<int>::max()) {
+        if (isInf(dStar)) {
             break;
         }
 
@@ -274,14 +287,16 @@ Solution::Ptr hPlusSolution(
     Solution::Ptr& s1,
     Solution::Ptr& s2,
     const Options& opts) {
-    s1.reset();
-    s2.reset();
+    Q_CHECK_PTR(s1);
+    Q_CHECK_PTR(s2);
+    s1->reset();
+    s2->reset();
     int s1Margin = 0;
     int s2Margin = s1->curSpan();
 
     s2->moveToMargin(s2Margin);
 
-    Solution::Ptr result;
+    Solution::Ptr result = Solution::shared();
     while (true) {
         // When forming the composite cost gradient and intercept, we must
         // eliminate the over-counting of the last line of the s1, which is
@@ -321,8 +336,7 @@ Solution::Ptr hPlusSolution(
         int kn1 = s1->nextKnot();
         int kn2 = s2->nextKnot();
 
-        if (kn1 == std::numeric_limits<int>::max()
-            && kn2 == std::numeric_limits<int>::max()) {
+        if (isInf(kn1) && isInf(kn2)) {
             break;
         }
 
@@ -383,7 +397,7 @@ Opt<Solution::Ptr> optLayout(
     // Deeply-nested choice block may result in the same continuation
     // supplied repeatedly to the same block. Without memoisation, this
     // may result in an exponential blow-up in the layout algorithm.
-    if (self->layoutCache.contains(rest)) {
+    if (!self->layoutCache.contains(rest)) {
         self->layoutCache[rest] = doOptLayout(self, rest, opts);
     }
 
@@ -729,15 +743,14 @@ generator<Event> layout::formatEvents(Layout::Ptr const& lyt) {
     Vec<Pair<Layout::Ptr, int>> stack;
     stack.push_back({lyt, 0});
 
-    auto top  = [&]() -> decltype(auto) { return stack.back(); };
+    auto top  = [&]() -> Pair<Layout::Ptr, int>& { return stack.back(); };
     using lek = LayoutElement::Kind;
 
     buf.addMargin(buf.hPos);
     while (!stack.empty()) {
-        while (std::get<1>(top()) < std::get<0>(top())->elements.size()) {
-            const auto& elem = std::get<0>(top())
-                                   ->elements[std::get<1>(top())];
-            std::get<1>(top())++;
+        while (top().second < top().first->elements.size()) {
+            const auto& elem = top().first->elements[top().second];
+            top().second++;
             buf.hPos = std::max(buf.hPos, buf.margin());
             switch (elem->getKind()) {
                 case lek::String: {
@@ -825,6 +838,10 @@ Block::Ptr Block::stack(CR<Vec<Ptr>> l) {
 
 Block::Ptr Block::choice(CR<Vec<Ptr>> l) {
     return Block::shared(Choice{.elements = l});
+}
+
+Block::Ptr Block::space(int count) {
+    return Block::shared(Text{.text = LytStr(LytSpacesId, count)});
 }
 
 Block::Ptr Block::wrap(CR<Vec<Ptr>> elems, LytStr sep, int breakMult) {

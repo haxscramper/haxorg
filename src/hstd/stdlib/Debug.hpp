@@ -39,6 +39,6 @@ inline void fatal(CR<QString> msg) { fatal(strdup(msg)); }
 
 #define _dbg(expr)                                                        \
     ([](auto const& it) {                                                 \
-        qDebug() << (#expr) << " = " << it;                               \
+        qDebug() << (#expr) << " = ⦃" << it << "⦄";                       \
         return it;                                                        \
     }((expr)))

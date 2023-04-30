@@ -159,6 +159,12 @@ QTextStream& described_class_printer(QTextStream& os, T const& t) {
     return os;
 }
 
+#define REFL_DEFINE_DESCRIBED_OSTREAM(TypeName)                           \
+    inline QTextStream& operator<<(                                       \
+        QTextStream& os, CR<TypeName> const& value) {                     \
+        return os << described_class_printer(os, value);                  \
+    }
+
 // clang-format off
 
 // They thought 52 arguments would be enough for anyone ...
