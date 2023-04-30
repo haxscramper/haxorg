@@ -80,6 +80,8 @@ struct Layout : public SharedPtrApi<Layout> {
     Vec<SPtr<LayoutElement>> elements;
     Layout() = default;
     Layout(CR<Vec<SPtr<LayoutElement>>> elements) : elements(elements) {}
+    Layout(CR<Span<SPtr<LayoutElement>>> elements)
+        : elements(Vec<SPtr<LayoutElement>>(elements)) {}
 };
 
 

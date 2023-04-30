@@ -34,6 +34,8 @@ class Vec : public std::vector<T> {
     Vec() {}
     explicit Vec(int size) : std::vector<T>(size) {}
     Vec(int size, const T& value) : std::vector<T>(size, value) {}
+    explicit Vec(CR<Span<T>> values)
+        : std::vector<T>(values.begin(), values.end()) {}
 
     /// \brief Append elements from \arg other vector
     void append(CR<Vec<T>> other) {

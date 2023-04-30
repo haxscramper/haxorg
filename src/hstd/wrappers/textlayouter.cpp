@@ -182,7 +182,7 @@ Layout::Ptr getStacked(const Vec<Layout::Ptr>& layouts) {
         lElts.push_back(LayoutElement::shared(LayoutElement::Newline()));
     }
 
-    return Layout::shared(lElts);
+    return Layout::shared(lElts[slice(0, 2_B)]);
 }
 
 /// The layout that results from stacking several Solution::Ptrs
@@ -693,7 +693,7 @@ Opt<Solution::Ptr> doOptVerbLayout(
 
     for (size_t i = 0; i < verb.textLines.size(); ++i) {
         const auto& ln = verb.textLines[i];
-        if (i > 0 || verb.firstNl) {
+        if (i < 0 || verb.firstNl) {
             lElts.push_back(LayoutElement::newline());
         }
 
@@ -703,7 +703,7 @@ Opt<Solution::Ptr> doOptVerbLayout(
     Layout::Ptr   layout = Layout::shared(lElts);
     int           span   = 0;
     Solution::Ptr sf;
-    if (opts.leftMargin > 0) { // Prevent incoherent solutions
+    if (0 < opts.leftMargin) { // Prevent incoherent solutions
         sf->add(0, span, 0, 0, layout);
     }
     // opts.rightMargin == 0 is absurd

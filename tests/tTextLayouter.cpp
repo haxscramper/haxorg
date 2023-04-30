@@ -35,6 +35,11 @@ void internal::PrintTo(const Str& str, ::std::ostream* os) {
     }
 }
 
+template <>
+void internal::PrintTo(CR<Event> e, ::std::ostream* os) {
+    *os << to_string(e);
+}
+
 
 struct StrStore {
     Vec<Str> strings;
@@ -152,19 +157,17 @@ TEST(TextLayouterTest, BasicFormattingOperations) {
                 Event(Event::Text{A}),
                 Event(Event::Newline()),
                 Event(Event::Text{B}),
-                Event(Event::Newline()),
-            }))
-            << to_string(formatting);
+            }));
 
         Str value = toString(block);
-        EXPECT_EQ(value, "A\nB\n");
+        EXPECT_EQ(value, "A\nB");
     }
     EXPECT_EQ(
         toString(b::indent(2, b::line({text("A"), text("B")}))), "  AB");
     {
         auto value = toString(
             b::indent(2, b::stack({text("A"), text("B")})));
-        EXPECT_EQ(value, "  A\n  B\n");
+        EXPECT_EQ(value, "  A\n  B");
     }
     {
         Str expr = toString(b::line({
@@ -178,6 +181,6 @@ TEST(TextLayouterTest, BasicFormattingOperations) {
             }),
         }));
 
-        EXPECT_EQ(expr, "A\nBC\n D\n");
+        EXPECT_EQ(expr, "A\nBC\n D");
     }
 }
