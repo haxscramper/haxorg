@@ -21,6 +21,7 @@ using namespace testing;
 // the internal template for this to work. It does not seem like a big
 // issue but https://github.com/google/googletest/blob/main/docs/advanced.md#teaching-googletest-how-to-print-your-values
 // this still needs to be investigated.
+/// \internal
 template <>
 void internal::PrintTo(const Str& str, ::std::ostream* os) {
     std::ostringstream escaped_str;
@@ -35,6 +36,7 @@ void internal::PrintTo(const Str& str, ::std::ostream* os) {
     }
 }
 
+/// \internal
 template <>
 void internal::PrintTo(CR<Event> e, ::std::ostream* os) {
     *os << to_string(e);

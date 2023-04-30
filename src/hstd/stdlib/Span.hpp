@@ -46,6 +46,7 @@ class Span : public std::span<T> {
     bool hasData() const { return data() != nullptr && 0 < size(); }
     bool empty() const { return !(0 < size()); }
 
+
     int clampSize(int size, T const* data, T const* end) const {
         Q_ASSERT(data <= end);
         Q_CHECK_PTR(data);

@@ -7,6 +7,19 @@
 #include <vector>
 #include <span>
 
+/// \brief Derivation of the standard vector with better API for quick
+/// operations. and added overloads for slicing and backwards indexing.
+///
+/// Data-structure-wise should be identical to the regular vector, but
+/// provides some convienience operators such as `[]` for slices, *integer*
+/// size (less `size() - 1` bugs), more extensive size checking for
+/// accessors (no more `back()`-induced dangling references that fail five
+/// layers down the call stack). Easier concatenation etc.
+///
+/// Performance was taken in consideration for these overloads, but only as
+/// long as it did not hinder the useful functionality itself -- you can
+/// append two vectors, check if it `contains()` someting and so on, even
+/// though these operations are \(O(n)\)
 template <typename T>
 class Vec : public std::vector<T> {
   public:
@@ -34,6 +47,10 @@ class Vec : public std::vector<T> {
     Vec() {}
     explicit Vec(int size) : std::vector<T>(size) {}
     Vec(int size, const T& value) : std::vector<T>(size, value) {}
+    /// \brief Construct vector from the span of elements.
+    ///
+    /// \note Made explicit to make it harder to do accidental
+    /// low-performance copies of the whole data.
     explicit Vec(CR<Span<T>> values)
         : std::vector<T>(values.begin(), values.end()) {}
 
@@ -47,6 +64,8 @@ class Vec : public std::vector<T> {
         insert(end(), other.begin(), other.end());
     }
 
+    /// \brief  Pointwise comparison between vector and any other indexable
+    /// container.
     template <typename Indexable>
     bool operator==(CR<Indexable> other) const {
         if (this->size() == other.size()) {
@@ -106,6 +125,8 @@ class Vec : public std::vector<T> {
         return Span(this->data() + start, end - start + 1);
     }
 
+    /// \brief Get reference wrapper to a value at specified index or empty
+    /// option if the index is out of range
     std::optional<Rw<T>> get(int index) {
         if (has(index)) {
             return at(index);
@@ -114,6 +135,7 @@ class Vec : public std::vector<T> {
         }
     }
 
+    /// \brief Overload for constant vector
     std::optional<CRw<T>> get(int index) const {
         if (has(index)) {
             return at(index);
@@ -140,10 +162,14 @@ class Vec : public std::vector<T> {
 #endif
     }
 
+    /// \brief Access vector value using backwards index, identical to
+    /// `size() - <index value>`
     T& operator[](BackwardsIndex idx) {
         return (*this)[this->size() - idx.value];
     }
 
+    /// \brief 'at' operation for accessing value using backwards indexing,
+    /// recommended for use as it unconiditionally does the bound checking
     T& at(BackwardsIndex idx) {
         return this->at(this->size() - idx.value);
     }
@@ -152,6 +178,7 @@ class Vec : public std::vector<T> {
         return this->at(this->size() - idx.value);
     }
 
+    /// \brief Reference to the last element. Checks for proper array size
     T& back() {
         // It will cause segfault anyway, just in a way that you least
         // expect, so easier to check things here than get absolutely
@@ -160,28 +187,39 @@ class Vec : public std::vector<T> {
         return Base::back();
     }
 
+    /// \brief constant reference to the last element, checks for vector
+    /// size
     T const& back() const {
         assert(0 < size());
         return Base::back();
     }
 
+    /// \brief Override of the 'back' accessor of the standard vector, but
+    /// with check for proper size
     void pop_back() {
         assert(0 < size());
         Base::pop_back();
     }
 
+    /// \brief Get last value and pop it out of the vector itself
     T pop_back_v() {
+        // QUESTION use `std::move` and rvalue to eject elements?
         assert(0 < size());
         auto result = back();
         pop_back();
         return result;
     }
 
+    /// \brief Last accessible index of the vector, useful for slicing etc.
     int high() const { return size() - 1; }
 
-    int  indexOf(CR<T> item) const { return index_of(*this, item); }
+    /// \brief Find item in the vector using default `==` check
+    int indexOf(CR<T> item) const { return index_of(*this, item); }
+    /// \brief Check if vector contains item, using `==`. \note \(O(n)\)
+    /// operation, so better used only on small vectors.
     bool contains(CR<T> item) const { return indexOf(item) != -1; }
 
+    /// \brief Get span that extents for the whole vector content
     Span<T> toSpan() const {
         return Span<T>(const_cast<T*>(this->data()), size());
     }
@@ -191,6 +229,7 @@ class Vec : public std::vector<T> {
 };
 
 
+/// \brief Vector formatting operator
 template <typename T>
 QTextStream& operator<<(QTextStream& os, Vec<T> const& value) {
     os << "[" << join(os, ", ", value) << "]";

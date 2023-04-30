@@ -21,7 +21,7 @@ struct ImplementError : public std::runtime_error {
 
 OrgCommandKind classifyCommand(QString const& command);
 
-// Store common types of the lexer state
+/// Store common types of the lexer state
 template <typename Flag>
 struct LexerState {
     Vec<Flag> flagStack = Vec<Flag>();
@@ -111,13 +111,30 @@ struct LexerState {
 };
 
 
+/// \brief Base implementation of the tokenizer.
+///
+/// There are two intended implementations of the tokenizer -- with and
+/// without tracing. They differ only in the presence of the tracing calls
+/// and implemented as explicitly specialized templates with static bool
+/// argument.
 struct OrgTokenizer : public OperationsTracer {
+    // TODO at the moment the assumption is that adding conditional checks
+    // all over the place in each lexer function would hinder the
+    // performance quite a bit. Since indent/dedent relies on the RAII
+    // triggers they would be executed no matter what -- but now without
+    // any purpose. It is not exactly checked whether the performance drop
+    // is large enough to justify all the hacks with explicit
+    // initialization, but for the time being I don't want to get into this
+    // and try and check what is really going on.
     using Base = Tokenizer<OrgTokenKind>;
 
   public:
+    /// \brief Create tokenizer implementation object
     static SPtr<OrgTokenizer> initImpl(OrgTokenGroup* out, bool doTrace);
 
+    /// \brief Definition of the error types for the lexer
     struct Errors {
+        /// \brief Base error, not thrown anywhere
         struct Base : std::runtime_error {
             // TODO add extent information about the error
             QStringView  view;
@@ -129,6 +146,7 @@ struct OrgTokenizer : public OperationsTracer {
                 : std::runtime_error(""), view(str.view), pos(str.pos) {}
         };
 
+        /// \brief Empty placeholder
         struct None : Base {
             None() : Base(PosStr("", 1)) {}
         };
@@ -238,12 +256,12 @@ struct OrgTokenizer : public OperationsTracer {
         = 0;
 
 
-    /// Check if the string is positioned at the start of a logbook
+    /// \brief Check if the string is positioned at the start of a logbook
     /// `CLOCK:` entry.
     virtual bool atLogClock(CR<PosStr> str) = 0;
 
-    /// Check if string is positioned at the start of toplevel language
-    /// construct.
+    /// \brief Check if string is positioned at the start of toplevel
+    /// language construct.
     virtual bool atConstructStart(CR<PosStr> str) = 0;
     virtual bool atSubtreeStart(CR<PosStr> str)   = 0;
 

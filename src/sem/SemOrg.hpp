@@ -31,45 +31,91 @@ using Wrap = std::shared_ptr<T>;
 #define GET_KIND(Kind)                                                    \
     virtual OrgSemKind getKind() const { return OrgSemKind::Kind; }
 
-class Subtree;
-class Document;
 
+// Forward-declare all node types so 'asVariant' can be defined directly as
+// a part of `Org` API
+#define forward_declare(__Kind) struct __Kind;
+
+EACH_SEM_ORG_KIND(forward_declare)
+#undef forward_declare
+
+#define COMMA ,
+#define skip1(op, ...) __VA_ARGS__
+#define skip(op, ...) skip1(op)
+#define __id(I) , SPtr<I>
+#define __variant() std::variant<skip(EACH_SEM_ORG_KIND(__id))>;
+
+/// \brief Global variant of all sem node derivations
+using OrgVariant = __variant();
+
+#undef __id
+#undef skip
+#undef skip1
+#undef COMMA
+#undef __variant
+
+
+/// \brief Base class for all org nodes. Provides essential baseline API
+/// and information.
 struct Org : public std::enable_shared_from_this<Org> {
-    inline bool hasParent() const { return parent != nullptr; }
-    Org*        getParent() { return parent; }
-    Org const*  getParent() const { return parent; }
+    // TODO implement 'deepClone' function using visitator node to
+    // completely replicate the tree on a structural level
 
-    Vec<Org*>           getParentChain(bool withSelf = false) const;
-    Opt<Wrap<Subtree>>  getParentSubtree() const;
+    /// \brief Check if node has a parent pointer (for converted tree only
+    /// top-level document should not have parent)
+    inline bool hasParent() const { return parent != nullptr; }
+    /// \brief Get parent pointer (might be null)
+    Org*       getParent() { return parent; }
+    Org const* getParent() const { return parent; }
+
+    /// \brief Convert the node to corresponding variant type.
+    ///
+    /// Intented to be used with custom `std::visit` solutions instead of
+    /// relying on the more heavyweight CRTP visitator.
+    OrgVariant asVariant(Ptr<Org> org);
+
+    /// \brief Iteratively get all parent nodes for the subtree
+    Vec<Org*> getParentChain(bool withSelf = false) const;
+    /// \brief Get closest parent subtree (if it exists)
+    Opt<Wrap<Subtree>> getParentSubtree() const;
+    /// \brief Get the document wrapping the node (if such document node
+    /// exists in hierarchy)
     Opt<Wrap<Document>> getDocument() const;
 
-    /// Pointer to the parent node in sem tree, might be null.
+    /// \brief Pointer to the parent node in sem tree, might be null.
     Org* parent = nullptr;
-    /// Adapter to the original parsed node.
+    /// \brief Adapter to the original parsed node.
+    ///
+    /// Set by the conversion functions from linearized representation,
+    /// will be missing for all generated node kinds.
     OrgAdapter original;
 
     inline Org(Org* parent, OrgAdapter original)
         : parent(parent), original(original) {}
 
-    // TODO replace with custom list of kinds -- place enum in the
-    // `enums.hpp`
+    /// \brief Get get kind of the original node.
     OrgNodeKind getOriginalKind() const { return original.getKind(); }
+    /// \brief Get kind of this sem node
     virtual OrgSemKind getKind() const = 0;
-    bool               isGenerated() const { return original.empty(); }
-    Opt<LineCol>       loc = std::nullopt;
-    Vec<Wrap<Org>>     subnodes;
+    /// \brief Whether original node adapter is missing
+    bool isGenerated() const { return original.empty(); }
+    /// \brief Location of the node in the original source file
+    Opt<LineCol> loc = std::nullopt;
+    /// \brief List of subnodes.
+    ///
+    /// Some of the derived nodes don't make the use of subnode list (word,
+    /// punctuation etc), but it was left on the top level of the hierarchy
+    /// for conveinience purposes. It is not expected that 'any' node can
+    /// have subnodes.
+    Vec<Wrap<Org>> subnodes;
 
     void push_back(Wrap<Org>&& sub) { subnodes.push_back(std::move(sub)); }
-    using VisitCb = Func<void(Wrap<Org>)>;
-    virtual void visit(VisitCb cb) {
-        cb(shared_from_this());
-        for (auto& sub : subnodes) {
-            sub->visit(cb);
-        }
-    }
 
+    /// \brief Get subnode at specified index
     inline Wrap<Org> at(int idx) { return subnodes[idx]; }
 
+    /// \brief Cast this node to the specified type and return the result.
+    /// If the cast fails exception is thrown.
     template <typename T>
     Wrap<T> as() {
         Wrap<T> result = std::static_pointer_cast<T>(shared_from_this());
@@ -81,6 +127,7 @@ struct Org : public std::enable_shared_from_this<Org> {
         return result;
     }
 
+    /// \brief Overload for constant conversion
     template <typename T>
     Wrap<T> as() const {
         Wrap<T> result = std::static_pointer_cast<T>(shared_from_this());
@@ -158,11 +205,12 @@ struct Paragraph : public Stmt {
     GET_KIND(Paragraph);
 };
 
-
+/// \brief Base class for branch of formatting node classes
 struct Format : public Org {
     using Org::Org;
 };
 
+/// \brief Center nested content in the exporrt
 struct Center : public Format {
     using Format::Format;
     GET_KIND(Center);
@@ -173,10 +221,13 @@ struct Command : public Stmt {
     using Stmt::Stmt;
 };
 
+/// \brief Single-line commands
 struct LineCommand : public Command {
     using Command::Command;
 };
 
+/// \brief Standalone line commands that can be placed individually on the
+/// top level and don't have to be attached to any subsequent element
 struct Standalone : public LineCommand {
     using LineCommand::LineCommand;
 };
@@ -187,6 +238,7 @@ struct Attached : public LineCommand {
 };
 
 
+/// \brief Caption annotation for any subsequent node
 struct Caption : public Attached {
     using Attached::Attached;
     Wrap<Paragraph> text;
@@ -205,12 +257,14 @@ struct Block : public Command {
     using Command::Command;
 };
 
+/// \brief Quotation block
 struct Quote : public Block {
     using Block::Block;
     Wrap<Paragraph> text;
     GET_KIND(Quote);
 };
 
+/// \brief Example block
 struct Example : public Block {
     using Block::Block;
     GET_KIND(Example);
@@ -244,6 +298,7 @@ struct Code : public Block {
         struct RemoveCallout {
             bool remove = true;
         };
+
         /// \brief Emphasize single line -- can be repeated multiple times
         struct EmphasizeLine {
             int line;
@@ -301,10 +356,10 @@ struct Code : public Block {
 };
 
 
+/// \brief Single static or dynamic timestamp (active or inactive)
 struct Time : public Org {
     GET_KIND(Time);
     using Org::Org;
-
 
     /// Repetition for static time
     struct Repeat {
@@ -398,16 +453,22 @@ struct SubtreeLog : public Org {
         Wrap<Time> on;
     };
 
+    /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30
+    /// Sun 14:51:16] => 1:22`
     struct Clock {
         Variant<Wrap<Time>, Wrap<TimeRange>> range;
     };
 
+    /// \brief Change of the subtree state -- `- State "WIP" from "TODO"
+    /// [2023-04-30 Sun 13:29:04]`
     struct State {
         OrgBigIdentKind from;
         OrgBigIdentKind to;
         Wrap<Time>      on;
     };
 
+    /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on
+    /// [2023-04-30 Sun 13:29:06]`
     struct Tag {
         Wrap<HashTag> tag;
         bool          added = false;
@@ -496,18 +557,6 @@ struct Subtree : public Org {
             QDateTime time;
         };
 
-        SUB_VARIANTS(
-            Kind,
-            Data,
-            data,
-            getKind,
-            Ordered,
-            ExportOptions,
-            Nonblocking,
-            Trigger,
-            Blocker,
-            Unnumbered,
-            Created);
 
         DECL_DESCRIBED_ENUM(SetMode, Override, Add, Subtract);
         DECL_DESCRIBED_ENUM(
@@ -520,7 +569,26 @@ struct Subtree : public Org {
         SetMode         subSetRule      = SetMode::Override;
         InheritanceMode inheritanceMode = InheritanceMode::ThisAndSub;
 
+        //! [declare variant field for subtree properties]
+        SUB_VARIANTS(
+            Kind,    // Name of the property kind discriminant enum
+            Data,    // Type of the value used to hold all the property
+                     // variants
+            data,    // Field itself
+            getKind, // Method name to get the kind of the property
+            Ordered, // List of nested structures -- it will be converted
+                     // to list of defined enums etc.
+            ExportOptions,
+            Nonblocking,
+            Trigger,
+            Blocker,
+            Unnumbered,
+            Created);
+
+        // Variant field is declared separately from the helper definitions
         Data data;
+        //! [declare variant field for subtree properties]
+
         Property(CR<Data> data) : data(data) {}
     };
 
@@ -688,22 +756,6 @@ Opt<Wrap<T>> Stmt::getAttached(OrgSemKind kind) {
 
     return std::nullopt;
 }
-
-#define COMMA ,
-#define skip1(op, ...) __VA_ARGS__
-#define skip(op, ...) skip1(op)
-#define __id(I) , SPtr<I>
-#define __variant() std::variant<skip(EACH_SEM_ORG_KIND(__id))>;
-
-using OrgVariant = __variant();
-
-#undef __id
-#undef skip
-#undef skip1
-#undef COMMA
-#undef __variant
-
-OrgVariant asVariant(Ptr<Org> org);
 
 
 }; // namespace sem

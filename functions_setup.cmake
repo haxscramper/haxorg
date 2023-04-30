@@ -18,6 +18,9 @@ function(set_target_flags TARGET)
     add_target_property(${TARGET} COMPILE_OPTIONS
                         "-fdiagnostics-format=sarif")
 
+    add_target_property(${TARGET} COMPILE_OPTIONS
+                        "-Wdocumentation")
+
     if(${TEST_COVERAGE})
       message(INFO " Test coverage enabled")
       target_compile_options(

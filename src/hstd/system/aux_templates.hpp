@@ -20,8 +20,8 @@ struct pow_v<N, 0> {
 };
 
 
-/// Helper type trait to check whether type \param Derived is derived from
-/// the \param Base class - including cases when \param Base is an
+/// Helper type trait to check whether type \tparam Derived is derived from
+/// the \tparam Base class - including cases when Base is an
 /// partially specialized type name.
 template <template <typename...> class Base, typename Derived>
 struct is_base_of_template {
@@ -49,13 +49,13 @@ template <template <typename...> class Base, typename Derived>
 using is_base_of_template_t = typename is_base_of_template<Base, Derived>::
     type;
 
-/// Convenience helper trait for getting `::value` of the trait check
+/// Convenience helper trait for getting `value` of the trait check
 template <template <typename...> class Base, typename Derived>
 inline constexpr bool is_base_of_template_v = is_base_of_template<
     Base,
     Derived>::value;
 
-/// Type trait to check whether provided \param T type is in the \param
+/// Type trait to check whether provided T type is in the
 /// Pack
 template <typename T, typename... Pack>
 struct is_in_pack;

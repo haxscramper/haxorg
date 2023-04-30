@@ -331,9 +331,9 @@ bool PosStr::hasMoreIndent(const int& indent, const bool& exactIndent)
 void PosStr::skipIdent(const CharSet& chars) { skipZeroOrMore(chars); }
 
 UnexpectedCharError PosStr::makeUnexpected(
-    CR<QString> expected, //< What we expected to find?
-    CR<QString> parsing   //< Description of the thing we are
-                          // parsing at the moment
+    CR<QString> expected, ///< What we expected to find?
+    CR<QString> parsing   ///< Description of the thing we are
+                          /// parsing at the moment
 ) {
     return UnexpectedCharError(
         "Unexpected character encountered during lexing: found "
@@ -383,6 +383,7 @@ void skipBalancedSlice(PosStr& str, CR<BalancedSkipArgs> args) {
     }
 }
 
+/// \brief Skip over decimal/hex/octal/binary digt
 void skipDigit(Ref<PosStr> str) {
     if (str.at(QChar('-'))) {
         str.next();

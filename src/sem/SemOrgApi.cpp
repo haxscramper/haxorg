@@ -14,7 +14,7 @@ sem::Subtree::Period::Kind high() {
     return sem::Subtree::Period::Kind::Repeated;
 }
 
-OrgVariant asVariant(Ptr<Org> org) {
+sem::OrgVariant Org::asVariant(Ptr<Org> org) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: return org->as<__Kind>();
 

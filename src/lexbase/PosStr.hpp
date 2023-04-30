@@ -373,9 +373,9 @@ struct PosStr {
     /// Create new QChar('unexpected character') error at the current
     /// string parsing position.
     UnexpectedCharError makeUnexpected(
-        CR<QString> expected, //< What we expected to find?
-        CR<QString> parsing   //< Description of the thing we are
-                              // parsing at the moment
+        CR<QString> expected, ///< What we expected to find?
+        CR<QString> parsing   ///< Description of the thing we are
+                              /// parsing at the moment
     );
 };
 

@@ -500,7 +500,7 @@ template <typename... Args>
 struct MultiStore {
     inline MultiStore() {}
 
-    //// \brief Get reference to the store that is associated with \tparam
+    //// \brief Get reference to the store that is associated with
     /// Val
     template <typename Val>
         requires is_in_pack_v<Store<id_type_t<Val>, Val>, Args...>
@@ -515,7 +515,7 @@ struct MultiStore {
         return std::get<InternStore<id_type_t<Val>, Val>>(stores);
     }
 
-    /// \brief Get reference to the store that is associated with \tparam
+    /// \brief Get reference to the store that is associated with
     /// Val
     template <typename Val>
         requires is_in_pack_v<Store<id_type_t<Val>, Val>, Args...>
