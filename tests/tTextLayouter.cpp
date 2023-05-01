@@ -2,6 +2,8 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/strformat.hpp>
 
 #include <QDebug>
 
@@ -105,7 +107,7 @@ Str toString(Block::Ptr b, int width = 80) {
     return toString(s, Options{.rightMargin = width}, b);
 }
 
-Str toString(Options& o, Block::Ptr b) { return toString(o, b); }
+Str toString(Block::Ptr b, Options const& o) { return toString(s, o, b); }
 
 Layout::Ptr toLyt(Block::Ptr& b) { return b->toLayout(Options{}); }
 
@@ -184,5 +186,185 @@ TEST(TextLayouterTest, BasicFormattingOperations) {
         }));
 
         EXPECT_EQ(expr, "A\nBC\n D");
+    }
+
+    EXPECT_EQ(
+        toString(b::choice({
+            text("123456"),
+            text("123"),
+        })),
+        Str("123"));
+
+    EXPECT_EQ(
+        toString(b::choice({
+            b::stack({
+                text("123"),
+                text("456"),
+            }),
+            text("123456"),
+        })),
+        Str("123456"));
+
+    EXPECT_EQ(
+        toString(
+            b::choice({
+                b::stack({text("12"), text("34"), text("56")}),
+                text("132456"),
+            }),
+            Options{.linebreakCost = 1, .rightMargin = 2}),
+        "12\n34\n56");
+
+    EXPECT_EQ(
+        toString(
+            b::wrap(
+                {
+                    text("[###]"),
+                    text("[###]"),
+                },
+                str("@+")),
+            {.rightMargin = 2}),
+        "[###]@+\n[###]");
+}
+
+using namespace std::ranges;
+
+// TEST(TextLayouterTest, ProcLayoutForWidth) {
+//     Vec<Str> res;
+//     for (const auto& args : Vec{1, 2}) {
+//         for (const auto& body : Vec{20, 60}) {
+//             Block::Ptr block = lytProc(
+//                 rs::iota_view(0, args - 1)
+//                     | rv::transform([](int i) -> Str {
+//                          return "arg$#: arg$#_type" % to_string_vec(i, i);
+//                      }),
+//                text(Str("?").repeated(body)));
+
+//            res.push_back(toString(block));
+//        }
+//    }
+
+//    EXPECT_EQ(res[0], "proc (arg0: arg0_type) = ????????????????????");
+//    EXPECT_EQ(res[1], R"(
+// proc (
+//    arg0: arg0_type
+//) =
+//  ????????????????????????????????????????????????????????????)");
+
+//    EXPECT_EQ(res[2], R"(
+// proc (arg0: arg0_type, arg1: arg1_type) = ????????????????????)");
+
+//    EXPECT_EQ(res[3], R"(
+// proc (
+//    arg0: arg0_type,
+//    arg1: arg1_type
+//) =
+//  ????????????????????????????????????????????????????????????)");
+//}
+
+TEST(TextLayouterTest, FnNameWithWrap) {
+    auto wrapArgs = []() {
+        return b::wrap(
+            {
+                text("argument1"),
+                text("argument2"),
+                text("argument3"),
+                text("argument4"),
+                text("argument5"),
+                text("argument6"),
+                text("argument7"),
+                text("argument8"),
+                text("argument9"),
+                text("argument10"),
+            },
+            str(", "));
+    };
+    {
+        Str res = toString(
+            b::line({
+                b::line({text("FnName"), text("(")}),
+                wrapArgs(),
+                text(")"),
+            }),
+            60);
+
+        Str val
+            = "FnName(argument1, argument2, argument3, argument4,\n"
+              "       argument5, argument6, argument7, argument8,\n"
+              "       argument9, argument10)";
+
+        EXPECT_EQ(res, val);
+    }
+
+    {
+        Str res = toString(
+            b::line({
+                b::line({text("FnName"), text("(")}),
+                wrapArgs(),
+                text(")"),
+            }),
+            30);
+
+        Str val
+            = "FnName(argument1, argument2,\n"
+              "       argument3, argument4,\n"
+              "       argument5, argument6,\n"
+              "       argument7, argument8,\n"
+              "       argument9, argument10)";
+
+        EXPECT_EQ(res, val);
+    }
+
+    {
+        Str res = toString(
+            b::choice({
+                b::line({
+                    b::line({
+                        text("AVeryLongAndDescriptiveFunctionName"),
+                        text("("),
+                    }),
+                    b::indent(4, wrapArgs()),
+                    text(")"),
+                }),
+                b::stack({
+                    b::line({
+                        text("AVeryLongAndDescriptiveFunctionName"),
+                        text("("),
+                    }),
+                    b::indent(4, wrapArgs()),
+                    text(")"),
+                }),
+            }),
+            50);
+
+        EXPECT_EQ(
+            res,
+            "AVeryLongAndDescriptiveFunctionName(\n"
+            "    argument1, argument2, argument3, argument4,\n"
+            "    argument5, argument6, argument7, argument8,\n"
+            "    argument9, argument10\n"
+            ")");
+    }
+}
+
+TEST(TextLayouterTest, CodeLayout) {
+    {
+        auto bl = toString(b::line({
+            text("stmtPragmas* = "),
+            b::line({
+                text("{ "),
+                b::stack({
+                    text("wChecks"),
+                    text("wOverflowChecks"),
+                    text("wNilChecks"),
+                }),
+                text(" }"),
+            }),
+        }));
+
+        EXPECT_EQ(
+            bl,
+            "stmtPragmas* = { wChecks\n"
+            "                 wOverflowChecks\n"
+            "                 wNilChecks }");
     }
 }
