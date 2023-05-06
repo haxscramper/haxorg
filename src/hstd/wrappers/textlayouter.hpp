@@ -1,5 +1,6 @@
 #ifndef TEXTLAYOUTER_HPP
 #define TEXTLAYOUTER_HPP
+
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/system/aux_utils.hpp>
 #include <hstd/stdlib/Variant.hpp>
@@ -301,6 +302,7 @@ struct Block : public SharedPtrApi<Block> {
 
     int  size() const;
     void add(CR<Block::Ptr> other);
+    void add(CVec<Block::Ptr> others);
 
 
     struct SolutionHash {
@@ -338,9 +340,9 @@ struct Block : public SharedPtrApi<Block> {
     Block(CR<Data> data) : data(data) {}
 
     static Block::Ptr text(CR<LytStrSpan> t);
-    static Block::Ptr line(CR<Vec<Block::Ptr>> l);
-    static Block::Ptr stack(CR<Vec<Block::Ptr>> l);
-    static Block::Ptr choice(CR<Vec<Block::Ptr>> l);
+    static Block::Ptr line(CR<Vec<Block::Ptr>> l = {});
+    static Block::Ptr stack(CR<Vec<Block::Ptr>> l = {});
+    static Block::Ptr choice(CR<Vec<Block::Ptr>> l = {});
     static Block::Ptr space(int count);
 
     static Block::Ptr wrap(
@@ -415,6 +417,15 @@ struct OutConsole {
 };
 
 generator<Event> formatEvents(Layout::Ptr const& lyt);
+
+struct SimpleStringStore {
+    Vec<QString> strings;
+
+    LytStr  str(QString const& str);
+    QString str(const LytStr& str);
+    QString toString(Block::Ptr& blc, Options const& opts);
+};
+
 
 } // namespace layout
 

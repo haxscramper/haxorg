@@ -49,6 +49,7 @@ struct StrStore {
     Vec<Str> strings;
 };
 
+// TODO replace with tests for the simple string store
 LytStr str(StrStore& store, const Str& str) {
     LytStr result(store.strings.size(), str.length());
     store.strings.push_back(str);

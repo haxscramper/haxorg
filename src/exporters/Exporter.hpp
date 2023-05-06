@@ -99,9 +99,7 @@ struct Exporter {
 
             mp_for_each<BaseFields>([&](auto const& field) {
                 _this()->visitField(
-                    res,
-                    field.name,
-                    ((Base const&)(*tree)).*field.pointer);
+                    res, field.name, (*tree).*field.pointer);
             });
         });
 

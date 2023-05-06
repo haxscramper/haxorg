@@ -1,6 +1,8 @@
 #include "textlayouter.hpp"
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/system/generator.hpp>
+#include <hstd/stdlib/charsets.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 using namespace layout;
 
@@ -824,6 +826,18 @@ void Block::add(CR<Ptr> other) {
         data);
 }
 
+void Block::add(CVec<Ptr> others) {
+    return std::visit(
+        overloaded{
+            [&](Line& w) { w.elements.append(others); },
+            [&](Stack& w) { w.elements.append(others); },
+            [&](Choice& w) { w.elements.append(others); },
+            [&](Wrap& w) { w.wrapElements.append(others); },
+            [&](const auto&) { qFatal("TODO ERRMSG"); },
+        },
+        data);
+}
+
 Block::Ptr Block::text(CR<LytStrSpan> t) {
     return Block::shared(Text{.text = t});
 }
@@ -921,4 +935,48 @@ Vec<Vec<Block::Ptr>> Options::defaultFormatPolicy(
     }
 
     return result;
+}
+
+LytStr SimpleStringStore::str(const QString& str) {
+    LytStr result(strings.size(), str.length());
+    strings.push_back(str);
+    return result;
+}
+
+QString SimpleStringStore::str(const LytStr& str) {
+    if (str.isSpaces()) {
+        return QString(" ").repeated(str.len);
+    } else {
+        return strings[str.toIndex()];
+    };
+}
+
+QString SimpleStringStore::toString(Block::Ptr& blc, const Options& opts) {
+    Layout::Ptr lyt = blc->toLayout(opts);
+    QString     result;
+    for (const auto& event : formatEvents(lyt)) {
+        switch (event.getKind()) {
+            case Event::Kind::Newline: {
+                result += "\n";
+                break;
+            }
+
+            case Event::Kind::Spaces: {
+                result += std::string(event.getSpaces().spaces, ' ');
+                break;
+            }
+
+            case Event::Kind::Text: {
+                result += str(event.getText().str);
+                break;
+            }
+        }
+    }
+
+    Vec<QString> fin;
+    for (const auto& line : result.split("\n")) {
+        fin.push_back(strip(line, CharSet{}, CharSet{QChar(' ')}));
+    }
+
+    return join("\n", fin);
 }

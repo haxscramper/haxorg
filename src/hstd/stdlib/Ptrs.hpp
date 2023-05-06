@@ -28,3 +28,24 @@ struct SharedPtrApi
 
     using Ptr = std::shared_ptr<T>;
 };
+
+
+template <typename T>
+struct remove_smart_pointer {
+    using type = T;
+};
+
+template <typename T>
+struct remove_smart_pointer<std::shared_ptr<T>> {
+    using type = T;
+};
+
+template <typename T>
+struct remove_smart_pointer<std::unique_ptr<T>> {
+    using type = T;
+};
+
+template <typename T>
+struct remove_smart_pointer<std::weak_ptr<T>> {
+    using type = T;
+};

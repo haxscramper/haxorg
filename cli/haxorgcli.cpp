@@ -9,6 +9,7 @@
 #include <exporters/exportertree.hpp>
 #include <exporters/exportergantt.hpp>
 #include <exporters/exporteryaml.hpp>
+#include <exporters/exporterhtml.hpp>
 
 struct NodeOperations {
     UnorderedMap<OrgId, OrgParser::Report> started, ended, pushed;
@@ -812,6 +813,14 @@ void HaxorgCli::exec() {
         std::ofstream of{"/tmp/result.yaml"};
         of << result;
         qDebug() << "Yaml OK";
+    }
+
+    {
+        ExporterHtml       exporter;
+        layout::Block::Ptr result    = exporter.visitTop(node);
+        QString            formatted = exporter.store.toString(
+            result, layout::Options{});
+        writeFile(QFileInfo("/tmp/result.html"), formatted);
     }
 
     return;
