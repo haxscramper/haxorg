@@ -72,7 +72,8 @@ struct Org : public std::enable_shared_from_this<Org> {
     ///
     /// Intented to be used with custom `std::visit` solutions instead of
     /// relying on the more heavyweight CRTP visitator.
-    OrgVariant asVariant(Ptr<Org> org);
+    OrgVariant        asVariant(Ptr<Org> org);
+    static OrgVariant fromKind(OrgSemKind kind);
 
     /// \brief Iteratively get all parent nodes for the subtree
     Vec<Org*> getParentChain(bool withSelf = false) const;
@@ -90,6 +91,7 @@ struct Org : public std::enable_shared_from_this<Org> {
     /// will be missing for all generated node kinds.
     OrgAdapter original;
 
+    inline Org(CVec<Wrap<Org>> subnodes = {}) : subnodes(subnodes) {}
     inline Org(Org* parent, OrgAdapter original)
         : parent(parent), original(original) {}
 
@@ -147,6 +149,9 @@ class Attached;
 /// code blocks, call blocks)
 struct Stmt : public Org {
     using Org::Org;
+    Stmt() {}
+    Stmt(CVec<Wrap<Attached>> attached, CVec<Wrap<Org>> subnodes)
+        : Org(subnodes), attached(attached) {}
 
     Vec<Wrap<Attached>> attached;
     json                attachedJson() const;

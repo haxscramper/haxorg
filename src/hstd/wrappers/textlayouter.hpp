@@ -59,22 +59,6 @@ REFL_DEFINE_DESCRIBED_OSTREAM(LytStrSpan);
 struct LayoutElement;
 struct Layout;
 
-template <typename T>
-struct SharedPtrApi
-    : public std::enable_shared_from_this<T>
-    , public CRTP_this_method<T> {
-    using CRTP_this_method<T>::_this;
-    template <typename... Args>
-    static std::shared_ptr<T> shared(Args&&... args) {
-        return std::make_shared<T>(std::forward<Args>(args)...);
-    }
-
-    std::shared_ptr<T> clone_this() {
-        return std::make_shared<T>(*_this());
-    }
-
-    using Ptr = std::shared_ptr<T>;
-};
 
 struct Layout : public SharedPtrApi<Layout> {
     Vec<SPtr<LayoutElement>> elements;

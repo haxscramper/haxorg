@@ -23,6 +23,15 @@ sem::OrgVariant Org::asVariant(Ptr<Org> org) {
 #undef __case
 }
 
+OrgVariant Org::fromKind(OrgSemKind kind) {
+#define __case(__Kind)                                                    \
+    case OrgSemKind::__Kind: return std::make_shared<__Kind>();
+
+    switch (kind) { EACH_SEM_ORG_KIND(__case) }
+
+#undef __case
+}
+
 Vec<Org*> Org::getParentChain(bool withSelf) const {
     Vec<Org*> result;
 
