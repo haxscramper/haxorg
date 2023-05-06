@@ -17,6 +17,60 @@
 #include <QDateTime>
 
 
+#define __define_field_aux(first, second, uppercase, third)               \
+    __unpack_pars first second = third;
+
+#define __per_field(class_bases_bases, field) __define_field(field)
+
+#define __get_field_name_aux(a, fieldName, c, d) fieldName
+#define __get_field_name(_, arg) , __get_field_name_aux arg
+#define __drop_leading_comma(first, ...) __VA_ARGS__
+
+#define __define_field(arg) __define_field_aux arg
+#define __define_field_only(_, arg) __define_field_aux arg
+
+#define __pass_args_field_aux(_1, fieldname, _2, _3)                      \
+    fieldname(args.fieldname),
+#define __pass_args_field(_, arg) __pass_args_field_aux arg
+
+#define EMPTY()
+
+#define DECL_FIELDS(classname, bases, ...)                                \
+    FOR_EACH_CALL_WITH_PASS(__per_field, (classname, bases), __VA_ARGS__) \
+    struct Args {                                                         \
+        FOR_EACH_CALL_WITH_PASS(                                          \
+            __define_field_only,                                          \
+            (classname, bases),                                           \
+            __VA_ARGS__)                                                  \
+        __extra_args_fields                                               \
+    };                                                                    \
+                                                                          \
+    inline classname(Args const& args)                                    \
+        : FOR_EACH_CALL_WITH_PASS(__pass_args_field, (), __VA_ARGS__)     \
+            __extra_args_pass /* This one must be non-empty: At least     \
+                                 subnodes must be present*/               \
+        {};                                                               \
+                                                                          \
+    BOOST_DESCRIBE_CLASS(                                                 \
+        classname,                                                        \
+        bases, /* Expand teh list of fields and leave only the the name   \
+                  of the field to be passed to the public members of the  \
+                  boost describe */                                       \
+        (      /* < Extra wrapping paren, __get_field_name leaves out the \
+                  a,b,c,d,e list*/                                        \
+         __drop_leading_comma EMPTY()(EXPAND(FOR_EACH_CALL_WITH_PASS(     \
+             __get_field_name,                                            \
+             () /* < Nothing to pass around */,                           \
+             __VA_ARGS__)))),                                             \
+        () /* For simplicity reasons, sem nodes have public fields and no \
+              protected/private members */                                \
+        ,                                                                 \
+        ());
+
+#define __extra_args_fields Vec<Wrap<Org>> subnodes = {};
+#define __extra_args_pass Org(args.subnodes)
+
+
 namespace sem {
 
 struct TreeId {
@@ -32,8 +86,8 @@ using Wrap = std::shared_ptr<T>;
     virtual OrgSemKind getKind() const { return OrgSemKind::Kind; }
 
 
-// Forward-declare all node types so 'asVariant' can be defined directly as
-// a part of `Org` API
+// Forward-declare all node types so 'asVariant' can be defined directly
+// as a part of `Org` API
 #define forward_declare(__Kind) struct __Kind;
 
 EACH_SEM_ORG_KIND(forward_declare)
@@ -105,10 +159,10 @@ struct Org : public std::enable_shared_from_this<Org> {
     Opt<LineCol> loc = std::nullopt;
     /// \brief List of subnodes.
     ///
-    /// Some of the derived nodes don't make the use of subnode list (word,
-    /// punctuation etc), but it was left on the top level of the hierarchy
-    /// for conveinience purposes. It is not expected that 'any' node can
-    /// have subnodes.
+    /// Some of the derived nodes don't make the use of subnode list
+    /// (word, punctuation etc), but it was left on the top level of the
+    /// hierarchy for conveinience purposes. It is not expected that 'any'
+    /// node can have subnodes.
     Vec<Wrap<Org>> subnodes;
 
     void push_back(Wrap<Org>&& sub) { subnodes.push_back(std::move(sub)); }
@@ -286,8 +340,8 @@ struct Code : public Block {
     /// directly in the field, but also works with attached `#+options`
     /// from the block
     struct Switch {
-        /// \brief Enumerate code lines starting from `start` value instead
-        /// of default indexing.
+        /// \brief Enumerate code lines starting from `start` value
+        /// instead of default indexing.
         struct LineStart {
             /// \brief First line number
             int start = 0;
@@ -330,8 +384,8 @@ struct Code : public Block {
 
     Vec<Switch> switches;
 
-    /// Code language name -- does not have to be skipped, although in most
-    /// cases it is actually used
+    /// Code language name -- does not have to be skipped, although in
+    /// most cases it is actually used
     Opt<Str> lang;
 
     Opt<Str> session;
@@ -590,7 +644,8 @@ struct Subtree : public Org {
             Unnumbered,
             Created);
 
-        // Variant field is declared separately from the helper definitions
+        // Variant field is declared separately from the helper
+        // definitions
         Data data;
         //! [declare variant field for subtree properties]
 
@@ -598,19 +653,21 @@ struct Subtree : public Org {
     };
 
 
-    int                   level = 0;
-    Opt<Str>              id;
-    Opt<Str>              todo;
-    Opt<Wrap<Completion>> completion;
-    Vec<Wrap<HashTag>>    tags;
-    Wrap<Paragraph>       title;
-    Opt<Wrap<Paragraph>>  description;
-    Vec<Wrap<SubtreeLog>> logbook;
-    Vec<Property>         properties;
-
-    Opt<Wrap<Time>> closed;
-    Opt<Wrap<Time>> deadline;
-    Opt<Wrap<Time>> scheduled;
+    DECL_FIELDS(
+        Subtree,
+        (Org),
+        ((int), level, Level, 0),
+        ((Opt<Str>), id, Id, std::nullopt),
+        ((Opt<Str>), todo, Todo, std::nullopt),
+        ((Opt<Wrap<Completion>>), completion, Completion, std::nullopt),
+        ((Vec<Wrap<HashTag>>), tags, Tags, {}),
+        ((Wrap<Paragraph>), title, Title, nullptr),
+        ((Opt<Wrap<Paragraph>>), description, Description, std::nullopt),
+        ((Vec<Wrap<SubtreeLog>>), logbook, Logbook, {}),
+        ((Vec<Property>), properties, Properties, {}),
+        ((Opt<Wrap<Time>>), closed, Closed, std::nullopt),
+        ((Opt<Wrap<Time>>), deadline, Deadline, std::nullopt),
+        ((Opt<Wrap<Time>>), scheduled, Scheduled, std::nullopt));
 
 
     Vec<Property> getProperties(
@@ -766,3 +823,4 @@ Opt<Wrap<T>> Stmt::getAttached(OrgSemKind kind) {
 }; // namespace sem
 
 #undef GET_KIND
+#undef DECL_FIELDS
