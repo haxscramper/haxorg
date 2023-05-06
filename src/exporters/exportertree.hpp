@@ -131,11 +131,14 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         // TODO
     }
 
-    void eachSub(int& i, In<sem::Org> org) {
+    void visitField(
+        int&                      i,
+        const char*               name,
+        CVec<sem::Wrap<sem::Org>> org) {
         __scope();
         indent();
-        os << "subnodes:\n";
-        for (const auto& [idx, sub] : enumerate(org->subnodes)) {
+        os << name << ":\n";
+        for (const auto& [idx, sub] : enumerate(org)) {
             __scope();
             indent();
             os << "[" << idx << "]:\n";

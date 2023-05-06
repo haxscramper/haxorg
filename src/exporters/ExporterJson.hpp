@@ -6,11 +6,18 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     EXPORTER_USING()
 #undef __ExporterBase
 
+    template <typename T>
+    json newRes(CVec<T>) {
+        return json::array();
+    }
+
+
     json newRes(CR<sem::Link::Data>) { return json::object(); }
     json newRes(CR<sem::Time::TimeVariant>) { return json::object(); }
     json newRes(CR<sem::Time::Repeat>) { return json::object(); }
     json newRes(CR<sem::SubtreeLog::LogEntry>) { return json::object(); }
     json newRes(CR<sem::Subtree::Property>) { return json::object(); }
+    json newRes(CR<sem::Code::Switch>) { return json::object(); }
     json newRes(CR<sem::Subtree::Property::Data>) {
         return json::object();
     }
@@ -52,10 +59,6 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
         json tmp = _this()->newRes(arg);
         _this()->visit(tmp, arg);
         return tmp;
-    }
-
-    void eachSub(json& j, In<sem::Org> org) {
-        j["subnodes"] = visit(org->subnodes);
     }
 
     json newRes(In<sem::Org> org) {
@@ -103,5 +106,7 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
         j[name] = visit(field);
     }
 
-    void visitDocument(json& j, In<sem::Document> doc) { eachSub(j, doc); }
+    void visitDocument(json& j, In<sem::Document> doc) {
+        visitField(j, "subnodes", doc->subnodes);
+    }
 };

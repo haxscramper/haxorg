@@ -1,7 +1,10 @@
 #pragma once
 
 #include <sem/SemOrg.hpp>
+#include <boost/mp11.hpp>
 
+using boost::mp11::mp_for_each;
+using namespace boost::describe;
 
 /// \brief Base class that should be used as the base for exporter
 /// implementations.
@@ -86,6 +89,36 @@ struct Exporter {
         }
     }
 
+    template <typename T>
+    void visitDescribedFields(R& res, In<T> tree) {
+        using Bd = describe_bases<T, mod_any_access>;
+        using Md = describe_members<T, mod_any_access>;
+        mp_for_each<Bd>([&](auto Decl) {
+            using Base       = typename decltype(Decl)::type;
+            using BaseFields = describe_members<Base, mod_any_access>;
+
+            mp_for_each<BaseFields>([&](auto const& field) {
+                _this()->visitField(
+                    res,
+                    field.name,
+                    ((Base const&)(*tree)).*field.pointer);
+            });
+        });
+
+        mp_for_each<Md>([&](auto const& field) {
+            _this()->visitField(res, field.name, (*tree).*field.pointer);
+        });
+    }
+
+#define __visit(__Kind)                                                   \
+    void visit##__Kind(R& res, In<sem::__Kind> tree) {                    \
+        visitDescribedFields(res, tree);                                  \
+    }
+
+    EACH_SEM_ORG_KIND(__visit)
+
+#undef __visit
+
     /// \brief Default implementation of the visitation function for sem
     /// nodes
     ///
@@ -109,24 +142,45 @@ struct Exporter {
         return tmp;
     }
 
-    /// \brief Visit each subnode of the provided node. Calls into
-    /// `visitSubnode`
-    void eachSub(R& res, In<sem::Org> org) {
-        int idx = 0;
-        for (const auto& it : org->subnodes) {
-            _this()->visitSubnode(res, idx, it);
-            ++idx;
-        }
-    }
 
     V* _this() { return static_cast<V*>(this); }
 
-    /// \brief Trigger field visitation for pointer object
-#define __field(res, obj, name) _this()->visitField(res, #name, obj->name);
+
     /// \brief Trigger field visitation for value object
 #define __obj_field(res, obj, name)                                       \
     _this()->visitField(res, #name, obj.name);
 
+    /// \name Specialization for inner objects of code block
+    /// @{
+    void visit(R& res, CR<sem::Code::Switch::LineStart> start) {
+        __obj_field(res, start, start);
+        __obj_field(res, start, extendLast);
+    }
+
+    void visit(R& res, CR<sem::Code::Switch::CalloutFormat> start) {
+        __obj_field(res, start, format);
+    }
+
+    void visit(R& res, CR<sem::Code::Switch::RemoveCallout> start) {
+        __obj_field(res, start, remove);
+    }
+
+    void visit(R& res, CR<sem::Code::Switch::EmphasizeLine> start) {
+        __obj_field(res, start, line);
+    }
+
+    void visit(R& res, CR<sem::Code::Switch::Dedent> start) {
+        __obj_field(res, start, value);
+    }
+
+    void visit(R& res, CR<sem::Code::Switch::Data> data) {
+        _this()->visitField(res, "kind", sem::Code::Switch::getKind(data));
+        std::visit(
+            [&, this](const auto& it) { _this()->visit(res, it); }, data);
+    }
+
+    void visit(R& res, CR<sem::Code::Switch> sw) { visit(res, sw.data); }
+    /// @}
 
     /// \name Specialization for inner objects of sem time
     /// @{
@@ -175,87 +229,10 @@ struct Exporter {
         std::visit(
             [&, this](const auto& it) { _this()->visit(res, it); }, data);
     }
-
-    void visitLink(R& res, In<sem::Link> link) {
-        __field(res, link, description);
-        __field(res, link, data);
-        _this()->eachSub(res, link);
-    }
-    ///@}
-
-    /// \name Specializations for sem objects with fields
-    ///@{
-    void visitHashTag(R& res, In<sem::HashTag> tag) {
-        __field(res, tag, subtags);
-        __field(res, tag, head);
-        _this()->eachSub(res, tag);
-    }
-
-    void visitTime(R& res, In<sem::Time> time) {
-        __field(res, time, time);
-        __field(res, time, isActive);
-    }
-
-    void visitTable(R& res, In<sem::Table> table) {
-        __field(res, table, rows);
-    }
-
-    void visitTimeRange(R& res, In<sem::TimeRange> range) {
-        __field(res, range, from);
-        __field(res, range, to);
-    }
-
-    void visitCaption(R& res, In<sem::Caption> range) {
-        __field(res, range, text);
-    }
-
-    void visitInlineMath(R& res, In<sem::InlineMath> math) {}
-
-    void visitDocument(R& res, In<sem::Document> doc) {
-        __field(res, doc, title);
-        __field(res, doc, author);
-        __field(res, doc, creator);
-        __field(res, doc, email);
-        __field(res, doc, language);
-        __field(res, doc, exportFileName);
-        __field(res, doc, idTable);
-        __field(res, doc, nameTable);
-        __field(res, doc, anchorTable);
-        __field(res, doc, footnoteTable);
-        _this()->eachSub(res, doc);
-    }
-
-    void visitDocumentGroup(R& res, In<sem::DocumentGroup> doc) {
-        _this()->eachSub(res, doc);
-    }
-
-    void visitCompletion(R& res, In<sem::Completion> completion) {
-        __field(res, completion, done);
-        __field(res, completion, full);
-        __field(res, completion, isPercent);
-    }
-
-    void visitListItem(R& res, In<sem::ListItem> item) {
-        __field(res, item, header);
-        __field(res, item, checkbox);
-        _this()->eachSub(res, item);
-    }
-
-    void visitQuote(R& res, In<sem::Quote> quote) {
-        __field(res, quote, text);
-    }
-
-    void visitCode(R& res, In<sem::Code> code) {
-        __field(res, code, exports);
-        __field(res, code, cache);
-        __field(res, code, eval);
-        __field(res, code, noweb);
-        __field(res, code, hlines);
-        __field(res, code, tangle);
-    }
     ///@}
 
     /// \name Specializations for inner details of the subtree log visit
+    /// @{
     void visit(R& res, CR<sem::SubtreeLog::State> state) {
         __obj_field(res, state, from);
         __obj_field(res, state, to);
@@ -288,10 +265,6 @@ struct Exporter {
             res, "kind", sem::SubtreeLog::getLogKind(entry));
         std::visit(
             [&, this](const auto& it) { _this()->visit(res, it); }, entry);
-    }
-
-    void visitSubtreeLog(R& res, In<sem::SubtreeLog> log) {
-        __field(res, log, log);
     }
     ///@}
 
@@ -328,70 +301,9 @@ struct Exporter {
             [&, this](const auto& it) { _this()->visit(res, it); }, prop);
     }
 
-    void visitSubtree(R& res, In<sem::Subtree> tree) {
-        __field(res, tree, level);
-        __field(res, tree, id);
-        __field(res, tree, todo);
-        __field(res, tree, completion);
-        __field(res, tree, tags);
-        __field(res, tree, title);
-        __field(res, tree, description);
-        __field(res, tree, logbook);
-        __field(res, tree, properties);
-        __field(res, tree, closed);
-        __field(res, tree, deadline);
-        __field(res, tree, scheduled);
-        _this()->eachSub(res, tree);
-    }
+
     ///@}
 
 
-#define __only_sub(__Kind)                                                \
-    void visit##__Kind(R& res, In<sem::__Kind> p) {                       \
-        _this()->eachSub(res, p);                                         \
-    }
-
-    /// \name Specializations for 'container' nodes w/o any sub-elements
-    ///@{
-    __only_sub(Paragraph);
-    __only_sub(Stmt);
-    __only_sub(StmtList);
-    __only_sub(Center);
-
-    __only_sub(CommandGroup);
-
-    __only_sub(Row);
-    __only_sub(Example);
-
-    /// \brief Markup default definitions
-    __only_sub(Bold);
-    __only_sub(Monospace);
-    __only_sub(MarkQuote);
-    __only_sub(Verbatim);
-    __only_sub(Italic);
-    __only_sub(Strike);
-    __only_sub(Par);
-    __only_sub(List);
-    ///@}
-
-#undef __only_sub
-
-#define __only_leaf(__Kind)                                               \
-    void visit##__Kind(R& res, In<sem::__Kind> leaf) {                    \
-        __field(res, leaf, text);                                         \
-    }
-
-    /// \name Specialization for leaf nodes without any nested content
-    /// @{
-    __only_leaf(Newline);
-    __only_leaf(Space);
-    __only_leaf(Word);
-    __only_leaf(RawText);
-    __only_leaf(Punctuation);
-    __only_leaf(Placeholder);
-    __only_leaf(BigIdent);
-    /// @}
-
-#undef __only_leaf
 #undef __field
 };

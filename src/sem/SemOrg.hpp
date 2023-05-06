@@ -202,6 +202,8 @@ struct Org : public std::enable_shared_from_this<Org> {
                 % to_string_vec(getKind(), demangle(typeid(T).name())));
         return result;
     }
+
+    BOOST_DESCRIBE_CLASS(Org, (), (subnodes), (), ());
 };
 
 class Attached;
@@ -948,6 +950,7 @@ struct Document : public Org {
 struct DocumentGroup : public Org {
     using Org::Org;
     GET_KIND(DocumentGroup);
+    DECL_FIELDS(DocumentGroup, (Org));
 };
 
 template <typename T>

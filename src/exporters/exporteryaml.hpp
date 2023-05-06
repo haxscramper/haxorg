@@ -31,6 +31,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     yaml newRes(CR<sem::SubtreeLog::LogEntry>) { return yaml(); }
     yaml newRes(CR<sem::Subtree::Property>) { return yaml(); }
     yaml newRes(CR<sem::Subtree::Property::Data>) { return yaml(); }
+    yaml newRes(CR<sem::Code::Switch>) { return yaml(); }
 
     yaml visit(CR<bool> value) { return yaml(value); }
     yaml visit(CR<int> value) { return yaml(value); }
@@ -53,10 +54,6 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
         yaml tmp = _this()->newRes(arg);
         _this()->visit(tmp, arg);
         return tmp;
-    }
-
-    void eachSub(yaml& j, In<sem::Org> org) {
-        j["subnodes"] = visit(org->subnodes);
     }
 
     yaml newRes(In<sem::Org> org);
@@ -93,7 +90,9 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
         j[name] = visit(field);
     }
 
-    void visitDocument(yaml& j, In<sem::Document> doc) { eachSub(j, doc); }
+    void visitDocument(yaml& j, In<sem::Document> doc) {
+        visitField(j, "subnodes", doc->subnodes);
+    }
 };
 
 #endif // EXPORTERYAML_HPP
