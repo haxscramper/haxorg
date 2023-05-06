@@ -37,6 +37,8 @@
 
 #define DECL_FIELDS(classname, bases, ...)                                \
     FOR_EACH_CALL_WITH_PASS(__per_field, (classname, bases), __VA_ARGS__) \
+                                                                          \
+    /* For named arguments and aggregate initialization of any type */    \
     struct Args {                                                         \
         FOR_EACH_CALL_WITH_PASS(                                          \
             __define_field_only,                                          \
@@ -45,6 +47,12 @@
         __extra_args_fields                                               \
     };                                                                    \
                                                                           \
+    /* Declare shared pointer constructor  */                             \
+    static inline Wrap<classname> shared(Args const& args) {              \
+        return std::make_shared<classname>(args);                         \
+    }                                                                     \
+                                                                          \
+    /* Constructor accepting aux 'args' object */                         \
     inline classname(Args const& args)                                    \
         : FOR_EACH_CALL_WITH_PASS(__pass_args_field, (), __VA_ARGS__)     \
             __extra_args_pass /* This one must be non-empty: At least     \
@@ -198,6 +206,7 @@ struct Org : public std::enable_shared_from_this<Org> {
 
 class Attached;
 
+#define __extra_args_pass Org(args.subnodes)
 /// \brief Base class for all document-level entries. Note that some node
 /// kinds might also have inline entries (examples include links, source
 /// code blocks, call blocks)
@@ -212,122 +221,153 @@ struct Stmt : public Org {
 
     template <typename T>
     Opt<Wrap<T>> getAttached(OrgSemKind kind);
+    BOOST_DESCRIBE_CLASS(Stmt, (Org), (), (), ());
 };
 
 struct Inline : public Org {
     using Org::Org;
+    BOOST_DESCRIBE_CLASS(Inline, (Org), (), (), ());
 };
 
 struct StmtList : public Org {
     using Org::Org;
     GET_KIND(StmtList);
+    DECL_FIELDS(StmtList, (Org));
 };
 
 
 struct Row : public Org {
     using Org::Org;
     GET_KIND(Row);
+    DECL_FIELDS(Row, (Org));
 };
 
+#define __extra_args_pass Stmt(args.subnodes)
 struct Table : public Stmt {
     using Stmt::Stmt;
-    Vec<Wrap<Row>> rows;
     GET_KIND(Table);
+    DECL_FIELDS(Table, (Stmt), ((Vec<Wrap<Row>>), rows, Rows, {}))
 };
 
+#define __extra_args_pass Inline(args.subnodes)
 struct HashTag : public Inline {
     using Inline::Inline;
-    Str                head;
-    Vec<Wrap<HashTag>> subtags;
-    bool               prefixMatch(CR<Vec<Str>> prefix) const;
+
+    bool prefixMatch(CR<Vec<Str>> prefix) const;
 
     GET_KIND(HashTag);
+    DECL_FIELDS(
+        HashTag,
+        (Inline),
+        ((Str), head, Head, ""),
+        ((Vec<Wrap<HashTag>>), subtags, Subtags, {}));
 };
 
+#define __extra_args_pass Inline(args.subnodes)
 /// \brief Completion status of the subtree or list element
 struct Completion : public Inline {
     using Inline::Inline;
-    /// \brief Number of completed tasks
-    int done = 0;
-    /// \brief Full number of tasks
-    int  full      = 0;
-    bool isPercent = false;
-
     GET_KIND(Completion);
+    DECL_FIELDS(
+        Completion,
+        (Inline),
+        /// \brief Number of completed tasks
+        ((int), done, Done, 0),
+        /// \brief Full number of tasks
+        ((int), full, Full, 0),
+        ((bool), isPercent, IsPercent, false));
 };
 
-BOOST_DESCRIBE_STRUCT(Completion, (), (done, full, isPercent));
 
-
+#define __extra_args_pass Stmt(args.subnodes)
 struct Paragraph : public Stmt {
     using Stmt::Stmt;
     GET_KIND(Paragraph);
+    DECL_FIELDS(Paragraph, (Stmt));
 };
 
 /// \brief Base class for branch of formatting node classes
 struct Format : public Org {
     using Org::Org;
+    BOOST_DESCRIBE_CLASS(Format, (Org), (), (), ());
 };
 
+#define __extra_args_pass Format(args.subnodes)
 /// \brief Center nested content in the exporrt
 struct Center : public Format {
     using Format::Format;
     GET_KIND(Center);
+    DECL_FIELDS(Center, (Format));
 };
 
 /// \brief Base class for block or line commands
 struct Command : public Stmt {
     using Stmt::Stmt;
+    BOOST_DESCRIBE_CLASS(Command, (Stmt), (), (), ());
 };
 
 /// \brief Single-line commands
 struct LineCommand : public Command {
     using Command::Command;
+    BOOST_DESCRIBE_CLASS(LineCommand, (Command), (), (), ());
 };
+
 
 /// \brief Standalone line commands that can be placed individually on the
 /// top level and don't have to be attached to any subsequent element
 struct Standalone : public LineCommand {
     using LineCommand::LineCommand;
+    BOOST_DESCRIBE_CLASS(Standalone, (LineCommand), (), (), ());
 };
 
 /// \brief Line command that might get attached to some block element
 struct Attached : public LineCommand {
     using LineCommand::LineCommand;
+    BOOST_DESCRIBE_CLASS(Attached, (LineCommand), (), (), ());
 };
 
 
+#define __extra_args_pass Attached(args.subnodes)
 /// \brief Caption annotation for any subsequent node
 struct Caption : public Attached {
     using Attached::Attached;
     Wrap<Paragraph> text;
     GET_KIND(Caption);
+    DECL_FIELDS(Caption, (Attached));
 };
 
+#define __extra_args_pass Stmt(args.subnodes)
 /// \brief Multiple attachable commands will get grouped into this element
 /// unless it is possible to attached them to some adjacent block command
 struct CommandGroup : public Stmt {
     using Stmt::Stmt;
     GET_KIND(CommandGroup);
+    DECL_FIELDS(CommandGroup, (Stmt));
 };
 
+#define __extra_args_pass Command(args.subnodes)
 /// \brief Block command type
 struct Block : public Command {
     using Command::Command;
+    BOOST_DESCRIBE_CLASS(Block, (Command), (), (), ());
 };
 
+#define __extra_args_pass Block(args.subnodes)
 /// \brief Quotation block
 struct Quote : public Block {
     using Block::Block;
     Wrap<Paragraph> text;
     GET_KIND(Quote);
+    DECL_FIELDS(Quote, (Block));
 };
 
 /// \brief Example block
 struct Example : public Block {
     using Block::Block;
     GET_KIND(Example);
+    DECL_FIELDS(Example, (Block));
 };
+
 
 /// \brief Base class for all code blocks
 struct Code : public Block {
@@ -382,13 +422,6 @@ struct Code : public Block {
     };
 
 
-    Vec<Switch> switches;
-
-    /// Code language name -- does not have to be skipped, although in
-    /// most cases it is actually used
-    Opt<Str> lang;
-
-    Opt<Str> session;
     enum class Results
     {
         Replace,
@@ -406,15 +439,25 @@ struct Code : public Block {
 
     BOOST_DESCRIBE_NESTED_ENUM(Exports, None, Both, Code, Results);
 
-    Exports exports = Exports::Both;
-    bool    cache   = false;
-    bool    eval    = false;
-    bool    noweb   = false;
-    bool    hlines  = false;
-    bool    tangle  = false;
+
+    DECL_FIELDS(
+        Code,
+        (Org),
+        /// Code language name -- does not have to be skipped, although in
+        /// most cases it is actually used
+        ((Opt<Str>), lang, Lang, std::nullopt),
+        ((Vec<Switch>), switches, Switches, {}),
+        ((Opt<Str>), session, Session, std::nullopt),
+        ((Exports), exports, Exports, Exports::Both),
+        ((bool), cache, Cache, false),
+        ((bool), eval, Eval, false),
+        ((bool), noweb, Noweb, false),
+        ((bool), hlines, Hlines, false),
+        ((bool), tangle, Tangle, false), );
 };
 
 
+#define __extra_args_pass Org(args.subnodes)
 /// \brief Single static or dynamic timestamp (active or inactive)
 struct Time : public Org {
     GET_KIND(Time);
@@ -476,7 +519,6 @@ struct Time : public Org {
     struct Dynamic {
         Str expr;
     };
-    bool isActive = false;
 
     SUB_VARIANTS(
         TimeKind,
@@ -486,7 +528,12 @@ struct Time : public Org {
         Static,
         Dynamic);
 
-    TimeVariant time;
+    DECL_FIELDS(
+        Time,
+        (Org),
+        ((TimeVariant), time, Time, Static{}),
+        ((bool), isActive, IsActive, false));
+
     bool isStatic() const { return std::holds_alternative<Static>(time); }
 };
 
@@ -495,11 +542,13 @@ struct Time : public Org {
 struct TimeRange : public Org {
     GET_KIND(TimeRange);
     using Org::Org;
-    Wrap<Time> from;
-    Wrap<Time> to;
-};
 
-BOOST_DESCRIBE_STRUCT(TimeRange, (Org), (from, to));
+    DECL_FIELDS(
+        TimeRange,
+        (Org),
+        ((Wrap<Time>), from, From, nullptr),
+        ((Wrap<Time>), to, To, nullptr));
+};
 
 struct SubtreeLog : public Org {
     GET_KIND(SubtreeLog);
@@ -543,11 +592,14 @@ struct SubtreeLog : public Org {
         Clock,
         State,
         Tag);
-    LogEntry log;
+
+    DECL_FIELDS(
+        SubtreeLog,
+        (Org), //
+        ((LogEntry), log, Log, Note{}));
 };
 
-BOOST_DESCRIBE_STRUCT(SubtreeLog, (Org), (log));
-
+#define __extra_args_pass Org(args.subnodes)
 struct Subtree : public Org {
     GET_KIND(Subtree);
     using Org::Org;
@@ -686,48 +738,129 @@ struct Subtree : public Org {
 
 struct LatexBody : public Org {
     using Org::Org;
+    BOOST_DESCRIBE_CLASS(LatexBody, (Org), (), (), ());
 };
 
+#define __extra_args_pass LatexBody(args.subnodes)
 struct InlineMath : public LatexBody {
     using LatexBody::LatexBody;
     GET_KIND(InlineMath);
+    DECL_FIELDS(InlineMath, (LatexBody));
 };
 
 
+#define __extra_args_pass Org(args.subnodes)
 struct Leaf : public Org {
-    Str text;
     using Org::Org;
+    Leaf(CR<Str> text) : text(text) {}
+    Str text = "";
+    BOOST_DESCRIBE_CLASS(Leaf, (Org), (text), (), ());
 };
 
-// clang-format off
-struct Newline : public Leaf { GET_KIND(Newline); using Leaf::Leaf; };
-struct Space : public Leaf { GET_KIND(Space); using Leaf::Leaf; };
-struct Word : public Leaf { GET_KIND(Word); using Leaf::Leaf; };
-struct RawText : public Leaf { GET_KIND(RawText); using Leaf::Leaf; };
-struct Punctuation : public Leaf { GET_KIND(Punctuation); using Leaf::Leaf; };
-struct Placeholder : public Leaf { GET_KIND(Placeholder); using Leaf::Leaf; };
-struct BigIdent : public Leaf { GET_KIND(BigIdent); using Leaf::Leaf; };
+#define __extra_args_fields Str text = "";
+#define __extra_args_pass Leaf(args.text)
 
-// clang-format on
+
+struct Newline : public Leaf {
+    using Leaf::Leaf;
+    GET_KIND(Newline);
+    DECL_FIELDS(Newline, (Leaf));
+};
+
+struct Space : public Leaf {
+    using Leaf::Leaf;
+    GET_KIND(Space);
+    DECL_FIELDS(Space, (Leaf));
+};
+
+struct Word : public Leaf {
+    using Leaf::Leaf;
+    GET_KIND(Word);
+    DECL_FIELDS(Word, (Leaf));
+};
+
+struct RawText : public Leaf {
+    using Leaf::Leaf;
+    GET_KIND(RawText);
+    DECL_FIELDS(RawText, (Leaf));
+};
+
+struct Punctuation : public Leaf {
+    using Leaf::Leaf;
+    GET_KIND(Punctuation);
+    DECL_FIELDS(Punctuation, (Leaf));
+};
+
+struct Placeholder : public Leaf {
+    using Leaf::Leaf;
+    GET_KIND(Placeholder);
+    DECL_FIELDS(Placeholder, (Leaf));
+};
+
+struct BigIdent : public Leaf {
+    using Leaf::Leaf;
+    GET_KIND(BigIdent);
+    DECL_FIELDS(BigIdent, (Leaf));
+};
+
+#define __extra_args_fields Vec<Wrap<Org>> subnodes = {};
+#define __extra_args_pass Org(args.subnodes)
 
 struct Markup : public Org {
     using Org::Org;
+    BOOST_DESCRIBE_CLASS(Markup, (Org), (), (), ());
 };
 
-// clang-format off
-struct Bold : public Markup { using Markup::Markup; GET_KIND(Bold); };
-struct Monospace : public Markup { using Markup::Markup; GET_KIND(Monospace); };
-struct MarkQuote : public Markup { using Markup::Markup; GET_KIND(MarkQuote); };
-struct Verbatim : public Markup { using Markup::Markup; GET_KIND(Verbatim); };
-struct Italic : public Markup { using Markup::Markup; GET_KIND(Italic); };
-struct Strike : public Markup { using Markup::Markup; GET_KIND(Strike); };
-struct Par : public Markup { using Markup::Markup; GET_KIND(Par); };
-// clang-format on
+#define __extra_args_pass Markup(args.subnodes)
 
+struct Bold : public Markup {
+    using Markup::Markup;
+    GET_KIND(Bold);
+    DECL_FIELDS(Bold, (Markup));
+};
+
+struct Monospace : public Markup {
+    using Markup::Markup;
+    GET_KIND(Monospace);
+    DECL_FIELDS(Monospace, (Markup));
+};
+
+struct MarkQuote : public Markup {
+    using Markup::Markup;
+    GET_KIND(MarkQuote);
+    DECL_FIELDS(MarkQuote, (Markup));
+};
+
+struct Verbatim : public Markup {
+    using Markup::Markup;
+    GET_KIND(Verbatim);
+    DECL_FIELDS(Verbatim, (Markup));
+};
+
+struct Italic : public Markup {
+    using Markup::Markup;
+    GET_KIND(Italic);
+    DECL_FIELDS(Italic, (Markup));
+};
+
+struct Strike : public Markup {
+    using Markup::Markup;
+    GET_KIND(Strike);
+    DECL_FIELDS(Strike, (Markup));
+};
+
+struct Par : public Markup {
+    using Markup::Markup;
+    GET_KIND(Par);
+    DECL_FIELDS(Par, (Markup));
+};
+
+#define __extra_args_pass Org(args.subnodes)
 
 struct List : public Org {
     using Org::Org;
     GET_KIND(List);
+    DECL_FIELDS(List, (Org));
 };
 
 struct ListItem : public Org {
@@ -742,9 +875,11 @@ struct ListItem : public Org {
 
     BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty);
 
-    Checkbox checkbox;
-
-    Opt<Wrap<Paragraph>> header;
+    DECL_FIELDS(
+        ListItem,
+        (Org),
+        ((Checkbox), checkbox, Checkbox, Checkbox::None),
+        ((Opt<Wrap<Paragraph>>), header, Header, std::nullopt));
 };
 
 struct Link : public Org {
@@ -763,9 +898,12 @@ struct Link : public Org {
     };
 
     SUB_VARIANTS(Kind, Data, data, getLinkKind, Raw, Footnote, Id);
-    Data data;
 
-    Opt<Wrap<Paragraph>> description;
+    DECL_FIELDS(
+        Link,
+        (Org),
+        ((Data), data, Data, Raw{}),
+        ((Opt<Wrap<Paragraph>>), description, Description, std::nullopt));
 };
 
 
@@ -773,12 +911,6 @@ struct Document : public Org {
     using Org::Org;
     GET_KIND(Document);
 
-    Opt<Wrap<Paragraph>> title;
-    Opt<Wrap<Paragraph>> author;
-    Opt<Wrap<Paragraph>> creator;
-    Opt<Wrap<RawText>>   email;
-    Opt<Vec<Str>>        language;
-    Opt<Str>             exportFileName;
 
     struct Options {
         bool smartQuotes         = false;
@@ -795,10 +927,20 @@ struct Document : public Org {
         bool exportWithCreator   = false;
     };
 
-    UnorderedMap<Str, Wrap<Subtree>> idTable;
-    UnorderedMap<Str, Org*>          nameTable;
-    UnorderedMap<Str, Org*>          anchorTable;
-    UnorderedMap<Str, Org*>          footnoteTable;
+    DECL_FIELDS(
+        Document,
+        (Org),
+        ((UnorderedMap<Str, Wrap<Subtree>>), idTable, idTable, {}),
+        ((UnorderedMap<Str, Org*>), nameTable, nameTable, {}),
+        ((UnorderedMap<Str, Org*>), anchorTable, anchorTable, {}),
+        ((UnorderedMap<Str, Org*>), footnoteTable, footnoteTable, {}),
+        ((Opt<Wrap<Paragraph>>), title, title, std::nullopt),
+        ((Opt<Wrap<Paragraph>>), author, author, std::nullopt),
+        ((Opt<Wrap<Paragraph>>), creator, creator, std::nullopt),
+        ((Opt<Wrap<RawText>>), email, email, std::nullopt),
+        ((Opt<Vec<Str>>), language, language, std::nullopt),
+        ((Opt<Str>), exportFileName, exportFileName, std::nullopt));
+
 
     Opt<Wrap<Subtree>> getSubtree(CR<Str> id) { return idTable.get(id); }
 };
