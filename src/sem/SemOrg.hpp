@@ -805,6 +805,16 @@ struct BigIdent : public Leaf {
     DECL_FIELDS(BigIdent, (Leaf));
 };
 
+
+#define EACH_SEM_ORG_LEAF_KIND(__IMPL)                                    \
+    __IMPL(Newline)                                                       \
+    __IMPL(Space)                                                         \
+    __IMPL(Word)                                                          \
+    __IMPL(RawText)                                                       \
+    __IMPL(Punctuation)                                                   \
+    __IMPL(Placeholder)                                                   \
+    __IMPL(BigIdent)
+
 #define __extra_args_fields Vec<Wrap<Org>> subnodes = {};
 #define __extra_args_pass Org(args.subnodes)
 
@@ -964,6 +974,13 @@ Opt<Wrap<T>> Stmt::getAttached(OrgSemKind kind) {
     return std::nullopt;
 }
 
+template <typename T>
+concept NotOrg = !
+std::derived_from<typename remove_smart_pointer<T>::type, sem::Org>;
+
+template <typename T>
+concept IsOrg = std::
+    derived_from<typename remove_smart_pointer<T>::type, sem::Org>;
 
 }; // namespace sem
 

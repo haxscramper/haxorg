@@ -10,6 +10,8 @@
 #include <exporters/exportergantt.hpp>
 #include <exporters/exporteryaml.hpp>
 #include <exporters/exporterhtml.hpp>
+#include <exporters/exporterqtextdocument.hpp>
+#include <QGuiApplication>
 
 struct NodeOperations {
     UnorderedMap<OrgId, OrgParser::Report> started, ended, pushed;
@@ -822,6 +824,24 @@ void HaxorgCli::exec() {
             result, layout::Options{});
         writeFile(QFileInfo("/tmp/result.html"), formatted);
     }
+
+    {
+        int                   argc = 0;
+        char*                 argv = "";
+        QGuiApplication       app(argc, &argv);
+        ExporterQTextDocument exporter;
+        exporter.visitTop(node);
+        writeFile(
+            QFileInfo("/tmp/qt_document.md"),
+            exporter.document->toMarkdown());
+        writeFile(
+            QFileInfo("/tmp/qt_document.html"),
+            exporter.document->toHtml());
+        writeFile(
+            QFileInfo("/tmp/qt_document.txt"),
+            exporter.document->toRawText());
+    }
+
 
     return;
 }

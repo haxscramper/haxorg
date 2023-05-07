@@ -47,12 +47,8 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
         return tmp;
     }
 
-    template <typename T>
-    void visit(Res& res, CR<T> it)
-        requires(!std::derived_from<
-                 typename remove_smart_pointer<T>::type,
-                 sem::Org>)
-    {
+    template <sem::NotOrg T>
+    void visit(Res& res, CR<T> it) {
         res = string(
             demangle(typeid(it).name())
             + " visit of not derived from org");
@@ -147,11 +143,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
         res = string(word->text);                                         \
     }
 
-    __leaf(Word);
-    __leaf(Space);
-    __leaf(Punctuation);
-    __leaf(Newline);
-    __leaf(BigIdent);
+    EACH_SEM_ORG_LEAF_KIND(__leaf)
 
 #undef __leaf
 };

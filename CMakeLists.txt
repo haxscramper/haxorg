@@ -31,9 +31,7 @@ option(MAX_COMPILE_ERRORS
 
 find_package(fmt REQUIRED)
 find_package(yaml-cpp REQUIRED)
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
-
+find_package(Qt6 COMPONENTS Gui Core REQUIRED)
 
 include(target_lib.cmake)
 include(autogen_enums.cmake)

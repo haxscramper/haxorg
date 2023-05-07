@@ -2,6 +2,7 @@
 
 #include <sem/SemOrg.hpp>
 #include <boost/mp11.hpp>
+#include <concepts>
 
 using boost::mp11::mp_for_each;
 using namespace boost::describe;
@@ -89,28 +90,26 @@ struct Exporter {
         }
     }
 
-    template <typename T>
-    void visitDescribedFields(R& res, In<T> tree) {
+    template <sem::NotOrg T>
+    void visitDescribedOrgFields(R& res, CR<T> value) {}
+
+    template <sem::IsOrg T>
+    void visitDescribedOrgFields(R& res, In<T> tree) {
         using Bd = describe_bases<T, mod_any_access>;
         using Md = describe_members<T, mod_any_access>;
-        mp_for_each<Bd>([&](auto Decl) {
-            using Base       = typename decltype(Decl)::type;
-            using BaseFields = describe_members<Base, mod_any_access>;
-
-            mp_for_each<BaseFields>([&](auto const& field) {
-                _this()->visitField(
-                    res, field.name, (*tree).*field.pointer);
-            });
-        });
-
         mp_for_each<Md>([&](auto const& field) {
             _this()->visitField(res, field.name, (*tree).*field.pointer);
+        });
+
+        mp_for_each<Bd>([&](auto Base) {
+            visitDescribedOrgFields<typename decltype(Base)::type>(
+                res, tree);
         });
     }
 
 #define __visit(__Kind)                                                   \
     void visit##__Kind(R& res, In<sem::__Kind> tree) {                    \
-        visitDescribedFields(res, tree);                                  \
+        visitDescribedOrgFields(res, tree);                               \
     }
 
     EACH_SEM_ORG_KIND(__visit)

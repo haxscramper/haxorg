@@ -60,6 +60,7 @@ function(set_common_files TARGET)
   add_target_property("${TARGET}" LINK_LIBRARIES dw)
   add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
 
+
   # target_precompile_headers(
   #   "${TARGET}"
   #   PRIVATE

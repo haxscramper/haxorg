@@ -13,6 +13,6 @@ target_link_libraries(haxorg PUBLIC
     ${GRAPHVIZ_GVC_LIBRARY}
     fmt::fmt
     yaml-cpp::yaml-cpp
-    "Qt${QT_VERSION_MAJOR}::Core")
+    Qt6::Core Qt6::Gui)
 
 
