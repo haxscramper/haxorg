@@ -137,6 +137,11 @@ struct Org : public std::enable_shared_from_this<Org> {
     OrgVariant        asVariant();
     static OrgVariant fromKind(OrgSemKind kind);
 
+    using SubnodeVisitor = Func<void(Wrap<Org>)>;
+    /// \brief Recursively visit each subnode in the tree and apply the
+    /// provided callback
+    void eachSubnodeRec(SubnodeVisitor cb);
+
     /// \brief Iteratively get all parent nodes for the subtree
     Vec<Org*> getParentChain(bool withSelf = false) const;
     /// \brief Get closest parent subtree (if it exists)

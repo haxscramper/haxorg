@@ -37,6 +37,7 @@ OrgVariant Org::fromKind(OrgSemKind kind) {
 #undef __case
 }
 
+
 Vec<Org*> Org::getParentChain(bool withSelf) const {
     Vec<Org*> result;
 
@@ -61,58 +62,75 @@ Opt<Wrap<Document>> Org::getDocument() const {
 }
 
 
-void assignIdsImpl(int& conut, sem::Wrap<sem::Org> org);
+namespace {
+void assignIdsImpl(
+    CR<Org::SubnodeVisitor> visitor,
+    sem::Wrap<sem::Org>     org);
 
 template <sem::NotOrg T>
-void visitField(int&, CR<T>) {}
+void visitField(CR<Org::SubnodeVisitor>, CR<T>) {}
 
 
-void visitField(int& count, sem::Wrap<sem::Org> node) {
-    assignIdsImpl(count, node);
+void visitField(
+    CR<Org::SubnodeVisitor> visitor,
+    sem::Wrap<sem::Org>     node) {
+    assignIdsImpl(visitor, node);
 }
 
 template <typename T>
-void visitField(int& count, CVec<T> value) {
+void visitField(CR<Org::SubnodeVisitor> visitor, CVec<T> value) {
     for (const auto& it : value) {
-        visitField(count, it);
+        visitField(visitor, it);
     }
 }
 
 
 template <typename T>
-void visitField(int& count, CR<Opt<T>> value) {
+void visitField(CR<Org::SubnodeVisitor> visitor, CR<Opt<T>> value) {
     if (value) {
-        visitField(count, *value);
+        visitField(visitor, *value);
     }
 }
 
 template <sem::NotOrg T>
-void enumerateOrgNodes(int& count, CR<T> value) {}
+void recVisitOrgNodesImpl(CR<Org::SubnodeVisitor> visitor, CR<T> value) {}
 
 template <sem::IsOrg T>
-void enumerateOrgNodes(int& count, sem::Wrap<T> tree) {
+void recVisitOrgNodesImpl(
+    CR<Org::SubnodeVisitor> visitor,
+    sem::Wrap<T>            tree) {
     using Bd = describe_bases<T, mod_any_access>;
     using Md = describe_members<T, mod_any_access>;
     mp_for_each<Bd>([&](auto Base) {
-        enumerateOrgNodes<typename decltype(Base)::type>(count, tree);
+        recVisitOrgNodesImpl<typename decltype(Base)::type>(visitor, tree);
     });
 
     mp_for_each<Md>([&](auto const& field) {
-        visitField(count, (*tree).*field.pointer);
+        visitField(visitor, (*tree).*field.pointer);
     });
 }
 
-void assignIdsImpl(int& count, sem::Wrap<sem::Org> org) {
-    org->id = count;
-    ++count;
+void assignIdsImpl(
+    CR<Org::SubnodeVisitor> visitor,
+    sem::Wrap<sem::Org>     org) {
+
+    visitor(org);
     std::visit(
-        [&](const auto& node) { enumerateOrgNodes(count, node); },
+        [&](const auto& node) { recVisitOrgNodesImpl(visitor, node); },
         org->asVariant());
+}
+} // namespace
+
+void Org::eachSubnodeRec(SubnodeVisitor cb) {
+    assignIdsImpl(cb, shared_from_this());
 }
 
 void Org::assignIds() {
     int count = 0;
-    assignIdsImpl(count, shared_from_this());
+    eachSubnodeRec([&](Wrap<Org> org) {
+        org->id = count;
+        ++count;
+    });
 }
 
 Opt<Wrap<Subtree>> Org::getParentSubtree() const {
