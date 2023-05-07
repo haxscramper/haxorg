@@ -25,5 +25,6 @@ yaml ExporterYaml::newRes(In<sem::Org> org) {
                     ? yaml()
                     : yaml(org->original.id.getValue());
     res["loc"]  = loc;
+    res["id"]   = org->id ? yaml(*(org->id)) : yaml();
     return res;
 }

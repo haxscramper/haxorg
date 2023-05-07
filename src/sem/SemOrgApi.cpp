@@ -1,4 +1,9 @@
 #include <sem/SemOrg.hpp>
+#include <boost/mp11.hpp>
+#include <concepts>
+
+using boost::mp11::mp_for_each;
+using namespace boost::describe;
 
 using namespace sem;
 using osk      = OrgSemKind;
@@ -14,11 +19,11 @@ sem::Subtree::Period::Kind high() {
     return sem::Subtree::Period::Kind::Repeated;
 }
 
-sem::OrgVariant Org::asVariant(Ptr<Org> org) {
+sem::OrgVariant Org::asVariant() {
 #define __case(__Kind)                                                    \
-    case OrgSemKind::__Kind: return org->as<__Kind>();
+    case OrgSemKind::__Kind: return this->as<__Kind>();
 
-    switch (org->getKind()) { EACH_SEM_ORG_KIND(__case) }
+    switch (this->getKind()) { EACH_SEM_ORG_KIND(__case) }
 
 #undef __case
 }
@@ -53,6 +58,61 @@ Opt<Wrap<Document>> Org::getDocument() const {
         }
     }
     return std::nullopt;
+}
+
+
+void assignIdsImpl(int& conut, sem::Wrap<sem::Org> org);
+
+template <sem::NotOrg T>
+void visitField(int&, CR<T>) {}
+
+
+void visitField(int& count, sem::Wrap<sem::Org> node) {
+    assignIdsImpl(count, node);
+}
+
+template <typename T>
+void visitField(int& count, CVec<T> value) {
+    for (const auto& it : value) {
+        visitField(count, it);
+    }
+}
+
+
+template <typename T>
+void visitField(int& count, CR<Opt<T>> value) {
+    if (value) {
+        visitField(count, *value);
+    }
+}
+
+template <sem::NotOrg T>
+void enumerateOrgNodes(int& count, CR<T> value) {}
+
+template <sem::IsOrg T>
+void enumerateOrgNodes(int& count, sem::Wrap<T> tree) {
+    using Bd = describe_bases<T, mod_any_access>;
+    using Md = describe_members<T, mod_any_access>;
+    mp_for_each<Bd>([&](auto Base) {
+        enumerateOrgNodes<typename decltype(Base)::type>(count, tree);
+    });
+
+    mp_for_each<Md>([&](auto const& field) {
+        visitField(count, (*tree).*field.pointer);
+    });
+}
+
+void assignIdsImpl(int& count, sem::Wrap<sem::Org> org) {
+    org->id = count;
+    ++count;
+    std::visit(
+        [&](const auto& node) { enumerateOrgNodes(count, node); },
+        org->asVariant());
+}
+
+void Org::assignIds() {
+    int count = 0;
+    assignIdsImpl(count, shared_from_this());
 }
 
 Opt<Wrap<Subtree>> Org::getParentSubtree() const {

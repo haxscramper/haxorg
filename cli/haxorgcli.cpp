@@ -775,6 +775,7 @@ void HaxorgCli::exec() {
     timer.restart();
     sem::Wrap<sem::Document> node = converter.toDocument(
         OrgAdapter(&nodes, OrgId(0)));
+    node->assignIds();
     rep.convertNs = timer.nsecsElapsed();
 
 

@@ -134,7 +134,7 @@ struct Org : public std::enable_shared_from_this<Org> {
     ///
     /// Intented to be used with custom `std::visit` solutions instead of
     /// relying on the more heavyweight CRTP visitator.
-    OrgVariant        asVariant(Ptr<Org> org);
+    OrgVariant        asVariant();
     static OrgVariant fromKind(OrgSemKind kind);
 
     /// \brief Iteratively get all parent nodes for the subtree
@@ -165,6 +165,11 @@ struct Org : public std::enable_shared_from_this<Org> {
     bool isGenerated() const { return original.empty(); }
     /// \brief Location of the node in the original source file
     Opt<LineCol> loc = std::nullopt;
+    /// \brief Extra ID assigned to the org nodes.
+    Opt<int> id = std::nullopt;
+    /// \brief Recursively walk the tree and assign new ID values to every
+    /// node
+    void assignIds();
     /// \brief List of subnodes.
     ///
     /// Some of the derived nodes don't make the use of subnode list
