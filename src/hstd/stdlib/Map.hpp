@@ -41,6 +41,7 @@ struct UnorderedMap
     using Base::Base;
     using Base::begin;
     using Base::end;
+    using Base::operator[];
 };
 
 

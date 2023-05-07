@@ -12,6 +12,7 @@
 #include <exporters/exporterhtml.hpp>
 #include <exporters/exporterqtextdocument.hpp>
 #include <exporters/exportersimplesexpr.hpp>
+#include <annotators/annotatorspelling.hpp>
 #include <QGuiApplication>
 
 struct NodeOperations {
@@ -853,6 +854,11 @@ void HaxorgCli::exec() {
         writeFile(QFileInfo("/tmp/result.lisp"), formatted);
     }
 
+    {
+        AnnotatorSpelling spelling;
+        spelling.setSpeller("en_US");
+        spelling.annotate(node);
+    }
 
     return;
 }
