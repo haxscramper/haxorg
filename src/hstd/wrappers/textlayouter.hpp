@@ -304,6 +304,11 @@ struct Block : public SharedPtrApi<Block> {
     void add(CR<Block::Ptr> other);
     void add(CVec<Block::Ptr> others);
 
+    bool isLine() const { return getKind() == Kind::Line; }
+    bool isStack() const { return getKind() == Kind::Stack; }
+    bool isWrap() const { return getKind() == Kind::Wrap; }
+    bool isVerb() const { return getKind() == Kind::Verb; }
+    bool isChoice() const { return getKind() == Kind::Choice; }
 
     struct SolutionHash {
         template <typename T>

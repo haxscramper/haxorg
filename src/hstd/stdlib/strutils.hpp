@@ -53,6 +53,7 @@ QString  right_aligned(CR<QString> str, int n, QChar c = ' ');
 QString  left_aligned(CR<QString> str, int n, QChar c = ' ');
 Str      normalize(CR<Str> in);
 Str      repeat(CR<Str> str, int count);
+QString  escape_for_write(QString const& str, bool quote = true);
 
 enum class AsciiStyle
 {

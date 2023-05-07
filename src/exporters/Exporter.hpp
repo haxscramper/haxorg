@@ -97,13 +97,13 @@ struct Exporter {
     void visitDescribedOrgFields(R& res, In<T> tree) {
         using Bd = describe_bases<T, mod_any_access>;
         using Md = describe_members<T, mod_any_access>;
-        mp_for_each<Md>([&](auto const& field) {
-            _this()->visitField(res, field.name, (*tree).*field.pointer);
-        });
-
         mp_for_each<Bd>([&](auto Base) {
             visitDescribedOrgFields<typename decltype(Base)::type>(
                 res, tree);
+        });
+
+        mp_for_each<Md>([&](auto const& field) {
+            _this()->visitField(res, field.name, (*tree).*field.pointer);
         });
     }
 
@@ -282,6 +282,12 @@ struct Exporter {
 
     void visit(R& res, CR<sem::Subtree::Property::Blocker> o) {
         __obj_field(res, o, blockers);
+    }
+
+    void visit(R& res, CR<sem::Subtree::Property::Trigger> trigger) {}
+    void visit(R& res, CR<sem::Subtree::Property::Unnumbered> trigger) {}
+    void visit(R& res, CR<sem::Subtree::Property::Created> created) {
+        __obj_field(res, created, time);
     }
 
     void visit(R& res, CR<sem::Subtree::Property> prop) {

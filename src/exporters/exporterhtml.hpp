@@ -18,6 +18,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
     using LytStr = layout::LytStr;
 
     layout::SimpleStringStore store;
+    Res string(QString const& str) { return b::text(store.str(str)); }
 
     void visit(Res& res, In<sem::Org> org) {
         visitDispatch(res, org);
@@ -54,7 +55,6 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
             + " visit of not derived from org");
     }
 
-    Res string(QString const& str) { return b::text(store.str(str)); }
 
     Res multiString(QString const& str) {
         Res res = b::stack();

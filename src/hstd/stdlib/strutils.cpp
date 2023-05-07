@@ -1168,3 +1168,26 @@ QString right_aligned(CR<QString> str, int n, QChar c) {
     res.append(str);
     return res;
 }
+
+QString escape_for_write(const QString& str, bool quote) {
+    QString res;
+    res.reserve(str.size());
+    if (quote) {
+        res += "\"";
+    }
+    for (const auto& c : str) {
+        if (c == '\t') {
+            res += "\\t";
+        } else if (c == '\n') {
+            res += "\\n";
+        } else if (c == '"' && quote) {
+            res += "\\\"";
+        } else {
+            res += c;
+        }
+    }
+    if (quote) {
+        res += "\"";
+    }
+    return res;
+}

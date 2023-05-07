@@ -11,6 +11,7 @@
 #include <exporters/exporteryaml.hpp>
 #include <exporters/exporterhtml.hpp>
 #include <exporters/exporterqtextdocument.hpp>
+#include <exporters/exportersimplesexpr.hpp>
 #include <QGuiApplication>
 
 struct NodeOperations {
@@ -826,8 +827,9 @@ void HaxorgCli::exec() {
     }
 
     {
-        int                   argc = 0;
-        char*                 argv = "";
+        int   argc = 0;
+        char* argv = "";
+
         QGuiApplication       app(argc, &argv);
         ExporterQTextDocument exporter;
         exporter.visitTop(node);
@@ -840,6 +842,14 @@ void HaxorgCli::exec() {
         writeFile(
             QFileInfo("/tmp/qt_document.txt"),
             exporter.document->toRawText());
+    }
+
+    {
+        ExporterSimpleSExpr exporter;
+        layout::Block::Ptr  result    = exporter.visitTop(node);
+        QString             formatted = exporter.store.toString(
+            result, layout::Options{});
+        writeFile(QFileInfo("/tmp/result.lisp"), formatted);
     }
 
 
