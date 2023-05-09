@@ -606,6 +606,13 @@ void HaxorgCli::exec() {
         }
     }
 
+    if (config.trace.parse.doTrace) {
+        parser->trace = true;
+        if (config.trace.parse.traceTo.has_value()) {
+            parser->setTraceFile(config.trace.parse.traceTo.value());
+        }
+    }
+
     tokenizer->setTraceUpdateHook(
         [&](CR<OrgTokenizer::Report> in, bool& doTrace, bool first) {
             if (in.str != nullptr) {
@@ -750,6 +757,10 @@ void HaxorgCli::exec() {
             }
         }
     }
+    {
+        writeFile(
+            QFileInfo("/tmp/lexed.yaml"), to_string(yamlRepr(tokens)));
+    }
 
     timer.restart();
     parser->parseTop(lex);
@@ -773,44 +784,53 @@ void HaxorgCli::exec() {
         return;
     }
 
+    {
+        writeFile(
+            QFileInfo("/tmp/parsed_tree.txt"), nodes.treeRepr(OrgId(0)));
+    }
+
     timer.restart();
     sem::Wrap<sem::Document> node = converter.toDocument(
         OrgAdapter(&nodes, OrgId(0)));
     node->assignIds();
     rep.convertNs = timer.nsecsElapsed();
-
-
     timer.restart();
-    ExporterJson exporter;
-    ColStream    os{qcout};
-    json         result = exporter.visitTop(node);
-    rep.exportNs        = timer.nsecsElapsed();
 
-    writeFile(config.outFile, to_string(result));
-    qInfo() << "Wrote JSON SEM representation into " << config.outFile;
+    {
+        ExporterJson exporter;
+        json         result = exporter.visitTop(node);
+        rep.exportNs        = timer.nsecsElapsed();
 
-    ExporterTree tree{os};
-    os << "Visit start\n";
-    //    tree.visitTop(node);
-    os << "Visit end\n";
+        writeFile(QFileInfo("/tmp/result.json"), to_string(result));
+        qDebug() << "Json repr ok";
+    }
 
-    qDebug() << "Json repr ok";
-    Graphviz    gvc;
-    ExporterDot dot("g");
-    dot.visitTop(node);
+    {
+        ColStream    os{qcout};
+        ExporterTree tree{os};
+    }
 
-    gvc.writeFile("/tmp/graph.dot", *dot.graph);
+    {
+        Graphviz    gvc;
+        ExporterDot dot("g");
+        dot.visitTop(node);
 
-    //    gvc.renderToFile(
-    //        "/tmp/graph.png", *dot.graph, Graphviz::RenderFormat::PNG);
+        gvc.writeFile("/tmp/graph.dot", *dot.graph);
 
-    qDebug() << "Graphviz ok";
+        //    gvc.renderToFile(
+        //        "/tmp/graph.png", *dot.graph,
+        //        Graphviz::RenderFormat::PNG);
 
-    ExporterGantt gantt;
-    gantt.gantt.timeSpan = slice(QDate(), QDate());
-    gantt.visitTop(node);
+        qDebug() << "Graphviz ok";
+    }
 
-    writeFile(QFileInfo("/tmp/gantt.puml"_qs), gantt.gantt.toString());
+    {
+        ExporterGantt gantt;
+        gantt.gantt.timeSpan = slice(QDate(), QDate());
+        gantt.visitTop(node);
+
+        writeFile(QFileInfo("/tmp/gantt.puml"_qs), gantt.gantt.toString());
+    }
 
     {
         ExporterYaml  exporter;

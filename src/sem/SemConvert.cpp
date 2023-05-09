@@ -408,6 +408,13 @@ Wrap<List> OrgConverter::convertList(__args) {
 Wrap<ListItem> OrgConverter::convertListItem(__args) {
     __trace();
     auto item = Sem<ListItem>(p, a);
+    if (one(a, N::Header).kind() != org::Empty) {
+        item->header = convertParagraph(item.get(), one(a, N::Header));
+    }
+
+    for (const auto& sub : one(a, N::Body)) {
+        item->push_back(convert(item.get(), sub));
+    }
 
     return item;
 }

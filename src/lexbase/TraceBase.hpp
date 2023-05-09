@@ -18,12 +18,14 @@ struct OperationsTracer {
     inline void setTraceFile(QFileInfo const& outfile) {
         trace       = true;
         traceToFile = true;
-        file.first.setFileName(outfile.fileName());
+        file.first.setFileName(outfile.canonicalFilePath());
         if (file.first.open(QIODevice::ReadWrite | QFile::Truncate)) {
             file.second.setDevice(&file.first);
+            qDebug() << "Opened file" << outfile.canonicalFilePath()
+                     << "for writing trace";
         } else {
-            std::cerr << "Could not open file " << outfile.fileName()
-                      << "\n";
+            qCritical() << "Could not open file "
+                        << outfile.canonicalFilePath() << "\n";
             abort();
         }
     }
@@ -32,8 +34,9 @@ struct OperationsTracer {
         if (traceToBuffer) {
             return ColStream{};
         } else if (traceToFile) {
-            auto os    = ColStream{file.second};
-            os.colored = false;
+            auto os     = ColStream{file.second};
+            os.colored  = false;
+            os.buffered = false;
             return os;
         } else {
             return ColStream{qcout};

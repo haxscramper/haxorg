@@ -1,0 +1,54 @@
+
+
+* Mind map nodes are made from subtrees
+** Subtrees can be nested for clustering
+   :PROPERTIES:
+   :ID:       c468e9c7-7422-4b17-8ccb-53575f186fe0
+   :END:
+** More than one subtree can exist in cluster
+
+Tree  description, maybe  on multiple  lines.
+Can include  [[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][links]] to  other trees.
+Links are attached to specific [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][rows]] in the text
+so it is easier to track which part of the
+description refers to the [[id:9879fed7-f0a4-44bd-bf56-983279afc622][other]] tree
+
+- when [[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][link]] :: Description lists can be used
+  to create annotated links
+
+
+
+
+
+
+used in description list it's placed as annotation to the graph node.
+Description can take multiple lines[fn:lines-20].
+
+
+[fn:lines-20]  Footnotes  are placed  into  separate  nodes. You  can  have
+nested[fn:nested-23]
+
+[fn:nested-23] footnotes
+
+** Extra entries
+   :PROPERTIES:
+   :ID:       6d6d6689-d9da-418d-9f91-1c8c4428e5af
+   :END:
+
+Parent subtrees can contain some things.
+
+* Several clusters can exist
+
+Nested subtrees
+Multiline [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][Extra entries]]
+
+** With multiple nodes
+   :PROPERTIES:
+   :ID:       9879fed7-f0a4-44bd-bf56-983279afc622
+   :END:
+** And even nested
+*** Clusters
+*** And nodes
+*** Intercluster links are possible
+
+[[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][Subtrees can be nested for clustering]]

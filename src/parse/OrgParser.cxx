@@ -1061,14 +1061,14 @@ template <>
 OrgId OrgParserImpl<TRACE_STATE>::parseListItem(OrgLexer& lex) {
     __trace();
     __start(org::ListItem);
-    // prefix
+    // prefix, 0
     { token(org::RawText, pop(lex, otk::ListItemStart)); }
     skipSpace(lex);
-    // counter
+    // counter, 1
     {
         empty(); // TODO parse counter
     }
-    // checkbox
+    // checkbox 2
     {
         if (lex.at(otk::Checkbox)) {
             token(org::Checkbox, pop(lex, otk::Checkbox));
@@ -1076,7 +1076,7 @@ OrgId OrgParserImpl<TRACE_STATE>::parseListItem(OrgLexer& lex) {
             empty();
         }
     }
-    // tag
+    // tag, 3
     bool isAnnotatedParagraph = false;
     {
         if (lex.at(otk::ListDescOpen)) {
@@ -1093,7 +1093,11 @@ OrgId OrgParserImpl<TRACE_STATE>::parseListItem(OrgLexer& lex) {
             empty();
         }
     }
-    // completion
+    // completion, 4
+    {
+        empty();
+    }
+    // body, 5
     {
         skip(lex, otk::StmtListOpen);
         parseListItemBody(lex);

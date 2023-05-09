@@ -97,13 +97,13 @@ struct Exporter {
     void visitDescribedOrgFields(R& res, In<T> tree) {
         using Bd = describe_bases<T, mod_any_access>;
         using Md = describe_members<T, mod_any_access>;
+        mp_for_each<Md>([&](auto const& field) {
+            _this()->visitField(res, field.name, (*tree).*field.pointer);
+        });
+
         mp_for_each<Bd>([&](auto Base) {
             visitDescribedOrgFields<typename decltype(Base)::type>(
                 res, tree);
-        });
-
-        mp_for_each<Md>([&](auto const& field) {
-            _this()->visitField(res, field.name, (*tree).*field.pointer);
         });
     }
 

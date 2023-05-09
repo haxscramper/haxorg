@@ -297,27 +297,9 @@ struct ColStream : public ColText {
     ColStream&  indent(int level);
     ColStyle    end() const { return ColStyle{}; }
     StreamState snap() { return StreamState(*this); }
-    void        flush() {
-        if (!buffered) {
-            ostream->flush();
-        }
-    }
-
-    void write(ColRune const& text) {
-        if (buffered) {
-            append(text);
-        } else {
-            (*ostream) << to_colored_string({text}, colored);
-        }
-    }
-
-    void write(ColText const& text) {
-        if (buffered) {
-            append(text);
-        } else {
-            (*ostream) << to_colored_string(text, colored);
-        }
-    }
+    void        flush();
+    void        write(ColRune const& text);
+    void        write(ColText const& text);
 };
 
 

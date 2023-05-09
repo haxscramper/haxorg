@@ -1,4 +1,5 @@
 #include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
 QString ansiEsc(const TermColorFg8Bit& col) {
     if ((u8)col <= 7) { // Regular colors
@@ -97,4 +98,26 @@ QString to_colored_string(const Vec<ColRune>& runes, const bool& color) {
         }
     }
     return result;
+}
+
+void ColStream::flush() {
+    if (!buffered) {
+        ostream->flush();
+    }
+}
+
+void ColStream::write(const ColRune& text) {
+    if (buffered) {
+        append(text);
+    } else {
+        (*ostream) << to_colored_string({text}, colored);
+    }
+}
+
+void ColStream::write(const ColText& text) {
+    if (buffered) {
+        append(text);
+    } else {
+        (*ostream) << to_colored_string(text, colored);
+    }
 }

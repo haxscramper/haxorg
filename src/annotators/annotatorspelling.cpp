@@ -20,9 +20,9 @@ UnorderedMap<int, AnnotatorSpelling::Diagnostic> AnnotatorSpelling::
                 org->getKind())) {
             auto leaf = org->as<sem::Leaf>();
             if (!checkWord(leaf->text)) {
-                qDebug() << leaf->id << "{" + leaf->text + "}"
-                         << "must be corrected to"
-                         << getSuggestions(leaf->text);
+                // qDebug() << leaf->id << "{" + leaf->text + "}"
+                //          << "must be corrected to"
+                //          << getSuggestions(leaf->text);
 
                 result[*org->id] = Diagnostic{};
             }

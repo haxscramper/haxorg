@@ -35,17 +35,17 @@ bool parseArgs(int argc, char** argv, HaxorgCli::Config& config) {
         .trace = {
             .lex = {
                 .doTrace = QCommandLineOption("lex-trace", "Do lex tracing?"),
-                .traceTo = QCommandLineOption("lex-trace-to", "Where to stream lexer trace?"),
+                .traceTo = QCommandLineOption("lex-trace-to", "Where to stream lexer trace?", "lex-trace-file"),
                 .traceExtent = QCommandLineOption("lex-trace-extent", "Trace extent in the file"),
             },
             .parse = {
                 .doTrace = QCommandLineOption("parse-trace", "Do parse tracing?"),
-                .traceTo = QCommandLineOption("parse-trace-to", "Where to stream parse trace?"),
+                .traceTo = QCommandLineOption("parse-trace-to", "Where to stream parse trace?", "parse-trace-file"),
                 .traceExtent = QCommandLineOption("parse-trace-extent", "Trace extent in the file"),
             },
             .sem = {
                 .doTrace = QCommandLineOption("sem-trace", "Do sem tracing?"),
-                .traceTo = QCommandLineOption("sem-trace-to", "Where to stream sem trace?"),
+                .traceTo = QCommandLineOption("sem-trace-to", "Where to stream sem trace?", "sem-trace-file"),
                 .traceExtent = QCommandLineOption("sem-trace-extent", "Trace extent in the file"),
             },
         },
@@ -105,26 +105,38 @@ bool parseArgs(int argc, char** argv, HaxorgCli::Config& config) {
         }
     }
 
+    Array<
+        Pair<
+            HaxorgCli::Config::TraceConfig*,
+            QOptionsConfig::TraceConfig*>,
+        3>
+        traces;
 
-    Array<Pair<Slice<int>*, QCommandLineOption*>, 3> ranges;
+    traces[0] = {&config.trace.lex, &opts.trace.lex};
+    traces[1] = {&config.trace.parse, &opts.trace.parse};
+    traces[2] = {&config.trace.sem, &opts.trace.sem};
 
-    ranges[0] = {
-        &config.trace.lex.traceExtent, &opts.trace.lex.traceExtent};
-    ranges[1] = {
-        &config.trace.parse.traceExtent, &opts.trace.parse.traceExtent};
-    ranges[2] = {
-        &config.trace.sem.traceExtent, &opts.trace.sem.traceExtent};
 
-    for (const auto& [range, opt] : ranges) {
-        if (parser.isSet(*opt)) {
-            QStringList extentList = parser.value(*opt).split(':');
+    for (const auto& [trace, opt] : traces) {
+        if (parser.isSet(opt->doTrace)) {
+            trace->doTrace = true;
+        }
+
+        if (parser.isSet(opt->traceTo)) {
+            trace->doTrace = true;
+            trace->traceTo = QFileInfo(parser.value(opt->traceTo));
+        }
+
+        if (parser.isSet(opt->traceExtent)) {
+            QStringList extentList = parser.value(opt->traceExtent)
+                                         .split(':');
             if (extentList.size() == 2) {
                 bool okStart, okEnd;
                 int  start = extentList[0].toInt(&okStart);
                 int  end   = extentList[1].toInt(&okEnd);
 
                 if (okStart && okEnd) {
-                    *range = slice(start, end);
+                    trace->traceExtent = slice(start, end);
                 } else {
                     qCritical() << "Invalid range format for trace-extent "
                                    "option. Use START:END format.";

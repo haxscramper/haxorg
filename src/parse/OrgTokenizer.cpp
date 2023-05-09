@@ -105,6 +105,7 @@ struct OrgTokenizerImplBase
         if (traceUpdateHook) {
             traceUpdateHook(in, trace, true);
         }
+
         if (!trace) {
             if (traceUpdateHook) {
                 traceUpdateHook(in, trace, false);

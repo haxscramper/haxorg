@@ -44,6 +44,7 @@ struct ExporterSimpleSExpr
         res = string(escape_for_write(time.toString(Qt::ISODate)));
     }
 
+
     template <typename T>
     void visit(Res& res, CR<Opt<T>> value) {
         if (value) {
@@ -53,11 +54,19 @@ struct ExporterSimpleSExpr
         }
     }
 
+    Res visit(int value) { return string(to_string(value)); }
+    Res visit(CR<Str> value) { return string(escape_for_write(value)); }
+
+    Res visit(CR<QString> value) {
+        return string(escape_for_write(value));
+    }
+
+
     template <typename T>
     Res visit(CR<T> value) {
         Res tmp = b::stack();
         visit(tmp, value);
-        return tmp;
+        return b::line({string("("), tmp, string(")")});
     }
 
     template <typename T>

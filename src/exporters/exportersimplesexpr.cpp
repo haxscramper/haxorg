@@ -11,8 +11,8 @@ void ExporterSimpleSExpr::visit(Res& res, In<sem::Org> org) {
         }
 #undef __case
         default: {
-            Res inner = SemSet{OrgSemKind::Subtree}.contains(
-                            org->getKind())
+            Res inner = SemSet{OrgSemKind::Subtree, OrgSemKind::ListItem}
+                                .contains(org->getKind())
                           ? b::stack()
                           : b::line();
 
@@ -23,20 +23,19 @@ void ExporterSimpleSExpr::visit(Res& res, In<sem::Org> org) {
                     OrgSemKind::Par,
                 }
                     .contains(org->getKind())) {
-                res = b::line({string("(" + to_string(org->getKind()))});
+                res = b::line({string(to_string(org->getKind()))});
+
                 for (const auto& it : org->subnodes) {
                     res->add(string(" "));
                     res->add(visit(it));
                 }
-                res->add(string(")"));
             } else {
                 visitDispatch(inner, org);
                 res = b::line({
                     string(
-                        "(" + to_string(org->getKind())
+                        to_string(org->getKind())
                         + (inner->isStack() ? " " : "")),
                     inner,
-                    string(")"),
                 });
             }
         }
