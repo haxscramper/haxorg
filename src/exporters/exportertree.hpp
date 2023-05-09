@@ -13,9 +13,11 @@ class ExporterTree : public Exporter<ExporterTree, int> {
 #undef __ExporterBase
 
     struct TreeReprConf {
-        bool withLineCol    = true;
-        bool withOriginalId = true;
-        bool withSubnodeIdx = true;
+        bool withLineCol     = true;
+        bool withOriginalId  = true;
+        bool withSubnodeIdx  = true;
+        bool skipEmptyFields = true;
+        int  startLevel      = 0;
 
         SemSet skipNodes;
         SemSet skipSubnodesOf;
@@ -27,7 +29,26 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         bool doSkip(sem::Org const* org) const {
             return skipNodes.contains(org->getKind());
         }
+
+        TreeReprConf& withSkippedSubnodesOf(OrgSemKind kind) {
+            skipSubnodesOf.incl(kind);
+            return *this;
+        }
     };
+
+    static void treeRepr(sem::Org::Ptr org) {
+        ColStream os{qcout};
+        ExporterTree(os).visitTop(org);
+    }
+
+
+    static void treeRepr(sem::Org::Ptr org, CR<TreeReprConf> conf) {
+        ColStream    os{qcout};
+        ExporterTree exporter{os};
+        exporter.conf = conf;
+        exporter.visitTop(org);
+    }
+
 
     struct TreeReprCtx {
         int level      = 0;
@@ -40,7 +61,8 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     Vec<TreeReprCtx> stack;
 
     void pushIndent() {
-        stack.push_back({.level = stack.empty() ? 0 : stack.size()});
+        stack.push_back(
+            {.level = stack.empty() ? conf.startLevel : stack.size()});
     }
 
     void popIndent() { stack.pop_back(); }
@@ -64,24 +86,21 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     }
 
 
-    void init(In<sem::Org> org) {
-        auto ctx = stack.back();
-        indent();
-        os << os.green() << to_string(org->getKind()) << os.end();
+    void init(In<sem::Org> org);
 
-        if (conf.withSubnodeIdx && ctx.subnodeIdx != -1) {
-            os << " [" << ctx.subnodeIdx << "]";
-        }
+    template <typename T>
+    bool skipAsEmpty(CR<Opt<T>> opt) {
+        return conf.skipEmptyFields && !opt;
+    }
 
-        if (conf.withOriginalId) {
-            os << " ID:" << org->original.id.getUnmasked();
-        }
+    template <typename T>
+    bool skipAsEmpty(CVec<T> vec) {
+        return conf.skipEmptyFields && vec.empty();
+    }
 
-        if (conf.withLineCol && org->loc.has_value()) {
-            auto& [line, col] = org->loc.value();
-            os << " " << os.cyan() << line << ":" << col << os.end();
-        }
-        os << "\n";
+    template <typename T>
+    bool skipAsEmpty(CR<T> value) {
+        return false;
     }
 
     template <typename T>
@@ -134,21 +153,15 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     void visitField(
         int&                      i,
         const char*               name,
-        CVec<sem::Wrap<sem::Org>> org) {
-        __scope();
-        indent();
-        os << name << ":\n";
-        for (const auto& [idx, sub] : enumerate(org)) {
-            __scope();
-            indent();
-            os << "[" << idx << "]:\n";
-            visit(i, sub);
-        }
-    }
+        CVec<sem::Wrap<sem::Org>> org);
 
 
     template <typename T>
     void visitField(int& arg, const char* name, CR<T> value) {
+        if (skipAsEmpty(value)) {
+            return;
+        }
+
         __scope();
         indent();
         os << name << " (" << os.green() << demangle(typeid(T).name())
@@ -164,13 +177,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         }
     }
 
-    void visitField(int& arg, const char* name, In<sem::Org> org) {
-        __scope();
-        indent();
-        os << name << ":"
-           << "\n";
-        Base::visitField(arg, name, org);
-    }
+    void visitField(int& arg, const char* name, In<sem::Org> org);
 
 
     ExporterTree(ColStream& os) : os(os) {}

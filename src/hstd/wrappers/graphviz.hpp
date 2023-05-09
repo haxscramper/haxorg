@@ -341,6 +341,7 @@ class Graphviz {
     class Graph : public GraphvizObjBase<Graph> {
       public:
         Graph(const QString& name, Agdesc_t desc = Agdirected);
+        Graph(Agraph_t* graph) : graph(graph) {}
 
         Agraph_t*       get() { return graph.get(); }
         Agraph_t const* get() const { return graph.get(); }
@@ -351,6 +352,11 @@ class Graphviz {
             Polyline,
             Curved
         };
+
+
+        Graph newSubgraph(QString const& name) {
+            return Graph(agsubg(graph.get(), name.toLatin1().data(), 1));
+        }
 
         void setSplines(Splines splines);
 

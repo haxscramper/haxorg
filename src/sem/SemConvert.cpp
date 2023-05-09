@@ -518,6 +518,7 @@ Wrap<Org> OrgConverter::convert(__args) {
         CASE(List);
         CASE(ListItem);
         CASE(Placeholder);
+        case org::ListTag: return convert(p, a[0]);
         case org::InlineMath: return convertMath(p, a);
         case org::RawLink: return convertLink(p, a);
         case org::StaticActiveTime:

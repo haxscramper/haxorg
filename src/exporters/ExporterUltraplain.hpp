@@ -5,14 +5,26 @@ struct ExporterUltraplain : public Exporter<ExporterUltraplain, QString> {
     EXPORTER_USING()
 #undef __ExporterBase
 
-    void visitSubnode(QString& res, int idx, In<sem::Org> const& org) {
-        visit(res, org);
-    }
+    static QString toStr(sem::Org::Ptr node);
 
     void visitLink(QString& res, In<sem::Link> link);
 
-    template <typename T>
+    template <sem::NotOrg T>
     void visit(QString& res, CR<T> value) {}
+
+    template <typename T>
+    void visit(QString& res, CVec<T> values) {
+        for (const auto& value : values) {
+            visit(res, value);
+        }
+    }
+
+    template <typename T>
+    void visit(QString& res, CR<Opt<T>> opt) {
+        if (opt) {
+            visit(res, *opt);
+        }
+    }
 
     template <typename T>
     void visitField(QString& res, const char* name, CR<T> field) {

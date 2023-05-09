@@ -36,7 +36,6 @@ struct ExporterSimpleSExpr
         for (const auto& it : value) {
             res->add(visit(it));
         }
-        res = b::line({string("("), res, string(")")});
     }
 
 

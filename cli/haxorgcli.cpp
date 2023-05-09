@@ -13,6 +13,7 @@
 #include <exporters/exporterqtextdocument.hpp>
 #include <exporters/exportersimplesexpr.hpp>
 #include <annotators/annotatorspelling.hpp>
+#include <exporters/exportermindmap.hpp>
 #include <QGuiApplication>
 
 struct NodeOperations {
@@ -810,8 +811,8 @@ void HaxorgCli::exec() {
         ExporterTree tree{os};
     }
 
+    Graphviz gvc;
     {
-        Graphviz    gvc;
         ExporterDot dot("g");
         dot.visitTop(node);
 
@@ -872,6 +873,20 @@ void HaxorgCli::exec() {
         QString             formatted = exporter.store.toString(
             result, layout::Options{});
         writeFile(QFileInfo("/tmp/result.lisp"), formatted);
+    }
+
+    {
+        ExporterMindMap exporter;
+        exporter.visitTop(node);
+
+        auto graph = exporter.toGraph();
+        gvc.writeFile("/tmp/mindmap.dot", graph);
+
+        //    gvc.renderToFile(
+        //        "/tmp/graph.png", *dot.graph,
+        //        Graphviz::RenderFormat::PNG);
+
+        qDebug() << "Graphviz ok";
     }
 
     {

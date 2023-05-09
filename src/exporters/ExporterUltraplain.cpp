@@ -1,4 +1,13 @@
 #include <exporters/ExporterUltraplain.hpp>
+#include <hstd/stdlib/strutils.hpp>
+
+
+QString ExporterUltraplain::toStr(sem::Org::Ptr node) {
+    return strip(
+        ExporterUltraplain{}.visitTop(node),
+        CharSet{QChar(' ')},
+        CharSet{QChar(' ')});
+}
 
 void ExporterUltraplain::visitLink(QString& res, In<sem::Link> link) {
     if (link->description) {

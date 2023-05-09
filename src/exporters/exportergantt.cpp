@@ -7,13 +7,6 @@
 
 using osk = OrgSemKind;
 
-QString getStr(sem::Wrap<sem::Org> node) {
-    return strip(
-        ExporterUltraplain().visitTop(node),
-        CharSet{QChar(' ')},
-        CharSet{QChar(' ')});
-}
-
 void treeRepr(sem::Wrap<sem::Org> org) {
     ColStream os{qcout};
     ExporterTree(os).visitTop(org);
@@ -36,7 +29,7 @@ void ExporterGantt::pushVisit(int&, sem::Wrap<sem::Subtree> tree) {
             end   = std::get<1>(period.period)->to->getStatic().time;
         }
 
-        stack.back().event.name  = getStr(tree->title);
+        stack.back().event.name  = ExporterUltraplain::toStr(tree->title);
         stack.back().event.start = start.date();
         stack.back().event.stop  = end.date();
         stack.back().filled      = true;

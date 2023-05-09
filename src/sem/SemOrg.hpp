@@ -91,7 +91,8 @@ template <typename T>
 using Wrap = std::shared_ptr<T>;
 
 #define GET_KIND(Kind)                                                    \
-    virtual OrgSemKind getKind() const { return OrgSemKind::Kind; }
+    virtual OrgSemKind getKind() const { return OrgSemKind::Kind; }       \
+    using Ptr = Wrap<Kind>;
 
 
 // Forward-declare all node types so 'asVariant' can be defined directly
@@ -129,6 +130,7 @@ struct Org : public std::enable_shared_from_this<Org> {
     /// \brief Get parent pointer (might be null)
     Org*       getParent() { return parent; }
     Org const* getParent() const { return parent; }
+    using Ptr = Wrap<Org>;
 
     /// \brief Convert the node to corresponding variant type.
     ///
@@ -212,6 +214,8 @@ struct Org : public std::enable_shared_from_this<Org> {
                 % to_string_vec(getKind(), demangle(typeid(T).name())));
         return result;
     }
+
+    bool is(OrgSemKind kind) const { return getKind() == kind; }
 
     BOOST_DESCRIBE_CLASS(Org, (), (subnodes), (), ());
 };

@@ -16,6 +16,8 @@ description refers to the [[id:9879fed7-f0a4-44bd-bf56-983279afc622][other]] tre
 - when [[id:c468e9c7-7422-4b17-8ccb-53575f186fe0][link]] :: Description lists can be used
   to create annotated links
 
+  Multiple paragraphs attached to link
+
 
 
 
