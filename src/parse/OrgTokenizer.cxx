@@ -2264,42 +2264,52 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexListDescription(
     PosStr&           str,
     int               indent,
     LexerStateSimple& state) {
-    __trace("Try parsing list header");
-    Opt<PosStr> descriptionSlice;
-
-    // Start temporary buffer and and string
+    __trace();
     PosStr        tmp = str;
     Vec<OrgToken> buffer;
-    setBuffer(&buffer);
-    int skip = tmp.getSkip('\n');
-    // Remember max position
-    int maxPos = tmp.getPos() + skip;
 
-    // Assume we know the description colon is present
-    __push(tmp.fakeTok(otk::ListDescOpen));
-    __push(tmp.fakeTok(otk::ParagraphStart));
-    // Lex until the maximum position is reached
-    while (tmp.getPos() < maxPos && tmp.notAt("::")) {
-        // Char lexer will buffer content
-        lexText(tmp);
+    {
+        __trace("Try parsing list header");
+        Opt<PosStr> descriptionSlice;
+
+        // Start temporary buffer and and string
+
+        setBuffer(&buffer);
+        int skip = tmp.getSkip('\n');
+        // Remember max position
+        int maxPos = tmp.getPos() + skip;
+
+        // Assume we know the description colon is present
+        __push(tmp.fakeTok(otk::ListDescOpen));
+        __push(tmp.fakeTok(otk::ParagraphStart));
+        // Lex until the maximum position is reached
+        while (tmp.getPos() < maxPos && tmp.notAt("::")) {
+            // Char lexer will buffer contenti
+            lexText(tmp);
+        }
     }
 
     // If we are indeed on the double colon separator, skip remaining parts
     if (tmp.at("::")) {
+        __trace(
+            ("Found list heading colon, buffered $# tokens"
+             % to_string_vec(buffer.size())));
+        clearBuffer();
+        for (const auto& tok : buffer) {
+            __push(tok, true);
+        }
         __push(tmp.fakeTok(otk::ParagraphEnd));
         // Colon separator
         auto colon = tmp.tok(otk::DoubleColon, skipCb("::"));
         __push(colon);
         __push(tmp.fakeTok(otk::ListDescClose));
         // Move tokens from buffer
-        for (const auto& tok : buffer) {
-            __push(tok, true);
-        }
+
         // Set updated string.
         str = tmp;
+    } else {
+        clearBuffer();
     }
-
-    clearBuffer();
 
     return true;
 }

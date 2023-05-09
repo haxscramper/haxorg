@@ -618,13 +618,13 @@ void HaxorgCli::exec() {
             if (in.str != nullptr) {
                 LineCol loc = locationResolver(*(in.str));
                 if (config.trace.lex.traceExtent.contains(loc.line)) {
-                    if (in.kind == OrgTokenizer::ReportKind::Push) {
-                        if (in.addBuffered) {
-                            doTrace = !first;
-                        }
-                    } else {
-                        doTrace = true;
-                    }
+                    // if (in.kind == OrgTokenizer::ReportKind::Push) {
+                    //     if (in.addBuffered) {
+                    //         doTrace = !first;
+                    //     }
+                    // } else {
+                    // }
+                    doTrace = true;
                 } else if (loc.line != -1) {
                     doTrace = false;
                 }

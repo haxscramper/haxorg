@@ -1086,8 +1086,8 @@ OrgId OrgParserImpl<TRACE_STATE>::parseListItem(OrgLexer& lex) {
             __start(org::ListTag);
             parseParagraph(lex, false);
             __end();
-            skip(lex, otk::ListDescClose);
             skip(lex, otk::DoubleColon);
+            skip(lex, otk::ListDescClose);
             __end();
         } else {
             empty();
