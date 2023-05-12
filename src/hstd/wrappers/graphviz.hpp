@@ -357,10 +357,29 @@ class Graphviz {
         }
 
         void setSplines(Splines splines);
-
         void eachNode(Func<void(Node)> cb);
-
         void eachEdge(Func<void(Edge)> cb);
+
+        // TODO Reuse field and type definitions from the graph nodes
+        // instead of relying on strings here.
+
+        /// Set default attribute value for graph node
+        void setDefaultNodeAttr(QString const& key, QString const& value) {
+            agattr(
+                graph,
+                AGNODE,
+                key.toLatin1().data(),
+                value.toLatin1().data());
+        }
+
+        /// Set default attriute value for edge
+        void setDefaultEdgeAttr(QString const& key, QString const& value) {
+            agattr(
+                graph,
+                AGEDGE,
+                key.toLatin1().data(),
+                value.toLatin1().data());
+        }
 
         Node node(QString const& name) {
             Q_CHECK_PTR(graph);

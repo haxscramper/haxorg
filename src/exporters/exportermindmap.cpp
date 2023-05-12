@@ -55,6 +55,8 @@ void ExporterMindMap::visitDocument(
     }
 }
 
+using G = Graphviz;
+
 Graphviz::Graph ExporterMindMap::toGraph() {
     Func<Opt<Graphviz::Graph>(
         CR<DocSubtree::Ptr>, CR<Opt<Graphviz::Graph>>)>
@@ -90,5 +92,7 @@ Graphviz::Graph ExporterMindMap::toGraph() {
 
     Q_CHECK_PTR(root);
     auto result = auxSubtree(root, std::nullopt);
+    result->setRankDirection(G::Graph::RankDirection::LR);
+    result->setDefaultNodeAttr("shape", "rect");
     return result.value();
 }
