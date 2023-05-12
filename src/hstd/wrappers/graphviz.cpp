@@ -70,23 +70,33 @@ Graphviz::Graph::Graph(const QString& name, Agdesc_t desc)
     } else {
         graph = graph_;
     }
+
     initDefaultSetters();
+    Q_CHECK_PTR(graph);
 }
 
 void Graphviz::Graph::initDefaultSetters() {
-    defaultNode.setOverride = [this](
-                                  QString const& key,
-                                  QString const& value) {
-        agattr(
-            graph, AGNODE, key.toLatin1().data(), value.toLatin1().data());
-    };
+    defaultNode.graph = graph;
+    Q_CHECK_PTR(graph);
+    // FIXME simply capturing `this` causes segmentation fault because the
+    // graph is deleted somewhere else or the pointer is modified. `graph =
+    // this->graph` does not have this issue, but that's not how this is
+    // supposed to work.
+    defaultNode.setOverride =
+        [graph = this->graph](QString const& key, QString const& value) {
+            auto& r = *graph;
+            Q_CHECK_PTR(graph);
+            agattr(graph, AGNODE, strdup(key), strdup(value));
+        };
 
-    defaultEdge.setOverride = [this](
-                                  QString const& key,
-                                  QString const& value) {
-        agattr(
-            graph, AGEDGE, key.toLatin1().data(), value.toLatin1().data());
-    };
+    defaultEdge.graph = graph;
+    Q_CHECK_PTR(graph);
+    defaultEdge.setOverride =
+        [graph = this->graph](QString const& key, QString const& value) {
+            auto& r = *graph;
+            Q_CHECK_PTR(graph);
+            agattr(graph, AGEDGE, strdup(key), strdup(value));
+        };
 }
 
 void Graphviz::Graph::eachNode(Func<void(Node)> cb) {

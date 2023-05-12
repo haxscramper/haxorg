@@ -132,6 +132,7 @@ struct OrgConverter : public OperationsTracer {
     virtual Wrap<Quote>       convertQuote(Up, In);
     virtual Wrap<Placeholder> convertPlaceholder(Up, In);
     virtual Wrap<LatexBody>   convertMath(Up, In);
+    virtual Wrap<Footnote>    convertFootnote(Up, In);
 
     virtual Vec<Wrap<Org>> flatConvertAttached(Up, In);
 

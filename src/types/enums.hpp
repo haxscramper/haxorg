@@ -400,6 +400,7 @@ enum class OrgSemKind : short int
     Par,
     Quote,
     Example,
+    Footnote,
     Code,
     Time,
     SubtreeLog,
@@ -440,6 +441,7 @@ enum class OrgSemKind : short int
     __IMPL(Quote)                                                         \
     __IMPL(Example)                                                       \
     __IMPL(Code)                                                          \
+    __IMPL(Footnote)                                                      \
     __IMPL(Time)                                                          \
     __IMPL(SubtreeLog)                                                    \
     __IMPL(TimeRange)                                                     \

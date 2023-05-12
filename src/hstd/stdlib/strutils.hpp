@@ -78,6 +78,6 @@ enum class AsciiStyle
 QString styledUnicodeMapping(QChar ch, AsciiStyle style);
 QString styledUnicodeMapping(QString const& str, AsciiStyle style);
 
-inline const char* strdup(QString const& str) {
+inline char* strdup(QString const& str) {
     return strdup(str.toStdString().c_str());
 }

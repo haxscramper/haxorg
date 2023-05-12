@@ -216,6 +216,7 @@ struct Org : public std::enable_shared_from_this<Org> {
     }
 
     bool is(OrgSemKind kind) const { return getKind() == kind; }
+    bool is(CR<SemSet> kinds) const { return kinds.contains(getKind()); }
 
     BOOST_DESCRIBE_CLASS(Org, (), (subnodes), (), ());
 };
@@ -279,6 +280,17 @@ struct HashTag : public Inline {
         ((Vec<Wrap<HashTag>>), subtags, Subtags, {}));
 };
 
+struct Footnote : public Inline {
+    using Inline::Inline;
+
+    GET_KIND(Footnote);
+    DECL_FIELDS(
+        Footnote,
+        (Inline),
+        ((Str), tag, Tag, ""),
+        ((Opt<Org::Ptr>), definition, Definition, std::nullopt));
+};
+
 #define __extra_args_pass Inline(args.subnodes)
 /// \brief Completion status of the subtree or list element
 struct Completion : public Inline {
@@ -300,6 +312,10 @@ struct Paragraph : public Stmt {
     using Stmt::Stmt;
     GET_KIND(Paragraph);
     DECL_FIELDS(Paragraph, (Stmt));
+
+    bool isFootnoteDefinition() const {
+        return !subnodes.empty() && subnodes[0]->is(OrgSemKind::Footnote);
+    }
 };
 
 /// \brief Base class for branch of formatting node classes
@@ -725,7 +741,7 @@ struct Subtree : public Org {
         Subtree,
         (Org),
         ((int), level, Level, 0),
-        ((Opt<Str>), id, Id, std::nullopt),
+        ((Opt<Str>), treeId, TreeId, std::nullopt),
         ((Opt<Str>), todo, Todo, std::nullopt),
         ((Opt<Wrap<Completion>>), completion, Completion, std::nullopt),
         ((Vec<Wrap<HashTag>>), tags, Tags, {}),
@@ -956,19 +972,24 @@ struct Document : public Org {
     DECL_FIELDS(
         Document,
         (Org),
-        ((UnorderedMap<Str, Wrap<Subtree>>), idTable, idTable, {}),
-        ((UnorderedMap<Str, Org*>), nameTable, nameTable, {}),
-        ((UnorderedMap<Str, Org*>), anchorTable, anchorTable, {}),
-        ((UnorderedMap<Str, Org*>), footnoteTable, footnoteTable, {}),
-        ((Opt<Wrap<Paragraph>>), title, title, std::nullopt),
-        ((Opt<Wrap<Paragraph>>), author, author, std::nullopt),
-        ((Opt<Wrap<Paragraph>>), creator, creator, std::nullopt),
-        ((Opt<Wrap<RawText>>), email, email, std::nullopt),
-        ((Opt<Vec<Str>>), language, language, std::nullopt),
-        ((Opt<Str>), exportFileName, exportFileName, std::nullopt));
+        ((UnorderedMap<int, Wrap<Org>>), backPtr, BackPtr, {}),
+        ((UnorderedMap<Str, int>), idTable, IdTable, {}),
+        ((UnorderedMap<Str, int>), nameTable, NameTable, {}),
+        ((UnorderedMap<Str, int>), anchorTable, AnchorTable, {}),
+        ((UnorderedMap<Str, int>), footnoteTable, FootnoteTable, {}),
+        ((Opt<Wrap<Paragraph>>), title, Title, std::nullopt),
+        ((Opt<Wrap<Paragraph>>), author, Author, std::nullopt),
+        ((Opt<Wrap<Paragraph>>), creator, Creator, std::nullopt),
+        ((Opt<Wrap<RawText>>), email, Email, std::nullopt),
+        ((Opt<Vec<Str>>), language, Language, std::nullopt),
+        ((Opt<Str>), exportFileName, ExportFileName, std::nullopt));
 
 
-    Opt<Wrap<Subtree>> getSubtree(CR<Str> id) { return idTable.get(id); }
+    Opt<Wrap<Org>> getTree(int id) { return backPtr.get(id); }
+
+    Opt<Wrap<Subtree>> getSubtree(CR<Str> id);
+
+    Opt<Wrap<Org>> resolve(CR<Wrap<Org>> node);
 };
 
 struct DocumentGroup : public Org {

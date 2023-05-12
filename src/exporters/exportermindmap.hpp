@@ -3,6 +3,7 @@
 
 #include <exporters/Exporter.hpp>
 #include <hstd/wrappers/graphviz.hpp>
+#include <hstd/stdlib/Map.hpp>
 
 struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     using Base = Exporter<ExporterMindMap, std::monostate>;
@@ -13,32 +14,28 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
 
 
     struct DocEntry;
+    struct DocSubtree;
 
     /// List of known documents that were encountered during processing
     Vec<sem::Document::Ptr> documents;
 
     /// Outgoing documentation link that targets some documentable entry.
     struct DocLink {
-        sem::Link::Ptr target;
-        SPtr<DocEntry> resolved;
+        Variant<SPtr<DocEntry>, SPtr<DocSubtree>> resolved;
         /// Description of the link -- taken from description lists that
         /// have links in the tags. Description in the link node itself is
         /// ignored
         Opt<sem::Paragraph::Ptr> description;
     };
 
-    /// Resolve `Link` or any other node to some doc link. If resolution
-    /// fails then empty option is returned.
-    Opt<DocLink> resolve(CR<sem::Org::Ptr> node);
-
     /// Single mappable entry in the document that represents
     /// either paragraph of text or some other entry to be
     /// rendered into the mind map graph
     struct DocEntry : SharedPtrApi<DocEntry> {
-        /// Content of the document entry. Either top-level subtree (in
-        /// this cases nested elements ought to be ignored for exporting)
-        /// or a list of paragraphs/lines/tables etc.
-        Vec<sem::Org::Ptr> content;
+        /// Text block for documentable entry
+        sem::Org::Ptr content;
+        /// Resolved outgoing links from the documentable entry
+        Vec<DocLink> outgoing;
 
         int        id = 0;
         static int counter;
@@ -46,9 +43,18 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
         inline DocEntry() : id(++counter) {}
     };
 
+    Vec<DocEntry::Ptr> entryList;
+
+    DocEntry::Ptr newEntry() {
+        entryList.push_back(DocEntry::shared());
+        return entryList.back();
+    }
+
     /// Simplified tree structure of the document(s) that
-    /// contains only doc entry nodes and links between the
-    /// different parts of the subtree
+    /// contains only doc entry nodes and wrapping clusters.
+    ///
+    /// Each subtree is turned into a cluster that might contain any number
+    /// of nested clusters, ordered and unordered documentable entries.
     struct DocSubtree : SharedPtrApi<DocSubtree> {
         /// Subtrees that were physically nested inside of
         /// the original subtree, or, for top-level document group, a list
@@ -59,10 +65,12 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
         /// or document
         sem::Org::Ptr original;
 
-        /// Document entry associated with the particular subtree. For
-        /// leaf-level nodes (or ones that were marked as such for the mind
-        /// map) it is filled with the documentable entry from this tree.
-        Opt<DocEntry::Ptr> entry;
+        /// Ordered list of documentable entries that were generated from
+        /// top-level paragraphs in the tree
+        Vec<DocEntry::Ptr> ordered;
+        /// Unordered entries -- comments, footnotes, that were attached to
+        /// some items in the subtree.
+        Vec<DocEntry::Ptr> unordered;
     };
 
 
@@ -91,6 +99,8 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     Vec<DocSubtree::Ptr> stack;
     void visitSubtree(std::monostate& s, CR<sem::Subtree::Ptr> ptr);
     void visitDocument(std::monostate& s, CR<sem::Document::Ptr> doc);
+
+    void visitEnd(In<sem::Org> doc);
 
     Graphviz::Graph toGraph();
 };

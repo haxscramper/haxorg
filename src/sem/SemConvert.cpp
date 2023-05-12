@@ -193,7 +193,7 @@ void OrgConverter::convertPropertyList(Wrap<Subtree>& tree, In a) {
         result = Property(res);
 
     } else if (name == "id") {
-        tree->id = one(a, N::Values).strVal();
+        tree->treeId = one(a, N::Values).strVal();
 
     } else {
         qCritical().noquote() << "Unknown property name" << name << "\n"
@@ -357,9 +357,14 @@ Wrap<Paragraph> OrgConverter::convertParagraph(__args) {
 
     __perf_trace("convertParagraph");
     __trace();
-    auto par = Sem<Paragraph>(p, a);
+    auto par   = Sem<Paragraph>(p, a);
+    bool first = true;
     for (const auto& item : a) {
-        par->push_back(convert(par.get(), item));
+        if (first && item.kind() == org::Footnote) {
+            par->push_back(convertFootnote(par.get(), item));
+        } else {
+            par->push_back(convert(par.get(), item));
+        }
     }
 
     return par;
@@ -377,6 +382,19 @@ Wrap<StmtList> OrgConverter::convertStmtList(__args) {
     return stmt;
 }
 
+
+Wrap<Footnote> OrgConverter::convertFootnote(__args) {
+    __perf_trace("convertLink");
+    __trace();
+    auto link = Sem<Footnote>(p, a);
+    if (a.size() == 1) {
+        link->tag = a[0].strVal();
+    } else {
+        qFatal("TODO");
+    }
+
+    return link;
+}
 
 Wrap<Link> OrgConverter::convertLink(__args) {
     __perf_trace("convertLink");
@@ -663,44 +681,30 @@ Wrap<Document> OrgConverter::toDocument(OrgAdapter adapter) {
         doc->subnodes.push_back(convert(doc.get(), adapter));
     }
 
+    doc->assignIds();
+    doc->eachSubnodeRec([&](Org::Ptr const& org) {
+        doc->backPtr[org->id.value()] = org;
 
-    Func<void(Org*)> auxDocument;
-    auxDocument = [&](Org* org) {
         switch (org->getKind()) {
             case osk::Subtree: {
                 auto subtree = org->as<Subtree>();
-                if (auto id = subtree->id) {
-                    doc->idTable[id.value()] = subtree;
+                if (auto id = subtree->treeId) {
+                    doc->idTable[id.value()] = org->id.value();
                 }
 
-                for (const auto& item : org->subnodes) {
-                    auxDocument(item.get());
-                }
                 break;
             }
 
-            default: {
-                for (const auto& item : org->subnodes) {
-                    auxDocument(item.get());
+            case osk::Paragraph: {
+                auto par = org->as<Paragraph>();
+                if (par->isFootnoteDefinition()) {
+                    doc->footnoteTable[par->at(0)->as<Footnote>()->tag] = par->id
+                                                                              .value();
                 }
                 break;
             }
-
-                // case orgAnnotatedParagraph:
-                //     switch (org.paragraph.kind) {
-                //         case aopFootnote:
-                //             doc.footnoteTable[org.paragraph.footnote.ident]
-                //             = org; break;
-
-                //         default:
-                //             break;
-                //     }
-                //     break;
-
-                // default:
-                //     break;
         }
-    };
+    });
 
 
     return doc;

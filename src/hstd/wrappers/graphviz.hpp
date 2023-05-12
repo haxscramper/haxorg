@@ -17,6 +17,12 @@
 #include <QColor>
 
 
+#define _attr_aligned(Method, key, Type)                                  \
+    void set##Method(                                                     \
+        Type const& value, TextAlign direction = TextAlign::Left) {       \
+        set(#key, value, direction);                                      \
+    }
+
 #define _attr(Method, key, Type)                                          \
     void set##Method(Type const& value) { set(#key, value); }
 
@@ -63,6 +69,30 @@ class Graphviz {
         }
 
         Func<void(QString const&, QString const&)> setOverride;
+
+        enum class TextAlign
+        {
+            Left,
+            Center,
+            Right
+        };
+
+        QString alignText(QString const& text, TextAlign direction) {
+            QString res = text;
+            switch (direction) {
+                case TextAlign::Left: res.replace("\n", "\\l"); break;
+                case TextAlign::Right: res.replace("\n", "\\r"); break;
+            }
+
+            return res;
+        }
+
+        void set(
+            QString const& attribute,
+            QString const& value,
+            TextAlign      direction) {
+            set(attribute, alignText(value, direction));
+        }
 
         void set(QString const& attribute, QString const& value) {
             if (setOverride) {
@@ -294,7 +324,7 @@ class Graphviz {
         /// \brief Height of the node
         _attr(Height, height, double);
         /// \brief Label (text) of the node
-        _attr(Label, label, QString);
+        _attr_aligned(Label, label, QString);
         /// \brief Position of the node's center
         _attr(Position, pos, QPointF);
         /// \brief Shape of the node
@@ -304,11 +334,11 @@ class Graphviz {
         /// \brief Width of the node
         _attr(Width, width, double);
         /// \brief External label (text) of the node
-        _attr(XLabel, xlabel, QString);
+        _attr_aligned(XLabel, xlabel, QString);
         /// \brief Position of the node's external label
         _attr(XLabelPosition, xlabelpos, QPointF);
 
-      private:
+      public:
         Agnode_t* node;
         Agraph_t* graph;
     };
@@ -332,7 +362,7 @@ class Graphviz {
         /// \brief Font size of the edge's label
         _attr(FontSize, fontsize, double);
         /// \brief Label (text) of the edge
-        _attr(Label, label, QString);
+        _attr_aligned(Label, label, QString);
         /// \brief Position of the edge's label
         _attr(LabelPosition, lp, QPointF);
         /// \brief Width of the edge's line
@@ -342,7 +372,7 @@ class Graphviz {
         /// \brief URL associated with the edge
         _attr(URL, URL, QString);
 
-      private:
+      public:
         Agraph_t* graph;
         Agedge_t* edge_;
     };
@@ -358,9 +388,10 @@ class Graphviz {
         Graph(QString const& name, Agdesc_t desc = Agdirected);
         Graph(Agraph_t* graph)
             : graph(graph)
-            , defaultEdge(nullptr, nullptr)
-            , defaultNode(nullptr, nullptr) {
+            , defaultEdge(graph, nullptr)
+            , defaultNode(graph, nullptr) {
             initDefaultSetters();
+            Q_CHECK_PTR(graph);
         }
 
         Agraph_t*       get() { return graph; }
@@ -400,6 +431,10 @@ class Graphviz {
             return tmp;
         }
 
+        Edge edge(CR<QString> head, CR<QString> tail) {
+            return edge(Node(graph, head), Node(graph, tail));
+        }
+
         /// \brief Direction of layout ranks
         _eattr(RankDirection, rankdir, LR, TB, BT, RL);
 
@@ -426,9 +461,9 @@ class Graphviz {
         /// \brief Font size
         _attr(FontSize, fontsize, double);
         /// \brief Label (title) of the graph
-        _attr(Label, label, QString);
+        _attr_aligned(Label, label, QString);
         /// \brief URL associated with the graph label
-        _attr(LabelURL, labelURL, QString);
+        _attr_aligned(LabelURL, labelURL, QString);
         /// \brief Horizontal placement of the graph label
         _attr(LabelJustification, labeljust, QString);
         /// \brief Vertical placement of the graph label
@@ -468,7 +503,7 @@ class Graphviz {
         /// \brief Viewport size and position
         _attr(ViewPort, viewport, QPointF);
 
-      private:
+      public:
         Agraph_t* graph;
     };
 

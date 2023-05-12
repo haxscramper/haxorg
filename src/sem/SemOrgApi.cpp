@@ -92,13 +92,11 @@ void visitField(CR<Org::SubnodeVisitor> visitor, CR<Opt<T>> value) {
     }
 }
 
-template <sem::NotOrg T>
-void recVisitOrgNodesImpl(CR<Org::SubnodeVisitor> visitor, CR<T> value) {}
-
-template <sem::IsOrg T>
+template <typename T>
 void recVisitOrgNodesImpl(
     CR<Org::SubnodeVisitor> visitor,
     sem::Wrap<T>            tree) {
+    visitor(tree);
     using Bd = describe_bases<T, mod_any_access>;
     using Md = describe_members<T, mod_any_access>;
     mp_for_each<Bd>([&](auto Base) {
@@ -113,8 +111,6 @@ void recVisitOrgNodesImpl(
 void assignIdsImpl(
     CR<Org::SubnodeVisitor> visitor,
     sem::Wrap<sem::Org>     org) {
-
-    visitor(org);
     std::visit(
         [&](const auto& node) { recVisitOrgNodesImpl(visitor, node); },
         org->asVariant());
@@ -280,4 +276,54 @@ Opt<Property> Subtree::getProperty(
     } else {
         return props[0];
     }
+}
+
+Opt<Wrap<Subtree>> Document::getSubtree(CR<Str> id) {
+    auto iid = idTable.get(id);
+    if (!iid) {
+        return std::nullopt;
+    }
+    auto tree = getTree(iid.value());
+    if (!tree) {
+        return std::nullopt;
+    }
+    return (**tree).as<Subtree>();
+}
+
+Opt<Wrap<Org>> Document::resolve(CR<Wrap<Org>> node) {
+    Q_CHECK_PTR(node);
+    Q_CHECK_PTR(this);
+    switch (node->getKind()) {
+        case osk::Link: {
+            auto link = node->as<Link>();
+            switch (link->getLinkKind()) {
+                case Link::Kind::Id: {
+                    Opt<int> target = idTable.get(link->getId().text);
+                    qDebug() << "Resolving link with ID"
+                             << link->getId().text << "to" << target;
+
+                    if (target) {
+                        return getTree(target.value());
+                    }
+                    break;
+                }
+                case Link::Kind::Footnote: {
+                    auto target = footnoteTable.get(
+                        link->getFootnote().target);
+
+                    qDebug()
+                        << "Resolving footnote with ID"
+                        << link->getFootnote().target << "to" << target;
+
+                    if (target) {
+                        return getTree(target.value());
+                    }
+                    break;
+                }
+            }
+            break;
+        }
+    }
+
+    return std::nullopt;
 }

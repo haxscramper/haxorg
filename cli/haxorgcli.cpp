@@ -873,13 +873,9 @@ void HaxorgCli::exec() {
         __trace("convert parse to sem");
         node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
     }
-    {
-        __trace("assign IDs");
-        node->assignIds();
-    }
-
 
     writeJson();
+    writeYaml();
 
     {
         ColStream    os{qcout};
