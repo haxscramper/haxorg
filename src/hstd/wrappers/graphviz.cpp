@@ -67,7 +67,7 @@ Graphviz::Graph::Graph(const QString& name, Agdesc_t desc) {
     if (!graph_) {
         throw std::runtime_error("Failed to create graph");
     } else {
-        graph = std::shared_ptr<Agraph_t>(graph_);
+        graph = graph_;
     }
 }
 

@@ -779,24 +779,35 @@ void HaxorgCli::exec() {
 
     using R = OrgTokenizer::ReportKind;
 
-    parser->setReportHook([&](CR<OrgParser::Report> report) {
-        using R = OrgParser::ReportKind;
-        switch (report.kind) {
-            case R::StartNode: ops.started[*report.node] = report; break;
-            case R::EndNode: ops.ended[*report.node] = report; break;
-            case R::AddToken: ops.pushed[*report.node] = report; break;
-        }
-    });
+    using Target = HaxorgCli::Config::Target;
 
-    tokenizer->setReportHook([&](CR<OrgTokenizer::Report> report) {
-        switch (report.kind) {
-            case R::Push: {
-                pushedOn[report.id] = report;
-                break;
+    if (config.target == Target::HtmlParse) {
+        parser->setReportHook([&](CR<OrgParser::Report> report) {
+            using R = OrgParser::ReportKind;
+            switch (report.kind) {
+                case R::StartNode:
+                    ops.started[*report.node] = report;
+                    break;
+                case R::EndNode: ops.ended[*report.node] = report; break;
+                case R::AddToken: ops.pushed[*report.node] = report; break;
             }
-        }
-    });
+        });
+    }
 
+    bool const writeLexInfo = config.target == Target::AnnotatedLex
+                           || config.target == Target::CsvLex
+                           || config.target == Target::HtmlLex;
+
+    if (writeLexInfo) {
+        tokenizer->setReportHook([&](CR<OrgTokenizer::Report> report) {
+            switch (report.kind) {
+                case R::Push: {
+                    pushedOn[report.id] = report;
+                    break;
+                }
+            }
+        });
+    }
 
     str = std::make_shared<PosStr>(source);
     StrCache sources;
@@ -808,8 +819,6 @@ void HaxorgCli::exec() {
     }
 
 
-    using Target = HaxorgCli::Config::Target;
-
     if (config.target == Target::YamlLex) {
         writeYamlLex();
         return;
@@ -817,10 +826,7 @@ void HaxorgCli::exec() {
         writeFile(config.outFile, to_string(jsonRepr(tokens)) + "\n");
         qInfo() << "Wrote JSON lex representation into " << config.outFile;
         return;
-    } else if (
-        config.target == Target::AnnotatedLex
-        || config.target == Target::CsvLex
-        || config.target == Target::HtmlLex) {
+    } else if (writeLexInfo) {
         QString table;
         QString csv;
         QString annotated;
@@ -901,29 +907,20 @@ void HaxorgCli::exec() {
         spelling.setSpeller("en_US");
         spelling.annotate(node);
     }
-    //    {
-    //        TRACE_EVENT("lexing", "test");
 
-    //        qDebug() << "Printed testing";
-    //    }
 
-    //    StopTracing(
-    //        std::move(tracing_session),
-    //        QFileInfo("/tmp/haxorg.pftrace"));
+    {
+        ExporterMindMap exporter;
+        exporter.visitTop(node);
 
-    //    {
-    //        ExporterMindMap exporter;
-    //        exporter.visitTop(node);
+        auto graph = exporter.toGraph();
+        gvc.writeFile("/tmp/mindmap.dot", graph);
 
-    //        auto graph = exporter.toGraph();
-    //        gvc.writeFile("/tmp/mindmap.dot", graph);
+        gvc.renderToFile(
+            "/tmp/mindmap.png", graph, Graphviz::RenderFormat::PNG);
 
-    //        //    gvc.renderToFile(
-    //        //        "/tmp/graph.png", *dot.graph,
-    //        //        Graphviz::RenderFormat::PNG);
-
-    //        qDebug() << "Graphviz ok";
-    //    }
+        qDebug() << "Graphviz ok";
+    }
 
 
     return;

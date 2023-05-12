@@ -1,6 +1,4 @@
-#ifndef GRAPHVIZ_HPP
-#define GRAPHVIZ_HPP
-
+#pragma once
 
 #include <graphviz/gvc.h>
 #include <graphviz/cgraph.h>
@@ -343,8 +341,8 @@ class Graphviz {
         Graph(const QString& name, Agdesc_t desc = Agdirected);
         Graph(Agraph_t* graph) : graph(graph) {}
 
-        Agraph_t*       get() { return graph.get(); }
-        Agraph_t const* get() const { return graph.get(); }
+        Agraph_t*       get() { return graph; }
+        Agraph_t const* get() const { return graph; }
 
         enum class Splines
         {
@@ -355,7 +353,7 @@ class Graphviz {
 
 
         Graph newSubgraph(QString const& name) {
-            return Graph(agsubg(graph.get(), name.toLatin1().data(), 1));
+            return Graph(agsubg(graph, name.toLatin1().data(), 1));
         }
 
         void setSplines(Splines splines);
@@ -365,14 +363,14 @@ class Graphviz {
         void eachEdge(Func<void(Edge)> cb);
 
         Node node(QString const& name) {
-            Q_CHECK_PTR(graph.get());
-            auto tmp = Node(graph.get(), name);
+            Q_CHECK_PTR(graph);
+            auto tmp = Node(graph, name);
             return tmp;
         }
 
         Edge edge(CR<Node> head, CR<Node> tail) {
-            Q_CHECK_PTR(graph.get());
-            auto tmp = Edge(graph.get(), head, tail);
+            Q_CHECK_PTR(graph);
+            auto tmp = Edge(graph, head, tail);
             return tmp;
         }
 
@@ -445,7 +443,7 @@ class Graphviz {
         _attr(ViewPort, viewport, QPointF);
 
       private:
-        SPtr<Agraph_t> graph;
+        Agraph_t* graph;
     };
 
 
@@ -538,6 +536,3 @@ class Graphviz {
   private:
     GVC_t* gvc;
 };
-
-
-#endif // GRAPHVIZ_HPP

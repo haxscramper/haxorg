@@ -67,14 +67,13 @@ Graphviz::Graph ExporterMindMap::toGraph() {
         if (doc->subtrees.empty()) {
             auto canvas = parent ? *parent : Graphviz::Graph("root");
 
-            //            auto node = canvas.node("node" +
-            //            to_string(++subgraphCounter)); if
-            //            (doc->original->is(OrgSemKind::Subtree)) {
-            //                node.setLabel(ExporterUltraplain::toStr(
-            //                    doc->original->as<sem::Subtree>()->title));
-            //            } else {
-            //                qDebug() << doc->original->getKind();
-            //            }
+            auto node = canvas.node("node" + to_string(++subgraphCounter));
+            if (doc->original->is(OrgSemKind::Subtree)) {
+                node.setLabel(ExporterUltraplain::toStr(
+                    doc->original->as<sem::Subtree>()->title));
+            } else {
+                qDebug() << doc->original->getKind();
+            }
 
             return canvas;
         } else {

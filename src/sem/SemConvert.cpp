@@ -561,7 +561,6 @@ Vec<Wrap<Org>> OrgConverter::flatConvertAttached(__args) {
 }
 
 Wrap<Org> OrgConverter::convert(__args) {
-    __perf_trace("convert");
     __trace();
     if (!a.isValid()) {
         qWarning() << "Invalid node encountered during conversion" << a.id;
