@@ -15,6 +15,7 @@ target_link_libraries(haxorg PUBLIC
     ${GRAPHVIZ_GVC_LIBRARY}
     fmt::fmt
     enchant-2
+    perfetto
     yaml-cpp::yaml-cpp
     Qt6::Core Qt6::Gui)
 

@@ -14,7 +14,9 @@
 #include <exporters/exportersimplesexpr.hpp>
 #include <annotators/annotatorspelling.hpp>
 #include <exporters/exportermindmap.hpp>
+#include <hstd/wrappers/perfetto_aux.hpp>
 #include <QGuiApplication>
+#include <perfetto.h>
 
 struct NodeOperations {
     UnorderedMap<OrgId, OrgParser::Report> started, ended, pushed;
@@ -558,37 +560,8 @@ kind=$#
     }
 }
 
-void HaxorgCli::timeStats() {
-    for (const auto& rep : processStatus.reports) {
-        qInfo().noquote()
-            << R"(Processing of '$#' took:
-  lex:     $#s
-  parse:   $#s
-  convert: $#s
-  export:  $#s)"
-                   % to_string_vec(
-                       rep.file.filePath(),
-                       float(rep.lexNs.value_or(0)) / 1000000,
-                       float(rep.parseNs.value_or(0)) / 1000000,
-                       float(rep.convertNs.value_or(0)) / 1000000,
-                       float(rep.exportNs.value_or(0)) / 1000000);
-    }
-}
-
-HaxorgCli::HaxorgCli() : tokenizer(), nodes(nullptr), lex(&tokens) {
-    nodes.tokens = &tokens;
-}
-
-void HaxorgCli::exec() {
-    source      = readFile(config.sourceFile);
-    tokens.base = source.data();
-    info        = LineColInfo{source};
-
-    parser    = OrgParser::initImpl(&nodes, config.trace.parse.doTrace);
-    tokenizer = OrgTokenizer::initImpl(&tokens, config.trace.lex.doTrace);
-
-    Func<LineCol(CR<PosStr>)> locationResolver =
-        [&](CR<PosStr> str) -> LineCol {
+void HaxorgCli::initLocationResolvers() {
+    locationResolver = [&](CR<PosStr> str) -> LineCol {
         Slice<int> absolute = tokens.toAbsolute(str.view);
         return {
             info.whichLine(absolute.first + str.pos) + 1,
@@ -599,7 +572,9 @@ void HaxorgCli::exec() {
     converter.locationResolver = locationResolver;
     tokenizer->setLocationResolver(locationResolver);
     parser->setLocationResolver(locationResolver);
+}
 
+void HaxorgCli::initTracers() {
     if (config.trace.lex.doTrace) {
         tokenizer->trace = true;
         if (config.trace.lex.traceTo.has_value()) {
@@ -649,45 +624,17 @@ void HaxorgCli::exec() {
             }
         }
     });
+}
 
-    UnorderedMap<OrgTokenId, OrgTokenizer::Report> pushedOn;
-    NodeOperations                                 ops;
-
-    using R = OrgTokenizer::ReportKind;
-
-    parser->setReportHook([&](CR<OrgParser::Report> report) {
-        using R = OrgParser::ReportKind;
-        switch (report.kind) {
-            case R::StartNode: ops.started[*report.node] = report; break;
-            case R::EndNode: ops.ended[*report.node] = report; break;
-            case R::AddToken: ops.pushed[*report.node] = report; break;
-        }
-    });
-
-    tokenizer->setReportHook([&](CR<OrgTokenizer::Report> report) {
-        switch (report.kind) {
-            case R::Push: {
-                pushedOn[report.id] = report;
-                break;
-            }
-        }
-    });
+#define __trace(name) TRACE_EVENT("cli", name)
 
 
-    PosStr        str{source};
-    QElapsedTimer timer;
-    StrCache      sources;
-    Id            inId = 0;
-    sources.add(inId, source, config.sourceFile.fileName());
-
-    timer.start();
-    processStatus.reports.push_back({});
-    ProcessStatus::FileReport& rep = processStatus.reports.back();
-    rep.file                       = config.sourceFile;
-
-
+bool HaxorgCli::runTokenizer() {
+    __trace("tokenize file");
+    Id inId = 0;
     try {
-        tokenizer->lexGlobal(str);
+        tokenizer->lexGlobal(*str);
+        return true;
     } catch (OrgTokenizer::TokenizerError& err) {
         QStringView  view = err.getView();
         Opt<LineCol> loc  = err.getLoc();
@@ -720,16 +667,151 @@ void HaxorgCli::exec() {
                                      .with_message(msg));
 
         r.write(sources, qcout);
+        return false;
+    }
+}
+
+void HaxorgCli::writeYamlLex() {
+    __trace("Convert lex to yaml");
+    writeFile(config.outFile, to_string(yamlRepr(tokens)) + "\n");
+    qInfo() << "Wrote YAML lex representation into " << config.outFile;
+}
+
+void HaxorgCli::writeYamlParse() {
+    __trace("Convert parse to yaml");
+    writeFile(config.outFile, to_string(yamlRepr(nodes)) + "\n");
+    qInfo() << "Wrote YAML parse representation into " << config.outFile;
+}
+
+void HaxorgCli::writeTreeParse() {
+    __trace("Write out tree repr for the parsed tree");
+    writeFile(QFileInfo("/tmp/parsed_tree.txt"), nodes.treeRepr(OrgId(0)));
+}
+
+void HaxorgCli::writeJsonParse() {
+    __trace("Convert parse to json");
+    writeFile(config.outFile, to_string(jsonRepr(nodes)) + "\n");
+    qInfo() << "Wrote JSON parse representation into " << config.outFile;
+}
+
+void HaxorgCli::writeJson() {
+    __trace("Export json");
+    ExporterJson exporter;
+    json         result = exporter.visitTop(node);
+
+    writeFile(QFileInfo("/tmp/result.json"), to_string(result));
+    qDebug() << "Json repr ok";
+}
+
+void HaxorgCli::writeYaml() {
+    __trace("Export yaml");
+    ExporterYaml  exporter;
+    yaml          result = exporter.visitTop(node);
+    std::ofstream of{"/tmp/result.yaml"};
+    of << result;
+    qDebug() << "Yaml OK";
+}
+
+void HaxorgCli::writeQDocument() {
+    __trace("Export QDocument");
+    int   argc = 0;
+    char* argv = "";
+
+    QGuiApplication       app(argc, &argv);
+    ExporterQTextDocument exporter;
+    exporter.visitTop(node);
+    writeFile(
+        QFileInfo("/tmp/qt_document.md"), exporter.document->toMarkdown());
+    writeFile(
+        QFileInfo("/tmp/qt_document.html"), exporter.document->toHtml());
+    writeFile(
+        QFileInfo("/tmp/qt_document.txt"), exporter.document->toRawText());
+}
+
+void HaxorgCli::writeSimpleSExpr() {
+    __trace("Export S-expresions");
+    ExporterSimpleSExpr exporter;
+    layout::Block::Ptr  result = exporter.visitTop(node);
+    QString formatted = exporter.store.toString(result, layout::Options{});
+    writeFile(QFileInfo("/tmp/result.lisp"), formatted);
+}
+
+void HaxorgCli::writeHtml() {
+    __trace("Export HTML");
+    ExporterHtml       exporter;
+    layout::Block::Ptr result = exporter.visitTop(node);
+    QString formatted = exporter.store.toString(result, layout::Options{});
+    writeFile(QFileInfo("/tmp/result.html"), formatted);
+}
+
+void HaxorgCli::writeGantt() {
+    __trace("Export gantt");
+    ExporterGantt gantt;
+    gantt.gantt.timeSpan = slice(QDate(), QDate());
+    gantt.visitTop(node);
+
+    writeFile(QFileInfo("/tmp/gantt.puml"_qs), gantt.gantt.toString());
+}
+
+
+HaxorgCli::HaxorgCli() : tokenizer(), nodes(nullptr), lex(&tokens) {
+    nodes.tokens = &tokens;
+}
+
+
+void HaxorgCli::exec() {
+    //    InitializePerfetto();
+    //    auto tracing_session = StartTracing();
+
+    {
+        __trace("read file");
+        source      = readFile(config.sourceFile);
+        tokens.base = source.data();
+        info        = LineColInfo{source};
+    }
+
+    parser    = OrgParser::initImpl(&nodes, config.trace.parse.doTrace);
+    tokenizer = OrgTokenizer::initImpl(&tokens, config.trace.lex.doTrace);
+
+
+    UnorderedMap<OrgTokenId, OrgTokenizer::Report> pushedOn;
+    NodeOperations                                 ops;
+
+    using R = OrgTokenizer::ReportKind;
+
+    parser->setReportHook([&](CR<OrgParser::Report> report) {
+        using R = OrgParser::ReportKind;
+        switch (report.kind) {
+            case R::StartNode: ops.started[*report.node] = report; break;
+            case R::EndNode: ops.ended[*report.node] = report; break;
+            case R::AddToken: ops.pushed[*report.node] = report; break;
+        }
+    });
+
+    tokenizer->setReportHook([&](CR<OrgTokenizer::Report> report) {
+        switch (report.kind) {
+            case R::Push: {
+                pushedOn[report.id] = report;
+                break;
+            }
+        }
+    });
+
+
+    str = std::make_shared<PosStr>(source);
+    StrCache sources;
+    Id       inId = 0;
+    sources.add(inId, source, config.sourceFile.fileName());
+
+    if (!runTokenizer()) {
         return;
     }
 
-    rep.lexNs = timer.nsecsElapsed();
 
     using Target = HaxorgCli::Config::Target;
 
     if (config.target == Target::YamlLex) {
-        writeFile(config.outFile, to_string(yamlRepr(tokens)) + "\n");
-        qInfo() << "Wrote YAML lex representation into " << config.outFile;
+        writeYamlLex();
         return;
     } else if (config.target == Target::JsonLex) {
         writeFile(config.outFile, to_string(jsonRepr(tokens)) + "\n");
@@ -753,7 +835,7 @@ void HaxorgCli::exec() {
                 return;
             }
             case Target::HtmlLex: {
-                writeHtml(config.outFile, table);
+                ::writeHtml(config.outFile, table);
                 return;
             }
         }
@@ -763,21 +845,15 @@ void HaxorgCli::exec() {
             QFileInfo("/tmp/lexed.yaml"), to_string(yamlRepr(tokens)));
     }
 
-    timer.restart();
     parser->parseTop(lex);
     parser->extendSubtreeTrails(OrgId(0));
     parser->extendAttachedTrails(OrgId(0));
-    rep.lexNs = timer.nsecsElapsed();
 
     if (config.target == Target::YamlParse) {
-        writeFile(config.outFile, to_string(yamlRepr(nodes)) + "\n");
-        qInfo() << "Wrote YAML parse representation into "
-                << config.outFile;
+        writeYamlParse();
         return;
     } else if (config.target == Target::JsonParse) {
-        writeFile(config.outFile, to_string(jsonRepr(nodes)) + "\n");
-        qInfo() << "Wrote JSON parse representation into "
-                << config.outFile;
+        writeJsonParse();
         return;
     } else if (config.target == Target::HtmlParse) {
         QString repr = htmlRepr(OrgId(0), nodes, source, ops);
@@ -785,26 +861,19 @@ void HaxorgCli::exec() {
         return;
     }
 
-    {
-        writeFile(
-            QFileInfo("/tmp/parsed_tree.txt"), nodes.treeRepr(OrgId(0)));
-    }
-
-    timer.restart();
-    sem::Wrap<sem::Document> node = converter.toDocument(
-        OrgAdapter(&nodes, OrgId(0)));
-    node->assignIds();
-    rep.convertNs = timer.nsecsElapsed();
-    timer.restart();
+    //    writeTreeParse();
 
     {
-        ExporterJson exporter;
-        json         result = exporter.visitTop(node);
-        rep.exportNs        = timer.nsecsElapsed();
-
-        writeFile(QFileInfo("/tmp/result.json"), to_string(result));
-        qDebug() << "Json repr ok";
+        __trace("convert parse to sem");
+        node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
     }
+    {
+        __trace("assign IDs");
+        node->assignIds();
+    }
+
+
+    writeJson();
 
     {
         ColStream    os{qcout};
@@ -825,75 +894,37 @@ void HaxorgCli::exec() {
         qDebug() << "Graphviz ok";
     }
 
-    {
-        ExporterGantt gantt;
-        gantt.gantt.timeSpan = slice(QDate(), QDate());
-        gantt.visitTop(node);
-
-        writeFile(QFileInfo("/tmp/gantt.puml"_qs), gantt.gantt.toString());
-    }
-
-    {
-        ExporterYaml  exporter;
-        yaml          result = exporter.visitTop(node);
-        std::ofstream of{"/tmp/result.yaml"};
-        of << result;
-        qDebug() << "Yaml OK";
-    }
-
-    {
-        ExporterHtml       exporter;
-        layout::Block::Ptr result    = exporter.visitTop(node);
-        QString            formatted = exporter.store.toString(
-            result, layout::Options{});
-        writeFile(QFileInfo("/tmp/result.html"), formatted);
-    }
-
-    {
-        int   argc = 0;
-        char* argv = "";
-
-        QGuiApplication       app(argc, &argv);
-        ExporterQTextDocument exporter;
-        exporter.visitTop(node);
-        writeFile(
-            QFileInfo("/tmp/qt_document.md"),
-            exporter.document->toMarkdown());
-        writeFile(
-            QFileInfo("/tmp/qt_document.html"),
-            exporter.document->toHtml());
-        writeFile(
-            QFileInfo("/tmp/qt_document.txt"),
-            exporter.document->toRawText());
-    }
-
-    {
-        ExporterSimpleSExpr exporter;
-        layout::Block::Ptr  result    = exporter.visitTop(node);
-        QString             formatted = exporter.store.toString(
-            result, layout::Options{});
-        writeFile(QFileInfo("/tmp/result.lisp"), formatted);
-    }
-
-    {
-        ExporterMindMap exporter;
-        exporter.visitTop(node);
-
-        auto graph = exporter.toGraph();
-        gvc.writeFile("/tmp/mindmap.dot", graph);
-
-        //    gvc.renderToFile(
-        //        "/tmp/graph.png", *dot.graph,
-        //        Graphviz::RenderFormat::PNG);
-
-        qDebug() << "Graphviz ok";
-    }
+    writeGantt();
 
     {
         AnnotatorSpelling spelling;
         spelling.setSpeller("en_US");
         spelling.annotate(node);
     }
+    //    {
+    //        TRACE_EVENT("lexing", "test");
+
+    //        qDebug() << "Printed testing";
+    //    }
+
+    //    StopTracing(
+    //        std::move(tracing_session),
+    //        QFileInfo("/tmp/haxorg.pftrace"));
+
+    //    {
+    //        ExporterMindMap exporter;
+    //        exporter.visitTop(node);
+
+    //        auto graph = exporter.toGraph();
+    //        gvc.writeFile("/tmp/mindmap.dot", graph);
+
+    //        //    gvc.renderToFile(
+    //        //        "/tmp/graph.png", *dot.graph,
+    //        //        Graphviz::RenderFormat::PNG);
+
+    //        qDebug() << "Graphviz ok";
+    //    }
+
 
     return;
 }

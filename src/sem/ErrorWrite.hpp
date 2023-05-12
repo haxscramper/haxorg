@@ -1,3 +1,5 @@
+#pragma once
+
 #include "hstd/stdlib/Slice.hpp"
 #include <string>
 #include <vector>

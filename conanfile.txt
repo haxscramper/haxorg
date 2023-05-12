@@ -1,6 +1,7 @@
 [requires]
 fmt/9.0.0
 yaml-cpp/0.7.0
+perfetto/34.0
 
 [generators]
 cmake

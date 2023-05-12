@@ -2,6 +2,7 @@
 
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/wrappers/perfetto_aux.hpp>
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>

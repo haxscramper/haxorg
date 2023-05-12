@@ -8,35 +8,43 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <QFileInfo>
+#include <sem/ErrorWrite.hpp>
 
 class HaxorgCli {
     // TODO support processing multiple files, token groups
-    OrgTokenGroup       tokens;
-    SPtr<OrgTokenizer>  tokenizer;
-    OrgNodeGroup        nodes;
-    SPtr<OrgParser>     parser;
-    QString             source;
-    sem::OrgConverter   converter;
-    LineColInfo         info;
-    Lexer<OrgTokenKind> lex;
+    OrgTokenGroup             tokens;
+    SPtr<OrgTokenizer>        tokenizer;
+    OrgNodeGroup              nodes;
+    SPtr<OrgParser>           parser;
+    QString                   source;
+    sem::OrgConverter         converter;
+    LineColInfo               info;
+    Lexer<OrgTokenKind>       lex;
+    sem::Document::Ptr        node;
+    SPtr<PosStr>              str;
+    StrCache                  sources;
+    Func<LineCol(CR<PosStr>)> locationResolver;
+
+    void initLocationResolvers();
+    void initTracers();
+
+    bool runTokenizer();
+
+    void writeYamlLex();
+    void writeYamlParse();
+    void writeTreeParse();
+
+    void writeJsonParse();
+
+
+    void writeJson();
+    void writeYaml();
+    void writeQDocument();
+    void writeSimpleSExpr();
+    void writeHtml();
+    void writeGantt();
 
   public:
-    struct ProcessStatus {
-        /// Information about file processing
-        struct FileReport {
-            QFileInfo   file;
-            Opt<qint64> lexNs;
-            Opt<qint64> parseNs;
-            Opt<qint64> convertNs;
-            Opt<qint64> exportNs;
-        };
-
-        Vec<FileReport> reports;
-
-    } processStatus;
-
-    void timeStats();
-
     struct Config {
         enum class Target
         {

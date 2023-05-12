@@ -7,6 +7,9 @@
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
+#include <hstd/wrappers/perfetto_aux.hpp>
+
+#define __perf_trace(name) TRACE_EVENT("convert", name);
 
 
 #define __INIT_REPORT(__subname, __node)                                  \
@@ -111,6 +114,7 @@ Vec<OrgAdapter> many(OrgAdapter node, OrgSpecName name) {
 }
 
 Wrap<Table> OrgConverter::convertTable(__args) {
+    __perf_trace("convertTable");
     __trace();
     auto result = Sem<Table>(p, a);
 
@@ -119,6 +123,7 @@ Wrap<Table> OrgConverter::convertTable(__args) {
 
 
 Wrap<HashTag> OrgConverter::convertHashTag(__args) {
+    __perf_trace("convertHashTag");
     __trace();
     auto                            result = Sem<HashTag>(p, a);
     Func<Wrap<HashTag>(OrgAdapter)> aux;
@@ -145,9 +150,11 @@ Wrap<HashTag> OrgConverter::convertHashTag(__args) {
     return result;
 };
 
-void OrgConverter::convertSubtreeDrawer(Wrap<Subtree>& tree, In drawer) {
-    if (drawer.kind() != org::Empty) {
-        for (const auto& group : drawer) {
+void OrgConverter::convertSubtreeDrawer(Wrap<Subtree>& tree, In a) {
+    __perf_trace("convertSubtreeDrawer");
+    __trace();
+    if (a.kind() != org::Empty) {
+        for (const auto& group : a) {
             switch (group.kind()) {
                 case org::SubtreeDescription: {
                     tree->description = convertParagraph(
@@ -166,17 +173,19 @@ void OrgConverter::convertSubtreeDrawer(Wrap<Subtree>& tree, In drawer) {
     }
 }
 
-void OrgConverter::convertPropertyList(Wrap<Subtree>& tree, In prop) {
+void OrgConverter::convertPropertyList(Wrap<Subtree>& tree, In a) {
+    __perf_trace("convertPropertyList");
+    __trace();
+
     QString       name = normalize(strip(
-        one(prop, N::Name).strVal(),
+        one(a, N::Name).strVal(),
         CharSet{QChar(':')},
         CharSet{QChar(':')}));
     Opt<Property> result;
     if (name == "exportoptions") {
         Property::ExportOptions res;
-        res.backend = one(prop, N::Subname).strVal();
-        for (QString const& pair :
-             one(prop, N::Values).strVal().split(' ')) {
+        res.backend = one(a, N::Subname).strVal();
+        for (QString const& pair : one(a, N::Values).strVal().split(' ')) {
             auto kv           = pair.split(':');
             res.values[kv[0]] = kv[1];
         }
@@ -184,29 +193,29 @@ void OrgConverter::convertPropertyList(Wrap<Subtree>& tree, In prop) {
         result = Property(res);
 
     } else if (name == "id") {
-        tree->id = one(prop, N::Values).strVal();
+        tree->id = one(a, N::Values).strVal();
 
     } else {
         qCritical().noquote() << "Unknown property name" << name << "\n"
-                              << prop.treeRepr();
+                              << a.treeRepr();
     }
 
     if (result) {
-        const auto inh = one(prop, N::InheritanceMode).strVal();
+        const auto inh = one(a, N::InheritanceMode).strVal();
         if (inh == "!!") {
             result->inheritanceMode = Property::InheritanceMode::OnlyThis;
         } else if (inh == "!") {
             result->inheritanceMode = Property::InheritanceMode::OnlySub;
         }
 
-        const auto sub = one(prop, N::SubSetRule).strVal();
+        const auto sub = one(a, N::SubSetRule).strVal();
         if (sub == "+") {
             result->subSetRule = Property::SetMode::Add;
         } else if (sub == "-") {
             result->subSetRule = Property::SetMode::Subtract;
         }
 
-        const auto main = one(prop, N::MainSetRule).strVal();
+        const auto main = one(a, N::MainSetRule).strVal();
         if (main == "+") {
             result->subSetRule = Property::SetMode::Add;
         } else if (main == "-") {
@@ -218,6 +227,7 @@ void OrgConverter::convertPropertyList(Wrap<Subtree>& tree, In prop) {
 }
 
 Wrap<Subtree> OrgConverter::convertSubtree(__args) {
+    __perf_trace("convertSubtree");
     __trace();
     auto tree = Sem<Subtree>(p, a);
 
@@ -253,6 +263,7 @@ Wrap<Subtree> OrgConverter::convertSubtree(__args) {
 }
 
 Wrap<Time> OrgConverter::convertTime(__args) {
+    __perf_trace("convertTime");
     __trace();
     auto time      = Sem<Time>(p, a);
     time->isActive = (a.kind() == org::DynamicActiveTime)
@@ -325,6 +336,7 @@ Wrap<Time> OrgConverter::convertTime(__args) {
 }
 
 Wrap<TimeRange> OrgConverter::convertTimeRange(__args) {
+    __perf_trace("convertTimeRange");
     __trace();
     auto range = Sem<TimeRange>(p, a);
     {
@@ -343,6 +355,7 @@ Wrap<Paragraph> OrgConverter::convertParagraph(__args) {
     // information about this -- right now `NOTE:` is represented using
     // first two starting elements for paragraph subnodes.
 
+    __perf_trace("convertParagraph");
     __trace();
     auto par = Sem<Paragraph>(p, a);
     for (const auto& item : a) {
@@ -353,6 +366,8 @@ Wrap<Paragraph> OrgConverter::convertParagraph(__args) {
 }
 
 Wrap<StmtList> OrgConverter::convertStmtList(__args) {
+    __perf_trace("convertStmtList");
+    __trace();
     auto stmt = Sem<StmtList>(p, a);
 
     for (OrgAdapter const& sub : a) {
@@ -364,6 +379,7 @@ Wrap<StmtList> OrgConverter::convertStmtList(__args) {
 
 
 Wrap<Link> OrgConverter::convertLink(__args) {
+    __perf_trace("convertLink");
     __trace();
     auto link = Sem<Link>(p, a);
     if (a.kind() == org::RawLink) {
@@ -396,6 +412,7 @@ Wrap<Link> OrgConverter::convertLink(__args) {
 }
 
 Wrap<List> OrgConverter::convertList(__args) {
+    __perf_trace("convertList");
     __trace();
     auto list = Sem<List>(p, a);
     for (const auto& it : a) {
@@ -406,6 +423,7 @@ Wrap<List> OrgConverter::convertList(__args) {
 }
 
 Wrap<ListItem> OrgConverter::convertListItem(__args) {
+    __perf_trace("convertListItem");
     __trace();
     auto item = Sem<ListItem>(p, a);
     if (one(a, N::Header).kind() != org::Empty) {
@@ -420,6 +438,7 @@ Wrap<ListItem> OrgConverter::convertListItem(__args) {
 }
 
 Wrap<Caption> OrgConverter::convertCaption(__args) {
+    __perf_trace("convertCaption");
     __trace();
     auto caption  = Sem<Caption>(p, a);
     caption->text = convertParagraph(caption.get(), one(a, N::Args)[0]);
@@ -427,24 +446,75 @@ Wrap<Caption> OrgConverter::convertCaption(__args) {
     return caption;
 }
 
-// clang-format off
-Wrap<Word> OrgConverter::convertWord(__args) { __trace(); return SemLeaf<Word>(p, a); }
-Wrap<Placeholder> OrgConverter::convertPlaceholder(__args) { __trace(); return SemLeaf<Placeholder>(p, a); }
-Wrap<Newline> OrgConverter::convertNewline(__args) { __trace(); return SemLeaf<Newline>(p, a); }
-Wrap<Space> OrgConverter::convertSpace(__args) { return SemLeaf<Space>(p, a); }
-Wrap<RawText> OrgConverter::convertRawText(__args) { return SemLeaf<RawText>(p, a); }
-Wrap<Punctuation> OrgConverter::convertPunctuation(__args) { __trace(); return SemLeaf<Punctuation>(p, a); }
-Wrap<BigIdent> OrgConverter::convertBigIdent(__args) { __trace(); return SemLeaf<BigIdent>(p, a); }
-// clang-format on
+
+Wrap<Word> OrgConverter::convertWord(__args) {
+    __perf_trace("convertWord");
+    __trace();
+    return SemLeaf<Word>(p, a);
+}
+
+Wrap<Placeholder> OrgConverter::convertPlaceholder(__args) {
+    __perf_trace("convertPlaceholder");
+    __trace();
+    return SemLeaf<Placeholder>(p, a);
+}
+
+Wrap<Newline> OrgConverter::convertNewline(__args) {
+    __perf_trace("convertNewline");
+    __trace();
+    return SemLeaf<Newline>(p, a);
+}
+
+Wrap<Space> OrgConverter::convertSpace(__args) {
+    return SemLeaf<Space>(p, a);
+}
+
+Wrap<RawText> OrgConverter::convertRawText(__args) {
+    return SemLeaf<RawText>(p, a);
+}
+
+Wrap<Punctuation> OrgConverter::convertPunctuation(__args) {
+    __perf_trace("convertPunctuation");
+    __trace();
+    return SemLeaf<Punctuation>(p, a);
+}
+
+Wrap<BigIdent> OrgConverter::convertBigIdent(__args) {
+    __perf_trace("convertBigIdent");
+    __trace();
+    return SemLeaf<BigIdent>(p, a);
+}
 
 
-// clang-format off
-Wrap<MarkQuote> OrgConverter::convertMarkQuote(__args) { __trace(); return convertAllSubnodes<MarkQuote>(p, a); }
-Wrap<Verbatim> OrgConverter::convertVerbatim(__args) { __trace(); return convertAllSubnodes<Verbatim>(p, a); }
-Wrap<Bold> OrgConverter::convertBold(__args) { __trace(); return convertAllSubnodes<Bold>(p, a); }
-Wrap<Par> OrgConverter::convertPar(__args) { __trace(); return convertAllSubnodes<Par>(p, a); }
-Wrap<Italic> OrgConverter::convertItalic(__args) { __trace(); return convertAllSubnodes<Italic>(p, a); }
-// clang-format on
+Wrap<MarkQuote> OrgConverter::convertMarkQuote(__args) {
+    __perf_trace("convertMarkQuote");
+    __trace();
+    return convertAllSubnodes<MarkQuote>(p, a);
+}
+
+Wrap<Verbatim> OrgConverter::convertVerbatim(__args) {
+    __perf_trace("convertVerbatim");
+    __trace();
+    return convertAllSubnodes<Verbatim>(p, a);
+}
+
+Wrap<Bold> OrgConverter::convertBold(__args) {
+    __perf_trace("convertBold");
+    __trace();
+    return convertAllSubnodes<Bold>(p, a);
+}
+
+Wrap<Par> OrgConverter::convertPar(__args) {
+    __perf_trace("convertPar");
+    __trace();
+    return convertAllSubnodes<Par>(p, a);
+}
+
+Wrap<Italic> OrgConverter::convertItalic(__args) {
+    __perf_trace("convertItalic");
+    __trace();
+    return convertAllSubnodes<Italic>(p, a);
+}
 
 
 Wrap<Quote> OrgConverter::convertQuote(__args) {
@@ -491,6 +561,7 @@ Vec<Wrap<Org>> OrgConverter::flatConvertAttached(__args) {
 }
 
 Wrap<Org> OrgConverter::convert(__args) {
+    __perf_trace("convert");
     __trace();
     if (!a.isValid()) {
         qWarning() << "Invalid node encountered during conversion" << a.id;

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <parse/OrgParser.hpp>
+#include <hstd/wrappers/perfetto_aux.hpp>
+
+#define __perf_trace(name) TRACE_EVENT("parsing", name)
 
 using otk = OrgTokenKind;
 using org = OrgNodeKind;
@@ -370,6 +373,7 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
 
 
 void OrgParserImplBase::extendSubtreeTrails(OrgId position) {
+    __perf_trace("extendSubtreeTrails");
     Func<OrgId(OrgId, int)> aux;
     aux = [&](OrgId id, int level) -> OrgId {
         OrgId const start = id;
@@ -437,6 +441,7 @@ void OrgParserImplBase::extendSubtreeTrails(OrgId position) {
 
 
 void OrgParserImplBase::extendAttachedTrails(OrgId position) {
+    __perf_trace("extendAttachedTrails");
     Func<OrgId(OrgId)> aux;
     aux = [&](OrgId id) -> OrgId {
         auto& g = *group;

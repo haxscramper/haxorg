@@ -4,6 +4,9 @@
 #include <QFileInfo>
 #include <QString>
 #include <hstd/wrappers/graphviz.hpp>
+#include <hstd/wrappers/perfetto_aux.hpp>
+
+#include <hstd/wrappers/perfetto_aux.hpp>
 
 QTextStream qcout;
 
@@ -153,7 +156,19 @@ bool parseArgs(int argc, char** argv, HaxorgCli::Config& config) {
     return true;
 }
 
+
 int main(int argc, char** argv) {
+    InitializePerfetto();
+    auto tracing_session = StartTracing();
+
+    // Give a custom name for the traced process.
+    perfetto::ProcessTrack process_track = perfetto::ProcessTrack::
+        Current();
+    perfetto::protos::gen::TrackDescriptor desc = process_track
+                                                      .Serialize();
+    desc.mutable_process()->set_process_name("Example");
+    perfetto::TrackEvent::SetTrackDescriptor(process_track, desc);
+
     Graphviz        ctx;
     Graphviz::Graph graph("g");
     graph.node("test");
@@ -174,6 +189,7 @@ int main(int argc, char** argv) {
     }
 
     cli.exec();
-    cli.timeStats();
+
+    StopTracing(std::move(tracing_session));
     return 0;
 }

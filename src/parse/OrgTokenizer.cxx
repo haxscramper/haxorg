@@ -118,6 +118,11 @@
     __push(tok);                                                          \
     __end(str);
 
+
+#define EMPTY()
+
+#define __perf_trace(name) TRACE_EVENT("lexing", name)
+
 template <>
 void OrgTokenizerImpl<TRACE_STATE>::spaceSkip(PosStr& str, bool require) {
     OrgToken tmp = require ? str.tok(
@@ -191,6 +196,7 @@ void OrgTokenizerImpl<TRACE_STATE>::newlineSkip(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexAngle(PosStr& str) {
+    __perf_trace("lexAngle");
     __trace();
     if (str.at("<%%") || str.at(charsets::Digits, 1)) {
         return lexTimeStamp(str);
@@ -232,6 +238,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexAngle(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTimeStamp(PosStr& str) {
+    __perf_trace("lexTimeStamp");
     __trace();
     bool active = str.at(QChar('<'));
 
@@ -335,6 +342,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTimeStamp(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTimeRange(PosStr& str) {
+    __perf_trace("lexTimeRange");
     __trace();
     lexTimeStamp(str);
     if (str.at("--")) {
@@ -369,6 +377,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTimeRange(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexLinkTarget(PosStr& str) {
+    __perf_trace("lexLinkTarget");
     __trace();
     if (str.at("https") || str.at("http")) {
         auto tok = str.tok(otk::LinkFull, [](PosStr& str) {
@@ -424,6 +433,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexLinkTarget(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexLink(PosStr& str) {
+    __perf_trace("lexLink");
     __trace();
     __start(str);
     try {
@@ -480,6 +490,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexLink(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexFootnote(PosStr& str) {
+    __perf_trace("lexFootnote");
     __trace();
     __start(str);
 
@@ -510,6 +521,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexFootnote(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexBracket(PosStr& str) {
+    __perf_trace("lexBracket");
     __trace();
     if (str.at("[[")) {
         lexLink(str);
@@ -524,6 +536,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexBracket(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTextSrc(PosStr& str) {
+    __perf_trace("lexTextSrc");
     __trace();
     const auto    pos = str.getPos();
     Vec<OrgToken> buf;
@@ -569,6 +582,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTextSrc(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTextCall(PosStr& str) {
+    __perf_trace("lexTextCall");
     __trace();
     const auto    pos = str.getPos();
     Vec<OrgToken> buf;
@@ -602,6 +616,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTextCall(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTextWord(PosStr& str) {
+    __perf_trace("lexTextWord");
     __trace();
     // TODO handle other cases like
     //
@@ -632,6 +647,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTextWord(PosStr& str) {
 /// `call_`, regular word, etc.
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTextChars(PosStr& str) {
+    __perf_trace("lexTextChars");
     __trace();
     __adv_check();
     bool isStructure = false;
@@ -655,6 +671,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTextChars(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexParenArguments(PosStr& str) {
+    __perf_trace("lexParenArguments");
     __trace();
     auto open = str.tok(otk::ParOpen, skipCb('('));
     __push(open);
@@ -684,6 +701,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexParenArguments(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTextDollar(PosStr& str) {
+    __perf_trace("lexTextDollar");
     __trace();
     auto          tmp = str;
     Vec<OrgToken> buf;
@@ -727,6 +745,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTextDollar(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexSlashEntity(PosStr& str) {
+    __perf_trace("lexSlashEntity");
     __trace();
     try {
         if (str.at(charsets::IdentStartChars - CharSet{QChar('_')}, 1)) {
@@ -784,6 +803,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexSlashEntity(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexSlashMath(PosStr& str) {
+    __perf_trace("lexSlashMath");
     __trace();
     __start(str);
     try {
@@ -817,6 +837,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexSlashMath(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTextSlash(PosStr& str) {
+    __perf_trace("lexTextSlash");
     __trace();
     switch (str.get(1).unicode()) {
         case '[':
@@ -839,6 +860,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTextSlash(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexSubtreeTimes(PosStr& str) {
+    __perf_trace("lexSubtreeTimes");
     __trace();
     __start(str);
     try {
@@ -877,6 +899,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexSubtreeTimes(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexSubtree(PosStr& str) {
+    __perf_trace("lexSubtree");
     __trace();
     auto stars = str.tok(otk::SubtreeStars, skipZeroOrMore, OSubtreeStart);
     __push(stars);
@@ -923,6 +946,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexSubtree(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexSourceBlockContent(PosStr& str) {
+    __perf_trace("lexSourceBlockContent");
     __trace();
     while (!str.finished()) {
         if (str.at("<<")) {
@@ -1006,6 +1030,7 @@ template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexCommandContent(
     PosStr&               str,
     const OrgCommandKind& kind) {
+    __perf_trace("lexCommandContent");
     __trace();
     auto content = str.fakeTok(otk::CommandContentStart);
     __push(content);
@@ -1050,6 +1075,7 @@ Vec<OrgToken> OrgTokenizerImpl<TRACE_STATE>::lexDelimited(
     const Pair<QChar, OrgTokenKind>& start,
     const Pair<QChar, OrgTokenKind>& finish,
     const OrgTokenKind&              middle) {
+    __perf_trace("lexDelimited");
     __trace();
     Vec<OrgToken> result;
     result.push_back(str.tok(start.second, skipCb(start.first)));
@@ -1070,6 +1096,7 @@ Vec<OrgToken> OrgTokenizerImpl<TRACE_STATE>::lexDelimited(
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexCommandProperty(PosStr& str) {
+    __perf_trace("lexCommandProperty");
     __trace();
     spaceSkip(str);
     auto ident = str.tok(
@@ -1089,6 +1116,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexCommandProperty(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTextAtSign(PosStr& str) {
+    __perf_trace("lexTextAtSign");
     __trace();
     const auto AtChars = charsets::IdentChars + charsets::Utf8Any;
     if (str.at(AtChars, 1)) {
@@ -1110,6 +1138,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexCommandBlockDelimited(
     PosStr& str,
     PosStr  id,
     int     column) {
+    __perf_trace("lexCommandBlockDelimited");
     __trace();
     auto begin = Token(otk::CommandBegin, id.view);
     __push(begin);
@@ -1168,6 +1197,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexCommandBlockDelimited(
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTextVerbatim(PosStr& str) {
+    __perf_trace("lexTextVerbatim");
     __trace();
     const auto start = str.get();
     if (str.at(start, 1)) {
@@ -1216,6 +1246,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTextVerbatim(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTextCurly(PosStr& str) {
+    __perf_trace("lexTextCurly");
     __trace();
     if (str.at("{{{")) {
         auto open = str.tok(otk::MacroOpen, skipCount, 3);
@@ -1243,6 +1274,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTextCurly(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTextMarkup(PosStr& str) {
+    __perf_trace("lexTextMarkup");
     __trace();
     const auto ch                        = str.get();
     const auto& [kOpen, kClose, kInline] = markupConfig[ch];
@@ -1264,6 +1296,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTextMarkup(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexHashTag(PosStr& str) {
+    __perf_trace("lexHashTag");
     __trace();
     auto head = str.tok(otk::HashTag, [](PosStr& str) {
         str.trySkip(QChar('#'));
@@ -1305,6 +1338,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexHashTag(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexText(PosStr& str) {
+    __perf_trace("lexText");
     __trace();
 
     switch (str.get().unicode()) {
@@ -1428,6 +1462,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexText(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexProperties(PosStr& str) {
+    __perf_trace("lexProperties");
     __trace();
     __start(str);
     try {
@@ -1506,6 +1541,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexProperties(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexDescription(PosStr& str) {
+    __perf_trace("lexDescription");
     __trace();
     str.pushSlice();
     auto hasEnd = false;
@@ -1529,6 +1565,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexDescription(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexLogbook(PosStr& str) {
+    __perf_trace("lexLogbook");
     __trace();
     __start(str);
     try {
@@ -1564,6 +1601,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexLogbook(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexDrawer(PosStr& str) {
+    __perf_trace("lexDrawer");
     __trace();
     __start(str);
     spaceSkip(str);
@@ -1626,6 +1664,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexDrawer(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexSubtreeTodo(PosStr& str) {
+    __perf_trace("lexSubtreeTodo");
     __trace();
     auto tmp = str;
     tmp.pushSlice();
@@ -1640,6 +1679,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexSubtreeTodo(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexSubtreeUrgency(PosStr& str) {
+    __perf_trace("lexSubtreeUrgency");
     __trace();
     if (str.at("[#")) {
         str.pushSlice();
@@ -1656,6 +1696,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexSubtreeUrgency(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexSubtreeTitle(PosStr& str) {
+    __perf_trace("lexSubtreeTitle");
     __trace();
     spaceSkip(str);
     auto body = str.slice(skipToEOL);
@@ -1784,6 +1825,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexSubtreeTitle(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexCommandCall(PosStr& str) {
+    __perf_trace("lexCommandCall");
     __trace();
     spaceSkip(str);
     auto call = str.tok(
@@ -1810,6 +1852,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexCommandCall(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexCommandOptions(PosStr& str) {
+    __perf_trace("lexCommandOptions");
     __trace();
     while (!str.finished()) {
         switch (str.get().unicode()) {
@@ -1843,6 +1886,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexCommandOptions(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexCommandInclude(PosStr& str) {
+    __perf_trace("lexCommandInclude");
     __trace();
     spaceSkip(str);
     if (str.at(QChar('"'))) {
@@ -1865,6 +1909,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexCommandInclude(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexCommandKeyValue(PosStr& str) {
+    __perf_trace("lexCommandKeyValue");
     __trace();
     while (!str.finished()) {
         switch (str.get().unicode()) {
@@ -1919,6 +1964,7 @@ template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexCommandArguments(
     PosStr&               str,
     const OrgCommandKind& kind) {
+    __perf_trace("lexCommandArguments");
     __trace();
     OrgTokenKind wrapStart = otk::CommandArgumentsBegin;
     OrgTokenKind wrapEnd   = otk::CommandArgumentsEnd;
@@ -2041,6 +2087,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexCommandArguments(
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexCommandBlock(PosStr& str) {
+    __perf_trace("lexCommandBlock");
     __trace();
     // Store position of the command start - content be dedented or
     // indented arbitrarily, so `#+begin_src` starting at column 2 might
@@ -2226,6 +2273,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexListBullet(
     PosStr&           str,
     int               indent,
     LexerStateSimple& state) {
+    __perf_trace("lexListBullet");
     __trace();
     if (str.at(CharSet{QChar('-'), QChar('+')})
         || (0 < str.getIndent() && str.at(OBulletListStar))) {
@@ -2264,6 +2312,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexListDescription(
     PosStr&           str,
     int               indent,
     LexerStateSimple& state) {
+    __perf_trace("lexListDescription");
     __trace();
     PosStr        tmp = str;
     Vec<OrgToken> buffer;
@@ -2319,6 +2368,7 @@ void OrgTokenizerImpl<TRACE_STATE>::lexListBody(
     PosStr&           str,
     int               column,
     LexerStateSimple& state) {
+    __perf_trace("lexListBody");
     __trace("List body");
     auto start = str.fakeTok(otk::StmtListOpen);
     __push(start);
@@ -2403,6 +2453,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexListItem(
     PosStr&           str,
     const int&        column,
     LexerStateSimple& state) {
+    __perf_trace("lexListItem");
     __trace();
     lexListBullet(str, column, state);
     lexListDescription(str, column, state);
@@ -2415,6 +2466,7 @@ template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexListItems(
     PosStr&           str,
     LexerStateSimple& state) {
+    __perf_trace("lexListItems");
     __trace();
     assert(!str.at(ONewline));
     while (atListAhead(str)) {
@@ -2433,6 +2485,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexListItems(
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexList(PosStr& str) {
+    __perf_trace("lexList");
     __trace();
     LexerStateSimple state{};
     __push(str.fakeTok(otk::ListStart));
@@ -2460,6 +2513,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexList(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexParagraph(PosStr& str) {
+    __perf_trace("lexParagraph");
     __trace();
     // Pick out large standalone paragraph block until some construct is
     // encountered or empty line is reached.
@@ -2525,6 +2579,7 @@ template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTableState(
     PosStr&                         str,
     LexerState<OrgBlockLexerState>& state) {
+    __perf_trace("lexTableState");
     __trace();
     switch (str.get().unicode()) {
         case '#': {
@@ -2646,6 +2701,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTableState(
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexTable(PosStr& str) {
+    __perf_trace("lexTable");
     __trace();
     LexerState<OrgBlockLexerState> state;
     state.lift(OrgBlockLexerState::None);
@@ -2665,6 +2721,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTable(PosStr& str) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexStructure(PosStr& str) {
+    __perf_trace("lexStructure");
     __trace();
     // This procedure dispatches into toplevel lexer routines that are
     // meant to produce entries for the high-level document structure -
@@ -2867,6 +2924,7 @@ void OrgTokenizerImpl<TRACE_STATE>::pushResolved(CR<OrgToken> token) {
 
 template <>
 bool OrgTokenizerImpl<TRACE_STATE>::lexGlobal(PosStr& str) {
+    __perf_trace("lexGlobal");
     __trace();
     while (!str.finished()) {
         lexStructure(str);
