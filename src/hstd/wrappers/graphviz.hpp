@@ -14,6 +14,7 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <new>
 #include <hstd/stdlib/Func.hpp>
+#include <QColor>
 
 
 #define _attr(Method, key, Type)                                          \
@@ -61,12 +62,18 @@ class Graphviz {
             agdelrec(_this()->get(), name.toStdString().c_str());
         }
 
-        void set(const QString& attribute, const QString& value) {
-            agsafeset(
-                _this()->get(),
-                const_cast<char*>(attribute.toStdString().c_str()),
-                const_cast<char*>(value.toStdString().c_str()),
-                const_cast<char*>(""));
+        Func<void(QString const&, QString const&)> setOverride;
+
+        void set(QString const& attribute, QString const& value) {
+            if (setOverride) {
+                setOverride(attribute, value);
+            } else {
+                agsafeset(
+                    _this()->get(),
+                    const_cast<char*>(attribute.toStdString().c_str()),
+                    const_cast<char*>(value.toStdString().c_str()),
+                    const_cast<char*>(""));
+            }
         }
 
         void set(QString const& key, int value) {
@@ -80,12 +87,16 @@ class Graphviz {
         void set(QString const& key, double value) {
             _this()->set(key, QString::number(value));
         }
+
+        void set(QString const& key, QColor const& value) {
+            _this()->set(key, value.name());
+        }
     };
 
     class Node : public GraphvizObjBase<Node> {
       public:
         struct Record {
-            static QString escape(const QString& input) {
+            static QString escape(QString const& input) {
                 QString escaped = input;
                 escaped.replace("\\", "\\\\");
                 escaped.replace("\"", "\\\"");
@@ -152,7 +163,7 @@ class Graphviz {
         Node(Agraph_t* graph, Agnode_t* node_)
             : node(node_), graph(graph) {}
 
-        Node(Agraph_t* graph, const QString& name) {
+        Node(Agraph_t* graph, QString const& name) {
             auto node_ = agnode(
                 graph, const_cast<char*>(name.toStdString().c_str()), 1);
             if (!node_) {
@@ -271,11 +282,11 @@ class Graphviz {
 
 
         /// \brief Color of the node's border
-        _attr(Color, color, QString /* QColor */);
+        _attr(Color, color, QColor);
         /// \brief Fill color of the node
-        _attr(FillColor, fillcolor, QString /* QColor */);
+        _attr(FillColor, fillcolor, QColor);
         /// \brief Font color of the node's label
-        _attr(FontColor, fontcolor, QString /* QColor */);
+        _attr(FontColor, fontcolor, QColor);
         /// \brief Font name of the node's label
         _attr(FontName, fontname, QString);
         /// \brief Font size of the node's label
@@ -337,9 +348,20 @@ class Graphviz {
     };
 
     class Graph : public GraphvizObjBase<Graph> {
+        void initDefaultSetters();
+
       public:
-        Graph(const QString& name, Agdesc_t desc = Agdirected);
-        Graph(Agraph_t* graph) : graph(graph) {}
+        Node defaultNode;
+        Edge defaultEdge;
+
+
+        Graph(QString const& name, Agdesc_t desc = Agdirected);
+        Graph(Agraph_t* graph)
+            : graph(graph)
+            , defaultEdge(nullptr, nullptr)
+            , defaultNode(nullptr, nullptr) {
+            initDefaultSetters();
+        }
 
         Agraph_t*       get() { return graph; }
         Agraph_t const* get() const { return graph; }
@@ -360,25 +382,10 @@ class Graphviz {
         void eachNode(Func<void(Node)> cb);
         void eachEdge(Func<void(Edge)> cb);
 
-        // TODO Reuse field and type definitions from the graph nodes
-        // instead of relying on strings here.
-
-        /// Set default attribute value for graph node
-        void setDefaultNodeAttr(QString const& key, QString const& value) {
-            agattr(
-                graph,
-                AGNODE,
-                key.toLatin1().data(),
-                value.toLatin1().data());
-        }
 
         /// Set default attriute value for edge
         void setDefaultEdgeAttr(QString const& key, QString const& value) {
-            agattr(
-                graph,
-                AGEDGE,
-                key.toLatin1().data(),
-                value.toLatin1().data());
+
         }
 
         Node node(QString const& name) {
@@ -405,15 +412,15 @@ class Graphviz {
         /// \brief Desired aspect ratio of the drawing
         _attr(AspectRatio, aspect, double);
         /// \brief Background color of the graph
-        _attr(BackgroundColor, bgcolor, QString /* QColor */);
+        _attr(BackgroundColor, bgcolor, QColor);
         /// \brief Default edge length
         _attr(DefaultDistance, defaultdist, double);
         /// \brief Default node color
-        _attr(DefaultNodeColor, defaultNodeColor, QString /* QColor */);
+        _attr(DefaultNodeColor, defaultNodeColor, QColor);
         /// \brief Default edge color
-        _attr(DefaultEdgeColor, defaultEdgeColor, QString /* QColor */);
+        _attr(DefaultEdgeColor, defaultEdgeColor, QColor);
         /// \brief Font color
-        _attr(FontColor, fontcolor, QString /* QColor */);
+        _attr(FontColor, fontcolor, QColor);
         /// \brief Font name
         _attr(FontName, fontname, QString);
         /// \brief Font size
@@ -547,7 +554,7 @@ class Graphviz {
         RenderFormat   format = RenderFormat::DOT);
 
     void renderToFile(
-        const QString& fileName,
+        QString const& fileName,
         CR<Graph>      graph,
         RenderFormat   format = RenderFormat::PNG,
         LayoutType     layout = LayoutType::Dot);

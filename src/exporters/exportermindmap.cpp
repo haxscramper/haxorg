@@ -82,6 +82,12 @@ Graphviz::Graph ExporterMindMap::toGraph() {
             auto result = parent ? parent->newSubgraph(
                               "cluster" + to_string(++subgraphCounter))
                                  : Graphviz::Graph("root");
+
+            if (doc->original->is(OrgSemKind::Subtree)) {
+                result.setLabel(ExporterUltraplain::toStr(
+                    doc->original->as<sem::Subtree>()->title));
+            }
+
             for (const auto& it : doc->subtrees) {
                 auxSubtree(it, result);
             }
@@ -93,6 +99,6 @@ Graphviz::Graph ExporterMindMap::toGraph() {
     Q_CHECK_PTR(root);
     auto result = auxSubtree(root, std::nullopt);
     result->setRankDirection(G::Graph::RankDirection::LR);
-    result->setDefaultNodeAttr("shape", "rect");
+    result->defaultNode.setShape(G::Node::Shape::rect);
     return result.value();
 }

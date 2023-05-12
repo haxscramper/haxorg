@@ -61,7 +61,8 @@ Graphviz::Edge::Edge(Agraph_t* graph, CR<Node> head, CR<Node> tail)
     }
 }
 
-Graphviz::Graph::Graph(const QString& name, Agdesc_t desc) {
+Graphviz::Graph::Graph(const QString& name, Agdesc_t desc)
+    : defaultEdge(nullptr, nullptr), defaultNode(nullptr, nullptr) {
     Agraph_t* graph_ = agopen(
         const_cast<char*>(name.toStdString().c_str()), desc, nullptr);
     if (!graph_) {
@@ -69,6 +70,23 @@ Graphviz::Graph::Graph(const QString& name, Agdesc_t desc) {
     } else {
         graph = graph_;
     }
+    initDefaultSetters();
+}
+
+void Graphviz::Graph::initDefaultSetters() {
+    defaultNode.setOverride = [this](
+                                  QString const& key,
+                                  QString const& value) {
+        agattr(
+            graph, AGNODE, key.toLatin1().data(), value.toLatin1().data());
+    };
+
+    defaultEdge.setOverride = [this](
+                                  QString const& key,
+                                  QString const& value) {
+        agattr(
+            graph, AGEDGE, key.toLatin1().data(), value.toLatin1().data());
+    };
 }
 
 void Graphviz::Graph::eachNode(Func<void(Node)> cb) {
