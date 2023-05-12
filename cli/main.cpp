@@ -5,6 +5,7 @@
 #include <QString>
 #include <hstd/wrappers/graphviz.hpp>
 #include <hstd/wrappers/perfetto_aux.hpp>
+#include <glib.h>
 
 #include <hstd/wrappers/perfetto_aux.hpp>
 
@@ -156,8 +157,26 @@ bool parseArgs(int argc, char** argv, HaxorgCli::Config& config) {
     return true;
 }
 
+// Because people who depend on the glib library never thought that their
+// code might be used as a part of an application that does not appreciate
+// writing random garbage to he stderr. So instead I wrap everything into
+// the do-nothing function in order to fix the inclusion.
+void glib_log_handler(
+    const gchar*   log_domain,
+    GLogLevelFlags log_level,
+    const gchar*   message,
+    gpointer       user_data) {
+    // Do nothing.
+}
+
 
 int main(int argc, char** argv) {
+    g_log_set_handler(
+        NULL,
+        (GLogLevelFlags)(G_LOG_LEVEL_WARNING | G_LOG_LEVEL_CRITICAL),
+        glib_log_handler,
+        NULL);
+
     InitializePerfetto();
     auto tracing_session = StartTracing();
 

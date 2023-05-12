@@ -362,3 +362,5 @@ deps
 .vscode
 build*
 perf.data*
+heaptrack.*
+**/*.pftrace
