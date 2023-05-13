@@ -120,9 +120,13 @@ void ExporterMindMap::visitEnd(In<sem::Org> doc) {
     });
 
     eachEntry(root, [&](DocEntry::Ptr entry) {
+        qDebug() << "Resolving entry content =========";
         entry->content->eachSubnodeRec([&](sem::Org::Ptr node) {
             Opt<DocLink> resolved = getResolved(node);
             if (resolved) {
+                qDebug() << "Resolved" << node->id;
+                ExporterTree::treeRepr(node);
+
                 entry->outgoing.push_back(*resolved);
             }
         });
@@ -130,6 +134,7 @@ void ExporterMindMap::visitEnd(In<sem::Org> doc) {
 
     eachSubtree(root, [&](DocSubtree::Ptr tree) {
         Vec<DocLink> oldOutgoing = std::move(tree->outgoing);
+        tree->outgoing.clear();
         for (const auto& out : oldOutgoing) {
             Opt<DocLink> resolved = getResolved(*out.description);
             if (resolved) {
@@ -303,4 +308,70 @@ Graphviz::Graph ExporterMindMap::toGraph() {
     result.defaultNode.setShape(G::Node::Shape::rect);
     Q_CHECK_PTR(result.get());
     return result;
+}
+
+json ExporterMindMap::toJson() {
+    auto exportLink = [](DocLink const& link) -> json {
+        json res    = json::object();
+        res["kind"] = to_string(link.getKind());
+        if (link.getKind() == DocLink::Kind::Entry) {
+            res["entry"] = link.getEntry().entry->content->id.value();
+        } else {
+            res["subtree"] = link.getSubtree()
+                                 .subtree->original->id.value();
+        }
+
+        return res;
+    };
+
+    auto exportEntry = [&](DocEntry::Ptr const& entry) -> json {
+        json res    = json::object();
+        res["kind"] = "Entry";
+        res["id"]   = entry->content->id.value();
+
+        res["outgoing"] = json::array();
+        for (auto const& it : entry->outgoing) {
+            res["outgoing"].push_back(exportLink(it));
+        }
+
+        return res;
+    };
+
+
+    Func<json(DocSubtree::Ptr)> aux;
+    aux = [&](DocSubtree::Ptr tree) -> json {
+        json result    = json::object();
+        result["kind"] = "Subtree";
+        result["id"]   = tree->original->id.value();
+        if (tree->original->is(osk::Subtree)) {
+            result["title"] = ExporterUltraplain::toStr(
+                tree->original->as<sem::Subtree>()->title);
+        } else {
+            result["title"] = json();
+        }
+
+        result["subtrees"] = json::array();
+        for (auto const& sub : tree->subtrees) {
+            result["subtrees"].push_back(aux(sub));
+        }
+
+        result["outgoing"] = json::array();
+        for (auto const& sub : tree->outgoing) {
+            result["outgoing"].push_back(exportLink(sub));
+        }
+
+        result["ordered"] = json::array();
+        for (auto const& sub : tree->ordered) {
+            result["ordered"].push_back(exportEntry(sub));
+        }
+
+        result["unordered"] = json::array();
+        for (auto const& sub : tree->unordered) {
+            result["unordered"].push_back(exportEntry(sub));
+        }
+
+        return result;
+    };
+
+    return aux(root);
 }

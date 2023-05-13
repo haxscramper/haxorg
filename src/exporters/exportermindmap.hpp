@@ -5,6 +5,7 @@
 #include <exporters/Exporter.hpp>
 #include <hstd/wrappers/graphviz.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/Json.hpp>
 
 struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     using Base = Exporter<ExporterMindMap, std::monostate>;
@@ -117,6 +118,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     Opt<DocLink>                    getResolved(sem::Org::Ptr node);
 
     Graphviz::Graph toGraph();
+    json            toJson();
 };
 
 #endif // EXPORTERMINDMAP_HPP

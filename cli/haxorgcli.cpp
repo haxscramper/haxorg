@@ -924,6 +924,10 @@ void HaxorgCli::exec() {
         ExporterMindMap exporter;
         exporter.visitTop(node);
 
+        writeFile(
+            QFileInfo("/tmp/mindmap.json"_qs),
+            to_string(exporter.toJson()));
+
         auto graph = exporter.toGraph();
         gvc.writeFile("/tmp/mindmap.dot", graph);
 

@@ -65,7 +65,8 @@ Opt<Wrap<Document>> Org::getDocument() const {
 namespace {
 void assignIdsImpl(
     CR<Org::SubnodeVisitor> visitor,
-    sem::Wrap<sem::Org>     org);
+    sem::Wrap<sem::Org>     org,
+    bool                    originalBase);
 
 template <sem::NotOrg T>
 void visitField(CR<Org::SubnodeVisitor>, CR<T>) {}
@@ -74,7 +75,7 @@ void visitField(CR<Org::SubnodeVisitor>, CR<T>) {}
 void visitField(
     CR<Org::SubnodeVisitor> visitor,
     sem::Wrap<sem::Org>     node) {
-    assignIdsImpl(visitor, node);
+    assignIdsImpl(visitor, node, true);
 }
 
 template <typename T>
@@ -95,12 +96,16 @@ void visitField(CR<Org::SubnodeVisitor> visitor, CR<Opt<T>> value) {
 template <typename T>
 void recVisitOrgNodesImpl(
     CR<Org::SubnodeVisitor> visitor,
-    sem::Wrap<T>            tree) {
-    visitor(tree);
+    sem::Wrap<T>            tree,
+    bool                    originalBase) {
+    if (originalBase) {
+        visitor(tree);
+    }
     using Bd = describe_bases<T, mod_any_access>;
     using Md = describe_members<T, mod_any_access>;
     mp_for_each<Bd>([&](auto Base) {
-        recVisitOrgNodesImpl<typename decltype(Base)::type>(visitor, tree);
+        recVisitOrgNodesImpl<typename decltype(Base)::type>(
+            visitor, tree, false);
     });
 
     mp_for_each<Md>([&](auto const& field) {
@@ -110,15 +115,18 @@ void recVisitOrgNodesImpl(
 
 void assignIdsImpl(
     CR<Org::SubnodeVisitor> visitor,
-    sem::Wrap<sem::Org>     org) {
+    sem::Wrap<sem::Org>     org,
+    bool                    originalBase) {
     std::visit(
-        [&](const auto& node) { recVisitOrgNodesImpl(visitor, node); },
+        [&](const auto& node) {
+            recVisitOrgNodesImpl(visitor, node, originalBase);
+        },
         org->asVariant());
 }
 } // namespace
 
 void Org::eachSubnodeRec(SubnodeVisitor cb) {
-    assignIdsImpl(cb, shared_from_this());
+    assignIdsImpl(cb, shared_from_this(), true);
 }
 
 void Org::assignIds() {
