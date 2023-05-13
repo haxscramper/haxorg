@@ -31,6 +31,7 @@ class Vec : public std::vector<T> {
     using Base::operator[];
     using Base::back;
     using Base::begin;
+    using Base::empty;
     using Base::end;
     using Base::insert;
     using Base::pop_back;
@@ -183,28 +184,28 @@ class Vec : public std::vector<T> {
         // It will cause segfault anyway, just in a way that you least
         // expect, so easier to check things here than get absolutely
         // destroyed by some bug later on.
-        assert(0 < size());
+        assert(!empty());
         return Base::back();
     }
 
     /// \brief constant reference to the last element, checks for vector
     /// size
     T const& back() const {
-        assert(0 < size());
+        assert(!empty());
         return Base::back();
     }
 
     /// \brief Override of the 'back' accessor of the standard vector, but
     /// with check for proper size
     void pop_back() {
-        assert(0 < size());
+        assert(!empty());
         Base::pop_back();
     }
 
     /// \brief Get last value and pop it out of the vector itself
     T pop_back_v() {
         // QUESTION use `std::move` and rvalue to eject elements?
-        assert(0 < size());
+        assert(!empty());
         auto result = back();
         pop_back();
         return result;

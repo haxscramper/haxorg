@@ -299,25 +299,35 @@ Opt<Wrap<Org>> Document::resolve(CR<Wrap<Org>> node) {
             switch (link->getLinkKind()) {
                 case Link::Kind::Id: {
                     Opt<int> target = idTable.get(link->getId().text);
-                    qDebug() << "Resolving link with ID"
-                             << link->getId().text << "to" << target;
+
 
                     if (target) {
                         return getTree(target.value());
                     }
+                    // TODO add target lookup that will create a full list
+                    // of all possible targets and genrate warning message.
+                    //
+                    // IDEA another feature that can be implemented using
+                    // document walker is autocompletion logic of some
+                    // sort.
+                    qWarning() << "Failed resolving link with ID"
+                               << link->getId().text << "to" << target;
+
+
                     break;
                 }
                 case Link::Kind::Footnote: {
                     auto target = footnoteTable.get(
                         link->getFootnote().target);
 
-                    qDebug()
-                        << "Resolving footnote with ID"
-                        << link->getFootnote().target << "to" << target;
-
                     if (target) {
                         return getTree(target.value());
                     }
+
+                    qWarning()
+                        << "Failed resolving footnote with ID"
+                        << link->getFootnote().target << "to" << target;
+
                     break;
                 }
             }
@@ -326,4 +336,13 @@ Opt<Wrap<Org>> Document::resolve(CR<Wrap<Org>> node) {
     }
 
     return std::nullopt;
+}
+
+bool List::isDescriptionList() const {
+    for (const auto& sub : subnodes) {
+        if (sub->as<ListItem>()->isDescriptionItem()) {
+            return true;
+        }
+    }
+    return false;
 }

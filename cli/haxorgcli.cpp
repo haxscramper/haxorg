@@ -578,6 +578,11 @@ void HaxorgCli::initTracers() {
     if (config.trace.lex.doTrace) {
         tokenizer->trace = true;
         if (config.trace.lex.traceTo.has_value()) {
+            Q_ASSERT(
+                config.trace.lex.traceTo.value()
+                    .absoluteFilePath()
+                    .length()
+                != 0);
             tokenizer->setTraceFile(config.trace.lex.traceTo.value());
         }
     }
@@ -773,6 +778,9 @@ void HaxorgCli::exec() {
     parser    = OrgParser::initImpl(&nodes, config.trace.parse.doTrace);
     tokenizer = OrgTokenizer::initImpl(&tokens, config.trace.lex.doTrace);
 
+    initLocationResolvers();
+    initTracers();
+
 
     UnorderedMap<OrgTokenId, OrgTokenizer::Report> pushedOn;
     NodeOperations                                 ops;
@@ -871,6 +879,13 @@ void HaxorgCli::exec() {
 
     {
         __trace("convert parse to sem");
+        if (config.trace.sem.doTrace) {
+            converter.trace = true;
+            if (config.trace.sem.traceTo) {
+                converter.setTraceFile(config.trace.sem.traceTo.value());
+            }
+        }
+
         node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
     }
 

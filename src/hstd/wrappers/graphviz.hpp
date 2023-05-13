@@ -121,6 +121,10 @@ class Graphviz {
         void set(QString const& key, QColor const& value) {
             _this()->set(key, value.name());
         }
+
+        void set(QString const& key, bool value) {
+            _this()->set(key, QString(value ? "true" : "false"));
+        }
     };
 
     class Node : public GraphvizObjBase<Node> {
@@ -371,6 +375,8 @@ class Graphviz {
         _attr(Style, style, QString);
         /// \brief URL associated with the edge
         _attr(URL, URL, QString);
+        _attr(LHead, lhead, QString);
+        _attr(LTail, ltail, QString);
 
       public:
         Agraph_t* graph;
@@ -391,7 +397,6 @@ class Graphviz {
             , defaultEdge(graph, nullptr)
             , defaultNode(graph, nullptr) {
             initDefaultSetters();
-            Q_CHECK_PTR(graph);
         }
 
         Agraph_t*       get() { return graph; }
@@ -502,6 +507,8 @@ class Graphviz {
         _attr(TrueColor, truecolor, bool);
         /// \brief Viewport size and position
         _attr(ViewPort, viewport, QPointF);
+        _attr(Compound, compound, bool);
+        _attr(Concentrate, concentrate, bool);
 
       public:
         Agraph_t* graph;

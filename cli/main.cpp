@@ -6,6 +6,8 @@
 #include <hstd/wrappers/graphviz.hpp>
 #include <hstd/wrappers/perfetto_aux.hpp>
 #include <glib.h>
+#include <hstd/stdlib/Debug.hpp>
+
 
 #include <hstd/wrappers/perfetto_aux.hpp>
 
@@ -128,7 +130,12 @@ bool parseArgs(int argc, char** argv, HaxorgCli::Config& config) {
 
         if (parser.isSet(opt->traceTo)) {
             trace->doTrace = true;
-            trace->traceTo = QFileInfo(parser.value(opt->traceTo));
+            QString value  = parser.value(opt->traceTo);
+            qDebug() << value;
+            Q_ASSERT(value.length() != 0);
+            trace->traceTo = QFileInfo(value);
+            Q_ASSERT(
+                trace->traceTo.value().absoluteFilePath().length() != 0);
         }
 
         if (parser.isSet(opt->traceExtent)) {
@@ -169,6 +176,11 @@ void glib_log_handler(
     // Do nothing.
 }
 
+QString to_string(QFileInfo const& fi) { return fi.absoluteFilePath(); }
+
+QTextStream& operator<<(QTextStream& os, QFileInfo const& fi) {
+    return os << fi.absoluteFilePath();
+}
 
 int main(int argc, char** argv) {
     g_log_set_handler(
@@ -206,6 +218,11 @@ int main(int argc, char** argv) {
     if (!parseArgs(argc, argv, cli.config)) {
         return 1;
     }
+
+    _dbg(cli.config.trace.lex.traceTo);
+    _dbg(cli.config.trace.parse.traceTo);
+    _dbg(cli.config.trace.sem.traceTo);
+
 
     cli.exec();
 

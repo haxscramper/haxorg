@@ -2,19 +2,42 @@
 #include <exporters/ExporterUltraplain.hpp>
 #include <exporters/exportertree.hpp>
 
-int ExporterMindMap::DocEntry::counter = 0;
-
 using osk = OrgSemKind;
 
+
+void ExporterMindMap::eachSubtree(
+    DocSubtree::Ptr             startRoot,
+    Func<void(DocSubtree::Ptr)> cb) {
+    Func<void(DocSubtree::Ptr)> aux;
+    aux = [&](DocSubtree::Ptr tree) {
+        cb(tree);
+        for (const auto& sub : tree->subtrees) {
+            aux(sub);
+        }
+    };
+
+    aux(startRoot);
+}
+
+void ExporterMindMap::eachEntry(
+    DocSubtree::Ptr           startRoot,
+    Func<void(DocEntry::Ptr)> cb) {
+    eachSubtree(startRoot, [cb](DocSubtree::Ptr tree) {
+        for (const auto& entry : tree->ordered) {
+            cb(entry);
+        }
+
+        for (const auto& entry : tree->unordered) {
+            cb(entry);
+        }
+    });
+}
 
 void ExporterMindMap::visitSubtree(
     std::monostate&       s,
     CR<sem::Subtree::Ptr> ptr) {
     stack.push_back(DocSubtree::shared());
     auto& res = stack.back();
-    if (stack.size() == 1) {
-        root = stack.back();
-    }
 
 
     res->original = ptr;
@@ -25,8 +48,17 @@ void ExporterMindMap::visitSubtree(
         } else if (sub->is(osk::Subtree)) {
             visit(s, sub);
 
+        } else if (
+            sub->is(osk::List)
+            && sub->as<sem::List>()->isDescriptionList()) {
+            for (const auto& it : sub->subnodes) {
+                if (it->as<sem::ListItem>()->isDescriptionItem()) {
+                    res->outgoing.push_back(DocLink{.description = it});
+                }
+            }
+
         } else {
-            auto entry     = newEntry();
+            auto entry     = DocEntry::shared();
             entry->content = sub;
             if (sub->is(osk::Paragraph)
                 && sub->as<sem::Paragraph>()->isFootnoteDefinition()) {
@@ -38,7 +70,12 @@ void ExporterMindMap::visitSubtree(
     }
 
     auto last = stack.pop_back_v();
-    stack.back()->subtrees.push_back(last);
+
+    if (stack.empty()) {
+        root = last;
+    } else {
+        stack.back()->subtrees.push_back(last);
+    }
 }
 
 void ExporterMindMap::visitDocument(
@@ -53,102 +90,133 @@ void ExporterMindMap::visitDocument(
         visit(s, sub);
     }
 
-    if (stack.size() == 1) {
-        root = stack.pop_back_v();
-    } else {
+    if (!stack.empty()) {
         auto last = stack.pop_back_v();
-        stack.back()->subtrees.push_back(last);
+        if (stack.empty()) {
+            root = last;
+        } else {
+            stack.back()->subtrees.push_back(last);
+        }
     }
 }
 
 void ExporterMindMap::visitEnd(In<sem::Org> doc) {
-    UnorderedMap<int, DocEntry::Ptr> entriesOut;
-    for (auto const& entry : entryList) {
-        int id         = entry->content->id.value();
+    eachEntry(root, [&](DocEntry::Ptr entry) {
+        int id = entry->content->id.value();
+        Q_ASSERT_X(
+            !entriesOut.contains(id),
+            "collect out entries",
+            "ID $# has already been used" % to_string_vec(id));
         entriesOut[id] = entry;
-        qDebug() << "Entry ID" << id;
-    }
+    });
 
-    UnorderedMap<int, DocSubtree::Ptr> subtreesOut;
-    Func<void(DocSubtree::Ptr)>        aux;
-    aux = [&](DocSubtree::Ptr tree) {
-        subtreesOut[tree->original->id.value()] = tree;
-        for (auto sub : tree->subtrees) {
-            aux(sub);
-        }
-    };
+    eachSubtree(root, [&](DocSubtree::Ptr tree) {
+        auto id = tree->original->id.value();
+        Q_ASSERT_X(
+            !entriesOut.contains(id),
+            "collect out entries",
+            "ID $# has already been used" % to_string_vec(id));
+        subtreesOut[id] = tree;
+    });
 
-
-    auto getResolved = [&](sem::Org::Ptr node) {
-        Opt<DocLink> resolved;
-        for (const auto& doc : documents) {
-            auto resolve = doc->resolve(node);
-            if (resolve) {
-                Opt<DocEntry::Ptr> target = entriesOut.get(
-                    resolve.value()->id.value());
-                if (target) {
-                    qDebug() << "Resolved link to paragraph";
-                    resolved = DocLink{.resolved = target.value()};
-                    // TODO consider multiple documents in a group and
-                    // issue diagnostic message in case of duplicates
-                    break;
-                }
-
-                Opt<DocSubtree::Ptr> subtree = subtreesOut.get(
-                    resolve.value()->id.value());
-                if (subtree) {
-                    qDebug() << "Resolved link to subtree";
-                    resolved = DocLink{.resolved = subtree.value()};
-                    break;
-                }
-            }
-        }
-
-        return resolved;
-    };
-
-    for (auto& entry : entryList) {
+    eachEntry(root, [&](DocEntry::Ptr entry) {
         entry->content->eachSubnodeRec([&](sem::Org::Ptr node) {
             Opt<DocLink> resolved = getResolved(node);
             if (resolved) {
                 entry->outgoing.push_back(*resolved);
             }
         });
+    });
+
+    eachSubtree(root, [&](DocSubtree::Ptr tree) {
+        Vec<DocLink> oldOutgoing = std::move(tree->outgoing);
+        for (const auto& out : oldOutgoing) {
+            Opt<DocLink> resolved = getResolved(*out.description);
+            if (resolved) {
+                tree->outgoing.push_back(*resolved);
+            }
+        }
+    });
+}
+
+Opt<ExporterMindMap::DocLink> ExporterMindMap::getResolved(
+    sem::Org::Ptr node) {
+    for (const auto& doc : documents) {
+        // Check if the entry is the list item that can be used for
+        // resolution.
+        if (node->is(osk::ListItem)
+            && node->as<sem::ListItem>()->isDescriptionItem()) {
+            sem::ListItem::Ptr item = node->as<sem::ListItem>();
+            Opt<DocLink>       resolved;
+            item->header.value()->eachSubnodeRec(
+                [&](CR<sem::Org::Ptr> node) {
+                    if (!resolved && node->is(osk::Link)) {
+                        resolved = getResolved(node);
+                    }
+                });
+            if (resolved) {
+                resolved->description = std::make_shared<sem::StmtList>();
+                (**resolved->description).subnodes = item->subnodes;
+                return resolved;
+            }
+        }
+
+        auto resolve = doc->resolve(node);
+        if (resolve) {
+            auto                 id      = resolve.value()->id.value();
+            Opt<DocEntry::Ptr>   target  = entriesOut.get(id);
+            Opt<DocSubtree::Ptr> subtree = subtreesOut.get(id);
+
+            if (target) {
+                // TODO consider multiple documents in a group and
+                // issue diagnostic message in case of duplicates
+                return DocLink{
+                    .resolved = DocLink::Entry{.entry = target.value()}};
+            }
+
+            if (subtree) {
+                return DocLink{
+                    .resolved = DocLink::Subtree{
+                        .subtree = subtree.value()}};
+            }
+        }
     }
+    return std::nullopt;
 }
 
 using G = Graphviz;
 
 Graphviz::Graph ExporterMindMap::toGraph() {
-    Func<Opt<Graphviz::Graph>(
-        CR<DocSubtree::Ptr>, CR<Opt<Graphviz::Graph>>)>
-        auxSubtree;
 
     int subgraphCounter = 0;
 
     auto uniqueName = [&]() { return to_string(++subgraphCounter); };
     auto nodeName   = [](CR<sem::Org::Ptr> node) {
-        return "name" + to_string(node->id.value());
+        return "name_" + to_string(node->id.value());
+    };
+
+    auto clusterName = [](CR<sem::Org::Ptr> node) {
+        return "cluster_" + to_string(node->id.value());
     };
 
     auto fillOrdered = [&](Graphviz::Graph&    graph,
                            CR<DocSubtree::Ptr> doc) {
         if (doc->ordered.empty()) {
             return;
-        } else if (doc->ordered.size() == 1) {
+        } else if (doc->ordered.size() == 1 && doc->unordered.empty()) {
             auto node = graph.node(nodeName(doc->ordered.at(0)->content));
             node.setLabel(
                 ExporterUltraplain::toStr(doc->ordered.at(0)->content));
         } else {
             Opt<Str> prev;
-            auto     cluster = graph.newSubgraph("cluster" + uniqueName());
+            auto cluster = graph.newSubgraph(clusterName(doc->original));
             cluster.setRankDirection(G::Graph::RankDirection::TB);
             for (const auto& ord : doc->ordered) {
                 auto name = nodeName(ord->content);
                 auto node = cluster.node(name);
-                if (prev) {
-                    cluster.edge(*prev, name);
-                }
+                //                if (prev) {
+                //                    cluster.edge(*prev, name);
+                //                }
                 prev = name;
 
                 node.setLabel(ExporterUltraplain::toStr(ord->content));
@@ -156,48 +224,83 @@ Graphviz::Graph ExporterMindMap::toGraph() {
         }
     };
 
-    auxSubtree = [&](CR<DocSubtree::Ptr>  doc,
-                     Opt<Graphviz::Graph> parent) -> Opt<Graphviz::Graph> {
-        if (doc->subtrees.empty()) {
-            auto canvas = parent ? *parent : Graphviz::Graph("root");
-            fillOrdered(canvas, doc);
-            return canvas;
-        } else {
-            auto result = parent
-                            ? parent->newSubgraph("cluster" + uniqueName())
-                            : Graphviz::Graph("root");
+    auto fillUnordered = [&](Graphviz::Graph&    graph,
+                             CR<DocSubtree::Ptr> doc) {
+        for (const auto& note : doc->unordered) {
+            auto node = graph.node(nodeName(note->content));
+            node.setColor(Qt::red);
+            node.setLabel(ExporterUltraplain::toStr(note->content));
+        }
+    };
 
-            fillOrdered(result, doc);
+    Func<void(CR<DocSubtree::Ptr>, Graphviz::Graph&)> auxSubtree;
 
-            for (const auto& it : doc->subtrees) {
-                auxSubtree(it, result);
+    auxSubtree = [&](CR<DocSubtree::Ptr> doc, Graphviz::Graph& parent) {
+        Graphviz::Graph graph = parent.newSubgraph(
+            clusterName(doc->original));
+        graph.setCompound(true);
+
+        if (doc->original->is(osk::Subtree)) {
+            graph.setLabel(ExporterUltraplain::toStr(
+                doc->original->as<sem::Subtree>()->title));
+        }
+
+        fillOrdered(graph, doc);
+        fillUnordered(graph, doc);
+
+        for (const auto& it : doc->subtrees) {
+            auxSubtree(it, graph);
+        }
+
+        auto subtreeNodeName = [&](DocSubtree::Ptr target) -> QString {
+            if (target->ordered.empty()) {
+                return nodeName(target->original);
+            } else {
+                return nodeName(target->ordered.at(0)->content);
             }
+        };
 
-            return result;
+        auto edgeTo = [&](QString const& source,
+                          DocLink const& edge) -> G::Edge {
+            if (edge.getKind() == DocLink::Kind::Entry) {
+                return graph.edge(
+                    source, nodeName(edge.getEntry().entry->content));
+            } else {
+                DocSubtree::Ptr target   = edge.getSubtree().subtree;
+                auto            name     = subtreeNodeName(target);
+                G::Edge         nodeEdge = graph.edge(source, name);
+
+                nodeEdge.setLHead(clusterName(target->original));
+                return nodeEdge;
+            }
+        };
+
+        auto name = subtreeNodeName(doc);
+        for (const auto& edge : doc->outgoing) {
+            G::Edge g_edge = edgeTo(name, edge);
+            g_edge.setLTail(clusterName(doc->original));
+            g_edge.setLabel(ExporterUltraplain::toStr(*edge.description));
+        }
+
+
+        for (const auto& entry : doc->ordered + doc->unordered) {
+            for (const auto& edge : entry->outgoing) {
+                edgeTo(nodeName(entry->content), edge);
+            }
         }
     };
 
     Q_CHECK_PTR(root);
-    auto result = auxSubtree(root, std::nullopt);
+
+    auto result = Graphviz::Graph("root");
+    auxSubtree(root, result);
 
 
-    for (const auto& entry : entryList) {
-        for (const auto& edge : entry->outgoing) {
-            if (edge.resolved.index() == 0) {
-                result->edge(
-                    nodeName(entry->content),
-                    nodeName(std::get<0>(edge.resolved)->content));
-            } else {
-                result->edge(
-                    nodeName(entry->content),
-                    nodeName(std::get<1>(edge.resolved)->original));
-            }
-        }
-    }
-
-    result->setRankDirection(G::Graph::RankDirection::LR);
-    Q_CHECK_PTR(result->get());
-    result->defaultNode.setShape(G::Node::Shape::rect);
-    Q_CHECK_PTR(result->get());
-    return result.value();
+    result.setRankDirection(G::Graph::RankDirection::LR);
+    result.setCompound(true);
+    result.setConcentrate(true);
+    Q_CHECK_PTR(result.get());
+    result.defaultNode.setShape(G::Node::Shape::rect);
+    Q_CHECK_PTR(result.get());
+    return result;
 }

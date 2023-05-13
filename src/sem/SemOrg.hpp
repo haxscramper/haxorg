@@ -903,6 +903,8 @@ struct List : public Org {
     using Org::Org;
     GET_KIND(List);
     DECL_FIELDS(List, (Org));
+
+    bool isDescriptionList() const;
 };
 
 struct ListItem : public Org {
@@ -914,6 +916,8 @@ struct ListItem : public Org {
         Done,
         Empty
     };
+
+    bool isDescriptionItem() { return header.has_value(); }
 
     BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty);
 

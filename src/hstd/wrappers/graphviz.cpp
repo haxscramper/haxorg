@@ -77,7 +77,6 @@ Graphviz::Graph::Graph(const QString& name, Agdesc_t desc)
 
 void Graphviz::Graph::initDefaultSetters() {
     defaultNode.graph = graph;
-    Q_CHECK_PTR(graph);
     // FIXME simply capturing `this` causes segmentation fault because the
     // graph is deleted somewhere else or the pointer is modified. `graph =
     // this->graph` does not have this issue, but that's not how this is
@@ -90,7 +89,6 @@ void Graphviz::Graph::initDefaultSetters() {
         };
 
     defaultEdge.graph = graph;
-    Q_CHECK_PTR(graph);
     defaultEdge.setOverride =
         [graph = this->graph](QString const& key, QString const& value) {
             auto& r = *graph;

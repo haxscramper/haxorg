@@ -55,6 +55,7 @@ struct SortedMap
     using API::get;
     using API::keys;
     using Base::Base;
+    using Base::operator[];
 };
 
 template <typename K, typename V>

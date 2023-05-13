@@ -31,7 +31,14 @@ Vec<T> reversed(CR<Vec<T>> vec) {
 template <typename T>
 Vec<T> sorted(CR<Vec<T>> vec, Func<bool(CR<T>, CR<T>)> cmp) {
     Vec<T> result = vec;
-    result.sort(cmp);
+    sort(result, cmp);
+    return result;
+}
+
+template <typename T>
+Vec<T> sorted(CR<Vec<T>> vec) {
+    Vec<T> result = vec;
+    sort(result, [](CR<T> lhs, CR<T> rhs) { return lhs < rhs; });
     return result;
 }
 

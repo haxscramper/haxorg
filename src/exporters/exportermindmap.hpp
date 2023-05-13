@@ -1,6 +1,7 @@
 #ifndef EXPORTERMINDMAP_HPP
 #define EXPORTERMINDMAP_HPP
 
+#include "hstd/system/aux_utils.hpp"
 #include <exporters/Exporter.hpp>
 #include <hstd/wrappers/graphviz.hpp>
 #include <hstd/stdlib/Map.hpp>
@@ -21,11 +22,20 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
 
     /// Outgoing documentation link that targets some documentable entry.
     struct DocLink {
-        Variant<SPtr<DocEntry>, SPtr<DocSubtree>> resolved;
+        struct Entry {
+            SPtr<DocEntry> entry;
+        };
+
+        struct Subtree {
+            SPtr<DocSubtree> subtree;
+        };
+
+        SUB_VARIANTS(Kind, Resolved, resolved, getKind, Entry, Subtree);
+        Resolved resolved;
         /// Description of the link -- taken from description lists that
         /// have links in the tags. Description in the link node itself is
         /// ignored
-        Opt<sem::Paragraph::Ptr> description;
+        Opt<sem::Org::Ptr> description;
     };
 
     /// Single mappable entry in the document that represents
@@ -36,19 +46,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
         sem::Org::Ptr content;
         /// Resolved outgoing links from the documentable entry
         Vec<DocLink> outgoing;
-
-        int        id = 0;
-        static int counter;
-
-        inline DocEntry() : id(++counter) {}
     };
-
-    Vec<DocEntry::Ptr> entryList;
-
-    DocEntry::Ptr newEntry() {
-        entryList.push_back(DocEntry::shared());
-        return entryList.back();
-    }
 
     /// Simplified tree structure of the document(s) that
     /// contains only doc entry nodes and wrapping clusters.
@@ -71,7 +69,18 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
         /// Unordered entries -- comments, footnotes, that were attached to
         /// some items in the subtree.
         Vec<DocEntry::Ptr> unordered;
+
+        /// Outgoing links attached to the subtree. Defined using
+        /// description lists or drawer annotations.
+        Vec<DocLink> outgoing;
     };
+
+    void eachSubtree(
+        DocSubtree::Ptr             startRoot,
+        Func<void(DocSubtree::Ptr)> cb);
+    void eachEntry(
+        DocSubtree::Ptr           startRoot,
+        Func<void(DocEntry::Ptr)> cb);
 
 
     // Catch-all implementation for the field visitor. We only need to
@@ -101,6 +110,11 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     void visitDocument(std::monostate& s, CR<sem::Document::Ptr> doc);
 
     void visitEnd(In<sem::Org> doc);
+
+
+    SortedMap<int, DocEntry::Ptr>   entriesOut;
+    SortedMap<int, DocSubtree::Ptr> subtreesOut;
+    Opt<DocLink>                    getResolved(sem::Org::Ptr node);
 
     Graphviz::Graph toGraph();
 };

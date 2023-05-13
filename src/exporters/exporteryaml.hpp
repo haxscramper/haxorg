@@ -85,13 +85,14 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
         return tmp;
     }
 
+    void visitField(
+        yaml&       y,
+        char const* name,
+        CR<UnorderedMap<int, sem::Org::Ptr>>) {}
+
     template <typename T>
     void visitField(yaml& j, const char* name, CR<T> field) {
         j[name] = visit(field);
-    }
-
-    void visitDocument(yaml& j, In<sem::Document> doc) {
-        visitField(j, "subnodes", doc->subnodes);
     }
 };
 

@@ -365,6 +365,7 @@ Wrap<Paragraph> OrgConverter::convertParagraph(__args) {
         } else {
             par->push_back(convert(par.get(), item));
         }
+        first = false;
     }
 
     return par;
@@ -404,7 +405,7 @@ Wrap<Link> OrgConverter::convertLink(__args) {
         link->data = Link::Raw{.text = a.strVal()};
 
     } else if (a.kind() == org::Footnote) {
-        link->data = Link::Footnote{.target = a.strVal()};
+        link->data = Link::Footnote{.target = one(a, N::Name).strVal()};
 
     } else {
         Str protocol = normalize(one(a, N::Protocol).strVal());
