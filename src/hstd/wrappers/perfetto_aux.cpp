@@ -1,10 +1,12 @@
 #include "perfetto_aux.hpp"
 
-#include <chrono>
-#include <condition_variable>
-#include <fstream>
-#include <thread>
-#include <hstd/stdlib/Debug.hpp>
+#ifdef USE_PERFETTO
+
+#    include <chrono>
+#    include <condition_variable>
+#    include <fstream>
+#    include <thread>
+#    include <hstd/stdlib/Debug.hpp>
 
 PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 
@@ -52,3 +54,5 @@ void StopTracing(
     output.write(&trace_data[0], std::streamsize(trace_data.size()));
     output.close();
 }
+
+#endif

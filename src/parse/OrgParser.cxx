@@ -4,6 +4,11 @@
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
+#ifndef TRACE_STATE
+#define TRACE_STATE true
+#endif
+
+
 #pragma clang diagnostic push
 // #pragma clang diagnostic error "-Wswitch-enum"
 // #pragma clang diagnostic error "-Wswitch-enum"

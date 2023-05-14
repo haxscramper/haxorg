@@ -27,6 +27,7 @@ option(TEST_COVERAGE "Enable test coverage")
 option(MAX_COMPILE_ERRORS
        "Max number of compilation errors before compiler stops")
 
+option(USE_PERFETTO "Enable perfetto profiling")
 
 
 find_package(fmt REQUIRED)

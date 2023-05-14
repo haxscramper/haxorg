@@ -1,3 +1,7 @@
+#ifndef TRACE_STATE
+#define TRACE_STATE true
+#endif
+
 #if TRACE_STATE
 
 #    define __INIT_REPORT(__subname, __str)                               \
@@ -121,7 +125,11 @@
 
 #define EMPTY()
 
-#define __perf_trace(name) TRACE_EVENT("lexing", name)
+#ifdef USE_PERFETTO
+#    define __perf_trace(name) TRACE_EVENT("lexing", name)
+#else
+#    define __perf_trace(a)
+#endif
 
 template <>
 void OrgTokenizerImpl<TRACE_STATE>::spaceSkip(PosStr& str, bool require) {

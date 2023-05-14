@@ -3,7 +3,11 @@
 #include <parse/OrgParser.hpp>
 #include <hstd/wrappers/perfetto_aux.hpp>
 
-#define __perf_trace(name) TRACE_EVENT("parsing", name)
+#ifdef USE_PERFETTO
+#    define __perf_trace(name) TRACE_EVENT("parsing", name)
+#else
+#    define __perf_trace(_)
+#endif
 
 using otk = OrgTokenKind;
 using org = OrgNodeKind;

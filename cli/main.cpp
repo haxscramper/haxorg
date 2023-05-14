@@ -8,8 +8,9 @@
 #include <glib.h>
 #include <hstd/stdlib/Debug.hpp>
 
-
-#include <hstd/wrappers/perfetto_aux.hpp>
+#ifdef USE_PERFETTO
+#    include <hstd/wrappers/perfetto_aux.hpp>
+#endif
 
 QTextStream qcout;
 
@@ -189,6 +190,7 @@ int main(int argc, char** argv) {
         glib_log_handler,
         NULL);
 
+#ifdef USE_PERFETTO
     InitializePerfetto();
     auto tracing_session = StartTracing();
 
@@ -199,6 +201,7 @@ int main(int argc, char** argv) {
                                                       .Serialize();
     desc.mutable_process()->set_process_name("Example");
     perfetto::TrackEvent::SetTrackDescriptor(process_track, desc);
+#endif
 
     Graphviz        ctx;
     Graphviz::Graph graph("g");
@@ -226,6 +229,8 @@ int main(int argc, char** argv) {
 
     cli.exec();
 
+#ifdef USE_PERFETTO
     StopTracing(std::move(tracing_session));
+#endif
     return 0;
 }

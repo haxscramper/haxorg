@@ -6,6 +6,7 @@
 #include <hstd/wrappers/graphviz.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <boost/graph/adjacency_list.hpp>
 
 struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     using Base = Exporter<ExporterMindMap, std::monostate>;
@@ -47,6 +48,9 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
         sem::Org::Ptr content;
         /// Resolved outgoing links from the documentable entry
         Vec<DocLink> outgoing;
+        int          id;
+        static int   counter;
+        DocEntry() : id(++counter) {}
     };
 
     /// Simplified tree structure of the document(s) that
@@ -74,6 +78,10 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
         /// Outgoing links attached to the subtree. Defined using
         /// description lists or drawer annotations.
         Vec<DocLink> outgoing;
+
+        int        id;
+        static int counter;
+        DocSubtree() : id(++counter) {}
     };
 
     void eachSubtree(
@@ -117,7 +125,59 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     SortedMap<int, DocSubtree::Ptr> subtreesOut;
     Opt<DocLink>                    getResolved(sem::Org::Ptr node);
 
-    Graphviz::Graph toGraph();
+    struct VertexProp {
+        struct Subtree {
+            DocSubtree::Ptr subtree;
+        };
+
+        struct Entry {
+            DocEntry::Ptr entry;
+            Opt<int>      order;
+        };
+
+        SUB_VARIANTS(Kind, Data, data, getKind, Subtree, Entry);
+        Data data;
+    };
+
+    struct EdgeProp {
+        struct PlacedIn {};
+        struct NestedIn {};
+        struct RefersTo {
+            DocLink target;
+        };
+
+        SUB_VARIANTS(
+            Kind,
+            Data,
+            data,
+            getKind,
+            NestedIn,
+            RefersTo,
+            PlacedIn);
+        Data data;
+    };
+
+    struct GraphProp {};
+
+    using Graph = boost::adjacency_list<
+        boost::vecS,
+        boost::vecS,
+        boost::directedS,
+        VertexProp,
+        EdgeProp,
+        GraphProp>;
+
+    using GraphTraits     = boost::graph_traits<Graph>;
+    using VertDesc        = typename GraphTraits::vertex_descriptor;
+    using VertBundledType = typename boost::vertex_bundle_type<
+        Graph>::type;
+    using EdgeBundledType = typename boost::edge_bundle_type<Graph>::type;
+
+    Graph   toGraph();
+    QString toGraphML(CR<Graph>);
+    QString toGraphviz(CR<Graph>);
+
+    Graphviz::Graph toCGraph();
     json            toJson();
 };
 

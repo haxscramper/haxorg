@@ -1,6 +1,9 @@
 #pragma once
-#include <perfetto.h>
-#include <QFileInfo>
+
+#ifdef USE_PERFETTO
+
+#    include <perfetto.h>
+#    include <QFileInfo>
 
 
 // The set of track event categories that the example is using.
@@ -17,3 +20,5 @@ std::unique_ptr<perfetto::TracingSession> StartTracing();
 void InitializePerfetto();
 void StopTracing(
     std::unique_ptr<perfetto::TracingSession> tracing_session);
+
+#endif

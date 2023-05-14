@@ -114,6 +114,48 @@ void Graphviz::Graph::eachEdge(Func<void(Edge)> cb) {
     }
 }
 
+QString Graphviz::layoutTypeToString(LayoutType layoutType) {
+    switch (layoutType) {
+        case LayoutType::Dot: return "dot";
+        case LayoutType::Neato: return "neato";
+        case LayoutType::Fdp: return "fdp";
+        case LayoutType::Sfdp: return "sfdp";
+        case LayoutType::Twopi: return "twopi";
+        case LayoutType::Circo: return "circo";
+        default: throw std::runtime_error("Invalid layout type.");
+    }
+}
+
+QString Graphviz::renderFormatToString(RenderFormat renderFormat) {
+    switch (renderFormat) {
+        case RenderFormat::PNG: return "png";
+        case RenderFormat::PDF: return "pdf";
+        case RenderFormat::SVG: return "svg";
+        case RenderFormat::PS: return "ps";
+        case RenderFormat::JPEG: return "jpeg";
+        case RenderFormat::GIF: return "gif";
+        case RenderFormat::TIF: return "tif";
+        case RenderFormat::BMP: return "bmp";
+        case RenderFormat::XDOT: return "xdot";
+        default: throw std::runtime_error("Invalid render format.");
+    }
+}
+
+void Graphviz::createLayout(CR<Graph> graph, LayoutType layout) {
+    int res = gvLayout(
+        gvc,
+        const_cast<Agraph_t*>(graph.get()),
+        strdup(layoutTypeToString(layout)));
+    qWarning() << res;
+}
+
+void Graphviz::freeLayout(Graph graph) {
+    Q_ASSERT(gvLayoutDone(graph.get()));
+    Q_CHECK_PTR(graph.get());
+    Q_CHECK_PTR(gvc);
+    gvFreeLayout(gvc, const_cast<Agraph_t*>(graph.get()));
+}
+
 void Graphviz::writeFile(
     const QString& fileName,
     CR<Graph>      graph,
@@ -156,7 +198,49 @@ void Graphviz::renderToFile(
     } else {
 
         createLayout(graph, layout);
+
         writeFile(fileName, graph, format);
         freeLayout(graph);
+    }
+}
+
+Graphviz::Node::Node(
+    Agraph_t*      graph,
+    const QString& name,
+    const Record&  record)
+    : Node(graph, name) {
+    setShape(Shape::record);
+    setLabel(record.toString());
+}
+
+Graphviz::Node::Node(Agraph_t* graph, const QString& name) {
+    auto node_ = agnode(
+        graph, const_cast<char*>(name.toStdString().c_str()), 1);
+    if (!node_) {
+        throw std::runtime_error("Failed to create node");
+    } else {
+        node = node_;
+    }
+}
+
+generator<CRw<Graphviz::Edge>> Graphviz::Node::outgoing() {
+    for (Agedge_t* e = agfstout(graph, node); e; e = agnxtout(graph, e)) {
+        auto value = Edge(graph, e);
+        co_yield std::ref(value);
+    }
+}
+
+generator<CRw<Graphviz::Edge>> Graphviz::Node::ingoing() {
+    for (Agedge_t* e = agfstin(graph, node); e; e = agnxtin(graph, e)) {
+        auto value = Edge(graph, e);
+        co_yield std::ref(value);
+    }
+}
+
+generator<CRw<Graphviz::Edge>> Graphviz::Node::edges() {
+    for (Agedge_t* e = agfstedge(graph, node); e;
+         e           = agnxtedge(graph, e, node)) {
+        auto value = Edge(graph, e);
+        co_yield std::ref(value);
     }
 }

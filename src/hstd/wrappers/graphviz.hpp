@@ -52,6 +52,23 @@ class Graphviz {
         Agrec_t header;
     };
 
+    enum class TextAlign
+    {
+        Left,
+        Center,
+        Right
+    };
+
+    static QString alignText(QString const& text, TextAlign direction) {
+        QString res = text;
+        switch (direction) {
+            case TextAlign::Left: res.replace("\n", "\\l"); break;
+            case TextAlign::Right: res.replace("\n", "\\r"); break;
+        }
+
+        return res;
+    }
+
     template <typename T>
     struct GraphvizObjBase : CRTP_this_method<T> {
         using CRTP_this_method<T>::_this;
@@ -59,10 +76,7 @@ class Graphviz {
         template <typename Rec, typename... Args>
         Rec* bindRecord(QString const& name, Args&&... args) {
             Rec* result = (Rec*)agbindrec(
-                _this()->get(),
-                name.toStdString().c_str(),
-                sizeof(Rec),
-                false);
+                _this()->get(), strdup(name), sizeof(Rec), false);
             if (result != nullptr) {
                 result = new (result) Rec(std::forward<Args>(args)...);
                 return result;
@@ -73,32 +87,15 @@ class Graphviz {
 
         template <typename Rec>
         Rec* getRecord(QString const& name) {
-            return (Rec*)aggetrec(
-                _this()->get(), name.toStdString().c_str(), false);
+            return (Rec*)aggetrec(_this()->get(), strdup(name), false);
         }
 
         void delRecord(QString const& name) {
-            agdelrec(_this()->get(), name.toStdString().c_str());
+            agdelrec(_this()->get(), strdup(name));
         }
 
         Func<void(QString const&, QString const&)> setOverride;
 
-        enum class TextAlign
-        {
-            Left,
-            Center,
-            Right
-        };
-
-        QString alignText(QString const& text, TextAlign direction) {
-            QString res = text;
-            switch (direction) {
-                case TextAlign::Left: res.replace("\n", "\\l"); break;
-                case TextAlign::Right: res.replace("\n", "\\r"); break;
-            }
-
-            return res;
-        }
 
         void setAttr(
             QString const& attribute,
@@ -107,10 +104,19 @@ class Graphviz {
             setAttr(attribute, alignText(value, direction));
         }
 
+        template <typename AttrType>
+        Opt<AttrType> getAttr(QString const& attribute) {
+            Opt<AttrType> res;
+            getAttr(attribute, res);
+            return res;
+        }
+
+        bool hasAttr(QString const& attribute) {
+            return agget(_this()->get(), strdup(attribute)) != nullptr;
+        }
+
         void getAttr(QString const& attribute, Opt<QString>& value) {
-            char* found = agget(
-                _this()->get(),
-                const_cast<char*>(attribute.toStdString().c_str()));
+            char* found = agget(_this()->get(), strdup(attribute));
 
             if (found != nullptr) {
                 value = QString::fromStdString(found);
@@ -167,9 +173,9 @@ class Graphviz {
             } else {
                 agsafeset(
                     _this()->get(),
-                    const_cast<char*>(attribute.toStdString().c_str()),
-                    const_cast<char*>(value.toStdString().c_str()),
-                    const_cast<char*>(""));
+                    strdup(attribute),
+                    strdup(value),
+                    strdup(""));
             }
         }
 
@@ -203,6 +209,7 @@ class Graphviz {
         bool isAgInEdge() const { return tag().objtype == AGINEDGE; }
     };
 
+    class Edge;
 
     class Node : public GraphvizObjBase<Node> {
       public:
@@ -265,27 +272,23 @@ class Graphviz {
 
         void finishRecord() { setLabel(getNodeRecord()->toString()); }
 
-        Node(Agraph_t* graph, QString const& name, Record const& record)
-            : Node(graph, name) {
-            setShape(Shape::record);
-            setLabel(record.toString());
-        }
+        Node(Agraph_t* graph, QString const& name, Record const& record);
 
         Node(Agraph_t* graph, Agnode_t* node_)
             : node(node_), graph(graph) {}
 
-        Node(Agraph_t* graph, QString const& name) {
-            auto node_ = agnode(
-                graph, const_cast<char*>(name.toStdString().c_str()), 1);
-            if (!node_) {
-                throw std::runtime_error("Failed to create node");
-            } else {
-                node = node_;
-            }
-        }
+        Node(Agraph_t* graph, QString const& name);
 
         Agnode_t*       get() { return node; }
         Agnode_t const* get() const { return node; }
+
+        QString name() const {
+            return QString::fromStdString(agnameof(node));
+        }
+
+        generator<CRw<Edge>> outgoing();
+        generator<CRw<Edge>> ingoing();
+        generator<CRw<Edge>> edges();
 
 
         _eattr(
@@ -434,7 +437,8 @@ class Graphviz {
         Agedge_t*       get() { return edge_; }
         Agedge_t const* get() const { return edge_; }
 
-        //        Node head() { return Node(); }
+        Node head() { return Node(graph, AGHEAD(edge_)); }
+        Node tail() { return Node(graph, AGTAIL(edge_)); }
 
         /// \brief Color of the edge
         _attr(Color, color, QString /*QColor*/);
@@ -456,6 +460,9 @@ class Graphviz {
         _attr(URL, URL, QString);
         _attr(LHead, lhead, QString);
         _attr(LTail, ltail, QString);
+
+        void setLHead(Node node) { setLHead(node.name()); }
+        void setLTail(Node node) { setLTail(node.name()); }
 
       public:
         Agraph_t* graph;
@@ -490,7 +497,7 @@ class Graphviz {
 
 
         Graph newSubgraph(QString const& name) {
-            return Graph(agsubg(graph, name.toLatin1().data(), 1));
+            return Graph(agsubg(graph, strdup(name), 1));
         }
 
         void setSplines(Splines splines);
@@ -629,45 +636,15 @@ class Graphviz {
     };
 
 
-    QString layoutTypeToString(LayoutType layoutType) {
-        switch (layoutType) {
-            case LayoutType::Dot: return "dot";
-            case LayoutType::Neato: return "neato";
-            case LayoutType::Fdp: return "fdp";
-            case LayoutType::Sfdp: return "sfdp";
-            case LayoutType::Twopi: return "twopi";
-            case LayoutType::Circo: return "circo";
-            default: throw std::runtime_error("Invalid layout type.");
-        }
-    }
+    QString layoutTypeToString(LayoutType layoutType);
 
-    QString renderFormatToString(RenderFormat renderFormat) {
-        switch (renderFormat) {
-            case RenderFormat::PNG: return "png";
-            case RenderFormat::PDF: return "pdf";
-            case RenderFormat::SVG: return "svg";
-            case RenderFormat::PS: return "ps";
-            case RenderFormat::JPEG: return "jpeg";
-            case RenderFormat::GIF: return "gif";
-            case RenderFormat::TIF: return "tif";
-            case RenderFormat::BMP: return "bmp";
-            case RenderFormat::XDOT: return "xdot";
-            default: throw std::runtime_error("Invalid render format.");
-        }
-    }
+    QString renderFormatToString(RenderFormat renderFormat);
 
     void createLayout(
         CR<Graph>  graph,
-        LayoutType layout = LayoutType::Dot) {
-        gvLayout(
-            gvc,
-            const_cast<Agraph_t*>(graph.get()),
-            strdup(layoutTypeToString(layout)));
-    }
+        LayoutType layout = LayoutType::Dot);
 
-    void freeLayout(CR<Graph> graph) {
-        gvFreeLayout(gvc, const_cast<Agraph_t*>(graph.get()));
-    }
+    void freeLayout(Graph graph);
 
     void writeFile(
         QString const& fileName,

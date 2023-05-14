@@ -631,7 +631,11 @@ void HaxorgCli::initTracers() {
     });
 }
 
-#define __trace(name) TRACE_EVENT("cli", name)
+#ifdef USE_PERFETTO
+#    define __trace(name) TRACE_EVENT("cli", name)
+#else
+#    define __trace(a)
+#endif
 
 
 bool HaxorgCli::runTokenizer() {
@@ -924,15 +928,25 @@ void HaxorgCli::exec() {
         ExporterMindMap exporter;
         exporter.visitTop(node);
 
+        {
+            auto graph = exporter.toGraph();
+
+            writeFile(
+                QFileInfo("/tmp/mindmap_graph.dot"),
+                exporter.toGraphviz(graph));
+        }
+
         writeFile(
             QFileInfo("/tmp/mindmap.json"_qs),
             to_string(exporter.toJson()));
 
-        auto graph = exporter.toGraph();
-        gvc.writeFile("/tmp/mindmap.dot", graph);
+        {
+            auto graph = exporter.toCGraph();
+            gvc.writeFile("/tmp/mindmap.dot", graph);
 
-        gvc.renderToFile(
-            "/tmp/mindmap.png", graph, Graphviz::RenderFormat::PNG);
+            gvc.renderToFile(
+                "/tmp/mindmap.png", graph, Graphviz::RenderFormat::PNG);
+        }
 
         qDebug() << "Graphviz ok";
     }

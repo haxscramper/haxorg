@@ -9,8 +9,11 @@
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <hstd/wrappers/perfetto_aux.hpp>
 
-#define __perf_trace(name) TRACE_EVENT("convert", name);
-
+#ifdef USE_PERFETTO
+#    define __perf_trace(name) TRACE_EVENT("convert", name);
+#else
+#    define __perf_trace(a)
+#endif
 
 #define __INIT_REPORT(__subname, __node)                                  \
     (Report{                                                              \
