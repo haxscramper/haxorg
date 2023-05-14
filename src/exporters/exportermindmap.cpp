@@ -370,6 +370,7 @@ Graphviz::Graph ExporterMindMap::toCGraph() {
     auto nodeFor = [&](Graphviz::Graph& graph, sem::Org::Ptr org) {
         auto node = graph.node(nodeName(org));
         node.setAttr("org_id", org->id.value());
+        node.setLabel(toPlainStr(org));
         return node;
     };
 
