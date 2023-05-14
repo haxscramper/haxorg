@@ -15,23 +15,36 @@
 #include <new>
 #include <hstd/stdlib/Func.hpp>
 #include <QColor>
+#include <hstd/system/generator.hpp>
 
 
 #define _attr_aligned(Method, key, Type)                                  \
     void set##Method(                                                     \
         Type const& value, TextAlign direction = TextAlign::Left) {       \
-        set(#key, value, direction);                                      \
+        setAttr(#key, value, direction);                                  \
+    }                                                                     \
+                                                                          \
+    Opt<Type> set##Method() {                                             \
+        Opt<Type> value;                                                  \
+        getAttr(#key, value);                                             \
+        return value;                                                     \
     }
 
 #define _attr(Method, key, Type)                                          \
-    void set##Method(Type const& value) { set(#key, value); }
+    void set##Method(Type const& value) { setAttr(#key, value); }         \
+                                                                          \
+    Opt<Type> set##Method() {                                             \
+        Opt<Type> value;                                                  \
+        getAttr(#key, value);                                             \
+        return value;                                                     \
+    }
 
 #define _attrx(Method, key, Type) void set##Method(Type const& value);
 
 
 #define _eattr(Name, key, ...)                                            \
     DECL_DESCRIBED_ENUM(Name, __VA_ARGS__);                               \
-    void set##Name(Name value) { set(#key, enum_to_string(value)); }
+    void set##Name(Name value) { setAttr(#key, enum_to_string(value)); }
 
 class Graphviz {
   public:
@@ -87,14 +100,68 @@ class Graphviz {
             return res;
         }
 
-        void set(
+        void setAttr(
             QString const& attribute,
             QString const& value,
             TextAlign      direction) {
-            set(attribute, alignText(value, direction));
+            setAttr(attribute, alignText(value, direction));
         }
 
-        void set(QString const& attribute, QString const& value) {
+        void getAttr(QString const& attribute, Opt<QString>& value) {
+            char* found = agget(
+                _this()->get(),
+                const_cast<char*>(attribute.toStdString().c_str()));
+
+            if (found != nullptr) {
+                value = QString::fromStdString(found);
+            } else {
+                value = std::nullopt;
+            }
+        }
+
+        void getAttr(QString const& key, Opt<int>& value) {
+            Opt<QString> tmp;
+            getAttr(key, tmp);
+            if (tmp) {
+                value = tmp->toInt();
+            }
+        }
+
+        void getAttr(QString const& key, Opt<double>& value) {
+            Opt<QString> tmp;
+            getAttr(key, tmp);
+            if (tmp) {
+                value = tmp->toDouble();
+            }
+        }
+
+        void getAttr(QString const& key, Opt<QColor>& value) {
+            Opt<QString> tmp;
+            getAttr(key, tmp);
+            if (tmp) {
+                value = QColor::fromString(*tmp);
+            }
+        }
+
+        void getAttr(QString const& key, Opt<bool>& value) {
+            Opt<QString> tmp;
+            getAttr(key, tmp);
+            if (tmp) {
+                value = *tmp == "true";
+            }
+        }
+
+
+        void getAttr(QString const& key, Opt<QPointF>& value) {
+            Opt<QString> tmp;
+            getAttr(key, tmp);
+            if (tmp) {
+                auto split = tmp->split(",");
+                value = QPointF(split[0].toDouble(), split[1].toDouble());
+            }
+        }
+
+        void setAttr(QString const& attribute, QString const& value) {
             if (setOverride) {
                 setOverride(attribute, value);
             } else {
@@ -106,26 +173,36 @@ class Graphviz {
             }
         }
 
-        void set(QString const& key, int value) {
-            _this()->set(key, QString::number(value));
+        void setAttr(QString const& key, int value) {
+            _this()->setAttr(key, QString::number(value));
         }
 
-        void set(QString const& key, QPointF value) {
-            _this()->set(key, QString("%1,%2").arg(value.x(), value.y()));
+        void setAttr(QString const& key, QPointF value) {
+            _this()->setAttr(
+                key, QString("%1,%2").arg(value.x(), value.y()));
         }
 
-        void set(QString const& key, double value) {
-            _this()->set(key, QString::number(value));
+        void setAttr(QString const& key, double value) {
+            _this()->setAttr(key, QString::number(value));
         }
 
-        void set(QString const& key, QColor const& value) {
-            _this()->set(key, value.name());
+        void setAttr(QString const& key, QColor const& value) {
+            _this()->setAttr(key, value.name());
         }
 
-        void set(QString const& key, bool value) {
-            _this()->set(key, QString(value ? "true" : "false"));
+        void setAttr(QString const& key, bool value) {
+            _this()->setAttr(key, QString(value ? "true" : "false"));
         }
+
+        Agobj_s*       obj() { return (Agobj_s*)(_this()->get()); }
+        Agtag_s const& tag() { return obj()->tag; }
+
+        bool isAgraph() const { return tag().objtype == AGRAPH; }
+        bool isAgnode() const { return tag().objtype == AGNODE; }
+        bool isAgOutEdge() const { return tag().objtype == AGOUTEDGE; }
+        bool isAgInEdge() const { return tag().objtype == AGINEDGE; }
     };
+
 
     class Node : public GraphvizObjBase<Node> {
       public:
@@ -303,11 +380,11 @@ class Graphviz {
             ilace);
 
         void setArrowHead(ArrowType type) {
-            set("arrowhead", enum_to_string(type));
+            setAttr("arrowhead", enum_to_string(type));
         };
 
         void setArrowTail(ArrowType type) {
-            set("arrowtail", enum_to_string(type));
+            setAttr("arrowtail", enum_to_string(type));
         };
 
         _eattr(ArrowSize, arrowsize, tiny, small, normal, large, huge);
@@ -356,6 +433,8 @@ class Graphviz {
 
         Agedge_t*       get() { return edge_; }
         Agedge_t const* get() const { return edge_; }
+
+        //        Node head() { return Node(); }
 
         /// \brief Color of the edge
         _attr(Color, color, QString /*QColor*/);

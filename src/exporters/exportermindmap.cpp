@@ -275,7 +275,7 @@ Graphviz::Graph ExporterMindMap::toGraph() {
                 auto            name     = subtreeNodeName(target);
                 G::Edge         nodeEdge = graph.edge(source, name);
 
-                nodeEdge.setLHead(clusterName(target->original));
+                nodeEdge.setLHead(subtreeNodeName(target));
                 return nodeEdge;
             }
         };
@@ -283,10 +283,9 @@ Graphviz::Graph ExporterMindMap::toGraph() {
         auto name = subtreeNodeName(doc);
         for (const auto& edge : doc->outgoing) {
             G::Edge g_edge = edgeTo(name, edge);
-            g_edge.setLTail(clusterName(doc->original));
+            g_edge.setLTail(subtreeNodeName(doc));
             g_edge.setLabel(ExporterUltraplain::toStr(*edge.description));
         }
-
 
         for (const auto& entry : doc->ordered + doc->unordered) {
             for (const auto& edge : entry->outgoing) {

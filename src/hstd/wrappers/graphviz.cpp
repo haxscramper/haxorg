@@ -49,8 +49,8 @@ Graphviz::Edge::Edge(Agraph_t* graph, CR<Node> head, CR<Node> tail)
     Q_CHECK_PTR(graph);
     Agedge_t* edge = agedge(
         graph,
-        const_cast<Agnode_t*>(tail.get()),
         const_cast<Agnode_t*>(head.get()),
+        const_cast<Agnode_t*>(tail.get()),
         nullptr,
         1);
 
