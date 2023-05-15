@@ -2,13 +2,11 @@
 #define EXPORTERMINDMAP_HPP
 
 #include "hstd/system/aux_utils.hpp"
-#include <boost/graph/graphviz.hpp>
 #include <exporters/Exporter.hpp>
 #include <hstd/wrappers/graphviz.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/subgraph.hpp>
 
 struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     using Base = Exporter<ExporterMindMap, std::monostate>;
@@ -161,35 +159,13 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
 
     struct GraphProp {};
 
-    using BaseVertexProp = boost::
-        property<boost::vertex_attribute_t, VertexProp>;
-
-    using BaseEdgeProp = boost::property<
-        boost::edge_index_t,
-        int,
-        boost::property<boost::edge_attribute_t, EdgeProp>>;
-
-    using BaseGraphProp = boost::property<
-        boost::graph_name_t,
-        std::string,
-        boost::property<
-            boost::graph_graph_attribute_t,
-            GraphProp,
-            boost::property<
-                boost::graph_vertex_attribute_t,
-                GraphProp,
-                boost::
-                    property<boost::graph_edge_attribute_t, GraphProp>>>>;
-
-    using BaseGraph = boost::adjacency_list<
+    using Graph = boost::adjacency_list<
         boost::vecS,
         boost::vecS,
         boost::directedS,
-        BaseVertexProp,
-        BaseEdgeProp,
-        BaseGraphProp>;
-
-    using Graph = boost::subgraph<BaseGraph>;
+        VertexProp,
+        EdgeProp,
+        GraphProp>;
 
     using GraphTraits     = boost::graph_traits<Graph>;
     using VertDesc        = typename GraphTraits::vertex_descriptor;

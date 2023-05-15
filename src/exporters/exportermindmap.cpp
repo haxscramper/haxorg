@@ -197,33 +197,6 @@ Opt<ExporterMindMap::DocLink> ExporterMindMap::getResolved(
 using namespace boost;
 
 
-template <typename G, typename Prop>
-typename graph_traits<G>::vertex_descriptor add_vertex(
-    CR<Prop> prop,
-    G&       graph) {
-    typename graph_traits<G>::vertex_descriptor desc = add_vertex(graph);
-
-    put(vertex_bundle, graph, desc, prop);
-    add_vertex(desc, graph);
-
-    return desc;
-}
-
-template <typename G, typename Prop>
-typename graph_traits<G>::edge_descriptor add_edge(
-    typename graph_traits<G>::vertex_descriptor head,
-    typename graph_traits<G>::vertex_descriptor tail,
-    CR<Prop>                                    prop,
-    G&                                          graph) {
-
-    std::pair<typename graph_traits<G>::edge_descriptor, bool>
-        desc = add_edge(head, tail, graph);
-
-    put(edge_bundle, graph, desc.first, prop);
-    add_vertex(desc, graph);
-    return desc.first;
-}
-
 ExporterMindMap::Graph ExporterMindMap::toGraph() {
     Graph result;
 
@@ -280,7 +253,7 @@ ExporterMindMap::Graph ExporterMindMap::toGraph() {
     UnorderedMap<int, VertDesc> entryNodes;
 
     for (auto vp = vertices(result); vp.first != vp.second; ++vp.first) {
-        BaseVertexProp const& prop = get(vertex_bundle, result, *vp.first);
+        VertexProp const& prop = result[*vp.first];
         if (prop.getKind() == VertexProp::Kind::Entry) {
             entryNodes[prop.getEntry().entry->id] = *vp.first;
         } else {
@@ -362,14 +335,14 @@ QString ExporterMindMap::toGraphviz(CR<Graph> graph) {
                 [&](VertexProp const& prop) -> int {
                     return getOrgNode(prop)->id.value();
                 },
-                get(vertex_bundle, graph.m_graph)))
+                get(vertex_bundle, graph)))
         .property(
             "label",
             make_transform_value_property_map<std::string>(
                 [&](VertexProp const& prop) -> std::string {
                     return toPlainStr(getOrgNode(prop)).toStdString();
                 },
-                get(vertex_bundle, graph.m_graph)));
+                get(vertex_bundle, graph)));
 
 
     write_graphviz_dp(os, graph, dp);
