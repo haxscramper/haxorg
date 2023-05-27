@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <QTextStream>
 
 template <typename T>
 using Opt = std::optional<T>;
