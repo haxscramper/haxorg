@@ -177,8 +177,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     QString toGraphML(CR<Graph>);
     QString toGraphviz(CR<Graph>);
 
-    Graphviz::Graph toCGraph();
-    json            toJson();
+    json toJson();
 };
 
 #endif // EXPORTERMINDMAP_HPP

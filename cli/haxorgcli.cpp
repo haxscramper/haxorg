@@ -940,14 +940,6 @@ void HaxorgCli::exec() {
             QFileInfo("/tmp/mindmap.json"_qs),
             to_string(exporter.toJson()));
 
-        {
-            auto graph = exporter.toCGraph();
-            gvc.writeFile("/tmp/mindmap.dot", graph);
-
-            gvc.renderToFile(
-                "/tmp/mindmap.png", graph, Graphviz::RenderFormat::PNG);
-        }
-
         qDebug() << "Graphviz ok";
     }
 

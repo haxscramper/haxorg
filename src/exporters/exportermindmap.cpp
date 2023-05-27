@@ -125,13 +125,9 @@ void ExporterMindMap::visitEnd(In<sem::Org> doc) {
     });
 
     eachEntry(root, [&](DocEntry::Ptr entry) {
-        qDebug() << "Resolving entry content =========";
         entry->content->eachSubnodeRec([&](sem::Org::Ptr node) {
             Opt<DocLink> resolved = getResolved(node);
             if (resolved) {
-                qDebug() << "Resolved" << node->id;
-                ExporterTree::treeRepr(node);
-
                 entry->outgoing.push_back(*resolved);
             }
         });
@@ -348,124 +344,6 @@ QString ExporterMindMap::toGraphviz(CR<Graph> graph) {
     write_graphviz_dp(os, graph, dp);
 
     return QString::fromStdString(os.str());
-}
-
-using G = Graphviz;
-
-
-Graphviz::Graph ExporterMindMap::toCGraph() {
-
-    int subgraphCounter = 0;
-
-    auto uniqueName = [&]() { return to_string(++subgraphCounter); };
-    auto nodeName   = [](CR<sem::Org::Ptr> node) {
-        return "name_" + to_string(node->id.value());
-    };
-
-    auto clusterName = [](CR<sem::Org::Ptr> node) {
-        return "cluster_" + to_string(node->id.value());
-    };
-
-
-    auto nodeFor = [&](Graphviz::Graph& graph, sem::Org::Ptr org) {
-        auto node = graph.node(nodeName(org));
-        node.setAttr("org_id", org->id.value());
-        node.setLabel(toPlainStr(org));
-        return node;
-    };
-
-    auto fillOrdered = [&](Graphviz::Graph&    graph,
-                           CR<DocSubtree::Ptr> doc) {
-        if (doc->ordered.empty()) {
-            return;
-        } else if (doc->ordered.size() == 1 && doc->unordered.empty()) {
-            nodeFor(graph, doc->ordered.at(0)->content);
-        } else {
-            auto cluster = graph.newSubgraph(clusterName(doc->original));
-            cluster.setRankDirection(G::Graph::RankDirection::TB);
-            for (const auto& ord : doc->ordered) {
-                auto node = nodeFor(cluster, ord->content);
-            }
-        }
-    };
-
-    auto fillUnordered = [&](Graphviz::Graph&    graph,
-                             CR<DocSubtree::Ptr> doc) {
-        for (const auto& note : doc->unordered) {
-            auto node = nodeFor(graph, note->content);
-            node.setColor(Qt::red);
-        }
-    };
-
-    Func<void(CR<DocSubtree::Ptr>, Graphviz::Graph&)> auxSubtree;
-
-    auxSubtree = [&](CR<DocSubtree::Ptr> doc, Graphviz::Graph& parent) {
-        Graphviz::Graph graph = parent.newSubgraph(
-            clusterName(doc->original));
-        graph.setCompound(true);
-
-        //        if (doc->original->is(osk::Subtree)) {
-        //            graph.setLabel(ExporterUltraplain::toStr(
-        //                doc->original->as<sem::Subtree>()->title));
-        //        }
-
-        fillOrdered(graph, doc);
-        fillUnordered(graph, doc);
-
-        for (const auto& it : doc->subtrees) {
-            auxSubtree(it, graph);
-        }
-
-        auto subtreeNode = [&](DocSubtree::Ptr target) -> G::Node {
-            if (target->ordered.empty()) {
-                return nodeFor(graph, target->original);
-            } else {
-                return nodeFor(graph, target->ordered.at(0)->content);
-            }
-        };
-
-        auto edgeTo = [&](G::Node const& source,
-                          DocLink const& edge) -> G::Edge {
-            if (edge.getKind() == DocLink::Kind::Entry) {
-                return graph.edge(
-                    source,
-                    nodeFor(graph, edge.getEntry().entry->content));
-            } else {
-                DocSubtree::Ptr target   = edge.getSubtree().subtree;
-                G::Node         node     = subtreeNode(target);
-                G::Edge         nodeEdge = graph.edge(source, node);
-                nodeEdge.setLHead(node);
-                return nodeEdge;
-            }
-        };
-
-        G::Node name = subtreeNode(doc);
-        for (const auto& edge : doc->outgoing) {
-            G::Edge g_edge = edgeTo(name, edge);
-            g_edge.setLTail(subtreeNode(doc));
-            g_edge.setLabel(ExporterUltraplain::toStr(*edge.description));
-        }
-
-        for (const auto& entry : doc->ordered + doc->unordered) {
-            for (const auto& edge : entry->outgoing) {
-                edgeTo(nodeFor(graph, entry->content), edge);
-            }
-        }
-    };
-
-    Q_CHECK_PTR(root);
-
-    auto result = Graphviz::Graph("root");
-    auxSubtree(root, result);
-
-
-    result.setRankDirection(G::Graph::RankDirection::LR);
-    result.setCompound(true);
-    result.setConcentrate(true);
-    Q_CHECK_PTR(result.get());
-    result.defaultNode.setShape(G::Node::Shape::rect);
-    Q_CHECK_PTR(result.get());
-    return result;
 }
 
 json ExporterMindMap::toJson() {
