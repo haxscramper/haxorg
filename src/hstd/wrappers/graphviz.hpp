@@ -17,6 +17,7 @@
 #include <QColor>
 #include <hstd/system/generator.hpp>
 
+class QFileInfo;
 
 #define _attr_aligned(Method, key, Type)                                  \
     void set##Method(                                                     \
@@ -478,6 +479,7 @@ class Graphviz {
 
 
         Graph(QString const& name, Agdesc_t desc = Agdirected);
+        Graph(QFileInfo const& file);
         Graph(Agraph_t* graph)
             : graph(graph)
             , defaultEdge(graph, nullptr)

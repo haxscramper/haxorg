@@ -929,11 +929,14 @@ void HaxorgCli::exec() {
         exporter.visitTop(node);
 
         {
-            auto graph = exporter.toGraph();
+            auto      graph = exporter.toGraph();
+            QFileInfo res{"/tmp/mindmap_graph.dot"};
 
-            writeFile(
-                QFileInfo("/tmp/mindmap_graph.dot"),
-                exporter.toGraphviz(graph));
+            writeFile(res, exporter.toGraphviz(graph));
+
+            Graphviz::Graph read{res};
+            gvc.renderToFile("/tmp/mindmap_graph.png", read);
+            qDebug() << "Graph generation ok";
         }
 
         writeFile(

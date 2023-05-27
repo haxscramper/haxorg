@@ -162,7 +162,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     using Graph = boost::adjacency_list<
         boost::vecS,
         boost::vecS,
-        boost::directedS,
+        boost::bidirectionalS,
         VertexProp,
         EdgeProp,
         GraphProp>;

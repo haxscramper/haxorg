@@ -1,4 +1,5 @@
 #include <hstd/wrappers/graphviz.hpp>
+#include <QFileInfo>
 
 void Graphviz::Node::Record::set(
     const QString& columnKey,
@@ -73,6 +74,19 @@ Graphviz::Graph::Graph(const QString& name, Agdesc_t desc)
 
     initDefaultSetters();
     Q_CHECK_PTR(graph);
+}
+
+Graphviz::Graph::Graph(const QFileInfo& file)
+    : graph(nullptr)
+    , defaultEdge(graph, nullptr)
+    , defaultNode(graph, nullptr) {
+    Q_ASSERT(file.exists());
+
+    QString absolute = file.absoluteFilePath();
+    FILE*   fp       = fopen(absolute.toLatin1().data(), "r");
+    graph            = agread(fp, nullptr);
+
+    initDefaultSetters();
 }
 
 void Graphviz::Graph::initDefaultSetters() {
