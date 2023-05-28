@@ -265,6 +265,25 @@ struct Exporter {
     }
     ///@}
 
+    /// \name Specialization for nested include objects
+    /// @{
+    void visit(R& res, CR<sem::Include::Example> p) {}
+
+    void visit(R& res, CR<sem::Include::Export> p) {}
+
+    void visit(R& res, CR<sem::Include::Src> p) {}
+
+    void visit(R& res, CR<sem::Include::OrgDocument> p) {}
+
+    void visit(R& res, CR<sem::Include::Data> prop) {
+        _this()->visitField(
+            res, "kind", sem::Include::getIncludeKind(prop));
+        std::visit(
+            [&, this](const auto& it) { _this()->visit(res, it); }, prop);
+    }
+
+    /// @}
+
     /// \name Specialization for nested subtree objects and subtree itself
     ///@{
     void visit(R& res, CR<sem::Subtree::Property::Ordered> p) {
@@ -274,6 +293,18 @@ struct Exporter {
     void visit(R& res, CR<sem::Subtree::Property::ExportOptions> p) {
         __obj_field(res, p, backend);
         __obj_field(res, p, values);
+    }
+
+    void visit(R& res, CR<sem::Subtree::Property::ExportLatexClass> p) {
+        __obj_field(res, p, latexClass);
+    }
+
+    void visit(R& res, CR<sem::Subtree::Property::ExportLatexHeader> p) {
+        __obj_field(res, p, header);
+    }
+
+    void visit(R& res, CR<sem::Subtree::Property::ExportLatexCompiler> p) {
+        __obj_field(res, p, compiler);
     }
 
     void visit(R& res, CR<sem::Subtree::Property::Nonblocking> o) {

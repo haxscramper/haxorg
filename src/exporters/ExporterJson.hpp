@@ -18,6 +18,7 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     json newRes(CR<sem::SubtreeLog::LogEntry>) { return json::object(); }
     json newRes(CR<sem::Subtree::Property>) { return json::object(); }
     json newRes(CR<sem::Code::Switch>) { return json::object(); }
+    json newRes(CR<sem::Include::Data>) { return json::object(); }
     json newRes(CR<sem::Subtree::Property::Data>) {
         return json::object();
     }
@@ -38,6 +39,7 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     }
 
     json visit(CR<Str> value) { return json(value); }
+    json visit(CR<QString> value) { return json(value); }
     json visit(CR<bool> value) { return json(value); }
     json visit(CR<int> value) { return json(value); }
     json visit(CR<QDateTime> value) {

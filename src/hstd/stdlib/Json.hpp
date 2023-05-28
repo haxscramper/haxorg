@@ -7,6 +7,7 @@
 
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Opt.hpp>
 
 #include <boost/describe.hpp>
 

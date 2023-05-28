@@ -491,6 +491,10 @@ Wrap<Space> OrgConverter::convertSpace(__args) {
     return SemLeaf<Space>(p, a);
 }
 
+Wrap<Escaped> OrgConverter::convertEscaped(__args) {
+    return SemLeaf<Escaped>(p, a);
+}
+
 Wrap<RawText> OrgConverter::convertRawText(__args) {
     return SemLeaf<RawText>(p, a);
 }
@@ -505,6 +509,10 @@ Wrap<BigIdent> OrgConverter::convertBigIdent(__args) {
     __perf_trace("convertBigIdent");
     __trace();
     return SemLeaf<BigIdent>(p, a);
+}
+
+Wrap<sem::ParseError> OrgConverter::convertParseError(__args) {
+    return Sem<sem::ParseError>(p, a);
 }
 
 
@@ -526,6 +534,18 @@ Wrap<Bold> OrgConverter::convertBold(__args) {
     return convertAllSubnodes<Bold>(p, a);
 }
 
+Wrap<Monospace> OrgConverter::convertMonospace(__args) {
+    __perf_trace("convertMonospace");
+    __trace();
+    return convertAllSubnodes<Monospace>(p, a);
+}
+
+Wrap<Strike> OrgConverter::convertStrike(__args) {
+    __perf_trace("convertStrike");
+    __trace();
+    return convertAllSubnodes<Strike>(p, a);
+}
+
 Wrap<Par> OrgConverter::convertPar(__args) {
     __perf_trace("convertPar");
     __trace();
@@ -538,6 +558,23 @@ Wrap<Italic> OrgConverter::convertItalic(__args) {
     return convertAllSubnodes<Italic>(p, a);
 }
 
+Wrap<Underline> OrgConverter::convertUnderline(__args) {
+    __perf_trace("convertUnderline");
+    __trace();
+    return convertAllSubnodes<Underline>(p, a);
+}
+
+Wrap<Example> OrgConverter::convertExample(__args) {
+    return convertAllSubnodes<Example>(p, a);
+}
+
+Wrap<Center> OrgConverter::convertCenter(__args) {
+    return convertAllSubnodes<Center>(p, a);
+}
+
+Wrap<AdmonitionBlock> OrgConverter::convertAdmonitionBlock(__args) {
+    return convertAllSubnodes<AdmonitionBlock>(p, a);
+}
 
 Wrap<Quote> OrgConverter::convertQuote(__args) {
     Wrap<Quote> quote = Sem<Quote>(p, a);
@@ -555,6 +592,22 @@ Wrap<LatexBody> OrgConverter::convertMath(__args) {
 
     return result;
 }
+
+Wrap<Include> OrgConverter::convertInclude(__args) {
+    Wrap<Include> include = Sem<Include>(p, a);
+    qWarning() << "TODO implement include";
+
+    return include;
+}
+
+Wrap<TextSeparator> OrgConverter::convertTextSeparator(__args) {
+    return Sem<TextSeparator>(p, a);
+}
+
+Wrap<AtMention> OrgConverter::convertAtMention(__args) {
+    return SemLeaf<AtMention>(p, a);
+}
+
 
 Vec<Wrap<Org>> OrgConverter::flatConvertAttached(__args) {
     Vec<Wrap<Org>>         result;
@@ -582,6 +635,7 @@ Vec<Wrap<Org>> OrgConverter::flatConvertAttached(__args) {
     return result;
 }
 
+
 Wrap<Org> OrgConverter::convert(__args) {
     __trace();
     if (!a.isValid()) {
@@ -601,6 +655,7 @@ Wrap<Org> OrgConverter::convert(__args) {
         CASE(Word);
         CASE(Bold);
         CASE(Italic);
+        CASE(Strike);
         CASE(Punctuation);
         CASE(Link);
         CASE(Par);
@@ -610,6 +665,16 @@ Wrap<Org> OrgConverter::convert(__args) {
         CASE(List);
         CASE(ListItem);
         CASE(Placeholder);
+        CASE(Escaped);
+        CASE(TextSeparator);
+        CASE(AtMention);
+        CASE(Underline);
+        case org::Monospace: return convertMonospace(p, a);
+        case org::CenterBlock: return convertCenter(p, a);
+        case org::Example: return convertExample(p, a);
+        case org::AdmonitionBlock: return convertAdmonitionBlock(p, a);
+        case org::HashTag: return convertHashTag(p, a);
+        case org::Error: return convertParseError(p, a);
         case org::ListTag: return convert(p, a[0]);
         case org::InlineMath: return convertMath(p, a);
         case org::RawLink: return convertLink(p, a);
@@ -618,10 +683,14 @@ Wrap<Org> OrgConverter::convert(__args) {
         case org::DynamicActiveTime:
         case org::DynamicInactiveTime: return convertTime(p, a);
         case org::SkipSpace: return convertSpace(p, a);
+        // NOTE not sure what to do with this node kind when it reaches
+        // this point
+        case org::SkipAny: return convertSpace(p, a);
         case org::SkipNewline: return convertNewline(p, a);
         case org::Quote: return convertMarkQuote(p, a);
         case org::QuoteBlock: return convertQuote(p, a);
         case org::Colon: return convertPunctuation(p, a);
+        case org::CommandInclude: return convertInclude(p, a);
         case org::Footnote: {
             if (a.size() == 1) {
                 return convertLink(p, a);
@@ -670,13 +739,58 @@ Wrap<Org> OrgConverter::convert(__args) {
 #undef CASE
 }
 
+void fillDocumentOptions(Wrap<DocumentOptions> opts, OrgAdapter a) {
+    if (opts->isGenerated()) {
+        opts->original = a;
+    }
+
+    for (OrgAdapter const& item : a) {
+        QString value = item.strVal();
+        if (value.contains(':')) {
+            auto split = value.split(':');
+            auto head  = split[0];
+            auto tail  = split[1];
+            if (head == "broken-links") {
+                if (tail == "mark") {
+                    opts->brokenLinks = DocumentOptions::BrokenLinks::Mark;
+                } else if (tail == "t") {
+                    opts->brokenLinks = DocumentOptions::BrokenLinks::
+                        Ignore;
+                }
+            }
+
+        } else if (value == ":") {
+            opts->fixedWidthSections = true;
+        } else if (value == "<") {
+            opts->includeTimestamps = true;
+        } else if (value == "^") {
+            opts->plaintextSubscripts = true;
+        } else {
+            qCritical() << "Unexpected document option value" << value;
+        }
+    }
+}
+
 Wrap<Document> OrgConverter::toDocument(OrgAdapter adapter) {
     Wrap<Document> doc = Sem<Document>(nullptr, adapter);
+    doc->options       = Sem<DocumentOptions>(doc.get(), adapter);
+    using Prop         = Subtree::Property;
 
     if (adapter.kind() == org::StmtList) {
         for (const auto& sub : adapter) {
             if (sub.kind() == org::CommandTitle) {
                 doc->title = convertParagraph(doc.get(), sub[0]);
+            } else if (sub.kind() == org::CommandOptions) {
+                fillDocumentOptions(doc->options, sub);
+            } else if (sub.kind() == org::LatexClass) {
+                doc->options->properties.push_back(
+                    Prop(Prop::ExportLatexClass{sub.at(0).strVal()}));
+            } else if (sub.kind() == org::LatexHeader) {
+                doc->options->properties.push_back(
+                    Prop(Prop::ExportLatexHeader{sub.at(0).strVal()}));
+            } else if (sub.kind() == org::LatexCompiler) {
+                doc->options->properties.push_back(
+                    Prop(Prop::ExportLatexCompiler{sub.at(0).strVal()}));
             } else {
                 doc->subnodes.push_back(convert(doc.get(), sub));
             }

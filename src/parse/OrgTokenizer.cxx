@@ -1,7 +1,3 @@
-#ifndef TRACE_STATE
-#define TRACE_STATE true
-#endif
-
 #if TRACE_STATE
 
 #    define __INIT_REPORT(__subname, __str)                               \
@@ -535,8 +531,11 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexBracket(PosStr& str) {
         lexLink(str);
     } else if (str.at("[fn:") || str.at("[FN:")) {
         lexFootnote(str);
-    } else {
+    } else if(str.get(1).isNumber()) {
         lexTimeRange(str);
+    } else {
+        auto punct = str.tok(otk::Punctuation, skipCount, 1);
+        __push(punct);
     }
     return true;
 }
@@ -2253,7 +2252,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::atListStart(CR<PosStr> tmp) {
             }
         });
 
-        return str.at(QChar(')')) || str.at(QChar('.'));
+        return (str.at(QChar(')')) || str.at(QChar('.'))) && (str.at(' ', 1));
     } else {
         if (str.at(OBulletListStart)) {
             str.next();
@@ -2850,7 +2849,10 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexStructure(PosStr& str) {
 
 template <>
 void OrgTokenizerImpl<TRACE_STATE>::pushResolved(CR<OrgToken> token) {
+#if TRACE_STATE
     report(Report{.kind = ReportKind::PushResolved, .tok = token});
+#endif
+
     auto str = PosStr(token.getText());
     switch (token.kind) {
         case otk::Text: {

@@ -43,12 +43,12 @@ bool parseArgs(int argc, char** argv, HaxorgCli::Config& config) {
             .lex = {
                 .doTrace = QCommandLineOption("lex-trace", "Do lex tracing?"),
                 .traceTo = QCommandLineOption("lex-trace-to", "Where to stream lexer trace?", "lex-trace-file"),
-                .traceExtent = QCommandLineOption("lex-trace-extent", "Trace extent in the file"),
+                .traceExtent = QCommandLineOption("lex-trace-extent", "Trace extent in the file", "lex-trace-extent"),
             },
             .parse = {
                 .doTrace = QCommandLineOption("parse-trace", "Do parse tracing?"),
                 .traceTo = QCommandLineOption("parse-trace-to", "Where to stream parse trace?", "parse-trace-file"),
-                .traceExtent = QCommandLineOption("parse-trace-extent", "Trace extent in the file"),
+                .traceExtent = QCommandLineOption("parse-trace-extent", "Trace extent in the file", "parse-trace-extent"),
             },
             .sem = {
                 .doTrace = QCommandLineOption("sem-trace", "Do sem tracing?"),
@@ -226,6 +226,9 @@ int main(int argc, char** argv) {
     _dbg(cli.config.trace.parse.traceTo);
     _dbg(cli.config.trace.sem.traceTo);
 
+    _dbg(cli.config.trace.lex.doTrace);
+    _dbg(cli.config.trace.parse.doTrace);
+    _dbg(cli.config.trace.sem.doTrace);
 
     cli.exec();
 

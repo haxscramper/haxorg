@@ -400,6 +400,11 @@ struct Example : public Block {
     DECL_FIELDS(Example, (Block));
 };
 
+struct AdmonitionBlock : public Block {
+    using Block::Block;
+    GET_KIND(AdmonitionBlock);
+    DECL_FIELDS(AdmonitionBlock, (Block));
+};
 
 /// \brief Base class for all code blocks
 struct Code : public Block {
@@ -670,6 +675,18 @@ struct Subtree : public Org {
     Vec<Period> getTimePeriods(IntSet<Period::Kind> kinds);
 
     struct Property {
+        struct ExportLatexClass {
+            QString latexClass;
+        };
+
+        struct ExportLatexHeader {
+            QString header;
+        };
+
+        struct ExportLatexCompiler {
+            QString compiler;
+        };
+
         struct Ordered {
             bool isOrdered;
         };
@@ -723,6 +740,9 @@ struct Subtree : public Org {
                      // to list of defined enums etc.
             ExportOptions,
             Nonblocking,
+            ExportLatexHeader,
+            ExportLatexCompiler,
+            ExportLatexClass,
             Trigger,
             Blocker,
             Unnumbered,
@@ -792,6 +812,11 @@ struct Leaf : public Org {
 #define __extra_args_fields Str text = "";
 #define __extra_args_pass Leaf(args.text)
 
+struct Escaped : public Leaf {
+    using Leaf::Leaf;
+    GET_KIND(Escaped);
+    DECL_FIELDS(Escaped, (Leaf));
+};
 
 struct Newline : public Leaf {
     using Leaf::Leaf;
@@ -809,6 +834,12 @@ struct Word : public Leaf {
     using Leaf::Leaf;
     GET_KIND(Word);
     DECL_FIELDS(Word, (Leaf));
+};
+
+struct AtMention : public Leaf {
+    using Leaf::Leaf;
+    GET_KIND(AtMention);
+    DECL_FIELDS(AtMention, (Leaf));
 };
 
 struct RawText : public Leaf {
@@ -859,6 +890,12 @@ struct Bold : public Markup {
     using Markup::Markup;
     GET_KIND(Bold);
     DECL_FIELDS(Bold, (Markup));
+};
+
+struct Underline : public Markup {
+    using Markup::Markup;
+    GET_KIND(Underline);
+    DECL_FIELDS(Underline, (Markup));
 };
 
 struct Monospace : public Markup {
@@ -952,26 +989,94 @@ struct Link : public Org {
         ((Opt<Wrap<Paragraph>>), description, Description, std::nullopt));
 };
 
+struct ParseError : public Org {
+    using Org::Org;
+    GET_KIND(ParseError);
+    DECL_FIELDS(ParseError, (Org));
+};
+
+
+struct FileTarget : public Org {
+    using Org::Org;
+    GET_KIND(FileTarget);
+    DECL_FIELDS(
+        FileTarget,
+        (Org),
+        ((QString), path, Path, ""),
+        ((Opt<int>), line, Line, std::nullopt),
+        ((Opt<QString>), searchTarget, SearchTarget, std::nullopt),
+        ((bool), restrictToHeadlines, RestrictToHeadlines, false),
+        ((Opt<QString>), targetId, TargetId, std::nullopt),
+        ((Opt<QString>), regexp, Regexp, std::nullopt));
+};
+
+struct TextSeparator : public Org {
+    using Org::Org;
+    GET_KIND(TextSeparator);
+    DECL_FIELDS(TextSeparator, (Org));
+};
+
+struct Include : public Org {
+    using Org::Org;
+    GET_KIND(Include);
+
+    struct Example {};
+    struct Export {};
+    struct Src {};
+    struct OrgDocument {};
+
+    SUB_VARIANTS(
+        Kind,
+        Data,
+        data,
+        getIncludeKind,
+        Example,
+        Export,
+        Src,
+        OrgDocument);
+
+    DECL_FIELDS(
+        Include,
+        (Org),
+        ((Data), data, Data, OrgDocument{}),
+        ((Opt<Wrap<Org>>),
+         includedDocument,
+         IncludedDocument,
+         std::nullopt));
+};
+
+
+struct DocumentOptions : public Org {
+    using Org::Org;
+    GET_KIND(DocumentOptions);
+
+    DECL_DESCRIBED_ENUM(BrokenLinks, Raise, Ignore, Mark);
+
+    DECL_FIELDS(
+        DocumentOptions,
+        (Org),
+        ((BrokenLinks), brokenLinks, BrokenLinks, BrokenLinks::Mark),
+        /// Properties that can be shared by both subtree and document. Not
+        /// all make sense in the document, but most do.
+        ((Vec<Subtree::Property>), properties, Properties, {}),
+        ((bool), smartQuotes, SmartQuotes, false),
+        ((bool), emphasizedText, EmphasizedText, false),
+        ((bool), specialStrings, SpecialStrings, false),
+        ((bool), fixedWidthSections, FixedWidthSections, false),
+        ((bool), includeTimestamps, IncludeTimestamps, false),
+        ((bool), preserveLineBreaks, PreserveLineBreaks, false),
+        ((bool), plaintextSubscripts, PlaintextSubscripts, false),
+        ((bool), exportArchived, ExportArchived, false),
+        ((bool), exportWithAuthor, ExportWithAuthor, false),
+        ((bool), exportBrokenLinks, ExportBrokenLinks, false),
+        ((bool), exportWithClock, ExportWithClock, false),
+        ((bool), exportWithCreator, ExportWithCreator, false));
+};
 
 struct Document : public Org {
     using Org::Org;
     GET_KIND(Document);
 
-
-    struct Options {
-        bool smartQuotes         = false;
-        bool emphasizedText      = false;
-        bool specialStrings      = false;
-        bool fixedWidthSections  = false;
-        bool includeTimestamps   = false;
-        bool preserveLineBreaks  = false;
-        bool plaintextSubscripts = false;
-        bool exportArchived      = false;
-        bool exportWithAuthor    = false;
-        bool exportBrokenLinks   = false;
-        bool exportWithClock     = false;
-        bool exportWithCreator   = false;
-    };
 
     DECL_FIELDS(
         Document,
@@ -986,14 +1091,13 @@ struct Document : public Org {
         ((Opt<Wrap<Paragraph>>), creator, Creator, std::nullopt),
         ((Opt<Wrap<RawText>>), email, Email, std::nullopt),
         ((Opt<Vec<Str>>), language, Language, std::nullopt),
+        ((Wrap<DocumentOptions>), options, Options, nullptr),
         ((Opt<Str>), exportFileName, ExportFileName, std::nullopt));
 
 
-    Opt<Wrap<Org>> getTree(int id) { return backPtr.get(id); }
-
+    Opt<Wrap<Org>>     getTree(int id) { return backPtr.get(id); }
     Opt<Wrap<Subtree>> getSubtree(CR<Str> id);
-
-    Opt<Wrap<Org>> resolve(CR<Wrap<Org>> node);
+    Opt<Wrap<Org>>     resolve(CR<Wrap<Org>> node);
 };
 
 struct DocumentGroup : public Org {

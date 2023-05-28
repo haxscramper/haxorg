@@ -585,6 +585,24 @@ void HaxorgCli::initTracers() {
                 != 0);
             tokenizer->setTraceFile(config.trace.lex.traceTo.value());
         }
+
+        tokenizer->setTraceUpdateHook(
+            [&](CR<OrgTokenizer::Report> in, bool& doTrace, bool first) {
+                if (in.str != nullptr) {
+                    LineCol loc = locationResolver(*(in.str));
+                    if (config.trace.lex.traceExtent.contains(loc.line)) {
+                        // if (in.kind == OrgTokenizer::ReportKind::Push) {
+                        //     if (in.addBuffered) {
+                        //         doTrace = !first;
+                        //     }
+                        // } else {
+                        // }
+                        doTrace = true;
+                    } else if (loc.line != -1) {
+                        doTrace = false;
+                    }
+                }
+            });
     }
 
     if (config.trace.parse.doTrace) {
@@ -592,43 +610,24 @@ void HaxorgCli::initTracers() {
         if (config.trace.parse.traceTo.has_value()) {
             parser->setTraceFile(config.trace.parse.traceTo.value());
         }
-    }
 
-    tokenizer->setTraceUpdateHook(
-        [&](CR<OrgTokenizer::Report> in, bool& doTrace, bool first) {
-            if (in.str != nullptr) {
-                LineCol loc = locationResolver(*(in.str));
-                if (config.trace.lex.traceExtent.contains(loc.line)) {
-                    // if (in.kind == OrgTokenizer::ReportKind::Push) {
-                    //     if (in.addBuffered) {
-                    //         doTrace = !first;
-                    //     }
-                    // } else {
-                    // }
-                    doTrace = true;
-                } else if (loc.line != -1) {
-                    doTrace = false;
-                }
-            }
-        });
-
-    parser->setTraceUpdateHook([&](CR<OrgParser::Report> in,
-                                   bool&                 doTrace,
-                                   bool                  first) {
-        if (in.node.has_value()) {
-            OrgId node = in.node.value();
-            if (nodes.at(node).isTerminal()) {
-                auto tok = tokens.at(nodes.at(node).getToken());
-                if (tok.hasData()) {
-                    LineCol loc = locationResolver(tok.getText());
-                    if (loc.line != -1) {
-                        doTrace = config.trace.parse.traceExtent.contains(
-                            loc.line);
+        parser->setTraceUpdateHook(
+            [&](CR<OrgParser::Report> in, bool& doTrace, bool first) {
+                if (in.node.has_value()) {
+                    OrgId node = in.node.value();
+                    if (nodes.at(node).isTerminal()) {
+                        auto tok = tokens.at(nodes.at(node).getToken());
+                        if (tok.hasData()) {
+                            LineCol loc = locationResolver(tok.getText());
+                            if (loc.line != -1) {
+                                doTrace = config.trace.parse.traceExtent
+                                              .contains(loc.line);
+                            }
+                        }
                     }
                 }
-            }
-        }
-    });
+            });
+    }
 }
 
 #ifdef USE_PERFETTO
@@ -638,45 +637,52 @@ void HaxorgCli::initTracers() {
 #endif
 
 
-bool HaxorgCli::runTokenizer() {
+bool HaxorgCli::runTokenizer(bool catchExceptions) {
     __trace("tokenize file");
-    Id inId = 0;
-    try {
+    if (!catchExceptions) {
         tokenizer->lexGlobal(*str);
         return true;
-    } catch (OrgTokenizer::TokenizerError& err) {
-        QStringView  view = err.getView();
-        Opt<LineCol> loc  = err.getLoc();
-        int          pos  = err.getPos();
-        using E           = OrgTokenizer::Errors;
+    } else {
+        Id inId = 0;
 
-        auto msg = QString(std::visit(
-            overloaded{
-                [](E::UnexpectedChar const&) -> QString {
-                    return "UnexpectedChar"_qs;
-                },
-                [](E::UnexpectedConstruct const&) -> QString {
-                    return "UnexpectedConstruct"_qs;
-                },
-                [](E::UnknownConstruct const&) -> QString {
-                    return "UnknownConstruct"_qs;
-                },
-                [](E::MissingElement const&) -> QString {
-                    return "MissingElement"_qs;
-                },
-                [](E::None const&) -> QString { return "None"_qs; },
-                [](const auto& it) -> QString { return ""_qs; }},
-            err.err));
+        try {
+            tokenizer->lexGlobal(*str);
+            return true;
+        } catch (OrgTokenizer::TokenizerError& err) {
+            QStringView  view = err.getView();
+            Opt<LineCol> loc  = err.getLoc();
+            int          pos  = err.getPos();
+            using E           = OrgTokenizer::Errors;
 
-        auto r = Report(ReportKind::Error, inId, pos - 1)
-                     .with_message(QString(err.what()))
-                     .with_code("03")
-                     .with_label(Label(std::make_shared<TupleCodeSpan>(
-                                           inId, slice(pos - 1, pos - 1)))
-                                     .with_message(msg));
+            auto msg = QString(std::visit(
+                overloaded{
+                    [](E::UnexpectedChar const&) -> QString {
+                        return "UnexpectedChar"_qs;
+                    },
+                    [](E::UnexpectedConstruct const&) -> QString {
+                        return "UnexpectedConstruct"_qs;
+                    },
+                    [](E::UnknownConstruct const&) -> QString {
+                        return "UnknownConstruct"_qs;
+                    },
+                    [](E::MissingElement const&) -> QString {
+                        return "MissingElement"_qs;
+                    },
+                    [](E::None const&) -> QString { return "None"_qs; },
+                    [](const auto& it) -> QString { return ""_qs; }},
+                err.err));
 
-        r.write(sources, qcout);
-        return false;
+            auto r = Report(ReportKind::Error, inId, pos - 1)
+                         .with_message(QString(err.what()))
+                         .with_code("03")
+                         .with_label(
+                             Label(std::make_shared<TupleCodeSpan>(
+                                       inId, slice(pos - 1, pos - 1)))
+                                 .with_message(msg));
+
+            r.write(sources, qcout);
+            return false;
+        }
     }
 }
 
@@ -821,12 +827,11 @@ void HaxorgCli::exec() {
         });
     }
 
-    str = std::make_shared<PosStr>(source);
-    StrCache sources;
-    Id       inId = 0;
+    str     = std::make_shared<PosStr>(source);
+    Id inId = 0;
     sources.add(inId, source, config.sourceFile.fileName());
 
-    if (!runTokenizer()) {
+    if (!runTokenizer(false)) {
         return;
     }
 
@@ -928,20 +933,20 @@ void HaxorgCli::exec() {
         ExporterMindMap exporter;
         exporter.visitTop(node);
 
+        writeFile(
+            QFileInfo("/tmp/mindmap.json"_qs),
+            to_string(exporter.toJson()));
+
         {
             auto      graph = exporter.toGraph();
             QFileInfo res{"/tmp/mindmap_graph.dot"};
 
             writeFile(res, exporter.toGraphviz(graph));
 
-            Graphviz::Graph read{res};
-            gvc.renderToFile("/tmp/mindmap_graph.png", read);
-            qDebug() << "Graph generation ok";
+            //            Graphviz::Graph read{res};
+            //            gvc.renderToFile("/tmp/mindmap_graph.png", read);
+            //            qDebug() << "Graph generation ok";
         }
-
-        writeFile(
-            QFileInfo("/tmp/mindmap.json"_qs),
-            to_string(exporter.toJson()));
 
         qDebug() << "Graphviz ok";
     }

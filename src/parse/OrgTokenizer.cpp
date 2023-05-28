@@ -1,3 +1,5 @@
+#pragma once
+
 #include "OrgTokenizer.hpp"
 
 #include <hstd/stdlib/algorithms.hpp>

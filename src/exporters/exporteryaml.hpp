@@ -31,10 +31,12 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     yaml newRes(CR<sem::SubtreeLog::LogEntry>) { return yaml(); }
     yaml newRes(CR<sem::Subtree::Property>) { return yaml(); }
     yaml newRes(CR<sem::Subtree::Property::Data>) { return yaml(); }
+    yaml newRes(CR<sem::Include::Data>) { return yaml(); }
     yaml newRes(CR<sem::Code::Switch>) { return yaml(); }
 
     yaml visit(CR<bool> value) { return yaml(value); }
     yaml visit(CR<int> value) { return yaml(value); }
+    yaml visit(CR<QString> value) { return yaml(value); }
     yaml visit(CR<QDateTime> value) {
         return yaml(value.toString(Qt::ISODate).toStdString());
     }

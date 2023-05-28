@@ -439,11 +439,15 @@ struct NodeGroup {
         }
 
         if (at(node).isTerminal()) {
-            auto        tok = at(node).getToken();
-            QString     str;
-            QTextStream stream{&str};
-            tok.streamTo(stream, "", conf.withTokenMask);
-            os << " #" << str << " " << at(tok);
+            auto tok = at(node).getToken();
+            if (tok.isNil()) {
+                os << " # <nil>";
+            } else {
+                QString     str;
+                QTextStream stream{&str};
+                tok.streamTo(stream, "", conf.withTokenMask);
+                os << " #" << str << " " << at(tok);
+            }
         } else {
             if (conf.withExt) {
                 os << " EXT: " << to_string(at(node).getExtent());

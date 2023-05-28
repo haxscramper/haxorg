@@ -28,7 +28,8 @@ class HaxorgCli {
     void initLocationResolvers();
     void initTracers();
 
-    bool runTokenizer();
+
+    bool runTokenizer(bool catchExceptions);
 
     void writeYamlLex();
     void writeYamlParse();

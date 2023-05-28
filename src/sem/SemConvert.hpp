@@ -105,36 +105,47 @@ struct OrgConverter : public OperationsTracer {
     Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
 
   public:
-    virtual Wrap<Table>       convertTable(Up, In);
-    virtual Wrap<HashTag>     convertHashTag(Up, In);
-    virtual void              convertSubtreeDrawer(Wrap<Subtree>&, In);
-    virtual void              convertPropertyList(Wrap<Subtree>&, In);
-    virtual Wrap<Subtree>     convertSubtree(Up, In);
-    virtual Wrap<StmtList>    convertStmtList(Up, In);
-    virtual Wrap<Newline>     convertNewline(Up, In);
-    virtual Wrap<Word>        convertWord(Up, In);
-    virtual Wrap<Space>       convertSpace(Up, In);
-    virtual Wrap<Paragraph>   convertParagraph(Up, In);
-    virtual Wrap<TimeRange>   convertTimeRange(Up, In);
-    virtual Wrap<Time>        convertTime(Up, In);
-    virtual Wrap<Punctuation> convertPunctuation(Up, In);
-    virtual Wrap<Link>        convertLink(Up, In);
-    virtual Wrap<BigIdent>    convertBigIdent(Up, In);
-    virtual Wrap<MarkQuote>   convertMarkQuote(Up, In);
-    virtual Wrap<Verbatim>    convertVerbatim(Up, In);
-    virtual Wrap<Italic>      convertItalic(Up, In);
-    virtual Wrap<Par>         convertPar(Up, In);
-    virtual Wrap<Bold>        convertBold(Up, In);
-    virtual Wrap<RawText>     convertRawText(Up, In);
-    virtual Wrap<List>        convertList(Up, In);
-    virtual Wrap<ListItem>    convertListItem(Up, In);
-    virtual Wrap<Caption>     convertCaption(Up, In);
-    virtual Wrap<Quote>       convertQuote(Up, In);
-    virtual Wrap<Placeholder> convertPlaceholder(Up, In);
-    virtual Wrap<LatexBody>   convertMath(Up, In);
-    virtual Wrap<Footnote>    convertFootnote(Up, In);
+    Wrap<Table>           convertTable(Up, In);
+    Wrap<HashTag>         convertHashTag(Up, In);
+    void                  convertSubtreeDrawer(Wrap<Subtree>&, In);
+    void                  convertPropertyList(Wrap<Subtree>&, In);
+    Wrap<Subtree>         convertSubtree(Up, In);
+    Wrap<StmtList>        convertStmtList(Up, In);
+    Wrap<Newline>         convertNewline(Up, In);
+    Wrap<Word>            convertWord(Up, In);
+    Wrap<Space>           convertSpace(Up, In);
+    Wrap<Paragraph>       convertParagraph(Up, In);
+    Wrap<TimeRange>       convertTimeRange(Up, In);
+    Wrap<Time>            convertTime(Up, In);
+    Wrap<Punctuation>     convertPunctuation(Up, In);
+    Wrap<Link>            convertLink(Up, In);
+    Wrap<BigIdent>        convertBigIdent(Up, In);
+    Wrap<MarkQuote>       convertMarkQuote(Up, In);
+    Wrap<Strike>          convertStrike(Up, In);
+    Wrap<Verbatim>        convertVerbatim(Up, In);
+    Wrap<Italic>          convertItalic(Up, In);
+    Wrap<Par>             convertPar(Up, In);
+    Wrap<Bold>            convertBold(Up, In);
+    Wrap<RawText>         convertRawText(Up, In);
+    Wrap<List>            convertList(Up, In);
+    Wrap<ListItem>        convertListItem(Up, In);
+    Wrap<Caption>         convertCaption(Up, In);
+    Wrap<Quote>           convertQuote(Up, In);
+    Wrap<Placeholder>     convertPlaceholder(Up, In);
+    Wrap<LatexBody>       convertMath(Up, In);
+    Wrap<Footnote>        convertFootnote(Up, In);
+    Wrap<Include>         convertInclude(Up, In);
+    Wrap<Escaped>         convertEscaped(Up, In);
+    Wrap<TextSeparator>   convertTextSeparator(Up, In);
+    Wrap<ParseError>      convertParseError(Up, In);
+    Wrap<AtMention>       convertAtMention(Up, In);
+    Wrap<Underline>       convertUnderline(Up, In);
+    Wrap<AdmonitionBlock> convertAdmonitionBlock(Up, In);
+    Wrap<Example>         convertExample(Up, In);
+    Wrap<Center>          convertCenter(Up, In);
+    Wrap<Monospace>       convertMonospace(Up, In);
 
-    virtual Vec<Wrap<Org>> flatConvertAttached(Up, In);
+    Vec<Wrap<Org>> flatConvertAttached(Up, In);
 
     template <typename T>
     Wrap<T> convertAllSubnodes(Up p, In a) {
@@ -162,7 +173,7 @@ struct OrgConverter : public OperationsTracer {
         return res;
     }
 
-    virtual Wrap<Org> convert(Up, In);
+    Wrap<Org> convert(Up, In);
 
     Wrap<Document> toDocument(OrgAdapter tree);
 };

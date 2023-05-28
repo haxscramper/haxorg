@@ -5,7 +5,7 @@
 #include <hstd/stdlib/Debug.hpp>
 
 #ifndef TRACE_STATE
-#define TRACE_STATE true
+#    define TRACE_STATE true
 #endif
 
 
@@ -130,7 +130,6 @@
 #    define __print(...)
 #    define __trace(...)
 #endif
-
 
 
 template <>
@@ -294,6 +293,12 @@ void OrgParserImpl<TRACE_STATE>::textFold(OrgLexer& lex) {
                 break;
             }
 
+            case otk::AtMention: {
+                auto any = token(org::AtMention, pop(lex, otk::AtMention));
+                __token(any);
+                break;
+            }
+
             case otk::DoubleAngleOpen: {
                 skip(lex, otk::DoubleAngleOpen);
                 auto tmp = token(org::Target, pop(lex, otk::RawText));
@@ -357,19 +362,18 @@ Slice<OrgId> OrgParserImpl<TRACE_STATE>::parseText(OrgLexer& lex) {
     QString forMsg    = getLocMsg(lex);
     int     treeStart = treeDepth();
     textFold(lex);
+    int treeEnd = treeDepth();
+    Q_ASSERT_X(
+        treeStart <= treeEnd,
+        "parseText",
+        ("Text fold created unbalanced tree - starting with depth $# "
+         "ended up on depth $# on position $# (starting from $#)"
+         % to_string_vec(treeStart, treeEnd, getLocMsg(lex), forMsg)));
 
     while (treeStart < treeDepth()) {
         __print("Warn, force closing content on " + getLocMsg(lex));
         __end();
     }
-
-    int treeEnd = treeDepth();
-    Q_ASSERT_X(
-        treeStart == treeEnd,
-        "parseText",
-        ("Text fold created unbalanced tree - starting with depth $# "
-         "ended up on depth $# on position $# (starting from $#)"
-         % to_string_vec(treeStart, treeEnd, getLocMsg(lex), forMsg)));
 
     OrgId last = back();
     return slice(first, last);
@@ -1555,7 +1559,7 @@ OrgId OrgParserImpl<TRACE_STATE>::parseSubtree(OrgLexer& lex) {
     parseSubtreeCompletion(lex);                      // 4
     parseSubtreeTags(lex);                            // 5
 
-    if (!lex.at(otk::SubtreeEnd)) { // 6
+    if (!lex.at(otk::SubtreeEnd)) {                   // 6
         skip(lex, otk::SkipNewline);
         parseSubtreeTimes(lex);
         newline(lex);
@@ -1596,13 +1600,7 @@ template <>
 OrgId OrgParserImpl<TRACE_STATE>::parseLineCommand(OrgLexer& lex) {
     __perf_trace("parseLineCommand");
     __trace();
-    const auto kind           = classifyCommand(lex.strVal(+1));
-    auto       skipLineComand = [this](OrgLexer& lex) {
-        skip(lex, otk::CommandPrefix);
-        skip(lex, otk::LineCommand);
-        skip(lex, otk::Colon);
-    };
-
+    const auto kind = classifyCommand(lex.strVal(+1));
     switch (kind) {
         case ock::Include: {
             skipLineCommand(lex);
@@ -1645,7 +1643,6 @@ OrgId OrgParserImpl<TRACE_STATE>::parseLineCommand(OrgLexer& lex) {
 
         case ock::Caption: {
             skipLineCommand(lex);
-            space(lex);
             __start(org::CommandCaption);
             __start(org::CommandArguments);
             parseParagraph(lex, false);
@@ -1672,9 +1669,13 @@ OrgId OrgParserImpl<TRACE_STATE>::parseLineCommand(OrgLexer& lex) {
             __start(newk);
             {
                 skipLineCommand(lex);
-                skipSpace(lex);
                 skip(lex, otk::CommandArgumentsBegin);
-                token(org::RawText, pop(lex, otk::RawText));
+                while (lex.at(otk::RawText)) {
+                    token(org::RawText, pop(lex, otk::RawText));
+                    if (lex.at(otk::SkipSpace)) {
+                        skipSpace(lex);
+                    }
+                }
                 skip(lex, otk::CommandArgumentsEnd);
             }
 
@@ -1699,8 +1700,10 @@ OrgId OrgParserImpl<TRACE_STATE>::parseLineCommand(OrgLexer& lex) {
                 case ock::LatexClass: newk = org::LatexClass; break;
             }
             skipLineCommand(lex);
+            skip(lex, otk::CommandArgumentsBegin);
             __start(newk);
-            token(org::Ident, pop(lex, otk::RawText));
+            token(org::Ident, pop(lex, otk::Ident));
+            skip(lex, otk::CommandArgumentsEnd);
             break;
         }
 

@@ -22,6 +22,9 @@ class OrgParserImplBase : public OrgParser {
         skip(lex, otk::CommandPrefix);
         skip(lex, otk::LineCommand);
         skip(lex, otk::Colon);
+        while (lex.at(otk::SkipSpace)) {
+            lex.next();
+        }
     }
 
     CR<OrgNode> pending() const { return group->lastPending(); }
@@ -570,9 +573,9 @@ void OrgParserImplBase::report(CR<Report> in) {
         case ReportKind::EndNode: {
             auto id = in.node.value();
             if (in.kind == ReportKind::StartNode) {
-                os << "+ start";
+                os << "+ started node, level is " << treeDepth();
             } else {
-                os << "- end";
+                os << "- ended node, level is " << treeDepth();
             }
 
             os << " [" << id.getIndex() << "] "
@@ -585,7 +588,8 @@ void OrgParserImplBase::report(CR<Report> in) {
 
         case ReportKind::EnterParse:
         case ReportKind::LeaveParse: {
-            os << (in.kind == ReportKind::EnterParse ? "> " : "< ")
+            os << (in.kind == ReportKind::EnterParse ? "> " : "< ") //
+               << "~" << treeDepth() << " "                         //
                << fg::Green << in.name.value() << os.end() << ":"
                << fg::Cyan << in.line << os.end();
 

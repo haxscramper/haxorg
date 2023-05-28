@@ -391,10 +391,12 @@ enum class OrgSemKind : short int
     Bold,
     Italic,
     Strike,
+    Underline,
     Monospace,
     Verbatim,
     RawText,
     List,
+    FileTarget,
     ListItem,
     Center,
     Par,
@@ -417,6 +419,13 @@ enum class OrgSemKind : short int
     InlineMath,
     Document,
     DocumentGroup,
+    DocumentOptions,
+    Include,
+    TextSeparator,
+    Escaped,
+    ParseError,
+    AtMention,
+    AdmonitionBlock
 };
 
 #define EACH_SEM_ORG_KIND(__IMPL)                                         \
@@ -431,6 +440,7 @@ enum class OrgSemKind : short int
     __IMPL(Bold)                                                          \
     __IMPL(Italic)                                                        \
     __IMPL(Strike)                                                        \
+    __IMPL(Underline)                                                     \
     __IMPL(Monospace)                                                     \
     __IMPL(Verbatim)                                                      \
     __IMPL(RawText)                                                       \
@@ -456,7 +466,14 @@ enum class OrgSemKind : short int
     __IMPL(Placeholder)                                                   \
     __IMPL(InlineMath)                                                    \
     __IMPL(Document)                                                      \
-    __IMPL(DocumentGroup)
+    __IMPL(DocumentGroup)                                                 \
+    __IMPL(DocumentOptions)                                               \
+    __IMPL(Include)                                                       \
+    __IMPL(Escaped)                                                       \
+    __IMPL(TextSeparator)                                                 \
+    __IMPL(ParseError)                                                    \
+    __IMPL(AtMention)                                                     \
+    __IMPL(AdmonitionBlock)
 
 
 enum class OrgTextContext : short int
