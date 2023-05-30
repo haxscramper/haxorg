@@ -929,23 +929,24 @@ enum class OrgCommandKind
     LatexClassOptions, /// `#+latex_class_options`
     LatexClass,
     LatexCompiler,
-    AttrLatex,   /// `#+attr_latex:`
-    AttrImg,     /// `#+attr_img:`
-    AttrHtml,    /// `#+attr_html:`
-    HtmlHead,    /// `#+html_head:`
-    Language,    /// `#+language:`
-    Options,     /// `#+options: `
-    Title,       /// `#+title:`
-    Property,    /// `#+property:`
-    Author,      /// `#+author:`
-    Bind,        /// `#+bind:`
-    Creator,     /// `#+creator:`
-    LatexHeader, /// `#+latex_header`
-    Results,     /// `#+results:`
-    Call,        /// `#+call:`
-    Name,        /// `#+name:`
-    Caption,     /// `#+caption:`
-    Header,      /// `#+header:`
+    AttrLatex,    /// `#+attr_latex:`
+    AttrImg,      /// `#+attr_img:`
+    AttrHtml,     /// `#+attr_html:`
+    HtmlHead,     /// `#+html_head:`
+    Language,     /// `#+language:`
+    Options,      /// `#+options: `
+    Title,        /// `#+title:`
+    Property,     /// `#+property:`
+    Author,       /// `#+author:`
+    Bind,         /// `#+bind:`
+    Creator,      /// `#+creator:`
+    LatexHeader,  /// `#+latex_header`
+    Results,      /// `#+results:`
+    Call,         /// `#+call:`
+    Name,         /// `#+name:`
+    Caption,      /// `#+caption:`
+    Header,       /// `#+header:`
+    TableFormula, /// `#+tblfm:`
 };
 
 enum class OrgPropertyKind : short int

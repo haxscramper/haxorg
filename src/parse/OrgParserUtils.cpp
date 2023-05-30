@@ -24,10 +24,10 @@ QString OrgParser::getLocMsg(CR<OrgLexer> lex) {
                                   : to_string(lex.pos.getIndex());
 
     if (auto loc = getLoc(lex)) {
-        result = "$#:$# (pos $#)"
-               % to_string_vec(loc->line, loc->column, pos);
+        result = "$#:$# (tok $#, pos $#)"
+               % to_string_vec(loc->line, loc->column, pos, loc->pos);
     } else {
-        result = "(pos $#)" % to_string_vec(pos);
+        result = "(tok $#, pos $#)" % to_string_vec(pos, loc->pos);
     }
 
     return result;

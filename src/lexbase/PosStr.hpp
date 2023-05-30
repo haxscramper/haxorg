@@ -255,6 +255,7 @@ struct PosStr {
     void skip(QChar expected, int offset = 0, int steps = 1);
     void skip(QString expected, int offset = 0);
     void skip(CR<CharSet> expected, int offset = 0, int steps = 1);
+    void skip(CR<QRegularExpression> expected, int offset = 0);
     void skipAny(CR<CheckableSkip> expected, int offset = 0);
 
     /// Check if the current position (with given \arg offset) contains
@@ -262,6 +263,7 @@ struct PosStr {
     bool at(QChar expected, int offset = 0) const;
     bool at(CR<CharSet> expected, int offset = 0) const;
     bool at(CR<QString> expected, int offset = 0) const;
+    bool at(CR<QRegularExpression> expected, int offset = 0) const;
     bool atAny(CR<CheckableSkip> expected, int offset = 0) const;
     /// Check if the string is not positioned at a specific item.
     /// Always returns false for finished strings, effectively is

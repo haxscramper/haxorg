@@ -7,11 +7,12 @@
 struct LineCol {
     int line;
     int column;
+    int pos = -1;
 };
 
 inline QTextStream& operator<<(QTextStream& os, LineCol const& value) {
-    return os << "{.line = $#, .column = $#}"
-                     % to_string_vec(value.line, value.column);
+    return os << "{.line = $#, .column = $#, .pos = $#}"
+                     % to_string_vec(value.line, value.column, value.pos);
 }
 
 /// \brief Base parse error

@@ -105,18 +105,17 @@ class OrgParserImplBase : public OrgParser {
     Func<LineCol(CR<PosStr>)> locationResolver;
 
 
-    void setReportHook(Func<void(CR<Report>)> locationResolver) override {
-        reportHook = locationResolver;
+    void setReportHook(Func<void(CR<Report>)> in) override {
+        reportHook = in;
     }
 
     void setTraceUpdateHook(
-        Func<void(CR<Report>, bool&, bool)> locationResolver) override {
-        traceUpdateHook = locationResolver;
+        Func<void(CR<Report>, bool&, bool)> in) override {
+        traceUpdateHook = in;
     }
 
-    void setLocationResolver(
-        Func<LineCol(CR<PosStr>)> locationResolver) override {
-        locationResolver = locationResolver;
+    void setLocationResolver(Func<LineCol(CR<PosStr>)> in) override {
+        locationResolver = in;
     }
 
 

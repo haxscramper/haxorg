@@ -274,24 +274,29 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTimeStamp(PosStr& str) {
             skipCb(active ? "<" : "["));
         __push(begin);
 
-        auto date = str.tok(otk::StaticTimeDatePart, [this](PosStr& str) {
-            while (str.at('-') || str.at('/') || str.get().isDigit()) {
-                str.next();
-            }
-        });
-        __push(date);
-        spaceSkip(str);
 
-        if (str.get().isLetter()) {
-            __trace("Static time day");
-            auto day = str.tok(
-                otk::StaticTimeDayPart, [this](PosStr& str) {
-                    while (str.get().isLetter()) {
-                        str.next();
-                    }
-                });
-            __push(day);
+
+        // Timestamp without date information, only time
+        if(!(str.at(R"(\d{1,2}:\d{2})"_qr))) {
+            auto date = str.tok(otk::StaticTimeDatePart, [this](PosStr& str) {
+                while (str.at('-') || str.at('/') || str.get().isDigit()) {
+                    str.next();
+                }
+            });
+            __push(date);
             spaceSkip(str);
+
+            if (str.get().isLetter()) {
+                __trace("Static time day");
+                auto day = str.tok(
+                    otk::StaticTimeDayPart, [this](PosStr& str) {
+                        while (str.get().isLetter()) {
+                            str.next();
+                        }
+                    });
+                __push(day);
+                spaceSkip(str);
+            }
         }
 
         if (str.get().isNumber()) {
@@ -2075,6 +2080,12 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexCommandArguments(
         case ock::BeginCenter:
         case ock::BeginQuote:
         case ock::LatexClassOptions: {
+            auto text = str.tok(otk::RawText, skipPastEOF);
+            __push(text);
+            break;
+        }
+
+        case ock::TableFormula: {
             auto text = str.tok(otk::RawText, skipPastEOF);
             __push(text);
             break;

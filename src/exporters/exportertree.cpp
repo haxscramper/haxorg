@@ -45,8 +45,9 @@ void ExporterTree::init(In<sem::Org> org) {
     }
 
     if (conf.withLineCol && org->loc.has_value()) {
-        auto& [line, col] = org->loc.value();
-        os << " " << os.cyan() << line << ":" << col << os.end();
+        auto& [line, col, pos] = org->loc.value();
+        os << " " << os.cyan() << line << ":" << col << "(" << pos << ")"
+           << os.end();
     }
     os << "\n";
 }

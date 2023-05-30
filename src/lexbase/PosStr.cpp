@@ -1,4 +1,5 @@
 #include <lexbase/PosStr.hpp>
+#include <QRegularExpression>
 
 
 void PosStr::print(ColStream& os, CR<PrintParams> params) const {
@@ -160,6 +161,17 @@ bool PosStr::at(CR<QString> expected, int offset) const {
     return true;
 }
 
+bool PosStr::at(CR<QRegularExpression> expected, int offset) const {
+    auto result = expected.match(
+        view,
+        pos + offset,
+        QRegularExpression::NormalMatch,
+        QRegularExpression::AnchorAtOffsetMatchOption);
+
+    return result.hasMatch();
+}
+
+
 QString PosStr::getAhead(Slice<int> slice) const {
     QString result;
     for (int idx : slice) {
@@ -169,18 +181,28 @@ QString PosStr::getAhead(Slice<int> slice) const {
 }
 
 void PosStr::skipAny(CR<PosStr::CheckableSkip> expected, int offset) {
-    switch (expected.index()) {
-        case 0: skip(std::get<0>(expected), offset); break;
-        case 1: skip(std::get<1>(expected), offset); break;
-        case 2: skip(std::get<2>(expected), offset); break;
-    }
+    std::visit([&](auto const& it) { return skip(it, offset); }, expected);
 }
 
 bool PosStr::atAny(CR<PosStr::CheckableSkip> expected, int offset) const {
-    switch (expected.index()) {
-        case 0: return at(std::get<0>(expected), offset);
-        case 1: return at(std::get<1>(expected), offset);
-        case 2: return at(std::get<2>(expected), offset);
+    return std::visit(
+        [&](auto const& it) { return at(it, offset); }, expected);
+}
+
+void PosStr::skip(CR<QRegularExpression> expected, int offset) {
+    auto result = expected.match(
+        view,
+        pos + offset,
+        QRegularExpression::NormalMatch,
+        QRegularExpression::AnchorAtOffsetMatchOption);
+
+    if (!result.hasMatch()) {
+        throw UnexpectedCharError(
+            "Unexpected text encountered during lexing: found "
+            "QChar('$#') but expected regexp pattern $#"
+            % to_string_vec(get(), expected.pattern()));
+    } else {
+        next(result.capturedLength());
     }
 }
 
@@ -189,7 +211,7 @@ void PosStr::skip(QString expected, int offset) {
         next(expected.size());
     } else {
         throw UnexpectedCharError(
-            "Unexpected character encountered during lexing: found "
+            "Unexpected text encountered during lexing: found "
             "QChar('$#') but expected QChar('$#')"
             % to_string_vec(get(), expected));
     }

@@ -2,6 +2,7 @@
 
 using E = OrgTokenizer::Errors;
 
+
 QString E::Base::getLocMsg() const {
     return "on $#:$# (pos $#)"
          % to_string_vec(
@@ -11,7 +12,8 @@ QString E::Base::getLocMsg() const {
 const char* OrgTokenizer::Errors::UnexpectedChar::what() const noexcept {
     return strdup(
         "Expected " + variant_to_string(wanted) + " but got '"
-        + PosStr(view, pos).printToString(false) + "' " + getLocMsg());
+        + PosStr(view, pos).printToString({.maxTokens = 40}, false) + "' "
+        + getLocMsg());
 }
 
 

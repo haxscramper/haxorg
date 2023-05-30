@@ -1205,7 +1205,7 @@ OrgId OrgParserImpl<TRACE_STATE>::parseSubtreeLogbookClockEntry(
     skip(lex, otk::Colon);
     space(lex);
 
-    parseTimeStamp(lex);
+    parseTimeRange(lex);
 
     space(lex);
     skip(lex, otk::ParagraphEnd);

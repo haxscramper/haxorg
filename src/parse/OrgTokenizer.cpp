@@ -9,6 +9,13 @@
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
 
+#include <QRegularExpression>
+
+inline QRegularExpression operator"" _qr(
+    const char*   value,
+    unsigned long size) {
+    return QRegularExpression(QString(value));
+}
 
 using ock = OrgCommandKind;
 using otk = OrgTokenKind;
@@ -295,6 +302,7 @@ const auto commandNameMap = std::unordered_map<QString, OrgCommandKind>{
     {"beginadmonition", ock::BeginAdmonition},
     {"endadmonition", ock::EndAdmonition},
     {"latexheader", ock::LatexHeader},
+    {"tblfm", ock::TableFormula},
 };
 
 OrgCommandKind classifyCommand(QString const& command) {

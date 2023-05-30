@@ -566,6 +566,7 @@ void HaxorgCli::initLocationResolvers() {
         return {
             info.whichLine(absolute.first + str.pos) + 1,
             info.whichColumn(absolute.first + str.pos),
+            absolute.first + str.pos,
         };
     };
 
