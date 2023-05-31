@@ -523,10 +523,16 @@ OrgId OrgParserImpl<TRACE_STATE>::parseTimeStamp(OrgLexer& lex) {
             __start(org::StaticInactiveTime);
         }
 
-        // Year part of the timestamp is not optional
-        auto year = token(org::RawText, pop(lex, otk::StaticTimeDatePart));
-        __token(year);
-        skipSpace(lex);
+        // Date part is usually used, but I think supporting *time* stamps
+        // also makes sense
+        if (lex.at(otk::StaticTimeDatePart)) {
+            auto year = token(
+                org::RawText, pop(lex, otk::StaticTimeDatePart));
+            __token(year);
+            skipSpace(lex);
+        } else {
+            empty();
+        }
 
         // Day can sometimes be added to the timestamp
         if (lex.at(otk::StaticTimeDayPart)) {
@@ -1559,7 +1565,7 @@ OrgId OrgParserImpl<TRACE_STATE>::parseSubtree(OrgLexer& lex) {
     parseSubtreeCompletion(lex);                      // 4
     parseSubtreeTags(lex);                            // 5
 
-    if (!lex.at(otk::SubtreeEnd)) {                   // 6
+    if (!lex.at(otk::SubtreeEnd)) { // 6
         skip(lex, otk::SkipNewline);
         parseSubtreeTimes(lex);
         newline(lex);

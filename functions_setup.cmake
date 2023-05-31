@@ -23,6 +23,11 @@ function(set_target_flags TARGET)
     add_target_property(${TARGET} COMPILE_OPTIONS
                         "-Wdocumentation")
 
+    add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize=memory")
+    add_target_property(${TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
+    add_target_property(${TARGET} LINK_OPTIONS "-fsanitize=memory")
+
+
     if(${TEST_COVERAGE})
       message(INFO " Test coverage enabled")
       target_compile_options(
