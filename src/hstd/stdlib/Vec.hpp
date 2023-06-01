@@ -29,12 +29,10 @@ class Vec : public std::vector<T> {
 
     using Base::at;
     using Base::operator[];
-    using Base::back;
     using Base::begin;
     using Base::empty;
     using Base::end;
     using Base::insert;
-    using Base::pop_back;
     using Base::push_back;
 
     static Vec<T> FromValue(CR<Vec<T>> values) { return values; }

@@ -20,13 +20,14 @@ function(set_target_flags TARGET)
     # add_target_property(${TARGET} COMPILE_OPTIONS
     #                     "-fdiagnostics-format=sarif")
 
-    add_target_property(${TARGET} COMPILE_OPTIONS
-                        "-Wdocumentation")
-
-    add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize=memory")
-    add_target_property(${TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
-    add_target_property(${TARGET} LINK_OPTIONS "-fsanitize=memory")
-
+#    add_target_property(${TARGET} COMPILE_OPTIONS "-Wdocumentation")
+#    add_target_property(${TARGET} COMPILE_DEFINITIONS _GLIBCXX_ASSERTIONS)
+#    add_target_property(${TARGET} COMPILE_DEFINITIONS _GLIBCXX_DEBUG)
+#    add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize=memory")
+#    add_target_property(${TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
+#    add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
+#    add_target_property(${TARGET} LINK_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
+#    add_target_property(${TARGET} LINK_OPTIONS "-fsanitize=memory")
 
     if(${TEST_COVERAGE})
       message(INFO " Test coverage enabled")

@@ -86,7 +86,7 @@
 
 #    define __end_return(...)                                             \
         __end(__VA_ARGS__);                                               \
-        return back();
+        return CONCAT(tmpNode, __LINE__);
 
 #    define __start3(__node, __subname, __lex)                            \
         {                                                                 \
@@ -129,6 +129,10 @@
 #    define __end(...) end();
 #    define __print(...)
 #    define __trace(...)
+
+#    define __end_return(...)                                             \
+            return end();
+
 #endif
 
 
