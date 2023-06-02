@@ -130,8 +130,7 @@
 #    define __print(...)
 #    define __trace(...)
 
-#    define __end_return(...)                                             \
-            return end();
+#    define __end_return(...) return end();
 
 #endif
 
@@ -220,6 +219,7 @@ void OrgParserImpl<TRACE_STATE>::textFold(OrgLexer& lex) {
             __end();                                                      \
             lex.next();                                                   \
         } else {                                                          \
+            qFatal("Mismatched kind openings");                        \
             fail(pop(lex, otk::Kind##Close));                             \
         }                                                                 \
         break;                                                            \
@@ -259,8 +259,6 @@ void OrgParserImpl<TRACE_STATE>::textFold(OrgLexer& lex) {
             CASE_MARKUP(Strike);
             CASE_MARKUP(Verbatim);
             CASE_MARKUP(Angle);
-            CASE_MARKUP(Quote);
-            CASE_MARKUP(Par);
             CASE_MARKUP(Monospace);
             CASE_MARKUP(Backtick);
 
@@ -276,6 +274,35 @@ void OrgParserImpl<TRACE_STATE>::textFold(OrgLexer& lex) {
             CASE_INLINE(Bold);
             CASE_INLINE(Italic);
             CASE_INLINE(Backtick);
+
+                // CASE_MARKUP(Quote);
+            case otk::QuoteOpen: {
+                auto sub = token(
+                    org::Punctuation, pop(lex, otk::QuoteOpen));
+                __token(sub);
+                break;
+            }
+
+            case otk::QuoteClose: {
+                auto sub = token(
+                    org::Punctuation, pop(lex, otk::QuoteClose));
+                __token(sub);
+                break;
+            }
+
+                // CASE_MARKUP(Par);
+            case otk::ParOpen: {
+                auto sub = token(org::Punctuation, pop(lex, otk::ParOpen));
+                __token(sub);
+                break;
+            }
+
+            case otk::ParClose: {
+                auto sub = token(
+                    org::Punctuation, pop(lex, otk::ParClose));
+                __token(sub);
+                break;
+            }
 
             case otk::SrcOpen: parseSrcInline(lex); break;
             case otk::ActiveTimeBegin:
@@ -367,6 +394,10 @@ Slice<OrgId> OrgParserImpl<TRACE_STATE>::parseText(OrgLexer& lex) {
     int     treeStart = treeDepth();
     textFold(lex);
     int treeEnd = treeDepth();
+    __print(
+        "Trace levels after text fold start:$#, end:$#"
+        % to_string_vec(treeStart, treeEnd));
+
     Q_ASSERT_X(
         treeStart <= treeEnd,
         "parseText",

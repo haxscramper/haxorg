@@ -30,7 +30,6 @@ class Vec : public std::vector<T> {
     using Base::at;
     using Base::operator[];
     using Base::begin;
-    using Base::empty;
     using Base::end;
     using Base::insert;
     using Base::push_back;
@@ -38,10 +37,8 @@ class Vec : public std::vector<T> {
     static Vec<T> FromValue(CR<Vec<T>> values) { return values; }
 
 
-    int size() const {
-        return std::clamp(
-            Base::size(), 0uz, static_cast<std::size_t>(::high<int>()));
-    }
+    int  size() const { return static_cast<int>(Base::size()); }
+    bool empty() const { return size() == 0; }
 
     Vec() {}
     explicit Vec(int size) : std::vector<T>(size) {}

@@ -193,12 +193,14 @@ struct NodeGroup {
     Id endTree(
         int offset = 0 /// Offset for extending closed subnode
     ) {
+        Q_ASSERT(0 < pendingTrees.size());
         auto start = pendingTrees.pop_back_v();
         nodes.at(start).extend(distance(start, nodes.back()) + offset);
         return start;
     }
 
     Id failTree(Node<N, K> replacement) {
+        Q_ASSERT(0 < pendingTrees.size());
         auto start      = pendingTrees.pop_back_v();
         nodes.at(start) = replacement;
         return start;

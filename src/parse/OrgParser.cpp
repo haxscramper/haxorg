@@ -27,7 +27,10 @@ class OrgParserImplBase : public OrgParser {
         }
     }
 
-    CR<OrgNode> pending() const { return group->lastPending(); }
+    CR<OrgNode> pending() const {
+        Q_ASSERT(0 <= group->treeDepth());
+        return group->lastPending();
+    }
 
     OrgId fail(OrgTokenId invalid) {
         token(OrgNodeKind::ErrorToken, invalid);
@@ -40,9 +43,16 @@ class OrgParserImplBase : public OrgParser {
 
     OrgId back() const { return group->nodes.back(); }
 
-    int     treeDepth() const { return group->treeDepth(); }
-    OrgId   start(OrgNodeKind kind) { return group->startTree(kind); }
-    OrgId   end() { return group->endTree(); }
+    int treeDepth() const {
+        Q_ASSERT(0 <= group->treeDepth());
+        return group->treeDepth();
+    }
+
+    OrgId start(OrgNodeKind kind) { return group->startTree(kind); }
+    OrgId end() {
+        Q_ASSERT(0 <= group->treeDepth());
+        return group->endTree();
+    }
     OrgId   empty() { return token(getEmpty()); }
     OrgNode getEmpty() { return OrgNode::Mono(OrgNodeKind::Empty); }
     OrgId   token(CR<OrgNode> node) { return group->token(node); }
@@ -553,6 +563,9 @@ void OrgParserImplBase::report(CR<Report> in) {
         return res;
     };
 
+    if (treeDepth() < 0) {
+        qFatal("Negative tree depth");
+    }
 
     switch (in.kind) {
         case ReportKind::Print: {
@@ -564,7 +577,8 @@ void OrgParserImplBase::report(CR<Report> in) {
         case ReportKind::AddToken: {
             auto id = in.node.value();
             os << "  # add [" << id.getIndex() << "] "
-               << to_string(group->at(id).kind) << " at " << in.line;
+               << to_string(group->at(id).kind) << " at " << in.line
+               << " with " << escape_literal(group->strVal(id));
             break;
         }
 
