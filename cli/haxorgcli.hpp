@@ -10,7 +10,7 @@
 #include <QFileInfo>
 #include <sem/ErrorWrite.hpp>
 
-class HaxorgCli {
+struct HaxorgCli {
     // TODO support processing multiple files, token groups
     OrgTokenGroup             tokens;
     SPtr<OrgTokenizer>        tokenizer;
@@ -24,6 +24,14 @@ class HaxorgCli {
     SPtr<PosStr>              str;
     StrCache                  sources;
     Func<LineCol(CR<PosStr>)> locationResolver;
+
+    UnorderedMap<OrgTokenId, OrgTokenizer::Report> pushedOn;
+
+    struct NodeOperations {
+        UnorderedMap<OrgId, OrgParser::Report> started, ended, pushed;
+    };
+
+    NodeOperations ops;
 
     void initLocationResolvers();
     void initTracers();
@@ -45,7 +53,6 @@ class HaxorgCli {
     void writeHtml();
     void writeGantt();
 
-  public:
     struct Config {
         enum class Target
         {

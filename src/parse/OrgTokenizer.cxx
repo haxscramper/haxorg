@@ -2302,7 +2302,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexListBullet(
     } else {
         __trace("At numbered list start");
         auto start = str.tok(
-            otk::ListStart,
+            otk::ListItemStart,
             skipCb(charsets::Digits + charsets::AsciiLetters));
 
         __push(start);

@@ -222,21 +222,28 @@ json jsonRepr(CR<NodeGroup<N, K>> group, bool withStrings = true) {
     return out;
 }
 
+template <typename K>
+yaml yamlRepr(
+    TokenId<K> const& id,
+    Token<K> const&   token,
+    bool              withIdx = false) {
+    yaml item;
+    if (withIdx) {
+        item["idx"] = id.getIndex();
+    }
+    item["kind"] = to_string(token.kind);
+    if (token.hasData()) {
+        item["str"] = token.strVal().toBase();
+    }
+    item.SetStyle(YAML::EmitterStyle::Flow);
+    return item;
+}
 
 template <typename K>
 yaml yamlRepr(CR<TokenGroup<K>> group, bool withIdx = false) {
     yaml out;
     for (const auto& [id, token] : group.tokens.pairs()) {
-        yaml item;
-        if (withIdx) {
-            item["idx"] = id.getIndex();
-        }
-        item["kind"] = to_string(token->kind);
-        if (token->hasData()) {
-            item["str"] = token->strVal().toBase();
-        }
-        item.SetStyle(YAML::EmitterStyle::Flow);
-        out.push_back(item);
+        out.push_back(yamlRepr(id, *token, withIdx));
     }
     return out;
 }

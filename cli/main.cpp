@@ -184,11 +184,6 @@ QTextStream& operator<<(QTextStream& os, QFileInfo const& fi) {
 }
 
 int main(int argc, char** argv) {
-#ifdef QT_NO_DEBUG
-    std::cerr << "Must be compiled with debug informtion" << std::endl;
-    return 1;
-#endif
-
     g_log_set_handler(
         NULL,
         (GLogLevelFlags)(G_LOG_LEVEL_WARNING | G_LOG_LEVEL_CRITICAL),

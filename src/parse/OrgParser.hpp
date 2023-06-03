@@ -168,3 +168,7 @@ struct OrgParser : public OperationsTracer {
     virtual void extendSubtreeTrails(OrgId position)  = 0;
     virtual void extendAttachedTrails(OrgId position) = 0;
 };
+
+inline QString to_string(OrgParser::TokenWithValue const& tok) {
+    return "($# $#)" % to_string_vec(tok.kind, tok.value);
+}

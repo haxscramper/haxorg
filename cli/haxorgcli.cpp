@@ -18,9 +18,6 @@
 #include <QGuiApplication>
 #include <perfetto.h>
 
-struct NodeOperations {
-    UnorderedMap<OrgId, OrgParser::Report> started, ended, pushed;
-};
 
 using org = OrgNodeKind;
 using otk = OrgTokenKind;
@@ -179,10 +176,10 @@ ${nested}
 
 
 QString htmlRepr(
-    CR<OrgId>          root,
-    CR<OrgNodeGroup>   nodes,
-    CR<QString>        src,
-    CR<NodeOperations> ops) {
+    CR<OrgId>                     root,
+    CR<OrgNodeGroup>              nodes,
+    CR<QString>                   src,
+    CR<HaxorgCli::NodeOperations> ops) {
     struct Result {
         int     level;
         QString content;
@@ -687,9 +684,54 @@ bool HaxorgCli::runTokenizer(bool catchExceptions) {
     }
 }
 
+Opt<LineCol> approximateLocation(
+    Func<LineCol(PosStr const&)> locationResolver,
+    OrgTokenId                   id,
+    OrgTokenGroup const&         tokens) {
+    for (int offset = 0; tokens.tokens.contains(id + (-offset))
+                         || tokens.tokens.contains(id + offset);
+         ++offset) {
+        for (int direction : Vec{-1, 1}) {
+            auto shifted = id + (offset * direction);
+            if (tokens.tokens.contains(shifted)) {
+                OrgToken tok = tokens.tokens.at(shifted);
+                if (tok.hasData()) {
+                    PosStr str{tok.getText()};
+                    return locationResolver(str);
+                }
+            }
+        }
+    }
+
+    return std::nullopt;
+}
+
 void HaxorgCli::writeYamlLex() {
     __trace("Convert lex to yaml");
-    writeFile(config.outFile, to_string(yamlRepr(tokens)) + "\n");
+    yaml result;
+    for (const auto& [id, token] : tokens.tokens.pairs()) {
+        yaml item = yamlRepr(id, *token, true);
+        if (pushedOn.contains(id)) {
+            OrgTokenizer::Report const& rep = pushedOn.at(id);
+            yaml                        pushed;
+            pushed["line"] = rep.line;
+            pushed["func"] = rep.name.toBase();
+            item["pushed"] = pushed;
+        }
+
+        if (auto loc = approximateLocation(locationResolver, id, tokens);
+            loc.has_value()) {
+            yaml location;
+            location["line"]   = loc->line;
+            location["column"] = loc->column;
+            location["pos"]    = loc->pos;
+            item["loc"]        = location;
+        }
+
+        result.push_back(item);
+    }
+
+    writeFile(config.outFile, to_string(result) + "\n");
     qInfo() << "Wrote YAML lex representation into " << config.outFile;
 }
 
@@ -793,9 +835,6 @@ void HaxorgCli::exec() {
     initTracers();
 
 
-    UnorderedMap<OrgTokenId, OrgTokenizer::Report> pushedOn;
-    NodeOperations                                 ops;
-
     using R = OrgTokenizer::ReportKind;
 
     using Target = HaxorgCli::Config::Target;
@@ -836,6 +875,7 @@ void HaxorgCli::exec() {
         return;
     }
 
+    writeYamlLex();
 
     if (config.target == Target::YamlLex) {
         writeYamlLex();
