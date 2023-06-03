@@ -252,6 +252,11 @@ struct StmtList : public Org {
     DECL_FIELDS(StmtList, (Org));
 };
 
+struct Empty : public Org {
+    using Org::Org;
+    GET_KIND(Empty);
+    DECL_FIELDS(Empty, (Org));
+};
 
 struct Row : public Org {
     using Org::Org;
@@ -717,6 +722,10 @@ struct Subtree : public Org {
             QDateTime time;
         };
 
+        struct Origin {
+            QString text;
+        };
+
 
         DECL_DESCRIBED_ENUM(SetMode, Override, Add, Subtract);
         DECL_DESCRIBED_ENUM(
@@ -740,6 +749,7 @@ struct Subtree : public Org {
                      // to list of defined enums etc.
             ExportOptions,
             Nonblocking,
+            Origin,
             ExportLatexHeader,
             ExportLatexCompiler,
             ExportLatexClass,

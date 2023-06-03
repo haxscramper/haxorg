@@ -63,7 +63,7 @@ Opt<Wrap<Document>> Org::getDocument() const {
 
 
 namespace {
-void assignIdsImpl(
+void eachSubnodeRecImpl(
     CR<Org::SubnodeVisitor> visitor,
     sem::Wrap<sem::Org>     org,
     bool                    originalBase);
@@ -75,7 +75,7 @@ void visitField(CR<Org::SubnodeVisitor>, CR<T>) {}
 void visitField(
     CR<Org::SubnodeVisitor> visitor,
     sem::Wrap<sem::Org>     node) {
-    assignIdsImpl(visitor, node, true);
+    eachSubnodeRecImpl(visitor, node, true);
 }
 
 template <typename T>
@@ -113,7 +113,7 @@ void recVisitOrgNodesImpl(
     });
 }
 
-void assignIdsImpl(
+void eachSubnodeRecImpl(
     CR<Org::SubnodeVisitor> visitor,
     sem::Wrap<sem::Org>     org,
     bool                    originalBase) {
@@ -126,7 +126,7 @@ void assignIdsImpl(
 } // namespace
 
 void Org::eachSubnodeRec(SubnodeVisitor cb) {
-    assignIdsImpl(cb, shared_from_this(), true);
+    eachSubnodeRecImpl(cb, shared_from_this(), true);
 }
 
 void Org::assignIds() {

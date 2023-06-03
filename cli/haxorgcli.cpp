@@ -937,6 +937,8 @@ void HaxorgCli::exec() {
         }
 
         node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+        qInfo() << "Finished conversion";
+        return;
     }
 
     writeJson();

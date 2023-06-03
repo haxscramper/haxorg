@@ -535,7 +535,10 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexBracket(PosStr& str) {
         lexLink(str);
     } else if (str.at("[fn:") || str.at("[FN:")) {
         lexFootnote(str);
-    } else if (str.get(1).isNumber()) {
+    } else if (
+        str.get(1).isNumber()
+        && (str.at(R"(\d{2}:\d{2})"_qr, +1)
+            || str.at(R"(\d{4})"_qr, +1))) {
         lexTimeRange(str);
     } else {
         auto punct = str.tok(otk::Punctuation, skipCount, 1);

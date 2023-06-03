@@ -294,9 +294,14 @@ Wrap<Time> OrgConverter::convertTime(__args) {
         }
 
         QString datetime;
-        datetime += one(a, N::Year).strVal();
+        if (one(a, N::Year).kind() != org::Empty) {
+            datetime += one(a, N::Year).strVal();
+        }
+
         if (one(a, N::Clock).kind() != org::Empty) {
-            datetime += " ";
+            if (!datetime.isEmpty()) {
+                datetime += " ";
+            }
             datetime += one(a, N::Clock).strVal();
         }
 
@@ -305,6 +310,8 @@ Wrap<Time> OrgConverter::convertTime(__args) {
             "yyyy/MM/dd HH:mm:ss",
             "dd-MM-yyyy HH:mm:ss",
             "dd/MM/yyyy HH:mm:ss",
+            "yyyy-MM-dd HH:mm",
+            "HH:mm",
             "yyyy-MM-dd",
             // Add other formats as needed
         };
@@ -320,8 +327,8 @@ Wrap<Time> OrgConverter::convertTime(__args) {
         if (!parsedDateTime.isValid()) {
             // TODO implement proper, non-fatal error reporting
             qFatal(strdup(
-                "Could not parse date time entry in format: $#"
-                % to_string_vec(datetime)));
+                "Could not parse date time entry in format: $# at $#"
+                % to_string_vec(datetime, getLocMsg(a))));
         }
 
         time->time = Time::Static{
@@ -732,9 +739,10 @@ Wrap<Org> OrgConverter::convert(__args) {
         }
 
         default:
-            qCritical() << "Unhandled node type";
-            qCritical().noquote() << a.treeRepr();
-            throw wrapError(Err::UnhandledKind(a.kind()), a);
+            qCritical() << "Unhandled node type" << a.kind() << __LINE__;
+            //            qCritical().noquote() << a.treeRepr();
+            return Sem<Empty>(p, a);
+            //            throw wrapError(Err::UnhandledKind(a.kind()), a);
     }
 #undef CASE
 }
@@ -778,28 +786,49 @@ Wrap<Document> OrgConverter::toDocument(OrgAdapter adapter) {
 
     if (adapter.kind() == org::StmtList) {
         for (const auto& sub : adapter) {
-            if (sub.kind() == org::CommandTitle) {
-                doc->title = convertParagraph(doc.get(), sub[0]);
-            } else if (sub.kind() == org::CommandOptions) {
-                fillDocumentOptions(doc->options, sub);
-            } else if (sub.kind() == org::LatexClass) {
-                doc->options->properties.push_back(
-                    Prop(Prop::ExportLatexClass{sub.at(0).strVal()}));
-            } else if (sub.kind() == org::LatexHeader) {
-                doc->options->properties.push_back(
-                    Prop(Prop::ExportLatexHeader{sub.at(0).strVal()}));
-            } else if (sub.kind() == org::LatexCompiler) {
-                doc->options->properties.push_back(
-                    Prop(Prop::ExportLatexCompiler{sub.at(0).strVal()}));
-            } else {
-                doc->subnodes.push_back(convert(doc.get(), sub));
+            switch (sub.kind()) {
+                case org::Columns: {
+                    qWarning() << "TODO: Skipping 'columns' node";
+                    break;
+                }
+                case org::CommandTitle: {
+                    doc->title = convertParagraph(doc.get(), sub[0]);
+                    break;
+                }
+                case org::CommandOptions: {
+                    fillDocumentOptions(doc->options, sub);
+                    break;
+                }
+                case org::LatexClass: {
+                    doc->options->properties.push_back(
+                        Prop(Prop::ExportLatexClass{sub.at(0).strVal()}));
+                    break;
+                }
+                case org::LatexHeader: {
+                    doc->options->properties.push_back(
+                        Prop(Prop::ExportLatexHeader{sub.at(0).strVal()}));
+                    break;
+                }
+                case org::LatexCompiler: {
+                    doc->options->properties.push_back(Prop(
+                        Prop::ExportLatexCompiler{sub.at(0).strVal()}));
+                    break;
+                }
+                default: {
+                    doc->subnodes.push_back(convert(doc.get(), sub));
+                    break;
+                }
             }
         }
     } else {
         doc->subnodes.push_back(convert(doc.get(), adapter));
     }
 
+    qInfo() << "Finished subtree walker";
+    return doc;
+
     doc->assignIds();
+    qInfo() << "Assigned IDs";
     doc->eachSubnodeRec([&](Org::Ptr const& org) {
         doc->backPtr[org->id.value()] = org;
 

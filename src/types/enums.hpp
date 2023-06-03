@@ -394,6 +394,7 @@ enum class OrgSemKind : short int
     BigIdent,
     Link,
     Bold,
+    Empty,
     Italic,
     Strike,
     Underline,

@@ -64,6 +64,22 @@ Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
     return std::nullopt;
 }
 
+QString OrgConverter::getLocMsg(CR<OrgAdapter> adapter) {
+    Opt<LineCol>    loc = getLoc(adapter);
+    Opt<OrgTokenId> tok;
+    if (adapter.get().isTerminal()) {
+        tok = adapter.get().getToken();
+    }
+
+    return "$#:$# (node $#, token $#, pos $#)"
+         % to_string_vec(
+               loc ? loc->line : -1,
+               loc ? loc->column : -1,
+               adapter.id.getIndex(),
+               tok ? to_string(tok->getIndex()) : to_string("<none>"),
+               loc ? loc->pos : -1);
+}
+
 void OrgConverter::report(CR<OrgConverter::Report> in) {
     using fg = TermColorFg8Bit;
 
