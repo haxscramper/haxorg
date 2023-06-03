@@ -1383,7 +1383,8 @@ OrgId OrgParserImpl<TRACE_STATE>::parseSubtreeLogbookListEntry(
             parseHashTag(lex);
             __skip(lex, otk::QuoteClose);
             space(lex);
-            __skip(lex, (V{otk::Word, "Added"}));
+            auto sub = token(org::LogbookTagChangeAction, pop(lex, otk::Word));
+            __token(sub);
             space(lex);
             __skip(lex, (V{otk::Word, "on"}));
             space(lex);
@@ -1840,9 +1841,15 @@ OrgId OrgParserImpl<TRACE_STATE>::parseLineCommand(OrgLexer& lex) {
             token(org::RawText, pop(lex, otk::RawProperty));
             break;
         }
-//        case ock::TableFormula: {
-//            skipLineCommand(lex);
-//        }
+
+        case ock::TableFormula: {
+            skipLineCommand(lex);
+            __start(org::CommandTblfm);
+            __skip(lex, otk::CommandArgumentsBegin);
+            token(org::RawText, pop(lex, otk::RawText));
+            __skip(lex, otk::CommandArgumentsEnd);
+            break;
+        }
 
         default: {
             throw wrapError(

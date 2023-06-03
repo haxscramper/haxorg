@@ -159,6 +159,7 @@ enum class OrgNodeKind : short int
     CommandHeader,
     /// `#+header:` - extended list of parameters passed to associated block
     CommandOptions, /// `#+options:` - document-wide formatting options
+    CommandTblfm,
     CommandBackendOptions,
     /// Backend-specific configuration options like `#+latex_header`,
     /// `#+latex_class` etc.
