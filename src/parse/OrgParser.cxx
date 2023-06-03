@@ -295,6 +295,20 @@ void OrgParserImpl<TRACE_STATE>::textFold(OrgLexer& lex) {
             CASE_INLINE(Italic);
             CASE_INLINE(Backtick);
 
+            case otk::DoubleSlash: {
+                auto sub = token(
+                    org::Punctuation, pop(lex, otk::DoubleSlash));
+                __token(sub);
+                break;
+            }
+
+            case otk::MaybeWord: {
+                auto sub = token(
+                    org::Punctuation, pop(lex, otk::MaybeWord));
+                __token(sub);
+                break;
+            }
+
                 // CASE_MARKUP(Quote);
             case otk::QuoteOpen: {
                 auto sub = token(
@@ -1299,9 +1313,14 @@ OrgId OrgParserImpl<TRACE_STATE>::parseSubtreeLogbookListEntry(
             space(lex);
             __skip(lex, (V{otk::Word, "from"}));
             space(lex);
-            __skip(lex, otk::QuoteOpen);
-            token(org::BigIdent, pop(lex, otk::BigIdent));
-            __skip(lex, otk::QuoteClose);
+            if (lex.at(otk::QuoteOpen)) {
+                __skip(lex, otk::QuoteOpen);
+                token(org::BigIdent, pop(lex, otk::BigIdent));
+                __skip(lex, otk::QuoteClose);
+            } else {
+                empty();
+            }
+
             space(lex);
             parseTimeStamp(lex);
         }
@@ -1326,6 +1345,23 @@ OrgId OrgParserImpl<TRACE_STATE>::parseSubtreeLogbookListEntry(
             __skip(lex, (V{otk::Word, "Note"}));
             space(lex);
             __skip(lex, (V{otk::Word, "taken"}));
+            space(lex);
+            __skip(lex, (V{otk::Word, "on"}));
+            space(lex);
+            parseTimeStamp(lex);
+            space(lex);
+        }
+        __end();
+    } else if (lex.at(otk::Word) && lex.strVal() == "Rescheduled") {
+        __start(org::LogbookReschedule);
+        {
+            __skip(lex, (V{otk::Word, "Rescheduled"}));
+            space(lex);
+            __skip(lex, (V{otk::Word, "from"}));
+            space(lex);
+            __skip(lex, otk::QuoteOpen);
+            parseTimeStamp(lex);
+            __skip(lex, otk::QuoteClose);
             space(lex);
             __skip(lex, (V{otk::Word, "on"}));
             space(lex);
@@ -1400,6 +1436,7 @@ OrgId OrgParserImpl<TRACE_STATE>::parseSubtreeLogbook(OrgLexer& lex) {
             }
             case otk::ListClock: {
                 parseSubtreeLogbookClockEntry(lex);
+                space(lex);
                 break;
             }
             default: {
@@ -1542,7 +1579,11 @@ OrgId OrgParserImpl<TRACE_STATE>::parseSubtreeUrgency(OrgLexer& lex) {
     __perf_trace("parseSubtreeUrgency");
     __trace();
     skipSpace(lex);
-    return empty();
+    if (lex.at(otk::SubtreeUrgency)) {
+        return token(org::SubtreeUrgency, pop(lex, otk::SubtreeUrgency));
+    } else {
+        return empty();
+    }
 }
 
 
@@ -1593,6 +1634,7 @@ OrgId OrgParserImpl<TRACE_STATE>::parseSubtreeTimes(OrgLexer& lex) {
             }
             space(lex);
             parseTimeStamp(lex);
+            space(lex);
             __end();
         }
 

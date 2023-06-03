@@ -275,14 +275,15 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTimeStamp(PosStr& str) {
         __push(begin);
 
 
-
         // Timestamp without date information, only time
-        if(!(str.at(R"(\d{1,2}:\d{2})"_qr))) {
-            auto date = str.tok(otk::StaticTimeDatePart, [this](PosStr& str) {
-                while (str.at('-') || str.at('/') || str.get().isDigit()) {
-                    str.next();
-                }
-            });
+        if (!(str.at(R"(\d{1,2}:\d{2})"_qr))) {
+            auto date = str.tok(
+                otk::StaticTimeDatePart, [this](PosStr& str) {
+                    while (str.at('-') || str.at('/')
+                           || str.get().isDigit()) {
+                        str.next();
+                    }
+                });
             __push(date);
             spaceSkip(str);
 
@@ -509,9 +510,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexFootnote(PosStr& str) {
         if (str.at("::")) {
             auto couble = str.tok(otk::DoubleColon, skipCb("::"));
             __push(couble);
-            // FIXME
-            // result.addExpandTok(str, otk::Text,
-            // str.skipTo(QChar(']')););
+            pushResolved(str.tok(otk::Text, skipTo, QChar(']')));
         } else {
             auto colon = str.tok(otk::Colon, skipCb(':'));
             __push(colon);
@@ -536,7 +535,7 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexBracket(PosStr& str) {
         lexLink(str);
     } else if (str.at("[fn:") || str.at("[FN:")) {
         lexFootnote(str);
-    } else if(str.get(1).isNumber()) {
+    } else if (str.get(1).isNumber()) {
         lexTimeRange(str);
     } else {
         auto punct = str.tok(otk::Punctuation, skipCount, 1);
@@ -1291,14 +1290,40 @@ bool OrgTokenizerImpl<TRACE_STATE>::lexTextMarkup(PosStr& str) {
     const auto ch                        = str.get();
     const auto& [kOpen, kClose, kInline] = markupConfig[ch];
     if (str.at(ch, +1)) {
-        auto tmp = str.tok(kInline, skipCount, 2);
-        __push(tmp);
+        if ((str.at(charsets::AllSpace, -1)
+             && str.at(charsets::AllSpace, +2))) {
+            auto tmp = str.tok(otk::Word, skipCount, 2);
+            __push(tmp);
+        } else {
+            auto tmp = str.tok(kInline, skipCount, 2);
+            __push(tmp);
+        }
+    } else if ((str.at(charsets::AllSpace, -1)
+                && str.at(charsets::AllSpace, +1))) {
+        // Standalone ` * ` not wrapping anything
+        auto punct = str.tok(otk::Punctuation, skipCount, 1);
+        __push(punct);
     } else if (str.at(NonText, -1) || str.atStart()) {
-        auto tmp = str.tok(kOpen, skipCount, 1);
-        __push(tmp);
+        if (str.at(charsets::AllSpace, +1)) {
+            // `]* ` -- both left and right tokens around the special
+            // character are 'non-text', but the space takes priority for
+            // "close"
+            auto tmp = str.tok(kClose, skipCount, 1);
+            __push(tmp);
+
+        } else {
+            auto tmp = str.tok(kOpen, skipCount, 1);
+            __push(tmp);
+        }
+
     } else if (str.at(NonText, 1) || str.beforeEnd()) {
-        auto tmp = str.tok(kClose, skipCount, 1);
-        __push(tmp);
+        if (str.at(charsets::AllSpace, -1)) {
+            auto tmp = str.tok(kOpen, skipCount, 1);
+            __push(tmp);
+        } else {
+            auto tmp = str.tok(kClose, skipCount, 1);
+            __push(tmp);
+        }
     } else {
         auto tmp = str.tok(otk::Word, skipCount, 1);
         __push(tmp);
@@ -2263,7 +2288,8 @@ bool OrgTokenizerImpl<TRACE_STATE>::atListStart(CR<PosStr> tmp) {
             }
         });
 
-        return (str.at(QChar(')')) || str.at(QChar('.'))) && (str.at(' ', 1));
+        return (str.at(QChar(')')) || str.at(QChar('.')))
+            && (str.at(' ', 1));
     } else {
         if (str.at(OBulletListStart)) {
             str.next();

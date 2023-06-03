@@ -365,15 +365,19 @@ enum class OrgNodeKind : short int
     Placeholder,
     /// Placeholder entry in text, usually writte like `<text to replace>`
     SubtreeDescription, /// `:description:` entry
-    Logbook,            /// `:logbook:` entry storing note information
+    SubtreeUrgency,
+    Logbook, /// `:logbook:` entry storing note information
     LogbookEntry,
     LogbookStateChange, /// Annotation about change in the subtree todo
                         /// state
     LogbookNote,        /// Timestamped log note on the subtree
     LogbookClock,       /// `CLOCK` entry in the subtree
     LogbookRefile,      /// `Refile` entry in the subtree logbook drawer
-    RadioTarget,        /// `<<<RADIO>>>`
-    Target,             /// `<<TARGET>>`
+    LogbookReschedule,
+    LogbookTagChange,
+    LogbookTagChangeAction,
+    RadioTarget, /// `<<<RADIO>>>`
+    Target,      /// `<<TARGET>>`
 
     __LAST
 };

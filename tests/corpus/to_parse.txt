@@ -29,3 +29,36 @@ Error terminator is triggered for the content inside of the 'center' node.
 ------
 
 ****** Pros:
+
+-----
+
+Should not be treated as italic close
+
+One/Another/<Placeholder>
+
+
+-----
+
+==Content=
+
+or
+
+~~Content~
+
+This can be lexed in two ways -- as Inline strike open paired with close
+and as a regular open-close pair wrapping '=Content'
+
+
+-----
+
+Standalone ~==~ elements that don't wrap anything
+
+----
+
+*QUESTION: [19:43]*/"As a user,
+
+
+-----
+
+- It's uneffective. -- /in/effective
+- This site create a favourable impression. -- site create/s/
