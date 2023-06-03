@@ -557,7 +557,12 @@ OrgId OrgParserImpl<TRACE_STATE>::parseHashTag(OrgLexer& lex) {
     __trace();
     __start(org::HashTag);
     space(lex);
-    token(org::RawText, pop(lex, otk::HashTag));
+    if (lex.at(otk::AtMention)) {
+        // Org-mode suppors tags like '@work' etc.
+        token(org::RawText, pop(lex, otk::AtMention));
+    } else {
+        token(org::RawText, pop(lex, otk::HashTag));
+    }
 
     if (lex.at(otk::HashTagSub)) {
         __skip(lex, otk::HashTagSub);
@@ -1369,6 +1374,23 @@ OrgId OrgParserImpl<TRACE_STATE>::parseSubtreeLogbookListEntry(
             space(lex);
         }
         __end();
+    } else if (lex.at(otk::Word) && lex.strVal() == "Tag") {
+        __start(org::LogbookTagChange);
+        {
+            __skip(lex, (V{otk::Word, "Tag"}));
+            space(lex);
+            __skip(lex, otk::QuoteOpen);
+            parseHashTag(lex);
+            __skip(lex, otk::QuoteClose);
+            space(lex);
+            __skip(lex, (V{otk::Word, "Added"}));
+            space(lex);
+            __skip(lex, (V{otk::Word, "on"}));
+            space(lex);
+            parseTimeStamp(lex);
+            space(lex);
+        }
+        __end();
     }
 
     newline(lex);
@@ -1818,6 +1840,10 @@ OrgId OrgParserImpl<TRACE_STATE>::parseLineCommand(OrgLexer& lex) {
             token(org::RawText, pop(lex, otk::RawProperty));
             break;
         }
+//        case ock::TableFormula: {
+//            skipLineCommand(lex);
+//        }
+
         default: {
             throw wrapError(
                 Err::UnhandledToken(lex, to_string(kind)), lex);
