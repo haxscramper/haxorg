@@ -384,6 +384,8 @@ struct OrgTokenizerImpl
     bool lexCommandArguments(PosStr& str, const OrgCommandKind& kind);
     bool lexCommandBlockDelimited(PosStr& str, PosStr id, int column);
 
+    bool lexSingleProperty(PosStr& str, PosStr const& id);
+
 #define _def(Kind) virtual bool lex##Kind(PosStr& str) override;
     EACH_SIMPLE_TOKENIZER_METHOD(_def);
 #undef _def
@@ -1943,6 +1945,43 @@ bool OrgTokenizerImpl<TraceState>::lexText(PosStr& str) {
 }
 
 template <bool TraceState>
+bool OrgTokenizerImpl<TraceState>::lexSingleProperty(
+    PosStr&       str,
+    PosStr const& id) {
+    __trace();
+    auto ident = Token(otk::ColonIdent, id.view);
+    __push(ident);
+    if (str.at(charsets::IdentStartChars)) {
+        auto ident = str.tok(otk::ColonIdent, [](PosStr& str) {
+            while (!str.finished()
+                   && str.at(
+                       charsets::DashIdentChars + CharSet{QChar('/')})) {
+                str.next();
+            }
+        });
+        __push(ident);
+        if (str.at(QChar('+')) || str.at(QChar('-'))) {
+            auto edit = str.tok(otk::Punctuation, skipCount, 1);
+            __push(edit);
+        }
+        oskipOne(str, QChar(':'));
+    }
+
+    spaceSkip(str);
+    QString name = normalize(id.toStr());
+    if (false) {
+        lexTimeStamp(str);
+    } else {
+        auto prop = str.tok(otk::RawProperty, skipToEOL);
+        __push(prop);
+    }
+
+
+    newlineSkip(str);
+    return true;
+}
+
+template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::lexProperties(PosStr& str) {
     __perf_trace("lexProperties");
     __trace();
@@ -1967,7 +2006,7 @@ bool OrgTokenizerImpl<TraceState>::lexProperties(PosStr& str) {
             }
 
 
-            const auto id = str.slice([this, &isAdd](PosStr& str) {
+            PosStr const id = str.slice([this, &isAdd](PosStr& str) {
                 str.skipZeroOrMore(charsets::IdentChars);
             });
 
@@ -1988,29 +2027,7 @@ bool OrgTokenizerImpl<TraceState>::lexProperties(PosStr& str) {
                     str, "closing :end:", "property drawer");
                 __report_and_throw((err));
             } else {
-                auto ident = Token(otk::ColonIdent, id.view);
-                __push(ident);
-                if (str.at(charsets::IdentStartChars)) {
-                    auto ident = str.tok(otk::ColonIdent, [](PosStr& str) {
-                        while (!str.finished()
-                               && str.at(
-                                   charsets::DashIdentChars
-                                   + CharSet{QChar('/')})) {
-                            str.next();
-                        }
-                    });
-                    __push(ident);
-                    if (str.at(QChar('+')) || str.at(QChar('-'))) {
-                        auto edit = str.tok(
-                            otk::Punctuation, skipCount, 1);
-                        __push(edit);
-                    }
-                    oskipOne(str, QChar(':'));
-                }
-                spaceSkip(str);
-                auto prop = str.tok(otk::RawProperty, skipToEOL);
-                __push(prop);
-                newlineSkip(str);
+                lexSingleProperty(str, id);
             }
         }
         __end(str);

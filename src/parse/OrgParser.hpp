@@ -117,53 +117,55 @@ struct OrgParser : public OperationsTracer {
     OrgParser() {}
     static SPtr<OrgParser> initImpl(OrgNodeGroup* _group, bool doTrace);
 
+#define EACH_PARSER_METHOD(__IMPL)                                        \
+    __IMPL(Footnote);                                                     \
+    __IMPL(CSVArguments);                                                 \
+    __IMPL(Macro);                                                        \
+    __IMPL(RawUrl);                                                       \
+    __IMPL(Link);                                                         \
+    __IMPL(InlineMath);                                                   \
+    __IMPL(Symbol);                                                       \
+    __IMPL(HashTag);                                                      \
+    __IMPL(TimeRange);                                                    \
+    __IMPL(TimeStamp);                                                    \
+    __IMPL(Ident);                                                        \
+    __IMPL(SrcInline);                                                    \
+    __IMPL(Table);                                                        \
+    __IMPL(Placeholder);                                                  \
+    __IMPL(TopParagraph);                                                 \
+    __IMPL(InlineParagraph);                                              \
+    __IMPL(CommandArguments);                                             \
+    __IMPL(SrcArguments);                                                 \
+    __IMPL(Src);                                                          \
+    __IMPL(Example);                                                      \
+    __IMPL(ListItemBody);                                                 \
+    __IMPL(ListItem);                                                     \
+    __IMPL(NestedList);                                                   \
+    __IMPL(List);                                                         \
+    __IMPL(Latex);                                                        \
+                                                                          \
+    __IMPL(Subtree);                                                      \
+    __IMPL(SubtreeTodo);                                                  \
+    __IMPL(SubtreeUrgency);                                               \
+    __IMPL(SubtreeDrawer);                                                \
+    __IMPL(SubtreeCompletion);                                            \
+    __IMPL(SubtreeTags);                                                  \
+    __IMPL(SubtreeTitle);                                                 \
+    __IMPL(SubtreeTimes);                                                 \
+                                                                          \
+    __IMPL(SubtreeLogbookClockEntry);                                     \
+    __IMPL(SubtreeLogbookListEntry);                                      \
+    __IMPL(SubtreeLogbook);                                               \
+    __IMPL(SubtreeProperties);                                            \
+                                                                          \
+    __IMPL(OrgFile);                                                      \
+    __IMPL(LineCommand);                                                  \
+    __IMPL(ToplevelItem);                                                 \
+    __IMPL(Top);
 
-    virtual OrgId parseFootnote(OrgLexer& lex)                   = 0;
-    virtual OrgId parseCSVArguments(OrgLexer& lex)               = 0;
-    virtual OrgId parseMacro(OrgLexer& lex)                      = 0;
-    virtual OrgId parseRawUrl(OrgLexer& lex)                     = 0;
-    virtual OrgId parseLink(OrgLexer& lex)                       = 0;
-    virtual OrgId parseInlineMath(OrgLexer& lex)                 = 0;
-    virtual OrgId parseSymbol(OrgLexer& lex)                     = 0;
-    virtual OrgId parseHashTag(OrgLexer& lex)                    = 0;
-    virtual OrgId parseTimeRange(OrgLexer& lex)                  = 0;
-    virtual OrgId parseTimeStamp(OrgLexer& lex)                  = 0;
-    virtual OrgId parseIdent(OrgLexer& lex)                      = 0;
-    virtual OrgId parseSrcInline(OrgLexer& lex)                  = 0;
-    virtual OrgId parseTable(OrgLexer& lex)                      = 0;
-    virtual OrgId parseParagraph(OrgLexer& lex, bool onToplevel) = 0;
-    virtual OrgId parsePlaceholder(OrgLexer& lex)                = 0;
-    virtual OrgId parseTopParagraph(OrgLexer& lex)               = 0;
-    virtual OrgId parseInlineParagraph(OrgLexer& lex)            = 0;
-    virtual OrgId parseCommandArguments(OrgLexer& lex)           = 0;
-    virtual OrgId parseSrcArguments(OrgLexer& lex)               = 0;
-    virtual OrgId parseSrc(OrgLexer& lex)                        = 0;
-    virtual OrgId parseExample(OrgLexer& lex)                    = 0;
-    virtual OrgId parseListItemBody(OrgLexer& lex)               = 0;
-    virtual OrgId parseListItem(OrgLexer& lex)                   = 0;
-    virtual OrgId parseNestedList(OrgLexer& lex)                 = 0;
-    virtual OrgId parseList(OrgLexer& lex)                       = 0;
-    virtual OrgId parseLatex(OrgLexer& lex)                      = 0;
-
-    virtual OrgId parseSubtree(OrgLexer& lex)             = 0;
-    virtual OrgId parseSubtreeTodo(OrgLexer& str)         = 0;
-    virtual OrgId parseSubtreeUrgency(OrgLexer& str)      = 0;
-    virtual OrgId parseSubtreeDrawer(OrgLexer& lex)       = 0;
-    virtual OrgId parseSubtreeCompletion(OrgLexer& lexer) = 0;
-    virtual OrgId parseSubtreeTags(OrgLexer& lex)         = 0;
-    virtual OrgId parseSubtreeTitle(OrgLexer& str)        = 0;
-    virtual OrgId parseSubtreeTimes(OrgLexer& str)        = 0;
-
-    virtual OrgId parseSubtreeLogbookClockEntry(OrgLexer& lex) = 0;
-    virtual OrgId parseSubtreeLogbookListEntry(OrgLexer& lex)  = 0;
-    virtual OrgId parseSubtreeLogbook(OrgLexer& lex)           = 0;
-    virtual OrgId parseSubtreeProperties(OrgLexer& lex)        = 0;
-
-
-    virtual OrgId parseOrgFile(OrgLexer& lex)      = 0;
-    virtual OrgId parseLineCommand(OrgLexer& lex)  = 0;
-    virtual OrgId parseToplevelItem(OrgLexer& lex) = 0;
-    virtual OrgId parseTop(OrgLexer& lex)          = 0;
+#define _def(Kind) virtual OrgId parse##Kind(OrgLexer& lex) = 0;
+    EACH_PARSER_METHOD(_def)
+#undef _def
 
     virtual OrgId parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind) = 0;
 
