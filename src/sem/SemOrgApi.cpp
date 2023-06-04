@@ -161,9 +161,7 @@ Vec<Subtree::Period> Subtree::getTimePeriods(IntSet<Period::Kind> kinds) {
         std::visit(
             overloaded{
                 [&](Property::Created const& cr) {
-                    res.push_back(Period(
-                        std::make_shared<Time>(cr.time),
-                        Period::Kind::Created));
+                    res.push_back(Period(cr.time, Period::Kind::Created));
                 },
                 [](auto const&) {}},
             prop.data);

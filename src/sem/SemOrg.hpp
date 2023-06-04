@@ -719,7 +719,7 @@ struct Subtree : public Org {
         struct Unnumbered {};
 
         struct Created {
-            QDateTime time;
+            Wrap<Time> time;
         };
 
         struct Origin {

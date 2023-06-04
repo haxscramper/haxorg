@@ -1980,7 +1980,7 @@ bool OrgTokenizerImpl<TraceState>::lexSingleProperty(
 
     spaceSkip(str);
     QString name = normalize(id.toStr());
-    if (false) {
+    if (name == "created") {
         lexTimeStamp(str);
     } else {
         auto prop = str.tok(otk::RawProperty, skipToEOL);

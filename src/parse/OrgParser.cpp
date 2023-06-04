@@ -1622,8 +1622,15 @@ OrgId OrgParserImpl<TraceState>::parseSubtreeProperties(OrgLexer& lex) {
 
         __skip(lex, otk::SkipSpace);
 
+        QString strName = normalize(group->strVal(name));
 
-        token(org::RawText, pop(lex, otk::RawProperty));
+        if (strName == "created") {
+            parseTimeStamp(lex);
+        } else {
+            token(org::RawText, pop(lex, otk::RawProperty));
+        }
+
+
         __skip(lex, otk::SkipNewline);
         __skip(lex, otk::SkipSpace);
         __end();
