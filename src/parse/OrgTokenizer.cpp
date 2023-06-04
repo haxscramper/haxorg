@@ -719,7 +719,7 @@ bool OrgTokenizerImpl<TraceState>::lexTimeStamp(PosStr& str) {
 
         __push(end);
 
-    } else if (str.at("<") || str.at("[")) {
+    } else if (str.at('<') || str.at('[')) {
         /// Lex static timestamp
         auto begin = str.tok(
             active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin,
@@ -1082,7 +1082,6 @@ bool OrgTokenizerImpl<TraceState>::lexTextCall(PosStr& str) {
 
 template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::lexTextWord(PosStr& str) {
-    __perf_trace("lexTextWord");
     __trace();
     // TODO handle other cases like
     //
@@ -1113,7 +1112,6 @@ bool OrgTokenizerImpl<TraceState>::lexTextWord(PosStr& str) {
 /// `call_`, regular word, etc.
 template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::lexTextChars(PosStr& str) {
-    __perf_trace("lexTextChars");
     __trace();
     __adv_check();
     bool isStructure = false;
@@ -1740,7 +1738,6 @@ bool OrgTokenizerImpl<TraceState>::lexTextCurly(PosStr& str) {
 
 template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::lexTextMarkup(PosStr& str) {
-    __perf_trace("lexTextMarkup");
     __trace();
     const auto ch                        = str.get();
     const auto& [kOpen, kClose, kInline] = markupConfig[ch];
@@ -1932,10 +1929,12 @@ bool OrgTokenizerImpl<TraceState>::lexText(PosStr& str) {
             break;
         }
         default: {
-            if (str.at(
-                    markupKeys
-                    - CharSet{
-                        QChar('<'), QChar('~'), QChar('`'), QChar('=')})) {
+            if (QChar ch = str.get();
+                (ch == '*' || //
+                 ch == '/' || //
+                 ch == '_' || //
+                 ch == '+' || //
+                 ch == '"')) {
                 lexTextMarkup(str);
             } else if (str.get().isLetterOrNumber()) {
                 lexTextChars(str);
@@ -3325,9 +3324,8 @@ bool OrgTokenizerImpl<TraceState>::lexStructure(PosStr& str) {
             if (atListStart(str)) {
                 // Numbered list
                 lexList(str);
-            } else if ((charsets::MaybeLetters
-                        + CharSet{QChar('~'), QChar('[')})
-                           .contains(str.get(0))) {
+            } else if (QChar ch = str.get(0);
+                       ch.isLetter() || ch == '~' || ch == '[') {
                 lexParagraph(str);
             } else {
                 // Text starts with inline or display latex math

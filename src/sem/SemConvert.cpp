@@ -477,7 +477,6 @@ Wrap<Caption> OrgConverter::convertCaption(__args) {
 
 
 Wrap<Word> OrgConverter::convertWord(__args) {
-    __perf_trace("convertWord");
     __trace();
     return SemLeaf<Word>(p, a);
 }
@@ -489,7 +488,6 @@ Wrap<Placeholder> OrgConverter::convertPlaceholder(__args) {
 }
 
 Wrap<Newline> OrgConverter::convertNewline(__args) {
-    __perf_trace("convertNewline");
     __trace();
     return SemLeaf<Newline>(p, a);
 }
@@ -507,7 +505,6 @@ Wrap<RawText> OrgConverter::convertRawText(__args) {
 }
 
 Wrap<Punctuation> OrgConverter::convertPunctuation(__args) {
-    __perf_trace("convertPunctuation");
     __trace();
     return SemLeaf<Punctuation>(p, a);
 }
