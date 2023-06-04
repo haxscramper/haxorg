@@ -203,6 +203,11 @@ void OrgConverter::convertPropertyList(Wrap<Subtree>& tree, In a) {
         created.time = convertTime(tree.get(), one(a, N::Values));
         result       = Property(created);
 
+    } else if (name == "origin") {
+        Property::Origin origin;
+        origin.text = one(a, N::Values).strVal();
+        result      = Property(origin);
+
     } else {
         qCritical().noquote() << "Unknown property name" << name << "\n"
                               << a.treeRepr();
