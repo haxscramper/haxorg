@@ -221,6 +221,10 @@ struct Exporter {
         __obj_field(res, raw, text);
     }
 
+    void visit(R& res, CR<sem::Link::Person> raw) {
+        __obj_field(res, raw, name);
+    }
+
     void visit(R& res, CR<sem::Link::Data> data) {
         _this()->visitField(res, "kind", sem::Link::getLinkKind(data));
         std::visit(

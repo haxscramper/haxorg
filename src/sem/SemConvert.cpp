@@ -433,6 +433,10 @@ Wrap<Link> OrgConverter::convertLink(__args) {
             link->data = Link::Raw{.text = one(a, N::Link).strVal()};
         } else if (protocol == "id") {
             link->data = Link::Id{.text = one(a, N::Link).strVal()};
+
+        } else if (protocol == "person") {
+            link->data = Link::Person{.name = one(a, N::Link).strVal()};
+
         } else {
             qCritical().noquote()
                 << "Unhandled protocol kind" << protocol << "\n"

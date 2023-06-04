@@ -986,11 +986,15 @@ struct Link : public Org {
         Str text;
     };
 
+    struct Person {
+        Str name;
+    };
+
     struct Footnote {
         Str target;
     };
 
-    SUB_VARIANTS(Kind, Data, data, getLinkKind, Raw, Footnote, Id);
+    SUB_VARIANTS(Kind, Data, data, getLinkKind, Raw, Footnote, Id, Person);
 
     DECL_FIELDS(
         Link,
