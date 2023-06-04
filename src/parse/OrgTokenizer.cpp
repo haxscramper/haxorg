@@ -335,11 +335,11 @@ struct OrgTokenizerImpl
     /// well))
     void pushResolved(CR<OrgToken> token);
 
-    virtual Vec<OrgToken> lexDelimited(
+    Vec<OrgToken> lexDelimited(
         PosStr&                          str,
         const Pair<QChar, OrgTokenKind>& start,
         const Pair<QChar, OrgTokenKind>& finish,
-        const OrgTokenKind&              middle) override;
+        const OrgTokenKind&              middle);
 
     void endGroup(PosStr& str);
     void startGroup(PosStr& str);
@@ -347,67 +347,51 @@ struct OrgTokenizerImpl
 
     /// Check if the string is positioned at the start of a logbook
     /// `CLOCK:` entry.
-    virtual bool atLogClock(CR<PosStr> str) override;
+    bool atLogClock(CR<PosStr> str);
 
     /// Check if string is positioned at the start of toplevel language
     /// construct.
-    virtual bool atConstructStart(CR<PosStr> str) override;
-    virtual bool atSubtreeStart(CR<PosStr> str) override;
+    bool atConstructStart(CR<PosStr> str);
+    bool atSubtreeStart(CR<PosStr> str);
 
     using LexerStateSimple = LexerState<char>;
 
-    virtual void skipIndents(LexerStateSimple& state, PosStr& str)
-        override;
+    void skipIndents(LexerStateSimple& state, PosStr& str);
 
 
     /// Attempt to parse list start dash
-    virtual bool atListStart(CR<PosStr> str) override;
-    virtual bool atListAhead(CR<PosStr> str) override;
+    bool atListStart(CR<PosStr> str);
+    bool atListAhead(CR<PosStr> str);
 
     /// Lex head starting from current position onwards. `indent` is the
     /// indentation of the original list prefix -- dash, number or letter.
-    virtual bool lexListItem(
+    bool lexListItem(
         PosStr&           str,
         const int&        indent,
-        LexerStateSimple& state) override;
+        LexerStateSimple& state);
 
-    virtual bool lexListBullet(
+    bool lexListBullet(PosStr& str, int indent, LexerStateSimple& state);
+    bool lexListDescription(
         PosStr&           str,
         int               indent,
-        LexerStateSimple& state) override;
-    virtual bool lexListDescription(
-        PosStr&           str,
-        int               indent,
-        LexerStateSimple& state) override;
-    virtual void lexListBody(
-        PosStr&           str,
-        int               indent,
-        LexerStateSimple& state) override;
+        LexerStateSimple& state);
+    void lexListBody(PosStr& str, int indent, LexerStateSimple& state);
 
 
-    virtual bool lexListItems(PosStr& str, LexerStateSimple& state)
-        override;
-    virtual bool lexTableState(
-        PosStr&                         str,
-        LexerState<OrgBlockLexerState>& state) override;
-    virtual bool lexCommandContent(PosStr& str, const OrgCommandKind& kind)
-        override;
-    virtual bool lexCommandArguments(
-        PosStr&               str,
-        const OrgCommandKind& kind) override;
-    virtual bool lexCommandBlockDelimited(
-        PosStr& str,
-        PosStr  id,
-        int     column) override;
+    bool lexListItems(PosStr& str, LexerStateSimple& state);
+    bool lexTableState(PosStr& str, LexerState<OrgBlockLexerState>& state);
+    bool lexCommandContent(PosStr& str, const OrgCommandKind& kind);
+    bool lexCommandArguments(PosStr& str, const OrgCommandKind& kind);
+    bool lexCommandBlockDelimited(PosStr& str, PosStr id, int column);
 
 #define _def(Kind) virtual bool lex##Kind(PosStr& str) override;
     EACH_SIMPLE_TOKENIZER_METHOD(_def);
 #undef _def
 
-    virtual bool isFirstOnLine(CR<PosStr> str) override;
+    bool isFirstOnLine(CR<PosStr> str);
 
-    virtual void spaceSkip(PosStr& str, bool require = false) override;
-    virtual void newlineSkip(PosStr& str) override;
+    void spaceSkip(PosStr& str, bool require = false);
+    void newlineSkip(PosStr& str);
 };
 
 
@@ -422,12 +406,15 @@ CR<CharSet> OIdentChars{
     slice(QChar('A'), QChar('Z')),
     QChar('_'),
     QChar('-'),
-    slice(QChar('0'), QChar('9'))};
+    slice(QChar('0'), QChar('9')),
+};
+
 CR<CharSet> OIdentStartChars = charsets::IdentChars
                              - CharSet{
                                  QChar('_'),
                                  QChar('-'),
-                                 slice(QChar('0'), QChar('9'))};
+                                 slice(QChar('0'), QChar('9')),
+                             };
 
 
 CR<CharSet> OCommandChars = charsets::IdentChars
@@ -698,105 +685,109 @@ bool OrgTokenizerImpl<TraceState>::lexTimeStamp(PosStr& str) {
     __trace();
     bool active = str.at(QChar('<'));
 
-    if (str.at("<%%") || str.at("[%%")) {
-        // Lex dynamic timestamp
-        auto begin = str.tok(
-            active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin,
-            skipCb(active ? "<%%" : "[%%"));
-        __push(begin);
+    if (str.at('<') || str.at('[')) {
+        if (str.at('%', +1)) {
+            // Lex dynamic timestamp
+            auto begin = str.tok(
+                active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin,
+                skipCb(active ? "<%%" : "[%%"));
+            __push(begin);
 
-        auto tok = str.tok(otk::DynamicTimeContent, [this](PosStr& str) {
-            skipBalancedSlice(
-                str,
-                {.openChars  = CharSet{QChar('(')},
-                 .closeChars = CharSet{QChar(')')}});
-        });
-        __push(tok);
-
-        auto end = str.tok(
-            active ? otk::ActiveTimeEnd : otk::InactiveTimeEnd,
-            skipCb(active ? ">" : "]"));
-
-        __push(end);
-
-    } else if (str.at('<') || str.at('[')) {
-        /// Lex static timestamp
-        auto begin = str.tok(
-            active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin,
-            skipCb(active ? "<" : "["));
-        __push(begin);
-
-
-        // Timestamp without date information, only time
-        if (!(str.at(R"(\d{1,2}:\d{2})"_qr))) {
-            auto date = str.tok(
-                otk::StaticTimeDatePart, [this](PosStr& str) {
-                    while (str.at('-') || str.at('/')
-                           || str.get().isDigit()) {
-                        str.next();
-                    }
+            auto tok = str.tok(
+                otk::DynamicTimeContent, [this](PosStr& str) {
+                    skipBalancedSlice(
+                        str,
+                        {.openChars  = CharSet{QChar('(')},
+                         .closeChars = CharSet{QChar(')')}});
                 });
-            __push(date);
-            spaceSkip(str);
+            __push(tok);
 
-            if (str.get().isLetter()) {
-                __trace("Static time day");
+            auto end = str.tok(
+                active ? otk::ActiveTimeEnd : otk::InactiveTimeEnd,
+                skipCb(active ? ">" : "]"));
+
+            __push(end);
+
+        } else {
+            /// Lex static timestamp
+            auto begin = str.tok(
+                active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin,
+                skipCb(active ? "<" : "["));
+            __push(begin);
+
+
+            // Timestamp without date information, only time
+            if (!(str.at(R"(\d{1,2}:\d{2})"_qr))) {
+                auto date = str.tok(
+                    otk::StaticTimeDatePart, [this](PosStr& str) {
+                        while (str.at('-') || str.at('/')
+                               || str.get().isDigit()) {
+                            str.next();
+                        }
+                    });
+                __push(date);
+                spaceSkip(str);
+
+                if (str.get().isLetter()) {
+                    __trace("Static time day");
+                    auto day = str.tok(
+                        otk::StaticTimeDayPart, [this](PosStr& str) {
+                            while (str.get().isLetter()) {
+                                str.next();
+                            }
+                        });
+                    __push(day);
+                    spaceSkip(str);
+                }
+            }
+
+            if (str.get().isNumber()) {
+                __trace("Static time clock");
                 auto day = str.tok(
-                    otk::StaticTimeDayPart, [this](PosStr& str) {
-                        while (str.get().isLetter()) {
+                    otk::StaticTimeClockPart, [this](PosStr& str) {
+                        while (str.at(':') || str.get().isNumber()) {
                             str.next();
                         }
                     });
                 __push(day);
                 spaceSkip(str);
             }
-        }
 
-        if (str.get().isNumber()) {
-            __trace("Static time clock");
-            auto day = str.tok(
-                otk::StaticTimeClockPart, [this](PosStr& str) {
-                    while (str.at(':') || str.get().isNumber()) {
-                        str.next();
-                    }
-                });
-            __push(day);
-            spaceSkip(str);
-        }
-
-        if (str.at('+') || str.at('.')) {
-            __trace("Static time repeater");
-            // Lex static time repeater kind
-            auto repeater = str.tok(
-                otk::StaticTimeRepeater, [this](PosStr& str) {
-                    if (str.at('.')) {
-                        oskipOne(str, QChar('.'));
-                        oskipOne(str, QChar('+'));
-                    } else {
-                        oskipOne(str, QChar('+'));
-                        if (str.at('+')) {
+            if (str.at('+') || str.at('.')) {
+                __trace("Static time repeater");
+                // Lex static time repeater kind
+                auto repeater = str.tok(
+                    otk::StaticTimeRepeater, [this](PosStr& str) {
+                        if (str.at('.')) {
+                            oskipOne(str, QChar('.'));
                             oskipOne(str, QChar('+'));
+                        } else {
+                            oskipOne(str, QChar('+'));
+                            if (str.at('+')) {
+                                oskipOne(str, QChar('+'));
+                            }
                         }
-                    }
-                    while (str.get().isNumber()) {
-                        str.next();
-                    }
-                    while (str.get().isLetter()) {
-                        str.next();
-                    }
-                });
-            __push(repeater);
-            spaceSkip(str);
+                        while (str.get().isNumber()) {
+                            str.next();
+                        }
+                        while (str.get().isLetter()) {
+                            str.next();
+                        }
+                    });
+                __push(repeater);
+                spaceSkip(str);
+            }
+
+
+            auto end = str.tok(
+                active ? otk::ActiveTimeEnd : otk::InactiveTimeEnd,
+                skipCb(active ? ">" : "]"));
+
+            __push(end);
+
+            return true;
         }
 
-
-        auto end = str.tok(
-            active ? otk::ActiveTimeEnd : otk::InactiveTimeEnd,
-            skipCb(active ? ">" : "]"));
-
-        __push(end);
-
-        return true;
     } else {
         throw str.makeUnexpected("QChar('<') or QChar('[')", "time");
     }
@@ -3426,11 +3417,13 @@ void OrgTokenizerImpl<TraceState>::pushResolved(CR<OrgToken> token) {
 
 template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::lexGlobal(PosStr& str) {
+    qDebug() << "Lexer lex global";
     __perf_trace("lexGlobal");
     __trace();
     while (!str.finished()) {
         lexStructure(str);
     }
+    __print("Finished lex global iteration");
     return true;
 }
 

@@ -243,58 +243,67 @@ struct OrgTokenizer : public OperationsTracer {
     using ReportHookCb       = Func<void(CR<Report>)>;
     using TraceUpdateHookCb  = Func<void(CR<Report>, bool&, bool)>;
 
-    virtual void setReportHook(ReportHookCb)             = 0;
-    virtual void setTraceUpdateHook(TraceUpdateHookCb)   = 0;
-    virtual void setLocationResolver(LocationResolverCb) = 0;
-    virtual void reserve(int size)                       = 0;
+    virtual void         setReportHook(ReportHookCb)             = 0;
+    virtual void         setTraceUpdateHook(TraceUpdateHookCb)   = 0;
+    virtual void         setLocationResolver(LocationResolverCb) = 0;
+    virtual void         reserve(int size)                       = 0;
+    virtual Opt<LineCol> getLoc(CR<PosStr> str)                  = 0;
 
 
-    virtual Vec<OrgToken> lexDelimited(
-        PosStr&                          str,
-        const Pair<QChar, OrgTokenKind>& start,
-        const Pair<QChar, OrgTokenKind>& finish,
-        const OrgTokenKind&              middle)
-        = 0;
+    //    virtual Vec<OrgToken> lexDelimited(
+    //        PosStr&                          str,
+    //        const Pair<QChar, OrgTokenKind>& start,
+    //        const Pair<QChar, OrgTokenKind>& finish,
+    //        const OrgTokenKind&              middle)
+    //        = 0;
 
 
-    /// \brief Check if the string is positioned at the start of a logbook
-    /// `CLOCK:` entry.
-    virtual bool atLogClock(CR<PosStr> str) = 0;
+    //    /// \brief Check if the string is positioned at the start of a
+    //    logbook
+    //    /// `CLOCK:` entry.
+    //    virtual bool atLogClock(CR<PosStr> str) = 0;
 
-    /// \brief Check if string is positioned at the start of toplevel
-    /// language construct.
-    virtual bool atConstructStart(CR<PosStr> str) = 0;
-    virtual bool atSubtreeStart(CR<PosStr> str)   = 0;
+    //    /// \brief Check if string is positioned at the start of toplevel
+    //    /// language construct.
+    //    virtual bool atConstructStart(CR<PosStr> str) = 0;
+    //    virtual bool atSubtreeStart(CR<PosStr> str)   = 0;
 
-    using LexerStateSimple = LexerState<char>;
+    //    using LexerStateSimple = LexerState<char>;
 
-    virtual void skipIndents(LexerStateSimple& state, PosStr& str) = 0;
-
-
-    /// Attempt to parse list start dash
-    virtual bool atListStart(CR<PosStr> str) = 0;
-    virtual bool atListAhead(CR<PosStr> str) = 0;
-
-    /// Lex head starting from current position onwards. `indent` is the
-    /// indentation of the original list prefix -- dash, number or letter.
-    virtual bool lexListItem(PosStr& str, const int& indent, LexerStateSimple& state) = 0;
-
-    virtual bool lexListBullet(PosStr& str, int indent, LexerStateSimple& state) = 0;
-    virtual bool lexListDescription(PosStr& str, int indent, LexerStateSimple& state) = 0;
-    virtual void lexListBody(PosStr& str, int indent, LexerStateSimple& state) = 0;
-    virtual bool lexListItems(PosStr& str, LexerStateSimple& state) = 0;
-    virtual bool lexTableState(PosStr& str, LexerState<OrgBlockLexerState>& state) = 0;
-    virtual bool lexCommandContent(PosStr& str, const OrgCommandKind& kind) = 0;
-    virtual bool lexCommandArguments(PosStr& str, const OrgCommandKind& kind) = 0;
-
-    virtual bool lexCommandBlockDelimited(PosStr& str, PosStr id, int column) = 0;
+    //    virtual void skipIndents(LexerStateSimple& state, PosStr& str) =
+    //    0;
 
 
-    virtual bool isFirstOnLine(CR<PosStr> str) = 0;
+    //    /// Attempt to parse list start dash
+    //    virtual bool atListStart(CR<PosStr> str) = 0;
+    //    virtual bool atListAhead(CR<PosStr> str) = 0;
 
-    virtual void         spaceSkip(PosStr& str, bool require = false) = 0;
-    virtual void         newlineSkip(PosStr& str)                     = 0;
-    virtual Opt<LineCol> getLoc(CR<PosStr> str)                       = 0;
+    //    /// Lex head starting from current position onwards. `indent` is
+    //    the
+    //    /// indentation of the original list prefix -- dash, number or
+    //    letter. virtual bool lexListItem(PosStr& str, const int& indent,
+    //    LexerStateSimple& state) = 0;
+
+    //    virtual bool lexListBullet(PosStr& str, int indent,
+    //    LexerStateSimple& state) = 0; virtual bool
+    //    lexListDescription(PosStr& str, int indent, LexerStateSimple&
+    //    state) = 0; virtual void lexListBody(PosStr& str, int indent,
+    //    LexerStateSimple& state) = 0; virtual bool lexListItems(PosStr&
+    //    str, LexerStateSimple& state) = 0; virtual bool
+    //    lexTableState(PosStr& str, LexerState<OrgBlockLexerState>& state)
+    //    = 0; virtual bool lexCommandContent(PosStr& str, const
+    //    OrgCommandKind& kind) = 0; virtual bool
+    //    lexCommandArguments(PosStr& str, const OrgCommandKind& kind) = 0;
+
+    //    virtual bool lexCommandBlockDelimited(PosStr& str, PosStr id, int
+    //    column) = 0;
+
+
+    //    virtual bool isFirstOnLine(CR<PosStr> str) = 0;
+
+    //    virtual void         spaceSkip(PosStr& str, bool require = false)
+    //    = 0; virtual void         newlineSkip(PosStr& str) = 0; virtual
+    //    Opt<LineCol> getLoc(CR<PosStr> str)                       = 0;
 
 #define EACH_SIMPLE_TOKENIZER_METHOD(__IMPL)                              \
     __IMPL(Comment);                                                      \
