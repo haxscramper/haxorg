@@ -630,9 +630,7 @@ Wrap<AtMention> OrgConverter::convertAtMention(__args) {
 Vec<Wrap<Org>> OrgConverter::flatConvertAttached(__args) {
     Vec<Wrap<Org>>         result;
     Func<void(OrgAdapter)> aux;
-    qDebug() << "Fat convert of" << a.kind();
     aux = [&](OrgAdapter a) {
-        qDebug() << "Recursing over" << a.kind();
         Wrap<Org> res;
         switch (a.kind()) {
             case org::CommandCaption: res = convertCaption(p, a); break;

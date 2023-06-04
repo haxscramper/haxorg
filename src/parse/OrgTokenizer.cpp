@@ -182,6 +182,10 @@ struct OrgTokenizerImpl
 
     int  depth = 0;
     void report(CR<Report> in) {
+        if constexpr (!TraceState) {
+            return;
+        }
+
         if (reportHook) {
             reportHook(in);
         }
@@ -708,6 +712,22 @@ bool OrgTokenizerImpl<TraceState>::lexDynamicTimeStamp(PosStr& str) {
 }
 
 
+inline bool atHourColonMinute(PosStr& str, int offset) {
+    return str.get(0 + offset).isDigit() && //
+           str.get(1 + offset).isDigit() && //
+           str.get(2 + offset) == ':' &&    //
+           str.get(3 + offset).isDigit() && //
+           str.get(4 + offset).isDigit();
+}
+
+inline bool atYearDash(PosStr& str, int offset) {
+    return str.get(0 + offset).isDigit() && //
+           str.get(1 + offset).isDigit() && //
+           str.get(2 + offset).isDigit() && //
+           str.get(3 + offset).isDigit() && //
+           str.get(4 + offset) == '-';
+}
+
 template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::lexStaticTimeStamp(PosStr& str) {
     __trace();
@@ -720,7 +740,7 @@ bool OrgTokenizerImpl<TraceState>::lexStaticTimeStamp(PosStr& str) {
 
 
     // Timestamp without date information, only time
-    if (!(str.at(R"(\d{1,2}:\d{2})"_qr))) {
+    if (!atHourColonMinute(str, 0)) {
         auto date = str.tok(otk::StaticTimeDatePart, [this](PosStr& str) {
             while (str.at('-') || str.at('/') || str.get().isDigit()) {
                 str.next();
@@ -991,10 +1011,7 @@ bool OrgTokenizerImpl<TraceState>::lexBracket(PosStr& str) {
         lexLink(str);
     } else if (str.at("[fn:") || str.at("[FN:")) {
         lexFootnote(str);
-    } else if (
-        str.get(1).isNumber()
-        && (str.at(R"(\d{2}:\d{2})"_qr, +1)
-            || str.at(R"(\d{4})"_qr, +1))) {
+    } else if (atHourColonMinute(str, 1) || atYearDash(str, 1)) {
         lexTimeRange(str);
     } else {
         auto punct = str.tok(otk::Punctuation, skipCount, 1);
