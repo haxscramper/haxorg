@@ -682,112 +682,123 @@ bool OrgTokenizerImpl<TraceState>::lexAngle(PosStr& str) {
 
 
 template <bool TraceState>
+bool OrgTokenizerImpl<TraceState>::lexDynamicTimeStamp(PosStr& str) {
+    __trace();
+    bool active = str.at(QChar('<'));
+    // Lex dynamic timestamp
+    auto begin = str.tok(
+        active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin,
+        skipCb(active ? "<%%" : "[%%"));
+    __push(begin);
+
+    auto tok = str.tok(otk::DynamicTimeContent, [this](PosStr& str) {
+        skipBalancedSlice(
+            str,
+            {.openChars  = CharSet{QChar('(')},
+             .closeChars = CharSet{QChar(')')}});
+    });
+    __push(tok);
+
+    auto end = str.tok(
+        active ? otk::ActiveTimeEnd : otk::InactiveTimeEnd,
+        skipCb(active ? ">" : "]"));
+
+    __push(end);
+    return true;
+}
+
+
+template <bool TraceState>
+bool OrgTokenizerImpl<TraceState>::lexStaticTimeStamp(PosStr& str) {
+    __trace();
+    bool active = str.at(QChar('<'));
+    /// Lex static timestamp
+    auto begin = str.tok(
+        active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin,
+        skipCb(active ? "<" : "["));
+    __push(begin);
+
+
+    // Timestamp without date information, only time
+    if (!(str.at(R"(\d{1,2}:\d{2})"_qr))) {
+        auto date = str.tok(otk::StaticTimeDatePart, [this](PosStr& str) {
+            while (str.at('-') || str.at('/') || str.get().isDigit()) {
+                str.next();
+            }
+        });
+        __push(date);
+        spaceSkip(str);
+
+        if (str.get().isLetter()) {
+            __trace("Static time day");
+            auto day = str.tok(
+                otk::StaticTimeDayPart, [this](PosStr& str) {
+                    while (str.get().isLetter()) {
+                        str.next();
+                    }
+                });
+            __push(day);
+            spaceSkip(str);
+        }
+    }
+
+    if (str.get().isNumber()) {
+        __trace("Static time clock");
+        auto day = str.tok(otk::StaticTimeClockPart, [this](PosStr& str) {
+            while (str.at(':') || str.get().isNumber()) {
+                str.next();
+            }
+        });
+        __push(day);
+        spaceSkip(str);
+    }
+
+    if (str.at('+') || str.at('.')) {
+        __trace("Static time repeater");
+        // Lex static time repeater kind
+        auto repeater = str.tok(
+            otk::StaticTimeRepeater, [this](PosStr& str) {
+                if (str.at('.')) {
+                    oskipOne(str, QChar('.'));
+                    oskipOne(str, QChar('+'));
+                } else {
+                    oskipOne(str, QChar('+'));
+                    if (str.at('+')) {
+                        oskipOne(str, QChar('+'));
+                    }
+                }
+                while (str.get().isNumber()) {
+                    str.next();
+                }
+                while (str.get().isLetter()) {
+                    str.next();
+                }
+            });
+        __push(repeater);
+        spaceSkip(str);
+    }
+
+
+    auto end = str.tok(
+        active ? otk::ActiveTimeEnd : otk::InactiveTimeEnd,
+        skipCb(active ? ">" : "]"));
+
+    __push(end);
+
+    return true;
+}
+
+template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::lexTimeStamp(PosStr& str) {
     __perf_trace("lexTimeStamp");
     __trace();
-    bool active = str.at(QChar('<'));
 
     if (str.at('<') || str.at('[')) {
         if (str.at('%', +1)) {
-            // Lex dynamic timestamp
-            auto begin = str.tok(
-                active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin,
-                skipCb(active ? "<%%" : "[%%"));
-            __push(begin);
-
-            auto tok = str.tok(
-                otk::DynamicTimeContent, [this](PosStr& str) {
-                    skipBalancedSlice(
-                        str,
-                        {.openChars  = CharSet{QChar('(')},
-                         .closeChars = CharSet{QChar(')')}});
-                });
-            __push(tok);
-
-            auto end = str.tok(
-                active ? otk::ActiveTimeEnd : otk::InactiveTimeEnd,
-                skipCb(active ? ">" : "]"));
-
-            __push(end);
+            return lexDynamicTimeStamp(str);
 
         } else {
-            /// Lex static timestamp
-            auto begin = str.tok(
-                active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin,
-                skipCb(active ? "<" : "["));
-            __push(begin);
-
-
-            // Timestamp without date information, only time
-            if (!(str.at(R"(\d{1,2}:\d{2})"_qr))) {
-                auto date = str.tok(
-                    otk::StaticTimeDatePart, [this](PosStr& str) {
-                        while (str.at('-') || str.at('/')
-                               || str.get().isDigit()) {
-                            str.next();
-                        }
-                    });
-                __push(date);
-                spaceSkip(str);
-
-                if (str.get().isLetter()) {
-                    __trace("Static time day");
-                    auto day = str.tok(
-                        otk::StaticTimeDayPart, [this](PosStr& str) {
-                            while (str.get().isLetter()) {
-                                str.next();
-                            }
-                        });
-                    __push(day);
-                    spaceSkip(str);
-                }
-            }
-
-            if (str.get().isNumber()) {
-                __trace("Static time clock");
-                auto day = str.tok(
-                    otk::StaticTimeClockPart, [this](PosStr& str) {
-                        while (str.at(':') || str.get().isNumber()) {
-                            str.next();
-                        }
-                    });
-                __push(day);
-                spaceSkip(str);
-            }
-
-            if (str.at('+') || str.at('.')) {
-                __trace("Static time repeater");
-                // Lex static time repeater kind
-                auto repeater = str.tok(
-                    otk::StaticTimeRepeater, [this](PosStr& str) {
-                        if (str.at('.')) {
-                            oskipOne(str, QChar('.'));
-                            oskipOne(str, QChar('+'));
-                        } else {
-                            oskipOne(str, QChar('+'));
-                            if (str.at('+')) {
-                                oskipOne(str, QChar('+'));
-                            }
-                        }
-                        while (str.get().isNumber()) {
-                            str.next();
-                        }
-                        while (str.get().isLetter()) {
-                            str.next();
-                        }
-                    });
-                __push(repeater);
-                spaceSkip(str);
-            }
-
-
-            auto end = str.tok(
-                active ? otk::ActiveTimeEnd : otk::InactiveTimeEnd,
-                skipCb(active ? ">" : "]"));
-
-            __push(end);
-
-            return true;
+            return lexStaticTimeStamp(str);
         }
 
     } else {

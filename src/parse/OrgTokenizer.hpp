@@ -260,7 +260,9 @@ struct OrgTokenizer : public OperationsTracer {
     __IMPL(Angle);                                                        \
     __IMPL(TimeRange);                                                    \
     __IMPL(TimeStamp);                                                    \
-                                                                          \
+    __IMPL(DynamicTimeStamp);                                             \
+    __IMPL(StaticTimeStamp);                                              \
+    \
     __IMPL(Link);                                                         \
     __IMPL(Footnote);                                                     \
     __IMPL(LinkTarget);                                                   \
