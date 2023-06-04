@@ -108,6 +108,8 @@ class OrgParserImplBase : public OrgParser {
     OrgNodeGroup*                       group = nullptr;
     OrgParserImplBase(OrgNodeGroup* _group) : group(_group) {}
 
+    virtual void reserve(int size) override { group->nodes.reserve(size); }
+
     void extendSubtreeTrails(OrgId position) override;
     void extendAttachedTrails(OrgId position) override;
 

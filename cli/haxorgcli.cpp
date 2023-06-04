@@ -830,6 +830,9 @@ void HaxorgCli::exec() {
 
     parser    = OrgParser::initImpl(&nodes, config.trace.parse.doTrace);
     tokenizer = OrgTokenizer::initImpl(&tokens, config.trace.lex.doTrace);
+    tokenizer->reserve(source.size() / 3);
+    parser->reserve(source.size() / 3);
+
 
     initLocationResolvers();
     initTracers();
@@ -871,58 +874,75 @@ void HaxorgCli::exec() {
     Id inId = 0;
     sources.add(inId, source, config.sourceFile.fileName());
 
-    if (!runTokenizer(false)) {
-        return;
+    {
+        __trace("Tokenize");
+        if (!runTokenizer(false)) {
+            return;
+        }
     }
 
-    writeYamlLex();
-
-    if (config.target == Target::YamlLex) {
-        writeYamlLex();
-        return;
-    } else if (config.target == Target::JsonLex) {
-        writeFile(config.outFile, to_string(jsonRepr(tokens)) + "\n");
-        qInfo() << "Wrote JSON lex representation into " << config.outFile;
-        return;
-    } else if (writeLexInfo) {
-        QString table;
-        QString csv;
-        QString annotated;
-        fillTokenGroups(tokens, pushedOn, table, csv, annotated, info);
-        switch (config.target) {
-            case Target::CsvLex: {
-                writeFile(config.outFile, csv);
-                return;
-            }
-            case Target::AnnotatedLex: {
-                writeAnnotated(config.outFile, annotated);
-                return;
-            }
-            case Target::HtmlLex: {
-                ::writeHtml(config.outFile, table);
-                return;
+    {
+        __trace("Write tokenized output");
+        if (config.target == Target::YamlLex) {
+            writeYamlLex();
+            return;
+        } else if (config.target == Target::JsonLex) {
+            writeFile(config.outFile, to_string(jsonRepr(tokens)) + "\n");
+            qInfo() << "Wrote JSON lex representation into "
+                    << config.outFile;
+            return;
+        } else if (writeLexInfo) {
+            QString table;
+            QString csv;
+            QString annotated;
+            fillTokenGroups(tokens, pushedOn, table, csv, annotated, info);
+            switch (config.target) {
+                case Target::CsvLex: {
+                    writeFile(config.outFile, csv);
+                    return;
+                }
+                case Target::AnnotatedLex: {
+                    writeAnnotated(config.outFile, annotated);
+                    return;
+                }
+                case Target::HtmlLex: {
+                    ::writeHtml(config.outFile, table);
+                    return;
+                }
             }
         }
     }
+
     {
-        writeFile(
-            QFileInfo("/tmp/lexed.yaml"), to_string(yamlRepr(tokens)));
+        __trace("Parse");
+        {
+            __trace("parse lexed tokens");
+            parser->parseTop(lex);
+        }
+        {
+            __trace("Extend subtree trails");
+            parser->extendSubtreeTrails(OrgId(0));
+        }
+        {
+            __trace("Convert attached trails");
+            parser->extendAttachedTrails(OrgId(0));
+        }
     }
 
-    parser->parseTop(lex);
-    parser->extendSubtreeTrails(OrgId(0));
-    parser->extendAttachedTrails(OrgId(0));
 
-    if (config.target == Target::YamlParse) {
-        writeYamlParse();
-        return;
-    } else if (config.target == Target::JsonParse) {
-        writeJsonParse();
-        return;
-    } else if (config.target == Target::HtmlParse) {
-        QString repr = htmlRepr(OrgId(0), nodes, source, ops);
-        writeFile(config.outFile, repr);
-        return;
+    {
+        __trace("Write parsed output");
+        if (config.target == Target::YamlParse) {
+            writeYamlParse();
+            return;
+        } else if (config.target == Target::JsonParse) {
+            writeJsonParse();
+            return;
+        } else if (config.target == Target::HtmlParse) {
+            QString repr = htmlRepr(OrgId(0), nodes, source, ops);
+            writeFile(config.outFile, repr);
+            return;
+        }
     }
 
     //    writeTreeParse();

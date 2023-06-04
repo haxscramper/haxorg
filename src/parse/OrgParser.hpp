@@ -110,6 +110,8 @@ struct OrgParser : public OperationsTracer {
 
     virtual void setReportHook(Func<void(CR<Report>)>) = 0;
     virtual void setTraceUpdateHook(Func<void(CR<Report>, bool&, bool)>) = 0;
+    virtual void reserve(int size) = 0;
+
 
   public:
     OrgParser() {}

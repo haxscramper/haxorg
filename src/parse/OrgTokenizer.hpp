@@ -246,6 +246,7 @@ struct OrgTokenizer : public OperationsTracer {
     virtual void setReportHook(ReportHookCb)             = 0;
     virtual void setTraceUpdateHook(TraceUpdateHookCb)   = 0;
     virtual void setLocationResolver(LocationResolverCb) = 0;
+    virtual void reserve(int size)                       = 0;
 
 
     virtual Vec<OrgToken> lexDelimited(

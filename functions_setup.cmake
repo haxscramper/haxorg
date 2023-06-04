@@ -29,6 +29,10 @@ function(set_target_flags TARGET)
 #    add_target_property(${TARGET} LINK_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
 #    add_target_property(${TARGET} LINK_OPTIONS "-fsanitize=memory")
 
+    if(${USE_PERFETTO})
+        add_target_property(${TARGET} COMPILE_DEFINITIONS USE_PERFETTO)
+    endif()
+
     if(${TEST_COVERAGE})
       message(INFO " Test coverage enabled")
       target_compile_options(
