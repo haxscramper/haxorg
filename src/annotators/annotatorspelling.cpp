@@ -7,24 +7,24 @@ static enchant::Broker* get_enchant_broker() {
     return &broker;
 }
 
-UnorderedMap<int, AnnotatorSpelling::Diagnostic> AnnotatorSpelling::
-    annotate(sem::Wrap<sem::Org> org) {
+UnorderedMap<sem::SemId, AnnotatorSpelling::Diagnostic> AnnotatorSpelling::
+    annotate(sem::SemId org) {
 
-    UnorderedMap<int, AnnotatorSpelling::Diagnostic> result;
-    org->eachSubnodeRec([&](sem::Wrap<sem::Org> org) {
-        if (!org->id) {
+    UnorderedMap<sem::SemId, AnnotatorSpelling::Diagnostic> result;
+    org.eachSubnodeRec([&](sem::SemId org) {
+        if (org.isNil()) {
             return;
         }
 
         if (SemSet{OrgSemKind::Word, OrgSemKind::BigIdent}.contains(
                 org->getKind())) {
-            auto leaf = org->as<sem::Leaf>();
+            auto leaf = org.as<sem::Leaf>();
             if (!checkWord(leaf->text)) {
                 // qDebug() << leaf->id << "{" + leaf->text + "}"
                 //          << "must be corrected to"
                 //          << getSuggestions(leaf->text);
 
-                result[*org->id] = Diagnostic{};
+                result[org] = Diagnostic{};
             }
         }
     });

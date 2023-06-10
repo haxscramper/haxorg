@@ -25,7 +25,7 @@ struct Exporter {
     using __ExporterBase::visit##__Kind;
 
     template <typename T>
-    using In = CR<sem::Wrap<T>>;
+    using In = sem::SemIdT<T>;
 
 
 #define EXPORTER_USING()                                                  \
@@ -53,12 +53,7 @@ struct Exporter {
     /// \brief Create default instance of the new result type
     R newRes(In<sem::Org>) { return R{}; }
 
-    /// \brief Hook called each time new sem node is visited using specific
-    /// visitator hook. Used in default implementation of the
-    /// `visitDispatch`
-    void pushVisit(R&, In<sem::Org>) {}
-    /// \brief Pop visit after sem visit dispatch completed
-    void popVisit(R&, In<sem::Org>) {}
+
     /// \brief Additional hook that is called for each node before
     /// descending into specifically named overload
     void visitDispatchHook(R&, In<sem::Org>) {}
@@ -75,7 +70,7 @@ struct Exporter {
         switch (kind) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: {                                            \
-        In<sem::__Kind> tmp = arg->as<sem::__Kind>();                     \
+        In<sem::__Kind> tmp = arg.as<sem::__Kind>();                      \
         _this()->pushVisit(res, tmp);                                     \
         _this()->visitDispatchHook(res, arg);                             \
         _this()->visit##__Kind(res, tmp);                                 \
@@ -98,7 +93,10 @@ struct Exporter {
         using Bd = describe_bases<T, mod_any_access>;
         using Md = describe_members<T, mod_any_access>;
         mp_for_each<Md>([&](auto const& field) {
-            _this()->visitField(res, field.name, (*tree).*field.pointer);
+            _this()->visitField(
+                res,
+                field.name,
+                (static_cast<T const&>(tree.get())).*field.pointer);
         });
 
         mp_for_each<Bd>([&](auto Base) {
@@ -107,10 +105,18 @@ struct Exporter {
         });
     }
 
+    /// \brief Hook called each time new sem node is visited using specific
+    /// visitator hook. Used in default implementation of the
+    /// `visitDispatch`
+    ///
+    /// \brief Pop visit after sem visit dispatch completed
+
 #define __visit(__Kind)                                                   \
     void visit##__Kind(R& res, In<sem::__Kind> tree) {                    \
         visitDescribedOrgFields(res, tree);                               \
-    }
+    }                                                                     \
+    void pushVisit(R&, In<sem::__Kind>) {}                                \
+    void popVisit(R&, In<sem::__Kind>) {}
 
     EACH_SEM_ORG_KIND(__visit)
 

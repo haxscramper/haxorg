@@ -14,7 +14,7 @@ struct AnnotatorSpelling {
 
     struct Diagnostic {};
 
-    UnorderedMap<int, Diagnostic> annotate(sem::Wrap<sem::Org> org);
+    UnorderedMap<sem::SemId, Diagnostic> annotate(sem::SemId org);
 
     void         setSpeller(QString const& lang);
     Vec<QString> getSuggestions(QString const& word);

@@ -20,7 +20,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     struct DocSubtree;
 
     /// List of known documents that were encountered during processing
-    Vec<sem::Document::Ptr> documents;
+    Vec<sem::SemIdT<sem::Document>> documents;
 
     /// Outgoing documentation link that targets some documentable entry.
     struct DocLink {
@@ -37,7 +37,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
         /// Description of the link -- taken from description lists that
         /// have links in the tags. Description in the link node itself is
         /// ignored
-        Opt<sem::Org::Ptr> description;
+        Opt<sem::SemId> description;
     };
 
     /// Single mappable entry in the document that represents
@@ -45,7 +45,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     /// rendered into the mind map graph
     struct DocEntry : SharedPtrApi<DocEntry> {
         /// Text block for documentable entry
-        sem::Org::Ptr content;
+        sem::SemId content = sem::SemId::Nil();
         /// Resolved outgoing links from the documentable entry
         Vec<DocLink> outgoing;
         int          id;
@@ -66,7 +66,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
 
         /// Original subtree node that content was mapped from -- subtree
         /// or document
-        sem::Org::Ptr original;
+        sem::SemId original = sem::SemId::Nil();
 
         /// Ordered list of documentable entries that were generated from
         /// top-level paragraphs in the tree
@@ -115,15 +115,15 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
 
     DocSubtree::Ptr      root;
     Vec<DocSubtree::Ptr> stack;
-    void visitSubtree(std::monostate& s, CR<sem::Subtree::Ptr> ptr);
-    void visitDocument(std::monostate& s, CR<sem::Document::Ptr> doc);
+    void visitSubtree(std::monostate& s, sem::SemIdT<sem::Subtree> ptr);
+    void visitDocument(std::monostate& s, sem::SemIdT<sem::Document> doc);
 
     void visitEnd(In<sem::Org> doc);
 
 
     SortedMap<int, DocEntry::Ptr>   entriesOut;
     SortedMap<int, DocSubtree::Ptr> subtreesOut;
-    Opt<DocLink>                    getResolved(sem::Org::Ptr node);
+    Opt<DocLink>                    getResolved(sem::SemId node);
 
     struct VertexProp {
         struct Subtree {

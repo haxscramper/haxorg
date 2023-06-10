@@ -226,9 +226,7 @@ void ExporterHtml::visitDocument(Res& res, In<sem::Document> doc) {
 
 void ExporterHtml::visitSubtree(Res& res, In<sem::Subtree> tree) {
     res = b::stack({
-        string(
-            "<section id=\""
-            + QString::number((unsigned long long int)tree.get()) + "\">"),
+        string("<section id=\"" + QString::number(tree.id) + "\">"),
         lineWrap("h" + QString::number(tree->level), {visit(tree->title)}),
         stackSubnodes(tree),
         string("</section>"),
@@ -247,11 +245,8 @@ ExporterHtml::Res ExporterHtml::createTocList(In<sem::Org> node) {
     if (node->getKind() == OrgSemKind::Subtree) {
         Res stack = b::stack();
         stack->add(b::line({
-            string(
-                "<a href=#"
-                + QString::number((unsigned long long int)node.get())
-                + ">"),
-            lineSubnodes(node->as<sem::Subtree>()->title),
+            string("<a href=#" + QString::number(node.id) + ">"),
+            lineSubnodes(node.as<sem::Subtree>()->title),
             string("</a>"),
         }));
 

@@ -13,9 +13,9 @@ void ExporterTree::visitField(
 }
 
 void ExporterTree::visitField(
-    int&                      i,
-    const char*               name,
-    CVec<sem::Wrap<sem::Org>> org) {
+    int&             i,
+    const char*      name,
+    CVec<sem::SemId> org) {
     if (skipAsEmpty(org)) {
         return;
     }

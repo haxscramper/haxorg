@@ -6,7 +6,7 @@ void ExporterSimpleSExpr::visit(Res& res, In<sem::Org> org) {
     switch (org->getKind()) {
 #define __case(__Kind) case OrgSemKind::__Kind:
         EACH_SEM_ORG_LEAF_KIND(__case) {
-            res = string(escape_for_write(org->as<sem::Leaf>()->text));
+            res = string(escape_for_write(org.as<sem::Leaf>()->text));
             break;
         }
 #undef __case

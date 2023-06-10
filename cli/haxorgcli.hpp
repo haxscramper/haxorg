@@ -12,18 +12,18 @@
 
 struct HaxorgCli {
     // TODO support processing multiple files, token groups
-    OrgTokenGroup             tokens;
-    SPtr<OrgTokenizer>        tokenizer;
-    OrgNodeGroup              nodes;
-    SPtr<OrgParser>           parser;
-    QString                   source;
-    sem::OrgConverter         converter;
-    LineColInfo               info;
-    Lexer<OrgTokenKind>       lex;
-    sem::Document::Ptr        node;
-    SPtr<PosStr>              str;
-    StrCache                  sources;
-    Func<LineCol(CR<PosStr>)> locationResolver;
+    OrgTokenGroup              tokens;
+    SPtr<OrgTokenizer>         tokenizer;
+    OrgNodeGroup               nodes;
+    SPtr<OrgParser>            parser;
+    QString                    source;
+    sem::OrgConverter          converter;
+    LineColInfo                info;
+    Lexer<OrgTokenKind>        lex;
+    sem::SemIdT<sem::Document> node = sem::SemIdT<sem::Document>::Nil();
+    SPtr<PosStr>               str;
+    StrCache                   sources;
+    Func<LineCol(CR<PosStr>)>  locationResolver;
 
     UnorderedMap<OrgTokenId, OrgTokenizer::Report> pushedOn;
 

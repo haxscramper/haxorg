@@ -39,8 +39,8 @@ void ExporterMindMap::eachEntry(
 }
 
 void ExporterMindMap::visitSubtree(
-    std::monostate&       s,
-    CR<sem::Subtree::Ptr> ptr) {
+    std::monostate&           s,
+    sem::SemIdT<sem::Subtree> ptr) {
     stack.push_back(DocSubtree::shared());
     auto& res = stack.back();
 
@@ -55,9 +55,9 @@ void ExporterMindMap::visitSubtree(
 
         } else if (
             sub->is(osk::List)
-            && sub->as<sem::List>()->isDescriptionList()) {
+            && sub.as<sem::List>()->isDescriptionList()) {
             for (const auto& it : sub->subnodes) {
-                if (it->as<sem::ListItem>()->isDescriptionItem()) {
+                if (it.as<sem::ListItem>()->isDescriptionItem()) {
                     res->outgoing.push_back(DocLink{.description = it});
                 }
             }
@@ -66,7 +66,7 @@ void ExporterMindMap::visitSubtree(
             auto entry     = DocEntry::shared();
             entry->content = sub;
             if (sub->is(osk::Paragraph)
-                && sub->as<sem::Paragraph>()->isFootnoteDefinition()) {
+                && sub.as<sem::Paragraph>()->isFootnoteDefinition()) {
                 res->unordered.push_back(entry);
             } else {
                 res->ordered.push_back(entry);
@@ -84,8 +84,8 @@ void ExporterMindMap::visitSubtree(
 }
 
 void ExporterMindMap::visitDocument(
-    std::monostate&        s,
-    CR<sem::Document::Ptr> doc) {
+    std::monostate&            s,
+    sem::SemIdT<sem::Document> doc) {
     stack.push_back(DocSubtree::shared());
 
 
@@ -107,25 +107,23 @@ void ExporterMindMap::visitDocument(
 
 void ExporterMindMap::visitEnd(In<sem::Org> doc) {
     eachEntry(root, [&](DocEntry::Ptr entry) {
-        int id = entry->content->id.value();
         Q_ASSERT_X(
-            !entriesOut.contains(id),
+            !entriesOut.contains(entry->content),
             "collect out entries",
-            "ID $# has already been used" % to_string_vec(id));
-        entriesOut[id] = entry;
+            "ID $# has already been used" % to_string_vec(entry->content));
+        entriesOut[entry->content] = entry;
     });
 
     eachSubtree(root, [&](DocSubtree::Ptr tree) {
-        auto id = tree->original->id.value();
         Q_ASSERT_X(
-            !entriesOut.contains(id),
+            !entriesOut.contains(tree->original),
             "collect out entries",
-            "ID $# has already been used" % to_string_vec(id));
-        subtreesOut[id] = tree;
+            "ID $# has already been used" % to_string_vec(tree->original));
+        subtreesOut[tree->original] = tree;
     });
 
     eachEntry(root, [&](DocEntry::Ptr entry) {
-        entry->content->eachSubnodeRec([&](sem::Org::Ptr node) {
+        entry->content.eachSubnodeRec([&](sem::SemId node) {
             Opt<DocLink> resolved = getResolved(node);
             if (resolved) {
                 entry->outgoing.push_back(*resolved);
@@ -146,30 +144,30 @@ void ExporterMindMap::visitEnd(In<sem::Org> doc) {
 }
 
 Opt<ExporterMindMap::DocLink> ExporterMindMap::getResolved(
-    sem::Org::Ptr node) {
+    sem::SemId node) {
     for (const auto& doc : documents) {
         // Check if the entry is the list item that can be used for
         // resolution.
         if (node->is(osk::ListItem)
-            && node->as<sem::ListItem>()->isDescriptionItem()) {
-            sem::ListItem::Ptr item = node->as<sem::ListItem>();
-            Opt<DocLink>       resolved;
-            item->header.value()->eachSubnodeRec(
-                [&](CR<sem::Org::Ptr> node) {
-                    if (!resolved && node->is(osk::Link)) {
-                        resolved = getResolved(node);
-                    }
-                });
+            && node.as<sem::ListItem>()->isDescriptionItem()) {
+            sem::SemIdT<sem::ListItem> item = node.as<sem::ListItem>();
+            Opt<DocLink>               resolved;
+            item->header.value().eachSubnodeRec([&](CR<sem::SemId> node) {
+                if (!resolved && node->is(osk::Link)) {
+                    resolved = getResolved(node);
+                }
+            });
             if (resolved) {
-                resolved->description = std::make_shared<sem::StmtList>();
-                (**resolved->description).subnodes = item->subnodes;
+                resolved->description = sem::GlobalStore::createInSame(
+                    node, osk::StmtList, node);
+                (*resolved->description)->subnodes = item->subnodes;
                 return resolved;
             }
         }
 
         auto resolve = doc->resolve(node);
         if (resolve) {
-            auto                 id      = resolve.value()->id.value();
+            auto                 id      = resolve.value();
             Opt<DocEntry::Ptr>   target  = entriesOut.get(id);
             Opt<DocSubtree::Ptr> subtree = subtreesOut.get(id);
 
@@ -291,9 +289,9 @@ ExporterMindMap::Graph ExporterMindMap::toGraph() {
 QString ExporterMindMap::toGraphML(CR<Graph> graph) { return ""; }
 
 namespace {
-QString toPlainStr(sem::Org::Ptr org) {
+QString toPlainStr(sem::SemId org) {
     if (org->is(osk::Subtree)) {
-        return toPlainStr(org->as<sem::Subtree>()->title);
+        return toPlainStr(org.as<sem::Subtree>()->title);
     } else if (org->is(osk::Document)) {
         return "Document";
     } else {
@@ -327,9 +325,9 @@ QString ExporterMindMap::toGraphviz(CR<Graph> graph) {
                 std::string("rect")))
         .property(
             "org_id",
-            make_transform_value_property_map<int>(
-                [&](VertexProp const& prop) -> int {
-                    return getOrgNode(prop)->id.value();
+            make_transform_value_property_map<u64>(
+                [&](VertexProp const& prop) -> u64 {
+                    return getOrgNode(prop).id;
                 },
                 get(vertex_bundle, graph)))
         .property(
@@ -351,10 +349,9 @@ json ExporterMindMap::toJson() {
         json res    = json::object();
         res["kind"] = to_string(link.getKind());
         if (link.getKind() == DocLink::Kind::Entry) {
-            res["entry"] = link.getEntry().entry->content->id.value();
+            res["entry"] = link.getEntry().entry->content.id;
         } else {
-            res["subtree"] = link.getSubtree()
-                                 .subtree->original->id.value();
+            res["subtree"] = link.getSubtree().subtree->original.id;
         }
 
         return res;
@@ -363,7 +360,7 @@ json ExporterMindMap::toJson() {
     auto exportEntry = [&](DocEntry::Ptr const& entry) -> json {
         json res    = json::object();
         res["kind"] = "Entry";
-        res["id"]   = entry->content->id.value();
+        res["id"]   = entry->content.id;
 
         res["outgoing"] = json::array();
         for (auto const& it : entry->outgoing) {
@@ -378,10 +375,10 @@ json ExporterMindMap::toJson() {
     aux = [&](DocSubtree::Ptr tree) -> json {
         json result    = json::object();
         result["kind"] = "Subtree";
-        result["id"]   = tree->original->id.value();
+        result["id"]   = tree->original.id;
         if (tree->original->is(osk::Subtree)) {
             result["title"] = ExporterUltraplain::toStr(
-                tree->original->as<sem::Subtree>()->title);
+                tree->original.as<sem::Subtree>()->title);
         } else {
             result["title"] = json();
         }

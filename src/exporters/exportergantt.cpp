@@ -7,12 +7,12 @@
 
 using osk = OrgSemKind;
 
-void treeRepr(sem::Wrap<sem::Org> org) {
+void treeRepr(sem::SemIdT<sem::Org> org) {
     ColStream os{qcout};
     ExporterTree(os).visitTop(org);
 }
 
-void ExporterGantt::pushVisit(int&, sem::Wrap<sem::Subtree> tree) {
+void ExporterGantt::pushVisit(int&, sem::SemIdT<sem::Subtree> tree) {
     using Period = sem::Subtree::Period;
     stack.push_back({});
     for (sem::Subtree::Period const& period : tree->getTimePeriods(
@@ -37,7 +37,7 @@ void ExporterGantt::pushVisit(int&, sem::Wrap<sem::Subtree> tree) {
     }
 }
 
-void ExporterGantt::popVisit(int&, sem::Wrap<sem::Subtree> tree) {
+void ExporterGantt::popVisit(int&, sem::SemIdT<sem::Subtree> tree) {
     auto last = stack.pop_back_v();
     if (stack.empty()) {
         if (last.filled) {

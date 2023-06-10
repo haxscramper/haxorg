@@ -36,13 +36,13 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         }
     };
 
-    static void treeRepr(sem::Org::Ptr org) {
+    static void treeRepr(sem::SemId org) {
         ColStream os{qcout};
         ExporterTree(os).visitTop(org);
     }
 
 
-    static void treeRepr(sem::Org::Ptr org, CR<TreeReprConf> conf) {
+    static void treeRepr(sem::SemId org, CR<TreeReprConf> conf) {
         ColStream    os{qcout};
         ExporterTree exporter{os};
         exporter.conf = conf;
@@ -150,10 +150,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         // TODO
     }
 
-    void visitField(
-        int&                      i,
-        const char*               name,
-        CVec<sem::Wrap<sem::Org>> org);
+    void visitField(int& i, const char* name, CVec<sem::SemId> org);
 
 
     template <typename T>

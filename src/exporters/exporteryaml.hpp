@@ -90,7 +90,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     void visitField(
         yaml&       y,
         char const* name,
-        CR<UnorderedMap<int, sem::Org::Ptr>>) {}
+        CR<UnorderedMap<int, sem::SemId>>) {}
 
     template <typename T>
     void visitField(yaml& j, const char* name, CR<T> field) {

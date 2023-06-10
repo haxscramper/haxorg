@@ -13,6 +13,7 @@
 
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <functional>
 
 #include <QDateTime>
 
@@ -47,11 +48,6 @@
         __extra_args_fields                                               \
     };                                                                    \
                                                                           \
-    /* Declare shared pointer constructor  */                             \
-    static inline Wrap<classname> shared(Args const& args) {              \
-        return std::make_shared<classname>(args);                         \
-    }                                                                     \
-                                                                          \
     /* Constructor accepting aux 'args' object */                         \
     inline classname(Args const& args)                                    \
         : FOR_EACH_CALL_WITH_PASS(__pass_args_field, (), __VA_ARGS__)     \
@@ -75,7 +71,7 @@
         ,                                                                 \
         ());
 
-#define __extra_args_fields Vec<Wrap<Org>> subnodes = {};
+#define __extra_args_fields Vec<SemId> subnodes = {};
 #define __extra_args_pass Org(args.subnodes)
 
 
@@ -87,12 +83,11 @@ struct TreeId {
 
 BOOST_DESCRIBE_STRUCT(TreeId, (), (id));
 
-template <typename T>
-using Wrap = std::shared_ptr<T>;
-
-#define GET_KIND(Kind)                                                    \
-    virtual OrgSemKind getKind() const { return OrgSemKind::Kind; }       \
-    using Ptr = Wrap<Kind>;
+#define DECL_KIND(Kind)                                                   \
+    virtual OrgSemKind  getKind() const { return OrgSemKind::Kind; }      \
+    static SemIdT<Kind> create(                                           \
+        SemId parent, Opt<OrgAdapter> original = std::nullopt);           \
+    static const OrgSemKind staticKind = OrgSemKind::Kind;
 
 
 // Forward-declare all node types so 'asVariant' can be defined directly
@@ -102,10 +97,15 @@ using Wrap = std::shared_ptr<T>;
 EACH_SEM_ORG_KIND(forward_declare)
 #undef forward_declare
 
+struct Org;
+
+template <typename T>
+struct SemIdT;
+
 #define COMMA ,
 #define skip1(op, ...) __VA_ARGS__
 #define skip(op, ...) skip1(op)
-#define __id(I) , SPtr<I>
+#define __id(I) , SemIdT<I>
 #define __variant() std::variant<skip(EACH_SEM_ORG_KIND(__id))>;
 
 /// \brief Global variant of all sem node derivations
@@ -118,50 +118,111 @@ using OrgVariant = __variant();
 #undef __variant
 
 
-/// \brief Base class for all org nodes. Provides essential baseline API
-/// and information.
-struct Org : public std::enable_shared_from_this<Org> {
-    // TODO implement 'deepClone' function using visitator node to
-    // completely replicate the tree on a structural level
+struct SemId {
+    uint64_t id = 0;
+    bool     isNil() const { return id == 0; }
 
-    /// \brief Check if node has a parent pointer (for converted tree only
-    /// top-level document should not have parent)
-    inline bool hasParent() const { return parent != nullptr; }
-    /// \brief Get parent pointer (might be null)
-    Org*       getParent() { return parent; }
-    Org const* getParent() const { return parent; }
-    using Ptr = Wrap<Org>;
+    static SemId Nil() { return SemId(0, OrgSemKind(0), 0); }
+
+    SemId(uint32_t storeIndex, OrgSemKind kind, uint32_t nodeIndex) {
+        setStoreIndex(storeIndex);
+        setKind(kind);
+        setNodeIndex(nodeIndex);
+    }
+
+    OrgSemKind getKind() const { return OrgSemKind((id >> 32) & 0xFF); }
+
+    uint32_t getNodeIndex() const {
+        assert(!isNil());
+        return (id & 0xFFFFFFFF) - 1;
+    }
+
+    uint32_t getStoreIndex() const { return id >> 40; }
+
+    void setStoreIndex(uint32_t storeIndex) {
+        id = (id & 0x000000FFFFFFFFFF) | ((uint64_t)storeIndex << 40);
+    }
+
+    void setKind(OrgSemKind kind) {
+        id = (id & 0xFFFFFF00FFFFFFFF) | ((uint64_t)kind << 32);
+    }
+
+    void setNodeIndex(uint32_t nodeIndex) {
+        id = (id & 0xFFFFFFFF00000000) | (nodeIndex + 1);
+    }
+
+    Org&       get();
+    Org const& get() const;
+    Org*       operator->() { return &get(); }
+    Org const* operator->() const { return &get(); }
+
+    template <typename T>
+    SemIdT<T> as() const;
 
     /// \brief Convert the node to corresponding variant type.
     ///
     /// Intented to be used with custom `std::visit` solutions instead of
     /// relying on the more heavyweight CRTP visitator.
-    OrgVariant        asVariant();
-    static OrgVariant fromKind(OrgSemKind kind);
+    OrgVariant asVariant();
 
-    using SubnodeVisitor = Func<void(Wrap<Org>)>;
+    /// \brief Iteratively get all parent nodes for the subtree
+    Vec<SemId> getParentChain(bool withSelf = false) const;
+    /// \brief Get closest parent subtree (if it exists)
+    Opt<SemIdT<Subtree>> getParentSubtree() const;
+    /// \brief Get the document wrapping the node (if such document node
+    /// exists in hierarchy)
+    Opt<SemIdT<Document>> getDocument() const;
+
+    SemId getParent() const;
+
+    operator bool() const { return !isNil(); }
+
+
+    using SubnodeVisitor = Func<void(SemId)>;
     /// \brief Recursively visit each subnode in the tree and apply the
     /// provided callback
     void eachSubnodeRec(SubnodeVisitor cb);
+};
 
-    /// \brief Iteratively get all parent nodes for the subtree
-    Vec<Org*> getParentChain(bool withSelf = false) const;
-    /// \brief Get closest parent subtree (if it exists)
-    Opt<Wrap<Subtree>> getParentSubtree() const;
-    /// \brief Get the document wrapping the node (if such document node
-    /// exists in hierarchy)
-    Opt<Wrap<Document>> getDocument() const;
+
+template <typename T>
+struct SemIdT : public SemId {
+    SemId toId() const { return *this; }
+    SemIdT(SemId base) : SemId(base) {}
+
+    T*       operator->();
+    T const* operator->() const;
+};
+
+template <typename T>
+SemIdT<T> SemId::as() const {
+    return SemIdT<T>(*this);
+}
+
+/// \brief Base class for all org nodes. Provides essential baseline API
+/// and information.
+struct Org {
+    // TODO implement 'deepClone' function using visitator node to
+    // completely replicate the tree on a structural level
+
+    /// \brief Check if node has a parent pointer (for converted tree only
+    /// top-level document should not have parent)
+    inline bool hasParent() const { return !parent.isNil(); }
+    /// \brief Get parent pointer (might be null)
+    SemId getParent() const { return parent; }
+
 
     /// \brief Pointer to the parent node in sem tree, might be null.
-    Org* parent = nullptr;
+    SemId parent = SemId::Nil();
     /// \brief Adapter to the original parsed node.
     ///
     /// Set by the conversion functions from linearized representation,
     /// will be missing for all generated node kinds.
     OrgAdapter original;
 
-    inline Org(CVec<Wrap<Org>> subnodes = {}) : subnodes(subnodes) {}
-    inline Org(Org* parent, OrgAdapter original)
+    inline Org(CVec<SemId> subnodes = {}) : subnodes(subnodes) {}
+    inline Org(SemId parent) : parent(parent) {}
+    inline Org(SemId parent, OrgAdapter original)
         : parent(parent), original(original) {}
 
     /// \brief Get get kind of the original node.
@@ -172,48 +233,18 @@ struct Org : public std::enable_shared_from_this<Org> {
     bool isGenerated() const { return original.empty(); }
     /// \brief Location of the node in the original source file
     Opt<LineCol> loc = std::nullopt;
-    /// \brief Extra ID assigned to the org nodes.
-    Opt<int> id = std::nullopt;
-    /// \brief Recursively walk the tree and assign new ID values to every
-    /// node
-    void assignIds();
     /// \brief List of subnodes.
     ///
     /// Some of the derived nodes don't make the use of subnode list
     /// (word, punctuation etc), but it was left on the top level of the
     /// hierarchy for conveinience purposes. It is not expected that 'any'
     /// node can have subnodes.
-    Vec<Wrap<Org>> subnodes;
+    Vec<SemId> subnodes;
 
-    void push_back(Wrap<Org>&& sub) { subnodes.push_back(std::move(sub)); }
+    void push_back(SemId sub) { subnodes.push_back(std::move(sub)); }
 
     /// \brief Get subnode at specified index
-    inline Wrap<Org> at(int idx) { return subnodes[idx]; }
-
-    /// \brief Cast this node to the specified type and return the result.
-    /// If the cast fails exception is thrown.
-    template <typename T>
-    Wrap<T> as() {
-        Wrap<T> result = std::static_pointer_cast<T>(shared_from_this());
-        Q_ASSERT_X(
-            result.get() != nullptr,
-            "org-base cast",
-            "Could not convert $# to $#"
-                % to_string_vec(getKind(), demangle(typeid(T).name())));
-        return result;
-    }
-
-    /// \brief Overload for constant conversion
-    template <typename T>
-    Wrap<T> as() const {
-        Wrap<T> result = std::static_pointer_cast<T>(shared_from_this());
-        Q_ASSERT_X(
-            result.get() != nullptr,
-            "org-base cast",
-            "Could not convert $# to $#"
-                % to_string_vec(getKind(), demangle(typeid(T).name())));
-        return result;
-    }
+    inline SemId at(int idx) const { return subnodes[idx]; }
 
     bool is(OrgSemKind kind) const { return getKind() == kind; }
     bool is(CR<SemSet> kinds) const { return kinds.contains(getKind()); }
@@ -230,14 +261,13 @@ class Attached;
 struct Stmt : public Org {
     using Org::Org;
     Stmt() {}
-    Stmt(CVec<Wrap<Attached>> attached, CVec<Wrap<Org>> subnodes)
+    Stmt(CVec<SemId> attached, CVec<SemId> subnodes)
         : Org(subnodes), attached(attached) {}
 
-    Vec<Wrap<Attached>> attached;
-    json                attachedJson() const;
+    Vec<SemId> attached;
+    json       attachedJson() const;
 
-    template <typename T>
-    Opt<Wrap<T>> getAttached(OrgSemKind kind);
+    Opt<SemId> getAttached(OrgSemKind kind);
     BOOST_DESCRIBE_CLASS(Stmt, (Org), (), (), ());
 };
 
@@ -248,27 +278,27 @@ struct Inline : public Org {
 
 struct StmtList : public Org {
     using Org::Org;
-    GET_KIND(StmtList);
+    DECL_KIND(StmtList);
     DECL_FIELDS(StmtList, (Org));
 };
 
 struct Empty : public Org {
     using Org::Org;
-    GET_KIND(Empty);
+    DECL_KIND(Empty);
     DECL_FIELDS(Empty, (Org));
 };
 
 struct Row : public Org {
     using Org::Org;
-    GET_KIND(Row);
+    DECL_KIND(Row);
     DECL_FIELDS(Row, (Org));
 };
 
 #define __extra_args_pass Stmt(args.subnodes)
 struct Table : public Stmt {
     using Stmt::Stmt;
-    GET_KIND(Table);
-    DECL_FIELDS(Table, (Stmt), ((Vec<Wrap<Row>>), rows, Rows, {}))
+    DECL_KIND(Table);
+    DECL_FIELDS(Table, (Stmt), ((Vec<SemIdT<Row>>), rows, Rows, {}))
 };
 
 #define __extra_args_pass Inline(args.subnodes)
@@ -277,30 +307,30 @@ struct HashTag : public Inline {
 
     bool prefixMatch(CR<Vec<Str>> prefix) const;
 
-    GET_KIND(HashTag);
+    DECL_KIND(HashTag);
     DECL_FIELDS(
         HashTag,
         (Inline),
         ((Str), head, Head, ""),
-        ((Vec<Wrap<HashTag>>), subtags, Subtags, {}));
+        ((Vec<SemIdT<HashTag>>), subtags, Subtags, {}));
 };
 
 struct Footnote : public Inline {
     using Inline::Inline;
 
-    GET_KIND(Footnote);
+    DECL_KIND(Footnote);
     DECL_FIELDS(
         Footnote,
         (Inline),
         ((Str), tag, Tag, ""),
-        ((Opt<Org::Ptr>), definition, Definition, std::nullopt));
+        ((Opt<SemId>), definition, Definition, std::nullopt));
 };
 
 #define __extra_args_pass Inline(args.subnodes)
 /// \brief Completion status of the subtree or list element
 struct Completion : public Inline {
     using Inline::Inline;
-    GET_KIND(Completion);
+    DECL_KIND(Completion);
     DECL_FIELDS(
         Completion,
         (Inline),
@@ -315,11 +345,11 @@ struct Completion : public Inline {
 #define __extra_args_pass Stmt(args.subnodes)
 struct Paragraph : public Stmt {
     using Stmt::Stmt;
-    GET_KIND(Paragraph);
+    DECL_KIND(Paragraph);
     DECL_FIELDS(Paragraph, (Stmt));
 
     bool isFootnoteDefinition() const {
-        return !subnodes.empty() && subnodes[0]->is(OrgSemKind::Footnote);
+        return !subnodes.empty() && at(0)->is(OrgSemKind::Footnote);
     }
 };
 
@@ -333,7 +363,7 @@ struct Format : public Org {
 /// \brief Center nested content in the exporrt
 struct Center : public Format {
     using Format::Format;
-    GET_KIND(Center);
+    DECL_KIND(Center);
     DECL_FIELDS(Center, (Format));
 };
 
@@ -368,8 +398,8 @@ struct Attached : public LineCommand {
 /// \brief Caption annotation for any subsequent node
 struct Caption : public Attached {
     using Attached::Attached;
-    Wrap<Paragraph> text;
-    GET_KIND(Caption);
+    SemIdT<Paragraph> text = SemIdT<Paragraph>::Nil();
+    DECL_KIND(Caption);
     DECL_FIELDS(Caption, (Attached));
 };
 
@@ -378,7 +408,7 @@ struct Caption : public Attached {
 /// unless it is possible to attached them to some adjacent block command
 struct CommandGroup : public Stmt {
     using Stmt::Stmt;
-    GET_KIND(CommandGroup);
+    DECL_KIND(CommandGroup);
     DECL_FIELDS(CommandGroup, (Stmt));
 };
 
@@ -393,28 +423,28 @@ struct Block : public Command {
 /// \brief Quotation block
 struct Quote : public Block {
     using Block::Block;
-    Wrap<Paragraph> text;
-    GET_KIND(Quote);
+    SemIdT<Paragraph> text = SemIdT<Paragraph>::Nil();
+    DECL_KIND(Quote);
     DECL_FIELDS(Quote, (Block));
 };
 
 /// \brief Example block
 struct Example : public Block {
     using Block::Block;
-    GET_KIND(Example);
+    DECL_KIND(Example);
     DECL_FIELDS(Example, (Block));
 };
 
 struct AdmonitionBlock : public Block {
     using Block::Block;
-    GET_KIND(AdmonitionBlock);
+    DECL_KIND(AdmonitionBlock);
     DECL_FIELDS(AdmonitionBlock, (Block));
 };
 
 /// \brief Base class for all code blocks
 struct Code : public Block {
     using Block::Block;
-    GET_KIND(Code);
+    DECL_KIND(Code);
 
     /// \brief Extra configuration switches that can be used to control
     /// representation of the rendered code block. This field does not
@@ -502,7 +532,7 @@ struct Code : public Block {
 #define __extra_args_pass Org(args.subnodes)
 /// \brief Single static or dynamic timestamp (active or inactive)
 struct Time : public Org {
-    GET_KIND(Time);
+    DECL_KIND(Time);
     using Org::Org;
 
     /// Repetition for static time
@@ -547,7 +577,7 @@ struct Time : public Org {
     };
 
     Time(CR<QDateTime> time)
-        : time(Static{.time = time}), Org(nullptr, OrgAdapter()) {}
+        : time(Static{.time = time}), Org(SemId::Nil(), OrgAdapter()) {}
 
     struct Static {
         Opt<Repeat> repeat;
@@ -582,31 +612,31 @@ struct Time : public Org {
 
 /// Time range delimited by two points
 struct TimeRange : public Org {
-    GET_KIND(TimeRange);
+    DECL_KIND(TimeRange);
     using Org::Org;
 
     DECL_FIELDS(
         TimeRange,
         (Org),
-        ((Wrap<Time>), from, From, nullptr),
-        ((Wrap<Time>), to, To, nullptr));
+        ((SemIdT<Time>), from, From, SemIdT<Time>::Nil()),
+        ((SemIdT<Time>), to, To, SemIdT<Time>::Nil()));
 };
 
 struct SubtreeLog : public Org {
-    GET_KIND(SubtreeLog);
+    DECL_KIND(SubtreeLog);
     using Org::Org;
     struct Note {
-        Wrap<Time> on;
+        SemIdT<Time> on = SemIdT<Time>::Nil();
     };
 
     struct Refile {
-        Wrap<Time> on;
+        SemIdT<Time> on = SemIdT<Time>::Nil();
     };
 
     /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30
     /// Sun 14:51:16] => 1:22`
     struct Clock {
-        Variant<Wrap<Time>, Wrap<TimeRange>> range;
+        Variant<SemIdT<Time>, SemIdT<TimeRange>> range;
     };
 
     /// \brief Change of the subtree state -- `- State "WIP" from "TODO"
@@ -614,14 +644,14 @@ struct SubtreeLog : public Org {
     struct State {
         OrgBigIdentKind from;
         OrgBigIdentKind to;
-        Wrap<Time>      on;
+        SemIdT<Time>    on = SemIdT<Time>::Nil();
     };
 
     /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on
     /// [2023-04-30 Sun 13:29:06]`
     struct Tag {
-        Wrap<HashTag> tag;
-        bool          added = false;
+        SemIdT<HashTag> tag   = SemIdT<HashTag>::Nil();
+        bool            added = false;
     };
 
     SUB_VARIANTS(
@@ -643,7 +673,7 @@ struct SubtreeLog : public Org {
 
 #define __extra_args_pass Org(args.subnodes)
 struct Subtree : public Org {
-    GET_KIND(Subtree);
+    DECL_KIND(Subtree);
     using Org::Org;
 
     struct Period {
@@ -666,14 +696,16 @@ struct Subtree : public Org {
             Repeated,
         };
 
-        Wrap<Time>&      getTime() { return std::get<Wrap<Time>>(period); }
-        Wrap<TimeRange>& getTimeRange() {
-            return std::get<Wrap<TimeRange>>(period);
+        SemIdT<Time>& getTime() { return std::get<SemIdT<Time>>(period); }
+        SemIdT<TimeRange>& getTimeRange() {
+            return std::get<SemIdT<TimeRange>>(period);
         }
 
-        Variant<Wrap<Time>, Wrap<TimeRange>> period;
-        Kind                                 kind;
-        Period(CR<Variant<Wrap<Time>, Wrap<TimeRange>>> period, Kind kind)
+        Variant<SemIdT<Time>, SemIdT<TimeRange>> period;
+        Kind                                     kind;
+        Period(
+            CR<Variant<SemIdT<Time>, SemIdT<TimeRange>>> period,
+            Kind                                         kind)
             : period(period), kind(kind) {}
     };
 
@@ -719,7 +751,7 @@ struct Subtree : public Org {
         struct Unnumbered {};
 
         struct Created {
-            Wrap<Time> time;
+            SemIdT<Time> time = SemIdT<Time>::Nil();
         };
 
         struct Origin {
@@ -773,15 +805,15 @@ struct Subtree : public Org {
         ((int), level, Level, 0),
         ((Opt<Str>), treeId, TreeId, std::nullopt),
         ((Opt<Str>), todo, Todo, std::nullopt),
-        ((Opt<Wrap<Completion>>), completion, Completion, std::nullopt),
-        ((Vec<Wrap<HashTag>>), tags, Tags, {}),
-        ((Wrap<Paragraph>), title, Title, nullptr),
-        ((Opt<Wrap<Paragraph>>), description, Description, std::nullopt),
-        ((Vec<Wrap<SubtreeLog>>), logbook, Logbook, {}),
+        ((Opt<SemIdT<Completion>>), completion, Completion, std::nullopt),
+        ((Vec<SemIdT<HashTag>>), tags, Tags, {}),
+        ((SemIdT<Paragraph>), title, Title, SemIdT<Paragraph>::Nil()),
+        ((Opt<SemIdT<Paragraph>>), description, Description, std::nullopt),
+        ((Vec<SemIdT<SubtreeLog>>), logbook, Logbook, {}),
         ((Vec<Property>), properties, Properties, {}),
-        ((Opt<Wrap<Time>>), closed, Closed, std::nullopt),
-        ((Opt<Wrap<Time>>), deadline, Deadline, std::nullopt),
-        ((Opt<Wrap<Time>>), scheduled, Scheduled, std::nullopt));
+        ((Opt<SemIdT<Time>>), closed, Closed, std::nullopt),
+        ((Opt<SemIdT<Time>>), deadline, Deadline, std::nullopt),
+        ((Opt<SemIdT<Time>>), scheduled, Scheduled, std::nullopt));
 
 
     Vec<Property> getProperties(
@@ -806,7 +838,7 @@ struct LatexBody : public Org {
 #define __extra_args_pass LatexBody(args.subnodes)
 struct InlineMath : public LatexBody {
     using LatexBody::LatexBody;
-    GET_KIND(InlineMath);
+    DECL_KIND(InlineMath);
     DECL_FIELDS(InlineMath, (LatexBody));
 };
 
@@ -824,55 +856,55 @@ struct Leaf : public Org {
 
 struct Escaped : public Leaf {
     using Leaf::Leaf;
-    GET_KIND(Escaped);
+    DECL_KIND(Escaped);
     DECL_FIELDS(Escaped, (Leaf));
 };
 
 struct Newline : public Leaf {
     using Leaf::Leaf;
-    GET_KIND(Newline);
+    DECL_KIND(Newline);
     DECL_FIELDS(Newline, (Leaf));
 };
 
 struct Space : public Leaf {
     using Leaf::Leaf;
-    GET_KIND(Space);
+    DECL_KIND(Space);
     DECL_FIELDS(Space, (Leaf));
 };
 
 struct Word : public Leaf {
     using Leaf::Leaf;
-    GET_KIND(Word);
+    DECL_KIND(Word);
     DECL_FIELDS(Word, (Leaf));
 };
 
 struct AtMention : public Leaf {
     using Leaf::Leaf;
-    GET_KIND(AtMention);
+    DECL_KIND(AtMention);
     DECL_FIELDS(AtMention, (Leaf));
 };
 
 struct RawText : public Leaf {
     using Leaf::Leaf;
-    GET_KIND(RawText);
+    DECL_KIND(RawText);
     DECL_FIELDS(RawText, (Leaf));
 };
 
 struct Punctuation : public Leaf {
     using Leaf::Leaf;
-    GET_KIND(Punctuation);
+    DECL_KIND(Punctuation);
     DECL_FIELDS(Punctuation, (Leaf));
 };
 
 struct Placeholder : public Leaf {
     using Leaf::Leaf;
-    GET_KIND(Placeholder);
+    DECL_KIND(Placeholder);
     DECL_FIELDS(Placeholder, (Leaf));
 };
 
 struct BigIdent : public Leaf {
     using Leaf::Leaf;
-    GET_KIND(BigIdent);
+    DECL_KIND(BigIdent);
     DECL_FIELDS(BigIdent, (Leaf));
 };
 
@@ -886,7 +918,7 @@ struct BigIdent : public Leaf {
     __IMPL(Placeholder)                                                   \
     __IMPL(BigIdent)
 
-#define __extra_args_fields Vec<Wrap<Org>> subnodes = {};
+#define __extra_args_fields Vec<SemId> subnodes = {};
 #define __extra_args_pass Org(args.subnodes)
 
 struct Markup : public Org {
@@ -898,49 +930,49 @@ struct Markup : public Org {
 
 struct Bold : public Markup {
     using Markup::Markup;
-    GET_KIND(Bold);
+    DECL_KIND(Bold);
     DECL_FIELDS(Bold, (Markup));
 };
 
 struct Underline : public Markup {
     using Markup::Markup;
-    GET_KIND(Underline);
+    DECL_KIND(Underline);
     DECL_FIELDS(Underline, (Markup));
 };
 
 struct Monospace : public Markup {
     using Markup::Markup;
-    GET_KIND(Monospace);
+    DECL_KIND(Monospace);
     DECL_FIELDS(Monospace, (Markup));
 };
 
 struct MarkQuote : public Markup {
     using Markup::Markup;
-    GET_KIND(MarkQuote);
+    DECL_KIND(MarkQuote);
     DECL_FIELDS(MarkQuote, (Markup));
 };
 
 struct Verbatim : public Markup {
     using Markup::Markup;
-    GET_KIND(Verbatim);
+    DECL_KIND(Verbatim);
     DECL_FIELDS(Verbatim, (Markup));
 };
 
 struct Italic : public Markup {
     using Markup::Markup;
-    GET_KIND(Italic);
+    DECL_KIND(Italic);
     DECL_FIELDS(Italic, (Markup));
 };
 
 struct Strike : public Markup {
     using Markup::Markup;
-    GET_KIND(Strike);
+    DECL_KIND(Strike);
     DECL_FIELDS(Strike, (Markup));
 };
 
 struct Par : public Markup {
     using Markup::Markup;
-    GET_KIND(Par);
+    DECL_KIND(Par);
     DECL_FIELDS(Par, (Markup));
 };
 
@@ -948,7 +980,7 @@ struct Par : public Markup {
 
 struct List : public Org {
     using Org::Org;
-    GET_KIND(List);
+    DECL_KIND(List);
     DECL_FIELDS(List, (Org));
 
     bool isDescriptionList() const;
@@ -956,7 +988,7 @@ struct List : public Org {
 
 struct ListItem : public Org {
     using Org::Org;
-    GET_KIND(ListItem);
+    DECL_KIND(ListItem);
     enum class Checkbox
     {
         None,
@@ -972,11 +1004,11 @@ struct ListItem : public Org {
         ListItem,
         (Org),
         ((Checkbox), checkbox, Checkbox, Checkbox::None),
-        ((Opt<Wrap<Paragraph>>), header, Header, std::nullopt));
+        ((Opt<SemIdT<Paragraph>>), header, Header, std::nullopt));
 };
 
 struct Link : public Org {
-    GET_KIND(Link);
+    DECL_KIND(Link);
     using Org::Org;
     struct Raw {
         Str text;
@@ -1000,19 +1032,22 @@ struct Link : public Org {
         Link,
         (Org),
         ((Data), data, Data, Raw{}),
-        ((Opt<Wrap<Paragraph>>), description, Description, std::nullopt));
+        ((Opt<SemIdT<Paragraph>>),
+         description,
+         Description,
+         std::nullopt));
 };
 
 struct ParseError : public Org {
     using Org::Org;
-    GET_KIND(ParseError);
+    DECL_KIND(ParseError);
     DECL_FIELDS(ParseError, (Org));
 };
 
 
 struct FileTarget : public Org {
     using Org::Org;
-    GET_KIND(FileTarget);
+    DECL_KIND(FileTarget);
     DECL_FIELDS(
         FileTarget,
         (Org),
@@ -1026,13 +1061,13 @@ struct FileTarget : public Org {
 
 struct TextSeparator : public Org {
     using Org::Org;
-    GET_KIND(TextSeparator);
+    DECL_KIND(TextSeparator);
     DECL_FIELDS(TextSeparator, (Org));
 };
 
 struct Include : public Org {
     using Org::Org;
-    GET_KIND(Include);
+    DECL_KIND(Include);
 
     struct Example {};
     struct Export {};
@@ -1053,16 +1088,13 @@ struct Include : public Org {
         Include,
         (Org),
         ((Data), data, Data, OrgDocument{}),
-        ((Opt<Wrap<Org>>),
-         includedDocument,
-         IncludedDocument,
-         std::nullopt));
+        ((Opt<SemId>), includedDocument, IncludedDocument, std::nullopt));
 };
 
 
 struct DocumentOptions : public Org {
     using Org::Org;
-    GET_KIND(DocumentOptions);
+    DECL_KIND(DocumentOptions);
 
     DECL_DESCRIBED_ENUM(BrokenLinks, Raise, Ignore, Mark);
 
@@ -1089,46 +1121,112 @@ struct DocumentOptions : public Org {
 
 struct Document : public Org {
     using Org::Org;
-    GET_KIND(Document);
+    DECL_KIND(Document);
 
 
     DECL_FIELDS(
         Document,
         (Org),
-        ((UnorderedMap<int, Wrap<Org>>), backPtr, BackPtr, {}),
-        ((UnorderedMap<Str, int>), idTable, IdTable, {}),
-        ((UnorderedMap<Str, int>), nameTable, NameTable, {}),
-        ((UnorderedMap<Str, int>), anchorTable, AnchorTable, {}),
-        ((UnorderedMap<Str, int>), footnoteTable, FootnoteTable, {}),
-        ((Opt<Wrap<Paragraph>>), title, Title, std::nullopt),
-        ((Opt<Wrap<Paragraph>>), author, Author, std::nullopt),
-        ((Opt<Wrap<Paragraph>>), creator, Creator, std::nullopt),
-        ((Opt<Wrap<RawText>>), email, Email, std::nullopt),
+        ((UnorderedMap<Str, SemId>), idTable, IdTable, {}),
+        ((UnorderedMap<Str, SemId>), nameTable, NameTable, {}),
+        ((UnorderedMap<Str, SemId>), anchorTable, AnchorTable, {}),
+        ((UnorderedMap<Str, SemId>), footnoteTable, FootnoteTable, {}),
+        ((Opt<SemIdT<Paragraph>>), title, Title, std::nullopt),
+        ((Opt<SemIdT<Paragraph>>), author, Author, std::nullopt),
+        ((Opt<SemIdT<Paragraph>>), creator, Creator, std::nullopt),
+        ((Opt<SemIdT<RawText>>), email, Email, std::nullopt),
         ((Opt<Vec<Str>>), language, Language, std::nullopt),
-        ((Wrap<DocumentOptions>), options, Options, nullptr),
+        ((SemIdT<DocumentOptions>),
+         options,
+         Options,
+         SemIdT<DocumentOptions>::Nil()),
         ((Opt<Str>), exportFileName, ExportFileName, std::nullopt));
 
 
-    Opt<Wrap<Org>>     getTree(int id) { return backPtr.get(id); }
-    Opt<Wrap<Subtree>> getSubtree(CR<Str> id);
-    Opt<Wrap<Org>>     resolve(CR<Wrap<Org>> node);
+    Opt<SemIdT<Subtree>> getSubtree(CR<Str> id) const;
+    Opt<SemId>           resolve(CR<SemId> node) const;
 };
 
 struct DocumentGroup : public Org {
     using Org::Org;
-    GET_KIND(DocumentGroup);
+    DECL_KIND(DocumentGroup);
     DECL_FIELDS(DocumentGroup, (Org));
 };
 
+
 template <typename T>
-Opt<Wrap<T>> Stmt::getAttached(OrgSemKind kind) {
-    for (const auto& sub : attached) {
-        if (sub->getKind() == kind) {
-            return sub->as<T>();
+struct KindStore {
+    Vec<T> values;
+
+    T& getForIndex(uint32_t index) { return values.at(index); }
+
+    SemId create(
+        uint32_t        selfIndex,
+        SemId           parent,
+        Opt<OrgAdapter> original) {
+        SemId result = SemId(selfIndex, T::staticKind, values.size());
+        if (original) {
+            values.emplace_back(parent, *original);
+        } else {
+            values.emplace_back(parent);
         }
+        return result;
+    }
+};
+
+
+struct LocalStore {
+#define _kind(__Kind) KindStore<__Kind> store##__Kind;
+    EACH_SEM_ORG_KIND(_kind)
+#undef _kind
+
+    Org&  get(OrgSemKind kind, int index);
+    SemId create(
+        int             selfIndex,
+        OrgSemKind      kind,
+        SemId           parent,
+        Opt<OrgAdapter> original = std::nullopt);
+};
+
+class GlobalStore {
+  public:
+    static GlobalStore& getInstance() {
+        static GlobalStore instance;
+        return instance;
     }
 
-    return std::nullopt;
+    LocalStore& getStoreByIndex(int index);
+
+    static SemId createIn(
+        int             index,
+        OrgSemKind      kind,
+        SemId           parent,
+        Opt<OrgAdapter> original = std::nullopt);
+
+
+    static SemId createInSame(
+        SemId           existing,
+        OrgSemKind      kind,
+        SemId           parent,
+        Opt<OrgAdapter> original = std::nullopt);
+
+
+    Vec<LocalStore> stores;
+
+  private:
+    GlobalStore() {}
+    GlobalStore(const GlobalStore&)            = delete;
+    GlobalStore& operator=(const GlobalStore&) = delete;
+};
+
+template <typename T>
+T* SemIdT<T>::operator->() {
+    return static_cast<T*>(&get());
+}
+
+template <typename T>
+T const* SemIdT<T>::operator->() const {
+    return static_cast<T const*>(&get());
 }
 
 template <typename T>
@@ -1138,8 +1236,14 @@ std::derived_from<typename remove_smart_pointer<T>::type, sem::Org>;
 template <typename T>
 concept IsOrg = std::
     derived_from<typename remove_smart_pointer<T>::type, sem::Org>;
-
 }; // namespace sem
 
-#undef GET_KIND
+template <>
+struct std::hash<sem::SemId> {
+    std::size_t operator()(sem::SemId const& s) const noexcept {
+        return qHash(s.id);
+    }
+};
+
+#undef DECL_KIND
 #undef DECL_FIELDS

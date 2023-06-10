@@ -19,7 +19,7 @@ sem::Subtree::Period::Kind high() {
     return sem::Subtree::Period::Kind::Repeated;
 }
 
-sem::OrgVariant Org::asVariant() {
+sem::OrgVariant SemId::asVariant() {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: return this->as<__Kind>();
 
@@ -28,34 +28,26 @@ sem::OrgVariant Org::asVariant() {
 #undef __case
 }
 
-OrgVariant Org::fromKind(OrgSemKind kind) {
-#define __case(__Kind)                                                    \
-    case OrgSemKind::__Kind: return std::make_shared<__Kind>();
+SemId SemId::getParent() const { return (*this)->getParent(); }
 
-    switch (kind) { EACH_SEM_ORG_KIND(__case) }
+Vec<SemId> SemId::getParentChain(bool withSelf) const {
+    Vec<SemId> result;
 
-#undef __case
-}
+    SemId now = withSelf ? *this : getParent();
 
-
-Vec<Org*> Org::getParentChain(bool withSelf) const {
-    Vec<Org*> result;
-
-    Org const* now = withSelf ? this : getParent();
-
-    while (now != nullptr) {
-        result.push_back(const_cast<Org*>(now));
-        now = now->getParent();
+    while (now) {
+        result.push_back(now);
+        now = now.getParent();
     }
 
     return result;
 }
 
 
-Opt<Wrap<Document>> Org::getDocument() const {
+Opt<SemIdT<Document>> SemId::getDocument() const {
     for (const auto& item : getParentChain()) {
         if (item->getKind() == OrgSemKind::Document) {
-            return item->as<Document>();
+            return item.as<Document>();
         }
     }
     return std::nullopt;
@@ -64,22 +56,20 @@ Opt<Wrap<Document>> Org::getDocument() const {
 
 namespace {
 void eachSubnodeRecImpl(
-    CR<Org::SubnodeVisitor> visitor,
-    sem::Wrap<sem::Org>     org,
-    bool                    originalBase);
+    CR<SemId::SubnodeVisitor> visitor,
+    SemId                     org,
+    bool                      originalBase);
 
 template <sem::NotOrg T>
-void visitField(CR<Org::SubnodeVisitor>, CR<T>) {}
+void visitField(CR<SemId::SubnodeVisitor>, CR<T>) {}
 
 
-void visitField(
-    CR<Org::SubnodeVisitor> visitor,
-    sem::Wrap<sem::Org>     node) {
+void visitField(CR<SemId::SubnodeVisitor> visitor, SemId node) {
     eachSubnodeRecImpl(visitor, node, true);
 }
 
 template <typename T>
-void visitField(CR<Org::SubnodeVisitor> visitor, CVec<T> value) {
+void visitField(CR<SemId::SubnodeVisitor> visitor, CVec<T> value) {
     for (const auto& it : value) {
         visitField(visitor, it);
     }
@@ -87,7 +77,7 @@ void visitField(CR<Org::SubnodeVisitor> visitor, CVec<T> value) {
 
 
 template <typename T>
-void visitField(CR<Org::SubnodeVisitor> visitor, CR<Opt<T>> value) {
+void visitField(CR<SemId::SubnodeVisitor> visitor, CR<Opt<T>> value) {
     if (value) {
         visitField(visitor, *value);
     }
@@ -95,9 +85,9 @@ void visitField(CR<Org::SubnodeVisitor> visitor, CR<Opt<T>> value) {
 
 template <typename T>
 void recVisitOrgNodesImpl(
-    CR<Org::SubnodeVisitor> visitor,
-    sem::Wrap<T>            tree,
-    bool                    originalBase) {
+    CR<SemId::SubnodeVisitor> visitor,
+    sem::SemIdT<T>            tree,
+    bool                      originalBase) {
     if (originalBase) {
         visitor(tree);
     }
@@ -109,38 +99,31 @@ void recVisitOrgNodesImpl(
     });
 
     mp_for_each<Md>([&](auto const& field) {
-        visitField(visitor, (*tree).*field.pointer);
+        visitField(
+            visitor, (static_cast<T const&>(tree.get())).*field.pointer);
     });
 }
 
 void eachSubnodeRecImpl(
-    CR<Org::SubnodeVisitor> visitor,
-    sem::Wrap<sem::Org>     org,
-    bool                    originalBase) {
+    CR<SemId::SubnodeVisitor> visitor,
+    SemId                     org,
+    bool                      originalBase) {
     std::visit(
         [&](const auto& node) {
             recVisitOrgNodesImpl(visitor, node, originalBase);
         },
-        org->asVariant());
+        org.asVariant());
 }
 } // namespace
 
-void Org::eachSubnodeRec(SubnodeVisitor cb) {
-    eachSubnodeRecImpl(cb, shared_from_this(), true);
+void SemId::eachSubnodeRec(SubnodeVisitor cb) {
+    eachSubnodeRecImpl(cb, *this, true);
 }
 
-void Org::assignIds() {
-    int count = 0;
-    eachSubnodeRec([&](Wrap<Org> org) {
-        org->id = count;
-        ++count;
-    });
-}
-
-Opt<Wrap<Subtree>> Org::getParentSubtree() const {
+Opt<SemIdT<Subtree>> SemId::getParentSubtree() const {
     for (const auto& item : getParentChain()) {
         if (item->getKind() == OrgSemKind::Subtree) {
-            return item->as<Subtree>();
+            return item.as<Subtree>();
         }
     }
     return std::nullopt;
@@ -150,10 +133,10 @@ Vec<Subtree::Period> Subtree::getTimePeriods(IntSet<Period::Kind> kinds) {
     Vec<Period> res;
     for (const auto& it : title->subnodes) {
         if (it->getKind() == osk::Time) {
-            res.push_back(Period(it->as<Time>(), Period::Kind::Titled));
+            res.push_back(Period(it.as<Time>(), Period::Kind::Titled));
         } else if (it->getKind() == osk::TimeRange) {
             res.push_back(
-                Period(it->as<TimeRange>(), Period::Kind::Titled));
+                Period(it.as<TimeRange>(), Period::Kind::Titled));
         }
     }
 
@@ -191,18 +174,16 @@ Vec<Property> Subtree::getProperties(
 Vec<Property> Subtree::getContextualProperties(
     Property::Kind kind,
     CR<QString>    subkind) const {
-    Subtree const* now = this;
-    Vec<Property>  result;
-    while (now != nullptr) {
-        result.append(now->getProperties(kind));
-        if (auto sup = now->getParentSubtree()) {
-            now = sup.value().get();
-        } else {
-            now = nullptr;
+    Vec<Property> result;
+    result.append(getProperties(kind));
+
+    for (SemId parent : getParent().getParentChain(true)) {
+        if (parent->is(osk::Subtree)) {
+            result.append(parent.as<Subtree>()->getProperties(kind));
         }
     }
-    std::reverse(result.begin(), result.end());
 
+    std::reverse(result.begin(), result.end());
 
     Vec<Property> rulesApplied;
     for (int i = 0; i < result.size(); ++i) {
@@ -284,32 +265,24 @@ Opt<Property> Subtree::getProperty(
     }
 }
 
-Opt<Wrap<Subtree>> Document::getSubtree(CR<Str> id) {
-    auto iid = idTable.get(id);
-    if (!iid) {
-        return std::nullopt;
-    }
-    auto tree = getTree(iid.value());
-    if (!tree) {
-        return std::nullopt;
-    }
-    return (**tree).as<Subtree>();
+Opt<SemIdT<Subtree>> Document::getSubtree(CR<Str> id) const {
+    return idTable.get(id);
 }
 
-Opt<Wrap<Org>> Document::resolve(CR<Wrap<Org>> node) {
+Opt<SemId> Document::resolve(CR<SemId> node) const {
     Q_CHECK_PTR(node);
     Q_CHECK_PTR(this);
     switch (node->getKind()) {
         case osk::Link: {
-            auto link = node->as<Link>();
+            auto link = node.as<Link>();
             switch (link->getLinkKind()) {
                 case Link::Kind::Id: {
-                    Opt<int> target = idTable.get(link->getId().text);
-
+                    Opt<SemId> target = idTable.get(link->getId().text);
 
                     if (target) {
-                        return getTree(target.value());
+                        return target.value();
                     }
+
                     // TODO add target lookup that will create a full list
                     // of all possible targets and genrate warning message.
                     //
@@ -327,7 +300,7 @@ Opt<Wrap<Org>> Document::resolve(CR<Wrap<Org>> node) {
                         link->getFootnote().target);
 
                     if (target) {
-                        return getTree(target.value());
+                        return target.value();
                     }
 
                     qWarning()
@@ -346,9 +319,19 @@ Opt<Wrap<Org>> Document::resolve(CR<Wrap<Org>> node) {
 
 bool List::isDescriptionList() const {
     for (const auto& sub : subnodes) {
-        if (sub->as<ListItem>()->isDescriptionItem()) {
+        if (sub.as<ListItem>()->isDescriptionItem()) {
             return true;
         }
     }
     return false;
+}
+
+Opt<SemId> Stmt::getAttached(OrgSemKind kind) {
+    for (const auto& sub : attached) {
+        if (sub->getKind() == kind) {
+            return sub;
+        }
+    }
+
+    return std::nullopt;
 }

@@ -6,7 +6,7 @@
 
 namespace sem {
 struct OrgConverter : public OperationsTracer {
-    using Up = Org*;
+    using Up = SemId;
     using In = OrgAdapter;
 
   public:
@@ -96,7 +96,7 @@ struct OrgConverter : public OperationsTracer {
         Opt<Str>         subname;
         Opt<OrgAdapter>  node;
         Opt<OrgSpecName> field;
-        Org*             semResult;
+        SemId            semResult = SemId::Nil();
     };
 
     int  depth = 0;
@@ -106,76 +106,76 @@ struct OrgConverter : public OperationsTracer {
     Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
 
   public:
-    Wrap<Table>           convertTable(Up, In);
-    Wrap<HashTag>         convertHashTag(Up, In);
-    void                  convertSubtreeDrawer(Wrap<Subtree>&, In);
-    void                  convertPropertyList(Wrap<Subtree>&, In);
-    Wrap<Subtree>         convertSubtree(Up, In);
-    Wrap<StmtList>        convertStmtList(Up, In);
-    Wrap<Newline>         convertNewline(Up, In);
-    Wrap<Word>            convertWord(Up, In);
-    Wrap<Space>           convertSpace(Up, In);
-    Wrap<Paragraph>       convertParagraph(Up, In);
-    Wrap<TimeRange>       convertTimeRange(Up, In);
-    Wrap<Time>            convertTime(Up, In);
-    Wrap<Punctuation>     convertPunctuation(Up, In);
-    Wrap<Link>            convertLink(Up, In);
-    Wrap<BigIdent>        convertBigIdent(Up, In);
-    Wrap<MarkQuote>       convertMarkQuote(Up, In);
-    Wrap<Strike>          convertStrike(Up, In);
-    Wrap<Verbatim>        convertVerbatim(Up, In);
-    Wrap<Italic>          convertItalic(Up, In);
-    Wrap<Par>             convertPar(Up, In);
-    Wrap<Bold>            convertBold(Up, In);
-    Wrap<RawText>         convertRawText(Up, In);
-    Wrap<List>            convertList(Up, In);
-    Wrap<ListItem>        convertListItem(Up, In);
-    Wrap<Caption>         convertCaption(Up, In);
-    Wrap<Quote>           convertQuote(Up, In);
-    Wrap<Placeholder>     convertPlaceholder(Up, In);
-    Wrap<LatexBody>       convertMath(Up, In);
-    Wrap<Footnote>        convertFootnote(Up, In);
-    Wrap<Include>         convertInclude(Up, In);
-    Wrap<Escaped>         convertEscaped(Up, In);
-    Wrap<TextSeparator>   convertTextSeparator(Up, In);
-    Wrap<ParseError>      convertParseError(Up, In);
-    Wrap<AtMention>       convertAtMention(Up, In);
-    Wrap<Underline>       convertUnderline(Up, In);
-    Wrap<AdmonitionBlock> convertAdmonitionBlock(Up, In);
-    Wrap<Example>         convertExample(Up, In);
-    Wrap<Center>          convertCenter(Up, In);
-    Wrap<Monospace>       convertMonospace(Up, In);
+    SemIdT<Table>           convertTable(Up, In);
+    SemIdT<HashTag>         convertHashTag(Up, In);
+    void                    convertSubtreeDrawer(SemIdT<Subtree>&, In);
+    void                    convertPropertyList(SemIdT<Subtree>&, In);
+    SemIdT<Subtree>         convertSubtree(Up, In);
+    SemIdT<StmtList>        convertStmtList(Up, In);
+    SemIdT<Newline>         convertNewline(Up, In);
+    SemIdT<Word>            convertWord(Up, In);
+    SemIdT<Space>           convertSpace(Up, In);
+    SemIdT<Paragraph>       convertParagraph(Up, In);
+    SemIdT<TimeRange>       convertTimeRange(Up, In);
+    SemIdT<Time>            convertTime(Up, In);
+    SemIdT<Punctuation>     convertPunctuation(Up, In);
+    SemIdT<Link>            convertLink(Up, In);
+    SemIdT<BigIdent>        convertBigIdent(Up, In);
+    SemIdT<MarkQuote>       convertMarkQuote(Up, In);
+    SemIdT<Strike>          convertStrike(Up, In);
+    SemIdT<Verbatim>        convertVerbatim(Up, In);
+    SemIdT<Italic>          convertItalic(Up, In);
+    SemIdT<Par>             convertPar(Up, In);
+    SemIdT<Bold>            convertBold(Up, In);
+    SemIdT<RawText>         convertRawText(Up, In);
+    SemIdT<List>            convertList(Up, In);
+    SemIdT<ListItem>        convertListItem(Up, In);
+    SemIdT<Caption>         convertCaption(Up, In);
+    SemIdT<Quote>           convertQuote(Up, In);
+    SemIdT<Placeholder>     convertPlaceholder(Up, In);
+    SemIdT<LatexBody>       convertMath(Up, In);
+    SemIdT<Footnote>        convertFootnote(Up, In);
+    SemIdT<Include>         convertInclude(Up, In);
+    SemIdT<Escaped>         convertEscaped(Up, In);
+    SemIdT<TextSeparator>   convertTextSeparator(Up, In);
+    SemIdT<ParseError>      convertParseError(Up, In);
+    SemIdT<AtMention>       convertAtMention(Up, In);
+    SemIdT<Underline>       convertUnderline(Up, In);
+    SemIdT<AdmonitionBlock> convertAdmonitionBlock(Up, In);
+    SemIdT<Example>         convertExample(Up, In);
+    SemIdT<Center>          convertCenter(Up, In);
+    SemIdT<Monospace>       convertMonospace(Up, In);
 
-    Vec<Wrap<Org>> flatConvertAttached(Up, In);
+    Vec<SemId> flatConvertAttached(Up, In);
 
     template <typename T>
-    Wrap<T> convertAllSubnodes(Up p, In a) {
-        Wrap<T> res = std::make_shared<T>(p, a);
+    SemIdT<T> convertAllSubnodes(Up p, In a) {
+        SemIdT<T> res = Sem<T>(p, a);
 
         for (const auto& sub : a) {
-            res->push_back(convert(res.get(), sub));
+            res->push_back(convert(res, sub));
         }
 
         return res;
     }
 
     template <typename T>
-    Wrap<T> Sem(sem::Org* parent, OrgAdapter adapter) {
-        Wrap<T> res = std::make_shared<T>(parent, adapter);
-        res->loc    = getLoc(adapter);
+    SemIdT<T> Sem(Up parent, In adapter) {
+        SemIdT<T> res = GlobalStore::createInSame(
+            parent, T::staticKind, parent, adapter);
+        res->loc = getLoc(adapter);
         return res;
     }
 
     template <typename T>
-    Wrap<T> SemLeaf(sem::Org* parent, OrgAdapter adapter) {
+    SemIdT<T> SemLeaf(Up parent, In adapter) {
         auto res  = Sem<T>(parent, adapter);
         res->text = adapter.strVal();
         res->loc  = getLoc(adapter);
         return res;
     }
 
-    Wrap<Org> convert(Up, In);
-
-    Wrap<Document> toDocument(OrgAdapter tree);
+    SemId            convert(Up, In);
+    SemIdT<Document> toDocument(OrgAdapter tree);
 };
 }; // namespace sem

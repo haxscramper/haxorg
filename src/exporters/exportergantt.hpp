@@ -19,9 +19,9 @@ struct ExporterGantt : Exporter<ExporterGantt, int> {
 
     Vec<Ctx> stack;
 
-    void pushVisit(int&, sem::Wrap<sem::Subtree> tree);
+    void pushVisit(int&, sem::SemIdT<sem::Subtree> tree);
 
-    void popVisit(int&, sem::Wrap<sem::Subtree> tree);
+    void popVisit(int&, sem::SemIdT<sem::Subtree> tree);
 
     template <typename T>
     void visitField(int&, const char*, CR<T>) {}

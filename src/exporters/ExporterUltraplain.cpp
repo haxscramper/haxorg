@@ -2,7 +2,7 @@
 #include <hstd/stdlib/strutils.hpp>
 
 
-QString ExporterUltraplain::toStr(sem::Org::Ptr node) {
+QString ExporterUltraplain::toStr(sem::SemId node) {
     return strip(
         ExporterUltraplain{}.visitTop(node),
         CharSet{QChar(' ')},

@@ -10,6 +10,6 @@ json ExporterJson::newRes(In<sem::Org> org) {
                     ? json()
                     : json(org->original.id.getValue());
     res["loc"]  = loc;
-    res["id"]   = org->id ? json(*(org->id)) : json();
+    res["id"]   = org.id;
     return res;
 }

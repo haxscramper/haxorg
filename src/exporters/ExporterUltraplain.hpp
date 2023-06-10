@@ -5,7 +5,7 @@ struct ExporterUltraplain : public Exporter<ExporterUltraplain, QString> {
     EXPORTER_USING()
 #undef __ExporterBase
 
-    static QString toStr(sem::Org::Ptr node);
+    static QString toStr(sem::SemId node);
 
     void visitLink(QString& res, In<sem::Link> link);
 
@@ -32,7 +32,7 @@ struct ExporterUltraplain : public Exporter<ExporterUltraplain, QString> {
     }
 
 #define __visit(__Kind)                                                   \
-    void visit##__Kind(QString& res, In<sem::__Kind> const& leaf) {       \
+    void visit##__Kind(QString& res, In<sem::__Kind> leaf) {              \
         res += leaf->text;                                                \
     }
 
