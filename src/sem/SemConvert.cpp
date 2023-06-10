@@ -241,13 +241,14 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
 SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
     __perf_trace("convertSubtree");
     __trace();
-    auto tree = Sem<Subtree>(p, a);
+    auto     tree = Sem<Subtree>(p, a);
+    Subtree* res  = tree.get();
 
-    tree->level = one(a, N::Prefix).strVal().size();
+    res->level = one(a, N::Prefix).strVal().size();
 
     {
         __field(N::Title);
-        tree->title = convertParagraph(tree, one(a, N::Title));
+        res->title = convertParagraph(tree, one(a, N::Title));
     }
 
     { __field(N::Todo); }
@@ -255,7 +256,7 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
     {
         __field(N::Tags);
         for (const auto& hash : one(a, N::Tags)) {
-            tree->tags.push_back(convertHashTag(tree, hash));
+            res->tags.push_back(convertHashTag(tree, hash));
         }
     }
 
@@ -267,7 +268,16 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
     {
         __field(N::Body);
         for (auto const& sub : one(a, N::Body)) {
-            tree->push_back(convert(tree, sub));
+            auto const&    g      = GlobalStore::getInstance();
+            Subtree*       ptr    = tree.get();
+            Subtree const& direct = g.store.storeSubtree.values.at(
+                tree.getNodeIndex());
+            auto p = &ptr;
+            qDebug() << ptr->subnodes.capacity() << " "
+                     << ptr->subnodes.size() << "====" << ptr->subnodes
+                     << "====";
+            auto subres = convert(tree, sub);
+            res->subnodes.push_back(subres);
         }
     }
 

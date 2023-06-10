@@ -96,7 +96,7 @@ struct Exporter {
             _this()->visitField(
                 res,
                 field.name,
-                (static_cast<T const&>(tree.get())).*field.pointer);
+                (*static_cast<T const*>(tree.get())).*field.pointer);
         });
 
         mp_for_each<Bd>([&](auto Base) {

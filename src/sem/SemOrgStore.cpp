@@ -2,11 +2,15 @@
 
 using namespace sem;
 
-Org& LocalStore::get(OrgSemKind kind, int index) {
+Org* LocalStore::get(OrgSemKind kind, SemId::NodeIndexT index) {
     switch (kind) {
 
 #define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind: return store##__Kind.getForIndex(index);
+    case OrgSemKind::__Kind: {                                            \
+        sem::__Kind* res = store##__Kind.getForIndex(index);              \
+        Q_ASSERT(res->getKind() == kind);                                 \
+        return res;                                                       \
+    }
         EACH_SEM_ORG_KIND(_case)
 #undef _case
     }
@@ -14,10 +18,10 @@ Org& LocalStore::get(OrgSemKind kind, int index) {
 
 
 SemId LocalStore::create(
-    int             selfIndex,
-    OrgSemKind      kind,
-    SemId           parent,
-    Opt<OrgAdapter> original) {
+    SemId::StoreIndexT selfIndex,
+    OrgSemKind         kind,
+    SemId              parent,
+    Opt<OrgAdapter>    original) {
     switch (kind) {
 
 #define _case(__Kind)                                                     \
@@ -39,32 +43,30 @@ SemId LocalStore::create(
 EACH_SEM_ORG_KIND(_create)
 #undef _create
 
-Org& SemId::get() {
+Org* SemId::get() {
     return GlobalStore::getInstance()
         .getStoreByIndex(getStoreIndex())
         .get(getKind(), getNodeIndex());
 }
 
-Org const& SemId::get() const {
-    return GlobalStore::getInstance()
-        .getStoreByIndex(getStoreIndex())
-        .get(getKind(), getNodeIndex());
+Org const* SemId::get() const {
+    Org const* res = GlobalStore::getInstance()
+                         .getStoreByIndex(getStoreIndex())
+                         .get(getKind(), getNodeIndex());
+    Q_ASSERT(res->getKind() == getKind());
+    return res;
 }
 
-LocalStore& GlobalStore::getStoreByIndex(int index) {
-    if (stores.size() <= index) {
-        stores.resize(index + 1);
-    }
-
-    return stores.at(index);
+LocalStore& GlobalStore::getStoreByIndex(SemId::StoreIndexT index) {
+    return store;
 }
 
 
 SemId GlobalStore::createIn(
-    int             index,
-    OrgSemKind      kind,
-    SemId           parent,
-    Opt<OrgAdapter> original) {
+    SemId::StoreIndexT index,
+    OrgSemKind         kind,
+    SemId              parent,
+    Opt<OrgAdapter>    original) {
     return getInstance().getStoreByIndex(index).create(
         index, kind, parent, original);
 }

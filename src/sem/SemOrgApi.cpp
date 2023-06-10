@@ -100,7 +100,7 @@ void recVisitOrgNodesImpl(
 
     mp_for_each<Md>([&](auto const& field) {
         visitField(
-            visitor, (static_cast<T const&>(tree.get())).*field.pointer);
+            visitor, (*static_cast<T const*>(tree.get())).*field.pointer);
     });
 }
 
@@ -335,3 +335,17 @@ Opt<SemId> Stmt::getAttached(OrgSemKind kind) {
 
     return std::nullopt;
 }
+
+
+void Org::push_back(SemId sub) {
+    qDebug() << sub << subnodes.size();
+    auto dat = subnodes.data();
+    subnodes.push_back(sub);
+}
+
+namespace sem {
+QTextStream& operator<<(QTextStream& os, SemId const& value) {
+    return os << value.getStoreIndex() << ":" << to_string(value.getKind())
+              << ":" << value.getNodeIndex();
+}
+} // namespace sem

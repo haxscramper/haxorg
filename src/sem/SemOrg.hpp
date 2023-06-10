@@ -119,12 +119,16 @@ using OrgVariant = __variant();
 
 
 struct SemId {
-    uint64_t id = 0;
-    bool     isNil() const { return id == 0; }
+    using IdType      = u64;
+    using NodeIndexT  = u32;
+    using StoreIndexT = u32;
+
+    IdType id = 0;
+    bool   isNil() const { return id == 0; }
 
     static SemId Nil() { return SemId(0, OrgSemKind(0), 0); }
 
-    SemId(uint32_t storeIndex, OrgSemKind kind, uint32_t nodeIndex) {
+    SemId(StoreIndexT storeIndex, OrgSemKind kind, NodeIndexT nodeIndex) {
         setStoreIndex(storeIndex);
         setKind(kind);
         setNodeIndex(nodeIndex);
@@ -132,29 +136,29 @@ struct SemId {
 
     OrgSemKind getKind() const { return OrgSemKind((id >> 32) & 0xFF); }
 
-    uint32_t getNodeIndex() const {
+    NodeIndexT getNodeIndex() const {
         assert(!isNil());
         return (id & 0xFFFFFFFF) - 1;
     }
 
-    uint32_t getStoreIndex() const { return id >> 40; }
+    StoreIndexT getStoreIndex() const { return id >> 40; }
 
-    void setStoreIndex(uint32_t storeIndex) {
-        id = (id & 0x000000FFFFFFFFFF) | ((uint64_t)storeIndex << 40);
+    void setStoreIndex(StoreIndexT storeIndex) {
+        id = (id & 0x000000FFFFFFFFFF) | ((IdType)storeIndex << 40);
     }
 
     void setKind(OrgSemKind kind) {
-        id = (id & 0xFFFFFF00FFFFFFFF) | ((uint64_t)kind << 32);
+        id = (id & 0xFFFFFF00FFFFFFFF) | ((IdType)kind << 32);
     }
 
-    void setNodeIndex(uint32_t nodeIndex) {
+    void setNodeIndex(NodeIndexT nodeIndex) {
         id = (id & 0xFFFFFFFF00000000) | (nodeIndex + 1);
     }
 
-    Org&       get();
-    Org const& get() const;
-    Org*       operator->() { return &get(); }
-    Org const* operator->() const { return &get(); }
+    Org*       get();
+    Org const* get() const;
+    Org*       operator->() { return get(); }
+    Org const* operator->() const { return get(); }
 
     template <typename T>
     SemIdT<T> as() const;
@@ -185,13 +189,17 @@ struct SemId {
 };
 
 
+QTextStream& operator<<(QTextStream& os, SemId const& value);
+
 template <typename T>
 struct SemIdT : public SemId {
     SemId toId() const { return *this; }
     SemIdT(SemId base) : SemId(base) {}
 
-    T*       operator->();
-    T const* operator->() const;
+    T*       operator->() { return get(); }
+    T const* operator->() const { return get(); }
+    T*       get() { return static_cast<T*>(SemId::get()); }
+    T const* get() const { return static_cast<T const*>(SemId::get()); }
 };
 
 template <typename T>
@@ -221,9 +229,9 @@ struct Org {
     OrgAdapter original;
 
     inline Org(CVec<SemId> subnodes = {}) : subnodes(subnodes) {}
-    inline Org(SemId parent) : parent(parent) {}
+    inline Org(SemId parent) : parent(parent), subnodes({}) {}
     inline Org(SemId parent, OrgAdapter original)
-        : parent(parent), original(original) {}
+        : parent(parent), original(original), subnodes({}) {}
 
     /// \brief Get get kind of the original node.
     OrgNodeKind getOriginalKind() const { return original.getKind(); }
@@ -241,7 +249,7 @@ struct Org {
     /// node can have subnodes.
     Vec<SemId> subnodes;
 
-    void push_back(SemId sub) { subnodes.push_back(std::move(sub)); }
+    void push_back(SemId sub);
 
     /// \brief Get subnode at specified index
     inline SemId at(int idx) const { return subnodes[idx]; }
@@ -1158,13 +1166,19 @@ template <typename T>
 struct KindStore {
     Vec<T> values;
 
-    T& getForIndex(uint32_t index) { return values.at(index); }
+    T* getForIndex(SemId::NodeIndexT index) {
+        Q_ASSERT(0 <= index && index < values.size());
+        return &values.at(index);
+    }
 
     SemId create(
-        uint32_t        selfIndex,
-        SemId           parent,
-        Opt<OrgAdapter> original) {
-        SemId result = SemId(selfIndex, T::staticKind, values.size());
+        SemId::StoreIndexT selfIndex,
+        SemId              parent,
+        Opt<OrgAdapter>    original) {
+        SemId result = SemId(
+            selfIndex,
+            T::staticKind,
+            static_cast<SemId::NodeIndexT>(values.size()));
         if (original) {
             values.emplace_back(parent, *original);
         } else {
@@ -1180,12 +1194,12 @@ struct LocalStore {
     EACH_SEM_ORG_KIND(_kind)
 #undef _kind
 
-    Org&  get(OrgSemKind kind, int index);
+    Org*  get(OrgSemKind kind, SemId::NodeIndexT index);
     SemId create(
-        int             selfIndex,
-        OrgSemKind      kind,
-        SemId           parent,
-        Opt<OrgAdapter> original = std::nullopt);
+        SemId::StoreIndexT selfIndex,
+        OrgSemKind         kind,
+        SemId              parent,
+        Opt<OrgAdapter>    original = std::nullopt);
 };
 
 class GlobalStore {
@@ -1195,13 +1209,13 @@ class GlobalStore {
         return instance;
     }
 
-    LocalStore& getStoreByIndex(int index);
+    LocalStore& getStoreByIndex(SemId::StoreIndexT index);
 
     static SemId createIn(
-        int             index,
-        OrgSemKind      kind,
-        SemId           parent,
-        Opt<OrgAdapter> original = std::nullopt);
+        SemId::StoreIndexT index,
+        OrgSemKind         kind,
+        SemId              parent,
+        Opt<OrgAdapter>    original = std::nullopt);
 
 
     static SemId createInSame(
@@ -1211,23 +1225,13 @@ class GlobalStore {
         Opt<OrgAdapter> original = std::nullopt);
 
 
-    Vec<LocalStore> stores;
+    LocalStore store;
 
   private:
     GlobalStore() {}
     GlobalStore(const GlobalStore&)            = delete;
     GlobalStore& operator=(const GlobalStore&) = delete;
 };
-
-template <typename T>
-T* SemIdT<T>::operator->() {
-    return static_cast<T*>(&get());
-}
-
-template <typename T>
-T const* SemIdT<T>::operator->() const {
-    return static_cast<T const*>(&get());
-}
 
 template <typename T>
 concept NotOrg = !
