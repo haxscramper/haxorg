@@ -61,6 +61,8 @@ Org const* SemId::get() const {
     return res;
 }
 
+void SemId::push_back(SemId sub) { get()->push_back(sub); }
+
 LocalStore& GlobalStore::getStoreByIndex(SemId::StoreIndexT index) {
     return store;
 }

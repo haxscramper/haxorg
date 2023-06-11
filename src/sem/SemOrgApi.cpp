@@ -338,7 +338,6 @@ Opt<SemId> Stmt::getAttached(OrgSemKind kind) {
 
 
 void Org::push_back(SemId sub) {
-    qDebug() << sub << subnodes.size();
     auto dat = subnodes.data();
     subnodes.push_back(sub);
 }

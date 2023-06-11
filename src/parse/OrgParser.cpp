@@ -326,16 +326,16 @@ void OrgParserImpl<TraceState>::textFold(OrgLexer& lex) {
             __end();                                                      \
             lex.next();                                                   \
         } else {                                                          \
-            __print(                                                      \
-                "Mismatched kind openings pending tree was '$#', but "    \
-                "found '$#' at $# parser $#"                              \
+            auto msg                                                      \
+                = "Mismatched kind openings pending tree was '$#', but "  \
+                  "found '$#' at $# parser $#"                            \
                 % to_string_vec(                                          \
-                    pending().kind,                                       \
-                    org::Kind,                                            \
-                    getLocMsg(lex),                                       \
-                    __LINE__));                                           \
-                                                                          \
-            qFatal("Mismatched kind openings");                           \
+                      pending().kind,                                     \
+                      org::Kind,                                          \
+                      getLocMsg(lex),                                     \
+                      __LINE__);                                          \
+            __print(msg);                                                 \
+            qFatal(strdup(msg));                                          \
             fail(pop(lex, otk::Kind##Close));                             \
         }                                                                 \
         break;                                                            \

@@ -273,10 +273,6 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
                 tree.getNodeIndex());
             auto p = &ptr;
 
-            qDebug() << ptr->subnodes.capacity() << " "
-                     << ptr->subnodes.size() << "====" << ptr->subnodes
-                     << "====";
-
             auto subres = convert(tree, sub);
             tree->push_back(subres);
         }
@@ -391,9 +387,9 @@ SemIdT<Paragraph> OrgConverter::convertParagraph(__args) {
     bool first = true;
     for (const auto& item : a) {
         if (first && item.kind() == org::Footnote) {
-            par->push_back(convertFootnote(par, item));
+            par.push_back(convertFootnote(par, item));
         } else {
-            par->push_back(convert(par, item));
+            par.push_back(convert(par, item));
         }
         first = false;
     }
@@ -407,7 +403,7 @@ SemIdT<StmtList> OrgConverter::convertStmtList(__args) {
     auto stmt = Sem<StmtList>(p, a);
 
     for (OrgAdapter const& sub : a) {
-        stmt->push_back(convert(stmt, sub));
+        stmt.push_back(convert(stmt, sub));
     }
 
     return stmt;
@@ -468,7 +464,7 @@ SemIdT<List> OrgConverter::convertList(__args) {
     __trace();
     auto list = Sem<List>(p, a);
     for (const auto& it : a) {
-        list->push_back(convert(list, it));
+        list.push_back(convert(list, it));
     }
 
     return list;
@@ -483,7 +479,7 @@ SemIdT<ListItem> OrgConverter::convertListItem(__args) {
     }
 
     for (const auto& sub : one(a, N::Body)) {
-        item->push_back(convert(item, sub));
+        item.push_back(convert(item, sub));
     }
 
     return item;

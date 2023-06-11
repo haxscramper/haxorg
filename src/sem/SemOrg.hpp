@@ -179,6 +179,16 @@ struct SemId {
     Org const* operator->() const { return get(); }
     /// @}
 
+    /// \brief Add new subnode
+    ///
+    /// \note This method *must* be used instead of the
+    /// `id->push_back(convert())` and similar because otherwise it might
+    /// cause dangling pointers due to the following sequence: (1) `->` is
+    /// evaluated, (2) `convert()` is evaluated, (3) `push_back` is called
+    /// on the pointer created earlier, which might be invalidated due to
+    /// relocation in p2
+    void push_back(SemId sub);
+
     /// \brief Convert this node to one with specified kind
     template <typename T>
     SemIdT<T> as() const;
@@ -1273,14 +1283,17 @@ class GlobalStore {
 };
 
 template <typename T>
-concept NotOrg = !
-std::derived_from<typename remove_smart_pointer<T>::type, sem::Org>;
+concept NotOrg = !(
+    std::derived_from<typename remove_smart_pointer<T>::type, sem::Org>
+    || std::derived_from<T, SemId>);
 
 /// \brief  Compile-time check whether the element is an org-mode node or
 /// an org-mode ID
 template <typename T>
-concept IsOrg = std::
-    derived_from<typename remove_smart_pointer<T>::type, sem::Org>;
+concept IsOrg = std::derived_from<
+                    typename remove_smart_pointer<T>::type,
+                    sem::Org>
+             || std::derived_from<T, SemId>;
 }; // namespace sem
 
 template <>
