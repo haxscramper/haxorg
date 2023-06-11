@@ -17,11 +17,11 @@
 
 #define __INIT_REPORT(__subname, __node)                                  \
     (Report{                                                              \
-        .line     = __LINE__,                                             \
         .location = __CURRENT_FILE_PATH__,                                \
+        .line     = __LINE__,                                             \
         .name     = __func__,                                             \
-        .node     = __node,                                               \
         .subname  = __subname,                                            \
+        .node     = __node,                                               \
     })
 
 #define __trace2(__subname, __lex)                                        \
@@ -241,14 +241,13 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
 SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
     __perf_trace("convertSubtree");
     __trace();
-    auto     tree = Sem<Subtree>(p, a);
-    Subtree* res  = tree.get();
+    auto tree = Sem<Subtree>(p, a);
 
-    res->level = one(a, N::Prefix).strVal().size();
+    tree->level = one(a, N::Prefix).strVal().size();
 
     {
         __field(N::Title);
-        res->title = convertParagraph(tree, one(a, N::Title));
+        tree->title = convertParagraph(tree, one(a, N::Title));
     }
 
     { __field(N::Todo); }
@@ -256,7 +255,7 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
     {
         __field(N::Tags);
         for (const auto& hash : one(a, N::Tags)) {
-            res->tags.push_back(convertHashTag(tree, hash));
+            tree->tags.push_back(convertHashTag(tree, hash));
         }
     }
 
@@ -273,11 +272,13 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
             Subtree const& direct = g.store.storeSubtree.values.at(
                 tree.getNodeIndex());
             auto p = &ptr;
+
             qDebug() << ptr->subnodes.capacity() << " "
                      << ptr->subnodes.size() << "====" << ptr->subnodes
                      << "====";
+
             auto subres = convert(tree, sub);
-            res->subnodes.push_back(subres);
+            tree->push_back(subres);
         }
     }
 

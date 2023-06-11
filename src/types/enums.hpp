@@ -479,7 +479,8 @@ enum class OrgSemKind : short int
     __IMPL(TextSeparator)                                                 \
     __IMPL(ParseError)                                                    \
     __IMPL(AtMention)                                                     \
-    __IMPL(AdmonitionBlock)
+    __IMPL(AdmonitionBlock)                                               \
+    __IMPL(Empty)
 
 
 enum class OrgTextContext : short int

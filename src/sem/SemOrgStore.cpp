@@ -31,6 +31,10 @@ SemId LocalStore::create(
         EACH_SEM_ORG_KIND(_case)
 #undef _case
     }
+
+    qFatal(strdup(
+        "Unhandled node kind for automatic creation $#"
+        % to_string_vec(kind)));
 }
 
 #define _create(__Kind)                                                   \

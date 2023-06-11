@@ -136,13 +136,20 @@ struct SemId {
 
     OrgSemKind getKind() const { return OrgSemKind((id >> 32) & 0xFF); }
 
+    /// \brief Get index of the node in associated kind store. NOTE: The
+    /// node must not be nil
     NodeIndexT getNodeIndex() const {
         assert(!isNil());
         return (id & 0xFFFFFFFF) - 1;
     }
 
+    /// \brief Get index of an associated local store
     StoreIndexT getStoreIndex() const { return id >> 40; }
 
+    /// \brief Set store index for ID.
+    ///
+    /// Should only be used if two stores are to be merged and nested IDs
+    /// updated, in other cases store is considered fixed.
     void setStoreIndex(StoreIndexT storeIndex) {
         id = (id & 0x000000FFFFFFFFFF) | ((IdType)storeIndex << 40);
     }
@@ -155,11 +162,24 @@ struct SemId {
         id = (id & 0xFFFFFFFF00000000) | (nodeIndex + 1);
     }
 
+    /// \name Get pointer to the associated sem org node from ID
+    ///
+    /// \warning Resulting pointers are *not* stable -- underlying store
+    /// content is subject to relocation and as such pointers are bound to
+    /// be invalidated if the new nodes are added. The pattern of `ptr =
+    /// node.get() ... add nodes ... ptr->something` will lead to subtle
+    /// bugs with dangling pointers and should be avoided. Instead
+    /// `node->whatever ... add nodes ... node->whatever` must be used. For
+    /// the same reason storing pointers in containers is discouraged.
+    ///
+    /// {@
     Org*       get();
     Org const* get() const;
     Org*       operator->() { return get(); }
     Org const* operator->() const { return get(); }
+    /// @}
 
+    /// \brief Convert this node to one with specified kind
     template <typename T>
     SemIdT<T> as() const;
 
@@ -177,8 +197,10 @@ struct SemId {
     /// exists in hierarchy)
     Opt<SemIdT<Document>> getDocument() const;
 
+    /// \brief Get parent node ID for the node pointed to by this ID
     SemId getParent() const;
 
+    /// \brief non-nil nodes are converter to `true`
     operator bool() const { return !isNil(); }
 
 
@@ -189,8 +211,15 @@ struct SemId {
 };
 
 
+/// \brief Print `store:kind:index` triple
 QTextStream& operator<<(QTextStream& os, SemId const& value);
 
+/// \brief Derived node for more explicit APIs
+///
+/// This node is supposed to be used as a mechanism for CRTP overloading
+/// (each node has its own ID) and for providing more explicit interfaces.
+/// Otherwise it is a thin wrapper on top of the baseline sem ID
+/// functionality.
 template <typename T>
 struct SemIdT : public SemId {
     SemId toId() const { return *this; }
@@ -323,6 +352,9 @@ struct HashTag : public Inline {
         ((Vec<SemIdT<HashTag>>), subtags, Subtags, {}));
 };
 
+/// \brief Inline and regular footnote definition.
+///
+/// \note in-text link to the footnotes are implemented using `Link` nodes
 struct Footnote : public Inline {
     using Inline::Inline;
 
@@ -351,6 +383,7 @@ struct Completion : public Inline {
 
 
 #define __extra_args_pass Stmt(args.subnodes)
+
 struct Paragraph : public Stmt {
     using Stmt::Stmt;
     DECL_KIND(Paragraph);
@@ -1202,6 +1235,7 @@ struct LocalStore {
         Opt<OrgAdapter>    original = std::nullopt);
 };
 
+/// \brief Global group of stores that all nodes are written to
 class GlobalStore {
   public:
     static GlobalStore& getInstance() {
@@ -1209,8 +1243,11 @@ class GlobalStore {
         return instance;
     }
 
+    /// \brief Get reference to a local store by index
     LocalStore& getStoreByIndex(SemId::StoreIndexT index);
 
+    /// \brief Create new sem node of the specified kind in the local store
+    /// with `index`
     static SemId createIn(
         SemId::StoreIndexT index,
         OrgSemKind         kind,
@@ -1218,6 +1255,8 @@ class GlobalStore {
         Opt<OrgAdapter>    original = std::nullopt);
 
 
+    /// \brief Create new sem node of the specified kind in the same local
+    /// store as the `existing` node
     static SemId createInSame(
         SemId           existing,
         OrgSemKind      kind,
@@ -1237,6 +1276,8 @@ template <typename T>
 concept NotOrg = !
 std::derived_from<typename remove_smart_pointer<T>::type, sem::Org>;
 
+/// \brief  Compile-time check whether the element is an org-mode node or
+/// an org-mode ID
 template <typename T>
 concept IsOrg = std::
     derived_from<typename remove_smart_pointer<T>::type, sem::Org>;
