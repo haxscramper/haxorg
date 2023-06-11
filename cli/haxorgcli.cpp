@@ -17,6 +17,7 @@
 #include <hstd/wrappers/perfetto_aux.hpp>
 #include <QGuiApplication>
 #include <perfetto.h>
+#include <hstd/stdlib/algorithms.hpp>
 
 
 using org = OrgNodeKind;
@@ -958,6 +959,34 @@ void HaxorgCli::exec() {
 
         node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
         qInfo() << "Finished conversion";
+
+        Vec<Pair<OrgSemKind, int>> counts;
+
+        sem::GlobalStore::getInstance().eachStore(
+            [&](sem::SemId::StoreIndexT     selfIndex,
+                sem::OrgKindStorePtrVariant store) {
+                std::visit(
+                    [&](auto it) {
+                        counts.push_back({
+                            std::remove_reference_t<
+                                decltype(*it)>::NodeType::staticKind,
+                            it->size(),
+                        });
+                    },
+                    store);
+            });
+
+        sort<Pair<OrgSemKind, int>>(
+            counts,
+            [](Pair<OrgSemKind, int> const& lhs,
+               Pair<OrgSemKind, int> const& rhs) -> bool {
+                return lhs.second < rhs.second;
+            });
+
+        for (const auto& [kind, count] : counts) {
+            qDebug() << kind << count;
+        }
+
         return;
     }
 

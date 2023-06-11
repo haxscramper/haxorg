@@ -98,6 +98,7 @@ bool atSpace(PosStr const& str, int offset = 0) {
     return str.get(offset).isSpace();
 }
 
+
 template <bool TraceState>
 struct OrgTokenizerImpl
     : public Tokenizer<OrgTokenKind>
@@ -172,9 +173,9 @@ struct OrgTokenizerImpl
         return res;
     }
 
-    void       push(CR<std::span<OrgToken>> tok) { Base::push(tok); }
-    void       push(CR<Vec<OrgToken>> tok) { Base::push(tok); }
-    OrgTokenId push(CR<OrgToken> tok) { return Base::push(tok); }
+    void       push(CR<std::span<OrgToken>> tok) { out->add(tok); }
+    void       push(CR<Vec<OrgToken>> tok) { out->add(tok); }
+    OrgTokenId push(CR<OrgToken> tok) { return out->add(tok); }
 
 
     int  depth = 0;

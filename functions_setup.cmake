@@ -39,7 +39,8 @@ function(set_target_flags TARGET)
     endif()
 
     if(${PROFILE_USE})
-        add_target_property(${TARGET} COMPILE_OPTIONS "-fprofile-use=/tmp/in.profdata")
+        add_target_property(${TARGET} COMPILE_OPTIONS
+            "-fprofile-use=${BASE}/haxorg-compile.profdata")
     endif()
 
     if(${TEST_COVERAGE})

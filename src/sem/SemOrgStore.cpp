@@ -2,6 +2,36 @@
 
 using namespace sem;
 
+void LocalStore::eachStore(SemId::StoreIndexT selfIndex, StoreVisitor cb) {
+
+#define _store(__Kind) cb(selfIndex, &store##__Kind);
+
+    EACH_SEM_ORG_KIND(_store)
+
+#undef _store
+}
+
+void LocalStore::eachNode(SemId::StoreIndexT selfIndex, NodeVisitor cb) {
+#define _store(__Kind)                                                    \
+    store##__Kind.eachNode(selfIndex, [&](SemIdT<__Kind> id) { cb(id); });
+
+    EACH_SEM_ORG_KIND(_store)
+
+#undef _store
+}
+
+void GlobalStore::eachStore(LocalStore::StoreVisitor cb) {
+    for (SemId::StoreIndexT idx = 0; idx < 1; ++idx) {
+        store.eachStore(idx, cb);
+    }
+}
+
+void GlobalStore::eachNode(LocalStore::NodeVisitor cb) {
+    for (SemId::StoreIndexT idx = 0; idx < 1; ++idx) {
+        store.eachNode(idx, cb);
+    }
+}
+
 Org* LocalStore::get(OrgSemKind kind, SemId::NodeIndexT index) {
     switch (kind) {
 

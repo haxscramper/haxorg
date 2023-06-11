@@ -103,19 +103,17 @@ template <typename T>
 struct SemIdT;
 
 #define COMMA ,
-#define skip1(op, ...) __VA_ARGS__
-#define skip(op, ...) skip1(op)
+#define SKIP_FIRST_ARG_AUX(op, ...) __VA_ARGS__
+#define SKIP_FIRST_ARG(op, ...) SKIP_FIRST_ARG_AUX(op)
+
+#define EACH_SEM_ORG_KIND_CSV(__CMD)                                      \
+    SKIP_FIRST_ARG(EACH_SEM_ORG_KIND(__CMD))
+
+
 #define __id(I) , SemIdT<I>
-#define __variant() std::variant<skip(EACH_SEM_ORG_KIND(__id))>;
-
 /// \brief Global variant of all sem node derivations
-using OrgVariant = __variant();
-
+using OrgVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 #undef __id
-#undef skip
-#undef skip1
-#undef COMMA
-#undef __variant
 
 
 struct SemId {
@@ -1207,7 +1205,11 @@ struct DocumentGroup : public Org {
 
 template <typename T>
 struct KindStore {
+    using NodeType = T;
     Vec<T> values;
+
+    int size() const { return values.size(); }
+
 
     T* getForIndex(SemId::NodeIndexT index) {
         Q_ASSERT(0 <= index && index < values.size());
@@ -1229,7 +1231,30 @@ struct KindStore {
         }
         return result;
     }
+
+    using StoreVisitor = Func<
+        void(SemId::StoreIndexT selfIndex, KindStore<T>* store)>;
+
+    using NodeVisitor = Func<void(SemIdT<T> node)>;
+
+    generator<SemIdT<T>> nodes(SemId::StoreIndexT selfIndex) {
+        for (SemId::NodeIndexT node = 0; node < values.size(); ++node) {
+            co_yield SemIdT<T>(SemId(selfIndex, T::staticKind, node));
+        }
+    }
+
+    void eachNode(SemId::StoreIndexT selfIndex, CR<NodeVisitor> cb) {
+        for (const auto& id : nodes(selfIndex)) {
+            cb(id);
+        }
+    }
 };
+
+
+#define __id(I) , sem::KindStore<sem::I>*
+/// \brief Global variant of all sem node derivations
+using OrgKindStorePtrVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
+#undef __id
 
 
 struct LocalStore {
@@ -1243,6 +1268,14 @@ struct LocalStore {
         OrgSemKind         kind,
         SemId              parent,
         Opt<OrgAdapter>    original = std::nullopt);
+
+    using StoreVisitor = Func<
+        void(SemId::StoreIndexT selfIndex, OrgKindStorePtrVariant store)>;
+
+    using NodeVisitor = Func<void(OrgVariant node)>;
+
+    void eachStore(SemId::StoreIndexT selfIndex, StoreVisitor cb);
+    void eachNode(SemId::StoreIndexT selfIndex, NodeVisitor cb);
 };
 
 /// \brief Global group of stores that all nodes are written to
@@ -1275,6 +1308,10 @@ class GlobalStore {
 
 
     LocalStore store;
+
+
+    void eachStore(LocalStore::StoreVisitor cb);
+    void eachNode(LocalStore::NodeVisitor cb);
 
   private:
     GlobalStore() {}
