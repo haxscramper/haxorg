@@ -91,6 +91,12 @@ OrgCommandKind classifyCommand(QString const& command) {
 
 namespace {
 
+bool atNewline(PosStr const& str, int offset = 0) {
+    return str.at('\n', offset);
+}
+bool atSpace(PosStr const& str, int offset = 0) {
+    return str.get(offset).isSpace();
+}
 
 template <bool TraceState>
 struct OrgTokenizerImpl
@@ -310,7 +316,7 @@ struct OrgTokenizerImpl
         auto tmp        = str;
         while (true) {
             tmp.space();
-            if (tmp.at(charsets::Newline)) {
+            if (atNewline(tmp)) {
                 tmp.next();
                 ++spaceCount;
             } else {
@@ -476,6 +482,8 @@ struct MarkupConfigPair {
     OrgTokenKind inlineKind;
 };
 
+const CharSet ONumberOrLetter = charsets::Digits + charsets::AsciiLetters;
+
 
 const CharSet markupKeys{
     QChar('*'),
@@ -486,6 +494,7 @@ const CharSet markupKeys{
     QChar('_'),
     QChar('+'),
     QChar('"')};
+
 
 // clang-format off
 /// Table of the markup config information, to reduce usage of the
@@ -1598,13 +1607,13 @@ template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::lexTextAtSign(PosStr& str) {
     __perf_trace("lexTextAtSign");
     __trace();
-    const auto AtChars = charsets::IdentChars + charsets::Utf8Any;
-    if (str.at(AtChars, 1)) {
-        auto mention = str.tok(
-            otk::AtMention, [this, &AtChars](PosStr& str) {
-                oskipOne(str, QChar('@'));
-                str.skipZeroOrMore(AtChars);
-            });
+    if (str.get(1).isLetterOrNumber()) {
+        auto mention = str.tok(otk::AtMention, [this](PosStr& str) {
+            oskipOne(str, QChar('@'));
+            while (str.get().isLetterOrNumber()) {
+                str.next();
+            }
+        });
         __push(mention);
     } else {
         auto punct = str.tok(otk::Punctuation, skipCount, 1);
@@ -1758,21 +1767,19 @@ bool OrgTokenizerImpl<TraceState>::lexTextMarkup(PosStr& str) {
     const auto ch                        = str.get();
     const auto& [kOpen, kClose, kInline] = markupConfig[ch];
     if (str.at(ch, +1)) {
-        if ((str.at(charsets::AllSpace, -1)
-             && str.at(charsets::AllSpace, +2))) {
+        if (atSpace(str, -1) && atSpace(str, +2)) {
             auto tmp = str.tok(otk::Word, skipCount, 2);
             __push(tmp);
         } else {
             auto tmp = str.tok(kInline, skipCount, 2);
             __push(tmp);
         }
-    } else if ((str.at(charsets::AllSpace, -1)
-                && str.at(charsets::AllSpace, +1))) {
+    } else if (atSpace(str, -1) && atSpace(str, +1)) {
         // Standalone ` * ` not wrapping anything
         auto punct = str.tok(otk::Punctuation, skipCount, 1);
         __push(punct);
     } else if (str.at(NonText, -1) || str.atStart()) {
-        if (str.at(charsets::AllSpace, +1)) {
+        if (atSpace(str, +1)) {
             // `]* ` -- both left and right tokens around the special
             // character are 'non-text', but the space takes priority for
             // "close"
@@ -1785,7 +1792,7 @@ bool OrgTokenizerImpl<TraceState>::lexTextMarkup(PosStr& str) {
         }
 
     } else if (str.at(NonText, 1) || str.beforeEnd()) {
-        if (str.at(charsets::AllSpace, -1)) {
+        if (atSpace(str, -1)) {
             auto tmp = str.tok(kOpen, skipCount, 1);
             __push(tmp);
         } else {
@@ -1975,10 +1982,11 @@ bool OrgTokenizerImpl<TraceState>::lexSingleProperty(
     auto ident = Token(otk::ColonIdent, id.view);
     __push(ident);
     if (str.at(charsets::IdentStartChars)) {
+
         auto ident = str.tok(otk::ColonIdent, [](PosStr& str) {
-            while (!str.finished()
-                   && str.at(
-                       charsets::DashIdentChars + CharSet{QChar('/')})) {
+            static const CharSet targetCharSet = charsets::DashIdentChars
+                                               + CharSet{QChar('/')};
+            while (!str.finished() && str.at(targetCharSet)) {
                 str.next();
             }
         });
@@ -2436,19 +2444,20 @@ bool OrgTokenizerImpl<TraceState>::lexCommandKeyValue(PosStr& str) {
     while (!str.finished()) {
         switch (str.get().unicode()) {
             case '-': {
+                static const CharSet flagChars = CharSet{QChar('-')}
+                                               + charsets::IdentChars;
                 auto flag = str.tok(
-                    otk::CommandFlag,
-                    skipZeroOrMore,
-                    cr(CharSet{QChar('-')} + charsets::IdentChars));
+                    otk::CommandFlag, skipZeroOrMore, cr(flagChars));
                 __push(flag);
                 break;
             }
             case ':': {
+                static const CharSet commandChars = charsets::IdentChars
+                                                  + CharSet{
+                                                      QChar('-'),
+                                                      QChar(':')};
                 auto command = str.tok(
-                    otk::CommandKey,
-                    skipZeroOrMore,
-                    cr(charsets::IdentChars
-                       + CharSet{QChar('-'), QChar(':')}));
+                    otk::CommandKey, skipZeroOrMore, cr(commandChars));
                 __push(command);
                 break;
             }
@@ -2646,7 +2655,7 @@ bool OrgTokenizerImpl<TraceState>::lexCommandBlock(PosStr& str) {
 
 template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::isFirstOnLine(CR<PosStr> str) {
-    const auto set = charsets::Newline + CharSet{QChar('\0')};
+    static const auto set = charsets::Newline + CharSet{QChar('\0')};
     if (str.at(set, -1)) {
         return true;
     }
@@ -2760,7 +2769,7 @@ bool OrgTokenizerImpl<TraceState>::atListStart(CR<PosStr> tmp) {
         || (0 < str.getIndent() && str.at(OSubtreeStart))) {
         oskipOne(str, ListStart);
         return str.at(OSpace);
-    } else if (str.at(charsets::Digits + charsets::AsciiLetters)) {
+    } else if (str.at(ONumberOrLetter)) {
         // HACK only handle lists that start with 1-3 characters, `AAAAA.`
         // won't be hadled. This is a temporary workaround to allow
         // `regularWord.` at the start of the text. Ideally list detection
@@ -2771,7 +2780,7 @@ bool OrgTokenizerImpl<TraceState>::atListStart(CR<PosStr> tmp) {
         // single starting letter and I don't think there is any reason to
         // implement a different handlig mode.
         str.tok(otk::ListItemStart, [](PosStr& str) {
-            if (str.at(charsets::Digits + charsets::AsciiLetters)) {
+            if (str.at(ONumberOrLetter)) {
                 str.next();
             } else {
                 return;
@@ -2809,17 +2818,16 @@ bool OrgTokenizerImpl<TraceState>::lexListBullet(
     LexerStateSimple& state) {
     __perf_trace("lexListBullet");
     __trace();
-    if (str.at(CharSet{QChar('-'), QChar('+')})
-        || (0 < str.getIndent() && str.at(OBulletListStar))) {
+    if ((str.at('-'))    //
+        || (str.at('+')) //
+        || (0 < str.getIndent() && str.at('*'))) {
         __trace("At bullet list start");
         auto tok = str.tok(otk::ListItemStart, skipCb(OBulletListStart));
         __push(tok);
         spaceSkip(str);
     } else {
         __trace("At numbered list start");
-        auto start = str.tok(
-            otk::ListItemStart,
-            skipCb(charsets::Digits + charsets::AsciiLetters));
+        auto start = str.tok(otk::ListItemStart, skipCb(ONumberOrLetter));
 
         __push(start);
 
@@ -3244,7 +3252,7 @@ bool OrgTokenizerImpl<TraceState>::lexTable(PosStr& str) {
     }
 
     if (state.topFlag() == OrgBlockLexerState::Complete) {
-        if (str.at(charsets::Newline)) {
+        if (atNewline(str)) {
             str.next();
         }
     }
