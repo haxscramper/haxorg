@@ -152,7 +152,11 @@ struct TokenGroup {
         tokens.at(slice(slice.first.getIndex(), slice.last.getIndex()));
     }
 
-    int        size() const { return tokens.size(); }
+    int  size() const { return tokens.size(); }
+    void resize(int size, Token<K> const& value = Token<K>()) {
+        tokens.resize(size, value);
+    }
+
     Slice<int> toAbsolute(QStringView view) const {
         if (base.has_value()) {
             auto main = base.value();

@@ -166,16 +166,6 @@ struct OrgTokenizerImpl
         return res;
     }
 
-    void setBuffer(Vec<OrgToken>* buffer) {
-        report(Report{.kind = ReportKind::SetBuffer});
-        Base::setBuffer(buffer);
-    }
-
-    void clearBuffer() {
-        report(Report{.kind = ReportKind::ClearBuffer});
-        Base::clearBuffer();
-    }
-
     void       push(CR<std::span<OrgToken>> tok) { Base::push(tok); }
     void       push(CR<Vec<OrgToken>> tok) { Base::push(tok); }
     OrgTokenId push(CR<OrgToken> tok) { return Base::push(tok); }
@@ -1436,34 +1426,40 @@ bool OrgTokenizerImpl<TraceState>::lexSourceBlockContent(PosStr& str) {
     __trace();
     while (!str.finished()) {
         if (str.at("<<")) {
-            auto          failedAt = -1;
-            auto          tmp      = str;
-            Vec<OrgToken> tmpRes;
+            auto       failedAt = -1;
+            auto       tmp      = str;
+            auto const start    = size();
             // try_tangle
             {
-                tmpRes.push_back(
-                    tmp.tok(otk::DoubleAngleOpen, skipCb("<<")));
+                auto angle_open = tmp.tok(
+                    otk::DoubleAngleOpen, skipCb("<<"));
+                __push(angle_open);
                 if (tmp.at(charsets::IdentChars)) {
-                    tmpRes.push_back(tmp.tok(
-                        otk::Ident, skipZeroOrMore, charsets::IdentChars));
+                    auto ident = tmp.tok(
+                        otk::Ident, skipZeroOrMore, charsets::IdentChars);
+                    __push(ident);
                 } else {
                     failedAt = tmp.pos;
-                    break;
+                    goto finish_code_tangle_lex;
                 }
+
                 if (tmp.at(QChar('('))) {
-                    setBuffer(&tmpRes);
                     lexParenArguments(str);
-                    clearBuffer();
                 }
+
                 if (tmp.at(">>")) {
-                    tmpRes.push_back(
-                        tmp.tok(otk::DoubleAngleClose, skipCb(">>")));
+                    auto close = tmp.tok(
+                        otk::DoubleAngleClose, skipCb(">>"));
+                    __push(close);
                 } else {
                     failedAt = tmp.pos;
-                    break;
+                    goto finish_code_tangle_lex;
                 }
             }
+
+        finish_code_tangle_lex:
             if (failedAt != -1) {
+                resize(start);
                 auto text = str.tok(
                     otk::CodeText, [&failedAt](PosStr& str) {
                         while (((str.pos) < (failedAt))) {
@@ -1473,11 +1469,9 @@ bool OrgTokenizerImpl<TraceState>::lexSourceBlockContent(PosStr& str) {
                 __push(text);
                 str.setPos(failedAt);
             } else {
-                for (const auto& tok : tmpRes) {
-                    __push(tok, true);
-                }
                 str = tmp;
             }
+
         } else if (str.at("(refs:")) {
             auto open = str.tok(otk::ParOpen, skipCb(('(')));
             __push(open);
@@ -2854,8 +2848,8 @@ bool OrgTokenizerImpl<TraceState>::lexListDescription(
     LexerStateSimple& state) {
     __perf_trace("lexListDescription");
     __trace();
-    PosStr        tmp = str;
-    Vec<OrgToken> buffer;
+    PosStr     tmp         = str;
+    auto const bufferStart = size();
 
     {
         __trace("Try parsing list header");
@@ -2863,7 +2857,6 @@ bool OrgTokenizerImpl<TraceState>::lexListDescription(
 
         // Start temporary buffer and and string
 
-        setBuffer(&buffer);
         int skip = tmp.getSkip('\n');
         // Remember max position
         int maxPos = tmp.getPos() + skip;
@@ -2883,10 +2876,7 @@ bool OrgTokenizerImpl<TraceState>::lexListDescription(
         __trace(
             ("Found list heading colon, buffered $# tokens"
              % to_string_vec(buffer.size())));
-        clearBuffer();
-        for (const auto& tok : buffer) {
-            __push(tok, true);
-        }
+
         __push(tmp.fakeTok(otk::ParagraphEnd));
         // Colon separator
         auto colon = tmp.tok(otk::DoubleColon, skipCb("::"));
@@ -2897,7 +2887,7 @@ bool OrgTokenizerImpl<TraceState>::lexListDescription(
         // Set updated string.
         str = tmp;
     } else {
-        clearBuffer();
+        resize(bufferStart);
     }
 
     return true;
