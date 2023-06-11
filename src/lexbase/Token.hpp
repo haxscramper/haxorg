@@ -198,6 +198,10 @@ struct Tokenizer {
     Token<K>& at(TokenId<K> id) { return out->at(id); }
     /// \brief Get ID of the last token
     TokenId<K> back() const { return out->tokens.back(); }
+    int        size() const { return out->size(); }
+    void       resize(int size, Token<K> value = Token<K>()) {
+        out->resize(size, value);
+    }
 
     /// \name Add new token element to the list
     ///

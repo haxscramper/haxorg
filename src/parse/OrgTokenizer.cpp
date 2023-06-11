@@ -180,6 +180,7 @@ struct OrgTokenizerImpl
     void       push(CR<Vec<OrgToken>> tok) { Base::push(tok); }
     OrgTokenId push(CR<OrgToken> tok) { return Base::push(tok); }
 
+
     int  depth = 0;
     void report(CR<Report> in) {
         if constexpr (!TraceState) {
@@ -360,7 +361,7 @@ struct OrgTokenizerImpl
 
     using LexerStateSimple = LexerState<char>;
 
-    void skipIndents(LexerStateSimple& state, PosStr& str);
+    Vec<OrgToken> skipIndents(LexerStateSimple& state, PosStr& str);
 
 
     /// Attempt to parse list start dash
@@ -2709,7 +2710,7 @@ bool OrgTokenizerImpl<TraceState>::atConstructStart(CR<PosStr> str) {
 
 
 template <bool TraceState>
-void OrgTokenizerImpl<TraceState>::skipIndents(
+Vec<OrgToken> OrgTokenizerImpl<TraceState>::skipIndents(
     LexerStateSimple& state,
     PosStr&           str) {
     if (str.getColumn() != 0) {
@@ -2719,36 +2720,39 @@ void OrgTokenizerImpl<TraceState>::skipIndents(
             "column");
     }
 
-    using LK           = LexerStateSimple::LexerIndentKind;
-    const auto skipped = state.skipIndent(str);
+    using LK              = LexerStateSimple::LexerIndentKind;
+    const auto    skipped = state.skipIndent(str);
+    Vec<OrgToken> result;
     for (const auto indent : skipped) {
         switch (indent) {
             case LK::likIncIndent: {
-                auto tmp = str.fakeTok(otk::Indent);
-                __push(tmp);
+                result.push_back(str.fakeTok(otk::Indent));
                 break;
             }
+
             case LK::likDecIndent: {
-                auto tmp = str.fakeTok(otk::Dedent);
-                __push(tmp);
+                result.push_back(str.fakeTok(otk::Dedent));
                 break;
             }
+
             case LK::likSameIndent: {
-                auto tmp = str.fakeTok(otk::SameIndent);
-                __push(tmp);
+                result.push_back(str.fakeTok(otk::SameIndent));
                 break;
             }
+
             case LK::likNoIndent: {
-                auto tmp = str.fakeTok(otk::NoIndent);
-                __push(tmp);
+                result.push_back(str.fakeTok(otk::NoIndent));
                 break;
             }
+
             case LK::likEmptyLine: {
                 assert(false);
                 break;
             }
         }
     }
+
+    return result;
 }
 
 template <bool TraceState>
@@ -3005,9 +3009,20 @@ bool OrgTokenizerImpl<TraceState>::lexListItems(
     __perf_trace("lexListItems");
     __trace();
     assert(!str.at(ONewline));
+    bool isFirst = true;
     while (atListAhead(str)) {
         assert(!str.at(ONewline));
-        skipIndents(state, str);
+        auto indents = skipIndents(state, str);
+        for (const auto& ind : indents[slice(
+                 (isFirst && !indents.empty()
+                  && indents.at(0).kind == otk::SameIndent)
+                     ? 1
+                     : 0,
+                 1_B)]) {
+            __push(ind);
+        }
+        isFirst = false;
+
         const auto column = str.getColumn();
         if (atListStart(str)) {
             lexListItem(str, column, state);
@@ -3026,17 +3041,8 @@ bool OrgTokenizerImpl<TraceState>::lexList(PosStr& str) {
     LexerStateSimple state{};
     __push(str.fakeTok(otk::ListStart));
     Vec<OrgToken> tokens;
-    setBuffer(&tokens);
+
     lexListItems(str, state);
-    clearBuffer();
-
-    if (tokens[0].kind != otk::SameIndent) {
-        __push(tokens[0], true);
-    }
-
-    for (const auto& tok : tokens[slice(1, 1_B)]) {
-        __push(tok, true);
-    }
 
     while (state.hasIndent()) {
         state.popIndent();
