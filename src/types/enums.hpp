@@ -357,6 +357,8 @@ enum class OrgNodeKind : short int
     LatexClass,
     LatexHeader,
     LatexCompiler,
+    LatexClassOptions,
+    HtmlHead,
     Columns,
     /// `#+columns:` line command for specifying formatting of the org-mode
     /// clock table visualization on per-file basis.

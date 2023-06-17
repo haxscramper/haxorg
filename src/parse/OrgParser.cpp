@@ -297,6 +297,21 @@ OrgId OrgParserImpl<TraceState>::parsePlaceholder(OrgLexer& lex) {
 }
 
 template <bool TraceState>
+OrgId OrgParserImpl<TraceState>::parseTarget(OrgLexer& lex) {
+    __perf_trace("parseTarget");
+    __trace();
+    __skip(lex, otk::GroupStart);
+    __skip(lex, otk::DoubleAngleOpen);
+    auto tok = token(org::Target, pop(lex, otk::RawText));
+    __token(tok);
+    __skip(lex, otk::DoubleAngleClose);
+    __skip(lex, otk::GroupEnd);
+
+    return tok;
+}
+
+
+template <bool TraceState>
 OrgId OrgParserImpl<TraceState>::parseLatex(OrgLexer& lex) {
     __perf_trace("parseLatex");
     __trace();
@@ -390,6 +405,13 @@ void OrgParserImpl<TraceState>::textFold(OrgLexer& lex) {
             CASE_INLINE(Bold);
             CASE_INLINE(Italic);
             CASE_INLINE(Backtick);
+
+            case otk::Circumflex: {
+                auto sub = token(
+                    org::Punctuation, pop(lex, otk::Circumflex));
+                __token(sub);
+                break;
+            }
 
             case otk::DoubleSlash: {
                 auto sub = token(
@@ -498,6 +520,8 @@ void OrgParserImpl<TraceState>::textFold(OrgLexer& lex) {
                     case otk::FootnoteStart: parseFootnote(lex); break;
                     case otk::AngleOpen: parsePlaceholder(lex); break;
                     case otk::LatexParOpen: parseLatex(lex); break;
+                    case otk::SymbolStart: parseSymbol(lex); break;
+                    case otk::DoubleAngleOpen: parseTarget(lex); break;
                     default:
                         throw wrapError(Err::UnhandledToken(lex), lex);
                 }
@@ -628,21 +652,20 @@ template <bool TraceState>
 OrgId OrgParserImpl<TraceState>::parseSymbol(OrgLexer& lex) {
     __perf_trace("parseSymbol");
     __trace();
+    __skip(lex, otk::GroupStart);
     __skip(lex, otk::SymbolStart);
     __start(org::Symbol);
     token(org::Ident, pop(lex, otk::Ident));
 
-    if (lex.at(otk::MetaBraceOpen)) {
-        assert(false);
-    } else {
-        empty();
-    }
-
     while (lex.at(otk::MetaArgsOpen)) {
         __skip(lex, otk::MetaArgsOpen);
-        __skip(lex, otk::MetaArgsBody);
+        if (lex.at(otk::MetaBraceBody)) {
+            __skip(lex, otk::MetaBraceBody);
+        }
         __skip(lex, otk::MetaArgsClose);
     }
+
+    __skip(lex, otk::GroupEnd);
 
     __end_return();
 }
@@ -985,6 +1008,12 @@ OrgId OrgParserImpl<TraceState>::parseParagraph(
         IntSet<OrgTokenKind>{otk::ParagraphStart},
         IntSet<OrgTokenKind>{otk::ParagraphEnd});
 
+    if (paragraphTokens.empty()) {
+        __start(org::Paragraph);
+        __end();
+        return back();
+    }
+
     SubLexer<OrgTokenKind> sub = SubLexer<OrgTokenKind>(
         lex.in, paragraphTokens);
 
@@ -1073,6 +1102,7 @@ OrgId OrgParserImpl<TraceState>::parseCommandArguments(OrgLexer& lex) {
             {
                 auto ident = token(org::Ident, pop(lex, otk::CommandKey));
                 __token(ident);
+                space(lex);
                 auto raw = token(
                     org::RawText, pop(lex, otk::CommandValue));
                 __token(raw);
@@ -1083,6 +1113,7 @@ OrgId OrgParserImpl<TraceState>::parseCommandArguments(OrgLexer& lex) {
             {
                 auto em = empty();
                 __token(em);
+                space(lex);
                 auto raw = token(
                     org::RawText, pop(lex, otk::CommandValue));
                 __token(raw);
@@ -1923,6 +1954,25 @@ OrgId OrgParserImpl<TraceState>::parseLineCommand(OrgLexer& lex) {
             __skip(lex, otk::SubtreeTagSeparator);
             break;
         }
+
+        case ock::HtmlHead: {
+            skipLineCommand(lex);
+            __skip(lex, otk::CommandArgumentsBegin);
+            __start(org::HtmlHead);
+            token(org::RawText, pop(lex, otk::RawText));
+            __skip(lex, otk::CommandArgumentsEnd);
+            break;
+        }
+
+        case ock::LatexClassOptions: {
+            skipLineCommand(lex);
+            __skip(lex, otk::CommandArgumentsBegin);
+            __start(org::LatexClassOptions);
+            token(org::RawText, pop(lex, otk::RawText));
+            __skip(lex, otk::CommandArgumentsEnd);
+            break;
+        }
+
         case ock::LatexClass:
         case ock::LatexCompiler: {
             OrgNodeKind newk = org::Empty;
@@ -1937,6 +1987,7 @@ OrgId OrgParserImpl<TraceState>::parseLineCommand(OrgLexer& lex) {
             __skip(lex, otk::CommandArgumentsEnd);
             break;
         }
+
 
         case ock::Property: {
             skipLineCommand(lex);

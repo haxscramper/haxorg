@@ -140,6 +140,7 @@ struct OrgParser : public OperationsTracer {
     __IMPL(Example);                                                      \
     __IMPL(ListItemBody);                                                 \
     __IMPL(ListItem);                                                     \
+    __IMPL(Target);                                                       \
     __IMPL(NestedList);                                                   \
     __IMPL(List);                                                         \
     __IMPL(Latex);                                                        \
