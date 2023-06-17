@@ -36,6 +36,7 @@ void ExporterSubtreeStructure::visitSubtree(
 void ExporterSubtreeStructure::visitDocument(
     json&             j,
     In<sem::Document> doc) {
-    j = newRes(doc);
+    j         = newRes(doc);
+    j["name"] = "<document>";
     visitStructuralCommon(j, doc);
 }
