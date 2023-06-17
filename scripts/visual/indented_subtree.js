@@ -107,10 +107,9 @@ h${nodeSize}
       .attr("text-anchor", "end")
       .attr("fill", d => d.children ? null : "#555")
       .data(root.copy().sum(value).descendants())
-      .style("display", d => d.visible ? "inline" : "none")
       .text(d => format(d.value, d));
   }
-  
+
   node.exit().remove()
 }
 
