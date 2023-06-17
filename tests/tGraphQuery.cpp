@@ -104,7 +104,7 @@ TEST(BasicApi, NestedOutgoing) {
 
     ASSERT_EQ(result.size(), 4);
     ASSERT_EQ(
-        result,
+        sorted(result),
         sorted<decltype(vertex(3, g))>({
             vertex(2, g),
             vertex(3, g),
