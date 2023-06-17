@@ -1,4 +1,4 @@
-const nodeSize = 12;
+const nodeSize = 10;
 const format = d3.format(",");
 const width = 900;
 
@@ -123,10 +123,36 @@ const svg = d3.select("body").append("svg")
 svg.append("g").attr("class", "paths");
 svg.append("g").attr("class", "nodes");
 
+function getInitialVisibility(d) {
+  visible = true;
+  if (d.data.isSubtree && 0 < d.ancestors().length) {
+    search_loop:
+    for (parent of d.ancestors()) {
+      if (parent.data.isSubtree && parent != d) {
+        for (prop of parent.data.properties) {
+          if (prop.data.kind == "Visibility") {
+            if (prop.data.level == "Folded") {
+              visible = false;
+              break search_loop;
+            }
+          }
+        }
+      }
+
+    }
+  }
+
+  return visible;
+}
+
 d3.json("/tmp/subtree-hierarhcy.json").then(
   function (treeData) {
     counter = 0;
-    root = d3.hierarchy(treeData, d => d.subtrees).eachBefore(function (d) { d.visible = true; d.id = counter++; });
+    idx = 0;
+    root = d3.hierarchy(treeData, d => d.subtrees).eachBefore(function (d) {
+      d.visible = getInitialVisibility(d);
+      d.id = counter++;
+    });
     update();
   },
   function (err) {

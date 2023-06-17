@@ -304,6 +304,10 @@ struct Exporter {
         __obj_field(res, p, text);
     }
 
+    void visit(R& res, CR<sem::Subtree::Property::Visibility> p) {
+        __obj_field(res, p, level);
+    }
+
     void visit(R& res, CR<sem::Subtree::Property::ExportOptions> p) {
         __obj_field(res, p, backend);
         __obj_field(res, p, values);

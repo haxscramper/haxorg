@@ -102,6 +102,26 @@ using otk      = OrgTokenKind;
 using Err      = OrgConverter::Errors;
 using Property = sem::Subtree::Property;
 
+template <class E>
+Opt<E> parseOrgEnum(QString const& name) {
+    bool found = false;
+    E    r     = {};
+
+    boost::mp11::mp_for_each<boost::describe::describe_enumerators<E>>(
+        [&](auto D) {
+            if (!found && normalize(D.name) == normalize(name)) {
+                found = true;
+                r     = D.value;
+            }
+        });
+
+    if (found) {
+        return r;
+    } else {
+        return std::nullopt;
+    }
+}
+
 #define __args Up p, In a
 
 using N   = OrgSpecName;
@@ -206,6 +226,16 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
         Property::Origin origin;
         origin.text = one(a, N::Values).strVal();
         result      = Property(origin);
+
+    } else if (name == "visibility") {
+        if (auto visibility = parseOrgEnum<
+                sem::Subtree::Property::Visibility::Level>(
+                one(a, N::Values).strVal());
+            visibility) {
+            Property::Visibility prop;
+            prop.level = visibility.value();
+            result     = Property(prop);
+        }
 
     } else {
         qCritical().noquote() << "Unknown property name" << name << "\n"

@@ -777,6 +777,11 @@ struct Subtree : public Org {
             bool isOrdered;
         };
 
+        struct Visibility {
+            DECL_DESCRIBED_ENUM(Level, Folded, Children, Content, All);
+            Level level;
+        };
+
         struct ExportOptions {
             Str                    backend;
             UnorderedMap<Str, Str> values;
@@ -835,6 +840,7 @@ struct Subtree : public Org {
             ExportLatexCompiler,
             ExportLatexClass,
             Trigger,
+            Visibility,
             Blocker,
             Unnumbered,
             Created);
@@ -1146,11 +1152,25 @@ struct DocumentOptions : public Org {
     DECL_KIND(DocumentOptions);
 
     DECL_DESCRIBED_ENUM(BrokenLinks, Raise, Ignore, Mark);
+    DECL_DESCRIBED_ENUM(
+        Visibility,
+        Overview,
+        Content,
+        ShowAll,
+        Show2Levels,
+        Show3Levels,
+        Show4Levels,
+        Show5Levels,
+        ShowEverything);
 
     DECL_FIELDS(
         DocumentOptions,
         (Org),
         ((BrokenLinks), brokenLinks, BrokenLinks, BrokenLinks::Mark),
+        ((Visibility),
+         initialVisibility,
+         InitialVisibility,
+         Visibility::ShowEverything),
         /// Properties that can be shared by both subtree and document. Not
         /// all make sense in the document, but most do.
         ((Vec<Subtree::Property>), properties, Properties, {}),
