@@ -13,6 +13,7 @@
 #include <exporters/exporterqtextdocument.hpp>
 #include <exporters/exportersimplesexpr.hpp>
 #include <annotators/annotatorspelling.hpp>
+#include <exporters/exportersubtreestructure.hpp>
 #include <exporters/exportermindmap.hpp>
 #include <hstd/wrappers/perfetto_aux.hpp>
 #include <QGuiApplication>
@@ -985,6 +986,14 @@ void HaxorgCli::exec() {
 
         for (const auto& [kind, count] : counts) {
             qDebug() << kind << count;
+        }
+
+        {
+            ExporterSubtreeStructure exporter;
+            json                     result = exporter.visitTop(node);
+            writeFile(
+                QFileInfo("/tmp/subtree-hierarhcy.json"),
+                to_string(result));
         }
 
         return;
