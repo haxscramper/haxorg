@@ -1,9 +1,8 @@
-const nodeSize = 17;
+const nodeSize = 12;
 const format = d3.format(",");
 const width = 900;
 
 var root;
-var i = 0;
 
 columns = [
   {
@@ -22,12 +21,18 @@ columns = [
 
 function hideDirectSubnodes(d) {
   d._children = d.children;
+  for (const sub of d.children) {
+    sub.visible = false;
+  }
   d.children = null;
 }
 
 function showDirectSubnodes(d) {
   d.children = d._children;
   d._children = null;
+  for (const sub of d.children) {
+    sub.visible = true;
+  }
 }
 
 // Toggle children on click.
@@ -38,15 +43,19 @@ function click(d) {
 
 function toggleNode(d) {
   if (d.children) {
+    console.log("Hide direct subnodes");
     hideDirectSubnodes(d);
   } else {
     showDirectSubnodes(d);
   }
 }
 
-function update(root) {
+function update() {
+  i = 0;
+  root = root.eachBefore(d => d.visible && (d.index = i++));
   console.log("Updating tree for new root")
-  const link = svg.append("g")
+  // Add links between nodes
+  svg.select("g.paths")
     .attr("fill", "none")
     .attr("stroke", "#999")
     .selectAll("path")
@@ -60,24 +69,27 @@ h${nodeSize}
 
   const nodes = root.descendants();
 
-  const node = svg.append("g")
+  const node = svg.select("g.nodes")
     .selectAll("g")
-    .data(nodes)
-    .join("g")
+    .data(nodes, d => d.d);
+
+  var nodeEnter = node.enter().append("g")
     .on('click', click)
     .attr("transform", d => `translate(0,${d.index * nodeSize})`);
 
-  node.append("circle")
+  nodeEnter.append("circle")
     .attr("cx", d => d.depth * nodeSize)
     .attr("r", 2.5)
+    .style("display", d => d.visible ? "inline" : "none")
     .attr("fill", d => d.children ? null : "#999");
 
-  node.append("text")
+  nodeEnter.append("text")
     .attr("dy", "0.32em")
     .attr("x", d => d.depth * nodeSize + 6)
+    .style("display", d => d.visible ? "inline" : "none")
     .text(d => d.data.name);
 
-  node.append("title")
+  nodeEnter.append("title")
     .text(d => d.ancestors().reverse().map(d => d.data.name).join("/"));
 
   for (const { label, value, format, x } of columns) {
@@ -89,14 +101,17 @@ h${nodeSize}
       .attr("font-weight", "bold")
       .text(label);
 
-    node.append("text")
+    nodeEnter.append("text")
       .attr("dy", "0.32em")
       .attr("x", x)
       .attr("text-anchor", "end")
       .attr("fill", d => d.children ? null : "#555")
       .data(root.copy().sum(value).descendants())
+      .style("display", d => d.visible ? "inline" : "none")
       .text(d => format(d.value, d));
   }
+  
+  node.exit().remove()
 }
 
 const svg = d3.select("body").append("svg")
@@ -106,11 +121,14 @@ const svg = d3.select("body").append("svg")
   .attr("font-size", 10)
   .style("overflow", "visible");
 
+svg.append("g").attr("class", "paths");
+svg.append("g").attr("class", "nodes");
 
 d3.json("/tmp/subtree-hierarhcy.json").then(
   function (treeData) {
-    root = d3.hierarchy(treeData, d => d.subtrees).eachBefore(d => d.index = i++);
-    update(root);
+    counter = 0;
+    root = d3.hierarchy(treeData, d => d.subtrees).eachBefore(function (d) { d.visible = true; d.id = counter++; });
+    update();
   },
   function (err) {
     throw err;
