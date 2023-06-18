@@ -3,7 +3,7 @@ export function convertMindMapGraph(data) {
   const nodes = Array();
   for (const [key, value] of Object.entries(data.nodes)) {
     if (value.metadata.kind == "Subtree") {
-      value.id = String(nodes.length);
+      value.id = value.metadata.id;
       idMap.set(key, value.id);
       nodes.push(value)
     }
@@ -23,3 +23,4 @@ export function convertMindMapGraph(data) {
 
   return [nodes, links];
 }
+

@@ -125,6 +125,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     UnorderedMap<sem::SemId, DocSubtree::Ptr> subtreesOut;
     Opt<DocLink>                              getResolved(sem::SemId node);
 
+
     struct VertexProp {
         struct Subtree {
             DocSubtree::Ptr subtree;
@@ -189,6 +190,10 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     /// to the original data structure
     json toJsonTree();
     json toJsonGraph();
+
+    QString getId(VertexProp const& prop);
+    QString getId(DocEntry::Ptr const& entry);
+    QString getId(DocSubtree::Ptr const& subtree);
 };
 
 #endif // EXPORTERMINDMAP_HPP

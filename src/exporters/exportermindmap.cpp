@@ -117,7 +117,6 @@ void ExporterMindMap::visitEnd(In<sem::Org> doc) {
     entriesOut.clear();
     eachEntry(root, [&](DocEntry::Ptr entry) {
         auto id = entry->content;
-        qDebug() << id << "hash" << std::hash<sem::SemId>{}(id);
         Q_ASSERT_X(
             !entriesOut.contains(id),
             "map outgoing entries",
@@ -402,11 +401,13 @@ json ExporterMindMap::toJsonGraph() {
     json  nodes = json::object();
     json  edges = json::array();
 
+    auto vertexId = [&](VertDesc v) { return getId(g[v]); };
+
     for (auto [it, it_end] = boost::edges(g); it != it_end; ++it) {
         json edge      = json::object();
         auto e         = *it;
-        edge["source"] = to_string(source(e, g));
-        edge["target"] = to_string(target(e, g));
+        edge["source"] = vertexId(source(e, g));
+        edge["target"] = vertexId(target(e, g));
         json meta      = json::object();
         meta["kind"]   = to_string(g[e].getKind());
 
@@ -420,6 +421,7 @@ json ExporterMindMap::toJsonGraph() {
 
         json meta    = json::object();
         meta["kind"] = to_string(g[n].getKind());
+        meta["id"]   = vertexId(n);
         switch (g[n].getKind()) {
             case VertexProp::Kind::Subtree: {
                 auto tree = g[n].getSubtree();
@@ -437,9 +439,8 @@ json ExporterMindMap::toJsonGraph() {
             }
         }
 
-        node["metadata"] = meta;
-
-        nodes[to_string(*it).toStdString()] = node;
+        node["metadata"]                   = meta;
+        nodes[vertexId(*it).toStdString()] = node;
     }
 
     json result        = json::object();
@@ -448,6 +449,22 @@ json ExporterMindMap::toJsonGraph() {
     result["metadata"] = json::object();
     result["type"]     = "Haxorg MindMap Export";
     return result;
+}
+
+QString ExporterMindMap::getId(const VertexProp& prop) {
+    switch (prop.getKind()) {
+        case VertexProp::Kind::Subtree:
+            return getId(prop.getSubtree().subtree);
+        case VertexProp::Kind::Entry: return getId(prop.getEntry().entry);
+    }
+}
+
+QString ExporterMindMap::getId(const DocEntry::Ptr& entry) {
+    return to_string(entry->content.id);
+}
+
+QString ExporterMindMap::getId(const DocSubtree::Ptr& entry) {
+    return to_string(entry->original.id);
 }
 
 json ExporterMindMap::toJsonTree() {
@@ -466,7 +483,7 @@ json ExporterMindMap::toJsonTree() {
     auto exportEntry = [&](DocEntry::Ptr const& entry) -> json {
         json res    = json::object();
         res["kind"] = "Entry";
-        res["id"]   = entry->content.id;
+        res["id"]   = getId(entry);
 
         res["outgoing"] = json::array();
         for (auto const& it : entry->outgoing) {
@@ -481,7 +498,7 @@ json ExporterMindMap::toJsonTree() {
     aux = [&](DocSubtree::Ptr tree) -> json {
         json result    = json::object();
         result["kind"] = "Subtree";
-        result["id"]   = tree->original.id;
+        result["id"]   = getId(tree);
         if (tree->original->is(osk::Subtree)) {
             result["title"] = ExporterUltraplain::toStr(
                 tree->original.as<sem::Subtree>()->title);

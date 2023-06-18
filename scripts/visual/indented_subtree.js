@@ -1,10 +1,12 @@
+import { convertMindMapGraph } from "./utils.js";
+
 const nodeSize = 10;
 const format = d3.format(",");
-const width = 900;
+const width = 600;
 
 var root;
 
-columns = [
+const columns = [
   {
     label: "Size",
     value: d => d.value,
@@ -17,7 +19,7 @@ columns = [
     format: (value, d) => d.children ? format(value) : "-",
     x: 500 + 120
   }
-]
+];
 
 function hideDirectSubnodes(d) {
   d._children = d.children;
@@ -59,7 +61,7 @@ function getTitle(d) {
 }
 
 function update() {
-  i = 0;
+  var i = 0;
   root = root.eachBefore(d => d.visible && (d.index = i++));
   console.log("Updating tree for new root")
   // Add links between nodes
@@ -132,12 +134,12 @@ svg.append("g").attr("class", "paths");
 svg.append("g").attr("class", "nodes");
 
 function getInitialVisibility(d) {
-  visible = true;
+  var visible = true;
   if (d.data.isSubtree && 0 < d.ancestors().length) {
     search_loop:
     for (parent of d.ancestors()) {
       if (parent.data.isSubtree && parent != d) {
-        for (prop of parent.data.properties) {
+        for (const prop of parent.data.properties) {
           if (prop.data.kind == "Visibility") {
             if (prop.data.level == "Folded") {
               visible = false;
@@ -153,17 +155,49 @@ function getInitialVisibility(d) {
   return visible;
 }
 
-d3.json("/tmp/subtree-hierarhcy.json").then(
-  function (treeData) {
-    counter = 0;
-    idx = 0;
-    root = d3.hierarchy(treeData, d => d.subtrees).eachBefore(function (d) {
-      d.visible = getInitialVisibility(d);
-      d.id = counter++;
-    });
-    update();
-  },
-  function (err) {
-    throw err;
+function onLoadAll(graphData, treeData) {
+  var counter = 0;
+  var idx = 0;
+  root = d3.hierarchy(treeData, d => d.subtrees).eachBefore(function (d) {
+    d.visible = getInitialVisibility(d);
+    d.id = String(d.data.id);
+    d.sourceLinks = [];
+    d.targetLinks = [];
+  });
+
+  const [base_nodes, base_links] = convertMindMapGraph(graphData);
+
+  const treeIdToNode = new Map(root.descendants().map(d => [d.id, d]));
+
+  console.log(treeIdToNode);
+  const links = base_links.map(({ source, target, value }) => ({
+    source: treeIdToNode.get(String(source)),
+    target: treeIdToNode.get(String(target)),
+    value
+  }));
+
+  console.log(links);
+
+  for (const link of links) {
+    const { source, target, value } = link;
+    source.sourceLinks.push(link);
+    target.targetLinks.push(link);
   }
+
+  update();
+}
+
+d3.json("/tmp/mindmap_graph.json").then(
+  function (graphData) {
+    d3.json("/tmp/subtree-hierarhcy.json").then(
+      function (treeData) {
+        onLoadAll(graphData, treeData);
+      },
+      function (err) {
+        throw err;
+      }
+    );
+  },
+  function (err) { throw err; }
 );
+
