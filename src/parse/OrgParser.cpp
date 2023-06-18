@@ -1,6 +1,8 @@
 #pragma once
 
 #include <parse/OrgParser.hpp>
+#pragma clang diagnostic ignored "-Wunused-result"
+#pragma clang diagnostic ignored "-Wformat-security"
 
 
 using otk = OrgTokenKind;
@@ -516,12 +518,30 @@ void OrgParserImpl<TraceState>::textFold(OrgLexer& lex) {
 
             case otk::GroupStart: {
                 switch (lex.kind(+1)) {
-                    case otk::LinkOpen: parseLink(lex); break;
-                    case otk::FootnoteStart: parseFootnote(lex); break;
-                    case otk::AngleOpen: parsePlaceholder(lex); break;
-                    case otk::LatexParOpen: parseLatex(lex); break;
-                    case otk::SymbolStart: parseSymbol(lex); break;
-                    case otk::DoubleAngleOpen: parseTarget(lex); break;
+                    case otk::LinkOpen: {
+                        (void)parseLink(lex);
+                        break;
+                    }
+                    case otk::FootnoteStart: {
+                        (void)parseFootnote(lex);
+                        break;
+                    }
+                    case otk::AngleOpen: {
+                        (void)parsePlaceholder(lex);
+                        break;
+                    }
+                    case otk::LatexParOpen: {
+                        (void)parseLatex(lex);
+                        break;
+                    }
+                    case otk::SymbolStart: {
+                        (void)parseSymbol(lex);
+                        break;
+                    }
+                    case otk::DoubleAngleOpen: {
+                        (void)parseTarget(lex);
+                        break;
+                    }
                     default:
                         throw wrapError(Err::UnhandledToken(lex), lex);
                 }
@@ -1046,6 +1066,8 @@ OrgId OrgParserImpl<TraceState>::parseParagraph(
                     MarkupOpen(Strike);
 
 #undef MarkupOpen
+                    default: {
+                    }
                 }
             } else {
                 switch (kind) {
@@ -1063,6 +1085,8 @@ OrgId OrgParserImpl<TraceState>::parseParagraph(
                     MarkupClose(Strike);
 
 #undef MarkupClose
+                    default: {
+                    }
                 }
             }
         }
@@ -1695,6 +1719,8 @@ OrgId OrgParserImpl<TraceState>::parseSubtreeDrawer(OrgLexer& lex) {
                 __end();
                 break;
             }
+            default: {
+            }
         }
 
         newline(lex);
@@ -1926,6 +1952,8 @@ OrgId OrgParserImpl<TraceState>::parseLineCommand(OrgLexer& lex) {
                 case ock::Options: newk = org::CommandOptions; break;
                 case ock::LatexHeader: newk = org::LatexHeader; break;
                 case ock::Columns: newk = org::Columns; break;
+                default: {
+                }
             }
 
             __start(newk);
@@ -1979,6 +2007,8 @@ OrgId OrgParserImpl<TraceState>::parseLineCommand(OrgLexer& lex) {
             switch (kind) {
                 case ock::LatexCompiler: newk = org::LatexCompiler; break;
                 case ock::LatexClass: newk = org::LatexClass; break;
+                default: {
+                }
             }
             skipLineCommand(lex);
             __skip(lex, otk::CommandArgumentsBegin);
@@ -2338,6 +2368,12 @@ void OrgParserImpl<TraceState>::report(CR<Report> in) {
     }
 
     switch (in.kind) {
+        case ReportKind::Error: {
+            os << "  "
+               << "error";
+            break;
+        }
+
         case ReportKind::Print: {
             os << "  " << in.line << getLoc() << ":" << in.subname.value();
             printTokens();

@@ -6,7 +6,7 @@
 
 
 json ExporterSubtreeStructure::newRes(In<sem::Subtree> tree) {
-    json result = json::object();
+    json result = ExporterJson().newRes(tree);
 
     return result;
 }

@@ -12,10 +12,10 @@
 
 #define __INIT_REPORT(__subname, __lex)                                   \
     (Report{                                                              \
-        .line     = __LINE__,                                             \
         .location = __CURRENT_FILE_PATH__,                                \
-        .lex      = &__lex,                                               \
+        .line     = __LINE__,                                             \
         .subname  = __subname,                                            \
+        .lex      = &__lex,                                               \
     })
 
 #define __trace2(__subname, __lex)                                        \
@@ -50,11 +50,12 @@
 #define __print2(__text, __lex)                                           \
     if constexpr (TraceState) {                                           \
         report(Report{                                                    \
-            .line     = __LINE__,                                         \
-            .location = __CURRENT_FILE_PATH__,                            \
             .kind     = ReportKind::Print,                                \
+            .location = __CURRENT_FILE_PATH__,                            \
+            .line     = __LINE__,                                         \
+            .subname  = __text,                                           \
             .lex      = __lex,                                            \
-            .subname  = __text});                                          \
+        });                                                               \
     }
 
 #define __print1(__text) __print2(__text, &lex)
@@ -95,7 +96,7 @@
         rep.node                         = CONCAT(tmpNode, __LINE__);       \
         report(rep);                                                        \
     } else {                                                                \
-        start(__node);                                                      \
+        (void)start(__node);                                                \
     }
 
 

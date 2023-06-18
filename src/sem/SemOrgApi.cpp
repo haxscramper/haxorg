@@ -2,6 +2,14 @@
 #include <boost/mp11.hpp>
 #include <concepts>
 
+#define _define_static(__Kind)                                            \
+    const OrgSemKind sem::__Kind::staticKind = OrgSemKind::__Kind;
+
+EACH_SEM_ORG_KIND(_define_static)
+
+#undef _define_static
+
+
 using boost::mp11::mp_for_each;
 using namespace boost::describe;
 
@@ -290,7 +298,8 @@ Opt<SemId> Document::resolve(CR<SemId> node) const {
                     // document walker is autocompletion logic of some
                     // sort.
                     qWarning() << "Failed resolving link with ID"
-                               << link->getId().text << "to" << target;
+                               << link->getId().text << "on line"
+                               << node->loc.value_or(LineCol{}).line;
 
 
                     break;
@@ -303,9 +312,9 @@ Opt<SemId> Document::resolve(CR<SemId> node) const {
                         return target.value();
                     }
 
-                    qWarning()
-                        << "Failed resolving footnote with ID"
-                        << link->getFootnote().target << "to" << target;
+                    qWarning() << "Failed resolving footnote with ID"
+                               << link->getFootnote().target << "on line"
+                               << node->loc.value_or(LineCol{}).line;
 
                     break;
                 }
@@ -319,8 +328,10 @@ Opt<SemId> Document::resolve(CR<SemId> node) const {
 
 bool List::isDescriptionList() const {
     for (const auto& sub : subnodes) {
-        if (sub.as<ListItem>()->isDescriptionItem()) {
-            return true;
+        if (sub->is(osk::ListItem)) {
+            if (sub.as<ListItem>()->isDescriptionItem()) {
+                return true;
+            }
         }
     }
     return false;
@@ -340,6 +351,10 @@ Opt<SemId> Stmt::getAttached(OrgSemKind kind) {
 void Org::push_back(SemId sub) {
     auto dat = subnodes.data();
     subnodes.push_back(sub);
+}
+
+bool SemId::is(OrgSemKind kind) const {
+    return !isNil() && get()->is(kind);
 }
 
 namespace sem {

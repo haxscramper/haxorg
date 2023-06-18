@@ -50,6 +50,14 @@ function toggleNode(d) {
   }
 }
 
+function getTitle(d) {
+  if (d.data.isSubtree) {
+    return `${d.data.loc.line}:${d.data.name}`;
+  } else {
+    return d.data.name;
+  }
+}
+
 function update() {
   i = 0;
   root = root.eachBefore(d => d.visible && (d.index = i++));
@@ -87,7 +95,7 @@ h${nodeSize}
     .attr("dy", "0.32em")
     .attr("x", d => d.depth * nodeSize + 6)
     .style("display", d => d.visible ? "inline" : "none")
-    .text(d => d.data.name);
+    .text(getTitle);
 
   nodeEnter.append("title")
     .text(d => d.ancestors().reverse().map(d => d.data.name).join("/"));
@@ -115,7 +123,7 @@ h${nodeSize}
 
 const svg = d3.select("body").append("svg")
   .attr("width", 1200)
-  .attr("height", 2300)
+  .attr("height", 12000)
   .attr("font-family", "sans-serif")
   .attr("font-size", 10)
   .style("overflow", "visible");

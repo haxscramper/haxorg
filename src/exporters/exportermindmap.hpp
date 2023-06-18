@@ -140,11 +140,18 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     };
 
     struct EdgeProp {
+        /// Mind map entry that is nested inside of the subtree
         struct PlacedIn {};
+        /// Nested subtree structure
         struct NestedIn {};
+        /// Mind map entry that refers to some other element
         struct RefersTo {
             DocLink target;
         };
+
+        /// \brief Some part of the subtree content internally refers to
+        /// another target node
+        struct InternallyRefers {};
 
         SUB_VARIANTS(
             Kind,
@@ -152,6 +159,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
             data,
             getKind,
             NestedIn,
+            InternallyRefers,
             RefersTo,
             PlacedIn);
         Data data;
@@ -177,7 +185,10 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     QString toGraphML(CR<Graph>);
     QString toGraphviz(CR<Graph>);
 
-    json toJson();
+    /// \brief export mind map in a tree-like structure that closely maps
+    /// to the original data structure
+    json toJsonTree();
+    json toJsonGraph();
 };
 
 #endif // EXPORTERMINDMAP_HPP

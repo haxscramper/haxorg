@@ -989,6 +989,19 @@ void HaxorgCli::exec() {
         }
 
         {
+            ExporterMindMap exporter;
+            exporter.visitTop(node);
+
+            writeFile(
+                QFileInfo("/tmp/mindmap_tree.json"_qs),
+                to_string(exporter.toJsonTree()));
+
+            writeFile(
+                QFileInfo("/tmp/mindmap_graph.json"_qs),
+                to_string(exporter.toJsonGraph()));
+        }
+
+        {
             ExporterSubtreeStructure exporter;
             json                     result = exporter.visitTop(node);
             writeFile(
@@ -1036,7 +1049,7 @@ void HaxorgCli::exec() {
 
         writeFile(
             QFileInfo("/tmp/mindmap.json"_qs),
-            to_string(exporter.toJson()));
+            to_string(exporter.toJsonTree()));
 
         {
             auto      graph = exporter.toGraph();

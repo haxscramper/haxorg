@@ -87,7 +87,7 @@ BOOST_DESCRIBE_STRUCT(TreeId, (), (id));
     virtual OrgSemKind  getKind() const { return OrgSemKind::Kind; }      \
     static SemIdT<Kind> create(                                           \
         SemId parent, Opt<OrgAdapter> original = std::nullopt);           \
-    static const OrgSemKind staticKind = OrgSemKind::Kind;
+    static const OrgSemKind staticKind;
 
 
 // Forward-declare all node types so 'asVariant' can be defined directly
@@ -133,6 +133,7 @@ struct SemId {
     }
 
     OrgSemKind getKind() const { return OrgSemKind((id >> 32) & 0xFF); }
+    bool       is(OrgSemKind kind) const;
 
     /// \brief Get index of the node in associated kind store. NOTE: The
     /// node must not be nil
@@ -239,10 +240,6 @@ struct SemIdT : public SemId {
     T const* get() const { return static_cast<T const*>(SemId::get()); }
 };
 
-template <typename T>
-SemIdT<T> SemId::as() const {
-    return SemIdT<T>(*this);
-}
 
 /// \brief Base class for all org nodes. Provides essential baseline API
 /// and information.
@@ -296,6 +293,20 @@ struct Org {
 
     BOOST_DESCRIBE_CLASS(Org, (), (subnodes), (), ());
 };
+
+template <typename T>
+SemIdT<T> SemId::as() const {
+    SemIdT<T> result = SemIdT<T>(*this);
+    if constexpr (!std::is_abstract_v<T>) {
+        Q_ASSERT_X(
+            this->get()->getKind() == T::staticKind,
+            "cast sem ID node",
+            "Cannot convert sem ID node of kind $# to $#"
+                % to_string_vec(this->get()->getKind(), T::staticKind));
+    }
+
+    return result;
+}
 
 class Attached;
 

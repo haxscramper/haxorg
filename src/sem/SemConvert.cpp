@@ -865,10 +865,7 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
         doc->subnodes.push_back(convert(doc, adapter));
     }
 
-    qInfo() << "Finished subtree walker";
-    return doc;
 
-    qInfo() << "Assigned IDs";
     doc.eachSubnodeRec([&](sem::SemId const& org) {
         switch (org->getKind()) {
             case osk::Subtree: {
