@@ -124,6 +124,8 @@ struct SemId {
     IdType id = 0;
     bool   isNil() const { return id == 0; }
 
+    bool operator==(SemId const& other) const { return id == other.id; }
+
     static SemId Nil() { return SemId(0, OrgSemKind(0), 0); }
 
     SemId(StoreIndexT storeIndex, OrgSemKind kind, NodeIndexT nodeIndex) {

@@ -121,9 +121,9 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     void visitEnd(In<sem::Org> doc);
 
 
-    SortedMap<int, DocEntry::Ptr>   entriesOut;
-    SortedMap<int, DocSubtree::Ptr> subtreesOut;
-    Opt<DocLink>                    getResolved(sem::SemId node);
+    UnorderedMap<sem::SemId, DocEntry::Ptr>   entriesOut;
+    UnorderedMap<sem::SemId, DocSubtree::Ptr> subtreesOut;
+    Opt<DocLink>                              getResolved(sem::SemId node);
 
     struct VertexProp {
         struct Subtree {

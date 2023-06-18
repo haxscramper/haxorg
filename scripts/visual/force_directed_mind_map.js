@@ -18,7 +18,7 @@ d3.json("/tmp/mindmap_graph.json").then(
     const width = 1400;
     const height = 1400;
 
-     var idMap = new Map();
+    var idMap = new Map();
     const nodes = Array();
     for (const [key, value] of Object.entries(data.nodes)) {
       if (value.metadata.kind == "Subtree") {
@@ -78,7 +78,7 @@ d3.json("/tmp/mindmap_graph.json").then(
       .text(d => d.metadata.title);
 
     node.append("text")
-      .attr("dx", d => radiusScale(d.metadata.level) / 2 + 8)
+      .attr("dx", d => d.metadata.isSubtree ? radiusScale(d.metadata.level) / 2 + 8 : 40)
       .attr("dy", "0.35em")  // Center text vertically
       .attr("stroke", "black")
       .attr("stroke-width", 0.7)

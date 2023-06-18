@@ -113,20 +113,29 @@ void ExporterMindMap::visitDocument(
 }
 
 void ExporterMindMap::visitEnd(In<sem::Org> doc) {
+    qInfo() << "Mind map exporter visit end";
+    entriesOut.clear();
     eachEntry(root, [&](DocEntry::Ptr entry) {
-        if (entriesOut.contains(entry->content)) {
-            qWarning() << "ID $# has already been used"
-                              % to_string_vec(entry->content);
-        }
+        auto id = entry->content;
+        qDebug() << id << "hash" << std::hash<sem::SemId>{}(id);
+        Q_ASSERT_X(
+            !entriesOut.contains(id),
+            "map outgoing entries",
+            "ID $# has already been used" % to_string_vec(id));
 
-        entriesOut[entry->content] = entry;
+        entriesOut[id] = entry;
     });
 
+    subtreesOut.clear();
     eachSubtree(root, [&](DocSubtree::Ptr tree) {
-        if (entriesOut.contains(tree->original)) {
-            qWarning() << "ID $# has already been used"
-                              % to_string_vec(tree->original);
-        }
+        Q_ASSERT_X(
+            !subtreesOut.contains(tree->original),
+            "map outgoing subtrees",
+            "ID $# $# has already been used"
+                % to_string_vec(
+                    tree->original,
+                    ExporterUltraplain::toStr(
+                        tree->original.as<sem::Subtree>()->title)));
 
         subtreesOut[tree->original] = tree;
     });
@@ -177,14 +186,14 @@ Opt<ExporterMindMap::DocLink> ExporterMindMap::getResolved(
         auto resolve = doc->resolve(node);
         if (resolve) {
             auto                 id      = resolve.value();
-            Opt<DocEntry::Ptr>   target  = entriesOut.get(id);
+            Opt<DocEntry::Ptr>   entry   = entriesOut.get(id);
             Opt<DocSubtree::Ptr> subtree = subtreesOut.get(id);
 
-            if (target) {
+            if (entry) {
                 // TODO consider multiple documents in a group and
                 // issue diagnostic message in case of duplicates
                 return DocLink{
-                    .resolved = DocLink::Entry{.entry = target.value()}};
+                    .resolved = DocLink::Entry{.entry = entry.value()}};
             }
 
             if (subtree) {
