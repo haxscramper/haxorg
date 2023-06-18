@@ -1,5 +1,8 @@
 #include <exporters/ExporterJson.hpp>
 
+#include <boost/mp11.hpp>
+
+
 json ExporterJson::newRes(In<sem::Org> org) {
     json res    = json::object();
     res["kind"] = to_string(org->getKind());
@@ -12,4 +15,19 @@ json ExporterJson::newRes(In<sem::Org> org) {
     res["loc"]  = loc;
     res["id"]   = org.id;
     return res;
+}
+
+void ExporterJson::visitSubtreeValueFields(
+    json&            j,
+    In<sem::Subtree> tree) {
+    using Md = describe_members<sem::Subtree, mod_any_access>;
+    mp_for_each<Md>([&](auto const& field) {
+        if (field.name != "subnodes" && field.name != "title") {
+            visitField(
+                j,
+                field.name,
+                (*static_cast<sem::Subtree const*>(tree.get()))
+                    .*field.pointer);
+        }
+    });
 }

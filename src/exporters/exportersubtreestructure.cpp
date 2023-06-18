@@ -2,7 +2,6 @@
 
 #include <exporters/ExporterUltraplain.hpp>
 #include <exporters/ExporterJson.hpp>
-#include <boost/mp11.hpp>
 
 
 json ExporterSubtreeStructure::newRes(In<sem::Subtree> tree) {
@@ -35,17 +34,7 @@ void ExporterSubtreeStructure::visitSubtree(
     j["name"] = ExporterUltraplain::toStr(tree->title);
     visitStructuralCommon(j, tree);
     j["isSubtree"] = true;
-
-    using Md = describe_members<sem::Subtree, mod_any_access>;
-    mp_for_each<Md>([&](auto const& field) {
-        if (field.name != "subnodes" && field.name != "title") {
-            ExporterJson().visitField(
-                j,
-                field.name,
-                (*static_cast<sem::Subtree const*>(tree.get()))
-                    .*field.pointer);
-        }
-    });
+    ExporterJson().visitSubtreeValueFields(j, tree);
 }
 
 void ExporterSubtreeStructure::visitDocument(

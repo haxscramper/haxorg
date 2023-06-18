@@ -3,6 +3,7 @@
 #include <exporters/exportertree.hpp>
 #include <boost/graph/graphml.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <exporters/ExporterJson.hpp>
 
 int ExporterMindMap::DocEntry::counter   = 0;
 int ExporterMindMap::DocSubtree::counter = 0;
@@ -414,9 +415,10 @@ json ExporterMindMap::toJsonGraph() {
             case VertexProp::Kind::Subtree: {
                 auto tree = g[n].getSubtree();
                 if (tree.subtree->original.is(osk::Subtree)) {
-                    auto title = tree.subtree->original.as<sem::Subtree>()
-                                     ->title;
+                    auto id    = tree.subtree->original.as<sem::Subtree>();
+                    auto title = id->title;
                     meta["title"] = ExporterUltraplain::toStr(title);
+                    ExporterJson().visitSubtreeValueFields(meta, id);
                 }
 
                 break;

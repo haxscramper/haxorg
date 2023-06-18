@@ -6,6 +6,8 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     EXPORTER_USING()
 #undef __ExporterBase
 
+    void visitSubtreeValueFields(json&, In<sem::Subtree> tree);
+
     template <typename T>
     json newRes(CVec<T>) {
         return json::array();

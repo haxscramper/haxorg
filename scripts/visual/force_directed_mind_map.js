@@ -1,17 +1,24 @@
 
 
 
+// Define color scale
+const colorScale = d3.scaleSequential()
+  .domain([0, 10])  // input domain: levels range from 0 to 10
+  .interpolator(d3.interpolateCool);  // output range: color from warm to cool
+
+// Define radius scale
+const radiusScale = d3.scaleLinear()
+  .domain([0, 10])  // input domain: levels range from 0 to 10
+  .range([20, 2]);  // output range: radius size from 20 to 2
+
 
 d3.json("/tmp/mindmap_graph.json").then(
   function (data) {
     // Specify the dimensions of the chart.
-    const width = 1000;
-    const height = 1000;
+    const width = 1400;
+    const height = 1400;
 
-    // Specify the color scale.
-    const color = d3.scaleOrdinal(d3.schemeCategory10);
-
-    var idMap = new Map();
+     var idMap = new Map();
     const nodes = Array();
     for (const [key, value] of Object.entries(data.nodes)) {
       if (value.metadata.kind == "Subtree") {
@@ -65,13 +72,13 @@ d3.json("/tmp/mindmap_graph.json").then(
     }
 
     node.append("circle")
-      .attr("r", 5)
-      .attr("fill", d => color(d.group))
+      .attr("r", d => radiusScale(d.metadata.level))
+      .attr("fill", d => colorScale(d.metadata.level))
       .append("title")
       .text(d => d.metadata.title);
 
     node.append("text")
-      .attr("dx", 8)
+      .attr("dx", d => radiusScale(d.metadata.level) / 2 + 8)
       .attr("dy", "0.35em")  // Center text vertically
       .attr("stroke", "black")
       .attr("stroke-width", 0.7)
