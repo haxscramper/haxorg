@@ -4,6 +4,8 @@ const nodeSize = 10;
 const format = d3.format(",");
 const width = 600;
 
+const margin = ({ top: 20, right: 20, bottom: 20, left: 1000 });
+
 var root;
 
 const columns = [
@@ -60,6 +62,14 @@ function getTitle(d) {
   }
 }
 
+function arc(d) {
+  const y1 = d.source.index * nodeSize;
+  const y2 = d.target.index * nodeSize;
+  const r = Math.abs(y2 - y1) / 2;
+  return `M${0},${0}A${r},${r} 0,0,${y1 < y2 ? 1 : 0} ${0},${y1 - y2}`;
+}
+
+
 function update() {
   var i = 0;
   root = root.eachBefore(d => d.visible && (d.index = i++));
@@ -72,7 +82,7 @@ function update() {
     .data(root.links())
     .join("path")
     .attr("d", d => `
-M${d.source.depth * nodeSize},${d.source.index * nodeSize}
+M${d.source.depth * nodeSize + margin.left},${d.source.index * nodeSize}
 V${d.target.index * nodeSize}
 h${nodeSize}
 `);
@@ -85,7 +95,7 @@ h${nodeSize}
 
   var nodeEnter = node.enter().append("g")
     .on('click', click)
-    .attr("transform", d => `translate(0,${d.index * nodeSize})`);
+    .attr("transform", d => `translate(${margin.left},${d.index * nodeSize})`);
 
   nodeEnter.append("circle")
     .attr("cx", d => d.depth * nodeSize)
@@ -95,9 +105,34 @@ h${nodeSize}
 
   nodeEnter.append("text")
     .attr("dy", "0.32em")
-    .attr("x", d => d.depth * nodeSize + 6)
+    .attr("x", d => (d.depth * nodeSize + 6))
     .style("display", d => d.visible ? "inline" : "none")
     .text(getTitle);
+
+  // Append a 'path' element for each target link
+  nodeEnter.each(function (d) {
+    d.targetLinks.forEach(link => {
+      function linkId() {
+        return `path${link.source.id}--${link.target.id}`;
+      }
+
+      d3.select(this)
+        .append("path")
+        .attr("d", arc(link))
+        .attr("id", linkId())
+        .style("fill", "none")
+        .style("stroke", "#999")
+        .style("stroke-width", "1.5px");
+
+      d3.select(this)
+        .append("text")
+        .append("textPath") //append a textPath to the text element
+        .attr("xlink:href", (d, i) => "#" + linkId()) //place the ID of the path here
+        .style("text-anchor", "middle") //place the text halfway on the arc
+        .attr("startOffset", "50%")
+        .text(`${link.source.data.name}:${link.source.data.loc.line} -> ${link.target.data.name}:${link.target.data.loc.line}`); // the text to display
+    });
+  });
 
   nodeEnter.append("title")
     .text(d => d.ancestors().reverse().map(d => d.data.name).join("/"));
@@ -106,14 +141,14 @@ h${nodeSize}
     svg.append("text")
       .attr("dy", "0.32em")
       .attr("y", -nodeSize)
-      .attr("x", x)
+      .attr("x", x + margin.left)
       .attr("text-anchor", "end")
       .attr("font-weight", "bold")
       .text(label);
 
     nodeEnter.append("text")
       .attr("dy", "0.32em")
-      .attr("x", x)
+      .attr("x", x + margin.left)
       .attr("text-anchor", "end")
       .attr("fill", d => d.children ? null : "#555")
       .data(root.copy().sum(value).descendants())
