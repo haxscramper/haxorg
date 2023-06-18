@@ -1,3 +1,4 @@
+import { convertMindMapGraph } from "./utils.js";
 
 
 
@@ -12,36 +13,19 @@ const radiusScale = d3.scaleLinear()
   .range([20, 2]);  // output range: radius size from 20 to 2
 
 
+
 d3.json("/tmp/mindmap_graph.json").then(
   function (data) {
     // Specify the dimensions of the chart.
     const width = 1400;
     const height = 1400;
 
-    var idMap = new Map();
-    const nodes = Array();
-    for (const [key, value] of Object.entries(data.nodes)) {
-      if (value.metadata.kind == "Subtree") {
-        value.id = String(nodes.length);
-        idMap.set(key, value.id);
-        nodes.push(value)
-      }
-    }
-
-    // The force simulation mutates links and nodes, so create a copy
-    // so that re-evaluating this cell produces the same result.
-    const links = data.edges
-      .filter(d => d.metadata.kind == "InternallyRefers")
-      .map(function (d) {
-        return ({
-          ...d,
-          source: idMap.get(d.source),
-          target: idMap.get(d.target)
-        })
-      });
+    var [nodes, links] = convertMindMapGraph(data);
 
     // Create the SVG container.
-    const svg = d3.select("body").append("svg")
+    const svg = d3
+      .select("body")
+      .append("svg")
       .attr("height", height)
       .attr("width", width);
 
