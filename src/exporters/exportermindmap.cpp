@@ -305,19 +305,23 @@ ExporterMindMap::Graph ExporterMindMap::toGraph() {
 
         for (const auto& out : subtree->ordered) {
             for (DocLink const& link : out->outgoing) {
-                addEdge(
-                    id,
-                    link,
-                    EdgeProp{.data = EdgeProp::InternallyRefers{}});
+                if (link.getKind() == DocLink::Kind::Subtree) {
+                    addEdge(
+                        id,
+                        link,
+                        EdgeProp{.data = EdgeProp::InternallyRefers{}});
+                }
             }
         }
 
         for (auto const& out : subtree->unordered) {
             for (DocLink const& link : out->outgoing) {
-                addEdge(
-                    id,
-                    link,
-                    EdgeProp{.data = EdgeProp::InternallyRefers{}});
+                if (link.getKind() == DocLink::Kind::Subtree) {
+                    addEdge(
+                        id,
+                        link,
+                        EdgeProp{.data = EdgeProp::InternallyRefers{}});
+                }
             }
         }
     });
@@ -391,8 +395,8 @@ json ExporterMindMap::toJsonGraph() {
     for (auto [it, it_end] = boost::edges(g); it != it_end; ++it) {
         json edge      = json::object();
         auto e         = *it;
-        edge["source"] = source(e, g);
-        edge["target"] = target(e, g);
+        edge["source"] = to_string(source(e, g));
+        edge["target"] = to_string(target(e, g));
         json meta      = json::object();
         meta["kind"]   = to_string(g[e].getKind());
 
