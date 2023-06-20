@@ -66,9 +66,9 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     }
 
     void popIndent() { stack.pop_back(); }
-    void pushVisit(int&, In<sem::Org> org) { pushIndent(); }
-    void popVisit(int&, In<sem::Org> org) { popIndent(); }
-    void visitDispatchHook(int&, In<sem::Org> org) { init(org); }
+    void pushVisit(int&, sem::SemId org) { pushIndent(); }
+    void popVisit(int&, sem::SemId org) { popIndent(); }
+    void visitDispatchHook(int&, sem::SemId org) { init(org); }
     void indent() { os << QString("  ").repeated(stack.back().level); }
 
     struct ScopedField {
@@ -86,7 +86,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     }
 
 
-    void init(In<sem::Org> org);
+    void init(sem::SemId org);
 
     template <typename T>
     bool skipAsEmpty(CR<Opt<T>> opt) {
@@ -174,7 +174,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         }
     }
 
-    void visitField(int& arg, const char* name, In<sem::Org> org);
+    void visitField(int& arg, const char* name, sem::SemId org);
 
 
     ExporterTree(ColStream& os) : os(os) {}

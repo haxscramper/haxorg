@@ -1,7 +1,7 @@
 #include "exportersimplesexpr.hpp"
 #include <hstd/stdlib/strutils.hpp>
 
-void ExporterSimpleSExpr::visit(Res& res, In<sem::Org> org) {
+void ExporterSimpleSExpr::visit(Res& res, sem::SemId org) {
 
     switch (org->getKind()) {
 #define __case(__Kind) case OrgSemKind::__Kind:

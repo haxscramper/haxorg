@@ -3,7 +3,7 @@
 #include <boost/mp11.hpp>
 
 
-json ExporterJson::newRes(In<sem::Org> org) {
+json ExporterJson::newRes(sem::SemId org) {
     json res    = json::object();
     res["kind"] = to_string(org->getKind());
     json loc    = json::object();

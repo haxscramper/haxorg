@@ -1,9 +1,6 @@
 #include <exporters/exportertree.hpp>
 
-void ExporterTree::visitField(
-    int&         arg,
-    const char*  name,
-    In<sem::Org> org) {
+void ExporterTree::visitField(int& arg, const char* name, sem::SemId org) {
 
     __scope();
     indent();
@@ -31,7 +28,7 @@ void ExporterTree::visitField(
     }
 }
 
-void ExporterTree::init(In<sem::Org> org) {
+void ExporterTree::init(sem::SemId org) {
     auto ctx = stack.back();
     indent();
     os << os.green() << to_string(org->getKind()) << os.end();

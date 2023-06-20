@@ -22,7 +22,7 @@ struct ExporterSimpleSExpr
     layout::SimpleStringStore store;
     Res string(QString const& str) { return b::text(store.str(str)); }
 
-    void visit(Res& res, In<sem::Org> org);
+    void visit(Res& res, sem::SemId org);
 
 
     template <sem::NotOrg T>

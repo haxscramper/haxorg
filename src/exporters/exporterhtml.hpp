@@ -20,7 +20,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
     layout::SimpleStringStore store;
     Res string(QString const& str) { return b::text(store.str(str)); }
 
-    void visit(Res& res, In<sem::Org> org) {
+    void visit(Res& res, sem::SemId org) {
         visitDispatch(res, org);
 
         if (res == nullptr) {
@@ -30,7 +30,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
         }
     }
 
-    Res visit(In<sem::Org> org) {
+    Res visit(sem::SemId org) {
         Res tmp = nullptr;
         visit(tmp, org);
         return tmp;
@@ -68,7 +68,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
     template <typename T>
     void visitField(Res& res, char const* name, CR<T> it) {}
 
-    Res stackSubnodes(In<sem::Org> doc) {
+    Res stackSubnodes(sem::SemId doc) {
         Res res = b::stack();
         for (const auto& it : doc->subnodes) {
             res->add(visit(it));
@@ -76,7 +76,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
         return res;
     }
 
-    Res lineSubnodes(In<sem::Org> doc) {
+    Res lineSubnodes(sem::SemId doc) {
         Res res = b::line();
         for (const auto& it : doc->subnodes) {
             res->add(visit(it));
@@ -107,7 +107,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
 
     void visitTime(Res& res, In<sem::Time> time);
 
-    Res createTocList(In<sem::Org> node);
+    Res createTocList(sem::SemId node);
 
     void visitSubtree(Res& res, In<sem::Subtree> tree);
 

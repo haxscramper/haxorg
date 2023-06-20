@@ -58,7 +58,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
         return tmp;
     }
 
-    yaml newRes(In<sem::Org> org);
+    yaml newRes(sem::SemId org);
 
     template <typename T>
     void visitField(yaml& j, const char* name, CR<Opt<T>> value) {

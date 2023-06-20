@@ -11,8 +11,8 @@ json ExporterSubtreeStructure::newRes(In<sem::Subtree> tree) {
 }
 
 void ExporterSubtreeStructure::visitStructuralCommon(
-    json&        j,
-    In<sem::Org> node) {
+    json&      j,
+    sem::SemId node) {
     json subtrees = json::array();
     for (const auto& subnode : node->subnodes) {
         if (subnode->is(OrgSemKind::Subtree)) {

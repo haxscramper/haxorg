@@ -233,7 +233,7 @@ void ExporterHtml::visitSubtree(Res& res, In<sem::Subtree> tree) {
     });
 }
 
-ExporterHtml::Res ExporterHtml::createTocList(In<sem::Org> node) {
+ExporterHtml::Res ExporterHtml::createTocList(sem::SemId node) {
     Vec<Res> subItems;
     for (const auto& it : node->subnodes) {
         Res tocEntry = createTocList(it);

@@ -2,7 +2,7 @@
 
 using osm = OrgSemKind;
 
-yaml ExporterYaml::newRes(In<sem::Org> org) {
+yaml ExporterYaml::newRes(sem::SemId org) {
     yaml res;
     res["kind"] = to_string(org->getKind());
 

@@ -68,7 +68,7 @@ struct ExporterQTextDocument
         }
     }
 
-    void visit(QTextCharFormat const& format, In<sem::Org> tree) {
+    void visit(QTextCharFormat const& format, sem::SemId tree) {
         int r = 0;
         mergeFmt(format);
         visit(r, tree);

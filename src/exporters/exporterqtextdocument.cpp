@@ -2,7 +2,7 @@
 
 
 void ExporterQTextDocument::visitSubtree(int& r, In<sem::Subtree> tree) {
-    Func<bool(In<sem::Org>)> hasNonTreeSub;
+    Func<bool(sem::SemId)> hasNonTreeSub;
 
 
     visit(SB{}.bold().size(18 - tree->level), tree->title);

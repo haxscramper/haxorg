@@ -41,31 +41,31 @@ struct Exporter {
     using __ExporterBase::In;                                             \
     EACH_SEM_ORG_KIND(__EXPORTER_USING_DEFINE)
 
-    void visitField(R& arg, const char* name, In<sem::Org> org) {
+    void visitField(R& arg, const char* name, sem::SemId org) {
         _this()->visit(arg, org);
     }
 
 
-    void visitSubnode(R& tmp, int, In<sem::Org> val) {
+    void visitSubnode(R& tmp, int, sem::SemId val) {
         _this()->visit(tmp, val);
     }
 
     /// \brief Create default instance of the new result type
-    R newRes(In<sem::Org>) { return R{}; }
+    R newRes(sem::SemId) { return R{}; }
 
 
     /// \brief Additional hook that is called for each node before
     /// descending into specifically named overload
-    void visitDispatchHook(R&, In<sem::Org>) {}
+    void visitDispatchHook(R&, sem::SemId) {}
     /// \brief Start of the top-level visit, triggered in `visitTop`
-    void visitStart(In<sem::Org>) {}
+    void visitStart(sem::SemId) {}
     /// \brief End of the top-level visit, triggered in the `visitTop`
-    void visitEnd(In<sem::Org>) {}
+    void visitEnd(sem::SemId) {}
 
     /// \brief Main dispatch implementation for all sem types. Dispatch
     /// happens based on the kind of the provided sem node and not it's
     /// RTTI type.
-    void visitDispatch(R& res, In<sem::Org> arg) {
+    void visitDispatch(R& res, sem::SemId arg) {
         auto kind = arg->getKind();
         switch (kind) {
 #define __case(__Kind)                                                    \
@@ -114,13 +114,15 @@ struct Exporter {
 #define __visit(__Kind)                                                   \
     void visit##__Kind(R& res, In<sem::__Kind> tree) {                    \
         visitDescribedOrgFields(res, tree);                               \
-    }                                                                     \
-    void pushVisit(R&, In<sem::__Kind>) {}                                \
-    void popVisit(R&, In<sem::__Kind>) {}
+    }
+
 
     EACH_SEM_ORG_KIND(__visit)
 
 #undef __visit
+
+    void pushVisit(R&, sem::SemId) {}
+    void popVisit(R&, sem::SemId) {}
 
     /// \brief Default implementation of the visitation function for sem
     /// nodes
@@ -130,14 +132,14 @@ struct Exporter {
     /// `visitMoreSpecificNodeType`. Former will also bypass all push/pop
     /// hooks while the latter will only override core functionality of the
     /// dispatch.
-    void visit(R& res, In<sem::Org> arg) { visitDispatch(res, arg); }
+    void visit(R& res, sem::SemId arg) { visitDispatch(res, arg); }
 
 
     /// \brief Default implementation of the top visit
     ///
     /// User can redefined this function as well, or provided it's own
     /// implementation.
-    R visitTop(In<sem::Org> org) {
+    R visitTop(sem::SemId org) {
         _this()->visitStart(org);
         R tmp = _this()->newRes(org);
         _this()->visit(tmp, org);

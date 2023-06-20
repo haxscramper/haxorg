@@ -112,7 +112,7 @@ void ExporterMindMap::visitDocument(
     }
 }
 
-void ExporterMindMap::visitEnd(In<sem::Org> doc) {
+void ExporterMindMap::visitEnd(sem::SemId doc) {
     qInfo() << "Mind map exporter visit end";
     entriesOut.clear();
     eachEntry(root, [&](DocEntry::Ptr entry) {

@@ -12,6 +12,7 @@
 #include <exporters/exporterhtml.hpp>
 #include <exporters/exporterqtextdocument.hpp>
 #include <exporters/exportersimplesexpr.hpp>
+#include <exporters/exportereventlog.hpp>
 #include <annotators/annotatorspelling.hpp>
 #include <exporters/exportersubtreestructure.hpp>
 #include <exporters/exportermindmap.hpp>
@@ -984,8 +985,16 @@ void HaxorgCli::exec() {
                 return lhs.second < rhs.second;
             });
 
-        for (const auto& [kind, count] : counts) {
-            qDebug() << kind << count;
+        for (const auto& [kind, count] : counts) {}
+
+        {
+            ExporterEventLog exporter;
+            exporter.logConsumer = [&](ExporterEventLog::Event const& ev) {
+                qDebug() << "Visit event" << ev.getKind() << "at"
+                         << ev.getTime()->getStatic().time;
+            };
+            exporter.visitTop(node);
+            qDebug() << "Log consumer done";
         }
 
         {

@@ -33,7 +33,7 @@ class ExporterDot : public Exporter<ExporterDot, Graphviz::Node> {
     void visitField(
         Graphviz::Node& record,
         char const*     name,
-        In<sem::Org>    value) {
+        sem::SemId      value) {
         Graphviz::Node target = newRes(value);
     }
 
@@ -65,7 +65,7 @@ class ExporterDot : public Exporter<ExporterDot, Graphviz::Node> {
         return node;
     }
 
-    void pushVisit(Graphviz::Node& node, In<sem::Org> org) {
+    void pushVisit(Graphviz::Node& node, sem::SemId org) {
         node.getNodeRecord()->set(
             "kind", Graphviz::Node::Record(to_string(org->getKind())));
 
@@ -76,13 +76,13 @@ class ExporterDot : public Exporter<ExporterDot, Graphviz::Node> {
         nodes.push_back({.last = node});
     }
 
-    void popVisit(Graphviz::Node& record, In<sem::Org> org) {
+    void popVisit(Graphviz::Node& record, sem::SemId org) {
         if (!nodes.empty()) {
             nodes.pop_back();
         }
     }
 
-    void visitEnd(In<sem::Org> org) {
+    void visitEnd(sem::SemId org) {
         graph->eachNode([](Graphviz::Node node) { node.finishRecord(); });
     }
 };

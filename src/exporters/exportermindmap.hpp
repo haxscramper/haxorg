@@ -118,7 +118,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     void visitSubtree(std::monostate& s, sem::SemIdT<sem::Subtree> ptr);
     void visitDocument(std::monostate& s, sem::SemIdT<sem::Document> doc);
 
-    void visitEnd(In<sem::Org> doc);
+    void visitEnd(sem::SemId doc);
 
 
     UnorderedMap<sem::SemId, DocEntry::Ptr>   entriesOut;

@@ -20,7 +20,7 @@ struct ExporterSubtreeStructure
     template <typename T>
     void visitField(json&, const char*, CR<T>) {}
 
-    void visitStructuralCommon(json& j, In<sem::Org> node);
+    void visitStructuralCommon(json& j, sem::SemId node);
     void visitSubtree(json& j, In<sem::Subtree> tree);
     void visitDocument(json& j, In<sem::Document> doc);
 };
