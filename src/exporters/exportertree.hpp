@@ -4,6 +4,8 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <exporters/Exporter.hpp>
 
+struct QFileInfo;
+
 class ExporterTree : public Exporter<ExporterTree, int> {
   public:
     using Base = Exporter<ExporterTree, int>;
@@ -36,18 +38,9 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         }
     };
 
-    static void treeRepr(sem::SemId org) {
-        ColStream os{qcout};
-        ExporterTree(os).visitTop(org);
-    }
-
-
-    static void treeRepr(sem::SemId org, CR<TreeReprConf> conf) {
-        ColStream    os{qcout};
-        ExporterTree exporter{os};
-        exporter.conf = conf;
-        exporter.visitTop(org);
-    }
+    static void treeRepr(sem::SemId org);
+    static void treeRepr(sem::SemId org, QFileInfo const& path);
+    static void treeRepr(sem::SemId org, CR<TreeReprConf> conf);
 
 
     struct TreeReprCtx {
@@ -110,8 +103,12 @@ class ExporterTree : public Exporter<ExporterTree, int> {
             indent();
             os << os.cyan() << "<empty>" << os.end() << "\n";
         } else {
+            int idx = 0;
             for (const auto& it : value) {
+                indent();
+                os << "[" << idx << "]:\n";
                 visit(arg, it);
+                ++idx;
             }
         }
     }
@@ -125,6 +122,11 @@ class ExporterTree : public Exporter<ExporterTree, int> {
             indent();
             os << os.cyan() << "<none>" << os.end() << "\n";
         }
+    }
+
+    template <typename T>
+    QString typeName() {
+        return demangle(typeid(T).name()).replace("sem::", "");
     }
 
     template <typename T>
@@ -142,7 +144,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     {
         __scope();
         indent();
-        os << os.red() << demangle(typeid(T).name()) << os.end() << "\n";
+        os << os.red() << typeName<T>() << os.end() << "\n";
     }
 
     template <typename K, typename V>
@@ -161,8 +163,8 @@ class ExporterTree : public Exporter<ExporterTree, int> {
 
         __scope();
         indent();
-        os << name << " (" << os.green() << demangle(typeid(T).name())
-           << os.end() << ")";
+        os << name << " (" << os.green() << typeName<T>() << os.end()
+           << ")";
         if constexpr (std::is_same_v<T, int>) {
             os << " = " << os.cyan() << value << os.end() << "\n";
         } else if constexpr (std::is_same_v<T, Str>) {

@@ -173,6 +173,50 @@ SemIdT<HashTag> OrgConverter::convertHashTag(__args) {
     return result;
 };
 
+SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
+    __perf_trace("convertHashTag");
+    auto log = Sem<SubtreeLog>(p, a);
+
+    using Entry = SubtreeLog::LogEntry;
+    using Log   = SubtreeLog;
+
+    if (a.kind() == org::LogbookEntry) {
+        auto head = one(a, N::Header);
+        switch (head.kind()) {
+            case org::LogbookTagChange: {
+                Log::Tag tag;
+                tag.tag   = convertHashTag(log, one(head, N::Tag));
+                tag.added = one(head, N::State).strVal() == "Added";
+                tag.on    = convertTime(log, one(head, N::Time));
+
+                log->log = Entry(tag);
+                break;
+            }
+
+            case org::LogbookNote: {
+                Log::Note note;
+
+                log->log = Entry(note);
+                break;
+            }
+        }
+
+        auto desc = one(a, N::Description);
+
+        if (desc.kind() != org::Empty) {
+            log->setDescription(convertStmtList(log, desc));
+        }
+
+    } else {
+        Log::Clock clock;
+
+        clock.range = convertTimeRange(log, one(a, N::Time));
+        log->log    = Entry(clock);
+    }
+
+    return log;
+}
+
 void OrgConverter::convertSubtreeDrawer(SemIdT<Subtree>& tree, In a) {
     __perf_trace("convertSubtreeDrawer");
     __trace();
@@ -181,6 +225,14 @@ void OrgConverter::convertSubtreeDrawer(SemIdT<Subtree>& tree, In a) {
             switch (group.kind()) {
                 case org::SubtreeDescription: {
                     tree->description = convertParagraph(tree, group[0]);
+                    break;
+                }
+
+                case org::Logbook: {
+                    for (auto const& entry : group) {
+                        tree->logbook.push_back(
+                            convertSubtreeLog(tree, entry));
+                    }
                     break;
                 }
 
@@ -272,6 +324,8 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
     __perf_trace("convertSubtree");
     __trace();
     auto tree = Sem<Subtree>(p, a);
+
+    a.treeRepr(QFileInfo("/tmp/tree-original"));
 
     tree->level = one(a, N::Prefix).strVal().size();
 

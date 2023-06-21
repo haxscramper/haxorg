@@ -8,6 +8,7 @@
 #include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/ColText.hpp>
+#include <QFileInfo>
 
 #include <lexbase/Token.hpp>
 
@@ -668,6 +669,19 @@ struct NodeAdapter {
         CR<typename NodeGroup<N, K>::TreeReprConf> conf =
             typename NodeGroup<N, K>::TreeReprConf()) const {
         group->treeRepr(os, id, level, conf);
+    }
+
+    void treeRepr(QFileInfo const& path) const {
+        QFile file{path.absoluteFilePath()};
+        if (file.open(QIODevice::ReadWrite | QFile::Truncate)) {
+            QTextStream os{&file};
+            ColStream   text{os};
+            text.colored = false;
+            treeRepr(text);
+        } else {
+            qWarning() << "Could not open path" << path.absoluteFilePath()
+                       << "for writing tree repr";
+        }
     }
 
     QString treeRepr(bool colored = true) const {

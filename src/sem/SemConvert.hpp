@@ -110,6 +110,7 @@ struct OrgConverter : public OperationsTracer {
     SemIdT<HashTag>         convertHashTag(Up, In);
     void                    convertSubtreeDrawer(SemIdT<Subtree>&, In);
     void                    convertPropertyList(SemIdT<Subtree>&, In);
+    SemIdT<SubtreeLog>      convertSubtreeLog(Up, In);
     SemIdT<Subtree>         convertSubtree(Up, In);
     SemIdT<StmtList>        convertStmtList(Up, In);
     SemIdT<Newline>         convertNewline(Up, In);

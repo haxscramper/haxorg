@@ -1,5 +1,6 @@
 #include "exportereventlog.hpp"
 #include <exporters/exportertree.hpp>
+#include <QFileInfo>
 
 using namespace sem;
 using osk = OrgSemKind;
@@ -14,6 +15,8 @@ void ExporterEventLog::visitSubtree(int& _, In<sem::Subtree> tree) {
         log(Event::SubtreeCreated{{.time = created->getCreated().time}});
     }
 
+
+    ExporterTree::treeRepr(tree, QFileInfo("/tmp/tree-repr"));
     visitSubnodes(tree->subnodes);
 }
 

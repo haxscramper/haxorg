@@ -240,6 +240,9 @@ struct SemIdT : public SemId {
     T const* operator->() const { return get(); }
     T*       get() { return static_cast<T*>(SemId::get()); }
     T const* get() const { return static_cast<T const*>(SemId::get()); }
+    static SemIdT<T> Nil() {
+        return SemIdT<T>(SemId(0, OrgSemKind(0), 0));
+    }
 };
 
 
@@ -687,23 +690,28 @@ struct TimeRange : public Org {
 struct SubtreeLog : public Org {
     DECL_KIND(SubtreeLog);
     using Org::Org;
-    struct Note {
+    struct DecribedLog {
+        Opt<SemIdT<StmtList>> desc = SemIdT<StmtList>::Nil();
+    };
+
+    struct Note : DecribedLog {
         SemIdT<Time> on = SemIdT<Time>::Nil();
     };
 
-    struct Refile {
+    struct Refile : DecribedLog {
         SemIdT<Time> on = SemIdT<Time>::Nil();
     };
 
     /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30
     /// Sun 14:51:16] => 1:22`
     struct Clock {
-        Variant<SemIdT<Time>, SemIdT<TimeRange>> range;
+        Variant<SemIdT<Time>, SemIdT<TimeRange>>
+            range = SemIdT<Time>::Nil();
     };
 
     /// \brief Change of the subtree state -- `- State "WIP" from "TODO"
     /// [2023-04-30 Sun 13:29:04]`
-    struct State {
+    struct State : DecribedLog {
         OrgBigIdentKind from;
         OrgBigIdentKind to;
         SemIdT<Time>    on = SemIdT<Time>::Nil();
@@ -711,10 +719,20 @@ struct SubtreeLog : public Org {
 
     /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on
     /// [2023-04-30 Sun 13:29:06]`
-    struct Tag {
+    struct Tag : DecribedLog {
+        SemIdT<Time>    on    = SemIdT<Time>::Nil();
         SemIdT<HashTag> tag   = SemIdT<HashTag>::Nil();
         bool            added = false;
     };
+
+    void setDescription(SemIdT<StmtList> desc) {
+        std::visit(
+            overloaded{
+                [](Clock&) {},
+                [&](auto& value) { value.desc = desc; },
+            },
+            log);
+    }
 
     SUB_VARIANTS(
         Kind,

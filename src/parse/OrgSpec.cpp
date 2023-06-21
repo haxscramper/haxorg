@@ -111,16 +111,57 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
                 Range(1, N::Body),
                 OrgPattern({org::Paragraph, org::Empty})),
         })},
+
+    // Subtree logbook components
     SpecPair{
         org::Logbook,
         OrgPattern({
             Field(
                 Range(slice(0, 1_B), N::Logs),
-                OrgPattern(
-                    {org::LogbookStateChange,
-                     org::LogbookNote,
-                     org::LogbookRefile,
-                     org::LogbookClock})),
+                OrgPattern({org::LogbookEntry, org::LogbookClock})),
+        })},
+    // Time clocking
+    SpecPair{
+        org::LogbookClock,
+        OrgPattern({
+            Field(
+                Range(0, N::Time),
+                OrgPattern(anyTime + IntSet<OrgNodeKind>{org::TimeRange})),
+        })},
+    // Additional annotation logs
+    SpecPair{
+        // Main wrapper for all entires
+        org::LogbookEntry,
+        OrgPattern({
+            Field(
+                Range(0, N::Header).doc("Main logbook entry header"),
+                OrgPattern({
+                    org::LogbookTagChange,
+                    org::LogbookNote,
+                    org::LogbookStateChange,
+                    org::LogbookRefile,
+                })),
+            Field(
+                Range(1, N::Description)
+                    .doc("Additional annotation or the description of "
+                         "the transition"),
+                OrgPattern({
+                    org::StmtList,
+                    org::Empty,
+                })),
+        })},
+    SpecPair{
+        org::LogbookTagChange,
+        OrgPattern({
+            Field(
+                Range(0, N::Tag).doc("Target tag"),
+                OrgPattern({org::HashTag})),
+            Field(
+                Range(1, N::State).doc("Tag change action name"),
+                OrgPattern({org::Word})),
+            Field(
+                Range(2, N::Time).doc("Time transition took place"),
+                OrgPattern({org::StaticInactiveTime})),
         })},
     SpecPair{
         org::LogbookStateChange,
@@ -160,6 +201,15 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
                 OrgPattern({org::StmtList, org::Empty})),
         })},
     SpecPair{
+        org::LogbookNote,
+        OrgPattern({
+            Field(Range(0, N::Time), OrgPattern(anyTime)),
+            Field(
+                Range(1, N::Text),
+                OrgPattern({org::StmtList, org::Empty})),
+        })},
+    // Inline node kinds
+    SpecPair{
         org::CallCode,
         OrgPattern({
             Field(Range(0, N::Name), OrgPattern({org::Ident})),
@@ -172,14 +222,7 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
                 Range(4, N::Result),
                 OrgPattern({org::RawText, org::Empty})),
         })},
-    SpecPair{
-        org::LogbookNote,
-        OrgPattern({
-            Field(Range(0, N::Time), OrgPattern(anyTime)),
-            Field(
-                Range(1, N::Text),
-                OrgPattern({org::StmtList, org::Empty})),
-        })},
+
     SpecPair{
         org::SrcInlineCode,
         OrgPattern({
@@ -249,13 +292,6 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
                 OrgPattern({org::BigIdent, org::Empty})),
             Field(
                 Range(1, N::Time),
-                OrgPattern(anyTime + IntSet<OrgNodeKind>{org::TimeRange})),
-        })},
-    SpecPair{
-        org::LogbookClock,
-        OrgPattern({
-            Field(
-                Range(0, N::Time),
                 OrgPattern(anyTime + IntSet<OrgNodeKind>{org::TimeRange})),
         })},
     SpecPair{

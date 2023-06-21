@@ -26,6 +26,8 @@ enum class OrgSpecName
     Repeater,
     Link,
     Tags,
+    Tag,
+    State,
     Protocol,
     Desc,
     Times,
