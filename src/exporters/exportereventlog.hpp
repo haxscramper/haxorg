@@ -20,6 +20,7 @@ struct ExporterEventLog : public Exporter<ExporterEventLog, int> {
     struct Event {
         struct KindBase {
             sem::SemIdT<sem::Time> time;
+            sem::SemId             original;
         };
 
         struct SubtreeCreated : KindBase {};
@@ -42,7 +43,9 @@ struct ExporterEventLog : public Exporter<ExporterEventLog, int> {
         /// `ClockStarted` might only represent a dangling clock. Fully
         /// completed clock is represented as 'started-completed' pair in
         /// the log export
-        struct ClockCompleted : KindBase {};
+        struct ClockCompleted : KindBase {
+            sem::SemIdT<sem::Time> at;
+        };
         struct SubtreeStateAssigned : KindBase {};
         struct SubtreeClosed : KindBase {};
 
