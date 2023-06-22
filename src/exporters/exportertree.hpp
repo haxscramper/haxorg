@@ -106,7 +106,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
             int idx = 0;
             for (const auto& it : value) {
                 indent();
-                os << "[" << idx << "]:\n";
+                os << "@[" << idx << "]:\n";
                 visit(arg, it);
                 ++idx;
             }
@@ -178,6 +178,16 @@ class ExporterTree : public Exporter<ExporterTree, int> {
 
     void visitField(int& arg, const char* name, sem::SemId org);
 
+    template <typename T>
+    void visitField(int& arg, const char* name, sem::SemIdT<T> org) {
+        visitField(arg, name, org.toId());
+    }
+
+
+    template <typename T>
+    void visit(int& arg, sem::SemIdT<T> org) {
+        visit(arg, org.toId());
+    }
 
     ExporterTree(ColStream& os) : os(os) {}
 };

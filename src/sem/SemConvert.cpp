@@ -8,6 +8,7 @@
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <hstd/wrappers/perfetto_aux.hpp>
+#include <exporters/exportertree.hpp>
 
 #ifdef USE_PERFETTO
 #    define __perf_trace(name) TRACE_EVENT("convert", name);
@@ -128,6 +129,23 @@ using N   = OrgSpecName;
 using osk = OrgSemKind;
 
 
+OrgBigIdentKind parseBigIdent(QString const& id) {
+    using K = OrgBigIdentKind;
+    if (id == "TODO") {
+        return K::obiTodo;
+    } else if (id == "WIP") {
+        return K::obiWip;
+    } else if (id == "COMPLETED") {
+        return K::obiDone;
+    } else if (id == "DONE") {
+        return K::obiDone;
+    } else {
+        qWarning() << "Unexpected value to parse big ident" << id;
+        return K::obiDone;
+    }
+}
+
+
 OrgAdapter one(OrgAdapter node, OrgSpecName name) {
     return spec.getSingleSubnode(node, name);
 }
@@ -180,6 +198,7 @@ SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
     using Entry = SubtreeLog::LogEntry;
     using Log   = SubtreeLog;
 
+
     if (a.kind() == org::LogbookEntry) {
         auto head = one(a, N::Header);
         switch (head.kind()) {
@@ -194,10 +213,31 @@ SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             }
 
             case org::LogbookNote: {
-                Log::Note note;
+                Log::Note note{};
+
+                note.on = convertTime(log, one(head, N::Time));
 
                 log->log = Entry(note);
                 break;
+            }
+
+            case org::LogbookStateChange: {
+                Log::State state{};
+
+                state.from = parseBigIdent(
+                    one(head, N::Oldstate).strVal());
+                state.to = parseBigIdent(one(head, N::Newstate).strVal());
+                state.on = convertTime(log, one(head, N::Time));
+
+                log->log = Entry(state);
+                break;
+            }
+
+            default: {
+                qDebug() << "Unexpected incoming tree kind for subtree "
+                            "converter"
+                         << head.kind();
+                qDebug().noquote() << head.treeRepr();
             }
         }
 
@@ -230,8 +270,8 @@ void OrgConverter::convertSubtreeDrawer(SemIdT<Subtree>& tree, In a) {
 
                 case org::Logbook: {
                     for (auto const& entry : group) {
-                        tree->logbook.push_back(
-                            convertSubtreeLog(tree, entry));
+                        auto log = convertSubtreeLog(tree, entry);
+                        tree->logbook.push_back(log);
                     }
                     break;
                 }
@@ -368,6 +408,18 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
 SemIdT<Time> OrgConverter::convertTime(__args) {
     __perf_trace("convertTime");
     __trace();
+
+    Q_ASSERT_X(
+        ((OrgSet{
+              org::DynamicActiveTime,
+              org::DynamicInactiveTime,
+              org::StaticActiveTime,
+              org::StaticInactiveTime,
+          })
+             .contains(a.kind())),
+        "convert subtree",
+        to_string(a.kind()));
+
     auto time      = Sem<Time>(p, a);
     time->isActive = (a.kind() == org::DynamicActiveTime)
                   || (a.kind() == org::StaticActiveTime);
@@ -375,7 +427,9 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
     if (a.kind() == org::DynamicInactiveTime
         || a.kind() == org::DynamicActiveTime) {
         time->time = Time::Dynamic{.expr = a.strVal()};
-    } else {
+    } else if (
+        a.kind() == org::StaticActiveTime
+        || a.kind() == org::StaticInactiveTime) {
         Str repeat      = one(a, N::Repeater).strVal();
         using Mode      = Time::Repeat::Mode;
         Mode repeatMode = Mode::None;

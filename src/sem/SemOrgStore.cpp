@@ -55,8 +55,14 @@ SemId LocalStore::create(
     switch (kind) {
 
 #define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind:                                              \
-        return store##__Kind.create(selfIndex, parent, original);
+    case OrgSemKind::__Kind: {                                            \
+        auto result = store##__Kind.create(selfIndex, parent, original);  \
+        Q_ASSERT_X(                                                       \
+            result.getKind() == kind,                                     \
+            "create node in local store",                                 \
+            to_string(result.getKind()) + " != " + to_string(kind));      \
+        return result;                                                    \
+    }
 
         EACH_SEM_ORG_KIND(_case)
 #undef _case
@@ -78,6 +84,7 @@ EACH_SEM_ORG_KIND(_create)
 #undef _create
 
 Org* SemId::get() {
+    Q_ASSERT(!isNil());
     return GlobalStore::getInstance()
         .getStoreByIndex(getStoreIndex())
         .get(getKind(), getNodeIndex());
