@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Json.hpp>
 
 
 namespace puml {
@@ -54,6 +55,8 @@ struct Gantt {
         Slice<QDate> convex() const;
 
         QString toString() const;
+
+        json toJson() const;
     };
 
     Opt<Slice<QDate>> timeSpan;
@@ -61,6 +64,7 @@ struct Gantt {
     Vec<Event> events;
 
     QString toString() const;
+    json    toJson() const;
 };
 
 }; // namespace puml

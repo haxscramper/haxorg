@@ -812,6 +812,8 @@ void HaxorgCli::writeGantt() {
     gantt.visitTop(node);
 
     writeFile(QFileInfo("/tmp/gantt.puml"_qs), gantt.gantt.toString());
+    writeFile(
+        QFileInfo("/tmp/gantt.json"_qs), to_string(gantt.gantt.toJson()));
 }
 
 
@@ -1020,6 +1022,8 @@ void HaxorgCli::exec() {
                 QFileInfo("/tmp/subtree-hierarhcy.json"),
                 to_string(result));
         }
+
+        { writeGantt(); }
 
         return;
     }

@@ -183,7 +183,6 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         visitField(arg, name, org.toId());
     }
 
-
     template <typename T>
     void visit(int& arg, sem::SemIdT<T> org) {
         visit(arg, org.toId());

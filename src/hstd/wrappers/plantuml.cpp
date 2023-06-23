@@ -26,6 +26,39 @@ QString puml::Gantt::toString() const {
 }
 
 
+json puml::Gantt::Event::toJson() const {
+    json res     = json::object();
+    res["start"] = start.toString(Qt::ISODate);
+    res["stop"]  = stop.toString(Qt::ISODate);
+    res["name"]  = name;
+
+    if (completion) {
+        res["completion"] = completion.value();
+    } else {
+        res["completion"] = json();
+    }
+
+    json nested = json::array();
+    for (auto const& sub : this->nested) {
+        nested.push_back(sub.toJson());
+    }
+    res["nested"] = nested;
+    return res;
+}
+
+
+json puml::Gantt::toJson() const {
+    json result      = json::object();
+    result["events"] = json::array();
+
+    for (auto const& ev : events) {
+        result["events"].push_back(ev.toJson());
+    }
+
+    return result;
+}
+
+
 Slice<QDate> puml::Gantt::Event::convex() const {
     Slice<QDate> convex = slice(start, stop);
     for (const auto& it : nested) {
