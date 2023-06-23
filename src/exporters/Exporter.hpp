@@ -233,6 +233,10 @@ struct Exporter {
         __obj_field(res, raw, text);
     }
 
+    void visit(R& res, CR<sem::Link::File> raw) {
+        __obj_field(res, raw, file);
+    }
+
     void visit(R& res, CR<sem::Link::Person> raw) {
         __obj_field(res, raw, name);
     }
@@ -308,6 +312,11 @@ struct Exporter {
 
     void visit(R& res, CR<sem::Subtree::Property::Origin> p) {
         __obj_field(res, p, text);
+    }
+
+    void visit(R& res, CR<sem::Subtree::Property::Effort> p) {
+        __obj_field(res, p, hours);
+        __obj_field(res, p, minutes);
     }
 
     void visit(R& res, CR<sem::Subtree::Property::Visibility> p) {

@@ -139,7 +139,7 @@ OrgBigIdentKind parseBigIdent(QString const& id) {
         return K::obiDone;
     } else if (id == "DONE") {
         return K::obiDone;
-    } else if (id == "CANCELLED") {
+    } else if (id == "CANCELED") {
         return K::obiCancelled;
     } else if (id == "FAILED") {
         return K::obiFailed;
@@ -351,6 +351,20 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
             prop.level = visibility.value();
             result     = Property(prop);
         }
+
+    } else if (name == "effort") {
+        QString const&   value    = one(a, N::Values).strVal();
+        auto             duration = value.split(":");
+        Property::Effort prop;
+
+        if (duration.length() == 1) {
+            prop.minutes = duration[0].toInt();
+        } else if (duration.length() == 2) {
+            prop.minutes = duration[0].toInt();
+            prop.hours   = duration[1].toInt();
+        }
+
+        result = Property(prop);
 
     } else {
         qCritical().noquote() << "Unknown property name" << name << "\n"
@@ -603,6 +617,9 @@ SemIdT<Link> OrgConverter::convertLink(__args) {
 
         } else if (protocol == "person") {
             link->data = Link::Person{.name = one(a, N::Link).strVal()};
+
+        } else if (protocol == "file") {
+            link->data = Link::File{.file = one(a, N::Link).strVal()};
 
         } else {
             qCritical().noquote()

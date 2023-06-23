@@ -811,6 +811,11 @@ struct Subtree : public Org {
             bool isOrdered;
         };
 
+        struct Effort {
+            int hours   = 0;
+            int minutes = 0;
+        };
+
         struct Visibility {
             DECL_DESCRIBED_ENUM(Level, Folded, Children, Content, All);
             Level level;
@@ -875,6 +880,7 @@ struct Subtree : public Org {
             ExportLatexClass,
             Trigger,
             Visibility,
+            Effort,
             Blocker,
             Unnumbered,
             Created);
@@ -1115,7 +1121,20 @@ struct Link : public Org {
         Str target;
     };
 
-    SUB_VARIANTS(Kind, Data, data, getLinkKind, Raw, Footnote, Id, Person);
+    struct File {
+        Str file;
+    };
+
+    SUB_VARIANTS(
+        Kind,
+        Data,
+        data,
+        getLinkKind,
+        Raw,
+        Footnote,
+        Id,
+        Person,
+        File);
 
     DECL_FIELDS(
         Link,
