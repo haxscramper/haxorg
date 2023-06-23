@@ -148,8 +148,8 @@ struct OrgTokenizerImpl
     }
 
     void setLocationResolver(
-        Func<LineCol(CR<PosStr>)> locationResolver) override {
-        locationResolver = locationResolver;
+        Func<LineCol(CR<PosStr>)> locationResolverHook) override {
+        locationResolver = locationResolverHook;
     }
 
     Opt<LineCol> getLoc(CR<PosStr> str) override {
@@ -3471,6 +3471,7 @@ bool OrgTokenizerImpl<TraceState>::lexGlobal(PosStr& str) {
     qDebug() << "Lexer lex global";
     __perf_trace("lexGlobal");
     __trace();
+    Q_ASSERT(locationResolver);
     while (!str.finished()) {
         lexStructure(str);
     }
