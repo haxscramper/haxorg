@@ -990,8 +990,10 @@ void HaxorgCli::exec() {
         {
             ExporterEventLog exporter;
             exporter.logConsumer = [&](ExporterEventLog::Event const& ev) {
-                qDebug() << "Visit event" << ev.getKind() << "at"
-                         << ev.getTime()->getStatic().time;
+                //                qDebug() << "Visit event" << ev.getKind()
+                //                << "at"
+                //                         <<
+                //                         ev.getTime()->getStatic().time;
             };
             exporter.visitTop(node);
             qDebug() << "Log consumer done";

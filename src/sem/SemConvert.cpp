@@ -233,6 +233,16 @@ SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
                 break;
             }
 
+            case org::LogbookRefile: {
+                Log::Refile refile;
+
+                refile.on   = convertTime(log, one(head, N::Time));
+                refile.from = convertLink(log, one(head, N::From));
+
+                log->log = Entry(refile);
+                break;
+            }
+
             default: {
                 qDebug() << "Unexpected incoming tree kind for subtree "
                             "converter"
@@ -249,9 +259,16 @@ SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
 
     } else {
         Log::Clock clock;
+        auto       time = one(a, N::Time);
 
-        clock.range = convertTimeRange(log, one(a, N::Time));
-        log->log    = Entry(clock);
+        if (time.kind() == org::TimeRange) {
+            clock.range = convertTimeRange(log, time);
+        } else {
+            clock.range = convertTime(log, time);
+        }
+
+
+        log->log = Entry(clock);
     }
 
     return log;

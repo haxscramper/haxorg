@@ -701,7 +701,8 @@ struct SubtreeLog : public Org {
     };
 
     struct Refile : DecribedLog {
-        SemIdT<Time> on = SemIdT<Time>::Nil();
+        SemIdT<Time> on   = SemIdT<Time>::Nil();
+        SemIdT<Link> from = SemIdT<Time>::Nil();
     };
 
     /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30

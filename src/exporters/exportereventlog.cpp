@@ -6,7 +6,6 @@ using namespace sem;
 using osk = OrgSemKind;
 
 void ExporterEventLog::visitSubtree(int& _, In<Subtree> tree) {
-    qDebug() << "Visit subtree";
     using PK = Subtree::Property::Kind;
     using D  = Event::Data;
 
@@ -73,7 +72,6 @@ void ExporterEventLog::visitSubtree(int& _, In<Subtree> tree) {
         }
     }
 
-    ExporterTree::treeRepr(tree, QFileInfo("/tmp/tree-repr"));
     visitSubnodes(tree->subnodes);
 }
 

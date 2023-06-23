@@ -33,6 +33,8 @@ function(set_target_flags TARGET)
         add_target_property(${TARGET} COMPILE_DEFINITIONS USE_PERFETTO)
     endif()
 
+    add_target_property(${TARGET} COMPILE_DEFINITIONS QT_FORCE_ASSERTS)
+
     if(${PROFILE_GENERATE})
         add_target_property(${TARGET} COMPILE_OPTIONS "-fprofile-instr-generate")
         add_target_property(${TARGET} LINK_OPTIONS "-fprofile-instr-generate")

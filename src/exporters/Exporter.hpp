@@ -66,6 +66,10 @@ struct Exporter {
     /// happens based on the kind of the provided sem node and not it's
     /// RTTI type.
     void visitDispatch(R& res, sem::SemId arg) {
+        if (arg.isNil()) {
+            return;
+        }
+
         auto kind = arg->getKind();
         switch (kind) {
 #define __case(__Kind)                                                    \
