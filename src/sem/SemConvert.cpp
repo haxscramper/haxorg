@@ -139,6 +139,12 @@ OrgBigIdentKind parseBigIdent(QString const& id) {
         return K::obiDone;
     } else if (id == "DONE") {
         return K::obiDone;
+    } else if (id == "CANCELLED") {
+        return K::obiCancelled;
+    } else if (id == "FAILED") {
+        return K::obiFailed;
+    } else if (id == "PARTIALLY") {
+        return K::obiPartially;
     } else {
         qWarning() << "Unexpected value to parse big ident" << id;
         return K::obiDone;

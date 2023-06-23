@@ -65,6 +65,28 @@ void ExporterEventLog::visitSubtree(int& _, In<Subtree> tree) {
                 break;
             }
 
+            case Log::Kind::Note: {
+                auto const& note = entry->getNote();
+
+                log(Event::SubtreeLogWritten{{
+                    .time     = note.on,
+                    .original = entry,
+                }});
+
+                break;
+            }
+
+            case Log::Kind::Refile: {
+                auto const& refile = entry->getRefile();
+
+                log(Event::SubtreeRefiled{{
+                    .time     = refile.on,
+                    .original = entry,
+                }});
+
+                break;
+            }
+
             default: {
                 qWarning() << "Unhandled exporter subtree log entry kind"
                            << entry->getLogKind();

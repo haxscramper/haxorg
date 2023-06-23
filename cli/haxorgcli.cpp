@@ -989,12 +989,13 @@ void HaxorgCli::exec() {
 
         {
             ExporterEventLog exporter;
+            using Ev = ExporterEventLog::Event;
+            UnorderedMap<Ev::Kind, Vec<Ev>> events;
+
             exporter.logConsumer = [&](ExporterEventLog::Event const& ev) {
-                //                qDebug() << "Visit event" << ev.getKind()
-                //                << "at"
-                //                         <<
-                //                         ev.getTime()->getStatic().time;
+                events[ev.getKind()].push_back(ev);
             };
+
             exporter.visitTop(node);
             qDebug() << "Log consumer done";
         }
