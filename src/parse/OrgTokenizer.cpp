@@ -156,6 +156,7 @@ struct OrgTokenizerImpl
         if (locationResolver) {
             return locationResolver(str);
         } else {
+            qFatal("Missing location resolver");
             return std::nullopt;
         }
     }

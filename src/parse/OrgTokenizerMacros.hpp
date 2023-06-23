@@ -102,6 +102,8 @@
         if (locationResolver) {                                           \
             PosStr str{__err.getView(), __err.getPos()};                  \
             __err.setLoc(locationResolver(str));                          \
+        } else {                                                          \
+            qFatal("Missing location resolver");                          \
         }                                                                 \
                                                                           \
         __report_error(__err);                                            \

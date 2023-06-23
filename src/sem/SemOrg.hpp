@@ -126,7 +126,11 @@ struct SemId {
 
     bool operator==(SemId const& other) const { return id == other.id; }
 
-    static SemId Nil() { return SemId(0, OrgSemKind(0), 0); }
+    static SemId Nil() {
+        auto res = SemId(0, OrgSemKind(0), 0);
+        res.id   = 0;
+        return res;
+    }
 
     SemId(StoreIndexT storeIndex, OrgSemKind kind, NodeIndexT nodeIndex) {
         setStoreIndex(storeIndex);
@@ -240,9 +244,7 @@ struct SemIdT : public SemId {
     T const* operator->() const { return get(); }
     T*       get() { return static_cast<T*>(SemId::get()); }
     T const* get() const { return static_cast<T const*>(SemId::get()); }
-    static SemIdT<T> Nil() {
-        return SemIdT<T>(SemId(0, OrgSemKind(0), 0));
-    }
+    static SemIdT<T> Nil() { return SemIdT<T>(SemId::Nil()); }
 };
 
 

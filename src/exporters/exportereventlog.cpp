@@ -24,17 +24,17 @@ void ExporterEventLog::visitSubtree(int& _, In<Subtree> tree) {
                 auto range = entry->getClock().range;
                 if (std::holds_alternative<SemIdT<Time>>(range)) {
                     log(Event::ClockStarted{
-                        {.original = entry,
-                         .time     = std::get<SemIdT<Time>>(range)},
+                        {.time     = std::get<SemIdT<Time>>(range),
+                         .original = entry},
                     });
                 } else {
                     log(Event::ClockStarted{
-                        {.original = entry,
-                         .time = std::get<SemIdT<TimeRange>>(range)->from},
+                        {.time = std::get<SemIdT<TimeRange>>(range)->from,
+                         .original = entry},
                     });
                     log(Event::ClockCompleted{
-                        {.original = entry,
-                         .time = std::get<SemIdT<TimeRange>>(range)->from},
+                        {.time = std::get<SemIdT<TimeRange>>(range)->from,
+                         .original = entry},
                         .at = std::get<SemIdT<TimeRange>>(range)->to,
                     });
                 }
@@ -43,8 +43,8 @@ void ExporterEventLog::visitSubtree(int& _, In<Subtree> tree) {
 
             case Log::Kind::State: {
                 log(Event::SubtreeStateAssigned{{
-                    .original = entry,
                     .time     = entry->getState().on,
+                    .original = entry,
                 }});
 
                 break;
@@ -54,13 +54,13 @@ void ExporterEventLog::visitSubtree(int& _, In<Subtree> tree) {
                 auto const& tag = entry->getTag();
                 if (tag.added) {
                     log(Event::TagAssigned{{
-                        .original = entry,
                         .time     = tag.on,
+                        .original = entry,
                     }});
                 } else {
                     log(Event::TagRemoved{{
-                        .original = entry,
                         .time     = tag.on,
+                        .original = entry,
                     }});
                 }
                 break;
@@ -84,7 +84,7 @@ void ExporterEventLog::visitListItem(int& _, In<ListItem> item) {
         && nodes.at(0)->at(0).is(osk::Time)) {
         auto time = nodes.at(0)->at(0).as<Time>();
         log(Event::ListLogWritten({
-            {.original = item, .time = nodes.at(0)->at(0).as<Time>()},
+            {.time = nodes.at(0)->at(0).as<Time>(), .original = item},
             .item = item,
         }));
     }
