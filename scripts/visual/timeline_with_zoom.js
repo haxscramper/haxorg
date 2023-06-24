@@ -5,16 +5,24 @@ function convertTimeline(data) {
 
   var flat = data.events.map(d => flatten(d));
   const timeline = flat.flat(1).map(function(d) {
-    return ({
+    var result = ({
       startdate : new Date(d.start),
       enddate : new Date(d.stop),
       type : "one",
-      price : d.name
-    })
+      name : d.name
+    });
+
+    if (d.start_date_only && d.stop_date_only) {
+      result.enddate.setHours(23, 59, 59);
+    }
+
+    return result;
   });
 
   console.log(timeline);
-  return timeline;
+  var idx = 0;
+  return timeline.filter(d => 2004 < d.enddate.getFullYear())
+      .map(d => ({...d, index : idx++}));
 }
 
 function update(timeline) {
@@ -51,6 +59,8 @@ function update(timeline) {
   let programmaticZoom = false;
   let programmaticBrush = false;
 
+  const scalable_selector = ".event_rectangle,.data_overlay";
+
   function zoomed(e) {
     if (programmaticZoom) {
       programmaticZoom = false;
@@ -59,7 +69,7 @@ function update(timeline) {
 
     var t = e.transform;
     x.domain(t.rescaleX(x2).domain());
-    area.selectAll(".circle")
+    area.selectAll(scalable_selector)
         .attr("transform", rectTransform)
         .attr("width", function(d) { return (x(d.enddate) - x(d.startdate)) })
     focus.select(".axis--x").call(xAxis);
@@ -75,7 +85,7 @@ function update(timeline) {
 
     var s = event.selection || x2.range();
     x.domain(s.map(x2.invert, x2));
-    area.selectAll(".circle")
+    area.selectAll(scalable_selector)
         .attr("transform", rectTransform)
         .attr("width", function(d) { return (x(d.enddate) - x(d.startdate)) })
     //   focus.select(".focus").attr("d", focus);
@@ -135,13 +145,15 @@ function update(timeline) {
                   .attr("transform",
                         "translate(" + margin.left + "," + margin.top + ")");
 
-  area.selectAll(".circle")
-      .data(timeline, keyFunction)
-      .enter()
-      .append("rect")
+  var event_rectangles = area.selectAll(".event_rectangle")
+                             .data(timeline, keyFunction)
+                             .enter()
+                             .append("g");
+
+  event_rectangles.append("rect")
       .attr("rx", 5)
       .attr("ry", 5)
-      .attr("class", "circle")
+      .attr("class", "event_rectangle")
       .attr("y", 0)
       .attr("transform", rectTransform)
       .attr("height", function(d) { return y.bandwidth(); })
@@ -152,17 +164,44 @@ function update(timeline) {
             tooltip.style("left", event.pageX + "px")
                 .style("top", event.pageY + "px")
                 .style("display", "inline-block")
-                .html((d.type) +
+                .html((d.name) +
                       "<br> from :" + d.startdate.toISOString().slice(0, 19) +
                       "<br> to :" + d.enddate.toISOString().slice(0, 19));
           })
       .on("mouseout", function(d) { tooltip.style("display", "none") });
 
+  var data_overlay = area.selectAll(".data_overlay")
+                         .data(timeline, keyFunction)
+                         .enter()
+                         .append("g");
+
+  function rectOffset(d) { return d.index * 20; }
+
+  data_overlay.append('text')
+      .attr('y', d => rectOffset(d))
+      .text(d => d.name)
+      .attr("class", "data_overlay")
+      .attr('text-anchor', 'start')
+      .attr('alignment-baseline', 'middle')
+      .attr('font-family', 'Verdana, sans-serif')
+      .attr("font-size", '14px')
+      .attr("transform", rectTransform)
+      .attr("fill", 'black');
+
+  data_overlay.append('rect')
+      .attr('x', -0.5)
+      .attr('y', 0)
+      .attr('width', 1)
+      .attr('height', height)
+      .attr('stroke', 'black')
+      .attr('stroke-width', 0)
+      .attr('fill', 'black')
+
   var area2 = d3.area()
                   .curve(d3.curveMonotoneX)
                   .x(function(d) { return x2(d.startdate); })
                   .y0(height2)
-                  .y1(function(d) { return y2(d.price); });
+                  .y1(function(d) { return y2(d.name); });
 
   var context = svg.append("g")
                     .attr("class", "context")
