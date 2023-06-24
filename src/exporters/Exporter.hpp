@@ -159,6 +159,17 @@ struct Exporter {
 #define __obj_field(res, obj, name)                                       \
     _this()->visitField(res, #name, obj.name);
 
+    template <typename T, typename Kind>
+    void visitVariants(R& res, Kind kind, CR<T> var) {
+        QString fieldName = to_string(kind);
+        _this()->visitField(res, "kind", kind);
+        std::visit(
+            [&, this](const auto& it) {
+                _this()->visitField(res, fieldName.toLatin1(), it);
+            },
+            var);
+    }
+
     /// \name Specialization for inner objects of code block
     /// @{
     void visit(R& res, CR<sem::Code::Switch::LineStart> start) {
@@ -183,9 +194,7 @@ struct Exporter {
     }
 
     void visit(R& res, CR<sem::Code::Switch::Data> data) {
-        _this()->visitField(res, "kind", sem::Code::Switch::getKind(data));
-        std::visit(
-            [&, this](const auto& it) { _this()->visit(res, it); }, data);
+        visitVariants(res, sem::Code::Switch::getKind(data), data);
     }
 
     void visit(R& res, CR<sem::Code::Switch> sw) { visit(res, sw.data); }
@@ -199,14 +208,13 @@ struct Exporter {
         __obj_field(res, repeat, mode);
     }
 
+    void visit(R& res, CR<UserTime> time) {
+        visitVariants(res, time.getKind(), time.time);
+    }
 
     /// \brief  Static time object visit
     void visit(R& res, CR<sem::Time::Static> time) {
-        _this()->visitField(res, "kind", time.time.getKind());
-        //        std::visit(
-        //            [&, this](const auto& it) { _this()->visit(res, it);
-        //            }, time.time.time);
-
+        __obj_field(res, time, time);
         __obj_field(res, time, repeat);
     }
 
@@ -217,9 +225,7 @@ struct Exporter {
 
     /// \brief Visit time variand for time node
     void visit(R& res, CR<sem::Time::TimeVariant> time) {
-        _this()->visitField(res, "kind", sem::Time::getTimeKind(time));
-        std::visit(
-            [&, this](const auto& it) { _this()->visit(res, it); }, time);
+        visitVariants(res, sem::Time::getTimeKind(time), time);
     }
     ///@}
 
@@ -246,9 +252,7 @@ struct Exporter {
     }
 
     void visit(R& res, CR<sem::Link::Data> data) {
-        _this()->visitField(res, "kind", sem::Link::getLinkKind(data));
-        std::visit(
-            [&, this](const auto& it) { _this()->visit(res, it); }, data);
+        visitVariants(res, sem::Link::getLinkKind(data), data);
     }
     ///@}
 
@@ -282,10 +286,7 @@ struct Exporter {
     }
 
     void visit(R& res, CR<sem::SubtreeLog::LogEntry> entry) {
-        _this()->visitField(
-            res, "kind", sem::SubtreeLog::getLogKind(entry));
-        std::visit(
-            [&, this](const auto& it) { _this()->visit(res, it); }, entry);
+        visitVariants(res, sem::SubtreeLog::getLogKind(entry), entry);
     }
     ///@}
 
@@ -300,10 +301,7 @@ struct Exporter {
     void visit(R& res, CR<sem::Include::OrgDocument> p) {}
 
     void visit(R& res, CR<sem::Include::Data> prop) {
-        _this()->visitField(
-            res, "kind", sem::Include::getIncludeKind(prop));
-        std::visit(
-            [&, this](const auto& it) { _this()->visit(res, it); }, prop);
+        visitVariants(res, sem::Include::getIncludeKind(prop), prop);
     }
 
     /// @}
@@ -366,10 +364,7 @@ struct Exporter {
     }
 
     void visit(R& res, CR<sem::Subtree::Property::Data> prop) {
-        _this()->visitField(
-            res, "kind", sem::Subtree::Property::getKind(prop));
-        std::visit(
-            [&, this](const auto& it) { _this()->visit(res, it); }, prop);
+        visitVariants(res, sem::Subtree::Property::getKind(prop), prop);
     }
 
 

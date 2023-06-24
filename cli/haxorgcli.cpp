@@ -1024,6 +1024,7 @@ void HaxorgCli::exec() {
         }
 
         { writeGantt(); }
+        { writeJson(); }
 
         return;
     }

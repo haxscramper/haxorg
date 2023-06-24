@@ -25,19 +25,24 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
         return tmp;
     }
 
-    yaml newRes(CR<sem::Link::Data>) { return yaml(); }
-    yaml newRes(CR<sem::Time::TimeVariant>) { return yaml(); }
-    yaml newRes(CR<sem::Time::Repeat>) { return yaml(); }
-    yaml newRes(CR<sem::SubtreeLog::LogEntry>) { return yaml(); }
-    yaml newRes(CR<sem::Subtree::Property>) { return yaml(); }
-    yaml newRes(CR<sem::Subtree::Property::Data>) { return yaml(); }
-    yaml newRes(CR<sem::Include::Data>) { return yaml(); }
-    yaml newRes(CR<sem::Code::Switch>) { return yaml(); }
+    template <typename T>
+    yaml newRes(CR<T>) {
+        return yaml();
+    }
+
 
     yaml visit(CR<bool> value) { return yaml(value); }
     yaml visit(CR<int> value) { return yaml(value); }
     yaml visit(CR<QString> value) { return yaml(value); }
     yaml visit(CR<QDateTime> value) {
+        return yaml(value.toString(Qt::ISODate).toStdString());
+    }
+
+    yaml visit(CR<QDate> value) {
+        return yaml(value.toString(Qt::ISODate).toStdString());
+    }
+
+    yaml visit(CR<QTime> value) {
         return yaml(value.toString(Qt::ISODate).toStdString());
     }
 

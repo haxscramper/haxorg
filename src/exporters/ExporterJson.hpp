@@ -1,4 +1,5 @@
 #include <exporters/Exporter.hpp>
+#include <hstd/stdlib/Time.hpp>
 
 struct ExporterJson : public Exporter<ExporterJson, json> {
     using Base = Exporter<ExporterJson, json>;
@@ -14,16 +15,11 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     }
 
 
-    json newRes(CR<sem::Link::Data>) { return json::object(); }
-    json newRes(CR<sem::Time::TimeVariant>) { return json::object(); }
-    json newRes(CR<sem::Time::Repeat>) { return json::object(); }
-    json newRes(CR<sem::SubtreeLog::LogEntry>) { return json::object(); }
-    json newRes(CR<sem::Subtree::Property>) { return json::object(); }
-    json newRes(CR<sem::Code::Switch>) { return json::object(); }
-    json newRes(CR<sem::Include::Data>) { return json::object(); }
-    json newRes(CR<sem::Subtree::Property::Data>) {
+    template <typename T>
+    json newRes(CR<T>) {
         return json::object();
     }
+
 
     template <typename T>
     json newRes(CR<Opt<T>> arg) {
