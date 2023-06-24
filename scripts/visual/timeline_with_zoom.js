@@ -21,15 +21,14 @@ function convertTimeline(data) {
 
   console.log(timeline);
   var idx = 0;
-  return timeline.filter(d => 2004 < d.enddate.getFullYear())
-      .sort((lhs, rhs) => lhs.startdate > rhs.startdate)
+  return timeline.sort((lhs, rhs) => lhs.startdate > rhs.startdate)
       .map(d => ({...d, index : idx++}));
 }
 
 const config = {
-  height : 700,
+  height : 1000,
   width : 1500,
-  rect_size : 20,
+  rect_size : 10,
   brush_height : 70
 };
 
@@ -75,7 +74,14 @@ function update(timeline) {
   let programmaticZoom = false;
   let programmaticBrush = false;
 
-  const scalable_selector = ".event_rectangle,.data_overlay";
+  const event_selector = ".event_rectangle";
+  const scalable_selector = event_selector + ",.data_overlay";
+
+  function rescaleForTransform() {
+    area.selectAll(scalable_selector).attr("transform", rectTransform);
+    area.selectAll(event_selector)
+        .attr("width", function(d) { return (x(d.enddate) - x(d.startdate)) })
+  }
 
   function zoomed(e) {
     if (programmaticZoom) {
@@ -91,9 +97,8 @@ function update(timeline) {
     localStorage.setItem("translateY", t.y);
 
     x.domain(t.rescaleX(x2).domain());
-    area.selectAll(scalable_selector)
-        .attr("transform", rectTransform)
-        .attr("width", function(d) { return (x(d.enddate) - x(d.startdate)) })
+    rescaleForTransform();
+
     focus.select(".axis--x").call(xAxis);
     programmaticBrush = true;
     context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
@@ -108,9 +113,8 @@ function update(timeline) {
     var s = event.selection || x2.range();
 
     x.domain(s.map(x2.invert, x2));
-    area.selectAll(scalable_selector)
-        .attr("transform", rectTransform)
-        .attr("width", function(d) { return (x(d.enddate) - x(d.startdate)) })
+    rescaleForTransform();
+
     //   focus.select(".focus").attr("d", focus);
     focus.select(".axis--x").call(xAxis);
     programmaticZoom = true;
@@ -123,7 +127,7 @@ function update(timeline) {
 
   // colors for each type
   var types = [...new Set(timeline.map(item => item.type)) ];
-  var colors = chroma.scale('Spectral').colors(types.length)
+  var colors = chroma.scale("Spectral").colors(types.length)
   var type2color = {};
   types.forEach(function(element,
                          index) { type2color[element] = colors[index] });
@@ -159,7 +163,7 @@ function update(timeline) {
       .attr("height", height)
 
   var area = svg.append("g")
-                 .attr('class', 'clipped')
+                 .attr("class", "clipped")
                  .attr("width", width)
                  .attr("height", height)
                  .attr("transform",
@@ -178,8 +182,6 @@ function update(timeline) {
   function rectOffset(d) { return d.index * config.rect_size; }
 
   event_rectangles.append("rect")
-      .attr("rx", 5)
-      .attr("ry", 5)
       .attr("class", "event_rectangle")
       .attr("y", d => rectOffset(d))
       .attr("transform", rectTransform)
@@ -202,25 +204,28 @@ function update(timeline) {
                          .enter()
                          .append("g");
 
-  data_overlay.append('text')
-      .attr('y', d => rectOffset(d))
+  data_overlay.append("text")
+      .attr("y", d => rectOffset(d) - config.rect_size * 3)
       .text(d => d.name)
       .attr("class", "data_overlay")
-      .attr('text-anchor', 'start')
-      .attr('alignment-baseline', 'middle')
-      .attr('font-family', 'Verdana, sans-serif')
-      .attr("font-size", '14px')
+      .attr("text-anchor", "start")
+      .attr("alignment-baseline", "middle")
+      .attr("font-family", "Verdana, sans-serif")
+      .attr("font-size", "14px")
       .attr("transform", rectTransform)
-      .attr("fill", 'black');
+      .attr("fill", "black");
 
-  data_overlay.append('rect')
-      .attr('x', -0.5)
-      .attr('y', 0)
-      .attr('width', 1)
-      .attr('height', height)
-      .attr('stroke', 'black')
-      .attr('stroke-width', 0)
-      .attr('fill', 'black')
+  // Timeline annotation ticks
+  data_overlay.append("rect")
+      .attr("x", -0.5)
+      .attr("y", d => rectOffset(d) - config.rect_size * 3)
+      .attr("class", "data_overlay")
+      .attr("height", d => config.rect_size * 3)
+      .attr("stroke", "black")
+      .attr("stroke-width", 0)
+      .attr("transform", rectTransform)
+      .attr("width", 1)
+      .attr("fill", "black");
 
   var area2 = d3.area()
                   .curve(d3.curveMonotoneX)
