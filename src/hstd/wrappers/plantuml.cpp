@@ -27,10 +27,12 @@ QString puml::Gantt::toString() const {
 
 
 json puml::Gantt::Event::toJson() const {
-    json res     = json::object();
-    res["start"] = start.getDateTime().toString(Qt::ISODate);
-    res["stop"]  = stop.getDateTime().toString(Qt::ISODate);
-    res["name"]  = name;
+    json res               = json::object();
+    res["start"]           = start.getDateTime().toString(Qt::ISODate);
+    res["stop"]            = stop.getDateTime().toString(Qt::ISODate);
+    res["name"]            = name;
+    res["start_date_only"] = !start.hasTime();
+    res["stop_date_only"]  = !start.hasTime();
 
     if (completion) {
         res["completion"] = completion.value();
