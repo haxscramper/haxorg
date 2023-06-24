@@ -26,14 +26,29 @@ function convertTimeline(data) {
       .map(d => ({...d, index : idx++}));
 }
 
+const config = {
+  height : 700,
+  width : 1500,
+  rect_size : 20,
+  brush_height : 70
+};
+
 function update(timeline) {
   // To get the event positio05
   var keyFunction = function(d) { return d.startdate + d.type; }
 
-  var svg = d3.select("svg")
+  var svg = d3.select("body")
+                .append("svg")
+                .attr("height", config.height)
+                .attr("width", config.width);
 
   const margin = {top : 20, right : 20, bottom : 110, left : 50};
-  const margin2 = {top : 430, right : 20, bottom : 30, left : 50};
+  const margin2 = {
+    top : config.height - config.brush_height,
+    right : 20,
+    bottom : 30,
+    left : 50
+  };
   const width = +svg.attr("width") - margin.left - margin.right;
   const height = +svg.attr("height") - margin.top - margin.bottom;
   const height2 = +svg.attr("height") - margin2.top - margin2.bottom;
@@ -160,7 +175,7 @@ function update(timeline) {
                              .enter()
                              .append("g");
 
-  function rectOffset(d) { return d.index * 20; }
+  function rectOffset(d) { return d.index * config.rect_size; }
 
   event_rectangles.append("rect")
       .attr("rx", 5)

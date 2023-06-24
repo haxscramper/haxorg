@@ -1,0 +1,81 @@
+.area {
+  fill: steelblue;
+  clip-path: url(#clip);
+}
+
+.circle {
+  fill: steelblue;
+  cursor: move;
+  pointer-events: all;
+}
+
+.zoom {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
+}
+
+.clipped {
+  clip-path: url(#clip);
+}
+
+div.tooltip {
+  position: absolute;
+  display: none;
+  min-width: 40px;
+  height: auto;
+  color: white;
+  background: none repeat scroll 0 0 #333;
+  border: 1px solid #333;
+  padding: 4px;
+  text-align: center;
+}
+
+
+.frame {
+  fill: none;
+  stroke: #000;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis line,
+.axis circle {
+  fill: none;
+  stroke: #777;
+  stroke-dasharray: 1, 4;
+}
+
+.axis :last-of-type circle {
+  stroke: #333;
+  stroke-dasharray: none;
+}
+
+.line {
+  fill: none;
+  stroke: red;
+  stroke-width: 1.5px;
+}
+
+svg {
+  font: 10px sans-serif;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.zoom2 {
+  cursor: move;
+  pointer-events: all;
+}
