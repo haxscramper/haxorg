@@ -7,6 +7,7 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/Time.hpp>
 
 
 namespace puml {
@@ -32,13 +33,13 @@ struct Gantt {
     _property(Calendar, calendar, QString);
     _property(WorkingDays, workingdays, QString);
     _property(WeekEnds, weekEnds, QString);
-    _property(Holidays, holidays, QDate);
+    _property(Holidays, holidays, UserTime);
 
     struct CloseDay {
         struct Weekday {};
         struct Range {
-            QDate start;
-            QDate end;
+            UserTime start;
+            UserTime end;
         };
 
         SUB_VARIANTS(Kind, Data, data, getKind, Weekday, Range);
@@ -46,20 +47,25 @@ struct Gantt {
     };
 
     struct Event {
-        QDate      start;
-        QDate      stop;
+        UserTime   start;
+        UserTime   stop;
         QString    name;
         Opt<int>   completion;
         Vec<Event> nested;
 
-        Slice<QDate> convex() const;
+        bool hasHours   = true;
+        bool hasMinutes = true;
+        bool hasSeconds = true;
+
+        Slice<QDateTime> convex() const;
+        Slice<QDateTime> minmax() const;
 
         QString toString() const;
 
         json toJson() const;
     };
 
-    Opt<Slice<QDate>> timeSpan;
+    Opt<Slice<QDateTime>> timeSpan;
 
     Vec<Event> events;
 

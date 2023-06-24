@@ -199,10 +199,14 @@ struct Exporter {
         __obj_field(res, repeat, mode);
     }
 
+
     /// \brief  Static time object visit
     void visit(R& res, CR<sem::Time::Static> time) {
-        __obj_field(res, time, simpleTime);
-        __obj_field(res, time, time);
+        _this()->visitField(res, "kind", time.time.getKind());
+        //        std::visit(
+        //            [&, this](const auto& it) { _this()->visit(res, it);
+        //            }, time.time.time);
+
         __obj_field(res, time, repeat);
     }
 

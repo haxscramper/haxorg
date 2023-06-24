@@ -808,7 +808,7 @@ void HaxorgCli::writeHtml() {
 void HaxorgCli::writeGantt() {
     __trace("Export gantt");
     ExporterGantt gantt;
-    gantt.gantt.timeSpan = slice(QDate(), QDate());
+    gantt.gantt.timeSpan = slice(QDateTime(), QDateTime());
     gantt.visitTop(node);
 
     writeFile(QFileInfo("/tmp/gantt.puml"_qs), gantt.gantt.toString());

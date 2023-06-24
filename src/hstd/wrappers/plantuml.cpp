@@ -5,7 +5,7 @@
 QString puml::Gantt::toString() const {
     QString result;
 
-    Slice<QDate> convex = timeSpan ? *timeSpan : events[0].convex();
+    Slice<QDateTime> convex = timeSpan ? *timeSpan : events[0].convex();
     if (!timeSpan) {
         for (const auto& it : events) {
             convex = convex.widen(it.convex());
@@ -28,8 +28,8 @@ QString puml::Gantt::toString() const {
 
 json puml::Gantt::Event::toJson() const {
     json res     = json::object();
-    res["start"] = start.toString(Qt::ISODate);
-    res["stop"]  = stop.toString(Qt::ISODate);
+    res["start"] = start.getDateTime().toString(Qt::ISODate);
+    res["stop"]  = stop.getDateTime().toString(Qt::ISODate);
     res["name"]  = name;
 
     if (completion) {
@@ -59,13 +59,17 @@ json puml::Gantt::toJson() const {
 }
 
 
-Slice<QDate> puml::Gantt::Event::convex() const {
-    Slice<QDate> convex = slice(start, stop);
+Slice<QDateTime> puml::Gantt::Event::convex() const {
+    Slice<QDateTime> convex = minmax();
     for (const auto& it : nested) {
         convex = convex.widen(it.convex());
     }
 
     return convex;
+}
+
+Slice<QDateTime> puml::Gantt::Event::minmax() const {
+    return slice(this->start.min(), this->stop.max());
 }
 
 QString puml::Gantt::Event::toString() const {
@@ -80,21 +84,24 @@ QString puml::Gantt::Event::toString() const {
 
     aux = [&result, &aux](CR<PassCtx> ctx) {
         if (ctx.parent) {
-            int days = ctx.parent->start.daysTo(ctx.e.start);
+            int days = ctx.parent->start.getDate().daysTo(
+                ctx.e.start.getDate());
             result += "[${name}] starts ${start} days ${direction} [${parent}]'s start and ends on ${end}\n"
                     % fold_format_pairs(
                           {{"name", ctx.e.name},
                            {"parent", ctx.parent->name},
                            {"direction", to_string(0 < days ? "after"  : "before")},
                            {"start", to_string(std::abs(days))},
-                           {"end",  ctx.e.stop.toString(Qt::ISODate)}});
+                           {"end",  ctx.e.stop.getDate().toString(Qt::ISODate)}});
 
         } else {
             result += "[${name}] starts on ${start} and ends on ${end}\n"
                     % fold_format_pairs(
                           {{"name", ctx.e.name},
-                           {"start", ctx.e.start.toString(Qt::ISODate)},
-                           {"end", ctx.e.stop.toString(Qt::ISODate)}});
+                           {"start",
+                            ctx.e.start.getDate().toString(Qt::ISODate)},
+                           {"end",
+                            ctx.e.stop.getDate().toString(Qt::ISODate)}});
         }
 
 

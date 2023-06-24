@@ -270,7 +270,7 @@ ExporterHtml::Res ExporterHtml::createTocList(sem::SemId node) {
 
 void ExporterHtml::visitTime(Res& res, In<sem::Time> time) {
     if (time->isStatic()) {
-        const auto& t = time->getStatic().time;
+        const auto& t = time->getStatic().time.getDateTime();
 
         QString fmt = "yyyy.MM.dd";
         if (t.time().hour() != 0) {

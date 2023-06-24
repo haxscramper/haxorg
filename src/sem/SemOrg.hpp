@@ -3,6 +3,7 @@
 #include <memory>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/Time.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Str.hpp>
 
@@ -643,15 +644,12 @@ struct Time : public Org {
         int    count;
     };
 
-    Time(CR<QDateTime> time)
+    Time(CR<UserTime> time)
         : time(Static{.time = time}), Org(SemId::Nil(), OrgAdapter()) {}
 
     struct Static {
         Opt<Repeat> repeat;
-        QDateTime   time;
-        /// Simplified time such as `12:20` can be used in subtree
-        /// titles in conjunction with dynamic (diary) times.
-        bool simpleTime;
+        UserTime    time;
     };
     /// Active timestamp with evaluatable code expression inside, also
     /// called diary time

@@ -77,7 +77,8 @@ struct ExporterQTextDocument
 
     void visitTime(int& r, In<sem::Time> time) {
         if (time->isStatic()) {
-            write(time->getStatic().time.toString(Qt::ISODate));
+            write(time->getStatic().time.getDateTime().toString(
+                Qt::ISODate));
         }
     }
 

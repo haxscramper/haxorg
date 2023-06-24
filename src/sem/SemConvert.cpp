@@ -496,21 +496,30 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
             datetime += one(a, N::Clock).strVal();
         }
 
-        Vec<QString> formats = {
-            "yyyy-MM-dd HH:mm:ss",
-            "yyyy/MM/dd HH:mm:ss",
-            "dd-MM-yyyy HH:mm:ss",
-            "dd/MM/yyyy HH:mm:ss",
-            "yyyy-MM-dd HH:mm",
-            "HH:mm",
-            "yyyy-MM-dd",
+        struct Spec {
+            QString pattern;
+            bool    useTime = true;
+            bool    useDate = true;
+        };
+
+        Vec<Spec> formats = {
+            Spec{.pattern = "yyyy-MM-dd HH:mm:ss"},
+            Spec{.pattern = "yyyy/MM/dd HH:mm:ss"},
+            Spec{.pattern = "dd-MM-yyyy HH:mm:ss"},
+            Spec{.pattern = "dd/MM/yyyy HH:mm:ss"},
+            Spec{.pattern = "yyyy-MM-dd HH:mm"},
+            Spec{.pattern = "HH:mm", .useDate = false},
+            Spec{.pattern = "yyyy-MM-dd", .useTime = false},
             // Add other formats as needed
         };
 
         QDateTime parsedDateTime;
+        Spec      matching;
         for (const auto& format : formats) {
-            parsedDateTime = QDateTime::fromString(datetime, format);
+            parsedDateTime = QDateTime::fromString(
+                datetime, format.pattern);
             if (parsedDateTime.isValid()) {
+                matching = format;
                 break;
             }
         }
@@ -523,8 +532,9 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
         }
 
         time->time = Time::Static{
-            .time = parsedDateTime,
-        };
+            .time = UserTime(
+                parsedDateTime, matching.useDate, matching.useTime)};
+
         if (repeatMode != Mode::None) {
             time->getStatic().repeat = Time::Repeat{
                 .mode = repeatMode,

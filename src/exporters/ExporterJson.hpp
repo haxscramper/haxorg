@@ -44,6 +44,15 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     json visit(CR<QString> value) { return json(value); }
     json visit(CR<bool> value) { return json(value); }
     json visit(CR<int> value) { return json(value); }
+
+    json visit(CR<QDate> value) {
+        return json(value.toString(Qt::ISODate).toStdString());
+    }
+
+    json visit(CR<QTime> value) {
+        return json(value.toString(Qt::ISODate).toStdString());
+    }
+
     json visit(CR<QDateTime> value) {
         return json(value.toString(Qt::ISODate).toStdString());
     }

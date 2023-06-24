@@ -17,11 +17,11 @@ void ExporterGantt::pushVisit(int&, sem::SemIdT<sem::Subtree> tree) {
     stack.push_back({});
     for (sem::Subtree::Period const& period : tree->getTimePeriods(
              IntSet<Period::Kind>(Period::Kind::Titled))) {
-        QDateTime start, end;
+        UserTime start, end;
         if (period.period.index() == 0) {
-            QDateTime const& time = std::get<0>(period.period)
-                                        ->getStatic()
-                                        .time;
+            UserTime const& time = std::get<0>(period.period)
+                                       ->getStatic()
+                                       .time;
             start = time;
             end   = time;
         } else {
@@ -30,8 +30,8 @@ void ExporterGantt::pushVisit(int&, sem::SemIdT<sem::Subtree> tree) {
         }
 
         stack.back().event.name  = ExporterUltraplain::toStr(tree->title);
-        stack.back().event.start = start.date();
-        stack.back().event.stop  = end.date();
+        stack.back().event.start = start;
+        stack.back().event.stop  = end;
         stack.back().filled      = true;
         break;
     }
