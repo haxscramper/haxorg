@@ -22,6 +22,7 @@ function convertTimeline(data) {
   console.log(timeline);
   var idx = 0;
   return timeline.filter(d => 2004 < d.enddate.getFullYear())
+      .sort((lhs, rhs) => lhs.startdate > rhs.startdate)
       .map(d => ({...d, index : idx++}));
 }
 
@@ -68,6 +69,12 @@ function update(timeline) {
     }
 
     var t = e.transform;
+
+    // Store the current zoom level and translation in local storage.
+    localStorage.setItem("zoom", t.k);
+    localStorage.setItem("translateX", t.x);
+    localStorage.setItem("translateY", t.y);
+
     x.domain(t.rescaleX(x2).domain());
     area.selectAll(scalable_selector)
         .attr("transform", rectTransform)
@@ -84,6 +91,7 @@ function update(timeline) {
     }
 
     var s = event.selection || x2.range();
+
     x.domain(s.map(x2.invert, x2));
     area.selectAll(scalable_selector)
         .attr("transform", rectTransform)
@@ -94,6 +102,8 @@ function update(timeline) {
     svg.select(".zoom").call(
         zoom.transform,
         d3.zoomIdentity.scale(width / (s[1] - s[0])).translate(-s[0], 0));
+
+    localStorage.setItem("brushSelection", JSON.stringify(s));
   }
 
   // colors for each type
@@ -150,15 +160,17 @@ function update(timeline) {
                              .enter()
                              .append("g");
 
+  function rectOffset(d) { return d.index * 20; }
+
   event_rectangles.append("rect")
       .attr("rx", 5)
       .attr("ry", 5)
       .attr("class", "event_rectangle")
-      .attr("y", 0)
+      .attr("y", d => rectOffset(d))
       .attr("transform", rectTransform)
-      .attr("height", function(d) { return y.bandwidth(); })
+      .attr("height", function(d) { return 10; })
       .attr("width", function(d) { return (x(d.enddate) - x(d.startdate)) })
-      .style("fill", function(d) { return type2color[d.type] })
+      .style("fill", function(d) { return "red"; })
       .on("mouseover",
           function(event, d) {
             tooltip.style("left", event.pageX + "px")
@@ -174,8 +186,6 @@ function update(timeline) {
                          .data(timeline, keyFunction)
                          .enter()
                          .append("g");
-
-  function rectOffset(d) { return d.index * 20; }
 
   data_overlay.append('text')
       .attr('y', d => rectOffset(d))
@@ -208,8 +218,6 @@ function update(timeline) {
                     .attr("transform", "translate(" + margin2.left + "," +
                                            margin2.top + ")");
 
-  var data = timeline
-
   x2.domain(x.domain());
   y2.domain(y.domain());
 
@@ -220,17 +228,37 @@ function update(timeline) {
 
   focus.append("g").attr("class", "axis axis--y").call(yAxis);
 
-  context.append("path").datum(data).attr("class", "area").attr("d", area2);
+  context.append("path").datum(timeline).attr("class", "area").attr("d", area2);
 
   context.append("g")
       .attr("class", "axis axis--x")
       .attr("transform", "translate(0," + height2 + ")")
       .call(xAxis2);
 
-  context.append("g")
-      .attr("class", "brush")
-      .call(brush)
-      .call(brush.move, x.range());
+  var storedBrushSelection = JSON.parse(localStorage.getItem("brushSelection"));
+  var brushG = context.append("g")
+                   .attr("class", "brush")
+                   .call(brush)
+                   .call(brush.move, x.range());
+
+  // Get stored zoom and pan values
+  var storedZoom = +localStorage.getItem("zoom");
+  var storedTranslateX = +localStorage.getItem("translateX");
+  var storedTranslateY = +localStorage.getItem("translateY");
+
+  // If stored values exist, apply them to the SVG
+  if (storedZoom && storedTranslateX && storedTranslateY) {
+    console.log("Restoring zoom transform");
+    svg.call(zoom.transform,
+             d3.zoomIdentity.translate(storedTranslateX, storedTranslateY)
+                 .scale(storedZoom));
+  }
+
+  console.log("Restore brush selection", storedBrushSelection);
+  // If stored brush selection exists, apply it
+  if (storedBrushSelection) {
+    brushG.call(brush.move, storedBrushSelection);
+  }
 }
 
 d3.json("/tmp/gantt.json")
