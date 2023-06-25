@@ -311,7 +311,7 @@ inline StreamState::~StreamState() { stream.active = start; }
 
 
 inline ColStream& ColStream::indent(int level) {
-    append(ColText(ColStyle{}, repeat(" ", level)));
+    write(ColText(ColStyle{}, repeat(" ", level)));
     return *this;
 }
 

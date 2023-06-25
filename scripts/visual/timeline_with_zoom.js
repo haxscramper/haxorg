@@ -26,7 +26,7 @@ function convertTimeline(data) {
 }
 
 const config = {
-  height : 1000,
+  height : 1800,
   width : 1500,
   rect_size : 10,
   brush_height : 70
@@ -181,13 +181,16 @@ function update(timeline) {
 
   function rectOffset(d) { return d.index * config.rect_size; }
 
+  const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+  const randomColor = () => colorScale(Math.floor(Math.random() * 20));
+
   event_rectangles.append("rect")
       .attr("class", "event_rectangle")
       .attr("y", d => rectOffset(d))
       .attr("transform", rectTransform)
       .attr("height", function(d) { return 10; })
       .attr("width", function(d) { return (x(d.enddate) - x(d.startdate)) })
-      .style("fill", function(d) { return "red"; })
+      .style("fill", d => randomColor())
       .on("mouseover",
           function(event, d) {
             tooltip.style("left", event.pageX + "px")
@@ -204,8 +207,10 @@ function update(timeline) {
                          .enter()
                          .append("g");
 
+  const tail_offset = 3;
+
   data_overlay.append("text")
-      .attr("y", d => rectOffset(d) - config.rect_size * 3)
+      .attr("y", d => rectOffset(d) - config.rect_size * tail_offset)
       .text(d => d.name)
       .attr("class", "data_overlay")
       .attr("text-anchor", "start")
@@ -218,9 +223,9 @@ function update(timeline) {
   // Timeline annotation ticks
   data_overlay.append("rect")
       .attr("x", -0.5)
-      .attr("y", d => rectOffset(d) - config.rect_size * 3)
+      .attr("y", d => rectOffset(d) - config.rect_size * tail_offset)
       .attr("class", "data_overlay")
-      .attr("height", d => config.rect_size * 3)
+      .attr("height", d => config.rect_size * tail_offset)
       .attr("stroke", "black")
       .attr("stroke-width", 0)
       .attr("transform", rectTransform)

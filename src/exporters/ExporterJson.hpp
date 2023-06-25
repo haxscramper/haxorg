@@ -1,3 +1,5 @@
+#pragma once
+
 #include <exporters/Exporter.hpp>
 #include <hstd/stdlib/Time.hpp>
 

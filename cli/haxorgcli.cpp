@@ -12,6 +12,7 @@
 #include <exporters/exporterhtml.hpp>
 #include <exporters/exporterqtextdocument.hpp>
 #include <exporters/exportersimplesexpr.hpp>
+#include <exporters/exporterlatex.hpp>
 #include <exporters/exportereventlog.hpp>
 #include <annotators/annotatorspelling.hpp>
 #include <exporters/exportersubtreestructure.hpp>
@@ -1025,6 +1026,37 @@ void HaxorgCli::exec() {
 
         { writeGantt(); }
         { writeJson(); }
+
+        {
+            __trace("Export Latex");
+            ExporterLatex    exporter;
+            OperationsTracer trace{QFileInfo("/tmp/latex_export_trace")};
+            exporter.visitEventCb =
+                [&](ExporterLatex::VisitEvent const& ev) {
+                    using K = typename ExporterLatex::VisitEvent::Kind;
+                    if ((ev.kind == K::PushVisit && !ev.isStart)
+                        || (ev.kind == K::PopVisit && ev.isStart)) {
+                        return;
+                    }
+
+                    auto os = trace.getStream();
+
+
+                    os << os.indent(ev.level * 2) << ev.level
+                       << (ev.isStart ? ">" : "<") << " "
+                       << to_string(ev.kind) << " " << ev.function
+                       << os.end();
+
+
+                    trace.endStream(os);
+                };
+
+            layout::Block::Ptr result    = exporter.visitTop(node);
+            QString            formatted = exporter.store.toString(
+                result, layout::Options{});
+            writeFile(QFileInfo("/tmp/result.tex"), formatted);
+            qDebug() << "Latex output ok";
+        }
 
         return;
     }
