@@ -50,7 +50,7 @@ struct Exporter {
         QString         field;
         QString         function;
         bool            isStart = true;
-        char const*     type;
+        QString         type;
     };
 
     using VisitEventCb = Func<void(VisitEvent const&)>;

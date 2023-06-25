@@ -490,6 +490,7 @@ Opt<Solution::Ptr> doOptLineLayout(
 
     for (size_t i = 0; i < line.elements.size(); ++i) {
         Block::Ptr elt = line.elements[i];
+        Q_CHECK_PTR(elt);
         elementLines.back().push_back(elt);
         if (i < line.elements.size() - 1 && elt->isBreaking) {
             elementLines.push_back(Vec<Block::Ptr>());
@@ -554,7 +555,7 @@ Opt<Solution::Ptr> doOptStackLayout(
 
     Vec<Solution::Ptr> solnCandidates;
     for (size_t idx = 0; idx < stack.elements.size(); ++idx) {
-        auto& elem = stack.elements[idx];
+        auto& elem = stack.elements.at(idx);
         if (idx < stack.elements.size() - 1) {
             Opt<Solution::Ptr> it;
             auto               opt = optLayout(elem, it, opts);
@@ -815,6 +816,7 @@ int Block::size() const {
 }
 
 void Block::add(CR<Ptr> other) {
+    Q_CHECK_PTR(other);
     return std::visit(
         overloaded{
             [&](Line& w) { w.elements.push_back(other); },
@@ -827,6 +829,10 @@ void Block::add(CR<Ptr> other) {
 }
 
 void Block::add(CVec<Ptr> others) {
+    for (auto const& p : others) {
+        Q_CHECK_PTR(p);
+    }
+
     return std::visit(
         overloaded{
             [&](Line& w) { w.elements.append(others); },

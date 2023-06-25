@@ -1031,25 +1031,39 @@ void HaxorgCli::exec() {
             __trace("Export Latex");
             ExporterLatex    exporter;
             OperationsTracer trace{QFileInfo("/tmp/latex_export_trace")};
-            exporter.visitEventCb =
-                [&](ExporterLatex::VisitEvent const& ev) {
-                    using K = typename ExporterLatex::VisitEvent::Kind;
-                    if ((ev.kind == K::PushVisit && !ev.isStart)
-                        || (ev.kind == K::PopVisit && ev.isStart)) {
-                        return;
-                    }
+            exporter.visitEventCb = [&](ExporterLatex::VisitEvent const&
+                                            ev) {
+                using K = typename ExporterLatex::VisitEvent::Kind;
+                if (((ev.kind == K::PushVisit || ev.kind == K::VisitStart)
+                     && !ev.isStart)
+                    || ((ev.kind == K::PopVisit || ev.kind == K::VisitEnd)
+                        && ev.isStart)) {
+                    return;
+                }
 
-                    auto os = trace.getStream();
-
-
-                    os << os.indent(ev.level * 2) << ev.level
-                       << (ev.isStart ? ">" : "<") << " "
-                       << to_string(ev.kind) << " " << ev.function
-                       << os.end();
+                auto os = trace.getStream();
 
 
-                    trace.endStream(os);
-                };
+                os << os.indent(ev.level * 2) << (ev.isStart ? ">" : "<")
+                   << " " << to_string(ev.kind);
+
+                if (ev.visitedNode) {
+                    os << " node:" << to_string(ev.visitedNode->getKind());
+                }
+
+                if (0 < ev.field.length()) {
+                    os << " field:" << ev.field;
+                }
+
+                os << " on " << QFileInfo(ev.file).fileName() << ":"
+                   << ev.line << " " << ev.function << " " << os.end();
+
+                if (0 < ev.type.length()) {
+                    os << " type:" << demangle(ev.type.toLatin1());
+                }
+
+                trace.endStream(os);
+            };
 
             layout::Block::Ptr result    = exporter.visitTop(node);
             QString            formatted = exporter.store.toString(

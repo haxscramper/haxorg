@@ -27,6 +27,8 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
         return string(escape_for_write(value));
     }
 
+    Res visit(sem::SemId org);
+
     template <sem::NotOrg T>
     void visit(Res& res, CR<T> value) {
         res = b::line({string(
@@ -49,6 +51,12 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     }
 
     void visitDocument(Res& res, In<sem::Document> value);
+    void visitSubtree(Res& res, In<sem::Subtree> tree);
+    void visitParagraph(Res& res, In<sem::Paragraph> par);
+    void visitTime(Res& res, In<sem::Time> time);
+
+    Res command(QString const& name, Vec<QString> const& args);
+    Res command(QString const& name, Vec<Res> const& args);
 
     Res stackSubnodes(sem::SemId doc) {
         Res res = b::stack();
