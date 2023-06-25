@@ -309,7 +309,7 @@ Vec<Subtree::Property> Document::getProperties(
     if (options.isNil()) {
         return {};
     } else {
-        options->getProperties(kind, subkind);
+        return options->getProperties(kind, subkind);
     }
 }
 
@@ -319,7 +319,7 @@ Opt<Subtree::Property> Document::getProperty(
     if (options.isNil()) {
         return std::nullopt;
     } else {
-        options->getProperty(kind, subkind);
+        return options->getProperty(kind, subkind);
     }
 }
 

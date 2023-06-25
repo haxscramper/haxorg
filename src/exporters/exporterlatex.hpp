@@ -55,8 +55,30 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     void visitParagraph(Res& res, In<sem::Paragraph> par);
     void visitTime(Res& res, In<sem::Time> time);
 
+    static QString escape(QString const& value);
+
+    void addWrap(
+        Res&           res,
+        QString const& open,
+        QString const& close,
+        QString const& arg);
+
+    void addWrap(
+        Res&           res,
+        QString const& open,
+        QString const& close,
+        Res const&     arg);
+
     Res command(QString const& name, Vec<QString> const& args);
     Res command(QString const& name, Vec<Res> const& args);
+    Res command(
+        QString const&      name,
+        Vec<QString> const& opts,
+        Vec<QString> const& args);
+    Res command(
+        QString const&  name,
+        Vec<Res> const& opts,
+        Vec<Res> const& args);
 
     Res stackSubnodes(sem::SemId doc) {
         Res res = b::stack();
@@ -77,7 +99,7 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
 #define __leaf(__Kind)                                                    \
     void visit##__Kind(Res& res, In<sem::__Kind> word) {                  \
         __visit_specific_kind(res, word);                                 \
-        res = string(word->text);                                         \
+        res = string(escape(word->text));                                 \
     }
 
     EACH_SEM_ORG_LEAF_KIND(__leaf)

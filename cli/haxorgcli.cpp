@@ -1031,8 +1031,7 @@ void HaxorgCli::exec() {
             __trace("Export Latex");
             ExporterLatex    exporter;
             OperationsTracer trace{QFileInfo("/tmp/latex_export_trace")};
-            exporter.visitEventCb = [&](ExporterLatex::VisitEvent const&
-                                            ev) {
+            [&](ExporterLatex::VisitEvent const& ev) {
                 using K = typename ExporterLatex::VisitEvent::Kind;
                 if (((ev.kind == K::PushVisit || ev.kind == K::VisitStart)
                      && !ev.isStart)
