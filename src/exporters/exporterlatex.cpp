@@ -1,7 +1,9 @@
 #include "exporterlatex.hpp"
 
 using namespace sem;
+using osk  = OrgSemKind;
 using Prop = Subtree::Property;
+
 
 void ExporterLatex::addWrap(
     Res&           res,
@@ -96,6 +98,47 @@ QString getLatexClass(Opt<ExporterLatex::In<Document>> doc) {
     }
 }
 
+QString getSubtreeCommand(ExporterLatex::In<sem::Subtree> tree) {
+    QString name;
+    auto    lclass = getLatexClass(tree->getDocument());
+    if (lclass == "book") {
+        switch (tree->level) {
+            case 1: return "chapter";
+            case 2: return "section";
+            case 3: return "subsection";
+            case 4: return "subsubsection";
+            case 5: return "paragraph";
+            case 6: return "subparagraph";
+            default: return "textbf";
+        }
+    } else {
+        switch (tree->level) {
+            case 1: return "section";
+            case 2: return "subsection";
+            case 3: return "subsubsection";
+            case 4: return "paragraph";
+            case 5: return "subparagraph";
+            default: return "textbf";
+        }
+    }
+}
+
+QString getRefKind(SemId id) {
+    switch (id->getKind()) {
+        case osk::Subtree: {
+            auto command = getSubtreeCommand(id.as<sem::Subtree>());
+            if (command == "section") {
+                return "sec:";
+            } else {
+                return "";
+            }
+        }
+        default: {
+            return "";
+        }
+    }
+}
+
 void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     __visit_specific_kind(res, value);
     res = b::stack();
@@ -108,6 +151,10 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     }
 
     res->add(command("usepackage", {"csquotes"}));
+    // FIXME temporarily disabled -- causes errors with TOC,
+    // IDK why
+    //
+    //    res->add(command("usepackage", {"hyperref"}));
 
     res->add(command("begin", {"document"}));
     if (value->options) {
@@ -135,31 +182,13 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
     __visit_specific_kind(res, tree);
     res = b::stack();
 
-    QString name;
-    auto    lclass = getLatexClass(tree.getDocument());
-    if (lclass == "book") {
-        switch (tree->level) {
-            case 1: name = "chapter"; break;
-            case 2: name = "section"; break;
-            case 3: name = "subsection"; break;
-            case 4: name = "subsubsection"; break;
-            case 5: name = "paragraph"; break;
-            case 6: name = "subparagraph"; break;
-            default: name = "textbf"; break;
-        }
-    } else {
-        switch (tree->level) {
-            case 1: name = "section"; break;
-            case 2: name = "subsection"; break;
-            case 3: name = "subsubsection"; break;
-            case 4: name = "paragraph"; break;
-            case 5: name = "subparagraph"; break;
-            default: name = "textbf"; break;
-        }
+
+    res->add(command(getSubtreeCommand(tree), {visit(tree->title)}));
+    if (tree->treeId) {
+        res->add(command(
+            "label", {getRefKind(tree) + tree->treeId.value().toBase()}));
     }
 
-
-    res->add(command(name, {visit(tree->title)}));
     for (const auto& it : tree->subnodes) {
         res->add(visit(it));
     }
@@ -230,6 +259,34 @@ void ExporterLatex::visitQuote(Res& res, In<sem::Quote> quote) {
 
 void ExporterLatex::visitLink(Res& res, In<sem::Link> link) {
     switch (link->getLinkKind()) {
+        case sem::Link::Kind::Id: {
+            auto target = link->resolve();
+            if (target) {
+                res = b::line({command(
+                    "ref",
+                    {string(
+                        getRefKind(*target)
+                        + link->getId().text.toBase())})});
+
+                if (link->description) {
+                    res->add(visit(link->description.value()));
+                }
+
+            } else {
+                res = string("UNRESOLVED LINK");
+            }
+
+            break;
+        }
+        case sem::Link::Kind::Raw: {
+            res = command(
+                "href",
+                {string(link->getRaw().text)},
+                {link->description ? visit(link->description.value())
+                                   : string("link")});
+            res = string("href");
+            break;
+        }
         default: {
             res = string("LINK KIND" + to_string(link->getLinkKind()));
         }

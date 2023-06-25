@@ -40,8 +40,18 @@ SemId SemId::getParent() const { return (*this)->getParent(); }
 
 Vec<SemId> SemId::getParentChain(bool withSelf) const {
     Vec<SemId> result;
+    if (withSelf) {
+        result.push_back(*this);
+    }
+    result.append(get()->getParentChain());
 
-    SemId now = withSelf ? *this : getParent();
+    return result;
+}
+
+Vec<SemId> Org::getParentChain() const {
+    Vec<SemId> result;
+
+    SemId now = parent;
 
     while (now) {
         result.push_back(now);
@@ -52,13 +62,40 @@ Vec<SemId> SemId::getParentChain(bool withSelf) const {
 }
 
 
-Opt<SemIdT<Document>> SemId::getDocument() const {
-    for (const auto& item : getParentChain()) {
-        if (item->getKind() == OrgSemKind::Document) {
-            return item.as<Document>();
+Opt<SemId> Link::resolve(Document const& doc) const {
+    // TODO add target lookup that will create a full list
+    // of all possible targets and genrate warning message.
+    //
+    // IDEA another feature that can be implemented using
+    // document walker is autocompletion logic of some
+    // sort.
+    switch (getLinkKind()) {
+        case Link::Kind::Id: {
+            Opt<SemId> target = doc.idTable.get(getId().text);
+            if (target) {
+                return target.value();
+            }
+            break;
+        }
+
+        case Link::Kind::Footnote: {
+            auto target = doc.footnoteTable.get(getFootnote().target);
+            if (target) {
+                return target.value();
+            }
+            break;
         }
     }
+
     return std::nullopt;
+}
+
+Opt<SemId> Link::resolve() const {
+    if (auto doc = getDocument(); doc) {
+        return resolve(doc.value());
+    } else {
+        return std::nullopt;
+    }
 }
 
 
@@ -128,7 +165,7 @@ void SemId::eachSubnodeRec(SubnodeVisitor cb) {
     eachSubnodeRecImpl(cb, *this, true);
 }
 
-Opt<SemIdT<Subtree>> SemId::getParentSubtree() const {
+Opt<SemIdT<Subtree>> Org::getParentSubtree() const {
     for (const auto& item : getParentChain()) {
         if (item->getKind() == OrgSemKind::Subtree) {
             return item.as<Subtree>();
@@ -331,49 +368,9 @@ Opt<SemId> Document::resolve(CR<SemId> node) const {
     Q_CHECK_PTR(node);
     Q_CHECK_PTR(this);
     switch (node->getKind()) {
-        case osk::Link: {
-            auto link = node.as<Link>();
-            switch (link->getLinkKind()) {
-                case Link::Kind::Id: {
-                    Opt<SemId> target = idTable.get(link->getId().text);
-
-                    if (target) {
-                        return target.value();
-                    }
-
-                    // TODO add target lookup that will create a full list
-                    // of all possible targets and genrate warning message.
-                    //
-                    // IDEA another feature that can be implemented using
-                    // document walker is autocompletion logic of some
-                    // sort.
-                    qWarning() << "Failed resolving link with ID"
-                               << link->getId().text << "on line"
-                               << node->loc.value_or(LineCol{}).line;
-
-
-                    break;
-                }
-                case Link::Kind::Footnote: {
-                    auto target = footnoteTable.get(
-                        link->getFootnote().target);
-
-                    if (target) {
-                        return target.value();
-                    }
-
-                    qWarning() << "Failed resolving footnote with ID"
-                               << link->getFootnote().target << "on line"
-                               << node->loc.value_or(LineCol{}).line;
-
-                    break;
-                }
-            }
-            break;
-        }
+        case osk::Link: return node.as<Link>()->resolve(*this);
+        default: return std::nullopt;
     }
-
-    return std::nullopt;
 }
 
 bool List::isDescriptionList() const {
@@ -397,6 +394,15 @@ Opt<SemId> Stmt::getAttached(OrgSemKind kind) {
     return std::nullopt;
 }
 
+
+Opt<SemIdT<Document>> Org::getDocument() const {
+    for (const auto& item : getParentChain()) {
+        if (item->getKind() == OrgSemKind::Document) {
+            return item.as<Document>();
+        }
+    }
+    return std::nullopt;
+}
 
 void Org::push_back(SemId sub) {
     auto dat = subnodes.data();

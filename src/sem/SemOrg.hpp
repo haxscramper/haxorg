@@ -205,16 +205,10 @@ struct SemId {
     /// relying on the more heavyweight CRTP visitator.
     OrgVariant asVariant();
 
-    /// \brief Iteratively get all parent nodes for the subtree
-    Vec<SemId> getParentChain(bool withSelf = false) const;
-    /// \brief Get closest parent subtree (if it exists)
-    Opt<SemIdT<Subtree>> getParentSubtree() const;
-    /// \brief Get the document wrapping the node (if such document node
-    /// exists in hierarchy)
-    Opt<SemIdT<Document>> getDocument() const;
 
     /// \brief Get parent node ID for the node pointed to by this ID
-    SemId getParent() const;
+    SemId      getParent() const;
+    Vec<SemId> getParentChain(bool withSelf = false) const;
 
     /// \brief non-nil nodes are converter to `true`
     operator bool() const { return !isNil(); }
@@ -260,6 +254,13 @@ struct Org {
     inline bool hasParent() const { return !parent.isNil(); }
     /// \brief Get parent pointer (might be null)
     SemId getParent() const { return parent; }
+    /// \brief Get the document wrapping the node (if such document node
+    /// exists in hierarchy)
+    Opt<SemIdT<Document>> getDocument() const;
+    /// \brief Get closest parent subtree (if it exists)
+    Opt<SemIdT<Subtree>> getParentSubtree() const;
+    /// \brief Iteratively get all parent nodes for the subtree
+    Vec<SemId> getParentChain() const;
 
 
     /// \brief Pointer to the parent node in sem tree, might be null.
@@ -1144,6 +1145,9 @@ struct Link : public Org {
          description,
          Description,
          std::nullopt));
+
+    Opt<SemId> resolve(Document const& doc) const;
+    Opt<SemId> resolve() const;
 };
 
 struct ParseError : public Org {
