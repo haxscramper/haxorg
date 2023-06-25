@@ -167,12 +167,7 @@ Vec<Property> Subtree::getProperties(
     CR<QString>    subkind) const {
     Vec<Property> result;
     for (const auto& prop : properties) {
-        if (prop.getKind() == kind) {
-            result.push_back(prop);
-        } else if (
-            prop.getKind() == Property::Kind::ExportOptions
-            && normalize(prop.getExportOptions().backend)
-                   == normalize(subkind)) {
+        if (prop.matches(kind, subkind)) {
             result.push_back(prop);
         }
     }
@@ -270,6 +265,61 @@ Opt<Property> Subtree::getProperty(
         return std::nullopt;
     } else {
         return props[0];
+    }
+}
+
+bool Subtree::Property::matches(Kind kind, CR<QString> subkind) const {
+    if (getKind() == kind) {
+        return true;
+    } else if (
+        getKind() == Property::Kind::ExportOptions
+        && normalize(getExportOptions().backend) == normalize(subkind)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+Vec<Subtree::Property> DocumentOptions::getProperties(
+    Subtree::Property::Kind kind,
+    CR<QString>             subkind) const {
+    Vec<Property> result;
+    for (const auto& prop : properties) {
+        if (prop.matches(kind, subkind)) {
+            result.push_back(prop);
+        }
+    }
+    return result;
+}
+
+Opt<Subtree::Property> DocumentOptions::getProperty(
+    Subtree::Property::Kind kind,
+    CR<QString>             subkind) const {
+    auto props = getProperties(kind, subkind);
+    if (props.empty()) {
+        return std::nullopt;
+    } else {
+        return props[0];
+    }
+}
+
+Vec<Subtree::Property> Document::getProperties(
+    Subtree::Property::Kind kind,
+    CR<QString>             subkind) const {
+    if (options.isNil()) {
+        return {};
+    } else {
+        options->getProperties(kind, subkind);
+    }
+}
+
+Opt<Subtree::Property> Document::getProperty(
+    Subtree::Property::Kind kind,
+    CR<QString>             subkind) const {
+    if (options.isNil()) {
+        return std::nullopt;
+    } else {
+        options->getProperty(kind, subkind);
     }
 }
 

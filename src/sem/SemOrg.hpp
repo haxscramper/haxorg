@@ -889,6 +889,8 @@ struct Subtree : public Org {
         //! [declare variant field for subtree properties]
 
         Property(CR<Data> data) : data(data) {}
+
+        bool matches(Kind kind, CR<QString> subkind = "") const;
     };
 
 
@@ -1237,6 +1239,13 @@ struct DocumentOptions : public Org {
         ((bool), exportBrokenLinks, ExportBrokenLinks, false),
         ((bool), exportWithClock, ExportWithClock, false),
         ((bool), exportWithCreator, ExportWithCreator, false));
+
+    Vec<Subtree::Property> getProperties(
+        Subtree::Property::Kind kind,
+        CR<QString>             subkind = "") const;
+    Opt<Subtree::Property> getProperty(
+        Subtree::Property::Kind kind,
+        CR<QString>             subkind = "") const;
 };
 
 struct Document : public Org {
@@ -1262,6 +1271,13 @@ struct Document : public Org {
          SemIdT<DocumentOptions>::Nil()),
         ((Opt<Str>), exportFileName, ExportFileName, std::nullopt));
 
+    Vec<Subtree::Property> getProperties(
+        Subtree::Property::Kind kind,
+        CR<QString>             subkind = "") const;
+
+    Opt<Subtree::Property> getProperty(
+        Subtree::Property::Kind kind,
+        CR<QString>             subkind = "") const;
 
     Opt<SemIdT<Subtree>> getSubtree(CR<Str> id) const;
     Opt<SemId>           resolve(CR<SemId> node) const;
