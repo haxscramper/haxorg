@@ -239,15 +239,15 @@ void ExporterLatex::visitTimeRange(Res& res, In<sem::TimeRange> range) {
 }
 
 void ExporterLatex::visitBold(Res& res, In<sem::Bold> bold) {
-    res = command("textbf", subnodes(bold));
+    res = command("textbf", {b::line(subnodes(bold))});
 }
 
 void ExporterLatex::visitItalic(Res& res, In<sem::Italic> italic) {
-    res = command("textit", subnodes(italic));
+    res = command("textit", {b::line(subnodes(italic))});
 }
 
 void ExporterLatex::visitVerbatim(Res& res, In<sem::Verbatim> verb) {
-    res = command("textsc", subnodes(verb));
+    res = command("textsc", {b::line(subnodes(verb))});
 }
 
 void ExporterLatex::visitQuote(Res& res, In<sem::Quote> quote) {
@@ -291,6 +291,24 @@ void ExporterLatex::visitLink(Res& res, In<sem::Link> link) {
             res = string("LINK KIND" + to_string(link->getLinkKind()));
         }
     }
+}
+
+void ExporterLatex::visitList(Res& res, In<sem::List> list) {
+    res = b::stack();
+    res->add(command("begin", {"itemize"}));
+    res->add(subnodes(list));
+    res->add(command("end", {"itemize"}));
+}
+
+void ExporterLatex::visitListItem(Res& res, In<sem::ListItem> item) {
+    res = b::line();
+    if (item->isDescriptionItem()) {
+        res->add(command("item", {visit(item->header.value())}));
+    } else {
+        res->add(command("item"));
+    }
+    res->add(string(" "));
+    res->add(subnodes(item));
 }
 
 QString ExporterLatex::escape(const QString& value) {

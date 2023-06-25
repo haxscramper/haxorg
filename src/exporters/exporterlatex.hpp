@@ -60,6 +60,8 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     void visitVerbatim(Res& res, In<sem::Verbatim> verb);
     void visitQuote(Res& res, In<sem::Quote> quote);
     void visitLink(Res& res, In<sem::Link> link);
+    void visitList(Res& res, In<sem::List> list);
+    void visitListItem(Res& res, In<sem::ListItem> item);
 
     static QString escape(QString const& value);
 
