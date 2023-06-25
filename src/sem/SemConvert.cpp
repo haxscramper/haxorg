@@ -964,6 +964,14 @@ void fillDocumentOptions(SemIdT<DocumentOptions> opts, OrgAdapter a) {
                     opts->brokenLinks = DocumentOptions::BrokenLinks::
                         Ignore;
                 }
+            } else if (head == "toc") {
+                if (tail == "t") {
+                    opts->tocExport = true;
+                } else if (tail == "nil") {
+                    opts->tocExport = false;
+                } else if (tail[0].isDigit()) {
+                    opts->tocExport = tail.toInt();
+                }
             }
 
         } else if (value == ":") {

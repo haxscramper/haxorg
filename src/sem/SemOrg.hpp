@@ -1216,6 +1216,8 @@ struct DocumentOptions : public Org {
         Show5Levels,
         ShowEverything);
 
+    using TocExport = Variant<bool, int>;
+
     DECL_FIELDS(
         DocumentOptions,
         (Org),
@@ -1227,6 +1229,7 @@ struct DocumentOptions : public Org {
         /// Properties that can be shared by both subtree and document. Not
         /// all make sense in the document, but most do.
         ((Vec<Subtree::Property>), properties, Properties, {}),
+        ((TocExport), tocExport, TocExport, false),
         ((bool), smartQuotes, SmartQuotes, false),
         ((bool), emphasizedText, EmphasizedText, false),
         ((bool), specialStrings, SpecialStrings, false),

@@ -54,6 +54,12 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     void visitSubtree(Res& res, In<sem::Subtree> tree);
     void visitParagraph(Res& res, In<sem::Paragraph> par);
     void visitTime(Res& res, In<sem::Time> time);
+    void visitTimeRange(Res& res, In<sem::TimeRange> range);
+    void visitBold(Res& res, In<sem::Bold> bold);
+    void visitItalic(Res& res, In<sem::Italic> italic);
+    void visitVerbatim(Res& res, In<sem::Verbatim> verb);
+    void visitQuote(Res& res, In<sem::Quote> quote);
+    void visitLink(Res& res, In<sem::Link> link);
 
     static QString escape(QString const& value);
 
@@ -69,7 +75,7 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
         QString const& close,
         Res const&     arg);
 
-    Res command(QString const& name, Vec<QString> const& args);
+    Res command(QString const& name, Vec<QString> const& args = {});
     Res command(QString const& name, Vec<Res> const& args);
     Res command(
         QString const&      name,
@@ -80,18 +86,10 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
         Vec<Res> const& opts,
         Vec<Res> const& args);
 
-    Res stackSubnodes(sem::SemId doc) {
-        Res res = b::stack();
-        for (const auto& it : doc->subnodes) {
-            res->add(visit(it));
-        }
-        return res;
-    }
-
-    Res lineSubnodes(sem::SemId doc) {
-        Res res = b::line();
-        for (const auto& it : doc->subnodes) {
-            res->add(visit(it));
+    Vec<Res> subnodes(sem::SemId nodes) {
+        Vec<Res> res;
+        for (const auto& it : nodes->subnodes) {
+            res.push_back(visit(it));
         }
         return res;
     }

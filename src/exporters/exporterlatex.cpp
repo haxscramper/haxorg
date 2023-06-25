@@ -107,14 +107,28 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
         res->add(string(hdr.getExportLatexHeader().header));
     }
 
+    res->add(command("usepackage", {"csquotes"}));
 
-    {
-        res->add(command("begin", {"document"}));
-        for (const auto& it : value->subnodes) {
-            res->add(visit(it));
+    res->add(command("begin", {"document"}));
+    if (value->options) {
+        auto exp = value->options->tocExport;
+        if (std::holds_alternative<bool>(exp)) {
+            if (std::get<bool>(exp)) {
+                res->add(command("tableofcontents"));
+            }
+        } else {
+            int level = std::get<int>(exp);
+            res->add(command("tableofcontents"));
+            res->add(
+                command("setcounter", {"tocdepth", to_string(level)}));
         }
-        res->add(command("end", {"document"}));
     }
+
+
+    for (const auto& it : value->subnodes) {
+        res->add(visit(it));
+    }
+    res->add(command("end", {"document"}));
 }
 
 void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
@@ -165,11 +179,60 @@ void ExporterLatex::visitParagraph(Res& res, In<Paragraph> par) {
 
 void ExporterLatex::visitTime(Res& res, In<Time> time) {
     if (time->isStatic()) {
-        res = command(
-            "textit",
-            {time->getStatic().time.getDateTime().toString(Qt::ISODate)});
+        QString str;
+        switch (time->getStatic().time.getKind()) {
+            case UserTime::Kind::Date: {
+                str = time->getStatic().time.getDate().toString(
+                    Qt::ISODate);
+                break;
+            }
+            case UserTime::Kind::DateTime: {
+                str = time->getStatic().time.getDate().toString(
+                    Qt::ISODate);
+                break;
+            }
+            case UserTime::Kind::Time: {
+                str = time->getStatic().time.getTime().toString(
+                    Qt::ISODate);
+                break;
+            }
+        }
+
+
+        res = command("fbox", {command("texttt", {str})});
     } else {
         res = string("TODO dynamic time");
+    }
+}
+
+void ExporterLatex::visitTimeRange(Res& res, In<sem::TimeRange> range) {
+    res = b::line({visit(range->from), string("--"), visit(range->to)});
+}
+
+void ExporterLatex::visitBold(Res& res, In<sem::Bold> bold) {
+    res = command("textbf", subnodes(bold));
+}
+
+void ExporterLatex::visitItalic(Res& res, In<sem::Italic> italic) {
+    res = command("textit", subnodes(italic));
+}
+
+void ExporterLatex::visitVerbatim(Res& res, In<sem::Verbatim> verb) {
+    res = command("textsc", subnodes(verb));
+}
+
+void ExporterLatex::visitQuote(Res& res, In<sem::Quote> quote) {
+    res = b::stack();
+    res->add(command("begin", {"displayquote"}));
+    res->add(b::stack(subnodes(quote)));
+    res->add(command("end", {"displayquote"}));
+}
+
+void ExporterLatex::visitLink(Res& res, In<sem::Link> link) {
+    switch (link->getLinkKind()) {
+        default: {
+            res = string("LINK KIND" + to_string(link->getLinkKind()));
+        }
     }
 }
 

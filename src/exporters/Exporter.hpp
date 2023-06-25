@@ -442,8 +442,11 @@ struct Exporter {
     void visit(R& res, CR<sem::Include::Data> prop) {
         visitVariants(res, sem::Include::getIncludeKind(prop), prop);
     }
-
     /// @}
+
+    void visit(R& res, CR<sem::DocumentOptions::TocExport> prop) {
+        visitVariants(res, static_cast<int>(prop.index()), prop);
+    }
 
     /// \name Specialization for nested subtree objects and subtree itself
     ///@{
