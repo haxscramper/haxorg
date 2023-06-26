@@ -62,6 +62,7 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     void visitLink(Res& res, In<sem::Link> link);
     void visitList(Res& res, In<sem::List> list);
     void visitListItem(Res& res, In<sem::ListItem> item);
+    void visitTextSeparator(Res& res, In<sem::TextSeparator> sep);
 
     static QString escape(QString const& value);
 
@@ -96,13 +97,12 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
         return res;
     }
 
-#define __leaf(__Kind)                                                    \
-    void visit##__Kind(Res& res, In<sem::__Kind> word) {                  \
-        __visit_specific_kind(res, word);                                 \
-        res = string(escape(word->text));                                 \
-    }
 
-    EACH_SEM_ORG_LEAF_KIND(__leaf)
-
-#undef __leaf
+    void visitNewline(Res& res, In<sem::Newline> item);
+    void visitSpace(Res& res, In<sem::Space> item);
+    void visitWord(Res& res, In<sem::Word> item);
+    void visitRawText(Res& res, In<sem::RawText> item);
+    void visitPunctuation(Res& res, In<sem::Punctuation> item);
+    void visitPlaceholder(Res& res, In<sem::Placeholder> item);
+    void visitBigIdent(Res& res, In<sem::BigIdent> item);
 };

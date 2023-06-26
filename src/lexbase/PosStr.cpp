@@ -217,6 +217,10 @@ void PosStr::skip(QString expected, int offset) {
     }
 }
 
+QStringView viewForward(QStringView view, int position, int span) {
+    return view.sliced(
+        position, std::min<int>(view.size() - position, span));
+}
 
 void PosStr::skip(QChar expected, int offset, int count) {
     if (get(offset) == expected) {
@@ -224,8 +228,13 @@ void PosStr::skip(QChar expected, int offset, int count) {
     } else {
         throw UnexpectedCharError(
             "Unexpected character encountered during lexing: found "
-            "QChar('$#') but expected QChar('$#')"
-            % to_string_vec(get(offset), expected));
+            "QChar('$#') but expected QChar('$#') at position $# view is "
+            "$#"
+            % to_string_vec(
+                get(offset),
+                expected,
+                pos + offset,
+                viewForward(view, pos + offset, 20)));
     }
 }
 

@@ -80,6 +80,43 @@ ExporterLatex::Res ExporterLatex::command(
     return res;
 }
 
+void ExporterLatex::visitNewline(Res& res, In<sem::Newline> item) {
+    __visit_specific_kind(res, item);
+    res = string(escape(item->text));
+}
+
+void ExporterLatex::visitSpace(Res& res, In<sem::Space> item) {
+    __visit_specific_kind(res, item);
+    res = string(escape(item->text));
+}
+
+void ExporterLatex::visitWord(Res& res, In<sem::Word> item) {
+    __visit_specific_kind(res, item);
+    res = string(escape(item->text));
+}
+
+void ExporterLatex::visitRawText(Res& res, In<sem::RawText> item) {
+    __visit_specific_kind(res, item);
+    res = string(escape(item->text));
+}
+
+void ExporterLatex::visitPunctuation(Res& res, In<sem::Punctuation> item) {
+    __visit_specific_kind(res, item);
+    res = string(escape(item->text));
+}
+
+void ExporterLatex::visitPlaceholder(Res& res, In<sem::Placeholder> item) {
+    __visit_specific_kind(res, item);
+    res = command(
+        "textsc",
+        {command("texttt", {string("<" + escape(item->text) + ">")})});
+}
+
+void ExporterLatex::visitBigIdent(Res& res, In<sem::BigIdent> item) {
+    __visit_specific_kind(res, item);
+    res = string(escape(item->text));
+}
+
 
 ExporterLatex::Res ExporterLatex::visit(SemId org) {
     __visit_eval_scope(org);
@@ -95,9 +132,9 @@ QString getLatexClass(Opt<ExporterLatex::In<Document>> doc) {
     if (doc) {
         auto lclass = (*doc)->getProperty(Prop::Kind::ExportLatexClass);
         return lclass ? lclass->getExportLatexClass().latexClass
-                      : "article";
+                      : "extarticle";
     } else {
-        return "article";
+        return "extarticle";
     }
 }
 
@@ -145,6 +182,8 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     __visit_specific_kind(res, value);
     res = b::stack();
 
+    // TODO replace hardcoded default value for the font size with call to
+    // `getLatexClassOptions` provided in the org document.
     res->add(command("documentclass", {"14pt"}, {getLatexClass(value)}));
 
     for (const auto& hdr :
@@ -154,6 +193,13 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
 
     res->add(command("usepackage", {"csquotes"}));
     res->add(command("usepackage", {"bookmarks"}, {"hyperref"}));
+
+    res->add(string(R"(
+\newcommand*\sepline{%
+  \begin{center}
+    \rule[1ex]{\textwidth}{1pt}
+  \end{center}}
+)"));
 
     res->add(command("begin", {"document"}));
     if (value->options) {
@@ -193,6 +239,9 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
                 titleText->add(command(
                     "texorpdfstring",
                     {visit(item),
+                     // FIXME latex exporter is broken because of sem ID
+                     // overloads, need to be fixed to get the right output
+                     // here.
                      string(ExporterUltraplain::toStr(item))}));
             }
         }
@@ -326,6 +375,12 @@ void ExporterLatex::visitListItem(Res& res, In<sem::ListItem> item) {
     }
     res->add(string(" "));
     res->add(subnodes(item));
+}
+
+void ExporterLatex::visitTextSeparator(
+    Res&                   res,
+    In<sem::TextSeparator> sep) {
+    res = command("sepline");
 }
 
 QString ExporterLatex::escape(const QString& value) {
