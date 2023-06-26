@@ -1,4 +1,7 @@
 #include "exporterlatex.hpp"
+#include <exporters/ExporterUltraplain.hpp>
+
+#pragma clang diagnostic ignored "-Wreorder-init-list"
 
 using namespace sem;
 using osk  = OrgSemKind;
@@ -99,8 +102,7 @@ QString getLatexClass(Opt<ExporterLatex::In<Document>> doc) {
 }
 
 QString getSubtreeCommand(ExporterLatex::In<sem::Subtree> tree) {
-    QString name;
-    auto    lclass = getLatexClass(tree->getDocument());
+    auto lclass = getLatexClass(tree->getDocument());
     if (lclass == "book") {
         switch (tree->level) {
             case 1: return "chapter";
@@ -143,7 +145,7 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     __visit_specific_kind(res, value);
     res = b::stack();
 
-    res->add(command("documentclass", {"12pt"}, {getLatexClass(value)}));
+    res->add(command("documentclass", {"14pt"}, {getLatexClass(value)}));
 
     for (const auto& hdr :
          value->getProperties(Prop::Kind::ExportLatexHeader)) {
@@ -151,10 +153,7 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     }
 
     res->add(command("usepackage", {"csquotes"}));
-    // FIXME temporarily disabled -- causes errors with TOC,
-    // IDK why
-    //
-    //    res->add(command("usepackage", {"hyperref"}));
+    res->add(command("usepackage", {"bookmarks"}, {"hyperref"}));
 
     res->add(command("begin", {"document"}));
     if (value->options) {
@@ -182,8 +181,26 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
     __visit_specific_kind(res, tree);
     res = b::stack();
 
+    auto titleText = b::line();
+    for (const auto& item : tree->title->subnodes) {
+        switch (item->getKind()) {
+#define _direct(__Kind)                                                   \
+    case osk::__Kind: titleText->add(visit(item)); break;
+            EACH_SEM_ORG_LEAF_KIND(_direct)
+#undef _direct
 
-    res->add(command(getSubtreeCommand(tree), {visit(tree->title)}));
+            default: {
+                titleText->add(command(
+                    "texorpdfstring",
+                    {visit(item),
+                     string(ExporterUltraplain::toStr(item))}));
+            }
+        }
+    }
+
+    res->add(command(getSubtreeCommand(tree), {titleText}));
+
+
     if (tree->treeId) {
         res->add(command(
             "label", {getRefKind(tree) + tree->treeId.value().toBase()}));
