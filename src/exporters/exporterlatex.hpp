@@ -104,6 +104,7 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     void visitRawText(Res& res, In<sem::RawText> item);
     void visitPunctuation(Res& res, In<sem::Punctuation> item);
     void visitPlaceholder(Res& res, In<sem::Placeholder> item);
+    void visitMonospace(Res& res, In<sem::Monospace> monospace);
     void visitBigIdent(Res& res, In<sem::BigIdent> item);
     void visitFootnote(Res& res, In<sem::Footnote> footnote);
 };

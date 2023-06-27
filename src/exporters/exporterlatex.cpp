@@ -43,6 +43,7 @@ ExporterLatex::Res ExporterLatex::command(
     const Vec<Res>& args) {
     Res res = b::line();
     res->add(string("\\" + name));
+    // FIXME join on comma, wrap on brackets
     for (auto const& opt : opts) {
         addWrap(res, "[", "]", opt);
     }
@@ -70,6 +71,7 @@ ExporterLatex::Res ExporterLatex::command(
     const Vec<QString>& args) {
     Res res = b::line();
     res->add(string("\\" + name));
+    // FIXME join on comma, wrap on brackets
     for (auto const& opt : opts) {
         addWrap(res, "[", "]", opt);
     }
@@ -112,9 +114,29 @@ void ExporterLatex::visitPlaceholder(Res& res, In<sem::Placeholder> item) {
         {command("texttt", {string("<" + escape(item->text) + ">")})});
 }
 
+
 void ExporterLatex::visitBigIdent(Res& res, In<sem::BigIdent> item) {
     __visit_specific_kind(res, item);
-    res = string(escape(item->text));
+    QString specialColor;
+
+    auto s = item->text;
+
+    // TOOD use `parseBigIdent` from the sem convert
+    if (s == "TODO") {
+        specialColor = "green";
+    } else if (s == "WIP") {
+        specialColor = "brown";
+    }
+
+    if (0 < specialColor.size()) {
+        res = command(
+            "fbox",
+            {command(
+                "colorbox",
+                {string(specialColor), string(escape(item->text))})});
+    } else {
+        res = string(escape(item->text));
+    }
 }
 
 void ExporterLatex::visitFootnote(Res& res, In<sem::Footnote> footnote) {
@@ -197,6 +219,7 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
 
     res->add(command("usepackage", {"csquotes"}));
     res->add(command("usepackage", {"bookmarks"}, {"hyperref"}));
+    res->add(command("usepackage", {"xcolor"}));
 
     res->add(string(R"(
 \newcommand*\sepline{%
@@ -310,6 +333,11 @@ void ExporterLatex::visitTimeRange(Res& res, In<sem::TimeRange> range) {
 
 void ExporterLatex::visitBold(Res& res, In<sem::Bold> bold) {
     res = command("textbf", {b::line(subnodes(bold))});
+}
+
+
+void ExporterLatex::visitMonospace(Res& res, In<sem::Monospace> mono) {
+    res = command("texttt", {b::line(subnodes(mono))});
 }
 
 void ExporterLatex::visitItalic(Res& res, In<sem::Italic> italic) {
