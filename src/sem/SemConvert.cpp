@@ -1046,8 +1046,8 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
             case osk::Paragraph: {
                 auto par = org.as<Paragraph>();
                 if (par->isFootnoteDefinition()) {
-                    doc->footnoteTable.insert(
-                        {par->at(0).as<Footnote>()->tag, par});
+                    auto tag = par->at(0).as<Footnote>()->tag;
+                    doc->footnoteTable.insert({tag, par});
                 }
                 break;
             }

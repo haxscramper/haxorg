@@ -117,6 +117,10 @@ void ExporterLatex::visitBigIdent(Res& res, In<sem::BigIdent> item) {
     res = string(escape(item->text));
 }
 
+void ExporterLatex::visitFootnote(Res& res, In<sem::Footnote> footnote) {
+    res = string("");
+}
+
 
 ExporterLatex::Res ExporterLatex::visit(SemId org) {
     __visit_eval_scope(org);
@@ -339,11 +343,26 @@ void ExporterLatex::visitLink(Res& res, In<sem::Link> link) {
                 }
 
             } else {
-                res = string("UNRESOLVED LINK");
+                if (link->description) {
+                    res = visit(link->description.value());
+                } else {
+                    res = string("UNRESOLVED LINK");
+                }
             }
 
             break;
         }
+
+        case sem::Link::Kind::Footnote: {
+            auto target = link->resolve();
+            if (target) {
+                res = command("footnote", {visit(target.value())});
+            } else {
+                res = string("fn:" + link->getFootnote().target);
+            }
+            break;
+        }
+
         case sem::Link::Kind::Raw: {
             res = command(
                 "href",
@@ -353,6 +372,7 @@ void ExporterLatex::visitLink(Res& res, In<sem::Link> link) {
             res = string("href");
             break;
         }
+
         default: {
             res = string("LINK KIND" + to_string(link->getLinkKind()));
         }

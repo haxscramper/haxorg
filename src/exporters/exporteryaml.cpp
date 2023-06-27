@@ -19,12 +19,13 @@ yaml ExporterYaml::newRes(sem::SemId org) {
 
     yaml loc;
     loc.SetStyle(YAML::EmitterStyle::Flow);
-    loc["line"] = org->loc ? yaml(org->loc->line) : yaml();
-    loc["col"]  = org->loc ? yaml(org->loc->column) : yaml();
-    loc["id"]   = org->original.id.isNil()
-                    ? yaml()
-                    : yaml(org->original.id.getValue());
-    res["loc"]  = loc;
-    res["id"]   = org.id;
+    loc["parent"] = org->parent.id;
+    loc["line"]   = org->loc ? yaml(org->loc->line) : yaml();
+    loc["col"]    = org->loc ? yaml(org->loc->column) : yaml();
+    loc["id"]     = org->original.id.isNil()
+                      ? yaml()
+                      : yaml(org->original.id.getValue());
+    res["loc"]    = loc;
+    res["id"]     = org.id;
     return res;
 }

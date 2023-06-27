@@ -1026,6 +1026,7 @@ void HaxorgCli::exec() {
 
         { writeGantt(); }
         { writeJson(); }
+        { writeYaml(); }
 
         {
             __trace("Export Latex");

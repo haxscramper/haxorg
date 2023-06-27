@@ -38,6 +38,14 @@ sem::OrgVariant SemId::asVariant() {
 
 SemId SemId::getParent() const { return (*this)->getParent(); }
 
+Org::Org(SemId parent) : parent(parent), subnodes({}) {}
+
+Org::Org(SemId parent, OrgAdapter original)
+    : parent(parent), original(original), subnodes({}) {}
+
+Org::Org(SemId parent, CVec<SemId> subnodes)
+    : parent(parent), subnodes(subnodes) {}
+
 Vec<SemId> SemId::getParentChain(bool withSelf) const {
     Vec<SemId> result;
     if (withSelf) {
@@ -92,7 +100,7 @@ Opt<SemId> Link::resolve(Document const& doc) const {
 
 Opt<SemId> Link::resolve() const {
     if (auto doc = getDocument(); doc) {
-        return resolve(doc.value());
+        return resolve(*doc.value().get());
     } else {
         return std::nullopt;
     }
@@ -398,9 +406,11 @@ Opt<SemId> Stmt::getAttached(OrgSemKind kind) {
 Opt<SemIdT<Document>> Org::getDocument() const {
     for (const auto& item : getParentChain()) {
         if (item->getKind() == OrgSemKind::Document) {
-            return item.as<Document>();
+            auto result = item.as<Document>();
+            return result;
         }
     }
+    Q_ASSERT(false);
     return std::nullopt;
 }
 

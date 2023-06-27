@@ -2,6 +2,10 @@
 
 using namespace sem;
 
+GlobalStore instance;
+
+GlobalStore& GlobalStore::getInstance() { return instance; }
+
 void LocalStore::eachStore(SemId::StoreIndexT selfIndex, StoreVisitor cb) {
 
 #define _store(__Kind) cb(selfIndex, &store##__Kind);

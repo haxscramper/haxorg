@@ -72,8 +72,11 @@
         ,                                                                 \
         ());
 
-#define __extra_args_fields Vec<SemId> subnodes = {};
-#define __extra_args_pass Org(args.subnodes)
+#define __extra_args_fields                                               \
+    Vec<SemId> subnodes = {};                                             \
+    SemId      parent   = SemId::Nil();
+
+#define __extra_args_pass Org(args.parent, args.subnodes)
 
 
 namespace sem {
@@ -271,10 +274,10 @@ struct Org {
     /// will be missing for all generated node kinds.
     OrgAdapter original;
 
-    inline Org(CVec<SemId> subnodes = {}) : subnodes(subnodes) {}
-    inline Org(SemId parent) : parent(parent), subnodes({}) {}
-    inline Org(SemId parent, OrgAdapter original)
-        : parent(parent), original(original), subnodes({}) {}
+    Org() : parent(SemId::Nil()) {}
+    Org(SemId parent, CVec<SemId> subnodes);
+    Org(SemId parent);
+    Org(SemId parent, OrgAdapter original);
 
     /// \brief Get get kind of the original node.
     OrgNodeKind getOriginalKind() const { return original.getKind(); }
@@ -319,15 +322,15 @@ SemIdT<T> SemId::as() const {
 
 class Attached;
 
-#define __extra_args_pass Org(args.subnodes)
+#define __extra_args_pass Org(args.parent, args.subnodes)
 /// \brief Base class for all document-level entries. Note that some node
 /// kinds might also have inline entries (examples include links, source
 /// code blocks, call blocks)
 struct Stmt : public Org {
     using Org::Org;
     Stmt() {}
-    Stmt(CVec<SemId> attached, CVec<SemId> subnodes)
-        : Org(subnodes), attached(attached) {}
+    Stmt(SemId parent, CVec<SemId> attached, CVec<SemId> subnodes)
+        : Org(parent, subnodes), attached(attached) {}
 
     Vec<SemId> attached;
     json       attachedJson() const;
@@ -359,14 +362,14 @@ struct Row : public Org {
     DECL_FIELDS(Row, (Org));
 };
 
-#define __extra_args_pass Stmt(args.subnodes)
+#define __extra_args_pass Stmt(args.parent, args.subnodes)
 struct Table : public Stmt {
     using Stmt::Stmt;
     DECL_KIND(Table);
     DECL_FIELDS(Table, (Stmt), ((Vec<SemIdT<Row>>), rows, Rows, {}))
 };
 
-#define __extra_args_pass Inline(args.subnodes)
+#define __extra_args_pass Inline(args.parent, args.subnodes)
 struct HashTag : public Inline {
     using Inline::Inline;
 
@@ -394,7 +397,7 @@ struct Footnote : public Inline {
         ((Opt<SemId>), definition, Definition, std::nullopt));
 };
 
-#define __extra_args_pass Inline(args.subnodes)
+#define __extra_args_pass Inline(args.parent, args.subnodes)
 /// \brief Completion status of the subtree or list element
 struct Completion : public Inline {
     using Inline::Inline;
@@ -410,7 +413,7 @@ struct Completion : public Inline {
 };
 
 
-#define __extra_args_pass Stmt(args.subnodes)
+#define __extra_args_pass Stmt(args.parent, args.subnodes)
 
 struct Paragraph : public Stmt {
     using Stmt::Stmt;
@@ -428,7 +431,7 @@ struct Format : public Org {
     BOOST_DESCRIBE_CLASS(Format, (Org), (), (), ());
 };
 
-#define __extra_args_pass Format(args.subnodes)
+#define __extra_args_pass Format(args.parent, args.subnodes)
 /// \brief Center nested content in the exporrt
 struct Center : public Format {
     using Format::Format;
@@ -463,7 +466,7 @@ struct Attached : public LineCommand {
 };
 
 
-#define __extra_args_pass Attached(args.subnodes)
+#define __extra_args_pass Attached(args.parent, args.subnodes)
 /// \brief Caption annotation for any subsequent node
 struct Caption : public Attached {
     using Attached::Attached;
@@ -472,7 +475,7 @@ struct Caption : public Attached {
     DECL_FIELDS(Caption, (Attached));
 };
 
-#define __extra_args_pass Stmt(args.subnodes)
+#define __extra_args_pass Stmt(args.parent, args.subnodes)
 /// \brief Multiple attachable commands will get grouped into this element
 /// unless it is possible to attached them to some adjacent block command
 struct CommandGroup : public Stmt {
@@ -481,14 +484,14 @@ struct CommandGroup : public Stmt {
     DECL_FIELDS(CommandGroup, (Stmt));
 };
 
-#define __extra_args_pass Command(args.subnodes)
+#define __extra_args_pass Command(args.parent, args.subnodes)
 /// \brief Block command type
 struct Block : public Command {
     using Command::Command;
     BOOST_DESCRIBE_CLASS(Block, (Command), (), (), ());
 };
 
-#define __extra_args_pass Block(args.subnodes)
+#define __extra_args_pass Block(args.parent, args.subnodes)
 /// \brief Quotation block
 struct Quote : public Block {
     using Block::Block;
@@ -598,7 +601,7 @@ struct Code : public Block {
 };
 
 
-#define __extra_args_pass Org(args.subnodes)
+#define __extra_args_pass Org(args.parent, args.subnodes)
 /// \brief Single static or dynamic timestamp (active or inactive)
 struct Time : public Org {
     DECL_KIND(Time);
@@ -753,7 +756,7 @@ struct SubtreeLog : public Org {
         ((LogEntry), log, Log, Note{}));
 };
 
-#define __extra_args_pass Org(args.subnodes)
+#define __extra_args_pass Org(args.parent, args.subnodes)
 struct Subtree : public Org {
     DECL_KIND(Subtree);
     using Org::Org;
@@ -931,7 +934,7 @@ struct LatexBody : public Org {
     BOOST_DESCRIBE_CLASS(LatexBody, (Org), (), (), ());
 };
 
-#define __extra_args_pass LatexBody(args.subnodes)
+#define __extra_args_pass LatexBody(args.parent, args.subnodes)
 struct InlineMath : public LatexBody {
     using LatexBody::LatexBody;
     DECL_KIND(InlineMath);
@@ -939,16 +942,19 @@ struct InlineMath : public LatexBody {
 };
 
 
-#define __extra_args_pass Org(args.subnodes)
+#define __extra_args_pass Org(args.parent, args.subnodes)
 struct Leaf : public Org {
     using Org::Org;
-    Leaf(CR<Str> text) : text(text) {}
+    Leaf(SemId parent, CR<Str> text) : Org(parent), text(text) {}
     Str text = "";
     BOOST_DESCRIBE_CLASS(Leaf, (Org), (text), (), ());
 };
 
-#define __extra_args_fields Str text = "";
-#define __extra_args_pass Leaf(args.text)
+#define __extra_args_fields                                               \
+    Str   text   = "";                                                    \
+    SemId parent = SemId::Nil();
+
+#define __extra_args_pass Leaf(args.parent, args.text)
 
 struct Escaped : public Leaf {
     using Leaf::Leaf;
@@ -1014,15 +1020,18 @@ struct BigIdent : public Leaf {
     __IMPL(Placeholder)                                                   \
     __IMPL(BigIdent)
 
-#define __extra_args_fields Vec<SemId> subnodes = {};
-#define __extra_args_pass Org(args.subnodes)
+#define __extra_args_fields                                               \
+    Vec<SemId> subnodes = {};                                             \
+    SemId      parent   = SemId::Nil();
+
+#define __extra_args_pass Org(args.parent, args.subnodes)
 
 struct Markup : public Org {
     using Org::Org;
     BOOST_DESCRIBE_CLASS(Markup, (Org), (), (), ());
 };
 
-#define __extra_args_pass Markup(args.subnodes)
+#define __extra_args_pass Markup(args.parent, args.subnodes)
 
 struct Bold : public Markup {
     using Markup::Markup;
@@ -1072,7 +1081,7 @@ struct Par : public Markup {
     DECL_FIELDS(Par, (Markup));
 };
 
-#define __extra_args_pass Org(args.subnodes)
+#define __extra_args_pass Org(args.parent, args.subnodes)
 
 struct List : public Org {
     using Org::Org;
@@ -1373,12 +1382,8 @@ struct LocalStore {
 };
 
 /// \brief Global group of stores that all nodes are written to
-class GlobalStore {
-  public:
-    static GlobalStore& getInstance() {
-        static GlobalStore instance;
-        return instance;
-    }
+struct GlobalStore {
+    static GlobalStore& getInstance();
 
     /// \brief Get reference to a local store by index
     LocalStore& getStoreByIndex(SemId::StoreIndexT index);
@@ -1407,7 +1412,6 @@ class GlobalStore {
     void eachStore(LocalStore::StoreVisitor cb);
     void eachNode(LocalStore::NodeVisitor cb);
 
-  private:
     GlobalStore() {}
     GlobalStore(const GlobalStore&)            = delete;
     GlobalStore& operator=(const GlobalStore&) = delete;
