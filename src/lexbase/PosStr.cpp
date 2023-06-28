@@ -189,6 +189,12 @@ bool PosStr::atAny(CR<PosStr::CheckableSkip> expected, int offset) const {
         [&](auto const& it) { return at(it, offset); }, expected);
 }
 
+QStringView viewForward(QStringView view, int position, int span) {
+    return view.sliced(
+        position, std::min<int>(view.size() - position, span));
+}
+
+
 void PosStr::skip(CR<QRegularExpression> expected, int offset) {
     auto result = expected.match(
         view,
@@ -197,10 +203,16 @@ void PosStr::skip(CR<QRegularExpression> expected, int offset) {
         QRegularExpression::AnchorAtOffsetMatchOption);
 
     if (!result.hasMatch()) {
+        // TODO move message generatoin logic into a separate function
         throw UnexpectedCharError(
             "Unexpected text encountered during lexing: found "
-            "QChar('$#') but expected regexp pattern $#"
-            % to_string_vec(get(), expected.pattern()));
+            "QChar('$#') but expected regexp pattern $# at position $# "
+            "view is $#"
+            % to_string_vec(
+                get(),
+                expected.pattern(),
+                pos + offset,
+                viewForward(view, pos + offset, 20)));
     } else {
         next(result.capturedLength());
     }
@@ -212,15 +224,16 @@ void PosStr::skip(QString expected, int offset) {
     } else {
         throw UnexpectedCharError(
             "Unexpected text encountered during lexing: found "
-            "QChar('$#') but expected QChar('$#')"
-            % to_string_vec(get(), expected));
+            "QChar('$#') but expected QChar('$#') at position $# view is "
+            "$#"
+            % to_string_vec(
+                get(),
+                expected,
+                pos + offset,
+                viewForward(view, pos + offset, 20)));
     }
 }
 
-QStringView viewForward(QStringView view, int position, int span) {
-    return view.sliced(
-        position, std::min<int>(view.size() - position, span));
-}
 
 void PosStr::skip(QChar expected, int offset, int count) {
     if (get(offset) == expected) {
@@ -245,7 +258,12 @@ void PosStr::skip(CR<CharSet> expected, int offset, int steps) {
         throw UnexpectedCharError(
             "Unexpected character encountered during lexing: found "
             "QChar('$#') but expected any of (char set) QChar('$#')"
-            % to_string_vec(get(offset), expected));
+            "at position $# view is $#"
+            % to_string_vec(
+                get(offset),
+                expected,
+                pos + offset,
+                viewForward(view, pos + offset, 20)));
     }
 }
 
@@ -368,8 +386,10 @@ UnexpectedCharError PosStr::makeUnexpected(
 ) {
     return UnexpectedCharError(
         "Unexpected character encountered during lexing: found "
-        "QChar('$#') but expected $# while parsing $#"
-        % to_string_vec(get(), expected, parsing));
+        "QChar('$#') but expected $# while parsing $# at position $# view "
+        "is $#"
+        % to_string_vec(
+            get(), expected, parsing, pos, viewForward(view, pos, 20)));
 }
 
 
