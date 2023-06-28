@@ -336,6 +336,10 @@ void ExporterLatex::visitBold(Res& res, In<sem::Bold> bold) {
 }
 
 
+void ExporterLatex::visitUnderline(Res& res, In<sem::Underline> under) {
+    res = command("underline", {b::line(subnodes(under))});
+}
+
 void ExporterLatex::visitMonospace(Res& res, In<sem::Monospace> mono) {
     res = command("texttt", {b::line(subnodes(mono))});
 }
@@ -431,13 +435,50 @@ void ExporterLatex::visitTextSeparator(
     res = command("sepline");
 }
 
+void ExporterLatex::visitHashTag(Res& res, In<sem::HashTag> tag) {
+    QString join;
+
+    Func<void(In<sem::HashTag> const& tag)> aux;
+    aux = [&](In<sem::HashTag> const& tag) {
+        join += tag->head;
+        if (tag->subtags.size() == 1) {
+            join += "##";
+            aux(tag->subtags.at(0));
+        } else if (1 < tag->subtags.size()) {
+            join += "##[";
+            bool first = true;
+            for (auto const& sub : tag->subtags) {
+                if (!first) {
+                    join += ",";
+                }
+                first = false;
+                aux(sub);
+            }
+
+            join += "]";
+        }
+    };
+    join = "#";
+    aux(tag);
+    res = command("texttt", {string(escape(join))});
+}
+
+void ExporterLatex::visitEscaped(Res& res, In<sem::Escaped> escaped) {
+    res = string(escape(escaped->text.mid(1)));
+}
+
+
 QString ExporterLatex::escape(const QString& value) {
     QString res;
     res.reserve(value.size());
     for (QChar const& ch : value) {
         switch (ch.toLatin1()) {
-            case '&': res.append("\\&"); break;
-            case '_': res.append("\\_"); break;
+            case '&':
+            case '_':
+            case '}':
+            case '{':
+            case '#':
+            case '%': res.append('\\' + ch); break;
             default: res.append(ch);
         }
     }

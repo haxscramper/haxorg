@@ -50,19 +50,6 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
         }
     }
 
-    void visitDocument(Res& res, In<sem::Document> value);
-    void visitSubtree(Res& res, In<sem::Subtree> tree);
-    void visitParagraph(Res& res, In<sem::Paragraph> par);
-    void visitTime(Res& res, In<sem::Time> time);
-    void visitTimeRange(Res& res, In<sem::TimeRange> range);
-    void visitBold(Res& res, In<sem::Bold> bold);
-    void visitItalic(Res& res, In<sem::Italic> italic);
-    void visitVerbatim(Res& res, In<sem::Verbatim> verb);
-    void visitQuote(Res& res, In<sem::Quote> quote);
-    void visitLink(Res& res, In<sem::Link> link);
-    void visitList(Res& res, In<sem::List> list);
-    void visitListItem(Res& res, In<sem::ListItem> item);
-    void visitTextSeparator(Res& res, In<sem::TextSeparator> sep);
 
     static QString escape(QString const& value);
 
@@ -107,4 +94,20 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     void visitMonospace(Res& res, In<sem::Monospace> monospace);
     void visitBigIdent(Res& res, In<sem::BigIdent> item);
     void visitFootnote(Res& res, In<sem::Footnote> footnote);
+    void visitDocument(Res& res, In<sem::Document> value);
+    void visitSubtree(Res& res, In<sem::Subtree> tree);
+    void visitParagraph(Res& res, In<sem::Paragraph> par);
+    void visitTime(Res& res, In<sem::Time> time);
+    void visitTimeRange(Res& res, In<sem::TimeRange> range);
+    void visitBold(Res& res, In<sem::Bold> bold);
+    void visitItalic(Res& res, In<sem::Italic> italic);
+    void visitVerbatim(Res& res, In<sem::Verbatim> verb);
+    void visitQuote(Res& res, In<sem::Quote> quote);
+    void visitLink(Res& res, In<sem::Link> link);
+    void visitList(Res& res, In<sem::List> list);
+    void visitListItem(Res& res, In<sem::ListItem> item);
+    void visitTextSeparator(Res& res, In<sem::TextSeparator> sep);
+    void visitHashTag(Res& res, In<sem::HashTag> tag);
+    void visitEscaped(Res& res, In<sem::Escaped> escaped);
+    void visitUnderline(Res& res, In<sem::Underline> under);
 };
