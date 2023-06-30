@@ -13,6 +13,7 @@
 
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <sem/SemConvert.hpp>
 
 #include <hstd/stdlib/diffs.hpp>
 
@@ -352,6 +353,60 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
 
             if (spec.subnodes.has_value()) {
                 compareNodes(p.nodes, nodes);
+            }
+
+            if (spec.dbg.doSem && spec.semExpected.has_value()) {
+                sem::OrgConverter converter;
+                auto              node = converter.toDocument(
+                    OrgAdapter(&p.nodes, OrgId(0)));
+                json        converted = ExporterJson().visitTop(node);
+                json const& expected  = spec.semExpected.value();
+                json        diff      = json::diff(converted, expected);
+                int         failCount = 0;
+                ColStream   os{qcout};
+                for (auto const& it : diff) {
+                    auto op = it["op"].get<std::string>();
+
+                    json::json_pointer path{it["path"].get<std::string>()};
+                    if (!path.empty()               //
+                        && op == "remove"           //
+                        && (path.back() == "id"     //
+                            || path.back() == "loc" //
+                            || path.back() == "subnodes")) {
+                        continue;
+                    } else {
+                        ++failCount;
+                    }
+
+                    os << "  ";
+                    if (op == "remove") {
+                        os << os.red() << "missing entry";
+                    } else if (op == "add") {
+                        os << os.green() << "unexpected entry";
+                    } else {
+                        os << os.magenta() << "changed entry";
+                    }
+
+                    os << " on path '" << os.yellow() << path.to_string()
+                       << os.end() << "'\n";
+
+                    if (op == "replace") {
+                        os << "    from " << os.red()
+                           << expected[path].dump() << os.end() << " to "
+                           << os.green() << converted[path].dump()
+                           << os.end() << "\n";
+
+                    } else if (op == "add") {
+                        os << "    " << it["value"].dump() << "\n";
+                    }
+                }
+
+                if (0 < failCount) {
+                    os << "  converted:" << converted.dump() << "\n";
+                    os << "  expected :" << expected.dump() << "\n";
+
+                    FAIL() << "Sem tree structure mismatch";
+                }
             }
         }
     }

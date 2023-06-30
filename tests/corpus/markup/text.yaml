@@ -18,5 +18,15 @@ items:
       - {kind: Paragraph, extent: 2}
       - {kind: Bold, extent: 1}
       - {kind: Word, tok_idx: 2, str: "bold"}
+    sem:
+      kind: Document
+      subnodes:
+        - kind: Paragraph
+          subnodes:
+            - kind: Bold
+              subnodes:
+                - kind: Word
+                  text: "bold"
+
   - source: "/italic/"
   - source: "[[link][description]]"

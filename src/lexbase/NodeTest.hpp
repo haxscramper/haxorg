@@ -41,6 +41,7 @@ struct ParseSpec {
         bool printSource       = false;
         bool doParse           = true;
         bool doLex             = true;
+        bool doSem             = true;
         bool printLexedToFile  = false;
         bool printParsedToFile = false;
         bool printSemToFile    = false;
