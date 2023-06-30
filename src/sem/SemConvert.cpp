@@ -561,6 +561,15 @@ SemIdT<TimeRange> OrgConverter::convertTimeRange(__args) {
     return range;
 }
 
+SemIdT<Macro> OrgConverter::convertMacro(__args) {
+    __perf_trace("convertMacro");
+    __trace();
+    auto macro = Sem<Macro>(p, a);
+
+
+    return macro;
+}
+
 SemIdT<Symbol> OrgConverter::convertSymbol(__args) {
     __perf_trace("convertSymbol");
     __trace();
@@ -906,6 +915,7 @@ SemId OrgConverter::convert(__args) {
         CASE(TextSeparator);
         CASE(AtMention);
         CASE(Underline);
+        case org::Macro: return convertMacro(p, a);
         case org::Monospace: return convertMonospace(p, a);
         case org::CenterBlock: return convertCenter(p, a);
         case org::Example: return convertExample(p, a);

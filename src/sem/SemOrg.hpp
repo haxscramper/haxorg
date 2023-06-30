@@ -694,6 +694,16 @@ struct Symbol : public Org {
         ((Vec<SemId>), positional, Positiona, {}));
 };
 
+struct Macro : public Org {
+    DECL_KIND(Macro);
+    using Org::Org;
+    DECL_FIELDS(
+        Macro,
+        (Org),
+        ((QString), name, Name, ""),
+        ((Vec<QString>), arguments, Arguments, {}));
+};
+
 /// Time range delimited by two points
 struct TimeRange : public Org {
     DECL_KIND(TimeRange);

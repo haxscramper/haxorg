@@ -1163,10 +1163,11 @@ bool OrgTokenizerImpl<TraceState>::lexParenArguments(PosStr& str) {
     auto open = str.tok(otk::ParOpen, skipCb('('));
     __push(open);
     while (str.notAt(QChar(')'))) {
+        qDebug() << str;
         // Read argument until the first comma or closing parent
         auto raw = str.tok(
             otk::RawText,
-            skipBefore,
+            skipTo,
 
             // TODO handle quoted strings and escaped commas
             cr(CharSet{QChar(','), QChar(')')}));

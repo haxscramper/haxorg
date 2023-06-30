@@ -147,6 +147,7 @@ struct OrgConverter : public OperationsTracer {
     SemIdT<Center>          convertCenter(Up, In);
     SemIdT<Monospace>       convertMonospace(Up, In);
     SemIdT<Symbol>          convertSymbol(Up, In);
+    SemIdT<Macro>           convertMacro(Up, In);
 
     Vec<SemId> flatConvertAttached(Up, In);
 

@@ -56,7 +56,6 @@ const UnorderedMap<Str, MockFull::LexerMethod> lexers({
     { Str(#name), &OrgParser::parse##name }
 const UnorderedMap<Str, MockFull::ParserMethod> parsers({
     CB(HashTag),
-    CB(CSVArguments),
     CB(Macro),
     CB(RawUrl),
     CB(Link),

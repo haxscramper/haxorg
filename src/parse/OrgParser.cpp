@@ -181,6 +181,8 @@ class OrgParserImpl : public OrgParser {
     OrgId         parseParagraph(OrgLexer& lex, bool onToplevel);
     virtual OrgId parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind)
         override;
+
+    void parseCSVArguments(OrgLexer& lex) override;
 };
 
 
@@ -245,11 +247,11 @@ Vec<OrgTokenId> strip(
 
 
 template <bool TraceState>
-OrgId OrgParserImpl<TraceState>::parseCSVArguments(OrgLexer& lex) {
+void OrgParserImpl<TraceState>::parseCSVArguments(OrgLexer& lex) {
     __perf_trace("parseCSVArguments");
     __trace();
-    __start(org::Ident);
-    __skip(lex, otk::Ident);
+    auto tok = token(org::Ident, pop(lex, otk::Ident));
+    __token(tok);
 
     if (lex.at(otk::ParOpen)) {
         __skip(lex, otk::ParOpen);
@@ -261,7 +263,6 @@ OrgId OrgParserImpl<TraceState>::parseCSVArguments(OrgLexer& lex) {
         }
         __skip(lex, otk::ParClose);
     }
-    __end_return();
 }
 
 template <bool TraceState>

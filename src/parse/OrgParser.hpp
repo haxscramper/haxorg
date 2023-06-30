@@ -119,7 +119,6 @@ struct OrgParser : public OperationsTracer {
 
 #define EACH_PARSER_METHOD(__IMPL)                                        \
     __IMPL(Footnote);                                                     \
-    __IMPL(CSVArguments);                                                 \
     __IMPL(Macro);                                                        \
     __IMPL(RawUrl);                                                       \
     __IMPL(Link);                                                         \
@@ -172,6 +171,7 @@ struct OrgParser : public OperationsTracer {
 
     virtual void extendSubtreeTrails(OrgId position)  = 0;
     virtual void extendAttachedTrails(OrgId position) = 0;
+    virtual void parseCSVArguments(OrgLexer& lex)     = 0;
 };
 
 inline QString to_string(OrgParser::TokenWithValue const& tok) {

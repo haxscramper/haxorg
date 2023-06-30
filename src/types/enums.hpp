@@ -402,6 +402,7 @@ enum class OrgSemKind : short int
     Italic,
     Strike,
     Underline,
+    Macro,
     Symbol,
     Monospace,
     Verbatim,
@@ -486,7 +487,8 @@ enum class OrgSemKind : short int
     __IMPL(AtMention)                                                     \
     __IMPL(AdmonitionBlock)                                               \
     __IMPL(Empty)                                                         \
-    __IMPL(Symbol)
+    __IMPL(Symbol)                                                        \
+    __IMPL(Macro)
 
 
 enum class OrgTextContext : short int
