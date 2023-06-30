@@ -15,11 +15,26 @@ struct MockFull {
     QString             base;
     Lexer<OrgTokenKind> lex;
     SPtr<OrgParser>     parser;
+    LineColInfo         info;
+
+    Func<LineCol(CR<PosStr>)> locationResolver;
 
     MockFull() : tokenizer(), nodes(nullptr), lex(&tokens) {
         parser       = OrgParser::initImpl(&nodes, false);
         tokenizer    = OrgTokenizer::initImpl(&tokens, false);
         nodes.tokens = &tokens;
+
+        locationResolver = [&](CR<PosStr> str) -> LineCol {
+            Slice<int> absolute = tokens.toAbsolute(str.view);
+            return {
+                info.whichLine(absolute.first + str.pos) + 1,
+                info.whichColumn(absolute.first + str.pos),
+                absolute.first + str.pos,
+            };
+        };
+
+        tokenizer->setLocationResolver(locationResolver);
+        parser->setLocationResolver(locationResolver);
     }
 
     using LexerMethod  = bool (OrgTokenizer::*)(PosStr&);
@@ -42,6 +57,8 @@ struct MockFull {
 
     void tokenize(CR<QString> content, LexerMethod lexMethod) {
         base = content;
+        info = LineColInfo{base};
+        tokens.base = base.data();
         PosStr str{base};
         ((*tokenizer).*lexMethod)(str);
     }
