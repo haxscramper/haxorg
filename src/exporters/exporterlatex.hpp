@@ -110,4 +110,5 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     void visitHashTag(Res& res, In<sem::HashTag> tag);
     void visitEscaped(Res& res, In<sem::Escaped> escaped);
     void visitUnderline(Res& res, In<sem::Underline> under);
+    void visitSymbol(Res& res, In<sem::Symbol> sym);
 };

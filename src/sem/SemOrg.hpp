@@ -678,6 +678,21 @@ struct Time : public Org {
     bool isStatic() const { return std::holds_alternative<Static>(time); }
 };
 
+struct Symbol : public Org {
+    DECL_KIND(Symbol);
+    using Org::Org;
+    struct Param {
+        Opt<QString> key;
+        QString      value;
+    };
+
+    DECL_FIELDS(
+        Symbol,
+        (Org),
+        ((QString), name, Name, ""),
+        ((Vec<Param>), parameters, Parameters, {}),
+        ((Vec<SemId>), positional, Positiona, {}));
+};
 
 /// Time range delimited by two points
 struct TimeRange : public Org {

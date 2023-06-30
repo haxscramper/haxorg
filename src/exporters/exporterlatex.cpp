@@ -340,6 +340,16 @@ void ExporterLatex::visitUnderline(Res& res, In<sem::Underline> under) {
     res = command("underline", {b::line(subnodes(under))});
 }
 
+void ExporterLatex::visitSymbol(Res& res, In<sem::Symbol> sym) {
+    Vec<Res> positional;
+
+    for (auto const& arg : sym->positional) {
+        positional.push_back(visit(arg));
+    }
+
+    res = command(sym->name, positional);
+}
+
 void ExporterLatex::visitMonospace(Res& res, In<sem::Monospace> mono) {
     res = command("texttt", {b::line(subnodes(mono))});
 }

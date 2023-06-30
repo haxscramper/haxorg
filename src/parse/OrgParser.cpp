@@ -677,11 +677,15 @@ OrgId OrgParserImpl<TraceState>::parseSymbol(OrgLexer& lex) {
     __start(org::Symbol);
     token(org::Ident, pop(lex, otk::Ident));
 
+    while (lex.at(otk::MetaBraceOpen)) {
+        __skip(lex, otk::MetaBraceOpen);
+        token(org::RawText, pop(lex, otk::MetaBraceBody));
+        __skip(lex, otk::MetaBraceClose);
+    }
+
     while (lex.at(otk::MetaArgsOpen)) {
         __skip(lex, otk::MetaArgsOpen);
-        if (lex.at(otk::MetaBraceBody)) {
-            __skip(lex, otk::MetaBraceBody);
-        }
+        parseParagraph(lex, false);
         __skip(lex, otk::MetaArgsClose);
     }
 

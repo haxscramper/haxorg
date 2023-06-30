@@ -561,6 +561,37 @@ SemIdT<TimeRange> OrgConverter::convertTimeRange(__args) {
     return range;
 }
 
+SemIdT<Symbol> OrgConverter::convertSymbol(__args) {
+    __perf_trace("convertSymbol");
+    __trace();
+    auto sym = Sem<Symbol>(p, a);
+
+    int idx = 0;
+    for (const auto& sub : a) {
+        if (idx == 0) {
+            sym->name = sub.strVal();
+        } else if (sub.kind() == org::RawText) {
+            auto params = sub.strVal().split(" ");
+            for (int i = 0; i < params.size();) {
+                if (params.at(i).startsWith(":")
+                    && (i + 1) < params.size()) {
+                    sym->parameters.push_back(Symbol::Param{
+                        .key = params.at(i), .value = params.at(i + 1)});
+                    i += 2;
+                } else {
+                    sym->parameters.push_back(
+                        Symbol::Param{.value = params.at(i)});
+                    i += 1;
+                }
+            }
+        } else {
+            sym->positional.push_back(convert(sym, sub));
+        }
+        ++idx;
+    }
+    return sym;
+}
+
 SemIdT<Paragraph> OrgConverter::convertParagraph(__args) {
     // TODO detect admonition paragraphs during conversion and store
     // information about this -- right now `NOTE:` is represented using
@@ -897,6 +928,7 @@ SemId OrgConverter::convert(__args) {
         case org::QuoteBlock: return convertQuote(p, a);
         case org::Colon: return convertPunctuation(p, a);
         case org::CommandInclude: return convertInclude(p, a);
+        case org::Symbol: return convertSymbol(p, a);
         case org::Footnote: {
             if (a.size() == 1) {
                 return convertLink(p, a);

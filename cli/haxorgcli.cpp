@@ -951,7 +951,7 @@ void HaxorgCli::exec() {
         }
     }
 
-    //    writeTreeParse();
+    writeTreeParse();
 
     {
         __trace("convert parse to sem");

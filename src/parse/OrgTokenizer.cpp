@@ -1242,7 +1242,7 @@ bool OrgTokenizerImpl<TraceState>::lexSlashEntity(PosStr& str) {
             auto ident = str.tok(
                 otk::Ident, skipZeroOrMore, charsets::IdentChars);
             __push(ident);
-            if (str.at(QChar('['))) {
+            while (str.at(QChar('['))) {
                 auto open = str.tok(otk::MetaBraceOpen, skipCb('['));
                 __push(open);
                 auto body = str.tok(otk::MetaBraceBody, [](PosStr& str) {
@@ -1261,7 +1261,8 @@ bool OrgTokenizerImpl<TraceState>::lexSlashEntity(PosStr& str) {
             while (str.at(QChar('{'))) {
                 auto open = str.tok(otk::MetaArgsOpen, skipCb('{'));
                 __push(open);
-                auto body = str.tok(otk::MetaBraceBody, [](PosStr& str) {
+
+                auto body = str.tok(otk::Text, [](PosStr& str) {
                     skipBalancedSlice(
                         str,
                         {.openChars    = {QChar('{')},
@@ -1269,7 +1270,8 @@ bool OrgTokenizerImpl<TraceState>::lexSlashEntity(PosStr& str) {
                          .skippedStart = true,
                          .consumeLast  = false});
                 });
-                __push(body);
+
+                pushResolved(body);
 
                 auto close = str.tok(otk::MetaArgsClose, skipCb('}'));
                 __push(close);

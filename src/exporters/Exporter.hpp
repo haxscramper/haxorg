@@ -448,6 +448,11 @@ struct Exporter {
         visitVariants(res, static_cast<int>(prop.index()), prop);
     }
 
+    void visit(R& res, CR<sem::Symbol::Param> param) {
+        __obj_field(res, param, key);
+        __obj_field(res, param, value);
+    }
+
     /// \name Specialization for nested subtree objects and subtree itself
     ///@{
     void visit(R& res, CR<sem::Subtree::Property::Ordered> p) {
