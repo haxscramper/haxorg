@@ -15,7 +15,15 @@ struct ParseSpec {
     Opt<QString> testName;
     YAML::Mark   specLocation;
     YAML::Mark   sourceLocation;
+    QString      specFile;
 
+    QString getLocMsg() const {
+        return "$# at $#:$#"
+             % to_string_vec(
+                   testName ? *testName : "<test>",
+                   specFile,
+                   specLocation.line);
+    }
 
     struct Conf {
         enum class MatchMode
@@ -73,7 +81,7 @@ struct ParseSpec {
 
     ExpectedMode expectedMode = ExpectedMode::Nested;
 
-    ParseSpec(CR<yaml> node);
+    ParseSpec(CR<yaml> node, CR<QString> specFile);
 
     template <typename N, typename K>
     NodeGroup<N, K> getNodeGroup() {

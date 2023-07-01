@@ -739,12 +739,26 @@ struct NodeAdapter {
         }
     };
 
-    iterator begin() { return iterator(group->begin(id + 1)); }
+    iterator begin() {
+        if ((id + 1).getIndex() < group->size()) {
+            return iterator(group->begin(id + 1));
+        } else {
+            return end();
+        }
+    }
+
     iterator end() {
         return iterator(group->end(id + group->at(id).getExtent()));
     }
 
-    iterator begin() const { return iterator(group->begin(id + 1)); }
+    iterator begin() const {
+        if ((id + 1).getIndex() < group->size()) {
+            return iterator(group->begin(id + 1));
+        } else {
+            return end();
+        }
+    }
+
     iterator end() const {
         return iterator(group->end(id + group->at(id).getExtent()));
     }

@@ -30,3 +30,34 @@ items:
 
   - source: "/italic/"
   - source: "[[link][description]]"
+  - source: "\\symbol{}"
+    debug:
+      print_parsed: true
+      print_lexed: true
+    sem:
+      kind: Document
+      subnodes:
+        - kind: Paragraph
+          subnodes: 
+            - kind: Symbol
+              name: "symbol"
+              parameters: []
+              positional: [{kind: Paragraph}]
+  - source: "\\symbol{\"Argument\"}"
+    debug:
+      print_parsed: true
+      print_lexed: true
+    sem:
+      kind: Document
+      subnodes:
+        - kind: Paragraph
+          subnodes: 
+            - kind: Symbol
+              name: "symbol"
+              parameters: []
+              positional: 
+                - kind: Paragraph
+                  subnodes:
+                    - {kind: Punctuation, text: "\""}
+                    - {kind: Word, text: "Argument"}
+                    - {kind: Punctuation, text: "\""}

@@ -37,9 +37,9 @@ diff::ComparisonOptions<NodeId<N, K>, Val> nodeAdapterComparisonOptions(
 }
 
 TEST(TestFiles, Spec) {
-    YAML::Node spec = YAML::LoadFile(
-        (__CURRENT_FILE_DIR__ / "spec.yaml").toStdString());
-    ParseSpec parsed(spec);
+    auto       file = (__CURRENT_FILE_DIR__ / "spec.yaml");
+    YAML::Node spec = YAML::LoadFile(file.toStdString());
+    ParseSpec  parsed(spec, file);
 }
 
 TEST(SimpleNodeConversion, SingleHashTagToken) {

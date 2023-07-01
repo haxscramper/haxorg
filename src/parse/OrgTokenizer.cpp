@@ -1263,15 +1263,7 @@ bool OrgTokenizerImpl<TraceState>::lexSlashEntity(PosStr& str) {
                 auto open = str.tok(otk::MetaArgsOpen, skipCb('{'));
                 __push(open);
 
-                auto body = str.tok(otk::Text, [](PosStr& str) {
-                    skipBalancedSlice(
-                        str,
-                        {.openChars    = {QChar('{')},
-                         .closeChars   = {QChar('}')},
-                         .skippedStart = true,
-                         .consumeLast  = false});
-                });
-
+                auto body = str.tok(otk::Text, skipTo, QChar('}'));
                 pushResolved(body);
 
                 auto close = str.tok(otk::MetaArgsClose, skipCb('}'));

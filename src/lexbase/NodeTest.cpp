@@ -49,7 +49,8 @@ json toJson(CR<yaml> node) {
     }
 }
 
-ParseSpec::ParseSpec(CR<yaml> node) {
+ParseSpec::ParseSpec(CR<yaml> node, CR<QString> specFile)
+    : specFile(specFile) {
     specLocation = node.Mark();
 
     if (node["conf"]) {
@@ -122,7 +123,7 @@ ParseSpecGroup::ParseSpecGroup(CR<yaml> node, CR<QString> from) {
     if (node["items"]) {
         if (node["items"].IsSequence()) {
             for (const auto& it : node["items"]) {
-                auto spec = ParseSpec(it);
+                auto spec = ParseSpec(it, from);
 
                 if (spec.lexImplName.empty() && node["lex"]) {
                     spec.lexImplName = node["lex"].as<QString>();
@@ -157,7 +158,7 @@ ParseSpecGroup::ParseSpecGroup(CR<yaml> node, CR<QString> from) {
         }
 
     } else {
-        auto tmp = ParseSpec(node);
+        auto tmp = ParseSpec(node, from);
         validate(tmp);
         specs.push_back(tmp);
     }

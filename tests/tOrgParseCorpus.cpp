@@ -398,14 +398,21 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
 
                     } else if (op == "add") {
                         os << "    " << it["value"].dump() << "\n";
+                    } else if (op == "remove") {
+                        os << "    " << os.red() << converted[path].dump()
+                           << os.end() << "\n";
                     }
                 }
 
                 if (0 < failCount) {
+                    os << "Sem tree structure mismatch for"
+                       << spec.getLocMsg() << "\n";
+
                     os << "  converted:" << converted.dump() << "\n";
                     os << "  expected :" << expected.dump() << "\n";
 
-                    FAIL() << "Sem tree structure mismatch";
+                    FAIL() << "Sem tree structure mismatch for"
+                           << spec.getLocMsg();
                 }
             }
         }
@@ -636,25 +643,24 @@ def multiline :: Str = match Some 5 in {
     qDebug().noquote() << buf;
 }
 
+// std::string corpusGlob = "*text.yaml";
+std::string corpusGlob = "";
 
 TEST(ParseFile, CorpusAll) {
-    std::string  glob; // = testParameters.corpusGlob.toStdString();
     QDirIterator it(
         __CURRENT_FILE_DIR__ / "corpus"_qs, QDirIterator::Subdirectories);
     while (it.hasNext()) {
         QFileInfo path{it.next()};
         if (path.isFile() && path.fileName().endsWith(".yaml")) {
             std::string p = path.filePath().toStdString();
-            if (/*testParameters.corpusGlob.empty()*/ true) {
-                //                qDebug() << p;
+            if (corpusGlob.empty()) {
                 YAML::Node spec = YAML::LoadFile(p);
                 runSpec(spec, path.filePath());
             } else {
-
+                qDebug() << corpusGlob << p;
                 int matchRes = fnmatch(
-                    glob.c_str(), p.c_str(), FNM_EXTMATCH);
+                    corpusGlob.c_str(), p.c_str(), FNM_EXTMATCH);
                 if (!(matchRes == FNM_NOMATCH)) {
-                    //                    qDebug() << p;
                     YAML::Node spec = YAML::LoadFile(p);
                     runSpec(spec, path.filePath());
                 }
