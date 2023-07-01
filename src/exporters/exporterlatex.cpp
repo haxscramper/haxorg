@@ -653,6 +653,10 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
   \end{center}}
 )"));
 
+    res->add(string(R"(
+\newcommand{\quot}[1]{\textcolor{brown}{#1}}
+)"));
+
     res->add(command("begin", {"document"}));
     if (value->options) {
         auto exp = value->options->tocExport;
@@ -768,7 +772,24 @@ void ExporterLatex::visitUnderline(Res& res, In<sem::Underline> under) {
 void ExporterLatex::visitSymbol(Res& res, In<sem::Symbol> sym) {
     if (definitions.contains(sym->name)) {
         res = string(definitions.at(sym->name).latex);
+    } else if (sym->name == "q") {
+        auto     arg = sym->positional.at(1_B);
+        Vec<Res> items;
+        items.push_back(string("\""));
+        for (const auto& sub : arg->subnodes) {
+            if (sub.is(osk::Punctuation)
+                && sub.as<sem::Punctuation>()->text == "\"") {
+                continue;
+            } else {
+                items.push_back(visit(sub));
+            }
+        }
+
+        items.push_back(string("\""));
+
+        res = command("quot", {b::line(items)});
     } else {
+
         Vec<Res> positional;
 
         for (auto const& arg : sym->positional) {
@@ -777,6 +798,15 @@ void ExporterLatex::visitSymbol(Res& res, In<sem::Symbol> sym) {
 
         res = command(sym->name, positional);
     }
+}
+
+void ExporterLatex::visitCenter(Res& res, In<sem::Center> center) {
+    res = b::stack();
+    res->add(command("begin", {"center"}));
+    for (auto const& sub : center->subnodes) {
+        res->add(visit(sub));
+    }
+    res->add(command("end", {"center"}));
 }
 
 void ExporterLatex::visitMonospace(Res& res, In<sem::Monospace> mono) {
