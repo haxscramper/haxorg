@@ -1201,6 +1201,34 @@ OrgId OrgParserImpl<TraceState>::parseTextWrapCommand(
 }
 
 template <bool TraceState>
+OrgId OrgParserImpl<TraceState>::parseBlockExport(OrgLexer& lex) {
+    __perf_trace("parseExample");
+    __trace();
+    __start(org::BlockExport);
+
+    __skip(lex, otk::CommandPrefix);
+    __skip(lex, otk::CommandBegin);
+
+    // command arguments
+    space(lex);
+    __skip(lex, otk::CommandArgumentsBegin);
+    auto args = token(org::Ident, pop(lex, otk::Ident));
+    __token(args);
+    __skip(lex, otk::CommandArgumentsEnd);
+
+    // command content
+    __skip(lex, otk::CommandContentStart);
+    auto body = token(org::RawText, pop(lex, otk::RawText));
+    __token(body);
+    __skip(lex, otk::CommandContentEnd);
+
+    __skip(lex, otk::CommandPrefix);
+    __skip(lex, otk::CommandEnd);
+
+    __end_return();
+}
+
+template <bool TraceState>
 OrgId OrgParserImpl<TraceState>::parseExample(OrgLexer& lex) {
     __perf_trace("parseExample");
     __trace();
@@ -2081,6 +2109,7 @@ OrgId OrgParserImpl<TraceState>::parseToplevelItem(OrgLexer& lex) {
             switch (kind) {
                 case ock::BeginSrc: return parseSrc(lex);
                 case ock::BeginExample: return parseExample(lex);
+                case ock::BeginExport: return parseBlockExport(lex);
                 case ock::BeginQuote:
                 case ock::BeginCenter:
                 case ock::BeginAdmonition:

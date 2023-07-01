@@ -112,4 +112,5 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     void visitUnderline(Res& res, In<sem::Underline> under);
     void visitSymbol(Res& res, In<sem::Symbol> sym);
     void visitCenter(Res& res, In<sem::Center> center);
+    void visitExport(Res& res, In<sem::Export> exp);
 };

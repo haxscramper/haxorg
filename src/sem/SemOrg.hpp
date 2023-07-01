@@ -507,6 +507,19 @@ struct Example : public Block {
     DECL_FIELDS(Example, (Block));
 };
 
+struct Export : public Block {
+    using Block::Block;
+    DECL_KIND(Export);
+    DECL_DESCRIBED_ENUM(Format, Inline, Line, Block);
+
+    DECL_FIELDS(
+        Export,
+        (Block),
+        ((Format), format, Format, Format::Inline),
+        ((QString), exporter, Exporter, ""),
+        ((QString), content, Content, ""));
+};
+
 struct AdmonitionBlock : public Block {
     using Block::Block;
     DECL_KIND(AdmonitionBlock);

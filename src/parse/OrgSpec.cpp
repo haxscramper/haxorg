@@ -406,6 +406,12 @@ OrgSpec spec = OrgSpec(Vec<SpecPair>{
             Field(Range(1, N::Body), OrgPattern({org::StmtList})),
         })},
     SpecPair{
+        org::BlockExport,
+        OrgPattern({
+            Field(Range(0, N::Name), OrgPattern({org::Ident})),
+            Field(Range(1, N::Body), OrgPattern({org::RawText})),
+        })},
+    SpecPair{
         org::CommandInclude,
         OrgPattern({Field(
             Range(0, N::Args),

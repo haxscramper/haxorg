@@ -735,8 +735,9 @@ void HaxorgCli::writeYamlLex() {
         result.push_back(item);
     }
 
-    writeFile(config.outFile, to_string(result) + "\n");
-    qInfo() << "Wrote YAML lex representation into " << config.outFile;
+    auto file = "/tmp/lexed_output.yaml";
+    writeFile(QFileInfo(file), to_string(result) + "\n");
+    qInfo() << "Wrote YAML lex representation into " << file;
 }
 
 void HaxorgCli::writeYamlParse() {
@@ -885,6 +886,7 @@ void HaxorgCli::exec() {
         if (!runTokenizer(false)) {
             return;
         }
+        writeYamlLex();
     }
 
     {

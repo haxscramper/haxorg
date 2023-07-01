@@ -38,8 +38,7 @@ items:
       kind: Document
       subnodes:
         - kind: Paragraph
-          subnodes: 
-            - kind: Symbol
+          subnodes:  - kind: Symbol
               name: "symbol"
               parameters: []
               positional: [{kind: Paragraph}]

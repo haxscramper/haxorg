@@ -809,6 +809,14 @@ void ExporterLatex::visitCenter(Res& res, In<sem::Center> center) {
     res->add(command("end", {"center"}));
 }
 
+void ExporterLatex::visitExport(Res& res, In<sem::Export> exp) {
+    if (exp->exporter == "latex") {
+        res = string(exp->content);
+    } else {
+        res = string("");
+    }
+}
+
 void ExporterLatex::visitMonospace(Res& res, In<sem::Monospace> mono) {
     res = command("texttt", {b::line(subnodes(mono))});
 }

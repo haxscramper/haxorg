@@ -143,6 +143,7 @@ struct OrgParser : public OperationsTracer {
     __IMPL(NestedList);                                                   \
     __IMPL(List);                                                         \
     __IMPL(Latex);                                                        \
+    __IMPL(BlockExport);                                                  \
                                                                           \
     __IMPL(Subtree);                                                      \
     __IMPL(SubtreeTodo);                                                  \

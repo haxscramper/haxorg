@@ -1527,6 +1527,8 @@ bool OrgTokenizerImpl<TraceState>::lexCommandContent(
             pushResolved(str.tok(otk::Text, skipPastEOF));
             break;
         }
+
+        case ock::BeginExport:
         case ock::BeginExample: {
             auto text = str.tok(otk::RawText, skipPastEOF);
             __push(text);
@@ -1547,7 +1549,10 @@ bool OrgTokenizerImpl<TraceState>::lexCommandContent(
             break;
         }
         default: {
-            assert(false && "IMPLEMENT");
+            Q_ASSERT_X(
+                false,
+                "lex command content",
+                "lex command content for kind " + to_string(kind));
         }
     };
     auto end = str.fakeTok(otk::CommandContentEnd);
@@ -1656,7 +1661,7 @@ bool OrgTokenizerImpl<TraceState>::lexCommandBlockDelimited(
         if (normalize(id.toStr()) == normalize("end" + sectionName)) {
             found = true;
             int offset
-                = (1           /* Default offset */
+                = (0           /* Default offset */
                    + id.size() /* `end_<xxx>` */
                    + 3 /* and trailing newline */);
             auto slice = str.popSlice({0, -offset});
@@ -2584,12 +2589,14 @@ bool OrgTokenizerImpl<TraceState>::lexCommandArguments(
         case ock::Name:
         case ock::LatexClass:
         case ock::LatexCompiler:
+        case ock::BeginExport:
         case ock::BeginAdmonition: {
             spaceSkip(str);
             auto ident = str.tok(otk::Ident, skipPastEOF);
             __push(ident);
             break;
         }
+
         case ock::Columns:
         case ock::BeginExample:
         case ock::Results:

@@ -168,7 +168,8 @@ enum class OrgNodeKind : short int
     AttrImg,
     CommandCaption, /// `#+caption:` command
     File,
-    ExportCommand,
+    BlockExport,
+    InlineExport,
     MultilineCommand,
     /// Multiline command such as code block, latex equation, large block
     /// of passthrough code. Some built-in org-mode commands do not
@@ -400,6 +401,7 @@ enum class OrgSemKind : short int
     Bold,
     Empty,
     Italic,
+    Export,
     Strike,
     Underline,
     Macro,
@@ -488,7 +490,8 @@ enum class OrgSemKind : short int
     __IMPL(AdmonitionBlock)                                               \
     __IMPL(Empty)                                                         \
     __IMPL(Symbol)                                                        \
-    __IMPL(Macro)
+    __IMPL(Macro)                                                         \
+    __IMPL(Export)
 
 
 enum class OrgTextContext : short int

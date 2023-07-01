@@ -819,6 +819,22 @@ SemIdT<Example> OrgConverter::convertExample(__args) {
     return convertAllSubnodes<Example>(p, a);
 }
 
+SemIdT<Export> OrgConverter::convertExport(__args) {
+    auto eexport = Sem<Export>(p, a);
+    switch (a.kind()) {
+        case org::BlockExport:
+            eexport->format = Export::Format::Block;
+            break;
+        default: {
+        }
+    }
+
+    eexport->exporter = one(a, N::Name).strVal();
+    eexport->content  = one(a, N::Body).strVal();
+
+    return eexport;
+}
+
 SemIdT<Center> OrgConverter::convertCenter(__args) {
     return convertAllSubnodes<Center>(p, a);
 }
@@ -915,6 +931,7 @@ SemId OrgConverter::convert(__args) {
         CASE(TextSeparator);
         CASE(AtMention);
         CASE(Underline);
+        case org::BlockExport: return convertExport(p, a);
         case org::Macro: return convertMacro(p, a);
         case org::Monospace: return convertMonospace(p, a);
         case org::CenterBlock: return convertCenter(p, a);
