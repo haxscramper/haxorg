@@ -638,14 +638,20 @@ SemIdT<StmtList> OrgConverter::convertStmtList(__args) {
 SemIdT<Footnote> OrgConverter::convertFootnote(__args) {
     __perf_trace("convertLink");
     __trace();
-    auto link = Sem<Footnote>(p, a);
-    if (a.size() == 1) {
-        link->tag = a[0].strVal();
+    if (a.kind() == org::InlineFootnote) {
+        auto note        = Sem<Footnote>(p, a);
+        note->definition = convert(note, a[0]);
+        return note;
     } else {
-        qFatal("TODO");
-    }
+        auto link = Sem<Footnote>(p, a);
+        if (a.size() == 1) {
+            link->tag = a[0].strVal();
+        } else {
+            qFatal("TODO");
+        }
 
-    return link;
+        return link;
+    }
 }
 
 SemIdT<Link> OrgConverter::convertLink(__args) {
@@ -931,6 +937,7 @@ SemId OrgConverter::convert(__args) {
         CASE(TextSeparator);
         CASE(AtMention);
         CASE(Underline);
+        case org::InlineFootnote: return convertFootnote(p, a);
         case org::BlockExport: return convertExport(p, a);
         case org::Macro: return convertMacro(p, a);
         case org::Monospace: return convertMonospace(p, a);

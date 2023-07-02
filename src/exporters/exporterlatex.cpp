@@ -565,7 +565,11 @@ void ExporterLatex::visitBigIdent(Res& res, In<sem::BigIdent> item) {
 }
 
 void ExporterLatex::visitFootnote(Res& res, In<sem::Footnote> footnote) {
-    res = string("");
+    if (footnote->tag.empty() && footnote->definition.has_value()) {
+        res = command("footnote", {visit(footnote->definition.value())});
+    } else {
+        res = string("");
+    }
 }
 
 
