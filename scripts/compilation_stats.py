@@ -10,6 +10,7 @@ from dataclasses_json import dataclass_json, config, Undefined
 import json
 from typing import *
 from pathlib import Path
+import pandas as pd
 
 
 logging.basicConfig(
@@ -106,13 +107,23 @@ def build_flamegraph(trace_events: List[TraceEvent]) -> Optional[TraceEventNode]
 
 
 if __name__ == "__main__":
+    path_files: List[Path] = []
     for path in Path(
-        "/mnt/workspace/repos/build-haxorg-Clang-RelWithDebInfo/CMakeFiles/haxorg.dir/src/parse/"
-    ).rglob("OrgParser.cpp.json"):
+        "/mnt/workspace/repos/build-haxorg-Clang-RelWithDebInfo/CMakeFiles/haxorg.dir/src/"
+    ).rglob("*.cpp.json"):
+        path_files.append(path)
+
+    all_files: List[TraceFile] = []
+
+    for i in range(0, len(path_files)):
+        path = path_files[i]
+        print(f"{i}/{len(path_files)} {path}")
         with open(path) as file:
-            print(path)
             j = json.load(file)
             converted: TraceFile = TraceFile.from_dict(j)
+            all_files.append(converted)
+
+            continue
 
             flame = build_flamegraph(
                 [
@@ -126,5 +137,62 @@ if __name__ == "__main__":
             # Write flamegraph to JSON file
             with open(flame_path, "w") as flame_file:
                 json.dump(flame.to_dict(), flame_file)
+
+    def flatten_tracefiles(tracefiles):
+        # Flatten the list of TraceFile objects
+        flattened = []
+        for tracefile in tracefiles:
+            for event in tracefile.traceEvents:
+                flattened.append(
+                    {
+                        "name": event.name,
+                        "detail": event.args.detail,
+                        "duration": event.dur,
+                    }
+                )
+        return flattened
+
+    # Flatten your tracefiles
+    flattened = flatten_tracefiles(all_files)
+
+    # Convert to DataFrame
+    df = pd.DataFrame(flattened)
+
+    # This will set max rows and columns displayed to be unlimited.
+    pd.set_option("display.max_rows", None)
+    pd.set_option("display.max_columns", None)
+    pd.set_option("display.max_colwidth", 20)
+
+    # This is our custom aggregation function
+    def custom_agg(group):
+        data = {
+            "count": group["duration"].count(),
+            "total_time": group["duration"].sum(),
+        }
+        return pd.Series(data, index=["count", "total_time"])
+
+    # Calculate total duration for each group
+    group_total_durations = df.groupby("name")["duration"].sum()
+
+    # Sort group names by total duration in descending order
+    sorted_group_names = group_total_durations.sort_values(ascending=False).index
+
+    # Write the DataFrame to a file.
+    with open("/tmp/sorted.txt", "w") as f:
+        for i in range(0, len(sorted_group_names)):
+            name = sorted_group_names[i]
+            print(f"{i}/{len(sorted_group_names)} {name}")
+            name_group = df[df["name"] == name]
+            f.write(f"Name: {name}\n")
+            detail_group = name_group.groupby("detail").apply(custom_agg)
+            sorted_group = detail_group.sort_values("total_time", ascending=False)
+            for detail, row in sorted_group.iterrows():
+                f.write(
+                    "  {:<10} {:10.5f} {:<20}\n".format(
+                        row["count"], row["total_time"] / 1E6, detail
+                    )
+                )
+
+            f.write("\n\n")
 
     print("Done")
