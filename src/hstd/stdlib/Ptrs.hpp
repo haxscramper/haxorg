@@ -49,3 +49,5 @@ template <typename T>
 struct remove_smart_pointer<std::weak_ptr<T>> {
     using type = T;
 };
+
+extern template class std::unique_ptr<char, void (*)(void*)>;

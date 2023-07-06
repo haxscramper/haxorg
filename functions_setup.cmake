@@ -98,4 +98,15 @@ function(set_common_files TARGET)
   #   src/lexbase/Token.hpp
   # )
 
+  target_precompile_headers("${TARGET}" PRIVATE
+    <QString>
+    <QDateTime>
+    <QDebug>
+    <nlohmann/json.hpp>
+    <optional>
+    <vector>
+    <boost/mp11.hpp>
+    <boost/describe.hpp>
+  )
+
 endfunction()

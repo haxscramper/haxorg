@@ -92,14 +92,4 @@ QTextStream& operator<<(QTextStream& os, RangeTree<T> const& value) {
     }
 }
 
-// int main() {
-//     Vec<Slice> slices = {Slice(1, 5), Slice(6, 8), Slice(10, 12)};
-//     RangeTree     rangeTree(slices);
-
-//     cout << rangeTree.query(3) << endl;  // should output [1, 5]
-//     cout << rangeTree.query(7) << endl;  // should output [6, 8]
-//     cout << rangeTree.query(9) << endl;  // should output [10, 12]
-//     cout << rangeTree.query(13) << endl; // should output [0, 0]
-
-//     return 0;
-// }
+extern template class RangeTree<int>;
