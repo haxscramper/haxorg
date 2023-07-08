@@ -10,6 +10,7 @@
 #include <QDirIterator>
 
 #include <exporters/ExporterJson.hpp>
+#include <exporters/exportertree.hpp>
 
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Debug.hpp>
@@ -407,6 +408,9 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
                 if (0 < failCount) {
                     os << "Sem tree structure mismatch for"
                        << spec.getLocMsg() << "\n";
+
+                    os << "converted:\n" << converted.dump(2);
+                    os << "\nexpected:\n" << expected.dump(2);
 
                     FAIL() << "Sem tree structure mismatch for"
                            << spec.getLocMsg();

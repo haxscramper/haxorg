@@ -32,7 +32,7 @@ typename NodeGroup<N, K>::Id NodeGroup<N, K>::failTree(
 
 template <typename N, typename K>
 typename NodeGroup<N, K>::iterator NodeGroup<N, K>::begin(NodeGroup<N, K>::Id start) const {
-    if ((start + 1).getIndex() < size()) {
+    if (start.getIndex() < size()) {
         auto result = iterator(start, this);
         result.check();
         return result;

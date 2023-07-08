@@ -350,6 +350,7 @@ items:
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item13"}
+      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
       - {kind: StmtListClose}
       - {kind: ListItemEnd}
