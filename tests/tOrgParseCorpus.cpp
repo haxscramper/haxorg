@@ -408,9 +408,6 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
                     os << "Sem tree structure mismatch for"
                        << spec.getLocMsg() << "\n";
 
-                    os << "  converted:" << converted.dump() << "\n";
-                    os << "  expected :" << expected.dump() << "\n";
-
                     FAIL() << "Sem tree structure mismatch for"
                            << spec.getLocMsg();
                 }
@@ -418,25 +415,6 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
         }
     }
 }
-
-void runSpec(CR<YAML::Node> group, CR<QString> from) {
-    ParseSpecGroup parsed{group, from};
-    auto           sectionName = [&](CR<ParseSpec> spec) {
-        return ("$# at $#"
-                % to_string_vec(
-                    spec.testName.has_value() ? spec.testName.value()
-                                              : QString("<spec>"),
-                    from))
-            .toStdString();
-    };
-
-
-    for (const auto& spec : parsed.specs) {
-        // qDebug() << sectionName(spec);
-        runSpec(spec, from);
-    }
-}
-
 
 TEST(PrintError, MultipleFiles) {
     QString a_tao = R"''(def five = 5)''";
@@ -646,25 +624,87 @@ def multiline :: Str = match Some 5 in {
 // std::string corpusGlob = "*text.yaml";
 std::string corpusGlob = "";
 
-TEST(ParseFile, CorpusAll) {
-    QDirIterator it(
+struct TestParams {
+    ParseSpec spec;
+    QFileInfo file;
+
+    QString fullName() const {
+        return "$# at $#:$#:$#"
+             % to_string_vec(
+                   spec.testName.has_value() ? spec.testName.value()
+                                             : QString("<spec>"),
+                   file.fileName(),
+                   spec.specLocation.line,
+                   spec.specLocation.column);
+    }
+
+    // Provide a friend overload.
+    friend void PrintTo(const TestParams& point, std::ostream* os) {
+        *os << point.fullName().toStdString();
+    }
+};
+
+class ParseFile : public ::testing::TestWithParam<TestParams> {};
+
+Vec<TestParams> generateTestRuns() {
+    Vec<TestParams> results;
+    QDirIterator    it(
         __CURRENT_FILE_DIR__ / "corpus"_qs, QDirIterator::Subdirectories);
+
+    auto addSpecs = [&](QFileInfo const& path) {
+        try {
+            YAML::Node group = YAML::LoadFile(
+                path.filePath().toStdString());
+            ParseSpecGroup parsed{group, path.filePath()};
+            for (const auto& spec : parsed.specs) {
+                results.push_back({spec, path});
+            }
+        } catch (YAML::Exception& ex) {
+            qFatal() << ex.what() << "at" << path.filePath();
+        }
+    };
+
     while (it.hasNext()) {
         QFileInfo path{it.next()};
         if (path.isFile() && path.fileName().endsWith(".yaml")) {
             std::string p = path.filePath().toStdString();
             if (corpusGlob.empty()) {
-                YAML::Node spec = YAML::LoadFile(p);
-                runSpec(spec, path.filePath());
+                addSpecs(path);
             } else {
-                qDebug() << corpusGlob << p;
                 int matchRes = fnmatch(
                     corpusGlob.c_str(), p.c_str(), FNM_EXTMATCH);
                 if (!(matchRes == FNM_NOMATCH)) {
-                    YAML::Node spec = YAML::LoadFile(p);
-                    runSpec(spec, path.filePath());
+                    addSpecs(path);
                 }
             }
         }
     }
-};
+
+    return results;
+}
+
+
+std::string getTestName(
+    const testing::TestParamInfo<ParseFile::ParamType>& info) {
+    QString final;
+    for (QChar const& ch : info.param.fullName()) {
+        if (ch.isDigit() || ch.isLetter() || ch == '_') {
+            final.push_back(ch);
+        } else {
+            final.push_back('_');
+        }
+    }
+
+    return final.toStdString();
+}
+
+TEST_P(ParseFile, CorpusAll) {
+    TestParams params = GetParam();
+    runSpec(params.spec, params.file.filePath());
+}
+
+INSTANTIATE_TEST_CASE_P(
+    CorpusAllParametrized,
+    ParseFile,
+    ::testing::ValuesIn(generateTestRuns()),
+    getTestName);

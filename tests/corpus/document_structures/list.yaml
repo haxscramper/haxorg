@@ -239,6 +239,7 @@ items:
       - {kind: Newline, str: "\n"}
       - {kind: CodeText, str: "  two_lines"}
       - {kind: Newline, str: "\n"}
+      - {kind: CodeText, str: " "}
       - {kind: CodeContentEnd}
 
       - {kind: CommandContentEnd}
@@ -349,7 +350,6 @@ items:
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item13"}
-      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
       - {kind: StmtListClose}
       - {kind: ListItemEnd}

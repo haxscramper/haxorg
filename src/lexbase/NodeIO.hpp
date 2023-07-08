@@ -55,9 +55,17 @@ json jsonRepr(
 
         json subnodes = json::object();
         for (const auto& [name, range] : expanded) {
-            json items = json::array();
+            json items    = json::array();
+            int  nodeSize = node.size();
             for (int idx : range) {
-                items.push_back(jsonRepr(spec, node.at(idx)));
+                if (idx < nodeSize) {
+                    items.push_back(jsonRepr(spec, node.at(idx)));
+                } else {
+                    items.push_back(
+                        "Error, node is missing entry on index $# for "
+                        "with name $#. Node size is $#"
+                        % to_string_vec(idx, to_string(name), nodeSize));
+                }
             }
             subnodes[to_string(name).toStdString()] = items;
         }
@@ -87,10 +95,18 @@ yaml yamlRepr(
         Vec<Pair<Name, Slice<int>>> expanded = spec.resolveNodeFields(
             node.get().kind, node.size());
 
+        int nodeSize = node.size();
         for (const auto& [name, range] : expanded) {
             for (int idx : range) {
-                result[to_string(name).toStdString()].push_back(
-                    yamlRepr(spec, node.at(idx)));
+                if (idx < nodeSize) {
+                    result[to_string(name).toStdString()].push_back(
+                        yamlRepr(spec, node.at(idx)));
+                } else {
+                    result[to_string(name).toStdString()]
+                        = "Error, node is missing entry on index $# for "
+                          "with name $#. Node size is $#"
+                        % to_string_vec(idx, to_string(name), nodeSize);
+                }
             }
         }
     }
