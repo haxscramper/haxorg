@@ -15,6 +15,10 @@ struct SymDef {
     QString utf8;
 };
 
+#include <exporters/Exporter.cpp>
+
+template class Exporter<ExporterLatex, layout::Block::Ptr>;
+
 
 UnorderedMap<QString, SymDef> definitions{
     // clang-format off
@@ -965,6 +969,3 @@ QString ExporterLatex::escape(const QString& value) {
     }
     return res;
 }
-
-
-template class Exporter<ExporterLatex, layout::Block::Ptr>;

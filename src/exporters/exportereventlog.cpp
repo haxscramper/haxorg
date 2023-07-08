@@ -2,6 +2,10 @@
 #include <exporters/exportertree.hpp>
 #include <QFileInfo>
 
+#include <exporters/Exporter.cpp>
+
+template class Exporter<ExporterEventLog, int>;
+
 using namespace sem;
 using osk = OrgSemKind;
 
@@ -128,5 +132,3 @@ void ExporterEventLog::log(const Event& event) {
         logConsumer(event);
     }
 }
-
-template class Exporter<ExporterEventLog, int>;

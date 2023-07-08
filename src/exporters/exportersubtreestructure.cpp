@@ -3,6 +3,9 @@
 #include <exporters/ExporterUltraplain.hpp>
 #include <exporters/ExporterJson.hpp>
 
+#include <exporters/Exporter.cpp>
+
+template class Exporter<ExporterSubtreeStructure, json>;
 
 json ExporterSubtreeStructure::newRes(In<sem::Subtree> tree) {
     json result = ExporterJson().newRes(tree);
@@ -45,5 +48,3 @@ void ExporterSubtreeStructure::visitDocument(
     j["isSubtree"] = false;
     visitStructuralCommon(j, doc);
 }
-
-template class Exporter<ExporterSubtreeStructure, json>;

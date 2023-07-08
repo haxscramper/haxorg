@@ -1,6 +1,10 @@
 #include <exporters/ExporterUltraplain.hpp>
 #include <hstd/stdlib/strutils.hpp>
 
+#include <exporters/Exporter.cpp>
+
+template class Exporter<ExporterUltraplain, QString>;
+
 
 QString ExporterUltraplain::toStr(sem::SemId node) {
     return strip(
@@ -28,6 +32,3 @@ void ExporterUltraplain::visitLink(QString& res, In<sem::Link> link) {
         }
     }
 }
-
-
-template class Exporter<ExporterUltraplain, QString>;

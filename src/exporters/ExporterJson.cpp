@@ -2,6 +2,9 @@
 
 #include <boost/mp11.hpp>
 
+#include <exporters/Exporter.cpp>
+
+template class Exporter<ExporterJson, json>;
 
 json ExporterJson::newRes(sem::SemId org) {
     if (org.isNil()) {
@@ -37,7 +40,6 @@ void ExporterJson::visitSubtreeValueFields(
     });
 }
 
-template class Exporter<ExporterJson, json>;
 
 template json ExporterJson::visit<sem::SemId>(CR<sem::SemId>);
 

@@ -5,6 +5,12 @@
 #include <exporters/exportertree.hpp>
 #include <hstd/stdlib/strutils.hpp>
 
+
+#include <exporters/Exporter.cpp>
+
+template class Exporter<ExporterGantt, int>;
+
+
 using osk = OrgSemKind;
 
 void treeRepr(sem::SemIdT<sem::Org> org) {
@@ -49,5 +55,3 @@ void ExporterGantt::popVisit(int&, sem::SemIdT<sem::Subtree> tree) {
         }
     }
 }
-
-template class Exporter<ExporterGantt, int>;

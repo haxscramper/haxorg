@@ -1,5 +1,10 @@
 #include <exporters/exporteryaml.hpp>
 
+
+#include <exporters/Exporter.cpp>
+template class Exporter<ExporterYaml, yaml>;
+
+
 using osm = OrgSemKind;
 
 yaml ExporterYaml::newRes(sem::SemId org) {
@@ -29,5 +34,3 @@ yaml ExporterYaml::newRes(sem::SemId org) {
     res["id"]     = org.id;
     return res;
 }
-
-template class Exporter<ExporterYaml, yaml>;

@@ -1,5 +1,8 @@
 #include "exporterhtml.hpp"
 
+#include <exporters/Exporter.cpp>
+template class Exporter<ExporterHtml, layout::Block::Ptr>;
+
 const char* sidebarSync = R"html(
     var toc = document.querySelector('.toc');
     var tocPath = document.querySelector('.toc-marker path');
@@ -286,5 +289,3 @@ void ExporterHtml::visitTime(Res& res, In<sem::Time> time) {
         res = string(t.toString(fmt));
     }
 }
-
-template class Exporter<ExporterHtml, layout::Block::Ptr>;

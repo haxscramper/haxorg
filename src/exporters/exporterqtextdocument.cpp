@@ -1,5 +1,7 @@
 #include "exporterqtextdocument.hpp"
 
+#include <exporters/Exporter.cpp>
+template class Exporter<ExporterQTextDocument, int>;
 
 void ExporterQTextDocument::visitSubtree(int& r, In<sem::Subtree> tree) {
     Func<bool(sem::SemId)> hasNonTreeSub;
@@ -13,5 +15,3 @@ void ExporterQTextDocument::visitSubtree(int& r, In<sem::Subtree> tree) {
 
     eachSub(tree);
 }
-
-template class Exporter<ExporterQTextDocument, int>;

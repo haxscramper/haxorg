@@ -1,6 +1,11 @@
 #include "exportersimplesexpr.hpp"
 #include <hstd/stdlib/strutils.hpp>
 
+#include <exporters/Exporter.cpp>
+
+template class Exporter<ExporterSimpleSExpr, layout::Block::Ptr>;
+
+
 void ExporterSimpleSExpr::visit(Res& res, sem::SemId org) {
 
     switch (org->getKind()) {
@@ -41,5 +46,3 @@ void ExporterSimpleSExpr::visit(Res& res, sem::SemId org) {
         }
     }
 }
-
-template class Exporter<ExporterSimpleSExpr, layout::Block::Ptr>;

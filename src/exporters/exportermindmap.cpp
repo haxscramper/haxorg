@@ -532,4 +532,6 @@ json ExporterMindMap::toJsonTree() {
     return aux(root);
 }
 
+#include <exporters/Exporter.cpp>
+
 template class Exporter<ExporterMindMap, std::monostate>;

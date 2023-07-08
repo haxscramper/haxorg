@@ -3,6 +3,8 @@
 
 #define __scope() ScopedField CONCAT(close, __COUNTER__){this};
 
+#include <exporters/Exporter.cpp>
+template class Exporter<ExporterTree, int>;
 
 void ExporterTree::visitField(int& arg, const char* name, sem::SemId org) {
 
@@ -151,6 +153,3 @@ void ExporterTree::visit(int& arg, CR<Vec<T>> value) {
         }
     }
 }
-
-
-template class Exporter<ExporterTree, int>;
