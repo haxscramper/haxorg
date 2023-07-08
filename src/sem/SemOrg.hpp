@@ -186,6 +186,16 @@ struct SemId {
     Org const* get() const;
     Org*       operator->() { return get(); }
     Org const* operator->() const { return get(); }
+
+    template <typename T>
+    T* getAs() {
+        return dynamic_cast<T*>(get());
+    }
+
+    template <typename T>
+    T const* getAs() const {
+        return dynamic_cast<T const*>(get());
+    }
     /// @}
 
     /// \brief Add new subnode
@@ -244,7 +254,6 @@ struct SemIdT : public SemId {
     T const* get() const { return static_cast<T const*>(SemId::get()); }
     static SemIdT<T> Nil() { return SemIdT<T>(SemId::Nil()); }
 };
-
 
 /// \brief Base class for all org nodes. Provides essential baseline API
 /// and information.
@@ -306,19 +315,6 @@ struct Org {
     BOOST_DESCRIBE_CLASS(Org, (), (subnodes), (), ());
 };
 
-template <typename T>
-SemIdT<T> SemId::as() const {
-    SemIdT<T> result = SemIdT<T>(*this);
-    if constexpr (!std::is_abstract_v<T>) {
-        Q_ASSERT_X(
-            this->get()->getKind() == T::staticKind,
-            "cast sem ID node",
-            "Cannot convert sem ID node of kind $# to $#"
-                % to_string_vec(this->get()->getKind(), T::staticKind));
-    }
-
-    return result;
-}
 
 class Attached;
 

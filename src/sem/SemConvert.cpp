@@ -988,16 +988,18 @@ SemId OrgConverter::convert(__args) {
             } else if (SemTrailableCommands.contains(
                            nested.back()->getKind())) {
                 // Get last wrapped statement
-                SemIdT<Stmt> trailed = nested.back().as<Stmt>();
+                SemId lastNested = nested.back();
+                Stmt* trailed = dynamic_cast<sem::Stmt*>(lastNested.get());
+                Q_CHECK_PTR(trailed);
                 for (const auto& it : nested[slice(0, 2_B)]) {
-                    trailed->attached.push_back(it.as<Attached>());
+                    trailed->attached.push_back(it);
                 }
-                return trailed;
+                return lastNested;
 
             } else {
                 SemIdT<CommandGroup> group = Sem<CommandGroup>(p, a);
                 for (const auto& it : nested) {
-                    group->attached.push_back(it.as<Attached>());
+                    group->attached.push_back(it);
                 }
                 return group;
             }
