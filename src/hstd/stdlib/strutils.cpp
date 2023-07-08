@@ -1068,11 +1068,15 @@ Vec<Str> split_keep_separator(const Str& str, CharSet sep) {
     return result;
 }
 
-Vec<Str> visibleUnicodeName(QString str) {
+Vec<Str> visibleUnicodeName(QString str, bool useUnicode) {
     Vec<Str> result;
     for (QChar ch : str) {
         if (ch.unicode() <= 127) {
-            result.push_back(visibleName(ch).first);
+            if (useUnicode) {
+                result.push_back(visibleName(ch).first);
+            } else {
+                result.push_back(visibleName(ch).second);
+            }
         } else {
             result.push_back(ch);
         }

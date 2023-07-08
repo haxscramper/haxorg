@@ -26,6 +26,8 @@ namespace rs = std::views;
 #define CB(name)                                                          \
     { Str(#name), &OrgTokenizer::lex##name }
 
+bool useQFormat() { return getenv("IN_QT_RUN") == "true"; }
+
 void writeFileOrStdout(
     QFileInfo const& target,
     QString const&   content,
@@ -115,29 +117,61 @@ inline void format(
     QTextStream&             os,
     CR<FormattedDiff>        text,
     Func<QString(int, bool)> formatCb,
-    int                      lhsSize = 48,
-    int                      rhsSize = 16) {
+    int                      lhsSize    = 48,
+    int                      rhsSize    = 16,
+    bool                     useQFormat = false) {
     if (text.isUnified()) {
         os << (ColText("Given") <<= lhsSize) << (ColText("Expected"))
            << "\n";
-        for (const auto& [lhs, rhs] : text.unifiedLines()) {
-            auto lhsStyle = toStyle(lhs.prefix);
-            auto rhsStyle = toStyle(rhs.prefix);
-            os
-                //
-                << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= 2)
-                << ((lhs.empty() ? ColText("")
-                                 : ColText(
-                                     lhsStyle,
-                                     formatCb(lhs.index().value(), true)))
-                    <<= lhsSize)
-                << (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= 2)
-                << ((rhs.empty() ? ColText("")
-                                 : ColText(
-                                     rhsStyle,
-                                     formatCb(rhs.index().value(), false)))
-                    <<= rhsSize)
-                << Qt::endl;
+        Vec<Pair<FormattedDiff::DiffLine, FormattedDiff::DiffLine>> lines;
+        for (auto const& pair : text.unifiedLines()) {
+            lines.push_back(pair);
+        }
+
+        Slice<int> range = slice(0, lines.size() - 1);
+        for (int i = 0; i <= range.last; ++i) {
+            if (lines[i].first.prefix == SeqEditKind::Keep
+                && lines[i].second.prefix == SeqEditKind::Keep) {
+                range.first = i;
+            } else {
+                // two lines of context before diff
+                range.first = std::max(0, i - 1);
+                break;
+            }
+        }
+
+        for (int i = range.last; range.first < i; --i) {
+            if (lines[i].first.prefix == SeqEditKind::Keep
+                && lines[i].second.prefix == SeqEditKind::Keep) {
+                range.last = i;
+            } else {
+                range.last = std::min(lines.high(), i + 1);
+                break;
+            }
+        }
+
+        for (const auto& i : range) {
+            auto const& lhs = lines[i].first;
+            auto const& rhs = lines[i].second;
+
+            auto lhsStyle = useQFormat ? ColStyle() : toStyle(lhs.prefix);
+            auto rhsStyle = useQFormat ? ColStyle() : toStyle(rhs.prefix);
+
+            os << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= 2)
+               << ((lhs.empty()
+                        ? ColText("")
+                        : ColText(
+                            lhsStyle, formatCb(lhs.index().value(), true)))
+                   <<= lhsSize)
+               << (useQFormat
+                       ? ColText("")
+                       : (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= 2))
+               << ((rhs.empty() ? ColText("")
+                                : ColText(
+                                    rhsStyle,
+                                    formatCb(rhs.index().value(), false)))
+                   <<= rhsSize)
+               << Qt::endl;
         }
     }
 }
@@ -243,29 +277,56 @@ void compareTokens(
             return to_string(tok);
         };
 
-        // Vec<Str> lexedStr    = map(lexed.tokens.content, conv);
-        // Vec<Str> expectedStr = map(expected.tokens.content, conv);
-
         FormattedDiff text{tokenDiff};
 
         QString     buffer;
         QTextStream os{&buffer};
-        format(os, text, [&](int id, bool isLhs) -> QString {
-            auto tok = isLhs ? lexed.tokens.content.at(id)
-                             : expected.tokens.content.at(id);
+        int         lhsSize = 48;
+        int         rhsSize = 30;
+        bool        inQt    = useQFormat();
+        format(
+            os,
+            text,
+            [&](int id, bool isLhs) -> QString {
+                auto tok = isLhs ? lexed.tokens.content.at(id)
+                                 : expected.tokens.content.at(id);
 
-            HDisplayOpts opts{};
-            opts.flags.excl(HDisplayFlag::UseQuotes);
-            return "$# $# $#"
-                 % to_string_vec(
-                       id,
-                       tok.kind,
-                       hshow(tok.strVal(), opts).toString(false),
-                       tok.hasData());
-        });
+                HDisplayOpts opts{};
+                opts.flags.excl(HDisplayFlag::UseQuotes);
+                if (useQFormat) {
+                    opts.flags.incl(HDisplayFlag::UseAscii);
+                }
 
-        qcout << buffer << Qt::endl;
-        FAIL() << "Lexed token mismatch";
+                QString result = //
+                    QString(
+                        useQFormat
+                            ? (isLhs ? "${kind} \"${text}\" <"
+                                     : "> \"${text}\" ${kind}")
+                            : "${index} ${kind} ${text}")
+                    % fold_format_pairs({
+                        {"index", to_string(id)},
+                        {"kind", to_string(tok.kind)},
+                        {"text",
+                         hshow(tok.strVal(), opts).toString(false)},
+                        // {tok.hasData()},
+                    });
+
+                auto indexFmt = QString("[%1]").arg(id);
+                return useQFormat
+                         ? (isLhs ? indexFmt
+                                        + right_aligned(
+                                            result,
+                                            lhsSize - indexFmt.size())
+                                  : left_aligned(
+                                        result, rhsSize - indexFmt.size())
+                                        + indexFmt)
+                         : result;
+            },
+            lhsSize,
+            rhsSize,
+            useQFormat);
+
+        FAIL() << "Lexed token mismatch\n" << buffer;
     }
 }
 

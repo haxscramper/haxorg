@@ -411,7 +411,8 @@ enum class HDisplayFlag : u8
     TrimPrefixZeros,
     SplitNumbers,
     UseCommas,
-    UseQuotes
+    UseQuotes,
+    UseAscii
 };
 
 template <>
@@ -430,7 +431,9 @@ struct HDisplayOpts {
         HDisplayFlag::SpellEmptyStrings,
         HDisplayFlag::UseCommas,
         HDisplayFlag::UseQuotes,
-        HDisplayFlag::TrimPrefixZeros};
+        HDisplayFlag::TrimPrefixZeros,
+    };
+
     int  indent      = 0;
     int  maxDepth    = 120;
     int  maxLen      = 30;
@@ -479,27 +482,7 @@ ColStream& hshow(
 
 
 template <>
-inline ColStream& hshow(
-    ColStream&       os,
-    CR<Str>          value,
-    CR<HDisplayOpts> opts) {
-    bool first = true;
-    if (opts.flags.contains(HDisplayFlag::UseQuotes)) {
-        for (Str const& it : visibleUnicodeName(value)) {
-            if (!first) {
-                os << " ";
-            }
-            first = false;
-            os << Str("'") + it + Str("'");
-        }
-    } else {
-        for (const auto& it : visibleUnicodeName(value)) {
-            os << it;
-        }
-    }
-
-    return os;
-}
+ColStream& hshow(ColStream& os, CR<Str> value, CR<HDisplayOpts> opts);
 
 template <>
 inline ColStream& hshow(

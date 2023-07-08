@@ -121,3 +121,25 @@ void ColStream::write(const ColText& text) {
         (*ostream) << to_colored_string(text, colored);
     }
 }
+
+template <>
+ColStream& hshow(ColStream& os, CR<Str> value, CR<HDisplayOpts> opts) {
+    bool first = true;
+    if (opts.flags.contains(HDisplayFlag::UseQuotes)) {
+        for (Str const& it : visibleUnicodeName(
+                 value, !opts.flags.contains(HDisplayFlag::UseAscii))) {
+            if (!first) {
+                os << " ";
+            }
+            first = false;
+            os << Str("'") + it + Str("'");
+        }
+    } else {
+        for (const auto& it : visibleUnicodeName(
+                 value, !opts.flags.contains(HDisplayFlag::UseAscii))) {
+            os << it;
+        }
+    }
+
+    return os;
+}

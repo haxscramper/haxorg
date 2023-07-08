@@ -45,7 +45,7 @@ QString join(CR<QString> sep, generator<T>&& list) {
 Pair<QChar, QString> visibleName(QChar ch);
 Str indent(CR<Str> str, int spaces, char space = ' ', Str prefix = "");
 
-Vec<Str> visibleUnicodeName(QString str);
+Vec<Str> visibleUnicodeName(QString str, bool useUnicode = true);
 Vec<Str> split_keep_separator(const Str& str, CharSet sep = {QChar(' ')});
 Str      strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing);
 Vec<Str> split(CR<Str> str, QChar ch);
