@@ -55,51 +55,19 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
         return json(value.toString(Qt::ISODate).toStdString());
     }
 
-
-    template <typename E>
-    json visit(E value)
-        requires(std::is_enum<E>::value)
-    {
-        return json(to_string(value).toStdString());
-    }
-
     template <typename T>
-    json visit(CR<T> arg)
-        requires(!std::is_enum<T>::value)
-    {
-        json tmp = _this()->newRes(arg);
-        _this()->visit(tmp, arg);
-        return tmp;
-    }
+    json visit(CR<T> arg);
 
     json newRes(sem::SemId org);
 
     template <typename T>
-    void visitField(json& j, const char* name, CR<Opt<T>> value) {
-        if (value) {
-            j[name] = visit(value.value());
-        } else {
-            j[name] = json();
-        }
-    }
+    void visitField(json& j, const char* name, CR<Opt<T>> value);
 
     template <typename T>
-    json visit(CR<Vec<T>> values) {
-        json tmp = json::array();
-        for (const auto& it : values) {
-            tmp.push_back(visit(it));
-        }
-        return tmp;
-    }
+    json visit(CR<Vec<T>> values);
 
     template <typename T>
-    json visit(CR<UnorderedMap<Str, T>> map) {
-        json tmp = json::object();
-        for (const auto& [key, val] : map) {
-            tmp[key.toStdString()] = visit(val);
-        }
-        return tmp;
-    }
+    json visit(CR<UnorderedMap<Str, T>> map);
 
     template <typename T>
     void visitField(json& j, const char* name, CR<T> field) {
@@ -112,4 +80,3 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
 };
 
 extern template class Exporter<ExporterJson, json>;
-extern template json ExporterJson::visit<sem::SemId>(CR<sem::SemId>);

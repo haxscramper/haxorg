@@ -183,13 +183,16 @@ if __name__ == "__main__":
             name = sorted_group_names[i]
             print(f"{i}/{len(sorted_group_names)} {name}")
             name_group = df[df["name"] == name]
-            f.write(f"Name: {name}\n")
             detail_group = name_group.groupby("detail").apply(custom_agg)
             sorted_group = detail_group.sort_values("total_time", ascending=False)
+
+            f.write(
+                f"Name: {name} total {sorted_group['total_time'].sum() / 1E6:10.5f}\n"
+            )
             for detail, row in sorted_group.iterrows():
                 f.write(
                     "  {:<10} {:10.5f} {:<20}\n".format(
-                        row["count"], row["total_time"] / 1E6, detail
+                        row["count"], row["total_time"] / 1e6, detail
                     )
                 )
 

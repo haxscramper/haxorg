@@ -42,7 +42,6 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     static void treeRepr(sem::SemId org, QFileInfo const& path);
     static void treeRepr(sem::SemId org, CR<TreeReprConf> conf);
 
-
     struct TreeReprCtx {
         int level      = 0;
         int subnodeIdx = -1;
@@ -70,9 +69,6 @@ class ExporterTree : public Exporter<ExporterTree, int> {
         ~ScopedField() { exp->popIndent(); }
     };
 
-#define __scope() ScopedField CONCAT(close, __COUNTER__){this};
-
-
     template <typename T>
     int newRes(CR<T>) {
         return 0;
@@ -97,32 +93,10 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     }
 
     template <typename T>
-    void visit(int& arg, CR<Vec<T>> value) {
-        __scope();
-        if (value.empty()) {
-            indent();
-            os << os.cyan() << "<empty>" << os.end() << "\n";
-        } else {
-            int idx = 0;
-            for (const auto& it : value) {
-                indent();
-                os << "@[" << idx << "]:\n";
-                visit(arg, it);
-                ++idx;
-            }
-        }
-    }
+    void visit(int& arg, CR<Vec<T>> value);
 
     template <typename T>
-    void visit(int& arg, CR<Opt<T>> opt) {
-        __scope();
-        if (opt) {
-            visit(arg, *opt);
-        } else {
-            indent();
-            os << os.cyan() << "<none>" << os.end() << "\n";
-        }
-    }
+    void visit(int& arg, CR<Opt<T>> opt);
 
     template <typename T>
     QString typeName() {
@@ -130,22 +104,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     }
 
     template <typename T>
-    void visit(int& arg, CR<T> opt)
-        requires(std::is_enum<T>::value)
-    {
-        __scope();
-        indent();
-        os << os.red() << to_string(opt) << os.end() << "\n";
-    }
-
-    template <typename T>
-    void visit(int& arg, CR<T> opt)
-        requires(!std::is_enum<T>::value)
-    {
-        __scope();
-        indent();
-        os << os.red() << typeName<T>() << os.end() << "\n";
-    }
+    void visit(int& arg, CR<T> opt);
 
     template <typename K, typename V>
     void visit(int& arg, CR<UnorderedMap<K, V>> opt) {
@@ -156,37 +115,15 @@ class ExporterTree : public Exporter<ExporterTree, int> {
 
 
     template <typename T>
-    void visitField(int& arg, const char* name, CR<T> value) {
-        if (skipAsEmpty(value)) {
-            return;
-        }
-
-        __scope();
-        indent();
-        os << name << " (" << os.green() << typeName<T>() << os.end()
-           << ")";
-        if constexpr (std::is_same_v<T, int>) {
-            os << " = " << os.cyan() << value << os.end() << "\n";
-        } else if constexpr (std::is_same_v<T, Str>) {
-            os << " = " << os.yellow() << escape_literal(value) << os.end()
-               << "\n";
-        } else {
-            os << "\n";
-            visit(arg, value);
-        }
-    }
+    void visitField(int& arg, const char* name, CR<T> value);
 
     void visitField(int& arg, const char* name, sem::SemId org);
 
     template <typename T>
-    void visitField(int& arg, const char* name, sem::SemIdT<T> org) {
-        visitField(arg, name, org.toId());
-    }
+    void visitField(int& arg, const char* name, sem::SemIdT<T> org);
 
     template <typename T>
-    void visit(int& arg, sem::SemIdT<T> org) {
-        visit(arg, org.toId());
-    }
+    void visit(int& arg, sem::SemIdT<T> org);
 
     ExporterTree(ColStream& os) : os(os) {}
 };
