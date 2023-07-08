@@ -98,6 +98,7 @@ function(set_common_files TARGET)
   #   src/lexbase/Token.hpp
   # )
 
+
   target_precompile_headers("${TARGET}" PRIVATE
     <QString>
     <QDateTime>
@@ -108,5 +109,9 @@ function(set_common_files TARGET)
     <boost/mp11.hpp>
     <boost/describe.hpp>
   )
+
+    if(${USE_PERFETTO})
+        add_target_property(${TARGET} PRECOMPILE_HEADERS <perfetto.h>)
+    endif()
 
 endfunction()
