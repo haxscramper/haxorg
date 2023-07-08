@@ -196,4 +196,6 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     QString getId(DocSubtree::Ptr const& subtree);
 };
 
+extern template class Exporter<ExporterMindMap, std::monostate>;
+
 #endif // EXPORTERMINDMAP_HPP

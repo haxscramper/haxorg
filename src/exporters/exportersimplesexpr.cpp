@@ -41,3 +41,5 @@ void ExporterSimpleSExpr::visit(Res& res, sem::SemId org) {
         }
     }
 }
+
+template class Exporter<ExporterSimpleSExpr, layout::Block::Ptr>;

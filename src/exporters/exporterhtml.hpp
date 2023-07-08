@@ -148,4 +148,6 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
 #undef __leaf
 };
 
+extern template class Exporter<ExporterHtml, layout::Block::Ptr>;
+
 #endif // EXPORTERHTML_HPP

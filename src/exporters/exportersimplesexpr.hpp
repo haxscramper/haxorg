@@ -43,6 +43,13 @@ struct ExporterSimpleSExpr
         res = string(escape_for_write(time.toString(Qt::ISODate)));
     }
 
+    void visit(Res& res, CR<QDate> time) {
+        res = string(escape_for_write(time.toString(Qt::ISODate)));
+    }
+
+    void visit(Res& res, CR<QTime> time) {
+        res = string(escape_for_write(time.toString(Qt::ISODate)));
+    }
 
     template <typename T>
     void visit(Res& res, CR<Opt<T>> value) {
@@ -111,5 +118,7 @@ struct ExporterSimpleSExpr
         }
     }
 };
+
+extern template class Exporter<ExporterSimpleSExpr, layout::Block::Ptr>;
 
 #endif // EXPORTERSIMPLESEXPR_HPP

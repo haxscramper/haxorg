@@ -114,3 +114,5 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     void visitCenter(Res& res, In<sem::Center> center);
     void visitExport(Res& res, In<sem::Export> exp);
 };
+
+extern template class Exporter<ExporterLatex, layout::Block::Ptr>;

@@ -110,3 +110,5 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
         visitField(j, "subnodes", doc->subnodes);
     }
 };
+
+extern template class Exporter<ExporterJson, json>;

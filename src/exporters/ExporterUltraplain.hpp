@@ -47,3 +47,5 @@ struct ExporterUltraplain : public Exporter<ExporterUltraplain, QString> {
 
 #undef __visit
 };
+
+extern template class Exporter<ExporterUltraplain, QString>;

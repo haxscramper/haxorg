@@ -74,3 +74,5 @@ void ExporterTree::init(sem::SemId org) {
     }
     os << "\n";
 }
+
+template class Exporter<ExporterTree, int>;

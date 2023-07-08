@@ -45,3 +45,5 @@ void ExporterSubtreeStructure::visitDocument(
     j["isSubtree"] = false;
     visitStructuralCommon(j, doc);
 }
+
+template class Exporter<ExporterSubtreeStructure, json>;

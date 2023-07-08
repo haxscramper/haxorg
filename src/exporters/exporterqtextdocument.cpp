@@ -13,3 +13,5 @@ void ExporterQTextDocument::visitSubtree(int& r, In<sem::Subtree> tree) {
 
     eachSub(tree);
 }
+
+template class Exporter<ExporterQTextDocument, int>;

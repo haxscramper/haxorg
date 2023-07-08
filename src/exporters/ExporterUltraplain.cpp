@@ -28,3 +28,6 @@ void ExporterUltraplain::visitLink(QString& res, In<sem::Link> link) {
         }
     }
 }
+
+
+template class Exporter<ExporterUltraplain, QString>;

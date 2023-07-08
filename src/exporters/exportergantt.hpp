@@ -67,4 +67,6 @@ struct ExporterGantt : Exporter<ExporterGantt, int> {
     }
 };
 
+extern template class Exporter<ExporterGantt, int>;
+
 #endif // EXPORTERGANTT_HPP

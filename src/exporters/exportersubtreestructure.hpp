@@ -24,3 +24,5 @@ struct ExporterSubtreeStructure
     void visitSubtree(json& j, In<sem::Subtree> tree);
     void visitDocument(json& j, In<sem::Document> doc);
 };
+
+extern template class Exporter<ExporterSubtreeStructure, json>;

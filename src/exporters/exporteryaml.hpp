@@ -103,4 +103,6 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     }
 };
 
+extern template class Exporter<ExporterYaml, yaml>;
+
 #endif // EXPORTERYAML_HPP

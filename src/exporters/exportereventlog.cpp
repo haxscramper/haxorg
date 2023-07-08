@@ -128,3 +128,5 @@ void ExporterEventLog::log(const Event& event) {
         logConsumer(event);
     }
 }
+
+template class Exporter<ExporterEventLog, int>;

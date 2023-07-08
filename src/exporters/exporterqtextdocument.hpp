@@ -110,4 +110,6 @@ struct ExporterQTextDocument
     }
 };
 
+extern template class Exporter<ExporterQTextDocument, int>;
+
 #endif // EXPORTERQTEXTDOCUMENT_HPP

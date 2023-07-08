@@ -90,3 +90,5 @@ struct ExporterEventLog : public Exporter<ExporterEventLog, int> {
     void log(Event const& event);
     void log(Event::Data const& event) { log(Event(event)); }
 };
+
+extern template class Exporter<ExporterEventLog, int>;

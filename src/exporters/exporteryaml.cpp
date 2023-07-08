@@ -29,3 +29,5 @@ yaml ExporterYaml::newRes(sem::SemId org) {
     res["id"]     = org.id;
     return res;
 }
+
+template class Exporter<ExporterYaml, yaml>;

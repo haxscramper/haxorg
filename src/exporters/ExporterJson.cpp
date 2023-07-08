@@ -36,3 +36,5 @@ void ExporterJson::visitSubtreeValueFields(
         }
     });
 }
+
+template class Exporter<ExporterJson, json>;

@@ -191,4 +191,6 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     ExporterTree(ColStream& os) : os(os) {}
 };
 
+extern template class Exporter<ExporterTree, int>;
+
 #endif // EXPORTERTREE_HPP

@@ -286,3 +286,5 @@ void ExporterHtml::visitTime(Res& res, In<sem::Time> time) {
         res = string(t.toString(fmt));
     }
 }
+
+template class Exporter<ExporterHtml, layout::Block::Ptr>;

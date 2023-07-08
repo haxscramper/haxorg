@@ -965,3 +965,6 @@ QString ExporterLatex::escape(const QString& value) {
     }
     return res;
 }
+
+
+template class Exporter<ExporterLatex, layout::Block::Ptr>;

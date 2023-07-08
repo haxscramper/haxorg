@@ -49,3 +49,5 @@ void ExporterGantt::popVisit(int&, sem::SemIdT<sem::Subtree> tree) {
         }
     }
 }
+
+template class Exporter<ExporterGantt, int>;
