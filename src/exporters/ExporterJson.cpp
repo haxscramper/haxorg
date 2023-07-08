@@ -38,3 +38,5 @@ void ExporterJson::visitSubtreeValueFields(
 }
 
 template class Exporter<ExporterJson, json>;
+
+template json ExporterJson::visit<sem::SemId>(CR<sem::SemId>);

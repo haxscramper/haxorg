@@ -112,3 +112,4 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
 };
 
 extern template class Exporter<ExporterJson, json>;
+extern template json ExporterJson::visit<sem::SemId>(CR<sem::SemId>);

@@ -14,31 +14,15 @@
 using json   = nlohmann::json;
 namespace ns = nlohmann;
 
-inline void to_json(json& j, int i) { ns::to_json(j, i); }
+extern template class nlohmann::basic_json<>;
 
-inline void to_json(json& j, CR<QString> str) {
-    ns::to_json(j, str.toStdString());
-}
+void to_json(json& j, int i);
+void to_json(json& j, CR<QString> str);
+void to_json(json& j, CR<Str> str);
 
-inline void to_json(json& j, CR<Str> str) { to_json(j, str.toBase()); }
-
-
-inline QString to_string(json const& j) {
-    return QString::fromStdString(nlohmann::to_string(j));
-}
-
-
-inline QDebug operator<<(QDebug os, json const& value) {
-    QDebugStateSaver saved{os};
-    return os << to_string(value);
-}
-
-inline QTextStream& operator<<(QTextStream& os, json const& value) {
-    std::stringstream ss;
-    ss << value;
-    os << QString::fromStdString(ss.str());
-    return os;
-}
+QString      to_string(json const& j);
+QDebug       operator<<(QDebug os, json const& value);
+QTextStream& operator<<(QTextStream& os, json const& value);
 
 template <typename T>
 concept DescribedMembers = boost::describe::has_describe_members<T>::value;
