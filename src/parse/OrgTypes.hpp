@@ -17,6 +17,8 @@ using OrgNode      = Node<OrgNodeKind, OrgTokenKind>;
 using OrgId        = NodeId<OrgNodeKind, OrgTokenKind>;
 using OrgNodeGroup = NodeGroup<OrgNodeKind, OrgTokenKind>;
 
+extern template class NodeGroup<OrgNodeKind, OrgTokenKind>;
+
 using OrgLexer   = LexerCommon<OrgTokenKind>;
 using OrgTokSet  = IntSet<OrgTokenKind>;
 using OrgAdapter = NodeAdapter<OrgNodeKind, OrgTokenKind>;

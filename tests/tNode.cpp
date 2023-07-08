@@ -1,4 +1,5 @@
 #include <lexbase/Node.hpp>
+#include <lexbase/Node.cpp>
 #include <hstd/system/reflection.hpp>
 #include <gtest/gtest.h>
 

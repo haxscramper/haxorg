@@ -141,14 +141,7 @@ struct NodeGroup {
         return tokens->at(at(id).getToken()).hasData();
     }
 
-    Str strVal(Id id) const {
-        assert(notNil(tokens));
-        if (at(id).isTerminal()) {
-            return tokens->at(at(id).getToken()).strVal();
-        } else {
-            return "";
-        }
-    }
+    Str strVal(Id id) const;
 
     NodeGroup(TokenGroup<K>* _tokens = nullptr) : tokens(_tokens) {}
 
@@ -193,19 +186,9 @@ struct NodeGroup {
     /// \returns ID of the closed node
     Id endTree(
         int offset = 0 /// Offset for extending closed subnode
-    ) {
-        Q_ASSERT(0 < pendingTrees.size());
-        auto start = pendingTrees.pop_back_v();
-        nodes.at(start).extend(distance(start, nodes.back()) + offset);
-        return start;
-    }
+    );
 
-    Id failTree(Node<N, K> replacement) {
-        Q_ASSERT(0 < pendingTrees.size());
-        auto start      = pendingTrees.pop_back_v();
-        nodes.at(start) = replacement;
-        return start;
-    }
+    Id failTree(Node<N, K> replacement);
 
     CR<Node<N, K>> lastPending() const {
         return nodes.at(pendingTrees.back());
@@ -264,16 +247,8 @@ struct NodeGroup {
         }
     };
 
-    iterator begin(Id start) const {
-        auto result = iterator(start, this);
-        result.check();
-        return result;
-    }
-
-    iterator end(Id last) const {
-        ++last;
-        return iterator(last, this);
-    }
+    iterator begin(Id start) const;
+    iterator end(Id last) const;
 
     /// \brief Get pair of start/end iterators for traversing content of
     /// the subnodes
@@ -285,86 +260,24 @@ struct NodeGroup {
     ///     call_(*begin);
     /// }
     /// ```
-    Opt<Pair<iterator, iterator>> subnodesOf(Id node) const {
-        // TODO return empty range for iterator start
-        if (at(node).isTerminal()) {
-            return std::nullopt;
-
-        } else {
-            auto begini = begin(node + 1);
-            auto endi   = end(node + at(node).getExtent());
-            Q_ASSERT(begini.id <= endi.id);
-
-            return Pair<iterator, iterator>{begini, endi};
-        }
-    }
+    Opt<Pair<iterator, iterator>> subnodesOf(Id node) const;
 
     /// \brief Get ID slice over all subnodes that are places 'in' a
     /// specific node. For nodes without any nested elements returns empty
     /// option as `Slice` type is not intended to provde 'zero-size' ranges
     /// -- it always has the first and the last element, in some cases they
     /// might be equal, but that's all
-    Opt<Slice<Id>> allSubnodesOf(Id node) const {
-        if (0 < at(node).getExtent()) {
-            return slice<Id>(node + 1, node + at(node).getExtent());
-        } else {
-            return std::nullopt;
-        }
-    }
+    Opt<Slice<Id>> allSubnodesOf(Id node) const;
 
     /// \brief Get closest left node that contains \arg node in its full
     /// extent.
-    Id parent(Id node) const {
-        Id parent = node;
-        --parent;
-        while (!parent.isNil()) {
-            auto extent = allSubnodesOf(parent);
-            if (extent.has_value()) {
-                if (extent->contains(node)) {
-                    return parent;
-                } else {
-                    --parent;
-                }
-            }
-        }
-
-        return Id::Nil();
-    }
+    Id parent(Id node) const;
 
     /// \brief Get number of direct subnodes
-    int size(Id node) const {
-        if (auto pair = subnodesOf(node)) {
-            auto [begin, end] = *pair;
-            int result        = 0;
-            for (; begin != end; ++begin) {
-                ++result;
-            }
-            return result;
-
-        } else {
-            return 0;
-        }
-    }
+    int size(Id node) const;
 
     /// \brief Get id of the Nth subnode
-    Id subnode(Id node, int index) const {
-        if (auto pair = subnodesOf(node)) {
-            auto [begin, end] = *pair;
-            int i             = 0;
-            for (; begin != end; ++begin, ++i) {
-                if (i == index) {
-                    return *begin;
-                }
-            }
-
-            throw RangeError(
-                "Could not get subnode with index $# for node with id $# "
-                "-- it contains only $# items"
-                % to_string_vec(index, node.getUnmasked(), i));
-        } else {
-            qFatal("Cannot get subnode for token, TODO error msg");
-        }
-    }
+    Id subnode(Id node, int index) const;
 
     struct TreeReprConf {
         bool withTokenMask  = false;
@@ -387,36 +300,7 @@ struct NodeGroup {
     void lispRepr(
         QTextStream&     os,
         Id               node,
-        CR<TreeReprConf> conf = TreeReprConf()) const {
-        os << "(" << to_string(node.getMask()) << ":"
-           << to_string(node.getUnmasked()) << " "
-           << to_string(at(node).kind);
-
-        if (at(node).isTerminal()) {
-            auto tok = at(node).getToken();
-            os << " '";
-            QString     str;
-            QTextStream stream{&str};
-            tok.streamTo(stream, "", true);
-            os << str;
-            os << "'";
-            if (conf.fullBase != nullptr && at(tok).hasData()) {
-                os << " ";
-                auto start = std::distance(
-                    conf.fullBase, at(tok).getText().data());
-                os << start;
-                os << "..";
-                os << start + at(tok).getText().size() - 1;
-            }
-        } else {
-            auto [begin, end] = subnodesOf(node);
-            for (; begin != end; ++begin) {
-                os << " ";
-                lispRepr(os, *begin, conf);
-            }
-        }
-        os << ")";
-    }
+        CR<TreeReprConf> conf = TreeReprConf()) const;
 
 
     void treeRepr(
@@ -424,93 +308,10 @@ struct NodeGroup {
         Id               node,
         int              level,
         CR<TreeReprConf> conf       = TreeReprConf(),
-        int              subnodeIdx = 0) const {
-
-        os << repeat("  ", level);
-
-        os << to_string(at(node).kind);
-        if (conf.withSubnodeIdx) {
-            os << "[" << subnodeIdx << "]";
-        }
-
-        if (conf.withTreeMask) {
-            os << " MASK:" << to_string(node.getMask());
-        }
-
-        if (conf.withTreeId) {
-            os << " ID:" << to_string(node.getUnmasked());
-        }
-
-        if (at(node).isTerminal()) {
-            auto tok = at(node).getToken();
-            if (tok.isNil()) {
-                os << " # <nil>";
-            } else {
-                QString     str;
-                QTextStream stream{&str};
-                tok.streamTo(stream, "", conf.withTokenMask);
-                os << " #" << str << " " << at(tok);
-            }
-        } else {
-            if (conf.withExt) {
-                os << " EXT: " << to_string(at(node).getExtent());
-            }
-
-            auto [begin, end] = subnodesOf(node).value();
-            Q_ASSERT(begin.id <= end.id);
-            begin.check();
-            int  idx = 0;
-            auto id  = end.id;
-            for (; begin != end &&
-                  (begin.id <= end.id
-                  /* FIXME hack to handle tree that is created by the sweep operation  */);) {
-                Q_ASSERT(id == end.id);
-                Q_ASSERT(begin.id != end.id);
-                Q_ASSERT(begin.id <= end.id);
-                if (conf.flushEach) {
-                    os.flush();
-                }
-                os << "\n";
-                treeRepr(os, *begin, level + 1, conf, idx);
-
-                if (conf.flushEach) {
-                    os.flush();
-                }
-                ++idx;
-                Id before = begin.id;
-                ++begin;
-                // Q_ASSERT_X(
-                //     begin.id <= end.id,
-                //     "treeRepr",
-                //     "Increment of the starting operator should not go "
-                //     "over the end, but transitioning over subnode [$#] "
-                //     "for tree $# caused jump $# -> $# which is over the "
-                //     "end ($#). Full extent of the subnode is $#, extent "
-                //     "of the wrapping tree is $#"
-                //         % to_string_vec(
-                //             idx,
-                //             node.getUnmasked(),
-                //             before.getUnmasked(),
-                //             begin.id.getUnmasked(),
-                //             end.id.getUnmasked(),
-                //             at(before).getExtent(),
-                //             at(node).getExtent()));
-            }
-        }
-
-        if (conf.flushEach) {
-            os.flush();
-        }
-    }
+        int              subnodeIdx = 0) const;
 
     QString treeRepr(Id node, CR<TreeReprConf> conf = TreeReprConf())
-        const {
-        QString     buffer;
-        QTextStream os{&buffer};
-        ColStream   text{os};
-        treeRepr(text, node, 0, conf);
-        return buffer;
-    }
+        const;
 };
 
 

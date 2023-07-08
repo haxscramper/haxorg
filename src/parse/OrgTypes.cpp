@@ -1,5 +1,9 @@
 #include <parse/OrgTypes.hpp>
 
+#include <lexbase/Node.cpp>
+
+template class NodeGroup<OrgNodeKind, OrgTokenKind>;
+
 using org = OrgNodeKind;
 using sem = OrgSemKind;
 
