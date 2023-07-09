@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exporters/Exporter.hpp>
+#include <hstd/stdlib/Json.hpp>
 
 struct ExporterSubtreeStructure
     : public Exporter<ExporterSubtreeStructure, json> {

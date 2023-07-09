@@ -330,6 +330,177 @@ void compareTokens(
     }
 }
 
+void describeDiff(
+    ColStream&  os,
+    json const& it,
+    json const& expected,
+    json const& converted) {
+    auto op = it["op"].get<std::string>();
+
+    json::json_pointer path{it["path"].get<std::string>()};
+
+    os << "  ";
+    if (op == "remove") {
+        os << os.red() << "missing entry";
+    } else if (op == "add") {
+        os << os.green() << "unexpected entry";
+    } else {
+        os << os.magenta() << "changed entry";
+    }
+
+    os << " on path '" << os.yellow() << path.to_string() << os.end()
+       << "' ";
+
+    if (op == "replace") {
+        os << "    from " << os.red() << expected[path].dump() << os.end()
+           << " to " << os.green() << converted[path].dump() << os.end();
+
+    } else if (op == "add") {
+        os << "    " << it["value"].dump();
+    } else if (op == "remove") {
+        os << "    " << os.red() << converted[path].dump() << os.end();
+    }
+}
+
+bool isSimple(json const& j) {
+    switch (j.type()) {
+        case json::value_t::number_float:
+        case json::value_t::number_integer:
+        case json::value_t::boolean:
+        case json::value_t::string: return true;
+        default: return false;
+    }
+};
+
+bool isEmpty(json const& j) { return (j.is_array() && j.empty()); }
+
+void writeSimple(ColStream& os, json const& j) {
+    switch (j.type()) {
+        case json::value_t::number_float: {
+            os << os.magenta() << j.get<float>() << os.end();
+            break;
+        }
+        case json::value_t::number_integer: {
+            os << os.blue() << j.get<int>() << os.end();
+            break;
+        }
+        case json::value_t::boolean: {
+            os << os.cyan() << j.get<bool>() << os.end();
+            break;
+        }
+        case json::value_t::string: {
+            os << "\"" << os.yellow() << j.get<std::string>() << os.end()
+               << "\"";
+            break;
+        }
+    }
+};
+
+void compareSem(CR<ParseSpec> spec, sem::SemId node, json expected) {
+    json        converted = ExporterJson().visitTop(node);
+    json        diff      = json::diff(converted, expected);
+    int         failCount = 0;
+    QString     buf;
+    QTextStream stream{&buf};
+    ColStream   os{stream};
+    if (useQFormat()) {
+        os.colored = false;
+    }
+    UnorderedMap<std::string, json> ops;
+
+
+    for (auto const& it : diff) {
+        ops[it["path"].get<std::string>()] = it;
+        auto               op              = it["op"].get<std::string>();
+        json::json_pointer path{it["path"].get<std::string>()};
+        if (!path.empty()               //
+            && op == "remove"           //
+            && (path.back() == "id"     //
+                || path.back() == "loc" //
+                || path.back() == "subnodes")) {
+            continue;
+        } else {
+            ++failCount;
+        }
+
+        describeDiff(os, it, expected, converted);
+        os << "\n";
+    }
+
+    auto maybePathDiff = [&](json::json_pointer const& path) {
+        if (ops.contains(path.to_string())) {
+            describeDiff(os, ops[path.to_string()], expected, converted);
+        }
+    };
+
+    Func<void(json, int, json::json_pointer const&)> aux;
+    aux = [&](json const& j, int level, json::json_pointer const& path) {
+        switch (j.type()) {
+            case json::value_t::array: {
+                for (int i = 0; i < j.size(); ++i) {
+                    if (isEmpty(j[i])) {
+                        continue;
+                    }
+                    os.indent(level * 2) << "-";
+                    if (isSimple(j[i])) {
+                        os << " ";
+                        writeSimple(os, j);
+                        os << " ";
+                        maybePathDiff(path / i);
+                        os << "\n";
+                    } else {
+                        maybePathDiff(path / i);
+                        os << "\n";
+                        aux(j[i], level + 1, path / i);
+                    }
+                }
+                break;
+            }
+            case json::value_t::object: {
+                for (json::const_iterator it = j.begin(); it != j.end();
+                     ++it) {
+                    if (it.key() == "id" || it.key() == "loc"
+                        || isEmpty(it.value())) {
+                        continue;
+                    }
+                    os.indent(level * 2) << it.key() << ":";
+                    json const& value = it.value();
+                    if (isSimple(value)) {
+                        os << " ";
+                        writeSimple(os, value);
+                        maybePathDiff(path / it.key());
+                        os << "\n";
+                    } else {
+                        maybePathDiff(path / it.key());
+                        os << "\n";
+                        aux(it.value(), level + 1, path / it.key());
+                        os << "\n";
+                    }
+                }
+                break;
+            }
+            case json::value_t::number_float:
+            case json::value_t::number_integer:
+            case json::value_t::boolean:
+            case json::value_t::string: {
+                writeSimple(os, j);
+                break;
+            }
+        }
+    };
+
+    if (0 < failCount) {
+        os << "converted:\n";
+        aux(converted, 0, json::json_pointer{});
+        os << "\nexpected:\n";
+        aux(expected, 0, json::json_pointer{});
+
+        FAIL() << "Sem tree structure mismatch for" << spec.getLocMsg()
+               << "\n"
+               << buf.toStdString();
+    }
+}
+
 void runSpec(CR<ParseSpec> spec, CR<QString> from) {
     MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
     MockFull              p;
@@ -419,63 +590,10 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
 
             if (spec.dbg.doSem && spec.semExpected.has_value()) {
                 sem::OrgConverter converter;
-                auto              node = converter.toDocument(
-                    OrgAdapter(&p.nodes, OrgId(0)));
-                json        converted = ExporterJson().visitTop(node);
-                json const& expected  = spec.semExpected.value();
-                json        diff      = json::diff(converted, expected);
-                int         failCount = 0;
-                ColStream   os{qcout};
-                for (auto const& it : diff) {
-                    auto op = it["op"].get<std::string>();
-
-                    json::json_pointer path{it["path"].get<std::string>()};
-                    if (!path.empty()               //
-                        && op == "remove"           //
-                        && (path.back() == "id"     //
-                            || path.back() == "loc" //
-                            || path.back() == "subnodes")) {
-                        continue;
-                    } else {
-                        ++failCount;
-                    }
-
-                    os << "  ";
-                    if (op == "remove") {
-                        os << os.red() << "missing entry";
-                    } else if (op == "add") {
-                        os << os.green() << "unexpected entry";
-                    } else {
-                        os << os.magenta() << "changed entry";
-                    }
-
-                    os << " on path '" << os.yellow() << path.to_string()
-                       << os.end() << "'\n";
-
-                    if (op == "replace") {
-                        os << "    from " << os.red()
-                           << expected[path].dump() << os.end() << " to "
-                           << os.green() << converted[path].dump()
-                           << os.end() << "\n";
-
-                    } else if (op == "add") {
-                        os << "    " << it["value"].dump() << "\n";
-                    } else if (op == "remove") {
-                        os << "    " << os.red() << converted[path].dump()
-                           << os.end() << "\n";
-                    }
-                }
-
-                if (0 < failCount) {
-                    os << "Sem tree structure mismatch for"
-                       << spec.getLocMsg() << "\n";
-
-                    os << "converted:\n" << converted.dump(2);
-                    os << "\nexpected:\n" << expected.dump(2);
-
-                    FAIL() << "Sem tree structure mismatch for"
-                           << spec.getLocMsg();
-                }
+                compareSem(
+                    spec,
+                    converter.toDocument(OrgAdapter(&p.nodes, OrgId(0))),
+                    spec.semExpected.value());
             }
         }
     }

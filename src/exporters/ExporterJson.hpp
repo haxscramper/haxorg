@@ -2,6 +2,7 @@
 
 #include <exporters/Exporter.hpp>
 #include <hstd/stdlib/Time.hpp>
+#include <hstd/stdlib/Json.hpp>
 
 struct ExporterJson : public Exporter<ExporterJson, json> {
     using Base = Exporter<ExporterJson, json>;

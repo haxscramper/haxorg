@@ -14,8 +14,19 @@ sem::SemIdT<T> sem::SemId::as() const {
     return result;
 }
 
+
+void sem::SubtreeLog::setDescription(sem::SemIdT<sem::StmtList> desc) {
+    std::visit(
+        overloaded{
+            [](Clock&) {},
+            [&](auto& value) { value.desc = desc; },
+        },
+        log);
+}
+
 #define forward_declare(__Kind)                                           \
     template sem::SemIdT<sem::__Kind> sem::SemId::as() const;
+
 
 EACH_SEM_ORG_KIND(forward_declare)
 #undef forward_declare

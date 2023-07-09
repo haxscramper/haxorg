@@ -5,14 +5,14 @@
 template class NodeGroup<OrgNodeKind, OrgTokenKind>;
 
 using org = OrgNodeKind;
-using sem = OrgSemKind;
+using osk = OrgSemKind;
 
 const OrgSet OrgAttachableCommands{
     org::CommandCaption,
 };
 
 const SemSet SemAttachableCommands{
-    sem::Caption,
+    osk::Caption,
 };
 
 const OrgSet OrgTrailableCommands{
@@ -21,6 +21,6 @@ const OrgSet OrgTrailableCommands{
 };
 
 const SemSet SemTrailableCommands{
-    sem::Code,
-    sem::Quote,
+    osk::Code,
+    osk::Quote,
 };

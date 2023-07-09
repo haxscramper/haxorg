@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Time.hpp>
@@ -10,10 +9,7 @@
 #include <parse/OrgTypes.hpp>
 
 #include <boost/describe.hpp>
-#include <hstd/system/aux_utils.hpp>
-
-#include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/Json.hpp>
+#include <hstd/system/macros.hpp>
 #include <functional>
 
 #include <QDateTime>
@@ -329,8 +325,6 @@ struct Stmt : public Org {
         : Org(parent, subnodes), attached(attached) {}
 
     Vec<SemId> attached;
-    json       attachedJson() const;
-
     Opt<SemId> getAttached(OrgSemKind kind);
     BOOST_DESCRIBE_CLASS(Stmt, (Org), (), (), ());
 };
@@ -764,14 +758,7 @@ struct SubtreeLog : public Org {
         bool            added = false;
     };
 
-    void setDescription(SemIdT<StmtList> desc) {
-        std::visit(
-            overloaded{
-                [](Clock&) {},
-                [&](auto& value) { value.desc = desc; },
-            },
-            log);
-    }
+    void setDescription(SemIdT<StmtList> desc);
 
     SUB_VARIANTS(
         Kind,
@@ -1386,7 +1373,6 @@ struct KindStore {
         }
     }
 };
-
 
 #define __id(I) , sem::KindStore<sem::I>*
 /// \brief Global variant of all sem node derivations
