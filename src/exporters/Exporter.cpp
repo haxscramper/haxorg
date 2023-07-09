@@ -99,7 +99,12 @@ void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::Dedent> start) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::Data> data) {
-    visitVariants(res, sem::Code::Switch::getKind(data), data);
+    auto    kind      = sem::Code::Switch::getKind(data);
+    QString fieldName = to_string(kind);
+    _this()->visitField(res, "kind", kind);
+    data.visit([&, this](const auto& it) {
+        _this()->visitField(res, fieldName.toLatin1(), it);
+    });
 }
 
 template <typename V, typename R>
@@ -132,7 +137,12 @@ void Exporter<V, R>::visit(R& res, CR<sem::Time::Dynamic> time) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Time::TimeVariant> time) {
-    visitVariants(res, sem::Time::getTimeKind(time), time);
+    auto    kind      = sem::Time::getTimeKind(time);
+    QString fieldName = to_string(kind);
+    _this()->visitField(res, "kind", kind);
+    time.visit([&, this](const auto& it) {
+        _this()->visitField(res, fieldName.toLatin1(), it);
+    });
 }
 
 template <typename V, typename R>
@@ -162,7 +172,12 @@ void Exporter<V, R>::visit(R& res, CR<sem::Link::Person> raw) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Link::Data> data) {
-    visitVariants(res, sem::Link::getLinkKind(data), data);
+    auto    kind      = sem::Link::getLinkKind(data);
+    QString fieldName = to_string(kind);
+    _this()->visitField(res, "kind", kind);
+    data.visit([&, this](const auto& it) {
+        _this()->visitField(res, fieldName.toLatin1(), it);
+    });
 }
 
 template <typename V, typename R>
@@ -199,7 +214,12 @@ void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Note> state) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::LogEntry> entry) {
-    visitVariants(res, sem::SubtreeLog::getLogKind(entry), entry);
+    auto    kind      = sem::SubtreeLog::getLogKind(entry);
+    QString fieldName = to_string(kind);
+    _this()->visitField(res, "kind", kind);
+    entry.visit([&, this](const auto& it) {
+        _this()->visitField(res, fieldName.toLatin1(), it);
+    });
 }
 
 template <typename V, typename R>
@@ -216,7 +236,12 @@ void Exporter<V, R>::visit(R& res, CR<sem::Include::OrgDocument> p) {}
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Include::Data> prop) {
-    visitVariants(res, sem::Include::getIncludeKind(prop), prop);
+    auto    kind      = sem::Include::getIncludeKind(prop);
+    QString fieldName = to_string(kind);
+    _this()->visitField(res, "kind", kind);
+    prop.visit([&, this](const auto& it) {
+        _this()->visitField(res, fieldName.toLatin1(), it);
+    });
 }
 
 template <typename V, typename R>

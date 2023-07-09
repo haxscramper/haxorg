@@ -1,5 +1,13 @@
 #include "SemOrg.hpp"
 
+void sem::SubtreeLog::setDescription(SemIdT<StmtList> desc) {
+    log.visit(overloaded{
+        [](Clock&) {},
+        [&](auto& value) { value.desc = desc; },
+    });
+}
+
+
 template <typename T>
 sem::SemIdT<T> sem::SemId::as() const {
     SemIdT<T> result = SemIdT<T>(*this);
@@ -94,3 +102,60 @@ SUB_VARIANTS_UNION_DEFINE(
     Blocker,
     Unnumbered,
     Created);
+
+SUB_VARIANTS_UNION_DEFINE(
+    Kind,
+    Data,
+    sem::Link,
+    data,
+    getLinkKind,
+    Raw,
+    Footnote,
+    Id,
+    Person,
+    File);
+
+SUB_VARIANTS_UNION_DEFINE(
+    Kind,
+    Data,
+    sem::Include,
+    data,
+    getIncludeKind,
+    Example,
+    Export,
+    Src,
+    OrgDocument);
+
+SUB_VARIANTS_UNION_DEFINE(
+    Kind,
+    Data,
+    sem::Code::Switch,
+    data,
+    getKind,
+    LineStart,
+    CalloutFormat,
+    RemoveCallout,
+    EmphasizeLine,
+    Dedent);
+
+SUB_VARIANTS_UNION_DEFINE(
+    TimeKind,
+    TimeVariant,
+    sem::Time,
+    time,
+    getTimeKind,
+    Static,
+    Dynamic);
+
+
+SUB_VARIANTS_UNION_DEFINE(
+    Kind,
+    LogEntry,
+    sem::SubtreeLog,
+    log,
+    getLogKind,
+    Note,
+    Refile,
+    Clock,
+    State,
+    Tag);

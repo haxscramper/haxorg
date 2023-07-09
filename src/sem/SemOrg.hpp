@@ -562,7 +562,7 @@ struct Code : public Block {
             int value;
         };
 
-        SUB_VARIANTS(
+        SUB_VARIANTS_UNION_DECLARE(
             Kind,
             Data,
             data,
@@ -672,7 +672,7 @@ struct Time : public Org {
         Str expr;
     };
 
-    SUB_VARIANTS(
+    SUB_VARIANTS_UNION_DECLARE(
         TimeKind,
         TimeVariant,
         time,
@@ -686,7 +686,7 @@ struct Time : public Org {
         ((TimeVariant), time, Time, Static{}),
         ((bool), isActive, IsActive, false));
 
-    bool isStatic() const { return std::holds_alternative<Static>(time); }
+    bool isStatic() const { return getTimeKind() == TimeKind::Static; }
 };
 
 struct Symbol : public Org {
@@ -766,16 +766,9 @@ struct SubtreeLog : public Org {
         bool            added = false;
     };
 
-    void setDescription(SemIdT<StmtList> desc) {
-        std::visit(
-            overloaded{
-                [](Clock&) {},
-                [&](auto& value) { value.desc = desc; },
-            },
-            log);
-    }
+    void setDescription(SemIdT<StmtList> desc);
 
-    SUB_VARIANTS(
+    SUB_VARIANTS_UNION_DECLARE(
         Kind,
         LogEntry,
         log,
@@ -1171,7 +1164,7 @@ struct Link : public Org {
         Str file;
     };
 
-    SUB_VARIANTS(
+    SUB_VARIANTS_UNION_DECLARE(
         Kind,
         Data,
         data,
@@ -1231,7 +1224,7 @@ struct Include : public Org {
     struct Src {};
     struct OrgDocument {};
 
-    SUB_VARIANTS(
+    SUB_VARIANTS_UNION_DECLARE(
         Kind,
         Data,
         data,
