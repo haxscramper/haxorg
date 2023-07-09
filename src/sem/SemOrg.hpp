@@ -78,12 +78,14 @@
 
 #define __extra_args_pass Org(args.parent, args.subnodes)
 
+extern template class UnorderedMap<Str, Str>;
 
 namespace sem {
 
 struct TreeId {
     Str id;
 };
+
 
 BOOST_DESCRIBE_STRUCT(TreeId, (), (id));
 
@@ -900,7 +902,7 @@ struct Subtree : public Org {
         InheritanceMode inheritanceMode = InheritanceMode::ThisAndSub;
 
         //! [declare variant field for subtree properties]
-        SUB_VARIANTS(
+        SUB_VARIANTS_UNION(
             Kind,    // Name of the property kind discriminant enum
             Data,    // Type of the value used to hold all the property
                      // variants

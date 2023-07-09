@@ -194,13 +194,13 @@ Vec<Subtree::Period> Subtree::getTimePeriods(IntSet<Period::Kind> kinds) {
     }
 
     for (const auto& prop : properties) {
-        std::visit(
-            overloaded{
-                [&](Property::Created const& cr) {
-                    res.push_back(Period(cr.time, Period::Kind::Created));
-                },
-                [](auto const&) {}},
-            prop.data);
+
+        prop.data.visit(overloaded{
+            [&](Property::Created const& cr) {
+                res.push_back(Period(cr.time, Period::Kind::Created));
+            },
+            [](auto const&) {},
+        });
     }
 
 

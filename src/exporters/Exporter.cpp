@@ -323,7 +323,12 @@ void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property> prop) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Data> prop) {
-    visitVariants(res, sem::Subtree::Property::getKind(prop), prop);
+    auto    kind      = sem::Subtree::Property::getKind(prop);
+    QString fieldName = to_string(kind);
+    _this()->visitField(res, "kind", kind);
+    prop.visit([&, this](const auto& it) {
+        _this()->visitField(res, fieldName.toLatin1(), it);
+    });
 }
 
 template <typename V, typename R>

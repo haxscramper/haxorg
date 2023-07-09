@@ -19,3 +19,8 @@ sem::SemIdT<T> sem::SemId::as() const {
 
 EACH_SEM_ORG_KIND(forward_declare)
 #undef forward_declare
+
+template class std::
+    variant<sem::SemIdT<sem::Time>, sem::SemIdT<sem::TimeRange>>;
+
+template class UnorderedMap<Str, Str>;
