@@ -31,7 +31,7 @@ const char* OrgParser::Errors::UnexpectedToken::what() const noexcept {
     return strdup(
         "Expected $#, but got $# at $# ($#)"
         % to_string_vec(
-            std::visit(
+            swl::visit(
                 overloaded{
                     [](CR<TokenWithValue> it) {
                         return "$# ('$#')"

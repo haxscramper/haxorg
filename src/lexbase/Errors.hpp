@@ -19,7 +19,7 @@ inline QTextStream& operator<<(QTextStream& os, LineCol const& value) {
 struct ParseError : public std::runtime_error {
     /// \brief Line and column of the error location or absolute unresolved
     /// offset
-    std::variant<LineCol, int> loc;
+    swl::variant<LineCol, int> loc;
 
     explicit ParseError(const QString& message, LineCol _loc = LineCol{})
         : std::runtime_error(message.toStdString()), loc(_loc) {}

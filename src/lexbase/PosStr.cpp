@@ -181,11 +181,11 @@ QString PosStr::getAhead(Slice<int> slice) const {
 }
 
 void PosStr::skipAny(CR<PosStr::CheckableSkip> expected, int offset) {
-    std::visit([&](auto const& it) { return skip(it, offset); }, expected);
+    swl::visit([&](auto const& it) { return skip(it, offset); }, expected);
 }
 
 bool PosStr::atAny(CR<PosStr::CheckableSkip> expected, int offset) const {
-    return std::visit(
+    return swl::visit(
         [&](auto const& it) { return at(it, offset); }, expected);
 }
 

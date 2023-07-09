@@ -116,7 +116,7 @@ struct SemIdT;
 
 #define __id(I) , SemIdT<I>
 /// \brief Global variant of all sem node derivations
-using OrgVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
+using OrgVariant = swl::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 #undef __id
 
 
@@ -214,7 +214,7 @@ struct SemId {
 
     /// \brief Convert the node to corresponding variant type.
     ///
-    /// Intented to be used with custom `std::visit` solutions instead of
+    /// Intented to be used with custom `swl::visit` solutions instead of
     /// relying on the more heavyweight CRTP visitator.
     OrgVariant asVariant();
 
@@ -684,7 +684,7 @@ struct Time : public Org {
         ((TimeVariant), time, Time, Static{}),
         ((bool), isActive, IsActive, false));
 
-    bool isStatic() const { return std::holds_alternative<Static>(time); }
+    bool isStatic() const { return swl::holds_alternative<Static>(time); }
 };
 
 struct Symbol : public Org {
@@ -765,7 +765,7 @@ struct SubtreeLog : public Org {
     };
 
     void setDescription(SemIdT<StmtList> desc) {
-        std::visit(
+        swl::visit(
             overloaded{
                 [](Clock&) {},
                 [&](auto& value) { value.desc = desc; },
@@ -815,9 +815,9 @@ struct Subtree : public Org {
             Repeated,
         };
 
-        SemIdT<Time>& getTime() { return std::get<SemIdT<Time>>(period); }
+        SemIdT<Time>& getTime() { return swl::get<SemIdT<Time>>(period); }
         SemIdT<TimeRange>& getTimeRange() {
-            return std::get<SemIdT<TimeRange>>(period);
+            return swl::get<SemIdT<TimeRange>>(period);
         }
 
         Variant<SemIdT<Time>, SemIdT<TimeRange>> period;
@@ -1390,7 +1390,7 @@ struct KindStore {
 
 #define __id(I) , sem::KindStore<sem::I>*
 /// \brief Global variant of all sem node derivations
-using OrgKindStorePtrVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
+using OrgKindStorePtrVariant = swl::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 #undef __id
 
 

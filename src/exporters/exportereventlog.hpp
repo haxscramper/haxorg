@@ -70,7 +70,7 @@ struct ExporterEventLog : public Exporter<ExporterEventLog, int> {
         Data data;
         Event(Data const& data) : data(data) {}
         sem::SemIdT<sem::Time> getTime() const {
-            return std::visit(
+            return swl::visit(
                 [](auto const& it) { return it.time; }, data);
         }
     };

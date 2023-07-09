@@ -668,12 +668,12 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     res->add(command("begin", {"document"}));
     if (value->options) {
         auto exp = value->options->tocExport;
-        if (std::holds_alternative<bool>(exp)) {
-            if (std::get<bool>(exp)) {
+        if (swl::holds_alternative<bool>(exp)) {
+            if (swl::get<bool>(exp)) {
                 res->add(command("tableofcontents"));
             }
         } else {
-            int level = std::get<int>(exp);
+            int level = swl::get<int>(exp);
             res->add(command("tableofcontents"));
             res->add(
                 command("setcounter", {"tocdepth", to_string(level)}));

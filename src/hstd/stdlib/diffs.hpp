@@ -640,13 +640,13 @@ struct FormattedDiff {
 
     Variant<StackedDiff, UnifiedDiff> content;
 
-    StackedDiff&       stacked() { return std::get<StackedDiff>(content); }
-    UnifiedDiff&       unified() { return std::get<UnifiedDiff>(content); }
+    StackedDiff&       stacked() { return swl::get<StackedDiff>(content); }
+    UnifiedDiff&       unified() { return swl::get<UnifiedDiff>(content); }
     StackedDiff const& stacked() const {
-        return std::get<StackedDiff>(content);
+        return swl::get<StackedDiff>(content);
     }
     UnifiedDiff const& unified() const {
-        return std::get<UnifiedDiff>(content);
+        return swl::get<UnifiedDiff>(content);
     }
 
     int maxLineNumber() const {
@@ -673,7 +673,7 @@ struct FormattedDiff {
     }
 
     bool isUnified() const {
-        return std::holds_alternative<UnifiedDiff>(content);
+        return swl::holds_alternative<UnifiedDiff>(content);
     }
 
     generator<DiffLine> stackedLines() {

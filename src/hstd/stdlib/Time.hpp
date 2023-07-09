@@ -9,9 +9,9 @@ struct UserTime {
     DECL_DESCRIBED_ENUM(Kind, DateTime, Date, Time);
 
     Kind getKind() const {
-        if (std::holds_alternative<QDateTime>(time)) {
+        if (swl::holds_alternative<QDateTime>(time)) {
             return Kind::DateTime;
-        } else if (std::holds_alternative<QTime>(time)) {
+        } else if (swl::holds_alternative<QTime>(time)) {
             return Kind::Time;
         } else {
             return Kind::Date;
@@ -33,22 +33,22 @@ struct UserTime {
     }
 
     bool hasDate() const {
-        return std::holds_alternative<QDate>(time)
-            || std::holds_alternative<QDateTime>(time);
+        return swl::holds_alternative<QDate>(time)
+            || swl::holds_alternative<QDateTime>(time);
     }
 
     bool hasTime() const {
-        return std::holds_alternative<QTime>(time)
-            || std::holds_alternative<QDateTime>(time);
+        return swl::holds_alternative<QTime>(time)
+            || swl::holds_alternative<QDateTime>(time);
     }
 
     QDateTime const& getDateTimeVar() const {
-        return std::get<QDateTime>(time);
+        return swl::get<QDateTime>(time);
     }
 
-    QDate const& getDateVar() const { return std::get<QDate>(time); }
+    QDate const& getDateVar() const { return swl::get<QDate>(time); }
 
-    QTime const& getTimeVar() const { return std::get<QTime>(time); }
+    QTime const& getTimeVar() const { return swl::get<QTime>(time); }
 
     QDateTime min() const {
         if (hasDate() && hasTime()) {

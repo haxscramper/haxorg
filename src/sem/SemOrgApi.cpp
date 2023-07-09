@@ -161,7 +161,7 @@ void eachSubnodeRecImpl(
     CR<SemId::SubnodeVisitor> visitor,
     SemId                     org,
     bool                      originalBase) {
-    std::visit(
+    swl::visit(
         [&](const auto& node) {
             recVisitOrgNodesImpl(visitor, node, originalBase);
         },
@@ -194,7 +194,7 @@ Vec<Subtree::Period> Subtree::getTimePeriods(IntSet<Period::Kind> kinds) {
     }
 
     for (const auto& prop : properties) {
-        std::visit(
+        swl::visit(
             overloaded{
                 [&](Property::Created const& cr) {
                     res.push_back(Period(cr.time, Period::Kind::Created));

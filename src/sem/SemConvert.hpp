@@ -53,21 +53,21 @@ struct OrgConverter : public OperationsTracer {
         ConvertError() : err(Errors::None()) {}
         explicit ConvertError(CR<Error> err) : err(err) {}
         const char* what() const noexcept override {
-            return std::visit(
+            return swl::visit(
                 [](auto const& in) { return in.what(); }, err);
         }
         void setLoc(CR<LineCol> loc) {
-            std::visit([&loc](auto& in) { in.loc = loc; }, err);
+            swl::visit([&loc](auto& in) { in.loc = loc; }, err);
         }
 
         void setAdapter(CR<OrgAdapter> adapter) {
-            std::visit(
+            swl::visit(
                 [&adapter](auto& in) { in.adapter = adapter; }, err);
         }
 
 
         Opt<OrgAdapter> getAdapter() const {
-            return std::visit(
+            return swl::visit(
                 [](auto& in) -> Opt<OrgAdapter> { return in.adapter; },
                 err);
         }

@@ -804,7 +804,7 @@ generator<Event> layout::formatEvents(Layout::Ptr const& lyt) {
 }
 
 int Block::size() const {
-    return std::visit(
+    return swl::visit(
         overloaded{
             [](CR<Wrap> w) { return w.wrapElements.size(); },
             [](CR<Stack> s) { return s.elements.size(); },
@@ -817,7 +817,7 @@ int Block::size() const {
 
 void Block::add(CR<Ptr> other) {
     Q_CHECK_PTR(other);
-    return std::visit(
+    return swl::visit(
         overloaded{
             [&](Line& w) { w.elements.push_back(other); },
             [&](Stack& w) { w.elements.push_back(other); },
@@ -833,7 +833,7 @@ void Block::add(CVec<Ptr> others) {
         Q_CHECK_PTR(p);
     }
 
-    return std::visit(
+    return swl::visit(
         overloaded{
             [&](Line& w) { w.elements.append(others); },
             [&](Stack& w) { w.elements.append(others); },

@@ -69,15 +69,15 @@ struct Token {
     }
 
     /// \brief Check if token has any offset information
-    bool hasOffset() const { return std::holds_alternative<int>(text); }
+    bool hasOffset() const { return swl::holds_alternative<int>(text); }
     /// \brief Check if token text is a view over real data
     bool hasData() const {
-        return std::holds_alternative<QStringView>(text);
+        return swl::holds_alternative<QStringView>(text);
     }
-    int                getOffset() const { return std::get<int>(text); }
-    QStringView&       getText() { return std::get<QStringView>(text); }
+    int                getOffset() const { return swl::get<int>(text); }
+    QStringView&       getText() { return swl::get<QStringView>(text); }
     QStringView const& getText() const {
-        return std::get<QStringView>(text);
+        return swl::get<QStringView>(text);
     }
     /// Return character count for the token. If it does not contain any
     /// data return 0.

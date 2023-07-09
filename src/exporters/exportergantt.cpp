@@ -25,14 +25,14 @@ void ExporterGantt::pushVisit(int&, sem::SemIdT<sem::Subtree> tree) {
              IntSet<Period::Kind>(Period::Kind::Titled))) {
         UserTime start, end;
         if (period.period.index() == 0) {
-            UserTime const& time = std::get<0>(period.period)
+            UserTime const& time = swl::get<0>(period.period)
                                        ->getStatic()
                                        .time;
             start = time;
             end   = time;
         } else {
-            start = std::get<1>(period.period)->from->getStatic().time;
-            end   = std::get<1>(period.period)->to->getStatic().time;
+            start = swl::get<1>(period.period)->from->getStatic().time;
+            end   = swl::get<1>(period.period)->to->getStatic().time;
         }
 
         stack.back().event.name  = ExporterUltraplain::toStr(tree->title);

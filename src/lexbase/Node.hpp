@@ -58,7 +58,7 @@ QTextStream& operator<<(QTextStream& os, NodeId<N, K> const& value) {
 template <typename N, typename K>
 struct Node {
     N                                             kind;
-    std::variant<int, TokenId<K>, std::monostate> value;
+    swl::variant<int, TokenId<K>, std::monostate> value;
 
     Node(N _kind, CR<TokenId<K>> token) : kind(_kind), value(token) {}
     Node(N _kind, int extent = 0) : kind(_kind), value(extent) {}
@@ -69,15 +69,15 @@ struct Node {
     }
 
     bool isMono() const {
-        return std::holds_alternative<std::monostate>(value);
+        return swl::holds_alternative<std::monostate>(value);
     }
 
     bool isTerminal() const {
-        return std::holds_alternative<TokenId<K>>(value);
+        return swl::holds_alternative<TokenId<K>>(value);
     }
 
     bool isNonTerminal() const {
-        return std::holds_alternative<int>(value);
+        return swl::holds_alternative<int>(value);
     }
 
     void extend(int extent) {
@@ -93,7 +93,7 @@ struct Node {
         if (isTerminal() || isMono()) {
             return 1;
         } else {
-            return std::get<int>(value) + 1;
+            return swl::get<int>(value) + 1;
         }
     }
 
@@ -101,11 +101,11 @@ struct Node {
         if (isTerminal() || isMono()) {
             return 0;
         } else {
-            return std::get<int>(value);
+            return swl::get<int>(value);
         }
     }
 
-    TokenId<K> getToken() const { return std::get<TokenId<K>>(value); }
+    TokenId<K> getToken() const { return swl::get<TokenId<K>>(value); }
 
     Slice<NodeId<N, K>> nestedNodes(NodeId<N, K> selfId) const {
         assert(isNonTerminal());
@@ -362,15 +362,15 @@ struct NodeTree {
     Variant<TreeToken, Vec<NodeTree<N, K>>> content;
 
     inline bool isToken() const {
-        return std::holds_alternative<TreeToken>(content);
+        return swl::holds_alternative<TreeToken>(content);
     }
 
     inline CR<TreeToken> getToken() const {
-        return std::get<TreeToken>(content);
+        return swl::get<TreeToken>(content);
     }
 
     inline CR<Vec<NodeTree<N, K>>> getSubnodes() const {
-        return std::get<Vec<NodeTree<N, K>>>(content);
+        return swl::get<Vec<NodeTree<N, K>>>(content);
     }
 
     inline int maxTokenIndex() const {

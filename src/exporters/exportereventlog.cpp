@@ -25,20 +25,20 @@ void ExporterEventLog::visitSubtree(int& _, In<Subtree> tree) {
         switch (entry->getLogKind()) {
             case Log::Kind::Clock: {
                 auto range = entry->getClock().range;
-                if (std::holds_alternative<SemIdT<Time>>(range)) {
+                if (swl::holds_alternative<SemIdT<Time>>(range)) {
                     log(Event::ClockStarted{
-                        {.time     = std::get<SemIdT<Time>>(range),
+                        {.time     = swl::get<SemIdT<Time>>(range),
                          .original = entry},
                     });
                 } else {
                     log(Event::ClockStarted{
-                        {.time = std::get<SemIdT<TimeRange>>(range)->from,
+                        {.time = swl::get<SemIdT<TimeRange>>(range)->from,
                          .original = entry},
                     });
                     log(Event::ClockCompleted{
-                        {.time = std::get<SemIdT<TimeRange>>(range)->from,
+                        {.time = swl::get<SemIdT<TimeRange>>(range)->from,
                          .original = entry},
-                        .at = std::get<SemIdT<TimeRange>>(range)->to,
+                        .at = swl::get<SemIdT<TimeRange>>(range)->to,
                     });
                 }
                 break;

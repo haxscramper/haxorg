@@ -104,7 +104,7 @@ struct AstRange {
     }
 
     // TODO REFACTOR use `std::variant` with different slice overloads and
-    // `std::visit` + `overload` pattern to get the values instead of
+    // `swl::visit` + `overload` pattern to get the values instead of
     // manually implementing switch over kind.
 
     inline AstRange() = default;

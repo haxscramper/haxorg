@@ -307,7 +307,7 @@ TEST(AstDiff, PointerBasedNodes) {
 
 TEST(AstDiff, PointerBasedNodesWithVariants) {
     struct RealNode {
-        std::variant<int, double, QString> value;
+        swl::variant<int, double, QString> value;
         Vec<RealNode>                      sub;
     };
 

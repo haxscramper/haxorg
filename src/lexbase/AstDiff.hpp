@@ -21,12 +21,12 @@
 
 namespace diff {
 template <int Idx, typename... Args>
-void writeIfIndex(QTextStream& os, std::variant<Args...> const& var) {
+void writeIfIndex(QTextStream& os, Variant<Args...> const& var) {
     if constexpr (Idx == 0) {
-        os << Idx << " " << std::get<Idx>(var);
+        os << Idx << " " << swl::get<Idx>(var);
     } else {
         if (var.index() == Idx) {
-            os << Idx << " " << std::get<Idx>(var);
+            os << Idx << " " << swl::get<Idx>(var);
         } else {
             writeIfIndex<Idx - 1>(os, var);
         }

@@ -44,15 +44,15 @@ const char* OrgTokenizer::Errors::UnknownConstruct::what() const noexcept {
 }
 
 QStringView OrgTokenizer::TokenizerError::getView() const {
-    return std::visit([](auto const& in) { return in.view; }, err);
+    return swl::visit([](auto const& in) { return in.view; }, err);
 }
 
 int OrgTokenizer::TokenizerError::getPos() const {
-    return std::visit([](auto const& in) { return in.pos; }, err);
+    return swl::visit([](auto const& in) { return in.pos; }, err);
 }
 
 void OrgTokenizer::TokenizerError::setLoc(CR<LineCol> loc) {
-    std::visit(
+    swl::visit(
         [&loc](auto& in) {
             in.loc = loc;
             return 0;
@@ -61,9 +61,9 @@ void OrgTokenizer::TokenizerError::setLoc(CR<LineCol> loc) {
 }
 
 Opt<LineCol> OrgTokenizer::TokenizerError::getLoc() const {
-    return std::visit([](auto const& in) { return in.loc; }, err);
+    return swl::visit([](auto const& in) { return in.loc; }, err);
 }
 
 const char* OrgTokenizer::TokenizerError::what() const noexcept {
-    return std::visit([](auto const& in) { return in.what(); }, err);
+    return swl::visit([](auto const& in) { return in.what(); }, err);
 }

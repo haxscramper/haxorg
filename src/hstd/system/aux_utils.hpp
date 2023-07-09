@@ -19,7 +19,7 @@ struct finally {
     ~finally() { action(); }
 };
 
-/// \brief Overloading support for `std::visit`
+/// \brief Overloading support for `swl::visit`
 template <class... Ts>
 struct overloaded : Ts... {
     using Ts::operator()...;
@@ -105,8 +105,8 @@ std::ptrdiff_t pointer_distance(T const* first, T const* last) {
 
 /// \internal Generate getter methods for SUB_VARIANTS
 #define __SUB_VARIANT_GETTER(fieldName, Type)                             \
-    Type&       get##Type() { return std::get<Type>(fieldName); }         \
-    Type const& get##Type() const { return std::get<Type>(fieldName); }
+    Type&       get##Type() { return swl::get<Type>(fieldName); }         \
+    Type const& get##Type() const { return swl::get<Type>(fieldName); }
 
 /// \internal Generate kind getter lambda for SUB_VARIANTS
 #define __SUB_VARIANT_KIND_LAMBDA(EnumName, Type)                         \
@@ -142,11 +142,11 @@ std::ptrdiff_t pointer_distance(T const* first, T const* last) {
 #define SUB_VARIANTS(                                                     \
     EnumName, VariantName, fieldName, kindGetterName, ...)                \
     DECL_DESCRIBED_ENUM(EnumName, __VA_ARGS__)                            \
-    using VariantName = std::variant<__VA_ARGS__>;                        \
+    using VariantName = swl::variant<__VA_ARGS__>;                        \
     FOR_EACH_CALL_WITH_PASS(                                              \
         __SUB_VARIANT_GETTER, (fieldName), __VA_ARGS__)                   \
     static EnumName kindGetterName(CR<VariantName> __input) {             \
-        return std::visit(                                                \
+        return swl::visit(                                                \
             overloaded{FOR_EACH_CALL_WITH_PASS(                           \
                 __SUB_VARIANT_KIND_LAMBDA, (EnumName), __VA_ARGS__)},     \
             __input);                                                     \

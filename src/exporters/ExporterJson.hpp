@@ -34,7 +34,7 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
 
     template <typename... Args>
     json newRes(CR<Variant<Args...>> var) {
-        return std::visit(
+        return swl::visit(
             [this](auto const& it) -> json { return visit(it); }, var);
     }
 

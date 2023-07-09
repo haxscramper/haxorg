@@ -72,11 +72,11 @@ struct OrgParser : public OperationsTracer {
         ParserError() : err(Errors::None()) {}
         explicit ParserError(CR<Error> err) : err(err) {}
         const char* what() const noexcept override {
-            return std::visit(
+            return swl::visit(
                 [](auto const& in) { return in.what(); }, err);
         }
         void setLoc(CR<LineCol> loc) {
-            std::visit([&loc](auto& in) { in.loc = loc; }, err);
+            swl::visit([&loc](auto& in) { in.loc = loc; }, err);
         }
     };
 

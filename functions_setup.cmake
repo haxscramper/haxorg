@@ -86,6 +86,7 @@ function(set_common_files TARGET)
   add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
   add_target_property("${TARGET}" SOURCES "${HEADER_FILES}")
   add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/src")
+  add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/deps/swl-variant/include")
   add_target_property("${TARGET}" LINK_LIBRARIES dw)
   add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
 

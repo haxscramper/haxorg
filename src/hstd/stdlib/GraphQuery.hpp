@@ -7,6 +7,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/Variant.hpp>
 
 template <typename Graph, typename Value>
 struct QuerySystem {
@@ -38,13 +39,13 @@ struct QuerySystem {
             VertDesc vertex;
         };
 
-        std::variant<None, QrValue, Vertex> data;
+        swl::variant<None, QrValue, Vertex> data;
 
         VertDesc getVertex() const {
-            return std::get<Vertex>(data).vertex;
+            return swl::get<Vertex>(data).vertex;
         }
 
-        Value getValue() const { return std::get<QrValue>(data).value; }
+        Value getValue() const { return swl::get<QrValue>(data).value; }
 
         Kind getKind() const {
             switch (data.index()) {
@@ -90,11 +91,11 @@ struct QuerySystem {
         struct False {};
 
       public:
-        std::variant<Pull, Push, Eval, Done, False> data;
+        swl::variant<Pull, Push, Eval, Done, False> data;
 
         Kind getKind() const { return static_cast<Kind>(data.index()); }
 
-        Eval const& getEval() { return std::get<Eval>(data); }
+        Eval const& getEval() { return swl::get<Eval>(data); }
 
         PipeRes(decltype(data) const& value) : data(value) {}
         PipeRes(Gremlin const& gremlin) : data(Eval{gremlin}) {}
@@ -163,7 +164,7 @@ struct QuerySystem {
             }
         };
 
-        std::variant<None, IdSet, Predicate> data;
+        swl::variant<None, IdSet, Predicate> data;
 
         Kind getKind() const { return static_cast<Kind>(data.index()); }
 
@@ -171,7 +172,7 @@ struct QuerySystem {
         VertexFilter() {}
 
         PipeRes run(Opt<Gremlin> const& gremlin, Graph const& graph) {
-            return std::visit(
+            return swl::visit(
                 [&](auto& filter) { return filter.run(gremlin, graph); },
                 data);
         }
@@ -378,7 +379,7 @@ struct QuerySystem {
         };
 
 
-        std::variant<
+        swl::variant<
             Property,
             Unique,
             OutInNodes,
@@ -395,7 +396,7 @@ struct QuerySystem {
 
         Kind    getKind() const { return static_cast<Kind>(data.index()); }
         PipeRes run(Opt<Gremlin> gremlin, Graph const& graph) {
-            return std::visit(
+            return swl::visit(
                 [&](auto& pipe) { return pipe.run(gremlin, graph); },
                 data);
         }
@@ -467,7 +468,7 @@ struct QuerySystem {
 
                 std::optional<Gremlin> arg;
                 if (res.getKind() == PipeRes::Kind::Eval) {
-                    arg = std::get<typename PipeRes::Eval>(res.data)
+                    arg = swl::get<typename PipeRes::Eval>(res.data)
                               .gremlin;
                 }
 

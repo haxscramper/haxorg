@@ -245,17 +245,17 @@ class Graphviz {
             void push_back(CR<Record> rec) { getNested().push_back(rec); }
 
             bool isFinal() const {
-                return std::holds_alternative<Str>(content);
+                return swl::holds_alternative<Str>(content);
             }
 
             void set(QString const& columnKey, CR<Record> value);
 
             bool       isRecord() const { return !isFinal(); }
-            Str&       getLabel() { return std::get<Str>(content); }
-            Str const& getLabel() const { return std::get<Str>(content); }
-            Vec<Record>&       getNested() { return std::get<1>(content); }
+            Str&       getLabel() { return swl::get<Str>(content); }
+            Str const& getLabel() const { return swl::get<Str>(content); }
+            Vec<Record>&       getNested() { return swl::get<1>(content); }
             Vec<Record> const& getNested() const {
-                return std::get<1>(content);
+                return swl::get<1>(content);
             }
 
             Opt<Str>                  tag;

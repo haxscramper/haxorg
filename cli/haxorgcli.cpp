@@ -656,7 +656,7 @@ bool HaxorgCli::runTokenizer(bool catchExceptions) {
             int          pos  = err.getPos();
             using E           = OrgTokenizer::Errors;
 
-            auto msg = QString(std::visit(
+            auto msg = QString(swl::visit(
                 overloaded{
                     [](E::UnexpectedChar const&) -> QString {
                         return "UnexpectedChar"_qs;
@@ -972,7 +972,7 @@ void HaxorgCli::exec() {
         sem::GlobalStore::getInstance().eachStore(
             [&](sem::SemId::StoreIndexT     selfIndex,
                 sem::OrgKindStorePtrVariant store) {
-                std::visit(
+                swl::visit(
                     [&](auto it) {
                         counts.push_back({
                             std::remove_reference_t<

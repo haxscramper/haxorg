@@ -174,7 +174,7 @@ void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::State> state) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Clock> state) {
-    std::visit(
+    swl::visit(
         [&, this](const auto& it) {
             _this()->visitField(res, "range", it);
         },
@@ -352,7 +352,7 @@ template <typename T, typename Kind>
 void Exporter<V, R>::visitVariants(R& res, Kind kind, CR<T> var) {
     QString fieldName = to_string(kind);
     _this()->visitField(res, "kind", kind);
-    std::visit(
+    swl::visit(
         [&, this](const auto& it) {
             _this()->visitField(res, fieldName.toLatin1(), it);
         },
