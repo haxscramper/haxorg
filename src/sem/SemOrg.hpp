@@ -902,7 +902,7 @@ struct Subtree : public Org {
         InheritanceMode inheritanceMode = InheritanceMode::ThisAndSub;
 
         //! [declare variant field for subtree properties]
-        SUB_VARIANTS_UNION(
+        SUB_VARIANTS_UNION_DECLARE(
             Kind,    // Name of the property kind discriminant enum
             Data,    // Type of the value used to hold all the property
                      // variants

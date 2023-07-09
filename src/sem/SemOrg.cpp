@@ -24,3 +24,73 @@ template class std::
     variant<sem::SemIdT<sem::Time>, sem::SemIdT<sem::TimeRange>>;
 
 template class UnorderedMap<Str, Str>;
+
+#define __SUB_VARIANT_UNION_DEFINE_FIELD_COPY(EnumName, Type)             \
+    case __PACK_IDX0(EnumName)::Type:                                     \
+        this->Type##_field = other.Type##_field;                          \
+        break;
+
+#define __SUB_VARIANT_UNION_DEFINE_FIELD_DESTROY(EnumName, Type)          \
+    case __PACK_IDX0(EnumName)::Type:                                     \
+        Type##_field.~Type();                                             \
+        break;
+
+#define SUB_VARIANTS_UNION_DEFINE(                                        \
+    EnumName, VariantName, VariantParent, fieldName, kindGetterName, ...) \
+                                                                          \
+    VariantParent::VariantName::VariantName()                             \
+        : kindValue(VariantParent::EnumName::__PACK_IDX0(__VA_ARGS__))    \
+        , CONCAT(__PACK_IDX0(__VA_ARGS__), _field)(                       \
+              __PACK_IDX0(__VA_ARGS__)()) {}                              \
+                                                                          \
+    VariantParent::VariantName::VariantName(                              \
+        VariantParent::VariantName const& other)                          \
+        : kindValue(other.kindValue) {                                    \
+        switch (kindValue) {                                              \
+            FOR_EACH_CALL_WITH_PASS(                                      \
+                __SUB_VARIANT_UNION_DEFINE_FIELD_COPY,                    \
+                (VariantParent::EnumName),                                \
+                __VA_ARGS__)                                              \
+        }                                                                 \
+    }                                                                     \
+                                                                          \
+    VariantParent::VariantName& VariantParent::VariantName::operator=(    \
+        VariantParent::VariantName const& other) {                        \
+        this->kindValue = other.kindValue;                                \
+        switch (kindValue) {                                              \
+            FOR_EACH_CALL_WITH_PASS(                                      \
+                __SUB_VARIANT_UNION_DEFINE_FIELD_COPY,                    \
+                (VariantParent::EnumName),                                \
+                __VA_ARGS__)                                              \
+        }                                                                 \
+    }                                                                     \
+                                                                          \
+    VariantParent::VariantName::~VariantName() {                          \
+        switch (kindValue) {                                              \
+            FOR_EACH_CALL_WITH_PASS(                                      \
+                __SUB_VARIANT_UNION_DEFINE_FIELD_DESTROY,                 \
+                (VariantParent::EnumName),                                \
+                __VA_ARGS__)                                              \
+        }                                                                 \
+    }
+
+
+SUB_VARIANTS_UNION_DEFINE(
+    Kind,
+    Data,
+    sem::Subtree::Property,
+    data,
+    getKind,
+    Ordered,
+    ExportOptions,
+    Nonblocking,
+    Origin,
+    ExportLatexHeader,
+    ExportLatexCompiler,
+    ExportLatexClass,
+    Trigger,
+    Visibility,
+    Effort,
+    Blocker,
+    Unnumbered,
+    Created);

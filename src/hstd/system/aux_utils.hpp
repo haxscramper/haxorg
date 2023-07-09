@@ -192,22 +192,12 @@ std::ptrdiff_t pointer_distance(T const* first, T const* last) {
         return cb(                                                        \
             Type##_field, std::forward<Args>(__PACK_IDX1(EnumName))...);
 
-#define __SUB_VARIANT_UNION_DEFINE_FIELD_COPY(EnumName, Type)             \
-    case __PACK_IDX0(EnumName)::Type:                                     \
-        this->Type##_field = other.Type##_field;                          \
-        break;
-
-#define __SUB_VARIANT_UNION_DEFINE_FIELD_DESTROY(EnumName, Type)          \
-    case __PACK_IDX0(EnumName)::Type:                                     \
-        Type##_field.~Type();                                             \
-        break;
-
 
 #define __TAIL(Head, ...) __VA_ARGS__
 #define __HEAD(Head, ...) Head
 
 
-#define SUB_VARIANTS_UNION(                                               \
+#define SUB_VARIANTS_UNION_DECLARE(                                       \
     EnumName, VariantName, fieldName, kindGetterName, ...)                \
                                                                           \
     DECL_DESCRIBED_ENUM(EnumName, __VA_ARGS__)                            \
@@ -229,40 +219,10 @@ std::ptrdiff_t pointer_distance(T const* first, T const* last) {
             (EnumName, VariantName),                                      \
             __VA_ARGS__)                                                  \
                                                                           \
-        VariantName()                                                     \
-            : kindValue(EnumName::__PACK_IDX0(__VA_ARGS__))               \
-            , CONCAT(__PACK_IDX0(__VA_ARGS__), _field)(                   \
-                  __PACK_IDX0(__VA_ARGS__)()) {}                          \
-                                                                          \
-                                                                          \
-        VariantName(VariantName const& other)                             \
-            : kindValue(other.kindValue) {                                \
-            switch (kindValue) {                                          \
-                FOR_EACH_CALL_WITH_PASS(                                  \
-                    __SUB_VARIANT_UNION_DEFINE_FIELD_COPY,                \
-                    (EnumName),                                           \
-                    __VA_ARGS__)                                          \
-            }                                                             \
-        }                                                                 \
-                                                                          \
-        VariantName& operator=(VariantName const& other) {                \
-            this->kindValue = other.kindValue;                            \
-            switch (kindValue) {                                          \
-                FOR_EACH_CALL_WITH_PASS(                                  \
-                    __SUB_VARIANT_UNION_DEFINE_FIELD_COPY,                \
-                    (EnumName),                                           \
-                    __VA_ARGS__)                                          \
-            }                                                             \
-        }                                                                 \
-                                                                          \
-        ~VariantName() {                                                  \
-            switch (kindValue) {                                          \
-                FOR_EACH_CALL_WITH_PASS(                                  \
-                    __SUB_VARIANT_UNION_DEFINE_FIELD_DESTROY,             \
-                    (EnumName),                                           \
-                    __VA_ARGS__)                                          \
-            }                                                             \
-        }                                                                 \
+        VariantName();                                                    \
+        VariantName(VariantName const& other);                            \
+        VariantName& operator=(VariantName const& other);                 \
+        ~VariantName();                                                   \
                                                                           \
         template <typename Func, typename... Args>                        \
         auto visit(Func const& cb, Args&&... args) {                      \
