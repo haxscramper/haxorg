@@ -18,7 +18,7 @@ UnorderedMap<sem::SemId, AnnotatorSpelling::Diagnostic> AnnotatorSpelling::
 
         if (SemSet{OrgSemKind::Word, OrgSemKind::BigIdent}.contains(
                 org->getKind())) {
-            auto leaf = org.as<sem::Leaf>();
+            auto leaf = org.getAs<sem::Leaf>();
             if (!checkWord(leaf->text)) {
                 // qDebug() << leaf->id << "{" + leaf->text + "}"
                 //          << "must be corrected to"

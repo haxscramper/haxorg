@@ -4,6 +4,8 @@ vars:
   REL_CONAN: "build/dependencies/conan"
   CONAN_DIR: |
     {{env "PWD"}}/build/dependencies/conan
+  LLVM_DIR: |
+    {{env "PWD"}}/toolchain/llvm
 
 tasks:
   run:
@@ -40,15 +42,16 @@ tasks:
       - genhtml -o html coverage.lcov > genhtml_output.txt
 
   conan_install:
+    vars:
+      REL_PROFILE: "{{.PWD}}/conanprofile.txt"
     cmds:
       - >
         conan
         install
         .
-        -if {{.REL_CONAN}}
+        --install-folder {{.REL_CONAN}}
         --build=missing
-        --settings compiler.version=15
-        --settings compiler=clang
+        --profile {{.REL_PROFILE}}
 
     # status:
     #   - test -e {{.CONAN_DIR}}

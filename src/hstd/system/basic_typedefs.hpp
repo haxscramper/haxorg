@@ -7,16 +7,18 @@
 template <typename... Args>
 struct arg_pack {};
 
-using i8  = std::int8_t;
-using u8  = std::uint8_t;
-using i16 = std::int16_t;
-using u16 = std::uint16_t;
-using i32 = std::int32_t;
-using u32 = std::uint32_t;
-using i64 = std::int64_t;
-using u64 = std::uint64_t;
+using i8  = int8_t;
+using u8  = unsigned char;
+using i16 = int16_t;
+using u16 = unsigned short;
+using i32 = int32_t;
+using u32 = unsigned int;
+using i64 = int64_t;
+using u64 = unsigned long long;
 // clang-format off
 
+static_assert(sizeof(u32) == 4, "Expected 4 bytes for u32");
+static_assert(sizeof(u64) == 8, "Expected 8 bytes for u64");
 
 inline i8 operator"" _i8(unsigned long long int value) {
     return static_cast<i8>(value);
