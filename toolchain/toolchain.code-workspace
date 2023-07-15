@@ -1,0 +1,45 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"C_Cpp.default.includePath": [
+			"llvm/include"
+		],
+		"search.useIgnoreFiles": false,
+		"C_Cpp.default.enableConfigurationSquiggles": false,
+		"files.associations": {
+			"*.test": "Gherkin",
+			"__bit_reference": "cpp",
+			"__hash_table": "cpp",
+			"__split_buffer": "cpp",
+			"__tree": "cpp",
+			"array": "cpp",
+			"bitset": "cpp",
+			"deque": "cpp",
+			"forward_list": "cpp",
+			"initializer_list": "cpp",
+			"list": "cpp",
+			"map": "cpp",
+			"set": "cpp",
+			"span": "cpp",
+			"string": "cpp",
+			"string_view": "cpp",
+			"unordered_map": "cpp",
+			"unordered_set": "cpp",
+			"vector": "cpp",
+			"*.inc": "cpp",
+			"format": "cpp",
+			"*.def": "cpp",
+			"any": "cpp",
+			"bit": "cpp",
+			"fstream": "cpp",
+			"functional": "cpp",
+			"future": "cpp",
+			"system_error": "cpp",
+			"tuple": "cpp"
+		}
+	}
+}

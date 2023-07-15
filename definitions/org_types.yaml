@@ -1,0 +1,7 @@
+entries:
+  - kind: TypeGroup
+    types:
+      - kind: Struct
+        name: Org
+        fields:
+          - {type: OrgAdapter, name: original}

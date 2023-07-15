@@ -9,6 +9,7 @@ set(CXX_STANDARD 23)
 project(haxorg LANGUAGES CXX)
 
 set(BASE "${CMAKE_SOURCE_DIR}")
+set(LLVM_DIR "${BASE}/toolchain/llvm")
 set(DEPS_DIR "${BASE}/build/dependencies/conan")
 set(AUTOGEN_BUILD_DIR "${BASE}/build/autogen")
 set(SCRIPT_DIR "${BASE}/src/scripts")
@@ -37,6 +38,7 @@ find_package(fmt REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(Qt6 COMPONENTS Gui Core REQUIRED)
 
+include(target_codegen.cmake)
 include(target_lib.cmake)
 include(autogen_enums.cmake)
 
