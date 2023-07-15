@@ -350,6 +350,14 @@ struct Block : public SharedPtrApi<Block> {
     static Block::Ptr choice(CR<Vec<Block::Ptr>> l = {});
     static Block::Ptr space(int count);
 
+    static Block::Ptr spatial(bool isVertical, CR<Vec<Ptr>> l = {});
+
+    static Block::Ptr join(
+        CVec<Block::Ptr> items,
+        CR<Block::Ptr>   join,
+        bool             isLine     = true,
+        bool             isTrailing = false);
+
     static Block::Ptr wrap(
         CR<Vec<Block::Ptr>> elems,
         LytStr              sep,

@@ -111,14 +111,15 @@ class Vec : public std::vector<T> {
     template <typename A, typename B>
     Span<T> at(CR<HSlice<A, B>> s, bool checkRange = true) {
         const auto [start, end] = getSpan(size(), s, checkRange);
-        return Span(this->data() + start, end - start + 1);
+        return Span<T>(this->data() + start, end - start + 1);
     }
 
     /// \brief  Access span of elements in immutable vector
     template <typename A, typename B>
-    Span<const T> at(CR<HSlice<A, B>> s, bool checkRange = true) const {
+    Span<T> at(CR<HSlice<A, B>> s, bool checkRange = true) const {
         const auto [start, end] = getSpan(size(), s, checkRange);
-        return Span(this->data() + start, end - start + 1);
+        return Span<T>(
+            const_cast<T*>(this->data() + start), end - start + 1);
     }
 
     /// \brief Get reference wrapper to a value at specified index or empty
@@ -150,7 +151,7 @@ class Vec : public std::vector<T> {
     }
 
     template <typename A, typename B>
-    Span<const T> operator[](CR<HSlice<A, B>> s) const {
+    Span<T> operator[](CR<HSlice<A, B>> s) const {
 #ifdef DEBUG
         return at(s, true);
 #else

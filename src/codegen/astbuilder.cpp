@@ -1,190 +1,108 @@
 #include "astbuilder.hpp"
 
-clang::ParmVarDecl* ASTBuilder::ParmVarDecl(const ParmVarDeclParams& p) {
-    return ParmVarDecl::Create(
-        ctx(),
-        dc(),
-        sl(),
-        sl(),
-        id(p.name),
-        p.type,
-        nullptr,
-        p.storage,
-        p.defArg);
+ASTBuilder::Res ASTBuilder::ParmVarDecl(const ParmVarDeclParams& p) {}
+
+
+ASTBuilder::Res ASTBuilder::FunctionDecl(FunctionDeclParams const& p) {}
+
+ASTBuilder::QualType ASTBuilder::Type(Str const& type) {
+    return QualType{.ident = Ident{.spaces = {type}}};
+}
+
+ASTBuilder::Res ASTBuilder::Type(const QualType& type) {
+    return string(type.ident.spaces.at(0));
 }
 
 
-clang::QualType ASTBuilder::FunctionType(const FunctionDeclParams& p) {
-    return context->getFunctionType(
-        p.ResultTy, p.ArgsTy, FunctionProtoType::ExtProtoInfo());
+ASTBuilder::Res ASTBuilder::FieldDecl(
+    const RecordDeclParams::Field& field) {
+    return b::stack({
+        field.access == AccessSpecifier::Public ? string("public:")
+                                                : string("private:"),
+        b::indent(2, VarDecl(field.params)),
+    });
 }
 
-clang::FunctionDecl* ASTBuilder::FunctionDecl(
-    FunctionDeclParams            p,
-    const Vec<ParmVarDeclParams>& params) {
-    if (p.ResultTy.isNull()) {
-        p.ResultTy = context->VoidTy;
-    }
-    Vec<class ParmVarDecl*> passParams;
-    if (!params.empty()) {
-        p.ArgsTy.clear();
-        for (const auto& param : params) {
-            passParams.push_back(ParmVarDecl(param));
-            assert(!param.type.isNull());
-            p.ArgsTy.push_back(param.type);
+ASTBuilder::Res ASTBuilder::MethodDecl(
+    const RecordDeclParams::Method& method) {}
+
+ASTBuilder::Res ASTBuilder::RecordDecl(const RecordDeclParams& params) {
+    Vec<Res> content;
+
+    for (auto const& m : params.members) {
+        if (m.getKind() == RecordDeclParams::Member::Kind::Field) {
+            content.push_back(FieldDecl(m.getField()));
+        } else {
         }
     }
 
-    auto res = FunctionDecl::Create(
-        ctx(),           // C
-        dc(),            // DC
-        sl(),            // StartLoc
-        sl(),            // NLoc
-        name(p.Name),    // N
-        FunctionType(p), // T
-        nullptr,         // TInfo
-        p.Storage,       // SC
-        true,            // UsesFPIntrin
-        p.Inline         // isInlineSpecified
-    );
+    Res bases = string("");
 
-    res->setParams(passParams);
-    if (p.Body != nullptr) {
-        res->setBody(p.Body);
-    }
-    return res;
+    return b::stack({
+        b::line({
+            string("struct "),
+            string(params.name),
+            bases,
+            string(" {"),
+        }),
+        b::indent(2, b::stack(content)),
+        string("};"),
+    });
 }
 
-QualType ASTBuilder::Type(std::string type) {
-    return ctx().getTypeDeclType(
-        ctx()
-            .getTranslationUnitDecl()
-            ->lookup(clang::DeclarationName(&ctx().Idents.get(type)))
-            .front());
+ASTBuilder::Res ASTBuilder::VarDecl(ParmVarDeclParams const& p) {
+    return b::line({
+        Type(p.type),
+        string(" "),
+        string(p.name),
+        p.defArg.empty() ? string("")
+                         : b::line({
+                             string(" = "),
+                             string(p.defArg),
+                         }),
+        string(";"),
+    });
 }
 
-
-clang::FieldDecl* ASTBuilder::FieldDecl(
-    const RecordDeclParams::Field& field) {
-    clang::FieldDecl* decl = clang::FieldDecl::Create(
-        ctx(),
-        dc(),
-        sl(),
-        sl(),
-        id(field.params.name),
-        field.params.type,
-        /*TypeSourceInfo=*/nullptr,
-        /*BitWidth=*/nullptr,
-        /*Mutable=*/false,
-        /*isConstExpr=*/InClassInitStyle::ICIS_ListInit);
-
-    decl->setAccess(field.access);
-    return decl;
+ASTBuilder::Res ASTBuilder::IfStmt(const IfStmtParams& p) {
+    return b::stack({
+        b::line({string("if ("), string(")")}),
+        b::indent(2, p.Then),
+        b::line({
+            p.Else ? b::line({string(" else "), p.Else.value()})
+                   : string(""),
+        }),
+    });
 }
 
-clang::CXXMethodDecl* ASTBuilder::CXXMethodDecl(
-    clang::CXXRecordDecl*           recordDecl,
-    const RecordDeclParams::Method& method) {
-    clang::CXXMethodDecl* methodDecl = CXXMethodDecl::Create(
-        /*ASTContext & C=*/ctx(),
-        /*CXXRecordDecl * RD=*/recordDecl,
-        /*SourceLocation StartLoc=*/sl(),
-        /*DeclarationNameInfo& NameInfo=*/nameInfo(method.params.Name),
-        /*QualType T=*/FunctionType(method.params),
-        /*TypeSourceInfo* TInfo=*/nullptr,
-        /*StorageClass SC=*/SC_None,
-        /*bool UsesFPIntrin=*/false,
-        /*bool isInline=*/false,
-        /*ConstexprSpecKind ConstexprKind=*/ConstexprSpecKind::Unspecified,
-        /*SourceLocation EndLocation=*/sl());
-
-    methodDecl->setAccess(method.access);
-
-    return methodDecl;
-}
-
-clang::CXXRecordDecl* ASTBuilder::CXXRecordDecl(
-    const RecordDeclParams& params) {
-    auto record = CXXRecordDecl::Create(
-        ctx(), params.tagKind, dc(), sl(), sl(), id(params.name));
-    return record;
-}
-
-clang::VarDecl* ASTBuilder::VarDecl(VarDeclParams p) {
-    if (p.Type.isNull()) {
-        p.Type = context->getAutoDeductType();
-    }
-
-    auto result = clang::VarDecl::Create(
-        ctx(), dc(), sl(), sl(), id(p.Name), p.Type, nullptr, p.Storage);
-
-    if (p.Init != nullptr) {
-        result->setInit(p.Init);
-    }
-    return result;
-}
-
-clang::IfStmt* ASTBuilder::IfStmt(const IfStmtParams& p) {
-    return IfStmt::Create(
-        ctx(),
-        sl(),
-        p.kind,
-        p.Init,
-        p.Var,
-        p.Cond,
-        sl(),
-        sl(),
-        CompoundStmt({p.Then}),
-        sl(),
-        p.Else.empty() ? nullptr : CompoundStmt({p.Else}));
-}
-
-clang::IfStmt* ASTBuilder::IfStmt(const ArrayRef<IfStmtParams>& p) {
+ASTBuilder::Res ASTBuilder::IfStmt(const Span<IfStmtParams>& p) {
     if (p.size() == 1) {
         return IfStmt(p[0]);
     } else {
         auto p0 = p[0];
-        p0.Else = {IfStmt(p.slice(1))};
+
+        Span<IfStmtParams> sub = p[slice(1, 1_B)];
+        p0.Else                = {IfStmt(sub)};
         return IfStmt(p0);
     }
 }
 
-clang::BinaryOperator* ASTBuilder::BinaryOperator(
-    const BinaryOperatorParams& p) {
-    return BinaryOperator::Create(
-        ctx(),
-        p.lhs,
-        p.rhs,
-        p.opc,
-        QualType(),
-        p.VK,
-        p.OK,
-        sl(),
-        p.FPFeatures);
+ASTBuilder::Res ASTBuilder::IfStmt(const Vec<IfStmtParams>& p) {
+    return IfStmt(p[slice(0, 1_B)]);
 }
 
-clang::UnaryOperator* ASTBuilder::UnaryOperator(
-    const UnaryOperatorParams& p) {
-    return clang::UnaryOperator::Create(
-        ctx(),
-        p.Expr,
-        p.opc,
-        ctx().VoidTy,
-        p.VK,
-        p.OK,
-        sl(),
-        false,
-        p.FPFeatures);
-}
-
-clang::DeclRefExpr* ASTBuilder::Ref(clang::VarDecl* decl) {
-    return DeclRefExpr::Create(
-        ctx(),
-        NestedNameSpecifierLoc(),
-        sl(),
-        decl,
-        false,
-        sl(),
-        decl->getType(),
-        ExprValueKind::VK_LValue);
+ASTBuilder::Res ASTBuilder::XCall(const Str& opc, Vec<Res> args) {
+    if (opc[0].isLetter()) {
+        return b::line({string(opc), string("("), csv(args), string(")")});
+    } else {
+        if (args.size() == 1) {
+            return b::line({string(opc), args.at(0)});
+        } else if (args.size() == 2) {
+            return b::line({args.at(0), string(opc), args.at(1)});
+        } else {
+            qFatal(
+                "Unexpected number of arguments for operator-like "
+                "function call. Expected 1 or 2 but got different amount");
+        }
+    }
 }

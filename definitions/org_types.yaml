@@ -5,3 +5,8 @@ entries:
         name: Org
         fields:
           - {type: OrgAdapter, name: original}
+          - type: SemId
+            name: parent
+            value: SemId::Nil()
+            docs: >-
+              Pointer to the parent node in sem tree, might be null.

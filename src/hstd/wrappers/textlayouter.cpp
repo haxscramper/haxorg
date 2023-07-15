@@ -856,6 +856,30 @@ Block::Ptr Block::stack(CR<Vec<Ptr>> l) {
     return Block::shared(Stack{.elements = l});
 }
 
+Block::Ptr Block::spatial(bool isVertical, CR<Vec<Ptr>> l) {
+    if (isVertical) {
+        return stack(l);
+    } else {
+        return line(l);
+    }
+}
+
+Block::Ptr Block::join(
+    CVec<Block::Ptr> items,
+    CR<Block::Ptr>   join,
+    bool             isLine,
+    bool             isTrailing) {
+    Block::Ptr res = Block::spatial(isLine);
+    for (int i = 0; i < items.size(); ++i) {
+        if (i < items.high() || isTrailing) {
+            res->add(Block::line({items.at(i), join}));
+        } else {
+            res->add(items.at(i));
+        }
+    }
+    return res;
+}
+
 Block::Ptr Block::choice(CR<Vec<Ptr>> l) {
     return Block::shared(Choice{.elements = l});
 }

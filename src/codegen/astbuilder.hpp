@@ -1,14 +1,11 @@
 #pragma once
 
-#include <clang/ASTMatchers/Dynamic/Parser.h>
-#include <clang/ASTMatchers/ASTMatchers.h>
-#include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <hstd/wrappers/textlayouter.hpp>
 #include <hstd/system/macros.hpp>
 
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Vec.hpp>
-
-using namespace clang;
+#include <hstd/stdlib/Str.hpp>
 
 /// Class to manage state required for the AST creation - `ASTContext`,
 /// identifiers. Constructs AST nodes with no extra location information.
@@ -16,96 +13,79 @@ using namespace clang;
 /// for each clang node kind. Structures allow using named parameters via
 /// designated initializers (`.Cond = <expr>`)
 class ASTBuilder {
-    ASTContext*     context;
-    IdentifierTable idents;
-
-    /// Create empty source location
-    clang::SourceLocation sl() { return clang::SourceLocation(); }
-    /// Get reference to stored context
-    ASTContext& ctx() { return *context; }
-    /// Get translation unit declaration
-    DeclContext* dc() { return context->getTranslationUnitDecl(); }
-    /// Create new identifier info from \arg name
-    IdentifierInfo* id(const std::string& name) {
-        return &idents.get(name);
-    }
-    /// Create declaration name from \arg name
-    DeclarationName name(const std::string& name) {
-        return DeclarationName(id(name));
-    }
-    clang::DeclarationNameInfo nameInfo(std::string const& text) {
-        return DeclarationNameInfo(name(text), sl());
-    }
-
   public:
-    /// Update stored AST context
-    void setContext(ASTContext* _context) { context = _context; }
+    using Res    = layout::Block::Ptr;
+    using b      = layout::Block;
+    using LytStr = layout::LytStr;
+    layout::SimpleStringStore store;
+    Res string(QString const& str) { return b::text(store.str(str)); }
 
-    struct ParmVarDeclParams {
-        QualType     type;
-        std::string  name;
-        StorageClass storage = SC_None;
-        Expr*        defArg  = nullptr;
-        ParmVarDeclParams() {}
-        ParmVarDeclParams(ParmVarDecl* decl)
-            : type(decl->getOriginalType())
-            , name(decl->getNameAsString())
-            , storage(decl->getStorageClass())
-            , defArg(decl->getDefaultArg()) {}
+    struct Ident {
+        Vec<Str> spaces;
+    };
+
+    struct QualType {
+        Ident ident;
+        bool  isConst;
+    };
+
+    enum class StorageClass
+    {
+        None,
+        Static
     };
 
 
-    ParmVarDecl* ParmVarDecl(const ParmVarDeclParams& p);
+    struct ParmVarDeclParams {
+        QualType     type;
+        Str          name;
+        StorageClass storage = StorageClass::None;
+        Str          defArg  = "";
+    };
 
-    void setParams(FunctionDecl& decl, Vec<ParmVarDeclParams>& params) {
-        Vec<class ParmVarDecl*> out;
-        for (const auto& param : params) {
-            out.push_back(ParmVarDecl(param));
-        }
 
-        decl.setParams(out);
-    }
-
+    Res ParmVarDecl(const ParmVarDeclParams& p);
 
     /// Function declaration signature
     struct FunctionDeclParams {
-        std::string   Name;
-        QualType      ResultTy = QualType();
-        Vec<QualType> ArgsTy   = {};
-        StorageClass  Storage  = SC_None;
-        Stmt*         Body     = nullptr;
-        bool          Inline   = false;
+        Str                    Name;
+        QualType               ResultTy = QualType();
+        Vec<ParmVarDeclParams> Args     = {};
+        StorageClass           Storage  = StorageClass::None;
+        Res                    Body     = nullptr;
+        bool                   Inline   = false;
     };
 
 
     /// Create function declaration. If \arg params is not empty use it to
     /// construct argument types in the resulting function signature.
-    FunctionDecl* FunctionDecl(
-        FunctionDeclParams            p,
-        const Vec<ParmVarDeclParams>& params = {});
+    Res FunctionDecl(FunctionDeclParams const& p);
 
-    QualType Type(std::string);
+    QualType Type(Str const&);
+    Res      Type(QualType const& type);
 
-    QualType FunctionType(FunctionDeclParams const& p);
+    enum class AccessSpecifier
+    {
+        Public,
+        Private,
+        Protected
+    };
 
     struct RecordDeclParams {
-        std::string            name;
-        CXXRecordDecl::TagKind tagKind = CXXRecordDecl::TagKind::
-            TTK_Struct;
+        Str name;
 
 
         struct Method {
-            FunctionDeclParams     params;
-            bool                   isStatic;
-            bool                   isConst;
-            clang::AccessSpecifier access;
+            FunctionDeclParams params;
+            bool               isStatic;
+            bool               isConst;
+            AccessSpecifier    access = AccessSpecifier::Public;
         };
 
         struct Field {
-            ParmVarDeclParams      params;
-            bool                   isStatic = false;
-            clang::AccessSpecifier access   = clang::AccessSpecifier::
-                AS_public;
+            ParmVarDeclParams params;
+            bool              isStatic = false;
+            AccessSpecifier   access   = AccessSpecifier::Public;
         };
 
         struct Member {
@@ -117,173 +97,55 @@ class ASTBuilder {
         Vec<Member> members;
     };
 
-    clang::FieldDecl*     FieldDecl(RecordDeclParams::Field const& field);
-    clang::CXXMethodDecl* CXXMethodDecl(
-        CXXRecordDecl*                  recordDecl,
-        RecordDeclParams::Method const& method);
-    CXXRecordDecl* CXXRecordDecl(RecordDeclParams const& params);
+    Res FieldDecl(RecordDeclParams::Field const& field);
+    Res MethodDecl(RecordDeclParams::Method const& method);
+    Res RecordDecl(RecordDeclParams const& params);
 
     struct CompoundStmtParams {
-        ArrayRef<Stmt*> Stmts;
+        Vec<Res> Stmts;
     };
 
-    CompoundStmt* CompoundStmt(const CompoundStmtParams& p) {
-        return CompoundStmt::Create(
-            ctx(), p.Stmts, clang::FPOptionsOverride{}, sl(), sl());
+    Res brace(Vec<Res> const& elements) {
+        return b::stack({
+            string("{"),
+            b::stack(elements),
+            string("}"),
+        });
     }
 
-    struct VarDeclParams {
-        std::string  Name;
-        QualType     Type;
-        StorageClass Storage = SC_None;
-        Expr*        Init    = nullptr;
-    };
+    Res csv(CVec<Res> items, bool isLine = true, bool isTrailing = false) {
+        return b::join(items, string(","), isLine, isTrailing);
+    }
 
-    VarDecl* VarDecl(VarDeclParams p);
+    Res CompoundStmt(const CompoundStmtParams& p) {
+        return brace(p.Stmts);
+    }
+
+    Res VarDecl(ParmVarDeclParams const& p);
 
     struct IfStmtParams {
-        Expr*      Cond;
-        Vec<Stmt*> Then;
-        Vec<Stmt*> Else;
+        Res      Cond;
+        Res      Then;
+        Opt<Res> Else;
 
-        Expr*           Init = nullptr;
-        class VarDecl*  Var  = nullptr;
-        IfStatementKind kind = IfStatementKind::Ordinary;
+        Res      Init = nullptr;
+        Opt<Res> Var;
     };
 
-    IfStmt* IfStmt(const IfStmtParams& p);
+    Res IfStmt(const IfStmtParams& p);
+    Res IfStmt(const Vec<IfStmtParams>& p);
+    Res IfStmt(const Span<IfStmtParams>& p);
 
-    class IfStmt* IfStmt(const ArrayRef<IfStmtParams>& p);
-
-    DeclStmt* Stmt(Decl* decl) {
-        return new (ctx()) DeclStmt(DeclGroupRef(decl), sl(), sl());
+    Res XCall(Str const& opc, Vec<Res> args);
+    Res XStmt(Str const& opc, Res arg) {
+        return b::line({string(opc), string(" "), arg, string(";")});
     }
 
-    struct BinaryOperatorParams {
-        BinaryOperator::Opcode opc;
-        Expr*                  lhs;
-        Expr*                  rhs;
-        ExprValueKind          VK;
-        ExprObjectKind         OK;
-        FPOptionsOverride      FPFeatures;
-    };
+    Res Literal(uint64_t value) { return string(QString::number(value)); }
+    Res Literal(const Str& str) { return string("\"" + str + "\""); }
 
-    class BinaryOperator* BinaryOperator(const BinaryOperatorParams& p);
-
-    class BinaryOperator* XCall(
-        const BinaryOperator::Opcode& opc,
-        Vec<Expr*>                    args) {
-        return BinaryOperator(
-            {.opc = opc, .lhs = args[0], .rhs = args[1]});
-    }
-
-    struct UnaryOperatorParams {
-        UnaryOperator::Opcode opc;
-        Expr*                 Expr;
-        ExprValueKind         VK;
-        ExprObjectKind        OK;
-        FPOptionsOverride     FPFeatures;
-    };
-
-    class UnaryOperator* UnaryOperator(const UnaryOperatorParams& p);
-
-    class UnaryOperator* XCall(
-        const UnaryOperator::Opcode opc,
-        Expr*                       expr) {
-        return UnaryOperator({.opc = opc, .Expr = expr});
-    }
-
-    DeclRefExpr* Ref(class VarDecl* decl);
-    DeclRefExpr* Ref(const std::string& name) {
-        auto tmp = VarDecl({name, QualType()});
-        return Ref(tmp);
-    }
-
-    DeclRefExpr* Ref(const clang::FunctionDecl* decl) {
-        return Ref(decl->getName().str());
-    }
-
-    struct CallExprParams {
-        Expr*      Fn;
-        Vec<Expr*> Args = {};
-    };
-
-    clang::CallExpr* CallExpr(const CallExprParams& p) {
-        return CallExpr::Create(
-            ctx(),
-            p.Fn,
-            p.Args,
-            QualType(),
-            ExprValueKind(),
-            sl(),
-            FPOptionsOverride());
-    }
-
-    clang::CallExpr* XCall(const std::string& name, Vec<Expr*> Args = {}) {
-        return CallExpr({Ref(name), Args});
-    }
-
-    clang::CallExpr* XCall(
-        const class FunctionDecl* decl,
-        Vec<Expr*>                Args = {}) {
-        return CallExpr({Ref(decl), Args});
-    }
-
-    IntegerLiteral* Literal(uint64_t value) {
-        return IntegerLiteral::Create(
-            ctx(),
-            llvm::APInt(sizeof(value) * 8, value),
-            ctx().IntTy,
-            sl());
-    }
-
-    clang::StringLiteral* Literal(const std::string& str) {
-        return clang::StringLiteral::Create(
-            ctx(),
-            str,
-            clang::StringLiteral::StringKind::Ordinary,
-            false,
-            QualType(),
-            sl());
-    }
-
-    CXXThrowExpr* Throw(Expr* expr) {
-        return new (ctx())
-            CXXThrowExpr(expr, expr->getType(), sl(), false);
-    }
-
-    ReturnStmt* Return(Expr* expr) {
-        return ReturnStmt::Create(ctx(), sl(), expr, nullptr);
-    }
-
-    class Expr* Expr(Expr* expr) { return expr; }
-
-    clang::TranslationUnitDecl* TranslationUnit(Vec<clang::Decl*> decls) {
-        auto tu = clang::TranslationUnitDecl::Create(*context);
-        for (auto const& decl : decls) {
-            tu->addDecl(decl);
-        }
-        return tu;
-    }
-
-    template <typename T>
-    static std::string clangToString(
-        T*                    t,
-        PrintingPolicy const& policy = clang::PrintingPolicy(
-            clang::LangOptions())) {
-        std::string              out_str;
-        llvm::raw_string_ostream outstream(out_str);
-        t->print(outstream, policy);
-        return out_str;
-    }
-
-    static std::string clangToString(
-        QualType const&       t,
-        PrintingPolicy const& policy = clang::PrintingPolicy(
-            clang::LangOptions())) {
-        std::string              out_str;
-        llvm::raw_string_ostream outstream(out_str);
-        t.print(outstream, policy);
-        return out_str;
-    }
+    Res Throw(Res expr) { return XStmt("throw", expr); }
+    Res Return(Res expr) { return XStmt("return", expr); }
+    Res Continue(Res expr) { return XStmt("continue", expr); }
+    Res TranslationUnit(Vec<Res> stmts) { return b::stack(stmts); }
 };

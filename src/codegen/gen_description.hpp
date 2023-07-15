@@ -8,8 +8,8 @@
 #include <hstd/system/macros.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Vec.hpp>
-
-using Str = std::string;
+#include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/Yaml.hpp>
 
 using namespace boost::describe;
 using boost::mp11::mp_for_each;
@@ -69,6 +69,20 @@ template <typename T>
 void visitValue(YAML::Node const& node, T& tree);
 
 
+template <>
+struct YAML::convert<Str> {
+    static Node encode(Str const& str) {
+        Node result;
+        result = str.toStdString();
+        return result;
+    }
+    static bool decode(Node const& in, Str& out) {
+        out = Str::fromStdString(in.as<std::string>());
+        return true;
+    }
+};
+
+
 // clang-format off
 inline void visitValue(YAML::Node const& node, Str& str) { str = node.as<Str>(); }
 inline void visitValue(YAML::Node const& node, bool& str) { str = node.as<bool>(); }
@@ -116,7 +130,7 @@ void visitValue(YAML::Node const& node, T& tree) {
 inline void visitValue(
     YAML::Node const&               node,
     GenDescription::Struct::Nested& rhs) {
-    std::string kind = node["kind"].as<Str>();
+    Str kind = node["kind"].as<Str>();
     if (kind == "Enum") {
         GenDescription::Enum result;
         visitValue(node, result);
@@ -131,7 +145,7 @@ inline void visitValue(
 inline void visitValue(
     YAML::Node const&      node,
     GenDescription::Entry& rhs) {
-    std::string kind = node["kind"].as<Str>();
+    Str kind = node["kind"].as<Str>();
     if (kind == "Enum") {
         GenDescription::Enum result;
         visitValue(node, result);

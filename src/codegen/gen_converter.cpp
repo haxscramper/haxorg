@@ -8,22 +8,21 @@ AB::ParmVarDeclParams toParams(
     return result;
 }
 
-FunctionDecl* convert(ASTBuilder& builder, const GD::Function& func) {
-    AB::FunctionDeclParams     decl;
-    Vec<AB::ParmVarDeclParams> params;
+ASTBuilder::Res convert(ASTBuilder& builder, const GD::Function& func) {
+    AB::FunctionDeclParams decl;
 
     for (auto const& parm : func.arguments) {
-        params.push_back(toParams(builder, parm));
+        decl.Args.push_back(toParams(builder, parm));
     }
 
-    return builder.FunctionDecl(decl, params);
+    return builder.FunctionDecl(decl);
 }
 
-ParmVarDecl* convert(ASTBuilder& builder, const GD::Ident& ident) {
+ASTBuilder::Res convert(ASTBuilder& builder, const GD::Ident& ident) {
     return builder.ParmVarDecl(toParams(builder, ident));
 }
 
-CXXRecordDecl* convert(ASTBuilder& builder, const GD::Struct& record) {
+ASTBuilder::Res convert(ASTBuilder& builder, const GD::Struct& record) {
     using RDP = ASTBuilder::RecordDeclParams;
     RDP params{.name = record.name};
     for (auto const& member : record.fields) {
@@ -34,14 +33,14 @@ CXXRecordDecl* convert(ASTBuilder& builder, const GD::Struct& record) {
             RDP::Member{RDP::Field{.params = parmDecl}});
     }
 
-    auto decl = builder.CXXRecordDecl(params);
+    auto decl = builder.RecordDecl(params);
     return decl;
 }
 
-Vec<clang::Decl*> convert(
+Vec<ASTBuilder::Res> convert(
     ASTBuilder&          builder,
     const GD::TypeGroup& record) {
-    Vec<clang::Decl*> decls;
+    Vec<ASTBuilder::Res> decls;
 
     for (auto const& sub : record.types) {
         decls.push_back(convert(builder, sub));
@@ -51,8 +50,8 @@ Vec<clang::Decl*> convert(
 }
 
 
-TranslationUnitDecl* convert(ASTBuilder& builder, const GD& desc) {
-    Vec<clang::Decl*> decls;
+ASTBuilder::Res convert(ASTBuilder& builder, const GD& desc) {
+    Vec<ASTBuilder::Res> decls;
     for (auto const& item : desc.entries) {
         if (std::holds_alternative<GD::Struct>(item)) {
             decls.push_back(convert(builder, std::get<GD::Struct>(item)));
