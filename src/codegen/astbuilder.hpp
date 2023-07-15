@@ -3,8 +3,9 @@
 #include <clang/ASTMatchers/Dynamic/Parser.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
+#include <hstd/system/macros.hpp>
 
-
+#include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Vec.hpp>
 
 using namespace clang;
@@ -28,9 +29,12 @@ class ASTBuilder {
     IdentifierInfo* id(const std::string& name) {
         return &idents.get(name);
     }
-    /// Create declaration namme from \arg name
+    /// Create declaration name from \arg name
     DeclarationName name(const std::string& name) {
         return DeclarationName(id(name));
+    }
+    clang::DeclarationNameInfo nameInfo(std::string const& text) {
+        return DeclarationNameInfo(name(text), sl());
     }
 
   public:
@@ -80,13 +84,44 @@ class ASTBuilder {
         FunctionDeclParams            p,
         const Vec<ParmVarDeclParams>& params = {});
 
-    struct TypeDeclParams {
+    QualType Type(std::string);
+
+    QualType FunctionType(FunctionDeclParams const& p);
+
+    struct RecordDeclParams {
         std::string            name;
         CXXRecordDecl::TagKind tagKind = CXXRecordDecl::TagKind::
             TTK_Struct;
+
+
+        struct Method {
+            FunctionDeclParams     params;
+            bool                   isStatic;
+            bool                   isConst;
+            clang::AccessSpecifier access;
+        };
+
+        struct Field {
+            ParmVarDeclParams      params;
+            bool                   isStatic = false;
+            clang::AccessSpecifier access   = clang::AccessSpecifier::
+                AS_public;
+        };
+
+        struct Member {
+            SUB_VARIANTS(Kind, Data, data, getKind, Method, Field);
+            Member(CR<Data> data) : data(data) {}
+            Data data;
+        };
+
+        Vec<Member> members;
     };
 
-    CXXRecordDecl* CXXRecordDecl(TypeDeclParams const& params);
+    clang::FieldDecl*     FieldDecl(RecordDeclParams::Field const& field);
+    clang::CXXMethodDecl* CXXMethodDecl(
+        CXXRecordDecl*                  recordDecl,
+        RecordDeclParams::Method const& method);
+    CXXRecordDecl* CXXRecordDecl(RecordDeclParams const& params);
 
     struct CompoundStmtParams {
         ArrayRef<Stmt*> Stmts;

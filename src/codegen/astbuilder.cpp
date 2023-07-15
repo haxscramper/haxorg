@@ -13,6 +13,12 @@ clang::ParmVarDecl* ASTBuilder::ParmVarDecl(const ParmVarDeclParams& p) {
         p.defArg);
 }
 
+
+clang::QualType ASTBuilder::FunctionType(const FunctionDeclParams& p) {
+    return context->getFunctionType(
+        p.ResultTy, p.ArgsTy, FunctionProtoType::ExtProtoInfo());
+}
+
 clang::FunctionDecl* ASTBuilder::FunctionDecl(
     FunctionDeclParams            p,
     const Vec<ParmVarDeclParams>& params) {
@@ -30,19 +36,16 @@ clang::FunctionDecl* ASTBuilder::FunctionDecl(
     }
 
     auto res = FunctionDecl::Create(
-        ctx(),                    // C
-        dc(),                     // DC
-        sl(),                     // StartLoc
-        sl(),                     // NLoc
-        name(p.Name),             // N
-        context->getFunctionType( // T
-            p.ResultTy,
-            p.ArgsTy,
-            FunctionProtoType::ExtProtoInfo()),
-        nullptr,   // TInfo
-        p.Storage, // SC
-        true,      // UsesFPIntrin
-        p.Inline   // isInlineSpecified
+        ctx(),           // C
+        dc(),            // DC
+        sl(),            // StartLoc
+        sl(),            // NLoc
+        name(p.Name),    // N
+        FunctionType(p), // T
+        nullptr,         // TInfo
+        p.Storage,       // SC
+        true,            // UsesFPIntrin
+        p.Inline         // isInlineSpecified
     );
 
     res->setParams(passParams);
@@ -52,8 +55,56 @@ clang::FunctionDecl* ASTBuilder::FunctionDecl(
     return res;
 }
 
+QualType ASTBuilder::Type(std::string type) {
+    return ctx().getTypeDeclType(
+        ctx()
+            .getTranslationUnitDecl()
+            ->lookup(clang::DeclarationName(&ctx().Idents.get(type)))
+            .front());
+}
+
+
+clang::FieldDecl* ASTBuilder::FieldDecl(
+    const RecordDeclParams::Field& field) {
+    clang::FieldDecl* decl = clang::FieldDecl::Create(
+        ctx(),
+        dc(),
+        sl(),
+        sl(),
+        id(field.params.name),
+        field.params.type,
+        /*TypeSourceInfo=*/nullptr,
+        /*BitWidth=*/nullptr,
+        /*Mutable=*/false,
+        /*isConstExpr=*/InClassInitStyle::ICIS_ListInit);
+
+    decl->setAccess(field.access);
+    return decl;
+}
+
+clang::CXXMethodDecl* ASTBuilder::CXXMethodDecl(
+    clang::CXXRecordDecl*           recordDecl,
+    const RecordDeclParams::Method& method) {
+    clang::CXXMethodDecl* methodDecl = CXXMethodDecl::Create(
+        /*ASTContext & C=*/ctx(),
+        /*CXXRecordDecl * RD=*/recordDecl,
+        /*SourceLocation StartLoc=*/sl(),
+        /*DeclarationNameInfo& NameInfo=*/nameInfo(method.params.Name),
+        /*QualType T=*/FunctionType(method.params),
+        /*TypeSourceInfo* TInfo=*/nullptr,
+        /*StorageClass SC=*/SC_None,
+        /*bool UsesFPIntrin=*/false,
+        /*bool isInline=*/false,
+        /*ConstexprSpecKind ConstexprKind=*/ConstexprSpecKind::Unspecified,
+        /*SourceLocation EndLocation=*/sl());
+
+    methodDecl->setAccess(method.access);
+
+    return methodDecl;
+}
+
 clang::CXXRecordDecl* ASTBuilder::CXXRecordDecl(
-    const TypeDeclParams& params) {
+    const RecordDeclParams& params) {
     auto record = CXXRecordDecl::Create(
         ctx(), params.tagKind, dc(), sl(), sl(), id(params.name));
     return record;

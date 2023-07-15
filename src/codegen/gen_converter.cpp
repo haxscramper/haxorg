@@ -24,7 +24,18 @@ ParmVarDecl* convert(ASTBuilder& builder, const GD::Ident& ident) {
 }
 
 CXXRecordDecl* convert(ASTBuilder& builder, const GD::Struct& record) {
-    return builder.CXXRecordDecl({.name = record.name});
+    using RDP = ASTBuilder::RecordDeclParams;
+    RDP params{.name = record.name};
+    for (auto const& member : record.fields) {
+        AB::ParmVarDeclParams parmDecl;
+        parmDecl.name = member.name;
+        parmDecl.type = builder.Type(member.type);
+        params.members.push_back(
+            RDP::Member{RDP::Field{.params = parmDecl}});
+    }
+
+    auto decl = builder.CXXRecordDecl(params);
+    return decl;
 }
 
 Vec<clang::Decl*> convert(
