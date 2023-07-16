@@ -50,19 +50,37 @@ bool        is_alist(SCM list);
 void        iterate_plist(SCM list, std::function<void(SCM, SCM)> lambda);
 std::string to_string(SCM value);
 
-struct decode_error : std::exception {
-  public:
+struct base_msg : std::exception {
     std::string text;
+    const char* what() const noexcept override {
+        return strdup(text.c_str());
+    }
+};
+
+struct unexpected_variant : base_msg {
+    unexpected_variant(std::string const& where, std::string const& kind) {
+        text = std::format(
+            "Could not decode variant with discriminant selector '{}' at "
+            "{}",
+            kind,
+            where);
+    }
+};
+
+struct missing_field : base_msg {
+    missing_field(std::string const& where, SCM field) {
+        text = std::format(
+            "Could not get field '{}' from {}", to_string(field), where);
+    }
+};
+
+struct decode_error : base_msg {
     decode_error(std::string const& where, SCM got) {
         text = std::format(
             "Unexpected value '{}' of kind {} was found while {}",
             to_string(got),
             enum_to_string(get_value_kind(got)).toStdString(),
             where);
-    }
-
-    const char* what() const noexcept override {
-        return strdup(text.c_str());
     }
 };
 
@@ -113,15 +131,17 @@ struct is_variant<std::variant<Args...>> : std::true_type {};
 template <typename T>
 concept IsVariant = is_variant<std::remove_cvref_t<T>>::value;
 
+template <IsVariant T, typename CRTP_Derived>
+struct variant_convert {
+    static std::string get_kind(
+        SCM         value,
+        char const* kindField = "kind") {
+        SCM kind = get_field(value, kindField);
+        return to_string(kind);
+    }
 
-template <typename T>
-void init_variant(T& result, SCM value) {}
-
-
-template <IsVariant T>
-struct convert<T> {
     static void decode(T& result, SCM value) {
-        ::guile::init_variant(result, value);
+        CRTP_Derived::init(result, value);
         std::visit(
             [&](auto& variant) {
                 ::guile::convert<typename std::remove_cvref_t<

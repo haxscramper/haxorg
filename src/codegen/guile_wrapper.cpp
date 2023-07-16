@@ -31,12 +31,25 @@ SCM guile::eval_file(const std::string& filename) {
 SCM guile::get_field(SCM node, char const* field) {
     SCM field_sym = scm_from_utf8_symbol(field);
     if (SCM_INSTANCEP(node)) {
-        SCM value = scm_slot_ref(node, field_sym);
-        return value;
+        if (scm_is_true(scm_slot_exists_p(node, field_sym))) {
+            SCM value = scm_slot_ref(node, field_sym);
+            return value;
+        } else {
+            throw missing_field(
+                to_string(scm_class_name(SCM_CLASS_OF(node))), field_sym);
+        }
     } else if (scm_is_true(scm_hash_table_p(node))) {
-        return scm_hash_ref(node, field_sym, SCM_BOOL_F);
+        SCM result = scm_hash_ref(node, field_sym, SCM_UNSPECIFIED);
+        if (scm_is_eq(result, SCM_UNSPECIFIED)) {
+            throw missing_field("hash table", field_sym);
+        } else {
+            return result;
+        }
     } else {
-        return SCM_BOOL_F;
+        throw missing_field(
+            "non-keyable value kind "
+                + enum_to_string(get_value_kind(node)).toStdString(),
+            field_sym);
     }
 }
 

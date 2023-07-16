@@ -1,10 +1,10 @@
 #include <fmt/core.h>
 #include <fmt/ranges.h>
+#include <fstream>
 
 #include "gen_description.hpp"
 #include "gen_converter.hpp"
 #include "guile_wrapper.hpp"
-
 
 QTextStream qcout;
 
@@ -42,17 +42,39 @@ struct convert<Str> {
     static void decode(Str& result, SCM item) {
         if (scm_is_true(scm_string_p(item))) {
             result = Str::fromStdString(::guile::to_string(item));
+        } else if (scm_is_symbol(item)) {
+            result = Str::fromStdString(::guile::to_string(item));
         } else {
             throw decode_error("parsing string", item);
         }
     }
 };
+
+template <>
+struct convert<GenDescription::Entry>
+    : variant_convert<
+          GenDescription::Entry,
+          convert<GenDescription::Entry>> {
+    static void init(GenDescription::Entry& result, SCM value) {
+        std::string kind = convert<GenDescription::Entry>::get_kind(value);
+        if (kind == "Struct") {
+            result = GenDescription::Struct{};
+        } else if (kind == "Enum") {
+            result = GenDescription::Enum{};
+        } else if (kind == "TypeGroup") {
+            result = GenDescription::TypeGroup{};
+        }
+    }
+};
+
 } // namespace guile
 
 int main(int argc, const char** argv) {
     guile::init();
-    SCM doc = guile::eval_file(argv[1]);
-    ::guile::print(doc, std::cout);
+    SCM           doc = guile::eval_file(argv[1]);
+    std::ofstream file{"/tmp/repr.txt"};
+    ::guile::print(doc, file);
+    file << std::endl;
 
     GenDescription description;
     ::guile::convert<GenDescription>::decode(description, doc);

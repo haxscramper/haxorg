@@ -2,6 +2,7 @@
 (use-modules (srfi srfi-1))
 (use-modules (language tree-il))
 (use-modules (ice-9 pretty-print))
+(use-modules (ice-9 format))
 
 (define (is-positional field)
   (eq? (length field) 1))
@@ -62,45 +63,54 @@
  <type> d:struct
  (name)
  (brief-doc)
- (members (list))
+ (fields (list))
+ (enums (list))
+ (methods (list))
+ (structs (list))
  (bases (list))
- (long-doc ""))
+ (long-doc "")
+ (kind "Struct"))
 
 (simple-define-type
  <group> d:group
- (entries))
+ (entries)
+ (kind "Group"))
 
 (simple-define-type
  <method> d:method
- (return-type)
+ (result)
  (name)
- (args (list))
+ (arguments (list))
  (is-const #f)
- (is-virtual #f))
+ (is-virtual #f)
+ (kind "Method"))
 
 (simple-define-type
  <field> d:field
- (field-type)
+ (type)
  (name)
- (init "")
- )
+ (value "")
+ (kind "Field"))
 
 (define (t:int) "int")
 (define (t:str) "QString")
-(define (t:vec arg) (list "Vec" arg))
+(define (t:vec arg) (format #f "Vec<~a>" arg))
 (define* (t:id #:optional target)
-  (if target (list "SemIdT" target) "SemId"))
-(define* (t:opt arg) (list "Opt" arg))
+  (if target (format #f "SemIdT<~a>" target) "SemId"))
+(define* (t:opt arg) (format #f "Opt<~a>" arg))
 
 (d:group
  (list
   (d:struct 'Org
             "Base class for org mode types"
-            #:members
+            #:methods
             (list
              (d:method "SemOrgKind" "getKind" #:is-virtual #t #:is-const #t)
-             (d:method "OrgNodeKind" "getOriginalKind" #:is-const #t)
-             (d:field (t:opt "LineCol") "loc" #:init "std::nullopt")))
+             (d:method "OrgNodeKind" "getOriginalKind" #:is-const #t))
+            #:fields
+            (list
+             (d:field (t:opt "LineCol") "loc" #:value "std::nullopt"))
+            )
   (d:struct 'Stmt
             "Base class for all document-level entries. Note that some node kinds
 might also have inline entries (examples include links, source code blocks,

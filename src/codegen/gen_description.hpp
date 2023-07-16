@@ -45,14 +45,14 @@ struct GenDescription {
         Vec<Ident>    fields;
         Vec<Function> methods;
         Vec<Str>      bases;
-        using Nested = Variant<Enum, Struct>;
-        Vec<Nested> nested;
+        Vec<Enum>     enums;
+        Vec<Struct>   structs;
         BOOST_DESCRIBE_CLASS(
             Struct,
             (),
             (),
             (),
-            (name, fields, methods, nested));
+            (name, fields, methods, enums, structs));
     };
 
     struct TypeGroup {
@@ -125,21 +125,6 @@ void visitValue(YAML::Node const& node, T& tree) {
     mp_for_each<Md>([&](auto const& field) {
         visitField(node, tree.*field.pointer, field.name);
     });
-}
-
-inline void visitValue(
-    YAML::Node const&               node,
-    GenDescription::Struct::Nested& rhs) {
-    Str kind = node["kind"].as<Str>();
-    if (kind == "Enum") {
-        GenDescription::Enum result;
-        visitValue(node, result);
-        rhs = result;
-    } else if (kind == "Struct") {
-        GenDescription::Struct result;
-        visitValue(node, result);
-        rhs = result;
-    }
 }
 
 inline void visitValue(
