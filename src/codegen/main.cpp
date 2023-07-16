@@ -11,7 +11,7 @@ QTextStream qcout;
 int main(int argc, const char** argv) {
     guile::init();
     SCM doc = guile::eval_file(argv[1]);
-    std::cout << doc << std::endl;
+    guile::print(doc, std::cout);
 
     //    GenDescription description = doc.as<GenDescription>();
     //    ASTBuilder     builder;
