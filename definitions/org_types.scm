@@ -68,7 +68,7 @@
 
 (simple-define-type
  <group> d:group
- (items))
+ (entries))
 
 (simple-define-type
  <method> d:method

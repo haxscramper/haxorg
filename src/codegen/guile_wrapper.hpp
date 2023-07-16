@@ -10,16 +10,61 @@ extern "C" {
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
 
+#include <hstd/system/macros.hpp>
+#include <hstd/system/reflection.hpp>
+
 namespace guile {
+
+DECL_DESCRIBED_ENUM_STANDALONE(
+    ValueKind,
+    TrueLiteral,
+    FalseLiteral,
+    Integer,
+    Real,
+    Complex,
+    Char,
+    String,
+    Symbol,
+    Vector,
+    List,
+    Alist,
+    Plist,
+    GoopsInstance,
+    Unspecified,
+    Procedure,
+    Port,
+    Promise,
+    HashTable,
+    ByteVector,
+    Struct,
+    Unknown);
+
 
 void        init();
 SCM         eval(const std::string& code);
 SCM         eval_file(const std::string& filename);
+ValueKind   get_value_kind(SCM obj);
 void        print(SCM obj, std::ostream& out, std::string indent = "");
 bool        is_plist(SCM list);
 bool        is_alist(SCM list);
 void        iterate_plist(SCM list, std::function<void(SCM, SCM)> lambda);
 std::string to_string(SCM value);
+
+struct decode_error : std::exception {
+  public:
+    std::string text;
+    decode_error(std::string const& where, SCM got) {
+        text = std::format(
+            "Unexpected value '{}' of kind {} was found while {}",
+            to_string(got),
+            enum_to_string(get_value_kind(got)).toStdString(),
+            where);
+    }
+
+    const char* what() const noexcept override {
+        return strdup(text.c_str());
+    }
+};
 
 
 template <typename T>
@@ -35,7 +80,11 @@ inline void visit_field(T& result, SCM node, char const* field) {
 template <>
 struct convert<int> {
     static void decode(int& result, SCM value) {
-        result = scm_to_int(value);
+        if (scm_is_number(value)) {
+            result = scm_to_int(value);
+        } else {
+            throw decode_error("parsing 'int' type", value);
+        }
     }
 };
 

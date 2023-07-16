@@ -41,6 +41,15 @@
     };                                                                    \
     BOOST_DESCRIBE_NESTED_ENUM(Name, __VA_ARGS__);
 
+/// \brief Declare enum \arg Name with all it's fields and pass them to
+/// BOOST_DESCRIBE_NESTED_ENUM to generate reflection information.
+#define DECL_DESCRIBED_ENUM_STANDALONE(Name, ...)                         \
+    enum class Name                                                       \
+    {                                                                     \
+        __VA_ARGS__                                                       \
+    };                                                                    \
+    BOOST_DESCRIBE_ENUM(Name, __VA_ARGS__);
+
 /// \brief Helper macro for better API when working with discriminant
 /// objects.
 ///

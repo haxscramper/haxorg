@@ -12,10 +12,14 @@ namespace guile {
 template <typename T>
 struct convert<Vec<T>> {
     static void decode(Vec<T>& result, SCM list) {
-        for (; scm_is_true(scm_pair_p(list)); list = scm_cdr(list)) {
-            T temp;
-            ::guile::convert<T>::decode(temp, scm_car(list));
-            result.push_back(temp);
+        if (scm_is_true(scm_list_p(list))) {
+            for (; scm_is_true(scm_pair_p(list)); list = scm_cdr(list)) {
+                T temp;
+                ::guile::convert<T>::decode(temp, scm_car(list));
+                result.push_back(temp);
+            }
+        } else {
+            throw decode_error("parsing list value", list);
         }
     }
 };
@@ -36,7 +40,11 @@ struct convert<Opt<T>> {
 template <>
 struct convert<Str> {
     static void decode(Str& result, SCM item) {
-        result = Str::fromStdString(::guile::to_string(item));
+        if (scm_is_true(scm_string_p(item))) {
+            result = Str::fromStdString(::guile::to_string(item));
+        } else {
+            throw decode_error("parsing string", item);
+        }
     }
 };
 } // namespace guile
