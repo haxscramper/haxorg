@@ -70,4 +70,41 @@
  <group> d:group
  (items))
 
-(d:struct 'Org "Base class for org mode types" #:bases '(Some))
+(simple-define-type
+ <method> d:method
+ (return-type)
+ (name)
+ (args (list))
+ (is-const #f)
+ (is-virtual #f))
+
+(simple-define-type
+ <field> d:field
+ (field-type)
+ (name)
+ (init "")
+ )
+
+(define (t:int) "int")
+(define (t:str) "QString")
+(define (t:vec arg) (list "Vec" arg))
+(define* (t:id #:optional target)
+  (if target (list "SemIdT" target) "SemId"))
+(define* (t:opt arg) (list "Opt" arg))
+
+(d:group
+ (list
+  (d:struct 'Org
+            "Base class for org mode types"
+            #:members
+            (list
+             (d:method "SemOrgKind" "getKind" #:is-virtual #t #:is-const #t)
+             (d:method "OrgNodeKind" "getOriginalKind" #:is-const #t)
+             (d:field (t:opt "LineCol") "loc" #:init "std::nullopt")))
+  (d:struct 'Stmt
+            "Base class for all document-level entries. Note that some node kinds
+might also have inline entries (examples include links, source code blocks,
+call blocks)"
+            #:bases '(Org))
+  )
+ )

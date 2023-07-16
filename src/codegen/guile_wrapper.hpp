@@ -7,18 +7,96 @@ extern "C" {
 #include <string>
 #include <functional>
 #include <iostream>
-
+#include <boost/mp11.hpp>
+#include <boost/describe.hpp>
 
 namespace guile {
 
-void init();
-SCM  eval(const std::string& code);
-SCM  eval_file(const std::string& filename);
-void print(SCM obj, std::ostream& out, std::string indent = "");
+void        init();
+SCM         eval(const std::string& code);
+SCM         eval_file(const std::string& filename);
+void        print(SCM obj, std::ostream& out, std::string indent = "");
+bool        is_plist(SCM list);
+bool        is_alist(SCM list);
+void        iterate_plist(SCM list, std::function<void(SCM, SCM)> lambda);
+std::string to_string(SCM value);
 
-bool is_plist(SCM list);
-bool is_alist(SCM list);
-void iterate_plist(SCM list, std::function<void(SCM, SCM)> lambda);
+
+template <typename T>
+struct convert;
+
+SCM get_field(SCM node, char const* field);
+
+template <typename T>
+inline void visit_field(T& result, SCM node, char const* field) {
+    ::guile::convert<T>::decode(result, get_field(node, field));
+}
+
+template <>
+struct convert<int> {
+    static void decode(int& result, SCM value) {
+        result = scm_to_int(value);
+    }
+};
+
+template <>
+struct convert<bool> {
+    static void decode(bool& result, SCM value) {
+        result = scm_is_true(value);
+    }
+};
+
+
+template <typename T>
+concept DescribedRecord = boost::describe::has_describe_members<
+                              std::remove_cvref_t<T>>::value
+                       && boost::describe::has_describe_bases<
+                              std::remove_cvref_t<T>>::value;
+
+// Type trait to check if a type is a specialization of std::variant
+template <class T>
+struct is_variant : std::false_type {};
+
+template <class... Args>
+struct is_variant<std::variant<Args...>> : std::true_type {};
+
+// The concept uses the type trait after removing cv-ref qualifiers
+template <typename T>
+concept IsVariant = is_variant<std::remove_cvref_t<T>>::value;
+
+
+template <typename T>
+void init_variant(T& result, SCM value) {}
+
+
+template <IsVariant T>
+struct convert<T> {
+    static void decode(T& result, SCM value) {
+        ::guile::init_variant(result, value);
+        std::visit(
+            [&](auto& variant) {
+                ::guile::convert<typename std::remove_cvref_t<
+                    decltype(variant)>>::decode(variant, value);
+                return 0;
+            },
+            result);
+    }
+};
+
+
+template <DescribedRecord T>
+struct convert<T> {
+    static void decode(T& result, SCM value) {
+        using Bd = boost::describe::
+            describe_bases<T, boost::describe::mod_any_access>;
+        using Md = boost::describe::
+            describe_members<T, boost::describe::mod_any_access>;
+        mp_for_each<Md>([&](auto const& field) {
+            ::guile::visit_field(result.*field.pointer, value, field.name);
+        });
+    }
+};
+
 
 } // namespace guile
 

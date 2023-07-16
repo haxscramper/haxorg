@@ -10,18 +10,34 @@ SCM guile::eval(const std::string& code) {
 
 void guile::init() { scm_init_guile(); }
 
-std::ostream& operator<<(std::ostream& os, SCM scm) {
+std::string guile::to_string(SCM value) {
     SCM representation = scm_object_to_string(
-        scm, scm_variable_ref(scm_c_lookup("display")));
-    char* scm_str = scm_to_locale_string(representation);
-    os << scm_str;
+        value, scm_variable_ref(scm_c_lookup("display")));
+    char*       scm_str = scm_to_locale_string(representation);
+    std::string result{scm_str};
     scm_dynwind_free(scm_str);
-    return os;
+    return result;
+}
+
+std::ostream& operator<<(std::ostream& os, SCM scm) {
+    return os << ::guile::to_string(scm);
 }
 
 SCM guile::eval_file(const std::string& filename) {
     // Use scm_c_primitive_load to load and evaluate the file
     return scm_c_primitive_load(filename.c_str());
+}
+
+SCM guile::get_field(SCM node, char const* field) {
+    SCM field_sym = scm_from_utf8_symbol(field);
+    if (SCM_INSTANCEP(node)) {
+        SCM value = scm_slot_ref(node, field_sym);
+        return value;
+    } else if (scm_is_true(scm_hash_table_p(node))) {
+        return scm_hash_ref(node, field_sym, SCM_BOOL_F);
+    } else {
+        return SCM_BOOL_F;
+    }
 }
 
 void guile::print(SCM obj, std::ostream& out, std::string indent) {
