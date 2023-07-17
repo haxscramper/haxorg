@@ -24,6 +24,11 @@ class ASTBuilder {
         Vec<Str> spaces;
     };
 
+    struct Doc {
+        Str brief;
+        Str full;
+    };
+
     struct QualType {
         Ident ident;
         bool  isConst;
@@ -72,18 +77,18 @@ class ASTBuilder {
     };
 
     struct RecordDeclParams {
-        Str name;
-
-
         struct Method {
             FunctionDeclParams params;
+            Doc                doc;
             bool               isStatic;
             bool               isConst;
+            bool               isVirtual;
             AccessSpecifier    access = AccessSpecifier::Public;
         };
 
         struct Field {
             ParmVarDeclParams params;
+            Doc               doc;
             bool              isStatic = false;
             AccessSpecifier   access   = AccessSpecifier::Public;
         };
@@ -94,6 +99,9 @@ class ASTBuilder {
             Data data;
         };
 
+        Str         name;
+        Doc         doc;
+        Vec<Str>    bases;
         Vec<Member> members;
     };
 

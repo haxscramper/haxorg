@@ -81,8 +81,8 @@
  (result)
  (name)
  (arguments (list))
- (is-const #f)
- (is-virtual #f)
+ (isConst #f)
+ (isVirtual #f)
  (kind "Method"))
 
 (simple-define-type
@@ -105,8 +105,8 @@
             "Base class for org mode types"
             #:methods
             (list
-             (d:method "SemOrgKind" "getKind" #:is-virtual #t #:is-const #t)
-             (d:method "OrgNodeKind" "getOriginalKind" #:is-const #t))
+             (d:method "SemOrgKind" "getKind" #:isVirtual #t #:isConst #t)
+             (d:method "OrgNodeKind" "getOriginalKind" #:isConst #t))
             #:fields
             (list
              (d:field (t:opt "LineCol") "loc" #:value "std::nullopt"))

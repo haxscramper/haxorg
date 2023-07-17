@@ -24,7 +24,26 @@ ASTBuilder::Res ASTBuilder::FieldDecl(
 }
 
 ASTBuilder::Res ASTBuilder::MethodDecl(
-    const RecordDeclParams::Method& method) {}
+    const RecordDeclParams::Method& method) {
+    return b::stack({
+        method.access == AccessSpecifier::Public ? string("public:")
+                                                 : string("private:"),
+        b::indent(
+            2,
+            b::line({
+                string(method.isStatic ? "static " : ""),
+                string(method.isVirtual ? "virtual " : ""),
+                Type(method.params.ResultTy),
+                string(" "),
+                string(method.params.Name),
+                string("("),
+                string(")"),
+                string(method.isConst ? " const" : ""),
+                string(method.isVirtual ? " = 0" : ""),
+                string(";"),
+            })),
+    });
+}
 
 ASTBuilder::Res ASTBuilder::RecordDecl(const RecordDeclParams& params) {
     Vec<Res> content;
@@ -32,11 +51,19 @@ ASTBuilder::Res ASTBuilder::RecordDecl(const RecordDeclParams& params) {
     for (auto const& m : params.members) {
         if (m.getKind() == RecordDeclParams::Member::Kind::Field) {
             content.push_back(FieldDecl(m.getField()));
-        } else {
+        } else if (m.getKind() == RecordDeclParams::Member::Kind::Method) {
+            content.push_back(MethodDecl(m.getMethod()));
         }
     }
 
     Res bases = string("");
+    if (!params.bases.empty()) {
+        Vec<Res> classes;
+        for (auto const& base : params.bases) {
+            classes.push_back(string("public " + base));
+        }
+        bases = b::line({string(" : "), b::join(classes, string(", "))});
+    }
 
     return b::stack({
         b::line({
@@ -47,6 +74,7 @@ ASTBuilder::Res ASTBuilder::RecordDecl(const RecordDeclParams& params) {
         }),
         b::indent(2, b::stack(content)),
         string("};"),
+        string(""),
     });
 }
 

@@ -2,6 +2,10 @@
 #include <fmt/ranges.h>
 #include <fstream>
 
+#include <QFileInfo>
+
+#include <hstd/stdlib/Debug.hpp>
+
 #include "gen_description.hpp"
 #include "gen_converter.hpp"
 #include "guile_wrapper.hpp"
@@ -63,6 +67,9 @@ struct convert<GenDescription::Entry>
             result = GenDescription::Enum{};
         } else if (kind == "TypeGroup") {
             result = GenDescription::TypeGroup{};
+        } else {
+            throw decode_error(
+                "parsing GenDescriptionEntry variant", value);
         }
     }
 };
@@ -70,11 +77,21 @@ struct convert<GenDescription::Entry>
 } // namespace guile
 
 int main(int argc, const char** argv) {
+    QFile stdoutFile;
+    if (stdoutFile.open(stdout, QIODevice::WriteOnly)) {
+        qcout.setDevice(&stdoutFile);
+    } else {
+        qFatal("Failed to open stdout for reading");
+    }
+
     guile::init();
     SCM           doc = guile::eval_file(argv[1]);
     std::ofstream file{"/tmp/repr.txt"};
     ::guile::print(doc, file);
     file << std::endl;
+
+
+    QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
 
     GenDescription description;
     ::guile::convert<GenDescription>::decode(description, doc);

@@ -32,12 +32,15 @@ struct GenDescription {
         Str        name;
         Vec<Ident> arguments;
         Str        result;
+        bool       isVirtual = false;
+        bool       isConst   = false;
+        bool       isStatic  = false;
         BOOST_DESCRIBE_CLASS(
             Function,
             (),
             (),
             (),
-            (name, arguments, result));
+            (name, arguments, result, isVirtual, isConst));
     };
 
     struct Struct {
@@ -52,7 +55,7 @@ struct GenDescription {
             (),
             (),
             (),
-            (name, fields, methods, enums, structs));
+            (name, fields, methods, bases, enums, structs));
     };
 
     struct TypeGroup {
