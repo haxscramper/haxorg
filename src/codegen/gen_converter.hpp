@@ -14,4 +14,5 @@ AB::FunctionDeclParams convert(
 ASTBuilder::RecordDeclParams convert(
     ASTBuilder&       builder,
     GD::Struct const& record);
-ASTBuilder::Res convert(ASTBuilder& builder, GD const& desc);
+ASTBuilder::Res       convert(ASTBuilder& builder, GD const& desc);
+ASTBuilder::DocParams convert(ASTBuilder& builder, GD::Doc const& doc);

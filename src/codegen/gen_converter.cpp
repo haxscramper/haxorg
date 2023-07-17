@@ -14,6 +14,7 @@ AB::FunctionDeclParams convert(
     AB::FunctionDeclParams decl;
     decl.ResultTy = builder.Type(func.result);
     decl.Name     = func.name;
+    decl.doc      = convert(builder, func.doc);
 
     for (auto const& parm : func.arguments) {
         decl.Args.push_back(toParams(builder, parm));
@@ -30,7 +31,12 @@ ASTBuilder::RecordDeclParams convert(
     ASTBuilder&       builder,
     const GD::Struct& record) {
     using RDP = ASTBuilder::RecordDeclParams;
-    RDP params{.name = record.name, .bases = record.bases};
+    RDP params{
+        .name  = record.name,
+        .bases = record.bases,
+        .doc   = convert(builder, record.doc),
+    };
+
     for (auto const& member : record.fields) {
         params.members.push_back(RDP::Member{RDP::Field{
             .params = AB::ParmVarDeclParams{
@@ -78,4 +84,10 @@ ASTBuilder::Res convert(ASTBuilder& builder, const GD& desc) {
     }
 
     return builder.TranslationUnit(decls);
+}
+
+ASTBuilder::DocParams convert(
+    ASTBuilder&                builder,
+    const GenDescription::Doc& doc) {
+    return ASTBuilder::DocParams{.brief = doc.brief, .full = doc.full};
 }

@@ -24,7 +24,7 @@ class ASTBuilder {
         Vec<Str> spaces;
     };
 
-    struct Doc {
+    struct DocParams {
         Str brief;
         Str full;
     };
@@ -40,7 +40,6 @@ class ASTBuilder {
         Static
     };
 
-
     struct ParmVarDeclParams {
         QualType     type;
         Str          name;
@@ -48,13 +47,14 @@ class ASTBuilder {
         Str          defArg  = "";
     };
 
-
+    Res Doc(DocParams const& doc);
     Res ParmVarDecl(const ParmVarDeclParams& p);
 
     /// Function declaration signature
     struct FunctionDeclParams {
         Str                    Name;
-        QualType               ResultTy = QualType();
+        DocParams              doc;
+        QualType               ResultTy = QualType({{"void"}});
         Vec<ParmVarDeclParams> Args     = {};
         StorageClass           Storage  = StorageClass::None;
         Res                    Body     = nullptr;
@@ -79,7 +79,6 @@ class ASTBuilder {
     struct RecordDeclParams {
         struct Method {
             FunctionDeclParams params;
-            Doc                doc;
             bool               isStatic;
             bool               isConst;
             bool               isVirtual;
@@ -88,7 +87,7 @@ class ASTBuilder {
 
         struct Field {
             ParmVarDeclParams params;
-            Doc               doc;
+            DocParams         doc;
             bool              isStatic = false;
             AccessSpecifier   access   = AccessSpecifier::Public;
         };
@@ -100,7 +99,7 @@ class ASTBuilder {
         };
 
         Str         name;
-        Doc         doc;
+        DocParams   doc;
         Vec<Str>    bases;
         Vec<Member> members;
     };

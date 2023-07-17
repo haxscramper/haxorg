@@ -22,16 +22,24 @@ struct GenDescription {
         BOOST_DESCRIBE_CLASS(Ident, (), (), (), (name, type, value));
     };
 
+    struct Doc {
+        Str brief;
+        Str full;
+        BOOST_DESCRIBE_CLASS(Doc, (), (), (), (brief, full));
+    };
+
     struct Enum {
         Str        name;
         Vec<Ident> fields;
-        BOOST_DESCRIBE_CLASS(Enum, (), (), (), (name, fields));
+        Doc        doc;
+        BOOST_DESCRIBE_CLASS(Enum, (), (), (), (name, fields, doc));
     };
 
     struct Function {
         Str        name;
         Vec<Ident> arguments;
         Str        result;
+        Doc        doc;
         bool       isVirtual = false;
         bool       isConst   = false;
         bool       isStatic  = false;
@@ -40,7 +48,7 @@ struct GenDescription {
             (),
             (),
             (),
-            (name, arguments, result, isVirtual, isConst));
+            (name, arguments, result, isVirtual, isConst, doc));
     };
 
     struct Struct {
@@ -50,12 +58,13 @@ struct GenDescription {
         Vec<Str>      bases;
         Vec<Enum>     enums;
         Vec<Struct>   structs;
+        Doc           doc;
         BOOST_DESCRIBE_CLASS(
             Struct,
             (),
             (),
             (),
-            (name, fields, methods, bases, enums, structs));
+            (name, fields, methods, bases, enums, structs, doc));
     };
 
     struct TypeGroup {

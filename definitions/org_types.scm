@@ -60,15 +60,19 @@
 ;;    )))
 
 (simple-define-type
+ <doc> d:doc
+ (brief)
+ (full ""))
+
+(simple-define-type
  <type> d:struct
  (name)
- (brief-doc)
+ (doc)
  (fields (list))
  (enums (list))
  (methods (list))
  (structs (list))
  (bases (list))
- (long-doc "")
  (kind "Struct"))
 
 (simple-define-type
@@ -80,6 +84,7 @@
  <method> d:method
  (result)
  (name)
+ (doc)
  (arguments (list))
  (isConst #f)
  (isVirtual #f)
@@ -102,19 +107,26 @@
 (d:group
  (list
   (d:struct 'Org
-            "Base class for org mode types"
+            (d:doc "Base class for org mode types")
             #:methods
             (list
-             (d:method "SemOrgKind" "getKind" #:isVirtual #t #:isConst #t)
-             (d:method "OrgNodeKind" "getOriginalKind" #:isConst #t))
+             (d:method
+              "SemOrgKind" "getKind"
+              (d:doc "Get current kind of the sem org node")
+              #:isVirtual #t #:isConst #t)
+             (d:method
+              "OrgNodeKind" "getOriginalKind"
+              (d:doc "Get original kind of the parser org node")
+              #:isConst #t))
             #:fields
             (list
              (d:field (t:opt "LineCol") "loc" #:value "std::nullopt"))
             )
   (d:struct 'Stmt
-            "Base class for all document-level entries. Note that some node kinds
+            (d:doc
+             "Base class for all document-level entries. Note that some node kinds
 might also have inline entries (examples include links, source code blocks,
-call blocks)"
+call blocks)")
             #:bases '(Org))
   )
  )

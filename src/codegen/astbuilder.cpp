@@ -1,8 +1,44 @@
 #include "astbuilder.hpp"
 
+#include <ranges>
+
+namespace rv = std::ranges::views;
+namespace rs = std::ranges;
+
+ASTBuilder::Res ASTBuilder::Doc(const DocParams& doc) {
+    Vec<Str> content;
+    bool     isFirst = true;
+    for (auto const& line : doc.brief.split("\n")) {
+        if (line.size() == 0) {
+            continue;
+        } else if (isFirst) {
+            content.push_back("\\brief " + line);
+            isFirst = false;
+        } else {
+            content.push_back(line);
+        }
+    }
+
+    if (!content.empty()) {
+        content.push_back("");
+    }
+
+    for (auto const& line : doc.full.split("\n")) {
+        content.push_back(line);
+    }
+
+    while (!content.empty() && content.back().empty()) {
+        content.pop_back();
+    }
+
+    auto result = b::stack();
+    for (auto const& line : content) {
+        result->add(string("/// " + line));
+    }
+    return result;
+}
+
 ASTBuilder::Res ASTBuilder::ParmVarDecl(const ParmVarDeclParams& p) {}
-
-
 ASTBuilder::Res ASTBuilder::FunctionDecl(FunctionDeclParams const& p) {}
 
 ASTBuilder::QualType ASTBuilder::Type(Str const& type) {
@@ -19,6 +55,7 @@ ASTBuilder::Res ASTBuilder::FieldDecl(
     return b::stack({
         field.access == AccessSpecifier::Public ? string("public:")
                                                 : string("private:"),
+        Doc(field.doc),
         b::indent(2, VarDecl(field.params)),
     });
 }
@@ -30,17 +67,20 @@ ASTBuilder::Res ASTBuilder::MethodDecl(
                                                  : string("private:"),
         b::indent(
             2,
-            b::line({
-                string(method.isStatic ? "static " : ""),
-                string(method.isVirtual ? "virtual " : ""),
-                Type(method.params.ResultTy),
-                string(" "),
-                string(method.params.Name),
-                string("("),
-                string(")"),
-                string(method.isConst ? " const" : ""),
-                string(method.isVirtual ? " = 0" : ""),
-                string(";"),
+            b::stack({
+                Doc(method.params.doc),
+                b::line({
+                    string(method.isStatic ? "static " : ""),
+                    string(method.isVirtual ? "virtual " : ""),
+                    Type(method.params.ResultTy),
+                    string(" "),
+                    string(method.params.Name),
+                    string("("),
+                    string(")"),
+                    string(method.isConst ? " const" : ""),
+                    string(method.isVirtual ? " = 0" : ""),
+                    string(";"),
+                }),
             })),
     });
 }
@@ -66,6 +106,7 @@ ASTBuilder::Res ASTBuilder::RecordDecl(const RecordDeclParams& params) {
     }
 
     return b::stack({
+        Doc(params.doc),
         b::line({
             string("struct "),
             string(params.name),
