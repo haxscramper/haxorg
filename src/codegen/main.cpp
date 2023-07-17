@@ -100,6 +100,6 @@ int main(int argc, const char** argv) {
     auto definitions = convert(builder, description);
     auto result      = builder.TranslationUnit({definitions});
 
-    std::cout << builder.store.toString(result, layout::Options())
-              << std::endl;
+    std::ofstream out{"/tmp/result.cpp"};
+    out << builder.store.toString(result, layout::Options()) << std::endl;
 }

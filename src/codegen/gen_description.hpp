@@ -74,7 +74,14 @@ struct GenDescription {
 
     using Entry = Variant<Enum, Struct, TypeGroup>;
     Vec<Entry> entries;
-    BOOST_DESCRIBE_CLASS(GenDescription, (), (), (), (entries));
+    Str        iteratorMacroName;
+    Str        enumName;
+    BOOST_DESCRIBE_CLASS(
+        GenDescription,
+        (),
+        (),
+        (),
+        (entries, iteratorMacroName, enumName));
 };
 
 template <typename T>

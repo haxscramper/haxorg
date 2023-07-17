@@ -108,6 +108,35 @@ class ASTBuilder {
     Res MethodDecl(RecordDeclParams::Method const& method);
     Res RecordDecl(RecordDeclParams const& params);
 
+    struct MacroDeclParams {
+        struct Param {
+            Str  name;
+            bool isEllipsis;
+        };
+        DocParams  doc;
+        Vec<Param> params;
+        Str        name;
+        Vec<Str>   definition;
+    };
+
+    Res MacroDecl(MacroDeclParams const& params);
+
+    struct EnumDeclParams {
+        struct Field {
+            DocParams doc;
+            Str       name;
+            Opt<Str>  value;
+        };
+
+        Str        name;
+        Str        base;
+        DocParams  doc;
+        bool       isEnumClass = true;
+        Vec<Field> fields;
+    };
+
+    Res EnumDecl(EnumDeclParams const& params);
+
     struct CompoundStmtParams {
         Vec<Res> Stmts;
     };

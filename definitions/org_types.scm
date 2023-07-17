@@ -78,6 +78,8 @@
 (simple-define-type
  <group> d:group
  (entries)
+ (enumName "")
+ (iteratorMacroName "")
  (kind "Group"))
 
 (simple-define-type
@@ -105,28 +107,29 @@
 (define* (t:opt arg) (format #f "Opt<~a>" arg))
 
 (d:group
- (list
-  (d:struct 'Org
-            (d:doc "Base class for org mode types")
-            #:methods
-            (list
-             (d:method
-              "SemOrgKind" "getKind"
-              (d:doc "Get current kind of the sem org node")
-              #:isVirtual #t #:isConst #t)
-             (d:method
-              "OrgNodeKind" "getOriginalKind"
-              (d:doc "Get original kind of the parser org node")
-              #:isConst #t))
-            #:fields
-            (list
-             (d:field (t:opt "LineCol") "loc" #:value "std::nullopt"))
-            )
-  (d:struct 'Stmt
-            (d:doc
-             "Base class for all document-level entries. Note that some node kinds
+ (list (d:struct 'Org
+                 (d:doc "Base class for org mode types")
+                 #:methods
+                 (list
+                  (d:method
+                   "SemOrgKind" "getKind"
+                   (d:doc "Get current kind of the sem org node")
+                   #:isVirtual #t #:isConst #t)
+                  (d:method
+                   "OrgSemKind" "getOriginalKind"
+                   (d:doc "Get original kind of the parser org node")
+                   #:isConst #t))
+                 #:fields
+                 (list
+                  (d:field (t:opt "LineCol") "loc" #:value "std::nullopt"))
+                 )
+       (d:struct 'Stmt
+                 (d:doc
+                  "Base class for all document-level entries. Note that some node kinds
 might also have inline entries (examples include links, source code blocks,
 call blocks)")
-            #:bases '(Org))
-  )
+                 #:bases '(Org))
+       )
+ #:enumName "OrgSemKind"
+ #:iteratorMacroName "EACH_ORG_SEM_KIND"
  )

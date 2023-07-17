@@ -119,6 +119,54 @@ ASTBuilder::Res ASTBuilder::RecordDecl(const RecordDeclParams& params) {
     });
 }
 
+ASTBuilder::Res ASTBuilder::MacroDecl(const MacroDeclParams& params) {
+    auto definition = b::stack();
+    for (auto const& line : params.definition) {
+        definition->add(string(line + "  \\"));
+    }
+    Vec<Res> arguments;
+    for (auto const& line : params.params) {
+        arguments.push_back(string(line.isEllipsis ? "..." : line.name));
+    }
+
+    return b::stack({
+        Doc(params.doc),
+        b::line({
+            string("#define "),
+            string(params.name),
+            string("("),
+            b::join(arguments, string(", ")),
+            string(") \\"),
+        }),
+        b::indent(8, definition),
+        string(""),
+    });
+}
+
+ASTBuilder::Res ASTBuilder::EnumDecl(const EnumDeclParams& params) {
+    auto fields = b::stack();
+    for (auto const& field : params.fields) {
+        fields->add(b::stack({
+            Doc(field.doc),
+            string(field.name + ","), // TODO field value
+        }));
+    }
+
+    return b::stack({
+        Doc(params.doc),
+        b::line({
+            string("enum "),
+            string(params.isEnumClass ? "class " : ""),
+            string(params.name),
+            string(params.base.empty() ? "" : params.base),
+            string("{"),
+        }),
+        b::indent(2, fields),
+        string("};"),
+        string(""),
+    });
+}
+
 ASTBuilder::Res ASTBuilder::VarDecl(ParmVarDeclParams const& p) {
     return b::line({
         Type(p.type),

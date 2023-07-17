@@ -1,16 +1,12 @@
 #include "gen_converter.hpp"
 
-AB::ParmVarDeclParams toParams(
-    ASTBuilder&      builder,
-    GD::Ident const& ident) {
+AB::ParmVarDeclParams toParams(AB& builder, GD::Ident const& ident) {
     AB::ParmVarDeclParams result{};
     result.name = ident.name;
     return result;
 }
 
-AB::FunctionDeclParams convert(
-    ASTBuilder&         builder,
-    const GD::Function& func) {
+AB::FunctionDeclParams convert(AB& builder, const GD::Function& func) {
     AB::FunctionDeclParams decl;
     decl.ResultTy = builder.Type(func.result);
     decl.Name     = func.name;
@@ -23,14 +19,12 @@ AB::FunctionDeclParams convert(
     return decl;
 }
 
-ASTBuilder::Res convert(ASTBuilder& builder, const GD::Ident& ident) {
+AB::Res convert(AB& builder, const GD::Ident& ident) {
     return builder.ParmVarDecl(toParams(builder, ident));
 }
 
-ASTBuilder::RecordDeclParams convert(
-    ASTBuilder&       builder,
-    const GD::Struct& record) {
-    using RDP = ASTBuilder::RecordDeclParams;
+AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
+    using RDP = AB::RecordDeclParams;
     RDP params{
         .name  = record.name,
         .bases = record.bases,
@@ -57,10 +51,8 @@ ASTBuilder::RecordDeclParams convert(
     return params;
 }
 
-Vec<ASTBuilder::Res> convert(
-    ASTBuilder&          builder,
-    const GD::TypeGroup& record) {
-    Vec<ASTBuilder::Res> decls;
+Vec<AB::Res> convert(AB& builder, const GD::TypeGroup& record) {
+    Vec<AB::Res> decls;
 
     for (auto const& sub : record.types) {
         decls.push_back(builder.RecordDecl(convert(builder, sub)));
@@ -70,8 +62,34 @@ Vec<ASTBuilder::Res> convert(
 }
 
 
-ASTBuilder::Res convert(ASTBuilder& builder, const GD& desc) {
-    Vec<ASTBuilder::Res> decls;
+AB::Res convert(AB& builder, const GD& desc) {
+    Vec<AB::Res> decls;
+    Vec<Str>     typeNames;
+    for (auto const& item : desc.entries) {
+        if (std::holds_alternative<GD::Struct>(item)) {
+            typeNames.push_back(std::get<GD::Struct>(item).name);
+        }
+    }
+
+    AB::EnumDeclParams enumDecl;
+    for (auto const& item : typeNames) {
+        enumDecl.fields.push_back(AB::EnumDeclParams::Field{.name = item});
+    }
+
+    enumDecl.name = desc.enumName;
+    decls.push_back(builder.EnumDecl(enumDecl));
+
+    AB::MacroDeclParams iteratorMacro;
+
+    for (auto const& item : typeNames) {
+        iteratorMacro.definition.push_back("__IMPL(" + item + ")");
+    }
+
+    iteratorMacro.params = {{"__IMPL"}};
+    iteratorMacro.name   = desc.iteratorMacroName;
+    decls.push_back(builder.MacroDecl(iteratorMacro));
+
+
     for (auto const& item : desc.entries) {
         if (std::holds_alternative<GD::Struct>(item)) {
             decls.push_back(builder.RecordDecl(
@@ -86,8 +104,6 @@ ASTBuilder::Res convert(ASTBuilder& builder, const GD& desc) {
     return builder.TranslationUnit(decls);
 }
 
-ASTBuilder::DocParams convert(
-    ASTBuilder&                builder,
-    const GenDescription::Doc& doc) {
-    return ASTBuilder::DocParams{.brief = doc.brief, .full = doc.full};
+AB::DocParams convert(AB& builder, const GenDescription::Doc& doc) {
+    return AB::DocParams{.brief = doc.brief, .full = doc.full};
 }
