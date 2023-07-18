@@ -38,15 +38,41 @@ ASTBuilder::Res ASTBuilder::Doc(const DocParams& doc) {
     return result;
 }
 
-ASTBuilder::Res ASTBuilder::ParmVarDecl(const ParmVarDeclParams& p) {}
-ASTBuilder::Res ASTBuilder::FunctionDecl(FunctionDeclParams const& p) {}
+ASTBuilder::Res ASTBuilder::ParmVarDecl(const ParmVarDeclParams& p) {
+    return b::line({Type(p.type), string(" "), string(p.name)});
+}
+
+ASTBuilder::Res ASTBuilder::FunctionDecl(FunctionDeclParams const& p) {
+    Vec<Res> Args;
+    for (auto const& Arg : p.Args) {
+        Args.push_back(ParmVarDecl(Arg));
+    }
+
+    auto head = b::line({
+        Type(p.ResultTy),
+        string(" "),
+        string(p.Name),
+        pars({b::join(Args, string(", "))}),
+    });
+
+    if (p.Body) {
+        return block(head, *p.Body, true);
+    } else {
+        return b::line({head, string(";")});
+    }
+}
 
 ASTBuilder::QualType ASTBuilder::Type(Str const& type) {
-    return QualType{.ident = Ident{.spaces = {type}}};
+    return QualType(type);
 }
 
 ASTBuilder::Res ASTBuilder::Type(const QualType& type) {
-    return string(type.ident.spaces.at(0));
+    return string(
+        type.ident.spaces.at(0) +        //
+        (type.isConst ? " const" : "") + //
+        (type.isPtr ? "*" : "") +        //
+        (type.isRef ? "&" : "")          //
+    );
 }
 
 
@@ -157,7 +183,7 @@ ASTBuilder::Res ASTBuilder::EnumDecl(const EnumDeclParams& params) {
         b::line({
             string("enum "),
             string(params.isEnumClass ? "class " : ""),
-            string(params.name),
+            string(params.name + " "),
             string(params.base.empty() ? "" : params.base),
             string("{"),
         }),
@@ -206,6 +232,32 @@ ASTBuilder::Res ASTBuilder::IfStmt(const Span<IfStmtParams>& p) {
 
 ASTBuilder::Res ASTBuilder::IfStmt(const Vec<IfStmtParams>& p) {
     return IfStmt(p[slice(0, 1_B)]);
+}
+
+ASTBuilder::Res ASTBuilder::CaseStmt(const CaseStmtParams& params) {
+    auto     head = b::line({string("case "), params.Expr, string(":")});
+    Vec<Res> Body = params.Body
+                  + (params.Autobreak ? Vec<Res>{XStmt("break")}
+                                      : Vec<Res>{});
+    if (params.Compound) {
+        return block(head, Body);
+    } else {
+        if (params.OneLine) {
+            return b::line(
+                {head, string(" "), b::join(params.Body, string(" "))});
+        } else {
+            return b::stack({head, b::indent(2, b::stack(Body))});
+        }
+    }
+}
+
+ASTBuilder::Res ASTBuilder::SwitchStmt(const SwitchStmtParams& params) {
+    Vec<Res> cases;
+    for (auto const& Case : params.Cases) {
+        cases.push_back(CaseStmt(Case));
+    }
+
+    return block(b::line({string("switch "), pars(params.Expr)}), cases);
 }
 
 ASTBuilder::Res ASTBuilder::XCall(const Str& opc, Vec<Res> args) {

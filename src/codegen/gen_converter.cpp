@@ -27,24 +27,24 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
     using RDP = AB::RecordDeclParams;
     RDP params{
         .name  = record.name,
-        .bases = record.bases,
         .doc   = convert(builder, record.doc),
+        .bases = record.bases,
     };
 
     for (auto const& member : record.fields) {
         params.members.push_back(RDP::Member{RDP::Field{
             .params = AB::ParmVarDeclParams{
-                .name = member.name,
                 .type = builder.Type(member.type),
+                .name = member.name,
             }}});
     }
 
     for (auto const& method : record.methods) {
         params.members.push_back(RDP::Member{AB::RecordDeclParams::Method{
             .params    = convert(builder, method),
+            .isStatic  = method.isStatic,
             .isConst   = method.isConst,
             .isVirtual = method.isVirtual,
-            .isStatic  = method.isStatic,
         }});
     }
 
@@ -71,23 +71,60 @@ AB::Res convert(AB& builder, const GD& desc) {
         }
     }
 
-    AB::EnumDeclParams enumDecl;
-    for (auto const& item : typeNames) {
-        enumDecl.fields.push_back(AB::EnumDeclParams::Field{.name = item});
+    {
+        AB::EnumDeclParams enumDecl;
+        for (auto const& item : typeNames) {
+            enumDecl.fields.push_back(
+                AB::EnumDeclParams::Field{.name = item});
+        }
+
+        enumDecl.name = desc.enumName;
+
+        Str strName = "_text";
+        Str resName = "_result";
+
+        decls.push_back(builder.EnumDecl(enumDecl));
+
+        AB::SwitchStmtParams switchTo{
+            .Expr = builder.string(resName),
+        };
+
+        for (auto const& field : enumDecl.fields) {
+            switchTo.Cases.push_back(AB::CaseStmtParams{
+                .Expr = builder.string(enumDecl.name + "::" + field.name),
+                .Body = {builder.Return(builder.Literal(field.name))},
+                .Compound  = false,
+                .Autobreak = false,
+                .OneLine   = true,
+            });
+        }
+
+        AB::FunctionDeclParams fromEnum{
+            .Name = "from_enum",
+            .ResultTy = AB::QualType("char").Ptr().Const(),
+            .Args = {
+                AB::ParmVarDeclParams{
+                    .type = AB::QualType(desc.enumName),
+                    .name = resName,
+                },
+            },
+            .Body = Vec<AB::Res>{builder.SwitchStmt(switchTo)},
+        };
+
+        decls.push_back(builder.FunctionDecl(fromEnum));
     }
 
-    enumDecl.name = desc.enumName;
-    decls.push_back(builder.EnumDecl(enumDecl));
+    {
+        AB::MacroDeclParams iteratorMacro;
 
-    AB::MacroDeclParams iteratorMacro;
+        for (auto const& item : typeNames) {
+            iteratorMacro.definition.push_back("__IMPL(" + item + ")");
+        }
 
-    for (auto const& item : typeNames) {
-        iteratorMacro.definition.push_back("__IMPL(" + item + ")");
+        iteratorMacro.params = {{"__IMPL"}};
+        iteratorMacro.name   = desc.iteratorMacroName;
+        decls.push_back(builder.MacroDecl(iteratorMacro));
     }
-
-    iteratorMacro.params = {{"__IMPL"}};
-    iteratorMacro.name   = desc.iteratorMacroName;
-    decls.push_back(builder.MacroDecl(iteratorMacro));
 
 
     for (auto const& item : desc.entries) {

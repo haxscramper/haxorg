@@ -105,6 +105,7 @@
 (define* (t:id #:optional target)
   (if target (format #f "SemIdT<~a>" target) "SemId"))
 (define* (t:opt arg) (format #f "Opt<~a>" arg))
+(define* (t:osk) "OrgSemKind")
 
 (d:group
  (list (d:struct 'Org
@@ -112,11 +113,11 @@
                  #:methods
                  (list
                   (d:method
-                   "SemOrgKind" "getKind"
+                   (t:osk) "getKind"
                    (d:doc "Get current kind of the sem org node")
                    #:isVirtual #t #:isConst #t)
                   (d:method
-                   "OrgSemKind" "getOriginalKind"
+                   "OrgNodeKind" "getOriginalKind"
                    (d:doc "Get original kind of the parser org node")
                    #:isConst #t))
                  #:fields

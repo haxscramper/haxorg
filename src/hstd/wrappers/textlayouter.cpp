@@ -849,10 +849,17 @@ Block::Ptr Block::text(CR<LytStrSpan> t) {
 }
 
 Block::Ptr Block::line(CR<Vec<Ptr>> l) {
+    for (auto const& e : l) {
+        Q_CHECK_PTR(e);
+    }
     return Block::shared(Line{.elements = l});
 }
 
 Block::Ptr Block::stack(CR<Vec<Ptr>> l) {
+    for (auto const& e : l) {
+        Q_CHECK_PTR(e);
+    }
+
     return Block::shared(Stack{.elements = l});
 }
 
@@ -869,8 +876,10 @@ Block::Ptr Block::join(
     CR<Block::Ptr>   join,
     bool             isLine,
     bool             isTrailing) {
+    Q_CHECK_PTR(join);
     Block::Ptr res = Block::spatial(isLine);
     for (int i = 0; i < items.size(); ++i) {
+        Q_CHECK_PTR(items.at(i));
         if (i < items.high() || isTrailing) {
             res->add(Block::line({items.at(i), join}));
         } else {

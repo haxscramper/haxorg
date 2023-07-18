@@ -20,8 +20,12 @@ class ASTBuilder {
     layout::SimpleStringStore store;
     Res string(QString const& str) { return b::text(store.str(str)); }
 
+
     struct Ident {
         Vec<Str> spaces;
+        Ident() {}
+        Ident(Str const& name) : spaces({name}) {}
+        Ident(Vec<Str> const& name) : spaces(name) {}
     };
 
     struct DocParams {
@@ -31,7 +35,27 @@ class ASTBuilder {
 
     struct QualType {
         Ident ident;
-        bool  isConst;
+        bool  isConst = false;
+        bool  isPtr   = false;
+        bool  isRef   = false;
+
+        QualType() {}
+        QualType(Str const& name) { ident = Ident(name); }
+
+        QualType& Ref(bool set = true) {
+            isRef = set;
+            return *this;
+        }
+
+        QualType& Ptr(bool set = true) {
+            isPtr = set;
+            return *this;
+        }
+
+        QualType& Const(bool set = true) {
+            isConst = set;
+            return *this;
+        }
     };
 
     enum class StorageClass
@@ -52,12 +76,13 @@ class ASTBuilder {
 
     /// Function declaration signature
     struct FunctionDeclParams {
+        // TODO make into ident
         Str                    Name;
         DocParams              doc;
-        QualType               ResultTy = QualType({{"void"}});
+        QualType               ResultTy = QualType("void");
         Vec<ParmVarDeclParams> Args     = {};
         StorageClass           Storage  = StorageClass::None;
-        Res                    Body     = nullptr;
+        Opt<Vec<Res>>          Body     = std::nullopt;
         bool                   Inline   = false;
     };
 
@@ -149,6 +174,28 @@ class ASTBuilder {
         });
     }
 
+    Res pars(Res const& arg) {
+        return b::line({string("("), arg, string(")")});
+    }
+
+    Res block(
+        Res const&      head,
+        Vec<Res> const& content,
+        bool            trailingLine = false) {
+
+        auto result = b::stack({
+            b::line({head, string(" {")}),
+            b::indent(2, b::stack(content)),
+            string("}"),
+        });
+
+        if (trailingLine) {
+            result->add(string(""));
+        }
+
+        return result;
+    }
+
     Res csv(CVec<Res> items, bool isLine = true, bool isTrailing = false) {
         return b::join(items, string(","), isLine, isTrailing);
     }
@@ -172,9 +219,29 @@ class ASTBuilder {
     Res IfStmt(const Vec<IfStmtParams>& p);
     Res IfStmt(const Span<IfStmtParams>& p);
 
+    struct CaseStmtParams {
+        Res      Expr;
+        Vec<Res> Body;
+        bool     Compound  = true;
+        bool     Autobreak = true;
+        bool     OneLine   = false;
+    };
+
+    struct SwitchStmtParams {
+        Res                 Expr;
+        Vec<CaseStmtParams> Cases;
+    };
+
+    Res CaseStmt(CaseStmtParams const& params);
+    Res SwitchStmt(SwitchStmtParams const& params);
+
     Res XCall(Str const& opc, Vec<Res> args);
     Res XStmt(Str const& opc, Res arg) {
         return b::line({string(opc), string(" "), arg, string(";")});
+    }
+
+    Res XStmt(Str const& opc) {
+        return b::line({string(opc), string(";")});
     }
 
     Res Literal(uint64_t value) { return string(QString::number(value)); }
