@@ -179,6 +179,36 @@ call blocks)")
              (d:field "int" "done" (d:doc "Number of completed tasks") #:value "0")
              (d:field "int" "full" (d:doc "Full number of tasks") #:value "0")
              (d:field "bool" "isPercent" (d:doc "Use fraction or percent to display completion") #:value "false")))
+  (d:struct 'Paragraph
+            (d:doc "Top-level or inline paragraph")
+            #:bases '(Stmt)
+            #:methods
+            (list
+             (d:method "bool" "isFootnoteDefinition" (d:doc "Check if paragraph defines footnote") #:isConst #t)))
+  (d:struct 'Format
+            (d:doc "Base class for branch of formatting node classes")
+            #:bases '(Org)
+            #:concreteKind #f)
+  (d:struct 'Center (d:doc "Center nested content in export") #:bases '(Format))
+  (d:struct 'Command (d:doc "Base class for block or line commands") #:bases '(Org) #:concreteKind #f)
+  (d:struct 'LineCommand (d:doc "Line commands") #:bases '(Command) #:concreteKind #f)
+  ;; TODO rename to the standalone command
+  (d:struct 'Standalone
+            (d:doc "Standalone commands that can be placed individuall on the the
+top level and don't have to be attached to any subsequent elements"
+                   )
+            #:bases '(LineCommand)
+            #:concreteKind #f)
+  (d:struct 'Attached
+            (d:doc "Line command that might get attached to some block element")
+            #:bases '(LineCommand)
+            #:concreteKind #f)
+  (d:struct 'Caption
+            (d:doc "Caption annotation for any subsequent node")
+            #:bases '(Attached)
+            #:fields
+            (list
+             (d:field (t:id "Paragraph") "text" (d:doc "Content description") #:value "SemIdT<Paragraph>::Nil()")))
   )
  #:enumName "OrgSemKind"
  #:iteratorMacroName "EACH_ORG_SEM_KIND"
