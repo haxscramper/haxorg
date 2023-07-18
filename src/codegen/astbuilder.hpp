@@ -251,4 +251,10 @@ class ASTBuilder {
     Res Return(Res expr) { return XStmt("return", expr); }
     Res Continue(Res expr) { return XStmt("continue", expr); }
     Res TranslationUnit(Vec<Res> stmts) { return b::stack(stmts); }
+    Res Include(Str file, bool isSystem) {
+        return b::line({
+            string("#include "),
+            string(isSystem ? "<" + file + ">" : "\"" + file + "\""),
+        });
+    }
 };

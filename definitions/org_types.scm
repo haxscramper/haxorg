@@ -73,6 +73,7 @@
  (methods (list))
  (structs (list))
  (bases (list))
+ (concreteKind #t)
  (kind "Struct"))
 
 (simple-define-type
@@ -96,8 +97,11 @@
  <field> d:field
  (type)
  (name)
+ (doc)
  (value "")
  (kind "Field"))
+
+(simple-define-type <ident> d:ident (type) (name) (value ""))
 
 (define (t:int) "int")
 (define (t:str) "QString")
@@ -106,31 +110,76 @@
   (if target (format #f "SemIdT<~a>" target) "SemId"))
 (define* (t:opt arg) (format #f "Opt<~a>" arg))
 (define* (t:osk) "OrgSemKind")
+(define* (t:cr arg) (format #f "CR<~a>" arg))
 
 (d:group
- (list (d:struct 'Org
-                 (d:doc "Base class for org mode types")
-                 #:methods
-                 (list
-                  (d:method
-                   (t:osk) "getKind"
-                   (d:doc "Get current kind of the sem org node")
-                   #:isVirtual #t #:isConst #t)
-                  (d:method
-                   "OrgNodeKind" "getOriginalKind"
-                   (d:doc "Get original kind of the parser org node")
-                   #:isConst #t))
-                 #:fields
-                 (list
-                  (d:field (t:opt "LineCol") "loc" #:value "std::nullopt"))
-                 )
-       (d:struct 'Stmt
-                 (d:doc
-                  "Base class for all document-level entries. Note that some node kinds
+ (list
+  (d:struct 'Org
+            (d:doc "Base class for org mode types")
+            #:methods
+            (list
+             (d:method (t:osk) "getKind"
+                       (d:doc "Get current kind of the sem org node")
+                       #:isVirtual #t #:isConst #t)
+             (d:method "OrgNodeKind" "getOriginalKind"
+                       (d:doc "Get original kind of the parser org node")
+                       #:isConst #t))
+            #:fields
+            (list
+             (d:field (t:opt "LineCol") "loc"
+                      (d:doc "Original node location") #:value "std::nullopt"))
+            #:concreteKind #f)
+  (d:struct 'Stmt
+            (d:doc
+             "Base class for all document-level entries. Note that some node kinds
 might also have inline entries (examples include links, source code blocks,
 call blocks)")
-                 #:bases '(Org))
-       )
+            #:bases '(Org) #:concreteKind #f)
+  (d:struct 'Inline
+            (d:doc "Base class for all inline elements")
+            #:bases '(Org) #:concreteKind #f)
+  (d:struct 'StmtList
+            (d:doc "Zero or more statement nodes")
+            #:bases '(Org))
+  (d:struct 'Empty (d:doc "Node without content") #:bases '(Org))
+  (d:struct 'Row (d:doc "Table row") #:bases '(Org))
+  (d:struct 'Table (d:doc "Table")
+            #:bases '(Stmt)
+            #:fields
+            (list
+             (d:field (t:vec (t:id "Row")) "rows"
+                      (d:doc "List of rows for the table") #:value "{}")))
+  (d:struct 'HashTag (d:doc "Single or nested inline hash-tag")
+            #:bases '(Inline)
+            #:fields
+            (list
+             (d:field "Str" "head" (d:doc "Main part of the tag"))
+             (d:field (t:vec (t:id "HashTag")) "subtags"
+                      (d:doc "List of nested tags") #:value "{}"))
+            #:methods
+            (list
+             (d:method "bool" "prefixMatch"
+                       (d:doc "Check if list of tag names is a prefix for either
+  of the nested hash tags in this one")
+                       #:isConst #t
+                       #:arguments (list (d:ident (t:cr (t:vec (t:str))) "prefix")))))
+  (d:struct 'Footnote
+            (d:doc "Inline and regular footnote definition"
+                   #:full "\\note in-text link to the footnotes are implemented using `Link` nodes")
+            #:bases '(Inline)
+            #:fields
+            (list
+             (d:field "Str" "tag" (d:doc "Footnote text target name") #:value "")
+             (d:field (t:opt (t:id)) "definition" (d:doc "Link to possibly resolved definition") #:value "std::nullopt")))
+  (d:struct 'Completion
+            (d:doc "Completion status of the subtree list element")
+            #:bases '(Inline)
+            #:fields
+            (list
+             (d:field "int" "done" (d:doc "Number of completed tasks") #:value "0")
+             (d:field "int" "full" (d:doc "Full number of tasks") #:value "0")
+             (d:field "bool" "isPercent" (d:doc "Use fraction or percent to display completion") #:value "false")))
+  )
  #:enumName "OrgSemKind"
  #:iteratorMacroName "EACH_ORG_SEM_KIND"
  )
