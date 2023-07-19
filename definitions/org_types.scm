@@ -59,19 +59,19 @@
 ;;    '()
 ;;    )))
 
-(simple-define-type
- <doc> d:doc
- (brief)
- (full ""))
+(simple-define-type <doc> d:doc (brief) (full ""))
+(simple-define-type <enum-field> d:efield (name) (doc) (value ""))
+(simple-define-type <enum> d:enum (name) (doc) (items))
+(simple-define-type <field> d:field (type) (name) (doc) (value "") (kind "Field"))
+(simple-define-type <ident> d:ident (type) (name) (value ""))
 
 (simple-define-type
  <type> d:struct
  (name)
  (doc)
  (fields (list))
- (enums (list))
+ (nested (list))
  (methods (list))
- (structs (list))
  (bases (list))
  (concreteKind #t)
  (kind "Struct"))
@@ -81,6 +81,7 @@
  (entries)
  (enumName "")
  (iteratorMacroName "")
+ (variantName #f)
  (kind "Group"))
 
 (simple-define-type
@@ -93,15 +94,6 @@
  (isVirtual #f)
  (kind "Method"))
 
-(simple-define-type
- <field> d:field
- (type)
- (name)
- (doc)
- (value "")
- (kind "Field"))
-
-(simple-define-type <ident> d:ident (type) (name) (value ""))
 
 (define (t:int) "int")
 (define (t:str) "QString")
@@ -209,6 +201,118 @@ top level and don't have to be attached to any subsequent elements"
             #:fields
             (list
              (d:field (t:id "Paragraph") "text" (d:doc "Content description") #:value "SemIdT<Paragraph>::Nil()")))
+  (d:struct 'CommandGroup
+            (d:doc "Multiple attachable commands will get grouped into this element
+ unless it is possible to attached them to some adjacent block command")
+            #:bases '(Stmt)
+            #:concreteKind #f)
+  (d:struct 'Block
+            (d:doc "Block command type")
+            #:bases '(Command)
+            #:concreteKind #f
+            )
+  (d:struct 'Quote
+            (d:doc "Quotation block")
+            #:fields
+            (list
+             (d:field (t:id "Paragraph") "text"
+                      (d:doc "Quote content") #:value "SemIdT<Paragraph>::Nil()")))
+  (d:struct 'Example (d:doc "Example block") #:bases '(Block))
+  (d:struct 'Export (d:doc "Direct export passthrough")
+            #:bases '(Block)
+            #:nested
+            (list
+             (d:enum "Format" (d:doc "Export block format type")
+                     (list
+                      (d:efield "Inline" (d:doc "Export directly in the paragraph"))
+                      (d:efield "Line" (d:doc "Single line of export"))
+                      (d:efield "Block" (d:doc "Multiple lines of export")))))
+            #:fields
+            (list
+             (d:field "Format" "format" (d:doc "Export block type") #:value "Format::Inline")
+             (d:field (t:str) "exporter" (d:doc "Exporter backend name"))
+             (d:field (t:str) "content" (d:doc "Raw exporter content string"))))
+  (d:struct 'AdmonitionBlock (d:doc "Block of text with admonition tag: 'note', 'warning'")
+            #:bases '(Block))
+  (d:struct 'Code
+            (d:doc "Base class for all code blocks")
+            #:bases '(Block)
+            #:nested
+            (list
+             (d:struct
+              'Switch (d:doc "Extra configuration switches that can be used to control
+representation of the rendered code block. This field does not
+exactly correspond to the `-XX` parameters that can be passed
+directly in the field, but also works with attached `#+options`
+from the block")
+              #:nested
+              (d:group
+               (list
+                (d:struct 'CalloutFormat (d:doc "")
+                          #:fields (list (d:field "Str" "format" (d:doc "") #:value "")))
+                (d:struct 'RemoveCallout (d:doc "")
+                          #:fields (list (d:field "bool" "remove" (d:doc "") #:value "true")))
+                (d:struct 'EmphasizeLine (d:doc "Emphasize single line -- can be repeated multiple times")
+                          #:fields (list (d:field (t:vec "int") "line" (d:doc "") #:value "{}")))
+                (d:struct 'Dedent (d:doc "")
+                          #:fields (list (d:field "int" "value" (d:doc "") #:value "0"))))
+               #:variantName "Data")
+              #:fields (list (d:field "Data" "data" (d:doc ""))))
+             (d:enum 'Results (d:doc "What to do with newly evaluated result")
+                     (list (d:efield "Replace" (d:doc "Remove old result, replace with new value"))))
+             (d:enum 'Exports (d:doc "What part of the code block should be visible in export")
+                     (list
+                      (d:efield "None" (d:doc "Hide both original code and run result"))
+                      (d:efield "Both" (d:doc "Show output and code"))
+                      (d:efield "Code" (d:doc "Show only code"))
+                      (d:efield "Results" (d:doc "Show only evaluation results")))))
+            #:fields
+            (list
+             (d:field (t:opt (t:str)) "lang" (d:doc "Code block language name") #:value "std::nullopt")
+             (d:field (t:vec "Switch") "switches" (d:doc "Switch options for block") #:value "{}")
+             (d:field "Exports" "exports" (d:doc "What to export") #:value "Exports::Both")
+             (d:field "bool" "cache" (d:doc "Do cache values?") #:value "false")
+             (d:field "bool" "eval" (d:doc "Eval on export?") #:value "false")
+             (d:field "bool" "noweb" (d:doc "Web-tangle code on export/run") #:value "false")
+             (d:field "bool" "hlines" (d:doc "?") #:value "false")
+             (d:field "bool" "tangle" (d:doc "?") #:value "false")))
+  (d:struct 'Time
+            (d:doc "Single static or dynamic timestamp (active or inactive)")
+            #:bases '(Org)
+            #:nested
+            (list
+             (d:struct
+              'Repeat
+              (d:doc "Repetition information for static time")
+              #:nested
+              (list
+               (d:enum 'Mode (d:doc "Timestamp repetition mode")
+                       (list
+                        (d:efield "None" (d:doc "Do not repeat task on completion"))
+                        (d:efield "Exact" (d:doc "?"))
+                        (d:efield "FirstMatch" (d:doc "Repeat on the first matching day in the future"))
+                        (d:efield "SameDay" (d:doc "Repeat task on the same day next week/month/year"))))
+               (d:enum 'Period
+                       (d:doc "Repetition period. Temporary placeholder for now, until I
+figure out what would be the proper way to represent whatever
+org can do ... which is to be determined as well")
+                       (list
+                        (d:efield "Year" (d:doc ""))
+                        (d:efield "Month" (d:doc ""))
+                        (d:efield "Week" (d:doc ""))
+                        (d:efield "Day" (d:doc ""))
+                        (d:efield "Hour" (d:doc ""))
+                        (d:efield "Minute" (d:doc ""))))
+               )
+              #:fields
+              (list
+               (d:field "Mode" "mode" (d:doc "mode"))
+               (d:field "Period" "period" (d:doc "period"))
+               (d:field "int" "count" (d:doc "count"))
+               )
+              )
+             )
+            )
   )
  #:enumName "OrgSemKind"
  #:iteratorMacroName "EACH_ORG_SEM_KIND"
