@@ -313,6 +313,11 @@ org can do ... which is to be determined as well")
               )
              )
             )
+  (d:struct 'Time (d:doc "Range of time delimited by two points")
+            #:fields
+            (list
+             (d:field (t:id "Time") "from" (d:doc "Starting time") #:value "SemIdT<Time>::Nil()")
+             (d:field (t:id "Time") "to" (d:doc "Finishing time") #:value "SemIdT<Time>::Nil()")))
   )
  #:enumName "OrgSemKind"
  #:iteratorMacroName "EACH_ORG_SEM_KIND"
