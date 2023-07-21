@@ -13,6 +13,16 @@
 QTextStream qcout;
 
 namespace guile {
+
+template <typename T>
+struct convert<std::shared_ptr<T>> {
+    static bool decode(std::shared_ptr<T>& rhs, SCM node) {
+        rhs = std::make_shared<T>();
+        ::guile::convert<T>::decode(*rhs, node);
+        return true;
+    }
+};
+
 template <typename T>
 struct convert<Vec<T>> {
     static void decode(Vec<T>& result, SCM list) {
@@ -62,11 +72,11 @@ struct convert<GenDescription::Entry>
     static void init(GenDescription::Entry& result, SCM value) {
         std::string kind = convert<GenDescription::Entry>::get_kind(value);
         if (kind == "Struct") {
-            result = GenDescription::Struct{};
+            result = std::make_shared<GenDescription::Struct>();
         } else if (kind == "Enum") {
-            result = GenDescription::Enum{};
-        } else if (kind == "TypeGroup") {
-            result = GenDescription::TypeGroup{};
+            result = std::make_shared<GenDescription::Enum>();
+        } else if (kind == "Group") {
+            result = std::make_shared<GenDescription::TypeGroup>();
         } else {
             throw decode_error(
                 "parsing GenDescriptionEntry variant", value);

@@ -61,7 +61,7 @@
 
 (simple-define-type <doc> d:doc (brief) (full ""))
 (simple-define-type <enum-field> d:efield (name) (doc) (value ""))
-(simple-define-type <enum> d:enum (name) (doc) (items))
+(simple-define-type <enum> d:enum (name) (doc) (fields) (kind "Enum"))
 (simple-define-type <field> d:field (type) (name) (doc) (value "") (kind "Field"))
 (simple-define-type <ident> d:ident (type) (name) (value ""))
 
@@ -256,17 +256,18 @@ exactly correspond to the `-XX` parameters that can be passed
 directly in the field, but also works with attached `#+options`
 from the block")
               #:nested
-              (d:group
-               (list
-                (d:struct 'CalloutFormat (d:doc "")
-                          #:fields (list (d:field "Str" "format" (d:doc "") #:value "")))
-                (d:struct 'RemoveCallout (d:doc "")
-                          #:fields (list (d:field "bool" "remove" (d:doc "") #:value "true")))
-                (d:struct 'EmphasizeLine (d:doc "Emphasize single line -- can be repeated multiple times")
-                          #:fields (list (d:field (t:vec "int") "line" (d:doc "") #:value "{}")))
-                (d:struct 'Dedent (d:doc "")
-                          #:fields (list (d:field "int" "value" (d:doc "") #:value "0"))))
-               #:variantName "Data")
+              (list
+               (d:group
+                (list
+                 (d:struct 'CalloutFormat (d:doc "")
+                           #:fields (list (d:field "Str" "format" (d:doc "") #:value "")))
+                 (d:struct 'RemoveCallout (d:doc "")
+                           #:fields (list (d:field "bool" "remove" (d:doc "") #:value "true")))
+                 (d:struct 'EmphasizeLine (d:doc "Emphasize single line -- can be repeated multiple times")
+                           #:fields (list (d:field (t:vec "int") "line" (d:doc "") #:value "{}")))
+                 (d:struct 'Dedent (d:doc "")
+                           #:fields (list (d:field "int" "value" (d:doc "") #:value "0"))))
+                #:variantName "Data"))
               #:fields (list (d:field "Data" "data" (d:doc ""))))
              (d:enum 'Results (d:doc "What to do with newly evaluated result")
                      (list (d:efield "Replace" (d:doc "Remove old result, replace with new value"))))

@@ -10,6 +10,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Yaml.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
 
 using namespace boost::describe;
 using boost::mp11::mp_for_each;
@@ -28,10 +29,17 @@ struct GenDescription {
         BOOST_DESCRIBE_CLASS(Doc, (), (), (), (brief, full));
     };
 
+    struct EnumField {
+        Str      name;
+        Opt<Str> value;
+        Doc      doc;
+        BOOST_DESCRIBE_CLASS(EnumField, (), (), (), (name, value, doc));
+    };
+
     struct Enum {
-        Str        name;
-        Vec<Ident> fields;
-        Doc        doc;
+        Str            name;
+        Vec<EnumField> fields;
+        Doc            doc;
         BOOST_DESCRIBE_CLASS(Enum, (), (), (), (name, fields, doc));
     };
 
@@ -51,20 +59,25 @@ struct GenDescription {
             (name, arguments, result, isVirtual, isConst, doc));
     };
 
+    struct TypeGroup;
+    struct Enum;
+    struct Struct;
+    using Entry = Variant<SPtr<Enum>, SPtr<Struct>, SPtr<TypeGroup>>;
+
     struct Struct {
         Str           name;
         Vec<Ident>    fields;
         Vec<Function> methods;
         Vec<Str>      bases;
-        Vec<Enum>     enums;
-        Vec<Struct>   structs;
-        Doc           doc;
+        Vec<Entry>    nested;
+
+        Doc doc;
         BOOST_DESCRIBE_CLASS(
             Struct,
             (),
             (),
             (),
-            (name, fields, methods, bases, enums, structs, doc));
+            (name, fields, methods, bases, nested, doc));
     };
 
     struct TypeGroup {
@@ -72,10 +85,10 @@ struct GenDescription {
         BOOST_DESCRIBE_CLASS(TypeGroup, (), (), (), (types));
     };
 
-    using Entry = Variant<Enum, Struct, TypeGroup>;
     Vec<Entry> entries;
     Str        iteratorMacroName;
     Str        enumName;
+
     BOOST_DESCRIBE_CLASS(
         GenDescription,
         (),
@@ -151,21 +164,31 @@ inline void visitValue(
     GenDescription::Entry& rhs) {
     Str kind = node["kind"].as<Str>();
     if (kind == "Enum") {
-        GenDescription::Enum result;
-        visitValue(node, result);
+        auto result = std::make_shared<GenDescription::Enum>();
+        visitValue(node, *result);
         rhs = result;
     } else if (kind == "Struct") {
-        GenDescription::Struct result;
-        visitValue(node, result);
+        auto result = std::make_shared<GenDescription::Struct>();
+        visitValue(node, *result);
         rhs = result;
     } else if (kind == "TypeGroup") {
-        GenDescription::TypeGroup result;
-        visitValue(node, result);
+        auto result = std::make_shared<GenDescription::TypeGroup>();
+        visitValue(node, *result);
         rhs = result;
     }
 }
 
 namespace YAML {
+
+template <typename T>
+struct convert<std::shared_ptr<T>> {
+    static bool decode(Node const& node, std::shared_ptr<T>& rhs) {
+        rhs = std::make_shared<T>();
+        convert<T>::decode(*rhs);
+        return true;
+    }
+};
+
 template <>
 struct convert<GenDescription::Ident> {
     static bool decode(Node const& node, GenDescription::Ident& rhs) {

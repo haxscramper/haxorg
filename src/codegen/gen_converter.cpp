@@ -66,8 +66,8 @@ AB::Res convert(AB& builder, const GD& desc) {
     Vec<AB::Res> decls;
     Vec<Str>     typeNames;
     for (auto const& item : desc.entries) {
-        if (std::holds_alternative<GD::Struct>(item)) {
-            typeNames.push_back(std::get<GD::Struct>(item).name);
+        if (std::holds_alternative<SPtr<GD::Struct>>(item)) {
+            typeNames.push_back(std::get<SPtr<GD::Struct>>(item)->name);
         }
     }
 
@@ -128,11 +128,12 @@ AB::Res convert(AB& builder, const GD& desc) {
 
 
     for (auto const& item : desc.entries) {
-        if (std::holds_alternative<GD::Struct>(item)) {
+        if (std::holds_alternative<SPtr<GD::Struct>>(item)) {
             decls.push_back(builder.RecordDecl(
-                convert(builder, std::get<GD::Struct>(item))));
-        } else if (std::holds_alternative<GD::TypeGroup>(item)) {
-            decls.append(convert(builder, std::get<GD::TypeGroup>(item)));
+                convert(builder, *std::get<SPtr<GD::Struct>>(item))));
+        } else if (std::holds_alternative<SPtr<GD::TypeGroup>>(item)) {
+            decls.append(
+                convert(builder, *std::get<SPtr<GD::TypeGroup>>(item)));
         } else {
             qFatal("Unexpected kind");
         }
