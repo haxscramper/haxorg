@@ -103,6 +103,16 @@
 (define* (t:opt arg) (format #f "Opt<~a>" arg))
 (define* (t:osk) "OrgSemKind")
 (define* (t:cr arg) (format #f "CR<~a>" arg))
+(define* (t:var #:rest args) (format #f "Variant<~a>" (string-join args ", ")))
+
+(define* (d:id-field id name doc)
+  (d:field (t:id id) name doc #:value (format #f "SemIdT<~a>::Nil()" id)))
+
+(define* (d:vec-field type name doc)
+  (d:field (t:vec type) name doc #:value "{}"))
+
+(define* (d:opt-field type name doc)
+  (d:field (t:opt type) name doc #:value "std::nullopt"))
 
 (d:group
  (list
@@ -313,12 +323,123 @@ org can do ... which is to be determined as well")
               )
              )
             )
-  (d:struct 'Time (d:doc "Range of time delimited by two points")
+  (d:struct 'TimeRange (d:doc "Range of time delimited by two points")
+            #:bases '(Org)
             #:fields
             (list
              (d:field (t:id "Time") "from" (d:doc "Starting time") #:value "SemIdT<Time>::Nil()")
              (d:field (t:id "Time") "to" (d:doc "Finishing time") #:value "SemIdT<Time>::Nil()")))
+  (d:struct 'Macro (d:doc "Inline macro invocation")
+            #:bases '(Org)
+            #:fields
+            (list
+             (d:field (t:str) "name" (d:doc "Macro name") #:value "")
+             (d:field (t:vec (t:str)) "arguments" (d:doc "Raw uninterpreted macro arguments") #:value "{}")))
+  (d:struct 'Symbol (d:doc "Text symbol or symbol command")
+            #:bases '(Org)
+            #:nested
+            (list
+             (d:struct 'Param (d:doc "Symbol parameters")
+                       #:fields
+                       (list
+                        (d:field (t:opt (t:str)) "key" (d:doc "Key -- for non-positional"))
+                        (d:field (t:str) "value" (d:doc "Uninterpreted value")))))
+            #:fields
+            (list
+             (d:field (t:str) "name" (d:doc "Name of the symbol"))
+             (d:field (t:vec "Param") "parameters" (d:doc "Optional list of parameters"))
+             (d:field (t:id) "positional" (d:doc "Positional parameters"))))
+  (d:struct 'SubtreeLog (d:doc "Single subtree log entry")
+            #:bases '(Org)
+            #:nested
+            (list
+             (d:struct 'DescribedLog (d:doc "Base value for the log variant")
+                       #:fields
+                       (list
+                        (d:field (t:opt (t:id "StmtList")) "desc"
+                                 (d:doc "Optional description of the log entry")
+                                 #:value "SemIdT<StmtList>::Nil()")))
+             (d:group
+              (list
+               (d:struct 'Note (d:doc "Timestamped note")
+                         #:bases '(DescribedLog)
+                         #:fields (list (d:id-field "Time" "on" (d:doc "Where log was taken"))))
+               (d:struct 'Refile (d:doc "Refiling action")
+                         #:bases '(DescribedLog)
+                         #:fields
+                         (list
+                          (d:id-field "Time" "on" (d:doc "When the refiling happened"))
+                          (d:id-field "Link" "from" (d:doc "Link to the original subtree"))))
+               (d:struct 'Clock (d:doc "Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`")
+                         #:bases '(DescribedLog)
+                         #:fields
+                         (list
+                          (d:field (t:var (t:id "Time") (t:id "TimeRange"))
+                                   "range"
+                                   (d:doc "Start-end or only start period")
+                                   #:value "SemIdT<Time>::Nil()")))
+               (d:struct 'State (d:doc "Change of the subtree state -- `- State \"WIP\" from \"TODO\" [2023-04-30 Sun 13:29:04]`")
+                         #:bases '(DescribedLog)
+                         #:fields
+                         (list
+                          (d:field "OrgBigIdentKind" "from" (d:doc "From"))
+                          (d:field "OrgBigIdentKind" "to" (d:doc "To"))
+                          (d:id-field "Time" "on" (d:doc "On"))))
+               (d:struct 'Tag (d:doc "Assign tag to the subtree `- Tag \"project##haxorg\" Added on [2023-04-30 Sun 13:29:06]`")
+                         #:bases '(DescribedLog)
+                         #:fields
+                         (list
+                          (d:id-field "Time" "on" (d:doc "When the log was assigned"))
+                          (d:id-field "HashTag" "tag" (d:doc "Tag in question"))
+                          (d:field "bool" "added" (d:doc "Added/removed?") #:value "false"))))
+              #:enumName "Kind"
+              #:variantName "LogEntry"))
+            #:fields
+            (list
+             (d:field "LogEntry" "log" (d:doc "Log") #:value "Note{}")))
+  (d:struct 'Subtree (d:doc "Subtree")
+            #:bases '(Org)
+            #:fields
+            (list
+             (d:field "int" "level" (d:doc "Subtree level") #:value "0")
+             (d:opt-field (t:str) "treeId" (d:doc ":ID: property"))
+             (d:opt-field (t:str) "todo" (d:doc "Todo state of the tree"))
+             (d:opt-field (t:id "Completion") "completion" (d:doc "Task completion state"))
+             (d:vec-field (t:id "HashTag") "tags" (d:doc "Trailing tags"))
+             (d:id-field "Paragraph" "title" (d:doc "Main title"))
+             (d:vec-field (t:id "SubtreeLog") "logbook" (d:doc "Associated subtree log"))
+             (d:vec-field "Property" "properties" (d:doc "Immediate properties"))
+             (d:opt-field (t:id "Time") "closed" (d:doc "When subtree was marked as closed"))
+             (d:opt-field (t:id "Time") "deadline" (d:doc "When is the deadline"))
+             (d:opt-field (t:id "Time") "scheduled" (d:doc "When the event is scheduled"))))
+  (d:struct 'LatexBody (d:doc "Latex code body") #:bases '(Org) #:concreteKind #f)
+  (d:struct 'InlineMath (d:doc "Inline math") #:bases '(LatexBody))
+  (d:struct 'Leaf (d:doc "Final node") #:bases '(Org) #:concreteKind #f
+            #:fields (list (d:field (t:str) "text" (d:doc "Final leaf value") #:value "")))
+  (d:struct 'Escaped (d:doc "Escaped text") #:bases '(Leaf))
+  (d:struct 'Newline (d:doc "\\n newline") #:bases '(Leaf))
+  (d:struct 'Space (d:doc "' ' space") #:bases '(Leaf))
+  (d:struct 'Word (d:doc "word") #:bases '(Leaf))
+  (d:struct 'AtMention (d:doc "@mention") #:bases '(Leaf))
+  (d:struct 'RawText (d:doc "") #:bases '(Leaf))
+  (d:struct 'Punctuation (d:doc "") #:bases '(Leaf))
+  (d:struct 'Placeholder (d:doc "") #:bases '(Leaf))
+  (d:struct 'BigIdent (d:doc "") #:bases '(Leaf))
+  (d:struct 'Markup (d:doc "") #:bases '(Org) #:concreteKind #f)
+  (d:struct 'Bold (d:doc "") #:bases '(Markup))
+  (d:struct 'Underline (d:doc "") #:bases '(Markup))
+  (d:struct 'Monospace (d:doc "") #:bases '(Markup))
+  (d:struct 'MarkQuote (d:doc "") #:bases '(Markup))
+  (d:struct 'Verbatim (d:doc "") #:bases '(Markup))
+  (d:struct 'Italic (d:doc "") #:bases '(Markup))
+  (d:struct 'Strike (d:doc "") #:bases '(Markup))
+  (d:struct 'Par (d:doc "") #:bases '(Markup))
+  (d:struct 'List (d:doc "") #:bases '(Org)
+            #:methods (list (d:method "bool" "isDescriptionList" (d:doc "") #:isConst #t)))
+  ;; TODO
+  (d:struct 'ListItem (d:doc "") #:bases '(Org))
+  ;; TODO
+  (d:struct 'Link (d:doc "") #:bases '(Org))
   )
  #:enumName "OrgSemKind"
- #:iteratorMacroName "EACH_ORG_SEM_KIND"
- )
+ #:iteratorMacroName "EACH_ORG_SEM_KIND")
