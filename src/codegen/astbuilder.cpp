@@ -114,6 +114,20 @@ ASTBuilder::Res ASTBuilder::MethodDecl(
 ASTBuilder::Res ASTBuilder::RecordDecl(const RecordDeclParams& params) {
     Vec<Res> content;
 
+    for (auto const& m : params.nested) {
+        std::visit(
+            overloaded{
+                [&](EnumDeclParams const& Enum) {
+                    content.push_back(EnumDecl(Enum));
+                },
+                [&](SPtr<RecordDeclParams> const& rec) {
+                    content.push_back(RecordDecl(*rec));
+                },
+                [&](Res const& res) { content.push_back(res); },
+            },
+            m);
+    }
+
     for (auto const& m : params.members) {
         if (m.getKind() == RecordDeclParams::Member::Kind::Field) {
             content.push_back(FieldDecl(m.getField()));
@@ -170,6 +184,10 @@ ASTBuilder::Res ASTBuilder::MacroDecl(const MacroDeclParams& params) {
 }
 
 ASTBuilder::Res ASTBuilder::EnumDecl(const EnumDeclParams& params) {
+    Q_ASSERT_X(
+        0 < params.name.size(),
+        "EnumDecl",
+        "non-empty enum name required");
     auto fields = b::stack();
     for (auto const& field : params.fields) {
         fields->add(b::stack({

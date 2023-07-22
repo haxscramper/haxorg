@@ -62,7 +62,16 @@ struct GenDescription {
     struct TypeGroup;
     struct Enum;
     struct Struct;
-    using Entry = Variant<SPtr<Enum>, SPtr<Struct>, SPtr<TypeGroup>>;
+    struct Include {
+        Str  what;
+        bool isSystem = false;
+        BOOST_DESCRIBE_CLASS(Include, (), (), (), (what, isSystem));
+    };
+    using Entry = Variant<
+        SPtr<Enum>,
+        SPtr<Struct>,
+        SPtr<TypeGroup>,
+        Include>;
 
     struct Struct {
         Str           name;
@@ -70,6 +79,7 @@ struct GenDescription {
         Vec<Function> methods;
         Vec<Str>      bases;
         Vec<Entry>    nested;
+        bool          concreteKind = true;
 
         Doc doc;
         BOOST_DESCRIBE_CLASS(
@@ -77,7 +87,7 @@ struct GenDescription {
             (),
             (),
             (),
-            (name, fields, methods, bases, nested, doc));
+            (name, fields, methods, bases, nested, doc, concreteKind));
     };
 
     struct TypeGroup {

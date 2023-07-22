@@ -79,7 +79,7 @@
 (simple-define-type
  <group> d:group
  (types)
- (enumName "")
+ (enumName "Kind")
  (iteratorMacroName "")
  (variantName #f)
  (kind "Group"))
@@ -94,10 +94,8 @@
  (isVirtual #f)
  (kind "Method"))
 
-(simple-define-type
- <description> d:description
- (entries)
- )
+(simple-define-type <tu> d:tu (entries))
+(simple-define-type <include> d:include (what) (isSystem) (kind "Include"))
 
 (define (t:int) "int")
 (define (t:str) "QString")
@@ -105,7 +103,7 @@
 (define* (t:id #:optional target)
   (if target (format #f "SemIdT<~a>" target) "SemId"))
 (define* (t:opt arg) (format #f "Opt<~a>" arg))
-(define* (t:osk) "OrgSemKind")
+(define* (t:osk) "OrgSemKind2")
 (define* (t:cr arg) (format #f "CR<~a>" arg))
 (define* (t:var #:rest args) (format #f "Variant<~a>" (string-join args ", ")))
 
@@ -118,8 +116,18 @@
 (define* (d:opt-field type name doc)
   (d:field (t:opt type) name doc #:value "std::nullopt"))
 
-(d:description
+(d:tu
  (list
+  (d:include "hstd/stdlib/Vec.hpp" #t)
+  (d:include "hstd/stdlib/Variant.hpp" #t)
+  (d:include "hstd/stdlib/Time.hpp" #t)
+  (d:include "hstd/stdlib/Opt.hpp" #t)
+  (d:include "hstd/stdlib/Str.hpp" #t)
+  (d:include "parse/OrgTypes.hpp" #t)
+  (d:include "boost/describe.hpp" #t)
+  (d:include "hstd/system/macros.hpp" #t)
+  (d:include "functional" #t)
+  (d:include "QDateTime" #t)
   (d:group
    (list
     (d:struct 'Org
@@ -448,5 +456,5 @@ org can do ... which is to be determined as well")
     ;; TODO
     (d:struct 'Link (d:doc "") #:bases '(Org))
     )
-   #:enumName "OrgSemKind"
+   #:enumName (t:osk)
    #:iteratorMacroName "EACH_ORG_SEM_KIND")))

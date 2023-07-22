@@ -77,6 +77,8 @@ struct convert<GenDescription::Entry>
             result = std::make_shared<GenDescription::Enum>();
         } else if (kind == "Group") {
             result = std::make_shared<GenDescription::TypeGroup>();
+        } else if (kind == "Include") {
+            result = GenDescription::Include{};
         } else {
             throw decode_error(
                 "parsing GenDescriptionEntry variant", value);
@@ -110,6 +112,7 @@ int main(int argc, const char** argv) {
     auto definitions = convert(builder, description);
     auto result      = builder.TranslationUnit({definitions});
 
-    std::ofstream out{"/tmp/result.cpp"};
+    std::ofstream out{
+        "/mnt/workspace/repos/haxorg/src/sem/SemOrgTypes.hpp"};
     out << builder.store.toString(result, layout::Options()) << std::endl;
 }

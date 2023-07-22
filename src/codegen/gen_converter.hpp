@@ -14,5 +14,12 @@ AB::FunctionDeclParams convert(
 ASTBuilder::RecordDeclParams convert(
     ASTBuilder&       builder,
     GD::Struct const& record);
+ASTBuilder::EnumDeclParams convert(
+    ASTBuilder&     builder,
+    GD::Enum const& entry);
+Vec<ASTBuilder::Res> convert(
+    ASTBuilder&          builder,
+    GD::TypeGroup const& entry);
+Vec<ASTBuilder::Res>  convert(ASTBuilder& builder, GD::Entry const& entry);
 ASTBuilder::Res       convert(ASTBuilder& builder, GD const& desc);
 ASTBuilder::DocParams convert(ASTBuilder& builder, GD::Doc const& doc);

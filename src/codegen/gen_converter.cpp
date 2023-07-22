@@ -31,6 +31,33 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
         .bases = record.bases,
     };
 
+    for (auto const& type : record.nested) {
+        std::visit(
+            overloaded{
+                [&](SPtr<GD::Struct> Struct) {
+                    auto const& tmp = std::make_shared<
+                        AB::RecordDeclParams>(convert(builder, *Struct));
+                    params.nested.push_back(tmp);
+                },
+                [&](SPtr<GD::Enum> Enum) {
+                    AB::EnumDeclParams const& tmp = convert(
+                        builder, *Enum);
+                    params.nested.push_back(tmp);
+                },
+                [&](SPtr<GD::TypeGroup> TypeGroup) {
+                    for (auto const& sub : convert(builder, *TypeGroup)) {
+                        params.nested.push_back(sub);
+                    }
+                },
+                [&](GD::Include const& Include) {
+                    params.nested.push_back(
+                        builder.Include(Include.what, Include.isSystem));
+                },
+                [&]() {},
+            },
+            type);
+    }
+
     for (auto const& member : record.fields) {
         params.members.push_back(RDP::Member{RDP::Field{
             .params = AB::ParmVarDeclParams{
@@ -50,12 +77,33 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
 
     return params;
 }
+ASTBuilder::EnumDeclParams convert(
+    ASTBuilder&                 builder,
+    const GenDescription::Enum& entry) {
+    AB::EnumDeclParams params;
+
+    params.name      = entry.name;
+    params.doc.brief = entry.doc.brief;
+    params.doc.full  = entry.doc.full;
+    for (auto const& field : entry.fields) {
+        params.fields.push_back(AB::EnumDeclParams::Field{
+            .doc   = {.brief = field.doc.brief, .full = field.doc.full},
+            .name  = field.name,
+            .value = field.value,
+        });
+    }
+
+    return params;
+}
+
 
 Vec<AB::Res> convert(AB& builder, const GD::TypeGroup& record) {
     Vec<AB::Res> decls;
     Vec<Str>     typeNames;
     for (auto const& item : record.types) {
-        typeNames.push_back(item.name);
+        if (item.concreteKind) {
+            typeNames.push_back(item.name);
+        }
     }
 
     {
@@ -101,7 +149,7 @@ Vec<AB::Res> convert(AB& builder, const GD::TypeGroup& record) {
         decls.push_back(builder.FunctionDecl(fromEnum));
     }
 
-    {
+    if (0 < record.iteratorMacroName.size()) {
         AB::MacroDeclParams iteratorMacro;
 
         for (auto const& item : typeNames) {
@@ -122,23 +170,37 @@ Vec<AB::Res> convert(AB& builder, const GD::TypeGroup& record) {
 
 
 AB::Res convert(AB& builder, const GD& desc) {
+
     Vec<AB::Res> decls;
-
     for (auto const& item : desc.entries) {
-        if (std::holds_alternative<SPtr<GD::Struct>>(item)) {
-            decls.push_back(builder.RecordDecl(
-                convert(builder, *std::get<SPtr<GD::Struct>>(item))));
-        } else if (std::holds_alternative<SPtr<GD::TypeGroup>>(item)) {
-            decls.append(
-                convert(builder, *std::get<SPtr<GD::TypeGroup>>(item)));
-        } else {
-            qFatal("Unexpected kind");
-        }
+        decls.append(convert(builder, item));
     }
-
     return builder.TranslationUnit(decls);
 }
 
 AB::DocParams convert(AB& builder, const GenDescription::Doc& doc) {
     return AB::DocParams{.brief = doc.brief, .full = doc.full};
+}
+
+Vec<ASTBuilder::Res> convert(
+    ASTBuilder&                  builder,
+    const GenDescription::Entry& entry) {
+    Vec<AB::Res> decls;
+    std::visit(
+        overloaded{
+            [&](SPtr<GD::Struct> item) {
+                decls.push_back(
+                    builder.RecordDecl(convert(builder, *item)));
+            },
+            [&](SPtr<GD::TypeGroup> item) {
+                decls.append(convert(builder, *item));
+            },
+            [&](GD::Include const& Include) {
+                decls.push_back(
+                    builder.Include(Include.what, Include.isSystem));
+            },
+            [](auto const& it) { qFatal("Unexpected kind"); },
+        },
+        entry);
+    return decls;
 }

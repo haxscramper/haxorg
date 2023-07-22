@@ -94,6 +94,23 @@ class ASTBuilder {
     QualType Type(Str const&);
     Res      Type(QualType const& type);
 
+
+    struct EnumDeclParams {
+        struct Field {
+            DocParams doc;
+            Str       name;
+            Opt<Str>  value;
+        };
+
+        Str        name;
+        Str        base;
+        DocParams  doc;
+        bool       isEnumClass = true;
+        Vec<Field> fields;
+    };
+
+    Res EnumDecl(EnumDeclParams const& params);
+
     enum class AccessSpecifier
     {
         Public,
@@ -123,10 +140,16 @@ class ASTBuilder {
             Data data;
         };
 
+        using Nested = Variant<
+            EnumDeclParams,
+            SPtr<RecordDeclParams>,
+            Res>;
+
         Str         name;
         DocParams   doc;
         Vec<Str>    bases;
         Vec<Member> members;
+        Vec<Nested> nested;
     };
 
     Res FieldDecl(RecordDeclParams::Field const& field);
@@ -146,21 +169,6 @@ class ASTBuilder {
 
     Res MacroDecl(MacroDeclParams const& params);
 
-    struct EnumDeclParams {
-        struct Field {
-            DocParams doc;
-            Str       name;
-            Opt<Str>  value;
-        };
-
-        Str        name;
-        Str        base;
-        DocParams  doc;
-        bool       isEnumClass = true;
-        Vec<Field> fields;
-    };
-
-    Res EnumDecl(EnumDeclParams const& params);
 
     struct CompoundStmtParams {
         Vec<Res> Stmts;
