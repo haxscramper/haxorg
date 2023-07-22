@@ -125,13 +125,21 @@ struct GenTu {
         Vec<Struct> types;
         Str         iteratorMacroName;
         Str         enumName;
+        Str         variantField;
+        Str         variantName;
+        Str         kindGetter;
 
         BOOST_DESCRIBE_CLASS(
             TypeGroup,
             (),
             (),
             (),
-            (types, iteratorMacroName, enumName));
+            (types,
+             iteratorMacroName,
+             enumName,
+             kindGetter,
+             variantField,
+             variantName));
     };
 
     Vec<Entry> entries;

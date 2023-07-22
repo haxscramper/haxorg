@@ -84,7 +84,9 @@
  (types)
  (enumName "Kind")
  (iteratorMacroName "")
- (variantName #f)
+ (variantName "Data")
+ (variantField "data")
+ (kindGetter "getKind")
  (kind "Group"))
 
 (simple-define-type
@@ -242,8 +244,7 @@ top level and don't have to be attached to any subsequent elements")
    (d:org 'CommandGroup
           (d:doc "Multiple attachable commands will get grouped into this element
  unless it is possible to attached them to some adjacent block command")
-          #:bases '(Stmt)
-          #:concreteKind #f)
+          #:bases '(Stmt))
    (d:org 'Block
           (d:doc "Block command type")
           #:bases '(Command)
@@ -294,9 +295,7 @@ from the block")
                (d:struct 'EmphasizeLine (d:doc "Emphasize single line -- can be repeated multiple times")
                          #:fields (list (d:field (t:vec "int") "line" (d:doc "") #:value "{}")))
                (d:struct 'Dedent (d:doc "")
-                         #:fields (list (d:field "int" "value" (d:doc "") #:value "0"))))
-              #:variantName "Data"))
-            #:fields (list (d:field "Data" "data" (d:doc ""))))
+                         #:fields (list (d:field "int" "value" (d:doc "") #:value "0")))))))
            (d:enum 'Results (d:doc "What to do with newly evaluated result")
                    (list (d:efield "Replace" (d:doc "Remove old result, replace with new value"))))
            (d:enum 'Exports (d:doc "What part of the code block should be visible in export")
@@ -421,7 +420,7 @@ org can do ... which is to be determined as well")
                         (d:id-field "Time" "on" (d:doc "When the log was assigned"))
                         (d:id-field "HashTag" "tag" (d:doc "Tag in question"))
                         (d:field "bool" "added" (d:doc "Added/removed?") #:value "false"))))
-            #:enumName "Kind"
+            #:kindGetter "getLogKind"
             #:variantName "LogEntry"))
           #:fields
           (list
@@ -470,7 +469,6 @@ org can do ... which is to be determined as well")
    ;; TODO
    (d:org 'Link (d:doc "") #:bases '(Org))
    (d:org 'Document (d:doc "") #:bases '(Org))
-   (d:org 'CommandGroup (d:doc "") #:bases '(Org))
    (d:org 'ParseError (d:doc "") #:bases '(Org))
    (d:org 'FileTarget (d:doc "") #:bases '(Org))
    (d:org 'TextSeparator (d:doc "") #:bases '(Org))

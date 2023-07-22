@@ -10,6 +10,7 @@ enum class OrgSemKind  : short int{
   Paragraph,
   Center,
   Caption,
+  CommandGroup,
   Quote,
   Example,
   Export,
@@ -43,7 +44,6 @@ enum class OrgSemKind  : short int{
   ListItem,
   Link,
   Document,
-  CommandGroup,
   ParseError,
   FileTarget,
   TextSeparator,
@@ -63,6 +63,7 @@ enum class OrgSemKind  : short int{
     __IMPL(Paragraph) \
     __IMPL(Center) \
     __IMPL(Caption) \
+    __IMPL(CommandGroup) \
     __IMPL(Quote) \
     __IMPL(Example) \
     __IMPL(Export) \
@@ -96,7 +97,6 @@ enum class OrgSemKind  : short int{
     __IMPL(ListItem) \
     __IMPL(Link) \
     __IMPL(Document) \
-    __IMPL(CommandGroup) \
     __IMPL(ParseError) \
     __IMPL(FileTarget) \
     __IMPL(TextSeparator) \

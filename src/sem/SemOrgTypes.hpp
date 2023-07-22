@@ -200,7 +200,13 @@ struct Caption : public Attached {
 /// \brief Multiple attachable commands will get grouped into this element
 ///  unless it is possible to attached them to some adjacent block command
 struct CommandGroup : public Stmt {
-
+  public:
+  /// \brief Document
+    static SemId const staticKind;
+  public:
+    static SemIdT<CommandGroup> create();
+  public:
+    virtual OrgSemKind getKind() const;
 };
 
 /// \brief Block command type
@@ -282,22 +288,6 @@ struct Code : public Block {
   /// directly in the field, but also works with attached `#+options`
   /// from the block
   struct Switch {
-    enum class Kind {
-      CalloutFormat,
-      RemoveCallout,
-      EmphasizeLine,
-      Dedent,
-    };
-
-    char const* from_enum(Kind _result) {
-      switch (_result) {
-        case Kind::CalloutFormat: return "CalloutFormat";
-        case Kind::RemoveCallout: return "RemoveCallout";
-        case Kind::EmphasizeLine: return "EmphasizeLine";
-        case Kind::Dedent: return "Dedent";
-      }
-    }
-
     struct CalloutFormat {
       public:
         Str format;
@@ -319,6 +309,14 @@ struct Code : public Block {
         int value;
     };
 
+    SUB_VARIANTS(Kind,
+                 Data,
+                 data,
+                 getKind,
+                 CalloutFormat,
+                 RemoveCallout,
+                 EmphasizeLine,
+                 Dedent);
     public:
       Data data;
   };
@@ -495,24 +493,6 @@ struct SubtreeLog : public Org {
       Opt<SemIdT<StmtList>> desc;
   };
 
-  enum class Kind {
-    Note,
-    Refile,
-    Clock,
-    State,
-    Tag,
-  };
-
-  char const* from_enum(Kind _result) {
-    switch (_result) {
-      case Kind::Note: return "Note";
-      case Kind::Refile: return "Refile";
-      case Kind::Clock: return "Clock";
-      case Kind::State: return "State";
-      case Kind::Tag: return "Tag";
-    }
-  }
-
   /// \brief Timestamped note
   struct Note : public DescribedLog {
     public:
@@ -560,6 +540,17 @@ struct SubtreeLog : public Org {
       bool added;
   };
 
+  SUB_VARIANTS(Kind,
+               LogEntry,
+               data,
+               getLogKind,
+               Note,
+               Refile,
+               Clock,
+               State,
+               Tag);
+  public:
+    LogEntry data;
   public:
   /// \brief Document
     static SemId const staticKind;
@@ -856,16 +847,6 @@ struct Document : public Org {
     static SemId const staticKind;
   public:
     static SemIdT<Document> create();
-  public:
-    virtual OrgSemKind getKind() const;
-};
-
-struct CommandGroup : public Org {
-  public:
-  /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<CommandGroup> create();
   public:
     virtual OrgSemKind getKind() const;
 };

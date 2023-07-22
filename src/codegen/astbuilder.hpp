@@ -34,13 +34,16 @@ class ASTBuilder {
     };
 
     struct QualType {
-        Ident ident;
-        bool  isConst = false;
-        bool  isPtr   = false;
-        bool  isRef   = false;
+        Ident         ident;
+        bool          isConst    = false;
+        bool          isPtr      = false;
+        bool          isRef      = false;
+        Vec<QualType> Parameters = {};
 
         QualType() {}
         QualType(Str const& name) { ident = Ident(name); }
+        QualType(Str const& name, Vec<QualType> const& Parameters)
+            : ident(Ident(name)), Parameters(Parameters) {}
 
         QualType& Ref(bool set = true) {
             isRef = set;
@@ -158,6 +161,13 @@ class ASTBuilder {
     Res MethodDecl(RecordDeclParams::Method const& method);
     Res RecordDecl(RecordDeclParams const& params);
 
+    struct UsingDeclParams {
+        Str      newName;
+        QualType baseType;
+    };
+
+    Res UsingDecl(UsingDeclParams const& params);
+
     struct MacroDeclParams {
         struct Param {
             Str  name;
@@ -245,7 +255,7 @@ class ASTBuilder {
     Res CaseStmt(CaseStmtParams const& params);
     Res SwitchStmt(SwitchStmtParams const& params);
 
-    Res XCall(Str const& opc, Vec<Res> args);
+    Res XCall(Str const& opc, Vec<Res> args, bool Stmt = false);
     Res XStmt(Str const& opc, Res arg) {
         return b::line({string(opc), string(" "), arg, string(";")});
     }

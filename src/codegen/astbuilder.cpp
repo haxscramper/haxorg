@@ -1,5 +1,6 @@
 #include "astbuilder.hpp"
 
+#include <hstd/stdlib/algorithms.hpp>
 #include <ranges>
 
 namespace rv = std::ranges::views;
@@ -67,12 +68,26 @@ ASTBuilder::QualType ASTBuilder::Type(Str const& type) {
 }
 
 ASTBuilder::Res ASTBuilder::Type(const QualType& type) {
-    return string(
-        type.ident.spaces.at(0) +        //
-        (type.isConst ? " const" : "") + //
-        (type.isPtr ? "*" : "") +        //
-        (type.isRef ? "&" : "")          //
-    );
+    return b::line({
+        string(join("::", type.ident.spaces)),
+        type.Parameters.empty()
+            ? string("")
+            : b::line({
+                string("<"),
+                b::join(
+                    map<QualType, Res>(
+                        type.Parameters,
+                        [&](QualType const& in) { return Type(in); }),
+                    string(", "),
+                    true),
+                string(">"),
+            }),
+        string(
+            Str(type.isConst ? " const" : "") + //
+            Str(type.isPtr ? "*" : "") +        //
+            Str(type.isRef ? "&" : "")          //
+            ),
+    });
 }
 
 
@@ -161,6 +176,16 @@ ASTBuilder::Res ASTBuilder::RecordDecl(const RecordDeclParams& params) {
         b::indent(2, b::stack(content)),
         string("};"),
         string(""),
+    });
+}
+
+ASTBuilder::Res ASTBuilder::UsingDecl(const UsingDeclParams& params) {
+    return b::line({
+        string("using "),
+        string(params.newName),
+        string(" = "),
+        Type(params.baseType),
+        string(";"),
     });
 }
 
@@ -267,8 +292,11 @@ ASTBuilder::Res ASTBuilder::CaseStmt(const CaseStmtParams& params) {
         return block(head, Body);
     } else {
         if (params.OneLine) {
-            return b::line(
-                {head, string(" "), b::join(params.Body, string(" "))});
+            return b::line({
+                head,
+                string(" "),
+                b::join(params.Body, string(" ")),
+            });
         } else {
             return b::stack({head, b::indent(2, b::stack(Body))});
         }
@@ -284,9 +312,17 @@ ASTBuilder::Res ASTBuilder::SwitchStmt(const SwitchStmtParams& params) {
     return block(b::line({string("switch "), pars(params.Expr)}), cases);
 }
 
-ASTBuilder::Res ASTBuilder::XCall(const Str& opc, Vec<Res> args) {
+ASTBuilder::Res ASTBuilder::XCall(
+    const Str& opc,
+    Vec<Res>   args,
+    bool       Stmt) {
     if (opc[0].isLetter()) {
-        return b::line({string(opc), string("("), csv(args), string(")")});
+        return b::line({
+            string(opc),
+            string("("),
+            csv(args),
+            string(Stmt ? ");" : ")"),
+        });
     } else {
         if (args.size() == 1) {
             return b::line({string(opc), args.at(0)});

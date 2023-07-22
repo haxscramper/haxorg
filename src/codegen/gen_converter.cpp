@@ -1,4 +1,5 @@
 #include "gen_converter.hpp"
+#include <hstd/stdlib/algorithms.hpp>
 
 AB::ParmVarDeclParams toParams(AB& builder, GD::Ident const& ident) {
     AB::ParmVarDeclParams result{};
@@ -120,7 +121,7 @@ Vec<AB::Res> convert(AB& builder, const GD::TypeGroup& record) {
         }
     }
 
-    if (0 < record.enumName.size()) {
+    if (false && 0 < record.enumName.size()) {
         AB::EnumDeclParams enumDecl;
         for (auto const& item : typeNames) {
             enumDecl.fields.push_back(
@@ -162,6 +163,7 @@ Vec<AB::Res> convert(AB& builder, const GD::TypeGroup& record) {
         decls.push_back(builder.FunctionDecl(fromEnum));
     }
 
+
     if (0 < record.iteratorMacroName.size()) {
         AB::MacroDeclParams iteratorMacro;
 
@@ -176,6 +178,42 @@ Vec<AB::Res> convert(AB& builder, const GD::TypeGroup& record) {
 
     for (auto const& sub : record.types) {
         decls.push_back(builder.RecordDecl(convert(builder, sub)));
+    }
+
+    if (!record.variantName.empty() && !record.enumName.empty()) {
+        Vec<AB::Res> Arguments{
+            builder.string(record.enumName),
+            builder.string(record.variantName),
+            builder.string(record.variantField),
+            builder.string(record.kindGetter),
+        };
+
+        for (auto const& kind : typeNames) {
+            Arguments.push_back(builder.string(kind));
+        }
+
+        // Continue using macros for the time being, so this code can be
+        // enabled later
+        if (false) {
+            decls.push_back(builder.UsingDecl(AB::UsingDeclParams{
+                .newName  = record.variantName,
+                .baseType = AB::QualType(
+                    "Variant",
+                    map<Str, AB::QualType>(
+                        typeNames,
+                        [&](Str const& Type) {
+                            return AB::QualType(Type);
+                        })),
+            }));
+        }
+
+
+        decls.push_back(builder.XCall("SUB_VARIANTS", Arguments, true));
+        decls.push_back(builder.FieldDecl(AB::RecordDeclParams::Field{
+            .params = AB::ParmVarDeclParams{
+                .type = AB::QualType(record.variantName),
+                .name = record.variantField,
+            }}));
     }
 
     return decls;
