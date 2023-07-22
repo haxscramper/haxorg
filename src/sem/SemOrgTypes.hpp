@@ -159,7 +159,7 @@ struct Example : public Block {
 /// \brief Direct export passthrough
 struct Export : public Block {
   /// \brief Export block format type
-  enum class Format {
+  enum class Format  : short int{
     /// \brief Export directly in the paragraph
     Inline,
     /// \brief Single line of export
@@ -231,13 +231,13 @@ struct Code : public Block {
   };
 
   /// \brief What to do with newly evaluated result
-  enum class Results {
+  enum class Results  : short int{
     /// \brief Remove old result, replace with new value
     Replace,
   };
 
   /// \brief What part of the code block should be visible in export
-  enum class Exports {
+  enum class Exports  : short int{
     /// \brief Hide both original code and run result
     None,
     /// \brief Show output and code
@@ -271,7 +271,7 @@ struct Time : public Org {
   /// \brief Repetition information for static time
   struct Repeat {
     /// \brief Timestamp repetition mode
-    enum class Mode {
+    enum class Mode  : short int{
       /// \brief Do not repeat task on completion
       None,
       /// \brief ?
@@ -285,7 +285,7 @@ struct Time : public Org {
     /// \brief Repetition period. Temporary placeholder for now, until I
     /// figure out what would be the proper way to represent whatever
     /// org can do ... which is to be determined as well
-    enum class Period {
+    enum class Period  : short int{
       Year,
       Month,
       Week,
@@ -537,6 +537,38 @@ struct ListItem : public Org {
 };
 
 struct Link : public Org {
+
+};
+
+struct Document : public Org {
+
+};
+
+struct CommandGroup : public Org {
+
+};
+
+struct ParseError : public Org {
+
+};
+
+struct FileTarget : public Org {
+
+};
+
+struct TextSeparator : public Org {
+
+};
+
+struct Include : public Org {
+
+};
+
+struct DocumentOptions : public Org {
+
+};
+
+struct DocumentGroup : public Org {
 
 };
 

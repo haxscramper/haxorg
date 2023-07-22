@@ -202,7 +202,7 @@ ASTBuilder::Res ASTBuilder::EnumDecl(const EnumDeclParams& params) {
             string("enum "),
             string(params.isEnumClass ? "class " : ""),
             string(params.name + " "),
-            string(params.base ? "" : ": " + *params.base),
+            string(params.base ? " : " + *params.base : ""),
             string("{"),
         }),
         b::indent(2, fields),

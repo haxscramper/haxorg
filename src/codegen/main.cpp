@@ -5,6 +5,7 @@
 #include <QFileInfo>
 
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
 
 #include "gen_description.hpp"
 #include "gen_converter.hpp"
@@ -118,9 +119,25 @@ int main(int argc, const char** argv) {
                          {"base", "/mnt/workspace/repos/haxorg/src"},
                      });
 
-        qDebug() << "Wrote to" << path << "pattern was" << tu.path;
-        std::ofstream out{path.toStdString()};
-        out << builder.store.toString(result, layout::Options())
-            << std::endl;
+        QFileInfo file{path};
+        QString   newCode = builder.store.toString(
+            result, layout::Options());
+
+        if (file.exists()) {
+            QString oldCode = readFile(file);
+            if (oldCode != newCode) {
+                std::ofstream out{path.toStdString()};
+                out << newCode;
+                qDebug() << "Updated code in" << path << "pattern was"
+                         << tu.path;
+            } else {
+                qDebug() << "No changes on" << path << "pattern was"
+                         << tu.path;
+            }
+        } else {
+            std::ofstream out{path.toStdString()};
+            out << newCode;
+            qDebug() << "Wrote to" << path << "pattern was" << tu.path;
+        }
     }
 }
