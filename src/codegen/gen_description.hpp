@@ -82,19 +82,20 @@ struct GenDescription {
 
     struct TypeGroup {
         Vec<Struct> types;
-        BOOST_DESCRIBE_CLASS(TypeGroup, (), (), (), (types));
+        Str         iteratorMacroName;
+        Str         enumName;
+
+        BOOST_DESCRIBE_CLASS(
+            TypeGroup,
+            (),
+            (),
+            (),
+            (types, iteratorMacroName, enumName));
     };
 
     Vec<Entry> entries;
-    Str        iteratorMacroName;
-    Str        enumName;
 
-    BOOST_DESCRIBE_CLASS(
-        GenDescription,
-        (),
-        (),
-        (),
-        (entries, iteratorMacroName, enumName));
+    BOOST_DESCRIBE_CLASS(GenDescription, (), (), (), (entries));
 };
 
 template <typename T>

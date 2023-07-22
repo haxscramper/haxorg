@@ -53,22 +53,9 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
 
 Vec<AB::Res> convert(AB& builder, const GD::TypeGroup& record) {
     Vec<AB::Res> decls;
-
-    for (auto const& sub : record.types) {
-        decls.push_back(builder.RecordDecl(convert(builder, sub)));
-    }
-
-    return decls;
-}
-
-
-AB::Res convert(AB& builder, const GD& desc) {
-    Vec<AB::Res> decls;
     Vec<Str>     typeNames;
-    for (auto const& item : desc.entries) {
-        if (std::holds_alternative<SPtr<GD::Struct>>(item)) {
-            typeNames.push_back(std::get<SPtr<GD::Struct>>(item)->name);
-        }
+    for (auto const& item : record.types) {
+        typeNames.push_back(item.name);
     }
 
     {
@@ -78,7 +65,7 @@ AB::Res convert(AB& builder, const GD& desc) {
                 AB::EnumDeclParams::Field{.name = item});
         }
 
-        enumDecl.name = desc.enumName;
+        enumDecl.name = record.enumName;
 
         Str strName = "_text";
         Str resName = "_result";
@@ -100,16 +87,16 @@ AB::Res convert(AB& builder, const GD& desc) {
         }
 
         AB::FunctionDeclParams fromEnum{
-            .Name = "from_enum",
-            .ResultTy = AB::QualType("char").Ptr().Const(),
-            .Args = {
-                AB::ParmVarDeclParams{
-                    .type = AB::QualType(desc.enumName),
-                    .name = resName,
-                },
-            },
-            .Body = Vec<AB::Res>{builder.SwitchStmt(switchTo)},
-        };
+                                        .Name = "from_enum",
+                                        .ResultTy = AB::QualType("char").Ptr().Const(),
+                                        .Args = {
+                                            AB::ParmVarDeclParams{
+                                                    .type = AB::QualType(record.enumName),
+                                                    .name = resName,
+                                            },
+                                        },
+                                        .Body = Vec<AB::Res>{builder.SwitchStmt(switchTo)},
+                                        };
 
         decls.push_back(builder.FunctionDecl(fromEnum));
     }
@@ -122,10 +109,20 @@ AB::Res convert(AB& builder, const GD& desc) {
         }
 
         iteratorMacro.params = {{"__IMPL"}};
-        iteratorMacro.name   = desc.iteratorMacroName;
+        iteratorMacro.name   = record.iteratorMacroName;
         decls.push_back(builder.MacroDecl(iteratorMacro));
     }
 
+    for (auto const& sub : record.types) {
+        decls.push_back(builder.RecordDecl(convert(builder, sub)));
+    }
+
+    return decls;
+}
+
+
+AB::Res convert(AB& builder, const GD& desc) {
+    Vec<AB::Res> decls;
 
     for (auto const& item : desc.entries) {
         if (std::holds_alternative<SPtr<GD::Struct>>(item)) {
