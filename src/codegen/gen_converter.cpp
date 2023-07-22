@@ -4,6 +4,10 @@
 AB::ParmVarDeclParams toParams(AB& builder, GD::Ident const& ident) {
     AB::ParmVarDeclParams result{};
     result.name = ident.name;
+    result.type = AB::QualType(ident.type);
+    if (ident.value && !ident.value->empty()) {
+        result.defArg = ident.value;
+    }
     return result;
 }
 

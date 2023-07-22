@@ -74,7 +74,7 @@ class ASTBuilder {
         Str          name;
         bool         isConst = false;
         StorageClass storage = StorageClass::None;
-        Str          defArg  = "";
+        Opt<Str>     defArg  = std::nullopt;
     };
 
     Res Doc(DocParams const& doc);

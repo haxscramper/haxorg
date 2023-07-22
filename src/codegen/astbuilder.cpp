@@ -140,6 +140,14 @@ ASTBuilder::Res ASTBuilder::MethodDecl(
                 string(" "),
                 string(method.params.Name),
                 string("("),
+                b::join(
+                    map<ASTBuilder::ParmVarDeclParams, Res>(
+                        method.params.Args,
+                        [&](ASTBuilder::ParmVarDeclParams const& Arg) {
+                            return ParmVarDecl(Arg);
+                        }),
+                    string(", "),
+                    true),
                 string(")"),
                 string(method.isConst ? " const" : ""),
                 string(method.isPureVirtual ? " = 0" : ""),
@@ -265,11 +273,8 @@ ASTBuilder::Res ASTBuilder::VarDecl(ParmVarDeclParams const& p) {
         string(" "),
         string(p.isConst ? "const " : ""),
         string(p.name),
-        p.defArg.empty() ? string("")
-                         : b::line({
-                             string(" = "),
-                             string(p.defArg),
-                         }),
+        p.defArg ? b::line({string(" = "), string(*p.defArg)})
+                 : string(""),
         string(";"),
     });
 }

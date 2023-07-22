@@ -446,8 +446,20 @@ org can do ... which is to be determined as well")
            (d:opt-field (t:id "Time") "scheduled" (d:doc "When the event is scheduled")))
           #:methods
           (list
-           (d:method (t:vec "Period") "getTimePeriods" (d:doc "")
-                     #:arguments (list (d:ident "IntSet<Period::Kind>" "kinds"))))
+           (d:method (t:vec "Period") "getTimePeriods" (d:doc "") #:isConst #t
+                     #:arguments (list (d:ident "IntSet<Period::Kind>" "kinds")))
+           (d:method (t:vec "Property") "getProperties" (d:doc "") #:isConst #t
+                     #:arguments (list (d:ident "Property::Kind" "kind")
+                                       (d:ident (t:cr (t:str)) "subkind" #:value "\"\"")))
+           (d:method (t:opt "Property") "getProperty" (d:doc "") #:isConst #t
+                     #:arguments (list (d:ident "Property::Kind" "kind")
+                                       (d:ident (t:cr (t:str)) "subkind" #:value "\"\"")))
+           (d:method (t:vec "Property") "getContextualProperties" (d:doc "") #:isConst #t
+                     #:arguments (list (d:ident "Property::Kind" "kind")
+                                       (d:ident (t:cr (t:str)) "subkind" #:value "\"\"")))
+           (d:method (t:opt "Property") "getContextualProperty" (d:doc "") #:isConst #t
+                     #:arguments (list (d:ident "Property::Kind" "kind")
+                                       (d:ident (t:cr (t:str)) "subkind" #:value "\"\""))))
           #:nested
           (list
            (d:struct 'Period (d:doc "Type of the subtree associated time periods")
@@ -505,9 +517,9 @@ org can do ... which is to be determined as well")
                                   #:fields (list (d:field (t:vec (t:str)) "blockers" (d:doc ""))))
                         (d:struct 'Unnumbered (d:doc ""))
                         (d:struct 'Created (d:doc "")
-                                  #:fields (list (d:field (t:id "Time") "time" (d:doc ""))))
-                        )
-                       )
+                                  #:fields (list (d:field (t:id "Time") "time" (d:doc ""))))))
+                      (d:pass "Property(CR<Data> data) : data(data) {}")
+                      (d:pass "bool matches(Kind kind, CR<QString> subkind = \"\") const;")
                       )
                      )
            )
@@ -536,13 +548,45 @@ org can do ... which is to be determined as well")
    (d:org 'Par (d:doc "") #:bases '(Markup))
    (d:org 'List (d:doc "") #:bases '(Org)
           #:methods (list (d:method "bool" "isDescriptionList" (d:doc "") #:isConst #t)))
+   (d:org 'ListItem (d:doc "") #:bases '(Org)
+          #:fields
+          (list
+           (d:field "Checkbox" "checkbox" (d:doc "") #:value "Checkbox::None")
+           (d:field (t:opt (t:id "Paragraph")) "header" (d:doc "") #:value "std::nullopt"))
+          #:nested
+          (list (d:simple-enum "Checkbox" (d:doc "") "None" "Done" "Empty"))
+          #:methods
+          (list
+           (d:method "bool" "isDescriptionList" (d:doc "") #:isConst #t
+                     #:impl "return header.has_value();")))
    ;; TODO
-   (d:org 'ListItem (d:doc "") #:bases '(Org))
-   ;; TODO
-   (d:org 'Link (d:doc "") #:bases '(Org))
+   (d:org 'Link (d:doc "") #:bases '(Org)
+          #:methods
+          (list
+           (d:method (t:opt (t:id)) "resolve" (d:doc "") #:isConst #t
+                     #:arguments (list (d:ident (t:cr "Document") "doc")))
+           (d:method (t:opt (t:id)) "resolve" (d:doc "") #:isConst #t))
+          #:nested
+          (list
+           (d:group
+            (list
+             (d:struct 'Raw (d:doc "") #:fields (list (d:field (t:str) "text" (d:doc ""))))
+             (d:struct 'Id (d:doc "") #:fields (list (d:field (t:str) "text" (d:doc ""))))
+             (d:struct 'Person (d:doc "") #:fields (list (d:field (t:str) "name" (d:doc ""))))
+             (d:struct 'Footnote (d:doc "") #:fields (list (d:field (t:str) "target" (d:doc ""))))
+             (d:struct 'File (d:doc "") #:fields (list (d:field (t:str) "file" (d:doc "")))))
+            #:kindGetter "getLinkKind")))
    (d:org 'Document (d:doc "") #:bases '(Org))
    (d:org 'ParseError (d:doc "") #:bases '(Org))
-   (d:org 'FileTarget (d:doc "") #:bases '(Org))
+   (d:org 'FileTarget (d:doc "") #:bases '(Org)
+          #:fields
+          (list
+           (d:field (t:str) "path" (d:doc ""))
+           (d:opt-field "int" "line" (d:doc ""))
+           (d:opt-field (t:str) "searchTarget" (d:doc ""))
+           (d:field "bool" "restrictToHeadlines" (d:doc "") #:value "false")
+           (d:opt-field (t:str) "targetId" (d:doc ""))
+           (d:opt-field (t:str) "regexp" (d:doc ""))))
    (d:org 'TextSeparator (d:doc "") #:bases '(Org))
    (d:org 'Include (d:doc "") #:bases '(Org))
    (d:org 'DocumentOptions (d:doc "") #:bases '(Org))
