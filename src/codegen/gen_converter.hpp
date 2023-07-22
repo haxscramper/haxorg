@@ -4,7 +4,7 @@
 #include "astbuilder.hpp"
 
 using AB = ASTBuilder;
-using GD = GenDescription;
+using GD = GenTu;
 
 
 ASTBuilder::Res convert(ASTBuilder& builder, GD::Ident const& ident);

@@ -65,20 +65,20 @@ struct convert<Str> {
 };
 
 template <>
-struct convert<GenDescription::Entry>
-    : variant_convert<
-          GenDescription::Entry,
-          convert<GenDescription::Entry>> {
-    static void init(GenDescription::Entry& result, SCM value) {
-        std::string kind = convert<GenDescription::Entry>::get_kind(value);
+struct convert<GenTu::Entry>
+    : variant_convert<GenTu::Entry, convert<GenTu::Entry>> {
+    static void init(GenTu::Entry& result, SCM value) {
+        std::string kind = convert<GenTu::Entry>::get_kind(value);
         if (kind == "Struct") {
-            result = std::make_shared<GenDescription::Struct>();
+            result = std::make_shared<GenTu::Struct>();
         } else if (kind == "Enum") {
-            result = std::make_shared<GenDescription::Enum>();
+            result = std::make_shared<GenTu::Enum>();
         } else if (kind == "Group") {
-            result = std::make_shared<GenDescription::TypeGroup>();
+            result = std::make_shared<GenTu::TypeGroup>();
         } else if (kind == "Include") {
-            result = GenDescription::Include{};
+            result = GenTu::Include{};
+        } else if (kind == "Pass") {
+            result = GenTu::Pass{};
         } else {
             throw decode_error(
                 "parsing GenDescriptionEntry variant", value);
@@ -105,14 +105,22 @@ int main(int argc, const char** argv) {
 
     QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
 
-    GenDescription description;
-    ::guile::convert<GenDescription>::decode(description, doc);
+    GenFiles description;
+    ::guile::convert<GenFiles>::decode(description, doc);
     ASTBuilder builder;
 
-    auto definitions = convert(builder, description);
-    auto result      = builder.TranslationUnit({definitions});
+    for (auto const& tu : description.files) {
+        auto definitions = convert(builder, tu);
+        auto result      = builder.TranslationUnit({definitions});
 
-    std::ofstream out{
-        "/mnt/workspace/repos/haxorg/src/sem/SemOrgTypes.hpp"};
-    out << builder.store.toString(result, layout::Options()) << std::endl;
+        QString path = tu.path
+                     % fold_format_pairs({
+                         {"base", "/mnt/workspace/repos/haxorg/src"},
+                     });
+
+        qDebug() << "Wrote to" << path << "pattern was" << tu.path;
+        std::ofstream out{path.toStdString()};
+        out << builder.store.toString(result, layout::Options())
+            << std::endl;
+    }
 }

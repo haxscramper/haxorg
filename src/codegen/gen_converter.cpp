@@ -53,6 +53,9 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
                     params.nested.push_back(
                         builder.Include(Include.what, Include.isSystem));
                 },
+                [&](GD::Pass const& Pass) {
+                    params.nested.push_back(builder.string(Pass.what));
+                },
                 [&]() {},
             },
             type);
@@ -78,8 +81,8 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
     return params;
 }
 ASTBuilder::EnumDeclParams convert(
-    ASTBuilder&                 builder,
-    const GenDescription::Enum& entry) {
+    ASTBuilder&        builder,
+    const GenTu::Enum& entry) {
     AB::EnumDeclParams params;
 
     params.name      = entry.name;
@@ -106,7 +109,7 @@ Vec<AB::Res> convert(AB& builder, const GD::TypeGroup& record) {
         }
     }
 
-    {
+    if (0 < record.enumName.size()) {
         AB::EnumDeclParams enumDecl;
         for (auto const& item : typeNames) {
             enumDecl.fields.push_back(
@@ -119,7 +122,6 @@ Vec<AB::Res> convert(AB& builder, const GD::TypeGroup& record) {
         Str resName = "_result";
 
         decls.push_back(builder.EnumDecl(enumDecl));
-
         AB::SwitchStmtParams switchTo{
             .Expr = builder.string(resName),
         };
@@ -135,16 +137,16 @@ Vec<AB::Res> convert(AB& builder, const GD::TypeGroup& record) {
         }
 
         AB::FunctionDeclParams fromEnum{
-                                        .Name = "from_enum",
-                                        .ResultTy = AB::QualType("char").Ptr().Const(),
-                                        .Args = {
-                                            AB::ParmVarDeclParams{
-                                                    .type = AB::QualType(record.enumName),
-                                                    .name = resName,
-                                            },
-                                        },
-                                        .Body = Vec<AB::Res>{builder.SwitchStmt(switchTo)},
-                                        };
+            .Name = "from_enum",
+            .ResultTy = AB::QualType("char").Ptr().Const(),
+            .Args = {
+                AB::ParmVarDeclParams{
+                    .type = AB::QualType(record.enumName),
+                    .name = resName,
+                },
+            },
+            .Body = Vec<AB::Res>{builder.SwitchStmt(switchTo),},
+        };
 
         decls.push_back(builder.FunctionDecl(fromEnum));
     }
@@ -178,13 +180,13 @@ AB::Res convert(AB& builder, const GD& desc) {
     return builder.TranslationUnit(decls);
 }
 
-AB::DocParams convert(AB& builder, const GenDescription::Doc& doc) {
+AB::DocParams convert(AB& builder, const GenTu::Doc& doc) {
     return AB::DocParams{.brief = doc.brief, .full = doc.full};
 }
 
 Vec<ASTBuilder::Res> convert(
-    ASTBuilder&                  builder,
-    const GenDescription::Entry& entry) {
+    ASTBuilder&         builder,
+    const GenTu::Entry& entry) {
     Vec<AB::Res> decls;
     std::visit(
         overloaded{
@@ -198,6 +200,12 @@ Vec<ASTBuilder::Res> convert(
             [&](GD::Include const& Include) {
                 decls.push_back(
                     builder.Include(Include.what, Include.isSystem));
+            },
+            [&](SPtr<GD::Enum> const& Enum) {
+                decls.push_back(builder.EnumDecl(convert(builder, *Enum)));
+            },
+            [&](GD::Pass const& Pass) {
+                decls.push_back(builder.string(Pass.what));
             },
             [](auto const& it) { qFatal("Unexpected kind"); },
         },

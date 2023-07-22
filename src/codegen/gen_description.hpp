@@ -15,7 +15,7 @@
 using namespace boost::describe;
 using boost::mp11::mp_for_each;
 
-struct GenDescription {
+struct GenTu {
     struct Ident {
         Str      name;
         Str      type;
@@ -67,11 +67,18 @@ struct GenDescription {
         bool isSystem = false;
         BOOST_DESCRIBE_CLASS(Include, (), (), (), (what, isSystem));
     };
+    struct Pass {
+        Str what;
+        BOOST_DESCRIBE_CLASS(Pass, (), (), (), (what));
+    };
+
+
     using Entry = Variant<
         SPtr<Enum>,
         SPtr<Struct>,
         SPtr<TypeGroup>,
-        Include>;
+        Include,
+        Pass>;
 
     struct Struct {
         Str           name;
@@ -104,8 +111,14 @@ struct GenDescription {
     };
 
     Vec<Entry> entries;
+    Str        path;
 
-    BOOST_DESCRIBE_CLASS(GenDescription, (), (), (), (entries));
+    BOOST_DESCRIBE_CLASS(GenTu, (), (), (), (entries, path));
+};
+
+struct GenFiles {
+    Vec<GenTu> files;
+    BOOST_DESCRIBE_CLASS(GenFiles, (), (), (), (files));
 };
 
 template <typename T>
@@ -170,20 +183,18 @@ void visitValue(YAML::Node const& node, T& tree) {
     });
 }
 
-inline void visitValue(
-    YAML::Node const&      node,
-    GenDescription::Entry& rhs) {
+inline void visitValue(YAML::Node const& node, GenTu::Entry& rhs) {
     Str kind = node["kind"].as<Str>();
     if (kind == "Enum") {
-        auto result = std::make_shared<GenDescription::Enum>();
+        auto result = std::make_shared<GenTu::Enum>();
         visitValue(node, *result);
         rhs = result;
     } else if (kind == "Struct") {
-        auto result = std::make_shared<GenDescription::Struct>();
+        auto result = std::make_shared<GenTu::Struct>();
         visitValue(node, *result);
         rhs = result;
     } else if (kind == "TypeGroup") {
-        auto result = std::make_shared<GenDescription::TypeGroup>();
+        auto result = std::make_shared<GenTu::TypeGroup>();
         visitValue(node, *result);
         rhs = result;
     }
@@ -201,56 +212,56 @@ struct convert<std::shared_ptr<T>> {
 };
 
 template <>
-struct convert<GenDescription::Ident> {
-    static bool decode(Node const& node, GenDescription::Ident& rhs) {
+struct convert<GenTu::Ident> {
+    static bool decode(Node const& node, GenTu::Ident& rhs) {
         visitValue(node, rhs);
         return true;
     }
 };
 
 template <>
-struct convert<GenDescription::Function> {
-    static bool decode(Node const& node, GenDescription::Function& rhs) {
+struct convert<GenTu::Function> {
+    static bool decode(Node const& node, GenTu::Function& rhs) {
         visitValue(node, rhs);
         return true;
     }
 };
 
 template <>
-struct convert<GenDescription::Enum> {
-    static bool decode(Node const& node, GenDescription::Enum& rhs) {
+struct convert<GenTu::Enum> {
+    static bool decode(Node const& node, GenTu::Enum& rhs) {
         visitValue(node, rhs);
         return true;
     }
 };
 
 template <>
-struct convert<GenDescription::Struct> {
-    static bool decode(Node const& node, GenDescription::Struct& rhs) {
+struct convert<GenTu::Struct> {
+    static bool decode(Node const& node, GenTu::Struct& rhs) {
         visitValue(node, rhs);
         return true;
     }
 };
 
 template <>
-struct convert<GenDescription::TypeGroup> {
-    static bool decode(Node const& node, GenDescription::TypeGroup& rhs) {
+struct convert<GenTu::TypeGroup> {
+    static bool decode(Node const& node, GenTu::TypeGroup& rhs) {
         visitValue(node, rhs);
         return true;
     }
 };
 
 template <>
-struct convert<GenDescription::Entry> {
-    static bool decode(Node const& node, GenDescription::Entry& rhs) {
+struct convert<GenTu::Entry> {
+    static bool decode(Node const& node, GenTu::Entry& rhs) {
         visitValue(node, rhs);
         return true;
     }
 };
 
 template <>
-struct convert<GenDescription> {
-    static bool decode(Node const& node, GenDescription& rhs) {
+struct convert<GenTu> {
+    static bool decode(Node const& node, GenTu& rhs) {
         visitValue(node, rhs);
         return true;
     }
