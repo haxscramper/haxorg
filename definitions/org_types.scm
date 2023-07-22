@@ -62,7 +62,10 @@
 (simple-define-type <doc> d:doc (brief) (full ""))
 (simple-define-type <enum-field> d:efield (name) (doc) (value ""))
 (simple-define-type <enum> d:enum (name) (doc) (fields) (base "short int") (kind "Enum"))
-(simple-define-type <field> d:field (type) (name) (doc) (value "") (kind "Field"))
+(simple-define-type
+ <field> d:field
+ (type) (name) (doc) (value "") (kind "Field") (isStatic #f) (isConst #f))
+
 (simple-define-type <ident> d:ident (type) (name) (value ""))
 
 (simple-define-type
@@ -91,7 +94,10 @@
  (doc)
  (arguments (list))
  (isConst #f)
+ (isStatic #f)
+ (impl "")
  (isVirtual #f)
+ (isPureVirtual #f)
  (kind "Method"))
 
 (simple-define-type <file> d:file (path) (entries))
@@ -119,328 +125,358 @@
 (define* (d:opt-field type name doc)
   (d:field (t:opt type) name doc #:value "std::nullopt"))
 
+(define* (slot-concat! obj slot-name new-value do-prepend?)
+  (let ((current-value (slot-ref obj slot-name)))
+    (let ((new-list (if do-prepend?
+                        (cons new-value current-value)
+                        (append current-value (list new-value)))))
+      (slot-set! obj slot-name new-list))))
+
+(define* (slot-prepend! obj slot-name new-value)
+  (slot-concat! obj slot-name new-value #t))
+
+(define* (slot-append! obj slot-name new-value)
+  (slot-concat! obj slot-name new-value #f))
+
+
+(define* (d:org #:rest args)
+  (let* ((def (apply d:struct args))
+         (kind (slot-ref def 'name)))
+    (when (slot-ref def 'concreteKind)
+      (slot-prepend!
+       def 'fields
+       (d:field (t:id) "staticKind" (d:doc "Document") #:isConst #t #:isStatic #t))
+      (slot-prepend!
+       def 'methods
+       (d:method (t:osk) "getKind" (d:doc "") #:isConst #t #:isVirtual #t #:isPureVirtual #f))
+      (slot-prepend!
+       def 'methods
+       (d:method (t:id kind) "create" (d:doc "")
+                 #:isStatic #t
+                 #:arguments (list
+                              (d:ident (t:id) "parent")
+                              (d:ident (t:opt (t:id))  "original" #:value "std::nullopt")))))
+    def))
+
 (define types
   (list
-   (d:struct 'Stmt
-             (d:doc
-              "Base class for all document-level entries. Note that some node kinds
+   (d:org 'Stmt
+          (d:doc
+           "Base class for all document-level entries. Note that some node kinds
 might also have inline entries (examples include links, source code blocks,
 call blocks)")
-             #:bases '(Org) #:concreteKind #f)
-   (d:struct 'Inline
-             (d:doc "Base class for all inline elements")
-             #:bases '(Org) #:concreteKind #f)
-   (d:struct 'StmtList
-             (d:doc "Zero or more statement nodes")
-             #:bases '(Org))
-   (d:struct 'Empty (d:doc "Node without content") #:bases '(Org))
-   (d:struct 'Row (d:doc "Table row") #:bases '(Org))
-   (d:struct 'Table (d:doc "Table")
-             #:bases '(Stmt)
-             #:fields
-             (list
-              (d:field (t:vec (t:id "Row")) "rows"
-                       (d:doc "List of rows for the table") #:value "{}")))
-   (d:struct 'HashTag (d:doc "Single or nested inline hash-tag")
-             #:bases '(Inline)
-             #:fields
-             (list
-              (d:field "Str" "head" (d:doc "Main part of the tag"))
-              (d:field (t:vec (t:id "HashTag")) "subtags"
-                       (d:doc "List of nested tags") #:value "{}"))
-             #:methods
-             (list
-              (d:method "bool" "prefixMatch"
-                        (d:doc "Check if list of tag names is a prefix for either
+          #:bases '(Org) #:concreteKind #f)
+   (d:org 'Inline
+          (d:doc "Base class for all inline elements")
+          #:bases '(Org) #:concreteKind #f)
+   (d:org 'StmtList
+          (d:doc "Zero or more statement nodes")
+          #:bases '(Org))
+   (d:org 'Empty (d:doc "Node without content") #:bases '(Org))
+   (d:org 'Row (d:doc "Table row") #:bases '(Org))
+   (d:org 'Table (d:doc "Table")
+          #:bases '(Stmt)
+          #:fields
+          (list
+           (d:field (t:vec (t:id "Row")) "rows"
+                    (d:doc "List of rows for the table") #:value "{}")))
+   (d:org 'HashTag (d:doc "Single or nested inline hash-tag")
+          #:bases '(Inline)
+          #:fields
+          (list
+           (d:field "Str" "head" (d:doc "Main part of the tag"))
+           (d:field (t:vec (t:id "HashTag")) "subtags"
+                    (d:doc "List of nested tags") #:value "{}"))
+          #:methods
+          (list
+           (d:method "bool" "prefixMatch"
+                     (d:doc "Check if list of tag names is a prefix for either
   of the nested hash tags in this one")
-                        #:isConst #t
-                        #:arguments (list (d:ident (t:cr (t:vec (t:str))) "prefix")))))
-   (d:struct 'Footnote
-             (d:doc "Inline and regular footnote definition"
-                    #:full "\\note in-text link to the footnotes are implemented using `Link` nodes")
-             #:bases '(Inline)
-             #:fields
-             (list
-              (d:field "Str" "tag" (d:doc "Footnote text target name") #:value "")
-              (d:field (t:opt (t:id)) "definition" (d:doc "Link to possibly resolved definition") #:value "std::nullopt")))
-   (d:struct 'Completion
-             (d:doc "Completion status of the subtree list element")
-             #:bases '(Inline)
-             #:fields
-             (list
-              (d:field "int" "done" (d:doc "Number of completed tasks") #:value "0")
-              (d:field "int" "full" (d:doc "Full number of tasks") #:value "0")
-              (d:field "bool" "isPercent" (d:doc "Use fraction or percent to display completion") #:value "false")))
-   (d:struct 'Paragraph
-             (d:doc "Top-level or inline paragraph")
-             #:bases '(Stmt)
-             #:methods
-             (list
-              (d:method "bool" "isFootnoteDefinition" (d:doc "Check if paragraph defines footnote") #:isConst #t)))
-   (d:struct 'Format
-             (d:doc "Base class for branch of formatting node classes")
-             #:bases '(Org)
-             #:concreteKind #f)
-   (d:struct 'Center (d:doc "Center nested content in export") #:bases '(Format))
-   (d:struct 'Command (d:doc "Base class for block or line commands") #:bases '(Org) #:concreteKind #f)
-   (d:struct 'LineCommand (d:doc "Line commands") #:bases '(Command) #:concreteKind #f)
+                     #:isConst #t
+                     #:arguments (list (d:ident (t:cr (t:vec (t:str))) "prefix")))))
+   (d:org 'Footnote
+          (d:doc "Inline and regular footnote definition"
+                 #:full "\\note in-text link to the footnotes are implemented using `Link` nodes")
+          #:bases '(Inline)
+          #:fields
+          (list
+           (d:field "Str" "tag" (d:doc "Footnote text target name") #:value "")
+           (d:field (t:opt (t:id)) "definition" (d:doc "Link to possibly resolved definition") #:value "std::nullopt")))
+   (d:org 'Completion
+          (d:doc "Completion status of the subtree list element")
+          #:bases '(Inline)
+          #:fields
+          (list
+           (d:field "int" "done" (d:doc "Number of completed tasks") #:value "0")
+           (d:field "int" "full" (d:doc "Full number of tasks") #:value "0")
+           (d:field "bool" "isPercent" (d:doc "Use fraction or percent to display completion") #:value "false")))
+   (d:org 'Paragraph
+          (d:doc "Top-level or inline paragraph")
+          #:bases '(Stmt)
+          #:methods
+          (list
+           (d:method "bool" "isFootnoteDefinition" (d:doc "Check if paragraph defines footnote") #:isConst #t)))
+   (d:org 'Format
+          (d:doc "Base class for branch of formatting node classes")
+          #:bases '(Org)
+          #:concreteKind #f)
+   (d:org 'Center (d:doc "Center nested content in export") #:bases '(Format))
+   (d:org 'Command (d:doc "Base class for block or line commands") #:bases '(Org) #:concreteKind #f)
+   (d:org 'LineCommand (d:doc "Line commands") #:bases '(Command) #:concreteKind #f)
    ;; TODO rename to the standalone command
-   (d:struct 'Standalone
-             (d:doc "Standalone commands that can be placed individuall on the the
-top level and don't have to be attached to any subsequent elements"
-                    )
-             #:bases '(LineCommand)
-             #:concreteKind #f)
-   (d:struct 'Attached
-             (d:doc "Line command that might get attached to some block element")
-             #:bases '(LineCommand)
-             #:concreteKind #f)
-   (d:struct 'Caption
-             (d:doc "Caption annotation for any subsequent node")
-             #:bases '(Attached)
-             #:fields
-             (list
-              (d:field (t:id "Paragraph") "text" (d:doc "Content description") #:value "SemIdT<Paragraph>::Nil()")))
-   (d:struct 'CommandGroup
-             (d:doc "Multiple attachable commands will get grouped into this element
+   (d:org 'Standalone
+          (d:doc "Standalone commands that can be placed individuall on the the
+top level and don't have to be attached to any subsequent elements")
+          #:bases '(LineCommand)
+          #:concreteKind #f)
+   (d:org 'Attached
+          (d:doc "Line command that might get attached to some block element")
+          #:bases '(LineCommand)
+          #:concreteKind #f)
+   (d:org 'Caption
+          (d:doc "Caption annotation for any subsequent node")
+          #:bases '(Attached)
+          #:fields
+          (list
+           (d:field (t:id "Paragraph") "text" (d:doc "Content description") #:value "SemIdT<Paragraph>::Nil()")))
+   (d:org 'CommandGroup
+          (d:doc "Multiple attachable commands will get grouped into this element
  unless it is possible to attached them to some adjacent block command")
-             #:bases '(Stmt)
-             #:concreteKind #f)
-   (d:struct 'Block
-             (d:doc "Block command type")
-             #:bases '(Command)
-             #:concreteKind #f
-             )
-   (d:struct 'Quote
-             (d:doc "Quotation block")
-             #:fields
-             (list
-              (d:field (t:id "Paragraph") "text"
-                       (d:doc "Quote content") #:value "SemIdT<Paragraph>::Nil()")))
-   (d:struct 'Example (d:doc "Example block") #:bases '(Block))
-   (d:struct 'Export (d:doc "Direct export passthrough")
-             #:bases '(Block)
-             #:nested
-             (list
-              (d:enum "Format" (d:doc "Export block format type")
-                      (list
-                       (d:efield "Inline" (d:doc "Export directly in the paragraph"))
-                       (d:efield "Line" (d:doc "Single line of export"))
-                       (d:efield "Block" (d:doc "Multiple lines of export")))))
-             #:fields
-             (list
-              (d:field "Format" "format" (d:doc "Export block type") #:value "Format::Inline")
-              (d:field (t:str) "exporter" (d:doc "Exporter backend name"))
-              (d:field (t:str) "content" (d:doc "Raw exporter content string"))))
-   (d:struct 'AdmonitionBlock (d:doc "Block of text with admonition tag: 'note', 'warning'")
-             #:bases '(Block))
-   (d:struct 'Code
-             (d:doc "Base class for all code blocks")
-             #:bases '(Block)
-             #:nested
-             (list
-              (d:struct
-               'Switch (d:doc "Extra configuration switches that can be used to control
+          #:bases '(Stmt)
+          #:concreteKind #f)
+   (d:org 'Block
+          (d:doc "Block command type")
+          #:bases '(Command)
+          #:concreteKind #f
+          )
+   (d:org 'Quote
+          (d:doc "Quotation block")
+          #:fields
+          (list
+           (d:field (t:id "Paragraph") "text"
+                    (d:doc "Quote content") #:value "SemIdT<Paragraph>::Nil()")))
+   (d:org 'Example (d:doc "Example block") #:bases '(Block))
+   (d:org 'Export (d:doc "Direct export passthrough")
+          #:bases '(Block)
+          #:nested
+          (list
+           (d:enum "Format" (d:doc "Export block format type")
+                   (list
+                    (d:efield "Inline" (d:doc "Export directly in the paragraph"))
+                    (d:efield "Line" (d:doc "Single line of export"))
+                    (d:efield "Block" (d:doc "Multiple lines of export")))))
+          #:fields
+          (list
+           (d:field "Format" "format" (d:doc "Export block type") #:value "Format::Inline")
+           (d:field (t:str) "exporter" (d:doc "Exporter backend name"))
+           (d:field (t:str) "content" (d:doc "Raw exporter content string"))))
+   (d:org 'AdmonitionBlock (d:doc "Block of text with admonition tag: 'note', 'warning'")
+          #:bases '(Block))
+   (d:org 'Code
+          (d:doc "Base class for all code blocks")
+          #:bases '(Block)
+          #:nested
+          (list
+           (d:struct
+            'Switch (d:doc "Extra configuration switches that can be used to control
 representation of the rendered code block. This field does not
 exactly correspond to the `-XX` parameters that can be passed
 directly in the field, but also works with attached `#+options`
 from the block")
-               #:nested
-               (list
-                (d:group
-                 (list
-                  (d:struct 'CalloutFormat (d:doc "")
-                            #:fields (list (d:field "Str" "format" (d:doc "") #:value "")))
-                  (d:struct 'RemoveCallout (d:doc "")
-                            #:fields (list (d:field "bool" "remove" (d:doc "") #:value "true")))
-                  (d:struct 'EmphasizeLine (d:doc "Emphasize single line -- can be repeated multiple times")
-                            #:fields (list (d:field (t:vec "int") "line" (d:doc "") #:value "{}")))
-                  (d:struct 'Dedent (d:doc "")
-                            #:fields (list (d:field "int" "value" (d:doc "") #:value "0"))))
-                 #:variantName "Data"))
-               #:fields (list (d:field "Data" "data" (d:doc ""))))
-              (d:enum 'Results (d:doc "What to do with newly evaluated result")
-                      (list (d:efield "Replace" (d:doc "Remove old result, replace with new value"))))
-              (d:enum 'Exports (d:doc "What part of the code block should be visible in export")
-                      (list
-                       (d:efield "None" (d:doc "Hide both original code and run result"))
-                       (d:efield "Both" (d:doc "Show output and code"))
-                       (d:efield "Code" (d:doc "Show only code"))
-                       (d:efield "Results" (d:doc "Show only evaluation results")))))
-             #:fields
-             (list
-              (d:field (t:opt (t:str)) "lang" (d:doc "Code block language name") #:value "std::nullopt")
-              (d:field (t:vec "Switch") "switches" (d:doc "Switch options for block") #:value "{}")
-              (d:field "Exports" "exports" (d:doc "What to export") #:value "Exports::Both")
-              (d:field "bool" "cache" (d:doc "Do cache values?") #:value "false")
-              (d:field "bool" "eval" (d:doc "Eval on export?") #:value "false")
-              (d:field "bool" "noweb" (d:doc "Web-tangle code on export/run") #:value "false")
-              (d:field "bool" "hlines" (d:doc "?") #:value "false")
-              (d:field "bool" "tangle" (d:doc "?") #:value "false")))
-   (d:struct 'Time
-             (d:doc "Single static or dynamic timestamp (active or inactive)")
-             #:bases '(Org)
-             #:nested
-             (list
-              (d:struct
-               'Repeat
-               (d:doc "Repetition information for static time")
-               #:nested
-               (list
-                (d:enum 'Mode (d:doc "Timestamp repetition mode")
-                        (list
-                         (d:efield "None" (d:doc "Do not repeat task on completion"))
-                         (d:efield "Exact" (d:doc "?"))
-                         (d:efield "FirstMatch" (d:doc "Repeat on the first matching day in the future"))
-                         (d:efield "SameDay" (d:doc "Repeat task on the same day next week/month/year"))))
-                (d:enum 'Period
-                        (d:doc "Repetition period. Temporary placeholder for now, until I
+            #:nested
+            (list
+             (d:group
+              (list
+               (d:struct 'CalloutFormat (d:doc "")
+                         #:fields (list (d:field "Str" "format" (d:doc "") #:value "")))
+               (d:struct 'RemoveCallout (d:doc "")
+                         #:fields (list (d:field "bool" "remove" (d:doc "") #:value "true")))
+               (d:struct 'EmphasizeLine (d:doc "Emphasize single line -- can be repeated multiple times")
+                         #:fields (list (d:field (t:vec "int") "line" (d:doc "") #:value "{}")))
+               (d:struct 'Dedent (d:doc "")
+                         #:fields (list (d:field "int" "value" (d:doc "") #:value "0"))))
+              #:variantName "Data"))
+            #:fields (list (d:field "Data" "data" (d:doc ""))))
+           (d:enum 'Results (d:doc "What to do with newly evaluated result")
+                   (list (d:efield "Replace" (d:doc "Remove old result, replace with new value"))))
+           (d:enum 'Exports (d:doc "What part of the code block should be visible in export")
+                   (list
+                    (d:efield "None" (d:doc "Hide both original code and run result"))
+                    (d:efield "Both" (d:doc "Show output and code"))
+                    (d:efield "Code" (d:doc "Show only code"))
+                    (d:efield "Results" (d:doc "Show only evaluation results")))))
+          #:fields
+          (list
+           (d:field (t:opt (t:str)) "lang" (d:doc "Code block language name") #:value "std::nullopt")
+           (d:field (t:vec "Switch") "switches" (d:doc "Switch options for block") #:value "{}")
+           (d:field "Exports" "exports" (d:doc "What to export") #:value "Exports::Both")
+           (d:field "bool" "cache" (d:doc "Do cache values?") #:value "false")
+           (d:field "bool" "eval" (d:doc "Eval on export?") #:value "false")
+           (d:field "bool" "noweb" (d:doc "Web-tangle code on export/run") #:value "false")
+           (d:field "bool" "hlines" (d:doc "?") #:value "false")
+           (d:field "bool" "tangle" (d:doc "?") #:value "false")))
+   (d:org 'Time
+          (d:doc "Single static or dynamic timestamp (active or inactive)")
+          #:bases '(Org)
+          #:nested
+          (list
+           (d:struct
+            'Repeat
+            (d:doc "Repetition information for static time")
+            #:nested
+            (list
+             (d:enum 'Mode (d:doc "Timestamp repetition mode")
+                     (list
+                      (d:efield "None" (d:doc "Do not repeat task on completion"))
+                      (d:efield "Exact" (d:doc "?"))
+                      (d:efield "FirstMatch" (d:doc "Repeat on the first matching day in the future"))
+                      (d:efield "SameDay" (d:doc "Repeat task on the same day next week/month/year"))))
+             (d:enum 'Period
+                     (d:doc "Repetition period. Temporary placeholder for now, until I
 figure out what would be the proper way to represent whatever
 org can do ... which is to be determined as well")
-                        (list
-                         (d:efield "Year" (d:doc ""))
-                         (d:efield "Month" (d:doc ""))
-                         (d:efield "Week" (d:doc ""))
-                         (d:efield "Day" (d:doc ""))
-                         (d:efield "Hour" (d:doc ""))
-                         (d:efield "Minute" (d:doc ""))))
-                )
-               #:fields
-               (list
-                (d:field "Mode" "mode" (d:doc "mode"))
-                (d:field "Period" "period" (d:doc "period"))
-                (d:field "int" "count" (d:doc "count"))
-                )
-               )
-              )
+                     (list
+                      (d:efield "Year" (d:doc ""))
+                      (d:efield "Month" (d:doc ""))
+                      (d:efield "Week" (d:doc ""))
+                      (d:efield "Day" (d:doc ""))
+                      (d:efield "Hour" (d:doc ""))
+                      (d:efield "Minute" (d:doc ""))))
              )
-   (d:struct 'TimeRange (d:doc "Range of time delimited by two points")
-             #:bases '(Org)
-             #:fields
-             (list
-              (d:field (t:id "Time") "from" (d:doc "Starting time") #:value "SemIdT<Time>::Nil()")
-              (d:field (t:id "Time") "to" (d:doc "Finishing time") #:value "SemIdT<Time>::Nil()")))
-   (d:struct 'Macro (d:doc "Inline macro invocation")
-             #:bases '(Org)
-             #:fields
-             (list
-              (d:field (t:str) "name" (d:doc "Macro name") #:value "")
-              (d:field (t:vec (t:str)) "arguments" (d:doc "Raw uninterpreted macro arguments") #:value "{}")))
-   (d:struct 'Symbol (d:doc "Text symbol or symbol command")
-             #:bases '(Org)
-             #:nested
-             (list
-              (d:struct 'Param (d:doc "Symbol parameters")
-                        #:fields
-                        (list
-                         (d:field (t:opt (t:str)) "key" (d:doc "Key -- for non-positional"))
-                         (d:field (t:str) "value" (d:doc "Uninterpreted value")))))
-             #:fields
-             (list
-              (d:field (t:str) "name" (d:doc "Name of the symbol"))
-              (d:field (t:vec "Param") "parameters" (d:doc "Optional list of parameters"))
-              (d:field (t:id) "positional" (d:doc "Positional parameters"))))
-   (d:struct 'SubtreeLog (d:doc "Single subtree log entry")
-             #:bases '(Org)
-             #:nested
-             (list
-              (d:struct 'DescribedLog (d:doc "Base value for the log variant")
-                        #:fields
-                        (list
-                         (d:field (t:opt (t:id "StmtList")) "desc"
-                                  (d:doc "Optional description of the log entry")
-                                  #:value "SemIdT<StmtList>::Nil()")))
-              (d:group
-               (list
-                (d:struct 'Note (d:doc "Timestamped note")
-                          #:bases '(DescribedLog)
-                          #:fields (list (d:id-field "Time" "on" (d:doc "Where log was taken"))))
-                (d:struct 'Refile (d:doc "Refiling action")
-                          #:bases '(DescribedLog)
-                          #:fields
-                          (list
-                           (d:id-field "Time" "on" (d:doc "When the refiling happened"))
-                           (d:id-field "Link" "from" (d:doc "Link to the original subtree"))))
-                (d:struct 'Clock (d:doc "Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`")
-                          #:bases '(DescribedLog)
-                          #:fields
-                          (list
-                           (d:field (t:var (t:id "Time") (t:id "TimeRange"))
-                                    "range"
-                                    (d:doc "Start-end or only start period")
-                                    #:value "SemIdT<Time>::Nil()")))
-                (d:struct 'State (d:doc "Change of the subtree state -- `- State \"WIP\" from \"TODO\" [2023-04-30 Sun 13:29:04]`")
-                          #:bases '(DescribedLog)
-                          #:fields
-                          (list
-                           (d:field "OrgBigIdentKind" "from" (d:doc "From"))
-                           (d:field "OrgBigIdentKind" "to" (d:doc "To"))
-                           (d:id-field "Time" "on" (d:doc "On"))))
-                (d:struct 'Tag (d:doc "Assign tag to the subtree `- Tag \"project##haxorg\" Added on [2023-04-30 Sun 13:29:06]`")
-                          #:bases '(DescribedLog)
-                          #:fields
-                          (list
-                           (d:id-field "Time" "on" (d:doc "When the log was assigned"))
-                           (d:id-field "HashTag" "tag" (d:doc "Tag in question"))
-                           (d:field "bool" "added" (d:doc "Added/removed?") #:value "false"))))
-               #:enumName "Kind"
-               #:variantName "LogEntry"))
-             #:fields
-             (list
-              (d:field "LogEntry" "log" (d:doc "Log") #:value "Note{}")))
-   (d:struct 'Subtree (d:doc "Subtree")
-             #:bases '(Org)
-             #:fields
-             (list
-              (d:field "int" "level" (d:doc "Subtree level") #:value "0")
-              (d:opt-field (t:str) "treeId" (d:doc ":ID: property"))
-              (d:opt-field (t:str) "todo" (d:doc "Todo state of the tree"))
-              (d:opt-field (t:id "Completion") "completion" (d:doc "Task completion state"))
-              (d:vec-field (t:id "HashTag") "tags" (d:doc "Trailing tags"))
-              (d:id-field "Paragraph" "title" (d:doc "Main title"))
-              (d:vec-field (t:id "SubtreeLog") "logbook" (d:doc "Associated subtree log"))
-              (d:vec-field "Property" "properties" (d:doc "Immediate properties"))
-              (d:opt-field (t:id "Time") "closed" (d:doc "When subtree was marked as closed"))
-              (d:opt-field (t:id "Time") "deadline" (d:doc "When is the deadline"))
-              (d:opt-field (t:id "Time") "scheduled" (d:doc "When the event is scheduled"))))
-   (d:struct 'LatexBody (d:doc "Latex code body") #:bases '(Org) #:concreteKind #f)
-   (d:struct 'InlineMath (d:doc "Inline math") #:bases '(LatexBody))
-   (d:struct 'Leaf (d:doc "Final node") #:bases '(Org) #:concreteKind #f
-             #:fields (list (d:field (t:str) "text" (d:doc "Final leaf value") #:value "")))
-   (d:struct 'Escaped (d:doc "Escaped text") #:bases '(Leaf))
-   (d:struct 'Newline (d:doc "\\n newline") #:bases '(Leaf))
-   (d:struct 'Space (d:doc "' ' space") #:bases '(Leaf))
-   (d:struct 'Word (d:doc "word") #:bases '(Leaf))
-   (d:struct 'AtMention (d:doc "@mention") #:bases '(Leaf))
-   (d:struct 'RawText (d:doc "") #:bases '(Leaf))
-   (d:struct 'Punctuation (d:doc "") #:bases '(Leaf))
-   (d:struct 'Placeholder (d:doc "") #:bases '(Leaf))
-   (d:struct 'BigIdent (d:doc "") #:bases '(Leaf))
-   (d:struct 'Markup (d:doc "") #:bases '(Org) #:concreteKind #f)
-   (d:struct 'Bold (d:doc "") #:bases '(Markup))
-   (d:struct 'Underline (d:doc "") #:bases '(Markup))
-   (d:struct 'Monospace (d:doc "") #:bases '(Markup))
-   (d:struct 'MarkQuote (d:doc "") #:bases '(Markup))
-   (d:struct 'Verbatim (d:doc "") #:bases '(Markup))
-   (d:struct 'Italic (d:doc "") #:bases '(Markup))
-   (d:struct 'Strike (d:doc "") #:bases '(Markup))
-   (d:struct 'Par (d:doc "") #:bases '(Markup))
-   (d:struct 'List (d:doc "") #:bases '(Org)
-             #:methods (list (d:method "bool" "isDescriptionList" (d:doc "") #:isConst #t)))
+            #:fields
+            (list
+             (d:field "Mode" "mode" (d:doc "mode"))
+             (d:field "Period" "period" (d:doc "period"))
+             (d:field "int" "count" (d:doc "count"))
+             )
+            )
+           )
+          )
+   (d:org 'TimeRange (d:doc "Range of time delimited by two points")
+          #:bases '(Org)
+          #:fields
+          (list
+           (d:field (t:id "Time") "from" (d:doc "Starting time") #:value "SemIdT<Time>::Nil()")
+           (d:field (t:id "Time") "to" (d:doc "Finishing time") #:value "SemIdT<Time>::Nil()")))
+   (d:org 'Macro (d:doc "Inline macro invocation")
+          #:bases '(Org)
+          #:fields
+          (list
+           (d:field (t:str) "name" (d:doc "Macro name") #:value "")
+           (d:field (t:vec (t:str)) "arguments" (d:doc "Raw uninterpreted macro arguments") #:value "{}")))
+   (d:org 'Symbol (d:doc "Text symbol or symbol command")
+          #:bases '(Org)
+          #:nested
+          (list
+           (d:struct 'Param (d:doc "Symbol parameters")
+                     #:fields
+                     (list
+                      (d:field (t:opt (t:str)) "key" (d:doc "Key -- for non-positional"))
+                      (d:field (t:str) "value" (d:doc "Uninterpreted value")))))
+          #:fields
+          (list
+           (d:field (t:str) "name" (d:doc "Name of the symbol"))
+           (d:field (t:vec "Param") "parameters" (d:doc "Optional list of parameters"))
+           (d:field (t:id) "positional" (d:doc "Positional parameters"))))
+   (d:org 'SubtreeLog (d:doc "Single subtree log entry")
+          #:bases '(Org)
+          #:nested
+          (list
+           (d:struct 'DescribedLog (d:doc "Base value for the log variant")
+                     #:fields
+                     (list
+                      (d:field (t:opt (t:id "StmtList")) "desc"
+                               (d:doc "Optional description of the log entry")
+                               #:value "SemIdT<StmtList>::Nil()")))
+           (d:group
+            (list
+             (d:struct 'Note (d:doc "Timestamped note")
+                       #:bases '(DescribedLog)
+                       #:fields (list (d:id-field "Time" "on" (d:doc "Where log was taken"))))
+             (d:struct 'Refile (d:doc "Refiling action")
+                       #:bases '(DescribedLog)
+                       #:fields
+                       (list
+                        (d:id-field "Time" "on" (d:doc "When the refiling happened"))
+                        (d:id-field "Link" "from" (d:doc "Link to the original subtree"))))
+             (d:struct 'Clock (d:doc "Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`")
+                       #:bases '(DescribedLog)
+                       #:fields
+                       (list
+                        (d:field (t:var (t:id "Time") (t:id "TimeRange"))
+                                 "range"
+                                 (d:doc "Start-end or only start period")
+                                 #:value "SemIdT<Time>::Nil()")))
+             (d:struct 'State (d:doc "Change of the subtree state -- `- State \"WIP\" from \"TODO\" [2023-04-30 Sun 13:29:04]`")
+                       #:bases '(DescribedLog)
+                       #:fields
+                       (list
+                        (d:field "OrgBigIdentKind" "from" (d:doc ""))
+                        (d:field "OrgBigIdentKind" "to" (d:doc ""))
+                        (d:id-field "Time" "on" (d:doc ""))))
+             (d:struct 'Tag (d:doc "Assign tag to the subtree `- Tag \"project##haxorg\" Added on [2023-04-30 Sun 13:29:06]`")
+                       #:bases '(DescribedLog)
+                       #:fields
+                       (list
+                        (d:id-field "Time" "on" (d:doc "When the log was assigned"))
+                        (d:id-field "HashTag" "tag" (d:doc "Tag in question"))
+                        (d:field "bool" "added" (d:doc "Added/removed?") #:value "false"))))
+            #:enumName "Kind"
+            #:variantName "LogEntry"))
+          #:fields
+          (list
+           (d:field "LogEntry" "log" (d:doc "Log") #:value "Note{}")))
+   (d:org 'Subtree (d:doc "Subtree")
+          #:bases '(Org)
+          #:fields
+          (list
+           (d:field "int" "level" (d:doc "Subtree level") #:value "0")
+           (d:opt-field (t:str) "treeId" (d:doc ":ID: property"))
+           (d:opt-field (t:str) "todo" (d:doc "Todo state of the tree"))
+           (d:opt-field (t:id "Completion") "completion" (d:doc "Task completion state"))
+           (d:vec-field (t:id "HashTag") "tags" (d:doc "Trailing tags"))
+           (d:id-field "Paragraph" "title" (d:doc "Main title"))
+           (d:vec-field (t:id "SubtreeLog") "logbook" (d:doc "Associated subtree log"))
+           (d:vec-field "Property" "properties" (d:doc "Immediate properties"))
+           (d:opt-field (t:id "Time") "closed" (d:doc "When subtree was marked as closed"))
+           (d:opt-field (t:id "Time") "deadline" (d:doc "When is the deadline"))
+           (d:opt-field (t:id "Time") "scheduled" (d:doc "When the event is scheduled"))))
+   (d:org 'LatexBody (d:doc "Latex code body") #:bases '(Org) #:concreteKind #f)
+   (d:org 'InlineMath (d:doc "Inline math") #:bases '(LatexBody))
+   (d:org 'Leaf (d:doc "Final node") #:bases '(Org) #:concreteKind #f
+          #:fields (list (d:field (t:str) "text" (d:doc "Final leaf value") #:value "")))
+   (d:org 'Escaped (d:doc "Escaped text") #:bases '(Leaf))
+   (d:org 'Newline (d:doc "\\n newline") #:bases '(Leaf))
+   (d:org 'Space (d:doc "' ' space") #:bases '(Leaf))
+   (d:org 'Word (d:doc "word") #:bases '(Leaf))
+   (d:org 'AtMention (d:doc "@mention") #:bases '(Leaf))
+   (d:org 'RawText (d:doc "") #:bases '(Leaf))
+   (d:org 'Punctuation (d:doc "") #:bases '(Leaf))
+   (d:org 'Placeholder (d:doc "") #:bases '(Leaf))
+   (d:org 'BigIdent (d:doc "") #:bases '(Leaf))
+   (d:org 'Markup (d:doc "") #:bases '(Org) #:concreteKind #f)
+   (d:org 'Bold (d:doc "") #:bases '(Markup))
+   (d:org 'Underline (d:doc "") #:bases '(Markup))
+   (d:org 'Monospace (d:doc "") #:bases '(Markup))
+   (d:org 'MarkQuote (d:doc "") #:bases '(Markup))
+   (d:org 'Verbatim (d:doc "") #:bases '(Markup))
+   (d:org 'Italic (d:doc "") #:bases '(Markup))
+   (d:org 'Strike (d:doc "") #:bases '(Markup))
+   (d:org 'Par (d:doc "") #:bases '(Markup))
+   (d:org 'List (d:doc "") #:bases '(Org)
+          #:methods (list (d:method "bool" "isDescriptionList" (d:doc "") #:isConst #t)))
    ;; TODO
-   (d:struct 'ListItem (d:doc "") #:bases '(Org))
+   (d:org 'ListItem (d:doc "") #:bases '(Org))
    ;; TODO
-   (d:struct 'Link (d:doc "") #:bases '(Org))
-   (d:struct 'Document (d:doc "") #:bases '(Org))
-   (d:struct 'CommandGroup (d:doc "") #:bases '(Org))
-   (d:struct 'ParseError (d:doc "") #:bases '(Org))
-   (d:struct 'FileTarget (d:doc "") #:bases '(Org))
-   (d:struct 'TextSeparator (d:doc "") #:bases '(Org))
-   (d:struct 'Include (d:doc "") #:bases '(Org))
-   (d:struct 'DocumentOptions (d:doc "") #:bases '(Org))
-   (d:struct 'DocumentGroup (d:doc "") #:bases '(Org))
-   )
-  )
+   (d:org 'Link (d:doc "") #:bases '(Org))
+   (d:org 'Document (d:doc "") #:bases '(Org))
+   (d:org 'CommandGroup (d:doc "") #:bases '(Org))
+   (d:org 'ParseError (d:doc "") #:bases '(Org))
+   (d:org 'FileTarget (d:doc "") #:bases '(Org))
+   (d:org 'TextSeparator (d:doc "") #:bases '(Org))
+   (d:org 'Include (d:doc "") #:bases '(Org))
+   (d:org 'DocumentOptions (d:doc "") #:bases '(Org))
+   (d:org 'DocumentGroup (d:doc "") #:bases '(Org))))
 
 (define* (get-concrete-types)
   (remove (lambda (struct) (not (slot-ref struct 'concreteKind))) types))

@@ -49,15 +49,23 @@ struct GenTu {
         Vec<Ident> arguments;
         Str        result;
         Doc        doc;
-        bool       isVirtual = false;
-        bool       isConst   = false;
-        bool       isStatic  = false;
+        bool       isVirtual     = false;
+        bool       isConst       = false;
+        bool       isStatic      = false;
+        bool       isPureVirtual = false;
         BOOST_DESCRIBE_CLASS(
             Function,
             (),
             (),
             (),
-            (name, arguments, result, isVirtual, isConst, doc));
+            (name,
+             arguments,
+             result,
+             isVirtual,
+             isConst,
+             isStatic,
+             doc,
+             isPureVirtual));
     };
 
     struct TypeGroup;
@@ -81,9 +89,24 @@ struct GenTu {
         Include,
         Pass>;
 
+    struct Field {
+        bool     isStatic;
+        bool     isConst;
+        Str      name;
+        Str      type;
+        Opt<Str> value;
+        Doc      doc;
+        BOOST_DESCRIBE_CLASS(
+            Field,
+            (),
+            (),
+            (),
+            (isStatic, isConst, name, type, value, doc));
+    };
+
     struct Struct {
         Str           name;
-        Vec<Ident>    fields;
+        Vec<Field>    fields;
         Vec<Function> methods;
         Vec<Str>      bases;
         Vec<Entry>    nested;

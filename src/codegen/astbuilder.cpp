@@ -82,7 +82,12 @@ ASTBuilder::Res ASTBuilder::FieldDecl(
         field.access == AccessSpecifier::Public ? string("public:")
                                                 : string("private:"),
         Doc(field.doc),
-        b::indent(2, VarDecl(field.params)),
+        b::indent(
+            2,
+            b::line({
+                string(field.isStatic ? "static " : ""),
+                VarDecl(field.params),
+            })),
     });
 }
 
@@ -104,7 +109,7 @@ ASTBuilder::Res ASTBuilder::MethodDecl(
                     string("("),
                     string(")"),
                     string(method.isConst ? " const" : ""),
-                    string(method.isVirtual ? " = 0" : ""),
+                    string(method.isPureVirtual ? " = 0" : ""),
                     string(";"),
                 }),
             })),
@@ -215,6 +220,7 @@ ASTBuilder::Res ASTBuilder::VarDecl(ParmVarDeclParams const& p) {
     return b::line({
         Type(p.type),
         string(" "),
+        string(p.isConst ? "const " : ""),
         string(p.name),
         p.defArg.empty() ? string("")
                          : b::line({

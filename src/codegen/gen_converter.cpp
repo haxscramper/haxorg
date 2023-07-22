@@ -62,11 +62,20 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
     }
 
     for (auto const& member : record.fields) {
-        params.members.push_back(RDP::Member{RDP::Field{
+        auto mem = RDP::Member{RDP::Field{
             .params = AB::ParmVarDeclParams{
                 .type = builder.Type(member.type),
                 .name = member.name,
-            }}});
+                .isConst = member.isConst,
+            },
+            .doc = AB::DocParams{
+                .brief = member.doc.brief,
+                .full = member.doc.full,
+            },
+            .isStatic = member.isStatic,
+        }};
+
+        params.members.push_back(mem);
     }
 
     for (auto const& method : record.methods) {
@@ -80,6 +89,7 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
 
     return params;
 }
+
 ASTBuilder::EnumDeclParams convert(
     ASTBuilder&        builder,
     const GenTu::Enum& entry) {

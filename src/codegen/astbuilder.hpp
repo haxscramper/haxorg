@@ -67,6 +67,7 @@ class ASTBuilder {
     struct ParmVarDeclParams {
         QualType     type;
         Str          name;
+        bool         isConst = false;
         StorageClass storage = StorageClass::None;
         Str          defArg  = "";
     };
@@ -121,10 +122,11 @@ class ASTBuilder {
     struct RecordDeclParams {
         struct Method {
             FunctionDeclParams params;
-            bool               isStatic;
-            bool               isConst;
-            bool               isVirtual;
-            AccessSpecifier    access = AccessSpecifier::Public;
+            bool               isStatic      = false;
+            bool               isConst       = false;
+            bool               isVirtual     = false;
+            bool               isPureVirtual = false;
+            AccessSpecifier    access        = AccessSpecifier::Public;
         };
 
         struct Field {
