@@ -100,3 +100,8 @@ function(glob_add_sources TARGET EXT_GLOB LS_REGEX)
     list_filter_files(SRC_FILES ${EXT_GLOB} "${LS_REGEX}")
     add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
 endfunction()
+
+function(glob_add_sources2 TARGET LS_REGEX)
+    glob_add_sources("${TARGET}" *.cpp "${LS_REGEX}")
+    glob_add_sources("${TARGET}" *.hpp "${LS_REGEX}")
+endfunction()

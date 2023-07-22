@@ -38,6 +38,7 @@ find_package(fmt REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(Qt6 COMPONENTS Gui Core REQUIRED)
 
+include(target_hstd.cmake)
 include(target_codegen.cmake)
 include(target_lib.cmake)
 include(autogen_enums.cmake)

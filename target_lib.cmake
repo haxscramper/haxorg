@@ -1,13 +1,13 @@
 add_library(haxorg)
 set_common_files(haxorg)
-glob_add_sources(haxorg *.cpp "${BASE}/src/exporters/.*")
-glob_add_sources(haxorg *.cpp "${BASE}/src/hstd/.*")
-glob_add_sources(haxorg *.cpp "${BASE}/src/lexbase/.*")
-glob_add_sources(haxorg *.cpp "${BASE}/src/parse/.*")
-glob_add_sources(haxorg *.cpp "${BASE}/src/sem/.*")
-glob_add_sources(haxorg *.cpp "${BASE}/src/tools/.*")
-glob_add_sources(haxorg *.cpp "${BASE}/src/types/.*")
-glob_add_sources(haxorg *.hpp "${BASE}/src/.*")
+
+glob_add_sources2(haxorg "${BASE}/src/exporters/.*")
+glob_add_sources2(haxorg "${BASE}/src/lexbase/.*")
+glob_add_sources2(haxorg "${BASE}/src/parse/.*")
+glob_add_sources2(haxorg "${BASE}/src/sem/.*")
+glob_add_sources2(haxorg "${BASE}/src/tools/.*")
+glob_add_sources2(haxorg "${BASE}/src/types/.*")
+
 set_target_output(haxorg)
 set_target_flags(haxorg)
 
@@ -22,6 +22,7 @@ target_link_libraries(haxorg PUBLIC
     fmt::fmt
     enchant-2
     perfetto
+    hstd
     yaml-cpp::yaml-cpp
     Qt6::Core Qt6::Gui)
 

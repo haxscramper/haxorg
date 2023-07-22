@@ -4,10 +4,7 @@ set_common_files(codegen)
 set_target_output(codegen)
 set_target_flags(codegen)
 
-glob_add_sources(codegen "*.hpp" "${BASE}/src/codegen/.*")
-glob_add_sources(codegen "*.cpp" "${BASE}/src/codegen/.*")
-glob_add_sources(codegen "*.cpp" "${BASE}/src/hstd/.*")
-
+glob_add_sources2(codegen "${BASE}/src/codegen/.*")
 
 target_include_directories(
     codegen
@@ -20,7 +17,7 @@ target_link_libraries(codegen
     PUBLIC
     fmt::fmt
     yaml-cpp::yaml-cpp
-    haxorg
+    hstd
     Qt6::Core Qt6::Gui
     perfetto
     guile-3.0

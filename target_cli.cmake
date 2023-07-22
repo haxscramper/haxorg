@@ -3,11 +3,9 @@ target_link_libraries(cli PUBLIC haxorg)
 set_common_files(cli)
 set_target_output(cli)
 set_target_flags(cli)
-glob_add_sources(cli "*.cpp" "${BASE}/cli/.*")
-glob_add_sources(cli "*.hpp" "${BASE}/cli/.*")
+glob_add_sources2(cli  "${BASE}/cli/.*")
 
 target_include_directories(cli PUBLIC "${BASE}")
-
 
 FIND_PACKAGE(PkgConfig REQUIRED)
 PKG_CHECK_MODULES(GLIB REQUIRED glib-2.0)
