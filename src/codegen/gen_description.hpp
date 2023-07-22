@@ -40,7 +40,8 @@ struct GenTu {
         Str            name;
         Vec<EnumField> fields;
         Doc            doc;
-        BOOST_DESCRIBE_CLASS(Enum, (), (), (), (name, fields, doc));
+        Opt<Str>       base;
+        BOOST_DESCRIBE_CLASS(Enum, (), (), (), (name, fields, doc, base));
     };
 
     struct Function {

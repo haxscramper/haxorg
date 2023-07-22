@@ -88,6 +88,7 @@ ASTBuilder::EnumDeclParams convert(
     params.name      = entry.name;
     params.doc.brief = entry.doc.brief;
     params.doc.full  = entry.doc.full;
+    params.base      = entry.base;
     for (auto const& field : entry.fields) {
         params.fields.push_back(AB::EnumDeclParams::Field{
             .doc   = {.brief = field.doc.brief, .full = field.doc.full},

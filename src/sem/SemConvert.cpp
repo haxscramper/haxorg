@@ -985,8 +985,11 @@ SemId OrgConverter::convert(__args) {
 
             if (nested.size() == 1) {
                 return nested[0];
-            } else if (SemTrailableCommands.contains(
-                           nested.back()->getKind())) {
+            } else if (SemSet{
+                           osk::Code,
+                           osk::Quote,
+                       }
+                           .contains(nested.back()->getKind())) {
                 // Get last wrapped statement
                 SemId lastNested = nested.back();
                 Stmt* trailed = dynamic_cast<sem::Stmt*>(lastNested.get());

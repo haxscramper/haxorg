@@ -1,5 +1,15 @@
 #include "SemOrg.hpp"
 
+template <>
+OrgSemKind low() {
+    return OrgSemKind::StmtList;
+}
+
+template <>
+OrgSemKind high() {
+    return OrgSemKind::DocumentGroup;
+}
+
 template <typename T>
 sem::SemIdT<T> sem::SemId::as() const {
     SemIdT<T> result = SemIdT<T>(*this);

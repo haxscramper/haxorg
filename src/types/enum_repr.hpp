@@ -10,7 +10,6 @@ namespace org_impl {
 inline QString to_string(OrgTokenKind k) { return org_impl::to_string(k); }
 inline QString to_string(OrgNodeKind k) { return org_impl::to_string(k); }
 inline QString to_string(OrgSpecName k) { return org_impl::to_string(k); }
-inline QString to_string(OrgSemKind k) { return org_impl::to_string(k); }
 
 inline QString to_string(OrgCommandKind k) {
     return org_impl::to_string(k);

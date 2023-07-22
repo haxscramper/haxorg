@@ -103,7 +103,7 @@ class ASTBuilder {
         };
 
         Str        name;
-        Str        base;
+        Opt<Str>   base;
         DocParams  doc;
         bool       isEnumClass = true;
         Vec<Field> fields;

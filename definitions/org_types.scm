@@ -61,7 +61,7 @@
 
 (simple-define-type <doc> d:doc (brief) (full ""))
 (simple-define-type <enum-field> d:efield (name) (doc) (value ""))
-(simple-define-type <enum> d:enum (name) (doc) (fields) (kind "Enum"))
+(simple-define-type <enum> d:enum (name) (doc) (fields) (base "short int") (kind "Enum"))
 (simple-define-type <field> d:field (type) (name) (doc) (value "") (kind "Field"))
 (simple-define-type <ident> d:ident (type) (name) (value ""))
 
@@ -446,6 +446,14 @@ org can do ... which is to be determined as well")
    (d:struct 'ListItem (d:doc "") #:bases '(Org))
    ;; TODO
    (d:struct 'Link (d:doc "") #:bases '(Org))
+   (d:struct 'Document (d:doc "") #:bases '(Org))
+   (d:struct 'CommandGroup (d:doc "") #:bases '(Org))
+   (d:struct 'ParseError (d:doc "") #:bases '(Org))
+   (d:struct 'FileTarget (d:doc "") #:bases '(Org))
+   (d:struct 'TextSeparator (d:doc "") #:bases '(Org))
+   (d:struct 'Include (d:doc "") #:bases '(Org))
+   (d:struct 'DocumentOptions (d:doc "") #:bases '(Org))
+   (d:struct 'DocumentGroup (d:doc "") #:bases '(Org))
    )
   )
 
@@ -462,7 +470,7 @@ org can do ... which is to be determined as well")
      (t:osk)
      (d:doc "")
      (map (lambda (struct) (d:efield (slot-ref struct 'name) (d:doc ""))) (get-concrete-types)))
-    (d:pass (format #f "#define EACH_ORG_SEM_KIND(__IMPL) \\\n~{    __IMPL(~a) \\\n~}"
+    (d:pass (format #f "#define EACH_SEM_ORG_KIND(__IMPL) \\\n~{    __IMPL(~a) \\\n~}"
                     (map (lambda (struct) (slot-ref struct 'name)) (get-concrete-types))))))
   (d:file
    "${base}/sem/SemOrgTypes.hpp"

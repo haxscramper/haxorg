@@ -3,12 +3,45 @@
 #include <hstd/system/basic_typedefs.hpp>
 #include <sem/SemOrgEnums.hpp>
 
+#include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/Func.hpp>
+#include <hstd/stdlib/IntSet.hpp>
+
+using SemSet = IntSet<OrgSemKind>;
+
 namespace sem {
+
+struct TreeId {
+    Str id;
+};
+
+BOOST_DESCRIBE_STRUCT(TreeId, (), (id));
+
+// Forward-declare all node types so 'asVariant' can be defined directly
+// as a part of `Org` API
+#define forward_declare(__Kind) struct __Kind;
+EACH_SEM_ORG_KIND(forward_declare)
+#undef forward_declare
+
 
 struct Org;
 
 template <typename T>
 struct SemIdT;
+
+#define COMMA ,
+#define SKIP_FIRST_ARG_AUX(op, ...) __VA_ARGS__
+#define SKIP_FIRST_ARG(op, ...) SKIP_FIRST_ARG_AUX(op)
+
+#define EACH_SEM_ORG_KIND_CSV(__CMD)                                      \
+    SKIP_FIRST_ARG(EACH_SEM_ORG_KIND(__CMD))
+
+
+#define __id(I) , SemIdT<I>
+/// \brief Global variant of all sem node derivations
+using OrgVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
+#undef __id
+
 
 struct SemId {
     using IdType      = u64;
