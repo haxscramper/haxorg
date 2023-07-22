@@ -565,6 +565,118 @@ struct SubtreeLog : public Org {
 
 /// \brief Subtree
 struct Subtree : public Org {
+  /// \brief Type of the subtree associated time periods
+  struct Period {
+    /// \brief Period kind
+    enum class Kind  : short int{
+      /// \brief Time period of the task execution.
+      Clocked,
+      /// \brief Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned
+      Scheduled,
+      /// \brief Single point or time range used in title. Single point can also be a simple time, such as `12:20`
+      Titled,
+      /// \brief Date of task completion. Must be a single time point
+      Deadline,
+      /// \brief When the subtree was created
+      Created,
+      /// \brief Last repeat time of the recurring tasks
+      Repeated,
+    };
+
+    public:
+    /// \brief Time period kind -- not associated with point/range distinction
+      Kind kind;
+    public:
+    /// \brief Stored time point/range
+      Variant<SemIdT<Time>, SemIdT<TimeRange>> period;
+    public:
+      /// \brief Get associated time point
+      SemIdT<Time> getTime();
+    public:
+      /// \brief Get associated time period
+      SemIdT<Time> getTimeRange();
+  };
+
+  /// \brief Single subtree property
+  struct Property {
+    struct ExportLatexClass {
+      public:
+        QString latexClass;
+    };
+
+    struct ExportLatexHeader {
+      public:
+        QString header;
+    };
+
+    struct ExportLatexCompiler {
+      public:
+        QString compiler;
+    };
+
+    struct Ordered {
+      public:
+        bool isOrdered;
+    };
+
+    struct Effort {
+      public:
+        int hours;
+      public:
+        int minutes;
+    };
+
+    struct Visibility {
+      enum class Level  : short int{
+        Folded,
+        Children,
+        Content,
+        All,
+      };
+
+      public:
+        Level level;
+    };
+
+    struct ExportOptions {
+      public:
+        QString backend;
+      public:
+        UnorderedMap<Str, Str> values;
+    };
+
+    struct Blocker {
+      public:
+        Vec<QString> blockers;
+    };
+
+    struct Unnumbered {
+
+    };
+
+    struct Created {
+      public:
+        SemIdT<Time> time;
+    };
+
+    SUB_VARIANTS(Kind,
+                 Data,
+                 data,
+                 getKind,
+                 ExportLatexClass,
+                 ExportLatexHeader,
+                 ExportLatexCompiler,
+                 Ordered,
+                 Effort,
+                 Visibility,
+                 ExportOptions,
+                 Blocker,
+                 Unnumbered,
+                 Created);
+    public:
+      Data data;
+  };
+
   public:
   /// \brief Document
     static SemId const staticKind;
@@ -605,6 +717,8 @@ struct Subtree : public Org {
     static SemIdT<Subtree> create();
   public:
     virtual OrgSemKind getKind() const;
+  public:
+    Vec<Period> getTimePeriods();
 };
 
 /// \brief Latex code body

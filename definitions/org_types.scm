@@ -116,6 +116,7 @@
 (define* (t:opt arg) (format #f "Opt<~a>" arg))
 (define* (t:osk) "OrgSemKind")
 (define* (t:cr arg) (format #f "CR<~a>" arg))
+(define* (t:r arg) (format #f "~a&" arg))
 (define* (t:var #:rest args) (format #f "Variant<~a>" (string-join args ", ")))
 
 (define* (d:id-field id name doc)
@@ -140,6 +141,9 @@
 (define* (slot-append! obj slot-name new-value)
   (slot-concat! obj slot-name new-value #f))
 
+(define* (d:simple-enum name doc #:rest values)
+  (d:enum name doc
+          (map (lambda (name) (d:efield name (d:doc ""))) values)))
 
 (define* (d:org #:rest args)
   (let* ((def (apply d:struct args))
@@ -439,7 +443,75 @@ org can do ... which is to be determined as well")
            (d:vec-field "Property" "properties" (d:doc "Immediate properties"))
            (d:opt-field (t:id "Time") "closed" (d:doc "When subtree was marked as closed"))
            (d:opt-field (t:id "Time") "deadline" (d:doc "When is the deadline"))
-           (d:opt-field (t:id "Time") "scheduled" (d:doc "When the event is scheduled"))))
+           (d:opt-field (t:id "Time") "scheduled" (d:doc "When the event is scheduled")))
+          #:methods
+          (list
+           (d:method (t:vec "Period") "getTimePeriods" (d:doc "")
+                     #:arguments (list (d:ident "IntSet<Period::Kind>" "kinds"))))
+          #:nested
+          (list
+           (d:struct 'Period (d:doc "Type of the subtree associated time periods")
+                     #:fields
+                     (list
+                      (d:field "Kind" "kind"
+                               (d:doc "Time period kind -- not associated with point/range distinction"))
+                      (d:field (t:var (t:id "Time") (t:id "TimeRange")) "period"
+                               (d:doc "Stored time point/range")))
+                     #:methods
+                     (list
+                      (d:method (t:id "Time") "getTime" (d:doc "Get associated time point")
+                                #:impl "return std::get<SemIdT<Time>>(period);")
+                      (d:method (t:id "Time") "getTimeRange" (d:doc "Get associated time period")
+                                #:impl "return std::get<SemIdT<TimeRange>>(period);"))
+                     ;; TODO constructors
+                     #:nested
+                     (list
+                      (d:enum 'Kind (d:doc "Period kind")
+                              (list
+                               (d:efield "Clocked" (d:doc "Time period of the task execution."))
+                               (d:efield "Scheduled" (d:doc "Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned"))
+                               (d:efield "Titled" (d:doc "Single point or time range used in title. Single point can also be a simple time, such as `12:20`"))
+                               (d:efield "Deadline" (d:doc "Date of task completion. Must be a single time point"))
+                               (d:efield "Created" (d:doc "When the subtree was created"))
+                               (d:efield "Repeated" (d:doc "Last repeat time of the recurring tasks"))))))
+           (d:struct 'Property (d:doc "Single subtree property")
+                     #:nested
+                     (list
+                      (d:group
+                       (list
+                        (d:struct 'ExportLatexClass (d:doc "")
+                                  #:fields (list (d:field (t:str) "latexClass" (d:doc ""))))
+                        (d:struct 'ExportLatexHeader (d:doc "")
+                                  #:fields (list (d:field (t:str) "header" (d:doc ""))))
+                        (d:struct 'ExportLatexCompiler (d:doc "")
+                                  #:fields (list (d:field (t:str) "compiler" (d:doc ""))))
+                        (d:struct 'Ordered (d:doc "")
+                                  #:fields (list (d:field "bool" "isOrdered" (d:doc ""))))
+                        (d:struct 'Effort (d:doc "")
+                                  #:fields
+                                  (list
+                                   (d:field "int" "hours" (d:doc "") #:value "0")
+                                   (d:field "int" "minutes" (d:doc "") #:value "0")))
+                        (d:struct 'Visibility (d:doc "")
+                                  #:nested
+                                  (list
+                                   (d:simple-enum "Level" (d:doc "") "Folded" "Children" "Content" "All"))
+                                  #:fields (list (d:field "Level" "level" (d:doc ""))))
+                        (d:struct 'ExportOptions (d:doc "")
+                                  #:fields
+                                  (list (d:field (t:str) "backend" (d:doc ""))
+                                        (d:field "UnorderedMap<Str, Str>" "values" (d:doc ""))))
+                        (d:struct 'Blocker (d:doc "")
+                                  #:fields (list (d:field (t:vec (t:str)) "blockers" (d:doc ""))))
+                        (d:struct 'Unnumbered (d:doc ""))
+                        (d:struct 'Created (d:doc "")
+                                  #:fields (list (d:field (t:id "Time") "time" (d:doc ""))))
+                        )
+                       )
+                      )
+                     )
+           )
+          )
    (d:org 'LatexBody (d:doc "Latex code body") #:bases '(Org) #:concreteKind #f)
    (d:org 'InlineMath (d:doc "Inline math") #:bases '(LatexBody))
    (d:org 'Leaf (d:doc "Final node") #:bases '(Org) #:concreteKind #f
