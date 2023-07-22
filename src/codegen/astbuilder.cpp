@@ -6,6 +6,16 @@
 namespace rv = std::ranges::views;
 namespace rs = std::ranges;
 
+ASTBuilder::Res ASTBuilder::WithDoc(
+    const Res&       content,
+    const DocParams& doc) {
+    if (doc.brief.empty() && doc.full.empty()) {
+        return content;
+    } else {
+        return b::stack({Doc(doc), content});
+    }
+}
+
 ASTBuilder::Res ASTBuilder::Doc(const DocParams& doc) {
     Vec<Str> content;
     bool     isFirst = true;
@@ -90,45 +100,53 @@ ASTBuilder::Res ASTBuilder::Type(const QualType& type) {
     });
 }
 
+ASTBuilder::Res ASTBuilder::WithAccess(
+    Res const&                  content,
+    ASTBuilder::AccessSpecifier spec) {
+    if (spec == AccessSpecifier::Unspecified) {
+        return content;
+    } else {
+        return b::stack({
+            (spec == AccessSpecifier::Public
+                 ? string("public:")
+                 : (spec == AccessSpecifier::Protected
+                        ? string("protected:")
+                        : string("private:"))),
+            b::indent(2, content),
+        });
+    }
+}
 
 ASTBuilder::Res ASTBuilder::FieldDecl(
     const RecordDeclParams::Field& field) {
-    return b::stack({
-        field.access == AccessSpecifier::Public ? string("public:")
-                                                : string("private:"),
-        Doc(field.doc),
-        b::indent(
-            2,
+    return WithAccess(
+        WithDoc(
             b::line({
                 string(field.isStatic ? "static " : ""),
                 VarDecl(field.params),
-            })),
-    });
+            }),
+            field.doc),
+        field.access);
 }
 
 ASTBuilder::Res ASTBuilder::MethodDecl(
     const RecordDeclParams::Method& method) {
-    return b::stack({
-        method.access == AccessSpecifier::Public ? string("public:")
-                                                 : string("private:"),
-        b::indent(
-            2,
-            b::stack({
-                Doc(method.params.doc),
-                b::line({
-                    string(method.isStatic ? "static " : ""),
-                    string(method.isVirtual ? "virtual " : ""),
-                    Type(method.params.ResultTy),
-                    string(" "),
-                    string(method.params.Name),
-                    string("("),
-                    string(")"),
-                    string(method.isConst ? " const" : ""),
-                    string(method.isPureVirtual ? " = 0" : ""),
-                    string(";"),
-                }),
-            })),
-    });
+    return WithAccess(
+        WithDoc(
+            b::line({
+                string(method.isStatic ? "static " : ""),
+                string(method.isVirtual ? "virtual " : ""),
+                Type(method.params.ResultTy),
+                string(" "),
+                string(method.params.Name),
+                string("("),
+                string(")"),
+                string(method.isConst ? " const" : ""),
+                string(method.isPureVirtual ? " = 0" : ""),
+                string(";"),
+            }),
+            method.params.doc),
+        method.access);
 }
 
 ASTBuilder::Res ASTBuilder::RecordDecl(const RecordDeclParams& params) {

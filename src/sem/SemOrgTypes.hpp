@@ -27,123 +27,89 @@ struct Inline : public Org {
 
 /// \brief Zero or more statement nodes
 struct StmtList : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<StmtList> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<StmtList> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Node without content
 struct Empty : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Empty> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Empty> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Table row
 struct Row : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Row> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Row> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Table
 struct Table : public Stmt {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
+  static SemId const staticKind;
   /// \brief List of rows for the table
-    Vec<SemIdT<Row>> rows;
-  public:
-    static SemIdT<Table> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  Vec<SemIdT<Row>> rows;
+  static SemIdT<Table> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Single or nested inline hash-tag
 struct HashTag : public Inline {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
+  static SemId const staticKind;
   /// \brief Main part of the tag
-    Str head;
-  public:
+  Str head;
   /// \brief List of nested tags
-    Vec<SemIdT<HashTag>> subtags;
-  public:
-    static SemIdT<HashTag> create();
-  public:
-    virtual OrgSemKind getKind() const;
-  public:
-    /// \brief Check if list of tag names is a prefix for either
-    ///   of the nested hash tags in this one
-    bool prefixMatch() const;
+  Vec<SemIdT<HashTag>> subtags;
+  static SemIdT<HashTag> create();
+  virtual OrgSemKind getKind() const;
+  /// \brief Check if list of tag names is a prefix for either
+  ///   of the nested hash tags in this one
+  bool prefixMatch() const;
 };
 
 /// \brief Inline and regular footnote definition
 ///
 /// \note in-text link to the footnotes are implemented using `Link` nodes
 struct Footnote : public Inline {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
+  static SemId const staticKind;
   /// \brief Footnote text target name
-    Str tag;
-  public:
+  Str tag;
   /// \brief Link to possibly resolved definition
-    Opt<SemId> definition;
-  public:
-    static SemIdT<Footnote> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  Opt<SemId> definition;
+  static SemIdT<Footnote> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Completion status of the subtree list element
 struct Completion : public Inline {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
+  static SemId const staticKind;
   /// \brief Number of completed tasks
-    int done;
-  public:
+  int done;
   /// \brief Full number of tasks
-    int full;
-  public:
+  int full;
   /// \brief Use fraction or percent to display completion
-    bool isPercent;
-  public:
-    static SemIdT<Completion> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  bool isPercent;
+  static SemIdT<Completion> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Top-level or inline paragraph
 struct Paragraph : public Stmt {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Paragraph> create();
-  public:
-    virtual OrgSemKind getKind() const;
-  public:
-    /// \brief Check if paragraph defines footnote
-    bool isFootnoteDefinition() const;
+  static SemId const staticKind;
+  static SemIdT<Paragraph> create();
+  virtual OrgSemKind getKind() const;
+  /// \brief Check if paragraph defines footnote
+  bool isFootnoteDefinition() const;
 };
 
 /// \brief Base class for branch of formatting node classes
@@ -153,13 +119,10 @@ struct Format : public Org {
 
 /// \brief Center nested content in export
 struct Center : public Format {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Center> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Center> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Base class for block or line commands
@@ -185,28 +148,21 @@ struct Attached : public LineCommand {
 
 /// \brief Caption annotation for any subsequent node
 struct Caption : public Attached {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
+  static SemId const staticKind;
   /// \brief Content description
-    SemIdT<Paragraph> text;
-  public:
-    static SemIdT<Caption> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  SemIdT<Paragraph> text;
+  static SemIdT<Caption> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Multiple attachable commands will get grouped into this element
 ///  unless it is possible to attached them to some adjacent block command
 struct CommandGroup : public Stmt {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<CommandGroup> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<CommandGroup> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Block command type
@@ -216,27 +172,20 @@ struct Block : public Command {
 
 /// \brief Quotation block
 struct Quote {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
+  static SemId const staticKind;
   /// \brief Quote content
-    SemIdT<Paragraph> text;
-  public:
-    static SemIdT<Quote> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  SemIdT<Paragraph> text;
+  static SemIdT<Quote> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Example block
 struct Example : public Block {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Example> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Example> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Direct export passthrough
@@ -251,33 +200,24 @@ struct Export : public Block {
     Block,
   };
 
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
+  static SemId const staticKind;
   /// \brief Export block type
-    Format format;
-  public:
+  Format format;
   /// \brief Exporter backend name
-    QString exporter;
-  public:
+  QString exporter;
   /// \brief Raw exporter content string
-    QString content;
-  public:
-    static SemIdT<Export> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  QString content;
+  static SemIdT<Export> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Block of text with admonition tag: 'note', 'warning'
 struct AdmonitionBlock : public Block {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<AdmonitionBlock> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<AdmonitionBlock> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Base class for all code blocks
@@ -289,24 +229,20 @@ struct Code : public Block {
   /// from the block
   struct Switch {
     struct CalloutFormat {
-      public:
-        Str format;
+      Str format;
     };
 
     struct RemoveCallout {
-      public:
-        bool remove;
+      bool remove;
     };
 
     /// \brief Emphasize single line -- can be repeated multiple times
     struct EmphasizeLine {
-      public:
-        Vec<int> line;
+      Vec<int> line;
     };
 
     struct Dedent {
-      public:
-        int value;
+      int value;
     };
 
     SUB_VARIANTS(Kind,
@@ -317,8 +253,7 @@ struct Code : public Block {
                  RemoveCallout,
                  EmphasizeLine,
                  Dedent);
-    public:
-      Data data;
+    Data data;
   };
 
   /// \brief What to do with newly evaluated result
@@ -339,37 +274,26 @@ struct Code : public Block {
     Results,
   };
 
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
+  static SemId const staticKind;
   /// \brief Code block language name
-    Opt<QString> lang;
-  public:
+  Opt<QString> lang;
   /// \brief Switch options for block
-    Vec<Switch> switches;
-  public:
+  Vec<Switch> switches;
   /// \brief What to export
-    Exports exports;
-  public:
+  Exports exports;
   /// \brief Do cache values?
-    bool cache;
-  public:
+  bool cache;
   /// \brief Eval on export?
-    bool eval;
-  public:
+  bool eval;
   /// \brief Web-tangle code on export/run
-    bool noweb;
-  public:
+  bool noweb;
   /// \brief ?
-    bool hlines;
-  public:
+  bool hlines;
   /// \brief ?
-    bool tangle;
-  public:
-    static SemIdT<Code> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  bool tangle;
+  static SemIdT<Code> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Single static or dynamic timestamp (active or inactive)
@@ -400,144 +324,109 @@ struct Time : public Org {
       Minute,
     };
 
-    public:
     /// \brief mode
-      Mode mode;
-    public:
+    Mode mode;
     /// \brief period
-      Period period;
-    public:
+    Period period;
     /// \brief count
-      int count;
+    int count;
   };
 
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Time> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Time> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Range of time delimited by two points
 struct TimeRange : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
+  static SemId const staticKind;
   /// \brief Starting time
-    SemIdT<Time> from;
-  public:
+  SemIdT<Time> from;
   /// \brief Finishing time
-    SemIdT<Time> to;
-  public:
-    static SemIdT<TimeRange> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  SemIdT<Time> to;
+  static SemIdT<TimeRange> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Inline macro invocation
 struct Macro : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
+  static SemId const staticKind;
   /// \brief Macro name
-    QString name;
-  public:
+  QString name;
   /// \brief Raw uninterpreted macro arguments
-    Vec<QString> arguments;
-  public:
-    static SemIdT<Macro> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  Vec<QString> arguments;
+  static SemIdT<Macro> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Text symbol or symbol command
 struct Symbol : public Org {
   /// \brief Symbol parameters
   struct Param {
-    public:
     /// \brief Key -- for non-positional
-      Opt<QString> key;
-    public:
+    Opt<QString> key;
     /// \brief Uninterpreted value
-      QString value;
+    QString value;
   };
 
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
+  static SemId const staticKind;
   /// \brief Name of the symbol
-    QString name;
-  public:
+  QString name;
   /// \brief Optional list of parameters
-    Vec<Param> parameters;
-  public:
+  Vec<Param> parameters;
   /// \brief Positional parameters
-    SemId positional;
-  public:
-    static SemIdT<Symbol> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  SemId positional;
+  static SemIdT<Symbol> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Single subtree log entry
 struct SubtreeLog : public Org {
   /// \brief Base value for the log variant
   struct DescribedLog {
-    public:
     /// \brief Optional description of the log entry
-      Opt<SemIdT<StmtList>> desc;
+    Opt<SemIdT<StmtList>> desc;
   };
 
   /// \brief Timestamped note
   struct Note : public DescribedLog {
-    public:
     /// \brief Where log was taken
-      SemIdT<Time> on;
+    SemIdT<Time> on;
   };
 
   /// \brief Refiling action
   struct Refile : public DescribedLog {
-    public:
     /// \brief When the refiling happened
-      SemIdT<Time> on;
-    public:
+    SemIdT<Time> on;
     /// \brief Link to the original subtree
-      SemIdT<Link> from;
+    SemIdT<Link> from;
   };
 
   /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
   struct Clock : public DescribedLog {
-    public:
     /// \brief Start-end or only start period
-      Variant<SemIdT<Time>, SemIdT<TimeRange>> range;
+    Variant<SemIdT<Time>, SemIdT<TimeRange>> range;
   };
 
   /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
   struct State : public DescribedLog {
-    public:
-      OrgBigIdentKind from;
-    public:
-      OrgBigIdentKind to;
-    public:
-      SemIdT<Time> on;
+    OrgBigIdentKind from;
+    OrgBigIdentKind to;
+    SemIdT<Time> on;
   };
 
   /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
   struct Tag : public DescribedLog {
-    public:
     /// \brief When the log was assigned
-      SemIdT<Time> on;
-    public:
+    SemIdT<Time> on;
     /// \brief Tag in question
-      SemIdT<HashTag> tag;
-    public:
+    SemIdT<HashTag> tag;
     /// \brief Added/removed?
-      bool added;
+    bool added;
   };
 
   SUB_VARIANTS(Kind,
@@ -549,18 +438,13 @@ struct SubtreeLog : public Org {
                Clock,
                State,
                Tag);
-  public:
-    LogEntry data;
-  public:
+  LogEntry data;
   /// \brief Document
-    static SemId const staticKind;
-  public:
+  static SemId const staticKind;
   /// \brief Log
-    LogEntry log;
-  public:
-    static SemIdT<SubtreeLog> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  LogEntry log;
+  static SemIdT<SubtreeLog> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Subtree
@@ -583,47 +467,37 @@ struct Subtree : public Org {
       Repeated,
     };
 
-    public:
     /// \brief Time period kind -- not associated with point/range distinction
-      Kind kind;
-    public:
+    Kind kind;
     /// \brief Stored time point/range
-      Variant<SemIdT<Time>, SemIdT<TimeRange>> period;
-    public:
-      /// \brief Get associated time point
-      SemIdT<Time> getTime();
-    public:
-      /// \brief Get associated time period
-      SemIdT<Time> getTimeRange();
+    Variant<SemIdT<Time>, SemIdT<TimeRange>> period;
+    /// \brief Get associated time point
+    SemIdT<Time> getTime();
+    /// \brief Get associated time period
+    SemIdT<Time> getTimeRange();
   };
 
   /// \brief Single subtree property
   struct Property {
     struct ExportLatexClass {
-      public:
-        QString latexClass;
+      QString latexClass;
     };
 
     struct ExportLatexHeader {
-      public:
-        QString header;
+      QString header;
     };
 
     struct ExportLatexCompiler {
-      public:
-        QString compiler;
+      QString compiler;
     };
 
     struct Ordered {
-      public:
-        bool isOrdered;
+      bool isOrdered;
     };
 
     struct Effort {
-      public:
-        int hours;
-      public:
-        int minutes;
+      int hours;
+      int minutes;
     };
 
     struct Visibility {
@@ -634,20 +508,16 @@ struct Subtree : public Org {
         All,
       };
 
-      public:
-        Level level;
+      Level level;
     };
 
     struct ExportOptions {
-      public:
-        QString backend;
-      public:
-        UnorderedMap<Str, Str> values;
+      QString backend;
+      UnorderedMap<Str, Str> values;
     };
 
     struct Blocker {
-      public:
-        Vec<QString> blockers;
+      Vec<QString> blockers;
     };
 
     struct Unnumbered {
@@ -655,8 +525,7 @@ struct Subtree : public Org {
     };
 
     struct Created {
-      public:
-        SemIdT<Time> time;
+      SemIdT<Time> time;
     };
 
     SUB_VARIANTS(Kind,
@@ -673,52 +542,36 @@ struct Subtree : public Org {
                  Blocker,
                  Unnumbered,
                  Created);
-    public:
-      Data data;
+    Data data;
   };
 
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
+  static SemId const staticKind;
   /// \brief Subtree level
-    int level;
-  public:
+  int level;
   /// \brief :ID: property
-    Opt<QString> treeId;
-  public:
+  Opt<QString> treeId;
   /// \brief Todo state of the tree
-    Opt<QString> todo;
-  public:
+  Opt<QString> todo;
   /// \brief Task completion state
-    Opt<SemIdT<Completion>> completion;
-  public:
+  Opt<SemIdT<Completion>> completion;
   /// \brief Trailing tags
-    Vec<SemIdT<HashTag>> tags;
-  public:
+  Vec<SemIdT<HashTag>> tags;
   /// \brief Main title
-    SemIdT<Paragraph> title;
-  public:
+  SemIdT<Paragraph> title;
   /// \brief Associated subtree log
-    Vec<SemIdT<SubtreeLog>> logbook;
-  public:
+  Vec<SemIdT<SubtreeLog>> logbook;
   /// \brief Immediate properties
-    Vec<Property> properties;
-  public:
+  Vec<Property> properties;
   /// \brief When subtree was marked as closed
-    Opt<SemIdT<Time>> closed;
-  public:
+  Opt<SemIdT<Time>> closed;
   /// \brief When is the deadline
-    Opt<SemIdT<Time>> deadline;
-  public:
+  Opt<SemIdT<Time>> deadline;
   /// \brief When the event is scheduled
-    Opt<SemIdT<Time>> scheduled;
-  public:
-    static SemIdT<Subtree> create();
-  public:
-    virtual OrgSemKind getKind() const;
-  public:
-    Vec<Period> getTimePeriods();
+  Opt<SemIdT<Time>> scheduled;
+  static SemIdT<Subtree> create();
+  virtual OrgSemKind getKind() const;
+  Vec<Period> getTimePeriods();
 };
 
 /// \brief Latex code body
@@ -728,115 +581,84 @@ struct LatexBody : public Org {
 
 /// \brief Inline math
 struct InlineMath : public LatexBody {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<InlineMath> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<InlineMath> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief Final node
 struct Leaf : public Org {
-  public:
   /// \brief Final leaf value
-    QString text;
+  QString text;
 };
 
 /// \brief Escaped text
 struct Escaped : public Leaf {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Escaped> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Escaped> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief \n newline
 struct Newline : public Leaf {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Newline> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Newline> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief ' ' space
 struct Space : public Leaf {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Space> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Space> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief word
 struct Word : public Leaf {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Word> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Word> create();
+  virtual OrgSemKind getKind() const;
 };
 
 /// \brief @mention
 struct AtMention : public Leaf {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<AtMention> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<AtMention> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct RawText : public Leaf {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<RawText> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<RawText> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct Punctuation : public Leaf {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Punctuation> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Punctuation> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct Placeholder : public Leaf {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Placeholder> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Placeholder> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct BigIdent : public Leaf {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<BigIdent> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<BigIdent> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct Markup : public Org {
@@ -844,185 +666,130 @@ struct Markup : public Org {
 };
 
 struct Bold : public Markup {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Bold> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Bold> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct Underline : public Markup {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Underline> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Underline> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct Monospace : public Markup {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Monospace> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Monospace> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct MarkQuote : public Markup {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<MarkQuote> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<MarkQuote> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct Verbatim : public Markup {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Verbatim> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Verbatim> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct Italic : public Markup {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Italic> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Italic> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct Strike : public Markup {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Strike> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Strike> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct Par : public Markup {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Par> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Par> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct List : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<List> create();
-  public:
-    virtual OrgSemKind getKind() const;
-  public:
-    bool isDescriptionList() const;
+  static SemId const staticKind;
+  static SemIdT<List> create();
+  virtual OrgSemKind getKind() const;
+  bool isDescriptionList() const;
 };
 
 struct ListItem : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<ListItem> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<ListItem> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct Link : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Link> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Link> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct Document : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Document> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Document> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct ParseError : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<ParseError> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<ParseError> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct FileTarget : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<FileTarget> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<FileTarget> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct TextSeparator : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<TextSeparator> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<TextSeparator> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct Include : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<Include> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<Include> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct DocumentOptions : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<DocumentOptions> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<DocumentOptions> create();
+  virtual OrgSemKind getKind() const;
 };
 
 struct DocumentGroup : public Org {
-  public:
   /// \brief Document
-    static SemId const staticKind;
-  public:
-    static SemIdT<DocumentGroup> create();
-  public:
-    virtual OrgSemKind getKind() const;
+  static SemId const staticKind;
+  static SemIdT<DocumentGroup> create();
+  virtual OrgSemKind getKind() const;
 };
 
 } // namespace sem

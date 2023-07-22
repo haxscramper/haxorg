@@ -33,6 +33,8 @@ class ASTBuilder {
         Str full;
     };
 
+    Res WithDoc(Res const& content, DocParams const& doc);
+
     struct QualType {
         Ident         ident;
         bool          isConst    = false;
@@ -115,12 +117,16 @@ class ASTBuilder {
 
     Res EnumDecl(EnumDeclParams const& params);
 
+
     enum class AccessSpecifier
     {
+        Unspecified,
         Public,
         Private,
         Protected
     };
+
+    Res WithAccess(Res const& content, AccessSpecifier spec);
 
     struct RecordDeclParams {
         struct Method {
@@ -129,14 +135,14 @@ class ASTBuilder {
             bool               isConst       = false;
             bool               isVirtual     = false;
             bool               isPureVirtual = false;
-            AccessSpecifier    access        = AccessSpecifier::Public;
+            AccessSpecifier    access = AccessSpecifier::Unspecified;
         };
 
         struct Field {
             ParmVarDeclParams params;
             DocParams         doc;
             bool              isStatic = false;
-            AccessSpecifier   access   = AccessSpecifier::Public;
+            AccessSpecifier   access   = AccessSpecifier::Unspecified;
         };
 
         struct Member {
@@ -150,8 +156,9 @@ class ASTBuilder {
             SPtr<RecordDeclParams>,
             Res>;
 
-        Str         name;
-        DocParams   doc;
+        Str       name;
+        DocParams doc;
+        // TODO specify base visibility
         Vec<Str>    bases;
         Vec<Member> members;
         Vec<Nested> nested;
