@@ -13,18 +13,6 @@
 #include <sem/SemOrgBase.hpp>
 #include <sem/SemOrgEnums.hpp>
 namespace sem {
-/// \brief Base class for org mode types
-struct Org {
-  public:
-    Opt<LineCol> loc;
-  public:
-    /// \brief Get current kind of the sem org node
-    virtual OrgSemKind getKind() const = 0;
-  public:
-    /// \brief Get original kind of the parser org node
-    OrgNodeKind getOriginalKind() const;
-};
-
 /// \brief Base class for all document-level entries. Note that some node kinds
 /// might also have inline entries (examples include links, source code blocks,
 /// call blocks)

@@ -121,21 +121,6 @@
 
 (define types
   (list
-   (d:struct 'Org
-             (d:doc "Base class for org mode types")
-             #:methods
-             (list
-              (d:method (t:osk) "getKind"
-                        (d:doc "Get current kind of the sem org node")
-                        #:isVirtual #t #:isConst #t)
-              (d:method "OrgNodeKind" "getOriginalKind"
-                        (d:doc "Get original kind of the parser org node")
-                        #:isConst #t))
-             #:fields
-             (list
-              (d:field (t:opt "LineCol") "loc"
-                       (d:doc "Original node location") #:value "std::nullopt"))
-             #:concreteKind #f)
    (d:struct 'Stmt
              (d:doc
               "Base class for all document-level entries. Note that some node kinds

@@ -6,6 +6,10 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/IntSet.hpp>
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Opt.hpp>
+
+#include <parse/OrgTypes.hpp>
 
 using SemSet = IntSet<OrgSemKind>;
 
@@ -176,6 +180,67 @@ struct SemIdT : public SemId {
     T*       get() { return static_cast<T*>(SemId::get()); }
     T const* get() const { return static_cast<T const*>(SemId::get()); }
     static SemIdT<T> Nil() { return SemIdT<T>(SemId::Nil()); }
+};
+
+
+/// \brief Base class for all org nodes. Provides essential baseline API
+/// and information.
+struct Org {
+    // TODO implement 'deepClone' function using visitator node to
+    // completely replicate the tree on a structural level
+
+    /// \brief Check if node has a parent pointer (for converted tree only
+    /// top-level document should not have parent)
+    inline bool hasParent() const { return !parent.isNil(); }
+    /// \brief Get parent pointer (might be null)
+    SemId getParent() const { return parent; }
+    /// \brief Get the document wrapping the node (if such document node
+    /// exists in hierarchy)
+    Opt<SemIdT<Document>> getDocument() const;
+    /// \brief Get closest parent subtree (if it exists)
+    Opt<SemIdT<Subtree>> getParentSubtree() const;
+    /// \brief Iteratively get all parent nodes for the subtree
+    Vec<SemId> getParentChain() const;
+
+
+    /// \brief Pointer to the parent node in sem tree, might be null.
+    SemId parent = SemId::Nil();
+    /// \brief Adapter to the original parsed node.
+    ///
+    /// Set by the conversion functions from linearized representation,
+    /// will be missing for all generated node kinds.
+    OrgAdapter original;
+
+    Org() : parent(SemId::Nil()) {}
+    Org(SemId parent, CVec<SemId> subnodes);
+    Org(SemId parent);
+    Org(SemId parent, OrgAdapter original);
+
+    /// \brief Get get kind of the original node.
+    OrgNodeKind getOriginalKind() const { return original.getKind(); }
+    /// \brief Get kind of this sem node
+    virtual OrgSemKind getKind() const = 0;
+    /// \brief Whether original node adapter is missing
+    bool isGenerated() const { return original.empty(); }
+    /// \brief Location of the node in the original source file
+    Opt<LineCol> loc = std::nullopt;
+    /// \brief List of subnodes.
+    ///
+    /// Some of the derived nodes don't make the use of subnode list
+    /// (word, punctuation etc), but it was left on the top level of the
+    /// hierarchy for conveinience purposes. It is not expected that 'any'
+    /// node can have subnodes.
+    Vec<SemId> subnodes;
+
+    void push_back(SemId sub);
+
+    /// \brief Get subnode at specified index
+    inline SemId at(int idx) const { return subnodes[idx]; }
+
+    bool is(OrgSemKind kind) const { return getKind() == kind; }
+    bool is(CR<SemSet> kinds) const { return kinds.contains(getKind()); }
+
+    BOOST_DESCRIBE_CLASS(Org, (), (subnodes), (), ());
 };
 
 
