@@ -5,6 +5,7 @@
 (use-modules (ice-9 format))
 
 (define (is-positional field)
+  ;; For simplicity -- has default value => optional, does not have default => required
   (eq? (length field) 1))
 
 (define (get-positional-defs field-defs)
@@ -14,6 +15,7 @@
   (remove (lambda (field) (is-positional field)) field-defs))
 
 (define (get-positional-fields field-defs)
+  ;; List of non-default fields
   (map (lambda (field-def)
          (let* ((field-name (car field-def))
                 (field-kwd (symbol->keyword field-name)))
@@ -21,35 +23,48 @@
        (get-positional-defs field-defs)))
 
 (define (get-optional-fields field-defs)
+  ;; Map positional fields
   (map (lambda (field-def)
          (let* ((field-name (car field-def))
                 (field-kwd (symbol->keyword field-name))
                 (default-value (cdr field-def)))
+           ;; GOOPS field definition syntax with init keyword and default *expression*
+           ;; (NOTE: will be evaluated each time object constructed, so can be dynamic)
            `(,field-name
              #:init-keyword ,field-kwd
              #:init-form ,default-value)))
        (get-optional-defs field-defs)))
 
 (define-macro (simple-define-type type-name make-fn-name . field-defs)
+  ;; Simplified syntax to define types that will be read into the C++ data
+  ;; structures when the script is evaluated. NOTE: field names and must
+  ;; match with the definitions in the compiled code.
   (let* ((positional-fields (get-positional-fields field-defs))
          (optional-fields (get-optional-fields field-defs))
          (positional-args
           (map (lambda (field-def) (car field-def))
                (get-positional-defs field-defs)))
          (pass-args
+          ;; Direct bypass for the arguments provided to the constructor
+          ;; function that is defined by this macro
           (fold
            (lambda (prev next) (append prev next))
            (list)
            (map (lambda (field-def)
+                  ;; Convert field name to the keyword type so call to the
+                  ;; GOOPS constructor can find the right values
                   (list (symbol->keyword (car field-def)) (car field-def)))
                 field-defs)))
+         ;; Optional arguments with default values
          (optional-args
+          ;; `(key value)' pairs for optional arguments
           (map (lambda (field-def) (cons (car field-def) (cdr field-def)))
                (get-optional-defs field-defs))))
     `(begin
-       (define-class ,type-name ()
-         ,@positional-fields
-         ,@optional-fields)
+       ;; Splice positional and non-positional fields for the definition -- `,@'
+       ;; unpacks everything into a flat list
+       (define-class ,type-name () ,@positional-fields ,@optional-fields)
+       ;; Splice remaining elements into the constructor function definition
        (define* (,make-fn-name ,@positional-args #:key ,@optional-args)
          (make ,type-name ,@pass-args)))))
 
@@ -151,9 +166,11 @@
   (let* ((def (apply d:struct args))
          (kind (slot-ref def 'name))
          (base (car (slot-ref def 'bases))))
+    ;; Inherit base constructor for all types
     (slot-prepend!
      def 'nested (d:pass (format #f "using ~a::~a;" base base)))
     (when (slot-ref def 'concreteKind)
+      ;; For concrete kinds -- define static field with provided value
       (slot-prepend!
        def 'fields
        (d:field (t:osk) "staticKind" (d:doc "Document")
@@ -161,10 +178,12 @@
                 #:isStatic #t
                 ;; #:value (format #f "~a::~a" (t:osk) kind)
                 ))
+      ;; Override kind getter
       (slot-prepend!
        def 'methods
        (d:method (t:osk) "getKind" (d:doc "") #:isConst #t #:isVirtual #t #:isPureVirtual #f
                  #:impl (format #f "return ~a::~a;" (t:osk) kind)))
+      ;; Static 'create' method that will call into the global node store
       (slot-prepend!
        def 'methods
        (d:method (t:id kind) "create" (d:doc "")
@@ -723,45 +742,58 @@ org can do ... which is to be determined as well")
 (define* (get-concrete-types)
   (remove (lambda (struct) (not (slot-ref struct 'concreteKind))) types))
 
+(define iterate-tree-context (make-fluid '()))
 (define* (iterate-object-tree tree callback)
   (apply callback (list tree))
-  (cond
-   ((instance? tree)
-    (let* ((class-of-obj (class-of tree))
-           (name (class-name class-of-obj))
-           (slots (class-slots class-of-obj)))
-      (for-each
-       (lambda (slot)
-         (iterate-object-tree
-          (slot-ref tree (slot-definition-name slot)) callback)) slots)))
-   ((or (eq? tree #t)
-        (eq? tree #f)
-        (string? tree)
-        (symbol? tree)))
-   ((list? tree)
-    (for-each (lambda (it) (iterate-object-tree it callback)) tree))
-   (#t (format #t "? ~a\n" tree))
-   )
-  )
+  (with-fluids ((iterate-tree-context (cons tree (fluid-ref iterate-tree-context))))
+    (cond
+     ((instance? tree)
+      (let* ((class-of-obj (class-of tree))
+             (name (class-name class-of-obj))
+             (slots (class-slots class-of-obj)))
+        (for-each
+         (lambda (slot)
+           (iterate-object-tree
+            (slot-ref tree (slot-definition-name slot)) callback)) slots)))
+     ((or (eq? tree #t)
+          (eq? tree #f)
+          (string? tree)
+          (symbol? tree)))
+     ((list? tree)
+      (for-each (lambda (it) (iterate-object-tree it callback)) tree))
+     (#t (format #t "? ~a\n" tree)))))
 
-(let* ((methods (list)))
-  (iterate-object-tree
-   types
-   (lambda (value)
-     (when (and (instance? value) (is-a? value <type>))
-       (let* ((name (slot-ref value 'name))
-              (fields (slot-ref value 'fields))
-              (method (d:method "void" "visitFields" (d:doc "")
-                                #:arguments (list (d:ident "R" "res")
-                                                  (d:ident name "object"))
-                                #:impl (format #f "~{__obj_field(res, object, ~a); \n~}"
-                                               (map (lambda (a) (slot-ref a 'name)) fields)))))
-         (append methods (list method)))))))
-
+(define (get-exporter-methods)
+  (let* ((methods (list)))
+    (iterate-object-tree
+     types
+     (lambda (value)
+       (when (and (instance? value) (is-a? value <type>))
+         (let* ((scope-full (remove
+                             (lambda (scope) (not (is-a? scope <type>)))
+                             (fluid-ref iterate-tree-context)))
+                (scope-names (map (lambda (type) (slot-ref type 'name)) scope-full))
+                (name (slot-ref value 'name))
+                (fields (slot-ref value 'fields))
+                (scoped-target (format #f "~{~a~^::~}" (append scope-names (list name))))
+                (method
+                 (d:method
+                  "void" "visitFields" (d:doc "")
+                  #:arguments (list (d:ident "R&" "res")
+                                    (d:ident scoped-target "object"))
+                  #:impl (format #f "~{__obj_field(res, object, ~a); \n~}"
+                                 (map (lambda (a) (slot-ref a 'name)) fields)))))
+           (set! methods (append methods (list method)))))))
+    methods))
 
 
 (d:full
  (list
+  (d:file
+   "${base}/exporters/Exporter_wip.hpp"
+   (append
+    (list (d:pass "#pragma once"))
+    (get-exporter-methods)))
   (d:file
    "${base}/sem/SemOrgEnums.hpp"
    (list

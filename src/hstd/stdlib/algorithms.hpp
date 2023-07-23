@@ -43,9 +43,9 @@ Vec<T> sorted(CR<Vec<T>> vec) {
 }
 
 
-template <typename T, typename R>
-Vec<R> map(CR<Vec<T>> vec, Func<R(CR<T>)> cb) {
-    Vec<R> result;
+template <typename T, typename F>
+auto map(T const& vec, F cb) {
+    Vec<decltype(cb(vec[0]))> result;
     for (const auto& it : vec) {
         result.push_back(cb(it));
     }

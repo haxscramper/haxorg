@@ -16,7 +16,9 @@ AB::FunctionDeclParams convert(AB& builder, const GD::Function& func) {
     decl.Name     = func.name;
     decl.doc      = convert(builder, func.doc);
     if (func.impl) {
-        decl.Body = {builder.string(*func.impl)};
+        decl.Body = map(func.impl->split("\n"), [&](QString const& str) {
+            return builder.string(str);
+        });
     }
 
     for (auto const& parm : func.arguments) {
@@ -52,6 +54,7 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
                     params.nested.push_back(decl);
                     params.nested.push_back(describe);
                 },
+                [&](SPtr<GD::Function> Func) {},
                 [&](SPtr<GD::TypeGroup> TypeGroup) {
                     for (auto const& sub : convert(builder, *TypeGroup)) {
                         params.nested.push_back(sub);
@@ -119,22 +122,23 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
             }
         }
 
-        auto fields = map<GenTu::Field, AB::Res>(
+        auto fields = map(
             record.fields + extraFields, [&](GenTu::Field const& field) {
                 return builder.string(field.name);
             });
 
-        auto methods = map<GenTu::Function, AB::Res>(
+        auto methods = map(
             record.methods + extraMethods,
             [&](GenTu::Function const& method) {
                 return AB::b::line(Vec<AB::Res>{
                     builder.string("("),
                     builder.string(method.result),
-                    builder.pars(builder.csv({map<GenTu::Ident, AB::Res>(
-                        method.arguments,
-                        [&](GenTu::Ident const& ident) {
-                            return builder.string(ident.type);
-                        })})),
+                    builder.pars(builder.csv({
+                        map(method.arguments,
+                            [&](GenTu::Ident const& ident) {
+                                return builder.string(ident.type);
+                            }),
+                    })),
                     builder.string(method.isConst ? " const" : ""),
                     builder.string(") "),
                     builder.string(method.name),
@@ -178,8 +182,7 @@ Pair<ASTBuilder::EnumDeclParams, ASTBuilder::Res> convert(
     }
 
     Vec<AB::Res> arguments = Vec<AB::Res>{builder.string(entry.name)}
-                           + map<GenTu::EnumField, AB::Res>(
-                                 entry.fields,
+                           + map(entry.fields,
                                  [&](GenTu::EnumField const& Field) {
                                      return builder.string(Field.name);
                                  });
@@ -280,8 +283,7 @@ Vec<AB::Res> convert(AB& builder, const GD::TypeGroup& record) {
                 .newName  = record.variantName,
                 .baseType = AB::QualType(
                     "Variant",
-                    map<Str, AB::QualType>(
-                        typeNames,
+                    map(typeNames,
                         [&](Str const& Type) {
                             return AB::QualType(Type);
                         })),
@@ -337,6 +339,10 @@ Vec<ASTBuilder::Res> convert(
                     builder, *Enum, false);
                 decls.push_back(builder.EnumDecl(decl));
                 decls.push_back(describe);
+            },
+            [&](SPtr<GD::Function> const& Func) {
+                decls.push_back(
+                    builder.FunctionDecl(convert(builder, *Func)));
             },
             [&](GD::Pass const& Pass) {
                 decls.push_back(builder.string(Pass.what));

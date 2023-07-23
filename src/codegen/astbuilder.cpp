@@ -62,8 +62,7 @@ ASTBuilder::Res ASTBuilder::Template(const TemplateParamParams& Templ) {
 
 ASTBuilder::Res ASTBuilder::Ident(const IdentParams& Id) {
     return b::join(
-        map<QualType, Res>(
-            Id.spaces, [&](QualType const& T) { return Type(T); }),
+        map(Id.spaces, [&](QualType const& T) { return Type(T); }),
         string("::"));
 }
 
@@ -141,8 +140,7 @@ ASTBuilder::Res ASTBuilder::Type(const QualType& type) {
             : b::line({
                 string("<"),
                 b::join(
-                    map<QualType, Res>(
-                        type.Parameters,
+                    map(type.Parameters,
                         [&](QualType const& in) { return Type(in); }),
                     string(", "),
                     true),
@@ -195,8 +193,7 @@ ASTBuilder::Res ASTBuilder::MethodDecl(
         string(method.params.Name),
         string("("),
         b::join(
-            map<ASTBuilder::ParmVarDeclParams, Res>(
-                method.params.Args,
+            map(method.params.Args,
                 [&](ASTBuilder::ParmVarDeclParams const& Arg) {
                     return ParmVarDecl(Arg);
                 }),
@@ -331,8 +328,7 @@ ASTBuilder::Res ASTBuilder::csv(
     bool      isLine,
     bool      isTrailing) {
     return b::join(
-        map<Str, Res>(
-            items, [&](Str const& Base) { return string(Base); }),
+        map(items, [&](Str const& Base) { return string(Base); }),
         string(", "),
         isLine,
         isTrailing);

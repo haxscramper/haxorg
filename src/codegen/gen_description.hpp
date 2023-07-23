@@ -88,6 +88,7 @@ struct GenTu {
         SPtr<Enum>,
         SPtr<Struct>,
         SPtr<TypeGroup>,
+        SPtr<Function>,
         Include,
         Pass>;
 

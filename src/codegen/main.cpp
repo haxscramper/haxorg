@@ -80,6 +80,8 @@ struct convert<GenTu::Entry>
             result = GenTu::Include{};
         } else if (kind == "Pass") {
             result = GenTu::Pass{};
+        } else if (kind == "Method") {
+            result = std::make_shared<GenTu::Function>();
         } else {
             throw decode_error(
                 "parsing GenDescriptionEntry variant", value);
