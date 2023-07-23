@@ -744,10 +744,13 @@ org can do ... which is to be determined as well")
 
 (define iterate-tree-context (make-fluid '()))
 (define* (iterate-object-tree tree callback)
+  ;; Trigger object structure iterator callback *before* updating scope values
   (apply callback (list tree))
   (with-fluids ((iterate-tree-context (cons tree (fluid-ref iterate-tree-context))))
+    ;; Create a new dynamic scope value with the current object
     (cond
      ((instance? tree)
+      ;; If any GOOPS object -- walk all slots
       (let* ((class-of-obj (class-of tree))
              (name (class-name class-of-obj))
              (slots (class-slots class-of-obj)))
@@ -755,15 +758,19 @@ org can do ... which is to be determined as well")
          (lambda (slot)
            (iterate-object-tree
             (slot-ref tree (slot-definition-name slot)) callback)) slots)))
+     ;; Primitive types cannot be walked over, end iteration
      ((or (eq? tree #t)
           (eq? tree #f)
           (string? tree)
           (symbol? tree)))
+     ;; Walk over every item in list
      ((list? tree)
       (for-each (lambda (it) (iterate-object-tree it callback)) tree))
+     ;; Otherwise, print the value -- if something is missing it will be added later
      (#t (format #t "? ~a\n" tree)))))
 
 (define (get-exporter-methods)
+  ;; Get exporter boilerplate method definitions (they walk over all fields)
   (let* ((methods (list)))
     (iterate-object-tree
      types
@@ -775,14 +782,28 @@ org can do ... which is to be determined as well")
                 (scope-names (map (lambda (type) (slot-ref type 'name)) scope-full))
                 (name (slot-ref value 'name))
                 (fields (slot-ref value 'fields))
-                (scoped-target (format #f "~{~a~^::~}" (append scope-names (list name))))
+                ;; Join scope arguments into the `::' and wrap everything into the `sem::' scope
+                (scoped-target (format #f "CR<sem::~{~a~^::~}>" (append scope-names (list name))))
+                (every-field (format #f "~{__obj_field(res, object, ~a); \n~}"
+                                     (map (lambda (a) (slot-ref a 'name)) fields)))
                 (method
-                 (d:method
-                  "void" "visitFields" (d:doc "")
-                  #:arguments (list (d:ident "R&" "res")
-                                    (d:ident scoped-target "object"))
-                  #:impl (format #f "~{__obj_field(res, object, ~a); \n~}"
-                                 (map (lambda (a) (slot-ref a 'name)) fields)))))
+                 (if (eq? 0 (length scope-full))
+                     ;; If the object is a toplevel type entry -- provide a name-based `visitXXX'
+                     ;; method implementation that will iterate over all fields
+                     (d:method
+                      "void" (format #f "Exporter<V, R>::visit~a" name) (d:doc "")
+                      #:arguments (list (d:ident "R&" "res")
+                                        ;; `In<>' is defined in the exporter
+                                        (d:ident (format #f "In<sem::~a>" name) "tree"))
+                      #:impl (format #f "__visit_specific_kind(res, tree);\n~a" every-field))
+                     ;; Otherwise, provide a subtype `visit' method implementation used for
+                     ;; nested content definitions
+                     (d:method
+                      ;; Hacking field visitor name here, TODO -- implement proper scope passing
+                      "void" "Exporter<V, R>::visitFields" (d:doc "")
+                      #:arguments (list (d:ident "R&" "res")
+                                        (d:ident scoped-target "object"))
+                      #:impl every-field))))
            (set! methods (append methods (list method)))))))
     methods))
 
