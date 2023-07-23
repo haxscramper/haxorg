@@ -16,7 +16,8 @@
 
 #include <sem/SemOrgBase.hpp>
 
-#include <sem/SemOrgTypes_old.hpp>
+//#include <sem/SemOrgTypes_old.hpp>
+#include <sem/SemOrgTypes.hpp>
 
 namespace sem {
 

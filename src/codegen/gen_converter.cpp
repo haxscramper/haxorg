@@ -1,13 +1,12 @@
 #include "gen_converter.hpp"
 #include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/Debug.hpp>
 
 AB::ParmVarDeclParams toParams(AB& builder, GD::Ident const& ident) {
     AB::ParmVarDeclParams result{};
-    result.name = ident.name;
-    result.type = AB::QualType(ident.type);
-    if (ident.value && !ident.value->empty()) {
-        result.defArg = ident.value;
-    }
+    result.name   = ident.name;
+    result.type   = AB::QualType(ident.type);
+    result.defArg = ident.value;
     return result;
 }
 
@@ -16,6 +15,9 @@ AB::FunctionDeclParams convert(AB& builder, const GD::Function& func) {
     decl.ResultTy = builder.Type(func.result);
     decl.Name     = func.name;
     decl.doc      = convert(builder, func.doc);
+    if (func.impl) {
+        decl.Body = {builder.string(*func.impl)};
+    }
 
     for (auto const& parm : func.arguments) {
         decl.Args.push_back(toParams(builder, parm));
@@ -73,6 +75,7 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
                 .type = builder.Type(member.type),
                 .name = member.name,
                 .isConst = member.isConst,
+                .defArg = member.value,
             },
             .doc = AB::DocParams{
                 .brief = member.doc.brief,
@@ -289,8 +292,9 @@ Vec<AB::Res> convert(AB& builder, const GD::TypeGroup& record) {
         decls.push_back(builder.XCall("SUB_VARIANTS", Arguments, true));
         decls.push_back(builder.FieldDecl(AB::RecordDeclParams::Field{
             .params = AB::ParmVarDeclParams{
-                .type = AB::QualType(record.variantName),
-                .name = record.variantField,
+                .type   = AB::QualType(record.variantName),
+                .name   = record.variantField,
+                .defArg = record.variantValue,
             }}));
     }
 

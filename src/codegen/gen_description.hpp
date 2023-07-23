@@ -49,6 +49,7 @@ struct GenTu {
         Vec<Ident> arguments;
         Str        result;
         Doc        doc;
+        Opt<Str>   impl;
         bool       isVirtual     = false;
         bool       isConst       = false;
         bool       isStatic      = false;
@@ -65,6 +66,7 @@ struct GenTu {
              isConst,
              isStatic,
              doc,
+             impl,
              isPureVirtual));
     };
 
@@ -127,6 +129,7 @@ struct GenTu {
         Str         enumName;
         Str         variantField;
         Str         variantName;
+        Opt<Str>    variantValue;
         Str         kindGetter;
 
         BOOST_DESCRIBE_CLASS(
@@ -139,7 +142,8 @@ struct GenTu {
              enumName,
              kindGetter,
              variantField,
-             variantName));
+             variantName,
+             variantValue));
     };
 
     Vec<Entry> entries;

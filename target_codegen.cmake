@@ -1,5 +1,4 @@
 add_executable(codegen)
-target_link_libraries(codegen PUBLIC haxorg)
 set_common_files(codegen)
 set_target_output(codegen)
 set_target_flags(codegen)

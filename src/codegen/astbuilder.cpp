@@ -136,28 +136,31 @@ ASTBuilder::Res ASTBuilder::FieldDecl(
 
 ASTBuilder::Res ASTBuilder::MethodDecl(
     const RecordDeclParams::Method& method) {
+    auto head = b::line({
+        string(method.isStatic ? "static " : ""),
+        string(method.isVirtual ? "virtual " : ""),
+        Type(method.params.ResultTy),
+        string(" "),
+        string(method.params.Name),
+        string("("),
+        b::join(
+            map<ASTBuilder::ParmVarDeclParams, Res>(
+                method.params.Args,
+                [&](ASTBuilder::ParmVarDeclParams const& Arg) {
+                    return ParmVarDecl(Arg);
+                }),
+            string(", "),
+            true),
+        string(")"),
+        string(method.isConst ? " const" : ""),
+        string(method.isPureVirtual ? " = 0" : ""),
+    });
+
+
     return WithAccess(
         WithDoc(
-            b::line({
-                string(method.isStatic ? "static " : ""),
-                string(method.isVirtual ? "virtual " : ""),
-                Type(method.params.ResultTy),
-                string(" "),
-                string(method.params.Name),
-                string("("),
-                b::join(
-                    map<ASTBuilder::ParmVarDeclParams, Res>(
-                        method.params.Args,
-                        [&](ASTBuilder::ParmVarDeclParams const& Arg) {
-                            return ParmVarDecl(Arg);
-                        }),
-                    string(", "),
-                    true),
-                string(")"),
-                string(method.isConst ? " const" : ""),
-                string(method.isPureVirtual ? " = 0" : ""),
-                string(";"),
-            }),
+            method.params.Body ? block(head, *method.params.Body, true)
+                               : b::line({head, string(";")}),
             method.params.doc),
         method.access);
 }

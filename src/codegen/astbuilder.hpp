@@ -211,14 +211,25 @@ class ASTBuilder {
         Vec<Res> const& content,
         bool            trailingLine = false) {
 
-        auto result = b::stack({
-            b::line({head, string(" {")}),
-            b::indent(2, b::stack(content)),
-            string("}"),
-        });
+        auto result = content.size() < 2
+                        ? b::line({
+                            head,
+                            string(" { "),
+                            b::stack(content),
+                            string(" }"),
+                        })
+                        : b::stack({
+                            b::line({head, string(" {")}),
+                            b::indent(2, b::stack(content)),
+                            string("}"),
+                        });
 
         if (trailingLine) {
-            result->add(string(""));
+            if (result->isStack()) {
+                result->add(string(""));
+            } else {
+                result = b::stack({result, string("")});
+            }
         }
 
         return result;

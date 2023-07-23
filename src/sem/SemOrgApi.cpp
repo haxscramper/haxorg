@@ -182,7 +182,8 @@ Opt<SemIdT<Subtree>> Org::getParentSubtree() const {
     return std::nullopt;
 }
 
-Vec<Subtree::Period> Subtree::getTimePeriods(IntSet<Period::Kind> kinds) {
+Vec<Subtree::Period> Subtree::getTimePeriods(
+    IntSet<Period::Kind> kinds) const {
     Vec<Period> res;
     for (const auto& it : title->subnodes) {
         if (it->getKind() == osk::Time) {
@@ -207,9 +208,8 @@ Vec<Subtree::Period> Subtree::getTimePeriods(IntSet<Period::Kind> kinds) {
     return res;
 }
 
-Vec<Property> Subtree::getProperties(
-    Property::Kind kind,
-    CR<QString>    subkind) const {
+Vec<Property> Subtree::getProperties(Property::Kind kind, CR<Str> subkind)
+    const {
     Vec<Property> result;
     for (const auto& prop : properties) {
         if (prop.matches(kind, subkind)) {
@@ -221,7 +221,7 @@ Vec<Property> Subtree::getProperties(
 
 Vec<Property> Subtree::getContextualProperties(
     Property::Kind kind,
-    CR<QString>    subkind) const {
+    CR<Str>        subkind) const {
     Vec<Property> result;
     result.append(getProperties(kind));
 
@@ -276,7 +276,7 @@ bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
 
 Opt<Property> Subtree::getContextualProperty(
     Property::Kind kind,
-    CR<QString>    subkind) const {
+    CR<Str>        subkind) const {
     Vec<Property> props = getContextualProperties(kind);
     if (props.empty()) {
         return std::nullopt;
@@ -302,9 +302,8 @@ Opt<Property> Subtree::getContextualProperty(
     }
 }
 
-Opt<Property> Subtree::getProperty(
-    Property::Kind kind,
-    CR<QString>    subkind) const {
+Opt<Property> Subtree::getProperty(Property::Kind kind, CR<Str> subkind)
+    const {
     auto props = getProperties(kind, subkind);
     if (props.empty()) {
         return std::nullopt;
@@ -327,8 +326,8 @@ bool Subtree::Property::matches(Kind kind, CR<QString> subkind) const {
 
 Vec<Subtree::Property> DocumentOptions::getProperties(
     Subtree::Property::Kind kind,
-    CR<QString>             subkind) const {
-    Vec<Property> result;
+    CR<Str>                 subkind) const {
+    Vec<Subtree::Property> result;
     for (const auto& prop : properties) {
         if (prop.matches(kind, subkind)) {
             result.push_back(prop);
@@ -339,7 +338,7 @@ Vec<Subtree::Property> DocumentOptions::getProperties(
 
 Opt<Subtree::Property> DocumentOptions::getProperty(
     Subtree::Property::Kind kind,
-    CR<QString>             subkind) const {
+    CR<Str>                 subkind) const {
     auto props = getProperties(kind, subkind);
     if (props.empty()) {
         return std::nullopt;
@@ -350,7 +349,7 @@ Opt<Subtree::Property> DocumentOptions::getProperty(
 
 Vec<Subtree::Property> Document::getProperties(
     Subtree::Property::Kind kind,
-    CR<QString>             subkind) const {
+    CR<Str>                 subkind) const {
     if (options.isNil()) {
         return {};
     } else {
@@ -360,7 +359,7 @@ Vec<Subtree::Property> Document::getProperties(
 
 Opt<Subtree::Property> Document::getProperty(
     Subtree::Property::Kind kind,
-    CR<QString>             subkind) const {
+    CR<Str>                 subkind) const {
     if (options.isNil()) {
         return std::nullopt;
     } else {

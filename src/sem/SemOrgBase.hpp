@@ -245,3 +245,12 @@ struct Org {
 
 
 }; // namespace sem
+
+#define EACH_SEM_ORG_LEAF_KIND(__IMPL)                                    \
+    __IMPL(Newline)                                                       \
+    __IMPL(Space)                                                         \
+    __IMPL(Word)                                                          \
+    __IMPL(RawText)                                                       \
+    __IMPL(Punctuation)                                                   \
+    __IMPL(Placeholder)                                                   \
+    __IMPL(BigIdent)

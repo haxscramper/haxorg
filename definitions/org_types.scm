@@ -60,13 +60,13 @@
 ;;    )))
 
 (simple-define-type <doc> d:doc (brief) (full ""))
-(simple-define-type <enum-field> d:efield (name) (doc) (value ""))
+(simple-define-type <enum-field> d:efield (name) (doc) (value #f))
 (simple-define-type <enum> d:enum (name) (doc) (fields) (base "short int") (kind "Enum"))
 (simple-define-type
  <field> d:field
- (type) (name) (doc) (value "") (kind "Field") (isStatic #f) (isConst #f))
+ (type) (name) (doc) (value #f) (kind "Field") (isStatic #f) (isConst #f))
 
-(simple-define-type <ident> d:ident (type) (name) (value ""))
+(simple-define-type <ident> d:ident (type) (name) (value #f))
 
 (simple-define-type
  <type> d:struct
@@ -86,6 +86,7 @@
  (iteratorMacroName "")
  (variantName "Data")
  (variantField "data")
+ (variantValue #f)
  (kindGetter "getKind")
  (kind "Group"))
 
@@ -97,7 +98,7 @@
  (arguments (list))
  (isConst #f)
  (isStatic #f)
- (impl "")
+ (impl #f)
  (isVirtual #f)
  (isPureVirtual #f)
  (kind "Method"))
@@ -109,7 +110,7 @@
 (simple-define-type <passthrough> d:pass (what) (kind "Pass"))
 
 (define (t:int) "int")
-(define (t:str) "QString")
+(define (t:str) "Str")
 (define (t:vec arg) (format #f "Vec<~a>" arg))
 (define* (t:id #:optional target)
   (if target (format #f "SemIdT<~a>" target) "SemId"))
@@ -148,21 +149,29 @@
 
 (define* (d:org #:rest args)
   (let* ((def (apply d:struct args))
-         (kind (slot-ref def 'name)))
+         (kind (slot-ref def 'name))
+         (base (car (slot-ref def 'bases))))
+    (slot-prepend!
+     def 'nested (d:pass (format #f "using ~a::~a;" base base)))
     (when (slot-ref def 'concreteKind)
       (slot-prepend!
        def 'fields
-       (d:field (t:id) "staticKind" (d:doc "Document") #:isConst #t #:isStatic #t))
+       (d:field (t:osk) "staticKind" (d:doc "Document")
+                #:isConst #t
+                #:isStatic #t
+                ;; #:value (format #f "~a::~a" (t:osk) kind)
+                ))
       (slot-prepend!
        def 'methods
-       (d:method (t:osk) "getKind" (d:doc "") #:isConst #t #:isVirtual #t #:isPureVirtual #f))
+       (d:method (t:osk) "getKind" (d:doc "") #:isConst #t #:isVirtual #t #:isPureVirtual #f
+                 #:impl (format #f "return ~a::~a;" (t:osk) kind)))
       (slot-prepend!
        def 'methods
        (d:method (t:id kind) "create" (d:doc "")
                  #:isStatic #t
                  #:arguments (list
                               (d:ident (t:id) "parent")
-                              (d:ident (t:opt (t:id))  "original" #:value "std::nullopt")))))
+                              (d:ident (t:opt "OrgAdapter")  "original" #:value "std::nullopt")))))
     def))
 
 (define types
@@ -172,7 +181,15 @@
            "Base class for all document-level entries. Note that some node kinds
 might also have inline entries (examples include links, source code blocks,
 call blocks)")
-          #:bases '(Org) #:concreteKind #f)
+          #:bases '(Org)
+          #:concreteKind #f
+          #:fields (list (d:field (t:vec (t:id)) "attached" (d:doc "")))
+          #:methods (list (d:method (t:opt (t:id)) "getAttached" (d:doc "")
+                                    #:arguments (list (d:ident (t:osk) "kind"))))
+          #:nested
+          (list
+           (d:pass "Stmt() {}")
+           (d:pass "Stmt(SemId parent, CVec<SemId> attached, CVec<SemId> subnodes) : Org(parent, subnodes), attached(attached) {}")))
    (d:org 'Inline
           (d:doc "Base class for all inline elements")
           #:bases '(Org) #:concreteKind #f)
@@ -207,7 +224,7 @@ call blocks)")
           #:bases '(Inline)
           #:fields
           (list
-           (d:field "Str" "tag" (d:doc "Footnote text target name") #:value "")
+           (d:field "Str" "tag" (d:doc "Footnote text target name") #:value "\"\"")
            (d:field (t:opt (t:id)) "definition" (d:doc "Link to possibly resolved definition") #:value "std::nullopt")))
    (d:org 'Completion
           (d:doc "Completion status of the subtree list element")
@@ -222,7 +239,8 @@ call blocks)")
           #:bases '(Stmt)
           #:methods
           (list
-           (d:method "bool" "isFootnoteDefinition" (d:doc "Check if paragraph defines footnote") #:isConst #t)))
+           (d:method "bool" "isFootnoteDefinition" (d:doc "Check if paragraph defines footnote") #:isConst #t
+                     #:impl "return !subnodes.empty() && at(0)->is(OrgSemKind::Footnote);")))
    (d:org 'Format
           (d:doc "Base class for branch of formatting node classes")
           #:bases '(Org)
@@ -245,7 +263,7 @@ top level and don't have to be attached to any subsequent elements")
           #:bases '(Attached)
           #:fields
           (list
-           (d:field (t:id "Paragraph") "text" (d:doc "Content description") #:value "SemIdT<Paragraph>::Nil()")))
+           (d:id-field "Paragraph" "text" (d:doc "Content description"))))
    (d:org 'CommandGroup
           (d:doc "Multiple attachable commands will get grouped into this element
  unless it is possible to attached them to some adjacent block command")
@@ -255,12 +273,11 @@ top level and don't have to be attached to any subsequent elements")
           #:bases '(Command)
           #:concreteKind #f
           )
-   (d:org 'Quote
-          (d:doc "Quotation block")
+   (d:org 'Quote (d:doc "Quotation block")
+          #:bases '(Org)
           #:fields
           (list
-           (d:field (t:id "Paragraph") "text"
-                    (d:doc "Quote content") #:value "SemIdT<Paragraph>::Nil()")))
+           (d:id-field "Paragraph" "text" (d:doc "Quote content"))))
    (d:org 'Example (d:doc "Example block") #:bases '(Block))
    (d:org 'Export (d:doc "Direct export passthrough")
           #:bases '(Block)
@@ -293,8 +310,15 @@ from the block")
             (list
              (d:group
               (list
+               (d:struct 'LineStart (d:doc "Enumerate code lines starting from `start` value instead of default indexing.")
+                         #:fields
+                         (list
+                          (d:field "int" "start" (d:doc "First line number"))
+                          (d:field "bool" "extendLast" (d:doc "Continue numbering from the previous block instead of starting anew") #:value "false")
+                          )
+                         )
                (d:struct 'CalloutFormat (d:doc "")
-                         #:fields (list (d:field "Str" "format" (d:doc "") #:value "")))
+                         #:fields (list (d:field "Str" "format" (d:doc "") #:value "\"\"")))
                (d:struct 'RemoveCallout (d:doc "")
                          #:fields (list (d:field "bool" "remove" (d:doc "") #:value "true")))
                (d:struct 'EmphasizeLine (d:doc "Emphasize single line -- can be repeated multiple times")
@@ -322,8 +346,12 @@ from the block")
    (d:org 'Time
           (d:doc "Single static or dynamic timestamp (active or inactive)")
           #:bases '(Org)
+          #:fields
+          (list
+           (d:field "bool" "isActive" (d:doc "<active> vs [inactive]") #:value "false"))
           #:nested
           (list
+           (d:pass "bool isStatic() const { return std::holds_alternative<Static>(time); }")
            (d:struct
             'Repeat
             (d:doc "Repetition information for static time")
@@ -345,28 +373,34 @@ org can do ... which is to be determined as well")
                       (d:efield "Week" (d:doc ""))
                       (d:efield "Day" (d:doc ""))
                       (d:efield "Hour" (d:doc ""))
-                      (d:efield "Minute" (d:doc ""))))
-             )
+                      (d:efield "Minute" (d:doc "")))))
             #:fields
             (list
              (d:field "Mode" "mode" (d:doc "mode"))
              (d:field "Period" "period" (d:doc "period"))
-             (d:field "int" "count" (d:doc "count"))
-             )
-            )
-           )
-          )
+             (d:field "int" "count" (d:doc "count"))))
+           (d:group
+            (list
+             (d:struct 'Static (d:doc "")
+                       #:fields (list (d:field (t:opt "Repeat") "repeat" (d:doc ""))
+                                      (d:field "UserTime" "time" (d:doc ""))))
+             (d:struct 'Dynamic (d:doc "")
+                       #:fields (list (d:field (t:str) "expr" (d:doc "")))))
+            #:kindGetter "getTimeKind"
+            #:enumName "TimeKind"
+            #:variantField "time"
+            #:variantName "TimeVariant")))
    (d:org 'TimeRange (d:doc "Range of time delimited by two points")
           #:bases '(Org)
           #:fields
           (list
-           (d:field (t:id "Time") "from" (d:doc "Starting time") #:value "SemIdT<Time>::Nil()")
-           (d:field (t:id "Time") "to" (d:doc "Finishing time") #:value "SemIdT<Time>::Nil()")))
+           (d:id-field "Time" "from" (d:doc "Starting time"))
+           (d:id-field "Time" "to" (d:doc "Finishing time"))))
    (d:org 'Macro (d:doc "Inline macro invocation")
           #:bases '(Org)
           #:fields
           (list
-           (d:field (t:str) "name" (d:doc "Macro name") #:value "")
+           (d:field (t:str) "name" (d:doc "Macro name") #:value "\"\"")
            (d:field (t:vec (t:str)) "arguments" (d:doc "Raw uninterpreted macro arguments") #:value "{}")))
    (d:org 'Symbol (d:doc "Text symbol or symbol command")
           #:bases '(Org)
@@ -381,9 +415,13 @@ org can do ... which is to be determined as well")
           (list
            (d:field (t:str) "name" (d:doc "Name of the symbol"))
            (d:field (t:vec "Param") "parameters" (d:doc "Optional list of parameters"))
-           (d:field (t:id) "positional" (d:doc "Positional parameters"))))
+           (d:field (t:vec (t:id)) "positional" (d:doc "Positional parameters"))))
    (d:org 'SubtreeLog (d:doc "Single subtree log entry")
           #:bases '(Org)
+          #:methods
+          (list
+           (d:method "void" "setDescription" (d:doc "")
+                     #:arguments (list (d:ident (t:id "StmtList") "desc"))))
           #:nested
           (list
            (d:struct 'DescribedLog (d:doc "Base value for the log variant")
@@ -426,10 +464,9 @@ org can do ... which is to be determined as well")
                         (d:id-field "HashTag" "tag" (d:doc "Tag in question"))
                         (d:field "bool" "added" (d:doc "Added/removed?") #:value "false"))))
             #:kindGetter "getLogKind"
-            #:variantName "LogEntry"))
-          #:fields
-          (list
-           (d:field "LogEntry" "log" (d:doc "Log") #:value "Note{}")))
+            #:variantField "log"
+            #:variantValue "Note{}"
+            #:variantName "LogEntry")))
    (d:org 'Subtree (d:doc "Subtree")
           #:bases '(Org)
           #:fields
@@ -438,6 +475,7 @@ org can do ... which is to be determined as well")
            (d:opt-field (t:str) "treeId" (d:doc ":ID: property"))
            (d:opt-field (t:str) "todo" (d:doc "Todo state of the tree"))
            (d:opt-field (t:id "Completion") "completion" (d:doc "Task completion state"))
+           (d:opt-field (t:id "Paragraph") "description" (d:doc ""))
            (d:vec-field (t:id "HashTag") "tags" (d:doc "Trailing tags"))
            (d:id-field "Paragraph" "title" (d:doc "Main title"))
            (d:vec-field (t:id "SubtreeLog") "logbook" (d:doc "Associated subtree log"))
@@ -486,12 +524,25 @@ org can do ... which is to be determined as well")
                                (d:efield "Titled" (d:doc "Single point or time range used in title. Single point can also be a simple time, such as `12:20`"))
                                (d:efield "Deadline" (d:doc "Date of task completion. Must be a single time point"))
                                (d:efield "Created" (d:doc "When the subtree was created"))
-                               (d:efield "Repeated" (d:doc "Last repeat time of the recurring tasks"))))))
+                               (d:efield "Repeated" (d:doc "Last repeat time of the recurring tasks"))))
+                      (d:pass "Period(CR<Variant<SemIdT<Time>, SemIdT<TimeRange>>> period, Kind kind) : period(period), kind(kind) {}")))
            (d:struct 'Property (d:doc "Single subtree property")
+                     #:fields
+                     (list
+                      (d:field "SetMode" "mainSetRule" (d:doc "") #:value "SetMode::Override")
+                      (d:field "SetMode" "subSetRule" (d:doc "") #:value "SetMode::Override")
+                      (d:field "InheritanceMode" "inheritanceMode" (d:doc "") #:value "InheritanceMode::ThisAndSub"))
                      #:nested
                      (list
+                      (d:simple-enum "SetMode" (d:doc "") "Override" "Add" "Subtract")
+                      (d:simple-enum "InheritanceMode" (d:doc "") "ThisAndSub" "OnlyThis" "OnlySub")
                       (d:group
                        (list
+                        (d:struct 'Nonblocking (d:doc "")
+                                  #:fields (list (d:field "bool" "isBlocking" (d:doc ""))))
+                        (d:struct 'Trigger (d:doc ""))
+                        (d:struct 'Origin (d:doc "")
+                                  #:fields (list (d:field (t:str) "text" (d:doc ""))))
                         (d:struct 'ExportLatexClass (d:doc "")
                                   #:fields (list (d:field (t:str) "latexClass" (d:doc ""))))
                         (d:struct 'ExportLatexHeader (d:doc "")
@@ -518,7 +569,7 @@ org can do ... which is to be determined as well")
                                   #:fields (list (d:field (t:vec (t:str)) "blockers" (d:doc ""))))
                         (d:struct 'Unnumbered (d:doc ""))
                         (d:struct 'Created (d:doc "")
-                                  #:fields (list (d:field (t:id "Time") "time" (d:doc ""))))))
+                                  #:fields (list (d:id-field "Time" "time" (d:doc ""))))))
                       (d:pass "Property(CR<Data> data) : data(data) {}")
                       (d:pass "bool matches(Kind kind, CR<QString> subkind = \"\") const;")
                       )
@@ -528,7 +579,7 @@ org can do ... which is to be determined as well")
    (d:org 'LatexBody (d:doc "Latex code body") #:bases '(Org) #:concreteKind #f)
    (d:org 'InlineMath (d:doc "Inline math") #:bases '(LatexBody))
    (d:org 'Leaf (d:doc "Final node") #:bases '(Org) #:concreteKind #f
-          #:fields (list (d:field (t:str) "text" (d:doc "Final leaf value") #:value "")))
+          #:fields (list (d:field (t:str) "text" (d:doc "Final leaf value") #:value "\"\"")))
    (d:org 'Escaped (d:doc "Escaped text") #:bases '(Leaf))
    (d:org 'Newline (d:doc "\\n newline") #:bases '(Leaf))
    (d:org 'Space (d:doc "' ' space") #:bases '(Leaf))
@@ -558,10 +609,13 @@ org can do ... which is to be determined as well")
           (list (d:simple-enum "Checkbox" (d:doc "") "None" "Done" "Empty"))
           #:methods
           (list
-           (d:method "bool" "isDescriptionList" (d:doc "") #:isConst #t
+           (d:method "bool" "isDescriptionItem" (d:doc "") #:isConst #t
                      #:impl "return header.has_value();")))
    ;; TODO
    (d:org 'Link (d:doc "") #:bases '(Org)
+          #:fields
+          (list
+           (d:field (t:opt (t:id "Paragraph")) "description" (d:doc "") #:value "std::nullopt"))
           #:methods
           (list
            (d:method (t:opt (t:id)) "resolve" (d:doc "") #:isConst #t
@@ -578,6 +632,22 @@ org can do ... which is to be determined as well")
              (d:struct 'File (d:doc "") #:fields (list (d:field (t:str) "file" (d:doc "")))))
             #:kindGetter "getLinkKind")))
    (d:org 'Document (d:doc "") #:bases '(Org)
+          #:methods
+          (list
+           (d:method (t:opt (t:id)) "resolve" (d:doc "")
+                     #:isConst #t
+                     #:arguments (list (d:ident (t:cr (t:id)) "node")))
+           (d:method (t:opt (t:id "Subtree")) "getSubtree" (d:doc "")
+                     #:isConst #t
+                     #:arguments (list (d:ident (t:cr (t:str)) "id")))
+           (d:method (t:vec "Subtree::Property") "getProperties" (d:doc "")
+                     #:isConst #t
+                     #:arguments (list (d:ident "Subtree::Property::Kind" "kind")
+                                       (d:ident (t:cr (t:str)) "subKind" #:value "\"\"")))
+           (d:method (t:opt "Subtree::Property") "getProperty" (d:doc "")
+                     #:isConst #t
+                     #:arguments (list (d:ident "Subtree::Property::Kind" "kind")
+                                       (d:ident (t:cr (t:str)) "subKind" #:value "\"\""))))
           #:fields
           (list
            (d:field (t:map (t:str) (t:id)) "idTable" (d:doc ""))
@@ -589,8 +659,7 @@ org can do ... which is to be determined as well")
            (d:opt-field (t:id "Paragraph") "creator" (d:doc ""))
            (d:opt-field (t:id "RawText") "email" (d:doc ""))
            (d:opt-field (t:vec (t:str)) "language" (d:doc ""))
-           (d:field (t:id "DocumentOptions") "options" (d:doc "")
-                    #:value "SemIdT<DocumentOptions>::Nil()")
+           (d:id-field "DocumentOptions" "options" (d:doc ""))
            (d:opt-field (t:str) "exportFileName" (d:doc ""))))
    (d:org 'ParseError (d:doc "") #:bases '(Org))
    (d:org 'FileTarget (d:doc "") #:bases '(Org)
@@ -626,6 +695,7 @@ org can do ... which is to be determined as well")
                                        (d:ident (t:cr (t:str)) "subKind" #:value "\"\""))))
           #:nested
           (list
+           (d:pass "using TocExport = Variant<bool, int>;")
            (d:simple-enum "BrokenLinks" (d:doc "") "Raise" "Ignore" "Mark")
            (d:simple-enum "Visibility" (d:doc "")
                           "Overview" "Content" "ShowAll" "Show2Levels" "Show3Levels"
@@ -634,6 +704,7 @@ org can do ... which is to be determined as well")
           (list
            (d:field "BrokenLinks" "brokenLinks" (d:doc "") #:value "BrokenLinks::Mark")
            (d:field "Visibility" "initialVisibility" (d:doc "") #:value "Visibility::ShowEverything")
+           (d:field "TocExport" "tocExport" (d:doc "") #:value "false")
            (d:field (t:vec "Subtree::Property") "properties" (d:doc ""))
            (d:field "bool" "smartQuotes" (d:doc "") #:value "false")
            (d:field "bool" "emphasizedText" (d:doc "") #:value "false")
