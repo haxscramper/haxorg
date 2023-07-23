@@ -343,12 +343,13 @@ ASTBuilder::Res ASTBuilder::SwitchStmt(const SwitchStmtParams& params) {
 ASTBuilder::Res ASTBuilder::XCall(
     const Str& opc,
     Vec<Res>   args,
-    bool       Stmt) {
+    bool       Stmt,
+    bool       Line) {
     if (opc[0].isLetter()) {
         return b::line({
             string(opc),
             string("("),
-            csv(args),
+            csv(args, Line),
             string(Stmt ? ");" : ")"),
         });
     } else {
@@ -361,5 +362,27 @@ ASTBuilder::Res ASTBuilder::XCall(
                 "Unexpected number of arguments for operator-like "
                 "function call. Expected 1 or 2 but got different amount");
         }
+    }
+}
+
+ASTBuilder::Res ASTBuilder::Comment(
+    const Vec<Str>& text,
+    bool            Inline,
+    bool            Doc) {
+    if (Inline) {
+        auto content = b::stack();
+        for (auto const& line : text) {
+            content->add(string(line));
+        }
+
+        return b::line(
+            {string(Doc ? "/*! " : "/* "), content, string(" */")});
+
+    } else {
+        auto result = b::stack();
+        for (auto const& line : text) {
+            result->add(string((Doc ? "/// " : "// ") + line));
+        }
+        return result;
     }
 }

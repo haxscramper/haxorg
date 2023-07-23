@@ -92,6 +92,46 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
         }});
     }
 
+    {
+        auto fields = map<GenTu::Field, AB::Res>(
+            record.fields, [&](GenTu::Field const& field) {
+                return builder.Trail(
+                    builder.string(field.name),
+                    builder.Comment({"field"}));
+            });
+
+        auto methods = map<GenTu::Function, AB::Res>(
+            record.methods, [&](GenTu::Function const& method) {
+                return builder.Trail(
+                    AB::b::line(Vec<AB::Res>{
+                        builder.string("("),
+                        builder.string(method.result),
+                        builder.pars(
+                            builder.csv({map<GenTu::Ident, AB::Res>(
+                                method.arguments,
+                                [&](GenTu::Ident const& ident) {
+                                    return builder.string(ident.type);
+                                })})),
+                        builder.string(method.isConst ? " const" : ""),
+                        builder.string(") "),
+                        builder.string(method.name),
+                    }),
+                    builder.Comment({"method"}));
+            });
+
+        params.nested.push_back(builder.XCall(
+            "BOOST_DESCRIBE_CLASS",
+            {
+                builder.string(record.name),
+                builder.pars(builder.csv(record.bases, false)),
+                builder.pars(builder.string("")),
+                builder.pars(builder.string("")),
+                builder.pars(builder.csv(fields + methods, false)),
+            },
+            false,
+            false));
+    }
+
     return params;
 }
 

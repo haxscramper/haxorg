@@ -877,7 +877,7 @@ Block::Ptr Block::join(
     bool             isLine,
     bool             isTrailing) {
     Q_CHECK_PTR(join);
-    Block::Ptr res = Block::spatial(isLine);
+    Block::Ptr res = Block::spatial(!isLine);
     for (int i = 0; i < items.size(); ++i) {
         Q_CHECK_PTR(items.at(i));
         if (i < items.high() || isTrailing) {

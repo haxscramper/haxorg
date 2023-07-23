@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/algorithms.hpp>
 
 /// Class to manage state required for the AST creation - `ASTContext`,
 /// identifiers. Constructs AST nodes with no extra location information.
@@ -223,8 +224,17 @@ class ASTBuilder {
         return result;
     }
 
+    Res csv(CVec<Str> items, bool isLine = true, bool isTrailing = false) {
+        return b::join(
+            map<Str, Res>(
+                items, [&](Str const& Base) { return string(Base); }),
+            string(", "),
+            isLine,
+            isTrailing);
+    }
+
     Res csv(CVec<Res> items, bool isLine = true, bool isTrailing = false) {
-        return b::join(items, string(","), isLine, isTrailing);
+        return b::join(items, string(", "), isLine, isTrailing);
     }
 
     Res CompoundStmt(const CompoundStmtParams& p) {
@@ -262,7 +272,12 @@ class ASTBuilder {
     Res CaseStmt(CaseStmtParams const& params);
     Res SwitchStmt(SwitchStmtParams const& params);
 
-    Res XCall(Str const& opc, Vec<Res> args, bool Stmt = false);
+    Res XCall(
+        Str const& opc,
+        Vec<Res>   args,
+        bool       Stmt = false,
+        bool       Line = true);
+
     Res XStmt(Str const& opc, Res arg) {
         return b::line({string(opc), string(" "), arg, string(";")});
     }
@@ -270,6 +285,18 @@ class ASTBuilder {
     Res XStmt(Str const& opc) {
         return b::line({string(opc), string(";")});
     }
+
+    Res Trail(
+        Res const& first,
+        Res const& second,
+        Str const& space = " ") {
+        return b::line({first, string(space), second});
+    }
+
+    Res Comment(
+        Vec<Str> const& text,
+        bool            Inline = true,
+        bool            Doc    = false);
 
     Res Literal(uint64_t value) { return string(QString::number(value)); }
     Res Literal(const Str& str) { return string("\"" + str + "\""); }

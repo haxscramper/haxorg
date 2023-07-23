@@ -623,7 +623,7 @@ org can do ... which is to be determined as well")
                           "Show4Levels" "Show5Levels" "ShowEverything"))
           #:fields
           (list
-           (d:field "BroenLinks" "brokenLinks" (d:doc "") #:value "BrokenLinks::Mark")
+           (d:field "BrokenLinks" "brokenLinks" (d:doc "") #:value "BrokenLinks::Mark")
            (d:field "Visibility" "initialVisibility" (d:doc "") #:value "Visibility::ShowEverything")
            (d:field (t:vec "Subtree::Property") "properties" (d:doc ""))
            (d:field "bool" "smartQuotes" (d:doc "") #:value "false")
