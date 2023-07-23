@@ -744,15 +744,21 @@ org can do ... which is to be determined as well")
    )
   )
 
-(iterate-object-tree
- types
- (lambda (value)
-   (when (and (instance? value) (is-a? value <type>))
-     (let* ((name (slot-ref value 'name))
-            (fields (slot-ref value 'fields)))
-       (format #t "~{__obj_field(res, object, ~a); \n~}" (map (lambda (a) (slot-ref a 'name)) fields))
-       )
-     )))
+(let* ((methods (list)))
+  (iterate-object-tree
+   types
+   (lambda (value)
+     (when (and (instance? value) (is-a? value <type>))
+       (let* ((name (slot-ref value 'name))
+              (fields (slot-ref value 'fields))
+              (method (d:method "void" "visitFields" (d:doc "")
+                                #:arguments (list (d:ident "R" "res")
+                                                  (d:ident name "object"))
+                                #:impl (format #f "~{__obj_field(res, object, ~a); \n~}"
+                                               (map (lambda (a) (slot-ref a 'name)) fields)))))
+         (append methods (list method)))))))
+
+
 
 (d:full
  (list
