@@ -50,7 +50,12 @@ ASTBuilder::Res ASTBuilder::Doc(const DocParams& doc) {
 }
 
 ASTBuilder::Res ASTBuilder::ParmVarDecl(const ParmVarDeclParams& p) {
-    return b::line({Type(p.type), string(" "), string(p.name)});
+    return b::line({
+        Type(p.type),
+        string(" "),
+        string(p.name),
+        p.defArg ? string(" = " + *p.defArg) : string(""),
+    });
 }
 
 ASTBuilder::Res ASTBuilder::FunctionDecl(FunctionDeclParams const& p) {

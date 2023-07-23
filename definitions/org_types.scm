@@ -118,6 +118,7 @@
 (define* (t:cr arg) (format #f "CR<~a>" arg))
 (define* (t:r arg) (format #f "~a&" arg))
 (define* (t:var #:rest args) (format #f "Variant<~a>" (string-join args ", ")))
+(define* (t:map key value) (format #f "UnorderedMap<~a, ~a>" key value))
 
 (define* (d:id-field id name doc)
   (d:field (t:id id) name doc #:value (format #f "SemIdT<~a>::Nil()" id)))
@@ -576,7 +577,21 @@ org can do ... which is to be determined as well")
              (d:struct 'Footnote (d:doc "") #:fields (list (d:field (t:str) "target" (d:doc ""))))
              (d:struct 'File (d:doc "") #:fields (list (d:field (t:str) "file" (d:doc "")))))
             #:kindGetter "getLinkKind")))
-   (d:org 'Document (d:doc "") #:bases '(Org))
+   (d:org 'Document (d:doc "") #:bases '(Org)
+          #:fields
+          (list
+           (d:field (t:map (t:str) (t:id)) "idTable" (d:doc ""))
+           (d:field (t:map (t:str) (t:id)) "nameTable" (d:doc ""))
+           (d:field (t:map (t:str) (t:id)) "footnoteTable" (d:doc ""))
+           (d:field (t:map (t:str) (t:id)) "anchorTable" (d:doc ""))
+           (d:opt-field (t:id "Paragraph") "title" (d:doc ""))
+           (d:opt-field (t:id "Paragraph") "author" (d:doc ""))
+           (d:opt-field (t:id "Paragraph") "creator" (d:doc ""))
+           (d:opt-field (t:id "RawText") "email" (d:doc ""))
+           (d:opt-field (t:vec (t:str)) "language" (d:doc ""))
+           (d:field (t:id "DocumentOptions") "options" (d:doc "")
+                    #:value "SemIdT<DocumentOptions>::Nil()")
+           (d:opt-field (t:str) "exportFileName" (d:doc ""))))
    (d:org 'ParseError (d:doc "") #:bases '(Org))
    (d:org 'FileTarget (d:doc "") #:bases '(Org)
           #:fields
@@ -589,7 +604,40 @@ org can do ... which is to be determined as well")
            (d:opt-field (t:str) "regexp" (d:doc ""))))
    (d:org 'TextSeparator (d:doc "") #:bases '(Org))
    (d:org 'Include (d:doc "") #:bases '(Org))
-   (d:org 'DocumentOptions (d:doc "") #:bases '(Org))
+   (d:org 'DocumentOptions (d:doc "") #:bases '(Org)
+          #:methods
+          (list
+           (d:method (t:vec "Subtree::Property") "getProperties" (d:doc "")
+                     #:isConst #t
+                     #:arguments (list (d:ident "Subtree::Property::Kind" "kind")
+                                       (d:ident (t:cr (t:str)) "subKind" #:value "\"\"")))
+           (d:method (t:opt "Subtree::Property") "getProperty" (d:doc "")
+                     #:isConst #t
+                     #:arguments (list (d:ident "Subtree::Property::Kind" "kind")
+                                       (d:ident (t:cr (t:str)) "subKind" #:value "\"\""))))
+          #:nested
+          (list
+           (d:simple-enum "BrokenLinks" (d:doc "") "Raise" "Ignore" "Mark")
+           (d:simple-enum "Visibility" (d:doc "")
+                          "Overview" "Content" "ShowAll" "Show2Levels" "Show3Levels"
+                          "Show4Levels" "Show5Levels" "ShowEverything"))
+          #:fields
+          (list
+           (d:field "BroenLinks" "brokenLinks" (d:doc "") #:value "BrokenLinks::Mark")
+           (d:field "Visibility" "initialVisibility" (d:doc "") #:value "Visibility::ShowEverything")
+           (d:field (t:vec "Subtree::Property") "properties" (d:doc ""))
+           (d:field "bool" "smartQuotes" (d:doc "") #:value "false")
+           (d:field "bool" "emphasizedText" (d:doc "") #:value "false")
+           (d:field "bool" "specialStrings" (d:doc "") #:value "false")
+           (d:field "bool" "fixedWidthSections" (d:doc "") #:value "false")
+           (d:field "bool" "includeTimestamps" (d:doc "") #:value "false")
+           (d:field "bool" "preserveLineBreaks" (d:doc "") #:value "false")
+           (d:field "bool" "plaintextSubscripts" (d:doc "") #:value "false")
+           (d:field "bool" "exportArchived" (d:doc "") #:value "false")
+           (d:field "bool" "exportWithAuthor" (d:doc "") #:value "false")
+           (d:field "bool" "exportBrokenLinks" (d:doc "") #:value "false")
+           (d:field "bool" "exportWithClock" (d:doc "") #:value "false")
+           (d:field "bool" "exportWithCreator" (d:doc "") #:value "false")))
    (d:org 'DocumentGroup (d:doc "") #:bases '(Org))))
 
 (define* (get-concrete-types)
