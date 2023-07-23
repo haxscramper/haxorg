@@ -16,6 +16,57 @@ ASTBuilder::Res ASTBuilder::WithDoc(
     }
 }
 
+ASTBuilder::Res ASTBuilder::Template(
+    const TemplateParamParams::Param& Param) {
+    return b::line({
+        Param.Concept
+            ? string(*Param.Concept)
+            : string(Param.Nested.empty() ? "typename" : "template"),
+        string(Param.Placeholder ? "" : " "),
+        string(Param.Placeholder ? "" : Param.Name),
+        b::surround_non_empty(
+            b::map_join(
+                Param.Nested,
+                [&](TemplateParamParams::Param const& Sub) -> Res {
+                    return Template(Sub);
+                },
+                string(", ")),
+            string("<"),
+            string(">")),
+    });
+}
+
+ASTBuilder::Res ASTBuilder::Template(
+    const TemplateParamParams::Spec& Spec) {
+    return b::line({
+        string("template <"),
+        b::map_join(
+            Spec.Params,
+            [&](TemplateParamParams::Param const& Param) {
+                return Template(Param);
+            },
+            string(", ")),
+        string(">"),
+    });
+}
+
+ASTBuilder::Res ASTBuilder::Template(const TemplateParamParams& Templ) {
+    return b::map_join(
+        Templ.Stacks,
+        [&](TemplateParamParams::Spec const& Spec) {
+            return Template(Spec);
+        },
+        b::empty(),
+        /* isLine */ false);
+}
+
+ASTBuilder::Res ASTBuilder::Ident(const IdentParams& Id) {
+    return b::join(
+        map<QualType, Res>(
+            Id.spaces, [&](QualType const& T) { return Type(T); }),
+        string("::"));
+}
+
 ASTBuilder::Res ASTBuilder::Doc(const DocParams& doc) {
     Vec<Str> content;
     bool     isFirst = true;
@@ -84,7 +135,7 @@ ASTBuilder::QualType ASTBuilder::Type(Str const& type) {
 
 ASTBuilder::Res ASTBuilder::Type(const QualType& type) {
     return b::line({
-        string(join("::", type.ident.spaces)),
+        string(type.name),
         type.Parameters.empty()
             ? string("")
             : b::line({
@@ -245,6 +296,46 @@ ASTBuilder::Res ASTBuilder::MacroDecl(const MacroDeclParams& params) {
         b::indent(8, definition),
         string(""),
     });
+}
+
+ASTBuilder::Res ASTBuilder::block(
+    const Res&      head,
+    const Vec<Res>& content,
+    bool            trailingLine) {
+
+    auto result = content.size() < 2 ? (b::line({
+                      head,
+                      string(" { "),
+                      b::stack(content),
+                      string(" }"),
+                  }))
+                                     : (b::stack({
+                                         b::line({head, string(" {")}),
+                                         b::indent(2, b::stack(content)),
+                                         string("}"),
+                                     }));
+
+    if (trailingLine) {
+        if (result->isStack()) {
+            result->add(string(""));
+        } else {
+            result = b::stack({result, string("")});
+        }
+    }
+
+    return result;
+}
+
+ASTBuilder::Res ASTBuilder::csv(
+    CVec<Str> items,
+    bool      isLine,
+    bool      isTrailing) {
+    return b::join(
+        map<Str, Res>(
+            items, [&](Str const& Base) { return string(Base); }),
+        string(", "),
+        isLine,
+        isTrailing);
 }
 
 ASTBuilder::Res ASTBuilder::EnumDecl(const EnumDeclParams& params) {

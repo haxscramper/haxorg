@@ -22,13 +22,6 @@ class ASTBuilder {
     Res string(QString const& str) { return b::text(store.str(str)); }
 
 
-    struct Ident {
-        Vec<Str> spaces;
-        Ident() {}
-        Ident(Str const& name) : spaces({name}) {}
-        Ident(Vec<Str> const& name) : spaces(name) {}
-    };
-
     struct DocParams {
         Str brief;
         Str full;
@@ -37,16 +30,16 @@ class ASTBuilder {
     Res WithDoc(Res const& content, DocParams const& doc);
 
     struct QualType {
-        Ident         ident;
+        Str           name;
         bool          isConst    = false;
         bool          isPtr      = false;
         bool          isRef      = false;
         Vec<QualType> Parameters = {};
 
         QualType() {}
-        QualType(Str const& name) { ident = Ident(name); }
+        QualType(Str const& name) : name(name) {}
         QualType(Str const& name, Vec<QualType> const& Parameters)
-            : ident(Ident(name)), Parameters(Parameters) {}
+            : name(name), Parameters(Parameters) {}
 
         QualType& Ref(bool set = true) {
             isRef = set;
@@ -63,6 +56,38 @@ class ASTBuilder {
             return *this;
         }
     };
+
+    struct IdentParams {
+        Vec<QualType> spaces;
+        IdentParams() {}
+        IdentParams(Str const& name) : spaces({QualType(name)}) {}
+        IdentParams(Vec<Str> const& name) {
+            for (auto const& n : name) {
+                spaces.push_back(QualType(n));
+            }
+        }
+    };
+
+    struct TemplateParamParams {
+        struct Param {
+            bool       Placeholder = false;
+            bool       Variadic    = false;
+            Str        Name;
+            Vec<Param> Nested;
+            Opt<Str>   Concept;
+        };
+
+        struct Spec {
+            Vec<Param> Params;
+        };
+
+        Vec<Spec> Stacks;
+    };
+
+    Res Template(TemplateParamParams::Param const& Param);
+    Res Template(TemplateParamParams::Spec const& Spec);
+    Res Template(TemplateParamParams const& Templ);
+    Res Ident(IdentParams const& Id);
 
     enum class StorageClass
     {
@@ -209,40 +234,9 @@ class ASTBuilder {
     Res block(
         Res const&      head,
         Vec<Res> const& content,
-        bool            trailingLine = false) {
+        bool            trailingLine = false);
 
-        auto result = content.size() < 2
-                        ? b::line({
-                            head,
-                            string(" { "),
-                            b::stack(content),
-                            string(" }"),
-                        })
-                        : b::stack({
-                            b::line({head, string(" {")}),
-                            b::indent(2, b::stack(content)),
-                            string("}"),
-                        });
-
-        if (trailingLine) {
-            if (result->isStack()) {
-                result->add(string(""));
-            } else {
-                result = b::stack({result, string("")});
-            }
-        }
-
-        return result;
-    }
-
-    Res csv(CVec<Str> items, bool isLine = true, bool isTrailing = false) {
-        return b::join(
-            map<Str, Res>(
-                items, [&](Str const& Base) { return string(Base); }),
-            string(", "),
-            isLine,
-            isTrailing);
-    }
+    Res csv(CVec<Str> items, bool isLine = true, bool isTrailing = false);
 
     Res csv(CVec<Res> items, bool isLine = true, bool isTrailing = false) {
         return b::join(items, string(", "), isLine, isTrailing);

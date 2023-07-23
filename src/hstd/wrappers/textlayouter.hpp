@@ -10,6 +10,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/Func.hpp>
 
 namespace layout {
 
@@ -309,6 +310,7 @@ struct Block : public SharedPtrApi<Block> {
     bool isWrap() const { return getKind() == Kind::Wrap; }
     bool isVerb() const { return getKind() == Kind::Verb; }
     bool isChoice() const { return getKind() == Kind::Choice; }
+    bool isEmpty() const { return getKind() == Kind::Empty; }
 
     struct SolutionHash {
         template <typename T>
@@ -349,8 +351,33 @@ struct Block : public SharedPtrApi<Block> {
     static Block::Ptr stack(CR<Vec<Block::Ptr>> l = {});
     static Block::Ptr choice(CR<Vec<Block::Ptr>> l = {});
     static Block::Ptr space(int count);
+    static Block::Ptr empty() { return Block::shared(Empty{}); }
 
     static Block::Ptr spatial(bool isVertical, CR<Vec<Ptr>> l = {});
+    static Block::Ptr surround_non_empty(
+        Block::Ptr content,
+        Block::Ptr before,
+        Block::Ptr after) {
+        if (content->size() == 0) {
+            return space(0);
+        } else {
+            return line({before, content, after});
+        }
+    }
+
+    template <typename T, typename F>
+    static Block::Ptr map_join(
+        CVec<T>        items,
+        F              convert,
+        CR<Block::Ptr> join,
+        bool           isLine     = true,
+        bool           isTrailing = false) {
+        Vec<Block::Ptr> tmp;
+        for (auto const& it : items) {
+            tmp.push_back(convert(it));
+        }
+        return Block::join(tmp, join, isLine, isTrailing);
+    }
 
     static Block::Ptr join(
         CVec<Block::Ptr> items,

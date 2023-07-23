@@ -723,6 +723,37 @@ org can do ... which is to be determined as well")
 (define* (get-concrete-types)
   (remove (lambda (struct) (not (slot-ref struct 'concreteKind))) types))
 
+(define* (iterate-object-tree tree callback)
+  (apply callback (list tree))
+  (cond
+   ((instance? tree)
+    (let* ((class-of-obj (class-of tree))
+           (name (class-name class-of-obj))
+           (slots (class-slots class-of-obj)))
+      (for-each
+       (lambda (slot)
+         (iterate-object-tree
+          (slot-ref tree (slot-definition-name slot)) callback)) slots)))
+   ((or (eq? tree #t)
+        (eq? tree #f)
+        (string? tree)
+        (symbol? tree)))
+   ((list? tree)
+    (for-each (lambda (it) (iterate-object-tree it callback)) tree))
+   (#t (format #t "? ~a\n" tree))
+   )
+  )
+
+(iterate-object-tree
+ types
+ (lambda (value)
+   (when (and (instance? value) (is-a? value <type>))
+     (let* ((name (slot-ref value 'name))
+            (fields (slot-ref value 'fields)))
+       (format #t "~{__obj_field(res, object, ~a); \n~}" (map (lambda (a) (slot-ref a 'name)) fields))
+       )
+     )))
+
 (d:full
  (list
   (d:file
