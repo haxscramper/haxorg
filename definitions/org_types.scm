@@ -603,7 +603,16 @@ org can do ... which is to be determined as well")
            (d:opt-field (t:str) "targetId" (d:doc ""))
            (d:opt-field (t:str) "regexp" (d:doc ""))))
    (d:org 'TextSeparator (d:doc "") #:bases '(Org))
-   (d:org 'Include (d:doc "") #:bases '(Org))
+   (d:org 'Include (d:doc "") #:bases '(Org)
+          #:nested
+          (list
+           (d:group
+            (list
+             (d:struct 'Example (d:doc ""))
+             (d:struct 'Export (d:doc ""))
+             (d:struct 'Src (d:doc ""))
+             (d:struct 'OrgDocument (d:doc "")))
+            #:kindGetter "getIncludeKind")))
    (d:org 'DocumentOptions (d:doc "") #:bases '(Org)
           #:methods
           (list

@@ -17,20 +17,12 @@ namespace sem {
 /// might also have inline entries (examples include links, source code blocks,
 /// call blocks)
 struct Stmt : public Org {
-  BOOST_DESCRIBE_CLASS(Stmt,
-                       (Org),
-                       (),
-                       (),
-                       ())
+  BOOST_DESCRIBE_CLASS(Stmt, (Org), (), (), ())
 };
 
 /// \brief Base class for all inline elements
 struct Inline : public Org {
-  BOOST_DESCRIBE_CLASS(Inline,
-                       (Org),
-                       (),
-                       (),
-                       ())
+  BOOST_DESCRIBE_CLASS(Inline, (Org), (), (), ())
 };
 
 /// \brief Zero or more statement nodes
@@ -39,9 +31,9 @@ struct StmtList : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<StmtList>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<StmtList>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<StmtList> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -54,9 +46,9 @@ struct Empty : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Empty>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Empty>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Empty> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -69,9 +61,9 @@ struct Row : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Row>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Row>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Row> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -84,10 +76,10 @@ struct Table : public Stmt {
                        (Stmt),
                        (),
                        (),
-                       (staticKind /* field */,
-                        rows /* field */,
-                        (SemIdT<Table>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        rows,
+                        (SemIdT<Table>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   /// \brief List of rows for the table
@@ -102,12 +94,12 @@ struct HashTag : public Inline {
                        (Inline),
                        (),
                        (),
-                       (staticKind /* field */,
-                        head /* field */,
-                        subtags /* field */,
-                        (SemIdT<HashTag>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */,
-                        (bool(CR<Vec<QString>>) const) prefixMatch /* method */))
+                       (staticKind,
+                        head,
+                        subtags,
+                        (SemIdT<HashTag>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind,
+                        (bool(CR<Vec<QString>>) const) prefixMatch))
   /// \brief Document
   static SemId const staticKind;
   /// \brief Main part of the tag
@@ -129,11 +121,11 @@ struct Footnote : public Inline {
                        (Inline),
                        (),
                        (),
-                       (staticKind /* field */,
-                        tag /* field */,
-                        definition /* field */,
-                        (SemIdT<Footnote>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        tag,
+                        definition,
+                        (SemIdT<Footnote>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   /// \brief Footnote text target name
@@ -150,12 +142,12 @@ struct Completion : public Inline {
                        (Inline),
                        (),
                        (),
-                       (staticKind /* field */,
-                        done /* field */,
-                        full /* field */,
-                        isPercent /* field */,
-                        (SemIdT<Completion>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        done,
+                        full,
+                        isPercent,
+                        (SemIdT<Completion>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   /// \brief Number of completed tasks
@@ -174,10 +166,10 @@ struct Paragraph : public Stmt {
                        (Stmt),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Paragraph>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */,
-                        (bool() const) isFootnoteDefinition /* method */))
+                       (staticKind,
+                        (SemIdT<Paragraph>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind,
+                        (bool() const) isFootnoteDefinition))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Paragraph> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -188,11 +180,7 @@ struct Paragraph : public Stmt {
 
 /// \brief Base class for branch of formatting node classes
 struct Format : public Org {
-  BOOST_DESCRIBE_CLASS(Format,
-                       (Org),
-                       (),
-                       (),
-                       ())
+  BOOST_DESCRIBE_CLASS(Format, (Org), (), (), ())
 };
 
 /// \brief Center nested content in export
@@ -201,9 +189,9 @@ struct Center : public Format {
                        (Format),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Center>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Center>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Center> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -212,39 +200,23 @@ struct Center : public Format {
 
 /// \brief Base class for block or line commands
 struct Command : public Org {
-  BOOST_DESCRIBE_CLASS(Command,
-                       (Org),
-                       (),
-                       (),
-                       ())
+  BOOST_DESCRIBE_CLASS(Command, (Org), (), (), ())
 };
 
 /// \brief Line commands
 struct LineCommand : public Command {
-  BOOST_DESCRIBE_CLASS(LineCommand,
-                       (Command),
-                       (),
-                       (),
-                       ())
+  BOOST_DESCRIBE_CLASS(LineCommand, (Command), (), (), ())
 };
 
 /// \brief Standalone commands that can be placed individuall on the the
 /// top level and don't have to be attached to any subsequent elements
 struct Standalone : public LineCommand {
-  BOOST_DESCRIBE_CLASS(Standalone,
-                       (LineCommand),
-                       (),
-                       (),
-                       ())
+  BOOST_DESCRIBE_CLASS(Standalone, (LineCommand), (), (), ())
 };
 
 /// \brief Line command that might get attached to some block element
 struct Attached : public LineCommand {
-  BOOST_DESCRIBE_CLASS(Attached,
-                       (LineCommand),
-                       (),
-                       (),
-                       ())
+  BOOST_DESCRIBE_CLASS(Attached, (LineCommand), (), (), ())
 };
 
 /// \brief Caption annotation for any subsequent node
@@ -253,10 +225,10 @@ struct Caption : public Attached {
                        (Attached),
                        (),
                        (),
-                       (staticKind /* field */,
-                        text /* field */,
-                        (SemIdT<Caption>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        text,
+                        (SemIdT<Caption>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   /// \brief Content description
@@ -272,9 +244,9 @@ struct CommandGroup : public Stmt {
                        (Stmt),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<CommandGroup>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<CommandGroup>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<CommandGroup> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -283,11 +255,7 @@ struct CommandGroup : public Stmt {
 
 /// \brief Block command type
 struct Block : public Command {
-  BOOST_DESCRIBE_CLASS(Block,
-                       (Command),
-                       (),
-                       (),
-                       ())
+  BOOST_DESCRIBE_CLASS(Block, (Command), (), (), ())
 };
 
 /// \brief Quotation block
@@ -296,10 +264,10 @@ struct Quote {
                        (),
                        (),
                        (),
-                       (staticKind /* field */,
-                        text /* field */,
-                        (SemIdT<Quote>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        text,
+                        (SemIdT<Quote>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   /// \brief Quote content
@@ -314,9 +282,9 @@ struct Example : public Block {
                        (Block),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Example>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Example>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Example> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -339,12 +307,12 @@ struct Export : public Block {
                        (Block),
                        (),
                        (),
-                       (staticKind /* field */,
-                        format /* field */,
-                        exporter /* field */,
-                        content /* field */,
-                        (SemIdT<Export>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        format,
+                        exporter,
+                        content,
+                        (SemIdT<Export>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   /// \brief Export block type
@@ -363,9 +331,9 @@ struct AdmonitionBlock : public Block {
                        (Block),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<AdmonitionBlock>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<AdmonitionBlock>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<AdmonitionBlock> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -381,39 +349,23 @@ struct Code : public Block {
   /// from the block
   struct Switch {
     struct CalloutFormat {
-      BOOST_DESCRIBE_CLASS(CalloutFormat,
-                           (),
-                           (),
-                           (),
-                           (format /* field */))
+      BOOST_DESCRIBE_CLASS(CalloutFormat, (), (), (), (format))
       Str format;
     };
 
     struct RemoveCallout {
-      BOOST_DESCRIBE_CLASS(RemoveCallout,
-                           (),
-                           (),
-                           (),
-                           (remove /* field */))
+      BOOST_DESCRIBE_CLASS(RemoveCallout, (), (), (), (remove))
       bool remove;
     };
 
     /// \brief Emphasize single line -- can be repeated multiple times
     struct EmphasizeLine {
-      BOOST_DESCRIBE_CLASS(EmphasizeLine,
-                           (),
-                           (),
-                           (),
-                           (line /* field */))
+      BOOST_DESCRIBE_CLASS(EmphasizeLine, (), (), (), (line))
       Vec<int> line;
     };
 
     struct Dedent {
-      BOOST_DESCRIBE_CLASS(Dedent,
-                           (),
-                           (),
-                           (),
-                           (value /* field */))
+      BOOST_DESCRIBE_CLASS(Dedent, (), (), (), (value))
       int value;
     };
 
@@ -423,7 +375,7 @@ struct Code : public Block {
                          (),
                          (),
                          (),
-                         ())
+                         (data, (Kind() const) getKind))
   };
 
   /// \brief What to do with newly evaluated result
@@ -448,17 +400,17 @@ struct Code : public Block {
                        (Block),
                        (),
                        (),
-                       (staticKind /* field */,
-                        lang /* field */,
-                        switches /* field */,
-                        exports /* field */,
-                        cache /* field */,
-                        eval /* field */,
-                        noweb /* field */,
-                        hlines /* field */,
-                        tangle /* field */,
-                        (SemIdT<Code>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        lang,
+                        switches,
+                        exports,
+                        cache,
+                        eval,
+                        noweb,
+                        hlines,
+                        tangle,
+                        (SemIdT<Code>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   /// \brief Code block language name
@@ -509,13 +461,7 @@ struct Time : public Org {
       Minute,
     };
 
-    BOOST_DESCRIBE_CLASS(Repeat,
-                         (),
-                         (),
-                         (),
-                         (mode /* field */,
-                          period /* field */,
-                          count /* field */))
+    BOOST_DESCRIBE_CLASS(Repeat, (), (), (), (mode, period, count))
     /// \brief mode
     Mode mode;
     /// \brief period
@@ -528,9 +474,9 @@ struct Time : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Time>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Time>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Time> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -543,11 +489,11 @@ struct TimeRange : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        from /* field */,
-                        to /* field */,
-                        (SemIdT<TimeRange>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        from,
+                        to,
+                        (SemIdT<TimeRange>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   /// \brief Starting time
@@ -564,11 +510,11 @@ struct Macro : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        name /* field */,
-                        arguments /* field */,
-                        (SemIdT<Macro>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        name,
+                        arguments,
+                        (SemIdT<Macro>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   /// \brief Macro name
@@ -583,12 +529,7 @@ struct Macro : public Org {
 struct Symbol : public Org {
   /// \brief Symbol parameters
   struct Param {
-    BOOST_DESCRIBE_CLASS(Param,
-                         (),
-                         (),
-                         (),
-                         (key /* field */,
-                          value /* field */))
+    BOOST_DESCRIBE_CLASS(Param, (), (), (), (key, value))
     /// \brief Key -- for non-positional
     Opt<QString> key;
     /// \brief Uninterpreted value
@@ -599,12 +540,12 @@ struct Symbol : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        name /* field */,
-                        parameters /* field */,
-                        positional /* field */,
-                        (SemIdT<Symbol>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        name,
+                        parameters,
+                        positional,
+                        (SemIdT<Symbol>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   /// \brief Name of the symbol
@@ -621,34 +562,21 @@ struct Symbol : public Org {
 struct SubtreeLog : public Org {
   /// \brief Base value for the log variant
   struct DescribedLog {
-    BOOST_DESCRIBE_CLASS(DescribedLog,
-                         (),
-                         (),
-                         (),
-                         (desc /* field */))
+    BOOST_DESCRIBE_CLASS(DescribedLog, (), (), (), (desc))
     /// \brief Optional description of the log entry
     Opt<SemIdT<StmtList>> desc;
   };
 
   /// \brief Timestamped note
   struct Note : public DescribedLog {
-    BOOST_DESCRIBE_CLASS(Note,
-                         (DescribedLog),
-                         (),
-                         (),
-                         (on /* field */))
+    BOOST_DESCRIBE_CLASS(Note, (DescribedLog), (), (), (on))
     /// \brief Where log was taken
     SemIdT<Time> on;
   };
 
   /// \brief Refiling action
   struct Refile : public DescribedLog {
-    BOOST_DESCRIBE_CLASS(Refile,
-                         (DescribedLog),
-                         (),
-                         (),
-                         (on /* field */,
-                          from /* field */))
+    BOOST_DESCRIBE_CLASS(Refile, (DescribedLog), (), (), (on, from))
     /// \brief When the refiling happened
     SemIdT<Time> on;
     /// \brief Link to the original subtree
@@ -657,24 +585,14 @@ struct SubtreeLog : public Org {
 
   /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
   struct Clock : public DescribedLog {
-    BOOST_DESCRIBE_CLASS(Clock,
-                         (DescribedLog),
-                         (),
-                         (),
-                         (range /* field */))
+    BOOST_DESCRIBE_CLASS(Clock, (DescribedLog), (), (), (range))
     /// \brief Start-end or only start period
     Variant<SemIdT<Time>, SemIdT<TimeRange>> range;
   };
 
   /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
   struct State : public DescribedLog {
-    BOOST_DESCRIBE_CLASS(State,
-                         (DescribedLog),
-                         (),
-                         (),
-                         (from /* field */,
-                          to /* field */,
-                          on /* field */))
+    BOOST_DESCRIBE_CLASS(State, (DescribedLog), (), (), (from, to, on))
     OrgBigIdentKind from;
     OrgBigIdentKind to;
     SemIdT<Time> on;
@@ -682,13 +600,7 @@ struct SubtreeLog : public Org {
 
   /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
   struct Tag : public DescribedLog {
-    BOOST_DESCRIBE_CLASS(Tag,
-                         (DescribedLog),
-                         (),
-                         (),
-                         (on /* field */,
-                          tag /* field */,
-                          added /* field */))
+    BOOST_DESCRIBE_CLASS(Tag, (DescribedLog), (), (), (on, tag, added))
     /// \brief When the log was assigned
     SemIdT<Time> on;
     /// \brief Tag in question
@@ -703,10 +615,12 @@ struct SubtreeLog : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        log /* field */,
-                        (SemIdT<SubtreeLog>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        log,
+                        data,
+                        (SemIdT<SubtreeLog>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind,
+                        (Kind() const) getLogKind))
   /// \brief Document
   static SemId const staticKind;
   /// \brief Log
@@ -739,10 +653,10 @@ struct Subtree : public Org {
                          (),
                          (),
                          (),
-                         (kind /* field */,
-                          period /* field */,
-                          (SemIdT<Time>()) getTime /* method */,
-                          (SemIdT<Time>()) getTimeRange /* method */))
+                         (kind,
+                          period,
+                          (SemIdT<Time>()) getTime,
+                          (SemIdT<Time>()) getTimeRange))
     /// \brief Time period kind -- not associated with point/range distinction
     Kind kind;
     /// \brief Stored time point/range
@@ -756,48 +670,27 @@ struct Subtree : public Org {
   /// \brief Single subtree property
   struct Property {
     struct ExportLatexClass {
-      BOOST_DESCRIBE_CLASS(ExportLatexClass,
-                           (),
-                           (),
-                           (),
-                           (latexClass /* field */))
+      BOOST_DESCRIBE_CLASS(ExportLatexClass, (), (), (), (latexClass))
       QString latexClass;
     };
 
     struct ExportLatexHeader {
-      BOOST_DESCRIBE_CLASS(ExportLatexHeader,
-                           (),
-                           (),
-                           (),
-                           (header /* field */))
+      BOOST_DESCRIBE_CLASS(ExportLatexHeader, (), (), (), (header))
       QString header;
     };
 
     struct ExportLatexCompiler {
-      BOOST_DESCRIBE_CLASS(ExportLatexCompiler,
-                           (),
-                           (),
-                           (),
-                           (compiler /* field */))
+      BOOST_DESCRIBE_CLASS(ExportLatexCompiler, (), (), (), (compiler))
       QString compiler;
     };
 
     struct Ordered {
-      BOOST_DESCRIBE_CLASS(Ordered,
-                           (),
-                           (),
-                           (),
-                           (isOrdered /* field */))
+      BOOST_DESCRIBE_CLASS(Ordered, (), (), (), (isOrdered))
       bool isOrdered;
     };
 
     struct Effort {
-      BOOST_DESCRIBE_CLASS(Effort,
-                           (),
-                           (),
-                           (),
-                           (hours /* field */,
-                            minutes /* field */))
+      BOOST_DESCRIBE_CLASS(Effort, (), (), (), (hours, minutes))
       int hours;
       int minutes;
     };
@@ -810,48 +703,27 @@ struct Subtree : public Org {
         All,
       };
 
-      BOOST_DESCRIBE_CLASS(Visibility,
-                           (),
-                           (),
-                           (),
-                           (level /* field */))
+      BOOST_DESCRIBE_CLASS(Visibility, (), (), (), (level))
       Level level;
     };
 
     struct ExportOptions {
-      BOOST_DESCRIBE_CLASS(ExportOptions,
-                           (),
-                           (),
-                           (),
-                           (backend /* field */,
-                            values /* field */))
+      BOOST_DESCRIBE_CLASS(ExportOptions, (), (), (), (backend, values))
       QString backend;
       UnorderedMap<Str, Str> values;
     };
 
     struct Blocker {
-      BOOST_DESCRIBE_CLASS(Blocker,
-                           (),
-                           (),
-                           (),
-                           (blockers /* field */))
+      BOOST_DESCRIBE_CLASS(Blocker, (), (), (), (blockers))
       Vec<QString> blockers;
     };
 
     struct Unnumbered {
-      BOOST_DESCRIBE_CLASS(Unnumbered,
-                           (),
-                           (),
-                           (),
-                           ())
+      BOOST_DESCRIBE_CLASS(Unnumbered, (), (), (), ())
     };
 
     struct Created {
-      BOOST_DESCRIBE_CLASS(Created,
-                           (),
-                           (),
-                           (),
-                           (time /* field */))
+      BOOST_DESCRIBE_CLASS(Created, (), (), (), (time))
       SemIdT<Time> time;
     };
 
@@ -863,32 +735,32 @@ struct Subtree : public Org {
                          (),
                          (),
                          (),
-                         ())
+                         (data, (Kind() const) getKind))
   };
 
   BOOST_DESCRIBE_CLASS(Subtree,
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        level /* field */,
-                        treeId /* field */,
-                        todo /* field */,
-                        completion /* field */,
-                        tags /* field */,
-                        title /* field */,
-                        logbook /* field */,
-                        properties /* field */,
-                        closed /* field */,
-                        deadline /* field */,
-                        scheduled /* field */,
-                        (SemIdT<Subtree>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */,
-                        (Vec<Period>(IntSet<Period::Kind>) const) getTimePeriods /* method */,
-                        (Vec<Property>(Property::Kind, CR<QString>) const) getProperties /* method */,
-                        (Opt<Property>(Property::Kind, CR<QString>) const) getProperty /* method */,
-                        (Vec<Property>(Property::Kind, CR<QString>) const) getContextualProperties /* method */,
-                        (Opt<Property>(Property::Kind, CR<QString>) const) getContextualProperty /* method */))
+                       (staticKind,
+                        level,
+                        treeId,
+                        todo,
+                        completion,
+                        tags,
+                        title,
+                        logbook,
+                        properties,
+                        closed,
+                        deadline,
+                        scheduled,
+                        (SemIdT<Subtree>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind,
+                        (Vec<Period>(IntSet<Period::Kind>) const) getTimePeriods,
+                        (Vec<Property>(Property::Kind, CR<QString>) const) getProperties,
+                        (Opt<Property>(Property::Kind, CR<QString>) const) getProperty,
+                        (Vec<Property>(Property::Kind, CR<QString>) const) getContextualProperties,
+                        (Opt<Property>(Property::Kind, CR<QString>) const) getContextualProperty))
   /// \brief Document
   static SemId const staticKind;
   /// \brief Subtree level
@@ -924,11 +796,7 @@ struct Subtree : public Org {
 
 /// \brief Latex code body
 struct LatexBody : public Org {
-  BOOST_DESCRIBE_CLASS(LatexBody,
-                       (Org),
-                       (),
-                       (),
-                       ())
+  BOOST_DESCRIBE_CLASS(LatexBody, (Org), (), (), ())
 };
 
 /// \brief Inline math
@@ -937,9 +805,9 @@ struct InlineMath : public LatexBody {
                        (LatexBody),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<InlineMath>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<InlineMath>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<InlineMath> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -948,11 +816,7 @@ struct InlineMath : public LatexBody {
 
 /// \brief Final node
 struct Leaf : public Org {
-  BOOST_DESCRIBE_CLASS(Leaf,
-                       (Org),
-                       (),
-                       (),
-                       (text /* field */))
+  BOOST_DESCRIBE_CLASS(Leaf, (Org), (), (), (text))
   /// \brief Final leaf value
   QString text;
 };
@@ -963,9 +827,9 @@ struct Escaped : public Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Escaped>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Escaped>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Escaped> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -978,9 +842,9 @@ struct Newline : public Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Newline>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Newline>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Newline> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -993,9 +857,9 @@ struct Space : public Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Space>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Space>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Space> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1008,9 +872,9 @@ struct Word : public Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Word>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Word>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Word> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1023,9 +887,9 @@ struct AtMention : public Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<AtMention>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<AtMention>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<AtMention> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1037,9 +901,9 @@ struct RawText : public Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<RawText>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<RawText>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<RawText> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1051,9 +915,9 @@ struct Punctuation : public Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Punctuation>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Punctuation>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Punctuation> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1065,9 +929,9 @@ struct Placeholder : public Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Placeholder>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Placeholder>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Placeholder> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1079,9 +943,9 @@ struct BigIdent : public Leaf {
                        (Leaf),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<BigIdent>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<BigIdent>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<BigIdent> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1089,11 +953,7 @@ struct BigIdent : public Leaf {
 };
 
 struct Markup : public Org {
-  BOOST_DESCRIBE_CLASS(Markup,
-                       (Org),
-                       (),
-                       (),
-                       ())
+  BOOST_DESCRIBE_CLASS(Markup, (Org), (), (), ())
 };
 
 struct Bold : public Markup {
@@ -1101,9 +961,9 @@ struct Bold : public Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Bold>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Bold>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Bold> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1115,9 +975,9 @@ struct Underline : public Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Underline>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Underline>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Underline> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1129,9 +989,9 @@ struct Monospace : public Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Monospace>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Monospace>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Monospace> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1143,9 +1003,9 @@ struct MarkQuote : public Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<MarkQuote>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<MarkQuote>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<MarkQuote> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1157,9 +1017,9 @@ struct Verbatim : public Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Verbatim>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Verbatim>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Verbatim> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1171,9 +1031,9 @@ struct Italic : public Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Italic>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Italic>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Italic> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1185,9 +1045,9 @@ struct Strike : public Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Strike>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Strike>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Strike> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1199,9 +1059,9 @@ struct Par : public Markup {
                        (Markup),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Par>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<Par>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Par> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1213,10 +1073,10 @@ struct List : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<List>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */,
-                        (bool() const) isDescriptionList /* method */))
+                       (staticKind,
+                        (SemIdT<List>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind,
+                        (bool() const) isDescriptionList))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<List> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1235,12 +1095,12 @@ struct ListItem : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        checkbox /* field */,
-                        header /* field */,
-                        (SemIdT<ListItem>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */,
-                        (bool() const) isDescriptionList /* method */))
+                       (staticKind,
+                        checkbox,
+                        header,
+                        (SemIdT<ListItem>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind,
+                        (bool() const) isDescriptionList))
   /// \brief Document
   static SemId const staticKind;
   Checkbox checkbox;
@@ -1252,47 +1112,27 @@ struct ListItem : public Org {
 
 struct Link : public Org {
   struct Raw {
-    BOOST_DESCRIBE_CLASS(Raw,
-                         (),
-                         (),
-                         (),
-                         (text /* field */))
+    BOOST_DESCRIBE_CLASS(Raw, (), (), (), (text))
     QString text;
   };
 
   struct Id {
-    BOOST_DESCRIBE_CLASS(Id,
-                         (),
-                         (),
-                         (),
-                         (text /* field */))
+    BOOST_DESCRIBE_CLASS(Id, (), (), (), (text))
     QString text;
   };
 
   struct Person {
-    BOOST_DESCRIBE_CLASS(Person,
-                         (),
-                         (),
-                         (),
-                         (name /* field */))
+    BOOST_DESCRIBE_CLASS(Person, (), (), (), (name))
     QString name;
   };
 
   struct Footnote {
-    BOOST_DESCRIBE_CLASS(Footnote,
-                         (),
-                         (),
-                         (),
-                         (target /* field */))
+    BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (target))
     QString target;
   };
 
   struct File {
-    BOOST_DESCRIBE_CLASS(File,
-                         (),
-                         (),
-                         (),
-                         (file /* field */))
+    BOOST_DESCRIBE_CLASS(File, (), (), (), (file))
     QString file;
   };
 
@@ -1302,11 +1142,13 @@ struct Link : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Link>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */,
-                        (Opt<SemId>(CR<Document>) const) resolve /* method */,
-                        (Opt<SemId>() const) resolve /* method */))
+                       (staticKind,
+                        data,
+                        (SemIdT<Link>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind,
+                        (Opt<SemId>(CR<Document>) const) resolve,
+                        (Opt<SemId>() const) resolve,
+                        (Kind() const) getLinkKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Link> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1320,20 +1162,20 @@ struct Document : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        idTable /* field */,
-                        nameTable /* field */,
-                        footnoteTable /* field */,
-                        anchorTable /* field */,
-                        title /* field */,
-                        author /* field */,
-                        creator /* field */,
-                        email /* field */,
-                        language /* field */,
-                        options /* field */,
-                        exportFileName /* field */,
-                        (SemIdT<Document>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        idTable,
+                        nameTable,
+                        footnoteTable,
+                        anchorTable,
+                        title,
+                        author,
+                        creator,
+                        email,
+                        language,
+                        options,
+                        exportFileName,
+                        (SemIdT<Document>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   UnorderedMap<QString, SemId> idTable;
@@ -1356,9 +1198,9 @@ struct ParseError : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<ParseError>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<ParseError>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<ParseError> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1370,15 +1212,15 @@ struct FileTarget : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        path /* field */,
-                        line /* field */,
-                        searchTarget /* field */,
-                        restrictToHeadlines /* field */,
-                        targetId /* field */,
-                        regexp /* field */,
-                        (SemIdT<FileTarget>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        path,
+                        line,
+                        searchTarget,
+                        restrictToHeadlines,
+                        targetId,
+                        regexp,
+                        (SemIdT<FileTarget>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   QString path;
@@ -1396,9 +1238,9 @@ struct TextSeparator : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<TextSeparator>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<TextSeparator>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<TextSeparator> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1406,13 +1248,33 @@ struct TextSeparator : public Org {
 };
 
 struct Include : public Org {
+  struct Example {
+    BOOST_DESCRIBE_CLASS(Example, (), (), (), ())
+  };
+
+  struct Export {
+    BOOST_DESCRIBE_CLASS(Export, (), (), (), ())
+  };
+
+  struct Src {
+    BOOST_DESCRIBE_CLASS(Src, (), (), (), ())
+  };
+
+  struct OrgDocument {
+    BOOST_DESCRIBE_CLASS(OrgDocument, (), (), (), ())
+  };
+
+  SUB_VARIANTS(Kind, Data, data, getIncludeKind, Example, Export, Src, OrgDocument);
+  Data data;
   BOOST_DESCRIBE_CLASS(Include,
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<Include>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        data,
+                        (SemIdT<Include>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind,
+                        (Kind() const) getIncludeKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<Include> create(SemId parent, Opt<SemId> original = std::nullopt);
@@ -1441,26 +1303,26 @@ struct DocumentOptions : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        brokenLinks /* field */,
-                        initialVisibility /* field */,
-                        properties /* field */,
-                        smartQuotes /* field */,
-                        emphasizedText /* field */,
-                        specialStrings /* field */,
-                        fixedWidthSections /* field */,
-                        includeTimestamps /* field */,
-                        preserveLineBreaks /* field */,
-                        plaintextSubscripts /* field */,
-                        exportArchived /* field */,
-                        exportWithAuthor /* field */,
-                        exportBrokenLinks /* field */,
-                        exportWithClock /* field */,
-                        exportWithCreator /* field */,
-                        (SemIdT<DocumentOptions>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */,
-                        (Vec<Subtree::Property>(Subtree::Property::Kind, CR<QString>) const) getProperties /* method */,
-                        (Opt<Subtree::Property>(Subtree::Property::Kind, CR<QString>) const) getProperty /* method */))
+                       (staticKind,
+                        brokenLinks,
+                        initialVisibility,
+                        properties,
+                        smartQuotes,
+                        emphasizedText,
+                        specialStrings,
+                        fixedWidthSections,
+                        includeTimestamps,
+                        preserveLineBreaks,
+                        plaintextSubscripts,
+                        exportArchived,
+                        exportWithAuthor,
+                        exportBrokenLinks,
+                        exportWithClock,
+                        exportWithCreator,
+                        (SemIdT<DocumentOptions>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind,
+                        (Vec<Subtree::Property>(Subtree::Property::Kind, CR<QString>) const) getProperties,
+                        (Opt<Subtree::Property>(Subtree::Property::Kind, CR<QString>) const) getProperty))
   /// \brief Document
   static SemId const staticKind;
   BrokenLinks brokenLinks;
@@ -1489,9 +1351,9 @@ struct DocumentGroup : public Org {
                        (Org),
                        (),
                        (),
-                       (staticKind /* field */,
-                        (SemIdT<DocumentGroup>(SemId, Opt<SemId>)) create /* method */,
-                        (OrgSemKind() const) getKind /* method */))
+                       (staticKind,
+                        (SemIdT<DocumentGroup>(SemId, Opt<SemId>)) create,
+                        (OrgSemKind() const) getKind))
   /// \brief Document
   static SemId const staticKind;
   static SemIdT<DocumentGroup> create(SemId parent, Opt<SemId> original = std::nullopt);

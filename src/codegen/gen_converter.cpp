@@ -93,30 +93,48 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
     }
 
     {
+        Vec<GenTu::Field>    extraFields;
+        Vec<GenTu::Function> extraMethods;
+        for (auto const& nested : record.nested) {
+            if (std::holds_alternative<SPtr<GenTu::TypeGroup>>(nested)) {
+                auto const& group = std::get<SPtr<GenTu::TypeGroup>>(
+                    nested);
+                if (!group->kindGetter.empty()) {
+                    extraMethods.push_back(GenTu::Function{
+                        .name    = group->kindGetter,
+                        .result  = group->enumName,
+                        .isConst = true,
+                    });
+                }
+
+                if (!group->variantName.empty()) {
+                    extraFields.push_back(GenTu::Field{
+                        .name = group->variantField,
+                    });
+                }
+            }
+        }
+
         auto fields = map<GenTu::Field, AB::Res>(
-            record.fields, [&](GenTu::Field const& field) {
-                return builder.Trail(
-                    builder.string(field.name),
-                    builder.Comment({"field"}));
+            record.fields + extraFields, [&](GenTu::Field const& field) {
+                return builder.string(field.name);
             });
 
         auto methods = map<GenTu::Function, AB::Res>(
-            record.methods, [&](GenTu::Function const& method) {
-                return builder.Trail(
-                    AB::b::line(Vec<AB::Res>{
-                        builder.string("("),
-                        builder.string(method.result),
-                        builder.pars(
-                            builder.csv({map<GenTu::Ident, AB::Res>(
-                                method.arguments,
-                                [&](GenTu::Ident const& ident) {
-                                    return builder.string(ident.type);
-                                })})),
-                        builder.string(method.isConst ? " const" : ""),
-                        builder.string(") "),
-                        builder.string(method.name),
-                    }),
-                    builder.Comment({"method"}));
+            record.methods + extraMethods,
+            [&](GenTu::Function const& method) {
+                return AB::b::line(Vec<AB::Res>{
+                    builder.string("("),
+                    builder.string(method.result),
+                    builder.pars(builder.csv({map<GenTu::Ident, AB::Res>(
+                        method.arguments,
+                        [&](GenTu::Ident const& ident) {
+                            return builder.string(ident.type);
+                        })})),
+                    builder.string(method.isConst ? " const" : ""),
+                    builder.string(") "),
+                    builder.string(method.name),
+                });
             });
 
         params.nested.push_back(builder.XCall(
@@ -126,10 +144,12 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
                 builder.pars(builder.csv(record.bases, false)),
                 builder.pars(builder.string("")),
                 builder.pars(builder.string("")),
-                builder.pars(builder.csv(fields + methods, false)),
+                builder.pars(builder.csv(
+                    fields + methods,
+                    (fields.size() < 6 && methods.size() < 2))),
             },
             false,
-            false));
+            (fields.size() < 4 && methods.size() < 1)));
     }
 
     return params;
