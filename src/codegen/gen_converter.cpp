@@ -45,9 +45,10 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
                     params.nested.push_back(tmp);
                 },
                 [&](SPtr<GD::Enum> Enum) {
-                    AB::EnumDeclParams const& tmp = convert(
-                        builder, *Enum);
-                    params.nested.push_back(tmp);
+                    auto const& [decl, describe] = convert(
+                        builder, *Enum, true);
+                    params.nested.push_back(decl);
+                    params.nested.push_back(describe);
                 },
                 [&](SPtr<GD::TypeGroup> TypeGroup) {
                     for (auto const& sub : convert(builder, *TypeGroup)) {
@@ -155,9 +156,10 @@ AB::RecordDeclParams convert(AB& builder, const GD::Struct& record) {
     return params;
 }
 
-ASTBuilder::EnumDeclParams convert(
+Pair<ASTBuilder::EnumDeclParams, ASTBuilder::Res> convert(
     ASTBuilder&        builder,
-    const GenTu::Enum& entry) {
+    const GenTu::Enum& entry,
+    bool               nested) {
     AB::EnumDeclParams params;
 
     params.name      = entry.name;
@@ -172,7 +174,19 @@ ASTBuilder::EnumDeclParams convert(
         });
     }
 
-    return params;
+    Vec<AB::Res> arguments = Vec<AB::Res>{builder.string(entry.name)}
+                           + map<GenTu::EnumField, AB::Res>(
+                                 entry.fields,
+                                 [&](GenTu::EnumField const& Field) {
+                                     return builder.string(Field.name);
+                                 });
+
+    return {
+        params,
+        builder.XCall(
+            nested ? "BOOST_DESCRIBE_NESTED_ENUM" : "BOOST_DESCRIBE_ENUM",
+            arguments),
+    };
 }
 
 
@@ -315,7 +329,10 @@ Vec<ASTBuilder::Res> convert(
                     builder.Include(Include.what, Include.isSystem));
             },
             [&](SPtr<GD::Enum> const& Enum) {
-                decls.push_back(builder.EnumDecl(convert(builder, *Enum)));
+                auto const& [decl, describe] = convert(
+                    builder, *Enum, false);
+                decls.push_back(builder.EnumDecl(decl));
+                decls.push_back(describe);
             },
             [&](GD::Pass const& Pass) {
                 decls.push_back(builder.string(Pass.what));
