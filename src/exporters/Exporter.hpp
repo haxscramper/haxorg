@@ -8,8 +8,6 @@
 using boost::mp11::mp_for_each;
 using namespace boost::describe;
 
-#define EXPORTER_AUTOGEN
-
 /// \brief Base class that should be used as the base for exporter
 /// implementations.
 ///
