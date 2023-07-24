@@ -794,17 +794,17 @@ org can do ... which is to be determined as well")
          (let* ((scope-full (remove
                              (lambda (scope) (not (is-a? scope <type>)))
                              (fluid-ref iterate-tree-context)))
+                ;; Parent type scope names
                 (scope-names (map (lambda (type) (slot-ref type 'name)) scope-full))
+                ;; This type name
                 (name (slot-ref value 'name))
-                (fields (append (slot-ref value 'fields)
-                                (get-type-group-fields value)))
+                ;; Fully scoped name of the type
+                (full-scoped-name (append scope-names (list name)))
+                (fields (remove (lambda (field) (slot-ref field 'isStatic))
+                                (append (slot-ref value 'fields)
+                                        (get-type-group-fields value)) ))
                 ;; Join scope arguments into the `::' and wrap everything into the `sem::' scope
-                (scoped-target (format #f "CR<sem::~{~a~^::~}>" (append scope-names (list name))))
-                ;; TODO this data ought to be generated based on the S-expr
-                ;; builder, not this abominable string formatting. I mean,
-                ;; it works, but OMG this is ugly.
-                (every-field (format #f "~{__obj_field(res, object, ~a); \n~}"
-                                     (map (lambda (a) (slot-ref a 'name)) fields)))
+                (scoped-target (format #f "CR<sem::~{~a~^::~}>" full-scoped-name))
                 ;; TODO use properly structured data instead of these strings hacks.
                 (decl-scope (if forward "" "Exporter<V, R>::"))
                 (t-params (if forward #f (list (d:param "V") (d:param "R"))))
@@ -816,12 +816,13 @@ org can do ... which is to be determined as well")
                                   (list (d:ident "R&" "res")
                                         (d:ident
                                          (format #f "CR<sem::~{~a::~}~a>"
-                                                 (append scope-names (list name))
+                                                 full-scoped-name
                                                  (slot-ref group 'variantName)) "object"))
                                   #:impl
                                   (if forward #f
-                                      (format #f "visitVariants(res, sem::~{~a::~}::~a(object), object)"
-                                              scope-names (slot-ref group 'kindGetter)))))
+                                      ;; Use static kind getter to map variant value to
+                                      (format #f "visitVariants(res, sem::~{~a::~}~a(object), object);"
+                                              full-scoped-name (slot-ref group 'kindGetter)))))
                       (get-nested-groups value)))
                 (method
                  (if (eq? 0 (length scope-full))
@@ -832,9 +833,14 @@ org can do ... which is to be determined as well")
                       #:params (if forward #f (list (d:param "V") (d:param "R")))
                       #:arguments (list (d:ident "R&" "res")
                                         ;; `In<>' is defined in the exporter
-                                        (d:ident (format #f "In<sem::~a>" name) "tree"))
+                                        (d:ident (format #f "In<sem::~a>" name) "object"))
                       #:impl (if forward #f
-                                 (format #f "__visit_specific_kind(res, tree);\n~a" every-field)))
+                                 ;; TODO this data ought to be generated based on the S-expr
+                                 ;; builder, not this abominable string formatting. I mean,
+                                 ;; it works, but OMG this is ugly.
+                                 (format #f "__visit_specific_kind(res, object);\n~a"
+                                         (format #f "~{__org_field(res, object, ~a); \n~}"
+                                                 (map (lambda (a) (slot-ref a 'name)) fields)))))
                      ;; Otherwise, provide a subtype `visit' method implementation used for
                      ;; nested content definitions
                      (d:method
@@ -843,7 +849,8 @@ org can do ... which is to be determined as well")
                       #:params t-params
                       #:arguments (list (d:ident "R&" "res")
                                         (d:ident scoped-target "object"))
-                      #:impl (if forward #f every-field)))))
+                      #:impl (if forward #f (format #f "~{__obj_field(res, object, ~a); \n~}"
+                                                    (map (lambda (a) (slot-ref a 'name)) fields)))))))
            (set! methods (append methods variant-methods (list method)))))))
     methods))
 
@@ -851,9 +858,8 @@ org can do ... which is to be determined as well")
 (d:full
  (list
   (d:file
-   "${base}/exporters/Exporter_wip.hpp"
+   "${base}/exporters/Exporter.tcc"
    (append
-    (list (d:pass "#pragma once"))
     (get-exporter-methods #f)))
   (d:file
    "${base}/exporters/ExporterMethods.tcc"

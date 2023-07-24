@@ -6,6 +6,9 @@
 #define __obj_field(res, obj, name)                                       \
     visitFieldRedirect(res, #name, obj.name);
 
+#define __org_field(res, obj, name)                                       \
+    visitFieldRedirect(res, #name, obj->name);
+
 template <typename V, typename R>
 void Exporter<V, R>::visitField(R& arg, const char* name, sem::SemId org) {
     __visit_scope(

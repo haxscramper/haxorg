@@ -235,5 +235,9 @@ struct Exporter {
     void visit(R& res, CR<UserTime> time);
     void visit(R& res, CR<sem::DocumentOptions::TocExport> prop);
 
+    void visit(
+        R&                                                    res,
+        CR<Variant<In<sem::Time>, In<sem::TimeRange>>> const& range);
+
 #include "ExporterMethods.tcc"
 };

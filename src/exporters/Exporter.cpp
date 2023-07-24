@@ -4,6 +4,44 @@
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(
+    R&                                                    res,
+    CR<Variant<In<sem::Time>, In<sem::TimeRange>>> const& range) {
+    std::visit(
+        [&, this](const auto& it) {
+            _this()->visitField(res, "range", it);
+        },
+        range);
+}
+
+template <typename V, typename R>
+template <typename T, typename Kind>
+void Exporter<V, R>::visitVariants(R& res, Kind kind, CR<T> var) {
+    QString fieldName = to_string(kind);
+    _this()->visitField(res, "kind", kind);
+    std::visit(
+        [&, this](const auto& it) {
+            _this()->visitField(res, fieldName.toLatin1(), it);
+        },
+        var);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, CR<UserTime> time) {
+    visitVariants(res, time.getKind(), time.time);
+}
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(
+    R&                                  res,
+    CR<sem::DocumentOptions::TocExport> prop) {
+    visitVariants(res, static_cast<int>(prop.index()), prop);
+}
+
+#ifdef EXPORTER_AUTOGEN
+#    include "Exporter.tcc"
+#else
+template <typename V, typename R>
+void Exporter<V, R>::visit(
     R&                               res,
     CR<sem::Code::Switch::LineStart> start) {
     __obj_field(res, start, start);
@@ -53,10 +91,6 @@ void Exporter<V, R>::visit(R& res, CR<sem::Time::Repeat> repeat) {
     __obj_field(res, repeat, mode);
 }
 
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<UserTime> time) {
-    visitVariants(res, time.getKind(), time.time);
-}
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Time::Static> time) {
@@ -158,12 +192,6 @@ void Exporter<V, R>::visit(R& res, CR<sem::Include::Data> prop) {
     visitVariants(res, sem::Include::getIncludeKind(prop), prop);
 }
 
-template <typename V, typename R>
-void Exporter<V, R>::visit(
-    R&                                  res,
-    CR<sem::DocumentOptions::TocExport> prop) {
-    visitVariants(res, static_cast<int>(prop.index()), prop);
-}
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Symbol::Param> param) {
@@ -299,14 +327,17 @@ void Exporter<V, R>::visitVariants(R& res, Kind kind, CR<T> var) {
 }
 
 
-#define __visit(__Kind)                                                   \
-    template <typename V, typename R>                                     \
-    void Exporter<V, R>::visit##__Kind(R& res, In<sem::__Kind> tree) {    \
-        __visit_specific_kind(res, tree);                                 \
-        visitDescribedOrgFields(res, tree);                               \
-    }
+#    define __visit(__Kind)                                               \
+        template <typename V, typename R>                                 \
+        void Exporter<V, R>::visit##__Kind(                               \
+            R& res, In<sem::__Kind> tree) {                               \
+            __visit_specific_kind(res, tree);                             \
+            visitDescribedOrgFields(res, tree);                           \
+        }
 
 
 EACH_SEM_ORG_KIND(__visit)
 
-#undef __visit
+#    undef __visit
+
+#endif
