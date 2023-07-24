@@ -771,7 +771,7 @@ org can do ... which is to be determined as well")
      ;; Otherwise, print the value -- if something is missing it will be added later
      (#t (format #t "? ~a\n" tree)))))
 
-(define (get-exporter-methods)
+(define (get-exporter-methods forward)
   ;; Get exporter boilerplate method definitions (they walk over all fields)
   (let* ((methods (list)))
     (iterate-object-tree
@@ -786,28 +786,34 @@ org can do ... which is to be determined as well")
                 (fields (slot-ref value 'fields))
                 ;; Join scope arguments into the `::' and wrap everything into the `sem::' scope
                 (scoped-target (format #f "CR<sem::~{~a~^::~}>" (append scope-names (list name))))
+                ;; TODO this data ought to be generated based on the S-expr
+                ;; builder, not this abominable string formatting. I mean,
+                ;; it works, but OMG this is ugly.
                 (every-field (format #f "~{__obj_field(res, object, ~a); \n~}"
                                      (map (lambda (a) (slot-ref a 'name)) fields)))
+                ;; TODO use properly structured data instead of these strings hacks.
+                (decl-scope (if forward "" "Exporter<V, R>::"))
                 (method
                  (if (eq? 0 (length scope-full))
                      ;; If the object is a toplevel type entry -- provide a name-based `visitXXX'
                      ;; method implementation that will iterate over all fields
                      (d:method
-                      "void" (format #f "Exporter<V, R>::visit~a" name) (d:doc "")
-                      #:params (list (d:param "V") (d:param "R"))
+                      "void" (format #f "~avisit~a" decl-scope name) (d:doc "")
+                      #:params (if forward #f (list (d:param "V") (d:param "R")))
                       #:arguments (list (d:ident "R&" "res")
                                         ;; `In<>' is defined in the exporter
                                         (d:ident (format #f "In<sem::~a>" name) "tree"))
-                      #:impl (format #f "__visit_specific_kind(res, tree);\n~a" every-field))
+                      #:impl (if forward #f
+                                 (format #f "__visit_specific_kind(res, tree);\n~a" every-field)))
                      ;; Otherwise, provide a subtype `visit' method implementation used for
                      ;; nested content definitions
                      (d:method
                       ;; Hacking field visitor name here, TODO -- implement proper scope passing
-                      "void" "Exporter<V, R>::visitFields" (d:doc "")
-                      #:params (list (d:param "V") (d:param "R"))
+                      "void" (format #f "~avisitFields" decl-scope) (d:doc "")
+                      #:params (if forward #f (list (d:param "V") (d:param "R")))
                       #:arguments (list (d:ident "R&" "res")
                                         (d:ident scoped-target "object"))
-                      #:impl every-field))))
+                      #:impl (if forward #f every-field)))))
            (set! methods (append methods (list method)))))))
     methods))
 
@@ -818,7 +824,10 @@ org can do ... which is to be determined as well")
    "${base}/exporters/Exporter_wip.hpp"
    (append
     (list (d:pass "#pragma once"))
-    (get-exporter-methods)))
+    (get-exporter-methods #f)))
+  (d:file
+   "${base}/exporters/ExporterMethods.tcc"
+   (append (get-exporter-methods #t)))
   (d:file
    "${base}/sem/SemOrgEnums.hpp"
    (list
