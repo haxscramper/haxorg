@@ -87,6 +87,7 @@ class ASTBuilder {
     Res Template(TemplateParamParams::Param const& Param);
     Res Template(TemplateParamParams::Spec const& Spec);
     Res Template(TemplateParamParams const& Templ);
+    Res WithTemplate(TemplateParamParams const& Templ, Res const& Body);
     Res Ident(IdentParams const& Id);
 
     enum class StorageClass
@@ -111,6 +112,7 @@ class ASTBuilder {
         // TODO make into ident
         Str                    Name;
         DocParams              doc;
+        TemplateParamParams    Template;
         QualType               ResultTy = QualType("void");
         Vec<ParmVarDeclParams> Args     = {};
         StorageClass           Storage  = StorageClass::None;

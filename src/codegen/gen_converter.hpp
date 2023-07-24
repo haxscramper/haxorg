@@ -24,3 +24,6 @@ Vec<ASTBuilder::Res> convert(
 Vec<ASTBuilder::Res>  convert(ASTBuilder& builder, GD::Entry const& entry);
 ASTBuilder::Res       convert(ASTBuilder& builder, GD const& desc);
 ASTBuilder::DocParams convert(ASTBuilder& builder, GD::Doc const& doc);
+ASTBuilder::TemplateParamParams::Spec convert(
+    ASTBuilder&      builder,
+    CVec<GD::TParam> Params);

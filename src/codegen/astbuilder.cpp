@@ -60,6 +60,16 @@ ASTBuilder::Res ASTBuilder::Template(const TemplateParamParams& Templ) {
         /* isLine */ false);
 }
 
+ASTBuilder::Res ASTBuilder::WithTemplate(
+    const TemplateParamParams& Templ,
+    const Res&                 Body) {
+    if (Templ.Stacks.empty()) {
+        return Body;
+    } else {
+        return b::stack({Template(Templ), Body});
+    }
+}
+
 ASTBuilder::Res ASTBuilder::Ident(const IdentParams& Id) {
     return b::join(
         map(Id.spaces, [&](QualType const& T) { return Type(T); }),
@@ -121,11 +131,10 @@ ASTBuilder::Res ASTBuilder::FunctionDecl(FunctionDeclParams const& p) {
         pars({b::join(Args, string(", "))}),
     });
 
-    if (p.Body) {
-        return block(head, *p.Body, true);
-    } else {
-        return b::line({head, string(";")});
-    }
+    return WithTemplate(
+        p.Template,
+        p.Body ? block(head, *p.Body, true)
+               : b::line({head, string(";")}));
 }
 
 ASTBuilder::QualType ASTBuilder::Type(Str const& type) {

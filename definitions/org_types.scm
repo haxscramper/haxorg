@@ -114,10 +114,12 @@
  (isConst #f)
  (isStatic #f)
  (impl #f)
+ (params #f)
  (isVirtual #f)
  (isPureVirtual #f)
  (kind "Method"))
 
+(simple-define-type <tparam> d:param (name))
 (simple-define-type <file> d:file (path) (entries))
 (simple-define-type <full> d:full (files))
 
@@ -774,7 +776,7 @@ org can do ... which is to be determined as well")
   (let* ((methods (list)))
     (iterate-object-tree
      types
-     (lambda (value)
+     (lambda (value )
        (when (and (instance? value) (is-a? value <type>))
          (let* ((scope-full (remove
                              (lambda (scope) (not (is-a? scope <type>)))
@@ -792,6 +794,7 @@ org can do ... which is to be determined as well")
                      ;; method implementation that will iterate over all fields
                      (d:method
                       "void" (format #f "Exporter<V, R>::visit~a" name) (d:doc "")
+                      #:params (list (d:param "V") (d:param "R"))
                       #:arguments (list (d:ident "R&" "res")
                                         ;; `In<>' is defined in the exporter
                                         (d:ident (format #f "In<sem::~a>" name) "tree"))
@@ -801,6 +804,7 @@ org can do ... which is to be determined as well")
                      (d:method
                       ;; Hacking field visitor name here, TODO -- implement proper scope passing
                       "void" "Exporter<V, R>::visitFields" (d:doc "")
+                      #:params (list (d:param "V") (d:param "R"))
                       #:arguments (list (d:ident "R&" "res")
                                         (d:ident scoped-target "object"))
                       #:impl every-field))))

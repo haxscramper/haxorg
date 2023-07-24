@@ -12,9 +12,15 @@ AB::ParmVarDeclParams toParams(AB& builder, GD::Ident const& ident) {
 
 AB::FunctionDeclParams convert(AB& builder, const GD::Function& func) {
     AB::FunctionDeclParams decl;
+
     decl.ResultTy = builder.Type(func.result);
     decl.Name     = func.name;
     decl.doc      = convert(builder, func.doc);
+
+    if (func.params) {
+        decl.Template.Stacks = {convert(builder, *func.params)};
+    }
+
     if (func.impl) {
         decl.Body = map(func.impl->split("\n"), [&](QString const& str) {
             return builder.string(str);
@@ -351,4 +357,13 @@ Vec<ASTBuilder::Res> convert(
         },
         entry);
     return decls;
+}
+
+ASTBuilder::TemplateParamParams::Spec convert(
+    ASTBuilder&         builder,
+    CVec<GenTu::TParam> Params) {
+    return ASTBuilder::TemplateParamParams::Spec{
+        .Params = map(Params, [&](GenTu::TParam const& Param) {
+            return AB::TemplateParamParams::Param{.Name = Param.name};
+        })};
 }

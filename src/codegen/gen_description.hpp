@@ -16,6 +16,11 @@ using namespace boost::describe;
 using boost::mp11::mp_for_each;
 
 struct GenTu {
+    struct TParam {
+        Str name;
+        BOOST_DESCRIBE_CLASS(TParam, (), (), (), (name));
+    };
+
     struct Ident {
         Str      name;
         Str      type;
@@ -45,15 +50,16 @@ struct GenTu {
     };
 
     struct Function {
-        Str        name;
-        Vec<Ident> arguments;
-        Str        result;
-        Doc        doc;
-        Opt<Str>   impl;
-        bool       isVirtual     = false;
-        bool       isConst       = false;
-        bool       isStatic      = false;
-        bool       isPureVirtual = false;
+        Opt<Vec<TParam>> params;
+        Str              name;
+        Vec<Ident>       arguments;
+        Str              result;
+        Doc              doc;
+        Opt<Str>         impl;
+        bool             isVirtual     = false;
+        bool             isConst       = false;
+        bool             isStatic      = false;
+        bool             isPureVirtual = false;
         BOOST_DESCRIBE_CLASS(
             Function,
             (),
@@ -67,7 +73,8 @@ struct GenTu {
              isStatic,
              doc,
              impl,
-             isPureVirtual));
+             isPureVirtual,
+             params));
     };
 
     struct TypeGroup;
