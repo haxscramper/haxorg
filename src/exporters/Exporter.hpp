@@ -8,7 +8,7 @@
 using boost::mp11::mp_for_each;
 using namespace boost::describe;
 
-//#define EXPORTER_AUTOGEN
+#define EXPORTER_AUTOGEN
 
 /// \brief Base class that should be used as the base for exporter
 /// implementations.
@@ -187,27 +187,6 @@ struct Exporter {
     ///
     /// \brief Pop visit after sem visit dispatch completed
 
-#ifdef EXPORTER_AUTOGEN
-#    define __visit(__Kind)                                               \
-        void visit##__Kind(R& res, In<sem::__Kind> tree);
-
-    EACH_SEM_ORG_KIND(__visit)
-
-#    undef __visit
-
-#else
-
-#    define __visit(__Kind)                                               \
-        void visit##__Kind(R& res, In<sem::__Kind> tree) {                \
-            __visit_specific_kind(res, tree);                             \
-            visitDescribedOrgFields(res, tree);                           \
-        }
-
-
-    EACH_SEM_ORG_KIND(__visit)
-
-#    undef __visit
-#endif
 
     void pushVisit(R& res, sem::SemId arg) {
         __visit_scope(
@@ -252,6 +231,24 @@ struct Exporter {
 
     template <typename T, typename Kind>
     void visitVariants(R& res, Kind kind, CR<T> var);
+
+    void visit(R& res, CR<UserTime> time);
+    void visit(R& res, CR<sem::DocumentOptions::TocExport> prop);
+
+
+#ifdef EXPORTER_AUTOGEN
+#    include "ExporterMethods.tcc"
+
+#else
+
+#    define __visit(__Kind)                                               \
+        void visit##__Kind(R& res, In<sem::__Kind> tree) {                \
+            __visit_specific_kind(res, tree);                             \
+            visitDescribedOrgFields(res, tree);                           \
+        }
+
+
+    EACH_SEM_ORG_KIND(__visit)
 
     /// \name Specialization for inner objects of code block
     /// @{
@@ -330,4 +327,7 @@ struct Exporter {
     void visit(R& res, CR<sem::Subtree::Property> prop);
     void visit(R& res, CR<sem::Subtree::Property::Data> prop);
     ///@}
+
+#    undef __visit
+#endif
 };

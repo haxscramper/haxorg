@@ -297,3 +297,16 @@ void Exporter<V, R>::visitVariants(R& res, Kind kind, CR<T> var) {
         },
         var);
 }
+
+
+#define __visit(__Kind)                                                   \
+    template <typename V, typename R>                                     \
+    void Exporter<V, R>::visit##__Kind(R& res, In<sem::__Kind> tree) {    \
+        __visit_specific_kind(res, tree);                                 \
+        visitDescribedOrgFields(res, tree);                               \
+    }
+
+
+EACH_SEM_ORG_KIND(__visit)
+
+#undef __visit

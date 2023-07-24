@@ -748,7 +748,7 @@ org can do ... which is to be determined as well")
 (define* (iterate-object-tree tree callback)
   ;; Trigger object structure iterator callback *before* updating scope values
   (apply callback (list tree))
-  (with-fluids ((iterate-tree-context (cons tree (fluid-ref iterate-tree-context))))
+  (with-fluids ((iterate-tree-context (append (fluid-ref iterate-tree-context) (list tree))))
     ;; Create a new dynamic scope value with the current object
     (cond
      ((instance? tree)
@@ -771,6 +771,19 @@ org can do ... which is to be determined as well")
      ;; Otherwise, print the value -- if something is missing it will be added later
      (#t (format #t "? ~a\n" tree)))))
 
+(define (get-nested-groups value)
+  (remove (lambda (nested) (not (and (is-a? nested <group>) (slot-ref nested 'variantField))))
+          (slot-ref value 'nested)))
+
+(define (get-type-group-fields value)
+  (map
+   (lambda (group)
+     ;; (format #t "~a ~a\n" (slot-ref group 'variantName) (slot-ref group 'variantField))
+     (d:field (slot-ref group 'variantName)
+              (slot-ref group 'variantField)
+              (d:doc "")))
+   (get-nested-groups value)))
+
 (define (get-exporter-methods forward)
   ;; Get exporter boilerplate method definitions (they walk over all fields)
   (let* ((methods (list)))
@@ -783,7 +796,8 @@ org can do ... which is to be determined as well")
                              (fluid-ref iterate-tree-context)))
                 (scope-names (map (lambda (type) (slot-ref type 'name)) scope-full))
                 (name (slot-ref value 'name))
-                (fields (slot-ref value 'fields))
+                (fields (append (slot-ref value 'fields)
+                                (get-type-group-fields value)))
                 ;; Join scope arguments into the `::' and wrap everything into the `sem::' scope
                 (scoped-target (format #f "CR<sem::~{~a~^::~}>" (append scope-names (list name))))
                 ;; TODO this data ought to be generated based on the S-expr
@@ -793,6 +807,22 @@ org can do ... which is to be determined as well")
                                      (map (lambda (a) (slot-ref a 'name)) fields)))
                 ;; TODO use properly structured data instead of these strings hacks.
                 (decl-scope (if forward "" "Exporter<V, R>::"))
+                (t-params (if forward #f (list (d:param "V") (d:param "R"))))
+                (variant-methods
+                 (map (lambda (group)
+                        (d:method "void" (format #f "~avisit" decl-scope) (d:doc "")
+                                  #:params t-params
+                                  #:arguments
+                                  (list (d:ident "R&" "res")
+                                        (d:ident
+                                         (format #f "CR<sem::~{~a::~}~a>"
+                                                 (append scope-names (list name))
+                                                 (slot-ref group 'variantName)) "object"))
+                                  #:impl
+                                  (if forward #f
+                                      (format #f "visitVariants(res, sem::~{~a::~}::~a(object), object)"
+                                              scope-names (slot-ref group 'kindGetter)))))
+                      (get-nested-groups value)))
                 (method
                  (if (eq? 0 (length scope-full))
                      ;; If the object is a toplevel type entry -- provide a name-based `visitXXX'
@@ -809,12 +839,12 @@ org can do ... which is to be determined as well")
                      ;; nested content definitions
                      (d:method
                       ;; Hacking field visitor name here, TODO -- implement proper scope passing
-                      "void" (format #f "~avisitFields" decl-scope) (d:doc "")
-                      #:params (if forward #f (list (d:param "V") (d:param "R")))
+                      "void" (format #f "~avisit" decl-scope) (d:doc "")
+                      #:params t-params
                       #:arguments (list (d:ident "R&" "res")
                                         (d:ident scoped-target "object"))
                       #:impl (if forward #f every-field)))))
-           (set! methods (append methods (list method)))))))
+           (set! methods (append methods variant-methods (list method)))))))
     methods))
 
 
