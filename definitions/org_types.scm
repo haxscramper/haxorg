@@ -1109,32 +1109,31 @@ is required and free-form text."))
   )
 )
 
-d:enum "OrgTextContext" (d:doc)
-{
-    otcPlain,
-    otcSubtree0,
-    otcSubtree1,
-    otcSubtree2,
-    otcSubtree3,
-    otcSubtree4,
-    otcSubtree5,
-    otcSubtree6,
-    otcSubtree7,
-    otcSubtree8,
-    otcSubtree9,
-    otcSubtree10,
-    otcSubtree11,
-    otcSubtree12,
-    otcSubtreeOther,
-    otcBold,
-    otcItalic,
-    otcStrike,
-    otcUnderline,
-    otcMonospaceInline,
-    otcMonospaceBlock,
-};
+(d:enum "OrgTextContext" (d:doc "")
+  (list
+    (d:efield "otcPlain" (d:doc ""))
+    (d:efield "otcSubtree0" (d:doc ""))
+    (d:efield "otcSubtree1" (d:doc ""))
+    (d:efield "otcSubtree2" (d:doc ""))
+    (d:efield "otcSubtree3" (d:doc ""))
+    (d:efield "otcSubtree4" (d:doc ""))
+    (d:efield "otcSubtree5" (d:doc ""))
+    (d:efield "otcSubtree6" (d:doc ""))
+    (d:efield "otcSubtree7" (d:doc ""))
+    (d:efield "otcSubtree8" (d:doc ""))
+    (d:efield "otcSubtree9" (d:doc ""))
+    (d:efield "otcSubtree10" (d:doc ""))
+    (d:efield "otcSubtree11" (d:doc ""))
+    (d:efield "otcSubtree12" (d:doc ""))
+    (d:efield "otcSubtreeOther" (d:doc ""))
+    (d:efield "otcBold" (d:doc ""))
+    (d:efield "otcItalic" (d:doc ""))
+    (d:efield "otcStrike" (d:doc ""))
+    (d:efield "otcUnderline" (d:doc ""))
+    (d:efield "otcMonospaceInline" (d:doc ""))
+    (d:efield "otcMonospaceBlock" (d:doc ""))))
 
-d:enum "OrgBigIdentKind" (d:doc)
+d:enum "OrgBigIdentKind" (d:doc "")
 {
     obiNone,
     obiMust,
@@ -1507,7 +1506,7 @@ d:enum "OrgTokenKind" (d:doc)
     ContentStart, /// Start of the table cell content section
     ContentEnd,   /// End of the table cell content section
     PipeOpen,
-    PipeSeparator, /// Vertical pipe (`|`) cell separator
+    (d:efield "PipeSeparator" (d:doc "Vertical pipe (`|`) cell separator"))
     PipeClose,
     PipeCellOpen,
     DashSeparator, /*!Horizontal dash (`---`, `:---`, `---:` or `:---:`)
@@ -1582,53 +1581,49 @@ d:enum "OrgCommandKind" (d:doc)
     TableFormula, /// `#+tblfm:`
 };
 
-d:enum "OrgPropertyKind" (d:doc)
-{
-    Title,
-    Author,
-    Date,
-    Email,
-    Language,
-    Url,
-    SourceUrl,
-    AttrImg,
-    Toplevel,
-    Blocker,
-    Created,
-    Unnumbered,
-    Trigger,
-    Ordered,
-    Noblocking,
-    ExportOptions,
-    BackendExportOptions,
-    AttrBackend,
-    ColumnSpec,
-    Name,
-    Caption,
-    LinkAbbrev,
-    Filetags,
-    TagConf,
-    LatexHeader,
-    OtherProperty,
-    Id
-};
+(D:enum "OrgPropertyKind" (d:doc)
+  (list
+    (d:efield "Title" (d:doc ""))
+    (d:efield "Author" (d:doc ""))
+    (d:efield "Date" (d:doc ""))
+    (d:efield "Email" (d:doc ""))
+    (d:efield "Language" (d:doc ""))
+    (d:efield "Url" (d:doc ""))
+    (d:efield "SourceUrl" (d:doc ""))
+    (d:efield "AttrImg" (d:doc ""))
+    (d:efield "Toplevel" (d:doc ""))
+    (d:efield "Blocker" (d:doc ""))
+    (d:efield "Created" (d:doc ""))
+    (d:efield "Unnumbered" (d:doc ""))
+    (d:efield "Trigger" (d:doc ""))
+    (d:efield "Ordered" (d:doc ""))
+    (d:efield "Noblocking" (d:doc ""))
+    (d:efield "ExportOptions" (d:doc ""))
+    (d:efield "BackendExportOptions" (d:doc ""))
+    (d:efield "AttrBackend" (d:doc ""))
+    (d:efield "ColumnSpec" (d:doc ""))
+    (d:efield "Name" (d:doc ""))
+    (d:efield "Caption" (d:doc ""))
+    (d:efield "LinkAbbrev" (d:doc ""))
+    (d:efield "Filetags" (d:doc ""))
+    (d:efield "TagConf" (d:doc ""))
+    (d:efield "LatexHeader" (d:doc ""))
+    (d:efield "OtherProperty" (d:doc ""))
+    (d:efield "Id" (d:doc ""))))
 
-d:enum "OrgUnnumberedKind" (d:doc)
-{
-    Notoc,
-    True,
-    False
-};
+(d:enum "OrgUnnumberedKind" (d:doc)
+  (list
+    (d:efield "Notoc" (d:doc ""))
+    (d:efield "True" (d:doc ""))
+    (d:efield "False" (d:doc ""))))
 
-
-d:enum "OrgBlockLexerState" (d:doc)
-{
-    None,
-    InHeader,
-    InBody,
-    Ended,
-    Complete,
-};
+(d:enum "OrgBlockLexerState" (d:doc "")
+  (list
+    (d:efield "None" (d:doc ""))
+    (d:efield "InHeader" (d:doc ""))
+    (d:efield "InBody" (d:doc ""))
+    (d:efield "Ended" (d:doc ""))
+    (d:efield "Complete" (d:doc ""))))
 
 
   )
