@@ -743,818 +743,803 @@ org can do ... which is to be determined as well")
 
 (define enums
   (list
-    (d:enum "OrgHorizontalDirection" (d:doc)
-      (list
-        (d:efield "ohdNone"   (d:doc "No specific positioning requirements"))
-        (d:efield "ohdLeft"   (d:doc "Align to the left"))
-        (d:efield "ohdRight"  (d:doc "Align to the right"))
-        (d:efield "ohdCenter" (d:doc "Align to the center"))))
+   (d:enum
+    "OrgHorizontalDirection" (d:doc "")
+    (list
+     (d:efield "ohdNone"   (d:doc "No specific positioning requirements"))
+     (d:efield "ohdLeft"   (d:doc "Align to the left"))
+     (d:efield "ohdRight"  (d:doc "Align to the right"))
+     (d:efield "ohdCenter" (d:doc "Align to the center"))))
 
-    (d:enum "OrgVerticalDirection" (d:doc)
-      (list
-        (d:efield "ovdNone"   (d:doc "No specific positioning"))
-        (d:efield "ovdTop"    (d:doc "Align to the top"))
-        (d:efield "ovdCenter" (d:doc "Center"))
-        (d:efield "ovdBottom" (d:doc "Bottom"))))
+   (d:enum
+    "OrgVerticalDirection" (d:doc "")
+    (list
+     (d:efield "ovdNone"   (d:doc "No specific positioning"))
+     (d:efield "ovdTop"    (d:doc "Align to the top"))
+     (d:efield "ovdCenter" (d:doc "Center"))
+     (d:efield "ovdBottom" (d:doc "Bottom"))))
 
-    (d:enum "OrgSpecName" (d:doc)
-      (list
-        (d:efield "Unnamed" (d:doc ""))
-        (d:efield "Result" (d:doc ""))
-        (d:efield "Year" (d:doc ""))
-        (d:efield "Day" (d:doc ""))
-        (d:efield "Clock" (d:doc ""))
-        (d:efield "Repeater" (d:doc ""))
-        (d:efield "Link" (d:doc ""))
-        (d:efield "Tags" (d:doc ""))
-        (d:efield "Tag" (d:doc ""))
-        (d:efield "State" (d:doc ""))
-        (d:efield "Protocol" (d:doc ""))
-        (d:efield "Desc" (d:doc ""))
-        (d:efield "Times" (d:doc ""))
-        (d:efield "Drawer" (d:doc ""))
-        (d:efield "Args" (d:doc ""))
-        (d:efield "Name" (d:doc ""))
-        (d:efield "Definition" (d:doc ""))
-        (d:efield "Body" (d:doc ""))
-        (d:efield "HeaderArgs" (d:doc ""))
-        (d:efield "File" (d:doc ""))
-        (d:efield "Kind" (d:doc ""))
-        (d:efield "Lang" (d:doc ""))
-        (d:efield "Prefix" (d:doc ""))
-        (d:efield "Text" (d:doc ""))
-        (d:efield "Todo" (d:doc ""))
-        (d:efield "Urgency" (d:doc ""))
-        (d:efield "Title" (d:doc ""))
-        (d:efield "Completion" (d:doc ""))
-        (d:efield "Head" (d:doc ""))
-        (d:efield "Subnodes" (d:doc ""))
-        (d:efield "Properties" (d:doc ""))
-        (d:efield "Logbook" (d:doc ""))
-        (d:efield "Description" (d:doc ""))
-        (d:efield "Logs" (d:doc ""))
-        (d:efield "Newstate" (d:doc ""))
-        (d:efield "Oldstate" (d:doc ""))
-        (d:efield "Time" (d:doc ""))
-        (d:efield "From" (d:doc ""))
-        (d:efield "EndArgs" (d:doc ""))
-        (d:efield "Flags" (d:doc ""))
-        (d:efield "Value" (d:doc ""))
-        (d:efield "Assoc" (d:doc ""))
-        (d:efield "Main" (d:doc ""))
-        (d:efield "Hash" (d:doc ""))
-        (d:efield "Bullet" (d:doc ""))
-        (d:efield "Counter" (d:doc ""))
-        (d:efield "Checkbox" (d:doc ""))
-        (d:efield "Header" (d:doc ""))
-        (d:efield "To" (d:doc ""))
-        (d:efield "Diff" (d:doc ""))
-        (d:efield "Property" (d:doc ""))
-        (d:efield "Subname" (d:doc ""))
-        (d:efield "Values" (d:doc ""))
-        (d:efield "Cells" (d:doc ""))
-        (d:efield "Rows" (d:doc ""))
-        (d:efield "Lines" (d:doc ""))
-        (d:efield "Chunks" (d:doc ""))
-        (d:efield "InheritanceMode" (d:doc ""))
-        (d:efield "MainSetRule" (d:doc ""))
-        (d:efield "SubSetRule" (d:doc ""))))
+   (d:enum
+    "OrgSpecName" (d:doc "")
+    (list
+     (d:efield "Unnamed" (d:doc ""))
+     (d:efield "Result" (d:doc ""))
+     (d:efield "Year" (d:doc ""))
+     (d:efield "Day" (d:doc ""))
+     (d:efield "Clock" (d:doc ""))
+     (d:efield "Repeater" (d:doc ""))
+     (d:efield "Link" (d:doc ""))
+     (d:efield "Tags" (d:doc ""))
+     (d:efield "Tag" (d:doc ""))
+     (d:efield "State" (d:doc ""))
+     (d:efield "Protocol" (d:doc ""))
+     (d:efield "Desc" (d:doc ""))
+     (d:efield "Times" (d:doc ""))
+     (d:efield "Drawer" (d:doc ""))
+     (d:efield "Args" (d:doc ""))
+     (d:efield "Name" (d:doc ""))
+     (d:efield "Definition" (d:doc ""))
+     (d:efield "Body" (d:doc ""))
+     (d:efield "HeaderArgs" (d:doc ""))
+     (d:efield "File" (d:doc ""))
+     (d:efield "Kind" (d:doc ""))
+     (d:efield "Lang" (d:doc ""))
+     (d:efield "Prefix" (d:doc ""))
+     (d:efield "Text" (d:doc ""))
+     (d:efield "Todo" (d:doc ""))
+     (d:efield "Urgency" (d:doc ""))
+     (d:efield "Title" (d:doc ""))
+     (d:efield "Completion" (d:doc ""))
+     (d:efield "Head" (d:doc ""))
+     (d:efield "Subnodes" (d:doc ""))
+     (d:efield "Properties" (d:doc ""))
+     (d:efield "Logbook" (d:doc ""))
+     (d:efield "Description" (d:doc ""))
+     (d:efield "Logs" (d:doc ""))
+     (d:efield "Newstate" (d:doc ""))
+     (d:efield "Oldstate" (d:doc ""))
+     (d:efield "Time" (d:doc ""))
+     (d:efield "From" (d:doc ""))
+     (d:efield "EndArgs" (d:doc ""))
+     (d:efield "Flags" (d:doc ""))
+     (d:efield "Value" (d:doc ""))
+     (d:efield "Assoc" (d:doc ""))
+     (d:efield "Main" (d:doc ""))
+     (d:efield "Hash" (d:doc ""))
+     (d:efield "Bullet" (d:doc ""))
+     (d:efield "Counter" (d:doc ""))
+     (d:efield "Checkbox" (d:doc ""))
+     (d:efield "Header" (d:doc ""))
+     (d:efield "To" (d:doc ""))
+     (d:efield "Diff" (d:doc ""))
+     (d:efield "Property" (d:doc ""))
+     (d:efield "Subname" (d:doc ""))
+     (d:efield "Values" (d:doc ""))
+     (d:efield "Cells" (d:doc ""))
+     (d:efield "Rows" (d:doc ""))
+     (d:efield "Lines" (d:doc ""))
+     (d:efield "Chunks" (d:doc ""))
+     (d:efield "InheritanceMode" (d:doc ""))
+     (d:efield "MainSetRule" (d:doc ""))
+     (d:efield "SubSetRule" (d:doc ""))))
 
-(d:enum "OrgNodeKind" (d:doc "")
-  (list
-    (d:efield "None" (d:doc "Default valye for node - invalid state")
-    (d:efield "Document" (d:doc "Toplevel part of the ast, not created by parser, and only used in `semorg` stage"))
-    (d:efield "UserNode" (d:doc "User-defined node [[code:OrgUserNode]]"))
-    (d:efield "Empty" (d:doc "Empty node - valid state that does not contain any value"))
+   (d:enum
+    "OrgNodeKind" (d:doc "")
+    (list
+     (d:efield "None" (d:doc "Default valye for node - invalid state"))
+     (d:efield "Document" (d:doc "Toplevel part of the ast, not created by parser, and only used in `semorg` stage"))
+     (d:efield "UserNode" (d:doc "User-defined node [[code:OrgUserNode]]"))
+     (d:efield "Empty" (d:doc "Empty node - valid state that does not contain any value"))
 
-    (d:efield "Error" (d:doc "Failed node parse"
-#:full "
-Failed node parse - technically there are no /wrong/ syntax in the
-org-mode document because everything can be considered a one large
-word or a paragraph with flat `Word` content.
+     (d:efield "Error" (d:doc "Failed node parse" #:full "
+   Failed node parse - technically there are no /wrong/ syntax in the
+   org-mode document because everything can be considered a one large
+   word or a paragraph with flat `Word` content.
 
-Error node's extent covers all subnodes that were constructed
-during nested content parsing plus ErrorTerminator node with error
-token (description of the parsing failure). So failure node will be
-structured as `[Error <some content> <ErrorToken>
-<ErrorTermiator>]`. Second-to-last is the invalid token itself,
-error terminator will hold fake token that referes to an error.
+   Error node's extent covers all subnodes that were constructed
+   during nested content parsing plus ErrorTerminator node with error
+   token (description of the parsing failure). So failure node will be
+   structured as `[Error <some content> <ErrorToken>
+   <ErrorTermiator>]`. Second-to-last is the invalid token itself,
+   error terminator will hold fake token that referes to an error.
 
-Error node can be produced by any parsing routine, although it is
-mostly used in the low-level text elements, since high-level
-structures are mostly detected based on the correct syntax - for
-example, `*** subtree` (and any title variations) can never be an
-error in itself. Title /text/ might contain an error, but invalid
-it is not possible to write an invalid subtree - it is either `*
-ANYTHING` or not a subtree at all.
-"
+   Error node can be produced by any parsing routine, although it is
+   mostly used in the low-level text elements, since high-level
+   structures are mostly detected based on the correct syntax - for
+   example, `*** subtree` (and any title variations) can never be an
+   error in itself. Title /text/ might contain an error, but invalid
+   it is not possible to write an invalid subtree - it is either `*
+   ANYTHING` or not a subtree at all.
+   "))
 
-                             ))
-    ,
-    (d:efield "ErrorTerminator" (d:doc "Terminator node for failure in nested structure parsing"))
-    (d:efield "ErrorToken" (d:doc "Single invalid token"))
-    (d:efield "InlineStmtList" (d:doc ""))
-    (d:efield "StmtList" (d:doc "List of statements, possibly recursive. Used as toplevel
-              part of the document, in recursive parsing of subtrees,
-              or as regular list, in cases where multiple subnodes have
-              to be grouped together."))
+     (d:efield "ErrorTerminator" (d:doc "Terminator node for failure in nested structure parsing"))
+     (d:efield "ErrorToken" (d:doc "Single invalid token"))
+     (d:efield "InlineStmtList" (d:doc ""))
+     (d:efield "StmtList" (d:doc "List of statements, possibly recursive. Used as toplevel
+                 part of the document, in recursive parsing of subtrees,
+                 or as regular list, in cases where multiple subnodes have
+                 to be grouped together."))
 
-    (d:efield "AssocStmtList" (d:doc "Associated list of statements - AST elements like commands and links are grouped together if placed on adjacent lines"))
-    (d:efield "Subtree" (d:doc "Section subtree"))
-    (d:efield "SubtreeTimes" (d:doc "Time? associated with subtree entry"))
-    (d:efield "SubtreeStars" (d:doc ""))
-    (d:efield "Completion" (d:doc "Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio."))
-    (d:efield "Checkbox" (d:doc "Single checkbox item like `[X]` or `[-]`"))
-    (d:efield "List" (d:doc ""))
-    (d:efield "Bullet" (d:doc "List item prefix"))
-    (d:efield "ListItem" (d:doc ""))
-    (d:efield "ListTag" (d:doc "Auxilliary wrapper for the paragraph placed at the start of the description list."))
-    (d:efield "Counter" (d:doc ""))
-    (d:efield "Comment" (d:doc "Inline or trailling comment. Can be used addition to `#+comment:`
-line or `#+begin-comment` section. Nested comment syntax is allowed
-(`#[ level1 #[ level2 ]# ]#`), but only outermost one is
-represented as separate AST node, everything else is a `.text`"))
-    (d:efield "RawText" (d:doc "Raw string of text from input buffer. Things like particular syntax
-details of every single command, link formats are not handled in
-parser, deferring formatting to future processing layers
-"))
+     (d:efield "AssocStmtList" (d:doc "Associated list of statements - AST elements like commands and links are grouped together if placed on adjacent lines"))
+     (d:efield "Subtree" (d:doc "Section subtree"))
+     (d:efield "SubtreeTimes" (d:doc "Time? associated with subtree entry"))
+     (d:efield "SubtreeStars" (d:doc ""))
+     (d:efield "Completion" (d:doc "Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio."))
+     (d:efield "Checkbox" (d:doc "Single checkbox item like `[X]` or `[-]`"))
+     (d:efield "List" (d:doc ""))
+     (d:efield "Bullet" (d:doc "List item prefix"))
+     (d:efield "ListItem" (d:doc ""))
+     (d:efield "ListTag" (d:doc "Auxilliary wrapper for the paragraph placed at the start of the description list."))
+     (d:efield "Counter" (d:doc ""))
+     (d:efield "Comment" (d:doc "Inline or trailling comment. Can be used addition to `#+comment:`
+   line or `#+begin-comment` section. Nested comment syntax is allowed
+   (`#[ level1 #[ level2 ]# ]#`), but only outermost one is
+   represented as separate AST node, everything else is a `.text`"))
+     (d:efield "RawText" (d:doc "Raw string of text from input buffer. Things like particular syntax
+   details of every single command, link formats are not handled in
+   parser, deferring formatting to future processing layers "))
+     (d:efield "Unparsed" (d:doc "Part of the org-mode document that is yet to be parsed. This node
+   should not be created manually, it is only used for handling
+   mutually recursive DSLs such as tables, which might include lists,
+   which in turn might contain more tables in different bullet points."))
+     (d:efield "Command" (d:doc "Undefined single-line command -- most likely custom user-provided oe"))
+     (d:efield "CommandArguments" (d:doc "Arguments for the command block"))
+     (d:efield "CommandTitle" (d:doc "`#+title:` - full document title"))
+     (d:efield "CommandAuthor" (d:doc "`#+author:` Document author"))
+     (d:efield "CommandCreator" (d:doc "`#+creator:` Document creator"))
+     (d:efield "CommandInclude" (d:doc "`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk."))
+     (d:efield "CommandLanguage" (d:doc "`#+language:`"))
+     (d:efield "CommandAttrHtml" (d:doc "`#+attr_html:`"))
+     (d:efield "CommandName" (d:doc "`#+name:` - name of the associated entry"))
+     (d:efield "CommandHeader" (d:doc "`#+header:` - extended list of parameters passed to associated block"))
+     (d:efield "CommandOptions" (d:doc "`#+options:` - document-wide formatting options"))
+     (d:efield "CommandTblfm" (d:doc ""))
+     (d:efield "CommandBackendOptions" (d:doc "Backend-specific configuration options like `#+latex_header` `#+latex_class` etc."))
+     (d:efield "AttrImg" (d:doc ""))
+     (d:efield "CommandCaption" (d:doc "`#+caption:` command"))
+     (d:efield "File" (d:doc ""))
+     (d:efield "BlockExport" (d:doc ""))
+     (d:efield "InlineExport" (d:doc ""))
+     (d:efield "MultilineCommand" (d:doc "Multiline command such as code block, latex equation, large block
+   of passthrough code. Some built-in org-mode commands do not
+   requires `#+begin` prefix, (such as `#+quote` or `#+example`) are
+   represented by this type of block as well."))
+     (d:efield "Result" (d:doc "Command evaluation result"))
+     (d:efield "Ident" (d:doc "regular identifier - `alnum + [-_]` characters for punctuation.
+   Identifiers are compared and parsed in style-insensetive manner,
+   meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical."))
+     (d:efield "BareIdent" (d:doc "Bare identifier - any characters are allowed"))
+     (d:efield "AdmonitionTag" (d:doc "Big ident used in conjunction with colon at the start of paragraph
+   is considered an admonition tag: `NOTE: Text`, `WARNING: text` etc."))
+     (d:efield "BigIdent" (d:doc "full-uppsercase identifier such as `MUST` or `TODO`"))
+     (d:efield "VerbatimMultilineBlock" (d:doc "Verbatim mulitiline block that *might* be a part of
+   `orgMultilineCommand` (in case of `#+begin-src`), but not
+   necessarily. Can also be a part of =quote= and =example= multiline
+   blocks."))
+     (d:efield "CodeLine" (d:doc "Single line of source code"))
+     (d:efield "CodeText" (d:doc "Block of source code text"))
+     (d:efield "CodeTangle" (d:doc "Single tangle target in the code block"))
+     (d:efield "CodeCallout" (d:doc "`(refs:` callout in the source code"))
+     (d:efield "QuoteBlock" (d:doc "`#+quote:` block in code"))
+     (d:efield "AdmonitionBlock" (d:doc ""))
+     (d:efield "CenterBlock" (d:doc "'"))
+     (d:efield "Example" (d:doc "Verbatim example text block"))
+     (d:efield "SrcCode" (d:doc "Block of source code - can be multiline, single-line and"))
+     (d:efield "SrcInlineCode" (d:doc "inline piece of code (such as `src_nim`). Latter is different from
+     regular monospaced text inside of `~~` pair as it contains
+     additional internal structure, optional parameter for code
+     evaluation etc."))
 
-    (d:efield "Unparsed" (d:doc "Part of the org-mode document that is yet to be parsed. This node
-should not be created manually, it is only used for handling
-mutually recursive DSLs such as tables, which might include lists,
-which in turn might contain more tables in different bullet points."))
+     (d:efield "CallCode" (d:doc "Call to named source code block. Inline, multiline, or single-line."))
+     (d:efield "PassCode" (d:doc "Passthrough block. Inline, multiline, or single-line. Syntax is
+     `@@<backend-name>:<any-body>@@`. Has line and block syntax
+     respectively"))
+     (d:efield "CmdArguments" (d:doc "Command arguments"))
+     (d:efield "CmdFlag" (d:doc "Flag for source code block. For example `-n`, which is used to to make source code block export with lines"))
+     (d:efield "CmdKey" (d:doc ""))
+     (d:efield "CmdValue" (d:doc ""))
+     (d:efield "CmdNamedValue" (d:doc "Key-value pair for source code block call."))
+     (d:efield "UrgencyStatus" (d:doc "Subtree importance level, such as `[#A]` or `[#B]`. Default
+     org-mode only allows single character for contents inside of `[]`,
+     but this parser makes it possible to use any regular identifier,
+     such as `[#urgent]`."))
+     (d:efield "TextSeparator" (d:doc "Long horizontal line `----`"))
+     (d:efield "Paragraph" (d:doc "Single 'paragraph' of text. Used as generic container for any place
+     in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited
+     to actual paragraph"))
+     (d:efield "AnnotatedParagraph" (d:doc "Annotated paragraph -- a wrapper around a regular paragraph kind
+     with added admonition, footnote, list tag prefix and similar types.
+     `[fn:ID] Some Text` is an annotated paragraph, just like `NOTE:
+     Text` or `- Prefix :: Body` (in this case list header is an
+     annotated paragraph)"))
+     (d:efield "Bold" (d:doc "Region of text with formatting, which contains standalone words -
+     can itself contain subnodes, which allows to represent nested
+     formatting regions, such as `*bold /italic/*` text. Particular type
+     of identifier is stored in string form in `str` field for `OrgNode`
+     -- bold is represented as `\"*\"`, italic as `/` and so on. In case
+     of explicit open/close pairs only opening one is stored.
 
-    (d:efield "Command" (d:doc "Undefined single-line command -- most likely custom user-provided oe"))
-    (d:efield "CommandArguments" (d:doc "Arguments for the command block"))
-    (d:efield "CommandTitle" (d:doc "`#+title:` - full document title"))
-    (d:efield "CommandAuthor" (d:doc "`#+author:` Document author"))
-    (d:efield "CommandCreator" (d:doc "`#+creator:` Document creator"))
-    (d:efield "CommandInclude" (d:doc "`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk."))
-    (d:efield "CommandLanguage" (d:doc "`#+language:`"))
-    (d:efield "CommandAttrHtml" (d:doc "`#+attr_html:`"))
-    (d:efield "CommandName" (d:doc "`#+name:` - name of the associated entry"))
-    (d:efield "CommandHeader" (d:doc "`#+header:` - extended list of parameters passed to associated block"))
-    (d:efield "CommandOptions" (d:doc "`#+options:` - document-wide formatting options"))
-    (d:efield "CommandTblfm" (d:doc ""))
-    (d:efield "CommandBackendOptions" (d:doc "Backend-specific configuration options like `#+latex_header` `#+latex_class` etc."))
-    (d:efield "AttrImg" (d:doc ""))
-    (d:efield "CommandCaption" (d:doc "`#+caption:` command"))
-    (d:efield "File" (d:doc ""))
-    (d:efield "BlockExport" (d:doc ""))
-    (d:efield "InlineExport" (d:doc ""))
-    (d:efield "MultilineCommand" (d:doc "Multiline command such as code block, latex equation, large block
-of passthrough code. Some built-in org-mode commands do not
-requires `#+begin` prefix, (such as `#+quote` or `#+example`) are
-represented by this type of block as well."))
+     NOTE: when structured sentences are enabled, regular punctuation
+     elements like `some text (notes)` are also represented as `Word,
+     Word, Markup(str: \"(\", [Word])` - e.g. structure is not fully flat."))
+     (d:efield "Italic" (d:doc ""))
+     (d:efield "Verbatim" (d:doc ""))
+     (d:efield "Backtick" (d:doc ""))
+     (d:efield "Underline" (d:doc ""))
+     (d:efield "Strike" (d:doc ""))
+     (d:efield "Quote" (d:doc ""))
+     (d:efield "Angle" (d:doc ""))
+     (d:efield "Monospace" (d:doc ""))
+     (d:efield "Par" (d:doc ""))
 
-    (d:efield "Result" (d:doc "Command evaluation result"))
-    (d:efield "Ident" (d:doc "regular identifier - `alnum + [-_]` characters for punctuation.
-Identifiers are compared and parsed in style-insensetive manner,
-meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical."))
+     (d:efield "InlineMath" (d:doc "Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\\(paren-wrapped\\)` inline text."))
+     (d:efield "DisplayMath" (d:doc "Inline display latex math from `$$double-dollar$$` or `\\[bracket-wrapped\\]` code."))
+     (d:efield "Space" "Space or tab character in regular text")
+     (d:efield "Punctuation" (d:doc ""))
+     (d:efield "Colon" (d:doc ""))
+     (d:efield "Word" (d:doc "Regular word - technically not different from `orgIdent`, but
+     defined separately to disiguish between places where special syntax
+     is required and free-form text."))
 
-    (d:efield "BareIdent" (d:doc "Bare identifier - any characters are allowed"))
-    (d:efield "AdmonitionTag" (d:doc "Big ident used in conjunction with colon at the start of paragraph
-is considered an admonition tag: `NOTE: Text`, `WARNING: text` etc."))
+     (d:efield "Escaped" (d:doc "Escaped formatting character in the text"))
+     (d:efield "Newline" (d:doc ""))
+     (d:efield "SkipNewline" (d:doc ""))
+     (d:efield "SkipSpace" (d:doc ""))
+     (d:efield "SkipAny" (d:doc ""))
+     (d:efield "RawLink" (d:doc "Raw unwrapped link that was pasted in text"))
+     (d:efield "Link" (d:doc "External or internal link. Consists of one or two elements - target
+     (url, file location etc.) and description (`orgParagraph` of text).
+     Description might be empty, and represented as empty node in this
+     case. For external links particular formatting of the address is
+     not handled by parser and instead contains raw string from input
+     text."))
 
-    (d:efield "BigIdent" (d:doc "full-uppsercase identifier such as `MUST` or `TODO`"))
-    (d:efield "VerbatimMultilineBlock" (d:doc "Verbatim mulitiline block that *might* be a part of
-`orgMultilineCommand` (in case of `#+begin-src`), but not
-necessarily. Can also be a part of =quote= and =example= multiline
-blocks."))
+     (d:efield "Macro" (d:doc "Org-mode macro replacement - during export each macro is expanded
+     and evaluated according to it's environment. Body of the macro is
+     not parsed fully during org-mode evaluation, but is checked for
+     correct parenthesis balance (as macro might contain elisp code)"))
 
-    (d:efield "CodeLine" (d:doc "Single line of source code"))
-    (d:efield "CodeText" (d:doc "Block of source code text"))
-    (d:efield "CodeTangle" (d:doc "Single tangle target in the code block"))
-    (d:efield "CodeCallout" (d:doc "`(refs:` callout in the source code"))
-    (d:efield "QuoteBlock" (d:doc "`#+quote:` block in code"))
-    (d:efield "AdmonitionBlock" (d:doc ""))
-    (d:efield "CenterBlock" (d:doc "'"))
-    (d:efield "Example" (d:doc "Verbatim example text block"))
-    (d:efield "SrcCode" (d:doc "Block of source code - can be multiline, single-line and"))
-    (d:efield "SrcInlineCode" (d:doc "inline piece of code (such as `src_nim`). Latter is different from
-regular monospaced text inside of `~~` pair as it contains
-additional internal structure, optional parameter for code
-evaluation etc."))
+     (d:efield "BackendRaw" (d:doc "Raw content to be passed to a particular backend. This is the most
+     compact way of quoting export strings, after `#+<backend>:
+     <single-backend-line>` and `#+begin-export <backend>`
+     `<multiple-lines>`."))
 
-    (d:efield "CallCode" (d:doc "Call to named source code block. Inline, multiline, or single-line."))
-    (d:efield "PassCode" (d:doc "Passthrough block. Inline, multiline, or single-line. Syntax is
-`@@<backend-name>:<any-body>@@`. Has line and block syntax
-respectively")
-    (d:efield "CmdArguments" (d:doc "Command arguments"))
-    (d:efield "CmdFlag" (d:doc "Flag for source code block. For example `-n`, which is used to to
-make source code block export with lines"))
-    (d:efield "CmdKey" (d:doc ""))
-    (d:efield "CmdValue" (d:doc ""))
-    (d:efield "CmdNamedValue" (d:doc "Key-value pair for source code block call."))
-    (d:efield "UrgencyStatus" (d:doc "Subtree importance level, such as `[#A]` or `[#B]`. Default
-org-mode only allows single character for contents inside of `[]`,
-but this parser makes it possible to use any regular identifier,
-such as `[#urgent]`."))
+     (d:efield "Symbol" (d:doc "Special symbol that should be exported differently to various
+     backends - greek letters (`\alpha`), mathematical notations and so
+     on."))
 
-    (d:efield "TextSeparator" (d:doc "Long horizontal line `----`"))
+     (d:efield "TimeAssoc" (d:doc "Time association pair for the subtree deadlines."))
+     (d:efield "StaticActiveTime" (d:doc ""))
+     (d:efield "StaticInactiveTime" (d:doc ""))
+     (d:efield "DynamicActiveTime" (d:doc ""))
+     (d:efield "DynamicInactiveTime" (d:doc "Single date and time entry (active or inactive), possibly with
+   repeater interval. Is not parsed directly, and instead contains
+   `orgRawText` that can be parsed later"))
 
+     (d:efield "TimeRange" (d:doc "Date and time range format - two `orgDateTime` entries"))
+     (d:efield "SimpleTime" (d:doc "Result of the time range evaluation or trailing annotation a subtree"))
+     (d:efield "Details" (d:doc "`#+begin_details`  section"))
+     (d:efield "Summary" (d:doc "`#+begin_summary` section"))
+     (d:efield "Table" (d:doc "Org-mode table. Tables can be writtein in different formats, but in
+   the end they are all represented using single ast type. NOTE: it is
+   not guaranteed that all subnodes for table are exactly
+   `orgTableRow` - sometimes additional property metadata might be
+   used, making AST like `Table[AssocStmtList[Command[_],
+   TableRow[_]]]` possible"))
 
+     (d:efield "TableRow" (d:doc "Horizontal table row"))
+     (d:efield "TableCell" (d:doc "Single cell in row. Might contain anyting, including other tables, simple text paragraph etc."))
 
-    (d:efield "Paragraph" (d:doc "Single 'paragraph' of text. Used as generic container for any place
-in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited
-to actual paragraph"))
+     (d:efield "InlineFootnote" (d:doc "Inline footnote with text placed directly in the node body."))
+     (d:efield "Footnote" (d:doc "Footnote entry. Just as regular links - internal content is not
+   parsed, and instead just cut out verbatim into target AST node."))
 
-    (d:efield "AnnotatedParagraph" (d:doc "Annotated paragraph -- a wrapper around a regular paragraph kind
-with added admonition, footnote, list tag prefix and similar types.
-`[fn:ID] Some Text` is an annotated paragraph, just like `NOTE:
-Text` or `- Prefix :: Body` (in this case list header is an
-annotated paragraph)"))
+     (d:efield "Horizontal" (d:doc "Horizotal rule. Rule body might contain other subnodes, to represnt
+   `---- some text ----` kind of formatting."))
 
-    (d:efield "Bold" (d:doc "Region of text with formatting, which contains standalone words -
-can itself contain subnodes, which allows to represent nested
-formatting regions, such as `*bold /italic/*` text. Particular type
-of identifier is stored in string form in `str` field for `OrgNode`
--- bold is represented as `"*"`, italic as `/` and so on. In case
-of explicit open/close pairs only opening one is stored.
+     (d:efield "Filetags" (d:doc "`#+filetags:` line command"))
+     (d:efield "OrgTag" (d:doc "Original format of org-mode tags in form of `:tagname:`. Might
+   contain one or mode identifgiers, but does not provide support for
+   nesting - `:tag1:tag2:`. Can only be placed within restricted set
+   of places such as subtree headings and has separate place in AST
+   when allowed (`orgSubtree` always has subnode `№4` with either
+   `orgEmpty` or `orgOrgTag`)"))
+     (d:efield "HashTag" (d:doc "More commonly used `#hashtag` format, with some additional
+   extension. Can be placed anywere in the document (including section
+   headers), but does not have separate place in AST (e.g. considered
+   regular part of the text)"))
 
-NOTE: when structured sentences are enabled, regular punctuation
-elements like `some text (notes)` are also represented as `Word,
-Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat."))
-    (d:efield "Italic" (d:doc ""))
-    (d:efield "Verbatim" (d:doc ""))
-    (d:efield "Backtick" (d:doc ""))
-    (d:efield "Underline" (d:doc ""))
-    (d:efield "Strike" (d:doc ""))
-    (d:efield "Quote" (d:doc ""))
-    (d:efield "Angle" (d:doc ""))
-    (d:efield "Monospace" (d:doc ""))
-    (d:efield "Par" (d:doc ""))
+     (d:efield "MetaSymbol" (d:doc "`\\sym{}` with explicit arguments"))
+     (d:efield "AtMention" (d:doc "`@user`"))
+     (d:efield "BracTag" (d:doc "Custom extension to org-mode. Similarly to `BigIdent` used to have
+   something like informal keywords `MUST`, `OPTIONAL`, but instead
+   aimed /specifically/ at commit message headers - `[FEATURE]`,
+   `[FIX]` and so on."))
 
-    (d:efield "InlineMath" (d:doc "Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\\(paren-wrapped\\)` inline text."))
-    (d:efield "DisplayMath" (d:doc "Inline display latex math from `$$double-dollar$$` or `\\[bracket-wrapped\\]` code."))
-    (d:efield "Space" "Space or tab character in regular text")
-    (d:efield "Punctuation" (d:doc ""))
-    (d:efield "Colon" (d:doc ""))
-    (d:efield "Word" (d:doc "Regular word - technically not different from `orgIdent`, but
-defined separately to disiguish between places where special syntax
-is required and free-form text."))
+     (d:efield "Drawer" (d:doc "Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`"))
+     (d:efield "LatexClass" (d:doc ""))
+     (d:efield "LatexHeader" (d:doc ""))
+     (d:efield "LatexCompiler" (d:doc ""))
+     (d:efield "LatexClassOptions" (d:doc ""))
+     (d:efield "HtmlHead" (d:doc ""))
+     (d:efield "Columns" (d:doc "`#+columns:` line command for specifying formatting of the org-mode
+   clock table visualization on per-file basis."))
 
-    (d:efield "Escaped" (d:doc "Escaped formatting character in the text"))
-    (d:efield "Newline" (d:doc ""))
-    (d:efield "SkipNewline" (d:doc ""))
-    (d:efield "SkipSpace" (d:doc ""))
-    (d:efield "SkipAny" (d:doc ""))
-    (d:efield "RawLink" (d:doc "Raw unwrapped link that was pasted in text"))
-    (d:efield "Link" (d:doc "External or internal link. Consists of one or two elements - target
-(url, file location etc.) and description (`orgParagraph` of text).
-Description might be empty, and represented as empty node in this
-case. For external links particular formatting of the address is
-not handled by parser and instead contains raw string from input
-text."))
+     (d:efield "PropertyList" (d:doc ""))
+     (d:efield "Property" (d:doc "Property entry, either in `#+property:` command, or in `:property:` drawer"))
+     (d:efield "Placeholder" (d:doc "Placeholder entry in text, usually writte like `<text to replace>`"))
+     (d:efield "SubtreeDescription" (d:doc "`:description:` entry"))
+     (d:efield "SubtreeUrgency" (d:doc ""))
+     (d:efield "Logbook" (d:doc "`:logbook:` entry storing note information"))
+     (d:efield "LogbookEntry" (d:doc ""))
+     (d:efield "LogbookStateChange" (d:doc "Annotation about change in the subtree todo state"))
+     (d:efield "LogbookNote" (d:doc "Timestamped log note on the subtree"))
+     (d:efield "LogbookClock" (d:doc "`CLOCK` entry in the subtree"))
+     (d:efield "LogbookRefile" (d:doc "`Refile` entry in the subtree logbook drawer"))
+     (d:efield "LogbookReschedule" (d:doc ""))
+     (d:efield "LogbookTagChange" (d:doc ""))
+     (d:efield "LogbookTagChangeAction" (d:doc ""))
+     (d:efield "RadioTarget" (d:doc "`<<<RADIO>>>`"))
+     (d:efield "Target" (d:doc "`<<TARGET>>`"))))
 
-    (d:efield "Macro" (d:doc "Org-mode macro replacement - during export each macro is expanded
-and evaluated according to it's environment. Body of the macro is
-not parsed fully during org-mode evaluation, but is checked for
-correct parenthesis balance (as macro might contain elisp code)"))
+   (d:enum
+    "OrgTextContext" (d:doc "")
+    (list
+     (d:efield "otcPlain" (d:doc ""))
+     (d:efield "otcSubtree0" (d:doc ""))
+     (d:efield "otcSubtree1" (d:doc ""))
+     (d:efield "otcSubtree2" (d:doc ""))
+     (d:efield "otcSubtree3" (d:doc ""))
+     (d:efield "otcSubtree4" (d:doc ""))
+     (d:efield "otcSubtree5" (d:doc ""))
+     (d:efield "otcSubtree6" (d:doc ""))
+     (d:efield "otcSubtree7" (d:doc ""))
+     (d:efield "otcSubtree8" (d:doc ""))
+     (d:efield "otcSubtree9" (d:doc ""))
+     (d:efield "otcSubtree10" (d:doc ""))
+     (d:efield "otcSubtree11" (d:doc ""))
+     (d:efield "otcSubtree12" (d:doc ""))
+     (d:efield "otcSubtreeOther" (d:doc ""))
+     (d:efield "otcBold" (d:doc ""))
+     (d:efield "otcItalic" (d:doc ""))
+     (d:efield "otcStrike" (d:doc ""))
+     (d:efield "otcUnderline" (d:doc ""))
+     (d:efield "otcMonospaceInline" (d:doc ""))
+     (d:efield "otcMonospaceBlock" (d:doc ""))))
 
-    (d:efield "BackendRaw" (d:doc "Raw content to be passed to a particular backend. This is the most
-compact way of quoting export strings, after `#+<backend>:
-<single-backend-line>` and `#+begin-export <backend>`
-`<multiple-lines>`."))
+   (d:enum
+    "OrgBigIdentKind" (d:doc "")
+    (list
+     (d:efield "None" (d:doc ""))
+     (d:efield "Must" (d:doc "MUST This word, or the terms \"REQUIRED\" or \"SHALL\", mean that the
+   definition is an absolute requirement of the specification."))
+     (d:efield "MustNot" (d:doc "MUST NOT This phrase, or the phrase \"SHALL NOT\", mean that the
+   definition is an absolute prohibition of the specification."))
+     (d:efield "Should" (d:doc "SHOULD This word, or the adjective \"RECOMMENDED\", mean that there
+   may exist valid reasons in particular circumstances to ignore a
+   particular item, but the full implications must be understood and
+   carefully weighed before choosing a different course."))
+     (d:efield "ShouldNot" (d:doc "SHOULD NOT This phrase, or the phrase \"NOT RECOMMENDED\" mean that
+   there may exist valid reasons in particular circumstances when the
+   particular behavior is acceptable or even useful, but the full
+   implications should be understood and the case carefully weighed
+   before implementing any behavior described with this label."))
+     (d:efield "Required" (d:doc ""))
+     (d:efield "Optional" (d:doc "MAY This word, or the adjective \"OPTIONAL\", mean that an item is
+   truly optional. One vendor may choose to include the item because a
+   particular marketplace requires it or because the vendor feels that
+   it enhances the product while another vendor may omit the same
+   item. An implementation which does not include a particular option
+   MUST be prepared to interoperate with another implementation which
+   does include the option, though perhaps with reduced functionality.
+   In the same vein an implementation which does include a particular
+   option MUST be prepared to interoperate with another implementation
+   which does not include the option (except, of course, for the
+   feature the option provides.)"))
+     (d:efield "ReallyShouldNot" (d:doc ""))
+     (d:efield "OughtTo" (d:doc ""))
+     (d:efield "WouldProbably" (d:doc ""))
+     (d:efield "MayWishTo" (d:doc ""))
+     (d:efield "Could" (d:doc ""))
+     (d:efield "Might" (d:doc ""))
+     (d:efield "Possible" (d:doc ""))
+     (d:efield "Todo" (d:doc ""))
+     (d:efield "Idea" (d:doc ""))
+     (d:efield "Error" (d:doc ""))
+     (d:efield "Fixme" (d:doc ""))
+     (d:efield "Doc" (d:doc ""))
+     (d:efield "Refactor" (d:doc ""))
+     (d:efield "Review" (d:doc ""))
+     (d:efield "Hack" (d:doc ""))
+     (d:efield "Implement" (d:doc ""))
+     (d:efield "Example" (d:doc ""))
+     (d:efield "Question" (d:doc ""))
+     (d:efield "Assume" (d:doc ""))
+     (d:efield "Internal" (d:doc ""))
+     (d:efield "Design" (d:doc ""))
+     (d:efield "Why" (d:doc ""))
+     (d:efield "Wip" (d:doc ""))
+     (d:efield "Fix" (d:doc ""))
+     (d:efield "Clean" (d:doc ""))
+     (d:efield "Feature" (d:doc ""))
+     (d:efield "Style" (d:doc ""))
+     (d:efield "Repo" (d:doc ""))
+     (d:efield "Skip" (d:doc ""))
+     (d:efield "Break" (d:doc ""))
+     (d:efield "Poc" (d:doc ""))
+     (d:efield "Next" (d:doc ""))
+     (d:efield "Later" (d:doc ""))
+     (d:efield "Postponed" (d:doc ""))
+     (d:efield "Stalled" (d:doc ""))
+     (d:efield "Done" (d:doc ""))
+     (d:efield "Partially" (d:doc ""))
+     (d:efield "Cancelled" (d:doc ""))
+     (d:efield "Failed" (d:doc ""))
+     (d:efield "Note" (d:doc ""))
+     (d:efield "Tip" (d:doc ""))
+     (d:efield "Important" (d:doc ""))
+     (d:efield "Caution" (d:doc ""))
+     (d:efield "Warning" (d:doc ""))
+     (d:efield "UserCodeComment" (d:doc "User-defined comment message"))
+     (d:efield "UserCommitMsg" (d:doc "User-defined commit message ident"))
+     (d:efield "UserTaskState" (d:doc "User-defined task state"))
+     (d:efield "UserAdmonition" (d:doc "User-defined admonition label"))
+     (d:efield "Other" (d:doc "User-defined big-idents, not included in default set."))
+     ;; It is not hard to support
+     ;; https://en.wikipedia.org/wiki/Structured_English keywords. Maybe I
+     ;; will merge it with haxdoc somehow, maybe not, for not I just placed
+     ;; them here as a reminder to myself. My current idea is to overlay
+     ;; semi-structured explanation in the documenation with actual code.
+     ;; Structured keywords can be used as an anchor points (e.g. `IF` maps
+     ;; to real condition, `THEN` to the body and so on).
+     (d:efield "StructIf" (d:doc ""))
+     (d:efield "StructAnd" (d:doc ""))
+     (d:efield "StructOr" (d:doc ""))
+     (d:efield "StructNot" (d:doc ""))
+     (d:efield "StructGet" (d:doc ""))
+     (d:efield "StructSet" (d:doc ""))
+     (d:efield "StructThen" (d:doc ""))
+     (d:efield "StructElse" (d:doc ""))
+     (d:efield "StructWhile" (d:doc ""))))
 
-    (d:efield "Symbol" (d:doc "Special symbol that should be exported differently to various
-backends - greek letters (`\alpha`), mathematical notations and so
-on."))
+   (d:enum
+    "OrgTokenKind" (d:doc "")
+    (list
+     (d:efield "None" (d:doc ""))
+     (d:efield "Eof" (d:doc ""))
+     (d:efield "GroupStart" (d:doc "Start of the tokenizer token group"))
+     (d:efield "GroupEnd" (d:doc "Tokenizer token group end"))
+     (d:efield "ErrorTerminator" (d:doc ""))
+     (d:efield "CommandPrefix" (d:doc ""))
+     (d:efield "LineCommand" (d:doc ""))
+     (d:efield "CommandBegin" (d:doc "`#+begin` part of the multiline command. `begin_<block-type>` is
+   split into two tokens - `begin_` prefix and `ockBegin<block-type>`
+   section."))
+     (d:efield "CommandEnd" (d:doc ""))
+     (d:efield "DoubleColon" (d:doc ""))
+     (d:efield "Text" (d:doc ""))
+     (d:efield "StmtList" (d:doc "Unlexed group of statements - used in the list content to enable
+   secondary parsing."))
+     (d:efield "StmtListOpen" (d:doc "Start of the expanded statement list content"))
+     (d:efield "StmtListClose" (d:doc "End of the expanded statement list content"))
+     (d:efield "ListStart" (d:doc "Start of the list token group"))
+     (d:efield "ListItemStart" (d:doc "Start of the list item element"))
+     (d:efield "ListClock" (d:doc "`CLOCK:` entry at the start of the logbook entry list"))
+     (d:efield "ListPlus" (d:doc ""))
+     (d:efield "ListStar" (d:doc ""))
+     (d:efield "ListDescOpen" (d:doc "Start of the description list key,"))
+     (d:efield "ListDescClose" (d:doc "End of the description list key `::`"))
+     (d:efield "ListItemEnd" (d:doc "End of the list item"))
+     (d:efield "ListEnd" (d:doc "Complete end of the list token group"))
+     (d:efield "Checkbox" (d:doc "List or subtree checkbox"))
+     (d:efield "SubtreeTodoState" (d:doc ""))
+     (d:efield "SubtreeUrgency" (d:doc "Subtree importance marker"))
+     (d:efield "SubtreeCompletion" (d:doc "Subtree completion marker"))
+     (d:efield "SubtreeStars" (d:doc "Subtree prefix"))
+     (d:efield "SubtreeTagSeparator" (d:doc ""))
+     (d:efield "SubtreeTime" (d:doc ""))
+     (d:efield "SubtreeEnd" (d:doc ""))
+     (d:efield "ImplicitTime" (d:doc "You can write time ranges without any additional formatting for
+   subtrees that have a diary timestamps. For example, you have a
+   complex date predicate, but event occurs for `18:00-21:00`, so you
+   write it in the random place in the subtree."))
 
-    (d:efield "TimeAssoc" (d:doc "Time association pair for the subtree deadlines."))
-    (d:efield "StaticActiveTime" (d:doc ""))
-    (d:efield "StaticInactiveTime" (d:doc ""))
-    (d:efield "DynamicActiveTime" (d:doc ""))
-    (d:efield "DynamicInactiveTime" (d:doc "Single date and time entry (active or inactive), possibly with
-repeater interval. Is not parsed directly, and instead contains
-`orgRawText` that can be parsed later"))
+     (d:efield "TimeDuration" (d:doc "Time duration for the `effort` property or time range length evaluation"))
+     (d:efield "InactiveTimeBegin" (d:doc "Start of the inactive timestamp (`[2022-03-12]`)"))
+     (d:efield "InactiveTimeEnd" (d:doc ""))
+     (d:efield "ActiveTimeBegin" (d:doc "Start of the active timestamp `<2030-02-03>`"))
+     (d:efield "ActiveTimeEnd" (d:doc ""))
+     (d:efield "DynamicTimeContent" (d:doc "Dynamic time content"))
+     (d:efield "StaticTimeDatePart" (d:doc "year-month-day part of the timestamp"))
+     (d:efield "StaticTimeDayPart" (d:doc "weekday part of the timestamp"))
+     (d:efield "StaticTimeClockPart" (d:doc "Clock part of the timestamp"))
+     (d:efield "StaticTimeRepeater" (d:doc "Type of the time repeater: `+`, `++`, `.+`"))
 
-    (d:efield "TimeRange" (d:doc "Date and time range format - two `orgDateTime` entries"))
-    (d:efield "SimpleTime" (d:doc "Result of the time range evaluation or trailing annotation a subtree"))
-    (d:efield "Details" (d:doc "`#+begin_details`  section"))
-    (d:efield "Summary" (d:doc "`#+begin_summary` section"))
-    (d:efield "Table" (d:doc "Org-mode table. Tables can be writtein in different formats, but in
-the end they are all represented using single ast type. NOTE: it is
-not guaranteed that all subnodes for table are exactly
-`orgTableRow` - sometimes additional property metadata might be
-used, making AST like `Table[AssocStmtList[Command[_],
-TableRow[_]]]` possible"))
+     (d:efield "TimeDash" (d:doc "Separator dash between two periods in the time range (`<start>--<finish.`)"))
+     (d:efield "TimeArrow" (d:doc "Time range evaluation arrow `[from]--[to] =>`"))
+     (d:efield "Comment" (d:doc "line or inline comment"))
+     (d:efield "ListDoubleColon" (d:doc "Double colon between description list tag and body"))
+     (d:efield "CommandArgumentsBegin" (d:doc "List of command arguments"))
+     (d:efield "CommandArgumentsEnd" (d:doc "End of the command arguments list"))
+     (d:efield "CommandKey" (d:doc ""))
+     (d:efield "CommandValue" (d:doc ""))
+     (d:efield "CommandFlag" (d:doc ""))
+     (d:efield "CommandBracket" (d:doc "`#+results[HASH...]`"))
+     (d:efield "ColonLiteral" (d:doc "Literal block with `:`"))
+     (d:efield "ColonIdent" (d:doc "Drawer or source code block wrappers with colon-wrapped
+   identifiers. `:results:`, `:end:` etc."))
 
-    (d:efield "TableRow" (d:doc "Horizontal table row"))
-    (d:efield "TableCell" (d:doc "Single cell in row. Might contain anyting, including other tables,
-simple text paragraph etc."))
+     (d:efield "ColonProperties" (d:doc "Start of the `:PROPERTIES:` block drawer block"))
+     (d:efield "ColonDescription" (d:doc "Start of the `:description:` drawer block"))
+     (d:efield "ColonEnd" (d:doc ""))
+     (d:efield "ColonLogbook" (d:doc ""))
+     (d:efield "RawLogbook" (d:doc ""))
+     (d:efield "LogbookStart" (d:doc ""))
+     (d:efield "LogbookEnd" (d:doc ""))
+     (d:efield "RawProperty" (d:doc ""))
+     (d:efield "Link" (d:doc "Any kind of link"))
+     (d:efield "CommandContentStart" (d:doc ""))
+     (d:efield "CommandContentEnd" (d:doc ""))
+     (d:efield "CodeContent" (d:doc "Block of code inside `#+begin_src`"))
+     (d:efield "CodeContentBegin" (d:doc "Start of the expanded code content"))
+     (d:efield "CodeContentEnd" (d:doc "End of the expanded code content"))
+     (d:efield "CodeText" (d:doc "Uninterrupted text span without newlines - either a whole line or
+   sub subsection of it if callout or tangle elements were detected"))
 
-    (d:efield "InlineFootnote" (d:doc "Inline footnote with text placed directly in the node body."))
-    (d:efield "Footnote" (d:doc "Footnote entry. Just as regular links - internal content is not
-parsed, and instead just cut out verbatim into target AST node."))
+     (d:efield "TableContent" (d:doc "Block of text inside `#+table`"))
+     (d:efield "QuoteContent" (d:doc "`#+quote` content"))
+     (d:efield "BackendPass"  (d:doc "Backend-specific passthrough"))
+     (d:efield "LogBook"      (d:doc "Logbook including content"))
+     (d:efield "Drawer"       (d:doc "Drawer including content"))
+     (d:efield "Indent"       (d:doc "Increase in indentation"))
+     (d:efield "Dedent"       (d:doc "Decrease in indentation"))
+     (d:efield "SameIndent" (d:doc ""))
+     (d:efield "NoIndent" (d:doc ""))
+     (d:efield "BoldOpen" (d:doc ""))
+     (d:efield "BoldClose" (d:doc ""))
+     (d:efield "BoldInline" (d:doc ""))
+     (d:efield "BoldInlineOpen" (d:doc ""))
+     (d:efield "BoldInlineClose" (d:doc ""))
+     (d:efield "ItalicOpen" (d:doc ""))
+     (d:efield "ItalicClose" (d:doc ""))
+     (d:efield "ItalicInline" (d:doc ""))
+     (d:efield "ItalicInlineOpen" (d:doc ""))
+     (d:efield "ItalicInlineClose" (d:doc ""))
+     (d:efield "VerbatimOpen" (d:doc ""))
+     (d:efield "VerbatimClose" (d:doc ""))
+     (d:efield "VerbatimInline" (d:doc ""))
+     (d:efield "VerbatimInlineOpen" (d:doc ""))
+     (d:efield "VerbatimInlineClose" (d:doc ""))
+     (d:efield "MonospaceOpen" (d:doc ""))
+     (d:efield "MonospaceClose" (d:doc ""))
+     (d:efield "MonospaceInline" (d:doc ""))
+     (d:efield "MonospaceInlineOpen" (d:doc ""))
+     (d:efield "MonospaceInlineClose" (d:doc ""))
+     (d:efield "BacktickOpen" (d:doc ""))
+     (d:efield "BacktickClose" (d:doc ""))
+     (d:efield "BacktickInline" (d:doc ""))
+     (d:efield "BacktickInlineOpen" (d:doc ""))
+     (d:efield "BacktickInlineClose" (d:doc ""))
+     (d:efield "UnderlineOpen" (d:doc ""))
+     (d:efield "UnderlineClose" (d:doc ""))
+     (d:efield "UnderlineInline" (d:doc ""))
+     (d:efield "UnderlineInlineOpen" (d:doc ""))
+     (d:efield "UnderlineInlineClose" (d:doc ""))
+     (d:efield "StrikeOpen" (d:doc ""))
+     (d:efield "StrikeClose" (d:doc ""))
+     (d:efield "StrikeInline" (d:doc ""))
+     (d:efield "StrikeInlineOpen" (d:doc ""))
+     (d:efield "StrikeInlineClose" (d:doc ""))
+     (d:efield "QuoteOpen" (d:doc ""))
+     (d:efield "QuoteClose" (d:doc ""))
+     (d:efield "Punctuation" (d:doc ""))
+     (d:efield "LinkOpen" (d:doc ""))
+     (d:efield "LinkClose" (d:doc ""))
+     (d:efield "RawUrl" (d:doc ""))
+     (d:efield "LinkTargetOpen" (d:doc ""))
+     (d:efield "LinkTargetClose" (d:doc ""))
+     (d:efield "LinkInternal" (d:doc "No protocol is used in the link, it is targeting some internal named entry."))
+     (d:efield "LinkProtocol" (d:doc "Protocol used by the link - `file:`, `https:` etc."))
+     (d:efield "LinkFull" (d:doc "Full token for the link, used in cases where it does not make sense
+   to fracture the token - regular https URLs etc."))
+     (d:efield "LinkPath" (d:doc "Link path for searches in file"))
+     (d:efield "LinkTarget" (d:doc "Target of the link protocol that does not follow regular URI
+   encoding scheme - for example `id:`, `elisp`, or `shell` links."))
+     (d:efield "LinkExtraSeparator" (d:doc "Separator of the extra content in the link, `::`"))
+     (d:efield "LinkExtra" (d:doc "Additional parametrization for the link search"))
+     (d:efield "LinkDescriptionOpen" (d:doc ""))
+     (d:efield "LinkDescriptionClose" (d:doc ""))
+     (d:efield "TextSeparator" (d:doc ""))
+     (d:efield "ParagraphStart" (d:doc "Fake token inserted by the lexer to delimit start of the paragraph"))
+     (d:efield "ParagraphEnd" (d:doc ""))
+     (d:efield "FootnoteStart" (d:doc ""))
+     (d:efield "FootnoteEnd" (d:doc ""))
+     (d:efield "Word" (d:doc "Regular word in the paragraph"))
+     (d:efield "Escaped" (d:doc "Escaped character in plain text - `\\*`, `\\/` etc. Escaped characters and sequences thereof are treated like a regular plain text."))
+     (d:efield "DoubleSlash" (d:doc "Put at the end of the lexer first logbook line to separate the  note, otherwise is treated as standalone escaped slash."))
+     (d:efield "Newline" (d:doc "Explicit newline a paragraph"))
+     (d:efield "SkipSpace" (d:doc ""))
+     (d:efield "SkipNewline" (d:doc ""))
+     (d:efield "SkipAny" (d:doc ""))
+     (d:efield "MaybeWord" (d:doc ""))
+     (d:efield "Space" (d:doc "Space in the paragraph"))
+     (d:efield "BigIdent" (d:doc "`TODO`, `NOTE` and similar capitalized words"))
+     (d:efield "RawText" (d:doc "Unparsed raw text, either as a part of paragraph or some embedded construction such as link address."))
+     (d:efield "InlineSrc" (d:doc "Start of an inline source code block: `src_nim[]{}`"))
+     (d:efield "InlineCall" (d:doc "Start of an inline call block: `call_name[]{}`"))
+     (d:efield "CurlyStart" (d:doc "Start of the curly section of an inline source/call"))
+     (d:efield "CurlyEnd" (d:doc "End of the curly section of an inline source/call"))
+     (d:efield "SymbolStart" (d:doc "Unquoted `\\symbol` directly in the text"))
+     (d:efield "Ident" (d:doc ""))
+     (d:efield "DollarOpen" (d:doc "Opening dollar inline latex math"))
+     (d:efield "DollarClose" (d:doc "Closing dollar for inline latex math"))
+     (d:efield "DoubleDollarOpen" (d:doc "Opening `$` for inline latex"))
+     (d:efield "DoubleDollarClose" (d:doc "Closing `$` for inline latex"))
+     (d:efield "LatexParOpen" (d:doc "Opening `\\(` for inline latex math"))
+     (d:efield "LatexParClose" (d:doc "Closing `\\)` for inline latex math"))
+     (d:efield "LatexBraceOpen" (d:doc "Opening `\\[` for inline display latex equation"))
+     (d:efield "LatexBraceClose" (d:doc "Closing `\\]` for inline display latex equation"))
+     (d:efield "LatexInlineRaw" (d:doc "Content of the brace/par-enclosed math"))
+     (d:efield "DoubleAt" (d:doc "Inline backend passthrough `@@`"))
+     (d:efield "AtBracket" (d:doc "Inline annotation"))
+     (d:efield "AtMention" (d:doc "`@user` mention in the text"))
+     (d:efield "HashTag" (d:doc "Start of the inline hashtag `#tag`"))
+     (d:efield "HashTagSub" (d:doc "Nested hashtag separator"))
+     (d:efield "HashTagOpen" (d:doc "Start of the nested hashtag grop bracket"))
+     (d:efield "HashTagClose" (d:doc "End of the nested hashtag group separator"))
+     (d:efield "Comma" (d:doc "Comma - punctuation or a syntax element (e.g. for macro arguments)"))
+     (d:efield "ParOpen" (d:doc "Paren open - punctuation or a syntax element"))
+     (d:efield "ParClose" (d:doc "Paren close - punctuation or a syntax element"))
+     (d:efield "Colon" (d:doc ""))
+     (d:efield "Circumflex" (d:doc "`^` possible superscript in the text"))
+     (d:efield "MacroOpen" (d:doc "Start of the macro call `{{{`"))
+     (d:efield "MacroClose" (d:doc "Close of the macro call `}}}`"))
+     (d:efield "MetaBraceOpen" (d:doc ""))
+     (d:efield "MetaBraceBody" (d:doc ""))
+     (d:efield "MetaBraceClose" (d:doc ""))
+     (d:efield "MetaArgsOpen" (d:doc ""))
+     (d:efield "MetaArgsBody" (d:doc ""))
+     (d:efield "MetaArgsClose" (d:doc ""))
+     (d:efield "SrcOpen" (d:doc ""))
+     (d:efield "SrcName" (d:doc ""))
+     (d:efield "SrcArgs" (d:doc ""))
+     (d:efield "SrcBody" (d:doc ""))
+     (d:efield "SrcClose" (d:doc ""))
+     (d:efield "CallOpen" (d:doc ""))
+     (d:efield "CallName" (d:doc ""))
+     (d:efield "CallInsideHeader" (d:doc ""))
+     (d:efield "CallArgs" (d:doc ""))
+     (d:efield "EndHeader" (d:doc ""))
+     (d:efield "CallClose" (d:doc ""))
+     (d:efield "CmdArguments" (d:doc ""))
+     (d:efield "TableBegin" (d:doc ""))
+     (d:efield "TableEnd" (d:doc ""))
+     (d:efield "CellBody" (d:doc "Unformatted table cell body"))
+     (d:efield "RowSpec" (d:doc "`#+row` command together with parameters"))
+     (d:efield "CellSpec" (d:doc "`#+cell` command with parameters"))
+     (d:efield "Content" (d:doc "Temporary token created during initial content lexing"))
+     (d:efield "ContentStart" (d:doc "Start of the table cell content section"))
+     (d:efield "ContentEnd" (d:doc "End of the table cell content section"))
+     (d:efield "PipeOpen" (d:doc ""))
+     (d:efield "PipeSeparator" (d:doc "Vertical pipe (`|`) cell separator"))
+     (d:efield "PipeClose" (d:doc ""))
+     (d:efield "PipeCellOpen" (d:doc ""))
+     (d:efield "DashSeparator" (d:doc "Horizontal dash (`---`, `:---`, `---:` or `:---:`) row separator"))
+     (d:efield "CornerPlus" (d:doc "Corner plus (`+`)"))
+     (d:efield "Command" (d:doc ""))
+     (d:efield "CommandArgs" (d:doc ""))
+     (d:efield "Body" (d:doc ""))
+     (d:efield "LangName" (d:doc ""))
+     (d:efield "DoubleAngleOpen" (d:doc "`<<` - open for noweb or anchor placeholder"))
+     (d:efield "DoubleAngleClose" (d:doc "`>>` - close for noweb or anchor placeholder"))
+     (d:efield "TripleAngleOpen" (d:doc "`<<<` - radio target open"))
+     (d:efield "TripleAngleClose" (d:doc "`>>>` - radio target close"))
+     (d:efield "AngleOpen" (d:doc "Placeholder open"))
+     (d:efield "AngleClose" (d:doc "Placeholder close"))
+     (d:efield "TextBlock" (d:doc "Code before noweb placeholder. Requires separate token to handle
+   `##<<commented>>` - prefix comment should be duplicated for each
+   line of the placeholder expansion."))))
 
-    (d:efield "Horizontal" (d:doc "Horizotal rule. Rule body might contain other subnodes, to represnt
-`---- some text ----` kind of formatting."))
+   (d:enum
+    "OrgCommandKind" (d:doc "")
+    (list
+     (d:efield "None" (d:doc ""))
+     (d:efield "Include" (d:doc ""))
+     (d:efield "Filetags" (d:doc ""))
+     (d:efield "Setupfile" (d:doc ""))
+     (d:efield "Columns" (d:doc ""))
+     (d:efield "OtherProperty" (d:doc ""))
+     (d:efield "BeginTable" (d:doc ""))
+     (d:efield "EndTable" (d:doc "`#+table`"))
+     (d:efield "Row" (d:doc "`#+row`"))
+     (d:efield "Cell" (d:doc "`#+cell`"))
+     (d:efield "BeginAdmonition" (d:doc ""))
+     (d:efield "EndAdmonition" (d:doc ""))
+     (d:efield "BeginDynamic" (d:doc ""))
+     (d:efield "EndDynamic" (d:doc "`#+begin:`"))
+     (d:efield "BeginCenter" (d:doc ""))
+     (d:efield "EndCenter" (d:doc "`#+begin_center`"))
+     (d:efield "BeginQuote" (d:doc ""))
+     (d:efield "EndQuote" (d:doc "`#+quote`"))
+     (d:efield "BeginSrc" (d:doc ""))
+     (d:efield "EndSrc" (d:doc "`#+begin_src`"))
+     (d:efield "BeginExport" (d:doc ""))
+     (d:efield "EndExport" (d:doc "`#+end_export`"))
+     (d:efield "BeginExample" (d:doc ""))
+     (d:efield "EndExample" (d:doc ""))
+     (d:efield "BeginDetails" (d:doc ""))
+     (d:efield "EndDetails" (d:doc ""))
+     (d:efield "BeginSummary" (d:doc ""))
+     (d:efield "EndSummary" (d:doc ""))
+     (d:efield "LatexClassOptions" (d:doc "`#+latex_class_options`"))
+     (d:efield "LatexClass" (d:doc ""))
+     (d:efield "LatexCompiler" (d:doc ""))
+     (d:efield "AttrLatex" (d:doc "`#+attr_latex:`"))
+     (d:efield "AttrImg" (d:doc "`#+attr_img:`"))
+     (d:efield "AttrHtml" (d:doc "`#+attr_html:`"))
+     (d:efield "HtmlHead" (d:doc "`#+html_head:`"))
+     (d:efield "Language" (d:doc "`#+language:`"))
+     (d:efield "Options"  (d:doc "`#+options: `"))
+     (d:efield "Title"    (d:doc "`#+title:`"))
+     (d:efield "Property" (d:doc "`#+property:`"))
+     (d:efield "Author"   (d:doc "`#+author:`"))
+     (d:efield "Bind"     (d:doc "`#+bind:`"))
+     (d:efield "Creator"  (d:doc "`#+creator:`"))
+     (d:efield "LatexHeader" (d:doc "`#+latex_header`"))
+     (d:efield "Results"  (d:doc "`#+results:`"))
+     (d:efield "Call"     (d:doc "`#+call:`"))
+     (d:efield "Name"     (d:doc "`#+name:`"))
+     (d:efield "Caption"  (d:doc "`#+caption:`"))
+     (d:efield "Header"   (d:doc "`#+header:`"))
+     (d:efield "TableFormula" (d:doc "`#+tblfm:`"))
+     ))
 
-    (d:efield "Filetags" (d:doc "`#+filetags:` line command"))
-    (d:efield "OrgTag" (d:doc "Original format of org-mode tags in form of `:tagname:`. Might
-contain one or mode identifgiers, but does not provide support for
-nesting - `:tag1:tag2:`. Can only be placed within restricted set
-of places such as subtree headings and has separate place in AST
-when allowed (`orgSubtree` always has subnode `№4` with either
-`orgEmpty` or `orgOrgTag`)"))
-    (d:efield "HashTag" (d:doc "More commonly used `#hashtag` format, with some additional
-extension. Can be placed anywere in the document (including section
-headers), but does not have separate place in AST (e.g. considered
-regular part of the text)"))
+   (d:enum
+    "OrgPropertyKind" (d:doc "")
+    (list
+     (d:efield "Title" (d:doc ""))
+     (d:efield "Author" (d:doc ""))
+     (d:efield "Date" (d:doc ""))
+     (d:efield "Email" (d:doc ""))
+     (d:efield "Language" (d:doc ""))
+     (d:efield "Url" (d:doc ""))
+     (d:efield "SourceUrl" (d:doc ""))
+     (d:efield "AttrImg" (d:doc ""))
+     (d:efield "Toplevel" (d:doc ""))
+     (d:efield "Blocker" (d:doc ""))
+     (d:efield "Created" (d:doc ""))
+     (d:efield "Unnumbered" (d:doc ""))
+     (d:efield "Trigger" (d:doc ""))
+     (d:efield "Ordered" (d:doc ""))
+     (d:efield "Noblocking" (d:doc ""))
+     (d:efield "ExportOptions" (d:doc ""))
+     (d:efield "BackendExportOptions" (d:doc ""))
+     (d:efield "AttrBackend" (d:doc ""))
+     (d:efield "ColumnSpec" (d:doc ""))
+     (d:efield "Name" (d:doc ""))
+     (d:efield "Caption" (d:doc ""))
+     (d:efield "LinkAbbrev" (d:doc ""))
+     (d:efield "Filetags" (d:doc ""))
+     (d:efield "TagConf" (d:doc ""))
+     (d:efield "LatexHeader" (d:doc ""))
+     (d:efield "OtherProperty" (d:doc ""))
+     (d:efield "Id" (d:doc ""))))
 
-    (d:efield "MetaSymbol" (d:doc "`\\sym{}` with explicit arguments"))
-    (d:efield "AtMention" (d:doc "`@user`"))
-    (d:efield "BracTag" (d:doc "Custom extension to org-mode. Similarly to `BigIdent` used to have
-something like informal keywords `MUST`, `OPTIONAL`, but instead
-aimed /specifically/ at commit message headers - `[FEATURE]`,
-`[FIX]` and so on."))
+   (d:enum
+    "OrgUnnumberedKind" (d:doc "")
+    (list
+     (d:efield "Notoc" (d:doc ""))
+     (d:efield "True" (d:doc ""))
+     (d:efield "False" (d:doc ""))))
 
-    (d:efield "Drawer" (d:doc "Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`"))
-    (d:efield "LatexClass" (d:doc ""))
-    (d:efield "LatexHeader" (d:doc ""))
-    (d:efield "LatexCompiler" (d:doc ""))
-    (d:efield "LatexClassOptions" (d:doc ""))
-    (d:efield "HtmlHead" (d:doc ""))
-    (d:efield "Columns" (d:doc "`#+columns:` line command for specifying formatting of the org-mode
-clock table visualization on per-file basis."))
-
-    (d:efield "PropertyList" (d:doc ""))
-    (d:efield "Property" (d:doc "Property entry, either in `#+property:` command, or in `:property:` drawer"))
-    (d:efield "Placeholder" (d:doc "Placeholder entry in text, usually writte like `<text to replace>`"))
-    (d:efield "SubtreeDescription" (d:doc "`:description:` entry"))
-    (d:efield "SubtreeUrgency" (d:doc ""))
-    (d:efield "Logbook" (d:doc "`:logbook:` entry storing note information"))
-    (d:efield "LogbookEntry" (d:doc ""))
-    (d:efield "LogbookStateChange" (d:doc "Annotation about change in the subtree todo state"))
-    (d:efield "LogbookNote" (d:doc "Timestamped log note on the subtree"))
-    (d:efield "LogbookClock" (d:doc "`CLOCK` entry in the subtree"))
-    (d:efield "LogbookRefile" (d:doc "`Refile` entry in the subtree logbook drawer"))
-    (d:efield "LogbookReschedule" (d:doc ""))
-    (d:efield "LogbookTagChange" (d:doc ""))
-    (d:efield "LogbookTagChangeAction" (d:doc ""))
-    (d:efield "RadioTarget" (d:doc "`<<<RADIO>>>`"))
-    (d:efield "Target" (d:doc "`<<TARGET>>`"))))
-
-(d:enum "OrgTextContext" (d:doc "")
-  (list
-    (d:efield "otcPlain" (d:doc ""))
-    (d:efield "otcSubtree0" (d:doc ""))
-    (d:efield "otcSubtree1" (d:doc ""))
-    (d:efield "otcSubtree2" (d:doc ""))
-    (d:efield "otcSubtree3" (d:doc ""))
-    (d:efield "otcSubtree4" (d:doc ""))
-    (d:efield "otcSubtree5" (d:doc ""))
-    (d:efield "otcSubtree6" (d:doc ""))
-    (d:efield "otcSubtree7" (d:doc ""))
-    (d:efield "otcSubtree8" (d:doc ""))
-    (d:efield "otcSubtree9" (d:doc ""))
-    (d:efield "otcSubtree10" (d:doc ""))
-    (d:efield "otcSubtree11" (d:doc ""))
-    (d:efield "otcSubtree12" (d:doc ""))
-    (d:efield "otcSubtreeOther" (d:doc ""))
-    (d:efield "otcBold" (d:doc ""))
-    (d:efield "otcItalic" (d:doc ""))
-    (d:efield "otcStrike" (d:doc ""))
-    (d:efield "otcUnderline" (d:doc ""))
-    (d:efield "otcMonospaceInline" (d:doc ""))
-    (d:efield "otcMonospaceBlock" (d:doc ""))))
-
-(d:enum "OrgBigIdentKind" (d:doc "")
-  (list
-    (d:efield "None" (d:doc ""))
-    (d:efield "Must" (d:doc "MUST This word, or the terms \"REQUIRED\" or \"SHALL\", mean that the
-definition is an absolute requirement of the specification."))
-    (d:efield "MustNot" (d:doc "MUST NOT This phrase, or the phrase \"SHALL NOT\", mean that the
-definition is an absolute prohibition of the specification."))
-    (d:efield "Should" (d:doc "SHOULD This word, or the adjective \"RECOMMENDED\", mean that there
-may exist valid reasons in particular circumstances to ignore a
-particular item, but the full implications must be understood and
-carefully weighed before choosing a different course."))
-    (d:efield "ShouldNot" (d:doc "SHOULD NOT This phrase, or the phrase \"NOT RECOMMENDED\" mean that
-there may exist valid reasons in particular circumstances when the
-particular behavior is acceptable or even useful, but the full
-implications should be understood and the case carefully weighed
-before implementing any behavior described with this label."))
-    (d:efield "Required" (d:doc ""))
-    (d:efield "Optional" (d:doc "MAY This word, or the adjective \"OPTIONAL\", mean that an item is
-truly optional. One vendor may choose to include the item because a
-particular marketplace requires it or because the vendor feels that
-it enhances the product while another vendor may omit the same
-item. An implementation which does not include a particular option
-MUST be prepared to interoperate with another implementation which
-does include the option, though perhaps with reduced functionality.
-In the same vein an implementation which does include a particular
-option MUST be prepared to interoperate with another implementation
-which does not include the option (except, of course, for the
-feature the option provides.)"))
-    (d:efield "ReallyShouldNot" (d:doc ""))
-    (d:efield "OughtTo" (d:doc ""))
-    (d:efield "WouldProbably" (d:doc ""))
-    (d:efield "MayWishTo" (d:doc ""))
-    (d:efield "Could" (d:doc ""))
-    (d:efield "Might" (d:doc ""))
-    (d:efield "Possible" (d:doc ""))
-    (d:efield "Todo" (d:doc ""))
-    (d:efield "Idea" (d:doc ""))
-    (d:efield "Error" (d:doc ""))
-    (d:efield "Fixme" (d:doc ""))
-    (d:efield "Doc" (d:doc ""))
-    (d:efield "Refactor" (d:doc ""))
-    (d:efield "Review" (d:doc ""))
-    (d:efield "Hack" (d:doc ""))
-    (d:efield "Implement" (d:doc ""))
-    (d:efield "Example" (d:doc ""))
-    (d:efield "Question" (d:doc ""))
-    (d:efield "Assume" (d:doc ""))
-    (d:efield "Internal" (d:doc ""))
-    (d:efield "Design" (d:doc ""))
-    (d:efield "Why" (d:doc ""))
-    (d:efield "Wip" (d:doc ""))
-    (d:efield "Fix" (d:doc ""))
-    (d:efield "Clean" (d:doc ""))
-    (d:efield "Feature" (d:doc ""))
-    (d:efield "Style" (d:doc ""))
-    (d:efield "Repo" (d:doc ""))
-    (d:efield "Skip" (d:doc ""))
-    (d:efield "Break" (d:doc ""))
-    (d:efield "Poc" (d:doc ""))
-    (d:efield "Next" (d:doc ""))
-    (d:efield "Later" (d:doc ""))
-    (d:efield "Postponed" (d:doc ""))
-    (d:efield "Stalled" (d:doc ""))
-    (d:efield "Done" (d:doc ""))
-    (d:efield "Partially" (d:doc ""))
-    (d:efield "Cancelled" (d:doc ""))
-    (d:efield "Failed" (d:doc ""))
-    (d:efield "Note" (d:doc ""))
-    (d:efield "Tip" (d:doc ""))
-    (d:efield "Important" (d:doc ""))
-    (d:efield "Caution" (d:doc ""))
-    (d:efield "Warning" (d:doc ""))
-    (d:efield "UserCodeComment" (d:doc "User-defined comment message"))
-    (d:efield "UserCommitMsg" (d:doc "User-defined commit message ident"))
-    (d:efield "UserTaskState" (d:doc "User-defined task state"))
-    (d:efield "UserAdmonition" (d:doc "User-defined admonition label"))
-    (d:efield "Other" (d:doc "User-defined big-idents, not included in default set."))
-    ;; It is not hard to support
-    ;; https://en.wikipedia.org/wiki/Structured_English keywords. Maybe I
-    ;; will merge it with haxdoc somehow, maybe not, for not I just placed
-    ;; them here as a reminder to myself. My current idea is to overlay
-    ;; semi-structured explanation in the documenation with actual code.
-    ;; Structured keywords can be used as an anchor points (e.g. `IF` maps
-    ;; to real condition, `THEN` to the body and so on).
-    (d:efield "StructIf" (d:doc ""))
-    (d:efield "StructAnd" (d:doc ""))
-    (d:efield "StructOr" (d:doc ""))
-    (d:efield "StructNot" (d:doc ""))
-    (d:efield "StructGet" (d:doc ""))
-    (d:efield "StructSet" (d:doc ""))
-    (d:efield "StructThen" (d:doc ""))
-    (d:efield "StructElse" (d:doc ""))
-    (d:efield "StructWhile" (d:doc ""))))
-
-(d:enum "OrgTokenKind" (d:doc "")
-    (d:efield "None" (d:doc ""))
-    (d:efield "Eof" (d:doc ""))
-    (d:efield "GroupStart" (d:doc "Start of the tokenizer token group"))
-    (d:efield "GroupEnd" (d:doc "Tokenizer token group end"))
-    (d:efield "ErrorTerminator" (d:doc ""))
-    (d:efield "CommandPrefix" (d:doc ""))
-    (d:efield "LineCommand" (d:doc ""))
-    (d:efield "CommandBegin" (d:doc "`#+begin` part of the multiline command. `begin_<block-type>` is
-split into two tokens - `begin_` prefix and `ockBegin<block-type>`
-section."))
-    (d:efield "CommandEnd" (d:doc ""))
-    (d:efield "DoubleColon" (d:doc ""))
-    (d:efield "Text" (d:doc ""))
-    (d:efield "StmtList" (d:doc "Unlexed group of statements - used in the list content to enable
-secondary parsing."))
-    (d:efield "StmtListOpen" (d:doc "Start of the expanded statement list content"))
-    (d:efield "StmtListClose" (d:doc "End of the expanded statement list content"))
-    (d:efield "ListStart" (d:doc "Start of the list token group"))
-    (d:efield "ListItemStart" (d:doc "Start of the list item element"))
-    (d:efield "ListClock" (d:doc "`CLOCK:` entry at the start of the logbook entry list"))
-    (d:efield "ListPlus" (d:doc ""))
-    (d:efield "ListStar" (d:doc ""))
-    (d:efield "ListDescOpen" (d:doc "Start of the description list key,"))
-    (d:efield "ListDescClose" (d:doc "End of the description list key `::`"))
-    ListItemEnd,   /// End of the list item
-    ListEnd,       /// Complete end of the list token group
-    Checkbox,      /// List or subtree checkbox
-    SubtreeTodoState,
-    SubtreeUrgency,    /// Subtree importance marker
-    SubtreeCompletion, /// Subtree completion marker
-    SubtreeStars,      /// Subtree prefix
-    SubtreeTagSeparator,
-    SubtreeTime,
-    SubtreeEnd,
-    ImplicitTime,
-    /// You can write time ranges without any additional formatting for
-    /// subtrees that have a diary timestamps. For example, you have a
-    /// complex date predicate, but event occurs for `18:00-21:00`, so you
-    /// write it in the random place in the subtree.
-    TimeDuration,
-    /// Time duration for the `effort` property or time range length
-    /// evaluation
-    InactiveTimeBegin, /// Start of the inactive timestamp (`[2022-03-12]`)
-    InactiveTimeEnd,
-    ActiveTimeBegin, /// Start of the active timestamp `<2030-02-03>`
-    ActiveTimeEnd,
-    DynamicTimeContent,  /// Dynamic time content
-    StaticTimeDatePart,  /// year-month-day part of the timestamp
-    StaticTimeDayPart,   /// weekday part of the timestamp
-    StaticTimeClockPart, /// Clock part of the timestamp
-    StaticTimeRepeater,  /// Type of the time repeater: `+`, `++`, `.+`
-
-    TimeDash,
-    /// Separator dash between two periods in the time range
-    /// (`<start>--<finish.`)
-    TimeArrow,       /// Time range evaluation arrow `[from]--[to] =>`
-    Comment,         /// line or inline comment
-    ListDoubleColon, /// Double colon between description list tag and body
-    CommandArgumentsBegin, /// List of command arguments
-    CommandArgumentsEnd,   /// End of the command arguments list
-    CommandKey,
-    CommandValue,
-    CommandFlag,
-    CommandBracket, /// `#+results[HASH...]`
-    ColonLiteral,   /// Literal block with `:`
-    ColonIdent,
-    /// Drawer or source code block wrappers with colon-wrapped
-    /// identifiers. `:results:`, `:end:` etc.
-    ColonProperties,  /// Start of the `:PROPERTIES:` block drawer block
-    ColonDescription, /// Start of the `:description:` drawer block
-    ColonEnd,
-    ColonLogbook,
-    RawLogbook,
-    LogbookStart,
-    LogbookEnd,
-    RawProperty,
-    Link, /// Any kind of link
-    CommandContentStart,
-    CommandContentEnd,
-    CodeContent,      /// Block of code inside `#+begin_src`
-    CodeContentBegin, /// Start of the expanded code content
-    CodeContentEnd,   /// End of the expanded code content
-    CodeText,
-    /// Uninterrupted text span without newlines - either a whole line or
-    /// sub subsection of it if callout or tangle elements were detected
-    TableContent, /// Block of text inside `#+table`
-    QuoteContent, /// `#+quote` content
-    BackendPass,  /// Backend-specific passthrough
-    LogBook,      /// Logbook including content
-    Drawer,       /// Drawer including content
-    Indent,       /// Increase in indentation
-    Dedent,       /// Decrease in indentation
-    SameIndent,
-    NoIndent,
-    // clang-format off
-    BoldOpen,      BoldClose,      BoldInline,      BoldInlineOpen,      BoldInlineClose,
-    ItalicOpen,    ItalicClose,    ItalicInline,    ItalicInlineOpen,    ItalicInlineClose,
-    VerbatimOpen,  VerbatimClose,  VerbatimInline,  VerbatimInlineOpen,  VerbatimInlineClose,
-    MonospaceOpen, MonospaceClose, MonospaceInline, MonospaceInlineOpen, MonospaceInlineClose,
-    BacktickOpen,  BacktickClose,  BacktickInline,  BacktickInlineOpen,  BacktickInlineClose,
-    UnderlineOpen, UnderlineClose, UnderlineInline, UnderlineInlineOpen, UnderlineInlineClose,
-    StrikeOpen,    StrikeClose,    StrikeInline,    StrikeInlineOpen,    StrikeInlineClose,
-    // clang-format on
-    QuoteOpen,
-    QuoteClose,
-    Punctuation,
-    LinkOpen,
-    LinkClose,
-    RawUrl,
-    LinkTargetOpen,
-    LinkTargetClose,
-    LinkInternal,
-    /// No protocol is used in the link, it is targeting some internal
-    /// named entry.
-    LinkProtocol,
-    /// Protocol used by the link - `file:`, `https:` etc.
-    LinkFull,
-    /// Full token for the link, used in cases where it does not make sense
-    /// to fracture the token - regular https URLs etc.
-    LinkHost,
-    /// Host part of the URI used in link
-    LinkPath,
-    /// Path part of the link
-    LinkTarget,
-    /// Target of the link protocol that does not follow regular URI
-    /// encoding scheme - for example `id:`, `elisp`, or `shell` links.
-    LinkExtraSeparator,
-    /// Separator of the extra content in the link, `::`
-    LinkExtra,
-    /// Additional parametrization for the link search
-    LinkDescriptionOpen,
-    LinkDescriptionClose,
-    TextSeparator,
-    ParagraphStart,
-    /// Fake token inserted by the lexer to delimit start of the paragraph
-    ParagraphEnd,
-    FootnoteStart,
-    FootnoteEnd,
-    Word,
-    /// Regular word in the paragraph
-    Escaped,
-    /// Escaped character in plain text - `\*`, `\/` etc. Escaped
-    /// characters and sequences thereof are treated like a regular plain
-    /// text.
-    DoubleSlash,
-    /// Put at the end of the lexer first logbook line to separate the
-    /// note, otherwise is treated as standalone escaped slash.
-    Newline,
-    /// Explicit newline a paragraph
-    SkipSpace,
-    SkipNewline,
-    SkipAny,
-
-    MaybeWord,
-    Space,
-    /// Space in the paragraph
-    BigIdent,
-    /// `TODO`, `NOTE` and similar capitalized words
-    RawText,
-    /// Unparsed raw text, either as a part of paragraph or some embedded
-    /// construction such as link address.
-    InlineSrc,   /// Start of an inline source code block: `src_nim[]{}`
-    InlineCall,  /// Start of an inline call block: `call_name[]{}`
-    CurlyStart,  /// Start of the curly section of an inline source/call
-    CurlyEnd,    /// End of the curly section of an inline source/call
-    SymbolStart, /// Unquoted `\symbol` directly in the text
-    Ident,
-    DollarOpen,        /// Opening dollar inline latex math
-    DollarClose,       /// Closing dollar for inline latex math
-    DoubleDollarOpen,  /// Opening `$` for inline latex
-    DoubleDollarClose, /// Closing `$` for inline latex
-    LatexParOpen,      /// Opening `\(` for inline latex math
-    LatexParClose,     /// Closing `\)` for inline latex math
-    LatexBraceOpen,    /// Opening `\[` for inline display latex equation
-    LatexBraceClose,   /// Closing `\]` for inline display latex equation
-    LatexInlineRaw,    /// Content of the brace/par-enclosed math
-    DoubleAt,          /// Inline backend passthrough `@@`
-    AtBracket,         /// Inline annotation
-    AtMention,         /// `@user` mention in the text
-    HashTag,           /// Start of the inline hashtag `#tag`
-    HashTagSub,        /// Nested hashtag separator
-    HashTagOpen,       /// Start of the nested hashtag grop bracket
-    HashTagClose,      /// End of the nested hashtag group separator
-    Comma,    /*!Comma - punctuation or a syntax element (e.g. for macro
-                 arguments) */
-    ParOpen,  /// Paren open - punctuation or a syntax element
-    ParClose, /// Paren close - punctuation or a syntax element
-    Colon,
-    Circumflex, /// `^` possible superscript in the text
-    MacroOpen,  /// Start of the macro call `{{{`
-    MacroClose, /// Close of the macro call `}}}`
-    (d:efield "MetaBraceOpen" (d:doc ""))
-    (d:efield "MetaBraceBody" (d:doc ""))
-    (d:efield "MetaBraceClose" (d:doc ""))
-    (d:efield "MetaArgsOpen" (d:doc ""))
-    (d:efield "MetaArgsBody" (d:doc ""))
-    (d:efield "MetaArgsClose" (d:doc ""))
-    (d:efield "SrcOpen" (d:doc ""))
-    (d:efield "SrcName" (d:doc ""))
-    (d:efield "SrcArgs" (d:doc ""))
-    (d:efield "SrcBody" (d:doc ""))
-    (d:efield "SrcClose" (d:doc ""))
-    (d:efield "CallOpen" (d:doc ""))
-    (d:efield "CallName" (d:doc ""))
-    (d:efield "CallInsideHeader" (d:doc ""))
-    (d:efield "CallArgs" (d:doc ""))
-    (d:efield "EndHeader" (d:doc ""))
-    (d:efield "CallClose" (d:doc ""))
-    (d:efield "CmdArguments" (d:doc ""))
-    (d:efield "TableBegin" (d:doc ""))
-    (d:efield "TableEnd" (d:doc ""))
-    (d:efield "CellBody" (d:doc "Unformatted table cell body"))
-    (d:efield "RowSpec" (d:doc "`#+row` command together with parameters"))
-    (d:efield "CellSpec" (d:doc "`#+cell` command with parameters"))
-    (d:efield "Content" (d:doc "Temporary token created during initial content lexing"))
-    (d:efield "ContentStart" (d:doc "Start of the table cell content section"))
-    (d:efield "ContentEnd" (d:doc "End of the table cell content section"))
-    (d:efield "PipeOpen" (d:doc ""))
-    (d:efield "PipeSeparator" (d:doc "Vertical pipe (`|`) cell separator"))
-    (d:efield "PipeClose" (d:doc ""))
-    (d:efield "PipeCellOpen" (d:doc ""))
-    (d:efield "DashSeparator" (d:doc "Horizontal dash (`---`, `:---`, `---:` or `:---:`) row separator"))
-    (d:efield "CornerPlus" (d:doc "Corner plus (`+`)"))
-    (d:efield "Command" (d:doc ""))
-    (d:efield "CommandArgs" (d:doc ""))
-    (d:efield "Body" (d:doc ""))
-    (d:efield "LangName" (d:doc ""))
-    (d:efield "DoubleAngleOpen" (d:doc "`<<` - open for noweb or anchor placeholder"))
-    (d:efield "DoubleAngleClose" (d:doc "`>>` - close for noweb or anchor placeholder"))
-    (d:efield "TripleAngleOpen" (d:doc "`<<<` - radio target open"))
-    (d:efield "TripleAngleClose" (d:doc "`>>>` - radio target close"))
-    (d:efield "AngleOpen" (d:doc "Placeholder open"))
-    (d:efield "AngleClose" (d:doc "Placeholder close"))
-    (d:efield "TextBlock" (d:doc "Code before noweb placeholder. Requires separate token to handle
-`##<<commented>>` - prefix comment should be duplicated for each
-line of the placeholder expansion."))
-
-    )
-
-(d:enum "OrgCommandKind" (d:doc)
-  (list
-    (d:efield "None" (d:doc ""))
-    (d:efield "Include" (d:doc ""))
-    (d:efield "Filetags" (d:doc ""))
-    (d:efield "Setupfile" (d:doc ""))
-    (d:efield "Columns" (d:doc ""))
-    (d:efield "OtherProperty" (d:doc ""))
-    (d:efield "BeginTable" (d:doc ""))
-    (d:efield "EndTable" (d:doc "`#+table`"))
-    (d:efield "Row" (d:doc "`#+row`"))
-    (d:efield "Cell" (d:doc "`#+cell`"))
-    (d:efield "BeginAdmonition" (d:doc ""))
-    (d:efield "EndAdmonition" (d:doc ""))
-    (d:efield "BeginDynamic" (d:doc ""))
-    (d:efield "EndDynamic" (d:doc "`#+begin:`"))
-    (d:efield "BeginCenter" (d:doc ""))
-    (d:efield "EndCenter" (d:doc "`#+begin_center`"))
-    (d:efield "BeginQuote" (d:doc ""))
-    (d:efield "EndQuote" (d:doc "`#+quote`"))
-    (d:efield "BeginSrc" (d:doc ""))
-    (d:efield "EndSrc" (d:doc "`#+begin_src`"))
-    (d:efield "BeginExport" (d:doc ""))
-    (d:efield "EndExport" (d:doc "`#+end_export`"))
-    (d:efield "BeginExample" (d:doc ""))
-    (d:efield "EndExample" (d:doc ""))
-    (d:efield "BeginDetails" (d:doc ""))
-    (d:efield "EndDetails" (d:doc ""))
-    (d:efield "BeginSummary" (d:doc ""))
-    (d:efield "EndSummary" (d:doc ""))
-    (d:efield "LatexClassOptions" (d:doc "`#+latex_class_options`"))
-    (d:efield "LatexClass" (d:doc ""))
-    (d:efield "LatexCompiler" (d:doc ""))
-    (d:efield "AttrLatex" (d:doc "`#+attr_latex:`"))
-    (d:efield "AttrImg" (d:doc "`#+attr_img:`"))
-    (d:efield "AttrHtml" (d:doc "`#+attr_html:`"))
-    (d:efield "HtmlHead" (d:doc "`#+html_head:`"))
-    (d:efield "Language" (d:doc "`#+language:`"))
-    (d:efield "Options"  (d:doc "`#+options: `"))
-    (d:efield "Title"    (d:doc "`#+title:`"))
-    (d:efield "Property" (d:doc "`#+property:`"))
-    (d:efield "Author"   (d:doc "`#+author:`"))
-    (d:efield "Bind"     (d:doc "`#+bind:`"))
-    (d:efield "Creator"  (d:doc "`#+creator:`"))
-    (d:efield "LatexHeader" (d:doc "`#+latex_header`"))
-    (d:efield "Results"  (d:doc "`#+results:`"))
-    (d:efield "Call"     (d:doc "`#+call:`"))
-    (d:efield "Name"     (d:doc "`#+name:`"))
-    (d:efield "Caption"  (d:doc "`#+caption:`"))
-    (d:efield "Header"   (d:doc "`#+header:`"))
-    (d:efield "TableFormula" (d:doc "`#+tblfm:`"))
-))
-
-(d:enum "OrgPropertyKind" (d:doc)
-  (list
-    (d:efield "Title" (d:doc ""))
-    (d:efield "Author" (d:doc ""))
-    (d:efield "Date" (d:doc ""))
-    (d:efield "Email" (d:doc ""))
-    (d:efield "Language" (d:doc ""))
-    (d:efield "Url" (d:doc ""))
-    (d:efield "SourceUrl" (d:doc ""))
-    (d:efield "AttrImg" (d:doc ""))
-    (d:efield "Toplevel" (d:doc ""))
-    (d:efield "Blocker" (d:doc ""))
-    (d:efield "Created" (d:doc ""))
-    (d:efield "Unnumbered" (d:doc ""))
-    (d:efield "Trigger" (d:doc ""))
-    (d:efield "Ordered" (d:doc ""))
-    (d:efield "Noblocking" (d:doc ""))
-    (d:efield "ExportOptions" (d:doc ""))
-    (d:efield "BackendExportOptions" (d:doc ""))
-    (d:efield "AttrBackend" (d:doc ""))
-    (d:efield "ColumnSpec" (d:doc ""))
-    (d:efield "Name" (d:doc ""))
-    (d:efield "Caption" (d:doc ""))
-    (d:efield "LinkAbbrev" (d:doc ""))
-    (d:efield "Filetags" (d:doc ""))
-    (d:efield "TagConf" (d:doc ""))
-    (d:efield "LatexHeader" (d:doc ""))
-    (d:efield "OtherProperty" (d:doc ""))
-    (d:efield "Id" (d:doc ""))))
-
-(d:enum "OrgUnnumberedKind" (d:doc)
-  (list
-    (d:efield "Notoc" (d:doc ""))
-    (d:efield "True" (d:doc ""))
-    (d:efield "False" (d:doc ""))))
-
-(d:enum "OrgBlockLexerState" (d:doc "")
-  (list
-    (d:efield "None" (d:doc ""))
-    (d:efield "InHeader" (d:doc ""))
-    (d:efield "InBody" (d:doc ""))
-    (d:efield "Ended" (d:doc ""))
-    (d:efield "Complete" (d:doc ""))))
-
-
-  )
-
-)
+   (d:enum
+    "OrgBlockLexerState" (d:doc "")
+    (list
+     (d:efield "None" (d:doc ""))
+     (d:efield "InHeader" (d:doc ""))
+     (d:efield "InBody" (d:doc ""))
+     (d:efield "Ended" (d:doc ""))
+     (d:efield "Complete" (d:doc ""))))))
 
 (define* (get-concrete-types)
   (remove (lambda (struct) (not (slot-ref struct 'concreteKind))) types))
