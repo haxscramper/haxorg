@@ -87,7 +87,7 @@ struct convert<E> {
         return result;
     }
     static bool decode(Node const& in, E& out) {
-        auto res = string_to_enum<E>(in.as<QString>());
+        auto res = enum_serde<E>::from_string(in.as<QString>());
         if (res.has_value()) {
             out = res.value();
             return true;

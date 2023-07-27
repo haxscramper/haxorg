@@ -5,13 +5,20 @@
 using CharSet = IntSet<QChar>;
 
 template <>
-inline QChar low() {
-    return QChar(low<wchar_t>());
-}
-template <>
-inline QChar high() {
-    return QChar(low<wchar_t>());
-}
+struct value_domain<QChar> {
+    static inline QChar low() {
+        return QChar(value_domain<wchar_t>::low());
+    }
+    static inline QChar high() {
+        return QChar(value_domain<wchar_t>::high());
+    }
+
+    static inline long long int ord(QChar c) {
+        return static_cast<long long int>(c.unicode());
+    }
+
+    static inline QChar succ(QChar c) { return QChar(c.unicode() + 1); }
+};
 
 namespace charsets {
 /// All character values

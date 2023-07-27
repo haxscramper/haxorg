@@ -9,17 +9,13 @@
 #include <boost/describe.hpp>
 #include <hstd/system/string_convert.hpp>
 #include <hstd/system/basic_typedefs.hpp>
+#include <hstd/system/basic_templates.hpp>
 
 
 template <typename T>
 concept DescribedEnum = IsEnum<T>
                      && boost::describe::has_describe_enumerators<
                             T>::value;
-
-template <DescribedEnum T>
-QString enum_to_string(T value) {
-    return boost::describe::enum_to_string(value, "<unnamed>");
-}
 
 namespace boost::describe {
 
@@ -50,21 +46,27 @@ E string_to_enum(char const* name) {
 }
 }; // namespace boost::describe
 
-template <typename T>
-std::optional<T> string_to_enum(QString const&);
-
-template <DescribedEnum T>
-std::optional<T> string_to_enum(QString const& value) {
-    try {
-        std::string tmp = value.toStdString();
-        return boost::describe::string_to_enum<T>(tmp.c_str());
-    } catch (...) { return std::nullopt; }
-}
+template <typename E>
+struct enum_serde;
 
 template <DescribedEnum T>
 QTextStream& operator<<(QTextStream& os, T value) {
-    return os << enum_to_string(value);
+    return os << enum_serde<T>::to_string(value);
 }
+
+template <DescribedEnum E>
+struct enum_serde<E> {
+    static inline QString to_string(E const& value) {
+        return boost::describe::enum_to_string(value, "<unnamed>");
+    }
+
+    static inline std::optional<E> from_string(QString const& str) {
+        try {
+            std::string tmp = str.toStdString();
+            return boost::describe::string_to_enum<E>(tmp.c_str());
+        } catch (...) { return std::nullopt; }
+    }
+};
 
 template <class E, template <class... T> class L, class... T>
 constexpr std::array<E, sizeof...(T)> describe_enumerators_list(L<T...>) {
@@ -93,7 +95,7 @@ std::vector<EnumFieldDesc<E>> describe_enumerators() {
         result.push_back(EnumFieldDesc<E>{
             .index = i,
             .value = D[i],
-            .name  = enum_to_string(D[i]),
+            .name  = enum_serde<E>::to_string(D[i]),
         });
     }
 
@@ -110,19 +112,25 @@ std::vector<QString> enumerator_names() {
     return result;
 }
 
-template <DescribedEnum E>
-E low() {
-    constexpr auto D = describe_enumerators_as_array<E>();
-    return D[0];
-}
-
 
 template <DescribedEnum E>
-E high() {
-    constexpr auto D = describe_enumerators_as_array<E>();
-    return D[sizeof(D) / sizeof(E) - 1];
-}
+struct value_domain<E> {
+    static constexpr auto D = describe_enumerators_as_array<E>();
 
+    static inline E low() { return D[0]; }
+    static inline E high() { return D[sizeof(D) / sizeof(E) - 1]; }
+    static inline E next(E const& value) { return D[ord(value) + 1]; }
+    static inline E prev(E const& value) { return D[ord(value) - 1]; }
+
+    static inline long long int ord(E const& value) {
+        for (int i = 0; i < sizeof(D) / sizeof(E); i++) {
+            if (D[i] == value) {
+                return i;
+            }
+        }
+        return -1;
+    }
+};
 
 template <
     class T,

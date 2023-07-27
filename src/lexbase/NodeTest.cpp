@@ -145,7 +145,7 @@ ParseSpecGroup::ParseSpecGroup(CR<yaml> node, CR<QString> from) {
                 if (!it["expected"] && node["expected"]) {
                     spec.expectedMode =
                         //
-                        string_to_enum<ParseSpec::ExpectedMode>(
+                        enum_serde<ParseSpec::ExpectedMode>::from_string(
                             node["expected"].as<QString>())
                             .value_or(ParseSpec::ExpectedMode::Nested);
                 }

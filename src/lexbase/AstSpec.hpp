@@ -59,7 +59,7 @@ BOOST_DESCRIBE_ENUM(
     MixedSlice);
 
 
-inline auto tmp = low<AstRangeKind>();
+inline auto tmp = value_domain<AstRangeKind>::low();
 
 template <typename N>
 Str toPath(const N& ast, const Vec<int>& path) {
@@ -189,7 +189,7 @@ struct AstCheckFail {
     bool           isMissing = false;
     Str            msg;
     Vec<int>       path;
-    Kind           parent = low<Kind>();
+    Kind           parent = value_domain<Kind>::low();
     IntSet<Kind>   expected;
     Opt<Kind>      got;
     AstRange<Name> range;
@@ -691,7 +691,7 @@ struct AstSpec {
                     "Cannot get single subnode index for element "
                     + to_string(name) + " of node kind " + to_string(kind)
                     + " - field exists, but allowed AST range is of kind "
-                    + enum_to_string(range.kind)
+                    + enum_serde<Kind>::to_string(range.kind)
                     + " and requires node length, but it "
                     + "wasn't specified.");
             }

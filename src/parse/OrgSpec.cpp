@@ -15,7 +15,8 @@ const IntSet<OrgNodeKind> anyTime{
     org::StaticActiveTime,
     org::StaticInactiveTime,
     org::DynamicActiveTime,
-    org::DynamicInactiveTime};
+    org::DynamicInactiveTime,
+};
 
 const OrgPattern timeSpecPattern = OrgPattern({
     Field(Range(0, N::Year), OrgPattern({org::RawText, org::Empty})),

@@ -100,7 +100,7 @@ bool parseArgs(int argc, char** argv, HaxorgCli::Config& config) {
     // message and 'did you mean' check
     if (parser.isSet(opts.target)) {
         Opt<HaxorgCli::Config::Target>
-            target = string_to_enum<HaxorgCli::Config::Target>(
+            target = enum_serde<HaxorgCli::Config::Target>::from_string(
                 parser.value(opts.target));
 
         if (target.has_value()) {

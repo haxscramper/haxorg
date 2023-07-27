@@ -22,7 +22,7 @@ class Span : public std::span<T> {
         return std::clamp(
             std::span<T>::size(),
             0uz,
-            static_cast<std::size_t>(high<int>()));
+            static_cast<std::size_t>(value_domain<int>::high()));
     }
 
     Span(T* data, int size) : std::span<T>(data, size) {}

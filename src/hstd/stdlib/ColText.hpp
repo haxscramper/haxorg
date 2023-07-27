@@ -34,14 +34,12 @@ enum class TermColorBg8Bit : u8
 };
 
 template <>
-inline TermColorBg8Bit low() {
-    return TermColorBg8Bit::Black;
-}
+struct value_domain<TermColorBg8Bit>
+    : value_domain_ungapped<
+          TermColorBg8Bit,
+          TermColorBg8Bit::Black,
+          TermColorBg8Bit::Default> {};
 
-template <>
-inline TermColorBg8Bit high() {
-    return TermColorBg8Bit::Default;
-}
 
 enum class TermColorFg8Bit : u8
 {
@@ -59,14 +57,11 @@ enum class TermColorFg8Bit : u8
 };
 
 template <>
-inline TermColorFg8Bit low() {
-    return TermColorFg8Bit::Black;
-}
-
-template <>
-inline TermColorFg8Bit high() {
-    return TermColorFg8Bit::Default;
-}
+struct value_domain<TermColorFg8Bit>
+    : value_domain_ungapped<
+          TermColorFg8Bit,
+          TermColorFg8Bit::Black,
+          TermColorFg8Bit::Default> {};
 
 enum class Style : u8
 {
@@ -82,13 +77,9 @@ enum class Style : u8
 };
 
 template <>
-inline Style low() {
-    return Style::Bright;
-}
-template <>
-inline Style high() {
-    return Style::Strikethrough;
-}
+struct value_domain<Style>
+    : value_domain_ungapped<Style, Style::Bright, Style::Strikethrough> {};
+
 
 inline bool isDefault(TermColorFg8Bit bg) { return (u8)bg == 0; }
 inline bool isDefault(TermColorBg8Bit bg) { return (u8)bg == 0; }
@@ -416,13 +407,11 @@ enum class HDisplayFlag : u8
 };
 
 template <>
-inline HDisplayFlag low() {
-    return HDisplayFlag ::Colored;
-}
-template <>
-inline HDisplayFlag high() {
-    return HDisplayFlag ::UseQuotes;
-}
+struct value_domain<HDisplayFlag>
+    : value_domain_ungapped<
+          HDisplayFlag,
+          HDisplayFlag::Colored,
+          HDisplayFlag::UseQuotes> {};
 
 struct HDisplayOpts {
     IntSet<HDisplayFlag> flags = IntSet<HDisplayFlag>{

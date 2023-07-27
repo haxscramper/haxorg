@@ -16,7 +16,8 @@ namespace layout {
 
 DECL_ID_TYPE_MASKED(LytStr, LytStrId, u64, 8);
 
-inline const auto LytSpacesId = LytStrId::FromValue(high<int>() - 120);
+inline const auto LytSpacesId = LytStrId::FromValue(
+    value_domain<int>::high() - 120);
 
 struct LytStr {
     using id_type = LytStrId;

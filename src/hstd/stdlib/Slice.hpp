@@ -101,7 +101,7 @@ struct Slice : public HSlice<T, T> {
             if (now == last || pastLast) {
                 pastLast = true;
             } else {
-                now = succ(now);
+                now = value_domain<T>::succ(now);
             }
             return *this;
         }

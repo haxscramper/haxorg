@@ -45,7 +45,9 @@ class QFileInfo;
 
 #define _eattr(Name, key, ...)                                            \
     DECL_DESCRIBED_ENUM(Name, __VA_ARGS__);                               \
-    void set##Name(Name value) { setAttr(#key, enum_to_string(value)); }
+    void set##Name(Name value) {                                          \
+        setAttr(#key, enum_serde<Name>::to_string(value));                \
+    }
 
 class Graphviz {
   public:
@@ -384,11 +386,11 @@ class Graphviz {
             ilace);
 
         void setArrowHead(ArrowType type) {
-            setAttr("arrowhead", enum_to_string(type));
+            setAttr("arrowhead", enum_serde<ArrowType>::to_string(type));
         };
 
         void setArrowTail(ArrowType type) {
-            setAttr("arrowtail", enum_to_string(type));
+            setAttr("arrowtail", enum_serde<ArrowType>::to_string(type));
         };
 
         _eattr(ArrowSize, arrowsize, tiny, small, normal, large, huge);

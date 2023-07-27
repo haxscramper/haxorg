@@ -48,7 +48,8 @@ SCM guile::get_field(SCM node, char const* field) {
     } else {
         throw missing_field(
             "non-keyable value kind "
-                + enum_to_string(get_value_kind(node)).toStdString(),
+                + enum_serde<ValueKind>::to_string(get_value_kind(node))
+                      .toStdString(),
             field_sym);
     }
 }

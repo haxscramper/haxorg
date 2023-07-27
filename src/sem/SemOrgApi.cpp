@@ -18,14 +18,11 @@ using osk      = OrgSemKind;
 using Property = Subtree::Property;
 
 template <>
-sem::Subtree::Period::Kind low() {
-    return sem::Subtree::Period::Kind::Clocked;
-}
-
-template <>
-sem::Subtree::Period::Kind high() {
-    return sem::Subtree::Period::Kind::Repeated;
-}
+struct value_domain<sem::Subtree::Period::Kind>
+    : value_domain_ungapped<
+          sem::Subtree::Period::Kind,
+          sem::Subtree::Period::Kind::Clocked,
+          sem::Subtree::Period::Kind::Repeated> {};
 
 sem::OrgVariant SemId::asVariant() {
 #define __case(__Kind)                                                    \

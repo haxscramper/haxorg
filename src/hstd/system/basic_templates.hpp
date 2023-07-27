@@ -8,78 +8,91 @@
 
 /// \brief get next value
 template <typename T>
-T succ(T);
+struct value_domain;
 
 template <typename T>
 concept ImplementsSucc = requires(CR<T> value) {
-                             { succ(value) } -> std::same_as<T>;
+                             {
+                                 value_domain<T>::succ(value)
+                                 } -> std::same_as<T>;
                          };
-
-/// \brief get previous value
-template <typename T>
-T prev(T);
 
 template <typename T>
 concept ImplementsPrev = requires(CR<T> value) {
-                             { prev(value) } -> std::same_as<T>;
+                             {
+                                 value_domain<T>::prev(value)
+                                 } -> std::same_as<T>;
                          };
 
-template <typename T>
-T low();
 
 template <typename T>
 concept ImplementsLow = requires(CR<T> value) {
-                            { low<T>() } -> std::same_as<T>;
+                            { value_domain<T>::low() } -> std::same_as<T>;
                         };
-
-template <typename T>
-T high();
 
 template <typename T>
 concept ImplementsHigh = requires(CR<T> value) {
-                             { high<T>() } -> std::same_as<T>;
+                             {
+                                 value_domain<T>::high()
+                                 } -> std::same_as<T>;
                          };
 
 template <typename T>
-int ord(T val);
-
-template <typename T>
 concept ImplementsOrd = requires(CR<T> value) {
-                            { ord(value) } -> std::same_as<int>;
+                            {
+                                value_domain<T>::ord(value)
+                                } -> std::convertible_to<long long int>;
                         };
 
+template <std::integral T>
+struct value_domain<T> {
+    static inline T low() { return std::numeric_limits<T>::min(); }
+    static inline T high() { return std::numeric_limits<T>::max(); }
+    static inline T succ(T const& val) { return val + 1; }
+    static inline T prev(T const& val) { return val - 1; }
+    static inline long long int ord(T const& val) {
+        return static_cast<int>(val);
+    }
+};
 
-template <typename T>
-int ord(T value)
-    requires(std::is_enum<T>::value)
-{
-    return static_cast<int>(value) - static_cast<int>(low<T>());
-}
 
-template <typename T>
-T succ(T value)
-    requires(std::is_enum<T>::value)
-{
-    return static_cast<T>(ord(value) + 1);
-}
+template <typename E, E Low, E High>
+struct value_domain_ungapped {
+    static inline E low() { return Low; }
+    static inline E high() { return High; }
 
-// clang-format off
-template <> inline int succ(int val) { return val + 1; }
-template <> inline char succ(char val) { return val + 1; }
-template <> inline int ord(char c) { return static_cast<unsigned char>(c); }
-template <> inline int ord(i8 c) { return static_cast<i8>(c); }
 
-template <std::integral T> inline T low() { return std::numeric_limits<T>::min(); }
-template <std::integral T> inline T high() { return std::numeric_limits<T>::max(); }
+    static inline E succ(E value) {
+        if constexpr (std::is_enum_v<E>) {
+            return static_cast<E>(
+                static_cast<std::underlying_type_t<E>>(value) + 1);
+        } else {
+            return value + 1;
+        }
+    }
 
-// clang-format on
+    static inline E prev(E value) {
+        if constexpr (std::is_enum_v<E>) {
+            return static_cast<E>(
+                static_cast<std::underlying_type_t<E>>(value) - 1);
+        } else {
+            return value - 1;
+        }
+    }
+
+    static inline long long int ord(E value) {
+        return static_cast<long long int>(value)
+             - static_cast<long long int>(Low);
+    }
+};
+
 
 template <std::integral T, std::integral Other>
 T saturating_add(T value, Other change) {
     T res = value + change;
     // Can only happen due to overflow
     if (res < value) {
-        res = high<T>();
+        res = value_domain<T>::high();
     }
     return res;
 }
@@ -89,7 +102,7 @@ T saturating_sub(T value, Other change) {
     T res = value - change;
     // Can only happen due to overflow
     if (value < res) {
-        res = low<T>();
+        res = value_domain<T>::low();
     }
     return res;
 }

@@ -35,14 +35,11 @@ enum class SeqEditKind : u8
 };
 
 template <>
-inline SeqEditKind low() {
-    return SeqEditKind::None;
-}
-
-template <>
-inline SeqEditKind high() {
-    return SeqEditKind::Transpose;
-}
+struct value_domain<SeqEditKind>
+    : value_domain_ungapped<
+          SeqEditKind,
+          SeqEditKind::None,
+          SeqEditKind::Transpose> {};
 
 inline Str toPrefix(SeqEditKind kind) {
     switch (kind) {
@@ -83,10 +80,10 @@ struct DiffFormatConf {
     /// mismatched parts.
     ///
     /// By default set to high int in order to avoid hiding lines
-    int maxUnchanged = high<int>();
+    int maxUnchanged = value_domain<int>::high();
     /// Max number of the unchanged words in a single line. Can be used
     /// to compact long lines with small mismatches
-    int maxUnchangedWords = high<int>();
+    int maxUnchangedWords = value_domain<int>::high();
     /// Show line numbers in the generated diffs
     bool showLines = false;
     /// Show line diff with side-by-side (aka github QChar('split') view)

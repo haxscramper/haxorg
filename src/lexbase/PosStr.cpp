@@ -402,11 +402,11 @@ void skipBalancedSlice(PosStr& str, CR<BalancedSkipArgs> args) {
             str.next();
         } else if (str.at(args.openChars)) {
             ++fullCount;
-            ++count[ord(str.pop())];
+            ++count[value_domain<QChar>::ord(str.pop())];
         } else if (str.at(args.closeChars)) {
             --fullCount;
             if ((0 < fullCount) || args.consumeLast) {
-                --count[ord(str.pop())];
+                --count[value_domain<QChar>::ord(str.pop())];
             }
             if (fullCount == 0) {
                 return;

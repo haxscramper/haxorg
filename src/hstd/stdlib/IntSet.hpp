@@ -5,6 +5,7 @@
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/SetCommon.hpp>
+#include <hstd/system/basic_templates.hpp>
 
 template <typename T, typename InT>
 concept ConvertibleToSet
@@ -26,17 +27,6 @@ template <>
 inline QChar value_from_bitset_index(int index) {
     return QChar(index);
 }
-
-template <>
-inline int ord(QChar c) {
-    return static_cast<int>(c.unicode());
-}
-
-template <>
-inline QChar succ(QChar c) {
-    return QChar(c.unicode() + 1);
-}
-
 
 /*!
 \brief Packet set of integral values
@@ -76,7 +66,7 @@ struct IntSet : public SetBase<IntSet<T>, T> {
     // added purely for footgun reasons.
   private:
     constexpr static inline std::size_t toIdx(CR<T> value) {
-        return ord(value);
+        return value_domain<T>::ord(value);
     }
 
     constexpr void buildSet(Ref<IntSet<T>> result) {}

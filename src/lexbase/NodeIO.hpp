@@ -115,7 +115,7 @@ yaml yamlRepr(
 
 template <typename N, typename K>
 NodeTree<N, K> fromHomogeneous(CR<yaml> node) {
-    Opt<N> kind = string_to_enum<N>(node["kind"].as<QString>());
+    Opt<N> kind = enum_serde<N>::from_string(node["kind"].as<QString>());
     if (node["subnodes"]) {
         Vec<NodeTree<N, K>> subnodes;
         for (const auto& it : node["subnodes"]) {
@@ -128,7 +128,8 @@ NodeTree<N, K> fromHomogeneous(CR<yaml> node) {
             .index = node["tok_idx"].as<int>(),
             .str   = node["str"] ? Opt<Str>(node["str"].as<QString>())
                                  : Opt<Str>(std::nullopt),
-            .kind  = string_to_enum<K>(node["tok"].as<QString>()).value()};
+            .kind  = enum_serde<K>::from_string(node["tok"].as<QString>())
+                        .value()};
 
         return NodeTree<N, K>(kind.value(), token);
     }
@@ -153,7 +154,8 @@ TokenGroup<K> fromFlatTokens(CR<yaml> node, Str& buf) {
     for (const auto& it : node) {
         auto start         = buf.size();
         auto id            = TokenId<K>(index);
-        result.at(id).kind = string_to_enum<K>(it["kind"].as<QString>())
+        result.at(id).kind = enum_serde<K>::from_string(
+                                 it["kind"].as<QString>())
                                  .value();
 
         if (it["str"]) {
@@ -171,10 +173,12 @@ TokenGroup<K> fromFlatTokens(CR<yaml> node, Str& buf) {
 template <typename N, typename K>
 NodeGroup<N, K> fromFlatNodes(CR<yaml> node) {
     NodeGroup<N, K> result;
-    result.nodes.resize(node.size(), Node(low<N>(), TokenId<K>::Nil()));
+    result.nodes.resize(
+        node.size(), Node(value_domain<N>::low(), TokenId<K>::Nil()));
     int index = 0;
     for (const auto& it : node) {
-        N kind = string_to_enum<N>(it["kind"].as<QString>()).value();
+        N kind = enum_serde<N>::from_string(it["kind"].as<QString>())
+                     .value();
         if (it["extent"]) {
             result.at(NodeId<N, K>(index)) = Node<N, K>(
                 kind, it["extent"].as<int>());

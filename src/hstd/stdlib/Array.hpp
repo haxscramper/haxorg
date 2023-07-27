@@ -90,22 +90,35 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
         }
     }
 
-    Val&    at(CR<Key> value) { return Base::at(ord(value)); }
-    CR<Val> at(CR<Key> value) const { return Base::at(ord(value)); }
-    Val& operator[](CR<Key> value) { return Base::operator[](ord(value)); }
+    Val& at(CR<Key> value) {
+        return Base::at(value_domain<Key>::ord(value));
+    }
+
+    CR<Val> at(CR<Key> value) const {
+        return Base::at(value_domain<Key>::ord(value));
+    }
+
+    Val& operator[](CR<Key> value) {
+        return Base::operator[](value_domain<Key>::ord(value));
+    }
+
     CR<Val> operator[](CR<Key> value) const {
-        return Base::operator[](ord(value));
+        return Base::operator[](value_domain<Key>::ord(value));
     }
 
 
     generator<Pair<Key, Val const*>> pairs() const {
-        for (auto i = low<Key>(); i <= high<Key>(); i = succ(i)) {
+        for (auto i = value_domain<Key>::low();
+             i <= value_domain<Key>::high();
+             i = value_domain<Key>::succ(i)) {
             co_yield {i, &this->operator[](i)};
         }
     }
 
     generator<Pair<Key, Val*>> pairs() {
-        for (auto i = low<Key>(); i <= high<Key>(); i = succ(i)) {
+        for (auto i = value_domain<Key>::low();
+             i <= value_domain<Key>::high();
+             i = value_domain<Key>::succ(i)) {
             co_yield {i, &this->operator[](i)};
         }
     }

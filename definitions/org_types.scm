@@ -974,7 +974,7 @@ org can do ... which is to be determined as well")
 
      (d:efield "InlineMath" (d:doc "Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\\(paren-wrapped\\)` inline text."))
      (d:efield "DisplayMath" (d:doc "Inline display latex math from `$$double-dollar$$` or `\\[bracket-wrapped\\]` code."))
-     (d:efield "Space" "Space or tab character in regular text")
+     (d:efield "Space" (d:doc "Space or tab character in regular text"))
      (d:efield "Punctuation" (d:doc ""))
      (d:efield "Colon" (d:doc ""))
      (d:efield "Word" (d:doc "Regular word - technically not different from `orgIdent`, but
@@ -1657,6 +1657,7 @@ org can do ... which is to be determined as well")
 
 (d:full
  (list
+  (d:file "/tmp/enums.hpp" enums)
   (d:file
    "${base}/exporters/Exporter.tcc"
    (append

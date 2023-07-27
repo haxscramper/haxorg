@@ -94,7 +94,7 @@ struct HaxorgCli {
             Opt<QFileInfo> traceTo;
             /// Do tracing only on a fixed range of input code instead of
             /// the whole file
-            Slice<int> traceExtent = slice(0, high<int>());
+            Slice<int> traceExtent = slice(0, value_domain<int>::high());
         };
 
         // TODO trace must be supported on the per-file basis, each file

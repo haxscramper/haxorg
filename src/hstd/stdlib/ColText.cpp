@@ -3,9 +3,9 @@
 
 QString ansiEsc(const TermColorFg8Bit& col) {
     if ((u8)col <= 7) { // Regular colors
-        return ansiEsc(ord(col) + 30);
+        return ansiEsc(value_domain<TermColorFg8Bit>::ord(col) + 30);
     } else if ((u8)col <= 15) { // Bright colors
-        return ansiEsc(ord(col) + 30 + 60);
+        return ansiEsc(value_domain<TermColorFg8Bit>::ord(col) + 30 + 60);
     } else { // Full colors
         return ESC_PREFIX "38;5;" + QString::number((u8)col) + "m";
     }
@@ -13,9 +13,9 @@ QString ansiEsc(const TermColorFg8Bit& col) {
 
 QString ansiEsc(const TermColorBg8Bit& col) {
     if ((u8)col <= 7) {
-        return ansiEsc(ord(col) + 40);
+        return ansiEsc(value_domain<TermColorBg8Bit>::ord(col) + 40);
     } else if ((u8)col <= 15) {
-        return ansiEsc(ord(col) + 40 + 60);
+        return ansiEsc(value_domain<TermColorBg8Bit>::ord(col) + 40 + 60);
     } else {
         return ESC_PREFIX "48;5;" + QString::number((u8)col) + "m";
     };

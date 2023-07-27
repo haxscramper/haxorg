@@ -79,7 +79,8 @@ struct decode_error : base_msg {
         text = std::format(
             "Unexpected value '{}' of kind {} was found while {}",
             to_string(got),
-            enum_to_string(get_value_kind(got)).toStdString(),
+            enum_serde<ValueKind>::to_string(get_value_kind(got))
+                .toStdString(),
             where);
     }
 };
