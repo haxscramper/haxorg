@@ -11,18 +11,31 @@ struct GenConverter {
     GenConverter(ASTBuilder& builder, bool isSource)
         : builder(builder), isSource(isSource) {}
 
-    ASTBuilder& builder;
-    Vec<Res>    pendingToplevel;
-    bool        isSource = false;
+    ASTBuilder&               builder;
+    Vec<Res>                  pendingToplevel;
+    bool                      isSource = false;
+    Vec<ASTBuilder::QualType> context;
 
-    ASTBuilder::TemplateParamParams::Spec convert(CVec<GD::TParam> Params);
+    struct WithContext {
+        GenConverter* conv;
+        ~WithContext() { conv->context.pop_back(); }
+        WithContext(GenConverter* conv, ASTBuilder::QualType typ)
+            : conv(conv) {
+            conv->context.push_back(typ);
+        }
+    };
 
-    Res                          convert(GD const& desc);
-    Res                          convert(GD::Ident const& ident);
-    AB::FunctionDeclParams       convert(GD::Function const& func);
-    ASTBuilder::RecordDeclParams convert(GD::Struct const& record);
-    ASTBuilder::EnumDeclParams convert(GD::Enum const& entry, bool nested);
-    Vec<Res>                   convert(GD::TypeGroup const& entry);
-    Vec<Res>                   convert(GD::Entry const& entry);
-    ASTBuilder::DocParams      convert(GD::Doc const& doc);
+    ASTBuilder::TemplateParamParams::Spec convertParams(
+        CVec<GD::TParam> Params);
+    AB::FunctionDeclParams convertFunction(GD::Function const& func);
+    ASTBuilder::DocParams  convertDoc(GD::Doc const& doc);
+    AB::ParmVarDeclParams  convertIdent(GD::Ident const& ident);
+
+    Res      convert(GD::Function const& func);
+    Res      convert(GD const& desc);
+    Res      convert(GD::Ident const& ident);
+    Res      convert(GD::Struct const& record);
+    Res      convert(GD::Enum const& entry);
+    Vec<Res> convert(GD::TypeGroup const& entry);
+    Vec<Res> convert(GD::Entry const& entry);
 };
