@@ -347,7 +347,6 @@ struct Export : public Block {
     Block,
   };
 
-  BOOST_DESCRIBE_NESTED_ENUM(Format, Inline, Line, Block)
   BOOST_DESCRIBE_CLASS(Export,
                        (Block),
                        (),
@@ -442,7 +441,6 @@ struct Code : public Block {
     Replace,
   };
 
-  BOOST_DESCRIBE_NESTED_ENUM(Results, Replace)
   /// \brief What part of the code block should be visible in export
   enum class Exports  : short int{
     /// \brief Hide both original code and run result
@@ -455,7 +453,6 @@ struct Code : public Block {
     Results,
   };
 
-  BOOST_DESCRIBE_NESTED_ENUM(Exports, None, Both, Code, Results)
   BOOST_DESCRIBE_CLASS(Code,
                        (Block),
                        (),
@@ -512,7 +509,6 @@ struct Time : public Org {
       SameDay,
     };
 
-    BOOST_DESCRIBE_NESTED_ENUM(Mode, None, Exact, FirstMatch, SameDay)
     /// \brief Repetition period. Temporary placeholder for now, until I
     /// figure out what would be the proper way to represent whatever
     /// org can do ... which is to be determined as well
@@ -525,7 +521,6 @@ struct Time : public Org {
       Minute,
     };
 
-    BOOST_DESCRIBE_NESTED_ENUM(Period, Year, Month, Week, Day, Hour, Minute)
     BOOST_DESCRIBE_CLASS(Repeat, (), (), (), (mode, period, count))
     /// \brief mode
     Mode mode;
@@ -741,7 +736,6 @@ struct Subtree : public Org {
       Repeated,
     };
 
-    BOOST_DESCRIBE_NESTED_ENUM(Kind, Clocked, Scheduled, Titled, Deadline, Created, Repeated)
     Period(CR<Variant<SemIdT<Time>, SemIdT<TimeRange>>> period, Kind kind) : period(period), kind(kind) {}
     BOOST_DESCRIBE_CLASS(Period,
                          (),
@@ -771,14 +765,12 @@ struct Subtree : public Org {
       Subtract,
     };
 
-    BOOST_DESCRIBE_NESTED_ENUM(SetMode, Override, Add, Subtract)
     enum class InheritanceMode  : short int{
       ThisAndSub,
       OnlyThis,
       OnlySub,
     };
 
-    BOOST_DESCRIBE_NESTED_ENUM(InheritanceMode, ThisAndSub, OnlyThis, OnlySub)
     struct Nonblocking {
       BOOST_DESCRIBE_CLASS(Nonblocking, (), (), (), (isBlocking))
       bool isBlocking;
@@ -827,7 +819,6 @@ struct Subtree : public Org {
         All,
       };
 
-      BOOST_DESCRIBE_NESTED_ENUM(Level, Folded, Children, Content, All)
       BOOST_DESCRIBE_CLASS(Visibility, (), (), (), (level))
       Level level;
     };
@@ -1264,7 +1255,6 @@ struct ListItem : public Org {
     Empty,
   };
 
-  BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty)
   BOOST_DESCRIBE_CLASS(ListItem,
                        (Org),
                        (),
@@ -1488,7 +1478,6 @@ struct DocumentOptions : public Org {
     Mark,
   };
 
-  BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Raise, Ignore, Mark)
   enum class Visibility  : short int{
     Overview,
     Content,
@@ -1500,7 +1489,6 @@ struct DocumentOptions : public Org {
     ShowEverything,
   };
 
-  BOOST_DESCRIBE_NESTED_ENUM(Visibility, Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything)
   BOOST_DESCRIBE_CLASS(DocumentOptions,
                        (Org),
                        (),

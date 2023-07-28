@@ -113,7 +113,7 @@ int main(int argc, const char** argv) {
     ASTBuilder builder;
 
     for (GenUnit const& tu : description.files) {
-        auto [header, source] = convert(builder, tu);
+        auto [header, source] = GenConverter{}.convert(builder, tu);
         for (int i = 0; i <= 1; ++i) {
             if (i == 1 && !tu.source.has_value()) {
                 continue;

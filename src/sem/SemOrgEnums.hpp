@@ -52,7 +52,6 @@ enum class OrgSemKind  : short int{
   DocumentGroup,
 };
 
-BOOST_DESCRIBE_ENUM(OrgSemKind, StmtList, Empty, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CommandGroup, Quote, Example, Export, AdmonitionBlock, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, Document, ParseError, FileTarget, TextSeparator, Include, DocumentOptions, DocumentGroup)
 #define EACH_SEM_ORG_KIND(__IMPL) \
     __IMPL(StmtList) \
     __IMPL(Empty) \
