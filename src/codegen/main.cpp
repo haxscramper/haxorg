@@ -112,34 +112,44 @@ int main(int argc, const char** argv) {
     ::guile::convert<GenFiles>::decode(description, doc);
     ASTBuilder builder;
 
-    for (auto const& tu : description.files) {
-        auto definitions = convert(builder, tu);
-        auto result      = builder.TranslationUnit({definitions});
+    for (GenUnit const& tu : description.files) {
+        auto [header, source] = convert(builder, tu);
+        for (int i = 0; i <= 1; ++i) {
+            if (i == 1 && !tu.source.has_value()) {
+                continue;
+            }
 
-        QString path = tu.path
-                     % fold_format_pairs({
-                         {"base", "/mnt/workspace/repos/haxorg/src"},
-                     });
+            bool isHeader = i == 0;
+            auto result   = builder.TranslationUnit(
+                {isHeader ? header : source});
 
-        QFileInfo file{path};
-        QString   newCode = builder.store.toString(
-            result, layout::Options());
+            auto const& define = isHeader ? tu.header : tu.source.value();
+            QString     path   = define.path
+                         % fold_format_pairs({
+                             {"base", "/mnt/workspace/repos/haxorg/src"},
+                         });
 
-        if (file.exists()) {
-            QString oldCode = readFile(file);
-            if (oldCode != newCode) {
+            QFileInfo file{path};
+            QString   newCode = builder.store.toString(
+                result, layout::Options());
+
+            if (file.exists()) {
+                QString oldCode = readFile(file);
+                if (oldCode != newCode) {
+                    std::ofstream out{path.toStdString()};
+                    out << newCode;
+                    qDebug() << "Updated code in" << path << "pattern was"
+                             << define.path;
+                } else {
+                    qDebug() << "No changes on" << path << "pattern was"
+                             << define.path;
+                }
+            } else {
                 std::ofstream out{path.toStdString()};
                 out << newCode;
-                qDebug() << "Updated code in" << path << "pattern was"
-                         << tu.path;
-            } else {
-                qDebug() << "No changes on" << path << "pattern was"
-                         << tu.path;
+                qDebug() << "Wrote to" << path << "pattern was"
+                         << define.path;
             }
-        } else {
-            std::ofstream out{path.toStdString()};
-            out << newCode;
-            qDebug() << "Wrote to" << path << "pattern was" << tu.path;
         }
     }
 }

@@ -160,8 +160,14 @@ struct GenTu {
     BOOST_DESCRIBE_CLASS(GenTu, (), (), (), (entries, path));
 };
 
+struct GenUnit {
+    GenTu      header;
+    Opt<GenTu> source;
+    BOOST_DESCRIBE_CLASS(GenUnit, (), (), (), (header, source));
+};
+
 struct GenFiles {
-    Vec<GenTu> files;
+    Vec<GenUnit> files;
     BOOST_DESCRIBE_CLASS(GenFiles, (), (), (), (files));
 };
 

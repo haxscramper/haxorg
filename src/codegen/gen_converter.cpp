@@ -367,3 +367,17 @@ ASTBuilder::TemplateParamParams::Spec convert(
             return AB::TemplateParamParams::Param{.Name = Param.name};
         })};
 }
+
+Pair<ASTBuilder::Res, ASTBuilder::Res> convert(
+    ASTBuilder&    builder,
+    const GenUnit& unit) {
+    Pair<ASTBuilder::Res, ASTBuilder::Res> result;
+    result.first = convert(builder, unit.header);
+    if (unit.source) {
+        result.second = convert(builder, unit.source.value());
+    } else {
+        result.second = ASTBuilder::b::empty();
+    }
+
+    return result;
+}

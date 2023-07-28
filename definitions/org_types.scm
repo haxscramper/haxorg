@@ -121,6 +121,7 @@
 
 (simple-define-type <tparam> d:param (name))
 (simple-define-type <file> d:file (path) (entries))
+(simple-define-type <unit> d:unit (header) (source #f))
 (simple-define-type <full> d:full (files))
 
 (simple-define-type <include> d:include (what) (isSystem) (kind "Include"))
@@ -1657,41 +1658,47 @@ org can do ... which is to be determined as well")
 
 (d:full
  (list
-  (d:file "/tmp/enums.hpp" enums)
-  (d:file
-   "${base}/exporters/Exporter.tcc"
-   (append
-    (get-exporter-methods #f)))
-  (d:file
-   "${base}/exporters/ExporterMethods.tcc"
-   (append (get-exporter-methods #t)))
-  (d:file
-   "${base}/sem/SemOrgEnums.hpp"
-   (list
-    (d:pass "#pragma once")
-    (d:enum
-     (t:osk)
-     (d:doc "")
-     (map (lambda (struct) (d:efield (slot-ref struct 'name) (d:doc ""))) (get-concrete-types)))
-    (d:pass (format #f "#define EACH_SEM_ORG_KIND(__IMPL) \\\n~{    __IMPL(~a) \\\n~}"
-                    (map (lambda (struct) (slot-ref struct 'name)) (get-concrete-types))))))
-  (d:file
-   "${base}/sem/SemOrgTypes.hpp"
-   (list
-    (d:pass "#pragma once")
-    (d:include "sem/SemOrgEnums.hpp" #t)
-    (d:include "hstd/stdlib/Vec.hpp" #t)
-    (d:include "hstd/stdlib/Variant.hpp" #t)
-    (d:include "hstd/stdlib/Time.hpp" #t)
-    (d:include "hstd/stdlib/Opt.hpp" #t)
-    (d:include "hstd/stdlib/Str.hpp" #t)
-    (d:include "parse/OrgTypes.hpp" #t)
-    (d:include "boost/describe.hpp" #t)
-    (d:include "hstd/system/macros.hpp" #t)
-    (d:include "functional" #t)
-    (d:include "QDateTime" #t)
-    (d:include "sem/SemOrgBase.hpp" #t)
-    (d:include "sem/SemOrgEnums.hpp" #t)
-    (d:pass "namespace sem {")
-    (d:group types #:enumName "")
-    (d:pass "} // namespace sem")))))
+  (d:unit
+   (d:file "/tmp/enums.hpp" enums)
+   #:source (d:file "/tmp/enums.cpp" (list (d:pass "#include \"/tmp/enums.hpp\""))))
+  (d:unit
+   (d:file
+    "${base}/exporters/Exporter.tcc"
+    (append
+     (get-exporter-methods #f))))
+  (d:unit
+   (d:file
+    "${base}/exporters/ExporterMethods.tcc"
+    (append (get-exporter-methods #t))))
+  (d:unit
+   (d:file
+    "${base}/sem/SemOrgEnums.hpp"
+    (list
+     (d:pass "#pragma once")
+     (d:enum
+      (t:osk)
+      (d:doc "")
+      (map (lambda (struct) (d:efield (slot-ref struct 'name) (d:doc ""))) (get-concrete-types)))
+     (d:pass (format #f "#define EACH_SEM_ORG_KIND(__IMPL) \\\n~{    __IMPL(~a) \\\n~}"
+                     (map (lambda (struct) (slot-ref struct 'name)) (get-concrete-types)))))))
+  (d:unit
+   (d:file
+    "${base}/sem/SemOrgTypes.hpp"
+    (list
+     (d:pass "#pragma once")
+     (d:include "sem/SemOrgEnums.hpp" #t)
+     (d:include "hstd/stdlib/Vec.hpp" #t)
+     (d:include "hstd/stdlib/Variant.hpp" #t)
+     (d:include "hstd/stdlib/Time.hpp" #t)
+     (d:include "hstd/stdlib/Opt.hpp" #t)
+     (d:include "hstd/stdlib/Str.hpp" #t)
+     (d:include "parse/OrgTypes.hpp" #t)
+     (d:include "boost/describe.hpp" #t)
+     (d:include "hstd/system/macros.hpp" #t)
+     (d:include "functional" #t)
+     (d:include "QDateTime" #t)
+     (d:include "sem/SemOrgBase.hpp" #t)
+     (d:include "sem/SemOrgEnums.hpp" #t)
+     (d:pass "namespace sem {")
+     (d:group types #:enumName "")
+     (d:pass "} // namespace sem"))))))
