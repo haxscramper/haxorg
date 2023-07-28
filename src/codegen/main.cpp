@@ -113,7 +113,6 @@ int main(int argc, const char** argv) {
     ASTBuilder builder;
 
     for (GenUnit const& tu : description.files) {
-        auto [header, source] = GenConverter{}.convert(builder, tu);
         for (int i = 0; i <= 1; ++i) {
             if (i == 1 && !tu.source.has_value()) {
                 continue;
@@ -121,7 +120,10 @@ int main(int argc, const char** argv) {
 
             bool isHeader = i == 0;
             auto result   = builder.TranslationUnit(
-                {isHeader ? header : source});
+                {isHeader
+                       ? GenConverter(builder, !isHeader).convert(tu.header)
+                       : GenConverter(builder, !isHeader)
+                             .convert(tu.source.value())});
 
             auto const& define = isHeader ? tu.header : tu.source.value();
             QString     path   = define.path

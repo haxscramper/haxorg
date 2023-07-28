@@ -10,17 +10,15 @@ AB::ParmVarDeclParams toParams(AB& builder, GD::Ident const& ident) {
     return result;
 }
 
-AB::FunctionDeclParams GenConverter::convert(
-    AB&                 builder,
-    const GD::Function& func) {
+AB::FunctionDeclParams GenConverter::convert(const GD::Function& func) {
     AB::FunctionDeclParams decl;
 
     decl.ResultTy = builder.Type(func.result);
     decl.Name     = func.name;
-    decl.doc      = convert(builder, func.doc);
+    decl.doc      = convert(func.doc);
 
     if (func.params) {
-        decl.Template.Stacks = {convert(builder, *func.params)};
+        decl.Template.Stacks = {convert(*func.params)};
     }
 
     if (func.impl) {
@@ -36,17 +34,15 @@ AB::FunctionDeclParams GenConverter::convert(
     return decl;
 }
 
-AB::Res GenConverter::convert(AB& builder, const GD::Ident& ident) {
+AB::Res GenConverter::convert(const GD::Ident& ident) {
     return builder.ParmVarDecl(toParams(builder, ident));
 }
 
-AB::RecordDeclParams GenConverter::convert(
-    AB&               builder,
-    const GD::Struct& record) {
+AB::RecordDeclParams GenConverter::convert(const GD::Struct& record) {
     using RDP = AB::RecordDeclParams;
     RDP params{
         .name  = record.name,
-        .doc   = convert(builder, record.doc),
+        .doc   = convert(record.doc),
         .bases = record.bases,
     };
 
@@ -55,15 +51,15 @@ AB::RecordDeclParams GenConverter::convert(
             overloaded{
                 [&](SPtr<GD::Struct> Struct) {
                     auto const& tmp = std::make_shared<
-                        AB::RecordDeclParams>(convert(builder, *Struct));
+                        AB::RecordDeclParams>(convert(*Struct));
                     params.nested.push_back(tmp);
                 },
                 [&](SPtr<GD::Enum> Enum) {
-                    params.nested.push_back(convert(builder, *Enum, true));
+                    params.nested.push_back(convert(*Enum, true));
                 },
                 [&](SPtr<GD::Function> Func) {},
                 [&](SPtr<GD::TypeGroup> TypeGroup) {
-                    for (auto const& sub : convert(builder, *TypeGroup)) {
+                    for (auto const& sub : convert(*TypeGroup)) {
                         params.nested.push_back(sub);
                     }
                 },
@@ -99,7 +95,7 @@ AB::RecordDeclParams GenConverter::convert(
 
     for (auto const& method : record.methods) {
         params.members.push_back(RDP::Member{AB::RecordDeclParams::Method{
-            .params    = convert(builder, method),
+            .params    = convert(method),
             .isStatic  = method.isStatic,
             .isConst   = method.isConst,
             .isVirtual = method.isVirtual,
@@ -171,7 +167,6 @@ AB::RecordDeclParams GenConverter::convert(
 }
 
 ASTBuilder::EnumDeclParams GenConverter::convert(
-    ASTBuilder&        builder,
     const GenTu::Enum& entry,
     bool               nested) {
     AB::EnumDeclParams params{
@@ -207,9 +202,7 @@ ASTBuilder::EnumDeclParams GenConverter::convert(
 }
 
 
-Vec<AB::Res> GenConverter::convert(
-    AB&                  builder,
-    const GD::TypeGroup& record) {
+Vec<AB::Res> GenConverter::convert(const GD::TypeGroup& record) {
     Vec<AB::Res> decls;
     Vec<Str>     typeNames;
     for (auto const& item : record.types) {
@@ -274,7 +267,7 @@ Vec<AB::Res> GenConverter::convert(
     }
 
     for (auto const& sub : record.types) {
-        decls.push_back(builder.RecordDecl(convert(builder, sub)));
+        decls.push_back(builder.RecordDecl(convert(sub)));
     }
 
     if (!record.variantName.empty() && !record.enumName.empty()) {
@@ -317,44 +310,40 @@ Vec<AB::Res> GenConverter::convert(
 }
 
 
-AB::Res GenConverter::convert(AB& builder, const GD& desc) {
+AB::Res GenConverter::convert(const GD& desc) {
     Vec<AB::Res> decls;
     for (auto const& item : desc.entries) {
-        decls.append(convert(builder, item));
+        decls.append(convert(item));
     }
 
     decls.append(std::move(pendingToplevel));
     return builder.TranslationUnit(decls);
 }
 
-AB::DocParams GenConverter::convert(AB& builder, const GenTu::Doc& doc) {
+AB::DocParams GenConverter::convert(const GenTu::Doc& doc) {
     return AB::DocParams{.brief = doc.brief, .full = doc.full};
 }
 
-Vec<ASTBuilder::Res> GenConverter::convert(
-    ASTBuilder&         builder,
-    const GenTu::Entry& entry) {
+Vec<ASTBuilder::Res> GenConverter::convert(const GenTu::Entry& entry) {
     Vec<AB::Res> decls;
     std::visit(
         overloaded{
             [&](SPtr<GD::Struct> item) {
-                decls.push_back(
-                    builder.RecordDecl(convert(builder, *item)));
+                decls.push_back(builder.RecordDecl(convert(*item)));
             },
             [&](SPtr<GD::TypeGroup> item) {
-                decls.append(convert(builder, *item));
+                decls.append(convert(*item));
             },
             [&](GD::Include const& Include) {
                 decls.push_back(
                     builder.Include(Include.what, Include.isSystem));
             },
             [&](SPtr<GD::Enum> const& Enum) {
-                auto const& decl = convert(builder, *Enum, false);
+                auto const& decl = convert(*Enum, false);
                 decls.push_back(builder.EnumDecl(decl));
             },
             [&](SPtr<GD::Function> const& Func) {
-                decls.push_back(
-                    builder.FunctionDecl(convert(builder, *Func)));
+                decls.push_back(builder.FunctionDecl(convert(*Func)));
             },
             [&](GD::Pass const& Pass) {
                 decls.push_back(builder.string(Pass.what));
@@ -366,24 +355,9 @@ Vec<ASTBuilder::Res> GenConverter::convert(
 }
 
 ASTBuilder::TemplateParamParams::Spec GenConverter::convert(
-    ASTBuilder&         builder,
     CVec<GenTu::TParam> Params) {
     return ASTBuilder::TemplateParamParams::Spec{
         .Params = map(Params, [&](GenTu::TParam const& Param) {
             return AB::TemplateParamParams::Param{.Name = Param.name};
         })};
-}
-
-Pair<ASTBuilder::Res, ASTBuilder::Res> GenConverter::convert(
-    ASTBuilder&    builder,
-    const GenUnit& unit) {
-    Pair<ASTBuilder::Res, ASTBuilder::Res> result;
-    result.first = convert(builder, unit.header);
-    if (unit.source) {
-        result.second = convert(builder, unit.source.value());
-    } else {
-        result.second = ASTBuilder::b::empty();
-    }
-
-    return result;
 }
