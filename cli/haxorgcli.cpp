@@ -219,6 +219,8 @@ QString htmlRepr(
     const int dataColNum  = 6;
     const int baseColspan = dataColNum + 1;
 
+    auto spec = getOrgSpec();
+
     Func<Result(CR<OrgId>, Opt<OrgSpecName>, int)> aux;
     aux = [&](CR<OrgId>        root,
               Opt<OrgSpecName> subnodeName,
@@ -275,7 +277,7 @@ QString htmlRepr(
             for (; begin != end && (begin.id <= end.id); ++begin) {
                 sub.push_back(
                     aux(*begin,
-                        spec.fieldName(OrgAdapter(&nodes, root), index),
+                        spec->fieldName(OrgAdapter(&nodes, root), index),
                         index));
                 ++index;
             }

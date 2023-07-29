@@ -3,6 +3,7 @@
 #include <sem/SemOrg.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <parse/OrgParser.hpp>
+#include <parse/OrgSpec.hpp>
 
 namespace sem {
 struct OrgConverter : public OperationsTracer {
@@ -104,6 +105,18 @@ struct OrgConverter : public OperationsTracer {
 
     Func<void(CR<Report>)>              reportHook;
     Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
+
+  public:
+    UPtr<OrgSpec> spec;
+    OrgConverter() { spec = getOrgSpec(); }
+
+    OrgAdapter one(OrgAdapter node, OrgSpecName name) {
+        return spec->getSingleSubnode(node, name);
+    }
+
+    Vec<OrgAdapter> many(OrgAdapter node, OrgSpecName name) {
+        return spec->getMultipleSubnode(node, name);
+    }
 
   public:
     SemIdT<Table>           convertTable(Up, In);

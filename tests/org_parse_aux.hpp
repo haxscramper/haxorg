@@ -16,10 +16,12 @@ struct MockFull {
     Lexer<OrgTokenKind> lex;
     SPtr<OrgParser>     parser;
     LineColInfo         info;
+    UPtr<OrgSpec>       spec;
 
     Func<LineCol(CR<PosStr>)> locationResolver;
 
     MockFull() : tokenizer(), nodes(nullptr), lex(&tokens) {
+        spec         = getOrgSpec();
         parser       = OrgParser::initImpl(&nodes, false);
         tokenizer    = OrgTokenizer::initImpl(&tokens, false);
         nodes.tokens = &tokens;
@@ -56,8 +58,8 @@ struct MockFull {
     }
 
     void tokenize(CR<QString> content, LexerMethod lexMethod) {
-        base = content;
-        info = LineColInfo{base};
+        base        = content;
+        info        = LineColInfo{base};
         tokens.base = base.data();
         PosStr str{base};
         ((*tokenizer).*lexMethod)(str);
@@ -75,6 +77,7 @@ struct MockFull {
         parse(parseMethod);
     }
 
+
     void treeRepr() {
         std::cout << "\n";
         ColStream os{qcout};
@@ -82,11 +85,12 @@ struct MockFull {
         std::cout << std::endl;
     }
 
-    void jsonRepr() { std::cout << ::jsonRepr(spec, a(0)) << "\n"; }
+
+    void jsonRepr() { std::cout << ::jsonRepr(*spec, a(0)) << "\n"; }
 
     void yamlRepr(bool withNames = true) {
         if (withNames) {
-            std::cout << ::yamlRepr(spec, a(0)) << "\n";
+            std::cout << ::yamlRepr(*spec, a(0)) << "\n";
         } else {
             std::cout << ::yamlRepr(a(0)) << "\n";
         }

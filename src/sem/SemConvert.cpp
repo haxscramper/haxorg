@@ -151,15 +151,6 @@ OrgBigIdentKind parseBigIdent(QString const& id) {
     }
 }
 
-
-OrgAdapter one(OrgAdapter node, OrgSpecName name) {
-    return spec.getSingleSubnode(node, name);
-}
-
-Vec<OrgAdapter> many(OrgAdapter node, OrgSpecName name) {
-    return spec.getMultipleSubnode(node, name);
-}
-
 SemIdT<Table> OrgConverter::convertTable(__args) {
     __perf_trace("convertTable");
     __trace();

@@ -57,16 +57,17 @@ TEST(SimpleNodeConversion, DoubleHashTag) {
     EXPECT_EQ(p.s(1), "#test");
     QString     buf;
     QTextStream ss{&buf};
+    auto        spec = getOrgSpec();
     ss << "start validation output" << Qt::endl;
-    ss << spec.validateSelf(p.a(0)) << "\n";
-    ss << spec.validateSub(p.a(0), 0) << "\n";
-    ss << spec.getSingleSubnodeIdx(p.a(0), OrgSpecName::Head);
-    spec.getSingleSubnodeIdx(org::HashTag, OrgSpecName::Head);
-    spec.getMultipleSubnode(p.a(0), OrgSpecName::Head);
-    spec.fieldName(p.a(0), 0);
+    ss << spec->validateSelf(p.a(0)) << "\n";
+    ss << spec->validateSub(p.a(0), 0) << "\n";
+    ss << spec->getSingleSubnodeIdx(p.a(0), OrgSpecName::Head);
+    spec->getSingleSubnodeIdx(org::HashTag, OrgSpecName::Head);
+    spec->getMultipleSubnode(p.a(0), OrgSpecName::Head);
+    spec->fieldName(p.a(0), 0);
 
-    spec.isSingleField(p.a(0), 0);
-    spec.fieldDoc(p.a(0), 0);
+    spec->isSingleField(p.a(0), 0);
+    spec->fieldDoc(p.a(0), 0);
 }
 
 TEST(SimpleNodeConversion, NestedHashTag) {
@@ -77,8 +78,9 @@ TEST(SimpleNodeConversion, NestedHashTag) {
     yamlRepr(p.tokens);
     QString     buf;
     QTextStream ss{&buf};
-    ss << "yaml node\n" << yamlRepr(spec, p.a(0)) << "\nend yaml node\n";
-    ss << "json node\n" << jsonRepr(spec, p.a(0)) << "\nend json node\n";
+    auto        spec = getOrgSpec();
+    ss << "yaml node\n" << yamlRepr(*spec, p.a(0)) << "\nend yaml node\n";
+    ss << "json node\n" << jsonRepr(*spec, p.a(0)) << "\nend json node\n";
     ss << "flat repr\n" << jsonRepr(p.nodes) << "\nend flat nodes\n";
     ss << "token repr\n" << jsonRepr(p.tokens) << "\nend flat tokens\n";
     ss << "yaml node\n" << yamlRepr(p.a(0)) << "\nend yaml node\n";
