@@ -45,186 +45,131 @@ void internal::PrintTo(CR<Event> e, ::std::ostream* os) {
 }
 
 
-struct StrStore {
-    Vec<Str> strings;
-};
-
-// TODO replace with tests for the simple string store
-LytStr str(StrStore& store, const Str& str) {
-    LytStr result(store.strings.size(), str.length());
-    store.strings.push_back(str);
-    return result;
-}
-
-Str str(const StrStore& s, const LytStr& str) {
-    if (str.isSpaces()) {
-        return Str(" ").repeated(str.len);
-    } else {
-        return s.strings[str.toIndex()];
-    }
-}
-
-Str toString(StrStore& s, Options const& opts, Block::Ptr& blc) {
-    Layout::Ptr lyt = blc->toLayout(opts);
-    Str         result;
-    for (const auto& event : formatEvents(lyt)) {
-        switch (event.getKind()) {
-            case Event::Kind::Newline: {
-                result += "\n";
-                break;
-            }
-
-            case Event::Kind::Spaces: {
-                result += std::string(event.getSpaces().spaces, ' ');
-                break;
-            }
-
-            case Event::Kind::Text: {
-                result += str(s, event.getText().str);
-                break;
-            }
-        }
-    }
-
-    Vec<Str> fin;
-    for (const auto& line : result.split("\n")) {
-        fin.push_back(strip(line, CharSet{}, CharSet{QChar(' ')}));
-    }
-    return join("\n", fin);
-}
-
-Vec<Event> toEvents(Block::Ptr blc, Options const& opts = Options{}) {
-    Layout::Ptr lyt = blc->toLayout(opts);
-    Vec<Event>  res;
-    for (const auto& event : formatEvents(lyt)) {
-        res.push_back(event);
-    }
-    return res;
-}
-
-StrStore s;
-
-Str toString(Block::Ptr b, int width = 80) {
-    return toString(s, Options{.rightMargin = width}, b);
-}
-
-Str toString(Block::Ptr b, Options const& o) { return toString(s, o, b); }
-
-Layout::Ptr toLyt(Block::Ptr& b) { return b->toLayout(Options{}); }
-
 using b = Block;
+using S = layout::SimpleStringStore;
 
-LytStr     str(const Str& arg) { return str(s, arg); }
-Block::Ptr text(const Str& arg) { return b::text(str(s, arg)); }
-
-
-Block::Ptr lytProc(const Vec<Block::Ptr>& args, Block::Ptr& body) {
+Block::Ptr lytProc(S& s, const Vec<Block::Ptr>& args, Block::Ptr& body) {
     Str        h    = "proc (";
     Str        t    = ") = ";
-    Block::Ptr hsep = b::horizontal(args, text(", "));
-    Block::Ptr vsep = b::vertical(args, text(", "));
+    Block::Ptr hsep = b::horizontal(args, s.text(", "));
+    Block::Ptr vsep = b::vertical(args, s.text(", "));
 
     return b::choice({
         b::line({
-            text(h),
+            s.text(h),
             hsep,
-            text(t),
+            s.text(t),
             body,
         }),
         b::stack({
-            b::line({text(h), hsep, text(t), b::indent(2, body)}),
+            b::line({s.text(h), hsep, s.text(t), b::indent(2, body)}),
         }),
         b::stack({
-            text(h),
+            s.text(h),
             b::indent(4, vsep),
-            text(t),
+            s.text(t),
             b::indent(2, body),
         }),
     });
 }
 
+
 TEST(TextLayouterTest, BasicFormattingOperations) {
     {
-        auto res = toString(text("S"));
+        S    s;
+        auto res = s.toString(s.text("S"));
         EXPECT_EQ(res, "S");
     }
-    EXPECT_EQ(toString(b::indent(4, text("S"))), "    S");
-    EXPECT_EQ(toString(b::line({text("A"), text("B")})), "AB");
     {
-        LytStr A = str("A");
-        LytStr B = str("B");
-
-        auto       block      = b::stack({b::text(A), b::text(B)});
-        Vec<Event> formatting = toEvents(block);
-        EXPECT_THAT(
-            formatting,
-            ElementsAreArray({
-                Event(Event::Text{A}),
-                Event(Event::Newline()),
-                Event(Event::Text{B}),
-            }));
-
-        Str value = toString(block);
+        S s;
+        EXPECT_EQ(s.toString(b::indent(4, s.text("S"))), "    S");
+    }
+    {
+        S s;
+        EXPECT_EQ(s.toString(b::line({s.text("A"), s.text("B")})), "AB");
+    }
+    {
+        S    s;
+        auto block = b::stack({s.text("A"), s.text("B")});
+        Str  value = s.toString(block);
         EXPECT_EQ(value, "A\nB");
     }
-    EXPECT_EQ(
-        toString(b::indent(2, b::line({text("A"), text("B")}))), "  AB");
     {
-        auto value = toString(
-            b::indent(2, b::stack({text("A"), text("B")})));
+        S s;
+        EXPECT_EQ(
+            s.toString(b::indent(2, b::line({s.text("A"), s.text("B")}))),
+            "  AB");
+    }
+    {
+        S    s;
+        auto value = s.toString(
+            b::indent(2, b::stack({s.text("A"), s.text("B")})));
         EXPECT_EQ(value, "  A\n  B");
     }
     {
-        Str expr = toString(b::line({
+        S   s;
+        Str expr = s.toString(b::line({
             b::stack({
-                text("A"),
-                text("B"),
+                s.text("A"),
+                s.text("B"),
             }),
             b::stack({
-                text("C"),
-                text("D"),
+                s.text("C"),
+                s.text("D"),
             }),
         }));
 
         EXPECT_EQ(expr, "A\nBC\n D");
     }
 
-    EXPECT_EQ(
-        toString(b::choice({
-            text("123456"),
-            text("123"),
-        })),
-        Str("123"));
+    {
+        S s;
+        EXPECT_EQ(
+            s.toString(b::choice({
+                s.text("123456"),
+                s.text("123"),
+            })),
+            Str("123"));
+    }
 
-    EXPECT_EQ(
-        toString(b::choice({
-            b::stack({
-                text("123"),
-                text("456"),
-            }),
-            text("123456"),
-        })),
-        Str("123456"));
+    {
+        S s;
+        EXPECT_EQ(
+            s.toString(b::choice({
+                b::stack({
+                    s.text("123"),
+                    s.text("456"),
+                }),
+                s.text("123456"),
+            })),
+            Str("123456"));
+    }
 
-    EXPECT_EQ(
-        toString(
-            b::choice({
-                b::stack({text("12"), text("34"), text("56")}),
-                text("132456"),
-            }),
-            Options{.linebreakCost = 1, .rightMargin = 2}),
-        "12\n34\n56");
+    {
+        S s;
+        EXPECT_EQ(
+            s.toString(
+                b::choice({
+                    b::stack({s.text("12"), s.text("34"), s.text("56")}),
+                    s.text("132456"),
+                }),
+                Options{.linebreakCost = 1, .rightMargin = 2}),
+            "12\n34\n56");
+    }
 
-    EXPECT_EQ(
-        toString(
-            b::wrap(
-                {
-                    text("[###]"),
-                    text("[###]"),
-                },
-                str("@+")),
-            {.rightMargin = 2}),
-        "[###]@+\n[###]");
+    {
+        S s;
+        EXPECT_EQ(
+            s.toString(
+                b::wrap(
+                    {
+                        s.text("[###]"),
+                        s.text("[###]"),
+                    },
+                    s.str("@+")),
+                {.rightMargin = 2}),
+            "[###]@+\n[###]");
+    }
 }
 
 using namespace std::ranges;
@@ -263,30 +208,31 @@ using namespace std::ranges;
 //}
 
 TEST(TextLayouterTest, FnNameWithWrap) {
-    auto wrapArgs = []() {
+    auto wrapArgs = [](S& s) {
         return b::wrap(
             {
-                text("argument1"),
-                text("argument2"),
-                text("argument3"),
-                text("argument4"),
-                text("argument5"),
-                text("argument6"),
-                text("argument7"),
-                text("argument8"),
-                text("argument9"),
-                text("argument10"),
+                s.text("argument1"),
+                s.text("argument2"),
+                s.text("argument3"),
+                s.text("argument4"),
+                s.text("argument5"),
+                s.text("argument6"),
+                s.text("argument7"),
+                s.text("argument8"),
+                s.text("argument9"),
+                s.text("argument10"),
             },
-            str(", "));
+            s.str(", "));
     };
     {
-        Str res = toString(
+        S   s;
+        Str res = s.toString(
             b::line({
-                b::line({text("FnName"), text("(")}),
-                wrapArgs(),
-                text(")"),
+                b::line({s.text("FnName"), s.text("(")}),
+                wrapArgs(s),
+                s.text(")"),
             }),
-            60);
+            {.rightMargin = 60});
 
         Str val
             = "FnName(argument1, argument2, argument3, argument4,\n"
@@ -297,13 +243,14 @@ TEST(TextLayouterTest, FnNameWithWrap) {
     }
 
     {
-        Str res = toString(
+        S   s;
+        Str res = s.toString(
             b::line({
-                b::line({text("FnName"), text("(")}),
-                wrapArgs(),
-                text(")"),
+                b::line({s.text("FnName"), s.text("(")}),
+                wrapArgs(s),
+                s.text(")"),
             }),
-            30);
+            {.rightMargin = 30});
 
         Str val
             = "FnName(argument1, argument2,\n"
@@ -316,26 +263,27 @@ TEST(TextLayouterTest, FnNameWithWrap) {
     }
 
     {
-        Str res = toString(
+        S   s;
+        Str res = s.toString(
             b::choice({
                 b::line({
                     b::line({
-                        text("AVeryLongAndDescriptiveFunctionName"),
-                        text("("),
+                        s.text("AVeryLongAndDescriptiveFunctionName"),
+                        s.text("("),
                     }),
-                    b::indent(4, wrapArgs()),
-                    text(")"),
+                    b::indent(4, wrapArgs(s)),
+                    s.text(")"),
                 }),
                 b::stack({
                     b::line({
-                        text("AVeryLongAndDescriptiveFunctionName"),
-                        text("("),
+                        s.text("AVeryLongAndDescriptiveFunctionName"),
+                        s.text("("),
                     }),
-                    b::indent(4, wrapArgs()),
-                    text(")"),
+                    b::indent(4, wrapArgs(s)),
+                    s.text(")"),
                 }),
             }),
-            50);
+            {.rightMargin = 50});
 
         EXPECT_EQ(
             res,
@@ -349,16 +297,17 @@ TEST(TextLayouterTest, FnNameWithWrap) {
 
 TEST(TextLayouterTest, CodeLayout) {
     {
-        auto bl = toString(b::line({
-            text("stmtPragmas* = "),
+        S    s;
+        auto bl = s.toString(b::line({
+            s.text("stmtPragmas* = "),
             b::line({
-                text("{ "),
+                s.text("{ "),
                 b::stack({
-                    text("wChecks"),
-                    text("wOverflowChecks"),
-                    text("wNilChecks"),
+                    s.text("wChecks"),
+                    s.text("wOverflowChecks"),
+                    s.text("wNilChecks"),
                 }),
-                text(" }"),
+                s.text(" }"),
             }),
         }));
 

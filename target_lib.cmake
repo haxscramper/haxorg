@@ -16,6 +16,18 @@ find_library(GRAPHVIZ_GVC_LIBRARY gvc)
 
 add_target_property(haxorg INCLUDE_DIRECTORIES "/usr/include/enchant-2")
 
+target_precompile_headers(haxorg PRIVATE
+  <QString>
+  <QDateTime>
+  <QDebug>
+  <nlohmann/json.hpp>
+  <optional>
+  <vector>
+  <boost/mp11.hpp>
+  <boost/describe.hpp>
+  <sem/SemOrg.hpp>
+)
+
 target_link_libraries(haxorg PUBLIC
     ${GRAPHVIZ_CGRAPH_LIBRARY}
     ${GRAPHVIZ_GVC_LIBRARY}

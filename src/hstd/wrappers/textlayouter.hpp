@@ -464,7 +464,11 @@ struct SimpleStringStore {
 
     LytStr  str(QString const& str);
     QString str(const LytStr& str);
-    QString toString(Block::Ptr& blc, Options const& opts);
+    QString toString(
+        Block::Ptr const& blc,
+        Options const&    opts = Options{});
+    Block::Ptr text(const QString& arg) { return Block::text(str(arg)); }
+    Block::Ptr text(const LytStr& s) { return Block::text(s); }
 };
 
 

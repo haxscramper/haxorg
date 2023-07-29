@@ -990,7 +990,9 @@ QString SimpleStringStore::str(const LytStr& str) {
     };
 }
 
-QString SimpleStringStore::toString(Block::Ptr& blc, const Options& opts) {
+QString SimpleStringStore::toString(
+    const Block::Ptr& blc,
+    const Options&    opts) {
     Layout::Ptr lyt = blc->toLayout(opts);
     QString     result;
     for (const auto& event : formatEvents(lyt)) {
