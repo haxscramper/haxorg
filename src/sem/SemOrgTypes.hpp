@@ -1557,74 +1557,74 @@ struct DocumentGroup : public Org {
 
 } // namespace sem
 template <>
-struct value_domain : public value_domain_ungapped<Format,
-                                                   Format::Inline,
-                                                   Format::Block> {};
+struct value_domain<Format> : public value_domain_ungapped<Format,
+                                                           Format::Inline,
+                                                           Format::Block> {};
 template <>
 struct enum_serde<Format>;
 template <>
-struct value_domain : public value_domain_ungapped<Results,
-                                                   Results::Replace,
-                                                   Results::Replace> {};
+struct value_domain<Results> : public value_domain_ungapped<Results,
+                                                            Results::Replace,
+                                                            Results::Replace> {};
 template <>
 struct enum_serde<Results>;
 template <>
-struct value_domain : public value_domain_ungapped<Exports,
-                                                   Exports::None,
-                                                   Exports::Results> {};
+struct value_domain<Exports> : public value_domain_ungapped<Exports,
+                                                            Exports::None,
+                                                            Exports::Results> {};
 template <>
 struct enum_serde<Exports>;
 template <>
-struct value_domain : public value_domain_ungapped<Mode,
-                                                   Mode::None,
-                                                   Mode::SameDay> {};
+struct value_domain<Mode> : public value_domain_ungapped<Mode,
+                                                         Mode::None,
+                                                         Mode::SameDay> {};
 template <>
 struct enum_serde<Mode>;
 template <>
-struct value_domain : public value_domain_ungapped<Period,
-                                                   Period::Year,
-                                                   Period::Minute> {};
+struct value_domain<Period> : public value_domain_ungapped<Period,
+                                                           Period::Year,
+                                                           Period::Minute> {};
 template <>
 struct enum_serde<Period>;
 template <>
-struct value_domain : public value_domain_ungapped<Kind,
-                                                   Kind::Clocked,
-                                                   Kind::Repeated> {};
+struct value_domain<Kind> : public value_domain_ungapped<Kind,
+                                                         Kind::Clocked,
+                                                         Kind::Repeated> {};
 template <>
 struct enum_serde<Kind>;
 template <>
-struct value_domain : public value_domain_ungapped<SetMode,
-                                                   SetMode::Override,
-                                                   SetMode::Subtract> {};
+struct value_domain<SetMode> : public value_domain_ungapped<SetMode,
+                                                            SetMode::Override,
+                                                            SetMode::Subtract> {};
 template <>
 struct enum_serde<SetMode>;
 template <>
-struct value_domain : public value_domain_ungapped<InheritanceMode,
-                                                   InheritanceMode::ThisAndSub,
-                                                   InheritanceMode::OnlySub> {};
+struct value_domain<InheritanceMode> : public value_domain_ungapped<InheritanceMode,
+                                                                    InheritanceMode::ThisAndSub,
+                                                                    InheritanceMode::OnlySub> {};
 template <>
 struct enum_serde<InheritanceMode>;
 template <>
-struct value_domain : public value_domain_ungapped<Level,
-                                                   Level::Folded,
-                                                   Level::All> {};
+struct value_domain<Level> : public value_domain_ungapped<Level,
+                                                          Level::Folded,
+                                                          Level::All> {};
 template <>
 struct enum_serde<Level>;
 template <>
-struct value_domain : public value_domain_ungapped<Checkbox,
-                                                   Checkbox::None,
-                                                   Checkbox::Empty> {};
+struct value_domain<Checkbox> : public value_domain_ungapped<Checkbox,
+                                                             Checkbox::None,
+                                                             Checkbox::Empty> {};
 template <>
 struct enum_serde<Checkbox>;
 template <>
-struct value_domain : public value_domain_ungapped<BrokenLinks,
-                                                   BrokenLinks::Raise,
-                                                   BrokenLinks::Mark> {};
+struct value_domain<BrokenLinks> : public value_domain_ungapped<BrokenLinks,
+                                                                BrokenLinks::Raise,
+                                                                BrokenLinks::Mark> {};
 template <>
 struct enum_serde<BrokenLinks>;
 template <>
-struct value_domain : public value_domain_ungapped<Visibility,
-                                                   Visibility::Overview,
-                                                   Visibility::ShowEverything> {};
+struct value_domain<Visibility> : public value_domain_ungapped<Visibility,
+                                                               Visibility::Overview,
+                                                               Visibility::ShowEverything> {};
 template <>
 struct enum_serde<Visibility>;

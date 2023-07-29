@@ -4,9 +4,6 @@
 
 #include <lexbase/Token.hpp>
 #include <lexbase/Node.hpp>
-
-#include <types/enums.hpp>
-#include <types/enum_repr.hpp>
 #include <sem/SemOrgEnums.hpp>
 
 template <>

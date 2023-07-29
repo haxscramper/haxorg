@@ -240,9 +240,10 @@ GenConverter::Res GenConverter::convert(const GenTu::Enum& entry) {
         return builder.string("");
     } else {
         pendingToplevel.push_back(builder.Record({
-            .name     = "value_domain",
-            .Template = AB::TemplateParams::FinalSpecialization(),
-            .bases    = {AB::QualType(
+            .name       = "value_domain",
+            .Template   = AB::TemplateParams::FinalSpecialization(),
+            .NameParams = {AB::QualType(entry.name)},
+            .bases      = {AB::QualType(
                           "value_domain_ungapped",
                           {
                               AB::QualType(entry.name),
@@ -251,7 +252,7 @@ GenConverter::Res GenConverter::convert(const GenTu::Enum& entry) {
                               AB::QualType(
                                   {entry.name}, entry.fields.back().name),
                           })
-                             .withVerticalParams()},
+                               .withVerticalParams()},
         }));
 
         pendingToplevel.push_back(builder.Record({

@@ -1659,13 +1659,6 @@ org can do ... which is to be determined as well")
 (d:full
  (list
   (d:unit
-   (d:file "/tmp/enums.hpp" enums)
-   #:source
-   (d:file "/tmp/enums.cpp"
-           (append
-            (list (d:pass "#include \"/tmp/enums.hpp\""))
-            enums)))
-  (d:unit
    (d:file
     "${base}/exporters/Exporter.tcc"
     (append
@@ -1674,17 +1667,30 @@ org can do ... which is to be determined as well")
    (d:file
     "${base}/exporters/ExporterMethods.tcc"
     (append (get-exporter-methods #t))))
-  (d:unit
-   (d:file
-    "${base}/sem/SemOrgEnums.hpp"
-    (list
-     (d:pass "#pragma once")
-     (d:enum
-      (t:osk)
-      (d:doc "")
-      (map (lambda (struct) (d:efield (slot-ref struct 'name) (d:doc ""))) (get-concrete-types)))
-     (d:pass (format #f "#define EACH_SEM_ORG_KIND(__IMPL) \\\n~{    __IMPL(~a) \\\n~}"
-                     (map (lambda (struct) (slot-ref struct 'name)) (get-concrete-types)))))))
+  (let ((full-enums
+         (append
+          enums
+          (list (d:enum
+                 (t:osk)
+                 (d:doc "")
+                 (map (lambda (struct) (d:efield (slot-ref struct 'name) (d:doc ""))) (get-concrete-types)))))))
+    (d:unit
+     (d:file
+      "${base}/sem/SemOrgEnums.hpp"
+      (append
+       (list
+        (d:pass "#pragma once")
+        (d:pass "#include <hstd/system/basic_templates.hpp>")
+        (d:pass "#include <hstd/system/reflection.hpp>")
+        (d:pass (format #f "#define EACH_SEM_ORG_KIND(__IMPL) \\\n~{    __IMPL(~a) \\\n~}"
+                        (map (lambda (struct) (slot-ref struct 'name)) (get-concrete-types)))))
+       full-enums))
+     #:source
+     (d:file "${base}/sem/SemOrgEnums.cpp"
+             (append
+              (list (d:pass "#include \"SemOrgEnums.hpp\""))
+              full-enums))
+     ))
   (d:unit
    (d:file
     "${base}/sem/SemOrgTypes.hpp"

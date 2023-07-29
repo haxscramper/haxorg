@@ -41,9 +41,6 @@ find_package(Qt6 COMPONENTS Gui Core REQUIRED)
 include(target_hstd.cmake)
 include(target_codegen.cmake)
 include(target_lib.cmake)
-include(autogen_enums.cmake)
-
-add_dependencies(haxorg autogen_enums)
 
 include(target_tests.cmake)
 include(target_cli.cmake)
