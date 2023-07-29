@@ -31,15 +31,30 @@ class ASTBuilder {
 
     struct QualType {
         Str           name;
-        bool          isConst    = false;
-        bool          isPtr      = false;
-        bool          isRef      = false;
-        Vec<QualType> Parameters = {};
+        bool          isConst           = false;
+        bool          isPtr             = false;
+        bool          isRef             = false;
+        Vec<QualType> Spaces            = {};
+        Vec<QualType> Parameters        = {};
+        bool          verticalParamList = false;
+
+        QualType& withVerticalParams(bool params = true) {
+            verticalParamList = params;
+            return *this;
+        }
 
         QualType() {}
+
         QualType(Str const& name) : name(name) {}
         QualType(Str const& name, Vec<QualType> const& Parameters)
             : name(name), Parameters(Parameters) {}
+
+        QualType(CVec<Str> spaces, Str const& name) : name(name) {
+            for (auto const& space : spaces) {
+                Spaces.push_back(QualType(space));
+            }
+        }
+
 
         QualType& Ref(bool set = true) {
             isRef = set;
@@ -57,17 +72,6 @@ class ASTBuilder {
         }
     };
 
-    struct IdentParams {
-        Vec<QualType> spaces;
-        IdentParams() {}
-        IdentParams(Str const& name) : spaces({QualType(name)}) {}
-        IdentParams(Vec<Str> const& name) {
-            for (auto const& n : name) {
-                spaces.push_back(QualType(n));
-            }
-        }
-    };
-
     struct TemplateParamParams {
         struct Param {
             bool       Placeholder = false;
@@ -82,13 +86,16 @@ class ASTBuilder {
         };
 
         Vec<Spec> Stacks;
+
+        static TemplateParamParams FinalSpecialization() {
+            return TemplateParamParams{.Stacks = {Spec{}}};
+        }
     };
 
     Res Template(TemplateParamParams::Param const& Param);
     Res Template(TemplateParamParams::Spec const& Spec);
     Res Template(TemplateParamParams const& Templ);
     Res WithTemplate(TemplateParamParams const& Templ, Res const& Body);
-    Res Ident(IdentParams const& Id);
 
     enum class StorageClass
     {
@@ -108,7 +115,7 @@ class ASTBuilder {
     Res ParmVarDecl(const ParmVarDeclParams& p);
 
     /// Function declaration signature
-    struct FunctionDeclParams {
+    struct FunctionParams {
         // TODO make into ident
         Str                    Name;
         DocParams              doc;
@@ -120,16 +127,23 @@ class ASTBuilder {
         bool                   Inline   = false;
     };
 
+    struct MethodParams {
+        FunctionParams Params;
+        QualType       Class;
+        bool           IsConst;
+    };
+
 
     /// Create function declaration. If \arg params is not empty use it to
     /// construct argument types in the resulting function signature.
-    Res FunctionDecl(FunctionDeclParams const& p);
+    Res Function(FunctionParams const& p);
+    Res Method(MethodParams const& p);
 
     QualType Type(Str const&);
     Res      Type(QualType const& type);
 
 
-    struct EnumDeclParams {
+    struct EnumParams {
         struct Field {
             DocParams doc;
             Str       name;
@@ -143,7 +157,7 @@ class ASTBuilder {
         Vec<Field> fields;
     };
 
-    Res EnumDecl(EnumDeclParams const& params);
+    Res Enum(EnumParams const& params);
 
 
     enum class AccessSpecifier
@@ -156,14 +170,14 @@ class ASTBuilder {
 
     Res WithAccess(Res const& content, AccessSpecifier spec);
 
-    struct RecordDeclParams {
+    struct RecordParams {
         struct Method {
-            FunctionDeclParams params;
-            bool               isStatic      = false;
-            bool               isConst       = false;
-            bool               isVirtual     = false;
-            bool               isPureVirtual = false;
-            AccessSpecifier    access = AccessSpecifier::Unspecified;
+            FunctionParams  params;
+            bool            isStatic      = false;
+            bool            isConst       = false;
+            bool            isVirtual     = false;
+            bool            isPureVirtual = false;
+            AccessSpecifier access        = AccessSpecifier::Unspecified;
         };
 
         struct Field {
@@ -179,26 +193,26 @@ class ASTBuilder {
             Data data;
         };
 
-        using Nested = Variant<
-            EnumDeclParams,
-            SPtr<RecordDeclParams>,
-            Res>;
+        using Nested = Variant<EnumParams, SPtr<RecordParams>, Res>;
 
-        Str       name;
-        DocParams doc;
-        // TODO specify base visibility
-        Vec<Str>    bases;
-        Vec<Member> members;
-        Vec<Nested> nested;
+        Str                 name;
+        Vec<QualType>       NameParams;
+        DocParams           doc;
+        Vec<QualType>       bases;
+        Vec<Member>         members;
+        Vec<Nested>         nested;
+        TemplateParamParams Template;
+        bool                IsDefinition = true;
     };
 
-    Res FieldDecl(RecordDeclParams::Field const& field);
-    Res MethodDecl(RecordDeclParams::Method const& method);
-    Res RecordDecl(RecordDeclParams const& params);
+    Res Field(RecordParams::Field const& field);
+    Res Method(RecordParams::Method const& method);
+    Res Record(RecordParams const& params);
 
     struct UsingDeclParams {
-        Str      newName;
-        QualType baseType;
+        TemplateParamParams Template;
+        Str                 newName;
+        QualType            baseType;
     };
 
     Res UsingDecl(UsingDeclParams const& params);

@@ -1660,7 +1660,11 @@ org can do ... which is to be determined as well")
  (list
   (d:unit
    (d:file "/tmp/enums.hpp" enums)
-   #:source (d:file "/tmp/enums.cpp" (list (d:pass "#include \"/tmp/enums.hpp\""))))
+   #:source
+   (d:file "/tmp/enums.cpp"
+           (append
+            (list (d:pass "#include \"/tmp/enums.hpp\""))
+            enums)))
   (d:unit
    (d:file
     "${base}/exporters/Exporter.tcc"

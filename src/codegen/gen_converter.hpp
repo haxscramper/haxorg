@@ -27,7 +27,7 @@ struct GenConverter {
 
     ASTBuilder::TemplateParamParams::Spec convertParams(
         CVec<GD::TParam> Params);
-    AB::FunctionDeclParams convertFunction(GD::Function const& func);
+    AB::FunctionParams convertFunction(GD::Function const& func);
     ASTBuilder::DocParams  convertDoc(GD::Doc const& doc);
     AB::ParmVarDeclParams  convertIdent(GD::Ident const& ident);
 

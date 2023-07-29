@@ -338,7 +338,7 @@ struct Example : public Block {
 struct Export : public Block {
   using Block::Block;
   /// \brief Export block format type
-  enum class Format  : short int{
+  enum class Format : short int {
     /// \brief Export directly in the paragraph
     Inline,
     /// \brief Single line of export
@@ -436,13 +436,13 @@ struct Code : public Block {
   };
 
   /// \brief What to do with newly evaluated result
-  enum class Results  : short int{
+  enum class Results : short int {
     /// \brief Remove old result, replace with new value
     Replace,
   };
 
   /// \brief What part of the code block should be visible in export
-  enum class Exports  : short int{
+  enum class Exports : short int {
     /// \brief Hide both original code and run result
     None,
     /// \brief Show output and code
@@ -498,7 +498,7 @@ struct Time : public Org {
   /// \brief Repetition information for static time
   struct Repeat {
     /// \brief Timestamp repetition mode
-    enum class Mode  : short int{
+    enum class Mode : short int {
       /// \brief Do not repeat task on completion
       None,
       /// \brief ?
@@ -512,7 +512,7 @@ struct Time : public Org {
     /// \brief Repetition period. Temporary placeholder for now, until I
     /// figure out what would be the proper way to represent whatever
     /// org can do ... which is to be determined as well
-    enum class Period  : short int{
+    enum class Period : short int {
       Year,
       Month,
       Week,
@@ -721,7 +721,7 @@ struct Subtree : public Org {
   /// \brief Type of the subtree associated time periods
   struct Period {
     /// \brief Period kind
-    enum class Kind  : short int{
+    enum class Kind : short int {
       /// \brief Time period of the task execution.
       Clocked,
       /// \brief Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned
@@ -759,13 +759,13 @@ struct Subtree : public Org {
 
   /// \brief Single subtree property
   struct Property {
-    enum class SetMode  : short int{
+    enum class SetMode : short int {
       Override,
       Add,
       Subtract,
     };
 
-    enum class InheritanceMode  : short int{
+    enum class InheritanceMode : short int {
       ThisAndSub,
       OnlyThis,
       OnlySub,
@@ -812,7 +812,7 @@ struct Subtree : public Org {
     };
 
     struct Visibility {
-      enum class Level  : short int{
+      enum class Level : short int {
         Folded,
         Children,
         Content,
@@ -1249,7 +1249,7 @@ struct List : public Org {
 
 struct ListItem : public Org {
   using Org::Org;
-  enum class Checkbox  : short int{
+  enum class Checkbox : short int {
     None,
     Done,
     Empty,
@@ -1472,13 +1472,13 @@ struct Include : public Org {
 struct DocumentOptions : public Org {
   using Org::Org;
   using TocExport = Variant<bool, int>;
-  enum class BrokenLinks  : short int{
+  enum class BrokenLinks : short int {
     Raise,
     Ignore,
     Mark,
   };
 
-  enum class Visibility  : short int{
+  enum class Visibility : short int {
     Overview,
     Content,
     ShowAll,
@@ -1556,3 +1556,75 @@ struct DocumentGroup : public Org {
 };
 
 } // namespace sem
+template <>
+struct value_domain : public value_domain_ungapped<Format,
+                                                   Format::Inline,
+                                                   Format::Block> {};
+template <>
+struct enum_serde<Format>;
+template <>
+struct value_domain : public value_domain_ungapped<Results,
+                                                   Results::Replace,
+                                                   Results::Replace> {};
+template <>
+struct enum_serde<Results>;
+template <>
+struct value_domain : public value_domain_ungapped<Exports,
+                                                   Exports::None,
+                                                   Exports::Results> {};
+template <>
+struct enum_serde<Exports>;
+template <>
+struct value_domain : public value_domain_ungapped<Mode,
+                                                   Mode::None,
+                                                   Mode::SameDay> {};
+template <>
+struct enum_serde<Mode>;
+template <>
+struct value_domain : public value_domain_ungapped<Period,
+                                                   Period::Year,
+                                                   Period::Minute> {};
+template <>
+struct enum_serde<Period>;
+template <>
+struct value_domain : public value_domain_ungapped<Kind,
+                                                   Kind::Clocked,
+                                                   Kind::Repeated> {};
+template <>
+struct enum_serde<Kind>;
+template <>
+struct value_domain : public value_domain_ungapped<SetMode,
+                                                   SetMode::Override,
+                                                   SetMode::Subtract> {};
+template <>
+struct enum_serde<SetMode>;
+template <>
+struct value_domain : public value_domain_ungapped<InheritanceMode,
+                                                   InheritanceMode::ThisAndSub,
+                                                   InheritanceMode::OnlySub> {};
+template <>
+struct enum_serde<InheritanceMode>;
+template <>
+struct value_domain : public value_domain_ungapped<Level,
+                                                   Level::Folded,
+                                                   Level::All> {};
+template <>
+struct enum_serde<Level>;
+template <>
+struct value_domain : public value_domain_ungapped<Checkbox,
+                                                   Checkbox::None,
+                                                   Checkbox::Empty> {};
+template <>
+struct enum_serde<Checkbox>;
+template <>
+struct value_domain : public value_domain_ungapped<BrokenLinks,
+                                                   BrokenLinks::Raise,
+                                                   BrokenLinks::Mark> {};
+template <>
+struct enum_serde<BrokenLinks>;
+template <>
+struct value_domain : public value_domain_ungapped<Visibility,
+                                                   Visibility::Overview,
+                                                   Visibility::ShowEverything> {};
+template <>
+struct enum_serde<Visibility>;

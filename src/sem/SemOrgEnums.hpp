@@ -1,5 +1,5 @@
 #pragma once
-enum class OrgSemKind  : short int{
+enum class OrgSemKind : short int {
   StmtList,
   Empty,
   Row,
@@ -103,3 +103,10 @@ enum class OrgSemKind  : short int{
     __IMPL(Include) \
     __IMPL(DocumentOptions) \
     __IMPL(DocumentGroup) \
+
+template <>
+struct value_domain : public value_domain_ungapped<OrgSemKind,
+                                                   OrgSemKind::StmtList,
+                                                   OrgSemKind::DocumentGroup> {};
+template <>
+struct enum_serde<OrgSemKind>;

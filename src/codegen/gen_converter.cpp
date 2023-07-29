@@ -20,12 +20,12 @@ AB::ParmVarDeclParams GenConverter::convertIdent(GD::Ident const& ident) {
 }
 
 GenConverter::Res GenConverter::convert(const GenTu::Function& func) {
-    return builder.FunctionDecl(convertFunction(func));
+    return builder.Function(convertFunction(func));
 }
 
-AB::FunctionDeclParams GenConverter::convertFunction(
+AB::FunctionParams GenConverter::convertFunction(
     const GD::Function& func) {
-    AB::FunctionDeclParams decl{
+    AB::FunctionParams decl{
         .ResultTy = builder.Type(func.result),
         .Name     = func.name,
         .doc      = convertDoc(func.doc),
@@ -58,11 +58,13 @@ AB::Res GenConverter::convert(const GD::Ident& ident) {
 }
 
 AB::Res GenConverter::convert(const GD::Struct& record) {
-    using RDP = AB::RecordDeclParams;
+    using RDP = AB::RecordParams;
     RDP params{
         .name  = record.name,
         .doc   = convertDoc(record.doc),
-        .bases = record.bases,
+        .bases = map(
+            record.bases,
+            [](Str const& base) { return AB::QualType(base); }),
     };
 
     WithContext tmpCtx(this, AB::QualType(record.name));
@@ -92,7 +94,7 @@ AB::Res GenConverter::convert(const GD::Struct& record) {
     }
 
     for (auto const& method : record.methods) {
-        params.members.push_back(RDP::Member{AB::RecordDeclParams::Method{
+        params.members.push_back(RDP::Member{AB::RecordParams::Method{
             .params    = convertFunction(method),
             .isStatic  = method.isStatic,
             .isConst   = method.isConst,
@@ -161,25 +163,52 @@ AB::Res GenConverter::convert(const GD::Struct& record) {
             (fields.size() < 4 && methods.size() < 1)));
     }
 
-    return builder.RecordDecl(params);
+    return builder.Record(params);
 }
 
 GenConverter::Res GenConverter::convert(const GenTu::Enum& entry) {
-    AB::EnumDeclParams params{
-        .name = entry.name,
-        .doc  = convertDoc(entry.doc),
-        .base = entry.base,
-    };
+    if (isSource) {
+        return builder.string("");
+    } else {
+        pendingToplevel.push_back(builder.Record({
+            .name     = "value_domain",
+            .Template = AB::TemplateParamParams::FinalSpecialization(),
+            .bases    = {AB::QualType(
+                          "value_domain_ungapped",
+                          {
+                              AB::QualType(entry.name),
+                              AB::QualType(
+                                  {entry.name}, entry.fields.front().name),
+                              AB::QualType(
+                                  {entry.name}, entry.fields.back().name),
+                          })
+                             .withVerticalParams()},
+        }));
 
-    for (auto const& field : entry.fields) {
-        params.fields.push_back(AB::EnumDeclParams::Field{
-            .doc   = {.brief = field.doc.brief, .full = field.doc.full},
-            .name  = field.name,
-            .value = field.value,
-        });
+        pendingToplevel.push_back(builder.Record({
+            .name         = "enum_serde",
+            .Template     = AB::TemplateParamParams::FinalSpecialization(),
+            .NameParams   = {AB::QualType(entry.name)},
+            .IsDefinition = false,
+        }));
+
+        AB::EnumParams params{
+            .name = entry.name,
+            .doc  = convertDoc(entry.doc),
+            .base = entry.base,
+        };
+
+        for (auto const& field : entry.fields) {
+            params.fields.push_back(AB::EnumParams::Field{
+                .doc  = {.brief = field.doc.brief, .full = field.doc.full},
+                .name = field.name,
+                .value = field.value,
+            });
+        }
+
+        return builder.Enum(params);
     }
 
-    return builder.EnumDecl(params);
 
     //    Vec<AB::Res> arguments = Vec<AB::Res>{builder.string(entry.name)}
     //                           + map(entry.fields,
@@ -207,10 +236,9 @@ Vec<AB::Res> GenConverter::convert(const GD::TypeGroup& record) {
     }
 
     if (false && 0 < record.enumName.size()) {
-        AB::EnumDeclParams enumDecl;
+        AB::EnumParams enumDecl;
         for (auto const& item : typeNames) {
-            enumDecl.fields.push_back(
-                AB::EnumDeclParams::Field{.name = item});
+            enumDecl.fields.push_back(AB::EnumParams::Field{.name = item});
         }
 
         enumDecl.name = record.enumName;
@@ -218,7 +246,7 @@ Vec<AB::Res> GenConverter::convert(const GD::TypeGroup& record) {
         Str strName = "_text";
         Str resName = "_result";
 
-        decls.push_back(builder.EnumDecl(enumDecl));
+        decls.push_back(builder.Enum(enumDecl));
         AB::SwitchStmtParams switchTo{
             .Expr = builder.string(resName),
         };
@@ -233,7 +261,7 @@ Vec<AB::Res> GenConverter::convert(const GD::TypeGroup& record) {
             });
         }
 
-        AB::FunctionDeclParams fromEnum{
+        AB::FunctionParams fromEnum{
             .Name = "from_enum",
             .ResultTy = AB::QualType("char").Ptr().Const(),
             .Args = {
@@ -245,7 +273,7 @@ Vec<AB::Res> GenConverter::convert(const GD::TypeGroup& record) {
             .Body = Vec<AB::Res>{builder.SwitchStmt(switchTo),},
         };
 
-        decls.push_back(builder.FunctionDecl(fromEnum));
+        decls.push_back(builder.Function(fromEnum));
     }
 
 
@@ -293,7 +321,7 @@ Vec<AB::Res> GenConverter::convert(const GD::TypeGroup& record) {
 
 
         decls.push_back(builder.XCall("SUB_VARIANTS", Arguments, true));
-        decls.push_back(builder.FieldDecl(AB::RecordDeclParams::Field{
+        decls.push_back(builder.Field(AB::RecordParams::Field{
             .params = AB::ParmVarDeclParams{
                 .type   = AB::QualType(record.variantName),
                 .name   = record.variantField,
