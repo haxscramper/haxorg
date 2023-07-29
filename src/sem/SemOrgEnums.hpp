@@ -501,6 +501,10 @@ enum class OrgNodeKind : short int {
   LogbookClock,
   /// \brief `Refile` entry in the subtree logbook drawer
   LogbookRefile,
+  /// \brief Change in the subtree priority
+  LogbookPriority,
+  /// \brief Action to change subtree
+  LogbookPriorityChangeAction,
   LogbookReschedule,
   LogbookTagChange,
   LogbookTagChangeAction,

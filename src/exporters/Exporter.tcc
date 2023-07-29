@@ -285,6 +285,14 @@ void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::DescribedLog> object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Priority> object) {
+  __obj_field(res, object, oldPriority);
+  __obj_field(res, object, newPriority);
+  __obj_field(res, object, on);
+
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Note> object) {
   __obj_field(res, object, on);
 

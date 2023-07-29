@@ -306,6 +306,8 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(QString value) {
   if (value == "LogbookNote") { return OrgNodeKind::LogbookNote; } else
   if (value == "LogbookClock") { return OrgNodeKind::LogbookClock; } else
   if (value == "LogbookRefile") { return OrgNodeKind::LogbookRefile; } else
+  if (value == "LogbookPriority") { return OrgNodeKind::LogbookPriority; } else
+  if (value == "LogbookPriorityChangeAction") { return OrgNodeKind::LogbookPriorityChangeAction; } else
   if (value == "LogbookReschedule") { return OrgNodeKind::LogbookReschedule; } else
   if (value == "LogbookTagChange") { return OrgNodeKind::LogbookTagChange; } else
   if (value == "LogbookTagChangeAction") { return OrgNodeKind::LogbookTagChangeAction; } else
@@ -449,6 +451,8 @@ QString enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::LogbookNote: return "LogbookNote";
     case OrgNodeKind::LogbookClock: return "LogbookClock";
     case OrgNodeKind::LogbookRefile: return "LogbookRefile";
+    case OrgNodeKind::LogbookPriority: return "LogbookPriority";
+    case OrgNodeKind::LogbookPriorityChangeAction: return "LogbookPriorityChangeAction";
     case OrgNodeKind::LogbookReschedule: return "LogbookReschedule";
     case OrgNodeKind::LogbookTagChange: return "LogbookTagChange";
     case OrgNodeKind::LogbookTagChangeAction: return "LogbookTagChangeAction";

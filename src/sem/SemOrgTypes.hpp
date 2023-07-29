@@ -658,6 +658,25 @@ struct SubtreeLog : public Org {
     Opt<SemIdT<StmtList>> desc = SemIdT<StmtList>::Nil();
   };
 
+  /// \brief Priority added
+  struct Priority : public DescribedLog {
+    /// \brief Priority change action
+    enum class Action : short int {
+      Added,
+      Removed,
+      Changed,
+    };
+
+    BOOST_DESCRIBE_NESTED_ENUM(Action, Added, Removed, Changed)
+    BOOST_DESCRIBE_CLASS(Priority, (DescribedLog), (), (), (oldPriority, newPriority, on))
+    /// \brief Previous priority for change and removal
+    Opt<QString> oldPriority = std::nullopt;
+    /// \brief New priority for change and addition
+    Opt<QString> newPriority = std::nullopt;
+    /// \brief When priority was changed
+    SemIdT<Time> on = SemIdT<Time>::Nil();
+  };
+
   /// \brief Timestamped note
   struct Note : public DescribedLog {
     BOOST_DESCRIBE_CLASS(Note, (DescribedLog), (), (), (on))
@@ -700,7 +719,7 @@ struct SubtreeLog : public Org {
     bool added = false;
   };
 
-  SUB_VARIANTS(Kind, LogEntry, log, getLogKind, Note, Refile, Clock, State, Tag);
+  SUB_VARIANTS(Kind, LogEntry, log, getLogKind, Priority, Note, Refile, Clock, State, Tag);
   LogEntry log = Note{};
   BOOST_DESCRIBE_CLASS(SubtreeLog,
                        (Org),

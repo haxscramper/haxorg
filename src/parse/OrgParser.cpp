@@ -1541,6 +1541,42 @@ OrgId OrgParserImpl<TraceState>::parseSubtreeLogbookListEntry(
             space(lex);
         }
         __end();
+    } else if (lex.at(otk::Word) && lex.strVal() == "Priority") {
+        __start(org::LogbookPriority);
+        {
+            __skip(lex, (V{otk::Word, "Priority"}));
+            space(lex);
+            __skip(lex, otk::QuoteOpen);
+            auto first = token(org::Word, pop(lex, lex.kind()));
+            __token(first);
+            __skip(lex, otk::QuoteClose);
+            space(lex);
+            auto str    = lex.strVal();
+            auto change = token(
+                org::LogbookPriorityChangeAction, pop(lex, otk::Word));
+            __token(change);
+            space(lex);
+
+            if (str == "Removed") {
+                empty();
+                __skip(lex, V({otk::Word, "on"}));
+            } else if (str == "Changed") {
+                __skip(lex, V({otk::Word, "From"}));
+                space(lex);
+                __skip(lex, otk::QuoteOpen);
+                auto second = token(org::Word, pop(lex, lex.kind()));
+                __token(second);
+                __skip(lex, otk::QuoteClose);
+            } else if (str == "Added") {
+                empty();
+                qDebug() << lex;
+                __skip(lex, V({otk::Word, "at"}));
+            }
+
+            space(lex);
+            parseTimeStamp(lex);
+        }
+        __end();
     } else if (lex.at(otk::Word) && lex.strVal() == "Rescheduled") {
         __start(org::LogbookReschedule);
         {

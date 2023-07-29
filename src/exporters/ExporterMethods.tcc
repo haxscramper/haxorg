@@ -41,6 +41,7 @@ void visit(R& res, CR<sem::Symbol::Param> object);
 void visit(R& res, CR<sem::SubtreeLog::LogEntry> object);
 void visitSubtreeLog(R& res, In<sem::SubtreeLog> object);
 void visit(R& res, CR<sem::SubtreeLog::DescribedLog> object);
+void visit(R& res, CR<sem::SubtreeLog::Priority> object);
 void visit(R& res, CR<sem::SubtreeLog::Note> object);
 void visit(R& res, CR<sem::SubtreeLog::Refile> object);
 void visit(R& res, CR<sem::SubtreeLog::Clock> object);
