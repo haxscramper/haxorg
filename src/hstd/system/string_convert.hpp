@@ -39,10 +39,8 @@ inline QString demangle(const char* name) { return name; }
 
 template <typename T>
 concept StringStreamable = requires(T value, QTextStream& os) {
-                               {
-                                   os << value
-                                   } -> std::same_as<QTextStream&>;
-                           };
+    { os << value } -> std::same_as<QTextStream&>;
+};
 
 template <typename T>
 QString to_string(T const& value)
@@ -58,18 +56,8 @@ inline QString to_string(bool b) { return b ? "true" : "false"; }
 
 template <typename T>
 concept StringConvertible = requires(T value) {
-                                {
-                                    to_string(value)
-                                    } -> std::same_as<QString>;
-                            };
-
-template <typename T>
-concept IsEnum = std::is_enum<T>::value;
-
-template <IsEnum T>
-QTextStream& operator<<(QTextStream& os, T value) {
-    return os << QString::number((int)value);
-}
+    { to_string(value) } -> std::same_as<QString>;
+};
 
 inline QTextStream& operator<<(QTextStream& os, std::string const& value) {
     return os << QString::fromStdString(value);

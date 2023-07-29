@@ -11,6 +11,8 @@
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/system/basic_templates.hpp>
 
+template <typename T>
+concept IsEnum = std::is_enum<T>::value;
 
 template <typename T>
 concept DescribedEnum = IsEnum<T>
@@ -49,10 +51,25 @@ E string_to_enum(char const* name) {
 template <typename E>
 struct enum_serde;
 
-template <DescribedEnum T>
+template <typename T>
+concept SerializableEnum = IsEnum<T> && requires(CR<T> value) {
+    { enum_serde<T>::to_string(value) } -> std::same_as<QString>;
+};
+
+template <typename T>
+concept NonSerializableEnum = IsEnum<T> && !SerializableEnum<T>;
+
+
+template <SerializableEnum T>
 QTextStream& operator<<(QTextStream& os, T value) {
     return os << enum_serde<T>::to_string(value);
 }
+
+template <NonSerializableEnum T>
+QTextStream& operator<<(QTextStream& os, T value) {
+    return os << QString::number((int)value);
+}
+
 
 template <DescribedEnum E>
 struct enum_serde<E> {
