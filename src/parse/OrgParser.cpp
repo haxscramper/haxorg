@@ -1567,10 +1567,16 @@ OrgId OrgParserImpl<TraceState>::parseSubtreeLogbookListEntry(
                 auto second = token(org::Word, pop(lex, lex.kind()));
                 __token(second);
                 __skip(lex, otk::QuoteClose);
+                space(lex);
+                __skip(lex, V({otk::Word, "at"}));
             } else if (str == "Added") {
                 empty();
-                qDebug() << lex;
                 __skip(lex, V({otk::Word, "at"}));
+            } else {
+                throw wrapError(
+                    Err::UnhandledToken(
+                        lex, "Unexpected priority action " + str),
+                    lex);
             }
 
             space(lex);
