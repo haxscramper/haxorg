@@ -132,22 +132,22 @@ using osk = OrgSemKind;
 OrgBigIdentKind parseBigIdent(QString const& id) {
     using K = OrgBigIdentKind;
     if (id == "TODO") {
-        return K::obiTodo;
+        return K::Todo;
     } else if (id == "WIP") {
-        return K::obiWip;
+        return K::Wip;
     } else if (id == "COMPLETED") {
-        return K::obiDone;
+        return K::Done;
     } else if (id == "DONE") {
-        return K::obiDone;
+        return K::Done;
     } else if (id == "CANCELED") {
-        return K::obiCancelled;
+        return K::Cancelled;
     } else if (id == "FAILED") {
-        return K::obiFailed;
+        return K::Failed;
     } else if (id == "PARTIALLY") {
-        return K::obiPartially;
+        return K::Partially;
     } else {
         qWarning() << "Unexpected value to parse big ident" << id;
-        return K::obiDone;
+        return K::Done;
     }
 }
 

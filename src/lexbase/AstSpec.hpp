@@ -691,7 +691,7 @@ struct AstSpec {
                     "Cannot get single subnode index for element "
                     + to_string(name) + " of node kind " + to_string(kind)
                     + " - field exists, but allowed AST range is of kind "
-                    + enum_serde<Kind>::to_string(range.kind)
+                    + enum_serde<AstRangeKind>::to_string(range.kind)
                     + " and requires node length, but it "
                     + "wasn't specified.");
             }

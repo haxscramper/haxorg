@@ -82,6 +82,8 @@ struct convert<GenTu::Entry>
             result = GenTu::Pass{};
         } else if (kind == "Method") {
             result = std::make_shared<GenTu::Function>();
+        } else if (kind == "Namespace") {
+            result = std::make_shared<GenTu::Namespace>();
         } else {
             throw decode_error(
                 "parsing GenDescriptionEntry variant", value);

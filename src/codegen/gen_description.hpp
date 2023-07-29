@@ -49,6 +49,7 @@ struct GenTu {
         BOOST_DESCRIBE_CLASS(Enum, (), (), (), (name, fields, doc, base));
     };
 
+
     struct Function {
         Opt<Vec<TParam>> params;
         Str              name;
@@ -80,6 +81,8 @@ struct GenTu {
     struct TypeGroup;
     struct Enum;
     struct Struct;
+    struct Namespace;
+
     struct Include {
         Str  what;
         bool isSystem = false;
@@ -96,6 +99,7 @@ struct GenTu {
         SPtr<Struct>,
         SPtr<TypeGroup>,
         SPtr<Function>,
+        SPtr<Namespace>,
         Include,
         Pass>;
 
@@ -152,6 +156,12 @@ struct GenTu {
              variantField,
              variantName,
              variantValue));
+    };
+
+    struct Namespace {
+        Str        name;
+        Vec<Entry> entries;
+        BOOST_DESCRIBE_CLASS(Namespace, (), (), (), (name, entries));
     };
 
     Vec<Entry> entries;

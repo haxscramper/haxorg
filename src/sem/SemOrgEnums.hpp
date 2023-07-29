@@ -1,6 +1,7 @@
 #pragma once
 #include <hstd/system/basic_templates.hpp>
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/Opt.hpp>
 #define EACH_SEM_ORG_KIND(__IMPL) \
     __IMPL(StmtList) \
     __IMPL(Empty) \
@@ -64,6 +65,17 @@ enum class OrgHorizontalDirection : short int {
   ohdCenter,
 };
 
+template <>
+struct enum_serde<OrgHorizontalDirection> {
+  static Opt<OrgHorizontalDirection> from_string(QString value);
+  static QString to_string(OrgHorizontalDirection value);
+};
+
+template <>
+struct value_domain<OrgHorizontalDirection> : public value_domain_ungapped<OrgHorizontalDirection,
+                                                                           OrgHorizontalDirection::ohdNone,
+                                                                           OrgHorizontalDirection::ohdCenter> {};
+
 enum class OrgVerticalDirection : short int {
   /// \brief No specific positioning
   ovdNone,
@@ -74,6 +86,17 @@ enum class OrgVerticalDirection : short int {
   /// \brief Bottom
   ovdBottom,
 };
+
+template <>
+struct enum_serde<OrgVerticalDirection> {
+  static Opt<OrgVerticalDirection> from_string(QString value);
+  static QString to_string(OrgVerticalDirection value);
+};
+
+template <>
+struct value_domain<OrgVerticalDirection> : public value_domain_ungapped<OrgVerticalDirection,
+                                                                         OrgVerticalDirection::ovdNone,
+                                                                         OrgVerticalDirection::ovdBottom> {};
 
 enum class OrgSpecName : short int {
   Unnamed,
@@ -137,6 +160,17 @@ enum class OrgSpecName : short int {
   MainSetRule,
   SubSetRule,
 };
+
+template <>
+struct enum_serde<OrgSpecName> {
+  static Opt<OrgSpecName> from_string(QString value);
+  static QString to_string(OrgSpecName value);
+};
+
+template <>
+struct value_domain<OrgSpecName> : public value_domain_ungapped<OrgSpecName,
+                                                                OrgSpecName::Unnamed,
+                                                                OrgSpecName::SubSetRule> {};
 
 enum class OrgNodeKind : short int {
   /// \brief Default valye for node - invalid state
@@ -476,6 +510,17 @@ enum class OrgNodeKind : short int {
   Target,
 };
 
+template <>
+struct enum_serde<OrgNodeKind> {
+  static Opt<OrgNodeKind> from_string(QString value);
+  static QString to_string(OrgNodeKind value);
+};
+
+template <>
+struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
+                                                                OrgNodeKind::None,
+                                                                OrgNodeKind::Target> {};
+
 enum class OrgTextContext : short int {
   otcPlain,
   otcSubtree0,
@@ -499,6 +544,17 @@ enum class OrgTextContext : short int {
   otcMonospaceInline,
   otcMonospaceBlock,
 };
+
+template <>
+struct enum_serde<OrgTextContext> {
+  static Opt<OrgTextContext> from_string(QString value);
+  static QString to_string(OrgTextContext value);
+};
+
+template <>
+struct value_domain<OrgTextContext> : public value_domain_ungapped<OrgTextContext,
+                                                                   OrgTextContext::otcPlain,
+                                                                   OrgTextContext::otcMonospaceBlock> {};
 
 enum class OrgBigIdentKind : short int {
   None,
@@ -596,6 +652,17 @@ enum class OrgBigIdentKind : short int {
   StructElse,
   StructWhile,
 };
+
+template <>
+struct enum_serde<OrgBigIdentKind> {
+  static Opt<OrgBigIdentKind> from_string(QString value);
+  static QString to_string(OrgBigIdentKind value);
+};
+
+template <>
+struct value_domain<OrgBigIdentKind> : public value_domain_ungapped<OrgBigIdentKind,
+                                                                    OrgBigIdentKind::None,
+                                                                    OrgBigIdentKind::StructWhile> {};
 
 enum class OrgTokenKind : short int {
   None,
@@ -937,6 +1004,17 @@ enum class OrgTokenKind : short int {
   TextBlock,
 };
 
+template <>
+struct enum_serde<OrgTokenKind> {
+  static Opt<OrgTokenKind> from_string(QString value);
+  static QString to_string(OrgTokenKind value);
+};
+
+template <>
+struct value_domain<OrgTokenKind> : public value_domain_ungapped<OrgTokenKind,
+                                                                 OrgTokenKind::None,
+                                                                 OrgTokenKind::TextBlock> {};
+
 enum class OrgCommandKind : short int {
   None,
   Include,
@@ -1016,6 +1094,17 @@ enum class OrgCommandKind : short int {
   TableFormula,
 };
 
+template <>
+struct enum_serde<OrgCommandKind> {
+  static Opt<OrgCommandKind> from_string(QString value);
+  static QString to_string(OrgCommandKind value);
+};
+
+template <>
+struct value_domain<OrgCommandKind> : public value_domain_ungapped<OrgCommandKind,
+                                                                   OrgCommandKind::None,
+                                                                   OrgCommandKind::TableFormula> {};
+
 enum class OrgPropertyKind : short int {
   Title,
   Author,
@@ -1046,11 +1135,33 @@ enum class OrgPropertyKind : short int {
   Id,
 };
 
+template <>
+struct enum_serde<OrgPropertyKind> {
+  static Opt<OrgPropertyKind> from_string(QString value);
+  static QString to_string(OrgPropertyKind value);
+};
+
+template <>
+struct value_domain<OrgPropertyKind> : public value_domain_ungapped<OrgPropertyKind,
+                                                                    OrgPropertyKind::Title,
+                                                                    OrgPropertyKind::Id> {};
+
 enum class OrgUnnumberedKind : short int {
   Notoc,
   True,
   False,
 };
+
+template <>
+struct enum_serde<OrgUnnumberedKind> {
+  static Opt<OrgUnnumberedKind> from_string(QString value);
+  static QString to_string(OrgUnnumberedKind value);
+};
+
+template <>
+struct value_domain<OrgUnnumberedKind> : public value_domain_ungapped<OrgUnnumberedKind,
+                                                                      OrgUnnumberedKind::Notoc,
+                                                                      OrgUnnumberedKind::False> {};
 
 enum class OrgBlockLexerState : short int {
   None,
@@ -1059,6 +1170,17 @@ enum class OrgBlockLexerState : short int {
   Ended,
   Complete,
 };
+
+template <>
+struct enum_serde<OrgBlockLexerState> {
+  static Opt<OrgBlockLexerState> from_string(QString value);
+  static QString to_string(OrgBlockLexerState value);
+};
+
+template <>
+struct value_domain<OrgBlockLexerState> : public value_domain_ungapped<OrgBlockLexerState,
+                                                                       OrgBlockLexerState::None,
+                                                                       OrgBlockLexerState::Complete> {};
 
 enum class OrgSemKind : short int {
   StmtList,
@@ -1114,74 +1236,12 @@ enum class OrgSemKind : short int {
 };
 
 template <>
-struct value_domain<OrgHorizontalDirection> : public value_domain_ungapped<OrgHorizontalDirection,
-                                                                           OrgHorizontalDirection::ohdNone,
-                                                                           OrgHorizontalDirection::ohdCenter> {};
-template <>
-struct enum_serde<OrgHorizontalDirection>;
-template <>
-struct value_domain<OrgVerticalDirection> : public value_domain_ungapped<OrgVerticalDirection,
-                                                                         OrgVerticalDirection::ovdNone,
-                                                                         OrgVerticalDirection::ovdBottom> {};
-template <>
-struct enum_serde<OrgVerticalDirection>;
-template <>
-struct value_domain<OrgSpecName> : public value_domain_ungapped<OrgSpecName,
-                                                                OrgSpecName::Unnamed,
-                                                                OrgSpecName::SubSetRule> {};
-template <>
-struct enum_serde<OrgSpecName>;
-template <>
-struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
-                                                                OrgNodeKind::None,
-                                                                OrgNodeKind::Target> {};
-template <>
-struct enum_serde<OrgNodeKind>;
-template <>
-struct value_domain<OrgTextContext> : public value_domain_ungapped<OrgTextContext,
-                                                                   OrgTextContext::otcPlain,
-                                                                   OrgTextContext::otcMonospaceBlock> {};
-template <>
-struct enum_serde<OrgTextContext>;
-template <>
-struct value_domain<OrgBigIdentKind> : public value_domain_ungapped<OrgBigIdentKind,
-                                                                    OrgBigIdentKind::None,
-                                                                    OrgBigIdentKind::StructWhile> {};
-template <>
-struct enum_serde<OrgBigIdentKind>;
-template <>
-struct value_domain<OrgTokenKind> : public value_domain_ungapped<OrgTokenKind,
-                                                                 OrgTokenKind::None,
-                                                                 OrgTokenKind::TextBlock> {};
-template <>
-struct enum_serde<OrgTokenKind>;
-template <>
-struct value_domain<OrgCommandKind> : public value_domain_ungapped<OrgCommandKind,
-                                                                   OrgCommandKind::None,
-                                                                   OrgCommandKind::TableFormula> {};
-template <>
-struct enum_serde<OrgCommandKind>;
-template <>
-struct value_domain<OrgPropertyKind> : public value_domain_ungapped<OrgPropertyKind,
-                                                                    OrgPropertyKind::Title,
-                                                                    OrgPropertyKind::Id> {};
-template <>
-struct enum_serde<OrgPropertyKind>;
-template <>
-struct value_domain<OrgUnnumberedKind> : public value_domain_ungapped<OrgUnnumberedKind,
-                                                                      OrgUnnumberedKind::Notoc,
-                                                                      OrgUnnumberedKind::False> {};
-template <>
-struct enum_serde<OrgUnnumberedKind>;
-template <>
-struct value_domain<OrgBlockLexerState> : public value_domain_ungapped<OrgBlockLexerState,
-                                                                       OrgBlockLexerState::None,
-                                                                       OrgBlockLexerState::Complete> {};
-template <>
-struct enum_serde<OrgBlockLexerState>;
+struct enum_serde<OrgSemKind> {
+  static Opt<OrgSemKind> from_string(QString value);
+  static QString to_string(OrgSemKind value);
+};
+
 template <>
 struct value_domain<OrgSemKind> : public value_domain_ungapped<OrgSemKind,
                                                                OrgSemKind::StmtList,
                                                                OrgSemKind::DocumentGroup> {};
-template <>
-struct enum_serde<OrgSemKind>;

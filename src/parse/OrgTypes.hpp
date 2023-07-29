@@ -6,26 +6,6 @@
 #include <lexbase/Node.hpp>
 #include <sem/SemOrgEnums.hpp>
 
-template <>
-struct value_domain<OrgSemKind>
-    : value_domain_ungapped<
-          OrgSemKind,
-          OrgSemKind::StmtList,
-          OrgSemKind::DocumentGroup> {};
-
-template <>
-struct value_domain<OrgTokenKind>
-    : value_domain_ungapped<
-          OrgTokenKind,
-          OrgTokenKind::None,
-          OrgTokenKind::TextBlock> {};
-
-template <>
-struct value_domain<OrgNodeKind>
-    : value_domain_ungapped<
-          OrgNodeKind,
-          OrgNodeKind::None,
-          OrgNodeKind::Target> {};
 
 using OrgToken      = Token<OrgTokenKind>;
 using OrgTokenId    = TokenId<OrgTokenKind>;

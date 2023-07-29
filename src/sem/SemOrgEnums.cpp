@@ -11,12 +11,12 @@
 
 
 
-OrgHorizontalDirection enum_serde<OrgHorizontalDirection>::from_string(QString value) {
+Opt<OrgHorizontalDirection> enum_serde<OrgHorizontalDirection>::from_string(QString value) {
   if (value == "ohdNone") { return OrgHorizontalDirection::ohdNone; } else
   if (value == "ohdLeft") { return OrgHorizontalDirection::ohdLeft; } else
   if (value == "ohdRight") { return OrgHorizontalDirection::ohdRight; } else
   if (value == "ohdCenter") { return OrgHorizontalDirection::ohdCenter; } else
-  { throw std::domain_error("Cannot convert string to enum value"); }
+  { return std::nullopt; }
 }
 QString enum_serde<OrgHorizontalDirection>::to_string(OrgHorizontalDirection value) {
   switch (value) {
@@ -27,12 +27,12 @@ QString enum_serde<OrgHorizontalDirection>::to_string(OrgHorizontalDirection val
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
-OrgVerticalDirection enum_serde<OrgVerticalDirection>::from_string(QString value) {
+Opt<OrgVerticalDirection> enum_serde<OrgVerticalDirection>::from_string(QString value) {
   if (value == "ovdNone") { return OrgVerticalDirection::ovdNone; } else
   if (value == "ovdTop") { return OrgVerticalDirection::ovdTop; } else
   if (value == "ovdCenter") { return OrgVerticalDirection::ovdCenter; } else
   if (value == "ovdBottom") { return OrgVerticalDirection::ovdBottom; } else
-  { throw std::domain_error("Cannot convert string to enum value"); }
+  { return std::nullopt; }
 }
 QString enum_serde<OrgVerticalDirection>::to_string(OrgVerticalDirection value) {
   switch (value) {
@@ -43,7 +43,7 @@ QString enum_serde<OrgVerticalDirection>::to_string(OrgVerticalDirection value) 
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
-OrgSpecName enum_serde<OrgSpecName>::from_string(QString value) {
+Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(QString value) {
   if (value == "Unnamed") { return OrgSpecName::Unnamed; } else
   if (value == "Result") { return OrgSpecName::Result; } else
   if (value == "Year") { return OrgSpecName::Year; } else
@@ -104,7 +104,7 @@ OrgSpecName enum_serde<OrgSpecName>::from_string(QString value) {
   if (value == "InheritanceMode") { return OrgSpecName::InheritanceMode; } else
   if (value == "MainSetRule") { return OrgSpecName::MainSetRule; } else
   if (value == "SubSetRule") { return OrgSpecName::SubSetRule; } else
-  { throw std::domain_error("Cannot convert string to enum value"); }
+  { return std::nullopt; }
 }
 QString enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
   switch (value) {
@@ -171,7 +171,7 @@ QString enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
-OrgNodeKind enum_serde<OrgNodeKind>::from_string(QString value) {
+Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(QString value) {
   if (value == "None") { return OrgNodeKind::None; } else
   if (value == "Document") { return OrgNodeKind::Document; } else
   if (value == "UserNode") { return OrgNodeKind::UserNode; } else
@@ -311,7 +311,7 @@ OrgNodeKind enum_serde<OrgNodeKind>::from_string(QString value) {
   if (value == "LogbookTagChangeAction") { return OrgNodeKind::LogbookTagChangeAction; } else
   if (value == "RadioTarget") { return OrgNodeKind::RadioTarget; } else
   if (value == "Target") { return OrgNodeKind::Target; } else
-  { throw std::domain_error("Cannot convert string to enum value"); }
+  { return std::nullopt; }
 }
 QString enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
   switch (value) {
@@ -457,7 +457,7 @@ QString enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
-OrgTextContext enum_serde<OrgTextContext>::from_string(QString value) {
+Opt<OrgTextContext> enum_serde<OrgTextContext>::from_string(QString value) {
   if (value == "otcPlain") { return OrgTextContext::otcPlain; } else
   if (value == "otcSubtree0") { return OrgTextContext::otcSubtree0; } else
   if (value == "otcSubtree1") { return OrgTextContext::otcSubtree1; } else
@@ -479,7 +479,7 @@ OrgTextContext enum_serde<OrgTextContext>::from_string(QString value) {
   if (value == "otcUnderline") { return OrgTextContext::otcUnderline; } else
   if (value == "otcMonospaceInline") { return OrgTextContext::otcMonospaceInline; } else
   if (value == "otcMonospaceBlock") { return OrgTextContext::otcMonospaceBlock; } else
-  { throw std::domain_error("Cannot convert string to enum value"); }
+  { return std::nullopt; }
 }
 QString enum_serde<OrgTextContext>::to_string(OrgTextContext value) {
   switch (value) {
@@ -507,7 +507,7 @@ QString enum_serde<OrgTextContext>::to_string(OrgTextContext value) {
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
-OrgBigIdentKind enum_serde<OrgBigIdentKind>::from_string(QString value) {
+Opt<OrgBigIdentKind> enum_serde<OrgBigIdentKind>::from_string(QString value) {
   if (value == "None") { return OrgBigIdentKind::None; } else
   if (value == "Must") { return OrgBigIdentKind::Must; } else
   if (value == "MustNot") { return OrgBigIdentKind::MustNot; } else
@@ -573,7 +573,7 @@ OrgBigIdentKind enum_serde<OrgBigIdentKind>::from_string(QString value) {
   if (value == "StructThen") { return OrgBigIdentKind::StructThen; } else
   if (value == "StructElse") { return OrgBigIdentKind::StructElse; } else
   if (value == "StructWhile") { return OrgBigIdentKind::StructWhile; } else
-  { throw std::domain_error("Cannot convert string to enum value"); }
+  { return std::nullopt; }
 }
 QString enum_serde<OrgBigIdentKind>::to_string(OrgBigIdentKind value) {
   switch (value) {
@@ -645,7 +645,7 @@ QString enum_serde<OrgBigIdentKind>::to_string(OrgBigIdentKind value) {
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
-OrgTokenKind enum_serde<OrgTokenKind>::from_string(QString value) {
+Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(QString value) {
   if (value == "None") { return OrgTokenKind::None; } else
   if (value == "Eof") { return OrgTokenKind::Eof; } else
   if (value == "GroupStart") { return OrgTokenKind::GroupStart; } else
@@ -864,7 +864,7 @@ OrgTokenKind enum_serde<OrgTokenKind>::from_string(QString value) {
   if (value == "AngleOpen") { return OrgTokenKind::AngleOpen; } else
   if (value == "AngleClose") { return OrgTokenKind::AngleClose; } else
   if (value == "TextBlock") { return OrgTokenKind::TextBlock; } else
-  { throw std::domain_error("Cannot convert string to enum value"); }
+  { return std::nullopt; }
 }
 QString enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
   switch (value) {
@@ -1089,7 +1089,7 @@ QString enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
-OrgCommandKind enum_serde<OrgCommandKind>::from_string(QString value) {
+Opt<OrgCommandKind> enum_serde<OrgCommandKind>::from_string(QString value) {
   if (value == "None") { return OrgCommandKind::None; } else
   if (value == "Include") { return OrgCommandKind::Include; } else
   if (value == "Filetags") { return OrgCommandKind::Filetags; } else
@@ -1139,7 +1139,7 @@ OrgCommandKind enum_serde<OrgCommandKind>::from_string(QString value) {
   if (value == "Caption") { return OrgCommandKind::Caption; } else
   if (value == "Header") { return OrgCommandKind::Header; } else
   if (value == "TableFormula") { return OrgCommandKind::TableFormula; } else
-  { throw std::domain_error("Cannot convert string to enum value"); }
+  { return std::nullopt; }
 }
 QString enum_serde<OrgCommandKind>::to_string(OrgCommandKind value) {
   switch (value) {
@@ -1195,7 +1195,7 @@ QString enum_serde<OrgCommandKind>::to_string(OrgCommandKind value) {
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
-OrgPropertyKind enum_serde<OrgPropertyKind>::from_string(QString value) {
+Opt<OrgPropertyKind> enum_serde<OrgPropertyKind>::from_string(QString value) {
   if (value == "Title") { return OrgPropertyKind::Title; } else
   if (value == "Author") { return OrgPropertyKind::Author; } else
   if (value == "Date") { return OrgPropertyKind::Date; } else
@@ -1223,7 +1223,7 @@ OrgPropertyKind enum_serde<OrgPropertyKind>::from_string(QString value) {
   if (value == "LatexHeader") { return OrgPropertyKind::LatexHeader; } else
   if (value == "OtherProperty") { return OrgPropertyKind::OtherProperty; } else
   if (value == "Id") { return OrgPropertyKind::Id; } else
-  { throw std::domain_error("Cannot convert string to enum value"); }
+  { return std::nullopt; }
 }
 QString enum_serde<OrgPropertyKind>::to_string(OrgPropertyKind value) {
   switch (value) {
@@ -1257,11 +1257,11 @@ QString enum_serde<OrgPropertyKind>::to_string(OrgPropertyKind value) {
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
-OrgUnnumberedKind enum_serde<OrgUnnumberedKind>::from_string(QString value) {
+Opt<OrgUnnumberedKind> enum_serde<OrgUnnumberedKind>::from_string(QString value) {
   if (value == "Notoc") { return OrgUnnumberedKind::Notoc; } else
   if (value == "True") { return OrgUnnumberedKind::True; } else
   if (value == "False") { return OrgUnnumberedKind::False; } else
-  { throw std::domain_error("Cannot convert string to enum value"); }
+  { return std::nullopt; }
 }
 QString enum_serde<OrgUnnumberedKind>::to_string(OrgUnnumberedKind value) {
   switch (value) {
@@ -1271,13 +1271,13 @@ QString enum_serde<OrgUnnumberedKind>::to_string(OrgUnnumberedKind value) {
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
-OrgBlockLexerState enum_serde<OrgBlockLexerState>::from_string(QString value) {
+Opt<OrgBlockLexerState> enum_serde<OrgBlockLexerState>::from_string(QString value) {
   if (value == "None") { return OrgBlockLexerState::None; } else
   if (value == "InHeader") { return OrgBlockLexerState::InHeader; } else
   if (value == "InBody") { return OrgBlockLexerState::InBody; } else
   if (value == "Ended") { return OrgBlockLexerState::Ended; } else
   if (value == "Complete") { return OrgBlockLexerState::Complete; } else
-  { throw std::domain_error("Cannot convert string to enum value"); }
+  { return std::nullopt; }
 }
 QString enum_serde<OrgBlockLexerState>::to_string(OrgBlockLexerState value) {
   switch (value) {
@@ -1289,7 +1289,7 @@ QString enum_serde<OrgBlockLexerState>::to_string(OrgBlockLexerState value) {
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
-OrgSemKind enum_serde<OrgSemKind>::from_string(QString value) {
+Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(QString value) {
   if (value == "StmtList") { return OrgSemKind::StmtList; } else
   if (value == "Empty") { return OrgSemKind::Empty; } else
   if (value == "Row") { return OrgSemKind::Row; } else
@@ -1340,7 +1340,7 @@ OrgSemKind enum_serde<OrgSemKind>::from_string(QString value) {
   if (value == "Include") { return OrgSemKind::Include; } else
   if (value == "DocumentOptions") { return OrgSemKind::DocumentOptions; } else
   if (value == "DocumentGroup") { return OrgSemKind::DocumentGroup; } else
-  { throw std::domain_error("Cannot convert string to enum value"); }
+  { return std::nullopt; }
 }
 QString enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
   switch (value) {

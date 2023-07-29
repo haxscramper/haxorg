@@ -283,7 +283,8 @@ ASTBuilder::Res ASTBuilder::Record(const RecordParams& params) {
                 {Doc(params.doc),
                  b::line(
                      {head,
-                      params.IsDefinition ? string("};") : string(";")})})
+                      params.IsDefinition ? string("};") : string(";")}),
+                 string("")})
             : b::stack(
                 {Doc(params.doc),
                  head,

@@ -27,15 +27,16 @@ struct GenConverter {
 
     ASTBuilder::TemplateParams::Group convertParams(
         CVec<GD::TParam> Params);
-    AB::FunctionParams convertFunction(GD::Function const& func);
-    ASTBuilder::DocParams  convertDoc(GD::Doc const& doc);
-    AB::ParmVarParams  convertIdent(GD::Ident const& ident);
+    AB::FunctionParams    convertFunction(GD::Function const& func);
+    ASTBuilder::DocParams convertDoc(GD::Doc const& doc);
+    AB::ParmVarParams     convertIdent(GD::Ident const& ident);
 
     Res      convert(GD::Function const& func);
     Res      convert(GD const& desc);
     Res      convert(GD::Ident const& ident);
     Res      convert(GD::Struct const& record);
     Res      convert(GD::Enum const& entry);
+    Res      convert(GD::Namespace const& space);
     Vec<Res> convert(GD::TypeGroup const& entry);
     Vec<Res> convert(GD::Entry const& entry);
 };

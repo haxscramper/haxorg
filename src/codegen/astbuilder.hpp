@@ -34,9 +34,15 @@ class ASTBuilder {
         bool          isConst           = false;
         bool          isPtr             = false;
         bool          isRef             = false;
+        bool          isNamespace       = false;
         Vec<QualType> Spaces            = {};
         Vec<QualType> Parameters        = {};
         bool          verticalParamList = false;
+
+        QualType& asNamespace(bool is = true) {
+            isNamespace = is;
+            return *this;
+        }
 
         QualType& withVerticalParams(bool params = true) {
             verticalParamList = params;
@@ -194,6 +200,8 @@ class ASTBuilder {
         };
 
         using Nested = Variant<EnumParams, SPtr<RecordParams>, Res>;
+
+        void add(CR<Member::Data> data) { members.push_back(data); }
 
         Str            name;
         Vec<QualType>  NameParams;

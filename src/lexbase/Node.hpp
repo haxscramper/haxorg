@@ -43,11 +43,15 @@ struct [[nodiscard]] NodeId
             arg) {}
 };
 
+
 template <typename N, typename K, typename IdBase, typename MaskType>
-NodeId<N, K, IdBase, MaskType> succ(NodeId<N, K, IdBase, MaskType> id) {
-    ++id;
-    return id;
-}
+struct value_domain<NodeId<N, K, IdBase, MaskType>> {
+    using ID = NodeId<N, K, IdBase, MaskType>;
+    static ID succ(ID id) {
+        ++id;
+        return id;
+    }
+};
 
 template <typename N, typename K>
 QTextStream& operator<<(QTextStream& os, NodeId<N, K> const& value) {

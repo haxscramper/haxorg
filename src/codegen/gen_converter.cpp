@@ -2,6 +2,8 @@
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
+using RDP = AB::RecordParams;
+
 ASTBuilder::TemplateParams::Group GenConverter::convertParams(
     CVec<GenTu::TParam> Params) {
     return ASTBuilder::TemplateParams::Group{
@@ -57,8 +59,25 @@ AB::Res GenConverter::convert(const GD::Ident& ident) {
     return builder.ParmVar(convertIdent(ident));
 }
 
+
+GenConverter::Res GenConverter::convert(const GenTu::Namespace& space) {
+    Res         result = AB::b::stack();
+    WithContext tmpCtx(this, AB::QualType(space.name).asNamespace());
+
+    result->add(builder.string("namespace " + space.name + "{"));
+    for (auto const& sub : space.entries) {
+        result->add(convert(sub));
+        result->add(std::move(pendingToplevel));
+    }
+
+    result->add(builder.string("}"));
+
+    return result;
+}
+
+
 AB::Res GenConverter::convert(const GD::Struct& record) {
-    using RDP = AB::RecordParams;
+
     RDP params{
         .name  = record.name,
         .doc   = convertDoc(record.doc),
@@ -94,7 +113,7 @@ AB::Res GenConverter::convert(const GD::Struct& record) {
     }
 
     for (auto const& method : record.methods) {
-        params.members.push_back(RDP::Member{AB::RecordParams::Method{
+        params.members.push_back(RDP::Member{RDP::Method{
             .params    = convertFunction(method),
             .isStatic  = method.isStatic,
             .isConst   = method.isConst,
@@ -160,107 +179,98 @@ AB::Res GenConverter::convert(const GD::Struct& record) {
                     (fields.size() < 6 && methods.size() < 2))),
             },
             false,
-            (fields.size() < 4 && methods.size() < 1)));
+            /*Line=*/(fields.size() < 4 && methods.size() < 1)));
     }
 
     return builder.Record(params);
 }
 
 GenConverter::Res GenConverter::convert(const GenTu::Enum& entry) {
+    auto FromParams = AB::FunctionParams{
+        .Name     = "from_string",
+        .ResultTy = AB::QualType("Opt", {AB::QualType(entry.name)}),
+        .Args     = {AB::ParmVarParams{
+                .type = AB::QualType("QString"),
+                .name = "value",
+        }}};
+
+    auto ToParams = AB::FunctionParams{
+        .Name     = "to_string",
+        .ResultTy = AB::QualType("QString"),
+        .Args     = {AB::ParmVarParams{
+                .type = AB::QualType(entry.name),
+                .name = "value",
+        }}};
+
+    bool isToplevel = true;
+    for (auto const& ctx : context) {
+        if (!ctx.isNamespace) {
+            isToplevel = false;
+            break;
+        }
+    }
+
     if (isSource) {
-        auto Class = AB::QualType(
-            "enum_serde", {AB::QualType(entry.name)});
+        if (isToplevel) {
+            auto Class = AB::QualType(
+                "enum_serde", {AB::QualType(entry.name)});
 
+            AB::IfStmtParams SwichFrom{.LookupIfStructure = true};
+            for (auto const& field : entry.fields) {
+                SwichFrom.Branches.push_back(AB::IfStmtParams::Branch{
+                    .OneLine = true,
+                    .Then    = builder.Return(
+                        builder.string(entry.name + "::" + field.name)),
+                    .Cond = builder.XCall(
+                        "==",
+                        {builder.string("value"),
+                         builder.Literal(field.name)})});
+            }
 
-        AB::IfStmtParams SwichFrom{.LookupIfStructure = true};
-        for (auto const& field : entry.fields) {
             SwichFrom.Branches.push_back(AB::IfStmtParams::Branch{
                 .OneLine = true,
-                .Then    = builder.Return(
-                    builder.string(entry.name + "::" + field.name)),
-                .Cond = builder.XCall(
-                    "==",
-                    {builder.string("value"),
-                     builder.Literal(field.name)})});
+                .Then = builder.Return(builder.string("std::nullopt"))});
+
+            AB::SwitchStmtParams SwitchTo{
+                .Expr    = builder.string("value"),
+                .Default = AB::CaseStmtParams{
+                  .IsDefault = true,
+                  .Compound  = false,
+                  .Autobreak = false,
+                  .OneLine   = true,
+                  .Body      = Vec<AB::Res>{builder.Throw(builder.XCall(
+                      "std::domain_error",
+                      {builder.Literal("Unexpected enum value -- cannot be "
+                                       "converted to string")}))}},
+                .Cases = map(
+                    entry.fields,
+                    [&](GenTu::EnumField const& field) -> AB::CaseStmtParams {
+                        return AB::CaseStmtParams{
+                            .Autobreak = false,
+                            .Compound  = false,
+                            .OneLine   = true,
+                            .Expr      = builder.string(entry.name + "::" + field.name),
+                            .Body      = Vec<AB::Res>{builder.Return(
+                              builder.Literal(field.name))}};
+                    })
+            };
+
+            auto FromDefinition = FromParams;
+            FromDefinition.Body = Vec<AB::Res>{builder.IfStmt(SwichFrom)},
+
+            pendingToplevel.push_back(builder.Method(
+                {.Class = Class, .Params = FromDefinition}));
+
+            auto ToDefininition = ToParams;
+            ToDefininition.Body = Vec<AB::Res>{
+                builder.SwitchStmt(SwitchTo)};
+
+            pendingToplevel.push_back(builder.Method(
+                {.Class = Class, .Params = ToDefininition}));
         }
-
-        SwichFrom.Branches.push_back(AB::IfStmtParams::Branch{
-            .OneLine = true,
-            .Then    = builder.Throw(builder.XCall(
-                "std::domain_error",
-                {builder.Literal(
-                    "Cannot convert string to enum value")}))});
-
-        pendingToplevel.push_back(builder.Method(
-            {.Class  = Class,
-             .Params = AB::FunctionParams{
-                 .Name     = "from_string",
-                 .ResultTy = AB::QualType(entry.name),
-                 .Body     = Vec<AB::Res>{builder.IfStmt(SwichFrom)},
-                 .Args     = {AB::ParmVarParams{
-                         .type = AB::QualType("QString"),
-                         .name = "value",
-                 }}}}));
-
-        AB::SwitchStmtParams SwitchTo{
-            .Expr    = builder.string("value"),
-            .Default = AB::CaseStmtParams{
-                .IsDefault = true,
-                .Compound  = false,
-                .Autobreak = false,
-                .OneLine   = true,
-                .Body      = Vec<AB::Res>{builder.Throw(builder.XCall(
-                    "std::domain_error",
-                    {builder.Literal("Unexpected enum value -- cannot be "
-                                          "converted to string")}))}},
-            .Cases = map(
-                entry.fields,
-                [&](GenTu::EnumField const& field) -> AB::CaseStmtParams {
-                     return AB::CaseStmtParams{
-                       .Autobreak = false,
-                       .Compound  = false,
-                       .OneLine   = true,
-                       .Expr      = builder.string(entry.name + "::" + field.name),
-                       .Body      = Vec<AB::Res>{builder.Return(
-                        builder.Literal(field.name))}};
-                })
-        };
-
-        pendingToplevel.push_back(builder.Method(
-            {.Class  = Class,
-             .Params = AB::FunctionParams{
-                 .Name     = "to_string",
-                 .ResultTy = AB::QualType("QString"),
-                 .Args     = {AB::ParmVarParams{
-                         .type = AB::QualType(entry.name),
-                         .name = "value",
-                 }},
-                 .Body = Vec<AB::Res>{builder.SwitchStmt(SwitchTo)}}}));
 
         return builder.string("");
     } else {
-        pendingToplevel.push_back(builder.Record({
-            .name       = "value_domain",
-            .Template   = AB::TemplateParams::FinalSpecialization(),
-            .NameParams = {AB::QualType(entry.name)},
-            .bases      = {AB::QualType(
-                          "value_domain_ungapped",
-                          {
-                              AB::QualType(entry.name),
-                              AB::QualType(
-                                  {entry.name}, entry.fields.front().name),
-                              AB::QualType(
-                                  {entry.name}, entry.fields.back().name),
-                          })
-                               .withVerticalParams()},
-        }));
-
-        pendingToplevel.push_back(builder.Record({
-            .name         = "enum_serde",
-            .Template     = AB::TemplateParams::FinalSpecialization(),
-            .NameParams   = {AB::QualType(entry.name)},
-            .IsDefinition = false,
-        }));
 
         AB::EnumParams params{
             .name = entry.name,
@@ -276,23 +286,57 @@ GenConverter::Res GenConverter::convert(const GenTu::Enum& entry) {
             });
         }
 
-        return builder.Enum(params);
+        if (isToplevel) {
+            auto Domain = RDP{
+                .name       = "value_domain",
+                .Template   = AB::TemplateParams::FinalSpecialization(),
+                .NameParams = {AB::QualType(entry.name)},
+                .bases      = {AB::QualType(
+                              "value_domain_ungapped",
+                              {
+                                  AB::QualType(entry.name),
+                                  AB::QualType(
+                                      {entry.name},
+                                      entry.fields.front().name),
+                                  AB::QualType(
+                                      {entry.name},
+                                      entry.fields.back().name),
+                              })
+                                   .withVerticalParams()},
+            };
+
+            auto FromDefinition = FromParams;
+            auto ToDefininition = ToParams;
+
+            auto Serde = RDP{
+                .name       = "enum_serde",
+                .Template   = AB::TemplateParams::FinalSpecialization(),
+                .NameParams = {AB::QualType(entry.name)}};
+
+            Serde.add(
+                RDP::Method{.isStatic = true, .params = FromDefinition});
+            Serde.add(
+                RDP::Method{.isStatic = true, .params = ToDefininition});
+
+            return AB::b::stack({
+                builder.Enum(params),
+                builder.Record(Serde),
+                builder.Record(Domain),
+            });
+        } else {
+            Vec<AB::Res>
+                arguments = Vec<AB::Res>{builder.string(entry.name)}
+                          + map(entry.fields,
+                                [&](GenTu::EnumField const& Field) {
+                                    return builder.string(Field.name);
+                                });
+
+            return AB::b::stack({
+                builder.Enum(params),
+                builder.XCall("BOOST_DESCRIBE_NESTED_ENUM", arguments),
+            });
+        }
     }
-
-
-    //    Vec<AB::Res> arguments = Vec<AB::Res>{builder.string(entry.name)}
-    //                           + map(entry.fields,
-    //                                 [&](GenTu::EnumField const& Field) {
-    //                                     return
-    //                                     builder.string(Field.name);
-    //                                 });
-
-    //    return {
-    //        params,
-    //        builder.XCall(
-    //            nested ? "BOOST_DESCRIBE_NESTED_ENUM" :
-    //            "BOOST_DESCRIBE_ENUM", arguments),
-    //    };
 }
 
 
@@ -391,7 +435,7 @@ Vec<AB::Res> GenConverter::convert(const GD::TypeGroup& record) {
 
 
         decls.push_back(builder.XCall("SUB_VARIANTS", Arguments, true));
-        decls.push_back(builder.Field(AB::RecordParams::Field{
+        decls.push_back(builder.Field(RDP::Field{
             .params = AB::ParmVarParams{
                 .type   = AB::QualType(record.variantName),
                 .name   = record.variantField,
@@ -436,6 +480,9 @@ Vec<ASTBuilder::Res> GenConverter::convert(const GenTu::Entry& entry) {
             },
             [&](GD::Pass const& Pass) {
                 decls.push_back(builder.string(Pass.what));
+            },
+            [&](SPtr<GD::Namespace> space) {
+                decls.push_back(convert(*space));
             },
             [](auto const& it) { qFatal("Unexpected kind"); },
         },
