@@ -41,6 +41,15 @@ tasks:
       - llvm-cov export -format=text -instr-profile=coverage.profdata {{.BINARY}} > coverage.json
       - genhtml -o html coverage.lcov > genhtml_output.txt
 
+
+  conan_remove:
+    vars:
+      REL_PROFILE: "{{.PWD}}/conanprofile.txt"
+    cmds:
+      - >
+        conan
+        remove '*' --force
+
   conan_install:
     vars:
       REL_PROFILE: "{{.PWD}}/conanprofile.txt"
