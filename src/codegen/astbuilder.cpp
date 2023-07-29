@@ -407,31 +407,56 @@ ASTBuilder::Res ASTBuilder::VarDecl(ParmVarParams const& p) {
 }
 
 ASTBuilder::Res ASTBuilder::IfStmt(const IfStmtParams& p) {
-    return b::stack({
-        b::line({string("if ("), string(")")}),
-        b::indent(2, p.Then),
-        b::line({
-            p.Else ? b::line({string(" else "), p.Else.value()})
-                   : string(""),
-        }),
-    });
-}
+    Res result = b::stack();
 
-ASTBuilder::Res ASTBuilder::IfStmt(const Span<IfStmtParams>& p) {
-    if (p.size() == 1) {
-        return IfStmt(p[0]);
-    } else {
-        auto p0 = p[0];
+    for (int i = 0; i < p.Branches.size(); ++i) {
+        bool        first  = i == 0;
+        bool        last   = i == p.Branches.high();
+        auto const& Branch = p.Branches.at(i);
 
-        Span<IfStmtParams> sub = p[slice(1, 1_B)];
-        p0.Else                = {IfStmt(sub)};
-        return IfStmt(p0);
+        Res head = p.LookupIfStructure
+                     ? b::line({string(Branch.Cond ? "if" : "")})
+                     : b::line({
+                         first ? string("if ")
+                               : (Branch.Cond ? string("} else if ")
+                                              : string("} else ")),
+                     });
+
+        if (Branch.Cond) {
+            head->add(string(" ("));
+            head->add(Branch.Cond.value());
+            head->add(string(") "));
+        }
+
+        head->add(string("{"));
+
+        if (p.LookupIfStructure) {
+            head->add(string(" "));
+            head->add(Branch.Then);
+            head->add(string(" }"));
+            if (!last) {
+                head->add(string(" else "));
+            }
+            result->add(head);
+        } else {
+            if (Branch.OneLine) {
+                head->add(string(" "));
+                head->add(Branch.Then);
+                result->add(head);
+            } else {
+                result->add(head);
+                result->add(b::indent(2, Branch.Then));
+            }
+        }
     }
+
+    if (!p.LookupIfStructure) {
+        result->add(string("}"));
+    }
+
+    return result;
 }
 
-ASTBuilder::Res ASTBuilder::IfStmt(const Vec<IfStmtParams>& p) {
-    return IfStmt(p[slice(0, 1_B)]);
-}
 
 ASTBuilder::Res ASTBuilder::CaseStmt(const CaseStmtParams& params) {
     auto head = params.IsDefault
@@ -485,7 +510,13 @@ ASTBuilder::Res ASTBuilder::XCall(
         if (args.size() == 1) {
             return b::line({string(opc), args.at(0)});
         } else if (args.size() == 2) {
-            return b::line({args.at(0), string(opc), args.at(1)});
+            return b::line({
+                args.at(0),
+                string(" "),
+                string(opc),
+                string(" "),
+                args.at(1),
+            });
         } else {
             qFatal(
                 "Unexpected number of arguments for operator-like "

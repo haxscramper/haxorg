@@ -264,18 +264,21 @@ class ASTBuilder {
 
     Res VarDecl(ParmVarParams const& p);
 
-    struct IfStmtParams {
-        Res      Cond;
-        Res      Then;
-        Opt<Res> Else;
 
-        Res      Init = nullptr;
-        Opt<Res> Var;
+    struct IfStmtParams {
+        struct Branch {
+            Opt<Res> Cond;
+            Res      Then;
+            Opt<Res> Var;
+            Opt<Res> Init;
+            bool     OneLine = false;
+        };
+
+        Vec<Branch> Branches;
+        bool        LookupIfStructure = false;
     };
 
     Res IfStmt(const IfStmtParams& p);
-    Res IfStmt(const Vec<IfStmtParams>& p);
-    Res IfStmt(const Span<IfStmtParams>& p);
 
     struct CaseStmtParams {
         Res      Expr;

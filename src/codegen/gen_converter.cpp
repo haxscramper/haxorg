@@ -171,12 +171,44 @@ GenConverter::Res GenConverter::convert(const GenTu::Enum& entry) {
         auto Class = AB::QualType(
             "enum_serde", {AB::QualType(entry.name)});
 
+
+        AB::IfStmtParams SwichFrom{.LookupIfStructure = true};
+        for (auto const& field : entry.fields) {
+            SwichFrom.Branches.push_back(AB::IfStmtParams::Branch{
+                .OneLine = true,
+                .Then    = builder.Return(
+                    builder.string(entry.name + "::" + field.name)),
+                .Cond = builder.XCall(
+                    "==",
+                    {builder.string("value"),
+                     builder.Literal(field.name)})});
+        }
+
+        SwichFrom.Branches.push_back(AB::IfStmtParams::Branch{
+            .OneLine = true,
+            .Then    = builder.Throw(builder.XCall(
+                "std::domain_error",
+                {builder.Literal(
+                    "Cannot convert string to enum value")}))});
+
+        pendingToplevel.push_back(builder.Method(
+            {.Class  = Class,
+             .Params = AB::FunctionParams{
+                 .Name     = "from_string",
+                 .ResultTy = AB::QualType(entry.name),
+                 .Body     = Vec<AB::Res>{builder.IfStmt(SwichFrom)},
+                 .Args     = {AB::ParmVarParams{
+                         .type = AB::QualType("QString"),
+                         .name = "value",
+                 }}}}));
+
         AB::SwitchStmtParams SwitchTo{
             .Expr    = builder.string("value"),
             .Default = AB::CaseStmtParams{
                 .IsDefault = true,
                 .Compound  = false,
                 .Autobreak = false,
+                .OneLine   = true,
                 .Body      = Vec<AB::Res>{builder.Throw(builder.XCall(
                     "std::domain_error",
                     {builder.Literal("Unexpected enum value -- cannot be "
@@ -189,7 +221,8 @@ GenConverter::Res GenConverter::convert(const GenTu::Enum& entry) {
                        .Compound  = false,
                        .OneLine   = true,
                        .Expr      = builder.string(entry.name + "::" + field.name),
-                       .Body      = Vec<AB::Res>{builder.Return(builder.Literal(field.name))}};
+                       .Body      = Vec<AB::Res>{builder.Return(
+                        builder.Literal(field.name))}};
                 })
         };
 
