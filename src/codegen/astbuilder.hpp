@@ -136,9 +136,9 @@ class ASTBuilder {
 
     /// Create function declaration. If \arg params is not empty use it to
     /// construct argument types in the resulting function signature.
-    Res Function(FunctionParams const& p);
-    Res Method(MethodParams const& p);
-
+    Res      Function(FunctionParams const& p);
+    Res      Arguments(FunctionParams const& p);
+    Res      Method(MethodParams const& p);
     QualType Type(Str const&);
     Res      Type(QualType const& type);
 
@@ -283,11 +283,13 @@ class ASTBuilder {
         bool     Compound  = true;
         bool     Autobreak = true;
         bool     OneLine   = false;
+        bool     IsDefault = false;
     };
 
     struct SwitchStmtParams {
         Res                 Expr;
         Vec<CaseStmtParams> Cases;
+        Opt<CaseStmtParams> Default = std::nullopt;
     };
 
     Res CaseStmt(CaseStmtParams const& params);

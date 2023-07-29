@@ -168,6 +168,42 @@ AB::Res GenConverter::convert(const GD::Struct& record) {
 
 GenConverter::Res GenConverter::convert(const GenTu::Enum& entry) {
     if (isSource) {
+        auto Class = AB::QualType(
+            "enum_serde", {AB::QualType(entry.name)});
+
+        AB::SwitchStmtParams SwitchTo{
+            .Expr    = builder.string("value"),
+            .Default = AB::CaseStmtParams{
+                .IsDefault = true,
+                .Compound  = false,
+                .Autobreak = false,
+                .Body      = Vec<AB::Res>{builder.Throw(builder.XCall(
+                    "std::domain_error",
+                    {builder.Literal("Unexpected enum value -- cannot be "
+                                          "converted to string")}))}},
+            .Cases = map(
+                entry.fields,
+                [&](GenTu::EnumField const& field) -> AB::CaseStmtParams {
+                     return AB::CaseStmtParams{
+                       .Autobreak = false,
+                       .Compound  = false,
+                       .OneLine   = true,
+                       .Expr      = builder.string(entry.name + "::" + field.name),
+                       .Body      = Vec<AB::Res>{builder.Return(builder.Literal(field.name))}};
+                })
+        };
+
+        pendingToplevel.push_back(builder.Method(
+            {.Class  = Class,
+             .Params = AB::FunctionParams{
+                 .Name     = "to_string",
+                 .ResultTy = AB::QualType("QString"),
+                 .Args     = {AB::ParmVarParams{
+                         .type = AB::QualType(entry.name),
+                         .name = "value",
+                 }},
+                 .Body = Vec<AB::Res>{builder.SwitchStmt(SwitchTo)}}}));
+
         return builder.string("");
     } else {
         pendingToplevel.push_back(builder.Record({

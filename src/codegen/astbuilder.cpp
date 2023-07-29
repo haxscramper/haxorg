@@ -110,22 +110,44 @@ ASTBuilder::Res ASTBuilder::ParmVar(const ParmVarParams& p) {
 }
 
 ASTBuilder::Res ASTBuilder::Function(FunctionParams const& p) {
-    Vec<Res> Args;
-    for (auto const& Arg : p.Args) {
-        Args.push_back(ParmVar(Arg));
-    }
-
-    auto head = b::line({
-        Type(p.ResultTy),
-        string(" "),
-        string(p.Name),
-        pars({b::join(Args, string(", "))}),
-    });
+    auto head = b::line(
+        {Type(p.ResultTy), string(" "), string(p.Name), Arguments(p)});
 
     return WithTemplate(
         p.Template,
         p.Body ? block(head, *p.Body, true)
                : b::line({head, string(";")}));
+}
+
+ASTBuilder::Res ASTBuilder::Arguments(const FunctionParams& p) {
+    return b::line({
+        string("("),
+        b::join(
+            map(p.Args,
+                [&](ASTBuilder::ParmVarParams const& Arg) {
+                    return ParmVar(Arg);
+                }),
+            string(", "),
+            true),
+        string(")"),
+    });
+}
+
+ASTBuilder::Res ASTBuilder::Method(MethodParams const& m) {
+    return WithTemplate(
+        m.Params.Template,
+        b::stack({
+            b::line(
+                {Type(m.Params.ResultTy),
+                 string(" "),
+                 Type(m.Class),
+                 string("::"),
+                 string(m.Params.Name),
+                 Arguments(m.Params),
+                 m.IsConst ? string(" const {") : string(" {")}),
+            b::indent(2, b::stack(*m.Params.Body)),
+            string("}"),
+        }));
 }
 
 ASTBuilder::QualType ASTBuilder::Type(Str const& type) {
@@ -193,15 +215,7 @@ ASTBuilder::Res ASTBuilder::Method(const RecordParams::Method& method) {
         Type(method.params.ResultTy),
         string(" "),
         string(method.params.Name),
-        string("("),
-        b::join(
-            map(method.params.Args,
-                [&](ASTBuilder::ParmVarParams const& Arg) {
-                    return ParmVar(Arg);
-                }),
-            string(", "),
-            true),
-        string(")"),
+        Arguments(method.params),
         string(method.isConst ? " const" : ""),
         string(method.isPureVirtual ? " = 0" : ""),
     });
@@ -420,7 +434,10 @@ ASTBuilder::Res ASTBuilder::IfStmt(const Vec<IfStmtParams>& p) {
 }
 
 ASTBuilder::Res ASTBuilder::CaseStmt(const CaseStmtParams& params) {
-    auto     head = b::line({string("case "), params.Expr, string(":")});
+    auto head = params.IsDefault
+                  ? string("default:")
+                  : b::line({string("case "), params.Expr, string(":")});
+
     Vec<Res> Body = params.Body
                   + (params.Autobreak ? Vec<Res>{XStmt("break")}
                                       : Vec<Res>{});
@@ -443,6 +460,10 @@ ASTBuilder::Res ASTBuilder::SwitchStmt(const SwitchStmtParams& params) {
     Vec<Res> cases;
     for (auto const& Case : params.Cases) {
         cases.push_back(CaseStmt(Case));
+    }
+
+    if (params.Default) {
+        cases.push_back(CaseStmt(*params.Default));
     }
 
     return block(b::line({string("switch "), pars(params.Expr)}), cases);
