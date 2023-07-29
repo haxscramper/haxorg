@@ -17,7 +17,7 @@ ASTBuilder::Res ASTBuilder::WithDoc(
 }
 
 ASTBuilder::Res ASTBuilder::Template(
-    const TemplateParamParams::Param& Param) {
+    const TemplateParams::Typename& Param) {
     return b::line({
         Param.Concept
             ? string(*Param.Concept)
@@ -27,7 +27,7 @@ ASTBuilder::Res ASTBuilder::Template(
         b::surround_non_empty(
             b::map_join(
                 Param.Nested,
-                [&](TemplateParamParams::Param const& Sub) -> Res {
+                [&](TemplateParams::Typename const& Sub) -> Res {
                     return Template(Sub);
                 },
                 string(", ")),
@@ -36,13 +36,12 @@ ASTBuilder::Res ASTBuilder::Template(
     });
 }
 
-ASTBuilder::Res ASTBuilder::Template(
-    const TemplateParamParams::Spec& Spec) {
+ASTBuilder::Res ASTBuilder::Template(const TemplateParams::Group& Spec) {
     return b::line({
         string("template <"),
         b::map_join(
             Spec.Params,
-            [&](TemplateParamParams::Param const& Param) {
+            [&](TemplateParams::Typename const& Param) {
                 return Template(Param);
             },
             string(", ")),
@@ -50,19 +49,17 @@ ASTBuilder::Res ASTBuilder::Template(
     });
 }
 
-ASTBuilder::Res ASTBuilder::Template(const TemplateParamParams& Templ) {
+ASTBuilder::Res ASTBuilder::Template(const TemplateParams& Templ) {
     return b::map_join(
         Templ.Stacks,
-        [&](TemplateParamParams::Spec const& Spec) {
-            return Template(Spec);
-        },
+        [&](TemplateParams::Group const& Spec) { return Template(Spec); },
         b::empty(),
         /* isLine */ false);
 }
 
 ASTBuilder::Res ASTBuilder::WithTemplate(
-    const TemplateParamParams& Templ,
-    const Res&                 Body) {
+    const TemplateParams& Templ,
+    const Res&            Body) {
     if (Templ.Stacks.empty()) {
         return Body;
     } else {
@@ -103,7 +100,7 @@ ASTBuilder::Res ASTBuilder::Doc(const DocParams& doc) {
     return result;
 }
 
-ASTBuilder::Res ASTBuilder::ParmVarDecl(const ParmVarDeclParams& p) {
+ASTBuilder::Res ASTBuilder::ParmVar(const ParmVarParams& p) {
     return b::line({
         Type(p.type),
         string(" "),
@@ -115,7 +112,7 @@ ASTBuilder::Res ASTBuilder::ParmVarDecl(const ParmVarDeclParams& p) {
 ASTBuilder::Res ASTBuilder::Function(FunctionParams const& p) {
     Vec<Res> Args;
     for (auto const& Arg : p.Args) {
-        Args.push_back(ParmVarDecl(Arg));
+        Args.push_back(ParmVar(Arg));
     }
 
     auto head = b::line({
@@ -199,8 +196,8 @@ ASTBuilder::Res ASTBuilder::Method(const RecordParams::Method& method) {
         string("("),
         b::join(
             map(method.params.Args,
-                [&](ASTBuilder::ParmVarDeclParams const& Arg) {
-                    return ParmVarDecl(Arg);
+                [&](ASTBuilder::ParmVarParams const& Arg) {
+                    return ParmVar(Arg);
                 }),
             string(", "),
             true),
@@ -281,7 +278,7 @@ ASTBuilder::Res ASTBuilder::Record(const RecordParams& params) {
                  string("")}));
 }
 
-ASTBuilder::Res ASTBuilder::UsingDecl(const UsingDeclParams& params) {
+ASTBuilder::Res ASTBuilder::Using(const UsingParams& params) {
     return WithTemplate(
         params.Template,
         b::line({
@@ -293,7 +290,7 @@ ASTBuilder::Res ASTBuilder::UsingDecl(const UsingDeclParams& params) {
         }));
 }
 
-ASTBuilder::Res ASTBuilder::MacroDecl(const MacroDeclParams& params) {
+ASTBuilder::Res ASTBuilder::Macro(const MacroParams& params) {
     auto definition = b::stack();
     for (auto const& line : params.definition) {
         definition->add(string(line + "  \\"));
@@ -383,7 +380,7 @@ ASTBuilder::Res ASTBuilder::Enum(const EnumParams& params) {
     });
 }
 
-ASTBuilder::Res ASTBuilder::VarDecl(ParmVarDeclParams const& p) {
+ASTBuilder::Res ASTBuilder::VarDecl(ParmVarParams const& p) {
     return b::line({
         Type(p.type),
         string(" "),

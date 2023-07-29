@@ -2,17 +2,17 @@
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
-ASTBuilder::TemplateParamParams::Spec GenConverter::convertParams(
+ASTBuilder::TemplateParams::Group GenConverter::convertParams(
     CVec<GenTu::TParam> Params) {
-    return ASTBuilder::TemplateParamParams::Spec{
+    return ASTBuilder::TemplateParams::Group{
         .Params = map(Params, [&](GenTu::TParam const& Param) {
-            return AB::TemplateParamParams::Param{.Name = Param.name};
+            return AB::TemplateParams::Typename{.Name = Param.name};
         })};
 }
 
 
-AB::ParmVarDeclParams GenConverter::convertIdent(GD::Ident const& ident) {
-    return AB::ParmVarDeclParams{
+AB::ParmVarParams GenConverter::convertIdent(GD::Ident const& ident) {
+    return AB::ParmVarParams{
         .name   = ident.name,
         .type   = AB::QualType(ident.type),
         .defArg = ident.value,
@@ -54,7 +54,7 @@ AB::DocParams GenConverter::convertDoc(const GenTu::Doc& doc) {
 }
 
 AB::Res GenConverter::convert(const GD::Ident& ident) {
-    return builder.ParmVarDecl(convertIdent(ident));
+    return builder.ParmVar(convertIdent(ident));
 }
 
 AB::Res GenConverter::convert(const GD::Struct& record) {
@@ -77,7 +77,7 @@ AB::Res GenConverter::convert(const GD::Struct& record) {
 
     for (auto const& member : record.fields) {
         auto mem = RDP::Member{RDP::Field{
-            .params = AB::ParmVarDeclParams{
+            .params = AB::ParmVarParams{
                 .type = builder.Type(member.type),
                 .name = member.name,
                 .isConst = member.isConst,
@@ -172,7 +172,7 @@ GenConverter::Res GenConverter::convert(const GenTu::Enum& entry) {
     } else {
         pendingToplevel.push_back(builder.Record({
             .name     = "value_domain",
-            .Template = AB::TemplateParamParams::FinalSpecialization(),
+            .Template = AB::TemplateParams::FinalSpecialization(),
             .bases    = {AB::QualType(
                           "value_domain_ungapped",
                           {
@@ -187,7 +187,7 @@ GenConverter::Res GenConverter::convert(const GenTu::Enum& entry) {
 
         pendingToplevel.push_back(builder.Record({
             .name         = "enum_serde",
-            .Template     = AB::TemplateParamParams::FinalSpecialization(),
+            .Template     = AB::TemplateParams::FinalSpecialization(),
             .NameParams   = {AB::QualType(entry.name)},
             .IsDefinition = false,
         }));
@@ -265,7 +265,7 @@ Vec<AB::Res> GenConverter::convert(const GD::TypeGroup& record) {
             .Name = "from_enum",
             .ResultTy = AB::QualType("char").Ptr().Const(),
             .Args = {
-                AB::ParmVarDeclParams{
+                AB::ParmVarParams{
                     .type = AB::QualType(record.enumName),
                     .name = resName,
                 },
@@ -278,7 +278,7 @@ Vec<AB::Res> GenConverter::convert(const GD::TypeGroup& record) {
 
 
     if (0 < record.iteratorMacroName.size()) {
-        AB::MacroDeclParams iteratorMacro;
+        AB::MacroParams iteratorMacro;
 
         for (auto const& item : typeNames) {
             iteratorMacro.definition.push_back("__IMPL(" + item + ")");
@@ -286,7 +286,7 @@ Vec<AB::Res> GenConverter::convert(const GD::TypeGroup& record) {
 
         iteratorMacro.params = {{"__IMPL"}};
         iteratorMacro.name   = record.iteratorMacroName;
-        decls.push_back(builder.MacroDecl(iteratorMacro));
+        decls.push_back(builder.Macro(iteratorMacro));
     }
 
     for (auto const& sub : record.types) {
@@ -308,7 +308,7 @@ Vec<AB::Res> GenConverter::convert(const GD::TypeGroup& record) {
         // Continue using macros for the time being, so this code can be
         // enabled later
         if (false) {
-            decls.push_back(builder.UsingDecl(AB::UsingDeclParams{
+            decls.push_back(builder.Using(AB::UsingParams{
                 .newName  = record.variantName,
                 .baseType = AB::QualType(
                     "Variant",
@@ -322,7 +322,7 @@ Vec<AB::Res> GenConverter::convert(const GD::TypeGroup& record) {
 
         decls.push_back(builder.XCall("SUB_VARIANTS", Arguments, true));
         decls.push_back(builder.Field(AB::RecordParams::Field{
-            .params = AB::ParmVarDeclParams{
+            .params = AB::ParmVarParams{
                 .type   = AB::QualType(record.variantName),
                 .name   = record.variantField,
                 .defArg = record.variantValue,
