@@ -6,4 +6,4 @@
 
 using OrgSpec = astspec::AstSpec<OrgAdapter, OrgNodeKind, OrgSpecName>;
 
-extern OrgSpec spec;
+OrgSpec getOrgSpec();

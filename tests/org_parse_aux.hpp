@@ -82,11 +82,11 @@ struct MockFull {
         std::cout << std::endl;
     }
 
-    void jsonRepr() { std::cout << ::jsonRepr(spec, a(0)) << "\n"; }
+    void jsonRepr() { std::cout << ::jsonRepr(*OrgSpecInstance::get(), a(0)) << "\n"; }
 
     void yamlRepr(bool withNames = true) {
         if (withNames) {
-            std::cout << ::yamlRepr(spec, a(0)) << "\n";
+            std::cout << ::yamlRepr(*OrgSpecInstance::get(), a(0)) << "\n";
         } else {
             std::cout << ::yamlRepr(a(0)) << "\n";
         }

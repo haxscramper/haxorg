@@ -275,7 +275,8 @@ QString htmlRepr(
             for (; begin != end && (begin.id <= end.id); ++begin) {
                 sub.push_back(
                     aux(*begin,
-                        spec.fieldName(OrgAdapter(&nodes, root), index),
+                        OrgSpecInstance::get()->fieldName(
+                            OrgAdapter(&nodes, root), index),
                         index));
                 ++index;
             }

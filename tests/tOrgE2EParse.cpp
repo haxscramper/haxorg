@@ -57,6 +57,7 @@ TEST(SimpleNodeConversion, DoubleHashTag) {
     EXPECT_EQ(p.s(1), "#test");
     QString     buf;
     QTextStream ss{&buf};
+    auto&       spec = *OrgSpecInstance::get();
     ss << "start validation output" << Qt::endl;
     ss << spec.validateSelf(p.a(0)) << "\n";
     ss << spec.validateSub(p.a(0), 0) << "\n";
@@ -77,8 +78,10 @@ TEST(SimpleNodeConversion, NestedHashTag) {
     yamlRepr(p.tokens);
     QString     buf;
     QTextStream ss{&buf};
-    ss << "yaml node\n" << yamlRepr(spec, p.a(0)) << "\nend yaml node\n";
-    ss << "json node\n" << jsonRepr(spec, p.a(0)) << "\nend json node\n";
+    ss << "yaml node\n"
+       << yamlRepr(*OrgSpecInstance::get(), p.a(0)) << "\nend yaml node\n";
+    ss << "json node\n"
+       << jsonRepr(*OrgSpecInstance::get(), p.a(0)) << "\nend json node\n";
     ss << "flat repr\n" << jsonRepr(p.nodes) << "\nend flat nodes\n";
     ss << "token repr\n" << jsonRepr(p.tokens) << "\nend flat tokens\n";
     ss << "yaml node\n" << yamlRepr(p.a(0)) << "\nend yaml node\n";
