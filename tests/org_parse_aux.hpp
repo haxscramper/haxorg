@@ -20,10 +20,10 @@ struct MockFull {
 
     Func<LineCol(CR<PosStr>)> locationResolver;
 
-    MockFull() : tokenizer(), nodes(nullptr), lex(&tokens) {
+    MockFull(bool tracedParser, bool tracedLexer) : tokenizer(), nodes(nullptr), lex(&tokens) {
         spec         = getOrgSpec();
-        parser       = OrgParser::initImpl(&nodes, false);
-        tokenizer    = OrgTokenizer::initImpl(&tokens, false);
+        parser       = OrgParser::initImpl(&nodes, tracedParser);
+        tokenizer    = OrgTokenizer::initImpl(&tokens, tracedLexer);
         nodes.tokens = &tokens;
 
         locationResolver = [&](CR<PosStr> str) -> LineCol {

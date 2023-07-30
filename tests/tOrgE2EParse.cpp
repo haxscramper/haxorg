@@ -43,14 +43,14 @@ TEST(TestFiles, Spec) {
 }
 
 TEST(SimpleNodeConversion, SingleHashTagToken) {
-    MockFull p;
+    MockFull p(false, false);
     p.run("#test", &T::lexText, &P::parseHashTag);
     EXPECT_EQ(p.n(0).kind, org::HashTag);
     EXPECT_EQ(p.n(1).kind, org::RawText);
 }
 
 TEST(SimpleNodeConversion, DoubleHashTag) {
-    MockFull p;
+    MockFull p(false, false);
     p.run("#test##a", &T::lexText, &P::parseHashTag);
     EXPECT_EQ(p.k(0), org::HashTag);
     EXPECT_EQ(p.k(1), org::RawText);
@@ -71,7 +71,7 @@ TEST(SimpleNodeConversion, DoubleHashTag) {
 }
 
 TEST(SimpleNodeConversion, NestedHashTag) {
-    MockFull p;
+    MockFull p(false, false);
     p.run("#test##[a, b]", &T::lexText, &P::parseHashTag);
     auto node = yamlRepr(p.a(0));
     yamlRepr(p.nodes);
@@ -92,7 +92,7 @@ TEST(SimpleNodeConversion, NestedHashTag) {
 }
 
 TEST(SimpleNodeConversion, DiffCompilation) {
-    MockFull p;
+    MockFull p(false, false);
     p.run("#test##[a, b]", &T::lexText, &P::parseHashTag);
     auto cmp = nodeAdapterComparisonOptions<
         OrgNodeKind,
@@ -103,7 +103,7 @@ TEST(SimpleNodeConversion, DiffCompilation) {
 }
 
 TEST(SimpleNodeConversion, GraphRepr) {
-    MockFull p;
+    MockFull p(false, false);
     p.run("#test##[a, b]", &T::lexText, &P::parseHashTag);
     auto g = graphRepr(&p.nodes, OrgId(0));
 

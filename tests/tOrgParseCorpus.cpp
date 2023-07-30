@@ -547,7 +547,7 @@ RunResult::SemCompare compareSem(
 
 RunResult runSpec(CR<ParseSpec> spec, CR<QString> from) {
     MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
-    MockFull              p;
+    MockFull              p(spec.dbg.traceParse, spec.dbg.traceLex);
 
     if (spec.dbg.printSource) {
         writeFile(spec.debugFile("source.org"), spec.source);
