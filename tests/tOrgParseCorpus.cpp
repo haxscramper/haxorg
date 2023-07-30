@@ -32,12 +32,13 @@ void writeFileOrStdout(
     QString const&   content,
     bool             useStdout) {
     if (useStdout) {
-        writeFile(target, content);
-    } else {
         QFile file;
         file.open(stdout, QIODevice::WriteOnly);
         QTextStream stream{&file};
         stream << content;
+
+    } else {
+        writeFile(target, content);
     }
 }
 
@@ -513,12 +514,12 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
 
     p.parser->trace = spec.dbg.traceParse;
     if (spec.dbg.parseToFile) {
-        p.parser->setTraceFile(QFileInfo("/tmp/parse.txt"_qs));
+        p.parser->setTraceFile(spec.debugFile("parse.txt"));
     }
 
     p.tokenizer->trace = spec.dbg.traceLex;
     if (spec.dbg.lexToFile) {
-        p.tokenizer->setTraceFile(QFileInfo("/tmp/random.txt"_qs));
+        p.tokenizer->setTraceFile(spec.debugFile("random.txt"));
     }
 
     if (spec.dbg.printSource) {
@@ -561,7 +562,7 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
 
     if (spec.dbg.printLexed) {
         writeFileOrStdout(
-            QFileInfo("/tmp/lexed.yaml"),
+            spec.debugFile("lexed.yaml"),
             to_string(yamlRepr(p.tokens)) + "\n",
             spec.dbg.printLexedToFile);
     }
@@ -578,7 +579,7 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
 
             if (spec.dbg.printParsed) {
                 writeFileOrStdout(
-                    QFileInfo("/tmp/parsed.yaml"),
+                    spec.debugFile("parsed.yaml"),
                     to_string(yamlRepr(p.nodes)) + "\n",
                     spec.dbg.printParsedToFile);
             }
@@ -810,6 +811,19 @@ struct TestParams {
     ParseSpec spec;
     QFileInfo file;
 
+    QString testName() const {
+        QString final;
+        for (QChar const& ch : fullName()) {
+            if (ch.isDigit() || ch.isLetter() || ch == '_') {
+                final.push_back(ch);
+            } else {
+                final.push_back('_');
+            }
+        }
+
+        return final;
+    }
+
     QString fullName() const {
         return "$# at $#:$#:$#"
              % to_string_vec(
@@ -861,6 +875,12 @@ Vec<TestParams> generateTestRuns() {
             }
         }
     }
+    for (auto& spec : results) {
+        if (spec.spec.dbg.debugOutDir.size() == 0) {
+            spec.spec.dbg.debugOutDir = "/tmp/" + spec.testName();
+        }
+    }
+
 
     return results;
 }
@@ -868,16 +888,7 @@ Vec<TestParams> generateTestRuns() {
 
 std::string getTestName(
     const testing::TestParamInfo<ParseFile::ParamType>& info) {
-    QString final;
-    for (QChar const& ch : info.param.fullName()) {
-        if (ch.isDigit() || ch.isLetter() || ch == '_') {
-            final.push_back(ch);
-        } else {
-            final.push_back('_');
-        }
-    }
-
-    return final.toStdString();
+    return info.param.testName().toStdString();
 }
 
 TEST_P(ParseFile, CorpusAll) {

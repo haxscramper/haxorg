@@ -7,6 +7,7 @@
 #include <hstd/stdlib/Yaml.hpp>
 #include <hstd/stdlib/Json.hpp>
 
+
 struct ParseSpec {
     Opt<yaml>    subnodes;
     Opt<yaml>    tokens;
@@ -40,22 +41,26 @@ struct ParseSpec {
     Conf conf;
 
     struct Dbg {
-        bool traceLex          = false;
-        bool traceParse        = false;
-        bool lexToFile         = false;
-        bool parseToFile       = false;
-        bool printLexed        = false;
-        bool printParsed       = false;
-        bool printSource       = false;
-        bool doParse           = true;
-        bool doLex             = true;
-        bool doSem             = true;
-        bool printLexedToFile  = false;
-        bool printParsedToFile = false;
-        bool printSemToFile    = false;
+        bool traceLex    = false;
+        bool traceParse  = false;
+        bool lexToFile   = false;
+        bool parseToFile = false;
+        bool printLexed  = false;
+        bool printParsed = false;
+        bool printSource = false;
+        /// Test should run lex/parse/sem stages
+        bool doParse = true;
+        bool doLex   = true;
+        bool doSem   = true;
+        /// Print sem/lex/parse output debug information to the file
+        bool    printLexedToFile  = false;
+        bool    printParsedToFile = false;
+        bool    printSemToFile    = false;
+        QString debugOutDir = ""; /// directory to write debug files to
     };
 
-    Dbg dbg;
+    QFileInfo debugFile(QString relativePath, bool create = true) const;
+    Dbg       dbg;
 
 
     /// Name of the method to call for lexing or parsing. Pointer to

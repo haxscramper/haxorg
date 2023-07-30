@@ -1,5 +1,7 @@
 #include <lexbase/NodeTest.hpp>
 #include <QString>
+#include <QDir>
+#include <hstd/stdlib/Filesystem.hpp>
 
 json toJson(CR<yaml> node) {
     switch (node.Type()) {
@@ -46,6 +48,26 @@ json toJson(CR<yaml> node) {
 
             { return node.Scalar(); }
         }
+    }
+}
+
+QFileInfo ParseSpec::debugFile(QString relativePath, bool create) const {
+    if (dbg.debugOutDir.isEmpty()) {
+        throw FilesystemError(
+            "Cannot get relative path for the spec configuration that "
+            "does not provide debug output directory path");
+    } else {
+        auto dir = QDir(dbg.debugOutDir);
+        if (!dir.exists()) {
+            if (!QDir().mkpath(dir.absolutePath())) {
+                throw FilesystemError(
+                    "Failed to create debugging directory for writing "
+                    "test log"
+                    + dbg.debugOutDir);
+            }
+        }
+
+        return QFileInfo(dir.filePath(relativePath));
     }
 }
 
