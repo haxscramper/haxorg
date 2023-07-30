@@ -74,12 +74,6 @@ items:
   - name: "Lorem ipsum subtree"
     debug:
       do_parse: false
-    #   print_lexed: true
-    #   trace_parse: true
-    #   trace_lex: true
-    #   lex_to_file: true
-    #   print_lexed_to_file: true
-
     source: |
       #+title: TITLE WORDS
       #+FILETAGS: :DO_NOT_ORG_ROAM:

@@ -25,20 +25,22 @@ namespace rs = std::views;
 #define CB(name)                                                          \
     { Str(#name), &OrgTokenizer::lex##name }
 
+// Define environment variable in the QT app run environment to get
+// better-formatted test diff output.
 bool useQFormat() { return getenv("IN_QT_RUN") == "true"; }
 
 void writeFileOrStdout(
     QFileInfo const& target,
     QString const&   content,
-    bool             useStdout) {
-    if (useStdout) {
+    bool             useFile) {
+    if (useFile) {
+        writeFile(target, content);
+
+    } else {
         QFile file;
         file.open(stdout, QIODevice::WriteOnly);
         QTextStream stream{&file};
         stream << content;
-
-    } else {
-        writeFile(target, content);
     }
 }
 
@@ -717,12 +719,12 @@ Vec<TestParams> generateTestRuns() {
             }
         }
     }
+
     for (auto& spec : results) {
         if (spec.spec.dbg.debugOutDir.size() == 0) {
             spec.spec.dbg.debugOutDir = "/tmp/" + spec.testName();
         }
     }
-
 
     return results;
 }
@@ -740,6 +742,7 @@ TEST_P(ParseFile, CorpusAll) {
         SUCCEED();
     } else {
         params.spec.dbg = ParseSpec::Dbg{
+            .debugOutDir       = "/tmp/" + params.testName(),
             .traceLex          = true,
             .traceParse        = true,
             .lexToFile         = true,
@@ -761,14 +764,27 @@ TEST_P(ParseFile, CorpusAll) {
 
         std::visit(
             overloaded{
-                [&](RunResult::NodeCompare const& node) {},
-                [&](RunResult::LexCompare const& node) {},
-                [&](RunResult::SemCompare const& node) {},
+                [&](RunResult::NodeCompare const& node) {
+                    os << node.failDescribe;
+                },
+                [&](RunResult::LexCompare const& node) {
+                    os << node.failDescribe;
+                },
+                [&](RunResult::SemCompare const& node) {
+                    os << node.failDescribe;
+                },
                 [&](RunResult::None const& node) {},
             },
             fail.data);
 
-        FAIL() << params.fullName() << "failed\n" << buf.toStdString();
+        if (useQFormat()) {
+            FAIL() << params.fullName() << "failed\n" << buf.toStdString();
+        } else {
+            FAIL() << params.fullName()
+                   << " failed, re-run with ./tests.bin "
+                      "--gtest_filter='CorpusAllParametrized/ParseFile."
+                   << params.testName() << "'";
+        }
     }
 }
 

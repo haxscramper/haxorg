@@ -253,14 +253,6 @@ items:
       - {kind: ListEnd}
 
   - name: "Indent and dedent long list"
-    debug:
-      print_lexed: true
-      print_lexed_to_file: true
-      # print_source: true
-      # trace_lex: true
-      # trace_parse: true
-      # lex_to_file: true
-
     source: |
         - item1
         - item2

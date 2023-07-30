@@ -3,10 +3,6 @@ parse: "InlineParagraph"
 expected: "Flat"
 items:
   - name: "Bold text"
-    debug:
-      # trace_parse: true
-      # parse_to_file: true
-
     source: "*bold*"
     tokens:
       - {kind: ParagraphStart}
@@ -31,9 +27,6 @@ items:
   - source: "/italic/"
   - source: "[[link][description]]"
   - source: "\\symbol{}"
-    debug:
-      print_parsed: true
-      print_lexed: true
     sem:
       kind: Document
       subnodes:
@@ -44,9 +37,6 @@ items:
               parameters: []
               positional: [{kind: Paragraph}]
   - source: "\\symbol{\"Argument\"}"
-    debug:
-      print_parsed: true
-      print_lexed: true
     sem:
       kind: Document
       subnodes:
