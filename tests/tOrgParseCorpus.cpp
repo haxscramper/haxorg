@@ -505,7 +505,8 @@ RunResult::SemCompare compareSem(
             && op == "remove"           //
             && (path.back() == "id"     //
                 || path.back() == "loc" //
-                || path.back() == "subnodes")) {
+                || path.back() == "subnodes"
+                || path.back() == "attached")) {
             continue;
         } else {
             ++failCount;

@@ -1594,12 +1594,38 @@ org can do ... which is to be determined as well")
               (d:doc "")))
    (get-nested-groups value)))
 
+(define base-map
+  (let ((base (make-hash-table)))
+    (iterate-object-tree
+     types
+     (lambda (obj)
+       (when (is-a? obj <type>)
+         (hashv-set! base (slot-ref obj 'name) obj))))
+    (hashv-set! base 'Org (d:struct
+                           'Org (d:doc "")
+                           #:fields
+                           (list (d:field (t:vec "") "subnodes" (d:doc "")))))
+    base))
+
+(define (get-type-base-fields value)
+  (apply
+   append
+   (map (lambda (base-sym)
+          (let ((base (hashv-ref base-map base-sym)))
+            (if base
+                (append (slot-ref base 'fields)
+                        (get-type-base-fields base))
+                (begin
+                  (format #t "No base object for ~a\n" base-sym)
+                  (list)))))
+        (slot-ref value 'bases))))
+
 (define (get-exporter-methods forward)
   ;; Get exporter boilerplate method definitions (they walk over all fields)
   (let* ((methods (list)))
     (iterate-object-tree
      types
-     (lambda (value )
+     (lambda (value)
        (when (and (instance? value) (is-a? value <type>))
          (let* ((scope-full (remove
                              (lambda (scope) (not (is-a? scope <type>)))
@@ -1610,9 +1636,14 @@ org can do ... which is to be determined as well")
                 (name (slot-ref value 'name))
                 ;; Fully scoped name of the type
                 (full-scoped-name (append scope-names (list name)))
+                ;; Collect immediate fields from an object
                 (fields (remove (lambda (field) (slot-ref field 'isStatic))
+                                ;; <struct> direct fields
                                 (append (slot-ref value 'fields)
-                                        (get-type-group-fields value)) ))
+                                        ;; Recursively get base type fields
+                                        (get-type-base-fields value)
+                                        ;; Fields that were declared from the type group
+                                        (get-type-group-fields value))))
                 ;; Join scope arguments into the `::' and wrap everything into the `sem::' scope
                 (scoped-target (format #f "CR<sem::~{~a~^::~}>" full-scoped-name))
                 ;; TODO use properly structured data instead of these strings hacks.
