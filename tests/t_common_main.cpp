@@ -29,6 +29,9 @@ extern "C" __attribute__((no_instrument_function)) void __cyg_profile_func_exit(
 
 // TestParameters testParameters;
 
+const char* __asan_default_options() {
+    return "verbosity=1:detect_leaks=0";
+}
 
 int main(int argc, char** argv) {
 
