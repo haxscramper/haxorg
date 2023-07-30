@@ -1,0 +1,13 @@
+lex: "Global"
+parse: "Top"
+expected: "Flat"
+items:
+  - name: "Link in center"
+    # Error terminator is triggered for the content inside of the 'center' node.
+    debug:
+      do_parse: false
+    source: |
+      #+begin_center
+      [[file:../../fic.images/images_20220622-173100_screenshot.png]]
+      #+end_center
+

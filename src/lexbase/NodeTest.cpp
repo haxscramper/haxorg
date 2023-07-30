@@ -86,7 +86,7 @@ ParseSpec::ParseSpec(CR<yaml> node, CR<QString> specFile)
         auto debug = node["debug"];
         maybe_field<bool>(debug, dbg.traceLex, "trace_lex");
         maybe_field<bool>(debug, dbg.traceSem, "trace_sem");
-        maybe_field<bool>(debug, dbg.doParse, "do_lex");
+        maybe_field<bool>(debug, dbg.doLex, "do_lex");
         maybe_field<bool>(debug, dbg.doParse, "do_parse");
         maybe_field<bool>(debug, dbg.doSem, "do_sem");
         maybe_field<bool>(debug, dbg.traceParse, "trace_parse");

@@ -2,6 +2,21 @@ lex: "Global"
 parse: "Top"
 expected: "Flat"
 items:
+  - name: "Trailing markup in subtree with tags"
+    source: "**** COMPLETED Try =atmospace= :test##assesment##viability:"
+    debug:
+      do_parse: false
+
+  - name: "Trailing markup in subtree"
+    source: "***** COMPLETED Update sizes of the setting grid element to use ~@scale~"
+    debug:
+      do_parse: false
+
+  - name: "Trailing colon for subtree name"
+    source: "****** Pros:"
+    debug:
+      do_lex: false
+
   - name: "Regular subtree"
     source: "* Subtree"
     tokens:
