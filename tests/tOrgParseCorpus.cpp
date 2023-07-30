@@ -439,11 +439,55 @@ void writeSimple(ColStream& os, json const& j) {
     }
 };
 
+template <typename E>
+void exporterVisit(
+    OperationsTracer&             trace,
+    typename E::VisitEvent const& ev) {
+
+    using K = typename E::VisitEvent::Kind;
+    if (((ev.kind == K::PushVisit || ev.kind == K::VisitStart)
+         && !ev.isStart)
+        || ((ev.kind == K::PopVisit || ev.kind == K::VisitEnd)
+            && ev.isStart)) {
+        return;
+    }
+
+    auto os = trace.getStream();
+
+
+    os << os.indent(ev.level * 2) << (ev.isStart ? ">" : "<") << " "
+       << to_string(ev.kind);
+
+    if (ev.visitedNode) {
+        os << " node:" << to_string(ev.visitedNode->getKind());
+    }
+
+    if (0 < ev.field.length()) {
+        os << " field:" << ev.field;
+    }
+
+    os << " on " << QFileInfo(ev.file).fileName() << ":" << ev.line << " "
+       << ev.function << " " << os.end();
+
+    if (0 < ev.type.length()) {
+        os << " type:" << demangle(ev.type.toLatin1());
+    }
+
+    trace.endStream(os);
+}
+
 RunResult::SemCompare compareSem(
     CR<ParseSpec> spec,
     sem::SemId    node,
     json          expected) {
-    json      converted = ExporterJson().visitTop(node);
+
+    ExporterJson     exporter;
+    OperationsTracer trace{spec.debugFile("sem_export_trace.txt")};
+    exporter.visitEventCb = [&](ExporterJson::VisitEvent const& ev) {
+        exporterVisit<ExporterJson>(trace, ev);
+    };
+
+    json      converted = exporter.visitTop(node);
     json      diff      = json::diff(converted, expected);
     int       failCount = 0;
     ColStream os;
@@ -781,16 +825,20 @@ TEST_P(ParseFile, CorpusAll) {
         writeFile(
             params.spec.debugFile("failure.txt"), os.toString(false));
 
+        // for copy-pasting to the run parameters in qt creator
+        writeFile(
+            params.spec.debugFile("qt_run.txt"),
+            "--gtest_filter='CorpusAllParametrized/ParseFile.CorpusAll/"
+                + params.testName() + "'");
+
         if (useQFormat()) {
             FAIL() << params.fullName() << "failed, wrote debug to"
                    << params.spec.dbg.debugOutDir << "\n"
                    << os.toString(false).toStdString();
         } else {
             FAIL() << params.fullName() << " failed, , wrote debug to "
-                   << params.spec.dbg.debugOutDir
-                   << ", re-run with ./tests.bin "
-                      "--gtest_filter='CorpusAllParametrized/ParseFile."
-                   << params.testName() << "'";
+                   << params.spec.dbg.debugOutDir;
+            ;
         }
     }
 }
