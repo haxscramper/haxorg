@@ -116,9 +116,9 @@ MockFull::LexerMethod getLexer(CR<Str> name) {
 }
 
 inline void format(
-    QTextStream&             os,
+    ColStream&               os,
     CR<FormattedDiff>        text,
-    Func<QString(int, bool)> formatCb,
+    Func<ColText(int, bool)> formatCb,
     int                      lhsSize    = 48,
     int                      rhsSize    = 16,
     bool                     useQFormat = false) {
@@ -181,17 +181,17 @@ inline void format(
 struct RunResult {
     struct NodeCompare {
         bool    isOk = false;
-        QString failDescribe;
+        ColText failDescribe;
     };
 
     struct LexCompare {
         bool    isOk = false;
-        QString failDescribe;
+        ColText failDescribe;
     };
 
     struct SemCompare {
         bool    isOk = false;
-        QString failDescribe;
+        ColText failDescribe;
     };
 
     struct None {};
@@ -256,9 +256,8 @@ RunResult::NodeCompare compareNodes(
         };
 
         FormattedDiff text{nodeDiff};
-        QString       buffer;
-        QTextStream   os{&buffer};
-        format(os, text, [&](int id, bool isLhs) -> QString {
+        ColStream     os;
+        format(os, text, [&](int id, bool isLhs) -> ColText {
             auto node = isLhs ? parsed.nodes.content.at(id)
                               : expected.nodes.content.at(id);
 
@@ -281,7 +280,7 @@ RunResult::NodeCompare compareNodes(
                            : "ext=" + to_string(node.getExtent()));
         });
 
-        return {.isOk = false, .failDescribe = buffer};
+        return {.isOk = false, .failDescribe = os.getBuffer()};
     }
 }
 
@@ -323,15 +322,15 @@ RunResult::LexCompare compareTokens(
 
         FormattedDiff text{tokenDiff};
 
-        QString     buffer;
-        QTextStream os{&buffer};
-        int         lhsSize = 48;
-        int         rhsSize = 30;
-        bool        inQt    = useQFormat();
+        ColStream os;
+        int       lhsSize = 48;
+        int       rhsSize = 30;
+        bool      inQt    = useQFormat();
+
         format(
             os,
             text,
-            [&](int id, bool isLhs) -> QString {
+            [&](int id, bool isLhs) -> ColText {
                 auto tok = isLhs ? lexed.tokens.content.at(id)
                                  : expected.tokens.content.at(id);
 
@@ -370,7 +369,7 @@ RunResult::LexCompare compareTokens(
             rhsSize,
             useQFormat);
 
-        return {.isOk = false, .failDescribe = buffer};
+        return {.isOk = false, .failDescribe = os.getBuffer()};
     }
 }
 
@@ -444,12 +443,10 @@ RunResult::SemCompare compareSem(
     CR<ParseSpec> spec,
     sem::SemId    node,
     json          expected) {
-    json        converted = ExporterJson().visitTop(node);
-    json        diff      = json::diff(converted, expected);
-    int         failCount = 0;
-    QString     buf;
-    QTextStream stream{&buf};
-    ColStream   os{stream};
+    json      converted = ExporterJson().visitTop(node);
+    json      diff      = json::diff(converted, expected);
+    int       failCount = 0;
+    ColStream os;
     if (useQFormat()) {
         os.colored = false;
     }
@@ -542,7 +539,7 @@ RunResult::SemCompare compareSem(
         os << "\nexpected:\n";
         aux(expected, 0, json::json_pointer{});
 
-        return {.isOk = false, .failDescribe = buf};
+        return {.isOk = false, .failDescribe = os.getBuffer()};
     } else {
         return {.isOk = true};
     }
@@ -722,7 +719,8 @@ Vec<TestParams> generateTestRuns() {
 
     for (auto& spec : results) {
         if (spec.spec.dbg.debugOutDir.size() == 0) {
-            spec.spec.dbg.debugOutDir = "/tmp/" + spec.testName();
+            spec.spec.dbg.debugOutDir = "/tmp/corpus_runs/"
+                                      + spec.testName();
         }
     }
 
@@ -742,7 +740,7 @@ TEST_P(ParseFile, CorpusAll) {
         SUCCEED();
     } else {
         params.spec.dbg = ParseSpec::Dbg{
-            .debugOutDir       = "/tmp/" + params.testName(),
+            .debugOutDir       = "/tmp/corpus_runs/" + params.testName(),
             .traceLex          = true,
             .traceParse        = true,
             .lexToFile         = true,
@@ -754,34 +752,35 @@ TEST_P(ParseFile, CorpusAll) {
             .printParsedToFile = true,
             .printSemToFile    = true,
         };
-        RunResult   fail = runSpec(params.spec, params.file.filePath());
-        QString     buf;
-        QTextStream stream{&buf};
-        ColStream   os{stream};
-        if (useQFormat()) {
-            os.colored = false;
-        }
+        RunResult fail = runSpec(params.spec, params.file.filePath());
+        ColText   os;
 
         std::visit(
             overloaded{
                 [&](RunResult::NodeCompare const& node) {
-                    os << node.failDescribe;
+                    os = node.failDescribe;
                 },
                 [&](RunResult::LexCompare const& node) {
-                    os << node.failDescribe;
+                    os = node.failDescribe;
                 },
                 [&](RunResult::SemCompare const& node) {
-                    os << node.failDescribe;
+                    os = node.failDescribe;
                 },
                 [&](RunResult::None const& node) {},
             },
             fail.data);
 
+        writeFile(
+            params.spec.debugFile("failure.txt"), os.toString(false));
+
         if (useQFormat()) {
-            FAIL() << params.fullName() << "failed\n" << buf.toStdString();
+            FAIL() << params.fullName() << "failed, wrote debug to"
+                   << params.spec.dbg.debugOutDir << "\n"
+                   << os.toString(false).toStdString();
         } else {
-            FAIL() << params.fullName()
-                   << " failed, re-run with ./tests.bin "
+            FAIL() << params.fullName() << " failed, , wrote debug to "
+                   << params.spec.dbg.debugOutDir
+                   << ", re-run with ./tests.bin "
                       "--gtest_filter='CorpusAllParametrized/ParseFile."
                    << params.testName() << "'";
         }
