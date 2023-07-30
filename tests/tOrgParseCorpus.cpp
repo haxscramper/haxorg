@@ -631,7 +631,13 @@ RunResult runSpec(CR<ParseSpec> spec, CR<QString> from) {
     }
 
     if (spec.dbg.doSem && spec.semExpected.has_value()) {
-        sem::OrgConverter     converter;
+        sem::OrgConverter converter;
+
+        converter.trace = spec.dbg.traceParse;
+        if (spec.dbg.parseToFile) {
+            converter.setTraceFile(spec.debugFile("trace_sem.txt"));
+        }
+
         RunResult::SemCompare result = compareSem(
             spec,
             converter.toDocument(OrgAdapter(&p.nodes, OrgId(0))),
@@ -743,8 +749,10 @@ TEST_P(ParseFile, CorpusAll) {
             .debugOutDir       = "/tmp/corpus_runs/" + params.testName(),
             .traceLex          = true,
             .traceParse        = true,
+            .traceSem          = true,
             .lexToFile         = true,
             .parseToFile       = true,
+            .semToFile         = true,
             .printLexed        = true,
             .printParsed       = true,
             .printSource       = true,

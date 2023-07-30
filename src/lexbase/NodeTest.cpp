@@ -85,12 +85,14 @@ ParseSpec::ParseSpec(CR<yaml> node, CR<QString> specFile)
     if (node["debug"]) {
         auto debug = node["debug"];
         maybe_field<bool>(debug, dbg.traceLex, "trace_lex");
+        maybe_field<bool>(debug, dbg.traceSem, "trace_sem");
         maybe_field<bool>(debug, dbg.doParse, "do_lex");
         maybe_field<bool>(debug, dbg.doParse, "do_parse");
         maybe_field<bool>(debug, dbg.doSem, "do_sem");
         maybe_field<bool>(debug, dbg.traceParse, "trace_parse");
         maybe_field<bool>(debug, dbg.lexToFile, "lex_to_file");
         maybe_field<bool>(debug, dbg.parseToFile, "parse_to_file");
+        maybe_field<bool>(debug, dbg.semToFile, "sem_to_file");
         maybe_field<bool>(debug, dbg.printLexed, "print_lexed");
         maybe_field<bool>(debug, dbg.printParsed, "print_parsed");
         maybe_field<bool>(debug, dbg.printSemToFile, "sem_to_file");

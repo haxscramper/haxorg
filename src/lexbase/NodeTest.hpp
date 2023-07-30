@@ -43,8 +43,10 @@ struct ParseSpec {
     struct Dbg {
         bool traceLex    = false;
         bool traceParse  = false;
+        bool traceSem    = false;
         bool lexToFile   = false;
         bool parseToFile = false;
+        bool semToFile   = false;
         bool printLexed  = false;
         bool printParsed = false;
         bool printSource = false;
