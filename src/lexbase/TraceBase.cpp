@@ -9,8 +9,8 @@ void OperationsTracer::setTraceFile(const QFileInfo& outfile) {
     traceToFile = true;
     file.first.setFileName(outfile.absoluteFilePath());
     if (file.first.open(QIODevice::ReadWrite | QFile::Truncate)) {
-        qDebug() << "Opened" << outfile.absoluteFilePath()
-                 << "for writing";
+        //        qDebug() << "Opened" << outfile.absoluteFilePath()
+        //                 << "for writing";
         file.second.setDevice(&file.first);
     } else {
         qCritical() << "Could not open file "

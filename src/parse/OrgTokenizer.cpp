@@ -1690,7 +1690,35 @@ template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::lexTextVerbatim(PosStr& str) {
     __perf_trace("lexTextVerbatim");
     __trace();
+    static CharSet closingTokens{
+        QChar('-'),
+        QChar('.'),
+        QChar(','),
+        QChar(';'),
+        QChar(':'),
+        QChar('!'),
+        QChar('\''),
+        QChar('"'),
+        QChar(')'),
+        QChar('}'),
+        QChar('\\'),
+        QChar('['),
+        OSpace,
+        ONewline,
+    };
+
+    static CharSet openingTokens{
+        QChar('-'),
+        QChar('('),
+        QChar('\''),
+        QChar('"'),
+        QChar('{'),
+        OSpace,
+        ONewline,
+    };
+
     const auto start = str.get();
+    // Double markup
     if (str.at(start, 1)) {
         auto open = str.tok(markupConfig[start].inlineKind, skipCount, 2);
         __push(open);
@@ -1704,7 +1732,7 @@ bool OrgTokenizerImpl<TraceState>::lexTextVerbatim(PosStr& str) {
         auto close = str.tok(markupConfig[start].inlineKind, skipCount, 2);
         __push(close);
     } else {
-        if (str.at(NonText, -1) || str.atStart()) {
+        if (str.at(openingTokens, -1) || str.atStart()) {
             auto open = str.tok(
                 markupConfig[start].startKind, skipCount, 1);
             __push(open);
@@ -1715,7 +1743,8 @@ bool OrgTokenizerImpl<TraceState>::lexTextVerbatim(PosStr& str) {
                         str.next();
                     }
                     if (str.at(start)
-                        && (str.at(NonText, +1) || !str.hasNext(1))) {
+                        && (str.at(closingTokens, +1)
+                            || !str.hasNext(1))) {
                         ended = true;
                     } else {
                         str.next();

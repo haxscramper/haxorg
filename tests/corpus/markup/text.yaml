@@ -51,3 +51,22 @@ items:
                     - {kind: Punctuation, text: "\""}
                     - {kind: Word, text: "Argument"}
                     - {kind: Punctuation, text: "\""}
+  - source: |
+      <G>: Some text
+        Indentation
+  - name: "Ambigious italic text"
+    source: "One/Another/<Placeholder>"
+    debug:
+      do_parse: false
+    tokens:
+      - {kind: ParagraphStart}
+      - {kind: Word, str: One}
+      - {kind: Word, str: /}
+      - {kind: Word, str: Another}
+      - {kind: ItalicClose, str: /}
+      - {kind: GroupStart}
+      - {kind: AngleOpen, str: <}
+      - {kind: RawText, str: Placeholder}
+      - {kind: AngleClose, str: ">"}
+      - {kind: GroupEnd}
+      - {kind: ParagraphEnd}

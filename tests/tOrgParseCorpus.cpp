@@ -594,102 +594,112 @@ RunResult runSpec(CR<ParseSpec> spec, CR<QString> from) {
     MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
     MockFull              p(spec.dbg.traceParse, spec.dbg.traceLex);
 
-    if (spec.dbg.printSource) {
-        writeFile(spec.debugFile("source.org"), spec.source);
-    }
-
-    p.parser->trace = spec.dbg.traceParse;
-    if (spec.dbg.parseToFile) {
-        p.parser->setTraceFile(spec.debugFile("trace_parse.txt"));
-    }
-
-    p.tokenizer->trace = spec.dbg.traceLex;
-    if (spec.dbg.lexToFile) {
-        p.tokenizer->setTraceFile(spec.debugFile("trace_lex.txt"));
-    }
-
-    if (spec.dbg.doLex) {
-        p.tokenize(spec.source, lexCb);
-    }
-
-    YAML::Emitter emitter;
-    Str           buffer;
-    OrgNodeGroup  nodes;
-    OrgTokenGroup tokens;
-
-    if (spec.expectedMode == ParseSpec::ExpectedMode::Nested) {
-        if (spec.subnodes.has_value()) {
-            auto tree = fromHomogeneous<OrgNodeKind, OrgTokenKind>(
-                spec.subnodes.value());
-            auto flatResult = tree.flatten(buffer);
-            nodes           = flatResult.first;
-            tokens          = flatResult.second;
-        }
-    } else {
-        if (spec.tokens.has_value()) {
-            tokens = fromFlatTokens<OrgTokenKind>(
-                spec.tokens.value(), buffer);
-        }
-
-        if (spec.subnodes.has_value()) {
-            nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind>(
-                spec.subnodes.value());
+    { // Input source
+        if (spec.dbg.printSource) {
+            writeFile(spec.debugFile("source.org"), spec.source);
         }
     }
 
-    p.nodes.tokens = &p.tokens;
-    nodes.tokens   = &tokens;
 
-    if (spec.dbg.printLexed) {
-        writeFileOrStdout(
-            spec.debugFile("lexed.yaml"),
-            to_string(yamlRepr(p.tokens)) + "\n",
-            spec.dbg.printLexedToFile);
-    }
+    { // Lexing
+        if (spec.dbg.doLex) {
+            p.tokenizer->trace = spec.dbg.traceLex;
+            if (spec.dbg.lexToFile) {
+                p.tokenizer->setTraceFile(spec.debugFile("trace_lex.txt"));
+            }
 
-    if (spec.tokens.has_value()) {
-        RunResult::LexCompare result = compareTokens(
-            p.tokens, tokens, spec.conf.tokenMatchMode);
-        if (!result.isOk) {
-            return RunResult(result);
+            p.tokenize(spec.source, lexCb);
+        } else {
+            return RunResult{};
         }
-    }
 
-    if (spec.dbg.doParse) {
-        MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
-
-        p.parse(parseCb);
-
-        if (spec.dbg.printParsed) {
+        if (spec.dbg.printLexed) {
             writeFileOrStdout(
-                spec.debugFile("parsed.yaml"),
-                to_string(yamlRepr(p.nodes)) + "\n",
-                spec.dbg.printParsedToFile);
+                spec.debugFile("lexed.yaml"),
+                to_string(yamlRepr(p.tokens)) + "\n",
+                spec.dbg.printLexedToFile);
+        }
+
+        if (spec.tokens.has_value()) {
+            Str                   buffer;
+            RunResult::LexCompare result = compareTokens(
+                p.tokens,
+                fromFlatTokens<OrgTokenKind>(spec.tokens.value(), buffer),
+                spec.conf.tokenMatchMode);
+            if (!result.isOk) {
+                return RunResult(result);
+            }
         }
     }
 
-    if (spec.subnodes.has_value()) {
-        RunResult::NodeCompare result = compareNodes(p.nodes, nodes);
-        if (!result.isOk) {
-            return RunResult(result);
+    { // Parsing
+        if (spec.dbg.doParse) {
+            p.parser->trace = spec.dbg.traceParse;
+            if (spec.dbg.parseToFile) {
+                p.parser->setTraceFile(spec.debugFile("trace_parse.txt"));
+            }
+
+            MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
+
+            p.parse(parseCb);
+
+            if (spec.dbg.printParsed) {
+                writeFileOrStdout(
+                    spec.debugFile("parsed.yaml"),
+                    to_string(yamlRepr(p.nodes)) + "\n",
+                    spec.dbg.printParsedToFile);
+            }
+        } else {
+            return RunResult{};
+        }
+
+        if (spec.subnodes.has_value()) {
+            Str           buffer;
+            OrgNodeGroup  nodes;
+            OrgTokenGroup tokens;
+
+            if (spec.tokens.has_value()) {
+                tokens = fromFlatTokens<OrgTokenKind>(
+                    spec.tokens.value(), buffer);
+            }
+
+            if (spec.subnodes.has_value()) {
+                nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind>(
+                    spec.subnodes.value());
+            }
+
+            nodes.tokens = &tokens;
+
+            RunResult::NodeCompare result = compareNodes(p.nodes, nodes);
+            if (!result.isOk) {
+                return RunResult(result);
+            }
         }
     }
 
-    if (spec.dbg.doSem && spec.semExpected.has_value()) {
-        sem::OrgConverter converter;
 
-        converter.trace = spec.dbg.traceParse;
-        if (spec.dbg.parseToFile) {
-            converter.setTraceFile(spec.debugFile("trace_sem.txt"));
-        }
+    { // Sem conversion
+        if (spec.dbg.doSem) {
+            sem::OrgConverter converter;
 
-        RunResult::SemCompare result = compareSem(
-            spec,
-            converter.toDocument(OrgAdapter(&p.nodes, OrgId(0))),
-            spec.semExpected.value());
+            converter.trace = spec.dbg.traceParse;
+            if (spec.dbg.parseToFile) {
+                converter.setTraceFile(spec.debugFile("trace_sem.txt"));
+            }
 
-        if (!result.isOk) {
-            return RunResult(result);
+            auto document = converter.toDocument(
+                OrgAdapter(&p.nodes, OrgId(0)));
+
+            if (spec.semExpected.has_value()) {
+                RunResult::SemCompare result = compareSem(
+                    spec, document, spec.semExpected.value());
+
+                if (!result.isOk) {
+                    return RunResult(result);
+                }
+            }
+        } else {
+            return RunResult{};
         }
     }
 
@@ -786,11 +796,19 @@ std::string getTestName(
 
 TEST_P(ParseFile, CorpusAll) {
     TestParams params = GetParam();
-    RunResult  result = runSpec(params.spec, params.file.filePath());
-    if (result.isOk()) {
+    auto&      spec   = params.spec;
+    RunResult  result = runSpec(spec, params.file.filePath());
+
+    if (result.isOk()
+        && !(spec.dbg.doLex && spec.dbg.doParse && spec.dbg.doSem)) {
+        GTEST_SKIP() << "Partially covered test: "
+                     << (spec.dbg.doLex ? "" : "lex is disabled ")     //
+                     << (spec.dbg.doParse ? "" : "parse is disabled ") //
+                     << (spec.dbg.doSem ? "" : "sem is disabled ");
+    } else if (result.isOk()) {
         SUCCEED();
     } else {
-        params.spec.dbg = ParseSpec::Dbg{
+        spec.dbg = ParseSpec::Dbg{
             .debugOutDir       = "/tmp/corpus_runs/" + params.testName(),
             .traceLex          = true,
             .traceParse        = true,
@@ -805,7 +823,7 @@ TEST_P(ParseFile, CorpusAll) {
             .printParsedToFile = true,
             .printSemToFile    = true,
         };
-        RunResult fail = runSpec(params.spec, params.file.filePath());
+        RunResult fail = runSpec(spec, params.file.filePath());
         ColText   os;
 
         std::visit(
@@ -823,23 +841,21 @@ TEST_P(ParseFile, CorpusAll) {
             },
             fail.data);
 
-        writeFile(
-            params.spec.debugFile("failure.txt"), os.toString(false));
+        writeFile(spec.debugFile("failure.txt"), os.toString(false));
 
         // for copy-pasting to the run parameters in qt creator
         writeFile(
-            params.spec.debugFile("qt_run.txt"),
+            spec.debugFile("qt_run.txt"),
             "--gtest_filter='CorpusAllParametrized/ParseFile.CorpusAll/"
                 + params.testName() + "'");
 
         if (useQFormat()) {
             FAIL() << params.fullName() << "failed, wrote debug to"
-                   << params.spec.dbg.debugOutDir << "\n"
+                   << spec.dbg.debugOutDir << "\n"
                    << os.toString(false).toStdString();
         } else {
             FAIL() << params.fullName() << " failed, , wrote debug to "
-                   << params.spec.dbg.debugOutDir;
-            ;
+                   << spec.dbg.debugOutDir;
         }
     }
 }
