@@ -176,7 +176,51 @@ inline void format(
     }
 }
 
-void compareNodes(
+struct RunResult {
+    struct NodeCompare {
+        bool    isOk = false;
+        QString failDescribe;
+    };
+
+    struct LexCompare {
+        bool    isOk = false;
+        QString failDescribe;
+    };
+
+    struct SemCompare {
+        bool    isOk = false;
+        QString failDescribe;
+    };
+
+    struct None {};
+
+    SUB_VARIANTS(
+        Kind,
+        Data,
+        data,
+        getKind,
+        None,
+        NodeCompare,
+        LexCompare,
+        SemCompare);
+
+    RunResult() {}
+    RunResult(CR<Data> data) : data(data) {}
+    Data data;
+
+    bool isOk() const {
+        return std::visit(
+            overloaded{
+                [](CR<NodeCompare> n) { return n.isOk; },
+                [](CR<LexCompare> n) { return n.isOk; },
+                [](CR<SemCompare> n) { return n.isOk; },
+                [](CR<None> n) { return true; },
+            },
+            data);
+    }
+};
+
+RunResult::NodeCompare compareNodes(
     CR<NodeGroup<OrgNodeKind, OrgTokenKind>> parsed,
     CR<NodeGroup<OrgNodeKind, OrgTokenKind>> expected) {
     BacktrackRes nodeSimilarity = longestCommonSubsequence<OrgNode>(
@@ -200,7 +244,7 @@ void compareNodes(
 
     if (nodeSimilarity.lhsIndex.size() == parsed.size()
         && nodeSimilarity.rhsIndex.size() == expected.size()) {
-        SUCCEED();
+        return {.isOk = true};
     } else {
         ShiftedDiff nodeDiff{
             nodeSimilarity, parsed.size(), expected.size()};
@@ -235,12 +279,11 @@ void compareNodes(
                            : "ext=" + to_string(node.getExtent()));
         });
 
-        qcout << buffer << Qt::endl;
-        FAIL() << "Parsed tree structure mismatch";
+        return {.isOk = false, .failDescribe = buffer};
     }
 }
 
-void compareTokens(
+RunResult::LexCompare compareTokens(
     CR<TokenGroup<OrgTokenKind>> lexed,
     CR<TokenGroup<OrgTokenKind>> expected,
     ParseSpec::Conf::MatchMode   match) {
@@ -267,9 +310,8 @@ void compareTokens(
          && tokenSimilarity.rhsIndex.size() == expected.size())
         || (match == Mode::ExpectedSubset
             && tokenSimilarity.rhsIndex.size() == expected.size())) {
-        SUCCEED();
+        return {.isOk = true};
     } else {
-        qDebug() << match;
         ShiftedDiff tokenDiff{
             tokenSimilarity, lexed.size(), expected.size()};
 
@@ -326,7 +368,7 @@ void compareTokens(
             rhsSize,
             useQFormat);
 
-        FAIL() << "Lexed token mismatch\n" << buffer;
+        return {.isOk = false, .failDescribe = buffer};
     }
 }
 
@@ -396,7 +438,10 @@ void writeSimple(ColStream& os, json const& j) {
     }
 };
 
-void compareSem(CR<ParseSpec> spec, sem::SemId node, json expected) {
+RunResult::SemCompare compareSem(
+    CR<ParseSpec> spec,
+    sem::SemId    node,
+    json          expected) {
     json        converted = ExporterJson().visitTop(node);
     json        diff      = json::diff(converted, expected);
     int         failCount = 0;
@@ -495,44 +540,35 @@ void compareSem(CR<ParseSpec> spec, sem::SemId node, json expected) {
         os << "\nexpected:\n";
         aux(expected, 0, json::json_pointer{});
 
-        FAIL() << "Sem tree structure mismatch for '" << spec.getLocMsg()
-               << "'\n"
-               << buf.toStdString();
+        return {.isOk = false, .failDescribe = buf};
+    } else {
+        return {.isOk = true};
     }
 }
 
-void runSpec(CR<ParseSpec> spec, CR<QString> from) {
+RunResult runSpec(CR<ParseSpec> spec, CR<QString> from) {
     MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
     MockFull              p;
 
-    // qDebug().noquote() << ((
-    //     "$# at $#:$#"
-    //     % to_string_vec(
-    //         spec.testName,
-    //         spec.specLocation.line,
-    //         spec.specLocation.column)));
+    if (spec.dbg.printSource) {
+        writeFile(spec.debugFile("source.org"), spec.source);
+    }
 
     p.parser->trace = spec.dbg.traceParse;
     if (spec.dbg.parseToFile) {
-        p.parser->setTraceFile(spec.debugFile("parse.txt"));
+        p.parser->setTraceFile(spec.debugFile("trace_parse.txt"));
     }
 
     p.tokenizer->trace = spec.dbg.traceLex;
     if (spec.dbg.lexToFile) {
-        p.tokenizer->setTraceFile(spec.debugFile("random.txt"));
-    }
-
-    if (spec.dbg.printSource) {
-        qDebug().noquote().nospace()
-            << "\n------------------\n"
-            << spec.source << "\n------------------\n";
+        p.tokenizer->setTraceFile(spec.debugFile("trace_lex.txt"));
     }
 
     if (spec.dbg.doLex) {
         p.tokenize(spec.source, lexCb);
     }
-    YAML::Emitter emitter;
 
+    YAML::Emitter emitter;
     Str           buffer;
     OrgNodeGroup  nodes;
     OrgTokenGroup tokens;
@@ -567,36 +603,47 @@ void runSpec(CR<ParseSpec> spec, CR<QString> from) {
             spec.dbg.printLexedToFile);
     }
 
-    if (spec.dbg.doLex) {
-        if (spec.tokens.has_value()) {
-            compareTokens(p.tokens, tokens, spec.conf.tokenMatchMode);
-        }
-
-        if (spec.dbg.doParse) {
-            MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
-
-            p.parse(parseCb);
-
-            if (spec.dbg.printParsed) {
-                writeFileOrStdout(
-                    spec.debugFile("parsed.yaml"),
-                    to_string(yamlRepr(p.nodes)) + "\n",
-                    spec.dbg.printParsedToFile);
-            }
-
-            if (spec.subnodes.has_value()) {
-                compareNodes(p.nodes, nodes);
-            }
-
-            if (spec.dbg.doSem && spec.semExpected.has_value()) {
-                sem::OrgConverter converter;
-                compareSem(
-                    spec,
-                    converter.toDocument(OrgAdapter(&p.nodes, OrgId(0))),
-                    spec.semExpected.value());
-            }
+    if (spec.tokens.has_value()) {
+        RunResult::LexCompare result = compareTokens(
+            p.tokens, tokens, spec.conf.tokenMatchMode);
+        if (!result.isOk) {
+            return RunResult(result);
         }
     }
+
+    if (spec.dbg.doParse) {
+        MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
+
+        p.parse(parseCb);
+
+        if (spec.dbg.printParsed) {
+            writeFileOrStdout(
+                spec.debugFile("parsed.yaml"),
+                to_string(yamlRepr(p.nodes)) + "\n",
+                spec.dbg.printParsedToFile);
+        }
+    }
+
+    if (spec.subnodes.has_value()) {
+        RunResult::NodeCompare result = compareNodes(p.nodes, nodes);
+        if (!result.isOk) {
+            return RunResult(result);
+        }
+    }
+
+    if (spec.dbg.doSem && spec.semExpected.has_value()) {
+        sem::OrgConverter     converter;
+        RunResult::SemCompare result = compareSem(
+            spec,
+            converter.toDocument(OrgAdapter(&p.nodes, OrgId(0))),
+            spec.semExpected.value());
+
+        if (!result.isOk) {
+            return RunResult(result);
+        }
+    }
+
+    return RunResult();
 }
 
 TEST(PrintError, MultipleFiles) {
@@ -893,7 +940,41 @@ std::string getTestName(
 
 TEST_P(ParseFile, CorpusAll) {
     TestParams params = GetParam();
-    runSpec(params.spec, params.file.filePath());
+    RunResult  result = runSpec(params.spec, params.file.filePath());
+    if (result.isOk()) {
+        SUCCEED();
+    } else {
+        params.spec.dbg = ParseSpec::Dbg{
+            .traceLex          = true,
+            .traceParse        = true,
+            .lexToFile         = true,
+            .parseToFile       = true,
+            .printLexed        = true,
+            .printParsed       = true,
+            .printSource       = true,
+            .printLexedToFile  = true,
+            .printParsedToFile = true,
+            .printSemToFile    = true,
+        };
+        RunResult   fail = runSpec(params.spec, params.file.filePath());
+        QString     buf;
+        QTextStream stream{&buf};
+        ColStream   os{stream};
+        if (useQFormat()) {
+            os.colored = false;
+        }
+
+        std::visit(
+            overloaded{
+                [&](RunResult::NodeCompare const& node) {},
+                [&](RunResult::LexCompare const& node) {},
+                [&](RunResult::SemCompare const& node) {},
+                [&](RunResult::None const& node) {},
+            },
+            fail.data);
+
+        FAIL() << params.fullName() << "failed\n" << buf.toStdString();
+    }
 }
 
 INSTANTIATE_TEST_CASE_P(
