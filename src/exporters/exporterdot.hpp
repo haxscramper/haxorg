@@ -43,7 +43,8 @@ class ExporterDot : public Exporter<ExporterDot, Graphviz::Node> {
             visitField(node, name, *value);
         } else {
             node.getNodeRecord()->set(
-                name, Record("<none>" + demangle(typeid(T).name())));
+                name,
+                Record::shared("<none>" + demangle(typeid(T).name())));
         }
     }
 
@@ -54,7 +55,8 @@ class ExporterDot : public Exporter<ExporterDot, Graphviz::Node> {
         CR<T>           value) {
         if constexpr (std::is_same_v<T, int>) {
             record.getNodeRecord()->set(
-                name, Graphviz::Node::Record(QString::number(value)));
+                name,
+                Graphviz::Node::Record::shared(QString::number(value)));
         }
     }
 
@@ -67,7 +69,8 @@ class ExporterDot : public Exporter<ExporterDot, Graphviz::Node> {
 
     void pushVisit(Graphviz::Node& node, sem::SemId org) {
         node.getNodeRecord()->set(
-            "kind", Graphviz::Node::Record(to_string(org->getKind())));
+            "kind",
+            Graphviz::Node::Record::shared(to_string(org->getKind())));
 
         if (!nodes.empty()) {
             graph->edge(node, nodes.back().last);

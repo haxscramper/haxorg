@@ -2,6 +2,7 @@ fun:*getNodeRanges*
 src:*QtCore*
 src:*libQt6Core*
 fun:*StringFromGTestEnv*
+fun:std::*
 src:/usr/lib64/gcc/*
 src:/usr/lib/*
 interceptor_via_lib:libgtest.so*

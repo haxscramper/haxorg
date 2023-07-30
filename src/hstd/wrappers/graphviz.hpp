@@ -216,7 +216,7 @@ class Graphviz {
 
     class Node : public GraphvizObjBase<Node> {
       public:
-        struct Record {
+        struct Record : SharedPtrApi<Record> {
             static QString escape(QString const& input) {
                 QString escaped = input;
                 escaped.replace("\\", "\\\\");
@@ -234,34 +234,36 @@ class Graphviz {
             Record(Str const& content, Opt<Str> const& tag = std::nullopt)
                 : content(content), tag(tag) {}
 
-            Record(Vec<Record> const& sub) : content(sub) {}
+            Record(Vec<Record::Ptr> const& sub) : content(sub) {}
 
             void push_back(CR<Vec<Str>> cells) {
-                Vec<Record> row;
+                Vec<Record::Ptr> row;
                 for (const auto& it : cells) {
-                    row.push_back(it);
+                    row.push_back(Record::shared(it));
                 }
-                getNested().push_back(Record(row));
+                getNested().push_back(Record::shared(row));
             }
 
-            void push_back(CR<Record> rec) { getNested().push_back(rec); }
+            void push_back(CR<Record::Ptr> rec) {
+                getNested().push_back(rec);
+            }
 
             bool isFinal() const {
                 return std::holds_alternative<Str>(content);
             }
 
-            void set(QString const& columnKey, CR<Record> value);
+            void set(QString const& columnKey, CR<Record::Ptr> value);
 
             bool       isRecord() const { return !isFinal(); }
             Str&       getLabel() { return std::get<Str>(content); }
             Str const& getLabel() const { return std::get<Str>(content); }
-            Vec<Record>&       getNested() { return std::get<1>(content); }
-            Vec<Record> const& getNested() const {
+            Vec<Record::Ptr>& getNested() { return std::get<1>(content); }
+            Vec<Record::Ptr> const& getNested() const {
                 return std::get<1>(content);
             }
 
-            Opt<Str>                  tag;
-            Variant<Str, Vec<Record>> content;
+            Opt<Str>                       tag;
+            Variant<Str, Vec<Record::Ptr>> content;
 
             Str toString(bool braceCount = 1) const;
         };

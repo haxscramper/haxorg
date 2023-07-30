@@ -13,6 +13,8 @@ extern "C" {
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
 
+#include <fmt/core.h>
+
 namespace guile {
 
 DECL_DESCRIBED_ENUM_STANDALONE(
@@ -59,7 +61,7 @@ struct base_msg : std::exception {
 
 struct unexpected_variant : base_msg {
     unexpected_variant(std::string const& where, std::string const& kind) {
-        text = std::format(
+        text = fmt::format(
             "Could not decode variant with discriminant selector '{}' at "
             "{}",
             kind,
@@ -69,14 +71,14 @@ struct unexpected_variant : base_msg {
 
 struct missing_field : base_msg {
     missing_field(std::string const& where, SCM field) {
-        text = std::format(
+        text = fmt::format(
             "Could not get field '{}' from {}", to_string(field), where);
     }
 };
 
 struct decode_error : base_msg {
     decode_error(std::string const& where, SCM got) {
-        text = std::format(
+        text = fmt::format(
             "Unexpected value '{}' of kind {} was found while {}",
             to_string(got),
             enum_serde<ValueKind>::to_string(get_value_kind(got))

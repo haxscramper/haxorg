@@ -2,22 +2,24 @@
 #include <QFileInfo>
 
 void Graphviz::Node::Record::set(
-    const QString& columnKey,
-    CR<Record>     value) {
+    const QString&  columnKey,
+    CR<Record::Ptr> value) {
     if (isFinal()) {
-        content = Vec<Record>{Record({Record(columnKey), value})};
+        content = Vec<Record::Ptr>{Record::shared(
+            Vec<Record::Ptr>{Record::shared(columnKey), value})};
     } else {
         for (auto& it : getNested()) {
-            if (it.isRecord()) {
-                if (it.getNested()[0].isFinal()
-                    && it.getNested()[0].getLabel() == columnKey) {
-                    it.getNested()[1] = value;
+            if (it->isRecord()) {
+                if (it->getNested()[0]->isFinal()
+                    && it->getNested()[0]->getLabel() == columnKey) {
+                    it->getNested()[1] = value;
                     return;
                 }
             }
         }
 
-        push_back(Record({Record(columnKey), value}));
+        push_back(Record::shared(
+            Vec<Record::Ptr>{Record::shared(columnKey), value}));
     }
 }
 
@@ -36,7 +38,7 @@ Str Graphviz::Node::Record::toString(bool braceCount) const {
                 if (0 < i) {
                     result += "|";
                 }
-                result += c[i].toString(1);
+                result += c[i]->toString(1);
             }
             result += Str("}").repeated(braceCount);
         }

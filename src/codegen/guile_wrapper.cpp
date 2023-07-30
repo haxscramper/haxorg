@@ -223,7 +223,7 @@ void guile::print(SCM obj, std::ostream& out, std::string indent) {
             out << indent << "<bytevector>";
             size_t len = scm_c_bytevector_length(obj);
             for (size_t i = 0; i < len; ++i) {
-                out << std::format("{:x}", scm_c_bytevector_ref(obj, i))
+                out << fmt::format("{:x}", scm_c_bytevector_ref(obj, i))
                     << ' ';
             }
             out << '\n';
@@ -243,7 +243,7 @@ void guile::print(SCM obj, std::ostream& out, std::string indent) {
                     out << "struct:";
                 }
 
-                out << std::format("{:x}", SCM_UNPACK(vtable)) << " "
+                out << fmt::format("{:x}", SCM_UNPACK(vtable)) << " "
                     << SCM_VTABLE_LAYOUT(vtable) << " ";
             }
 
