@@ -3,14 +3,10 @@
 
 #include <gtest/gtest.h>
 
-struct VectorTest : public ::testing::Test {
+TEST(SpanTest, SpanFromVector) {
     Vec<int>   data{0, 1, 2, 3, 4, 5, 6, 7, 8};
-    int const* end;
+    int const* end = &data.back();
 
-    void SetUp() override { end = &data.back(); }
-};
-
-TEST_F(VectorTest, SpanFromVector) {
     auto span = data.toSpan();
     // Starting size of a span is the same as underlying data
     ASSERT_EQ(span.size(), data.size());

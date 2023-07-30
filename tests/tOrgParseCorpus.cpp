@@ -494,8 +494,8 @@ void compareSem(CR<ParseSpec> spec, sem::SemId node, json expected) {
         os << "\nexpected:\n";
         aux(expected, 0, json::json_pointer{});
 
-        FAIL() << "Sem tree structure mismatch for" << spec.getLocMsg()
-               << "\n"
+        FAIL() << "Sem tree structure mismatch for '" << spec.getLocMsg()
+               << "'\n"
                << buf.toStdString();
     }
 }

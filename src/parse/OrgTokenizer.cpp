@@ -3470,7 +3470,6 @@ void OrgTokenizerImpl<TraceState>::pushResolved(CR<OrgToken> token) {
 
 template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::lexGlobal(PosStr& str) {
-    qDebug() << "Lexer lex global";
     __perf_trace("lexGlobal");
     __trace();
     Q_ASSERT(locationResolver);

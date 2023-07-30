@@ -1810,12 +1810,13 @@ template <bool TraceState>
 OrgId OrgParserImpl<TraceState>::parseSubtreeCompletion(OrgLexer& lex) {
     __perf_trace("parseSubtreeCompletion");
     __trace();
-    if (lex.at(otk::SkipNewline) || lex.at(otk::SubtreeTagSeparator)) {
+    if (lex.at(otk::SkipNewline) || lex.at(otk::SubtreeTagSeparator)
+        || lex.at(otk::SubtreeEnd)) {
         return empty();
 
     } else {
         __start(org::Completion);
-        qDebug() << "Parse subtree completion" << lex;
+        qDebug() << "Parse subtree completion [" << lex << "]";
         __end_return();
     }
 }

@@ -24,8 +24,8 @@ template <typename T>
 class Vec : public std::vector<T> {
   public:
     using Base = std::vector<T>;
-    using std::vector<T>::vector; // Inherit constructor from
-                                  // std::vector
+    Vec(std::initializer_list<T> init) : std::vector<T>(init) {}
+    Vec(Vec<T> const& init) : std::vector<T>(init) {}
 
     using Base::at;
     using Base::operator[];
@@ -225,6 +225,9 @@ class Vec : public std::vector<T> {
     std::vector<T> toBase() const { return *this; }
 };
 
+static_assert(
+    sizeof(Vec<int>) == sizeof(std::vector<int>),
+    "Vector size must be identical");
 
 /// \brief Vector formatting operator
 template <typename T>

@@ -1,12 +1,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <gtest/gtest.h>
 
-class VectorTest : public ::testing::Test {
-  protected:
-    void SetUp() override {}
-};
-
-TEST_F(VectorTest, SliceAndIndexingOperators) {
+TEST(VectorTest, SliceAndIndexingOperators) {
     Vec<int> v{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     // Test slice operator with positive indices
@@ -39,11 +34,25 @@ TEST_F(VectorTest, SliceAndIndexingOperators) {
     EXPECT_THROW(v.at(11_B), std::out_of_range);
 }
 
-TEST_F(VectorTest, EditDataViaSpanView) {
-    Vec<int> v(5, 0);
+TEST(VectorTest, VectorAlloc) {
+    {
+        std::vector<int> v{0, 0, 0, 0, 0};
+        Q_CHECK_PTR(v.data());
+        EXPECT_EQ(v[0], 0);
+    }
+    {
+        Vec<int> v{0, 0, 0, 0, 0};
+        Q_CHECK_PTR(v.data());
+        EXPECT_EQ(v[0], 0);
+    }
+}
+
+TEST(VectorTest, EditDataViaSpanView) {
+    Vec<int> v{0, 0, 0, 0, 0};
 
     // Test modification using slice operator
     std::span<int> span = v[slice(1, 3)];
+    Q_CHECK_PTR(span.data());
     for (int& x : span) {
         x = 42;
     }

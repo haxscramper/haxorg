@@ -955,10 +955,9 @@ void HaxorgCli::exec() {
         }
     }
 
-    writeTreeParse();
+    //    writeTreeParse();
 
     {
-        __trace("convert parse to sem");
         if (config.trace.sem.doTrace) {
             converter.trace = true;
             if (config.trace.sem.traceTo) {
@@ -966,8 +965,11 @@ void HaxorgCli::exec() {
             }
         }
 
-        node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
-        qInfo() << "Finished conversion";
+        {
+            __trace("convert parse to sem");
+            node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+            qInfo() << "Finished conversion";
+        }
 
         Vec<Pair<OrgSemKind, int>> counts;
 

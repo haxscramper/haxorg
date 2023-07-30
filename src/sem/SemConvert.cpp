@@ -393,8 +393,6 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
     __trace();
     auto tree = Sem<Subtree>(p, a);
 
-    a.treeRepr(QFileInfo("/tmp/tree-original"));
-
     tree->level = one(a, N::Prefix).strVal().size();
 
     {
