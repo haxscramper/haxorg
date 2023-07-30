@@ -20,6 +20,9 @@ include(${DEPS_DIR}/conanbuildinfo.cmake)
 include(functions_aux.cmake)
 include(functions_setup.cmake)
 
+# TODO enable and use
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb")
+
 conan_basic_setup()
 
 option(TRACE_INSTRUMENT "Generate instrumentation trace")

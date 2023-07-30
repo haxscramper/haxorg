@@ -161,8 +161,8 @@ QString to_colored_string(
 /// performance. The API must stay the same in any case, so improved
 /// version can be implemented in the future.
 struct ColRune {
-    QChar    rune = QChar(L' ');
-    ColStyle style;
+    QChar    rune  = QChar(L' ');
+    ColStyle style = ColStyle{};
     inline ColRune(QChar rune = ' ', CR<ColStyle> style = ColStyle{})
         : rune(rune), style(style) {}
 

@@ -250,9 +250,9 @@ struct Label {
     inline Label(const std::shared_ptr<CodeSpan>& Codespan)
         : span(Codespan) {}
 
-    std::shared_ptr<CodeSpan> span;
-    std::optional<ColText>    msg;
-    ColStyle                  color;
+    std::shared_ptr<CodeSpan> span     = nullptr;
+    std::optional<ColText>    msg      = std::nullopt;
+    ColStyle                  color    = ColStyle{};
     int                       order    = 0;
     int                       priority = 0;
 
@@ -386,14 +386,14 @@ struct Config {
 
 class Report {
   public:
-    ReportKind             kind;
-    std::optional<QString> code;
-    std::optional<ColText> msg;
-    std::optional<ColText> note;
-    std::optional<ColText> help;
-    std::pair<Id, int>     location;
-    Vec<Label>             labels;
-    Config                 config;
+    ReportKind             kind     = ReportKind::Error;
+    std::optional<QString> code     = std::nullopt;
+    std::optional<ColText> msg      = std::nullopt;
+    std::optional<ColText> note     = std::nullopt;
+    std::optional<ColText> help     = std::nullopt;
+    std::pair<Id, int>     location = {0, 0};
+    Vec<Label>             labels   = {};
+    Config                 config   = Config{};
 
 
     // Give this report a numerical code that may be used to more precisely

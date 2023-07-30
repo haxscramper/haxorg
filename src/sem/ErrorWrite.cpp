@@ -171,17 +171,17 @@ bool sort_line_labels(
 }
 
 void fill_margin_elements(
-    MarginContext const&             c,
-    int                              col,
-    Opt<Pair<CRw<Label>, bool>>&     corner,
-    Opt<Pair<CRw<LineLabel>, bool>>& margin_ptr,
-    Opt<Label>&                      vbar,
-    Opt<Label>&                      hbar) {
+    MarginContext const&        c,
+    int                         col,
+    Opt<Pair<Label, bool>>&     corner,
+    Opt<Pair<LineLabel, bool>>& margin_ptr,
+    Opt<Label>&                 vbar,
+    Opt<Label>&                 hbar) {
 
     Slice<int> line_span = c.src->line(c.idx).value().span();
     for (int i = 0; i < std::min(col + 1, c.multi_labels.size()); ++i) {
-        const auto&         label = c.multi_labels.at(i);
-        Opt<CRw<LineLabel>> margin;
+        auto           label = c.multi_labels.at(i);
+        Opt<LineLabel> margin;
         if (c.margin_label && label == c.margin_label->label) {
             margin = c.margin_label;
         }
@@ -211,7 +211,7 @@ void fill_margin_elements(
                 if (report_row_value.first == label_row) {
                     if (margin) {
                         if (col == i) {
-                            vbar = margin->get().label;
+                            vbar = margin->label;
                         } else {
                             vbar = std::nullopt;
                         }
@@ -333,10 +333,11 @@ void write_margin(MarginContext const& c) {
         for (int col = 0; col < c.multi_labels.size()
                                     + (0 < c.multi_labels.size() ? 1 : 0);
              ++col) {
-            Opt<Pair<CRw<Label>, bool>>     corner     = std::nullopt;
-            Opt<Label>                      hbar       = std::nullopt;
-            Opt<Label>                      vbar       = std::nullopt;
-            Opt<Pair<CRw<LineLabel>, bool>> margin_ptr = std::nullopt;
+
+            Opt<Label>                 hbar       = std::nullopt;
+            Opt<Label>                 vbar       = std::nullopt;
+            Opt<Pair<Label, bool>>     corner     = std::nullopt;
+            Opt<Pair<LineLabel, bool>> margin_ptr = std::nullopt;
 
             Opt<CRw<Label>> multi_label = c.multi_labels.get(col);
 
@@ -344,12 +345,11 @@ void write_margin(MarginContext const& c) {
 
             if (margin_ptr && c.is_line) {
                 bool is_col = multi_label
-                           && (*multi_label
-                               == margin_ptr->first.get().label);
+                           && (*multi_label == margin_ptr->first.label);
 
                 bool is_limit = col + 1 == c.multi_labels.size();
                 if (!is_col && !is_limit) {
-                    hbar = hbar.value_or(margin_ptr->first.get().label);
+                    hbar = hbar.value_or(margin_ptr->first.label);
                 }
             }
 
@@ -754,8 +754,8 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
 
 void Report::write_for_stream(Cache& cache, QTextStream& stream) {
     ColStream w{stream};
-    w.colored = true;
-    Characters draw;
+    w.colored       = true;
+    Characters draw = Characters{};
     switch (config.char_set) {
         case MessageCharSet::Unicode: draw = unicode(); break;
         case MessageCharSet::Ascii: draw = ascii(); break;
