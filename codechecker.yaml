@@ -1,5 +1,5 @@
 analyzer:
-  - --analyzers=clangsa
+  # - --analyzers=clangsa
   # - --analyzers=clang-tidy
   # Analyzer configurations.
   - --analyzer-config=clangsa:unroll-loops=true

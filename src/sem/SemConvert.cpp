@@ -418,10 +418,8 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
         __field(N::Body);
         for (auto const& sub : one(a, N::Body)) {
             auto const&    g      = GlobalStore::getInstance();
-            Subtree*       ptr    = tree.get();
             Subtree const& direct = g.store.storeSubtree.values.at(
                 tree.getNodeIndex());
-            auto p = &ptr;
 
             auto subres = convert(tree, sub);
             tree->push_back(subres);

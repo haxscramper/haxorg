@@ -473,6 +473,9 @@ struct LexerCommon {
         while (0 < count) {
             if (start.contains(kind())) {
                 while (start.contains(kind())) {
+                    // TODO identical to the inner loop -- implement unit
+                    // test to get coverage for this case to make sure this
+                    // can be safely removed.
                     if (0 < count) {
                         result.push_back(pop());
                     } else {

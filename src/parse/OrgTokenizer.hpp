@@ -154,8 +154,8 @@ struct OrgTokenizer : public OperationsTracer {
         struct UnexpectedChar : Base {
             PosStr::CheckableSkip wanted;
             const char*           what() const noexcept override;
-            UnexpectedChar(CR<PosStr> str, PosStr::CheckableSkip wanted)
-                : Base(str), wanted(wanted) {}
+            UnexpectedChar(CR<PosStr> str, PosStr::CheckableSkip wanted_)
+                : Base(str), wanted(wanted_) {}
         };
 
         struct MissingElement : Base {
@@ -262,7 +262,7 @@ struct OrgTokenizer : public OperationsTracer {
     __IMPL(TimeStamp);                                                    \
     __IMPL(DynamicTimeStamp);                                             \
     __IMPL(StaticTimeStamp);                                              \
-    \
+                                                                          \
     __IMPL(Link);                                                         \
     __IMPL(Footnote);                                                     \
     __IMPL(LinkTarget);                                                   \
