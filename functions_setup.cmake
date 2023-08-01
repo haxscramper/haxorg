@@ -27,11 +27,12 @@ function(set_target_flags TARGET)
     # add_target_property(${TARGET} COMPILE_OPTIONS
     #                     "-fdiagnostics-format=sarif")
 
-#    add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize=address")
-#    add_target_property(${TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
-#    add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
-#    add_target_property(${TARGET} LINK_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
-#    add_target_property(${TARGET} LINK_OPTIONS "-fsanitize=address")
+    add_target_property(${TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
+
+    add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize=undefined")
+    add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
+    add_target_property(${TARGET} LINK_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
+    add_target_property(${TARGET} LINK_OPTIONS "-fsanitize=undefined")
 
     if(${USE_PERFETTO})
         add_target_property(${TARGET} COMPILE_DEFINITIONS USE_PERFETTO)
@@ -76,15 +77,16 @@ function(set_target_flags TARGET)
 endfunction()
 
 function(set_common_files TARGET)
-  set_target_properties("${TARGET}"
-      PROPERTIES
-      CMAKE_CXX_STANDARD 20
-      CXX_STANDARD 20)
-  add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
-  add_target_property("${TARGET}" SOURCES "${HEADER_FILES}")
-  add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/src")
-  add_target_property("${TARGET}" LINK_LIBRARIES dw)
-  add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
+    set_target_properties("${TARGET}"
+        PROPERTIES
+        CMAKE_CXX_STANDARD 20
+        CXX_STANDARD 20)
+
+    add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
+    add_target_property("${TARGET}" SOURCES "${HEADER_FILES}")
+    add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/src")
+    add_target_property("${TARGET}" LINK_LIBRARIES dw)
+    add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
 
 
   # target_precompile_headers(
@@ -96,16 +98,18 @@ function(set_common_files TARGET)
   # )
 
 
-  target_precompile_headers("${TARGET}" PRIVATE
-    <QString>
-    <QDateTime>
-    <QDebug>
-    <nlohmann/json.hpp>
-    <optional>
-    <vector>
-    <boost/mp11.hpp>
-    <boost/describe.hpp>
-  )
+    if (USE_PCH)
+        target_precompile_headers("${TARGET}" PRIVATE
+            <QString>
+            <QDateTime>
+            <QDebug>
+            <nlohmann/json.hpp>
+            <optional>
+            <vector>
+            <boost/mp11.hpp>
+            <boost/describe.hpp>
+        )
+    endif()
 
     if(${USE_PERFETTO})
         add_target_property(${TARGET} PRECOMPILE_HEADERS <perfetto.h>)
