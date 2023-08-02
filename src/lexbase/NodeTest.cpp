@@ -127,6 +127,17 @@ ParseSpec::ParseSpec(CR<yaml> node, CR<QString> specFile)
         semExpected = toJson(node["sem"]);
     }
 
+    if (node["export"]) {
+        for (auto const& exp : node["export"]) {
+            ExporterExpect res;
+            maybe_field<Opt<yaml>>(exp, res.parmeters, "parameters");
+            maybe_field<QString>(exp, res.exporterName, "name");
+            maybe_field<yaml>(exp, res.expected, "expected");
+            maybe_field<bool>(exp, res.traceExport, "do_trace");
+            exporterExpect.push_back(res);
+        }
+    }
+
     maybe_field<ExpectedMode>(node, expectedMode, "expected");
 }
 

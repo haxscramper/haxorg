@@ -1,12 +1,10 @@
 #pragma once
 
-
 #include <lexbase/Node.hpp>
 #include <lexbase/Token.hpp>
 
-#include <hstd/stdlib/Yaml.hpp>
 #include <hstd/stdlib/Json.hpp>
-
+#include <hstd/stdlib/Yaml.hpp>
 
 struct ParseSpec {
     Opt<yaml>    subnodes;
@@ -61,9 +59,23 @@ struct ParseSpec {
         QString debugOutDir = ""; /// directory to write debug files to
     };
 
+    struct ExporterExpect {
+        QString exporterName;
+        /// Optional parameters to pass to the exporter run.
+        Opt<yaml> parmeters;
+        yaml      expected;
+        /// Print additional trace logs for exporter in the debug directory
+        /// for parent test?
+        bool traceExport = false;
+    };
+
+    /// List of exporter executions along with the additional parameters to
+    /// supply to the exporter. Specific handling of different exporter
+    /// variations is implemented in the corpus file.
+    Vec<ExporterExpect> exporterExpect;
+
     QFileInfo debugFile(QString relativePath, bool create = true) const;
     Dbg       dbg;
-
 
     /// Name of the method to call for lexing or parsing. Pointer to
     /// implementation is resolved externally, spec file just contains the
@@ -75,7 +87,6 @@ struct ParseSpec {
         explicit SpecValidationError(const QString& message)
             : std::runtime_error(message.toStdString()) {}
     };
-
 
     enum class ExpectedMode
     {

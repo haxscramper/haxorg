@@ -17,6 +17,8 @@
 
 #include <hstd/stdlib/diffs.hpp>
 
+#include <hstd/wrappers/textlayouter.hpp>
+
 #include <fnmatch.h>
 #include <ranges>
 
@@ -175,6 +177,108 @@ inline void format(
                    <<= rhsSize)
                << Qt::endl;
         }
+    }
+}
+
+
+struct ExportResult {
+    struct Plaintext {
+        QString text;
+    };
+
+    struct Text {
+        json textLyt;
+    };
+
+    struct Structured {
+        json data;
+    };
+
+    SUB_VARIANTS(Kind, Data, data, getKind, Plaintext, Text, Structured);
+
+    ExportResult() {}
+    ExportResult(CR<Data> data) : data(data) {}
+    Data data;
+};
+
+json toTextLyt(
+    layout::Block::Ptr        block,
+    Func<Str(layout::LytStr)> getStr) {
+    using b = layout::Block;
+
+    auto getSubnodes = [&](CVec<b::Ptr> elements) {
+        json res = json::array();
+        for (auto const& e : elements) {
+            res.push_back(toTextLyt(e, getStr));
+        }
+        return res;
+    };
+
+    return std::visit(
+        overloaded{
+            [&](b::Empty const&) -> json {
+                return {{"kind", "empty"}};
+            },
+            [&](b::Line const& l) -> json {
+                return {
+                    {"kind", "line"},
+                    {"subnodes", getSubnodes(l.elements)}};
+            },
+            [&](b::Stack const& l) -> json {
+                return {
+                    {"kind", "block"},
+                    {"subnodes", getSubnodes(l.elements)}};
+            },
+            [&](b::Choice const& l) -> json {
+                return {
+                    {"kind", "choice"},
+                    {"subnodes", getSubnodes(l.elements)}};
+            },
+            [&](b::Verb const& l) -> json {
+                json arr = json::array();
+                for (auto const& i : l.textLines) {
+                    json line = json::array();
+                    for (auto const& it : i.strs) {
+                        line.push_back(getStr(it));
+                    }
+                    arr.push_back(line);
+                }
+
+                return {
+                    {"kind", "verb"},
+                    {"fistNl", "bool"},
+                    {"lines", arr}};
+            },
+            [&](b::Text const& l) -> json {
+                json arr = json::array();
+                for (auto const& i : l.text.strs) {
+                    arr.push_back(getStr(i));
+                }
+                return {{"kind", "text"}, {"tokens", arr}};
+            },
+            [&](b::Wrap const& text) -> json {
+                return {
+                    {"kind", "wrap"},
+                    {"sep", getStr(text.sep)},
+                    {"prefix",
+                     text.prefix ? json(getStr(text.prefix.value()))
+                                 : json()},
+                    {"subnodes", getSubnodes(text.wrapElements)}};
+            },
+        },
+        block->data);
+}
+
+ExportResult runExporter(
+    sem::SemId                       top,
+    ParseSpec::ExporterExpect const& exp) {
+    using ER = ExportResult;
+    if (exp.exporterName == "json") {
+        return ER(ER::Structured{.data = ExporterJson().visitTop(top)});
+    } else {
+        throw std::domain_error(
+            "Unexpected export result name "
+            + exp.exporterName.toStdString());
     }
 }
 
