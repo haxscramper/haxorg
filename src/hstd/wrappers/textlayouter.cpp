@@ -982,7 +982,7 @@ LytStr SimpleStringStore::str(const QString& str) {
     return result;
 }
 
-QString SimpleStringStore::str(const LytStr& str) {
+QString SimpleStringStore::str(const LytStr& str) const {
     if (str.isSpaces()) {
         return QString(" ").repeated(str.len);
     } else {

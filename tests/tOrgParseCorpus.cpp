@@ -10,6 +10,10 @@
 
 #include <exporters/ExporterJson.hpp>
 #include <exporters/exportertree.hpp>
+#include <exporters/exportersimplesexpr.hpp>
+#include <exporters/exportersubtreestructure.hpp>
+#include <exporters/exporterhtml.hpp>
+#include <exporters/exporterlatex.hpp>
 
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Debug.hpp>
@@ -245,9 +249,7 @@ json toTextLyt(
                 }
 
                 return {
-                    {"kind", "verb"},
-                    {"fistNl", "bool"},
-                    {"lines", arr}};
+                    {"kind", "verb"}, {"fistNl", "bool"}, {"lines", arr}};
             },
             [&](b::Text const& l) -> json {
                 json arr = json::array();
@@ -273,8 +275,37 @@ ExportResult runExporter(
     sem::SemId                       top,
     ParseSpec::ExporterExpect const& exp) {
     using ER = ExportResult;
+
+    auto strForStore = [](layout::SimpleStringStore const& store)
+        -> Func<Str(layout::LytStr)> {
+        return [&](layout::LytStr str) { return store.str(str); };
+    };
+
+    auto withTreeExporter = [&strForStore](sem::SemId top, auto& run) {
+        auto block = run.visitTop(top);
+        return ER(
+            ER::Text{.textLyt = toTextLyt(block, strForStore(run.store))});
+    };
+
     if (exp.exporterName == "json") {
         return ER(ER::Structured{.data = ExporterJson().visitTop(top)});
+    } else if (exp.exporterName == "sexp") {
+        ExporterSimpleSExpr run;
+        return withTreeExporter(top, run);
+
+    } else if (exp.exporterName == "html") {
+        ExporterHtml run;
+        return withTreeExporter(top, run);
+
+    } else if (exp.exporterName == "latex") {
+        ExporterLatex run;
+        return withTreeExporter(top, run);
+
+    } else if (exp.exporterName == "subtree_structure") {
+        return ER(ER::Structured{
+            .data = ExporterSubtreeStructure().visitTop(top)});
+
+
     } else {
         throw std::domain_error(
             "Unexpected export result name "
