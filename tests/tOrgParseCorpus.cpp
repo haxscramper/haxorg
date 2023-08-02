@@ -202,7 +202,8 @@ struct ExportResult {
 
     ExportResult() {}
     ExportResult(CR<Data> data) : data(data) {}
-    Data data;
+    Data                      data;
+    ParseSpec::ExporterExpect expected;
 };
 
 json toTextLyt(
@@ -329,6 +330,20 @@ struct RunResult {
         ColText failDescribe;
     };
 
+    struct ExportCompare {
+        struct Run {
+            ColText failDescribe;
+            bool    isOk;
+        };
+
+        Vec<Run> run;
+
+        bool isOk() const {
+            return std::all_of(
+                run.begin(), run.end(), [](CR<Run> r) { return r.isOk; });
+        }
+    };
+
     struct None {};
 
     SUB_VARIANTS(
@@ -339,7 +354,8 @@ struct RunResult {
         None,
         NodeCompare,
         LexCompare,
-        SemCompare);
+        SemCompare,
+        ExportCompare);
 
     RunResult() {}
     RunResult(CR<Data> data) : data(data) {}
@@ -351,6 +367,7 @@ struct RunResult {
                 [](CR<NodeCompare> n) { return n.isOk; },
                 [](CR<LexCompare> n) { return n.isOk; },
                 [](CR<SemCompare> n) { return n.isOk; },
+                [](CR<ExportCompare> e) { return e.isOk(); },
                 [](CR<None> n) { return true; },
             },
             data);
@@ -971,6 +988,8 @@ TEST_P(ParseFile, CorpusAll) {
                 },
                 [&](RunResult::SemCompare const& node) {
                     os = node.failDescribe;
+                },
+                [&](RunResult::ExportCompare const& node) {
                 },
                 [&](RunResult::None const& node) {},
             },
