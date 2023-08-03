@@ -9,6 +9,7 @@ extern "C" {
 #include <iostream>
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
+#include <hstd/stdlib/Variant.hpp>
 
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
@@ -115,23 +116,6 @@ struct convert<bool> {
     }
 };
 
-
-template <typename T>
-concept DescribedRecord = boost::describe::has_describe_members<
-                              std::remove_cvref_t<T>>::value
-                       && boost::describe::has_describe_bases<
-                              std::remove_cvref_t<T>>::value;
-
-// Type trait to check if a type is a specialization of std::variant
-template <class T>
-struct is_variant : std::false_type {};
-
-template <class... Args>
-struct is_variant<std::variant<Args...>> : std::true_type {};
-
-// The concept uses the type trait after removing cv-ref qualifiers
-template <typename T>
-concept IsVariant = is_variant<std::remove_cvref_t<T>>::value;
 
 template <IsVariant T, typename CRTP_Derived>
 struct variant_convert {

@@ -10,6 +10,7 @@
 #include "gen_description.hpp"
 #include "gen_converter.hpp"
 #include "guile_wrapper.hpp"
+#include <hstd/stdlib/strformat.hpp>
 
 QTextStream qcout;
 

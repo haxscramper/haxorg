@@ -19,6 +19,12 @@ concept DescribedEnum = IsEnum<T>
                      && boost::describe::has_describe_enumerators<
                             T>::value;
 
+template <typename T>
+concept DescribedRecord = boost::describe::has_describe_members<
+                              std::remove_cvref_t<T>>::value
+                       && boost::describe::has_describe_bases<
+                              std::remove_cvref_t<T>>::value;
+
 namespace boost::describe {
 
 inline void throw_invalid_name(char const* name, char const* type) {
@@ -121,7 +127,7 @@ std::vector<EnumFieldDesc<E>> describe_enumerators() {
 
 template <class E>
 std::vector<QString> enumerator_names() {
-    auto                 tmp = describe_enumerators<E>();
+    auto                 tmp = ::describe_enumerators<E>();
     std::vector<QString> result;
     for (const auto& it : tmp) {
         result.push_back(it.name);

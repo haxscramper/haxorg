@@ -4,6 +4,7 @@
 #include <QString>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/strformat.hpp>
+#include <hstd/stdlib/Variant.hpp>
 
 struct BadTypeConversion : public YAML::RepresentationException {
     explicit BadTypeConversion(YAML::Mark mark, const QString& message)
@@ -97,6 +98,58 @@ struct convert<E> {
                 "Could not convert $# to $#"
                     % to_string_vec(in, demangle(typeid(E).name())));
         }
+    }
+};
+
+template <IsVariant T, typename CRTP_Derived>
+struct variant_convert {
+    static bool decode(Node const& value, T& result) {
+        CRTP_Derived::init(result, value);
+        std::visit(
+            [&](auto& variant) {
+                ::YAML::convert<typename std::remove_cvref_t<
+                    decltype(variant)>>::decode(variant, value);
+                return 0;
+            },
+            result);
+    }
+};
+
+template <DescribedRecord T>
+struct convert<T> {
+    using Bd = boost::describe::
+        describe_bases<T, boost::describe::mod_any_access>;
+    using Md = boost::describe::
+        describe_members<T, boost::describe::mod_any_access>;
+
+    static Node encode(T const& str) {
+        Node in;
+        mp_for_each<Md>([&](auto const& field) {
+            in[field.name] = str.*field.pointer;
+        });
+
+        mp_for_each<Bd>([&](auto Base) {
+            Node res = ::YAML::convert<
+                typename decltype(Base)::type>::encode(str);
+            for (auto const& item : res) {
+                in[item.first.as<std::string>()] = item.second;
+            }
+        });
+
+        return in;
+    }
+
+    static bool decode(Node const& in, T& out) {
+        mp_for_each<Md>([&](auto const& field) {
+            out.*field.pointer = in[field.name];
+        });
+
+        mp_for_each<Bd>([&](auto Base) {
+            ::YAML::convert<typename decltype(Base)::type>::decode(
+                in, out);
+        });
+
+        return true;
     }
 };
 }; // namespace YAML
