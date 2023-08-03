@@ -5,17 +5,17 @@ items:
   - name: "Trailing markup in subtree with tags"
     source: "**** COMPLETED Try =atmospace= :test##assesment##viability:"
     debug:
-      do_parse: false
+      doParse: false
 
   - name: "Trailing markup in subtree"
     source: "***** COMPLETED Update sizes of the setting grid element to use ~@scale~"
     debug:
-      do_parse: false
+      doParse: false
 
   - name: "Trailing colon for subtree name"
     source: "****** Pros:"
     debug:
-      do_lex: false
+      doLex: false
 
   - name: "Regular subtree"
     source: "* Subtree"
@@ -88,7 +88,7 @@ items:
 
   - name: "Lorem ipsum subtree"
     debug:
-      do_parse: false
+      doParse: false
     source: |
       #+title: TITLE WORDS
       #+FILETAGS: :DO_NOT_ORG_ROAM:

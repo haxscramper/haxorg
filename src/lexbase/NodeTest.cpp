@@ -45,21 +45,21 @@ struct verbose_convert {
                     std::remove_cvref_t<decltype(out.*field.pointer)>>::
                     decode(val, out.*field.pointer);
             }
-
-            for (auto const& it : in) {
-                std::string name = it.first.as<std::string>();
-                if (!knownFieldCache.contains(name)) {
-                    // TODO 'did you mean' with corrections
-                    std::string msg = "unexpected field name '" + name + "'";
-                    throw RepresentationException(it.first.Mark(), msg);
-                }
-            }
         });
 
         boost::mp11::mp_for_each<Bd>([&](auto Base) {
             ::YAML::convert<typename decltype(Base)::type>::decode(
                 in, out);
         });
+
+        for (auto const& it : in) {
+            std::string name = it.first.as<std::string>();
+            if (!knownFieldCache.contains(name)) {
+                // TODO 'did you mean' with corrections
+                std::string msg = "unexpected field name '" + name + "'";
+                throw RepresentationException(it.first.Mark(), msg);
+            }
+        }
 
         return true;
     }

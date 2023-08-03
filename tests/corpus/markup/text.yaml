@@ -57,32 +57,32 @@ items:
   - name: "Multiple starts for tilda"
     source: "~ssh-copy-id -i ~/.ssh/id_rsa.pub $E:VSC_TV_ACCESS~"
     debug:
-      do_parse: false
+      doParse: false
 
   - name: "Multiple joined starts for verbatim"
     source: "==Content="
     debug:
-      do_parse: false
+      doParse: false
 
   - source: |
       *QUESTION: [19:43]*/"As a user,
     debug:
-      do_parse: false
+      doParse: false
 
   - name: "Standalone inline markup"
     source: "One == one"
     debug: 
-      do_parse: false
+      doParse: false
 
   - name: "=verbatim=-dash"
     source: "=random=-dashed"
     debug:
-      do_parse: false
+      doParse: false
 
   - name: "Ambigious italic text"
     source: "One/Another/<Placeholder>"
     debug:
-      do_parse: false
+      doParse: false
     tokens:
       - {kind: ParagraphStart}
       - {kind: Word, str: One}
