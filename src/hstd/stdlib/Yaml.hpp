@@ -5,6 +5,7 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/strformat.hpp>
 #include <hstd/stdlib/Variant.hpp>
+#include <boost/mp11.hpp>
 
 struct BadTypeConversion : public YAML::RepresentationException {
     explicit BadTypeConversion(YAML::Mark mark, const QString& message)
@@ -124,11 +125,11 @@ struct convert<T> {
 
     static Node encode(T const& str) {
         Node in;
-        mp_for_each<Md>([&](auto const& field) {
+        boost::mp11::mp_for_each<Md>([&](auto const& field) {
             in[field.name] = str.*field.pointer;
         });
 
-        mp_for_each<Bd>([&](auto Base) {
+        boost::mp11::mp_for_each<Bd>([&](auto Base) {
             Node res = ::YAML::convert<
                 typename decltype(Base)::type>::encode(str);
             for (auto const& item : res) {
@@ -140,11 +141,11 @@ struct convert<T> {
     }
 
     static bool decode(Node const& in, T& out) {
-        mp_for_each<Md>([&](auto const& field) {
+        boost::mp11::mp_for_each<Md>([&](auto const& field) {
             out.*field.pointer = in[field.name];
         });
 
-        mp_for_each<Bd>([&](auto Base) {
+        boost::mp11::mp_for_each<Bd>([&](auto Base) {
             ::YAML::convert<typename decltype(Base)::type>::decode(
                 in, out);
         });

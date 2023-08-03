@@ -140,19 +140,19 @@ class CorpusRunner {
 
     RunResult runSpec(CR<ParseSpec> spec, CR<QString> from) {
         MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
-        MockFull              p(spec.dbg.traceParse, spec.dbg.traceLex);
+        MockFull              p(spec.debug.traceParse, spec.debug.traceLex);
 
         { // Input source
-            if (spec.dbg.printSource) {
+            if (spec.debug.printSource) {
                 writeFile(spec.debugFile("source.org"), spec.source);
             }
         }
 
 
         { // Lexing
-            if (spec.dbg.doLex) {
-                p.tokenizer->trace = spec.dbg.traceLex;
-                if (spec.dbg.lexToFile) {
+            if (spec.debug.doLex) {
+                p.tokenizer->trace = spec.debug.traceLex;
+                if (spec.debug.lexToFile) {
                     p.tokenizer->setTraceFile(
                         spec.debugFile("trace_lex.txt"));
                 }
@@ -162,11 +162,11 @@ class CorpusRunner {
                 return RunResult{};
             }
 
-            if (spec.dbg.printLexed) {
+            if (spec.debug.printLexed) {
                 writeFileOrStdout(
                     spec.debugFile("lexed.yaml"),
                     to_string(yamlRepr(p.tokens)) + "\n",
-                    spec.dbg.printLexedToFile);
+                    spec.debug.printLexedToFile);
             }
 
             if (spec.tokens.has_value()) {
@@ -175,7 +175,7 @@ class CorpusRunner {
                     p.tokens,
                     fromFlatTokens<OrgTokenKind>(
                         spec.tokens.value(), buffer),
-                    spec.conf.tokenMatchMode);
+                    spec.conf.tokenMatch);
                 if (!result.isOk) {
                     return RunResult(result);
                 }
@@ -183,9 +183,9 @@ class CorpusRunner {
         }
 
         { // Parsing
-            if (spec.dbg.doParse) {
-                p.parser->trace = spec.dbg.traceParse;
-                if (spec.dbg.parseToFile) {
+            if (spec.debug.doParse) {
+                p.parser->trace = spec.debug.traceParse;
+                if (spec.debug.parseToFile) {
                     p.parser->setTraceFile(
                         spec.debugFile("trace_parse.txt"));
                 }
@@ -195,11 +195,11 @@ class CorpusRunner {
 
                 p.parse(parseCb);
 
-                if (spec.dbg.printParsed) {
+                if (spec.debug.printParsed) {
                     writeFileOrStdout(
                         spec.debugFile("parsed.yaml"),
                         to_string(yamlRepr(p.nodes)) + "\n",
-                        spec.dbg.printParsedToFile);
+                        spec.debug.printParsedToFile);
                 }
             } else {
                 return RunResult{};
@@ -232,11 +232,11 @@ class CorpusRunner {
 
 
         { // Sem conversion
-            if (spec.dbg.doSem) {
+            if (spec.debug.doSem) {
                 sem::OrgConverter converter;
 
-                converter.trace = spec.dbg.traceParse;
-                if (spec.dbg.parseToFile) {
+                converter.trace = spec.debug.traceParse;
+                if (spec.debug.parseToFile) {
                     converter.setTraceFile(
                         spec.debugFile("trace_sem.txt"));
                 }
@@ -244,9 +244,9 @@ class CorpusRunner {
                 auto document = converter.toDocument(
                     OrgAdapter(&p.nodes, OrgId(0)));
 
-                if (spec.semExpected.has_value()) {
+                if (spec.sem.has_value()) {
                     RunResult::SemCompare result = compareSem(
-                        spec, document, spec.semExpected.value());
+                        spec, document, spec.sem.value());
 
                     if (!result.isOk) {
                         return RunResult(result);

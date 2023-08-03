@@ -41,8 +41,8 @@ struct TestParams {
     QString fullName() const {
         return "$# at $#:$#:$#"
              % to_string_vec(
-                   spec.testName.has_value() ? spec.testName.value()
-                                             : QString("<spec>"),
+                   spec.name.has_value() ? spec.name.value()
+                                         : QString("<spec>"),
                    file.fileName(),
                    spec.specLocation.line,
                    spec.specLocation.column);
@@ -91,8 +91,8 @@ Vec<TestParams> generateTestRuns() {
     }
 
     for (auto& spec : results) {
-        if (spec.spec.dbg.debugOutDir.size() == 0) {
-            spec.spec.dbg.debugOutDir = "/tmp/corpus_runs/"
+        if (spec.spec.debug.debugOutDir.size() == 0) {
+            spec.spec.debug.debugOutDir = "/tmp/corpus_runs/"
                                       + spec.testName();
         }
     }
@@ -114,15 +114,15 @@ TEST_P(ParseFile, CorpusAll) {
     RunResult result = runner.runSpec(spec, params.file.filePath());
 
     if (result.isOk()
-        && !(spec.dbg.doLex && spec.dbg.doParse && spec.dbg.doSem)) {
+        && !(spec.debug.doLex && spec.debug.doParse && spec.debug.doSem)) {
         GTEST_SKIP() << "Partially covered test: "
-                     << (spec.dbg.doLex ? "" : "lex is disabled ")     //
-                     << (spec.dbg.doParse ? "" : "parse is disabled ") //
-                     << (spec.dbg.doSem ? "" : "sem is disabled ");
+                     << (spec.debug.doLex ? "" : "lex is disabled ")     //
+                     << (spec.debug.doParse ? "" : "parse is disabled ") //
+                     << (spec.debug.doSem ? "" : "sem is disabled ");
     } else if (result.isOk()) {
         SUCCEED();
     } else {
-        spec.dbg = ParseSpec::Dbg{
+        spec.debug = ParseSpec::Dbg{
             .debugOutDir       = "/tmp/corpus_runs/" + params.testName(),
             .traceLex          = true,
             .traceParse        = true,
@@ -167,11 +167,11 @@ TEST_P(ParseFile, CorpusAll) {
 
         if (runner.useQFormat()) {
             FAIL() << params.fullName() << "failed, wrote debug to"
-                   << spec.dbg.debugOutDir << "\n"
+                   << spec.debug.debugOutDir << "\n"
                    << os.toString(false).toStdString();
         } else {
             FAIL() << params.fullName() << " failed, , wrote debug to "
-                   << spec.dbg.debugOutDir;
+                   << spec.debug.debugOutDir;
         }
     }
 }

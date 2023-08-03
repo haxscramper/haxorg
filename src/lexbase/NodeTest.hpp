@@ -44,36 +44,21 @@
         ());
 
 struct ParseSpec {
-    Opt<yaml>    subnodes;
-    Opt<yaml>    tokens;
-    Opt<json>    semExpected;
-    Str          source;
-    Opt<QString> testName;
-    YAML::Mark   specLocation;
-    YAML::Mark   sourceLocation;
-    QString      specFile;
-
     QString getLocMsg() const {
         return "$# at $#:$#"
              % to_string_vec(
-                   testName ? *testName : "<test>",
-                   specFile,
-                   specLocation.line);
+                   name ? *name : "<test>", specFile, specLocation.line);
     }
 
     struct Conf {
-        enum class MatchMode
-        {
-            Full,
-            ExpectedSubset
-        };
-
-        MatchMode tokenMatchMode = MatchMode::Full;
-        MatchMode nodeMatchMode  = MatchMode::Full;
-        BOOST_DESCRIBE_NESTED_ENUM(MatchMode, Full, ExpectedSubset);
+        DECL_DESCRIBED_ENUM(MatchMode, Full, ExpectedSubset);
+        DECL_FIELDS(
+            Conf,
+            (),
+            ((MatchMode), tokenMatch, MatchMode::Full),
+            ((MatchMode), nodeMatch, MatchMode::Full));
     };
 
-    Conf conf;
 
     struct Dbg {
         DECL_FIELDS(
@@ -113,19 +98,7 @@ struct ParseSpec {
             ((bool), traceExport, false));
     };
 
-    /// List of exporter executions along with the additional parameters to
-    /// supply to the exporter. Specific handling of different exporter
-    /// variations is implemented in the corpus file.
-    Vec<ExporterExpect> exporterExpect;
-
     QFileInfo debugFile(QString relativePath, bool create = true) const;
-    Dbg       dbg;
-
-    /// Name of the method to call for lexing or parsing. Pointer to
-    /// implementation is resolved externally, spec file just contains the
-    /// required name.
-    Str lexImplName;
-    Str parseImplName;
 
     struct SpecValidationError : public std::runtime_error {
         explicit SpecValidationError(const QString& message)
@@ -140,8 +113,6 @@ struct ParseSpec {
     };
 
     BOOST_DESCRIBE_NESTED_ENUM(ExpectedMode, Flat, Nested, Named);
-
-    ExpectedMode expectedMode = ExpectedMode::Nested;
 
     ParseSpec(CR<yaml> node, CR<QString> specFile);
 
@@ -158,6 +129,32 @@ struct ParseSpec {
 
         return result;
     }
+
+  public:
+    DECL_FIELDS(
+        ParseSpec,
+        (),
+        ((ExpectedMode), expectedMode, ExpectedMode::Nested),
+        /// List of exporter executions along with the additional
+        /// parameters to supply to the exporter. Specific handling of
+        /// different exporter variations is implemented in the corpus
+        /// file.
+        ((Vec<ExporterExpect>), exporterExpect, {}),
+        /// Name of the method to call for lexing or parsing. Pointer to
+        /// implementation is resolved externally, spec file just contains
+        /// the required name.
+        ((Str), lexImplName, ""),
+        ((Str), parseImplName, ""),
+        ((Dbg), debug, Dbg{}),
+        ((Conf), conf, Conf{}),
+        ((Opt<yaml>), subnodes, std::nullopt),
+        ((Opt<yaml>), tokens, std::nullopt),
+        ((Opt<json>), sem, std::nullopt),
+        ((Str), source, ""),
+        ((Opt<QString>), name, std::nullopt),
+        ((YAML::Mark), specLocation, YAML::Mark()),
+        ((YAML::Mark), sourceLocation, YAML::Mark()),
+        ((QString), specFile, ""), );
 };
 
 struct ParseSpecGroup {

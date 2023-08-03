@@ -5,7 +5,104 @@
 #include <hstd/system/reflection.hpp>
 #include <boost/mp11.hpp>
 
+
+json toJson(CR<yaml> node) {
+    switch (node.Type()) {
+        case YAML::NodeType::Undefined: {
+            return json();
+        }
+
+        case YAML::NodeType::Map: {
+            json res = json::object();
+            for (const auto& it : node) {
+                res[it.first.as<std::string>()] = toJson(it.second);
+            }
+            return res;
+        }
+
+        case YAML::NodeType::Sequence: {
+            json res = json::array();
+            for (const auto& it : node) {
+                res.push_back(toJson(it));
+            }
+            return res;
+        }
+
+        case YAML::NodeType::Null: {
+            return json();
+        }
+
+        case YAML::NodeType::Scalar: {
+            bool    ok     = false;
+            QString scalar = QString::fromStdString(node.Scalar());
+            {
+                long long int intValue = scalar.toLongLong(&ok);
+                if (ok) {
+                    return intValue;
+                }
+            }
+
+            {
+                double doubleVal = scalar.toDouble(&ok);
+                if (ok) {
+                    return doubleVal;
+                }
+            }
+
+            { return node.Scalar(); }
+        }
+    }
+}
+
 namespace YAML {
+
+template <typename T>
+struct convert<Vec<T>> {
+    static Node encode(Vec<T> const& v) {
+        Node res;
+        for (auto const& it : v) {
+            res.push_back(::YAML::convert<T>::encode(it));
+        }
+        return res;
+    }
+
+    static bool decode(Node const& in, Vec<T>& out) {
+        for (auto const& it : in) {
+            T tmp;
+            ::YAML::convert<T>::decode(it, tmp);
+            out.push_back(tmp);
+        }
+        return true;
+    }
+};
+
+template <>
+struct convert<Str> {
+    static Node encode(Str const& v) { return Node(v.toStdString()); }
+
+    static bool decode(Node const& in, Str& out) {
+        out = QString::fromStdString(in.as<std::string>());
+        return true;
+    }
+};
+
+
+template <>
+struct convert<json> {
+    static Node encode(json const& v) { return Node(); }
+    static bool decode(Node const& in, json& out) {
+        out = toJson(in);
+        return true;
+    }
+};
+
+template <>
+struct convert<Mark> {
+    static Node encode(Mark const& v) { return Node(); }
+    static bool decode(Node const& in, Mark& out) { return true; }
+};
+
+
 template <DescribedRecord T>
 struct verbose_convert {
 
@@ -71,71 +168,32 @@ UnorderedMap<std::string, bool> verbose_convert<T>::knownFieldCache;
 template <>
 struct convert<ParseSpec::Dbg> : verbose_convert<ParseSpec::Dbg> {};
 
+template <>
+struct convert<ParseSpec::Conf> : verbose_convert<ParseSpec::Conf> {};
+
+template <>
+struct convert<ParseSpec::ExporterExpect>
+    : verbose_convert<ParseSpec::ExporterExpect> {};
+
+template <>
+struct convert<ParseSpec> : verbose_convert<ParseSpec> {};
 
 } // namespace YAML
 
 
-json toJson(CR<yaml> node) {
-    switch (node.Type()) {
-        case YAML::NodeType::Undefined: {
-            return json();
-        }
-
-        case YAML::NodeType::Map: {
-            json res = json::object();
-            for (const auto& it : node) {
-                res[it.first.as<std::string>()] = toJson(it.second);
-            }
-            return res;
-        }
-
-        case YAML::NodeType::Sequence: {
-            json res = json::array();
-            for (const auto& it : node) {
-                res.push_back(toJson(it));
-            }
-            return res;
-        }
-
-        case YAML::NodeType::Null: {
-            return json();
-        }
-
-        case YAML::NodeType::Scalar: {
-            bool    ok     = false;
-            QString scalar = QString::fromStdString(node.Scalar());
-            {
-                long long int intValue = scalar.toLongLong(&ok);
-                if (ok) {
-                    return intValue;
-                }
-            }
-
-            {
-                double doubleVal = scalar.toDouble(&ok);
-                if (ok) {
-                    return doubleVal;
-                }
-            }
-
-            { return node.Scalar(); }
-        }
-    }
-}
-
 QFileInfo ParseSpec::debugFile(QString relativePath, bool create) const {
-    if (dbg.debugOutDir.isEmpty()) {
+    if (debug.debugOutDir.isEmpty()) {
         throw FilesystemError(
             "Cannot get relative path for the spec configuration that "
             "does not provide debug output directory path");
     } else {
-        auto dir = QDir(dbg.debugOutDir);
+        auto dir = QDir(debug.debugOutDir);
         if (!dir.exists()) {
             if (!QDir().mkpath(dir.absolutePath())) {
                 throw FilesystemError(
                     "Failed to create debugging directory for writing "
                     "test log"
-                    + dbg.debugOutDir);
+                    + debug.debugOutDir);
             }
         }
 
@@ -147,53 +205,12 @@ ParseSpec::ParseSpec(CR<yaml> node, CR<QString> specFile)
     : specFile(specFile) {
     specLocation = node.Mark();
 
-    if (node["conf"]) {
-        auto c = node["conf"];
-        maybe_field<Conf::MatchMode>(
-            c, conf.tokenMatchMode, "token_match");
-        maybe_field<Conf::MatchMode>(c, conf.nodeMatchMode, "node_match");
-    }
-
-    if (node["debug"]) {
-        ::YAML::convert<Dbg>::decode(node["debug"], dbg);
-    }
-
-    maybe_field<QString>(node, lexImplName, "lex");
-    maybe_field<Opt<QString>>(node, testName, "name");
-    maybe_field<QString>(node, parseImplName, "parse");
-
-    if (node["source"]) {
-        sourceLocation = node["source"].Mark();
-        source         = node["source"].as<QString>();
-    } else {
+    if (!node["source"]) {
         throw SpecValidationError(
             "Input spec must contain 'source' string field");
     }
 
-    if (node["subnodes"]) {
-        subnodes = node["subnodes"];
-    }
-
-    if (node["tokens"]) {
-        tokens = node["tokens"];
-    }
-
-    if (node["sem"]) {
-        semExpected = toJson(node["sem"]);
-    }
-
-    if (node["export"]) {
-        for (auto const& exp : node["export"]) {
-            ExporterExpect res;
-            maybe_field<Opt<yaml>>(exp, res.parmeters, "parameters");
-            maybe_field<QString>(exp, res.exporterName, "name");
-            maybe_field<yaml>(exp, res.expected, "expected");
-            maybe_field<bool>(exp, res.traceExport, "do_trace");
-            exporterExpect.push_back(res);
-        }
-    }
-
-    maybe_field<ExpectedMode>(node, expectedMode, "expected");
+    ::YAML::convert<ParseSpec>::decode(node, *this);
 }
 
 ParseSpecGroup::ParseSpecGroup(CR<yaml> node, CR<QString> from) {
@@ -225,10 +242,9 @@ ParseSpecGroup::ParseSpecGroup(CR<yaml> node, CR<QString> from) {
 
                 validate(spec);
 
-                if (!spec.testName) {
+                if (!spec.name) {
                     if (node["name"]) {
-                        spec.testName = node["name"].as<QString>();
-                    } else {
+                        spec.name = node["name"].as<QString>();
                     }
                 }
 
