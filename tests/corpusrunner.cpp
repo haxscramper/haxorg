@@ -8,6 +8,7 @@
 #include <exporters/exportersimplesexpr.hpp>
 #include <exporters/exportersubtreestructure.hpp>
 #include <exporters/exporterhtml.hpp>
+#include <exporters/exportermindmap.hpp>
 #include <exporters/exporterlatex.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/diffs.hpp>
@@ -65,6 +66,135 @@ const UnorderedMap<Str, MockFull::ParserMethod> parsers({
     CB(Top),
 });
 #undef CB
+
+struct DiffItem {
+    DECL_DESCRIBED_ENUM(Op, Replace, Remove, Add);
+    Op          op;
+    std::string path;
+    json        value;
+};
+
+
+Vec<DiffItem> json_diff(
+    const json&          source,
+    const json&          target,
+    const std::string&   path   = "",
+    Func<bool(CR<json>)> ignore = [](CR<json>) -> bool { return false; }) {
+
+    // the patch
+    Vec<DiffItem> result;
+
+    if (ignore(target)) {
+        return result;
+    }
+
+    // if the values are the same, return empty patch
+    if (source == target) {
+        return result;
+    }
+
+    if (source.type() != target.type()) {
+        // different types: replace value
+        result.push_back({DiffItem::Op::Replace, path, target});
+        return result;
+    }
+
+    switch (source.type()) {
+        case json::value_t::array: {
+            // first pass: traverse common elements
+            std::size_t i = 0;
+            while (i < source.size() && i < target.size()) {
+                // recursive call to compare array values at index i
+                auto temp_diff = json_diff(
+                    source[i],
+                    target[i],
+                    nlohmann::detail::concat(
+                        path, '/', std::to_string(i)));
+                result.insert(
+                    result.end(), temp_diff.begin(), temp_diff.end());
+                ++i;
+            }
+
+            // We now reached the end of at least one array
+            // in a second pass, traverse the remaining elements
+
+            // remove my remaining elements
+            const auto end_index = static_cast<json::difference_type>(
+                result.size());
+            while (i < source.size()) {
+                // add operations in reverse order to avoid invalid
+                // indices
+                result.insert(
+                    result.begin() + end_index,
+                    {DiffItem::Op::Remove,
+                     nlohmann::detail::concat(
+                         path, '/', std::to_string(i))});
+
+                ++i;
+            }
+
+            // add other remaining elements
+            while (i < target.size()) {
+                result.push_back(
+                    {DiffItem::Op::Add,
+                     nlohmann::detail::concat(path, "/-"),
+                     target[i]});
+                ++i;
+            }
+
+            break;
+        }
+
+        case json::value_t::object: {
+            // first pass: traverse this object's elements
+            for (auto it = source.cbegin(); it != source.cend(); ++it) {
+                // escape the key name to be used in a JSON patch
+                const auto path_key = nlohmann::detail::concat(
+                    path, '/', nlohmann::detail::escape(it.key()));
+
+                if (target.find(it.key()) != target.end()) {
+                    // recursive call to compare object values at key it
+                    auto temp_diff = json_diff(
+                        it.value(), target[it.key()], path_key);
+                    result.insert(
+                        result.end(), temp_diff.begin(), temp_diff.end());
+                } else {
+                    // found a key that is not in o -> remove it
+                    result.push_back({DiffItem::Op::Remove, path_key});
+                }
+            }
+
+            // second pass: traverse other object's elements
+            for (auto it = target.cbegin(); it != target.cend(); ++it) {
+                if (source.find(it.key()) == source.end()) {
+                    // found a key that is not in this -> add it
+                    const auto path_key = nlohmann::detail::concat(
+                        path, '/', nlohmann::detail::escape(it.key()));
+                    result.push_back(
+                        {DiffItem::Op::Add, path_key, it.value()});
+                }
+            }
+
+            break;
+        }
+
+        case json::value_t::null:
+        case json::value_t::string:
+        case json::value_t::boolean:
+        case json::value_t::number_integer:
+        case json::value_t::number_unsigned:
+        case json::value_t::number_float:
+        case json::value_t::binary:
+        case json::value_t::discarded:
+        default: {
+            // both primitive type: replace value
+            result.push_back({DiffItem::Op::Replace, path, target});
+            break;
+        }
+    }
+
+    return result;
+}
 
 
 void CorpusRunner::writeFileOrStdout(
@@ -168,34 +298,47 @@ void format(
 
 
 void describeDiff(
-    ColStream&  os,
-    json const& it,
-    json const& expected,
-    json const& converted) {
-    auto op = it["op"].get<std::string>();
-
-    json::json_pointer path{it["path"].get<std::string>()};
+    ColStream&      os,
+    DiffItem const& it,
+    json const&     expected,
+    json const&     converted) {
+    json::json_pointer path{it.path};
 
     os << "  ";
-    if (op == "remove") {
-        os << os.red() << "missing entry";
-    } else if (op == "add") {
-        os << os.green() << "unexpected entry";
-    } else {
-        os << os.magenta() << "changed entry";
+    switch (it.op) {
+        case DiffItem::Op::Remove: {
+            os << os.red() << "missing entry";
+            break;
+        }
+        case DiffItem::Op::Add: {
+            os << os.green() << "unexpected entry";
+            break;
+        }
+        case DiffItem::Op::Replace: {
+            os << os.magenta() << "changed entry";
+            break;
+        }
     }
 
     os << " on path '" << os.yellow() << path.to_string() << os.end()
        << "' ";
 
-    if (op == "replace") {
-        os << "    from " << os.red() << expected[path].dump() << os.end()
-           << " to " << os.green() << converted[path].dump() << os.end();
+    switch (it.op) {
+        case DiffItem::Op::Remove: {
+            os << "    " << os.red() << converted[path].dump() << os.end();
+            break;
+        }
+        case DiffItem::Op::Add: {
+            os << "    " << it.value.dump();
+            break;
+        }
+        case DiffItem::Op::Replace: {
+            os << "    from " << os.red() << expected[path].dump()
+               << os.end() << " to " << os.green()
+               << converted[path].dump() << os.end();
 
-    } else if (op == "add") {
-        os << "    " << it["value"].dump();
-    } else if (op == "remove") {
-        os << "    " << os.red() << converted[path].dump() << os.end();
+            break;
+        }
     }
 }
 
@@ -544,24 +687,23 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
         exporterVisit<ExporterJson>(trace, ev);
     };
 
-    json      converted = exporter.visitTop(node);
-    json      diff      = json::diff(converted, expected);
-    int       failCount = 0;
-    ColStream os;
+    json          converted = exporter.visitTop(node);
+    Vec<DiffItem> diff      = json_diff(converted, expected);
+    int           failCount = 0;
+    ColStream     os;
     if (useQFormat()) {
         os.colored = false;
     }
-    UnorderedMap<std::string, json> ops;
+    UnorderedMap<std::string, DiffItem> ops;
 
 
     for (auto const& it : diff) {
-        ops[it["path"].get<std::string>()] = it;
-        auto               op              = it["op"].get<std::string>();
-        json::json_pointer path{it["path"].get<std::string>()};
-        if (!path.empty()               //
-            && op == "remove"           //
-            && (path.back() == "id"     //
-                || path.back() == "loc" //
+        ops[it.path] = it;
+        json::json_pointer path{it.path};
+        if (!path.empty()                    //
+            && it.op == DiffItem::Op::Remove //
+            && (path.back() == "id"          //
+                || path.back() == "loc"      //
                 || path.back() == "subnodes"
                 || path.back() == "attached")) {
             continue;
