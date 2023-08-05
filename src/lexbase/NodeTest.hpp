@@ -43,6 +43,8 @@
         ,                                                                 \
         ());
 
+json toJson(CR<yaml> node);
+
 struct ParseSpec {
     QString getLocMsg() const {
         return "$# at $#:$#"

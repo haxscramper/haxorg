@@ -525,7 +525,7 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
         ER::JsonGraph          result;
 
         for (auto [it, it_end] = boost::edges(g); it != it_end; ++it) {
-            result.nodes.push_back(run.toJsonGraphEdge(g, *it));
+            result.edges.push_back(run.toJsonGraphEdge(g, *it));
         }
 
         for (auto [it, it_end] = boost::vertices(g); it != it_end; ++it) {
@@ -533,12 +533,18 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
         }
 
         if (exp.print) {
-            for (auto const& node : result.nodes) {
-                std::cout << "- " << node.dump() << "\n";
+            if (!result.nodes.empty()) {
+                std::cout << "nodes:\n";
+                for (auto const& node : result.nodes) {
+                    std::cout << "  - " << node.dump() << "\n";
+                }
             }
 
-            for (auto const& edge : result.edges) {
-                std::cout << "- " << edge.dump() << "\n";
+            if (!result.edges.empty()) {
+                std::cout << "edges:\n";
+                for (auto const& edge : result.edges) {
+                    std::cout << "  - " << edge.dump() << "\n";
+                }
             }
         }
 
@@ -548,6 +554,67 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
         throw std::domain_error(
             "Unexpected export result name " + exp.name.toStdString());
     }
+}
+
+CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
+    const ParseSpec::ExporterExpect& exp,
+    const ExportResult&              result) {
+    RunResult::ExportCompare::Run cmp;
+    cmp.isOk = true;
+    ColStream os;
+    switch (result.getKind()) {
+        case ExportResult::Kind::JsonGraph: {
+            auto const& res = result.getJsonGraph();
+            if (exp.expected["nodes"]) {
+                UnorderedMap<std::string, json> given;
+                for (auto const& node : res.nodes) {
+                    given[node["metadata"]["id"].get<std::string>()] = node;
+                }
+
+                for (auto const& node : exp.expected["nodes"]) {
+                    auto id = node["metadata"]["id"].as<std::string>();
+                    if (given.contains(id)) {
+                        int  failCount = 0;
+                        auto expected  = toJson(node);
+                        for (auto const& it :
+                             json_diff(given.at(id), expected)) {
+                            if (it.op == DiffItem::Op::Remove) {
+                                continue;
+                            }
+                            json::json_pointer path{it.path};
+                            os << "- Node with ID '" << id << "'";
+                            describeDiff(os, it, expected, given.at(id));
+                            os << "\n";
+                            ++failCount;
+                        }
+
+                        if (0 < failCount) {
+                            cmp.isOk = false;
+                        }
+
+                    } else {
+                        cmp.isOk = false;
+                        os << "Node with ID '" << os.red() << id
+                           << os.end() << "' missing\n";
+                    }
+                }
+            }
+
+            if (exp.expected["edges"]) {
+                UnorderedMap<Pair<std::string, std::string>, json> given;
+                for (auto const& edge : res.edges) {
+                    given[std::make_pair(
+                        edge["source"].get<std::string>(),
+                        edge["target"].get<std::string>())];
+                }
+            }
+            break;
+        }
+        default: qFatal("TODO");
+    }
+
+    cmp.failDescribe = os.getBuffer();
+    return cmp;
 }
 
 CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
@@ -812,4 +879,131 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     } else {
         return {.isOk = true};
     }
+}
+
+CorpusRunner::RunResult CorpusRunner::runSpec(
+    CR<ParseSpec> spec,
+    CR<QString>   from) {
+    MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
+    MockFull              p(spec.debug.traceParse, spec.debug.traceLex);
+
+    { // Input source
+        if (spec.debug.printSource) {
+            writeFile(spec.debugFile("source.org"), spec.source);
+        }
+    }
+
+
+    { // Lexing
+        if (spec.debug.doLex) {
+            p.tokenizer->trace = spec.debug.traceLex;
+            if (spec.debug.lexToFile) {
+                p.tokenizer->setTraceFile(spec.debugFile("trace_lex.txt"));
+            }
+
+            p.tokenize(spec.source, lexCb);
+        } else {
+            return RunResult{};
+        }
+
+        if (spec.debug.printLexed) {
+            writeFileOrStdout(
+                spec.debugFile("lexed.yaml"),
+                to_string(yamlRepr(p.tokens)) + "\n",
+                spec.debug.printLexedToFile);
+        }
+
+        if (spec.tokens.has_value()) {
+            Str                   buffer;
+            RunResult::LexCompare result = compareTokens(
+                p.tokens,
+                fromFlatTokens<OrgTokenKind>(spec.tokens.value(), buffer),
+                spec.conf.tokenMatch);
+            if (!result.isOk) {
+                return RunResult(result);
+            }
+        }
+    }
+
+    { // Parsing
+        if (spec.debug.doParse) {
+            p.parser->trace = spec.debug.traceParse;
+            if (spec.debug.parseToFile) {
+                p.parser->setTraceFile(spec.debugFile("trace_parse.txt"));
+            }
+
+            MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
+
+            p.parse(parseCb);
+
+            if (spec.debug.printParsed) {
+                writeFileOrStdout(
+                    spec.debugFile("parsed.yaml"),
+                    to_string(yamlRepr(p.nodes)) + "\n",
+                    spec.debug.printParsedToFile);
+            }
+        } else {
+            return RunResult{};
+        }
+
+        if (spec.subnodes.has_value()) {
+            Str           buffer;
+            OrgNodeGroup  nodes;
+            OrgTokenGroup tokens;
+
+            if (spec.tokens.has_value()) {
+                tokens = fromFlatTokens<OrgTokenKind>(
+                    spec.tokens.value(), buffer);
+            }
+
+            if (spec.subnodes.has_value()) {
+                nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind>(
+                    spec.subnodes.value());
+            }
+
+            nodes.tokens = &tokens;
+
+            RunResult::NodeCompare result = compareNodes(p.nodes, nodes);
+            if (!result.isOk) {
+                return RunResult(result);
+            }
+        }
+    }
+
+
+    { // Sem conversion
+        if (spec.debug.doSem) {
+            sem::ContextStore context;
+            sem::OrgConverter converter(&context);
+
+            converter.trace = spec.debug.traceParse;
+            if (spec.debug.parseToFile) {
+                converter.setTraceFile(spec.debugFile("trace_sem.txt"));
+            }
+
+            auto document = converter.toDocument(
+                OrgAdapter(&p.nodes, OrgId(0)));
+
+            if (spec.sem.has_value()) {
+                RunResult::SemCompare result = compareSem(
+                    spec, document, spec.sem.value());
+
+                if (!result.isOk) {
+                    return RunResult(result);
+                }
+            }
+
+            if (!spec.exporters.empty()) {
+                RunResult::ExportCompare cmp;
+                for (auto const& exp : spec.exporters) {
+                    cmp.run.push_back(
+                        compareExport(exp, runExporter(document, exp)));
+                }
+
+                return RunResult(cmp);
+            }
+        }
+    }
+
+    return RunResult();
 }

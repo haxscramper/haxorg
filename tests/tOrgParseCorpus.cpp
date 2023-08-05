@@ -93,7 +93,7 @@ Vec<TestParams> generateTestRuns() {
     for (auto& spec : results) {
         if (spec.spec.debug.debugOutDir.size() == 0) {
             spec.spec.debug.debugOutDir = "/tmp/corpus_runs/"
-                                      + spec.testName();
+                                        + spec.testName();
         }
     }
 
@@ -152,7 +152,12 @@ TEST_P(ParseFile, CorpusAll) {
                 [&](RunResult::SemCompare const& node) {
                     os = node.failDescribe;
                 },
-                [&](RunResult::ExportCompare const& node) {},
+                [&](RunResult::ExportCompare const& node) {
+                    for (auto const& exp : node.run) {
+                        os.append(exp.failDescribe);
+                        os.append(ColText("\n"));
+                    }
+                },
                 [&](RunResult::None const& node) {},
             },
             fail.data);
