@@ -4,6 +4,8 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>
 
 #include <iostream>
@@ -375,9 +377,46 @@ class ASTDiff {
 
   public:
     struct Change {
+        struct MovePoint {
+            /// Insert the node under a specified original tree
+            NodeId under;
+            /// Insert the node on specified position
+            int position = 0;
+        };
+
+        struct Insert {
+            MovePoint to;
+        };
+
+        struct Move {
+            MovePoint from;
+            MovePoint to;
+            bool      update = false;
+        };
+
+        struct Update {};
+        struct None {};
+        struct Delete {};
+
+        SUB_VARIANTS(
+            Kind,
+            Data,
+            data,
+            getKind,
+            Insert,
+            Move,
+            Update,
+            None,
+            Delete);
+
         NodeId   src;
         NodeId   dst;
         ASTDiff& diff;
+        Data     data;
+
+        Change() {}
+        Change(CR<Data> data, ASTDiff& diff, NodeId src, NodeId dst)
+            : src(src), dst(dst), diff(diff), data(data) {}
     };
 
 
@@ -392,6 +431,85 @@ class ASTDiff {
         : src(src), dst(dst), Options(Options) {
         computeMapping();
         computeChangeKinds(TheMapping);
+    }
+
+    Change getChange(NodeId srcNode, NodeId dstNode, bool fromDst) {
+        Change result;
+
+        Node<Id, Val> node = fromDst ? dst.getNode(dstNode)
+                                     : src.getNode(srcNode);
+        switch (node.Change) {
+            case ChangeKind::Delete: {
+                result.data = typename Change::Delete();
+                break;
+            }
+
+            case ChangeKind::None: {
+                result.data = typename Change::None{};
+                break;
+            }
+
+            case ChangeKind::Update: {
+                result.data = typename Change::Update{};
+                break;
+            }
+
+            case ChangeKind::UpdateMove:
+            case ChangeKind::Move: {
+                result.data = typename Change::Move{
+                    .update = node.Change == ChangeKind::Update,
+                    .from   = {
+                        .under    = src.getNode(srcNode).Parent,
+                        .position = src.findPositionInParent(srcNode, true),
+                    },
+                    .to     = {
+                        .under    = dst.getNode(dstNode).Parent,
+                        .position = dst.findPositionInParent(dstNode, true),
+                    },
+                };
+                break;
+            }
+
+            case ChangeKind::Insert: {
+                result.data = typename Change::Insert{
+                    .to = {
+                        .under    = node.Parent,
+                        .position = //
+                        fromDst ? dst.findPositionInParent(dstNode)
+                                : src.findPositionInParent(srcNode),
+                    }};
+                break;
+            }
+        }
+
+        result.src  = srcNode;
+        result.dst  = dstNode;
+        result.diff = *this;
+
+        return result;
+    }
+
+    Change getChangeFromDst(NodeId dst) {
+        return getChange(TheMapping.getSrc(dst), dst, true);
+    }
+
+    Change getChangeFromSrc(NodeId src) {
+        return getChange(src, TheMapping.getDst(src), false);
+    }
+
+    Vec<Change> getAllChanges() {
+        Vec<Change> result;
+        for (NodeId const& dst : dst.Nodes) {
+            result.push_back(getChangeFromDst(dst));
+        }
+
+        for (NodeId const& src : src.Nodes) {
+            if (this->src.getNode(src).Change == ChangeKind::Delete) {
+                result.push_back(getChangeFromSrc(src));
+            }
+        }
+
+        return result;
     }
 
     /// Matches nodes one-by-one based on their similarity.

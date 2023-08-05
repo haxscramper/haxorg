@@ -7,8 +7,8 @@
 #include <gtest/gtest.h>
 
 #include <lexbase/AstSpec.hpp>
-#include <lexbase/AstDiff.hpp>
 #include <lexbase/AstGraph.hpp>
+#include <lexbase/AstDiff.hpp>
 #include <lexbase/NodeTest.hpp>
 
 #include <hstd/stdlib/diffs.hpp>
