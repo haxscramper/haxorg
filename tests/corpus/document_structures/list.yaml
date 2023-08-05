@@ -431,7 +431,7 @@ items:
 
   - name: "Indent and dedent long list, subset"
     conf:
-      token_match: "ExpectedSubset"
+      tokenMatch: "ExpectedSubset"
     # debug:
     #   print_lexed: true
     #   print_lexed_to_file: true

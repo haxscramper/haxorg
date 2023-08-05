@@ -463,7 +463,7 @@ struct SimpleStringStore {
     Vec<QString> strings;
 
     LytStr  str(QString const& str);
-    QString str(const LytStr& str);
+    QString str(const LytStr& str) const;
     QString toString(
         Block::Ptr const& blc,
         Options const&    opts = Options{});

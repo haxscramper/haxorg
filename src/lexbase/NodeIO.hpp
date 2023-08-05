@@ -123,7 +123,6 @@ NodeTree<N, K> fromHomogeneous(CR<yaml> node) {
         }
         return NodeTree<N, K>(kind.value(), subnodes);
     } else {
-        std::cout << node << std::endl;
         typename NodeTree<N, K>::TreeToken token = {
             .index = node["tok_idx"].as<int>(),
             .str   = node["str"] ? Opt<Str>(node["str"].as<QString>())

@@ -9,7 +9,6 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Yaml.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 
 using namespace boost::describe;
@@ -208,6 +207,7 @@ inline void visitField(YAML::Node const& node, bool& str, char const* name) { vi
 inline void visitField(YAML::Node const& node, int& str, char const* name) { visitValue(node[name], str); }
 // clang-format on
 
+
 template <typename T>
 void visitValue(YAML::Node const& node, Vec<T>& opt) {
     if (node && node.IsSequence()) {
@@ -230,7 +230,7 @@ void visitValue(YAML::Node const& node, Opt<T>& opt) {
 
 template <typename T>
 void visitField(YAML::Node const& node, T& opt, char const* name) {
-    visitValue(node[name], opt);
+    opt = node[name];
 }
 
 
@@ -242,88 +242,3 @@ void visitValue(YAML::Node const& node, T& tree) {
         visitField(node, tree.*field.pointer, field.name);
     });
 }
-
-inline void visitValue(YAML::Node const& node, GenTu::Entry& rhs) {
-    Str kind = node["kind"].as<Str>();
-    if (kind == "Enum") {
-        auto result = std::make_shared<GenTu::Enum>();
-        visitValue(node, *result);
-        rhs = result;
-    } else if (kind == "Struct") {
-        auto result = std::make_shared<GenTu::Struct>();
-        visitValue(node, *result);
-        rhs = result;
-    } else if (kind == "TypeGroup") {
-        auto result = std::make_shared<GenTu::TypeGroup>();
-        visitValue(node, *result);
-        rhs = result;
-    }
-}
-
-namespace YAML {
-
-template <typename T>
-struct convert<std::shared_ptr<T>> {
-    static bool decode(Node const& node, std::shared_ptr<T>& rhs) {
-        rhs = std::make_shared<T>();
-        convert<T>::decode(*rhs);
-        return true;
-    }
-};
-
-template <>
-struct convert<GenTu::Ident> {
-    static bool decode(Node const& node, GenTu::Ident& rhs) {
-        visitValue(node, rhs);
-        return true;
-    }
-};
-
-template <>
-struct convert<GenTu::Function> {
-    static bool decode(Node const& node, GenTu::Function& rhs) {
-        visitValue(node, rhs);
-        return true;
-    }
-};
-
-template <>
-struct convert<GenTu::Enum> {
-    static bool decode(Node const& node, GenTu::Enum& rhs) {
-        visitValue(node, rhs);
-        return true;
-    }
-};
-
-template <>
-struct convert<GenTu::Struct> {
-    static bool decode(Node const& node, GenTu::Struct& rhs) {
-        visitValue(node, rhs);
-        return true;
-    }
-};
-
-template <>
-struct convert<GenTu::TypeGroup> {
-    static bool decode(Node const& node, GenTu::TypeGroup& rhs) {
-        visitValue(node, rhs);
-        return true;
-    }
-};
-
-template <>
-struct convert<GenTu::Entry> {
-    static bool decode(Node const& node, GenTu::Entry& rhs) {
-        visitValue(node, rhs);
-        return true;
-    }
-};
-
-template <>
-struct convert<GenTu> {
-    static bool decode(Node const& node, GenTu& rhs) {
-        visitValue(node, rhs);
-        return true;
-    }
-};
-} // namespace YAML

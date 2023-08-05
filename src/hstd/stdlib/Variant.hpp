@@ -7,6 +7,17 @@
 template <typename... Types>
 using Variant = std::variant<Types...>;
 
+// Type trait to check if a type is a specialization of std::variant
+template <class T>
+struct is_variant : std::false_type {};
+
+template <class... Args>
+struct is_variant<std::variant<Args...>> : std::true_type {};
+
+// The concept uses the type trait after removing cv-ref qualifiers
+template <typename T>
+concept IsVariant = is_variant<std::remove_cvref_t<T>>::value;
+
 // Does not conform to regular `ostream<<` implementation in order to avoid
 // implicit conversion from value types. Not sure this can be circumvented
 // by disallowing to-argument conversion in some way.

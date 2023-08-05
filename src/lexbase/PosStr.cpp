@@ -394,8 +394,8 @@ UnexpectedCharError PosStr::makeUnexpected(
 
 
 void skipBalancedSlice(PosStr& str, CR<BalancedSkipArgs> args) {
-    auto fullCount = args.skippedStart ? 1 : 0;
-    int  count[sizeof(char) * 8];
+    auto fullCount               = args.skippedStart ? 1 : 0;
+    int  count[sizeof(char) * 8] = {};
     while (str.hasNext()) {
         if (args.allowEscape && str.at(QChar('\\'))) {
             str.next();
