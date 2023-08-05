@@ -274,9 +274,74 @@ class SyntaxTree {
     Node<Id, Val> const& getNode(NodeId id) const {
         return Nodes.at(id.Offset);
     }
-    NodeId getParent(NodeId id) { return getNode(id).Parent; }
 
-    Vec<NodeId> getParentIdChain(NodeId id, bool withSelf = true) {
+    NodeId getParent(NodeId id) const { return getNode(id).Parent; }
+
+    struct PathElement {
+        /// Parent node to index into -- set to 'invalid' for root nodes
+        NodeId under;
+        /// Position for the `under` node indexing
+        int  position;
+        bool isRoot() const { return under.isInvalid() && position == -1; }
+    };
+
+    Node<Id, Val> const& getNode(PathElement const& path) {
+        return getNode(getNode(path.under).Subnodes.at(path.position));
+    }
+
+    Node<Id, Val>& getMutableNode(NodeId id) { return Nodes[id]; }
+
+    /// \brief Iterate over all node IDs that are present in the syntax
+    /// tree
+    generator<NodeId> nodeIds() {
+        for (int i = 0; i < Nodes.size(); ++i) {
+            co_yield NodeId(i);
+        }
+    }
+
+    /// \brief Check if the node ID falls in a range of nodes that is
+    /// stored in this syntax tree
+    bool isValidNodeId(NodeId id) const {
+        return 0 <= id && id < getSize();
+    }
+
+    /// \brief Add node value objet to the syntax tree node list
+    void addNode(Node<Id, Val>& N) { Nodes.push_back(N); }
+
+    int getNumberOfDescendants(NodeId id) const {
+        return getNode(id).RightMostDescendant - id + 1;
+    }
+
+    /// \brief Check if given ID is a subtree of a given root
+    bool isInSubtree(NodeId id, NodeId SubtreeRoot) const {
+        return SubtreeRoot <= id
+            && id <= getNode(SubtreeRoot).RightMostDescendant;
+    }
+
+    /// Serialize the node attributes to a string representation. This
+    /// should uniquely distinguish nodes of the same kind. Note that this
+    /// function just returns a representation of the node value, not
+    /// considering descendants.
+    Val getNodeValue(NodeId id) const { return getNodeValue(getNode(id)); }
+    int getNodeKind(NodeId id) const { return getNodeKind(getNode(id)); }
+
+    /// \brief Get node value using callbacks provided in the `opts` field
+    Val getNodeValue(const Node<Id, Val>& Node) const {
+        return opts.getNodeValue(Node.ASTNode);
+    }
+
+    /// \brief Get node kind value using callbacks provided in the `opts`
+    /// field
+    int getNodeKind(const Node<Id, Val>& Node) const {
+        return opts.getNodeKind(Node.ASTNode);
+    }
+
+    /// \brief Get full list of the node's ancestors. Iteration starts with
+    /// the current node or it's direct ancestor and moves upwards.
+    Vec<NodeId> getParentIdChain(
+        NodeId id,
+        bool   withSelf = true /// Include the node in the list
+    ) const {
         Vec<NodeId> result;
 
         if (withSelf) {
@@ -288,41 +353,36 @@ class SyntaxTree {
             result.push_back(parent);
             parent = getParent(parent);
         }
+        return result;
+    }
+
+
+    /// \brief Return node ID that uniquely identifes a given node starting
+    /// from the root base
+    Vec<PathElement> getNodePath(NodeId node) const {
+        Vec<NodeId>      parents = getParentIdChain(node, true);
+        Vec<PathElement> result;
+
+        for (int i = 1; i < parents.size(); ++i) {
+            result.push_back(PathElement{
+                .under    = parents.at(i),
+                .position = findPositionInParent(parents[i - 1]),
+            });
+        }
+
+        result.push_back(PathElement{.under = NodeId(), .position = -1});
 
         std::reverse(result.begin(), result.end());
 
         return result;
     }
 
-    Vec<Id> getBaseIdChain(NodeId node, bool withSelf) {
+    Vec<Id> getBaseParentIdChain(NodeId node, bool withSelf) const {
         Vec<Id> result;
         for (auto const& node : getParentIdChain(node, withSelf)) {
             result.push_back(getNode(node).ASTNode);
         }
         return result;
-    }
-
-    Node<Id, Val>& getMutableNode(NodeId id) { return Nodes[id]; }
-
-    generator<NodeId> nodeIds() {
-        for (int i = 0; i < Nodes.size(); ++i) {
-            co_yield NodeId(i);
-        }
-    }
-
-    bool isValidNodeId(NodeId id) const {
-        return 0 <= id && id < getSize();
-    }
-
-    void addNode(Node<Id, Val>& N) { Nodes.push_back(N); }
-
-    int getNumberOfDescendants(NodeId id) const {
-        return getNode(id).RightMostDescendant - id + 1;
-    }
-
-    bool isInSubtree(NodeId id, NodeId SubtreeRoot) const {
-        return SubtreeRoot <= id
-            && id <= getNode(SubtreeRoot).RightMostDescendant;
     }
 
     int findPositionInParent(NodeId id, bool Shifted = false) const {
@@ -345,20 +405,6 @@ class SyntaxTree {
         assert(false && "Node not found in parent's children.");
     }
 
-    /// Serialize the node attributes to a string representation. This
-    /// should uniquely distinguish nodes of the same kind. Note that this
-    /// function just returns a representation of the node value, not
-    /// considering descendants.
-    Val getNodeValue(NodeId id) const { return getNodeValue(getNode(id)); }
-    int getNodeKind(NodeId id) const { return getNodeKind(getNode(id)); }
-
-    Val getNodeValue(const Node<Id, Val>& Node) const {
-        return opts.getNodeValue(Node.ASTNode);
-    }
-
-    int getNodeKind(const Node<Id, Val>& Node) const {
-        return opts.getNodeKind(Node.ASTNode);
-    }
 
   private:
     void initTree() {
@@ -438,25 +484,20 @@ class ASTDiff {
         Change(CR<Data> data, ASTDiff* diff, NodeId src, NodeId dst)
             : src(src), dst(dst), diff(diff), data(data) {}
 
-        Val getSrcValue() const {
-            Q_ASSERT(src.isValid());
-            return diff->src.getNodeValue(src);
-        }
 
-        Val getDstValue() const {
-            Q_ASSERT(dst.isValid());
-            return diff->dst.getNodeValue(dst);
-        }
+        // clang-format off
+        Vec<NodeId> getSrcChain(bool withSelf = true) const { return diff->src.getParentIdChain(src, withSelf); }
+        Vec<NodeId> getDstChain(bool withSelf = true) const { return diff->src.getParentIdChain(src, withSelf); }
+        Vec<typename SyntaxTree<Id, Val>::PathElement> getSrcPath() const { return diff->src.getNodePath(src); }
+        Vec<typename SyntaxTree<Id, Val>::PathElement> getDstPath() const { return diff->dst.getNodePath(dst); }
+        Vec<Id> getBaseSrcChain(bool withSelf = true) const { return diff->src.getBaseParentIdChain(src, withSelf); }
+        Vec<Id> getBaseDstChain(bool withSelf = true) const { return diff->dst.getBaseParentIdChain(dst, withSelf); }
 
-        int getSrcKind() const {
-            Q_ASSERT(src.isValid());
-            return diff->dst.getNodeKind(dst);
-        }
-
-        int getDstKind() const {
-            Q_ASSERT(dst.isValid());
-            return diff->src.getNodeKind(src);
-        }
+        Val getSrcValue() const { Q_ASSERT(src.isValid()); return diff->src.getNodeValue(src); }
+        Val getDstValue() const { Q_ASSERT(dst.isValid()); return diff->dst.getNodeValue(dst); }
+        int getSrcKind() const { Q_ASSERT(src.isValid()); return diff->dst.getNodeKind(dst); }
+        int getDstKind() const { Q_ASSERT(dst.isValid()); return diff->src.getNodeKind(src); }
+        // clang-format on
     };
 
 
@@ -537,10 +578,13 @@ class ASTDiff {
         return getChange(src, TheMapping.getDst(src), false);
     }
 
-    Vec<Change> getAllChanges() {
+    Vec<Change> getAllChanges(bool skipNone = true) {
         Vec<Change> result;
         for (NodeId const& dstNode : dst.nodeIds()) {
-            result.push_back(getChangeFromDst(dstNode));
+            if (!skipNone
+                || this->dst.getNode(dstNode).Change != ChangeKind::None) {
+                result.push_back(getChangeFromDst(dstNode));
+            }
         }
 
         for (NodeId const& srcNode : src.nodeIds()) {

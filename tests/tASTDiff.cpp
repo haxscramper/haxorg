@@ -76,17 +76,23 @@ using ChKind = TestDiff::Change::Kind;
 TEST(AstDiff, BaselineApi) {
     {
         DiffBuilder builder(n(0, "same"), n(0, "same"), getTestOptions());
-        auto        changes = builder.diff->getAllChanges();
+        auto        changes = builder.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 1);
         TestDiff::Change ch0 = changes.at(0);
         EXPECT_EQ(ch0.getKind(), ChKind::None);
         EXPECT_EQ(ch0.getSrcValue().toStdString(), std::string("same"));
         EXPECT_EQ(ch0.getDstValue().toStdString(), std::string("same"));
+        EXPECT_EQ(ch0.getBaseDstChain().at(0)->value, "same");
+        EXPECT_EQ(ch0.getBaseSrcChain().at(0)->value, "same");
+        auto dstPath = ch0.getDstPath();
+        auto srcPath = ch0.getSrcPath();
+        EXPECT_TRUE(dstPath.at(0).isRoot());
+        EXPECT_TRUE(srcPath.at(0).isRoot());
     }
     {
         DiffBuilder builder(
             n(0, "first"), n(0, "second"), getTestOptions());
-        auto changes = builder.diff->getAllChanges();
+        auto changes = builder.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 1);
         TestDiff::Change ch0 = changes.at(0);
         EXPECT_EQ(ch0.getKind(), ChKind::Update);
@@ -96,7 +102,7 @@ TEST(AstDiff, BaselineApi) {
     {
         DiffBuilder builder(
             n(0, "0"), n(0, "0", {n(1, "1")}), getTestOptions());
-        auto changes = builder.diff->getAllChanges();
+        auto changes = builder.diff->getAllChanges(false);
         EXPECT_EQ(changes.size(), 2);
         TestDiff::Change ch0 = changes.at(0);
         EXPECT_EQ(ch0.getKind(), ChKind::None);
@@ -104,6 +110,15 @@ TEST(AstDiff, BaselineApi) {
         EXPECT_EQ(ch1.getKind(), ChKind::Insert);
         EXPECT_EQ(ch1.getInsert().to.position, 0);
         EXPECT_EQ(ch1.getInsert().to.under, NodeId(0));
+        auto dstPath = ch1.getDstPath();
+        EXPECT_EQ(dstPath.size(), 2);
+        EXPECT_TRUE(dstPath.at(0).isRoot());
+        EXPECT_EQ(dstPath.at(1).under, NodeId(0));
+        EXPECT_EQ(dstPath.at(1).position, 0);
+        EXPECT_EQ(
+            builder.dstSyntax->getNodeValue(
+                builder.dstSyntax->getNode(dstPath.back())),
+            "1");
     }
 }
 
