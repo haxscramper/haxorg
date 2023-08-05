@@ -178,6 +178,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
 
     using GraphTraits     = boost::graph_traits<Graph>;
     using VertDesc        = typename GraphTraits::vertex_descriptor;
+    using EdgeDesc        = typename GraphTraits::edge_descriptor;
     using VertBundledType = typename boost::vertex_bundle_type<
         Graph>::type;
     using EdgeBundledType = typename boost::edge_bundle_type<Graph>::type;
@@ -190,8 +191,12 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     /// to the original data structure
     json toJsonTree();
     json toJsonGraph();
+    json toJsonGraph(CR<Graph> g);
+    json toJsonGraphNode(CR<Graph> g, CR<VertDesc> n);
+    json toJsonGraphEdge(CR<Graph> g, CR<EdgeDesc> e);
 
     QString getId(VertexProp const& prop);
+    QString getId(sem::SemId id);
     QString getId(DocEntry::Ptr const& entry);
     QString getId(DocSubtree::Ptr const& subtree);
 };

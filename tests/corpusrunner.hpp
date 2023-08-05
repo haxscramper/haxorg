@@ -11,7 +11,6 @@
 struct QFileInfo;
 
 
-
 class CorpusRunner {
   public:
     // Define environment variable in the QT app run environment to get
@@ -39,6 +38,12 @@ class CorpusRunner {
             json data;
         };
 
+        struct JsonGraph {
+            Vec<json> nodes;
+            Vec<json> edges;
+            Opt<json> meta;
+        };
+
         SUB_VARIANTS(
             Kind,
             Data,
@@ -46,6 +51,7 @@ class CorpusRunner {
             getKind,
             Plaintext,
             Text,
+            JsonGraph,
             Structured);
 
         ExportResult() {}
@@ -140,7 +146,7 @@ class CorpusRunner {
 
     RunResult runSpec(CR<ParseSpec> spec, CR<QString> from) {
         MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
-        MockFull              p(spec.debug.traceParse, spec.debug.traceLex);
+        MockFull p(spec.debug.traceParse, spec.debug.traceLex);
 
         { // Input source
             if (spec.debug.printSource) {
@@ -252,8 +258,10 @@ class CorpusRunner {
                         return RunResult(result);
                     }
                 }
-            } else {
-                return RunResult{};
+
+                for (auto const& exp : spec.exporters) {
+                    ExportResult exp_result = runExporter(document, exp);
+                }
             }
         }
 

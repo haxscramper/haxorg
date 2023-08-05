@@ -485,6 +485,7 @@ void exporterVisit(
 CorpusRunner::ExportResult CorpusRunner::runExporter(
     sem::SemId                       top,
     const ParseSpec::ExporterExpect& exp) {
+    qDebug() << "Running exporter" << exp.name;
     using ER = ExportResult;
 
     auto strForStore = [](layout::SimpleStringStore const& store)
@@ -499,29 +500,53 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
             ER::Text{.textLyt = toTextLyt(block, strForStore(run.store))});
     };
 
-    if (exp.exporterName == "json") {
+    if (exp.name == "json") {
         return ER(ER::Structured{.data = ExporterJson().visitTop(top)});
-    } else if (exp.exporterName == "sexp") {
+    } else if (exp.name == "sexp") {
         ExporterSimpleSExpr run;
         return withTreeExporter(top, run);
 
-    } else if (exp.exporterName == "html") {
+    } else if (exp.name == "html") {
         ExporterHtml run;
         return withTreeExporter(top, run);
 
-    } else if (exp.exporterName == "latex") {
+    } else if (exp.name == "latex") {
         ExporterLatex run;
         return withTreeExporter(top, run);
 
-    } else if (exp.exporterName == "subtree_structure") {
+    } else if (exp.name == "subtree_structure") {
         return ER(ER::Structured{
             .data = ExporterSubtreeStructure().visitTop(top)});
 
+    } else if (exp.name == "mmap") {
+        ExporterMindMap run;
+        run.visitTop(top);
+        ExporterMindMap::Graph g = run.toGraph();
+        ER::JsonGraph          result;
+
+        for (auto [it, it_end] = boost::edges(g); it != it_end; ++it) {
+            result.nodes.push_back(run.toJsonGraphEdge(g, *it));
+        }
+
+        for (auto [it, it_end] = boost::vertices(g); it != it_end; ++it) {
+            result.nodes.push_back(run.toJsonGraphNode(g, *it));
+        }
+
+        if (exp.print) {
+            for (auto const& node : result.nodes) {
+                std::cout << "- " << node.dump() << "\n";
+            }
+
+            for (auto const& edge : result.edges) {
+                std::cout << "- " << edge.dump() << "\n";
+            }
+        }
+
+        return ER(result);
 
     } else {
         throw std::domain_error(
-            "Unexpected export result name "
-            + exp.exporterName.toStdString());
+            "Unexpected export result name " + exp.name.toStdString());
     }
 }
 

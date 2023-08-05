@@ -1,0 +1,10 @@
+lex: "Global"
+parse: "Top"
+expected: "Flat"
+items:
+  - name: "Single subtree"
+    source: "* Subtree"
+    exporters:
+      - name: "mmap"
+        print: true
+

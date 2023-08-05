@@ -89,13 +89,14 @@ struct ParseSpec {
         DECL_FIELDS(
             ExporterExpect,
             (),
-            ((QString), exporterName, ""),
+            ((QString), name, ""),
             /// Optional parameters to pass to the exporter run.
             ((Opt<yaml>), parmeters, std::nullopt),
             ((yaml), expected, yaml()),
+            ((bool), print, false),
             /// Print additional trace logs for exporter in the debug
             /// directory for parent test?
-            ((bool), traceExport, false));
+            ((bool), doTrace, false));
     };
 
     QFileInfo debugFile(QString relativePath, bool create = true) const;
@@ -139,7 +140,7 @@ struct ParseSpec {
         /// parameters to supply to the exporter. Specific handling of
         /// different exporter variations is implemented in the corpus
         /// file.
-        ((Vec<ExporterExpect>), exporterExpect, {}),
+        ((Vec<ExporterExpect>), exporters, {}),
         /// Name of the method to call for lexing or parsing. Pointer to
         /// implementation is resolved externally, spec file just contains
         /// the required name.

@@ -397,50 +397,22 @@ QString ExporterMindMap::toGraphviz(CR<Graph> graph) {
 }
 
 json ExporterMindMap::toJsonGraph() {
-    Graph g     = toGraph();
-    json  nodes = json::object();
-    json  edges = json::array();
+    Graph g = toGraph();
+    return toJsonGraph(g);
+}
+
+json ExporterMindMap::toJsonGraph(CR<Graph> g) {
+    json nodes = json::object();
+    json edges = json::array();
 
     auto vertexId = [&](VertDesc v) { return getId(g[v]); };
 
     for (auto [it, it_end] = boost::edges(g); it != it_end; ++it) {
-        json edge      = json::object();
-        auto e         = *it;
-        edge["source"] = vertexId(source(e, g));
-        edge["target"] = vertexId(target(e, g));
-        json meta      = json::object();
-        meta["kind"]   = to_string(g[e].getKind());
-
-        edge["metadata"] = meta;
-        edges.push_back(edge);
+        edges.push_back(toJsonGraphEdge(g, *it));
     }
 
     for (auto [it, it_end] = boost::vertices(g); it != it_end; ++it) {
-        json node = json::object();
-        auto n    = *it;
-
-        json meta    = json::object();
-        meta["kind"] = to_string(g[n].getKind());
-        meta["id"]   = vertexId(n);
-        switch (g[n].getKind()) {
-            case VertexProp::Kind::Subtree: {
-                auto tree = g[n].getSubtree();
-                if (tree.subtree->original.is(osk::Subtree)) {
-                    auto id    = tree.subtree->original.as<sem::Subtree>();
-                    auto title = id->title;
-                    meta["title"] = ExporterUltraplain::toStr(title);
-                    ExporterJson().visitSubtreeValueFields(meta, id);
-                }
-
-                break;
-            }
-            case VertexProp::Kind::Entry: {
-                break;
-            }
-        }
-
-        node["metadata"]                   = meta;
-        nodes[vertexId(*it).toStdString()] = node;
+        nodes[vertexId(*it).toStdString()] = toJsonGraphNode(g, *it);
     }
 
     json result        = json::object();
@@ -451,6 +423,42 @@ json ExporterMindMap::toJsonGraph() {
     return result;
 }
 
+json ExporterMindMap::toJsonGraphNode(CR<Graph> g, CR<VertDesc> n) {
+    json node    = json::object();
+    json meta    = json::object();
+    meta["kind"] = to_string(g[n].getKind());
+    meta["id"]   = getId(g[n]);
+    switch (g[n].getKind()) {
+        case VertexProp::Kind::Subtree: {
+            auto tree = g[n].getSubtree();
+            if (tree.subtree->original.is(osk::Subtree)) {
+                auto id       = tree.subtree->original.as<sem::Subtree>();
+                auto title    = id->title;
+                meta["title"] = ExporterUltraplain::toStr(title);
+                ExporterJson().visitSubtreeValueFields(meta, id);
+            }
+
+            break;
+        }
+        case VertexProp::Kind::Entry: {
+            break;
+        }
+    }
+
+    node["metadata"] = meta;
+    return node;
+}
+
+json ExporterMindMap::toJsonGraphEdge(CR<Graph> g, CR<EdgeDesc> e) {
+    json edge        = json::object();
+    edge["source"]   = getId(g[source(e, g)]);
+    edge["target"]   = getId(g[target(e, g)]);
+    json meta        = json::object();
+    meta["kind"]     = to_string(g[e].getKind());
+    edge["metadata"] = meta;
+    return edge;
+}
+
 QString ExporterMindMap::getId(const VertexProp& prop) {
     switch (prop.getKind()) {
         case VertexProp::Kind::Subtree:
@@ -459,12 +467,17 @@ QString ExporterMindMap::getId(const VertexProp& prop) {
     }
 }
 
+QString ExporterMindMap::getId(sem::SemId id) {
+    return to_string(id.getStoreIndex()) + "_" + to_string(id.getKind())
+         + "_" + to_string(id.getNodeIndex());
+}
+
 QString ExporterMindMap::getId(const DocEntry::Ptr& entry) {
-    return to_string(entry->content.id);
+    return getId(entry->content);
 }
 
 QString ExporterMindMap::getId(const DocSubtree::Ptr& entry) {
-    return to_string(entry->original.id);
+    return getId(entry->original);
 }
 
 json ExporterMindMap::toJsonTree() {
