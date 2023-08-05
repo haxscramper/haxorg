@@ -1,8 +1,85 @@
+#include <hstd/stdlib/Ptrs.hpp>
 #include <lexbase/AstDiff.hpp>
 #include <gtest/gtest.h>
 
 using namespace diff;
 
+
+struct TestNode : SharedPtrApi<TestNode> {
+    Vec<TestNode::Ptr> subnodes;
+    QString            value;
+    int                kind = 0;
+    TestNode(int kind, QString const& value, Vec<TestNode::Ptr> sub)
+        : kind(kind), subnodes(sub), value(value) {}
+};
+
+TestNode::Ptr n(
+    int                kind,
+    QString const&     val,
+    Vec<TestNode::Ptr> subnodes = {}) {
+    return TestNode::shared(kind, val, subnodes);
+}
+
+using TestSyntaxTree = SyntaxTree<TestNode*, QString>;
+using TestWalker     = TestSyntaxTree::WalkParameters<TestNode::Ptr>;
+using TestDiff       = ASTDiff<TestNode*, QString>;
+using TestOptions    = ComparisonOptions<TestNode*, QString>;
+
+TestWalker getTestWalker() {
+    return TestWalker{
+        .getSubnodeAt = [](CR<TestNode::Ptr> node, int pos)
+            -> CR<TestNode::Ptr> { return node->subnodes.at(pos); },
+        .getSubnodeNumber = [](CR<TestNode::Ptr> node) -> int {
+            return node->subnodes.size();
+        },
+        .getSubnodeId = [](CR<TestNode::Ptr> node) -> TestNode* {
+            return node.get();
+        },
+    };
+}
+
+TestOptions getTestOptions() {
+    return TestOptions{
+        .getNodeValueImpl = [](TestNode* id) { return id->value; },
+        .getNodeKindImpl  = [](TestNode* id) { return id->kind; },
+        .isMatchingAllowedImpl =
+            [](TestNode* id1, TestNode* id2) {
+                return id1->kind == id2->kind;
+            }};
+}
+
+struct DiffBuilder {
+    SPtr<TestSyntaxTree> srcSyntax;
+    SPtr<TestSyntaxTree> dstSyntax;
+    SPtr<TestDiff>       diff;
+    TestNode::Ptr        src;
+    TestNode::Ptr        dst;
+
+    DiffBuilder(
+        TestNode::Ptr      src,
+        TestNode::Ptr      dst,
+        TestOptions const& Options)
+        : src(src), dst(dst) {
+        srcSyntax         = std::make_shared<TestSyntaxTree>(Options);
+        dstSyntax         = std::make_shared<TestSyntaxTree>(Options);
+        TestWalker walker = getTestWalker();
+        srcSyntax->FromNode(src, walker);
+        dstSyntax->FromNode(dst, walker);
+        diff = std::make_shared<TestDiff>(*srcSyntax, *dstSyntax, Options);
+    }
+};
+
+using ChKind = TestDiff::Change::Kind;
+
+TEST(AstDiff, BaselineApi) {
+    {
+        DiffBuilder builder(n(0, "same"), n(0, "same"), getTestOptions());
+        auto        changes = builder.diff->getAllChanges();
+        EXPECT_EQ(changes.size(), 1);
+        auto ch0 = changes.at(0);
+        EXPECT_EQ(ch0.getKind(), ChKind::None);
+    }
+}
 
 TEST(AstDiff, PointerBasedNodes) {
     struct RealNode {

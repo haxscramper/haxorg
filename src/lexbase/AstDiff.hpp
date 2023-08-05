@@ -3,10 +3,12 @@
 #include <hstd/system/string_convert.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/system/macros.hpp>
+#include <hstd/system/generator.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>
+
 
 #include <iostream>
 #include <cassert>
@@ -186,17 +188,15 @@ Id getSubnodeIdTreeMirror(CR<TreeMirror<Id, Val>> tree) {
 /// Single node of the original AST
 template <typename Id, typename Val>
 struct Node {
-    NodeId Parent;
-    NodeId LeftMostDescendant;
-    NodeId RightMostDescendant;
-    int    Depth  = 0;
-    int    Height = 0;
-    int    Shift  = 0;
-    /// Reference to the original AST node
-    Id ASTNode;           /// Original AST node Id, used to get the
-                          /// kind/value information
-    Vec<NodeId> Subnodes; /// Explicit list of the subnode IDS
-    ChangeKind  Change = ChangeKind::None;
+    NodeId      Parent              = NodeId();
+    NodeId      LeftMostDescendant  = NodeId();
+    NodeId      RightMostDescendant = NodeId();
+    int         Depth               = 0;
+    int         Height              = 0;
+    int         Shift               = 0;
+    Id          ASTNode  = Id(); /// Reference to the original AST node
+    Vec<NodeId> Subnodes = {};   /// Explicit list of the subnode IDS
+    ChangeKind  Change   = ChangeKind::None;
 
     ASTNodeKind getNodeKind(
         ComparisonOptions<Id, Val> const& _opts) const {
@@ -264,7 +264,9 @@ class SyntaxTree {
     PreorderIterator           end() const { return getSize(); }
     ComparisonOptions<Id, Val> opts;
 
-    const Node<Id, Val>& getNode(NodeId id) const { return Nodes[id]; }
+    Node<Id, Val> const& getNode(NodeId id) const {
+        return Nodes.at(id.Offset);
+    }
     NodeId getParent(NodeId id) { return getNode(id).Parent; }
 
     Vec<NodeId> getParentIdChain(NodeId id, bool withSelf = true) {
@@ -295,6 +297,12 @@ class SyntaxTree {
 
     Node<Id, Val>& getMutableNode(NodeId id) { return Nodes[id]; }
 
+    generator<NodeId> nodeIds() {
+        for (int i = 0; i < Nodes.size(); ++i) {
+            co_yield NodeId(i);
+        }
+    }
+
     bool isValidNodeId(NodeId id) const {
         return 0 <= id && id < getSize();
     }
@@ -317,7 +325,7 @@ class SyntaxTree {
         }
         const auto& Siblings = getNode(Parent).Subnodes;
         int         Position = 0;
-        for (size_t I = 0, E = Siblings.size(); I < E; ++I) {
+        for (int I = 0, E = Siblings.size(); I < E; ++I) {
             if (Shifted) {
                 Position += getNode(Siblings[I]).Shift;
             }
@@ -411,11 +419,11 @@ class ASTDiff {
 
         NodeId   src;
         NodeId   dst;
-        ASTDiff& diff;
+        ASTDiff* diff;
         Data     data;
 
         Change() {}
-        Change(CR<Data> data, ASTDiff& diff, NodeId src, NodeId dst)
+        Change(CR<Data> data, ASTDiff* diff, NodeId src, NodeId dst)
             : src(src), dst(dst), diff(diff), data(data) {}
     };
 
@@ -436,8 +444,8 @@ class ASTDiff {
     Change getChange(NodeId srcNode, NodeId dstNode, bool fromDst) {
         Change result;
 
-        Node<Id, Val> node = fromDst ? dst.getNode(dstNode)
-                                     : src.getNode(srcNode);
+        Node<Id, Val> const& node = fromDst ? dst.getNode(dstNode)
+                                            : src.getNode(srcNode);
         switch (node.Change) {
             case ChangeKind::Delete: {
                 result.data = typename Change::Delete();
@@ -484,7 +492,7 @@ class ASTDiff {
 
         result.src  = srcNode;
         result.dst  = dstNode;
-        result.diff = *this;
+        result.diff = this;
 
         return result;
     }
@@ -499,13 +507,13 @@ class ASTDiff {
 
     Vec<Change> getAllChanges() {
         Vec<Change> result;
-        for (NodeId const& dst : dst.Nodes) {
-            result.push_back(getChangeFromDst(dst));
+        for (NodeId const& dstNode : dst.nodeIds()) {
+            result.push_back(getChangeFromDst(dstNode));
         }
 
-        for (NodeId const& src : src.Nodes) {
-            if (this->src.getNode(src).Change == ChangeKind::Delete) {
-                result.push_back(getChangeFromSrc(src));
+        for (NodeId const& srcNode : src.nodeIds()) {
+            if (this->src.getNode(srcNode).Change == ChangeKind::Delete) {
+                result.push_back(getChangeFromSrc(srcNode));
             }
         }
 
