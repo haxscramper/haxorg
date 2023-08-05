@@ -58,6 +58,13 @@ struct NodeId {
     inline NodeId& operator*() { return *this; }
     inline bool    isValid() const { return Offset != InvalidNodeOffset; }
     inline bool isInvalid() const { return Offset == InvalidNodeOffset; }
+
+    inline void assertValid(std::string const& msg) const {
+        if (isInvalid()) {
+            throw std::domain_error(
+                "non-valid (-1) node found for " + msg);
+        }
+    }
 };
 
 class Mapping {
@@ -343,9 +350,14 @@ class SyntaxTree {
     /// function just returns a representation of the node value, not
     /// considering descendants.
     Val getNodeValue(NodeId id) const { return getNodeValue(getNode(id)); }
+    int getNodeKind(NodeId id) const { return getNodeKind(getNode(id)); }
 
     Val getNodeValue(const Node<Id, Val>& Node) const {
         return opts.getNodeValue(Node.ASTNode);
+    }
+
+    int getNodeKind(const Node<Id, Val>& Node) const {
+        return opts.getNodeKind(Node.ASTNode);
     }
 
   private:
@@ -425,6 +437,26 @@ class ASTDiff {
         Change() {}
         Change(CR<Data> data, ASTDiff* diff, NodeId src, NodeId dst)
             : src(src), dst(dst), diff(diff), data(data) {}
+
+        Val getSrcValue() const {
+            Q_ASSERT(src.isValid());
+            return diff->src.getNodeValue(src);
+        }
+
+        Val getDstValue() const {
+            Q_ASSERT(dst.isValid());
+            return diff->dst.getNodeValue(dst);
+        }
+
+        int getSrcKind() const {
+            Q_ASSERT(src.isValid());
+            return diff->dst.getNodeKind(dst);
+        }
+
+        int getDstKind() const {
+            Q_ASSERT(dst.isValid());
+            return diff->src.getNodeKind(src);
+        }
     };
 
 

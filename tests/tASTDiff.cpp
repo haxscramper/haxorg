@@ -40,8 +40,10 @@ TestWalker getTestWalker() {
 
 TestOptions getTestOptions() {
     return TestOptions{
-        .getNodeValueImpl = [](TestNode* id) { return id->value; },
-        .getNodeKindImpl  = [](TestNode* id) { return id->kind; },
+        .getNodeValueImpl = [](TestNode* id) -> QString const& {
+            return id->value;
+        },
+        .getNodeKindImpl = [](TestNode* id) { return id->kind; },
         .isMatchingAllowedImpl =
             [](TestNode* id1, TestNode* id2) {
                 return id1->kind == id2->kind;
@@ -76,8 +78,32 @@ TEST(AstDiff, BaselineApi) {
         DiffBuilder builder(n(0, "same"), n(0, "same"), getTestOptions());
         auto        changes = builder.diff->getAllChanges();
         EXPECT_EQ(changes.size(), 1);
-        auto ch0 = changes.at(0);
+        TestDiff::Change ch0 = changes.at(0);
         EXPECT_EQ(ch0.getKind(), ChKind::None);
+        EXPECT_EQ(ch0.getSrcValue().toStdString(), std::string("same"));
+        EXPECT_EQ(ch0.getDstValue().toStdString(), std::string("same"));
+    }
+    {
+        DiffBuilder builder(
+            n(0, "first"), n(0, "second"), getTestOptions());
+        auto changes = builder.diff->getAllChanges();
+        EXPECT_EQ(changes.size(), 1);
+        TestDiff::Change ch0 = changes.at(0);
+        EXPECT_EQ(ch0.getKind(), ChKind::Update);
+        EXPECT_EQ(ch0.getSrcValue(), "first");
+        EXPECT_EQ(ch0.getDstValue(), "second");
+    }
+    {
+        DiffBuilder builder(
+            n(0, "0"), n(0, "0", {n(1, "1")}), getTestOptions());
+        auto changes = builder.diff->getAllChanges();
+        EXPECT_EQ(changes.size(), 2);
+        TestDiff::Change ch0 = changes.at(0);
+        EXPECT_EQ(ch0.getKind(), ChKind::None);
+        TestDiff::Change ch1 = changes.at(1);
+        EXPECT_EQ(ch1.getKind(), ChKind::Insert);
+        EXPECT_EQ(ch1.getInsert().to.position, 0);
+        EXPECT_EQ(ch1.getInsert().to.under, NodeId(0));
     }
 }
 

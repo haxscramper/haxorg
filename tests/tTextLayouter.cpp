@@ -7,37 +7,17 @@
 
 #include <QDebug>
 
+#include "common.hpp"
+
 std::ostream& operator<<(std::ostream& os, CR<Str> s) {
     return os << to_string(s);
 }
 
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
 
 using namespace layout;
 using namespace testing;
 
-// FIXME despite documentation claim that 'PrintTo' must only be defined
-// in the same namespace as the type (`Str`) I had to explicitly
-// specialize / the internal template for this to work. It does not seem
-// like a big
-// issue but https://github.com/google/googletest/blob/main/docs/advanced.md#teaching-googletest-how-to-print-your-values
-// this still needs to be investigated.
-/// \internal
-template <>
-void internal::PrintTo(const Str& str, ::std::ostream* os) {
-    std::ostringstream escaped_str;
-    for (QChar c : str) {
-        if (c == '\n') {
-            *os << "\\n";
-        } else if (c == '\t') {
-            *os << "\\t";
-        } else {
-            *os << QString(c).toStdString();
-        }
-    }
-}
 
 /// \internal
 template <>
