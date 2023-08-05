@@ -122,6 +122,16 @@ TEST(AstDiff, BaselineApi) {
     }
 }
 
+TEST(AstDiff, GreedyTopDown) {
+    auto opts             = getTestOptions();
+    opts.firstPass        = TestOptions::FirstPassKind::Greedy;
+    opts.StopAfterTopDown = true;
+    {
+        DiffBuilder builder(n(0, "0"), n(0, "0"), opts);
+        auto        changes = builder.diff->getAllChanges(false);
+    }
+}
+
 TEST(AstDiff, PointerBasedNodes) {
     struct RealNode {
         QString       value;

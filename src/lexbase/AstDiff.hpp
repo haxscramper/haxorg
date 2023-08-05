@@ -137,6 +137,15 @@ struct ComparisonOptions {
     /// exceeds this.
     int  MaxSize          = 100;
     bool StopAfterTopDown = false;
+
+    enum class FirstPassKind
+    {
+        TopDown,
+        Greedy,
+    };
+
+    FirstPassKind firstPass = FirstPassKind::TopDown;
+
     /// \brief Get node value from specified ID
     Func<Val(Id)> getNodeValueImpl;
     /// \brief Get node kind in integer form (usually static cast of enum
@@ -578,7 +587,11 @@ class ASTDiff {
         return getChange(src, TheMapping.getDst(src), false);
     }
 
-    Vec<Change> getAllChanges(bool skipNone = true) {
+    /// \brief Get list of all changes for a diff
+    Vec<Change> getAllChanges(
+        bool skipNone = true /// Skip 'none' changes -- direct mappings
+                             /// with no modifications
+    ) {
         Vec<Change> result;
         for (NodeId const& dstNode : dst.nodeIds()) {
             if (!skipNone
@@ -596,19 +609,26 @@ class ASTDiff {
         return result;
     }
 
-    /// Matches nodes one-by-one based on their similarity.
+    /// \brief Matches nodes one-by-one based on their similarity.
     void computeMapping() {
-        TheMapping = matchTopDown();
+        using Pass = ComparisonOptions<Id, Val>::FirstPassKind;
+        switch (Options.firstPass) {
+            case Pass::TopDown: TheMapping = matchTopDown(); break;
+            case Pass::Greedy: TheMapping = greedyMatchTopDown(); break;
+        }
+
         if (Options.StopAfterTopDown) {
             return;
+        } else {
+            matchBottomUp(TheMapping);
         }
-        matchBottomUp(TheMapping);
     }
 
-    /// Compute Change for each node based on similarity.
+    /// \brief Compute Change for each node based on similarity.
     void computeChangeKinds(Mapping& M);
-    /// Returns the ID of the node that is mapped to the given node in
-    /// SourceTree.
+
+    /// \brief Returns the ID of the node that is mapped to the given node
+    /// in SourceTree.
     NodeId getMapped(const SyntaxTree<Id, Val>& Tree, NodeId id) const {
         if (&Tree == &src) {
             return TheMapping.getDst(id);
@@ -618,34 +638,41 @@ class ASTDiff {
     }
 
   private:
-    /// Returns true if the two subtrees are isomorphic to each other.
+    /// \brief Returns true if the two subtrees are isomorphic to each
+    /// other.
     bool identical(NodeId Id1, NodeId Id2) const;
-    /// Returns false if the nodes must not be mached.
+
+    /// \brief Returns false if the nodes must not be mached.
     bool isMatchingPossible(NodeId Id1, NodeId Id2) const {
         return Options.isMatchingAllowed(
             src.getNode(Id1), dst.getNode(Id2));
     }
-    /// Returns true if the nodes' parents are matched.
+
+    /// \brief Returns true if the nodes' parents are matched.
     bool haveSameParents(const Mapping& M, NodeId Id1, NodeId Id2) const {
         NodeId P1 = src.getNode(Id1).Parent;
         NodeId P2 = dst.getNode(Id2).Parent;
         return (P1.isInvalid() && P2.isInvalid())
             || (P1.isValid() && P2.isValid() && M.getDst(P1) == P2);
     }
-    /// Uses an optimal albeit slow algorithm to compute a mapping
+
+    /// \brief Uses an optimal albeit slow algorithm to compute a mapping
     /// between two subtrees, but only if both have fewer nodes than
     /// MaxSize.
     void addOptimalMapping(Mapping& M, NodeId Id1, NodeId Id2) const;
-    /// Computes the ratio of common descendants between the two nodes.
-    /// Descendants are only considered to be equal when they are mapped in
-    /// M.
+    /// \brief Computes the ratio of common descendants between the two
+    /// nodes. Descendants are only considered to be equal when they are
+    /// mapped in M.
     double getJaccardSimilarity(const Mapping& M, NodeId Id1, NodeId Id2)
         const;
-    /// Returns the node that has the highest degree of similarity.
+    /// \brief Returns the node that has the highest degree of similarity.
     NodeId findCandidate(const Mapping& M, NodeId Id1) const;
-    /// Returns a mapping of identical subtrees.
+    /// \brief Returns a mapping of identical subtrees.
     Mapping matchTopDown() const;
-    /// Tries to match any yet unmapped nodes, in a bottom-up fashion.
+    Mapping greedyMatchTopDown() const;
+
+    /// \brief Tries to match any yet unmapped nodes, in a bottom-up
+    /// fashion.
     void                              matchBottomUp(Mapping& M) const;
     const ComparisonOptions<Id, Val>& Options;
     template <typename Id_, typename Val_>
@@ -1284,6 +1311,28 @@ Mapping ASTDiff<Id, Val>::matchTopDown() const {
             }
         }
     }
+    return M;
+}
+
+inline template <typename Id, typename Val>
+Mapping ASTDiff<Id, Val>::greedyMatchTopDown() const {
+    Mapping                    M(src.getSize() + dst.getSize());
+    Func<void(NodeId, NodeId)> aux;
+    aux = [&](NodeId srcId, NodeId dstId) {
+        auto const& srcNode = src.getNode(srcId);
+        auto const& dstNode = dst.getNode(dstId);
+        if (srcNode.isLeaf() || dstNode.isLeaf()) {
+            M.link(srcId, dstId);
+        } else {
+            for (int i = 0;
+                 i < std::min(
+                     srcNode.Subnodes.size(), dstNode.Subnodes.size());
+                 ++i) {
+                aux(srcNode.Subnodes.at(i), dstNode.Subnodes.at(i));
+            }
+        }
+    };
+
     return M;
 }
 
