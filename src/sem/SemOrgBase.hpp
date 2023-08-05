@@ -46,11 +46,13 @@ struct SemIdT;
 using OrgVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 #undef __id
 
+struct ContextStore;
 
 struct SemId {
-    using IdType      = u64;
-    using NodeIndexT  = u32;
-    using StoreIndexT = u32;
+    using IdType        = u64;
+    using NodeIndexT    = u32;
+    using StoreIndexT   = u32;
+    ContextStore* context = nullptr;
 
     IdType id = 0;
     bool   isNil() const { return id == 0; }
@@ -58,12 +60,17 @@ struct SemId {
     bool operator==(SemId const& other) const { return id == other.id; }
 
     static SemId Nil() {
-        auto res = SemId(0, OrgSemKind(0), 0);
+        auto res = SemId(0, OrgSemKind(0), 0, nullptr);
         res.id   = 0;
         return res;
     }
 
-    SemId(StoreIndexT storeIndex, OrgSemKind kind, NodeIndexT nodeIndex) {
+    SemId(
+        StoreIndexT   storeIndex,
+        OrgSemKind    kind,
+        NodeIndexT    nodeIndex,
+        ContextStore* _store)
+        : context(_store) {
         setStoreIndex(storeIndex);
         setKind(kind);
         setNodeIndex(nodeIndex);

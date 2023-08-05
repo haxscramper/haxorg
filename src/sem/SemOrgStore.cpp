@@ -2,11 +2,9 @@
 
 using namespace sem;
 
-GlobalStore instance;
-
-GlobalStore& GlobalStore::getInstance() { return instance; }
-
-void LocalStore::eachStore(SemId::StoreIndexT selfIndex, StoreVisitor cb) {
+void ParseUnitStore::eachStore(
+    SemId::StoreIndexT selfIndex,
+    StoreVisitor       cb) {
 
 #define _store(__Kind) cb(selfIndex, &store##__Kind);
 
@@ -15,7 +13,9 @@ void LocalStore::eachStore(SemId::StoreIndexT selfIndex, StoreVisitor cb) {
 #undef _store
 }
 
-void LocalStore::eachNode(SemId::StoreIndexT selfIndex, NodeVisitor cb) {
+void ParseUnitStore::eachNode(
+    SemId::StoreIndexT selfIndex,
+    NodeVisitor        cb) {
 #define _store(__Kind)                                                    \
     store##__Kind.eachNode(selfIndex, [&](SemIdT<__Kind> id) { cb(id); });
 
@@ -24,19 +24,19 @@ void LocalStore::eachNode(SemId::StoreIndexT selfIndex, NodeVisitor cb) {
 #undef _store
 }
 
-void GlobalStore::eachStore(LocalStore::StoreVisitor cb) {
-    for (SemId::StoreIndexT idx = 0; idx < 1; ++idx) {
-        store.eachStore(idx, cb);
+void ContextStore::eachStore(ParseUnitStore::StoreVisitor cb) {
+    for (int i = 0; i < stores.size(); ++i) {
+        stores[i].eachStore(i, cb);
     }
 }
 
-void GlobalStore::eachNode(LocalStore::NodeVisitor cb) {
-    for (SemId::StoreIndexT idx = 0; idx < 1; ++idx) {
-        store.eachNode(idx, cb);
+void ContextStore::eachNode(ParseUnitStore::NodeVisitor cb) {
+    for (int i = 0; i < stores.size(); ++i) {
+        stores[i].eachNode(i, cb);
     }
 }
 
-Org* LocalStore::get(OrgSemKind kind, SemId::NodeIndexT index) {
+Org* ParseUnitStore::get(OrgSemKind kind, SemId::NodeIndexT index) {
     switch (kind) {
 
 #define _case(__Kind)                                                     \
@@ -51,16 +51,18 @@ Org* LocalStore::get(OrgSemKind kind, SemId::NodeIndexT index) {
 }
 
 
-SemId LocalStore::create(
+SemId ParseUnitStore::create(
     SemId::StoreIndexT selfIndex,
     OrgSemKind         kind,
     SemId              parent,
+    ContextStore*      context,
     Opt<OrgAdapter>    original) {
     switch (kind) {
 
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        auto result = store##__Kind.create(selfIndex, parent, original);  \
+        auto result = store##__Kind.create(                               \
+            selfIndex, parent, original, context);                        \
         Q_ASSERT_X(                                                       \
             result.getKind() == kind,                                     \
             "create node in local store",                                 \
@@ -80,8 +82,11 @@ SemId LocalStore::create(
 #define _create(__Kind)                                                   \
     SemIdT<sem::__Kind> sem::__Kind::create(                              \
         SemId parent, Opt<OrgAdapter> original) {                         \
-        return GlobalStore::createIn(                                     \
-            0, OrgSemKind::__Kind, parent, original);                     \
+        return parent.context->createIn(                                  \
+            parent.getStoreIndex(),                                       \
+            OrgSemKind::__Kind,                                           \
+            parent,                                                       \
+            original);                                                    \
     }
 
 EACH_SEM_ORG_KIND(_create)
@@ -89,14 +94,12 @@ EACH_SEM_ORG_KIND(_create)
 
 Org* SemId::get() {
     Q_ASSERT(!isNil());
-    return GlobalStore::getInstance()
-        .getStoreByIndex(getStoreIndex())
+    return context->getStoreByIndex(getStoreIndex())
         .get(getKind(), getNodeIndex());
 }
 
 Org const* SemId::get() const {
-    Org const* res = GlobalStore::getInstance()
-                         .getStoreByIndex(getStoreIndex())
+    Org const* res = context->getStoreByIndex(getStoreIndex())
                          .get(getKind(), getNodeIndex());
     Q_ASSERT(res->getKind() == getKind());
     return res;
@@ -104,21 +107,31 @@ Org const* SemId::get() const {
 
 void SemId::push_back(SemId sub) { get()->push_back(sub); }
 
-LocalStore& GlobalStore::getStoreByIndex(SemId::StoreIndexT index) {
-    return store;
+ParseUnitStore& ContextStore::getStoreByIndex(SemId::StoreIndexT index) {
+    ensureStoreForIndex(index);
+    return stores.at(index);
+}
+
+void ContextStore::ensureStoreForIndex(SemId::StoreIndexT index) {
+    int diff = index - stores.size();
+    Q_ASSERT(diff < 120000); // Debugging assertion
+
+    while (!(index < stores.size())) {
+        stores.emplace_back(this);
+    }
 }
 
 
-SemId GlobalStore::createIn(
+SemId ContextStore::createIn(
     SemId::StoreIndexT index,
     OrgSemKind         kind,
     SemId              parent,
     Opt<OrgAdapter>    original) {
-    return getInstance().getStoreByIndex(index).create(
-        index, kind, parent, original);
+    return getStoreByIndex(index).create(
+        index, kind, parent, this, original);
 }
 
-SemId GlobalStore::createInSame(
+SemId ContextStore::createInSame(
     SemId           existing,
     OrgSemKind      kind,
     SemId           parent,

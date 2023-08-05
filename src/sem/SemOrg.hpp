@@ -24,11 +24,13 @@ namespace sem {
 
 template <typename T>
 struct KindStore {
+    ContextStore* context;
     using NodeType = T;
     Vec<T> values;
 
     int size() const { return values.size(); }
 
+    KindStore(ContextStore* context) : context(context) {}
 
     T* getForIndex(SemId::NodeIndexT index) {
         Q_ASSERT(0 <= index && index < values.size());
@@ -38,16 +40,20 @@ struct KindStore {
     SemId create(
         SemId::StoreIndexT selfIndex,
         SemId              parent,
-        Opt<OrgAdapter>    original) {
+        Opt<OrgAdapter>    original,
+        ContextStore*      context) {
         SemId result = SemId(
             selfIndex,
             T::staticKind,
-            static_cast<SemId::NodeIndexT>(values.size()));
+            static_cast<SemId::NodeIndexT>(values.size()),
+            context);
+
         if (original) {
             values.emplace_back(parent, *original);
         } else {
             values.emplace_back(parent);
         }
+
         return result;
     }
 
@@ -58,7 +64,8 @@ struct KindStore {
 
     generator<SemIdT<T>> nodes(SemId::StoreIndexT selfIndex) {
         for (SemId::NodeIndexT node = 0; node < values.size(); ++node) {
-            co_yield SemIdT<T>(SemId(selfIndex, T::staticKind, node));
+            co_yield SemIdT<T>(
+                SemId(selfIndex, T::staticKind, node, context));
         }
     }
 
@@ -75,16 +82,26 @@ using OrgKindStorePtrVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 #undef __id
 
 
-struct LocalStore {
+struct ParseUnitStore {
 #define _kind(__Kind) KindStore<__Kind> store##__Kind;
     EACH_SEM_ORG_KIND(_kind)
 #undef _kind
+
+
+    ParseUnitStore(ContextStore* context)
+        :
+#define _kind(__Kind) , store##__Kind(context)
+        EACH_SEM_ORG_KIND_CSV(_kind)
+#undef _kind
+    {
+    }
 
     Org*  get(OrgSemKind kind, SemId::NodeIndexT index);
     SemId create(
         SemId::StoreIndexT selfIndex,
         OrgSemKind         kind,
         SemId              parent,
+        ContextStore*      context,
         Opt<OrgAdapter>    original = std::nullopt);
 
     using StoreVisitor = Func<
@@ -97,15 +114,14 @@ struct LocalStore {
 };
 
 /// \brief Global group of stores that all nodes are written to
-struct GlobalStore {
-    static GlobalStore& getInstance();
-
+struct ContextStore {
     /// \brief Get reference to a local store by index
-    LocalStore& getStoreByIndex(SemId::StoreIndexT index);
+    ParseUnitStore& getStoreByIndex(SemId::StoreIndexT index);
+    void            ensureStoreForIndex(SemId::StoreIndexT index);
 
     /// \brief Create new sem node of the specified kind in the local store
     /// with `index`
-    static SemId createIn(
+    SemId createIn(
         SemId::StoreIndexT index,
         OrgSemKind         kind,
         SemId              parent,
@@ -114,22 +130,21 @@ struct GlobalStore {
 
     /// \brief Create new sem node of the specified kind in the same local
     /// store as the `existing` node
-    static SemId createInSame(
+    SemId createInSame(
         SemId           existing,
         OrgSemKind      kind,
         SemId           parent,
         Opt<OrgAdapter> original = std::nullopt);
 
 
-    LocalStore store;
+    Vec<ParseUnitStore> stores;
 
+    void eachStore(ParseUnitStore::StoreVisitor cb);
+    void eachNode(ParseUnitStore::NodeVisitor cb);
 
-    void eachStore(LocalStore::StoreVisitor cb);
-    void eachNode(LocalStore::NodeVisitor cb);
-
-    GlobalStore() {}
-    GlobalStore(const GlobalStore&)            = delete;
-    GlobalStore& operator=(const GlobalStore&) = delete;
+    ContextStore() {}
+    ContextStore(const ContextStore&)            = delete;
+    ContextStore& operator=(const ContextStore&) = delete;
 };
 
 template <typename T>

@@ -24,6 +24,7 @@ struct HaxorgCli {
     SPtr<PosStr>               str;
     StrCache                   sources;
     Func<LineCol(CR<PosStr>)>  locationResolver;
+    sem::ContextStore          store;
 
     UnorderedMap<OrgTokenId, OrgTokenizer::Report> pushedOn;
 

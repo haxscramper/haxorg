@@ -175,7 +175,7 @@ Opt<ExporterMindMap::DocLink> ExporterMindMap::getResolved(
                 }
             });
             if (resolved) {
-                resolved->description = sem::GlobalStore::createInSame(
+                resolved->description = node.context->createInSame(
                     node, osk::StmtList, node);
                 (*resolved->description)->subnodes = item->subnodes;
                 return resolved;

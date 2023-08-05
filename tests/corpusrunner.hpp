@@ -239,7 +239,8 @@ class CorpusRunner {
 
         { // Sem conversion
             if (spec.debug.doSem) {
-                sem::OrgConverter converter;
+                sem::ContextStore context;
+                sem::OrgConverter converter(&context);
 
                 converter.trace = spec.debug.traceParse;
                 if (spec.debug.parseToFile) {

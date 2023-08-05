@@ -821,7 +821,11 @@ void HaxorgCli::writeGantt() {
 }
 
 
-HaxorgCli::HaxorgCli() : tokenizer(), nodes(nullptr), lex(&tokens) {
+HaxorgCli::HaxorgCli()
+    : tokenizer()
+    , nodes(nullptr)
+    , lex(&tokens)
+    , converter(sem::OrgConverter(&store)) {
     nodes.tokens = &tokens;
 }
 
@@ -973,19 +977,19 @@ void HaxorgCli::exec() {
 
         Vec<Pair<OrgSemKind, int>> counts;
 
-        sem::GlobalStore::getInstance().eachStore(
-            [&](sem::SemId::StoreIndexT     selfIndex,
-                sem::OrgKindStorePtrVariant store) {
-                std::visit(
-                    [&](auto it) {
-                        counts.push_back({
-                            std::remove_reference_t<
-                                decltype(*it)>::NodeType::staticKind,
-                            it->size(),
-                        });
-                    },
-                    store);
-            });
+
+        store.eachStore([&](sem::SemId::StoreIndexT     selfIndex,
+                            sem::OrgKindStorePtrVariant store) {
+            std::visit(
+                [&](auto it) {
+                    counts.push_back({
+                        std::remove_reference_t<
+                            decltype(*it)>::NodeType::staticKind,
+                        it->size(),
+                    });
+                },
+                store);
+        });
 
         sort<Pair<OrgSemKind, int>>(
             counts,

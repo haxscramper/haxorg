@@ -108,7 +108,11 @@ struct OrgConverter : public OperationsTracer {
 
   public:
     UPtr<OrgSpec> spec;
-    OrgConverter() { spec = getOrgSpec(); }
+    ContextStore* context;
+
+    OrgConverter(ContextStore* context) : context(context) {
+        spec = getOrgSpec();
+    }
 
     OrgAdapter one(OrgAdapter node, OrgSpecName name) {
         return spec->getSingleSubnode(node, name);
@@ -178,7 +182,7 @@ struct OrgConverter : public OperationsTracer {
 
     template <typename T>
     SemIdT<T> Sem(Up parent, In adapter) {
-        SemIdT<T> res = GlobalStore::createInSame(
+        SemIdT<T> res = context->createInSame(
             parent, T::staticKind, parent, adapter);
         res->loc = getLoc(adapter);
         return res;
