@@ -38,7 +38,7 @@ QString join(CR<QString> sep, generator<T>& list) {
 template <typename T>
 QString join(CR<QString> sep, generator<T>&& list) {
     auto tmp = std::move(list);
-    join(sep, tmp);
+    return join(sep, tmp);
 }
 
 /// Get visible name of the character.

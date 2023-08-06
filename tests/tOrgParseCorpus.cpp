@@ -107,8 +107,9 @@ std::string getTestName(
 }
 
 TEST_P(ParseFile, CorpusAll) {
-    TestParams   params = GetParam();
-    auto&        spec   = params.spec;
+    TestParams params      = GetParam();
+    auto&      spec        = params.spec;
+    spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
     CorpusRunner runner;
     using RunResult  = CorpusRunner::RunResult;
     RunResult result = runner.runSpec(spec, params.file.filePath());

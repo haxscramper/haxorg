@@ -1,6 +1,6 @@
 lex: "Global"
-parse: "Top"
 expected: "Flat"
+parse: "Full"
 items:
   - name: "Single subtree"
     source: "* Subtree"
@@ -12,3 +12,28 @@ items:
             - {"metadata":{"id":"0_Subtree_0", "title":"Subtree"}}
           edges:
             - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
+  - name: "Nested subgree"
+    source: |
+      * LVL1
+      ** LVL2
+      T
+
+    debug: 
+      printSem: true
+      printSemToFile: true
+      printParsed: true
+      printParsedToFile: true
+      traceParse: true
+      parseToFile: true
+
+
+    exporters:
+      - name: "mmap"
+        expected:
+          nodes:
+            - {"metadata":{"id":"0_Document_0","kind":"Subtree"}}
+            - {"metadata":{"id":"0_Subtree_0", "title":"LVL1"}}
+            - {"metadata":{"id":"0_Subtree_1", "title":"LVL2"}}
+          edges:
+            - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
+            - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_1"}

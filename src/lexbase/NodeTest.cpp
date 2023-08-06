@@ -153,7 +153,11 @@ struct verbose_convert {
             std::string name = it.first.as<std::string>();
             if (!knownFieldCache.contains(name)) {
                 // TODO 'did you mean' with corrections
-                std::string msg = "unexpected field name '" + name + "'";
+                Vec<std::string> names;
+                std::string      msg = "unexpected field name '" + name
+                                + "', expected "
+                                + join(" or ", knownFieldCache.keys())
+                                      .toStdString();
                 throw RepresentationException(it.first.Mark(), msg);
             }
         }

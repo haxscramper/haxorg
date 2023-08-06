@@ -9,6 +9,7 @@
 #include <exporters/exportersubtreestructure.hpp>
 #include <exporters/exporterhtml.hpp>
 #include <exporters/exportermindmap.hpp>
+#include <exporters/exporteryaml.hpp>
 #include <exporters/exporterlatex.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/diffs.hpp>
@@ -64,6 +65,7 @@ const UnorderedMap<Str, MockFull::ParserMethod> parsers({
     CB(LineCommand),
     CB(ToplevelItem),
     CB(Top),
+    CB(Full),
 });
 #undef CB
 
@@ -941,6 +943,11 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                     spec.debugFile("parsed.yaml"),
                     to_string(yamlRepr(p.nodes)) + "\n",
                     spec.debug.printParsedToFile);
+
+                writeFileOrStdout(
+                    spec.debugFile("parsed.txt"),
+                    OrgAdapter(&p.nodes, OrgId(0)).treeRepr(false) + "\n",
+                    spec.debug.printParsedToFile);
             }
         } else {
             return RunResult{};
@@ -976,17 +983,26 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             sem::ContextStore context;
             sem::OrgConverter converter(&context);
 
-            converter.trace = spec.debug.traceParse;
-            if (spec.debug.parseToFile) {
+            converter.trace = spec.debug.traceSem;
+            if (spec.debug.semToFile) {
                 converter.setTraceFile(spec.debugFile("trace_sem.txt"));
             }
 
             auto document = converter.toDocument(
                 OrgAdapter(&p.nodes, OrgId(0)));
 
+
+            if (spec.debug.printSem) {
+                writeFileOrStdout(
+                    spec.debugFile("sem.yaml"),
+                    to_string(ExporterYaml().visitTop(document)) + "\n",
+                    spec.debug.printSemToFile);
+            }
+
             if (spec.sem.has_value()) {
                 RunResult::SemCompare result = compareSem(
                     spec, document, spec.sem.value());
+
 
                 if (!result.isOk) {
                     return RunResult(result);

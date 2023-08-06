@@ -66,14 +66,18 @@ struct ParseSpec {
         DECL_FIELDS(
             Dbg,
             (),
+            /// Do trace for lex/parse/sem
             ((bool), traceLex, false),
             ((bool), traceParse, false),
             ((bool), traceSem, false),
+            /// Output trace to the file
             ((bool), lexToFile, false),
             ((bool), parseToFile, false),
             ((bool), semToFile, false),
+            /// Print lex/parse/sem/source values for processing
             ((bool), printLexed, false),
             ((bool), printParsed, false),
+            ((bool), printSem, false),
             ((bool), printSource, false),
             /// Test should run lex/parse/sem stages
             ((bool), doParse, true),

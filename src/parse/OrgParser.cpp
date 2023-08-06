@@ -178,6 +178,7 @@ class OrgParserImpl : public OrgParser {
     EACH_PARSER_METHOD(OVERRIDE);
 #undef OVERRIDE
 
+    virtual OrgId parseFull(OrgLexer& lex);
     OrgId         parseParagraph(OrgLexer& lex, bool onToplevel);
     virtual OrgId parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind)
         override;
@@ -2184,6 +2185,17 @@ OrgId OrgParserImpl<TraceState>::parseTop(OrgLexer& lex) {
 }
 
 
+template <bool TraceState>
+OrgId OrgParserImpl<TraceState>::parseFull(OrgLexer& lex) {
+    __perf_trace("parseFull");
+    __trace();
+    auto id = parseTop(lex);
+    extendSubtreeTrails(OrgId(0));
+    extendAttachedTrails(OrgId(0));
+    return id;
+}
+
+
 } // namespace
 
 SPtr<OrgParser> OrgParser::initImpl(OrgNodeGroup* group, bool doTrace) {
@@ -2276,6 +2288,9 @@ void OrgParserImpl<TraceState>::extendSubtreeTrails(OrgId position) {
             // NOTE: 'back' returns the last node, not one-past-last
             OrgNode node = g.at(id);
             if (node.kind == org::Subtree) {
+                __print(
+                    "Found subtree on the lower level " + to_string(id),
+                    nullptr);
                 OrgId const tree  = id;
                 OrgId       subId = g.subnode(tree, 0);
                 int         sub   = g.strVal(subId).size();
@@ -2313,6 +2328,10 @@ void OrgParserImpl<TraceState>::extendSubtreeTrails(OrgId position) {
 
 
                 } else {
+                    __print(
+                        "Found subtree on the same level or above "
+                            + to_string(id),
+                        nullptr);
                     // Found subtree on the same level or above
                     break;
                 }

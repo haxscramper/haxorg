@@ -168,8 +168,8 @@ struct OrgParser : public OperationsTracer {
     EACH_PARSER_METHOD(_def)
 #undef _def
 
+    virtual OrgId parseFull(OrgLexer& lex) = 0;
     virtual OrgId parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind) = 0;
-
     virtual void extendSubtreeTrails(OrgId position)  = 0;
     virtual void extendAttachedTrails(OrgId position) = 0;
     virtual void parseCSVArguments(OrgLexer& lex)     = 0;
