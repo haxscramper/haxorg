@@ -37,18 +37,8 @@ items:
                     - {kind: BigIdent, text: T}
                     - {kind: Newline, text: "\n"}
 
-    debug: 
-      printSem: true
-      printSemToFile: true
-      printParsed: true
-      printParsedToFile: true
-      traceParse: true
-      parseToFile: true
-
-
     exporters:
       - name: "mmap"
-        print: true
         expected:
           nodes:
             - {"metadata":{"id":"0_Document_0","kind":"Subtree"}}
@@ -59,3 +49,52 @@ items:
             - {"metadata":{"kind":"PlacedIn"},"source":"0_Subtree_1","target":"0_Paragraph_2"}
             - {"metadata":{"kind":"NestedIn"},"source":"0_Subtree_0","target":"0_Subtree_1"}
             - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
+
+  - name: "Simple footnote"
+    source: |
+      * Subtree
+      
+      Paragraph [fn:one]
+
+      [fn:one] Definition
+
+    exporters:
+      - name: "mmap"
+        expected:
+          nodes:
+            - {"metadata":{"id":"0_Document_0","kind":"Subtree"}}
+            - {"metadata":{"id":"0_Subtree_0","title":"Subtree"}}
+            - {"metadata":{"id":"0_Paragraph_1","kind":"Entry"}}
+            - {"metadata":{"id":"0_Paragraph_2","kind":"Entry"}}
+          edges:
+            - {"metadata":{"kind":"PlacedIn"},"source":"0_Subtree_0","target":"0_Paragraph_1"}
+            - {"metadata":{"kind":"PlacedIn"},"source":"0_Subtree_0","target":"0_Paragraph_2"}
+            - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
+            # Footnote in the first paragraph refers to the footnote in a different paragraph
+            - {"metadata":{"kind":"RefersTo"},"source":"0_Paragraph_1","target":"0_Paragraph_2"}
+
+  - name: "Link to subtree with ID"
+    source: |
+      * Target
+        :properties:
+        :id: target_id
+        :end:
+
+      * Source
+        
+        [[id:target_id]]
+
+    exporters:
+      - name: "mmap"
+        expected:
+          nodes:
+            - {"metadata":{"id":"0_Document_0","kind":"Subtree"}}
+            - {"metadata":{"id":"0_Subtree_0","kind":"Subtree","title":"Target","treeId":"target_id"}}
+            - {"metadata":{"id":"0_Subtree_1","kind":"Subtree","title":"Source","treeId":null}}
+            - {"metadata":{"id":"0_Paragraph_2","kind":"Entry"}}
+          edges:
+            - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
+            - {"metadata":{"kind":"PlacedIn"},"source":"0_Subtree_1","target":"0_Paragraph_2"}
+            - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_1"}
+            - {"metadata":{"kind":"RefersTo"},"source":"0_Paragraph_2","target":"0_Subtree_0"}
+            - {"metadata":{"kind":"InternallyRefers"},"source":"0_Subtree_1","target":"0_Subtree_0"}

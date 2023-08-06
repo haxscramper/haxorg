@@ -487,7 +487,6 @@ void exporterVisit(
 CorpusRunner::ExportResult CorpusRunner::runExporter(
     sem::SemId                       top,
     const ParseSpec::ExporterExpect& exp) {
-    qDebug() << "Running exporter" << exp.name;
     using ER = ExportResult;
 
     auto strForStore = [](layout::SimpleStringStore const& store)

@@ -50,7 +50,7 @@ void ExporterMindMap::visitSubtree(
     res->original = ptr;
 
     for (const auto& sub : ptr->subnodes) {
-        if (sub->is(SemSet{osk::Newline})) {
+        if (sub->is(SemSet{osk::Newline, osk::Space})) {
             // Skip
         } else if (sub->is(osk::Subtree)) {
             visit(s, sub);
@@ -113,7 +113,6 @@ void ExporterMindMap::visitDocument(
 }
 
 void ExporterMindMap::visitEnd(sem::SemId doc) {
-    qInfo() << "Mind map exporter visit end";
     entriesOut.clear();
     eachEntry(root, [&](DocEntry::Ptr entry) {
         auto id = entry->content;
