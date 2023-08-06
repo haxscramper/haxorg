@@ -48,11 +48,14 @@ items:
 
     exporters:
       - name: "mmap"
+        print: true
         expected:
           nodes:
             - {"metadata":{"id":"0_Document_0","kind":"Subtree"}}
             - {"metadata":{"id":"0_Subtree_0", "title":"LVL1"}}
             - {"metadata":{"id":"0_Subtree_1", "title":"LVL2"}}
+            - {"metadata":{"id":"0_Paragraph_2","kind":"Entry"}}
           edges:
+            - {"metadata":{"kind":"PlacedIn"},"source":"0_Subtree_1","target":"0_Paragraph_2"}
+            - {"metadata":{"kind":"NestedIn"},"source":"0_Subtree_0","target":"0_Subtree_1"}
             - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
-            - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_1"}

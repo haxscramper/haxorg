@@ -603,11 +603,56 @@ CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
             }
 
             if (exp.expected["edges"]) {
-                UnorderedMap<Pair<std::string, std::string>, json> given;
+                UnorderedMap<Pair<std::string, std::string>, Vec<json>>
+                    generated_map;
+
                 for (auto const& edge : res.edges) {
-                    given[std::make_pair(
-                        edge["source"].get<std::string>(),
-                        edge["target"].get<std::string>())];
+                    generated_map[std::make_pair(
+                                      edge["source"].get<std::string>(),
+                                      edge["target"].get<std::string>())]
+                        .push_back(edge);
+                }
+
+                for (auto const& edge_expected : exp.expected["edges"]) {
+                    auto source = edge_expected["source"]
+                                      .as<std::string>();
+                    auto target = edge_expected["target"]
+                                      .as<std::string>();
+                    auto key = std::make_pair(source, target);
+
+                    json expected_json = toJson(edge_expected);
+
+                    if (generated_map.contains(key)
+                        && !generated_map[key].empty()) {
+                        for (auto const& expected : generated_map[key]) {
+                            int failCount = 0;
+                            for (auto const& it :
+                                 json_diff(expected_json, expected)) {
+                                if (it.op == DiffItem::Op::Remove) {
+                                    continue;
+                                } else {
+                                    ++failCount;
+                                    json::json_pointer path{it.path};
+                                    os << "- Edge between '" << source
+                                       << "' '" << target << "' differs: ";
+                                    describeDiff(
+                                        os, it, expected_json, expected);
+                                    os << "\n";
+                                }
+                            }
+
+                            if (0 < failCount) {
+                                cmp.isOk = false;
+                            }
+                        }
+                    } else {
+                        cmp.isOk = false;
+                        os << "No edge between nodes '" << os.red()
+                           << source << "' and '" << target << os.end()
+                           << "'\n";
+                        os << "  expected " << expected_json.dump()
+                           << "\n";
+                    }
                 }
             }
             break;
