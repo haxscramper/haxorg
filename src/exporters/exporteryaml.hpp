@@ -70,7 +70,9 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
         if (value) {
             j[name] = visit(value.value());
         } else {
-            j[name] = yaml();
+            if (!skipNullFields) {
+                j[name] = yaml();
+            }
         }
     }
 
@@ -97,10 +99,33 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
         char const* name,
         CR<UnorderedMap<int, sem::SemId>>) {}
 
+    void visitField(yaml& j, const char* name, int field) {
+        yaml result = visit(field);
+        if (!skipZeroFields || field != 0) {
+            j[name] = result;
+        }
+    }
+
+    void visitField(yaml& j, const char* name, bool field) {
+        if (!skipFalseFields || field != false) {
+            j[name] = visit(field);
+        }
+    }
+
+
     template <typename T>
     void visitField(yaml& j, const char* name, CR<T> field) {
-        j[name] = visit(field);
+        yaml result = visit(field);
+        if (!skipNullFields || !result.IsNull()) {
+            j[name] = result;
+        }
     }
+
+    bool skipNullFields  = false;
+    bool skipFalseFields = false;
+    bool skipZeroFields  = false;
+    bool skipLocation    = false;
+    bool skipId          = false;
 };
 
 extern template class Exporter<ExporterYaml, yaml>;

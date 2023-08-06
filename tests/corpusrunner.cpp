@@ -794,12 +794,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     for (auto const& it : diff) {
         ops[it.path] = it;
         json::json_pointer path{it.path};
-        if (!path.empty()                    //
-            && it.op == DiffItem::Op::Remove //
-            && (path.back() == "id"          //
-                || path.back() == "loc"      //
-                || path.back() == "subnodes"
-                || path.back() == "attached")) {
+        if (!path.empty() && it.op == DiffItem::Op::Remove) {
             continue;
         } else {
             ++failCount;
@@ -993,9 +988,15 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
 
             if (spec.debug.printSem) {
+                ExporterYaml exporter;
+                exporter.skipNullFields  = true;
+                exporter.skipFalseFields = true;
+                exporter.skipZeroFields  = true;
+                exporter.skipLocation    = true;
+                //                exporter.skipId          = true;
                 writeFileOrStdout(
                     spec.debugFile("sem.yaml"),
-                    to_string(ExporterYaml().visitTop(document)) + "\n",
+                    to_string(exporter.visitTop(document)) + "\n",
                     spec.debug.printSemToFile);
             }
 

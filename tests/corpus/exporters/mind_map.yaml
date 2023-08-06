@@ -17,6 +17,25 @@ items:
       * LVL1
       ** LVL2
       T
+    sem:
+      kind: Document
+      subnodes:
+        - kind: Subtree
+          level: 1
+          title:
+            subnodes:
+              - {kind: BigIdent, text: LVL1}
+          subnodes:
+            - kind: Subtree
+              level: 2
+              title:
+                subnodes:
+                  - {kind: BigIdent, text: LVL2}
+              subnodes:
+                - kind: Paragraph
+                  subnodes:
+                    - {kind: BigIdent, text: T}
+                    - {kind: Newline, text: "\n"}
 
     debug: 
       printSem: true
