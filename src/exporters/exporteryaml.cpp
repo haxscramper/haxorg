@@ -35,7 +35,7 @@ yaml ExporterYaml::newRes(sem::SemId org) {
     }
 
     if (!skipId) {
-        res["id"] = org.id;
+        res["id"] = org.getReadableId();
     }
 
     return res;

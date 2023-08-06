@@ -993,7 +993,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                 exporter.skipFalseFields = true;
                 exporter.skipZeroFields  = true;
                 exporter.skipLocation    = true;
-                //                exporter.skipId          = true;
+                exporter.skipId          = true;
                 writeFileOrStdout(
                     spec.debugFile("sem.yaml"),
                     to_string(exporter.visitTop(document)) + "\n",

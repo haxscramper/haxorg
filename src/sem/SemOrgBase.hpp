@@ -49,9 +49,9 @@ using OrgVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 struct ContextStore;
 
 struct SemId {
-    using IdType        = u64;
-    using NodeIndexT    = u32;
-    using StoreIndexT   = u32;
+    using IdType          = u64;
+    using NodeIndexT      = u32;
+    using StoreIndexT     = u32;
     ContextStore* context = nullptr;
 
     IdType id = 0;
@@ -165,6 +165,11 @@ struct SemId {
     /// \brief Recursively visit each subnode in the tree and apply the
     /// provided callback
     void eachSubnodeRec(SubnodeVisitor cb);
+
+    QString getReadableId() const {
+        return to_string(getStoreIndex()) + "_" + to_string(getKind())
+             + "_" + to_string(getNodeIndex());
+    }
 };
 
 
