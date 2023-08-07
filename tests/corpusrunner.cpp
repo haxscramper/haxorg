@@ -335,9 +335,25 @@ void describeDiff(
             break;
         }
         case DiffItem::Op::Replace: {
-            os << "    from " << os.red() << expected[path].dump()
-               << os.end() << " to " << os.green()
-               << converted[path].dump() << os.end();
+            json const& exp  = expected[path];
+            json const& conv = converted[path];
+            std::string from = exp.dump();
+            std::string to   = conv.dump();
+
+            if (exp.type() != conv.type()) {
+                os << "type mismatch: " << exp.type_name()
+                   << " != " << conv.type_name() << " ";
+            }
+
+            if (40 < from.size() || 40 < to.size()) {
+                os << "\n";
+                os << "    from " << os.red() << from << os.end() << "\n";
+                os << "    to   " << os.red() << to << os.end();
+            } else {
+                os << "    from " << os.red() << from << os.end() << " to "
+                   << os.green() << to << os.end();
+            }
+
 
             break;
         }
@@ -623,10 +639,10 @@ CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
 
                     if (generated_map.contains(key)
                         && !generated_map[key].empty()) {
-                        for (auto const& expected : generated_map[key]) {
+                        for (auto const& given_json : generated_map[key]) {
                             int failCount = 0;
                             for (auto const& it :
-                                 json_diff(expected_json, expected)) {
+                                 json_diff(given_json, expected_json)) {
                                 if (it.op == DiffItem::Op::Remove) {
                                     continue;
                                 } else {
@@ -635,7 +651,7 @@ CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
                                     os << "- Edge between '" << source
                                        << "' '" << target << "' differs: ";
                                     describeDiff(
-                                        os, it, expected_json, expected);
+                                        os, it, expected_json, given_json);
                                     os << "\n";
                                 }
                             }

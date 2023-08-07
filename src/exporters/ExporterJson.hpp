@@ -75,9 +75,21 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
         j[name] = visit(field);
     }
 
+    template <typename T>
+    void visitField(json& j, const char* name, CVec<T> field) {
+        if (!skipEmptyLists || !field.empty()) {
+            j[name] = visit(field);
+        }
+    }
+
     void visitDocument(json& j, In<sem::Document> doc) {
         visitField(j, "subnodes", doc->subnodes);
     }
+
+    bool skipEmptyLists = false;
+    bool skipLocation   = false;
+    bool skipId         = false;
+    bool skipNullFields = false;
 };
 
 extern template class Exporter<ExporterJson, json>;

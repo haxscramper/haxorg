@@ -10,17 +10,23 @@ json ExporterJson::newRes(sem::SemId org) {
     if (org.isNil()) {
         return json();
     } else {
-        json res      = json::object();
-        res["kind"]   = to_string(org->getKind());
-        json loc      = json::object();
-        loc["line"]   = org->loc ? json(org->loc->line) : json();
-        loc["col"]    = org->loc ? json(org->loc->column) : json();
-        loc["parent"] = org->parent.id;
-        loc["id"]     = org->original.id.isNil()
-                          ? json()
-                          : json(org->original.id.getValue());
-        res["loc"]    = loc;
-        res["id"]     = org.id;
+        json res    = json::object();
+        res["kind"] = to_string(org->getKind());
+        if (!skipLocation) {
+            json loc      = json::object();
+            loc["line"]   = org->loc ? json(org->loc->line) : json();
+            loc["col"]    = org->loc ? json(org->loc->column) : json();
+            loc["parent"] = org->parent.id;
+            loc["id"]     = org->original.id.isNil()
+                              ? json()
+                              : json(org->original.id.getValue());
+            res["loc"]    = loc;
+        }
+
+        if (!skipId) {
+            res["id"] = org.getReadableId();
+        }
+
         return res;
     }
 }
@@ -51,7 +57,7 @@ void ExporterJson::visitField(
     CR<Opt<T>>  value) {
     if (value) {
         j[name] = visit(value.value());
-    } else {
+    } else if (!skipNullFields) {
         j[name] = json();
     }
 }

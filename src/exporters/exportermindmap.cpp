@@ -434,7 +434,12 @@ json ExporterMindMap::toJsonGraphNode(CR<Graph> g, CR<VertDesc> n) {
                 auto id       = tree.subtree->original.as<sem::Subtree>();
                 auto title    = id->title;
                 meta["title"] = ExporterUltraplain::toStr(title);
-                ExporterJson().visitSubtreeValueFields(meta, id);
+                ExporterJson exp;
+                exp.skipEmptyLists = true;
+                exp.skipId         = true;
+                exp.skipNullFields = true;
+                exp.skipLocation   = true;
+                exp.visitSubtreeValueFields(meta, id);
             }
 
             break;
@@ -449,13 +454,27 @@ json ExporterMindMap::toJsonGraphNode(CR<Graph> g, CR<VertDesc> n) {
 }
 
 json ExporterMindMap::toJsonGraphEdge(CR<Graph> g, CR<EdgeDesc> e) {
-    json edge        = json::object();
-    edge["source"]   = getId(g[source(e, g)]);
-    edge["target"]   = getId(g[target(e, g)]);
-    json meta        = json::object();
-    meta["kind"]     = to_string(g[e].getKind());
-    edge["metadata"] = meta;
-    return edge;
+    json            res  = json::object();
+    EdgeProp const& edge = g[e];
+    res["source"]        = getId(g[source(e, g)]);
+    res["target"]        = getId(g[target(e, g)]);
+    json meta            = json::object();
+    meta["kind"]         = to_string(edge.getKind());
+    if (edge.getKind() == EdgeProp::Kind::RefersTo
+        && edge.getRefersTo().target.description) {
+        ExporterJson exp;
+        exp.skipId          = true;
+        exp.skipLocation    = true;
+        exp.skipEmptyLists  = true;
+        exp.skipNullFields  = true;
+        meta["description"] = exp.visitTop(
+            edge.getRefersTo().target.description.value());
+    } else {
+        meta["description"] = json();
+    }
+
+    res["metadata"] = meta;
+    return res;
 }
 
 QString ExporterMindMap::getId(const VertexProp& prop) {
