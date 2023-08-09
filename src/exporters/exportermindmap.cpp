@@ -27,15 +27,15 @@ void ExporterMindMap::eachSubtree(
 }
 
 void ExporterMindMap::eachEntry(
-    DocSubtree::Ptr           startRoot,
-    Func<void(DocEntry::Ptr)> cb) {
+    DocSubtree::Ptr                                   startRoot,
+    Func<void(DocEntry::Ptr, const DocSubtree::Ptr&)> cb) {
     eachSubtree(startRoot, [cb](DocSubtree::Ptr tree) {
         for (const auto& entry : tree->ordered) {
-            cb(entry);
+            cb(entry, tree);
         }
 
         for (const auto& entry : tree->unordered) {
-            cb(entry);
+            cb(entry, tree);
         }
     });
 }
@@ -43,10 +43,16 @@ void ExporterMindMap::eachEntry(
 void ExporterMindMap::visitSubtree(
     std::monostate&           s,
     sem::SemIdT<sem::Subtree> ptr) {
+
+    Opt<DocSubtree::Ptr> top;
+    if (!stack.empty()) {
+        stack.back();
+    }
+
     stack.push_back(DocSubtree::shared());
-    auto& res = stack.back();
 
-
+    auto& res     = stack.back();
+    res->parent   = top;
     res->original = ptr;
 
     for (const auto& sub : ptr->subnodes) {
@@ -61,8 +67,10 @@ void ExporterMindMap::visitSubtree(
             for (const auto& it : sub->subnodes) {
                 if (it->is(osk::ListItem)) {
                     if (it.as<sem::ListItem>()->isDescriptionItem()) {
-                        res->outgoing.push_back(
-                            DocLink{.description = it});
+                        res->outgoing.push_back(DocLink{
+                            .description = it,
+                            .parent      = top,
+                        });
                     }
                 } else {
                     // TODO
@@ -71,6 +79,7 @@ void ExporterMindMap::visitSubtree(
 
         } else {
             auto entry     = DocEntry::shared();
+            entry->parent  = top;
             entry->content = sub;
             if (sub->is(osk::Paragraph)
                 && sub.as<sem::Paragraph>()->isFootnoteDefinition()) {
@@ -114,15 +123,16 @@ void ExporterMindMap::visitDocument(
 
 void ExporterMindMap::visitEnd(sem::SemId doc) {
     entriesOut.clear();
-    eachEntry(root, [&](DocEntry::Ptr entry) {
-        auto id = entry->content;
-        Q_ASSERT_X(
-            !entriesOut.contains(id),
-            "map outgoing entries",
-            "ID $# has already been used" % to_string_vec(id));
+    eachEntry(
+        root, [&](DocEntry::Ptr entry, DocSubtree::Ptr const& parent) {
+            auto id = entry->content;
+            Q_ASSERT_X(
+                !entriesOut.contains(id),
+                "map outgoing entries",
+                "ID $# has already been used" % to_string_vec(id));
 
-        entriesOut[id] = entry;
-    });
+            entriesOut[id] = entry;
+        });
 
     subtreesOut.clear();
     eachSubtree(root, [&](DocSubtree::Ptr tree) {
@@ -138,20 +148,21 @@ void ExporterMindMap::visitEnd(sem::SemId doc) {
         subtreesOut[tree->original] = tree;
     });
 
-    eachEntry(root, [&](DocEntry::Ptr entry) {
-        entry->content.eachSubnodeRec([&](sem::SemId node) {
-            Opt<DocLink> resolved = getResolved(node);
-            if (resolved) {
-                entry->outgoing.push_back(*resolved);
-            }
+    eachEntry(
+        root, [&](DocEntry::Ptr entry, DocSubtree::Ptr const& parent) {
+            entry->content.eachSubnodeRec([&](sem::SemId node) {
+                Opt<DocLink> resolved = getResolved(node, parent);
+                if (resolved) {
+                    entry->outgoing.push_back(*resolved);
+                }
+            });
         });
-    });
 
     eachSubtree(root, [&](DocSubtree::Ptr tree) {
         Vec<DocLink> oldOutgoing = std::move(tree->outgoing);
         tree->outgoing.clear();
         for (const auto& out : oldOutgoing) {
-            Opt<DocLink> resolved = getResolved(*out.description);
+            Opt<DocLink> resolved = getResolved(*out.description, tree);
             if (resolved) {
                 tree->outgoing.push_back(*resolved);
             }
@@ -160,7 +171,9 @@ void ExporterMindMap::visitEnd(sem::SemId doc) {
 }
 
 Opt<ExporterMindMap::DocLink> ExporterMindMap::getResolved(
-    sem::SemId node) {
+    sem::SemId                  node,
+    Opt<DocSubtree::Ptr> const& parent) {
+
     for (const auto& doc : documents) {
         // Check if the entry is the list item that can be used for
         // resolution.
@@ -170,13 +183,14 @@ Opt<ExporterMindMap::DocLink> ExporterMindMap::getResolved(
             Opt<DocLink>               resolved;
             item->header.value().eachSubnodeRec([&](CR<sem::SemId> node) {
                 if (!resolved && node->is(osk::Link)) {
-                    resolved = getResolved(node);
+                    resolved = getResolved(node, parent);
                 }
             });
             if (resolved) {
                 resolved->description = node.context->createInSame(
                     node, osk::StmtList, node);
                 (*resolved->description)->subnodes = item->subnodes;
+                resolved->parent                   = parent;
                 return resolved;
             }
         }
@@ -191,11 +205,13 @@ Opt<ExporterMindMap::DocLink> ExporterMindMap::getResolved(
                 // TODO consider multiple documents in a group and
                 // issue diagnostic message in case of duplicates
                 return DocLink{
+                    .parent   = parent,
                     .resolved = DocLink::Entry{.entry = entry.value()}};
             }
 
             if (subtree) {
                 return DocLink{
+                    .parent   = parent,
                     .resolved = DocLink::Subtree{
                         .subtree = subtree.value()}};
             }
@@ -299,11 +315,12 @@ ExporterMindMap::Graph ExporterMindMap::toGraph() {
         }
     };
 
-    eachEntry(root, [&](DocEntry::Ptr entry) {
-        for (const auto& out : entry->outgoing) {
-            addLink(entryNodes[entry->id], out);
-        }
-    });
+    eachEntry(
+        root, [&](DocEntry::Ptr entry, DocSubtree::Ptr const& parent) {
+            for (const auto& out : entry->outgoing) {
+                addLink(entryNodes[entry->id], out);
+            }
+        });
 
     eachSubtree(root, [&](DocSubtree::Ptr subtree) {
         auto const& id = subtreeNodes[subtree->id];
@@ -441,6 +458,32 @@ json ExporterMindMap::toJsonGraphNode(CR<Graph> g, CR<VertDesc> n) {
                 exp.skipLocation   = true;
                 exp.visitSubtreeValueFields(meta, id);
             }
+
+            if (tree.subtree->parent) {
+                meta["parent"] = getId(tree.subtree->parent.value());
+            } else {
+                meta["parent"] = json();
+            }
+
+            json nested    = json::array();
+            json unordered = json::array();
+            json ordered   = json::array();
+
+            for (auto const& sub : tree.subtree->subtrees) {
+                nested.push_back(getId(sub));
+            }
+
+            for (auto const& sub : tree.subtree->ordered) {
+                ordered.push_back(getId(sub));
+            }
+
+            for (auto const& sub : tree.subtree->unordered) {
+                unordered.push_back(getId(sub));
+            }
+
+            meta["nested"]    = nested;
+            meta["ordered"]   = ordered;
+            meta["unordered"] = nested;
 
             break;
         }

@@ -32,6 +32,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
             SPtr<DocSubtree> subtree;
         };
 
+        Opt<SPtr<DocSubtree>> parent;
         SUB_VARIANTS(Kind, Resolved, resolved, getKind, Entry, Subtree);
         Resolved resolved;
         /// Description of the link -- taken from description lists that
@@ -47,9 +48,10 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
         /// Text block for documentable entry
         sem::SemId content = sem::SemId::Nil();
         /// Resolved outgoing links from the documentable entry
-        Vec<DocLink> outgoing;
-        int          id;
-        static int   counter;
+        Vec<DocLink>          outgoing;
+        Opt<SPtr<DocSubtree>> parent = std::nullopt;
+        int                   id;
+        static int            counter;
         DocEntry() : id(++counter) {}
     };
 
@@ -63,6 +65,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
         /// the original subtree, or, for top-level document group, a list
         /// of nested documents
         Vec<DocSubtree::Ptr> subtrees;
+        Opt<DocSubtree::Ptr> parent;
 
         /// Original subtree node that content was mapped from -- subtree
         /// or document
@@ -88,8 +91,8 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
         DocSubtree::Ptr             startRoot,
         Func<void(DocSubtree::Ptr)> cb);
     void eachEntry(
-        DocSubtree::Ptr           startRoot,
-        Func<void(DocEntry::Ptr)> cb);
+        DocSubtree::Ptr                                   startRoot,
+        Func<void(DocEntry::Ptr, DocSubtree::Ptr const&)> cb);
 
 
     // Catch-all implementation for the field visitor. We only need to
@@ -115,6 +118,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
 
     DocSubtree::Ptr      root;
     Vec<DocSubtree::Ptr> stack;
+
     void visitSubtree(std::monostate& s, sem::SemIdT<sem::Subtree> ptr);
     void visitDocument(std::monostate& s, sem::SemIdT<sem::Document> doc);
 
@@ -123,7 +127,10 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
 
     UnorderedMap<sem::SemId, DocEntry::Ptr>   entriesOut;
     UnorderedMap<sem::SemId, DocSubtree::Ptr> subtreesOut;
-    Opt<DocLink>                              getResolved(sem::SemId node);
+
+    Opt<DocLink> getResolved(
+        sem::SemId                  node,
+        Opt<DocSubtree::Ptr> const& parent);
 
 
     struct VertexProp {
