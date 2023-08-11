@@ -212,7 +212,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     QString getId(sem::SemId id);
     QString getId(DocEntry::Ptr const& entry);
     QString getId(DocSubtree::Ptr const& subtree);
-
+    QString getId(DocLink const& link);
 
     struct MindMapJsonExporter : public ExporterJson {
         Func<void(json&, sem::SemId)> visitCb;

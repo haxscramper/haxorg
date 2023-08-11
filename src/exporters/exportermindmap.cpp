@@ -510,6 +510,14 @@ json ExporterMindMap::toJsonGraphNode(CR<Graph> g, CR<VertDesc> n) {
                 meta["order"] = entry.order.value();
             }
 
+            if (!entry.entry->outgoing.empty()) {
+                json out = json::array();
+                for (auto const& link : entry.entry->outgoing) {
+                    out.push_back(getId(link));
+                }
+                meta["outgoing"] = out;
+            }
+
             break;
         }
     }
@@ -559,6 +567,14 @@ QString ExporterMindMap::getId(const DocSubtree::Ptr& entry) {
     return getId(entry->original);
 }
 
+QString ExporterMindMap::getId(const DocLink& link) {
+    switch (link.getKind()) {
+        case DocLink::Kind::Entry: return getId(link.getEntry().entry);
+        case DocLink::Kind::Subtree:
+            return getId(link.getSubtree().subtree);
+    }
+}
+
 ExporterMindMap::MindMapJsonExporter ExporterMindMap::getJsonExporter() {
     MindMapJsonExporter exp;
     exp.skipId         = true;
@@ -584,17 +600,7 @@ ExporterMindMap::MindMapJsonExporter ExporterMindMap::getJsonExporter() {
                 parent ? subtreesOut.get(parent.value()) : std::nullopt);
 
             if (resolved) {
-                switch (resolved->getKind()) {
-                    case DocLink::Kind::Entry: {
-                        map["target"] = getId(resolved->getEntry().entry);
-                        break;
-                    }
-                    case DocLink::Kind::Subtree: {
-                        map["target"] = getId(
-                            resolved->getSubtree().subtree);
-                        break;
-                    }
-                }
+                map["target"] = getId(resolved.value());
             }
         }
 

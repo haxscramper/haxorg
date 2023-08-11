@@ -139,6 +139,11 @@ TEST_P(ParseFile, CorpusAll) {
             .printSemToFile    = true,
         };
 
+        for (auto& exporter : spec.exporters) {
+            exporter.doTrace = true;
+            exporter.print   = true;
+        }
+
         RunResult fail = runner.runSpec(spec, params.file.filePath());
         ColText   os;
 
