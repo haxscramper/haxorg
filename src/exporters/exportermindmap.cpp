@@ -5,7 +5,6 @@
 #include <boost/graph/graphviz.hpp>
 #include <exporters/ExporterJson.hpp>
 
-
 int ExporterMindMap::DocEntry::counter   = 0;
 int ExporterMindMap::DocSubtree::counter = 0;
 
@@ -68,6 +67,9 @@ void ExporterMindMap::visitSubtree(
             for (const auto& it : sub->subnodes) {
                 if (it->is(osk::ListItem)) {
                     if (it.as<sem::ListItem>()->isDescriptionItem()) {
+                        // Push temporary outgoing doc link -- all links
+                        // will be resolved in the `visitEnd` once the
+                        // whole document is mapped out.
                         res->outgoing.push_back(DocLink{
                             .description = it,
                             .parent      = top,
@@ -156,17 +158,23 @@ void ExporterMindMap::visitEnd(sem::SemId doc) {
                 Opt<DocLink> resolved = getResolved(node, parent);
                 if (resolved) {
                     entry->outgoing.push_back(*resolved);
+                } else {
+                    // TODO: Diagnostic required
                 }
             });
         });
 
     eachSubtree(root, [&](DocSubtree::Ptr tree) {
+        // Move old list of outoing links out and replace it with a list of
+        // fully resolved links.
         Vec<DocLink> oldOutgoing = std::move(tree->outgoing);
         tree->outgoing.clear();
         for (const auto& out : oldOutgoing) {
             Opt<DocLink> resolved = getResolved(*out.description, tree);
             if (resolved) {
                 tree->outgoing.push_back(*resolved);
+            } else {
+                // TODO: Diagnostic for unresolved links
             }
         }
     });
@@ -453,11 +461,7 @@ json ExporterMindMap::toJsonGraphNode(CR<Graph> g, CR<VertDesc> n) {
                 auto id       = tree.subtree->original.as<sem::Subtree>();
                 auto title    = id->title;
                 meta["title"] = ExporterUltraplain::toStr(title);
-                ExporterJson exp;
-                exp.skipEmptyLists = true;
-                exp.skipId         = true;
-                exp.skipNullFields = true;
-                exp.skipLocation   = true;
+                ExporterJson exp = getJsonExporter();
                 exp.visitSubtreeValueFields(meta, id);
             }
 
@@ -497,6 +501,11 @@ json ExporterMindMap::toJsonGraphNode(CR<Graph> g, CR<VertDesc> n) {
                 meta["parent"] = json();
             }
 
+            if (!entry.entry->content.isNil()) {
+                auto exp        = getJsonExporter();
+                meta["content"] = exp.visitTop(entry.entry->content);
+            }
+
             if (entry.order) {
                 meta["order"] = entry.order.value();
             }
@@ -518,11 +527,7 @@ json ExporterMindMap::toJsonGraphEdge(CR<Graph> g, CR<EdgeDesc> e) {
     meta["kind"]         = to_string(edge.getKind());
     if (edge.getKind() == EdgeProp::Kind::RefersTo
         && edge.getRefersTo().target.description) {
-        ExporterJson exp;
-        exp.skipId          = true;
-        exp.skipLocation    = true;
-        exp.skipEmptyLists  = true;
-        exp.skipNullFields  = true;
+        auto exp            = getJsonExporter();
         meta["description"] = exp.visitTop(
             edge.getRefersTo().target.description.value());
     } else {
@@ -552,6 +557,53 @@ QString ExporterMindMap::getId(const DocEntry::Ptr& entry) {
 
 QString ExporterMindMap::getId(const DocSubtree::Ptr& entry) {
     return getId(entry->original);
+}
+
+ExporterMindMap::MindMapJsonExporter ExporterMindMap::getJsonExporter() {
+    MindMapJsonExporter exp;
+    exp.skipId         = true;
+    exp.skipLocation   = true;
+    exp.skipEmptyLists = true;
+    exp.skipNullFields = true;
+
+    exp.visitCb = [&](json& res, sem::SemId id) {
+        json map = json::object();
+        if (entriesOut.contains(id) && entriesOut.get(id)) {
+            map["entry"] = getId(entriesOut.get(id).value());
+        }
+
+        if (subtreesOut.contains(id) && subtreesOut.get(id)) {
+            map["subtree"] = getId(subtreesOut.get(id).value());
+        }
+
+        if (id.is(osk::Link)) {
+            auto parent = id->getParentSubtree();
+
+            Opt<DocLink> resolved = getResolved(
+                id,
+                parent ? subtreesOut.get(parent.value()) : std::nullopt);
+
+            if (resolved) {
+                switch (resolved->getKind()) {
+                    case DocLink::Kind::Entry: {
+                        map["target"] = getId(resolved->getEntry().entry);
+                        break;
+                    }
+                    case DocLink::Kind::Subtree: {
+                        map["target"] = getId(
+                            resolved->getSubtree().subtree);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!map.empty()) {
+            res["map"] = map;
+        }
+    };
+
+    return exp;
 }
 
 json ExporterMindMap::toJsonTree() {

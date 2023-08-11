@@ -82,10 +82,11 @@ items:
 
       * Source
         
-        [[id:target_id]]
+        [[id:target_id]] Some text
 
     exporters:
       - name: "mmap"
+        print: true
         expected:
           nodes:
             - {"metadata":{"id":"0_Document_0","nested":["0_Subtree_0","0_Subtree_1"],"kind":"Subtree"}}
@@ -133,4 +134,15 @@ items:
                       subnodes:
                         - {"kind":"Space","text":" "}
                         - {"kind":"Word","text":"Desc"}
+
+  - name: "Subtree tags"
+    source: "* Tree :tag:"
+    exporters:
+      - name: "mmap"
+        expected:
+          nodes:
+            - {"metadata":{"id":"0_Document_0","kind":"Subtree","nested":["0_Subtree_0"]}}
+            - {"metadata":{"id":"0_Subtree_0","kind":"Subtree","level":1,"tags":[{"head":"tag"}],"title":"Tree"}}
+          edges:
+            - {"metadata":{"description":null,"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
 

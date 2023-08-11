@@ -7,8 +7,11 @@
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include <exporters/ExporterJson.hpp>
 
 struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
+
+
     using Base = Exporter<ExporterMindMap, std::monostate>;
 
 #define __ExporterBase Base
@@ -124,10 +127,13 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
 
     void visitEnd(sem::SemId doc);
 
-
+    /// Mapping between org-node nodes and respective mind map elements.
     UnorderedMap<sem::SemId, DocEntry::Ptr>   entriesOut;
     UnorderedMap<sem::SemId, DocSubtree::Ptr> subtreesOut;
 
+    /// Get doc link from the input node element to the target one.
+    /// Resolves links from link nodes, assigns associated description for
+    /// links that were used as a part of description lists.
     Opt<DocLink> getResolved(
         sem::SemId                  node,
         Opt<DocSubtree::Ptr> const& parent);
@@ -206,6 +212,17 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     QString getId(sem::SemId id);
     QString getId(DocEntry::Ptr const& entry);
     QString getId(DocSubtree::Ptr const& subtree);
+
+
+    struct MindMapJsonExporter : public ExporterJson {
+        Func<void(json&, sem::SemId)> visitCb;
+        void visitDispatchHook(json& j, sem::SemId id) override {
+            visitCb(j, id);
+        }
+    };
+
+
+    MindMapJsonExporter getJsonExporter();
 };
 
 extern template class Exporter<ExporterMindMap, std::monostate>;

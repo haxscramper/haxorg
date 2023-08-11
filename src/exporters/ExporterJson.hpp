@@ -90,6 +90,8 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     bool skipLocation   = false;
     bool skipId         = false;
     bool skipNullFields = false;
+
+    virtual void visitDispatchHook(json&, sem::SemId) {}
 };
 
 extern template class Exporter<ExporterJson, json>;
