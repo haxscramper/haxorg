@@ -62,8 +62,8 @@ items:
       - name: "mmap"
         expected:
           nodes:
-            - {"metadata":{"id":"0_Document_0","kind":"Subtree"}}
-            - {"metadata":{"id":"0_Subtree_0","title":"Subtree"}}
+            - {"metadata":{"id":"0_Document_0","kind":"Subtree","nested":["0_Subtree_0"]}}
+            - {"metadata":{"id":"0_Subtree_0","title":"Subtree","ordered":["0_Paragraph_1"],"unordered":["0_Paragraph_2"]}}
             - {"metadata":{"id":"0_Paragraph_1","kind":"Entry"}}
             - {"metadata":{"id":"0_Paragraph_2","kind":"Entry"}}
           edges:
@@ -88,9 +88,9 @@ items:
       - name: "mmap"
         expected:
           nodes:
-            - {"metadata":{"id":"0_Document_0","kind":"Subtree"}}
+            - {"metadata":{"id":"0_Document_0","nested":["0_Subtree_0","0_Subtree_1"],"kind":"Subtree"}}
             - {"metadata":{"id":"0_Subtree_0","kind":"Subtree","title":"Target","treeId":"target_id"}}
-            - {"metadata":{"id":"0_Subtree_1","kind":"Subtree","title":"Source"}}
+            - {"metadata":{"id":"0_Subtree_1","kind":"Subtree","title":"Source","ordered":["0_Paragraph_2"]}}
             - {"metadata":{"id":"0_Paragraph_2","kind":"Entry"}}
           edges:
             - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
@@ -114,8 +114,8 @@ items:
       - name: "mmap"
         expected:
           nodes:
-            - {"metadata":{"id":"0_Document_0","kind":"Subtree"}}
-            - {"metadata":{"id":"0_Subtree_0","kind":"Subtree","level":1,"title":"System Registry"}}
+            - {"metadata":{"id":"0_Document_0","nested":["0_Subtree_0","0_Subtree_2"],"kind":"Subtree"}}
+            - {"metadata":{"id":"0_Subtree_0","nested":["0_Subtree_1"],"kind":"Subtree","level":1,"title":"System Registry"}}
             - {"metadata":{"id":"0_Subtree_1","kind":"Subtree","level":2,"title":"Current input","treeId":"sr_current_input"}}
             - {"metadata":{"id":"0_Subtree_2","kind":"Subtree","level":1,"title":"User app"}}
           edges:

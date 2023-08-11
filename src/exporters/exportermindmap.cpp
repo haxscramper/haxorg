@@ -5,6 +5,7 @@
 #include <boost/graph/graphviz.hpp>
 #include <exporters/ExporterJson.hpp>
 
+
 int ExporterMindMap::DocEntry::counter   = 0;
 int ExporterMindMap::DocSubtree::counter = 0;
 
@@ -81,6 +82,7 @@ void ExporterMindMap::visitSubtree(
             auto entry     = DocEntry::shared();
             entry->parent  = top;
             entry->content = sub;
+
             if (sub->is(osk::Paragraph)
                 && sub.as<sem::Paragraph>()->isFootnoteDefinition()) {
                 res->unordered.push_back(entry);
@@ -483,11 +485,22 @@ json ExporterMindMap::toJsonGraphNode(CR<Graph> g, CR<VertDesc> n) {
 
             meta["nested"]    = nested;
             meta["ordered"]   = ordered;
-            meta["unordered"] = nested;
+            meta["unordered"] = unordered;
 
             break;
         }
         case VertexProp::Kind::Entry: {
+            auto entry = g[n].getEntry();
+            if (entry.entry->parent) {
+                meta["parent"] = getId(entry.entry->parent.value());
+            } else {
+                meta["parent"] = json();
+            }
+
+            if (entry.order) {
+                meta["order"] = entry.order.value();
+            }
+
             break;
         }
     }
