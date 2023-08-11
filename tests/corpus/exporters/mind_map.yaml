@@ -86,19 +86,35 @@ items:
 
     exporters:
       - name: "mmap"
-        print: true
         expected:
           nodes:
             - {"metadata":{"id":"0_Document_0","nested":["0_Subtree_0","0_Subtree_1"],"kind":"Subtree"}}
             - {"metadata":{"id":"0_Subtree_0","kind":"Subtree","title":"Target","treeId":"target_id"}}
             - {"metadata":{"id":"0_Subtree_1","kind":"Subtree","title":"Source","ordered":["0_Paragraph_2"]}}
-            - {"metadata":{"id":"0_Paragraph_2","kind":"Entry"}}
+            - metadata:
+                kind: "Entry"
+                id: "0_Paragraph_2"
+                order: 0 
+                parent: null
+                content: {
+                  "kind":"Paragraph",
+                  "map":{"entry":"0_Paragraph_2"},
+                  "subnodes":[
+                    {"data":{"Id":{"text":"target_id"},"kind":"Id","text":"target_id"},"kind":"Link","map":{"target":"0_Subtree_0"}},
+                    {"kind":"Space","text":" "},
+                    {"kind":"Word","text":"Some"},
+                    {"kind":"Space","text":" "},
+                    {"kind":"Word","text":"text"},
+                    {"kind":"Newline","text":"\n"}
+                  ]
+                }
+
           edges:
             - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
             - {"metadata":{"kind":"PlacedIn"},"source":"0_Subtree_1","target":"0_Paragraph_2"}
             - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_1"}
             - {"metadata":{"kind":"RefersTo"},"source":"0_Paragraph_2","target":"0_Subtree_0"}
-            - {"metadata":{"kind":"InternallyRefers"},"source":"0_Subtree_1","target":"0_Subtree_0"}
+            - {"metadata":{"description":null,"kind":"InternallyRefers"},"source":"0_Subtree_1","target":"0_Subtree_0"}
 
   - name: "Edge with description"
     source: |
