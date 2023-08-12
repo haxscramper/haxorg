@@ -501,6 +501,7 @@ void exporterVisit(
 
 
 CorpusRunner::ExportResult CorpusRunner::runExporter(
+    ParseSpec const&                 spec,
     sem::SemId                       top,
     const ParseSpec::ExporterExpect& exp) {
     using ER = ExportResult;
@@ -550,19 +551,26 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
         }
 
         if (exp.print) {
+            QString     buf;
+            QTextStream stream{&buf};
             if (!result.nodes.empty()) {
-                std::cout << "nodes:\n";
+                stream << "nodes:\n";
                 for (auto const& node : result.nodes) {
-                    std::cout << "  - " << node.dump() << "\n";
+                    stream << "  - " << node.dump() << "\n";
                 }
             }
 
             if (!result.edges.empty()) {
-                std::cout << "edges:\n";
+                stream << "edges:\n";
                 for (auto const& edge : result.edges) {
-                    std::cout << "  - " << edge.dump() << "\n";
+                    stream << "  - " << edge.dump() << "\n";
                 }
             }
+
+            writeFileOrStdout(
+                spec.debugFile(exp.name + "result.txt"),
+                buf + "\n",
+                exp.printToFile);
         }
 
         return ER(result);
@@ -1073,8 +1081,8 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             if (!spec.exporters.empty()) {
                 RunResult::ExportCompare cmp;
                 for (auto const& exp : spec.exporters) {
-                    cmp.run.push_back(
-                        compareExport(exp, runExporter(document, exp)));
+                    cmp.run.push_back(compareExport(
+                        exp, runExporter(spec, document, exp)));
                 }
 
                 return RunResult(cmp);

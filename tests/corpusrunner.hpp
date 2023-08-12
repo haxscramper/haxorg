@@ -145,6 +145,7 @@ class CorpusRunner {
     RunResult runSpec(CR<ParseSpec> spec, CR<QString> from);
 
     ExportResult runExporter(
+        ParseSpec const&                 spec,
         sem::SemId                       top,
         ParseSpec::ExporterExpect const& exp);
 

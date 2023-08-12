@@ -1,5 +1,9 @@
 #include "Json.hpp"
 
+#include <string>
+#include <regex>
+#include <limits>
+
 
 template class nlohmann::basic_json<>;
 
@@ -26,3 +30,4 @@ void to_json(json& j, CR<QString> str) {
 }
 
 void to_json(json& j, int i) { ns::to_json(j, i); }
+

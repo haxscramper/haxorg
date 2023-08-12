@@ -100,6 +100,7 @@ struct ParseSpec {
             ((Opt<yaml>), parmeters, std::nullopt),
             ((yaml), expected, yaml()),
             ((bool), print, false),
+            ((bool), printToFile, false),
             /// Print additional trace logs for exporter in the debug
             /// directory for parent test?
             ((bool), doTrace, false));

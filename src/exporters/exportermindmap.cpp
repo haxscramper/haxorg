@@ -471,25 +471,32 @@ json ExporterMindMap::toJsonGraphNode(CR<Graph> g, CR<VertDesc> n) {
                 meta["parent"] = json();
             }
 
-            json nested    = json::array();
-            json unordered = json::array();
-            json ordered   = json::array();
 
-            for (auto const& sub : tree.subtree->subtrees) {
-                nested.push_back(getId(sub));
+            if (!tree.subtree->subtrees.empty()) {
+                json nested = json::array();
+                for (auto const& sub : tree.subtree->subtrees) {
+                    nested.push_back(getId(sub));
+                }
+                meta["nested"] = nested;
             }
 
-            for (auto const& sub : tree.subtree->ordered) {
-                ordered.push_back(getId(sub));
+            if (!tree.subtree->ordered.empty()) {
+                json ordered = json::array();
+                for (auto const& sub : tree.subtree->ordered) {
+                    ordered.push_back(getId(sub));
+                }
+                meta["ordered"] = ordered;
             }
 
-            for (auto const& sub : tree.subtree->unordered) {
-                unordered.push_back(getId(sub));
-            }
 
-            meta["nested"]    = nested;
-            meta["ordered"]   = ordered;
-            meta["unordered"] = unordered;
+            if (!tree.subtree->unordered.empty()) {
+                json unordered = json::array();
+                for (auto const& sub : tree.subtree->unordered) {
+                    unordered.push_back(getId(sub));
+                }
+
+                meta["unordered"] = unordered;
+            }
 
             break;
         }
