@@ -217,16 +217,24 @@ items:
             - {"metadata":{"id":"0_Document_0","kind":"Subtree","nested":["0_Subtree_0","0_Subtree_4"],"parent":null}}
             - {
                 "metadata": {
-                  "id": "0_Subtree_0",
-                  "kind": "Subtree",
                   "level": 1,
-                  "nested": ["0_Subtree_1","0_Subtree_2","0_Subtree_3"],
                   "parent": null,
-                  "title": "Mind map nodes are made from subtrees"}}
+                  "kind": "Subtree",
+                  "id": "0_Subtree_0",
+                  "title": "Mind map nodes are made from subtrees",
+                  "nested": ["0_Subtree_1","0_Subtree_2","0_Subtree_3"]}}
             - {"metadata":{"id":"0_Subtree_1","kind":"Subtree","level":2,"parent":null,"title":"Can nest","treeId":"c468e9c7-7422-4b17-8ccb-53575f186fe0"}}
             - {"metadata":{"id":"0_Subtree_2","kind":"Subtree","level":2,"ordered":["0_Paragraph_3"],"parent":null,"title":"Tree 2"}}
             - {
                 "metadata": {
+                  "order": 0,
+                  "parent": null,
+                  "kind": "Entry",
+                  "id": "0_Paragraph_3",
+                  "outgoing": [
+                    {"out_index":0,"source":"0_Paragraph_3","target":"0_Subtree_1"},
+                    {"out_index":1,"source":"0_Paragraph_3","target":"0_Subtree_3"},
+                    {"out_index":2,"source":"0_Paragraph_3","target":"0_Subtree_5"}],
                   "content": {
                     "kind": "Paragraph",
                     "map": {"entry":"0_Paragraph_3"},
@@ -238,65 +246,57 @@ items:
                       {"kind":"Word","text":"include"},
                       {"kind":"Space","text":"  "},
                       {
-                        "data": {"Id":{"text":"c468e9c7-7422-4b17-8ccb-53575f186fe0"},"kind":"Id","text":"c468e9c7-7422-4b17-8ccb-53575f186fe0"},
-                        "description": {"subnodes":[{"kind":"Word","text":"links"}]},
                         "kind": "Link",
-                        "map": {"target":"0_Subtree_1"}},
+                        "map": {"out_index":0,"source":"0_Paragraph_3","target":"0_Subtree_1"},
+                        "description": {"kind":"Paragraph","subnodes":[{"kind":"Word","text":"links"}]},
+                        "data": {"Id":{"text":"c468e9c7-7422-4b17-8ccb-53575f186fe0"},"kind":"Id","text":"c468e9c7-7422-4b17-8ccb-53575f186fe0"}},
                       {"kind":"Space","text":" "},
                       {"kind":"Newline","text":"\n"},
                       {
-                        "data": {"Id":{"text":"6d6d6689-d9da-418d-9f91-1c8c4428e5af"},"kind":"Id","text":"6d6d6689-d9da-418d-9f91-1c8c4428e5af"},
-                        "description": {"subnodes":[{"kind":"Word","text":"rows"}]},
                         "kind": "Link",
-                        "map": {"target":"0_Subtree_3"}},
+                        "description": {"kind":"Paragraph","subnodes":[{"kind":"Word","text":"rows"}]},
+                        "map": {"out_index":1,"source":"0_Paragraph_3","target":"0_Subtree_3"},
+                        "data": {"Id":{"text":"6d6d6689-d9da-418d-9f91-1c8c4428e5af"},"kind":"Id","text":"6d6d6689-d9da-418d-9f91-1c8c4428e5af"}},
                       {"kind":"Space","text":" "},
                       {"kind":"Word","text":"multiple"},
                       {"kind":"Space","text":" "},
                       {"kind":"Newline","text":"\n"},
                       {
-                        "data": {"Id":{"text":"9879fed7-f0a4-44bd-bf56-983279afc622"},"kind":"Id","text":"9879fed7-f0a4-44bd-bf56-983279afc622"},
-                        "description": {"subnodes":[{"kind":"Word","text":"other"}]},
                         "kind": "Link",
-                        "map": {"target":"0_Subtree_5"}},
+                        "map": {"out_index":2,"source":"0_Paragraph_3","target":"0_Subtree_5"},
+                        "description": {"kind":"Paragraph","subnodes":[{"kind":"Word","text":"other"}]},
+                        "data": {"Id":{"text":"9879fed7-f0a4-44bd-bf56-983279afc622"},"kind":"Id","text":"9879fed7-f0a4-44bd-bf56-983279afc622"}},
                       {"kind":"Space","text":" "},
                       {"kind":"Word","text":"tree"},
-                      {"kind":"Newline","text":"\n"}]},
-                  "id": "0_Paragraph_3",
-                  "kind": "Entry",
-                  "order": 0,
-                  "outgoing": [
-                    {"out_index":0,"source":"0_Paragraph_3","target":"0_Subtree_1"},
-                    {"out_index":1,"source":"0_Paragraph_3","target":"0_Subtree_3"},
-                    {"out_index":2,"source":"0_Paragraph_3","target":"0_Subtree_5"}],
-                  "parent": null}}
+                      {"kind":"Newline","text":"\n"}]}}}
             - {
                 "metadata": {
-                  "id": "0_Subtree_3",
-                  "kind": "Subtree",
                   "level": 2,
-                  "ordered": ["0_Paragraph_15"],
                   "parent": null,
+                  "kind": "Subtree",
+                  "id": "0_Subtree_3",
                   "title": "Extra entries",
+                  "ordered": ["0_Paragraph_15"],
                   "treeId": "6d6d6689-d9da-418d-9f91-1c8c4428e5af"}}
             - {
                 "metadata": {
+                  "order": 0,
+                  "parent": null,
+                  "kind": "Entry",
+                  "id": "0_Paragraph_15",
                   "content": {
                     "kind": "Paragraph",
                     "map": {"entry":"0_Paragraph_15"},
-                    "subnodes": [{"kind":"Word","text":"Parent"},{"kind":"Space","text":" "},{"kind":"Word","text":"cotnent"},{"kind":"Newline","text":"\n"}]},
-                  "id": "0_Paragraph_15",
-                  "kind": "Entry",
-                  "order": 0,
-                  "parent": null}}
+                    "subnodes": [{"kind":"Word","text":"Parent"},{"kind":"Space","text":" "},{"kind":"Word","text":"cotnent"},{"kind":"Newline","text":"\n"}]}}}
             - {
                 "metadata": {
-                  "id": "0_Subtree_4",
-                  "kind": "Subtree",
                   "level": 1,
-                  "nested": ["0_Subtree_5","0_Subtree_6"],
-                  "ordered": ["0_Paragraph_17"],
                   "parent": null,
-                  "title": "Several clusters can exist"}}
+                  "kind": "Subtree",
+                  "id": "0_Subtree_4",
+                  "ordered": ["0_Paragraph_17"],
+                  "title": "Several clusters can exist",
+                  "nested": ["0_Subtree_5","0_Subtree_6"]}}
             - {"metadata":{"id":"0_Subtree_5","kind":"Subtree","level":2,"parent":null,"title":"With multiple nodes","treeId":"9879fed7-f0a4-44bd-bf56-983279afc622"}}
             - {"metadata":{"id":"0_Subtree_6","kind":"Subtree","level":2,"nested":["0_Subtree_7","0_Subtree_8","0_Subtree_9"],"parent":null,"title":"And even nested"}}
             - {"metadata":{"id":"0_Subtree_7","kind":"Subtree","level":3,"parent":null,"title":"Clusters"}}
@@ -304,13 +304,21 @@ items:
             - {"metadata":{"id":"0_Subtree_9","kind":"Subtree","level":3,"ordered":["0_Paragraph_24"],"parent":null,"title":"Intercluster links are possible"}}
             - {
                 "metadata": {
+                  "order": 0,
+                  "parent": null,
+                  "kind": "Entry",
+                  "id": "0_Paragraph_24",
+                  "outgoing": [{"out_index":0,"source":"0_Paragraph_24","target":"0_Subtree_1"}],
                   "content": {
                     "kind": "Paragraph",
                     "map": {"entry":"0_Paragraph_24"},
                     "subnodes": [
                       {
+                        "kind": "Link",
+                        "map": {"out_index":0,"source":"0_Paragraph_24","target":"0_Subtree_1"},
                         "data": {"Id":{"text":"c468e9c7-7422-4b17-8ccb-53575f186fe0"},"kind":"Id","text":"c468e9c7-7422-4b17-8ccb-53575f186fe0"},
                         "description": {
+                          "kind": "Paragraph",
                           "subnodes": [
                             {"kind":"Word","text":"Subtrees"},
                             {"kind":"Space","text":" "},
@@ -322,17 +330,15 @@ items:
                             {"kind":"Space","text":" "},
                             {"kind":"Word","text":"for"},
                             {"kind":"Space","text":" "},
-                            {"kind":"Word","text":"clustering"}]},
-                        "kind": "Link",
-                        "map": {"target":"0_Subtree_1"}},
-                      {"kind":"Newline","text":"\n"}]},
-                  "id": "0_Paragraph_24",
-                  "kind": "Entry",
-                  "order": 0,
-                  "outgoing": [{"out_index":0,"source":"0_Paragraph_24","target":"0_Subtree_1"}],
-                  "parent": null}}
+                            {"kind":"Word","text":"clustering"}]}},
+                      {"kind":"Newline","text":"\n"}]}}}
             - {
                 "metadata": {
+                  "order": 0,
+                  "parent": null,
+                  "kind": "Entry",
+                  "id": "0_Paragraph_17",
+                  "outgoing": [{"out_index":0,"source":"0_Paragraph_17","target":"0_Subtree_3"}],
                   "content": {
                     "kind": "Paragraph",
                     "map": {"entry":"0_Paragraph_17"},
@@ -342,16 +348,11 @@ items:
                       {"kind":"Word","text":"Multiline"},
                       {"kind":"Space","text":" "},
                       {
-                        "data": {"Id":{"text":"6d6d6689-d9da-418d-9f91-1c8c4428e5af"},"kind":"Id","text":"6d6d6689-d9da-418d-9f91-1c8c4428e5af"},
-                        "description": {"subnodes":[{"kind":"Word","text":"Extra"},{"kind":"Space","text":" "},{"kind":"Word","text":"entries"}]},
                         "kind": "Link",
-                        "map": {"target":"0_Subtree_3"}},
-                      {"kind":"Newline","text":"\n"}]},
-                  "id": "0_Paragraph_17",
-                  "kind": "Entry",
-                  "order": 0,
-                  "outgoing": [{"out_index":0,"source":"0_Paragraph_17","target":"0_Subtree_3"}],
-                  "parent": null}}
+                        "map": {"out_index":0,"source":"0_Paragraph_17","target":"0_Subtree_3"},
+                        "data": {"Id":{"text":"6d6d6689-d9da-418d-9f91-1c8c4428e5af"},"kind":"Id","text":"6d6d6689-d9da-418d-9f91-1c8c4428e5af"},
+                        "description": {"kind":"Paragraph","subnodes":[{"kind":"Word","text":"Extra"},{"kind":"Space","text":" "},{"kind":"Word","text":"entries"}]}},
+                      {"kind":"Newline","text":"\n"}]}}}
           edges:
             - {"metadata":{"kind":"NestedIn","out_index":0},"source":"0_Subtree_0","target":"0_Subtree_1"}
             - {"metadata":{"kind":"PlacedIn","out_index":0},"source":"0_Subtree_2","target":"0_Paragraph_3"}
