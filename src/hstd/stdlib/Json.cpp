@@ -86,9 +86,22 @@ std::string to_compact_json(
                 case json::value_t::object: {
                     std::string result;
                     result += "{";
-                    bool first = true;
-                    int  i     = 0;
+                    bool                         first = true;
+                    int                          i     = 0;
+                    Vec<Pair<std::string, json>> items;
                     for (auto const& [key, sub] : j.items()) {
+                        items.push_back({key, sub});
+                    }
+
+                    sort(
+                        items.begin(),
+                        items.end(),
+                        [&](auto const& lhs, auto const& rhs) {
+                            return getSize(lhs.second)
+                                 < getSize(rhs.second);
+                        });
+
+                    for (auto const& [key, sub] : items) {
                         result += "\n";
                         result += std::string(indent, ' ');
                         result += "\"" + key + "\": ";
