@@ -581,7 +581,7 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
 
             writeFileOrStdout(
                 spec.debugFile(exp.name + "result.txt"),
-                buf + "\n",
+                buf + "\n\n" + run.toGraphviz() + "\n\n",
                 exp.printToFile);
         }
 

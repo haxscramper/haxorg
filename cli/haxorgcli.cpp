@@ -1140,7 +1140,7 @@ void HaxorgCli::exec() {
             auto      graph = exporter.toGraph();
             QFileInfo res{"/tmp/mindmap_graph.dot"};
 
-            writeFile(res, exporter.toGraphviz(graph));
+            writeFile(res, exporter.toGraphviz());
 
             //            Graphviz::Graph read{res};
             //            gvc.renderToFile("/tmp/mindmap_graph.png", read);

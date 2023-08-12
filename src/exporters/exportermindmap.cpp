@@ -4,6 +4,7 @@
 #include <boost/graph/graphml.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <exporters/ExporterJson.hpp>
+#include <boost/property_map/function_property_map.hpp>
 
 using osk = OrgSemKind;
 using namespace boost;
@@ -398,7 +399,7 @@ ExporterMindMap::Graph& ExporterMindMap::toGraph() {
     return graph;
 }
 
-QString ExporterMindMap::toGraphML(CR<Graph> graph) { return ""; }
+QString ExporterMindMap::toGraphML() { return ""; }
 
 namespace {
 QString toPlainStr(sem::SemId org) {
@@ -414,7 +415,7 @@ QString toPlainStr(sem::SemId org) {
 } // namespace
 
 
-QString ExporterMindMap::toGraphviz(CR<Graph> graph) {
+QString ExporterMindMap::toGraphviz() {
     std::stringstream         os;
     boost::dynamic_properties dp;
 
@@ -427,19 +428,31 @@ QString ExporterMindMap::toGraphviz(CR<Graph> graph) {
     };
 
 
-    dp.property("node_id", get(vertex_index, graph))
+    dp
+        // Original node ID map
+        .property("node_id", get(vertex_index, graph))
+        // Graph property configuration
         .property(
             "splines",
             boost::make_constant_property<Graph*>(std::string("polyline")))
+        // Default node shape configuration
         .property(
             "shape",
             boost::make_constant_property<Graph::vertex_descriptor>(
                 std::string("rect")))
+        // Edge descriptor map
+        .property(
+            "out_index",
+            boost::make_function_property_map<EdgeDesc, int>(
+                [&](EdgeDesc const& prop) -> int {
+                    return edgeOutIndex(prop);
+                }))
+        // Vertex property map
         .property(
             "org_id",
-            make_transform_value_property_map<u64>(
-                [&](VertexProp const& prop) -> u64 {
-                    return getOrgNode(prop).id;
+            make_transform_value_property_map<std::string>(
+                [&](VertexProp const& prop) -> std::string {
+                    return getOrgNode(prop).getReadableId().toStdString();
                 },
                 get(vertex_bundle, graph)))
         .property(
@@ -601,8 +614,9 @@ int ExporterMindMap::edgeOutIndex(CR<EdgeDesc> e) {
     for (auto [it, it_end] = boost::out_edges(source(e, g), g);
          it != it_end;
          ++it) {
+
         if (*it == e) {
-            break;
+            return idx;
         }
         ++idx;
     }

@@ -226,8 +226,8 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     Opt<VertDesc> getVertex(sem::SemId id) const;
 
     Graph&  toGraph();
-    QString toGraphML(CR<Graph>);
-    QString toGraphviz(CR<Graph>);
+    QString toGraphML();
+    QString toGraphviz();
 
     /// \brief export mind map in a tree-like structure that closely maps
     /// to the original data structure
