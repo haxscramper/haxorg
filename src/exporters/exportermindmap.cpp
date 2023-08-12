@@ -604,7 +604,7 @@ json ExporterMindMap::toJsonGraphEdge(CR<EdgeDesc> e) {
     }
 
     meta["out_index"] = edgeOutIndex(e);
-    res["metadata"]   = meta;
+    res["metadata"] = meta;
     return res;
 }
 

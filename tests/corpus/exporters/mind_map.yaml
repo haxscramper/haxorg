@@ -264,7 +264,10 @@ items:
                   "id": "0_Paragraph_3",
                   "kind": "Entry",
                   "order": 0,
-                  "outgoing": ["0_Subtree_1","0_Subtree_3","0_Subtree_5"],
+                  "outgoing": [
+                    {"out_index":0,"source":"0_Paragraph_3","target":"0_Subtree_1"},
+                    {"out_index":1,"source":"0_Paragraph_3","target":"0_Subtree_3"},
+                    {"out_index":2,"source":"0_Paragraph_3","target":"0_Subtree_5"}],
                   "parent": null}}
             - {
                 "metadata": {
@@ -326,7 +329,7 @@ items:
                   "id": "0_Paragraph_24",
                   "kind": "Entry",
                   "order": 0,
-                  "outgoing": ["0_Subtree_1"],
+                  "outgoing": [{"out_index":0,"source":"0_Paragraph_24","target":"0_Subtree_1"}],
                   "parent": null}}
             - {
                 "metadata": {
@@ -347,7 +350,7 @@ items:
                   "id": "0_Paragraph_17",
                   "kind": "Entry",
                   "order": 0,
-                  "outgoing": ["0_Subtree_3"],
+                  "outgoing": [{"out_index":0,"source":"0_Paragraph_17","target":"0_Subtree_3"}],
                   "parent": null}}
           edges:
             - {"metadata":{"kind":"NestedIn","out_index":0},"source":"0_Subtree_0","target":"0_Subtree_1"}

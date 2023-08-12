@@ -545,7 +545,7 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
     } else if (exp.name == "mmap") {
         ExporterMindMap run;
         run.visitTop(top);
-        ExporterMindMap::Graph g = run.toGraph();
+        ExporterMindMap::Graph const& g = run.toGraph();
         ER::JsonGraph          result;
 
         for (auto [it, it_end] = boost::edges(g); it != it_end; ++it) {
