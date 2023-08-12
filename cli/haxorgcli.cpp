@@ -1039,6 +1039,17 @@ void HaxorgCli::exec() {
         //        { writeYaml(); }
 
         {
+            __trace("Mind map exporter");
+            ExporterMindMap exporter;
+            exporter.visitTop(node);
+            writeFile(
+                QFileInfo("/tmp/mindmap.json"_qs),
+                QString::fromStdString(to_compact_json(
+                    exporter.toJsonGraph(), {.width = 160})));
+            qDebug() << "Mind map export ok";
+        }
+
+        {
             __trace("Export Latex");
             ExporterLatex    exporter;
             OperationsTracer trace{QFileInfo("/tmp/latex_export_trace")};
