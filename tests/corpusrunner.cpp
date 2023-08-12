@@ -347,8 +347,14 @@ void describeDiff(
 
             if (40 < from.size() || 40 < to.size()) {
                 os << "\n";
-                os << "    from " << os.red() << from << os.end() << "\n";
-                os << "    to   " << os.red() << to << os.end();
+                os << "    from " << os.red()
+                   << to_compact_json(
+                          exp, {.width = 120, .startIndent = 10})
+                   << os.end() << "\n";
+                os << "    to   " << os.red()
+                   << to_compact_json(
+                          conv, {.width = 120, .startIndent = 10})
+                   << os.end();
             } else {
                 os << "    from " << os.red() << from << os.end() << " to "
                    << os.green() << to << os.end();
@@ -557,7 +563,8 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
                 stream << "nodes:\n";
                 for (auto const& node : result.nodes) {
                     stream << "  - "
-                           << to_compact_json(node, {.startIndent = 4})
+                           << to_compact_json(
+                                  node, {.startIndent = 6, .width = 160})
                            << "\n";
                 }
             }
@@ -566,7 +573,8 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
                 stream << "edges:\n";
                 for (auto const& edge : result.edges) {
                     stream << "  - "
-                           << to_compact_json(edge, {.startIndent = 4})
+                           << to_compact_json(
+                                  edge, {.startIndent = 6, .width = 160})
                            << "\n";
                 }
             }
