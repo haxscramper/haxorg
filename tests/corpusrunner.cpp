@@ -638,22 +638,32 @@ CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
             }
 
             if (exp.expected["edges"]) {
-                UnorderedMap<Pair<std::string, std::string>, Vec<json>>
+                UnorderedMap<
+                    Pair<Pair<std::string, int>, std::string>,
+                    Vec<json>>
                     generated_map;
 
                 for (auto const& edge : res.edges) {
-                    generated_map[std::make_pair(
-                                      edge["source"].get<std::string>(),
-                                      edge["target"].get<std::string>())]
-                        .push_back(edge);
+                    generated_map
+                        [std::make_pair(
+                             std::make_pair(
+                                 edge["source"].get<std::string>(),
+                                 edge["metadata"]["out_index"].get<int>()),
+                             edge["target"].get<std::string>())]
+                            .push_back(edge);
                 }
 
                 for (auto const& edge_expected : exp.expected["edges"]) {
-                    auto source = edge_expected["source"]
-                                      .as<std::string>();
-                    auto target = edge_expected["target"]
-                                      .as<std::string>();
-                    auto key = std::make_pair(source, target);
+                    std::string source = edge_expected["source"]
+                                             .as<std::string>();
+                    std::string target = edge_expected["target"]
+                                             .as<std::string>();
+
+                    int out_index = edge_expected["metadata"]["out_index"]
+                                        .as<int>(0);
+
+                    auto key = std::make_pair(
+                        std::make_pair(source, out_index), target);
 
                     json expected_json = toJson(edge_expected);
 
@@ -668,8 +678,9 @@ CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
                                 } else {
                                     ++failCount;
                                     json::json_pointer path{it.path};
-                                    os << "- Edge between '" << source
-                                       << "' '" << target << "' differs: ";
+                                    os << "- Edge No " << out_index
+                                       << " between '" << source << "' '"
+                                       << target << "' differs: ";
                                     describeDiff(
                                         os, it, expected_json, given_json);
                                     os << "\n";

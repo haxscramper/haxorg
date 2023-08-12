@@ -67,11 +67,11 @@ items:
             - {"metadata":{"id":"0_Paragraph_1","kind":"Entry"}}
             - {"metadata":{"id":"0_Paragraph_2","kind":"Entry"}}
           edges:
-            - {"metadata":{"kind":"PlacedIn"},"source":"0_Subtree_0","target":"0_Paragraph_1"}
-            - {"metadata":{"kind":"PlacedIn"},"source":"0_Subtree_0","target":"0_Paragraph_2"}
-            - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
+            - {"metadata":{"kind":"PlacedIn","out_index":0},"source":"0_Subtree_0","target":"0_Paragraph_1"}
+            - {"metadata":{"kind":"PlacedIn","out_index":1},"source":"0_Subtree_0","target":"0_Paragraph_2"}
+            - {"metadata":{"kind":"NestedIn","out_index":0},"source":"0_Document_0","target":"0_Subtree_0"}
             # Footnote in the first paragraph refers to the footnote in a different paragraph
-            - {"metadata":{"kind":"RefersTo"},"source":"0_Paragraph_1","target":"0_Paragraph_2"}
+            - {"metadata":{"kind":"RefersTo","out_index":0},"source":"0_Paragraph_1","target":"0_Paragraph_2"}
 
   - name: "Link to subtree with ID"
     source: |
@@ -110,12 +110,12 @@ items:
                 }
 
           edges:
-            - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
-            - {"metadata":{"kind":"PlacedIn"},"source":"0_Subtree_1","target":"0_Paragraph_2"}
-            - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_1"}
-            - {"metadata":{"kind":"RefersTo"},"source":"0_Paragraph_2","target":"0_Subtree_0"}
-            - {"metadata":{"description":null,"kind":"InternallyRefers"},"source":"0_Subtree_1","target":"0_Subtree_0"}
-
+            - {"metadata":{"kind":"NestedIn","out_index":0},"source":"0_Document_0","target":"0_Subtree_0"}
+            - {"metadata":{"kind":"PlacedIn","out_index":0},"source":"0_Subtree_1","target":"0_Paragraph_2"}
+            - {"metadata":{"kind":"NestedIn","out_index":1},"source":"0_Document_0","target":"0_Subtree_1"}
+            - {"metadata":{"kind":"RefersTo","out_index":0},"source":"0_Paragraph_2","target":"0_Subtree_0"}
+            - {"metadata":{"kind":"InternallyRefers","out_index":1},"source":"0_Subtree_1","target":"0_Subtree_0"}
+            
   - name: "Edge with description"
     source: |
       * System Registry
@@ -136,20 +136,19 @@ items:
             - {"metadata":{"id":"0_Subtree_1","kind":"Subtree","level":2,"title":"Current input","treeId":"sr_current_input"}}
             - {"metadata":{"id":"0_Subtree_2","kind":"Subtree","level":1,"title":"User app"}}
           edges:
-            - {"metadata":{"kind":"NestedIn"},"source":"0_Subtree_0","target":"0_Subtree_1"}
-            - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
-            - {"metadata":{"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_2"}
-            - source: "0_Subtree_2"
-              target: "0_Subtree_1"           
-              metadata:
-                kind: RefersTo
-                description:
-                  kind: StmtList
-                  subnodes: 
-                    - kind: Paragraph
-                      subnodes:
-                        - {"kind":"Space","text":" "}
-                        - {"kind":"Word","text":"Desc"}
+            - {"metadata":{"kind":"NestedIn","out_index":0},"source":"0_Subtree_0","target":"0_Subtree_1"}
+            - {"metadata":{"kind":"NestedIn","out_index":0},"source":"0_Document_0","target":"0_Subtree_0"}
+            - {"metadata":{"kind":"NestedIn","out_index":1},"source":"0_Document_0","target":"0_Subtree_2"}
+            - {
+                "source": "0_Subtree_2",
+                "target": "0_Subtree_1",
+                "metadata": {
+                  "out_index": 0,
+                  "kind": "RefersTo",
+                  "description": {
+                    "kind": "StmtList",
+                    "subnodes": [{"kind":"Paragraph","subnodes":[{"kind":"Space","text":" "},{"kind":"Word","text":"Desc"},{"kind":"Newline","text":"\n"}]}]}}}
+
 
   - name: "Subtree tags"
     source: "* Tree :tag:"
@@ -160,7 +159,7 @@ items:
             - {"metadata":{"id":"0_Document_0","kind":"Subtree","nested":["0_Subtree_0"]}}
             - {"metadata":{"id":"0_Subtree_0","kind":"Subtree","level":1,"tags":[{"head":"tag"}],"title":"Tree"}}
           edges:
-            - {"metadata":{"description":null,"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
+            - {"metadata":{"kind":"NestedIn","out_index":0},"source":"0_Document_0","target":"0_Subtree_0"}
 
   - name: "Big mind map"
     source: |
@@ -351,27 +350,31 @@ items:
                   "outgoing": ["0_Subtree_3"],
                   "parent": null}}
           edges:
-            - {"metadata":{"description":null,"kind":"NestedIn"},"source":"0_Subtree_0","target":"0_Subtree_1"}
-            - {"metadata":{"description":null,"kind":"PlacedIn"},"source":"0_Subtree_2","target":"0_Paragraph_3"}
-            - {"metadata":{"description":null,"kind":"NestedIn"},"source":"0_Subtree_0","target":"0_Subtree_2"}
-            - {"metadata":{"description":null,"kind":"PlacedIn"},"source":"0_Subtree_3","target":"0_Paragraph_15"}
-            - {"metadata":{"description":null,"kind":"NestedIn"},"source":"0_Subtree_0","target":"0_Subtree_3"}
-            - {"metadata":{"description":null,"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_0"}
-            - {"metadata":{"description":null,"kind":"NestedIn"},"source":"0_Subtree_4","target":"0_Subtree_5"}
-            - {"metadata":{"description":null,"kind":"NestedIn"},"source":"0_Subtree_6","target":"0_Subtree_7"}
-            - {"metadata":{"description":null,"kind":"NestedIn"},"source":"0_Subtree_6","target":"0_Subtree_8"}
-            - {"metadata":{"description":null,"kind":"PlacedIn"},"source":"0_Subtree_9","target":"0_Paragraph_24"}
-            - {"metadata":{"description":null,"kind":"NestedIn"},"source":"0_Subtree_6","target":"0_Subtree_9"}
-            - {"metadata":{"description":null,"kind":"NestedIn"},"source":"0_Subtree_4","target":"0_Subtree_6"}
-            - {"metadata":{"description":null,"kind":"PlacedIn"},"source":"0_Subtree_4","target":"0_Paragraph_17"}
-            - {"metadata":{"description":null,"kind":"NestedIn"},"source":"0_Document_0","target":"0_Subtree_4"}
-            - {"metadata":{"description":null,"kind":"RefersTo"},"source":"0_Paragraph_3","target":"0_Subtree_1"}
-            - {"metadata":{"description":null,"kind":"RefersTo"},"source":"0_Paragraph_3","target":"0_Subtree_3"}
-            - {"metadata":{"description":null,"kind":"RefersTo"},"source":"0_Paragraph_3","target":"0_Subtree_5"}
-            - {"metadata":{"description":null,"kind":"RefersTo"},"source":"0_Paragraph_17","target":"0_Subtree_3"}
-            - {"metadata":{"description":null,"kind":"RefersTo"},"source":"0_Paragraph_24","target":"0_Subtree_1"}
+            - {"metadata":{"kind":"NestedIn","out_index":0},"source":"0_Subtree_0","target":"0_Subtree_1"}
+            - {"metadata":{"kind":"PlacedIn","out_index":0},"source":"0_Subtree_2","target":"0_Paragraph_3"}
+            - {"metadata":{"kind":"NestedIn","out_index":1},"source":"0_Subtree_0","target":"0_Subtree_2"}
+            - {"metadata":{"kind":"PlacedIn","out_index":0},"source":"0_Subtree_3","target":"0_Paragraph_15"}
+            - {"metadata":{"kind":"NestedIn","out_index":2},"source":"0_Subtree_0","target":"0_Subtree_3"}
+            - {"metadata":{"kind":"NestedIn","out_index":0},"source":"0_Document_0","target":"0_Subtree_0"}
+            - {"metadata":{"kind":"NestedIn","out_index":0},"source":"0_Subtree_4","target":"0_Subtree_5"}
+            - {"metadata":{"kind":"NestedIn","out_index":0},"source":"0_Subtree_6","target":"0_Subtree_7"}
+            - {"metadata":{"kind":"NestedIn","out_index":1},"source":"0_Subtree_6","target":"0_Subtree_8"}
+            - {"metadata":{"kind":"PlacedIn","out_index":0},"source":"0_Subtree_9","target":"0_Paragraph_24"}
+            - {"metadata":{"kind":"NestedIn","out_index":2},"source":"0_Subtree_6","target":"0_Subtree_9"}
+            - {"metadata":{"kind":"NestedIn","out_index":1},"source":"0_Subtree_4","target":"0_Subtree_6"}
+            - {"metadata":{"kind":"PlacedIn","out_index":2},"source":"0_Subtree_4","target":"0_Paragraph_17"}
+            - {"metadata":{"kind":"NestedIn","out_index":1},"source":"0_Document_0","target":"0_Subtree_4"}
+            - {"metadata":{"kind":"RefersTo","out_index":0},"source":"0_Paragraph_3","target":"0_Subtree_1"}
+            - {"metadata":{"kind":"RefersTo","out_index":1},"source":"0_Paragraph_3","target":"0_Subtree_3"}
+            - {"metadata":{"kind":"RefersTo","out_index":2},"source":"0_Paragraph_3","target":"0_Subtree_5"}
+            - {"metadata":{"kind":"RefersTo","out_index":0},"source":"0_Paragraph_17","target":"0_Subtree_3"}
+            - {"metadata":{"kind":"RefersTo","out_index":0},"source":"0_Paragraph_24","target":"0_Subtree_1"}
             - {
+                "source": "0_Subtree_2",
+                "target": "0_Subtree_1",
                 "metadata": {
+                  "out_index": 1,
+                  "kind": "RefersTo",
                   "description": {
                     "kind": "StmtList",
                     "subnodes": [
@@ -417,13 +420,9 @@ items:
                           {"kind":"Space","text":" "},
                           {"kind":"Word","text":"footnotes"},
                           {"kind":"Newline","text":"\n"}]},
-                      {"kind":"Newline","text":"\n"}]},
-                  "kind": "RefersTo"},
-                "source": "0_Subtree_2",
-                "target": "0_Subtree_1"}
-            - {"metadata":{"description":null,"kind":"InternallyRefers"},"source":"0_Subtree_2","target":"0_Subtree_1"}
-            - {"metadata":{"description":null,"kind":"InternallyRefers"},"source":"0_Subtree_2","target":"0_Subtree_3"}
-            - {"metadata":{"description":null,"kind":"InternallyRefers"},"source":"0_Subtree_2","target":"0_Subtree_5"}
-            - {"metadata":{"description":null,"kind":"InternallyRefers"},"source":"0_Subtree_4","target":"0_Subtree_3"}
-            - {"metadata":{"description":null,"kind":"InternallyRefers"},"source":"0_Subtree_9","target":"0_Subtree_1"}
-
+                      {"kind":"Newline","text":"\n"}]}}}
+            - {"metadata":{"kind":"InternallyRefers","out_index":2},"source":"0_Subtree_2","target":"0_Subtree_1"}
+            - {"metadata":{"kind":"InternallyRefers","out_index":3},"source":"0_Subtree_2","target":"0_Subtree_3"}
+            - {"metadata":{"kind":"InternallyRefers","out_index":4},"source":"0_Subtree_2","target":"0_Subtree_5"}
+            - {"metadata":{"kind":"InternallyRefers","out_index":3},"source":"0_Subtree_4","target":"0_Subtree_3"}
+            - {"metadata":{"kind":"InternallyRefers","out_index":1},"source":"0_Subtree_9","target":"0_Subtree_1"}

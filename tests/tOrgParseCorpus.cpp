@@ -140,8 +140,9 @@ TEST_P(ParseFile, CorpusAll) {
         };
 
         for (auto& exporter : spec.exporters) {
-            exporter.doTrace = true;
-            exporter.print   = true;
+            exporter.doTrace     = true;
+            exporter.print       = true;
+            exporter.printToFile = true;
         }
 
         RunResult fail = runner.runSpec(spec, params.file.filePath());

@@ -545,8 +545,18 @@ json ExporterMindMap::toJsonGraphEdge(CR<Graph> g, CR<EdgeDesc> e) {
         auto exp            = getJsonExporter();
         meta["description"] = exp.visitTop(
             edge.getRefersTo().target.description.value());
-    } else {
-        meta["description"] = json();
+    }
+
+
+    int idx = 0;
+    for (auto [it, it_end] = boost::out_edges(source(e, g), g);
+         it != it_end;
+         ++it) {
+        if (*it == e) {
+            meta["out_index"] = idx;
+            break;
+        }
+        ++idx;
     }
 
     res["metadata"] = meta;
