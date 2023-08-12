@@ -517,11 +517,21 @@ json ExporterMindMap::toJsonGraphNode(CR<Graph> g, CR<VertDesc> n) {
                 meta["order"] = entry.order.value();
             }
 
+
             if (!entry.entry->outgoing.empty()) {
                 json out = json::array();
-                for (auto const& link : entry.entry->outgoing) {
-                    out.push_back(getId(link));
+                int  idx = 0;
+                for (auto [it, it_end] = out_edges(n, g); it != it_end;
+                     ++it) {
+                    auto e              = *it;
+                    json target         = json::object();
+                    target["out_index"] = idx;
+                    target["target"]    = getId(g[boost::target(e, g)]);
+                    target["source"]    = getId(g[boost::source(e, g)]);
+                    out.push_back(target);
+                    ++idx;
                 }
+
                 meta["outgoing"] = out;
             }
 
@@ -547,20 +557,23 @@ json ExporterMindMap::toJsonGraphEdge(CR<Graph> g, CR<EdgeDesc> e) {
             edge.getRefersTo().target.description.value());
     }
 
+    meta["out_index"] = edgeOutIndex(g, e);
+    res["metadata"]   = meta;
+    return res;
+}
 
+int ExporterMindMap::edgeOutIndex(CR<Graph> g, CR<EdgeDesc> e) {
     int idx = 0;
     for (auto [it, it_end] = boost::out_edges(source(e, g), g);
          it != it_end;
          ++it) {
         if (*it == e) {
-            meta["out_index"] = idx;
             break;
         }
         ++idx;
     }
 
-    res["metadata"] = meta;
-    return res;
+    return idx;
 }
 
 QString ExporterMindMap::getId(const VertexProp& prop) {

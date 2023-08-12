@@ -62,6 +62,11 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     json newRes(sem::SemId org);
 
     template <typename T>
+    json newRes(sem::SemIdT<T> org) {
+        return newRes(org.toId());
+    }
+
+    template <typename T>
     void visitField(json& j, const char* name, CR<Opt<T>> value);
 
     template <typename T>

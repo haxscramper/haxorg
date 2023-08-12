@@ -127,8 +127,7 @@ class CorpusRunner {
         }
     };
 
-    RunResult::LexCompare compareTokens(
-        CR<TokenGroup<OrgTokenKind>> lexed,
+    RunResult::LexCompare compareTokens( CR<TokenGroup<OrgTokenKind>> lexed,
         CR<TokenGroup<OrgTokenKind>> expected,
         ParseSpec::Conf::MatchMode   match);
 

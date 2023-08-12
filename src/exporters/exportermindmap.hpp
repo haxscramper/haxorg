@@ -207,6 +207,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     json toJsonGraph(CR<Graph> g);
     json toJsonGraphNode(CR<Graph> g, CR<VertDesc> n);
     json toJsonGraphEdge(CR<Graph> g, CR<EdgeDesc> e);
+    int  edgeOutIndex(CR<Graph> g, CR<EdgeDesc> e);
 
     QString getId(VertexProp const& prop);
     QString getId(sem::SemId id);

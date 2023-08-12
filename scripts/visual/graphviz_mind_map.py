@@ -52,7 +52,6 @@ class Edge:
     metadata: EdgeMetadata
 
 
-@dataclass_json
 @dataclass
 class OrgNode:
     kind: str = ""
@@ -60,23 +59,86 @@ class OrgNode:
     text: str = ""
     extra: Dict[str, any] = field(default_factory=dict)
 
+    @staticmethod
+    def from_dict(d: Dict[str, any]) -> "OrgNode":
+        res: "OrgNode" = OrgNode()
+        if "subnodes" in d:
+            for node in d["subnodes"]:
+                res.subnodes.append(OrgNode.from_dict(node))
 
-def to_org_node(d: Dict[str, any]) -> OrgNode:
-    res: OrgNode = OrgNode()
-    if "subnodes" in d:
-        for node in d["subnodes"]:
-            res.subnodes.append(to_org_node(node))
+        if "text" in d:
+            res.text = d["text"]
 
-    if "text" in d:
-        res.text = d["text"]
+        for key, val in d.items():
+            if key not in ["subnodes", "text", "val"]:
+                res.extra[key] = val
 
-    for key, val in d.items():
-        if key not in ["subnodes", "text", "val"]:
-            res.extra[key] = val
+        res.kind = d["kind"]
 
-    res.kind = d["kind"]
+        return res
 
-    return res
+    def is_leaf(self) -> bool:
+        return 0 < len(self.text) or self.kind in ["Link"]
+
+    def get_link_description(self) -> Optional["OrgNode"]:
+        return (
+            OrgNode.from_dict(self.extra["description"])
+            if "description" in self.extra
+            else None
+        )
+
+    def flat_text(self) -> str:
+        match self.kind:
+            case "Link":
+                desc = self.get_link_description()
+                if desc:
+                    return desc.flat_text()
+
+                else:
+                    return "LINK"
+
+            case _:
+                return self.text
+
+    def width(self) -> int:
+        if 0 < len(self.flat_text()):
+            return len(self.flat_text())
+
+        else:
+            result: int = 0
+            for sub in self.subnodes:
+                result += sub.width()
+
+            return result
+
+    def flatten(self) -> List["OrgNode"]:
+        result: List["OrgNode"] = []
+        if self.is_leaf():
+            result.append(self)
+
+        else:
+            for sub in self.subnodes:
+                result += sub.flatten()
+
+        return result
+
+    def flat_wrap(self, max_width: int = 80) -> List[List["OrgNode"]]:
+        lines: List[List["OrgNode"]] = [[]]
+
+        current: int = 0
+        for node in self.flatten():
+            if node.kind == "Newline":
+                node = OrgNode(kind="Space", text=" ")
+
+            width = node.width()
+            if not (current + width < max_width):
+                lines.append([])
+                current = 0
+
+            lines[-1].append(node)
+            current += width
+
+        return lines
 
 
 @dataclass_json
@@ -90,7 +152,7 @@ class NodeMetadata:
     outgoing: List[str] = field(default_factory=list)
     nested: List[str] = field(default_factory=list)
     content: Optional[OrgNode] = field(
-        default=None, metadata=config(decoder=to_org_node)
+        default=None, metadata=config(decoder=OrgNode.from_dict)
     )
 
 
@@ -121,18 +183,27 @@ def export_dot(file: str):
 
     graph: Graph = Graph.from_dict(data)
 
+    entry_links: Set[Tuple[str, int, str]] = set()
+
     def rec_node(res: gv.Digraph, node: Node):
-        if 0 == len(node.metadata.nested):
-            res.node(
-                node.metadata.nodeId,
-                node.metadata.title,
-            )
+        meta: NodeMetadata = node.metadata
+        if 0 == len(meta.nested):
+            if meta.kind == "Subtree":
+                res.node(meta.nodeId, meta.title)
+
+            else:
+                lines: List[str] = []
+                line: List[OrgNode]
+
+                for idx, line in enumerate(meta.content.flat_wrap(40)):
+                    text = "".join([node.flat_text() for node in line])
+                    lines.append(f"<p{idx}>{text}")
+
+                res.node(meta.nodeId, "|".join(lines), shape="record")
 
         else:
-            with res.subgraph(
-                name="cluster_" + node.metadata.nodeId
-            ) as cluster:
-                for nested in node.metadata.nested:
+            with res.subgraph(name="cluster_" + meta.nodeId) as cluster:
+                for nested in meta.nested:
                     rec_node(cluster, graph.nodes[nested])
 
     dot = gv.Digraph("map")
@@ -148,6 +219,8 @@ def export_dot(file: str):
             dot.edge(edge.source, edge.target)
 
     dot.render(directory="/tmp")
+
+    log.info("Export done")
 
 
 if __name__ == "__main__":
