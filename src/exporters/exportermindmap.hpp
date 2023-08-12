@@ -25,8 +25,7 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     /// List of known documents that were encountered during processing
     Vec<sem::SemIdT<sem::Document>> documents;
 
-    /// Outgoing documentation link that targets some documentable entry.
-    struct DocLink {
+    struct Node {
         struct Entry {
             SPtr<DocEntry> entry;
         };
@@ -35,13 +34,38 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
             SPtr<DocSubtree> subtree;
         };
 
-        Opt<SPtr<DocSubtree>> parent;
-        SUB_VARIANTS(Kind, Resolved, resolved, getKind, Entry, Subtree);
-        Resolved resolved;
+        bool isEntry() const { return getKind() == Kind::Entry; }
+        bool isSubtree() const { return getKind() == Kind::Subtree; }
+
+        SUB_VARIANTS(Kind, Data, data, getKind, Entry, Subtree);
+        Data data;
+
+        Node() {}
+        Node(SPtr<DocEntry> entry) : data(Entry{entry}) {}
+        Node(SPtr<DocSubtree> tree) : data(Subtree{tree}) {}
+        sem::SemId getOrgNode() const;
+    };
+
+    /// Outgoing documentation link that targets some documentable entry.
+    struct DocLink {
+        Node::Kind         getKind() const { return resolved.getKind(); }
+        Node::Entry const& getEntry() const { return resolved.getEntry(); }
+        Node::Entry&       getEntry() { return resolved.getEntry(); }
+        Node::Subtree&     getSubtree() { return resolved.getSubtree(); }
+        bool               isEntry() const { return resolved.isEntry(); }
+        bool isSubtree() const { return resolved.isSubtree(); }
+
+        Node::Subtree const& getSubtree() const {
+            return resolved.getSubtree();
+        }
+
         /// Description of the link -- taken from description lists that
         /// have links in the tags. Description in the link node itself is
         /// ignored
-        Opt<sem::SemId> description;
+        Opt<sem::SemId>       description;
+        sem::SemId            location = sem::SemId::Nil();
+        Opt<SPtr<DocSubtree>> parent;
+        Node                  resolved;
     };
 
     /// Single mappable entry in the document that represents
@@ -53,9 +77,6 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
         /// Resolved outgoing links from the documentable entry
         Vec<DocLink>          outgoing;
         Opt<SPtr<DocSubtree>> parent = std::nullopt;
-        int                   id;
-        static int            counter;
-        DocEntry() : id(++counter) {}
     };
 
     /// Simplified tree structure of the document(s) that
@@ -84,10 +105,6 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
         /// Outgoing links attached to the subtree. Defined using
         /// description lists or drawer annotations.
         Vec<DocLink> outgoing;
-
-        int        id;
-        static int counter;
-        DocSubtree() : id(++counter) {}
     };
 
     void eachSubtree(
@@ -131,12 +148,15 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     UnorderedMap<sem::SemId, DocEntry::Ptr>   entriesOut;
     UnorderedMap<sem::SemId, DocSubtree::Ptr> subtreesOut;
 
+
     /// Get doc link from the input node element to the target one.
     /// Resolves links from link nodes, assigns associated description for
     /// links that were used as a part of description lists.
     Opt<DocLink> getResolved(
         sem::SemId                  node,
         Opt<DocSubtree::Ptr> const& parent);
+
+    Opt<Node> getParentNode(sem::SemId node) const;
 
 
     struct VertexProp {
@@ -176,7 +196,9 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
             InternallyRefers,
             RefersTo,
             PlacedIn);
-        Data data;
+
+        Data       data;
+        sem::SemId location = sem::SemId::Nil();
     };
 
     struct GraphProp {};
@@ -196,7 +218,14 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
         Graph>::type;
     using EdgeBundledType = typename boost::edge_bundle_type<Graph>::type;
 
-    Graph   toGraph();
+    UnorderedMap<sem::SemId, VertDesc> subtreeNodes;
+    UnorderedMap<sem::SemId, VertDesc> entryNodes;
+    Graph                              graph;
+
+    VertDesc      getVertex(CR<DocLink> link) const;
+    Opt<VertDesc> getVertex(sem::SemId id) const;
+
+    Graph&  toGraph();
     QString toGraphML(CR<Graph>);
     QString toGraphviz(CR<Graph>);
 
@@ -204,10 +233,9 @@ struct ExporterMindMap : public Exporter<ExporterMindMap, std::monostate> {
     /// to the original data structure
     json toJsonTree();
     json toJsonGraph();
-    json toJsonGraph(CR<Graph> g);
-    json toJsonGraphNode(CR<Graph> g, CR<VertDesc> n);
-    json toJsonGraphEdge(CR<Graph> g, CR<EdgeDesc> e);
-    int  edgeOutIndex(CR<Graph> g, CR<EdgeDesc> e);
+    json toJsonGraphNode(CR<VertDesc> n);
+    json toJsonGraphEdge(CR<EdgeDesc> e);
+    int  edgeOutIndex(CR<EdgeDesc> e);
 
     QString getId(VertexProp const& prop);
     QString getId(sem::SemId id);

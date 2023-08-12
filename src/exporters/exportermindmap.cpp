@@ -5,12 +5,8 @@
 #include <boost/graph/graphviz.hpp>
 #include <exporters/ExporterJson.hpp>
 
-int ExporterMindMap::DocEntry::counter   = 0;
-int ExporterMindMap::DocSubtree::counter = 0;
-
 using osk = OrgSemKind;
 using namespace boost;
-
 
 void ExporterMindMap::eachSubtree(
     DocSubtree::Ptr             startRoot,
@@ -73,6 +69,7 @@ void ExporterMindMap::visitSubtree(
                         res->outgoing.push_back(DocLink{
                             .description = it,
                             .parent      = top,
+                            .location    = it,
                         });
                     }
                 } else {
@@ -207,7 +204,7 @@ Opt<ExporterMindMap::DocLink> ExporterMindMap::getResolved(
 
         auto resolve = doc->resolve(node);
         if (resolve) {
-            auto                 id      = resolve.value();
+            sem::SemId           id      = resolve.value();
             Opt<DocEntry::Ptr>   entry   = entriesOut.get(id);
             Opt<DocSubtree::Ptr> subtree = subtreesOut.get(id);
 
@@ -216,32 +213,70 @@ Opt<ExporterMindMap::DocLink> ExporterMindMap::getResolved(
                 // issue diagnostic message in case of duplicates
                 return DocLink{
                     .parent   = parent,
-                    .resolved = DocLink::Entry{.entry = entry.value()}};
+                    .resolved = Node{entry.value()},
+                    .location = node,
+                };
             }
 
             if (subtree) {
                 return DocLink{
                     .parent   = parent,
-                    .resolved = DocLink::Subtree{
-                        .subtree = subtree.value()}};
+                    .resolved = Node{subtree.value()},
+                    .location = node,
+                };
             }
         }
     }
     return std::nullopt;
 }
 
+Opt<ExporterMindMap::Node> ExporterMindMap::getParentNode(
+    sem::SemId node) const {
+    for (sem::SemId parent : node.getParentChain(true)) {
+        if (entriesOut.contains(parent)) {
+            return Node(entriesOut.at(parent));
+        } else if (subtreesOut.contains(parent)) {
+            return Node(subtreesOut.at(parent));
+        }
+    }
+
+    return std::nullopt;
+}
+
+ExporterMindMap::VertDesc ExporterMindMap::getVertex(
+    CR<DocLink> link) const {
+    if (link.isEntry()) {
+        return entryNodes.at(link.getEntry().entry->content);
+    } else {
+        return subtreeNodes.at(link.getSubtree().subtree->original);
+    }
+}
+
+Opt<ExporterMindMap::VertDesc> ExporterMindMap::getVertex(
+    sem::SemId id) const {
+    if (entryNodes.contains(id)) {
+        return entryNodes.at(id);
+    } else if (subtreeNodes.contains(id)) {
+        return subtreeNodes.at(id);
+    } else {
+        return std::nullopt;
+    }
+}
+
 using namespace boost;
 
 
-ExporterMindMap::Graph ExporterMindMap::toGraph() {
-    Graph result;
+ExporterMindMap::Graph& ExporterMindMap::toGraph() {
+    graph.clear();
+    subtreeNodes.clear();
+    entryNodes.clear();
 
     auto auxEntry = [&](CR<DocEntry::Ptr> entry,
                         Opt<int>          idx) -> VertDesc {
         return add_vertex(
             VertexProp{
                 .data = VertexProp::Entry{.entry = entry, .order = idx}},
-            result);
+            graph);
     };
 
     Func<VertDesc(CR<DocSubtree::Ptr>)> auxSubtree;
@@ -250,7 +285,7 @@ ExporterMindMap::Graph ExporterMindMap::toGraph() {
     auxSubtree = [&](CR<DocSubtree::Ptr> tree) -> VertDesc {
         VertDesc desc = add_vertex(
             VertexProp{.data = VertexProp::Subtree{.subtree = tree}},
-            result);
+            graph);
 
         for (const auto& sub : tree->subtrees) {
             VertDesc nested = auxSubtree(sub);
@@ -258,7 +293,7 @@ ExporterMindMap::Graph ExporterMindMap::toGraph() {
                 desc,
                 nested,
                 EdgeProp{.data = EdgeProp::NestedIn{}},
-                result);
+                graph);
         }
 
         for (const auto& [idx, sub] : enumerate(tree->ordered)) {
@@ -267,7 +302,7 @@ ExporterMindMap::Graph ExporterMindMap::toGraph() {
                 desc,
                 entry,
                 EdgeProp{.data = EdgeProp::PlacedIn{}},
-                result);
+                graph);
         }
 
         for (const auto& sub : tree->unordered) {
@@ -276,7 +311,7 @@ ExporterMindMap::Graph ExporterMindMap::toGraph() {
                 desc,
                 entry,
                 EdgeProp{.data = EdgeProp::PlacedIn{}},
-                result);
+                graph);
         }
 
 
@@ -286,82 +321,81 @@ ExporterMindMap::Graph ExporterMindMap::toGraph() {
 
     auxSubtree(root);
 
-    UnorderedMap<int, VertDesc> subtreeNodes;
-    UnorderedMap<int, VertDesc> entryNodes;
-
-    for (auto vp = vertices(result); vp.first != vp.second; ++vp.first) {
-        VertexProp const& prop = result[*vp.first];
+    for (auto vp = vertices(graph); vp.first != vp.second; ++vp.first) {
+        VertexProp const& prop = graph[*vp.first];
         if (prop.getKind() == VertexProp::Kind::Entry) {
-            entryNodes[prop.getEntry().entry->id] = *vp.first;
+            entryNodes[prop.getEntry().entry->content] = *vp.first;
         } else {
-            subtreeNodes[prop.getSubtree().subtree->id] = *vp.first;
+            subtreeNodes[prop.getSubtree().subtree->original] = *vp.first;
         }
     }
 
-    auto getVertex = overloaded{[&](CR<DocLink> link) {
-        if (link.getKind() == DocLink::Kind::Entry) {
-            return entryNodes[link.getEntry().entry->id];
-        } else {
-            return subtreeNodes[link.getSubtree().subtree->id];
-        }
-    }};
-
     auto addEdge =
         [&](VertDesc desc, CR<DocLink> link, CR<EdgeProp> prop) {
-            add_edge(desc, getVertex(link), prop, result);
+            add_edge(desc, getVertex(link), prop, graph);
         };
 
     auto addLink = [&](VertDesc desc, CR<DocLink> link) {
-        if (link.getKind() == DocLink::Kind::Entry) {
+        if (link.isEntry()) {
             addEdge(
                 desc,
                 link,
-                EdgeProp{.data = EdgeProp::RefersTo{.target = link}});
+                EdgeProp{
+                    .location = link.location,
+                    .data     = EdgeProp::RefersTo{.target = link}});
         } else {
             addEdge(
                 desc,
                 link,
-                EdgeProp{.data = EdgeProp::RefersTo{.target = link}});
+                EdgeProp{
+                    .location = link.location,
+                    .data     = EdgeProp::RefersTo{.target = link}});
         }
     };
 
     eachEntry(
         root, [&](DocEntry::Ptr entry, DocSubtree::Ptr const& parent) {
             for (const auto& out : entry->outgoing) {
-                addLink(entryNodes[entry->id], out);
+                addLink(entryNodes[entry->content], out);
             }
         });
 
     eachSubtree(root, [&](DocSubtree::Ptr subtree) {
-        auto const& id = subtreeNodes[subtree->id];
+        auto const& id = subtreeNodes[subtree->original];
         for (const auto& out : subtree->outgoing) {
             addLink(id, out);
         }
 
         for (const auto& out : subtree->ordered) {
             for (DocLink const& link : out->outgoing) {
-                if (link.getKind() == DocLink::Kind::Subtree) {
+                if (link.isSubtree()) {
                     addEdge(
                         id,
                         link,
-                        EdgeProp{.data = EdgeProp::InternallyRefers{}});
+                        EdgeProp{
+                            .data     = EdgeProp::InternallyRefers{},
+                            .location = link.location,
+                        });
                 }
             }
         }
 
         for (auto const& out : subtree->unordered) {
             for (DocLink const& link : out->outgoing) {
-                if (link.getKind() == DocLink::Kind::Subtree) {
+                if (link.isSubtree()) {
                     addEdge(
                         id,
                         link,
-                        EdgeProp{.data = EdgeProp::InternallyRefers{}});
+                        EdgeProp{
+                            .data     = EdgeProp::InternallyRefers{},
+                            .location = link.location,
+                        });
                 }
             }
         }
     });
 
-    return result;
+    return graph;
 }
 
 QString ExporterMindMap::toGraphML(CR<Graph> graph) { return ""; }
@@ -423,22 +457,18 @@ QString ExporterMindMap::toGraphviz(CR<Graph> graph) {
 }
 
 json ExporterMindMap::toJsonGraph() {
-    Graph g = toGraph();
-    return toJsonGraph(g);
-}
-
-json ExporterMindMap::toJsonGraph(CR<Graph> g) {
-    json nodes = json::object();
-    json edges = json::array();
+    Graph const& g     = graph;
+    json         nodes = json::object();
+    json         edges = json::array();
 
     auto vertexId = [&](VertDesc v) { return getId(g[v]); };
 
     for (auto [it, it_end] = boost::edges(g); it != it_end; ++it) {
-        edges.push_back(toJsonGraphEdge(g, *it));
+        edges.push_back(toJsonGraphEdge(*it));
     }
 
     for (auto [it, it_end] = boost::vertices(g); it != it_end; ++it) {
-        nodes[vertexId(*it).toStdString()] = toJsonGraphNode(g, *it);
+        nodes[vertexId(*it).toStdString()] = toJsonGraphNode(*it);
     }
 
     json result        = json::object();
@@ -449,11 +479,13 @@ json ExporterMindMap::toJsonGraph(CR<Graph> g) {
     return result;
 }
 
-json ExporterMindMap::toJsonGraphNode(CR<Graph> g, CR<VertDesc> n) {
-    json node    = json::object();
-    json meta    = json::object();
-    meta["kind"] = to_string(g[n].getKind());
-    meta["id"]   = getId(g[n]);
+json ExporterMindMap::toJsonGraphNode(CR<VertDesc> n) {
+    Graph const& g    = graph;
+    json         node = json::object();
+    json         meta = json::object();
+    meta["kind"]      = to_string(g[n].getKind());
+    meta["id"]        = getId(g[n]);
+
     switch (g[n].getKind()) {
         case VertexProp::Kind::Subtree: {
             auto tree = g[n].getSubtree();
@@ -543,7 +575,8 @@ json ExporterMindMap::toJsonGraphNode(CR<Graph> g, CR<VertDesc> n) {
     return node;
 }
 
-json ExporterMindMap::toJsonGraphEdge(CR<Graph> g, CR<EdgeDesc> e) {
+json ExporterMindMap::toJsonGraphEdge(CR<EdgeDesc> e) {
+    Graph const&    g    = graph;
     json            res  = json::object();
     EdgeProp const& edge = g[e];
     res["source"]        = getId(g[source(e, g)]);
@@ -557,13 +590,14 @@ json ExporterMindMap::toJsonGraphEdge(CR<Graph> g, CR<EdgeDesc> e) {
             edge.getRefersTo().target.description.value());
     }
 
-    meta["out_index"] = edgeOutIndex(g, e);
+    meta["out_index"] = edgeOutIndex(e);
     res["metadata"]   = meta;
     return res;
 }
 
-int ExporterMindMap::edgeOutIndex(CR<Graph> g, CR<EdgeDesc> e) {
-    int idx = 0;
+int ExporterMindMap::edgeOutIndex(CR<EdgeDesc> e) {
+    Graph const& g   = graph;
+    int          idx = 0;
     for (auto [it, it_end] = boost::out_edges(source(e, g), g);
          it != it_end;
          ++it) {
@@ -599,9 +633,8 @@ QString ExporterMindMap::getId(const DocSubtree::Ptr& entry) {
 
 QString ExporterMindMap::getId(const DocLink& link) {
     switch (link.getKind()) {
-        case DocLink::Kind::Entry: return getId(link.getEntry().entry);
-        case DocLink::Kind::Subtree:
-            return getId(link.getSubtree().subtree);
+        case Node::Kind::Entry: return getId(link.getEntry().entry);
+        case Node::Kind::Subtree: return getId(link.getSubtree().subtree);
     }
 }
 
@@ -623,14 +656,33 @@ ExporterMindMap::MindMapJsonExporter ExporterMindMap::getJsonExporter() {
         }
 
         if (id.is(osk::Link)) {
-            auto parent = id->getParentSubtree();
+            Opt<Node> owner  = getParentNode(id);
+            auto      parent = id->getParentSubtree();
 
             Opt<DocLink> resolved = getResolved(
                 id,
                 parent ? subtreesOut.get(parent.value()) : std::nullopt);
 
             if (resolved) {
+                DocLink const& link   = resolved.value();
+                json           target = json::object();
+
                 map["target"] = getId(resolved.value());
+                if (owner) {
+                    int idx = 0;
+                    for (auto [it, it_end] = boost::out_edges(
+                             getVertex(owner->getOrgNode()).value(),
+                             graph);
+                         it != it_end;
+                         ++it) {
+                        if (graph[*it].location == id) {
+                            map["out_index"] = idx;
+                            break;
+                        }
+                        ++idx;
+                    }
+                    map["source"] = getId(owner->getOrgNode());
+                }
             }
         }
 
@@ -646,7 +698,7 @@ json ExporterMindMap::toJsonTree() {
     auto exportLink = [](DocLink const& link) -> json {
         json res    = json::object();
         res["kind"] = to_string(link.getKind());
-        if (link.getKind() == DocLink::Kind::Entry) {
+        if (link.isEntry()) {
             res["entry"] = link.getEntry().entry->content.id;
         } else {
             res["subtree"] = link.getSubtree().subtree->original.id;
@@ -706,6 +758,15 @@ json ExporterMindMap::toJsonTree() {
 
     return aux(root);
 }
+
+sem::SemId ExporterMindMap::Node::getOrgNode() const {
+    if (this->isEntry()) {
+        return getEntry().entry->content;
+    } else {
+        return getSubtree().subtree->original;
+    }
+}
+
 
 #include <exporters/Exporter.cpp>
 

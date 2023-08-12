@@ -549,11 +549,11 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
         ER::JsonGraph          result;
 
         for (auto [it, it_end] = boost::edges(g); it != it_end; ++it) {
-            result.edges.push_back(run.toJsonGraphEdge(g, *it));
+            result.edges.push_back(run.toJsonGraphEdge(*it));
         }
 
         for (auto [it, it_end] = boost::vertices(g); it != it_end; ++it) {
-            result.nodes.push_back(run.toJsonGraphNode(g, *it));
+            result.nodes.push_back(run.toJsonGraphNode(*it));
         }
 
         if (exp.print) {

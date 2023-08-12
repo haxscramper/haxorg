@@ -1042,6 +1042,7 @@ void HaxorgCli::exec() {
             __trace("Mind map exporter");
             ExporterMindMap exporter;
             exporter.visitTop(node);
+            exporter.toGraph();
             writeFile(
                 QFileInfo("/tmp/mindmap.json"_qs),
                 QString::fromStdString(to_compact_json(
