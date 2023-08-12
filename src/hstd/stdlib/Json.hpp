@@ -24,6 +24,16 @@ QString      to_string(json const& j);
 QDebug       operator<<(QDebug os, json const& value);
 QTextStream& operator<<(QTextStream& os, json const& value);
 
+struct JsonFormatOptions {
+    int width       = 80;
+    int indent      = 2;
+    int startIndent = 0;
+};
+
+std::string to_compact_json(
+    json const&              j,
+    JsonFormatOptions const& options = JsonFormatOptions{});
+
 template <typename T>
 concept DescribedMembers = boost::describe::has_describe_members<T>::value;
 

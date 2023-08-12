@@ -556,14 +556,18 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
             if (!result.nodes.empty()) {
                 stream << "nodes:\n";
                 for (auto const& node : result.nodes) {
-                    stream << "  - " << node.dump() << "\n";
+                    stream << "  - "
+                           << to_compact_json(node, {.startIndent = 4})
+                           << "\n";
                 }
             }
 
             if (!result.edges.empty()) {
                 stream << "edges:\n";
                 for (auto const& edge : result.edges) {
-                    stream << "  - " << edge.dump() << "\n";
+                    stream << "  - "
+                           << to_compact_json(edge, {.startIndent = 4})
+                           << "\n";
                 }
             }
 
