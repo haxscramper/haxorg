@@ -121,8 +121,36 @@ struct ExporterNLP : public Exporter<ExporterNLP, std::monostate> {
 
     QUrl                         requestUrl;
     Vec<Pair<Request, Response>> exchange;
-    ExporterNLP(QUrl const& resp) : requestUrl(resp) {}
+    ExporterNLP(QUrl const& resp);
     void executeRequests();
+    void waitForRequests();
+
+  private:
+    int pendingRequests = 0;
+
+  public:
+    Opt<Request> activeRequest;
+
+    void asSeparateRequest(R&, sem::SemId par);
+    void visitParagraph(R& t, sem::SemIdT<sem::Paragraph> par) {
+        asSeparateRequest(t, par.toId());
+    }
+
+#define __visit(__Kind)                                                   \
+    void visit##__Kind(R& res, In<sem::__Kind> leaf) {                    \
+        if (activeRequest) {                                              \
+            activeRequest->sentence.text.push_back(                       \
+                OrgText::Word{.text = leaf->text, .id = leaf.toId()});    \
+        }                                                                 \
+    }
+
+    __visit(Word);
+    __visit(Space);
+    __visit(Punctuation);
+    __visit(BigIdent);
+    __visit(Placeholder);
+    __visit(RawText);
+    __visit(Newline);
 
   private:
     QNetworkAccessManager* netManager = nullptr;

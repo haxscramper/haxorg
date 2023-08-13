@@ -1056,6 +1056,7 @@ void HaxorgCli::exec() {
             ExporterNLP nlp{QUrl("http://localhost:9000")};
             nlp.visitTop(node);
             nlp.executeRequests();
+            nlp.waitForRequests();
             qDebug() << "Finished NLP requester execution";
         }
 

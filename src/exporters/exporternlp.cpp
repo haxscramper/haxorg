@@ -7,6 +7,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QLoggingCategory>
+#include <QThread>
 
 #include <exporters/Exporter.cpp>
 
@@ -70,19 +71,52 @@ ExporterNLP::Parsed::Constituency ExporterNLP::Parsed::Constituency::parse(
     return result;
 }
 
+ExporterNLP::ExporterNLP(const QUrl& resp) : requestUrl(resp) {
+    QUrlQuery     query{};
+    QJsonDocument parameters;
+
+    QJsonObject obj;
+    netManager        = new QNetworkAccessManager();
+    obj["annotators"] = QStringList({"tokenize", "ssplit", "pos", "parse"})
+                            .join(", ");
+    obj["outputFormat"] = "json";
+    parameters.setObject(obj);
+
+    query.addQueryItem(
+        "properties", parameters.toJson(QJsonDocument::Compact));
+
+    requestUrl.setQuery(query);
+}
+
 void ExporterNLP::executeRequests() {
     for (int i = 0; i < exchange.size(); ++i) {
         sendRequest(exchange.at(i).first, i);
     }
 }
 
-void ExporterNLP::sendRequest(const Request& request, int index) {
-    if (netManager == nullptr) {
-        netManager = new QNetworkAccessManager();
+void ExporterNLP::waitForRequests() {
+    while (0 < pendingRequests) {
+        qCDebug(nlp) << "Waiting for pending requests" << pendingRequests
+                     << "left";
+        QThread::msleep(250);
     }
+}
 
+void ExporterNLP::asSeparateRequest(R& t, sem::SemId par) {
+    qDebug() << "Visiting paragraph in text";
+    activeRequest = Request{};
+    for (auto const& sub : par->subnodes) {
+        visit(t, sub);
+    }
+    qDebug() << "Finished paragraph visit with"
+             << activeRequest->sentence.text.size() << "active tokens";
+    exchange.push_back({std::move(activeRequest.value()), Response{}});
+    activeRequest = std::nullopt;
+}
+
+void ExporterNLP::sendRequest(const Request& request, int index) {
     QNetworkRequest netRequest{requestUrl};
-
+    netRequest.setTransferTimeout(5000);
 
     QString data;
     for (const auto& word : request.sentence.text) {
@@ -92,7 +126,11 @@ void ExporterNLP::sendRequest(const Request& request, int index) {
     netRequest.setHeader(
         QNetworkRequest::ContentTypeHeader,
         "application/x-www-form-urlencoded");
+    qCDebug(nlp) << "Sending request to" << requestUrl << "with data"
+                 << data.toUtf8();
     QNetworkReply* reply = netManager->post(netRequest, data.toUtf8());
+    ++pendingRequests;
+    Q_CHECK_PTR(reply);
     reply->setProperty("exchange-index", QVariant::fromValue(index));
     addRequestHooks(reply);
 }
@@ -100,24 +138,30 @@ void ExporterNLP::sendRequest(const Request& request, int index) {
 void ExporterNLP::addRequestHooks(QNetworkReply* reply) {
     QObject::connect(reply, &QNetworkReply::finished, [reply, this]() {
         this->onFinishedResponse(reply);
+        --pendingRequests;
     });
 
     QObject::connect(
         reply,
         &QNetworkReply::errorOccurred,
-        [](const QNetworkReply::NetworkError& error) {
+        [this](const QNetworkReply::NetworkError& error) {
             qCWarning(nlp) << "Response had error ";
+            --pendingRequests;
         });
 
     QObject::connect(
         reply,
         &QNetworkReply::sslErrors,
-        [](const QList<QSslError>& errors) {
+        [this](const QList<QSslError>& errors) {
             qCWarning(nlp) << "Response had error " << errors;
+            --pendingRequests;
         });
+
+    qCDebug(nlp) << "Added response hooks";
 }
 
 void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
+    qDebug() << "Finished NLP response trigger";
     if (reply->error()) {
         qCWarning(nlp) << "Failed to execute reply";
         //        qCWarning(nlp) << reply->error();

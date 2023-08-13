@@ -30,12 +30,11 @@ struct QOptionsConfig {
     } trace;
 };
 
-bool parseArgs(int argc, char** argv, HaxorgCli::Config& config) {
-    QCoreApplication app(argc, argv);
-    QCoreApplication::setApplicationName("MyApp");
-    QCoreApplication::setApplicationVersion("1.0");
-
-
+bool parseArgs(
+    QCoreApplication&  app,
+    int                argc,
+    char**             argv,
+    HaxorgCli::Config& config) {
     QOptionsConfig opts {
         .target = QCommandLineOption("export", "Export format target " +
                                      join(", ", enumerator_names<HaxorgCli::Config::Target>())),
@@ -184,6 +183,10 @@ QTextStream& operator<<(QTextStream& os, QFileInfo const& fi) {
 }
 
 int main(int argc, char** argv) {
+    QCoreApplication app(argc, argv);
+    QCoreApplication::setApplicationName("MyApp");
+    QCoreApplication::setApplicationVersion("1.0");
+
     g_log_set_handler(
         NULL,
         (GLogLevelFlags)(G_LOG_LEVEL_WARNING | G_LOG_LEVEL_CRITICAL),
@@ -219,7 +222,7 @@ int main(int argc, char** argv) {
     QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
 
     HaxorgCli cli{};
-    if (!parseArgs(argc, argv, cli.config)) {
+    if (!parseArgs(app, argc, argv, cli.config)) {
         return 1;
     }
 
