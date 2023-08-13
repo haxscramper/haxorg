@@ -79,7 +79,9 @@ class OrgNode:
         return res
 
     def is_leaf(self) -> bool:
-        return 0 < len(self.text) or self.kind in ["Link"]
+        return (
+            0 < len(self.text) and isinstance(self.text, str)
+        ) or self.kind in ["Link"]
 
     def get_link_description(self) -> Optional["OrgNode"]:
         return (
@@ -116,6 +118,9 @@ class OrgNode:
         result: List["OrgNode"] = []
         if self.is_leaf():
             result.append(self)
+
+        elif self.kind == "Caption":
+            result = OrgNode.from_dict(self.text).flatten()
 
         else:
             for sub in self.subnodes:
@@ -184,7 +189,7 @@ def format_node(
     lines: List[str] = []
     line: List[OrgNode]
 
-    ROW_LINKS = False
+    ROW_LINKS = True
 
     def wrap(node, tag):
         result = soup.new_tag(tag)
@@ -196,7 +201,12 @@ def format_node(
         node.append(result)
         return result
 
-    for idx, line in enumerate(meta.content.flat_wrap(40)):
+    MAX_ROWS = 30
+
+    for idx, line in enumerate(meta.content.flat_wrap(80)):
+        if MAX_ROWS < idx:
+            break
+
         tokens = []
         for wordIdx, node in enumerate(line):
             if ROW_LINKS:
@@ -213,30 +223,37 @@ def format_node(
                     td["PORT"] = port
                     tokens.append(td)
 
-                lmap = node.extra["map"]
-                entry_links.add(
-                    (
-                        lmap["source"],
-                        lmap["out_index"],
-                        lmap["target"],
+                if "map" in node.extra:
+                    lmap = node.extra["map"]
+                    entry_links.add(
+                        (
+                            lmap["source"],
+                            lmap["out_index"],
+                            lmap["target"],
+                        )
                     )
-                )
 
-                dot.edge(
-                    lmap["source"] + ":" + port + (":e" if ROW_LINKS else ""),
-                    lmap["target"],
-                    **(
-                        {"arrowtail": "box", "dir": "both"}
-                        if ROW_LINKS
-                        else {}
-                    ),
-                )
+                    dot.edge(
+                        lmap["source"]
+                        + ":"
+                        + port
+                        + (":e" if ROW_LINKS else ""),
+                        lmap["target"],
+                        **(
+                            {"arrowtail": "box", "dir": "both"}
+                            if ROW_LINKS
+                            else {}
+                        ),
+                    )
 
             else:
                 if not ROW_LINKS:
                     td = soup.new_tag("td")
                     td.string = node.flat_text()
                     tokens.append(td)
+
+        if 0 == len(tokens):
+            return ""
 
         if ROW_LINKS:
             tr = soup.new_tag("tr")
@@ -298,6 +315,8 @@ def export_dot(file: str):
     dot.attr("graph", rankdir="LR")
     dot.attr("node", shape="rect", font="Iosevka")
     dot.format = "png"
+    dot.engine = "neato"
+    dot.attr("graph", overlap="false", concentrate="true")
 
     def rec_node(res: gv.Digraph, node: Node):
         meta: NodeMetadata = node.metadata
@@ -318,8 +337,15 @@ def export_dot(file: str):
                 for nested in meta.nested:
                     rec_node(cluster, graph.nodes[nested])
 
+    nested: Set[str] = set()
+    for _, node in graph.nodes.items():
+        if node.metadata.kind == "Subtree":
+            for item in node.metadata.nested:
+                nested.add(item)
+
     for key, node in graph.nodes.items():
-        rec_node(dot, node)
+        if key not in nested:
+            rec_node(dot, node)
 
     for edge in graph.edges:
         if edge.metadata.kind not in ["NestedIn", "InternallyRefers"]:
