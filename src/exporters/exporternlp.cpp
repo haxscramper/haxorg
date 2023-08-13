@@ -8,6 +8,7 @@
 #include <QJsonArray>
 #include <QLoggingCategory>
 #include <QThread>
+#include <hstd/stdlib/Json.hpp>
 
 #include <exporters/Exporter.cpp>
 
@@ -185,6 +186,68 @@ void ExporterNLP::addRequestHooks(QNetworkReply* reply) {
     qCDebug(nlp) << "Added response hooks";
 }
 
+
+template <DescribedRecord T>
+static void to_json(json& j, const T& str) {
+    using Bd = boost::describe::
+        describe_bases<T, boost::describe::mod_any_access>;
+    using Md = boost::describe::
+        describe_members<T, boost::describe::mod_any_access>;
+
+    if (!j.is_object()) {
+        j = json::object();
+    }
+    boost::mp11::mp_for_each<Md>(
+        [&](auto const& field) { j[field.name] = str.*field.pointer; });
+
+    boost::mp11::mp_for_each<Bd>([&](auto Base) {
+        Node res = ::nlohmann::adl_serializer<
+            typename decltype(Base)::type>::to_json(j, str);
+    });
+}
+
+template <DescribedRecord T>
+void from_json(const json& in, T& out) {
+    using Bd = boost::describe::
+        describe_bases<T, boost::describe::mod_any_access>;
+    using Md = boost::describe::
+        describe_members<T, boost::describe::mod_any_access>;
+    boost::mp11::mp_for_each<Md>([&](auto const& field) {
+        ::nlohmann::adl_serializer<decltype(field)>::from_json(
+            in[field.name], out.*field.pointer);
+    });
+
+    boost::mp11::mp_for_each<Bd>([&](auto Base) {
+        ::nlohmann::adl_serializer<typename decltype(Base)::type>::decode(
+            in, out);
+    });
+}
+
+void from_json(const json& in, QString& out) {
+    out = QString::fromStdString(in.get<std::string>());
+}
+
+// template <typename T>
+// void to_json(json& j, const Vec<T>& str) {
+//     j = json::array();
+//     for (auto const& it : str) {
+//         json tmp;
+//         ::nlohmann::adl_serializer<T>::to_json(tmp, it);
+//         j.push_back(tmp);
+//     }
+// }
+
+
+template <typename T>
+void from_json(const json& in, Vec<T>& out) {
+    for (auto const& j : in) {
+        T tmp;
+        ::nlohmann::adl_serializer<T>::from_json(j, tmp);
+        out.push_back(tmp);
+    }
+}
+
+
 void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
     qDebug() << "Finished NLP response trigger";
     if (reply->error()) {
@@ -198,22 +261,24 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
         //        emit checked({.valid = false});
 
     } else {
-        auto json        = QJsonDocument::fromJson(reply->readAll());
-        auto obj         = json.object();
-        int  targetIndex = reply->property("exchange-index").value<int>();
+        auto j = json::parse(reply->readAll().toStdString());
+        //        qDebug().noquote() << to_compact_json(j, {.width = 120});
+        int targetIndex = reply->property("exchange-index").value<int>();
         qCDebug(nlp) << "Got NLP server response for request"
                      << targetIndex;
         Response result{.valid = true};
-        for (const auto& sentRef : obj["sentences"].toArray()) {
-            auto   sent = sentRef.toObject();
+        for (const auto& sent : j["sentences"]) {
             Parsed parsed{};
             parsed.constituency = Parsed::Constituency::parse(
-                sent["parse"].toString());
+                QString::fromStdString(sent["parse"].get<std::string>()));
+
             qCDebug(nlp).noquote().nospace()
                 << "\n"
                 << parsed.constituency.treeRepr();
 
             result.sentences.push_back(parsed);
+
+            from_json(sent["tokens"], parsed.tokens);
         }
 
         exchange.at(targetIndex).second = result;

@@ -16,6 +16,19 @@ namespace ns = nlohmann;
 
 extern template class nlohmann::basic_json<>;
 
+namespace nlohmann {
+template <>
+struct adl_serializer<QString> {
+    static void to_json(json& j, const QString& str) {
+        j = str.toStdString();
+    }
+
+    static void from_json(const json& in, QString& out) {
+        out = QString::fromStdString(in.get<std::string>());
+    }
+};
+} // namespace nlohmann
+
 void to_json(json& j, int i);
 void to_json(json& j, CR<QString> str);
 void to_json(json& j, CR<Str> str);

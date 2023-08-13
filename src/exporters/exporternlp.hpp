@@ -73,9 +73,6 @@ class ExporterNLP
     };
 
     struct Parsed {
-        OrgText original;
-        int     posStart;
-        int     posEnd;
         struct Constituency {
             QString           tag;
             QString           lexem;
@@ -99,7 +96,6 @@ class ExporterNLP
             static Constituency parse(lexer& lex);
         };
 
-        Constituency constituency;
 
         struct Dependency {
             DECL_FIELDS(
@@ -137,8 +133,12 @@ class ExporterNLP
                 ((QString), after, ""));
         };
 
-        Sentence   sentence;
-        Vec<Token> tokens;
+        OrgText      original;
+        int          posStart;
+        int          posEnd;
+        Constituency constituency;
+        Sentence     sentence;
+        Vec<Token>   tokens;
     };
 
     struct Request {
@@ -153,8 +153,7 @@ class ExporterNLP
             ((Vec<Parsed>), sentences, {}),
             ((Parsed::Sentence), original, Parsed::Sentence{}),
             ((int), posStart, 0),
-            ((int), posEnd, 0)
-        );
+            ((int), posEnd, 0));
     };
 
     QUrl                         requestUrl;
