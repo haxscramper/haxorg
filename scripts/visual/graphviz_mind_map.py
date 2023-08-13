@@ -9,6 +9,7 @@ import logging
 from rich.logging import RichHandler
 from typing import *
 from pprint import pprint
+from bs4 import BeautifulSoup
 
 logging.basicConfig(
     level="NOTSET",
@@ -98,7 +99,7 @@ class OrgNode:
                     return "LINK"
 
             case _:
-                return self.text
+                return "".join([node.text for node in self.flatten()])
 
     def width(self) -> int:
         if 0 < len(self.flat_text()):
@@ -170,6 +171,114 @@ class Graph:
     nodes: Dict[str, Node]
 
 
+def format_node(
+    dot: gv.Digraph, node: Node, entry_links: Set[Tuple[str, int, str]]
+) -> str:
+    soup = BeautifulSoup("<table></table>", "html.parser")
+    # soup.table["BORDER"] = 0
+    soup.table["CELLBORDER"] = 0
+    soup.table["CELLSPACING"] = 0
+    soup.table["CELLPADDING"] = 0
+
+    meta: NodeMetadata = node.metadata
+    lines: List[str] = []
+    line: List[OrgNode]
+
+    ROW_LINKS = False
+
+    def wrap(node, tag):
+        result = soup.new_tag(tag)
+        result.append(node)
+        return result
+
+    def sub(node, tag):
+        result = soup.new_tag(tag)
+        node.append(result)
+        return result
+
+    for idx, line in enumerate(meta.content.flat_wrap(40)):
+        tokens = []
+        for wordIdx, node in enumerate(line):
+            if ROW_LINKS:
+                tokens.append(node.flat_text())
+
+            if node.kind == "Link":
+                port = f"p{idx}" if ROW_LINKS else f"p{idx}_{wordIdx}"
+
+                if not ROW_LINKS:
+                    font = soup.new_tag("font")
+                    font["COLOR"] = "blue"
+                    font.string = node.flat_text()
+                    td = wrap(font, "td")
+                    td["PORT"] = port
+                    tokens.append(td)
+
+                lmap = node.extra["map"]
+                entry_links.add(
+                    (
+                        lmap["source"],
+                        lmap["out_index"],
+                        lmap["target"],
+                    )
+                )
+
+                dot.edge(
+                    lmap["source"] + ":" + port + (":e" if ROW_LINKS else ""),
+                    lmap["target"],
+                    **(
+                        {"arrowtail": "box", "dir": "both"}
+                        if ROW_LINKS
+                        else {}
+                    ),
+                )
+
+            else:
+                if not ROW_LINKS:
+                    td = soup.new_tag("td")
+                    td.string = node.flat_text()
+                    tokens.append(td)
+
+        if ROW_LINKS:
+            tr = soup.new_tag("tr")
+            td = soup.new_tag("td")
+            td["PORT"] = f"p{idx}"
+            tr.append(td)
+            td.string = "".join(tokens)
+            soup.table.append(tr)
+
+        else:
+            GRID_TEXT = False
+
+            if GRID_TEXT:
+                tr = soup.new_tag("tr")
+                for td in tokens:
+                    tr.append(td)
+
+                soup.table.append(tr)
+
+            else:
+                nested_row = soup.new_tag("tr")
+
+                for word in tokens:
+                    nested_row.append(word)
+
+                row_table = soup.new_tag("table")
+                row_table["WIDTH"] = 120
+                row_table["BORDER"] = 0
+                row_table["CELLSPACING"] = 0
+                row_table["CELLPADDING"] = 0
+                # row_table["CELLBORDER"] = 0
+                row_table.append(nested_row)
+                td = soup.new_tag("td")
+                td.append(row_table)
+                tr = soup.new_tag("tr")
+                tr.append(td)
+
+                soup.table.append(tr)
+
+    return "<\n" + str(soup) + ">"
+
+
 @dot.command("dot")
 @click.argument("file", type=click.Path())
 def export_dot(file: str):
@@ -185,6 +294,11 @@ def export_dot(file: str):
 
     entry_links: Set[Tuple[str, int, str]] = set()
 
+    dot = gv.Digraph("map")
+    dot.attr("graph", rankdir="LR")
+    dot.attr("node", shape="rect", font="Iosevka")
+    dot.format = "png"
+
     def rec_node(res: gv.Digraph, node: Node):
         meta: NodeMetadata = node.metadata
         if 0 == len(meta.nested):
@@ -192,31 +306,29 @@ def export_dot(file: str):
                 res.node(meta.nodeId, meta.title)
 
             else:
-                lines: List[str] = []
-                line: List[OrgNode]
-
-                for idx, line in enumerate(meta.content.flat_wrap(40)):
-                    text = "".join([node.flat_text() for node in line])
-                    lines.append(f"<p{idx}>{text}")
-
-                res.node(meta.nodeId, "|".join(lines), shape="record")
+                res.node(
+                    meta.nodeId,
+                    format_node(dot, node, entry_links),
+                    shape="plaintext",
+                )
 
         else:
             with res.subgraph(name="cluster_" + meta.nodeId) as cluster:
+                cluster.attr("graph", label=meta.title)
                 for nested in meta.nested:
                     rec_node(cluster, graph.nodes[nested])
-
-    dot = gv.Digraph("map")
-    dot.attr("graph", rankdir="LR")
-    dot.attr("node", shape="rect", font="Iosevka")
-    dot.format = "png"
 
     for key, node in graph.nodes.items():
         rec_node(dot, node)
 
     for edge in graph.edges:
         if edge.metadata.kind not in ["NestedIn", "InternallyRefers"]:
-            dot.edge(edge.source, edge.target)
+            if (
+                edge.source,
+                edge.metadata.out_index,
+                edge.target,
+            ) not in entry_links:
+                dot.edge(edge.source, edge.target)
 
     dot.render(directory="/tmp")
 
