@@ -15,6 +15,7 @@ template class Exporter<ExporterNLP, std::monostate>;
 
 Q_LOGGING_CATEGORY(nlp, "check.nlp");
 
+
 struct ExporterNLP::Parsed::Constituency::lexer {
     QString data;
     int     pos;
@@ -76,7 +77,10 @@ ExporterNLP::ExporterNLP(const QUrl& resp) : requestUrl(resp) {
     QJsonDocument parameters;
 
     QJsonObject obj;
-    netManager        = new QNetworkAccessManager();
+    netThread  = std::make_shared<NetworkThread>();
+    netManager = std::make_shared<QNetworkAccessManager>();
+    netManager->moveToThread(netThread.get());
+    netThread->start();
     obj["annotators"] = QStringList({"tokenize", "ssplit", "pos", "parse"})
                             .join(", ");
     obj["outputFormat"] = "json";
@@ -86,6 +90,29 @@ ExporterNLP::ExporterNLP(const QUrl& resp) : requestUrl(resp) {
         "properties", parameters.toJson(QJsonDocument::Compact));
 
     requestUrl.setQuery(query);
+
+    QObject::connect(
+        this,
+        &ExporterNLP::sendQtRequest,
+        netManager.get(),
+        [this](
+            QNetworkRequest const& request,
+            int                    index,
+            QString const&         data) {
+            QNetworkReply* reply = netManager->post(
+                request, data.toUtf8());
+            qCDebug(nlp) << "Sent Network request"
+                         << pendingRequests.load();
+            Q_CHECK_PTR(reply);
+            reply->setProperty(
+                "exchange-index", QVariant::fromValue(index));
+            addRequestHooks(reply);
+        });
+}
+
+ExporterNLP::~ExporterNLP() {
+    netThread->quit();
+    netThread->wait();
 }
 
 void ExporterNLP::executeRequests() {
@@ -95,7 +122,8 @@ void ExporterNLP::executeRequests() {
 }
 
 void ExporterNLP::waitForRequests() {
-    while (0 < pendingRequests) {
+    qDebug() << pendingRequests.load();
+    while (0 < pendingRequests.load()) {
         qCDebug(nlp) << "Waiting for pending requests" << pendingRequests
                      << "left";
         QThread::msleep(250);
@@ -128,17 +156,14 @@ void ExporterNLP::sendRequest(const Request& request, int index) {
         "application/x-www-form-urlencoded");
     qCDebug(nlp) << "Sending request to" << requestUrl << "with data"
                  << data.toUtf8();
-    QNetworkReply* reply = netManager->post(netRequest, data.toUtf8());
-    ++pendingRequests;
-    Q_CHECK_PTR(reply);
-    reply->setProperty("exchange-index", QVariant::fromValue(index));
-    addRequestHooks(reply);
+    pendingRequests.fetch_add(1);
+    emit sendQtRequest(netRequest, index, data);
 }
 
 void ExporterNLP::addRequestHooks(QNetworkReply* reply) {
     QObject::connect(reply, &QNetworkReply::finished, [reply, this]() {
         this->onFinishedResponse(reply);
-        --pendingRequests;
+        pendingRequests.fetch_sub(1);
     });
 
     QObject::connect(
@@ -146,7 +171,7 @@ void ExporterNLP::addRequestHooks(QNetworkReply* reply) {
         &QNetworkReply::errorOccurred,
         [this](const QNetworkReply::NetworkError& error) {
             qCWarning(nlp) << "Response had error ";
-            --pendingRequests;
+            pendingRequests.fetch_sub(1);
         });
 
     QObject::connect(
@@ -154,7 +179,7 @@ void ExporterNLP::addRequestHooks(QNetworkReply* reply) {
         &QNetworkReply::sslErrors,
         [this](const QList<QSslError>& errors) {
             qCWarning(nlp) << "Response had error " << errors;
-            --pendingRequests;
+            pendingRequests.fetch_sub(1);
         });
 
     qCDebug(nlp) << "Added response hooks";

@@ -1,14 +1,18 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <QTextStream>
+#include <QMutex>
 
 std::reference_wrapper<QTextStream> messageStream = qcout;
 
 void setMessageStream(QTextStream& stream) { messageStream = stream; }
 
+QMutex logMutex;
+
 void tracedMessageHandler(
     QtMsgType                 type,
     const QMessageLogContext& context,
     const QString&            msg) {
+    logMutex.lock();
     ColStream os{messageStream.get()};
 
     QString res;
@@ -29,4 +33,5 @@ void tracedMessageHandler(
     os << " " << msg;
 
     messageStream.get() << Qt::endl;
+    logMutex.unlock();
 }

@@ -1058,6 +1058,7 @@ void HaxorgCli::exec() {
             nlp.executeRequests();
             nlp.waitForRequests();
             qDebug() << "Finished NLP requester execution";
+            QThread::msleep(1200);
         }
 
         {

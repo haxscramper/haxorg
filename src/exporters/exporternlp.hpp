@@ -3,12 +3,36 @@
 #include <exporters/Exporter.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Opt.hpp>
+
+#include <QNetworkRequest>
 #include <QUrl>
+#include <QThread>
 
 class QNetworkAccessManager;
 class QNetworkReply;
 
-struct ExporterNLP : public Exporter<ExporterNLP, std::monostate> {
+class NetworkThread : public QThread {
+    Q_OBJECT
+
+  public:
+    explicit NetworkThread() {
+        connect(this, &QThread::finished, this, &QObject::deleteLater);
+    }
+
+    virtual ~NetworkThread() override = default;
+    virtual void run() override { exec(); }
+};
+
+
+class ExporterNLP
+    : public QObject
+    , public Exporter<ExporterNLP, std::monostate> {
+
+    Q_OBJECT
+
+  signals:
+    void sendQtRequest(QNetworkRequest const&, int, QString const& data);
+
   public:
 #define __ExporterBase Exporter<ExporterNLP, std::monostate>
     EXPORTER_USING()
@@ -122,11 +146,12 @@ struct ExporterNLP : public Exporter<ExporterNLP, std::monostate> {
     QUrl                         requestUrl;
     Vec<Pair<Request, Response>> exchange;
     ExporterNLP(QUrl const& resp);
+    ~ExporterNLP();
     void executeRequests();
     void waitForRequests();
 
   private:
-    int pendingRequests = 0;
+    std::atomic<int> pendingRequests = 0;
 
   public:
     Opt<Request> activeRequest;
@@ -153,7 +178,8 @@ struct ExporterNLP : public Exporter<ExporterNLP, std::monostate> {
     __visit(Newline);
 
   private:
-    QNetworkAccessManager* netManager = nullptr;
+    SPtr<QNetworkAccessManager> netManager = nullptr;
+    SPtr<NetworkThread>         netThread  = nullptr;
 
     void sendRequest(Request const& request, int index);
     void addRequestHooks(QNetworkReply* reply);
