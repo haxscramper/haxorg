@@ -38,6 +38,6 @@ target_link_libraries(haxorg PUBLIC
     perfetto
     hstd
     yaml-cpp::yaml-cpp
-    Qt6::Core Qt6::Gui)
+    Qt6::Core Qt6::Gui Qt6::Network)
 
 

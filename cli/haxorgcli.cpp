@@ -17,6 +17,7 @@
 #include <annotators/annotatorspelling.hpp>
 #include <exporters/exportersubtreestructure.hpp>
 #include <exporters/exportermindmap.hpp>
+#include <exporters/exporternlp.hpp>
 #include <hstd/wrappers/perfetto_aux.hpp>
 #include <QGuiApplication>
 #include <perfetto.h>
@@ -1048,6 +1049,14 @@ void HaxorgCli::exec() {
                 QString::fromStdString(to_compact_json(
                     exporter.toJsonGraph(), {.width = 160})));
             qDebug() << "Mind map export ok";
+        }
+
+        {
+            __trace("Exporter NLP");
+            ExporterNLP nlp{QUrl("http://localhost:9000")};
+            nlp.visitTop(node);
+            nlp.executeRequests();
+            qDebug() << "Finished NLP requester execution";
         }
 
         {

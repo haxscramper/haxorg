@@ -41,7 +41,7 @@ option(PROFILE_USE "Compile binary using profile data generation")
 
 find_package(fmt REQUIRED)
 find_package(yaml-cpp REQUIRED)
-find_package(Qt6 COMPONENTS Gui Core REQUIRED)
+find_package(Qt6 COMPONENTS Gui Core Network REQUIRED)
 
 include(target_hstd.cmake)
 include(target_codegen.cmake)
@@ -49,3 +49,4 @@ include(target_lib.cmake)
 
 include(target_tests.cmake)
 include(target_cli.cmake)
+
