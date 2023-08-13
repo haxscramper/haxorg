@@ -3,6 +3,7 @@
 #include <exporters/Exporter.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Opt.hpp>
+#include <hstd/system/macros.hpp>
 
 #include <QNetworkRequest>
 #include <QUrl>
@@ -101,30 +102,39 @@ class ExporterNLP
         Constituency constituency;
 
         struct Dependency {
-            QString dep;
-            int     governor;
-            QString governorGloss;
-            int     dependent;
-            QString dependentGloss;
+            DECL_FIELDS(
+                Dependency,
+                (),
+                ((QString), dep, ""),
+                ((int), governor, 0),
+                ((QString), governorGloss, ""),
+                ((int), dependent, 0),
+                ((QString), dependentGloss, ""));
         };
 
         struct Sentence {
-            int             index;
-            Constituency    parse;
-            Vec<Dependency> basicDependencies;
-            Vec<Dependency> enhancedDependencies;
-            Vec<Dependency> enhancedPlusPlusDependencies;
+            DECL_FIELDS(
+                Sentence,
+                (),
+                ((int), index, 0),
+                ((Constituency), parse, Constituency{}),
+                ((Vec<Dependency>), basicDependencies, {}),
+                ((Vec<Dependency>), enhancedDependencies, {}),
+                ((Vec<Dependency>), enhancedPlusPlusDependencies, {}));
         };
 
         struct Token {
-            int     index;
-            QString word;
-            QString originalText;
-            int     characterOffsetBegin;
-            int     characterOffsetEnd;
-            QString pos;
-            QString before;
-            QString after;
+            DECL_FIELDS(
+                Token,
+                (),
+                ((int), index, 0),
+                ((QString), word, ""),
+                ((QString), originalText, ""),
+                ((int), characterOffsetBegin, 0),
+                ((int), characterOffsetEnd, 0),
+                ((QString), pos, ""),
+                ((QString), before, ""),
+                ((QString), after, ""));
         };
 
         Sentence   sentence;
@@ -136,11 +146,15 @@ class ExporterNLP
     };
 
     struct Response {
-        bool             valid;
-        Vec<Parsed>      sentences;
-        Parsed::Sentence original;
-        int              posStart;
-        int              posEnd;
+        DECL_FIELDS(
+            Response,
+            (),
+            ((bool), valid, false),
+            ((Vec<Parsed>), sentences, {}),
+            ((Parsed::Sentence), original, Parsed::Sentence{}),
+            ((int), posStart, 0),
+            ((int), posEnd, 0)
+        );
     };
 
     QUrl                         requestUrl;

@@ -168,5 +168,5 @@ struct std::hash<sem::SemId> {
     }
 };
 
-#undef DECL_KIND
-#undef DECL_FIELDS
+
+

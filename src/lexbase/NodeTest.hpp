@@ -5,43 +5,8 @@
 
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/Yaml.hpp>
+#include <hstd/system/macros.hpp>
 
-
-#define __define_field_aux(first, second, third)                          \
-    __unpack_pars first second = third;
-
-#define __per_field(class_bases_bases, field) __define_field(field)
-
-#define __get_field_name_aux(a, fieldName, d) fieldName
-#define __get_field_name(_, arg) , __get_field_name_aux arg
-#define __drop_leading_comma(first, ...) __VA_ARGS__
-
-#define __define_field(arg) __define_field_aux arg
-#define __define_field_only(_, arg) __define_field_aux arg
-
-#define __pass_args_field_aux(_1, fieldname, _3) fieldname(args.fieldname),
-#define __pass_args_field(_, arg) __pass_args_field_aux arg
-
-#define EMPTY()
-
-#define DECL_FIELDS(classname, bases, ...)                                \
-    FOR_EACH_CALL_WITH_PASS(__per_field, (classname, bases), __VA_ARGS__) \
-                                                                          \
-    BOOST_DESCRIBE_CLASS(                                                 \
-        classname,                                                        \
-        bases, /* Expand teh list of fields and leave only the the name   \
-    of the field to be passed to the public members of the                \
-    boost describe */                                                     \
-        (      /* < Extra wrapping paren, __get_field_name leaves out the \
-      a,b,c,d,e list*/                                                    \
-         __drop_leading_comma EMPTY()(EXPAND(FOR_EACH_CALL_WITH_PASS(     \
-             __get_field_name,                                            \
-             () /* < Nothing to pass around */,                           \
-             __VA_ARGS__)))),                                             \
-        () /* For simplicity reasons, sem nodes have public fields and no \
-              protected/private members */                                \
-        ,                                                                 \
-        ());
 
 json toJson(CR<yaml> node);
 
