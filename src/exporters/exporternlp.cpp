@@ -426,38 +426,36 @@ QString to_string(const NLP::Rule& rule) {
     return result;
 }
 
+namespace {
+auto firstDirect(Constituency const& cst, Rule const& rule)
+    -> Opt<Constituency const*> {
+    for (const auto& sub : cst.nested) {
+        if (rule.matches(sub)) {
+            return &sub;
+        }
+    }
+    return std::nullopt;
+};
+
+auto firstIndirect(Constituency const& cst, Rule const& rule)
+    -> Opt<Constituency const*> {
+    for (const auto& sub : cst.nested) {
+        if (rule.matches(sub)) {
+            return &sub;
+        } else {
+            auto nest = firstIndirect(sub, rule);
+            if (nest) {
+                return nest;
+            }
+        }
+    }
+    return std::nullopt;
+};
+
+} // namespace
+
 bool Rule::matches(const Constituency& cst) const {
     bool result;
-
-    Func<Opt<Constituency const*>(
-        Constituency const& cst, Rule const& rule)>
-        firstIndirect;
-
-    auto firstDirect = [&](Constituency const& cst,
-                           Rule const& rule) -> Opt<Constituency const*> {
-        for (const auto& sub : cst.nested) {
-            if (rule.matches(sub)) {
-                return &sub;
-            }
-        }
-        return std::nullopt;
-    };
-
-    firstIndirect = [&](Constituency const& cst,
-                        Rule const& rule) -> Opt<Constituency const*> {
-        for (const auto& sub : cst.nested) {
-            if (rule.matches(sub)) {
-                return &sub;
-            } else {
-                auto nest = firstIndirect(sub, rule);
-                if (nest) {
-                    return nest;
-                }
-            }
-        }
-        return std::nullopt;
-    };
-
     switch (getKind()) {
         case Kind::Match: {
             auto const& match = getMatch();
@@ -467,9 +465,10 @@ bool Rule::matches(const Constituency& cst) const {
                 Matched,
                 Failed,
                 NotApplicable
-            } lemma
-                = State::NotApplicable,
-                tag = State::NotApplicable;
+            };
+
+            State lemma = State::NotApplicable;
+            State tag   = State::NotApplicable;
 
             if (match.lemma) {
                 lemma = match.lemma->match(cst.lexem).hasMatch()
