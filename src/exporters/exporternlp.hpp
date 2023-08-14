@@ -290,6 +290,8 @@ class ExporterNLP
     void executeRequests();
     void waitForRequests();
 
+    Vec<NLP::Constituency const*> findMatches(NLP::Rule const& rule);
+
   private:
     std::atomic<int> pendingRequests = 0;
 
@@ -328,5 +330,3 @@ class ExporterNLP
 
 QString to_string(NLP::Rule const&);
 
-
-namespace semgrex_bulder {} // namespace semgrex_bulder

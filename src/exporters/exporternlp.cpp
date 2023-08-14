@@ -549,3 +549,15 @@ bool Rule::matches(const Constituency& cst) const {
 
     return result;
 }
+
+Vec<Constituency const*> ExporterNLP::findMatches(const NLP::Rule& rule) {
+    Vec<Constituency const*> res;
+    for (auto const& [in, resp] : this->exchange) {
+        for (auto const& parsed : resp.sentences) {
+            if (rule.matches(parsed->constituency)) {
+                res.push_back(&parsed->constituency);
+            }
+        }
+    }
+    return res;
+}
