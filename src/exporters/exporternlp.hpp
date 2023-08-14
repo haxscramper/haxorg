@@ -12,21 +12,21 @@
 
 namespace NLP {
 struct Parsed;
-struct Constituency : SharedPtrApi<Constituency> {
-    Parsed*                 parent;
-    QString                 tag;
-    QString                 lexem;
-    Opt<int>                index = std::nullopt;
-    Vec<SPtr<Constituency>> nested;
-    Vec<sem::SemId>         orgIds;
+struct SenTree : SharedPtrApi<SenTree> {
+    Parsed*            parent;
+    QString            tag;
+    QString            lexem;
+    Opt<int>           index = std::nullopt;
+    Vec<SPtr<SenTree>> nested;
+    Vec<sem::SemId>    orgIds;
 
-    int                       enumerateItems(int start = 0);
-    QString                   treeRepr(int indent = 0) const;
-    static SPtr<Constituency> parse(Parsed* parent, QString const& text);
+    int                  enumerateItems(int start = 0);
+    QString              treeRepr(int indent = 0) const;
+    static SPtr<SenTree> parse(Parsed* parent, QString const& text);
 
   private:
     struct lexer;
-    static SPtr<Constituency> parse(Parsed* parsed, lexer& lex);
+    static SPtr<SenTree> parse(Parsed* parsed, lexer& lex);
 };
 
 
@@ -46,7 +46,7 @@ struct Sentence {
         Sentence,
         (),
         ((int), index, 0),
-        ((Constituency::Ptr), parse, nullptr),
+        ((SenTree::Ptr), parse, nullptr),
         ((Vec<Dependency>), basicDependencies, {}),
         ((Vec<Dependency>), enhancedDependencies, {}),
         ((Vec<Dependency>), enhancedPlusPlusDependencies, {}));
@@ -76,12 +76,12 @@ struct OrgText {
 };
 
 struct Parsed : public SharedPtrApi<Parsed> {
-    OrgText           original;
-    int               posStart;
-    int               posEnd;
-    Constituency::Ptr constituency;
-    Sentence          sentence;
-    Vec<Token>        tokens;
+    OrgText      original;
+    int          posStart;
+    int          posEnd;
+    SenTree::Ptr constituency;
+    Sentence     sentence;
+    Vec<Token>   tokens;
 };
 
 
@@ -172,7 +172,7 @@ struct Rule {
 
 
     Data data;
-    bool matches(Constituency::Ptr const& cst) const;
+    bool matches(SenTree::Ptr const& cst) const;
 
     Rule(CR<Data> data) : data(data) {}
     Rule() {}
@@ -288,7 +288,7 @@ class ExporterNLP
     void executeRequests();
     void waitForRequests();
 
-    Vec<NLP::Constituency::Ptr> findMatches(NLP::Rule const& rule);
+    Vec<NLP::SenTree::Ptr> findMatches(NLP::Rule const& rule);
 
   private:
     std::atomic<int> pendingRequests = 0;

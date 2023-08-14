@@ -20,7 +20,7 @@ Q_LOGGING_CATEGORY(nlp, "check.nlp");
 using namespace NLP;
 
 
-struct Constituency::lexer {
+struct SenTree::lexer {
     QString data;
     int     pos;
     QChar   tok() {
@@ -40,15 +40,13 @@ struct Constituency::lexer {
     }
 };
 
-SPtr<Constituency> Constituency::parse(
-    Parsed*        parent,
-    const QString& text) {
-    Constituency::lexer lex{.data = text};
+SPtr<SenTree> SenTree::parse(Parsed* parent, const QString& text) {
+    SenTree::lexer lex{.data = text};
     qCDebug(nlp).noquote() << lex.data;
     return parse(parent, lex);
 }
 
-int Constituency::enumerateItems(int start) {
+int SenTree::enumerateItems(int start) {
     if (nested.empty()) {
         this->index = start;
         ++start;
@@ -61,7 +59,7 @@ int Constituency::enumerateItems(int start) {
     return start;
 }
 
-QString Constituency::treeRepr(int indent) const {
+QString SenTree::treeRepr(int indent) const {
     auto res = QString("  ").repeated(indent);
     res.append(tag);
     if (!lexem.isEmpty()) {
@@ -84,9 +82,9 @@ QString Constituency::treeRepr(int indent) const {
     return res;
 }
 
-SPtr<Constituency> Constituency::parse(Parsed* parent, lexer& lex) {
-    Constituency::Ptr result = Constituency::shared();
-    result->parent           = parent;
+SPtr<SenTree> SenTree::parse(Parsed* parent, lexer& lex) {
+    SenTree::Ptr result = SenTree::shared();
+    result->parent      = parent;
 
     lex.space();
     lex.skip('(');
@@ -100,7 +98,7 @@ SPtr<Constituency> Constituency::parse(Parsed* parent, lexer& lex) {
     if (lex.at('(')) {
         while (!lex.at(')')) {
             lex.space();
-            result->nested.push_back(Constituency::parse(parent, lex));
+            result->nested.push_back(SenTree::parse(parent, lex));
         }
     } else {
         while (!lex.at(')')) {
@@ -310,7 +308,7 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
         Response result{.valid = true};
         for (const auto& sent : j["sentences"]) {
             auto parsed          = Parsed::shared();
-            parsed->constituency = Constituency::parse(
+            parsed->constituency = SenTree::parse(
                 parsed.get(),
                 QString::fromStdString(sent["parse"].get<std::string>()));
             parsed->constituency->enumerateItems();
@@ -334,8 +332,8 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
             rangeForId.push_back({range, word.id});
         }
 
-        Func<void(Constituency::Ptr const&)> rec;
-        rec = [&](Constituency::Ptr const& cst) {
+        Func<void(SenTree::Ptr const&)> rec;
+        rec = [&](SenTree::Ptr const& cst) {
             if (cst->index.has_value()) {
                 NLP::Token const& token = cst->parent->tokens.at(
                     cst->index.value());
@@ -431,8 +429,8 @@ QString to_string(const NLP::Rule& rule) {
 }
 
 namespace {
-auto firstDirect(Constituency::Ptr const& cst, Rule const& rule)
-    -> Opt<Constituency::Ptr> {
+auto firstDirect(SenTree::Ptr const& cst, Rule const& rule)
+    -> Opt<SenTree::Ptr> {
     for (const auto& sub : cst->nested) {
         if (rule.matches(sub)) {
             return sub;
@@ -441,8 +439,8 @@ auto firstDirect(Constituency::Ptr const& cst, Rule const& rule)
     return std::nullopt;
 };
 
-auto firstIndirect(Constituency::Ptr const& cst, Rule const& rule)
-    -> Opt<Constituency::Ptr> {
+auto firstIndirect(SenTree::Ptr const& cst, Rule const& rule)
+    -> Opt<SenTree::Ptr> {
     for (const auto& sub : cst->nested) {
         if (rule.matches(sub)) {
             return sub;
@@ -458,7 +456,7 @@ auto firstIndirect(Constituency::Ptr const& cst, Rule const& rule)
 
 } // namespace
 
-bool Rule::matches(const Constituency::Ptr& cst) const {
+bool Rule::matches(const SenTree::Ptr& cst) const {
     bool result;
     switch (getKind()) {
         case Kind::Match: {
@@ -554,8 +552,8 @@ bool Rule::matches(const Constituency::Ptr& cst) const {
     return result;
 }
 
-Vec<Constituency::Ptr> ExporterNLP::findMatches(const NLP::Rule& rule) {
-    Vec<Constituency::Ptr> res;
+Vec<SenTree::Ptr> ExporterNLP::findMatches(const NLP::Rule& rule) {
+    Vec<SenTree::Ptr> res;
     for (auto const& [in, resp] : this->exchange) {
         for (auto const& parsed : resp.sentences) {
             if (rule.matches(parsed->constituency)) {
