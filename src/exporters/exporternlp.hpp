@@ -72,28 +72,22 @@ class ExporterNLP
         Vec<Word> text;
     };
 
-    struct Parsed {
+    struct Parsed : public SharedPtrApi<Parsed> {
         struct Constituency {
+            Parsed*           parent;
             QString           tag;
             QString           lexem;
+            Opt<int>          index = std::nullopt;
             Vec<Constituency> nested;
+            Vec<sem::SemId>   orgIds;
 
-            inline QString treeRepr(int indent = 0) const {
-                auto res = QString("  ").repeated(indent);
-                res.append(QString("%1 '%2'").arg(tag).arg(lexem));
-                for (const auto& sub : nested) {
-                    res.append("\n");
-                    res.append(sub.treeRepr(indent + 1));
-                }
-
-                return res;
-            }
-
-            static Constituency parse(QString const& text);
+            int                 enumerateItems(int start = 0);
+            QString             treeRepr(int indent = 0) const;
+            static Constituency parse(Parsed* parent, QString const& text);
 
           private:
             struct lexer;
-            static Constituency parse(lexer& lex);
+            static Constituency parse(Parsed* parsed, lexer& lex);
         };
 
 
@@ -150,7 +144,7 @@ class ExporterNLP
             Response,
             (),
             ((bool), valid, false),
-            ((Vec<Parsed>), sentences, {}),
+            ((Vec<Parsed::Ptr>), sentences, {}),
             ((Parsed::Sentence), original, Parsed::Sentence{}),
             ((int), posStart, 0),
             ((int), posEnd, 0));

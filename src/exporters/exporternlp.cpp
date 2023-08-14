@@ -38,15 +38,53 @@ struct ExporterNLP::Parsed::Constituency::lexer {
 };
 
 ExporterNLP::Parsed::Constituency ExporterNLP::Parsed::Constituency::parse(
+    Parsed*        parent,
     const QString& text) {
     Parsed::Constituency::lexer lex{.data = text};
     qCDebug(nlp).noquote() << lex.data;
-    return parse(lex);
+    return parse(parent, lex);
+}
+
+int ExporterNLP::Parsed::Constituency::enumerateItems(int start) {
+    if (nested.empty()) {
+        this->index = start;
+        ++start;
+    } else {
+        for (auto& sub : nested) {
+            start = sub.enumerateItems(start);
+        }
+    }
+
+    return start;
+}
+
+QString ExporterNLP::Parsed::Constituency::treeRepr(int indent) const {
+    auto res = QString("  ").repeated(indent);
+    res.append(tag);
+    if (!lexem.isEmpty()) {
+        res += " '" + lexem + "'";
+    }
+
+    if (index) {
+        res += " @ " + QString::number(index.value());
+    }
+
+    for (auto const& id : orgIds) {
+        res += " " + id.getReadableId();
+    }
+
+    for (const auto& sub : nested) {
+        res.append("\n");
+        res.append(sub.treeRepr(indent + 1));
+    }
+
+    return res;
 }
 
 ExporterNLP::Parsed::Constituency ExporterNLP::Parsed::Constituency::parse(
-    lexer& lex) {
-    Constituency result{};
+    Parsed* parent,
+    lexer&  lex) {
+    Constituency result{.parent = parent};
     lex.space();
     lex.skip('(');
     while (lex.tok().isLetter() || lex.tok() == '-') {
@@ -59,7 +97,7 @@ ExporterNLP::Parsed::Constituency ExporterNLP::Parsed::Constituency::parse(
     if (lex.at('(')) {
         while (!lex.at(')')) {
             lex.space();
-            result.nested.push_back(Constituency::parse(lex));
+            result.nested.push_back(Constituency::parse(parent, lex));
         }
     } else {
         while (!lex.at(')')) {
@@ -262,23 +300,68 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
 
     } else {
         auto j = json::parse(reply->readAll().toStdString());
-        //        qDebug().noquote() << to_compact_json(j, {.width = 120});
+        //        qDebug().noquote() << to_compact_json(j, {.width = 240});
         int targetIndex = reply->property("exchange-index").value<int>();
         qCDebug(nlp) << "Got NLP server response for request"
                      << targetIndex;
         Response result{.valid = true};
         for (const auto& sent : j["sentences"]) {
-            Parsed parsed{};
-            parsed.constituency = Parsed::Constituency::parse(
+            auto parsed          = Parsed::shared();
+            parsed->constituency = Parsed::Constituency::parse(
+                parsed.get(),
                 QString::fromStdString(sent["parse"].get<std::string>()));
+            parsed->constituency.enumerateItems();
 
             qCDebug(nlp).noquote().nospace()
                 << "\n"
-                << parsed.constituency.treeRepr();
+                << parsed->constituency.treeRepr();
 
             result.sentences.push_back(parsed);
 
-            from_json(sent["tokens"], parsed.tokens);
+            from_json(sent["tokens"], parsed->tokens);
+        }
+
+        Vec<Pair<Slice<int>, sem::SemId>> rangeForId;
+        int                               offset = 0;
+        Request const& req = exchange.at(targetIndex).first;
+        for (auto const& word : req.sentence.text) {
+            Slice<int> range = slice1<int>(
+                offset, offset + word.text.length());
+            offset += word.text.length();
+            rangeForId.push_back({range, word.id});
+        }
+
+        Func<void(Parsed::Constituency&)> rec;
+        rec = [&](Parsed::Constituency& cst) {
+            if (cst.index.has_value()) {
+                Parsed::Token const& token = cst.parent->tokens.at(
+                    cst.index.value());
+                Slice<int> target = slice1<int>(
+                    token.characterOffsetBegin, token.characterOffsetEnd);
+                for (auto const& rng : rangeForId) {
+                    if (rng.first.contains(target)) {
+                        cst.orgIds.push_back(rng.second);
+                    }
+                }
+
+                if (cst.orgIds.empty()) {
+                    for (auto const& rng : rangeForId) {
+                        if (target.overlap(rng.first).has_value()) {
+                            cst.orgIds.push_back(rng.second);
+                        }
+                    }
+                }
+
+                qDebug().noquote() << cst.treeRepr();
+            } else {
+                for (auto& sub : cst.nested) {
+                    rec(sub);
+                }
+            }
+        };
+
+        for (auto& sent : result.sentences) {
+            rec(sent->constituency);
         }
 
         exchange.at(targetIndex).second = result;
