@@ -40,7 +40,7 @@ struct SenTree::lexer {
     }
 };
 
-SPtr<SenTree> SenTree::parse(Parsed* parent, const QString& text) {
+SPtr<SenTree> SenTree::parse(Sentence* parent, const QString& text) {
     SenTree::lexer lex{.data = text};
     qCDebug(nlp).noquote() << lex.data;
     return parse(parent, lex);
@@ -82,7 +82,7 @@ QString SenTree::treeRepr(int indent) const {
     return res;
 }
 
-SPtr<SenTree> SenTree::parse(Parsed* parent, lexer& lex) {
+SPtr<SenTree> SenTree::parse(Sentence* parent, lexer& lex) {
     SenTree::Ptr result = SenTree::shared();
     result->parent      = parent;
 
@@ -301,25 +301,49 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
 
     } else {
         auto j = json::parse(reply->readAll().toStdString());
-        //        qDebug().noquote() << to_compact_json(j, {.width = 240});
+        qDebug().noquote() << to_compact_json(j, {.width = 240});
         int targetIndex = reply->property("exchange-index").value<int>();
         qCDebug(nlp) << "Got NLP server response for request"
                      << targetIndex;
-        Response result{.valid = true};
-        for (const auto& sent : j["sentences"]) {
-            auto parsed          = Parsed::shared();
-            parsed->constituency = SenTree::parse(
-                parsed.get(),
-                QString::fromStdString(sent["parse"].get<std::string>()));
-            parsed->constituency->enumerateItems();
+        Response result{.valid = true, .parsed = Parsed::shared()};
+        for (const auto& inSent : j["sentences"]) {
+            Sentence::Ptr sent = Sentence::shared();
+            sent->parse        = SenTree::parse(
+                sent.get(),
+                QString::fromStdString(
+                    inSent["parse"].get<std::string>()));
 
-            qCDebug(nlp).noquote().nospace()
-                << "\n"
-                << parsed->constituency->treeRepr();
+            sent->parse->enumerateItems();
 
-            result.sentences.push_back(parsed);
+            qCDebug(nlp).noquote().nospace() << "\n"
+                                             << sent->parse->treeRepr();
 
-            from_json(sent["tokens"], parsed->tokens);
+            from_json(inSent["tokens"], sent->tokens);
+            from_json(
+                inSent["enhancedPlusPlusDependencies"],
+                sent->enhancedPlusPlusDependencies);
+
+            for (auto const& dep : sent->enhancedPlusPlusDependencies) {
+                if (0 < dep.governor && 0 < dep.dependent) {
+                    Opt<SenTree*> governor = sent->parse->atIndex(
+                        dep.governor - 1);
+                    Opt<SenTree*> dependent = sent->parse->atIndex(
+                        dep.dependent - 1);
+                    if (governor && dependent) {
+                        auto split             = dep.dep.split(":");
+                        (**dependent).governor = governor.value();
+                        (**governor)
+                            .depndencies.push_back(SenTree::Dep{
+                                .dependent = dependent.value(),
+                                .kind      = split[0],
+                                .sub       = 1 < split.size()
+                                               ? Opt<QString>(split[1])
+                                               : std::nullopt});
+                    }
+                }
+            }
+
+            result.parsed->sentence.push_back(sent);
         }
 
         Vec<Pair<Slice<int>, sem::SemId>> rangeForId;
@@ -361,8 +385,8 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
             }
         };
 
-        for (auto& sent : result.sentences) {
-            rec(sent->constituency);
+        for (auto& sent : result.parsed->sentence) {
+            rec(sent->parse);
         }
 
         exchange.at(targetIndex).second = result;
@@ -555,9 +579,9 @@ bool Rule::matches(const SenTree::Ptr& cst) const {
 Vec<SenTree::Ptr> ExporterNLP::findMatches(const NLP::Rule& rule) {
     Vec<SenTree::Ptr> res;
     for (auto const& [in, resp] : this->exchange) {
-        for (auto const& parsed : resp.sentences) {
-            if (rule.matches(parsed->constituency)) {
-                res.push_back(parsed->constituency);
+        for (auto const& parsed : resp.parsed->sentence) {
+            if (rule.matches(parsed->parse)) {
+                res.push_back(parsed->parse);
             }
         }
     }

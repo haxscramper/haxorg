@@ -11,22 +11,42 @@
 #include <QRegularExpression>
 
 namespace NLP {
-struct Parsed;
+struct Sentence;
 struct SenTree : SharedPtrApi<SenTree> {
-    Parsed*            parent;
+    Sentence*          parent;
     QString            tag;
     QString            lexem;
     Opt<int>           index = std::nullopt;
     Vec<SPtr<SenTree>> nested;
     Vec<sem::SemId>    orgIds;
+    Opt<SenTree*>      governor;
+    struct Dep {
+        SenTree*     dependent;
+        QString      kind;
+        Opt<QString> sub;
+    };
+    Vec<Dep> depndencies;
 
     int                  enumerateItems(int start = 0);
     QString              treeRepr(int indent = 0) const;
-    static SPtr<SenTree> parse(Parsed* parent, QString const& text);
+    static SPtr<SenTree> parse(Sentence* parent, QString const& text);
+    Opt<SenTree*>        atIndex(int index) {
+        if (index == this->index) {
+            return this;
+        } else {
+            for (auto& sub : nested) {
+                auto res = sub->atIndex(index);
+                if (res) {
+                    return res;
+                }
+            }
+            return std::nullopt;
+        }
+    }
 
   private:
     struct lexer;
-    static SPtr<SenTree> parse(Parsed* parsed, lexer& lex);
+    static SPtr<SenTree> parse(Sentence* parsed, lexer& lex);
 };
 
 
@@ -41,16 +61,6 @@ struct Dependency {
         ((QString), dependentGloss, ""));
 };
 
-struct Sentence {
-    DECL_FIELDS(
-        Sentence,
-        (),
-        ((int), index, 0),
-        ((SenTree::Ptr), parse, nullptr),
-        ((Vec<Dependency>), basicDependencies, {}),
-        ((Vec<Dependency>), enhancedDependencies, {}),
-        ((Vec<Dependency>), enhancedPlusPlusDependencies, {}));
-};
 
 struct Token {
     DECL_FIELDS(
@@ -66,6 +76,19 @@ struct Token {
         ((QString), after, ""));
 };
 
+
+struct Sentence : SharedPtrApi<Sentence> {
+    DECL_FIELDS(
+        Sentence,
+        (),
+        ((int), index, 0),
+        ((SenTree::Ptr), parse, nullptr),
+        ((Vec<Token>), tokens, {}),
+        ((Vec<Dependency>), basicDependencies, {}),
+        ((Vec<Dependency>), enhancedDependencies, {}),
+        ((Vec<Dependency>), enhancedPlusPlusDependencies, {}));
+};
+
 struct OrgText {
     struct Word {
         QString    text;
@@ -76,12 +99,10 @@ struct OrgText {
 };
 
 struct Parsed : public SharedPtrApi<Parsed> {
-    OrgText      original;
-    int          posStart;
-    int          posEnd;
-    SenTree::Ptr constituency;
-    Sentence     sentence;
-    Vec<Token>   tokens;
+    OrgText            original;
+    int                posStart;
+    int                posEnd;
+    Vec<Sentence::Ptr> sentence;
 };
 
 
@@ -274,8 +295,7 @@ class ExporterNLP
             Response,
             (),
             ((bool), valid, false),
-            ((Vec<NLP::Parsed::Ptr>), sentences, {}),
-            ((NLP::Sentence), original, NLP::Sentence{}),
+            ((NLP::Parsed::Ptr), parsed, nullptr),
             ((int), posStart, 0),
             ((int), posEnd, 0));
     };
