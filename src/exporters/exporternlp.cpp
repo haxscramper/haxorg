@@ -40,7 +40,9 @@ struct Constituency::lexer {
     }
 };
 
-Constituency Constituency::parse(Parsed* parent, const QString& text) {
+SPtr<Constituency> Constituency::parse(
+    Parsed*        parent,
+    const QString& text) {
     Constituency::lexer lex{.data = text};
     qCDebug(nlp).noquote() << lex.data;
     return parse(parent, lex);
@@ -52,7 +54,7 @@ int Constituency::enumerateItems(int start) {
         ++start;
     } else {
         for (auto& sub : nested) {
-            start = sub.enumerateItems(start);
+            start = sub->enumerateItems(start);
         }
     }
 
@@ -76,18 +78,20 @@ QString Constituency::treeRepr(int indent) const {
 
     for (const auto& sub : nested) {
         res.append("\n");
-        res.append(sub.treeRepr(indent + 1));
+        res.append(sub->treeRepr(indent + 1));
     }
 
     return res;
 }
 
-Constituency Constituency::parse(Parsed* parent, lexer& lex) {
-    Constituency result{.parent = parent};
+SPtr<Constituency> Constituency::parse(Parsed* parent, lexer& lex) {
+    Constituency::Ptr result = Constituency::shared();
+    result->parent           = parent;
+
     lex.space();
     lex.skip('(');
     while (lex.tok().isLetter() || lex.tok() == '-') {
-        result.tag.append(lex.tok());
+        result->tag.append(lex.tok());
         lex.next();
     }
 
@@ -96,11 +100,11 @@ Constituency Constituency::parse(Parsed* parent, lexer& lex) {
     if (lex.at('(')) {
         while (!lex.at(')')) {
             lex.space();
-            result.nested.push_back(Constituency::parse(parent, lex));
+            result->nested.push_back(Constituency::parse(parent, lex));
         }
     } else {
         while (!lex.at(')')) {
-            result.lexem.push_back(lex.tok());
+            result->lexem.push_back(lex.tok());
             lex.next();
         }
     }
@@ -309,11 +313,11 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
             parsed->constituency = Constituency::parse(
                 parsed.get(),
                 QString::fromStdString(sent["parse"].get<std::string>()));
-            parsed->constituency.enumerateItems();
+            parsed->constituency->enumerateItems();
 
             qCDebug(nlp).noquote().nospace()
                 << "\n"
-                << parsed->constituency.treeRepr();
+                << parsed->constituency->treeRepr();
 
             result.sentences.push_back(parsed);
 
@@ -330,30 +334,30 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
             rangeForId.push_back({range, word.id});
         }
 
-        Func<void(Constituency&)> rec;
-        rec = [&](Constituency& cst) {
-            if (cst.index.has_value()) {
-                NLP::Token const& token = cst.parent->tokens.at(
-                    cst.index.value());
+        Func<void(Constituency::Ptr const&)> rec;
+        rec = [&](Constituency::Ptr const& cst) {
+            if (cst->index.has_value()) {
+                NLP::Token const& token = cst->parent->tokens.at(
+                    cst->index.value());
                 Slice<int> target = slice1<int>(
                     token.characterOffsetBegin, token.characterOffsetEnd);
                 for (auto const& rng : rangeForId) {
                     if (rng.first.contains(target)) {
-                        cst.orgIds.push_back(rng.second);
+                        cst->orgIds.push_back(rng.second);
                     }
                 }
 
-                if (cst.orgIds.empty()) {
+                if (cst->orgIds.empty()) {
                     for (auto const& rng : rangeForId) {
                         if (target.overlap(rng.first).has_value()) {
-                            cst.orgIds.push_back(rng.second);
+                            cst->orgIds.push_back(rng.second);
                         }
                     }
                 }
 
-                qDebug().noquote() << cst.treeRepr();
+                qDebug().noquote() << cst->treeRepr();
             } else {
-                for (auto& sub : cst.nested) {
+                for (auto& sub : cst->nested) {
                     rec(sub);
                 }
             }
@@ -427,21 +431,21 @@ QString to_string(const NLP::Rule& rule) {
 }
 
 namespace {
-auto firstDirect(Constituency const& cst, Rule const& rule)
-    -> Opt<Constituency const*> {
-    for (const auto& sub : cst.nested) {
+auto firstDirect(Constituency::Ptr const& cst, Rule const& rule)
+    -> Opt<Constituency::Ptr> {
+    for (const auto& sub : cst->nested) {
         if (rule.matches(sub)) {
-            return &sub;
+            return sub;
         }
     }
     return std::nullopt;
 };
 
-auto firstIndirect(Constituency const& cst, Rule const& rule)
-    -> Opt<Constituency const*> {
-    for (const auto& sub : cst.nested) {
+auto firstIndirect(Constituency::Ptr const& cst, Rule const& rule)
+    -> Opt<Constituency::Ptr> {
+    for (const auto& sub : cst->nested) {
         if (rule.matches(sub)) {
-            return &sub;
+            return sub;
         } else {
             auto nest = firstIndirect(sub, rule);
             if (nest) {
@@ -454,7 +458,7 @@ auto firstIndirect(Constituency const& cst, Rule const& rule)
 
 } // namespace
 
-bool Rule::matches(const Constituency& cst) const {
+bool Rule::matches(const Constituency::Ptr& cst) const {
     bool result;
     switch (getKind()) {
         case Kind::Match: {
@@ -471,19 +475,19 @@ bool Rule::matches(const Constituency& cst) const {
             State tag   = State::NotApplicable;
 
             if (match.lemma) {
-                lemma = match.lemma->match(cst.lexem).hasMatch()
+                lemma = match.lemma->match(cst->lexem).hasMatch()
                           ? State::Matched
                           : State::Failed;
             }
 
             if (match.pos) {
                 if (match.pos->glob) {
-                    tag = cst.lexem.startsWith(match.pos->prefix)
+                    tag = cst->lexem.startsWith(match.pos->prefix)
                             ? State::Matched
                             : State::Failed;
                 } else {
-                    tag = cst.lexem == match.pos->prefix ? State::Matched
-                                                         : State::Failed;
+                    tag = cst->lexem == match.pos->prefix ? State::Matched
+                                                          : State::Failed;
                 }
             }
 
@@ -550,12 +554,12 @@ bool Rule::matches(const Constituency& cst) const {
     return result;
 }
 
-Vec<Constituency const*> ExporterNLP::findMatches(const NLP::Rule& rule) {
-    Vec<Constituency const*> res;
+Vec<Constituency::Ptr> ExporterNLP::findMatches(const NLP::Rule& rule) {
+    Vec<Constituency::Ptr> res;
     for (auto const& [in, resp] : this->exchange) {
         for (auto const& parsed : resp.sentences) {
             if (rule.matches(parsed->constituency)) {
-                res.push_back(&parsed->constituency);
+                res.push_back(parsed->constituency);
             }
         }
     }
