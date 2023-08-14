@@ -9,6 +9,7 @@
 #include <QLoggingCategory>
 #include <QThread>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/algorithms.hpp>
 
 #include <exporters/Exporter.cpp>
 
@@ -367,4 +368,192 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
         exchange.at(targetIndex).second = result;
     }
     reply->deleteLater();
+}
+
+QString to_string(const ExporterNLP::Semgrex::Rule& rule) {
+    QString result;
+    using Rule = ExporterNLP::Semgrex::Rule;
+    switch (rule.getKind()) {
+        case Rule::Kind::Match: {
+            auto const& match = rule.getMatch();
+            if (match.negated) {
+                result += "!";
+            }
+            result += "{";
+            if (match.pos) {
+                result += "/" + match.pos->prefix
+                        + (match.pos->glob ? "*" : "") + "/";
+            }
+            result += "}";
+            break;
+        }
+
+        case Rule::Kind::Logic: {
+            auto const& logic = rule.getLogic();
+            switch (logic.kind) {
+                case Rule::Logic::Kind::Optional: {
+                    result += "?" + to_string(logic.params.at(0));
+                    break;
+                }
+                case Rule::Logic::Kind::Not: {
+                    result += "!" + to_string(logic.params.at(0));
+                    break;
+                }
+                case Rule::Logic::Kind::Or:
+                case Rule::Logic::Kind::And: {
+                    result += join(
+                        logic.kind == Rule::Logic::Kind::Or ? " or "
+                                                            : " and ",
+                        map(logic.params,
+                            [](Rule const& r) { return to_string(r); }));
+                }
+            }
+
+            break;
+        }
+
+        case Rule::Kind::Subtree: {
+            auto const& sub = rule.getSubtree();
+
+            result = QString("%1 %2 %3")
+                         .arg(to_string(sub.sub.at(0)))
+                         .arg(
+                             sub.kind == Rule::Subtree::Kind::Direct
+                                 ? "->"
+                                 : "->>")
+                         .arg(to_string(sub.sub.at(1)));
+            break;
+        }
+    }
+
+    return result;
+}
+
+bool ExporterNLP::Semgrex::Rule::matches(
+    const Parsed::Constituency& cst) const {
+    bool result;
+
+
+    Func<Opt<Parsed::Constituency const*>(
+        Parsed::Constituency const& cst, Rule const& rule)>
+        firstIndirect;
+
+    auto firstDirect =
+        [&](Parsed::Constituency const& cst,
+            Rule const& rule) -> Opt<Parsed::Constituency const*> {
+        for (const auto& sub : cst.nested) {
+            if (rule.matches(sub)) {
+                return &sub;
+            }
+        }
+        return std::nullopt;
+    };
+
+    firstIndirect =
+        [&](Parsed::Constituency const& cst,
+            Rule const& rule) -> Opt<Parsed::Constituency const*> {
+        for (const auto& sub : cst.nested) {
+            if (rule.matches(sub)) {
+                return &sub;
+            } else {
+                auto nest = firstIndirect(sub, rule);
+                if (nest) {
+                    return nest;
+                }
+            }
+        }
+        return std::nullopt;
+    };
+
+    switch (getKind()) {
+        case Kind::Match: {
+            auto const& match = getMatch();
+
+            enum class State
+            {
+                Matched,
+                Failed,
+                NotApplicable
+            } lemma
+                = State::NotApplicable,
+                tag = State::NotApplicable;
+
+            if (match.lemma) {
+                lemma = match.lemma->match(cst.lexem).hasMatch()
+                          ? State::Matched
+                          : State::Failed;
+            }
+
+            if (match.pos) {
+                if (match.pos->glob) {
+                    tag = cst.lexem.startsWith(match.pos->prefix)
+                            ? State::Matched
+                            : State::Failed;
+                } else {
+                    tag = cst.lexem == match.pos->prefix ? State::Matched
+                                                         : State::Failed;
+                }
+            }
+
+            result = (lemma == State::NotApplicable
+                      || lemma == State::Matched)
+                  && (tag == State::NotApplicable
+                      || tag == State::Matched);
+
+            if (match.negated) {
+                result = !result;
+            }
+            break;
+        }
+
+        case Kind::Subtree: {
+            auto const& tree = getSubtree();
+            if (tree.sub.at(0).matches(cst)) {
+                if (tree.kind == Subtree::Kind::Direct) {
+                    return firstDirect(cst, tree.sub.at(1)).has_value();
+                } else {
+                    return firstIndirect(cst, tree.sub.at(1)).has_value();
+                }
+            } else {
+                return false;
+            }
+            break;
+        }
+
+        case Kind::Logic: {
+            auto const& logic = getLogic();
+            switch (logic.kind) {
+                case Logic::Kind::And: {
+                    result = true;
+                    for (auto const& sub : logic.params) {
+                        if (!sub.matches(cst)) {
+                            return false;
+                        }
+                    }
+                    break;
+                }
+                case Logic::Kind::Or: {
+                    result = false;
+                    for (auto const& sub : logic.params) {
+                        if (sub.matches(cst)) {
+                            return true;
+                        }
+                    }
+                }
+                case Logic::Kind::Not: {
+                    result = !logic.params.at(0).matches(cst);
+                    break;
+                }
+                case Logic::Kind::Optional: {
+                    result = true;
+                    !logic.params.at(0).matches(cst);
+                    break;
+                }
+            }
+
+            break;
+        }
+    }
+
+    return result;
 }
