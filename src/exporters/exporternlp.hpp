@@ -10,6 +10,209 @@
 #include <QThread>
 #include <QRegularExpression>
 
+namespace NLP {
+struct Parsed;
+struct Constituency {
+    Parsed*           parent;
+    QString           tag;
+    QString           lexem;
+    Opt<int>          index = std::nullopt;
+    Vec<Constituency> nested;
+    Vec<sem::SemId>   orgIds;
+
+    int                 enumerateItems(int start = 0);
+    QString             treeRepr(int indent = 0) const;
+    static Constituency parse(Parsed* parent, QString const& text);
+
+  private:
+    struct lexer;
+    static Constituency parse(Parsed* parsed, lexer& lex);
+};
+
+
+struct Dependency {
+    DECL_FIELDS(
+        Dependency,
+        (),
+        ((QString), dep, ""),
+        ((int), governor, 0),
+        ((QString), governorGloss, ""),
+        ((int), dependent, 0),
+        ((QString), dependentGloss, ""));
+};
+
+struct Sentence {
+    DECL_FIELDS(
+        Sentence,
+        (),
+        ((int), index, 0),
+        ((Constituency), parse, Constituency{}),
+        ((Vec<Dependency>), basicDependencies, {}),
+        ((Vec<Dependency>), enhancedDependencies, {}),
+        ((Vec<Dependency>), enhancedPlusPlusDependencies, {}));
+};
+
+struct Token {
+    DECL_FIELDS(
+        Token,
+        (),
+        ((int), index, 0),
+        ((QString), word, ""),
+        ((QString), originalText, ""),
+        ((int), characterOffsetBegin, 0),
+        ((int), characterOffsetEnd, 0),
+        ((QString), pos, ""),
+        ((QString), before, ""),
+        ((QString), after, ""));
+};
+
+struct OrgText {
+    struct Word {
+        QString    text;
+        sem::SemId id = sem::SemId::Nil();
+    };
+
+    Vec<Word> text;
+};
+
+struct Parsed : public SharedPtrApi<Parsed> {
+
+
+    OrgText      original;
+    int          posStart;
+    int          posEnd;
+    Constituency constituency;
+    Sentence     sentence;
+    Vec<Token>   tokens;
+};
+
+
+struct Rule {
+    struct Relation {
+        DECL_DESCRIBED_ENUM(
+            Kind,
+            /// ``A <reln B ``: A is the dependent of a relation
+            /// reln with B
+            DependentDirect,
+            /// ``A >reln B ``: A is the governor of a relation
+            /// reln with B
+            GovernorDirect,
+            /// ``A <<reln B ``: A is the dependent of a relation
+            /// reln in a chain to B following dep->gov paths
+            DependentIndirect,
+            /// ``A >>reln B ``: A is the governor of a relation
+            /// reln in a chain to B following gov->dep paths
+            SGovernorIndirect,
+            /// ``A x,y<<reln B ``: A is the dependent of a
+            /// relation reln in a chain to B following dep->gov
+            /// paths between distances of x and y
+            DependentChain,
+            /// ``A x,y>>reln B ``: A is the governor of a relation
+            /// reln in a chain to B following gov->dep paths
+            /// between distances of x and y
+            GovernorChain,
+            /// ``A == B ``: A and B are the same nodes in the same
+            /// graph Precedes ``A . B ``: A immediately precedes
+            /// B, i.e. A.index() == B.index() - 1
+            Same,
+            /// ``A $+ B ``: B is a right immediate sibling of A,
+            /// i.e. A and B have the same parent and A.index() ==
+            /// B.index() - 1
+            RightImmediate,
+            /// ``A $- B ``: B is a left immediate sibling of A,
+            /// i.e. A and B have the same parent and A.index() ==
+            /// B.index() + 1
+            LeftImmedite,
+            /// ``A $++ B ``: B is a right sibling of A, i.e. A and
+            /// B have the same parent and A.index() < B.index()
+            Right,
+            /// ``A $-- B ``: B is a left sibling of A, i.e. A and
+            /// B have the same parent and A.index() > B.index()
+            Left,
+            /// ``A @ B ``: A is aligned to B (this is only used
+            /// when you have two dependency graphs which are
+            /// aligned)
+            Aligned);
+
+        Vec<Rule> rel;
+        Kind      kind;
+    };
+
+    struct Match {
+        bool negated;
+        struct Tag {
+            QString prefix;
+            bool    glob;
+        };
+
+        Opt<QRegularExpression> lemma;
+        Opt<Tag>                pos;
+        Opt<QString>            bindto;
+    };
+
+    struct Logic {
+        DECL_DESCRIBED_ENUM(Kind, And, Or, Optional, Not);
+        Kind      kind;
+        Vec<Rule> params;
+    };
+
+    struct Subtree {
+        DECL_DESCRIBED_ENUM(Kind, Direct, Indirect);
+        Kind      kind;
+        Vec<Rule> sub;
+    };
+
+    SUB_VARIANTS(
+        Kind,
+        Data,
+        data,
+        getKind,
+        Relation,
+        Match,
+        Logic,
+        Subtree);
+
+
+    Data data;
+    bool matches(Constituency const& cst) const;
+
+    Rule(CR<Data> data) : data(data) {}
+    Rule() {}
+};
+
+namespace builder {
+    inline Rule Or(Rule const& lhs, Rule const& rhs) {
+        return Rule(Rule::Logic{
+            .params = {lhs, rhs}, .kind = Rule::Logic::Kind::Or});
+    }
+
+    inline Rule And(Rule const& lhs, Rule const& rhs) {
+        return Rule(Rule::Logic{
+            .params = {lhs, rhs}, .kind = Rule::Logic::Kind::And});
+    }
+
+    inline Rule Dir(Rule const& lhs, Rule const& rhs) {
+        return Rule(Rule::Subtree{
+            .sub = {lhs, rhs}, .kind = Rule::Subtree::Kind::Direct});
+    }
+
+    inline Rule Ind(Rule const& lhs, Rule const& rhs) {
+        return Rule(Rule::Subtree{
+            .sub = {lhs, rhs}, .kind = Rule::Subtree::Kind::Indirect});
+    }
+
+
+    inline Rule Tag(QString const& name) {
+        return Rule{Rule::Match{
+            .pos = name.endsWith("*") ? Rule::Match::
+                           Tag{.prefix = name.first(name.length() - 1),
+                               .glob   = true}
+                                      : Rule::Match::Tag{.prefix = name}}};
+    }
+} // namespace builder
+
+} // namespace NLP
+
 class QNetworkAccessManager;
 class QNetworkReply;
 
@@ -64,80 +267,8 @@ class ExporterNLP
     }
 
   public:
-    struct OrgText {
-        struct Word {
-            QString    text;
-            sem::SemId id = sem::SemId::Nil();
-        };
-
-        Vec<Word> text;
-    };
-
-    struct Parsed : public SharedPtrApi<Parsed> {
-        struct Constituency {
-            Parsed*           parent;
-            QString           tag;
-            QString           lexem;
-            Opt<int>          index = std::nullopt;
-            Vec<Constituency> nested;
-            Vec<sem::SemId>   orgIds;
-
-            int                 enumerateItems(int start = 0);
-            QString             treeRepr(int indent = 0) const;
-            static Constituency parse(Parsed* parent, QString const& text);
-
-          private:
-            struct lexer;
-            static Constituency parse(Parsed* parsed, lexer& lex);
-        };
-
-
-        struct Dependency {
-            DECL_FIELDS(
-                Dependency,
-                (),
-                ((QString), dep, ""),
-                ((int), governor, 0),
-                ((QString), governorGloss, ""),
-                ((int), dependent, 0),
-                ((QString), dependentGloss, ""));
-        };
-
-        struct Sentence {
-            DECL_FIELDS(
-                Sentence,
-                (),
-                ((int), index, 0),
-                ((Constituency), parse, Constituency{}),
-                ((Vec<Dependency>), basicDependencies, {}),
-                ((Vec<Dependency>), enhancedDependencies, {}),
-                ((Vec<Dependency>), enhancedPlusPlusDependencies, {}));
-        };
-
-        struct Token {
-            DECL_FIELDS(
-                Token,
-                (),
-                ((int), index, 0),
-                ((QString), word, ""),
-                ((QString), originalText, ""),
-                ((int), characterOffsetBegin, 0),
-                ((int), characterOffsetEnd, 0),
-                ((QString), pos, ""),
-                ((QString), before, ""),
-                ((QString), after, ""));
-        };
-
-        OrgText      original;
-        int          posStart;
-        int          posEnd;
-        Constituency constituency;
-        Sentence     sentence;
-        Vec<Token>   tokens;
-    };
-
     struct Request {
-        OrgText sentence;
+        NLP::OrgText sentence;
     };
 
     struct Response {
@@ -145,106 +276,12 @@ class ExporterNLP
             Response,
             (),
             ((bool), valid, false),
-            ((Vec<Parsed::Ptr>), sentences, {}),
-            ((Parsed::Sentence), original, Parsed::Sentence{}),
+            ((Vec<NLP::Parsed::Ptr>), sentences, {}),
+            ((NLP::Sentence), original, NLP::Sentence{}),
             ((int), posStart, 0),
             ((int), posEnd, 0));
     };
 
-    struct Semgrex {
-        struct Rule {
-            struct Relation {
-                DECL_DESCRIBED_ENUM(
-                    Kind,
-                    /// ``A <reln B ``: A is the dependent of a relation
-                    /// reln with B
-                    DependentDirect,
-                    /// ``A >reln B ``: A is the governor of a relation
-                    /// reln with B
-                    GovernorDirect,
-                    /// ``A <<reln B ``: A is the dependent of a relation
-                    /// reln in a chain to B following dep->gov paths
-                    DependentIndirect,
-                    /// ``A >>reln B ``: A is the governor of a relation
-                    /// reln in a chain to B following gov->dep paths
-                    SGovernorIndirect,
-                    /// ``A x,y<<reln B ``: A is the dependent of a
-                    /// relation reln in a chain to B following dep->gov
-                    /// paths between distances of x and y
-                    DependentChain,
-                    /// ``A x,y>>reln B ``: A is the governor of a relation
-                    /// reln in a chain to B following gov->dep paths
-                    /// between distances of x and y
-                    GovernorChain,
-                    /// ``A == B ``: A and B are the same nodes in the same
-                    /// graph Precedes ``A . B ``: A immediately precedes
-                    /// B, i.e. A.index() == B.index() - 1
-                    Same,
-                    /// ``A $+ B ``: B is a right immediate sibling of A,
-                    /// i.e. A and B have the same parent and A.index() ==
-                    /// B.index() - 1
-                    RightImmediate,
-                    /// ``A $- B ``: B is a left immediate sibling of A,
-                    /// i.e. A and B have the same parent and A.index() ==
-                    /// B.index() + 1
-                    LeftImmedite,
-                    /// ``A $++ B ``: B is a right sibling of A, i.e. A and
-                    /// B have the same parent and A.index() < B.index()
-                    Right,
-                    /// ``A $-- B ``: B is a left sibling of A, i.e. A and
-                    /// B have the same parent and A.index() > B.index()
-                    Left,
-                    /// ``A @ B ``: A is aligned to B (this is only used
-                    /// when you have two dependency graphs which are
-                    /// aligned)
-                    Aligned);
-
-                Vec<Rule> rel;
-                Kind      kind;
-            };
-
-            struct Match {
-                bool negated;
-                struct Tag {
-                    QString prefix;
-                    bool    glob;
-                };
-
-                Opt<QRegularExpression> lemma;
-                Opt<Tag>                pos;
-                Opt<QString>            bindto;
-            };
-
-            struct Logic {
-                DECL_DESCRIBED_ENUM(Kind, And, Or, Optional, Not);
-                Kind      kind;
-                Vec<Rule> params;
-            };
-
-            struct Subtree {
-                DECL_DESCRIBED_ENUM(Kind, Direct, Indirect);
-                Kind      kind;
-                Vec<Rule> sub;
-            };
-
-            SUB_VARIANTS(
-                Kind,
-                Data,
-                data,
-                getKind,
-                Relation,
-                Match,
-                Logic,
-                Subtree);
-
-
-            Data data;
-            bool matches(Parsed::Constituency const& cst) const;
-
-            Rule(CR<Data> data) : data(data) {}
-            Rule() {}
-        };
-    };
 
     QUrl                         requestUrl;
     Vec<Pair<Request, Response>> exchange;
@@ -267,8 +304,8 @@ class ExporterNLP
 #define __visit(__Kind)                                                   \
     void visit##__Kind(R& res, In<sem::__Kind> leaf) {                    \
         if (activeRequest) {                                              \
-            activeRequest->sentence.text.push_back(                       \
-                OrgText::Word{.text = leaf->text, .id = leaf.toId()});    \
+            activeRequest->sentence.text.push_back(NLP::OrgText::Word{    \
+                .text = leaf->text, .id = leaf.toId()});                  \
         }                                                                 \
     }
 
@@ -289,38 +326,7 @@ class ExporterNLP
     void onFinishedResponse(QNetworkReply* reply);
 };
 
-QString to_string(ExporterNLP::Semgrex::Rule const&);
+QString to_string(NLP::Rule const&);
 
 
-namespace semgrex_bulder {
-using Rule = ExporterNLP::Semgrex::Rule;
-inline Rule Or(Rule const& lhs, Rule const& rhs) {
-    return Rule(
-        Rule::Logic{.params = {lhs, rhs}, .kind = Rule::Logic::Kind::Or});
-}
-
-inline Rule And(Rule const& lhs, Rule const& rhs) {
-    return Rule(
-        Rule::Logic{.params = {lhs, rhs}, .kind = Rule::Logic::Kind::And});
-}
-
-inline Rule Dir(Rule const& lhs, Rule const& rhs) {
-    return Rule(Rule::Subtree{
-        .sub = {lhs, rhs}, .kind = Rule::Subtree::Kind::Direct});
-}
-
-inline Rule Ind(Rule const& lhs, Rule const& rhs) {
-    return Rule(Rule::Subtree{
-        .sub = {lhs, rhs}, .kind = Rule::Subtree::Kind::Indirect});
-}
-
-
-inline Rule Tag(QString const& name) {
-    return Rule{Rule::Match{
-        .pos = name.endsWith("*") ? Rule::Match::
-                       Tag{.prefix = name.first(name.length() - 1),
-                           .glob   = true}
-                                  : Rule::Match::Tag{.prefix = name}}};
-}
-
-} // namespace semgrex_bulder
+namespace semgrex_bulder {} // namespace semgrex_bulder

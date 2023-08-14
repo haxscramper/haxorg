@@ -17,8 +17,10 @@ template class Exporter<ExporterNLP, std::monostate>;
 
 Q_LOGGING_CATEGORY(nlp, "check.nlp");
 
+using namespace NLP;
 
-struct ExporterNLP::Parsed::Constituency::lexer {
+
+struct Constituency::lexer {
     QString data;
     int     pos;
     QChar   tok() {
@@ -38,15 +40,13 @@ struct ExporterNLP::Parsed::Constituency::lexer {
     }
 };
 
-ExporterNLP::Parsed::Constituency ExporterNLP::Parsed::Constituency::parse(
-    Parsed*        parent,
-    const QString& text) {
-    Parsed::Constituency::lexer lex{.data = text};
+Constituency Constituency::parse(Parsed* parent, const QString& text) {
+    Constituency::lexer lex{.data = text};
     qCDebug(nlp).noquote() << lex.data;
     return parse(parent, lex);
 }
 
-int ExporterNLP::Parsed::Constituency::enumerateItems(int start) {
+int Constituency::enumerateItems(int start) {
     if (nested.empty()) {
         this->index = start;
         ++start;
@@ -59,7 +59,7 @@ int ExporterNLP::Parsed::Constituency::enumerateItems(int start) {
     return start;
 }
 
-QString ExporterNLP::Parsed::Constituency::treeRepr(int indent) const {
+QString Constituency::treeRepr(int indent) const {
     auto res = QString("  ").repeated(indent);
     res.append(tag);
     if (!lexem.isEmpty()) {
@@ -82,9 +82,7 @@ QString ExporterNLP::Parsed::Constituency::treeRepr(int indent) const {
     return res;
 }
 
-ExporterNLP::Parsed::Constituency ExporterNLP::Parsed::Constituency::parse(
-    Parsed* parent,
-    lexer&  lex) {
+Constituency Constituency::parse(Parsed* parent, lexer& lex) {
     Constituency result{.parent = parent};
     lex.space();
     lex.skip('(');
@@ -281,7 +279,7 @@ template <typename T>
 void from_json(const json& in, Vec<T>& out) {
     for (auto const& j : in) {
         T tmp;
-        ::nlohmann::adl_serializer<T>::from_json(j, tmp);
+        from_json(j, tmp);
         out.push_back(tmp);
     }
 }
@@ -308,7 +306,7 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
         Response result{.valid = true};
         for (const auto& sent : j["sentences"]) {
             auto parsed          = Parsed::shared();
-            parsed->constituency = Parsed::Constituency::parse(
+            parsed->constituency = Constituency::parse(
                 parsed.get(),
                 QString::fromStdString(sent["parse"].get<std::string>()));
             parsed->constituency.enumerateItems();
@@ -332,10 +330,10 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
             rangeForId.push_back({range, word.id});
         }
 
-        Func<void(Parsed::Constituency&)> rec;
-        rec = [&](Parsed::Constituency& cst) {
+        Func<void(Constituency&)> rec;
+        rec = [&](Constituency& cst) {
             if (cst.index.has_value()) {
-                Parsed::Token const& token = cst.parent->tokens.at(
+                NLP::Token const& token = cst.parent->tokens.at(
                     cst.index.value());
                 Slice<int> target = slice1<int>(
                     token.characterOffsetBegin, token.characterOffsetEnd);
@@ -370,9 +368,8 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
     reply->deleteLater();
 }
 
-QString to_string(const ExporterNLP::Semgrex::Rule& rule) {
+QString to_string(const NLP::Rule& rule) {
     QString result;
-    using Rule = ExporterNLP::Semgrex::Rule;
     switch (rule.getKind()) {
         case Rule::Kind::Match: {
             auto const& match = rule.getMatch();
@@ -429,18 +426,15 @@ QString to_string(const ExporterNLP::Semgrex::Rule& rule) {
     return result;
 }
 
-bool ExporterNLP::Semgrex::Rule::matches(
-    const Parsed::Constituency& cst) const {
+bool Rule::matches(const Constituency& cst) const {
     bool result;
 
-
-    Func<Opt<Parsed::Constituency const*>(
-        Parsed::Constituency const& cst, Rule const& rule)>
+    Func<Opt<Constituency const*>(
+        Constituency const& cst, Rule const& rule)>
         firstIndirect;
 
-    auto firstDirect =
-        [&](Parsed::Constituency const& cst,
-            Rule const& rule) -> Opt<Parsed::Constituency const*> {
+    auto firstDirect = [&](Constituency const& cst,
+                           Rule const& rule) -> Opt<Constituency const*> {
         for (const auto& sub : cst.nested) {
             if (rule.matches(sub)) {
                 return &sub;
@@ -449,9 +443,8 @@ bool ExporterNLP::Semgrex::Rule::matches(
         return std::nullopt;
     };
 
-    firstIndirect =
-        [&](Parsed::Constituency const& cst,
-            Rule const& rule) -> Opt<Parsed::Constituency const*> {
+    firstIndirect = [&](Constituency const& cst,
+                        Rule const& rule) -> Opt<Constituency const*> {
         for (const auto& sub : cst.nested) {
             if (rule.matches(sub)) {
                 return &sub;
