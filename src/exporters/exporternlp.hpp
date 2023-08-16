@@ -25,8 +25,18 @@ struct SenTree : SharedPtrApi<SenTree> {
         Opt<QString> sub;
     };
 
-    Opt<Dep> governor;
-    Vec<Dep> dependencies;
+    struct DepBasic {
+        Opt<Dep> governor;
+        Vec<Dep> dependencies;
+    };
+
+    struct DepEnhanced {
+        Vec<Dep> governors;
+        Vec<Dep> dependencies;
+    };
+
+    DepBasic    depBasic;
+    DepEnhanced depEnhanced;
 
     int                  enumerateItems(int start = 0);
     QString              treeRepr(int indent = 0) const;

@@ -74,11 +74,17 @@ QString SenTree::treeRepr(int indent) const {
         res += " " + id.getReadableId();
     }
 
-    if (governor) {
-        res += " << " + governor->kind
-             + (governor->sub ? ":" + governor->sub.value() : "") + " "
-             + governor->tree->lexem;
+    if (true) {
+        if (depBasic.governor) {
+            res += " << " + depBasic.governor->kind
+                 + (depBasic.governor->sub
+                        ? ":" + depBasic.governor->sub.value()
+                        : "")
+                 + " " + depBasic.governor->tree->lexem;
+        }
+    } else {
     }
+
 
     for (const auto& sub : nested) {
         res.append("\n");
@@ -326,40 +332,63 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
 
             from_json(inSent["tokens"], sent->tokens);
             from_json(
-                inSent["basicDependencies"],
+                inSent["basicDependencies"], sent->basicDependencies);
+
+            from_json(
+                inSent["enhancedPlusPlusDependencies"],
                 sent->enhancedPlusPlusDependencies);
 
-            for (auto const& dep : sent->enhancedPlusPlusDependencies) {
-                if (0 < dep.governor && 0 < dep.dependent) {
-                    Opt<SenTree*> governor = sent->parse->atIndex(
-                        dep.governor - 1);
-                    Opt<SenTree*> dependent = sent->parse->atIndex(
-                        dep.dependent - 1);
-                    if (governor && dependent) {
-                        auto split = dep.dep.split(":");
-                        auto dep   = SenTree::Dep{
-                              .tree = dependent.value(),
-                              .kind = split[0],
-                              .sub  = 1 < split.size()
-                                        ? Opt<QString>(split[1])
-                                        : std::nullopt,
-                        };
+            for (auto const& [isBasic, group] :
+                 Vec<Pair<bool, Vec<Dependency>*>>{
+                     {false, &sent->basicDependencies},
+                     {false, &sent->enhancedPlusPlusDependencies},
+                 }) {
+                for (auto const& dep : *group) {
+                    if (0 < dep.governor && 0 < dep.dependent) {
+                        Opt<SenTree*> governor = sent->parse->atIndex(
+                            dep.governor - 1);
+                        Opt<SenTree*> dependent = sent->parse->atIndex(
+                            dep.dependent - 1);
+                        if (governor && dependent) {
+                            auto split = dep.dep.split(":");
+                            auto dep   = SenTree::Dep{
+                                  .tree = dependent.value(),
+                                  .kind = split[0],
+                                  .sub  = 1 < split.size()
+                                            ? Opt<QString>(split[1])
+                                            : std::nullopt,
+                            };
 
-                        (**governor).dependencies.push_back(dep);
-                        dep.tree = governor.value();
+                            if (isBasic) {
+                                (**governor)
+                                    .depBasic.dependencies.push_back(dep);
+                                dep.tree = governor.value();
 
-                        Q_ASSERT_X(
-                            !(**dependent).governor.has_value(),
-                            "assign governor node",
-                            "Cannot override existing governor node");
+                                Q_ASSERT_X(
+                                    !(**dependent)
+                                         .depBasic.governor.has_value(),
+                                    "assign governor node",
+                                    "Cannot override existing governor "
+                                    "node");
 
-                        (**dependent).governor = dep;
+                                (**dependent).depBasic.governor = dep;
+                            } else {
+                                (**governor)
+                                    .depEnhanced.dependencies.push_back(
+                                        dep);
+                                dep.tree = governor.value();
+
+                                (**dependent)
+                                    .depEnhanced.governors.push_back(dep);
+                            }
+                        }
                     }
                 }
-            }
 
-            result.parsed->sentence.push_back(sent);
+                result.parsed->sentence.push_back(sent);
+            }
         }
+
 
         Vec<Pair<Slice<int>, sem::SemId>> rangeForId;
         int                               offset = 0;
