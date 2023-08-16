@@ -59,39 +59,42 @@ int SenTree::enumerateItems(int start) {
     return start;
 }
 
-QString SenTree::treeRepr(int indent) const {
-    auto res = QString("  ").repeated(indent);
-    res.append(tag);
+ColText SenTree::treeRepr(int indent) const {
+    ColStream os;
+    os << QString("  ").repeated(indent) << os.magenta() << "[" << tag
+       << "]" << os.end();
     if (!lexem.isEmpty()) {
-        res += " '" + lexem + "'";
+        os << " " << os.yellow() << "'" << lexem << "'" << os.end();
     }
 
     if (index) {
-        res += " @ " + QString::number(index.value());
+        os << " @ " << os.cyan() << QString::number(index.value())
+           << os.end();
     }
 
     for (auto const& id : orgIds) {
-        res += " " + id.getReadableId();
+        os << " " << os.green() << id.getReadableId() << os.end();
     }
 
     if (true) {
         if (depBasic.governor) {
-            res += " << " + depBasic.governor->kind
-                 + (depBasic.governor->sub
-                        ? ":" + depBasic.governor->sub.value()
-                        : "")
-                 + " " + depBasic.governor->tree->lexem;
+            os << " << " << os.blue() << depBasic.governor->kind
+               << (depBasic.governor->sub
+                       ? ":" + depBasic.governor->sub.value()
+                       : "")
+               << os.end() << " " << os.yellow() << "'"
+               << depBasic.governor->tree->lexem << "'" << os.end();
         }
     } else {
     }
 
 
     for (const auto& sub : nested) {
-        res.append("\n");
-        res.append(sub->treeRepr(indent + 1));
+        os << "\n";
+        os << sub->treeRepr(indent + 1);
     }
 
-    return res;
+    return os.getBuffer();
 }
 
 SPtr<SenTree> SenTree::parse(Sentence* parent, lexer& lex) {
@@ -327,8 +330,6 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
 
             sent->parse->enumerateItems();
 
-            qCDebug(nlp).noquote().nospace() << "\n"
-                                             << sent->parse->treeRepr();
 
             from_json(inSent["tokens"], sent->tokens);
             from_json(
@@ -340,7 +341,7 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
 
             for (auto const& [isBasic, group] :
                  Vec<Pair<bool, Vec<Dependency>*>>{
-                     {false, &sent->basicDependencies},
+                     {true, &sent->basicDependencies},
                      {false, &sent->enhancedPlusPlusDependencies},
                  }) {
                 for (auto const& dep : *group) {
@@ -408,7 +409,8 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
                 Slice<int> target = slice1<int>(
                     token.characterOffsetBegin, token.characterOffsetEnd);
                 for (auto const& rng : rangeForId) {
-                    if (rng.first.contains(target)) {
+                    if (rng.first.contains(target)
+                        && !cst->orgIds.contains(rng.second)) {
                         cst->orgIds.push_back(rng.second);
                     }
                 }
@@ -421,7 +423,6 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
                     }
                 }
 
-                qDebug().noquote() << cst->treeRepr();
             } else {
                 for (auto& sub : cst->nested) {
                     rec(sub);
@@ -431,7 +432,10 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
 
         for (auto& sent : result.parsed->sentence) {
             rec(sent->parse);
+            qCDebug(nlp).noquote().nospace() << "\n"
+                                             << sent->parse->treeRepr();
         }
+
 
         exchange.at(targetIndex).second = result;
     }

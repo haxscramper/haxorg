@@ -9,6 +9,7 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/system/macros.hpp>
+#include <hstd/stdlib/ColText.hpp>
 
 namespace NLP {
 struct Sentence;
@@ -39,7 +40,7 @@ struct SenTree : SharedPtrApi<SenTree> {
     DepEnhanced depEnhanced;
 
     int                  enumerateItems(int start = 0);
-    QString              treeRepr(int indent = 0) const;
+    ColText treeRepr(int indent = 0) const;
     static SPtr<SenTree> parse(Sentence* parent, QString const& text);
     Opt<SenTree*>        atIndex(int index) {
         if (index == this->index) {
