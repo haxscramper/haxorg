@@ -1039,27 +1039,6 @@ void HaxorgCli::exec() {
         //        { writeJson(); }
         //        { writeYaml(); }
 
-        {
-            __trace("Mind map exporter");
-            ExporterMindMap exporter;
-            exporter.visitTop(node);
-            exporter.toGraph();
-            writeFile(
-                QFileInfo("/tmp/mindmap.json"_qs),
-                QString::fromStdString(to_compact_json(
-                    exporter.toJsonGraph(), {.width = 160})));
-            qDebug() << "Mind map export ok";
-        }
-
-        {
-            __trace("Exporter NLP");
-            ExporterNLP nlp{QUrl("http://localhost:9000")};
-            nlp.visitTop(node);
-            nlp.executeRequests();
-            nlp.waitForRequests();
-            qDebug() << "Finished NLP requester execution";
-            QThread::msleep(1200);
-        }
 
         {
             __trace("Export Latex");
@@ -1103,6 +1082,28 @@ void HaxorgCli::exec() {
                 result, layout::Options{});
             writeFile(QFileInfo("/tmp/result.tex"), formatted);
             qDebug() << "Latex output ok";
+        }
+
+        if (true) {
+            __trace("Mind map exporter");
+            ExporterMindMap exporter;
+            exporter.visitTop(node);
+            exporter.toGraph();
+            writeFile(
+                QFileInfo("/tmp/mindmap.json"_qs),
+                QString::fromStdString(to_compact_json(
+                    exporter.toJsonGraph(), {.width = 160})));
+            qDebug() << "Mind map export ok";
+        }
+
+        if (true) {
+            __trace("Exporter NLP");
+            ExporterNLP nlp{QUrl("http://localhost:9000")};
+            nlp.visitTop(node);
+            nlp.executeRequests();
+            nlp.waitForRequests();
+            qDebug() << "Finished NLP requester execution";
+            QThread::msleep(1200);
         }
 
         return;

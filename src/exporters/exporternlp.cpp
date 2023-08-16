@@ -74,6 +74,12 @@ QString SenTree::treeRepr(int indent) const {
         res += " " + id.getReadableId();
     }
 
+    if (governor) {
+        res += " << " + governor->kind
+             + (governor->sub ? ":" + governor->sub.value() : "") + " "
+             + governor->tree->lexem;
+    }
+
     for (const auto& sub : nested) {
         res.append("\n");
         res.append(sub->treeRepr(indent + 1));
@@ -320,7 +326,7 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
 
             from_json(inSent["tokens"], sent->tokens);
             from_json(
-                inSent["enhancedPlusPlusDependencies"],
+                inSent["basicDependencies"],
                 sent->enhancedPlusPlusDependencies);
 
             for (auto const& dep : sent->enhancedPlusPlusDependencies) {
@@ -330,15 +336,24 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
                     Opt<SenTree*> dependent = sent->parse->atIndex(
                         dep.dependent - 1);
                     if (governor && dependent) {
-                        auto split             = dep.dep.split(":");
-                        (**dependent).governor = governor.value();
-                        (**governor)
-                            .depndencies.push_back(SenTree::Dep{
-                                .dependent = dependent.value(),
-                                .kind      = split[0],
-                                .sub       = 1 < split.size()
-                                               ? Opt<QString>(split[1])
-                                               : std::nullopt});
+                        auto split = dep.dep.split(":");
+                        auto dep   = SenTree::Dep{
+                              .tree = dependent.value(),
+                              .kind = split[0],
+                              .sub  = 1 < split.size()
+                                        ? Opt<QString>(split[1])
+                                        : std::nullopt,
+                        };
+
+                        (**governor).dependencies.push_back(dep);
+                        dep.tree = governor.value();
+
+                        Q_ASSERT_X(
+                            !(**dependent).governor.has_value(),
+                            "assign governor node",
+                            "Cannot override existing governor node");
+
+                        (**dependent).governor = dep;
                     }
                 }
             }

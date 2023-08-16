@@ -1,14 +1,14 @@
 #pragma once
 
-#include <exporters/Exporter.hpp>
-#include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/system/macros.hpp>
-
 #include <QNetworkRequest>
 #include <QUrl>
 #include <QThread>
 #include <QRegularExpression>
+
+#include <exporters/Exporter.hpp>
+#include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/Opt.hpp>
+#include <hstd/system/macros.hpp>
 
 namespace NLP {
 struct Sentence;
@@ -19,13 +19,14 @@ struct SenTree : SharedPtrApi<SenTree> {
     Opt<int>           index = std::nullopt;
     Vec<SPtr<SenTree>> nested;
     Vec<sem::SemId>    orgIds;
-    Opt<SenTree*>      governor;
     struct Dep {
-        SenTree*     dependent;
+        SenTree*     tree;
         QString      kind;
         Opt<QString> sub;
     };
-    Vec<Dep> depndencies;
+
+    Opt<Dep> governor;
+    Vec<Dep> dependencies;
 
     int                  enumerateItems(int start = 0);
     QString              treeRepr(int indent = 0) const;
