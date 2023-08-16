@@ -40,7 +40,7 @@ struct SenTree : SharedPtrApi<SenTree> {
     DepEnhanced depEnhanced;
 
     int                  enumerateItems(int start = 0);
-    ColText treeRepr(int indent = 0) const;
+    ColText              treeRepr(int indent = 0) const;
     static SPtr<SenTree> parse(Sentence* parent, QString const& text);
     Opt<SenTree*>        atIndex(int index) {
         if (index == this->index) {
@@ -119,6 +119,13 @@ struct Parsed : public SharedPtrApi<Parsed> {
 
 
 struct Rule {
+    struct Result {
+        Opt<SenTree::Ptr> tree = std::nullopt;
+        Result() {}
+        Result(SenTree::Ptr tree) : tree(tree) {}
+        bool matches() const { return tree.has_value(); }
+    };
+
     struct Relation {
         DECL_DESCRIBED_ENUM(
             Kind,
@@ -167,10 +174,15 @@ struct Rule {
 
         Vec<Rule> rel;
         Kind      kind;
+
+        Opt<QString> relKind;
+        Opt<QString> relSubKind;
+
+        Result matches(SenTree::Ptr const&) const;
     };
 
     struct Match {
-        bool negated;
+        bool negated = false;
         struct Tag {
             QString prefix;
             bool    glob;
@@ -204,8 +216,8 @@ struct Rule {
         Subtree);
 
 
-    Data data;
-    bool matches(SenTree::Ptr const& cst) const;
+    Data   data;
+    Result matches(SenTree::Ptr const& cst) const;
 
     Rule(CR<Data> data) : data(data) {}
     Rule() {}
@@ -222,6 +234,17 @@ namespace builder {
             .params = {lhs, rhs}, .kind = Rule::Logic::Kind::And});
     }
 
+    namespace rel {
+        inline Rule Dir(
+            Rule const&  lhs,
+            Rule const&  rhs,
+            QString      kind,
+            Opt<QString> subRel = std::nullopt) {
+            return Rule(Rule::Relation{
+                .rel = {lhs, rhs}, .relKind = kind, .relSubKind = subRel});
+        }
+    } // namespace rel
+
     inline Rule Dir(Rule const& lhs, Rule const& rhs) {
         return Rule(Rule::Subtree{
             .sub = {lhs, rhs}, .kind = Rule::Subtree::Kind::Direct});
@@ -235,10 +258,11 @@ namespace builder {
 
     inline Rule Tag(QString const& name) {
         return Rule{Rule::Match{
-            .pos = name.endsWith("*") ? Rule::Match::
+            .negated = false,
+            .pos     = name.endsWith("*") ? Rule::Match::
                            Tag{.prefix = name.first(name.length() - 1),
-                               .glob   = true}
-                                      : Rule::Match::Tag{.prefix = name}}};
+                                   .glob   = true}
+                                          : Rule::Match::Tag{.prefix = name}}};
     }
 } // namespace builder
 

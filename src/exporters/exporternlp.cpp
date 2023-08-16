@@ -63,6 +63,20 @@ ColText SenTree::treeRepr(int indent) const {
     ColStream os;
     os << QString("  ").repeated(indent) << os.magenta() << "[" << tag
        << "]" << os.end();
+
+    if (true) {
+        if (depBasic.governor) {
+            os << " " << os.yellow() << "'"
+               << depBasic.governor->tree->lexem << "'" << os.end() << " >"
+               << os.blue() << depBasic.governor->kind
+               << (depBasic.governor->sub
+                       ? ":" + depBasic.governor->sub.value()
+                       : "")
+               << os.end();
+        }
+    } else {
+    }
+
     if (!lexem.isEmpty()) {
         os << " " << os.yellow() << "'" << lexem << "'" << os.end();
     }
@@ -74,18 +88,6 @@ ColText SenTree::treeRepr(int indent) const {
 
     for (auto const& id : orgIds) {
         os << " " << os.green() << id.getReadableId() << os.end();
-    }
-
-    if (true) {
-        if (depBasic.governor) {
-            os << " << " << os.blue() << depBasic.governor->kind
-               << (depBasic.governor->sub
-                       ? ":" + depBasic.governor->sub.value()
-                       : "")
-               << os.end() << " " << os.yellow() << "'"
-               << depBasic.governor->tree->lexem << "'" << os.end();
-        }
-    } else {
     }
 
 
@@ -385,9 +387,8 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
                         }
                     }
                 }
-
-                result.parsed->sentence.push_back(sent);
             }
+            result.parsed->sentence.push_back(sent);
         }
 
 
@@ -502,35 +503,67 @@ QString to_string(const NLP::Rule& rule) {
 
 namespace {
 auto firstDirect(SenTree::Ptr const& cst, Rule const& rule)
-    -> Opt<SenTree::Ptr> {
+    -> Rule::Result {
     for (const auto& sub : cst->nested) {
-        if (rule.matches(sub)) {
-            return sub;
+        auto out = rule.matches(sub);
+        if (out.matches()) {
+            return out;
         }
     }
-    return std::nullopt;
+    return Rule::Result{};
 };
 
 auto firstIndirect(SenTree::Ptr const& cst, Rule const& rule)
-    -> Opt<SenTree::Ptr> {
+    -> Rule::Result {
     for (const auto& sub : cst->nested) {
-        if (rule.matches(sub)) {
-            return sub;
+        auto out = rule.matches(sub);
+        if (out.matches()) {
+            return out;
         } else {
             auto nest = firstIndirect(sub, rule);
-            if (nest) {
+            if (nest.matches()) {
                 return nest;
             }
         }
     }
-    return std::nullopt;
+    return Rule::Result{};
 };
 
 } // namespace
 
-bool Rule::matches(const SenTree::Ptr& cst) const {
-    bool result;
+Rule::Result Rule::Relation::matches(const SenTree::Ptr& tree) const {
+    switch (kind) {
+        case Kind::DependentDirect: {
+            if (rel.at(0).matches(tree).matches()) {
+                for (auto const& dep : tree->depBasic.dependencies) {
+                    if (dep.kind == *relKind
+                        && ((!relSubKind.has_value())
+                            || (dep.sub.value()
+                                == relSubKind.value_or("")))) {
+                        return tree;
+                    }
+                }
+            }
+        }
+    }
+
+    for (auto const& sub : tree->nested) {
+        auto res = matches(sub);
+        if (res.matches()) {
+            return res;
+        }
+    }
+
+    return Result{};
+}
+
+
+Rule::Result Rule::matches(const SenTree::Ptr& cst) const {
     switch (getKind()) {
+        case Kind::Relation: {
+            return getRelation().matches(cst);
+        }
+
         case Kind::Match: {
             auto const& match = getMatch();
 
@@ -552,36 +585,44 @@ bool Rule::matches(const SenTree::Ptr& cst) const {
 
             if (match.pos) {
                 if (match.pos->glob) {
-                    tag = cst->lexem.startsWith(match.pos->prefix)
+                    tag = cst->tag.startsWith(match.pos->prefix)
                             ? State::Matched
                             : State::Failed;
                 } else {
-                    tag = cst->lexem == match.pos->prefix ? State::Matched
-                                                          : State::Failed;
+                    tag = cst->tag == match.pos->prefix ? State::Matched
+                                                        : State::Failed;
                 }
+                qDebug() << match.pos->glob << match.pos->prefix
+                         << cst->tag << tag;
             }
 
-            result = (lemma == State::NotApplicable
-                      || lemma == State::Matched)
-                  && (tag == State::NotApplicable
-                      || tag == State::Matched);
+            bool result = (lemma == State::NotApplicable
+                           || lemma == State::Matched)
+                       && (tag == State::NotApplicable
+                           || tag == State::Matched);
 
             if (match.negated) {
                 result = !result;
             }
+
+            if (result) {
+                return cst;
+            }
+
             break;
         }
 
         case Kind::Subtree: {
             auto const& tree = getSubtree();
-            if (tree.sub.at(0).matches(cst)) {
+            auto        out  = tree.sub.at(0).matches(cst);
+            if (out.matches()) {
                 if (tree.kind == Subtree::Kind::Direct) {
-                    return firstDirect(cst, tree.sub.at(1)).has_value();
+                    return firstDirect(cst, tree.sub.at(1));
                 } else {
-                    return firstIndirect(cst, tree.sub.at(1)).has_value();
+                    return firstIndirect(cst, tree.sub.at(1));
                 }
             } else {
-                return false;
+                return Result{};
             }
             break;
         }
@@ -590,30 +631,35 @@ bool Rule::matches(const SenTree::Ptr& cst) const {
             auto const& logic = getLogic();
             switch (logic.kind) {
                 case Logic::Kind::And: {
-                    result = true;
                     for (auto const& sub : logic.params) {
-                        if (!sub.matches(cst)) {
-                            return false;
+                        auto res = sub.matches(cst);
+                        if (!res.matches()) {
+                            return res;
                         }
                     }
-                    break;
+
+                    return Result{cst};
                 }
                 case Logic::Kind::Or: {
-                    result = false;
                     for (auto const& sub : logic.params) {
-                        if (sub.matches(cst)) {
-                            return true;
+                        auto out = sub.matches(cst);
+                        if (out.matches()) {
+                            return out;
                         }
                     }
                 }
+
                 case Logic::Kind::Not: {
-                    result = !logic.params.at(0).matches(cst);
-                    break;
+                    auto out = logic.params.at(0).matches(cst);
+                    if (out.matches()) {
+                        return Result{};
+                    } else {
+                        return out;
+                    }
                 }
+
                 case Logic::Kind::Optional: {
-                    result = true;
-                    !logic.params.at(0).matches(cst);
-                    break;
+                    return logic.params.at(0).matches(cst);
                 }
             }
 
@@ -621,15 +667,16 @@ bool Rule::matches(const SenTree::Ptr& cst) const {
         }
     }
 
-    return result;
+    return Result{};
 }
 
 Vec<SenTree::Ptr> ExporterNLP::findMatches(const NLP::Rule& rule) {
     Vec<SenTree::Ptr> res;
     for (auto const& [in, resp] : this->exchange) {
         for (auto const& parsed : resp.parsed->sentence) {
-            if (rule.matches(parsed->parse)) {
-                res.push_back(parsed->parse);
+            auto which = rule.matches(parsed->parse);
+            if (which.matches()) {
+                res.push_back(which.tree.value());
             }
         }
     }

@@ -1097,11 +1097,20 @@ void HaxorgCli::exec() {
         }
 
         if (true) {
+            using namespace NLP::builder;
+
             __trace("Exporter NLP");
             ExporterNLP nlp{QUrl("http://localhost:9000")};
             nlp.visitTop(node);
             nlp.executeRequests();
             nlp.waitForRequests();
+            auto trees = nlp.findMatches(
+                rel::Dir(Tag("VBN"), Tag("*"), "nsubj"));
+
+            for (auto const& tree : trees) {
+                qDebug().noquote() << tree->treeRepr();
+            }
+
             qDebug() << "Finished NLP requester execution";
             QThread::msleep(1200);
         }
