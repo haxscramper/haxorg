@@ -12,6 +12,16 @@ struct ExporterUltraplain : public Exporter<ExporterUltraplain, QString> {
     template <sem::NotOrg T>
     void visit(QString& res, CR<T> value) {}
 
+    void visitTimeRange(QString& res, In<sem::TimeRange> range) {
+        visit(res, range->from);
+        res += "--";
+        visit(res, range->to);
+    }
+
+    void visitTime(QString& res, In<sem::Time> time) {
+
+    }
+
     template <typename T>
     void visit(QString& res, CVec<T> values) {
         for (const auto& value : values) {

@@ -1,5 +1,6 @@
 #include "exporterlatex.hpp"
 #include <exporters/ExporterUltraplain.hpp>
+#include <hstd/stdlib/algorithms.hpp>
 
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 
@@ -587,52 +588,80 @@ ExporterLatex::Res ExporterLatex::visit(SemId org) {
     return tmp;
 }
 
-QString getLatexClass(Opt<ExporterLatex::In<Document>> doc) {
+void ExporterLatex::subTocForAndAbove(SubtreeCmd mode) {
+    switch (mode) {
+        case SubtreeCmd::subparagraph:
+            subTocMode.incl(SubtreeCmd::subparagraph);
+        case SubtreeCmd::paragraph: subTocMode.incl(SubtreeCmd::paragraph);
+        case SubtreeCmd::subsubsection:
+            subTocMode.incl(SubtreeCmd::subsubsection);
+        case SubtreeCmd::subsection:
+            subTocMode.incl(SubtreeCmd::subsection);
+        case SubtreeCmd::section: subTocMode.incl(SubtreeCmd::section);
+        case SubtreeCmd::chapter: subTocMode.incl(SubtreeCmd::chapter);
+        case SubtreeCmd::part: subTocMode.incl(SubtreeCmd::part);
+    }
+}
+
+QString ExporterLatex::getLatexClass(
+    Opt<ExporterLatex::In<Document>> doc) {
+    QString baseClass;
+    switch (this->docMode) {
+        case DocMode::Default: baseClass = "extarticle"; break;
+        case DocMode::Proofread: baseClass = "extbook"; break;
+    }
+
     if (doc) {
         auto lclass = (*doc)->getProperty(Prop::Kind::ExportLatexClass);
         return lclass ? lclass->getExportLatexClass().latexClass
-                      : "extarticle";
+                      : baseClass;
     } else {
-        return "extarticle";
+        return baseClass;
     }
 }
 
-QString getSubtreeCommand(ExporterLatex::In<sem::Subtree> tree) {
+Opt<ExporterLatex::SubtreeCmd> ExporterLatex::getSubtreeCommand(
+    ExporterLatex::In<sem::Subtree> tree) {
     auto lclass = getLatexClass(tree->getDocument());
-    if (lclass == "book") {
+    if (lclass == "book" || lclass == "extbook") {
         switch (tree->level) {
-            case 1: return "chapter";
-            case 2: return "section";
-            case 3: return "subsection";
-            case 4: return "subsubsection";
-            case 5: return "paragraph";
-            case 6: return "subparagraph";
-            default: return "textbf";
+            case 1: return SubtreeCmd::part;
+            case 2: return SubtreeCmd::chapter;
+            case 3: return SubtreeCmd::section;
+            case 4: return SubtreeCmd::subsection;
+            case 5: return SubtreeCmd::subsubsection;
+            case 6: return SubtreeCmd::paragraph;
+            case 7: return SubtreeCmd::subparagraph;
+            default: return std::nullopt;
         }
     } else {
         switch (tree->level) {
-            case 1: return "section";
-            case 2: return "subsection";
-            case 3: return "subsubsection";
-            case 4: return "paragraph";
-            case 5: return "subparagraph";
-            default: return "textbf";
+            case 1: return SubtreeCmd::section;
+            case 2: return SubtreeCmd::subsection;
+            case 3: return SubtreeCmd::subsubsection;
+            case 4: return SubtreeCmd::paragraph;
+            case 5: return SubtreeCmd::subparagraph;
+            default: return std::nullopt;
         }
     }
 }
 
-QString getRefKind(SemId id) {
+Opt<QString> ExporterLatex::getRefKind(SemId id) {
     switch (id->getKind()) {
         case osk::Subtree: {
             auto command = getSubtreeCommand(id.as<sem::Subtree>());
-            if (command == "section") {
-                return "sec:";
+            if (command) {
+                switch (command.value()) {
+                    case SubtreeCmd::chapter: return "chap:";
+                    case SubtreeCmd::section: return "sec:";
+                    case SubtreeCmd::part: return "part:";
+                }
             } else {
-                return "";
+                return std::nullopt;
             }
         }
         default: {
-            return "";
+            return std::nullopt;
         }
     }
 }
@@ -711,12 +740,18 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
         }
     }
 
-    res->add(command(getSubtreeCommand(tree), {titleText}));
+    res->add(command(
+        map(getSubtreeCommand(tree),
+            [](SubtreeCmd cmd) { return to_string(cmd); })
+            .value_or("textbf"),
+        {titleText}));
 
 
     if (tree->treeId) {
         res->add(command(
-            "label", {getRefKind(tree) + tree->treeId.value().toBase()}));
+            "label",
+            {getRefKind(tree).value_or("")
+             + tree->treeId.value().toBase()}));
     }
 
     for (const auto& it : tree->subnodes) {
@@ -852,7 +887,7 @@ void ExporterLatex::visitLink(Res& res, In<sem::Link> link) {
                 res = b::line({command(
                     "ref",
                     {string(
-                        getRefKind(*target)
+                        getRefKind(*target).value_or("")
                         + link->getId().text.toBase())})});
 
                 if (link->description) {

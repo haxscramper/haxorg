@@ -35,7 +35,7 @@
 /// \brief Declare enum \arg Name with all it's fields and pass them to
 /// BOOST_DESCRIBE_NESTED_ENUM to generate reflection information.
 #define DECL_DESCRIBED_ENUM(Name, ...)                                    \
-    enum class Name                                                       \
+    enum class Name : unsigned short int                                  \
     {                                                                     \
         __VA_ARGS__                                                       \
     };                                                                    \

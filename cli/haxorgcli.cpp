@@ -1042,7 +1042,8 @@ void HaxorgCli::exec() {
 
         {
             __trace("Export Latex");
-            ExporterLatex    exporter;
+            ExporterLatex exporter;
+            exporter.subTocForAndAbove(ExporterLatex::SubtreeCmd::section);
             OperationsTracer trace{QFileInfo("/tmp/latex_export_trace")};
             [&](ExporterLatex::VisitEvent const& ev) {
                 using K = typename ExporterLatex::VisitEvent::Kind;
@@ -1096,7 +1097,7 @@ void HaxorgCli::exec() {
             qDebug() << "Mind map export ok";
         }
 
-        if (true) {
+        if (false) {
             using namespace NLP::builder;
 
             __trace("Exporter NLP");

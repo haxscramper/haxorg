@@ -3,6 +3,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Func.hpp>
+#include <hstd/stdlib/Opt.hpp>
 
 #include <hstd/system/generator.hpp>
 
@@ -42,6 +43,15 @@ Vec<T> sorted(CR<Vec<T>> vec) {
     return result;
 }
 
+
+template <typename T, typename F>
+auto map(Opt<T> const& opt, F cb) -> Opt<decltype(cb(opt.value()))> {
+    if (opt) {
+        return cb(opt.value());
+    } else {
+        return std::nullopt;
+    }
+}
 
 template <typename T, typename F>
 auto map(T const& vec, F cb) {

@@ -15,6 +15,32 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
 
     layout::SimpleStringStore store;
 
+    DECL_DESCRIBED_ENUM(DocMode, Default, Proofread);
+    DECL_DESCRIBED_ENUM(MainTocMode, None, Main);
+
+    DECL_DESCRIBED_ENUM(
+        SubtreeCmd,
+        part,
+        chapter,
+        section,
+        subsection,
+        subsubsection,
+        paragraph,
+        subparagraph);
+
+    DocMode            docMode = DocMode::Default;
+    MainTocMode        tocMode = MainTocMode::None;
+    IntSet<SubtreeCmd> subTocMode;
+    bool               addTocSection = true;
+
+    void subTocForAndAbove(SubtreeCmd mode);
+
+
+    QString getLatexClass(Opt<ExporterLatex::In<sem::Document>> doc);
+    Opt<SubtreeCmd> getSubtreeCommand(
+        ExporterLatex::In<sem::Subtree> tree);
+    Opt<QString> getRefKind(sem::SemId id);
+
     Res string(QString const& str) { return b::text(store.str(str)); }
 
     Res visit(int value) {
