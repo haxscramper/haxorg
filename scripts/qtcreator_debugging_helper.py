@@ -2,25 +2,44 @@
 
 from utils import DisplayFormat
 from dumper import Children, SubItem, DumperBase
+import dumper
 
 print("Running debugger helper scrpt")
+
+
+def qStringData(d, value):
+    # Calculate the string length and get the data pointer
+    data, size, _ = d.stringData(value)
+
+    # Extract the string data from memory
+    raw = d.readMemory(data, 2 * size)
+    return bytes.fromhex(raw).decode("utf-16le")
+
 
 def sem_id_dump_common(d, value):
     print("Running dumper for ", value.type)
     try:
-        d.putValue("sem::SemId")
+        readable_id = d.call("QString", value, "getReadableId")
+        kind = qStringData(d, readable_id).split("_")[1]
+        d.putStringValue(readable_id)
         d.putExpandable()
         d.putNumChild(3)
         if d.isExpanded():
             with Children(d, 3):
-                print("Starting subnodes")
                 d.putSubItem("ID", value["id"])
-                print("One ok")
-                d.putCallItem("Readable ID", "QString", value, "getReadableId")
-                print("Two ok")
-                d.putCallItem("SEM", "psem::Org", value, "get")
-                print("Three ok")
-                print("Done with subnodes")
+                d.putCallItem(
+                    "Readable ID", "QString", value, "getReadableId"
+                )
+                underlying_type = "sem::" + kind
+                print("Formatting value part as %s" % underlying_type)
+                org_base_ptr = d.call(underlying_type, value, "get")
+                if org_base_ptr.pointer() != 0:
+                    sem_ptr = org_base_ptr.cast(underlying_type + "*")
+                    d.putSubItem(
+                        "SEM '" + kind + "'", sem_ptr.dereference()
+                    )
+                else:
+                    d.putSubItem("SEM '" + kind + "'", "<Nil>")
 
         else:
             print("Not expanded")
@@ -29,8 +48,14 @@ def sem_id_dump_common(d, value):
         print("__________ Sem ID dumper had error ________")
         print(e)
 
-def qdump_sem_SemIdT(d, value, regex="^<.*?>"):
+
+def qdump__OrgAdapter(d, value):
+    d.putValue(value["id"]["value"].integer())
+
+
+def qdump__sem_SemIdT(d, value, regex="^<.*?>"):
     sem_id_dump_common(d, value)
+
 
 def qdump__sem__SemId(d, value):
     sem_id_dump_common(d, value)
