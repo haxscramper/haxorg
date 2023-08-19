@@ -1084,7 +1084,6 @@ void HaxorgCli::exec() {
         {
             __trace("Export Latex");
             ExporterLatex exporter;
-            exporter.subTocForAndAbove(ExporterLatex::SubtreeCmd::section);
             OperationsTracer trace{QFileInfo("/tmp/latex_export_trace")};
             [&](ExporterLatex::VisitEvent const& ev) {
                 using K = typename ExporterLatex::VisitEvent::Kind;

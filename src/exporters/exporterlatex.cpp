@@ -588,21 +588,6 @@ ExporterLatex::Res ExporterLatex::visit(SemId org) {
     return tmp;
 }
 
-void ExporterLatex::subTocForAndAbove(SubtreeCmd mode) {
-    switch (mode) {
-        case SubtreeCmd::subparagraph:
-            subTocMode.incl(SubtreeCmd::subparagraph);
-        case SubtreeCmd::paragraph: subTocMode.incl(SubtreeCmd::paragraph);
-        case SubtreeCmd::subsubsection:
-            subTocMode.incl(SubtreeCmd::subsubsection);
-        case SubtreeCmd::subsection:
-            subTocMode.incl(SubtreeCmd::subsection);
-        case SubtreeCmd::section: subTocMode.incl(SubtreeCmd::section);
-        case SubtreeCmd::chapter: subTocMode.incl(SubtreeCmd::chapter);
-        case SubtreeCmd::part: subTocMode.incl(SubtreeCmd::part);
-    }
-}
-
 QString ExporterLatex::getLatexClass(
     Opt<ExporterLatex::In<Document>> doc) {
     QString baseClass = "extarticle";
@@ -642,6 +627,12 @@ Opt<ExporterLatex::SubtreeCmd> ExporterLatex::getSubtreeCommand(
     }
 }
 
+QString ExporterLatex::getTreeWrapCommand(SubtreeCmd cmd, bool before) {
+    QString name = to_string(cmd);
+    name[0]      = name[0].toUpper();
+    return QString(before ? "before" : "after") + "OrgTree" + name;
+}
+
 Opt<QString> ExporterLatex::getRefKind(SemId id) {
     switch (id->getKind()) {
         case osk::Subtree: {
@@ -679,20 +670,15 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     res->add(command("usepackage", {"bookmarks"}, {"hyperref"}));
     res->add(command("usepackage", {"xcolor"}));
 
-    if (!subTocMode.empty()) {
-        res->add(command("usepackage", {"minitoc"}));
+    for (auto const& value : slice(
+             value_domain<SubtreeCmd>::low(),
+             value_domain<SubtreeCmd>::high())) {
+
+        res->add(string(QString(R"(\newcommand{\%1}{})")
+                            .arg(getTreeWrapCommand(value, false))));
+        res->add(string(QString(R"(\newcommand{\%1}{})")
+                            .arg(getTreeWrapCommand(value, true))));
     }
-
-    res->add(string(R"(
-\newcommand*\sepline{%
-  \begin{center}
-    \rule[1ex]{\textwidth}{1pt}
-  \end{center}}
-)"));
-
-    res->add(string(R"(
-\newcommand{\quot}[1]{\textcolor{brown}{#1}}
-)"));
 
     Vec<sem::SemIdT<sem::Export>> headerExports;
     value.eachSubnodeRec([&](sem::SemId id) {
@@ -709,14 +695,19 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
         res->add(string(exp->content));
     }
 
+    res->add(string(R"(
+\newcommand*\sepline{%
+  \begin{center}
+    \rule[1ex]{\textwidth}{1pt}
+  \end{center}}
+)"));
+
+    res->add(string(R"(
+\newcommand{\quot}[1]{\textcolor{brown}{#1}}
+)"));
+
 
     res->add(command("begin", {"document"}));
-    if (!subTocMode.empty()) {
-        res->add(command("dominitoc"));
-        if (subTocMode.contains(SubtreeCmd::part)) {
-            res->add(command("doparttoc"));
-        }
-    }
 
     if (value->options) {
         auto exp = value->options->tocExport;
@@ -764,22 +755,28 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
 
     Opt<SubtreeCmd> cmd = getSubtreeCommand(tree);
 
+    if (cmd) {
+        res->add(command(getTreeWrapCommand(*cmd, true)));
+    }
 
     res->add(command(
         map(cmd, [](SubtreeCmd cmd) { return to_string(cmd); })
             .value_or("textbf"),
         {titleText}));
 
-    res->add(command(
-        "label",
-        {getRefKind(tree).value_or("") + tree.toId().getReadableId()}));
-
-    if (cmd && subTocMode.contains(cmd.value())) {
-        if (*cmd == SubtreeCmd::part) {
-            res->add(command("parttoc"));
-        } else {
-            res->add(command("minitoc"));
+    if (cmd) {
+        switch (*cmd) {
+            case SubtreeCmd::part:
+            case SubtreeCmd::chapter:
+            case SubtreeCmd::section:
+                res->add(command(
+                    "label",
+                    {string(
+                        getRefKind(tree).value_or("") + "\\the"
+                        + to_string(*cmd))}));
+                break;
         }
+        res->add(command(getTreeWrapCommand(*cmd, false)));
     }
 
     for (const auto& it : tree->subnodes) {
@@ -866,10 +863,16 @@ void ExporterLatex::visitExport(Res& res, In<sem::Export> exp) {
     if (exp->exporter == "latex") {
         if (!exp->placement) {
             res = string(exp->content);
+        } else {
+            res = string("");
         }
     } else {
         res = string("");
     }
+}
+
+void ExporterLatex::visitEmpty(Res& res, In<sem::Empty> empty) {
+    res = string("");
 }
 
 void ExporterLatex::visitMonospace(Res& res, In<sem::Monospace> mono) {

@@ -25,14 +25,10 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
         paragraph,
         subparagraph);
 
-    IntSet<SubtreeCmd> subTocMode;
-
-    void subTocForAndAbove(SubtreeCmd mode);
-
-
     QString getLatexClass(Opt<ExporterLatex::In<sem::Document>> doc);
     Opt<SubtreeCmd> getSubtreeCommand(
         ExporterLatex::In<sem::Subtree> tree);
+    QString      getTreeWrapCommand(SubtreeCmd cmd, bool before);
     Opt<QString> getRefKind(sem::SemId id);
 
     Res string(QString const& str) { return b::text(store.str(str)); }
@@ -133,6 +129,14 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     void visitSymbol(Res& res, In<sem::Symbol> sym);
     void visitCenter(Res& res, In<sem::Center> center);
     void visitExport(Res& res, In<sem::Export> exp);
+    void visitEmpty(Res& res, In<sem::Empty> empty);
 };
 
 extern template class Exporter<ExporterLatex, layout::Block::Ptr>;
+
+template <>
+struct value_domain<ExporterLatex::SubtreeCmd>
+    : value_domain_ungapped<
+          ExporterLatex::SubtreeCmd,
+          ExporterLatex::SubtreeCmd::part,
+          ExporterLatex::SubtreeCmd::subparagraph> {};
