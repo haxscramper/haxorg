@@ -166,8 +166,11 @@ struct OrgConverter : public OperationsTracer {
     SemIdT<Symbol>          convertSymbol(Up, In);
     SemIdT<Macro>           convertMacro(Up, In);
     SemIdT<Export>          convertExport(Up, In);
+    SemIdT<CmdArgument>     convertCmdArgument(Up, In);
+    SemIdT<CmdArguments>    convertCmdArguments(Up, In);
 
     Vec<SemId> flatConvertAttached(Up, In);
+
 
     template <typename T>
     SemIdT<T> convertAllSubnodes(Up p, In a) {

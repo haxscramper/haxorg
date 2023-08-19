@@ -48,6 +48,13 @@ using OrgVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 
 struct ContextStore;
 
+struct SemValue {
+    int     getInt() const;
+    QString getString() const;
+    bool    getBool() const;
+    QString value;
+};
+
 struct SemId {
     using IdType          = u64;
     using NodeIndexT      = u32;

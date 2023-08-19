@@ -818,8 +818,16 @@ SemIdT<Export> OrgConverter::convertExport(__args) {
         }
     }
 
-    eexport->exporter = one(a, N::Name).strVal();
-    eexport->content  = one(a, N::Body).strVal();
+
+    auto values = convertCmdArguments(eexport, one(a, N::Args));
+
+    if (auto place = values->popArg("placement"); place) {
+        eexport->placement = (*place)->getString();
+    }
+
+    eexport->exporter   = one(a, N::Name).strVal();
+    eexport->parameters = values;
+    eexport->content    = one(a, N::Body).strVal();
 
     return eexport;
 }
@@ -859,6 +867,39 @@ SemIdT<TextSeparator> OrgConverter::convertTextSeparator(__args) {
 
 SemIdT<AtMention> OrgConverter::convertAtMention(__args) {
     return SemLeaf<AtMention>(p, a);
+}
+
+SemIdT<CmdArgument> OrgConverter::convertCmdArgument(__args) {
+    SemIdT<CmdArgument> result = Sem<CmdArgument>(p, a);
+    QString             key    = one(a, N::Name).strVal();
+    result->value              = one(a, N::Value).strVal();
+
+    if (!key.isEmpty()) {
+        result->key = key.remove(QChar(':'));
+    }
+
+
+    return result;
+}
+
+SemIdT<CmdArguments> OrgConverter::convertCmdArguments(__args) {
+    SemIdT<CmdArguments> result = Sem<CmdArguments>(p, a);
+    if (a.getKind() == org::CmdArguments) {
+        for (auto const& item : one(a, N::Values)) {
+            SemIdT<CmdArgument> arg = convertCmdArgument(result, item);
+            if (arg->key) {
+                bool ok = result->named.insert({arg->key.value(), arg})
+                              .second;
+                Q_ASSERT(ok); // TODO generate proper error message
+            } else {
+                result->positional.push_back(arg);
+            }
+        }
+    } else {
+        Q_ASSERT(a.getKind() == org::Empty);
+    }
+
+    return result;
 }
 
 

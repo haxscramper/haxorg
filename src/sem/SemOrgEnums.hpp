@@ -16,6 +16,8 @@
     __IMPL(CommandGroup) \
     __IMPL(Quote) \
     __IMPL(Example) \
+    __IMPL(CmdArguments) \
+    __IMPL(CmdArgument) \
     __IMPL(Export) \
     __IMPL(AdmonitionBlock) \
     __IMPL(Code) \
@@ -1200,6 +1202,8 @@ enum class OrgSemKind : short int {
   CommandGroup,
   Quote,
   Example,
+  CmdArguments,
+  CmdArgument,
   Export,
   AdmonitionBlock,
   Code,

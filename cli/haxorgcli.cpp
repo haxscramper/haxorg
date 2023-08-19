@@ -998,6 +998,23 @@ void HaxorgCli::exec() {
             __trace("convert parse to sem");
             node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
             qInfo() << "Finished conversion";
+
+            if (config.trace.sem.dumpResult) {
+                qInfo() << "sem result dump is enabled, writing out"
+                        << config.trace.sem.dumpFile;
+                auto ctx = openFileOrStream(
+                    config.trace.sem.dumpFile
+                        ? config.trace.sem.dumpFile.value()
+                        : QFileInfo(),
+                    config.trace.sem.dumpFile.has_value(),
+                    {
+                        .createDirs = true,
+                    });
+
+                ColStream os{ctx->stream};
+                os.colored = false;
+                ExporterTree(os).visitTop(node);
+            }
         }
 
         Vec<Pair<OrgSemKind, int>> counts;

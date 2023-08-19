@@ -302,6 +302,32 @@ top level and don't have to be attached to any subsequent elements")
           (list
            (d:id-field "Paragraph" "text" (d:doc "Quote content"))))
    (d:org 'Example (d:doc "Example block") #:bases '(Block))
+   (d:org 'CmdArguments (d:doc "Additional arguments for command blocks")
+          #:bases '(Org)
+          #:methods
+          (list
+           (d:method (t:opt (t:id "CmdArgument")) "popArg"
+                     (d:doc "Remove argument value from the map and return it if present"
+                            #:full "Some argument values can be processed directly during convert, others will be mapped in respective exporter backends. This is a convenience method to remove things during convert stage")
+                     #:arguments
+                     (list
+                      (d:ident (t:str) "key"))))
+          #:fields
+          (list
+           (d:field (t:vec (t:id "CmdArgument")) "positional" (d:doc "Positional arguments that had no keys"))
+           (d:field (t:map (t:str) (t:id "CmdArgument")) "named" (d:doc "Stored key-value mapping"))))
+   (d:org 'CmdArgument (d:doc "Single key-value (or positional)")
+          #:bases '(Org)
+          #:fields
+          (list
+           (d:opt-field (t:str) "key" (d:doc "Key"))
+           (d:field (t:str) "value" (d:doc "Value")))
+          #:methods
+          (list
+           (d:method (t:opt "int") "getInt" (d:doc "Parse argument as integer value") #:isConst #t)
+           (d:method (t:opt "bool") "getBool" (d:doc "Get argument as bool") #:isConst #t)
+           (d:method (t:str) "getString" (d:doc "Get original string") #:isConst #t))
+          )
    (d:org 'Export (d:doc "Direct export passthrough")
           #:bases '(Block)
           #:nested
@@ -315,6 +341,8 @@ top level and don't have to be attached to any subsequent elements")
           (list
            (d:field "Format" "format" (d:doc "Export block type") #:value "Format::Inline")
            (d:field (t:str) "exporter" (d:doc "Exporter backend name"))
+           (d:id-field "CmdArguments" "parameters"
+                       (d:doc "Additional parameters aside from 'exporter"))
            (d:opt-field (t:str) "placement" (d:doc "Customized position of the text in the final exporting document."))
            (d:field (t:str) "content" (d:doc "Raw exporter content string"))))
    (d:org 'AdmonitionBlock (d:doc "Block of text with admonition tag: 'note', 'warning'")
@@ -362,6 +390,8 @@ from the block")
            (d:field (t:opt (t:str)) "lang" (d:doc "Code block language name") #:value "std::nullopt")
            (d:field (t:vec "Switch") "switches" (d:doc "Switch options for block") #:value "{}")
            (d:field "Exports" "exports" (d:doc "What to export") #:value "Exports::Both")
+           (d:id-field "CmdArguments" "parameters"
+                       (d:doc "Additional parameters that are language-specific"))
            (d:field "bool" "cache" (d:doc "Do cache values?") #:value "false")
            (d:field "bool" "eval" (d:doc "Eval on export?") #:value "false")
            (d:field "bool" "noweb" (d:doc "Web-tangle code on export/run") #:value "false")

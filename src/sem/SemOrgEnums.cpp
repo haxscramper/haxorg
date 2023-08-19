@@ -1307,6 +1307,8 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(QString value) {
   if (value == "CommandGroup") { return OrgSemKind::CommandGroup; } else
   if (value == "Quote") { return OrgSemKind::Quote; } else
   if (value == "Example") { return OrgSemKind::Example; } else
+  if (value == "CmdArguments") { return OrgSemKind::CmdArguments; } else
+  if (value == "CmdArgument") { return OrgSemKind::CmdArgument; } else
   if (value == "Export") { return OrgSemKind::Export; } else
   if (value == "AdmonitionBlock") { return OrgSemKind::AdmonitionBlock; } else
   if (value == "Code") { return OrgSemKind::Code; } else
@@ -1361,6 +1363,8 @@ QString enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
     case OrgSemKind::CommandGroup: return "CommandGroup";
     case OrgSemKind::Quote: return "Quote";
     case OrgSemKind::Example: return "Example";
+    case OrgSemKind::CmdArguments: return "CmdArguments";
+    case OrgSemKind::CmdArgument: return "CmdArgument";
     case OrgSemKind::Export: return "Export";
     case OrgSemKind::AdmonitionBlock: return "AdmonitionBlock";
     case OrgSemKind::Code: return "Code";

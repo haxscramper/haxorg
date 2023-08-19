@@ -19,6 +19,8 @@ void visitCommandGroup(R& res, In<sem::CommandGroup> object);
 void visitBlock(R& res, In<sem::Block> object);
 void visitQuote(R& res, In<sem::Quote> object);
 void visitExample(R& res, In<sem::Example> object);
+void visitCmdArguments(R& res, In<sem::CmdArguments> object);
+void visitCmdArgument(R& res, In<sem::CmdArgument> object);
 void visitExport(R& res, In<sem::Export> object);
 void visitAdmonitionBlock(R& res, In<sem::AdmonitionBlock> object);
 void visitCode(R& res, In<sem::Code> object);

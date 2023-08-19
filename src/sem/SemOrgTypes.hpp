@@ -334,6 +334,66 @@ struct Example : public Block {
 
 };
 
+/// \brief Additional arguments for command blocks
+struct CmdArguments : public Org {
+  using Org::Org;
+  BOOST_DESCRIBE_CLASS(CmdArguments,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind,
+                        positional,
+                        named,
+                        (SemIdT<CmdArguments>(SemId, Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind,
+                        (Opt<SemIdT<CmdArgument>>(Str)) popArg))
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  /// \brief Positional arguments that had no keys
+  Vec<SemIdT<CmdArgument>> positional;
+  /// \brief Stored key-value mapping
+  UnorderedMap<Str, SemIdT<CmdArgument>> named;
+  static SemIdT<CmdArguments> create(SemId parent, Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArguments; }
+
+  /// \brief Remove argument value from the map and return it if present
+  ///
+  /// Some argument values can be processed directly during convert, others will be mapped in respective exporter backends. This is a convenience method to remove things during convert stage
+  Opt<SemIdT<CmdArgument>> popArg(Str key);
+};
+
+/// \brief Single key-value (or positional)
+struct CmdArgument : public Org {
+  using Org::Org;
+  BOOST_DESCRIBE_CLASS(CmdArgument,
+                       (Org),
+                       (),
+                       (),
+                       (staticKind,
+                        key,
+                        value,
+                        (SemIdT<CmdArgument>(SemId, Opt<OrgAdapter>)) create,
+                        (OrgSemKind() const) getKind,
+                        (Opt<int>() const) getInt,
+                        (Opt<bool>() const) getBool,
+                        (Str() const) getString))
+  /// \brief Document
+  static OrgSemKind const staticKind;
+  /// \brief Key
+  Opt<Str> key = std::nullopt;
+  /// \brief Value
+  Str value;
+  static SemIdT<CmdArgument> create(SemId parent, Opt<OrgAdapter> original = std::nullopt);
+  virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgument; }
+
+  /// \brief Parse argument as integer value
+  Opt<int> getInt() const;
+  /// \brief Get argument as bool
+  Opt<bool> getBool() const;
+  /// \brief Get original string
+  Str getString() const;
+};
+
 /// \brief Direct export passthrough
 struct Export : public Block {
   using Block::Block;
@@ -355,6 +415,7 @@ struct Export : public Block {
                        (staticKind,
                         format,
                         exporter,
+                        parameters,
                         placement,
                         content,
                         (SemIdT<Export>(SemId, Opt<OrgAdapter>)) create,
@@ -365,6 +426,8 @@ struct Export : public Block {
   Format format = Format::Inline;
   /// \brief Exporter backend name
   Str exporter;
+  /// \brief Additional parameters aside from 'exporter
+  SemIdT<CmdArguments> parameters = SemIdT<CmdArguments>::Nil();
   /// \brief Customized position of the text in the final exporting document.
   Opt<Str> placement = std::nullopt;
   /// \brief Raw exporter content string
@@ -467,6 +530,7 @@ struct Code : public Block {
                         lang,
                         switches,
                         exports,
+                        parameters,
                         cache,
                         eval,
                         noweb,
@@ -482,6 +546,8 @@ struct Code : public Block {
   Vec<Switch> switches = {};
   /// \brief What to export
   Exports exports = Exports::Both;
+  /// \brief Additional parameters that are language-specific
+  SemIdT<CmdArguments> parameters = SemIdT<CmdArguments>::Nil();
   /// \brief Do cache values?
   bool cache = false;
   /// \brief Eval on export?

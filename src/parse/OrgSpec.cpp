@@ -260,6 +260,12 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                          .sub({Field(
                              Range(slice(0, 1_B), N::Flags),
                              OrgPattern(org::CmdFlag))})}),
+                Field(
+                    Range(1, N::Values),
+                    {OrgPattern(org::InlineStmtList)
+                         .sub({Field(
+                             Range(slice(0, 1_B), N::Value),
+                             OrgPattern(org::CmdValue))})}),
             })},
         SpecPair{
             org::CmdValue,
