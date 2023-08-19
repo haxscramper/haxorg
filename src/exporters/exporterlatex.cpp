@@ -747,12 +747,9 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
         {titleText}));
 
 
-    if (tree->treeId) {
-        res->add(command(
-            "label",
-            {getRefKind(tree).value_or("")
-             + tree->treeId.value().toBase()}));
-    }
+    res->add(command(
+        "label",
+        {getRefKind(tree).value_or("") + tree.toId().getReadableId()}));
 
     for (const auto& it : tree->subnodes) {
         res->add(visit(it));
@@ -774,7 +771,6 @@ void ExporterLatex::visitParagraph(Res& res, In<Paragraph> par) {
 void ExporterLatex::visitTime(Res& res, In<Time> time) {
     if (time->isStatic()) {
         QString str;
-
 
 
         res = command("fbox", {command("texttt", {str})});
@@ -872,7 +868,7 @@ void ExporterLatex::visitLink(Res& res, In<sem::Link> link) {
                     "ref",
                     {string(
                         getRefKind(*target).value_or("")
-                        + link->getId().text.toBase())})});
+                        + target.value().getReadableId())})});
 
                 if (link->description) {
                     res->add(visit(link->description.value()));
