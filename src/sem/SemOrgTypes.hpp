@@ -355,6 +355,7 @@ struct Export : public Block {
                        (staticKind,
                         format,
                         exporter,
+                        placement,
                         content,
                         (SemIdT<Export>(SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind))
@@ -364,6 +365,8 @@ struct Export : public Block {
   Format format = Format::Inline;
   /// \brief Exporter backend name
   Str exporter;
+  /// \brief Customized position of the text in the final exporting document.
+  Opt<Str> placement = std::nullopt;
   /// \brief Raw exporter content string
   Str content;
   static SemIdT<Export> create(SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -402,7 +405,7 @@ struct Code : public Block {
       BOOST_DESCRIBE_CLASS(LineStart, (), (), (), (start, extendLast))
       /// \brief First line number
       int start;
-      /// \brief Continue numbering from the previous block instead of starting anew
+      /// \brief Continue numbering from the previous block nstead of starting anew
       bool extendLast = false;
     };
 

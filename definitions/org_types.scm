@@ -315,6 +315,7 @@ top level and don't have to be attached to any subsequent elements")
           (list
            (d:field "Format" "format" (d:doc "Export block type") #:value "Format::Inline")
            (d:field (t:str) "exporter" (d:doc "Exporter backend name"))
+           (d:opt-field (t:str) "placement" (d:doc "Customized position of the text in the final exporting document."))
            (d:field (t:str) "content" (d:doc "Raw exporter content string"))))
    (d:org 'AdmonitionBlock (d:doc "Block of text with admonition tag: 'note', 'warning'")
           #:bases '(Block))
@@ -337,7 +338,7 @@ from the block")
                          #:fields
                          (list
                           (d:field "int" "start" (d:doc "First line number"))
-                          (d:field "bool" "extendLast" (d:doc "Continue numbering from the previous block instead of starting anew") #:value "false")
+                          (d:field "bool" "extendLast" (d:doc "Continue numbering from the previous block nstead of starting anew") #:value "false")
                           )
                          )
                (d:struct 'CalloutFormat (d:doc "")

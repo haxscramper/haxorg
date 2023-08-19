@@ -56,7 +56,8 @@ template <typename V, typename R>
 void Exporter<V, R>::visitFootnote(R& res, In<sem::Footnote> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, tag);
-  __org_field(res, object, definition); __org_field(res, object, subnodes);
+  __org_field(res, object, definition);
+  __org_field(res, object, subnodes);
 
 }
 
@@ -163,6 +164,7 @@ void Exporter<V, R>::visitExport(R& res, In<sem::Export> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, format);
   __org_field(res, object, exporter);
+  __org_field(res, object, placement);
   __org_field(res, object, content);
   __org_field(res, object, subnodes);
 

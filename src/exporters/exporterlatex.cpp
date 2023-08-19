@@ -694,6 +694,21 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
 \newcommand{\quot}[1]{\textcolor{brown}{#1}}
 )"));
 
+    Vec<sem::SemIdT<sem::Export>> headerExports;
+    value.eachSubnodeRec([&](sem::SemId id) {
+        if (id->is(osk::Export)) {
+            sem::SemIdT<sem::Export> exp = id.as<sem::Export>();
+            if (exp->placement.has_value()
+                && exp->placement.value() == "header") {
+                headerExports.push_back(exp);
+            }
+        }
+    });
+
+    for (auto const& exp : headerExports) {
+        res->add(string(exp->content));
+    }
+
 
     res->add(command("begin", {"document"}));
     if (!subTocMode.empty()) {
@@ -845,7 +860,9 @@ void ExporterLatex::visitCenter(Res& res, In<sem::Center> center) {
 
 void ExporterLatex::visitExport(Res& res, In<sem::Export> exp) {
     if (exp->exporter == "latex") {
-        res = string(exp->content);
+        if (!exp->placement) {
+            res = string(exp->content);
+        }
     } else {
         res = string("");
     }
