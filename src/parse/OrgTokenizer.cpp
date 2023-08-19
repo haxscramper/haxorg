@@ -2615,10 +2615,20 @@ bool OrgTokenizerImpl<TraceState>::lexCommandArguments(
             lexCommandInclude(str);
             break;
         }
+
+        case ock::BeginExport: {
+            spaceSkip(str);
+            auto src = str.tok(
+                otk::Ident, skipZeroOrMore, charsets::IdentChars);
+            __push(src);
+            spaceSkip(str);
+            lexCommandKeyValue(str);
+            break;
+        }
+
         case ock::Name:
         case ock::LatexClass:
         case ock::LatexCompiler:
-        case ock::BeginExport:
         case ock::BeginAdmonition: {
             spaceSkip(str);
             auto ident = str.tok(otk::Ident, skipPastEOF);

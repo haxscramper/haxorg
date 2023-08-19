@@ -431,7 +431,10 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             org::BlockExport,
             OrgPattern({
                 Field(Range(0, N::Name), OrgPattern({org::Ident})),
-                Field(Range(1, N::Body), OrgPattern({org::RawText})),
+                Field(
+                    Range(1, N::Args),
+                    OrgPattern({org::Empty, org::CmdArguments})),
+                Field(Range(2, N::Body), OrgPattern({org::RawText})),
             })},
         SpecPair{
             org::CommandInclude,

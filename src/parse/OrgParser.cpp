@@ -1215,6 +1215,8 @@ OrgId OrgParserImpl<TraceState>::parseBlockExport(OrgLexer& lex) {
     __skip(lex, otk::CommandArgumentsBegin);
     auto args = token(org::Ident, pop(lex, otk::Ident));
     __token(args);
+    space(lex);
+    parseSrcArguments(lex);
     __skip(lex, otk::CommandArgumentsEnd);
 
     // command content
