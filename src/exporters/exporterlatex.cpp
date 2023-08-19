@@ -775,7 +775,11 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
         {getRefKind(tree).value_or("") + tree.toId().getReadableId()}));
 
     if (cmd && subTocMode.contains(cmd.value())) {
-        res->add(command("minitoc"));
+        if (*cmd == SubtreeCmd::part) {
+            res->add(command("parttoc"));
+        } else {
+            res->add(command("minitoc"));
+        }
     }
 
     for (const auto& it : tree->subnodes) {

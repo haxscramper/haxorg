@@ -5,6 +5,7 @@
 #include <QString>
 #include <QDir>
 #include <QFileInfo>
+#include <hstd/stdlib/Ptrs.hpp>
 
 #define __CURRENT_FILE_PATH__ QFileInfo(__FILE__)
 #define __CURRENT_FILE_DIR__ QFileInfo(__FILE__).dir()
@@ -19,6 +20,39 @@ inline QString operator/(QDir const& lhs, QString const& rhs) {
 }
 
 
-void writeFile(QFileInfo const& target, QString const& content);
+void writeFileOrStdout(
+    const QFileInfo& target,
+    const QString&   content,
+    bool             useFile,
+    bool             useStdoutStream = true);
 
-QString readFile(QFileInfo const& target);
+struct IoContext {
+    QFile       file;
+    QTextStream stream;
+
+    bool needClose = false;
+
+
+    ~IoContext() {
+        if (needClose) {
+            file.close();
+        }
+    }
+};
+
+struct IoOpenConf {
+    bool enableRead    = false;
+    bool enableWrite   = true;
+    bool createDirs    = false;
+    bool useStdout     = false;
+    bool truncateWrite = true;
+};
+
+SPtr<IoContext> openFileOrStream(
+    QFileInfo const& info,
+    bool             useFile,
+    IoOpenConf       conf = {});
+
+void         writeFile(QFileInfo const& target, QString const& content);
+QString      readFile(QFileInfo const& target);
+QTextStream& operator<<(QTextStream& stream, QFileInfo const& info);

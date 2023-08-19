@@ -40,9 +40,9 @@ struct HaxorgCli {
 
     bool runTokenizer(bool catchExceptions);
 
-    void writeYamlLex();
+    void writeYamlLex(QTextStream& stream);
     void writeYamlParse();
-    void writeTreeParse();
+    void writeTreeParse(QTextStream& stream);
 
     void writeJsonParse();
 
@@ -95,7 +95,9 @@ struct HaxorgCli {
             Opt<QFileInfo> traceTo;
             /// Do tracing only on a fixed range of input code instead of
             /// the whole file
-            Slice<int> traceExtent = slice(0, value_domain<int>::high());
+            Slice<int> traceExtent  = slice(0, value_domain<int>::high());
+            bool       dumpResult   = false;
+            Opt<QFileInfo> dumpFile = std::nullopt;
         };
 
         // TODO trace must be supported on the per-file basis, each file

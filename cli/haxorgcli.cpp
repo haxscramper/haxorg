@@ -713,7 +713,7 @@ Opt<LineCol> approximateLocation(
     return std::nullopt;
 }
 
-void HaxorgCli::writeYamlLex() {
+void HaxorgCli::writeYamlLex(QTextStream& stream) {
     __trace("Convert lex to yaml");
     yaml result;
     for (const auto& [id, token] : tokens.tokens.pairs()) {
@@ -738,9 +738,7 @@ void HaxorgCli::writeYamlLex() {
         result.push_back(item);
     }
 
-    auto file = "/tmp/lexed_output.yaml";
-    writeFile(QFileInfo(file), to_string(result) + "\n");
-    qInfo() << "Wrote YAML lex representation into " << file;
+    stream << to_string(result);
 }
 
 void HaxorgCli::writeYamlParse() {
@@ -749,9 +747,9 @@ void HaxorgCli::writeYamlParse() {
     qInfo() << "Wrote YAML parse representation into " << config.outFile;
 }
 
-void HaxorgCli::writeTreeParse() {
+void HaxorgCli::writeTreeParse(QTextStream& stream) {
     __trace("Write out tree repr for the parsed tree");
-    writeFile(QFileInfo("/tmp/parsed_tree.txt"), nodes.treeRepr(OrgId(0)));
+    stream << nodes.treeRepr(OrgId(0));
 }
 
 void HaxorgCli::writeJsonParse() {
@@ -894,14 +892,26 @@ void HaxorgCli::exec() {
             return;
         }
         //        writeYamlLex();
+
+        if (config.trace.lex.dumpResult) {
+            qInfo() << "Lex result dump is enabled, writing out"
+                    << config.trace.lex.dumpFile;
+            auto ctx = openFileOrStream(
+                config.trace.lex.dumpFile
+                    ? config.trace.lex.dumpFile.value()
+                    : QFileInfo(),
+                config.trace.lex.dumpFile.has_value(),
+                {
+                    .createDirs = true,
+                });
+            writeYamlLex(ctx->stream);
+        }
     }
+
 
     {
         __trace("Write tokenized output");
-        if (config.target == Target::YamlLex) {
-            writeYamlLex();
-            return;
-        } else if (config.target == Target::JsonLex) {
+        if (config.target == Target::JsonLex) {
             writeFile(config.outFile, to_string(jsonRepr(tokens)) + "\n");
             qInfo() << "Wrote JSON lex representation into "
                     << config.outFile;
@@ -944,6 +954,20 @@ void HaxorgCli::exec() {
         }
     }
 
+
+    if (config.trace.parse.dumpResult) {
+        qInfo() << "Parse result dump is enabled, writing out"
+                << config.trace.parse.dumpFile;
+        auto ctx = openFileOrStream(
+            config.trace.parse.dumpFile
+                ? config.trace.parse.dumpFile.value()
+                : QFileInfo(),
+            config.trace.parse.dumpFile.has_value(),
+            {
+                .createDirs = true,
+            });
+        writeTreeParse(ctx->stream);
+    }
 
     {
         __trace("Write parsed output");

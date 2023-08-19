@@ -19,6 +19,8 @@ struct QOptionsConfig {
         QCommandLineOption doTrace;
         QCommandLineOption traceTo;
         QCommandLineOption traceExtent;
+        QCommandLineOption dumpResult;
+        QCommandLineOption dumpFile;
     };
 
     QCommandLineOption target;
@@ -43,16 +45,22 @@ bool parseArgs(
                 .doTrace = QCommandLineOption("lex-trace", "Do lex tracing?"),
                 .traceTo = QCommandLineOption("lex-trace-to", "Where to stream lexer trace?", "lex-trace-file"),
                 .traceExtent = QCommandLineOption("lex-trace-extent", "Trace extent in the file", "lex-trace-extent"),
+                .dumpResult = QCommandLineOption("lex-trace-dump", "Dump stage result"),
+                .dumpFile = QCommandLineOption("lex-trace-dump-file", "File to dump result to (default is stdout)", "lex-dump-file"),
             },
             .parse = {
                 .doTrace = QCommandLineOption("parse-trace", "Do parse tracing?"),
                 .traceTo = QCommandLineOption("parse-trace-to", "Where to stream parse trace?", "parse-trace-file"),
                 .traceExtent = QCommandLineOption("parse-trace-extent", "Trace extent in the file", "parse-trace-extent"),
+                .dumpResult = QCommandLineOption("parse-trace-dump", "Dump stage result"),
+                .dumpFile = QCommandLineOption("parse-trace-dump-file", "File to dump result to (default is stdout)", "parse-dump-file"),
             },
             .sem = {
                 .doTrace = QCommandLineOption("sem-trace", "Do sem tracing?"),
                 .traceTo = QCommandLineOption("sem-trace-to", "Where to stream sem trace?", "sem-trace-file"),
                 .traceExtent = QCommandLineOption("sem-trace-extent", "Trace extent in the file"),
+                .dumpResult = QCommandLineOption("sem-trace-dump", "Dump stage result"),
+                .dumpFile = QCommandLineOption("sem-trace-dump-file", "File to dump result to (default is stdout)", "sem-dump-file"),
             },
         },
     };
@@ -67,14 +75,20 @@ bool parseArgs(
     parser.addOption(opts.trace.lex.doTrace);
     parser.addOption(opts.trace.lex.traceTo);
     parser.addOption(opts.trace.lex.traceExtent);
+    parser.addOption(opts.trace.lex.dumpResult);
+    parser.addOption(opts.trace.lex.dumpFile);
 
     parser.addOption(opts.trace.parse.doTrace);
     parser.addOption(opts.trace.parse.traceTo);
     parser.addOption(opts.trace.parse.traceExtent);
+    parser.addOption(opts.trace.parse.dumpResult);
+    parser.addOption(opts.trace.parse.dumpFile);
 
     parser.addOption(opts.trace.sem.doTrace);
     parser.addOption(opts.trace.sem.traceTo);
     parser.addOption(opts.trace.sem.traceExtent);
+    parser.addOption(opts.trace.sem.dumpResult);
+    parser.addOption(opts.trace.sem.dumpFile);
 
 
     // Adding positional arguments for input and output files
@@ -128,6 +142,15 @@ bool parseArgs(
             trace->doTrace = true;
         }
 
+        if (parser.isSet(opt->dumpResult)) {
+            trace->dumpResult = true;
+        }
+
+        if (parser.isSet(opt->dumpFile)) {
+            Q_ASSERT(!parser.value(opt->dumpFile).isEmpty());
+            trace->dumpFile = QFileInfo(parser.value(opt->dumpFile));
+        }
+
         if (parser.isSet(opt->traceTo)) {
             trace->doTrace = true;
             QString value  = parser.value(opt->traceTo);
@@ -177,10 +200,6 @@ void glib_log_handler(
 }
 
 QString to_string(QFileInfo const& fi) { return fi.absoluteFilePath(); }
-
-QTextStream& operator<<(QTextStream& os, QFileInfo const& fi) {
-    return os << fi.absoluteFilePath();
-}
 
 int main(int argc, char** argv) {
     QCoreApplication app(argc, argv);
