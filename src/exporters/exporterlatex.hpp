@@ -15,9 +15,6 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
 
     layout::SimpleStringStore store;
 
-    DECL_DESCRIBED_ENUM(DocMode, Default, Proofread);
-    DECL_DESCRIBED_ENUM(MainTocMode, None, Main);
-
     DECL_DESCRIBED_ENUM(
         SubtreeCmd,
         part,
@@ -28,10 +25,7 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
         paragraph,
         subparagraph);
 
-    DocMode            docMode = DocMode::Default;
-    MainTocMode        tocMode = MainTocMode::None;
     IntSet<SubtreeCmd> subTocMode;
-    bool               addTocSection = true;
 
     void subTocForAndAbove(SubtreeCmd mode);
 

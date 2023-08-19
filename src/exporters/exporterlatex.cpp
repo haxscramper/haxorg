@@ -605,11 +605,7 @@ void ExporterLatex::subTocForAndAbove(SubtreeCmd mode) {
 
 QString ExporterLatex::getLatexClass(
     Opt<ExporterLatex::In<Document>> doc) {
-    QString baseClass;
-    switch (this->docMode) {
-        case DocMode::Default: baseClass = "extarticle"; break;
-        case DocMode::Proofread: baseClass = "extbook"; break;
-    }
+    QString baseClass = "extarticle";
 
     if (doc) {
         auto lclass = (*doc)->getProperty(Prop::Kind::ExportLatexClass);
@@ -683,6 +679,10 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     res->add(command("usepackage", {"bookmarks"}, {"hyperref"}));
     res->add(command("usepackage", {"xcolor"}));
 
+    if (!subTocMode.empty()) {
+        res->add(command("usepackage", {"minitoc"}));
+    }
+
     res->add(string(R"(
 \newcommand*\sepline{%
   \begin{center}
@@ -694,7 +694,15 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
 \newcommand{\quot}[1]{\textcolor{brown}{#1}}
 )"));
 
+
     res->add(command("begin", {"document"}));
+    if (!subTocMode.empty()) {
+        res->add(command("dominitoc"));
+        if (subTocMode.contains(SubtreeCmd::part)) {
+            res->add(command("doparttoc"));
+        }
+    }
+
     if (value->options) {
         auto exp = value->options->tocExport;
         if (std::holds_alternative<bool>(exp)) {
@@ -708,7 +716,6 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
                 command("setcounter", {"tocdepth", to_string(level)}));
         }
     }
-
 
     for (const auto& it : value->subnodes) {
         res->add(visit(it));
@@ -740,16 +747,21 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
         }
     }
 
+    Opt<SubtreeCmd> cmd = getSubtreeCommand(tree);
+
+
     res->add(command(
-        map(getSubtreeCommand(tree),
-            [](SubtreeCmd cmd) { return to_string(cmd); })
+        map(cmd, [](SubtreeCmd cmd) { return to_string(cmd); })
             .value_or("textbf"),
         {titleText}));
-
 
     res->add(command(
         "label",
         {getRefKind(tree).value_or("") + tree.toId().getReadableId()}));
+
+    if (cmd && subTocMode.contains(cmd.value())) {
+        res->add(command("minitoc"));
+    }
 
     for (const auto& it : tree->subnodes) {
         res->add(visit(it));
@@ -770,10 +782,9 @@ void ExporterLatex::visitParagraph(Res& res, In<Paragraph> par) {
 
 void ExporterLatex::visitTime(Res& res, In<Time> time) {
     if (time->isStatic()) {
-        QString str;
-
-
-        res = command("fbox", {command("texttt", {str})});
+        res = command(
+            "fbox",
+            {command("texttt", {time->getStatic().time.toString()})});
     } else {
         res = string("TODO dynamic time");
     }
