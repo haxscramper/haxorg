@@ -820,7 +820,6 @@ SemIdT<Export> OrgConverter::convertExport(__args) {
 
 
     auto values = convertCmdArguments(eexport, one(a, N::Args));
-
     if (auto place = values->popArg("placement"); place) {
         eexport->placement = (*place)->getString();
     }
