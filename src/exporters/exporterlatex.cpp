@@ -774,23 +774,7 @@ void ExporterLatex::visitParagraph(Res& res, In<Paragraph> par) {
 void ExporterLatex::visitTime(Res& res, In<Time> time) {
     if (time->isStatic()) {
         QString str;
-        switch (time->getStatic().time.getKind()) {
-            case UserTime::Kind::Date: {
-                str = time->getStatic().time.getDate().toString(
-                    Qt::ISODate);
-                break;
-            }
-            case UserTime::Kind::DateTime: {
-                str = time->getStatic().time.getDate().toString(
-                    Qt::ISODate);
-                break;
-            }
-            case UserTime::Kind::Time: {
-                str = time->getStatic().time.getTime().toString(
-                    Qt::ISODate);
-                break;
-            }
-        }
+
 
 
         res = command("fbox", {command("texttt", {str})});

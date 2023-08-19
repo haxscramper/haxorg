@@ -19,7 +19,9 @@ struct ExporterUltraplain : public Exporter<ExporterUltraplain, QString> {
     }
 
     void visitTime(QString& res, In<sem::Time> time) {
-
+        if (time->isStatic()) {
+            res += time->getStatic().time.toString();
+        }
     }
 
     template <typename T>

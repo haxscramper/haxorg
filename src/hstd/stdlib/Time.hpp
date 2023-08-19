@@ -46,6 +46,22 @@ struct UserTime {
         return std::get<QDateTime>(time);
     }
 
+    QString toString() const {
+        switch (getKind()) {
+            case UserTime::Kind::Date: {
+                return getDate().toString(Qt::ISODate);
+            }
+
+            case UserTime::Kind::DateTime: {
+                return getDate().toString(Qt::ISODate);
+            }
+
+            case UserTime::Kind::Time: {
+                return getTime().toString(Qt::ISODate);
+            }
+        }
+    }
+
     QDate const& getDateVar() const { return std::get<QDate>(time); }
 
     QTime const& getTimeVar() const { return std::get<QTime>(time); }
