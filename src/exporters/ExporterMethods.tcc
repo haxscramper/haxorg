@@ -57,6 +57,7 @@ void visit(R& res, CR<sem::Subtree::Property::Nonblocking> object);
 void visit(R& res, CR<sem::Subtree::Property::Trigger> object);
 void visit(R& res, CR<sem::Subtree::Property::Origin> object);
 void visit(R& res, CR<sem::Subtree::Property::ExportLatexClass> object);
+void visit(R& res, CR<sem::Subtree::Property::ExportLatexClassOptions> object);
 void visit(R& res, CR<sem::Subtree::Property::ExportLatexHeader> object);
 void visit(R& res, CR<sem::Subtree::Property::ExportLatexCompiler> object);
 void visit(R& res, CR<sem::Subtree::Property::Ordered> object);

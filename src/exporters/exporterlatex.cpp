@@ -601,6 +601,19 @@ QString ExporterLatex::getLatexClass(
     }
 }
 
+Vec<Str> ExporterLatex::getLatexClassOptions(
+    Opt<ExporterLatex::In<sem::Document>> doc) {
+    if (doc) {
+        auto largs = (*doc)->getProperty(
+            Prop::Kind::ExportLatexClassOptions);
+        return largs ? largs->getExportLatexClassOptions().options
+                     : Vec<Str>{};
+    } else {
+        return {};
+    }
+}
+
+
 Opt<ExporterLatex::SubtreeCmd> ExporterLatex::getSubtreeCommand(
     ExporterLatex::In<sem::Subtree> tree) {
     auto lclass = getLatexClass(tree->getDocument());
@@ -659,7 +672,11 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
 
     // TODO replace hardcoded default value for the font size with call to
     // `getLatexClassOptions` provided in the org document.
-    res->add(command("documentclass", {"14pt"}, {getLatexClass(value)}));
+    res->add(command(
+        "documentclass",
+        map(getLatexClassOptions(value),
+            [](auto const& it) { return QString(it); }),
+        {getLatexClass(value)}));
 
     for (const auto& hdr :
          value->getProperties(Prop::Kind::ExportLatexHeader)) {

@@ -886,6 +886,11 @@ struct Subtree : public Org {
       Str latexClass;
     };
 
+    struct ExportLatexClassOptions {
+      BOOST_DESCRIBE_CLASS(ExportLatexClassOptions, (), (), (), (options))
+      Vec<Str> options;
+    };
+
     struct ExportLatexHeader {
       BOOST_DESCRIBE_CLASS(ExportLatexHeader, (), (), (), (header))
       Str header;
@@ -940,7 +945,7 @@ struct Subtree : public Org {
       SemIdT<Time> time = SemIdT<Time>::Nil();
     };
 
-    SUB_VARIANTS(Kind, Data, data, getKind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created);
+    SUB_VARIANTS(Kind, Data, data, getKind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created);
     Data data;
     Property(CR<Data> data) : data(data) {}
     bool matches(Kind kind, CR<QString> subkind = "") const;

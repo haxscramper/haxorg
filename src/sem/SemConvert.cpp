@@ -1115,6 +1115,19 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                         Prop::ExportLatexCompiler{sub.at(0).strVal()}));
                     break;
                 }
+                case org::LatexClassOptions: {
+                    auto value = sub.at(0).strVal();
+                    if (value.startsWith('[')) {
+                        value.remove('[');
+                    }
+                    if (value.endsWith(']')) {
+                        value = value.chopped(1);
+                    }
+
+                    doc->options->properties.push_back(
+                        Prop(Prop::ExportLatexClassOptions{{value}}));
+                    break;
+                }
                 default: {
                     doc->subnodes.push_back(convert(doc, sub));
                     break;

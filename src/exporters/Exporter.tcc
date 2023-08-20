@@ -446,6 +446,12 @@ void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexClass> 
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexClassOptions> object) {
+  __obj_field(res, object, options);
+
+}
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexHeader> object) {
   __obj_field(res, object, header);
 
