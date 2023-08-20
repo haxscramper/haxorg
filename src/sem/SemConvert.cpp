@@ -96,6 +96,10 @@
         BOOST_PP_OVERLOAD(__json, __VA_ARGS__)(__VA_ARGS__),              \
         BOOST_PP_EMPTY())
 
+#define __place(location)                                                 \
+    PlacementScope CONCAT(locationScope, __COUNTER__) = PlacementScope(   \
+        location, this);
+
 using namespace sem;
 
 using org      = OrgNodeKind;
@@ -397,6 +401,7 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
 
     {
         __field(N::Title);
+        __place(OrgSemPlacement::TreeTitle);
         tree->title = convertParagraph(tree, one(a, N::Title));
     }
 
@@ -416,6 +421,7 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
 
     {
         __field(N::Body);
+        __place(OrgSemPlacement::TreeBody);
         for (auto const& sub : one(a, N::Body)) {
             auto subres = convert(tree, sub);
             tree->push_back(subres);

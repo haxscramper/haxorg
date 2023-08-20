@@ -56,6 +56,27 @@
     __IMPL(DocumentOptions) \
     __IMPL(DocumentGroup) \
 
+/// \brief Semantic location of the sem org node in the parent tree
+enum class OrgSemPlacement : short int {
+  /// \brief Subtree title
+  TreeTitle,
+  /// \brief Inner content of the subtree
+  TreeBody,
+  /// \brief Toplevel document
+  DocBody,
+};
+
+template <>
+struct enum_serde<OrgSemPlacement> {
+  static Opt<OrgSemPlacement> from_string(QString value);
+  static QString to_string(OrgSemPlacement value);
+};
+
+template <>
+struct value_domain<OrgSemPlacement> : public value_domain_ungapped<OrgSemPlacement,
+                                                                    OrgSemPlacement::TreeTitle,
+                                                                    OrgSemPlacement::DocBody> {};
+
 enum class OrgHorizontalDirection : short int {
   /// \brief No specific positioning requirements
   ohdNone,

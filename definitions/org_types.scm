@@ -785,6 +785,13 @@ org can do ... which is to be determined as well")
 (define enums
   (list
    (d:enum
+    "OrgSemPlacement"
+    (d:doc "Semantic location of the sem org node in the parent tree")
+    (list
+     (d:efield "TreeTitle" (d:doc "Subtree title"))
+     (d:efield "TreeBody" (d:doc "Inner content of the subtree"))
+     (d:efield "DocBody" (d:doc "Toplevel document"))))
+   (d:enum
     "OrgHorizontalDirection" (d:doc "")
     (list
      (d:efield "ohdNone"   (d:doc "No specific positioning requirements"))
@@ -1637,7 +1644,9 @@ org can do ... which is to be determined as well")
     (hashv-set! base 'Org (d:struct
                            'Org (d:doc "")
                            #:fields
-                           (list (d:field (t:vec "") "subnodes" (d:doc "")))))
+                           (list
+                            (d:field "OrgSemPlacement" "placementContext" (d:doc ""))
+                            (d:field (t:vec "") "subnodes" (d:doc "")))))
     base))
 
 (define (get-type-base-fields value)
