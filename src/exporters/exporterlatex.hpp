@@ -15,12 +15,9 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
 
     layout::SimpleStringStore store;
 
-    /// Contextual latex export commands that can be overriden by the user
-    DECL_DESCRIBED_ENUM(OrgHooks, subtreeTitle);
-
 
     DECL_DESCRIBED_ENUM(
-        SubtreeCmd,
+        TexCommand,
         part,
         chapter,
         section,
@@ -32,10 +29,10 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     QString  getLatexClass(Opt<ExporterLatex::In<sem::Document>> doc);
     Vec<Str> getLatexClassOptions(
         Opt<ExporterLatex::In<sem::Document>> doc);
-    Opt<SubtreeCmd> getSubtreeCommand(
+    Opt<TexCommand> getSubtreeCommand(
         ExporterLatex::In<sem::Subtree> tree);
-    QString      getTreeWrapCommand(OrgHooks cmd);
-    QString      getTreeWrapCommand(SubtreeCmd cmd, bool before);
+
+    QString      getOrgCommand(TexCommand cmd);
     QString      getWrapEnvCommand(OrgSemPlacement placement);
     Opt<QString> getRefKind(sem::SemId id);
 

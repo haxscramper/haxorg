@@ -626,27 +626,27 @@ Vec<Str> ExporterLatex::getLatexClassOptions(
 }
 
 
-Opt<ExporterLatex::SubtreeCmd> ExporterLatex::getSubtreeCommand(
+Opt<ExporterLatex::TexCommand> ExporterLatex::getSubtreeCommand(
     ExporterLatex::In<sem::Subtree> tree) {
     auto lclass = getLatexClass(tree->getDocument());
     if (lclass == "book" || lclass == "extbook") {
         switch (tree->level) {
-            case 1: return SubtreeCmd::part;
-            case 2: return SubtreeCmd::chapter;
-            case 3: return SubtreeCmd::section;
-            case 4: return SubtreeCmd::subsection;
-            case 5: return SubtreeCmd::subsubsection;
-            case 6: return SubtreeCmd::paragraph;
-            case 7: return SubtreeCmd::subparagraph;
+            case 1: return TexCommand::part;
+            case 2: return TexCommand::chapter;
+            case 3: return TexCommand::section;
+            case 4: return TexCommand::subsection;
+            case 5: return TexCommand::subsubsection;
+            case 6: return TexCommand::paragraph;
+            case 7: return TexCommand::subparagraph;
             default: return std::nullopt;
         }
     } else {
         switch (tree->level) {
-            case 1: return SubtreeCmd::section;
-            case 2: return SubtreeCmd::subsection;
-            case 3: return SubtreeCmd::subsubsection;
-            case 4: return SubtreeCmd::paragraph;
-            case 5: return SubtreeCmd::subparagraph;
+            case 1: return TexCommand::section;
+            case 2: return TexCommand::subsection;
+            case 3: return TexCommand::subsubsection;
+            case 4: return TexCommand::paragraph;
+            case 5: return TexCommand::subparagraph;
             default: return std::nullopt;
         }
     }
@@ -659,14 +659,10 @@ QString capitalize(QString name) {
 }
 } // namespace
 
-QString ExporterLatex::getTreeWrapCommand(OrgHooks cmd) {
-    return QString("orgWrap" + capitalize(to_string(cmd)));
+QString ExporterLatex::getOrgCommand(TexCommand cmd) {
+    return QString("orgCmd" + capitalize(to_string(cmd)));
 }
 
-QString ExporterLatex::getTreeWrapCommand(SubtreeCmd cmd, bool before) {
-    return QString(before ? "before" : "after") + "OrgTree"
-         + capitalize(to_string(cmd));
-}
 
 QString ExporterLatex::getWrapEnvCommand(OrgSemPlacement placement) {
     return QString("orgEnv" + to_string(placement));
@@ -678,9 +674,9 @@ Opt<QString> ExporterLatex::getRefKind(SemId id) {
             auto command = getSubtreeCommand(id.as<sem::Subtree>());
             if (command) {
                 switch (command.value()) {
-                    case SubtreeCmd::chapter: return "chap:";
-                    case SubtreeCmd::section: return "sec:";
-                    case SubtreeCmd::part: return "part:";
+                    case TexCommand::chapter: return "chap:";
+                    case TexCommand::section: return "sec:";
+                    case TexCommand::part: return "part:";
                 }
             } else {
                 return std::nullopt;
@@ -713,23 +709,22 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     res->add(command("usepackage", {"bookmarks"}, {"hyperref"}));
     res->add(command("usepackage", {"xcolor"}));
 
-    for (auto const& value : sliceT<SubtreeCmd>()) {
-        res->add(command(
-            "newcommand", {"\\" + getTreeWrapCommand(value, true), ""}));
-        res->add(command(
-            "newcommand", {"\\" + getTreeWrapCommand(value, false), ""}));
-    }
-
     for (auto const& value : sliceT<OrgSemPlacement>()) {
         res->add(
             command("newenvironment", {getWrapEnvCommand(value), "", ""}));
     }
 
-    for (auto const& value : sliceT<OrgHooks>()) {
-        res->add(command(
-            "newcommand",
-            {"1"},
-            {"\\" + getTreeWrapCommand(value), "#1"}));
+    for (auto const& value : sliceT<TexCommand>()) {
+        int argCount = 1;
+        switch (value) {
+            default: argCount = 1;
+        }
+
+        Res cmd = b::line({string("\\newcommand")});
+        addWrap(cmd, "{", "}", "\\" + getOrgCommand(value));
+        addWrap(cmd, "[", "]", string(to_string(argCount)));
+        addWrap(cmd, "{", "}", command(to_string(value), {"#1"}));
+        res->add(cmd);
     }
 
     Vec<sem::SemIdT<sem::Export>> headerExports;
@@ -805,22 +800,18 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
         }
     }
 
-    Opt<SubtreeCmd> cmd = getSubtreeCommand(tree);
-
-    if (cmd) {
-        res->add(command(getTreeWrapCommand(*cmd, true)));
-    }
+    Opt<TexCommand> cmd = getSubtreeCommand(tree);
 
     res->add(command(
-        map(cmd, [](SubtreeCmd cmd) { return to_string(cmd); })
+        map(cmd, [this](TexCommand cmd) { return getOrgCommand(cmd); })
             .value_or("textbf"),
         {titleText}));
 
     if (cmd) {
         switch (*cmd) {
-            case SubtreeCmd::part:
-            case SubtreeCmd::chapter:
-            case SubtreeCmd::section:
+            case TexCommand::part:
+            case TexCommand::chapter:
+            case TexCommand::section:
                 res->add(command(
                     "label",
                     {string(
@@ -828,7 +819,6 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
                         + to_string(*cmd))}));
                 break;
         }
-        res->add(command(getTreeWrapCommand(*cmd, false)));
     }
 
     for (const auto& it : tree->subnodes) {
