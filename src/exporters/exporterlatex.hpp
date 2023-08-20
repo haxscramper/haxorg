@@ -25,12 +25,13 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
         paragraph,
         subparagraph);
 
-    QString      getLatexClass(Opt<ExporterLatex::In<sem::Document>> doc);
+    QString  getLatexClass(Opt<ExporterLatex::In<sem::Document>> doc);
     Vec<Str> getLatexClassOptions(
         Opt<ExporterLatex::In<sem::Document>> doc);
     Opt<SubtreeCmd> getSubtreeCommand(
         ExporterLatex::In<sem::Subtree> tree);
     QString      getTreeWrapCommand(SubtreeCmd cmd, bool before);
+    QString      getWrapEnvCommand(OrgSemPlacement placement);
     Opt<QString> getRefKind(sem::SemId id);
 
     Res string(QString const& str) { return b::text(store.str(str)); }
@@ -93,6 +94,11 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
         QString const&  name,
         Vec<Res> const& opts,
         Vec<Res> const& args);
+
+    Res environment(
+        QString const&  name,
+        Res const&      body,
+        Vec<Res> const& args = {});
 
     Vec<Res> subnodes(sem::SemId nodes) {
         Vec<Res> res;

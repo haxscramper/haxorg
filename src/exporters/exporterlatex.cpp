@@ -512,6 +512,18 @@ ExporterLatex::Res ExporterLatex::command(
     return res;
 }
 
+ExporterLatex::Res ExporterLatex::environment(
+    const QString&  name,
+    const Res&      body,
+    const Vec<Res>& args) {
+    Res res = b::stack();
+    res->add(command("begin", Vec<Res>{string(name)} + args));
+    res->add(body);
+    res->add(command("end", {name}));
+
+    return res;
+}
+
 void ExporterLatex::visitNewline(Res& res, In<sem::Newline> item) {
     __visit_specific_kind(res, item);
     res = string(escape(item->text));
@@ -646,6 +658,10 @@ QString ExporterLatex::getTreeWrapCommand(SubtreeCmd cmd, bool before) {
     return QString(before ? "before" : "after") + "OrgTree" + name;
 }
 
+QString ExporterLatex::getWrapEnvCommand(OrgSemPlacement placement) {
+    return QString("orgEnv" + to_string(placement));
+}
+
 Opt<QString> ExporterLatex::getRefKind(SemId id) {
     switch (id->getKind()) {
         case osk::Subtree: {
@@ -691,10 +707,17 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
              value_domain<SubtreeCmd>::low(),
              value_domain<SubtreeCmd>::high())) {
 
-        res->add(string(QString(R"(\newcommand{\%1}{})")
-                            .arg(getTreeWrapCommand(value, false))));
-        res->add(string(QString(R"(\newcommand{\%1}{})")
-                            .arg(getTreeWrapCommand(value, true))));
+        res->add(command(
+            "newcommand", {"\\" + getTreeWrapCommand(value, true), ""}));
+        res->add(command(
+            "newcommand", {"\\" + getTreeWrapCommand(value, false), ""}));
+    }
+
+    for (auto const& value : slice(
+             value_domain<OrgSemPlacement>::low(),
+             value_domain<OrgSemPlacement>::high())) {
+        res->add(
+            command("newenvironment", {getWrapEnvCommand(value), "", ""}));
     }
 
     Vec<sem::SemIdT<sem::Export>> headerExports;
@@ -810,6 +833,12 @@ void ExporterLatex::visitParagraph(Res& res, In<Paragraph> par) {
 
     if (res->size() == 0) {
         res->add(string(" "));
+    }
+
+    if (par->placementContext
+        && par->placementContext.value() == OrgSemPlacement::TreeBody) {
+        res = environment(
+            getWrapEnvCommand(par->placementContext.value()), res);
     }
 }
 
