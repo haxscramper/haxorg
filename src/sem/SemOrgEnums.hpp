@@ -62,6 +62,12 @@ enum class OrgSemPlacement : short int {
   TreeTitle,
   /// \brief Inner content of the subtree
   TreeBody,
+  /// \brief Description paragraph for the link
+  LinkDescription,
+  /// \brief Statement list or inner content of the list item body
+  ListItemBody,
+  /// \brief Description part of the list item
+  ListItemDesc,
   /// \brief Toplevel document
   DocBody,
 };

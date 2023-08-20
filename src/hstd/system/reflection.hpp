@@ -142,7 +142,7 @@ struct value_domain<E> {
 
     static inline E low() { return D[0]; }
     static inline E high() { return D[sizeof(D) / sizeof(E) - 1]; }
-    static inline E next(E const& value) { return D[ord(value) + 1]; }
+    static inline E succ(E const& value) { return D[ord(value) + 1]; }
     static inline E prev(E const& value) { return D[ord(value) - 1]; }
 
     static inline long long int ord(E const& value) {

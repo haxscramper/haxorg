@@ -15,6 +15,9 @@
 Opt<OrgSemPlacement> enum_serde<OrgSemPlacement>::from_string(QString value) {
   if (value == "TreeTitle") { return OrgSemPlacement::TreeTitle; } else
   if (value == "TreeBody") { return OrgSemPlacement::TreeBody; } else
+  if (value == "LinkDescription") { return OrgSemPlacement::LinkDescription; } else
+  if (value == "ListItemBody") { return OrgSemPlacement::ListItemBody; } else
+  if (value == "ListItemDesc") { return OrgSemPlacement::ListItemDesc; } else
   if (value == "DocBody") { return OrgSemPlacement::DocBody; } else
   { return std::nullopt; }
 }
@@ -22,6 +25,9 @@ QString enum_serde<OrgSemPlacement>::to_string(OrgSemPlacement value) {
   switch (value) {
     case OrgSemPlacement::TreeTitle: return "TreeTitle";
     case OrgSemPlacement::TreeBody: return "TreeBody";
+    case OrgSemPlacement::LinkDescription: return "LinkDescription";
+    case OrgSemPlacement::ListItemBody: return "ListItemBody";
+    case OrgSemPlacement::ListItemDesc: return "ListItemDesc";
     case OrgSemPlacement::DocBody: return "DocBody";
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }

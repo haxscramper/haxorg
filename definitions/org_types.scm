@@ -790,6 +790,9 @@ org can do ... which is to be determined as well")
     (list
      (d:efield "TreeTitle" (d:doc "Subtree title"))
      (d:efield "TreeBody" (d:doc "Inner content of the subtree"))
+     (d:efield "LinkDescription" (d:doc "Description paragraph for the link"))
+     (d:efield "ListItemBody" (d:doc "Statement list or inner content of the list item body"))
+     (d:efield "ListItemDesc" (d:doc "Description part of the list item"))
      (d:efield "DocBody" (d:doc "Toplevel document"))))
    (d:enum
     "OrgHorizontalDirection" (d:doc "")

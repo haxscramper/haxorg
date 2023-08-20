@@ -652,10 +652,20 @@ Opt<ExporterLatex::SubtreeCmd> ExporterLatex::getSubtreeCommand(
     }
 }
 
+namespace {
+QString capitalize(QString name) {
+    name[0] = name[0].toUpper();
+    return name;
+}
+} // namespace
+
+QString ExporterLatex::getTreeWrapCommand(OrgHooks cmd) {
+    return QString("orgWrap" + capitalize(to_string(cmd)));
+}
+
 QString ExporterLatex::getTreeWrapCommand(SubtreeCmd cmd, bool before) {
-    QString name = to_string(cmd);
-    name[0]      = name[0].toUpper();
-    return QString(before ? "before" : "after") + "OrgTree" + name;
+    return QString(before ? "before" : "after") + "OrgTree"
+         + capitalize(to_string(cmd));
 }
 
 QString ExporterLatex::getWrapEnvCommand(OrgSemPlacement placement) {
@@ -703,21 +713,23 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     res->add(command("usepackage", {"bookmarks"}, {"hyperref"}));
     res->add(command("usepackage", {"xcolor"}));
 
-    for (auto const& value : slice(
-             value_domain<SubtreeCmd>::low(),
-             value_domain<SubtreeCmd>::high())) {
-
+    for (auto const& value : sliceT<SubtreeCmd>()) {
         res->add(command(
             "newcommand", {"\\" + getTreeWrapCommand(value, true), ""}));
         res->add(command(
             "newcommand", {"\\" + getTreeWrapCommand(value, false), ""}));
     }
 
-    for (auto const& value : slice(
-             value_domain<OrgSemPlacement>::low(),
-             value_domain<OrgSemPlacement>::high())) {
+    for (auto const& value : sliceT<OrgSemPlacement>()) {
         res->add(
             command("newenvironment", {getWrapEnvCommand(value), "", ""}));
+    }
+
+    for (auto const& value : sliceT<OrgHooks>()) {
+        res->add(command(
+            "newcommand",
+            {"1"},
+            {"\\" + getTreeWrapCommand(value), "#1"}));
     }
 
     Vec<sem::SemIdT<sem::Export>> headerExports;
