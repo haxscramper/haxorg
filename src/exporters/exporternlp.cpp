@@ -155,7 +155,9 @@ void ExporterNLP::executeRequests() {
 
     http->hasData();
     while (http->hasPendingRequests() || http->hasData()) {
-        http->waitForData();
+        if (http->hasPendingRequests()) {
+            http->waitForData();
+        }
         while (http->hasData()) {
             HttpDataProvider::QueueData data = http->dequeue();
             onFinishedResponse(data.response, data.responseId);
