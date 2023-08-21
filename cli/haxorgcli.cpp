@@ -1137,7 +1137,7 @@ void HaxorgCli::exec() {
             qDebug() << "Mind map export ok";
         }
 
-        if (false) {
+        if (true) {
             using namespace NLP::builder;
 
             __trace("Exporter NLP");
