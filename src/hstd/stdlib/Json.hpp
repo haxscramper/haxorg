@@ -10,6 +10,7 @@
 #include <hstd/stdlib/Opt.hpp>
 
 #include <boost/describe.hpp>
+#include <hstd/system/reflection.hpp>
 
 using json   = nlohmann::json;
 namespace ns = nlohmann;
@@ -32,6 +33,7 @@ struct adl_serializer<QString> {
 void to_json(json& j, int i);
 void to_json(json& j, CR<QString> str);
 void to_json(json& j, CR<Str> str);
+void from_json(const json& in, QString& out);
 
 QString      to_string(json const& j);
 QDebug       operator<<(QDebug os, json const& value);
@@ -60,17 +62,53 @@ inline void to_json(json& res, CR<Vec<T>> str);
 template <typename T>
 inline void to_json(json& res, std::unique_ptr<T> const& value);
 
-template <DescribedMembers T>
-void to_json(json& obj, T const& t) {
-    using D1 = boost::describe::
-        describe_members<T, boost::describe::mod_public>;
-    obj = json::object();
-    boost::mp11::mp_for_each<D1>([&](auto D) {
-        json tmp;
-        to_json(tmp, t.*D.pointer);
-        obj[D.name] = tmp;
+
+template <DescribedRecord T>
+static void to_json(json& j, const T& str) {
+    using Bd = boost::describe::
+        describe_bases<T, boost::describe::mod_any_access>;
+    using Md = boost::describe::
+        describe_members<T, boost::describe::mod_any_access>;
+
+    if (!j.is_object()) {
+        j = json::object();
+    }
+
+    boost::mp11::mp_for_each<Md>(
+        [&](auto const& field) { j[field.name] = str.*field.pointer; });
+
+    boost::mp11::mp_for_each<Bd>([&](auto Base) {
+        to_json<typename decltype(Base)::type>(j, str);
     });
 }
+
+template <DescribedRecord T>
+void from_json(const json& in, T& out) {
+    using Bd = boost::describe::
+        describe_bases<T, boost::describe::mod_any_access>;
+    using Md = boost::describe::
+        describe_members<T, boost::describe::mod_any_access>;
+    boost::mp11::mp_for_each<Md>([&](auto const& field) {
+        ::nlohmann::adl_serializer<decltype(field)>::from_json(
+            in[field.name], out.*field.pointer);
+    });
+
+    boost::mp11::mp_for_each<Bd>([&](auto Base) {
+        ::nlohmann::adl_serializer<typename decltype(Base)::type>::decode(
+            in, out);
+    });
+}
+
+
+template <typename T>
+void from_json(const json& in, Vec<T>& out) {
+    for (auto const& j : in) {
+        T tmp;
+        from_json(j, tmp);
+        out.push_back(tmp);
+    }
+}
+
 
 template <typename T>
 inline void to_json(json& res, CR<Vec<T>> str) {

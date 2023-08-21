@@ -1,6 +1,7 @@
 #include "HttpDataProvider.hpp"
 #include <QNetworkReply>
 
+
 HttpDataProvider::HttpDataProvider() {
     connect(this, &QThread::finished, this, &QObject::deleteLater);
     netManager = std::make_shared<QNetworkAccessManager>();
@@ -70,4 +71,43 @@ void HttpDataProvider::sendPostRequest(
 
     pendingRequests.fetch_add(1);
     emit sendPostRequest(netRequest, requestId, data);
+}
+
+struct PostCacheKeyStruct {
+    DECL_FIELDS(
+        PostCacheKeyStruct,
+        (),
+        ((QString), url, QString{}),
+        ((QString), data, QString{}),
+        ((HttpDataProvider::ResponseData),
+         response,
+         HttpDataProvider::ResponseData{}));
+};
+
+struct PostCacheData {
+    DECL_FIELDS(
+        PostCacheData,
+        (),
+        ((Vec<PostCacheKeyStruct>), postCache, {}));
+};
+
+void HttpDataProvider::addCache(const json& cacheData) {
+    PostCacheData parsed;
+    from_json<PostCacheData>(cacheData, parsed);
+    for (auto const& it : parsed.postCache) {
+        cache[{QUrl(it.url), it.data}] = it.response;
+    }
+}
+
+json HttpDataProvider::toJsonCache() {
+    json          result;
+    PostCacheData conv;
+    for (auto const& key : cache.keys()) {
+        conv.postCache.push_back(PostCacheKeyStruct{
+            key.first.toString(), key.second, cache[key]});
+    }
+
+    to_json<PostCacheData>(result, conv);
+
+    return result;
 }

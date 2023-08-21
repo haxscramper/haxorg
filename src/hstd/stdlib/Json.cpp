@@ -123,3 +123,7 @@ std::string to_compact_json(
 
     return format(options.startIndent, j);
 }
+
+void from_json(const json &in, QString &out) {
+    out = QString::fromStdString(in.get<std::string>());
+}

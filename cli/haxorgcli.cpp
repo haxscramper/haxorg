@@ -1083,7 +1083,7 @@ void HaxorgCli::exec() {
 
         {
             __trace("Export Latex");
-            ExporterLatex exporter;
+            ExporterLatex    exporter;
             OperationsTracer trace{QFileInfo("/tmp/latex_export_trace")};
             [&](ExporterLatex::VisitEvent const& ev) {
                 using K = typename ExporterLatex::VisitEvent::Kind;
@@ -1143,8 +1143,26 @@ void HaxorgCli::exec() {
             __trace("Exporter NLP");
             ExporterNLP nlp{QUrl("http://localhost:9000")};
             nlp.visitTop(node);
+            QFileInfo jsonCache{"/tmp/nlp-exporter.json"};
+            if (jsonCache.exists()) {
+                QString content = readFile(jsonCache);
+                json    parsed  = json::parse(content.toStdString());
+                nlp.http.addCache(parsed);
+            }
+
+            nlp.http.isCacheEnabled = true;
+
             nlp.executeRequests();
             nlp.waitForRequests();
+
+            {
+                json cache = nlp.http.toJsonCache();
+                writeFile(
+                    jsonCache,
+                    QString::fromStdString(to_compact_json(cache)));
+                qDebug() << "Wrote json exchange cache";
+            }
+
             auto trees = nlp.findMatches(
                 rel::Dir(Tag("VBN"), Tag("*"), "nsubj"));
 

@@ -183,45 +183,6 @@ void ExporterNLP::sendRequest(const Request& request, int index) {
     http.sendPostRequest(requestUrl, data, index);
 }
 
-template <DescribedRecord T>
-static void to_json(json& j, const T& str) {
-    using Bd = boost::describe::
-        describe_bases<T, boost::describe::mod_any_access>;
-    using Md = boost::describe::
-        describe_members<T, boost::describe::mod_any_access>;
-
-    if (!j.is_object()) {
-        j = json::object();
-    }
-    boost::mp11::mp_for_each<Md>(
-        [&](auto const& field) { j[field.name] = str.*field.pointer; });
-
-    boost::mp11::mp_for_each<Bd>([&](auto Base) {
-        Node res = ::nlohmann::adl_serializer<
-            typename decltype(Base)::type>::to_json(j, str);
-    });
-}
-
-template <DescribedRecord T>
-void from_json(const json& in, T& out) {
-    using Bd = boost::describe::
-        describe_bases<T, boost::describe::mod_any_access>;
-    using Md = boost::describe::
-        describe_members<T, boost::describe::mod_any_access>;
-    boost::mp11::mp_for_each<Md>([&](auto const& field) {
-        ::nlohmann::adl_serializer<decltype(field)>::from_json(
-            in[field.name], out.*field.pointer);
-    });
-
-    boost::mp11::mp_for_each<Bd>([&](auto Base) {
-        ::nlohmann::adl_serializer<typename decltype(Base)::type>::decode(
-            in, out);
-    });
-}
-
-void from_json(const json& in, QString& out) {
-    out = QString::fromStdString(in.get<std::string>());
-}
 
 // template <typename T>
 // void to_json(json& j, const Vec<T>& str) {
@@ -234,14 +195,6 @@ void from_json(const json& in, QString& out) {
 // }
 
 
-template <typename T>
-void from_json(const json& in, Vec<T>& out) {
-    for (auto const& j : in) {
-        T tmp;
-        from_json(j, tmp);
-        out.push_back(tmp);
-    }
-}
 
 
 void ExporterNLP::onFinishedResponse(

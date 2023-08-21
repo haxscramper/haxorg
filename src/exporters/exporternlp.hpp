@@ -370,9 +370,9 @@ class ExporterNLP
     __visit(RawText);
     __visit(Newline);
 
-  private:
     HttpDataProvider http;
 
+  private:
     void sendRequest(Request const& request, int index);
     void onFinishedResponse(QNetworkReply* reply, int targetIndex);
 };
