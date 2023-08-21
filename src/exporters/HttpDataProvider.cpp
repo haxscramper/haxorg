@@ -25,7 +25,10 @@ HttpDataProvider::HttpDataProvider() {
             QObject::connect(
                 reply, &QNetworkReply::finished, [reply, this]() {
                     if (onFinishedResponse) {
-                        this->onFinishedResponse(reply);
+                        this->onFinishedResponse(
+                            reply,
+                            reply->property("exchange-index")
+                                .value<int>());
                     }
                     pendingRequests.fetch_sub(1);
                 });
@@ -46,19 +49,25 @@ HttpDataProvider::HttpDataProvider() {
         });
 }
 
-int HttpDataProvider::sendPostRequest(
+void HttpDataProvider::waitForRequests(int sleepOn) {
+    while (0 < pendingRequests.load()) {
+        QThread::msleep(sleepOn);
+    }
+}
+
+void HttpDataProvider::sendPostRequest(
     const QUrl&    url,
-    const QString& data) {
-    ++requestId;
+    const QString& data,
+    int            requestId,
+    int            timeout) {
 
     QNetworkRequest netRequest{url};
+    netRequest.setTransferTimeout(timeout);
 
     netRequest.setHeader(
         QNetworkRequest::ContentTypeHeader,
         "application/x-www-form-urlencoded");
 
-
+    pendingRequests.fetch_add(1);
     emit sendPostRequest(netRequest, requestId, data);
-
-    return requestId;
 }

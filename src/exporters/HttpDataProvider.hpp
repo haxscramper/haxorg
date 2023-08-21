@@ -26,22 +26,18 @@ class HttpDataProvider : public QThread {
     }
 
     virtual void run() override { exec(); }
+    OnPostCb     onPostRequest;
+    void         waitForRequests(int sleepOn = 250);
+
+    void sendPostRequest(
+        QUrl const&    url,
+        QString const& data,
+        int            requestId,
+        int            timeout = 5000);
 
     SPtr<QNetworkAccessManager> netManager = nullptr;
 
-    OnPostCb onPostRequest;
-
-    void waitForRequests(int sleepOn = 250) {
-        while (0 < pendingRequests.load()) {
-            QThread::msleep(sleepOn);
-        }
-    }
-
-    int sendPostRequest(QUrl const& url, QString const& data);
-
-    int requestId = 0;
-
-    Func<void(QNetworkReply* reply)> onFinishedResponse;
+    Func<void(QNetworkReply* reply, int)> onFinishedResponse;
 
   signals:
     void sendPostRequest(

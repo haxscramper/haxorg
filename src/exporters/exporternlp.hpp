@@ -10,6 +10,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/stdlib/ColText.hpp>
+#include "HttpDataProvider.hpp"
 
 namespace NLP {
 struct Sentence;
@@ -340,14 +341,10 @@ class ExporterNLP
     QUrl                         requestUrl;
     Vec<Pair<Request, Response>> exchange;
     ExporterNLP(QUrl const& resp);
-    ~ExporterNLP();
     void executeRequests();
     void waitForRequests();
 
     Vec<NLP::SenTree::Ptr> findMatches(NLP::Rule const& rule);
-
-  private:
-    std::atomic<int> pendingRequests = 0;
 
   public:
     Opt<Request> activeRequest;
@@ -374,12 +371,10 @@ class ExporterNLP
     __visit(Newline);
 
   private:
-    SPtr<QNetworkAccessManager> netManager = nullptr;
-    SPtr<NetworkThread>         netThread  = nullptr;
+    HttpDataProvider http;
 
     void sendRequest(Request const& request, int index);
-    void addRequestHooks(QNetworkReply* reply);
-    void onFinishedResponse(QNetworkReply* reply);
+    void onFinishedResponse(QNetworkReply* reply, int targetIndex);
 };
 
 QString to_string(NLP::Rule const&);

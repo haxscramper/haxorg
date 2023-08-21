@@ -134,10 +134,10 @@ ExporterNLP::ExporterNLP(const QUrl& resp) : requestUrl(resp) {
     QJsonDocument parameters;
 
     QJsonObject obj;
-    netThread  = std::make_shared<NetworkThread>();
-    netManager = std::make_shared<QNetworkAccessManager>();
-    netManager->moveToThread(netThread.get());
-    netThread->start();
+    http.start();
+    http.onFinishedResponse = [this](QNetworkReply* reply, int index) {
+        this->onFinishedResponse(reply, index);
+    };
     obj["annotators"] = QStringList({"tokenize", "ssplit", "pos", "parse"})
                             .join(", ");
     obj["outputFormat"] = "json";
@@ -147,29 +147,6 @@ ExporterNLP::ExporterNLP(const QUrl& resp) : requestUrl(resp) {
         "properties", parameters.toJson(QJsonDocument::Compact));
 
     requestUrl.setQuery(query);
-
-    QObject::connect(
-        this,
-        &ExporterNLP::sendQtRequest,
-        netManager.get(),
-        [this](
-            QNetworkRequest const& request,
-            int                    index,
-            QString const&         data) {
-            QNetworkReply* reply = netManager->post(
-                request, data.toUtf8());
-            qCDebug(nlp) << "Sent Network request"
-                         << pendingRequests.load();
-            Q_CHECK_PTR(reply);
-            reply->setProperty(
-                "exchange-index", QVariant::fromValue(index));
-            addRequestHooks(reply);
-        });
-}
-
-ExporterNLP::~ExporterNLP() {
-    netThread->quit();
-    netThread->wait();
 }
 
 void ExporterNLP::executeRequests() {
@@ -178,14 +155,7 @@ void ExporterNLP::executeRequests() {
     }
 }
 
-void ExporterNLP::waitForRequests() {
-    qDebug() << pendingRequests.load();
-    while (0 < pendingRequests.load()) {
-        qCDebug(nlp) << "Waiting for pending requests" << pendingRequests
-                     << "left";
-        QThread::msleep(250);
-    }
-}
+void ExporterNLP::waitForRequests() { http.waitForRequests(); }
 
 void ExporterNLP::asSeparateRequest(R& t, sem::SemId par) {
     qDebug() << "Visiting paragraph in text";
@@ -208,40 +178,10 @@ void ExporterNLP::sendRequest(const Request& request, int index) {
         data += word.text;
     }
 
-    netRequest.setHeader(
-        QNetworkRequest::ContentTypeHeader,
-        "application/x-www-form-urlencoded");
     qCDebug(nlp) << "Sending request to" << requestUrl << "with data"
                  << data.toUtf8();
-    pendingRequests.fetch_add(1);
-    emit sendQtRequest(netRequest, index, data);
+    http.sendPostRequest(requestUrl, data, index);
 }
-
-void ExporterNLP::addRequestHooks(QNetworkReply* reply) {
-    QObject::connect(reply, &QNetworkReply::finished, [reply, this]() {
-        this->onFinishedResponse(reply);
-        pendingRequests.fetch_sub(1);
-    });
-
-    QObject::connect(
-        reply,
-        &QNetworkReply::errorOccurred,
-        [this](const QNetworkReply::NetworkError& error) {
-            qCWarning(nlp) << "Response had error ";
-            pendingRequests.fetch_sub(1);
-        });
-
-    QObject::connect(
-        reply,
-        &QNetworkReply::sslErrors,
-        [this](const QList<QSslError>& errors) {
-            qCWarning(nlp) << "Response had error " << errors;
-            pendingRequests.fetch_sub(1);
-        });
-
-    qCDebug(nlp) << "Added response hooks";
-}
-
 
 template <DescribedRecord T>
 static void to_json(json& j, const T& str) {
@@ -304,7 +244,9 @@ void from_json(const json& in, Vec<T>& out) {
 }
 
 
-void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
+void ExporterNLP::onFinishedResponse(
+    QNetworkReply* reply,
+    int            targetIndex) {
     qDebug() << "Finished NLP response trigger";
     if (reply->error()) {
         qCWarning(nlp) << "Failed to execute reply";
@@ -319,7 +261,6 @@ void ExporterNLP::onFinishedResponse(QNetworkReply* reply) {
     } else {
         auto j = json::parse(reply->readAll().toStdString());
         qDebug().noquote() << to_compact_json(j, {.width = 240});
-        int targetIndex = reply->property("exchange-index").value<int>();
         qCDebug(nlp) << "Got NLP server response for request"
                      << targetIndex;
         Response result{.valid = true, .parsed = Parsed::shared()};
