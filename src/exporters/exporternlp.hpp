@@ -269,27 +269,7 @@ namespace builder {
 
 } // namespace NLP
 
-class QNetworkAccessManager;
-class QNetworkReply;
-
-class NetworkThread : public QThread {
-    Q_OBJECT
-
-  public:
-    explicit NetworkThread() {
-        connect(this, &QThread::finished, this, &QObject::deleteLater);
-    }
-
-    virtual ~NetworkThread() override = default;
-    virtual void run() override { exec(); }
-};
-
-
-class ExporterNLP
-    : public QObject
-    , public Exporter<ExporterNLP, std::monostate> {
-
-    Q_OBJECT
+class ExporterNLP : public Exporter<ExporterNLP, std::monostate> {
 
   signals:
     void sendQtRequest(QNetworkRequest const&, int, QString const& data);
@@ -369,7 +349,7 @@ class ExporterNLP
     __visit(RawText);
     __visit(Newline);
 
-    HttpDataProvider http;
+    SPtr<HttpDataProvider> http;
 
   private:
     void sendRequest(Request const& request, int index);

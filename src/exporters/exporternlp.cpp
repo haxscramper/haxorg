@@ -134,7 +134,8 @@ ExporterNLP::ExporterNLP(const QUrl& resp) : requestUrl(resp) {
     QJsonDocument parameters;
 
     QJsonObject obj;
-    http.start();
+    http = std::make_shared<HttpDataProvider>();
+    http->start();
     obj["annotators"] = QStringList({"tokenize", "ssplit", "pos", "parse"})
                             .join(", ");
     obj["outputFormat"] = "json";
@@ -151,13 +152,16 @@ void ExporterNLP::executeRequests() {
         sendRequest(exchange.at(i).first, i);
     }
 
-    while (http.hasPendingRequests()) {
-        http.waitForData();
-        while (http.hasData()) {
-            HttpDataProvider::QueueData data = http.dequeue();
+
+    http->hasData();
+    while (http->hasPendingRequests() || http->hasData()) {
+        http->waitForData();
+        while (http->hasData()) {
+            HttpDataProvider::QueueData data = http->dequeue();
             onFinishedResponse(data.response, data.responseId);
         }
     }
+    qDebug() << "Done request execution";
 }
 
 void ExporterNLP::asSeparateRequest(R& t, sem::SemId par) {
@@ -180,7 +184,7 @@ void ExporterNLP::sendRequest(const Request& request, int index) {
 
     qCDebug(nlp) << "Sending request to" << requestUrl << "with data"
                  << data.toUtf8();
-    http.sendPostRequest(requestUrl, data, index);
+    http->sendPostRequest(requestUrl, data, index);
 }
 
 

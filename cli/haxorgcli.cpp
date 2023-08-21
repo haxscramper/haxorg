@@ -1147,15 +1147,15 @@ void HaxorgCli::exec() {
             if (jsonCache.exists()) {
                 QString content = readFile(jsonCache);
                 json    parsed  = json::parse(content.toStdString());
-                nlp.http.addCache(parsed);
+                nlp.http->addCache(parsed);
             }
 
-            nlp.http.isCacheEnabled = true;
+            nlp.http->isCacheEnabled = true;
 
             nlp.executeRequests();
 
             {
-                json cache = nlp.http.toJsonCache();
+                json cache = nlp.http->toJsonCache();
                 writeFile(
                     jsonCache,
                     QString::fromStdString(to_compact_json(cache)));

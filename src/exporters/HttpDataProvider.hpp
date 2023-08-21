@@ -31,7 +31,7 @@ class HttpDataProvider : public QThread {
         ResponseData response;
     };
 
-    using PostCacheKey = QPair<QUrl, QString>;
+    using PostCacheKey = QPair<QString, QString>;
 
   private:
     std::atomic<int>                  pendingRequests = 0;
@@ -51,7 +51,7 @@ class HttpDataProvider : public QThread {
     bool      hasCached(PostCacheKey const& key);
     bool      hasData();
 
-    ResponseData const& getCached(PostCacheKey const& key);
+    ResponseData getCached(PostCacheKey const& key);
 
     using OnPostCb = Func<
         void(QNetworkRequest const&, int, QString const&)>;
