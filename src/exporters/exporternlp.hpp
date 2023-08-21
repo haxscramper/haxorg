@@ -342,7 +342,6 @@ class ExporterNLP
     Vec<Pair<Request, Response>> exchange;
     ExporterNLP(QUrl const& resp);
     void executeRequests();
-    void waitForRequests();
 
     Vec<NLP::SenTree::Ptr> findMatches(NLP::Rule const& rule);
 
@@ -374,7 +373,9 @@ class ExporterNLP
 
   private:
     void sendRequest(Request const& request, int index);
-    void onFinishedResponse(QNetworkReply* reply, int targetIndex);
+    void onFinishedResponse(
+        HttpDataProvider::ResponseData const& reply,
+        int                                   targetIndex);
 };
 
 QString to_string(NLP::Rule const&);

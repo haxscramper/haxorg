@@ -1153,7 +1153,6 @@ void HaxorgCli::exec() {
             nlp.http.isCacheEnabled = true;
 
             nlp.executeRequests();
-            nlp.waitForRequests();
 
             {
                 json cache = nlp.http.toJsonCache();

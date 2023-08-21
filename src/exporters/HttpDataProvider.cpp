@@ -23,15 +23,37 @@ HttpDataProvider::HttpDataProvider() {
             reply->setProperty(
                 "exchange-index", QVariant::fromValue(index));
 
+            if (isCacheEnabled) {
+                reply->setProperty(
+                    "exchange-data", QVariant::fromValue(data));
+            }
+
             QObject::connect(
                 reply, &QNetworkReply::finished, [reply, this]() {
-                    if (onFinishedResponse) {
-                        this->onFinishedResponse(
-                            reply,
-                            reply->property("exchange-index")
-                                .value<int>());
+                    ResponseData resp{};
+                    if (reply->error()) {
+                        resp.isError     = true;
+                        resp.errorString = reply->errorString();
+                    } else {
+                        resp.content = reply->readAll();
                     }
+
+                    if (isCacheEnabled) {
+                        addCache(
+                            {reply->request().url(),
+                             reply->property("exchange-data")
+                                 .value<QString>()},
+                            resp);
+                    }
+
+                    enqueue(QueueData{
+                        .responseId = reply->property("exchange-index")
+                                          .value<int>(),
+                        .response = resp,
+                    });
+
                     pendingRequests.fetch_sub(1);
+                    reply->deleteLater();
                 });
 
             QObject::connect(
@@ -51,9 +73,19 @@ HttpDataProvider::HttpDataProvider() {
 }
 
 void HttpDataProvider::waitForRequests(int sleepOn) {
-    while (0 < pendingRequests.load()) {
+    while (hasPendingRequests()) {
         QThread::msleep(sleepOn);
     }
+}
+
+void HttpDataProvider::waitForData(int sleepOn) {
+    while (hasPendingRequests() && !hasData()) {
+        QThread::msleep(sleepOn);
+    }
+}
+
+bool HttpDataProvider::hasPendingRequests() const {
+    return 0 < pendingRequests.load();
 }
 
 void HttpDataProvider::sendPostRequest(
@@ -62,15 +94,21 @@ void HttpDataProvider::sendPostRequest(
     int            requestId,
     int            timeout) {
 
-    QNetworkRequest netRequest{url};
-    netRequest.setTransferTimeout(timeout);
+    if (isCacheEnabled && cache.contains({url, data})) {
+        enqueue(QueueData{
+            .responseId = requestId,
+            .response   = cache.value({url, data})});
+    } else {
+        QNetworkRequest netRequest{url};
+        netRequest.setTransferTimeout(timeout);
 
-    netRequest.setHeader(
-        QNetworkRequest::ContentTypeHeader,
-        "application/x-www-form-urlencoded");
+        netRequest.setHeader(
+            QNetworkRequest::ContentTypeHeader,
+            "application/x-www-form-urlencoded");
 
-    pendingRequests.fetch_add(1);
-    emit sendPostRequest(netRequest, requestId, data);
+        pendingRequests.fetch_add(1);
+        emit sendPostRequest(netRequest, requestId, data);
+    }
 }
 
 struct PostCacheKeyStruct {
@@ -91,6 +129,18 @@ struct PostCacheData {
         ((Vec<PostCacheKeyStruct>), postCache, {}));
 };
 
+void HttpDataProvider::enqueue(const QueueData& data) {
+    QMutexLocker locker{&queueMutex};
+    responseQueue.push_back(data);
+}
+
+HttpDataProvider::QueueData HttpDataProvider::dequeue() {
+    QMutexLocker locker{&queueMutex};
+    QueueData    result = responseQueue.front();
+    responseQueue.pop_front();
+    return result;
+}
+
 void HttpDataProvider::addCache(const json& cacheData) {
     PostCacheData parsed;
     from_json<PostCacheData>(cacheData, parsed);
@@ -110,4 +160,27 @@ json HttpDataProvider::toJsonCache() {
     to_json<PostCacheData>(result, conv);
 
     return result;
+}
+
+void HttpDataProvider::addCache(
+    const PostCacheKey& key,
+    const ResponseData& data) {
+    QMutexLocker locker{&cacheMutex};
+    cache[key] = data;
+}
+
+bool HttpDataProvider::hasCached(const PostCacheKey& key) {
+    QMutexLocker locker{&cacheMutex};
+    return cache.contains(key);
+}
+
+bool HttpDataProvider::hasData() {
+    QMutexLocker locker{&queueMutex};
+    return !responseQueue.isEmpty();
+}
+
+const HttpDataProvider::ResponseData& HttpDataProvider::getCached(
+    const PostCacheKey& key) {
+    QMutexLocker locker{&cacheMutex};
+    return cache.value(key);
 }

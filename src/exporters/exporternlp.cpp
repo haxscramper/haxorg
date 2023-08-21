@@ -135,9 +135,6 @@ ExporterNLP::ExporterNLP(const QUrl& resp) : requestUrl(resp) {
 
     QJsonObject obj;
     http.start();
-    http.onFinishedResponse = [this](QNetworkReply* reply, int index) {
-        this->onFinishedResponse(reply, index);
-    };
     obj["annotators"] = QStringList({"tokenize", "ssplit", "pos", "parse"})
                             .join(", ");
     obj["outputFormat"] = "json";
@@ -153,9 +150,15 @@ void ExporterNLP::executeRequests() {
     for (int i = 0; i < exchange.size(); ++i) {
         sendRequest(exchange.at(i).first, i);
     }
-}
 
-void ExporterNLP::waitForRequests() { http.waitForRequests(); }
+    while (http.hasPendingRequests()) {
+        http.waitForData();
+        while (http.hasData()) {
+            HttpDataProvider::QueueData data = http.dequeue();
+            onFinishedResponse(data.response, data.responseId);
+        }
+    }
+}
 
 void ExporterNLP::asSeparateRequest(R& t, sem::SemId par) {
     qDebug() << "Visiting paragraph in text";
@@ -170,9 +173,6 @@ void ExporterNLP::asSeparateRequest(R& t, sem::SemId par) {
 }
 
 void ExporterNLP::sendRequest(const Request& request, int index) {
-    QNetworkRequest netRequest{requestUrl};
-    netRequest.setTransferTimeout(5000);
-
     QString data;
     for (const auto& word : request.sentence.text) {
         data += word.text;
@@ -195,24 +195,16 @@ void ExporterNLP::sendRequest(const Request& request, int index) {
 // }
 
 
-
-
 void ExporterNLP::onFinishedResponse(
-    QNetworkReply* reply,
-    int            targetIndex) {
+    HttpDataProvider::ResponseData const& reply,
+    int                                   targetIndex) {
     qDebug() << "Finished NLP response trigger";
-    if (reply->error()) {
-        qCWarning(nlp) << "Failed to execute reply";
-        //        qCWarning(nlp) << reply->error();
-        qCWarning(nlp) << reply->request().url();
-        qCWarning(nlp) << "Code"
-                       << reply->attribute(
-                              QNetworkRequest::HttpStatusCodeAttribute);
+    if (reply.isError) {
+        qCWarning(nlp) << "Failed to execute reply" << reply.errorString;
 
-        //        emit checked({.valid = false});
 
     } else {
-        auto j = json::parse(reply->readAll().toStdString());
+        auto j = json::parse(reply.content.toStdString());
         qDebug().noquote() << to_compact_json(j, {.width = 240});
         qCDebug(nlp) << "Got NLP server response for request"
                      << targetIndex;
@@ -331,10 +323,8 @@ void ExporterNLP::onFinishedResponse(
                                              << sent->parse->treeRepr();
         }
 
-
         exchange.at(targetIndex).second = result;
     }
-    reply->deleteLater();
 }
 
 QString to_string(const NLP::Rule& rule) {
