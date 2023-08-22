@@ -205,6 +205,10 @@ void ExporterNLP::onFinishedResponse(
         qCDebug(nlp) << "Got NLP server response for request"
                      << targetIndex;
         Response result{.valid = true, .parsed = Parsed::shared()};
+        for (auto const& [key, value] : j["corefs"].items()) {
+            from_json(
+                value, result.parsed->corefs[Str::fromStdString(key)]);
+        }
         for (const auto& inSent : j["sentences"]) {
             qCDebug(nlp).noquote() << to_compact_json(
                 inSent["entitymentions"], {.width = 200});

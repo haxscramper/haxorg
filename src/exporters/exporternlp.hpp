@@ -95,7 +95,7 @@ struct EntityMention {
         EntityMention,
         (),
         ((QString), text, ""),
-//        ((json), nerConfidences, json::object()),
+        //        ((json), nerConfidences, json::object()),
         ((QString), ner, ""),
         ((int), docTokenBegin, 0),
         ((int), docTokenEnd, 0),
@@ -127,11 +127,30 @@ struct OrgText {
     Vec<Word> text;
 };
 
+struct Coref {
+    DECL_FIELDS(
+        Coref,
+        (),
+        ((QString), animacy, ""),
+        ((int), endIndex, 0),
+        ((QString), gender, ""),
+        ((QString), number, ""),
+        ((QString), text, ""),
+        ((QString), type, ""),
+        ((int), sentNum, 0),
+        ((Vec<int>), position, {}),
+        ((int), startIndex, 0),
+        ((int), headIndex, 0),
+        ((int), id, 0),
+        ((bool), isRepresentativeMention, false));
+};
+
 struct Parsed : public SharedPtrApi<Parsed> {
-    OrgText            original;
-    int                posStart;
-    int                posEnd;
-    Vec<Sentence::Ptr> sentence;
+    OrgText                       original;
+    int                           posStart;
+    int                           posEnd;
+    Vec<Sentence::Ptr>            sentence;
+    UnorderedMap<Str, Vec<Coref>> corefs;
 };
 
 
