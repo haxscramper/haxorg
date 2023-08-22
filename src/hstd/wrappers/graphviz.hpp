@@ -108,7 +108,7 @@ class Graphviz {
         }
 
         template <typename AttrType>
-        Opt<AttrType> getAttr(QString const& attribute) {
+        Opt<AttrType> getAttr(QString const& attribute) const {
             Opt<AttrType> res;
             getAttr(attribute, res);
             return res;
@@ -118,8 +118,9 @@ class Graphviz {
             return agget(_this()->get(), strdup(attribute)) != nullptr;
         }
 
-        void getAttr(QString const& attribute, Opt<QString>& value) {
-            char* found = agget(_this()->get(), strdup(attribute));
+        void getAttr(QString const& attribute, Opt<QString>& value) const {
+            char* found = agget(
+                (void*)(_this()->get()), strdup(attribute));
 
             if (found != nullptr) {
                 value = QString::fromStdString(found);
@@ -128,7 +129,7 @@ class Graphviz {
             }
         }
 
-        void getAttr(QString const& key, Opt<int>& value) {
+        void getAttr(QString const& key, Opt<int>& value) const {
             Opt<QString> tmp;
             getAttr(key, tmp);
             if (tmp) {
@@ -136,7 +137,7 @@ class Graphviz {
             }
         }
 
-        void getAttr(QString const& key, Opt<double>& value) {
+        void getAttr(QString const& key, Opt<double>& value) const {
             Opt<QString> tmp;
             getAttr(key, tmp);
             if (tmp) {
@@ -144,7 +145,7 @@ class Graphviz {
             }
         }
 
-        void getAttr(QString const& key, Opt<QColor>& value) {
+        void getAttr(QString const& key, Opt<QColor>& value) const {
             Opt<QString> tmp;
             getAttr(key, tmp);
             if (tmp) {
@@ -152,7 +153,7 @@ class Graphviz {
             }
         }
 
-        void getAttr(QString const& key, Opt<bool>& value) {
+        void getAttr(QString const& key, Opt<bool>& value) const {
             Opt<QString> tmp;
             getAttr(key, tmp);
             if (tmp) {
@@ -161,7 +162,7 @@ class Graphviz {
         }
 
 
-        void getAttr(QString const& key, Opt<QPointF>& value) {
+        void getAttr(QString const& key, Opt<QPointF>& value) const {
             Opt<QString> tmp;
             getAttr(key, tmp);
             if (tmp) {
@@ -395,7 +396,20 @@ class Graphviz {
 
         _eattr(ArrowSize, arrowsize, tiny, small, normal, large, huge);
         _eattr(Dir, dir, forward, back, both, none);
-        _eattr(Style, style, solid, dashed, dotted, bold, invis, tapered);
+        _eattr(
+            Style,
+            style,
+            solid,
+            dashed,
+            dotted,
+            bold,
+            invis,
+            tapered,
+            filled,
+            striped,
+            wedged,
+            diagonals,
+            rounded);
 
 
         /// \brief Color of the node's border
@@ -514,6 +528,10 @@ class Graphviz {
 
         }
 
+        Node subNode(Node const& node) {
+            agsubnode(graph, node.node, 1);
+            return node;
+        }
         Node node(QString const& name) {
             Q_CHECK_PTR(graph);
             auto tmp = Node(graph, name);
@@ -532,6 +550,13 @@ class Graphviz {
 
         /// \brief Direction of layout ranks
         _eattr(RankDirection, rankdir, LR, TB, BT, RL);
+        /// \brief Placement of nodes withing the graph.
+        ///
+        /// 'none' is the default value (not in the same/source/sink list
+        /// that is explicitly recognized by GV), 'same' causes nodes to be
+        /// placd on the same level, `source` is closer to the source
+        /// nodes, `sink` is closer to the target
+        _eattr(Rank, rank, none, same, source, sink);
 
         /// \brief Damping factor for force-directed layout
         _attr(Damping, Damping, double);

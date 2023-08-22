@@ -36,6 +36,15 @@ Vec<T> sorted(CR<Vec<T>> vec, Func<bool(CR<T>, CR<T>)> cmp) {
     return result;
 }
 
+template <typename T, typename F>
+Vec<T> sortedBy(CR<Vec<T>> vec, F eval) {
+    Vec<T> result = vec;
+    sort<T>(result, [&](CR<T> lhs, CR<T> rhs) -> bool {
+        return eval(lhs) < eval(rhs);
+    });
+    return result;
+}
+
 template <typename T>
 Vec<T> sorted(CR<Vec<T>> vec) {
     Vec<T> result = vec;

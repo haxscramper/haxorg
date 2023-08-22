@@ -78,6 +78,7 @@ TEST(NLP, BaseMockApi) {
 
     auto gv = ctx.nlp.exchange.at(0).second.parsed.toGraphviz();
     gvc.renderToFile("/tmp/sentence.png", gv);
+    gvc.renderToFile("/tmp/sentence.gv", gv, Graphviz::RenderFormat::DOT);
 }
 
 struct TestParams {

@@ -70,11 +70,14 @@ struct Token {
 Graphviz::Graph SenGraph::toGraphviz() {
     Graphviz::Graph                        gv{"sen"};
     UnorderedMap<VertDesc, Graphviz::Node> nodes;
+    UnorderedMap<int, Vec<Graphviz::Node>> sentenceWords;
     for (auto [it, it_end] = boost::vertices(graph); it != it_end; ++it) {
         Graphviz::Node node = gv.node(to_string(*it));
         nodes.insert({*it, node});
         SenNode const& prop = graph[*it];
         if (prop.index) {
+            sentenceWords[prop.sentence].push_back(node);
+            node.setAttr("sent_idx", prop.index.value());
             node.setLabel(
                 "$#: '$#' ($#)"
                 % to_string_vec(prop.tag, prop.lexem, prop.index.value()));
@@ -85,6 +88,20 @@ Graphviz::Graph SenGraph::toGraphviz() {
         }
 
         node.setShape(Graphviz::Node::Shape::rect);
+    }
+
+    for (auto const& [sentence, words] : sentenceWords) {
+        Graphviz::Graph sub = gv.newSubgraph("sent" + to_string(sentence));
+        sub.setRank(Graphviz::Graph::Rank::same);
+        for (auto const& word : sortedBy(words, [](Graphviz::Node node) {
+                 return node.getAttr<int>("sent_idx").value();
+             })) {
+            auto linkword = sub.node(
+                word.getAttr<QString>("label").value());
+            linkword.setShape(Graphviz::Node::Shape::rect);
+            linkword.setFontColor(Qt::darkRed);
+            gv.edge(word, linkword);
+        }
     }
 
     for (auto [it, it_end] = boost::edges(graph); it != it_end; ++it) {
@@ -105,6 +122,7 @@ Graphviz::Graph SenGraph::toGraphviz() {
             edge.setAttr("constraint", "false");
             edge.setStyle("dashed");
         } else {
+            edge.setStyle("bold");
         }
     }
 
