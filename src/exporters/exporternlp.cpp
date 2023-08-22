@@ -236,12 +236,21 @@ void ExporterNLP::onFinishedResponse(
                             dep.dependent - 1);
                         if (governor && dependent) {
                             auto split = dep.dep.split(":");
-                            auto dep   = SenTree::Dep{
-                                  .tree = dependent.value(),
-                                  .kind = split[0],
-                                  .sub  = 1 < split.size()
-                                            ? Opt<QString>(split[1])
-                                            : std::nullopt,
+                            auto kind  = enum_serde<SenTree::DepKind>::
+                                from_string(
+                                    split[0] == "case" ? "_case"
+                                                       : split[0]);
+
+                            if (!kind) {
+                                qFatal() << split[0];
+                            }
+
+                            auto dep = SenTree::Dep{
+                                .tree = dependent.value(),
+                                .kind = kind.value(),
+                                .sub  = 1 < split.size()
+                                          ? Opt<QString>(split[1])
+                                          : std::nullopt,
                             };
 
                             if (isBasic) {

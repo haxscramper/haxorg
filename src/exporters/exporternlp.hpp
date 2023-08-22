@@ -44,6 +44,27 @@ struct SenTree : SharedPtrApi<SenTree> {
         WHADVP,
         WRB);
 
+    DECL_DESCRIBED_ENUM(
+        DepKind,
+        acl,
+        advcl,
+        advmod,
+        aux,
+        _case,
+        cc,
+        cop,
+        compound,
+        conj,
+        det,
+        mark,
+        nsubj,
+        obj,
+        obl,
+        parataxis,
+        punct,
+        ROOT,
+        xcomp);
+
     PosTag             tag;
     QString            lexem;
     Opt<int>           index = std::nullopt;
@@ -51,7 +72,7 @@ struct SenTree : SharedPtrApi<SenTree> {
     Vec<sem::SemId>    orgIds;
     struct Dep {
         SenTree*     tree;
-        QString      kind;
+        DepKind      kind;
         Opt<QString> sub;
     };
 
@@ -239,8 +260,8 @@ struct Rule {
         Vec<Rule> rel;
         Kind      kind;
 
-        Opt<QString> relKind;
-        Opt<QString> relSubKind;
+        Opt<SenTree::DepKind> relKind;
+        Opt<QString>          relSubKind;
 
         Result matches(SenTree::Ptr const&) const;
     };
@@ -299,10 +320,10 @@ namespace builder {
 
     namespace rel {
         inline Rule Dir(
-            Rule const&  lhs,
-            Rule const&  rhs,
-            QString      kind,
-            Opt<QString> subRel = std::nullopt) {
+            Rule const&      lhs,
+            Rule const&      rhs,
+            SenTree::DepKind kind,
+            Opt<QString>     subRel = std::nullopt) {
             return Rule(Rule::Relation{
                 .rel = {lhs, rhs}, .relKind = kind, .relSubKind = subRel});
         }
