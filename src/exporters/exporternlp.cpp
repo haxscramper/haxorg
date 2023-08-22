@@ -67,14 +67,19 @@ struct Token {
         ((QString), after, ""));
 };
 
-Graphviz::Graph SenGraph::toGraphviz() {
-    Graphviz::Graph                        gv{"sen"};
+Graphviz::Graph SenGraph::toGraphviz(GvFormat format) {
+    Graphviz::Graph gv{"sen"};
+    gv.setRankDirection(Graphviz::Graph::RankDirection::LR);
     UnorderedMap<VertDesc, Graphviz::Node> nodes;
     UnorderedMap<int, Vec<Graphviz::Node>> sentenceWords;
     for (auto [it, it_end] = boost::vertices(graph); it != it_end; ++it) {
+        SenNode const& prop = graph[*it];
+        if (!prop.index && format == GvFormat::DependenciesOnly) {
+            continue;
+        }
+
         Graphviz::Node node = gv.node(to_string(*it));
         nodes.insert({*it, node});
-        SenNode const& prop = graph[*it];
         if (prop.index) {
             sentenceWords[prop.sentence].push_back(node);
             node.setAttr("sent_idx", prop.index.value());
@@ -90,27 +95,52 @@ Graphviz::Graph SenGraph::toGraphviz() {
         node.setShape(Graphviz::Node::Shape::rect);
     }
 
-    for (auto const& [sentence, words] : sentenceWords) {
-        Graphviz::Graph sub = gv.newSubgraph("sent" + to_string(sentence));
-        sub.setRank(Graphviz::Graph::Rank::same);
-        for (auto const& word : sortedBy(words, [](Graphviz::Node node) {
-                 return node.getAttr<int>("sent_idx").value();
-             })) {
-            auto linkword = sub.node(
-                word.getAttr<QString>("label").value());
-            linkword.setShape(Graphviz::Node::Shape::rect);
-            linkword.setFontColor(Qt::darkRed);
-            gv.edge(word, linkword);
+    if (format != GvFormat::DependenciesOnly
+        && format != GvFormat::DependenciesFirst) {
+        for (auto const& [sentence, words] : sentenceWords) {
+            Graphviz::Graph sub = gv.newSubgraph(
+                "sent" + to_string(sentence));
+            sub.setNodeSeparation(0.2);
+            sub.setRank(Graphviz::Graph::Rank::same);
+            Vec<Graphviz::Node> linkwords;
+            for (auto const& word :
+                 sortedBy(words, [](Graphviz::Node node) {
+                     return node.getAttr<int>("sent_idx").value();
+                 })) {
+                auto linkword = sub.node(
+                    word.getAttr<QString>("label").value());
+                linkword.setShape(Graphviz::Node::Shape::rect);
+                linkword.setFontColor(Qt::darkRed);
+                linkwords.push_back(linkword);
+                gv.edge(word, linkword);
+            }
+
+            for (int i = 0; i < linkwords.size(); ++i) {
+                if (0 < i) {
+                    auto edge = sub.edge(
+                        linkwords.at(i - 1), linkwords.at(i));
+                    edge.setStyle("invis");
+                }
+            }
         }
     }
 
+
     for (auto [it, it_end] = boost::edges(graph); it != it_end; ++it) {
+        SenEdge const& prop = graph[*it];
+        if ((prop.getKind() == SenEdge::Kind::Dep
+             && format == GvFormat::StructureOnly)
+            || (prop.getKind() == SenEdge::Kind::Nested
+                && format == GvFormat::DependenciesOnly)) {
+            continue;
+        }
+
+
         Graphviz::Node source = nodes.at(boost::source(*it, graph));
         Graphviz::Node target = nodes.at(boost::target(*it, graph));
         Graphviz::Edge edge   = gv.edge(source, target);
 
-        SenEdge const& prop = graph[*it];
-        QString        res;
+        QString res;
         if (prop.getKind() == SenEdge::Kind::Dep) {
             res += to_string(prop.getDep().kind);
             if (prop.getDep().sub) {
@@ -119,10 +149,20 @@ Graphviz::Graph SenGraph::toGraphviz() {
             }
 
             edge.setLabel(res);
-            edge.setAttr("constraint", "false");
-            edge.setStyle("dashed");
+            if (format == GvFormat::StructureFirst) {
+                edge.setAttr("constraint", "false");
+                edge.setStyle("dashed");
+            } else {
+                edge.setStyle("bold");
+            }
+
         } else {
-            edge.setStyle("bold");
+            if (format == GvFormat::DependenciesFirst) {
+                edge.setAttr("constraint", "false");
+                edge.setStyle("dashed");
+            } else {
+                edge.setStyle("bold");
+            }
         }
     }
 
@@ -355,11 +395,14 @@ Parsed::Ptr parseDirectResponse(json j) {
     for (auto const& [key, value] : j["corefs"].items()) {
         from_json(value, parsed->corefs[Str::fromStdString(key)]);
     }
+    qDebug().noquote() << to_compact_json(j["corefs"], {.width = 300});
     for (const auto& inSent : j["sentences"]) {
         Sentence::Ptr sent = Sentence::shared();
         sent->parse        = SenTree::parse(
             sent.get(),
             QString::fromStdString(inSent["parse"].get<std::string>()));
+        qDebug().noquote()
+            << to_compact_json(inSent["tokens"], {.width = 300});
 
         sent->parse->enumerateItems();
 
@@ -418,8 +461,6 @@ void resolveOrgIds(Parsed::Ptr parsed, OrgText const& sent) {
     };
 
     for (auto& sent : parsed->sentence) {
-        qCDebug(nlp).noquote().nospace() << "\n"
-                                         << sent->parse->treeRepr();
         rec(sent->parse);
     }
 }

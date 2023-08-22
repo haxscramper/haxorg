@@ -134,7 +134,13 @@ struct SenGraph {
         Graph>::type;
     using EdgeBundledType = typename boost::edge_bundle_type<Graph>::type;
 
-    Graphviz::Graph toGraphviz();
+    DECL_DESCRIBED_ENUM(
+        GvFormat,
+        DependenciesFirst,
+        StructureFirst,
+        StructureOnly,
+        DependenciesOnly);
+    Graphviz::Graph toGraphviz(GvFormat format);
 
     Graph graph;
 };

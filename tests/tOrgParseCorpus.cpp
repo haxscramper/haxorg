@@ -76,7 +76,8 @@ TEST(NLP, BaseMockApi) {
         "and n2 to the subgraph.");
     Graphviz gvc;
 
-    auto gv = ctx.nlp.exchange.at(0).second.parsed.toGraphviz();
+    auto gv = ctx.nlp.exchange.at(0).second.parsed.toGraphviz(
+        NLP::SenGraph::GvFormat::DependenciesOnly);
     gvc.renderToFile("/tmp/sentence.png", gv);
     gvc.renderToFile("/tmp/sentence.gv", gv, Graphviz::RenderFormat::DOT);
 }
