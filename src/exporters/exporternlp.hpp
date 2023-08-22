@@ -11,6 +11,7 @@
 #include <hstd/system/macros.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include <hstd/wrappers/graphviz.hpp>
 #include "HttpDataProvider.hpp"
 
 namespace NLP {
@@ -123,7 +124,7 @@ struct SenGraph {
         Graph>::type;
     using EdgeBundledType = typename boost::edge_bundle_type<Graph>::type;
 
-    QString toGraphviz();
+    Graphviz::Graph toGraphviz();
 
     Graph graph;
 };

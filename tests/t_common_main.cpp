@@ -6,6 +6,7 @@
 #include <hstd/system/string_convert.hpp>
 #include <QFile>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/wrappers/graphviz.hpp>
 
 FILE* trace_out;
 
@@ -39,6 +40,7 @@ int main(int argc, char** argv) {
     QFile file;
     file.open(stdout, QIODevice::WriteOnly);
     qcout.setDevice(&file);
+
 
 
     QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);

@@ -70,8 +70,10 @@ struct NlpTestContext {
 TEST(NLP, BaseMockApi) {
     NlpTestContext ctx;
     ctx.runWith("This is a test sentence");
-    QString gv = ctx.nlp.exchange.at(0).second.parsed.toGraphviz();
-    writeFile(QFileInfo("/tmp/sentence.gv"), gv);
+    Graphviz gvc;
+
+    auto gv = ctx.nlp.exchange.at(0).second.parsed.toGraphviz();
+    gvc.renderToFile("/tmp/sentence.png", gv);
 }
 
 struct TestParams {
