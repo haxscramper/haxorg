@@ -151,12 +151,14 @@ void HttpDataProvider::addCache(const json& cacheData) {
     }
 }
 
-json HttpDataProvider::toJsonCache() {
+json HttpDataProvider::toJsonCache(bool storeErrors) {
     json          result;
     PostCacheData conv;
     for (auto const& key : cache.keys()) {
-        conv.postCache.push_back(
-            PostCacheKeyStruct{key.first, key.second, cache[key]});
+        if (!cache[key].isError || storeErrors) {
+            conv.postCache.push_back(
+                PostCacheKeyStruct{key.first, key.second, cache[key]});
+        }
     }
 
     to_json<PostCacheData>(result, conv);

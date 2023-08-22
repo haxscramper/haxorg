@@ -69,7 +69,11 @@ struct NlpTestContext {
 
 TEST(NLP, BaseMockApi) {
     NlpTestContext ctx;
-    ctx.runWith("This is a test sentence");
+    ctx.runWith(
+        "In this example, we create three nodes n1, n2, and n3 in the "
+        "main graph g. We then create a subgraph subg and set its "
+        "rank attribute to same. Afterward, we add the existing nodes n1 "
+        "and n2 to the subgraph.");
     Graphviz gvc;
 
     auto gv = ctx.nlp.exchange.at(0).second.parsed.toGraphviz();

@@ -46,7 +46,7 @@ class HttpDataProvider : public QThread {
     void      enqueue(QueueData const& data);
     QueueData dequeue();
     void      addCache(json const& cacheData);
-    json      toJsonCache();
+    json      toJsonCache(bool storeErrors = false);
     void      addCache(PostCacheKey const& key, ResponseData const& data);
     bool      hasCached(PostCacheKey const& key);
     bool      hasData();

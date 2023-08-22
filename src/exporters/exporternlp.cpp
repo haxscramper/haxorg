@@ -213,13 +213,23 @@ struct SenTree : SharedPtrApi<SenTree> {
         lex.space();
         lex.skip('(');
         QString tag;
-        while (lex.tok().isLetter() || lex.tok() == '-') {
+        while (lex.tok().isLetter() || lex.tok() == '-' || lex.tok() == ','
+               || lex.tok() == '.') {
             tag.append(lex.tok());
             lex.next();
         }
-        auto parsed = enum_serde<SenNode::PosTag>::from_string(tag);
+
+        Opt<SenNode::PosTag> parsed;
+        if (tag == ",") {
+            parsed = SenNode::PosTag::PUNCT_COMMA;
+        } else if (tag == ".") {
+            parsed = SenNode::PosTag::PUNCT_PERIOD;
+        } else {
+            parsed = enum_serde<SenNode::PosTag>::from_string(tag);
+        }
+
         if (!parsed) {
-            qFatal() << tag;
+            qFatal() << "Unexpected POS tag:" << tag;
         }
 
         result->tag = parsed.value();
@@ -443,7 +453,8 @@ void fillSentenceGraph(SenGraph& g, Parsed::Ptr const& parsed) {
                         split[0] == "case" ? "_case" : split[0]);
 
                     if (!kind) {
-                        qFatal() << split[0];
+                        qFatal()
+                            << "Unexpected dependency kind" << split[0];
                     }
 
                     auto dep = SenEdge::Dep{

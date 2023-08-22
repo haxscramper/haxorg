@@ -41,9 +41,14 @@ struct SenNode {
         TO,
         VB,
         VBN,
+        VBP,
+        VBG,
         VP,
         WHADVP,
-        WRB);
+        WRB,
+        CD,
+        PUNCT_COMMA,
+        PUNCT_PERIOD);
 
     DECL_DESCRIBED_ENUM(
         EntityKind,
@@ -94,8 +99,13 @@ struct SenEdge {
         obj,
         obl,
         parataxis,
+        nummod,
+        nmod,
         punct,
+        amod,
+        iobj,
         ROOT,
+        dep,
         xcomp);
 
     struct Dep {
