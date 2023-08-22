@@ -10,6 +10,8 @@
 #include <QThread>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/algorithms.hpp>
+#include <boost/property_map/function_property_map.hpp>
+#include <boost/graph/graphviz.hpp>
 
 #include <exporters/Exporter.cpp>
 
@@ -64,6 +66,66 @@ struct Token {
         ((QString), before, ""),
         ((QString), after, ""));
 };
+
+QString SenGraph::toGraphviz() {
+    std::stringstream         os;
+    boost::dynamic_properties dp;
+
+    dp
+        // Original node ID map
+        .property("node_id", get(boost::vertex_index, graph))
+        // Graph property configuration
+        .property(
+            "splines",
+            boost::make_constant_property<Graph*>(std::string("polyline")))
+        // Default node shape configuration
+        .property(
+            "shape",
+            boost::make_constant_property<Graph::vertex_descriptor>(
+                std::string("rect")))
+        // Edge descriptor map
+        .property(
+            "constraint",
+            make_transform_value_property_map<std::string>(
+                [&](SenEdge const& prop) -> std::string {
+                    return prop.getKind() == SenEdge::Kind::Nested
+                             ? "true"
+                             : "false";
+                },
+                get(boost::edge_bundle, graph)))
+        .property(
+            "label",
+            make_transform_value_property_map<std::string>(
+                [&](SenEdge const& prop) -> std::string {
+                    QString res;
+                    if (prop.getKind() == SenEdge::Kind::Dep) {
+                        res += to_string(prop.getDep().kind);
+                        if (prop.getDep().sub) {
+                            res += ":";
+                            res += prop.getDep().sub.value();
+                        }
+                    }
+
+                    return res.toStdString();
+                },
+                get(boost::edge_bundle, graph)))
+        // Node label
+        .property(
+            "label",
+            make_transform_value_property_map<std::string>(
+                [&](SenNode const& prop) -> std::string {
+                    return (to_string(prop.tag) + ":" + prop.lexem)
+                        .toStdString();
+                },
+                get(boost::vertex_bundle, graph)))
+        //
+        ;
+
+    write_graphviz_dp(os, graph, dp);
+
+    return QString::fromStdString(os.str());
+}
+
 } // namespace NLP
 
 
@@ -357,6 +419,8 @@ void fillSentenceGraph(SenGraph& g, Parsed::Ptr const& parsed) {
         SenNode node;
         node.sentence = sentence;
         node.index    = cst->index;
+        node.tag      = cst->tag;
+        node.lexem    = cst->lexem;
 
         if (cst->nested.empty()) {
             SenGraph::VertDesc desc = boost::add_vertex(node, g.graph);

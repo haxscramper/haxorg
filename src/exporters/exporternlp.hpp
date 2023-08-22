@@ -123,6 +123,8 @@ struct SenGraph {
         Graph>::type;
     using EdgeBundledType = typename boost::edge_bundle_type<Graph>::type;
 
+    QString toGraphviz();
+
     Graph graph;
 };
 
