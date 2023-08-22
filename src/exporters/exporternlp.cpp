@@ -42,7 +42,7 @@ struct SenTree::lexer {
 
 SPtr<SenTree> SenTree::parse(Sentence* parent, const QString& text) {
     SenTree::lexer lex{.data = text};
-    qCDebug(nlp).noquote() << lex.data;
+    //    qCDebug(nlp).noquote() << lex.data;
     return parse(parent, lex);
 }
 
@@ -136,7 +136,12 @@ void ExporterNLP::executeRequests(SPtr<HttpDataProvider> http) {
     QJsonDocument parameters;
     QJsonObject   obj;
     http->start();
-    obj["annotators"] = QStringList({"tokenize", "ssplit", "pos", "parse"})
+    obj["annotators"] = QStringList({"tokenize",
+                                     "ssplit",
+                                     "pos",
+                                     "parse",
+                                     "ner",
+                                     "coref"})
                             .join(", ");
     obj["outputFormat"] = "json";
     parameters.setObject(obj);
@@ -196,11 +201,13 @@ void ExporterNLP::onFinishedResponse(
 
     } else {
         auto j = json::parse(reply.content.toStdString());
-        qDebug().noquote() << to_compact_json(j, {.width = 240});
+        qDebug().noquote() << to_compact_json(j["corefs"], {.width = 240});
         qCDebug(nlp) << "Got NLP server response for request"
                      << targetIndex;
         Response result{.valid = true, .parsed = Parsed::shared()};
         for (const auto& inSent : j["sentences"]) {
+            qCDebug(nlp).noquote() << to_compact_json(
+                inSent["entitymentions"], {.width = 200});
             Sentence::Ptr sent = Sentence::shared();
             sent->parse        = SenTree::parse(
                 sent.get(),
@@ -210,6 +217,7 @@ void ExporterNLP::onFinishedResponse(
             sent->parse->enumerateItems();
 
 
+            from_json(inSent["entitymentions"], sent->entitymentions);
             from_json(inSent["tokens"], sent->tokens);
             from_json(
                 inSent["basicDependencies"], sent->basicDependencies);
@@ -310,8 +318,9 @@ void ExporterNLP::onFinishedResponse(
 
         for (auto& sent : result.parsed->sentence) {
             rec(sent->parse);
-            qCDebug(nlp).noquote().nospace() << "\n"
-                                             << sent->parse->treeRepr();
+            //            qCDebug(nlp).noquote().nospace() << "\n"
+            //                                             <<
+            //                                             sent->parse->treeRepr();
         }
 
         exchange.at(targetIndex).second = result;
@@ -467,8 +476,6 @@ Rule::Result Rule::matches(const SenTree::Ptr& cst) const {
                     tag = cst->tag == match.pos->prefix ? State::Matched
                                                         : State::Failed;
                 }
-                qDebug() << match.pos->glob << match.pos->prefix
-                         << cst->tag << tag;
             }
 
             bool result = (lemma == State::NotApplicable
@@ -548,6 +555,11 @@ Rule::Result Rule::matches(const SenTree::Ptr& cst) const {
 Vec<SenTree::Ptr> ExporterNLP::findMatches(const NLP::Rule& rule) {
     Vec<SenTree::Ptr> res;
     for (auto const& [in, resp] : this->exchange) {
+        if (!resp.parsed) {
+            qCritical("No response provider for a parsed sentence");
+            continue;
+        }
+
         for (auto const& parsed : resp.parsed->sentence) {
             auto which = rule.matches(parsed->parse);
             if (which.matches()) {

@@ -1144,18 +1144,19 @@ void HaxorgCli::exec() {
             ExporterNLP nlp{QUrl("http://localhost:9000")};
             nlp.visitTop(node);
             QFileInfo jsonCache{"/tmp/nlp-exporter.json"};
-            auto      http = std::make_shared<HttpDataProvider>();
-            if (jsonCache.exists()) {
+            auto      http       = std::make_shared<HttpDataProvider>();
+            http->isCacheEnabled = true;
+
+            if (http->isCacheEnabled && jsonCache.exists()) {
                 QString content = readFile(jsonCache);
                 json    parsed  = json::parse(content.toStdString());
                 http->addCache(parsed);
             }
 
-            http->isCacheEnabled = true;
 
             nlp.executeRequests(http);
 
-            {
+            if (http->isCacheEnabled) {
                 json cache = http->toJsonCache();
                 writeFile(
                     jsonCache,
@@ -1165,10 +1166,6 @@ void HaxorgCli::exec() {
 
             auto trees = nlp.findMatches(
                 rel::Dir(Tag("VBN"), Tag("*"), "nsubj"));
-
-            for (auto const& tree : trees) {
-                qDebug().noquote() << tree->treeRepr();
-            }
 
             qDebug() << "Finished NLP requester execution";
             QThread::msleep(1200);

@@ -30,11 +30,12 @@ struct adl_serializer<QString> {
 };
 } // namespace nlohmann
 
-void to_json(json& j, int i);
-void to_json(json& j, CR<QString> str);
-void to_json(json& j, CR<Str> str);
-void from_json(const json& in, QString& out);
-
+void         to_json(json& j, int i);
+void         to_json(json& j, CR<QString> str);
+void         to_json(json& j, CR<Str> str);
+void         from_json(const json& in, QString& out);
+void         from_json(const json& in, int& out);
+void         from_json(const json& in, bool& out);
 QString      to_string(json const& j);
 QDebug       operator<<(QDebug os, json const& value);
 QTextStream& operator<<(QTextStream& os, json const& value);
@@ -89,12 +90,11 @@ void from_json(const json& in, T& out) {
     using Md = boost::describe::
         describe_members<T, boost::describe::mod_any_access>;
     boost::mp11::mp_for_each<Md>([&](auto const& field) {
-        ::nlohmann::adl_serializer<decltype(field)>::from_json(
-            in[field.name], out.*field.pointer);
+        from_json(in[field.name], out.*field.pointer);
     });
 
     boost::mp11::mp_for_each<Bd>([&](auto Base) {
-        ::nlohmann::adl_serializer<typename decltype(Base)::type>::decode(
+        from_json<std::remove_cvref_t<typename decltype(Base)::type>>(
             in, out);
     });
 }
@@ -123,7 +123,7 @@ inline void to_json(json& res, CR<Vec<T>> str) {
 template <typename T>
 inline void to_json(json& res, CR<Opt<T>> str) {
     if (str.has_value()) {
-        to_json(res, str.value());
+        to_json<T>(res, str.value());
     } else {
         res = json();
     }

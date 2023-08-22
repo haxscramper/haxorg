@@ -40,6 +40,7 @@ struct SenTree : SharedPtrApi<SenTree> {
     DepBasic    depBasic;
     DepEnhanced depEnhanced;
 
+
     int                  enumerateItems(int start = 0);
     ColText              treeRepr(int indent = 0) const;
     static SPtr<SenTree> parse(Sentence* parent, QString const& text);
@@ -89,6 +90,20 @@ struct Token {
         ((QString), after, ""));
 };
 
+struct EntityMention {
+    DECL_FIELDS(
+        EntityMention,
+        (),
+        ((QString), text, ""),
+//        ((json), nerConfidences, json::object()),
+        ((QString), ner, ""),
+        ((int), docTokenBegin, 0),
+        ((int), docTokenEnd, 0),
+        ((int), tokenBegin, 0),
+        ((int), tokenEnd, 0),
+        ((int), characterOffsetBegin, 0),
+        ((int), characterOffsetEnd, 0));
+};
 
 struct Sentence : SharedPtrApi<Sentence> {
     DECL_FIELDS(
@@ -99,6 +114,7 @@ struct Sentence : SharedPtrApi<Sentence> {
         ((Vec<Token>), tokens, {}),
         ((Vec<Dependency>), basicDependencies, {}),
         ((Vec<Dependency>), enhancedDependencies, {}),
+        ((Vec<EntityMention>), entitymentions, {}),
         ((Vec<Dependency>), enhancedPlusPlusDependencies, {}));
 };
 
