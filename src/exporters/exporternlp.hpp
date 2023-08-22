@@ -10,12 +10,12 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/stdlib/ColText.hpp>
+#include <boost/graph/adjacency_list.hpp>
 #include "HttpDataProvider.hpp"
 
 namespace NLP {
-struct Sentence;
-struct SenTree : SharedPtrApi<SenTree> {
-    Sentence* parent;
+
+struct SenNode {
     DECL_DESCRIBED_ENUM(
         PosTag,
         ROOT,
@@ -45,6 +45,36 @@ struct SenTree : SharedPtrApi<SenTree> {
         WRB);
 
     DECL_DESCRIBED_ENUM(
+        EntityKind,
+        NONE,
+        PERSON,
+        LOCATION,
+        ORGANIZATION,
+        MISC,
+        MONEY,
+        NUMBER,
+        ORDINAL,
+        PERCENT,
+        DATE,
+        TIME,
+        DURATION,
+        SET,
+        EMAIL,
+        URL,
+        CITY,
+        STATE_OR_PROVINCE,
+        COUNTRY);
+
+    int             index;
+    EntityKind      entity;
+    PosTag          tag;
+    QString         lexem;
+    Vec<sem::SemId> orgIds;
+};
+
+struct SenEdge {
+
+    DECL_DESCRIBED_ENUM(
         DepKind,
         acl,
         advcl,
@@ -65,127 +95,27 @@ struct SenTree : SharedPtrApi<SenTree> {
         ROOT,
         xcomp);
 
-    PosTag             tag;
-    QString            lexem;
-    Opt<int>           index = std::nullopt;
-    Vec<SPtr<SenTree>> nested;
-    Vec<sem::SemId>    orgIds;
-    struct Dep {
-        SenTree*     tree;
-        DepKind      kind;
-        Opt<QString> sub;
-    };
+    struct Dep {};
+    struct Nested {};
 
-    struct DepBasic {
-        Opt<Dep> governor;
-        Vec<Dep> dependencies;
-    };
-
-    struct DepEnhanced {
-        Vec<Dep> governors;
-        Vec<Dep> dependencies;
-    };
-
-    DepBasic    depBasic;
-    DepEnhanced depEnhanced;
-
-
-    int                  enumerateItems(int start = 0);
-    ColText              treeRepr(int indent = 0) const;
-    static SPtr<SenTree> parse(Sentence* parent, QString const& text);
-    Opt<SenTree*>        atIndex(int index) {
-        if (index == this->index) {
-            return this;
-        } else {
-            for (auto& sub : nested) {
-                auto res = sub->atIndex(index);
-                if (res) {
-                    return res;
-                }
-            }
-            return std::nullopt;
-        }
-    }
-
-  private:
-    struct lexer;
-    static SPtr<SenTree> parse(Sentence* parsed, lexer& lex);
+    SUB_VARIANTS(Kind, Data, data, getKind, Dep, Nested);
+    Data data;
 };
 
+struct SenGraph {
+    using Graph = boost::adjacency_list<
+        boost::vecS,
+        boost::vecS,
+        boost::bidirectionalS,
+        SenNode,
+        SenEdge>;
 
-struct Dependency {
-    DECL_FIELDS(
-        Dependency,
-        (),
-        ((QString), dep, ""),
-        ((int), governor, 0),
-        ((QString), governorGloss, ""),
-        ((int), dependent, 0),
-        ((QString), dependentGloss, ""));
-};
-
-
-struct Token {
-    DECL_FIELDS(
-        Token,
-        (),
-        ((int), index, 0),
-        ((QString), word, ""),
-        ((QString), originalText, ""),
-        ((int), characterOffsetBegin, 0),
-        ((int), characterOffsetEnd, 0),
-        ((QString), pos, ""),
-        ((QString), before, ""),
-        ((QString), after, ""));
-};
-
-struct EntityMention {
-    DECL_DESCRIBED_ENUM(
-        Kind,
-        NONE,
-        PERSON,
-        LOCATION,
-        ORGANIZATION,
-        MISC,
-        MONEY,
-        NUMBER,
-        ORDINAL,
-        PERCENT,
-        DATE,
-        TIME,
-        DURATION,
-        SET,
-        EMAIL,
-        URL,
-        CITY,
-        STATE_OR_PROVINCE,
-        COUNTRY);
-
-    DECL_FIELDS(
-        EntityMention,
-        (),
-        ((QString), text, ""),
-        //        ((json), nerConfidences, json::object()),
-        ((Kind), ner, Kind::NONE),
-        ((int), docTokenBegin, 0),
-        ((int), docTokenEnd, 0),
-        ((int), tokenBegin, 0),
-        ((int), tokenEnd, 0),
-        ((int), characterOffsetBegin, 0),
-        ((int), characterOffsetEnd, 0));
-};
-
-struct Sentence : SharedPtrApi<Sentence> {
-    DECL_FIELDS(
-        Sentence,
-        (),
-        ((int), index, 0),
-        ((SenTree::Ptr), parse, nullptr),
-        ((Vec<Token>), tokens, {}),
-        ((Vec<Dependency>), basicDependencies, {}),
-        ((Vec<Dependency>), enhancedDependencies, {}),
-        ((Vec<EntityMention>), entitymentions, {}),
-        ((Vec<Dependency>), enhancedPlusPlusDependencies, {}));
+    using GraphTraits     = boost::graph_traits<Graph>;
+    using VertDesc        = typename GraphTraits::vertex_descriptor;
+    using EdgeDesc        = typename GraphTraits::edge_descriptor;
+    using VertBundledType = typename boost::vertex_bundle_type<
+        Graph>::type;
+    using EdgeBundledType = typename boost::edge_bundle_type<Graph>::type;
 };
 
 struct OrgText {
@@ -197,38 +127,11 @@ struct OrgText {
     Vec<Word> text;
 };
 
-struct Coref {
-    DECL_FIELDS(
-        Coref,
-        (),
-        ((QString), animacy, ""),
-        ((int), endIndex, 0),
-        ((QString), gender, ""),
-        ((QString), number, ""),
-        ((QString), text, ""),
-        ((QString), type, ""),
-        ((int), sentNum, 0),
-        ((Vec<int>), position, {}),
-        ((int), startIndex, 0),
-        ((int), headIndex, 0),
-        ((int), id, 0),
-        ((bool), isRepresentativeMention, false));
-};
-
-struct Parsed : public SharedPtrApi<Parsed> {
-    OrgText                       original;
-    int                           posStart;
-    int                           posEnd;
-    Vec<Sentence::Ptr>            sentence;
-    UnorderedMap<Str, Vec<Coref>> corefs;
-};
-
-
 struct Rule {
     struct Result {
-        Opt<SenTree::Ptr> tree = std::nullopt;
+        Opt<SenGraph::VertDesc> tree = std::nullopt;
         Result() {}
-        Result(SenTree::Ptr tree) : tree(tree) {}
+        Result(SenGraph::VertDesc tree) : tree(tree) {}
         bool matches() const { return tree.has_value(); }
     };
 
@@ -281,16 +184,14 @@ struct Rule {
         Vec<Rule> rel;
         Kind      kind;
 
-        Opt<SenTree::DepKind> relKind;
+        Opt<SenEdge::DepKind> relKind;
         Opt<QString>          relSubKind;
-
-        Result matches(SenTree::Ptr const&) const;
     };
 
     struct Match {
         bool negated = false;
         struct Tag {
-            IntSet<SenTree::PosTag> prefix;
+            IntSet<SenNode::PosTag> prefix;
         };
 
         Opt<QRegularExpression> lemma;
@@ -321,8 +222,7 @@ struct Rule {
         Subtree);
 
 
-    Data   data;
-    Result matches(SenTree::Ptr const& cst) const;
+    Data data;
 
     Rule(CR<Data> data) : data(data) {}
     Rule() {}
@@ -343,7 +243,7 @@ namespace builder {
         inline Rule Dir(
             Rule const&      lhs,
             Rule const&      rhs,
-            SenTree::DepKind kind,
+            SenEdge::DepKind kind,
             Opt<QString>     subRel = std::nullopt) {
             return Rule(Rule::Relation{
                 .rel = {lhs, rhs}, .relKind = kind, .relSubKind = subRel});
@@ -361,7 +261,7 @@ namespace builder {
     }
 
 
-    inline Rule Tag(SenTree::PosTag const& name) {
+    inline Rule Tag(SenNode::PosTag const& name) {
         return Rule{Rule::Match{
             .negated = false, .pos = Rule::Match::Tag{.prefix = {name}}}};
     }
@@ -412,7 +312,7 @@ class ExporterNLP : public Exporter<ExporterNLP, std::monostate> {
             Response,
             (),
             ((bool), valid, false),
-            ((NLP::Parsed::Ptr), parsed, nullptr),
+            ((NLP::SenGraph), parsed, NLP::SenGraph{}),
             ((int), posStart, 0),
             ((int), posEnd, 0));
     };
@@ -422,8 +322,6 @@ class ExporterNLP : public Exporter<ExporterNLP, std::monostate> {
     Vec<Pair<Request, Response>> exchange;
     ExporterNLP(QUrl const& resp);
     void executeRequests(SPtr<HttpDataProvider> http);
-
-    Vec<NLP::SenTree::Ptr> findMatches(NLP::Rule const& rule);
 
   public:
     Opt<Request> activeRequest;

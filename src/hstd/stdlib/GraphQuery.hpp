@@ -7,6 +7,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <fmt/core.h>
 
 template <typename Graph, typename Value>
 struct QuerySystem {
@@ -451,7 +452,6 @@ struct QuerySystem {
             Graph const& graph,
             bool         traceExec = false) {
             const int max = static_cast<int>(program.size()) - 1;
-            //            fmt::print("Executing query of {} steps\n", max);
             std::vector<Gremlin> results;
             PipeRes              res{typename PipeRes::False()};
 
@@ -460,9 +460,11 @@ struct QuerySystem {
 
             while (done < max) {
                 if (traceExec) {
-                    //                    fmt::print(
-                    //                        "Executing step {}, done={},
-                    //                        max={}\n", pc, done, max);
+                    fmt::print(
+                        "Executing step {}, done={}, max={}\n",
+                        pc,
+                        done,
+                        max);
                 }
 
                 std::optional<Gremlin> arg;
@@ -474,8 +476,7 @@ struct QuerySystem {
                 res = program[pc].run(arg, graph);
                 if (res.getKind() == PipeRes::Kind::Pull) {
                     if (traceExec) {
-                        //                        fmt::print("  Result kind
-                        //                        is 'pull'\n");
+                        fmt::print("  Result kind is 'pull'\n");
                     }
                     // Current pipe needs more input
                     res.data = typename PipeRes::False();
@@ -484,32 +485,25 @@ struct QuerySystem {
                         // evaluation
                         --pc;
                         if (traceExec) {
-                            //                            fmt::print(
-                            //                                "  Previous
-                            //                                filter at
-                            //                                positon {} is
-                            //                                not "
-                            //                                "completed\n",
-                            //                                pc);
+                            fmt::print(
+                                "  Previous filter at positon {} is not "
+                                "completed\n",
+                                pc);
                         }
                         continue;
                     } else {
                         if (traceExec) {
-                            //                            fmt::print(
-                            //                                "  Previous
-                            //                                filter at
-                            //                                position {}
-                            //                                is "
-                            //                                "complete\n",
-                            //                                pc);
+                            fmt::print(
+                                "  Previous filter at position {} is "
+                                "complete\n",
+                                pc);
                         }
                         // Previous pipe is done
                         done = pc;
                     }
                 } else if (res.getKind() == PipeRes::Kind::Done) {
                     if (traceExec) {
-                        //                        fmt::print("  Result kind
-                        //                        is 'done'\n");
+                        fmt::print("  Result kind is 'done'\n");
                     }
                     res.data = typename PipeRes::False();
                     done     = pc;
@@ -522,11 +516,9 @@ struct QuerySystem {
                     // Pipeline evaluation had some result
                     if (res.getKind() == PipeRes::Kind::Eval) {
                         if (traceExec) {
-                            //                            fmt::print(
-                            //                                "  Last step
-                            //                                result was
-                            //                                evaluated, "
-                            //                                "adding\n");
+                            fmt::print(
+                                "  Last step result was evaluated, "
+                                "adding\n");
                         }
                         auto gremlin = res.getEval().gremlin;
                         if (gremlin.value.has_value()) {

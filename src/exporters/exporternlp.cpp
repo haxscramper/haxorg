@@ -20,121 +20,219 @@ Q_LOGGING_CATEGORY(nlp, "check.nlp");
 using namespace NLP;
 
 
-struct SenTree::lexer {
-    QString data;
-    int     pos;
-    QChar   tok() {
-        Q_ASSERT(pos < data.size());
-        return data[pos];
-    }
-    void next() { ++pos; }
-    bool at(QChar ch) { return tok() == ch; }
-    void space() {
-        while (tok().isSpace()) {
-            next();
+struct Coref {
+    DECL_FIELDS(
+        Coref,
+        (),
+        ((QString), animacy, ""),
+        ((int), endIndex, 0),
+        ((QString), gender, ""),
+        ((QString), number, ""),
+        ((QString), text, ""),
+        ((QString), type, ""),
+        ((int), sentNum, 0),
+        ((Vec<int>), position, {}),
+        ((int), startIndex, 0),
+        ((int), headIndex, 0),
+        ((int), id, 0),
+        ((bool), isRepresentativeMention, false));
+};
+
+
+struct Dependency {
+    DECL_FIELDS(
+        Dependency,
+        (),
+        ((QString), dep, ""),
+        ((int), governor, 0),
+        ((QString), governorGloss, ""),
+        ((int), dependent, 0),
+        ((QString), dependentGloss, ""));
+};
+
+namespace NLP {
+struct Token {
+    DECL_FIELDS(
+        Token,
+        (),
+        ((int), index, 0),
+        ((QString), word, ""),
+        ((QString), originalText, ""),
+        ((int), characterOffsetBegin, 0),
+        ((int), characterOffsetEnd, 0),
+        ((QString), pos, ""),
+        ((QString), before, ""),
+        ((QString), after, ""));
+};
+} // namespace NLP
+
+
+struct EntityMention {
+    DECL_FIELDS(
+        EntityMention,
+        (),
+        ((QString), text, ""),
+        //        ((json), nerConfidences, json::object()),
+        ((SenNode::EntityKind), ner, SenNode::EntityKind::NONE),
+        ((int), docTokenBegin, 0),
+        ((int), docTokenEnd, 0),
+        ((int), tokenBegin, 0),
+        ((int), tokenEnd, 0),
+        ((int), characterOffsetBegin, 0),
+        ((int), characterOffsetEnd, 0));
+};
+
+struct Sentence;
+
+struct SenTree : SharedPtrApi<SenTree> {
+    QString            lexem;
+    Vec<SPtr<SenTree>> nested;
+    Opt<int>           index = std::nullopt;
+    Vec<sem::SemId>    orgIds;
+    SenNode::PosTag    tag;
+    Sentence*          parent;
+
+    Opt<SenTree*> atIndex(int index) {
+        if (index == this->index) {
+            return this;
+        } else {
+            for (auto& sub : nested) {
+                auto res = sub->atIndex(index);
+                if (res) {
+                    return res;
+                }
+            }
+            return std::nullopt;
         }
     }
-    void skip(QChar ch) {
-        Q_ASSERT(tok() == ch);
-        next();
+
+    int enumerateItems(int start = 0) {
+        if (nested.empty()) {
+            this->index = start;
+            ++start;
+        } else {
+            for (auto& sub : nested) {
+                start = sub->enumerateItems(start);
+            }
+        }
+
+        return start;
+    }
+
+
+    ColText treeRepr(int indent = 0) const {
+        ColStream os;
+        os << QString("  ").repeated(indent) << os.magenta() << "[" << tag
+           << "]" << os.end();
+
+        if (!lexem.isEmpty()) {
+            os << " " << os.yellow() << "'" << lexem << "'" << os.end();
+        }
+
+        if (index) {
+            os << " @ " << os.cyan() << QString::number(index.value())
+               << os.end();
+        }
+
+        for (auto const& id : orgIds) {
+            os << " " << os.green() << id.getReadableId() << os.end();
+        }
+
+
+        for (const auto& sub : nested) {
+            os << "\n";
+            os << sub->treeRepr(indent + 1);
+        }
+
+        return os.getBuffer();
+    }
+    static SPtr<SenTree> parse(Sentence* parent, QString const& text) {
+        SenTree::lexer lex{.data = text};
+        return parse(parent, lex);
+    }
+
+  private:
+    struct lexer {
+        QString data;
+        int     pos;
+        QChar   tok() {
+            Q_ASSERT(pos < data.size());
+            return data[pos];
+        }
+        void next() { ++pos; }
+        bool at(QChar ch) { return tok() == ch; }
+        void space() {
+            while (tok().isSpace()) {
+                next();
+            }
+        }
+        void skip(QChar ch) {
+            Q_ASSERT(tok() == ch);
+            next();
+        }
+    };
+
+
+    static SPtr<SenTree> parse(Sentence* parent, lexer& lex) {
+        SenTree::Ptr result = SenTree::shared();
+        result->parent      = parent;
+
+        lex.space();
+        lex.skip('(');
+        QString tag;
+        while (lex.tok().isLetter() || lex.tok() == '-') {
+            tag.append(lex.tok());
+            lex.next();
+        }
+        auto parsed = enum_serde<SenNode::PosTag>::from_string(tag);
+        if (!parsed) {
+            qFatal() << tag;
+        }
+
+        result->tag = parsed.value();
+
+        lex.space();
+
+        if (lex.at('(')) {
+            while (!lex.at(')')) {
+                lex.space();
+                result->nested.push_back(SenTree::parse(parent, lex));
+            }
+        } else {
+            while (!lex.at(')')) {
+                result->lexem.push_back(lex.tok());
+                lex.next();
+            }
+        }
+
+        lex.skip(')');
+
+        return result;
     }
 };
 
-SPtr<SenTree> SenTree::parse(Sentence* parent, const QString& text) {
-    SenTree::lexer lex{.data = text};
-    //    qCDebug(nlp).noquote() << lex.data;
-    return parse(parent, lex);
-}
-
-int SenTree::enumerateItems(int start) {
-    if (nested.empty()) {
-        this->index = start;
-        ++start;
-    } else {
-        for (auto& sub : nested) {
-            start = sub->enumerateItems(start);
-        }
-    }
-
-    return start;
-}
-
-ColText SenTree::treeRepr(int indent) const {
-    ColStream os;
-    os << QString("  ").repeated(indent) << os.magenta() << "[" << tag
-       << "]" << os.end();
-
-    if (true) {
-        if (depBasic.governor) {
-            os << " " << os.yellow() << "'"
-               << depBasic.governor->tree->lexem << "'" << os.end() << " >"
-               << os.blue() << depBasic.governor->kind
-               << (depBasic.governor->sub
-                       ? ":" + depBasic.governor->sub.value()
-                       : "")
-               << os.end();
-        }
-    } else {
-    }
-
-    if (!lexem.isEmpty()) {
-        os << " " << os.yellow() << "'" << lexem << "'" << os.end();
-    }
-
-    if (index) {
-        os << " @ " << os.cyan() << QString::number(index.value())
-           << os.end();
-    }
-
-    for (auto const& id : orgIds) {
-        os << " " << os.green() << id.getReadableId() << os.end();
-    }
+struct Sentence : SharedPtrApi<Sentence> {
+    DECL_FIELDS(
+        Sentence,
+        (),
+        ((int), index, 0),
+        ((SenTree::Ptr), parse, nullptr),
+        ((Vec<NLP::Token>), tokens, {}),
+        ((Vec<Dependency>), basicDependencies, {}),
+        ((Vec<Dependency>), enhancedDependencies, {}),
+        ((Vec<EntityMention>), entitymentions, {}),
+        ((Vec<Dependency>), enhancedPlusPlusDependencies, {}));
+};
 
 
-    for (const auto& sub : nested) {
-        os << "\n";
-        os << sub->treeRepr(indent + 1);
-    }
+struct Parsed : public SharedPtrApi<Parsed> {
+    OrgText                       original;
+    int                           posStart;
+    int                           posEnd;
+    Vec<Sentence::Ptr>            sentence;
+    UnorderedMap<Str, Vec<Coref>> corefs;
+};
 
-    return os.getBuffer();
-}
-
-SPtr<SenTree> SenTree::parse(Sentence* parent, lexer& lex) {
-    SenTree::Ptr result = SenTree::shared();
-    result->parent      = parent;
-
-    lex.space();
-    lex.skip('(');
-    QString tag;
-    while (lex.tok().isLetter() || lex.tok() == '-') {
-        tag.append(lex.tok());
-        lex.next();
-    }
-    auto parsed = enum_serde<PosTag>::from_string(tag);
-    if (!parsed) {
-        qFatal() << tag;
-    }
-
-    result->tag = parsed.value();
-
-    lex.space();
-
-    if (lex.at('(')) {
-        while (!lex.at(')')) {
-            lex.space();
-            result->nested.push_back(SenTree::parse(parent, lex));
-        }
-    } else {
-        while (!lex.at(')')) {
-            result->lexem.push_back(lex.tok());
-            lex.next();
-        }
-    }
-
-    lex.skip(')');
-
-    return result;
-}
 
 ExporterNLP::ExporterNLP(const QUrl& resp) : urlBase(resp) {}
 
@@ -191,6 +289,80 @@ void ExporterNLP::asSeparateRequest(R& t, sem::SemId par) {
     activeRequest = std::nullopt;
 }
 
+Parsed::Ptr parseDirectResponse(json j) {
+    Parsed::Ptr parsed = Parsed::shared();
+    for (auto const& [key, value] : j["corefs"].items()) {
+        from_json(value, parsed->corefs[Str::fromStdString(key)]);
+    }
+    for (const auto& inSent : j["sentences"]) {
+        Sentence::Ptr sent = Sentence::shared();
+        sent->parse        = SenTree::parse(
+            sent.get(),
+            QString::fromStdString(inSent["parse"].get<std::string>()));
+
+        sent->parse->enumerateItems();
+
+        from_json(inSent["entitymentions"], sent->entitymentions);
+        from_json(inSent["tokens"], sent->tokens);
+        from_json(inSent["basicDependencies"], sent->basicDependencies);
+
+        from_json(
+            inSent["enhancedPlusPlusDependencies"],
+            sent->enhancedPlusPlusDependencies);
+
+        parsed->sentence.push_back(sent);
+    }
+
+    return parsed;
+}
+
+void resolveOrgIds(Parsed::Ptr parsed, OrgText const& sent) {
+    Vec<Pair<Slice<int>, sem::SemId>> rangeForId;
+    int                               offset = 0;
+    for (auto const& word : sent.text) {
+        Slice<int> range = slice1<int>(
+            offset, offset + word.text.length());
+        offset += word.text.length();
+        rangeForId.push_back({range, word.id});
+    }
+
+    Func<void(SenTree::Ptr const&)> rec;
+    rec = [&](SenTree::Ptr const& cst) {
+        if (cst->index.has_value()) {
+            Q_CHECK_PTR(cst->parent);
+            NLP::Token const& token = cst->parent->tokens.at(
+                cst->index.value());
+            Slice<int> target = slice1<int>(
+                token.characterOffsetBegin, token.characterOffsetEnd);
+            for (auto const& rng : rangeForId) {
+                if (rng.first.contains(target)
+                    && !cst->orgIds.contains(rng.second)) {
+                    cst->orgIds.push_back(rng.second);
+                }
+            }
+
+            if (cst->orgIds.empty()) {
+                for (auto const& rng : rangeForId) {
+                    if (target.overlap(rng.first).has_value()) {
+                        cst->orgIds.push_back(rng.second);
+                    }
+                }
+            }
+
+        } else {
+            for (auto& sub : cst->nested) {
+                rec(sub);
+            }
+        }
+    };
+
+    for (auto& sent : parsed->sentence) {
+        qCDebug(nlp).noquote().nospace() << "\n"
+                                         << sent->parse->treeRepr();
+        rec(sent->parse);
+    }
+}
+
 void ExporterNLP::onFinishedResponse(
     HttpDataProvider::ResponseData const& reply,
     int                                   targetIndex) {
@@ -198,138 +370,13 @@ void ExporterNLP::onFinishedResponse(
         qCWarning(nlp) << "Failed to execute reply" << reply.errorString;
 
     } else {
-        auto     j = json::parse(reply.content.toStdString());
-        Response result{.valid = true, .parsed = Parsed::shared()};
-        for (auto const& [key, value] : j["corefs"].items()) {
-            from_json(
-                value, result.parsed->corefs[Str::fromStdString(key)]);
-        }
-        for (const auto& inSent : j["sentences"]) {
-            Sentence::Ptr sent = Sentence::shared();
-            sent->parse        = SenTree::parse(
-                sent.get(),
-                QString::fromStdString(
-                    inSent["parse"].get<std::string>()));
+        auto        j      = json::parse(reply.content.toStdString());
+        Parsed::Ptr direct = parseDirectResponse(j);
+        resolveOrgIds(direct, exchange.at(targetIndex).first.sentence);
+        SenGraph result;
 
-            sent->parse->enumerateItems();
-
-
-            from_json(inSent["entitymentions"], sent->entitymentions);
-            from_json(inSent["tokens"], sent->tokens);
-            from_json(
-                inSent["basicDependencies"], sent->basicDependencies);
-
-            from_json(
-                inSent["enhancedPlusPlusDependencies"],
-                sent->enhancedPlusPlusDependencies);
-
-            for (auto const& [isBasic, group] :
-                 Vec<Pair<bool, Vec<Dependency>*>>{
-                     {true, &sent->basicDependencies},
-                     {false, &sent->enhancedPlusPlusDependencies},
-                 }) {
-                for (auto const& dep : *group) {
-                    if (0 < dep.governor && 0 < dep.dependent) {
-                        Opt<SenTree*> governor = sent->parse->atIndex(
-                            dep.governor - 1);
-                        Opt<SenTree*> dependent = sent->parse->atIndex(
-                            dep.dependent - 1);
-                        if (governor && dependent) {
-                            auto split = dep.dep.split(":");
-                            auto kind  = enum_serde<SenTree::DepKind>::
-                                from_string(
-                                    split[0] == "case" ? "_case"
-                                                       : split[0]);
-
-                            if (!kind) {
-                                qFatal() << split[0];
-                            }
-
-                            auto dep = SenTree::Dep{
-                                .tree = dependent.value(),
-                                .kind = kind.value(),
-                                .sub  = 1 < split.size()
-                                          ? Opt<QString>(split[1])
-                                          : std::nullopt,
-                            };
-
-                            if (isBasic) {
-                                (**governor)
-                                    .depBasic.dependencies.push_back(dep);
-                                dep.tree = governor.value();
-
-                                Q_ASSERT_X(
-                                    !(**dependent)
-                                         .depBasic.governor.has_value(),
-                                    "assign governor node",
-                                    "Cannot override existing governor "
-                                    "node");
-
-                                (**dependent).depBasic.governor = dep;
-                            } else {
-                                (**governor)
-                                    .depEnhanced.dependencies.push_back(
-                                        dep);
-                                dep.tree = governor.value();
-
-                                (**dependent)
-                                    .depEnhanced.governors.push_back(dep);
-                            }
-                        }
-                    }
-                }
-            }
-            result.parsed->sentence.push_back(sent);
-        }
-
-
-        Vec<Pair<Slice<int>, sem::SemId>> rangeForId;
-        int                               offset = 0;
-        Request const& req = exchange.at(targetIndex).first;
-        for (auto const& word : req.sentence.text) {
-            Slice<int> range = slice1<int>(
-                offset, offset + word.text.length());
-            offset += word.text.length();
-            rangeForId.push_back({range, word.id});
-        }
-
-        Func<void(SenTree::Ptr const&)> rec;
-        rec = [&](SenTree::Ptr const& cst) {
-            if (cst->index.has_value()) {
-                NLP::Token const& token = cst->parent->tokens.at(
-                    cst->index.value());
-                Slice<int> target = slice1<int>(
-                    token.characterOffsetBegin, token.characterOffsetEnd);
-                for (auto const& rng : rangeForId) {
-                    if (rng.first.contains(target)
-                        && !cst->orgIds.contains(rng.second)) {
-                        cst->orgIds.push_back(rng.second);
-                    }
-                }
-
-                if (cst->orgIds.empty()) {
-                    for (auto const& rng : rangeForId) {
-                        if (target.overlap(rng.first).has_value()) {
-                            cst->orgIds.push_back(rng.second);
-                        }
-                    }
-                }
-
-            } else {
-                for (auto& sub : cst->nested) {
-                    rec(sub);
-                }
-            }
-        };
-
-        for (auto& sent : result.parsed->sentence) {
-            rec(sent->parse);
-            //            qCDebug(nlp).noquote().nospace() << "\n"
-            //                                             <<
-            //                                             sent->parse->treeRepr();
-        }
-
-        exchange.at(targetIndex).second = result;
+        exchange.at(targetIndex).second = Response{
+            .valid = true, .parsed = result};
     }
 }
 
@@ -388,183 +435,4 @@ QString to_string(const NLP::Rule& rule) {
     }
 
     return result;
-}
-
-namespace {
-auto firstDirect(SenTree::Ptr const& cst, Rule const& rule)
-    -> Rule::Result {
-    for (const auto& sub : cst->nested) {
-        auto out = rule.matches(sub);
-        if (out.matches()) {
-            return out;
-        }
-    }
-    return Rule::Result{};
-};
-
-auto firstIndirect(SenTree::Ptr const& cst, Rule const& rule)
-    -> Rule::Result {
-    for (const auto& sub : cst->nested) {
-        auto out = rule.matches(sub);
-        if (out.matches()) {
-            return out;
-        } else {
-            auto nest = firstIndirect(sub, rule);
-            if (nest.matches()) {
-                return nest;
-            }
-        }
-    }
-    return Rule::Result{};
-};
-
-} // namespace
-
-Rule::Result Rule::Relation::matches(const SenTree::Ptr& tree) const {
-    switch (kind) {
-        case Kind::DependentDirect: {
-            if (rel.at(0).matches(tree).matches()) {
-                for (auto const& dep : tree->depBasic.dependencies) {
-                    if (dep.kind == *relKind
-                        && ((!relSubKind.has_value())
-                            || (dep.sub.value()
-                                == relSubKind.value_or("")))) {
-                        return tree;
-                    }
-                }
-            }
-        }
-    }
-
-    for (auto const& sub : tree->nested) {
-        auto res = matches(sub);
-        if (res.matches()) {
-            return res;
-        }
-    }
-
-    return Result{};
-}
-
-
-Rule::Result Rule::matches(const SenTree::Ptr& cst) const {
-    switch (getKind()) {
-        case Kind::Relation: {
-            return getRelation().matches(cst);
-        }
-
-        case Kind::Match: {
-            auto const& match = getMatch();
-
-            enum class State
-            {
-                Matched,
-                Failed,
-                NotApplicable
-            };
-
-            State lemma = State::NotApplicable;
-            State tag   = State::NotApplicable;
-
-            if (match.lemma) {
-                lemma = match.lemma->match(cst->lexem).hasMatch()
-                          ? State::Matched
-                          : State::Failed;
-            }
-
-            if (match.pos) {
-                tag = match.pos->prefix.contains(cst->tag) ? State::Matched
-                                                           : State::Failed;
-            }
-
-            bool result = (lemma == State::NotApplicable
-                           || lemma == State::Matched)
-                       && (tag == State::NotApplicable
-                           || tag == State::Matched);
-
-            if (match.negated) {
-                result = !result;
-            }
-
-            if (result) {
-                return cst;
-            }
-
-            break;
-        }
-
-        case Kind::Subtree: {
-            auto const& tree = getSubtree();
-            auto        out  = tree.sub.at(0).matches(cst);
-            if (out.matches()) {
-                if (tree.kind == Subtree::Kind::Direct) {
-                    return firstDirect(cst, tree.sub.at(1));
-                } else {
-                    return firstIndirect(cst, tree.sub.at(1));
-                }
-            } else {
-                return Result{};
-            }
-            break;
-        }
-
-        case Kind::Logic: {
-            auto const& logic = getLogic();
-            switch (logic.kind) {
-                case Logic::Kind::And: {
-                    for (auto const& sub : logic.params) {
-                        auto res = sub.matches(cst);
-                        if (!res.matches()) {
-                            return res;
-                        }
-                    }
-
-                    return Result{cst};
-                }
-                case Logic::Kind::Or: {
-                    for (auto const& sub : logic.params) {
-                        auto out = sub.matches(cst);
-                        if (out.matches()) {
-                            return out;
-                        }
-                    }
-                }
-
-                case Logic::Kind::Not: {
-                    auto out = logic.params.at(0).matches(cst);
-                    if (out.matches()) {
-                        return Result{};
-                    } else {
-                        return out;
-                    }
-                }
-
-                case Logic::Kind::Optional: {
-                    return logic.params.at(0).matches(cst);
-                }
-            }
-
-            break;
-        }
-    }
-
-    return Result{};
-}
-
-Vec<SenTree::Ptr> ExporterNLP::findMatches(const NLP::Rule& rule) {
-    Vec<SenTree::Ptr> res;
-    for (auto const& [in, resp] : this->exchange) {
-        if (!resp.parsed) {
-            qCritical("No response provider for a parsed sentence");
-            continue;
-        }
-
-        for (auto const& parsed : resp.parsed->sentence) {
-            auto which = rule.matches(parsed->parse);
-            if (which.matches()) {
-                res.push_back(which.tree.value());
-            }
-        }
-    }
-    return res;
 }
