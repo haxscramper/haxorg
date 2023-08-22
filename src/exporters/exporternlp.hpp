@@ -318,10 +318,10 @@ class ExporterNLP : public Exporter<ExporterNLP, std::monostate> {
     };
 
 
-    QUrl                         requestUrl;
+    QUrl                         urlBase;
     Vec<Pair<Request, Response>> exchange;
     ExporterNLP(QUrl const& resp);
-    void executeRequests();
+    void executeRequests(SPtr<HttpDataProvider> http);
 
     Vec<NLP::SenTree::Ptr> findMatches(NLP::Rule const& rule);
 
@@ -349,10 +349,7 @@ class ExporterNLP : public Exporter<ExporterNLP, std::monostate> {
     __visit(RawText);
     __visit(Newline);
 
-    SPtr<HttpDataProvider> http;
-
   private:
-    void sendRequest(Request const& request, int index);
     void onFinishedResponse(
         HttpDataProvider::ResponseData const& reply,
         int                                   targetIndex);

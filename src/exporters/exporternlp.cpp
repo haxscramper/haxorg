@@ -129,12 +129,12 @@ SPtr<SenTree> SenTree::parse(Sentence* parent, lexer& lex) {
     return result;
 }
 
-ExporterNLP::ExporterNLP(const QUrl& resp) : requestUrl(resp) {
+ExporterNLP::ExporterNLP(const QUrl& resp) : urlBase(resp) {}
+
+void ExporterNLP::executeRequests(SPtr<HttpDataProvider> http) {
     QUrlQuery     query{};
     QJsonDocument parameters;
-
-    QJsonObject obj;
-    http = std::make_shared<HttpDataProvider>();
+    QJsonObject   obj;
     http->start();
     obj["annotators"] = QStringList({"tokenize", "ssplit", "pos", "parse"})
                             .join(", ");
@@ -144,12 +144,20 @@ ExporterNLP::ExporterNLP(const QUrl& resp) : requestUrl(resp) {
     query.addQueryItem(
         "properties", parameters.toJson(QJsonDocument::Compact));
 
-    requestUrl.setQuery(query);
-}
+    QUrl requestUrl = urlBase;
 
-void ExporterNLP::executeRequests() {
+    requestUrl.setQuery(query);
+
     for (int i = 0; i < exchange.size(); ++i) {
-        sendRequest(exchange.at(i).first, i);
+        auto const& request = exchange.at(i).first;
+        QString     data;
+        for (const auto& word : request.sentence.text) {
+            data += word.text;
+        }
+
+        qCDebug(nlp) << "Sending request to" << requestUrl << "with data"
+                     << data.toUtf8();
+        http->sendPostRequest(requestUrl, data, i);
     }
 
 
@@ -177,29 +185,6 @@ void ExporterNLP::asSeparateRequest(R& t, sem::SemId par) {
     exchange.push_back({std::move(activeRequest.value()), Response{}});
     activeRequest = std::nullopt;
 }
-
-void ExporterNLP::sendRequest(const Request& request, int index) {
-    QString data;
-    for (const auto& word : request.sentence.text) {
-        data += word.text;
-    }
-
-    qCDebug(nlp) << "Sending request to" << requestUrl << "with data"
-                 << data.toUtf8();
-    http->sendPostRequest(requestUrl, data, index);
-}
-
-
-// template <typename T>
-// void to_json(json& j, const Vec<T>& str) {
-//     j = json::array();
-//     for (auto const& it : str) {
-//         json tmp;
-//         ::nlohmann::adl_serializer<T>::to_json(tmp, it);
-//         j.push_back(tmp);
-//     }
-// }
-
 
 void ExporterNLP::onFinishedResponse(
     HttpDataProvider::ResponseData const& reply,

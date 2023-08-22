@@ -1144,18 +1144,19 @@ void HaxorgCli::exec() {
             ExporterNLP nlp{QUrl("http://localhost:9000")};
             nlp.visitTop(node);
             QFileInfo jsonCache{"/tmp/nlp-exporter.json"};
+            auto      http = std::make_shared<HttpDataProvider>();
             if (jsonCache.exists()) {
                 QString content = readFile(jsonCache);
                 json    parsed  = json::parse(content.toStdString());
-                nlp.http->addCache(parsed);
+                http->addCache(parsed);
             }
 
-            nlp.http->isCacheEnabled = true;
+            http->isCacheEnabled = true;
 
-            nlp.executeRequests();
+            nlp.executeRequests(http);
 
             {
-                json cache = nlp.http->toJsonCache();
+                json cache = http->toJsonCache();
                 writeFile(
                     jsonCache,
                     QString::fromStdString(to_compact_json(cache)));
