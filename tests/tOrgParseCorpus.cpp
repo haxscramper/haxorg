@@ -22,39 +22,54 @@ namespace rs = std::views;
 // std::string corpusGlob = "*text.yaml";
 std::string corpusGlob = "";
 
-TEST(NLP, BaseMockApi) {
-    char*            argv[] = {""};
-    int              argc   = 1;
-    QCoreApplication app(argc, argv);
-    MockFull         parser(false, false);
-
-    parser.run(
-        "This is a test sentence",
-        &OrgTokenizer::lexGlobal,
-        &OrgParser::parseFull);
-
+struct NlpTestContext {
+    MockFull          parser;
     sem::ContextStore store;
-    sem::OrgConverter converter{&store};
-    sem::SemId        node = converter.toDocument(
-        OrgAdapter(&parser.nodes, OrgId(0)));
+    sem::OrgConverter converter;
+    ExporterNLP       nlp;
 
-    auto http            = std::make_shared<HttpDataProvider>();
-    http->isCacheEnabled = true;
-    QFileInfo jsonCache{__CURRENT_FILE_DIR__ / "corpus/nlp-cache.json"_qs};
+    sem::SemId node              = sem::SemId::Nil();
+    QFileInfo  jsonCacheLocation = QFileInfo{
+        __CURRENT_FILE_DIR__ / "corpus/nlp-cache.json"_qs};
 
-    if (http->isCacheEnabled && jsonCache.exists()) {
-        http->addCache(json::parse(readFile(jsonCache).toStdString()));
+    NlpTestContext()
+        : parser(false, false)
+        , converter(&store)
+        , nlp{QUrl("http://localhost:9000")} {}
+
+
+    void runWith(QString data) {
+        char*            argv[] = {""};
+        int              argc   = 1;
+        QCoreApplication app(argc, argv);
+
+        parser.run(data, &OrgTokenizer::lexGlobal, &OrgParser::parseFull);
+
+        node = converter.toDocument(OrgAdapter(&parser.nodes, OrgId(0)));
+
+        auto http            = std::make_shared<HttpDataProvider>();
+        http->isCacheEnabled = true;
+
+        if (http->isCacheEnabled && jsonCacheLocation.exists()) {
+            http->addCache(
+                json::parse(readFile(jsonCacheLocation).toStdString()));
+        }
+
+        nlp.visitTop(node);
+        nlp.executeRequests(http);
+
+        if (http->isCacheEnabled) {
+            writeFile(
+                jsonCacheLocation,
+                QString::fromStdString(
+                    to_compact_json(http->toJsonCache())));
+        }
     }
+};
 
-    ExporterNLP nlp{QUrl("http://localhost:9000")};
-    nlp.visitTop(node);
-    nlp.executeRequests(http);
-
-    if (http->isCacheEnabled) {
-        writeFile(
-            jsonCache,
-            QString::fromStdString(to_compact_json(http->toJsonCache())));
-    }
+TEST(NLP, BaseMockApi) {
+    NlpTestContext ctx;
+    ctx.runWith("This is a test sentence");
 }
 
 struct TestParams {
