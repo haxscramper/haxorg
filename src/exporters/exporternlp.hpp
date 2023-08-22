@@ -65,7 +65,9 @@ struct SenNode {
         STATE_OR_PROVINCE,
         COUNTRY);
 
-    int             index;
+    Opt<int>        index    = 0;
+    int             sentence = 0;
+    int             group    = 0;
     EntityKind      entity;
     PosTag          tag;
     QString         lexem;
@@ -95,7 +97,11 @@ struct SenEdge {
         ROOT,
         xcomp);
 
-    struct Dep {};
+    struct Dep {
+        DepKind      kind;
+        Opt<QString> sub;
+    };
+
     struct Nested {};
 
     SUB_VARIANTS(Kind, Data, data, getKind, Dep, Nested);
@@ -116,6 +122,8 @@ struct SenGraph {
     using VertBundledType = typename boost::vertex_bundle_type<
         Graph>::type;
     using EdgeBundledType = typename boost::edge_bundle_type<Graph>::type;
+
+    Graph graph;
 };
 
 struct OrgText {

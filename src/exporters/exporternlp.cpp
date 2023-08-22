@@ -92,20 +92,6 @@ struct SenTree : SharedPtrApi<SenTree> {
     SenNode::PosTag    tag;
     Sentence*          parent;
 
-    Opt<SenTree*> atIndex(int index) {
-        if (index == this->index) {
-            return this;
-        } else {
-            for (auto& sub : nested) {
-                auto res = sub->atIndex(index);
-                if (res) {
-                    return res;
-                }
-            }
-            return std::nullopt;
-        }
-    }
-
     int enumerateItems(int start = 0) {
         if (nested.empty()) {
             this->index = start;
@@ -363,6 +349,71 @@ void resolveOrgIds(Parsed::Ptr parsed, OrgText const& sent) {
     }
 }
 
+void fillSentenceGraph(SenGraph& g, Parsed::Ptr const& parsed) {
+    UnorderedMap<Pair<int, int>, SenGraph::VertDesc>   sentIdxToVertex;
+    Func<SenGraph::VertDesc(SenTree::Ptr const&, int)> rec;
+    rec = [&](SenTree::Ptr const& cst,
+              int                 sentence) -> SenGraph::VertDesc {
+        SenNode node;
+        node.sentence = sentence;
+        node.index    = cst->index;
+
+        if (cst->nested.empty()) {
+            SenGraph::VertDesc desc = boost::add_vertex(node, g.graph);
+            sentIdxToVertex[{sentence, cst->index.value()}] = desc;
+            return desc;
+        } else {
+            SenGraph::VertDesc desc = boost::add_vertex(node, g.graph);
+            for (auto const& sub : cst->nested) {
+                auto    subDesc = rec(sub, sentence);
+                SenEdge edge;
+                edge.data = SenEdge::Nested{};
+                boost::add_edge(desc, subDesc, edge, g.graph);
+            }
+
+            return desc;
+        }
+    };
+
+    for (int i = 0; i < parsed->sentence.size(); ++i) {
+        Sentence::Ptr sent = parsed->sentence.at(i);
+        rec(sent->parse, i);
+    }
+
+    for (int i = 0; i < parsed->sentence.size(); ++i) {
+        Sentence::Ptr sent = parsed->sentence.at(i);
+        for (auto const& dep : sent->enhancedPlusPlusDependencies) {
+            if (0 < dep.governor && 0 < dep.dependent) {
+                Opt<SenGraph::VertDesc> governor = sentIdxToVertex.get(
+                    {i, dep.governor - 1});
+                Opt<SenGraph::VertDesc> dependent = sentIdxToVertex.get(
+                    {i, dep.dependent - 1});
+                if (governor && dependent) {
+                    auto split = dep.dep.split(":");
+                    auto kind  = enum_serde<SenEdge::DepKind>::from_string(
+                        split[0] == "case" ? "_case" : split[0]);
+
+                    if (!kind) {
+                        qFatal() << split[0];
+                    }
+
+                    auto dep = SenEdge::Dep{
+                        .kind = kind.value(),
+                        .sub  = 1 < split.size() ? Opt<QString>(split[1])
+                                                 : std::nullopt,
+                    };
+
+                    boost::add_edge(
+                        governor.value(),
+                        dependent.value(),
+                        SenEdge{.data = dep},
+                        g.graph);
+                }
+            }
+        }
+    }
+}
+
 void ExporterNLP::onFinishedResponse(
     HttpDataProvider::ResponseData const& reply,
     int                                   targetIndex) {
@@ -374,6 +425,7 @@ void ExporterNLP::onFinishedResponse(
         Parsed::Ptr direct = parseDirectResponse(j);
         resolveOrgIds(direct, exchange.at(targetIndex).first.sentence);
         SenGraph result;
+        fillSentenceGraph(result, direct);
 
         exchange.at(targetIndex).second = Response{
             .valid = true, .parsed = result};
