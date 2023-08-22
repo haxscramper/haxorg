@@ -160,11 +160,8 @@ void ExporterNLP::executeRequests(SPtr<HttpDataProvider> http) {
             data += word.text;
         }
 
-        qCDebug(nlp) << "Sending request to" << requestUrl << "with data"
-                     << data.toUtf8();
         http->sendPostRequest(requestUrl, data, i);
     }
-
 
     http->hasData();
     while (http->hasPendingRequests() || http->hasData()) {
@@ -176,17 +173,13 @@ void ExporterNLP::executeRequests(SPtr<HttpDataProvider> http) {
             onFinishedResponse(data.response, data.responseId);
         }
     }
-    qDebug() << "Done request execution";
 }
 
 void ExporterNLP::asSeparateRequest(R& t, sem::SemId par) {
-    qDebug() << "Visiting paragraph in text";
     activeRequest = Request{};
     for (auto const& sub : par->subnodes) {
         visit(t, sub);
     }
-    qDebug() << "Finished paragraph visit with"
-             << activeRequest->sentence.text.size() << "active tokens";
     exchange.push_back({std::move(activeRequest.value()), Response{}});
     activeRequest = std::nullopt;
 }
@@ -194,24 +187,17 @@ void ExporterNLP::asSeparateRequest(R& t, sem::SemId par) {
 void ExporterNLP::onFinishedResponse(
     HttpDataProvider::ResponseData const& reply,
     int                                   targetIndex) {
-    qDebug() << "Finished NLP response trigger";
     if (reply.isError) {
         qCWarning(nlp) << "Failed to execute reply" << reply.errorString;
 
-
     } else {
-        auto j = json::parse(reply.content.toStdString());
-        qDebug().noquote() << to_compact_json(j["corefs"], {.width = 240});
-        qCDebug(nlp) << "Got NLP server response for request"
-                     << targetIndex;
+        auto     j = json::parse(reply.content.toStdString());
         Response result{.valid = true, .parsed = Parsed::shared()};
         for (auto const& [key, value] : j["corefs"].items()) {
             from_json(
                 value, result.parsed->corefs[Str::fromStdString(key)]);
         }
         for (const auto& inSent : j["sentences"]) {
-            qCDebug(nlp).noquote() << to_compact_json(
-                inSent["entitymentions"], {.width = 200});
             Sentence::Ptr sent = Sentence::shared();
             sent->parse        = SenTree::parse(
                 sent.get(),

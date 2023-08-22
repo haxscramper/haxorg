@@ -1,4 +1,3 @@
-#include "org_parse_aux.hpp"
 #include "corpusrunner.hpp"
 
 #include <parse/OrgParser.hpp>
@@ -8,10 +7,12 @@
 #include <sem/ErrorWrite.hpp>
 #include <gtest/gtest.h>
 #include <QDirIterator>
+#include <QCoreApplication>
 
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <sem/SemConvert.hpp>
+#include <exporters/exporternlp.hpp>
 
 #include <fnmatch.h>
 #include <ranges>
@@ -20,6 +21,41 @@ namespace rs = std::views;
 
 // std::string corpusGlob = "*text.yaml";
 std::string corpusGlob = "";
+
+TEST(NLP, BaseMockApi) {
+    char*            argv[] = {""};
+    int              argc   = 1;
+    QCoreApplication app(argc, argv);
+    MockFull         parser(false, false);
+
+    parser.run(
+        "This is a test sentence",
+        &OrgTokenizer::lexGlobal,
+        &OrgParser::parseFull);
+
+    sem::ContextStore store;
+    sem::OrgConverter converter{&store};
+    sem::SemId        node = converter.toDocument(
+        OrgAdapter(&parser.nodes, OrgId(0)));
+
+    auto http            = std::make_shared<HttpDataProvider>();
+    http->isCacheEnabled = true;
+    QFileInfo jsonCache{__CURRENT_FILE_DIR__ / "corpus/nlp-cache.json"_qs};
+
+    if (http->isCacheEnabled && jsonCache.exists()) {
+        http->addCache(json::parse(readFile(jsonCache).toStdString()));
+    }
+
+    ExporterNLP nlp{QUrl("http://localhost:9000")};
+    nlp.visitTop(node);
+    nlp.executeRequests(http);
+
+    if (http->isCacheEnabled) {
+        writeFile(
+            jsonCache,
+            QString::fromStdString(to_compact_json(http->toJsonCache())));
+    }
+}
 
 struct TestParams {
     ParseSpec spec;

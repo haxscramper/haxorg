@@ -1,5 +1,6 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <QTextStream>
+#include <QFileInfo>
 #include <QMutex>
 
 std::reference_wrapper<QTextStream> messageStream = qcout;
@@ -25,11 +26,13 @@ void tracedMessageHandler(
         case QtMsgType::QtFatalMsg: os << "FATAL"; break;
     }
     os << os.end();
+    os << " [" << os.cyan() << context.line << os.end() << "] "
+       << os.blue() << QFileInfo(context.file).fileName() << os.end();
 
-    os << " [" << os.cyan() << context.line << os.end() << "]";
     if (context.category != "default") {
         os << " " << os.green() << context.category << os.end();
     }
+
     os << " " << msg;
 
     messageStream.get() << Qt::endl;
