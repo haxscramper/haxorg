@@ -76,10 +76,18 @@ TEST(NLP, BaseMockApi) {
         "and n2 to the subgraph.");
     Graphviz gvc;
 
-    auto gv = ctx.nlp.exchange.at(0).second.parsed.toGraphviz(
-        NLP::SenGraph::GvFormat::DependenciesOnly);
+    NLP::SenGraph& graph = ctx.nlp.exchange.at(0).second.parsed;
+    auto gv = graph.toGraphviz(NLP::SenGraph::GvFormat::DependenciesOnly);
     gvc.renderToFile("/tmp/sentence.png", gv);
     gvc.renderToFile("/tmp/sentence.gv", gv, Graphviz::RenderFormat::DOT);
+
+    using namespace NLP::builder;
+    using POS = NLP::SenNode::PosTag;
+    using REL = NLP::SenEdge::DepKind;
+
+    auto result = graph.findMatches(
+        rel::Dir(Tag(POS::VBP), Tag(POS::PRP), REL::nsubj));
+    qDebug() << "Resfsd";
 }
 
 struct TestParams {

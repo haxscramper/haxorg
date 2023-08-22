@@ -12,6 +12,7 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <hstd/wrappers/graphviz.hpp>
+#include <hstd/stdlib/GraphQuery.hpp>
 #include "HttpDataProvider.hpp"
 
 namespace NLP {
@@ -119,49 +120,8 @@ struct SenEdge {
     Data data;
 };
 
-struct SenGraph {
-    using Graph = boost::adjacency_list<
-        boost::vecS,
-        boost::vecS,
-        boost::bidirectionalS,
-        SenNode,
-        SenEdge>;
 
-    using GraphTraits     = boost::graph_traits<Graph>;
-    using VertDesc        = typename GraphTraits::vertex_descriptor;
-    using EdgeDesc        = typename GraphTraits::edge_descriptor;
-    using VertBundledType = typename boost::vertex_bundle_type<
-        Graph>::type;
-    using EdgeBundledType = typename boost::edge_bundle_type<Graph>::type;
-
-    DECL_DESCRIBED_ENUM(
-        GvFormat,
-        DependenciesFirst,
-        StructureFirst,
-        StructureOnly,
-        DependenciesOnly);
-    Graphviz::Graph toGraphviz(GvFormat format);
-
-    Graph graph;
-};
-
-struct OrgText {
-    struct Word {
-        QString    text;
-        sem::SemId id = sem::SemId::Nil();
-    };
-
-    Vec<Word> text;
-};
-
-struct Rule {
-    struct Result {
-        Opt<SenGraph::VertDesc> tree = std::nullopt;
-        Result() {}
-        Result(SenGraph::VertDesc tree) : tree(tree) {}
-        bool matches() const { return tree.has_value(); }
-    };
-
+struct Rule : SharedPtrApi<Rule> {
     struct Relation {
         DECL_DESCRIBED_ENUM(
             Kind,
@@ -208,91 +168,111 @@ struct Rule {
             /// aligned)
             Aligned);
 
-        Vec<Rule> rel;
-        Kind      kind;
+        SPtr<Rule> head;
+        SPtr<Rule> tail;
+        Kind       kind;
 
-        Opt<SenEdge::DepKind> relKind;
-        Opt<QString>          relSubKind;
+        SenEdge::DepKind relKind;
+        Opt<QString>     relSubKind;
     };
 
     struct Match {
-        bool negated = false;
-        struct Tag {
-            IntSet<SenNode::PosTag> prefix;
-        };
-
+        bool                    negated = false;
+        IntSet<SenNode::PosTag> prefix;
         Opt<QRegularExpression> lemma;
-        Opt<Tag>                pos;
         Opt<QString>            bindto;
     };
 
     struct Logic {
         DECL_DESCRIBED_ENUM(Kind, And, Or, Optional, Not);
-        Kind      kind;
-        Vec<Rule> params;
+        Kind            kind;
+        Vec<SPtr<Rule>> params;
     };
 
-    struct Subtree {
-        DECL_DESCRIBED_ENUM(Kind, Direct, Indirect);
-        Kind      kind;
-        Vec<Rule> sub;
-    };
-
-    SUB_VARIANTS(
-        Kind,
-        Data,
-        data,
-        getKind,
-        Relation,
-        Match,
-        Logic,
-        Subtree);
-
-
+    SUB_VARIANTS(Kind, Data, data, getKind, Relation, Match, Logic);
     Data data;
 
-    Rule(CR<Data> data) : data(data) {}
-    Rule() {}
+    Rule(Data const& head) : data(head) {}
 };
 
 namespace builder {
-    inline Rule Or(Rule const& lhs, Rule const& rhs) {
-        return Rule(Rule::Logic{
-            .params = {lhs, rhs}, .kind = Rule::Logic::Kind::Or});
+    inline Rule::Logic Or(Rule::Ptr const& lhs, Rule::Ptr const& rhs) {
+        return Rule::Logic{
+            .params = {lhs, rhs}, .kind = Rule::Logic::Kind::Or};
     }
 
-    inline Rule And(Rule const& lhs, Rule const& rhs) {
-        return Rule(Rule::Logic{
-            .params = {lhs, rhs}, .kind = Rule::Logic::Kind::And});
+    inline Rule::Logic And(Rule::Ptr const& lhs, Rule::Ptr const& rhs) {
+        return Rule::Logic{
+            .params = {lhs, rhs}, .kind = Rule::Logic::Kind::And};
     }
 
     namespace rel {
-        inline Rule Dir(
-            Rule const&      lhs,
-            Rule const&      rhs,
+        inline Rule::Ptr Dir(
+            Rule::Ptr const& lhs,
+            Rule::Ptr const& rhs,
             SenEdge::DepKind kind,
             Opt<QString>     subRel = std::nullopt) {
-            return Rule(Rule::Relation{
-                .rel = {lhs, rhs}, .relKind = kind, .relSubKind = subRel});
+            return Rule::shared(Rule::Relation{
+                .kind       = Rule::Relation::Kind::GovernorDirect,
+                .head       = lhs,
+                .tail       = rhs,
+                .relKind    = kind,
+                .relSubKind = subRel});
         }
     } // namespace rel
 
-    inline Rule Dir(Rule const& lhs, Rule const& rhs) {
-        return Rule(Rule::Subtree{
-            .sub = {lhs, rhs}, .kind = Rule::Subtree::Kind::Direct});
-    }
-
-    inline Rule Ind(Rule const& lhs, Rule const& rhs) {
-        return Rule(Rule::Subtree{
-            .sub = {lhs, rhs}, .kind = Rule::Subtree::Kind::Indirect});
-    }
-
-
-    inline Rule Tag(SenNode::PosTag const& name) {
-        return Rule{Rule::Match{
-            .negated = false, .pos = Rule::Match::Tag{.prefix = {name}}}};
+    inline Rule::Ptr Tag(SenNode::PosTag const& name) {
+        return Rule::shared(
+            Rule::Match{.negated = false, .prefix = {name}});
     }
 } // namespace builder
+
+struct SenGraph {
+    using Graph = boost::adjacency_list<
+        boost::vecS,
+        boost::vecS,
+        boost::bidirectionalS,
+        SenNode,
+        SenEdge>;
+
+    using GraphTraits     = boost::graph_traits<Graph>;
+    using VertDesc        = typename GraphTraits::vertex_descriptor;
+    using EdgeDesc        = typename GraphTraits::edge_descriptor;
+    using VertBundledType = typename boost::vertex_bundle_type<
+        Graph>::type;
+    using EdgeBundledType = typename boost::edge_bundle_type<Graph>::type;
+
+    using QuerySystem = QuerySystem<Graph, int>;
+
+    DECL_DESCRIBED_ENUM(
+        GvFormat,
+        DependenciesFirst,
+        StructureFirst,
+        StructureOnly,
+        DependenciesOnly);
+    Graphviz::Graph toGraphviz(GvFormat format);
+
+    Graph graph;
+
+    struct MatchResult {
+        VertDesc vertex;
+    };
+
+    Vec<MatchResult> findMatches(VertDesc start, Rule::Ptr const& rule);
+    Vec<MatchResult> findMatches(Rule::Ptr const& rule);
+    bool             isMatching(VertDesc desc, Rule::Match const& match);
+    bool             isMatching(EdgeDesc desc, Rule::Relation const& rel);
+};
+
+struct OrgText {
+    struct Word {
+        QString    text;
+        sem::SemId id = sem::SemId::Nil();
+    };
+
+    Vec<Word> text;
+};
+
 
 } // namespace NLP
 
@@ -379,5 +359,3 @@ class ExporterNLP : public Exporter<ExporterNLP, std::monostate> {
         HttpDataProvider::ResponseData const& reply,
         int                                   targetIndex);
 };
-
-QString to_string(NLP::Rule const&);

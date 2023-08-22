@@ -169,6 +169,94 @@ Graphviz::Graph SenGraph::toGraphviz(GvFormat format) {
     return gv;
 }
 
+Vec<SenGraph::MatchResult> SenGraph::findMatches(
+    VertDesc         start,
+    const Rule::Ptr& rule) {
+
+    using Logic = Rule::Logic;
+    using Rel   = Rule::Relation;
+    using Match = Rule::Match;
+    Vec<SenGraph::MatchResult> result;
+
+    switch (rule->getKind()) {
+        case Rule::Kind::Relation: {
+            Rel const& rel = rule->getRelation();
+            for (auto const& target : findMatches(start, rel.head)) {
+                auto const& tail = rel.tail;
+                switch (rel.kind) {
+                    case Rel::Kind::GovernorDirect: {
+                        for (auto [it, it_end] = boost::out_edges(
+                                 target.vertex, graph);
+                             it != it_end;
+                             ++it) {
+
+                            if (isMatching(*it, rel)) {
+                                auto tailMatches = findMatches(
+                                    boost::target(*it, graph), rel.tail);
+                                if (!tailMatches.empty()) {
+                                    result.push_back(SenGraph::MatchResult{
+                                        target.vertex});
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            break;
+        }
+
+        case Rule::Kind::Logic: {
+            qFatal() << "TODO";
+            break;
+        }
+
+        case Rule::Kind::Match: {
+            Match const& match = rule->getMatch();
+            if (isMatching(start, match)) {
+                result.push_back(SenGraph::MatchResult{start});
+            }
+            break;
+        }
+    }
+
+
+    return result;
+}
+
+Vec<SenGraph::MatchResult> SenGraph::findMatches(const Rule::Ptr& rule) {
+    Vec<SenGraph::MatchResult> result;
+    for (auto [it, it_end] = boost::vertices(graph); it != it_end; ++it) {
+        result.append(findMatches(*it, rule));
+    }
+
+    return result;
+}
+
+bool SenGraph::isMatching(VertDesc desc, const Rule::Match& match) {
+    SenNode const& node = graph[desc];
+    bool hasMatch = (match.prefix.empty() || match.prefix.contains(node.tag));
+    if (hasMatch && match.lemma.has_value()) {
+        hasMatch = match.lemma.value().match(node.lexem).hasMatch();
+    }
+
+    if (match.negated) {
+        hasMatch = !hasMatch;
+    }
+
+    return hasMatch;
+}
+
+bool SenGraph::isMatching(EdgeDesc desc, const Rule::Relation& rel) {
+    SenEdge const& edge = graph[desc];
+    return edge.getKind() == SenEdge::Kind::Dep
+        && edge.getDep().kind == rel.relKind
+        && (!rel.relSubKind.has_value()
+            || rel.relSubKind.value()
+                   == edge.getDep().sub.value_or("?<?"));
+}
+
 } // namespace NLP
 
 
@@ -395,14 +483,15 @@ Parsed::Ptr parseDirectResponse(json j) {
     for (auto const& [key, value] : j["corefs"].items()) {
         from_json(value, parsed->corefs[Str::fromStdString(key)]);
     }
-    qDebug().noquote() << to_compact_json(j["corefs"], {.width = 300});
+    //    qDebug().noquote() << to_compact_json(j["corefs"], {.width =
+    //    300});
     for (const auto& inSent : j["sentences"]) {
         Sentence::Ptr sent = Sentence::shared();
         sent->parse        = SenTree::parse(
             sent.get(),
             QString::fromStdString(inSent["parse"].get<std::string>()));
-        qDebug().noquote()
-            << to_compact_json(inSent["tokens"], {.width = 300});
+        //        qDebug().noquote()
+        //            << to_compact_json(inSent["tokens"], {.width = 300});
 
         sent->parse->enumerateItems();
 
@@ -549,61 +638,4 @@ void ExporterNLP::onFinishedResponse(
         exchange.at(targetIndex).second = Response{
             .valid = true, .parsed = result};
     }
-}
-
-QString to_string(const NLP::Rule& rule) {
-    QString result;
-    switch (rule.getKind()) {
-        case Rule::Kind::Match: {
-            auto const& match = rule.getMatch();
-            if (match.negated) {
-                result += "!";
-            }
-            result += "{";
-            if (match.pos) {
-                result += "/" + to_string(match.pos->prefix) + "/";
-            }
-            result += "}";
-            break;
-        }
-
-        case Rule::Kind::Logic: {
-            auto const& logic = rule.getLogic();
-            switch (logic.kind) {
-                case Rule::Logic::Kind::Optional: {
-                    result += "?" + to_string(logic.params.at(0));
-                    break;
-                }
-                case Rule::Logic::Kind::Not: {
-                    result += "!" + to_string(logic.params.at(0));
-                    break;
-                }
-                case Rule::Logic::Kind::Or:
-                case Rule::Logic::Kind::And: {
-                    result += join(
-                        logic.kind == Rule::Logic::Kind::Or ? " or "
-                                                            : " and ",
-                        map(logic.params,
-                            [](Rule const& r) { return to_string(r); }));
-                }
-            }
-
-            break;
-        }
-
-        case Rule::Kind::Subtree: {
-            auto const& sub = rule.getSubtree();
-
-            result = QString("%1 %2 %3")
-                         .arg(to_string(sub.sub.at(0)))
-                         .arg(
-                             sub.kind == Rule::Subtree::Kind::Direct
-                                 ? "->"
-                                 : "->>")
-                         .arg(to_string(sub.sub.at(1)));
-            break;
-        }
-    }
-
-    return result;
 }
