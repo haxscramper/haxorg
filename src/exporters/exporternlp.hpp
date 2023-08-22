@@ -140,12 +140,33 @@ struct Token {
 };
 
 struct EntityMention {
+    DECL_DESCRIBED_ENUM(
+        Kind,
+        NONE,
+        PERSON,
+        LOCATION,
+        ORGANIZATION,
+        MISC,
+        MONEY,
+        NUMBER,
+        ORDINAL,
+        PERCENT,
+        DATE,
+        TIME,
+        DURATION,
+        SET,
+        EMAIL,
+        URL,
+        CITY,
+        STATE_OR_PROVINCE,
+        COUNTRY);
+
     DECL_FIELDS(
         EntityMention,
         (),
         ((QString), text, ""),
         //        ((json), nerConfidences, json::object()),
-        ((QString), ner, ""),
+        ((Kind), ner, Kind::NONE),
         ((int), docTokenBegin, 0),
         ((int), docTokenEnd, 0),
         ((int), tokenBegin, 0),

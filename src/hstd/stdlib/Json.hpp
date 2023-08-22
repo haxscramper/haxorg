@@ -63,6 +63,21 @@ inline void to_json(json& res, CR<Vec<T>> str);
 template <typename T>
 inline void to_json(json& res, std::unique_ptr<T> const& value);
 
+template <DescribedEnum E>
+void from_json(json const& j, E& str) {
+    Opt<E> value = enum_serde<E>::from_string(
+        QString::fromStdString(j.get<std::string>()));
+    if (value) {
+        str = value.value();
+    } else {
+        throw json::type_error::create(
+            302,
+            "Could not convert json value <" + j.dump()
+                + "> to enum for type " + typeid(E).name(),
+            nullptr);
+    }
+}
+
 
 template <DescribedRecord T>
 static void to_json(json& j, const T& str) {
