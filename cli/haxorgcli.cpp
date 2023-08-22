@@ -1137,40 +1137,6 @@ void HaxorgCli::exec() {
             qDebug() << "Mind map export ok";
         }
 
-        if (true) {
-            using namespace NLP::builder;
-
-            __trace("Exporter NLP");
-            ExporterNLP nlp{QUrl("http://localhost:9000")};
-            nlp.visitTop(node);
-            QFileInfo jsonCache{"/tmp/nlp-exporter.json"};
-            auto      http       = std::make_shared<HttpDataProvider>();
-            http->isCacheEnabled = true;
-
-            if (http->isCacheEnabled && jsonCache.exists()) {
-                QString content = readFile(jsonCache);
-                json    parsed  = json::parse(content.toStdString());
-                http->addCache(parsed);
-            }
-
-
-            nlp.executeRequests(http);
-
-            if (http->isCacheEnabled) {
-                json cache = http->toJsonCache();
-                writeFile(
-                    jsonCache,
-                    QString::fromStdString(to_compact_json(cache)));
-                qDebug() << "Wrote json exchange cache";
-            }
-
-            auto trees = nlp.findMatches(
-                rel::Dir(Tag("VBN"), Tag("*"), "nsubj"));
-
-            qDebug() << "Finished NLP requester execution";
-            QThread::msleep(1200);
-        }
-
         return;
     }
 

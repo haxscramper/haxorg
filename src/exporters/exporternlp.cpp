@@ -105,10 +105,17 @@ SPtr<SenTree> SenTree::parse(Sentence* parent, lexer& lex) {
 
     lex.space();
     lex.skip('(');
+    QString tag;
     while (lex.tok().isLetter() || lex.tok() == '-') {
-        result->tag.append(lex.tok());
+        tag.append(lex.tok());
         lex.next();
     }
+    auto parsed = enum_serde<PosTag>::from_string(tag);
+    if (!parsed) {
+        qFatal() << tag;
+    }
+
+    result->tag = parsed.value();
 
     lex.space();
 
@@ -327,8 +334,7 @@ QString to_string(const NLP::Rule& rule) {
             }
             result += "{";
             if (match.pos) {
-                result += "/" + match.pos->prefix
-                        + (match.pos->glob ? "*" : "") + "/";
+                result += "/" + to_string(match.pos->prefix) + "/";
             }
             result += "}";
             break;
@@ -458,14 +464,8 @@ Rule::Result Rule::matches(const SenTree::Ptr& cst) const {
             }
 
             if (match.pos) {
-                if (match.pos->glob) {
-                    tag = cst->tag.startsWith(match.pos->prefix)
-                            ? State::Matched
-                            : State::Failed;
-                } else {
-                    tag = cst->tag == match.pos->prefix ? State::Matched
-                                                        : State::Failed;
-                }
+                tag = match.pos->prefix.contains(cst->tag) ? State::Matched
+                                                           : State::Failed;
             }
 
             bool result = (lemma == State::NotApplicable

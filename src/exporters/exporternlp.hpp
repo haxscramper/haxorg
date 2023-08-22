@@ -15,8 +15,36 @@
 namespace NLP {
 struct Sentence;
 struct SenTree : SharedPtrApi<SenTree> {
-    Sentence*          parent;
-    QString            tag;
+    Sentence* parent;
+    DECL_DESCRIBED_ENUM(
+        PosTag,
+        ROOT,
+        S,
+        DT,
+        NN,
+        NP,
+        VBZ,
+        VBD,
+        ADJP,
+        ADVP,
+        CC,
+        IN,
+        JJ,
+        NNP,
+        NNS,
+        PP,
+        PRP,
+        RB,
+        RBR,
+        SBAR,
+        TO,
+        VB,
+        VBN,
+        VP,
+        WHADVP,
+        WRB);
+
+    PosTag             tag;
     QString            lexem;
     Opt<int>           index = std::nullopt;
     Vec<SPtr<SenTree>> nested;
@@ -220,8 +248,7 @@ struct Rule {
     struct Match {
         bool negated = false;
         struct Tag {
-            QString prefix;
-            bool    glob;
+            IntSet<SenTree::PosTag> prefix;
         };
 
         Opt<QRegularExpression> lemma;
@@ -292,13 +319,9 @@ namespace builder {
     }
 
 
-    inline Rule Tag(QString const& name) {
+    inline Rule Tag(SenTree::PosTag const& name) {
         return Rule{Rule::Match{
-            .negated = false,
-            .pos     = name.endsWith("*") ? Rule::Match::
-                           Tag{.prefix = name.first(name.length() - 1),
-                                   .glob   = true}
-                                          : Rule::Match::Tag{.prefix = name}}};
+            .negated = false, .pos = Rule::Match::Tag{.prefix = {name}}}};
     }
 } // namespace builder
 
