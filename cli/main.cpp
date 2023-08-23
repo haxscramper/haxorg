@@ -14,22 +14,134 @@
 
 QTextStream qcout;
 
-struct QOptionsConfig {
-    struct TraceConfig {
-        QCommandLineOption doTrace;
-        QCommandLineOption traceTo;
-        QCommandLineOption traceExtent;
-        QCommandLineOption dumpResult;
-        QCommandLineOption dumpFile;
+
+struct ReflectiveCliBase {
+    DECL_FIELDS(ReflectiveCliBase, ());
+    virtual QString getDocFor(QString const& field) const { return ""; }
+};
+
+struct TraceConfig : ReflectiveCliBase {
+    DECL_FIELDS(
+        TraceConfig,
+        (),
+        ((Opt<QFileInfo>), to, std::nullopt),
+        ((bool), enabled, false),
+        ((Slice<int>), extent, (slice(0, value_domain<int>::high()))),
+        ((bool), dump, false),
+        ((Opt<QFileInfo>), dumpTo, std::nullopt));
+
+    virtual QString getDocFor(const QString& field) const {
+        if (field == "to") {
+            return "File to write debug output to";
+        } else if (field == "enabled") {
+            return "Is trace enabled";
+        } else {
+            return "";
+        }
+    }
+};
+
+struct Exporter : ReflectiveCliBase {
+    struct Base : ReflectiveCliBase {
+        DECL_FIELDS(Base, (), ((TraceConfig), trace, TraceConfig{}));
     };
 
-    QCommandLineOption target;
+    struct Tex : Base {
+        DECL_FIELDS(Tex, (Base, ReflectiveCliBase));
+    };
 
-    struct Trace {
-        TraceConfig lex;
-        TraceConfig parse;
-        TraceConfig sem;
-    } trace;
+    struct NLP : Base {
+        DECL_FIELDS(NLP, (Base, ReflectiveCliBase));
+    };
+
+    DECL_FIELDS(
+        Exporter,
+        (),
+        ((Opt<Tex>), tex, std::nullopt),
+        ((Opt<NLP>), nlp, std::nullopt));
+
+    virtual QString getDocFor(const QString& field) const {
+        if (field == "tex") {
+            return "Latex exporter";
+        } else {
+            return "";
+        }
+    }
+};
+
+struct OptConfig {
+    Vec<QString> name;
+    QString      doc;
+    QString      getSingleName() const { return join("-", name); }
+
+    QCommandLineOption getOpt() const {
+        return QCommandLineOption(getSingleName(), doc, "value");
+    }
+};
+
+template <class C, typename T>
+T getPointerType(T C::*v);
+
+template <typename T>
+struct OptWalker;
+
+template <typename T>
+struct LeafOptWalker {
+    static Vec<OptConfig> get(Vec<QString> const& prefix) {
+        return Vec<OptConfig>{};
+    }
+};
+
+template <>
+struct OptWalker<bool> : LeafOptWalker<bool> {};
+
+template <>
+struct OptWalker<Slice<int>> : LeafOptWalker<Slice<int>> {};
+
+template <>
+struct OptWalker<QFileInfo> : LeafOptWalker<QFileInfo> {};
+
+template <typename T>
+struct OptWalker<Opt<T>> {
+    static Vec<OptConfig> get(Vec<QString> const& prefix) {
+        return OptWalker<T>::get(prefix);
+    }
+};
+
+
+template <DescribedRecord T>
+struct OptWalker<T> {
+    static Vec<OptConfig> get(Vec<QString> const& prefix) {
+        using Bd = boost::describe::
+            describe_bases<T, boost::describe::mod_any_access>;
+        using Md = boost::describe::
+            describe_members<T, boost::describe::mod_any_access>;
+        Vec<OptConfig> result;
+
+        boost::mp11::mp_for_each<Bd>([&](auto Base) {
+            result.append(
+                OptWalker<std::remove_cvref_t<
+                    typename decltype(Base)::type>>::get(prefix));
+        });
+
+        boost::mp11::mp_for_each<Md>([&](auto const& field) {
+            auto parent = OptConfig{
+                .doc  = T().getDocFor(field.name),
+                .name = prefix + Vec<QString>{QString(field.name)}};
+
+            result.push_back(parent);
+            result.append(
+                OptWalker<std::remove_cvref_t<decltype(getPointerType(
+                    field.pointer))>>::get(parent.name));
+        });
+
+        return result;
+    }
+};
+
+
+struct Main : ReflectiveCliBase {
+    DECL_FIELDS(Main, (), ((Exporter), exp, Exporter{}))
 };
 
 bool parseArgs(
@@ -37,154 +149,25 @@ bool parseArgs(
     int                argc,
     char**             argv,
     HaxorgCli::Config& config) {
-    QOptionsConfig opts {
-        .target = QCommandLineOption("export", "Export format target " +
-                                     join(", ", enumerator_names<HaxorgCli::Config::Target>())),
-        .trace = {
-            .lex = {
-                .doTrace = QCommandLineOption("lex-trace", "Do lex tracing?"),
-                .traceTo = QCommandLineOption("lex-trace-to", "Where to stream lexer trace?", "lex-trace-file"),
-                .traceExtent = QCommandLineOption("lex-trace-extent", "Trace extent in the file", "lex-trace-extent"),
-                .dumpResult = QCommandLineOption("lex-trace-dump", "Dump stage result"),
-                .dumpFile = QCommandLineOption("lex-trace-dump-file", "File to dump result to (default is stdout)", "lex-dump-file"),
-            },
-            .parse = {
-                .doTrace = QCommandLineOption("parse-trace", "Do parse tracing?"),
-                .traceTo = QCommandLineOption("parse-trace-to", "Where to stream parse trace?", "parse-trace-file"),
-                .traceExtent = QCommandLineOption("parse-trace-extent", "Trace extent in the file", "parse-trace-extent"),
-                .dumpResult = QCommandLineOption("parse-trace-dump", "Dump stage result"),
-                .dumpFile = QCommandLineOption("parse-trace-dump-file", "File to dump result to (default is stdout)", "parse-dump-file"),
-            },
-            .sem = {
-                .doTrace = QCommandLineOption("sem-trace", "Do sem tracing?"),
-                .traceTo = QCommandLineOption("sem-trace-to", "Where to stream sem trace?", "sem-trace-file"),
-                .traceExtent = QCommandLineOption("sem-trace-extent", "Trace extent in the file"),
-                .dumpResult = QCommandLineOption("sem-trace-dump", "Dump stage result"),
-                .dumpFile = QCommandLineOption("sem-trace-dump-file", "File to dump result to (default is stdout)", "sem-dump-file"),
-            },
-        },
-    };
-
 
     QCommandLineParser parser;
     parser.setApplicationDescription("Description of your application");
     parser.addHelpOption();
     parser.addVersionOption();
 
-    parser.addOption(opts.target);
-    parser.addOption(opts.trace.lex.doTrace);
-    parser.addOption(opts.trace.lex.traceTo);
-    parser.addOption(opts.trace.lex.traceExtent);
-    parser.addOption(opts.trace.lex.dumpResult);
-    parser.addOption(opts.trace.lex.dumpFile);
-
-    parser.addOption(opts.trace.parse.doTrace);
-    parser.addOption(opts.trace.parse.traceTo);
-    parser.addOption(opts.trace.parse.traceExtent);
-    parser.addOption(opts.trace.parse.dumpResult);
-    parser.addOption(opts.trace.parse.dumpFile);
-
-    parser.addOption(opts.trace.sem.doTrace);
-    parser.addOption(opts.trace.sem.traceTo);
-    parser.addOption(opts.trace.sem.traceExtent);
-    parser.addOption(opts.trace.sem.dumpResult);
-    parser.addOption(opts.trace.sem.dumpFile);
-
-
-    // Adding positional arguments for input and output files
-    parser.addPositionalArgument("source", "Input org-mode file to parse");
-    parser.addPositionalArgument(
-        "output", "Output file to write parse result to");
-
-    // Process the actual command line arguments of the application
-    parser.process(app);
-
-    QStringList positionalArguments = parser.positionalArguments();
-    if (positionalArguments.size() >= 2) {
-        config.sourceFile = QFileInfo(positionalArguments.at(0));
-        config.outFile    = QFileInfo(positionalArguments.at(1));
-    } else {
-        qCritical()
-            << "Error: Both source and output files must be provided.";
-        return false;
+    Vec<QCommandLineOption> options;
+    for (auto const& option : OptWalker<Main>::get({})) {
+        qDebug() << option.name << option.doc;
+        options.push_back(option.getOpt());
     }
 
-    // TODO Make into generic option-to-enum setter, add adequate error
-    // message and 'did you mean' check
-    if (parser.isSet(opts.target)) {
-        Opt<HaxorgCli::Config::Target>
-            target = enum_serde<HaxorgCli::Config::Target>::from_string(
-                parser.value(opts.target));
-
-        if (target.has_value()) {
-            config.target = target.value();
-        } else {
-            qCritical() << "Invalid value for option"
-                        << opts.target.names();
-            return false;
-        }
+    for (auto const& option : options) {
+        parser.addOption(option);
     }
 
-    Array<
-        Pair<
-            HaxorgCli::Config::TraceConfig*,
-            QOptionsConfig::TraceConfig*>,
-        3>
-        traces;
+    qDebug().noquote() << parser.helpText();
 
-    traces[0] = {&config.trace.lex, &opts.trace.lex};
-    traces[1] = {&config.trace.parse, &opts.trace.parse};
-    traces[2] = {&config.trace.sem, &opts.trace.sem};
-
-
-    for (const auto& [trace, opt] : traces) {
-        if (parser.isSet(opt->doTrace)) {
-            trace->doTrace = true;
-        }
-
-        if (parser.isSet(opt->dumpResult)) {
-            trace->dumpResult = true;
-        }
-
-        if (parser.isSet(opt->dumpFile)) {
-            Q_ASSERT(!parser.value(opt->dumpFile).isEmpty());
-            trace->dumpFile = QFileInfo(parser.value(opt->dumpFile));
-        }
-
-        if (parser.isSet(opt->traceTo)) {
-            trace->doTrace = true;
-            QString value  = parser.value(opt->traceTo);
-            qDebug() << value;
-            Q_ASSERT(value.length() != 0);
-            trace->traceTo = QFileInfo(value);
-            Q_ASSERT(
-                trace->traceTo.value().absoluteFilePath().length() != 0);
-        }
-
-        if (parser.isSet(opt->traceExtent)) {
-            QStringList extentList = parser.value(opt->traceExtent)
-                                         .split(':');
-            if (extentList.size() == 2) {
-                bool okStart, okEnd;
-                int  start = extentList[0].toInt(&okStart);
-                int  end   = extentList[1].toInt(&okEnd);
-
-                if (okStart && okEnd) {
-                    trace->traceExtent = slice(start, end);
-                } else {
-                    qCritical() << "Invalid range format for trace-extent "
-                                   "option. Use START:END format.";
-                    return false;
-                }
-            } else {
-                qCritical() << "Invalid range format for trace-extent "
-                               "option. Use START:END format.";
-                return false;
-            }
-        }
-    }
-
-    return true;
+    return false;
 }
 
 // Because people who depend on the glib library never thought that their
@@ -226,15 +209,6 @@ int main(int argc, char** argv) {
     perfetto::TrackEvent::SetTrackDescriptor(process_track, desc);
 #endif
 
-    Graphviz        ctx;
-    Graphviz::Graph graph("g");
-    graph.node("test");
-    ctx.renderToFile(
-        "/tmp/res.png",
-        graph,
-        Graphviz::RenderFormat::PNG,
-        Graphviz::LayoutType::Dot);
-
     QFile file;
     file.open(stdout, QIODevice::WriteOnly);
     qcout.setDevice(&file);
@@ -244,14 +218,6 @@ int main(int argc, char** argv) {
     if (!parseArgs(app, argc, argv, cli.config)) {
         return 1;
     }
-
-    _dbg(cli.config.trace.lex.traceTo);
-    _dbg(cli.config.trace.parse.traceTo);
-    _dbg(cli.config.trace.sem.traceTo);
-
-    _dbg(cli.config.trace.lex.doTrace);
-    _dbg(cli.config.trace.parse.doTrace);
-    _dbg(cli.config.trace.sem.doTrace);
 
     cli.exec();
 
