@@ -71,3 +71,4 @@ struct AnnotatingVisitorBase : public CRTP_this_method<Exporter> {
 
     virtual void onFinishedRequestVisit(Request const& request) = 0;
 };
+

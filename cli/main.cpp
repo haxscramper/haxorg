@@ -15,12 +15,90 @@
 QTextStream qcout;
 
 
-struct ReflectiveCliBase {
+template <typename Derived>
+struct ReflectiveCliBase : CRTP_this_method<Derived> {
+    using CRTP_this_method<Derived>::_this;
+
     DECL_FIELDS(ReflectiveCliBase, ());
     virtual QString getDocFor(QString const& field) const { return ""; }
+
+    struct FieldHandle {
+        struct Object {
+            ReflectiveCliBase* base;
+        };
+
+        struct Primitive {
+            void* target;
+        };
+
+        struct None {};
+        SUB_VARIANTS(Kind, Data, data, getKind, None, Object, Primitive);
+        Data data;
+        bool isNone() const { return getKind() == Kind::None; }
+
+        template <DescribedRecord T>
+        static FieldHandle init(T* record) {
+            return FieldHandle{Object{record}};
+        }
+
+        template <typename T>
+        static FieldHandle init(T* record) {
+            return FieldHandle{Primitive{(void*)record}};
+        }
+
+
+        template <typename T>
+        static FieldHandle init(Opt<T>* record) {
+            if (!record->has_value()) {
+                (*record) = T{};
+            }
+
+            return FieldHandle{Primitive{(void*)&(record->value())}};
+        }
+    };
+
+    FieldHandle getHandle(CVec<QString> path) {
+        FieldHandle handle = getHandle(path.at(0));
+        for (auto const& step : path[slice(1, 1_B)]) {
+            if (handle.getKind() == FieldHandle::Kind::Object) {
+                handle = handle.getObject().base->getHandle(step);
+            } else {
+                qFatal() << "Cannot get sub-entry from handle of "
+                            "non-object type";
+            }
+        }
+
+        return handle;
+    }
+
+    FieldHandle getHandle(QString const& path) {
+        FieldHandle result;
+
+        using Bd = boost::describe::
+            describe_bases<Derived, boost::describe::mod_any_access>;
+        using Md = boost::describe::
+            describe_members<Derived, boost::describe::mod_any_access>;
+
+        boost::mp11::mp_for_each<Md>([&](auto const& field) {
+            if (result.isNone() && field.name == path) {
+                result = FieldHandle::init(&(_this()->*field.pointer));
+            }
+        });
+
+        if (!result.isNone()) {
+            return result;
+        }
+
+        boost::mp11::mp_for_each<Bd>([&](auto Base) {
+            getHandle<std::remove_cvref_t<typename decltype(Base)::type>>(
+                path);
+        });
+
+        return result;
+    }
 };
 
-struct TraceConfig : ReflectiveCliBase {
+struct TraceConfig : ReflectiveCliBase<TraceConfig> {
     DECL_FIELDS(
         TraceConfig,
         (),
@@ -41,17 +119,17 @@ struct TraceConfig : ReflectiveCliBase {
     }
 };
 
-struct Exporter : ReflectiveCliBase {
-    struct Base : ReflectiveCliBase {
+struct Exporter : ReflectiveCliBase<Exporter> {
+    struct Base : ReflectiveCliBase<Base> {
         DECL_FIELDS(Base, (), ((TraceConfig), trace, TraceConfig{}));
     };
 
     struct Tex : Base {
-        DECL_FIELDS(Tex, (Base, ReflectiveCliBase));
+        DECL_FIELDS(Tex, (Base));
     };
 
     struct NLP : Base {
-        DECL_FIELDS(NLP, (Base, ReflectiveCliBase));
+        DECL_FIELDS(NLP, (Base));
     };
 
     DECL_FIELDS(
@@ -69,13 +147,37 @@ struct Exporter : ReflectiveCliBase {
     }
 };
 
+struct Tracer : ReflectiveCliBase<Tracer> {
+    DECL_FIELDS(
+        Tracer,
+        (),
+        ((TraceConfig), lex, TraceConfig{}),
+        ((TraceConfig), parse, TraceConfig{}),
+        ((TraceConfig), sem, TraceConfig{}));
+};
+
+struct Main : ReflectiveCliBase<Main> {
+    DECL_FIELDS(
+        Main,
+        (),
+        ((Exporter), exp, Exporter{}),
+        ((Tracer), trace, Tracer{}))
+};
+
+
 struct OptConfig {
     Vec<QString> name;
     QString      doc;
+    bool         isFlag = false;
     QString      getSingleName() const { return join("-", name); }
 
     QCommandLineOption getOpt() const {
-        return QCommandLineOption(getSingleName(), doc, "value");
+        QCommandLineOption result = QCommandLineOption(
+            getSingleName(), doc);
+        if (!isFlag) {
+            result.setValueName("value");
+        }
+        return result;
     }
 };
 
@@ -125,24 +227,22 @@ struct OptWalker<T> {
         });
 
         boost::mp11::mp_for_each<Md>([&](auto const& field) {
+            using FieldType = std::remove_cvref_t<decltype(getPointerType(
+                field.pointer))>;
+
             auto parent = OptConfig{
-                .doc  = T().getDocFor(field.name),
-                .name = prefix + Vec<QString>{QString(field.name)}};
+                .doc    = T().getDocFor(field.name),
+                .isFlag = std::is_same<FieldType, bool>::value,
+                .name   = prefix + Vec<QString>{QString(field.name)}};
 
             result.push_back(parent);
-            result.append(
-                OptWalker<std::remove_cvref_t<decltype(getPointerType(
-                    field.pointer))>>::get(parent.name));
+            result.append(OptWalker<FieldType>::get(parent.name));
         });
 
         return result;
     }
 };
 
-
-struct Main : ReflectiveCliBase {
-    DECL_FIELDS(Main, (), ((Exporter), exp, Exporter{}))
-};
 
 bool parseArgs(
     QCoreApplication&  app,
@@ -155,17 +255,27 @@ bool parseArgs(
     parser.addHelpOption();
     parser.addVersionOption();
 
-    Vec<QCommandLineOption> options;
+    Vec<Pair<QCommandLineOption, OptConfig>> options;
     for (auto const& option : OptWalker<Main>::get({})) {
-        qDebug() << option.name << option.doc;
-        options.push_back(option.getOpt());
+
+        options.push_back({option.getOpt(), option});
     }
 
     for (auto const& option : options) {
-        parser.addOption(option);
+        parser.addOption(option.first);
     }
 
     qDebug().noquote() << parser.helpText();
+
+    parser.process(app);
+
+    Main result;
+    for (auto const& [qt, conf] : options) {
+        if (parser.isSet(qt)) {
+            qDebug() << conf.name << conf.doc << parser.value(qt);
+            auto handle = result.getHandle(conf.name);
+        }
+    }
 
     return false;
 }
