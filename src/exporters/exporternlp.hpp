@@ -14,6 +14,7 @@
 #include <hstd/wrappers/graphviz.hpp>
 #include <hstd/stdlib/GraphQuery.hpp>
 #include "HttpDataProvider.hpp"
+#include "TextAnnotatorCommon.hpp"
 
 namespace NLP {
 
@@ -264,19 +265,11 @@ struct SenGraph {
     bool             isMatching(EdgeDesc desc, Rule::Relation const& rel);
 };
 
-struct OrgText {
-    struct Word {
-        QString    text;
-        sem::SemId id = sem::SemId::Nil();
-    };
-
-    Vec<Word> text;
-};
-
-
 } // namespace NLP
 
-class ExporterNLP : public Exporter<ExporterNLP, std::monostate> {
+class ExporterNLP
+    : public AnnotatingVisitorBase<ExporterNLP, std::monostate>
+    , public Exporter<ExporterNLP, std::monostate> {
 
   signals:
     void sendQtRequest(QNetworkRequest const&, int, QString const& data);
@@ -310,10 +303,6 @@ class ExporterNLP : public Exporter<ExporterNLP, std::monostate> {
     }
 
   public:
-    struct Request {
-        NLP::OrgText sentence;
-    };
-
     struct Response {
         DECL_FIELDS(
             Response,
@@ -331,19 +320,17 @@ class ExporterNLP : public Exporter<ExporterNLP, std::monostate> {
     void executeRequests(SPtr<HttpDataProvider> http);
 
   public:
-    Opt<Request> activeRequest;
+    virtual void onFinishedRequestVisit(Request const& req) override {
+        exchange.push_back({req, Response{}});
+    }
 
-    void asSeparateRequest(R&, sem::SemId par);
     void visitParagraph(R& t, sem::SemIdT<sem::Paragraph> par) {
         asSeparateRequest(t, par.toId());
     }
 
 #define __visit(__Kind)                                                   \
     void visit##__Kind(R& res, In<sem::__Kind> leaf) {                    \
-        if (activeRequest) {                                              \
-            activeRequest->sentence.text.push_back(NLP::OrgText::Word{    \
-                .text = leaf->text, .id = leaf.toId()});                  \
-        }                                                                 \
+        visitLeafToken(leaf);                                             \
     }
 
     __visit(Word);

@@ -51,3 +51,7 @@ include(target_lib.cmake)
 include(target_tests.cmake)
 include(target_cli.cmake)
 
+target_sources(cli
+  PRIVATE
+    src/exporters/TextAnnotatorCommon.hpp
+)

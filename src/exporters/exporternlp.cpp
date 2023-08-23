@@ -469,15 +469,6 @@ void ExporterNLP::executeRequests(SPtr<HttpDataProvider> http) {
     }
 }
 
-void ExporterNLP::asSeparateRequest(R& t, sem::SemId par) {
-    activeRequest = Request{};
-    for (auto const& sub : par->subnodes) {
-        visit(t, sub);
-    }
-    exchange.push_back({std::move(activeRequest.value()), Response{}});
-    activeRequest = std::nullopt;
-}
-
 Parsed::Ptr parseDirectResponse(json j) {
     Parsed::Ptr parsed = Parsed::shared();
     for (auto const& [key, value] : j["corefs"].items()) {
