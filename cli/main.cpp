@@ -7,6 +7,7 @@
 #include <hstd/wrappers/perfetto_aux.hpp>
 #include <glib.h>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Json.hpp>
 
 #ifdef USE_PERFETTO
 #    include <hstd/wrappers/perfetto_aux.hpp>
@@ -14,21 +15,55 @@
 
 QTextStream qcout;
 
+template <typename T>
+struct CliValueWriter;
 
-template <typename Derived>
-struct ReflectiveCliBase : CRTP_this_method<Derived> {
-    using CRTP_this_method<Derived>::_this;
+template <>
+struct CliValueWriter<int> {
+    static void write(int* target, QString const& value) {
+        Q_CHECK_PTR(target);
+        *target = value.toInt();
+    }
+};
 
-    DECL_FIELDS(ReflectiveCliBase, ());
-    virtual QString getDocFor(QString const& field) const { return ""; }
+template <>
+struct CliValueWriter<bool> {
+    static void write(bool* target, QString const& value) {
+        Q_CHECK_PTR(target);
+        *target = value == "true";
+    }
+};
 
+template <>
+struct CliValueWriter<Slice<int>> {
+    static void write(Slice<int>* target, QString const& value) {
+        Q_CHECK_PTR(target);
+        auto range    = value.split(":");
+        target->first = range.at(0).toInt();
+        target->last  = range.at(1).toInt();
+    }
+};
+
+template <>
+struct CliValueWriter<QFileInfo> {
+    static void write(QFileInfo* target, QString const& value) {
+        Q_CHECK_PTR(target);
+        target->setFile(value);
+    }
+};
+
+
+struct ReflectiveCliBase {
     struct FieldHandle {
         struct Object {
             ReflectiveCliBase* base;
         };
 
         struct Primitive {
-            void* target;
+            std::any target;
+
+            Func<void(std::any value, QString const& write)> onWrite;
+            void setFrom(QString const& value) { onWrite(target, value); }
         };
 
         struct None {};
@@ -43,9 +78,14 @@ struct ReflectiveCliBase : CRTP_this_method<Derived> {
 
         template <typename T>
         static FieldHandle init(T* record) {
-            return FieldHandle{Primitive{(void*)record}};
+            return FieldHandle{Primitive{
+                .target  = std::any(record),
+                .onWrite = [](std::any target, QString const& value) {
+                    T* pointer = std::any_cast<T*>(target);
+                    Q_CHECK_PTR(pointer);
+                    CliValueWriter<T>::write(pointer, value);
+                }}};
         }
-
 
         template <typename T>
         static FieldHandle init(Opt<T>* record) {
@@ -53,9 +93,11 @@ struct ReflectiveCliBase : CRTP_this_method<Derived> {
                 (*record) = T{};
             }
 
-            return FieldHandle{Primitive{(void*)&(record->value())}};
+            return FieldHandle::init(&(record->value()));
         }
     };
+
+    virtual FieldHandle getHandle(QString const& path) = 0;
 
     FieldHandle getHandle(CVec<QString> path) {
         FieldHandle handle = getHandle(path.at(0));
@@ -71,7 +113,20 @@ struct ReflectiveCliBase : CRTP_this_method<Derived> {
         return handle;
     }
 
-    FieldHandle getHandle(QString const& path) {
+    virtual QString getDocFor(QString const& field) const { return ""; }
+};
+
+template <typename Derived>
+struct ReflectiveCli
+    : ReflectiveCliBase
+    , CRTP_this_method<Derived> {
+    using CRTP_this_method<Derived>::_this;
+
+    DECL_FIELDS(ReflectiveCli, ());
+
+    using ReflectiveCliBase::getHandle;
+
+    virtual FieldHandle getHandle(QString const& path) override {
         FieldHandle result;
 
         using Bd = boost::describe::
@@ -98,7 +153,7 @@ struct ReflectiveCliBase : CRTP_this_method<Derived> {
     }
 };
 
-struct TraceConfig : ReflectiveCliBase<TraceConfig> {
+struct TraceConfig : ReflectiveCli<TraceConfig> {
     DECL_FIELDS(
         TraceConfig,
         (),
@@ -119,8 +174,8 @@ struct TraceConfig : ReflectiveCliBase<TraceConfig> {
     }
 };
 
-struct Exporter : ReflectiveCliBase<Exporter> {
-    struct Base : ReflectiveCliBase<Base> {
+struct Exporter : ReflectiveCli<Exporter> {
+    struct Base : ReflectiveCli<Base> {
         DECL_FIELDS(Base, (), ((TraceConfig), trace, TraceConfig{}));
     };
 
@@ -147,7 +202,7 @@ struct Exporter : ReflectiveCliBase<Exporter> {
     }
 };
 
-struct Tracer : ReflectiveCliBase<Tracer> {
+struct Tracer : ReflectiveCli<Tracer> {
     DECL_FIELDS(
         Tracer,
         (),
@@ -156,7 +211,7 @@ struct Tracer : ReflectiveCliBase<Tracer> {
         ((TraceConfig), sem, TraceConfig{}));
 };
 
-struct Main : ReflectiveCliBase<Main> {
+struct Main : ReflectiveCli<Main> {
     DECL_FIELDS(
         Main,
         (),
@@ -243,6 +298,18 @@ struct OptWalker<T> {
     }
 };
 
+template <typename T>
+void to_json(json& out, Slice<T> const& value) {
+    if (!out.is_object()) {
+        out = json::object();
+    }
+    out["first"]  = value.first;
+    out["second"] = value.last;
+}
+
+void to_json(json& out, QFileInfo const& value) {
+    out = json(value.absoluteFilePath().toStdString());
+}
 
 bool parseArgs(
     QCoreApplication&  app,
@@ -272,10 +339,22 @@ bool parseArgs(
     Main result;
     for (auto const& [qt, conf] : options) {
         if (parser.isSet(qt)) {
-            qDebug() << conf.name << conf.doc << parser.value(qt);
             auto handle = result.getHandle(conf.name);
+            if (handle.getKind()
+                == ReflectiveCliBase::FieldHandle::Kind::Primitive) {
+                auto& primitive = handle.getPrimitive();
+                if (conf.isFlag) {
+                    primitive.setFrom("true");
+                } else {
+                    primitive.setFrom(parser.value(qt));
+                }
+            }
         }
     }
+
+    json j;
+    to_json(j, result);
+    qDebug().noquote() << to_compact_json(j);
 
     return false;
 }

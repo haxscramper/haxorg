@@ -134,11 +134,19 @@ inline void to_json(json& res, CR<Vec<T>> str) {
     }
 }
 
+template <typename T>
+inline void to_json(json& res, CR<std::vector<T>> str) {
+    for (const auto& it : str) {
+        json tmp;
+        to_json(tmp, it);
+        res.push_back(tmp);
+    }
+}
 
 template <typename T>
 inline void to_json(json& res, CR<Opt<T>> str) {
     if (str.has_value()) {
-        to_json<T>(res, str.value());
+        to_json(res, str.value());
     } else {
         res = json();
     }
