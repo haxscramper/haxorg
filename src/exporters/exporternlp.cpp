@@ -501,14 +501,7 @@ Parsed::Ptr parseDirectResponse(json j) {
 }
 
 void resolveOrgIds(Parsed::Ptr parsed, OrgText const& sent) {
-    Vec<Pair<Slice<int>, sem::SemId>> rangeForId;
-    int                               offset = 0;
-    for (auto const& word : sent.text) {
-        Slice<int> range = slice1<int>(
-            offset, offset + word.text.length());
-        offset += word.text.length();
-        rangeForId.push_back({range, word.id});
-    }
+
 
     Func<void(SenTree::Ptr const&)> rec;
     rec = [&](SenTree::Ptr const& cst) {
@@ -516,22 +509,8 @@ void resolveOrgIds(Parsed::Ptr parsed, OrgText const& sent) {
             Q_CHECK_PTR(cst->parent);
             NLP::Token const& token = cst->parent->tokens.at(
                 cst->index.value());
-            Slice<int> target = slice1<int>(
-                token.characterOffsetBegin, token.characterOffsetEnd);
-            for (auto const& rng : rangeForId) {
-                if (rng.first.contains(target)
-                    && !cst->orgIds.contains(rng.second)) {
-                    cst->orgIds.push_back(rng.second);
-                }
-            }
-
-            if (cst->orgIds.empty()) {
-                for (auto const& rng : rangeForId) {
-                    if (target.overlap(rng.first).has_value()) {
-                        cst->orgIds.push_back(rng.second);
-                    }
-                }
-            }
+            cst->orgIds = sent.overlappingNodes(slice1<int>(
+                token.characterOffsetBegin, token.characterOffsetEnd));
 
         } else {
             for (auto& sub : cst->nested) {

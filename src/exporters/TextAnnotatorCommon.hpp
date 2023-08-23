@@ -11,6 +11,35 @@ struct OrgText {
     };
 
     Vec<Word> text;
+
+    Vec<sem::SemId> overlappingNodes(Slice<int> characterRange) const {
+        Vec<Pair<Slice<int>, sem::SemId>> rangeForId;
+        int                               offset = 0;
+        Vec<sem::SemId>                   result;
+        for (auto const& word : text) {
+            Slice<int> range = slice1<int>(
+                offset, offset + word.text.length());
+            offset += word.text.length();
+            rangeForId.push_back({range, word.id});
+        }
+
+        for (auto const& rng : rangeForId) {
+            if (rng.first.contains(characterRange)
+                && !result.contains(rng.second)) {
+                result.push_back(rng.second);
+            }
+        }
+
+        if (result.empty()) {
+            for (auto const& rng : rangeForId) {
+                if (characterRange.overlap(rng.first).has_value()) {
+                    result.push_back(rng.second);
+                }
+            }
+        }
+
+        return result;
+    }
 };
 
 template <typename Exporter, typename ResultType>
