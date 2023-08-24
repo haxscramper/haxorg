@@ -78,12 +78,17 @@ void ExporterLangtool::format(ColStream& os) {
 
             auto const& rule = match.rule;
 
-            os << rule.id << " " << match.message << " "
-               << "\n";
+            Vec<QString> replacements;
+            for (auto const& place : match.replacements) {
+                replacements.push_back(place.value);
+            }
+
+            os << "- '" << run << "' " << rule.id << " " << match.message
+               << " ->> " << join("/", replacements) << "\n";
 
             json j;
             to_json(j, match);
-            os << "  " << j.dump() << "\n";
+            os << "  - " << j.dump() << "\n";
         }
     }
 }
