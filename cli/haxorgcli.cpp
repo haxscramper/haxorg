@@ -13,6 +13,7 @@
 #include <exporters/exporterqtextdocument.hpp>
 #include <exporters/exportersimplesexpr.hpp>
 #include <exporters/exporterlatex.hpp>
+#include <exporters/exporterlangtool.hpp>
 #include <exporters/exportereventlog.hpp>
 #include <annotators/annotatorspelling.hpp>
 #include <exporters/exportersubtreestructure.hpp>
@@ -753,6 +754,25 @@ void exportOk(QString const& what, cli::Exporter::Base const& base) {
     qInfo().noquote() << "Export" << what << "to" << base.target << "ok";
 }
 
+SPtr<HttpDataProvider> openHttpProvider(Opt<QFileInfo> cache) {
+    auto http = std::make_shared<HttpDataProvider>();
+    if (cache && cache->exists()) {
+        http->isCacheEnabled = true;
+        http->addCache(json::parse(readFile(cache.value()).toStdString()));
+    }
+
+    return http;
+}
+
+void closeHttpProvider(Opt<QFileInfo> cache, SPtr<HttpDataProvider> http) {
+    if (cache) {
+        writeFile(
+            cache.value(),
+            QString::fromStdString(to_compact_json(http->toJsonCache())));
+        qDebug() << "Wrote HTTP cache to" << *cache;
+    }
+}
+
 void HaxorgCli::exec() {
     //    InitializePerfetto();
     //    auto tracing_session = StartTracing();
@@ -1099,10 +1119,15 @@ void HaxorgCli::exec() {
         exportOk("TEX", *config.exp.tex);
     }
 
-    if(config.exp.langtool) {
+    if (config.exp.langtool) {
+        ExporterLangtool lang;
+        auto http = openHttpProvider(config.exp.langtool->httpCache);
 
+        lang.visitTop(node);
+        lang.executeRequests(QUrl("http://localhost:8081/v2/check"), http);
+        closeHttpProvider(config.exp.langtool->httpCache, http);
+        exportOk("Langtool", *config.exp.langtool);
     }
-
 
     {
         AnnotatorSpelling spelling;

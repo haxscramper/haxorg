@@ -40,13 +40,13 @@ bool parseArgs(
         parser.addOption(option.first);
     }
 
-    qDebug().noquote() << parser.helpText();
-
     parser.process(app);
 
     for (auto const& [qt, conf] : options) {
         if (parser.isSet(qt)) {
             auto handle = config.getHandle(conf.name);
+            qDebug() << "Setting" << conf.name << "to" << parser.value(qt)
+                     << handle.getKind();
             if (handle.getKind()
                 == cli::ReflectiveCliBase::FieldHandle::Kind::Primitive) {
                 auto& primitive = handle.getPrimitive();

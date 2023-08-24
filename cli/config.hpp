@@ -250,13 +250,15 @@ struct ReflectiveCli
 
     using ReflectiveCliBase::getHandle;
 
-    virtual FieldHandle getHandle(QString const& path) override {
+    template <typename T>
+    FieldHandle findFieldHandle(QString const& path) {
         FieldHandle result;
+
+        using Md = boost::describe::
+            describe_members<T, boost::describe::mod_any_access>;
 
         using Bd = boost::describe::
             describe_bases<Derived, boost::describe::mod_any_access>;
-        using Md = boost::describe::
-            describe_members<Derived, boost::describe::mod_any_access>;
 
         boost::mp11::mp_for_each<Md>([&](auto const& field) {
             if (result.isNone() && field.name == path) {
@@ -269,11 +271,18 @@ struct ReflectiveCli
         }
 
         boost::mp11::mp_for_each<Bd>([&](auto Base) {
-            getHandle<std::remove_cvref_t<typename decltype(Base)::type>>(
-                path);
+            if (result.isNone()) {
+                result = findFieldHandle<
+                    std::remove_cvref_t<typename decltype(Base)::type>>(
+                    path);
+            }
         });
 
         return result;
+    }
+
+    virtual FieldHandle getHandle(QString const& path) override {
+        return findFieldHandle<Derived>(path);
     }
 };
 
@@ -299,78 +308,99 @@ struct TraceConfig : ReflectiveCli<TraceConfig> {
 };
 
 struct Exporter : ReflectiveCli<Exporter> {
-    struct Base : ReflectiveCli<Base> {
-        DECL_FIELDS(
-            Base,
+    struct Base {
+        TraceConfig trace  = TraceConfig{};
+        QFileInfo   target = QFileInfo{};
+        Opt<QDir>   outDir = std::nullopt;
+        Opt<QDir>   tmpDir = std::nullopt;
+    };
+
+
+    // Exporter CLI configuration class has split `Base` class in order to
+    // make main configuration accessible using simple object slicing as
+    // `cli::Exporter::Base`.
+    //
+    // CtrpPass is necessary to make `ReflectiveCli` trigger on all fields
+    // of the derived class when unparsing the content back --
+    // `getHandle()` implementation must be provided for the lowest class
+    // in the hierarchy, otherwise fields like `httpCache` will be missing.
+    template <typename Derived>
+    struct CrtpPass
+        : Base
+        , ReflectiveCli<Derived> {
+        BOOST_DESCRIBE_CLASS(
+            CrtpPass,
             (),
-            ((TraceConfig), trace, TraceConfig{}),
-            ((QFileInfo), target, QFileInfo{}),
-            ((Opt<QDir>), outDir, std::nullopt),
-            ((Opt<QDir>), tmpDir, std::nullopt));
+            (),
+            (),
+            (trace, target, outDir, tmpDir));
     };
 
-    struct Tex : Base {
-        DECL_FIELDS(Tex, (Base));
+    struct Tex : CrtpPass<Tex> {
+        DECL_FIELDS(Tex, (CrtpPass<Tex>));
     };
 
-    struct HTML : Base {
-        DECL_FIELDS(HTML, (Base));
+    struct HTML : CrtpPass<HTML> {
+        DECL_FIELDS(HTML, (CrtpPass<HTML>));
     };
 
-    struct SExpr : Base {
-        DECL_FIELDS(SExpr, (Base));
+    struct SExpr : CrtpPass<SExpr> {
+        DECL_FIELDS(SExpr, (CrtpPass<SExpr>));
     };
 
-    struct Gantt : Base {
-        DECL_FIELDS(Gantt, (Base));
+    struct Gantt : CrtpPass<Gantt> {
+        DECL_FIELDS(Gantt, (CrtpPass<Gantt>));
     };
 
-    struct EventLog : Base {
-        DECL_FIELDS(EventLog, (Base));
+    struct EventLog : CrtpPass<EventLog> {
+        DECL_FIELDS(EventLog, (CrtpPass<EventLog>));
     };
 
-    struct MindMap : Base {
-        DECL_FIELDS(MindMap, (Base));
+    struct MindMap : CrtpPass<MindMap> {
+        DECL_FIELDS(MindMap, (CrtpPass<MindMap>));
     };
 
-    struct SubtreeStructure : Base {
-        DECL_FIELDS(SubtreeStructure, (Base));
+    struct SubtreeStructure : CrtpPass<SubtreeStructure> {
+        DECL_FIELDS(SubtreeStructure, (CrtpPass<SubtreeStructure>));
     };
 
-    struct Lex : Base {
+    struct Lex : CrtpPass<Lex> {
         DECL_DESCRIBED_ENUM(Kind, Html, Csv, Annotated, Yaml, Json);
-        DECL_FIELDS(Lex, (Base), ((Kind), kind, Kind::Csv));
+        DECL_FIELDS(Lex, (CrtpPass<Lex>), ((Kind), kind, Kind::Csv));
     };
 
-    struct Parse : Base {
+    struct Parse : CrtpPass<Parse> {
         DECL_DESCRIBED_ENUM(Kind, Yaml, Json, Html, Tree);
-        DECL_FIELDS(Parse, (Base), ((Kind), kind, Kind::Yaml));
+        DECL_FIELDS(Parse, (CrtpPass<Parse>), ((Kind), kind, Kind::Yaml));
     };
 
-    struct Json : Base {
-        DECL_FIELDS(Json, (Base));
+    struct Json : CrtpPass<Json> {
+        DECL_FIELDS(Json, (CrtpPass<Json>));
     };
 
-    struct Yaml : Base {
-        DECL_FIELDS(Yaml, (Base));
+    struct Yaml : CrtpPass<Yaml> {
+        DECL_FIELDS(Yaml, (CrtpPass<Yaml>));
     };
 
-    struct QDocument : Base {
+    struct QDocument : CrtpPass<QDocument> {
         DECL_DESCRIBED_ENUM(Kind, Html, Md, Txt);
-        DECL_FIELDS(QDocument, (Base), ((Kind), kind, Kind::Html));
+        DECL_FIELDS(
+            QDocument,
+            (CrtpPass<QDocument>),
+            ((Kind), kind, Kind::Html));
     };
 
-    struct Langtool : Base {
+    struct Langtool : CrtpPass<Langtool> {
         DECL_FIELDS(
             Langtool,
-            (Base),
+            (CrtpPass<Langtool>),
             ((Opt<QFileInfo>), httpCache, std::nullopt));
     };
 
-    struct NLP : Base {
+    struct NLP : CrtpPass<NLP> {
         DECL_FIELDS(
             NLP,
-            (Base),
+            (CrtpPass<NLP>),
             ((Opt<QFileInfo>), httpCache, std::nullopt));
     };
 

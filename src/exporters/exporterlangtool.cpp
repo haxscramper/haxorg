@@ -37,6 +37,5 @@ void ExporterLangtool::onFinishedResponse(
     int                                   targetIndex) {
     auto             j = json::parse(reply.content.toStdString());
     LangtoolResponse resp;
-    qDebug().noquote() << to_compact_json(j, {.width = 230});
     from_json(j["matches"], resp.matches);
 }
