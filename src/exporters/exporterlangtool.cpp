@@ -38,4 +38,41 @@ void ExporterLangtool::onFinishedResponse(
     auto             j = json::parse(reply.content.toStdString());
     LangtoolResponse resp;
     from_json(j["matches"], resp.matches);
+    exchange.at(targetIndex).second.resp = resp;
+}
+
+void ExporterLangtool::format(ColStream& os) {
+    for (auto const& [req, resp] : exchange) {
+        Vec<LangtoolResponse::Match> matches;
+        for (auto const& match : resp.resp.matches) {
+            if (!Vec<QString>{"CONSECUTIVE_SPACES", "WHITESPACE_RULE"}
+                     .contains(match.rule.id)) {
+                matches.push_back(match);
+            }
+        }
+
+        if (matches.empty()) {
+            continue;
+        }
+
+        QString text;
+        for (auto const& word : req.sentence.text) {
+            text += word.text;
+        }
+
+        for (auto const& line : text.split("\n")) {
+            os << "> " << line << "\n";
+        }
+
+        for (auto const& match : matches) {
+            auto const& rule = match.rule;
+
+            os << rule.id << " " << match.message << " "
+               << rule.description << "\n";
+
+            json j;
+            to_json(j, match);
+            os << "  " << j.dump() << "\n";
+        }
+    }
 }

@@ -96,12 +96,15 @@ class ExporterLangtool
         DECL_FIELDS(
             Response,
             (),
+            ((LangtoolResponse), resp, LangtoolResponse{}),
             ((bool), valid, false),
             ((int), posStart, 0),
             ((int), posEnd, 0));
     };
 
     Vec<Pair<Request, Response>> exchange;
+
+    void format(ColStream& os);
 
     template <typename T>
     void visitField(R& res, const char* name, CR<T> field) {

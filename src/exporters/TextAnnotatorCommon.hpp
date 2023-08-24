@@ -61,14 +61,19 @@ struct AnnotatingVisitorBase : public CRTP_this_method<Exporter> {
     }
 
     void asSeparateRequest(ResultType& t, sem::SemId par) {
-        activeRequest = Request{};
-        for (auto const& sub : par->subnodes) {
-            _this()->visit(t, sub);
+        if (activeRequest) {
+            for (auto const& sub : par->subnodes) {
+                _this()->visit(t, sub);
+            }
+        } else {
+            activeRequest = Request{};
+            for (auto const& sub : par->subnodes) {
+                _this()->visit(t, sub);
+            }
+            onFinishedRequestVisit(std::move(activeRequest.value()));
+            activeRequest = std::nullopt;
         }
-        onFinishedRequestVisit(std::move(activeRequest.value()));
-        activeRequest = std::nullopt;
     }
 
     virtual void onFinishedRequestVisit(Request const& request) = 0;
 };
-

@@ -636,10 +636,33 @@ void HaxorgCli::initTracers() {
 }
 
 #ifdef USE_PERFETTO
-#    define __trace(name) TRACE_EVENT("cli", name)
+#    define __trace(name)                                                 \
+        TRACE_EVENT("cli", name);                                         \
+        Timer CONCAT(__timer, __COUNTER__)(name);
 #else
-#    define __trace(a)
+#    define __trace(a) Timer CONCAT(__timer, __COUNTER__)(a);
 #endif
+
+class Timer {
+  public:
+    Timer(const QString& message_)
+        : start(std::chrono::high_resolution_clock::now())
+        , message(message_) {}
+
+    ~Timer() {
+        auto end      = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<
+                            std::chrono::milliseconds>(end - start)
+                            .count();
+
+        qInfo().nospace() << "Completed " << message << " in " << duration
+                          << "ms";
+    }
+
+  private:
+    std::chrono::high_resolution_clock::time_point start;
+    QString                                        message;
+};
 
 
 bool HaxorgCli::runTokenizer(bool catchExceptions) {
@@ -941,12 +964,9 @@ void HaxorgCli::exec() {
     {
         __trace("convert parse to sem");
         node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
-        qInfo() << "Finished conversion";
     }
 
     if (config.trace.sem.dump) {
-        qInfo() << "sem result dump is enabled, writing out"
-                << config.trace.sem.dumpTo;
         auto ctx = openFileOrStream(
             config.trace.sem.dumpTo ? config.trace.sem.dumpTo.value()
                                     : QFileInfo(),
@@ -1037,6 +1057,7 @@ void HaxorgCli::exec() {
     }
 
     if (config.exp.subtreeStructure) {
+        __trace("Export subtree structure");
         ExporterSubtreeStructure exporter;
         json                     result = exporter.visitTop(node);
         writeFile(
@@ -1046,6 +1067,7 @@ void HaxorgCli::exec() {
     }
 
     if (config.exp.gantt) {
+        __trace("Export gantt");
         ExporterGantt gantt;
         gantt.gantt.timeSpan = slice(QDateTime(), QDateTime());
         gantt.visitTop(node);
@@ -1120,12 +1142,18 @@ void HaxorgCli::exec() {
     }
 
     if (config.exp.langtool) {
+        __trace("Export langtool");
         ExporterLangtool lang;
         auto http = openHttpProvider(config.exp.langtool->httpCache);
 
         lang.visitTop(node);
         lang.executeRequests(QUrl("http://localhost:8081/v2/check"), http);
         closeHttpProvider(config.exp.langtool->httpCache, http);
+        SPtr<IoContext> io = openFileOrStream(
+            config.exp.langtool->target, true);
+        ColStream os{io->stream};
+        lang.format(os);
+        os << "Result";
         exportOk("Langtool", *config.exp.langtool);
     }
 
