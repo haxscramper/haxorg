@@ -1141,6 +1141,22 @@ void HaxorgCli::exec() {
         exportOk("TEX", *config.exp.tex);
     }
 
+    if (config.exp.nlp) {
+        __trace("Export NLP");
+        auto const& conf = *config.exp.nlp;
+        ExporterNLP nlp{QUrl("http://localhost:9000")};
+        auto        http = openHttpProvider(conf.httpCache);
+        nlp.visitTop(node);
+        nlp.executeRequests(http);
+        closeHttpProvider(conf.httpCache, http);
+
+        SPtr<IoContext> io = openFileOrStream(conf.target, true);
+        ColStream       os{io->stream};
+        nlp.format(os);
+
+        exportOk("Langtool", conf);
+    }
+
     if (config.exp.langtool) {
         __trace("Export langtool");
         auto const&      conf = *config.exp.langtool;
@@ -1152,12 +1168,19 @@ void HaxorgCli::exec() {
         }
 
         lang.visitTop(node);
-        lang.executeRequests(QUrl("http://localhost:8081/v2/check"), http);
+        try {
+            lang.executeRequests(
+                QUrl("http://localhost:8081/v2/check"), http);
+        } catch (std::domain_error& err) {
+            closeHttpProvider(conf.httpCache, http);
+            return;
+        }
+
         closeHttpProvider(conf.httpCache, http);
+
         SPtr<IoContext> io = openFileOrStream(conf.target, true);
         ColStream       os{io->stream};
         lang.format(os);
-        os << "Result";
         exportOk("Langtool", conf);
     }
 

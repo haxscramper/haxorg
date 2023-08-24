@@ -77,9 +77,9 @@ void ExporterLangtool::format(ColStream& os) {
             continue;
         }
 
-        for (auto const& line : text.split("\n")) {
-            os << "> " << line << "\n";
-        }
+        //        for (auto const& line : text.split("\n")) {
+        //            os << "> " << line << "\n";
+        //        }
 
         for (auto const& match : matches) {
             Slice<int> range = slice1<int>(
@@ -95,8 +95,9 @@ void ExporterLangtool::format(ColStream& os) {
             }
             LineCol loc = nodes.at(0)->loc.value();
 
-            os << "- '" << run << "' at " << loc.line << ":" << loc.column
-               << " " << rule.id << " " << match.message << " ->> "
+            os << "- '" << join("", visibleUnicodeName(run)) << "' at **"
+               << loc.line << ":" << loc.column << "** `" << rule.id
+               << "` " << match.message << " ->> "
                << join("/", replacements) << "\n";
 
             //            json j;

@@ -359,8 +359,13 @@ struct SenTree : SharedPtrApi<SenTree> {
         lex.space();
         lex.skip('(');
         QString tag;
-        while (lex.tok().isLetter() || lex.tok() == '-' || lex.tok() == ','
-               || lex.tok() == '.') {
+        while (lex.tok().isLetter() || //
+               lex.tok() == '-' ||     //
+               lex.tok() == ',' ||     //
+               lex.tok() == '.' ||     //
+               lex.tok() == ':' ||     //
+               lex.tok() == '`' ||     //
+               lex.tok() == '\'') {
             tag.append(lex.tok());
             lex.next();
         }
@@ -370,12 +375,21 @@ struct SenTree : SharedPtrApi<SenTree> {
             parsed = SenNode::PosTag::PUNCT_COMMA;
         } else if (tag == ".") {
             parsed = SenNode::PosTag::PUNCT_PERIOD;
+        } else if (tag == ":") {
+            parsed = SenNode::PosTag::PUNCT_COLON;
+        } else if (tag == "``") {
+            parsed = SenNode::PosTag::PUNCT_QUOTE_OPEN;
+        } else if (tag == "''") {
+            parsed = SenNode::PosTag::PUNCT_QUOTE_CLOSE;
+        } else if (tag == "NP-TMP") {
+            parsed = SenNode::PosTag::NP_TMP;
         } else {
             parsed = enum_serde<SenNode::PosTag>::from_string(tag);
         }
 
         if (!parsed) {
-            qFatal() << "Unexpected POS tag:" << tag;
+            qCritical() << "Unexpected POS tag:" << tag << lex.data;
+            throw std::domain_error("Unexpected value for POS tag");
         }
 
         result->tag = parsed.value();
@@ -455,6 +469,16 @@ void ExporterNLP::executeRequests(SPtr<HttpDataProvider> http) {
         }
 
         http->sendPostRequest(requestUrl, data, i);
+        while (2 < http->getPendingCount()) {
+            qDebug() << "NLP has excess pending requests, waiting" << i
+                     << "out of" << exchange.size();
+            QThread::msleep(1000);
+        }
+
+        while (http->hasData()) {
+            HttpDataProvider::QueueData data = http->dequeue();
+            onFinishedResponse(data.response, data.responseId);
+        }
     }
 
     http->hasData();
@@ -596,7 +620,8 @@ void ExporterNLP::onFinishedResponse(
     HttpDataProvider::ResponseData const& reply,
     int                                   targetIndex) {
     if (reply.isError) {
-        qCWarning(nlp) << "Failed to execute reply" << reply.errorString;
+        qCWarning(nlp) << "Failed to execute reply" << targetIndex
+                       << reply.errorString;
 
     } else {
         auto        j      = json::parse(reply.content.toStdString());
@@ -609,3 +634,5 @@ void ExporterNLP::onFinishedResponse(
             .valid = true, .parsed = result};
     }
 }
+
+void ExporterNLP::format(ColStream& os) {}

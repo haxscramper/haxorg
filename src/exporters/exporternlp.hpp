@@ -23,33 +23,77 @@ struct SenNode {
         PosTag,
         ROOT,
         S,
-        DT,
-        NN,
-        NP,
-        VBZ,
-        VBD,
         ADJP,
         ADVP,
-        CC,
-        IN,
-        JJ,
+        HYPH,
         NNP,
-        NNS,
-        PP,
+        NML,
         PRP,
-        RB,
-        RBR,
+        QP,
         SBAR,
-        TO,
-        VB,
-        VBN,
-        VBP,
-        VBG,
         VP,
         WHADVP,
-        WRB,
-        CD,
+        FRAG,
+        NP_TMP,
+        PRN,
+        PRT,
+        SINV,
+        WHNP,
+        NNPS,
+        LST,
+        CC,   //	coordinating conjunction 	and
+        CD,   //	cardinal number 	1, third
+        DT,   //	determiner 	the
+        EX,   //	existential there 	there is
+        FW,   //	foreign word 	les
+        IN,   //	preposition, subordinating conjunction 	in, of, like
+        JJ,   //	adjective 	green
+        JJR,  //	adjective, comparative 	greener
+        JJS,  //	adjective, superlative 	greenest
+        LS,   //	list marker 	1)
+        MD,   //	modal 	could, will
+        NN,   //	noun, singular or mass 	table
+        NNS,  //	noun plural 	tables
+        NP,   //	proper noun, singular 	John
+        NPS,  //	proper noun, plural 	Vikings
+        PDT,  //	predeterminer 	both the boys
+        POS,  //	possessive ending 	friend’s
+        PP,   //	personal pronoun 	I, he, it
+        PPZ,  //	possessive pronoun 	my, his
+        RB,   //	adverb 	however, usually, naturally, here, good
+        RBR,  //	adverb, comparative 	better
+        RBS,  //	adverb, superlative 	best
+        RP,   //	particle 	give up
+        SENT, //	Sentence-break punctuation 	. ! ?
+        SYM,  //	Symbol 	/ [ = *
+        TO,   //	infinitive ‘to’ 	togo
+        UH,   //	interjection 	uhhuhhuhh
+        VB,   //	verb be, base form 	be
+        VBD,  //	verb be, past tense 	was, were
+        VBG,  //	verb be, gerund/present participle 	being
+        VBN,  //	verb be, past participle 	been
+        VBP,  //	verb be, sing. present, non-3d 	am, are
+        VBZ,  //	verb be, 3rd person sing. present 	is
+        VH,   //	verb have, base form 	have
+        VHD,  //	verb have, past tense 	had
+        VHG,  //	verb have, gerund/present participle 	having
+        VHN,  //	verb have, past participle 	had
+        VHP,  //	verb have, sing. present, non-3d 	have
+        VHZ,  //	verb have, 3rd person sing. present 	has
+        VV,   //	verb, base form 	take
+        VVD,  //	verb, past tense 	took
+        VVG,  //	verb, gerund/present participle 	taking
+        VVN,  //	verb, past participle 	taken
+        VVP,  //	verb, sing. present, non-3d 	take
+        VVZ,  //	verb, 3rd person sing. present 	takes
+        WDT,  //	wh-determiner 	which
+        WP,   //	wh-pronoun 	who, what
+        WRB,  //	wh-abverb 	where, when
+        UCP,
         PUNCT_COMMA,
+        PUNCT_COLON,
+        PUNCT_QUOTE_OPEN,
+        PUNCT_QUOTE_CLOSE,
         PUNCT_PERIOD);
 
     DECL_DESCRIBED_ENUM(
@@ -62,16 +106,20 @@ struct SenNode {
         MONEY,
         NUMBER,
         ORDINAL,
+        NATIONALITY,
         PERCENT,
         DATE,
         TIME,
         DURATION,
         SET,
         EMAIL,
+        TITLE,
         URL,
         CITY,
         STATE_OR_PROVINCE,
-        COUNTRY);
+        CAUSE_OF_DEATH,
+        COUNTRY,
+        CRIMINAL_CHARGE);
 
     Opt<int>        index    = 0;
     int             sentence = 0;
@@ -91,6 +139,7 @@ struct SenEdge {
         advmod,
         aux,
         _case,
+        ccomp,
         cc,
         cop,
         compound,
@@ -100,10 +149,12 @@ struct SenEdge {
         nsubj,
         obj,
         obl,
+        expl,
         parataxis,
         nummod,
         nmod,
         punct,
+        fixed,
         amod,
         iobj,
         ROOT,
@@ -318,6 +369,7 @@ class ExporterNLP
     Vec<Pair<Request, Response>> exchange;
     ExporterNLP(QUrl const& resp);
     void executeRequests(SPtr<HttpDataProvider> http);
+    void format(ColStream& os);
 
   public:
     virtual void onFinishedRequestVisit(Request const& req) override {
