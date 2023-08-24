@@ -64,7 +64,7 @@ void ExporterLangtool::format(ColStream& os) {
             continue;
         }
 
-        QString text;
+        Str text;
         for (auto const& word : req.sentence.text) {
             text += word.text;
         }
@@ -74,17 +74,22 @@ void ExporterLangtool::format(ColStream& os) {
         }
 
         for (auto const& match : matches) {
-            QString run = text.mid(match.offset, match.length);
+            Slice<int> range = slice1<int>(
+                match.offset, match.offset + match.length);
+            Vec<sem::SemId> nodes = req.sentence.overlappingNodes(range);
 
+            QString run = text.mid(range.first, range.last - range.first);
             auto const& rule = match.rule;
 
             Vec<QString> replacements;
             for (auto const& place : match.replacements) {
                 replacements.push_back(place.value);
             }
+            LineCol loc = nodes.at(0)->loc.value();
 
-            os << "- '" << run << "' " << rule.id << " " << match.message
-               << " ->> " << join("/", replacements) << "\n";
+            os << "- '" << run << "' at " << loc.line << ":" << loc.column
+               << " " << rule.id << " " << match.message << " ->> "
+               << join("/", replacements) << "\n";
 
             json j;
             to_json(j, match);
