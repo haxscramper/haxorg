@@ -68,6 +68,7 @@ class HttpDataProvider : public QThread {
 
     void waitForRequests(int sleepOn = 250);
     void waitForData(int sleepOn = 250);
+    int  getPendingCount() { return pendingRequests.load(); }
     bool hasPendingRequests() const;
 
     void sendPostRequest(

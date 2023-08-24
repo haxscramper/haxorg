@@ -18,6 +18,10 @@ void ExporterLangtool::executeRequests(
         data += "&language=en-US&enabledOnly=false";
 
         http->sendPostRequest(url, data, i);
+        if (20 < http->getPendingCount()) {
+            qDebug() << "Waiting to handle existing pending requests";
+            QThread::msleep(1000);
+        }
     }
 
     http->hasData();
@@ -35,10 +39,15 @@ void ExporterLangtool::executeRequests(
 void ExporterLangtool::onFinishedResponse(
     const HttpDataProvider::ResponseData& reply,
     int                                   targetIndex) {
-    auto             j = json::parse(reply.content.toStdString());
-    LangtoolResponse resp;
-    from_json(j["matches"], resp.matches);
-    exchange.at(targetIndex).second.resp = resp;
+    if (reply.isError) {
+        qCritical() << "Failed to execute Langtool check request"
+                    << reply.content;
+    } else {
+        auto             j = json::parse(reply.content.toStdString());
+        LangtoolResponse resp;
+        from_json(j["matches"], resp.matches);
+        exchange.at(targetIndex).second.resp = resp;
+    }
 }
 
 void ExporterLangtool::format(ColStream& os) {
@@ -65,10 +74,12 @@ void ExporterLangtool::format(ColStream& os) {
         }
 
         for (auto const& match : matches) {
+            QString run = text.mid(match.offset, match.length);
+
             auto const& rule = match.rule;
 
             os << rule.id << " " << match.message << " "
-               << rule.description << "\n";
+               << "\n";
 
             json j;
             to_json(j, match);
