@@ -394,6 +394,7 @@ struct Exporter : ReflectiveCli<Exporter> {
         DECL_FIELDS(
             Langtool,
             (CrtpPass<Langtool>),
+            ((QString), skippedRules, ""),
             ((Opt<QFileInfo>), httpCache, std::nullopt));
     };
 

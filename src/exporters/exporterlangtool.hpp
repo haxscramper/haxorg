@@ -103,6 +103,7 @@ class ExporterLangtool
     };
 
     Vec<Pair<Request, Response>> exchange;
+    Vec<QString> skippedRules;
 
     void format(ColStream& os);
 

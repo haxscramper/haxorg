@@ -1143,18 +1143,22 @@ void HaxorgCli::exec() {
 
     if (config.exp.langtool) {
         __trace("Export langtool");
+        auto const&      conf = *config.exp.langtool;
         ExporterLangtool lang;
-        auto http = openHttpProvider(config.exp.langtool->httpCache);
+        auto             http = openHttpProvider(conf.httpCache);
+
+        for (auto const& it : conf.skippedRules.split(",")) {
+            lang.skippedRules.push_back(it);
+        }
 
         lang.visitTop(node);
         lang.executeRequests(QUrl("http://localhost:8081/v2/check"), http);
-        closeHttpProvider(config.exp.langtool->httpCache, http);
-        SPtr<IoContext> io = openFileOrStream(
-            config.exp.langtool->target, true);
-        ColStream os{io->stream};
+        closeHttpProvider(conf.httpCache, http);
+        SPtr<IoContext> io = openFileOrStream(conf.target, true);
+        ColStream       os{io->stream};
         lang.format(os);
         os << "Result";
-        exportOk("Langtool", *config.exp.langtool);
+        exportOk("Langtool", conf);
     }
 
     {

@@ -53,20 +53,28 @@ void ExporterLangtool::onFinishedResponse(
 void ExporterLangtool::format(ColStream& os) {
     for (auto const& [req, resp] : exchange) {
         Vec<LangtoolResponse::Match> matches;
+        Str                          text;
+        for (auto const& word : req.sentence.text) {
+            text += word.text;
+        }
+
         for (auto const& match : resp.resp.matches) {
-            if (!Vec<QString>{"CONSECUTIVE_SPACES", "WHITESPACE_RULE"}
-                     .contains(match.rule.id)) {
-                matches.push_back(match);
+            if (skippedRules.contains(match.rule.id)) {
+                continue;
+            } else {
+                if (match.rule.id == "MORFOLOGIK_RULE_EN_US") {
+                    QString run = text.mid(match.offset, match.length);
+                    if (!Vec<QString>{"SADI", "Concorde"}.contains(run)) {
+                        matches.push_back(match);
+                    }
+                } else {
+                    matches.push_back(match);
+                }
             }
         }
 
         if (matches.empty()) {
             continue;
-        }
-
-        Str text;
-        for (auto const& word : req.sentence.text) {
-            text += word.text;
         }
 
         for (auto const& line : text.split("\n")) {
@@ -91,9 +99,9 @@ void ExporterLangtool::format(ColStream& os) {
                << " " << rule.id << " " << match.message << " ->> "
                << join("/", replacements) << "\n";
 
-            json j;
-            to_json(j, match);
-            os << "  - " << j.dump() << "\n";
+            //            json j;
+            //            to_json(j, match);
+            //            os << "  - " << j.dump() << "\n";
         }
     }
 }
