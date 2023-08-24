@@ -19,18 +19,19 @@ QTextStream qcout;
 
 
 bool parseArgs(
-    QCoreApplication&  app,
-    int                argc,
-    char**             argv,
-    HaxorgCli::Config& config) {
+    QCoreApplication& app,
+    int               argc,
+    char**            argv,
+    cli::Main&        config) {
 
     QCommandLineParser parser;
     parser.setApplicationDescription("Description of your application");
     parser.addHelpOption();
     parser.addVersionOption();
+    parser.addPositionalArgument("source", "Input org file");
 
-    Vec<Pair<QCommandLineOption, OptConfig>> options;
-    for (auto const& option : OptWalker<Main>::get({})) {
+    Vec<Pair<QCommandLineOption, cli::OptConfig>> options;
+    for (auto const& option : cli::OptWalker<cli::Main>::get({})) {
 
         options.push_back({option.getOpt(), option});
     }
@@ -43,12 +44,11 @@ bool parseArgs(
 
     parser.process(app);
 
-    Main result;
     for (auto const& [qt, conf] : options) {
         if (parser.isSet(qt)) {
-            auto handle = result.getHandle(conf.name);
+            auto handle = config.getHandle(conf.name);
             if (handle.getKind()
-                == ReflectiveCliBase::FieldHandle::Kind::Primitive) {
+                == cli::ReflectiveCliBase::FieldHandle::Kind::Primitive) {
                 auto& primitive = handle.getPrimitive();
                 if (conf.isFlag) {
                     primitive.setFrom("true");
@@ -59,11 +59,15 @@ bool parseArgs(
         }
     }
 
-    json j;
-    to_json(j, result);
-    qDebug().noquote() << to_compact_json(j);
+    config.getHandle(CVec<QString>{"source"})
+        .getPrimitive()
+        .setFrom(parser.positionalArguments().at(0));
 
-    return false;
+    json j;
+    to_json(j, config);
+    qDebug().noquote() << to_compact_json(j, {.width = 240});
+
+    return true;
 }
 
 // Because people who depend on the glib library never thought that their
@@ -110,11 +114,12 @@ int main(int argc, char** argv) {
     qcout.setDevice(&file);
     QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
 
-    HaxorgCli cli{};
-    if (!parseArgs(app, argc, argv, cli.config)) {
+    cli::Main config;
+    if (!parseArgs(app, argc, argv, config)) {
         return 1;
     }
 
+    HaxorgCli cli{config};
     cli.exec();
 
 #ifdef USE_PERFETTO

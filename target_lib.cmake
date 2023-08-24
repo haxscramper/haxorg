@@ -2,6 +2,7 @@ add_library(haxorg)
 set_common_files(haxorg)
 
 glob_add_sources2(haxorg "${BASE}/src/exporters/.*")
+glob_add_sources2(haxorg "${BASE}/src/annotators/.*")
 glob_add_sources2(haxorg "${BASE}/src/lexbase/.*")
 glob_add_sources2(haxorg "${BASE}/src/parse/.*")
 glob_add_sources2(haxorg "${BASE}/src/sem/.*")

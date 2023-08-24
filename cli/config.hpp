@@ -3,9 +3,29 @@
 #include <hstd/stdlib/Json.hpp>
 #include <QCommandLineParser>
 #include <QCoreApplication>
+#include <QDir>
 #include <QFileInfo>
 #include <hstd/stdlib/Func.hpp>
 
+template <typename T>
+void to_json(json& out, Slice<T> const& value) {
+    if (!out.is_object()) {
+        out = json::object();
+    }
+    out["first"]  = value.first;
+    out["second"] = value.last;
+}
+
+inline void to_json(json& out, QFileInfo const& value) {
+    out = json(value.absoluteFilePath().toStdString());
+}
+
+inline void to_json(json& out, QDir const& value) {
+    out = json(value.absolutePath().toStdString());
+}
+
+
+namespace cli {
 struct OptConfig {
     Vec<QString> name;
     QString      doc;
@@ -35,8 +55,18 @@ struct LeafOptWalker {
     }
 };
 
+template <DescribedEnum E>
+struct OptWalker<E> : LeafOptWalker<E> {};
+
+
 template <>
 struct OptWalker<bool> : LeafOptWalker<bool> {};
+
+template <>
+struct OptWalker<QDir> : LeafOptWalker<QDir> {};
+
+template <>
+struct OptWalker<QString> : LeafOptWalker<QString> {};
 
 template <>
 struct OptWalker<Slice<int>> : LeafOptWalker<Slice<int>> {};
@@ -84,22 +114,17 @@ struct OptWalker<T> {
     }
 };
 
-template <typename T>
-void to_json(json& out, Slice<T> const& value) {
-    if (!out.is_object()) {
-        out = json::object();
-    }
-    out["first"]  = value.first;
-    out["second"] = value.last;
-}
-
-void to_json(json& out, QFileInfo const& value) {
-    out = json(value.absoluteFilePath().toStdString());
-}
-
 
 template <typename T>
 struct CliValueWriter;
+
+template <DescribedEnum E>
+struct CliValueWriter<E> {
+    static void write(E* target, QString const& value) {
+        Q_CHECK_PTR(target);
+        *target = enum_serde<E>::from_string(value).value();
+    }
+};
 
 template <>
 struct CliValueWriter<int> {
@@ -132,6 +157,22 @@ struct CliValueWriter<QFileInfo> {
     static void write(QFileInfo* target, QString const& value) {
         Q_CHECK_PTR(target);
         target->setFile(value);
+    }
+};
+
+template <>
+struct CliValueWriter<QString> {
+    static void write(QString* target, QString const& value) {
+        Q_CHECK_PTR(target);
+        *target = value;
+    }
+};
+
+template <>
+struct CliValueWriter<QDir> {
+    static void write(QDir* target, QString const& value) {
+        Q_CHECK_PTR(target);
+        *target = QDir(value);
     }
 };
 
@@ -259,7 +300,13 @@ struct TraceConfig : ReflectiveCli<TraceConfig> {
 
 struct Exporter : ReflectiveCli<Exporter> {
     struct Base : ReflectiveCli<Base> {
-        DECL_FIELDS(Base, (), ((TraceConfig), trace, TraceConfig{}));
+        DECL_FIELDS(
+            Base,
+            (),
+            ((TraceConfig), trace, TraceConfig{}),
+            ((QFileInfo), target, QFileInfo{}),
+            ((Opt<QDir>), outDir, std::nullopt),
+            ((Opt<QDir>), tmpDir, std::nullopt));
     };
 
     struct Tex : Base {
@@ -294,13 +341,43 @@ struct Exporter : ReflectiveCli<Exporter> {
         DECL_FIELDS(SubtreeStructure, (Base));
     };
 
-    struct Latex : Base {
-        DECL_FIELDS(Latex, (Base));
+    struct Lex : Base {
+        DECL_DESCRIBED_ENUM(Kind, Html, Csv, Annotated, Yaml, Json);
+        DECL_FIELDS(Lex, (Base), ((Kind), kind, Kind::Csv));
+    };
+
+    struct Parse : Base {
+        DECL_DESCRIBED_ENUM(Kind, Yaml, Json, Html, Tree);
+        DECL_FIELDS(Parse, (Base), ((Kind), kind, Kind::Yaml));
+    };
+
+    struct Json : Base {
+        DECL_FIELDS(Json, (Base));
+    };
+
+    struct Yaml : Base {
+        DECL_FIELDS(Yaml, (Base));
+    };
+
+    struct QDocument : Base {
+        DECL_DESCRIBED_ENUM(Kind, Html, Md, Txt);
+        DECL_FIELDS(QDocument, (Base), ((Kind), kind, Kind::Html));
     };
 
     DECL_FIELDS(
         Exporter,
         (),
+        ((Opt<QDocument>), qdoc, std::nullopt),
+        ((Opt<Yaml>), yaml, std::nullopt),
+        ((Opt<Json>), json, std::nullopt),
+        ((Opt<Parse>), parse, std::nullopt),
+        ((Opt<Lex>), lex, std::nullopt),
+        ((Opt<Gantt>), gantt, std::nullopt),
+        ((Opt<EventLog>), eventLog, std::nullopt),
+        ((Opt<SubtreeStructure>), subtreeStructure, std::nullopt),
+        ((Opt<MindMap>), mmap, std::nullopt),
+        ((Opt<SExpr>), sexpr, std::nullopt),
+        ((Opt<HTML>), html, std::nullopt),
         ((Opt<Tex>), tex, std::nullopt),
         ((Opt<NLP>), nlp, std::nullopt));
 
@@ -326,6 +403,8 @@ struct Main : ReflectiveCli<Main> {
     DECL_FIELDS(
         Main,
         (),
+        ((QString), source, ""),
         ((Exporter), exp, Exporter{}),
         ((Tracer), trace, Tracer{}))
 };
+} // namespace cli

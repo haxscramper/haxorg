@@ -9,6 +9,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <QFileInfo>
 #include <sem/ErrorWrite.hpp>
+#include "config.hpp"
 
 struct HaxorgCli {
     // TODO support processing multiple files, token groups
@@ -39,81 +40,11 @@ struct HaxorgCli {
 
 
     bool runTokenizer(bool catchExceptions);
-
     void writeYamlLex(QTextStream& stream);
-    void writeYamlParse();
-    void writeTreeParse(QTextStream& stream);
 
-    void writeJsonParse();
-
-
-    void writeJson();
-    void writeYaml();
-    void writeQDocument();
-    void writeSimpleSExpr();
-    void writeHtml();
-    void writeGantt();
-
-    struct Config {
-        enum class Target
-        {
-            Json,      /// SemOrg JSON export
-            JsonParse, /// Raw parsed tree
-            JsonLex,   /// Token list in JSON format
-            YamlParse, /// Parsed tree in linearized YAML format
-            YamlLex,   /// Token list in YAML format
-            HtmlLex,   /// HTML table for the processed document
-            HtmlParse, /// Linearized DOD tree representation in HTML form
-            AnnotatedLex,
-            CsvLex,
-            GanttPlantuml
-        };
-
-        BOOST_DESCRIBE_NESTED_ENUM(
-            Target,
-            Json,
-            JsonParse,
-            JsonLex,
-            YamlParse,
-            YamlLex,
-            HtmlLex,
-            HtmlParse,
-            AnnotatedLex,
-            CsvLex,
-            GanttPlantuml);
-
-        // TODO multiple writing targets and multiple output files
-        Target target = Target::Json;
-
-        /// Common tracing configuration for different file processing
-        /// steps
-        struct TraceConfig {
-            /// Execute tracing at this stage
-            bool doTrace = false;
-            /// Write trace output to the specified file instead of the
-            /// stdout
-            Opt<QFileInfo> traceTo;
-            /// Do tracing only on a fixed range of input code instead of
-            /// the whole file
-            Slice<int> traceExtent  = slice(0, value_domain<int>::high());
-            bool       dumpResult   = false;
-            Opt<QFileInfo> dumpFile = std::nullopt;
-        };
-
-        // TODO trace must be supported on the per-file basis, each file
-        // having unique range of elements
-        struct Trace {
-            TraceConfig lex;   /// Do tracing during lex
-            TraceConfig parse; /// Do tracing during parse
-            TraceConfig sem;   /// Do tracing during sem
-        } trace;
-
-        QFileInfo sourceFile; /// Input org-mode file to parse
-        QFileInfo outFile;    /// Output file to write parse result to
-    } config;
-
-    HaxorgCli();
-    void exec();
+    HaxorgCli(cli::Main const& params);
+    cli::Main config;
+    void      exec();
 };
 
 #endif // HAXORGCLI_HPP

@@ -580,22 +580,20 @@ void HaxorgCli::initLocationResolvers() {
 }
 
 void HaxorgCli::initTracers() {
-    if (config.trace.lex.doTrace) {
+    if (config.trace.lex.enabled) {
         tokenizer->trace = true;
-        if (config.trace.lex.traceTo.has_value()) {
+        if (config.trace.lex.to.has_value()) {
             Q_ASSERT(
-                config.trace.lex.traceTo.value()
-                    .absoluteFilePath()
-                    .length()
+                config.trace.lex.to.value().absoluteFilePath().length()
                 != 0);
-            tokenizer->setTraceFile(config.trace.lex.traceTo.value());
+            tokenizer->setTraceFile(config.trace.lex.to.value());
         }
 
         tokenizer->setTraceUpdateHook(
             [&](CR<OrgTokenizer::Report> in, bool& doTrace, bool first) {
                 if (in.str != nullptr) {
                     LineCol loc = locationResolver(*(in.str));
-                    if (config.trace.lex.traceExtent.contains(loc.line)) {
+                    if (config.trace.lex.extent.contains(loc.line)) {
                         // if (in.kind == OrgTokenizer::ReportKind::Push) {
                         //     if (in.addBuffered) {
                         //         doTrace = !first;
@@ -610,28 +608,29 @@ void HaxorgCli::initTracers() {
             });
     }
 
-    if (config.trace.parse.doTrace) {
+    if (config.trace.parse.enabled) {
         parser->trace = true;
-        if (config.trace.parse.traceTo.has_value()) {
-            parser->setTraceFile(config.trace.parse.traceTo.value());
+        if (config.trace.parse.to.has_value()) {
+            parser->setTraceFile(config.trace.parse.to.value());
         }
 
-        parser->setTraceUpdateHook(
-            [&](CR<OrgParser::Report> in, bool& doTrace, bool first) {
-                if (in.node.has_value()) {
-                    OrgId node = in.node.value();
-                    if (nodes.at(node).isTerminal()) {
-                        auto tok = tokens.at(nodes.at(node).getToken());
-                        if (tok.hasData()) {
-                            LineCol loc = locationResolver(tok.getText());
-                            if (loc.line != -1) {
-                                doTrace = config.trace.parse.traceExtent
-                                              .contains(loc.line);
-                            }
+        parser->setTraceUpdateHook([&](CR<OrgParser::Report> in,
+                                       bool&                 doTrace,
+                                       bool                  first) {
+            if (in.node.has_value()) {
+                OrgId node = in.node.value();
+                if (nodes.at(node).isTerminal()) {
+                    auto tok = tokens.at(nodes.at(node).getToken());
+                    if (tok.hasData()) {
+                        LineCol loc = locationResolver(tok.getText());
+                        if (loc.line != -1) {
+                            doTrace = config.trace.parse.extent.contains(
+                                loc.line);
                         }
                     }
                 }
-            });
+            }
+        });
     }
 }
 
@@ -741,90 +740,12 @@ void HaxorgCli::writeYamlLex(QTextStream& stream) {
     stream << to_string(result);
 }
 
-void HaxorgCli::writeYamlParse() {
-    __trace("Convert parse to yaml");
-    writeFile(config.outFile, to_string(yamlRepr(nodes)) + "\n");
-    qInfo() << "Wrote YAML parse representation into " << config.outFile;
-}
-
-void HaxorgCli::writeTreeParse(QTextStream& stream) {
-    __trace("Write out tree repr for the parsed tree");
-    stream << nodes.treeRepr(OrgId(0));
-}
-
-void HaxorgCli::writeJsonParse() {
-    __trace("Convert parse to json");
-    writeFile(config.outFile, to_string(jsonRepr(nodes)) + "\n");
-    qInfo() << "Wrote JSON parse representation into " << config.outFile;
-}
-
-void HaxorgCli::writeJson() {
-    __trace("Export json");
-    ExporterJson exporter;
-    json         result = exporter.visitTop(node);
-
-    writeFile(QFileInfo("/tmp/result.json"), to_string(result));
-    qDebug() << "Json repr ok";
-}
-
-void HaxorgCli::writeYaml() {
-    __trace("Export yaml");
-    ExporterYaml  exporter;
-    yaml          result = exporter.visitTop(node);
-    std::ofstream of{"/tmp/result.yaml"};
-    of << result;
-    qDebug() << "Yaml OK";
-}
-
-void HaxorgCli::writeQDocument() {
-    __trace("Export QDocument");
-    int   argc = 0;
-    char* argv = "";
-
-    QGuiApplication       app(argc, &argv);
-    ExporterQTextDocument exporter;
-    exporter.visitTop(node);
-    writeFile(
-        QFileInfo("/tmp/qt_document.md"), exporter.document->toMarkdown());
-    writeFile(
-        QFileInfo("/tmp/qt_document.html"), exporter.document->toHtml());
-    writeFile(
-        QFileInfo("/tmp/qt_document.txt"), exporter.document->toRawText());
-}
-
-void HaxorgCli::writeSimpleSExpr() {
-    __trace("Export S-expresions");
-    ExporterSimpleSExpr exporter;
-    layout::Block::Ptr  result = exporter.visitTop(node);
-    QString formatted = exporter.store.toString(result, layout::Options{});
-    writeFile(QFileInfo("/tmp/result.lisp"), formatted);
-}
-
-void HaxorgCli::writeHtml() {
-    __trace("Export HTML");
-    ExporterHtml       exporter;
-    layout::Block::Ptr result = exporter.visitTop(node);
-    QString formatted = exporter.store.toString(result, layout::Options{});
-    writeFile(QFileInfo("/tmp/result.html"), formatted);
-}
-
-void HaxorgCli::writeGantt() {
-    __trace("Export gantt");
-    ExporterGantt gantt;
-    gantt.gantt.timeSpan = slice(QDateTime(), QDateTime());
-    gantt.visitTop(node);
-
-    writeFile(QFileInfo("/tmp/gantt.puml"_qs), gantt.gantt.toString());
-    writeFile(
-        QFileInfo("/tmp/gantt.json"_qs), to_string(gantt.gantt.toJson()));
-}
-
-
-HaxorgCli::HaxorgCli()
+HaxorgCli::HaxorgCli(const cli::Main& params)
     : tokenizer()
     , nodes(nullptr)
     , lex(&tokens)
-    , converter(sem::OrgConverter(&store)) {
+    , converter(sem::OrgConverter(&store))
+    , config(params) {
     nodes.tokens = &tokens;
 }
 
@@ -835,13 +756,13 @@ void HaxorgCli::exec() {
 
     {
         __trace("read file");
-        source      = readFile(config.sourceFile);
+        source      = readFile(QFileInfo(config.source));
         tokens.base = source.data();
         info        = LineColInfo{source};
     }
 
-    parser    = OrgParser::initImpl(&nodes, config.trace.parse.doTrace);
-    tokenizer = OrgTokenizer::initImpl(&tokens, config.trace.lex.doTrace);
+    parser    = OrgParser::initImpl(&nodes, config.trace.parse.enabled);
+    tokenizer = OrgTokenizer::initImpl(&tokens, config.trace.lex.enabled);
     tokenizer->reserve(source.size() / 3);
     parser->reserve(source.size() / 3);
 
@@ -852,9 +773,8 @@ void HaxorgCli::exec() {
 
     using R = OrgTokenizer::ReportKind;
 
-    using Target = HaxorgCli::Config::Target;
-
-    if (config.target == Target::HtmlParse) {
+    if (config.exp.parse
+        && config.exp.parse->kind == cli::Exporter::Parse::Kind::Html) {
         parser->setReportHook([&](CR<OrgParser::Report> report) {
             using R = OrgParser::ReportKind;
             switch (report.kind) {
@@ -867,11 +787,7 @@ void HaxorgCli::exec() {
         });
     }
 
-    bool const writeLexInfo = config.target == Target::AnnotatedLex
-                           || config.target == Target::CsvLex
-                           || config.target == Target::HtmlLex;
-
-    if (writeLexInfo) {
+    if (config.exp.lex) {
         tokenizer->setReportHook([&](CR<OrgTokenizer::Report> report) {
             switch (report.kind) {
                 case R::Push: {
@@ -884,23 +800,21 @@ void HaxorgCli::exec() {
 
     str     = std::make_shared<PosStr>(source);
     Id inId = 0;
-    sources.add(inId, source, config.sourceFile.fileName());
+    sources.add(inId, source, config.source);
 
     {
         __trace("Tokenize");
         if (!runTokenizer(false)) {
             return;
         }
-        //        writeYamlLex();
 
-        if (config.trace.lex.dumpResult) {
+        if (config.trace.lex.dump) {
             qInfo() << "Lex result dump is enabled, writing out"
-                    << config.trace.lex.dumpFile;
+                    << config.trace.lex.dumpTo;
             auto ctx = openFileOrStream(
-                config.trace.lex.dumpFile
-                    ? config.trace.lex.dumpFile.value()
-                    : QFileInfo(),
-                config.trace.lex.dumpFile.has_value(),
+                config.trace.lex.dumpTo ? config.trace.lex.dumpTo.value()
+                                        : QFileInfo(),
+                config.trace.lex.dumpTo.has_value(),
                 {
                     .createDirs = true,
                 });
@@ -909,31 +823,30 @@ void HaxorgCli::exec() {
     }
 
 
-    {
+    if (config.exp.lex) {
         __trace("Write tokenized output");
-        if (config.target == Target::JsonLex) {
-            writeFile(config.outFile, to_string(jsonRepr(tokens)) + "\n");
-            qInfo() << "Wrote JSON lex representation into "
-                    << config.outFile;
-            return;
-        } else if (writeLexInfo) {
-            QString table;
-            QString csv;
-            QString annotated;
-            fillTokenGroups(tokens, pushedOn, table, csv, annotated, info);
-            switch (config.target) {
-                case Target::CsvLex: {
-                    writeFile(config.outFile, csv);
-                    return;
-                }
-                case Target::AnnotatedLex: {
-                    writeAnnotated(config.outFile, annotated);
-                    return;
-                }
-                case Target::HtmlLex: {
-                    ::writeHtml(config.outFile, table);
-                    return;
-                }
+        auto const& lexconf = config.exp.lex.value();
+        QString     table;
+        QString     csv;
+        QString     annotated;
+        fillTokenGroups(tokens, pushedOn, table, csv, annotated, info);
+
+        switch (lexconf.kind) {
+            case cli::Exporter::Lex::Kind::Csv: {
+                writeFile(lexconf.target, csv);
+                break;
+            }
+            case cli::Exporter::Lex::Kind::Annotated: {
+                writeAnnotated(lexconf.target, annotated);
+                break;
+            }
+            case cli::Exporter::Lex::Kind::Html: {
+                ::writeHtml(lexconf.target, table);
+                break;
+            }
+            case cli::Exporter::Lex::Kind::Yaml: {
+                auto ctx = openFileOrStream(lexconf.target, true);
+                writeYamlLex(ctx->stream);
             }
         }
     }
@@ -955,242 +868,233 @@ void HaxorgCli::exec() {
     }
 
 
-    if (config.trace.parse.dumpResult) {
+    if (config.trace.parse.enabled) {
         qInfo() << "Parse result dump is enabled, writing out"
-                << config.trace.parse.dumpFile;
+                << config.trace.parse.dumpTo;
         auto ctx = openFileOrStream(
-            config.trace.parse.dumpFile
-                ? config.trace.parse.dumpFile.value()
-                : QFileInfo(),
-            config.trace.parse.dumpFile.has_value(),
+            config.trace.parse.dumpTo ? config.trace.parse.dumpTo.value()
+                                      : QFileInfo(),
+            config.trace.parse.dumpTo.has_value(),
             {
                 .createDirs = true,
             });
-        writeTreeParse(ctx->stream);
+        ctx->stream << nodes.treeRepr(OrgId(0));
     }
 
-    {
+    if (config.exp.parse) {
         __trace("Write parsed output");
-        if (config.target == Target::YamlParse) {
-            writeYamlParse();
-            return;
-        } else if (config.target == Target::JsonParse) {
-            writeJsonParse();
-            return;
-        } else if (config.target == Target::HtmlParse) {
-            QString repr = htmlRepr(OrgId(0), nodes, source, ops);
-            writeFile(config.outFile, repr);
-            return;
+        auto const& parseconf = config.exp.parse.value();
+        switch (parseconf.kind) {
+            case cli::Exporter::Parse::Kind::Yaml: {
+                writeFile(
+                    parseconf.target, to_string(yamlRepr(nodes)) + "\n");
+                break;
+            }
+            case cli::Exporter::Parse::Kind::Json: {
+                writeFile(
+                    parseconf.target, to_string(jsonRepr(nodes)) + "\n");
+                break;
+            }
+            case cli::Exporter::Parse::Kind::Html: {
+                QString repr = htmlRepr(OrgId(0), nodes, source, ops);
+                writeFile(parseconf.target, repr);
+                break;
+            }
+            case cli::Exporter::Parse::Kind::Tree: {
+                writeFile(parseconf.target, nodes.treeRepr(OrgId(0)));
+                break;
+            }
         }
     }
 
-    //    writeTreeParse();
+
+    if (config.trace.sem.enabled) {
+        converter.trace = true;
+        if (config.trace.sem.to) {
+            converter.setTraceFile(config.trace.sem.to.value());
+        }
+    }
 
     {
-        if (config.trace.sem.doTrace) {
-            converter.trace = true;
-            if (config.trace.sem.traceTo) {
-                converter.setTraceFile(config.trace.sem.traceTo.value());
-            }
-        }
+        __trace("convert parse to sem");
+        node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+        qInfo() << "Finished conversion";
+    }
 
-        {
-            __trace("convert parse to sem");
-            node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
-            qInfo() << "Finished conversion";
-
-            if (config.trace.sem.dumpResult) {
-                qInfo() << "sem result dump is enabled, writing out"
-                        << config.trace.sem.dumpFile;
-                auto ctx = openFileOrStream(
-                    config.trace.sem.dumpFile
-                        ? config.trace.sem.dumpFile.value()
-                        : QFileInfo(),
-                    config.trace.sem.dumpFile.has_value(),
-                    {
-                        .createDirs = true,
-                    });
-
-                ColStream os{ctx->stream};
-                os.colored = false;
-                ExporterTree(os).visitTop(node);
-            }
-        }
-
-        Vec<Pair<OrgSemKind, int>> counts;
-
-
-        store.eachStore([&](sem::SemId::StoreIndexT     selfIndex,
-                            sem::OrgKindStorePtrVariant store) {
-            std::visit(
-                [&](auto it) {
-                    counts.push_back({
-                        std::remove_reference_t<
-                            decltype(*it)>::NodeType::staticKind,
-                        it->size(),
-                    });
-                },
-                store);
-        });
-
-        sort<Pair<OrgSemKind, int>>(
-            counts,
-            [](Pair<OrgSemKind, int> const& lhs,
-               Pair<OrgSemKind, int> const& rhs) -> bool {
-                return lhs.second < rhs.second;
+    if (config.trace.sem.dump) {
+        qInfo() << "sem result dump is enabled, writing out"
+                << config.trace.sem.dumpTo;
+        auto ctx = openFileOrStream(
+            config.trace.sem.dumpTo ? config.trace.sem.dumpTo.value()
+                                    : QFileInfo(),
+            config.trace.sem.dumpTo.has_value(),
+            {
+                .createDirs = true,
             });
 
-        for (const auto& [kind, count] : counts) {}
-
-        {
-            ExporterEventLog exporter;
-            using Ev = ExporterEventLog::Event;
-            UnorderedMap<Ev::Kind, Vec<Ev>> events;
-
-            exporter.logConsumer = [&](ExporterEventLog::Event const& ev) {
-                events[ev.getKind()].push_back(ev);
-            };
-
-            exporter.visitTop(node);
-            qDebug() << "Log consumer done";
-        }
-
-        {
-            ExporterMindMap exporter;
-            exporter.visitTop(node);
-
-            writeFile(
-                QFileInfo("/tmp/mindmap_tree.json"_qs),
-                to_string(exporter.toJsonTree()));
-
-            writeFile(
-                QFileInfo("/tmp/mindmap_graph.json"_qs),
-                to_string(exporter.toJsonGraph()));
-        }
-
-        {
-            ExporterSubtreeStructure exporter;
-            json                     result = exporter.visitTop(node);
-            writeFile(
-                QFileInfo("/tmp/subtree-hierarhcy.json"),
-                to_string(result));
-        }
-
-        { writeGantt(); }
-        //        { writeJson(); }
-        //        { writeYaml(); }1
-
-
-        {
-            __trace("Export Latex");
-            ExporterLatex    exporter;
-            OperationsTracer trace{QFileInfo("/tmp/latex_export_trace")};
-            [&](ExporterLatex::VisitEvent const& ev) {
-                using K = typename ExporterLatex::VisitEvent::Kind;
-                if (((ev.kind == K::PushVisit || ev.kind == K::VisitStart)
-                     && !ev.isStart)
-                    || ((ev.kind == K::PopVisit || ev.kind == K::VisitEnd)
-                        && ev.isStart)) {
-                    return;
-                }
-
-                auto os = trace.getStream();
-
-
-                os << os.indent(ev.level * 2) << (ev.isStart ? ">" : "<")
-                   << " " << to_string(ev.kind);
-
-                if (ev.visitedNode) {
-                    os << " node:" << to_string(ev.visitedNode->getKind());
-                }
-
-                if (0 < ev.field.length()) {
-                    os << " field:" << ev.field;
-                }
-
-                os << " on " << QFileInfo(ev.file).fileName() << ":"
-                   << ev.line << " " << ev.function << " " << os.end();
-
-                if (0 < ev.type.length()) {
-                    os << " type:" << demangle(ev.type.toLatin1());
-                }
-
-                trace.endStream(os);
-            };
-
-            layout::Block::Ptr result    = exporter.visitTop(node);
-            QString            formatted = exporter.store.toString(
-                result, layout::Options{});
-            writeFile(QFileInfo("/tmp/result.tex"), formatted);
-            qDebug() << "Latex output ok";
-        }
-
-        if (true) {
-            __trace("Mind map exporter");
-            ExporterMindMap exporter;
-            exporter.visitTop(node);
-            exporter.toGraph();
-            writeFile(
-                QFileInfo("/tmp/mindmap.json"_qs),
-                QString::fromStdString(to_compact_json(
-                    exporter.toJsonGraph(), {.width = 160})));
-            qDebug() << "Mind map export ok";
-        }
-
-        return;
+        ColStream os{ctx->stream};
+        os.colored = false;
+        ExporterTree(os).visitTop(node);
     }
 
-    writeJson();
-    writeYaml();
+    if (config.exp.qdoc) {
+        __trace("Export QDocument");
+        int   argc = 0;
+        char* argv = "";
 
-    {
-        ColStream    os{qcout};
-        ExporterTree tree{os};
+        QGuiApplication       app(argc, &argv);
+        ExporterQTextDocument exporter;
+        exporter.visitTop(node);
+        switch (config.exp.qdoc->kind) {
+            case cli::Exporter::QDocument::Kind::Md: {
+                writeFile(
+                    config.exp.qdoc->target,
+                    exporter.document->toMarkdown());
+                break;
+            }
+            case cli::Exporter::QDocument::Kind::Html: {
+                writeFile(
+                    config.exp.qdoc->target, exporter.document->toHtml());
+                break;
+            }
+            case cli::Exporter::QDocument::Kind::Txt: {
+                writeFile(
+                    config.exp.qdoc->target,
+                    exporter.document->toRawText());
+                break;
+            }
+        }
     }
 
-    Graphviz gvc;
-    {
-        ExporterDot dot("g");
-        dot.visitTop(node);
-
-        gvc.writeFile("/tmp/graph.dot", *dot.graph);
-
-        //    gvc.renderToFile(
-        //        "/tmp/graph.png", *dot.graph,
-        //        Graphviz::RenderFormat::PNG);
-
-        qDebug() << "Graphviz ok";
+    if (config.exp.html) {
+        ExporterHtml       exporter;
+        layout::Block::Ptr result    = exporter.visitTop(node);
+        QString            formatted = exporter.store.toString(
+            result, layout::Options{});
+        writeFile(config.exp.html->target, formatted);
     }
 
-    writeGantt();
+    if (config.exp.eventLog) {
+        ExporterEventLog exporter;
+        using Ev = ExporterEventLog::Event;
+        UnorderedMap<Ev::Kind, Vec<Ev>> events;
+
+        exporter.logConsumer = [&](ExporterEventLog::Event const& ev) {
+            events[ev.getKind()].push_back(ev);
+        };
+
+        exporter.visitTop(node);
+        qDebug() << "Log consumer done";
+    }
+
+    if (config.exp.sexpr) {
+        __trace("Export S-expresions");
+        ExporterSimpleSExpr exporter;
+        layout::Block::Ptr  result    = exporter.visitTop(node);
+        QString             formatted = exporter.store.toString(
+            result, layout::Options{});
+        writeFile(config.exp.sexpr->target, formatted);
+    }
+
+    if (config.exp.mmap) {
+        ExporterMindMap exporter;
+        exporter.visitTop(node);
+
+        writeFile(
+            QFileInfo("/tmp/mindmap_tree.json"_qs),
+            to_string(exporter.toJsonTree()));
+
+        writeFile(
+            QFileInfo("/tmp/mindmap_graph.json"_qs),
+            to_string(exporter.toJsonGraph()));
+    }
+
+    if (config.exp.subtreeStructure) {
+        ExporterSubtreeStructure exporter;
+        json                     result = exporter.visitTop(node);
+        writeFile(
+            QFileInfo(config.exp.subtreeStructure->target),
+            to_string(result));
+    }
+
+    if (config.exp.gantt) {
+        ExporterGantt gantt;
+        gantt.gantt.timeSpan = slice(QDateTime(), QDateTime());
+        gantt.visitTop(node);
+
+        writeFile(QFileInfo("/tmp/gantt.puml"_qs), gantt.gantt.toString());
+        writeFile(
+            QFileInfo("/tmp/gantt.json"_qs),
+            to_string(gantt.gantt.toJson()));
+    }
+
+    if (config.exp.json) {
+        __trace("Export json");
+        ExporterJson exporter;
+        json         result = exporter.visitTop(node);
+
+        writeFile(QFileInfo("/tmp/result.json"), to_string(result));
+        qDebug() << "Json repr ok";
+    }
+
+    if (config.exp.yaml) {
+        __trace("Export yaml");
+        ExporterYaml  exporter;
+        yaml          result = exporter.visitTop(node);
+        std::ofstream of{"/tmp/result.yaml"};
+        of << result;
+        qDebug() << "Yaml OK";
+    }
+
+    if (config.exp.tex) {
+        __trace("Export Latex");
+        ExporterLatex    exporter;
+        OperationsTracer trace{QFileInfo("/tmp/latex_export_trace")};
+        [&](ExporterLatex::VisitEvent const& ev) {
+            using K = typename ExporterLatex::VisitEvent::Kind;
+            if (((ev.kind == K::PushVisit || ev.kind == K::VisitStart)
+                 && !ev.isStart)
+                || ((ev.kind == K::PopVisit || ev.kind == K::VisitEnd)
+                    && ev.isStart)) {
+                return;
+            }
+
+            auto os = trace.getStream();
+
+
+            os << os.indent(ev.level * 2) << (ev.isStart ? ">" : "<")
+               << " " << to_string(ev.kind);
+
+            if (ev.visitedNode) {
+                os << " node:" << to_string(ev.visitedNode->getKind());
+            }
+
+            if (0 < ev.field.length()) {
+                os << " field:" << ev.field;
+            }
+
+            os << " on " << QFileInfo(ev.file).fileName() << ":" << ev.line
+               << " " << ev.function << " " << os.end();
+
+            if (0 < ev.type.length()) {
+                os << " type:" << demangle(ev.type.toLatin1());
+            }
+
+            trace.endStream(os);
+        };
+
+        layout::Block::Ptr result    = exporter.visitTop(node);
+        QString            formatted = exporter.store.toString(
+            result, layout::Options{});
+        writeFile(QFileInfo("/tmp/result.tex"), formatted);
+        qDebug() << "Latex output ok";
+    }
+
 
     {
         AnnotatorSpelling spelling;
         spelling.setSpeller("en_US");
         spelling.annotate(node);
-    }
-
-
-    {
-        ExporterMindMap exporter;
-        exporter.visitTop(node);
-
-        writeFile(
-            QFileInfo("/tmp/mindmap.json"_qs),
-            to_string(exporter.toJsonTree()));
-
-        {
-            auto      graph = exporter.toGraph();
-            QFileInfo res{"/tmp/mindmap_graph.dot"};
-
-            writeFile(res, exporter.toGraphviz());
-
-            //            Graphviz::Graph read{res};
-            //            gvc.renderToFile("/tmp/mindmap_graph.png", read);
-            //            qDebug() << "Graph generation ok";
-        }
-
-        qDebug() << "Graphviz ok";
     }
 
 
