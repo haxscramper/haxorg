@@ -313,10 +313,6 @@ struct Exporter : ReflectiveCli<Exporter> {
         DECL_FIELDS(Tex, (Base));
     };
 
-    struct NLP : Base {
-        DECL_FIELDS(NLP, (Base));
-    };
-
     struct HTML : Base {
         DECL_FIELDS(HTML, (Base));
     };
@@ -364,6 +360,20 @@ struct Exporter : ReflectiveCli<Exporter> {
         DECL_FIELDS(QDocument, (Base), ((Kind), kind, Kind::Html));
     };
 
+    struct Langtool : Base {
+        DECL_FIELDS(
+            Langtool,
+            (Base),
+            ((Opt<QFileInfo>), httpCache, std::nullopt));
+    };
+
+    struct NLP : Base {
+        DECL_FIELDS(
+            NLP,
+            (Base),
+            ((Opt<QFileInfo>), httpCache, std::nullopt));
+    };
+
     DECL_FIELDS(
         Exporter,
         (),
@@ -379,6 +389,7 @@ struct Exporter : ReflectiveCli<Exporter> {
         ((Opt<SExpr>), sexpr, std::nullopt),
         ((Opt<HTML>), html, std::nullopt),
         ((Opt<Tex>), tex, std::nullopt),
+        ((Opt<Langtool>), langtool, std::nullopt),
         ((Opt<NLP>), nlp, std::nullopt));
 
     virtual QString getDocFor(const QString& field) const {

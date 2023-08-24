@@ -749,6 +749,9 @@ HaxorgCli::HaxorgCli(const cli::Main& params)
     nodes.tokens = &tokens;
 }
 
+void exportOk(QString const& what, cli::Exporter::Base const& base) {
+    qInfo().noquote() << "Export" << what << "to" << base.target << "ok";
+}
 
 void HaxorgCli::exec() {
     //    InitializePerfetto();
@@ -964,6 +967,8 @@ void HaxorgCli::exec() {
                 break;
             }
         }
+
+        exportOk("QDocument", *config.exp.qdoc);
     }
 
     if (config.exp.html) {
@@ -972,6 +977,7 @@ void HaxorgCli::exec() {
         QString            formatted = exporter.store.toString(
             result, layout::Options{});
         writeFile(config.exp.html->target, formatted);
+        exportOk("HTML", *config.exp.html);
     }
 
     if (config.exp.eventLog) {
@@ -984,7 +990,7 @@ void HaxorgCli::exec() {
         };
 
         exporter.visitTop(node);
-        qDebug() << "Log consumer done";
+        exportOk("Event log", *config.exp.eventLog);
     }
 
     if (config.exp.sexpr) {
@@ -994,6 +1000,7 @@ void HaxorgCli::exec() {
         QString             formatted = exporter.store.toString(
             result, layout::Options{});
         writeFile(config.exp.sexpr->target, formatted);
+        exportOk("S-expressions", *config.exp.sexpr);
     }
 
     if (config.exp.mmap) {
@@ -1015,6 +1022,7 @@ void HaxorgCli::exec() {
         writeFile(
             QFileInfo(config.exp.subtreeStructure->target),
             to_string(result));
+        exportOk("Subtree structure", *config.exp.subtreeStructure);
     }
 
     if (config.exp.gantt) {
@@ -1033,17 +1041,18 @@ void HaxorgCli::exec() {
         ExporterJson exporter;
         json         result = exporter.visitTop(node);
 
-        writeFile(QFileInfo("/tmp/result.json"), to_string(result));
-        qDebug() << "Json repr ok";
+        writeFile(config.exp.json->target, to_string(result));
+        exportOk("Json", *config.exp.json);
     }
 
     if (config.exp.yaml) {
         __trace("Export yaml");
         ExporterYaml  exporter;
         yaml          result = exporter.visitTop(node);
-        std::ofstream of{"/tmp/result.yaml"};
+        std::ofstream of{
+            config.exp.yaml->target.absoluteFilePath().toStdString()};
         of << result;
-        qDebug() << "Yaml OK";
+        exportOk("YAML", *config.exp.yaml);
     }
 
     if (config.exp.tex) {
@@ -1086,8 +1095,12 @@ void HaxorgCli::exec() {
         layout::Block::Ptr result    = exporter.visitTop(node);
         QString            formatted = exporter.store.toString(
             result, layout::Options{});
-        writeFile(QFileInfo("/tmp/result.tex"), formatted);
-        qDebug() << "Latex output ok";
+        writeFile(config.exp.tex->target, formatted);
+        exportOk("TEX", *config.exp.tex);
+    }
+
+    if(config.exp.langtool) {
+
     }
 
 
