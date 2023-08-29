@@ -782,6 +782,10 @@ SPtr<HttpDataProvider> openHttpProvider(Opt<QFileInfo> cache) {
     if (cache && cache->exists()) {
         http->isCacheEnabled = true;
         http->addCache(json::parse(readFile(cache.value()).toStdString()));
+        qInfo() << "Loaded" << http->cache.size() << "cached requests from"
+                << cache.value();
+    } else {
+        qInfo() << "Loading HTTP provider without cache";
     }
 
     return http;
@@ -792,7 +796,8 @@ void closeHttpProvider(Opt<QFileInfo> cache, SPtr<HttpDataProvider> http) {
         writeFile(
             cache.value(),
             QString::fromStdString(to_compact_json(http->toJsonCache())));
-        qDebug() << "Wrote HTTP cache to" << *cache;
+        qDebug() << "Wrote" << http->cache.size()
+                 << " entries of HTTP cache to" << *cache;
     }
 }
 
@@ -1147,7 +1152,15 @@ void HaxorgCli::exec() {
         ExporterNLP nlp{QUrl("http://localhost:9000")};
         auto        http = openHttpProvider(conf.httpCache);
         nlp.visitTop(node);
-        nlp.executeRequests(http);
+        try {
+            nlp.executeRequests(http);
+        } catch (std::domain_error& err) {
+            closeHttpProvider(conf.httpCache, http);
+            qWarning() << "Closing HTTP data provider with error"
+                       << err.what();
+            return;
+        }
+
         closeHttpProvider(conf.httpCache, http);
 
         SPtr<IoContext> io = openFileOrStream(conf.target, true);

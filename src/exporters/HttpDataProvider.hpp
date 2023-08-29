@@ -33,9 +33,9 @@ class HttpDataProvider : public QThread {
 
     using PostCacheKey = QPair<QString, QString>;
 
+    QHash<PostCacheKey, ResponseData> cache;
   private:
     std::atomic<int>                  pendingRequests = 0;
-    QHash<PostCacheKey, ResponseData> cache;
     QMutex                            queueMutex;
     QMutex                            cacheMutex;
     QQueue<QueueData>                 responseQueue;

@@ -474,11 +474,6 @@ void ExporterNLP::executeRequests(SPtr<HttpDataProvider> http) {
                      << "out of" << exchange.size();
             QThread::msleep(1000);
         }
-
-        while (http->hasData()) {
-            HttpDataProvider::QueueData data = http->dequeue();
-            onFinishedResponse(data.response, data.responseId);
-        }
     }
 
     http->hasData();
@@ -595,8 +590,10 @@ void fillSentenceGraph(SenGraph& g, Parsed::Ptr const& parsed) {
                         split[0] == "case" ? "_case" : split[0]);
 
                     if (!kind) {
-                        qFatal()
+                        qCritical()
                             << "Unexpected dependency kind" << split[0];
+                        throw std::domain_error(
+                            "Unexpected dependency kind");
                     }
 
                     auto dep = SenEdge::Dep{
