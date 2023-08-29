@@ -1743,7 +1743,43 @@ org can do ... which is to be determined as well")
 (define nlp-enums
   (list
    (d:enum
-    "PosTag"
+    "NlpDepKind"
+    (d:doc "Dependency kind")
+    (list
+     (d:efield "ROOT" (d:doc ""))
+     (d:efield "acl" (d:doc ""))
+     (d:efield "advcl" (d:doc ""))
+     (d:efield "advmod" (d:doc ""))
+     (d:efield "amod" (d:doc ""))
+     (d:efield "appos" (d:doc ""))
+     (d:efield "aux" (d:doc ""))
+     (d:efield "_case" (d:doc ""))
+     (d:efield "cc" (d:doc ""))
+     (d:efield "ccomp" (d:doc ""))
+     (d:efield "compound" (d:doc ""))
+     (d:efield "conj" (d:doc ""))
+     (d:efield "cop" (d:doc ""))
+     (d:efield "csubj" (d:doc ""))
+     (d:efield "dep" (d:doc ""))
+     (d:efield "det" (d:doc ""))
+     (d:efield "discourse" (d:doc ""))
+     (d:efield "expl" (d:doc ""))
+     (d:efield "fixed" (d:doc ""))
+     (d:efield "iobj" (d:doc ""))
+     (d:efield "mark" (d:doc ""))
+     (d:efield "nmod" (d:doc ""))
+     (d:efield "nsubj" (d:doc ""))
+     (d:efield "nummod" (d:doc ""))
+     (d:efield "obj" (d:doc ""))
+     (d:efield "obl" (d:doc ""))
+     (d:efield "parataxis" (d:doc ""))
+     (d:efield "punct" (d:doc ""))
+     (d:efield "ref" (d:doc ""))
+     (d:efield "xcomp" (d:doc ""))
+     )
+    )
+   (d:enum
+    "NlpPosTag"
     (d:doc "Part of speech tag")
     (list
      (d:efield "ADJP" (d:doc ""))
@@ -1761,6 +1797,7 @@ org can do ... which is to be determined as well")
      (d:efield "JJ" (d:doc ""))
      (d:efield "JJR" (d:doc ""))
      (d:efield "JJS" (d:doc ""))
+     (d:efield "LRB" (d:doc ""))
      (d:efield "LS" (d:doc ""))
      (d:efield "LST" (d:doc ""))
      (d:efield "MD" (d:doc ""))
@@ -1793,6 +1830,7 @@ org can do ... which is to be determined as well")
      (d:efield "RBS" (d:doc ""))
      (d:efield "ROOT" (d:doc ""))
      (d:efield "RP" (d:doc ""))
+     (d:efield "RRB" (d:doc ""))
      (d:efield "RRC" (d:doc ""))
      (d:efield "S" (d:doc ""))
      (d:efield "SBAR" (d:doc ""))
@@ -1829,6 +1867,7 @@ org can do ... which is to be determined as well")
      (d:efield "WHNP" (d:doc ""))
      (d:efield "WHPP" (d:doc ""))
      (d:efield "WP" (d:doc ""))
+     (d:efield "WP_POS" (d:doc "Possessive wh-pronoun"))
      (d:efield "WRB" (d:doc ""))
      (d:efield "X" (d:doc ""))
      ))))
@@ -1852,13 +1891,12 @@ org can do ... which is to be determined as well")
  (list
   (d:unit
    (d:file "${base}/exporters/exporternlp_enums.hpp"
-           (with-enum-reflection-api (in-namespace "NLP" nlp-enums)))
+           (with-enum-reflection-api nlp-enums))
 
    #:source
    (d:file "${base}/exporters/exporternlp_enums.cpp"
            (append (list
-                    (d:pass "#include \"exporternlp_enums.hpp\"")
-                    (d:pass "using namespace NLP;"))
+                    (d:pass "#include \"exporternlp_enums.hpp\""))
                    nlp-enums)))
   (d:unit
    (d:file

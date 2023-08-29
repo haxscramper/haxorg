@@ -1,181 +1,255 @@
 #include "exporternlp_enums.hpp"
-using namespace NLP;
 
-Opt<PosTag> enum_serde<PosTag>::from_string(QString value) {
-  if (value == "ADJP") { return PosTag::ADJP; } else
-  if (value == "ADVP") { return PosTag::ADVP; } else
-  if (value == "CC") { return PosTag::CC; } else
-  if (value == "CD") { return PosTag::CD; } else
-  if (value == "CONJP") { return PosTag::CONJP; } else
-  if (value == "DT") { return PosTag::DT; } else
-  if (value == "EX") { return PosTag::EX; } else
-  if (value == "FRAG") { return PosTag::FRAG; } else
-  if (value == "FW") { return PosTag::FW; } else
-  if (value == "HYPH") { return PosTag::HYPH; } else
-  if (value == "IN") { return PosTag::IN; } else
-  if (value == "INTJ") { return PosTag::INTJ; } else
-  if (value == "JJ") { return PosTag::JJ; } else
-  if (value == "JJR") { return PosTag::JJR; } else
-  if (value == "JJS") { return PosTag::JJS; } else
-  if (value == "LS") { return PosTag::LS; } else
-  if (value == "LST") { return PosTag::LST; } else
-  if (value == "MD") { return PosTag::MD; } else
-  if (value == "META") { return PosTag::META; } else
-  if (value == "NAC") { return PosTag::NAC; } else
-  if (value == "NFP") { return PosTag::NFP; } else
-  if (value == "NML") { return PosTag::NML; } else
-  if (value == "NN") { return PosTag::NN; } else
-  if (value == "NNP") { return PosTag::NNP; } else
-  if (value == "NNPS") { return PosTag::NNPS; } else
-  if (value == "NNS") { return PosTag::NNS; } else
-  if (value == "NP") { return PosTag::NP; } else
-  if (value == "NPS") { return PosTag::NPS; } else
-  if (value == "NP_TMP") { return PosTag::NP_TMP; } else
-  if (value == "PDT") { return PosTag::PDT; } else
-  if (value == "POS") { return PosTag::POS; } else
-  if (value == "PP") { return PosTag::PP; } else
-  if (value == "PPZ") { return PosTag::PPZ; } else
-  if (value == "PRN") { return PosTag::PRN; } else
-  if (value == "PRP") { return PosTag::PRP; } else
-  if (value == "PRT") { return PosTag::PRT; } else
-  if (value == "PUNCT_COLON") { return PosTag::PUNCT_COLON; } else
-  if (value == "PUNCT_COMMA") { return PosTag::PUNCT_COMMA; } else
-  if (value == "PUNCT_PERIOD") { return PosTag::PUNCT_PERIOD; } else
-  if (value == "PUNCT_QUOTE_CLOSE") { return PosTag::PUNCT_QUOTE_CLOSE; } else
-  if (value == "PUNCT_QUOTE_OPEN") { return PosTag::PUNCT_QUOTE_OPEN; } else
-  if (value == "QP") { return PosTag::QP; } else
-  if (value == "RB") { return PosTag::RB; } else
-  if (value == "RBR") { return PosTag::RBR; } else
-  if (value == "RBS") { return PosTag::RBS; } else
-  if (value == "ROOT") { return PosTag::ROOT; } else
-  if (value == "RP") { return PosTag::RP; } else
-  if (value == "RRC") { return PosTag::RRC; } else
-  if (value == "S") { return PosTag::S; } else
-  if (value == "SBAR") { return PosTag::SBAR; } else
-  if (value == "SBARQ") { return PosTag::SBARQ; } else
-  if (value == "SENT") { return PosTag::SENT; } else
-  if (value == "SINV") { return PosTag::SINV; } else
-  if (value == "SQ") { return PosTag::SQ; } else
-  if (value == "SYM") { return PosTag::SYM; } else
-  if (value == "TO") { return PosTag::TO; } else
-  if (value == "UCP") { return PosTag::UCP; } else
-  if (value == "UH") { return PosTag::UH; } else
-  if (value == "VB") { return PosTag::VB; } else
-  if (value == "VBD") { return PosTag::VBD; } else
-  if (value == "VBG") { return PosTag::VBG; } else
-  if (value == "VBN") { return PosTag::VBN; } else
-  if (value == "VBP") { return PosTag::VBP; } else
-  if (value == "VBZ") { return PosTag::VBZ; } else
-  if (value == "VH") { return PosTag::VH; } else
-  if (value == "VHD") { return PosTag::VHD; } else
-  if (value == "VHG") { return PosTag::VHG; } else
-  if (value == "VHN") { return PosTag::VHN; } else
-  if (value == "VHP") { return PosTag::VHP; } else
-  if (value == "VHZ") { return PosTag::VHZ; } else
-  if (value == "VP") { return PosTag::VP; } else
-  if (value == "VV") { return PosTag::VV; } else
-  if (value == "VVD") { return PosTag::VVD; } else
-  if (value == "VVG") { return PosTag::VVG; } else
-  if (value == "VVN") { return PosTag::VVN; } else
-  if (value == "VVP") { return PosTag::VVP; } else
-  if (value == "VVZ") { return PosTag::VVZ; } else
-  if (value == "WDT") { return PosTag::WDT; } else
-  if (value == "WHADJP") { return PosTag::WHADJP; } else
-  if (value == "WHADVP") { return PosTag::WHADVP; } else
-  if (value == "WHNP") { return PosTag::WHNP; } else
-  if (value == "WHPP") { return PosTag::WHPP; } else
-  if (value == "WP") { return PosTag::WP; } else
-  if (value == "WRB") { return PosTag::WRB; } else
-  if (value == "X") { return PosTag::X; } else
+
+Opt<NlpDepKind> enum_serde<NlpDepKind>::from_string(QString value) {
+  if (value == "ROOT") { return NlpDepKind::ROOT; } else
+  if (value == "acl") { return NlpDepKind::acl; } else
+  if (value == "advcl") { return NlpDepKind::advcl; } else
+  if (value == "advmod") { return NlpDepKind::advmod; } else
+  if (value == "amod") { return NlpDepKind::amod; } else
+  if (value == "appos") { return NlpDepKind::appos; } else
+  if (value == "aux") { return NlpDepKind::aux; } else
+  if (value == "_case") { return NlpDepKind::_case; } else
+  if (value == "cc") { return NlpDepKind::cc; } else
+  if (value == "ccomp") { return NlpDepKind::ccomp; } else
+  if (value == "compound") { return NlpDepKind::compound; } else
+  if (value == "conj") { return NlpDepKind::conj; } else
+  if (value == "cop") { return NlpDepKind::cop; } else
+  if (value == "csubj") { return NlpDepKind::csubj; } else
+  if (value == "dep") { return NlpDepKind::dep; } else
+  if (value == "det") { return NlpDepKind::det; } else
+  if (value == "discourse") { return NlpDepKind::discourse; } else
+  if (value == "expl") { return NlpDepKind::expl; } else
+  if (value == "fixed") { return NlpDepKind::fixed; } else
+  if (value == "iobj") { return NlpDepKind::iobj; } else
+  if (value == "mark") { return NlpDepKind::mark; } else
+  if (value == "nmod") { return NlpDepKind::nmod; } else
+  if (value == "nsubj") { return NlpDepKind::nsubj; } else
+  if (value == "nummod") { return NlpDepKind::nummod; } else
+  if (value == "obj") { return NlpDepKind::obj; } else
+  if (value == "obl") { return NlpDepKind::obl; } else
+  if (value == "parataxis") { return NlpDepKind::parataxis; } else
+  if (value == "punct") { return NlpDepKind::punct; } else
+  if (value == "ref") { return NlpDepKind::ref; } else
+  if (value == "xcomp") { return NlpDepKind::xcomp; } else
   { return std::nullopt; }
 }
-QString enum_serde<PosTag>::to_string(PosTag value) {
+QString enum_serde<NlpDepKind>::to_string(NlpDepKind value) {
   switch (value) {
-    case PosTag::ADJP: return "ADJP";
-    case PosTag::ADVP: return "ADVP";
-    case PosTag::CC: return "CC";
-    case PosTag::CD: return "CD";
-    case PosTag::CONJP: return "CONJP";
-    case PosTag::DT: return "DT";
-    case PosTag::EX: return "EX";
-    case PosTag::FRAG: return "FRAG";
-    case PosTag::FW: return "FW";
-    case PosTag::HYPH: return "HYPH";
-    case PosTag::IN: return "IN";
-    case PosTag::INTJ: return "INTJ";
-    case PosTag::JJ: return "JJ";
-    case PosTag::JJR: return "JJR";
-    case PosTag::JJS: return "JJS";
-    case PosTag::LS: return "LS";
-    case PosTag::LST: return "LST";
-    case PosTag::MD: return "MD";
-    case PosTag::META: return "META";
-    case PosTag::NAC: return "NAC";
-    case PosTag::NFP: return "NFP";
-    case PosTag::NML: return "NML";
-    case PosTag::NN: return "NN";
-    case PosTag::NNP: return "NNP";
-    case PosTag::NNPS: return "NNPS";
-    case PosTag::NNS: return "NNS";
-    case PosTag::NP: return "NP";
-    case PosTag::NPS: return "NPS";
-    case PosTag::NP_TMP: return "NP_TMP";
-    case PosTag::PDT: return "PDT";
-    case PosTag::POS: return "POS";
-    case PosTag::PP: return "PP";
-    case PosTag::PPZ: return "PPZ";
-    case PosTag::PRN: return "PRN";
-    case PosTag::PRP: return "PRP";
-    case PosTag::PRT: return "PRT";
-    case PosTag::PUNCT_COLON: return "PUNCT_COLON";
-    case PosTag::PUNCT_COMMA: return "PUNCT_COMMA";
-    case PosTag::PUNCT_PERIOD: return "PUNCT_PERIOD";
-    case PosTag::PUNCT_QUOTE_CLOSE: return "PUNCT_QUOTE_CLOSE";
-    case PosTag::PUNCT_QUOTE_OPEN: return "PUNCT_QUOTE_OPEN";
-    case PosTag::QP: return "QP";
-    case PosTag::RB: return "RB";
-    case PosTag::RBR: return "RBR";
-    case PosTag::RBS: return "RBS";
-    case PosTag::ROOT: return "ROOT";
-    case PosTag::RP: return "RP";
-    case PosTag::RRC: return "RRC";
-    case PosTag::S: return "S";
-    case PosTag::SBAR: return "SBAR";
-    case PosTag::SBARQ: return "SBARQ";
-    case PosTag::SENT: return "SENT";
-    case PosTag::SINV: return "SINV";
-    case PosTag::SQ: return "SQ";
-    case PosTag::SYM: return "SYM";
-    case PosTag::TO: return "TO";
-    case PosTag::UCP: return "UCP";
-    case PosTag::UH: return "UH";
-    case PosTag::VB: return "VB";
-    case PosTag::VBD: return "VBD";
-    case PosTag::VBG: return "VBG";
-    case PosTag::VBN: return "VBN";
-    case PosTag::VBP: return "VBP";
-    case PosTag::VBZ: return "VBZ";
-    case PosTag::VH: return "VH";
-    case PosTag::VHD: return "VHD";
-    case PosTag::VHG: return "VHG";
-    case PosTag::VHN: return "VHN";
-    case PosTag::VHP: return "VHP";
-    case PosTag::VHZ: return "VHZ";
-    case PosTag::VP: return "VP";
-    case PosTag::VV: return "VV";
-    case PosTag::VVD: return "VVD";
-    case PosTag::VVG: return "VVG";
-    case PosTag::VVN: return "VVN";
-    case PosTag::VVP: return "VVP";
-    case PosTag::VVZ: return "VVZ";
-    case PosTag::WDT: return "WDT";
-    case PosTag::WHADJP: return "WHADJP";
-    case PosTag::WHADVP: return "WHADVP";
-    case PosTag::WHNP: return "WHNP";
-    case PosTag::WHPP: return "WHPP";
-    case PosTag::WP: return "WP";
-    case PosTag::WRB: return "WRB";
-    case PosTag::X: return "X";
+    case NlpDepKind::ROOT: return "ROOT";
+    case NlpDepKind::acl: return "acl";
+    case NlpDepKind::advcl: return "advcl";
+    case NlpDepKind::advmod: return "advmod";
+    case NlpDepKind::amod: return "amod";
+    case NlpDepKind::appos: return "appos";
+    case NlpDepKind::aux: return "aux";
+    case NlpDepKind::_case: return "_case";
+    case NlpDepKind::cc: return "cc";
+    case NlpDepKind::ccomp: return "ccomp";
+    case NlpDepKind::compound: return "compound";
+    case NlpDepKind::conj: return "conj";
+    case NlpDepKind::cop: return "cop";
+    case NlpDepKind::csubj: return "csubj";
+    case NlpDepKind::dep: return "dep";
+    case NlpDepKind::det: return "det";
+    case NlpDepKind::discourse: return "discourse";
+    case NlpDepKind::expl: return "expl";
+    case NlpDepKind::fixed: return "fixed";
+    case NlpDepKind::iobj: return "iobj";
+    case NlpDepKind::mark: return "mark";
+    case NlpDepKind::nmod: return "nmod";
+    case NlpDepKind::nsubj: return "nsubj";
+    case NlpDepKind::nummod: return "nummod";
+    case NlpDepKind::obj: return "obj";
+    case NlpDepKind::obl: return "obl";
+    case NlpDepKind::parataxis: return "parataxis";
+    case NlpDepKind::punct: return "punct";
+    case NlpDepKind::ref: return "ref";
+    case NlpDepKind::xcomp: return "xcomp";
+    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
+  }
+}
+Opt<NlpPosTag> enum_serde<NlpPosTag>::from_string(QString value) {
+  if (value == "ADJP") { return NlpPosTag::ADJP; } else
+  if (value == "ADVP") { return NlpPosTag::ADVP; } else
+  if (value == "CC") { return NlpPosTag::CC; } else
+  if (value == "CD") { return NlpPosTag::CD; } else
+  if (value == "CONJP") { return NlpPosTag::CONJP; } else
+  if (value == "DT") { return NlpPosTag::DT; } else
+  if (value == "EX") { return NlpPosTag::EX; } else
+  if (value == "FRAG") { return NlpPosTag::FRAG; } else
+  if (value == "FW") { return NlpPosTag::FW; } else
+  if (value == "HYPH") { return NlpPosTag::HYPH; } else
+  if (value == "IN") { return NlpPosTag::IN; } else
+  if (value == "INTJ") { return NlpPosTag::INTJ; } else
+  if (value == "JJ") { return NlpPosTag::JJ; } else
+  if (value == "JJR") { return NlpPosTag::JJR; } else
+  if (value == "JJS") { return NlpPosTag::JJS; } else
+  if (value == "LRB") { return NlpPosTag::LRB; } else
+  if (value == "LS") { return NlpPosTag::LS; } else
+  if (value == "LST") { return NlpPosTag::LST; } else
+  if (value == "MD") { return NlpPosTag::MD; } else
+  if (value == "META") { return NlpPosTag::META; } else
+  if (value == "NAC") { return NlpPosTag::NAC; } else
+  if (value == "NFP") { return NlpPosTag::NFP; } else
+  if (value == "NML") { return NlpPosTag::NML; } else
+  if (value == "NN") { return NlpPosTag::NN; } else
+  if (value == "NNP") { return NlpPosTag::NNP; } else
+  if (value == "NNPS") { return NlpPosTag::NNPS; } else
+  if (value == "NNS") { return NlpPosTag::NNS; } else
+  if (value == "NP") { return NlpPosTag::NP; } else
+  if (value == "NPS") { return NlpPosTag::NPS; } else
+  if (value == "NP_TMP") { return NlpPosTag::NP_TMP; } else
+  if (value == "PDT") { return NlpPosTag::PDT; } else
+  if (value == "POS") { return NlpPosTag::POS; } else
+  if (value == "PP") { return NlpPosTag::PP; } else
+  if (value == "PPZ") { return NlpPosTag::PPZ; } else
+  if (value == "PRN") { return NlpPosTag::PRN; } else
+  if (value == "PRP") { return NlpPosTag::PRP; } else
+  if (value == "PRT") { return NlpPosTag::PRT; } else
+  if (value == "PUNCT_COLON") { return NlpPosTag::PUNCT_COLON; } else
+  if (value == "PUNCT_COMMA") { return NlpPosTag::PUNCT_COMMA; } else
+  if (value == "PUNCT_PERIOD") { return NlpPosTag::PUNCT_PERIOD; } else
+  if (value == "PUNCT_QUOTE_CLOSE") { return NlpPosTag::PUNCT_QUOTE_CLOSE; } else
+  if (value == "PUNCT_QUOTE_OPEN") { return NlpPosTag::PUNCT_QUOTE_OPEN; } else
+  if (value == "QP") { return NlpPosTag::QP; } else
+  if (value == "RB") { return NlpPosTag::RB; } else
+  if (value == "RBR") { return NlpPosTag::RBR; } else
+  if (value == "RBS") { return NlpPosTag::RBS; } else
+  if (value == "ROOT") { return NlpPosTag::ROOT; } else
+  if (value == "RP") { return NlpPosTag::RP; } else
+  if (value == "RRB") { return NlpPosTag::RRB; } else
+  if (value == "RRC") { return NlpPosTag::RRC; } else
+  if (value == "S") { return NlpPosTag::S; } else
+  if (value == "SBAR") { return NlpPosTag::SBAR; } else
+  if (value == "SBARQ") { return NlpPosTag::SBARQ; } else
+  if (value == "SENT") { return NlpPosTag::SENT; } else
+  if (value == "SINV") { return NlpPosTag::SINV; } else
+  if (value == "SQ") { return NlpPosTag::SQ; } else
+  if (value == "SYM") { return NlpPosTag::SYM; } else
+  if (value == "TO") { return NlpPosTag::TO; } else
+  if (value == "UCP") { return NlpPosTag::UCP; } else
+  if (value == "UH") { return NlpPosTag::UH; } else
+  if (value == "VB") { return NlpPosTag::VB; } else
+  if (value == "VBD") { return NlpPosTag::VBD; } else
+  if (value == "VBG") { return NlpPosTag::VBG; } else
+  if (value == "VBN") { return NlpPosTag::VBN; } else
+  if (value == "VBP") { return NlpPosTag::VBP; } else
+  if (value == "VBZ") { return NlpPosTag::VBZ; } else
+  if (value == "VH") { return NlpPosTag::VH; } else
+  if (value == "VHD") { return NlpPosTag::VHD; } else
+  if (value == "VHG") { return NlpPosTag::VHG; } else
+  if (value == "VHN") { return NlpPosTag::VHN; } else
+  if (value == "VHP") { return NlpPosTag::VHP; } else
+  if (value == "VHZ") { return NlpPosTag::VHZ; } else
+  if (value == "VP") { return NlpPosTag::VP; } else
+  if (value == "VV") { return NlpPosTag::VV; } else
+  if (value == "VVD") { return NlpPosTag::VVD; } else
+  if (value == "VVG") { return NlpPosTag::VVG; } else
+  if (value == "VVN") { return NlpPosTag::VVN; } else
+  if (value == "VVP") { return NlpPosTag::VVP; } else
+  if (value == "VVZ") { return NlpPosTag::VVZ; } else
+  if (value == "WDT") { return NlpPosTag::WDT; } else
+  if (value == "WHADJP") { return NlpPosTag::WHADJP; } else
+  if (value == "WHADVP") { return NlpPosTag::WHADVP; } else
+  if (value == "WHNP") { return NlpPosTag::WHNP; } else
+  if (value == "WHPP") { return NlpPosTag::WHPP; } else
+  if (value == "WP") { return NlpPosTag::WP; } else
+  if (value == "WP_POS") { return NlpPosTag::WP_POS; } else
+  if (value == "WRB") { return NlpPosTag::WRB; } else
+  if (value == "X") { return NlpPosTag::X; } else
+  { return std::nullopt; }
+}
+QString enum_serde<NlpPosTag>::to_string(NlpPosTag value) {
+  switch (value) {
+    case NlpPosTag::ADJP: return "ADJP";
+    case NlpPosTag::ADVP: return "ADVP";
+    case NlpPosTag::CC: return "CC";
+    case NlpPosTag::CD: return "CD";
+    case NlpPosTag::CONJP: return "CONJP";
+    case NlpPosTag::DT: return "DT";
+    case NlpPosTag::EX: return "EX";
+    case NlpPosTag::FRAG: return "FRAG";
+    case NlpPosTag::FW: return "FW";
+    case NlpPosTag::HYPH: return "HYPH";
+    case NlpPosTag::IN: return "IN";
+    case NlpPosTag::INTJ: return "INTJ";
+    case NlpPosTag::JJ: return "JJ";
+    case NlpPosTag::JJR: return "JJR";
+    case NlpPosTag::JJS: return "JJS";
+    case NlpPosTag::LRB: return "LRB";
+    case NlpPosTag::LS: return "LS";
+    case NlpPosTag::LST: return "LST";
+    case NlpPosTag::MD: return "MD";
+    case NlpPosTag::META: return "META";
+    case NlpPosTag::NAC: return "NAC";
+    case NlpPosTag::NFP: return "NFP";
+    case NlpPosTag::NML: return "NML";
+    case NlpPosTag::NN: return "NN";
+    case NlpPosTag::NNP: return "NNP";
+    case NlpPosTag::NNPS: return "NNPS";
+    case NlpPosTag::NNS: return "NNS";
+    case NlpPosTag::NP: return "NP";
+    case NlpPosTag::NPS: return "NPS";
+    case NlpPosTag::NP_TMP: return "NP_TMP";
+    case NlpPosTag::PDT: return "PDT";
+    case NlpPosTag::POS: return "POS";
+    case NlpPosTag::PP: return "PP";
+    case NlpPosTag::PPZ: return "PPZ";
+    case NlpPosTag::PRN: return "PRN";
+    case NlpPosTag::PRP: return "PRP";
+    case NlpPosTag::PRT: return "PRT";
+    case NlpPosTag::PUNCT_COLON: return "PUNCT_COLON";
+    case NlpPosTag::PUNCT_COMMA: return "PUNCT_COMMA";
+    case NlpPosTag::PUNCT_PERIOD: return "PUNCT_PERIOD";
+    case NlpPosTag::PUNCT_QUOTE_CLOSE: return "PUNCT_QUOTE_CLOSE";
+    case NlpPosTag::PUNCT_QUOTE_OPEN: return "PUNCT_QUOTE_OPEN";
+    case NlpPosTag::QP: return "QP";
+    case NlpPosTag::RB: return "RB";
+    case NlpPosTag::RBR: return "RBR";
+    case NlpPosTag::RBS: return "RBS";
+    case NlpPosTag::ROOT: return "ROOT";
+    case NlpPosTag::RP: return "RP";
+    case NlpPosTag::RRB: return "RRB";
+    case NlpPosTag::RRC: return "RRC";
+    case NlpPosTag::S: return "S";
+    case NlpPosTag::SBAR: return "SBAR";
+    case NlpPosTag::SBARQ: return "SBARQ";
+    case NlpPosTag::SENT: return "SENT";
+    case NlpPosTag::SINV: return "SINV";
+    case NlpPosTag::SQ: return "SQ";
+    case NlpPosTag::SYM: return "SYM";
+    case NlpPosTag::TO: return "TO";
+    case NlpPosTag::UCP: return "UCP";
+    case NlpPosTag::UH: return "UH";
+    case NlpPosTag::VB: return "VB";
+    case NlpPosTag::VBD: return "VBD";
+    case NlpPosTag::VBG: return "VBG";
+    case NlpPosTag::VBN: return "VBN";
+    case NlpPosTag::VBP: return "VBP";
+    case NlpPosTag::VBZ: return "VBZ";
+    case NlpPosTag::VH: return "VH";
+    case NlpPosTag::VHD: return "VHD";
+    case NlpPosTag::VHG: return "VHG";
+    case NlpPosTag::VHN: return "VHN";
+    case NlpPosTag::VHP: return "VHP";
+    case NlpPosTag::VHZ: return "VHZ";
+    case NlpPosTag::VP: return "VP";
+    case NlpPosTag::VV: return "VV";
+    case NlpPosTag::VVD: return "VVD";
+    case NlpPosTag::VVG: return "VVG";
+    case NlpPosTag::VVN: return "VVN";
+    case NlpPosTag::VVP: return "VVP";
+    case NlpPosTag::VVZ: return "VVZ";
+    case NlpPosTag::WDT: return "WDT";
+    case NlpPosTag::WHADJP: return "WHADJP";
+    case NlpPosTag::WHADVP: return "WHADVP";
+    case NlpPosTag::WHNP: return "WHNP";
+    case NlpPosTag::WHPP: return "WHPP";
+    case NlpPosTag::WP: return "WP";
+    case NlpPosTag::WP_POS: return "WP_POS";
+    case NlpPosTag::WRB: return "WRB";
+    case NlpPosTag::X: return "X";
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }

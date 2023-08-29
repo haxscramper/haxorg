@@ -49,44 +49,14 @@ struct SenNode {
     int             sentence = 0;
     int             group    = 0;
     EntityKind      entity;
-    PosTag          tag;
+    NlpPosTag       tag;
     QString         lexem;
     Vec<sem::SemId> orgIds;
 };
 
 struct SenEdge {
-
-    DECL_DESCRIBED_ENUM(
-        DepKind,
-        acl,
-        advcl,
-        advmod,
-        aux,
-        _case,
-        ccomp,
-        cc,
-        cop,
-        compound,
-        conj,
-        det,
-        mark,
-        nsubj,
-        obj,
-        obl,
-        expl,
-        parataxis,
-        nummod,
-        nmod,
-        punct,
-        fixed,
-        amod,
-        iobj,
-        ROOT,
-        dep,
-        xcomp);
-
     struct Dep {
-        DepKind      kind;
+        NlpDepKind   kind;
         Opt<QString> sub;
     };
 
@@ -148,13 +118,13 @@ struct Rule : SharedPtrApi<Rule> {
         SPtr<Rule> tail;
         Kind       kind;
 
-        SenEdge::DepKind relKind;
-        Opt<QString>     relSubKind;
+        NlpDepKind   relKind;
+        Opt<QString> relSubKind;
     };
 
     struct Match {
         bool                    negated = false;
-        IntSet<SenNode::PosTag> prefix;
+        IntSet<NlpPosTag>       prefix;
         Opt<QRegularExpression> lemma;
         Opt<QString>            bindto;
     };
@@ -186,7 +156,7 @@ namespace builder {
         inline Rule::Ptr Dir(
             Rule::Ptr const& lhs,
             Rule::Ptr const& rhs,
-            SenEdge::DepKind kind,
+            NlpDepKind       kind,
             Opt<QString>     subRel = std::nullopt) {
             return Rule::shared(Rule::Relation{
                 .kind       = Rule::Relation::Kind::GovernorDirect,
@@ -197,7 +167,7 @@ namespace builder {
         }
     } // namespace rel
 
-    inline Rule::Ptr Tag(SenNode::PosTag const& name) {
+    inline Rule::Ptr Tag(NlpPosTag const& name) {
         return Rule::shared(
             Rule::Match{.negated = false, .prefix = {name}});
     }

@@ -124,8 +124,8 @@ TEST(NLP, BaseMockApi) {
     gvc.renderToFile("/tmp/sentence.gv", gv, Graphviz::RenderFormat::DOT);
 
     using namespace NLP::builder;
-    using POS = NLP::SenNode::PosTag;
-    using REL = NLP::SenEdge::DepKind;
+    using POS = NlpPosTag;
+    using REL = NlpDepKind;
 
     auto result = graph.findMatches(
         rel::Dir(Tag(POS::VBP), Tag(POS::PRP), REL::nsubj));

@@ -282,7 +282,7 @@ struct SenTree : SharedPtrApi<SenTree> {
     Vec<SPtr<SenTree>> nested;
     Opt<int>           index = std::nullopt;
     Vec<sem::SemId>    orgIds;
-    SenNode::PosTag    tag;
+    NlpPosTag          tag;
     Sentence*          parent;
 
     int enumerateItems(int start = 0) {
@@ -370,21 +370,25 @@ struct SenTree : SharedPtrApi<SenTree> {
             lex.next();
         }
 
-        Opt<SenNode::PosTag> parsed;
+        Opt<NlpPosTag> parsed;
         if (tag == ",") {
-            parsed = SenNode::PosTag::PUNCT_COMMA;
+            parsed = NlpPosTag::PUNCT_COMMA;
         } else if (tag == ".") {
-            parsed = SenNode::PosTag::PUNCT_PERIOD;
+            parsed = NlpPosTag::PUNCT_PERIOD;
         } else if (tag == ":") {
-            parsed = SenNode::PosTag::PUNCT_COLON;
+            parsed = NlpPosTag::PUNCT_COLON;
         } else if (tag == "``") {
-            parsed = SenNode::PosTag::PUNCT_QUOTE_OPEN;
+            parsed = NlpPosTag::PUNCT_QUOTE_OPEN;
         } else if (tag == "''") {
-            parsed = SenNode::PosTag::PUNCT_QUOTE_CLOSE;
+            parsed = NlpPosTag::PUNCT_QUOTE_CLOSE;
         } else if (tag == "NP-TMP") {
-            parsed = SenNode::PosTag::NP_TMP;
+            parsed = NlpPosTag::NP_TMP;
+        } else if (tag == "-LRB-") {
+            parsed = NlpPosTag::LRB;
+        } else if (tag == "-RRB-") {
+            parsed = NlpPosTag::RRB;
         } else {
-            parsed = enum_serde<SenNode::PosTag>::from_string(tag);
+            parsed = enum_serde<NlpPosTag>::from_string(tag);
         }
 
         if (!parsed) {
@@ -586,7 +590,7 @@ void fillSentenceGraph(SenGraph& g, Parsed::Ptr const& parsed) {
                     {i, dep.dependent - 1});
                 if (governor && dependent) {
                     auto split = dep.dep.split(":");
-                    auto kind  = enum_serde<SenEdge::DepKind>::from_string(
+                    auto kind  = enum_serde<NlpDepKind>::from_string(
                         split[0] == "case" ? "_case" : split[0]);
 
                     if (!kind) {

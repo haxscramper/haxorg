@@ -2,9 +2,53 @@
 #include <hstd/system/basic_templates.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
-namespace NLP {
+/// \brief Dependency kind
+enum class NlpDepKind : short int {
+  ROOT,
+  acl,
+  advcl,
+  advmod,
+  amod,
+  appos,
+  aux,
+  _case,
+  cc,
+  ccomp,
+  compound,
+  conj,
+  cop,
+  csubj,
+  dep,
+  det,
+  discourse,
+  expl,
+  fixed,
+  iobj,
+  mark,
+  nmod,
+  nsubj,
+  nummod,
+  obj,
+  obl,
+  parataxis,
+  punct,
+  ref,
+  xcomp,
+};
+
+template <>
+struct enum_serde<NlpDepKind> {
+  static Opt<NlpDepKind> from_string(QString value);
+  static QString to_string(NlpDepKind value);
+};
+
+template <>
+struct value_domain<NlpDepKind> : public value_domain_ungapped<NlpDepKind,
+                                                               NlpDepKind::ROOT,
+                                                               NlpDepKind::xcomp> {};
+
 /// \brief Part of speech tag
-enum class PosTag : short int {
+enum class NlpPosTag : short int {
   ADJP,
   ADVP,
   CC,
@@ -20,6 +64,7 @@ enum class PosTag : short int {
   JJ,
   JJR,
   JJS,
+  LRB,
   LS,
   LST,
   MD,
@@ -52,6 +97,7 @@ enum class PosTag : short int {
   RBS,
   ROOT,
   RP,
+  RRB,
   RRC,
   S,
   SBAR,
@@ -88,19 +134,19 @@ enum class PosTag : short int {
   WHNP,
   WHPP,
   WP,
+  /// \brief Possessive wh-pronoun
+  WP_POS,
   WRB,
   X,
 };
 
 template <>
-struct enum_serde<PosTag> {
-  static Opt<PosTag> from_string(QString value);
-  static QString to_string(PosTag value);
+struct enum_serde<NlpPosTag> {
+  static Opt<NlpPosTag> from_string(QString value);
+  static QString to_string(NlpPosTag value);
 };
 
 template <>
-struct value_domain<PosTag> : public value_domain_ungapped<PosTag,
-                                                           PosTag::ADJP,
-                                                           PosTag::X> {};
-
-}
+struct value_domain<NlpPosTag> : public value_domain_ungapped<NlpPosTag,
+                                                              NlpPosTag::ADJP,
+                                                              NlpPosTag::X> {};
