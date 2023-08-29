@@ -21,6 +21,8 @@ class HttpDataProvider : public QThread {
         DECL_FIELDS(
             ResponseData,
             (),
+            ((QString), url, ""),
+            ((QString), data, ""),
             ((QString), content, ""),
             ((int), failRepeatCount, 0),
             ((QString), errorString, ""),

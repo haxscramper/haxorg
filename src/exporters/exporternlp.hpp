@@ -43,7 +43,9 @@ struct SenNode {
         STATE_OR_PROVINCE,
         CAUSE_OF_DEATH,
         COUNTRY,
-        CRIMINAL_CHARGE);
+        CRIMINAL_CHARGE,
+        IDEOLOGY,
+        RELIGION);
 
     Opt<int>        index    = 0;
     int             sentence = 0;
@@ -266,9 +268,7 @@ class ExporterNLP
     void format(ColStream& os);
 
   public:
-    virtual void onFinishedRequestVisit(Request const& req) override {
-        exchange.push_back({req, Response{}});
-    }
+    virtual void onFinishedRequestVisit(Request const& req) override;
 
     void visitParagraph(R& t, sem::SemIdT<sem::Paragraph> par) {
         asSeparateRequest(t, par.toId());

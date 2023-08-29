@@ -12,6 +12,7 @@
 #include <hstd/stdlib/algorithms.hpp>
 #include <boost/property_map/function_property_map.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
 
 #include <exporters/Exporter.cpp>
 
@@ -472,6 +473,8 @@ void ExporterNLP::executeRequests(SPtr<HttpDataProvider> http) {
             data += word.text;
         }
 
+        Q_ASSERT(!data.isEmpty());
+
         http->sendPostRequest(requestUrl, data, i);
         while (2 < http->getPendingCount()) {
             qDebug() << "NLP has excess pending requests, waiting" << i
@@ -479,6 +482,15 @@ void ExporterNLP::executeRequests(SPtr<HttpDataProvider> http) {
             QThread::msleep(1000);
         }
     }
+
+    while (http->hasPendingRequests()) {
+        qDebug() << "waiting for lasts requests";
+        QThread::msleep(1000);
+    }
+
+    writeFile(
+        QFileInfo("/home/haxscramper/.cache/haxorg/nlp-cache.json"),
+        QString::fromStdString(to_compact_json(http->toJsonCache())));
 
     http->hasData();
     while (http->hasPendingRequests() || http->hasData()) {
@@ -637,3 +649,7 @@ void ExporterNLP::onFinishedResponse(
 }
 
 void ExporterNLP::format(ColStream& os) {}
+
+void ExporterNLP::onFinishedRequestVisit(const Request& req) {
+    exchange.push_back({req, Response{}});
+}

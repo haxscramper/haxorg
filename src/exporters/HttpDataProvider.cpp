@@ -1,5 +1,7 @@
 #include "HttpDataProvider.hpp"
 #include <QNetworkReply>
+#include <hstd/stdlib/Filesystem.hpp>
+#include <exception>
 
 
 HttpDataProvider::HttpDataProvider() {
@@ -24,15 +26,15 @@ HttpDataProvider::HttpDataProvider() {
             reply->setProperty(
                 "exchange-index", QVariant::fromValue(index));
 
-            if (isCacheEnabled) {
-                reply->setProperty(
-                    "exchange-data", QVariant::fromValue(data));
-            }
+
+            QString displayUrl = request.url().toDisplayString();
 
             QObject::connect(
-                reply, &QNetworkReply::finished, [reply, this]() {
-                    ResponseData resp{};
-                    if (reply->error()) {
+                reply,
+                &QNetworkReply::finished,
+                [reply, data, displayUrl, this]() {
+                    ResponseData resp{.data = data, .url = displayUrl};
+                    if (reply->error() != QNetworkReply::NoError) {
                         resp.isError     = true;
                         resp.errorString = reply->errorString();
                     } else {
@@ -40,11 +42,7 @@ HttpDataProvider::HttpDataProvider() {
                     }
 
                     if (isCacheEnabled) {
-                        addCache(
-                            {reply->request().url().toDisplayString(),
-                             reply->property("exchange-data")
-                                 .value<QString>()},
-                            resp);
+                        addCache({displayUrl, data}, resp);
                     }
 
                     enqueue(QueueData{
@@ -60,14 +58,37 @@ HttpDataProvider::HttpDataProvider() {
             QObject::connect(
                 reply,
                 &QNetworkReply::errorOccurred,
-                [this](const QNetworkReply::NetworkError& error) {
+                [displayUrl, data, this](
+                    const QNetworkReply::NetworkError& error) {
+                    if (isCacheEnabled) {
+                        addCache(
+                            {displayUrl, data},
+                            ResponseData{
+                                .data            = data,
+                                .url             = displayUrl,
+                                .isError         = true,
+                                .failRepeatCount = 0,
+                            });
+                    }
+
                     pendingRequests.fetch_sub(1);
                 });
 
             QObject::connect(
                 reply,
                 &QNetworkReply::sslErrors,
-                [this](const QList<QSslError>& errors) {
+                [displayUrl, data, this](const QList<QSslError>& errors) {
+                    if (isCacheEnabled) {
+                        addCache(
+                            {displayUrl, data},
+                            ResponseData{
+                                .data            = data,
+                                .url             = displayUrl,
+                                .isError         = true,
+                                .failRepeatCount = 0,
+                            });
+                    }
+
                     pendingRequests.fetch_sub(1);
                 });
         });
@@ -98,8 +119,7 @@ void HttpDataProvider::sendPostRequest(
     if (isCacheEnabled && hasCached({url.toDisplayString(), data})) {
         enqueue(QueueData{
             .responseId = requestId,
-            .response   = ResponseData(
-                getCached({url.toDisplayString(), data}))});
+            .response   = getCached({url.toDisplayString(), data})});
     } else {
         QNetworkRequest netRequest{url};
         netRequest.setTransferTimeout(timeout);
@@ -134,6 +154,10 @@ struct PostCacheData {
 
 void HttpDataProvider::enqueue(const QueueData& data) {
     QMutexLocker locker{&queueMutex};
+    Q_ASSERT(!data.response.url.isEmpty());
+    if (!data.response.isError) {
+        Q_ASSERT(!data.response.content.isEmpty());
+    }
     responseQueue.push_back(data);
 }
 
@@ -147,7 +171,14 @@ HttpDataProvider::QueueData HttpDataProvider::dequeue() {
 void HttpDataProvider::addCache(const json& cacheData) {
     PostCacheData parsed;
     from_json<PostCacheData>(cacheData, parsed);
+    writeFile(
+        QFileInfo("/tmp/loadedaCacheData.json"),
+        QString::fromStdString(to_compact_json(cacheData)));
     for (auto const& it : parsed.postCache) {
+        addCache({it.url, it.data}, it.response);
+    }
+
+    for (auto const& it : parsed.failCache) {
         addCache({it.url, it.data}, it.response);
     }
 }
@@ -163,7 +194,7 @@ json HttpDataProvider::toJsonCache() {
 
     for (auto const& key : failCache.keys()) {
         conv.failCache.push_back(
-            PostCacheKeyStruct{key.first, key.second, cache[key]});
+            PostCacheKeyStruct{key.first, key.second, failCache[key]});
     }
 
     to_json<PostCacheData>(result, conv);
@@ -228,6 +259,17 @@ bool HttpDataProvider::hasData() {
 // clang-format on
 HttpDataProvider::ResponseData HttpDataProvider::getCached(
     const PostCacheKey& key) {
-    QMutexLocker locker{&cacheMutex};
-    return cache.value(key);
+    QMutexLocker                   locker{&cacheMutex};
+    HttpDataProvider::ResponseData result;
+    if (cache.contains(key)) {
+        result = cache.value(key);
+    } else if (failCache.contains(key)) {
+        result = failCache.value(key);
+    } else {
+        throw std::domain_error("Missing key in caches");
+    }
+
+    Q_ASSERT(!result.data.isEmpty());
+
+    return result;
 }

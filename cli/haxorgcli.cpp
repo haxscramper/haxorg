@@ -784,7 +784,7 @@ SPtr<HttpDataProvider> openHttpProvider(Opt<QFileInfo> cache) {
         http->isCacheEnabled = true;
         http->addCache(json::parse(readFile(cache.value()).toStdString()));
         qInfo() << "Loaded" << http->cache.size() << "cached requests and "
-                << http->failCache.size() << " failed requests from"
+                << http->failCache.size() << "failed requests from"
                 << cache.value();
     } else {
         qInfo() << "Loading HTTP provider without cache";
@@ -799,7 +799,8 @@ void closeHttpProvider(Opt<QFileInfo> cache, SPtr<HttpDataProvider> http) {
             cache.value(),
             QString::fromStdString(to_compact_json(http->toJsonCache())));
         qDebug() << "Wrote" << http->cache.size()
-                 << " entries of HTTP cache to" << *cache;
+                 << "entries of HTTP cache and" << http->failCache.size()
+                 << "failed requests to" << *cache;
     }
 }
 

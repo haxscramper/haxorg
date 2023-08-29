@@ -19,7 +19,8 @@ void ExporterLangtool::executeRequests(
 
         http->sendPostRequest(url, data, i);
         if (20 < http->getPendingCount()) {
-            qDebug() << "Waiting to handle existing pending requests";
+            qDebug() << "Waiting to handle existing pending requests" << i
+                     << "of" << exchange.size();
             QThread::msleep(1000);
         }
     }

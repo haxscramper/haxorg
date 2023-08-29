@@ -12,6 +12,14 @@ struct OrgText {
 
     Vec<Word> text;
 
+    bool empty() const {
+        return text.empty()
+            || std::all_of(
+                   text.begin(), text.end(), [](Word const& str) -> bool {
+                       return str.text.isEmpty();
+                   });
+    }
+
     Vec<sem::SemId> overlappingNodes(Slice<int> characterRange) const {
         Vec<Pair<Slice<int>, sem::SemId>> rangeForId;
         int                               offset = 0;
@@ -70,7 +78,11 @@ struct AnnotatingVisitorBase : public CRTP_this_method<Exporter> {
             for (auto const& sub : par->subnodes) {
                 _this()->visit(t, sub);
             }
-            onFinishedRequestVisit(std::move(activeRequest.value()));
+
+            if (!activeRequest->sentence.empty()) {
+                onFinishedRequestVisit(std::move(activeRequest.value()));
+            }
+
             activeRequest = std::nullopt;
         }
     }

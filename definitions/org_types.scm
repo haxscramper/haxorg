@@ -1784,6 +1784,7 @@ org can do ... which is to be determined as well")
     (list
      (d:efield "ADJP" (d:doc ""))
      (d:efield "ADVP" (d:doc ""))
+     (d:efield "ADD" (d:doc ""))
      (d:efield "CC" (d:doc ""))
      (d:efield "CD" (d:doc ""))
      (d:efield "CONJP" (d:doc ""))
