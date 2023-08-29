@@ -128,6 +128,7 @@ struct PostCacheData {
     DECL_FIELDS(
         PostCacheData,
         (),
+        ((Vec<PostCacheKeyStruct>), failCache, {}),
         ((Vec<PostCacheKeyStruct>), postCache, {}));
 };
 
@@ -147,18 +148,22 @@ void HttpDataProvider::addCache(const json& cacheData) {
     PostCacheData parsed;
     from_json<PostCacheData>(cacheData, parsed);
     for (auto const& it : parsed.postCache) {
-        cache[{it.url, it.data}] = it.response;
+        addCache({it.url, it.data}, it.response);
     }
 }
 
-json HttpDataProvider::toJsonCache(bool storeErrors) {
-    json          result;
+json HttpDataProvider::toJsonCache() {
+    json result;
+
     PostCacheData conv;
     for (auto const& key : cache.keys()) {
-        if (!cache[key].isError || storeErrors) {
-            conv.postCache.push_back(
-                PostCacheKeyStruct{key.first, key.second, cache[key]});
-        }
+        conv.postCache.push_back(
+            PostCacheKeyStruct{key.first, key.second, cache[key]});
+    }
+
+    for (auto const& key : failCache.keys()) {
+        conv.failCache.push_back(
+            PostCacheKeyStruct{key.first, key.second, cache[key]});
     }
 
     to_json<PostCacheData>(result, conv);
@@ -170,12 +175,22 @@ void HttpDataProvider::addCache(
     const PostCacheKey& key,
     const ResponseData& data) {
     QMutexLocker locker{&cacheMutex};
-    cache[key] = data;
+    if (data.isError) {
+        if (failCache.contains(key)) {
+            ++failCache[key].failRepeatCount;
+        } else {
+            failCache[key] = data;
+        }
+    } else {
+        cache[key] = data;
+    }
 }
 
 bool HttpDataProvider::hasCached(const PostCacheKey& key) {
     QMutexLocker locker{&cacheMutex};
-    return cache.contains(key);
+    return cache.contains(key)
+        || (failCache.contains(key)
+            && (cacheFailAfter <= failCache.value(key).failRepeatCount));
 }
 
 bool HttpDataProvider::hasData() {

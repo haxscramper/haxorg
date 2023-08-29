@@ -778,11 +778,13 @@ void exportOk(QString const& what, cli::Exporter::Base const& base) {
 }
 
 SPtr<HttpDataProvider> openHttpProvider(Opt<QFileInfo> cache) {
-    auto http = std::make_shared<HttpDataProvider>();
+    auto http            = std::make_shared<HttpDataProvider>();
+    http->cacheFailAfter = 0;
     if (cache && cache->exists()) {
         http->isCacheEnabled = true;
         http->addCache(json::parse(readFile(cache.value()).toStdString()));
-        qInfo() << "Loaded" << http->cache.size() << "cached requests from"
+        qInfo() << "Loaded" << http->cache.size() << "cached requests and "
+                << http->failCache.size() << " failed requests from"
                 << cache.value();
     } else {
         qInfo() << "Loading HTTP provider without cache";

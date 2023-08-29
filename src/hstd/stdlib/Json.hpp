@@ -105,7 +105,9 @@ void from_json(const json& in, T& out) {
     using Md = boost::describe::
         describe_members<T, boost::describe::mod_any_access>;
     boost::mp11::mp_for_each<Md>([&](auto const& field) {
-        from_json(in[field.name], out.*field.pointer);
+        if (in.contains(field.name)) {
+            from_json(in[field.name], out.*field.pointer);
+        }
     });
 
     boost::mp11::mp_for_each<Bd>([&](auto Base) {

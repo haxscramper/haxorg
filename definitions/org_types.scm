@@ -1740,9 +1740,126 @@ org can do ... which is to be determined as well")
            (set! methods (append methods variant-methods (list method)))))))
     methods))
 
+(define nlp-enums
+  (list
+   (d:enum
+    "PosTag"
+    (d:doc "Part of speech tag")
+    (list
+     (d:efield "ADJP" (d:doc ""))
+     (d:efield "ADVP" (d:doc ""))
+     (d:efield "CC" (d:doc ""))
+     (d:efield "CD" (d:doc ""))
+     (d:efield "CONJP" (d:doc ""))
+     (d:efield "DT" (d:doc ""))
+     (d:efield "EX" (d:doc ""))
+     (d:efield "FRAG" (d:doc ""))
+     (d:efield "FW" (d:doc ""))
+     (d:efield "HYPH" (d:doc ""))
+     (d:efield "IN" (d:doc ""))
+     (d:efield "INTJ" (d:doc ""))
+     (d:efield "JJ" (d:doc ""))
+     (d:efield "JJR" (d:doc ""))
+     (d:efield "JJS" (d:doc ""))
+     (d:efield "LS" (d:doc ""))
+     (d:efield "LST" (d:doc ""))
+     (d:efield "MD" (d:doc ""))
+     (d:efield "META" (d:doc ""))
+     (d:efield "NAC" (d:doc ""))
+     (d:efield "NFP" (d:doc ""))
+     (d:efield "NML" (d:doc ""))
+     (d:efield "NN" (d:doc ""))
+     (d:efield "NNP" (d:doc ""))
+     (d:efield "NNPS" (d:doc ""))
+     (d:efield "NNS" (d:doc ""))
+     (d:efield "NP" (d:doc ""))
+     (d:efield "NPS" (d:doc ""))
+     (d:efield "NP_TMP" (d:doc ""))
+     (d:efield "PDT" (d:doc ""))
+     (d:efield "POS" (d:doc ""))
+     (d:efield "PP" (d:doc ""))
+     (d:efield "PPZ" (d:doc ""))
+     (d:efield "PRN" (d:doc ""))
+     (d:efield "PRP" (d:doc ""))
+     (d:efield "PRT" (d:doc ""))
+     (d:efield "PUNCT_COLON" (d:doc ""))
+     (d:efield "PUNCT_COMMA" (d:doc ""))
+     (d:efield "PUNCT_PERIOD" (d:doc ""))
+     (d:efield "PUNCT_QUOTE_CLOSE" (d:doc ""))
+     (d:efield "PUNCT_QUOTE_OPEN" (d:doc ""))
+     (d:efield "QP" (d:doc ""))
+     (d:efield "RB" (d:doc ""))
+     (d:efield "RBR" (d:doc ""))
+     (d:efield "RBS" (d:doc ""))
+     (d:efield "ROOT" (d:doc ""))
+     (d:efield "RP" (d:doc ""))
+     (d:efield "RRC" (d:doc ""))
+     (d:efield "S" (d:doc ""))
+     (d:efield "SBAR" (d:doc ""))
+     (d:efield "SBARQ" (d:doc ""))
+     (d:efield "SENT" (d:doc ""))
+     (d:efield "SINV" (d:doc ""))
+     (d:efield "SQ" (d:doc ""))
+     (d:efield "SYM" (d:doc ""))
+     (d:efield "TO" (d:doc ""))
+     (d:efield "UCP" (d:doc ""))
+     (d:efield "UH" (d:doc ""))
+     (d:efield "VB" (d:doc ""))
+     (d:efield "VBD" (d:doc ""))
+     (d:efield "VBG" (d:doc ""))
+     (d:efield "VBN" (d:doc ""))
+     (d:efield "VBP" (d:doc ""))
+     (d:efield "VBZ" (d:doc ""))
+     (d:efield "VH" (d:doc ""))
+     (d:efield "VHD" (d:doc ""))
+     (d:efield "VHG" (d:doc ""))
+     (d:efield "VHN" (d:doc ""))
+     (d:efield "VHP" (d:doc ""))
+     (d:efield "VHZ" (d:doc ""))
+     (d:efield "VP" (d:doc ""))
+     (d:efield "VV" (d:doc ""))
+     (d:efield "VVD" (d:doc ""))
+     (d:efield "VVG" (d:doc ""))
+     (d:efield "VVN" (d:doc ""))
+     (d:efield "VVP" (d:doc ""))
+     (d:efield "VVZ" (d:doc ""))
+     (d:efield "WDT" (d:doc ""))
+     (d:efield "WHADJP" (d:doc ""))
+     (d:efield "WHADVP" (d:doc ""))
+     (d:efield "WHNP" (d:doc ""))
+     (d:efield "WHPP" (d:doc ""))
+     (d:efield "WP" (d:doc ""))
+     (d:efield "WRB" (d:doc ""))
+     (d:efield "X" (d:doc ""))
+     ))))
+
+(define (in-namespace name l)
+  (append
+   (list (d:pass (format #f "namespace ~a {" name)))
+   l
+   (list (d:pass "}"))))
+
+(define (with-enum-reflection-api body)
+  (append
+   (list
+    (d:pass "#pragma once")
+    (d:pass "#include <hstd/system/basic_templates.hpp>")
+    (d:pass "#include <hstd/system/reflection.hpp>")
+    (d:pass "#include <hstd/stdlib/Opt.hpp>"))
+   body))
 
 (d:full
  (list
+  (d:unit
+   (d:file "${base}/exporters/exporternlp_enums.hpp"
+           (with-enum-reflection-api (in-namespace "NLP" nlp-enums)))
+
+   #:source
+   (d:file "${base}/exporters/exporternlp_enums.cpp"
+           (append (list
+                    (d:pass "#include \"exporternlp_enums.hpp\"")
+                    (d:pass "using namespace NLP;"))
+                   nlp-enums)))
   (d:unit
    (d:file
     "${base}/exporters/Exporter.tcc"
@@ -1762,15 +1879,12 @@ org can do ... which is to be determined as well")
     (d:unit
      (d:file
       "${base}/sem/SemOrgEnums.hpp"
-      (append
-       (list
-        (d:pass "#pragma once")
-        (d:pass "#include <hstd/system/basic_templates.hpp>")
-        (d:pass "#include <hstd/system/reflection.hpp>")
-        (d:pass "#include <hstd/stdlib/Opt.hpp>")
-        (d:pass (format #f "#define EACH_SEM_ORG_KIND(__IMPL) \\\n~{    __IMPL(~a) \\\n~}"
-                        (map (lambda (struct) (slot-ref struct 'name)) (get-concrete-types)))))
-       full-enums))
+      (with-enum-reflection-api
+       (append
+        (list
+         (d:pass (format #f "#define EACH_SEM_ORG_KIND(__IMPL) \\\n~{    __IMPL(~a) \\\n~}"
+                         (map (lambda (struct) (slot-ref struct 'name)) (get-concrete-types)))))
+        full-enums)))
      #:source
      (d:file "${base}/sem/SemOrgEnums.cpp"
              (append

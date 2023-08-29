@@ -22,6 +22,7 @@ class HttpDataProvider : public QThread {
             ResponseData,
             (),
             ((QString), content, ""),
+            ((int), failRepeatCount, 0),
             ((QString), errorString, ""),
             ((bool), isError, false));
     };
@@ -34,19 +35,22 @@ class HttpDataProvider : public QThread {
     using PostCacheKey = QPair<QString, QString>;
 
     QHash<PostCacheKey, ResponseData> cache;
+    QHash<PostCacheKey, ResponseData> failCache;
+
   private:
-    std::atomic<int>                  pendingRequests = 0;
-    QMutex                            queueMutex;
-    QMutex                            cacheMutex;
-    QQueue<QueueData>                 responseQueue;
+    std::atomic<int>  pendingRequests = 0;
+    QMutex            queueMutex;
+    QMutex            cacheMutex;
+    QQueue<QueueData> responseQueue;
 
   public:
     bool isCacheEnabled = false;
+    int  cacheFailAfter = 5;
 
     void      enqueue(QueueData const& data);
     QueueData dequeue();
     void      addCache(json const& cacheData);
-    json      toJsonCache(bool storeErrors = false);
+    json      toJsonCache();
     void      addCache(PostCacheKey const& key, ResponseData const& data);
     bool      hasCached(PostCacheKey const& key);
     bool      hasData();
