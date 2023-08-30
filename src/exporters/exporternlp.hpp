@@ -50,6 +50,7 @@ struct SenNode {
     Opt<int>        index    = 0;
     int             sentence = 0;
     int             group    = 0;
+    int             treeIdx  = -1;
     EntityKind      entity;
     NlpPosTag       tag;
     QString         lexem;
@@ -200,7 +201,8 @@ struct SenGraph {
         DependenciesOnly);
     Graphviz::Graph toGraphviz(GvFormat format);
 
-    Graph graph;
+    Graph         graph;
+    Vec<VertDesc> sentenceRoots;
 
     struct MatchResult {
         VertDesc vertex;

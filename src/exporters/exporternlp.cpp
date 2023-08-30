@@ -591,12 +591,15 @@ void fillSentenceGraph(SenGraph& g, Parsed::Ptr const& parsed) {
             sentIdxToVertex[{sentence, cst->index.value()}] = desc;
             return desc;
         } else {
-            SenGraph::VertDesc desc = boost::add_vertex(node, g.graph);
+            SenGraph::VertDesc desc    = boost::add_vertex(node, g.graph);
+            int                nestIdx = 0;
             for (auto const& sub : cst->nested) {
-                auto    subDesc = rec(sub, sentence);
+                auto subDesc             = rec(sub, sentence);
+                g.graph[subDesc].treeIdx = nestIdx;
                 SenEdge edge;
                 edge.data = SenEdge::Nested{};
                 boost::add_edge(desc, subDesc, edge, g.graph);
+                ++nestIdx;
             }
 
             return desc;
@@ -604,8 +607,9 @@ void fillSentenceGraph(SenGraph& g, Parsed::Ptr const& parsed) {
     };
 
     for (int i = 0; i < parsed->sentence.size(); ++i) {
-        Sentence::Ptr sent = parsed->sentence.at(i);
-        rec(sent->parse, i);
+        Sentence::Ptr           sent = parsed->sentence.at(i);
+        NLP::SenGraph::VertDesc root = rec(sent->parse, i);
+        g.sentenceRoots.push_back(root);
     }
 
     for (int i = 0; i < parsed->sentence.size(); ++i) {
@@ -666,7 +670,71 @@ void ExporterNLP::onFinishedResponse(
 
 void ExporterNLP::format(ColStream& os) {
     for (auto const& [req, resp] : exchange) {
-        os << "- *" << req.sentence.flatText().replace("\n", " ") << "*\n";
+        auto text = strip(
+            req.sentence.flatText().replace("\n", " "),
+            CharSet{QChar(' ')},
+            CharSet{QChar(' ')});
+        if (text.empty()) {
+            continue;
+        }
+
+        using VD                       = SenGraph::VertDesc;
+        using ED                       = SenGraph::EdgeDesc;
+        auto const&                  g = resp.parsed.graph;
+        UnorderedMap<VD, bool>       visited;
+        Func<void(VD v, int indent)> tree;
+        tree = [&](VD v, int indent) {
+            if (visited.contains(v)) {
+                return;
+            } else {
+                visited[v] = true;
+            }
+
+            Vec<VD> nested;
+            Vec<ED> other;
+            for (auto [it, it_end] = boost::out_edges(v, g); it != it_end;
+                 ++it) {
+                if (g[*it].getKind() == SenEdge::Kind::Nested) {
+                    nested.push_back(boost::target(*it, g));
+                } else {
+                    other.push_back(*it);
+                }
+            }
+
+            os.indent(indent);
+            os << "`" << g[v].tag << "`";
+
+            if (!g[v].lexem.isEmpty()) {
+                os << " \"" << g[v].lexem << "\"";
+            }
+
+            if (!g[v].orgIds.empty()) {
+                sem::SemId id = g[v].orgIds.front();
+                os << " @" << id->loc->line << ":" << id->loc->column;
+            }
+
+            for (auto const& ep : other) {
+                auto const& dep    = g[ep].getDep();
+                auto const& target = boost::target(ep, g);
+                os << ", -> " << dep.kind << ":" << dep.sub.value_or("")
+                   << " \"" << g[target].lexem << "\"";
+            }
+
+            for (auto const& sub : sortedBy(nested, [&](VD vd) -> int {
+                     return g[vd].treeIdx;
+                 })) {
+                os << "\n";
+                tree(sub, indent + 2);
+            }
+        };
+
+        os << "- *" << text << "*\n"
+           << "  - line:" << req.sentence.text.front().id->loc->line
+           << " size:" << text.size() << "\n";
+        for (auto const& root : resp.parsed.sentenceRoots) {
+            tree(root, 4);
+            os << "\n";
+        }
     }
 }
 

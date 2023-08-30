@@ -1166,6 +1166,12 @@ void HaxorgCli::exec() {
 
         closeHttpProvider(conf.httpCache, http);
 
+
+        {
+            ColStream os{qcout};
+            nlp.format(os);
+        }
+
         SPtr<IoContext> io = openFileOrStream(conf.target, true);
         ColStream       os{io->stream};
         nlp.format(os);
@@ -1193,6 +1199,7 @@ void HaxorgCli::exec() {
         }
 
         closeHttpProvider(conf.httpCache, http);
+
 
         SPtr<IoContext> io = openFileOrStream(conf.target, true);
         ColStream       os{io->stream};
