@@ -114,9 +114,11 @@ void HttpDataProvider::sendPostRequest(
     const QUrl&    url,
     const QString& data,
     int            requestId,
-    int            timeout) {
+    int            timeout,
+    bool           skipCache) {
 
-    if (isCacheEnabled && hasCached({url.toDisplayString(), data})) {
+    if (isCacheEnabled && !skipCache
+        && hasCached({url.toDisplayString(), data})) {
         enqueue(QueueData{
             .responseId = requestId,
             .response   = getCached({url.toDisplayString(), data})});
@@ -174,11 +176,12 @@ void HttpDataProvider::addCache(const json& cacheData) {
     writeFile(
         QFileInfo("/tmp/loadedaCacheData.json"),
         QString::fromStdString(to_compact_json(cacheData)));
-    for (auto const& it : parsed.postCache) {
+
+    for (auto const& it : parsed.failCache) {
         addCache({it.url, it.data}, it.response);
     }
 
-    for (auto const& it : parsed.failCache) {
+    for (auto const& it : parsed.postCache) {
         addCache({it.url, it.data}, it.response);
     }
 }
@@ -214,6 +217,9 @@ void HttpDataProvider::addCache(
         }
     } else {
         cache[key] = data;
+        if (failCache.contains(key)) {
+            failCache.remove(key);
+        }
     }
 }
 

@@ -72,6 +72,8 @@ QString enum_serde<NlpDepKind>::to_string(NlpDepKind value) {
 Opt<NlpPosTag> enum_serde<NlpPosTag>::from_string(QString value) {
   if (value == "ADJP") { return NlpPosTag::ADJP; } else
   if (value == "ADVP") { return NlpPosTag::ADVP; } else
+  if (value == "ADD") { return NlpPosTag::ADD; } else
+  if (value == "AFX") { return NlpPosTag::AFX; } else
   if (value == "CC") { return NlpPosTag::CC; } else
   if (value == "CD") { return NlpPosTag::CD; } else
   if (value == "CONJP") { return NlpPosTag::CONJP; } else
@@ -164,6 +166,8 @@ QString enum_serde<NlpPosTag>::to_string(NlpPosTag value) {
   switch (value) {
     case NlpPosTag::ADJP: return "ADJP";
     case NlpPosTag::ADVP: return "ADVP";
+    case NlpPosTag::ADD: return "ADD";
+    case NlpPosTag::AFX: return "AFX";
     case NlpPosTag::CC: return "CC";
     case NlpPosTag::CD: return "CD";
     case NlpPosTag::CONJP: return "CONJP";

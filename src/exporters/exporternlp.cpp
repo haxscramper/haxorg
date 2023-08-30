@@ -466,16 +466,32 @@ void ExporterNLP::executeRequests(SPtr<HttpDataProvider> http) {
 
     requestUrl.setQuery(query);
 
+    int       failRetries       = 0;
+    const int maxFailRetries    = 20;
+    const int maxRequestTimeout = 45000;
+
     for (int i = 0; i < exchange.size(); ++i) {
         auto const& request = exchange.at(i).first;
-        QString     data;
-        for (const auto& word : request.sentence.text) {
-            data += word.text;
-        }
-
+        QString     data    = request.sentence.flatText();
         Q_ASSERT(!data.isEmpty());
 
-        http->sendPostRequest(requestUrl, data, i);
+        bool skipThisCache = false;
+
+        if (http->hasCached({requestUrl.toDisplayString(), data})) {
+            auto const& cached = http->getCached(
+                {requestUrl.toDisplayString(), data});
+            if (cached.isError && failRetries < maxFailRetries) {
+                qDebug() << "Retrying failed request" << i << "out of"
+                         << exchange.size() << "retry count" << failRetries
+                         << "of max" << maxFailRetries;
+                ++failRetries;
+                skipThisCache = true;
+            }
+        }
+
+        http->sendPostRequest(
+            requestUrl, data, i, maxRequestTimeout, skipThisCache);
+
         while (2 < http->getPendingCount()) {
             qDebug() << "NLP has excess pending requests, waiting" << i
                      << "out of" << exchange.size();
@@ -648,7 +664,11 @@ void ExporterNLP::onFinishedResponse(
     }
 }
 
-void ExporterNLP::format(ColStream& os) {}
+void ExporterNLP::format(ColStream& os) {
+    for (auto const& [req, resp] : exchange) {
+        os << "- *" << req.sentence.flatText().replace("\n", " ") << "*\n";
+    }
+}
 
 void ExporterNLP::onFinishedRequestVisit(const Request& req) {
     exchange.push_back({req, Response{}});

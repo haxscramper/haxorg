@@ -51,6 +51,8 @@ struct value_domain<NlpDepKind> : public value_domain_ungapped<NlpDepKind,
 enum class NlpPosTag : short int {
   ADJP,
   ADVP,
+  ADD,
+  AFX,
   CC,
   CD,
   CONJP,

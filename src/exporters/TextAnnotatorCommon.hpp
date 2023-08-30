@@ -8,6 +8,8 @@ struct OrgText {
     struct Word {
         QString    text;
         sem::SemId id = sem::SemId::Nil();
+
+        QString getText() const { return text; }
     };
 
     Vec<Word> text;
@@ -20,14 +22,22 @@ struct OrgText {
                    });
     }
 
+    QString flatText() const {
+        QString res;
+        for (auto const& word : this->text) {
+            res += word.getText();
+        }
+        return res;
+    }
+
     Vec<sem::SemId> overlappingNodes(Slice<int> characterRange) const {
         Vec<Pair<Slice<int>, sem::SemId>> rangeForId;
         int                               offset = 0;
         Vec<sem::SemId>                   result;
         for (auto const& word : text) {
-            Slice<int> range = slice1<int>(
-                offset, offset + word.text.length());
-            offset += word.text.length();
+            QString    text  = word.getText();
+            Slice<int> range = slice1<int>(offset, offset + text.length());
+            offset += text.length();
             rangeForId.push_back({range, word.id});
         }
 

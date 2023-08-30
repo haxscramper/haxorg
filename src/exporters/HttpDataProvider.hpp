@@ -81,7 +81,8 @@ class HttpDataProvider : public QThread {
         QUrl const&    url,
         QString const& data,
         int            requestId,
-        int            timeout = 5000);
+        int            timeout   = 5000,
+        bool           skipCache = false);
 
     SPtr<QNetworkAccessManager> netManager = nullptr;
 
