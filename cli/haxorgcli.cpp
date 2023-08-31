@@ -922,7 +922,7 @@ void HaxorgCli::exec() {
     }
 
 
-    if (config.trace.parse.enabled) {
+    if (config.trace.parse.dump) {
         qInfo() << "Parse result dump is enabled, writing out"
                 << config.trace.parse.dumpTo;
         auto ctx = openFileOrStream(

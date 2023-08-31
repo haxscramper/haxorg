@@ -688,6 +688,14 @@ Opt<QString> ExporterLatex::getRefKind(SemId id) {
     }
 }
 
+int ExporterLatex::getFootnote(CR<Str> str) {
+    if (!footnoteCounter.contains(str)) {
+        footnoteCounter[str] = footnoteCounter.size();
+    }
+
+    return footnoteCounter.at(str);
+}
+
 void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     __visit_specific_kind(res, value);
     res = b::stack();
@@ -829,18 +837,31 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
 void ExporterLatex::visitParagraph(Res& res, In<Paragraph> par) {
     __visit_specific_kind(res, par);
     res = b::line();
-    for (auto const& sub : par->subnodes) {
-        res->add(visit(sub));
+    for (int i = 0; i < par->subnodes.size(); ++i) {
+        if (i == 0 && par->isFootnoteDefinition()) {
+            continue;
+        } else {
+            res->add(visit(par->subnodes.at(i)));
+        }
     }
 
     if (res->size() == 0) {
         res->add(string(" "));
     }
 
-    if (par->placementContext
-        && par->placementContext.value() == OrgSemPlacement::TreeBody) {
-        res = environment(
-            getWrapEnvCommand(par->placementContext.value()), res);
+    if (par->isFootnoteDefinition()) {
+        res = command(
+            "footnotetext",
+            {string(to_string(getFootnote(
+                par->subnodes.at(0).as<sem::Footnote>()->tag)))},
+            {res});
+    } else {
+        if (par->placementContext
+            && par->placementContext.value()
+                   == OrgSemPlacement::TreeBody) {
+            res = environment(
+                getWrapEnvCommand(par->placementContext.value()), res);
+        }
     }
 }
 
@@ -971,7 +992,14 @@ void ExporterLatex::visitLink(Res& res, In<sem::Link> link) {
         case sem::Link::Kind::Footnote: {
             auto target = link->resolve();
             if (target) {
-                res = command("footnote", {visit(target.value())});
+                res = command("footnotemark");
+                addWrap(
+                    res,
+                    "[",
+                    "]",
+                    string(to_string(
+                        getFootnote(link->getFootnote().target))));
+
             } else {
                 res = string("fn:" + link->getFootnote().target);
             }

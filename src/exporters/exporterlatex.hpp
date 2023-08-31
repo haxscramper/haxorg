@@ -38,6 +38,9 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
 
     Res string(QString const& str) { return b::text(store.str(str)); }
 
+    UnorderedMap<Str, int> footnoteCounter;
+    int                    getFootnote(CR<Str> str);
+
     Res visit(int value) {
         __visit_eval_scope(value);
         return string(to_string(value));
