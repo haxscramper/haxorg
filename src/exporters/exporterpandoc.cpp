@@ -1,14 +1,16 @@
 #include "exporterpandoc.hpp"
 
 #include <exporters/Exporter.cpp>
+#include <exporters/ExporterUltraplain.hpp>
+
 template class Exporter<ExporterPandoc, PandocRes>;
 
 PandocRes ExporterPandoc::newRes(sem::SemId org) {
     if (org.isNil()) {
         return json();
     } else {
-        json res    = json::object();
-        res["kind"] = "TODO" + to_string(org->getKind());
+        json res = json::object();
+        res["t"] = "TODO" + to_string(org->getKind());
         return res;
     }
 }
@@ -81,11 +83,13 @@ json Attr(
 
 using osk = OrgSemKind;
 
+SemSet const NonToplevel = SemSet{osk::Newline};
+
 void ExporterPandoc::visitDocument(PandocRes& res, In<sem::Document> doc) {
     res = json::object({
         kv("pandoc-api-version", {1, 22, 2, 1}),
         kv("meta", json::object()),
-        kv("blocks", content(doc, SemSet{osk::Newline})),
+        kv("blocks", content(doc, NonToplevel)),
     });
 }
 
@@ -127,7 +131,9 @@ void ExporterPandoc::visitBigIdent(
 
 void ExporterPandoc::visitFootnote(
     PandocRes&        res,
-    In<sem::Footnote> footnote) {}
+    In<sem::Footnote> footnote) {
+    res = P("Str", "TODO-FOOTNOTE");
+}
 
 void ExporterPandoc::visitSubtree(PandocRes& res, In<sem::Subtree> tree) {
     AttrKv attrs;
@@ -141,7 +147,9 @@ void ExporterPandoc::visitSubtree(PandocRes& res, In<sem::Subtree> tree) {
         ar(tree->level, Attr("preface", {}, attrs), content(tree->title)));
 
     for (auto const& sub : tree->subnodes) {
-        res.unpacked.append(visit(sub).unpacked);
+        if (!NonToplevel.contains(sub->getKind())) {
+            res.unpacked.append(visit(sub).unpacked);
+        }
     }
 }
 
@@ -151,25 +159,52 @@ void ExporterPandoc::visitParagraph(
     res = P("Para", content(par));
 }
 
-void ExporterPandoc::visitTime(PandocRes& res, In<sem::Time> time) {}
+void ExporterPandoc::visitTime(PandocRes& res, In<sem::Time> time) {
+    res = P("Str", time->getStatic().time.toString());
+}
 
 void ExporterPandoc::visitTimeRange(
     PandocRes&         res,
-    In<sem::TimeRange> range) {}
+    In<sem::TimeRange> range) {
+    res = P(
+        "Str",
+        range->from->getStatic().time.toString() + "--"
+            + range->to->getStatic().time.toString());
+}
 
-void ExporterPandoc::visitBold(PandocRes& res, In<sem::Bold> bold) {}
+void ExporterPandoc::visitBold(PandocRes& res, In<sem::Bold> bold) {
+    res = P("Strong", content(bold));
+}
 
-void ExporterPandoc::visitItalic(PandocRes& res, In<sem::Italic> italic) {}
+void ExporterPandoc::visitItalic(PandocRes& res, In<sem::Italic> italic) {
+    res = P("Emph", content(italic));
+}
 
 void ExporterPandoc::visitVerbatim(
     PandocRes&        res,
-    In<sem::Verbatim> verb) {}
+    In<sem::Verbatim> verb) {
+    res = P("Code", ar(Attr("verbatim"), ExporterUltraplain::toStr(verb)));
+}
 
 void ExporterPandoc::visitQuote(PandocRes& res, In<sem::Quote> quote) {}
 
-void ExporterPandoc::visitLink(PandocRes& res, In<sem::Link> link) {}
+void ExporterPandoc::visitLink(PandocRes& res, In<sem::Link> link) {
+    res = P("Str", "TODO-LINK");
+}
 
-void ExporterPandoc::visitList(PandocRes& res, In<sem::List> list) {}
+void ExporterPandoc::visitList(PandocRes& res, In<sem::List> list) {
+    json listItems = json::array();
+    for (auto const& sub : list->subnodes) {
+        sem::SemIdT<sem::ListItem> item = sub.as<sem::ListItem>();
+        json                       body = json::array();
+        for (auto const& part : item->subnodes) {
+            body.push_back(P("Plain", content(part)));
+        }
+        listItems.push_back(body);
+    }
+
+    res = P("BulletList", listItems);
+}
 
 void ExporterPandoc::visitListItem(
     PandocRes&        res,
@@ -183,7 +218,9 @@ void ExporterPandoc::visitHashTag(PandocRes& res, In<sem::HashTag> tag) {}
 
 void ExporterPandoc::visitEscaped(
     PandocRes&       res,
-    In<sem::Escaped> escaped) {}
+    In<sem::Escaped> escaped) {
+    res = P("Str", escaped->text);
+}
 
 void ExporterPandoc::visitUnderline(
     PandocRes&         res,
