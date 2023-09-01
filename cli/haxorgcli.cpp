@@ -19,6 +19,7 @@
 #include <exporters/exportersubtreestructure.hpp>
 #include <exporters/exportermindmap.hpp>
 #include <exporters/exporternlp.hpp>
+#include <exporters/exporterpandoc.hpp>
 #include <hstd/wrappers/perfetto_aux.hpp>
 #include <QGuiApplication>
 #include <perfetto.h>
@@ -1093,6 +1094,18 @@ void HaxorgCli::exec() {
 
         writeFile(config.exp.json->target, to_string(result));
         exportOk("Json", *config.exp.json);
+    }
+
+    if (config.exp.pandoc) {
+        __trace("Export pandoc");
+        ExporterPandoc exporter;
+        json           result = exporter.visitTop(node).toJson().at(0);
+
+        writeFile(
+            config.exp.pandoc->target,
+            QString::fromStdString(
+                to_compact_json(result, {.width = 120})));
+        exportOk("Pandoc", *config.exp.pandoc);
     }
 
     if (config.exp.yaml) {

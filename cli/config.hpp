@@ -405,10 +405,15 @@ struct Exporter : ReflectiveCli<Exporter> {
             ((Opt<QFileInfo>), httpCache, std::nullopt));
     };
 
+    struct Pandoc : CrtpPass<Pandoc> {
+        DECL_FIELDS(Pandoc, (CrtpPass<Pandoc>));
+    };
+
     DECL_FIELDS(
         Exporter,
         (),
         ((Opt<QDocument>), qdoc, std::nullopt),
+        ((Opt<Pandoc>), pandoc, std::nullopt),
         ((Opt<Yaml>), yaml, std::nullopt),
         ((Opt<Json>), json, std::nullopt),
         ((Opt<Parse>), parse, std::nullopt),
