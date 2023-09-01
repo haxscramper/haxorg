@@ -69,7 +69,8 @@ void ExporterTree::init(sem::SemId org) {
     }
 
     if (conf.withOriginalId) {
-        os << " ID:" << org->original.id.getUnmasked();
+        os << " ID:" << org.getReadableId()
+           << " OID:" << org->original.id.getUnmasked();
     }
 
     if (conf.withLineCol && org->loc.has_value()) {

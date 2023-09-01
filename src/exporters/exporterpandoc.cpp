@@ -83,7 +83,7 @@ json Attr(
 
 using osk = OrgSemKind;
 
-SemSet const NonToplevel = SemSet{osk::Newline};
+SemSet const NonToplevel = SemSet{osk::Newline, osk::Space, osk::Export};
 
 void ExporterPandoc::visitDocument(PandocRes& res, In<sem::Document> doc) {
     res = json::object({
@@ -186,19 +186,37 @@ void ExporterPandoc::visitVerbatim(
     res = P("Code", ar(Attr("verbatim"), ExporterUltraplain::toStr(verb)));
 }
 
-void ExporterPandoc::visitQuote(PandocRes& res, In<sem::Quote> quote) {}
+void ExporterPandoc::visitQuote(PandocRes& res, In<sem::Quote> quote) {
+    res = P("BlockQuote", ar(P("Para", content(quote->text))));
+}
 
 void ExporterPandoc::visitLink(PandocRes& res, In<sem::Link> link) {
-    res = P("Str", "TODO-LINK");
+    if (link->description) {
+        res = P(
+            "Link",
+            ar(Attr(""),
+               content(link->description.value()),
+               ar(""_qs, ""_qs)));
+    } else {
+        res = P("Str", "");
+    }
 }
 
 void ExporterPandoc::visitList(PandocRes& res, In<sem::List> list) {
     json listItems = json::array();
     for (auto const& sub : list->subnodes) {
-        sem::SemIdT<sem::ListItem> item = sub.as<sem::ListItem>();
-        json                       body = json::array();
-        for (auto const& part : item->subnodes) {
-            body.push_back(P("Plain", content(part)));
+        // Not exactly the same as what pandoc does with org mode file, but
+        // it seems to do the job. Pandoc puts the list entry at the end of
+        // the body as well, but haxorg has different AST structure. Later
+        // on this needs to be revisited.
+        json body = json::array();
+        if (sub.is(osk::List)) {
+            body.push_back(visit(sub).unpacked.at(0));
+        } else {
+            sem::SemIdT<sem::ListItem> item = sub.as<sem::ListItem>();
+            for (auto const& part : item->subnodes) {
+                body.push_back(P("Plain", content(part)));
+            }
         }
         listItems.push_back(body);
     }
@@ -212,9 +230,13 @@ void ExporterPandoc::visitListItem(
 
 void ExporterPandoc::visitTextSeparator(
     PandocRes&             res,
-    In<sem::TextSeparator> sep) {}
+    In<sem::TextSeparator> sep) {
+    res = P("HorizontalRule", "");
+}
 
-void ExporterPandoc::visitHashTag(PandocRes& res, In<sem::HashTag> tag) {}
+void ExporterPandoc::visitHashTag(PandocRes& res, In<sem::HashTag> tag) {
+    res = P("Str", tag->head);
+}
 
 void ExporterPandoc::visitEscaped(
     PandocRes&       res,
@@ -224,12 +246,91 @@ void ExporterPandoc::visitEscaped(
 
 void ExporterPandoc::visitUnderline(
     PandocRes&         res,
-    In<sem::Underline> under) {}
+    In<sem::Underline> under) {
+    res = P("Underline", content(under));
+}
 
-void ExporterPandoc::visitSymbol(PandocRes& res, In<sem::Symbol> sym) {}
+void ExporterPandoc::visitSymbol(PandocRes& res, In<sem::Symbol> sym) {
+    res = P("Str", sym->name);
+}
 
-void ExporterPandoc::visitCenter(PandocRes& res, In<sem::Center> center) {}
+void ExporterPandoc::visitCenter(PandocRes& res, In<sem::Center> center) {
+    res = P("Str", "CENTER");
+}
 
-void ExporterPandoc::visitExport(PandocRes& res, In<sem::Export> exp) {}
+void ExporterPandoc::visitExport(PandocRes& res, In<sem::Export> exp) {
+    res = P("Str", "EXPORT");
+}
 
-void ExporterPandoc::visitEmpty(PandocRes& res, In<sem::Empty> empty) {}
+void ExporterPandoc::visitEmpty(PandocRes& res, In<sem::Empty> empty) {
+    res = P("Str", "");
+}
+
+void ExporterPandoc::visitStmtList(
+    PandocRes&                 res,
+    sem::SemIdT<sem::StmtList> arg) {}
+
+void ExporterPandoc::visitAtMention(
+    PandocRes&                  res,
+    sem::SemIdT<sem::AtMention> arg) {}
+void ExporterPandoc::visitMarkQuote(
+    PandocRes&                  res,
+    sem::SemIdT<sem::MarkQuote> arg) {}
+void ExporterPandoc::visitInlineMath(
+    PandocRes&                   res,
+    sem::SemIdT<sem::InlineMath> arg) {}
+void ExporterPandoc::visitCode(
+    PandocRes&             res,
+    sem::SemIdT<sem::Code> arg) {}
+void ExporterPandoc::visitPar(PandocRes& res, sem::SemIdT<sem::Par> arg) {}
+void ExporterPandoc::visitCmdArguments(
+    PandocRes&                     res,
+    sem::SemIdT<sem::CmdArguments> arg) {}
+void ExporterPandoc::visitCommandGroup(
+    PandocRes&                     res,
+    sem::SemIdT<sem::CommandGroup> arg) {}
+void ExporterPandoc::visitFileTarget(
+    PandocRes&                   res,
+    sem::SemIdT<sem::FileTarget> arg) {}
+void ExporterPandoc::visitTable(
+    PandocRes&              res,
+    sem::SemIdT<sem::Table> arg) {}
+void ExporterPandoc::visitRow(PandocRes& res, sem::SemIdT<sem::Row> arg) {}
+void ExporterPandoc::visitDocumentGroup(
+    PandocRes&                      res,
+    sem::SemIdT<sem::DocumentGroup> arg) {}
+void ExporterPandoc::visitCmdArgument(
+    PandocRes&                    res,
+    sem::SemIdT<sem::CmdArgument> arg) {}
+void ExporterPandoc::visitDocumentOptions(
+    PandocRes&                        res,
+    sem::SemIdT<sem::DocumentOptions> arg) {}
+void ExporterPandoc::visitAdmonitionBlock(
+    PandocRes&                        res,
+    sem::SemIdT<sem::AdmonitionBlock> arg) {}
+void ExporterPandoc::visitSubtreeLog(
+    PandocRes&                   res,
+    sem::SemIdT<sem::SubtreeLog> arg) {}
+void ExporterPandoc::visitCaption(
+    PandocRes&                res,
+    sem::SemIdT<sem::Caption> cap) {
+    res = visit(cap->text);
+}
+void ExporterPandoc::visitInclude(
+    PandocRes&                res,
+    sem::SemIdT<sem::Include> arg) {}
+void ExporterPandoc::visitStrike(
+    PandocRes&               res,
+    sem::SemIdT<sem::Strike> arg) {}
+void ExporterPandoc::visitCompletion(
+    PandocRes&                   res,
+    sem::SemIdT<sem::Completion> arg) {}
+void ExporterPandoc::visitMacro(
+    PandocRes&              res,
+    sem::SemIdT<sem::Macro> arg) {}
+void ExporterPandoc::visitExample(
+    PandocRes&                res,
+    sem::SemIdT<sem::Example> arg) {}
+void ExporterPandoc::visitParseError(
+    PandocRes&                   res,
+    sem::SemIdT<sem::ParseError> arg) {}
