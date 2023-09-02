@@ -117,11 +117,15 @@ void ExporterPandoc::visitPunctuation(
 
 void ExporterPandoc::visitPlaceholder(
     PandocRes&           res,
-    In<sem::Placeholder> item) {}
+    In<sem::Placeholder> item) {
+    res = P("Code", ar(Attr(""), "<" + item->text + ">"));
+}
 
 void ExporterPandoc::visitMonospace(
     PandocRes&         res,
-    In<sem::Monospace> monospace) {}
+    In<sem::Monospace> monospace) {
+    res = P("Code", ar(Attr(""), ExporterUltraplain::toStr(monospace)));
+}
 
 void ExporterPandoc::visitBigIdent(
     PandocRes&        res,
@@ -255,7 +259,7 @@ void ExporterPandoc::visitSymbol(PandocRes& res, In<sem::Symbol> sym) {
 }
 
 void ExporterPandoc::visitCenter(PandocRes& res, In<sem::Center> center) {
-    res = P("Str", "CENTER");
+    res = P("Div", ar(Attr("", {"center"}), content(center)));
 }
 
 void ExporterPandoc::visitExport(PandocRes& res, In<sem::Export> exp) {
@@ -272,65 +276,98 @@ void ExporterPandoc::visitStmtList(
 
 void ExporterPandoc::visitAtMention(
     PandocRes&                  res,
-    sem::SemIdT<sem::AtMention> arg) {}
+    sem::SemIdT<sem::AtMention> arg) {
+    res = P("Str", "@" + arg->text);
+}
+
 void ExporterPandoc::visitMarkQuote(
     PandocRes&                  res,
     sem::SemIdT<sem::MarkQuote> arg) {}
+
 void ExporterPandoc::visitInlineMath(
     PandocRes&                   res,
-    sem::SemIdT<sem::InlineMath> arg) {}
+    sem::SemIdT<sem::InlineMath> arg) {
+    res = P("Str", "INLINE-MATH");
+}
+
 void ExporterPandoc::visitCode(
     PandocRes&             res,
     sem::SemIdT<sem::Code> arg) {}
+
 void ExporterPandoc::visitPar(PandocRes& res, sem::SemIdT<sem::Par> arg) {}
+
 void ExporterPandoc::visitCmdArguments(
     PandocRes&                     res,
     sem::SemIdT<sem::CmdArguments> arg) {}
+
 void ExporterPandoc::visitCommandGroup(
     PandocRes&                     res,
     sem::SemIdT<sem::CommandGroup> arg) {}
+
 void ExporterPandoc::visitFileTarget(
     PandocRes&                   res,
     sem::SemIdT<sem::FileTarget> arg) {}
+
 void ExporterPandoc::visitTable(
     PandocRes&              res,
     sem::SemIdT<sem::Table> arg) {}
+
 void ExporterPandoc::visitRow(PandocRes& res, sem::SemIdT<sem::Row> arg) {}
+
 void ExporterPandoc::visitDocumentGroup(
     PandocRes&                      res,
     sem::SemIdT<sem::DocumentGroup> arg) {}
+
 void ExporterPandoc::visitCmdArgument(
     PandocRes&                    res,
     sem::SemIdT<sem::CmdArgument> arg) {}
+
 void ExporterPandoc::visitDocumentOptions(
     PandocRes&                        res,
     sem::SemIdT<sem::DocumentOptions> arg) {}
+
 void ExporterPandoc::visitAdmonitionBlock(
     PandocRes&                        res,
     sem::SemIdT<sem::AdmonitionBlock> arg) {}
+
 void ExporterPandoc::visitSubtreeLog(
     PandocRes&                   res,
     sem::SemIdT<sem::SubtreeLog> arg) {}
+
 void ExporterPandoc::visitCaption(
     PandocRes&                res,
     sem::SemIdT<sem::Caption> cap) {
     res = visit(cap->text);
 }
+
 void ExporterPandoc::visitInclude(
     PandocRes&                res,
     sem::SemIdT<sem::Include> arg) {}
+
 void ExporterPandoc::visitStrike(
     PandocRes&               res,
-    sem::SemIdT<sem::Strike> arg) {}
+    sem::SemIdT<sem::Strike> arg) {
+    res = P("Strikeout", content(arg));
+}
+
 void ExporterPandoc::visitCompletion(
     PandocRes&                   res,
     sem::SemIdT<sem::Completion> arg) {}
+
 void ExporterPandoc::visitMacro(
     PandocRes&              res,
-    sem::SemIdT<sem::Macro> arg) {}
+    sem::SemIdT<sem::Macro> arg) {
+    res = P("Str", "INLINE-MACRO");
+}
+
 void ExporterPandoc::visitExample(
     PandocRes&                res,
-    sem::SemIdT<sem::Example> arg) {}
+    sem::SemIdT<sem::Example> arg) {
+    res = P(
+        "CodeBlock",
+        ar(Attr("", {"example"}), ExporterUltraplain::toStr(arg)));
+}
+
 void ExporterPandoc::visitParseError(
     PandocRes&                   res,
     sem::SemIdT<sem::ParseError> arg) {}

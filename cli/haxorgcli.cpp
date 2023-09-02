@@ -24,6 +24,7 @@
 #include <QGuiApplication>
 #include <perfetto.h>
 #include <hstd/stdlib/algorithms.hpp>
+#include <sem/semdatastream.hpp>
 
 
 using org = OrgNodeKind;
@@ -973,6 +974,17 @@ void HaxorgCli::exec() {
     {
         __trace("convert parse to sem");
         node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+    }
+
+    {
+        {
+            __trace("Write binary data for sem conversion");
+            QFile file{"/tmp/sem_binary.dat"};
+            file.open(QIODevice::WriteOnly | QIODevice::Truncate);
+            QDataStream out{&file};
+            SemDataStream().write(out, &store);
+            file.close();
+        }
     }
 
     if (config.trace.sem.dump) {

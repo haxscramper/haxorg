@@ -11,6 +11,7 @@
 #include <sem/ErrorWrite.hpp>
 #include "config.hpp"
 
+
 struct HaxorgCli {
     // TODO support processing multiple files, token groups
     OrgTokenGroup              tokens;
