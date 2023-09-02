@@ -982,8 +982,27 @@ void HaxorgCli::exec() {
             QFile file{"/tmp/sem_binary.dat"};
             file.open(QIODevice::WriteOnly | QIODevice::Truncate);
             QDataStream out{&file};
-            SemDataStream().write(out, &store);
+            SemDataStream().write(out, store);
             file.close();
+        }
+
+        {
+            sem::ContextStore inStore;
+            {
+                __trace("Read binary data for sem conversion");
+                QFile file{"/tmp/sem_binary.dat"};
+                file.open(QIODevice::ReadOnly);
+                QDataStream out{&file};
+                SemDataStream().read(out, &inStore);
+                file.close();
+            }
+
+            auto ctx = openFileOrStream(
+                QFileInfo("/tmp/unparsed_tree_sem_dump.txt"), true);
+            ColStream os{ctx->stream};
+            os.colored = false;
+            ExporterTree(os).visitTop(
+                sem::SemId(0, OrgSemKind::Document, 0, &inStore));
         }
     }
 

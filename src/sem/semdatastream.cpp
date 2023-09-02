@@ -163,6 +163,7 @@ QDataStream& operator<<(
 
 template <typename K, typename V>
 QDataStream& operator>>(QDataStream& out, UnorderedMap<K, V>& value) {
+    qFatal() << "XXXD dead";
     return out;
 }
 
@@ -176,8 +177,7 @@ QDataStream& operator<<(QDataStream& out, T const& value) {
 
 template <IsVariant T>
 QDataStream& operator>>(QDataStream& out, T& value) {
-
-
+    qFatal() << "XXXD dead";
     return out;
 }
 
@@ -266,6 +266,7 @@ void SemDataStream::read(QDataStream& in, sem::ParseUnitStore& store) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
         read_store<sem::__Kind>(in, store.store##__Kind);                 \
+        break;                                                            \
     }
             EACH_SEM_ORG_KIND(_case)
 #undef _case
@@ -288,6 +289,7 @@ void SemDataStream::write(
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
         write_store<sem::__Kind>(out, store.store##__Kind);               \
+        break;                                                            \
     }
             EACH_SEM_ORG_KIND(_case)
 #undef _case
@@ -296,12 +298,14 @@ void SemDataStream::write(
 }
 
 void SemDataStream::read(QDataStream& in, sem::ContextStore* store) {
-    int storeCount;
+    int storeCount = 0;
     in >> storeCount;
+    _dbg(storeCount);
+    Q_ASSERT_X(storeCount == 1, "DBG", to_string(storeCount));
     currentContenxt = store;
     store->stores.resize(storeCount, store);
     for (sem::ParseUnitStore& unit : store->stores) {
-        read(in, store);
+        read(in, unit);
     }
     currentContenxt = nullptr;
 }
@@ -309,5 +313,9 @@ void SemDataStream::read(QDataStream& in, sem::ContextStore* store) {
 void SemDataStream::write(
     QDataStream&             out,
     const sem::ContextStore& store) {
-    out << store.stores.size();
+    out << (int)store.stores.size();
+    _dbg(store.stores.size());
+    for (auto const& unit : store.stores) {
+        write(out, unit);
+    }
 }
