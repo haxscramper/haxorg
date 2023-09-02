@@ -94,6 +94,7 @@ EACH_SEM_ORG_KIND(_create)
 
 Org* SemId::get() {
     Q_ASSERT(!isNil());
+    Q_CHECK_PTR(context);
     return context->getStoreByIndex(getStoreIndex())
         .get(getKind(), getNodeIndex());
 }

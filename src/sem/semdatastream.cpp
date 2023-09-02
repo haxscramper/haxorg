@@ -53,6 +53,7 @@ sem::ContextStore* currentContenxt;
 template <typename T>
 struct DefaultBuilder<sem::SemIdT<T>> {
     static sem::SemIdT<T> get() {
+        Q_CHECK_PTR(currentContenxt);
         sem::SemIdT<T> result = sem::SemIdT<T>::Nil();
         result.context        = currentContenxt;
         return result;
@@ -63,6 +64,7 @@ struct DefaultBuilder<sem::SemIdT<T>> {
 template <>
 struct DefaultBuilder<sem::SemId> {
     static sem::SemId get() {
+        Q_CHECK_PTR(currentContenxt);
         sem::SemId result = sem::SemId::Nil();
         result.context    = currentContenxt;
         return result;
@@ -77,15 +79,32 @@ struct DefaultBuilder<sem::Subtree::Property> {
 };
 
 template <>
+struct DefaultBuilder<sem::SubtreeLog::Priority> {
+    static sem::SubtreeLog::Priority get() {
+        return sem::SubtreeLog::Priority{};
+    }
+};
+
+
+template <>
 struct DefaultBuilder<sem::Code::Switch> {
     static sem::Code::Switch get() {
         return sem::Code::Switch{sem::Code::Switch::Dedent{}};
     }
 };
 
+template <>
+struct DefaultBuilder<sem::Code::Switch::LineStart> {
+    static sem::Code::Switch::LineStart get() {
+        return sem::Code::Switch::LineStart{};
+    }
+};
+
 
 QDataStream& operator>>(QDataStream& in, sem::SemId& value) {
     in >> value.id;
+    Q_CHECK_PTR(currentContenxt);
+    value.context = currentContenxt;
     return in;
 }
 
@@ -119,6 +138,8 @@ QDataStream& operator>>(QDataStream& in, sem::SemIdT<T>& value) {
     sem::SemId tmp = sem::SemId::Nil();
     in >> tmp;
     value = typename sem::SemIdT<T>(tmp);
+    Q_CHECK_PTR(currentContenxt);
+    value.context = currentContenxt;
     return in;
 }
 
@@ -163,7 +184,15 @@ QDataStream& operator<<(
 
 template <typename K, typename V>
 QDataStream& operator>>(QDataStream& out, UnorderedMap<K, V>& value) {
-    qFatal() << "XXXD dead";
+    int size = 0;
+    out >> size;
+    for (int i = 0; i < size; ++i) {
+        K key  = DefaultBuilder<K>::get();
+        V next = DefaultBuilder<V>::get();
+        out >> key;
+        out >> next;
+        value.insert({key, next});
+    }
     return out;
 }
 
@@ -175,9 +204,23 @@ QDataStream& operator<<(QDataStream& out, T const& value) {
     return out;
 }
 
+template <typename V>
+auto variant_from_index(size_t index) -> V {
+    return boost::mp11::mp_with_index<boost::mp11::mp_size<V>>(
+        index, [](auto I) {
+            return V(
+                std::in_place_index<I>,
+                DefaultBuilder<std::variant_alternative_t<I, V>>::get());
+        });
+}
+
+
 template <IsVariant T>
 QDataStream& operator>>(QDataStream& out, T& value) {
-    qFatal() << "XXXD dead";
+    int idx = 0;
+    out >> idx;
+    value = variant_from_index<T>(idx);
+    std::visit([&](auto& res) { out >> res; }, value);
     return out;
 }
 
@@ -188,6 +231,41 @@ QDataStream& operator>>(QDataStream& in, UserTime& value) {
 
 QDataStream& operator<<(QDataStream& out, UserTime const& value) {
     out << value.time;
+    return out;
+}
+
+QDataStream& operator>>(QDataStream& in, LineCol& value) {
+    in >> value.line >> value.column >> value.pos;
+    return in;
+}
+
+QDataStream& operator<<(QDataStream& out, LineCol const& value) {
+    out << value.line << value.column << value.pos;
+    return out;
+}
+
+
+QDataStream& operator>>(QDataStream& in, OrgAdapter& value) {
+    OrgId::id_base_type id;
+    in >> id;
+    value.id.setValue(id);
+    return in;
+}
+
+QDataStream& operator<<(QDataStream& out, OrgAdapter const& value) {
+    out << value.id.getValue();
+    return out;
+}
+
+QDataStream& operator>>(QDataStream& in, sem::Org& value) {
+    in >> value.subnodes >> value.loc >> value.original >> value.parent
+        >> value.placementContext;
+    return in;
+}
+
+QDataStream& operator<<(QDataStream& out, sem::Org const& value) {
+    out << value.subnodes << value.loc << value.original << value.parent
+        << value.placementContext;
     return out;
 }
 
