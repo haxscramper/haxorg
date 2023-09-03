@@ -19,23 +19,57 @@ struct ExporterEventLog : public Exporter<ExporterEventLog, int> {
 
     struct Event {
         struct KindBase {
-            sem::SemIdT<sem::Time> time;
-            sem::SemId             original;
+            DECL_FIELDS(
+                KindBase,
+                (),
+                ((sem::SemId), original, sem::SemId::Nil()),
+                ((sem::SemIdT<sem::Time>),
+                 time,
+                 sem::SemIdT<sem::Time>::Nil()));
         };
 
-        struct SubtreeCreated : KindBase {};
-        struct ListLogWritten : KindBase {
-            sem::SemIdT<sem::ListItem> item;
+        struct SubtreeCreated : KindBase {
+            DECL_FIELDS(SubtreeCreated, (KindBase));
         };
-        struct SubtreeLogWritten : KindBase {};
-        struct TagAssigned : KindBase {};
-        struct TagRemoved : KindBase {};
-        struct SubtreeRescheduled : KindBase {};
-        struct SubtreeRefiled : KindBase {};
-        struct SubtreeScheduled : KindBase {};
+
+        struct ListLogWritten : KindBase {
+            DECL_FIELDS(
+                ListLogWritten,
+                (KindBase),
+                ((sem::SemIdT<sem::ListItem>),
+                 item,
+                 sem::SemIdT<sem::ListItem>::Nil()));
+        };
+
+        struct SubtreeLogWritten : KindBase {
+            DECL_FIELDS(SubtreeLogWritten, (KindBase));
+        };
+
+        struct TagAssigned : KindBase {
+            DECL_FIELDS(TagAssigned, (KindBase));
+        };
+
+        struct TagRemoved : KindBase {
+            DECL_FIELDS(TagRemoved, (KindBase));
+        };
+
+        struct SubtreeRescheduled : KindBase {
+            DECL_FIELDS(SubtreeRescheduled, (KindBase));
+        };
+
+        struct SubtreeRefiled : KindBase {
+            DECL_FIELDS(SubtreeRefiled, (KindBase));
+        };
+
+        struct SubtreeScheduled : KindBase {
+            DECL_FIELDS(SubtreeScheduled, (KindBase));
+        };
+
         /// \brief Clock started in the subtree -- without completion
         /// information
-        struct ClockStarted : KindBase {};
+        struct ClockStarted : KindBase {
+            DECL_FIELDS(ClockStarted, (KindBase));
+        };
         /// \brief Clock ended in the subtree -- with start and end
         /// completion information.
         ///
@@ -44,10 +78,21 @@ struct ExporterEventLog : public Exporter<ExporterEventLog, int> {
         /// completed clock is represented as 'started-completed' pair in
         /// the log export
         struct ClockCompleted : KindBase {
-            sem::SemIdT<sem::Time> at;
+            DECL_FIELDS(
+                ClockCompleted,
+                (KindBase),
+                ((sem::SemIdT<sem::Time>),
+                 at,
+                 sem::SemIdT<sem::Time>::Nil()));
         };
-        struct SubtreeStateAssigned : KindBase {};
-        struct SubtreeClosed : KindBase {};
+
+        struct SubtreeStateAssigned : KindBase {
+            DECL_FIELDS(SubtreeStateAssigned, (KindBase));
+        };
+
+        struct SubtreeClosed : KindBase {
+            DECL_FIELDS(SubtreeClosed, (KindBase));
+        };
 
         SUB_VARIANTS(
             Kind,

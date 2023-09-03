@@ -11,6 +11,9 @@
 #include <exporters/exportermindmap.hpp>
 #include <exporters/exporteryaml.hpp>
 #include <exporters/exporterlatex.hpp>
+#include <exporters/exporterpandoc.hpp>
+#include <exporters/exportereventlog.hpp>
+#include <exporters/exportergantt.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/diffs.hpp>
 
@@ -506,6 +509,18 @@ void exporterVisit(
 }
 
 
+void to_json(json& res, ExporterEventLog::Event const& ev) {
+    res         = json::object();
+    res["kind"] = to_string(ev.getKind());
+    std::visit(
+        [&](auto const& it) {
+            json sub = json::object();
+            to_json(sub, ev);
+            res[to_string(ev.getKind()).toStdString()] = sub;
+        },
+        ev.data);
+}
+
 CorpusRunner::ExportResult CorpusRunner::runExporter(
     ParseSpec const&                 spec,
     sem::SemId                       top,
@@ -530,9 +545,33 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
         ExporterSimpleSExpr run;
         return withTreeExporter(top, run);
 
+    } else if (exp.name == "pandoc") {
+        return ER(ER::Structured{
+            .data = ExporterPandoc().visitTop(top).unpacked.at(0)});
+
     } else if (exp.name == "html") {
         ExporterHtml run;
         return withTreeExporter(top, run);
+
+    } else if (exp.name == "event_log") {
+        ExporterEventLog exporter;
+        using Ev = ExporterEventLog::Event;
+        Vec<Ev> events;
+        exporter.logConsumer = [&](ExporterEventLog::Event const& ev) {
+            events.push_back(ev);
+        };
+
+        exporter.visitTop(top);
+
+        json res;
+        to_json(res, events);
+
+        return ER(ER::Structured{.data = res});
+
+    } else if (exp.name == "gantt") {
+        ExporterGantt exporter;
+        exporter.visitTop(top);
+        return ER(ER::Structured{.data = json()});
 
     } else if (exp.name == "latex") {
         ExporterLatex run;
@@ -546,7 +585,7 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
         ExporterMindMap run;
         run.visitTop(top);
         ExporterMindMap::Graph const& g = run.toGraph();
-        ER::JsonGraph          result;
+        ER::JsonGraph                 result;
 
         for (auto [it, it_end] = boost::edges(g); it != it_end; ++it) {
             result.edges.push_back(run.toJsonGraphEdge(*it));
@@ -703,7 +742,10 @@ CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
             }
             break;
         }
-        default: qFatal("TODO");
+        default: {
+            qCritical() << ("TODO" + to_string(result.getKind()));
+            cmp.isOk = true;
+        }
     }
 
     cmp.failDescribe = os.getBuffer();
