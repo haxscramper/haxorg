@@ -2,6 +2,8 @@
 #include "org_parse_aux.hpp"
 #include <gtest/gtest.h>
 
+#include <sem/semdatastream.hpp>
+
 #include <parse/OrgParser.hpp>
 #include <parse/OrgTokenizer.hpp>
 #include <gtest/gtest.h>
@@ -102,6 +104,153 @@ TEST(TestFiles, AllNodeCoverage) {
         FAIL() << "'all.org' test file missing node coverage for "
                << diff.size() << " nodes: '" << missing << "'";
     }
+}
+
+template <typename T, typename Func>
+void for_each_field_with_bases(Func cb) {
+    boost::mp11::mp_for_each<boost::describe::describe_bases<
+        T,
+        boost::describe::mod_any_access>>([&](auto Base) {
+        for_each_field_with_bases<typename decltype(Base)::type>(cb);
+    });
+
+    boost::mp11::mp_for_each<boost::describe::describe_members<
+        T,
+        boost::describe::mod_any_access>>(cb);
+}
+
+template <typename T>
+int field_count() {
+    int result = 0;
+    for_each_field_with_bases<T>([&](auto const&) { ++result; });
+    return result;
+}
+
+template <typename T>
+bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
+    bool equal = true;
+
+    for_each_field_with_bases<T>([&](auto const& field) {
+        equal &= (lhs.*field.pointer == rhs.*field.pointer);
+    });
+
+    return equal;
+}
+
+#define EACH_ORG_NESTED_TYPE(__IMPL)                                      \
+    __IMPL(sem::Code::Switch)                                             \
+    __IMPL(sem::Code::Switch::LineStart)                                  \
+    __IMPL(sem::Code::Switch::CalloutFormat)                              \
+    __IMPL(sem::Code::Switch::RemoveCallout)                              \
+    __IMPL(sem::Code::Switch::EmphasizeLine)                              \
+    __IMPL(sem::Code::Switch::Dedent)                                     \
+    __IMPL(sem::SubtreeLog::Priority)                                     \
+    __IMPL(sem::SubtreeLog::Note)                                         \
+    __IMPL(sem::SubtreeLog::Refile)                                       \
+    __IMPL(sem::SubtreeLog::Clock)                                        \
+    __IMPL(sem::SubtreeLog::State)                                        \
+    __IMPL(sem::SubtreeLog::Tag)                                          \
+    __IMPL(sem::Subtree::Property)                                        \
+    __IMPL(sem::Subtree::Property::Created)                               \
+    __IMPL(sem::Subtree::Property::Unnumbered)                            \
+    __IMPL(sem::Subtree::Property::Blocker)                               \
+    __IMPL(sem::Subtree::Property::ExportOptions)                         \
+    __IMPL(sem::Subtree::Property::Visibility)                            \
+    __IMPL(sem::Subtree::Property::Effort)                                \
+    __IMPL(sem::Subtree::Property::Ordered)                               \
+    __IMPL(sem::Subtree::Property::ExportLatexClass)                      \
+    __IMPL(sem::Subtree::Property::ExportLatexClassOptions)               \
+    __IMPL(sem::Subtree::Property::ExportLatexCompiler)                   \
+    __IMPL(sem::Subtree::Property::ExportLatexHeader)                     \
+    __IMPL(sem::Subtree::Property::Origin)                                \
+    __IMPL(sem::Subtree::Property::Trigger)                               \
+    __IMPL(sem::Subtree::Property::Nonblocking)                           \
+    __IMPL(sem::Time::Static)                                             \
+    __IMPL(sem::Time::Dynamic)                                            \
+    __IMPL(sem::Symbol::Param)                                            \
+    __IMPL(sem::Time::Repeat)                                             \
+    __IMPL(sem::Link::Id)                                                 \
+    __IMPL(sem::Link::Raw)                                                \
+    __IMPL(sem::Link::Person)                                             \
+    __IMPL(sem::Link::Footnote)                                           \
+    __IMPL(sem::Link::File)                                               \
+    __IMPL(sem::Include::Example)                                         \
+    __IMPL(sem::Include::Export)                                          \
+    __IMPL(sem::Include::OrgDocument)                                     \
+    __IMPL(sem::Include::Src)
+
+#define __eq(__Type)                                                      \
+    bool operator==(CR<__Type> lhs, CR<__Type> rhs) {                     \
+        return equal_on_all_fields<__Type>(lhs, rhs);                     \
+    }                                                                     \
+    bool operator!=(CR<__Type> lhs, CR<__Type> rhs) {                     \
+        return (field_count<__Type> != 0)                                 \
+            && !equal_on_all_fields<__Type>(lhs, rhs);                    \
+    }
+
+namespace sem {
+EACH_ORG_NESTED_TYPE(__eq)
+}
+
+#undef __eq
+
+bool operator==(CR<UserTime> lhs, CR<UserTime> rhs) {
+    return lhs.time == rhs.time;
+}
+
+TEST(TestFiles, RoundtripBinarySerialization) {
+    QString  file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    MockFull p{false, false};
+    QString  source = readFile(QFileInfo(file));
+    p.run(source, &T::lexGlobal, &P::parseFull);
+
+    SemSet            foundNodes;
+    sem::ContextStore originalStore;
+    sem::ContextStore parsedStore;
+    sem::OrgConverter converter{&originalStore};
+    sem::SemId node = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+
+    QByteArray data;
+    {
+        QDataStream out{&data, QIODevice::WriteOnly};
+        SemDataStream().write(out, originalStore);
+    }
+    {
+        QDataStream in{data};
+        SemDataStream().read(in, &parsedStore);
+    }
+
+    int  fieldCount = 0;
+    auto cmpNode    = [&]<typename T>(CR<T> lhs, CR<T> rhs) {
+        for_each_field_with_bases<T>([&](auto const& field) {
+            ++fieldCount;
+            EXPECT_EQ(lhs.*field.pointer, rhs.*field.pointer)
+                << field.name;
+        });
+    };
+
+    auto cmpStores = [&]<typename T>(
+                         sem::KindStore<T> const& lhsStore,
+                         sem::KindStore<T> const& rhsStore) {
+        EXPECT_EQ(lhsStore.values.size(), rhsStore.values.size());
+        for (int i = 0; i < lhsStore.size(); ++i) {
+            cmpNode(lhsStore.values.at(i), rhsStore.values.at(i));
+        }
+    };
+
+    EXPECT_EQ(parsedStore.stores.size(), 1);
+    EXPECT_EQ(originalStore.stores.size(), 1);
+
+    sem::ParseUnitStore const& original = originalStore.stores.at(0);
+    sem::ParseUnitStore const& parsed   = parsedStore.stores.at(0);
+
+#define _case(__Kind)                                                     \
+    { cmpStores(original.store##__Kind, parsed.store##__Kind); }
+
+    EACH_SEM_ORG_KIND(_case)
+#undef _case
+
+    qDebug() << fieldCount;
 }
 
 TEST(SimpleNodeConversion, SingleHashTagToken) {
