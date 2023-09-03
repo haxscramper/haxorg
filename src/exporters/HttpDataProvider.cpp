@@ -156,7 +156,6 @@ struct PostCacheData {
 
 void HttpDataProvider::enqueue(const QueueData& data) {
     QMutexLocker locker{&queueMutex};
-    Q_ASSERT(!data.response.url.isEmpty());
     if (!data.response.isError) {
         Q_ASSERT(!data.response.content.isEmpty());
     }
@@ -274,8 +273,6 @@ HttpDataProvider::ResponseData HttpDataProvider::getCached(
     } else {
         throw std::domain_error("Missing key in caches");
     }
-
-    Q_ASSERT(!result.data.isEmpty());
 
     return result;
 }
