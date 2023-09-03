@@ -190,6 +190,42 @@ QTextStream& described_class_printer(QTextStream& os, T const& t) {
     return os;
 }
 
+template <typename T, typename Func>
+void for_each_field_with_bases(Func cb, bool pre_bases = true) {
+    if (pre_bases) {
+        boost::mp11::mp_for_each<boost::describe::describe_bases<
+            T,
+            boost::describe::mod_any_access>>([&](auto Base) {
+            for_each_field_with_bases<typename decltype(Base)::type>(
+                cb, pre_bases);
+        });
+    }
+
+    boost::mp11::mp_for_each<boost::describe::describe_members<
+        T,
+        boost::describe::mod_any_access>>(cb);
+
+    if (!pre_bases) {
+        boost::mp11::mp_for_each<boost::describe::describe_bases<
+            T,
+            boost::describe::mod_any_access>>([&](auto Base) {
+            for_each_field_with_bases<typename decltype(Base)::type>(
+                cb, pre_bases);
+        });
+    }
+}
+
+template <typename T>
+bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
+    bool equal = true;
+
+    for_each_field_with_bases<T>([&](auto const& field) {
+        equal &= (lhs.*field.pointer == rhs.*field.pointer);
+    });
+
+    return equal;
+}
+
 #define REFL_DEFINE_DESCRIBED_OSTREAM(TypeName)                           \
     inline QTextStream& operator<<(                                       \
         QTextStream& os, CR<TypeName> const& value) {                     \
