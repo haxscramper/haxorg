@@ -42,6 +42,68 @@ TEST(TestFiles, Spec) {
     ParseSpec  parsed(spec, file, __CURRENT_FILE_DIR__.path());
 }
 
+
+TEST(TestFiles, AllNodeCoverage) {
+    QString  file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    MockFull p{false, false};
+    QString  source = readFile(QFileInfo(file));
+    p.run(source, &T::lexGlobal, &P::parseFull);
+
+    SemSet            foundNodes;
+    sem::ContextStore context;
+    sem::OrgConverter converter{&context};
+    sem::SemId node = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+    context.eachNode([&](sem::OrgVariant const& var) {
+        std::visit(
+            [&](auto const& id) { foundNodes.incl(id->getKind()); }, var);
+    });
+
+    using osk = OrgSemKind;
+    SemSet wipNotParseable{
+        osk::Include,
+        osk::DocumentGroup,
+        osk::Empty,
+        osk::Row,
+        osk::Table,
+        osk::Completion,
+        osk::CommandGroup,
+        osk::Quote,
+        osk::MarkQuote,
+        osk::StmtList,
+        osk::AdmonitionBlock,
+        osk::FileTarget,
+        osk::ParseError,
+        osk::Code,
+        osk::SubtreeLog,
+        osk::Escaped,
+        osk::Par,
+    };
+
+    if (!(foundNodes & wipNotParseable).empty()) {
+        FAIL() << "Hack plug with fake found nodes covers too much:"
+               << to_string(foundNodes & wipNotParseable);
+    }
+
+    foundNodes.incl(wipNotParseable);
+
+    SemSet expectedNodes;
+    for (auto const& value : sliceT<OrgSemKind>()) {
+        expectedNodes.incl(value);
+    }
+
+    if (expectedNodes.size() != foundNodes.size()) {
+        Vec<OrgSemKind> diff;
+        for (auto const& v : expectedNodes - foundNodes) {
+            diff.push_back(v);
+        }
+        QString missing = join(", ", map(diff, [](OrgSemKind value) {
+                                   return to_string(value);
+                               }));
+        FAIL() << "'all.org' test file missing node coverage for "
+               << diff.size() << " nodes: '" << missing << "'";
+    }
+}
+
 TEST(SimpleNodeConversion, SingleHashTagToken) {
     MockFull p(false, false);
     p.run("#test", &T::lexText, &P::parseHashTag);
