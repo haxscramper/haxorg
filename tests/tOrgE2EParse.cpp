@@ -39,7 +39,7 @@ diff::ComparisonOptions<NodeId<N, K>, Val> nodeAdapterComparisonOptions(
 TEST(TestFiles, Spec) {
     auto       file = (__CURRENT_FILE_DIR__ / "spec.yaml");
     YAML::Node spec = YAML::LoadFile(file.toStdString());
-    ParseSpec  parsed(spec, file);
+    ParseSpec  parsed(spec, file, __CURRENT_FILE_DIR__.path());
 }
 
 TEST(SimpleNodeConversion, SingleHashTagToken) {
@@ -187,5 +187,3 @@ TEST(Algorithms, PartitioningPositiveNegativeNumbers) {
     EXPECT_EQ(result[1], Vec<int>({3, 4}));
     EXPECT_EQ(result[2], Vec<int>({-5}));
 }
-
-

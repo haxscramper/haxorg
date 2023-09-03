@@ -205,19 +205,43 @@ QFileInfo ParseSpec::debugFile(QString relativePath, bool create) const {
     }
 }
 
-ParseSpec::ParseSpec(CR<yaml> node, CR<QString> specFile)
+ParseSpec::ParseSpec(
+    CR<yaml>    node,
+    CR<QString> specFile,
+    CR<QString> testRoot)
     : specFile(specFile) {
     specLocation = node.Mark();
 
-    if (!node["source"]) {
+    if (!node["source"] && !node["file"]) {
         throw SpecValidationError(
-            "Input spec must contain 'source' string field");
+            "Input spec must contain 'source' string field or 'file'");
+    } else if (node["file"]) {
+        QDir    root{testRoot};
+        QString path = node["file"].as<QString>();
+        auto    full = QFileInfo{root.absoluteFilePath(path)};
+        if (!QFileInfo{path}.isRelative()) {
+            throw SpecValidationError(
+                "'file' field must store a relative path, but '" + path
+                + "' is not relative");
+        }
+
+        if (!full.exists()) {
+            throw SpecValidationError(
+                "'file' field must store a relative path, but '$#' does "
+                "not exist (test root '$#')"
+                % to_string_vec(full.absoluteFilePath(), testRoot));
+        }
+
+        this->source = readFile(full);
     }
 
     ::YAML::convert<ParseSpec>::decode(node, *this);
 }
 
-ParseSpecGroup::ParseSpecGroup(CR<yaml> node, CR<QString> from) {
+ParseSpecGroup::ParseSpecGroup(
+    CR<yaml>    node,
+    CR<QString> from,
+    CR<QString> testRoot) {
     auto validate = [&](CR<ParseSpec> spec) {
         if (spec.parseImplName.empty() || spec.lexImplName.empty()) {
             throw ParseSpec::SpecValidationError(
@@ -234,7 +258,7 @@ ParseSpecGroup::ParseSpecGroup(CR<yaml> node, CR<QString> from) {
     if (node["items"]) {
         if (node["items"].IsSequence()) {
             for (const auto& it : node["items"]) {
-                auto spec = ParseSpec(it, from);
+                auto spec = ParseSpec(it, from, testRoot);
 
                 if (spec.lexImplName.empty() && node["lex"]) {
                     spec.lexImplName = node["lex"].as<QString>();
@@ -268,7 +292,7 @@ ParseSpecGroup::ParseSpecGroup(CR<yaml> node, CR<QString> from) {
         }
 
     } else {
-        auto tmp = ParseSpec(node, from);
+        auto tmp = ParseSpec(node, from, testRoot);
         validate(tmp);
         specs.push_back(tmp);
     }

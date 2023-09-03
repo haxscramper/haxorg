@@ -187,7 +187,10 @@ Vec<TestParams> generateTestRuns() {
         try {
             YAML::Node group = YAML::LoadFile(
                 path.filePath().toStdString());
-            ParseSpecGroup parsed{group, path.filePath()};
+            ParseSpecGroup parsed{
+                group,
+                path.filePath(),
+                __CURRENT_FILE_DIR__ / "corpus"_qs};
             for (const auto& spec : parsed.specs) {
                 results.push_back({spec, path});
             }

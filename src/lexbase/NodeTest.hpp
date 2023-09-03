@@ -87,7 +87,7 @@ struct ParseSpec {
 
     BOOST_DESCRIBE_NESTED_ENUM(ExpectedMode, Flat, Nested, Named);
 
-    ParseSpec(CR<yaml> node, CR<QString> specFile);
+    ParseSpec(CR<yaml> node, CR<QString> specFile, CR<QString> testRoot);
 
     template <typename N, typename K>
     NodeGroup<N, K> getNodeGroup() {
@@ -118,6 +118,7 @@ struct ParseSpec {
         /// the required name.
         ((Str), lexImplName, ""),
         ((Str), parseImplName, ""),
+        ((Opt<QString>), file, std::nullopt),
         ((Dbg), debug, Dbg{}),
         ((Conf), conf, Conf{}),
         ((Opt<yaml>), subnodes, std::nullopt),
@@ -131,7 +132,7 @@ struct ParseSpec {
 };
 
 struct ParseSpecGroup {
-    ParseSpecGroup(CR<yaml> node, CR<QString> from);
+    ParseSpecGroup(CR<yaml> node, CR<QString> from, CR<QString> testRoot);
 
     Vec<ParseSpec> specs;
 };
