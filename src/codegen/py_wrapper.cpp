@@ -5,7 +5,7 @@
 using namespace py;
 using namespace pywrap;
 
-py::object get_field(py::object obj, char const* field) {
+py::object pywrap::get_field(py::object obj, char const* field) {
     if (PyDict_Check(obj.ptr())) { // If it's a dictionary
         return obj[field];
     } else { // Assume it's a general object
@@ -13,47 +13,57 @@ py::object get_field(py::object obj, char const* field) {
     }
 }
 
-ValueKind get_value_kind(py::object obj) {
-    if (obj.ptr() == Py_None) {
+ValueKind pywrap::get_value_kind(py::object obj) {
+    if (is_none(obj)) {
         return ValueKind::None;
-    } else if (PyBool_Check(obj.ptr())) {
+    } else if (is_bool(obj)) {
         return ValueKind::Bool;
-    } else if (PyObject_IsInstance(
-                   obj.ptr(), (PyObject*)&PyBaseObject_Type)) {
-        return ValueKind::Obj;
-    } else if (PyLong_Check(obj.ptr())) {
+    } else if (is_int(obj)) { // Checking int before obj to correctly
+                              // identify integers
         return ValueKind::Long;
-    } else if (PyFloat_Check(obj.ptr())) {
+    } else if (is_float(obj)) {
         return ValueKind::Float;
-    } else if (PyBytes_Check(obj.ptr())) {
+    } else if (is_bytes(obj)) {
         return ValueKind::Bytes;
-    } else if (PyUnicode_Check(obj.ptr())) {
+    } else if (is_unicode(obj)) {
         return ValueKind::Unicode;
-    } else if (PyList_Check(obj.ptr())) {
+    } else if (is_list(obj)) {
         return ValueKind::List;
-    } else if (PyTuple_Check(obj.ptr())) {
+    } else if (is_tuple(obj)) {
         return ValueKind::Tuple;
-    } else if (PySet_Check(obj.ptr())) {
+    } else if (is_set(obj)) {
         return ValueKind::Set;
-    } else if (PyDict_Check(obj.ptr())) {
+    } else if (is_dict(obj)) {
         return ValueKind::Dict;
-    } else if (PyCallable_Check(obj.ptr())) {
+    } else if (is_function(obj) || is_method(obj)) { // Both are callable
         return ValueKind::Func;
-    } else if (PyModule_Check(obj.ptr())) {
+    } else if (is_module(obj)) {
         return ValueKind::Module;
-    } else if (PyType_Check(obj.ptr())) {
+    } else if (is_type(obj)) {
         return ValueKind::Type;
-    } else if (PyComplex_Check(obj.ptr())) {
+    } else if (is_complex(obj)) {
         return ValueKind::Complex;
-    } else if (PyFrozenSet_Check(obj.ptr())) {
+    } else if (is_frozenset(obj)) {
         return ValueKind::Frozenset;
+    } else if (is_code(obj)) {
+        return ValueKind::Code;
+    } else if (is_frame(obj)) {
+        return ValueKind::Frame;
+    } else if (is_capsule(obj)) {
+        return ValueKind::Capsule;
+    } else if (is_memoryview(obj)) {
+        return ValueKind::Memoryview;
+    } else if (is_cfunction(obj)) {
+        return ValueKind::CFunction;
+    } else if (is_buffer(obj)) {
+        return ValueKind::Buffer;
     }
 
     return ValueKind::Unknown;
 }
 
 
-void print(py::object obj, std::ostream& out, std::string indent) {
+void pywrap::print(py::object obj, std::ostream& out, std::string indent) {
     // switch (get_value_kind(obj)) {
     //     case ValueKind::TrueLiteral: {
     //        out << indent << "<boolean>: #t\n";

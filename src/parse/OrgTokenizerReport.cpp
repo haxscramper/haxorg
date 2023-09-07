@@ -11,7 +11,7 @@ QString E::Base::getLocMsg() const {
 
 const char* OrgTokenizer::Errors::UnexpectedChar::what() const noexcept {
     return strdup(
-        "Expected " + variant_to_string(wanted) + " but got '"
+        "Expected " + to_string(wanted) + " but got '"
         + PosStr(view, pos).printToString({.maxTokens = 40}, false) + "' "
         + getLocMsg());
 }

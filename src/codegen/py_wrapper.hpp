@@ -16,11 +16,62 @@
 #include <hstd/system/reflection.hpp>
 #include <fmt/core.h>
 
+template <typename T>
+struct member_type;
+
+// Specialize for pointer-to-member types
+template <typename ClassType, typename FieldType>
+struct member_type<FieldType ClassType::*> {
+    using type = typename std::remove_cvref_t<FieldType>;
+};
+
+template <typename ClassType, typename FieldType>
+struct member_type<FieldType ClassType::*const> {
+    using type = typename std::remove_cvref_t<FieldType>;
+};
+
+template <typename T>
+using member_type_t = ::member_type<T>::type;
+
 
 namespace py = boost::python;
 
 
 namespace pywrap {
+
+// clang-format off
+inline bool is_none(py::object const& obj)        { return obj.ptr() == Py_None; }
+inline bool is_bool(py::object const& obj)        { return PyBool_Check(obj.ptr()); }
+inline bool is_int(py::object const& obj)         { return PyLong_Check(obj.ptr()); }
+inline bool is_float(py::object const& obj)       { return PyFloat_Check(obj.ptr()); }
+inline bool is_complex(py::object const& obj)     { return PyComplex_Check(obj.ptr()); }
+inline bool is_unicode(py::object const& obj)     { return PyUnicode_Check(obj.ptr()); }
+inline bool is_bytes(py::object const& obj)       { return PyBytes_Check(obj.ptr()); }
+inline bool is_bytearray(py::object const& obj)   { return PyByteArray_Check(obj.ptr()); }
+inline bool is_list(py::object const& obj)        { return PyList_Check(obj.ptr()); }
+inline bool is_tuple(py::object const& obj)       { return PyTuple_Check(obj.ptr()); }
+inline bool is_set(py::object const& obj)         { return PySet_Check(obj.ptr()); }
+inline bool is_frozenset(py::object const& obj)   { return PyFrozenSet_Check(obj.ptr()); }
+inline bool is_dict(py::object const& obj)        { return PyDict_Check(obj.ptr()); }
+inline bool is_slice(py::object const& obj)       { return PySlice_Check(obj.ptr()); }
+inline bool is_ellipsis(py::object const& obj)    { return obj.ptr() == Py_Ellipsis; }
+inline bool is_type(py::object const& obj)        { return PyType_Check(obj.ptr()); }
+inline bool is_module(py::object const& obj)      { return PyModule_Check(obj.ptr()); }
+inline bool is_function(py::object const& obj)    { return PyFunction_Check(obj.ptr()); }
+inline bool is_generator(py::object const& obj)   { return PyGen_Check(obj.ptr()); }
+inline bool is_method(py::object const& obj)      { return PyMethod_Check(obj.ptr()); }
+inline bool is_iter(py::object const& obj)        { return PyIter_Check(obj.ptr()); }
+inline bool is_sequence(py::object const& obj)    { return PySequence_Check(obj.ptr()); }
+inline bool is_mapping(py::object const& obj)     { return PyMapping_Check(obj.ptr()); }
+inline bool is_number(py::object const& obj)      { return PyNumber_Check(obj.ptr()); }
+inline bool is_buffer(py::object const& obj)      { return PyObject_CheckBuffer(obj.ptr()); }
+inline bool is_code(py::object const& obj)        { return PyCode_Check(obj.ptr()); }
+inline bool is_frame(py::object const& obj)       { return PyFrame_Check(obj.ptr()); }
+inline bool is_capsule(py::object const& obj)     { return PyCapsule_CheckExact(obj.ptr()); }
+inline bool is_memoryview(py::object const& obj)  { return PyMemoryView_Check(obj.ptr()); }
+inline bool is_cfunction(py::object const& obj)   { return PyCFunction_Check(obj.ptr()); }
+inline bool is_objet(py::object const& obj)       { return PyObject_IsInstance(obj.ptr(), (PyObject*)&PyBaseObject_Type); }
+// clang-format on
 
 DECL_DESCRIBED_ENUM_STANDALONE(
     ValueKind,
@@ -42,6 +93,12 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     Func,
     Module,
     Type,
+    Code,
+    Frame,
+    Capsule,
+    Memoryview,
+    CFunction,
+    Buffer,
     Obj // For instances of user-defined classes
 );
 
@@ -97,7 +154,7 @@ struct variant_type_resolver {
     using E = typename V::variant_enum_type;
     static int get(py::object value) {
         py::object field = pywrap::get_field(value, "kind");
-        if (PyNumber_Check(field.falue())) {
+        if (PyNumber_Check(field.ptr())) {
             return py::extract<int>(field)();
         } else {
             return variant_type_resolver<E>::get(
@@ -139,17 +196,6 @@ struct extract : py_extract_base {
     }
 };
 
-template <typename T>
-struct member_type;
-
-// Specialize for pointer-to-member types
-template <typename ClassType, typename FieldType>
-struct member_type<FieldType ClassType::*> {
-    using type = typename std::remove_cvref_t<FieldType>;
-};
-
-template <typename T>
-using member_type_t = member_type<T>::type;
 
 template <DescribedRecord T>
 struct py::extract<T> : py_extract_base {
@@ -161,14 +207,11 @@ struct py::extract<T> : py_extract_base {
         T result = SerdeDefaultProvider<T>::get();
         for_each_field_with_bases<T>([&](auto const& field) {
             result.*field.pointer = py::extract<
-                member_type_t<decltype(field.pointer)>>::
-                operator()(pywrap::get_field(obj, field.name));
+                ::member_type_t<decltype(field.pointer)>>(
+                pywrap::get_field(obj, field.name))();
         });
         return result;
     }
-
-  private:
-    PyObject* obj;
 };
 
 

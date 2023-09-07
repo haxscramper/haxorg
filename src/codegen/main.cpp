@@ -35,11 +35,12 @@ struct extract<Vec<T>> : py_extract_base {
     bool check() const { return PyCheck_List(obj); }
 
     Vec<T> operator()() {
-        Vec<T> result;
-        result.resize(PyList_Size(obj));
+        py::list const& list = py::extract<py::list>(obj)();
+        Vec<T>          result;
+        result.resize(py::len(list));
 
         for (int i = 0; i < result.size(); ++i) {
-            result.at(i) = py::extract<T>(PyList_GetItem(list, i))();
+            result.at(i) = py::extract<T>(list[i])();
         }
 
         return result;
@@ -51,8 +52,8 @@ struct extract<Opt<T>> : py_extract_base {
     using result_type = Opt<T>;
     bool check() const { return; }
 
-    T operator()() {
-        if constexpr (obj == Py_None) {
+    Opt<T> operator()() {
+        if (pywrap::is_none(obj)) {
             return std::nullopt;
         } else {
             return py::extract<T>(obj)();
