@@ -23,7 +23,7 @@ concept IsVariant = is_variant<std::remove_cvref_t<T>>::value;
 // implicit conversion from value types. Not sure this can be circumvented
 // by disallowing to-argument conversion in some way.
 template <IsVariant V>
-QTextStream& to_string(QTextStream& os, V const& value) {
+QTextStream& operator<<(QTextStream& os, V const& value) {
     os << "Var(" << value.index() << ": ";
     std::visit(
         [&os](const auto& value) {

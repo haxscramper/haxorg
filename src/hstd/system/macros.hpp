@@ -82,7 +82,7 @@
     }                                                                     \
     EnumName kindGetterName() const { return kindGetterName(fieldName); } \
     using variant_enum_type = EnumName;                                   \
-    using variant_data_type = Data;
+    using variant_data_type = VariantName;
 
 
 template <typename T>

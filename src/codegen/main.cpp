@@ -34,9 +34,9 @@ struct extract<Vec<T>> : py_extract_base {
     using result_type = Vec<T>;
     bool check() const { return PyCheck_List(obj); }
 
-    Vec<T> operator()(py::PObj list) {
+    Vec<T> operator()() {
         Vec<T> result;
-        result.resize(PyList_Size(list));
+        result.resize(PyList_Size(obj));
 
         for (int i = 0; i < result.size(); ++i) {
             result.at(i) = py::extract<T>(PyList_GetItem(list, i))();
@@ -64,7 +64,7 @@ template <>
 struct extract<Str> : py_extract_base {
     using result_type = Str;
     using py_extract_base::py_extract_base;
-    bool check() const { return PyUnicode_Check(obj); }
+    bool check() const { return PyUnicode_Check(obj.ptr()); }
     Str  operator()() {
         if (!check()) {
             PyErr_SetString(PyExc_TypeError, "Expected a Unicode string");
@@ -72,7 +72,7 @@ struct extract<Str> : py_extract_base {
         }
 
         // Convert the Python Unicode object to a UTF-8 string
-        PyObject* utf8_str = PyUnicode_AsUTF8String(obj);
+        PyObject* utf8_str = PyUnicode_AsUTF8String(obj.ptr());
         if (utf8_str == nullptr) {
             PyErr_SetString(
                 PyExc_ValueError, "Failed to encode string to UTF-8");
@@ -103,8 +103,6 @@ int main(int argc, const char** argv) {
 
     Py_Initialize();
 
-    using py::PObj;
-
     py::object main = py::import("__main__");
 
     // Import the Python script file
@@ -122,7 +120,7 @@ int main(int argc, const char** argv) {
 
     QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
 
-    GenFiles   description = py::extract<GenFiles>(result.ptr())();
+    GenFiles   description = py::extract<GenFiles>(result)();
     ASTBuilder builder;
 
     for (GenUnit const& tu : description.files) {

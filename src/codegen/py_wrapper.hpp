@@ -19,28 +19,38 @@
 
 namespace py = boost::python;
 
-namespace boost::python {
-using PObj = PyObject*;
-}
 
 namespace pywrap {
 
-
 DECL_DESCRIBED_ENUM_STANDALONE(
     ValueKind,
-    Number,
+    Unknown,
+    None,
+    Bool,
+    Int,
+    Long,
+    Float,
+    Complex,
     String,
-    Object,
-    Dict,
+    Unicode,
+    Bytes,
+    List,
+    Tuple,
     Set,
-    List);
+    Frozenset,
+    Dict,
+    Func,
+    Module,
+    Type,
+    Obj // For instances of user-defined classes
+);
 
-void     init();
-py::PObj eval(const std::string& code);
-py::PObj eval_file(const std::string& filename);
-void     print(py::PObj obj, std::ostream& out, std::string indent = "");
-std::string to_string(py::PObj value);
-ValueKind   get_value_kind(py::PObj value);
+void       init();
+py::object eval(const std::string& code);
+py::object eval_file(const std::string& filename);
+void print(py::object obj, std::ostream& out, std::string indent = "");
+std::string to_string(py::object value);
+ValueKind   get_value_kind(py::object value);
 
 struct base_msg : std::exception {
     std::string text;
@@ -60,14 +70,14 @@ struct unexpected_variant : base_msg {
 };
 
 struct missing_field : base_msg {
-    missing_field(std::string const& where, py::PObj field) {
+    missing_field(std::string const& where, py::object field) {
         text = fmt::format(
             "Could not get field '{}' from {}", to_string(field), where);
     }
 };
 
 struct decode_error : base_msg {
-    decode_error(std::string const& where, py::PObj got) {
+    decode_error(std::string const& where, py::object got) {
         text = fmt::format(
             "Unexpected value '{}' of kind {} was found while {}",
             to_string(got),
@@ -77,7 +87,7 @@ struct decode_error : base_msg {
     }
 };
 
-py::PObj get_field(py::PObj node, char const* field);
+py::object get_field(py::object node, char const* field);
 
 } // namespace pywrap
 
@@ -85,9 +95,9 @@ py::PObj get_field(py::PObj node, char const* field);
 template <IsSubVariantType V>
 struct variant_type_resolver {
     using E = typename V::variant_enum_type;
-    static int get(py::PObj value) {
-        py::PObj field = pywrap::get_field(value, "kind");
-        if (PyNumber_Check(field)) {
+    static int get(py::object value) {
+        py::object field = pywrap::get_field(value, "kind");
+        if (PyNumber_Check(field.falue())) {
             return py::extract<int>(field)();
         } else {
             return variant_type_resolver<E>::get(
@@ -99,10 +109,10 @@ struct variant_type_resolver {
 };
 
 struct py_extract_base {
-    py_extract_base(py::PObj value) : obj(value) {}
+    py_extract_base(py::object value) : obj(value) {}
 
   protected:
-    py::PObj obj;
+    py::object obj;
 };
 
 
@@ -115,7 +125,7 @@ struct extract : py_extract_base {
     bool check() const { return PyDict_Check(obj); }
 
 
-    T operator()(py::PObj value) {
+    T operator()(py::object value) {
         T result{
             variant_from_index<V>(variant_type_resolver<T>::get(value))};
         CRTP_Derived::init(result, value);
@@ -162,4 +172,4 @@ struct py::extract<T> : py_extract_base {
 };
 
 
-std::ostream& operator<<(std::ostream& os, py::PObj value);
+std::ostream& operator<<(std::ostream& os, py::object value);

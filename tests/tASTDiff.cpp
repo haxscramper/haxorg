@@ -264,7 +264,7 @@ TEST(AstDiff, PointerBasedNodesWithVariants) {
 
 
     Func<Str(CR<ValT>)> toStr = [](CR<ValT> arg) -> Str {
-        return variant_to_string(arg);
+        return to_string(arg);
     };
 
     auto Src = TreeMirror<IdT, ValT>{

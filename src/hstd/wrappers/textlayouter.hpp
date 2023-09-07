@@ -164,7 +164,7 @@ REFL_DEFINE_DESCRIBED_OSTREAM(Event::Newline);
 
 inline QTextStream& operator<<(QTextStream& os, CR<Event> const& value) {
     return os << "{ .kind = " << value.getKind()
-              << ", data = " << variant_to_string(value.data) << "}";
+              << ", data = " << value.data << "}";
 }
 
 
