@@ -226,6 +226,8 @@ bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
     return equal;
 }
 
+
+
 #define REFL_DEFINE_DESCRIBED_OSTREAM(TypeName)                           \
     inline QTextStream& operator<<(                                       \
         QTextStream& os, CR<TypeName> const& value) {                     \

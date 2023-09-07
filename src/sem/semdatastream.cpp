@@ -36,22 +36,10 @@ using boost::mp11::mp_for_each;
 //     return out;
 // }
 
-
-template <typename T>
-concept DefaultConstructible = std::is_default_constructible_v<T>;
-
-template <typename T>
-struct DefaultBuilder {};
-
-template <DefaultConstructible T>
-struct DefaultBuilder<T> {
-    static T get() { return T{}; }
-};
-
 sem::ContextStore* currentContenxt;
 
 template <typename T>
-struct DefaultBuilder<sem::SemIdT<T>> {
+struct SerdeDefaultProvider<sem::SemIdT<T>> {
     static sem::SemIdT<T> get() {
         Q_CHECK_PTR(currentContenxt);
         sem::SemIdT<T> result = sem::SemIdT<T>::Nil();
@@ -62,7 +50,7 @@ struct DefaultBuilder<sem::SemIdT<T>> {
 
 
 template <>
-struct DefaultBuilder<sem::SemId> {
+struct SerdeDefaultProvider<sem::SemId> {
     static sem::SemId get() {
         Q_CHECK_PTR(currentContenxt);
         sem::SemId result = sem::SemId::Nil();
@@ -72,14 +60,14 @@ struct DefaultBuilder<sem::SemId> {
 };
 
 template <>
-struct DefaultBuilder<sem::Subtree::Property> {
+struct SerdeDefaultProvider<sem::Subtree::Property> {
     static sem::Subtree::Property get() {
         return sem::Subtree::Property{sem::Subtree::Property::Created{}};
     }
 };
 
 template <>
-struct DefaultBuilder<sem::SubtreeLog::Priority> {
+struct SerdeDefaultProvider<sem::SubtreeLog::Priority> {
     static sem::SubtreeLog::Priority get() {
         return sem::SubtreeLog::Priority{};
     }
@@ -87,14 +75,14 @@ struct DefaultBuilder<sem::SubtreeLog::Priority> {
 
 
 template <>
-struct DefaultBuilder<sem::Code::Switch> {
+struct SerdeDefaultProvider<sem::Code::Switch> {
     static sem::Code::Switch get() {
         return sem::Code::Switch{sem::Code::Switch::Dedent{}};
     }
 };
 
 template <>
-struct DefaultBuilder<sem::Code::Switch::LineStart> {
+struct SerdeDefaultProvider<sem::Code::Switch::LineStart> {
     static sem::Code::Switch::LineStart get() {
         return sem::Code::Switch::LineStart{};
     }
@@ -117,7 +105,7 @@ template <typename T>
 QDataStream& operator>>(QDataStream& in, Vec<T>& value) {
     int size = 0;
     in >> size;
-    value.resize(size, DefaultBuilder<T>::get());
+    value.resize(size, SerdeDefaultProvider<T>::get());
     for (auto& it : value) {
         in >> it;
     }
@@ -163,7 +151,7 @@ QDataStream& operator>>(QDataStream& in, Opt<T>& value) {
     bool hasValue = false;
     in >> hasValue;
     if (hasValue) {
-        T tmp = DefaultBuilder<T>::get();
+        T tmp = SerdeDefaultProvider<T>::get();
         in >> tmp;
         value = tmp;
     }
@@ -187,8 +175,8 @@ QDataStream& operator>>(QDataStream& out, UnorderedMap<K, V>& value) {
     int size = 0;
     out >> size;
     for (int i = 0; i < size; ++i) {
-        K key  = DefaultBuilder<K>::get();
-        V next = DefaultBuilder<V>::get();
+        K key  = SerdeDefaultProvider<K>::get();
+        V next = SerdeDefaultProvider<V>::get();
         out >> key;
         out >> next;
         value.insert({key, next});
@@ -202,16 +190,6 @@ QDataStream& operator<<(QDataStream& out, T const& value) {
     out << static_cast<int>(value.index());
     std::visit([&](auto const& it) { out << it; }, value);
     return out;
-}
-
-template <typename V>
-auto variant_from_index(size_t index) -> V {
-    return boost::mp11::mp_with_index<boost::mp11::mp_size<V>>(
-        index, [](auto I) {
-            return V(
-                std::in_place_index<I>,
-                DefaultBuilder<std::variant_alternative_t<I, V>>::get());
-        });
 }
 
 

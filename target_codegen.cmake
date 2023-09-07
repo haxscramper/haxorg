@@ -5,11 +5,15 @@ set_target_flags(codegen)
 
 glob_add_sources2(codegen "${BASE}/src/codegen/.*")
 
+find_package(Boost REQUIRED COMPONENTS python)
+find_package(PythonLibs 3.11)
+
 target_include_directories(
     codegen
     PUBLIC
     "${BASE}"
-    "/usr/include/guile/3.0"
+    ${Boost_INCLUDE_DIRS}
+    ${PYTHON_INCLUDE_DIRS}
 )
 
 target_link_libraries(codegen
@@ -19,5 +23,6 @@ target_link_libraries(codegen
     hstd
     Qt6::Core Qt6::Gui
     perfetto
-    guile-3.0
+    ${Boost_LIBRARIES}
+    ${PYTHON_LIBRARIES}
 )

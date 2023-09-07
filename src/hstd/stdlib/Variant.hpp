@@ -3,6 +3,7 @@
 #include <sstream>
 #include <variant>
 #include <hstd/system/string_convert.hpp>
+#include <hstd/system/basic_templates.hpp>
 
 template <typename... Types>
 using Variant = std::variant<Types...>;
@@ -21,15 +22,25 @@ concept IsVariant = is_variant<std::remove_cvref_t<T>>::value;
 // Does not conform to regular `ostream<<` implementation in order to avoid
 // implicit conversion from value types. Not sure this can be circumvented
 // by disallowing to-argument conversion in some way.
-template <typename... Types>
-QString variant_to_string(Variant<Types...> const& value) {
-    QString     out;
-    QTextStream os{&out};
+template <IsVariant V>
+QTextStream& to_string(QTextStream& os, V const& value) {
+    os << "Var(" << value.index() << ": ";
     std::visit(
         [&os](const auto& value) {
             os << value;
             return 0;
         },
         value);
-    return out;
+    os << ")";
+    return os;
+}
+
+template <IsVariant V>
+auto variant_from_index(size_t index) -> V {
+    return boost::mp11::mp_with_index<
+        boost::mp11::mp_size<V>>(index, [](auto I) {
+        return V(
+            std::in_place_index<I>,
+            SerdeDefaultProvider<std::variant_alternative_t<I, V>>::get());
+    });
 }

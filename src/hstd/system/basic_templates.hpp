@@ -115,3 +115,15 @@ T saturating_add_any(T value, Other change) {
         return saturating_sub(value, std::abs(change));
     }
 }
+
+
+template <typename T>
+concept DefaultConstructible = std::is_default_constructible_v<T>;
+
+template <typename T>
+struct SerdeDefaultProvider {};
+
+template <DefaultConstructible T>
+struct SerdeDefaultProvider<T> {
+    static T get() { return T{}; }
+};
