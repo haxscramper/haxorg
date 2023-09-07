@@ -7,6 +7,7 @@
 
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
+#undef slots
 #include <boost/python.hpp>
 
 #include <hstd/stdlib/Variant.hpp>
@@ -97,15 +98,22 @@ struct variant_type_resolver {
     static int get(E value) { return value_domain<E>::ord(value); }
 };
 
-template <typename T>
-struct convert;
+struct py_extract_base {
+    py_extract_base(py::PObj value) : obj(value) {}
+
+  protected:
+    py::PObj obj;
+};
+
 
 template <IsSubVariantType T, typename CRTP_Derived>
-struct extract {
-    using V = T::variant_data_type;
+struct extract : py_extract_base {
+    using py_extract_base::py_extract_base;
+    using V           = T::variant_data_type;
+    using result_type = T;
+
     bool check() const { return PyDict_Check(obj); }
 
-    extract(py::PObj v) : obj(v) {}
 
     T operator()(py::PObj value) {
         T result{
@@ -119,9 +127,6 @@ struct extract {
             },
             result);
     }
-
-  private:
-    py::PObj obj;
 };
 
 template <typename T>
@@ -137,18 +142,17 @@ template <typename T>
 using member_type_t = member_type<T>::type;
 
 template <DescribedRecord T>
-struct py::extract<T> {
+struct py::extract<T> : py_extract_base {
     using result_type = T;
-    extract(PObj value) : obj(value) {}
-
+    using py_extract_base::py_extract_base;
     bool check() const { return PyDict_Check(obj); }
 
-    T operator()(py::PObj value) const {
+    T operator()() const {
         T result = SerdeDefaultProvider<T>::get();
         for_each_field_with_bases<T>([&](auto const& field) {
             result.*field.pointer = py::extract<
                 member_type_t<decltype(field.pointer)>>::
-                operator()(pywrap::get_field(value, field.name));
+                operator()(pywrap::get_field(obj, field.name));
         });
         return result;
     }

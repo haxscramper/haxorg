@@ -17,82 +17,81 @@ QTextStream qcout;
 namespace boost::python {
 
 template <typename T>
-struct convert<std::shared_ptr<T>> {
-    static bool decode(std::shared_ptr<T>& rhs, SCM node) {
-        rhs = std::make_shared<T>();
-        ::guile::convert<T>::decode(*rhs, node);
-        return true;
+struct extract<std::shared_ptr<T>> : py_extract_base {
+    using py_extract_base::py_extract_base;
+    using result_type = std::shared_ptr<T>;
+    bool check() const { return extract<T>(obj).check(); }
+
+    std::shared_ptr<T> operator()() {
+        return std::make_shared<T>(extract<T>(obj)());
     }
 };
 
+
 template <typename T>
-struct convert<Vec<T>> {
-    static void decode(Vec<T>& result, SCM list) {
-        if (scm_is_true(scm_list_p(list))) {
-            for (; scm_is_true(scm_pair_p(list)); list = scm_cdr(list)) {
-                T temp;
-                ::guile::convert<T>::decode(temp, scm_car(list));
-                result.push_back(temp);
-            }
-        } else {
-            throw decode_error("parsing list value", list);
+struct extract<Vec<T>> : py_extract_base {
+    using py_extract_base::py_extract_base;
+    using result_type = Vec<T>;
+    bool check() const { return PyCheck_List(obj); }
+
+    Vec<T> operator()(py::PObj list) {
+        Vec<T> result;
+        result.resize(PyList_Size(list));
+
+        for (int i = 0; i < result.size(); ++i) {
+            result.at(i) = py::extract<T>(PyList_GetItem(list, i))();
         }
+
+        return result;
     }
 };
 
 template <typename T>
-struct convert<Opt<T>> {
-    static void decode(Opt<T>& result, SCM list) {
-        if constexpr (std::is_same_v<bool, T>) {
-            result = scm_is_true(list);
-        } else if (!scm_is_false(list)) {
-            T out;
-            ::guile::convert<T>::decode(out, list);
-            result = out;
+struct extract<Opt<T>> : py_extract_base {
+    using result_type = Opt<T>;
+    bool check() const { return; }
+
+    T operator()() {
+        if constexpr (obj == Py_None) {
+            return std::nullopt;
+        } else {
+            return py::extract<T>(obj)();
         }
     }
 };
 
 template <>
-struct convert<Str> {
-    static void decode(Str& result, SCM item) {
-        if (scm_is_true(scm_string_p(item))) {
-            result = Str::fromStdString(::guile::to_string(item));
-        } else if (scm_is_symbol(item)) {
-            result = Str::fromStdString(::guile::to_string(item));
-        } else {
-            throw decode_error("parsing string", item);
+struct extract<Str> : py_extract_base {
+    using result_type = Str;
+    using py_extract_base::py_extract_base;
+    bool check() const { return PyUnicode_Check(obj); }
+    Str  operator()() {
+        if (!check()) {
+            PyErr_SetString(PyExc_TypeError, "Expected a Unicode string");
+            boost::python::throw_error_already_set();
         }
+
+        // Convert the Python Unicode object to a UTF-8 string
+        PyObject* utf8_str = PyUnicode_AsUTF8String(obj);
+        if (utf8_str == nullptr) {
+            PyErr_SetString(
+                PyExc_ValueError, "Failed to encode string to UTF-8");
+            boost::python::throw_error_already_set();
+        }
+
+        // Convert the UTF-8 string to a QString
+        char*   c_str = PyBytes_AsString(utf8_str);
+        QString qstr  = QString::fromUtf8(c_str);
+
+        // Decrement the reference count of the temporary UTF-8 string
+        Py_DECREF(utf8_str);
+
+        return qstr;
     }
 };
 
-template <>
-struct convert<GenTu::Entry>
-    : variant_convert<GenTu::Entry, convert<GenTu::Entry>> {
-    static void init(GenTu::Entry& result, SCM value) {
-        std::string kind = convert<GenTu::Entry>::get_kind(value);
-        if (kind == "Struct") {
-            result = std::make_shared<GenTu::Struct>();
-        } else if (kind == "Enum") {
-            result = std::make_shared<GenTu::Enum>();
-        } else if (kind == "Group") {
-            result = std::make_shared<GenTu::TypeGroup>();
-        } else if (kind == "Include") {
-            result = GenTu::Include{};
-        } else if (kind == "Pass") {
-            result = GenTu::Pass{};
-        } else if (kind == "Method") {
-            result = std::make_shared<GenTu::Function>();
-        } else if (kind == "Namespace") {
-            result = std::make_shared<GenTu::Namespace>();
-        } else {
-            throw decode_error(
-                "parsing GenDescriptionEntry variant", value);
-        }
-    }
-};
 
-} // namespace guile
+} // namespace boost::python
 
 int main(int argc, const char** argv) {
     QFile stdoutFile;
@@ -102,17 +101,28 @@ int main(int argc, const char** argv) {
         qFatal("Failed to open stdout for reading");
     }
 
-    guile::init();
-    SCM           doc = guile::eval_file(argv[1]);
-    std::ofstream file{"/tmp/repr.txt"};
-    ::guile::print(doc, file);
-    file << std::endl;
+    Py_Initialize();
 
+    using py::PObj;
+
+    py::object main = py::import("__main__");
+
+    // Import the Python script file
+    std::ifstream t(argv[1]);
+    std::string   script(
+        (std::istreambuf_iterator<char>(t)),
+        std::istreambuf_iterator<char>());
+
+    // Execute the script
+    py::exec(script.c_str(), main.attr("__dict__"));
+
+    // Call the gen_value function
+    py::object gen_value = main.attr("gen_value");
+    py::object result    = gen_value();
 
     QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
 
-    GenFiles description;
-    ::guile::convert<GenFiles>::decode(description, doc);
+    GenFiles   description = py::extract<GenFiles>(result.ptr())();
     ASTBuilder builder;
 
     for (GenUnit const& tu : description.files) {
