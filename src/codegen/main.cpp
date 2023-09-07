@@ -14,7 +14,7 @@
 
 QTextStream qcout;
 
-namespace guile {
+namespace boost::python {
 
 template <typename T>
 struct convert<std::shared_ptr<T>> {

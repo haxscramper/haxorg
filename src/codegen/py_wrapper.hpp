@@ -15,6 +15,7 @@
 #include <hstd/system/reflection.hpp>
 #include <fmt/core.h>
 
+
 namespace py = boost::python;
 
 namespace boost::python {
@@ -79,28 +80,48 @@ py::PObj get_field(py::PObj node, char const* field);
 
 } // namespace pywrap
 
+
+template <IsSubVariantType V>
+struct variant_type_resolver {
+    using E = typename V::variant_enum_type;
+    static int get(py::PObj value) {
+        py::PObj field = pywrap::get_field(value, "kind");
+        if (PyNumber_Check(field)) {
+            return py::extract<int>(field)();
+        } else {
+            return variant_type_resolver<E>::get(
+                enum_serde<E>::from_string(py::extract<QString>(field)()));
+        }
+    }
+
+    static int get(E value) { return value_domain<E>::ord(value); }
+};
+
 template <typename T>
 struct convert;
 
-template <IsVariant T, typename CRTP_Derived>
-struct variant_convert {
-    static std::string get_kind(
-        py::PObj    value,
-        char const* kindField = "kind") {
-        py::PObj kind = pywrap::get_field(value, kindField);
-        return to_string(kind);
-    }
+template <IsSubVariantType T, typename CRTP_Derived>
+struct extract {
+    using V = T::variant_data_type;
+    bool check() const { return PyDict_Check(obj); }
 
-    static void decode(T& result, py::PObj value) {
+    extract(py::PObj v) : obj(v) {}
+
+    T operator()(py::PObj value) {
+        T result{
+            variant_from_index<V>(variant_type_resolver<T>::get(value))};
         CRTP_Derived::init(result, value);
         std::visit(
             [&](auto& variant) {
-                ::guile::convert<typename std::remove_cvref_t<
-                    decltype(variant)>>::decode(variant, value);
+                variant = ::py::extract<typename std::remove_cvref_t<
+                    decltype(variant)>>::operator()(value);
                 return 0;
             },
             result);
     }
+
+  private:
+    py::PObj obj;
 };
 
 template <typename T>
@@ -117,7 +138,12 @@ using member_type_t = member_type<T>::type;
 
 template <DescribedRecord T>
 struct py::extract<T> {
-    T operator()(py::PObj value) {
+    using result_type = T;
+    extract(PObj value) : obj(value) {}
+
+    bool check() const { return PyDict_Check(obj); }
+
+    T operator()(py::PObj value) const {
         T result = SerdeDefaultProvider<T>::get();
         for_each_field_with_bases<T>([&](auto const& field) {
             result.*field.pointer = py::extract<
@@ -126,6 +152,9 @@ struct py::extract<T> {
         });
         return result;
     }
+
+  private:
+    PyObject* obj;
 };
 
 

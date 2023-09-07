@@ -44,3 +44,6 @@ auto variant_from_index(size_t index) -> V {
             SerdeDefaultProvider<std::variant_alternative_t<I, V>>::get());
     });
 }
+
+template <IsVariant V>
+struct resolve_variant_index {};

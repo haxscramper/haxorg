@@ -80,7 +80,16 @@
                 __SUB_VARIANT_KIND_LAMBDA, (EnumName), __VA_ARGS__)},     \
             __input);                                                     \
     }                                                                     \
-    EnumName kindGetterName() const { return kindGetterName(fieldName); }
+    EnumName kindGetterName() const { return kindGetterName(fieldName); } \
+    using variant_enum_type = EnumName;                                   \
+    using variant_data_type = Data;
+
+
+template <typename T>
+concept IsSubVariantType = requires() {
+    typename T::variant_enum_type;
+    typename T::variant_data_type;
+};
 
 
 #define __DECL_FIELDS_define_field_aux(first, second, third)              \
