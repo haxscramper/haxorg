@@ -113,11 +113,22 @@ int main(int argc, const char** argv) {
         std::istreambuf_iterator<char>());
 
     // Execute the script
-    py::exec(script.c_str(), main.attr("__dict__"));
+    try {
+        py::exec(script.c_str(), main.attr("__dict__"));
+    } catch (py::error_already_set& err) {
+        PyErr_Print();
+        return 1;
+    }
 
-    // Call the gen_value function
-    py::object gen_value = main.attr("gen_value");
-    py::object result    = gen_value();
+    py::object gen_value;
+    try {
+        gen_value = main.attr("gen_value");
+    } catch (py::error_already_set& as) {
+        qFatal() << "Expected 'gen_value' function in the script file";
+        return 1;
+    }
+
+    py::object result = gen_value();
 
     QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
 

@@ -14,6 +14,7 @@
 
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/Opt.hpp>
 #include <fmt/core.h>
 
 template <typename T>
@@ -70,7 +71,7 @@ inline bool is_frame(py::object const& obj)       { return PyFrame_Check(obj.ptr
 inline bool is_capsule(py::object const& obj)     { return PyCapsule_CheckExact(obj.ptr()); }
 inline bool is_memoryview(py::object const& obj)  { return PyMemoryView_Check(obj.ptr()); }
 inline bool is_cfunction(py::object const& obj)   { return PyCFunction_Check(obj.ptr()); }
-inline bool is_objet(py::object const& obj)       { return PyObject_IsInstance(obj.ptr(), (PyObject*)&PyBaseObject_Type); }
+inline bool is_object(py::object const& obj)      { return PyObject_IsInstance(obj.ptr(), (PyObject*)&PyBaseObject_Type); }
 // clang-format on
 
 DECL_DESCRIBED_ENUM_STANDALONE(
@@ -144,7 +145,7 @@ struct decode_error : base_msg {
     }
 };
 
-py::object get_field(py::object node, char const* field);
+Opt<boost::python::object> get_field(py::object node, char const* field);
 
 } // namespace pywrap
 
@@ -153,12 +154,17 @@ template <IsSubVariantType V>
 struct variant_type_resolver {
     using E = typename V::variant_enum_type;
     static int get(py::object value) {
-        py::object field = pywrap::get_field(value, "kind");
-        if (PyNumber_Check(field.ptr())) {
-            return py::extract<int>(field)();
+        Opt<py::object> field = pywrap::get_field(value, "kind");
+        if (field) {
+            if (PyNumber_Check(field->ptr())) {
+                return py::extract<int>(*field)();
+            } else {
+                return variant_type_resolver<E>::get(
+                    enum_serde<E>::from_string(
+                        py::extract<QString>(*field)()));
+            }
         } else {
-            return variant_type_resolver<E>::get(
-                enum_serde<E>::from_string(py::extract<QString>(field)()));
+            qFatal() << "Missing 'kind' for a field";
         }
     }
 
@@ -206,9 +212,14 @@ struct py::extract<T> : py_extract_base {
     T operator()() const {
         T result = SerdeDefaultProvider<T>::get();
         for_each_field_with_bases<T>([&](auto const& field) {
-            result.*field.pointer = py::extract<
-                ::member_type_t<decltype(field.pointer)>>(
-                pywrap::get_field(obj, field.name))();
+            Opt<py::object> py_field = pywrap::get_field(obj, field.name);
+            if (py_field) {
+                result.*field.pointer = py::extract<
+                    ::member_type_t<decltype(field.pointer)>>(*py_field)();
+            } else {
+                qFatal() << "Missing field" << field.name << "for"
+                         << typeid(T).name();
+            }
         });
         return result;
     }

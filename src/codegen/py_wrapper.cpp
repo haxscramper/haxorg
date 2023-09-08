@@ -5,11 +5,14 @@
 using namespace py;
 using namespace pywrap;
 
-py::object pywrap::get_field(py::object obj, char const* field) {
-    if (PyDict_Check(obj.ptr())) { // If it's a dictionary
+Opt<py::object> pywrap::get_field(py::object obj, char const* field) {
+    if (is_dict(obj)) { // If it's a dictionary
         return obj[field];
-    } else { // Assume it's a general object
+    } else if (
+        is_object(obj) && PyObject_HasAttrString(obj.ptr(), field)) {
         return obj.attr(field);
+    } else {
+        return std::nullopt;
     }
 }
 
