@@ -135,6 +135,11 @@ int main(int argc, const char** argv) {
                              {"base", "/mnt/workspace/repos/haxorg/src"},
                          });
 
+            if (!QFileInfo(path).dir().exists()) {
+                QDir().mkpath(QFileInfo(path).dir().absolutePath());
+                qDebug() << "Created dir for " << path;
+            }
+
             QFileInfo file{path};
             QString   newCode = builder.store.toString(
                 result, layout::Options());

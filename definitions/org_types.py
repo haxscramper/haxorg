@@ -667,7 +667,7 @@ def get_types():
                     ],
                     #  ;; TODO constructors
                     nested=[
-                        Enum(["Kind"], Doc("Period kind"), [
+                        Enum("Kind", Doc("Period kind"), [
                             EField("Clocked", Doc("Time period of the task execution.")),
                             EField(
                                 "Scheduled",
@@ -1965,7 +1965,7 @@ def get_exporter_methods(forward):
                                   params=t_params,
                                   arguments=[Ident("R&", "res"), Ident(f"In<sem::{name}>", "object")],
                                   impl=None if forward else f"__visit_specific_kind(res, object);\n %s" %
-                                  ''.join([f"__org_field(res, object, {a.name});" for a in fields]))
+                                  '\n'.join([f"__org_field(res, object, {a.name});" for a in fields]))
             else:
                 method = Method("void",
                                   f"{decl_scope}avisit",
@@ -1985,7 +1985,7 @@ def get_concrete_types():
 
 
 def gen_value():
-    full_enums = get_enums() + [Enum(t_osk(), Doc(""), [struct.name for struct in get_concrete_types()])]
+    full_enums = get_enums() + [Enum(t_osk(), Doc(""),fields= [EField(struct.name, Doc("")) for struct in get_concrete_types()])]
 
     return GenFiles([
         GenUnit(GenTu("/tmp/exporters/exporternlp_enums.hpp", with_enum_reflection_api(get_nlp_enums())),

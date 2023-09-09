@@ -190,7 +190,8 @@ struct py::extract<QString> : py_extract_base {
             pywrap::throw_type_error(
                 "Could not convert Python object to QString. Incoming "
                 "object type was "
-                + to_string(pywrap::get_value_kind(obj)));
+                + to_string(pywrap::get_value_kind(obj))
+                + pywrap::format(obj));
             return QString();
         }
     }
@@ -202,7 +203,6 @@ int variant_type_index(py::object const& value, const char* fieldName) {
     Opt<py::object> field = pywrap::get_field(value, fieldName);
     if (field) {
         int result = value_domain<E>::ord(py::extract<E>(*field)());
-        qDebug() << fieldName << py::extract<QString>(*field)() << result;
         return result;
     } else {
         qFatal() << "Missing 'kind' field for variant extrator";
