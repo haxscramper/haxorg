@@ -106,7 +106,8 @@ DECL_DESCRIBED_ENUM_STANDALONE(
 void       init();
 py::object eval(const std::string& code);
 py::object eval_file(const std::string& filename);
-void print(py::object obj, std::ostream& out, std::string indent = "");
+void    print(py::object obj, std::ostream& out, std::string indent = "");
+QString describe_value(py::object const& obj);
 std::string to_string(py::object value);
 ValueKind   get_value_kind(py::object value);
 
@@ -286,7 +287,8 @@ struct py::extract<T> : py_extract_base {
             } else {
                 qFatal() << "Missing field '" + QString(field.name)
                                 + "' for"
-                         << demangle(typeid(T).name());
+                         << demangle(typeid(T).name()) << "from value"
+                         << pywrap::describe_value(obj);
             }
         });
         return result;

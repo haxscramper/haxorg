@@ -1,6 +1,9 @@
 #include "py_wrapper.hpp"
 
 #include <format>
+#include <hstd/stdlib/strformat.hpp>
+#include <hstd/system/string_convert.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 using namespace py;
 using namespace pywrap;
@@ -231,4 +234,32 @@ void pywrap::print(py::object obj, std::ostream& out, std::string indent) {
     //        break;
     //    }
     //}
+}
+
+QString pywrap::describe_value(py::object const& obj) {
+    QString res;
+    res += "kind:";
+    res += ::to_string(get_value_kind(obj));
+    switch (get_value_kind(obj)) {
+        case ValueKind::Unicode: {
+            QString text = py::extract<QString>(obj)();
+            res += QString(" of %1 chars: '%2%3'")
+                       .arg(text.size())
+                       .arg(escape_for_write(
+                           text.mid(0, std::min<int>(text.size(), 10))))
+                       .arg(10 < text.size() ? "..." : "");
+            break;
+        }
+
+        case ValueKind::List: {
+            res += QString(" of %1 items").arg(PyList_Size(obj.ptr()));
+            break;
+        }
+        case ValueKind::Obj: {
+            res += Py_TYPE(obj.ptr())->tp_name;
+            break;
+        }
+    }
+
+    return res;
 }
