@@ -1,7 +1,7 @@
 #include "exporterhtml.hpp"
 
 #include <exporters/Exporter.cpp>
-template class Exporter<ExporterHtml, layout::Block::Ptr>;
+template class Exporter<ExporterHtml, layout::BlockId>;
 
 const char* sidebarSync = R"html(
     var toc = document.querySelector('.toc');
@@ -184,25 +184,25 @@ const char* sidebarStyle = R"html(
 )html";
 
 void ExporterHtml::visitDocument(Res& res, In<sem::Document> doc) {
-    res = b::stack();
-    res->add(multiString(R"(
+    res = b.stack();
+    b.at(res).add(multiString(R"(
 <!DOCTYPE html>
 <html>
 <head>
 <style>
 )"));
 
-    res->add(multiString(sidebarStyle));
+    b.at(res).add(multiString(sidebarStyle));
 
-    res->add(multiString(R"(
+    b.at(res).add(multiString(R"(
 </style>
 </head>
 <body>
 )"));
 
-    res->add(b::stack({
+    b.at(res).add(b.stack({
         string(R"(<nav class="toc">)"),
-        stackWrap("ul", {b::indent(2, createTocList(doc))}),
+        stackWrap("ul", {b.indent(2, createTocList(doc))}),
         string(R"html(
     <svg class="toc-marker" width="200" height="200" xmlns="http://www.w3.org/2000/svg">
       <path stroke="#444" stroke-width="3" fill="transparent" stroke-dasharray="0, 0, 0, 1000" stroke-linecap="round"
@@ -212,23 +212,23 @@ void ExporterHtml::visitDocument(Res& res, In<sem::Document> doc) {
 )html"),
     }));
 
-    res->add(string(R"(<article class="content">)"));
+    b.at(res).add(string(R"(<article class="content">)"));
 
     for (const auto& item : doc->subnodes) {
-        res->add(visit(item));
+        b.at(res).add(visit(item));
     }
 
-    res->add(string("</article>"));
+    b.at(res).add(string("</article>"));
 
-    res->add(stackWrap("script", {multiString(sidebarSync)}));
-    res->add(multiString(R"(
+    b.at(res).add(stackWrap("script", {multiString(sidebarSync)}));
+    b.at(res).add(multiString(R"(
 </body>
 </html>
 )"));
 }
 
 void ExporterHtml::visitSubtree(Res& res, In<sem::Subtree> tree) {
-    res = b::stack({
+    res = b.stack({
         string("<section id=\"" + QString::number(tree.id) + "\">"),
         lineWrap("h" + QString::number(tree->level), {visit(tree->title)}),
         stackSubnodes(tree),
@@ -240,33 +240,33 @@ ExporterHtml::Res ExporterHtml::createTocList(sem::SemId node) {
     Vec<Res> subItems;
     for (const auto& it : node->subnodes) {
         Res tocEntry = createTocList(it);
-        if (tocEntry != nullptr) {
+        if (!tocEntry.isNil()) {
             subItems.push_back(tocEntry);
         }
     }
 
     if (node->getKind() == OrgSemKind::Subtree) {
-        Res stack = b::stack();
-        stack->add(b::line({
+        Res stack = b.stack();
+        b.at(stack).add(b.line({
             string("<a href=#" + QString::number(node.id) + ">"),
             lineSubnodes(node.as<sem::Subtree>()->title),
             string("</a>"),
         }));
 
         if (!subItems.empty()) {
-            stack->add(
-                stackWrap("ul", {b::indent(2, {b::stack(subItems)})}));
+            b.at(stack).add(
+                stackWrap("ul", {b.indent(2, {b.stack(subItems)})}));
         }
 
         bool isStack = !subItems.empty();
         return directionWrap(
-            isStack, "li", {b::indent(isStack ? 2 : 0, {stack})});
+            isStack, "li", {b.indent(isStack ? 2 : 0, {stack})});
 
     } else {
         if (subItems.empty()) {
-            return nullptr;
+            return Res::Nil();
         } else {
-            return b::stack(subItems);
+            return b.stack(subItems);
         }
     }
 }

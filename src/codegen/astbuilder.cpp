@@ -12,20 +12,20 @@ ASTBuilder::Res ASTBuilder::WithDoc(
     if (doc.brief.empty() && doc.full.empty()) {
         return content;
     } else {
-        return b::stack({Doc(doc), content});
+        return b.stack({Doc(doc), content});
     }
 }
 
 ASTBuilder::Res ASTBuilder::Template(
     const TemplateParams::Typename& Param) {
-    return b::line({
+    return b.line({
         Param.Concept
             ? string(*Param.Concept)
             : string(Param.Nested.empty() ? "typename" : "template"),
         string(Param.Placeholder ? "" : " "),
         string(Param.Placeholder ? "" : Param.Name),
-        b::surround_non_empty(
-            b::map_join(
+        b.surround_non_empty(
+            b.map_join(
                 Param.Nested,
                 [&](TemplateParams::Typename const& Sub) -> Res {
                     return Template(Sub);
@@ -37,9 +37,9 @@ ASTBuilder::Res ASTBuilder::Template(
 }
 
 ASTBuilder::Res ASTBuilder::Template(const TemplateParams::Group& Spec) {
-    return b::line({
+    return b.line({
         string("template <"),
-        b::map_join(
+        b.map_join(
             Spec.Params,
             [&](TemplateParams::Typename const& Param) {
                 return Template(Param);
@@ -50,10 +50,10 @@ ASTBuilder::Res ASTBuilder::Template(const TemplateParams::Group& Spec) {
 }
 
 ASTBuilder::Res ASTBuilder::Template(const TemplateParams& Templ) {
-    return b::map_join(
+    return b.map_join(
         Templ.Stacks,
         [&](TemplateParams::Group const& Spec) { return Template(Spec); },
-        b::empty(),
+        b.empty(),
         /* isLine */ false);
 }
 
@@ -63,7 +63,7 @@ ASTBuilder::Res ASTBuilder::WithTemplate(
     if (Templ.Stacks.empty()) {
         return Body;
     } else {
-        return b::stack({Template(Templ), Body});
+        return b.stack({Template(Templ), Body});
     }
 }
 
@@ -93,15 +93,15 @@ ASTBuilder::Res ASTBuilder::Doc(const DocParams& doc) {
         content.pop_back();
     }
 
-    auto result = b::stack();
+    auto result = b.stack();
     for (auto const& line : content) {
-        result->add(string("/// " + line));
+        b.at(result).add(string("/// " + line));
     }
     return result;
 }
 
 ASTBuilder::Res ASTBuilder::ParmVar(const ParmVarParams& p) {
-    return b::line({
+    return b.line({
         Type(p.type),
         string(" "),
         string(p.name),
@@ -110,19 +110,18 @@ ASTBuilder::Res ASTBuilder::ParmVar(const ParmVarParams& p) {
 }
 
 ASTBuilder::Res ASTBuilder::Function(FunctionParams const& p) {
-    auto head = b::line(
+    auto head = b.line(
         {Type(p.ResultTy), string(" "), string(p.Name), Arguments(p)});
 
     return WithTemplate(
         p.Template,
-        p.Body ? block(head, *p.Body, true)
-               : b::line({head, string(";")}));
+        p.Body ? block(head, *p.Body, true) : b.line({head, string(";")}));
 }
 
 ASTBuilder::Res ASTBuilder::Arguments(const FunctionParams& p) {
-    return b::line({
+    return b.line({
         string("("),
-        b::join(
+        b.join(
             map(p.Args,
                 [&](ASTBuilder::ParmVarParams const& Arg) {
                     return ParmVar(Arg);
@@ -136,8 +135,8 @@ ASTBuilder::Res ASTBuilder::Arguments(const FunctionParams& p) {
 ASTBuilder::Res ASTBuilder::Method(MethodParams const& m) {
     return WithTemplate(
         m.Params.Template,
-        b::stack({
-            b::line(
+        b.stack({
+            b.line(
                 {Type(m.Params.ResultTy),
                  string(" "),
                  Type(m.Class),
@@ -145,7 +144,7 @@ ASTBuilder::Res ASTBuilder::Method(MethodParams const& m) {
                  string(m.Params.Name),
                  Arguments(m.Params),
                  m.IsConst ? string(" const {") : string(" {")}),
-            b::indent(2, b::stack(*m.Params.Body)),
+            b.indent(2, b.stack(*m.Params.Body)),
             string("}"),
         }));
 }
@@ -155,17 +154,17 @@ ASTBuilder::QualType ASTBuilder::Type(Str const& type) {
 }
 
 ASTBuilder::Res ASTBuilder::Type(const QualType& type) {
-    return b::line({
-        b::join(
+    return b.line({
+        b.join(
             map(type.Spaces,
                 [&](QualType const& Space) { return Type(Space); })
                 + Vec<Res>{string(type.name)},
             string("::")),
         type.Parameters.empty()
             ? string("")
-            : b::line({
+            : b.line({
                 string("<"),
-                b::join(
+                b.join(
                     map(type.Parameters,
                         [&](QualType const& in) { return Type(in); }),
                     string(", "),
@@ -186,13 +185,13 @@ ASTBuilder::Res ASTBuilder::WithAccess(
     if (spec == AccessSpecifier::Unspecified) {
         return content;
     } else {
-        return b::stack({
+        return b.stack({
             (spec == AccessSpecifier::Public
                  ? string("public:")
                  : (spec == AccessSpecifier::Protected
                         ? string("protected:")
                         : string("private:"))),
-            b::indent(2, content),
+            b.indent(2, content),
         });
     }
 }
@@ -200,7 +199,7 @@ ASTBuilder::Res ASTBuilder::WithAccess(
 ASTBuilder::Res ASTBuilder::Field(const RecordParams::Field& field) {
     return WithAccess(
         WithDoc(
-            b::line({
+            b.line({
                 string(field.isStatic ? "static " : ""),
                 VarDecl(field.params),
             }),
@@ -209,7 +208,7 @@ ASTBuilder::Res ASTBuilder::Field(const RecordParams::Field& field) {
 }
 
 ASTBuilder::Res ASTBuilder::Method(const RecordParams::Method& method) {
-    auto head = b::line({
+    auto head = b.line({
         string(method.isStatic ? "static " : ""),
         string(method.isVirtual ? "virtual " : ""),
         Type(method.params.ResultTy),
@@ -224,7 +223,7 @@ ASTBuilder::Res ASTBuilder::Method(const RecordParams::Method& method) {
     return WithAccess(
         WithDoc(
             method.params.Body ? block(head, *method.params.Body, true)
-                               : b::line({head, string(";")}),
+                               : b.line({head, string(";")}),
             method.params.doc),
         method.access);
 }
@@ -256,16 +255,16 @@ ASTBuilder::Res ASTBuilder::Record(const RecordParams& params) {
     if (!params.bases.empty()) {
         Vec<Res> classes;
         for (auto const& base : params.bases) {
-            classes.push_back(b::line({string("public "), Type(base)}));
+            classes.push_back(b.line({string("public "), Type(base)}));
         }
-        bases = b::line({string(" : "), b::join(classes, string(", "))});
+        bases = b.line({string(" : "), b.join(classes, string(", "))});
     }
 
-    auto head = b::line({
+    auto head = b.line({
         string("struct "),
         string(params.name),
-        b::surround_non_empty(
-            b::map_join(
+        b.surround_non_empty(
+            b.map_join(
                 params.NameParams,
                 [&](QualType const& t) { return Type(t); },
                 string(", ")),
@@ -279,16 +278,16 @@ ASTBuilder::Res ASTBuilder::Record(const RecordParams& params) {
         params.Template,
         content.empty()
             ? //
-            b::stack(
+            b.stack(
                 {Doc(params.doc),
-                 b::line(
+                 b.line(
                      {head,
                       params.IsDefinition ? string("};") : string(";")}),
                  string("")})
-            : b::stack(
+            : b.stack(
                 {Doc(params.doc),
                  head,
-                 b::indent(2, b::stack(content)),
+                 b.indent(2, b.stack(content)),
                  params.IsDefinition ? string("};") : string(";"),
                  string("")}));
 }
@@ -296,7 +295,7 @@ ASTBuilder::Res ASTBuilder::Record(const RecordParams& params) {
 ASTBuilder::Res ASTBuilder::Using(const UsingParams& params) {
     return WithTemplate(
         params.Template,
-        b::line({
+        b.line({
             string("using "),
             string(params.newName),
             string(" = "),
@@ -306,25 +305,25 @@ ASTBuilder::Res ASTBuilder::Using(const UsingParams& params) {
 }
 
 ASTBuilder::Res ASTBuilder::Macro(const MacroParams& params) {
-    auto definition = b::stack();
+    auto definition = b.stack();
     for (auto const& line : params.definition) {
-        definition->add(string(line + "  \\"));
+        b.at(definition).add(string(line + "  \\"));
     }
     Vec<Res> arguments;
     for (auto const& line : params.params) {
         arguments.push_back(string(line.isEllipsis ? "..." : line.name));
     }
 
-    return b::stack({
+    return b.stack({
         Doc(params.doc),
-        b::line({
+        b.line({
             string("#define "),
             string(params.name),
             string("("),
-            b::join(arguments, string(", ")),
+            b.join(arguments, string(", ")),
             string(") \\"),
         }),
-        b::indent(8, definition),
+        b.indent(8, definition),
         string(""),
     });
 }
@@ -335,21 +334,21 @@ ASTBuilder::Res ASTBuilder::block(
     bool            trailingLine) {
 
     auto result = content.size() < 2 //
-                    ? b::line(
+                    ? b.line(
                         {head,
                          string(" { "),
-                         b::stack(content),
+                         b.stack(content),
                          string(" }")})
-                    : b::stack(
-                        {b::line({head, string(" {")}),
-                         b::indent(2, b::stack(content)),
+                    : b.stack(
+                        {b.line({head, string(" {")}),
+                         b.indent(2, b.stack(content)),
                          string("}")});
 
     if (trailingLine) {
-        if (result->isStack()) {
-            result->add(string(""));
+        if (b.at(result).isStack()) {
+            b.at(result).add(string(""));
         } else {
-            result = b::stack({result, string("")});
+            result = b.stack({result, string("")});
         }
     }
 
@@ -360,7 +359,7 @@ ASTBuilder::Res ASTBuilder::csv(
     CVec<Str> items,
     bool      isLine,
     bool      isTrailing) {
-    return b::join(
+    return b.join(
         map(items, [&](Str const& Base) { return string(Base); }),
         string(", "),
         isLine,
@@ -372,43 +371,42 @@ ASTBuilder::Res ASTBuilder::Enum(const EnumParams& params) {
         0 < params.name.size(),
         "EnumDecl",
         "non-empty enum name required");
-    auto fields = b::stack();
+    auto fields = b.stack();
     for (auto const& field : params.fields) {
-        fields->add(b::stack({
+        b.at(fields).add(b.stack({
             Doc(field.doc),
             string(field.name + ","), // TODO field value
         }));
     }
 
-    return b::stack({
+    return b.stack({
         Doc(params.doc),
-        b::line({
+        b.line({
             string("enum "),
             string(params.isEnumClass ? "class " : ""),
             string(params.name + " "),
             string(params.base ? ": " + *params.base + " " : ""),
             string("{"),
         }),
-        b::indent(2, fields),
+        b.indent(2, fields),
         string("};"),
         string(""),
     });
 }
 
 ASTBuilder::Res ASTBuilder::VarDecl(ParmVarParams const& p) {
-    return b::line({
+    return b.line({
         Type(p.type),
         string(" "),
         string(p.isConst ? "const " : ""),
         string(p.name),
-        p.defArg ? b::line({string(" = "), string(*p.defArg)})
-                 : string(""),
+        p.defArg ? b.line({string(" = "), string(*p.defArg)}) : string(""),
         string(";"),
     });
 }
 
 ASTBuilder::Res ASTBuilder::IfStmt(const IfStmtParams& p) {
-    Res result = b::stack();
+    Res result = b.stack();
 
     for (int i = 0; i < p.Branches.size(); ++i) {
         bool        first  = i == 0;
@@ -416,43 +414,43 @@ ASTBuilder::Res ASTBuilder::IfStmt(const IfStmtParams& p) {
         auto const& Branch = p.Branches.at(i);
 
         Res head = p.LookupIfStructure
-                     ? b::line({string(Branch.Cond ? "if" : "")})
-                     : b::line({
+                     ? b.line({string(Branch.Cond ? "if" : "")})
+                     : b.line({
                          first ? string("if ")
                                : (Branch.Cond ? string("} else if ")
                                               : string("} else ")),
                      });
 
         if (Branch.Cond) {
-            head->add(string(" ("));
-            head->add(Branch.Cond.value());
-            head->add(string(") "));
+            b.at(head).add(string(" ("));
+            b.at(head).add(Branch.Cond.value());
+            b.at(head).add(string(") "));
         }
 
-        head->add(string("{"));
+        b.at(head).add(string("{"));
 
         if (p.LookupIfStructure) {
-            head->add(string(" "));
-            head->add(Branch.Then);
-            head->add(string(" }"));
+            b.at(head).add(string(" "));
+            b.at(head).add(Branch.Then);
+            b.at(head).add(string(" }"));
             if (!last) {
-                head->add(string(" else "));
+                b.at(head).add(string(" else "));
             }
-            result->add(head);
+            b.at(result).add(head);
         } else {
             if (Branch.OneLine) {
-                head->add(string(" "));
-                head->add(Branch.Then);
-                result->add(head);
+                b.at(head).add(string(" "));
+                b.at(head).add(Branch.Then);
+                b.at(result).add(head);
             } else {
-                result->add(head);
-                result->add(b::indent(2, Branch.Then));
+                b.at(result).add(head);
+                b.at(result).add(b.indent(2, Branch.Then));
             }
         }
     }
 
     if (!p.LookupIfStructure) {
-        result->add(string("}"));
+        b.at(result).add(string("}"));
     }
 
     return result;
@@ -462,7 +460,7 @@ ASTBuilder::Res ASTBuilder::IfStmt(const IfStmtParams& p) {
 ASTBuilder::Res ASTBuilder::CaseStmt(const CaseStmtParams& params) {
     auto head = params.IsDefault
                   ? string("default:")
-                  : b::line({string("case "), params.Expr, string(":")});
+                  : b.line({string("case "), params.Expr, string(":")});
 
     Vec<Res> Body = params.Body
                   + (params.Autobreak ? Vec<Res>{XStmt("break")}
@@ -471,13 +469,13 @@ ASTBuilder::Res ASTBuilder::CaseStmt(const CaseStmtParams& params) {
         return block(head, Body);
     } else {
         if (params.OneLine) {
-            return b::line({
+            return b.line({
                 head,
                 string(" "),
-                b::join(params.Body, string(" ")),
+                b.join(params.Body, string(" ")),
             });
         } else {
-            return b::stack({head, b::indent(2, b::stack(Body))});
+            return b.stack({head, b.indent(2, b.stack(Body))});
         }
     }
 }
@@ -492,7 +490,7 @@ ASTBuilder::Res ASTBuilder::SwitchStmt(const SwitchStmtParams& params) {
         cases.push_back(CaseStmt(*params.Default));
     }
 
-    return block(b::line({string("switch "), pars(params.Expr)}), cases);
+    return block(b.line({string("switch "), pars(params.Expr)}), cases);
 }
 
 ASTBuilder::Res ASTBuilder::XCall(
@@ -501,7 +499,7 @@ ASTBuilder::Res ASTBuilder::XCall(
     bool       Stmt,
     bool       Line) {
     if (opc[0].isLetter()) {
-        return b::line({
+        return b.line({
             string(opc),
             string("("),
             csv(args, Line),
@@ -509,9 +507,9 @@ ASTBuilder::Res ASTBuilder::XCall(
         });
     } else {
         if (args.size() == 1) {
-            return b::line({string(opc), args.at(0)});
+            return b.line({string(opc), args.at(0)});
         } else if (args.size() == 2) {
-            return b::line({
+            return b.line({
                 args.at(0),
                 string(" "),
                 string(opc),
@@ -531,18 +529,18 @@ ASTBuilder::Res ASTBuilder::Comment(
     bool            Inline,
     bool            Doc) {
     if (Inline) {
-        auto content = b::stack();
+        auto content = b.stack();
         for (auto const& line : text) {
-            content->add(string(line));
+            b.at(content).add(string(line));
         }
 
-        return b::line(
+        return b.line(
             {string(Doc ? "/*! " : "/* "), content, string(" */")});
 
     } else {
-        auto result = b::stack();
+        auto result = b.stack();
         for (auto const& line : text) {
-            result->add(string((Doc ? "/// " : "// ") + line));
+            b.at(result).add(string((Doc ? "/// " : "// ") + line));
         }
         return result;
     }

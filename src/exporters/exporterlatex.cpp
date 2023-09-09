@@ -18,7 +18,7 @@ struct SymDef {
 
 #include <exporters/Exporter.cpp>
 
-template class Exporter<ExporterLatex, layout::Block::Ptr>;
+template class Exporter<ExporterLatex, layout::BlockId>;
 
 
 UnorderedMap<QString, SymDef> definitions{
@@ -443,7 +443,7 @@ void ExporterLatex::addWrap(
     const QString& open,
     const QString& close,
     const QString& arg) {
-    res->add(string(open + arg + close));
+    b.at(res).add(string(open + arg + close));
 }
 
 void ExporterLatex::addWrap(
@@ -451,16 +451,16 @@ void ExporterLatex::addWrap(
     const QString& open,
     const QString& close,
     const Res&     arg) {
-    res->add(string(open));
-    res->add(arg);
-    res->add(string(close));
+    b.at(res).add(string(open));
+    b.at(res).add(arg);
+    b.at(res).add(string(close));
 }
 
 ExporterLatex::Res ExporterLatex::command(
     const QString&      name,
     const Vec<QString>& args) {
-    Res res = b::line();
-    res->add(string("\\" + name));
+    Res res = b.line();
+    b.at(res).add(string("\\" + name));
     for (auto const& arg : args) {
         addWrap(res, "{", "}", arg);
     }
@@ -471,8 +471,8 @@ ExporterLatex::Res ExporterLatex::command(
     const QString&  name,
     const Vec<Res>& opts,
     const Vec<Res>& args) {
-    Res res = b::line();
-    res->add(string("\\" + name));
+    Res res = b.line();
+    b.at(res).add(string("\\" + name));
     // FIXME join on comma, wrap on brackets
     for (auto const& opt : opts) {
         addWrap(res, "[", "]", opt);
@@ -487,8 +487,8 @@ ExporterLatex::Res ExporterLatex::command(
 ExporterLatex::Res ExporterLatex::command(
     const QString&  name,
     const Vec<Res>& args) {
-    Res res = b::line();
-    res->add(string("\\" + name));
+    Res res = b.line();
+    b.at(res).add(string("\\" + name));
     for (auto const& arg : args) {
         addWrap(res, "{", "}", arg);
     }
@@ -499,8 +499,8 @@ ExporterLatex::Res ExporterLatex::command(
     const QString&      name,
     const Vec<QString>& opts,
     const Vec<QString>& args) {
-    Res res = b::line();
-    res->add(string("\\" + name));
+    Res res = b.line();
+    b.at(res).add(string("\\" + name));
     // FIXME join on comma, wrap on brackets
     for (auto const& opt : opts) {
         addWrap(res, "[", "]", opt);
@@ -516,10 +516,10 @@ ExporterLatex::Res ExporterLatex::environment(
     const QString&  name,
     const Res&      body,
     const Vec<Res>& args) {
-    Res res = b::stack();
-    res->add(command("begin", Vec<Res>{string(name)} + args));
-    res->add(body);
-    res->add(command("end", {name}));
+    Res res = b.stack();
+    b.at(res).add(command("begin", Vec<Res>{string(name)} + args));
+    b.at(res).add(body);
+    b.at(res).add(command("end", {name}));
 
     return res;
 }
@@ -592,9 +592,9 @@ void ExporterLatex::visitFootnote(Res& res, In<sem::Footnote> footnote) {
 
 ExporterLatex::Res ExporterLatex::visit(SemId org) {
     __visit_eval_scope(org);
-    Res tmp = nullptr;
+    Res tmp = Res::Nil();
     visit(tmp, org);
-    if (tmp == nullptr) {
+    if (tmp.isNil()) {
         tmp = string("TODO" + to_string(org->getKind()));
     }
     return tmp;
@@ -698,11 +698,11 @@ int ExporterLatex::getFootnote(CR<Str> str) {
 
 void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     __visit_specific_kind(res, value);
-    res = b::stack();
+    res = b.stack();
 
     // TODO replace hardcoded default value for the font size with call to
     // `getLatexClassOptions` provided in the org document.
-    res->add(command(
+    b.at(res).add(command(
         "documentclass",
         map(getLatexClassOptions(value),
             [](auto const& it) { return QString(it); }),
@@ -710,15 +710,15 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
 
     for (const auto& hdr :
          value->getProperties(Prop::Kind::ExportLatexHeader)) {
-        res->add(string(hdr.getExportLatexHeader().header));
+        b.at(res).add(string(hdr.getExportLatexHeader().header));
     }
 
-    res->add(command("usepackage", {"csquotes"}));
-    res->add(command("usepackage", {"bookmarks"}, {"hyperref"}));
-    res->add(command("usepackage", {"xcolor"}));
+    b.at(res).add(command("usepackage", {"csquotes"}));
+    b.at(res).add(command("usepackage", {"bookmarks"}, {"hyperref"}));
+    b.at(res).add(command("usepackage", {"xcolor"}));
 
     for (auto const& value : sliceT<OrgSemPlacement>()) {
-        res->add(
+        b.at(res).add(
             command("newenvironment", {getWrapEnvCommand(value), "", ""}));
     }
 
@@ -728,11 +728,11 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
             default: argCount = 1;
         }
 
-        Res cmd = b::line({string("\\newcommand")});
+        Res cmd = b.line({string("\\newcommand")});
         addWrap(cmd, "{", "}", "\\" + getOrgCommand(value));
         addWrap(cmd, "[", "]", string(to_string(argCount)));
         addWrap(cmd, "{", "}", command(to_string(value), {"#1"}));
-        res->add(cmd);
+        b.at(res).add(cmd);
     }
 
     Vec<sem::SemIdT<sem::Export>> headerExports;
@@ -747,57 +747,57 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     });
 
     for (auto const& exp : headerExports) {
-        res->add(string(exp->content));
+        b.at(res).add(string(exp->content));
     }
 
-    res->add(string(R"(
+    b.at(res).add(string(R"(
 \newcommand*\sepline{%
   \begin{center}
     \rule[1ex]{\textwidth}{1pt}
   \end{center}}
 )"));
 
-    res->add(string(R"(
+    b.at(res).add(string(R"(
 \newcommand{\quot}[1]{\textcolor{brown}{#1}}
 )"));
 
 
-    res->add(command("begin", {"document"}));
+    b.at(res).add(command("begin", {"document"}));
 
     if (value->options) {
         auto exp = value->options->tocExport;
         if (std::holds_alternative<bool>(exp)) {
             if (std::get<bool>(exp)) {
-                res->add(command("tableofcontents"));
+                b.at(res).add(command("tableofcontents"));
             }
         } else {
             int level = std::get<int>(exp);
-            res->add(command("tableofcontents"));
-            res->add(
+            b.at(res).add(command("tableofcontents"));
+            b.at(res).add(
                 command("setcounter", {"tocdepth", to_string(level)}));
         }
     }
 
     for (const auto& it : value->subnodes) {
-        res->add(visit(it));
+        b.at(res).add(visit(it));
     }
-    res->add(command("end", {"document"}));
+    b.at(res).add(command("end", {"document"}));
 }
 
 void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
     __visit_specific_kind(res, tree);
-    res = b::stack();
+    res = b.stack();
 
-    auto titleText = b::line();
+    auto titleText = b.line();
     for (const auto& item : tree->title->subnodes) {
         switch (item->getKind()) {
 #define _direct(__Kind)                                                   \
-    case osk::__Kind: titleText->add(visit(item)); break;
+    case osk::__Kind: b.at(titleText).add(visit(item)); break;
             EACH_SEM_ORG_LEAF_KIND(_direct)
 #undef _direct
 
             default: {
-                titleText->add(command(
+                b.at(titleText).add(command(
                     "texorpdfstring",
                     {visit(item),
                      // FIXME latex exporter is broken because of sem ID
@@ -810,7 +810,7 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
 
     Opt<TexCommand> cmd = getSubtreeCommand(tree);
 
-    res->add(command(
+    b.at(res).add(command(
         map(cmd, [this](TexCommand cmd) { return getOrgCommand(cmd); })
             .value_or("textbf"),
         {titleText}));
@@ -820,7 +820,7 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
             case TexCommand::part:
             case TexCommand::chapter:
             case TexCommand::section:
-                res->add(command(
+                b.at(res).add(command(
                     "label",
                     {string(
                         getRefKind(tree).value_or("") + "\\the"
@@ -830,23 +830,23 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
     }
 
     for (const auto& it : tree->subnodes) {
-        res->add(visit(it));
+        b.at(res).add(visit(it));
     }
 }
 
 void ExporterLatex::visitParagraph(Res& res, In<Paragraph> par) {
     __visit_specific_kind(res, par);
-    res = b::line();
+    res = b.line();
     for (int i = 0; i < par->subnodes.size(); ++i) {
         if (i == 0 && par->isFootnoteDefinition()) {
             continue;
         } else {
-            res->add(visit(par->subnodes.at(i)));
+            b.at(res).add(visit(par->subnodes.at(i)));
         }
     }
 
-    if (res->size() == 0) {
-        res->add(string(" "));
+    if (b.at(res).size() == 0) {
+        b.at(res).add(string(" "));
     }
 
     if (par->isFootnoteDefinition()) {
@@ -876,16 +876,16 @@ void ExporterLatex::visitTime(Res& res, In<Time> time) {
 }
 
 void ExporterLatex::visitTimeRange(Res& res, In<sem::TimeRange> range) {
-    res = b::line({visit(range->from), string("--"), visit(range->to)});
+    res = b.line({visit(range->from), string("--"), visit(range->to)});
 }
 
 void ExporterLatex::visitBold(Res& res, In<sem::Bold> bold) {
-    res = command("textbf", {b::line(subnodes(bold))});
+    res = command("textbf", {b.line(subnodes(bold))});
 }
 
 
 void ExporterLatex::visitUnderline(Res& res, In<sem::Underline> under) {
-    res = command("underline", {b::line(subnodes(under))});
+    res = command("underline", {b.line(subnodes(under))});
 }
 
 void ExporterLatex::visitSymbol(Res& res, In<sem::Symbol> sym) {
@@ -906,7 +906,7 @@ void ExporterLatex::visitSymbol(Res& res, In<sem::Symbol> sym) {
 
         items.push_back(string("\""));
 
-        res = command("quot", {b::line(items)});
+        res = command("quot", {b.line(items)});
     } else {
 
         Vec<Res> positional;
@@ -920,12 +920,12 @@ void ExporterLatex::visitSymbol(Res& res, In<sem::Symbol> sym) {
 }
 
 void ExporterLatex::visitCenter(Res& res, In<sem::Center> center) {
-    res = b::stack();
-    res->add(command("begin", {"center"}));
+    res = b.stack();
+    b.at(res).add(command("begin", {"center"}));
     for (auto const& sub : center->subnodes) {
-        res->add(visit(sub));
+        b.at(res).add(visit(sub));
     }
-    res->add(command("end", {"center"}));
+    b.at(res).add(command("end", {"center"}));
 }
 
 void ExporterLatex::visitExport(Res& res, In<sem::Export> exp) {
@@ -945,22 +945,22 @@ void ExporterLatex::visitEmpty(Res& res, In<sem::Empty> empty) {
 }
 
 void ExporterLatex::visitMonospace(Res& res, In<sem::Monospace> mono) {
-    res = command("texttt", {b::line(subnodes(mono))});
+    res = command("texttt", {b.line(subnodes(mono))});
 }
 
 void ExporterLatex::visitItalic(Res& res, In<sem::Italic> italic) {
-    res = command("textit", {b::line(subnodes(italic))});
+    res = command("textit", {b.line(subnodes(italic))});
 }
 
 void ExporterLatex::visitVerbatim(Res& res, In<sem::Verbatim> verb) {
-    res = command("textsc", {b::line(subnodes(verb))});
+    res = command("textsc", {b.line(subnodes(verb))});
 }
 
 void ExporterLatex::visitQuote(Res& res, In<sem::Quote> quote) {
-    res = b::stack();
-    res->add(command("begin", {"displayquote"}));
-    res->add(b::stack(subnodes(quote)));
-    res->add(command("end", {"displayquote"}));
+    res = b.stack();
+    b.at(res).add(command("begin", {"displayquote"}));
+    b.at(res).add(b.stack(subnodes(quote)));
+    b.at(res).add(command("end", {"displayquote"}));
 }
 
 void ExporterLatex::visitLink(Res& res, In<sem::Link> link) {
@@ -968,14 +968,14 @@ void ExporterLatex::visitLink(Res& res, In<sem::Link> link) {
         case sem::Link::Kind::Id: {
             auto target = link->resolve();
             if (target) {
-                res = b::line({command(
+                res = b.line({command(
                     "ref",
                     {string(
                         getRefKind(*target).value_or("")
                         + target.value().getReadableId())})});
 
                 if (link->description) {
-                    res->add(visit(link->description.value()));
+                    b.at(res).add(visit(link->description.value()));
                 }
 
             } else {
@@ -1023,21 +1023,21 @@ void ExporterLatex::visitLink(Res& res, In<sem::Link> link) {
 }
 
 void ExporterLatex::visitList(Res& res, In<sem::List> list) {
-    res = b::stack();
-    res->add(command("begin", {"itemize"}));
-    res->add(subnodes(list));
-    res->add(command("end", {"itemize"}));
+    res = b.stack();
+    b.at(res).add(command("begin", {"itemize"}));
+    b.at(res).add(subnodes(list));
+    b.at(res).add(command("end", {"itemize"}));
 }
 
 void ExporterLatex::visitListItem(Res& res, In<sem::ListItem> item) {
-    res = b::line();
+    res = b.line();
     if (item->isDescriptionItem()) {
-        res->add(command("item", {visit(item->header.value())}));
+        b.at(res).add(command("item", {visit(item->header.value())}));
     } else {
-        res->add(command("item"));
+        b.at(res).add(command("item"));
     }
-    res->add(string(" "));
-    res->add(subnodes(item));
+    b.at(res).add(string(" "));
+    b.at(res).add(subnodes(item));
 }
 
 void ExporterLatex::visitTextSeparator(

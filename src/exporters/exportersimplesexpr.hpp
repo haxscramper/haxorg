@@ -8,33 +8,36 @@
 
 
 struct ExporterSimpleSExpr
-    : public Exporter<ExporterSimpleSExpr, layout::Block::Ptr> {
-    using Base = Exporter<ExporterSimpleSExpr, layout::Block::Ptr>;
+    : public Exporter<ExporterSimpleSExpr, layout::BlockId> {
+    using Base = Exporter<ExporterSimpleSExpr, layout::BlockId>;
 #define __ExporterBase Base
     EXPORTER_USING()
 #undef __ExporterBase
 
 
-    using Res    = layout::Block::Ptr;
-    using b      = layout::Block;
+    using Res    = layout::BlockId;
     using LytStr = layout::LytStr;
 
+    layout::BlockStore        b;
     layout::SimpleStringStore store;
-    Res string(QString const& str) { return b::text(store.str(str)); }
+    ExporterSimpleSExpr() : store{&b} {}
+    Res newRes(CR<sem::SemId> id) { return Res::Nil(); }
+
+    Res string(QString const& str) { return b.text(store.str(str)); }
 
     void visit(Res& res, sem::SemId org);
 
 
     template <sem::NotOrg T>
     void visit(Res& res, CR<T> value) {
-        res = b::line({string(escape_for_write(to_string(value)))});
+        res = b.line({string(escape_for_write(to_string(value)))});
     }
 
     template <typename T>
     void visit(Res& res, CVec<T> value) {
-        res = b::stack();
+        res = b.stack();
         for (const auto& it : value) {
-            res->add(visit(it));
+            b.at(res).add(visit(it));
         }
     }
 
@@ -70,18 +73,19 @@ struct ExporterSimpleSExpr
 
     template <typename T>
     Res visit(CR<T> value) {
-        Res tmp = b::stack();
+        Res tmp = b.stack();
         visit(tmp, value);
-        return b::line({string("("), tmp, string(")")});
+        return b.line({string("("), tmp, string(")")});
     }
 
     template <typename T>
     void visitField(Res& res, char const* name, CVec<T> value) {
         if (!value.empty()) {
-            if (res->isLine()) {
-                res->add(string(" "));
+            if (b.at(res).isLine()) {
+                b.at(res).add(string(" "));
             }
-            res->add(b::line({string(name), string(": "), visit(value)}));
+            b.at(res).add(
+                b.line({string(name), string(": "), visit(value)}));
         }
     }
 
@@ -94,16 +98,16 @@ struct ExporterSimpleSExpr
 
     template <typename T>
     void visitField(Res& res, char const* name, CR<T> value) {
-        Q_CHECK_PTR(res);
-        if (res->isLine()) {
-            res->add(string(" "));
+        Q_ASSERT(res.isNil());
+        if (b.at(res).isLine()) {
+            b.at(res).add(string(" "));
         }
-        res->add(b::line({string(name), string(": "), visit(value)}));
+        b.at(res).add(b.line({string(name), string(": "), visit(value)}));
     }
 
     void visitTime(Res& res, In<sem::Time> time) {
         if (time->isStatic()) {
-            res = b::line(
+            res = b.line(
                 {string(" "),
                  visit(time->getStatic().time.getDateTime())});
         } else {
@@ -112,13 +116,13 @@ struct ExporterSimpleSExpr
     }
 
     void visitDocument(Res& res, In<sem::Document> value) {
-        res = b::stack();
+        res = b.stack();
         for (const auto& it : value->subnodes) {
-            res->add(visit(it));
+            b.at(res).add(visit(it));
         }
     }
 };
 
-extern template class Exporter<ExporterSimpleSExpr, layout::Block::Ptr>;
+extern template class Exporter<ExporterSimpleSExpr, layout::BlockId>;
 
 #endif // EXPORTERSIMPLESEXPR_HPP

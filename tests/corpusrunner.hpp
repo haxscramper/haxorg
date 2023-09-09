@@ -61,7 +61,8 @@ class CorpusRunner {
     };
 
     json toTextLyt(
-        layout::Block::Ptr        block,
+        layout::BlockStore&       b,
+        layout::BlockId           block,
         Func<Str(layout::LytStr)> getStr);
 
 
@@ -127,7 +128,8 @@ class CorpusRunner {
         }
     };
 
-    RunResult::LexCompare compareTokens( CR<TokenGroup<OrgTokenKind>> lexed,
+    RunResult::LexCompare compareTokens(
+        CR<TokenGroup<OrgTokenKind>> lexed,
         CR<TokenGroup<OrgTokenKind>> expected,
         ParseSpec::Conf::MatchMode   match);
 

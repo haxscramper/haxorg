@@ -61,16 +61,17 @@ AB::Res GenConverter::convert(const GD::Ident& ident) {
 
 
 GenConverter::Res GenConverter::convert(const GenTu::Namespace& space) {
-    Res         result = AB::b::stack();
+    Res         result = builder.b.stack();
     WithContext tmpCtx(this, AB::QualType(space.name).asNamespace());
 
-    result->add(builder.string("namespace " + space.name + "{"));
+    builder.b.at(result).add(
+        builder.string("namespace " + space.name + "{"));
     for (auto const& sub : space.entries) {
-        result->add(convert(sub));
-        result->add(std::move(pendingToplevel));
+        builder.b.at(result).add(convert(sub));
+        builder.b.at(result).add(std::move(pendingToplevel));
     }
 
-    result->add(builder.string("}"));
+    builder.b.at(result).add(builder.string("}"));
 
     return result;
 }
@@ -152,7 +153,7 @@ AB::Res GenConverter::convert(const GD::Struct& record) {
         auto methods = map(
             record.methods + extraMethods,
             [&](GenTu::Function const& method) {
-                return AB::b::line(Vec<AB::Res>{
+                return builder.b.line(Vec<AB::Res>{
                     builder.string("("),
                     builder.string(method.result),
                     builder.pars(builder.csv({
@@ -238,10 +239,14 @@ GenConverter::Res GenConverter::convert(const GenTu::Enum& entry) {
                   .Compound  = false,
                   .Autobreak = false,
                   .OneLine   = true,
-                  .Body      = Vec<AB::Res>{builder.Throw(builder.XCall(
+                  .Body      = Vec<AB::Res>{
+                    builder.Throw(
+                        builder.XCall(
                       "std::domain_error",
-                      {builder.Literal("Unexpected enum value -- cannot be "
-                                       "converted to string")}))}},
+                        Vec<AB::Res>{builder.Literal("Unexpected enum value -- cannot be "
+                                       "converted to string"),})),
+                        },
+                    },
                 .Cases = map(
                     entry.fields,
                     [&](GenTu::EnumField const& field) -> AB::CaseStmtParams {
@@ -318,7 +323,7 @@ GenConverter::Res GenConverter::convert(const GenTu::Enum& entry) {
             Serde.add(
                 RDP::Method{.isStatic = true, .params = ToDefininition});
 
-            return AB::b::stack({
+            return builder.b.stack({
                 builder.Enum(params),
                 builder.Record(Serde),
                 builder.Record(Domain),
@@ -331,7 +336,7 @@ GenConverter::Res GenConverter::convert(const GenTu::Enum& entry) {
                                     return builder.string(Field.name);
                                 });
 
-            return AB::b::stack({
+            return builder.b.stack({
                 builder.Enum(params),
                 builder.XCall("BOOST_DESCRIBE_NESTED_ENUM", arguments),
             });

@@ -3,17 +3,19 @@
 #include <exporters/Exporter.hpp>
 #include <hstd/wrappers/textlayouter.hpp>
 
-struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
-    using Base = Exporter<ExporterLatex, layout::Block::Ptr>;
+struct ExporterLatex : public Exporter<ExporterLatex, layout::BlockId> {
+    using Base = Exporter<ExporterLatex, layout::BlockId>;
 #define __ExporterBase Base
     EXPORTER_USING()
 #undef __ExporterBase
 
-    using Res    = layout::Block::Ptr;
-    using b      = layout::Block;
+    using Res    = layout::BlockId;
     using LytStr = layout::LytStr;
 
+    layout::BlockStore        b;
     layout::SimpleStringStore store;
+    Res newRes(CR<sem::SemId> id) { return Res::Nil(); }
+    ExporterLatex() : store{&b} {}
 
 
     DECL_DESCRIBED_ENUM(
@@ -36,7 +38,7 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     QString      getWrapEnvCommand(OrgSemPlacement placement);
     Opt<QString> getRefKind(sem::SemId id);
 
-    Res string(QString const& str) { return b::text(store.str(str)); }
+    Res string(QString const& str) { return b.text(store.str(str)); }
 
     UnorderedMap<Str, int> footnoteCounter;
     int                    getFootnote(CR<Str> str);
@@ -55,7 +57,7 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
 
     template <sem::NotOrg T>
     void visit(Res& res, CR<T> value) {
-        res = b::line({string(
+        res = b.line({string(
             demangle(typeid(T).name())
             + escape_for_write(to_string(value)))});
     }
@@ -68,9 +70,9 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     template <typename T>
     void visit(Res& res, CVec<T> value) {
         __visit_value(res, value);
-        res = b::stack();
+        res = b.stack();
         for (const auto& it : value) {
-            res->add(visit(it));
+            b.at(res).add(visit(it));
         }
     }
 
@@ -145,4 +147,4 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::Block::Ptr> {
     void visitEmpty(Res& res, In<sem::Empty> empty);
 };
 
-extern template class Exporter<ExporterLatex, layout::Block::Ptr>;
+extern template class Exporter<ExporterLatex, layout::BlockId>;

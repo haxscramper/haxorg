@@ -1052,9 +1052,9 @@ void HaxorgCli::exec() {
     }
 
     if (config.exp.html) {
-        ExporterHtml       exporter;
-        layout::Block::Ptr result    = exporter.visitTop(node);
-        QString            formatted = exporter.store.toString(
+        ExporterHtml    exporter;
+        layout::BlockId result    = exporter.visitTop(node);
+        QString         formatted = exporter.store.toString(
             result, layout::Options{});
         writeFile(config.exp.html->target, formatted);
         exportOk("HTML", *config.exp.html);
@@ -1076,7 +1076,7 @@ void HaxorgCli::exec() {
     if (config.exp.sexpr) {
         __trace("Export S-expresions");
         ExporterSimpleSExpr exporter;
-        layout::Block::Ptr  result    = exporter.visitTop(node);
+        layout::BlockId     result    = exporter.visitTop(node);
         QString             formatted = exporter.store.toString(
             result, layout::Options{});
         writeFile(config.exp.sexpr->target, formatted);
@@ -1186,8 +1186,8 @@ void HaxorgCli::exec() {
             trace.endStream(os);
         };
 
-        layout::Block::Ptr result    = exporter.visitTop(node);
-        QString            formatted = exporter.store.toString(
+        layout::BlockId result    = exporter.visitTop(node);
+        QString         formatted = exporter.store.toString(
             result, layout::Options{});
         writeFile(config.exp.tex->target, formatted);
         exportOk("TEX", *config.exp.tex);

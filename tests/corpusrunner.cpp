@@ -405,39 +405,40 @@ void writeSimple(ColStream& os, json const& j) {
 
 
 json CorpusRunner::toTextLyt(
-    layout::Block::Ptr        block,
+    layout::BlockStore&       b,
+    layout::BlockId           block,
     Func<Str(layout::LytStr)> getStr) {
-    using b = layout::Block;
+    using B = layout::Block;
 
-    auto getSubnodes = [&](CVec<b::Ptr> elements) {
+    auto getSubnodes = [&](CVec<layout::BlockId> elements) {
         json res = json::array();
         for (auto const& e : elements) {
-            res.push_back(toTextLyt(e, getStr));
+            res.push_back(toTextLyt(b, e, getStr));
         }
         return res;
     };
 
     return std::visit(
         overloaded{
-            [&](b::Empty const&) -> json {
+            [&](B::Empty const&) -> json {
                 return {{"kind", "empty"}};
             },
-            [&](b::Line const& l) -> json {
+            [&](B::Line const& l) -> json {
                 return {
                     {"kind", "line"},
                     {"subnodes", getSubnodes(l.elements)}};
             },
-            [&](b::Stack const& l) -> json {
+            [&](B::Stack const& l) -> json {
                 return {
                     {"kind", "block"},
                     {"subnodes", getSubnodes(l.elements)}};
             },
-            [&](b::Choice const& l) -> json {
+            [&](B::Choice const& l) -> json {
                 return {
                     {"kind", "choice"},
                     {"subnodes", getSubnodes(l.elements)}};
             },
-            [&](b::Verb const& l) -> json {
+            [&](B::Verb const& l) -> json {
                 json arr = json::array();
                 for (auto const& i : l.textLines) {
                     json line = json::array();
@@ -450,14 +451,14 @@ json CorpusRunner::toTextLyt(
                 return {
                     {"kind", "verb"}, {"fistNl", "bool"}, {"lines", arr}};
             },
-            [&](b::Text const& l) -> json {
+            [&](B::Text const& l) -> json {
                 json arr = json::array();
                 for (auto const& i : l.text.strs) {
                     arr.push_back(getStr(i));
                 }
                 return {{"kind", "text"}, {"tokens", arr}};
             },
-            [&](b::Wrap const& text) -> json {
+            [&](B::Wrap const& text) -> json {
                 return {
                     {"kind", "wrap"},
                     {"sep", getStr(text.sep)},
@@ -467,7 +468,7 @@ json CorpusRunner::toTextLyt(
                     {"subnodes", getSubnodes(text.wrapElements)}};
             },
         },
-        block->data);
+        b.at(block).data);
 }
 
 
@@ -532,18 +533,19 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
         return [&](layout::LytStr str) { return store.str(str); };
     };
 
-    auto withTreeExporter = [this,
-                             &strForStore](sem::SemId top, auto& run) {
-        auto block = run.visitTop(top);
-        return ER(
-            ER::Text{.textLyt = toTextLyt(block, strForStore(run.store))});
-    };
+    auto withTreeExporter =
+        [this,
+         &strForStore](sem::SemId top, layout::BlockStore& b, auto& run) {
+            auto block = run.visitTop(top);
+            return ER(ER::Text{
+                .textLyt = toTextLyt(b, block, strForStore(run.store))});
+        };
 
     if (exp.name == "json") {
         return ER(ER::Structured{.data = ExporterJson().visitTop(top)});
     } else if (exp.name == "sexp") {
         ExporterSimpleSExpr run;
-        return withTreeExporter(top, run);
+        return withTreeExporter(top, run.b, run);
 
     } else if (exp.name == "pandoc") {
         return ER(ER::Structured{
@@ -551,7 +553,7 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
 
     } else if (exp.name == "html") {
         ExporterHtml run;
-        return withTreeExporter(top, run);
+        return withTreeExporter(top, run.b, run);
 
     } else if (exp.name == "event_log") {
         ExporterEventLog exporter;
@@ -575,7 +577,7 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
 
     } else if (exp.name == "latex") {
         ExporterLatex run;
-        return withTreeExporter(top, run);
+        return withTreeExporter(top, run.b, run);
 
     } else if (exp.name == "subtree_structure") {
         return ER(ER::Structured{

@@ -385,6 +385,7 @@ Opt<Solution::Ptr> withRestOfLine(
 }
 
 Opt<Solution::Ptr> doOptLayout(
+    BlockStore&         store,
     BlockId&            self,
     Opt<Solution::Ptr>& rest,
     CR<Options>         opts);
@@ -401,7 +402,8 @@ Opt<Solution::Ptr> optLayout(
     // supplied repeatedly to the same block. Without memoisation, this
     // may result in an exponential blow-up in the layout algorithm.
     if (!store.at(self).layoutCache.contains(rest)) {
-        store.at(self).layoutCache[rest] = doOptLayout(self, rest, opts);
+        store.at(self).layoutCache[rest] = doOptLayout(
+            store, self, rest, opts);
     }
 
     return store.at(self).layoutCache[rest];
@@ -481,19 +483,20 @@ Opt<Solution::Ptr> doOptLineLayout(
     Opt<Solution::Ptr>& rest,
     CR<Options>         opts) {
 
-    Block::Line& line = store.at(self).getLine();
+
     /// Procedure to perform optimal line layout.
-    if (line.elements.size() == 0) {
+    if (store.at(self).getLine().elements.size() == 0) {
         return rest;
     }
 
     Vec<Vec<BlockId>> elementLines;
     elementLines.push_back(Vec<BlockId>());
 
-    for (size_t i = 0; i < line.elements.size(); ++i) {
-        BlockId elt = line.elements[i];
+    for (size_t i = 0; i < store.at(self).getLine().elements.size(); ++i) {
+        BlockId elt = store.at(self).getLine().elements[i];
         elementLines.back().push_back(elt);
-        if (i < line.elements.size() - 1 && store.at(elt).isBreaking) {
+        if (i < store.at(self).getLine().elements.size() - 1
+            && store.at(elt).isBreaking) {
             elementLines.push_back(Vec<BlockId>());
         }
     }
@@ -532,11 +535,11 @@ Opt<Solution::Ptr> doOptChoiceLayout(
     BlockId&            self,
     Opt<Solution::Ptr>& rest,
     CR<Options>         opts) {
-    Block::Choice& choice = store.at(self).getChoice();
+
     /// Optimum layout of this block is the piecewise minimum of its
     /// elements' layouts.
     Vec<Solution::Ptr> tmp;
-    for (auto& it : choice.elements) {
+    for (auto& it : store.at(self).getChoice().elements) {
         Opt<Solution::Ptr> lyt = optLayout(store, it, rest, opts);
         if (lyt.has_value()) {
             tmp.push_back(lyt.value());
@@ -550,16 +553,17 @@ Opt<Solution::Ptr> doOptStackLayout(
     BlockId&            self,
     Opt<Solution::Ptr>& rest,
     CR<Options>         opts) {
-    Block::Stack& stack = store.at(self).getStack();
+
     /// Optimum layout for this block arranges the elements vertically.
-    if (stack.elements.size() == 0) {
+    if (store.at(self).getStack().elements.size() == 0) {
         return rest;
     }
 
     Vec<Solution::Ptr> solnCandidates;
-    for (size_t idx = 0; idx < stack.elements.size(); ++idx) {
-        auto& elem = stack.elements.at(idx);
-        if (idx < stack.elements.size() - 1) {
+    for (size_t idx = 0; idx < store.at(self).getStack().elements.size();
+         ++idx) {
+        auto& elem = store.at(self).getStack().elements.at(idx);
+        if (idx < store.at(self).getStack().elements.size() - 1) {
             Opt<Solution::Ptr> it;
             auto               opt = optLayout(store, elem, it, opts);
             if (opt) {
@@ -584,7 +588,10 @@ Opt<Solution::Ptr> doOptStackLayout(
     // Add the cost of the line breaks between the elements.
     return Opt<Solution::Ptr>(soln->plusConst(static_cast<float>(
         opts.linebreakCost * store.at(self).breakMult
-        * std::max(static_cast<int>(stack.elements.size() - 1), 0))));
+        * std::max(
+            static_cast<int>(
+                store.at(self).getStack().elements.size() - 1),
+            0))));
 }
 
 Opt<Solution::Ptr> doOptWrapLayout(
@@ -595,22 +602,22 @@ Opt<Solution::Ptr> doOptWrapLayout(
     /// Computing the optimum layout for this class of block involves
     /// finding the optimal packing of elements into lines, a problem
     /// which we address using dynamic programming.
-    Block::Wrap&       wrap              = store.at(self).getWrap();
-    BlockId            initTextBlock_sep = store.text(wrap.sep);
+    BlockId initTextBlock_sep = store.text(store.at(self).getWrap().sep);
     Opt<Solution::Ptr> none_Solution;
     Opt<Solution::Ptr> sepLayout = optLayout(
         store, initTextBlock_sep, none_Solution, opts);
 
     Opt<Solution::Ptr> prefixLayout;
-    if (wrap.prefix.has_value()) {
-        BlockId initTextBlock_prefix = store.text(wrap.prefix.value());
+    if (store.at(self).getWrap().prefix.has_value()) {
+        BlockId initTextBlock_prefix = store.text(
+            store.at(self).getWrap().prefix.value());
 
         prefixLayout = doOptLayout(
-            initTextBlock_prefix, none_Solution, opts);
+            store, initTextBlock_prefix, none_Solution, opts);
     }
 
     Vec<Opt<Solution::Ptr>> eltLayouts;
-    for (auto& it : wrap.wrapElements) {
+    for (auto& it : store.at(self).getWrap().wrapElements) {
         Opt<Solution::Ptr> tmp;
         eltLayouts.push_back(optLayout(store, it, tmp, opts));
     }
@@ -645,7 +652,11 @@ Opt<Solution::Ptr> doOptWrapLayout(
                                           : eltLayouts[i];
 
         bool breakOut     = false;
-        bool lastBreaking = store.at(wrap.wrapElements[i]).isBreaking;
+        bool lastBreaking = store
+                                .at(store.at(self)
+                                        .getWrap()
+                                        .wrapElements[i])
+                                .isBreaking;
         for (int j = i; j < store.at(self).size() - 1; ++j) {
             // Stack solutions for two lines on each other. NOTE this part
             // is different from the reference implementation, but I think
@@ -673,7 +684,11 @@ Opt<Solution::Ptr> doOptWrapLayout(
                 sepLayout, eltLayouts[j + 1], opts);
 
             lineLayout   = withRestOfLine(lineLayout, sepEltLayout, opts);
-            lastBreaking = store.at(wrap.wrapElements[j + 1]).isBreaking;
+            lastBreaking = store
+                               .at(store.at(self)
+                                       .getWrap()
+                                       .wrapElements[j + 1])
+                               .isBreaking;
         }
 
         if (!breakOut) {
@@ -697,11 +712,11 @@ Opt<Solution::Ptr> doOptVerbLayout(
     // The solution for this block is essentially that of a TextBlock(''),
     // with an abberant layout calculated as follows.
     Vec<LayoutElement::Ptr> lElts;
-    Block::Verb&            verb = store.at(self).getVerb();
 
-    for (size_t i = 0; i < verb.textLines.size(); ++i) {
-        const auto& ln = verb.textLines[i];
-        if (i < 0 || verb.firstNl) {
+    for (size_t i = 0; i < store.at(self).getVerb().textLines.size();
+         ++i) {
+        const auto& ln = store.at(self).getVerb().textLines[i];
+        if (i < 0 || store.at(self).getVerb().firstNl) {
             lElts.push_back(LayoutElement::newline());
         }
 
@@ -954,7 +969,7 @@ BlockId BlockStore::horizontal(
 
 Vec<Layout::Ptr> BlockStore::toLayouts(BlockId id, const Options& opts) {
     Opt<Solution::Ptr> rest;
-    auto               sln = doOptLayout(id, rest, opts);
+    auto               sln = doOptLayout(*this, id, rest, opts);
     return sln.value()->layouts;
 }
 

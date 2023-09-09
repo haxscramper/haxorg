@@ -14,7 +14,6 @@ std::ostream& operator<<(std::ostream& os, CR<Str> s) {
 }
 
 
-
 using namespace layout;
 using namespace testing;
 
@@ -28,28 +27,33 @@ void internal::PrintTo(CR<Event> e, ::std::ostream* os) {
 
 using b = Block;
 using S = layout::SimpleStringStore;
+using B = layout::BlockStore;
 
-Block::Ptr lytProc(S& s, const Vec<Block::Ptr>& args, Block::Ptr& body) {
-    Str        h    = "proc (";
-    Str        t    = ") = ";
-    Block::Ptr hsep = b::horizontal(args, s.text(", "));
-    Block::Ptr vsep = b::vertical(args, s.text(", "));
+layout::BlockId lytProc(
+    B&                          b,
+    S&                          s,
+    const Vec<layout::BlockId>& args,
+    layout::BlockId&            body) {
+    Str             h    = "proc (";
+    Str             t    = ") = ";
+    layout::BlockId hsep = b.horizontal(args, s.text(", "));
+    layout::BlockId vsep = b.vertical(args, s.text(", "));
 
-    return b::choice({
-        b::line({
+    return b.choice({
+        b.line({
             s.text(h),
             hsep,
             s.text(t),
             body,
         }),
-        b::stack({
-            b::line({s.text(h), hsep, s.text(t), b::indent(2, body)}),
+        b.stack({
+            b.line({s.text(h), hsep, s.text(t), b.indent(2, body)}),
         }),
-        b::stack({
+        b.stack({
             s.text(h),
-            b::indent(4, vsep),
+            b.indent(4, vsep),
             s.text(t),
-            b::indent(2, body),
+            b.indent(2, body),
         }),
     });
 }
@@ -57,44 +61,51 @@ Block::Ptr lytProc(S& s, const Vec<Block::Ptr>& args, Block::Ptr& body) {
 
 TEST(TextLayouterTest, BasicFormattingOperations) {
     {
-        S    s;
+        B    b;
+        S    s{&b};
         auto res = s.toString(s.text("S"));
         EXPECT_EQ(res, "S");
     }
     {
-        S s;
-        EXPECT_EQ(s.toString(b::indent(4, s.text("S"))), "    S");
+        B b;
+        S s{&b};
+        EXPECT_EQ(s.toString(b.indent(4, s.text("S"))), "    S");
     }
     {
-        S s;
-        EXPECT_EQ(s.toString(b::line({s.text("A"), s.text("B")})), "AB");
+        B b;
+        S s{&b};
+        EXPECT_EQ(s.toString(b.line({s.text("A"), s.text("B")})), "AB");
     }
     {
-        S    s;
-        auto block = b::stack({s.text("A"), s.text("B")});
+        B    b;
+        S    s{&b};
+        auto block = b.stack({s.text("A"), s.text("B")});
         Str  value = s.toString(block);
         EXPECT_EQ(value, "A\nB");
     }
     {
-        S s;
+        B b;
+        S s{&b};
         EXPECT_EQ(
-            s.toString(b::indent(2, b::line({s.text("A"), s.text("B")}))),
+            s.toString(b.indent(2, b.line({s.text("A"), s.text("B")}))),
             "  AB");
     }
     {
-        S    s;
+        B    b;
+        S    s{&b};
         auto value = s.toString(
-            b::indent(2, b::stack({s.text("A"), s.text("B")})));
+            b.indent(2, b.stack({s.text("A"), s.text("B")})));
         EXPECT_EQ(value, "  A\n  B");
     }
     {
-        S   s;
-        Str expr = s.toString(b::line({
-            b::stack({
+        B   b;
+        S   s{&b};
+        Str expr = s.toString(b.line({
+            b.stack({
                 s.text("A"),
                 s.text("B"),
             }),
-            b::stack({
+            b.stack({
                 s.text("C"),
                 s.text("D"),
             }),
@@ -104,9 +115,10 @@ TEST(TextLayouterTest, BasicFormattingOperations) {
     }
 
     {
-        S s;
+        B b;
+        S s{&b};
         EXPECT_EQ(
-            s.toString(b::choice({
+            s.toString(b.choice({
                 s.text("123456"),
                 s.text("123"),
             })),
@@ -114,10 +126,11 @@ TEST(TextLayouterTest, BasicFormattingOperations) {
     }
 
     {
-        S s;
+        B b;
+        S s{&b};
         EXPECT_EQ(
-            s.toString(b::choice({
-                b::stack({
+            s.toString(b.choice({
+                b.stack({
                     s.text("123"),
                     s.text("456"),
                 }),
@@ -127,11 +140,12 @@ TEST(TextLayouterTest, BasicFormattingOperations) {
     }
 
     {
-        S s;
+        B b;
+        S s{&b};
         EXPECT_EQ(
             s.toString(
-                b::choice({
-                    b::stack({s.text("12"), s.text("34"), s.text("56")}),
+                b.choice({
+                    b.stack({s.text("12"), s.text("34"), s.text("56")}),
                     s.text("132456"),
                 }),
                 Options{.linebreakCost = 1, .rightMargin = 2}),
@@ -139,10 +153,11 @@ TEST(TextLayouterTest, BasicFormattingOperations) {
     }
 
     {
-        S s;
+        B b;
+        S s{&b};
         EXPECT_EQ(
             s.toString(
-                b::wrap(
+                b.wrap(
                     {
                         s.text("[###]"),
                         s.text("[###]"),
@@ -159,7 +174,7 @@ using namespace std::ranges;
 //     Vec<Str> res;
 //     for (const auto& args : Vec{1, 2}) {
 //         for (const auto& body : Vec{20, 60}) {
-//             Block::Ptr block = lytProc(
+//             layout::BlockId block = lytProc(
 //                 rs::iota_view(0, args - 1)
 //                     | rv::transform([](int i) -> Str {
 //                          return "arg$#: arg$#_type" % to_string_vec(i, i);
@@ -189,8 +204,8 @@ using namespace std::ranges;
 //}
 
 TEST(TextLayouterTest, FnNameWithWrap) {
-    auto wrapArgs = [](S& s) {
-        return b::wrap(
+    auto wrapArgs = [](B& b, S& s) {
+        return b.wrap(
             {
                 s.text("argument1"),
                 s.text("argument2"),
@@ -205,15 +220,16 @@ TEST(TextLayouterTest, FnNameWithWrap) {
             },
             s.str(", "));
     };
+
     {
-        S   s;
-        Str res = s.toString(
-            b::line({
-                b::line({s.text("FnName"), s.text("(")}),
-                wrapArgs(s),
-                s.text(")"),
-            }),
-            {.rightMargin = 60});
+        B    b;
+        S    s{&b};
+        auto id  = b.line({
+            b.line({s.text("FnName"), s.text("(")}),
+            wrapArgs(b, s),
+            s.text(")"),
+        });
+        Str  res = s.toString(id, {.rightMargin = 60});
 
         Str val
             = "FnName(argument1, argument2, argument3, argument4,\n"
@@ -224,11 +240,12 @@ TEST(TextLayouterTest, FnNameWithWrap) {
     }
 
     {
-        S   s;
+        B   b;
+        S   s{&b};
         Str res = s.toString(
-            b::line({
-                b::line({s.text("FnName"), s.text("(")}),
-                wrapArgs(s),
+            b.line({
+                b.line({s.text("FnName"), s.text("(")}),
+                wrapArgs(b, s),
                 s.text(")"),
             }),
             {.rightMargin = 30});
@@ -244,23 +261,24 @@ TEST(TextLayouterTest, FnNameWithWrap) {
     }
 
     {
-        S   s;
+        B   b;
+        S   s{&b};
         Str res = s.toString(
-            b::choice({
-                b::line({
-                    b::line({
+            b.choice({
+                b.line({
+                    b.line({
                         s.text("AVeryLongAndDescriptiveFunctionName"),
                         s.text("("),
                     }),
-                    b::indent(4, wrapArgs(s)),
+                    b.indent(4, wrapArgs(b, s)),
                     s.text(")"),
                 }),
-                b::stack({
-                    b::line({
+                b.stack({
+                    b.line({
                         s.text("AVeryLongAndDescriptiveFunctionName"),
                         s.text("("),
                     }),
-                    b::indent(4, wrapArgs(s)),
+                    b.indent(4, wrapArgs(b, s)),
                     s.text(")"),
                 }),
             }),
@@ -278,12 +296,13 @@ TEST(TextLayouterTest, FnNameWithWrap) {
 
 TEST(TextLayouterTest, CodeLayout) {
     {
-        S    s;
-        auto bl = s.toString(b::line({
+        B    b;
+        S    s{&b};
+        auto bl = s.toString(b.line({
             s.text("stmtPragmas* = "),
-            b::line({
+            b.line({
                 s.text("{ "),
-                b::stack({
+                b.stack({
                     s.text("wChecks"),
                     s.text("wOverflowChecks"),
                     s.text("wNilChecks"),

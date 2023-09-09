@@ -6,24 +6,27 @@
 #include <concepts>
 
 
-struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
-    using Base = Exporter<ExporterHtml, layout::Block::Ptr>;
+struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
+    using Base = Exporter<ExporterHtml, layout::BlockId>;
 #define __ExporterBase Base
     EXPORTER_USING()
 #undef __ExporterBase
 
 
-    using Res    = layout::Block::Ptr;
-    using b      = layout::Block;
+    using Res    = layout::BlockId;
     using LytStr = layout::LytStr;
 
     layout::SimpleStringStore store;
-    Res string(QString const& str) { return b::text(store.str(str)); }
+    layout::BlockStore        b;
+
+    ExporterHtml() : store{&b} {}
+    Res newRes(CR<sem::SemId> id) { return Res::Nil(); }
+    Res string(QString const& str) { return b.text(store.str(str)); }
 
     void visit(Res& res, sem::SemId org) {
         visitDispatch(res, org);
 
-        if (res == nullptr) {
+        if (res.isNil()) {
             res = string(
                 "TODO in convert visit [" + to_string(org->getKind())
                 + "]");
@@ -31,17 +34,17 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
     }
 
     Res visit(sem::SemId org) {
-        Res tmp = nullptr;
+        Res tmp = Res::Nil();
         visit(tmp, org);
         return tmp;
     }
 
     template <typename T>
     Res visit(CR<T> it) {
-        Res tmp = nullptr;
+        Res tmp = Res::Nil();
         visit(tmp, it);
 
-        if (tmp == nullptr) {
+        if (tmp.isNil()) {
             tmp = string("TODO " + demangle(typeid(it).name()));
         }
 
@@ -57,9 +60,9 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
 
 
     Res multiString(QString const& str) {
-        Res res = b::stack();
+        Res res = b.stack();
         for (const auto& line : str.split("\n")) {
-            res->add(string(line));
+            b.at(res).add(string(line));
         }
 
         return res;
@@ -69,26 +72,26 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
     void visitField(Res& res, char const* name, CR<T> it) {}
 
     Res stackSubnodes(sem::SemId doc) {
-        Res res = b::stack();
+        Res res = b.stack();
         for (const auto& it : doc->subnodes) {
-            res->add(visit(it));
+            b.at(res).add(visit(it));
         }
         return res;
     }
 
     Res lineSubnodes(sem::SemId doc) {
-        Res res = b::line();
+        Res res = b.line();
         for (const auto& it : doc->subnodes) {
-            res->add(visit(it));
+            b.at(res).add(visit(it));
         }
         return res;
     }
 
     Res directionWrap(bool isStack, QString tag, CVec<Res> items) {
-        Res res = isStack ? b::stack() : b::line();
-        res->add(string("<" + tag + ">"));
-        res->add(items);
-        res->add(string("</" + tag + ">"));
+        Res res = isStack ? b.stack() : b.line();
+        b.at(res).add(string("<" + tag + ">"));
+        b.at(res).add(items);
+        b.at(res).add(string("</" + tag + ">"));
         return res;
     }
 
@@ -120,12 +123,11 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
     }
 
     void visitMarkQuote(Res& res, In<sem::MarkQuote> mark) {
-        res = b::line({string("\""), lineSubnodes(mark), string("\"")});
+        res = b.line({string("\""), lineSubnodes(mark), string("\"")});
     }
 
     void visitTimeRange(Res& res, In<sem::TimeRange> range) {
-        res = b::line(
-            {visit(range->from), string("--"), visit(range->to)});
+        res = b.line({visit(range->from), string("--"), visit(range->to)});
     }
 
     void visitLink(Res& res, In<sem::Link> link) {
@@ -148,6 +150,6 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::Block::Ptr> {
 #undef __leaf
 };
 
-extern template class Exporter<ExporterHtml, layout::Block::Ptr>;
+extern template class Exporter<ExporterHtml, layout::BlockId>;
 
 #endif // EXPORTERHTML_HPP

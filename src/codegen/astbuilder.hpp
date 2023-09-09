@@ -15,11 +15,12 @@
 /// designated initializers (`.Cond = <expr>`)
 class ASTBuilder {
   public:
-    using Res    = layout::Block::Ptr;
-    using b      = layout::Block;
+    using Res    = layout::BlockId;
     using LytStr = layout::LytStr;
+    layout::BlockStore        b;
     layout::SimpleStringStore store;
-    Res string(QString const& str) { return b::text(store.str(str)); }
+    Res string(QString const& str) { return b.text(store.str(str)); }
+    ASTBuilder() : store{&b} {}
 
 
     struct DocParams {
@@ -244,15 +245,15 @@ class ASTBuilder {
     };
 
     Res brace(Vec<Res> const& elements) {
-        return b::stack({
+        return b.stack({
             string("{"),
-            b::stack(elements),
+            b.stack(elements),
             string("}"),
         });
     }
 
     Res pars(Res const& arg) {
-        return b::line({string("("), arg, string(")")});
+        return b.line({string("("), arg, string(")")});
     }
 
     Res block(
@@ -263,7 +264,7 @@ class ASTBuilder {
     Res csv(CVec<Str> items, bool isLine = true, bool isTrailing = false);
 
     Res csv(CVec<Res> items, bool isLine = true, bool isTrailing = false) {
-        return b::join(items, string(", "), isLine, isTrailing);
+        return b.join(items, string(", "), isLine, isTrailing);
     }
 
     Res CompoundStmt(const CompoundStmtParams& p) {
@@ -289,7 +290,7 @@ class ASTBuilder {
     Res IfStmt(const IfStmtParams& p);
 
     struct CaseStmtParams {
-        Res      Expr;
+        Res      Expr = Res::Nil();
         Vec<Res> Body;
         bool     Compound  = true;
         bool     Autobreak = true;
@@ -298,7 +299,7 @@ class ASTBuilder {
     };
 
     struct SwitchStmtParams {
-        Res                 Expr;
+        Res                 Expr = Res::Nil();
         Vec<CaseStmtParams> Cases;
         Opt<CaseStmtParams> Default = std::nullopt;
     };
@@ -313,18 +314,18 @@ class ASTBuilder {
         bool       Line = true);
 
     Res XStmt(Str const& opc, Res arg) {
-        return b::line({string(opc), string(" "), arg, string(";")});
+        return b.line({string(opc), string(" "), arg, string(";")});
     }
 
     Res XStmt(Str const& opc) {
-        return b::line({string(opc), string(";")});
+        return b.line({string(opc), string(";")});
     }
 
     Res Trail(
         Res const& first,
         Res const& second,
         Str const& space = " ") {
-        return b::line({first, string(space), second});
+        return b.line({first, string(space), second});
     }
 
     Res Comment(
@@ -338,9 +339,9 @@ class ASTBuilder {
     Res Throw(Res expr) { return XStmt("throw", expr); }
     Res Return(Res expr) { return XStmt("return", expr); }
     Res Continue(Res expr) { return XStmt("continue", expr); }
-    Res TranslationUnit(Vec<Res> stmts) { return b::stack(stmts); }
+    Res TranslationUnit(Vec<Res> stmts) { return b.stack(stmts); }
     Res Include(Str file, bool isSystem) {
-        return b::line({
+        return b.line({
             string("#include "),
             string(isSystem ? "<" + file + ">" : "\"" + file + "\""),
         });

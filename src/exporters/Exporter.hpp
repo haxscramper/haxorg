@@ -153,7 +153,7 @@ struct Exporter {
     void visitSubnode(R& tmp, int, sem::SemId val);
 
     /// \brief Create default instance of the new result type
-    R newRes(sem::SemId) { return R{}; }
+    R newRes(sem::SemId) { return SerdeDefaultProvider<R>::get(); }
 
 
     /// \brief Additional hook that is called for each node before

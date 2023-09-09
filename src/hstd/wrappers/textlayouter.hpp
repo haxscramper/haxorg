@@ -15,7 +15,7 @@
 namespace layout {
 
 DECL_ID_TYPE_MASKED(LytStr, LytStrId, u64, 8);
-DECL_ID_TYPE(Block, BlockId, u64);
+DECL_ID_TYPE_MASKED(Block, BlockId, u64, 8);
 
 inline const auto LytSpacesId = LytStrId::FromValue(
     value_domain<int>::high() - 120);
@@ -260,7 +260,7 @@ struct Solution : public SharedPtrApi<Solution> {
 
 struct Options;
 
-struct Block : public SharedPtrApi<Block> {
+struct Block {
     using id_type = BlockId;
     struct Verb {
         Vec<LytStrSpan> textLines;
@@ -353,7 +353,10 @@ struct Block : public SharedPtrApi<Block> {
 struct BlockStore {
     dod::Store<BlockId, Block> store;
 
-    Block& at(BlockId const& id) { return store.at(id); }
+    Block& at(BlockId const& id) {
+        qInfo() << id.getIndex();
+        return store.at(id);
+    }
 
     BlockId text(CR<LytStrSpan> t);
     BlockId line(CR<Vec<BlockId>> l = {});
@@ -467,5 +470,10 @@ struct SimpleStringStore {
 
 
 } // namespace layout
+
+template <>
+struct SerdeDefaultProvider<layout::BlockId> {
+    static layout::BlockId get() { return layout::BlockId::Nil(); }
+};
 
 #endif // TEXTLAYOUTER_HPP
