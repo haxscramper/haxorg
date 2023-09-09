@@ -21,8 +21,8 @@ class Param:
 
 @dataclass
 class GenUnit:
-    header: GenTu = field(default_factory=lambda: GenTu())
-    source: GenTu = field(default_factory=lambda: GenTu())
+    header: Optional[GenTu] = None
+    source: Optional[GenTu] = None
 
 
 @dataclass
@@ -113,7 +113,7 @@ class Enum:
     name: str
     doc: Doc
     fields: List[EField] = field(default_factory=list)
-    base: Optional[str] = None
+    base: Optional[str] = "short int"
     kind: str = "Enum"
 
 
@@ -1946,12 +1946,12 @@ def get_exporter_methods(forward):
 
             variant_methods = [
                 Method("void",
-                         f"{decl_scope}avisit",
+                         f"{decl_scope}visit",
                          Doc(""),
                          params=t_params,
                          arguments=[
                              Ident("R&", "res"),
-                             Ident(f"CR<sem::~{'::'.join(full_scoped_name)}::{group.variantName}>", "object")
+                             Ident(f"CR<sem::{'::'.join(full_scoped_name)}::{group.variantName}>", "object")
                          ],
                          impl=None if forward else
                          f"visitVariants(res, sem::{'::'.join(full_scoped_name)}::{group.kindGetter}(object), object);")
@@ -1960,7 +1960,7 @@ def get_exporter_methods(forward):
 
             if len(scope_full) == 0:
                 method = Method("void",
-                                  f"{decl_scope}avisit{name}",
+                                  f"{decl_scope}visit{name}",
                                   Doc(""),
                                   params=t_params,
                                   arguments=[Ident("R&", "res"), Ident(f"In<sem::{name}>", "object")],
@@ -1968,11 +1968,11 @@ def get_exporter_methods(forward):
                                   '\n'.join([f"__org_field(res, object, {a.name});" for a in fields]))
             else:
                 method = Method("void",
-                                  f"{decl_scope}avisit",
+                                  f"{decl_scope}visit",
                                   Doc(""),
                                   params=t_params,
                                   arguments=[Ident("R&", "res"), Ident(scoped_target, "object")],
-                                  impl=None if forward else ''.join([f"__obj_field(res, object, {a.name});" for a in fields]))
+                                  impl=None if forward else '\n'.join([f"__obj_field(res, object, {a.name});" for a in fields]))
 
             methods += variant_methods + [method]
 
@@ -1995,8 +1995,9 @@ def gen_value():
         GenUnit(
             GenTu("/tmp/sem/SemOrgEnums.hpp", [
                 Pass("#define EACH_SEM_ORG_KIND(__IMPL) \n" +
-                     ("\n".join([f"    __IMPL({struct.name})" for struct in get_concrete_types()])))
-            ] + full_enums), GenTu("/tmp/sem/SemOrgEnums.hpp", [Pass('#include "SemOrgEnums.hpp"')] + full_enums)),
+                     ("\n".join([f"    __IMPL({struct.name})" for struct in get_concrete_types()])))] + full_enums
+                ), 
+            GenTu("/tmp/sem/SemOrgEnums.cpp", [Pass('#include "SemOrgEnums.hpp"')] + full_enums)),
         GenUnit(
             GenTu("/tmp/sem/SemOrgTypes.hpp", [
                 Pass("#pragma once"),
