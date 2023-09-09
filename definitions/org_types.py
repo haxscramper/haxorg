@@ -14,6 +14,10 @@ class GenTu:
     path: str = ""
     entries: List[Entry] = field(default_factory=list)
 
+@dataclass
+class Param:
+    name: str = ""
+
 
 @dataclass
 class GenUnit:
@@ -181,7 +185,7 @@ def d_org(*args, **kwargs):
     if res.concreteKind:
         res.fields.insert(
             0,
-            [Field(t_osk(), "staticKind", Doc("Document"), isConst=True, isStatic=True)],
+            Field(t_osk(), "staticKind", Doc("Document"), isConst=True, isStatic=True),
         )
 
     return res
@@ -422,7 +426,7 @@ def get_types():
             bases=["Block"],
             nested=[
                 Struct(
-                    ["Switch"],
+                    "Switch",
                     Doc("Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block"
                        ),
                     nested=[
@@ -441,7 +445,7 @@ def get_types():
                             Struct("EmphasizeLine",
                                    Doc("Emphasize single line -- can be repeated multiple times"),
                                    fields=[Field(t_vec("int"), "line", Doc(""), value="{}")]),
-                            Struct(["Dedent"], Doc(""), fields=[Field("int", "value", Doc(""), value="0")])
+                            Struct("Dedent", Doc(""), fields=[Field("int", "value", Doc(""), value="0")])
                         ])
                     ]),
                 Enum("Results", Doc("What to do with newly evaluated result"),
@@ -475,7 +479,7 @@ def get_types():
                     "Repeat",
                     Doc("Repetition information for static time"),
                     nested=[
-                        Enum(["Mode"], Doc("Timestamp repetition mode"), [
+                        Enum("Mode", Doc("Timestamp repetition mode"), [
                             EField("None", Doc("Do not repeat task on completion")),
                             EField("Exact", Doc("?")),
                             EField("FirstMatch", Doc("Repeat on the first matching day in the future")),
@@ -499,9 +503,9 @@ def get_types():
                         Field("int", "count", Doc("count"))
                     ]),
                 Group([
-                    Struct(["Static"], Doc(""), fields=[Field(t_opt("Repeat"), "repeat", Doc("")),
+                    Struct("Static", Doc(""), fields=[Field(t_opt("Repeat"), "repeat", Doc("")),
                                                         Field("UserTime", "time", Doc(""))]),
-                    Struct(["Dynamic"], Doc(""), fields=[Field(t_str(), "expr", Doc(""))])
+                    Struct("Dynamic", Doc(""), fields=[Field(t_str(), "expr", Doc(""))])
                 ],
                       kindGetter="getTimeKind",
                       enumName="TimeKind",
@@ -524,7 +528,7 @@ def get_types():
               Doc("Text symbol or symbol command"),
               bases=["Org"],
               nested=[
-                  Struct(["Param"],
+                  Struct("Param",
                          Doc("Symbol parameters"),
                          fields=[
                              Field(t_opt(t_str()), "key", Doc("Key -- for non-positional")),
@@ -541,7 +545,7 @@ def get_types():
               bases=["Org"],
               methods=[Method("void", "setDescription", Doc(""), arguments=[Ident(t_id("StmtList"), "desc")])],
               nested=[
-                  Struct(["DescribedLog"],
+                  Struct("DescribedLog",
                          Doc("Base value for the log variant"),
                          fields=[
                              Field(t_opt(t_id("StmtList")),
@@ -689,29 +693,29 @@ def get_types():
                            d_simple_enum("SetMode", Doc(""), "Override", "Add", "Subtract"),
                            d_simple_enum("InheritanceMode", Doc(""), "ThisAndSub", "OnlyThis", "OnlySub"),
                            Group([
-                               Struct(["Nonblocking"], Doc(""), fields=[Field("bool", "isBlocking", Doc(""))]),
-                               Struct(["Trigger"], Doc("")),
-                               Struct(["Origin"], Doc(""), fields=[Field(t_str(), "text", Doc(""))]),
-                               Struct(["ExportLatexClass"], Doc(""), fields=[Field(t_str(), "latexClass", Doc(""))]),
-                               Struct(["ExportLatexClassOptions"], Doc(""), fields=[Field(t_vec(t_str()), "options", Doc(""))]),
-                               Struct(["ExportLatexHeader"], Doc(""), fields=[Field(t_str(), "header", Doc(""))]),
-                               Struct(["ExportLatexCompiler"], Doc(""), fields=[Field(t_str(), "compiler", Doc(""))]),
-                               Struct(["Ordered"], Doc(""), fields=[Field("bool", "isOrdered", Doc(""))]),
-                               Struct(["Effort"],
+                               Struct( "Nonblocking" , Doc(""), fields=[Field("bool", "isBlocking", Doc(""))]),
+                               Struct( "Trigger" , Doc("")),
+                               Struct( "Origin" , Doc(""), fields=[Field(t_str(), "text", Doc(""))]),
+                               Struct( "ExportLatexClass" , Doc(""), fields=[Field(t_str(), "latexClass", Doc(""))]),
+                               Struct( "ExportLatexClassOptions" , Doc(""), fields=[Field(t_vec(t_str()), "options", Doc(""))]),
+                               Struct( "ExportLatexHeader" , Doc(""), fields=[Field(t_str(), "header", Doc(""))]),
+                               Struct( "ExportLatexCompiler" , Doc(""), fields=[Field(t_str(), "compiler", Doc(""))]),
+                               Struct( "Ordered" , Doc(""), fields=[Field("bool", "isOrdered", Doc(""))]),
+                               Struct( "Effort" ,
                                       Doc(""),
                                       fields=[Field("int", "hours", Doc(""), value="0"),
                                               Field("int", "minutes", Doc(""), value="0")]),
-                               Struct(["Visibility"],
+                               Struct( "Visibility" ,
                                       Doc(""),
                                       nested=[d_simple_enum("Level", Doc(""), "Folded", "Children", "Content", "All")],
                                       fields=[Field("Level", "level", Doc(""))]),
-                               Struct(["ExportOptions"],
+                               Struct( "ExportOptions" ,
                                       Doc(""),
                                       fields=[Field(t_str(), "backend", Doc("")),
                                               Field("UnorderedMap<Str, Str>", "values", Doc(""))]),
-                               Struct(["Blocker"], Doc(""), fields=[Field(t_vec(t_str()), "blockers", Doc(""))]),
-                               Struct(["Unnumbered"], Doc("")),
-                               Struct(["Created"], Doc(""), fields=[id_field("Time", "time", Doc(""))])
+                               Struct( "Blocker" , Doc(""), fields=[Field(t_vec(t_str()), "blockers", Doc(""))]),
+                               Struct( "Unnumbered" , Doc("")),
+                               Struct( "Created" , Doc(""), fields=[id_field("Time", "time", Doc(""))])
                            ]),
                            Pass("Property(CR<Data> data) : data(data) {}"),
                            Pass("bool matches(Kind kind, CR<QString> subkind = \"\") const;"),
@@ -769,11 +773,11 @@ def get_types():
               ],
               nested=[
                   Group([
-                      Struct(["Raw"], Doc(""), fields=[(Field(t_str(), "text", Doc("")))]),
-                      Struct(["Id"], Doc(""), fields=[(Field(t_str(), "text", Doc("")))]),
-                      Struct(["Person"], Doc(""), fields=[(Field(t_str(), "name", Doc("")))]),
-                      Struct(["Footnote"], Doc(""), fields=[(Field(t_str(), "target", Doc("")))]),
-                      Struct(["File"], Doc(""), fields=[(Field(t_str(), "file", Doc("")))])
+                      Struct( "Raw" , Doc(""), fields=[(Field(t_str(), "text", Doc("")))]),
+                      Struct( "Id" , Doc(""), fields=[(Field(t_str(), "text", Doc("")))]),
+                      Struct( "Person" , Doc(""), fields=[(Field(t_str(), "name", Doc("")))]),
+                      Struct( "Footnote" , Doc(""), fields=[(Field(t_str(), "target", Doc("")))]),
+                      Struct( "File" , Doc(""), fields=[(Field(t_str(), "file", Doc("")))])
                   ],
                         kindGetter="getLinkKind")
               ]),
@@ -836,10 +840,10 @@ def get_types():
             bases=["Org"],
             nested=[
                 Group(
-                    [Struct(["Example"], Doc("")),
-                     Struct(["Export"], Doc("")),
-                     Struct(["Src"], Doc("")),
-                     Struct(["OrgDocument"], Doc(""))],
+                    [Struct( "Example" , Doc("")),
+                     Struct( "Export" , Doc("")),
+                     Struct( "Src" , Doc("")),
+                     Struct( "OrgDocument" , Doc(""))],
                     kindGetter="getIncludeKind")
             ]),
         d_org("DocumentOptions",
@@ -1886,57 +1890,93 @@ def iterate_object_tree(tree, callback, context: List[Any]):
 
     context.pop()
 
+def get_type_base_fields(value, base_map):
+    fields = []
+    for base_sym in value.bases:
+        base = base_map.get(base_sym)
+        if base:
+            fields.extend(base.fields)
+            fields.extend(get_type_base_fields(base, base_map))
+
+    return fields
+
+def get_type_group_fields(value):
+    return [Field(group.variantName, group.variantField, Doc("")) for group in get_nested_groups(value)]
+
+def get_nested_groups(value):
+    return [nested for nested in value.nested if isinstance(nested, Group) and nested.variantField]
+
+def get_base_map():
+    base_map = {}
+    def callback(obj):
+        if isinstance(obj, Struct):
+            base_map[obj.name] = obj
+            
+    context = []
+    iterate_object_tree(get_types(), callback, context)
+    base_map['Org'] = Struct(
+        'Org', "",
+        [
+            Field("OrgSemPlacement", "placementContext", ""),
+            Field(t_vec(""), "subnodes", "")
+        ]
+    )
+
+    return base_map
 
 def get_exporter_methods(forward):
     methods = []
-    context = []
+    iterate_tree_context = []
+    base_map = get_base_map()
 
     def callback(value):
-        nonlocal methods  # to access the outer methods variable
-        if isinstance(value, object) and value is Struct:
-            scope_full = remove(lambda scope: not is_a(scope, Struct), fluid_ref('iterate_tree_context'))
-            scope_names = [slot_ref(type_, 'name') for type_ in scope_full]
-            name = slot_ref(value, 'name')
+        nonlocal methods  
+        nonlocal base_map
+        nonlocal iterate_tree_context
+        if isinstance(value, Struct):
+            scope_full = [scope for scope in iterate_tree_context if isinstance(scope, Struct)]
+            scope_names = [scope.name for scope in scope_full]
+            name = value.name
             full_scoped_name = scope_names + [name]
-            fields = remove(lambda field: slot_ref(field, 'isStatic'),
-                            slot_ref(value, 'fields') + get_type_base_fields(value) + get_type_group_fields(value))
-            scoped_target = f"CR<sem::~{'::'.join(full_scoped_name)}>"
+            fields = [field for field in (value.fields + get_type_base_fields(value, base_map) +  get_type_group_fields(value)) if not(field.isStatic)] 
+            
+            scoped_target = f"CR<sem::{'::'.join(full_scoped_name)}>"
             decl_scope = "" if forward else "Exporter<V, R>::"
-            t_params = None if forward else [d.param("V"), d.param("R")]
+            t_params = None if forward else [Param("V"), Param("R")]
 
             variant_methods = [
-                d.method("void",
+                Method("void",
                          f"{decl_scope}avisit",
-                         d.doc(""),
+                         Doc(""),
                          params=t_params,
                          arguments=[
-                             d.ident("R&", "res"),
-                             d.ident(f"CR<sem::~{'::'.join(full_scoped_name)}~{slot_ref(group, 'variantName')}>", "object")
+                             Ident("R&", "res"),
+                             Ident(f"CR<sem::~{'::'.join(full_scoped_name)}::{group.variantName}>", "object")
                          ],
                          impl=None if forward else
-                         f"visitVariants(res, sem::~{'::'.join(full_scoped_name)}~{slot_ref(group, 'kindGetter')}(object), object);")
+                         f"visitVariants(res, sem::{'::'.join(full_scoped_name)}::{group.kindGetter}(object), object);")
                 for group in get_nested_groups(value)
             ]
 
             if len(scope_full) == 0:
-                method = d.method("void",
+                method = Method("void",
                                   f"{decl_scope}avisit{name}",
-                                  d.doc(""),
+                                  Doc(""),
                                   params=t_params,
-                                  arguments=[d.ident("R&", "res"), d.ident(f"In<sem::~{name}>", "object")],
+                                  arguments=[Ident("R&", "res"), Ident(f"In<sem::{name}>", "object")],
                                   impl=None if forward else f"__visit_specific_kind(res, object);\n %s" %
                                   ''.join([f"__org_field(res, object, {a.name});" for a in fields]))
             else:
-                method = d.method("void",
+                method = Method("void",
                                   f"{decl_scope}avisit",
-                                  d.doc(""),
+                                  Doc(""),
                                   params=t_params,
-                                  arguments=[d.ident("R&", "res"), d.ident(scoped_target, "object")],
+                                  arguments=[Ident("R&", "res"), Ident(scoped_target, "object")],
                                   impl=None if forward else ''.join([f"__obj_field(res, object, {a.name});" for a in fields]))
 
             methods += variant_methods + [method]
 
-    iterate_object_tree(get_types(), callback, context)
+    iterate_object_tree(get_types(), callback, iterate_tree_context)
     return methods
 
 

@@ -103,11 +103,12 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     Obj // For instances of user-defined classes
 );
 
-void       init();
-py::object eval(const std::string& code);
-py::object eval_file(const std::string& filename);
-void    print(py::object obj, std::ostream& out, std::string indent = "");
-QString describe_value(py::object const& obj);
+void        init();
+py::object  eval(const std::string& code);
+py::object  eval_file(const std::string& filename);
+void        format(py::object obj, QTextStream& out, QString indent = "");
+QString     format(py::object const& obj, QString indent = "");
+QString     describe_value(py::object const& obj);
 std::string to_string(py::object value);
 ValueKind   get_value_kind(py::object value);
 
@@ -288,7 +289,8 @@ struct py::extract<T> : py_extract_base {
                 qFatal() << "Missing field '" + QString(field.name)
                                 + "' for"
                          << demangle(typeid(T).name()) << "from value"
-                         << pywrap::describe_value(obj);
+                         << pywrap::describe_value(obj) << "\n"
+                         << pywrap::format(obj);
             }
         });
         return result;
