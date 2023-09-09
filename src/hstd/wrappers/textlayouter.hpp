@@ -353,9 +353,13 @@ struct Block {
 struct BlockStore {
     dod::Store<BlockId, Block> store;
 
-    Block& at(BlockId const& id) {
-        qInfo() << id.getIndex();
-        return store.at(id);
+    Block& at(BlockId const& id) { return store.at(id); }
+    void   add_at(BlockId const& id, BlockId const& next) {
+        at(id).add(next);
+    }
+
+    void add_at(BlockId const& id, Vec<BlockId> const& next) {
+        at(id).add(next);
     }
 
     BlockId text(CR<LytStrSpan> t);

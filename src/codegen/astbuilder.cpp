@@ -95,7 +95,7 @@ ASTBuilder::Res ASTBuilder::Doc(const DocParams& doc) {
 
     auto result = b.stack();
     for (auto const& line : content) {
-        b.at(result).add(string("/// " + line));
+        b.add_at(result, string("/// " + line));
     }
     return result;
 }
@@ -307,7 +307,7 @@ ASTBuilder::Res ASTBuilder::Using(const UsingParams& params) {
 ASTBuilder::Res ASTBuilder::Macro(const MacroParams& params) {
     auto definition = b.stack();
     for (auto const& line : params.definition) {
-        b.at(definition).add(string(line + "  \\"));
+        b.add_at(definition, string(line + "  \\"));
     }
     Vec<Res> arguments;
     for (auto const& line : params.params) {
@@ -346,7 +346,7 @@ ASTBuilder::Res ASTBuilder::block(
 
     if (trailingLine) {
         if (b.at(result).isStack()) {
-            b.at(result).add(string(""));
+            b.add_at(result, string(""));
         } else {
             result = b.stack({result, string("")});
         }
@@ -373,7 +373,7 @@ ASTBuilder::Res ASTBuilder::Enum(const EnumParams& params) {
         "non-empty enum name required");
     auto fields = b.stack();
     for (auto const& field : params.fields) {
-        b.at(fields).add(b.stack({
+        b.add_at(fields, b.stack({
             Doc(field.doc),
             string(field.name + ","), // TODO field value
         }));
@@ -422,35 +422,35 @@ ASTBuilder::Res ASTBuilder::IfStmt(const IfStmtParams& p) {
                      });
 
         if (Branch.Cond) {
-            b.at(head).add(string(" ("));
-            b.at(head).add(Branch.Cond.value());
-            b.at(head).add(string(") "));
+            b.add_at(head, string(" ("));
+            b.add_at(head, Branch.Cond.value());
+            b.add_at(head, string(") "));
         }
 
-        b.at(head).add(string("{"));
+        b.add_at(head, string("{"));
 
         if (p.LookupIfStructure) {
-            b.at(head).add(string(" "));
-            b.at(head).add(Branch.Then);
-            b.at(head).add(string(" }"));
+            b.add_at(head, string(" "));
+            b.add_at(head, Branch.Then);
+            b.add_at(head, string(" }"));
             if (!last) {
-                b.at(head).add(string(" else "));
+                b.add_at(head, string(" else "));
             }
-            b.at(result).add(head);
+            b.add_at(result, head);
         } else {
             if (Branch.OneLine) {
-                b.at(head).add(string(" "));
-                b.at(head).add(Branch.Then);
-                b.at(result).add(head);
+                b.add_at(head, string(" "));
+                b.add_at(head, Branch.Then);
+                b.add_at(result, head);
             } else {
-                b.at(result).add(head);
-                b.at(result).add(b.indent(2, Branch.Then));
+                b.add_at(result, head);
+                b.add_at(result, b.indent(2, Branch.Then));
             }
         }
     }
 
     if (!p.LookupIfStructure) {
-        b.at(result).add(string("}"));
+        b.add_at(result, string("}"));
     }
 
     return result;
@@ -531,7 +531,7 @@ ASTBuilder::Res ASTBuilder::Comment(
     if (Inline) {
         auto content = b.stack();
         for (auto const& line : text) {
-            b.at(content).add(string(line));
+            b.add_at(content, string(line));
         }
 
         return b.line(
@@ -540,7 +540,7 @@ ASTBuilder::Res ASTBuilder::Comment(
     } else {
         auto result = b.stack();
         for (auto const& line : text) {
-            b.at(result).add(string((Doc ? "/// " : "// ") + line));
+            b.add_at(result, string((Doc ? "/// " : "// ") + line));
         }
         return result;
     }

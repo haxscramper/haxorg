@@ -185,43 +185,45 @@ const char* sidebarStyle = R"html(
 
 void ExporterHtml::visitDocument(Res& res, In<sem::Document> doc) {
     res = b.stack();
-    b.at(res).add(multiString(R"(
+    b.add_at(res, multiString(R"(
 <!DOCTYPE html>
 <html>
 <head>
 <style>
 )"));
 
-    b.at(res).add(multiString(sidebarStyle));
+    b.add_at(res, multiString(sidebarStyle));
 
-    b.at(res).add(multiString(R"(
+    b.add_at(res, multiString(R"(
 </style>
 </head>
 <body>
 )"));
 
-    b.at(res).add(b.stack({
-        string(R"(<nav class="toc">)"),
-        stackWrap("ul", {b.indent(2, createTocList(doc))}),
-        string(R"html(
+    b.add_at(
+        res,
+        b.stack({
+            string(R"(<nav class="toc">)"),
+            stackWrap("ul", {b.indent(2, createTocList(doc))}),
+            string(R"html(
     <svg class="toc-marker" width="200" height="200" xmlns="http://www.w3.org/2000/svg">
       <path stroke="#444" stroke-width="3" fill="transparent" stroke-dasharray="0, 0, 0, 1000" stroke-linecap="round"
         stroke-linejoin="round" transform="translate(-0.5, -0.5)" />
     </svg>
   </nav>
 )html"),
-    }));
+        }));
 
-    b.at(res).add(string(R"(<article class="content">)"));
+    b.add_at(res, string(R"(<article class="content">)"));
 
     for (const auto& item : doc->subnodes) {
-        b.at(res).add(visit(item));
+        b.add_at(res, visit(item));
     }
 
-    b.at(res).add(string("</article>"));
+    b.add_at(res, string("</article>"));
 
-    b.at(res).add(stackWrap("script", {multiString(sidebarSync)}));
-    b.at(res).add(multiString(R"(
+    b.add_at(res, stackWrap("script", {multiString(sidebarSync)}));
+    b.add_at(res, multiString(R"(
 </body>
 </html>
 )"));
@@ -247,14 +249,17 @@ ExporterHtml::Res ExporterHtml::createTocList(sem::SemId node) {
 
     if (node->getKind() == OrgSemKind::Subtree) {
         Res stack = b.stack();
-        b.at(stack).add(b.line({
-            string("<a href=#" + QString::number(node.id) + ">"),
-            lineSubnodes(node.as<sem::Subtree>()->title),
-            string("</a>"),
-        }));
+        b.add_at(
+            stack,
+            b.line({
+                string("<a href=#" + QString::number(node.id) + ">"),
+                lineSubnodes(node.as<sem::Subtree>()->title),
+                string("</a>"),
+            }));
 
         if (!subItems.empty()) {
-            b.at(stack).add(
+            b.add_at(
+                stack,
                 stackWrap("ul", {b.indent(2, {b.stack(subItems)})}));
         }
 

@@ -64,14 +64,14 @@ GenConverter::Res GenConverter::convert(const GenTu::Namespace& space) {
     Res         result = builder.b.stack();
     WithContext tmpCtx(this, AB::QualType(space.name).asNamespace());
 
-    builder.b.at(result).add(
+    builder.b.add_at(result,
         builder.string("namespace " + space.name + "{"));
     for (auto const& sub : space.entries) {
-        builder.b.at(result).add(convert(sub));
-        builder.b.at(result).add(std::move(pendingToplevel));
+        builder.b.add_at(result,convert(sub));
+        builder.b.add_at(result,std::move(pendingToplevel));
     }
 
-    builder.b.at(result).add(builder.string("}"));
+    builder.b.add_at(result,builder.string("}"));
 
     return result;
 }

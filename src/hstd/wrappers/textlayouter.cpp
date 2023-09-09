@@ -895,9 +895,9 @@ BlockId BlockStore::join(
     BlockId res = spatial(!isLine);
     for (int i = 0; i < items.size(); ++i) {
         if (i < items.high() || isTrailing) {
-            at(res).add(line({items.at(i), join}));
+            add_at(res, line({items.at(i), join}));
         } else {
-            at(res).add(items.at(i));
+            add_at(res, items.at(i));
         }
     }
     return res;
@@ -942,9 +942,9 @@ BlockId BlockStore::vertical(
     for (size_t idx = 0; idx < blocks.size(); ++idx) {
         const auto& item = blocks[idx];
         if (idx < blocks.size() - 1) {
-            at(result).add(line({item, sep}));
+           add_at(result, line({item, sep}));
         } else {
-            at(result).add(item);
+           add_at(result, item);
         }
     }
 
@@ -959,9 +959,9 @@ BlockId BlockStore::horizontal(
     for (size_t idx = 0; idx < blocks.size(); ++idx) {
         const auto& item = blocks[idx];
         if (idx > 0) {
-            at(result).add(sep);
+           add_at(result, sep);
         }
-        at(result).add(item);
+       add_at(result, item);
     }
 
     return result;

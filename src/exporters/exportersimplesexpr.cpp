@@ -31,8 +31,8 @@ void ExporterSimpleSExpr::visit(Res& res, sem::SemId org) {
                 res = b.line({string(to_string(org->getKind()))});
 
                 for (const auto& it : org->subnodes) {
-                    b.at(res).add(string(" "));
-                    b.at(res).add(visit(it));
+                    b.add_at(res, string(" "));
+                    b.add_at(res, visit(it));
                 }
             } else {
                 visitDispatch(inner, org);

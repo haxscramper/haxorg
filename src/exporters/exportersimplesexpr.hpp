@@ -37,7 +37,7 @@ struct ExporterSimpleSExpr
     void visit(Res& res, CVec<T> value) {
         res = b.stack();
         for (const auto& it : value) {
-            b.at(res).add(visit(it));
+            b.add_at(res, visit(it));
         }
     }
 
@@ -82,10 +82,10 @@ struct ExporterSimpleSExpr
     void visitField(Res& res, char const* name, CVec<T> value) {
         if (!value.empty()) {
             if (b.at(res).isLine()) {
-                b.at(res).add(string(" "));
+                b.add_at(res, string(" "));
             }
-            b.at(res).add(
-                b.line({string(name), string(": "), visit(value)}));
+            b.add_at(
+                res, b.line({string(name), string(": "), visit(value)}));
         }
     }
 
@@ -98,11 +98,11 @@ struct ExporterSimpleSExpr
 
     template <typename T>
     void visitField(Res& res, char const* name, CR<T> value) {
-        Q_ASSERT(res.isNil());
+        Q_ASSERT(!res.isNil());
         if (b.at(res).isLine()) {
-            b.at(res).add(string(" "));
+            b.add_at(res, string(" "));
         }
-        b.at(res).add(b.line({string(name), string(": "), visit(value)}));
+        b.add_at(res, b.line({string(name), string(": "), visit(value)}));
     }
 
     void visitTime(Res& res, In<sem::Time> time) {
@@ -118,7 +118,7 @@ struct ExporterSimpleSExpr
     void visitDocument(Res& res, In<sem::Document> value) {
         res = b.stack();
         for (const auto& it : value->subnodes) {
-            b.at(res).add(visit(it));
+            b.add_at(res, visit(it));
         }
     }
 };

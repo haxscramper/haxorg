@@ -62,7 +62,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
     Res multiString(QString const& str) {
         Res res = b.stack();
         for (const auto& line : str.split("\n")) {
-            b.at(res).add(string(line));
+            b.add_at(res, string(line));
         }
 
         return res;
@@ -74,7 +74,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
     Res stackSubnodes(sem::SemId doc) {
         Res res = b.stack();
         for (const auto& it : doc->subnodes) {
-            b.at(res).add(visit(it));
+            b.add_at(res, visit(it));
         }
         return res;
     }
@@ -82,16 +82,16 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
     Res lineSubnodes(sem::SemId doc) {
         Res res = b.line();
         for (const auto& it : doc->subnodes) {
-            b.at(res).add(visit(it));
+            b.add_at(res, visit(it));
         }
         return res;
     }
 
     Res directionWrap(bool isStack, QString tag, CVec<Res> items) {
         Res res = isStack ? b.stack() : b.line();
-        b.at(res).add(string("<" + tag + ">"));
-        b.at(res).add(items);
-        b.at(res).add(string("</" + tag + ">"));
+        b.add_at(res, string("<" + tag + ">"));
+        b.add_at(res, items);
+        b.add_at(res, string("</" + tag + ">"));
         return res;
     }
 

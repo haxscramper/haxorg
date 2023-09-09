@@ -72,7 +72,7 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::BlockId> {
         __visit_value(res, value);
         res = b.stack();
         for (const auto& it : value) {
-            b.at(res).add(visit(it));
+            b.add_at(res,visit(it));
         }
     }
 
