@@ -1,4 +1,4 @@
-#!/ usr / bin / env python
+#!/usr/bin/env python
 
 from dataclasses import dataclass, field, fields
 from typing import *
@@ -181,12 +181,20 @@ def d_org(*args, **kwargs):
     res = Struct(*args, **kwargs)
     kind = res.name
     base = res.bases[0]
-    res.nested = [Pass("using {base}::{base}")] + res.nested
+    res.nested = [Pass(f"using {base}::{base};")] + res.nested
     if res.concreteKind:
         res.fields.insert(
             0,
             Field(t_osk(), "staticKind", Doc("Document"), isConst=True, isStatic=True),
         )
+
+        res.methods.insert(0, Method(t_osk(), "getKind", Doc(""), isConst=True, isVirtual=True, isPureVirtual=False,
+        impl=f"return {t_osk()}::{kind};"))
+
+        res.methods.insert(0, Method(t_id(kind), "create", Doc(""), isStatic=True, arguments=[
+            Ident(t_id(), "parent"),
+            Ident(t_opt("OrgAdapter"), "original", value="std::nullopt")
+        ]))
 
     return res
 
@@ -680,7 +688,7 @@ def get_types():
                             EField("Created", Doc("When the subtree was created")),
                             EField("Repeated", Doc("Last repeat time of the recurring tasks"))
                         ]),
-                        Pass("Period(CR<Variant<SemIdT<Time>, SemIdT<TimeRange>>> period, Kind kind) : period(period), kind(kind) ")
+                        Pass("Period(CR<Variant<SemIdT<Time>, SemIdT<TimeRange>>> period, Kind kind) : period(period), kind(kind) {}")
                     ]),
                 Struct("Property",
                        Doc("Single subtree property"),
@@ -1964,7 +1972,7 @@ def get_exporter_methods(forward):
                                   Doc(""),
                                   params=t_params,
                                   arguments=[Ident("R&", "res"), Ident(f"In<sem::{name}>", "object")],
-                                  impl=None if forward else f"__visit_specific_kind(res, object);\n %s" %
+                                  impl=None if forward else f"__visit_specific_kind(res, object);\n%s" %
                                   '\n'.join([f"__org_field(res, object, {a.name});" for a in fields]))
             else:
                 method = Method("void",
@@ -1988,18 +1996,18 @@ def gen_value():
     full_enums = get_enums() + [Enum(t_osk(), Doc(""),fields= [EField(struct.name, Doc("")) for struct in get_concrete_types()])]
 
     return GenFiles([
-        GenUnit(GenTu("/tmp/exporters/exporternlp_enums.hpp", with_enum_reflection_api(get_nlp_enums())),
-                GenTu("/tmp/exporters/exporternlp_enums.cpp", [Pass("#include \"exporternlp_enums.hpp\"")] + get_nlp_enums())),
-        GenUnit(GenTu("/tmp/exporters/Exporter.tcc", get_exporter_methods(False))),
-        GenUnit(GenTu("/tmp/exporters/ExporterMethods.tcc", get_exporter_methods(True))),
+        GenUnit(GenTu("${base}/exporters/exporternlp_enums.hpp", with_enum_reflection_api(get_nlp_enums())),
+                GenTu("${base}/exporters/exporternlp_enums.cpp", [Pass("#include \"exporternlp_enums.hpp\"")] + get_nlp_enums())),
+        GenUnit(GenTu("${base}/exporters/Exporter.tcc", get_exporter_methods(False))),
+        GenUnit(GenTu("${base}/exporters/ExporterMethods.tcc", get_exporter_methods(True))),
         GenUnit(
-            GenTu("/tmp/sem/SemOrgEnums.hpp", [
-                Pass("#define EACH_SEM_ORG_KIND(__IMPL) \n" +
-                     ("\n".join([f"    __IMPL({struct.name})" for struct in get_concrete_types()])))] + full_enums
+            GenTu("${base}/sem/SemOrgEnums.hpp", with_enum_reflection_api([
+                Pass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" +
+                     (" \\\n".join([f"    __IMPL({struct.name})" for struct in get_concrete_types()])))]) + full_enums
                 ), 
-            GenTu("/tmp/sem/SemOrgEnums.cpp", [Pass('#include "SemOrgEnums.hpp"')] + full_enums)),
+            GenTu("${base}/sem/SemOrgEnums.cpp", [Pass('#include "SemOrgEnums.hpp"')] + full_enums)),
         GenUnit(
-            GenTu("/tmp/sem/SemOrgTypes.hpp", [
+            GenTu("${base}/sem/SemOrgTypes.hpp", [
                 Pass("#pragma once"),
                 Include("sem/SemOrgEnums.hpp", True),
                 Include("hstd/stdlib/Vec.hpp", True),
