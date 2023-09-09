@@ -4,7 +4,6 @@ void Exporter<V, R>::visitStmt(R& res, In<sem::Stmt> object) {
   __org_field(res, object, attached);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -12,7 +11,6 @@ void Exporter<V, R>::visitInline(R& res, In<sem::Inline> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -20,7 +18,6 @@ void Exporter<V, R>::visitStmtList(R& res, In<sem::StmtList> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -28,7 +25,6 @@ void Exporter<V, R>::visitEmpty(R& res, In<sem::Empty> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -36,7 +32,6 @@ void Exporter<V, R>::visitRow(R& res, In<sem::Row> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -46,7 +41,6 @@ void Exporter<V, R>::visitTable(R& res, In<sem::Table> object) {
   __org_field(res, object, attached);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -56,7 +50,6 @@ void Exporter<V, R>::visitHashTag(R& res, In<sem::HashTag> object) {
   __org_field(res, object, subtags);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -66,7 +59,6 @@ void Exporter<V, R>::visitFootnote(R& res, In<sem::Footnote> object) {
   __org_field(res, object, definition);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -77,7 +69,6 @@ void Exporter<V, R>::visitCompletion(R& res, In<sem::Completion> object) {
   __org_field(res, object, isPercent);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -86,7 +77,6 @@ void Exporter<V, R>::visitParagraph(R& res, In<sem::Paragraph> object) {
   __org_field(res, object, attached);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -94,7 +84,6 @@ void Exporter<V, R>::visitFormat(R& res, In<sem::Format> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -102,7 +91,6 @@ void Exporter<V, R>::visitCenter(R& res, In<sem::Center> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -110,7 +98,6 @@ void Exporter<V, R>::visitCommand(R& res, In<sem::Command> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -118,7 +105,6 @@ void Exporter<V, R>::visitLineCommand(R& res, In<sem::LineCommand> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -126,7 +112,6 @@ void Exporter<V, R>::visitStandalone(R& res, In<sem::Standalone> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -134,7 +119,6 @@ void Exporter<V, R>::visitAttached(R& res, In<sem::Attached> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -143,7 +127,6 @@ void Exporter<V, R>::visitCaption(R& res, In<sem::Caption> object) {
   __org_field(res, object, text);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -152,7 +135,6 @@ void Exporter<V, R>::visitCommandGroup(R& res, In<sem::CommandGroup> object) {
   __org_field(res, object, attached);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -160,7 +142,6 @@ void Exporter<V, R>::visitBlock(R& res, In<sem::Block> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -169,7 +150,6 @@ void Exporter<V, R>::visitQuote(R& res, In<sem::Quote> object) {
   __org_field(res, object, text);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -177,7 +157,6 @@ void Exporter<V, R>::visitExample(R& res, In<sem::Example> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -187,7 +166,6 @@ void Exporter<V, R>::visitCmdArguments(R& res, In<sem::CmdArguments> object) {
   __org_field(res, object, named);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -197,7 +175,6 @@ void Exporter<V, R>::visitCmdArgument(R& res, In<sem::CmdArgument> object) {
   __org_field(res, object, value);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -210,7 +187,6 @@ void Exporter<V, R>::visitExport(R& res, In<sem::Export> object) {
   __org_field(res, object, content);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -218,7 +194,6 @@ void Exporter<V, R>::visitAdmonitionBlock(R& res, In<sem::AdmonitionBlock> objec
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -235,48 +210,31 @@ void Exporter<V, R>::visitCode(R& res, In<sem::Code> object) {
   __org_field(res, object, tangle);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::Data> object) { visitVariants(res, sem::Code::Switch::getKind(object), object); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch> object) {
-  __obj_field(res, object, data);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch> object) { __obj_field(res, object, data); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::LineStart> object) {
   __obj_field(res, object, start);
   __obj_field(res, object, extendLast);
-
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::CalloutFormat> object) {
-  __obj_field(res, object, format);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::CalloutFormat> object) { __obj_field(res, object, format); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::RemoveCallout> object) {
-  __obj_field(res, object, remove);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::RemoveCallout> object) { __obj_field(res, object, remove); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::EmphasizeLine> object) {
-  __obj_field(res, object, line);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::EmphasizeLine> object) { __obj_field(res, object, line); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::Dedent> object) {
-  __obj_field(res, object, value);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::Dedent> object) { __obj_field(res, object, value); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Time::TimeVariant> object) { visitVariants(res, sem::Time::getTimeKind(object), object); }
@@ -288,7 +246,6 @@ void Exporter<V, R>::visitTime(R& res, In<sem::Time> object) {
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
   __org_field(res, object, time);
-
 }
 
 template <typename V, typename R>
@@ -296,21 +253,16 @@ void Exporter<V, R>::visit(R& res, CR<sem::Time::Repeat> object) {
   __obj_field(res, object, mode);
   __obj_field(res, object, period);
   __obj_field(res, object, count);
-
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Time::Static> object) {
   __obj_field(res, object, repeat);
   __obj_field(res, object, time);
-
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Time::Dynamic> object) {
-  __obj_field(res, object, expr);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Time::Dynamic> object) { __obj_field(res, object, expr); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitTimeRange(R& res, In<sem::TimeRange> object) {
@@ -319,7 +271,6 @@ void Exporter<V, R>::visitTimeRange(R& res, In<sem::TimeRange> object) {
   __org_field(res, object, to);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -329,7 +280,6 @@ void Exporter<V, R>::visitMacro(R& res, In<sem::Macro> object) {
   __org_field(res, object, arguments);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -340,14 +290,12 @@ void Exporter<V, R>::visitSymbol(R& res, In<sem::Symbol> object) {
   __org_field(res, object, positional);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Symbol::Param> object) {
   __obj_field(res, object, key);
   __obj_field(res, object, value);
-
 }
 
 template <typename V, typename R>
@@ -359,14 +307,10 @@ void Exporter<V, R>::visitSubtreeLog(R& res, In<sem::SubtreeLog> object) {
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
   __org_field(res, object, log);
-
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::DescribedLog> object) {
-  __obj_field(res, object, desc);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::DescribedLog> object) { __obj_field(res, object, desc); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Priority> object) {
@@ -374,14 +318,12 @@ void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Priority> object) {
   __obj_field(res, object, newPriority);
   __obj_field(res, object, on);
   __obj_field(res, object, desc);
-
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Note> object) {
   __obj_field(res, object, on);
   __obj_field(res, object, desc);
-
 }
 
 template <typename V, typename R>
@@ -389,14 +331,12 @@ void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Refile> object) {
   __obj_field(res, object, on);
   __obj_field(res, object, from);
   __obj_field(res, object, desc);
-
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Clock> object) {
   __obj_field(res, object, range);
   __obj_field(res, object, desc);
-
 }
 
 template <typename V, typename R>
@@ -405,7 +345,6 @@ void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::State> object) {
   __obj_field(res, object, to);
   __obj_field(res, object, on);
   __obj_field(res, object, desc);
-
 }
 
 template <typename V, typename R>
@@ -414,7 +353,6 @@ void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Tag> object) {
   __obj_field(res, object, tag);
   __obj_field(res, object, added);
   __obj_field(res, object, desc);
-
 }
 
 template <typename V, typename R>
@@ -434,14 +372,12 @@ void Exporter<V, R>::visitSubtree(R& res, In<sem::Subtree> object) {
   __org_field(res, object, scheduled);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Period> object) {
   __obj_field(res, object, kind);
   __obj_field(res, object, period);
-
 }
 
 template <typename V, typename R>
@@ -453,95 +389,61 @@ void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property> object) {
   __obj_field(res, object, subSetRule);
   __obj_field(res, object, inheritanceMode);
   __obj_field(res, object, data);
-
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Nonblocking> object) {
-  __obj_field(res, object, isBlocking);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Nonblocking> object) { __obj_field(res, object, isBlocking); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Trigger> object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Origin> object) {
-  __obj_field(res, object, text);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Origin> object) { __obj_field(res, object, text); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexClass> object) {
-  __obj_field(res, object, latexClass);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexClass> object) { __obj_field(res, object, latexClass); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexClassOptions> object) {
-  __obj_field(res, object, options);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexClassOptions> object) { __obj_field(res, object, options); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexHeader> object) {
-  __obj_field(res, object, header);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexHeader> object) { __obj_field(res, object, header); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexCompiler> object) {
-  __obj_field(res, object, compiler);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexCompiler> object) { __obj_field(res, object, compiler); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Ordered> object) {
-  __obj_field(res, object, isOrdered);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Ordered> object) { __obj_field(res, object, isOrdered); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Effort> object) {
   __obj_field(res, object, hours);
   __obj_field(res, object, minutes);
-
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Visibility> object) {
-  __obj_field(res, object, level);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Visibility> object) { __obj_field(res, object, level); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportOptions> object) {
   __obj_field(res, object, backend);
   __obj_field(res, object, values);
-
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Blocker> object) {
-  __obj_field(res, object, blockers);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Blocker> object) { __obj_field(res, object, blockers); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Unnumbered> object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Created> object) {
-  __obj_field(res, object, time);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Created> object) { __obj_field(res, object, time); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitLatexBody(R& res, In<sem::LatexBody> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -549,7 +451,6 @@ void Exporter<V, R>::visitInlineMath(R& res, In<sem::InlineMath> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -558,7 +459,6 @@ void Exporter<V, R>::visitLeaf(R& res, In<sem::Leaf> object) {
   __org_field(res, object, text);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -567,7 +467,6 @@ void Exporter<V, R>::visitEscaped(R& res, In<sem::Escaped> object) {
   __org_field(res, object, text);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -576,7 +475,6 @@ void Exporter<V, R>::visitNewline(R& res, In<sem::Newline> object) {
   __org_field(res, object, text);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -585,7 +483,6 @@ void Exporter<V, R>::visitSpace(R& res, In<sem::Space> object) {
   __org_field(res, object, text);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -594,7 +491,6 @@ void Exporter<V, R>::visitWord(R& res, In<sem::Word> object) {
   __org_field(res, object, text);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -603,7 +499,6 @@ void Exporter<V, R>::visitAtMention(R& res, In<sem::AtMention> object) {
   __org_field(res, object, text);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -612,7 +507,6 @@ void Exporter<V, R>::visitRawText(R& res, In<sem::RawText> object) {
   __org_field(res, object, text);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -621,7 +515,6 @@ void Exporter<V, R>::visitPunctuation(R& res, In<sem::Punctuation> object) {
   __org_field(res, object, text);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -630,7 +523,6 @@ void Exporter<V, R>::visitPlaceholder(R& res, In<sem::Placeholder> object) {
   __org_field(res, object, text);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -639,7 +531,6 @@ void Exporter<V, R>::visitBigIdent(R& res, In<sem::BigIdent> object) {
   __org_field(res, object, text);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -647,7 +538,6 @@ void Exporter<V, R>::visitMarkup(R& res, In<sem::Markup> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -655,7 +545,6 @@ void Exporter<V, R>::visitBold(R& res, In<sem::Bold> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -663,7 +552,6 @@ void Exporter<V, R>::visitUnderline(R& res, In<sem::Underline> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -671,7 +559,6 @@ void Exporter<V, R>::visitMonospace(R& res, In<sem::Monospace> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -679,7 +566,6 @@ void Exporter<V, R>::visitMarkQuote(R& res, In<sem::MarkQuote> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -687,7 +573,6 @@ void Exporter<V, R>::visitVerbatim(R& res, In<sem::Verbatim> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -695,7 +580,6 @@ void Exporter<V, R>::visitItalic(R& res, In<sem::Italic> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -703,7 +587,6 @@ void Exporter<V, R>::visitStrike(R& res, In<sem::Strike> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -711,7 +594,6 @@ void Exporter<V, R>::visitPar(R& res, In<sem::Par> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -719,7 +601,6 @@ void Exporter<V, R>::visitList(R& res, In<sem::List> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -729,7 +610,6 @@ void Exporter<V, R>::visitListItem(R& res, In<sem::ListItem> object) {
   __org_field(res, object, header);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -742,38 +622,22 @@ void Exporter<V, R>::visitLink(R& res, In<sem::Link> object) {
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
   __org_field(res, object, data);
-
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Link::Raw> object) {
-  __obj_field(res, object, text);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Link::Raw> object) { __obj_field(res, object, text); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Link::Id> object) {
-  __obj_field(res, object, text);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Link::Id> object) { __obj_field(res, object, text); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Link::Person> object) {
-  __obj_field(res, object, name);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Link::Person> object) { __obj_field(res, object, name); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Link::Footnote> object) {
-  __obj_field(res, object, target);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Link::Footnote> object) { __obj_field(res, object, target); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Link::File> object) {
-  __obj_field(res, object, file);
-
-}
+void Exporter<V, R>::visit(R& res, CR<sem::Link::File> object) { __obj_field(res, object, file); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitDocument(R& res, In<sem::Document> object) {
@@ -791,7 +655,6 @@ void Exporter<V, R>::visitDocument(R& res, In<sem::Document> object) {
   __org_field(res, object, exportFileName);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -799,7 +662,6 @@ void Exporter<V, R>::visitParseError(R& res, In<sem::ParseError> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -813,7 +675,6 @@ void Exporter<V, R>::visitFileTarget(R& res, In<sem::FileTarget> object) {
   __org_field(res, object, regexp);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -821,7 +682,6 @@ void Exporter<V, R>::visitTextSeparator(R& res, In<sem::TextSeparator> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -833,7 +693,6 @@ void Exporter<V, R>::visitInclude(R& res, In<sem::Include> object) {
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
   __org_field(res, object, data);
-
 }
 
 template <typename V, typename R>
@@ -869,7 +728,6 @@ void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> objec
   __org_field(res, object, exportWithCreator);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }
 
 template <typename V, typename R>
@@ -877,5 +735,4 @@ void Exporter<V, R>::visitDocumentGroup(R& res, In<sem::DocumentGroup> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-
 }

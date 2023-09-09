@@ -13,9 +13,7 @@
 #include <sem/SemOrgBase.hpp>
 #include <sem/SemOrgEnums.hpp>
 namespace sem{
-/// \brief Base class for all document-level entries. Note that some node kinds
-/// might also have inline entries (examples include links, source code blocks,
-/// call blocks)
+/// \brief Base class for all document-level entries. Note that some node kinds might also have inline entries (examples include links, source code blocks, call blocks)
 struct Stmt : public Org {
   using Org::Org;
   Stmt() {}
@@ -128,8 +126,7 @@ struct HashTag : public Inline {
   static SemIdT<HashTag> create(SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::HashTag; }
 
-  /// \brief Check if list of tag names is a prefix for either
-  ///   of the nested hash tags in this one
+  /// \brief Check if list of tag names is a prefix for either of the nested hash tags in this one
   bool prefixMatch(CR<Vec<Str>> prefix) const;
 };
 
@@ -240,8 +237,7 @@ struct LineCommand : public Command {
   BOOST_DESCRIBE_CLASS(LineCommand, (Command), (), (), ())
 };
 
-/// \brief Standalone commands that can be placed individuall on the the
-/// top level and don't have to be attached to any subsequent elements
+/// \brief Standalone commands that can be placed individuall on the the top level and don't have to be attached to any subsequent elements
 struct Standalone : public LineCommand {
   using LineCommand::LineCommand;
   BOOST_DESCRIBE_CLASS(Standalone, (LineCommand), (), (), ())
@@ -273,8 +269,7 @@ struct Caption : public Attached {
 
 };
 
-/// \brief Multiple attachable commands will get grouped into this element
-///  unless it is possible to attached them to some adjacent block command
+/// \brief Multiple attachable commands will get grouped into this element unless it is possible to attached them to some adjacent block command
 struct CommandGroup : public Stmt {
   using Stmt::Stmt;
   BOOST_DESCRIBE_CLASS(CommandGroup,
@@ -426,7 +421,7 @@ struct Export : public Block {
   Format format = Format::Inline;
   /// \brief Exporter backend name
   Str exporter;
-  /// \brief Additional parameters aside from 'exporter
+  /// \brief Additional parameters aside from 'exporter',
   SemIdT<CmdArguments> parameters = SemIdT<CmdArguments>::Nil();
   /// \brief Customized position of the text in the final exporting document.
   Opt<Str> placement = std::nullopt;
@@ -437,7 +432,7 @@ struct Export : public Block {
 
 };
 
-/// \brief Block of text with admonition tag: 'note', 'warning'
+/// \brief Block of text with admonition tag: 'note',', 'warning','
 struct AdmonitionBlock : public Block {
   using Block::Block;
   BOOST_DESCRIBE_CLASS(AdmonitionBlock,
@@ -457,11 +452,7 @@ struct AdmonitionBlock : public Block {
 /// \brief Base class for all code blocks
 struct Code : public Block {
   using Block::Block;
-  /// \brief Extra configuration switches that can be used to control
-  /// representation of the rendered code block. This field does not
-  /// exactly correspond to the `-XX` parameters that can be passed
-  /// directly in the field, but also works with attached `#+options`
-  /// from the block
+  /// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
   struct Switch {
     /// \brief Enumerate code lines starting from `start` value instead of default indexing.
     struct LineStart {
@@ -582,9 +573,7 @@ struct Time : public Org {
     };
 
     BOOST_DESCRIBE_NESTED_ENUM(Mode, None, Exact, FirstMatch, SameDay)
-    /// \brief Repetition period. Temporary placeholder for now, until I
-    /// figure out what would be the proper way to represent whatever
-    /// org can do ... which is to be determined as well
+    /// \brief Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well
     enum class Period : short int {
       Year,
       Month,
@@ -1083,7 +1072,7 @@ struct Newline : public Leaf {
 
 };
 
-/// \brief ' ' space
+/// \brief ' "space",
 struct Space : public Leaf {
   using Leaf::Leaf;
   BOOST_DESCRIBE_CLASS(Space,
