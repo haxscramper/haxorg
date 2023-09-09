@@ -147,29 +147,25 @@ struct decode_error : base_msg {
 
 Opt<boost::python::object> get_field(py::object node, char const* field);
 
+inline void throw_type_error(QString const& text) {
+    PyErr_SetString(PyExc_TypeError, text.toStdString().c_str());
+    py::throw_error_already_set();
+}
+
 } // namespace pywrap
 
 
-template <IsSubVariantType V>
-struct variant_type_resolver {
-    using E = typename V::variant_enum_type;
-    static int get(py::object value) {
-        Opt<py::object> field = pywrap::get_field(value, "kind");
-        if (field) {
-            if (PyNumber_Check(field->ptr())) {
-                return py::extract<int>(*field)();
-            } else {
-                return variant_type_resolver<E>::get(
-                    enum_serde<E>::from_string(
-                        py::extract<QString>(*field)()));
-            }
-        } else {
-            qFatal() << "Missing 'kind' for a field";
-        }
-    }
+template <IsVariant Var>
+void visit_extract(Var& result, py::object const& obj) {
+    std::visit(
+        [&](auto& variant) {
+            variant = ::py::extract<
+                typename std::remove_cvref_t<decltype(variant)>>(obj)();
+            return 0;
+        },
+        result);
+}
 
-    static int get(E value) { return value_domain<E>::ord(value); }
-};
 
 struct py_extract_base {
     py_extract_base(py::object value) : obj(value) {}
@@ -178,8 +174,85 @@ struct py_extract_base {
     py::object obj;
 };
 
+template <>
+struct py::extract<QString> : py_extract_base {
+    using result_type = QString;
+    using py_extract_base::py_extract_base;
+    bool    check() const { return PyUnicode_Check(obj.ptr()); }
+    QString operator()() {
+        py::str pyStr(obj);
+        if (check()) {
+            std::string utf8Str = py::extract<std::string>(pyStr);
+            return QString::fromUtf8(utf8Str.c_str());
+        } else {
+            pywrap::throw_type_error(
+                "Could not convert Python object to QString. Incoming "
+                "object type was "
+                + to_string(pywrap::get_value_kind(obj)));
+            return QString();
+        }
+    }
+};
 
-template <IsSubVariantType T, typename CRTP_Derived>
+
+template <typename E>
+int variant_type_index(py::object const& value, const char* fieldName) {
+    Opt<py::object> field = pywrap::get_field(value, fieldName);
+    if (field) {
+        int result = value_domain<E>::ord(py::extract<E>(*field)());
+        qDebug() << fieldName << py::extract<QString>(*field)() << result;
+        return result;
+    } else {
+        qFatal() << "Missing 'kind' field for variant extrator";
+    }
+}
+
+template <IsSubVariantType V>
+struct variant_type_resolver {
+    using E = typename V::variant_enum_type;
+    static int get(py::object const& value) {
+        return variant_type_index<typename V::variant_enum_type>(
+            value, "kind");
+    }
+
+    static int get(E value) { return value_domain<E>::ord(value); }
+};
+
+
+template <DescribedEnum E>
+struct py::extract<E> : py_extract_base {
+    using result_type = E;
+    using py_extract_base::py_extract_base;
+
+    bool check() const { return true; }
+    E    operator()() const {
+        QString text   = py::extract<QString>(obj)();
+        Opt<E>  result = enum_serde<E>::from_string(text);
+        if (result) {
+            return result.value();
+        } else {
+            pywrap::throw_type_error(
+                "Could not extract enum from value '" + text + "'");
+        }
+    }
+};
+
+template <typename T>
+struct py::extract<Opt<T>> : py_extract_base {
+    using result_type = Opt<T>;
+    bool check() const { return; }
+
+    Opt<T> operator()() {
+        if (pywrap::is_none(obj)) {
+            return std::nullopt;
+        } else {
+            return py::extract<T>(obj)();
+        }
+    }
+};
+
+
+template <IsSubVariantType T>
 struct extract : py_extract_base {
     using py_extract_base::py_extract_base;
     using V           = T::variant_data_type;
@@ -188,17 +261,11 @@ struct extract : py_extract_base {
     bool check() const { return PyDict_Check(obj); }
 
 
-    T operator()(py::object value) {
+    T operator()() {
         T result{
-            variant_from_index<V>(variant_type_resolver<T>::get(value))};
-        CRTP_Derived::init(result, value);
-        std::visit(
-            [&](auto& variant) {
-                variant = ::py::extract<typename std::remove_cvref_t<
-                    decltype(variant)>>::operator()(value);
-                return 0;
-            },
-            result);
+            variant_from_index<V>(variant_type_resolver<T>::get(obj))};
+        visit_extract(result, obj);
+        return result;
     }
 };
 
@@ -217,8 +284,9 @@ struct py::extract<T> : py_extract_base {
                 result.*field.pointer = py::extract<
                     ::member_type_t<decltype(field.pointer)>>(*py_field)();
             } else {
-                qFatal() << "Missing field" << field.name << "for"
-                         << typeid(T).name();
+                qFatal() << "Missing field '" + QString(field.name)
+                                + "' for"
+                         << demangle(typeid(T).name());
             }
         });
         return result;

@@ -28,7 +28,7 @@ class GenFiles:
 
 @dataclass
 class Doc:
-    short: str
+    brief: str
     full: str = ""
 
 
@@ -76,12 +76,12 @@ class Method:
     params: List[str] = field(default_factory=list)
     isVirtual: bool = False
     isPureVirtual: bool = False
-    kind: str = "Method"
+    kind: str = "Function"
 
 
 @dataclass
 class Pass:
-    text: str
+    what: str
     kind: str = "Pass"
 
 
@@ -101,6 +101,7 @@ class Struct:
 class EField:
     name: str
     doc: Doc
+    value: Optional[str] = None
 
 
 @dataclass
@@ -108,6 +109,8 @@ class Enum:
     name: str
     doc: Doc
     fields: List[EField] = field(default_factory=list)
+    base: Optional[str] = None
+    kind: str = "Enum"
 
 
 @dataclass
@@ -119,7 +122,7 @@ class Group:
     variantField: str = "data"
     variantValue: Optional[str] = None
     kindGetter: str = "getKind"
-    kind: str = "Group"
+    kind: str = "TypeGroup"
 
 
 def t_str():
@@ -424,7 +427,7 @@ def get_types():
                        ),
                     nested=[
                         Group([
-                            Struct(["LineStart"],
+                            Struct("LineStart",
                                    Doc("Enumerate code lines starting from `start` value instead of default indexing."),
                                    fields=[
                                        Field("int", "start", Doc("First line number")),
@@ -433,17 +436,17 @@ def get_types():
                                              Doc("Continue numbering from the previous block nstead of starting anew"),
                                              value="false")
                                    ]),
-                            Struct(["CalloutFormat"], Doc(""), fields=[Field("Str", "format", Doc(""), value="\"\"")]),
-                            Struct(["RemoveCallout"], Doc(""), fields=[Field("bool", "remove", Doc(""), value="true")]),
-                            Struct(["EmphasizeLine"],
+                            Struct("CalloutFormat", Doc(""), fields=[Field("Str", "format", Doc(""), value="\"\"")]),
+                            Struct("RemoveCallout", Doc(""), fields=[Field("bool", "remove", Doc(""), value="true")]),
+                            Struct("EmphasizeLine",
                                    Doc("Emphasize single line -- can be repeated multiple times"),
                                    fields=[Field(t_vec("int"), "line", Doc(""), value="{}")]),
                             Struct(["Dedent"], Doc(""), fields=[Field("int", "value", Doc(""), value="0")])
                         ])
                     ]),
-                Enum(["Results"], Doc("What to do with newly evaluated result"),
+                Enum("Results", Doc("What to do with newly evaluated result"),
                      [EField("Replace", Doc("Remove old result, replace with new value"))]),
-                Enum(["Exports"], Doc("What part of the code block should be visible in export"), [
+                Enum("Exports", Doc("What part of the code block should be visible in export"), [
                     EField("None", Doc("Hide both original code and run result")),
                     EField("Both", Doc("Show output and code")),
                     EField("Code", Doc("Show only code")),
@@ -469,7 +472,7 @@ def get_types():
             nested=[
                 Pass("bool isStatic() const { return std::holds_alternative<Static>(time); }"),
                 Struct(
-                    ["Repeat"],
+                    "Repeat",
                     Doc("Repetition information for static time"),
                     nested=[
                         Enum(["Mode"], Doc("Timestamp repetition mode"), [
@@ -479,7 +482,7 @@ def get_types():
                             EField("SameDay", Doc("Repeat task on the same day next week/month/year"))
                         ]),
                         Enum(
-                            ["Period"],
+                            "Period",
                             Doc("Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well"
                                ), [
                                    EField("Year", Doc("")),
@@ -547,7 +550,7 @@ def get_types():
                                    value="SemIdT<StmtList>::Nil()")
                          ]),
                   Group([
-                      Struct(["Priority"],
+                      Struct("Priority",
                              Doc("Priority added"),
                              bases=["DescribedLog"],
                              nested=[d_simple_enum("Action", Doc("Priority change action"), "Added", "Removed", "Changed")],
@@ -556,18 +559,18 @@ def get_types():
                                  opt_field("QString", "newPriority", Doc("New priority for change and addition")),
                                  id_field("Time", "on", Doc("When priority was changed"))
                              ]),
-                      Struct(["Note"],
+                      Struct("Note",
                              Doc("Timestamped note"),
                              bases=["DescribedLog"],
                              fields=[id_field("Time", "on", Doc("Where log was taken"))]),
-                      Struct(["Refile"],
+                      Struct("Refile",
                              Doc("Refiling action"),
                              bases=["DescribedLog"],
                              fields=[
                                  id_field("Time", "on", Doc("When the refiling happened")),
                                  id_field("Link", "from", Doc("Link to the original subtree"))
                              ]),
-                      Struct(["Clock"],
+                      Struct("Clock",
                              Doc("Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`"),
                              bases=["DescribedLog"],
                              fields=[
@@ -576,7 +579,7 @@ def get_types():
                                        Doc("Start-end or only start period"),
                                        value="SemIdT<Time>::Nil()")
                              ]),
-                      Struct(["State"],
+                      Struct("State",
                              Doc("Change of the subtree state -- `- State \"WIP\" from \"TODO\" [2023-04-30 Sun 13:29:04]`"),
                              bases=["DescribedLog"],
                              fields=[
@@ -584,7 +587,7 @@ def get_types():
                                  Field("OrgBigIdentKind", "to", Doc("")),
                                  id_field("Time", "on", Doc(""))
                              ]),
-                      Struct(["Tag"],
+                      Struct("Tag",
                              Doc("Assign tag to the subtree `- Tag \"project##haxorg\" Added on [2023-04-30 Sun 13:29:06]`"),
                              bases=["DescribedLog"],
                              fields=[
@@ -645,7 +648,7 @@ def get_types():
             ],
             nested=[
                 Struct(
-                    ["Period"],
+                    "Period",
                     Doc("Type of the subtree associated time periods"),
                     fields=[
                         Field("Kind", "kind", Doc("Time period kind -- not associated with point/range distinction")),
@@ -675,7 +678,7 @@ def get_types():
                         ]),
                         Pass("Period(CR<Variant<SemIdT<Time>, SemIdT<TimeRange>>> period, Kind kind) : period(period), kind(kind) ")
                     ]),
-                Struct(["Property"],
+                Struct("Property",
                        Doc("Single subtree property"),
                        fields=[
                            Field("SetMode", "mainSetRule", Doc(""), value="SetMode::Override"),
@@ -1950,8 +1953,7 @@ def gen_value():
         GenUnit(GenTu("/tmp/exporters/Exporter.tcc", get_exporter_methods(False))),
         GenUnit(GenTu("/tmp/exporters/ExporterMethods.tcc", get_exporter_methods(True))),
         GenUnit(
-            GenTu([
-                "/tmp/sem/SemOrgEnums.hpp",
+            GenTu("/tmp/sem/SemOrgEnums.hpp", [
                 Pass("#define EACH_SEM_ORG_KIND(__IMPL) \n" +
                      ("\n".join([f"    __IMPL({struct.name})" for struct in get_concrete_types()])))
             ] + full_enums), GenTu("/tmp/sem/SemOrgEnums.hpp", [Pass('#include "SemOrgEnums.hpp"')] + full_enums)),

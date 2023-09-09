@@ -16,6 +16,20 @@ QTextStream qcout;
 
 namespace boost::python {
 
+template <>
+struct extract<GenTu::Entry> : py_extract_base {
+    using py_extract_base::py_extract_base;
+    using result_type = GenTu::Entry;
+    bool check() const { return true; }
+
+    result_type operator()() {
+        result_type result{variant_from_index<result_type>(
+            variant_type_index<GenTu::EntryKind>(obj, "kind"))};
+        visit_extract<result_type>(result, obj);
+        return result;
+    }
+};
+
 template <typename T>
 struct extract<std::shared_ptr<T>> : py_extract_base {
     using py_extract_base::py_extract_base;
@@ -47,48 +61,11 @@ struct extract<Vec<T>> : py_extract_base {
     }
 };
 
-template <typename T>
-struct extract<Opt<T>> : py_extract_base {
-    using result_type = Opt<T>;
-    bool check() const { return; }
-
-    Opt<T> operator()() {
-        if (pywrap::is_none(obj)) {
-            return std::nullopt;
-        } else {
-            return py::extract<T>(obj)();
-        }
-    }
-};
-
 template <>
 struct extract<Str> : py_extract_base {
-    using result_type = Str;
     using py_extract_base::py_extract_base;
-    bool check() const { return PyUnicode_Check(obj.ptr()); }
-    Str  operator()() {
-        if (!check()) {
-            PyErr_SetString(PyExc_TypeError, "Expected a Unicode string");
-            boost::python::throw_error_already_set();
-        }
-
-        // Convert the Python Unicode object to a UTF-8 string
-        PyObject* utf8_str = PyUnicode_AsUTF8String(obj.ptr());
-        if (utf8_str == nullptr) {
-            PyErr_SetString(
-                PyExc_ValueError, "Failed to encode string to UTF-8");
-            boost::python::throw_error_already_set();
-        }
-
-        // Convert the UTF-8 string to a QString
-        char*   c_str = PyBytes_AsString(utf8_str);
-        QString qstr  = QString::fromUtf8(c_str);
-
-        // Decrement the reference count of the temporary UTF-8 string
-        Py_DECREF(utf8_str);
-
-        return qstr;
-    }
+    bool check() const { return extract<QString>(obj).check(); }
+    Str  operator()() { return extract<QString>(obj)(); }
 };
 
 
@@ -131,6 +108,10 @@ int main(int argc, const char** argv) {
     py::object result = gen_value();
 
     QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
+
+    try {
+        GenFiles description = py::extract<GenFiles>(result)();
+    } catch (py::error_already_set& as) { PyErr_Print(); }
 
     GenFiles   description = py::extract<GenFiles>(result)();
     ASTBuilder builder;

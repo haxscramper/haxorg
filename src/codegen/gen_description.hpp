@@ -92,6 +92,15 @@ struct GenTu {
         BOOST_DESCRIBE_CLASS(Pass, (), (), (), (what));
     };
 
+    DECL_DESCRIBED_ENUM(
+        EntryKind,
+        Enum,
+        Struct,
+        TypeGroup,
+        Function,
+        Namespace,
+        Include,
+        Pass);
 
     using Entry = Variant<
         SPtr<Enum>,
