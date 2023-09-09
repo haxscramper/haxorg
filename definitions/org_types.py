@@ -1,6 +1,6 @@
 #!/ usr / bin / env python
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import *
 
 
@@ -30,6 +30,20 @@ class GenFiles:
 class Doc:
     short: str
     full: str = ""
+
+
+@dataclass
+class Include:
+    what: str
+    isSystem: bool
+    kind: str = "Include"
+
+
+@dataclass
+class Namespace:
+    name: str
+    entries: List[Any]
+    kind: str = "Namespace"
 
 
 @dataclass
@@ -166,6 +180,8 @@ def d_org(*args, **kwargs):
             0,
             [Field(t_osk(), "staticKind", Doc("Document"), isConst=True, isStatic=True)],
         )
+
+    return res
 
 
 def d_simple_enum(name, doc, *args):
@@ -1827,12 +1843,140 @@ def get_nlp_enums():
     ]
 
 
+def with_enum_reflection_api(body: List[Any]) -> List[Any]:
+    return [
+        Pass("#pragma once"),
+        Pass("#include <hstd/system/basic_templates.hpp>"),
+        Pass("#include <hstd/system/reflection.hpp>"),
+        Pass("#include <hstd/stdlib/Opt.hpp>")
+    ] + body
+
+
+def iterate_object_tree(tree, callback, context: List[Any]):
+    callback(tree)
+    context.append(tree)
+
+    if isinstance(tree, list):
+        for it in tree:
+            iterate_object_tree(it, callback, context)
+
+    elif isinstance(tree, dict):
+        for key, value in tree.items():
+            iterate_object_tree(value, callback, context)
+
+    # Primitive types cannot be walked over, end iteration
+    elif tree is True or tree is False or tree is None or isinstance(tree, str) or isinstance(tree, type):
+        pass
+
+    elif isinstance(tree, object):
+        # If any object -- walk all slots (attributes)
+        class_of_obj = type(tree)
+        name = class_of_obj.__name__
+        slots = vars(tree)
+        for slot, value in slots.items():
+            iterate_object_tree(value, callback, context)
+
+    # Walk over every item in list
+    # Otherwise, print the value -- if something is missing it will be added later
+    else:
+        print(f"? {tree}")
+
+    context.pop()
+
+
+def get_exporter_methods(forward):
+    methods = []
+    context = []
+
+    def callback(value):
+        nonlocal methods  # to access the outer methods variable
+        if isinstance(value, object) and value is Struct:
+            scope_full = remove(lambda scope: not is_a(scope, Struct), fluid_ref('iterate_tree_context'))
+            scope_names = [slot_ref(type_, 'name') for type_ in scope_full]
+            name = slot_ref(value, 'name')
+            full_scoped_name = scope_names + [name]
+            fields = remove(lambda field: slot_ref(field, 'isStatic'),
+                            slot_ref(value, 'fields') + get_type_base_fields(value) + get_type_group_fields(value))
+            scoped_target = f"CR<sem::~{'::'.join(full_scoped_name)}>"
+            decl_scope = "" if forward else "Exporter<V, R>::"
+            t_params = None if forward else [d.param("V"), d.param("R")]
+
+            variant_methods = [
+                d.method("void",
+                         f"{decl_scope}avisit",
+                         d.doc(""),
+                         params=t_params,
+                         arguments=[
+                             d.ident("R&", "res"),
+                             d.ident(f"CR<sem::~{'::'.join(full_scoped_name)}~{slot_ref(group, 'variantName')}>", "object")
+                         ],
+                         impl=None if forward else
+                         f"visitVariants(res, sem::~{'::'.join(full_scoped_name)}~{slot_ref(group, 'kindGetter')}(object), object);")
+                for group in get_nested_groups(value)
+            ]
+
+            if len(scope_full) == 0:
+                method = d.method("void",
+                                  f"{decl_scope}avisit{name}",
+                                  d.doc(""),
+                                  params=t_params,
+                                  arguments=[d.ident("R&", "res"), d.ident(f"In<sem::~{name}>", "object")],
+                                  impl=None if forward else f"__visit_specific_kind(res, object);\n %s" %
+                                  ''.join([f"__org_field(res, object, {a.name});" for a in fields]))
+            else:
+                method = d.method("void",
+                                  f"{decl_scope}avisit",
+                                  d.doc(""),
+                                  params=t_params,
+                                  arguments=[d.ident("R&", "res"), d.ident(scoped_target, "object")],
+                                  impl=None if forward else ''.join([f"__obj_field(res, object, {a.name});" for a in fields]))
+
+            methods += variant_methods + [method]
+
+    iterate_object_tree(get_types(), callback, context)
+    return methods
+
+
+def get_concrete_types():
+    return [struct for struct in get_types() if struct.concreteKind]
+
+
 def gen_value():
-    get_types()
-    get_enums()
-    get_nlp_enums()
-    return GenFiles()
+    full_enums = get_enums() + [Enum(t_osk(), Doc(""), [struct.name for struct in get_concrete_types()])]
+
+    return GenFiles([
+        GenUnit(GenTu("/tmp/exporters/exporternlp_enums.hpp", with_enum_reflection_api(get_nlp_enums())),
+                GenTu("/tmp/exporters/exporternlp_enums.cpp", [Pass("#include \"exporternlp_enums.hpp\"")] + get_nlp_enums())),
+        GenUnit(GenTu("/tmp/exporters/Exporter.tcc", get_exporter_methods(False))),
+        GenUnit(GenTu("/tmp/exporters/ExporterMethods.tcc", get_exporter_methods(True))),
+        GenUnit(
+            GenTu([
+                "/tmp/sem/SemOrgEnums.hpp",
+                Pass("#define EACH_SEM_ORG_KIND(__IMPL) \n" +
+                     ("\n".join([f"    __IMPL({struct.name})" for struct in get_concrete_types()])))
+            ] + full_enums), GenTu("/tmp/sem/SemOrgEnums.hpp", [Pass('#include "SemOrgEnums.hpp"')] + full_enums)),
+        GenUnit(
+            GenTu("/tmp/sem/SemOrgTypes.hpp", [
+                Pass("#pragma once"),
+                Include("sem/SemOrgEnums.hpp", True),
+                Include("hstd/stdlib/Vec.hpp", True),
+                Include("hstd/stdlib/Variant.hpp", True),
+                Include("hstd/stdlib/Time.hpp", True),
+                Include("hstd/stdlib/Opt.hpp", True),
+                Include("hstd/stdlib/Str.hpp", True),
+                Include("parse/OrgTypes.hpp", True),
+                Include("boost/describe.hpp", True),
+                Include("hstd/system/macros.hpp", True),
+                Include("functional", True),
+                Include("QDateTime", True),
+                Include("sem/SemOrgBase.hpp", True),
+                Include("sem/SemOrgEnums.hpp", True),
+                Namespace("sem", [Group(get_types(), enumName="")])
+            ]))
+    ])
 
 
 if __name__ == "__main__":
-    print(gen_value())
+    from pprint import pprint
+    gen_value()
+    print("done")
