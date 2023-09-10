@@ -10,6 +10,7 @@
 #include "gen_description.hpp"
 #include "gen_converter.hpp"
 #include "py_wrapper.hpp"
+#include "py_converters.hpp"
 #include <hstd/stdlib/strformat.hpp>
 
 QTextStream qcout;
@@ -29,45 +30,6 @@ struct extract<GenTu::Entry> : py_extract_base {
         return result;
     }
 };
-
-template <typename T>
-struct extract<std::shared_ptr<T>> : py_extract_base {
-    using py_extract_base::py_extract_base;
-    using result_type = std::shared_ptr<T>;
-    bool check() const { return extract<T>(obj).check(); }
-
-    std::shared_ptr<T> operator()() {
-        return std::make_shared<T>(extract<T>(obj)());
-    }
-};
-
-
-template <typename T>
-struct extract<Vec<T>> : py_extract_base {
-    using py_extract_base::py_extract_base;
-    using result_type = Vec<T>;
-    bool check() const { return PyCheck_List(obj); }
-
-    Vec<T> operator()() {
-        py::list const& list = py::extract<py::list>(obj)();
-        Vec<T>          result;
-        result.resize(py::len(list));
-
-        for (int i = 0; i < result.size(); ++i) {
-            result.at(i) = py::extract<T>(list[i])();
-        }
-
-        return result;
-    }
-};
-
-template <>
-struct extract<Str> : py_extract_base {
-    using py_extract_base::py_extract_base;
-    bool check() const { return extract<QString>(obj).check(); }
-    Str  operator()() { return extract<QString>(obj)(); }
-};
-
 
 } // namespace boost::python
 

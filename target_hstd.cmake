@@ -10,6 +10,7 @@ set_target_flags(hstd)
 find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
 find_library(GRAPHVIZ_GVC_LIBRARY gvc)
 
+
 add_target_property(hstd INCLUDE_DIRECTORIES "/usr/include/enchant-2")
 
 target_link_libraries(hstd PUBLIC

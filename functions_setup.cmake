@@ -28,6 +28,7 @@ function(set_target_flags TARGET)
     #                     "-fdiagnostics-format=sarif")
 
     add_target_property(${TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
+    add_target_property(${TARGET} COMPILE_OPTIONS "-fPIC")
 
     add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize=undefined")
     add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
