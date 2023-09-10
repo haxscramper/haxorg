@@ -10,6 +10,7 @@ project(haxorg LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
 set(BASE "${CMAKE_SOURCE_DIR}")
+message(INFO "CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
 set(LLVM_DIR "${BASE}/toolchain/llvm")
 set(DEPS_DIR "${BASE}/build/dependencies/conan")
 set(AUTOGEN_BUILD_DIR "${BASE}/build/autogen")

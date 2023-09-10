@@ -364,3 +364,6 @@ build*
 perf.data*
 heaptrack.*
 **/*.pftrace
+
+bin
+lib

@@ -20,14 +20,38 @@ if(NOT WIN32)
 endif()
 
 function(set_target_output TARGET)
-  # Set target output suffix and location relative to the cmake sorce
-  # directory
-  set_target_properties(
-    ${TARGET}
-    PROPERTIES # Easier to ignore in git
-               SUFFIX ".bin"
-               # Output binary into the same directory, add extension to it
-               RUNTIME_OUTPUT_DIRECTORY "${BASE}")
+    # Set target output suffix and location relative to the cmake sorce
+    # directory
+    get_target_property(target_type ${TARGET} TYPE)
+    message(INFO "Outputting ${TARGET} to ${BASE}/(bin|lib) (type is ${target_type}")
+    if(${target_type} STREQUAL "EXECUTABLE")
+        set_target_properties(
+            ${TARGET}
+            PROPERTIES
+            CMAKE_RUNTIME_OUTPUT_DIRECTORY "${BASE}/bin"
+            SUFFIX ".bin"
+        )
+
+        add_custom_command(
+            TARGET ${TARGET} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${BASE}/bin"
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${TARGET}> "${BASE}/bin"
+        )
+    else()
+        set_target_properties(
+            ${TARGET}
+            PROPERTIES
+            CMAKE_LIBRARY_OUTPUT_DIRECTORY "${BASE}/lib"
+        )
+
+        add_custom_command(
+            TARGET ${TARGET} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${BASE}/lib"
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${TARGET}> "${BASE}/lib"
+        )
+    endif()
+
+
 endfunction()
 
 function(pad_string output str padchar length operation)

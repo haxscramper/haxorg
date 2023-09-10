@@ -12,7 +12,6 @@ function(set_target_flags TARGET)
   add_target_property(${TARGET} COMPILE_OPTIONS "-ftime-trace")
   add_target_property(${TARGET} LINK_OPTIONS "-ftime-trace")
 
-
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     message(INFO "Using clang compiler")
     # Avoid getting flooded with compilation errors
