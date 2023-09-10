@@ -27,7 +27,7 @@ target_link_libraries(codegen
     ${PYTHON_LIBRARIES}
 )
 
-add_library(py_textlayout MODULE "${BASE}/src/py_libs/py_textlayout/py_textlayout.cpp")
+PYTHON_ADD_MODULE(py_textlayout "${BASE}/src/py_libs/py_textlayout/py_textlayout.cpp")
 set_common_files(py_textlayout)
 set_target_output(py_textlayout)
 set_target_flags(py_textlayout)
@@ -40,4 +40,5 @@ target_include_directories(
     ${PYTHON_INCLUDE_DIRS}
 )
 
-target_link_libraries(py_textlayout hstd ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+target_link_libraries(py_textlayout hstd ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ubsan)
+target_compile_options(py_textlayout PRIVATE -shared-libasan)

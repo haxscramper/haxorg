@@ -38,7 +38,7 @@ BOOST_DESCRIBE_STRUCT(
      indentSpaces,
      cpack));
 
-BOOST_PYTHON_MODULE(TextLayout) {
+BOOST_PYTHON_MODULE(py_textlayout) {
     using namespace boost::python;
 
     class_<TextLayout>("TextLayout")
