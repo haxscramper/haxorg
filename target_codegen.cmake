@@ -27,7 +27,12 @@ target_link_libraries(codegen
     ${PYTHON_LIBRARIES}
 )
 
-PYTHON_ADD_MODULE(py_textlayout "${BASE}/src/py_libs/py_textlayout/py_textlayout.cpp")
+PYTHON_ADD_MODULE(
+    py_textlayout
+    "${BASE}/src/py_libs/py_textlayout/py_textlayout.cpp"
+    "${BASE}/src/codegen/py_wrapper.cpp"
+)
+
 set_common_files(py_textlayout)
 set_target_output(py_textlayout)
 set_target_flags(py_textlayout)
