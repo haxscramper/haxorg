@@ -14,7 +14,7 @@ sys.path.append(lib_dir)
 
 print(lib_dir)
 import ctypes
-ctypes.CDLL(lib_dir + '/libpy_textlayout.so')
+ctypes.CDLL(lib_dir + '/py_textlayout.so')
 
 # Now you should be able to import your C++ library
 from py_textlayout import TextLayout, TextOptions
@@ -22,5 +22,9 @@ from py_textlayout import TextLayout, TextOptions
 
 b = TextLayout()
 
-_id = b.text("Test")
-print(b.toString(_id, TextOptions()))
+print(b.toString(b.text("Test"), TextOptions()))
+
+import faulthandler
+faulthandler.enable()
+
+print("Done")

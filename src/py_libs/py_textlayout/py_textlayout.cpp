@@ -22,7 +22,9 @@ struct to_python;
 template <>
 struct to_python<QString> {
     static PyObject* convert(CR<QString> value) {
-        return incref(object(value.toLatin1().constData()).ptr());
+        PyObject* tmp = incref(object(value.toLatin1().constData()).ptr());
+        Q_CHECK_PTR(tmp);
+        return tmp;
     }
 };
 
@@ -48,6 +50,7 @@ void execute_extractor_cb(PyObject* obj_ptr, pydata* data, F cb) {
     // in-place construct the new T using the character data
     // extraced from the python object
     new (storage) T(cb(obj_ptr));
+    Q_CHECK_PTR(storage);
 
     // Stash the memory chunk pointer for later use by boost.python
     data->convertible = storage;
@@ -96,7 +99,9 @@ struct from_python<BlockId> {
 template <>
 struct to_python<BlockId> {
     static PyObject* convert(CR<BlockId> value) {
-        return incref(object(value.getValue()).ptr());
+        PyObject* result = incref(object(value.getValue()).ptr());
+        Q_CHECK_PTR(result);
+        return result;
     }
 };
 
