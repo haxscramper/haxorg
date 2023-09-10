@@ -14,22 +14,46 @@ using namespace clang;
 using namespace clang::tooling;
 using namespace llvm;
 
+bool IsFromMainFile(clang::ParmVarDecl* Param) {
+    clang::SourceManager& SM  = Param->getASTContext().getSourceManager();
+    clang::SourceLocation Loc = Param->getLocation();
+    return SM.isInMainFile(Loc);
+}
+
 class MyASTVisitor : public RecursiveASTVisitor<MyASTVisitor> {
   public:
     explicit MyASTVisitor(Rewriter& R) : TheRewriter(R) {}
 
     bool VisitParmVarDecl(ParmVarDecl* Param) {
-        auto Type = Param->getType();
-        if (Type->isLValueReferenceType()) {
-            auto PointeeType = Type->getPointeeType();
-            if (PointeeType.isConstQualified()) {
-                auto        InnerType  = PointeeType.getUnqualifiedType();
-                std::string NewTypeStr = "CR<" + InnerType.getAsString()
-                                       + ">";
-                TheRewriter.ReplaceText(
-                    Param->getSourceRange(), NewTypeStr);
+        SourceManager& SM = Param->getASTContext().getSourceManager();
+
+        if (IsFromMainFile(Param)) {
+            auto Type = Param->getType();
+            if (Type->isLValueReferenceType()) {
+                auto PointeeType = Type->getPointeeType();
+                if (PointeeType.isConstQualified()) {
+                    // Get the source location and extract the text to
+                    // check if it's 'auto'
+                    SourceLocation loc      = Param->getTypeSpecStartLoc();
+                    StringRef      typeName = Lexer::getSourceText(
+                        CharSourceRange::getTokenRange(loc, loc),
+                        SM,
+                        LangOptions(),
+                        0);
+                    if (typeName != "auto") {
+
+                        auto InnerType = PointeeType.getUnqualifiedType();
+                        std::string NewTypeStr = "CR<"
+                                               + InnerType.getAsString()
+                                               + "> "
+                                               + Param->getName().str();
+                        TheRewriter.ReplaceText(
+                            Param->getSourceRange(), NewTypeStr);
+                    }
+                }
             }
         }
+
         return true;
     }
 
