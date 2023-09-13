@@ -3,6 +3,7 @@
 #include <hstd/system/generator.hpp>
 #include <hstd/stdlib/charsets.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/Set.hpp>
 
 using namespace layout;
 
@@ -973,60 +974,83 @@ Vec<Layout::Ptr> BlockStore::toLayouts(BlockId id, const Options& opts) {
     return sln.value()->layouts;
 }
 
-QString SimpleStringStore::toTreeRepr(BlockId id) {
-    QString     resOut;
-    QTextStream os{&resOut};
-    auto aux = [&](const BlockId& blId, int level, auto& auxRef) -> void {
+QString SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
+    QString                         resOut;
+    QTextStream                     os{&resOut};
+    UnorderedSet<BlockId>           visited;
+    Func<void(const BlockId&, int)> aux;
+
+    aux = [&](const BlockId& blId, int level) -> void {
         QString pref2 = repeat(" ", level * 2 + 2);
-        os << pref2;
+        os << pref2 << "ID:" << blId << " ";
         if (id.isNil()) {
             os << "<nil>";
             return;
+        } else if (visited.contains(blId)) {
+            os << "<visited> " << blId;
+            return;
+        } else {
+            visited.incl(blId);
         }
 
         QString      name;
-        Block const& bl = store->at(id);
+        Block const& bl = store->at(blId);
         switch (bl.getKind()) {
-            case Block::Kind::Line: name = "L"; break;
-            case Block::Kind::Choice: name = "C"; break;
-            case Block::Kind::Text: name = "T"; break;
-            case Block::Kind::Wrap: name = "W"; break;
-            case Block::Kind::Stack: name = "S"; break;
-            case Block::Kind::Verb: name = "V"; break;
-            case Block::Kind::Empty: name = "E"; break;
+            case Block::Kind::Line: name = "Ln"; break;
+            case Block::Kind::Choice: name = "Ch"; break;
+            case Block::Kind::Text: name = "Tx"; break;
+            case Block::Kind::Wrap: name = "Wr"; break;
+            case Block::Kind::Stack: name = "St"; break;
+            case Block::Kind::Verb: name = "Ve"; break;
+            case Block::Kind::Empty: name = "Em"; break;
         }
 
         os << right_aligned(name + " ", level * 2) << "brk: {"
            << bl.isBreaking << "} "
-           << "mul: " << std::to_string(bl.breakMult) << " id: {" << blId
-           << "}";
+           << "mul: {" << std::to_string(bl.breakMult) << "}";
 
         switch (bl.getKind()) {
             case Block::Kind::Line: {
-                os << "\n";
+                os << (doRecurse ? "\n" : "");
                 for (const auto& elem : bl.getLine().elements) {
-                    auxRef(elem, level + 1, auxRef);
+                    if (doRecurse) {
+                        aux(elem, level + 1);
+                    } else {
+                        os << " " << elem;
+                    }
                 }
                 break;
             }
             case Block::Kind::Choice: {
-                os << "\n";
+                os << (doRecurse ? "\n" : "");
                 for (const auto& elem : bl.getChoice().elements) {
-                    auxRef(elem, level + 1, auxRef);
+                    if (doRecurse) {
+                        aux(elem, level + 1);
+                    } else {
+                        os << " " << elem;
+                    }
                 }
                 break;
             }
             case Block::Kind::Stack: {
-                os << "\n";
+                os << (doRecurse ? "\n" : "");
                 for (const auto& elem : bl.getStack().elements) {
-                    auxRef(elem, level + 1, auxRef);
+                    if (doRecurse) {
+                        aux(elem, level + 1);
+                    } else {
+                        os << " " << elem;
+                    }
                 }
                 break;
             }
             case Block::Kind::Wrap: {
-                os << "\n";
+                os << (doRecurse ? "\n" : "");
                 for (const auto& elem : bl.getWrap().wrapElements) {
-                    auxRef(elem, level + 1, auxRef);
+                    if (doRecurse) {
+                        aux(elem, level + 1);
+                    } else {
+                        os << " " << elem;
+                    }
                 }
                 break;
             }
@@ -1035,13 +1059,15 @@ QString SimpleStringStore::toTreeRepr(BlockId id) {
                 for (auto const& it : bl.getText().text.strs) {
                     text += str(it);
                 }
-                os << escape_literal(text);
+                os << text;
                 break;
             }
+
             case Block::Kind::Empty: {
                 os << "<empty>";
                 break;
             }
+
             case Block::Kind::Verb: {
                 os << "\n";
                 for (const auto& line : bl.getVerb().textLines) {
@@ -1054,7 +1080,7 @@ QString SimpleStringStore::toTreeRepr(BlockId id) {
         }
     };
 
-    aux(id, 0, aux);
+    aux(id, 0);
     return resOut;
 }
 

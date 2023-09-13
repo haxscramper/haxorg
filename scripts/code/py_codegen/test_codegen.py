@@ -672,7 +672,8 @@ class ASTBuilder:
 
         result = self.b.stack()
         for line in content:
-            self.b.add_at(result, self.string("/// " + line))
+            t: BlockId  = self.string("/// " + line)
+            self.b.add_at(result, t)
 
         return result
 
@@ -725,7 +726,9 @@ class ASTBuilder:
 ast = ASTBuilder()
 build = ast.Doc(DocParams(brief="Text"))
 print(ast.b.toTreeRepr(build))
+print("A")
 print(ast.b.toString(build), TextOptions())
+print("B")
 
 import faulthandler
 
