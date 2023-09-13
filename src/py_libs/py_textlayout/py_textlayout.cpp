@@ -19,14 +19,6 @@ using pydata = py::converter::rvalue_from_python_stage1_data;
 template <typename T>
 struct to_python;
 
-template <>
-struct to_python<QString> {
-    static PyObject* convert(CR<QString> value) {
-        PyObject* tmp = incref(object(value.toLatin1().constData()).ptr());
-        Q_CHECK_PTR(tmp);
-        return tmp;
-    }
-};
 
 template <typename T>
 struct from_python;
@@ -76,10 +68,39 @@ struct wrapped_extractor_from_python {
     }
 };
 
+
+}; // namespace boost::python::convert
+
+// Definitions for common types, to be moved elsewhere
+namespace boost::python::convert {
 template <>
 struct from_python<QString> : wrapped_extractor_from_python<QString> {};
 
-}; // namespace boost::python::convert
+template <>
+struct to_python<QString> {
+    static PyObject* convert(CR<QString> value) {
+        PyObject* tmp = incref(object(value.toLatin1().constData()).ptr());
+        Q_CHECK_PTR(tmp);
+        return tmp;
+    }
+};
+
+
+template <typename T>
+struct from_python<Vec<T>> : wrapped_extractor_from_python<Vec<T>> {};
+
+template <typename T>
+struct to_python<Vec<T>> {
+    static PyObject* convert(const Vec<T>& vec) {
+        py::list list;
+        for (const auto& item : vec) {
+            list.append(py::object(item));
+        }
+        return py::incref(list.ptr());
+    }
+};
+
+} // namespace boost::python::convert
 
 namespace boost::python::convert {
 template <>
@@ -127,6 +148,22 @@ struct TextLayout {
     QString toString(BlockId id, CR<Options> options) {
         return store.toString(id);
     }
+
+    static void py_define() {
+        py::class_<TextLayout>("TextLayout")
+            .def("text", &TextLayout::text)
+            .def("line", &TextLayout::line)
+            .def(
+                "stack",
+                &TextLayout::stack,
+                (py::arg("self"), py::arg("ids") = Vec<BlockId>{}))
+            .def("choice", &TextLayout::choice)
+            .def("space", &TextLayout::space)
+            .def("empty", &TextLayout::empty)
+            .def("toString", &TextLayout::toString)
+            //
+            ;
+    }
 };
 
 BOOST_DESCRIBE_STRUCT(
@@ -141,7 +178,24 @@ BOOST_DESCRIBE_STRUCT(
      cpack));
 
 namespace pywrap {
+
 template <typename T>
+concept StaticallyConvertible = requires(
+    CR<T>                                          value,
+    PyObject*                                      obj,
+    py::converter::rvalue_from_python_stage1_data* data) {
+    {
+        py::convert::from_python<T>::convertible(obj)
+    } -> std::same_as<void*>;
+
+    py::convert::from_python<T>::construct(obj, data);
+
+    {
+        py::convert::to_python<T>::convert(value)
+    } -> std::same_as<PyObject*>;
+};
+
+template <StaticallyConvertible T>
 void register_converters() {
     py::to_python_converter<T, py::convert::to_python<T>>();
 
@@ -157,17 +211,9 @@ BOOST_PYTHON_MODULE(py_textlayout) {
 
     pywrap::register_converters<QString>();
     pywrap::register_converters<layout::BlockId>();
+    pywrap::register_converters<Vec<layout::BlockId>>();
 
-    class_<TextLayout>("TextLayout")
-        .def("text", &TextLayout::text)
-        .def("line", &TextLayout::line)
-        .def("stack", &TextLayout::stack)
-        .def("choice", &TextLayout::choice)
-        .def("space", &TextLayout::space)
-        .def("empty", &TextLayout::empty)
-        .def("toString", &TextLayout::toString)
-        //
-        ;
+    TextLayout::py_define();
 
     class_<layout::Options>("TextOptions")
         .def_readwrite("leftMargin", &Options::leftMargin)

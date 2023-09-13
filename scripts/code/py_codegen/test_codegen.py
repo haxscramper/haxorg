@@ -104,7 +104,7 @@ class StorageClass(Enum):
 @dataclass
 class DocParams:
     brief: str
-    full: str
+    full: str = ""
 
 
 @dataclass
@@ -301,7 +301,7 @@ class SwitchStmtParams:
 
 @dataclass
 class ASTBuilder:
-    b: TextLayout = field(default_factory=TextLayout())
+    b: TextLayout = field(default_factory=lambda: TextLayout())
 
     def CaseStmt(self, params: CaseStmtParams) -> BlockId:
         head = "default:" if params.IsDefault else self.b.line(
@@ -721,7 +721,9 @@ class ASTBuilder:
             return self.b.stack([self.Doc(doc), content])
 
 
-print(b.toString(b.text("Test"), TextOptions()))
+ast = ASTBuilder()
+
+print(b.toString(ast.Doc(DocParams(brief="Text")), TextOptions()))
 
 import faulthandler
 

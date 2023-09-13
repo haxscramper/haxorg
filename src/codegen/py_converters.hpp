@@ -23,12 +23,12 @@ template <typename T>
 struct extract<Vec<T>> : py_extract_base {
     using py_extract_base::py_extract_base;
     using result_type = Vec<T>;
-    bool check() const { return PyCheck_List(obj); }
+    bool check() const { return pywrap::is_list(obj); }
 
     Vec<T> operator()() {
         py::list const& list = py::extract<py::list>(obj)();
         Vec<T>          result;
-        result.resize(py::len(list));
+        result.resize(py::len(list), SerdeDefaultProvider<T>::get());
 
         for (int i = 0; i < result.size(); ++i) {
             result.at(i) = py::extract<T>(list[i])();
