@@ -25,9 +25,6 @@ from py_textlayout import TextLayout, TextOptions
 
 BlockId = NewType("BlockId", int)
 
-b = TextLayout()
-
-
 @dataclass
 class QualType:
     name: str = ""
@@ -302,6 +299,9 @@ class SwitchStmtParams:
 @dataclass
 class ASTBuilder:
     b: TextLayout = field(default_factory=lambda: TextLayout())
+
+    def string(self, text: str) -> BlockId:
+        return self.b.text(text)
 
     def CaseStmt(self, params: CaseStmtParams) -> BlockId:
         head = "default:" if params.IsDefault else self.b.line(
@@ -672,7 +672,8 @@ class ASTBuilder:
 
         result = self.b.stack()
         for line in content:
-            self.b.add_at(result, "/// " + line)
+            self.b.add_at(result, self.string("/// " + line))
+
         return result
 
     def ParmVar(self, p: ParmVarParams) -> BlockId:
@@ -722,8 +723,9 @@ class ASTBuilder:
 
 
 ast = ASTBuilder()
-
-print(b.toString(ast.Doc(DocParams(brief="Text")), TextOptions()))
+build = ast.Doc(DocParams(brief="Text"))
+print(ast.b.toTreeRepr(build))
+print(ast.b.toString(build), TextOptions())
 
 import faulthandler
 

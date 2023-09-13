@@ -2,6 +2,9 @@
 #include <codegen/py_converters.hpp>
 #include <hstd/wrappers/textlayouter.hpp>
 #include <hstd/stdlib/Vec.hpp>
+#include <boost/stacktrace.hpp>
+#include <hstd/stdlib/Debug.hpp>
+#include <QFile>
 
 using namespace layout;
 
@@ -128,29 +131,62 @@ struct to_python<BlockId> {
 
 } // namespace boost::python::convert
 
+void exception_breakpoint() {
+    std::cout << "Stacktrace:\n"
+              << boost::stacktrace::stacktrace() << std::endl;
+    throw; // rethrow the same exception
+}
+
 struct TextLayout {
     BlockStore        b;
     SimpleStringStore store;
+
+
     TextLayout() : store{&b} {}
 
+    void dbg() {
+        qDebug() << __LINE__ << b.store.size() << store.strings.size();
+    }
+
     BlockId text(QString t) { return store.text(t); }
+
     BlockId stack(CVec<BlockId> ids) { return b.stack(ids); }
+
     BlockId line(CVec<BlockId> ids) { return b.line(ids); }
+
     BlockId choice(CVec<BlockId> ids) { return b.choice(ids); }
+
     BlockId space(int count) { return b.space(count); }
+
     BlockId empty() { return b.empty(); }
 
     BlockId wrap(CVec<BlockId> ids, QString sep) {
         return b.wrap(ids, store.str(sep));
     }
 
-
     QString toString(BlockId id, CR<Options> options) {
-        return store.toString(id);
+        try {
+            return store.toString(id);
+        } catch (...) { exception_breakpoint(); }
+    }
+
+    QString toTreeRepr(BlockId id) {
+        try {
+            return store.toTreeRepr(id);
+        } catch (...) { exception_breakpoint(); }
+    }
+
+    void add_at(BlockId const& id, BlockId const& next) {
+        b.add_at(id, next);
+    }
+
+    void add_at(BlockId const& id, Vec<BlockId> const& next) {
+        b.add_at(id, next);
     }
 
     static void py_define() {
         py::class_<TextLayout>("TextLayout")
+            .def("dbg", &TextLayout::dbg)
             .def("text", &TextLayout::text)
             .def("line", &TextLayout::line)
             .def(
@@ -161,6 +197,15 @@ struct TextLayout {
             .def("space", &TextLayout::space)
             .def("empty", &TextLayout::empty)
             .def("toString", &TextLayout::toString)
+            .def("toTreeRepr", &TextLayout::toTreeRepr)
+            .def(
+                "add_at",
+                (void(TextLayout::*)(BlockId const&, BlockId const&))
+                    & TextLayout::add_at)
+            .def(
+                "add_at",
+                (void(TextLayout::*)(BlockId const&, Vec<BlockId> const&))
+                    & TextLayout::add_at)
             //
             ;
     }
@@ -214,6 +259,7 @@ BOOST_PYTHON_MODULE(py_textlayout) {
     pywrap::register_converters<Vec<layout::BlockId>>();
 
     TextLayout::py_define();
+
 
     class_<layout::Options>("TextOptions")
         .def_readwrite("leftMargin", &Options::leftMargin)

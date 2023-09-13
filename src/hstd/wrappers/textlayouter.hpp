@@ -419,6 +419,7 @@ struct BlockStore {
         Q_ASSERT(!layouts.empty());
         return layouts[0];
     }
+
 };
 
 struct Options {
@@ -470,6 +471,8 @@ struct SimpleStringStore {
     QString toString(BlockId const& blc, Options const& opts = Options{});
     BlockId text(const QString& arg) { return store->text(str(arg)); }
     BlockId text(const LytStr& s) { return store->text(s); }
+
+    QString toTreeRepr(BlockId id);
 };
 
 

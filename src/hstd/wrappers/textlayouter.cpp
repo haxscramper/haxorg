@@ -942,9 +942,9 @@ BlockId BlockStore::vertical(
     for (size_t idx = 0; idx < blocks.size(); ++idx) {
         const auto& item = blocks[idx];
         if (idx < blocks.size() - 1) {
-           add_at(result, line({item, sep}));
+            add_at(result, line({item, sep}));
         } else {
-           add_at(result, item);
+            add_at(result, item);
         }
     }
 
@@ -959,9 +959,9 @@ BlockId BlockStore::horizontal(
     for (size_t idx = 0; idx < blocks.size(); ++idx) {
         const auto& item = blocks[idx];
         if (idx > 0) {
-           add_at(result, sep);
+            add_at(result, sep);
         }
-       add_at(result, item);
+        add_at(result, item);
     }
 
     return result;
@@ -971,6 +971,91 @@ Vec<Layout::Ptr> BlockStore::toLayouts(BlockId id, const Options& opts) {
     Opt<Solution::Ptr> rest;
     auto               sln = doOptLayout(*this, id, rest, opts);
     return sln.value()->layouts;
+}
+
+QString SimpleStringStore::toTreeRepr(BlockId id) {
+    QString     resOut;
+    QTextStream os{&resOut};
+    auto aux = [&](const BlockId& blId, int level, auto& auxRef) -> void {
+        QString pref2 = repeat(" ", level * 2 + 2);
+        os << pref2;
+        if (id.isNil()) {
+            os << "<nil>";
+            return;
+        }
+
+        QString      name;
+        Block const& bl = store->at(id);
+        switch (bl.getKind()) {
+            case Block::Kind::Line: name = "L"; break;
+            case Block::Kind::Choice: name = "C"; break;
+            case Block::Kind::Text: name = "T"; break;
+            case Block::Kind::Wrap: name = "W"; break;
+            case Block::Kind::Stack: name = "S"; break;
+            case Block::Kind::Verb: name = "V"; break;
+            case Block::Kind::Empty: name = "E"; break;
+        }
+
+        os << right_aligned(name + " ", level * 2) << "brk: {"
+           << bl.isBreaking << "} "
+           << "mul: " << std::to_string(bl.breakMult) << " id: {" << blId
+           << "}";
+
+        switch (bl.getKind()) {
+            case Block::Kind::Line: {
+                os << "\n";
+                for (const auto& elem : bl.getLine().elements) {
+                    auxRef(elem, level + 1, auxRef);
+                }
+                break;
+            }
+            case Block::Kind::Choice: {
+                os << "\n";
+                for (const auto& elem : bl.getChoice().elements) {
+                    auxRef(elem, level + 1, auxRef);
+                }
+                break;
+            }
+            case Block::Kind::Stack: {
+                os << "\n";
+                for (const auto& elem : bl.getStack().elements) {
+                    auxRef(elem, level + 1, auxRef);
+                }
+                break;
+            }
+            case Block::Kind::Wrap: {
+                os << "\n";
+                for (const auto& elem : bl.getWrap().wrapElements) {
+                    auxRef(elem, level + 1, auxRef);
+                }
+                break;
+            }
+            case Block::Kind::Text: {
+                QString text;
+                for (auto const& it : bl.getText().text.strs) {
+                    text += str(it);
+                }
+                os << escape_literal(text);
+                break;
+            }
+            case Block::Kind::Empty: {
+                os << "<empty>";
+                break;
+            }
+            case Block::Kind::Verb: {
+                os << "\n";
+                for (const auto& line : bl.getVerb().textLines) {
+                    os << pref2
+                       << repeat("  ", std::clamp(level - 1, 0, INT_MAX))
+                       << "  〚" << line << "〛\n";
+                }
+                break;
+            }
+        }
+    };
+
+    aux(id, 0, aux);
+    return resOut;
 }
 
 Vec<Vec<BlockId>> Options::defaultFormatPolicy(
