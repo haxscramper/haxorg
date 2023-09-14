@@ -147,7 +147,7 @@ class EnumParams:
     class Field:
         doc: DocParams
         name: str
-        value: Optional[str]
+        value: Optional[str] = None
 
     name: str
     doc: DocParams
@@ -228,8 +228,8 @@ class RecordParams:
 @dataclass
 class UsingParams:
     Template: TemplateParams
-    new_name: str
-    base_type: QualType
+    newName: str
+    baseType: QualType
 
 
 @dataclass
@@ -275,15 +275,15 @@ class ASTBuilder:
         return self.b.text(text)
 
     def CaseStmt(self, params: CaseStmtParams) -> BlockId:
-        head = "default:" if params.IsDefault else self.b.line(
-            ["case ", params.Expr, ":"])
+        head = self.b.text("default:") if params.IsDefault else self.b.line(
+            [self.b.text("case "), params.Expr, self.b.text(":")])
         Body = params.Body + (["XStmt('break')"] if params.Autobreak else [])
 
         if params.Compound:
             return self.block(head, Body)
         else:
             if params.OneLine:
-                return self.b.line([head, " ", self.b.join(params.Body, " ")])
+                return self.b.line([head, self.b.text(" "), self.b.join(params.Body, " ")])
             else:
                 return self.b.stack(
                     [head, self.b.indent(2, self.b.stack(Body))])
@@ -296,7 +296,7 @@ class ASTBuilder:
         if params.Default:
             cases.append(self.CaseStmt(params.Default))
 
-        return self.block(self.b.line(["switch ",
+        return self.block(self.b.line([self.b.text("switch "),
                                        self.pars(params.Expr)]), cases)
 
     def XCall(self,
@@ -306,13 +306,13 @@ class ASTBuilder:
               Line: bool = True) -> BlockId:
         if opc[0].isalpha():
             return self.b.line(
-                [opc, "(",
+                [opc, self.b.text("("),
                  self.csv(args, Line), ");" if Stmt else ")"])
         else:
             if len(args) == 1:
-                return self.b.line([opc, args[0]])
+                return self.b.line([self.b.text(opc), args[0]])
             elif len(args) == 2:
-                return self.b.line([args[0], " ", opc, " ", args[1]])
+                return self.b.line([args[0], self.b.text(" "), opc, self.b.text(" "), args[1]])
             else:
                 raise Exception(
                     "Unexpected number of arguments for operator-like function call. Expected 1 or 2 but got different amount"
@@ -320,15 +320,15 @@ class ASTBuilder:
 
     def XStmt(self, opc: str, arg: Optional[BlockId] = None) -> BlockId:
         if arg:
-            return self.b.line([str(opc), " ", arg, ";"])
+            return self.b.line([self.b.text(opc), self.b.text(" "), arg, self.b.text(";")])
         else:
-            return self.b.line([str(opc), ";"])
+            return self.b.line([self.b.text(opc), self.b.text(";")])
 
     def Trail(self,
               first: BlockId,
               second: BlockId,
               space: str = " ") -> BlockId:
-        return self.b.line([first, str(space), second])
+        return self.b.line([first, self.b.string(space), second])
 
     def Comment(self,
                 text: List[str],
@@ -339,11 +339,11 @@ class ASTBuilder:
             for line in text:
                 self.b.add_at(content, line)
 
-            return self.b.line(["/*! " if Doc else "/* ", content, " */"])
+            return self.b.line([self.b.text("/*! " if Doc else "/* "), content, self.b.text(" */")])
         else:
             result = self.b.stack()
             for line in text:
-                self.b.add_at(result, (f"/// {line}" if Doc else f"// {line}"))
+                self.b.add_at(result, self.b.text(f"/// {line}" if Doc else f"// {line}"))
             return result
 
     def Literal(self, value: Union[int, str]) -> BlockId:
@@ -449,7 +449,7 @@ class ASTBuilder:
 
         return result
 
-    def Macro(self, params: MethodParams) -> BlockId:
+    def Macro(self, params: MacroParams) -> BlockId:
         definition = self.b.stack()
         for line in params.definition:
             self.b.add_at(definition, line + "  \\")
@@ -815,10 +815,10 @@ class GenFiles:
 class GenConverterWithContext:
     conv: 'GenConverter'
 
-    def __del__(self):
+    def __exit__(self):
         self.conv.context.pop_back()
 
-    def __init__(self, conv: 'GenConverter', typ: QualType):
+    def __enter__(self, conv: 'GenConverter', typ: QualType):
         self.conv = conv
         self.conv.context.append(typ)
 
@@ -833,6 +833,9 @@ class GenConverter:
     def convertParams(self, Params: List[GenTuTParam]) -> TemplateGroup:
         return TemplateGroup(
             Params=[TemplateTypename(Name=Param.name) for Param in Params])
+
+    def convertFunctionBlock(self, func: FunctionParams) -> BlockId:
+        return self.builder.Function(func)
 
     def convertFunction(self, func: GenTuFunction) -> FunctionParams:
         decl = FunctionParams(ResultTy=self.builder.Type(func.result),
@@ -1088,9 +1091,12 @@ class GenConverter:
         with GenConverterWithContext(self, QualType(space.name).asNamespace()):
             self.builder.b.add_at(
                 result, self.builder.string(f"namespace {space.name}{{"))
+                
             for sub in space.entries:
                 self.builder.b.add_at(result, self.convert(sub))
-                self.builder.b.add_at(result, self.pendingToplevel.clear())
+                self.builder.b.add_at(result, self.pendingToplevel)
+                self.pendingToplevel = []
+
             self.builder.b.add_at(result, self.builder.string("}"))
 
         return result
@@ -1185,17 +1191,17 @@ class GenConverter:
         if isinstance(entry, GenTuInclude):
             decls.append(self.builder.Include(entry.what, entry.isSystem))
         elif isinstance(entry, GenTuEnum):
-            decls.append(self.convertEnum(entry.value))
+            decls.append(self.convertEnum(entry))
         elif isinstance(entry, GenTuFunction):
-            decls.append(self.convertFunction(entry.value))
+            decls.append(self.convertFunctionBlock(self.convertFunction(entry)))
         elif isinstance(entry, GenTuStruct):
-            decls.append(self.convertStruct(entry.value))
+            decls.append(self.convertStruct(entry))
         elif isinstance(entry, GenTuTypeGroup):
-            decls.extend(self.convertTypeGroup(entry.value))
+            decls.extend(self.convertTypeGroup(entry))
         elif isinstance(entry, GenTuPass):
             decls.append(self.builder.string(entry.what))
         elif isinstance(entry, GenTuNamespace):
-            decls.append(self.convertNamespace(entry.value))
+            decls.append(self.convertNamespace(entry))
         else:
             raise ValueError("Unexpected kind")
 
