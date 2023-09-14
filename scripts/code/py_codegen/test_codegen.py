@@ -25,6 +25,7 @@ from py_textlayout import TextLayout, TextOptions
 
 BlockId = NewType("BlockId", int)
 
+
 @dataclass
 class QualType:
     name: str = ""
@@ -672,7 +673,7 @@ class ASTBuilder:
 
         result = self.b.stack()
         for line in content:
-            t: BlockId  = self.string("/// " + line)
+            t: BlockId = self.string("/// " + line)
             self.b.add_at(result, t)
 
         return result
@@ -723,15 +724,271 @@ class ASTBuilder:
             return self.b.stack([self.Doc(doc), content])
 
 
+@dataclass
+class GenTuTParam:
+    name: str
+
+
+@dataclass
+class GenTuIdent:
+    name: str
+    type: str
+    value: Optional[str]
+
+
+@dataclass
+class GenTuDoc:
+    brief: str
+    full: str
+
+
+@dataclass
+class GenTuEnumField:
+    name: str
+    value: Optional[str]
+    doc: GenTuDoc
+
+
+@dataclass
+class GenTuEnum:
+    name: str
+    fields: List[GenTuEnumField]
+    doc: GenTuDoc
+    base: Optional[str]
+
+
+@dataclass
+class GenTuFunction:
+    params: Optional[List[GenTuTParam]]
+    name: str
+    arguments: List[GenTuIdent]
+    result: str
+    doc: GenTuDoc
+    impl: Optional[str]
+    isVirtual: bool = False
+    isConst: bool = False
+    isStatic: bool = False
+    isPureVirtual: bool = False
+
+
+@dataclass
+class GenTuInclude:
+    what: str
+    isSystem: bool = False
+
+
+@dataclass
+class GenTuPass:
+    what: str
+
+
+@dataclass
+class GenTuField:
+    isStatic: bool
+    isConst: bool
+    name: str
+    type: str
+    value: Optional[str]
+    doc: GenTuDoc
+
+
+@dataclass
+class GenTuStruct:
+    name: str
+    fields: List[GenTuField]
+    methods: List[GenTuFunction]
+    bases: List[str]
+    nested: List['GenTuEntry']
+    doc: GenTuDoc
+    concreteKind: bool = True
+
+
+@dataclass
+class GenTuTypeGroup:
+    types: List[GenTuStruct]
+    iteratorMacroName: str
+    enumName: str
+    variantField: str
+    variantName: str
+    variantValue: Optional[str]
+    kindGetter: str
+
+
+@dataclass
+class GenTuNamespace:
+    name: str
+    entries: List['GenTuEntry']
+
+
+GenTuEntry = Union[GenTuEnum, GenTuStruct, GenTuTypeGroup, GenTuFunction,
+                   GenTuNamespace, GenTuInclude, GenTuPass]
+
+
+@dataclass
+class GenTu:
+    entries: List[GenTuEntry]
+    path: str
+
+
+@dataclass
+class GenUnit:
+    header: GenTu
+    source: Optional[GenTu]
+
+
+@dataclass
+class GenFiles:
+    files: List[GenUnit]
+
+
+@dataclass
+class GenConverterWithContext:
+    conv: 'GenConverter'
+
+    def __del__(self):
+        self.conv.context.pop_back()
+
+    def __init__(self, conv: 'GenConverter', typ: QualType):
+        self.conv = conv
+        self.conv.context.append(typ)
+
+
+@dataclass
+class GenConverter:
+    builder: ASTBuilder
+    pendingToplevel: List[BlockId]
+    isSource: bool = False
+    context: List[QualType]
+
+    def convertParams(self, Params: List[GenTuTParam]) -> TemplateGroup:
+        return TemplateGroup(
+            Params=[TemplateTypename(Name=Param.name) for Param in Params])
+
+    def convertFunction(self, func: GenTuFunction) -> FunctionParams:
+        decl = FunctionParams(ResultTy=self.builder.Type(func.result),
+                              Name=func.name,
+                              doc=self.convertDoc(func.doc))
+
+        if func.params:
+            decl.Template.Stacks = [self.convertParams(func.params)]
+
+        if func.impl:
+            decl.Body = [
+                self.builder.string(str) for str in func.impl.split("\n")
+            ]
+
+        decl.Args = [self.convertIdent(parm) for parm in func.arguments]
+
+        return decl
+
+    def convertDoc(self, doc: GenTuDoc) -> DocParams:
+        return DocParams(brief=doc.brief, full=doc.full)
+
+    def convertIdent(self, ident: GenTuIdent) -> ParmVarParams:
+        return ParmVarParams(name=ident.name,
+                             type=QualType(ident.type),
+                             defArg=ident.value)
+
+    def convertTu(self, desc: GenTu) -> BlockId:
+        pass
+
+    def convert(self, ident: GenTuIdent) -> BlockId:
+        pass
+
+    def convertStruct(self, record: GenTuStruct) -> BlockId:
+        params = RecordParams(name=record.name,
+                              doc=self.convertDoc(record.doc),
+                              bases=[QualType(base) for base in record.bases])
+
+        with GenConverterWithContext(self, QualType(record.name)):
+            for type in record.nested:
+                for sub in self.convert(type):
+                    params.nested.append(sub)
+
+            for member in record.fields:
+                mem = RecordMember(
+                    RecordField(params=ParmVarParams(type=self.builder.Type(
+                        member.type),
+                                                     name=member.name,
+                                                     isConst=member.isConst,
+                                                     defArg=member.value),
+                                doc=DocParams(brief=member.doc.brief,
+                                              full=member.doc.full),
+                                isStatic=member.isStatic))
+                params.members.append(mem)
+
+            for method in record.methods:
+                params.members.append(
+                    RecordMember(
+                        RecordMethod(params=self.convertFunction(method),
+                                     isStatic=method.isStatic,
+                                     isConst=method.isConst,
+                                     isVirtual=method.isVirtual)))
+
+            extraFields = []
+            extraMethods = []
+            for nested in record.nested:
+                if isinstance(nested, GenTuTypeGroup):
+                    group: GenTuTypeGroup = nested
+                    if group.kindGetter:
+                        extraMethods.append(
+                            GenTuFunction(name=group.kindGetter,
+                                          result=group.enumName,
+                                          isConst=True))
+                    if group.variantName:
+                        extraFields.append(GenTuField(name=group.variantField))
+
+            fields = [
+                self.builder.string(field.name)
+                for field in record.fields + extraFields
+            ]
+            methods = [
+                self.builder.b.line([
+                    self.builder.string("("),
+                    self.builder.string(method.result),
+                    self.builder.pars(
+                        self.builder.csv([
+                            self.builder.string(ident.type)
+                            for ident in method.arguments
+                        ])),
+                    self.builder.string(" const" if method.isConst else ""),
+                    self.builder.string(") "),
+                    self.builder.string(method.name)
+                ]) for method in record.methods + extraMethods
+            ]
+
+            params.nested.append(
+                self.builder.XCall("BOOST_DESCRIBE_CLASS", [
+                    self.builder.string(record.name),
+                    self.builder.pars(self.builder.csv(record.bases, False)),
+                    self.builder.pars(self.builder.string("")),
+                    self.builder.pars(self.builder.string("")),
+                    self.builder.pars(
+                        self.builder.csv(fields + methods,
+                                         len(fields) < 6 and len(methods) < 2))
+                ], False,
+                                   len(fields) < 4 and len(methods) < 1))
+
+        return self.builder.Record(params)
+
+    def convert(self, entry: GenTuEnum) -> BlockId:
+        pass
+
+    def convert(self, space: GenTuNamespace) -> BlockId:
+        pass
+
+    def convert(self, entry: GenTuTypeGroup) -> List[BlockId]:
+        pass
+
+    def convert(self, entry: GenTuEntry) -> List[BlockId]:
+        pass
+
+
 ast = ASTBuilder()
 build = ast.Doc(DocParams(brief="Text"))
+print("Q")
 print(ast.b.toTreeRepr(build))
 print("A")
-print(ast.b.toString(build), TextOptions())
+print(ast.b.toString(build, TextOptions()))
 print("B")
-
-import faulthandler
-
-faulthandler.enable()
-
 print("Done")

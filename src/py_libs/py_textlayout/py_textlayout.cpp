@@ -143,6 +143,7 @@ struct TextLayout {
 
 
     TextLayout() : store{&b} {}
+    ~TextLayout() { qDebug() << "Destructor of text layout"; }
 
     void dbg() {
         qDebug() << __LINE__ << b.store.size() << store.strings.size();
