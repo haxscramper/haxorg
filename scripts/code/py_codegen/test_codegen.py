@@ -129,7 +129,7 @@ class FunctionParams:
 @dataclass
 class MethodParams:
     Params: FunctionParams
-    Class: 'QualType'
+    Class: QualType
     IsConst: bool
 
 
@@ -154,13 +154,6 @@ class EnumParams:
     base: Optional[str] = None
     isEnumClass: bool = True
     fields: List[Field] = field(default_factory=list)
-
-
-@dataclass
-class MethodParams:
-    Params: FunctionParams
-    Class: QualType
-    IsConst: bool
 
 
 @dataclass
@@ -195,13 +188,6 @@ class MacroParams:
     params: List[Param]
     name: str
     definition: List[str]
-
-
-@dataclass
-class UsingParams:
-    Template: TemplateParams
-    newName: str
-    baseType: QualType
 
 
 @dataclass
@@ -252,18 +238,6 @@ class MacroParam:
     is_ellipsis: bool
 
 
-@dataclass
-class MacroParams:
-    doc: DocParams
-    params: List[MacroParam]
-    name: str
-    definition: List[str]
-
-
-@dataclass
-class CompoundStmtParams:
-    Stmts: List[BlockId]
-
 
 @dataclass
 class IfStmtBranch:
@@ -274,10 +248,6 @@ class IfStmtBranch:
     OneLine: bool = False
 
 
-@dataclass
-class IfStmtParams:
-    Branches: List[IfStmtBranch]
-    LookupIfStructure: bool = False
 
 
 @dataclass
@@ -858,7 +828,7 @@ class GenConverter:
     builder: ASTBuilder
     pendingToplevel: List[BlockId]
     isSource: bool = False
-    context: List[QualType]
+    context: List[QualType] = field(default_factory=list)
 
     def convertParams(self, Params: List[GenTuTParam]) -> TemplateGroup:
         return TemplateGroup(
@@ -888,12 +858,6 @@ class GenConverter:
         return ParmVarParams(name=ident.name,
                              type=QualType(ident.type),
                              defArg=ident.value)
-
-    def convertTu(self, desc: GenTu) -> BlockId:
-        pass
-
-    def convert(self, ident: GenTuIdent) -> BlockId:
-        pass
 
     def convertStruct(self, record: GenTuStruct) -> BlockId:
         params = RecordParams(name=record.name,
@@ -971,17 +935,271 @@ class GenConverter:
 
         return self.builder.Record(params)
 
-    def convert(self, entry: GenTuEnum) -> BlockId:
-        pass
+    def convertEnum(self, entry: GenTuEnum) -> BlockId:
+        FromParams = FunctionParams(
+            Name="from_string",
+            ResultTy=QualType("Opt", [QualType(entry.name)]),
+            Args=[ParmVarParams(type=QualType("QString"), name="value")])
 
-    def convert(self, space: GenTuNamespace) -> BlockId:
-        pass
+        ToParams = FunctionParams(
+            Name="to_string",
+            ResultTy=QualType("QString"),
+            Args=[ParmVarParams(type=QualType(entry.name), name="value")])
 
-    def convert(self, entry: GenTuTypeGroup) -> List[BlockId]:
-        pass
+        isToplevel = True
+        for ctx in self.context:
+            if not ctx.isNamespace:
+                isToplevel = False
+                break
 
-    def convert(self, entry: GenTuEntry) -> List[BlockId]:
-        pass
+        if self.isSource:
+            if isToplevel:
+                Class = QualType("enum_serde", [QualType(entry.name)])
+
+                SwichFrom = IfStmtParams(LookupIfStructure=True, Branches=[])
+                for field in entry.fields:
+                    SwichFrom.Branches.append(
+                        IfStmtParams.Branch(
+                            OneLine=True,
+                            Then=self.builder.Return(
+                                self.builder.string(
+                                    f"{entry.name}::{field.name}")),
+                            Cond=self.builder.XCall("==", [
+                                self.builder.string("value"),
+                                self.builder.Literal(field.name)
+                            ]),
+                        ))
+
+                SwichFrom.Branches.append(
+                    IfStmtParams.Branch(
+                        OneLine=True,
+                        Then=self.builder.Return(
+                            self.builder.string("std::nullopt"))))
+
+                SwitchTo = SwitchStmtParams(
+                    Expr=self.builder.string("value"),
+                    Default=CaseStmtParams(
+                        IsDefault=True,
+                        Compound=False,
+                        Autobreak=False,
+                        OneLine=True,
+                        Body=[
+                            self.builder.Throw(
+                                self.builder.XCall(
+                                    "std::domain_error",
+                                    [
+                                        self.builder.Literal(
+                                            "Unexpected enum value -- cannot be converted to string"
+                                        )
+                                    ],
+                                ))
+                        ],
+                    ),
+                    Cases=list(
+                        map(
+                            lambda field: CaseStmtParams(
+                                Autobreak=False,
+                                Compound=False,
+                                OneLine=True,
+                                Expr=self.builder.string(
+                                    f"{entry.name}::{field.name}"),
+                                Body=[
+                                    self.builder.Return(
+                                        self.builder.Literal(field.name))
+                                ],
+                            ),
+                            entry.fields,
+                        )),
+                )
+
+                FromDefinition = FromParams
+                FromDefinition.Body = [self.builder.IfStmt(SwichFrom)]
+
+                self.pendingToplevel.append(
+                    self.builder.Method({
+                        'Class': Class,
+                        'Params': FromDefinition
+                    }))
+
+                ToDefininition = ToParams
+                ToDefininition.Body = [self.builder.SwitchStmt(SwitchTo)]
+
+                self.pendingToplevel.append(
+                    self.builder.Method({
+                        'Class': Class,
+                        'Params': ToDefininition
+                    }))
+
+            return self.builder.string("")
+
+        else:
+            params = EnumParams(name=entry.name,
+                                doc=self.convertDoc(entry.doc),
+                                base=entry.base)
+
+            for field in entry.fields:
+                params.fields.append(
+                    EnumParams.Field(doc=DocParams(brief=field.doc.brief,
+                                                   full=field.doc.full),
+                                     name=field.name,
+                                     value=field.value))
+
+            if isToplevel:
+                Domain = RecordParams(
+                    name="value_domain",
+                    Template=TemplateParams.FinalSpecialization(),
+                    NameParams=[QualType(entry.name)],
+                    bases=[
+                        QualType("value_domain_ungapped", [
+                            QualType(entry.name),
+                            QualType(entry.name, entry.fields[0].name),
+                            QualType(entry.name, entry.fields[-1].name),
+                        ]).withVerticalParams()
+                    ])
+
+                FromDefinition = FromParams
+                ToDefininition = ToParams
+
+                Serde = RecordParams(
+                    name="enum_serde",
+                    Template=TemplateParams.FinalSpecialization(),
+                    NameParams=[QualType(entry.name)])
+
+                Serde.add(RecordMethod(isStatic=True, params=FromDefinition))
+                Serde.add(RecordMethod(isStatic=True, params=ToDefininition))
+
+                return self.b.stack([
+                    self.Enum(params),
+                    self.Record(Serde),
+                    self.Record(Domain)
+                ])
+            else:
+                arguments = [self.string(entry.name)] + [
+                    self.string(Field.name) for Field in entry.fields
+                ]
+
+                return self.b.stack([
+                    self.Enum(params),
+                    self.XCall("BOOST_DESCRIBE_NESTED_ENUM", arguments)
+                ])
+
+    def convertNamespace(self, space: GenTuNamespace) -> BlockId:
+        result = self.builder.b.stack()
+        with GenConverterWithContext(self, QualType(space.name).asNamespace()):
+            self.builder.b.add_at(
+                result, self.builder.string(f"namespace {space.name}{{"))
+            for sub in space.entries:
+                self.builder.b.add_at(result, self.convert(sub))
+                self.builder.b.add_at(result, self.pendingToplevel.clear())
+            self.builder.b.add_at(result, self.builder.string("}"))
+
+        return result
+
+    def convertTypeGroup(self, record: GenTuTypeGroup) -> List[BlockId]:
+        decls: List[BlockId] = []
+        typeNames: List[str] = []
+
+        for item in record.types:
+            if item.concreteKind:
+                typeNames.append(item.name)
+
+        if len(record.enumName) > 0:
+            enumDecl = EnumParams(name=record.enumName)
+
+            for item in typeNames:
+                enumDecl.fields.append(EnumParams.Field(name=item))
+
+            strName = "_text"
+            resName = "_result"
+
+            decls.append(self.builder.Enum(enumDecl))
+
+            switchTo = SwitchStmtParams(Expr=self.builder.string(resName))
+
+            for field in enumDecl.fields:
+                switchTo.Cases.append(
+                    CaseStmtParams(Expr=self.builder.string(
+                        f"{enumDecl.name}::{field.name}"),
+                                   Body=[
+                                       self.builder.Return(
+                                           self.builder.Literal(field.name))
+                                   ],
+                                   Compound=False,
+                                   Autobreak=False,
+                                   OneLine=True))
+
+            fromEnum = FunctionParams(Name="from_enum",
+                                      ResultTy=QualType("char").Ptr().Const(),
+                                      Args=[
+                                          ParmVarParams(type=QualType(
+                                              record.enumName),
+                                                        name=resName)
+                                      ],
+                                      Body=[self.builder.SwitchStmt(switchTo)])
+
+            decls.append(self.builder.Function(fromEnum))
+
+        if len(record.iteratorMacroName) > 0:
+            iteratorMacro = MacroParams(name=record.iteratorMacroName,
+                                        params=["__IMPL"])
+
+            for item in typeNames:
+                iteratorMacro.definition.append(f"__IMPL({item})")
+
+            decls.append(self.builder.Macro(iteratorMacro))
+
+        for sub in record.types:
+            decls.append(self.convert(sub))
+
+        if record.variantName and record.enumName:
+            Arguments: List[BlockId] = [
+                self.builder.string(record.enumName),
+                self.builder.string(record.variantName),
+                self.builder.string(record.variantField),
+                self.builder.string(record.kindGetter)
+            ]
+
+            for kind in typeNames:
+                Arguments.append(self.builder.string(kind))
+
+            if False:
+                using_params = UsingParams(
+                    newName=record.variantName,
+                    baseType=QualType("Variant",
+                                      [QualType(Type) for Type in typeNames]))
+                decls.append(self.builder.Using(using_params))
+
+            decls.append(self.builder.XCall("SUB_VARIANTS", Arguments, True))
+            decls.append(
+                self.builder.Field(
+                    RecordField(
+                        params=ParmVarParams(type=QualType(record.variantName),
+                                             name=record.variantField,
+                                             defArg=record.variantValue))))
+
+        return decls
+
+    def convert(self, entry: GenTu.Entry) -> List[BlockId]:
+        decls: List[BlockId] = []
+
+        if isinstance(entry, GenTuInclude):
+            decls.append(self.builder.Include(entry.what, entry.isSystem))
+        elif isinstance(entry, GenTuEnum):
+            decls.append(self.convertEnum(entry.value))
+        elif isinstance(entry, GenTuFunction):
+            decls.append(self.convertFunction(entry.value))
+        elif isinstance(entry, GenTuStruct):
+            decls.append(self.convertStruct(entry.value))
+        elif isinstance(entry, GenTuTypeGroup):
+            decls.extend(self.convertTypeGroup(entry.value))
+        elif isinstance(entry, GenTuPass):
+            decls.append(self.builder.string(entry.what))
+        elif isinstance(entry, GenTuNamespace):
+            decls.append(self.convertNamespace(entry.value))
+        else:
+            raise ValueError("Unexpected kind")
+
+        return decls
 
 
 ast = ASTBuilder()
