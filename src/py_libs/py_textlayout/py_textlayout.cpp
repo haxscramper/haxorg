@@ -156,6 +156,9 @@ struct TextLayout {
     BlockId line(CVec<BlockId> ids) { return b.line(ids); }
 
     BlockId choice(CVec<BlockId> ids) { return b.choice(ids); }
+    BlockId indent(int indent, CR<BlockId> block) {
+        return b.indent(indent, block);
+    }
 
     BlockId space(int count) { return b.space(count); }
 
