@@ -21,9 +21,7 @@ import ctypes
 ctypes.CDLL(lib_dir + '/py_textlayout.so')
 
 # Now you should be able to import your C++ library
-from py_textlayout import TextLayout, TextOptions
-
-BlockId = NewType("BlockId", int)
+from py_textlayout import TextLayout, TextOptions, BlockId
 
 
 @dataclass
@@ -118,19 +116,12 @@ class ParmVarParams:
 class FunctionParams:
     Name: str
     doc: DocParams
-    Template: TemplateParams
-    BlockIdultTy: 'QualType'
+    Template: Optional[TemplateParams] = None
+    ResultTy: QualType = QualType("void")
     Args: List[ParmVarParams] = field(default_factory=list)
     Storage: StorageClass = StorageClass.None_
     Body: Optional[List[BlockId]] = None
     Inline: bool = False
-
-
-@dataclass
-class MethodParams:
-    Params: FunctionParams
-    Class: QualType
-    IsConst: bool
 
 
 class AccessSpecifier(Enum):
@@ -138,6 +129,17 @@ class AccessSpecifier(Enum):
     Public = 1
     Private = 2
     Protected = 3
+
+
+@dataclass
+class MethodParams:
+    Params: FunctionParams
+    Class: QualType
+    IsConst: bool = False
+    isStatic: bool = False
+    isVirtual: bool = False
+    isPureVirtual: bool = False
+    access: AccessSpecifier = AccessSpecifier.Unspecified
 
 
 @dataclass
@@ -161,10 +163,10 @@ class IfStmtParams:
 
     @dataclass
     class Branch:
-        Cond: Optional[BlockId]
         Then: BlockId
-        Var: Optional[BlockId]
-        Init: Optional[BlockId]
+        Cond: Optional[BlockId] = None
+        Var: Optional[BlockId] = None
+        Init: Optional[BlockId] = None
         OneLine: bool = False
 
     Branches: List[Branch]
@@ -216,12 +218,13 @@ class RecordMember:
 @dataclass
 class RecordParams:
     name: str
-    NameParams: List[QualType]
     doc: DocParams
-    bases: List[QualType]
-    members: List[RecordMember]
-    nested: List[Union[EnumParams, 'RecordParams', BlockId]]
-    Template: TemplateParams
+    NameParams: List[QualType] = field(default_factory=list)
+    bases: List[QualType] = field(default_factory=list)
+    members: List[RecordMember] = field(default_factory=list)
+    nested: List[Union[EnumParams, 'RecordParams',
+                       BlockId]] = field(default_factory=list)
+    Template: TemplateParams = TemplateParams
     IsDefinition: bool = True
 
 
@@ -238,7 +241,6 @@ class MacroParam:
     is_ellipsis: bool
 
 
-
 @dataclass
 class IfStmtBranch:
     Then: BlockId
@@ -248,12 +250,10 @@ class IfStmtBranch:
     OneLine: bool = False
 
 
-
-
 @dataclass
 class CaseStmtParams:
-    Expr: BlockId
-    Body: List[BlockId]
+    Expr: Optional[BlockId] = None
+    Body: List[BlockId] = field(default_factory=list)
     Compound: bool = True
     Autobreak: bool = True
     OneLine: bool = False
@@ -263,7 +263,7 @@ class CaseStmtParams:
 @dataclass
 class SwitchStmtParams:
     Expr: BlockId
-    Cases: List[CaseStmtParams]
+    Cases: List[CaseStmtParams] = field(default_factory=list)
     Default: Optional[CaseStmtParams] = None
 
 
@@ -275,15 +275,19 @@ class ASTBuilder:
         return self.b.text(text)
 
     def CaseStmt(self, params: CaseStmtParams) -> BlockId:
-        head = self.b.text("default:") if params.IsDefault else self.b.line(
-            [self.b.text("case "), params.Expr, self.b.text(":")])
+        head = self.string("default:") if params.IsDefault else self.b.line(
+            [self.string("case "), params.Expr,
+             self.string(":")])
         Body = params.Body + (["XStmt('break')"] if params.Autobreak else [])
 
         if params.Compound:
             return self.block(head, Body)
         else:
             if params.OneLine:
-                return self.b.line([head, self.b.text(" "), self.b.join(params.Body, " ")])
+                return self.b.line(
+                    [head,
+                     self.string(" "),
+                     self.b.join(params.Body, " ")])
             else:
                 return self.b.stack(
                     [head, self.b.indent(2, self.b.stack(Body))])
@@ -296,8 +300,9 @@ class ASTBuilder:
         if params.Default:
             cases.append(self.CaseStmt(params.Default))
 
-        return self.block(self.b.line([self.b.text("switch "),
-                                       self.pars(params.Expr)]), cases)
+        return self.block(
+            self.b.line([self.string("switch "),
+                         self.pars(params.Expr)]), cases)
 
     def XCall(self,
               opc: str,
@@ -305,14 +310,20 @@ class ASTBuilder:
               Stmt: bool = False,
               Line: bool = True) -> BlockId:
         if opc[0].isalpha():
-            return self.b.line(
-                [opc, self.b.text("("),
-                 self.csv(args, Line), ");" if Stmt else ")"])
+            return self.b.line([
+                opc,
+                self.string("("),
+                self.csv(args, Line), ");" if Stmt else ")"
+            ])
         else:
             if len(args) == 1:
-                return self.b.line([self.b.text(opc), args[0]])
+                return self.b.line([self.string(opc), args[0]])
             elif len(args) == 2:
-                return self.b.line([args[0], self.b.text(" "), opc, self.b.text(" "), args[1]])
+                return self.b.line([
+                    args[0],
+                    self.string(" "), opc,
+                    self.string(" "), args[1]
+                ])
             else:
                 raise Exception(
                     "Unexpected number of arguments for operator-like function call. Expected 1 or 2 but got different amount"
@@ -320,7 +331,10 @@ class ASTBuilder:
 
     def XStmt(self, opc: str, arg: Optional[BlockId] = None) -> BlockId:
         if arg:
-            return self.b.line([self.b.text(opc), self.b.text(" "), arg, self.b.text(";")])
+            return self.b.line(
+                [self.b.text(opc),
+                 self.b.text(" "), arg,
+                 self.b.text(";")])
         else:
             return self.b.line([self.b.text(opc), self.b.text(";")])
 
@@ -339,11 +353,16 @@ class ASTBuilder:
             for line in text:
                 self.b.add_at(content, line)
 
-            return self.b.line([self.b.text("/*! " if Doc else "/* "), content, self.b.text(" */")])
+            return self.b.line([
+                self.string("/*! " if Doc else "/* "), content,
+                self.string(" */")
+            ])
         else:
             result = self.b.stack()
             for line in text:
-                self.b.add_at(result, self.b.text(f"/// {line}" if Doc else f"// {line}"))
+                self.b.add_at(
+                    result,
+                    self.string(f"/// {line}" if Doc else f"// {line}"))
             return result
 
     def Literal(self, value: Union[int, str]) -> BlockId:
@@ -366,7 +385,7 @@ class ASTBuilder:
 
     def Include(self, file: str, isSystem: bool) -> BlockId:
         include_str = f"<{file}>" if isSystem else f"\"{file}\""
-        return self.b.line([f"#include {include_str}"])
+        return self.b.line([self.string(f"#include {include_str}")])
 
     def IfStmt(self, p: IfStmtParams) -> BlockId:
         result = self.b.stack()
@@ -377,28 +396,28 @@ class ASTBuilder:
             Branch = p.Branches[i]
 
             head = self.b.line([
-                "if " if first else
-                ("} else if " if Branch.Cond else "} else ")
+                self.string("if " if first else (
+                    "} else if " if Branch.Cond else "} else "))
             ]) if not p.LookupIfStructure else self.b.line(
-                ["if" if Branch.Cond else ""])
+                [self.string("if" if Branch.Cond else "")])
 
             if Branch.Cond:
-                self.b.add_at(head, " (")
+                self.b.add_at(head, self.string(" ("))
                 self.b.add_at(head, Branch.Cond)
-                self.b.add_at(head, ") ")
+                self.b.add_at(head, self.string(") "))
 
-            self.b.add_at(head, " {")
+            self.b.add_at(head, self.string(" {"))
 
             if p.LookupIfStructure:
-                self.b.add_at(head, " ")
+                self.b.add_at(head, self.string(" "))
                 self.b.add_at(head, Branch.Then)
-                self.b.add_at(head, " }")
+                self.b.add_at(head, self.string(" }"))
                 if not last:
-                    self.b.add_at(head, " else ")
+                    self.b.add_at(head, self.string(" else "))
                 self.b.add_at(result, head)
             else:
                 if Branch.OneLine:
-                    self.b.add_at(head, " ")
+                    self.b.add_at(head, self.string(" "))
                     self.b.add_at(head, Branch.Then)
                     self.b.add_at(result, head)
                 else:
@@ -406,15 +425,18 @@ class ASTBuilder:
                     self.b.add_at(result, self.b.indent(2, Branch.Then))
 
         if not p.LookupIfStructure:
-            self.b.add_at(result, "}")
+            self.b.add_at(result, self.string("}"))
 
         return result
 
     def brace(self, elements: List[BlockId]) -> BlockId:
-        return self.b.stack(["{", self.b.stack(elements), "}"])
+        return self.b.stack(
+            [self.string("{"),
+             self.b.stack(elements),
+             self.string("}")])
 
     def pars(self, arg: BlockId) -> BlockId:
-        return self.b.line(["(", arg, ")"])
+        return self.b.line([self.string("("), arg, self.string(")")])
 
     def csv(self, items: List[str], isLine=True, isTrailing=False) -> BlockId:
         return self.b.join([str(Base) for Base in items], ", ", isLine,
@@ -425,8 +447,12 @@ class ASTBuilder:
 
     def VarDecl(self, p: ParmVarParams) -> BlockId:
         return self.b.line([
-            Type(p.type), " ", "const " if p.isConst else "", p.name,
-            " = " + p.defArg if p.defArg else "", ";"
+            self.Type(p.type),
+            self.string(" "),
+            self.string("const " if p.isConst else ""),
+            self.string(p.name),
+            self.string(" = " + p.defArg if p.defArg else ""),
+            self.string(";")
         ])
 
     def block(self,
@@ -434,18 +460,25 @@ class ASTBuilder:
               content: List[BlockId],
               trailingLine=False) -> BlockId:
         if len(content) < 2:
-            result = self.b.line([head, " { ", self.b.stack(content), " }"])
+            result = self.b.line([
+                head,
+                self.string(" { "),
+                self.b.stack(content),
+                self.string(" }")
+            ])
+
         else:
             result = self.b.stack([
-                self.b.line([head, " {"]),
-                self.b.indent(2, self.b.stack(content)), "}"
+                self.b.line([head, self.string(" {")]),
+                self.b.indent(2, self.b.stack(content)),
+                self.string("}")
             ])
 
         if trailingLine:
             if self.b.at(result).isStack():
-                self.b.add_at(result, "")
+                self.b.add_at(result, self.string(""))
             else:
-                result = self.b.stack([result, ""])
+                result = self.b.stack([result, self.string("")])
 
         return result
 
@@ -455,48 +488,59 @@ class ASTBuilder:
             self.b.add_at(definition, line + "  \\")
 
         arguments = [
-            line.name if not line.isEllipsis else "..."
+            self.string(line.name if not line.isEllipsis else "...")
             for line in params.params
         ]
 
         return self.b.stack([
             self.Doc(params.doc),
             self.b.line([
-                "#define ", params.name, "(",
-                self.b.join(arguments, ", "), ") \\"
+                self.string("#define "),
+                self.string(params.name),
+                self.string("("),
+                self.b.join(arguments, ", "),
+                self.string(") \\")
             ]),
-            self.b.indent(8, definition), ""
+            self.b.indent(8, definition),
+            self.string("")
         ])
 
     def Using(self, params: UsingParams) -> BlockId:
         return self.WithTemplate(
             params.Template,
-            self.b.line(
-                ["using ", params.newName, " = ",
-                 Type(params.baseType), ";"]))
+            self.b.line([
+                self.string("using "),
+                self.string(params.newName),
+                self.string(" = "),
+                self.Type(params.baseType),
+                self.string(";")
+            ]))
 
     def Field(self, field: RecordField) -> BlockId:
         return self.WithAccess(
             self.WithDoc(
                 self.b.line([
-                    "static " if field.isStatic else "",
+                    self.string("static " if field.isStatic else ""),
                     self.VarDecl(field.params)
                 ]), field.doc), field.access)
 
     def Method(self, method: MethodParams) -> BlockId:
         head = self.b.line([
-            "static " if method.isStatic else "",
-            "virtual " if method.isVirtual else "",
-            Type(method.params.ResultTy), " ", method.params.Name,
-            self.Arguments(method.params), " const" if method.isConst else "",
-            " = 0" if method.isPureVirtual else ""
+            self.string("static " if method.isStatic else ""),
+            self.string("virtual " if method.isVirtual else ""),
+            Type(method.Params.ResultTy),
+            self.string(" "),
+            self.string(method.Params.Name),
+            self.Arguments(method.Params),
+            self.string(" const" if method.IsConst else ""),
+            self.string(" = 0" if method.isPureVirtual else "")
         ])
 
         return self.WithAccess(
             self.WithDoc(
-                self.block(head, method.params.Body, True)
-                if method.params.Body else self.b.line([head, ";"]),
-                method.params.doc), method.access)
+                self.block(head, method.Params.Body, True)
+                if method.Params.Body else self.b.line([head, ";"]),
+                method.Params.doc), method.access)
 
     def Record(self, params: RecordParams) -> BlockId:
         content = []
@@ -510,23 +554,28 @@ class ASTBuilder:
                 content.append(m)
 
         for m in params.members:
-            if m.getKind() == RecordParams.Member.Kind.Field:
+            if m.getKind() == RecordMember.Kind.Field:
                 content.append(self.Field(m.getField()))
-            elif m.getKind() == RecordParams.Member.Kind.Method:
+
+            elif m.getKind() == RecordMember.Kind.Method:
                 content.append(self.Method(m.getMethod()))
 
-        bases = ""
+        bases: Optional[BlockId] = None
         if params.bases:
             classes = [
-                self.b.line(["public ", Type(base)]) for base in params.bases
+                self.b.line([self.string("public "),
+                             Type(base)]) for base in params.bases
             ]
-            bases = self.b.line([": ", self.b.join(classes, ", ")])
+            bases = self.b.line(
+                [self.string(": "),
+                 self.b.join(classes, ", ")])
 
         head = self.b.line([
             "struct ", params.name,
             self.b.surround_non_empty(
-                self.b.map_join(params.NameParams, lambda t: Type(t), ", "),
-                "<", ">"), bases, " {" if params.IsDefinition else ""
+                self.b.join([Type(t) for t in params.NameParams],
+                            self.string(", ")), "<", ">"), bases,
+            self.string(" {" if params.IsDefinition else "")
         ])
 
         return self.WithTemplate(
@@ -534,10 +583,14 @@ class ASTBuilder:
             self.b.stack([
                 self.Doc(params.doc), head,
                 self.b.indent(2, self.b.stack(content)),
-                "};" if params.IsDefinition else ";", ""
+                self.string("};" if params.IsDefinition else ";"),
+                self.string("")
             ]) if content else self.b.stack([
                 self.Doc(params.doc),
-                self.b.line([head, "};" if params.IsDefinition else ";"]), ""
+                self.b.line(
+                    [head,
+                     self.string("};" if params.IsDefinition else ";")]),
+                self.string("")
             ]))
 
     def WithAccess(self, content: BlockId, spec: AccessSpecifier) -> BlockId:
@@ -545,9 +598,9 @@ class ASTBuilder:
             return content
         else:
             return self.b.stack([
-                "public:" if spec == AccessSpecifier.Public else
-                ("protected:"
-                 if spec == AccessSpecifier.Protected else "private:"),
+                self.string("public:" if spec == AccessSpecifier.Public else (
+                    "protected:" if spec ==
+                    AccessSpecifier.Protected else "private:")),
                 self.b.indent(2, content)
             ])
 
@@ -560,23 +613,29 @@ class ASTBuilder:
                 fields,
                 self.b.stack([
                     self.Doc(field.doc),
-                    field.name + ",",  # TODO field value
+                    self.string(field.name + ","),  # TODO field value
                 ]))
 
         return self.b.stack([
             self.Doc(params.doc),
             self.b.line([
-                "enum ", "class " if params.isEnumClass else "",
-                params.name + " ",
-                ": " + params.base + " " if params.base else "", "{"
+                self.string("enum "),
+                self.string("class " if params.isEnumClass else ""),
+                self.string(params.name + " "),
+                self.string(": " + params.base + " " if params.base else ""),
+                self.string("{")
             ]),
-            self.b.indent(2, fields), "};", ""
+            self.b.indent(2, fields),
+            self.string("};"),
+            self.string("")
         ])
 
     def Function(self, p: FunctionParams) -> BlockId:
-        head = self.b.line(
-            [self.Type(p.ResultTy), " ", p.Name,
-             self.Arguments(p)])
+        head = self.b.line([
+            self.Type(p.ResultTy),
+            self.string(" "), p.Name,
+            self.Arguments(p)
+        ])
 
         return self.WithTemplate(
             p.Template,
@@ -585,9 +644,9 @@ class ASTBuilder:
 
     def Arguments(self, p: FunctionParams) -> BlockId:
         return self.b.line([
-            "(",
-            self.b.join(list(map(lambda Arg: self.ParmVar(Arg), p.Args)), ", ",
-                        True), ")"
+            self.string("("),
+            self.b.join(list(map(lambda Arg: self.ParmVar(Arg), p.Args)),
+                        self.string(", "), True), ")"
         ])
 
     def Method(self, m: MethodParams) -> BlockId:
@@ -595,33 +654,37 @@ class ASTBuilder:
             m.Params.Template,
             self.b.stack([
                 self.b.line([
-                    self.Type(m.Params.ResultTy), " ",
-                    self.Type(m.Class), "::", m.Params.Name,
-                    self.Arguments(m.Params), " const {" if m.IsConst else " {"
+                    self.Type(m.Params.ResultTy),
+                    self.string(" "),
+                    self.Type(m.Class),
+                    self.string("::"),
+                    self.string(m.Params.Name),
+                    self.Arguments(m.Params),
+                    self.string(" const {" if m.IsConst else " {")
                 ]),
-                self.b.indent(2, self.b.stack(m.Params.Body)), "}"
+                self.b.indent(2, self.b.stack(m.Params.Body)),
+                self.string("}")
             ]))
-
-    def Type(self, type_: str) -> QualType:
-        return QualType(type_)
 
     def Type(self, type_: QualType) -> BlockId:
         return self.b.line([
             self.b.join(
                 list(map(lambda Space: self.Type(Space), type_.Spaces)) +
-                [type_.name], "::"),
-            "" if type_.Parameters.empty() else self.b.line([
-                "<",
+                [type_.name], self.string("::")),
+            self.string("") if type_.Parameters.empty() else self.b.line([
+                self.string("<"),
                 self.b.join(
                     list(map(lambda in_: self.Type(in_), type_.Parameters)),
-                    ", ", not type_.verticalParamList), ">"
+                    self.string(", "), not type_.verticalParamList),
+                self.string(">")
             ]),
-            ((" const" if type_.isConst else "") +
-             ("*" if type_.isPtr else "") + ("&" if type_.isRef else ""))
+            self.string((" const" if type_.isConst else "") +
+                        ("*" if type_.isPtr else "") +
+                        ("&" if type_.isRef else ""))
         ])
 
     def Doc(self, doc: DocParams) -> BlockId:
-        content = []
+        content: List[str] = []
         isFirst = True
         for line in doc.brief.split("\n"):
             if len(line) == 0:
@@ -650,29 +713,38 @@ class ASTBuilder:
 
     def ParmVar(self, p: ParmVarParams) -> BlockId:
         return self.b.line([
-            self.Type(p.type), " ", p.name,
-            " = " + p.defArg if p.defArg else ""
+            self.Type(p.type),
+            self.string(" "),
+            self.string(p.name),
+            self.string(" = " + p.defArg if p.defArg else "")
         ])
 
-    def Template(self, Param: TemplateTypename) -> BlockId:
+    def Template(
+        self, Param: Union[TemplateTypename, TemplateGroup,
+                           TemplateParams]) -> BlockId:
         if isinstance(Param, TemplateTypename):
             concept_str = Param.Concept if Param.Concept else (
                 "typename" if not Param.Nested else "template")
             placeholder_str = "" if Param.Placeholder else " "
             name_str = "" if Param.Placeholder else Param.Name
 
-            nested_content = self.b.map_join(Param.Nested,
-                                             lambda Sub: self.Template(Sub),
-                                             ", ")
+            nested_content = self.b.join(
+                [self.Template(Sub) for Sub in Param.Nested],
+                self.string(", "))
             return self.b.line([
-                concept_str, placeholder_str, name_str,
+                self.string(concept_str),
+                self.string(placeholder_str),
+                self.string(name_str),
                 self.b.surround_non_empty(nested_content, "<", ">")
             ])
 
         elif isinstance(Param, TemplateGroup):
-            params_content = self.b.map_join(
-                Param.Params, lambda Param: self.Template(Param), ", ")
-            return self.b.line(["template <", params_content, ">"])
+            return self.b.line([
+                self.string("template <"),
+                self.b.join([self.Tempalte(Param) for Param in Param.Params],
+                            self.string(", ")),
+                self.string(">")
+            ])
 
         else:
             assert (isinstance(Param, TemplateParams))
@@ -754,34 +826,34 @@ class GenTuPass:
 
 @dataclass
 class GenTuField:
-    isStatic: bool
-    isConst: bool
     name: str
     type: str
-    value: Optional[str]
     doc: GenTuDoc
+    value: Optional[str] = None
+    isConst: bool = False
+    isStatic: bool = False
 
 
 @dataclass
 class GenTuStruct:
     name: str
-    fields: List[GenTuField]
-    methods: List[GenTuFunction]
-    bases: List[str]
-    nested: List['GenTuEntry']
     doc: GenTuDoc
+    fields: List[GenTuField] = field(default_factory=list)
+    methods: List[GenTuFunction] = field(default_factory=list)
+    bases: List[str] = field(default_factory=list)
+    nested: List['GenTuEntry'] = field(default_factory=list)
     concreteKind: bool = True
 
 
 @dataclass
 class GenTuTypeGroup:
     types: List[GenTuStruct]
-    iteratorMacroName: str
-    enumName: str
-    variantField: str
-    variantName: str
-    variantValue: Optional[str]
-    kindGetter: str
+    iteratorMacroName: Optional[str] = None
+    enumName: str = "Kind"
+    variantField: str = "data"
+    variantName: str = "Data"
+    variantValue: Optional[str] = None
+    kindGetter: str = "getKind"
 
 
 @dataclass
@@ -814,18 +886,18 @@ class GenFiles:
 @dataclass
 class GenConverterWithContext:
     conv: 'GenConverter'
+    typ: QualType
 
     def __exit__(self):
         self.conv.context.pop_back()
 
-    def __enter__(self, conv: 'GenConverter', typ: QualType):
-        self.conv = conv
-        self.conv.context.append(typ)
+    def __enter__(self):
+        self.conv.context.append(self.typ)
 
 
 @dataclass
 class GenConverter:
-    builder: ASTBuilder
+    ast: ASTBuilder
     pendingToplevel: List[BlockId]
     isSource: bool = False
     context: List[QualType] = field(default_factory=list)
@@ -835,10 +907,10 @@ class GenConverter:
             Params=[TemplateTypename(Name=Param.name) for Param in Params])
 
     def convertFunctionBlock(self, func: FunctionParams) -> BlockId:
-        return self.builder.Function(func)
+        return self.ast.Function(func)
 
     def convertFunction(self, func: GenTuFunction) -> FunctionParams:
-        decl = FunctionParams(ResultTy=self.builder.Type(func.result),
+        decl = FunctionParams(ResultTy=QualType(func.result),
                               Name=func.name,
                               doc=self.convertDoc(func.doc))
 
@@ -846,9 +918,7 @@ class GenConverter:
             decl.Template.Stacks = [self.convertParams(func.params)]
 
         if func.impl:
-            decl.Body = [
-                self.builder.string(str) for str in func.impl.split("\n")
-            ]
+            decl.Body = [self.ast.string(str) for str in func.impl.split("\n")]
 
         decl.Args = [self.convertIdent(parm) for parm in func.arguments]
 
@@ -874,7 +944,7 @@ class GenConverter:
 
             for member in record.fields:
                 mem = RecordMember(
-                    RecordField(params=ParmVarParams(type=self.builder.Type(
+                    RecordField(params=ParmVarParams(type=self.ast.Type(
                         member.type),
                                                      name=member.name,
                                                      isConst=member.isConst,
@@ -903,45 +973,49 @@ class GenConverter:
                                           result=group.enumName,
                                           isConst=True))
                     if group.variantName:
-                        extraFields.append(GenTuField(name=group.variantField))
+                        extraFields.append(
+                            GenTuField(name=group.variantField,
+                                       doc=DocParams(""),
+                                       type=group.variantName))
 
             fields = [
-                self.builder.string(field.name)
+                self.ast.string(field.name)
                 for field in record.fields + extraFields
             ]
             methods = [
-                self.builder.b.line([
-                    self.builder.string("("),
-                    self.builder.string(method.result),
-                    self.builder.pars(
-                        self.builder.csv([
-                            self.builder.string(ident.type)
+                self.ast.b.line([
+                    self.ast.string("("),
+                    self.ast.string(method.result),
+                    self.ast.pars(
+                        self.ast.csv([
+                            self.ast.string(ident.type)
                             for ident in method.arguments
                         ])),
-                    self.builder.string(" const" if method.isConst else ""),
-                    self.builder.string(") "),
-                    self.builder.string(method.name)
+                    self.ast.string(" const" if method.isConst else ""),
+                    self.ast.string(") "),
+                    self.ast.string(method.name)
                 ]) for method in record.methods + extraMethods
             ]
 
             params.nested.append(
-                self.builder.XCall("BOOST_DESCRIBE_CLASS", [
-                    self.builder.string(record.name),
-                    self.builder.pars(self.builder.csv(record.bases, False)),
-                    self.builder.pars(self.builder.string("")),
-                    self.builder.pars(self.builder.string("")),
-                    self.builder.pars(
-                        self.builder.csv(fields + methods,
-                                         len(fields) < 6 and len(methods) < 2))
+                self.ast.XCall("BOOST_DESCRIBE_CLASS", [
+                    self.ast.string(record.name),
+                    self.ast.pars(self.ast.csv(record.bases, False)),
+                    self.ast.pars(self.ast.string("")),
+                    self.ast.pars(self.ast.string("")),
+                    self.ast.pars(
+                        self.ast.csv(fields + methods,
+                                     len(fields) < 6 and len(methods) < 2))
                 ], False,
-                                   len(fields) < 4 and len(methods) < 1))
+                               len(fields) < 4 and len(methods) < 1))
 
-        return self.builder.Record(params)
+        return self.ast.Record(params)
 
     def convertEnum(self, entry: GenTuEnum) -> BlockId:
         FromParams = FunctionParams(
             Name="from_string",
-            ResultTy=QualType("Opt", [QualType(entry.name)]),
+            doc=DocParams(""),
+            ResultTy=QualType("Opt", Parameters=[QualType(entry.name)]),
             Args=[ParmVarParams(type=QualType("QString"), name="value")])
 
         ToParams = FunctionParams(
@@ -957,41 +1031,41 @@ class GenConverter:
 
         if self.isSource:
             if isToplevel:
-                Class = QualType("enum_serde", [QualType(entry.name)])
+                Class = QualType(name="enum_serde",
+                                 Parameters=[QualType(entry.name)])
 
                 SwichFrom = IfStmtParams(LookupIfStructure=True, Branches=[])
                 for field in entry.fields:
                     SwichFrom.Branches.append(
                         IfStmtParams.Branch(
                             OneLine=True,
-                            Then=self.builder.Return(
-                                self.builder.string(
+                            Then=self.ast.Return(
+                                self.ast.string(
                                     f"{entry.name}::{field.name}")),
-                            Cond=self.builder.XCall("==", [
-                                self.builder.string("value"),
-                                self.builder.Literal(field.name)
+                            Cond=self.ast.XCall("==", [
+                                self.ast.string("value"),
+                                self.ast.Literal(field.name)
                             ]),
                         ))
 
                 SwichFrom.Branches.append(
-                    IfStmtParams.Branch(
-                        OneLine=True,
-                        Then=self.builder.Return(
-                            self.builder.string("std::nullopt"))))
+                    IfStmtParams.Branch(OneLine=True,
+                                        Then=self.ast.Return(
+                                            self.ast.string("std::nullopt"))))
 
                 SwitchTo = SwitchStmtParams(
-                    Expr=self.builder.string("value"),
+                    Expr=self.ast.string("value"),
                     Default=CaseStmtParams(
                         IsDefault=True,
                         Compound=False,
                         Autobreak=False,
                         OneLine=True,
                         Body=[
-                            self.builder.Throw(
-                                self.builder.XCall(
+                            self.ast.Throw(
+                                self.ast.XCall(
                                     "std::domain_error",
                                     [
-                                        self.builder.Literal(
+                                        self.ast.Literal(
                                             "Unexpected enum value -- cannot be converted to string"
                                         )
                                     ],
@@ -1004,11 +1078,11 @@ class GenConverter:
                                 Autobreak=False,
                                 Compound=False,
                                 OneLine=True,
-                                Expr=self.builder.string(
+                                Expr=self.ast.string(
                                     f"{entry.name}::{field.name}"),
                                 Body=[
-                                    self.builder.Return(
-                                        self.builder.Literal(field.name))
+                                    self.ast.Return(
+                                        self.ast.Literal(field.name))
                                 ],
                             ),
                             entry.fields,
@@ -1016,24 +1090,24 @@ class GenConverter:
                 )
 
                 FromDefinition = FromParams
-                FromDefinition.Body = [self.builder.IfStmt(SwichFrom)]
+                FromDefinition.Body = [self.ast.IfStmt(SwichFrom)]
 
                 self.pendingToplevel.append(
-                    self.builder.Method({
+                    self.ast.Method({
                         'Class': Class,
                         'Params': FromDefinition
                     }))
 
                 ToDefininition = ToParams
-                ToDefininition.Body = [self.builder.SwitchStmt(SwitchTo)]
+                ToDefininition.Body = [self.ast.SwitchStmt(SwitchTo)]
 
                 self.pendingToplevel.append(
-                    self.builder.Method({
+                    self.ast.Method({
                         'Class': Class,
                         'Params': ToDefininition
                     }))
 
-            return self.builder.string("")
+            return self.ast.string("")
 
         else:
             params = EnumParams(name=entry.name,
@@ -1050,14 +1124,18 @@ class GenConverter:
             if isToplevel:
                 Domain = RecordParams(
                     name="value_domain",
+                    doc=DocParams(""),
                     Template=TemplateParams.FinalSpecialization(),
                     NameParams=[QualType(entry.name)],
                     bases=[
-                        QualType("value_domain_ungapped", [
-                            QualType(entry.name),
-                            QualType(entry.name, entry.fields[0].name),
-                            QualType(entry.name, entry.fields[-1].name),
-                        ]).withVerticalParams()
+                        QualType(name="value_domain_ungapped",
+                                 Parameters=[
+                                     QualType(name=entry.name),
+                                     QualType(Spaces=[entry.name],
+                                              name=entry.fields[0].name),
+                                     QualType(Spaces=[entry.name],
+                                              name=entry.fields[-1].name),
+                                 ]).withVerticalParams()
                     ])
 
                 FromDefinition = FromParams
@@ -1065,39 +1143,42 @@ class GenConverter:
 
                 Serde = RecordParams(
                     name="enum_serde",
+                    doc=DocParams(""),
                     Template=TemplateParams.FinalSpecialization(),
                     NameParams=[QualType(entry.name)])
 
-                Serde.add(RecordMethod(isStatic=True, params=FromDefinition))
-                Serde.add(RecordMethod(isStatic=True, params=ToDefininition))
+                Serde.members.add(
+                    RecordMethod(isStatic=True, params=FromDefinition))
+                Serde.members.add(
+                    RecordMethod(isStatic=True, params=ToDefininition))
 
-                return self.b.stack([
-                    self.Enum(params),
-                    self.Record(Serde),
-                    self.Record(Domain)
+                return self.ast.stack([
+                    self.ast.Enum(params),
+                    self.ast.Record(Serde),
+                    self.ast.Record(Domain)
                 ])
             else:
-                arguments = [self.string(entry.name)] + [
-                    self.string(Field.name) for Field in entry.fields
+                arguments = [self.ast.string(entry.name)] + [
+                    self.ast.string(Field.name) for Field in entry.fields
                 ]
 
-                return self.b.stack([
-                    self.Enum(params),
-                    self.XCall("BOOST_DESCRIBE_NESTED_ENUM", arguments)
+                return self.ast.stack([
+                    self.ast.Enum(params),
+                    self.ast.XCall("BOOST_DESCRIBE_NESTED_ENUM", arguments)
                 ])
 
     def convertNamespace(self, space: GenTuNamespace) -> BlockId:
-        result = self.builder.b.stack()
+        result = self.ast.b.stack()
         with GenConverterWithContext(self, QualType(space.name).asNamespace()):
-            self.builder.b.add_at(
-                result, self.builder.string(f"namespace {space.name}{{"))
-                
+            self.ast.b.add_at(result,
+                              self.ast.string(f"namespace {space.name}{{"))
+
             for sub in space.entries:
-                self.builder.b.add_at(result, self.convert(sub))
-                self.builder.b.add_at(result, self.pendingToplevel)
+                self.ast.b.add_at(result, self.convert(sub))
+                self.ast.b.add_at(result, self.pendingToplevel)
                 self.pendingToplevel = []
 
-            self.builder.b.add_at(result, self.builder.string("}"))
+            self.ast.b.add_at(result, self.ast.string("}"))
 
         return result
 
@@ -1118,21 +1199,18 @@ class GenConverter:
             strName = "_text"
             resName = "_result"
 
-            decls.append(self.builder.Enum(enumDecl))
+            decls.append(self.ast.Enum(enumDecl))
 
-            switchTo = SwitchStmtParams(Expr=self.builder.string(resName))
+            switchTo = SwitchStmtParams(Expr=self.ast.string(resName))
 
             for field in enumDecl.fields:
                 switchTo.Cases.append(
-                    CaseStmtParams(Expr=self.builder.string(
-                        f"{enumDecl.name}::{field.name}"),
-                                   Body=[
-                                       self.builder.Return(
-                                           self.builder.Literal(field.name))
-                                   ],
-                                   Compound=False,
-                                   Autobreak=False,
-                                   OneLine=True))
+                    CaseStmtParams(
+                        Expr=self.ast.string(f"{enumDecl.name}::{field.name}"),
+                        Body=[self.ast.Return(self.ast.Literal(field.name))],
+                        Compound=False,
+                        Autobreak=False,
+                        OneLine=True))
 
             fromEnum = FunctionParams(Name="from_enum",
                                       ResultTy=QualType("char").Ptr().Const(),
@@ -1141,65 +1219,68 @@ class GenConverter:
                                               record.enumName),
                                                         name=resName)
                                       ],
-                                      Body=[self.builder.SwitchStmt(switchTo)])
+                                      Body=[self.ast.SwitchStmt(switchTo)])
 
-            decls.append(self.builder.Function(fromEnum))
+            decls.append(self.ast.Function(fromEnum))
 
         if len(record.iteratorMacroName) > 0:
             iteratorMacro = MacroParams(name=record.iteratorMacroName,
                                         params=["__IMPL"])
 
             for item in typeNames:
-                iteratorMacro.definition.append(f"__IMPL({item})")
+                iteratorMacro.definition.append(
+                    self.ast.string(f"__IMPL({item})"))
 
-            decls.append(self.builder.Macro(iteratorMacro))
+            decls.append(self.ast.Macro(iteratorMacro))
 
         for sub in record.types:
-            decls.append(self.convert(sub))
+            decls += self.convert(sub)
 
         if record.variantName and record.enumName:
             Arguments: List[BlockId] = [
-                self.builder.string(record.enumName),
-                self.builder.string(record.variantName),
-                self.builder.string(record.variantField),
-                self.builder.string(record.kindGetter)
+                self.ast.string(record.enumName),
+                self.ast.string(record.variantName),
+                self.ast.string(record.variantField),
+                self.ast.string(record.kindGetter)
             ]
 
             for kind in typeNames:
-                Arguments.append(self.builder.string(kind))
+                Arguments.append(self.ast.string(kind))
 
             if False:
                 using_params = UsingParams(
                     newName=record.variantName,
                     baseType=QualType("Variant",
                                       [QualType(Type) for Type in typeNames]))
-                decls.append(self.builder.Using(using_params))
+                decls.append(self.ast.Using(using_params))
 
-            decls.append(self.builder.XCall("SUB_VARIANTS", Arguments, True))
+            decls.append(self.ast.XCall("SUB_VARIANTS", Arguments, True))
             decls.append(
-                self.builder.Field(
-                    RecordField(
-                        params=ParmVarParams(type=QualType(record.variantName),
-                                             name=record.variantField,
-                                             defArg=record.variantValue))))
+                self.ast.Field(
+                    RecordField(params=ParmVarParams(
+                        type=QualType(record.variantName),
+                        name=record.variantField,
+                        defArg=record.variantValue),
+                                doc=DocParams(""))))
 
         return decls
 
-    def convert(self, entry: GenTu.Entry) -> List[BlockId]:
+    def convert(self, entry: GenTuEntry) -> List[BlockId]:
         decls: List[BlockId] = []
 
         if isinstance(entry, GenTuInclude):
-            decls.append(self.builder.Include(entry.what, entry.isSystem))
+            decls.append(self.ast.Include(entry.what, entry.isSystem))
         elif isinstance(entry, GenTuEnum):
             decls.append(self.convertEnum(entry))
         elif isinstance(entry, GenTuFunction):
-            decls.append(self.convertFunctionBlock(self.convertFunction(entry)))
+            decls.append(self.convertFunctionBlock(
+                self.convertFunction(entry)))
         elif isinstance(entry, GenTuStruct):
             decls.append(self.convertStruct(entry))
         elif isinstance(entry, GenTuTypeGroup):
             decls.extend(self.convertTypeGroup(entry))
         elif isinstance(entry, GenTuPass):
-            decls.append(self.builder.string(entry.what))
+            decls.append(self.ast.string(entry.what))
         elif isinstance(entry, GenTuNamespace):
             decls.append(self.convertNamespace(entry))
         else:

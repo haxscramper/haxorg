@@ -161,6 +161,14 @@ struct TextLayout {
 
     BlockId empty() { return b.empty(); }
 
+    BlockId join(
+        CVec<BlockId> items,
+        CR<BlockId>   join,
+        bool          isLine,
+        bool          isTrailing) {
+        return b.join(items, join, isLine, isTrailing);
+    }
+
     BlockId wrap(CVec<BlockId> ids, QString sep) {
         return b.wrap(ids, store.str(sep));
     }
@@ -194,6 +202,14 @@ struct TextLayout {
                 "stack",
                 &TextLayout::stack,
                 (py::arg("self"), py::arg("ids") = Vec<BlockId>{}))
+            .def(
+                "join",
+                &TextLayout::join,
+                (py::arg("self"),
+                 py::arg("items"),
+                 py::arg("join"),
+                 py::arg("isLine")     = true,
+                 py::arg("isTrailing") = false))
             .def("choice", &TextLayout::choice)
             .def("space", &TextLayout::space)
             .def("empty", &TextLayout::empty)
