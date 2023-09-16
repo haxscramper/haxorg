@@ -169,7 +169,7 @@ class GenConverter:
         if func.params:
             decl.Template.Stacks = [self.convertParams(func.params)]
 
-        if func.impl:
+        if func.impl is not None:
             decl.Body = [self.ast.string(str) for str in func.impl.split("\n")]
 
         decl.Args = [self.convertIdent(parm) for parm in func.arguments]
@@ -382,7 +382,7 @@ class GenConverter:
             if item.concreteKind:
                 typeNames.append(item.name)
 
-        if len(record.enumName) > 0:
+        if False and len(record.enumName) > 0:
             enumDecl = EnumParams(name=record.enumName, doc=DocParams(""))
 
             for typeItem in typeNames:

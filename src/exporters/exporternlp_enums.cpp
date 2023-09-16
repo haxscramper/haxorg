@@ -1,6 +1,5 @@
 #include "exporternlp_enums.hpp"
 
-
 Opt<NlpDepKind> enum_serde<NlpDepKind>::from_string(QString value) {
   if (value == "ROOT") { return NlpDepKind::ROOT; } else
   if (value == "acl") { return NlpDepKind::acl; } else
@@ -69,6 +68,7 @@ QString enum_serde<NlpDepKind>::to_string(NlpDepKind value) {
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }
+
 Opt<NlpPosTag> enum_serde<NlpPosTag>::from_string(QString value) {
   if (value == "ADJP") { return NlpPosTag::ADJP; } else
   if (value == "ADVP") { return NlpPosTag::ADVP; } else

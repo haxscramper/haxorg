@@ -512,7 +512,7 @@ class ASTBuilder:
 
         return self.WithAccess(
             self.WithDoc(
-                self.block(head, method.Params.Body, True) if method.Params.Body is not None else self.b.line([head, self.string(";")]),
+                self.b.line([head, self.string(";")]) if method.Params.Body is None else self.block(head, method.Params.Body, True),
                 method.Params.doc), method.access)
 
     def Record(self, params: RecordParams) -> BlockId:
