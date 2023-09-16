@@ -9,14 +9,21 @@ if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
 
 import logging
+from rich.logging import RichHandler
 
-log = logging.getLogger(__name__)
+logging.basicConfig(
+    level="NOTSET",
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True, markup=True, enable_link_path=False, show_time=False)],
+)
+
+for name in logging.root.manager.loggerDict:
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.WARNING)
+
+log = logging.getLogger("rich")
 log.setLevel(logging.DEBUG)
-handler = logging.StreamHandler()
-formatter = logging.Formatter(
-    '%(name)s - %(levelname)s [%(filename)s:%(lineno)d in %(funcName)s] - >%(message)s<')
-handler.setFormatter(formatter)
-log.addHandler(handler)
 
 
 @beartype

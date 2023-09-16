@@ -2325,33 +2325,8 @@ if __name__ == "__main__":
     import os
     import sys
     description: GenFiles = gen_value()
-    print("done")
     trace_file = open("/tmp/trace.txt", "w")
     indent = 0
-
-    def trace_exec(frame, event, arg):
-        global indent
-        name = frame.f_globals["__name__"]
-        func = frame.f_code.co_name
-        if func == "__init__":
-            return trace_exec
-
-        if event == 'call':
-            indent += 1
-            print(f"{'  ' * indent}--> Call to {func} in {name}", file=trace_file, flush=True)
-        elif event == 'line':
-            print(f"{'  ' * indent}    Line {frame.f_lineno}, in {name}",
-                  file=trace_file,
-                  flush=True)
-        elif event == 'return':
-            print(f"{'  ' * indent}<-- Exit from {func} in {name}", file=trace_file, flush=True)
-            indent -= 1
-
-        return trace_exec
-
-        return trace_exec
-
-    # sys.settrace(trace_exec)
 
     for tu in description.files:
         for i in range(2):
@@ -2386,21 +2361,13 @@ if __name__ == "__main__":
                 if oldCode != newCode:
                     with open(path, 'w') as out:
                         out.write(newCode)
-                    print(f"Updated code in {path} pattern was {define.path}")
+                    log.info(f"Updated code in {path} pattern was {define.path}")
                 else:
-                    print(f"No changes on {path} pattern was {define.path}")
+                    log.info(f"No changes on {path} pattern was {define.path}")
             else:
+                
                 with open(path, 'w') as out:
                     out.write(newCode)
-                print(f"Wrote to {path} pattern was {define.path}")
+                log.info(f"Wrote to {path} pattern was {define.path}")
 
     print("Done all")
-
-# ast = ASTBuilder()
-# build = ast.Doc(DocParams(brief="Text"))
-# print("Q")
-# print(ast.b.toTreeRepr(build))
-# print("A")
-# print(ast.b.toString(build, TextOptions()))
-# print("B")
-# print("Done")
