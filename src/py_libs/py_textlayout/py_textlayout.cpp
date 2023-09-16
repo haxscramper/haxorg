@@ -36,9 +36,7 @@ struct TextLayout {
         qDebug() << __LINE__ << b.store.size() << store.strings.size();
     }
 
-    Id text(std::string t) {
-        return store.text(QString::fromStdString(t));
-    }
+    Id text(QString t) { return store.text(t); }
 
     Vec<BlockId> tmpVec(std::vector<Id> const& ids) {
         return map(ids, [](Id t) { return t.id; });
@@ -63,19 +61,19 @@ struct TextLayout {
         return b.join(tmpVec(items), join, isLine, isTrailing);
     }
 
-    Id wrap(std::vector<Id> const& ids, std::string sep) {
-        return b.wrap(tmpVec(ids), store.str(QString::fromStdString(sep)));
+    Id wrap(std::vector<Id> const& ids, QString sep) {
+        return b.wrap(tmpVec(ids), store.str(sep));
     }
 
-    std::string toString(Id id, CR<Options> options) {
+    QString toString(Id id, CR<Options> options) {
         try {
-            return store.toString(id).toStdString();
+            return store.toString(id);
         } catch (...) { exception_breakpoint(); }
     }
 
-    std::string toTreeRepr(Id id) {
+    QString toTreeRepr(Id id) {
         try {
-            return store.toTreeRepr(id).toStdString();
+            return store.toTreeRepr(id);
         } catch (...) { exception_breakpoint(); }
     }
 
@@ -153,6 +151,43 @@ namespace detail {
             return_value_policy /* policy */,
             handle /* parent */) {
             return PyLong_FromUnsignedLongLong(src.id.getValue());
+        }
+    };
+
+    template <>
+    struct type_caster<QString> {
+      public:
+        PYBIND11_TYPE_CASTER(QString, _("str"));
+
+        bool load(handle src, bool) {
+
+            /* Extract PyObject from handle */
+            PyObject* source = src.ptr();
+
+            if (!PyUnicode_Check(source)) {
+                return false;
+            }
+
+            Py_ssize_t  size;
+            const char* ptr = PyUnicode_AsUTF8AndSize(source, &size);
+
+            if (!ptr) {
+                return false;
+            }
+
+            /* Now try to convert into a C++ int */
+            value = QString::fromUtf8(ptr, size);
+
+            /* Ensure return code was OK (to avoid out-of-range errors etc)
+             */
+            return (!PyErr_Occurred());
+        }
+
+        static handle cast(
+            QString src,
+            return_value_policy /* policy */,
+            handle /* parent */) {
+            return (PyUnicode_FromString(src.toUtf8().data()));
         }
     };
 } // namespace detail
