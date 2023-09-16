@@ -1940,7 +1940,7 @@ if __name__ == "__main__":
             
         return trace_exec
 
-    sys.settrace(trace_exec)
+    # sys.settrace(trace_exec)
 
     for tu in description.files:
         for i in range(2):

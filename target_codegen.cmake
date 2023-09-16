@@ -7,6 +7,7 @@ glob_add_sources2(codegen "${BASE}/src/codegen/.*")
 
 find_package(Boost REQUIRED COMPONENTS python)
 find_package(PythonLibs 3.11)
+find_package(pybind11 CONFIG)
 
 target_include_directories(
     codegen
@@ -27,15 +28,19 @@ target_link_libraries(codegen
     ${PYTHON_LIBRARIES}
 )
 
-PYTHON_ADD_MODULE(
+pybind11_add_module(
     py_textlayout
     "${BASE}/src/py_libs/py_textlayout/py_textlayout.cpp"
-    "${BASE}/src/codegen/py_wrapper.cpp"
 )
 
 set_common_files(py_textlayout)
 set_target_output(py_textlayout)
 set_target_flags(py_textlayout)
+
+set_target_properties(py_textlayout PROPERTIES
+    OUTPUT_NAME "py_textlayout"
+    SUFFIX ".so"
+)
 
 target_include_directories(
     py_textlayout
@@ -45,5 +50,5 @@ target_include_directories(
     ${PYTHON_INCLUDE_DIRS}
 )
 
-target_link_libraries(py_textlayout hstd ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} ubsan)
+target_link_libraries(py_textlayout PRIVATE hstd ${PYTHON_LIBRARIES} ubsan)
 target_compile_options(py_textlayout PRIVATE -shared-libasan)

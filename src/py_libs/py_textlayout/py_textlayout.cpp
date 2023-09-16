@@ -1,147 +1,14 @@
-#include <codegen/py_wrapper.hpp>
-#include <codegen/py_converters.hpp>
 #include <hstd/wrappers/textlayouter.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <boost/stacktrace.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <QFile>
+#undef slots
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <hstd/stdlib/algorithms.hpp>
 
 using namespace layout;
-
-namespace boost::python {
-template <typename T>
-extract<T> extract_ptr(PyObject* ptr) {
-    return py::extract<T>(py::object(python::handle<>(ptr)));
-}
-} // namespace boost::python
-
-namespace boost::python::convert {
-
-using pydata = py::converter::rvalue_from_python_stage1_data;
-
-template <typename T>
-struct to_python;
-
-
-template <typename T>
-struct from_python;
-
-template <typename T>
-void* is_accepted_by_extractor(PyObject* obj_ptr) {
-    Q_CHECK_PTR(obj_ptr);
-    if (py::extract_ptr<T>(obj_ptr).check()) {
-        return obj_ptr;
-    } else {
-        return 0;
-    }
-}
-
-
-template <typename T, typename F>
-void execute_extractor_cb(PyObject* obj_ptr, pydata* data, F cb) {
-    qDebug() << __LINE__ << demangle(typeid(T).name()) << obj_ptr << data;
-    Q_CHECK_PTR(obj_ptr);
-    Q_CHECK_PTR(data);
-    // Grab pointer to memory into which to construct the new QString
-    void* storage = ((py::converter::rvalue_from_python_storage<T>*)data)
-                        ->storage.bytes;
-    Q_CHECK_PTR(storage);
-    py::object obj(handle<>(borrowed(obj_ptr)));
-    // in-place construct the new T using the character data
-    // extraced from the python object
-    T* value = new (storage) T(std::move(cb(obj_ptr)));
-    Q_CHECK_PTR(storage);
-    Q_CHECK_PTR(value);
-
-    // Stash the memory chunk pointer for later use by boost.python
-    data->convertible = storage;
-    qDebug() << __LINE__ << *value;
-}
-
-template <typename T>
-void execute_extractor(PyObject* obj_ptr, pydata* data) {
-    Q_CHECK_PTR(obj_ptr);
-    Q_CHECK_PTR(data);
-    execute_extractor_cb<T>(obj_ptr, data, [](PyObject* ptr) {
-        return py::extract_ptr<T>(ptr)();
-    });
-}
-
-template <typename T>
-struct wrapped_extractor_from_python {
-    // Determine if obj_ptr can be converted in a QString
-    static void* convertible(PyObject* obj_ptr) {
-        return is_accepted_by_extractor<T>(obj_ptr);
-    }
-
-    // Convert obj_ptr into a T
-    static void construct(PyObject* obj_ptr, pydata* data) {
-        execute_extractor<T>(obj_ptr, data);
-    }
-};
-
-
-}; // namespace boost::python::convert
-
-// Definitions for common types, to be moved elsewhere
-namespace boost::python::convert {
-template <>
-struct from_python<QString> : wrapped_extractor_from_python<QString> {};
-
-template <>
-struct to_python<QString> {
-    static PyObject* convert(CR<QString> value) {
-        PyObject* tmp = incref(object(value.toLatin1().constData()).ptr());
-        Q_CHECK_PTR(tmp);
-        return tmp;
-    }
-};
-
-
-template <typename T>
-struct from_python<Vec<T>> : wrapped_extractor_from_python<Vec<T>> {};
-
-template <typename T>
-struct to_python<Vec<T>> {
-    static PyObject* convert(const Vec<T>& vec) {
-        py::list list;
-        for (const auto& item : vec) {
-            list.append(py::object(item));
-        }
-        return py::incref(list.ptr());
-    }
-};
-
-} // namespace boost::python::convert
-
-namespace boost::python::convert {
-template <>
-struct from_python<BlockId> {
-    static void* convertible(PyObject* obj_ptr) {
-        Q_CHECK_PTR(obj_ptr);
-        return is_accepted_by_extractor<BlockId::id_base_type>(obj_ptr);
-    }
-
-    static void construct(PyObject* ptr, pydata* data) {
-        Q_CHECK_PTR(ptr);
-        Q_CHECK_PTR(data);
-        execute_extractor_cb<BlockId>(ptr, data, [](PyObject* ptr) {
-            return BlockId::FromValue(
-                py::extract_ptr<BlockId::id_base_type>(ptr)());
-        });
-    }
-};
-
-template <>
-struct to_python<BlockId> {
-    static PyObject* convert(CR<BlockId> value) {
-        PyObject* result = incref(object(value.getValue()).ptr());
-        Q_CHECK_PTR(result);
-        return result;
-    }
-};
-
-} // namespace boost::python::convert
 
 void exception_breakpoint() {
     std::cout << "Stacktrace:\n"
@@ -149,9 +16,17 @@ void exception_breakpoint() {
     throw; // rethrow the same exception
 }
 
+
 struct TextLayout {
     BlockStore        b;
     SimpleStringStore store;
+
+    struct Id {
+        BlockId id = BlockId::Nil();
+        Id() {}
+        Id(BlockId id) : id(id) {}
+        operator BlockId() const { return id; }
+    };
 
 
     TextLayout() : store{&b} {}
@@ -161,67 +36,65 @@ struct TextLayout {
         qDebug() << __LINE__ << b.store.size() << store.strings.size();
     }
 
-    BlockId text(std::string t) {
+    Id text(std::string t) {
         return store.text(QString::fromStdString(t));
     }
 
-    BlockId stack(CVec<BlockId> ids) { return b.stack(ids); }
-
-    BlockId line(CVec<BlockId> ids) { return b.line(ids); }
-
-    BlockId choice(CVec<BlockId> ids) { return b.choice(ids); }
-    BlockId indent(int indent, CR<BlockId> block) {
-        return b.indent(indent, block);
+    Vec<BlockId> tmpVec(std::vector<Id> const& ids) {
+        return map(ids, [](Id t) { return t.id; });
     }
 
-    BlockId space(int count) { return b.space(count); }
+    Id stack(std::vector<Id> const& ids) { return b.stack(tmpVec(ids)); }
 
-    BlockId empty() { return b.empty(); }
+    Id line(std::vector<Id> const& ids) { return b.line(tmpVec(ids)); }
 
-    BlockId join(
-        CVec<BlockId> items,
-        CR<BlockId>   join,
-        bool          isLine,
-        bool          isTrailing) {
-        return b.join(items, join, isLine, isTrailing);
+    Id choice(std::vector<Id> const& ids) { return b.choice(tmpVec(ids)); }
+    Id indent(int indent, CR<Id> block) { return b.indent(indent, block); }
+
+    Id space(int count) { return b.space(count); }
+
+    Id empty() { return b.empty(); }
+
+    Id join(
+        std::vector<Id> const& items,
+        CR<Id>                 join,
+        bool                   isLine,
+        bool                   isTrailing) {
+        return b.join(tmpVec(items), join, isLine, isTrailing);
     }
 
-    BlockId wrap(CVec<BlockId> ids, std::string sep) {
-        return b.wrap(ids, store.str(QString::fromStdString(sep)));
+    Id wrap(std::vector<Id> const& ids, std::string sep) {
+        return b.wrap(tmpVec(ids), store.str(QString::fromStdString(sep)));
     }
 
-    std::string toString(BlockId id, CR<Options> options) {
+    std::string toString(Id id, CR<Options> options) {
         try {
             return store.toString(id).toStdString();
         } catch (...) { exception_breakpoint(); }
     }
 
-    std::string toTreeRepr(BlockId id) {
+    std::string toTreeRepr(Id id) {
         try {
             return store.toTreeRepr(id).toStdString();
         } catch (...) { exception_breakpoint(); }
     }
 
-    void add_at(BlockId const& id, BlockId const& next) {
-        b.add_at(id, next);
+    void add_at(Id const& id, Id const& next) { b.add_at(id, next); }
+
+    void add_at(Id const& id, std::vector<Id> const& next) {
+        b.add_at(id, tmpVec(next));
     }
 
-    void add_at(BlockId const& id, Vec<BlockId> const& next) {
-        b.add_at(id, next);
-    }
+    bool isStack(Id id) { return b.at(id).isStack(); }
+    bool isLine(Id id) { return b.at(id).isLine(); }
 
-    bool isStack(BlockId id) { return b.at(id).isStack(); }
-    bool isLine(BlockId id) { return b.at(id).isLine(); }
-
-    BlockId surround_non_empty(
-        BlockId content,
-        BlockId before,
-        BlockId after) {
+    Id surround_non_empty(Id content, Id before, Id after) {
         return b.surround_non_empty(content, before, after);
     }
 
-    static void py_define() {
-        py::class_<TextLayout>("TextLayout")
+    static void py_define(pybind11::module& m) {
+        pybind11::class_<TextLayout>(m, "TextLayout")
+            .def(pybind11::init<>())
             .def("dbg", &TextLayout::dbg)
             .def("text", &TextLayout::text)
             .def("line", &TextLayout::line)
@@ -231,32 +104,60 @@ struct TextLayout {
             .def(
                 "stack",
                 &TextLayout::stack,
-                (py::arg("self"), py::arg("ids") = Vec<BlockId>{}))
+                pybind11::arg("ids") = std::vector<Id>{})
             .def(
                 "join",
                 &TextLayout::join,
-                (py::arg("self"),
-                 py::arg("items"),
-                 py::arg("join"),
-                 py::arg("isLine")     = true,
-                 py::arg("isTrailing") = false))
+                pybind11::arg("items"),
+                pybind11::arg("join"),
+                pybind11::arg("isLine")     = true,
+                pybind11::arg("isTrailing") = false)
             .def("choice", &TextLayout::choice)
+            .def("indent", &TextLayout::indent)
             .def("space", &TextLayout::space)
             .def("empty", &TextLayout::empty)
             .def("toString", &TextLayout::toString)
             .def("toTreeRepr", &TextLayout::toTreeRepr)
             .def(
                 "add_at",
-                (void(TextLayout::*)(BlockId const&, BlockId const&))
+                (void(TextLayout::*)(Id const&, Id const&))
                     & TextLayout::add_at)
             .def(
                 "add_at",
-                (void(TextLayout::*)(BlockId const&, Vec<BlockId> const&))
+                (void(TextLayout::*)(Id const&, std::vector<Id> const&))
                     & TextLayout::add_at)
             //
             ;
     }
 };
+
+namespace PYBIND11_NAMESPACE {
+namespace detail {
+    template <>
+    struct type_caster<TextLayout::Id> {
+      public:
+        PYBIND11_TYPE_CASTER(TextLayout::Id, const_name("BlockId"));
+        bool load(handle src, bool) {
+            PyObject* source = src.ptr();
+            PyObject* tmp    = PyNumber_Long(source);
+            if (!tmp) {
+                return false;
+            }
+            value.id.setValue(PyLong_AsUnsignedLong(tmp));
+            Py_DECREF(tmp);
+            return !PyErr_Occurred();
+        }
+
+        static handle cast(
+            TextLayout::Id src,
+            return_value_policy /* policy */,
+            handle /* parent */) {
+            return PyLong_FromUnsignedLongLong(src.id.getValue());
+        }
+    };
+} // namespace detail
+} // namespace PYBIND11_NAMESPACE
+
 
 BOOST_DESCRIBE_STRUCT(
     Options,
@@ -269,46 +170,18 @@ BOOST_DESCRIBE_STRUCT(
      indentSpaces,
      cpack));
 
-namespace pywrap {
 
-template <typename T>
-concept StaticallyConvertible = requires(
-    CR<T>                                          value,
-    PyObject*                                      obj,
-    py::converter::rvalue_from_python_stage1_data* data) {
-    {
-        py::convert::from_python<T>::convertible(obj)
-    } -> std::same_as<void*>;
+PYBIND11_MODULE(py_textlayout, m) {
+    using namespace pybind11;
 
-    py::convert::from_python<T>::construct(obj, data);
+    //    pywrap::register_converters<QString>();
+    //    pywrap::register_converters<layout::BlockId>();
+    //    pywrap::register_converters<Vec<layout::BlockId>>();
 
-    {
-        py::convert::to_python<T>::convert(value)
-    } -> std::same_as<PyObject*>;
-};
-
-template <StaticallyConvertible T>
-void register_converters() {
-    py::to_python_converter<T, py::convert::to_python<T>>();
-
-    py::converter::registry::push_back(
-        &boost::python::convert::from_python<T>::convertible,
-        &boost::python::convert::from_python<T>::construct,
-        py::type_id<T>());
-}
-} // namespace pywrap
-
-BOOST_PYTHON_MODULE(py_textlayout) {
-    using namespace boost::python;
-
-    pywrap::register_converters<QString>();
-    pywrap::register_converters<layout::BlockId>();
-    pywrap::register_converters<Vec<layout::BlockId>>();
-
-    TextLayout::py_define();
+    TextLayout::py_define(m);
 
 
-    class_<layout::Options>("TextOptions")
+    class_<layout::Options>(m, "TextOptions")
         .def_readwrite("leftMargin", &Options::leftMargin)
         .def_readwrite("rightMargin", &Options::rightMargin)
         .def_readwrite("leftMarginCost", &Options::leftMarginCost)
