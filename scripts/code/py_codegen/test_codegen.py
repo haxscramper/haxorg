@@ -96,7 +96,7 @@ def d_org(name: str, *args, **kwargs) -> GenTuStruct:
                           isConst=True,
                           isVirtual=True,
                           isPureVirtual=False,
-                          impl=f"return {t_osk()}::{kind};"))
+                          impl=f"return {t_osk().name}::{kind};"))
 
         res.methods.insert(
             0,
@@ -577,9 +577,9 @@ def get_types() -> List[GenTuStruct]:
                                                   "Added", "Removed", "Changed")
                                 ],
                                 fields=[
-                                    opt_field(t_str(), "oldPriority",
+                                    opt_field(QualType("QString"), "oldPriority",
                                               GenTuDoc("Previous priority for change and removal")),
-                                    opt_field(t_str(), "newPriority",
+                                    opt_field(QualType("QString"), "newPriority",
                                               GenTuDoc("New priority for change and addition")),
                                     id_field("Time", "on", GenTuDoc("When priority was changed"))
                                 ]),
@@ -2256,7 +2256,7 @@ def get_exporter_methods(forward):
                                     get_type_group_fields(value)) if not (field.isStatic)
             ]
 
-            scoped_target = t_cr(QualType(name, Spaces=[QualType(t) for t in scope_names]))
+            scoped_target = t_cr(QualType(name, Spaces=[QualType("sem")] + [QualType(t) for t in scope_names]))
             decl_scope = "" if forward else "Exporter<V, R>::"
             t_params = [] if forward else [GenTuParam("V"), GenTuParam("R")]
 
