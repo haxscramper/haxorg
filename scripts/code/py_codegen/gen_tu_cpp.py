@@ -4,7 +4,7 @@ from typing import *
 
 
 @dataclass
-class GenTuTParam:
+class GenTuParam:
     name: str
 
 
@@ -12,7 +12,7 @@ class GenTuTParam:
 class GenTuIdent:
     name: str
     type: str
-    value: Optional[str]
+    value: Optional[str] = None
 
 
 @dataclass
@@ -24,16 +24,16 @@ class GenTuDoc:
 @dataclass
 class GenTuEnumField:
     name: str
-    value: Optional[str]
     doc: GenTuDoc
+    value: Optional[str] = None
 
 
 @dataclass
 class GenTuEnum:
     name: str
-    fields: List[GenTuEnumField]
     doc: GenTuDoc
-    base: Optional[str]
+    fields: List[GenTuEnumField]
+    base: Optional[str] = None
 
 
 @dataclass
@@ -41,7 +41,7 @@ class GenTuFunction:
     doc: GenTuDoc
     name: str
     result: str
-    params: List[GenTuTParam] = field(default_factory=list)
+    params: List[GenTuParam] = field(default_factory=list)
     arguments: List[GenTuIdent] = field(default_factory=list)
     impl: Optional[str] = None
     isVirtual: bool = False
@@ -112,7 +112,7 @@ class GenTu:
 @dataclass
 class GenUnit:
     header: GenTu
-    source: Optional[GenTu]
+    source: Optional[GenTu] = None
 
 
 @dataclass
@@ -139,7 +139,7 @@ class GenConverter:
     isSource: bool = False
     context: List[QualType] = field(default_factory=list)
 
-    def convertParams(self, Params: List[GenTuTParam]) -> TemplateGroup:
+    def convertParams(self, Params: List[GenTuParam]) -> TemplateGroup:
         return TemplateGroup(
             Params=[TemplateTypename(Name=Param.name) for Param in Params])
 

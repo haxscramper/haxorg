@@ -2,6 +2,10 @@ import setup_imports
 from py_textlayout import *
 from dataclasses import dataclass, field
 from typing import *
+from enum import Enum
+
+if not TYPE_CHECKING:
+    BlockId = NewType('BlockId', int)
 
 
 @dataclass
@@ -96,8 +100,8 @@ class ParmVarParams:
 class FunctionParams:
     Name: str
     doc: DocParams
-    Template: TemplateParams = TemplateParams()
-    ResultTy: QualType = QualType("void")
+    Template: TemplateParams = field(default_factory=TemplateParams())
+    ResultTy: QualType = field(default_factory=QualType("void"))
     Args: List[ParmVarParams] = field(default_factory=list)
     Storage: StorageClass = StorageClass.None_
     Body: List[BlockId] = field(default_factory=list)
@@ -209,7 +213,7 @@ class RecordParams:
     bases: List[QualType] = field(default_factory=list)
     members: List[RecordMember] = field(default_factory=list)
     nested: List[RecordNested] = field(default_factory=list)
-    Template: TemplateParams = TemplateParams()
+    Template: TemplateParams = field(default_factory=TemplateParams())
     IsDefinition: bool = True
 
 
