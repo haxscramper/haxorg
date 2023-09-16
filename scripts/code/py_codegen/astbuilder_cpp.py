@@ -131,6 +131,22 @@ class FunctionParams:
     Body: Optional[List[BlockId]] = None
     Inline: bool = False
 
+@beartype
+@dataclass
+class LambdaCapture:
+    Name: Optional[str] = None
+    ByRef: bool = True
+
+@beartype
+@dataclass
+class LambdaParams:
+    Args: List[ParmVarParams] = field(default_factory=list)
+    ResultTy: Optional[QualType] = field(default_factory=lambda: QualType("auto"))
+    Template: TemplateParams = field(default_factory=TemplateParams)
+    Body: List[BlockId] = field(default_factory=list)
+    CaptureList: List[LambdaCapture] = field(default_factory=list)
+
+
 
 class AccessSpecifier(Enum):
     Unspecified = 0
@@ -321,7 +337,7 @@ class ASTBuilder:
               args: List[BlockId],
               Stmt: bool = False,
               Line: bool = True) -> BlockId:
-        if opc[0].isalpha():
+        if opc[0].isalpha() or opc[0] == ".":
             return self.b.line([
                 self.string(opc),
                 self.string("("),
@@ -646,6 +662,32 @@ class ASTBuilder:
             self.string("")
         ])
 
+    def Capture(self, p: LambdaCapture) -> BlockId:
+        result = self.b.line([])
+        if p.Name:
+            self.b.add_at(result, self.string(p.Name))
+
+        return result
+            
+
+    def Lambda(self, p: LambdaParams) -> BlockId:
+        head = self.b.line([
+            self.string("["),
+            self.csv([self.Capture(cap) for cap in p.CaptureList]),
+            self.string("]"),
+            self.Arguments(p)
+        ])
+
+        if p.ResultTy:
+            self.b.add_at(head, self.string(" -> "))
+            self.b.add_at(head, self.Type(p.ResultTy))
+
+        self.b.add_at(head, self.b.text(" { "))
+        self.b.add_at(head, self.b.stack(p.Body))
+        self.b.add_at(head, self.b.text(" }"))
+
+        return head
+
     def Function(self, p: FunctionParams) -> BlockId:
         head = self.b.line(
             [self.Type(p.ResultTy),
@@ -657,7 +699,7 @@ class ASTBuilder:
             p.Template,
             self.block(head, p.Body, True) if p.Body else self.b.line([head, self.string(";")]))
 
-    def Arguments(self, p: FunctionParams) -> BlockId:
+    def Arguments(self, p: Union[FunctionParams, LambdaParams]) -> BlockId:
         return self.b.line([
             self.string("("),
             self.b.join([self.ParmVar(Arg) for Arg in p.Args], self.string(", "), True),

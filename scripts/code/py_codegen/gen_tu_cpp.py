@@ -68,7 +68,7 @@ class GenTuInclude:
 @beartype
 @dataclass
 class GenTuPass:
-    what: str
+    what: Union[str, BlockId]
 
 
 @beartype
@@ -505,7 +505,11 @@ class GenConverter:
         elif isinstance(entry, GenTuTypeGroup):
             decls.extend(self.convertTypeGroup(entry))
         elif isinstance(entry, GenTuPass):
-            decls.append(self.ast.string(entry.what))
+            if isinstance(entry.what, str):
+                decls.append(self.ast.string(entry.what))
+            else:
+                decls.append(entry.what)
+                
         elif isinstance(entry, GenTuNamespace):
             decls.append(self.convertNamespace(entry))
         else:

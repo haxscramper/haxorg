@@ -61,7 +61,7 @@ def opt_field(typ, name, doc):
     return GenTuField(t_opt(typ), name, doc, value="std::nullopt")
 
 
-def d_org(*args, **kwargs):
+def d_org(*args, **kwargs) -> GenTuStruct:
     res = GenTuStruct(*args, **kwargs)
     kind = res.name
     base = res.bases[0]
@@ -100,7 +100,7 @@ def d_simple_enum(name, doc, *args):
     return GenTuEnum(name, doc, fields=[GenTuEnumField(arg, GenTuDoc("")) for arg in args])
 
 
-def get_types():
+def get_types() -> List[GenTuStruct]:
     return [
         d_org(
             "Stmt",
@@ -2273,8 +2273,41 @@ def get_exporter_methods(forward):
 def get_concrete_types():
     return [struct for struct in get_types() if struct.concreteKind]
 
+def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
+    passes: List[BlockId] = []
+    typ: GenTuStruct
+    b: TextLayout = ast.b
+    for typ in get_types():
+        id_type = "sem::" + t_id('sem::' + typ.name)
+        passes.append(b.stack([b.text(f"pybind11::class_<{id_type}>(m, \"{typ.name}\")")]))
+        sub: List[BlockId] = []
+        sub.append(b.text(".def(pybind11::init([](){ return %s::Nil(); }))" % (id_type)))
+        for item in typ.fields:
+            if item.isStatic:
+                continue
+            sub.append(ast.XCall(".def_property", [
+                ast.Literal(item.name),
+                ast.Lambda(LambdaParams(
+                    ResultTy=QualType(item.type),
+                    Body=[b.text(f"return id->{item.name};")],
+                    Args=[ParmVarParams(QualType(id_type), "id")]
+                )),
+                ast.Lambda(LambdaParams(
+                    ResultTy=None,
+                    Body=[b.text(f"id->{item.name} = {item.name};")],
+                    Args=[ParmVarParams(QualType(id_type), "id"), ParmVarParams(QualType(item.type), item.name)]
+                ))
+                # b.text(f"/* get */ []({id_type}){{}}"),
+                # b.text(f"/* set */ []({id_type}){{}})")
+            ], Line=False))
 
-def gen_value() -> GenFiles:
+        sub.append(b.text(";"))
+        passes.append(b.indent(2, b.stack(sub)))
+
+    return GenTuPass(b.stack(passes))
+
+
+def gen_value(ast: ASTBuilder) -> GenFiles:
     full_enums = get_enums() + [
         GenTuEnum(
             t_osk(),
@@ -2290,6 +2323,7 @@ def gen_value() -> GenFiles:
                   [GenTuPass("#include \"exporternlp_enums.hpp\"")] + get_nlp_enums())),
         GenUnit(GenTu("{base}/exporters/Exporter.tcc", get_exporter_methods(False))),
         GenUnit(GenTu("{base}/exporters/ExporterMethods.tcc", get_exporter_methods(True))),
+        GenUnit(GenTu("/tmp/org_pybind.cpp", [GenTuInclude("pybind11/pubind11.hpp", True)] + [get_bind_methods(ast)])),
         GenUnit(
             GenTu(
                 "{base}/sem/SemOrgEnums.hpp",
@@ -2324,7 +2358,9 @@ if __name__ == "__main__":
     from pprint import pprint
     import os
     import sys
-    description: GenFiles = gen_value()
+    t = TextLayout()
+    builder = ASTBuilder(t)
+    description: GenFiles = gen_value(builder)
     trace_file = open("/tmp/trace.txt", "w")
     indent = 0
 
@@ -2332,8 +2368,6 @@ if __name__ == "__main__":
         for i in range(2):
             if i == 1 and not tu.source:
                 continue
-            t = TextLayout()
-            builder = ASTBuilder(t)
 
             with open("/tmp/current_tu_data.py", "w") as file:
                 pprint(tu, width=200, stream=file)
@@ -2365,7 +2399,7 @@ if __name__ == "__main__":
                 else:
                     log.info(f"No changes on {path} pattern was {define.path}")
             else:
-                
+
                 with open(path, 'w') as out:
                     out.write(newCode)
                 log.info(f"Wrote to {path} pattern was {define.path}")
