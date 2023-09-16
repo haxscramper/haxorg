@@ -17,6 +17,7 @@ formatter = logging.Formatter('%(name)s - %(levelname)s [%(filename)s:%(lineno)d
 handler.setFormatter(formatter)
 log.addHandler(handler)
 
+
 @beartype
 @dataclass
 class QualType:
@@ -47,8 +48,7 @@ class QualType:
 
     @classmethod
     def from_spaces_and_name(cls, spaces: List[str], name: str):
-        return cls(name=name,
-                   Spaces=[cls.from_name(space) for space in spaces])
+        return cls(name=name, Spaces=[cls.from_name(space) for space in spaces])
 
     def Ref(self, set_ref=True):
         self.isRef = set_ref
@@ -72,10 +72,12 @@ class TemplateTypename:
     Nested: List['TemplateTypename'] = field(default_factory=list)
     Concept: Optional[str] = None
 
+
 @beartype
 @dataclass
 class TemplateGroup:
     Params: List[TemplateTypename] = field(default_factory=list)
+
 
 @beartype
 @dataclass
@@ -91,11 +93,13 @@ class StorageClass(Enum):
     None_ = 0
     Static = 1
 
+
 @beartype
 @dataclass
 class DocParams:
     brief: str
     full: str = ""
+
 
 @beartype
 @dataclass
@@ -105,6 +109,7 @@ class ParmVarParams:
     isConst: bool = False
     storage: StorageClass = StorageClass.None_
     defArg: Optional[str] = None
+
 
 @beartype
 @dataclass
@@ -125,6 +130,7 @@ class AccessSpecifier(Enum):
     Private = 2
     Protected = 3
 
+
 @beartype
 @dataclass
 class MethodDeclParams:
@@ -136,12 +142,14 @@ class MethodDeclParams:
     isPureVirtual: bool = False
     access: AccessSpecifier = AccessSpecifier.Unspecified
 
+
 @beartype
 @dataclass
 class MethodDefParams:
     Params: FunctionParams
     Class: QualType
     IsConst: bool = False
+
 
 @beartype
 @dataclass
@@ -159,6 +167,7 @@ class EnumParams:
     isEnumClass: bool = True
     fields: List[Field] = field(default_factory=list)
 
+
 @beartype
 @dataclass
 class IfStmtParams:
@@ -174,10 +183,12 @@ class IfStmtParams:
     Branches: List[Branch]
     LookupIfStructure: bool = False
 
+
 @beartype
 @dataclass
 class CompoundStmtParams:
     Stmts: List[BlockId]
+
 
 @beartype
 @dataclass
@@ -193,6 +204,7 @@ class MacroParams:
     params: List[Param] = field(default_factory=list)
     definition: List[str] = field(default_factory=list)
 
+
 @beartype
 @dataclass
 class RecordMethod:
@@ -202,6 +214,7 @@ class RecordMethod:
     isVirtual: bool = False
     isPureVirtual: bool = False
     access: AccessSpecifier = AccessSpecifier.Unspecified
+
 
 @beartype
 @dataclass
@@ -215,6 +228,7 @@ class RecordField:
 RecordMember = Union[RecordMethod, RecordField]
 RecordNested = Union[EnumParams, 'RecordParams', BlockId]
 
+
 @beartype
 @dataclass
 class RecordParams:
@@ -227,6 +241,7 @@ class RecordParams:
     Template: TemplateParams = field(default_factory=TemplateParams)
     IsDefinition: bool = True
 
+
 @beartype
 @dataclass
 class UsingParams:
@@ -234,11 +249,13 @@ class UsingParams:
     newName: str
     baseType: QualType
 
+
 @beartype
 @dataclass
 class MacroParam:
     name: str
     is_ellipsis: bool
+
 
 @beartype
 @dataclass
@@ -248,6 +265,7 @@ class IfStmtBranch:
     Var: Optional[BlockId] = None
     Init: Optional[BlockId] = None
     OneLine: bool = False
+
 
 @beartype
 @dataclass
@@ -259,12 +277,14 @@ class CaseStmtParams:
     OneLine: bool = False
     IsDefault: bool = False
 
+
 @beartype
 @dataclass
 class SwitchStmtParams:
     Expr: BlockId
     Cases: List[CaseStmtParams] = field(default_factory=list)
     Default: Optional[CaseStmtParams] = None
+
 
 @beartype
 @dataclass
@@ -275,25 +295,17 @@ class ASTBuilder:
         return self.b.text(text)
 
     def CaseStmt(self, params: CaseStmtParams) -> BlockId:
-        head = self.string("default:") if params.IsDefault else self.b.line([
-            self.string("case "), params.Expr or self.string(""),
-            self.string(":")
-        ])
-        Body: List[BlockId] = params.Body + ([self.XStmt('break')]
-                                             if params.Autobreak else [])
+        head = self.string("default:") if params.IsDefault else self.b.line(
+            [self.string("case "), params.Expr or self.string(""), self.string(":")])
+        Body: List[BlockId] = params.Body + ([self.XStmt('break')] if params.Autobreak else [])
 
         if params.Compound:
             return self.block(head, Body)
         else:
             if params.OneLine:
-                return self.b.line([
-                    head,
-                    self.string(" "),
-                    self.b.join(params.Body, self.string(" "))
-                ])
+                return self.b.line([head, self.string(" "), self.b.join(params.Body, self.string(" "))])
             else:
-                return self.b.stack(
-                    [head, self.b.indent(2, self.b.stack(Body))])
+                return self.b.stack([head, self.b.indent(2, self.b.stack(Body))])
 
     def SwitchStmt(self, params: SwitchStmtParams) -> BlockId:
         cases = []
@@ -303,37 +315,19 @@ class ASTBuilder:
         if params.Default:
             cases.append(self.CaseStmt(params.Default))
 
-        return self.block(
-            self.b.line([self.string("switch "),
-                         self.pars(params.Expr)]), cases)
+        return self.block(self.b.line([self.string("switch "), self.pars(params.Expr)]), cases)
 
-    def XCall(self,
-              opc: str,
-              args: List[BlockId],
-              Stmt: bool = False,
-              Line: bool = True) -> BlockId:
+    def XCall(self, opc: str, args: List[BlockId], Stmt: bool = False, Line: bool = True) -> BlockId:
         if opc[0].isalpha():
-            return self.b.line([
-                self.string(opc),
-                self.string("("),
-                self.csv(args, Line),
-                self.string(");" if Stmt else ")")
-            ])
+            return self.b.line([self.string(opc), self.string("("), self.csv(args, Line), self.string(");" if Stmt else ")")])
         else:
             if len(args) == 1:
                 return self.b.line([self.string(opc), args[0]])
 
             elif len(args) == 2:
-                return self.b.line([
-                    args[0],
-                    self.string(" "),
-                    self.string(opc),
-                    self.string(" "), args[1]
-                ])
+                return self.b.line([args[0], self.string(" "), self.string(opc), self.string(" "), args[1]])
             else:
-                raise Exception(
-                    "Unexpected number of arguments for operator-like function call. Expected 1 or 2 but got different amount"
-                )
+                raise Exception("Unexpected number of arguments for operator-like function call. Expected 1 or 2 but got different amount")
 
     def XStmt(self, opc: str, arg: Optional[BlockId] = None) -> BlockId:
         if arg:
@@ -346,31 +340,20 @@ class ASTBuilder:
         else:
             return self.b.line([self.string(opc), self.string(";")])
 
-    def Trail(self,
-              first: BlockId,
-              second: BlockId,
-              space: str = " ") -> BlockId:
+    def Trail(self, first: BlockId, second: BlockId, space: str = " ") -> BlockId:
         return self.b.line([first, self.string(space), second])
 
-    def Comment(self,
-                text: List[str],
-                Inline: bool = True,
-                Doc: bool = False) -> BlockId:
+    def Comment(self, text: List[str], Inline: bool = True, Doc: bool = False) -> BlockId:
         if Inline:
             content = self.b.stack([])
             for line in text:
                 self.b.add_at(content, self.string(line))
 
-            return self.b.line([
-                self.string("/*! " if Doc else "/* "), content,
-                self.string(" */")
-            ])
+            return self.b.line([self.string("/*! " if Doc else "/* "), content, self.string(" */")])
         else:
             result = self.b.stack([])
             for line in text:
-                self.b.add_at(
-                    result,
-                    self.string(f"/// {line}" if Doc else f"// {line}"))
+                self.b.add_at(result, self.string(f"/// {line}" if Doc else f"// {line}"))
             return result
 
     def Literal(self, value: Union[int, str]) -> BlockId:
@@ -407,11 +390,8 @@ class ASTBuilder:
             last = i == len(p.Branches) - 1
             Branch = p.Branches[i]
 
-            head = self.b.line([
-                self.string("if " if first else (
-                    "} else if " if Branch.Cond else "} else "))
-            ]) if not p.LookupIfStructure else self.b.line(
-                [self.string("if" if Branch.Cond else "")])
+            head = self.b.line([self.string("if " if first else ("} else if " if Branch.Cond else "} else "))
+                               ]) if not p.LookupIfStructure else self.b.line([self.string("if" if Branch.Cond else "")])
 
             if Branch.Cond:
                 self.b.add_at(head, self.string(" ("))
@@ -442,22 +422,13 @@ class ASTBuilder:
         return result
 
     def brace(self, elements: List[BlockId]) -> BlockId:
-        return self.b.stack(
-            [self.string("{"),
-             self.b.stack(elements),
-             self.string("}")])
+        return self.b.stack([self.string("{"), self.b.stack(elements), self.string("}")])
 
     def pars(self, arg: BlockId) -> BlockId:
         return self.b.line([self.string("("), arg, self.string(")")])
 
-    def csv(self,
-            items: Union[List[str], List[BlockId]],
-            isLine=True,
-            isTrailing=False) -> BlockId:
-        return self.b.join([
-            self.string(Base) if isinstance(Base, str) else Base
-            for Base in items
-        ], self.string(", "), isLine, isTrailing)
+    def csv(self, items: Union[List[str], List[BlockId]], isLine=True, isTrailing=False) -> BlockId:
+        return self.b.join([self.string(Base) if isinstance(Base, str) else Base for Base in items], self.string(", "), isLine, isTrailing)
 
     def CompoundStmt(self, p: CompoundStmtParams) -> BlockId:
         return self.brace(p.Stmts)
@@ -472,24 +443,12 @@ class ASTBuilder:
             self.string(";")
         ])
 
-    def block(self,
-              head: BlockId,
-              content: List[BlockId],
-              trailingLine=False) -> BlockId:
+    def block(self, head: BlockId, content: List[BlockId], trailingLine=False) -> BlockId:
         if len(content) < 2:
-            result = self.b.line([
-                head,
-                self.string(" { "),
-                self.b.stack(content),
-                self.string(" }")
-            ])
+            result = self.b.line([head, self.string(" { "), self.b.stack(content), self.string(" }")])
 
         else:
-            result = self.b.stack([
-                self.b.line([head, self.string(" {")]),
-                self.b.indent(2, self.b.stack(content)),
-                self.string("}")
-            ])
+            result = self.b.stack([self.b.line([head, self.string(" {")]), self.b.indent(2, self.b.stack(content)), self.string("}")])
 
         if trailingLine:
             if self.b.isStack(result):
@@ -504,10 +463,7 @@ class ASTBuilder:
         for line in params.definition:
             self.b.add_at(definition, self.string(line + "  \\"))
 
-        arguments = [
-            self.string(line.name if not line.isEllipsis else "...")
-            for line in params.params
-        ]
+        arguments = [self.string(line.name if not line.isEllipsis else "...") for line in params.params]
 
         return self.b.stack([
             self.Doc(params.doc),
@@ -525,21 +481,17 @@ class ASTBuilder:
     def Using(self, params: UsingParams) -> BlockId:
         return self.WithTemplate(
             params.Template,
-            self.b.line([
-                self.string("using "),
-                self.string(params.newName),
-                self.string(" = "),
-                self.Type(params.baseType),
-                self.string(";")
-            ]))
+            self.b.line(
+                [self.string("using "),
+                 self.string(params.newName),
+                 self.string(" = "),
+                 self.Type(params.baseType),
+                 self.string(";")]))
 
     def Field(self, field: RecordField) -> BlockId:
         return self.WithAccess(
-            self.WithDoc(
-                self.b.line([
-                    self.string("static " if field.isStatic else ""),
-                    self.VarDecl(field.params)
-                ]), field.doc), field.access)
+            self.WithDoc(self.b.line([self.string("static " if field.isStatic else ""),
+                                      self.VarDecl(field.params)]), field.doc), field.access)
 
     def MethodDef(self, m: MethodDefParams) -> BlockId:
         return self.WithTemplate(
@@ -572,10 +524,8 @@ class ASTBuilder:
 
         return self.WithAccess(
             self.WithDoc(
-                self.block(head, method.Params.Body, True)
-                if method.Params.Body else self.b.line(
-                    [head, self.string(";")]), method.Params.doc),
-            method.access)
+                self.block(head, method.Params.Body, True) if method.Params.Body else self.b.line([head, self.string(";")]),
+                method.Params.doc), method.access)
 
     def Record(self, params: RecordParams) -> BlockId:
         content: List[BlockId] = []
@@ -597,21 +547,14 @@ class ASTBuilder:
 
         bases: Optional[BlockId] = None
         if params.bases:
-            classes = [
-                self.b.line([self.string("public "),
-                             self.Type(base)]) for base in params.bases
-            ]
-            bases = self.b.line(
-                [self.string(": "),
-                 self.b.join(classes, self.string(", "))])
+            classes = [self.b.line([self.string("public "), self.Type(base)]) for base in params.bases]
+            bases = self.b.line([self.string(": "), self.b.join(classes, self.string(", "))])
 
         head = self.b.line([
             self.string("struct "),
             self.string(params.name),
-            self.b.surround_non_empty(
-                self.b.join([self.Type(t) for t in params.NameParams],
-                            self.string(", ")), self.string("<"),
-                self.string(">")), bases or self.string(""),
+            self.b.surround_non_empty(self.b.join([self.Type(t) for t in params.NameParams], self.string(", ")), self.string("<"),
+                                      self.string(">")), bases or self.string(""),
             self.string(" {" if params.IsDefinition else "")
         ])
 
@@ -623,14 +566,12 @@ class ASTBuilder:
                 self.b.indent(2, self.b.stack(content)),
                 self.string("};" if params.IsDefinition else ";"),
                 self.string(""),
-            ]) if content else self.b.stack([
-                self.Doc(params.doc),
-                self.b.line([
-                    head,
-                    self.string("};" if params.IsDefinition else ";"),
-                ]),
-                self.string("")
-            ]))
+            ]) if content else self.b.stack(
+                [self.Doc(params.doc),
+                 self.b.line([
+                     head,
+                     self.string("};" if params.IsDefinition else ";"),
+                 ]), self.string("")]))
 
     def WithAccess(self, content: BlockId, spec: AccessSpecifier) -> BlockId:
         if spec == AccessSpecifier.Unspecified:
@@ -638,8 +579,7 @@ class ASTBuilder:
         else:
             return self.b.stack([
                 self.string("public:" if spec == AccessSpecifier.Public else (
-                    "protected:" if spec ==
-                    AccessSpecifier.Protected else "private:")),
+                    "protected:" if spec == AccessSpecifier.Protected else "private:")),
                 self.b.indent(2, content)
             ])
 
@@ -652,7 +592,7 @@ class ASTBuilder:
             content.append(self.Doc(field.doc))
             content.append(self.string(field.name + ","))
             stack = self.b.stack(content)
-        
+
             self.b.add_at(fields, stack)
 
         return self.b.stack([
@@ -670,40 +610,25 @@ class ASTBuilder:
         ])
 
     def Function(self, p: FunctionParams) -> BlockId:
-        head = self.b.line([
-            self.Type(p.ResultTy),
-            self.string(" "),
-            self.string(p.Name),
-            self.Arguments(p)
-        ])
+        head = self.b.line([self.Type(p.ResultTy), self.string(" "), self.string(p.Name), self.Arguments(p)])
 
-        return self.WithTemplate(
-            p.Template,
-            self.block(head, p.Body, True)
-            if p.Body else self.b.line([head, self.string(";")]))
+        return self.WithTemplate(p.Template, self.block(head, p.Body, True) if p.Body else self.b.line([head, self.string(";")]))
 
     def Arguments(self, p: FunctionParams) -> BlockId:
-        return self.b.line([
-            self.string("("),
-            self.b.join([self.ParmVar(Arg) for Arg in p.Args],
-                        self.string(", "), True),
-            self.string(")")
-        ])
+        return self.b.line(
+            [self.string("("),
+             self.b.join([self.ParmVar(Arg) for Arg in p.Args], self.string(", "), True),
+             self.string(")")])
 
     def Type(self, type_: QualType) -> BlockId:
         return self.b.line([
-            self.b.join([self.Type(Space) for Space in type_.Spaces] +
-                        [self.string(type_.name)], self.string("::")),
+            self.b.join([self.Type(Space) for Space in type_.Spaces] + [self.string(type_.name)], self.string("::")),
             self.string("") if (len(type_.Parameters) == 0) else self.b.line([
                 self.string("<"),
-                self.b.join(
-                    list(map(lambda in_: self.Type(in_), type_.Parameters)),
-                    self.string(", "), not type_.verticalParamList),
+                self.b.join(list(map(lambda in_: self.Type(in_), type_.Parameters)), self.string(", "), not type_.verticalParamList),
                 self.string(">")
             ]),
-            self.string((" const" if type_.isConst else "") +
-                        ("*" if type_.isPtr else "") +
-                        ("&" if type_.isRef else ""))
+            self.string((" const" if type_.isConst else "") + ("*" if type_.isPtr else "") + ("&" if type_.isRef else ""))
         ])
 
     def Doc(self, doc: DocParams) -> BlockId:
@@ -735,38 +660,26 @@ class ASTBuilder:
         return result
 
     def ParmVar(self, p: ParmVarParams) -> BlockId:
-        return self.b.line([
-            self.Type(p.type),
-            self.string(" "),
-            self.string(p.name),
-            self.string(" = " + p.defArg if p.defArg else "")
-        ])
+        return self.b.line([self.Type(p.type), self.string(" "), self.string(p.name), self.string(" = " + p.defArg if p.defArg else "")])
 
-    def Template(
-        self, Param: Union[TemplateTypename, TemplateGroup,
-                           TemplateParams]) -> BlockId:
+    def Template(self, Param: Union[TemplateTypename, TemplateGroup, TemplateParams]) -> BlockId:
         if isinstance(Param, TemplateTypename):
-            concept_str = Param.Concept if Param.Concept else (
-                "typename" if not Param.Nested else "template")
+            concept_str = Param.Concept if Param.Concept else ("typename" if not Param.Nested else "template")
             placeholder_str = "" if Param.Placeholder else " "
             name_str = "" if Param.Placeholder else Param.Name
 
-            nested_content = self.b.join(
-                [self.Template(Sub) for Sub in Param.Nested],
-                self.string(", "))
+            nested_content = self.b.join([self.Template(Sub) for Sub in Param.Nested], self.string(", "))
             return self.b.line([
                 self.string(concept_str),
                 self.string(placeholder_str),
                 self.string(name_str),
-                self.b.surround_non_empty(nested_content, self.string("<"),
-                                          self.string(">"))
+                self.b.surround_non_empty(nested_content, self.string("<"), self.string(">"))
             ])
 
         elif isinstance(Param, TemplateGroup):
             return self.b.line([
                 self.string("template <"),
-                self.b.join([self.Template(Param) for Param in Param.Params],
-                            self.string(", ")),
+                self.b.join([self.Template(Param) for Param in Param.Params], self.string(", ")),
                 self.string(">")
             ])
 
