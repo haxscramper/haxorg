@@ -348,6 +348,9 @@ class ASTBuilder:
 
         return result
 
+    def CallStatic(self, typ: QualType, opc: str, Args: List[BlockId] = [], Stmt: bool = False, Line: bool = True, Params: List[QualType] = []) -> BlockId:
+        return self.Call(self.b.line([self.Type(typ), self.string("::"), self.string(opc)]), Args=Args, Stmt=Stmt, Line=Line, Params=Params)
+
     def XCallObj(self,
                  obj: BlockId,
                  opc: str,

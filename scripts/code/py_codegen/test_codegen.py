@@ -2321,11 +2321,16 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
     for typ in get_types():
         id_type = t_id('sem::' + typ.name)
         id_type.Spaces.append(QualType("sem"))
-        passes.append(b.stack([ast.XCall("pybind11::class_", [b.text("m"), ast.Literal(typ.name)])]))
+        passes.append(b.stack([ast.XCall("pybind11::class_", [b.text("m"), ast.Literal(typ.name)], Params=[id_type])]))
         sub: List[BlockId] = []
 
-        sub.append(b.text(".def(pybind11::init([](){ return %s::Nil(); }))" % (id_type)))
-        
+        # sub.append(b.text(".def(pybind11::init([](){ return %s::Nil(); }))" % (id_type)))
+        sub.append(ast.XCall(".def", [ast.XCall("pybind11::init", [
+            ast.Lambda(LambdaParams(Body=[
+                ast.Return(ast.CallStatic(id_type, "Nil"))
+            ]))
+        ])]))
+
         id_self = ParmVarParams(id_type, "id")
         for field in typ.fields:
             if field.isStatic:
