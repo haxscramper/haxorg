@@ -7,6 +7,15 @@ from enum import Enum
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
 
+import logging
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+formatter = logging.Formatter('%(name)s - %(levelname)s [%(filename)s:%(lineno)d in %(funcName)s] - >%(message)s<')
+handler.setFormatter(formatter)
+log.addHandler(handler)
+
 
 @dataclass
 class QualType:
@@ -100,7 +109,7 @@ class ParmVarParams:
 class FunctionParams:
     Name: str
     doc: DocParams
-    Template: TemplateParams = field(default_factory=TemplateParams())
+    Template: TemplateParams = field(default_factory=TemplateParams)
     ResultTy: QualType = field(default_factory=QualType("void"))
     Args: List[ParmVarParams] = field(default_factory=list)
     Storage: StorageClass = StorageClass.None_
@@ -258,10 +267,11 @@ class SwitchStmtParams:
 
 @dataclass
 class ASTBuilder:
-    b: TextLayout = field(default_factory=lambda: TextLayout())
+    b: TextLayout
 
     def string(self, text: str) -> BlockId:
-        return self.string(text)
+        log.info(text)
+        return self.b.text(text)
 
     def CaseStmt(self, params: CaseStmtParams) -> BlockId:
         head = self.string("default:") if params.IsDefault else self.b.line([
@@ -637,22 +647,35 @@ class ASTBuilder:
 
         fields = self.b.stack([])
         for field in params.fields:
-            self.b.add_at(
-                fields,
-                self.b.stack([
-                    self.Doc(field.doc),
-                    self.string(field.name + ","),  # TODO field value
-                ]))
+            log.info("")
+            content: List[BlockId] = []
+            log.info("")
+            content.append(self.Doc(field.doc))
+            log.info(field.name)
+            content.append(self.string(field.name + ","))
+            log.info("")
+            stack = self.b.stack(content)
+        
+            print(self.b.toTreeRepr(stack), flush=True)
+            print(self.b.toTreeRepr(fields), flush=True)
+            log.info("")
+            self.b.add_at(fields, stack)
+            log.info("")
 
-        return self.b.stack([
-            self.Doc(params.doc),
-            self.b.line([
+        log.info("?")
+        line_ln = self.b.line([
                 self.string("enum "),
                 self.string("class " if params.isEnumClass else ""),
                 self.string(params.name + " "),
                 self.string(": " + params.base + " " if params.base else ""),
                 self.string("{")
-            ]),
+            ])
+
+        log.info("?")
+
+        return self.b.stack([
+            self.Doc(params.doc),
+            line_ln,
             self.b.indent(2, fields),
             self.string("};"),
             self.string("")

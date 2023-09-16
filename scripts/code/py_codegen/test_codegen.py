@@ -1875,23 +1875,22 @@ def get_concrete_types():
     return [struct for struct in get_types() if struct.concreteKind]
 
 
-def gen_value():
+def gen_value() -> GenFiles:
     full_enums = get_enums() + [GenTuEnum(t_osk(), GenTuDoc(""),fields= [GenTuEnumField(struct.name, GenTuDoc("")) for struct in get_concrete_types()])]
 
-    base_prefix = "/tmp"
     return GenFiles([
-        GenUnit(GenTu(f"{base_prefix}/exporters/exporternlp_enums.hpp", with_enum_reflection_api(get_nlp_enums())),
-                GenTu(f"{base_prefix}/exporters/exporternlp_enums.cpp", [GenTuPass("#include \"exporternlp_enums.hpp\"")] + get_nlp_enums())),
-        GenUnit(GenTu(f"{base_prefix}/exporters/Exporter.tcc", get_exporter_methods(False))),
-        GenUnit(GenTu(f"{base_prefix}/exporters/ExporterMethods.tcc", get_exporter_methods(True))),
+        GenUnit(GenTu("{base}/exporters/exporternlp_enums.hpp", with_enum_reflection_api(get_nlp_enums())),
+                GenTu("{base}/exporters/exporternlp_enums.cpp", [GenTuPass("#include \"exporternlp_enums.hpp\"")] + get_nlp_enums())),
+        GenUnit(GenTu("{base}/exporters/Exporter.tcc", get_exporter_methods(False))),
+        GenUnit(GenTu("{base}/exporters/ExporterMethods.tcc", get_exporter_methods(True))),
         GenUnit(
-            GenTu(f"{base_prefix}/sem/SemOrgEnums.hpp", with_enum_reflection_api([
+            GenTu("{base}/sem/SemOrgEnums.hpp", with_enum_reflection_api([
                 GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" +
                      (" \\\n".join([f"    __IMPL({struct.name})" for struct in get_concrete_types()])))]) + full_enums
                 ), 
-            GenTu(f"{base_prefix}/sem/SemOrgEnums.cpp", [GenTuPass('#include "SemOrgEnums.hpp"')] + full_enums)),
+            GenTu("{base}/sem/SemOrgEnums.cpp", [GenTuPass('#include "SemOrgEnums.hpp"')] + full_enums)),
         GenUnit(
-            GenTu(f"{base_prefix}/sem/SemOrgTypes.hpp", [
+            GenTu("{base}/sem/SemOrgTypes.hpp", [
                 GenTuPass("#pragma once"),
                 GenTuInclude("sem/SemOrgEnums.hpp", True),
                 GenTuInclude("hstd/stdlib/Vec.hpp", True),
@@ -1913,10 +1912,79 @@ def gen_value():
 
 if __name__ == "__main__":
     from pprint import pprint
-    gen_value()
+    import os
+    import sys
+    description: GenFiles = gen_value()
     print("done")
+    trace_file = open("/tmp/trace.txt", "w")
+    indent = 0
+    def trace_exec(frame, event, arg):
+        global indent
+        name = frame.f_globals["__name__"]
+        func = frame.f_code.co_name
+        if func == "__init__":
+            return trace_exec
+
+        if event == 'call':
+            indent += 1
+            print(f"{'  ' * indent}--> Call to {func} in {name}", file=trace_file, flush=True)
+        elif event == 'line':
+            print(f"{'  ' * indent}    Line {frame.f_lineno}, in {name}", file=trace_file, flush=True)
+        elif event == 'return':
+            print(f"{'  ' * indent}<-- Exit from {func} in {name}", file=trace_file, flush=True)
+            indent -= 1
+
+        return trace_exec
 
 
+            
+        return trace_exec
+
+    sys.settrace(trace_exec)
+
+    for tu in description.files:
+        for i in range(2):
+            if i == 1 and not tu.source:
+                continue
+            t = TextLayout()
+            builder = ASTBuilder(t)
+
+            with open("/tmp/current_tu_data.py", "w") as file:
+                pprint(tu, width=200, stream=file)
+
+            isHeader = i == 0
+            result = builder.TranslationUnit(
+                [GenConverter(builder, isSource=not isHeader).convertTu(tu.header if isHeader else tu.source)]
+            )
+            print("2")
+
+            define = tu.header if isHeader else tu.source
+            path = define.path.format(base="/mnt/workspace/repos/haxorg/src")
+            print("1")
+
+            directory = os.path.dirname(path)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+                print(f"Created dir for {path}")
+
+            newCode = builder.toString(result, TextOptions())
+
+            if os.path.exists(path):
+                with open(path, 'r') as f:
+                    oldCode = f.read()
+
+                if oldCode != newCode:
+                    with open(path, 'w') as out:
+                        out.write(newCode)
+                    print(f"Updated code in {path} pattern was {define.path}")
+                else:
+                    print(f"No changes on {path} pattern was {define.path}")
+            else:
+                with open(path, 'w') as out:
+                    out.write(newCode)
+                print(f"Wrote to {path} pattern was {define.path}")
+
+    print("Done all")
 
 # ast = ASTBuilder()
 # build = ast.Doc(DocParams(brief="Text"))

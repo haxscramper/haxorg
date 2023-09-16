@@ -28,6 +28,7 @@ struct from_python;
 
 template <typename T>
 void* is_accepted_by_extractor(PyObject* obj_ptr) {
+    Q_CHECK_PTR(obj_ptr);
     if (py::extract_ptr<T>(obj_ptr).check()) {
         return obj_ptr;
     } else {
@@ -38,10 +39,13 @@ void* is_accepted_by_extractor(PyObject* obj_ptr) {
 
 template <typename T, typename F>
 void execute_extractor_cb(PyObject* obj_ptr, pydata* data, F cb) {
+    qDebug() << __LINE__ << demangle(typeid(T).name()) << obj_ptr << data;
+    Q_CHECK_PTR(obj_ptr);
+    Q_CHECK_PTR(data);
     // Grab pointer to memory into which to construct the new QString
     void* storage = ((py::converter::rvalue_from_python_storage<T>*)data)
                         ->storage.bytes;
-
+    Q_CHECK_PTR(storage);
     // in-place construct the new T using the character data
     // extraced from the python object
     new (storage) T(cb(obj_ptr));
@@ -53,6 +57,8 @@ void execute_extractor_cb(PyObject* obj_ptr, pydata* data, F cb) {
 
 template <typename T>
 void execute_extractor(PyObject* obj_ptr, pydata* data) {
+    Q_CHECK_PTR(obj_ptr);
+    Q_CHECK_PTR(data);
     execute_extractor_cb<T>(obj_ptr, data, [](PyObject* ptr) {
         return py::extract_ptr<T>(ptr)();
     });
@@ -109,10 +115,13 @@ namespace boost::python::convert {
 template <>
 struct from_python<BlockId> {
     static void* convertible(PyObject* obj_ptr) {
+        Q_CHECK_PTR(obj_ptr);
         return is_accepted_by_extractor<BlockId::id_base_type>(obj_ptr);
     }
 
     static void construct(PyObject* ptr, pydata* data) {
+        Q_CHECK_PTR(ptr);
+        Q_CHECK_PTR(data);
         execute_extractor_cb<BlockId>(ptr, data, [](PyObject* ptr) {
             return BlockId::FromValue(
                 py::extract_ptr<BlockId::id_base_type>(ptr)());
@@ -149,7 +158,9 @@ struct TextLayout {
         qDebug() << __LINE__ << b.store.size() << store.strings.size();
     }
 
-    BlockId text(QString t) { return store.text(t); }
+    BlockId text(std::string t) {
+        return store.text(QString::fromStdString(t));
+    }
 
     BlockId stack(CVec<BlockId> ids) { return b.stack(ids); }
 
@@ -172,19 +183,19 @@ struct TextLayout {
         return b.join(items, join, isLine, isTrailing);
     }
 
-    BlockId wrap(CVec<BlockId> ids, QString sep) {
-        return b.wrap(ids, store.str(sep));
+    BlockId wrap(CVec<BlockId> ids, std::string sep) {
+        return b.wrap(ids, store.str(QString::fromStdString(sep)));
     }
 
-    QString toString(BlockId id, CR<Options> options) {
+    std::string toString(BlockId id, CR<Options> options) {
         try {
-            return store.toString(id);
+            return store.toString(id).toStdString();
         } catch (...) { exception_breakpoint(); }
     }
 
-    QString toTreeRepr(BlockId id) {
+    std::string toTreeRepr(BlockId id) {
         try {
-            return store.toTreeRepr(id);
+            return store.toTreeRepr(id).toStdString();
         } catch (...) { exception_breakpoint(); }
     }
 

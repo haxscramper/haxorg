@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from astbuilder_cpp import *
 from typing import *
+from pprint import pprint
 
 
 @dataclass
@@ -105,8 +106,8 @@ GenTuEntry = Union[GenTuEnum, GenTuStruct, GenTuTypeGroup, GenTuFunction,
 
 @dataclass
 class GenTu:
-    entries: List[GenTuEntry]
     path: str
+    entries: List[GenTuEntry]
 
 
 @dataclass
@@ -135,8 +136,8 @@ class GenConverterWithContext:
 @dataclass
 class GenConverter:
     ast: ASTBuilder
-    pendingToplevel: List[BlockId]
     isSource: bool = False
+    pendingToplevel: List[BlockId] = field(default_factory=list)
     context: List[QualType] = field(default_factory=list)
 
     def convertParams(self, Params: List[GenTuParam]) -> TemplateGroup:
@@ -168,6 +169,13 @@ class GenConverter:
         return ParmVarParams(name=ident.name,
                              type=QualType(ident.type),
                              defArg=ident.value)
+
+    def convertTu(self, tu: GenTu) -> BlockId:
+        decls: List[BlockId] = []
+        for item in tu.entries:
+            decls.append(self.convert(item))
+
+        return self.ast.TranslationUnit(decls)
 
     def convertStruct(self, record: GenTuStruct) -> BlockId:
         params = RecordParams(name=record.name,
@@ -385,11 +393,15 @@ class GenConverter:
                 Serde.members.append(
                     RecordMethod(isStatic=True, params=ToDefininition))
 
-                return self.ast.b.stack([
+                print("?")
+                res = self.ast.b.stack([
                     self.ast.Enum(params),
                     self.ast.Record(Serde),
                     self.ast.Record(Domain)
                 ])
+                print("!")
+
+                return res
             else:
                 arguments = [self.ast.string(entry.name)] + [
                     self.ast.string(Field.name) for Field in entry.fields
@@ -519,6 +531,6 @@ class GenConverter:
         elif isinstance(entry, GenTuNamespace):
             decls.append(self.convertNamespace(entry))
         else:
-            raise ValueError("Unexpected kind")
+            raise ValueError("Unexpected kind '%s'" % type(entry))
 
         return decls
