@@ -46,13 +46,16 @@ void execute_extractor_cb(PyObject* obj_ptr, pydata* data, F cb) {
     void* storage = ((py::converter::rvalue_from_python_storage<T>*)data)
                         ->storage.bytes;
     Q_CHECK_PTR(storage);
+    py::object obj(handle<>(borrowed(obj_ptr)));
     // in-place construct the new T using the character data
     // extraced from the python object
-    new (storage) T(cb(obj_ptr));
+    T* value = new (storage) T(std::move(cb(obj_ptr)));
     Q_CHECK_PTR(storage);
+    Q_CHECK_PTR(value);
 
     // Stash the memory chunk pointer for later use by boost.python
     data->convertible = storage;
+    qDebug() << __LINE__ << *value;
 }
 
 template <typename T>
