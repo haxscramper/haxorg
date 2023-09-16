@@ -82,7 +82,8 @@ class GenTuField:
     isStatic: bool = False
 
 
-GenTuEntry = Union[GenTuEnum, 'GenTuStruct', 'GenTuTypeGroup', GenTuFunction, 'GenTuNamespace', GenTuInclude, GenTuPass]
+GenTuEntry = Union[GenTuEnum, 'GenTuStruct', 'GenTuTypeGroup', GenTuFunction, 'GenTuNamespace',
+                   GenTuInclude, GenTuPass]
 
 
 @beartype
@@ -164,7 +165,9 @@ class GenConverter:
         return self.ast.Function(func)
 
     def convertFunction(self, func: GenTuFunction) -> FunctionParams:
-        decl = FunctionParams(ResultTy=QualType(func.result), Name=func.name, doc=self.convertDoc(func.doc))
+        decl = FunctionParams(ResultTy=QualType(func.result),
+                              Name=func.name,
+                              doc=self.convertDoc(func.doc))
 
         if func.params:
             decl.Template.Stacks = [self.convertParams(func.params)]
@@ -190,7 +193,9 @@ class GenConverter:
         return self.ast.TranslationUnit(decls)
 
     def convertStruct(self, record: GenTuStruct) -> BlockId:
-        params = RecordParams(name=record.name, doc=self.convertDoc(record.doc), bases=[QualType(base) for base in record.bases])
+        params = RecordParams(name=record.name,
+                              doc=self.convertDoc(record.doc),
+                              bases=[QualType(base) for base in record.bases])
 
         with GenConverterWithContext(self, QualType(record.name)):
             for type in record.nested:
@@ -209,9 +214,9 @@ class GenConverter:
             for method in record.methods:
                 params.members.append(
                     MethodDeclParams(Params=self.convertFunction(method),
-                                 isStatic=method.isStatic,
-                                 isConst=method.isConst,
-                                 isVirtual=method.isVirtual))
+                                     isStatic=method.isStatic,
+                                     isConst=method.isConst,
+                                     isVirtual=method.isVirtual))
 
             extraFields = []
             extraMethods = []
@@ -219,16 +224,24 @@ class GenConverter:
                 if isinstance(nested, GenTuTypeGroup):
                     group: GenTuTypeGroup = nested
                     if group.kindGetter:
-                        extraMethods.append(GenTuFunction(name=group.kindGetter, result=group.enumName, isConst=True, doc=GenTuDoc("")))
+                        extraMethods.append(
+                            GenTuFunction(name=group.kindGetter,
+                                          result=group.enumName,
+                                          isConst=True,
+                                          doc=GenTuDoc("")))
                     if group.variantName:
-                        extraFields.append(GenTuField(name=group.variantField, doc=GenTuDoc(""), type=group.variantName))
+                        extraFields.append(
+                            GenTuField(name=group.variantField,
+                                       doc=GenTuDoc(""),
+                                       type=group.variantName))
 
             fields = [self.ast.string(field.name) for field in record.fields + extraFields]
             methods = [
                 self.ast.b.line([
                     self.ast.string("("),
                     self.ast.string(method.result),
-                    self.ast.pars(self.ast.csv([self.ast.string(ident.type) for ident in method.arguments])),
+                    self.ast.pars(
+                        self.ast.csv([self.ast.string(ident.type) for ident in method.arguments])),
                     self.ast.string(" const" if method.isConst else ""),
                     self.ast.string(") "),
                     self.ast.string(method.name)
@@ -241,8 +254,9 @@ class GenConverter:
                     self.ast.pars(self.ast.csv(record.bases, False)),
                     self.ast.pars(self.ast.string("")),
                     self.ast.pars(self.ast.string("")),
-                    self.ast.pars(self.ast.csv(fields + methods,
-                                               len(fields) < 6 and len(methods) < 2))
+                    self.ast.pars(
+                        self.ast.csv(fields + methods,
+                                     len(fields) < 6 and len(methods) < 2))
                 ], False,
                                len(fields) < 4 and len(methods) < 1))
 
@@ -275,10 +289,14 @@ class GenConverter:
                         IfStmtParams.Branch(
                             OneLine=True,
                             Then=self.ast.Return(self.ast.string(f"{entry.name}::{field.name}")),
-                            Cond=self.ast.XCall("==", [self.ast.string("value"), self.ast.Literal(field.name)]),
+                            Cond=self.ast.XCall(
+                                "==", [self.ast.string("value"),
+                                       self.ast.Literal(field.name)]),
                         ))
 
-                SwichFrom.Branches.append(IfStmtParams.Branch(OneLine=True, Then=self.ast.Return(self.ast.string("std::nullopt"))))
+                SwichFrom.Branches.append(
+                    IfStmtParams.Branch(OneLine=True,
+                                        Then=self.ast.Return(self.ast.string("std::nullopt"))))
 
                 SwitchTo = SwitchStmtParams(
                     Expr=self.ast.string("value"),
@@ -291,7 +309,11 @@ class GenConverter:
                             self.ast.Throw(
                                 self.ast.XCall(
                                     "std::domain_error",
-                                    [self.ast.Literal("Unexpected enum value -- cannot be converted to string")],
+                                    [
+                                        self.ast.Literal(
+                                            "Unexpected enum value -- cannot be converted to string"
+                                        )
+                                    ],
                                 ))
                         ],
                     ),
@@ -311,14 +333,14 @@ class GenConverter:
                 FromDefinition = FromParams
                 FromDefinition.Body = [self.ast.IfStmt(SwichFrom)]
 
-                self.pendingToplevel.append(self.ast.MethodDef(MethodDefParams(Class=Class, Params=FromDefinition)))
+                self.pendingToplevel.append(
+                    self.ast.MethodDef(MethodDefParams(Class=Class, Params=FromDefinition)))
 
                 ToDefininition = ToParams
                 ToDefininition.Body = [self.ast.SwitchStmt(SwitchTo)]
 
-
-                self.pendingToplevel.append(self.ast.MethodDef(MethodDefParams(Class=Class, Params=ToDefininition)))
-                log.info(f"Pending toplevel to {len(self.pendingToplevel)}")
+                self.pendingToplevel.append(
+                    self.ast.MethodDef(MethodDefParams(Class=Class, Params=ToDefininition)))
 
             return self.ast.string("")
 
@@ -327,7 +349,9 @@ class GenConverter:
 
             for field in entry.fields:
                 params.fields.append(
-                    EnumParams.Field(doc=DocParams(brief=field.doc.brief, full=field.doc.full), name=field.name, value=field.value))
+                    EnumParams.Field(doc=DocParams(brief=field.doc.brief, full=field.doc.full),
+                                     name=field.name,
+                                     value=field.value))
 
             if isToplevel:
                 Domain = RecordParams(name="value_domain",
@@ -338,8 +362,10 @@ class GenConverter:
                                           QualType(name="value_domain_ungapped",
                                                    Parameters=[
                                                        QualType(name=entry.name),
-                                                       QualType(Spaces=[QualType(entry.name)], name=entry.fields[0].name),
-                                                       QualType(Spaces=[QualType(entry.name)], name=entry.fields[-1].name),
+                                                       QualType(Spaces=[QualType(entry.name)],
+                                                                name=entry.fields[0].name),
+                                                       QualType(Spaces=[QualType(entry.name)],
+                                                                name=entry.fields[-1].name),
                                                    ]).withVerticalParams()
                                       ])
 
@@ -354,13 +380,20 @@ class GenConverter:
                 Serde.members.append(MethodDeclParams(isStatic=True, Params=FromDefinition))
                 Serde.members.append(MethodDeclParams(isStatic=True, Params=ToDefininition))
 
-                res = self.ast.b.stack([self.ast.Enum(params), self.ast.Record(Serde), self.ast.Record(Domain)])
+                res = self.ast.b.stack(
+                    [self.ast.Enum(params),
+                     self.ast.Record(Serde),
+                     self.ast.Record(Domain)])
 
                 return res
             else:
-                arguments = [self.ast.string(entry.name)] + [self.ast.string(Field.name) for Field in entry.fields]
+                arguments = [self.ast.string(entry.name)
+                            ] + [self.ast.string(Field.name) for Field in entry.fields]
 
-                return self.ast.b.stack([self.ast.Enum(params), self.ast.XCall("BOOST_DESCRIBE_NESTED_ENUM", arguments)])
+                return self.ast.b.stack([
+                    self.ast.Enum(params),
+                    self.ast.XCall("BOOST_DESCRIBE_NESTED_ENUM", arguments)
+                ])
 
     def convertNamespace(self, space: GenTuNamespace) -> BlockId:
         result = self.ast.b.stack([])
@@ -403,16 +436,19 @@ class GenConverter:
                                    Autobreak=False,
                                    OneLine=True))
 
-            fromEnum = FunctionParams(Name="from_enum",
-                                      doc=DocParams(""),
-                                      ResultTy=QualType("char").Ptr().Const(),
-                                      Args=[ParmVarParams(type=QualType(record.enumName), name=resName)],
-                                      Body=[self.ast.SwitchStmt(switchTo)])
+            fromEnum = FunctionParams(
+                Name="from_enum",
+                doc=DocParams(""),
+                ResultTy=QualType("char").Ptr().Const(),
+                Args=[ParmVarParams(type=QualType(record.enumName), name=resName)],
+                Body=[self.ast.SwitchStmt(switchTo)])
 
             decls.append(self.ast.Function(fromEnum))
 
         if record.iteratorMacroName:
-            iteratorMacro = MacroParams(name=record.iteratorMacroName, params=[MacroParams.Param("__IMPL")], doc=DocParams(""))
+            iteratorMacro = MacroParams(name=record.iteratorMacroName,
+                                        params=[MacroParams.Param("__IMPL")],
+                                        doc=DocParams(""))
 
             for typeItem in typeNames:
                 iteratorMacro.definition.append(f"__IMPL({typeItem})")
@@ -434,7 +470,9 @@ class GenConverter:
                 Arguments.append(self.ast.string(kind))
 
             if False:
-                using_params = UsingParams(newName=record.variantName, baseType=QualType("Variant", [QualType(Type) for Type in typeNames]))
+                using_params = UsingParams(newName=record.variantName,
+                                           baseType=QualType(
+                                               "Variant", [QualType(Type) for Type in typeNames]))
                 decls.append(self.ast.Using(using_params))
 
             decls.append(self.ast.XCall("SUB_VARIANTS", Arguments, True))
@@ -452,7 +490,6 @@ class GenConverter:
         decls += self.pendingToplevel
         self.pendingToplevel = []
         return decls
-
 
     def convert(self, entry: GenTuEntry) -> List[BlockId]:
         decls: List[BlockId] = []
