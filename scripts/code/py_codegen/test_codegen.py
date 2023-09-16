@@ -32,23 +32,24 @@ def t_opt(arg):
     return f"Opt<{arg}>"
 
 
-def t_osk():
+def t_osk() -> str:
     return "OrgSemKind"
 
 
-def t_cr(arg):
+def t_cr(arg) -> str:
     return f"CR<{arg}>"
 
 
-def t_var(*args):
+def t_var(*args) -> str:
     return "Variant<%s>" % ", ".join(args)
 
 
-def t_map(key, val):
+def t_map(key: str, val: str) -> str:
     return f"UnorderedMap<{key}, {val}>"
 
 
-def id_field(id, name, doc):
+@beartype
+def id_field(id: str, name: str, doc: GenTuDoc) -> GenTuField:
     return GenTuField(t_id(id), name, doc, value=f"SemIdT<{id}>::Nil()")
 
 
@@ -1806,10 +1807,10 @@ def get_base_map():
     context = []
     iterate_object_tree(get_types(), callback, context)
     base_map['Org'] = GenTuStruct(
-        'Org', "",
+        'Org', GenTuDoc(""),
         [
-            GenTuField("OrgSemPlacement", "placementContext", ""),
-            GenTuField(t_vec(""), "subnodes", "")
+            GenTuField("OrgSemPlacement", "placementContext", GenTuDoc("")),
+            GenTuField(t_vec(""), "subnodes", GenTuDoc(""))
         ]
     )
 
@@ -1833,7 +1834,7 @@ def get_exporter_methods(forward):
             
             scoped_target = f"CR<sem::{'::'.join(full_scoped_name)}>"
             decl_scope = "" if forward else "Exporter<V, R>::"
-            t_params = None if forward else [GenTuParam("V"), GenTuParam("R")]
+            t_params = [] if forward else [GenTuParam("V"), GenTuParam("R")]
 
             variant_methods = [
                 GenTuFunction("void",
@@ -1956,18 +1957,16 @@ if __name__ == "__main__":
             result = builder.TranslationUnit(
                 [GenConverter(builder, isSource=not isHeader).convertTu(tu.header if isHeader else tu.source)]
             )
-            print("2")
-
+            
             define = tu.header if isHeader else tu.source
             path = define.path.format(base="/mnt/workspace/repos/haxorg/src")
-            print("1")
 
             directory = os.path.dirname(path)
             if not os.path.exists(directory):
                 os.makedirs(directory)
                 print(f"Created dir for {path}")
 
-            newCode = builder.toString(result, TextOptions())
+            newCode = t.toString(result, TextOptions())
 
             if os.path.exists(path):
                 with open(path, 'r') as f:

@@ -1,34 +1,35 @@
 from dataclasses import dataclass, field
 from astbuilder_cpp import *
-from typing import *
+from beartype.typing import *
 from pprint import pprint
+from beartype import beartype
 
-
+@beartype
 @dataclass
 class GenTuParam:
     name: str
 
-
+@beartype
 @dataclass
 class GenTuIdent:
     name: str
     type: str
     value: Optional[str] = None
 
-
+@beartype
 @dataclass
 class GenTuDoc:
     brief: str
     full: str = ""
 
-
+@beartype
 @dataclass
 class GenTuEnumField:
     name: str
     doc: GenTuDoc
     value: Optional[str] = None
 
-
+@beartype
 @dataclass
 class GenTuEnum:
     name: str
@@ -36,12 +37,12 @@ class GenTuEnum:
     fields: List[GenTuEnumField]
     base: Optional[str] = None
 
-
+@beartype
 @dataclass
 class GenTuFunction:
-    doc: GenTuDoc
-    name: str
     result: str
+    name: str
+    doc: GenTuDoc
     params: List[GenTuParam] = field(default_factory=list)
     arguments: List[GenTuIdent] = field(default_factory=list)
     impl: Optional[str] = None
@@ -50,18 +51,18 @@ class GenTuFunction:
     isStatic: bool = False
     isPureVirtual: bool = False
 
-
+@beartype
 @dataclass
 class GenTuInclude:
     what: str
     isSystem: bool = False
 
-
+@beartype
 @dataclass
 class GenTuPass:
     what: str
 
-
+@beartype
 @dataclass
 class GenTuField:
     name: str
@@ -71,7 +72,10 @@ class GenTuField:
     isConst: bool = False
     isStatic: bool = False
 
+GenTuEntry = Union[GenTuEnum, 'GenTuStruct', 'GenTuTypeGroup', GenTuFunction,
+                   'GenTuNamespace', GenTuInclude, GenTuPass]
 
+@beartype
 @dataclass
 class GenTuStruct:
     name: str
@@ -79,10 +83,10 @@ class GenTuStruct:
     fields: List[GenTuField] = field(default_factory=list)
     methods: List[GenTuFunction] = field(default_factory=list)
     bases: List[str] = field(default_factory=list)
-    nested: List['GenTuEntry'] = field(default_factory=list)
+    nested: List[GenTuEntry] = field(default_factory=list)
     concreteKind: bool = True
 
-
+@beartype
 @dataclass
 class GenTuTypeGroup:
     types: List[GenTuStruct]
@@ -93,46 +97,43 @@ class GenTuTypeGroup:
     variantValue: Optional[str] = None
     kindGetter: str = "getKind"
 
-
+@beartype
 @dataclass
 class GenTuNamespace:
     name: str
-    entries: List['GenTuEntry']
+    entries: List[GenTuEntry]
 
 
-GenTuEntry = Union[GenTuEnum, GenTuStruct, GenTuTypeGroup, GenTuFunction,
-                   GenTuNamespace, GenTuInclude, GenTuPass]
-
-
+@beartype
 @dataclass
 class GenTu:
     path: str
     entries: List[GenTuEntry]
 
-
+@beartype
 @dataclass
 class GenUnit:
     header: GenTu
     source: Optional[GenTu] = None
 
-
+@beartype
 @dataclass
 class GenFiles:
     files: List[GenUnit]
 
-
+@beartype
 @dataclass
 class GenConverterWithContext:
     conv: 'GenConverter'
     typ: QualType
 
-    def __exit__(self):
-        self.conv.context.pop_back()
+    def __exit__(self, type, value, traceback):
+        self.conv.context.pop()
 
     def __enter__(self):
         self.conv.context.append(self.typ)
 
-
+@beartype
 @dataclass
 class GenConverter:
     ast: ASTBuilder
@@ -173,7 +174,7 @@ class GenConverter:
     def convertTu(self, tu: GenTu) -> BlockId:
         decls: List[BlockId] = []
         for item in tu.entries:
-            decls.append(self.convert(item))
+            decls += self.convert(item)
 
         return self.ast.TranslationUnit(decls)
 
@@ -393,13 +394,11 @@ class GenConverter:
                 Serde.members.append(
                     RecordMethod(isStatic=True, params=ToDefininition))
 
-                print("?")
                 res = self.ast.b.stack([
                     self.ast.Enum(params),
                     self.ast.Record(Serde),
                     self.ast.Record(Domain)
                 ])
-                print("!")
 
                 return res
             else:

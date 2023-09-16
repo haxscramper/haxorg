@@ -1,8 +1,9 @@
 import setup_imports
 from py_textlayout import *
 from dataclasses import dataclass, field
-from typing import *
+from beartype.typing import *
 from enum import Enum
+from beartype import beartype
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
@@ -16,7 +17,7 @@ formatter = logging.Formatter('%(name)s - %(levelname)s [%(filename)s:%(lineno)d
 handler.setFormatter(formatter)
 log.addHandler(handler)
 
-
+@beartype
 @dataclass
 class QualType:
     name: str = ""
@@ -62,6 +63,7 @@ class QualType:
         return self
 
 
+@beartype
 @dataclass
 class TemplateTypename:
     Placeholder: bool = False
@@ -70,12 +72,12 @@ class TemplateTypename:
     Nested: List['TemplateTypename'] = field(default_factory=list)
     Concept: Optional[str] = None
 
-
+@beartype
 @dataclass
 class TemplateGroup:
     Params: List[TemplateTypename] = field(default_factory=list)
 
-
+@beartype
 @dataclass
 class TemplateParams:
     Stacks: List[TemplateGroup] = field(default_factory=list)
@@ -89,13 +91,13 @@ class StorageClass(Enum):
     None_ = 0
     Static = 1
 
-
+@beartype
 @dataclass
 class DocParams:
     brief: str
     full: str = ""
 
-
+@beartype
 @dataclass
 class ParmVarParams:
     type: 'QualType'
@@ -104,7 +106,7 @@ class ParmVarParams:
     storage: StorageClass = StorageClass.None_
     defArg: Optional[str] = None
 
-
+@beartype
 @dataclass
 class FunctionParams:
     Name: str
@@ -123,7 +125,7 @@ class AccessSpecifier(Enum):
     Private = 2
     Protected = 3
 
-
+@beartype
 @dataclass
 class MethodDeclParams:
     Params: FunctionParams
@@ -134,14 +136,14 @@ class MethodDeclParams:
     isPureVirtual: bool = False
     access: AccessSpecifier = AccessSpecifier.Unspecified
 
-
+@beartype
 @dataclass
 class MethodDefParams:
     Params: FunctionParams
     Class: QualType
     IsConst: bool = False
 
-
+@beartype
 @dataclass
 class EnumParams:
 
@@ -157,7 +159,7 @@ class EnumParams:
     isEnumClass: bool = True
     fields: List[Field] = field(default_factory=list)
 
-
+@beartype
 @dataclass
 class IfStmtParams:
 
@@ -172,12 +174,12 @@ class IfStmtParams:
     Branches: List[Branch]
     LookupIfStructure: bool = False
 
-
+@beartype
 @dataclass
 class CompoundStmtParams:
     Stmts: List[BlockId]
 
-
+@beartype
 @dataclass
 class MacroParams:
 
@@ -191,7 +193,7 @@ class MacroParams:
     params: List[Param] = field(default_factory=list)
     definition: List[str] = field(default_factory=list)
 
-
+@beartype
 @dataclass
 class RecordMethod:
     params: FunctionParams
@@ -201,7 +203,7 @@ class RecordMethod:
     isPureVirtual: bool = False
     access: AccessSpecifier = AccessSpecifier.Unspecified
 
-
+@beartype
 @dataclass
 class RecordField:
     params: ParmVarParams
@@ -213,7 +215,7 @@ class RecordField:
 RecordMember = Union[RecordMethod, RecordField]
 RecordNested = Union[EnumParams, 'RecordParams', BlockId]
 
-
+@beartype
 @dataclass
 class RecordParams:
     name: str
@@ -222,23 +224,23 @@ class RecordParams:
     bases: List[QualType] = field(default_factory=list)
     members: List[RecordMember] = field(default_factory=list)
     nested: List[RecordNested] = field(default_factory=list)
-    Template: TemplateParams = field(default_factory=TemplateParams())
+    Template: TemplateParams = field(default_factory=TemplateParams)
     IsDefinition: bool = True
 
-
+@beartype
 @dataclass
 class UsingParams:
     Template: TemplateParams
     newName: str
     baseType: QualType
 
-
+@beartype
 @dataclass
 class MacroParam:
     name: str
     is_ellipsis: bool
 
-
+@beartype
 @dataclass
 class IfStmtBranch:
     Then: BlockId
@@ -247,7 +249,7 @@ class IfStmtBranch:
     Init: Optional[BlockId] = None
     OneLine: bool = False
 
-
+@beartype
 @dataclass
 class CaseStmtParams:
     Expr: Optional[BlockId] = None
@@ -257,20 +259,19 @@ class CaseStmtParams:
     OneLine: bool = False
     IsDefault: bool = False
 
-
+@beartype
 @dataclass
 class SwitchStmtParams:
     Expr: BlockId
     Cases: List[CaseStmtParams] = field(default_factory=list)
     Default: Optional[CaseStmtParams] = None
 
-
+@beartype
 @dataclass
 class ASTBuilder:
     b: TextLayout
 
     def string(self, text: str) -> BlockId:
-        log.info(text)
         return self.b.text(text)
 
     def CaseStmt(self, params: CaseStmtParams) -> BlockId:
@@ -647,35 +648,22 @@ class ASTBuilder:
 
         fields = self.b.stack([])
         for field in params.fields:
-            log.info("")
             content: List[BlockId] = []
-            log.info("")
             content.append(self.Doc(field.doc))
-            log.info(field.name)
             content.append(self.string(field.name + ","))
-            log.info("")
             stack = self.b.stack(content)
         
-            print(self.b.toTreeRepr(stack), flush=True)
-            print(self.b.toTreeRepr(fields), flush=True)
-            log.info("")
             self.b.add_at(fields, stack)
-            log.info("")
 
-        log.info("?")
-        line_ln = self.b.line([
+        return self.b.stack([
+            self.Doc(params.doc),
+            self.b.line([
                 self.string("enum "),
                 self.string("class " if params.isEnumClass else ""),
                 self.string(params.name + " "),
                 self.string(": " + params.base + " " if params.base else ""),
                 self.string("{")
-            ])
-
-        log.info("?")
-
-        return self.b.stack([
-            self.Doc(params.doc),
-            line_ln,
+            ]),
             self.b.indent(2, fields),
             self.string("};"),
             self.string("")

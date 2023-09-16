@@ -182,6 +182,7 @@ PYBIND11_MODULE(py_textlayout, m) {
 
 
     class_<layout::Options>(m, "TextOptions")
+        .def(pybind11::init<>())
         .def_readwrite("leftMargin", &Options::leftMargin)
         .def_readwrite("rightMargin", &Options::rightMargin)
         .def_readwrite("leftMarginCost", &Options::leftMarginCost)
