@@ -335,50 +335,70 @@ class ASTBuilder:
 
         return self.block(self.b.line([self.string("switch "), self.pars(params.Expr)]), cases)
 
+    def Call(self, func: BlockId, Args: List[BlockId] = [], Params: List[QualType] = [], Stmt: bool = False, Line: bool = True):
+        result = self.b.line([func])
+        if Params:
+            self.b.add_at(result, self.string("<"))
+            self.b.add_at(result, self.csv([self.Type(t) for t in Params]))
+            self.b.add_at(result, self.string(">"))
+
+        self.b.add_at(result, self.string("("))
+        self.b.add_at(result, self.csv(Args, Line))
+        self.b.add_at(result, self.string(");" if Stmt else ")"))
+
+        return result
+
     def XCallObj(self,
                  obj: BlockId,
                  opc: str,
                  func: str,
-                 args: List[BlockId],
+                 args: List[BlockId] = [],
                  Stmt: bool = False,
-                 Line: bool = True) -> BlockId:
-        return self.b.line([
-            obj,
-            self.string(opc),
-            self.string(func),
-            self.string("("),
-            self.csv(args, Line),
-            self.string(");" if Stmt else ")")
-        ])
+                 Line: bool = True,
+                 Params: List[QualType] = []) -> BlockId:
+        
+        return self.Call(
+            self.b.line([
+                obj,
+                self.string(opc),
+                self.string(func),
+            ]),
+            Args=args,
+            Stmt=Stmt,
+            Line=Line,
+            Params=Params
+        )
 
     def XCallRef(self,
                  obj: BlockId,
                  opc: str,
                  args: List[BlockId] = [],
                  Stmt: bool = False,
-                 Line: bool = True) -> BlockId:
-        return self.XCallObj(obj, ".", func=opc, args=args, Stmt=Stmt, Line=Line)
+                 Line: bool = True,
+                 Params: List[QualType] = []) -> BlockId:
+        return self.XCallObj(obj, ".", func=opc, args=args, Stmt=Stmt, Line=Line, Params=Params)
 
     def XCallPtr(self,
                  obj: BlockId,
                  opc: str,
                  args: List[BlockId] = [],
                  Stmt: bool = False,
-                 Line: bool = True) -> BlockId:
-        return self.XCallObj(obj, "->", func=opc, args=args, Stmt=Stmt, Line=Line)
+                 Line: bool = True,
+                 Params: List[QualType] = []) -> BlockId:
+        return self.XCallObj(obj, "->", func=opc, args=args, Stmt=Stmt, Line=Line, Params=Params)
 
     def XCall(self,
               opc: str,
               args: List[BlockId],
               Stmt: bool = False,
-              Line: bool = True) -> BlockId:
+              Line: bool = True,
+              Params: List[QualType] = []) -> BlockId:
         if opc[0].isalpha() or opc[0] == ".":
-            return self.b.line([
-                self.string(opc),
-                self.string("("),
-                self.csv(args, Line),
-                self.string(");" if Stmt else ")")
-            ])
+            return self.Call(self.string(opc), Args=args, Stmt=Stmt, Line=Line, Params=Params)
+
+        elif Params:
+            return self.Call(self.string("operator" + opc), Args=args, Stmt=Stmt, Line=Line, Params=Params)
+
         else:
             if len(args) == 1:
                 return self.b.line([self.string(opc), args[0]])
