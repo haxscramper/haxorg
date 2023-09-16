@@ -65,8 +65,8 @@ class GenTuPass:
 @beartype
 @dataclass
 class GenTuField:
-    name: str
     type: str
+    name: str
     doc: GenTuDoc
     value: Optional[str] = None
     isConst: bool = False
@@ -417,9 +417,9 @@ class GenConverter:
             self.ast.b.add_at(result,
                               self.ast.string(f"namespace {space.name}{{"))
 
-            for sub in space.entries:
-                self.ast.b.add_at(result, self.convert(sub))
-                self.ast.b.add_at(result, self.pendingToplevel)
+            for sub in space.entries:  
+                self.ast.b.add_at_list(result, self.convert(sub)  )
+                self.ast.b.add_at_list(result, self.pendingToplevel)
                 self.pendingToplevel = []
 
             self.ast.b.add_at(result, self.ast.string("}"))

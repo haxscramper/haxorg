@@ -1957,9 +1957,9 @@ if __name__ == "__main__":
             result = builder.TranslationUnit(
                 [GenConverter(builder, isSource=not isHeader).convertTu(tu.header if isHeader else tu.source)]
             )
-            
+
             define = tu.header if isHeader else tu.source
-            path = define.path.format(base="/mnt/workspace/repos/haxorg/src")
+            path = define.path.format(base="/tmp")
 
             directory = os.path.dirname(path)
             if not os.path.exists(directory):

@@ -30,7 +30,7 @@ struct TextLayout {
 
 
     TextLayout() : store{&b} {}
-    ~TextLayout() { qDebug() << "Destructor of text layout"; }
+    ~TextLayout() {}
 
     void dbg() {
         qDebug() << __LINE__ << b.store.size() << store.strings.size();
@@ -120,12 +120,12 @@ struct TextLayout {
             .def("toTreeRepr", &TextLayout::toTreeRepr)
             .def(
                 "add_at",
-                (void(TextLayout::*)(Id const&, Id const&))
-                    & TextLayout::add_at)
+                pybind11::overload_cast<Id const&, Id const&>(
+                    &TextLayout::add_at))
             .def(
-                "add_at",
-                (void(TextLayout::*)(Id const&, std::vector<Id> const&))
-                    & TextLayout::add_at)
+                "add_at_list",
+                pybind11::overload_cast<Id const&, std::vector<Id> const&>(
+                    &TextLayout::add_at))
             //
             ;
     }
