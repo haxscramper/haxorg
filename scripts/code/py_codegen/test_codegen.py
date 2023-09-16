@@ -2282,24 +2282,41 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
         passes.append(b.stack([b.text(f"pybind11::class_<{id_type}>(m, \"{typ.name}\")")]))
         sub: List[BlockId] = []
         sub.append(b.text(".def(pybind11::init([](){ return %s::Nil(); }))" % (id_type)))
-        for item in typ.fields:
-            if item.isStatic:
+        id_qual = QualType(id_type)
+        id_self = ParmVarParams(id_qual, "id")
+        for field in typ.fields:
+            if field.isStatic:
                 continue
             sub.append(ast.XCall(".def_property", [
-                ast.Literal(item.name),
+                ast.Literal(field.name),
                 ast.Lambda(LambdaParams(
-                    ResultTy=QualType(item.type),
-                    Body=[b.text(f"return id->{item.name};")],
-                    Args=[ParmVarParams(QualType(id_type), "id")]
+                    ResultTy=QualType(field.type),
+                    Body=[b.text(f"return id->{field.name};")],
+                    Args=[id_self]
                 )),
                 ast.Lambda(LambdaParams(
                     ResultTy=None,
-                    Body=[b.text(f"id->{item.name} = {item.name};")],
-                    Args=[ParmVarParams(QualType(id_type), "id"), ParmVarParams(QualType(item.type), item.name)]
+                    Body=[b.text(f"id->{field.name} = {field.name};")],
+                    Args=[id_self, ParmVarParams(QualType(field.type), field.name)]
                 ))
-                # b.text(f"/* get */ []({id_type}){{}}"),
-                # b.text(f"/* set */ []({id_type}){{}})")
             ], Line=False))
+
+        for meth in typ.methods:
+            if meth.isStatic or meth.isPureVirtual:
+                continue
+
+            passcall = ast.XCallPtr(b.text("id"), meth.name, [b.text(arg.name) for arg in meth.arguments])
+            if meth.result and meth.result != "void":
+                passcall = ast.Return(passcall)
+
+            sub.append(ast.XCall(".def", [
+                ast.Literal(meth.name),
+                ast.Lambda(LambdaParams(
+                    ResultTy=QualType(meth.result),
+                    Args=[id_self] + [ParmVarParams(QualType(Arg.type), Arg.name) for Arg in meth.arguments],
+                    Body=[passcall]
+                ))   
+            ]))
 
         sub.append(b.text(";"))
         passes.append(b.indent(2, b.stack(sub)))

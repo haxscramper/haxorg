@@ -332,6 +332,23 @@ class ASTBuilder:
 
         return self.block(self.b.line([self.string("switch "), self.pars(params.Expr)]), cases)
 
+    def XCallObj(self, obj: BlockId, opc: str, func: str, args: List[BlockId], Stmt: bool = False, Line: bool = True) -> BlockId:
+        return self.b.line([
+            obj,
+            self.string(opc),
+            self.string(func),
+            self.string("("),
+            self.csv(args, Line),
+            self.string(");" if Stmt else ")")
+        ])
+
+    def XCallRef(self, obj: BlockId, opc: str, args: List[BlockId] = [], Stmt: bool = False, Line: bool = True) -> BlockId:
+        return self.XCallObj(obj, ".", func=opc, args=args, Stmt=Stmt, Line=Line)
+
+    def XCallPtr(self, obj: BlockId, opc: str, args: List[BlockId] = [], Stmt: bool = False, Line: bool = True) -> BlockId:
+        return self.XCallObj(obj, "->", func=opc, args=args, Stmt=Stmt, Line=Line)
+        
+
     def XCall(self,
               opc: str,
               args: List[BlockId],
