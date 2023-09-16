@@ -12,40 +12,56 @@ from astbuilder_cpp import *
 from gen_tu_cpp import *
 
 
-def t_str():
-    return "Str"
+def t_str() -> QualType:
+    return QualType("Str")
 
 
-def t_int():
-    return "int"
+def t_bool() -> QualType:
+    return QualType("bool")
 
 
-def t_vec(arg):
-    return f"Vec<{arg}>"
+def t_int() -> QualType:
+    return QualType("int")
 
 
-def t_id(target=None):
-    return f"SemIdT<{target}>" if target else "SemId"
+def t_nest(name: str) -> QualType:
+    result = QualType(name)
+    result.__setattr__("isNested", True)
+    return result
 
 
-def t_opt(arg):
-    return f"Opt<{arg}>"
+@beartype
+def t_vec(arg: QualType) -> QualType:
+    return QualType("Vec", [arg])
 
 
-def t_osk() -> str:
-    return "OrgSemKind"
+@beartype
+def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:
+    return QualType("SemIdT", [(target if isinstance(target, QualType) else QualType(target))
+                              ]) if target else QualType("SemId")
 
 
-def t_cr(arg) -> str:
-    return f"CR<{arg}>"
+@beartype
+def t_opt(arg: QualType) -> QualType:
+    return QualType("Opt", [arg])
 
 
-def t_var(*args) -> str:
-    return "Variant<%s>" % ", ".join(args)
+@beartype
+def t_osk() -> QualType:
+    return QualType("OrgSemKind")
 
 
-def t_map(key: str, val: str) -> str:
-    return f"UnorderedMap<{key}, {val}>"
+@beartype
+def t_cr(arg: QualType) -> QualType:
+    return QualType("CR", [arg])
+
+
+def t_var(*args) -> QualType:
+    return QualType("Variant", [*args])
+
+
+def t_map(key: QualType, val: QualType) -> QualType:
+    return QualType("UnorderedMap", [key, val])
 
 
 @beartype
@@ -61,8 +77,8 @@ def opt_field(typ, name, doc):
     return GenTuField(t_opt(typ), name, doc, value="std::nullopt")
 
 
-def d_org(*args, **kwargs) -> GenTuStruct:
-    res = GenTuStruct(*args, **kwargs)
+def d_org(name: str, *args, **kwargs) -> GenTuStruct:
+    res = GenTuStruct(name, *args, **kwargs)
     kind = res.name
     base = res.bases[0]
     res.nested = [GenTuPass(f"using {base}::{base};")] + res.nested
@@ -84,13 +100,15 @@ def d_org(*args, **kwargs) -> GenTuStruct:
 
         res.methods.insert(
             0,
-            GenTuFunction(t_id(kind),
+            GenTuFunction(t_id(QualType(name)),
                           "create",
                           GenTuDoc(""),
                           isStatic=True,
                           arguments=[
                               GenTuIdent(t_id(), "parent"),
-                              GenTuIdent(t_opt("OrgAdapter"), "original", value="std::nullopt")
+                              GenTuIdent(t_opt(QualType("OrgAdapter")),
+                                         "original",
+                                         value="std::nullopt")
                           ]))
 
     return res
@@ -152,7 +170,7 @@ def get_types() -> List[GenTuStruct]:
             bases=["Stmt"],
             fields=[
                 GenTuField(
-                    t_vec(t_id("Row")),
+                    t_vec(t_id(QualType("Row"))),
                     "rows",
                     GenTuDoc("List of rows for the table"),
                     value="{}",
@@ -164,7 +182,7 @@ def get_types() -> List[GenTuStruct]:
             GenTuDoc("Single or nested inline hash-tag"),
             bases=["Inline"],
             fields=[
-                GenTuField("Str", "head", GenTuDoc("Main part of the tag")),
+                GenTuField(t_str(), "head", GenTuDoc("Main part of the tag")),
                 GenTuField(
                     t_vec(t_id("HashTag")),
                     "subtags",
@@ -174,7 +192,7 @@ def get_types() -> List[GenTuStruct]:
             ],
             methods=[
                 GenTuFunction(
-                    "bool",
+                    QualType("bool"),
                     "prefixMatch",
                     GenTuDoc(
                         "Check if list of tag names is a prefix for either of the nested hash tags in this one"
@@ -192,7 +210,7 @@ def get_types() -> List[GenTuStruct]:
             ),
             bases=["Inline"],
             fields=[
-                GenTuField("Str", "tag", GenTuDoc("Footnote text target name"), value='""'),
+                GenTuField(t_str(), "tag", GenTuDoc("Footnote text target name"), value='""'),
                 GenTuField(
                     t_opt(t_id()),
                     "definition",
@@ -206,10 +224,10 @@ def get_types() -> List[GenTuStruct]:
             GenTuDoc("Completion status of the subtree list element"),
             bases=["Inline"],
             fields=[
-                GenTuField("int", "done", GenTuDoc("Number of completed tasks"), value="0"),
-                GenTuField("int", "full", GenTuDoc("Full number of tasks"), value="0"),
+                GenTuField(t_int(), "done", GenTuDoc("Number of completed tasks"), value="0"),
+                GenTuField(t_int(), "full", GenTuDoc("Full number of tasks"), value="0"),
                 GenTuField(
-                    "bool",
+                    t_bool(),
                     "isPercent",
                     GenTuDoc("Use fraction or percent to display completion"),
                     value="false",
@@ -222,7 +240,7 @@ def get_types() -> List[GenTuStruct]:
             bases=["Stmt"],
             methods=[
                 GenTuFunction(
-                    "bool",
+                    t_bool(),
                     "isFootnoteDefinition",
                     GenTuDoc("Check if paragraph defines footnote"),
                     isConst=True,
@@ -320,11 +338,11 @@ def get_types() -> List[GenTuStruct]:
                   GenTuField(t_str(), "value", GenTuDoc("Value"))
               ],
               methods=[
-                  GenTuFunction(t_opt("int"),
+                  GenTuFunction(t_opt(t_int()),
                                 "getInt",
                                 GenTuDoc("Parse argument as integer value"),
                                 isConst=True),
-                  GenTuFunction(t_opt("bool"),
+                  GenTuFunction(t_opt(t_bool()),
                                 "getBool",
                                 GenTuDoc("Get argument as bool"),
                                 isConst=True),
@@ -341,7 +359,7 @@ def get_types() -> List[GenTuStruct]:
                   ])
               ],
               fields=[
-                  GenTuField("Format",
+                  GenTuField(t_nest("Format"),
                              "format",
                              GenTuDoc("Export block type"),
                              value="Format::Inline"),
@@ -374,9 +392,9 @@ def get_types() -> List[GenTuStruct]:
                                     "Enumerate code lines starting from `start` value instead of default indexing."
                                 ),
                                 fields=[
-                                    GenTuField("int", "start", GenTuDoc("First line number")),
+                                    GenTuField(t_int(), "start", GenTuDoc("First line number")),
                                     GenTuField(
-                                        "bool",
+                                        t_bool(),
                                         "extendLast",
                                         GenTuDoc(
                                             "Continue numbering from the previous block nstead of starting anew"
@@ -386,20 +404,22 @@ def get_types() -> List[GenTuStruct]:
                             GenTuStruct(
                                 "CalloutFormat",
                                 GenTuDoc(""),
-                                fields=[GenTuField("Str", "format", GenTuDoc(""), value="\"\"")]),
+                                fields=[GenTuField(t_str(), "format", GenTuDoc(""), value="\"\"")]),
                             GenTuStruct(
                                 "RemoveCallout",
                                 GenTuDoc(""),
-                                fields=[GenTuField("bool", "remove", GenTuDoc(""), value="true")]),
+                                fields=[GenTuField(t_bool(), "remove", GenTuDoc(""),
+                                                   value="true")]),
                             GenTuStruct(
                                 "EmphasizeLine",
                                 GenTuDoc("Emphasize single line -- can be repeated multiple times"),
-                                fields=[GenTuField(t_vec("int"), "line", GenTuDoc(""),
-                                                   value="{}")]),
+                                fields=[
+                                    GenTuField(t_vec(t_int()), "line", GenTuDoc(""), value="{}")
+                                ]),
                             GenTuStruct(
                                 "Dedent",
                                 GenTuDoc(""),
-                                fields=[GenTuField("int", "value", GenTuDoc(""), value="0")])
+                                fields=[GenTuField(t_int(), "value", GenTuDoc(""), value="0")])
                         ])
                     ]),
                 GenTuEnum("Results", GenTuDoc("What to do with newly evaluated result"), [
@@ -419,28 +439,31 @@ def get_types() -> List[GenTuStruct]:
                            "lang",
                            GenTuDoc("Code block language name"),
                            value="std::nullopt"),
-                GenTuField(t_vec("Switch"),
+                GenTuField(t_vec(t_nest("Switch")),
                            "switches",
                            GenTuDoc("Switch options for block"),
                            value="{}"),
-                GenTuField("Exports", "exports", GenTuDoc("What to export"), value="Exports::Both"),
+                GenTuField(t_nest("Exports"),
+                           "exports",
+                           GenTuDoc("What to export"),
+                           value="Exports::Both"),
                 id_field("CmdArguments", "parameters",
                          GenTuDoc("Additional parameters that are language-specific")),
-                GenTuField("bool", "cache", GenTuDoc("Do cache values?"), value="false"),
-                GenTuField("bool", "eval", GenTuDoc("Eval on export?"), value="false"),
-                GenTuField("bool",
+                GenTuField(t_bool(), "cache", GenTuDoc("Do cache values?"), value="false"),
+                GenTuField(t_bool(), "eval", GenTuDoc("Eval on export?"), value="false"),
+                GenTuField(t_bool(),
                            "noweb",
                            GenTuDoc("Web-tangle code on export/run"),
                            value="false"),
-                GenTuField("bool", "hlines", GenTuDoc("?"), value="false"),
-                GenTuField("bool", "tangle", GenTuDoc("?"), value="false")
+                GenTuField(t_bool(), "hlines", GenTuDoc("?"), value="false"),
+                GenTuField(t_bool(), "tangle", GenTuDoc("?"), value="false")
             ]),
         d_org(
             "Time",
             GenTuDoc("Single static or dynamic timestamp (active or inactive)"),
             bases=["Org"],
             fields=[
-                GenTuField("bool", "isActive", GenTuDoc("<active> vs [inactive]"), value="false")
+                GenTuField(t_bool(), "isActive", GenTuDoc("<active> vs [inactive]"), value="false")
             ],
             nested=[
                 GenTuPass("bool isStatic() const { return std::holds_alternative<Static>(time); }"),
@@ -472,16 +495,16 @@ def get_types() -> List[GenTuStruct]:
                             ])
                     ],
                     fields=[
-                        GenTuField("Mode", "mode", GenTuDoc("mode")),
-                        GenTuField("Period", "period", GenTuDoc("period")),
-                        GenTuField("int", "count", GenTuDoc("count"))
+                        GenTuField(t_nest("Mode"), "mode", GenTuDoc("mode")),
+                        GenTuField(t_nest("Period"), "period", GenTuDoc("period")),
+                        GenTuField(t_int(), "count", GenTuDoc("count"))
                     ]),
                 GenTuTypeGroup([
                     GenTuStruct("Static",
                                 GenTuDoc(""),
                                 fields=[
-                                    GenTuField(t_opt("Repeat"), "repeat", GenTuDoc("")),
-                                    GenTuField("UserTime", "time", GenTuDoc(""))
+                                    GenTuField(t_opt(t_nest("Repeat")), "repeat", GenTuDoc("")),
+                                    GenTuField(QualType("UserTime"), "time", GenTuDoc(""))
                                 ]),
                     GenTuStruct(
                         "Dynamic", GenTuDoc(""), fields=[GenTuField(t_str(), "expr", GenTuDoc(""))])
@@ -522,7 +545,8 @@ def get_types() -> List[GenTuStruct]:
               ],
               fields=[
                   GenTuField(t_str(), "name", GenTuDoc("Name of the symbol")),
-                  GenTuField(t_vec("Param"), "parameters", GenTuDoc("Optional list of parameters")),
+                  GenTuField(t_vec(t_nest("Param")), "parameters",
+                             GenTuDoc("Optional list of parameters")),
                   GenTuField(t_vec(t_id()), "positional", GenTuDoc("Positional parameters"))
               ]),
         d_org(
@@ -530,7 +554,7 @@ def get_types() -> List[GenTuStruct]:
             GenTuDoc("Single subtree log entry"),
             bases=["Org"],
             methods=[
-                GenTuFunction("void",
+                GenTuFunction(QualType("void"),
                               "setDescription",
                               GenTuDoc(""),
                               arguments=[GenTuIdent(t_id("StmtList"), "desc")])
@@ -553,9 +577,9 @@ def get_types() -> List[GenTuStruct]:
                                                   "Added", "Removed", "Changed")
                                 ],
                                 fields=[
-                                    opt_field("QString", "oldPriority",
+                                    opt_field(t_str(), "oldPriority",
                                               GenTuDoc("Previous priority for change and removal")),
-                                    opt_field("QString", "newPriority",
+                                    opt_field(t_str(), "newPriority",
                                               GenTuDoc("New priority for change and addition")),
                                     id_field("Time", "on", GenTuDoc("When priority was changed"))
                                 ]),
@@ -590,8 +614,8 @@ def get_types() -> List[GenTuStruct]:
                         ),
                         bases=["DescribedLog"],
                         fields=[
-                            GenTuField("OrgBigIdentKind", "from", GenTuDoc("")),
-                            GenTuField("OrgBigIdentKind", "to", GenTuDoc("")),
+                            GenTuField(QualType("OrgBigIdentKind"), "from", GenTuDoc("")),
+                            GenTuField(QualType("OrgBigIdentKind"), "to", GenTuDoc("")),
                             id_field("Time", "on", GenTuDoc(""))
                         ]),
                     GenTuStruct(
@@ -603,7 +627,7 @@ def get_types() -> List[GenTuStruct]:
                         fields=[
                             id_field("Time", "on", GenTuDoc("When the log was assigned")),
                             id_field("HashTag", "tag", GenTuDoc("Tag in question")),
-                            GenTuField("bool", "added", GenTuDoc("Added/removed?"), value="false")
+                            GenTuField(t_bool(), "added", GenTuDoc("Added/removed?"), value="false")
                         ])
                 ],
                                kindGetter="getLogKind",
@@ -616,7 +640,7 @@ def get_types() -> List[GenTuStruct]:
             GenTuDoc("Subtree"),
             bases=["Org"],
             fields=[
-                GenTuField("int", "level", GenTuDoc("Subtree level"), value="0"),
+                GenTuField(t_int(), "level", GenTuDoc("Subtree level"), value="0"),
                 opt_field(t_str(), "treeId", GenTuDoc(":ID: property")),
                 opt_field(t_str(), "todo", GenTuDoc("Todo state of the tree")),
                 opt_field(t_id("Completion"), "completion", GenTuDoc("Task completion state")),
@@ -624,47 +648,56 @@ def get_types() -> List[GenTuStruct]:
                 vec_field(t_id("HashTag"), "tags", GenTuDoc("Trailing tags")),
                 id_field("Paragraph", "title", GenTuDoc("Main title")),
                 vec_field(t_id("SubtreeLog"), "logbook", GenTuDoc("Associated subtree log")),
-                vec_field("Property", "properties", GenTuDoc("Immediate properties")),
+                vec_field(QualType("Property"), "properties", GenTuDoc("Immediate properties")),
                 opt_field(t_id("Time"), "closed", GenTuDoc("When subtree was marked as closed")),
                 opt_field(t_id("Time"), "deadline", GenTuDoc("When is the deadline")),
                 opt_field(t_id("Time"), "scheduled", GenTuDoc("When the event is scheduled"))
             ],
             methods=[
-                GenTuFunction(t_vec("Period"),
+                GenTuFunction(t_vec(QualType("Period")),
                               "getTimePeriods",
                               GenTuDoc(""),
                               isConst=True,
-                              arguments=[GenTuIdent("IntSet<Period::Kind>", "kinds")]),
-                GenTuFunction(t_vec("Property"),
+                              arguments=[
+                                  GenTuIdent(
+                                      QualType("IntSet",
+                                               [QualType("Kind", Spaces=[QualType("Period")])]),
+                                      "kinds")
+                              ]),
+                GenTuFunction(t_vec(QualType("Property")),
                               "getProperties",
                               GenTuDoc(""),
                               isConst=True,
                               arguments=[
-                                  GenTuIdent("Property::Kind", "kind"),
+                                  GenTuIdent(QualType("Kind", Spaces=[QualType("Property")]),
+                                             "kind"),
                                   GenTuIdent(t_cr(t_str()), "subkind", value="\"\"")
                               ]),
-                GenTuFunction(t_opt("Property"),
+                GenTuFunction(t_opt(QualType("Property")),
                               "getProperty",
                               GenTuDoc(""),
                               isConst=True,
                               arguments=[
-                                  GenTuIdent("Property::Kind", "kind"),
+                                  GenTuIdent(QualType("Kind", Spaces=[QualType("Property")]),
+                                             "kind"),
                                   GenTuIdent(t_cr(t_str()), "subkind", value="\"\"")
                               ]),
-                GenTuFunction(t_vec("Property"),
+                GenTuFunction(t_vec(QualType("Property")),
                               "getContextualProperties",
                               GenTuDoc(""),
                               isConst=True,
                               arguments=[
-                                  GenTuIdent("Property::Kind", "kind"),
+                                  GenTuIdent(QualType("Kind", Spaces=[QualType("Property")]),
+                                             "kind"),
                                   GenTuIdent(t_cr(t_str()), "subkind", value="\"\"")
                               ]),
-                GenTuFunction(t_opt("Property"),
+                GenTuFunction(t_opt(QualType("Property")),
                               "getContextualProperty",
                               GenTuDoc(""),
                               isConst=True,
                               arguments=[
-                                  GenTuIdent("Property::Kind", "kind"),
+                                  GenTuIdent(QualType("Kind", Spaces=[QualType("Property")]),
+                                             "kind"),
                                   GenTuIdent(t_cr(t_str()), "subkind", value="\"\"")
                               ])
             ],
@@ -674,7 +707,7 @@ def get_types() -> List[GenTuStruct]:
                     GenTuDoc("Type of the subtree associated time periods"),
                     fields=[
                         GenTuField(
-                            "Kind", "kind",
+                            QualType("Kind"), "kind",
                             GenTuDoc(
                                 "Time period kind -- not associated with point/range distinction")),
                         GenTuField(t_var(t_id("Time"), t_id("TimeRange")), "period",
@@ -720,13 +753,15 @@ def get_types() -> List[GenTuStruct]:
                     "Property",
                     GenTuDoc("Single subtree property"),
                     fields=[
-                        GenTuField("SetMode",
+                        GenTuField(t_nest("SetMode"),
                                    "mainSetRule",
                                    GenTuDoc(""),
                                    value="SetMode::Override"),
-                        GenTuField("SetMode", "subSetRule", GenTuDoc(""),
+                        GenTuField(t_nest("SetMode"),
+                                   "subSetRule",
+                                   GenTuDoc(""),
                                    value="SetMode::Override"),
-                        GenTuField("InheritanceMode",
+                        GenTuField(t_nest("InheritanceMode"),
                                    "inheritanceMode",
                                    GenTuDoc(""),
                                    value="InheritanceMode::ThisAndSub")
@@ -735,65 +770,60 @@ def get_types() -> List[GenTuStruct]:
                         d_simple_enum("SetMode", GenTuDoc(""), "Override", "Add", "Subtract"),
                         d_simple_enum("InheritanceMode", GenTuDoc(""), "ThisAndSub", "OnlyThis",
                                       "OnlySub"),
-                        GenTuTypeGroup(
-                            [
-                                GenTuStruct(
-                                    "Nonblocking",
-                                    GenTuDoc(""),
-                                    fields=[GenTuField("bool", "isBlocking", GenTuDoc(""))]),
-                                GenTuStruct("Trigger", GenTuDoc("")),
-                                GenTuStruct("Origin",
-                                            GenTuDoc(""),
-                                            fields=[GenTuField(t_str(), "text", GenTuDoc(""))]),
-                                GenTuStruct(
-                                    "ExportLatexClass",
-                                    GenTuDoc(""),
-                                    fields=[GenTuField(t_str(), "latexClass", GenTuDoc(""))]),
-                                GenTuStruct(
-                                    "ExportLatexClassOptions",
-                                    GenTuDoc(""),
-                                    fields=[GenTuField(t_vec(t_str()), "options", GenTuDoc(""))]),
-                                GenTuStruct("ExportLatexHeader",
-                                            GenTuDoc(""),
-                                            fields=[GenTuField(t_str(), "header", GenTuDoc(""))]),
-                                GenTuStruct("ExportLatexCompiler",
-                                            GenTuDoc(""),
-                                            fields=[GenTuField(t_str(), "compiler", GenTuDoc(""))]),
-                                GenTuStruct("Ordered",
-                                            GenTuDoc(""),
-                                            fields=[GenTuField("bool", "isOrdered", GenTuDoc(""))]),
-                                GenTuStruct("Effort",
-                                            GenTuDoc(""),
-                                            fields=[
-                                                GenTuField("int", "hours", GenTuDoc(""), value="0"),
-                                                GenTuField("int",
-                                                           "minutes",
-                                                           GenTuDoc(""),
-                                                           value="0")
-                                            ]),
-                                GenTuStruct("Visibility",
-                                            GenTuDoc(""),
-                                            nested=[
-                                                d_simple_enum("Level", GenTuDoc(""), "Folded",
-                                                              "Children", "Content", "All")
-                                            ],
-                                            fields=[GenTuField("Level", "level", GenTuDoc(""))]),
-                                GenTuStruct("ExportOptions",
-                                            GenTuDoc(""),
-                                            fields=[
-                                                GenTuField(t_str(), "backend", GenTuDoc("")),
-                                                GenTuField("UnorderedMap<Str, Str>", "values",
-                                                           GenTuDoc(""))
-                                            ]),
-                                GenTuStruct(
-                                    "Blocker",
-                                    GenTuDoc(""),
-                                    fields=[GenTuField(t_vec(t_str()), "blockers", GenTuDoc(""))]),
-                                GenTuStruct("Unnumbered", GenTuDoc("")),
-                                GenTuStruct("Created",
-                                            GenTuDoc(""),
-                                            fields=[id_field("Time", "time", GenTuDoc(""))])
-                            ]),
+                        GenTuTypeGroup([
+                            GenTuStruct("Nonblocking",
+                                        GenTuDoc(""),
+                                        fields=[GenTuField(t_bool(), "isBlocking", GenTuDoc(""))]),
+                            GenTuStruct("Trigger", GenTuDoc("")),
+                            GenTuStruct("Origin",
+                                        GenTuDoc(""),
+                                        fields=[GenTuField(t_str(), "text", GenTuDoc(""))]),
+                            GenTuStruct("ExportLatexClass",
+                                        GenTuDoc(""),
+                                        fields=[GenTuField(t_str(), "latexClass", GenTuDoc(""))]),
+                            GenTuStruct(
+                                "ExportLatexClassOptions",
+                                GenTuDoc(""),
+                                fields=[GenTuField(t_vec(t_str()), "options", GenTuDoc(""))]),
+                            GenTuStruct("ExportLatexHeader",
+                                        GenTuDoc(""),
+                                        fields=[GenTuField(t_str(), "header", GenTuDoc(""))]),
+                            GenTuStruct("ExportLatexCompiler",
+                                        GenTuDoc(""),
+                                        fields=[GenTuField(t_str(), "compiler", GenTuDoc(""))]),
+                            GenTuStruct("Ordered",
+                                        GenTuDoc(""),
+                                        fields=[GenTuField(t_bool(), "isOrdered", GenTuDoc(""))]),
+                            GenTuStruct("Effort",
+                                        GenTuDoc(""),
+                                        fields=[
+                                            GenTuField(t_int(), "hours", GenTuDoc(""), value="0"),
+                                            GenTuField(t_int(), "minutes", GenTuDoc(""), value="0")
+                                        ]),
+                            GenTuStruct("Visibility",
+                                        GenTuDoc(""),
+                                        nested=[
+                                            d_simple_enum("Level", GenTuDoc(""), "Folded",
+                                                          "Children", "Content", "All")
+                                        ],
+                                        fields=[GenTuField(t_nest("Level"), "level",
+                                                           GenTuDoc(""))]),
+                            GenTuStruct("ExportOptions",
+                                        GenTuDoc(""),
+                                        fields=[
+                                            GenTuField(t_str(), "backend", GenTuDoc("")),
+                                            GenTuField(t_map(t_str(), t_str()), "values",
+                                                       GenTuDoc(""))
+                                        ]),
+                            GenTuStruct(
+                                "Blocker",
+                                GenTuDoc(""),
+                                fields=[GenTuField(t_vec(t_str()), "blockers", GenTuDoc(""))]),
+                            GenTuStruct("Unnumbered", GenTuDoc("")),
+                            GenTuStruct("Created",
+                                        GenTuDoc(""),
+                                        fields=[id_field("Time", "time", GenTuDoc(""))])
+                        ]),
                         GenTuPass("Property(CR<Data> data) : data(data) {}"),
                         GenTuPass("bool matches(Kind kind, CR<QString> subkind = \"\") const;"),
                     ])
@@ -831,17 +861,17 @@ def get_types() -> List[GenTuStruct]:
         d_org("List",
               GenTuDoc(""),
               bases=["Org"],
-              methods=[GenTuFunction("bool", "isDescriptionList", GenTuDoc(""), isConst=True)]),
+              methods=[GenTuFunction(t_bool(), "isDescriptionList", GenTuDoc(""), isConst=True)]),
         d_org("ListItem",
               GenTuDoc(""),
               bases=["Org"],
               fields=[
-                  GenTuField("Checkbox", "checkbox", GenTuDoc(""), value="Checkbox::None"),
+                  GenTuField(t_nest("Checkbox"), "checkbox", GenTuDoc(""), value="Checkbox::None"),
                   GenTuField(t_opt(t_id("Paragraph")), "header", GenTuDoc(""), value="std::nullopt")
               ],
               nested=[d_simple_enum("Checkbox", GenTuDoc(""), "None", "Done", "Empty")],
               methods=[
-                  GenTuFunction("bool",
+                  GenTuFunction(t_bool(),
                                 "isDescriptionItem",
                                 GenTuDoc(""),
                                 isConst=True,
@@ -864,7 +894,7 @@ def get_types() -> List[GenTuStruct]:
                               "resolve",
                               GenTuDoc(""),
                               isConst=True,
-                              arguments=[GenTuIdent(t_cr("Document"), "doc")]),
+                              arguments=[GenTuIdent(t_cr(QualType("Document")), "doc")]),
                 GenTuFunction(t_opt(t_id()), "resolve", GenTuDoc(""), isConst=True)
             ],
             nested=[
@@ -899,20 +929,20 @@ def get_types() -> List[GenTuStruct]:
                                 GenTuDoc(""),
                                 isConst=True,
                                 arguments=[GenTuIdent(t_cr(t_str()), "id")]),
-                  GenTuFunction(t_vec("Subtree::Property"),
+                  GenTuFunction(t_vec(QualType("Subtree::Property")),
                                 "getProperties",
                                 GenTuDoc(""),
                                 isConst=True,
                                 arguments=[
-                                    GenTuIdent("Subtree::Property::Kind", "kind"),
+                                    GenTuIdent(QualType("Subtree::Property::Kind"), "kind"),
                                     GenTuIdent(t_cr(t_str()), "subKind", value="\"\"")
                                 ]),
-                  GenTuFunction(t_opt("Subtree::Property"),
+                  GenTuFunction(t_opt(QualType("Subtree::Property")),
                                 "getProperty",
                                 GenTuDoc(""),
                                 isConst=True,
                                 arguments=[
-                                    GenTuIdent("Subtree::Property::Kind", "kind"),
+                                    GenTuIdent(QualType("Subtree::Property::Kind"), "kind"),
                                     GenTuIdent(t_cr(t_str()), "subKind", value="\"\"")
                                 ])
               ],
@@ -939,9 +969,9 @@ def get_types() -> List[GenTuStruct]:
               bases=["Org"],
               fields=[
                   GenTuField(t_str(), "path", GenTuDoc("")),
-                  opt_field("int", "line", GenTuDoc("")),
+                  opt_field(t_int(), "line", GenTuDoc("")),
                   opt_field(t_str(), "searchTarget", GenTuDoc("")),
-                  GenTuField("bool", "restrictToHeadlines", GenTuDoc(""), value="false"),
+                  GenTuField(t_bool(), "restrictToHeadlines", GenTuDoc(""), value="false"),
                   opt_field(t_str(), "targetId", GenTuDoc("")),
                   opt_field(t_str(), "regexp", GenTuDoc(""))
               ]),
@@ -966,20 +996,20 @@ def get_types() -> List[GenTuStruct]:
               GenTuDoc(""),
               bases=["Org"],
               methods=[
-                  GenTuFunction(t_vec("Subtree::Property"),
+                  GenTuFunction(t_vec(QualType("Subtree::Property")),
                                 "getProperties",
                                 GenTuDoc(""),
                                 isConst=True,
                                 arguments=[
-                                    GenTuIdent("Subtree::Property::Kind", "kind"),
+                                    GenTuIdent(QualType("Subtree::Property::Kind"), "kind"),
                                     GenTuIdent(t_cr(t_str()), "subKind", value="\"\"")
                                 ]),
-                  GenTuFunction(t_opt("Subtree::Property"),
+                  GenTuFunction(t_opt(QualType("Subtree::Property")),
                                 "getProperty",
                                 GenTuDoc(""),
                                 isConst=True,
                                 arguments=[
-                                    GenTuIdent("Subtree::Property::Kind", "kind"),
+                                    GenTuIdent(QualType("Subtree::Property::Kind"), "kind"),
                                     GenTuIdent(t_cr(t_str()), "subKind", value="\"\"")
                                 ])
               ],
@@ -991,25 +1021,28 @@ def get_types() -> List[GenTuStruct]:
                                 "ShowEverything")
               ],
               fields=[
-                  GenTuField("BrokenLinks", "brokenLinks", GenTuDoc(""), value="BrokenLinks::Mark"),
-                  GenTuField("Visibility",
+                  GenTuField(t_nest("BrokenLinks"),
+                             "brokenLinks",
+                             GenTuDoc(""),
+                             value="BrokenLinks::Mark"),
+                  GenTuField(t_nest("Visibility"),
                              "initialVisibility",
                              GenTuDoc(""),
                              value="Visibility::ShowEverything"),
-                  GenTuField("TocExport", "tocExport", GenTuDoc(""), value="false"),
-                  GenTuField(t_vec("Subtree::Property"), "properties", GenTuDoc("")),
-                  GenTuField("bool", "smartQuotes", GenTuDoc(""), value="false"),
-                  GenTuField("bool", "emphasizedText", GenTuDoc(""), value="false"),
-                  GenTuField("bool", "specialStrings", GenTuDoc(""), value="false"),
-                  GenTuField("bool", "fixedWidthSections", GenTuDoc(""), value="false"),
-                  GenTuField("bool", "includeTimestamps", GenTuDoc(""), value="false"),
-                  GenTuField("bool", "preserveLineBreaks", GenTuDoc(""), value="false"),
-                  GenTuField("bool", "plaintextSubscripts", GenTuDoc(""), value="false"),
-                  GenTuField("bool", "exportArchived", GenTuDoc(""), value="false"),
-                  GenTuField("bool", "exportWithAuthor", GenTuDoc(""), value="false"),
-                  GenTuField("bool", "exportBrokenLinks", GenTuDoc(""), value="false"),
-                  GenTuField("bool", "exportWithClock", GenTuDoc(""), value="false"),
-                  GenTuField("bool", "exportWithCreator", GenTuDoc(""), value="false")
+                  GenTuField(QualType("TocExport"), "tocExport", GenTuDoc(""), value="false"),
+                  GenTuField(t_vec(QualType("Subtree::Property")), "properties", GenTuDoc("")),
+                  GenTuField(t_bool(), "smartQuotes", GenTuDoc(""), value="false"),
+                  GenTuField(t_bool(), "emphasizedText", GenTuDoc(""), value="false"),
+                  GenTuField(t_bool(), "specialStrings", GenTuDoc(""), value="false"),
+                  GenTuField(t_bool(), "fixedWidthSections", GenTuDoc(""), value="false"),
+                  GenTuField(t_bool(), "includeTimestamps", GenTuDoc(""), value="false"),
+                  GenTuField(t_bool(), "preserveLineBreaks", GenTuDoc(""), value="false"),
+                  GenTuField(t_bool(), "plaintextSubscripts", GenTuDoc(""), value="false"),
+                  GenTuField(t_bool(), "exportArchived", GenTuDoc(""), value="false"),
+                  GenTuField(t_bool(), "exportWithAuthor", GenTuDoc(""), value="false"),
+                  GenTuField(t_bool(), "exportBrokenLinks", GenTuDoc(""), value="false"),
+                  GenTuField(t_bool(), "exportWithClock", GenTuDoc(""), value="false"),
+                  GenTuField(t_bool(), "exportWithCreator", GenTuDoc(""), value="false")
               ]),
         d_org(
             "DocumentGroup",
@@ -2175,7 +2208,7 @@ def get_type_base_fields(value, base_map):
 
 def get_type_group_fields(value):
     return [
-        GenTuField(group.variantName, group.variantField, GenTuDoc(""))
+        GenTuField(QualType(group.variantName), group.variantField, GenTuDoc(""))
         for group in get_nested_groups(value)
     ]
 
@@ -2197,8 +2230,8 @@ def get_base_map():
     context = []
     iterate_object_tree(get_types(), callback, context)
     base_map['Org'] = GenTuStruct('Org', GenTuDoc(""), [
-        GenTuField("OrgSemPlacement", "placementContext", GenTuDoc("")),
-        GenTuField(t_vec(""), "subnodes", GenTuDoc(""))
+        GenTuField(QualType("OrgSemPlacement"), "placementContext", GenTuDoc("")),
+        GenTuField(t_vec(t_id()), "subnodes", GenTuDoc(""))
     ])
 
     return base_map
@@ -2223,20 +2256,23 @@ def get_exporter_methods(forward):
                                     get_type_group_fields(value)) if not (field.isStatic)
             ]
 
-            scoped_target = f"CR<sem::{'::'.join(full_scoped_name)}>"
+            scoped_target = t_cr(QualType(name, Spaces=[QualType(t) for t in scope_names]))
             decl_scope = "" if forward else "Exporter<V, R>::"
             t_params = [] if forward else [GenTuParam("V"), GenTuParam("R")]
 
             variant_methods = [
                 GenTuFunction(
-                    "void",
+                    QualType("void"),
                     f"{decl_scope}visit",
                     GenTuDoc(""),
                     params=t_params,
                     arguments=[
-                        GenTuIdent("R&", "res"),
-                        GenTuIdent(f"CR<sem::{'::'.join(full_scoped_name)}::{group.variantName}>",
-                                   "object")
+                        GenTuIdent(QualType("R", isRef=True), "res"),
+                        GenTuIdent(
+                            t_cr(
+                                QualType(group.variantName,
+                                         Spaces=[QualType("sem")] +
+                                         [QualType(t) for t in full_scoped_name])), "object")
                     ],
                     impl=None if forward else
                     f"visitVariants(res, sem::{'::'.join(full_scoped_name)}::{group.kindGetter}(object), object);"
@@ -2245,22 +2281,26 @@ def get_exporter_methods(forward):
 
             if len(scope_full) == 0:
                 method = GenTuFunction(
-                    "void",
+                    QualType("void"),
                     f"{decl_scope}visit{name}",
                     GenTuDoc(""),
                     params=t_params,
-                    arguments=[GenTuIdent("R&", "res"),
-                               GenTuIdent(f"In<sem::{name}>", "object")],
+                    arguments=[
+                        GenTuIdent(QualType("R", isRef=True), "res"),
+                        GenTuIdent(QualType("In", [QualType(f"sem::{name}")]), "object")
+                    ],
                     impl=None if forward else f"__visit_specific_kind(res, object);\n%s" %
                     '\n'.join([f"__org_field(res, object, {a.name});" for a in fields]))
             else:
                 method = GenTuFunction(
-                    "void",
+                    QualType("void"),
                     f"{decl_scope}visit",
                     GenTuDoc(""),
                     params=t_params,
-                    arguments=[GenTuIdent("R&", "res"),
-                               GenTuIdent(scoped_target, "object")],
+                    arguments=[
+                        GenTuIdent(QualType("R", isRef=True), "res"),
+                        GenTuIdent(scoped_target, "object")
+                    ],
                     impl=None if forward else '\n'.join(
                         [f"__obj_field(res, object, {a.name});" for a in fields]))
 
@@ -2273,50 +2313,53 @@ def get_exporter_methods(forward):
 def get_concrete_types():
     return [struct for struct in get_types() if struct.concreteKind]
 
+
 def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
     passes: List[BlockId] = []
     typ: GenTuStruct
     b: TextLayout = ast.b
     for typ in get_types():
-        id_type = "sem::" + t_id('sem::' + typ.name)
+        id_type = t_id('sem::' + typ.name)
+        id_type.Spaces.append(QualType("sem"))
         passes.append(b.stack([b.text(f"pybind11::class_<{id_type}>(m, \"{typ.name}\")")]))
         sub: List[BlockId] = []
         sub.append(b.text(".def(pybind11::init([](){ return %s::Nil(); }))" % (id_type)))
-        id_qual = QualType(id_type)
-        id_self = ParmVarParams(id_qual, "id")
+        id_self = ParmVarParams(id_type, "id")
         for field in typ.fields:
             if field.isStatic:
                 continue
-            sub.append(ast.XCall(".def_property", [
-                ast.Literal(field.name),
-                ast.Lambda(LambdaParams(
-                    ResultTy=QualType(field.type),
-                    Body=[b.text(f"return id->{field.name};")],
-                    Args=[id_self]
-                )),
-                ast.Lambda(LambdaParams(
-                    ResultTy=None,
-                    Body=[b.text(f"id->{field.name} = {field.name};")],
-                    Args=[id_self, ParmVarParams(QualType(field.type), field.name)]
-                ))
-            ], Line=False))
+            sub.append(
+                ast.XCall(".def_property", [
+                    ast.Literal(field.name),
+                    ast.Lambda(
+                        LambdaParams(ResultTy=field.type,
+                                     Body=[b.text(f"return id->{field.name};")],
+                                     Args=[id_self])),
+                    ast.Lambda(
+                        LambdaParams(ResultTy=None,
+                                     Body=[b.text(f"id->{field.name} = {field.name};")],
+                                     Args=[id_self, ParmVarParams(field.type, field.name)]))
+                ],
+                          Line=False))
 
         for meth in typ.methods:
             if meth.isStatic or meth.isPureVirtual:
                 continue
 
-            passcall = ast.XCallPtr(b.text("id"), meth.name, [b.text(arg.name) for arg in meth.arguments])
+            passcall = ast.XCallPtr(b.text("id"), meth.name,
+                                    [b.text(arg.name) for arg in meth.arguments])
             if meth.result and meth.result != "void":
                 passcall = ast.Return(passcall)
 
-            sub.append(ast.XCall(".def", [
-                ast.Literal(meth.name),
-                ast.Lambda(LambdaParams(
-                    ResultTy=QualType(meth.result),
-                    Args=[id_self] + [ParmVarParams(QualType(Arg.type), Arg.name) for Arg in meth.arguments],
-                    Body=[passcall]
-                ))   
-            ]))
+            sub.append(
+                ast.XCall(".def", [
+                    ast.Literal(meth.name),
+                    ast.Lambda(
+                        LambdaParams(ResultTy=meth.result,
+                                     Args=[id_self] +
+                                     [ParmVarParams(Arg.type, Arg.name) for Arg in meth.arguments],
+                                     Body=[passcall]))
+                ]))
 
         sub.append(b.text(";"))
         passes.append(b.indent(2, b.stack(sub)))
@@ -2327,7 +2370,7 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
 def gen_value(ast: ASTBuilder) -> GenFiles:
     full_enums = get_enums() + [
         GenTuEnum(
-            t_osk(),
+            t_osk().name,
             GenTuDoc(""),
             fields=[GenTuEnumField(struct.name, GenTuDoc("")) for struct in get_concrete_types()])
     ]
@@ -2340,7 +2383,9 @@ def gen_value(ast: ASTBuilder) -> GenFiles:
                   [GenTuPass("#include \"exporternlp_enums.hpp\"")] + get_nlp_enums())),
         GenUnit(GenTu("{base}/exporters/Exporter.tcc", get_exporter_methods(False))),
         GenUnit(GenTu("{base}/exporters/ExporterMethods.tcc", get_exporter_methods(True))),
-        GenUnit(GenTu("/tmp/org_pybind.cpp", [GenTuInclude("pybind11/pubind11.hpp", True)] + [get_bind_methods(ast)])),
+        GenUnit(
+            GenTu("/tmp/org_pybind.cpp",
+                  [GenTuInclude("pybind11/pubind11.hpp", True)] + [get_bind_methods(ast)])),
         GenUnit(
             GenTu(
                 "{base}/sem/SemOrgEnums.hpp",

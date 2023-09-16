@@ -14,7 +14,7 @@ class GenTuParam:
 @beartype
 @dataclass
 class GenTuIdent:
-    type: str
+    type: QualType
     name: str
     value: Optional[str] = None
 
@@ -46,7 +46,7 @@ class GenTuEnum:
 @beartype
 @dataclass
 class GenTuFunction:
-    result: str
+    result: QualType
     name: str
     doc: GenTuDoc
     params: List[GenTuParam] = field(default_factory=list)
@@ -74,7 +74,7 @@ class GenTuPass:
 @beartype
 @dataclass
 class GenTuField:
-    type: str
+    type: QualType
     name: str
     doc: GenTuDoc
     value: Optional[str] = None
@@ -165,9 +165,7 @@ class GenConverter:
         return self.ast.Function(func)
 
     def convertFunction(self, func: GenTuFunction) -> FunctionParams:
-        decl = FunctionParams(ResultTy=QualType(func.result),
-                              Name=func.name,
-                              doc=self.convertDoc(func.doc))
+        decl = FunctionParams(ResultTy=func.result, Name=func.name, doc=self.convertDoc(func.doc))
 
         if func.params:
             decl.Template.Stacks = [self.convertParams(func.params)]
@@ -183,7 +181,7 @@ class GenConverter:
         return DocParams(brief=doc.brief, full=doc.full)
 
     def convertIdent(self, ident: GenTuIdent) -> ParmVarParams:
-        return ParmVarParams(name=ident.name, type=QualType(ident.type), defArg=ident.value)
+        return ParmVarParams(name=ident.name, type=ident.type, defArg=ident.value)
 
     def convertTu(self, tu: GenTu) -> BlockId:
         decls: List[BlockId] = []
@@ -204,7 +202,7 @@ class GenConverter:
 
             for member in record.fields:
                 params.members.append(
-                    RecordField(params=ParmVarParams(type=QualType(member.type),
+                    RecordField(params=ParmVarParams(type=member.type,
                                                      name=member.name,
                                                      isConst=member.isConst,
                                                      defArg=member.value),
@@ -226,22 +224,22 @@ class GenConverter:
                     if group.kindGetter:
                         extraMethods.append(
                             GenTuFunction(name=group.kindGetter,
-                                          result=group.enumName,
+                                          result=QualType(group.enumName),
                                           isConst=True,
                                           doc=GenTuDoc("")))
                     if group.variantName:
                         extraFields.append(
                             GenTuField(name=group.variantField,
                                        doc=GenTuDoc(""),
-                                       type=group.variantName))
+                                       type=QualType(group.variantName)))
 
             fields = [self.ast.string(field.name) for field in record.fields + extraFields]
             methods = [
                 self.ast.b.line([
                     self.ast.string("("),
-                    self.ast.string(method.result),
+                    self.ast.Type(method.result),
                     self.ast.pars(
-                        self.ast.csv([self.ast.string(ident.type) for ident in method.arguments])),
+                        self.ast.csv([self.ast.Type(ident.type) for ident in method.arguments])),
                     self.ast.string(" const" if method.isConst else ""),
                     self.ast.string(") "),
                     self.ast.string(method.name)
@@ -509,7 +507,7 @@ class GenConverter:
                 decls.append(self.ast.string(entry.what))
             else:
                 decls.append(entry.what)
-                
+
         elif isinstance(entry, GenTuNamespace):
             decls.append(self.convertNamespace(entry))
         else:

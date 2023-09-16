@@ -15,7 +15,9 @@ logging.basicConfig(
     level="NOTSET",
     format="%(message)s",
     datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True, markup=True, enable_link_path=False, show_time=False)],
+    handlers=[
+        RichHandler(rich_tracebacks=True, markup=True, enable_link_path=False, show_time=False)
+    ],
 )
 
 for name in logging.root.manager.loggerDict:
@@ -30,12 +32,12 @@ log.setLevel(logging.DEBUG)
 @dataclass
 class QualType:
     name: str = ""
+    Parameters: List['QualType'] = field(default_factory=list)
     isConst: bool = False
     isPtr: bool = False
     isRef: bool = False
     isNamespace: bool = False
     Spaces: List['QualType'] = field(default_factory=list)
-    Parameters: List['QualType'] = field(default_factory=list)
     verticalParamList: bool = False
 
     def asNamespace(self, is_namespace=True):
@@ -131,11 +133,13 @@ class FunctionParams:
     Body: Optional[List[BlockId]] = None
     Inline: bool = False
 
+
 @beartype
 @dataclass
 class LambdaCapture:
     Name: Optional[str] = None
     ByRef: bool = True
+
 
 @beartype
 @dataclass
@@ -145,7 +149,6 @@ class LambdaParams:
     Template: TemplateParams = field(default_factory=TemplateParams)
     Body: List[BlockId] = field(default_factory=list)
     CaptureList: List[LambdaCapture] = field(default_factory=list)
-
 
 
 class AccessSpecifier(Enum):
@@ -332,7 +335,13 @@ class ASTBuilder:
 
         return self.block(self.b.line([self.string("switch "), self.pars(params.Expr)]), cases)
 
-    def XCallObj(self, obj: BlockId, opc: str, func: str, args: List[BlockId], Stmt: bool = False, Line: bool = True) -> BlockId:
+    def XCallObj(self,
+                 obj: BlockId,
+                 opc: str,
+                 func: str,
+                 args: List[BlockId],
+                 Stmt: bool = False,
+                 Line: bool = True) -> BlockId:
         return self.b.line([
             obj,
             self.string(opc),
@@ -342,12 +351,21 @@ class ASTBuilder:
             self.string(");" if Stmt else ")")
         ])
 
-    def XCallRef(self, obj: BlockId, opc: str, args: List[BlockId] = [], Stmt: bool = False, Line: bool = True) -> BlockId:
+    def XCallRef(self,
+                 obj: BlockId,
+                 opc: str,
+                 args: List[BlockId] = [],
+                 Stmt: bool = False,
+                 Line: bool = True) -> BlockId:
         return self.XCallObj(obj, ".", func=opc, args=args, Stmt=Stmt, Line=Line)
 
-    def XCallPtr(self, obj: BlockId, opc: str, args: List[BlockId] = [], Stmt: bool = False, Line: bool = True) -> BlockId:
+    def XCallPtr(self,
+                 obj: BlockId,
+                 opc: str,
+                 args: List[BlockId] = [],
+                 Stmt: bool = False,
+                 Line: bool = True) -> BlockId:
         return self.XCallObj(obj, "->", func=opc, args=args, Stmt=Stmt, Line=Line)
-        
 
     def XCall(self,
               opc: str,
@@ -685,7 +703,6 @@ class ASTBuilder:
             self.b.add_at(result, self.string(p.Name))
 
         return result
-            
 
     def Lambda(self, p: LambdaParams) -> BlockId:
         head = self.b.line([
