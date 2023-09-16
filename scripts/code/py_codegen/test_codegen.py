@@ -191,7 +191,7 @@ class MacroParams:
     @dataclass
     class Param:
         name: str
-        isEllipsis: bool
+        isEllipsis: bool = False
 
     doc: DocParams
     name: str
@@ -229,7 +229,7 @@ class RecordParams:
     bases: List[QualType] = field(default_factory=list)
     members: List[RecordMember] = field(default_factory=list)
     nested: List[RecordNested] = field(default_factory=list)
-    Template: TemplateParams = TemplateParams
+    Template: TemplateParams = TemplateParams()
     IsDefinition: bool = True
 
 
@@ -497,7 +497,7 @@ class ASTBuilder:
             ])
 
         if trailingLine:
-            if self.b.at(result).isStack():
+            if self.b.isStack(result):
                 self.b.add_at(result, self.string(""))
             else:
                 result = self.b.stack([result, self.string("")])
@@ -585,20 +585,20 @@ class ASTBuilder:
     def Record(self, params: RecordParams) -> BlockId:
         content: List[BlockId] = []
 
-        for m in params.nested:
-            if isinstance(m, EnumParams):
-                content.append(self.Enum(m))
-            elif isinstance(m, RecordParams):
-                content.append(self.Record(m))
+        for nested in params.nested:
+            if isinstance(nested, EnumParams):
+                content.append(self.Enum(nested))
+            elif isinstance(nested, RecordParams):
+                content.append(self.Record(nested))
             else:
-                content.append(m)
+                content.append(nested)
 
-        for m in params.members:
-            if isinstance(m, RecordField):
-                content.append(self.Field(m))
+        for member in params.members:
+            if isinstance(member, RecordField):
+                content.append(self.Field(member))
 
-            elif isinstance(m, MethodDeclParams):
-                content.append(self.MethodDecl(m))
+            elif isinstance(member, MethodDeclParams):
+                content.append(self.MethodDecl(member))
 
         bases: Optional[BlockId] = None
         if params.bases:
@@ -615,7 +615,8 @@ class ASTBuilder:
             self.string(params.name),
             self.b.surround_non_empty(
                 self.b.join([self.Type(t) for t in params.NameParams],
-                            self.string(", ")), "<", ">"), bases,
+                            self.string(", ")), self.string("<"),
+                self.string(">")), bases or self.string(""),
             self.string(" {" if params.IsDefinition else "")
         ])
 
@@ -762,7 +763,8 @@ class ASTBuilder:
                 self.string(concept_str),
                 self.string(placeholder_str),
                 self.string(name_str),
-                self.b.surround_non_empty(nested_content, "<", ">")
+                self.b.surround_non_empty(nested_content, self.string("<"),
+                                          self.string(">"))
             ])
 
         elif isinstance(Param, TemplateGroup):
@@ -993,7 +995,8 @@ class GenConverter:
                         extraMethods.append(
                             GenTuFunction(name=group.kindGetter,
                                           result=group.enumName,
-                                          isConst=True))
+                                          isConst=True,
+                                          doc=GenTuDoc("")))
                     if group.variantName:
                         extraFields.append(
                             GenTuField(name=group.variantField,
@@ -1042,7 +1045,7 @@ class GenConverter:
 
         ToParams = FunctionParams(
             Name="to_string",
-            doc=DocParams(),
+            doc=DocParams(""),
             ResultTy=QualType("QString"),
             Args=[ParmVarParams(type=QualType(entry.name), name="value")])
 
@@ -1187,7 +1190,7 @@ class GenConverter:
                 ])
 
     def convertNamespace(self, space: GenTuNamespace) -> BlockId:
-        result = self.ast.b.stack()
+        result = self.ast.b.stack([])
         with GenConverterWithContext(self, QualType(space.name).asNamespace()):
             self.ast.b.add_at(result,
                               self.ast.string(f"namespace {space.name}{{"))
@@ -1246,7 +1249,8 @@ class GenConverter:
 
         if record.iteratorMacroName:
             iteratorMacro = MacroParams(name=record.iteratorMacroName,
-                                        params=[MacroParams.Param("__IMPL")])
+                                        params=[MacroParams.Param("__IMPL")],
+                                        doc=DocParams(""))
 
             for typeItem in typeNames:
                 iteratorMacro.definition.append(f"__IMPL({typeItem})")

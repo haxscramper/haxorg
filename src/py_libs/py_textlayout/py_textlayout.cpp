@@ -196,11 +196,24 @@ struct TextLayout {
         b.add_at(id, next);
     }
 
+    bool isStack(BlockId id) { return b.at(id).isStack(); }
+    bool isLine(BlockId id) { return b.at(id).isLine(); }
+
+    BlockId surround_non_empty(
+        BlockId content,
+        BlockId before,
+        BlockId after) {
+        return b.surround_non_empty(content, before, after);
+    }
+
     static void py_define() {
         py::class_<TextLayout>("TextLayout")
             .def("dbg", &TextLayout::dbg)
             .def("text", &TextLayout::text)
             .def("line", &TextLayout::line)
+            .def("isLine", &TextLayout::isLine)
+            .def("isStack", &TextLayout::isStack)
+            .def("surround_non_empty", &TextLayout::surround_non_empty)
             .def(
                 "stack",
                 &TextLayout::stack,
