@@ -120,7 +120,7 @@ class FunctionParams:
     ResultTy: QualType = field(default_factory=QualType("void"))
     Args: List[ParmVarParams] = field(default_factory=list)
     Storage: StorageClass = StorageClass.None_
-    Body: List[BlockId] = field(default_factory=list)
+    Body: Optional[List[BlockId]] = None
     Inline: bool = False
 
 
@@ -135,8 +135,7 @@ class AccessSpecifier(Enum):
 @dataclass
 class MethodDeclParams:
     Params: FunctionParams
-    Class: QualType
-    IsConst: bool = False
+    isConst: bool = False
     isStatic: bool = False
     isVirtual: bool = False
     isPureVirtual: bool = False
@@ -207,17 +206,6 @@ class MacroParams:
 
 @beartype
 @dataclass
-class RecordMethod:
-    params: FunctionParams
-    isStatic: bool = False
-    isConst: bool = False
-    isVirtual: bool = False
-    isPureVirtual: bool = False
-    access: AccessSpecifier = AccessSpecifier.Unspecified
-
-
-@beartype
-@dataclass
 class RecordField:
     params: ParmVarParams
     doc: DocParams
@@ -225,7 +213,7 @@ class RecordField:
     access: AccessSpecifier = AccessSpecifier.Unspecified
 
 
-RecordMember = Union[RecordMethod, RecordField]
+RecordMember = Union[MethodDeclParams, MethodDefParams, RecordField]
 RecordNested = Union[EnumParams, 'RecordParams', BlockId]
 
 
@@ -398,7 +386,7 @@ class ASTBuilder:
                 self.b.add_at(head, Branch.Cond)
                 self.b.add_at(head, self.string(") "))
 
-            self.b.add_at(head, self.string(" {"))
+            self.b.add_at(head, self.string("{"))
 
             if p.LookupIfStructure:
                 self.b.add_at(head, self.string(" "))
@@ -518,13 +506,13 @@ class ASTBuilder:
             self.string(" "),
             self.string(method.Params.Name),
             self.Arguments(method.Params),
-            self.string(" const" if method.IsConst else ""),
+            self.string(" const" if method.isConst else ""),
             self.string(" = 0" if method.isPureVirtual else "")
         ])
 
         return self.WithAccess(
             self.WithDoc(
-                self.block(head, method.Params.Body, True) if method.Params.Body else self.b.line([head, self.string(";")]),
+                self.block(head, method.Params.Body, True) if method.Params.Body is not None else self.b.line([head, self.string(";")]),
                 method.Params.doc), method.access)
 
     def Record(self, params: RecordParams) -> BlockId:
@@ -545,10 +533,13 @@ class ASTBuilder:
             elif isinstance(member, MethodDeclParams):
                 content.append(self.MethodDecl(member))
 
+            elif isinstance(member, MethodDefParams):
+                content.append(self.MethodDef(member))
+
         bases: Optional[BlockId] = None
         if params.bases:
             classes = [self.b.line([self.string("public "), self.Type(base)]) for base in params.bases]
-            bases = self.b.line([self.string(": "), self.b.join(classes, self.string(", "))])
+            bases = self.b.line([self.string(" : "), self.b.join(classes, self.string(", "))])
 
         head = self.b.line([
             self.string("struct "),

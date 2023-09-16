@@ -14,8 +14,8 @@ class GenTuParam:
 @beartype
 @dataclass
 class GenTuIdent:
-    name: str
     type: str
+    name: str
     value: Optional[str] = None
 
 
@@ -40,7 +40,7 @@ class GenTuEnum:
     name: str
     doc: GenTuDoc
     fields: List[GenTuEnumField]
-    base: Optional[str] = None
+    base: Optional[str] = "short int"
 
 
 @beartype
@@ -185,7 +185,7 @@ class GenConverter:
     def convertTu(self, tu: GenTu) -> BlockId:
         decls: List[BlockId] = []
         for item in tu.entries:
-            decls += self.convert(item)
+            decls += self.convertWithToplevel(item)
 
         return self.ast.TranslationUnit(decls)
 
@@ -208,7 +208,7 @@ class GenConverter:
 
             for method in record.methods:
                 params.members.append(
-                    RecordMethod(params=self.convertFunction(method),
+                    MethodDeclParams(Params=self.convertFunction(method),
                                  isStatic=method.isStatic,
                                  isConst=method.isConst,
                                  isVirtual=method.isVirtual))
@@ -316,7 +316,9 @@ class GenConverter:
                 ToDefininition = ToParams
                 ToDefininition.Body = [self.ast.SwitchStmt(SwitchTo)]
 
+
                 self.pendingToplevel.append(self.ast.MethodDef(MethodDefParams(Class=Class, Params=ToDefininition)))
+                log.info(f"Pending toplevel to {len(self.pendingToplevel)}")
 
             return self.ast.string("")
 
@@ -349,8 +351,8 @@ class GenConverter:
                                      Template=TemplateParams.FinalSpecialization(),
                                      NameParams=[QualType(entry.name)])
 
-                Serde.members.append(RecordMethod(isStatic=True, params=FromDefinition))
-                Serde.members.append(RecordMethod(isStatic=True, params=ToDefininition))
+                Serde.members.append(MethodDeclParams(isStatic=True, Params=FromDefinition))
+                Serde.members.append(MethodDeclParams(isStatic=True, Params=ToDefininition))
 
                 res = self.ast.b.stack([self.ast.Enum(params), self.ast.Record(Serde), self.ast.Record(Domain)])
 
@@ -366,9 +368,7 @@ class GenConverter:
             self.ast.b.add_at(result, self.ast.string(f"namespace {space.name}{{"))
 
             for sub in space.entries:
-                self.ast.b.add_at_list(result, self.convert(sub))
-                self.ast.b.add_at_list(result, self.pendingToplevel)
-                self.pendingToplevel = []
+                self.ast.b.add_at_list(result, self.convertWithToplevel(sub))
 
             self.ast.b.add_at(result, self.ast.string("}"))
 
@@ -446,6 +446,13 @@ class GenConverter:
                                 doc=DocParams(""))))
 
         return decls
+
+    def convertWithToplevel(self, entry: GenTuEntry) -> List[BlockId]:
+        decls: List[BlockId] = self.convert(entry)
+        decls += self.pendingToplevel
+        self.pendingToplevel = []
+        return decls
+
 
     def convert(self, entry: GenTuEntry) -> List[BlockId]:
         decls: List[BlockId] = []
