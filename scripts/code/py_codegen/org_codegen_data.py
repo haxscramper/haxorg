@@ -23,8 +23,8 @@ def t_int() -> QualType:
     return QualType("int")
 
 
-def t_nest(name: str) -> QualType:
-    result = QualType(name)
+def t_nest(name: Union[str, QualType]) -> QualType:
+    result = QualType(name) if isinstance(name, str) else name
     result.__setattr__("isNested", True)
     return result
 
@@ -36,8 +36,8 @@ def t_vec(arg: QualType) -> QualType:
 
 @beartype
 def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:
-    return (QualType("SemIdT", [(target if isinstance(target, QualType) else QualType(target))])
-            if target else QualType("SemId"))
+    return (QualType("SemIdT", [(target if isinstance(target, QualType) else QualType(target, Spaces=[QualType("sem")]))], Spaces=[QualType("sem")])
+            if target else QualType("SemId", Spaces=[QualType("sem")]))
 
 
 @beartype
@@ -78,6 +78,7 @@ def opt_field(typ, name, doc):
 
 def d_org(name: str, *args, **kwargs) -> GenTuStruct:
     res = GenTuStruct(name, *args, **kwargs)
+    res.__setattr__("isOrgType", True)
     kind = res.name
     base = res.bases[0]
     res.nested = [GenTuPass(f"using {base}::{base};")] + res.nested
@@ -173,7 +174,7 @@ def get_types() -> List[GenTuStruct]:
             bases=["Stmt"],
             fields=[
                 GenTuField(
-                    t_vec(t_id(QualType("Row"))),
+                    t_vec(t_id("Row")),
                     "rows",
                     GenTuDoc("List of rows for the table"),
                     value="{}",
@@ -756,7 +757,7 @@ def get_types() -> List[GenTuStruct]:
                 vec_field(t_id("HashTag"), "tags", GenTuDoc("Trailing tags")),
                 id_field("Paragraph", "title", GenTuDoc("Main title")),
                 vec_field(t_id("SubtreeLog"), "logbook", GenTuDoc("Associated subtree log")),
-                vec_field(QualType("Property"), "properties", GenTuDoc("Immediate properties")),
+                vec_field(t_nest(QualType("Property")), "properties", GenTuDoc("Immediate properties")),
                 opt_field(t_id("Time"), "closed", GenTuDoc("When subtree was marked as closed")),
                 opt_field(t_id("Time"), "deadline", GenTuDoc("When is the deadline")),
                 opt_field(t_id("Time"), "scheduled", GenTuDoc("When the event is scheduled")),
@@ -769,48 +770,48 @@ def get_types() -> List[GenTuStruct]:
                     isConst=True,
                     arguments=[
                         GenTuIdent(
-                            QualType("IntSet", [QualType("Kind", Spaces=[QualType("Period")])]),
+                            QualType("IntSet", [t_nest(QualType("Kind", Spaces=[QualType("Period")]))]),
                             "kinds",
                         )
                     ],
                 ),
                 GenTuFunction(
-                    t_vec(QualType("Property")),
+                    t_vec(t_nest(QualType("Property"))),
                     "getProperties",
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(QualType("Kind", Spaces=[QualType("Property")]), "kind"),
+                        GenTuIdent(t_nest(QualType("Kind", Spaces=[QualType("Property")])), "kind"),
                         GenTuIdent(t_cr(t_str()), "subkind", value='""'),
                     ],
                 ),
                 GenTuFunction(
-                    t_opt(QualType("Property")),
+                    t_opt(t_nest(QualType("Property"))),
                     "getProperty",
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(QualType("Kind", Spaces=[QualType("Property")]), "kind"),
+                        GenTuIdent(t_nest(QualType("Kind", Spaces=[QualType("Property")])), "kind"),
                         GenTuIdent(t_cr(t_str()), "subkind", value='""'),
                     ],
                 ),
                 GenTuFunction(
-                    t_vec(QualType("Property")),
+                    t_vec(t_nest(QualType("Property"))),
                     "getContextualProperties",
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(QualType("Kind", Spaces=[QualType("Property")]), "kind"),
+                        GenTuIdent(t_nest(QualType("Kind", Spaces=[QualType("Property")])), "kind"),
                         GenTuIdent(t_cr(t_str()), "subkind", value='""'),
                     ],
                 ),
                 GenTuFunction(
-                    t_opt(QualType("Property")),
+                    t_opt(t_nest(QualType("Property"))),
                     "getContextualProperty",
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(QualType("Kind", Spaces=[QualType("Property")]), "kind"),
+                        GenTuIdent(t_nest(QualType("Kind", Spaces=[QualType("Property")])), "kind"),
                         GenTuIdent(t_cr(t_str()), "subkind", value='""'),
                     ],
                 ),
