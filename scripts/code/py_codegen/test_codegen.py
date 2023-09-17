@@ -112,7 +112,9 @@ def get_exporter_methods(forward):
         nonlocal base_map
         nonlocal iterate_tree_context
         if isinstance(value, GenTuStruct):
-            scope_full = [scope for scope in iterate_tree_context if isinstance(scope, GenTuStruct)]
+            scope_full = [
+                scope for scope in iterate_tree_context if isinstance(scope, GenTuStruct)
+            ]
             scope_names = [scope.name for scope in scope_full]
             name = value.name
             full_scoped_name = scope_names + [name]
@@ -122,7 +124,8 @@ def get_exporter_methods(forward):
             ]
 
             scoped_target = t_cr(
-                QualType(name, Spaces=[QualType("sem")] + [QualType(t) for t in scope_names]))
+                QualType(name,
+                         Spaces=[QualType("sem")] + [QualType(t) for t in scope_names]))
             decl_scope = "" if forward else "Exporter<V, R>::"
             t_params = [] if forward else [GenTuParam("V"), GenTuParam("R")]
 
@@ -214,17 +217,14 @@ def pybind_property(ast: ASTBuilder,
         )
 
     else:
-        return ast.XCall(
-            ".def_readwrite",
-            [
-                ast.Literal(field.name),
-                b.line([b.text("&"),
-                        ast.Type(Self.type),
-                        b.text("::"),
-                        b.text(field.name)]),
-                *([ast.Literal(field.doc.brief)] if field.doc.brief else [])
-            ]
-        )
+        return ast.XCall(".def_readwrite", [
+            ast.Literal(field.name),
+            b.line([b.text("&"),
+                    ast.Type(Self.type),
+                    b.text("::"),
+                    b.text(field.name)]),
+            *([ast.Literal(field.doc.brief)] if field.doc.brief else [])
+        ])
 
 
 @beartype
@@ -238,14 +238,16 @@ def pybind_method(ast: ASTBuilder, meth: GenTuFunction, Self: ParmVarParams,
             ast.Lambda(
                 LambdaParams(
                     ResultTy=meth.result,
-                    Args=[Self] + [ParmVarParams(Arg.type, Arg.name) for Arg in meth.arguments],
+                    Args=[Self] +
+                    [ParmVarParams(Arg.type, Arg.name) for Arg in meth.arguments],
                     Body=Body,
                 )),
             *([ast.Literal(meth.doc.brief)] if meth.doc.brief else []),
             *[
-                ast.XCall("pybind11::arg", [ast.Literal(Arg.name)]) if Arg.value is None else
-                ast.XCall("pybind11::arg_v",
-                          [ast.Literal(Arg.name), b.text(Arg.value)]) for Arg in meth.arguments
+                ast.XCall("pybind11::arg", [ast.Literal(Arg.name)])
+                if Arg.value is None else ast.XCall(
+                    "pybind11::arg_v",
+                    [ast.Literal(Arg.name), b.text(Arg.value)]) for Arg in meth.arguments
             ],
         ],
         Line=False,
@@ -265,7 +267,11 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
             [
                 ast.XCall(
                     "pybind11::init",
-                    [ast.Lambda(LambdaParams(Body=[ast.Return(ast.CallStatic(id_type, "Nil"))]))],
+                    [
+                        ast.Lambda(
+                            LambdaParams(
+                                Body=[ast.Return(ast.CallStatic(id_type, "Nil"))]))
+                    ],
                 )
             ],
         ))
@@ -290,11 +296,77 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
     sub.append(b.text(";"))
     return b.stack([
         ast.Comment(["Binding for ID type"]),
-        ast.XCall("pybind11::class_", [b.text("m"), ast.Literal(typ.name)], Params=[id_type]),
+        ast.XCall("pybind11::class_", [b.text("m"), ast.Literal(typ.name)],
+                  Params=[id_type]),
         b.indent(2, b.stack(sub))
     ])
 
 
+def s_sem(scope: List[QualType]) -> List[QualType]:
+    return [QualType("sem")] + scope
+
+
+@beartype
+def pybind_enum(ast: ASTBuilder, value: GenTuEnum, scope: List[QualType]) -> BlockId:
+    b = ast.b
+
+    return b.stack([
+        ast.XCall("pybind11::enum_", [
+            b.text("m"),
+            ast.Literal("".join([typ.name for typ in scope] + [value.name]))
+        ],
+                  Params=[QualType(value.name, Spaces=s_sem(scope))]),
+        b.indent(
+            2,
+            b.stack([
+                ast.XCall(".value", [
+                    ast.Literal(Field.name),
+                    b.line([
+                        b.text("&"),
+                        ast.Type(
+                            QualType(Field.name,
+                                     Spaces=s_sem(scope + [QualType(value.name)])))
+                    ])
+                ]) for Field in value.fields
+            ] + [ast.XCall(".export_values", []),
+                 b.text(";")]))
+    ])
+
+
+@beartype
+def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct,
+                       scope: List[QualType]) -> BlockId:
+    b = ast.b
+    sub: List[BlockId] = []
+    id_self = ParmVarParams(QualType(value.name, Spaces=[QualType("sem")] + scope),
+                            "value")
+    for field in value.fields:
+        sub.append(pybind_property(ast, field, id_self))
+
+    sub.append(b.text(";"))
+
+    for nest in value.nested:
+        if isinstance(nest, GenTuTypeGroup):
+            sub.append(
+                pybind_enum(
+                    ast,
+                    GenTuEnum(
+                        nest.enumName, GenTuDoc(""),
+                        [GenTuEnumField(sub.name, GenTuDoc("")) for sub in nest.types]),
+                    scope))
+
+    return b.stack([
+        ast.Comment(["Binding for nested type"]),
+        ast.XCall("pybind11::class_", [
+            b.text("m"),
+            ast.Literal("".join([typ.name for typ in scope] + [value.name]))
+        ],
+                  Params=[id_self.type]),
+        b.indent(2, b.stack(sub))
+    ])
+
+
+@beartype
 def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
     passes: List[BlockId] = []
     typ: GenTuStruct
@@ -305,7 +377,9 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
     def callback(value):
         nonlocal iterate_context
         scope: List[QualType] = [
-            QualType(scope.name) for scope in iterate_context if isinstance(scope, GenTuStruct)
+            QualType(scope.name)
+            for scope in iterate_context
+            if isinstance(scope, GenTuStruct)
         ]
 
         if isinstance(value, QualType):
@@ -316,21 +390,10 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
             if len(scope) == 0:
                 passes.append(pybind_org_id(ast, b, value))
             else:
-                sub: List[BlockId] = []
-                id_self = ParmVarParams(QualType(value.name, Spaces=[QualType("sem")] + scope), "value")
-                for field in value.fields:
-                    sub.append(pybind_property(ast, field, id_self))
+                passes.append(pybind_nested_type(ast, value, scope))
 
-                sub.append(b.text(";"))
-
-                passes.append(b.stack([
-                    ast.Comment(["Binding for nested type"]),
-                    ast.XCall("pybind11::class_", [
-                        b.text("m"),
-                        ast.Literal("".join([typ.name for typ in scope] + [value.name]))
-                    ], Params=[id_self.type]),
-                    b.indent(2, b.stack(sub))
-                ]))
+        elif isinstance(value, GenTuEnum):
+            passes.append(pybind_enum(ast, value, scope))
 
     iterate_object_tree(get_types(), callback, iterate_context)
     return GenTuPass(b.stack(passes))
@@ -341,7 +404,10 @@ def gen_value(ast: ASTBuilder) -> GenFiles:
         GenTuEnum(
             t_osk().name,
             GenTuDoc(""),
-            fields=[GenTuEnumField(struct.name, GenTuDoc("")) for struct in get_concrete_types()],
+            fields=[
+                GenTuEnumField(struct.name, GenTuDoc(""))
+                for struct in get_concrete_types()
+            ],
         )
     ]
 
@@ -357,7 +423,8 @@ def gen_value(ast: ASTBuilder) -> GenFiles:
             ),
         ),
         GenUnit(GenTu("{base}/exporters/Exporter.tcc", get_exporter_methods(False))),
-        GenUnit(GenTu("{base}/exporters/ExporterMethods.tcc", get_exporter_methods(True))),
+        GenUnit(GenTu("{base}/exporters/ExporterMethods.tcc",
+                      get_exporter_methods(True))),
         GenUnit(
             GenTu(
                 "/tmp/org_pybind.cpp",
@@ -368,7 +435,8 @@ def gen_value(ast: ASTBuilder) -> GenFiles:
                 "{base}/sem/SemOrgEnums.hpp",
                 with_enum_reflection_api([
                     GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join(
-                        [f"    __IMPL({struct.name})" for struct in get_concrete_types()])))
+                        [f"    __IMPL({struct.name})"
+                         for struct in get_concrete_types()])))
                 ]) + full_enums,
             ),
             GenTu(
@@ -424,8 +492,9 @@ if __name__ == "__main__":
             path = define.path.format(base="/mnt/workspace/repos/haxorg/src")
             log.info(f"Formatting {path}, isSource={not isHeader}")
             result = builder.TranslationUnit([
-                GenConverter(builder,
-                             isSource=not isHeader).convertTu(tu.header if isHeader else tu.source)
+                GenConverter(
+                    builder,
+                    isSource=not isHeader).convertTu(tu.header if isHeader else tu.source)
             ])
 
             directory = os.path.dirname(path)
