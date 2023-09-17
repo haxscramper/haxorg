@@ -2365,8 +2365,12 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
                         LambdaParams(ResultTy=meth.result,
                                      Args=[id_self] +
                                      [ParmVarParams(Arg.type, Arg.name) for Arg in meth.arguments],
-                                     Body=[passcall]))
-                ]))
+                                     Body=[passcall])), *[
+                                         ast.XCall("pybind11::arg", [ast.Literal(Arg.name)])
+                                         for Arg in meth.arguments
+                                     ]
+                ],
+                          Line=False))
 
         sub.append(b.text(";"))
         passes.append(b.indent(2, b.stack(sub)))
