@@ -149,6 +149,7 @@ class LambdaParams:
     Template: TemplateParams = field(default_factory=TemplateParams)
     Body: List[BlockId] = field(default_factory=list)
     CaptureList: List[LambdaCapture] = field(default_factory=list)
+    IsLine: bool = True
 
 
 class AccessSpecifier(Enum):
@@ -740,8 +741,13 @@ class ASTBuilder:
             self.b.add_at(head, self.Type(p.ResultTy))
 
         self.b.add_at(head, self.b.text(" { "))
-        self.b.add_at(head, self.b.stack(p.Body))
-        self.b.add_at(head, self.b.text(" }"))
+
+        if p.IsLine:
+            self.b.add_at(head, self.b.stack(p.Body))
+            self.b.add_at(head, self.b.text(" }"))
+
+        else:
+            head = self.b.stack([head, self.b.stack(p.Body), self.b.text("}")])
 
         return head
 

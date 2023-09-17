@@ -188,9 +188,11 @@ def get_exporter_methods(forward):
 def get_concrete_types():
     return [struct for struct in get_types() if struct.concreteKind]
 
+
 org_type_names = [Typ.name for Typ in get_types()]
 
 from copy import deepcopy
+
 
 def in_sem(typ: QualType) -> QualType:
     typ = deepcopy(typ)
@@ -200,6 +202,7 @@ def in_sem(typ: QualType) -> QualType:
     typ.Parameters = [in_sem(P) for P in typ.Parameters]
 
     return typ
+
 
 @beartype
 def pybind_property(ast: ASTBuilder,
@@ -287,7 +290,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
             ],
         ))
 
-    id_self = ParmVarParams(id_type, "id")
+    id_self = ParmVarParams(id_type, "_self")
     for field in typ.fields:
         if field.isStatic:
             continue
@@ -297,7 +300,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
         if meth.isStatic or meth.isPureVirtual:
             continue
 
-        passcall = ast.XCallPtr(b.text("id"), meth.name,
+        passcall = ast.XCallPtr(b.text(id_self.name), meth.name,
                                 [b.text(arg.name) for arg in meth.arguments])
         if meth.result and meth.result != "void":
             passcall = ast.Return(passcall)
@@ -320,7 +323,8 @@ def pybind_enum(ast: ASTBuilder, value: GenTuEnum, scope: List[QualType]) -> Blo
     return b.stack([
         ast.XCall("pybind11::enum_", [
             b.text("m"),
-            ast.Literal("".join([typ.name for typ in scope] + [value.name]))
+            ast.Literal(
+                "".join([typ.name for typ in scope if typ.name != "sem"] + [value.name]))
         ],
                   Params=[QualType(value.name, Spaces=scope)]),
         b.indent(
@@ -328,9 +332,8 @@ def pybind_enum(ast: ASTBuilder, value: GenTuEnum, scope: List[QualType]) -> Blo
             b.stack([
                 ast.XCall(".value", [
                     ast.Literal(Field.name),
-                    ast.Type(
-                            QualType(Field.name,
-                                     Spaces=(scope + [QualType(value.name)])))
+                    ast.Type(QualType(Field.name, Spaces=(scope +
+                                                          [QualType(value.name)])))
                 ]) for Field in value.fields
             ] + [ast.XCall(".export_values", []),
                  b.text(";")]))
@@ -342,8 +345,7 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct,
                        scope: List[QualType]) -> BlockId:
     b = ast.b
     sub: List[BlockId] = []
-    id_self = ParmVarParams(QualType(value.name, Spaces=scope),
-                            "value")
+    id_self = ParmVarParams(QualType(value.name, Spaces=scope), "value")
     for field in value.fields:
         if field.isStatic:
             continue
@@ -360,22 +362,21 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct,
                     GenTuEnum(
                         nest.enumName, GenTuDoc(""),
                         [GenTuEnumField(sub.name, GenTuDoc("")) for sub in nest.types]),
-                    scope))
+                    [id_self.type]))
 
+    name = "".join([typ.name for typ in scope if typ.name != "sem"] + [value.name])
     return b.stack([
         ast.Comment(["Binding for nested type"]),
-        ast.XCall("pybind11::class_", [
-            b.text("m"),
-            ast.Literal("".join([typ.name for typ in scope if typ.name != "sem"] + [value.name]))
-        ],
+        ast.XCall("pybind11::class_", [b.text("m"), ast.Literal(name)],
                   Params=[id_self.type]),
         b.indent(2, b.stack(sub))
     ])
 
+
 @beartype
 def filter_walk_scope(iterate_context) -> List[QualType]:
     scope: List[QualType] = []
-    
+
     for s in iterate_context:
         if isinstance(s, GenTuStruct):
             scope.append(QualType(s.name))
@@ -384,16 +385,17 @@ def filter_walk_scope(iterate_context) -> List[QualType]:
             scope.append(QualType(s.name))
 
     return scope
-                 
+
 
 @beartype
 def get_space_annotated_types() -> List[GenTuStruct]:
     iterate_context = []
+
     def callback(value):
         nonlocal iterate_context
         if isinstance(value, QualType):
             if hasattr(value, "isNested"):
-                value.Spaces = filter_walk_scope(iterate_context)
+                value.Spaces = filter_walk_scope(iterate_context) + value.Spaces
 
     type_defs = get_types()
     iterate_object_tree(GenTuNamespace("sem", type_defs), callback, iterate_context)
@@ -407,6 +409,7 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
     b: TextLayout = ast.b
 
     iterate_context = []
+
     def callback(value):
         nonlocal iterate_context
         scope: List[QualType] = filter_walk_scope(iterate_context)
@@ -414,14 +417,15 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
         if isinstance(value, GenTuStruct):
             if hasattr(value, "isOrgType"):
                 passes.append(pybind_org_id(ast, b, value))
-                
+
             else:
                 passes.append(pybind_nested_type(ast, value, scope))
 
         elif isinstance(value, GenTuEnum):
             passes.append(pybind_enum(ast, value, scope))
 
-    iterate_object_tree(GenTuNamespace("sem", get_space_annotated_types()), callback, iterate_context)
+    iterate_object_tree(GenTuNamespace("sem", get_space_annotated_types()), callback,
+                        iterate_context)
     return GenTuPass(
         b.stack([
             b.text("PYBIND11_MODULE(pyhaxorg, m) {"),
@@ -539,7 +543,9 @@ if __name__ == "__main__":
                 os.makedirs(directory)
                 print(f"Created dir for {path}")
 
-            newCode = t.toString(result, TextOptions())
+            opts = TextOptions()
+            opts.rightMargin = 160
+            newCode = t.toString(result, opts)
 
             if os.path.exists(path):
                 with open(path, "r") as f:

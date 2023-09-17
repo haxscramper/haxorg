@@ -3,7 +3,8 @@ from typing import *
 BlockId = NewType("BlockId", int)
 
 class TextOptions:
-    leftMargin: float
+    leftMargin: int
+    rightMargin: int
 
 class TextLayout:
     def dbg(self) -> None: ...
