@@ -51,5 +51,6 @@ include(target_lib.cmake)
 
 include(target_tests.cmake)
 include(target_cli.cmake)
+include(target_pyhaxorg.cmake)
 
 
