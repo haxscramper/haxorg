@@ -201,6 +201,14 @@ struct SemIdT : public SemId {
     static SemIdT<T> Nil() { return SemIdT<T>(SemId::Nil()); }
 };
 
+template <typename T>
+struct DefaultSemId {
+    SemIdT<T> id = SemIdT<T>::Nil();
+    DefaultSemId() {}
+    DefaultSemId(SemIdT<T> id) : id(id) {}
+    operator SemIdT<T>() const { return id; }
+};
+
 
 /// \brief Base class for all org nodes. Provides essential baseline API
 /// and information.

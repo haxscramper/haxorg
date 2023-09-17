@@ -30,6 +30,11 @@ def t_nest(name: Union[str, QualType]) -> QualType:
     result.__setattr__("isNested", True)
     return result
 
+def k_args(obj: Any, **kwargs) -> Any:
+    for key, value in kwargs.items():
+        obj.__setattr__(key, value)
+
+    return obj
 
 @beartype
 def t_vec(arg: QualType) -> QualType:
@@ -766,12 +771,12 @@ def get_types() -> Sequence[GenTuStruct]:
                             ),
                             bases=["DescribedLog"],
                             fields=[
-                                GenTuField(
+                                k_args(GenTuField(
                                     t_var(t_id("Time"), t_id("TimeRange")),
                                     "range",
                                     GenTuDoc("Start-end or only start period"),
                                     value="SemIdT<Time>::Nil()",
-                                )
+                                ), ignore=True)
                             ],
                         ),
                         GenTuStruct(
@@ -911,11 +916,11 @@ def get_types() -> Sequence[GenTuStruct]:
                                 "Time period kind -- not associated with point/range distinction"
                             ),
                         ),
-                        GenTuField(
+                        k_args(GenTuField(
                             t_var(t_id("Time"), t_id("TimeRange")),
                             "period",
                             GenTuDoc("Stored time point/range"),
-                        ),
+                        ), ignore=True),
                     ],
                     methods=[
                         GenTuFunction(

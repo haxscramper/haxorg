@@ -246,34 +246,8 @@ def pybind_method(ast: ASTBuilder, meth: GenTuFunction, Self: ParmVarParams,
     )
 
 
-def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> Tuple[BlockId, RecordParams]:
-    id_type = t_id(QualType(typ.name, Spaces=[QualType("sem")]))
-
-    proxy = RecordParams(name=typ.name + "Id",
-                         doc=DocParams(""),
-                         OneLine=True,
-                         TrailingLine=False,
-                         members=[
-                             RecordField(
-                                 ParmVarParams(id_type,
-                                               "id",
-                                               defArg=ast.CallStatic(id_type, "Nil")),
-                                 DocParams("")),
-                             MethodDeclParams(
-                                 FunctionParams(Name=typ.name + "Id",
-                                                doc=DocParams(""),
-                                                ResultTy=None,
-                                                Body=[])),
-                             MethodDeclParams(
-                                 FunctionParams(Name=typ.name + "Id",
-                                                doc=DocParams(""),
-                                                ResultTy=None,
-                                                Body=[],
-                                                InitList=[("id", b.text("id"))],
-                                                Args=[ParmVarParams(id_type, "id")]))
-                         ])
-
-    proxy_type = QualType(proxy.name)
+def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
+    id_type = QualType("DefaultSemId", [QualType(typ.name, Spaces=[QualType("sem")])], Spaces=[QualType("sem")])
 
     sub: List[BlockId] = []
 
@@ -287,9 +261,9 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> Tuple[Blo
         )],
     ))
 
-    id_self = ParmVarParams(proxy_type, "_self")
+    id_self = ParmVarParams(id_type, "_self")
     for field in typ.fields:
-        if field.isStatic:
+        if field.isStatic or hasattr(field, "ignore"):
             continue
 
         sub.append(ast.XCall(
@@ -324,12 +298,12 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> Tuple[Blo
         sub.append(pybind_method(ast, meth, Self=id_self, Body=[passcall]))
 
     sub.append(b.text(";"))
-    return (b.stack([
+    return b.stack([
         ast.Comment(["Binding for ID type"]),
         ast.XCall("pybind11::class_", [b.text("m"), ast.Literal(typ.name)],
-                  Params=[proxy_type]),
+                  Params=[id_type]),
         b.indent(2, b.stack(sub))
-    ]), proxy)
+    ])
 
 
 @beartype
@@ -363,8 +337,11 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct,
     sub: List[BlockId] = []
     id_self = ParmVarParams(QualType(value.name, Spaces=scope), "value")
     for field in value.fields:
-        if field.isStatic:
+        if field.isStatic or hasattr(field, "ignore"):
             continue
+
+        if field.name == "period":
+            pprint(hasattr(field, "ignore"))
 
         sub.append(pybind_property(ast, field, id_self))
 
@@ -426,17 +403,13 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
 
     iterate_context: List[Any] = []
 
-    prefix_defs: List[RecordParams] = []
-
     def callback(value: Any) -> None:
         nonlocal iterate_context
         scope: List[QualType] = filter_walk_scope(iterate_context)
 
         if isinstance(value, GenTuStruct):
             if hasattr(value, "isOrgType"):
-                (nest_id, proxy) = pybind_org_id(ast, b, value)
-                prefix_defs.append(proxy)
-                passes.append(nest_id)
+                passes.append(pybind_org_id(ast, b, value))
 
             else:
                 passes.append(pybind_nested_type(ast, value, scope))
@@ -448,7 +421,6 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
                         iterate_context)
     return GenTuPass(
         b.stack([
-            b.stack([ast.Record(Rec) for Rec in prefix_defs]),
             b.text("PYBIND11_MODULE(pyhaxorg, m) {"),
             b.indent(2, b.stack(passes)),
             b.text("}")
