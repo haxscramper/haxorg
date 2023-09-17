@@ -207,39 +207,16 @@ def in_sem(typ: QualType) -> QualType:
 @beartype
 def pybind_property(ast: ASTBuilder,
                     field: GenTuField,
-                    Self: ParmVarParams,
-                    PtrType: bool = False) -> BlockId:
+                    Self: ParmVarParams) -> BlockId:
     b = ast.b
-    if PtrType:
-        return ast.XCall(
-            ".def_property",
-            [
-                ast.Literal(field.name),
-                ast.Lambda(
-                    LambdaParams(
-                        ResultTy=field.type,
-                        Body=[b.text(f"return {Self.name}->{field.name};")],
-                        Args=[Self],
-                    )),
-                ast.Lambda(
-                    LambdaParams(
-                        ResultTy=None,
-                        Body=[b.text(f"{Self.name}->{field.name} = {field.name};")],
-                        Args=[Self, ParmVarParams(field.type, field.name)],
-                    )),
-            ],
-            Line=False,
-        )
-
-    else:
-        return ast.XCall(".def_readwrite", [
-            ast.Literal(field.name),
-            b.line([b.text("&"),
-                    ast.Type(Self.type),
-                    b.text("::"),
-                    b.text(field.name)]),
-            *([ast.Literal(field.doc.brief)] if field.doc.brief else [])
-        ])
+    return ast.XCall(".def_readwrite", [
+        ast.Literal(field.name),
+        b.line([b.text("&"),
+                ast.Type(Self.type),
+                b.text("::"),
+                b.text(field.name)]),
+        *([ast.Literal(field.doc.brief)] if field.doc.brief else [])
+    ])
 
 
 @beartype
@@ -284,7 +261,14 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
                                  FunctionParams(Name=typ.name + "Id",
                                                 doc=DocParams(""),
                                                 ResultTy=None,
-                                                Body=[]))
+                                                Body=[])),
+                             MethodDeclParams(
+                                 FunctionParams(Name=typ.name + "Id",
+                                                doc=DocParams(""),
+                                                ResultTy=None,
+                                                Body=[],
+                                                InitList=[("id", b.text("id"))],
+                                                Args=[ParmVarParams(id_type, "id")]))
                          ])
 
     proxy_type = QualType(proxy.name)
@@ -305,13 +289,32 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
     for field in typ.fields:
         if field.isStatic:
             continue
-        sub.append(pybind_property(ast, field, id_self, PtrType=True))
+
+        sub.append(ast.XCall(
+            ".def_property",
+            [
+                ast.Literal(field.name),
+                ast.Lambda(
+                    LambdaParams(
+                        ResultTy=field.type,
+                        Body=[b.text(f"return {id_self.name}.id->{field.name};")],
+                        Args=[id_self],
+                    )),
+                ast.Lambda(
+                    LambdaParams(
+                        ResultTy=None,
+                        Body=[b.text(f"{id_self.name}.id->{field.name} = {field.name};")],
+                        Args=[id_self, ParmVarParams(field.type, field.name)],
+                    )),
+            ],
+            Line=False,
+        ))
 
     for meth in typ.methods:
         if meth.isStatic or meth.isPureVirtual:
             continue
 
-        passcall = ast.XCallPtr(b.text(id_self.name), meth.name,
+        passcall = ast.XCallPtr(ast.Dot(b.text(id_self.name), b.text("id")), meth.name,
                                 [b.text(arg.name) for arg in meth.arguments])
         if meth.result and meth.result != "void":
             passcall = ast.Return(passcall)

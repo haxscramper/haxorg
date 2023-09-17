@@ -135,6 +135,7 @@ class FunctionParams:
     Storage: StorageClass = StorageClass.None_
     Body: Optional[List[BlockId]] = None
     Inline: bool = False
+    InitList: List[Tuple[str, BlockId]] = field(default_factory=list)
 
 
 @beartype
@@ -579,8 +580,7 @@ class ASTBuilder:
             self.Type(p.type),
             self.string(" "),
             self.string("const " if p.isConst else ""),
-            self.string(p.name),
-            *([self.string(" = "), p.defArg] if p.defArg else []),
+            self.string(p.name), *([self.string(" = "), p.defArg] if p.defArg else []),
             self.string(";")
         ])
 
@@ -653,8 +653,9 @@ class ASTBuilder:
             m.Params.Template,
             self.b.stack([
                 self.b.line([
-                    self.Type(m.Params.ResultTy),
-                    self.string(" "),
+                    *([] if m.Params.ResultTy is None else
+                      [self.Type(m.Params.ResultTy),
+                       self.string(" ")]),
                     self.Type(m.Class),
                     self.string("::"),
                     self.string(m.Params.Name),
@@ -669,8 +670,10 @@ class ASTBuilder:
         head = self.b.line([
             self.string("static " if method.isStatic else ""),
             self.string("virtual " if method.isVirtual else ""),
-            *([] if method.Params.ResultTy is None else [self.Type(method.Params.ResultTy),
-            self.string(" ")]),
+            *([] if method.Params.ResultTy is None else [
+                self.Type(method.Params.ResultTy),
+                self.string(" "),
+            ]),
             self.string(method.Params.Name),
             self.Arguments(method.Params),
             self.string(" const" if method.isConst else ""),
@@ -680,7 +683,7 @@ class ASTBuilder:
         return self.WithAccess(
             self.WithDoc(
                 self.b.line([head, self.string(";")]) if method.Params.Body is None else
-                self.block(head, method.Params.Body, True), method.Params.doc),
+                self.block(head, method.Params.Body), method.Params.doc),
             method.access)
 
     def Record(self, params: RecordParams) -> BlockId:
@@ -773,7 +776,6 @@ class ASTBuilder:
             ]),
             self.b.indent(2, fields),
             self.string("};"),
-            self.string("")
         ])
 
     def Capture(self, p: LambdaCapture) -> BlockId:
@@ -814,6 +816,18 @@ class ASTBuilder:
             self.Arguments(p)
         ])
 
+        if p.InitList:
+            self.b.add_at(head, self.string(" : "))
+            self.b.add_at(
+                head,
+                self.csv([
+                    self.b.line([
+                        self.string(item[0]),
+                        self.string("("), item[1],
+                        self.string(")")
+                    ]) for item in p.InitList
+                ]))
+
         return self.WithTemplate(
             p.Template,
             self.block(head, p.Body, True)
@@ -839,6 +853,9 @@ class ASTBuilder:
             self.string((" const" if type_.isConst else "") +
                         ("*" if type_.isPtr else "") + ("&" if type_.isRef else ""))
         ])
+
+    def Dot(self, lhs: BlockId, rhs: BlockId) -> BlockId:
+        return self.b.line([lhs, self.string("."), rhs])
 
     def Doc(self, doc: DocParams) -> BlockId:
         content: List[str] = []
@@ -872,8 +889,7 @@ class ASTBuilder:
         return self.b.line([
             self.Type(p.type),
             self.string(" "),
-            self.string(p.name),
-            *([self.string(" = "), p.defArg] if p.defArg else [])
+            self.string(p.name), *([self.string(" = "), p.defArg] if p.defArg else [])
         ])
 
     def Template(

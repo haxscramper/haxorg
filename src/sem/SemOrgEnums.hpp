@@ -70,7 +70,6 @@ enum class OrgSemPlacement : short int {
   /// \brief Toplevel document
   DocBody,
 };
-
 template <>
 struct enum_serde<OrgSemPlacement> {
   static Opt<OrgSemPlacement> from_string(QString value);
@@ -92,7 +91,6 @@ enum class OrgHorizontalDirection : short int {
   /// \brief Align to the center
   ohdCenter,
 };
-
 template <>
 struct enum_serde<OrgHorizontalDirection> {
   static Opt<OrgHorizontalDirection> from_string(QString value);
@@ -114,7 +112,6 @@ enum class OrgVerticalDirection : short int {
   /// \brief Bottom
   ovdBottom,
 };
-
 template <>
 struct enum_serde<OrgVerticalDirection> {
   static Opt<OrgVerticalDirection> from_string(QString value);
@@ -188,7 +185,6 @@ enum class OrgSpecName : short int {
   MainSetRule,
   SubSetRule,
 };
-
 template <>
 struct enum_serde<OrgSpecName> {
   static Opt<OrgSpecName> from_string(QString value);
@@ -495,7 +491,6 @@ enum class OrgNodeKind : short int {
   /// \brief `<<TARGET>>`
   Target,
 };
-
 template <>
 struct enum_serde<OrgNodeKind> {
   static Opt<OrgNodeKind> from_string(QString value);
@@ -530,7 +525,6 @@ enum class OrgTextContext : short int {
   otcMonospaceInline,
   otcMonospaceBlock,
 };
-
 template <>
 struct enum_serde<OrgTextContext> {
   static Opt<OrgTextContext> from_string(QString value);
@@ -636,7 +630,6 @@ enum class OrgBigIdentKind : short int {
   StructElse,
   StructWhile,
 };
-
 template <>
 struct enum_serde<OrgBigIdentKind> {
   static Opt<OrgBigIdentKind> from_string(QString value);
@@ -978,7 +971,6 @@ enum class OrgTokenKind : short int {
   /// \brief Code before noweb placeholder. Requires separate token to handle `##<<commented>>` - prefix comment should be duplicated for each line of the placeholder expansion.
   TextBlock,
 };
-
 template <>
 struct enum_serde<OrgTokenKind> {
   static Opt<OrgTokenKind> from_string(QString value);
@@ -1068,7 +1060,6 @@ enum class OrgCommandKind : short int {
   /// \brief `#+tblfm:`
   TableFormula,
 };
-
 template <>
 struct enum_serde<OrgCommandKind> {
   static Opt<OrgCommandKind> from_string(QString value);
@@ -1109,7 +1100,6 @@ enum class OrgPropertyKind : short int {
   OtherProperty,
   Id,
 };
-
 template <>
 struct enum_serde<OrgPropertyKind> {
   static Opt<OrgPropertyKind> from_string(QString value);
@@ -1126,7 +1116,6 @@ enum class OrgUnnumberedKind : short int {
   True,
   False,
 };
-
 template <>
 struct enum_serde<OrgUnnumberedKind> {
   static Opt<OrgUnnumberedKind> from_string(QString value);
@@ -1145,7 +1134,6 @@ enum class OrgBlockLexerState : short int {
   Ended,
   Complete,
 };
-
 template <>
 struct enum_serde<OrgBlockLexerState> {
   static Opt<OrgBlockLexerState> from_string(QString value);
@@ -1211,7 +1199,6 @@ enum class OrgSemKind : short int {
   DocumentOptions,
   DocumentGroup,
 };
-
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(QString value);

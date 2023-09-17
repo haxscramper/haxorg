@@ -35,7 +35,6 @@ enum class NlpDepKind : short int {
   ref,
   xcomp,
 };
-
 template <>
 struct enum_serde<NlpDepKind> {
   static Opt<NlpDepKind> from_string(QString value);
@@ -141,7 +140,6 @@ enum class NlpPosTag : short int {
   WRB,
   X,
 };
-
 template <>
 struct enum_serde<NlpPosTag> {
   static Opt<NlpPosTag> from_string(QString value);

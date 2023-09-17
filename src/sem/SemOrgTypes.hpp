@@ -47,7 +47,6 @@ struct StmtList : public Org {
   static OrgSemKind const staticKind;
   static sem::SemIdT<StmtList> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::StmtList; }
-
 };
 
 /// \brief Node without content
@@ -64,7 +63,6 @@ struct Empty : public Org {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Empty> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Empty; }
-
 };
 
 /// \brief Table row
@@ -81,7 +79,6 @@ struct Row : public Org {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Row> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Row; }
-
 };
 
 /// \brief Table
@@ -101,7 +98,6 @@ struct Table : public Stmt {
   Vec<sem::SemIdT<sem::Row>> rows = {};
   static sem::SemIdT<Table> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Table; }
-
 };
 
 /// \brief Single or nested inline hash-tag
@@ -125,7 +121,6 @@ struct HashTag : public Inline {
   Vec<sem::SemIdT<sem::HashTag>> subtags = {};
   static sem::SemIdT<HashTag> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::HashTag; }
-
   /// \brief Check if list of tag names is a prefix for either of the nested hash tags in this one
   bool prefixMatch(CR<Vec<Str>> prefix) const;
 };
@@ -152,7 +147,6 @@ struct Footnote : public Inline {
   Opt<sem::SemId> definition = std::nullopt;
   static sem::SemIdT<Footnote> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Footnote; }
-
 };
 
 /// \brief Completion status of the subtree list element
@@ -178,7 +172,6 @@ struct Completion : public Inline {
   bool isPercent = false;
   static sem::SemIdT<Completion> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Completion; }
-
 };
 
 /// \brief Top-level or inline paragraph
@@ -196,10 +189,8 @@ struct Paragraph : public Stmt {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Paragraph> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Paragraph; }
-
   /// \brief Check if paragraph defines footnote
   bool isFootnoteDefinition() const { return !subnodes.empty() && at(0)->is(OrgSemKind::Footnote); }
-
 };
 
 /// \brief Base class for branch of formatting node classes
@@ -222,7 +213,6 @@ struct Center : public Format {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Center> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Center; }
-
 };
 
 /// \brief Base class for block or line commands
@@ -266,7 +256,6 @@ struct Caption : public Attached {
   sem::SemIdT<sem::Paragraph> text = SemIdT<Paragraph>::Nil();
   static sem::SemIdT<Caption> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Caption; }
-
 };
 
 /// \brief Multiple attachable commands will get grouped into this element unless it is possible to attached them to some adjacent block command
@@ -283,7 +272,6 @@ struct CommandGroup : public Stmt {
   static OrgSemKind const staticKind;
   static sem::SemIdT<CommandGroup> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::CommandGroup; }
-
 };
 
 /// \brief Block command type
@@ -309,7 +297,6 @@ struct Quote : public Org {
   sem::SemIdT<sem::Paragraph> text = SemIdT<Paragraph>::Nil();
   static sem::SemIdT<Quote> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Quote; }
-
 };
 
 /// \brief Example block
@@ -326,7 +313,6 @@ struct Example : public Block {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Example> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Example; }
-
 };
 
 /// \brief Additional arguments for command blocks
@@ -350,7 +336,6 @@ struct CmdArguments : public Org {
   UnorderedMap<Str, sem::SemIdT<sem::CmdArgument>> named;
   static sem::SemIdT<CmdArguments> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArguments; }
-
   /// \brief Remove argument value from the map and return it if present
   ///
   /// Some argument values can be processed directly during convert, others will be mapped in respective exporter backends. This is a convenience method to remove things during convert stage
@@ -380,7 +365,6 @@ struct CmdArgument : public Org {
   Str value;
   static sem::SemIdT<CmdArgument> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::CmdArgument; }
-
   /// \brief Parse argument as integer value
   Opt<int> getInt() const;
   /// \brief Get argument as bool
@@ -401,7 +385,6 @@ struct Export : public Block {
     /// \brief Multiple lines of export
     Block,
   };
-
   BOOST_DESCRIBE_NESTED_ENUM(Format, Inline, Line, Block)
   BOOST_DESCRIBE_CLASS(Export,
                        (Block),
@@ -429,7 +412,6 @@ struct Export : public Block {
   Str content;
   static sem::SemIdT<Export> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Export; }
-
 };
 
 /// \brief Block of text with admonition tag: 'note',', 'warning','
@@ -446,7 +428,6 @@ struct AdmonitionBlock : public Block {
   static OrgSemKind const staticKind;
   static sem::SemIdT<AdmonitionBlock> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::AdmonitionBlock; }
-
 };
 
 /// \brief Base class for all code blocks
@@ -498,7 +479,6 @@ struct Code : public Block {
     /// \brief Remove old result, replace with new value
     Replace,
   };
-
   BOOST_DESCRIBE_NESTED_ENUM(Results, Replace)
   /// \brief What part of the code block should be visible in export
   enum class Exports : short int {
@@ -511,7 +491,6 @@ struct Code : public Block {
     /// \brief Show only evaluation results
     Results,
   };
-
   BOOST_DESCRIBE_NESTED_ENUM(Exports, None, Both, Code, Results)
   BOOST_DESCRIBE_CLASS(Code,
                        (Block),
@@ -551,7 +530,6 @@ struct Code : public Block {
   bool tangle = false;
   static sem::SemIdT<Code> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Code; }
-
 };
 
 /// \brief Single static or dynamic timestamp (active or inactive)
@@ -571,7 +549,6 @@ struct Time : public Org {
       /// \brief Repeat task on the same day next week/month/year
       SameDay,
     };
-
     BOOST_DESCRIBE_NESTED_ENUM(Mode, None, Exact, FirstMatch, SameDay)
     /// \brief Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well
     enum class Period : short int {
@@ -582,7 +559,6 @@ struct Time : public Org {
       Hour,
       Minute,
     };
-
     BOOST_DESCRIBE_NESTED_ENUM(Period, Year, Month, Week, Day, Hour, Minute)
     BOOST_DESCRIBE_CLASS(Repeat, (), (), (), (mode, period, count))
     /// \brief mode
@@ -622,7 +598,6 @@ struct Time : public Org {
   bool isActive = false;
   static sem::SemIdT<Time> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
-
 };
 
 /// \brief Range of time delimited by two points
@@ -645,7 +620,6 @@ struct TimeRange : public Org {
   sem::SemIdT<sem::Time> to = SemIdT<Time>::Nil();
   static sem::SemIdT<TimeRange> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::TimeRange; }
-
 };
 
 /// \brief Inline macro invocation
@@ -668,7 +642,6 @@ struct Macro : public Org {
   Vec<Str> arguments = {};
   static sem::SemIdT<Macro> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Macro; }
-
 };
 
 /// \brief Text symbol or symbol command
@@ -703,7 +676,6 @@ struct Symbol : public Org {
   Vec<sem::SemId> positional;
   static sem::SemIdT<Symbol> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Symbol; }
-
 };
 
 /// \brief Single subtree log entry
@@ -724,7 +696,6 @@ struct SubtreeLog : public Org {
       Removed,
       Changed,
     };
-
     BOOST_DESCRIBE_NESTED_ENUM(Action, Added, Removed, Changed)
     BOOST_DESCRIBE_CLASS(Priority, (DescribedLog), (), (), (oldPriority, newPriority, on))
     /// \brief Previous priority for change and removal
@@ -793,7 +764,6 @@ struct SubtreeLog : public Org {
   static OrgSemKind const staticKind;
   static sem::SemIdT<SubtreeLog> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
-
   void setDescription(sem::SemIdT<sem::StmtList> desc);
 };
 
@@ -817,7 +787,6 @@ struct Subtree : public Org {
       /// \brief Last repeat time of the recurring tasks
       Repeated,
     };
-
     BOOST_DESCRIBE_NESTED_ENUM(Kind, Clocked, Scheduled, Titled, Deadline, Created, Repeated)
     Period(CR<Variant<SemIdT<Time>, SemIdT<TimeRange>>> period, Kind kind) : period(period), kind(kind) {}
     BOOST_DESCRIBE_CLASS(Period,
@@ -834,10 +803,8 @@ struct Subtree : public Org {
     Variant<sem::SemIdT<sem::Time>, sem::SemIdT<sem::TimeRange>> period;
     /// \brief Get associated time point
     sem::SemIdT<sem::Time> getTime() { return std::get<SemIdT<Time>>(period); }
-
     /// \brief Get associated time period
     sem::SemIdT<sem::Time> getTimeRange() { return std::get<SemIdT<TimeRange>>(period); }
-
   };
 
   /// \brief Single subtree property
@@ -847,14 +814,12 @@ struct Subtree : public Org {
       Add,
       Subtract,
     };
-
     BOOST_DESCRIBE_NESTED_ENUM(SetMode, Override, Add, Subtract)
     enum class InheritanceMode : short int {
       ThisAndSub,
       OnlyThis,
       OnlySub,
     };
-
     BOOST_DESCRIBE_NESTED_ENUM(InheritanceMode, ThisAndSub, OnlyThis, OnlySub)
     struct Nonblocking {
       BOOST_DESCRIBE_CLASS(Nonblocking, (), (), (), (isBlocking))
@@ -908,7 +873,6 @@ struct Subtree : public Org {
         Content,
         All,
       };
-
       BOOST_DESCRIBE_NESTED_ENUM(Level, Folded, Children, Content, All)
       BOOST_DESCRIBE_CLASS(Visibility, (), (), (), (level))
       Level level;
@@ -999,7 +963,6 @@ struct Subtree : public Org {
   Opt<sem::SemIdT<sem::Time>> scheduled = std::nullopt;
   static sem::SemIdT<Subtree> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
-
   Vec<Period> getTimePeriods(IntSet<Period::Kind> kinds) const;
   Vec<Property> getProperties(sem::Subtree::Property::Kind kind, CR<Str> subkind = "") const;
   Opt<Property> getProperty(sem::Subtree::Property::Kind kind, CR<Str> subkind = "") const;
@@ -1027,7 +990,6 @@ struct InlineMath : public LatexBody {
   static OrgSemKind const staticKind;
   static sem::SemIdT<InlineMath> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::InlineMath; }
-
 };
 
 /// \brief Final node
@@ -1052,7 +1014,6 @@ struct Escaped : public Leaf {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Escaped> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Escaped; }
-
 };
 
 /// \brief \n newline
@@ -1069,7 +1030,6 @@ struct Newline : public Leaf {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Newline> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Newline; }
-
 };
 
 /// \brief ' "space",
@@ -1086,7 +1046,6 @@ struct Space : public Leaf {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Space> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Space; }
-
 };
 
 /// \brief word
@@ -1103,7 +1062,6 @@ struct Word : public Leaf {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Word> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Word; }
-
 };
 
 /// \brief @mention
@@ -1120,7 +1078,6 @@ struct AtMention : public Leaf {
   static OrgSemKind const staticKind;
   static sem::SemIdT<AtMention> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::AtMention; }
-
 };
 
 struct RawText : public Leaf {
@@ -1136,7 +1093,6 @@ struct RawText : public Leaf {
   static OrgSemKind const staticKind;
   static sem::SemIdT<RawText> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::RawText; }
-
 };
 
 struct Punctuation : public Leaf {
@@ -1152,7 +1108,6 @@ struct Punctuation : public Leaf {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Punctuation> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Punctuation; }
-
 };
 
 struct Placeholder : public Leaf {
@@ -1168,7 +1123,6 @@ struct Placeholder : public Leaf {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Placeholder> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Placeholder; }
-
 };
 
 struct BigIdent : public Leaf {
@@ -1184,7 +1138,6 @@ struct BigIdent : public Leaf {
   static OrgSemKind const staticKind;
   static sem::SemIdT<BigIdent> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::BigIdent; }
-
 };
 
 struct Markup : public Org {
@@ -1205,7 +1158,6 @@ struct Bold : public Markup {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Bold> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Bold; }
-
 };
 
 struct Underline : public Markup {
@@ -1221,7 +1173,6 @@ struct Underline : public Markup {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Underline> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Underline; }
-
 };
 
 struct Monospace : public Markup {
@@ -1237,7 +1188,6 @@ struct Monospace : public Markup {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Monospace> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Monospace; }
-
 };
 
 struct MarkQuote : public Markup {
@@ -1253,7 +1203,6 @@ struct MarkQuote : public Markup {
   static OrgSemKind const staticKind;
   static sem::SemIdT<MarkQuote> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::MarkQuote; }
-
 };
 
 struct Verbatim : public Markup {
@@ -1269,7 +1218,6 @@ struct Verbatim : public Markup {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Verbatim> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Verbatim; }
-
 };
 
 struct Italic : public Markup {
@@ -1285,7 +1233,6 @@ struct Italic : public Markup {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Italic> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Italic; }
-
 };
 
 struct Strike : public Markup {
@@ -1301,7 +1248,6 @@ struct Strike : public Markup {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Strike> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Strike; }
-
 };
 
 struct Par : public Markup {
@@ -1317,7 +1263,6 @@ struct Par : public Markup {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Par> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Par; }
-
 };
 
 struct List : public Org {
@@ -1334,7 +1279,6 @@ struct List : public Org {
   static OrgSemKind const staticKind;
   static sem::SemIdT<List> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::List; }
-
   bool isDescriptionList() const;
 };
 
@@ -1345,7 +1289,6 @@ struct ListItem : public Org {
     Done,
     Empty,
   };
-
   BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty)
   BOOST_DESCRIBE_CLASS(ListItem,
                        (Org),
@@ -1363,9 +1306,7 @@ struct ListItem : public Org {
   Opt<sem::SemIdT<sem::Paragraph>> header = std::nullopt;
   static sem::SemIdT<ListItem> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::ListItem; }
-
   bool isDescriptionItem() const { return header.has_value(); }
-
 };
 
 struct Link : public Org {
@@ -1414,7 +1355,6 @@ struct Link : public Org {
   Opt<sem::SemIdT<sem::Paragraph>> description = std::nullopt;
   static sem::SemIdT<Link> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
-
   Opt<sem::SemId> resolve(CR<sem::Document> doc) const;
   Opt<sem::SemId> resolve() const;
 };
@@ -1458,7 +1398,6 @@ struct Document : public Org {
   Opt<Str> exportFileName = std::nullopt;
   static sem::SemIdT<Document> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Document; }
-
   Opt<sem::SemId> resolve(CR<sem::SemId> node) const;
   Opt<sem::SemIdT<sem::Subtree>> getSubtree(CR<Str> id) const;
   Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, CR<Str> subKind = "") const;
@@ -1478,7 +1417,6 @@ struct ParseError : public Org {
   static OrgSemKind const staticKind;
   static sem::SemIdT<ParseError> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::ParseError; }
-
 };
 
 struct FileTarget : public Org {
@@ -1506,7 +1444,6 @@ struct FileTarget : public Org {
   Opt<Str> regexp = std::nullopt;
   static sem::SemIdT<FileTarget> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::FileTarget; }
-
 };
 
 struct TextSeparator : public Org {
@@ -1522,7 +1459,6 @@ struct TextSeparator : public Org {
   static OrgSemKind const staticKind;
   static sem::SemIdT<TextSeparator> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::TextSeparator; }
-
 };
 
 struct Include : public Org {
@@ -1558,7 +1494,6 @@ struct Include : public Org {
   static OrgSemKind const staticKind;
   static sem::SemIdT<Include> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Include; }
-
 };
 
 struct DocumentOptions : public Org {
@@ -1569,7 +1504,6 @@ struct DocumentOptions : public Org {
     Ignore,
     Mark,
   };
-
   BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Raise, Ignore, Mark)
   enum class Visibility : short int {
     Overview,
@@ -1581,7 +1515,6 @@ struct DocumentOptions : public Org {
     Show5Levels,
     ShowEverything,
   };
-
   BOOST_DESCRIBE_NESTED_ENUM(Visibility, Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything)
   BOOST_DESCRIBE_CLASS(DocumentOptions,
                        (Org),
@@ -1628,7 +1561,6 @@ struct DocumentOptions : public Org {
   bool exportWithCreator = false;
   static sem::SemIdT<DocumentOptions> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
-
   Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, CR<Str> subKind = "") const;
   Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, CR<Str> subKind = "") const;
 };
@@ -1646,7 +1578,6 @@ struct DocumentGroup : public Org {
   static OrgSemKind const staticKind;
   static sem::SemIdT<DocumentGroup> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentGroup; }
-
 };
 
 }
