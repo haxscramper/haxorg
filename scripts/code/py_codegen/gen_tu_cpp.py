@@ -121,14 +121,14 @@ class GenTuTypeGroup:
 @dataclass
 class GenTuNamespace:
     name: str
-    entries: List[GenTuEntry]
+    entries: Sequence[GenTuEntry]
 
 
 @beartype
 @dataclass
 class GenTu:
     path: str
-    entries: List[GenTuEntry]
+    entries: Sequence[GenTuEntry]
 
 
 @beartype

@@ -246,11 +246,13 @@ def pybind_method(ast: ASTBuilder, meth: GenTuFunction, Self: ParmVarParams,
     )
 
 
-def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
+def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> Tuple[BlockId, RecordParams]:
     id_type = t_id(QualType(typ.name, Spaces=[QualType("sem")]))
 
     proxy = RecordParams(name=typ.name + "Id",
                          doc=DocParams(""),
+                         OneLine=True,
+                         TrailingLine=False,
                          members=[
                              RecordField(
                                  ParmVarParams(id_type,
@@ -322,13 +324,12 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
         sub.append(pybind_method(ast, meth, Self=id_self, Body=[passcall]))
 
     sub.append(b.text(";"))
-    return b.stack([
+    return (b.stack([
         ast.Comment(["Binding for ID type"]),
-        ast.Record(proxy),
         ast.XCall("pybind11::class_", [b.text("m"), ast.Literal(typ.name)],
                   Params=[proxy_type]),
         b.indent(2, b.stack(sub))
-    ])
+    ]), proxy)
 
 
 @beartype
@@ -425,13 +426,17 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
 
     iterate_context: List[Any] = []
 
+    prefix_defs: List[RecordParams] = []
+
     def callback(value: Any) -> None:
         nonlocal iterate_context
         scope: List[QualType] = filter_walk_scope(iterate_context)
 
         if isinstance(value, GenTuStruct):
             if hasattr(value, "isOrgType"):
-                passes.append(pybind_org_id(ast, b, value))
+                (nest_id, proxy) = pybind_org_id(ast, b, value)
+                prefix_defs.append(proxy)
+                passes.append(nest_id)
 
             else:
                 passes.append(pybind_nested_type(ast, value, scope))
@@ -443,6 +448,7 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
                         iterate_context)
     return GenTuPass(
         b.stack([
+            b.stack([ast.Record(Rec) for Rec in prefix_defs]),
             b.text("PYBIND11_MODULE(pyhaxorg, m) {"),
             b.indent(2, b.stack(passes)),
             b.text("}")

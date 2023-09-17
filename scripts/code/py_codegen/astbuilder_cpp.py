@@ -260,6 +260,8 @@ class RecordParams:
     nested: List[RecordNested] = field(default_factory=list)
     Template: TemplateParams = field(default_factory=TemplateParams)
     IsDefinition: bool = True
+    TrailingLine: bool = True
+    OneLine: bool = False
 
 
 @beartype
@@ -726,21 +728,28 @@ class ASTBuilder:
             self.string(" {" if params.IsDefinition else "")
         ])
 
+        def cond(args: List[BlockId]) -> BlockId:
+            if params.OneLine:
+                return self.b.join(args, self.b.text(" "))
+
+            else:
+                return self.b.stack(args)
+
         return self.WithTemplate(
             params.Template,
-            self.b.stack([
+            cond([
                 self.Doc(params.doc),
                 head,
-                self.b.indent(2, self.b.stack(content)),
+                self.b.indent(0 if params.OneLine else 2, cond(content)),
                 self.string("};" if params.IsDefinition else ";"),
-                self.string(""),
-            ]) if content else self.b.stack([
+                *([self.string("")] if params.TrailingLine else []),
+            ]) if content else cond([
                 self.Doc(params.doc),
                 self.b.line([
                     head,
                     self.string("};" if params.IsDefinition else ";"),
                 ]),
-                self.string("")
+                *([self.string("")] if params.TrailingLine else [])
             ]))
 
     def WithAccess(self, content: BlockId, spec: AccessSpecifier) -> BlockId:
