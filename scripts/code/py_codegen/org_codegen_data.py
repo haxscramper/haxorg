@@ -61,7 +61,9 @@ def t_osk() -> QualType:
 
 @beartype
 def t_cr(arg: QualType) -> QualType:
-    return QualType("CR", [arg])
+    arg.isRef = True
+    arg.isConst = True
+    return arg
 
 
 def t_var(*args) -> QualType:

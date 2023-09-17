@@ -112,7 +112,7 @@ struct HashTag : public Inline {
                         subtags,
                         (sem::SemIdT<HashTag>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (bool(CR<Vec<Str>>) const) prefixMatch))
+                        (bool(Vec<Str> const&) const) prefixMatch))
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Main part of the tag
@@ -122,7 +122,7 @@ struct HashTag : public Inline {
   static sem::SemIdT<HashTag> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::HashTag; }
   /// \brief Check if list of tag names is a prefix for either of the nested hash tags in this one
-  bool prefixMatch(CR<Vec<Str>> prefix) const;
+  bool prefixMatch(Vec<Str> const& prefix) const;
 };
 
 /// \brief Inline and regular footnote definition
@@ -932,10 +932,10 @@ struct Subtree : public Org {
                         (sem::SemIdT<Subtree>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
                         (Vec<Period>(IntSet<Period::Kind>) const) getTimePeriods,
-                        (Vec<Property>(sem::Subtree::Property::Kind, CR<Str>) const) getProperties,
-                        (Opt<Property>(sem::Subtree::Property::Kind, CR<Str>) const) getProperty,
-                        (Vec<Property>(Property::Kind, CR<Str>) const) getContextualProperties,
-                        (Opt<Property>(Property::Kind, CR<Str>) const) getContextualProperty))
+                        (Vec<Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
+                        (Opt<Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty,
+                        (Vec<Property>(Property::Kind, Str const&) const) getContextualProperties,
+                        (Opt<Property>(Property::Kind, Str const&) const) getContextualProperty))
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Subtree level
@@ -964,10 +964,10 @@ struct Subtree : public Org {
   static sem::SemIdT<Subtree> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
   Vec<Period> getTimePeriods(IntSet<Period::Kind> kinds) const;
-  Vec<Property> getProperties(sem::Subtree::Property::Kind kind, CR<Str> subkind = "") const;
-  Opt<Property> getProperty(sem::Subtree::Property::Kind kind, CR<Str> subkind = "") const;
-  Vec<Property> getContextualProperties(Property::Kind kind, CR<Str> subkind = "") const;
-  Opt<Property> getContextualProperty(Property::Kind kind, CR<Str> subkind = "") const;
+  Vec<Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
+  Opt<Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
+  Vec<Property> getContextualProperties(Property::Kind kind, Str const& subkind = "") const;
+  Opt<Property> getContextualProperty(Property::Kind kind, Str const& subkind = "") const;
 };
 
 /// \brief Latex code body
@@ -1347,7 +1347,7 @@ struct Link : public Org {
                         data,
                         (sem::SemIdT<Link>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Opt<sem::SemId>(CR<sem::Document>) const) resolve,
+                        (Opt<sem::SemId>(sem::Document const&) const) resolve,
                         (Opt<sem::SemId>() const) resolve,
                         (Kind() const) getLinkKind))
   /// \brief Document
@@ -1355,7 +1355,7 @@ struct Link : public Org {
   Opt<sem::SemIdT<sem::Paragraph>> description = std::nullopt;
   static sem::SemIdT<Link> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
-  Opt<sem::SemId> resolve(CR<sem::Document> doc) const;
+  Opt<sem::SemId> resolve(sem::Document const& doc) const;
   Opt<sem::SemId> resolve() const;
 };
 
@@ -1379,10 +1379,10 @@ struct Document : public Org {
                         exportFileName,
                         (sem::SemIdT<Document>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Opt<sem::SemId>(CR<sem::SemId>) const) resolve,
-                        (Opt<sem::SemIdT<sem::Subtree>>(CR<Str>) const) getSubtree,
-                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, CR<Str>) const) getProperties,
-                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, CR<Str>) const) getProperty))
+                        (Opt<sem::SemId>(sem::SemId const&) const) resolve,
+                        (Opt<sem::SemIdT<sem::Subtree>>(Str const&) const) getSubtree,
+                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
+                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty))
   /// \brief Document
   static OrgSemKind const staticKind;
   UnorderedMap<Str, sem::SemId> idTable;
@@ -1398,10 +1398,10 @@ struct Document : public Org {
   Opt<Str> exportFileName = std::nullopt;
   static sem::SemIdT<Document> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Document; }
-  Opt<sem::SemId> resolve(CR<sem::SemId> node) const;
-  Opt<sem::SemIdT<sem::Subtree>> getSubtree(CR<Str> id) const;
-  Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, CR<Str> subKind = "") const;
-  Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, CR<Str> subKind = "") const;
+  Opt<sem::SemId> resolve(sem::SemId const& node) const;
+  Opt<sem::SemIdT<sem::Subtree>> getSubtree(Str const& id) const;
+  Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
+  Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
 };
 
 struct ParseError : public Org {
@@ -1539,8 +1539,8 @@ struct DocumentOptions : public Org {
                         exportWithCreator,
                         (sem::SemIdT<DocumentOptions>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, CR<Str>) const) getProperties,
-                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, CR<Str>) const) getProperty))
+                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
+                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty))
   /// \brief Document
   static OrgSemKind const staticKind;
   BrokenLinks brokenLinks = BrokenLinks::Mark;
@@ -1561,8 +1561,8 @@ struct DocumentOptions : public Org {
   bool exportWithCreator = false;
   static sem::SemIdT<DocumentOptions> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::DocumentOptions; }
-  Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, CR<Str> subKind = "") const;
-  Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, CR<Str> subKind = "") const;
+  Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
+  Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
 };
 
 struct DocumentGroup : public Org {

@@ -56,7 +56,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def("getKind",
          [](sem::DefaultSemId<sem::HashTag> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("prefixMatch",
-         [](sem::DefaultSemId<sem::HashTag> _self, CR<Vec<Str>> prefix) -> bool { return _self.id->prefixMatch(prefix); },
+         [](sem::DefaultSemId<sem::HashTag> _self, Vec<Str> const& prefix) -> bool { return _self.id->prefixMatch(prefix); },
          "Check if list of tag names is a prefix for either of the nested hash tags in this one",
          pybind11::arg("prefix"))
     ;
@@ -480,19 +480,19 @@ PYBIND11_MODULE(pyhaxorg, m) {
          [](sem::DefaultSemId<sem::Subtree> _self, IntSet<sem::Subtree::Period::Kind> kinds) -> Vec<sem::Subtree::Period> { return _self.id->getTimePeriods(kinds); },
          pybind11::arg("kinds"))
     .def("getProperties",
-         [](sem::DefaultSemId<sem::Subtree> _self, sem::Subtree::Property::Kind kind, CR<Str> subkind) -> Vec<sem::Subtree::Property> { return _self.id->getProperties(kind, subkind); },
+         [](sem::DefaultSemId<sem::Subtree> _self, sem::Subtree::Property::Kind kind, Str const& subkind) -> Vec<sem::Subtree::Property> { return _self.id->getProperties(kind, subkind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", ""))
     .def("getProperty",
-         [](sem::DefaultSemId<sem::Subtree> _self, sem::Subtree::Property::Kind kind, CR<Str> subkind) -> Opt<sem::Subtree::Property> { return _self.id->getProperty(kind, subkind); },
+         [](sem::DefaultSemId<sem::Subtree> _self, sem::Subtree::Property::Kind kind, Str const& subkind) -> Opt<sem::Subtree::Property> { return _self.id->getProperty(kind, subkind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", ""))
     .def("getContextualProperties",
-         [](sem::DefaultSemId<sem::Subtree> _self, sem::Subtree::Property::Kind kind, CR<Str> subkind) -> Vec<sem::Subtree::Property> { return _self.id->getContextualProperties(kind, subkind); },
+         [](sem::DefaultSemId<sem::Subtree> _self, sem::Subtree::Property::Kind kind, Str const& subkind) -> Vec<sem::Subtree::Property> { return _self.id->getContextualProperties(kind, subkind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", ""))
     .def("getContextualProperty",
-         [](sem::DefaultSemId<sem::Subtree> _self, sem::Subtree::Property::Kind kind, CR<Str> subkind) -> Opt<sem::Subtree::Property> { return _self.id->getContextualProperty(kind, subkind); },
+         [](sem::DefaultSemId<sem::Subtree> _self, sem::Subtree::Property::Kind kind, Str const& subkind) -> Opt<sem::Subtree::Property> { return _self.id->getContextualProperty(kind, subkind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", ""))
     ;
@@ -767,7 +767,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def("getKind",
          [](sem::DefaultSemId<sem::Link> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("resolve",
-         [](sem::DefaultSemId<sem::Link> _self, CR<sem::Document> doc) -> Opt<sem::SemId> { return _self.id->resolve(doc); },
+         [](sem::DefaultSemId<sem::Link> _self, sem::Document const& doc) -> Opt<sem::SemId> { return _self.id->resolve(doc); },
          pybind11::arg("doc"))
     .def("resolve",
          [](sem::DefaultSemId<sem::Link> _self) -> Opt<sem::SemId> { return _self.id->resolve(); })
@@ -831,17 +831,17 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def("getKind",
          [](sem::DefaultSemId<sem::Document> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("resolve",
-         [](sem::DefaultSemId<sem::Document> _self, CR<sem::SemId> node) -> Opt<sem::SemId> { return _self.id->resolve(node); },
+         [](sem::DefaultSemId<sem::Document> _self, sem::SemId const& node) -> Opt<sem::SemId> { return _self.id->resolve(node); },
          pybind11::arg("node"))
     .def("getSubtree",
-         [](sem::DefaultSemId<sem::Document> _self, CR<Str> id) -> Opt<sem::SemIdT<sem::Subtree>> { return _self.id->getSubtree(id); },
+         [](sem::DefaultSemId<sem::Document> _self, Str const& id) -> Opt<sem::SemIdT<sem::Subtree>> { return _self.id->getSubtree(id); },
          pybind11::arg("id"))
     .def("getProperties",
-         [](sem::DefaultSemId<sem::Document> _self, sem::Subtree::Property::Kind kind, CR<Str> subKind) -> Vec<sem::Subtree::Property> { return _self.id->getProperties(kind, subKind); },
+         [](sem::DefaultSemId<sem::Document> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Vec<sem::Subtree::Property> { return _self.id->getProperties(kind, subKind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", ""))
     .def("getProperty",
-         [](sem::DefaultSemId<sem::Document> _self, sem::Subtree::Property::Kind kind, CR<Str> subKind) -> Opt<sem::Subtree::Property> { return _self.id->getProperty(kind, subKind); },
+         [](sem::DefaultSemId<sem::Document> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Opt<sem::Subtree::Property> { return _self.id->getProperty(kind, subKind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", ""))
     ;
@@ -953,11 +953,11 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def("getKind",
          [](sem::DefaultSemId<sem::DocumentOptions> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("getProperties",
-         [](sem::DefaultSemId<sem::DocumentOptions> _self, sem::Subtree::Property::Kind kind, CR<Str> subKind) -> Vec<sem::Subtree::Property> { return _self.id->getProperties(kind, subKind); },
+         [](sem::DefaultSemId<sem::DocumentOptions> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Vec<sem::Subtree::Property> { return _self.id->getProperties(kind, subKind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", ""))
     .def("getProperty",
-         [](sem::DefaultSemId<sem::DocumentOptions> _self, sem::Subtree::Property::Kind kind, CR<Str> subKind) -> Opt<sem::Subtree::Property> { return _self.id->getProperty(kind, subKind); },
+         [](sem::DefaultSemId<sem::DocumentOptions> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Opt<sem::Subtree::Property> { return _self.id->getProperty(kind, subKind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", ""))
     ;

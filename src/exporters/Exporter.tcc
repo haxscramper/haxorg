@@ -213,31 +213,31 @@ void Exporter<V, R>::visitCode(R& res, In<sem::Code> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::Data> object) { visitVariants(res, sem::Code::Switch::getKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::Code::Switch::Data const& object) { visitVariants(res, sem::Code::Switch::getKind(object), object); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch> object) { __obj_field(res, object, data); }
+void Exporter<V, R>::visit(R& res, sem::Code::Switch const& object) { __obj_field(res, object, data); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::LineStart> object) {
+void Exporter<V, R>::visit(R& res, sem::Code::Switch::LineStart const& object) {
   __obj_field(res, object, start);
   __obj_field(res, object, extendLast);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::CalloutFormat> object) { __obj_field(res, object, format); }
+void Exporter<V, R>::visit(R& res, sem::Code::Switch::CalloutFormat const& object) { __obj_field(res, object, format); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::RemoveCallout> object) { __obj_field(res, object, remove); }
+void Exporter<V, R>::visit(R& res, sem::Code::Switch::RemoveCallout const& object) { __obj_field(res, object, remove); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::EmphasizeLine> object) { __obj_field(res, object, line); }
+void Exporter<V, R>::visit(R& res, sem::Code::Switch::EmphasizeLine const& object) { __obj_field(res, object, line); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Code::Switch::Dedent> object) { __obj_field(res, object, value); }
+void Exporter<V, R>::visit(R& res, sem::Code::Switch::Dedent const& object) { __obj_field(res, object, value); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Time::TimeVariant> object) { visitVariants(res, sem::Time::getTimeKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::Time::TimeVariant const& object) { visitVariants(res, sem::Time::getTimeKind(object), object); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitTime(R& res, In<sem::Time> object) {
@@ -249,20 +249,20 @@ void Exporter<V, R>::visitTime(R& res, In<sem::Time> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Time::Repeat> object) {
+void Exporter<V, R>::visit(R& res, sem::Time::Repeat const& object) {
   __obj_field(res, object, mode);
   __obj_field(res, object, period);
   __obj_field(res, object, count);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Time::Static> object) {
+void Exporter<V, R>::visit(R& res, sem::Time::Static const& object) {
   __obj_field(res, object, repeat);
   __obj_field(res, object, time);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Time::Dynamic> object) { __obj_field(res, object, expr); }
+void Exporter<V, R>::visit(R& res, sem::Time::Dynamic const& object) { __obj_field(res, object, expr); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitTimeRange(R& res, In<sem::TimeRange> object) {
@@ -293,13 +293,13 @@ void Exporter<V, R>::visitSymbol(R& res, In<sem::Symbol> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Symbol::Param> object) {
+void Exporter<V, R>::visit(R& res, sem::Symbol::Param const& object) {
   __obj_field(res, object, key);
   __obj_field(res, object, value);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::LogEntry> object) { visitVariants(res, sem::SubtreeLog::getLogKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::SubtreeLog::LogEntry const& object) { visitVariants(res, sem::SubtreeLog::getLogKind(object), object); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitSubtreeLog(R& res, In<sem::SubtreeLog> object) {
@@ -310,10 +310,10 @@ void Exporter<V, R>::visitSubtreeLog(R& res, In<sem::SubtreeLog> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::DescribedLog> object) { __obj_field(res, object, desc); }
+void Exporter<V, R>::visit(R& res, sem::SubtreeLog::DescribedLog const& object) { __obj_field(res, object, desc); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Priority> object) {
+void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Priority const& object) {
   __obj_field(res, object, oldPriority);
   __obj_field(res, object, newPriority);
   __obj_field(res, object, on);
@@ -321,26 +321,26 @@ void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Priority> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Note> object) {
+void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Note const& object) {
   __obj_field(res, object, on);
   __obj_field(res, object, desc);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Refile> object) {
+void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Refile const& object) {
   __obj_field(res, object, on);
   __obj_field(res, object, from);
   __obj_field(res, object, desc);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Clock> object) {
+void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Clock const& object) {
   __obj_field(res, object, range);
   __obj_field(res, object, desc);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::State> object) {
+void Exporter<V, R>::visit(R& res, sem::SubtreeLog::State const& object) {
   __obj_field(res, object, from);
   __obj_field(res, object, to);
   __obj_field(res, object, on);
@@ -348,7 +348,7 @@ void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::State> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::SubtreeLog::Tag> object) {
+void Exporter<V, R>::visit(R& res, sem::SubtreeLog::Tag const& object) {
   __obj_field(res, object, on);
   __obj_field(res, object, tag);
   __obj_field(res, object, added);
@@ -375,16 +375,16 @@ void Exporter<V, R>::visitSubtree(R& res, In<sem::Subtree> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Period> object) {
+void Exporter<V, R>::visit(R& res, sem::Subtree::Period const& object) {
   __obj_field(res, object, kind);
   __obj_field(res, object, period);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Data> object) { visitVariants(res, sem::Subtree::Property::getKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Data const& object) { visitVariants(res, sem::Subtree::Property::getKind(object), object); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property> object) {
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property const& object) {
   __obj_field(res, object, mainSetRule);
   __obj_field(res, object, subSetRule);
   __obj_field(res, object, inheritanceMode);
@@ -392,52 +392,52 @@ void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Nonblocking> object) { __obj_field(res, object, isBlocking); }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Nonblocking const& object) { __obj_field(res, object, isBlocking); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Trigger> object) {  }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Trigger const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Origin> object) { __obj_field(res, object, text); }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Origin const& object) { __obj_field(res, object, text); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexClass> object) { __obj_field(res, object, latexClass); }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::ExportLatexClass const& object) { __obj_field(res, object, latexClass); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexClassOptions> object) { __obj_field(res, object, options); }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::ExportLatexClassOptions const& object) { __obj_field(res, object, options); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexHeader> object) { __obj_field(res, object, header); }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::ExportLatexHeader const& object) { __obj_field(res, object, header); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportLatexCompiler> object) { __obj_field(res, object, compiler); }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::ExportLatexCompiler const& object) { __obj_field(res, object, compiler); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Ordered> object) { __obj_field(res, object, isOrdered); }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Ordered const& object) { __obj_field(res, object, isOrdered); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Effort> object) {
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Effort const& object) {
   __obj_field(res, object, hours);
   __obj_field(res, object, minutes);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Visibility> object) { __obj_field(res, object, level); }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Visibility const& object) { __obj_field(res, object, level); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::ExportOptions> object) {
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::ExportOptions const& object) {
   __obj_field(res, object, backend);
   __obj_field(res, object, values);
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Blocker> object) { __obj_field(res, object, blockers); }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Blocker const& object) { __obj_field(res, object, blockers); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Unnumbered> object) {  }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Unnumbered const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Subtree::Property::Created> object) { __obj_field(res, object, time); }
+void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Created const& object) { __obj_field(res, object, time); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitLatexBody(R& res, In<sem::LatexBody> object) {
@@ -613,7 +613,7 @@ void Exporter<V, R>::visitListItem(R& res, In<sem::ListItem> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Link::Data> object) { visitVariants(res, sem::Link::getLinkKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::Link::Data const& object) { visitVariants(res, sem::Link::getLinkKind(object), object); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitLink(R& res, In<sem::Link> object) {
@@ -625,19 +625,19 @@ void Exporter<V, R>::visitLink(R& res, In<sem::Link> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Link::Raw> object) { __obj_field(res, object, text); }
+void Exporter<V, R>::visit(R& res, sem::Link::Raw const& object) { __obj_field(res, object, text); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Link::Id> object) { __obj_field(res, object, text); }
+void Exporter<V, R>::visit(R& res, sem::Link::Id const& object) { __obj_field(res, object, text); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Link::Person> object) { __obj_field(res, object, name); }
+void Exporter<V, R>::visit(R& res, sem::Link::Person const& object) { __obj_field(res, object, name); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Link::Footnote> object) { __obj_field(res, object, target); }
+void Exporter<V, R>::visit(R& res, sem::Link::Footnote const& object) { __obj_field(res, object, target); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Link::File> object) { __obj_field(res, object, file); }
+void Exporter<V, R>::visit(R& res, sem::Link::File const& object) { __obj_field(res, object, file); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitDocument(R& res, In<sem::Document> object) {
@@ -685,7 +685,7 @@ void Exporter<V, R>::visitTextSeparator(R& res, In<sem::TextSeparator> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Include::Data> object) { visitVariants(res, sem::Include::getIncludeKind(object), object); }
+void Exporter<V, R>::visit(R& res, sem::Include::Data const& object) { visitVariants(res, sem::Include::getIncludeKind(object), object); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitInclude(R& res, In<sem::Include> object) {
@@ -696,16 +696,16 @@ void Exporter<V, R>::visitInclude(R& res, In<sem::Include> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Include::Example> object) {  }
+void Exporter<V, R>::visit(R& res, sem::Include::Example const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Include::Export> object) {  }
+void Exporter<V, R>::visit(R& res, sem::Include::Export const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Include::Src> object) {  }
+void Exporter<V, R>::visit(R& res, sem::Include::Src const& object) {  }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, CR<sem::Include::OrgDocument> object) {  }
+void Exporter<V, R>::visit(R& res, sem::Include::OrgDocument const& object) {  }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> object) {
