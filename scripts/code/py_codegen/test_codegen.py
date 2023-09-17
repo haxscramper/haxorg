@@ -272,25 +272,36 @@ def pybind_method(ast: ASTBuilder, meth: GenTuFunction, Self: ParmVarParams,
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
     id_type = t_id(QualType(typ.name, Spaces=[QualType("sem")]))
 
+    proxy = RecordParams(name=typ.name + "Id",
+                         doc=DocParams(""),
+                         members=[
+                             RecordField(
+                                 ParmVarParams(id_type,
+                                               "id",
+                                               defArg=ast.CallStatic(id_type, "Nil")),
+                                 DocParams("")),
+                             MethodDeclParams(
+                                 FunctionParams(Name=typ.name + "Id",
+                                                doc=DocParams(""),
+                                                ResultTy=None,
+                                                Body=[]))
+                         ])
+
+    proxy_type = QualType(proxy.name)
+
     sub: List[BlockId] = []
 
     # sub.append(b.text(".def(pybind11::init([](){ return %s::Nil(); }))" % (id_type)))
-    sub.append(
-        ast.XCall(
-            ".def",
-            [
-                ast.XCall(
-                    "pybind11::init",
-                    [
-                        ast.Lambda(
-                            LambdaParams(
-                                Body=[ast.Return(ast.CallStatic(id_type, "Nil"))]))
-                    ],
-                )
-            ],
-        ))
+    sub.append(ast.XCall(
+        ".def",
+        [ast.XCall(
+            "pybind11::init",
+            [],
+            Params=[],
+        )],
+    ))
 
-    id_self = ParmVarParams(id_type, "_self")
+    id_self = ParmVarParams(proxy_type, "_self")
     for field in typ.fields:
         if field.isStatic:
             continue
@@ -310,8 +321,9 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
     sub.append(b.text(";"))
     return b.stack([
         ast.Comment(["Binding for ID type"]),
+        ast.Record(proxy),
         ast.XCall("pybind11::class_", [b.text("m"), ast.Literal(typ.name)],
-                  Params=[id_type]),
+                  Params=[proxy_type]),
         b.indent(2, b.stack(sub))
     ])
 
@@ -388,8 +400,8 @@ def filter_walk_scope(iterate_context) -> List[QualType]:
 
 
 @beartype
-def get_space_annotated_types() -> List[GenTuStruct]:
-    iterate_context = []
+def get_space_annotated_types() -> Sequence[GenTuStruct]:
+    iterate_context: Sequence[GenTuStruct] = []
 
     def callback(value):
         nonlocal iterate_context
@@ -408,9 +420,9 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
     typ: GenTuStruct
     b: TextLayout = ast.b
 
-    iterate_context = []
+    iterate_context: List[Any] = []
 
-    def callback(value):
+    def callback(value: Any) -> None:
         nonlocal iterate_context
         scope: List[QualType] = filter_walk_scope(iterate_context)
 

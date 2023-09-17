@@ -134,7 +134,7 @@ def d_simple_enum(name, doc, *args):
                      fields=[GenTuEnumField(arg, GenTuDoc("")) for arg in args])
 
 
-def get_types() -> List[GenTuStruct]:
+def get_types() -> Sequence[GenTuStruct]:
     return [
         d_org(
             "Stmt",

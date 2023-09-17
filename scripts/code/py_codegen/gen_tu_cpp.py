@@ -188,7 +188,7 @@ class GenConverter:
         return DocParams(brief=doc.brief, full=doc.full)
 
     def convertIdent(self, ident: GenTuIdent) -> ParmVarParams:
-        return ParmVarParams(name=ident.name, type=ident.type, defArg=ident.value)
+        return ParmVarParams(name=ident.name, type=ident.type, defArg=self.ast.string(ident.value) if ident.value else None)
 
     def convertTu(self, tu: GenTu) -> BlockId:
         decls: List[BlockId] = []
@@ -216,7 +216,7 @@ class GenConverter:
                             type=member.type,
                             name=member.name,
                             isConst=member.isConst,
-                            defArg=member.value,
+                            defArg=self.ast.string(member.value) if member.value else None,
                         ),
                         doc=DocParams(brief=member.doc.brief, full=member.doc.full),
                         isStatic=member.isStatic,
@@ -532,7 +532,7 @@ class GenConverter:
                         params=ParmVarParams(
                             type=QualType(record.variantName),
                             name=record.variantField,
-                            defArg=record.variantValue,
+                            defArg=self.ast.string(record.variantValue) if record.variantValue else None,
                         ),
                         doc=DocParams(""),
                     )))
