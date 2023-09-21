@@ -33,5 +33,5 @@ if (${USE_PCH})
     )
 endif()
 
-target_link_libraries(pyhaxorg PRIVATE hstd ${PYTHON_LIBRARIES} ubsan)
+target_link_libraries(pyhaxorg PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg)
 target_compile_options(pyhaxorg PRIVATE -shared-libasan)
