@@ -12,8 +12,6 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <sem/SemConvert.hpp>
-#include <exporters/exporternlp.hpp>
-#include <exporters/exporterlangtool.hpp>
 
 #include <fnmatch.h>
 #include <ranges>
@@ -22,126 +20,6 @@ namespace rs = std::views;
 
 // std::string corpusGlob = "*text.yaml";
 std::string corpusGlob = "";
-
-struct BaseHttpContext {
-    MockFull          parser;
-    sem::ContextStore store;
-    sem::OrgConverter converter;
-
-    sem::SemId             node = sem::SemId::Nil();
-    QFileInfo              jsonCacheLocation;
-    SPtr<HttpDataProvider> http;
-
-    BaseHttpContext(bool a, bool b, QFileInfo path)
-        : parser(a, b), converter(&store), jsonCacheLocation(path) {}
-
-    void setup(QString data) {
-        parser.run(data, &OrgTokenizer::lexGlobal, &OrgParser::parseFull);
-
-        node = converter.toDocument(OrgAdapter(&parser.nodes, OrgId(0)));
-
-        http                 = std::make_shared<HttpDataProvider>();
-        http->isCacheEnabled = true;
-
-        if (http->isCacheEnabled && jsonCacheLocation.exists()) {
-            http->addCache(
-                json::parse(readFile(jsonCacheLocation).toStdString()));
-        }
-    }
-
-    void finish() {
-        if (http->isCacheEnabled) {
-            writeFile(
-                jsonCacheLocation,
-                QString::fromStdString(
-                    to_compact_json(http->toJsonCache())));
-        }
-    }
-};
-
-struct NlpTestContext : BaseHttpContext {
-    ExporterNLP nlp;
-
-    NlpTestContext()
-        : BaseHttpContext(
-            false,
-            false,
-            QFileInfo{__CURRENT_FILE_DIR__ / "corpus/nlp-cache.json"_qs})
-        , nlp{QUrl("http://localhost:9000")} {}
-
-
-    void runWith(QString data) {
-        char*            argv[] = {""};
-        int              argc   = 1;
-        QCoreApplication app(argc, argv);
-
-        setup(data);
-
-        nlp.visitTop(node);
-        nlp.executeRequests(http);
-
-        finish();
-    }
-};
-
-struct LangtoolTestContext : BaseHttpContext {
-    ExporterLangtool lang;
-
-    LangtoolTestContext()
-        : BaseHttpContext(
-            false,
-            false,
-            QFileInfo{
-                __CURRENT_FILE_DIR__ / "corpus/langtool-cache.json"_qs}) {}
-
-
-    void runWith(QString data) {
-        char*            argv[] = {""};
-        int              argc   = 1;
-        QCoreApplication app(argc, argv);
-
-        setup(data);
-
-        lang.visitTop(node);
-        lang.executeRequests(QUrl("http://localhost:8081/v2/check"), http);
-
-        finish();
-    }
-};
-
-TEST(NLP, BaseMockApi) {
-    NlpTestContext ctx;
-    ctx.runWith(
-        "In this example, we create three nodes n1, n2, and n3 in the "
-        "main graph g. We then create a subgraph subg and set its "
-        "rank attribute to same. Afterward, we add the existing nodes n1 "
-        "and n2 to the subgraph.");
-    Graphviz gvc;
-
-    NLP::SenGraph& graph = ctx.nlp.exchange.at(0).second.parsed;
-    auto gv = graph.toGraphviz(NLP::SenGraph::GvFormat::DependenciesOnly);
-    gvc.renderToFile("/tmp/sentence.png", gv);
-    gvc.renderToFile("/tmp/sentence.gv", gv, Graphviz::RenderFormat::DOT);
-
-    using namespace NLP::builder;
-    using POS = NlpPosTag;
-    using REL = NlpDepKind;
-
-    auto result = graph.findMatches(
-        rel::Dir(Tag(POS::VBP), Tag(POS::PRP), REL::nsubj));
-    qDebug() << "Resfsd";
-}
-
-TEST(NLP, LangtoolTestContextBaseApi) {
-    LangtoolTestContext ctx;
-    ctx.runWith(
-        "In this example, we create three nodes n1, n2, and n3 in the "
-        "main graph g. We then create a subgraph subg and set its "
-        "rank attribute to same. Afterward, we add the existing nodes n1 "
-        "and n2 to the subgraph.");
-
-    qDebug() << "Resfsd";
-}
 
 struct TestParams {
     ParseSpec spec;

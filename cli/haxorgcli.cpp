@@ -13,12 +13,9 @@
 #include <exporters/exporterqtextdocument.hpp>
 #include <exporters/exportersimplesexpr.hpp>
 #include <exporters/exporterlatex.hpp>
-#include <exporters/exporterlangtool.hpp>
 #include <exporters/exportereventlog.hpp>
-#include <annotators/annotatorspelling.hpp>
 #include <exporters/exportersubtreestructure.hpp>
 #include <exporters/exportermindmap.hpp>
-#include <exporters/exporternlp.hpp>
 #include <exporters/exporterpandoc.hpp>
 #include <hstd/wrappers/perfetto_aux.hpp>
 #include <QGuiApplication>
@@ -779,32 +776,8 @@ void exportOk(QString const& what, cli::Exporter::Base const& base) {
     qInfo().noquote() << "Export" << what << "to" << base.target << "ok";
 }
 
-SPtr<HttpDataProvider> openHttpProvider(Opt<QFileInfo> cache) {
-    auto http            = std::make_shared<HttpDataProvider>();
-    http->cacheFailAfter = 0;
-    if (cache && cache->exists()) {
-        http->isCacheEnabled = true;
-        http->addCache(json::parse(readFile(cache.value()).toStdString()));
-        qInfo() << "Loaded" << http->cache.size() << "cached requests and "
-                << http->failCache.size() << "failed requests from"
-                << cache.value();
-    } else {
-        qInfo() << "Loading HTTP provider without cache";
-    }
 
-    return http;
-}
 
-void closeHttpProvider(Opt<QFileInfo> cache, SPtr<HttpDataProvider> http) {
-    if (cache) {
-        writeFile(
-            cache.value(),
-            QString::fromStdString(to_compact_json(http->toJsonCache())));
-        qDebug() << "Wrote" << http->cache.size()
-                 << "entries of HTTP cache and" << http->failCache.size()
-                 << "failed requests to" << *cache;
-    }
-}
 
 void HaxorgCli::exec() {
     //    InitializePerfetto();
@@ -1192,71 +1165,6 @@ void HaxorgCli::exec() {
         writeFile(config.exp.tex->target, formatted);
         exportOk("TEX", *config.exp.tex);
     }
-
-    if (config.exp.nlp) {
-        __trace("Export NLP");
-        auto const& conf = *config.exp.nlp;
-        ExporterNLP nlp{QUrl("http://localhost:9000")};
-        auto        http = openHttpProvider(conf.httpCache);
-        nlp.visitTop(node);
-        try {
-            nlp.executeRequests(http);
-        } catch (std::domain_error& err) {
-            closeHttpProvider(conf.httpCache, http);
-            qWarning() << "Closing HTTP data provider with error"
-                       << err.what();
-            return;
-        }
-
-        closeHttpProvider(conf.httpCache, http);
-
-
-        {
-            ColStream os{qcout};
-            nlp.format(os);
-        }
-
-        SPtr<IoContext> io = openFileOrStream(conf.target, true);
-        ColStream       os{io->stream};
-        nlp.format(os);
-
-        exportOk("Langtool", conf);
-    }
-
-    if (config.exp.langtool) {
-        __trace("Export langtool");
-        auto const&      conf = *config.exp.langtool;
-        ExporterLangtool lang;
-        auto             http = openHttpProvider(conf.httpCache);
-
-        for (auto const& it : conf.skippedRules.split(",")) {
-            lang.skippedRules.push_back(it);
-        }
-
-        lang.visitTop(node);
-        try {
-            lang.executeRequests(
-                QUrl("http://localhost:8081/v2/check"), http);
-        } catch (std::domain_error& err) {
-            closeHttpProvider(conf.httpCache, http);
-            return;
-        }
-
-        closeHttpProvider(conf.httpCache, http);
-
-
-        SPtr<IoContext> io = openFileOrStream(conf.target, true);
-        ColStream       os{io->stream};
-        lang.format(os);
-        exportOk("Langtool", conf);
-    }
-
-    {
-        AnnotatorSpelling spelling;
-        spelling.setSpeller("en_US");
-        spelling.annotate(node);
-    }
-
 
     return;
 }
