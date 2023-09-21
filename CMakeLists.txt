@@ -52,10 +52,7 @@ include(target_lib.cmake)
 include(target_tests.cmake)
 include(target_cli.cmake)
 
-target_sources(cli
-  PRIVATE
-    src/py_libs/pyhaxorg/pyhaxorg_manual.cpp
-)
+
 include(target_pyhaxorg.cmake)
 
 

@@ -12,6 +12,4 @@ if lib_dir not in sys.path:
     sys.path.append(lib_dir)
 
 print(lib_dir)
-import ctypes
 
-ctypes.CDLL(lib_dir + '/py_textlayout.so')

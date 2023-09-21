@@ -6,6 +6,10 @@ from enum import Enum
 
 import setup_imports
 
+import ctypes
+
+ctypes.CDLL(setup_imports.lib_dir + '/py_textlayout.so')
+
 # Now you should be able to import your C++ library
 from py_textlayout import TextLayout, TextOptions
 from astbuilder_cpp import *
@@ -403,13 +407,6 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
 
     iterate_context: List[Any] = []
 
-    passes.append(ast.PPIfStmt(PPIfStmtParams([
-        ast.PPIfNDef("IN_CLANGD_PROCESSING", [
-            ast.Define("PY_HAXORG_COMPILING"),
-            ast.Include("pyhaxorg_manual_impl.cpp")
-        ])
-    ])))
-
     def callback(value: Any) -> None:
         nonlocal iterate_context
         scope: List[QualType] = filter_walk_scope(iterate_context)
@@ -430,13 +427,19 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
     passes.append(ast.PPIfStmt(PPIfStmtParams([
         ast.PPIfNDef("IN_CLANGD_PROCESSING", [
             ast.Define("PY_HAXORG_COMPILING"),
-            ast.Include("pyhaxorg_manual_wrap.cpp")
+            ast.Include("pyhaxorg_manual_wrap.hpp")
         ])
     ])))
 
 
     return GenTuPass(
         b.stack([
+            ast.PPIfStmt(PPIfStmtParams([
+                ast.PPIfNDef("IN_CLANGD_PROCESSING", [
+                    ast.Define("PY_HAXORG_COMPILING"),
+                    ast.Include("pyhaxorg_manual_impl.hpp")
+                ])
+            ])),
             b.text("PYBIND11_MODULE(pyhaxorg, m) {"),
             b.indent(2, b.stack(passes)),
             b.text("}")

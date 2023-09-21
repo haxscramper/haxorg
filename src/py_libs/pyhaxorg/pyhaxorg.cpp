@@ -2,11 +2,11 @@
 #include <pybind11/pybind11.h>
 #include <sem/SemOrg.hpp>
 #include <pybind11/stl.h>
+#ifndef IN_CLANGD_PROCESSING
+  #define PY_HAXORG_COMPILING
+  #include "pyhaxorg_manual_impl.hpp"
+#endif
 PYBIND11_MODULE(pyhaxorg, m) {
-  #ifndef IN_CLANGD_PROCESSING
-    #define PY_HAXORG_COMPILING
-    #include "pyhaxorg_manual_impl.cpp"
-  #endif
   /* Binding for ID type */
   pybind11::class_<sem::DefaultSemId<sem::Stmt>>(m, "Stmt")
     .def(pybind11::init())
@@ -990,6 +990,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   #ifndef IN_CLANGD_PROCESSING
     #define PY_HAXORG_COMPILING
-    #include "pyhaxorg_manual_wrap.cpp"
+    #include "pyhaxorg_manual_wrap.hpp"
   #endif
 }

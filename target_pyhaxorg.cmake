@@ -22,5 +22,16 @@ target_include_directories(
     ${PYTHON_INCLUDE_DIRS}
 )
 
+if (${USE_PCH})
+    target_precompile_headers(
+        pyhaxorg
+        PRIVATE
+        <sem/SemConvert.hpp>
+        <parse/OrgParser.hpp>
+        <parse/OrgTokenizer.hpp>
+        <parse/OrgTypes.hpp>
+    )
+endif()
+
 target_link_libraries(pyhaxorg PRIVATE hstd ${PYTHON_LIBRARIES} ubsan)
 target_compile_options(pyhaxorg PRIVATE -shared-libasan)
