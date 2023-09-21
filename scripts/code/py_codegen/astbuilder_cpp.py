@@ -214,6 +214,23 @@ class IfStmtParams:
     Branches: List[Branch]
     LookupIfStructure: bool = False
 
+class PPKind(Enum):
+    IfDef = 0
+    IfNotDef = 1
+    If = 2
+
+
+@beartype
+@dataclass
+class PPIfBranch:
+    Then: BlockId
+    Kind: PPKind = PPKind.If
+    Cond: Optional[BlockId] = None
+
+@beartype
+@dataclass
+class PPIfStmtParams:
+    Branches: List[PPIfBranch]
 
 @beartype
 @dataclass
@@ -514,9 +531,40 @@ class ASTBuilder:
     def TranslationUnit(self, stmts: List[BlockId]) -> BlockId:
         return self.b.stack(stmts)
 
-    def Include(self, file: str, isSystem: bool) -> BlockId:
+    def Include(self, file: str, isSystem: bool = False) -> BlockId:
         include_str = f"<{file}>" if isSystem else f"\"{file}\""
         return self.b.line([self.string(f"#include {include_str}")])
+
+    def Define(self, name: str, value: Optional[str] = None) -> BlockId:
+        return self.string(f"#define {name}" if value is None else f"#define {name}={value}")
+
+    def PPIfDef(self, expr: str, Then: List[BlockId] = []) -> PPIfBranch:
+        return PPIfBranch(Kind=PPKind.IfDef, Cond=self.string(expr), Then=self.b.stack(Then))
+
+    def PPIfNDef(self, expr: str, Then: List[BlockId] = []) -> PPIfBranch:
+        return PPIfBranch(Kind=PPKind.IfNotDef, Cond=self.string(expr), Then=self.b.stack(Then))
+
+    def PPIfStmt(self, p: PPIfStmtParams) -> BlockId:
+        result = self.b.stack([])
+        for idx, branch in enumerate(p.Branches):
+            token = "#"
+            match (branch.Kind, bool(idx == 0), bool(branch.Cond)):
+                case (_, _, False): token += "else"
+                case (PPKind.If, True, True): token += "if"
+                case (PPKind.IfDef, True, True): token += "ifdef"
+                case (PPKind.IfNotDef, True, True): token += "ifndef"
+                case (PPKind.If, False, True): token += "elif"
+                case (PPKind.IfDef, False, True): token += "elifdef"
+                case (PPKind.IfNotDef, False, True): token += "elifndef"
+
+            self.b.add_at(result, self.b.stack([
+                self.b.line([self.string(token), *([self.string(" "), branch.Cond] if branch.Cond else [])]),
+                self.b.indent(2, branch.Then)
+            ]))
+
+        self.b.add_at(result, self.string("#endif"))
+
+        return result
 
     def IfStmt(self, p: IfStmtParams) -> BlockId:
         result = self.b.stack([])

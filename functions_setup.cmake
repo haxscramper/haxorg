@@ -7,8 +7,15 @@ function(set_target_flags TARGET)
     add_target_property(${TARGET} COMPILE_OPTIONS -finstrument-functions)
   endif()
 
-  add_target_property(${TARGET} COMPILE_OPTIONS "-fuse-ld=mold")
-  add_target_property(${TARGET} LINK_OPTIONS "-fuse-ld=mold")
+  if(${USE_XRAY})
+
+  else()
+      add_target_property(${TARGET} COMPILE_OPTIONS "-fuse-ld=mold")
+      add_target_property(${TARGET} LINK_OPTIONS "-fuse-ld=mold")
+  endif()
+
+
+
   add_target_property(${TARGET} COMPILE_OPTIONS "-ftime-trace")
   add_target_property(${TARGET} LINK_OPTIONS "-ftime-trace")
 
@@ -29,10 +36,19 @@ function(set_target_flags TARGET)
     add_target_property(${TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
     add_target_property(${TARGET} COMPILE_OPTIONS "-fPIC")
 
-    add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize=undefined")
-    add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
-    add_target_property(${TARGET} LINK_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
-    add_target_property(${TARGET} LINK_OPTIONS "-fsanitize=undefined")
+    if(${USE_SANITIZER})
+        add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize=undefined")
+        add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
+        add_target_property(${TARGET} LINK_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
+        add_target_property(${TARGET} LINK_OPTIONS "-fsanitize=undefined")
+    endif()
+
+    if(${USE_XRAY})
+        add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-instrument")
+        add_target_property(${TARGET} LINK_OPTIONS "-fxray-instrument")
+#        add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-instruction-threshold=100")
+#        add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-attr-list=${BASE}/xray_list.txt")
+    endif()
 
     if(${USE_PERFETTO})
         add_target_property(${TARGET} COMPILE_DEFINITIONS USE_PERFETTO)
@@ -97,19 +113,6 @@ function(set_common_files TARGET)
   #   src/lexbase/Token.hpp
   # )
 
-
-    if (USE_PCH)
-        target_precompile_headers("${TARGET}" PRIVATE
-            <QString>
-            <QDateTime>
-            <QDebug>
-            <nlohmann/json.hpp>
-            <optional>
-            <vector>
-            <boost/mp11.hpp>
-            <boost/describe.hpp>
-        )
-    endif()
 
     if(${USE_PERFETTO})
         add_target_property(${TARGET} PRECOMPILE_HEADERS <perfetto.h>)

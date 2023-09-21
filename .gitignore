@@ -367,3 +367,4 @@ heaptrack.*
 
 bin
 lib
+xray-log*

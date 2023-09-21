@@ -2197,8 +2197,8 @@ bool OrgTokenizerImpl<TraceState>::lexDrawer(PosStr& str) {
         } else {
             throw ImplementError(
                 "Drawer element '$#' has not been implemented yet "
-                "(normalized as '$#')"
-                % to_string_vec(id.toStr(), norm));
+                "(normalized as '$#'), located at $#"
+                % to_string_vec(id.toStr(), norm, debugPos(str)));
         }
         // qDebug() << str;
 

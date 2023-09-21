@@ -15,6 +15,20 @@ add_target_property(cli INCLUDE_DIRECTORIES "${GLIB_INCLUDE_DIRS}")
 
 #TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${GLIB_LIBRARIES})
 
+if (USE_PCH)
+    target_precompile_headers(cli PRIVATE
+      <QString>
+      <QDateTime>
+      <QDebug>
+      <nlohmann/json.hpp>
+      <optional>
+      <vector>
+      <boost/mp11.hpp>
+      <boost/describe.hpp>
+      <sem/SemOrg.hpp>
+    )
+endif()
+
 target_link_libraries(cli
     PUBLIC
     fmt::fmt

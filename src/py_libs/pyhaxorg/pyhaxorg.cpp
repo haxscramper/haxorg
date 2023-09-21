@@ -3,6 +3,10 @@
 #include <sem/SemOrg.hpp>
 #include <pybind11/stl.h>
 PYBIND11_MODULE(pyhaxorg, m) {
+  #ifndef IN_CLANGD_PROCESSING
+    #define PY_HAXORG_COMPILING
+    #include "pyhaxorg_manual_impl.cpp"
+  #endif
   /* Binding for ID type */
   pybind11::class_<sem::DefaultSemId<sem::Stmt>>(m, "Stmt")
     .def(pybind11::init())
@@ -984,4 +988,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def("getKind",
          [](sem::DefaultSemId<sem::DocumentGroup> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
+  #ifndef IN_CLANGD_PROCESSING
+    #define PY_HAXORG_COMPILING
+    #include "pyhaxorg_manual_wrap.cpp"
+  #endif
 }

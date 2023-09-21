@@ -38,8 +38,8 @@ option(MAX_COMPILE_ERRORS
 option(USE_PERFETTO "Enable perfetto profiling")
 option(PROFILE_GENERATE "Compile binary with profile data generation")
 option(PROFILE_USE "Compile binary using profile data generation")
-
-
+option(USE_XRAY "Use LLVM XRay instrumentation for profiling")
+option(USE_SANITIZER "Use sanitizers" ON)
 
 find_package(fmt REQUIRED)
 find_package(yaml-cpp REQUIRED)
@@ -51,6 +51,11 @@ include(target_lib.cmake)
 
 include(target_tests.cmake)
 include(target_cli.cmake)
+
+target_sources(cli
+  PRIVATE
+    src/py_libs/pyhaxorg/pyhaxorg_manual.cpp
+)
 include(target_pyhaxorg.cmake)
 
 

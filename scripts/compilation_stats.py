@@ -45,11 +45,6 @@ class TraceEvent:
     args: TraceArgs = field(default_factory=TraceArgs)
 
 
-@dataclass_json
-@dataclass
-class TraceFile:
-    traceEvents: List[TraceEvent] = field(default_factory=list)
-    beginningOfTime: int = 0
 
 
 @dataclass
@@ -63,14 +58,23 @@ class TraceEventNode:
             "children": [child.to_dict() for child in self.children],
         }
 
+@dataclass_json
+@dataclass
+class TraceFile:
+    traceEvents: List[TraceEvent] = field(default_factory=list)
+    tree: Optional[TraceEventNode] = None
+    path: str = ""
+    beginningOfTime: int = 0
+
+
 
 def build_flamegraph(trace_events: List[TraceEvent]) -> Optional[TraceEventNode]:
     if not trace_events:
         return None
 
-    with open("/tmp/res.json", "w") as out_file:
-        for event in trace_events:
-            out_file.write(json.dumps(TraceEvent.to_dict(event)) + "\n")
+    # with open("/tmp/res.json", "w") as out_file:
+    #     for event in trace_events:
+    #         out_file.write(json.dumps(TraceEvent.to_dict(event)) + "\n")
 
     # Sort events by start time
     trace_events.sort(key=lambda e: e.ts)
@@ -108,35 +112,42 @@ def build_flamegraph(trace_events: List[TraceEvent]) -> Optional[TraceEventNode]
 
 if __name__ == "__main__":
     path_files: List[Path] = []
+    max_len = 1200
     for path in Path(
-        "/mnt/workspace/repos/build-haxorg-Clang-RelWithDebInfo/CMakeFiles/haxorg.dir/src/"
+        "/mnt/workspace/repos/build-haxorg-Clang_16-RelWithDebInfo/CMakeFiles/"
     ).rglob("*.cpp.json"):
         path_files.append(path)
 
     all_files: List[TraceFile] = []
 
-    for i in range(0, len(path_files)):
+    for i in range(0, min(max_len, len(path_files))):
         path = path_files[i]
         print(f"{i}/{len(path_files)} {path}")
         with open(path) as file:
             j = json.load(file)
             converted: TraceFile = TraceFile.from_dict(j)
-            all_files.append(converted)
+            converted.path = path
 
-            continue
-
-            flame = build_flamegraph(
+            converted.tree = build_flamegraph(
                 [
                     e
                     for e in converted.traceEvents
                     if e.tid == converted.traceEvents[0].tid
                 ]
             )
+
+            all_files.append(converted)
+
+            continue
+
             flame_path = path.with_suffix(".flame.json")
 
             # Write flamegraph to JSON file
             with open(flame_path, "w") as flame_file:
                 json.dump(flame.to_dict(), flame_file)
+
+    for f in sorted(all_files, key=lambda f: -f.tree.event.dur):
+        print("{:10.5f}s {}".format(f.tree.event.dur / 1e6, f.path))
 
     def flatten_tracefiles(tracefiles):
         # Flatten the list of TraceFile objects

@@ -403,6 +403,13 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
 
     iterate_context: List[Any] = []
 
+    passes.append(ast.PPIfStmt(PPIfStmtParams([
+        ast.PPIfNDef("IN_CLANGD_PROCESSING", [
+            ast.Define("PY_HAXORG_COMPILING"),
+            ast.Include("pyhaxorg_manual_impl.cpp")
+        ])
+    ])))
+
     def callback(value: Any) -> None:
         nonlocal iterate_context
         scope: List[QualType] = filter_walk_scope(iterate_context)
@@ -419,6 +426,15 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
 
     iterate_object_tree(GenTuNamespace("sem", get_space_annotated_types()), callback,
                         iterate_context)
+
+    passes.append(ast.PPIfStmt(PPIfStmtParams([
+        ast.PPIfNDef("IN_CLANGD_PROCESSING", [
+            ast.Define("PY_HAXORG_COMPILING"),
+            ast.Include("pyhaxorg_manual_wrap.cpp")
+        ])
+    ])))
+
+
     return GenTuPass(
         b.stack([
             b.text("PYBIND11_MODULE(pyhaxorg, m) {"),
@@ -523,8 +539,10 @@ if __name__ == "__main__":
 
             isHeader = i == 0
             define = tu.header if isHeader else tu.source
+            if not define:
+                continue
+
             path = define.path.format(base="/mnt/workspace/repos/haxorg/src")
-            log.info(f"Formatting {path}, isSource={not isHeader}")
             result = builder.TranslationUnit([
                 GenConverter(
                     builder,
@@ -547,12 +565,12 @@ if __name__ == "__main__":
                 if oldCode != newCode:
                     with open(path, "w") as out:
                         out.write(newCode)
-                    log.info(f"Updated code in {path} pattern was {define.path}")
+                    log.info(f"[red]Updated code[/red] in {define.path}")
                 else:
-                    log.info(f"No changes on {path} pattern was {define.path}")
+                    log.info(f"[green]No changes[/green] on {define.path}")
             else:
                 with open(path, "w") as out:
                     out.write(newCode)
-                log.info(f"Wrote to {path} pattern was {define.path}")
+                log.info(f"[red]Wrote[/red] to {define.path}")
 
     print("Done all")
