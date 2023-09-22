@@ -2,6 +2,7 @@
 #include <clang/AST/RecursiveASTVisitor.h>
 #include <clang/Frontend/FrontendPluginRegistry.h>
 #include <clang/Frontend/CompilerInstance.h>
+#include <clang/Frontend/ASTConsumers.h>
 #include <clang/Sema/Sema.h>
 #include <iostream>
 
@@ -62,23 +63,72 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
                 clang::QualType returnType = Ctx->VoidTy; // specify the
                                                           // return type
-                clang::FunctionDecl* newMethod = clang::FunctionDecl::
+
+                clang::SourceLocation Loc; // Invalid location for this
+                                           // example. You might want a
+                                           // valid one depending on your
+                                           // use case.
+
+                clang::DeclarationName Name(&Ctx->Idents.get("call_me"));
+                clang::DeclarationNameInfo NameInfo(Name, Loc);
+
+                clang::FunctionProtoType::ExtProtoInfo EPI;
+                clang::QualType methodType = Ctx->getFunctionType(
+                    returnType,
+                    {}, // Arguments' types; empty for this example
+                    EPI);
+
+                clang::TypeSourceInfo* TInfo = nullptr; // Assuming you
+                                                        // don't need
+                                                        // detailed type
+                                                        // source info
+
+                clang::CXXMethodDecl* newMethod = clang::CXXMethodDecl::
                     Create(
-                        /*ASTContext=*/*Ctx,
-                        /*DeclContext=*/Declaration,
-                        /*Location=*/clang::SourceLocation(),
-                        /*StartLoc=*/clang::SourceLocation(),
-                        /*Name=*/
-                        clang::DeclarationName(
-                            &Ctx->Idents.get("call_me")),
-                        /*Type=*/returnType,
-                        /*TypeSourceInfo=*/nullptr,
-                        /*StorageClass=*/clang::SC_None);
+                        *Ctx,
+                        Declaration,
+                        Loc,
+                        NameInfo,
+                        methodType,
+                        TInfo,
+                        clang::SC_None,
+                        false, // UsesFPIntrin
+                        false, // isInline - adjust if needed
+                        clang::ConstexprSpecKind::Unspecified,
+                        Loc // EndLocation
+                    );
+
+                newMethod->setImplicit(true);
+                newMethod->setAccess(clang::AS_public); // making it public
+
+                // Create the method definition
+                clang::CompoundStmt* methodBody = clang::CompoundStmt::
+                    Create(
+                        *Ctx,
+                        {},
+                        clang::FPOptionsOverride(),
+                        clang::SourceLocation(),
+                        clang::SourceLocation());
+                newMethod->setBody(methodBody);
+
+
                 Declaration->addDecl(newMethod);
+
+                // Add the method definition to the translation unit so it
+                // gets codegen'ed
+                clang::TranslationUnitDecl* TU = Declaration
+                                                     ->getASTContext()
+                                                     .getTranslationUnitDecl();
+                TU->addDecl(newMethod);
+
+
                 std::cout << "Added declaration to the output"
                           << std::endl;
             }
         }
+
+        Declaration->dump(llvm::outs());
+
         return true;
     }
 
@@ -120,6 +170,13 @@ class ReflPluginAction : public clang::PluginASTAction {
     ReflPluginAction() {
         std::cout << "Created refl plugin action" << std::endl;
     }
+
+    //    // PluginASTAction interface
+    //  public:
+    //    clang::PluginASTAction::ActionType getActionType() override {
+    //        return
+    //        clang::PluginASTAction::ActionType::AddBeforeMainAction;
+    //    }
 };
 
 static clang::FrontendPluginRegistry::Add<ReflPluginAction> X(
