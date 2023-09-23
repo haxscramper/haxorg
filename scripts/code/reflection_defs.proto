@@ -70,6 +70,17 @@ message Record {
         QualType Type = 2;
     }
 
+    enum MethodKind {
+        Base = 0;
+        CopyConstructor = 1;
+        MoveConstructor = 2;
+        CopyAssignmentOperator = 3;
+        MoveAssignmentOperator = 4;
+        Destructor = 5;
+        DefaultConstructor = 6;
+        ConvertingConstructor =  7;
+    }
+
     message Method {
         QualType ReturnTy = 1;
         repeated Arg Args = 2;
@@ -78,6 +89,8 @@ message Record {
         bool IsStatic = 5;
         bool IsVirtual = 6 ;
         bool IsPureVirtual = 7;
+        bool IsImplicit = 8;
+        MethodKind Kind = 9;
     }
 
     string Name = 1;

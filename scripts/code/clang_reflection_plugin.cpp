@@ -150,8 +150,9 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
             fillNamespaces(Out, elab, Loc);
             fillType(Out, elab->getNamedType(), Loc);
         } else if (In->isRecordType()) {
-            Out->set_name(
-                In->getAs<clang::RecordType>()->getTypeClassName());
+            Out->set_name(In->getAs<clang::RecordType>()
+                              ->getDecl()
+                              ->getNameAsString());
         } else {
             Diag(
                 DiagKind::Warning,
@@ -204,6 +205,29 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         sub->set_isconst(method->isConst());
         sub->set_isstatic(method->isStatic());
         sub->set_isvirtual(method->isVirtual());
+        sub->set_isimplicit(method->isImplicit());
+
+        if (method->isCopyAssignmentOperator()) {
+            sub->set_kind(Record_MethodKind_CopyAssignmentOperator);
+        } else if (method->isMoveAssignmentOperator()) {
+            sub->set_kind(Record_MethodKind_MoveAssignmentOperator);
+        } else if (llvm::dyn_cast<clang::CXXDestructorDecl>(method)) {
+            sub->set_kind(Record_MethodKind_Destructor);
+        } else if (
+            auto constr = llvm::dyn_cast<clang::CXXConstructorDecl>(
+                method)) {
+            if (constr->isCopyConstructor()) {
+                sub->set_kind(Record_MethodKind_CopyConstructor);
+            } else if (constr->isConvertingConstructor(true)) {
+                sub->set_kind(Record_MethodKind_DefaultConstructor);
+            } else if (constr->isMoveConstructor()) {
+                sub->set_kind(Record_MethodKind_MoveConstructor);
+            } else if (constr->isDefaultConstructor()) {
+                sub->set_kind(Record_MethodKind_DefaultConstructor);
+            }
+        } else {
+            sub->set_kind(Record_MethodKind_Base);
+        }
 
         fillType(
             sub->mutable_returnty(),
