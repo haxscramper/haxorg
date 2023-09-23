@@ -122,7 +122,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     void fillType(
         QualType*                                   Out,
         clang::QualType const&                      In,
-        std::optional<clang::SourceLocation> const& Loc = std::nullopt) {
+        std::optional<clang::SourceLocation> const& Loc) {
         Out->set_isconst(In.isConstQualified());
         Out->set_isref(In->isReferenceType());
         if (In->isReferenceType()) {
@@ -146,6 +146,53 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         }
     }
 
+    void fillExpr(
+        Expr*                                       Out,
+        clang::Expr const*                          In,
+        std::optional<clang::SourceLocation> const& Loc) {
+        if (auto val = In->getIntegerConstantExpr(*Ctx)) {
+            Out->set_kind(ExprKind::Lit);
+            llvm::SmallString<32> Str;
+            val->toString(Str);
+            Out->set_value(Str.str().str());
+        } else {
+            Diag(DiagKind::Warning, "Unhandled expression filled.", Loc);
+        }
+    }
+
+    void fillFieldDecl(Record::Field* sub, clang::FieldDecl* field) {
+        sub->set_name(field->getNameAsString());
+        fillType(
+            sub->mutable_type(), field->getType(), field->getLocation());
+    }
+
+    void fillParmVarDecl(Arg* arg, clang::ParmVarDecl const* parm) {
+        arg->set_name(parm->getNameAsString());
+        fillType(
+            arg->mutable_type(), parm->getType(), parm->getLocation());
+        if (parm->hasDefaultArg()) {
+            fillExpr(
+                arg->mutable_default_(),
+                parm->getDefaultArg(),
+                parm->getLocation());
+        }
+    }
+
+    void fillMethodDecl(
+        Record::Method*       sub,
+        clang::CXXMethodDecl* method) {
+        sub->set_name(method->getNameAsString());
+        fillType(
+            sub->mutable_returnty(),
+            method->getReturnType(),
+            method->getLocation());
+
+        for (clang::ParmVarDecl const* parm : method->parameters()) {
+            fillParmVarDecl(sub->add_args(), parm);
+        }
+    }
+
+
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration) {
         for (clang::AnnotateAttr* Attr :
              Declaration->specific_attrs<clang::AnnotateAttr>()) {
@@ -155,12 +202,12 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
                 rec->set_name(Declaration->getNameAsString());
 
                 for (clang::FieldDecl* field : Declaration->fields()) {
-                    Record::Field* sub = rec->add_fields();
-                    sub->set_name(field->getNameAsString());
-                    fillType(
-                        sub->mutable_type(),
-                        field->getType(),
-                        field->getLocation());
+                    fillFieldDecl(rec->add_fields(), field);
+                }
+
+                for (clang::CXXMethodDecl* method :
+                     Declaration->methods()) {
+                    fillMethodDecl(rec->add_methods(), method);
                 }
             }
         }

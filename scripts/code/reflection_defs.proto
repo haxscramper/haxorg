@@ -20,10 +20,23 @@ message Enum {
     QualType Base = 3;
 }
 
+
+enum ExprKind {
+    Lit = 0;
+}
+
+message Expr {
+    ExprKind Kind = 1;
+    string Value = 2;
+    repeated Expr Sub = 3;
+}
+
 message Arg {
     QualType Type = 1;
     string Name = 2;
+    Expr Default = 3;
 }
+
 
 message TemplateTypename {
     bool IsVariadic = 1;
@@ -42,6 +55,11 @@ message Record {
     message Method {
         QualType ReturnTy = 1;
         repeated Arg Args = 2;
+        string Name = 3;
+        bool IsConst = 4;
+        bool IsStatic = 5;
+        bool IsVirtual = 6 ;
+        bool IsPureVirtual = 7;
     }
 
     string Name = 1;
