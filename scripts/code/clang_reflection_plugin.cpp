@@ -6,6 +6,7 @@
 #include <clang/Sema/Sema.h>
 #include <iostream>
 #include <fstream>
+#include <optional>
 
 #include "reflection_defs.pb.h"
 
@@ -48,14 +49,119 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     explicit ReflASTVisitor(clang::ASTContext* Context, TU* tu)
         : Ctx(Context), out(tu) {}
 
+    using DiagKind = clang::DiagnosticsEngine::Level;
+
+
+    template <unsigned N>
+    clang::DiagnosticBuilder Diag(
+        clang::DiagnosticsEngine::Level L,
+        const char (&FormatString)[N],
+        std::optional<clang::SourceLocation> const& Loc = std::nullopt) {
+        auto& D = Ctx->getDiagnostics();
+        if (Loc) {
+            return D.Report(*Loc, D.getCustomDiagID(L, FormatString));
+        } else {
+            return D.Report(D.getCustomDiagID(L, FormatString));
+        }
+    }
+
+    std::string dump(clang::QualType const& Typ) {
+        std::string              typeName;
+        llvm::raw_string_ostream rso(typeName);
+        Typ.dump(rso, *Ctx);
+        rso.flush();
+        return typeName;
+    }
+
+    void fillNamespaces(
+        QualType*                                   Out,
+        clang::ElaboratedType const*                elab,
+        std::optional<clang::SourceLocation> const& Loc) {
+        if (const clang::NestedNameSpecifier* nns = elab->getQualifier()) {
+            // Iterate through the Nested Name Specifier
+            llvm::SmallVector<clang::NestedNameSpecifier const*> spaces;
+            while (nns) {
+                spaces.push_back(nns);
+                nns = nns->getPrefix();
+            }
+
+            std::reverse(spaces.begin(), spaces.end());
+            for (auto const* nns : spaces) {
+                clang::NestedNameSpecifier::SpecifierKind kind = nns->getKind();
+                QualType* Space = Out->add_spaces();
+                switch (kind) {
+                    case clang::NestedNameSpecifier::Identifier: {
+                        Space->set_name(nns->getAsIdentifier()->getName());
+                        break;
+                    }
+
+                    case clang::NestedNameSpecifier::Namespace: {
+                        Space->set_name(
+                            nns->getAsNamespace()->getNameAsString());
+                        break;
+                    }
+
+                    case clang::NestedNameSpecifier::NamespaceAlias: {
+                        Diag(
+                            DiagKind::Warning,
+                            "TODO Implement namespace alias expansion",
+                            Loc);
+                        Space->set_name(
+                            nns->getAsNamespaceAlias()->getNameAsString());
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /// This function 'fills' the type in both directions (adding parent
+    /// namespaces to the 'left' and parameters to the 'right') around the
+    /// type name as needed. Target output type will be assigned with
+    /// information from the 'base' of the \arg In.
+    void fillType(
+        QualType*                                   Out,
+        clang::QualType const&                      In,
+        std::optional<clang::SourceLocation> const& Loc = std::nullopt) {
+        Out->set_isconst(In.isConstQualified());
+        Out->set_isref(In->isReferenceType());
+        if (In->isReferenceType()) {
+            fillType(Out, In->getPointeeType(), Loc);
+        } else if (In->isBuiltinType()) {
+            Out->set_name(In.getAsString());
+        } else if (
+            clang::ElaboratedType const* elab = In->getAs<
+                                                clang::ElaboratedType>()) {
+            fillNamespaces(Out, elab, Loc);
+            fillType(Out, elab->getNamedType(), Loc);
+        } else if (In->isRecordType()) {
+            Out->set_name(
+                In->getAs<clang::RecordType>()->getTypeClassName());
+        } else {
+            Diag(
+                DiagKind::Warning,
+                "Unhandled serialization for a type %0 (%1)",
+                Loc)
+                << In << dump(In);
+        }
+    }
+
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration) {
         for (clang::AnnotateAttr* Attr :
              Declaration->specific_attrs<clang::AnnotateAttr>()) {
 
             if (Attr->getAnnotation() == REFL_NAME) {
-
                 Record* rec = out->add_records();
                 rec->set_name(Declaration->getNameAsString());
+
+                for (clang::FieldDecl* field : Declaration->fields()) {
+                    Record::Field* sub = rec->add_fields();
+                    sub->set_name(field->getNameAsString());
+                    fillType(
+                        sub->mutable_type(),
+                        field->getType(),
+                        field->getLocation());
+                }
             }
         }
 

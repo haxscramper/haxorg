@@ -1,7 +1,55 @@
 syntax = "proto3";
 
+message QualType {
+    string Name = 1;
+    repeated QualType Spaces = 2;
+    repeated QualType Parameters = 3;
+    bool IsConst = 4;
+    bool IsRef = 5;
+    bool IsNamespace = 6;
+}
+
+message Enum {
+    message Field  {
+        string Name = 1;
+        string Value = 2;
+    }
+
+    repeated Field Fields = 1;
+    string Name = 2;
+    QualType Base = 3;
+}
+
+message Arg {
+    QualType Type = 1;
+    string Name = 2;
+}
+
+message TemplateTypename {
+    bool IsVariadic = 1;
+    bool IsPlaceholder = 2;
+    string Name = 3;
+    repeated TemplateTypename Nested = 4;
+    string Concept = 5;
+}
+
 message Record {
-    string name = 1;
+    message Field {
+        string Name = 1;
+        QualType Type = 2;
+    }
+
+    message Method {
+        QualType ReturnTy = 1;
+        repeated Arg Args = 2;
+    }
+
+    string Name = 1;
+    repeated QualType Bases = 2;
+    repeated Field Fields = 3;
+    repeated Method Methods = 4;
+    repeated Record NestedRec = 5;
+    repeated Enum NestedEnum = 6;
 }
 
 message TU {
