@@ -61,3 +61,10 @@ target_precompile_headers(
     <clang/Frontend/CompilerInstance.h>
     <clang/Sema/Sema.h>
 )
+
+set(BASE "${CMAKE_SOURCE_DIR}")
+add_custom_command(
+    TARGET reflection_plugin POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${BASE}/lib"
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:reflection_plugin> "${BASE}/lib"
+)

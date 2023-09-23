@@ -6,6 +6,20 @@ pybind11_add_module(
     "${BASE}/src/py_libs/pyhaxorg/pyhaxorg.cpp"
 )
 
+set(PLUGIN_FLAGS_LIST
+    "-Xclang" "-add-plugin"
+    "-Xclang" "refl-plugin"
+    "-fplugin=${BASE}/scripts/code/lib/libreflection_plugin.so"
+   " -Xclang" "-plugin-arg-refl-plugin" "-Xclang" "out=/tmp/result.pb"
+)
+
+string(JOIN " " PLUGIN_FLAGS ${PLUGIN_FLAGS_LIST})
+
+set_source_files_properties(
+    "${BASE}/src/py_libs/pyhaxorg/pyhaxorg.cpp"
+    PROPERTIES COMPILE_FLAGS "${PLUGIN_FLAGS}"
+)
+
 set_common_files(pyhaxorg)
 set_target_output(pyhaxorg)
 set_target_flags(pyhaxorg)

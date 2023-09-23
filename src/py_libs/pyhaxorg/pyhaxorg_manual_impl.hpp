@@ -10,7 +10,7 @@
 
 namespace py = pybind11;
 
-struct OrgContext {
+struct [[refl]] OrgContext {
     OrgTokenGroup              tokens;
     SPtr<OrgTokenizer>         tokenizer;
     OrgNodeGroup               nodes;

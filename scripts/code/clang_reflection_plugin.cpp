@@ -4,6 +4,7 @@
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/ASTConsumers.h>
 #include <clang/Sema/Sema.h>
+#include <llvm/Support/TimeProfiler.h>
 #include <iostream>
 #include <fstream>
 #include <optional>
@@ -34,6 +35,7 @@ struct ExampleAttrInfo : public clang::ParsedAttrInfo {
             nullptr,
             0,
             Attr.getRange());
+        llvm::outs() << "Added reflection annotation\n";
         D->addAttr(created);
         return AttributeApplied;
     }
@@ -217,8 +219,23 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration) {
         for (clang::AnnotateAttr* Attr :
              Declaration->specific_attrs<clang::AnnotateAttr>()) {
+            Diag(
+                DiagKind::Warning,
+                "Found anntoation %0",
+                Declaration->getLocation())
+                << Attr->getAnnotation();
 
             if (Attr->getAnnotation() == REFL_NAME) {
+                llvm::TimeTraceScope timeScope{
+                    "reflection-visit-record"
+                    + Declaration->getNameAsString()};
+
+                Diag(
+                    DiagKind::Note,
+                    "Adding serialization information for %0",
+                    Declaration->getLocation())
+                    << Declaration;
+
                 Record* rec = out->add_records();
                 rec->set_name(Declaration->getNameAsString());
 
@@ -253,6 +270,10 @@ class ReflASTConsumer : public clang::ASTConsumer {
         , CI(CI) {}
 
     virtual void HandleTranslationUnit(clang::ASTContext& Context) {
+        // When executed with -ftime-trace plugin execution time will be
+        // reported in the constructed flame graph.
+        llvm::TimeTraceScope timeScope{"reflection-visit-tu"};
+
         Visitor.TraverseDecl(Context.getTranslationUnitDecl());
         // I could not figure out how to properly execute code at the end
         // of the pugin invocation, so content is written out in the
@@ -266,6 +287,7 @@ class ReflASTConsumer : public clang::ASTConsumer {
             std::ios::out |
                 // Overwrite the file if anything is there
                 std::ios::trunc | std::ios::binary};
+
 
         if (file.is_open()) {
             out->SerializePartialToOstream(&file);
@@ -302,7 +324,6 @@ class ReflPluginAction : public clang::PluginASTAction {
         const clang::CompilerInstance&  CI,
         const std::vector<std::string>& args) override {
         for (auto const& arg : args) {
-            llvm::outs() << arg << "\n";
             if (arg.starts_with("out=")) {
                 outputPathOverride = arg.substr(strlen("out="));
             }
