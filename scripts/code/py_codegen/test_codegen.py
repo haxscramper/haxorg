@@ -10,8 +10,6 @@ import ctypes
 
 ctypes.CDLL(setup_imports.lib_dir + '/py_textlayout.so')
 
-
-
 # Now you should be able to import your C++ library
 from py_textlayout import TextLayout, TextOptions
 from astbuilder_cpp import *
@@ -211,9 +209,7 @@ def in_sem(typ: QualType) -> QualType:
 
 
 @beartype
-def pybind_property(ast: ASTBuilder,
-                    field: GenTuField,
-                    Self: ParmVarParams) -> BlockId:
+def pybind_property(ast: ASTBuilder, field: GenTuField, Self: ParmVarParams) -> BlockId:
     b = ast.b
     return ast.XCall(".def_readwrite", [
         ast.Literal(field.name),
@@ -253,7 +249,8 @@ def pybind_method(ast: ASTBuilder, meth: GenTuFunction, Self: ParmVarParams,
 
 
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
-    id_type = QualType("DefaultSemId", [QualType(typ.name, Spaces=[QualType("sem")])], Spaces=[QualType("sem")])
+    id_type = QualType("DefaultSemId", [QualType(typ.name, Spaces=[QualType("sem")])],
+                       Spaces=[QualType("sem")])
 
     sub: List[BlockId] = []
 
@@ -272,25 +269,28 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
         if field.isStatic or hasattr(field, "ignore"):
             continue
 
-        sub.append(ast.XCall(
-            ".def_property",
-            [
-                ast.Literal(field.name),
-                ast.Lambda(
-                    LambdaParams(
-                        ResultTy=field.type,
-                        Body=[b.text(f"return {id_self.name}.id->{field.name};")],
-                        Args=[id_self],
-                    )),
-                ast.Lambda(
-                    LambdaParams(
-                        ResultTy=None,
-                        Body=[b.text(f"{id_self.name}.id->{field.name} = {field.name};")],
-                        Args=[id_self, ParmVarParams(field.type, field.name)],
-                    )),
-            ],
-            Line=False,
-        ))
+        sub.append(
+            ast.XCall(
+                ".def_property",
+                [
+                    ast.Literal(field.name),
+                    ast.Lambda(
+                        LambdaParams(
+                            ResultTy=field.type,
+                            Body=[b.text(f"return {id_self.name}.id->{field.name};")],
+                            Args=[id_self],
+                        )),
+                    ast.Lambda(
+                        LambdaParams(
+                            ResultTy=None,
+                            Body=[
+                                b.text(f"{id_self.name}.id->{field.name} = {field.name};")
+                            ],
+                            Args=[id_self, ParmVarParams(field.type, field.name)],
+                        )),
+                ],
+                Line=False,
+            ))
 
     for meth in typ.methods:
         if meth.isStatic or meth.isPureVirtual:
@@ -402,7 +402,7 @@ def get_space_annotated_types() -> Sequence[GenTuStruct]:
 
 
 @beartype
-def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
+def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> GenTuPass:
     passes: List[BlockId] = []
     typ: GenTuStruct
     b: TextLayout = ast.b
@@ -426,26 +426,75 @@ def get_bind_methods(ast: ASTBuilder) -> GenTuPass:
     iterate_object_tree(GenTuNamespace("sem", get_space_annotated_types()), callback,
                         iterate_context)
 
-    passes.append(ast.PPIfStmt(PPIfStmtParams([
-        ast.PPIfNDef("IN_CLANGD_PROCESSING", [
-            ast.Define("PY_HAXORG_COMPILING"),
-            ast.Include("pyhaxorg_manual_wrap.hpp")
-        ])
-    ])))
-
+    passes.append(
+        ast.PPIfStmt(
+            PPIfStmtParams([
+                ast.PPIfNDef("IN_CLANGD_PROCESSING", [
+                    ast.Define("PY_HAXORG_COMPILING"),
+                    ast.Include("pyhaxorg_manual_wrap.hpp")
+                ])
+            ])))
 
     return GenTuPass(
         b.stack([
-            ast.PPIfStmt(PPIfStmtParams([
-                ast.PPIfNDef("IN_CLANGD_PROCESSING", [
-                    ast.Define("PY_HAXORG_COMPILING"),
-                    ast.Include("pyhaxorg_manual_impl.hpp")
-                ])
-            ])),
+            ast.PPIfStmt(
+                PPIfStmtParams([
+                    ast.PPIfNDef("IN_CLANGD_PROCESSING", [
+                        ast.Define("PY_HAXORG_COMPILING"),
+                        ast.Include("pyhaxorg_manual_impl.hpp")
+                    ])
+                ])),
             b.text("PYBIND11_MODULE(pyhaxorg, m) {"),
             b.indent(2, b.stack(passes)),
+            # b.indent(2, b.stack([pybind_nested_type(ast, record, []) for record in reflect_structs])),
             b.text("}")
         ]))
+
+
+import proto_lib.reflection_defs as pb
+
+
+@beartype
+def conv_proto_type(typ: pb.QualType) -> QualType:
+    res: QualType = QualType(typ.name)
+    for space in typ.spaces:
+        res.Spaces.append(conv_proto_type(space))
+
+    for param in typ.parameters:
+        res.Parameters.append(conv_proto_record(param))
+
+    res.isConst = typ.is_const
+    res.isNamespace = typ.is_namespace
+    res.isRef = typ.is_ref
+
+    return res
+
+
+@beartype
+def conv_proto_record(record: pb.Record) -> GenTuStruct:
+    result = GenTuStruct(record.name, GenTuDoc(""))
+    for field in record.fields:
+        result.fields.append(
+            GenTuField(type=conv_proto_type(field.type),
+                       name=field.name,
+                       doc=GenTuDoc("")))
+
+    for meth in record.methods:
+        result.methods.append(
+            GenTuFunction(
+                result=conv_proto_type(meth.return_ty),
+                name=meth.name,
+                doc=GenTuDoc(""),
+                arguments=[
+                    GenTuIdent(conv_proto_type(arg.type), arg.name) for arg in meth.args
+                ]))
+
+    return result
+
+
+@beartype
+def conv_proto_unit(unit: pb.TU) -> Sequence[GenTuStruct]:
+    return [conv_proto_record(rec) for rec in unit.records]
 
 
 def gen_value(ast: ASTBuilder) -> GenFiles:
@@ -459,6 +508,12 @@ def gen_value(ast: ASTBuilder) -> GenFiles:
             ],
         )
     ]
+
+    unit = pb.TU()
+    with open("/tmp/result.pb", "rb") as f:
+        unit = pb.TU.FromString(f.read())
+
+    gen_structs: List[GenTuStruct] = conv_proto_unit(unit)
 
     return GenFiles([
         GenUnit(
@@ -482,7 +537,7 @@ def gen_value(ast: ASTBuilder) -> GenFiles:
                     GenTuInclude("pybind11/pybind11.h", True),
                     GenTuInclude("sem/SemOrg.hpp", True),
                     GenTuInclude("pybind11/stl.h", True),
-                    get_bind_methods(ast),
+                    get_bind_methods(ast, gen_structs),
                 ],
             )),
         GenUnit(
@@ -534,16 +589,6 @@ if __name__ == "__main__":
     description: GenFiles = gen_value(builder)
     trace_file = open("/tmp/trace.txt", "w")
     indent = 0
-
-    from google.protobuf.json_format import MessageToJson
-
-
-    import reflection_defs_pb2
-    unit = reflection_defs_pb2.TU()
-    with open("/tmp/result.pb", "rb") as f:
-        unit.ParseFromString(f.read())
-
-    pprint(json.loads(MessageToJson(unit)))
 
     for tu in description.files:
         for i in range(2):
