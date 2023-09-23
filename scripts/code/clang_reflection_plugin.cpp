@@ -8,11 +8,12 @@
 #include <fstream>
 #include <optional>
 
+// Auto-generated protobuf definition, provided by cmake run
 #include "reflection_defs.pb.h"
 
 #define REFL_NAME "refl"
 
-
+/// `[[refl]]` attribute provider
 struct ExampleAttrInfo : public clang::ParsedAttrInfo {
     ExampleAttrInfo() {
         static constexpr Spelling spellings[]{
@@ -43,6 +44,9 @@ static clang::ParsedAttrInfoRegistry::Add<ExampleAttrInfo> Z(
     REFL_NAME,
     "example attribute description");
 
+
+/// Data extraction AST visitor, collects annotated types into the protobuf
+/// definitions that can later be imported by the python scripts.
 class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
   public:
     TU* out;
@@ -52,6 +56,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     using DiagKind = clang::DiagnosticsEngine::Level;
 
 
+    /// Helper wrapper for clang diagnostic printer
     template <unsigned N>
     clang::DiagnosticBuilder Diag(
         clang::DiagnosticsEngine::Level L,
@@ -65,6 +70,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         }
     }
 
+    /// Print qualified clang type as string
     std::string dump(clang::QualType const& Typ) {
         std::string              typeName;
         llvm::raw_string_ostream rso(typeName);
@@ -73,12 +79,15 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         return typeName;
     }
 
+    /// Fill in information about namespaces used in elaborated type
     void fillNamespaces(
+        /// Update information on this outgoing type
         QualType*                                   Out,
         clang::ElaboratedType const*                elab,
         std::optional<clang::SourceLocation> const& Loc) {
         if (const clang::NestedNameSpecifier* nns = elab->getQualifier()) {
-            // Iterate through the Nested Name Specifier
+            // Iterate through the Nested Name Specifier, collect them and
+            // reverse order
             llvm::SmallVector<clang::NestedNameSpecifier const*> spaces;
             while (nns) {
                 spaces.push_back(nns);
@@ -102,6 +111,9 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
                     }
 
                     case clang::NestedNameSpecifier::NamespaceAlias: {
+                        // Namespace aliases must be resolved as protobuf
+                        // QualType definition is designed to map
+                        // non-aliased type
                         Diag(
                             DiagKind::Warning,
                             "TODO Implement namespace alias expansion",
@@ -132,6 +144,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         } else if (
             clang::ElaboratedType const* elab = In->getAs<
                                                 clang::ElaboratedType>()) {
+            // 'fill' operations are additive for namespaces
             fillNamespaces(Out, elab, Loc);
             fillType(Out, elab->getNamedType(), Loc);
         } else if (In->isRecordType()) {
@@ -146,6 +159,9 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         }
     }
 
+    /// Convert expression into a simplified protobuf description --
+    /// mapping whole set of C++ complexities here is likely not possible
+    /// anyway, so simplified approximation will suffice.
     void fillExpr(
         Expr*                                       Out,
         clang::Expr const*                          In,
@@ -238,12 +254,18 @@ class ReflASTConsumer : public clang::ASTConsumer {
 
     virtual void HandleTranslationUnit(clang::ASTContext& Context) {
         Visitor.TraverseDecl(Context.getTranslationUnitDecl());
+        // I could not figure out how to properly execute code at the end
+        // of the pugin invocation, so content is written out in the
+        // translation unit *visitor* instead, but for now this will do.
         clang::DiagnosticsEngine& Diags = CI.getDiagnostics();
         std::string               path  = outputPathOverride
                                             ? *outputPathOverride
                                             : CI.getFrontendOpts().OutputFile + ".pb";
         std::ofstream             file{
-            path, std::ios::out | std::ios::trunc | std::ios::binary};
+            path,
+            std::ios::out |
+                // Overwrite the file if anything is there
+                std::ios::trunc | std::ios::binary};
 
         if (file.is_open()) {
             out->SerializePartialToOstream(&file);
