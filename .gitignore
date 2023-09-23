@@ -354,7 +354,7 @@ CMakeLists.txt.user*
 
 **/*.tmp*
 **/*.bin
-docs/*
+docs/html
 .xmake
 deps
 

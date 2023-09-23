@@ -10,6 +10,8 @@ import ctypes
 
 ctypes.CDLL(setup_imports.lib_dir + '/py_textlayout.so')
 
+
+
 # Now you should be able to import your C++ library
 from py_textlayout import TextLayout, TextOptions
 from astbuilder_cpp import *
@@ -525,12 +527,23 @@ if __name__ == "__main__":
     from pprint import pprint, pformat
     import os
     import sys
+    import json
 
     t = TextLayout()
     builder = ASTBuilder(t)
     description: GenFiles = gen_value(builder)
     trace_file = open("/tmp/trace.txt", "w")
     indent = 0
+
+    from google.protobuf.json_format import MessageToJson
+
+
+    import reflection_defs_pb2
+    unit = reflection_defs_pb2.TU()
+    with open("/tmp/result.pb", "rb") as f:
+        unit.ParseFromString(f.read())
+
+    pprint(json.loads(MessageToJson(unit)))
 
     for tu in description.files:
         for i in range(2):
