@@ -351,6 +351,20 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct,
 
         sub.append(pybind_property(ast, field, id_self))
 
+
+    
+    for meth in value.methods:
+        self_arg = ParmVarParams(QualType(value.name, Spaces=scope, isConst=True, isRef=True), "self_")
+        if meth.isStatic or meth.isPureVirtual:
+            continue
+
+        passcall = ast.XCallRef(b.text(self_arg.name), meth.name,
+                                [b.text(arg.name) for arg in meth.arguments])
+        if meth.result and meth.result != "void":
+            passcall = ast.Return(passcall)
+
+        sub.append(pybind_method(ast, meth, Self=self_arg, Body=[passcall]))
+
     sub.append(b.text(";"))
 
     for nest in value.nested:
@@ -446,7 +460,7 @@ def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Gen
                 ])),
             b.text("PYBIND11_MODULE(pyhaxorg, m) {"),
             b.indent(2, b.stack(passes)),
-            # b.indent(2, b.stack([pybind_nested_type(ast, record, []) for record in reflect_structs])),
+            b.indent(2, b.stack([pybind_nested_type(ast, record, []) for record in reflect_structs])),
             b.text("}")
         ]))
 
@@ -480,6 +494,9 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
                        doc=GenTuDoc("")))
 
     for meth in record.methods:
+        if meth.kind != pb.RecordMethodKind.Base:
+            continue    
+
         result.methods.append(
             GenTuFunction(
                 result=conv_proto_type(meth.return_ty),

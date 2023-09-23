@@ -74,10 +74,10 @@ struct [[refl]] OrgContext {
 QTextStream qcout;
 
 void init_py_manual_api(py::module& m) {
-    py::class_<OrgContext>(m, "OrgContext")
-        .def(py::init<>())
-        .def("run", &OrgContext::run)
-        .def("getNode", &OrgContext::getNode)
-        //
-        ;
+    // py::class_<OrgContext>(m, "OrgContext")
+    //     .def(py::init<>())
+    //     .def("run", &OrgContext::run)
+    //     .def("getNode", &OrgContext::getNode)
+    //     //
+    //     ;
 }
