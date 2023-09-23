@@ -35,15 +35,23 @@ target_link_libraries(
     clangTooling # Add more Clang components as needed
 )
 
+find_package(Protobuf REQUIRED)
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS reflection_defs.proto)
+get_filename_component(PROTO_HDR_DIR ${PROTO_HDRS} DIRECTORY)
+
+
 # Set the C++ standard
 set_target_properties(convert_const_ref PROPERTIES CXX_STANDARD 20)
+
 
 # NOTE: Not linking any LVM libraries here as it will cause
 # LLVM ERROR: inconsistency in registered CommandLine options due
 # to duplicate symbols that are loaded in clang and then in shared
 # library.
-add_library(reflection_plugin SHARED clang_reflection_plugin.cpp)
+add_library(reflection_plugin SHARED clang_reflection_plugin.cpp ${PROTO_SRCS} ${PROTO_HDRS})
 set_target_properties(reflection_plugin PROPERTIES CXX_STANDARD 20)
+target_link_libraries(reflection_plugin ${PROTOBUF_LIBRARIES})
+target_include_directories(reflection_plugin PRIVATE ${PROTO_HDR_DIR})
 target_precompile_headers(
     reflection_plugin
     PRIVATE

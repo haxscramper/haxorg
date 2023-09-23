@@ -5,5 +5,5 @@ struct [[refl]] annotated {
 int main() {
     annotated it;
     it.cull_me();
-    it.call_me();
+    return 0;
 }

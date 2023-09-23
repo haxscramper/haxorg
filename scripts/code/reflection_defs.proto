@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+message Record {
+    string name = 1;
+}
+
+message TU {
+    repeated Record records = 1;
+}
