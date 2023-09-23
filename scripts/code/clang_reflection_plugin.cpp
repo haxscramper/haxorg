@@ -181,7 +181,12 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     void fillMethodDecl(
         Record::Method*       sub,
         clang::CXXMethodDecl* method) {
+
         sub->set_name(method->getNameAsString());
+        sub->set_isconst(method->isConst());
+        sub->set_isstatic(method->isStatic());
+        sub->set_isvirtual(method->isVirtual());
+
         fillType(
             sub->mutable_returnty(),
             method->getReturnType(),
@@ -224,6 +229,8 @@ class ReflASTConsumer : public clang::ASTConsumer {
     std::unique_ptr<TU>      out;
     ReflASTVisitor           Visitor;
     clang::CompilerInstance& CI;
+
+    std::optional<std::string> outputPathOverride;
     explicit ReflASTConsumer(clang::CompilerInstance& CI)
         : out(std::make_unique<TU>())
         , Visitor(&CI.getASTContext(), out.get())
@@ -232,8 +239,10 @@ class ReflASTConsumer : public clang::ASTConsumer {
     virtual void HandleTranslationUnit(clang::ASTContext& Context) {
         Visitor.TraverseDecl(Context.getTranslationUnitDecl());
         clang::DiagnosticsEngine& Diags = CI.getDiagnostics();
-        std::string   path = CI.getFrontendOpts().OutputFile + ".pb";
-        std::ofstream file{
+        std::string               path  = outputPathOverride
+                                            ? *outputPathOverride
+                                            : CI.getFrontendOpts().OutputFile + ".pb";
+        std::ofstream             file{
             path, std::ios::out | std::ios::trunc | std::ios::binary};
 
         if (file.is_open()) {
@@ -256,16 +265,26 @@ class ReflASTConsumer : public clang::ASTConsumer {
 
 class ReflPluginAction : public clang::PluginASTAction {
   protected:
+    std::optional<std::string>          outputPathOverride;
     std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(
         clang::CompilerInstance& CI,
         llvm::StringRef) override {
 
-        return std::make_unique<ReflASTConsumer>(CI);
+        auto tmp                = std::make_unique<ReflASTConsumer>(CI);
+        tmp->outputPathOverride = outputPathOverride;
+        return tmp;
     }
+
 
     bool ParseArgs(
         const clang::CompilerInstance&  CI,
         const std::vector<std::string>& args) override {
+        for (auto const& arg : args) {
+            llvm::outs() << arg << "\n";
+            if (arg.starts_with("out=")) {
+                outputPathOverride = arg.substr(strlen("out="));
+            }
+        }
         return true;
     }
 
