@@ -4,16 +4,57 @@ set_arch("x64")
 
 add_rules("mode.debug")
 
-target("test_codegen", function() 
+
+
+local cmake_options = {
+    {"USE_PCH", "Use precompiled headers", true},
+    {"TRACE_INSTRUMENT", "Generate instrumentation trace", false},
+    {"TEST_COVERAGE", "Enable test coverage", false},
+    {"MAX_COMPILE_ERRORS", "Max number of compilation errors before compiler stops", false},
+    {"USE_PERFETTO", "Enable perfetto profiling", false},
+    {"PROFILE_GENERATE", "Compile binary with profile data generation", false},
+    {"PROFILE_USE", "Compile binary using profile data generation", false},
+    {"USE_XRAY", "Use LLVM XRay instrumentation for profiling", false},
+    {"USE_SANITIZER", "Use sanitizers", true}
+}
+
+for _, it in ipairs(cmake_options) do
+  option("haxorg." .. it[1])
+    set_description(it[2])
+    set_default(it[3])
+  option_end()
+end
+
+local target_metadata = {}
+
+function meta_target(name, doc, metadata, callback)
+  target(name, function()
+    on_load(function(target)
+      target:data_set("description", doc)
+      target_metadata[name] = target
+    end)
+    callback()
+  end)
+end
+
+meta_target("list_targets", "List all available targets", {}, function()
+  set_kind("phony")
+  on_run(function(target)
+    for name, target in pairs(target_metadata) do
+      cprint(vformat("${green}%-30s${clear} ${yellow}%s${clear}"), name, target:data("description"))
+    end
+  end)
+end)
+
+meta_target("haxorg_codegen", "Execute haxorg code generation step. Might update source in the repo", {}, function() 
   set_kind("phony")
   on_build(function(target) 
     os.execv("conda", {"run", "-n", "main", "scripts/code/py_codegen/test_codegen.py"})
   end)
 end)
 
-target("download_llvm")
+meta_target("download_llvm", "Download LLVM toolchain dependency", {}, function()
     set_kind("phony")
-
     on_build(function(target)
         local utils = import("scripts.utils")
         -- Check if the directory exists
@@ -39,30 +80,9 @@ target("download_llvm")
             utils.info("LLVM already exists. Skipping download.")
         end
     end)
+end)
 
-
-local cmake_options = {
-    {"USE_PCH", "Use precompiled headers", true},
-    {"TRACE_INSTRUMENT", "Generate instrumentation trace", false},
-    {"TEST_COVERAGE", "Enable test coverage", false},
-    {"MAX_COMPILE_ERRORS", "Max number of compilation errors before compiler stops", false},
-    {"USE_PERFETTO", "Enable perfetto profiling", false},
-    {"PROFILE_GENERATE", "Compile binary with profile data generation", false},
-    {"PROFILE_USE", "Compile binary using profile data generation", false},
-    {"USE_XRAY", "Use LLVM XRay instrumentation for profiling", false},
-    {"USE_SANITIZER", "Use sanitizers", true}
-}
-
-
-
-for _, it in ipairs(cmake_options) do
-  option("haxorg." .. it[1])
-    set_description(it[2])
-    set_default(it[3])
-  option_end()
-end
-
-target("cmake_configure_haxorg", function() 
+meta_target("cmake_configure_haxorg", "Execute cmake configuration step for haxorg", {}, function() 
     set_kind("phony")
     add_deps("download_llvm")
     add_files("CMakeLists.txt")
@@ -91,7 +111,7 @@ target("cmake_configure_haxorg", function()
     end)
 end)
 
-target("cmake_haxorg", function()
+meta_target("cmake_haxorg", "Compile libraries and binaries for haxorg", {}, function()
   set_kind("phony")
   add_deps("cmake_configure_haxorg")
   on_build(function(target)
@@ -102,3 +122,4 @@ target("cmake_haxorg", function()
     })
   end)
 end)
+
