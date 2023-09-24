@@ -20,7 +20,6 @@ function(set_target_flags TARGET)
   add_target_property(${TARGET} LINK_OPTIONS "-ftime-trace")
 
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-    message(INFO "Using clang compiler")
     # Avoid getting flooded with compilation errors
     set(CMAKE_CXX_COMPILER clang++)
 #    if(NOT ${MAX_COMPILE_ERRORS} MATCHES ON)
@@ -67,7 +66,6 @@ function(set_target_flags TARGET)
     endif()
 
     if(${TEST_COVERAGE})
-      message(INFO " Test coverage enabled")
       target_compile_options(
         ${TARGET} PRIVATE -fprofile-instr-generate -fcoverage-mapping
                           -ftest-coverage)
@@ -84,7 +82,6 @@ function(set_target_flags TARGET)
                         "-fmax-errors=${MAX_COMPILE_ERRORS}")
 
     if(${TEST_COVERAGE})
-      message(INFO " Test coverage enabled")
       target_compile_options(${TARGET} PRIVATE --coverage)
       target_link_options(${TARGET} PRIVATE -lgcov --coverage)
     endif()

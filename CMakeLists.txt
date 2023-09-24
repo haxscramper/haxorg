@@ -29,11 +29,8 @@ conan_basic_setup()
 
 option(USE_PCH "Use precompiled headers" ON)
 option(TRACE_INSTRUMENT "Generate instrumentation trace")
-option(USE_SINGLE_FILE_CATCH "Use single-file catch2 or installed one")
 option(TEST_COVERAGE "Enable test coverage")
-option(MAX_COMPILE_ERRORS
-       "Max number of compilation errors before compiler stops")
-
+option(MAX_COMPILE_ERRORS "Max number of compilation errors before compiler stops")
 option(USE_PERFETTO "Enable perfetto profiling")
 option(PROFILE_GENERATE "Compile binary with profile data generation")
 option(PROFILE_USE "Compile binary using profile data generation")
