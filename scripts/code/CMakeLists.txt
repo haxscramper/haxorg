@@ -13,13 +13,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 # https://llvm.org/docs/CMake.html#embedding-llvm-in-your-project
 find_package(LLVM REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)
+find_package(Protobuf REQUIRED)
 
 
 # Adding LLVM definitions and include directories
 add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${CLANG_INCLUDE_DIRS})
-
 
 # Create the executable target
 
@@ -35,16 +35,18 @@ target_link_libraries(
     clangTooling # Add more Clang components as needed
 )
 
-find_package(Protobuf REQUIRED)
+
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS reflection_defs.proto)
 get_filename_component(PROTO_HDR_DIR ${PROTO_HDRS} DIRECTORY)
 set_target_properties(convert_const_ref PROPERTIES CXX_STANDARD 20)
 
 # Shared logic for reflection collector implementation
 
-add_library(reflection_lib STATIC clang_reflection_lib.cpp clang_reflection_lib.hpp ${PROTO_SRC} ${PROTO_HRDS})
+add_library(reflection_lib STATIC clang_reflection_lib.cpp clang_reflection_lib.hpp ${PROTO_SRCS} ${PROTO_HRDS})
 target_include_directories(reflection_lib PUBLIC ${PROTO_HDR_DIR})
 target_link_libraries(reflection_lib ${PROTOBUF_LIBRARIES})
+target_compile_options(reflection_lib PRIVATE "-fPIC")
+set_target_properties(reflection_lib PROPERTIES CXX_STANDARD 20)
 target_precompile_headers(
     reflection_lib
     PRIVATE
@@ -58,7 +60,23 @@ target_precompile_headers(
 # Binary can be used as a separate tool
 add_executable(reflection_tool clang_reflection_tool.cpp)
 set_target_properties(reflection_tool PROPERTIES CXX_STANDARD 20)
-target_link_libraries(reflection_tool PRIVATE reflection_lib LLVM clangBasic clangASTMatchers clangTooling)
+# FIXME Not clear why, but specified library parameters cause missing symbol errors
+# in some of the protobuf libraries. Specifically missing is
+# _ZN4absl12lts_2023012512log_internal10LogMessagelsImLi0EEERS2_RKT_, commonly googled
+# as absl::lts_20230125 (yes, this is a common issue, but no working solution).
+# ATTW the 'solved' responses indicate that it has something to do with new
+# dependency on abseil library in the protobuf, but it did not work here.
+#
+# Also TODO: Use conan package to integrate dependency on protobuf here,
+# instead of using system-provided version.
+target_link_options(reflection_tool PRIVATE "-Wl,--copy-dt-needed-entries")
+target_link_libraries(reflection_tool PRIVATE
+    reflection_lib
+    LLVM
+    clangBasic
+    clangASTMatchers
+    clangTooling
+)
 
 add_custom_command(TARGET reflection_tool POST_BUILD
                    COMMAND "${CMAKE_COMMAND}" -E create_symlink
