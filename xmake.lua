@@ -83,6 +83,18 @@ meta_target("graphviz_targets", "Generate dependency graph in the build director
   end)
 end)
 
+meta_target("py_reflection", "Update reflection artifacts using standalone build tool", {}, function()
+  set_kind("phony")
+  on_build(function(target)
+    os.execv("build/utils/reflection_tool", {
+      "-p=build/haxorg/compile_commands.json",
+      "--compilation-database=build/haxorg/compile_commands.json",
+      vformat("--out=$(buildir)/reflection.pb"),
+      "src/py_libs/pyhaxorg/pyhaxorg.cpp"
+    })
+  end)
+end)
+
 meta_target("haxorg_codegen", "Execute haxorg code generation step. Might update source in the repo", {}, function() 
   set_kind("phony")
   on_build(function(target) 

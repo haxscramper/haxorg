@@ -94,4 +94,4 @@ target_link_libraries(reflection_plugin PRIVATE reflection_lib)
 
 add_custom_command(TARGET reflection_plugin POST_BUILD
                    COMMAND "${CMAKE_COMMAND}" -E create_symlink
-                           "${CMAKE_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/build/utils")
+                           "${CMAKE_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/../../build/utils")
