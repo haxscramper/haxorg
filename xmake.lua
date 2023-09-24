@@ -46,6 +46,43 @@ meta_target("list_targets", "List all available targets", {}, function()
   end)
 end)
 
+meta_target("graphviz_targets", "Generate dependency graph in the build directory", {}, function()
+  set_kind("phony")
+  on_build(function(x)
+    local utils = import("scripts.utils")
+    local edges = {}
+    for name, target in pairs(target_metadata) do
+      table.insert(edges, vformat(
+        "\"%s\"[label=\"%s\"];",
+        target:name(),
+        target:name() .. "\n" .. target:data("description")
+      ))
+      table.insert(edges, vformat(
+        "\"%s\" -> {%s};", 
+        target:name(), 
+        table.concat(utils.list_map(
+          target:deps(), 
+          function(sub) 
+            return vformat("\"%s\"", sub:name())
+          end), ", ")
+      ))
+    end
+
+    local formatted = vformat("digraph G {rankdir =LR;\nnode[shape=rect, fontname=consolas];\n%s\n}", table.concat(edges, "\n"))
+    local dot = path.join(vformat("$(buildir)"), "deps.dot")
+    local file = io.open(dot, "w")
+    if file then
+      file:write(formatted)
+      file:close()
+    else
+      print("????????????????")
+    end
+    local png = path.join(vformat("$(buildir)"), "deps.png")
+    os.execv("dot", {"-Tpng", "-o", png, dot})
+    utils.info("Wrote dependency graph to %s", png)
+  end)
+end)
+
 meta_target("haxorg_codegen", "Execute haxorg code generation step. Might update source in the repo", {}, function() 
   set_kind("phony")
   on_build(function(target) 

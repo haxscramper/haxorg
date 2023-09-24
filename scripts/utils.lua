@@ -102,3 +102,20 @@ function def_option(name, doc, default)
     set_default(default)
   option_end()
 end
+
+
+function dict_map(tbl, f)
+  local t = {}
+  for k,v in pairs(tbl) do
+      t[k] = f(v)
+  end
+  return t
+end
+
+function list_map(tbl, f)
+  local t = {}
+  for k,v in pairs(tbl) do
+      table.insert(t, f(v))
+  end
+  return t
+end
