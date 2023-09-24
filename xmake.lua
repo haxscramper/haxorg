@@ -115,7 +115,7 @@ meta_target("cmake_configure_utils", "Execute configuration for utility binary c
 
   on_run(function(target)
     local utils = import("scripts.utils")
-    utils.rebuild_quard(target, function()
+    utils.rebuild_quard(target, function(target)
       local dbg = true
       local pass_flags = {
         "-B", 
@@ -144,6 +144,25 @@ meta_target("cmake_utils", "Compile libraries and binaries for utils", {}, funct
 end)
 
 
+
+meta_target("reflection_protobuf", "Update protobuf data definition for reflection", {}, function()
+  set_kind("phony")
+  add_files("scripts/code/reflection_defs.proto")
+  on_build(function(target)
+    local utils = import("scripts.utils")
+    utils.rebuild_quard(target, function(target)
+      utils.info("Rebulding reflection protobuf data")
+      utils.with_dir("scripts/code/py_codegen", function() 
+        os.execv("bash", {"build_reflection_defs.sh"})
+      end)  
+    end, function(target)
+      utils.info("Skipping protobuf reflection rebuild")
+    end)
+
+  end)
+end)
+
+
 meta_target("cmake_configure_haxorg", "Execute cmake configuration step for haxorg", {}, function() 
     set_kind("phony")
     add_deps("download_llvm")
@@ -151,7 +170,7 @@ meta_target("cmake_configure_haxorg", "Execute cmake configuration step for haxo
 
     on_build(function(target)
       local utils = import("scripts.utils")
-      utils.rebuild_quard(target, function() 
+      utils.rebuild_quard(target, function(target) 
         local dbg = false
         local pass_flags = {
           "-B", 
@@ -167,7 +186,7 @@ meta_target("cmake_configure_haxorg", "Execute cmake configuration step for haxo
         end
 
         os.execv("cmake", pass_flags)
-      end, function() 
+      end, function(target) 
         utils.info("Skipping CMake run")
       end)
     end)

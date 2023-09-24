@@ -22,6 +22,13 @@ function write_timestamps(filename, ...)
   io.writefile(filename, content)
 end
 
+function with_dir(directory, callback)
+  local olddir = os.curdir()
+  os.cd(directory)
+  callback()
+  os.cd(olddir)
+end
+
 function info(text, ...)
   cprint(vformat("${green}[...]${clear} ") .. vformat(text, ...))
 end
@@ -59,9 +66,9 @@ end
 
 function rebuild_quard(target, cbDo, cbNot) 
   if detect_rebuld_state(target) then
-    cbDo()
+    cbDo(target)
   elseif cbNot then
-    cbNot()
+    cbNot(target)
   end
   finalize_rebuild_state(target)
 end
