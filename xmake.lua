@@ -89,6 +89,7 @@ meta_target("py_reflection", "Update reflection artifacts using standalone build
     os.execv("build/utils/reflection_tool", {
       "-p=build/haxorg/compile_commands.json",
       "--compilation-database=build/haxorg/compile_commands.json",
+      vformat("--toolchain-inculde=$(scriptdir)/toolchain/llvm/lib/clang/16/include"),
       vformat("--out=$(buildir)/reflection.pb"),
       "src/py_libs/pyhaxorg/pyhaxorg.cpp"
     })

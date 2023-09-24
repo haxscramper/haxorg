@@ -22,6 +22,11 @@ llvm::cl::opt<std::string> outputPathOverride(
     llvm::cl::value_desc("output path"),
     llvm::cl::cat(ToolingSampleCategory));
 
+llvm::cl::opt<std::string> ToolchainInclude(
+    "toolchain-inculde",
+    llvm::cl::desc("Path to the LLVM Toolchain include directory"),
+    llvm::cl::Required,
+    llvm::cl::cat(ToolingSampleCategory));
 
 class ReflFrontendAction : public clang::ASTFrontendAction {
   protected:
@@ -64,6 +69,9 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
             filteredArgs.push_back(Args[i]);
         }
     }
+
+    filteredArgs.push_back("-isystem");
+    filteredArgs.push_back(ToolchainInclude);
 
 
     for (auto const& arg : filteredArgs) {
