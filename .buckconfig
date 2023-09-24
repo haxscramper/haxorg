@@ -1,5 +1,0 @@
-[repositories]
-root = .
-prelude = "toolchain/prelude"
-toolchains = toolchains
-none = none
