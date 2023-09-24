@@ -368,3 +368,6 @@ heaptrack.*
 bin
 lib
 xray-log*
+buck-out
+toolchain
+
