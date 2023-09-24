@@ -39,7 +39,7 @@ end
 
 meta_target("list_targets", "List all available targets", {}, function()
   set_kind("phony")
-  on_run(function(target)
+  on_run(function(x)
     for name, target in pairs(target_metadata) do
       cprint(vformat("${green}%-30s${clear} ${yellow}%s${clear}"), name, target:data("description"))
     end
@@ -50,6 +50,33 @@ meta_target("haxorg_codegen", "Execute haxorg code generation step. Might update
   set_kind("phony")
   on_build(function(target) 
     os.execv("conda", {"run", "-n", "main", "scripts/code/py_codegen/test_codegen.py"})
+  end)
+end)
+
+meta_target("conan_remove", "Remove installed conan dependencies", {}, function()
+  set_kind("phony")
+  on_run(function(target)
+    os.execv("conan", {"remove", "'*'", "--force"})
+  end)
+end)
+
+local function rel_conan()
+  return path.join(os.scriptdir(), "build/dependencies/conan")
+end
+
+meta_target("conan_install", "Install conan dependencies", {}, function() 
+  set_kind("phony")
+  add_files("conanprofile.txt", "conanfile.txt")
+  on_run(function(target)
+    os.execv("conan", {
+      "install",
+      ".",
+      "--install-folder",
+      rel_conan(),
+      "--build=missing",
+      "--profile",
+      path.join(os.scriptdir(), "conanprofile.txt")
+    })
   end)
 end)
 
@@ -72,7 +99,6 @@ meta_target("download_llvm", "Download LLVM toolchain dependency", {}, function(
             -- Unpack the archive
             os.exec("tar -xf llvm.tar.xz -C toolchain && mv toolchain/clang+llvm-16.0.3-x86_64-linux-gnu-ubuntu-22.04 toolchain/llvm")
 
-            -- Optionally, remove the downloaded archive
             os.rm("llvm.tar.xz")
 
             utils.info("LLVM downloaded and unpacked successfully!")
@@ -81,6 +107,42 @@ meta_target("download_llvm", "Download LLVM toolchain dependency", {}, function(
         end
     end)
 end)
+
+meta_target("cmake_configure_utils", "Execute configuration for utility binary compilation", {}, function()
+  set_kind("phony")
+  add_deps("download_llvm")
+  add_files("scripts/code/CMakeLists.txt")
+
+  on_run(function(target)
+    local utils = import("scripts.utils")
+    utils.rebuild_quard(target, function()
+      local dbg = true
+      local pass_flags = {
+        "-B", 
+        os.scriptdir() .. "/build/utils_" .. (dbg and "debug" or "release"),
+        "-S",
+        os.scriptdir(),
+        "-DCMAKE_BUILD_TYPE=" .. (dbg and "Debug" or "RelWithDebInfo"),
+        "-DCMAKE_CXX_COMPILER=" .. path.join(os.scriptdir(), "toolchain/llvm", "bin/clang++")
+      }
+
+      os.execv("cmake", pass_flags)
+    end)
+  end)
+end)
+
+meta_target("cmake_utils", "Compile libraries and binaries for utils", {}, function()
+  set_kind("phony")
+  add_deps("cmake_configure_utils")
+  on_build(function(target)
+    local dbg = true
+    os.execv("cmake", {
+      "--build",
+      path.join(os.scriptdir(), "build/utils_" .. (dbg and "debug" or "release"))
+    })
+  end)
+end)
+
 
 meta_target("cmake_configure_haxorg", "Execute cmake configuration step for haxorg", {}, function() 
     set_kind("phony")
