@@ -38,22 +38,15 @@ target_link_libraries(
 find_package(Protobuf REQUIRED)
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS reflection_defs.proto)
 get_filename_component(PROTO_HDR_DIR ${PROTO_HDRS} DIRECTORY)
-
-
-# Set the C++ standard
 set_target_properties(convert_const_ref PROPERTIES CXX_STANDARD 20)
 
+# Shared logic for reflection collector implementation
 
-# NOTE: Not linking any LVM libraries here as it will cause
-# LLVM ERROR: inconsistency in registered CommandLine options due
-# to duplicate symbols that are loaded in clang and then in shared
-# library.
-add_library(reflection_plugin SHARED clang_reflection_plugin.cpp ${PROTO_SRCS} ${PROTO_HDRS})
-set_target_properties(reflection_plugin PROPERTIES CXX_STANDARD 20)
-target_link_libraries(reflection_plugin ${PROTOBUF_LIBRARIES})
-target_include_directories(reflection_plugin PRIVATE ${PROTO_HDR_DIR})
+add_library(reflection_lib STATIC clang_reflection_lib.cpp clang_reflection_lib.hpp ${PROTO_SRC} ${PROTO_HRDS})
+target_include_directories(reflection_lib PUBLIC ${PROTO_HDR_DIR})
+target_link_libraries(reflection_lib ${PROTOBUF_LIBRARIES})
 target_precompile_headers(
-    reflection_plugin
+    reflection_lib
     PRIVATE
     <clang/AST/ASTConsumer.h>
     <clang/AST/RecursiveASTVisitor.h>
@@ -62,6 +55,25 @@ target_precompile_headers(
     <clang/Sema/Sema.h>
 )
 
+# Binary can be used as a separate tool
+add_executable(reflection_tool clang_reflection_tool.cpp)
+set_target_properties(reflection_tool PROPERTIES CXX_STANDARD 20)
+target_link_libraries(reflection_tool PRIVATE reflection_lib LLVM clangBasic clangASTMatchers clangTooling)
+
+add_custom_command(TARGET reflection_tool POST_BUILD
+                   COMMAND "${CMAKE_COMMAND}" -E create_symlink
+                           "${CMAKE_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/build/utils")
+
+# Shared library can be loaded as clang plugin
+
+# NOTE: Not linking any LVM libraries here as it will cause
+# LLVM ERROR: inconsistency in registered CommandLine options due
+# to duplicate symbols that are loaded in clang and then in shared
+# library.
+add_library(reflection_plugin SHARED clang_reflection_plugin.cpp)
+set_target_properties(reflection_plugin PROPERTIES CXX_STANDARD 20)
+target_link_libraries(reflection_plugin PRIVATE reflection_lib)
+
 add_custom_command(TARGET reflection_plugin POST_BUILD
-COMMAND "${CMAKE_COMMAND}" -E create_symlink
-        "${CMAKE_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/build/utils")
+                   COMMAND "${CMAKE_COMMAND}" -E create_symlink
+                           "${CMAKE_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/build/utils")
