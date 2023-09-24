@@ -1,3 +1,7 @@
+
+set_xmakever("2.8.2")
+set_arch("x64")
+
 add_rules("mode.debug")
 
 target("test_codegen", function() 
@@ -11,6 +15,7 @@ target("download_llvm")
     set_kind("phony")
 
     on_build(function(target)
+        local utils = import("scripts.utils")
         -- Check if the directory exists
         if not os.isdir("toolchain/llvm") then
             print("LLVM not found. Downloading...")
@@ -29,28 +34,12 @@ target("download_llvm")
             -- Optionally, remove the downloaded archive
             os.rm("llvm.tar.xz")
 
-            print("LLVM downloaded and unpacked successfully!")
+            utils.info("LLVM downloaded and unpacked successfully!")
         else
-            print("LLVM already exists. Skipping download.")
+            utils.info("LLVM already exists. Skipping download.")
         end
     end)
 
-local function tuple_iter(tuples)
-    local i = 0
-    return function()
-        i = i + 1
-        if tuples[i] then
-            return unpack(tuples[i])
-        end
-    end
-end
-
-function def_option(name, doc, default)
-  option(name)
-    set_description(doc)
-    set_default(default)
-  option_end()
-end
 
 local cmake_options = {
     {"USE_PCH", "Use precompiled headers", true},
@@ -64,31 +53,41 @@ local cmake_options = {
     {"USE_SANITIZER", "Use sanitizers", true}
 }
 
-for name, doc, default in tuple_iter(cmake_options) do
-  def_option("haxorg." .. name, doc, default)
+
+
+for _, it in ipairs(cmake_options) do
+  option("haxorg." .. it[1])
+    set_description(it[2])
+    set_default(it[3])
+  option_end()
 end
 
 target("cmake_configure_haxorg", function() 
     set_kind("phony")
     add_deps("download_llvm")
-    add_files("CMakeFiles.txt")
+    add_files("CMakeLists.txt")
 
     on_build(function(target)
-      local dbg = false
-      local pass_flags = {
-        "-B", 
-        os.scriptdir() .. "/build/haxorg_" .. (dbg and "debug" or "release"),
-        "-S",
-        os.scriptdir(),
-        "-DCMAKE_BUILD_TYPE=" .. (dbg and "Debug" or "RelWithDebInfo"),
-        "-DCMAKE_CXX_COMPILER=" .. path.join(os.scriptdir(), "toolchain/llvm", "bin/clang++")
-      }
+      local utils = import("scripts.utils")
+      utils.rebuild_quard(target, function() 
+        local dbg = false
+        local pass_flags = {
+          "-B", 
+          os.scriptdir() .. "/build/haxorg_" .. (dbg and "debug" or "release"),
+          "-S",
+          os.scriptdir(),
+          "-DCMAKE_BUILD_TYPE=" .. (dbg and "Debug" or "RelWithDebInfo"),
+          "-DCMAKE_CXX_COMPILER=" .. path.join(os.scriptdir(), "toolchain/llvm", "bin/clang++")
+        }
 
-      for name in tuple_iter(cmake_options) do
-        table.insert(pass_flags, "-D" .. name .. "=" .. (get_config("haxorg." .. name) and "ON" or "OFF"))
-      end
+        for name in utils.tuple_iter(cmake_options) do
+          table.insert(pass_flags, "-D" .. name .. "=" .. (get_config("haxorg." .. name) and "ON" or "OFF"))
+        end
 
-      os.execv("cmake", pass_flags)
+        os.execv("cmake", pass_flags)
+      end, function() 
+        utils.info("Skipping CMake run")
+      end)
     end)
 end)
 
