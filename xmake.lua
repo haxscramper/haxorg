@@ -36,9 +36,9 @@ end
 
 rule("dummy", function() end)
 
-function any_files(file) 
-  add_files(file, { rule = "dummy"})
-end
+function any_files(file) add_files(file, { rule = "dummy"}) end
+function abs_build(...) return path.absolute(vformat("$(buildir)"), ...) end
+function abs_script(...) return path.absolute(vformat("$(scriptir)"), ...) end
 
 task("list_targets", function()
   set_category("action")
@@ -108,7 +108,7 @@ end)
 
 meta_target("py_reflection", "Update reflection artifacts using standalone build tool", {}, function()
   set_kind("phony")
-  add_files("src/py_libs/pyhaxorg/pyhaxorg.cpp")
+  add_files("src/py_libs/pyhaxorg/pyhaxorg_manual_impl.hpp")
   any_files("build/utils/reflection_tool")
   add_deps("reflection_protobuf")
   on_build(function(target)
@@ -119,8 +119,8 @@ meta_target("py_reflection", "Update reflection artifacts using standalone build
           os.execv("build/utils/reflection_tool", {
             "-p=build/haxorg/compile_commands.json",
             "--compilation-database=build/haxorg/compile_commands.json",
-            "--toolchain-inculde=" .. path.absolute(vformat("$(scriptdir)/toolchain/llvm/lib/clang/16/include")),
-            "--out=" .. path.absolute(vformat("$(buildir)/reflection.pb")),
+            "--toolchain-inculde=" .. utils.abs_script("toolchain/llvm/lib/clang/16/include"),
+            "--out=" .. utils.abs_build("reflection.pb"),
             "src/py_libs/pyhaxorg/pyhaxorg.cpp"
           })       
         end,
@@ -136,14 +136,20 @@ meta_target("haxorg_codegen", "Execute haxorg code generation step.", {}, functi
   set_kind("phony")
   add_deps("py_reflection")
   add_deps("cmake_utils")
+  any_files("scripts/code/py_codegen/test_codegen.py")
+  any_files("build/reflection.pb")
   on_build(function(target) 
-    os.iorun("conda", {
+    local utils = import("scripts.utils")
+    os.execv("conda", {
       "run", 
       "-n", 
       "main", 
+      "python",
       "scripts/code/py_codegen/test_codegen.py", 
-      path.absolute(vformat("$(buildir)/reflection.pb"))
+      utils.abs_build(),
+      utils.abs_script()
     })
+    utils.info("Updated code definitions")
   end)
 end)
 
@@ -155,7 +161,7 @@ meta_target("conan_remove", "Remove installed conan dependencies", {}, function(
 end)
 
 local function rel_conan()
-  return path.join(os.scriptdir(), "build/dependencies/conan")
+  return abs_script("build/dependencies/conan")
 end
 
 meta_target("conan_install", "Install conan dependencies", {}, function() 
@@ -169,7 +175,7 @@ meta_target("conan_install", "Install conan dependencies", {}, function()
       rel_conan(),
       "--build=missing",
       "--profile",
-      path.join(os.scriptdir(), "conanprofile.txt")
+      abs_script("conanprofile.txt")
     })
   end)
 end)
@@ -234,6 +240,7 @@ meta_target("cmake_utils", "Compile libraries and binaries for utils", {}, funct
       "--build",
       path.join(os.scriptdir(), "build/utils_" .. (dbg and "debug" or "release"))
     })
+    import("scripts.utils").info("CMake utils build ok")
   end)
 end)
 

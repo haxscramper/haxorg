@@ -604,7 +604,7 @@ if __name__ == "__main__":
 
     t = TextLayout()
     builder = ASTBuilder(t)
-    description: GenFiles = gen_value(builder, reflection_path=sys.argv[1])
+    description: GenFiles = gen_value(builder, reflection_path=os.path.join(sys.argv[1], "reflection.pb"))
     trace_file = open("/tmp/trace.txt", "w")
     indent = 0
 
@@ -621,7 +621,7 @@ if __name__ == "__main__":
             if not define:
                 continue
 
-            path = define.path.format(base="/mnt/workspace/repos/haxorg/src")
+            path = define.path.format(base=os.path.join(sys.argv[2], "src"))
             result = builder.TranslationUnit([
                 GenConverter(
                     builder,

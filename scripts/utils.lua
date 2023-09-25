@@ -29,6 +29,26 @@ function with_dir(directory, callback)
   os.cd(olddir)
 end
 
+function findXmakeParentDir(currentDir)
+  currentDir = currentDir or os.curdir()
+
+  local xmakeFile = path.join(currentDir, "xmake.lua")
+  if os.isfile(xmakeFile) then
+      return currentDir
+  end
+
+  local parentDir = path.directory(currentDir)
+  if parentDir == currentDir then
+      return nil
+  end
+
+  return findXmakeParentDir(parentDir)
+end
+
+function abs_build(...) return path.absolute(vformat("$(buildir)"), ...) end
+
+function abs_script(...) return path.absolute(findXmakeParentDir(), ...) end
+
 function error(text, ...)
   cprint(vformat("${red}[...]${clear} ") .. vformat(text, ...))
 end
