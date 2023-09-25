@@ -29,8 +29,20 @@ function with_dir(directory, callback)
   os.cd(olddir)
 end
 
+function error(text, ...)
+  cprint(vformat("${red}[...]${clear} ") .. vformat(text, ...))
+end
+
+function warn(text, ...)
+  cprint(vformat("${yellow}[...]${clear} ") .. vformat(text, ...))
+end
+
 function info(text, ...)
   cprint(vformat("${green}[...]${clear} ") .. vformat(text, ...))
+end
+
+function get_target_timestamps(target) 
+  return path.absolute(path.join(config.buildir(), target:name() .. "_timestamps.txt"))
 end
 
 function detect_rebuld_state(target)
@@ -39,7 +51,7 @@ function detect_rebuld_state(target)
 
   local source_files = target:sourcefiles()
   local current_timestamps = {}
-  local stored_timestamps_file = path.join(config.buildir(), "timestamps.txt")
+  local stored_timestamps_file = get_target_timestamps(target)
   
   for _, source_file in ipairs(source_files) do
       table.insert(current_timestamps, get_timestamp(source_file))
@@ -48,7 +60,12 @@ function detect_rebuld_state(target)
   local stored_timestamps = { read_timestamps(stored_timestamps_file) }
   if #stored_timestamps ~= #current_timestamps then
       -- Number of files has changed; re-build necessary
-      info("Number of files has changed, rebuilding ...")
+      info("Number of files has changed for target '%s' from '%s' (now %s was %s), rebuilding ...", 
+        target:name(),
+        stored_timestamps_file,
+        #current_timestamps,
+        #stored_timestamps
+      )
       return true
   end
   
@@ -64,13 +81,21 @@ function detect_rebuld_state(target)
   return false
 end
 
-function rebuild_quard(target, cbDo, cbNot) 
+function rebuild_guard(target, cbDo, cbNot, opts) 
   if detect_rebuld_state(target) then
+    if not opts or opts["log"] then
+      info("Detected changes in '%s', re-running ...", target:name())
+    end
     cbDo(target)
-  elseif cbNot then
-    cbNot(target)
+    finalize_rebuild_state(target)
+  else
+    if not opts or opts["log"] then
+      info("No changes detected for '%s', skipping.", target:name())
+    end
+    if cbNot then
+      cbNot(target)
+    end
   end
-  finalize_rebuild_state(target)
 end
 
 function finalize_rebuild_state(target)
@@ -82,8 +107,9 @@ function finalize_rebuild_state(target)
       table.insert(timestamps, get_timestamp(source_file))
   end
 
-  local stored_timestamps_file = path.join(config.buildir(), "timestamps.txt")
+  local stored_timestamps_file = get_target_timestamps(target)
   write_timestamps(stored_timestamps_file, table.unpack(timestamps))
+  info("Updated rebuild timestamps for '%s' to '%s'", target:name(), stored_timestamps_file)
 end
 
 function tuple_iter(tuples)

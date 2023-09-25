@@ -25,33 +25,48 @@ for _, it in ipairs(cmake_options) do
   option_end()
 end
 
-local target_metadata = {}
-
 function meta_target(name, doc, metadata, callback)
   target(name, function()
     on_load(function(target)
       target:data_set("description", doc)
-      target_metadata[name] = target
     end)
     callback()
   end)
 end
 
-meta_target("list_targets", "List all available targets", {}, function()
-  set_kind("phony")
-  on_run(function(x)
-    for name, target in pairs(target_metadata) do
-      cprint(vformat("${green}%-30s${clear} ${yellow}%s${clear}"), name, target:data("description"))
+task("list_targets", function()
+  set_category("action")
+  on_run(function(target)
+    import("core.project.project")
+    import("core.project.config")
+    config.load()
+    project.load_targets()
+    for _, target in ipairs(project.ordertargets()) do
+      cprint(vformat("${green}%-30s${clear} ${yellow}%s${clear}"), target:name(), target:data("description"))
     end
   end)
+
+  set_menu({
+    description = "List all available targets",
+    usage = "xmake list_targets"
+  })
 end)
 
-meta_target("graphviz_targets", "Generate dependency graph in the build directory", {}, function()
-  set_kind("phony")
-  on_build(function(x)
+task("graphviz_targets", function()
+  set_menu({
+    description = "Generate graphviz for described project dependencies",
+    usage = "xmake graphviz_targets"
+  })
+
+  on_run(function(x)
+    import("core.project.project")
+    import("core.project.config")
+    config.load()
+    project.load_targets()
+
     local utils = import("scripts.utils")
     local edges = {}
-    for name, target in pairs(target_metadata) do
+    for _, target in ipairs(project.ordertargets()) do
       table.insert(edges, vformat(
         "\"%s\"[label=\"%s\"];",
         target:name(),
@@ -68,7 +83,7 @@ meta_target("graphviz_targets", "Generate dependency graph in the build director
       ))
     end
 
-    local formatted = vformat("digraph G {rankdir =LR;\nnode[shape=rect, fontname=consolas];\n%s\n}", table.concat(edges, "\n"))
+    local formatted = vformat("digraph G {rankdir=LR;\nnode[shape=rect, fontname=consolas];\n%s\n}", table.concat(edges, "\n"))
     local dot = path.join(vformat("$(buildir)"), "deps.dot")
     local file = io.open(dot, "w")
     if file then
@@ -85,21 +100,41 @@ end)
 
 meta_target("py_reflection", "Update reflection artifacts using standalone build tool", {}, function()
   set_kind("phony")
+  add_files("src/py_libs/pyhaxorg/pyhaxorg.cpp")
+  add_deps("reflection_protobuf")
   on_build(function(target)
-    os.execv("build/utils/reflection_tool", {
-      "-p=build/haxorg/compile_commands.json",
-      "--compilation-database=build/haxorg/compile_commands.json",
-      vformat("--toolchain-inculde=$(scriptdir)/toolchain/llvm/lib/clang/16/include"),
-      vformat("--out=$(buildir)/reflection.pb"),
-      "src/py_libs/pyhaxorg/pyhaxorg.cpp"
-    })
+    local utils = import("scripts.utils")
+    utils.rebuild_guard(target, function(target)
+      local ok = try({
+        function () 
+          os.execv("build/utils/reflection_tool", {
+            "-p=build/haxorg/compile_commands.json",
+            "--compilation-database=build/haxorg/compile_commands.json",
+            "--toolchain-inculde=" .. path.absolute(vformat("$(scriptdir)/toolchain/llvm/lib/clang/16/include")),
+            "--out=" .. path.absolute(vformat("$(buildir)/reflection.pb")),
+            "src/py_libs/pyhaxorg/pyhaxorg.cpp"
+          })       
+        end,
+        function (errors)
+          utils.error(errors)      
+        end
+      })
+    end)
   end)
 end)
 
-meta_target("haxorg_codegen", "Execute haxorg code generation step. Might update source in the repo", {}, function() 
+meta_target("haxorg_codegen", "Execute haxorg code generation step.", {}, function() 
   set_kind("phony")
+  add_deps("py_reflection")
+  add_deps("cmake_utils")
   on_build(function(target) 
-    os.execv("conda", {"run", "-n", "main", "scripts/code/py_codegen/test_codegen.py"})
+    os.execv("conda", {
+      "run", 
+      "-n", 
+      "main", 
+      "scripts/code/py_codegen/test_codegen.py", 
+      path.absolute(vformat("$(buildir)/reflection.pb"))
+    })
   end)
 end)
 
@@ -165,7 +200,7 @@ meta_target("cmake_configure_utils", "Execute configuration for utility binary c
 
   on_run(function(target)
     local utils = import("scripts.utils")
-    utils.rebuild_quard(target, function(target)
+    utils.rebuild_guard(target, function(target)
       local dbg = true
       local pass_flags = {
         "-B", 
@@ -197,18 +232,15 @@ end)
 
 meta_target("reflection_protobuf", "Update protobuf data definition for reflection", {}, function()
   set_kind("phony")
-  add_files("scripts/code/reflection_defs.proto")
+  -- add_files("scripts/code/reflection_defs.proto")
   on_build(function(target)
     local utils = import("scripts.utils")
-    utils.rebuild_quard(target, function(target)
+    utils.rebuild_guard(target, function(target)
       utils.info("Rebulding reflection protobuf data")
       utils.with_dir("scripts/code/py_codegen", function() 
         os.execv("bash", {"build_reflection_defs.sh"})
       end)  
-    end, function(target)
-      utils.info("Skipping protobuf reflection rebuild")
     end)
-
   end)
 end)
 
@@ -220,7 +252,7 @@ meta_target("cmake_configure_haxorg", "Execute cmake configuration step for haxo
 
     on_build(function(target)
       local utils = import("scripts.utils")
-      utils.rebuild_quard(target, function(target) 
+      utils.rebuild_guard(target, function(target) 
         local dbg = false
         local pass_flags = {
           "-B", 
@@ -236,8 +268,6 @@ meta_target("cmake_configure_haxorg", "Execute cmake configuration step for haxo
         end
 
         os.execv("cmake", pass_flags)
-      end, function(target) 
-        utils.info("Skipping CMake run")
       end)
     end)
 end)

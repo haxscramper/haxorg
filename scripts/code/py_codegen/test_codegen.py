@@ -514,7 +514,7 @@ def conv_proto_unit(unit: pb.TU) -> Sequence[GenTuStruct]:
     return [conv_proto_record(rec) for rec in unit.records]
 
 
-def gen_value(ast: ASTBuilder) -> GenFiles:
+def gen_value(ast: ASTBuilder, reflection_path: str) -> GenFiles:
     full_enums = get_enums() + [
         GenTuEnum(
             t_osk().name,
@@ -527,7 +527,7 @@ def gen_value(ast: ASTBuilder) -> GenFiles:
     ]
 
     unit = pb.TU()
-    with open("/tmp/result.pb", "rb") as f:
+    with open(reflection_path, "rb") as f:
         unit = pb.TU.FromString(f.read())
 
     gen_structs: List[GenTuStruct] = conv_proto_unit(unit)
@@ -600,10 +600,11 @@ if __name__ == "__main__":
     import os
     import sys
     import json
+    import sys
 
     t = TextLayout()
     builder = ASTBuilder(t)
-    description: GenFiles = gen_value(builder)
+    description: GenFiles = gen_value(builder, reflection_path=sys.argv[1])
     trace_file = open("/tmp/trace.txt", "w")
     indent = 0
 

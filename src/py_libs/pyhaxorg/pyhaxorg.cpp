@@ -503,6 +503,12 @@ PYBIND11_MODULE(pyhaxorg, m) {
   /* Binding for nested type */
   pybind11::class_<sem::Subtree::Period>(m, "SubtreePeriod")
     .def_readwrite("kind", &sem::Subtree::Period::kind, "Time period kind -- not associated with point/range distinction")
+    .def("getTime",
+         [](sem::Subtree::Period const& self_) -> sem::SemIdT<sem::Time> { return self_.getTime(); },
+         "Get associated time point")
+    .def("getTimeRange",
+         [](sem::Subtree::Period const& self_) -> sem::SemIdT<sem::Time> { return self_.getTimeRange(); },
+         "Get associated time period")
     ;
   pybind11::enum_<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind")
     .value("Clocked", sem::Subtree::Period::Kind::Clocked)
@@ -992,4 +998,5 @@ PYBIND11_MODULE(pyhaxorg, m) {
     #define PY_HAXORG_COMPILING
     #include "pyhaxorg_manual_wrap.hpp"
   #endif
+
 }

@@ -73,12 +73,6 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
     filteredArgs.push_back("-isystem");
     filteredArgs.push_back(ToolchainInclude);
 
-
-    for (auto const& arg : filteredArgs) {
-        llvm::outs() << arg << " ";
-    }
-
-    llvm::outs() << "\n";
     return filteredArgs;
 }
 
