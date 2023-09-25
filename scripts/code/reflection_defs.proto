@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 
+
 // Fully qualified C++ type that is designed to uniquely identify the target
 // within a single translation unit. More complex cases are not considered
 // (duplicate type names in different files, across different projects)

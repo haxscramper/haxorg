@@ -34,6 +34,12 @@ function meta_target(name, doc, metadata, callback)
   end)
 end
 
+rule("dummy", function() end)
+
+function any_files(file) 
+  add_files(file, { rule = "dummy"})
+end
+
 task("list_targets", function()
   set_category("action")
   on_run(function(target)
@@ -98,9 +104,12 @@ task("graphviz_targets", function()
   end)
 end)
 
+
+
 meta_target("py_reflection", "Update reflection artifacts using standalone build tool", {}, function()
   set_kind("phony")
   add_files("src/py_libs/pyhaxorg/pyhaxorg.cpp")
+  any_files("build/utils/reflection_tool")
   add_deps("reflection_protobuf")
   on_build(function(target)
     local utils = import("scripts.utils")
@@ -128,7 +137,7 @@ meta_target("haxorg_codegen", "Execute haxorg code generation step.", {}, functi
   add_deps("py_reflection")
   add_deps("cmake_utils")
   on_build(function(target) 
-    os.execv("conda", {
+    os.iorun("conda", {
       "run", 
       "-n", 
       "main", 
@@ -232,11 +241,10 @@ end)
 
 meta_target("reflection_protobuf", "Update protobuf data definition for reflection", {}, function()
   set_kind("phony")
-  -- add_files("scripts/code/reflection_defs.proto")
+  any_files("scripts/code/reflection_defs.proto")
   on_build(function(target)
     local utils = import("scripts.utils")
     utils.rebuild_guard(target, function(target)
-      utils.info("Rebulding reflection protobuf data")
       utils.with_dir("scripts/code/py_codegen", function() 
         os.execv("bash", {"build_reflection_defs.sh"})
       end)  
