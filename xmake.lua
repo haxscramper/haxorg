@@ -140,11 +140,8 @@ meta_target("haxorg_codegen", "Execute haxorg code generation step.", {}, functi
   any_files("build/reflection.pb")
   on_build(function(target) 
     local utils = import("scripts.utils")
-    os.execv("conda", {
+    os.execv("poetry", {
       "run", 
-      "-n", 
-      "main", 
-      "python",
       "scripts/code/py_codegen/test_codegen.py", 
       utils.abs_build(),
       utils.abs_script()
