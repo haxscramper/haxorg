@@ -106,28 +106,34 @@ end)
 
 
 
+
 meta_target("py_reflection", "Update reflection artifacts using standalone build tool", {}, function()
   set_kind("phony")
   add_files("src/py_libs/pyhaxorg/pyhaxorg_manual_impl.hpp")
   any_files("build/utils/reflection_tool")
+  any_files("xmake.lua")
+
+  add_deps("cmake_utils")
   add_deps("reflection_protobuf")
   on_build(function(target)
     local utils = import("scripts.utils")
     utils.rebuild_guard(target, function(target)
-      local ok = try({
+      local ok = utils.maybe_try(
         function () 
           os.execv("build/utils/reflection_tool", {
             "-p=build/haxorg/compile_commands.json",
             "--compilation-database=build/haxorg/compile_commands.json",
-            "--toolchain-inculde=" .. utils.abs_script("toolchain/llvm/lib/clang/16/include"),
+            "--toolchain-include=" .. utils.abs_script("toolchain/llvm/lib/clang/16/include"),
             "--out=" .. utils.abs_build("reflection.pb"),
             "src/py_libs/pyhaxorg/pyhaxorg.cpp"
           })       
         end,
         function (errors)
           utils.error(errors)      
-        end
-      })
+        end,
+        nil,
+        true
+      )
     end)
   end)
 end)

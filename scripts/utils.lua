@@ -47,7 +47,7 @@ end
 
 function abs_build(...) return path.absolute(vformat("$(buildir)"), ...) end
 
-function abs_script(...) return path.absolute(findXmakeParentDir(), ...) end
+function abs_script(...) return path.absolute(path.join(findXmakeParentDir(), ...)) end
 
 function error(text, ...)
   cprint(vformat("${red}[...]${clear} ") .. vformat(text, ...))
@@ -142,11 +142,15 @@ function tuple_iter(tuples)
   end
 end
 
-function def_option(name, doc, default)
-  option(name)
-    set_description(doc)
-    set_default(default)
-  option_end()
+function split(inputstr, sep)
+  if sep == nil then
+      sep = "%s" -- default to splitting on spaces
+  end
+  local t = {}
+  for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
+      table.insert(t, str)
+  end
+  return t
 end
 
 
@@ -164,4 +168,15 @@ function list_map(tbl, f)
       table.insert(t, f(v))
   end
   return t
+end
+
+
+function maybe_try(command, except, finally, doWrap) 
+  if doWrap then
+    return try({command, except, finally})
+  else
+    local result = command()
+    if finally then finally() end
+    return result
+  end
 end

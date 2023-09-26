@@ -6,6 +6,10 @@
 #include <llvm/Support/CommandLine.h>
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/JSONCompilationDatabase.h>
+#include <filesystem>
+
+namespace fs = std::filesystem;
+
 
 static llvm::cl::OptionCategory ToolingSampleCategory(
     "Generate reflection data");
@@ -23,7 +27,7 @@ llvm::cl::opt<std::string> outputPathOverride(
     llvm::cl::cat(ToolingSampleCategory));
 
 llvm::cl::opt<std::string> ToolchainInclude(
-    "toolchain-inculde",
+    "toolchain-include",
     llvm::cl::desc("Path to the LLVM Toolchain include directory"),
     llvm::cl::Required,
     llvm::cl::cat(ToolingSampleCategory));
@@ -57,6 +61,8 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
         } else if (Args[i].find("-fplugin=") != std::string::npos) {
         } else if (Args[i].starts_with("@")) {
         } else if (
+            Args[i].starts_with("-W") && !Args[i].starts_with("-Wno")) {
+        } else if (
             (i + 3 < Args.size())   //
             && Args[i] == "-Xclang" //
             && (Args[i + 1] == "-include-pch"
@@ -65,11 +71,15 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
             && (Args[i + 3].ends_with("pch")
                 || Args[i + 3].find("cmake_pch") != std::string::npos)) {
             i += 3;
+
         } else {
             filteredArgs.push_back(Args[i]);
         }
     }
 
+    // TODO Redirect warnings and other diagnostics into a temporary location
+    // Use serif output.
+    filteredArgs.push_back("-Wno-everything");
     filteredArgs.push_back("-isystem");
     filteredArgs.push_back(ToolchainInclude);
 
@@ -106,6 +116,13 @@ int main(int argc, const char** argv) {
 
     clang::tooling::ClangTool tool(
         adjustedCompilations, OptionsParser.getSourcePathList());
+
+    if (!fs::is_directory(std::string(ToolchainInclude))) {
+        llvm::errs()
+            << "Toolchain include is not a directory or does not exist '"
+            << ToolchainInclude << "'\n";
+        return 1;
+    }
 
     int result = tool.run(
         clang::tooling::newFrontendActionFactory<ReflFrontendAction>()

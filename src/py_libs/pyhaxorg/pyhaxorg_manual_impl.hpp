@@ -24,7 +24,6 @@ struct [[refl]] OrgContext {
     Func<LineCol(CR<PosStr>)>  locationResolver;
     sem::ContextStore          store;
 
-
     OrgContext()
         : tokenizer()
         , nodes(&tokens)
@@ -32,7 +31,6 @@ struct [[refl]] OrgContext {
         , converter(sem::OrgConverter(&store)) {
         qDebug() << "Init Org context in PY";
     }
-
 
     void initLocationResolvers() {
         locationResolver = [&](CR<PosStr> str) -> LineCol {

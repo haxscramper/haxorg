@@ -346,13 +346,8 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct,
         if field.isStatic or hasattr(field, "ignore"):
             continue
 
-        if field.name == "period":
-            pprint(hasattr(field, "ignore"))
-
         sub.append(pybind_property(ast, field, id_self))
-
-
-    
+  
     for meth in value.methods:
         self_arg = ParmVarParams(QualType(value.name, Spaces=scope, isConst=True, isRef=True), "self_")
         if meth.isStatic or meth.isPureVirtual:
@@ -527,10 +522,13 @@ def gen_value(ast: ASTBuilder, reflection_path: str) -> GenFiles:
     ]
 
     unit = pb.TU()
+    assert os.path.exists(reflection_path)
     with open(reflection_path, "rb") as f:
         unit = pb.TU.FromString(f.read())
 
     gen_structs: List[GenTuStruct] = conv_proto_unit(unit)
+
+    pprint(gen_structs, width=200)
 
     return GenFiles([
         GenUnit(
@@ -613,9 +611,6 @@ if __name__ == "__main__":
             if i == 1 and not tu.source:
                 continue
 
-            with open("/tmp/current_tu_data.py", "w") as file:
-                pprint(tu, width=200, stream=file)
-
             isHeader = i == 0
             define = tu.header if isHeader else tu.source
             if not define:
@@ -631,7 +626,7 @@ if __name__ == "__main__":
             directory = os.path.dirname(path)
             if not os.path.exists(directory):
                 os.makedirs(directory)
-                print(f"Created dir for {path}")
+                log.info(f"Created dir for {path}")
 
             opts = TextOptions()
             opts.rightMargin = 160
@@ -652,4 +647,3 @@ if __name__ == "__main__":
                     out.write(newCode)
                 log.info(f"[red]Wrote[/red] to {define.path}")
 
-    print("Done all")
