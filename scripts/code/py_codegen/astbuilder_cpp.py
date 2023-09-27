@@ -575,7 +575,7 @@ class ASTBuilder:
         return self.b.line([self.string("&"), expr])
 
     def Scoped(self, scope: QualType, expr: BlockId):
-        return self.b.line([self.Type(scope), self.string("::"), expr])
+        return self.b.line([self.Type(scope, noQualifiers=True), self.string("::"), expr])
 
     def Throw(self, expr: BlockId) -> BlockId:
         return self.XStmt("throw", expr)
@@ -955,18 +955,19 @@ class ASTBuilder:
             self.string(")")
         ])
 
-    def Type(self, type_: QualType) -> BlockId:
+    def Type(self, type_: QualType, noQualifiers: bool = False) -> BlockId:
         return self.b.line([
-            self.b.join([self.Type(Space) for Space in type_.Spaces] +
+            self.b.join([self.Type(Space, noQualifiers=noQualifiers) for Space in type_.Spaces] +
                         [self.string(type_.name)], self.string("::")),
             self.string("") if (len(type_.Parameters) == 0) else self.b.line([
                 self.string("<"),
-                self.b.join(list(map(lambda in_: self.Type(in_), type_.Parameters)),
+                self.b.join(list(map(lambda in_: self.Type(in_, noQualifiers=noQualifiers), type_.Parameters)),
                             self.string(", "), not type_.verticalParamList),
                 self.string(">")
             ]),
-            self.string((" const" if type_.isConst else "") +
-                        ("*" if type_.isPtr else "") + ("&" if type_.isRef else ""))
+            *([] if noQualifiers else [self.string((" const" if type_.isConst else "") +
+                        ("*" if type_.isPtr else "") + ("&" if type_.isRef else ""))])
+            
         ])
 
     def Dot(self, lhs: BlockId, rhs: BlockId) -> BlockId:

@@ -90,6 +90,17 @@ void ReflASTVisitor::fillExpr(
     }
 }
 
+void ReflASTVisitor::fillFieldDecl(
+    Record::Field*    sub,
+    clang::FieldDecl* field) {
+    sub->set_name(field->getNameAsString());
+    auto doc = getDoc(field);
+    if (doc) {
+        sub->set_doc(*doc);
+    }
+    fillType(sub->mutable_type(), field->getType(), field->getLocation());
+}
+
 void ReflASTVisitor::fillParmVarDecl(
     Arg*                      arg,
     const clang::ParmVarDecl* parm) {
@@ -112,6 +123,11 @@ void ReflASTVisitor::fillMethodDecl(
     sub->set_isstatic(method->isStatic());
     sub->set_isvirtual(method->isVirtual());
     sub->set_isimplicit(method->isImplicit());
+
+    auto doc = getDoc(method);
+    if (doc) {
+        sub->set_doc(*doc);
+    }
 
     if (method->isCopyAssignmentOperator()) {
         sub->set_kind(Record_MethodKind_CopyAssignmentOperator);
@@ -152,6 +168,20 @@ bool ReflASTVisitor::isRefl(clang::Decl* Decl) {
         }
     }
     return false;
+}
+
+std::optional<std::string> ReflASTVisitor::getDoc(clang::Decl* Decl) {
+    const clang::ASTContext& astContext = Decl->getASTContext();
+    const clang::RawComment* rawComment = astContext
+                                              .getRawCommentForDeclNoCache(
+                                                  Decl);
+    if (rawComment) {
+        llvm::StringRef commentText = rawComment->getRawText(
+            astContext.getSourceManager());
+        return commentText.str();
+    } else {
+        return std::nullopt;
+    }
 }
 
 bool ReflASTVisitor::VisitCXXRecordDecl(

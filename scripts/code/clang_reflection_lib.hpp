@@ -92,11 +92,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         clang::Expr const*                          In,
         std::optional<clang::SourceLocation> const& Loc);
 
-    void fillFieldDecl(Record::Field* sub, clang::FieldDecl* field) {
-        sub->set_name(field->getNameAsString());
-        fillType(
-            sub->mutable_type(), field->getType(), field->getLocation());
-    }
+    void fillFieldDecl(Record::Field* sub, clang::FieldDecl* field);
 
     void fillParmVarDecl(Arg* arg, clang::ParmVarDecl const* parm);
 
@@ -105,6 +101,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration);
     bool isRefl(clang::Decl* Decl);
+    std::optional<std::string> getDoc(clang::Decl* Decl);
 
   private:
     clang::ASTContext* Ctx;

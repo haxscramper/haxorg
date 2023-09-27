@@ -251,6 +251,7 @@ def pybind_method(ast: ASTBuilder, meth: GenTuFunction, Self: ParmVarParams,
                     "pybind11::arg_v",
                     [ast.Literal(Arg.name), b.text(Arg.value)]) for Arg in meth.arguments
             ],
+            *([ast.Literal(meth.doc.brief)] if meth.doc.brief else [])
         ],
         Line=False,
     )
@@ -498,7 +499,7 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
             GenTuFunction(
                 result=conv_proto_type(meth.return_ty),
                 name=meth.name,
-                doc=GenTuDoc(""),
+                doc=GenTuDoc(record.doc),
                 arguments=[
                     GenTuIdent(conv_proto_type(arg.type), arg.name) for arg in meth.args
                 ]))
