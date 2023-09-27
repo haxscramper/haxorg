@@ -528,7 +528,8 @@ def gen_value(ast: ASTBuilder, reflection_path: str) -> GenFiles:
 
     gen_structs: List[GenTuStruct] = conv_proto_unit(unit)
 
-    pprint(gen_structs, width=200)
+    with open("/tmp/reflection-structs.py", "w") as file:
+        pprint(gen_structs, width=200, file=file)
 
     return GenFiles([
         GenUnit(

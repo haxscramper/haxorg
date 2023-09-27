@@ -32,7 +32,7 @@ struct [[refl]] OrgContext {
         qDebug() << "Init Org context in PY";
     }
 
-    void initLocationResolvers() {
+    [[refl]] void initLocationResolvers() {
         locationResolver = [&](CR<PosStr> str) -> LineCol {
             Slice<int> absolute = tokens.toAbsolute(str.view);
             return {
@@ -47,7 +47,7 @@ struct [[refl]] OrgContext {
         parser->setLocationResolver(locationResolver);
     }
 
-    void run(std::string file) {
+    [[refl]] void run(std::string file) {
         source      = readFile(QFileInfo(QString::fromStdString(file)));
         tokens.base = source.data();
         info        = LineColInfo{source};
@@ -66,7 +66,7 @@ struct [[refl]] OrgContext {
         node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
     }
 
-    sem::DefaultSemId<sem::Document> getNode() { return node; }
+    [[refl]] sem::DefaultSemId<sem::Document> getNode() { return node; }
 };
 
 QTextStream qcout;

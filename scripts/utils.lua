@@ -45,7 +45,7 @@ function findXmakeParentDir(currentDir)
   return findXmakeParentDir(parentDir)
 end
 
-function abs_build(...) return path.absolute(vformat("$(buildir)"), ...) end
+function abs_build(...) return path.absolute(path.join(findXmakeParentDir(), "build", ...)) end
 
 function abs_script(...) return path.absolute(path.join(findXmakeParentDir(), ...)) end
 

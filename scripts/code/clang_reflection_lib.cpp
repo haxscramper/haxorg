@@ -218,6 +218,21 @@ void ReflASTConsumer::HandleTranslationUnit(clang::ASTContext& Context) {
     }
 }
 
+/// Helper wrapper for clang diagnostic printer
+template <unsigned N>
+clang::DiagnosticBuilder Diag(
+    clang::Sema&                    S,
+    clang::DiagnosticsEngine::Level L,
+    const char (&FormatString)[N],
+    std::optional<clang::SourceLocation> const& Loc = std::nullopt) {
+    auto& D = S.getASTContext().getDiagnostics();
+    if (Loc) {
+        return D.Report(*Loc, D.getCustomDiagID(L, FormatString));
+    } else {
+        return D.Report(D.getCustomDiagID(L, FormatString));
+    }
+}
+
 clang::ParsedAttrInfo::AttrHandling ExampleAttrInfo::handleDeclAttribute(
     clang::Sema&             S,
     clang::Decl*             D,
@@ -228,7 +243,13 @@ clang::ParsedAttrInfo::AttrHandling ExampleAttrInfo::handleDeclAttribute(
         nullptr,
         0,
         Attr.getRange());
-    llvm::outs() << "Added reflection annotation\n";
+
+    Diag(
+        S,
+        clang::DiagnosticsEngine::Level::Remark,
+        "Used reflection annotation for %0",
+        D->getLocation());
+
     D->addAttr(created);
     return AttributeApplied;
 }

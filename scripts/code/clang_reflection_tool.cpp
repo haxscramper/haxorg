@@ -10,6 +10,9 @@
 
 namespace fs = std::filesystem;
 
+static clang::ParsedAttrInfoRegistry::Add<ExampleAttrInfo> Z(
+    REFL_NAME,
+    "example attribute description");
 
 static llvm::cl::OptionCategory ToolingSampleCategory(
     "Generate reflection data");
