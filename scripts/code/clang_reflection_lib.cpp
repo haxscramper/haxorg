@@ -144,42 +144,48 @@ void ReflASTVisitor::fillMethodDecl(
     }
 }
 
+bool ReflASTVisitor::isRefl(clang::Decl* Decl) {
+    for (clang::AnnotateAttr* Attr :
+         Decl->specific_attrs<clang::AnnotateAttr>()) {
+        if (Attr->getAnnotation() == REFL_NAME) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool ReflASTVisitor::VisitCXXRecordDecl(
     clang::CXXRecordDecl* Declaration) {
-    for (clang::AnnotateAttr* Attr :
-         Declaration->specific_attrs<clang::AnnotateAttr>()) {
+    if (isRefl(Declaration)) {
+        llvm::TimeTraceScope timeScope{
+            "reflection-visit-record" + Declaration->getNameAsString()};
+
         Diag(
-            DiagKind::Warning,
-            "Found anntoation %0",
+            DiagKind::Note,
+            "Adding serialization information for %0",
             Declaration->getLocation())
-            << Attr->getAnnotation();
+            << Declaration;
 
-        if (Attr->getAnnotation() == REFL_NAME) {
-            llvm::TimeTraceScope timeScope{
-                "reflection-visit-record"
-                + Declaration->getNameAsString()};
+        Record* rec = out->add_records();
+        rec->set_name(Declaration->getNameAsString());
 
-            Diag(
-                DiagKind::Note,
-                "Adding serialization information for %0",
-                Declaration->getLocation())
-                << Declaration;
-
-            Record* rec = out->add_records();
-            rec->set_name(Declaration->getNameAsString());
-
-            for (clang::FieldDecl* field : Declaration->fields()) {
+        for (clang::FieldDecl* field : Declaration->fields()) {
+            if (isRefl(field)) {
                 fillFieldDecl(rec->add_fields(), field);
             }
+        }
 
-            for (clang::CXXMethodDecl* method : Declaration->methods()) {
+        for (clang::CXXMethodDecl* method : Declaration->methods()) {
+            if (isRefl(method)) {
                 fillMethodDecl(rec->add_methods(), method);
             }
         }
     }
 
+
     return true;
 }
+
 
 void ReflASTConsumer::HandleTranslationUnit(clang::ASTContext& Context) {
     // When executed with -ftime-trace plugin execution time will be

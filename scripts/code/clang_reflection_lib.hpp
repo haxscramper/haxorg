@@ -104,6 +104,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
 
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration);
+    bool isRefl(clang::Decl* Decl);
 
   private:
     clang::ASTContext* Ctx;
