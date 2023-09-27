@@ -223,13 +223,27 @@ def pybind_property(ast: ASTBuilder, field: GenTuField, Self: ParmVarParams) -> 
 
 @beartype
 def pybind_method(ast: ASTBuilder, meth: GenTuFunction, Self: ParmVarParams,
-                  Body: List[BlockId]) -> BlockId:
+                  Body: Optional[List[BlockId]] = None) -> BlockId:
+
+    call_pass: BlockId = None
+    if Body is None:
+        call_pass = ast.Addr(ast.Scoped(Self.type, ast.string(meth.name)))
+
+    else:
+        call_pass = ast.Lambda(
+            LambdaParams(
+                ResultTy=meth.result,
+                Args=[Self] +
+                [ParmVarParams(Arg.type, Arg.name) for Arg in meth.arguments],
+                Body=Body,
+            ))
+
     b = ast.b
     return ast.XCall(
         ".def",
         [
-            ast.Literal(meth.name),
-            ast.Addr(ast.Scoped(Self.type, ast.string(meth.name))),
+            ast.b.line([ast.Literal(meth.name), ast.GenHere(frames=2)]),
+            call_pass,
             *([ast.Literal(meth.doc.brief)] if meth.doc.brief else []),
             *[
                 ast.XCall("pybind11::arg", [ast.Literal(Arg.name)])
@@ -299,7 +313,6 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
 
     sub.append(b.text(";"))
     return b.stack([
-        ast.GenHere(frames=1),
         ast.XCall("pybind11::class_", [b.text("m"), ast.Literal(typ.name)],
                   Params=[id_type]),
         b.indent(2, b.stack(sub))
@@ -347,12 +360,7 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct,
         if meth.isStatic or meth.isPureVirtual:
             continue
 
-        passcall = ast.XCallRef(b.text(self_arg.name), meth.name,
-                                [b.text(arg.name) for arg in meth.arguments])
-        if meth.result and meth.result != "void":
-            passcall = ast.Return(passcall)
-
-        sub.append(pybind_method(ast, meth, Self=self_arg, Body=[passcall]))
+        sub.append(pybind_method(ast, meth, Self=self_arg))
 
     sub.append(b.text(";"))
 
