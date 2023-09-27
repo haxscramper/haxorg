@@ -254,10 +254,17 @@ meta_target("reflection_protobuf", "Update protobuf data definition for reflecti
   any_files("scripts/code/reflection_defs.proto")
   on_build(function(target)
     local utils = import("scripts.utils")
+    local loc = utils.iorun_stripped("poetry", {"env", "info", "--path"})
+    utils.info("Using protoc plugin path '%s'", loc)
     utils.rebuild_guard(target, function(target)
-      utils.with_dir("scripts/code/py_codegen", function() 
-        os.execv("bash", {"build_reflection_defs.sh"})
-      end)  
+      os.execv("poetry", {
+        "--plugin=" .. path.join(loc, "/bin/protoc-gen-python_betterproto"),
+        "-I",
+        utils.abs_script("scripts/code/py_codegen"),
+        "--proto_path=" .. utils.abs_script("scripts/code"),
+        "--python_betterproto_out=" .. utils.abs_script("scripts/code/py_codegen/proto_lib"),
+        utils.abs_script("scripts/code/reflection_defs.proto")
+      })
     end)
   end)
 end)

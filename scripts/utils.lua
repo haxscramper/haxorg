@@ -49,6 +49,12 @@ function abs_build(...) return path.absolute(path.join(findXmakeParentDir(), "bu
 
 function abs_script(...) return path.absolute(path.join(findXmakeParentDir(), ...)) end
 
+function iorun_stripped(cmd, args, ...)
+  local result = os.iorunv(cmd, args, {...})
+  return result:gsub("(%s+)$", "")  -- Remove trailing whitespace, including newlines
+end
+
+
 function error(text, ...)
   cprint(vformat("${red}[...]${clear} ") .. vformat(text, ...))
 end
