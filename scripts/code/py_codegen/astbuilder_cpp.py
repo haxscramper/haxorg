@@ -519,6 +519,12 @@ class ASTBuilder:
         elif isinstance(value, str):
             return self.string(f"\"{value}\"")
 
+    def Addr(self, expr: BlockId) -> BlockId:
+        return self.b.line([self.string("&"), expr])
+
+    def Scoped(self, scope: QualType, expr: BlockId):
+        return self.b.line([self.Type(scope), self.string("::"), expr])
+
     def Throw(self, expr: BlockId) -> BlockId:
         return self.XStmt("throw", expr)
 

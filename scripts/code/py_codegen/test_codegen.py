@@ -229,13 +229,7 @@ def pybind_method(ast: ASTBuilder, meth: GenTuFunction, Self: ParmVarParams,
         ".def",
         [
             ast.Literal(meth.name),
-            ast.Lambda(
-                LambdaParams(
-                    ResultTy=meth.result,
-                    Args=[Self] +
-                    [ParmVarParams(Arg.type, Arg.name) for Arg in meth.arguments],
-                    Body=Body,
-                )),
+            ast.Addr(ast.Scoped(Self.type, ast.string(meth.name))),
             *([ast.Literal(meth.doc.brief)] if meth.doc.brief else []),
             *[
                 ast.XCall("pybind11::arg", [ast.Literal(Arg.name)])
