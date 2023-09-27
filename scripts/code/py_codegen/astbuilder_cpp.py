@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from beartype.typing import *
 from enum import Enum
 from beartype import beartype
+import inspect
+import os
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
@@ -518,6 +520,56 @@ class ASTBuilder:
 
         elif isinstance(value, str):
             return self.string(f"\"{value}\"")
+
+    def GenHere(self, body: Optional[BlockId] = None, enabled: bool =True, frames: Union[int, Tuple[int, int]] = 1) -> BlockId:
+        """
+        Return inline comment with runtime call stack informat in format 'file:line'.
+
+        `/* test_codegen.py:200 */` -- this would allow to quickly add debugging information
+        with detauls where each element was generated. 
+        
+        Parameters:
+        - frames: int or tuple. Number of frames to unwind, or a tuple specifying the range.
+        - body: Block id that will be wrapped in a stack [comment, body] if present
+        - enabled: do nothing if false, allows for simpler dry-run operations. If body is
+          present, will return it, otherwise empty block node. 
+        """
+
+        if enabled:
+            stack = inspect.stack()
+
+            comment: BlockId
+            frame_range: Tuple[int, int] = (1, 1)
+            if isinstance(frames, tuple):
+                frame_range = frames
+            else:
+                frame_range = (frames, frames)
+
+            filter_stack = list(reversed([
+                f"{os.path.basename(frame_info.filename)}:{frame_info.lineno}" 
+                for frame_info in stack[1:]
+                if not frame_info.filename.startswith("<@")
+            ]))
+
+            slice = None
+            if isinstance(frames, tuple):
+                slice = (len(filter_stack) - frames[1] - 1, len(filter_stack) - frames[0])
+            else:
+                slice = (len(filter_stack) - frames, len(filter_stack))
+
+            comment = self.string("/* " + " ".join(filter_stack[slice[0]:slice[1]]) + " */")
+ 
+            if body:
+                return self.b.stack([comment, body])
+                
+            else:
+                return comment
+
+        else:
+            if body:
+                return body
+            else:
+                return self.b.empty()
 
     def Addr(self, expr: BlockId) -> BlockId:
         return self.b.line([self.string("&"), expr])
