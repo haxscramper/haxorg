@@ -216,6 +216,7 @@ class IfStmtParams:
     Branches: List[Branch]
     LookupIfStructure: bool = False
 
+
 class PPKind(Enum):
     IfDef = 0
     IfNotDef = 1
@@ -229,10 +230,12 @@ class PPIfBranch:
     Kind: PPKind = PPKind.If
     Cond: Optional[BlockId] = None
 
+
 @beartype
 @dataclass
 class PPIfStmtParams:
     Branches: List[PPIfBranch]
+
 
 @beartype
 @dataclass
@@ -511,6 +514,20 @@ class ASTBuilder:
                 self.b.add_at(result, self.string(f"/// {line}" if Doc else f"// {line}"))
             return result
 
+    def StringLiteral(self,
+                      value: str,
+                      forceRawStr: bool = False,
+                      rawStrDelmiter: str = "RAW",
+                      prefix: str = "",
+                      suffix: str = "") -> BlockId:
+        if forceRawStr:
+            return self.string(f"R\"{rawStrDelmiter}({value}){rawStrDelmiter}\"")
+
+        else:
+            # TODO Implement heuristics to detect whether the string wrap is necessary here.
+            # this would allow to just throw `Literal()` calls all over the place
+            return self.string(f"\"{value}\"")
+
     def Literal(self, value: Union[int, str]) -> BlockId:
         if isinstance(value, int) or isinstance(value, float):
             return self.string(str(value))
@@ -519,9 +536,12 @@ class ASTBuilder:
             return self.string("true" if value else "false")
 
         elif isinstance(value, str):
-            return self.string(f"\"{value}\"")
+            return self.StringLiteral(value)
 
-    def GenHere(self, body: Optional[BlockId] = None, enabled: bool =True, frames: Union[int, Tuple[int, int]] = 1) -> BlockId:
+    def GenHere(self,
+                body: Optional[BlockId] = None,
+                enabled: bool = True,
+                frames: Union[int, Tuple[int, int]] = 1) -> BlockId:
         """
         Return inline comment with runtime call stack informat in format 'file:line'.
 
@@ -545,11 +565,12 @@ class ASTBuilder:
             else:
                 frame_range = (frames, frames)
 
-            filter_stack = list(reversed([
-                f"{os.path.basename(frame_info.filename)}:{frame_info.lineno}" 
-                for frame_info in stack[1:]
-                if not frame_info.filename.startswith("<@")
-            ]))
+            filter_stack = list(
+                reversed([
+                    f"{os.path.basename(frame_info.filename)}:{frame_info.lineno}"
+                    for frame_info in stack[1:]
+                    if not frame_info.filename.startswith("<@")
+                ]))
 
             slice = None
             if isinstance(frames, tuple):
@@ -557,11 +578,12 @@ class ASTBuilder:
             else:
                 slice = (len(filter_stack) - frames, len(filter_stack))
 
-            comment = self.string("/* " + " ".join(filter_stack[slice[0]:slice[1]]) + " */")
- 
+            comment = self.string("/* " + " ".join(filter_stack[slice[0]:slice[1]]) +
+                                  " */")
+
             if body:
                 return self.b.stack([comment, body])
-                
+
             else:
                 return comment
 
@@ -594,31 +616,48 @@ class ASTBuilder:
         return self.b.line([self.string(f"#include {include_str}")])
 
     def Define(self, name: str, value: Optional[str] = None) -> BlockId:
-        return self.string(f"#define {name}" if value is None else f"#define {name}={value}")
+        return self.string(f"#define {name}" if value is
+                           None else f"#define {name}={value}")
 
     def PPIfDef(self, expr: str, Then: List[BlockId] = []) -> PPIfBranch:
-        return PPIfBranch(Kind=PPKind.IfDef, Cond=self.string(expr), Then=self.b.stack(Then))
+        return PPIfBranch(Kind=PPKind.IfDef,
+                          Cond=self.string(expr),
+                          Then=self.b.stack(Then))
 
     def PPIfNDef(self, expr: str, Then: List[BlockId] = []) -> PPIfBranch:
-        return PPIfBranch(Kind=PPKind.IfNotDef, Cond=self.string(expr), Then=self.b.stack(Then))
+        return PPIfBranch(Kind=PPKind.IfNotDef,
+                          Cond=self.string(expr),
+                          Then=self.b.stack(Then))
 
     def PPIfStmt(self, p: PPIfStmtParams) -> BlockId:
         result = self.b.stack([])
         for idx, branch in enumerate(p.Branches):
             token = "#"
             match (branch.Kind, bool(idx == 0), bool(branch.Cond)):
-                case (_, _, False): token += "else"
-                case (PPKind.If, True, True): token += "if"
-                case (PPKind.IfDef, True, True): token += "ifdef"
-                case (PPKind.IfNotDef, True, True): token += "ifndef"
-                case (PPKind.If, False, True): token += "elif"
-                case (PPKind.IfDef, False, True): token += "elifdef"
-                case (PPKind.IfNotDef, False, True): token += "elifndef"
+                case (_, _, False):
+                    token += "else"
+                case (PPKind.If, True, True):
+                    token += "if"
+                case (PPKind.IfDef, True, True):
+                    token += "ifdef"
+                case (PPKind.IfNotDef, True, True):
+                    token += "ifndef"
+                case (PPKind.If, False, True):
+                    token += "elif"
+                case (PPKind.IfDef, False, True):
+                    token += "elifdef"
+                case (PPKind.IfNotDef, False, True):
+                    token += "elifndef"
 
-            self.b.add_at(result, self.b.stack([
-                self.b.line([self.string(token), *([self.string(" "), branch.Cond] if branch.Cond else [])]),
-                self.b.indent(2, branch.Then)
-            ]))
+            self.b.add_at(
+                result,
+                self.b.stack([
+                    self.b.line([
+                        self.string(token),
+                        *([self.string(" "), branch.Cond] if branch.Cond else [])
+                    ]),
+                    self.b.indent(2, branch.Then)
+                ]))
 
         self.b.add_at(result, self.string("#endif"))
 
@@ -791,8 +830,7 @@ class ASTBuilder:
         return self.WithAccess(
             self.WithDoc(
                 self.b.line([head, self.string(";")]) if method.Params.Body is None else
-                self.block(head, method.Params.Body), method.Params.doc),
-            method.access)
+                self.block(head, method.Params.Body), method.Params.doc), method.access)
 
     def Record(self, params: RecordParams) -> BlockId:
         content: List[BlockId] = []
@@ -854,8 +892,7 @@ class ASTBuilder:
                 self.b.line([
                     head,
                     self.string("};" if params.IsDefinition else ";"),
-                ]),
-                *([self.string("")] if params.TrailingLine else [])
+                ]), *([self.string("")] if params.TrailingLine else [])
             ]))
 
     def WithAccess(self, content: BlockId, spec: AccessSpecifier) -> BlockId:
@@ -957,17 +994,21 @@ class ASTBuilder:
 
     def Type(self, type_: QualType, noQualifiers: bool = False) -> BlockId:
         return self.b.line([
-            self.b.join([self.Type(Space, noQualifiers=noQualifiers) for Space in type_.Spaces] +
-                        [self.string(type_.name)], self.string("::")),
+            self.b.join(
+                [self.Type(Space, noQualifiers=noQualifiers) for Space in type_.Spaces] +
+                [self.string(type_.name)], self.string("::")),
             self.string("") if (len(type_.Parameters) == 0) else self.b.line([
                 self.string("<"),
-                self.b.join(list(map(lambda in_: self.Type(in_, noQualifiers=noQualifiers), type_.Parameters)),
-                            self.string(", "), not type_.verticalParamList),
+                self.b.join(
+                    list(
+                        map(lambda in_: self.Type(in_, noQualifiers=noQualifiers),
+                            type_.Parameters)), self.string(", "),
+                    not type_.verticalParamList),
                 self.string(">")
-            ]),
-            *([] if noQualifiers else [self.string((" const" if type_.isConst else "") +
-                        ("*" if type_.isPtr else "") + ("&" if type_.isRef else ""))])
-            
+            ]), *([] if noQualifiers else [
+                self.string((" const" if type_.isConst else "") +
+                            ("*" if type_.isPtr else "") + ("&" if type_.isRef else ""))
+            ])
         ])
 
     def Dot(self, lhs: BlockId, rhs: BlockId) -> BlockId:

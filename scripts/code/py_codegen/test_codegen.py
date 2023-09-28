@@ -3,6 +3,7 @@
 from dataclasses import field, dataclass
 from typing import *
 from enum import Enum
+import re
 
 import setup_imports
 
@@ -251,7 +252,7 @@ def pybind_method(ast: ASTBuilder, meth: GenTuFunction, Self: ParmVarParams,
                     "pybind11::arg_v",
                     [ast.Literal(Arg.name), b.text(Arg.value)]) for Arg in meth.arguments
             ],
-            *([ast.Literal(meth.doc.brief)] if meth.doc.brief else [])
+            *([ast.StringLiteral(meth.doc.brief, forceRawStr=True)] if meth.doc.brief else [])
         ],
         Line=False,
     )
@@ -467,6 +468,58 @@ import proto_lib.reflection_defs as pb
 
 
 @beartype
+def conv_doc_comment(comment: str) -> GenTuDoc:
+    if not comment:
+        return GenTuDoc("")
+
+    # Helper function to process content after stripping comment markers
+    def process_content(content: List[str]) -> GenTuDoc:
+        brief, full = [], []
+        is_brief = True
+        
+        for line in content:
+            line = line.strip()
+            if not line:
+                is_brief = False
+                continue
+            
+            if is_brief:
+                brief.append(line)
+            else:
+                full.append(line)
+
+        return GenTuDoc('\n'.join(brief), '\n'.join(full))
+
+    def drop_leading(prefix: re.Pattern, text: str) -> List[str]:
+        result: List[str] = []
+        for line in text.strip().splitlines():
+            result.append(re.sub(prefix, "", line))
+
+        return result
+
+
+    # Identify and strip comment markers, then delegate to process_content
+    if comment.startswith("///") or comment.startswith("//!"):
+        return process_content(drop_leading("///", comment))
+    elif comment.startswith("/**") or comment.startswith("/*!"):
+        # Removing the leading /** or /*! and trailing */
+        content = comment[3:-2].strip()
+        # Remove any '*' prefixes that might exist on each line
+        content = '\n'.join(line.lstrip('* ') for line in content.splitlines())
+        return process_content(content.splitlines())
+    elif comment.startswith("//"):
+        return process_content(comment[2:].splitlines())
+    elif comment.startswith("/*"):
+        # Removing the leading /* and potential trailing */
+        content = comment[2:]
+        if content.endswith("*/"):
+            content = content[:-2]
+        content = '\n'.join(line.lstrip('* ') for line in content.splitlines())
+        return process_content(content.splitlines())
+    else:
+        raise ValueError(f"Unrecognized comment style: {comment}")
+
+@beartype
 def conv_proto_type(typ: pb.QualType) -> QualType:
     res: QualType = QualType(typ.name)
     for space in typ.spaces:
@@ -489,7 +542,7 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
         result.fields.append(
             GenTuField(type=conv_proto_type(field.type),
                        name=field.name,
-                       doc=GenTuDoc("")))
+                       doc=conv_doc_comment(field.doc)))
 
     for meth in record.methods:
         if meth.kind != pb.RecordMethodKind.Base:
@@ -499,7 +552,7 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
             GenTuFunction(
                 result=conv_proto_type(meth.return_ty),
                 name=meth.name,
-                doc=GenTuDoc(record.doc),
+                doc=conv_doc_comment(meth.doc),
                 arguments=[
                     GenTuIdent(conv_proto_type(arg.type), arg.name) for arg in meth.args
                 ]))
@@ -532,6 +585,9 @@ def gen_value(ast: ASTBuilder, reflection_path: str) -> GenFiles:
     gen_structs: List[GenTuStruct] = conv_proto_unit(unit)
 
     with open("/tmp/reflection-structs.py", "w") as file:
+        pprint(unit, width=200, stream=file)
+
+    with open("/tmp/reflection_data.py", "w") as file:
         pprint(gen_structs, width=200, stream=file)
 
     return GenFiles([
