@@ -301,6 +301,8 @@ end)
 meta_target("cmake_haxorg", "Compile libraries and binaries for haxorg", {}, function()
   set_kind("phony")
   add_deps("cmake_configure_haxorg")
+  -- any_files("src/**.hpp")
+  -- any_files("src/**.cpp")
   on_build(function(target)
     local dbg = false
     os.execv("cmake", {
@@ -312,6 +314,7 @@ end)
 
 meta_target("test_python", "Execute python tests", {}, function()
   set_kind("phony")
+  add_deps("cmake_haxorg")
   on_run(function(target)
     os.execv("poetry", {"run", "pytest"})
   end)

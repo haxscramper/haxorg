@@ -13,17 +13,15 @@
 
 namespace py = pybind11;
 
-namespace sem {
 struct ExporterJson;
 struct ExporterYaml;
-}; // namespace sem
+struct ExporterTree;
 
-
-struct [[refl]] ExporterJson {
+struct [[refl]] OrgExporterJson {
     SPtr<ExporterJson> impl;
     json               result;
 
-    ExporterJson();
+    OrgExporterJson();
     /// Visit top-level node of the exporter, filling in the internal
     /// return state.
     [[refl]] void    visitNode(sem::SemId node /*! Input node */);
@@ -32,17 +30,18 @@ struct [[refl]] ExporterJson {
 };
 
 struct [[refl]] ExporterTreeOpts {
-    [[refl]] withLineCol     = true;
-    [[refl]] withOriginalId  = true;
-    [[refl]] withSubnodeIdx  = true;
-    [[refl]] skipEmptyFields = true;
-    [[refl]] startLevel      = 0;
-    [[refl]] withColor       = true;
+    [[refl]] bool withLineCol     = true;
+    [[refl]] bool withOriginalId  = true;
+    [[refl]] bool withSubnodeIdx  = true;
+    [[refl]] bool skipEmptyFields = true;
+    [[refl]] int  startLevel      = 0;
+    [[refl]] bool withColor       = true;
 };
 
-struct [[refl]] ExporterTree {
-    SPtr<ExporterJson> impl;
-    ExporterTree();
+struct [[refl]] OrgExporterTree {
+    SPtr<ExporterTree> impl;
+    OrgExporterTree();
+    ColStream        os;
     [[refl]] QString toString(sem::SemId node, ExporterTreeOpts opts);
     [[refl]] void    toFile(
            sem::SemId       node,
@@ -53,14 +52,14 @@ struct [[refl]] ExporterTree {
         QTextStream&     stream,
         sem::SemId       node,
         ExporterTreeOpts opts);
-}
+};
 
 
-struct [[refl]] ExporterYaml {
+struct [[refl]] OrgExporterYaml {
     SPtr<ExporterYaml> impl;
     yaml               result;
 
-    ExporterYaml();
+    OrgExporterYaml();
     /// Visit top-level node of the exporter, filling in the internal
     /// return state.
     [[refl]] void    visitNode(sem::SemId node);
@@ -127,9 +126,7 @@ struct [[refl]] OrgContext {
     [[refl]] sem::DefaultSemId<sem::Document> getNode() { return node; }
 };
 
-QTextStream qcout;
-
-void init_py_manual_api(py::module& m) {
+inline void init_py_manual_api(py::module& m) {
     // py::class_<OrgContext>(m, "OrgContext")
     //     .def(py::init<>())
     //     .def("run", &OrgContext::run)

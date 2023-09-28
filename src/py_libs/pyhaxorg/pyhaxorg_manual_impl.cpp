@@ -7,43 +7,47 @@
 
 #include <memory>
 
-ExporterJson::ExporterJson() {
-    impl = std::make_shared<sem::ExporterJson>();
+QTextStream qcout;
+
+OrgExporterJson::OrgExporterJson() {
+    impl = std::make_shared<ExporterJson>();
 }
 
-QString ExporterJson::exportToString() { return to_string(result); }
+QString OrgExporterJson::exportToString() { return to_string(result); }
 
-void ExporterJson::exportToFile(QString const& path) {
+void OrgExporterJson::exportToFile(QString path) {
     writeFile(QFileInfo(path), exportToString());
 }
 
-void ExporterJson::visitNode(sem::SemId node) {
+void OrgExporterJson::visitNode(sem::SemId node) {
     result = impl->visitTop(node);
 }
 
-ExporterYaml::ExporterYaml() {
-    impl = std::make_shared<sem::ExporterYaml>();
+OrgExporterYaml::OrgExporterYaml() {
+    impl = std::make_shared<ExporterYaml>();
 }
 
-QString ExporterYaml::exportToString() { return to_string(result); }
+QString OrgExporterYaml::exportToString() { return to_string(result); }
 
-void ExporterYaml::exportToFile(QString const& path) {
+void OrgExporterYaml::exportToFile(QString path) {
     writeFile(QFileInfo(path), exportToString());
 }
 
-void ExporterYaml::visitNode(sem::SemId node) {
+void OrgExporterYaml::visitNode(sem::SemId node) {
     result = impl->visitTop(node);
 }
 
-ExporterTree::ExporterTree() { impl = std::make_shared<ExporterTree>(); }
+OrgExporterTree::OrgExporterTree() {
+    impl = std::make_shared<ExporterTree>(os);
+}
 
-QString ExporterTree::toString(sem::SemId node, ExporterTreeOpts opts) {
+QString OrgExporterTree::toString(sem::SemId node, ExporterTreeOpts opts) {
     QString     buf;
     QTextStream os{&buf};
     stream(os, node, opts);
 }
 
-void ExporterTree::toFile(
+void OrgExporterTree::toFile(
     sem::SemId       node,
     QString          path,
     ExporterTreeOpts opts) {
@@ -51,11 +55,11 @@ void ExporterTree::toFile(
     stream(ctx->stream, node, opts);
 }
 
-void ExporterTree::stream(
+void OrgExporterTree::stream(
     QTextStream&     stream,
     sem::SemId       node,
     ExporterTreeOpts opts) {
-    ColStream os{&stream};
+    os                         = ColStream{stream};
     os.colored                 = opts.withColor;
     impl->conf.withLineCol     = opts.withLineCol;
     impl->conf.withOriginalId  = opts.withOriginalId;

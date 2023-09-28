@@ -19,11 +19,11 @@ all_members = inspect.getmembers(pyhaxorg)
 
 # If you only want to get variable names
 exp = [name for name, value in all_members if not inspect.isfunction(value) and not inspect.isclass(value)]
+print(exp)
 
 assert "Block" in exp
 assert "OrgExport" in exp
 
-# print(exp)
 
 # ctx = pyhaxorg.OrgContext()
 # ctx.run("/tmp/doc.org")

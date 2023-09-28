@@ -30,6 +30,7 @@ string(JOIN " " PLUGIN_FLAGS ${PLUGIN_FLAGS_LIST})
 pybind11_add_module(
     pyhaxorg
     "${BASE}/src/py_libs/pyhaxorg/pyhaxorg.cpp"
+    "${BASE}/src/py_libs/pyhaxorg/pyhaxorg_manual_impl.cpp"
 )
 
 # Here, only once file needs to be considered and only one set
