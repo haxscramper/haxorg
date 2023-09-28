@@ -142,13 +142,13 @@ meta_target("haxorg_codegen", "Execute haxorg code generation step.", {}, functi
   set_kind("phony")
   add_deps("py_reflection")
   add_deps("cmake_utils")
-  any_files("scripts/code/py_codegen/test_codegen.py")
+  any_files("scripts/code/py_codegen/codegen.py")
   any_files("build/reflection.pb")
   on_build(function(target) 
     local utils = import("scripts.utils")
     os.execv("poetry", {
       "run", 
-      "scripts/code/py_codegen/test_codegen.py", 
+      "scripts/code/py_codegen/codegen.py", 
       utils.abs_build(),
       utils.abs_script()
     })

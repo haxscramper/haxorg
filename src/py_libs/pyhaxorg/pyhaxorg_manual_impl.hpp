@@ -14,34 +14,58 @@
 namespace py = pybind11;
 
 namespace sem {
-    struct ExporterJson;
-    struct ExporterYaml;
-};
+struct ExporterJson;
+struct ExporterYaml;
+}; // namespace sem
 
 
 struct [[refl]] ExporterJson {
     SPtr<ExporterJson> impl;
-    json result;
+    json               result;
 
     ExporterJson();
     /// Visit top-level node of the exporter, filling in the internal
     /// return state.
-    [[refl]] void visitNode(sem::SemId node /*! Input node */);
+    [[refl]] void    visitNode(sem::SemId node /*! Input node */);
     [[refl]] QString exportToString();
-    [[refl]] void exportToFile(QString path);
+    [[refl]] void    exportToFile(QString path);
 };
+
+struct [[refl]] ExporterTreeOpts {
+    [[refl]] withLineCol     = true;
+    [[refl]] withOriginalId  = true;
+    [[refl]] withSubnodeIdx  = true;
+    [[refl]] skipEmptyFields = true;
+    [[refl]] startLevel      = 0;
+    [[refl]] withColor       = true;
+};
+
+struct [[refl]] ExporterTree {
+    SPtr<ExporterJson> impl;
+    ExporterTree();
+    [[refl]] QString toString(sem::SemId node, ExporterTreeOpts opts);
+    [[refl]] void    toFile(
+           sem::SemId       node,
+           QString          path,
+           ExporterTreeOpts opts);
+
+    void stream(
+        QTextStream&     stream,
+        sem::SemId       node,
+        ExporterTreeOpts opts);
+}
 
 
 struct [[refl]] ExporterYaml {
     SPtr<ExporterYaml> impl;
-    yaml result;
+    yaml               result;
 
     ExporterYaml();
     /// Visit top-level node of the exporter, filling in the internal
     /// return state.
-    [[refl]] void visitNode(sem::SemId node);
+    [[refl]] void    visitNode(sem::SemId node);
     [[refl]] QString exportToString();
-    [[refl]] void exportToFile(QString path);
+    [[refl]] void    exportToFile(QString path);
 };
 
 struct [[refl]] OrgContext {
