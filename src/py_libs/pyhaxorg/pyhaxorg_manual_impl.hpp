@@ -1,7 +1,10 @@
+#pragma once
 #undef slots
 #include <pybind11/pybind11.h>
 #include <sem/SemOrg.hpp>
 #include <pybind11/stl.h>
+#include <hstd/stdlib/Yaml.hpp>
+#include <hstd/stdlib/Json.hpp>
 
 #include <sem/SemConvert.hpp>
 #include <parse/OrgParser.hpp>
@@ -9,6 +12,37 @@
 #include <parse/OrgTypes.hpp>
 
 namespace py = pybind11;
+
+namespace sem {
+    struct ExporterJson;
+    struct ExporterYaml;
+};
+
+
+struct [[refl]] ExporterJson {
+    SPtr<ExporterJson> impl;
+    json result;
+
+    ExporterJson();
+    /// Visit top-level node of the exporter, filling in the internal
+    /// return state.
+    [[refl]] void visitNode(sem::SemId node /*! Input node */);
+    [[refl]] QString exportToString();
+    [[refl]] void exportToFile(QString path);
+};
+
+
+struct [[refl]] ExporterYaml {
+    SPtr<ExporterYaml> impl;
+    yaml result;
+
+    ExporterYaml();
+    /// Visit top-level node of the exporter, filling in the internal
+    /// return state.
+    [[refl]] void visitNode(sem::SemId node);
+    [[refl]] QString exportToString();
+    [[refl]] void exportToFile(QString path);
+};
 
 struct [[refl]] OrgContext {
     OrgTokenGroup              tokens;

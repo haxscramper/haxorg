@@ -243,9 +243,8 @@ def pybind_method(ast: ASTBuilder, meth: GenTuFunction, Self: ParmVarParams,
     return ast.XCall(
         ".def",
         [
-            ast.b.line([ast.Literal(meth.name), ast.GenHere(frames=2)]),
+            ast.Literal(meth.name),
             call_pass,
-            *([ast.Literal(meth.doc.brief)] if meth.doc.brief else []),
             *[
                 ast.XCall("pybind11::arg", [ast.Literal(Arg.name)])
                 if Arg.value is None else ast.XCall(

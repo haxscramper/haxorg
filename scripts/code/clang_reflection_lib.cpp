@@ -105,6 +105,10 @@ void ReflASTVisitor::fillParmVarDecl(
     Arg*                      arg,
     const clang::ParmVarDecl* parm) {
     arg->set_name(parm->getNameAsString());
+    auto doc = getDoc(parm);
+    if (doc) {
+        arg->set_doc(*doc);
+    }
     fillType(arg->mutable_type(), parm->getType(), parm->getLocation());
     if (parm->hasDefaultArg()) {
         fillExpr(
@@ -170,7 +174,7 @@ bool ReflASTVisitor::isRefl(clang::Decl* Decl) {
     return false;
 }
 
-std::optional<std::string> ReflASTVisitor::getDoc(clang::Decl* Decl) {
+std::optional<std::string> ReflASTVisitor::getDoc(clang::Decl const* Decl) {
     const clang::ASTContext& astContext = Decl->getASTContext();
     const clang::RawComment* rawComment = astContext
                                               .getRawCommentForDeclNoCache(
