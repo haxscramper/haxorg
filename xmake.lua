@@ -1,3 +1,4 @@
+-- -*- indent-tabs-mode: nil; tab-width: 2 -*-
 
 set_xmakever("2.8.2")
 set_arch("x64")
@@ -309,3 +310,9 @@ meta_target("cmake_haxorg", "Compile libraries and binaries for haxorg", {}, fun
   end)
 end)
 
+meta_target("test_python", "Execute python tests", {}, function()
+  set_kind("phony")
+  on_run(function(target)
+    os.execv("poetry", {"run", "pytest"})
+  end)
+end)
