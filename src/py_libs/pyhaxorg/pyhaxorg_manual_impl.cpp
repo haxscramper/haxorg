@@ -84,3 +84,29 @@ void OrgContext::run() {
     parser->parseFull(lex);
     node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
 }
+
+std::vector<sem::SemId> getSubnodeRange(
+    sem::SemId      id,
+    pybind11::slice slice) {
+
+    size_t start;
+    size_t stop;
+    size_t step;
+    size_t slicelength;
+
+    Vec<sem::SemId> const& data = id->subnodes;
+    if (!slice.compute(data.size(), &start, &stop, &step, &slicelength)) {
+        throw py::error_already_set();
+    }
+
+    std::vector<sem::SemId> result{slicelength, sem::SemId::Nil()};
+    for (size_t i = 0; i < slicelength; ++i) {
+        result[i] = data[start];
+        start += step;
+    }
+    return result;
+}
+
+sem::SemId getSingleSubnode(sem::SemId id, int index) {
+    return id->at(index);
+}

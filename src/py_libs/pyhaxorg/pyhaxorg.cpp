@@ -12,25 +12,40 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("attached",
                   [](sem::DefaultSemId<sem::Stmt> _self) -> Vec<sem::SemId> { return _self.id->attached; },
                   [](sem::DefaultSemId<sem::Stmt> _self, Vec<sem::SemId> attached) { _self.id->attached = attached; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Stmt> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getAttached",
          [](sem::DefaultSemId<sem::Stmt> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self.id->getAttached(kind); },
          pybind11::arg("kind"))
     ;
   pybind11::class_<sem::DefaultSemId<sem::Inline>>(m, "SemInline")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Inline> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     ;
   pybind11::class_<sem::DefaultSemId<sem::StmtList>>(m, "SemStmtList")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::StmtList> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::StmtList> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Empty>>(m, "SemEmpty")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Empty> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Empty> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Row>>(m, "SemRow")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Row> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Row> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -39,6 +54,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("rows",
                   [](sem::DefaultSemId<sem::Table> _self) -> Vec<sem::SemIdT<sem::Row>> { return _self.id->rows; },
                   [](sem::DefaultSemId<sem::Table> _self, Vec<sem::SemIdT<sem::Row>> rows) { _self.id->rows = rows; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Table> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Table> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -50,6 +68,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("subtags",
                   [](sem::DefaultSemId<sem::HashTag> _self) -> Vec<sem::SemIdT<sem::HashTag>> { return _self.id->subtags; },
                   [](sem::DefaultSemId<sem::HashTag> _self, Vec<sem::SemIdT<sem::HashTag>> subtags) { _self.id->subtags = subtags; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::HashTag> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::HashTag> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("prefixMatch",
@@ -65,6 +86,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("definition",
                   [](sem::DefaultSemId<sem::Footnote> _self) -> Opt<sem::SemId> { return _self.id->definition; },
                   [](sem::DefaultSemId<sem::Footnote> _self, Opt<sem::SemId> definition) { _self.id->definition = definition; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Footnote> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Footnote> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -79,11 +103,17 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("isPercent",
                   [](sem::DefaultSemId<sem::Completion> _self) -> bool { return _self.id->isPercent; },
                   [](sem::DefaultSemId<sem::Completion> _self, bool isPercent) { _self.id->isPercent = isPercent; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Completion> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Completion> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Paragraph>>(m, "SemParagraph")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Paragraph> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Paragraph> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("isFootnoteDefinition",
@@ -92,50 +122,83 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::DefaultSemId<sem::Format>>(m, "SemFormat")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Format> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     ;
   pybind11::class_<sem::DefaultSemId<sem::Center>>(m, "SemCenter")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Center> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Center> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Command>>(m, "SemCommand")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Command> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     ;
   pybind11::class_<sem::DefaultSemId<sem::LineCommand>>(m, "SemLineCommand")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::LineCommand> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     ;
   pybind11::class_<sem::DefaultSemId<sem::Standalone>>(m, "SemStandalone")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Standalone> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     ;
   pybind11::class_<sem::DefaultSemId<sem::Attached>>(m, "SemAttached")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Attached> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     ;
   pybind11::class_<sem::DefaultSemId<sem::Caption>>(m, "SemCaption")
     .def(pybind11::init<>())
     .def_property("text",
                   [](sem::DefaultSemId<sem::Caption> _self) -> sem::SemIdT<sem::Paragraph> { return _self.id->text; },
                   [](sem::DefaultSemId<sem::Caption> _self, sem::SemIdT<sem::Paragraph> text) { _self.id->text = text; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Caption> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Caption> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::CommandGroup>>(m, "SemCommandGroup")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::CommandGroup> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::CommandGroup> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Block>>(m, "SemBlock")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Block> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     ;
   pybind11::class_<sem::DefaultSemId<sem::Quote>>(m, "SemQuote")
     .def(pybind11::init<>())
     .def_property("text",
                   [](sem::DefaultSemId<sem::Quote> _self) -> sem::SemIdT<sem::Paragraph> { return _self.id->text; },
                   [](sem::DefaultSemId<sem::Quote> _self, sem::SemIdT<sem::Paragraph> text) { _self.id->text = text; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Quote> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Quote> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Example>>(m, "SemExample")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Example> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Example> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -147,6 +210,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("named",
                   [](sem::DefaultSemId<sem::CmdArguments> _self) -> UnorderedMap<Str, sem::SemIdT<sem::CmdArgument>> { return _self.id->named; },
                   [](sem::DefaultSemId<sem::CmdArguments> _self, UnorderedMap<Str, sem::SemIdT<sem::CmdArgument>> named) { _self.id->named = named; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::CmdArguments> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::CmdArguments> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("popArg",
@@ -162,6 +228,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("value",
                   [](sem::DefaultSemId<sem::CmdArgument> _self) -> Str { return _self.id->value; },
                   [](sem::DefaultSemId<sem::CmdArgument> _self, Str value) { _self.id->value = value; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::CmdArgument> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::CmdArgument> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("getInt",
@@ -191,6 +260,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("content",
                   [](sem::DefaultSemId<sem::Export> _self) -> Str { return _self.id->content; },
                   [](sem::DefaultSemId<sem::Export> _self, Str content) { _self.id->content = content; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Export> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Export> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -202,6 +274,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::DefaultSemId<sem::AdmonitionBlock>>(m, "SemAdmonitionBlock")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::AdmonitionBlock> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::AdmonitionBlock> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -234,6 +309,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("tangle",
                   [](sem::DefaultSemId<sem::Code> _self) -> bool { return _self.id->tangle; },
                   [](sem::DefaultSemId<sem::Code> _self, bool tangle) { _self.id->tangle = tangle; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Code> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Code> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -275,6 +353,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("isActive",
                   [](sem::DefaultSemId<sem::Time> _self) -> bool { return _self.id->isActive; },
                   [](sem::DefaultSemId<sem::Time> _self, bool isActive) { _self.id->isActive = isActive; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Time> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Time> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -317,6 +398,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("to",
                   [](sem::DefaultSemId<sem::TimeRange> _self) -> sem::SemIdT<sem::Time> { return _self.id->to; },
                   [](sem::DefaultSemId<sem::TimeRange> _self, sem::SemIdT<sem::Time> to) { _self.id->to = to; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::TimeRange> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::TimeRange> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -328,6 +412,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("arguments",
                   [](sem::DefaultSemId<sem::Macro> _self) -> Vec<Str> { return _self.id->arguments; },
                   [](sem::DefaultSemId<sem::Macro> _self, Vec<Str> arguments) { _self.id->arguments = arguments; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Macro> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Macro> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -342,6 +429,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("positional",
                   [](sem::DefaultSemId<sem::Symbol> _self) -> Vec<sem::SemId> { return _self.id->positional; },
                   [](sem::DefaultSemId<sem::Symbol> _self, Vec<sem::SemId> positional) { _self.id->positional = positional; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Symbol> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Symbol> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -352,6 +442,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::DefaultSemId<sem::SubtreeLog>>(m, "SemSubtreeLog")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::SubtreeLog> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::SubtreeLog> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("setDescription",
@@ -436,6 +529,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("scheduled",
                   [](sem::DefaultSemId<sem::Subtree> _self) -> Opt<sem::SemIdT<sem::Time>> { return _self.id->scheduled; },
                   [](sem::DefaultSemId<sem::Subtree> _self, Opt<sem::SemIdT<sem::Time>> scheduled) { _self.id->scheduled = scheduled; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Subtree> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Subtree> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("getTimePeriods",
@@ -546,9 +642,15 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::DefaultSemId<sem::LatexBody>>(m, "SemLatexBody")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::LatexBody> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     ;
   pybind11::class_<sem::DefaultSemId<sem::InlineMath>>(m, "SemInlineMath")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::InlineMath> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::InlineMath> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -557,97 +659,157 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("text",
                   [](sem::DefaultSemId<sem::Leaf> _self) -> Str { return _self.id->text; },
                   [](sem::DefaultSemId<sem::Leaf> _self, Str text) { _self.id->text = text; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Leaf> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     ;
   pybind11::class_<sem::DefaultSemId<sem::Escaped>>(m, "SemEscaped")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Escaped> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Escaped> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Newline>>(m, "SemNewline")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Newline> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Newline> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Space>>(m, "SemSpace")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Space> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Space> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Word>>(m, "SemWord")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Word> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Word> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::AtMention>>(m, "SemAtMention")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::AtMention> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::AtMention> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::RawText>>(m, "SemRawText")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::RawText> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::RawText> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Punctuation>>(m, "SemPunctuation")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Punctuation> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Punctuation> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Placeholder>>(m, "SemPlaceholder")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Placeholder> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Placeholder> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::BigIdent>>(m, "SemBigIdent")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::BigIdent> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::BigIdent> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Markup>>(m, "SemMarkup")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Markup> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     ;
   pybind11::class_<sem::DefaultSemId<sem::Bold>>(m, "SemBold")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Bold> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Bold> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Underline>>(m, "SemUnderline")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Underline> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Underline> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Monospace>>(m, "SemMonospace")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Monospace> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Monospace> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::MarkQuote>>(m, "SemMarkQuote")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::MarkQuote> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::MarkQuote> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Verbatim>>(m, "SemVerbatim")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Verbatim> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Verbatim> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Italic>>(m, "SemItalic")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Italic> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Italic> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Strike>>(m, "SemStrike")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Strike> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Strike> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Par>>(m, "SemPar")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Par> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Par> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::List>>(m, "SemList")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::List> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::List> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("isDescriptionList",
@@ -661,6 +823,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("header",
                   [](sem::DefaultSemId<sem::ListItem> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self.id->header; },
                   [](sem::DefaultSemId<sem::ListItem> _self, Opt<sem::SemIdT<sem::Paragraph>> header) { _self.id->header = header; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::ListItem> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::ListItem> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("isDescriptionItem",
@@ -677,6 +842,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("description",
                   [](sem::DefaultSemId<sem::Link> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self.id->description; },
                   [](sem::DefaultSemId<sem::Link> _self, Opt<sem::SemIdT<sem::Paragraph>> description) { _self.id->description = description; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Link> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Link> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("resolve",
@@ -740,6 +908,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("exportFileName",
                   [](sem::DefaultSemId<sem::Document> _self) -> Opt<Str> { return _self.id->exportFileName; },
                   [](sem::DefaultSemId<sem::Document> _self, Opt<Str> exportFileName) { _self.id->exportFileName = exportFileName; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Document> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Document> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("resolve",
@@ -759,6 +930,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::DefaultSemId<sem::ParseError>>(m, "SemParseError")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::ParseError> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::ParseError> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -782,16 +956,25 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("regexp",
                   [](sem::DefaultSemId<sem::FileTarget> _self) -> Opt<Str> { return _self.id->regexp; },
                   [](sem::DefaultSemId<sem::FileTarget> _self, Opt<Str> regexp) { _self.id->regexp = regexp; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::FileTarget> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::FileTarget> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::TextSeparator>>(m, "SemTextSeparator")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::TextSeparator> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::TextSeparator> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
   pybind11::class_<sem::DefaultSemId<sem::Include>>(m, "SemInclude")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::Include> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::Include> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;
@@ -857,6 +1040,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("exportWithCreator",
                   [](sem::DefaultSemId<sem::DocumentOptions> _self) -> bool { return _self.id->exportWithCreator; },
                   [](sem::DefaultSemId<sem::DocumentOptions> _self, bool exportWithCreator) { _self.id->exportWithCreator = exportWithCreator; })
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::DocumentOptions> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::DocumentOptions> _self) -> OrgSemKind { return _self.id->getKind(); })
     .def("getProperties",
@@ -887,6 +1073,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::DefaultSemId<sem::DocumentGroup>>(m, "SemDocumentGroup")
     .def(pybind11::init<>())
+    .def("__getitem__",
+         [](sem::DefaultSemId<sem::DocumentGroup> _self, int index) -> sem::SemId { return getSingleSubnode(_self.id, index); },
+         pybind11::arg("index"))
     .def("getKind",
          [](sem::DefaultSemId<sem::DocumentGroup> _self) -> OrgSemKind { return _self.id->getKind(); })
     ;

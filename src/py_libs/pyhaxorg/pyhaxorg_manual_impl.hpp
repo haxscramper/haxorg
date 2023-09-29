@@ -19,6 +19,11 @@ struct ExporterJson;
 struct ExporterYaml;
 struct ExporterTree;
 
+std::vector<sem::SemId> getSubnodeRange(
+    sem::SemId      id,
+    pybind11::slice slice);
+sem::SemId getSingleSubnode(sem::SemId id, int index);
+
 struct [[refl]] OrgExporterJson {
     SPtr<ExporterJson> impl;
     json               result;

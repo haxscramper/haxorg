@@ -35,4 +35,5 @@ print("????")
 print(ctx.getNode().getKind())
 
 assert ctx.getNode().getKind() == pyhaxorg.OrgSemKind.Document
+print(ctx.getNode()[0])
 

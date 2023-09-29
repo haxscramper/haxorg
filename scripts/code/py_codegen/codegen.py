@@ -223,8 +223,11 @@ def pybind_property(ast: ASTBuilder, field: GenTuField, Self: ParmVarParams) -> 
 
 
 @beartype
-def pybind_method(ast: ASTBuilder, meth: GenTuFunction, Self: ParmVarParams,
-                  Body: Optional[List[BlockId]] = None) -> BlockId:
+def pybind_method(ast: ASTBuilder,
+                  meth: GenTuFunction,
+                  Self: ParmVarParams,
+                  Body: Optional[List[BlockId]] = None,
+                  pySideOverride: Optional[str] = None) -> BlockId:
 
     call_pass: BlockId = None
     if Body is None:
@@ -243,15 +246,14 @@ def pybind_method(ast: ASTBuilder, meth: GenTuFunction, Self: ParmVarParams,
     return ast.XCall(
         ".def",
         [
-            ast.Literal(meth.name),
-            call_pass,
-            *[
+            ast.Literal(meth.name if pySideOverride is None else pySideOverride),
+            call_pass, *[
                 ast.XCall("pybind11::arg", [ast.Literal(Arg.name)])
                 if Arg.value is None else ast.XCall(
                     "pybind11::arg_v",
                     [ast.Literal(Arg.name), b.text(Arg.value)]) for Arg in meth.arguments
-            ],
-            *([ast.StringLiteral(meth.doc.brief, forceRawStr=True)] if meth.doc.brief else [])
+            ], *([ast.StringLiteral(meth.doc.brief, forceRawStr=True)]
+                 if meth.doc.brief else [])
         ],
         Line=False,
     )
@@ -301,6 +303,21 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
                 Line=False,
             ))
 
+    point_index = GenTuFunction(
+        name="X",
+        doc=GenTuDoc(""),
+        arguments=[GenTuIdent(QualType("int"), "index")],
+        result=t_id(),
+    )
+
+    sub.append(
+        pybind_method(
+            ast,
+            point_index,
+            Self=id_self,
+            pySideOverride="__getitem__",
+            Body=[b.text(f"return getSingleSubnode({id_self.name}.id, index);")]))
+
     for meth in typ.methods:
         if meth.isStatic or meth.isPureVirtual:
             continue
@@ -314,24 +331,30 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
 
     sub.append(b.text(";"))
     return b.stack([
-        ast.XCall("pybind11::class_", [b.text("m"), ast.Literal("Sem" + typ.name)],
+        ast.XCall("pybind11::class_",
+                  [b.text("m"), ast.Literal("Sem" + typ.name)],
                   Params=[id_type]),
         b.indent(2, b.stack(sub))
     ])
+
 
 @beartype
 def get_doc_literal(ast: ASTBuilder, doc: GenTuDoc) -> Optional[BlockId]:
     if doc.brief == "" and doc.full == "":
         return None
     else:
-        return ast.StringLiteral(doc.brief + ("" if doc.full == "" else "\n\n" + doc.full), forceRawStr=True)
+        return ast.StringLiteral(doc.brief +
+                                 ("" if doc.full == "" else "\n\n" + doc.full),
+                                 forceRawStr=True)
 
-@beartype 
+
+@beartype
 def maybe_list(it: Any) -> Any:
     if it:
         return [it]
     else:
         return []
+
 
 @beartype
 def pybind_enum(ast: ASTBuilder, value: GenTuEnum, scope: List[QualType]) -> BlockId:
@@ -378,9 +401,10 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct,
             continue
 
         sub.append(pybind_property(ast, field, id_self))
-  
+
     for meth in value.methods:
-        self_arg = ParmVarParams(QualType(value.name, Spaces=scope, isConst=True, isRef=True), "self_")
+        self_arg = ParmVarParams(
+            QualType(value.name, Spaces=scope, isConst=True, isRef=True), "self_")
         if meth.isStatic or meth.isPureVirtual:
             continue
 
@@ -430,10 +454,10 @@ def get_osk_enum() -> GenTuEnum:
         t_osk().name,
         GenTuDoc(""),
         fields=[
-            GenTuEnumField(struct.name, GenTuDoc(""))
-            for struct in get_concrete_types()
+            GenTuEnumField(struct.name, GenTuDoc("")) for struct in get_concrete_types()
         ],
     )
+
 
 @beartype
 def get_space_annotated_types() -> Sequence[GenTuStruct]:
@@ -498,7 +522,10 @@ def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Gen
                 ])),
             b.text("PYBIND11_MODULE(pyhaxorg, m) {"),
             b.indent(2, b.stack(passes)),
-            b.indent(2, b.stack([pybind_nested_type(ast, record, []) for record in reflect_structs])),
+            b.indent(
+                2,
+                b.stack(
+                    [pybind_nested_type(ast, record, []) for record in reflect_structs])),
             b.text("}")
         ]))
 
@@ -515,13 +542,13 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
     def process_content(content: List[str]) -> GenTuDoc:
         brief, full = [], []
         is_brief = True
-        
+
         for line in content:
             line = line.strip()
             if not line:
                 is_brief = False
                 continue
-            
+
             if is_brief:
                 brief.append(line)
             else:
@@ -535,7 +562,6 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
             result.append(re.sub(prefix, "", line))
 
         return result
-
 
     # Identify and strip comment markers, then delegate to process_content
     if comment.startswith("///") or comment.startswith("//!"):
@@ -557,6 +583,7 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
         return process_content(content.splitlines())
     else:
         raise ValueError(f"Unrecognized comment style: {comment}")
+
 
 @beartype
 def conv_proto_type(typ: pb.QualType) -> QualType:
@@ -585,7 +612,7 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
 
     for meth in record.methods:
         if meth.kind != pb.RecordMethodKind.Base:
-            continue    
+            continue
 
         result.methods.append(
             GenTuFunction(
@@ -602,7 +629,6 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
 @beartype
 def conv_proto_unit(unit: pb.TU) -> Sequence[GenTuStruct]:
     return [conv_proto_record(rec) for rec in unit.records]
-
 
 
 def gen_value(ast: ASTBuilder, reflection_path: str) -> GenFiles:
@@ -693,7 +719,9 @@ if __name__ == "__main__":
 
     t = TextLayout()
     builder = ASTBuilder(t)
-    description: GenFiles = gen_value(builder, reflection_path=os.path.join(sys.argv[1], "reflection.pb"))
+    description: GenFiles = gen_value(builder,
+                                      reflection_path=os.path.join(
+                                          sys.argv[1], "reflection.pb"))
     trace_file = open("/tmp/trace.txt", "w")
     indent = 0
 
@@ -737,4 +765,3 @@ if __name__ == "__main__":
                 with open(path, "w") as out:
                     out.write(newCode)
                 log.info(f"[red]Wrote[/red] to {define.path}")
-
