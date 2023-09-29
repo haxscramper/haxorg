@@ -41,6 +41,7 @@ class GenTuEnum:
     doc: GenTuDoc
     fields: List[GenTuEnumField]
     base: Optional[str] = "short int"
+    refl: bool = False
 
 
 @beartype

@@ -31,5 +31,5 @@ ctx.run("/tmp/doc.org")
 print("XXXX")
 print(ctx.getNode())
 print("????")
-# print(ctx.getNode().getKind())
+print(ctx.getNode().getKind())
 

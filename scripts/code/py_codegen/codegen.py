@@ -319,6 +319,19 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
         b.indent(2, b.stack(sub))
     ])
 
+@beartype
+def get_doc_literal(ast: ASTBuilder, doc: GenTuDoc) -> Optional[BlockId]:
+    if doc.brief == "" and doc.full == "":
+        return None
+    else:
+        return ast.StringLiteral(doc.brief + ("" if doc.full == "" else "\n\n" + doc.full), forceRawStr=True)
+
+@beartype 
+def maybe_list(it: Any) -> Any:
+    if it:
+        return [it]
+    else:
+        return []
 
 @beartype
 def pybind_enum(ast: ASTBuilder, value: GenTuEnum, scope: List[QualType]) -> BlockId:
@@ -338,7 +351,7 @@ def pybind_enum(ast: ASTBuilder, value: GenTuEnum, scope: List[QualType]) -> Blo
                     ast.Literal(Field.name),
                     ast.Type(QualType(Field.name, Spaces=(scope +
                                                           [QualType(value.name)])))
-                ]) for Field in value.fields
+                ] + maybe_list(get_doc_literal(ast, Field.doc))) for Field in value.fields
             ] + [ast.XCall(".export_values", []),
                  b.text(";")]))
     ])
@@ -412,6 +425,17 @@ def filter_walk_scope(iterate_context) -> List[QualType]:
 
 
 @beartype
+def get_osk_enum() -> GenTuEnum:
+    return GenTuEnum(
+        t_osk().name,
+        GenTuDoc(""),
+        fields=[
+            GenTuEnumField(struct.name, GenTuDoc(""))
+            for struct in get_concrete_types()
+        ],
+    )
+
+@beartype
 def get_space_annotated_types() -> Sequence[GenTuStruct]:
     iterate_context: Sequence[GenTuStruct] = []
 
@@ -450,6 +474,9 @@ def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Gen
 
     iterate_object_tree(GenTuNamespace("sem", get_space_annotated_types()), callback,
                         iterate_context)
+
+    for item in get_enums() + [get_osk_enum()]:
+        passes.append(pybind_enum(ast, item, []))
 
     passes.append(
         ast.PPIfStmt(
@@ -577,17 +604,9 @@ def conv_proto_unit(unit: pb.TU) -> Sequence[GenTuStruct]:
     return [conv_proto_record(rec) for rec in unit.records]
 
 
+
 def gen_value(ast: ASTBuilder, reflection_path: str) -> GenFiles:
-    full_enums = get_enums() + [
-        GenTuEnum(
-            t_osk().name,
-            GenTuDoc(""),
-            fields=[
-                GenTuEnumField(struct.name, GenTuDoc(""))
-                for struct in get_concrete_types()
-            ],
-        )
-    ]
+    full_enums = get_enums() + [get_osk_enum()]
 
     unit = pb.TU()
     assert os.path.exists(reflection_path)
