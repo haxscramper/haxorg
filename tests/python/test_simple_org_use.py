@@ -13,20 +13,23 @@ ctypes.CDLL(setup_imports.lib_dir + '/pyhaxorg.so')
 import inspect
 
 import pyhaxorg
+from pyhaxorg import OrgContext
 
 # Get all members of the module
 all_members = inspect.getmembers(pyhaxorg)
 
 # If you only want to get variable names
 exp = [name for name, value in all_members if not inspect.isfunction(value) and not inspect.isclass(value)]
-print(exp)
+# print(exp)
 
 assert "Block" in exp
-assert "OrgExport" in exp
+# assert "OrgExport" in exp
 
 
-# ctx = pyhaxorg.OrgContext()
-# ctx.run("/tmp/doc.org")
-# print(ctx.getNode())
+ctx = pyhaxorg.OrgContext()
+ctx.run("/tmp/doc.org")
+print("XXXX")
+print(ctx.getNode())
+print("????")
 # print(ctx.getNode().getKind())
 

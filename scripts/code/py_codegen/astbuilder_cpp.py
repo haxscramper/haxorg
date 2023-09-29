@@ -370,11 +370,11 @@ class ASTBuilder:
     def Call(self,
              func: BlockId,
              Args: List[BlockId] = [],
-             Params: List[QualType] = [],
+             Params: Optional[List[QualType]] = None,
              Stmt: bool = False,
              Line: bool = True):
         result = self.b.line([func])
-        if Params:
+        if Params is not None:
             self.b.add_at(result, self.string("<"))
             self.b.add_at(result, self.csv([self.Type(t) for t in Params]))
             self.b.add_at(result, self.string(">"))
@@ -391,7 +391,7 @@ class ASTBuilder:
                    Args: List[BlockId] = [],
                    Stmt: bool = False,
                    Line: bool = True,
-                   Params: List[QualType] = []) -> BlockId:
+                   Params: Optional[List[QualType]] = None) -> BlockId:
         return self.Call(self.b.line(
             [self.Type(typ), self.string("::"),
              self.string(opc)]),
@@ -407,7 +407,7 @@ class ASTBuilder:
                  args: List[BlockId] = [],
                  Stmt: bool = False,
                  Line: bool = True,
-                 Params: List[QualType] = []) -> BlockId:
+                 Params: Optional[List[QualType]] = None) -> BlockId:
 
         return self.Call(self.b.line([
             obj,
@@ -425,7 +425,7 @@ class ASTBuilder:
                  args: List[BlockId] = [],
                  Stmt: bool = False,
                  Line: bool = True,
-                 Params: List[QualType] = []) -> BlockId:
+                 PParams: Optional[List[QualType]] = None) -> BlockId:
         return self.XCallObj(obj,
                              ".",
                              func=opc,
@@ -440,7 +440,7 @@ class ASTBuilder:
                  args: List[BlockId] = [],
                  Stmt: bool = False,
                  Line: bool = True,
-                 Params: List[QualType] = []) -> BlockId:
+                 Params: Optional[List[QualType]] = None) -> BlockId:
         return self.XCallObj(obj,
                              "->",
                              func=opc,
@@ -454,7 +454,7 @@ class ASTBuilder:
               args: List[BlockId],
               Stmt: bool = False,
               Line: bool = True,
-              Params: List[QualType] = []) -> BlockId:
+              Params: Optional[List[QualType]] = None) -> BlockId:
         if opc[0].isalpha() or opc[0] == ".":
             return self.Call(self.string(opc),
                              Args=args,

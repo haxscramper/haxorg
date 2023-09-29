@@ -349,6 +349,16 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct,
                        scope: List[QualType]) -> BlockId:
     b = ast.b
     sub: List[BlockId] = []
+
+    sub.append(ast.XCall(
+        ".def",
+        [ast.XCall(
+            "pybind11::init",
+            [],
+            Params=[],
+        )],
+    ))
+
     id_self = ParmVarParams(QualType(value.name, Spaces=scope), "value")
     for field in value.fields:
         if field.isStatic or hasattr(field, "ignore"):
@@ -376,8 +386,11 @@ def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct,
                     [id_self.type]))
 
     name = "".join([typ.name for typ in scope if typ.name != "sem"] + [value.name])
+
+    if name in ["CodeSwitch", "SubtreeProperty", "SubtreePeriod"]:
+        return b.text("")
+
     return b.stack([
-        ast.Comment(["Binding for nested type"]),
         ast.XCall("pybind11::class_", [b.text("m"), ast.Literal(name)],
                   Params=[id_self.type]),
         b.indent(2, b.stack(sub))
