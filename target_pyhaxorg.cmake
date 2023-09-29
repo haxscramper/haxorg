@@ -56,6 +56,7 @@ target_include_directories(
     pyhaxorg
     PUBLIC
     "${BASE}"
+    "${BASE}/src/py_libs"
     ${PYTHON_INCLUDE_DIRS}
 )
 

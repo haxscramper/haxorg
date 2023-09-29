@@ -11,6 +11,8 @@
 #include <parse/OrgTokenizer.hpp>
 #include <parse/OrgTypes.hpp>
 
+#include <py_type_casters.hpp>
+
 namespace py = pybind11;
 
 struct ExporterJson;
@@ -104,24 +106,19 @@ struct [[refl]] OrgContext {
         parser->setLocationResolver(locationResolver);
     }
 
-    [[refl]] void run(std::string file) {
-        source      = readFile(QFileInfo(QString::fromStdString(file)));
-        tokens.base = source.data();
-        info        = LineColInfo{source};
-        parser      = OrgParser::initImpl(&nodes, false);
-        tokenizer   = OrgTokenizer::initImpl(&tokens, false);
-        str         = std::make_shared<PosStr>(source);
-
-        tokenizer->reserve(source.size() / 3);
-        parser->reserve(source.size() / 3);
+    void run();
 
 
-        initLocationResolvers();
-
-        tokenizer->lexGlobal(*str);
-        parser->parseFull(lex);
-        node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+    [[refl]] void parseFile(std::string file) {
+        source = readFile(QFileInfo(QString::fromStdString(file)));
+        run();
     }
+
+    [[refl]] void parseString(QString text) {
+        source = text;
+        run();
+    }
+
 
     [[refl]] sem::DefaultSemId<sem::Document> getNode() { return node; }
 };

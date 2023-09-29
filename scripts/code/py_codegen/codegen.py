@@ -314,7 +314,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
 
     sub.append(b.text(";"))
     return b.stack([
-        ast.XCall("pybind11::class_", [b.text("m"), ast.Literal(typ.name)],
+        ast.XCall("pybind11::class_", [b.text("m"), ast.Literal("Sem" + typ.name)],
                   Params=[id_type]),
         b.indent(2, b.stack(sub))
     ])

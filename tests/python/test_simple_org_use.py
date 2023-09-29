@@ -27,9 +27,12 @@ assert "Block" in exp
 
 
 ctx = pyhaxorg.OrgContext()
-ctx.run("/tmp/doc.org")
+print(pyhaxorg.Document)
+ctx.parseString("*Text*")
 print("XXXX")
 print(ctx.getNode())
 print("????")
 print(ctx.getNode().getKind())
+
+assert ctx.getNode().getKind() == pyhaxorg.OrgSemKind.Document
 

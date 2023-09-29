@@ -67,3 +67,20 @@ void OrgExporterTree::stream(
     impl->conf.startLevel      = opts.startLevel;
     impl->visitTop(node);
 }
+
+void OrgContext::run() {
+    tokens.base = source.data();
+    info        = LineColInfo{source};
+    parser      = OrgParser::initImpl(&nodes, false);
+    tokenizer   = OrgTokenizer::initImpl(&tokens, false);
+    str         = std::make_shared<PosStr>(source);
+
+    tokenizer->reserve(source.size() / 3);
+    parser->reserve(source.size() / 3);
+
+    initLocationResolvers();
+
+    tokenizer->lexGlobal(*str);
+    parser->parseFull(lex);
+    node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+}
