@@ -199,6 +199,7 @@ org_type_names = [Typ.name for Typ in get_types()]
 from copy import deepcopy
 
 
+@beartype
 def in_sem(typ: QualType) -> QualType:
     typ = deepcopy(typ)
     if typ.name in ["SemId", "SemIdT", "Param"] + org_type_names:
@@ -208,6 +209,14 @@ def in_sem(typ: QualType) -> QualType:
 
     return typ
 
+@beartype
+def flat_scope(Typ: QualType) -> List[str]:
+    res: List[str] = []
+    for S in Typ.Spaces:
+        res += flat_scope(S)
+        
+    res += [Typ.name]
+    return res
 
 @beartype
 @dataclass
@@ -216,9 +225,17 @@ class Py11EnumField:
     CxxName: str
     Doc: GenTuDoc
 
-    def build_bind(self, Enum: QualType, ast: ASTBuilder) -> BlockId:
-        b = ast.b
+    @staticmethod
+    def FromGenTu(Field: GenTuEnumField, pyNameOverride: Optional[str] = None) -> 'Py11EnumField':
+        return Py11EnumField(PyName=Field.name if pyNameOverride is None else pyNameOverride,
+        CxxName=Field.name, 
+        Doc=Field.doc)
 
+    def build_bind(self, Enum: 'Py11Enum', ast: ASTBuilder) -> BlockId:
+        return ast.XCall(".value", [
+                ast.Literal(self.PyName),
+                ast.Type(QualType(self.CxxName, Spaces=[Enum.Enum]))
+            ] + maybe_list(get_doc_literal(ast, self.Doc)))
 
 @beartype
 @dataclass
@@ -226,6 +243,32 @@ class Py11Enum:
     PyName: str
     Enum: QualType
     Fields: List[Py11EnumField]
+    Doc: GenTuDoc
+
+    @staticmethod
+    def FromGenTu(Enum: GenTuEnum, Scope: List[QualType] = [], pyNameOverride: Optional[str] = None) -> 'Py11Enum':
+        return Py11Enum(PyName="".join(flat_scope(QualType(Enum.name, Spaces=Scope))) if pyNameOverride is None else pyNameOverride,
+        Enum=QualType(Enum.name, Spaces=Scope), 
+        Doc=Enum.doc,
+        Fields=[Py11EnumField.FromGenTu(F) for F in Enum.fields])
+        
+
+    def build_bind(self, ast: ASTBuilder) -> BlockId:
+        b = ast.b
+
+        return b.stack([
+            ast.XCall("pybind11::enum_", [
+                b.text("m"),
+                ast.Literal(self.PyName)
+            ],
+            Params=[self.Enum]),
+            b.indent(
+                2,
+                b.stack([
+                    Field.build_bind(self, ast) for Field in self.Fields
+                ] + [ast.XCall(".export_values", []),
+                    b.text(";")]))
+        ])
 
 
 @beartype
@@ -425,11 +468,13 @@ class Py11Class:
             b.indent(2, b.stack(sub))
         ])
 
+Py11Entry = Union[Py11Enum, Py11Class]
 
 @beartype
-def pybind_property(ast: ASTBuilder, field: GenTuField, Self: ParmVarParams) -> BlockId:
-    b = ast.b
-
+@dataclass
+class Py11Module:
+    PyName: str
+    Decls: List[Py11Entry]
 
 
 @beartype
@@ -464,31 +509,6 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> Py11Class
         res.Methods.append(Py11Method.FromGenTu(meth, Body=[passcall]))
 
     return res
-
-
-@beartype
-def pybind_enum(ast: ASTBuilder, value: GenTuEnum, scope: List[QualType]) -> BlockId:
-    b = ast.b
-
-    return b.stack([
-        ast.XCall("pybind11::enum_", [
-            b.text("m"),
-            ast.Literal(
-                "".join([typ.name for typ in scope if typ.name != "sem"] + [value.name]))
-        ],
-                  Params=[QualType(value.name, Spaces=scope)]),
-        b.indent(
-            2,
-            b.stack([
-                ast.XCall(".value", [
-                    ast.Literal(Field.name),
-                    ast.Type(QualType(Field.name, Spaces=(scope +
-                                                          [QualType(value.name)])))
-                ] + maybe_list(get_doc_literal(ast, Field.doc))) for Field in value.fields
-            ] + [ast.XCall(".export_values", []),
-                 b.text(";")]))
-    ])
-
 
 @beartype
 def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct,
@@ -574,6 +594,7 @@ def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Gen
             ])))
 
     classes: List[Py11Class] = []
+    enums: List[Py11Enum] = []
 
     def callback(value: Any) -> None:
         nonlocal iterate_context
@@ -595,13 +616,18 @@ def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Gen
                 passes.append(new.build_bind(ast))
 
         elif isinstance(value, GenTuEnum):
-            passes.append(pybind_enum(ast, value, scope))
+            PyName = "".join([N for N in flat_scope(QualType(value.name, Spaces=scope)) if N != "sem"])
+            new = Py11Enum.FromGenTu(value, scope, pyNameOverride=PyName)
+            enums.append(new)
+            passes.append(new.build_bind(ast))
 
     iterate_object_tree(GenTuNamespace("sem", get_space_annotated_types()), callback,
                         iterate_context)
 
     for item in get_enums() + [get_osk_enum()]:
-        passes.append(pybind_enum(ast, item, []))
+        new = Py11Enum.FromGenTu(item, [])
+        enums.append(new)
+        passes.append(new.build_bind(ast))
 
     return GenTuPass(
         b.stack([
