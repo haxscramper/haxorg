@@ -6,6 +6,7 @@ from enum import Enum
 from beartype import beartype
 import inspect
 import os
+import astbuilder_base as base
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
@@ -332,11 +333,9 @@ class SwitchStmtParams:
 
 @beartype
 @dataclass
-class ASTBuilder:
-    b: TextLayout
-
-    def string(self, text: str) -> BlockId:
-        return self.b.text(text)
+class ASTBuilder(base.AstbuilderBase):
+    def __init__(self, in_b: TextLayout):
+        self.b = in_b
 
     def CaseStmt(self, params: CaseStmtParams) -> BlockId:
         head = self.string("default:") if params.IsDefault else self.b.line(
@@ -705,19 +704,7 @@ class ASTBuilder:
 
         return result
 
-    def brace(self, elements: List[BlockId]) -> BlockId:
-        return self.b.stack([self.string("{"), self.b.stack(elements), self.string("}")])
 
-    def pars(self, arg: BlockId) -> BlockId:
-        return self.b.line([self.string("("), arg, self.string(")")])
-
-    def csv(self,
-            items: Union[List[str], List[BlockId]],
-            isLine=True,
-            isTrailing=False) -> BlockId:
-        return self.b.join(
-            [self.string(Base) if isinstance(Base, str) else Base for Base in items],
-            self.string(", "), isLine, isTrailing)
 
     def CompoundStmt(self, p: CompoundStmtParams) -> BlockId:
         return self.brace(p.Stmts)
