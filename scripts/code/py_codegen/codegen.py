@@ -468,13 +468,47 @@ class Py11Class:
             b.indent(2, b.stack(sub))
         ])
 
-Py11Entry = Union[Py11Enum, Py11Class]
+@beartype
+@dataclass
+class Py11BindPass:
+    Id: BlockId
+
+Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass]
 
 @beartype
 @dataclass
 class Py11Module:
     PyName: str
-    Decls: List[Py11Entry]
+    Decls: List[Py11Entry] = field(default_factory=list)
+    Before: List[BlockId] = field(default_factory=list)
+    After: List[BlockId] = field(default_factory=list)
+
+    def build_bind(self, ast: ASTBuilder) -> BlockId:
+        b = ast.b
+
+        passes: List[BlockId] = []
+
+        for entry in self.Decls:
+            if isinstance(entry, Py11BindPass):
+                passes.append(entry.Id)
+
+            elif isinstance(entry, Py11Class):
+                passes.append(entry.build_bind(ast))
+
+            elif isinstance(entry, Py11Enum):
+                passes.append(entry.build_bind(ast))
+
+        return b.stack([
+            *self.Before,
+            b.text("PYBIND11_MODULE(pyhaxorg, m) {"),
+            b.indent(2, b.stack(passes)),
+            b.text("}"),
+            *self.After
+        ])
+
+
+
+
 
 
 @beartype
@@ -511,11 +545,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> Py11Class
     return res
 
 @beartype
-def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct,
-                       scope: List[QualType]) -> Py11Class:
-    b = ast.b
-    sub: List[BlockId] = []
-
+def pybind_nested_type(value: GenTuStruct, scope: List[QualType]) -> Py11Class:
     name = "".join([typ.name for typ in scope if typ.name != "sem"] + [value.name])
 
     res = Py11Class(PyName=name, Class=QualType(value.name, Spaces=scope))
@@ -577,24 +607,28 @@ def get_space_annotated_types() -> Sequence[GenTuStruct]:
 
 
 @beartype
-def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> GenTuPass:
-    passes: List[BlockId] = []
-    typ: GenTuStruct
+def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Py11Module:
+    res = Py11Module("pyhaxorg")
     b: TextLayout = ast.b
 
     iterate_context: List[Any] = []
 
-    passes.append(
+    res.Before.append(
         ast.PPIfStmt(
             PPIfStmtParams([
                 ast.PPIfNDef("IN_CLANGD_PROCESSING", [
                     ast.Define("PY_HAXORG_COMPILING"),
-                    ast.Include("pyhaxorg_manual_wrap.hpp")
+                    ast.Include("pyhaxorg_manual_impl.hpp")
                 ])
             ])))
 
-    classes: List[Py11Class] = []
-    enums: List[Py11Enum] = []
+    res.Decls.append(Py11BindPass(ast.PPIfStmt(
+        PPIfStmtParams([
+            ast.PPIfNDef("IN_CLANGD_PROCESSING", [
+                ast.Define("PY_HAXORG_COMPILING"),
+                ast.Include("pyhaxorg_manual_wrap.hpp")
+            ])
+        ]))))
 
     def callback(value: Any) -> None:
         nonlocal iterate_context
@@ -602,50 +636,30 @@ def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Gen
 
         if isinstance(value, GenTuStruct):
             if hasattr(value, "isOrgType"):
-                new = pybind_org_id(ast, b, value)
-                classes.append(new)
-                passes.append(new.build_bind(ast))
+                res.Decls.append(pybind_org_id(ast, b, value))
 
             else:
-                new = pybind_nested_type(ast, value, scope)
+                new = pybind_nested_type(value, scope)
 
                 if new.PyName in ["CodeSwitch", "SubtreeProperty", "SubtreePeriod"]:
                     return
                     
-                classes.append(new)
-                passes.append(new.build_bind(ast))
+                res.Decls.append(new)
 
         elif isinstance(value, GenTuEnum):
             PyName = "".join([N for N in flat_scope(QualType(value.name, Spaces=scope)) if N != "sem"])
-            new = Py11Enum.FromGenTu(value, scope, pyNameOverride=PyName)
-            enums.append(new)
-            passes.append(new.build_bind(ast))
+            res.Decls.append(Py11Enum.FromGenTu(value, scope, pyNameOverride=PyName))
 
     iterate_object_tree(GenTuNamespace("sem", get_space_annotated_types()), callback,
                         iterate_context)
 
     for item in get_enums() + [get_osk_enum()]:
-        new = Py11Enum.FromGenTu(item, [])
-        enums.append(new)
-        passes.append(new.build_bind(ast))
+        res.Decls.append(Py11Enum.FromGenTu(item, []))
 
-    return GenTuPass(
-        b.stack([
-            ast.PPIfStmt(
-                PPIfStmtParams([
-                    ast.PPIfNDef("IN_CLANGD_PROCESSING", [
-                        ast.Define("PY_HAXORG_COMPILING"),
-                        ast.Include("pyhaxorg_manual_impl.hpp")
-                    ])
-                ])),
-            b.text("PYBIND11_MODULE(pyhaxorg, m) {"),
-            b.indent(2, b.stack(passes)),
-            b.indent(
-                2,
-                b.stack(
-                    [pybind_nested_type(ast, record, []).build_bind(ast) for record in reflect_structs])),
-            b.text("}")
-        ]))
+    for item in reflect_structs:
+        res.Decls.append(pybind_nested_type(item, []))
+
+    return res
 
 
 import proto_lib.reflection_defs as pb
@@ -787,7 +801,7 @@ def gen_value(ast: ASTBuilder, reflection_path: str) -> GenFiles:
                     GenTuInclude("pybind11/pybind11.h", True),
                     GenTuInclude("sem/SemOrg.hpp", True),
                     GenTuInclude("pybind11/stl.h", True),
-                    get_bind_methods(ast, gen_structs),
+                    GenTuPass(get_bind_methods(ast, gen_structs).build_bind(ast)),
                 ],
             )),
         GenUnit(
