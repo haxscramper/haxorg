@@ -33,7 +33,7 @@ class DecoratorParams:
 class FunctionDefParams:
     Name: str
     ResultTy: PyType
-    Args: List[PyType] = field(default_factory=list)
+    Args: List[IdentParams] = field(default_factory=list)
     Decorators: List[DecoratorParams] = field(default_factory=list)
     Doc: str = ""
     Body: List[BlockId] = field(default_factory=list)
@@ -55,17 +55,34 @@ class ClassParams:
     
 
 @beartype
-class AstBuilder(base.AstbuilderBase):
+@dataclass
+class EnumFieldParams:
+    Name: str
+    Value: str
+
+@beartype
+@dataclass
+class EnumParams:
+    Name: str
+    Fields: List[EnumFieldParams]
+
+
+@beartype
+class ASTBuilder(base.AstbuilderBase):
+    def __init__(self, in_b: TextLayout):
+        self.b = in_b
+
     def Decorator(self, p: DecoratorParams) -> BlockId:
         return self.b.line([self.string("@"), self.string(p.Name)])
 
     def Type(self, p: PyType) -> BlockId:
         if p.Params:
-            return self.b.line(self.string(p.Name, [
+            return self.b.line([
+                self.string(p.Name),
                 self.string("["),
                 *[self.Type(T) for T in p.Params],
                 self.string("]")
-            ]))
+            ])
 
         else:
             return self.string(p.Name)
@@ -90,21 +107,31 @@ class AstBuilder(base.AstbuilderBase):
         def_head = self.FuncHead(p.Func)
 
         if p.Func.IsStub:
-            def_head.append(b.text("..."))
+            def_head.append(b.text(" ..."))
             return b.line(def_head)
 
         else:
             return b.stack([
                 b.line(def_head),
-                b.indent(4, b.stack([
-                    p.Func.Body
-                ]))
+                b.indent(4, b.stack(p.Func.Body))
             ])
+
+    def Enum(self, p: EnumParams) -> BlockId:
+        b = self.b
+        return b.stack([
+            b.line([b.text("class "), b.text(p.Name), b.text("(Enum):")]),
+            b.indent(4, b.stack([
+                b.text(f"{F.Name} = {F.Value}") for F in p.Fields
+            ]))
+        ])
 
     def Class(self, p: ClassParams) -> BlockId:
         b = self.b
 
         methods: List[BlockId] = [self.Method(M) for M in p.Methods]
+
+        if len(methods) == 0:
+            methods = [b.text("pass")]
 
         return self.b.stack([
             b.line([b.text("class "), b.text(p.Name), b.text(":")]),

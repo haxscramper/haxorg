@@ -18,6 +18,8 @@ from gen_tu_cpp import *
 
 from org_codegen_data import *
 
+import astbuilder_py as pya
+
 
 def with_enum_reflection_api(body: List[Any]) -> List[Any]:
     return [
@@ -209,14 +211,16 @@ def in_sem(typ: QualType) -> QualType:
 
     return typ
 
+
 @beartype
 def flat_scope(Typ: QualType) -> List[str]:
     res: List[str] = []
     for S in Typ.Spaces:
         res += flat_scope(S)
-        
+
     res += [Typ.name]
     return res
+
 
 @beartype
 @dataclass
@@ -226,16 +230,19 @@ class Py11EnumField:
     Doc: GenTuDoc
 
     @staticmethod
-    def FromGenTu(Field: GenTuEnumField, pyNameOverride: Optional[str] = None) -> 'Py11EnumField':
-        return Py11EnumField(PyName=Field.name if pyNameOverride is None else pyNameOverride,
-        CxxName=Field.name, 
-        Doc=Field.doc)
+    def FromGenTu(Field: GenTuEnumField,
+                  pyNameOverride: Optional[str] = None) -> 'Py11EnumField':
+        return Py11EnumField(
+            PyName=Field.name if pyNameOverride is None else pyNameOverride,
+            CxxName=Field.name,
+            Doc=Field.doc)
 
     def build_bind(self, Enum: 'Py11Enum', ast: ASTBuilder) -> BlockId:
         return ast.XCall(".value", [
-                ast.Literal(self.PyName),
-                ast.Type(QualType(self.CxxName, Spaces=[Enum.Enum]))
-            ] + maybe_list(get_doc_literal(ast, self.Doc)))
+            ast.Literal(self.PyName),
+            ast.Type(QualType(self.CxxName, Spaces=[Enum.Enum]))
+        ] + maybe_list(get_doc_literal(ast, self.Doc)))
+
 
 @beartype
 @dataclass
@@ -246,34 +253,64 @@ class Py11Enum:
     Doc: GenTuDoc
 
     @staticmethod
-    def FromGenTu(Enum: GenTuEnum, Scope: List[QualType] = [], pyNameOverride: Optional[str] = None) -> 'Py11Enum':
-        return Py11Enum(PyName="".join(flat_scope(QualType(Enum.name, Spaces=Scope))) if pyNameOverride is None else pyNameOverride,
-        Enum=QualType(Enum.name, Spaces=Scope), 
-        Doc=Enum.doc,
-        Fields=[Py11EnumField.FromGenTu(F) for F in Enum.fields])
-        
+    def FromGenTu(Enum: GenTuEnum,
+                  Scope: List[QualType] = [],
+                  pyNameOverride: Optional[str] = None) -> 'Py11Enum':
+        return Py11Enum(PyName="".join(flat_scope(QualType(Enum.name, Spaces=Scope)))
+                        if pyNameOverride is None else pyNameOverride,
+                        Enum=QualType(Enum.name, Spaces=Scope),
+                        Doc=Enum.doc,
+                        Fields=[Py11EnumField.FromGenTu(F) for F in Enum.fields])
+
+    def build_typedef(self) -> pya.EnumParams:
+        count = 0
+        return pya.EnumParams(Name=self.PyName,
+                              Fields=[
+                                  pya.EnumFieldParams(
+                                      ("_" + F.PyName if F.PyName in ["None", "True", "False"] else F.PyName),
+                                      str(count := count + 1)) for F in self.Fields
+                              ])
 
     def build_bind(self, ast: ASTBuilder) -> BlockId:
         b = ast.b
 
         return b.stack([
-            ast.XCall("pybind11::enum_", [
-                b.text("m"),
-                ast.Literal(self.PyName)
-            ],
-            Params=[self.Enum]),
+            ast.XCall("pybind11::enum_",
+                      [b.text("m"), ast.Literal(self.PyName)],
+                      Params=[self.Enum]),
             b.indent(
                 2,
-                b.stack([
-                    Field.build_bind(self, ast) for Field in self.Fields
-                ] + [ast.XCall(".export_values", []),
-                    b.text(";")]))
+                b.stack([Field.build_bind(self, ast) for Field in self.Fields] +
+                        [ast.XCall(".export_values", []),
+                         b.text(";")]))
         ])
 
 
 @beartype
 def id_self(Typ: QualType) -> ParmVarParams:
     return ParmVarParams(Typ, "_self")
+
+
+@beartype
+def py_type(Typ: QualType) -> pya.PyType:
+
+    name = ""
+    match Typ.name:
+        case "Vec":
+            name = "List"
+        case "Opt":
+            name = "Optional"
+        case "Str" | "string" | "QString":
+            name = "str"
+        case _:
+            name = Typ.name
+
+    res = pya.PyType(name)
+    for param in Typ.Parameters:
+        res.Params.append(py_type(param))
+
+    return res
+
 
 @beartype
 @dataclass
@@ -296,6 +333,13 @@ class Py11Method:
                           CxxName=meth.name,
                           Doc=meth.doc,
                           Args=meth.arguments)
+
+    def build_typedef(self, ast: pya.ASTBuilder) -> pya.MethodParams:
+        return pya.MethodParams(Func=pya.FunctionDefParams(
+            Name=self.PyName,
+            ResultTy=py_type(self.ResultTy),
+            Args=[pya.IdentParams(py_type(Arg.type), Arg.name) for Arg in self.Args],
+            IsStub=True))
 
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
         b = ast.b
@@ -326,6 +370,7 @@ class Py11Method:
             ],
             Line=False,
         )
+
 
 @beartype
 def get_doc_literal(ast: ASTBuilder, doc: GenTuDoc) -> Optional[BlockId]:
@@ -419,6 +464,13 @@ class Py11Class:
     def AddInit(self, Args: List[ParmVarParams], Impl: List[BlockId]):
         self.InitImpls.append(Py11Method("", "", QualType(""), Args, Body=Impl))
 
+    def build_typedef(self, ast: pya.ASTBuilder) -> pya.ClassParams:
+        res = pya.ClassParams(Name=self.PyName)
+        for Meth in self.Methods:
+            res.Methods.append(Meth.build_typedef(ast))
+
+        return res
+
     def build_bind(self, ast: ASTBuilder) -> BlockId:
         b = ast.b
 
@@ -434,9 +486,7 @@ class Py11Class:
                                 "pybind11::init",
                                 [
                                     ast.Lambda(
-                                        LambdaParams(
-                                            ResultTy=self.Class,
-                                            Body=Init.Body))
+                                        LambdaParams(ResultTy=self.Class, Body=Init.Body))
                                 ],
                             )
                         ],
@@ -468,12 +518,15 @@ class Py11Class:
             b.indent(2, b.stack(sub))
         ])
 
+
 @beartype
 @dataclass
 class Py11BindPass:
     Id: BlockId
 
+
 Py11Entry = Union[Py11Enum, Py11Class, Py11BindPass]
+
 
 @beartype
 @dataclass
@@ -482,6 +535,22 @@ class Py11Module:
     Decls: List[Py11Entry] = field(default_factory=list)
     Before: List[BlockId] = field(default_factory=list)
     After: List[BlockId] = field(default_factory=list)
+
+    def build_typedef(self, ast: pya.ASTBuilder) -> BlockId:
+        passes: List[BlockId] = []
+
+        passes.append(ast.string("from typing import *"))
+        passes.append(ast.string("from enum import Enum"))
+
+        for entry in [E for E in self.Decls if isinstance(E, Py11Enum)]:
+            passes.append(ast.Enum(entry.build_typedef()))
+            passes.append(ast.string(""))
+
+        for entry in [E for E in self.Decls if isinstance(E, Py11Class)]:
+            passes.append(ast.Class(entry.build_typedef(ast)))
+            passes.append(ast.string(""))
+
+        return ast.b.stack(passes)
 
     def build_bind(self, ast: ASTBuilder) -> BlockId:
         b = ast.b
@@ -502,20 +571,15 @@ class Py11Module:
             *self.Before,
             b.text("PYBIND11_MODULE(pyhaxorg, m) {"),
             b.indent(2, b.stack(passes)),
-            b.text("}"),
-            *self.After
+            b.text("}"), *self.After
         ])
-
-
-
-
 
 
 @beartype
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> Py11Class:
     base_type = QualType(typ.name, Spaces=[QualType("sem")])
     id_type = QualType("SemIdT", [base_type], Spaces=[QualType("sem")])
-    res = Py11Class(PyName="Sem" + typ.name,Class=id_type)
+    res = Py11Class(PyName="Sem" + typ.name, Class=id_type)
 
     res.AddInit([], [ast.Return(ast.CallStatic(id_type, "Nil"))])
     res.Bases.append(QualType("SemId", Spaces=[QualType("sem")]))
@@ -525,11 +589,11 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> Py11Class
         if field.isStatic or hasattr(field, "ignore"):
             continue
 
-        res.Fields.append(Py11Field.FromGenTu(
-            field,
-            GetImpl=[b.text(f"return {_self.name}->{field.name};")],
-            SetImpl=[b.text(f"{_self.name}->{field.name} = {field.name};")]
-        ))
+        res.Fields.append(
+            Py11Field.FromGenTu(
+                field,
+                GetImpl=[b.text(f"return {_self.name}->{field.name};")],
+                SetImpl=[b.text(f"{_self.name}->{field.name} = {field.name};")]))
 
     for meth in typ.methods:
         if meth.isStatic or meth.isPureVirtual or meth.name in ["getKind"]:
@@ -543,6 +607,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> Py11Class
         res.Methods.append(Py11Method.FromGenTu(meth, Body=[passcall]))
 
     return res
+
 
 @beartype
 def pybind_nested_type(value: GenTuStruct, scope: List[QualType]) -> Py11Class:
@@ -622,13 +687,15 @@ def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Py1
                 ])
             ])))
 
-    res.Decls.append(Py11BindPass(ast.PPIfStmt(
-        PPIfStmtParams([
-            ast.PPIfNDef("IN_CLANGD_PROCESSING", [
-                ast.Define("PY_HAXORG_COMPILING"),
-                ast.Include("pyhaxorg_manual_wrap.hpp")
-            ])
-        ]))))
+    res.Decls.append(
+        Py11BindPass(
+            ast.PPIfStmt(
+                PPIfStmtParams([
+                    ast.PPIfNDef("IN_CLANGD_PROCESSING", [
+                        ast.Define("PY_HAXORG_COMPILING"),
+                        ast.Include("pyhaxorg_manual_wrap.hpp")
+                    ])
+                ]))))
 
     def callback(value: Any) -> None:
         nonlocal iterate_context
@@ -643,11 +710,12 @@ def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Py1
 
                 if new.PyName in ["CodeSwitch", "SubtreeProperty", "SubtreePeriod"]:
                     return
-                    
+
                 res.Decls.append(new)
 
         elif isinstance(value, GenTuEnum):
-            PyName = "".join([N for N in flat_scope(QualType(value.name, Spaces=scope)) if N != "sem"])
+            PyName = "".join(
+                [N for N in flat_scope(QualType(value.name, Spaces=scope)) if N != "sem"])
             res.Decls.append(Py11Enum.FromGenTu(value, scope, pyNameOverride=PyName))
 
     iterate_object_tree(GenTuNamespace("sem", get_space_annotated_types()), callback,
@@ -763,7 +831,7 @@ def conv_proto_unit(unit: pb.TU) -> Sequence[GenTuStruct]:
     return [conv_proto_record(rec) for rec in unit.records]
 
 
-def gen_value(ast: ASTBuilder, reflection_path: str) -> GenFiles:
+def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:
     full_enums = get_enums() + [get_osk_enum()]
 
     unit = pb.TU()
@@ -780,6 +848,11 @@ def gen_value(ast: ASTBuilder, reflection_path: str) -> GenFiles:
         pprint(gen_structs, width=200, stream=file)
 
     return GenFiles([
+        GenUnit(
+            GenTu(
+                "{root}/tests/python/pyhaxorg.pyi",
+                [GenTuPass(get_bind_methods(ast, gen_structs).build_typedef(pyast))],
+            )),
         GenUnit(
             GenTu(
                 "{base}/exporters/exporternlp_enums.hpp",
@@ -851,7 +924,9 @@ if __name__ == "__main__":
 
     t = TextLayout()
     builder = ASTBuilder(t)
+    pyast = pya.ASTBuilder(t)
     description: GenFiles = gen_value(builder,
+                                      pyast,
                                       reflection_path=os.path.join(
                                           sys.argv[1], "reflection.pb"))
     trace_file = open("/tmp/trace.txt", "w")
@@ -867,7 +942,8 @@ if __name__ == "__main__":
             if not define:
                 continue
 
-            path = define.path.format(base=os.path.join(sys.argv[2], "src"))
+            path = define.path.format(base=os.path.join(sys.argv[2], "src"),
+                                      root=sys.argv[2])
             result = builder.TranslationUnit([
                 GenConverter(
                     builder,
