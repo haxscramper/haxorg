@@ -19,50 +19,17 @@ struct ExporterJson;
 struct ExporterYaml;
 struct ExporterTree;
 
-
-#define __id(I) , sem::DefaultSemId<sem::I>
+#define __id(I) , sem::SemIdT<sem::I>
 /// \brief Global variant of all sem node derivations
-using OrgDefaultVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
+using OrgIdVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 #undef __id
 
-template <typename T>
-struct TypedPySemId;
+OrgIdVariant castAs(sem::SemId id);
 
-struct [[refl]] PySemId {
-    sem::SemId id = sem::SemId::Nil();
-
-    PySemId() {}
-    PySemId(sem::SemId id) : id(id) {}
-
-    [[refl]] OrgSemKind getKind() const { return id->getKind(); }
-
-    [[refl]] std::vector<PySemId> getSubnodeRange(pybind11::slice slice);
-
-    [[refl]] PySemId getSingleSubnode(int index);
-
-    [[refl]] OrgDefaultVariant castAs() {}
-
-    [[refl]] PySemId operator[](int index) {
-        return getSingleSubnode(index);
-    }
-
-    [[refl]] std::vector<PySemId> operator[](pybind11::slice slice) {
-        return getSubnodeRange(slice);
-    }
-
-    template <typename T>
-    sem::SemIdT<T> as() const {
-        return this->id.as<T>();
-    }
-};
-
-template <typename T>
-struct TypedPySemId : PySemId {
-    TypedPySemId() {}
-    TypedPySemId(PySemId const& id) : PySemId(id) {}
-    TypedPySemId(TypedPySemId<T> const& id) : PySemId(id) {}
-    operator TypedPySemId<T>() const { return id; }
-};
+std::vector<sem::SemId> getSubnodeRange(
+    sem::SemId      id,
+    pybind11::slice slice);
+sem::SemId getSingleSubnode(sem::SemId id, int index);
 
 struct [[refl]] OrgExporterJson {
     SPtr<ExporterJson> impl;
@@ -165,14 +132,7 @@ struct [[refl]] OrgContext {
     }
 
 
-    [[refl]] sem::DefaultSemId<sem::Document> getNode() { return node; }
+    [[refl]] sem::SemIdT<sem::Document> getNode() { return node; }
 };
 
-inline void init_py_manual_api(py::module& m) {
-    // py::class_<OrgContext>(m, "OrgContext")
-    //     .def(py::init<>())
-    //     .def("run", &OrgContext::run)
-    //     .def("getNode", &OrgContext::getNode)
-    //     //
-    //     ;
-}
+void init_py_manual_api(py::module& m);

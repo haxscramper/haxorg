@@ -29,11 +29,9 @@ assert "Block" in exp
 ctx = pyhaxorg.OrgContext()
 print(pyhaxorg.Document)
 ctx.parseString("*Text*")
-print("XXXX")
-print(ctx.getNode())
-print("????")
-print(ctx.getNode().getKind())
 
 assert ctx.getNode().getKind() == pyhaxorg.OrgSemKind.Document
-print(ctx.getNode()[0])
+assert ctx.getNode()[0].getKind() == pyhaxorg.OrgSemKind.Paragraph
+assert ctx.getNode()[0][0].getKind() == pyhaxorg.OrgSemKind.Bold
+assert ctx.getNode()[0][0][0].getKind() == pyhaxorg.OrgSemKind.Word
 

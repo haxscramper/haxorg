@@ -261,7 +261,7 @@ def pybind_method(ast: ASTBuilder,
 
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
     base_type = QualType(typ.name, Spaces=[QualType("sem")])
-    id_type = QualType("TypedPySemId", [base_type])
+    id_type = QualType("SemIdT", [base_type], Spaces=[QualType("sem")])
 
     sub: List[BlockId] = []
 
@@ -270,8 +270,14 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
         ".def",
         [ast.XCall(
             "pybind11::init",
-            [],
-            Params=[],
+            [ast.Lambda(
+                LambdaParams(
+                    ResultTy=id_type,
+                    Body=[
+                        ast.Return(ast.CallStatic(id_type, "Nil"))
+                    ]
+                )
+            )],
         )],
     ))
 
@@ -290,7 +296,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
                             ResultTy=field.type,
                             Body=[
                                 b.text(
-                                    f"return {id_self.name}.as<sem::{typ.name}>()->{field.name};"
+                                    f"return {id_self.name}->{field.name};"
                                 )
                             ],
                             Args=[id_self],
@@ -300,7 +306,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
                             ResultTy=None,
                             Body=[
                                 b.text(
-                                    f"{id_self.name}.as<sem::{typ.name}>()->{field.name} = {field.name};"
+                                    f"{id_self.name}->{field.name} = {field.name};"
                                 )
                             ],
                             Args=[id_self, ParmVarParams(field.type, field.name)],
@@ -328,7 +334,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
         if meth.isStatic or meth.isPureVirtual or meth.name in ["getKind"]:
             continue
 
-        passcall = ast.XCallPtr(ast.XCallRef(b.text(id_self.name), "as", Params=[base_type]), meth.name,
+        passcall = ast.XCallPtr(b.text(id_self.name), meth.name,
                                 [b.text(arg.name) for arg in meth.arguments])
         if meth.result and meth.result != "void":
             passcall = ast.Return(passcall)
@@ -339,7 +345,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
     return b.stack([
         ast.XCall("pybind11::class_",
                   [b.text("m"), ast.Literal("Sem" + typ.name)],
-                  Params=[id_type, QualType("PySemId")]),
+                  Params=[id_type, QualType("SemId", Spaces=[QualType("sem")])]),
         b.indent(2, b.stack(sub))
     ])
 
@@ -488,6 +494,15 @@ def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Gen
 
     iterate_context: List[Any] = []
 
+    passes.append(
+        ast.PPIfStmt(
+            PPIfStmtParams([
+                ast.PPIfNDef("IN_CLANGD_PROCESSING", [
+                    ast.Define("PY_HAXORG_COMPILING"),
+                    ast.Include("pyhaxorg_manual_wrap.hpp")
+                ])
+            ])))
+
     def callback(value: Any) -> None:
         nonlocal iterate_context
         scope: List[QualType] = filter_walk_scope(iterate_context)
@@ -502,20 +517,14 @@ def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Gen
         elif isinstance(value, GenTuEnum):
             passes.append(pybind_enum(ast, value, scope))
 
+
     iterate_object_tree(GenTuNamespace("sem", get_space_annotated_types()), callback,
                         iterate_context)
 
     for item in get_enums() + [get_osk_enum()]:
         passes.append(pybind_enum(ast, item, []))
 
-    passes.append(
-        ast.PPIfStmt(
-            PPIfStmtParams([
-                ast.PPIfNDef("IN_CLANGD_PROCESSING", [
-                    ast.Define("PY_HAXORG_COMPILING"),
-                    ast.Include("pyhaxorg_manual_wrap.hpp")
-                ])
-            ])))
+
 
     return GenTuPass(
         b.stack([

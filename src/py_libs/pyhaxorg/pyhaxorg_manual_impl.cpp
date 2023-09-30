@@ -85,7 +85,8 @@ void OrgContext::run() {
     node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
 }
 
-std::vector<PySemId> PySemId::getSubnodeRange(
+std::vector<sem::SemId> getSubnodeRange(
+    sem::SemId      id,
     pybind11::slice slice) {
 
     size_t start;
@@ -98,14 +99,43 @@ std::vector<PySemId> PySemId::getSubnodeRange(
         throw py::error_already_set();
     }
 
-    std::vector<PySemId> result{slicelength};
+    std::vector<sem::SemId> result{slicelength, sem::SemId::Nil()};
     for (size_t i = 0; i < slicelength; ++i) {
-        result[i] = PySemId(data[start]);
+        result[i] = data[start];
         start += step;
     }
     return result;
 }
 
-PySemId PySemId::getSingleSubnode(int index) {
-    return PySemId(id->at(index));
+sem::SemId getSingleSubnode(sem::SemId id, int index) {
+    return id->at(index);
+}
+
+OrgIdVariant castAs(sem::SemId id) {
+    switch (id->getKind()) {
+
+#define _case(__Kind)                                                     \
+    case OrgSemKind::__Kind: {                                            \
+        return id.as<sem::__Kind>();                                     \
+    }
+        EACH_SEM_ORG_KIND(_case)
+#undef _case
+    }
+}
+
+void init_py_manual_api(pybind11::module& m) {
+    pybind11::class_<sem::SemId>(m, "SemId")
+        .def(pybind11::init(
+            []() -> sem::SemId { return sem::SemId::Nil(); }))
+        .def("getKind", &sem::SemId::getKind)
+        .def(
+            "__getitem__",
+            [](sem::SemId _self, int index) {
+                return getSingleSubnode(_self, index);
+            })
+        .def("__getitem__", [](sem::SemId _self, py::slice slice) {
+            return getSubnodeRange(_self, slice);
+        });
+
+    ;
 }
