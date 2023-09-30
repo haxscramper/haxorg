@@ -300,11 +300,11 @@ def py_type(Typ: QualType) -> pya.PyType:
             name = "List"
         case "Opt":
             name = "Optional"
-        case "Str" | "string" | "QString":
+        case "Str" | "string" | "QString" | "basic_string":
             name = "str"
 
-        # case "SemIdT":
-        #     name = "Sem" + Typ.Parameters[0].name
+        case "SemIdT":
+            name = "Sem" + Typ.Parameters[0].name
 
         case "void":
             name = "None"
@@ -313,8 +313,9 @@ def py_type(Typ: QualType) -> pya.PyType:
             name = "".join([N for N in flat_scope(Typ) if N != "sem"])
 
     res = pya.PyType(name)
-    for param in Typ.Parameters:
-        res.Params.append(py_type(param))
+    if Typ.name not in ["SemIdT"]:
+        for param in Typ.Parameters:
+            res.Params.append(py_type(param))
 
     return res
 
@@ -861,7 +862,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
         pprint(unit, width=200, stream=file)
 
     gen_structs: List[GenTuStruct] = conv_proto_unit(unit)
-    
+
     with open("/tmp/reflection_data.py", "w") as file:
         pprint(gen_structs, width=200, stream=file)
 

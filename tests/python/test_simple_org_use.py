@@ -34,4 +34,3 @@ assert ctx.getNode().getKind() == pyhaxorg.OrgSemKind.Document
 assert ctx.getNode()[0].getKind() == pyhaxorg.OrgSemKind.Paragraph
 assert ctx.getNode()[0][0].getKind() == pyhaxorg.OrgSemKind.Bold
 assert ctx.getNode()[0][0][0].getKind() == pyhaxorg.OrgSemKind.Word
-
