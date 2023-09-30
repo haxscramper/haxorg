@@ -302,8 +302,15 @@ def py_type(Typ: QualType) -> pya.PyType:
             name = "Optional"
         case "Str" | "string" | "QString":
             name = "str"
+
+        # case "SemIdT":
+        #     name = "Sem" + Typ.Parameters[0].name
+
+        case "void":
+            name = "None"
+
         case _:
-            name = Typ.name
+            name = "".join([N for N in flat_scope(Typ) if N != "sem"])
 
     res = pya.PyType(name)
     for param in Typ.Parameters:
@@ -465,7 +472,7 @@ class Py11Class:
         self.InitImpls.append(Py11Method("", "", QualType(""), Args, Body=Impl))
 
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.ClassParams:
-        res = pya.ClassParams(Name=self.PyName)
+        res = pya.ClassParams(Name=self.PyName, Bases=[py_type(T) for T in self.Bases])
         for Meth in self.Methods:
             res.Methods.append(Meth.build_typedef(ast))
 
@@ -542,9 +549,19 @@ class Py11Module:
         passes.append(ast.string("from typing import *"))
         passes.append(ast.string("from enum import Enum"))
 
+
+
         for entry in [E for E in self.Decls if isinstance(E, Py11Enum)]:
             passes.append(ast.Enum(entry.build_typedef()))
             passes.append(ast.string(""))
+
+        for entry in [E for E in self.Decls if isinstance(E, Py11Class)]:
+            passes.append(ast.string(f"{entry.PyName}: Type"))
+
+        passes.append(ast.string("""
+class SemId:
+    def getKind() -> OrgSemKind: ...
+"""))
 
         for entry in [E for E in self.Decls if isinstance(E, Py11Class)]:
             passes.append(ast.Class(entry.build_typedef(ast)))

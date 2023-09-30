@@ -134,7 +134,12 @@ class ASTBuilder(base.AstbuilderBase):
             methods = [b.text("pass")]
 
         return self.b.stack([
-            b.line([b.text("class "), b.text(p.Name), b.text(":")]),
+            b.line([
+                b.text("class "), 
+                b.text(p.Name), 
+                
+                b.text(":"),
+            ]),
             b.indent(4, b.stack(methods))
         ])
 
