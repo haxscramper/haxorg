@@ -84,6 +84,11 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         clang::QualType const&                      In,
         std::optional<clang::SourceLocation> const& Loc);
 
+    void fillType(
+        QualType*                                   Out,
+        clang::TemplateArgument const&              Arg,
+        std::optional<clang::SourceLocation> const& Loc);
+
     /// Convert expression into a simplified protobuf description --
     /// mapping whole set of C++ complexities here is likely not possible
     /// anyway, so simplified approximation will suffice.

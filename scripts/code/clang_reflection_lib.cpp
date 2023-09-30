@@ -43,6 +43,14 @@ void ReflASTVisitor::fillNamespaces(
                         nns->getAsNamespaceAlias()->getNameAsString());
                     break;
                 }
+
+                default: {
+                    Diag(
+                        DiagKind::Warning,
+                        "Unahdled namespace filler kind '%0'",
+                        Loc)
+                        << kind;
+                }
             }
         }
     }
@@ -52,6 +60,7 @@ void ReflASTVisitor::fillType(
     QualType*                                   Out,
     const clang::QualType&                      In,
     const std::optional<clang::SourceLocation>& Loc) {
+
     Out->set_isconst(In.isConstQualified());
     Out->set_isref(In->isReferenceType());
     if (In->isReferenceType()) {
@@ -74,7 +83,45 @@ void ReflASTVisitor::fillType(
             Loc)
             << In << dump(In);
     }
+
+
+    if (const auto* TST = llvm::dyn_cast<
+            clang::TemplateSpecializationType>(In.getTypePtr())) {
+        for (clang::TemplateArgument const& Arg :
+             TST->template_arguments()) {
+            fillType(Out->add_parameters(), Arg, Loc);
+        }
+    }
 }
+
+void ReflASTVisitor::fillType(
+    QualType*                                   Out,
+    const clang::TemplateArgument&              Arg,
+    const std::optional<clang::SourceLocation>& Loc) {
+
+    switch (Arg.getKind()) {
+        case clang::TemplateArgument::Type: {
+            fillType(Out, Arg.getAsType(), Loc);
+
+            break;
+        }
+        case clang::TemplateArgument::Integral:
+        case clang::TemplateArgument::Template:
+        case clang::TemplateArgument::Expression:
+        case clang::TemplateArgument::Declaration:
+        case clang::TemplateArgument::TemplateExpansion:
+        case clang::TemplateArgument::NullPtr:
+        case clang::TemplateArgument::Null:
+        case clang::TemplateArgument::Pack: {
+            Diag(
+                DiagKind::Warning,
+                "Unhandled template argument type '%0'",
+                Loc)
+                << Arg.getKind();
+        }
+    }
+}
+
 
 void ReflASTVisitor::fillExpr(
     Expr*                                       Out,
@@ -289,12 +336,6 @@ clang::ParsedAttrInfo::AttrHandling ExampleAttrInfo::handleDeclAttribute(
         nullptr,
         0,
         Attr.getRange());
-
-    Diag(
-        S,
-        clang::DiagnosticsEngine::Level::Remark,
-        "Used reflection annotation for %0",
-        D->getLocation());
 
     D->addAttr(created);
     return AttributeApplied;

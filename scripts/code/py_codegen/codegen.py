@@ -809,7 +809,7 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
         res.Spaces.append(conv_proto_type(space))
 
     for param in typ.parameters:
-        res.Parameters.append(conv_proto_record(param))
+        res.Parameters.append(conv_proto_type(param))
 
     res.isConst = typ.is_const
     res.isNamespace = typ.is_namespace
@@ -856,11 +856,12 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     with open(reflection_path, "rb") as f:
         unit = pb.TU.FromString(f.read())
 
-    gen_structs: List[GenTuStruct] = conv_proto_unit(unit)
 
     with open("/tmp/reflection-structs.py", "w") as file:
         pprint(unit, width=200, stream=file)
 
+    gen_structs: List[GenTuStruct] = conv_proto_unit(unit)
+    
     with open("/tmp/reflection_data.py", "w") as file:
         pprint(gen_structs, width=200, stream=file)
 
