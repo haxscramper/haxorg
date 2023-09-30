@@ -210,145 +210,79 @@ def in_sem(typ: QualType) -> QualType:
 
 
 @beartype
-def pybind_property(ast: ASTBuilder, field: GenTuField, Self: ParmVarParams) -> BlockId:
-    b = ast.b
-    return ast.XCall(".def_readwrite", [
-        ast.Literal(field.name),
-        b.line([b.text("&"),
-                ast.Type(Self.type),
-                b.text("::"),
-                b.text(field.name)]),
-        *([ast.Literal(field.doc.brief)] if field.doc.brief else [])
-    ])
+@dataclass
+class Py11EnumField:
+    PyName: str
+    CxxName: str
+    Doc: GenTuDoc
+
+    def build_bind(self, Enum: QualType, ast: ASTBuilder) -> BlockId:
+        b = ast.b
 
 
 @beartype
-def pybind_method(ast: ASTBuilder,
-                  meth: GenTuFunction,
-                  Self: ParmVarParams,
+@dataclass
+class Py11Enum:
+    PyName: str
+    Enum: QualType
+    Fields: List[Py11EnumField]
+
+
+@beartype
+def id_self(Typ: QualType) -> ParmVarParams:
+    return ParmVarParams(Typ, "_self")
+
+@beartype
+@dataclass
+class Py11Method:
+    PyName: str
+    CxxName: str
+    ResultTy: QualType
+    Args: List[GenTuIdent] = field(default_factory=list)
+    Body: Optional[List[BlockId]] = None
+    Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
+
+    @staticmethod
+    def FromGenTu(meth: GenTuFunction,
                   Body: Optional[List[BlockId]] = None,
-                  pySideOverride: Optional[str] = None) -> BlockId:
+                  pySideOverride: Optional[str] = None) -> 'Py11Method':
 
-    call_pass: BlockId = None
-    if Body is None:
-        call_pass = ast.Addr(ast.Scoped(Self.type, ast.string(meth.name)))
+        return Py11Method(PyName=meth.name if pySideOverride is None else pySideOverride,
+                          Body=Body,
+                          ResultTy=meth.result,
+                          CxxName=meth.name,
+                          Doc=meth.doc,
+                          Args=meth.arguments)
 
-    else:
-        call_pass = ast.Lambda(
-            LambdaParams(
-                ResultTy=meth.result,
-                Args=[Self] +
-                [ParmVarParams(Arg.type, Arg.name) for Arg in meth.arguments],
-                Body=Body,
-            ))
+    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
+        b = ast.b
 
-    b = ast.b
-    return ast.XCall(
-        ".def",
-        [
-            ast.Literal(meth.name if pySideOverride is None else pySideOverride),
-            call_pass, *[
-                ast.XCall("pybind11::arg", [ast.Literal(Arg.name)])
-                if Arg.value is None else ast.XCall(
-                    "pybind11::arg_v",
-                    [ast.Literal(Arg.name), b.text(Arg.value)]) for Arg in meth.arguments
-            ], *([ast.StringLiteral(meth.doc.brief, forceRawStr=True)]
-                 if meth.doc.brief else [])
-        ],
-        Line=False,
-    )
+        call_pass: BlockId = None
+        if self.Body is None:
+            call_pass = ast.Addr(ast.Scoped(Class, ast.string(self.CxxName)))
 
-
-def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
-    base_type = QualType(typ.name, Spaces=[QualType("sem")])
-    id_type = QualType("SemIdT", [base_type], Spaces=[QualType("sem")])
-
-    sub: List[BlockId] = []
-
-    # sub.append(b.text(".def(pybind11::init([](){ return %s::Nil(); }))" % (id_type)))
-    sub.append(ast.XCall(
-        ".def",
-        [ast.XCall(
-            "pybind11::init",
-            [ast.Lambda(
+        else:
+            call_pass = ast.Lambda(
                 LambdaParams(
-                    ResultTy=id_type,
-                    Body=[
-                        ast.Return(ast.CallStatic(id_type, "Nil"))
-                    ]
-                )
-            )],
-        )],
-    ))
+                    ResultTy=self.ResultTy,
+                    Args=[ParmVarParams(Class, "_self")] +
+                    [ParmVarParams(Arg.type, Arg.name) for Arg in self.Args],
+                    Body=self.Body,
+                ))
 
-    id_self = ParmVarParams(id_type, "_self")
-    for field in typ.fields:
-        if field.isStatic or hasattr(field, "ignore"):
-            continue
-
-        sub.append(
-            ast.XCall(
-                ".def_property",
-                [
-                    ast.Literal(field.name),
-                    ast.Lambda(
-                        LambdaParams(
-                            ResultTy=field.type,
-                            Body=[
-                                b.text(
-                                    f"return {id_self.name}->{field.name};"
-                                )
-                            ],
-                            Args=[id_self],
-                        )),
-                    ast.Lambda(
-                        LambdaParams(
-                            ResultTy=None,
-                            Body=[
-                                b.text(
-                                    f"{id_self.name}->{field.name} = {field.name};"
-                                )
-                            ],
-                            Args=[id_self, ParmVarParams(field.type, field.name)],
-                        )),
-                ],
-                Line=False,
-            ))
-
-    point_index = GenTuFunction(
-        name="X",
-        doc=GenTuDoc(""),
-        arguments=[GenTuIdent(QualType("int"), "index")],
-        result=t_id(),
-    )
-
-    # sub.append(
-    #     pybind_method(
-    #         ast,
-    #         point_index,
-    #         Self=id_self,
-    #         pySideOverride="__getitem__",
-    #         Body=[b.text(f"return getSingleSubnode({id_self.name}.id, index);")]))
-
-    for meth in typ.methods:
-        if meth.isStatic or meth.isPureVirtual or meth.name in ["getKind"]:
-            continue
-
-        passcall = ast.XCallPtr(b.text(id_self.name), meth.name,
-                                [b.text(arg.name) for arg in meth.arguments])
-        if meth.result and meth.result != "void":
-            passcall = ast.Return(passcall)
-
-        sub.append(pybind_method(ast, meth, Self=id_self, Body=[passcall]))
-
-    sub.append(b.text(";"))
-    return b.stack([
-        ast.XCall("pybind11::class_",
-                  [b.text("m"), ast.Literal("Sem" + typ.name)],
-                  Params=[id_type, QualType("SemId", Spaces=[QualType("sem")])]),
-        b.indent(2, b.stack(sub))
-    ])
-
+        return ast.XCall(
+            ".def",
+            [
+                ast.Literal(self.PyName), call_pass, *[
+                    ast.XCall("pybind11::arg", [ast.Literal(Arg.name)])
+                    if Arg.value is None else ast.XCall(
+                        "pybind11::arg_v",
+                        [ast.Literal(Arg.name), b.text(Arg.value)]) for Arg in self.Args
+                ], *([ast.StringLiteral(self.Doc.brief, forceRawStr=True)]
+                     if self.Doc.brief else [])
+            ],
+            Line=False,
+        )
 
 @beartype
 def get_doc_literal(ast: ASTBuilder, doc: GenTuDoc) -> Optional[BlockId]:
@@ -366,6 +300,170 @@ def maybe_list(it: Any) -> Any:
         return [it]
     else:
         return []
+
+
+@beartype
+@dataclass
+class Py11Field:
+    PyName: str
+    CxxName: str
+    Type: QualType
+    GetImpl: Optional[List[BlockId]] = None
+    SetImpl: Optional[List[BlockId]] = None
+    Doc: GenTuDoc = field(default_factory=GenTuDoc(""))
+
+    @staticmethod
+    def FromGenTu(Field: GenTuField,
+                  pyNameOveride: Optional[str] = None,
+                  GetImpl: Optional[List[BlockId]] = None,
+                  SetImpl: Optional[List[BlockId]] = None) -> 'Py11Field':
+        return Py11Field(PyName=Field.name if pyNameOveride is None else pyNameOveride,
+                         Type=Field.type,
+                         CxxName=Field.name,
+                         GetImpl=GetImpl,
+                         Doc=Field.doc,
+                         SetImpl=SetImpl)
+
+    def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
+        b = ast.b
+        _self = id_self(Class)
+        if self.GetImpl and self.SetImpl:
+            return ast.XCall(
+                ".def_property",
+                [
+                    ast.Literal(self.PyName),
+                    ast.Lambda(
+                        LambdaParams(
+                            ResultTy=self.Type,
+                            Body=self.GetImpl,
+                            Args=[_self],
+                        )),
+                    ast.Lambda(
+                        LambdaParams(
+                            ResultTy=None,
+                            Body=[
+                                b.text(f"{_self.name}->{self.CxxName} = {self.CxxName};")
+                            ],
+                            Args=[_self, ParmVarParams(self.Type, self.CxxName)],
+                        )),
+                ],
+                Line=False,
+            )
+        else:
+            return ast.XCall(".def_readwrite", [
+                ast.Literal(self.PyName),
+                b.line([b.text("&"),
+                        ast.Type(Class),
+                        b.text("::"),
+                        b.text(self.CxxName)]),
+                *maybe_list(get_doc_literal(ast, self.Doc))
+            ])
+
+
+@beartype
+@dataclass
+class Py11Class:
+    PyName: str
+    Class: QualType
+    Bases: List[QualType] = field(default_factory=list)
+    Fields: List[Py11Field] = field(default_factory=list)
+    Methods: List[Py11Method] = field(default_factory=list)
+    InitImpls: List[Py11Method] = field(default_factory=list)
+
+    def InitDefault(self):
+        self.InitImpls.append(Py11Method("", "", QualType("")))
+
+    def AddInit(self, Args: List[ParmVarParams], Impl: List[BlockId]):
+        self.InitImpls.append(Py11Method("", "", QualType(""), Args, Body=Impl))
+
+    def build_bind(self, ast: ASTBuilder) -> BlockId:
+        b = ast.b
+
+        sub: List[BlockId] = []
+
+        for Init in self.InitImpls:
+            if Init.Body:
+                sub.append(
+                    ast.XCall(
+                        ".def",
+                        [
+                            ast.XCall(
+                                "pybind11::init",
+                                [
+                                    ast.Lambda(
+                                        LambdaParams(
+                                            ResultTy=self.Class,
+                                            Body=Init.Body))
+                                ],
+                            )
+                        ],
+                    ))
+
+            else:
+                sub.append(
+                    ast.XCall(
+                        ".def",
+                        [ast.XCall(
+                            "pybind11::init",
+                            [],
+                            Params=[],
+                        )],
+                    ))
+
+        for Field in self.Fields:
+            sub.append(Field.build_bind(self.Class, ast))
+
+        for Meth in self.Methods:
+            sub.append(Meth.build_bind(self.Class, ast))
+
+        sub.append(b.text(";"))
+
+        return b.stack([
+            ast.XCall("pybind11::class_",
+                      [b.text("m"), ast.Literal(self.PyName)],
+                      Params=[self.Class] + self.Bases),
+            b.indent(2, b.stack(sub))
+        ])
+
+
+@beartype
+def pybind_property(ast: ASTBuilder, field: GenTuField, Self: ParmVarParams) -> BlockId:
+    b = ast.b
+
+
+
+@beartype
+def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> Py11Class:
+    base_type = QualType(typ.name, Spaces=[QualType("sem")])
+    id_type = QualType("SemIdT", [base_type], Spaces=[QualType("sem")])
+    res = Py11Class(PyName="Sem" + typ.name,Class=id_type)
+
+    res.AddInit([], [ast.Return(ast.CallStatic(id_type, "Nil"))])
+    res.Bases.append(QualType("SemId", Spaces=[QualType("sem")]))
+
+    _self = id_self(id_type)
+    for field in typ.fields:
+        if field.isStatic or hasattr(field, "ignore"):
+            continue
+
+        res.Fields.append(Py11Field.FromGenTu(
+            field,
+            GetImpl=[b.text(f"return {_self.name}->{field.name};")],
+            SetImpl=[b.text(f"{_self.name}->{field.name} = {field.name};")]
+        ))
+
+    for meth in typ.methods:
+        if meth.isStatic or meth.isPureVirtual or meth.name in ["getKind"]:
+            continue
+
+        passcall = ast.XCallPtr(b.text(_self.name), meth.name,
+                                [b.text(arg.name) for arg in meth.arguments])
+        if meth.result and meth.result != "void":
+            passcall = ast.Return(passcall)
+
+        res.Methods.append(Py11Method.FromGenTu(meth, Body=[passcall]))
+
+    return res
 
 
 @beartype
@@ -394,56 +492,28 @@ def pybind_enum(ast: ASTBuilder, value: GenTuEnum, scope: List[QualType]) -> Blo
 
 @beartype
 def pybind_nested_type(ast: ASTBuilder, value: GenTuStruct,
-                       scope: List[QualType]) -> BlockId:
+                       scope: List[QualType]) -> Py11Class:
     b = ast.b
     sub: List[BlockId] = []
 
-    sub.append(ast.XCall(
-        ".def",
-        [ast.XCall(
-            "pybind11::init",
-            [],
-            Params=[],
-        )],
-    ))
+    name = "".join([typ.name for typ in scope if typ.name != "sem"] + [value.name])
 
-    id_self = ParmVarParams(QualType(value.name, Spaces=scope), "value")
+    res = Py11Class(PyName=name, Class=QualType(value.name, Spaces=scope))
+    res.InitDefault()
+
+    for meth in value.methods:
+        if meth.isStatic or meth.isPureVirtual:
+            continue
+
+        res.Methods.append(Py11Method.FromGenTu(meth))
+
     for field in value.fields:
         if field.isStatic or hasattr(field, "ignore"):
             continue
 
-        sub.append(pybind_property(ast, field, id_self))
+        res.Fields.append(Py11Field.FromGenTu(field))
 
-    for meth in value.methods:
-        self_arg = ParmVarParams(
-            QualType(value.name, Spaces=scope, isConst=True, isRef=True), "self_")
-        if meth.isStatic or meth.isPureVirtual:
-            continue
-
-        sub.append(pybind_method(ast, meth, Self=self_arg))
-
-    sub.append(b.text(";"))
-
-    for nest in value.nested:
-        if isinstance(nest, GenTuTypeGroup):
-            sub.append(
-                pybind_enum(
-                    ast,
-                    GenTuEnum(
-                        nest.enumName, GenTuDoc(""),
-                        [GenTuEnumField(sub.name, GenTuDoc("")) for sub in nest.types]),
-                    [id_self.type]))
-
-    name = "".join([typ.name for typ in scope if typ.name != "sem"] + [value.name])
-
-    if name in ["CodeSwitch", "SubtreeProperty", "SubtreePeriod"]:
-        return b.text("")
-
-    return b.stack([
-        ast.XCall("pybind11::class_", [b.text("m"), ast.Literal(name)],
-                  Params=[id_self.type]),
-        b.indent(2, b.stack(sub))
-    ])
+    return res
 
 
 @beartype
@@ -503,28 +573,35 @@ def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Gen
                 ])
             ])))
 
+    classes: List[Py11Class] = []
+
     def callback(value: Any) -> None:
         nonlocal iterate_context
         scope: List[QualType] = filter_walk_scope(iterate_context)
 
         if isinstance(value, GenTuStruct):
             if hasattr(value, "isOrgType"):
-                passes.append(pybind_org_id(ast, b, value))
+                new = pybind_org_id(ast, b, value)
+                classes.append(new)
+                passes.append(new.build_bind(ast))
 
             else:
-                passes.append(pybind_nested_type(ast, value, scope))
+                new = pybind_nested_type(ast, value, scope)
+
+                if new.PyName in ["CodeSwitch", "SubtreeProperty", "SubtreePeriod"]:
+                    return
+                    
+                classes.append(new)
+                passes.append(new.build_bind(ast))
 
         elif isinstance(value, GenTuEnum):
             passes.append(pybind_enum(ast, value, scope))
-
 
     iterate_object_tree(GenTuNamespace("sem", get_space_annotated_types()), callback,
                         iterate_context)
 
     for item in get_enums() + [get_osk_enum()]:
         passes.append(pybind_enum(ast, item, []))
-
-
 
     return GenTuPass(
         b.stack([
@@ -540,7 +617,7 @@ def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Gen
             b.indent(
                 2,
                 b.stack(
-                    [pybind_nested_type(ast, record, []) for record in reflect_structs])),
+                    [pybind_nested_type(ast, record, []).build_bind(ast) for record in reflect_structs])),
             b.text("}")
         ]))
 

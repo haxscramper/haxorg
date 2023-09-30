@@ -205,11 +205,10 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Code> _self) -> bool { return _self->tangle; },
                   [](sem::SemIdT<sem::Code> _self, bool tangle) { _self->tangle = tangle; })
     ;
-
   pybind11::class_<sem::Code::Switch::LineStart>(m, "CodeSwitchLineStart")
     .def(pybind11::init<>())
-    .def_readwrite("start", &sem::Code::Switch::LineStart::start, "First line number")
-    .def_readwrite("extendLast", &sem::Code::Switch::LineStart::extendLast, "Continue numbering from the previous block nstead of starting anew")
+    .def_readwrite("start", &sem::Code::Switch::LineStart::start, R"RAW(First line number)RAW")
+    .def_readwrite("extendLast", &sem::Code::Switch::LineStart::extendLast, R"RAW(Continue numbering from the previous block nstead of starting anew)RAW")
     ;
   pybind11::class_<sem::Code::Switch::CalloutFormat>(m, "CodeSwitchCalloutFormat")
     .def(pybind11::init<>())
@@ -246,9 +245,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::Time::Repeat>(m, "TimeRepeat")
     .def(pybind11::init<>())
-    .def_readwrite("mode", &sem::Time::Repeat::mode, "mode")
-    .def_readwrite("period", &sem::Time::Repeat::period, "period")
-    .def_readwrite("count", &sem::Time::Repeat::count, "count")
+    .def_readwrite("mode", &sem::Time::Repeat::mode, R"RAW(mode)RAW")
+    .def_readwrite("period", &sem::Time::Repeat::period, R"RAW(period)RAW")
+    .def_readwrite("count", &sem::Time::Repeat::count, R"RAW(count)RAW")
     ;
   pybind11::enum_<sem::Time::Repeat::Mode>(m, "TimeRepeatMode")
     .value("None", sem::Time::Repeat::Mode::None, R"RAW(Do not repeat task on completion)RAW")
@@ -307,8 +306,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::Symbol::Param>(m, "SymbolParam")
     .def(pybind11::init<>())
-    .def_readwrite("key", &sem::Symbol::Param::key, "Key -- for non-positional")
-    .def_readwrite("value", &sem::Symbol::Param::value, "Uninterpreted value")
+    .def_readwrite("key", &sem::Symbol::Param::key, R"RAW(Key -- for non-positional)RAW")
+    .def_readwrite("value", &sem::Symbol::Param::value, R"RAW(Uninterpreted value)RAW")
     ;
   pybind11::class_<sem::SemIdT<sem::SubtreeLog>, sem::SemId>(m, "SemSubtreeLog")
     .def(pybind11::init([]() -> sem::SemIdT<sem::SubtreeLog> { return sem::SemIdT<sem::SubtreeLog>::Nil(); }))
@@ -318,13 +317,13 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SubtreeLog::DescribedLog>(m, "SubtreeLogDescribedLog")
     .def(pybind11::init<>())
-    .def_readwrite("desc", &sem::SubtreeLog::DescribedLog::desc, "Optional description of the log entry")
+    .def_readwrite("desc", &sem::SubtreeLog::DescribedLog::desc, R"RAW(Optional description of the log entry)RAW")
     ;
   pybind11::class_<sem::SubtreeLog::Priority>(m, "SubtreeLogPriority")
     .def(pybind11::init<>())
-    .def_readwrite("oldPriority", &sem::SubtreeLog::Priority::oldPriority, "Previous priority for change and removal")
-    .def_readwrite("newPriority", &sem::SubtreeLog::Priority::newPriority, "New priority for change and addition")
-    .def_readwrite("on", &sem::SubtreeLog::Priority::on, "When priority was changed")
+    .def_readwrite("oldPriority", &sem::SubtreeLog::Priority::oldPriority, R"RAW(Previous priority for change and removal)RAW")
+    .def_readwrite("newPriority", &sem::SubtreeLog::Priority::newPriority, R"RAW(New priority for change and addition)RAW")
+    .def_readwrite("on", &sem::SubtreeLog::Priority::on, R"RAW(When priority was changed)RAW")
     ;
   pybind11::enum_<sem::SubtreeLog::Priority::Action>(m, "SubtreeLogPriorityAction")
     .value("Added", sem::SubtreeLog::Priority::Action::Added)
@@ -334,12 +333,12 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SubtreeLog::Note>(m, "SubtreeLogNote")
     .def(pybind11::init<>())
-    .def_readwrite("on", &sem::SubtreeLog::Note::on, "Where log was taken")
+    .def_readwrite("on", &sem::SubtreeLog::Note::on, R"RAW(Where log was taken)RAW")
     ;
   pybind11::class_<sem::SubtreeLog::Refile>(m, "SubtreeLogRefile")
     .def(pybind11::init<>())
-    .def_readwrite("on", &sem::SubtreeLog::Refile::on, "When the refiling happened")
-    .def_readwrite("from", &sem::SubtreeLog::Refile::from, "Link to the original subtree")
+    .def_readwrite("on", &sem::SubtreeLog::Refile::on, R"RAW(When the refiling happened)RAW")
+    .def_readwrite("from", &sem::SubtreeLog::Refile::from, R"RAW(Link to the original subtree)RAW")
     ;
   pybind11::class_<sem::SubtreeLog::Clock>(m, "SubtreeLogClock")
     .def(pybind11::init<>())
@@ -352,9 +351,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SubtreeLog::Tag>(m, "SubtreeLogTag")
     .def(pybind11::init<>())
-    .def_readwrite("on", &sem::SubtreeLog::Tag::on, "When the log was assigned")
-    .def_readwrite("tag", &sem::SubtreeLog::Tag::tag, "Tag in question")
-    .def_readwrite("added", &sem::SubtreeLog::Tag::added, "Added/removed?")
+    .def_readwrite("on", &sem::SubtreeLog::Tag::on, R"RAW(When the log was assigned)RAW")
+    .def_readwrite("tag", &sem::SubtreeLog::Tag::tag, R"RAW(Tag in question)RAW")
+    .def_readwrite("added", &sem::SubtreeLog::Tag::added, R"RAW(Added/removed?)RAW")
     ;
   pybind11::class_<sem::SemIdT<sem::Subtree>, sem::SemId>(m, "SemSubtree")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Subtree> { return sem::SemIdT<sem::Subtree>::Nil(); }))
@@ -414,7 +413,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", ""))
     ;
-
   pybind11::enum_<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind")
     .value("Clocked", sem::Subtree::Period::Kind::Clocked, R"RAW(Time period of the task execution.)RAW")
     .value("Scheduled", sem::Subtree::Period::Kind::Scheduled, R"RAW(Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned)RAW")
@@ -424,7 +422,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .value("Repeated", sem::Subtree::Period::Kind::Repeated, R"RAW(Last repeat time of the recurring tasks)RAW")
     .export_values()
     ;
-
   pybind11::enum_<sem::Subtree::Property::SetMode>(m, "SubtreePropertySetMode")
     .value("Override", sem::Subtree::Property::SetMode::Override)
     .value("Add", sem::Subtree::Property::SetMode::Add)
