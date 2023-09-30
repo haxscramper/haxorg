@@ -85,8 +85,7 @@ void OrgContext::run() {
     node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
 }
 
-std::vector<sem::SemId> getSubnodeRange(
-    sem::SemId      id,
+std::vector<PySemId> PySemId::getSubnodeRange(
     pybind11::slice slice) {
 
     size_t start;
@@ -99,14 +98,14 @@ std::vector<sem::SemId> getSubnodeRange(
         throw py::error_already_set();
     }
 
-    std::vector<sem::SemId> result{slicelength, sem::SemId::Nil()};
+    std::vector<PySemId> result{slicelength};
     for (size_t i = 0; i < slicelength; ++i) {
-        result[i] = data[start];
+        result[i] = PySemId(data[start]);
         start += step;
     }
     return result;
 }
 
-sem::SemId getSingleSubnode(sem::SemId id, int index) {
-    return id->at(index);
+PySemId PySemId::getSingleSubnode(int index) {
+    return PySemId(id->at(index));
 }

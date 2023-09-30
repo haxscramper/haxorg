@@ -425,7 +425,7 @@ class ASTBuilder:
                  args: List[BlockId] = [],
                  Stmt: bool = False,
                  Line: bool = True,
-                 PParams: Optional[List[QualType]] = None) -> BlockId:
+                 Params: Optional[List[QualType]] = None) -> BlockId:
         return self.XCallObj(obj,
                              ".",
                              func=opc,

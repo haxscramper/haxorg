@@ -127,6 +127,11 @@ void ReflASTVisitor::fillMethodDecl(
     sub->set_isstatic(method->isStatic());
     sub->set_isvirtual(method->isVirtual());
     sub->set_isimplicit(method->isImplicit());
+    sub->set_isoperator(method->getNameAsString().starts_with("operator"));
+    if (sub->isoperator()) {
+        sub->set_operatorname(
+            method->getNameAsString().substr(strlen("operator")));
+    }
 
     auto doc = getDoc(method);
     if (doc) {
@@ -174,7 +179,8 @@ bool ReflASTVisitor::isRefl(clang::Decl* Decl) {
     return false;
 }
 
-std::optional<std::string> ReflASTVisitor::getDoc(clang::Decl const* Decl) {
+std::optional<std::string> ReflASTVisitor::getDoc(
+    clang::Decl const* Decl) {
     const clang::ASTContext& astContext = Decl->getASTContext();
     const clang::RawComment* rawComment = astContext
                                               .getRawCommentForDeclNoCache(

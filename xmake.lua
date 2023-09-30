@@ -258,7 +258,7 @@ meta_target("reflection_protobuf", "Update protobuf data definition for reflecti
     local loc = utils.iorun_stripped("poetry", {"env", "info", "--path"})
     utils.info("Using protoc plugin path '%s'", loc)
     utils.rebuild_guard(target, function(target)
-      os.execv("poetry", {
+      os.execv("protoc", {
         "--plugin=" .. path.join(loc, "/bin/protoc-gen-python_betterproto"),
         "-I",
         utils.abs_script("scripts/code/py_codegen"),
@@ -279,7 +279,7 @@ meta_target("cmake_configure_haxorg", "Execute cmake configuration step for haxo
     on_build(function(target)
       local utils = import("scripts.utils")
       utils.rebuild_guard(target, function(target) 
-        local dbg = false
+        local dbg = true
         local pass_flags = {
           "-B", 
           os.scriptdir() .. "/build/haxorg_" .. (dbg and "debug" or "release"),
@@ -304,7 +304,7 @@ meta_target("cmake_haxorg", "Compile libraries and binaries for haxorg", {}, fun
   -- any_files("src/**.hpp")
   -- any_files("src/**.cpp")
   on_build(function(target)
-    local dbg = false
+    local dbg = true
     os.execv("cmake", {
       "--build",
       path.join(os.scriptdir(), "build/haxorg_" .. (dbg and "debug" or "release"))

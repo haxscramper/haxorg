@@ -92,8 +92,10 @@ message Record {
         bool IsVirtual = 6 ;
         bool IsPureVirtual = 7;
         bool IsImplicit = 8;
-        MethodKind Kind = 9;
-        string Doc = 10;
+        bool IsOperator = 9;
+        MethodKind Kind = 10;
+        string Doc = 11;
+        string OperatorName = 12;
     }
 
     string Name = 1;

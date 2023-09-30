@@ -260,8 +260,8 @@ def pybind_method(ast: ASTBuilder,
 
 
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
-    id_type = QualType("DefaultSemId", [QualType(typ.name, Spaces=[QualType("sem")])],
-                       Spaces=[QualType("sem")])
+    base_type = QualType(typ.name, Spaces=[QualType("sem")])
+    id_type = QualType("TypedPySemId", [base_type])
 
     sub: List[BlockId] = []
 
@@ -288,14 +288,20 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
                     ast.Lambda(
                         LambdaParams(
                             ResultTy=field.type,
-                            Body=[b.text(f"return {id_self.name}.id->{field.name};")],
+                            Body=[
+                                b.text(
+                                    f"return {id_self.name}.as<sem::{typ.name}>()->{field.name};"
+                                )
+                            ],
                             Args=[id_self],
                         )),
                     ast.Lambda(
                         LambdaParams(
                             ResultTy=None,
                             Body=[
-                                b.text(f"{id_self.name}.id->{field.name} = {field.name};")
+                                b.text(
+                                    f"{id_self.name}.as<sem::{typ.name}>()->{field.name} = {field.name};"
+                                )
                             ],
                             Args=[id_self, ParmVarParams(field.type, field.name)],
                         )),
@@ -310,19 +316,19 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
         result=t_id(),
     )
 
-    sub.append(
-        pybind_method(
-            ast,
-            point_index,
-            Self=id_self,
-            pySideOverride="__getitem__",
-            Body=[b.text(f"return getSingleSubnode({id_self.name}.id, index);")]))
+    # sub.append(
+    #     pybind_method(
+    #         ast,
+    #         point_index,
+    #         Self=id_self,
+    #         pySideOverride="__getitem__",
+    #         Body=[b.text(f"return getSingleSubnode({id_self.name}.id, index);")]))
 
     for meth in typ.methods:
-        if meth.isStatic or meth.isPureVirtual:
+        if meth.isStatic or meth.isPureVirtual or meth.name in ["getKind"]:
             continue
 
-        passcall = ast.XCallPtr(ast.Dot(b.text(id_self.name), b.text("id")), meth.name,
+        passcall = ast.XCallPtr(ast.XCallRef(b.text(id_self.name), "as", Params=[base_type]), meth.name,
                                 [b.text(arg.name) for arg in meth.arguments])
         if meth.result and meth.result != "void":
             passcall = ast.Return(passcall)
@@ -333,7 +339,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> BlockId:
     return b.stack([
         ast.XCall("pybind11::class_",
                   [b.text("m"), ast.Literal("Sem" + typ.name)],
-                  Params=[id_type]),
+                  Params=[id_type, QualType("PySemId")]),
         b.indent(2, b.stack(sub))
     ])
 

@@ -19,10 +19,50 @@ struct ExporterJson;
 struct ExporterYaml;
 struct ExporterTree;
 
-std::vector<sem::SemId> getSubnodeRange(
-    sem::SemId      id,
-    pybind11::slice slice);
-sem::SemId getSingleSubnode(sem::SemId id, int index);
+
+#define __id(I) , sem::DefaultSemId<sem::I>
+/// \brief Global variant of all sem node derivations
+using OrgDefaultVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
+#undef __id
+
+template <typename T>
+struct TypedPySemId;
+
+struct [[refl]] PySemId {
+    sem::SemId id = sem::SemId::Nil();
+
+    PySemId() {}
+    PySemId(sem::SemId id) : id(id) {}
+
+    [[refl]] OrgSemKind getKind() const { return id->getKind(); }
+
+    [[refl]] std::vector<PySemId> getSubnodeRange(pybind11::slice slice);
+
+    [[refl]] PySemId getSingleSubnode(int index);
+
+    [[refl]] OrgDefaultVariant castAs() {}
+
+    [[refl]] PySemId operator[](int index) {
+        return getSingleSubnode(index);
+    }
+
+    [[refl]] std::vector<PySemId> operator[](pybind11::slice slice) {
+        return getSubnodeRange(slice);
+    }
+
+    template <typename T>
+    sem::SemIdT<T> as() const {
+        return this->id.as<T>();
+    }
+};
+
+template <typename T>
+struct TypedPySemId : PySemId {
+    TypedPySemId() {}
+    TypedPySemId(PySemId const& id) : PySemId(id) {}
+    TypedPySemId(TypedPySemId<T> const& id) : PySemId(id) {}
+    operator TypedPySemId<T>() const { return id; }
+};
 
 struct [[refl]] OrgExporterJson {
     SPtr<ExporterJson> impl;
