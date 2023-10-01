@@ -5,18 +5,10 @@
 #include <QElapsedTimer>
 #include <parse/OrgSpec.hpp>
 #include <sem/ErrorWrite.hpp>
-#include <exporters/exporterdot.hpp>
 #include <exporters/exportertree.hpp>
-#include <exporters/exportergantt.hpp>
 #include <exporters/exporteryaml.hpp>
-#include <exporters/exporterhtml.hpp>
-#include <exporters/exporterqtextdocument.hpp>
 #include <exporters/exportersimplesexpr.hpp>
-#include <exporters/exporterlatex.hpp>
-#include <exporters/exportereventlog.hpp>
-#include <exporters/exportersubtreestructure.hpp>
 #include <exporters/exportermindmap.hpp>
-#include <exporters/exporterpandoc.hpp>
 #include <hstd/wrappers/perfetto_aux.hpp>
 #include <QGuiApplication>
 #include <perfetto.h>
@@ -777,8 +769,6 @@ void exportOk(QString const& what, cli::Exporter::Base const& base) {
 }
 
 
-
-
 void HaxorgCli::exec() {
     //    InitializePerfetto();
     //    auto tracing_session = StartTracing();
@@ -993,58 +983,8 @@ void HaxorgCli::exec() {
         ExporterTree(os).evalTop(node);
     }
 
-    if (config.exp.qdoc) {
-        __trace("Export QDocument");
-        int   argc = 0;
-        char* argv = "";
 
-        QGuiApplication       app(argc, &argv);
-        ExporterQTextDocument exporter;
-        exporter.evalTop(node);
-        switch (config.exp.qdoc->kind) {
-            case cli::Exporter::QDocument::Kind::Md: {
-                writeFile(
-                    config.exp.qdoc->target,
-                    exporter.document->toMarkdown());
-                break;
-            }
-            case cli::Exporter::QDocument::Kind::Html: {
-                writeFile(
-                    config.exp.qdoc->target, exporter.document->toHtml());
-                break;
-            }
-            case cli::Exporter::QDocument::Kind::Txt: {
-                writeFile(
-                    config.exp.qdoc->target,
-                    exporter.document->toRawText());
-                break;
-            }
-        }
 
-        exportOk("QDocument", *config.exp.qdoc);
-    }
-
-    if (config.exp.html) {
-        ExporterHtml    exporter;
-        layout::BlockId result    = exporter.evalTop(node);
-        QString         formatted = exporter.store.toString(
-            result, layout::Options{});
-        writeFile(config.exp.html->target, formatted);
-        exportOk("HTML", *config.exp.html);
-    }
-
-    if (config.exp.eventLog) {
-        ExporterEventLog exporter;
-        using Ev = ExporterEventLog::Event;
-        UnorderedMap<Ev::Kind, Vec<Ev>> events;
-
-        exporter.logConsumer = [&](ExporterEventLog::Event const& ev) {
-            events[ev.getKind()].push_back(ev);
-        };
-
-        exporter.evalTop(node);
-        exportOk("Event log", *config.exp.eventLog);
-    }
 
     if (config.exp.sexpr) {
         __trace("Export S-expresions");
@@ -1069,27 +1009,7 @@ void HaxorgCli::exec() {
             to_string(exporter.toJsonGraph()));
     }
 
-    if (config.exp.subtreeStructure) {
-        __trace("Export subtree structure");
-        ExporterSubtreeStructure exporter;
-        json                     result = exporter.evalTop(node);
-        writeFile(
-            QFileInfo(config.exp.subtreeStructure->target),
-            to_string(result));
-        exportOk("Subtree structure", *config.exp.subtreeStructure);
-    }
 
-    if (config.exp.gantt) {
-        __trace("Export gantt");
-        ExporterGantt gantt;
-        gantt.gantt.timeSpan = slice(QDateTime(), QDateTime());
-        gantt.evalTop(node);
-
-        writeFile(QFileInfo("/tmp/gantt.puml"_qs), gantt.gantt.toString());
-        writeFile(
-            QFileInfo("/tmp/gantt.json"_qs),
-            to_string(gantt.gantt.toJson()));
-    }
 
     if (config.exp.json) {
         __trace("Export json");
@@ -1100,17 +1020,6 @@ void HaxorgCli::exec() {
         exportOk("Json", *config.exp.json);
     }
 
-    if (config.exp.pandoc) {
-        __trace("Export pandoc");
-        ExporterPandoc exporter;
-        json           result = exporter.evalTop(node).toJson().at(0);
-
-        writeFile(
-            config.exp.pandoc->target,
-            QString::fromStdString(
-                to_compact_json(result, {.width = 120})));
-        exportOk("Pandoc", *config.exp.pandoc);
-    }
 
     if (config.exp.yaml) {
         __trace("Export yaml");
@@ -1120,50 +1029,6 @@ void HaxorgCli::exec() {
             config.exp.yaml->target.absoluteFilePath().toStdString()};
         of << result;
         exportOk("YAML", *config.exp.yaml);
-    }
-
-    if (config.exp.tex) {
-        __trace("Export Latex");
-        ExporterLatex    exporter;
-        OperationsTracer trace{QFileInfo("/tmp/latex_export_trace")};
-        [&](ExporterLatex::VisitEvent const& ev) {
-            using K = typename ExporterLatex::VisitEvent::Kind;
-            if (((ev.kind == K::PushVisit || ev.kind == K::VisitStart)
-                 && !ev.isStart)
-                || ((ev.kind == K::PopVisit || ev.kind == K::VisitEnd)
-                    && ev.isStart)) {
-                return;
-            }
-
-            auto os = trace.getStream();
-
-
-            os << os.indent(ev.level * 2) << (ev.isStart ? ">" : "<")
-               << " " << to_string(ev.kind);
-
-            if (ev.visitedNode) {
-                os << " node:" << to_string(ev.visitedNode->getKind());
-            }
-
-            if (0 < ev.field.length()) {
-                os << " field:" << ev.field;
-            }
-
-            os << " on " << QFileInfo(ev.file).fileName() << ":" << ev.line
-               << " " << ev.function << " " << os.end();
-
-            if (0 < ev.type.length()) {
-                os << " type:" << demangle(ev.type.toLatin1());
-            }
-
-            trace.endStream(os);
-        };
-
-        layout::BlockId result    = exporter.evalTop(node);
-        QString         formatted = exporter.store.toString(
-            result, layout::Options{});
-        writeFile(config.exp.tex->target, formatted);
-        exportOk("TEX", *config.exp.tex);
     }
 
     return;
