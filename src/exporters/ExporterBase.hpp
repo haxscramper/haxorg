@@ -56,7 +56,7 @@ void Exporter<V, R>::visitDispatch(R& res, sem::SemId arg) {
 }
 
 template <typename V, typename R>
-R Exporter<V, R>::visitTop(sem::SemId org) {
+R Exporter<V, R>::evalTop(sem::SemId org) {
     __visit_scope(VisitEvent::Kind::VisitTop, .visitedNode = org);
 
     _this()->visitStart(org);

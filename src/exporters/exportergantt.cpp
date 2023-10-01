@@ -15,7 +15,7 @@ using osk = OrgSemKind;
 
 void treeRepr(sem::SemIdT<sem::Org> org) {
     ColStream os{qcout};
-    ExporterTree(os).visitTop(org);
+    ExporterTree(os).evalTop(org);
 }
 
 void ExporterGantt::pushVisit(int&, sem::SemIdT<sem::Subtree> tree) {

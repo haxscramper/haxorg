@@ -33,14 +33,14 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
         }
     }
 
-    Res visit(sem::SemId org) {
+    Res eval(sem::SemId org) {
         Res tmp = Res::Nil();
         visit(tmp, org);
         return tmp;
     }
 
     template <typename T>
-    Res visit(CR<T> it) {
+    Res eval(CR<T> it) {
         Res tmp = Res::Nil();
         visit(tmp, it);
 
@@ -74,7 +74,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
     Res stackSubnodes(sem::SemId doc) {
         Res res = b.stack();
         for (const auto& it : doc->subnodes) {
-            b.add_at(res, visit(it));
+            b.add_at(res, eval(it));
         }
         return res;
     }
@@ -82,7 +82,7 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
     Res lineSubnodes(sem::SemId doc) {
         Res res = b.line();
         for (const auto& it : doc->subnodes) {
-            b.add_at(res, visit(it));
+            b.add_at(res, eval(it));
         }
         return res;
     }
@@ -127,12 +127,12 @@ struct ExporterHtml : public Exporter<ExporterHtml, layout::BlockId> {
     }
 
     void visitTimeRange(Res& res, In<sem::TimeRange> range) {
-        res = b.line({visit(range->from), string("--"), visit(range->to)});
+        res = b.line({eval(range->from), string("--"), eval(range->to)});
     }
 
     void visitLink(Res& res, In<sem::Link> link) {
         if (link->description) {
-            res = visit(link->description.value());
+            res = eval(link->description.value());
         } else {
             res = string("");
         }

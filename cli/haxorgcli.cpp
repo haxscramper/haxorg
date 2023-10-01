@@ -974,7 +974,7 @@ void HaxorgCli::exec() {
                 QFileInfo("/tmp/unparsed_tree_sem_dump.txt"), true);
             ColStream os{ctx->stream};
             os.colored = false;
-            ExporterTree(os).visitTop(
+            ExporterTree(os).evalTop(
                 sem::SemId(0, OrgSemKind::Document, 0, &inStore));
         }
     }
@@ -990,7 +990,7 @@ void HaxorgCli::exec() {
 
         ColStream os{ctx->stream};
         os.colored = false;
-        ExporterTree(os).visitTop(node);
+        ExporterTree(os).evalTop(node);
     }
 
     if (config.exp.qdoc) {
@@ -1000,7 +1000,7 @@ void HaxorgCli::exec() {
 
         QGuiApplication       app(argc, &argv);
         ExporterQTextDocument exporter;
-        exporter.visitTop(node);
+        exporter.evalTop(node);
         switch (config.exp.qdoc->kind) {
             case cli::Exporter::QDocument::Kind::Md: {
                 writeFile(
@@ -1026,7 +1026,7 @@ void HaxorgCli::exec() {
 
     if (config.exp.html) {
         ExporterHtml    exporter;
-        layout::BlockId result    = exporter.visitTop(node);
+        layout::BlockId result    = exporter.evalTop(node);
         QString         formatted = exporter.store.toString(
             result, layout::Options{});
         writeFile(config.exp.html->target, formatted);
@@ -1042,14 +1042,14 @@ void HaxorgCli::exec() {
             events[ev.getKind()].push_back(ev);
         };
 
-        exporter.visitTop(node);
+        exporter.evalTop(node);
         exportOk("Event log", *config.exp.eventLog);
     }
 
     if (config.exp.sexpr) {
         __trace("Export S-expresions");
         ExporterSimpleSExpr exporter;
-        layout::BlockId     result    = exporter.visitTop(node);
+        layout::BlockId     result    = exporter.evalTop(node);
         QString             formatted = exporter.store.toString(
             result, layout::Options{});
         writeFile(config.exp.sexpr->target, formatted);
@@ -1058,7 +1058,7 @@ void HaxorgCli::exec() {
 
     if (config.exp.mmap) {
         ExporterMindMap exporter;
-        exporter.visitTop(node);
+        exporter.evalTop(node);
 
         writeFile(
             QFileInfo("/tmp/mindmap_tree.json"_qs),
@@ -1072,7 +1072,7 @@ void HaxorgCli::exec() {
     if (config.exp.subtreeStructure) {
         __trace("Export subtree structure");
         ExporterSubtreeStructure exporter;
-        json                     result = exporter.visitTop(node);
+        json                     result = exporter.evalTop(node);
         writeFile(
             QFileInfo(config.exp.subtreeStructure->target),
             to_string(result));
@@ -1083,7 +1083,7 @@ void HaxorgCli::exec() {
         __trace("Export gantt");
         ExporterGantt gantt;
         gantt.gantt.timeSpan = slice(QDateTime(), QDateTime());
-        gantt.visitTop(node);
+        gantt.evalTop(node);
 
         writeFile(QFileInfo("/tmp/gantt.puml"_qs), gantt.gantt.toString());
         writeFile(
@@ -1094,7 +1094,7 @@ void HaxorgCli::exec() {
     if (config.exp.json) {
         __trace("Export json");
         ExporterJson exporter;
-        json         result = exporter.visitTop(node);
+        json         result = exporter.evalTop(node);
 
         writeFile(config.exp.json->target, to_string(result));
         exportOk("Json", *config.exp.json);
@@ -1103,7 +1103,7 @@ void HaxorgCli::exec() {
     if (config.exp.pandoc) {
         __trace("Export pandoc");
         ExporterPandoc exporter;
-        json           result = exporter.visitTop(node).toJson().at(0);
+        json           result = exporter.evalTop(node).toJson().at(0);
 
         writeFile(
             config.exp.pandoc->target,
@@ -1115,7 +1115,7 @@ void HaxorgCli::exec() {
     if (config.exp.yaml) {
         __trace("Export yaml");
         ExporterYaml  exporter;
-        yaml          result = exporter.visitTop(node);
+        yaml          result = exporter.evalTop(node);
         std::ofstream of{
             config.exp.yaml->target.absoluteFilePath().toStdString()};
         of << result;
@@ -1159,7 +1159,7 @@ void HaxorgCli::exec() {
             trace.endStream(os);
         };
 
-        layout::BlockId result    = exporter.visitTop(node);
+        layout::BlockId result    = exporter.evalTop(node);
         QString         formatted = exporter.store.toString(
             result, layout::Options{});
         writeFile(config.exp.tex->target, formatted);

@@ -144,7 +144,7 @@ struct Exporter {
     using __ExporterBase::visitDispatchHook;                              \
     using __ExporterBase::visitStart;                                     \
     using __ExporterBase::visitEnd;                                       \
-    using __ExporterBase::visitTop;                                       \
+    using __ExporterBase::evalTop;                                        \
     using __ExporterBase::In;                                             \
     EACH_SEM_ORG_KIND(__EXPORTER_USING_DEFINE)
 
@@ -215,7 +215,7 @@ struct Exporter {
     ///
     /// User can redefined this function as well, or provided it's own
     /// implementation.
-    R visitTop(sem::SemId org);
+    R evalTop(sem::SemId org);
 
 
     V* _this() { return static_cast<V*>(this); }

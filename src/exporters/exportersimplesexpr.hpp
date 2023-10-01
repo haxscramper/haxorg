@@ -37,7 +37,7 @@ struct ExporterSimpleSExpr
     void visit(Res& res, CVec<T> value) {
         res = b.stack();
         for (const auto& it : value) {
-            b.add_at(res, visit(it));
+            b.add_at(res, eval(it));
         }
     }
 
@@ -57,22 +57,20 @@ struct ExporterSimpleSExpr
     template <typename T>
     void visit(Res& res, CR<Opt<T>> value) {
         if (value) {
-            res = visit(*value);
+            res = eval(*value);
         } else {
             res = string("nil");
         }
     }
 
-    Res visit(int value) { return string(to_string(value)); }
-    Res visit(CR<Str> value) { return string(escape_for_write(value)); }
+    Res eval(int value) { return string(to_string(value)); }
+    Res eval(CR<Str> value) { return string(escape_for_write(value)); }
 
-    Res visit(CR<QString> value) {
-        return string(escape_for_write(value));
-    }
+    Res eval(CR<QString> value) { return string(escape_for_write(value)); }
 
 
     template <typename T>
-    Res visit(CR<T> value) {
+    Res eval(CR<T> value) {
         Res tmp = b.stack();
         visit(tmp, value);
         return b.line({string("("), tmp, string(")")});
@@ -85,7 +83,7 @@ struct ExporterSimpleSExpr
                 b.add_at(res, string(" "));
             }
             b.add_at(
-                res, b.line({string(name), string(": "), visit(value)}));
+                res, b.line({string(name), string(": "), eval(value)}));
         }
     }
 
@@ -102,14 +100,13 @@ struct ExporterSimpleSExpr
         if (b.at(res).isLine()) {
             b.add_at(res, string(" "));
         }
-        b.add_at(res, b.line({string(name), string(": "), visit(value)}));
+        b.add_at(res, b.line({string(name), string(": "), eval(value)}));
     }
 
     void visitTime(Res& res, In<sem::Time> time) {
         if (time->isStatic()) {
             res = b.line(
-                {string(" "),
-                 visit(time->getStatic().time.getDateTime())});
+                {string(" "), eval(time->getStatic().time.getDateTime())});
         } else {
             res = string("dynamic-time");
         }
@@ -118,7 +115,7 @@ struct ExporterSimpleSExpr
     void visitDocument(Res& res, In<sem::Document> value) {
         res = b.stack();
         for (const auto& it : value->subnodes) {
-            b.add_at(res, visit(it));
+            b.add_at(res, eval(it));
         }
     }
 };

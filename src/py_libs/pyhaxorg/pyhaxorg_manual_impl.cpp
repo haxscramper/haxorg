@@ -20,7 +20,7 @@ void OrgExporterJson::exportToFile(QString path) {
 }
 
 void OrgExporterJson::visitNode(sem::SemId node) {
-    result = impl->visitTop(node);
+    result = impl->evalTop(node);
 }
 
 OrgExporterYaml::OrgExporterYaml() {
@@ -34,7 +34,7 @@ void OrgExporterYaml::exportToFile(QString path) {
 }
 
 void OrgExporterYaml::visitNode(sem::SemId node) {
-    result = impl->visitTop(node);
+    result = impl->evalTop(node);
 }
 
 OrgExporterTree::OrgExporterTree() {
@@ -65,7 +65,7 @@ void OrgExporterTree::stream(
     impl->conf.withOriginalId  = opts.withOriginalId;
     impl->conf.skipEmptyFields = opts.skipEmptyFields;
     impl->conf.startLevel      = opts.startLevel;
-    impl->visitTop(node);
+    impl->evalTop(node);
 }
 
 void OrgContext::run() {

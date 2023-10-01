@@ -32,7 +32,7 @@ void ExporterSimpleSExpr::visit(Res& res, sem::SemId org) {
 
                 for (const auto& it : org->subnodes) {
                     b.add_at(res, string(" "));
-                    b.add_at(res, visit(it));
+                    b.add_at(res, eval(it));
                 }
             } else {
                 visitDispatch(inner, org);

@@ -36,7 +36,7 @@ void ExporterTree::visitField(
 
 void ExporterTree::treeRepr(sem::SemId org) {
     ColStream os{qcout};
-    ExporterTree(os).visitTop(org);
+    ExporterTree(os).evalTop(org);
 }
 
 void ExporterTree::treeRepr(sem::SemId org, const QFileInfo& path) {
@@ -45,7 +45,7 @@ void ExporterTree::treeRepr(sem::SemId org, const QFileInfo& path) {
         QTextStream stream{&file};
         ColStream   os{stream};
         os.colored = false;
-        ExporterTree(os).visitTop(org);
+        ExporterTree(os).evalTop(org);
     } else {
         qWarning() << "Could not open file" << path
                    << "for writing tree repr";
@@ -56,7 +56,7 @@ void ExporterTree::treeRepr(sem::SemId org, CR<TreeReprConf> conf) {
     ColStream    os{qcout};
     ExporterTree exporter{os};
     exporter.conf = conf;
-    exporter.visitTop(org);
+    exporter.evalTop(org);
 }
 
 void ExporterTree::init(sem::SemId org) {
