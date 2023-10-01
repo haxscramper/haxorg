@@ -53,6 +53,7 @@ SPtr<IoContext> openFileOrStream(
 
 
     SPtr<IoContext> context = std::make_shared<IoContext>();
+    context->stream         = std::make_shared<QTextStream>();
     if (useFile) {
         if (conf.createDirs) {
             if (!info.dir().exists()) {
@@ -79,7 +80,7 @@ SPtr<IoContext> openFileOrStream(
             "length");
         context->file.setFileName(info.filePath());
         if (context->file.open(mode)) {
-            context->stream.setDevice(&context->file);
+            context->stream->setDevice(&context->file);
             context->needClose = true;
         } else {
             throw FilesystemError(
@@ -89,7 +90,7 @@ SPtr<IoContext> openFileOrStream(
     } else {
         context->file.open(
             conf.useStdout ? stdout : stderr, QIODevice::WriteOnly);
-        context->stream.setDevice(&context->file);
+        context->stream->setDevice(&context->file);
     }
 
     return context;

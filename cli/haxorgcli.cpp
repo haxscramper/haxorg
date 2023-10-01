@@ -847,7 +847,7 @@ void HaxorgCli::exec() {
                 {
                     .createDirs = true,
                 });
-            writeYamlLex(ctx->stream);
+            writeYamlLex(*ctx->stream);
         }
     }
 
@@ -875,7 +875,7 @@ void HaxorgCli::exec() {
             }
             case cli::Exporter::Lex::Kind::Yaml: {
                 auto ctx = openFileOrStream(lexconf.target, true);
-                writeYamlLex(ctx->stream);
+                writeYamlLex(*ctx->stream);
             }
         }
     }
@@ -907,7 +907,7 @@ void HaxorgCli::exec() {
             {
                 .createDirs = true,
             });
-        ctx->stream << nodes.treeRepr(OrgId(0));
+        *ctx->stream << nodes.treeRepr(OrgId(0));
     }
 
     if (config.exp.parse) {
@@ -972,7 +972,7 @@ void HaxorgCli::exec() {
 
             auto ctx = openFileOrStream(
                 QFileInfo("/tmp/unparsed_tree_sem_dump.txt"), true);
-            ColStream os{ctx->stream};
+            ColStream os{*ctx->stream};
             os.colored = false;
             ExporterTree(os).evalTop(
                 sem::SemId(0, OrgSemKind::Document, 0, &inStore));
@@ -988,7 +988,7 @@ void HaxorgCli::exec() {
                 .createDirs = true,
             });
 
-        ColStream os{ctx->stream};
+        ColStream os{*ctx->stream};
         os.colored = false;
         ExporterTree(os).evalTop(node);
     }

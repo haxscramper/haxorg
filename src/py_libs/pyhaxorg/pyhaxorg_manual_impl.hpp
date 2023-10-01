@@ -190,6 +190,28 @@ struct LeafKindForT<Vec<sem::SemIdT<T>>>
 template <typename T>
 struct LeafKindForT : LeafKindForBase<T, LeafFieldType::Any> {};
 
+
+class PythonStreamDevice : public QIODevice {
+  public:
+    PythonStreamDevice(py::object py_stream, QObject* parent = nullptr)
+        : QIODevice(parent), stream(py_stream) {
+        open(QIODevice::WriteOnly);
+        write = stream.attr("write");
+    }
+
+  protected:
+    qint64 writeData(const char* data, qint64 len) override {
+        write(std::string(data, len));
+        return len;
+    }
+
+    qint64 readData(char* /*data*/, qint64 /*len*/) override { return -1; }
+
+  private:
+    py::function write;
+    py::object   stream;
+};
+
 struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     using Base = Exporter<ExporterPython, py::object>;
 #define __ExporterBase Base
@@ -200,6 +222,18 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     using Res        = py::object;
     using SemCbMap   = UnorderedMap<OrgSemKind, PyFunc>;
     using FieldCbMap = UnorderedMap<LeafFieldType, PyFunc>;
+
+    Opt<OperationsTracer> exportTracer;
+
+    ColStream                traceStream;
+    QString                  traceBuffer;
+    SPtr<PythonStreamDevice> pyStreamDevice;
+    SPtr<IoContext>          writeStreamContext;
+
+    [[refl]] void    enablePyStreamTrace(py::object stream);
+    [[refl]] void    enableBufferTrace();
+    [[refl]] QString getTraceBuffer() const;
+    [[refl]] void    enableFileTrace(QString const& path);
 
     Opt<PyFunc>   visitAnyNodeAround;
     [[refl]] void setVisitAnyIdAround(PyFunc cb) {
@@ -358,6 +392,8 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
             }
         }
     }
+
+    void traceVisit(ExporterPython::VisitEvent const& ev);
 
     template <sem::IsOrg T>
     void visitOrgField(

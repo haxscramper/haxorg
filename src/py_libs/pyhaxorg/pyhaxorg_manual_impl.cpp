@@ -56,7 +56,7 @@ void OrgExporterTree::toFile(
     QString          path,
     ExporterTreeOpts opts) {
     auto ctx = openFileOrStream(QFileInfo(path), true);
-    stream(ctx->stream, node, opts);
+    stream(*ctx->stream, node, opts);
 }
 
 void OrgExporterTree::stream(
@@ -144,6 +144,44 @@ void init_py_manual_api(pybind11::module& m) {
     ;
 }
 
+void ExporterPython::enablePyStreamTrace(pybind11::object stream) {
+    pyStreamDevice     = std::make_shared<PythonStreamDevice>(stream);
+    writeStreamContext = std::make_shared<IoContext>();
+    writeStreamContext->stream      = std::make_shared<QTextStream>();
+    this->exportTracer              = OperationsTracer{};
+    this->exportTracer->stream      = writeStreamContext->stream;
+    this->exportTracer->traceToFile = true;
+    writeStreamContext->stream->setDevice(&(*pyStreamDevice));
+    this->visitEventCb = [this](ExporterPython::VisitEvent const& ev) {
+        this->traceVisit(ev);
+    };
+}
+
+void ExporterPython::enableBufferTrace() {
+    writeStreamContext              = std::make_shared<IoContext>();
+    writeStreamContext->stream      = std::make_shared<QTextStream>();
+    this->exportTracer->stream      = writeStreamContext->stream;
+    this->exportTracer->traceToFile = true;
+    writeStreamContext->stream->setString(&traceBuffer);
+    this->visitEventCb = [this](ExporterPython::VisitEvent const& ev) {
+        this->traceVisit(ev);
+    };
+}
+
+QString ExporterPython::getTraceBuffer() const { return traceBuffer; }
+
+void ExporterPython::enableFileTrace(const QString& path) {
+    writeStreamContext         = openFileOrStream(QFileInfo(path), true);
+    traceStream.ostream        = writeStreamContext->stream.get();
+    traceStream.colored        = false;
+    this->exportTracer         = OperationsTracer{};
+    this->exportTracer->stream = writeStreamContext->stream;
+    this->exportTracer->traceToFile = true;
+    this->visitEventCb = [this](ExporterPython::VisitEvent const& ev) {
+        this->traceVisit(ev);
+    };
+}
+
 void ExporterPython::visitDispatch(Res& res, sem::SemId arg) {
     __visit_scope(
         VisitEvent::Kind::VisitDispatch,
@@ -171,6 +209,39 @@ void ExporterPython::visitDispatch(Res& res, sem::SemId arg) {
 
 #undef __case
     }
+}
+
+void ExporterPython::traceVisit(const VisitEvent& ev) {
+    using K = typename VisitEvent::Kind;
+    if (((ev.kind == K::PushVisit || ev.kind == K::VisitStart)
+         && !ev.isStart)
+        || ((ev.kind == K::PopVisit || ev.kind == K::VisitEnd)
+            && ev.isStart)) {
+        return;
+    }
+
+    auto os = exportTracer->getStream();
+
+
+    os << os.indent(ev.level * 2) << (ev.isStart ? ">" : "<") << " "
+       << to_string(ev.kind);
+
+    if (ev.visitedNode) {
+        os << " node:" << to_string(ev.visitedNode->getKind());
+    }
+
+    if (0 < ev.field.length()) {
+        os << " field:" << ev.field;
+    }
+
+    os << " on " << QFileInfo(ev.file).fileName() << ":" << ev.line << " "
+       << ev.function << " " << os.end();
+
+    if (0 < ev.type.length()) {
+        os << " type:" << demangle(ev.type.toLatin1());
+    }
+
+    exportTracer->endStream(os);
 }
 
 void ExporterPython::visitField(

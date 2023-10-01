@@ -7,11 +7,13 @@ void OperationsTracer::setTraceFile(const QFileInfo& outfile) {
         "Expected non-empty filename for the output");
     trace       = true;
     traceToFile = true;
-    file.first.setFileName(outfile.absoluteFilePath());
-    if (file.first.open(QIODevice::ReadWrite | QFile::Truncate)) {
+    file        = std::make_shared<QFile>();
+    stream      = std::make_shared<QTextStream>();
+    file->setFileName(outfile.absoluteFilePath());
+    if (file->open(QIODevice::ReadWrite | QFile::Truncate)) {
         //        qDebug() << "Opened" << outfile.absoluteFilePath()
         //                 << "for writing";
-        file.second.setDevice(&file.first);
+        stream->setDevice(file.get());
     } else {
         qCritical() << "Could not open file "
                     << outfile.absoluteFilePath();
@@ -23,7 +25,7 @@ ColStream OperationsTracer::getStream() {
     if (traceToBuffer) {
         return ColStream{};
     } else if (traceToFile) {
-        auto os     = ColStream{file.second};
+        auto os     = ColStream{*stream};
         os.colored  = false;
         os.buffered = false;
         return os;

@@ -304,7 +304,7 @@ void ReflASTConsumer::HandleTranslationUnit(clang::ASTContext& Context) {
 
     Visitor.TraverseDecl(Context.getTranslationUnitDecl());
     // I could not figure out how to properly execute code at the end
-    // of the pugin invocation, so content is written out in the
+    // of the pugin invocation, so :
     // translation unit *visitor* instead, but for now this will do.
     clang::DiagnosticsEngine& Diags = CI.getDiagnostics();
     std::string               path  = outputPathOverride

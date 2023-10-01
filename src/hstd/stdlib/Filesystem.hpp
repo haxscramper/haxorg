@@ -27,8 +27,8 @@ void writeFileOrStdout(
     bool             useStdoutStream = true);
 
 struct IoContext {
-    QFile       file;
-    QTextStream stream;
+    QFile             file;
+    SPtr<QTextStream> stream;
 
     bool needClose = false;
 

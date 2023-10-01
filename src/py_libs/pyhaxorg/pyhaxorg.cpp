@@ -1617,6 +1617,16 @@ return state.)RAW")
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init<>())
+    .def("enablePyStreamTrace",
+         &ExporterPython::enablePyStreamTrace,
+         pybind11::arg("stream"))
+    .def("enableBufferTrace",
+         &ExporterPython::enableBufferTrace)
+    .def("getTraceBuffer",
+         &ExporterPython::getTraceBuffer)
+    .def("enableFileTrace",
+         &ExporterPython::enableFileTrace,
+         pybind11::arg("path"))
     .def("setVisitAnyIdAround",
          &ExporterPython::setVisitAnyIdAround,
          pybind11::arg("cb"))

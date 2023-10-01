@@ -15,8 +15,9 @@ struct OperationsTracer {
     OperationsTracer() {}
     OperationsTracer(QFileInfo const& info) { setTraceFile(info); }
 
-    Pair<QFile, QTextStream> file;
-    void                     setTraceFile(QFileInfo const& outfile);
-    ColStream                getStream();
-    void                     endStream(ColStream& stream);
+    SPtr<QFile>       file;
+    SPtr<QTextStream> stream;
+    void              setTraceFile(QFileInfo const& outfile);
+    ColStream         getStream();
+    void              endStream(ColStream& stream);
 };
