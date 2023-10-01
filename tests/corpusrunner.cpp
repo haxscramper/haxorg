@@ -536,20 +536,20 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
     auto withTreeExporter =
         [this,
          &strForStore](sem::SemId top, layout::BlockStore& b, auto& run) {
-            auto block = run.visitTop(top);
+            auto block = run.evalTop(top);
             return ER(ER::Text{
                 .textLyt = toTextLyt(b, block, strForStore(run.store))});
         };
 
     if (exp.name == "json") {
-        return ER(ER::Structured{.data = ExporterJson().visitTop(top)});
+        return ER(ER::Structured{.data = ExporterJson().evalTop(top)});
     } else if (exp.name == "sexp") {
         ExporterSimpleSExpr run;
         return withTreeExporter(top, run.b, run);
 
     } else if (exp.name == "pandoc") {
         return ER(ER::Structured{
-            .data = ExporterPandoc().visitTop(top).unpacked.at(0)});
+            .data = ExporterPandoc().evalTop(top).unpacked.at(0)});
 
     } else if (exp.name == "html") {
         ExporterHtml run;
@@ -563,7 +563,7 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
             events.push_back(ev);
         };
 
-        exporter.visitTop(top);
+        exporter.evalTop(top);
 
         json res;
         to_json(res, events);
@@ -572,7 +572,7 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
 
     } else if (exp.name == "gantt") {
         ExporterGantt exporter;
-        exporter.visitTop(top);
+        exporter.evalTop(top);
         return ER(ER::Structured{.data = json()});
 
     } else if (exp.name == "latex") {
@@ -581,11 +581,11 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
 
     } else if (exp.name == "subtree_structure") {
         return ER(ER::Structured{
-            .data = ExporterSubtreeStructure().visitTop(top)});
+            .data = ExporterSubtreeStructure().evalTop(top)});
 
     } else if (exp.name == "mmap") {
         ExporterMindMap run;
-        run.visitTop(top);
+        run.evalTop(top);
         ExporterMindMap::Graph const& g = run.toGraph();
         ER::JsonGraph                 result;
 
@@ -916,7 +916,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
         exporterVisit<ExporterJson>(trace, ev);
     };
 
-    json          converted = exporter.visitTop(node);
+    json          converted = exporter.evalTop(node);
     Vec<DiffItem> diff      = json_diff(converted, expected);
     int           failCount = 0;
     ColStream     os;
@@ -1131,7 +1131,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                 exporter.skipId          = true;
                 writeFileOrStdout(
                     spec.debugFile("sem.yaml"),
-                    to_string(exporter.visitTop(document)) + "\n",
+                    to_string(exporter.evalTop(document)) + "\n",
                     spec.debug.printSemToFile);
             }
 

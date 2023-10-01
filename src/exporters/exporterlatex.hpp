@@ -43,17 +43,17 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::BlockId> {
     UnorderedMap<Str, int> footnoteCounter;
     int                    getFootnote(CR<Str> str);
 
-    Res visit(int value) {
+    Res eval(int value) {
         __visit_eval_scope(value);
         return string(to_string(value));
     }
 
-    Res visit(CR<Str> value) {
+    Res eval(CR<Str> value) {
         __visit_eval_scope(value);
         return string(escape_for_write(value));
     }
 
-    Res visit(sem::SemId org);
+    Res eval(sem::SemId org);
 
     template <sem::NotOrg T>
     void visit(Res& res, CR<T> value) {
@@ -110,7 +110,7 @@ struct ExporterLatex : public Exporter<ExporterLatex, layout::BlockId> {
     Vec<Res> subnodes(sem::SemId nodes) {
         Vec<Res> res;
         for (const auto& it : nodes->subnodes) {
-            res.push_back(visit(it));
+            res.push_back(eval(it));
         }
         return res;
     }

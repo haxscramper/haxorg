@@ -43,6 +43,14 @@ void ReflASTVisitor::fillNamespaces(
                         nns->getAsNamespaceAlias()->getNameAsString());
                     break;
                 }
+
+                default: {
+                    Diag(
+                        DiagKind::Warning,
+                        "Unahdled namespace filler kind '%0'",
+                        Loc)
+                        << kind;
+                }
             }
         }
     }
@@ -52,6 +60,7 @@ void ReflASTVisitor::fillType(
     QualType*                                   Out,
     const clang::QualType&                      In,
     const std::optional<clang::SourceLocation>& Loc) {
+
     Out->set_isconst(In.isConstQualified());
     Out->set_isref(In->isReferenceType());
     if (In->isReferenceType()) {
@@ -67,6 +76,9 @@ void ReflASTVisitor::fillType(
     } else if (In->isRecordType()) {
         Out->set_name(
             In->getAs<clang::RecordType>()->getDecl()->getNameAsString());
+    } else if (In->isEnumeralType()) {
+        Out->set_name(
+            In->getAs<clang::EnumType>()->getDecl()->getNameAsString());
     } else {
         Diag(
             DiagKind::Warning,
@@ -74,7 +86,46 @@ void ReflASTVisitor::fillType(
             Loc)
             << In << dump(In);
     }
+
+    // TODO unwrap all typedefs
+    // TODO get declaration location scope with all namespaces
+    if (const auto* TST = llvm::dyn_cast<
+            clang::TemplateSpecializationType>(In.getTypePtr())) {
+        for (clang::TemplateArgument const& Arg :
+             TST->template_arguments()) {
+            fillType(Out->add_parameters(), Arg, Loc);
+        }
+    }
 }
+
+void ReflASTVisitor::fillType(
+    QualType*                                   Out,
+    const clang::TemplateArgument&              Arg,
+    const std::optional<clang::SourceLocation>& Loc) {
+
+    switch (Arg.getKind()) {
+        case clang::TemplateArgument::Type: {
+            fillType(Out, Arg.getAsType(), Loc);
+
+            break;
+        }
+        case clang::TemplateArgument::Integral:
+        case clang::TemplateArgument::Template:
+        case clang::TemplateArgument::Expression:
+        case clang::TemplateArgument::Declaration:
+        case clang::TemplateArgument::TemplateExpansion:
+        case clang::TemplateArgument::NullPtr:
+        case clang::TemplateArgument::Null:
+        case clang::TemplateArgument::Pack: {
+            Diag(
+                DiagKind::Warning,
+                "Unhandled template argument type '%0'",
+                Loc)
+                << Arg.getKind();
+        }
+    }
+}
+
 
 void ReflASTVisitor::fillExpr(
     Expr*                                       Out,
@@ -90,10 +141,25 @@ void ReflASTVisitor::fillExpr(
     }
 }
 
+void ReflASTVisitor::fillFieldDecl(
+    Record::Field*    sub,
+    clang::FieldDecl* field) {
+    sub->set_name(field->getNameAsString());
+    auto doc = getDoc(field);
+    if (doc) {
+        sub->set_doc(*doc);
+    }
+    fillType(sub->mutable_type(), field->getType(), field->getLocation());
+}
+
 void ReflASTVisitor::fillParmVarDecl(
     Arg*                      arg,
     const clang::ParmVarDecl* parm) {
     arg->set_name(parm->getNameAsString());
+    auto doc = getDoc(parm);
+    if (doc) {
+        arg->set_doc(*doc);
+    }
     fillType(arg->mutable_type(), parm->getType(), parm->getLocation());
     if (parm->hasDefaultArg()) {
         fillExpr(
@@ -112,6 +178,16 @@ void ReflASTVisitor::fillMethodDecl(
     sub->set_isstatic(method->isStatic());
     sub->set_isvirtual(method->isVirtual());
     sub->set_isimplicit(method->isImplicit());
+    sub->set_isoperator(method->getNameAsString().starts_with("operator"));
+    if (sub->isoperator()) {
+        sub->set_operatorname(
+            method->getNameAsString().substr(strlen("operator")));
+    }
+
+    auto doc = getDoc(method);
+    if (doc) {
+        sub->set_doc(*doc);
+    }
 
     if (method->isCopyAssignmentOperator()) {
         sub->set_kind(Record_MethodKind_CopyAssignmentOperator);
@@ -144,42 +220,82 @@ void ReflASTVisitor::fillMethodDecl(
     }
 }
 
+bool ReflASTVisitor::isRefl(clang::Decl* Decl) {
+    for (clang::AnnotateAttr* Attr :
+         Decl->specific_attrs<clang::AnnotateAttr>()) {
+        if (Attr->getAnnotation() == REFL_NAME) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::optional<std::string> ReflASTVisitor::getDoc(
+    clang::Decl const* Decl) {
+    const clang::ASTContext& astContext = Decl->getASTContext();
+    const clang::RawComment* rawComment = astContext
+                                              .getRawCommentForDeclNoCache(
+                                                  Decl);
+    if (rawComment) {
+        llvm::StringRef commentText = rawComment->getRawText(
+            astContext.getSourceManager());
+        return commentText.str();
+    } else {
+        return std::nullopt;
+    }
+}
+
 bool ReflASTVisitor::VisitCXXRecordDecl(
     clang::CXXRecordDecl* Declaration) {
-    for (clang::AnnotateAttr* Attr :
-         Declaration->specific_attrs<clang::AnnotateAttr>()) {
+    if (isRefl(Declaration)) {
+        llvm::TimeTraceScope timeScope{
+            "reflection-visit-record" + Declaration->getNameAsString()};
+
         Diag(
-            DiagKind::Warning,
-            "Found anntoation %0",
+            DiagKind::Note,
+            "Adding serialization information for %0",
             Declaration->getLocation())
-            << Attr->getAnnotation();
+            << Declaration;
 
-        if (Attr->getAnnotation() == REFL_NAME) {
-            llvm::TimeTraceScope timeScope{
-                "reflection-visit-record"
-                + Declaration->getNameAsString()};
+        Record* rec = out->add_records();
+        rec->set_name(Declaration->getNameAsString());
 
-            Diag(
-                DiagKind::Note,
-                "Adding serialization information for %0",
-                Declaration->getLocation())
-                << Declaration;
-
-            Record* rec = out->add_records();
-            rec->set_name(Declaration->getNameAsString());
-
-            for (clang::FieldDecl* field : Declaration->fields()) {
+        for (clang::FieldDecl* field : Declaration->fields()) {
+            if (isRefl(field)) {
                 fillFieldDecl(rec->add_fields(), field);
             }
+        }
 
-            for (clang::CXXMethodDecl* method : Declaration->methods()) {
+        for (clang::CXXMethodDecl* method : Declaration->methods()) {
+            if (isRefl(method)) {
                 fillMethodDecl(rec->add_methods(), method);
             }
         }
     }
 
+
     return true;
 }
+
+bool ReflASTVisitor::VisitEnumDecl(clang::EnumDecl* Decl) {
+    if (isRefl(Decl)) {
+        Diag(
+            DiagKind::Note,
+            "Adding serialization information for %0",
+            Decl->getLocation())
+            << Decl;
+        Enum* rec = out->add_enums();
+        rec->set_name(Decl->getNameAsString());
+
+        for (clang::EnumConstantDecl* field : Decl->enumerators()) {
+            Enum_Field* sub = rec->add_fields();
+            sub->set_name(field->getNameAsString());
+        }
+    }
+
+    return true;
+}
+
 
 void ReflASTConsumer::HandleTranslationUnit(clang::ASTContext& Context) {
     // When executed with -ftime-trace plugin execution time will be
@@ -188,7 +304,7 @@ void ReflASTConsumer::HandleTranslationUnit(clang::ASTContext& Context) {
 
     Visitor.TraverseDecl(Context.getTranslationUnitDecl());
     // I could not figure out how to properly execute code at the end
-    // of the pugin invocation, so content is written out in the
+    // of the pugin invocation, so :
     // translation unit *visitor* instead, but for now this will do.
     clang::DiagnosticsEngine& Diags = CI.getDiagnostics();
     std::string               path  = outputPathOverride
@@ -218,6 +334,21 @@ void ReflASTConsumer::HandleTranslationUnit(clang::ASTContext& Context) {
     }
 }
 
+/// Helper wrapper for clang diagnostic printer
+template <unsigned N>
+clang::DiagnosticBuilder Diag(
+    clang::Sema&                    S,
+    clang::DiagnosticsEngine::Level L,
+    const char (&FormatString)[N],
+    std::optional<clang::SourceLocation> const& Loc = std::nullopt) {
+    auto& D = S.getASTContext().getDiagnostics();
+    if (Loc) {
+        return D.Report(*Loc, D.getCustomDiagID(L, FormatString));
+    } else {
+        return D.Report(D.getCustomDiagID(L, FormatString));
+    }
+}
+
 clang::ParsedAttrInfo::AttrHandling ExampleAttrInfo::handleDeclAttribute(
     clang::Sema&             S,
     clang::Decl*             D,
@@ -228,7 +359,7 @@ clang::ParsedAttrInfo::AttrHandling ExampleAttrInfo::handleDeclAttribute(
         nullptr,
         0,
         Attr.getRange());
-    llvm::outs() << "Added reflection annotation\n";
+
     D->addAttr(created);
     return AttributeApplied;
 }

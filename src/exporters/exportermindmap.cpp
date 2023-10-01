@@ -555,7 +555,7 @@ json ExporterMindMap::toJsonGraphNode(CR<VertDesc> n) {
 
             if (!entry.entry->content.isNil()) {
                 auto exp        = getJsonExporter();
-                meta["content"] = exp.visitTop(entry.entry->content);
+                meta["content"] = exp.evalTop(entry.entry->content);
             }
 
             if (entry.order) {
@@ -599,12 +599,12 @@ json ExporterMindMap::toJsonGraphEdge(CR<EdgeDesc> e) {
     if (edge.getKind() == EdgeProp::Kind::RefersTo
         && edge.getRefersTo().target.description) {
         auto exp            = getJsonExporter();
-        meta["description"] = exp.visitTop(
+        meta["description"] = exp.evalTop(
             edge.getRefersTo().target.description.value());
     }
 
     meta["out_index"] = edgeOutIndex(e);
-    res["metadata"] = meta;
+    res["metadata"]   = meta;
     return res;
 }
 

@@ -11,5 +11,3 @@ if lib_dir not in sys.path:
     # Add this directory to sys.path
     sys.path.append(lib_dir)
 
-print(lib_dir)
-

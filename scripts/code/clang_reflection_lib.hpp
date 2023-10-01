@@ -84,6 +84,11 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         clang::QualType const&                      In,
         std::optional<clang::SourceLocation> const& Loc);
 
+    void fillType(
+        QualType*                                   Out,
+        clang::TemplateArgument const&              Arg,
+        std::optional<clang::SourceLocation> const& Loc);
+
     /// Convert expression into a simplified protobuf description --
     /// mapping whole set of C++ complexities here is likely not possible
     /// anyway, so simplified approximation will suffice.
@@ -92,18 +97,16 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         clang::Expr const*                          In,
         std::optional<clang::SourceLocation> const& Loc);
 
-    void fillFieldDecl(Record::Field* sub, clang::FieldDecl* field) {
-        sub->set_name(field->getNameAsString());
-        fillType(
-            sub->mutable_type(), field->getType(), field->getLocation());
-    }
+    void fillFieldDecl(Record::Field* sub, clang::FieldDecl* field);
 
     void fillParmVarDecl(Arg* arg, clang::ParmVarDecl const* parm);
 
     void fillMethodDecl(Record::Method* sub, clang::CXXMethodDecl* method);
 
-
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration);
+    bool VisitEnumDecl(clang::EnumDecl* Decl);
+    bool isRefl(clang::Decl* Decl);
+    std::optional<std::string> getDoc(const clang::Decl* Decl);
 
   private:
     clang::ASTContext* Ctx;

@@ -8,7 +8,7 @@ template class Exporter<ExporterUltraplain, QString>;
 
 QString ExporterUltraplain::toStr(sem::SemId node) {
     return strip(
-        ExporterUltraplain{}.visitTop(node),
+        ExporterUltraplain{}.evalTop(node),
         CharSet{QChar(' ')},
         CharSet{QChar(' ')});
 }

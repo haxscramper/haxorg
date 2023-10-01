@@ -29,8 +29,46 @@ function with_dir(directory, callback)
   os.cd(olddir)
 end
 
+function findXmakeParentDir(currentDir)
+  currentDir = currentDir or os.curdir()
+
+  local xmakeFile = path.join(currentDir, "xmake.lua")
+  if os.isfile(xmakeFile) then
+      return currentDir
+  end
+
+  local parentDir = path.directory(currentDir)
+  if parentDir == currentDir then
+      return nil
+  end
+
+  return findXmakeParentDir(parentDir)
+end
+
+function abs_build(...) return path.absolute(path.join(findXmakeParentDir(), "build", ...)) end
+
+function abs_script(...) return path.absolute(path.join(findXmakeParentDir(), ...)) end
+
+function iorun_stripped(cmd, args, ...)
+  local result = os.iorunv(cmd, args, {...})
+  return result:gsub("(%s+)$", "")  -- Remove trailing whitespace, including newlines
+end
+
+
+function error(text, ...)
+  cprint(vformat("${red}[...]${clear} ") .. vformat(text, ...))
+end
+
+function warn(text, ...)
+  cprint(vformat("${yellow}[...]${clear} ") .. vformat(text, ...))
+end
+
 function info(text, ...)
   cprint(vformat("${green}[...]${clear} ") .. vformat(text, ...))
+end
+
+function get_target_timestamps(target) 
+  return path.absolute(path.join(config.buildir(), target:name() .. "_timestamps.txt"))
 end
 
 function detect_rebuld_state(target)
@@ -39,7 +77,7 @@ function detect_rebuld_state(target)
 
   local source_files = target:sourcefiles()
   local current_timestamps = {}
-  local stored_timestamps_file = path.join(config.buildir(), "timestamps.txt")
+  local stored_timestamps_file = get_target_timestamps(target)
   
   for _, source_file in ipairs(source_files) do
       table.insert(current_timestamps, get_timestamp(source_file))
@@ -48,13 +86,22 @@ function detect_rebuld_state(target)
   local stored_timestamps = { read_timestamps(stored_timestamps_file) }
   if #stored_timestamps ~= #current_timestamps then
       -- Number of files has changed; re-build necessary
-      info("Number of files has changed, rebuilding ...")
+      info("Number of files has changed for target '%s' from '%s' (now %s was %s), rebuilding ...", 
+        target:name(),
+        stored_timestamps_file,
+        #current_timestamps,
+        #stored_timestamps
+      )
       return true
   end
   
   for i = 1, #current_timestamps do
       if tonumber(stored_timestamps[i]) < current_timestamps[i] then
-          info("Timestamp as changed, rebuilding %s ~= %s ...", current_timestamps[i], tonumber(stored_timestamps[i]))
+          info("Timestamp has changed for %s, rebuilding %s ~= %s ...", 
+            source_files[i],
+            current_timestamps[i], 
+            tonumber(stored_timestamps[i])
+          )
           -- File has changed; re-build necessary
           return true
       end
@@ -64,13 +111,21 @@ function detect_rebuld_state(target)
   return false
 end
 
-function rebuild_quard(target, cbDo, cbNot) 
+function rebuild_guard(target, cbDo, cbNot, opts) 
   if detect_rebuld_state(target) then
+    if not opts or opts["log"] then
+      info("Detected changes in '%s', re-running ...", target:name())
+    end
     cbDo(target)
-  elseif cbNot then
-    cbNot(target)
+    finalize_rebuild_state(target)
+  else
+    if not opts or opts["log"] then
+      info("No changes detected for '%s', skipping.", target:name())
+    end
+    if cbNot then
+      cbNot(target)
+    end
   end
-  finalize_rebuild_state(target)
 end
 
 function finalize_rebuild_state(target)
@@ -82,8 +137,9 @@ function finalize_rebuild_state(target)
       table.insert(timestamps, get_timestamp(source_file))
   end
 
-  local stored_timestamps_file = path.join(config.buildir(), "timestamps.txt")
+  local stored_timestamps_file = get_target_timestamps(target)
   write_timestamps(stored_timestamps_file, table.unpack(timestamps))
+  info("Updated rebuild timestamps for '%s' to '%s'", target:name(), stored_timestamps_file)
 end
 
 function tuple_iter(tuples)
@@ -96,11 +152,15 @@ function tuple_iter(tuples)
   end
 end
 
-function def_option(name, doc, default)
-  option(name)
-    set_description(doc)
-    set_default(default)
-  option_end()
+function split(inputstr, sep)
+  if sep == nil then
+      sep = "%s" -- default to splitting on spaces
+  end
+  local t = {}
+  for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
+      table.insert(t, str)
+  end
+  return t
 end
 
 
@@ -118,4 +178,15 @@ function list_map(tbl, f)
       table.insert(t, f(v))
   end
   return t
+end
+
+
+function maybe_try(command, except, finally, doWrap) 
+  if doWrap then
+    return try({command, except, finally})
+  else
+    local result = command()
+    if finally then finally() end
+    return result
+  end
 end

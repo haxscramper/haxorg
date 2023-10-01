@@ -217,7 +217,7 @@ void ExporterHtml::visitDocument(Res& res, In<sem::Document> doc) {
     b.add_at(res, string(R"(<article class="content">)"));
 
     for (const auto& item : doc->subnodes) {
-        b.add_at(res, visit(item));
+        b.add_at(res, eval(item));
     }
 
     b.add_at(res, string("</article>"));
@@ -232,7 +232,7 @@ void ExporterHtml::visitDocument(Res& res, In<sem::Document> doc) {
 void ExporterHtml::visitSubtree(Res& res, In<sem::Subtree> tree) {
     res = b.stack({
         string("<section id=\"" + QString::number(tree.id) + "\">"),
-        lineWrap("h" + QString::number(tree->level), {visit(tree->title)}),
+        lineWrap("h" + QString::number(tree->level), {eval(tree->title)}),
         stackSubnodes(tree),
         string("</section>"),
     });

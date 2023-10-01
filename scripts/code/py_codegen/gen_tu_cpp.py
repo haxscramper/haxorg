@@ -41,6 +41,7 @@ class GenTuEnum:
     doc: GenTuDoc
     fields: List[GenTuEnumField]
     base: Optional[str] = "short int"
+    refl: bool = False
 
 
 @beartype
@@ -228,7 +229,7 @@ class GenConverter:
                         Params=self.convertFunction(method),
                         isStatic=method.isStatic,
                         isConst=method.isConst,
-                        isVirtual=method.isVirtual,
+                        isVirtual=method.isVirtual
                     ))
 
             extraFields = []

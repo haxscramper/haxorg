@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-
 // Fully qualified C++ type that is designed to uniquely identify the target
 // within a single translation unit. More complex cases are not considered
 // (duplicate type names in different files, across different projects)
@@ -35,6 +34,7 @@ message Enum {
     repeated Field Fields = 1;
     string Name = 2;
     QualType Base = 3;
+    string Doc = 4;
 }
 
 
@@ -53,6 +53,7 @@ message Arg {
     QualType Type = 1;
     string Name = 2;
     Expr Default = 3;
+    string Doc = 4;
 }
 
 
@@ -68,6 +69,7 @@ message Record {
     message Field {
         string Name = 1;
         QualType Type = 2;
+        string Doc = 3;
     }
 
     enum MethodKind {
@@ -90,7 +92,10 @@ message Record {
         bool IsVirtual = 6 ;
         bool IsPureVirtual = 7;
         bool IsImplicit = 8;
-        MethodKind Kind = 9;
+        bool IsOperator = 9;
+        MethodKind Kind = 10;
+        string Doc = 11;
+        string OperatorName = 12;
     }
 
     string Name = 1;
@@ -99,8 +104,11 @@ message Record {
     repeated Method Methods = 4;
     repeated Record NestedRec = 5;
     repeated Enum NestedEnum = 6;
+    string Doc = 7;
 }
 
 message TU {
     repeated Record records = 1;
+    repeated Enum enums = 2;
+    string Doc = 3;
 }

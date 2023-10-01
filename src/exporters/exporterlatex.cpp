@@ -583,14 +583,14 @@ void ExporterLatex::visitBigIdent(Res& res, In<sem::BigIdent> item) {
 
 void ExporterLatex::visitFootnote(Res& res, In<sem::Footnote> footnote) {
     if (footnote->tag.empty() && footnote->definition.has_value()) {
-        res = command("footnote", {visit(footnote->definition.value())});
+        res = command("footnote", {eval(footnote->definition.value())});
     } else {
         res = string("");
     }
 }
 
 
-ExporterLatex::Res ExporterLatex::visit(SemId org) {
+ExporterLatex::Res ExporterLatex::eval(SemId org) {
     __visit_eval_scope(org);
     Res tmp = Res::Nil();
     visit(tmp, org);
@@ -783,7 +783,7 @@ void ExporterLatex::visitDocument(Res& res, In<Document> value) {
     }
 
     for (const auto& it : value->subnodes) {
-        b.add_at(res, visit(it));
+        b.add_at(res, eval(it));
     }
     b.add_at(res, command("end", {"document"}));
 }
@@ -796,7 +796,7 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
     for (const auto& item : tree->title->subnodes) {
         switch (item->getKind()) {
 #define _direct(__Kind)                                                   \
-    case osk::__Kind: b.add_at(titleText, visit(item)); break;
+    case osk::__Kind: b.add_at(titleText, eval(item)); break;
             EACH_SEM_ORG_LEAF_KIND(_direct)
 #undef _direct
 
@@ -805,7 +805,7 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
                     titleText,
                     command(
                         "texorpdfstring",
-                        {visit(item),
+                        {eval(item),
                          // FIXME latex exporter is broken because of sem
                          // ID overloads, need to be fixed to get the right
                          // output here.
@@ -840,7 +840,7 @@ void ExporterLatex::visitSubtree(Res& res, In<Subtree> tree) {
     }
 
     for (const auto& it : tree->subnodes) {
-        b.add_at(res, visit(it));
+        b.add_at(res, eval(it));
     }
 }
 
@@ -851,7 +851,7 @@ void ExporterLatex::visitParagraph(Res& res, In<Paragraph> par) {
         if (i == 0 && par->isFootnoteDefinition()) {
             continue;
         } else {
-            b.add_at(res, visit(par->subnodes.at(i)));
+            b.add_at(res, eval(par->subnodes.at(i)));
         }
     }
 
@@ -886,7 +886,7 @@ void ExporterLatex::visitTime(Res& res, In<Time> time) {
 }
 
 void ExporterLatex::visitTimeRange(Res& res, In<sem::TimeRange> range) {
-    res = b.line({visit(range->from), string("--"), visit(range->to)});
+    res = b.line({eval(range->from), string("--"), eval(range->to)});
 }
 
 void ExporterLatex::visitBold(Res& res, In<sem::Bold> bold) {
@@ -910,7 +910,7 @@ void ExporterLatex::visitSymbol(Res& res, In<sem::Symbol> sym) {
                 && sub.as<sem::Punctuation>()->text == "\"") {
                 continue;
             } else {
-                items.push_back(visit(sub));
+                items.push_back(eval(sub));
             }
         }
 
@@ -922,7 +922,7 @@ void ExporterLatex::visitSymbol(Res& res, In<sem::Symbol> sym) {
         Vec<Res> positional;
 
         for (auto const& arg : sym->positional) {
-            positional.push_back(visit(arg));
+            positional.push_back(eval(arg));
         }
 
         res = command(sym->name, positional);
@@ -933,7 +933,7 @@ void ExporterLatex::visitCenter(Res& res, In<sem::Center> center) {
     res = b.stack();
     b.add_at(res, command("begin", {"center"}));
     for (auto const& sub : center->subnodes) {
-        b.add_at(res, visit(sub));
+        b.add_at(res, eval(sub));
     }
     b.add_at(res, command("end", {"center"}));
 }
@@ -985,12 +985,12 @@ void ExporterLatex::visitLink(Res& res, In<sem::Link> link) {
                         + target.value().getReadableId())})});
 
                 if (link->description) {
-                    b.add_at(res, visit(link->description.value()));
+                    b.add_at(res, eval(link->description.value()));
                 }
 
             } else {
                 if (link->description) {
-                    res = visit(link->description.value());
+                    res = eval(link->description.value());
                 } else {
                     res = string("UNRESOLVED LINK");
                 }
@@ -1020,7 +1020,7 @@ void ExporterLatex::visitLink(Res& res, In<sem::Link> link) {
             res = command(
                 "href",
                 {string(link->getRaw().text)},
-                {link->description ? visit(link->description.value())
+                {link->description ? eval(link->description.value())
                                    : string("link")});
             res = string("href");
             break;
@@ -1042,7 +1042,7 @@ void ExporterLatex::visitList(Res& res, In<sem::List> list) {
 void ExporterLatex::visitListItem(Res& res, In<sem::ListItem> item) {
     res = b.line();
     if (item->isDescriptionItem()) {
-        b.add_at(res, command("item", {visit(item->header.value())}));
+        b.add_at(res, command("item", {eval(item->header.value())}));
     } else {
         b.add_at(res, command("item"));
     }

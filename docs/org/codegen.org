@@ -12,7 +12,7 @@ serialization.   All    the   defined   record   types    are   placed   in
 ~sem/SemOrgTypes.hpp~ and  are committed  to the  repository, but  they are
 actually  automatically  generated  based  on  the  data  provided  in  the
 ~scripts/code/org_codegen_data.py~ the  file itself is nothing  more than a
-huge hardcoded  object literal  that is  imported by  the ~test_codegen.py~
+huge hardcoded  object literal  that is  imported by  the ~codegen.py~
 script.
 
 Code  generation pipeline  starts at  the  codegen data  which is  directly
