@@ -1672,6 +1672,27 @@ return state.)RAW")
          &ExporterPython::setNewLeafRes,
          pybind11::arg("kind"),
          pybind11::arg("cb"))
+    .def("setPushVisitAnyId",
+         &ExporterPython::setPushVisitAnyId,
+         pybind11::arg("cb"))
+    .def("setPopVisitAnyId",
+         &ExporterPython::setPopVisitAnyId,
+         pybind11::arg("cb"))
+    .def("setPushVisitId",
+         &ExporterPython::setPushVisitId,
+         pybind11::arg("kind"),
+         pybind11::arg("cb"))
+    .def("setPopVisitIdCb",
+         &ExporterPython::setPopVisitIdCb,
+         pybind11::arg("kind"),
+         pybind11::arg("cb"))
+    .def("setVisitAnyHookCb",
+         &ExporterPython::setVisitAnyHookCb,
+         pybind11::arg("cb"))
+    .def("setVisitIdHook",
+         &ExporterPython::setVisitIdHook,
+         pybind11::arg("kind"),
+         pybind11::arg("cb"))
     .def("evalTop",
          &ExporterPython::evalTop,
          pybind11::arg("org"))

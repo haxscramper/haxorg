@@ -269,6 +269,30 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         newLeafResCb[kind] = cb;
     }
 
+    Opt<PyFunc>   pushVisitAnyIdCb;
+    [[refl]] void setPushVisitAnyId(PyFunc cb) { pushVisitAnyIdCb = cb; }
+
+    Opt<PyFunc>   popVisitAnyIdCb;
+    [[refl]] void setPopVisitAnyId(PyFunc cb) { popVisitAnyIdCb = cb; }
+
+    SemCbMap      pushVisitIdCb;
+    [[refl]] void setPushVisitId(OrgSemKind kind, PyFunc cb) {
+        pushVisitIdCb[kind] = cb;
+    }
+
+    SemCbMap      popVisitIdCb;
+    [[refl]] void setPopVisitIdCb(OrgSemKind kind, PyFunc cb) {
+        popVisitIdCb[kind] = cb;
+    }
+
+    Opt<PyFunc>   visitAnyHookCb;
+    [[refl]] void setVisitAnyHookCb(PyFunc cb) { visitAnyHookCb = cb; }
+
+    SemCbMap      visitIdHookCb;
+    [[refl]] void setVisitIdHook(OrgSemKind kind, PyFunc cb) {
+        visitIdHookCb[kind] = cb;
+    }
+
     Res newRes(sem::SemId const& node) {
         if (newOrgResCb.contains(node->getKind())) {
             return newOrgResCb.at(node->getKind())(_self, node);

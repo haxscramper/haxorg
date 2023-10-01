@@ -8,7 +8,7 @@ find_package(pybind11 CONFIG)
 add_custom_command(
   OUTPUT "${CMAKE_BINARY_DIR}/binary.stamp"
   COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/binary.stamp"
-  DEPENDS "${BASE}/scripts/code/lib/libreflection_plugin.so"
+  DEPENDS "${BASE}/build/utils/libreflection_plugin.so"
   COMMENT "Checking if external binary has changed in ${CMAKE_BINARY_DIR}/binary.stamp ..."
 )
 
@@ -20,7 +20,7 @@ add_custom_target(check_plugin ALL
 set(PLUGIN_FLAGS_LIST
     "-Xclang" "-add-plugin"
     "-Xclang" "refl-plugin"
-    "-fplugin=${BASE}/scripts/code/lib/libreflection_plugin.so"
+    "-fplugin=${BASE}/build/utils/libreflection_plugin.so"
    " -Xclang" "-plugin-arg-refl-plugin" "-Xclang" "out=/tmp/result.pb"
 )
 
