@@ -1660,6 +1660,9 @@ return state.)RAW")
          &ExporterPython::setNewLeafRes,
          pybind11::arg("kind"),
          pybind11::arg("cb"))
+    .def("evalTop",
+         &ExporterPython::evalTop,
+         pybind11::arg("org"))
     ;
   pybind11::enum_<LeafFieldType>(m, "LeafFieldType")
     .value("Int", LeafFieldType::Int)

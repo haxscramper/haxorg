@@ -34,3 +34,14 @@ assert ctx.getNode().getKind() == pyhaxorg.OrgSemKind.Document
 assert ctx.getNode()[0].getKind() == pyhaxorg.OrgSemKind.Paragraph
 assert ctx.getNode()[0][0].getKind() == pyhaxorg.OrgSemKind.Bold
 assert ctx.getNode()[0][0][0].getKind() == pyhaxorg.OrgSemKind.Word
+
+
+class Wrap:
+    def __init__(self) -> None:
+        self.exp = pyhaxorg.ExporterPython()
+        self.res = ""
+        self.exp.setSelf(self)
+
+wrap = Wrap()
+
+print(wrap.exp.evalTop(ctx.getNode()))

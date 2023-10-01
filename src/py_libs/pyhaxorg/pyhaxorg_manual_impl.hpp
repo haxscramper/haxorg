@@ -373,7 +373,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
 
     void visitField(Res& res, char const* name, sem::SemId value);
 
-    Res evalTop(sem::SemId org);
+    [[refl]] Res evalTop(sem::SemId org);
 };
 
 void init_py_manual_api(py::module& m);
