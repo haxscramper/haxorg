@@ -7,6 +7,10 @@
 
 #include <memory>
 
+#include <exporters/Exporter.cpp>
+
+template class Exporter<ExporterPython, py::object>;
+
 QTextStream qcout;
 
 OrgExporterJson::OrgExporterJson() {
@@ -116,7 +120,7 @@ OrgIdVariant castAs(sem::SemId id) {
 
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
-        return id.as<sem::__Kind>();                                     \
+        return id.as<sem::__Kind>();                                      \
     }
         EACH_SEM_ORG_KIND(_case)
 #undef _case
@@ -138,4 +142,64 @@ void init_py_manual_api(pybind11::module& m) {
         });
 
     ;
+}
+
+void ExporterPython::visitDispatch(Res& res, sem::SemId arg) {
+    __visit_scope(
+        VisitEvent::Kind::VisitDispatch,
+        .visitedValue = &res,
+        .visitedNode  = arg);
+
+    if (arg.isNil()) {
+        return;
+    }
+
+    auto kind = arg->getKind();
+    switch (kind) {
+#define __case(__Kind)                                                    \
+    case OrgSemKind::__Kind: {                                            \
+        In<sem::__Kind> tmp = arg.as<sem::__Kind>();                      \
+        _this()->pushVisit(res, tmp);                                     \
+        _this()->visitDispatchHook(res, arg);                             \
+        _this()->visitOrgNodeIn(res, tmp);                                \
+        _this()->popVisit(res, tmp);                                      \
+        break;                                                            \
+    }
+
+
+        EACH_SEM_ORG_KIND(__case)
+
+#undef __case
+    }
+}
+
+void ExporterPython::visitField(
+    Res&        res,
+    const char* name,
+    sem::SemId  value) {
+    switch (value->getKind()) {
+#define __case(__Kind)                                                    \
+    case OrgSemKind::__Kind: {                                            \
+        In<sem::__Kind> tmp = value.as<sem::__Kind>();                    \
+        visitOrgField(res, name, tmp);                                    \
+        break;                                                            \
+    }
+
+        EACH_SEM_ORG_KIND(__case)
+
+#undef __case
+    }
+}
+
+ExporterPython::Res ExporterPython::evalTop(sem::SemId org) {
+    __visit_scope(VisitEvent::Kind::VisitTop, .visitedNode = org);
+    if (evalTopCb) {
+        return evalTopCb->operator()(_self, org);
+    } else {
+        _this()->visitStart(org);
+        Res tmp = _this()->newRes(org);
+        _this()->visit(tmp, org);
+        _this()->visitEnd(org);
+        return tmp;
+    }
 }

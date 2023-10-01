@@ -10,6 +10,7 @@
 #include <parse/OrgParser.hpp>
 #include <parse/OrgTokenizer.hpp>
 #include <parse/OrgTypes.hpp>
+#include <exporters/Exporter.hpp>
 
 #include <py_type_casters.hpp>
 
@@ -133,6 +134,246 @@ struct [[refl]] OrgContext {
 
 
     [[refl]] sem::SemIdT<sem::Document> getNode() { return node; }
+};
+
+
+enum class [[refl]] LeafFieldType
+{
+    Int,
+    UserTimeKind,
+    QDate,
+    Bool,
+    FixedIdVec,
+    TopIdVec,
+    QDateTime,
+    Str,
+    Any
+};
+
+template <typename T>
+struct LeafKindForT;
+
+template <typename T, LeafFieldType kind>
+struct LeafKindForBase {
+    static const LeafFieldType value = kind;
+};
+
+template <>
+struct LeafKindForT<int> : LeafKindForBase<int, LeafFieldType::Int> {};
+
+template <>
+struct LeafKindForT<UserTime::Kind>
+    : LeafKindForBase<UserTime::Kind, LeafFieldType::UserTimeKind> {};
+
+template <>
+struct LeafKindForT<QDate>
+    : LeafKindForBase<QDate, LeafFieldType::QDate> {};
+
+template <>
+struct LeafKindForT<QDateTime>
+    : LeafKindForBase<QDateTime, LeafFieldType::QDateTime> {};
+
+template <>
+struct LeafKindForT<Str> : LeafKindForBase<Str, LeafFieldType::Str> {};
+
+template <>
+struct LeafKindForT<bool> : LeafKindForBase<bool, LeafFieldType::Bool> {};
+
+template <>
+struct LeafKindForT<Vec<sem::SemId>>
+    : LeafKindForBase<Vec<sem::SemId>, LeafFieldType::TopIdVec> {};
+
+template <sem::IsOrg T>
+struct LeafKindForT<Vec<sem::SemIdT<T>>>
+    : LeafKindForBase<Vec<sem::SemIdT<T>>, LeafFieldType::FixedIdVec> {};
+
+template <typename T>
+struct LeafKindForT : LeafKindForBase<T, LeafFieldType::Any> {};
+
+struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
+    using Base = Exporter<ExporterPython, py::object>;
+#define __ExporterBase Base
+    EXPORTER_USING()
+#undef __ExporterBase
+
+    using PyFunc     = py::function;
+    using Res        = py::object;
+    using SemCbMap   = UnorderedMap<OrgSemKind, PyFunc>;
+    using FieldCbMap = UnorderedMap<LeafFieldType, PyFunc>;
+
+    Opt<PyFunc> visitAnyNodeAround;
+    Opt<PyFunc> visitAnyNodeIn;
+    Opt<PyFunc> visitAnyField;
+
+    Opt<PyFunc> evalTopCb;
+
+    SemCbMap      visitIdAroundCb;
+    [[refl]] void setVisitIdAround(OrgSemKind kind, PyFunc cb) {
+        visitIdAroundCb[kind] = cb;
+    }
+
+    SemCbMap      evalIdAroundCb;
+    [[refl]] void setEvalIdAround(OrgSemKind kind, PyFunc cb) {
+        evalIdAroundCb[kind] = cb;
+    }
+
+    SemCbMap      visitIdInCb;
+    [[refl]] void setVisitIdInCb(OrgSemKind kind, PyFunc cb) {
+        visitIdInCb[kind] = cb;
+    }
+
+    SemCbMap      evalIdInCb;
+    [[refl]] void setEvalIdIn(OrgSemKind kind, PyFunc cb) {
+        evalIdInCb[kind] = cb;
+    }
+
+    FieldCbMap    visitLeafFieldCb;
+    [[refl]] void setVisitLeafField(LeafFieldType kind, PyFunc cb) {
+        visitLeafFieldCb[kind] = cb;
+    }
+
+    FieldCbMap    evalLeafFieldCb;
+    [[refl]] void setEvalLeafField(LeafFieldType kind, PyFunc cb) {
+        evalLeafFieldCb[kind] = cb;
+    }
+
+    SemCbMap      visitOrgFieldCb;
+    [[refl]] void setVisitOrgField(OrgSemKind kind, PyFunc cb) {
+        visitOrgFieldCb[kind] = cb;
+    }
+
+    SemCbMap      evalOrgFieldCb;
+    [[refl]] void setEvalOrgField(OrgSemKind kind, PyFunc cb) {
+        evalOrgFieldCb[kind] = cb;
+    }
+
+    py::object    _self;
+    [[refl]] void setSelf(py::object val) { _self = val; }
+
+
+    SemCbMap      newOrgResCb;
+    [[refl]] void setNewOrgRes(OrgSemKind kind, PyFunc cb) {
+        newOrgResCb[kind] = cb;
+    }
+
+    FieldCbMap    newLeafResCb;
+    [[refl]] void setNewLeafRes(LeafFieldType kind, PyFunc cb) {
+        newLeafResCb[kind] = cb;
+    }
+
+    Res newRes(sem::SemId const& node) {
+        if (newOrgResCb.contains(node->getKind())) {
+            return newOrgResCb.at(node->getKind())(_self, node);
+        } else {
+            return py::object();
+        }
+    }
+
+    template <sem::IsOrg T>
+    Res newRes(sem::SemIdT<T> const& node) {
+        if (newOrgResCb.contains(T::staticKind)) {
+            return newOrgResCb.at(T::staticKind)(_self, node);
+        } else {
+            return py::object();
+        }
+    }
+
+    template <sem::NotOrg T>
+    Res newRes(T const& node) {
+        if (newLeafResCb.contains(LeafKindForT<T>::value)) {
+            return newLeafResCb.at(LeafKindForT<T>::value)(_self, node);
+        } else {
+            return py::object();
+        }
+    }
+
+    template <sem::IsOrg T>
+    void visitOrgNodeAround(Res& res, sem::SemIdT<T> node) {
+        OrgSemKind kind = T::staticKind;
+        if (visitAnyNodeAround) {
+            visitAnyNodeAround->operator()(_self, res, node);
+        } else if (visitIdAroundCb.contains(kind)) {
+            visitIdAroundCb.at(kind)(_self, res, node);
+        } else if (evalIdAroundCb.contains(kind)) {
+            res = evalIdAroundCb.at(kind)(_self, node);
+        } else {
+            _this()->visitDispatch(res, node);
+        }
+    }
+
+    void visitDispatch(Res& res, sem::SemId arg);
+
+    template <sem::IsOrg T>
+    void visitOrgNodeIn(Res& res, sem::SemIdT<T> node) {
+        OrgSemKind kind = T::staticKind;
+        if (visitAnyNodeIn) {
+            visitAnyNodeIn->operator()(_self, res, node);
+        } else if (visitIdInCb.contains(kind)) {
+            visitIdInCb.at(kind)(_self, res, node);
+        } else if (evalIdInCb.contains(kind)) {
+            res = evalIdInCb.at(kind)(_self, node);
+        } else {
+            switch (kind) {
+#define __case(__Kind)                                                    \
+    case OrgSemKind::__Kind: {                                            \
+        _this()->visit##__Kind(res, node);                                \
+        break;                                                            \
+    }
+
+                EACH_SEM_ORG_KIND(__case)
+
+#undef __case
+            }
+        }
+    }
+
+    template <sem::IsOrg T>
+    void visitOrgField(
+        Res&                  res,
+        const char*           name,
+        sem::SemIdT<T> const& value) {
+        OrgSemKind kind = T::staticKind;
+        if (visitAnyField) {
+            visitAnyField->operator()(_self, res, name, value);
+        } else if (visitOrgFieldCb.contains(kind)) {
+            visitOrgFieldCb.at(kind)(_self, res, name, value);
+        } else if (evalOrgFieldCb.contains(kind)) {
+            res = evalOrgFieldCb.at(kind)(_self, name, value);
+        } else {
+            visit(res, value);
+        }
+    }
+
+    template <sem::NotOrg T>
+    void visitOrgField(Res& res, const char* name, T const& value) {
+        LeafFieldType kind = LeafKindForT<T>::value;
+        if (visitAnyField) {
+            visitAnyField->operator()(_self, res, name, value);
+        } else if (visitLeafFieldCb.contains(kind)) {
+            visitLeafFieldCb.at(kind)(_self, res, name, value);
+        } else if (evalLeafFieldCb.contains(kind)) {
+            res = evalLeafFieldCb.at(kind)(_self, name, value);
+        }
+    }
+
+    template <sem::IsOrg T>
+    void visit(Res& res, sem::SemIdT<T> node) {
+        visitOrgNodeAround(res, node);
+    }
+
+    template <sem::IsOrg T>
+    void visitField(Res& res, char const* name, sem::SemIdT<T> value) {
+        visitOrgField(res, name, value);
+    }
+
+    template <sem::NotOrg T>
+    void visitField(Res& res, char const* name, T const& value) {
+        visitOrgField(res, name, value);
+    }
+
+    void visitField(Res& res, char const* name, sem::SemId value);
+
+    Res evalTop(sem::SemId org);
 };
 
 void init_py_manual_api(py::module& m);
