@@ -322,7 +322,9 @@ meta_target("cmake_haxorg", "Compile libraries and binaries for haxorg", {}, fun
     local dbg = true
     os.execv("cmake", {
       "--build",
-      path.join(os.scriptdir(), "build/haxorg_" .. (dbg and "debug" or "release"))
+      path.join(os.scriptdir(), "build/haxorg_" .. (dbg and "debug" or "release")), {
+        ENVS = { NINJA_FORCE_COLOR = "1" }
+      }
     })
   end)
 end)
@@ -332,6 +334,6 @@ meta_target("test_python", "Execute python tests", {}, function()
   add_deps("cmake_haxorg")
   add_rules("dummy")
   on_run(function(target)
-    os.execv("poetry", {"run", "pytest"})
+    os.execv("poetry", {"run", "pytest", "-s"})
   end)
 end)

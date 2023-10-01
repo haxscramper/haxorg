@@ -1617,6 +1617,18 @@ return state.)RAW")
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init<>())
+    .def("setVisitAnyIdAround",
+         &ExporterPython::setVisitAnyIdAround,
+         pybind11::arg("cb"))
+    .def("setVisitAnyIdIn",
+         &ExporterPython::setVisitAnyIdIn,
+         pybind11::arg("cb"))
+    .def("setVisitAnyField",
+         &ExporterPython::setVisitAnyField,
+         pybind11::arg("cb"))
+    .def("setEvalTopCb",
+         &ExporterPython::setEvalTopCb,
+         pybind11::arg("cb"))
     .def("setVisitIdAround",
          &ExporterPython::setVisitIdAround,
          pybind11::arg("kind"),

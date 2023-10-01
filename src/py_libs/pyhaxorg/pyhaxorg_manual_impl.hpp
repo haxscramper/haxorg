@@ -201,11 +201,19 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     using SemCbMap   = UnorderedMap<OrgSemKind, PyFunc>;
     using FieldCbMap = UnorderedMap<LeafFieldType, PyFunc>;
 
-    Opt<PyFunc> visitAnyNodeAround;
-    Opt<PyFunc> visitAnyNodeIn;
-    Opt<PyFunc> visitAnyField;
+    Opt<PyFunc>   visitAnyNodeAround;
+    [[refl]] void setVisitAnyIdAround(PyFunc cb) {
+        visitAnyNodeAround = cb;
+    }
 
-    Opt<PyFunc> evalTopCb;
+    Opt<PyFunc>   visitAnyNodeIn;
+    [[refl]] void setVisitAnyIdIn(PyFunc cb) { visitAnyNodeIn = cb; }
+
+    Opt<PyFunc>   visitAnyField;
+    [[refl]] void setVisitAnyField(PyFunc cb) { visitAnyField = cb; }
+
+    Opt<PyFunc>   evalTopCb;
+    [[refl]] void setEvalTopCb(PyFunc cb) { evalTopCb = cb; }
 
     SemCbMap      visitIdAroundCb;
     [[refl]] void setVisitIdAround(OrgSemKind kind, PyFunc cb) {
@@ -265,7 +273,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         if (newOrgResCb.contains(node->getKind())) {
             return newOrgResCb.at(node->getKind())(_self, node);
         } else {
-            return py::object();
+            return py::none();
         }
     }
 
@@ -274,7 +282,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         if (newOrgResCb.contains(T::staticKind)) {
             return newOrgResCb.at(T::staticKind)(_self, node);
         } else {
-            return py::object();
+            return py::none();
         }
     }
 
@@ -283,7 +291,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         if (newLeafResCb.contains(LeafKindForT<T>::value)) {
             return newLeafResCb.at(LeafKindForT<T>::value)(_self, node);
         } else {
-            return py::object();
+            return py::none();
         }
     }
 
