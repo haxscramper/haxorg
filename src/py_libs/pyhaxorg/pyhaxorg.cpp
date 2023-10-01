@@ -1615,4 +1615,62 @@ return state.)RAW")
     .def("getNode",
          &OrgContext::getNode)
     ;
+  pybind11::class_<ExporterPython>(m, "ExporterPython")
+    .def(pybind11::init<>())
+    .def("setVisitIdAround",
+         &ExporterPython::setVisitIdAround,
+         pybind11::arg("kind"),
+         pybind11::arg("cb"))
+    .def("setEvalIdAround",
+         &ExporterPython::setEvalIdAround,
+         pybind11::arg("kind"),
+         pybind11::arg("cb"))
+    .def("setVisitIdInCb",
+         &ExporterPython::setVisitIdInCb,
+         pybind11::arg("kind"),
+         pybind11::arg("cb"))
+    .def("setEvalIdIn",
+         &ExporterPython::setEvalIdIn,
+         pybind11::arg("kind"),
+         pybind11::arg("cb"))
+    .def("setVisitLeafField",
+         &ExporterPython::setVisitLeafField,
+         pybind11::arg("kind"),
+         pybind11::arg("cb"))
+    .def("setEvalLeafField",
+         &ExporterPython::setEvalLeafField,
+         pybind11::arg("kind"),
+         pybind11::arg("cb"))
+    .def("setVisitOrgField",
+         &ExporterPython::setVisitOrgField,
+         pybind11::arg("kind"),
+         pybind11::arg("cb"))
+    .def("setEvalOrgField",
+         &ExporterPython::setEvalOrgField,
+         pybind11::arg("kind"),
+         pybind11::arg("cb"))
+    .def("setSelf",
+         &ExporterPython::setSelf,
+         pybind11::arg("val"))
+    .def("setNewOrgRes",
+         &ExporterPython::setNewOrgRes,
+         pybind11::arg("kind"),
+         pybind11::arg("cb"))
+    .def("setNewLeafRes",
+         &ExporterPython::setNewLeafRes,
+         pybind11::arg("kind"),
+         pybind11::arg("cb"))
+    ;
+  pybind11::enum_<LeafFieldType>(m, "LeafFieldType")
+    .value("Int", LeafFieldType::Int)
+    .value("UserTimeKind", LeafFieldType::UserTimeKind)
+    .value("QDate", LeafFieldType::QDate)
+    .value("Bool", LeafFieldType::Bool)
+    .value("FixedIdVec", LeafFieldType::FixedIdVec)
+    .value("TopIdVec", LeafFieldType::TopIdVec)
+    .value("QDateTime", LeafFieldType::QDateTime)
+    .value("Str", LeafFieldType::Str)
+    .value("Any", LeafFieldType::Any)
+    .export_values()
+    ;
 }

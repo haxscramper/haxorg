@@ -103,8 +103,8 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
     void fillMethodDecl(Record::Method* sub, clang::CXXMethodDecl* method);
 
-
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration);
+    bool VisitEnumDecl(clang::EnumDecl* Decl);
     bool isRefl(clang::Decl* Decl);
     std::optional<std::string> getDoc(const clang::Decl* Decl);
 

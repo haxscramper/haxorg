@@ -109,5 +109,6 @@ message Record {
 
 message TU {
     repeated Record records = 1;
-    string Doc = 2;
+    repeated Enum enums = 2;
+    string Doc = 3;
 }

@@ -76,6 +76,9 @@ void ReflASTVisitor::fillType(
     } else if (In->isRecordType()) {
         Out->set_name(
             In->getAs<clang::RecordType>()->getDecl()->getNameAsString());
+    } else if (In->isEnumeralType()) {
+        Out->set_name(
+            In->getAs<clang::EnumType>()->getDecl()->getNameAsString());
     } else {
         Diag(
             DiagKind::Warning,
@@ -84,7 +87,8 @@ void ReflASTVisitor::fillType(
             << In << dump(In);
     }
 
-
+    // TODO unwrap all typedefs
+    // TODO get declaration location scope with all namespaces
     if (const auto* TST = llvm::dyn_cast<
             clang::TemplateSpecializationType>(In.getTypePtr())) {
         for (clang::TemplateArgument const& Arg :
@@ -269,6 +273,25 @@ bool ReflASTVisitor::VisitCXXRecordDecl(
         }
     }
 
+
+    return true;
+}
+
+bool ReflASTVisitor::VisitEnumDecl(clang::EnumDecl* Decl) {
+    if (isRefl(Decl)) {
+        Diag(
+            DiagKind::Note,
+            "Adding serialization information for %0",
+            Decl->getLocation())
+            << Decl;
+        Enum* rec = out->add_enums();
+        rec->set_name(Decl->getNameAsString());
+
+        for (clang::EnumConstantDecl* field : Decl->enumerators()) {
+            Enum_Field* sub = rec->add_fields();
+            sub->set_name(field->getNameAsString());
+        }
+    }
 
     return true;
 }

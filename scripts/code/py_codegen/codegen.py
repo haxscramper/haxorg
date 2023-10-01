@@ -295,22 +295,26 @@ def id_self(Typ: QualType) -> ParmVarParams:
 def py_type(Typ: QualType) -> pya.PyType:
 
     name = ""
-    match Typ.name:
-        case "Vec":
+    flat = [N for N in flat_scope(Typ) if N != "sem"]
+    match flat:
+        case ["Vec"]:
             name = "List"
-        case "Opt":
+        case ["Opt"]:
             name = "Optional"
-        case "Str" | "string" | "QString" | "basic_string":
+        case ["Str"] | ["string"] | ["QString"] | ["basic_string"]:
             name = "str"
 
-        case "SemIdT":
+        case ["SemIdT"]:
             name = "Sem" + Typ.Parameters[0].name
 
-        case "void":
+        case ["void"]:
             name = "None"
 
+        case ["py", "object"]:
+            name = "object"
+
         case _:
-            name = "".join([N for N in flat_scope(Typ) if N != "sem"])
+            name = "".join(flat)
 
     res = pya.PyType(name)
     if Typ.name not in ["SemIdT"]:
@@ -690,7 +694,7 @@ def get_space_annotated_types() -> Sequence[GenTuStruct]:
 
 
 @beartype
-def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Py11Module:
+def get_bind_methods(ast: ASTBuilder) -> Py11Module:
     res = Py11Module("pyhaxorg")
     b: TextLayout = ast.b
 
@@ -741,9 +745,6 @@ def get_bind_methods(ast: ASTBuilder, reflect_structs: List[GenTuStruct]) -> Py1
 
     for item in get_enums() + [get_osk_enum()]:
         res.Decls.append(Py11Enum.FromGenTu(item, []))
-
-    for item in reflect_structs:
-        res.Decls.append(pybind_nested_type(item, []))
 
     return res
 
@@ -843,10 +844,13 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
 
     return result
 
-
 @beartype
-def conv_proto_unit(unit: pb.TU) -> Sequence[GenTuStruct]:
-    return [conv_proto_record(rec) for rec in unit.records]
+def conv_proto_enum(en: pb.Enum) -> GenTuEnum:
+    result = GenTuEnum(en.name, GenTuDoc(""), [])
+    for field in en.fields:
+        result.fields.append(GenTuEnumField(field.name, GenTuDoc("")))
+        
+    return result
 
 
 def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:
@@ -861,16 +865,26 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     with open("/tmp/reflection-structs.py", "w") as file:
         pprint(unit, width=200, stream=file)
 
-    gen_structs: List[GenTuStruct] = conv_proto_unit(unit)
+    gen_structs: List[GenTuStruct] = [conv_proto_record(rec) for rec in unit.records]
+    gen_enums: List[GenTuEnum] = [conv_proto_enum(rec) for rec in unit.enums]
 
     with open("/tmp/reflection_data.py", "w") as file:
         pprint(gen_structs, width=200, stream=file)
+        pprint(gen_enums, width=200, stream=file)
+
+    autogen_structs = get_bind_methods(ast)
+
+    for item in gen_structs:
+        autogen_structs.Decls.append(pybind_nested_type(item, []))
+
+    for item in gen_enums:
+        autogen_structs.Decls.append(Py11Enum.FromGenTu(item, []))
 
     return GenFiles([
         GenUnit(
             GenTu(
                 "{root}/tests/python/pyhaxorg.pyi",
-                [GenTuPass(get_bind_methods(ast, gen_structs).build_typedef(pyast))],
+                [GenTuPass(autogen_structs.build_typedef(pyast))],
             )),
         GenUnit(
             GenTu(
@@ -893,7 +907,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                     GenTuInclude("pybind11/pybind11.h", True),
                     GenTuInclude("sem/SemOrg.hpp", True),
                     GenTuInclude("pybind11/stl.h", True),
-                    GenTuPass(get_bind_methods(ast, gen_structs).build_bind(ast)),
+                    GenTuPass(autogen_structs.build_bind(ast)),
                 ],
             )),
         GenUnit(
