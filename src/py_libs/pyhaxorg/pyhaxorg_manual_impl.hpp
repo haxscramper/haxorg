@@ -429,6 +429,11 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         visitOrgNodeAround(res, node);
     }
 
+    void visit(Res& res, sem::SemId node) {
+        _this()->visitDispatch(res, node);
+    }
+
+
     template <sem::IsOrg T>
     void visitField(Res& res, char const* name, sem::SemIdT<T> value) {
         visitOrgField(res, name, value);

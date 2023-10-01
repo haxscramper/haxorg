@@ -6,14 +6,8 @@
 #include <exporters/ExporterJson.hpp>
 #include <exporters/exportertree.hpp>
 #include <exporters/exportersimplesexpr.hpp>
-#include <exporters/exportersubtreestructure.hpp>
-#include <exporters/exporterhtml.hpp>
 #include <exporters/exportermindmap.hpp>
 #include <exporters/exporteryaml.hpp>
-#include <exporters/exporterlatex.hpp>
-#include <exporters/exporterpandoc.hpp>
-#include <exporters/exportereventlog.hpp>
-#include <exporters/exportergantt.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/diffs.hpp>
 
@@ -509,19 +503,6 @@ void exporterVisit(
     trace.endStream(os);
 }
 
-
-void to_json(json& res, ExporterEventLog::Event const& ev) {
-    res         = json::object();
-    res["kind"] = to_string(ev.getKind());
-    std::visit(
-        [&](auto const& it) {
-            json sub = json::object();
-            to_json(sub, ev);
-            res[to_string(ev.getKind()).toStdString()] = sub;
-        },
-        ev.data);
-}
-
 CorpusRunner::ExportResult CorpusRunner::runExporter(
     ParseSpec const&                 spec,
     sem::SemId                       top,
@@ -546,42 +527,6 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
     } else if (exp.name == "sexp") {
         ExporterSimpleSExpr run;
         return withTreeExporter(top, run.b, run);
-
-    } else if (exp.name == "pandoc") {
-        return ER(ER::Structured{
-            .data = ExporterPandoc().evalTop(top).unpacked.at(0)});
-
-    } else if (exp.name == "html") {
-        ExporterHtml run;
-        return withTreeExporter(top, run.b, run);
-
-    } else if (exp.name == "event_log") {
-        ExporterEventLog exporter;
-        using Ev = ExporterEventLog::Event;
-        Vec<Ev> events;
-        exporter.logConsumer = [&](ExporterEventLog::Event const& ev) {
-            events.push_back(ev);
-        };
-
-        exporter.evalTop(top);
-
-        json res;
-        to_json(res, events);
-
-        return ER(ER::Structured{.data = res});
-
-    } else if (exp.name == "gantt") {
-        ExporterGantt exporter;
-        exporter.evalTop(top);
-        return ER(ER::Structured{.data = json()});
-
-    } else if (exp.name == "latex") {
-        ExporterLatex run;
-        return withTreeExporter(top, run.b, run);
-
-    } else if (exp.name == "subtree_structure") {
-        return ER(ER::Structured{
-            .data = ExporterSubtreeStructure().evalTop(top)});
 
     } else if (exp.name == "mmap") {
         ExporterMindMap run;
