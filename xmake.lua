@@ -35,9 +35,11 @@ function meta_target(name, doc, metadata, callback)
   end)
 end
 
-rule("dummy", function() end)
+rule("dummy", function() 
+  set_extensions(".txt", ".cpp", ".hpp")
+end)
 
-function any_files(file) add_files(file, { rule = "dummy"}) end
+function any_files(file) add_files(file, { rule = "dummy" }) end
 function abs_build(...) return path.absolute(vformat("$(buildir)"), ...) end
 function abs_script(...) return path.absolute(vformat("$(scriptir)"), ...) end
 
@@ -83,14 +85,14 @@ task("graphviz_targets", function()
         "\"%s\" -> {%s};", 
         target:name(), 
         table.concat(utils.list_map(
-          target:deps(), 
+          target:get("deps"), 
           function(sub) 
-            return vformat("\"%s\"", sub:name())
+            return vformat("\"%s\"", sub)
           end), ", ")
       ))
     end
 
-    local formatted = vformat("digraph G {rankdir=LR;\nnode[shape=rect, fontname=consolas];\n%s\n}", table.concat(edges, "\n"))
+    local formatted = vformat("digraph G {rankdir=TD;\nnode[shape=rect, fontname=consolas];\n%s\n}", table.concat(edges, "\n"))
     local dot = path.join(vformat("$(buildir)"), "deps.dot")
     local file = io.open(dot, "w")
     if file then
@@ -113,6 +115,7 @@ meta_target("py_reflection", "Update reflection artifacts using standalone build
   add_files("src/py_libs/pyhaxorg/pyhaxorg_manual_impl.hpp")
   any_files("build/utils/reflection_tool")
   any_files("xmake.lua")
+  add_rules("dummy")
 
   add_deps("cmake_utils")
   add_deps("reflection_protobuf")
@@ -143,6 +146,7 @@ meta_target("haxorg_codegen", "Execute haxorg code generation step.", {}, functi
   set_kind("phony")
   add_deps("py_reflection")
   add_deps("cmake_utils")
+  add_rules("dummy")
   any_files("scripts/code/py_codegen/codegen.py")
   any_files("build/reflection.pb")
   on_build(function(target) 
@@ -159,6 +163,7 @@ end)
 
 meta_target("conan_remove", "Remove installed conan dependencies", {}, function()
   set_kind("phony")
+  add_rules("dummy")
   on_run(function(target)
     os.execv("conan", {"remove", "'*'", "--force"})
   end)
@@ -170,6 +175,7 @@ end
 
 meta_target("conan_install", "Install conan dependencies", {}, function() 
   set_kind("phony")
+  add_rules("dummy")
   add_files("conanprofile.txt", "conanfile.txt")
   on_run(function(target)
     os.execv("conan", {
@@ -186,6 +192,7 @@ end)
 
 meta_target("download_llvm", "Download LLVM toolchain dependency", {}, function()
     set_kind("phony")
+    add_rules("dummy")
     on_build(function(target)
         local utils = import("scripts.utils")
         -- Check if the directory exists
@@ -214,6 +221,7 @@ end)
 
 meta_target("cmake_configure_utils", "Execute configuration for utility binary compilation", {}, function()
   set_kind("phony")
+  add_rules("dummy")
   add_deps("download_llvm")
   add_files("scripts/code/CMakeLists.txt")
 
@@ -237,6 +245,7 @@ end)
 
 meta_target("cmake_utils", "Compile libraries and binaries for utils", {}, function()
   set_kind("phony")
+  add_rules("dummy")
   add_deps("cmake_configure_utils")
   on_build(function(target)
     local dbg = true
@@ -252,6 +261,7 @@ end)
 
 meta_target("reflection_protobuf", "Update protobuf data definition for reflection", {}, function()
   set_kind("phony")
+  add_rules("dummy")
   any_files("scripts/code/reflection_defs.proto")
   on_build(function(target)
     local utils = import("scripts.utils")
@@ -273,7 +283,9 @@ end)
 
 meta_target("cmake_configure_haxorg", "Execute cmake configuration step for haxorg", {}, function() 
     set_kind("phony")
+    add_rules("dummy")
     add_deps("download_llvm")
+    add_deps("haxorg_codegen")
     add_files("CMakeLists.txt")
 
     on_build(function(target)
@@ -301,9 +313,12 @@ end)
 meta_target("cmake_haxorg", "Compile libraries and binaries for haxorg", {}, function()
   set_kind("phony")
   add_deps("cmake_configure_haxorg")
-  -- any_files("src/**.hpp")
-  -- any_files("src/**.cpp")
+  add_rules("dummy")
+  any_files("src/**.hpp")
+  any_files("src/**.cpp")
   on_build(function(target)
+    local utils = import("scripts.utils")
+    utils.info("Running cmake haxorg build")
     local dbg = true
     os.execv("cmake", {
       "--build",
@@ -315,6 +330,7 @@ end)
 meta_target("test_python", "Execute python tests", {}, function()
   set_kind("phony")
   add_deps("cmake_haxorg")
+  add_rules("dummy")
   on_run(function(target)
     os.execv("poetry", {"run", "pytest"})
   end)

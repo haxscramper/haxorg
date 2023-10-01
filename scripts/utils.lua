@@ -97,7 +97,11 @@ function detect_rebuld_state(target)
   
   for i = 1, #current_timestamps do
       if tonumber(stored_timestamps[i]) < current_timestamps[i] then
-          info("Timestamp as changed, rebuilding %s ~= %s ...", current_timestamps[i], tonumber(stored_timestamps[i]))
+          info("Timestamp has changed for %s, rebuilding %s ~= %s ...", 
+            stored_timestamps_file[i],
+            current_timestamps[i], 
+            tonumber(stored_timestamps[i])
+          )
           -- File has changed; re-build necessary
           return true
       end
