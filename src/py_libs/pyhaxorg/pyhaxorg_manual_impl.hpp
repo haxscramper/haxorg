@@ -14,6 +14,9 @@
 
 #include <py_type_casters.hpp>
 
+#include <frameobject.h>
+
+
 namespace py = pybind11;
 
 struct ExporterJson;

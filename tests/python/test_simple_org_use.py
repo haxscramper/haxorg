@@ -18,14 +18,18 @@ assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
 assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Bold
 assert ctx.getNode()[0][0][0].getKind() == org.OrgSemKind.Word
 
+
 def export_class_methods(cls):
     """
     A decorator that takes a class and binds its methods to the nested ExporterPython.
     """
+
     class Wrapped(cls):
+
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self.exp = org.ExporterPython()  # Assuming the ExporterPython is initialized here
+            self.exp = org.ExporterPython(
+            )  # Assuming the ExporterPython is initialized here
 
             # Direct method to function mappings without kind
             direct_mappings = {
@@ -54,7 +58,7 @@ def export_class_methods(cls):
                 (r"eval(.*?)OrgField", self.exp.setEvalOrgField),
                 (r"setPushVisitId", self.exp.setPushVisitId),
                 (r"setPopVisitIdCb", self.exp.setPopVisitIdCb),
-                (r"setVisitIdHook", self.exp.setVisitIdHook),
+                (r"setVisit(.*?)Hook", self.exp.setVisitIdHook),
                 (r"setNewOrgRes", self.exp.setNewOrgRes),
                 (r"setNewLeafRes", self.exp.setNewLeafRes),
             ]
@@ -65,14 +69,16 @@ def export_class_methods(cls):
                     match = re.match(prefix, method_name)
                     if match:
                         kind_str = match.group(1)
-                        kind_enum = getattr(org.OrgSemKind, kind_str, None)  
+                        kind_enum = getattr(org.OrgSemKind, kind_str, None)
 
-                        if not kind_enum:  
-                            kind_enum = getattr(org.LeafFieldType, kind_str, None)
+                        if not kind_enum:
+                            kind_enum = getattr(org.LeafFieldType, kind_str,
+                                                None)
 
                         if kind_enum:
-                            print("triggering set of '%s' -- '%s' -- '%s'" % (method_name, prefix, kind_enum))
-                            setter(kind_enum, getattr(self, method_name))
+                            print("triggering set of '%s' -- '%s' -- '%s' using '%s'" %
+                                  (method_name, prefix, kind_enum, setter))
+                            setter(kind_enum, getattr(type(self), method_name))
                             break
 
             # Always execute this at the end
@@ -80,19 +86,28 @@ def export_class_methods(cls):
 
     return Wrapped
 
+
 if True:
+
     @export_class_methods
     class Decorated:
-        def visitDocument(self, res: Any, node: org.SemDocument):
+        def visitParagraphHook(self, res: Any, node: org.SemParagraph):
+            print("VISITING PARAGRAPH", res, node)
+
+        def visitDocumentHook(self, res: Any, node: org.SemDocument):
+            print("[0]", self)
+            print("[1]", res)
+            print("[2]", node)
             print("VISITING DOCUMENT")
 
     deco = Decorated()
     deco.exp.enableFileTrace("/tmp/trace")
     res1 = deco.exp.evalTop(ctx.getNode())
 
-
 if True:
+
     class Wrap:
+
         def newRes(self, node: org.SemId):
             return [{"kind": str(node.getKind())}]
 
@@ -106,11 +121,9 @@ if True:
             self.exp.setNewOrgRes(osk.Document, Wrap.newRes)
             self.exp.setVisitAnyIdAround(Wrap.visit)
             # self.exp.enablePyStreamTrace(sys.stdout)
-            
 
     wrap = Wrap()
     result = wrap.exp.evalTop(ctx.getNode())
     assert len(result) == 2
     assert result[0] == {"kind": "OrgSemKind.Document"}
     assert result[1] == {"kind": "OrgSemKind.DocumentOptions"}
-
