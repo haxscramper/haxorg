@@ -58,7 +58,7 @@ def export_class_methods(cls):
                 (r"eval(.*?)OrgField", self.exp.setEvalOrgField),
                 (r"setPushVisitId", self.exp.setPushVisitId),
                 (r"setPopVisitIdCb", self.exp.setPopVisitIdCb),
-                (r"setVisit(.*?)Hook", self.exp.setVisitIdHook),
+                (r"visit(.*?)Hook", self.exp.setVisitIdHook),
                 (r"setNewOrgRes", self.exp.setNewOrgRes),
                 (r"setNewLeafRes", self.exp.setNewLeafRes),
             ]

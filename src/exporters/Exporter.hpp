@@ -51,6 +51,7 @@ struct Exporter {
         QString         function;
         bool            isStart = true;
         QString         type;
+        QString         msg;
     };
 
     using VisitEventCb = Func<void(VisitEvent const&)>;

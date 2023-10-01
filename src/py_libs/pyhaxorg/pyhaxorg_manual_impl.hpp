@@ -428,6 +428,75 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     }
 
     template <sem::IsOrg T>
+    void visitDispatchHook(Res& res, sem::SemIdT<T> id) {
+        if (visitAnyHookCb) {
+            __visit_scope(
+                VisitEvent::Kind::VisitDispatchHook,
+                .visitedValue = &res,
+                .visitedNode  = id,
+                .msg          = "has universal CB");
+
+
+            visitAnyHookCb->operator()(_self, res, id);
+        } else if (visitIdHookCb.contains(T::staticKind)) {
+            __visit_scope(
+                VisitEvent::Kind::VisitDispatchHook,
+                .visitedValue = &res,
+                .visitedNode  = id,
+                .msg          = "has fixed CB");
+
+
+            visitIdHookCb.at(T::staticKind)(_self, res, id);
+        } else {
+            __visit_scope(
+                VisitEvent::Kind::VisitDispatchHook,
+                .visitedValue = &res,
+                .visitedNode  = id,
+                .msg = ("no callback for " + to_string(T::staticKind)));
+        }
+    }
+
+    template <sem::IsOrg T>
+    void pushVisit(Res& res, sem::SemIdT<T> id) {
+        __visit_scope(
+            VisitEvent::Kind::PushVisit,
+            .visitedValue = &res,
+            .visitedNode  = id);
+        if (pushVisitAnyIdCb) {
+            pushVisitAnyIdCb->operator()(_self, res, id);
+        } else if (pushVisitIdCb.contains(T::staticKind)) {
+            pushVisitIdCb.at(T::staticKind)(_self, res, id);
+        }
+    }
+
+    template <sem::IsOrg T>
+    void popVisit(Res& res, sem::SemIdT<T> id) {
+        if (popVisitAnyIdCb) {
+            __visit_scope(
+                VisitEvent::Kind::PopVisit,
+                .visitedValue = &res,
+                .visitedNode  = id,
+                .msg          = "has universal CB");
+
+            popVisitAnyIdCb->operator()(_self, res, id);
+        } else if (popVisitIdCb.contains(T::staticKind)) {
+            __visit_scope(
+                VisitEvent::Kind::PopVisit,
+                .visitedValue = &res,
+                .visitedNode  = id,
+                .msg          = "has fixed CB");
+
+            popVisitIdCb.at(T::staticKind)(_self, res, id);
+        } else {
+            __visit_scope(
+                VisitEvent::Kind::PopVisit,
+                .visitedValue = &res,
+                .visitedNode  = id,
+                .msg = ("no callback for " + to_string(T::staticKind)));
+        }
+    }
+
+    template <sem::IsOrg T>
     void visit(Res& res, sem::SemIdT<T> node) {
         visitOrgNodeAround(res, node);
     }

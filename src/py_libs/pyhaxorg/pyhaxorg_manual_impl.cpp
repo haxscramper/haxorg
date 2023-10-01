@@ -198,7 +198,7 @@ void ExporterPython::visitDispatch(Res& res, sem::SemId arg) {
     case OrgSemKind::__Kind: {                                            \
         In<sem::__Kind> tmp = arg.as<sem::__Kind>();                      \
         _this()->pushVisit(res, tmp);                                     \
-        _this()->visitDispatchHook(res, arg);                             \
+        _this()->visitDispatchHook(res, tmp);                             \
         _this()->visitOrgNodeIn(res, tmp);                                \
         _this()->popVisit(res, tmp);                                      \
         break;                                                            \
@@ -232,6 +232,10 @@ void ExporterPython::traceVisit(const VisitEvent& ev) {
 
     if (0 < ev.field.length()) {
         os << " field:" << ev.field;
+    }
+
+    if (!ev.msg.isEmpty()) {
+        os << " msg:" << ev.msg;
     }
 
     os << " on " << QFileInfo(ev.file).fileName() << ":" << ev.line << " "
