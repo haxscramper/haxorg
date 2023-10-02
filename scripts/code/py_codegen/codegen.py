@@ -424,6 +424,9 @@ class Py11Field:
                          Doc=Field.doc,
                          SetImpl=SetImpl)
 
+    def build_typedef(self, ast: pya.ASTBuilder) -> pya.FieldParams:
+        return pya.FieldParams(py_type(self.Type), self.PyName)
+
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
         b = ast.b
         _self = id_self(Class)
@@ -480,6 +483,9 @@ class Py11Class:
         res = pya.ClassParams(Name=self.PyName, Bases=[py_type(T) for T in self.Bases])
         for Meth in self.Methods:
             res.Methods.append(Meth.build_typedef(ast))
+
+        for Field in self.Fields:
+            res.Fields.append(Field.build_typedef(ast))
 
         return res
 

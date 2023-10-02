@@ -883,6 +883,7 @@ class SemId:
 
 class SemStmt:
     def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
+    attached: List[SemId]
 
 class SemInline:
     pass
@@ -898,19 +899,27 @@ class SemRow:
 
 class SemTable:
     def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
+    rows: List[SemRow]
+    attached: List[SemId]
 
 class SemHashTag:
     def prefixMatch(prefix: List[str]) -> bool: ...
+    head: str
+    subtags: List[SemHashTag]
 
 class SemFootnote:
-    pass
+    tag: str
+    definition: Optional[SemId]
 
 class SemCompletion:
-    pass
+    done: int
+    full: int
+    isPercent: bool
 
 class SemParagraph:
     def isFootnoteDefinition() -> bool: ...
     def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
+    attached: List[SemId]
 
 class SemFormat:
     pass
@@ -931,99 +940,132 @@ class SemAttached:
     pass
 
 class SemCaption:
-    pass
+    text: SemParagraph
 
 class SemCommandGroup:
     def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
+    attached: List[SemId]
 
 class SemBlock:
     pass
 
 class SemQuote:
-    pass
+    text: SemParagraph
 
 class SemExample:
     pass
 
 class SemCmdArguments:
     def popArg(key: str) -> Optional[SemCmdArgument]: ...
+    positional: List[SemCmdArgument]
+    named: UnorderedMap[strSemCmdArgument]
 
 class SemCmdArgument:
     def getInt() -> Optional[int]: ...
     def getBool() -> Optional[bool]: ...
     def getString() -> str: ...
+    key: Optional[str]
+    value: str
 
 class SemExport:
-    pass
+    format: ExportFormat
+    exporter: str
+    parameters: SemCmdArguments
+    placement: Optional[str]
+    content: str
 
 class SemAdmonitionBlock:
     pass
 
 class SemCode:
-    pass
+    lang: Optional[str]
+    switches: List[CodeSwitch]
+    exports: CodeExports
+    parameters: SemCmdArguments
+    cache: bool
+    eval: bool
+    noweb: bool
+    hlines: bool
+    tangle: bool
 
 class CodeSwitchLineStart:
-    pass
+    start: int
+    extendLast: bool
 
 class CodeSwitchCalloutFormat:
-    pass
+    format: str
 
 class CodeSwitchRemoveCallout:
-    pass
+    remove: bool
 
 class CodeSwitchEmphasizeLine:
-    pass
+    line: List[int]
 
 class CodeSwitchDedent:
-    pass
+    value: int
 
 class SemTime:
-    pass
+    isActive: bool
 
 class TimeRepeat:
-    pass
+    mode: TimeRepeatMode
+    period: TimeRepeatPeriod
+    count: int
 
 class TimeStatic:
-    pass
+    repeat: Optional[TimeStaticRepeat]
+    time: UserTime
 
 class TimeDynamic:
-    pass
+    expr: str
 
 class SemTimeRange:
-    pass
+    from: SemTime
+    to: SemTime
 
 class SemMacro:
-    pass
+    name: str
+    arguments: List[str]
 
 class SemSymbol:
-    pass
+    name: str
+    parameters: List[SymbolParam]
+    positional: List[SemId]
 
 class SymbolParam:
-    pass
+    key: Optional[str]
+    value: str
 
 class SemSubtreeLog:
     def setDescription(desc: SemStmtList) -> None: ...
 
 class SubtreeLogDescribedLog:
-    pass
+    desc: Optional[SemStmtList]
 
 class SubtreeLogPriority:
-    pass
+    oldPriority: Optional[str]
+    newPriority: Optional[str]
+    on: SemTime
 
 class SubtreeLogNote:
-    pass
+    on: SemTime
 
 class SubtreeLogRefile:
-    pass
+    on: SemTime
+    from: SemLink
 
 class SubtreeLogClock:
     pass
 
 class SubtreeLogState:
-    pass
+    from: OrgBigIdentKind
+    to: OrgBigIdentKind
+    on: SemTime
 
 class SubtreeLogTag:
-    pass
+    on: SemTime
+    tag: SemHashTag
+    added: bool
 
 class SemSubtree:
     def getTimePeriods(kinds: IntSet[SubtreePeriodKind]) -> List[SubtreePeriod]: ...
@@ -1031,48 +1073,62 @@ class SemSubtree:
     def getProperty(kind: SubtreePropertyKind, subkind: str) -> Optional[SubtreeProperty]: ...
     def getContextualProperties(kind: SubtreePropertyKind, subkind: str) -> List[SubtreeProperty]: ...
     def getContextualProperty(kind: SubtreePropertyKind, subkind: str) -> Optional[SubtreeProperty]: ...
+    level: int
+    treeId: Optional[str]
+    todo: Optional[str]
+    completion: Optional[SemCompletion]
+    description: Optional[SemParagraph]
+    tags: List[SemHashTag]
+    title: SemParagraph
+    logbook: List[SemSubtreeLog]
+    properties: List[SubtreeProperty]
+    closed: Optional[SemTime]
+    deadline: Optional[SemTime]
+    scheduled: Optional[SemTime]
 
 class SubtreePropertyNonblocking:
-    pass
+    isBlocking: bool
 
 class SubtreePropertyTrigger:
     pass
 
 class SubtreePropertyOrigin:
-    pass
+    text: str
 
 class SubtreePropertyExportLatexClass:
-    pass
+    latexClass: str
 
 class SubtreePropertyExportLatexClassOptions:
-    pass
+    options: List[str]
 
 class SubtreePropertyExportLatexHeader:
-    pass
+    header: str
 
 class SubtreePropertyExportLatexCompiler:
-    pass
+    compiler: str
 
 class SubtreePropertyOrdered:
-    pass
+    isOrdered: bool
 
 class SubtreePropertyEffort:
-    pass
+    hours: int
+    minutes: int
 
 class SubtreePropertyVisibility:
-    pass
+    level: SubtreePropertyVisibilityLevel
 
 class SubtreePropertyExportOptions:
-    pass
+    backend: str
+    values: UnorderedMap[strstr]
 
 class SubtreePropertyBlocker:
-    pass
+    blockers: List[str]
 
 class SubtreePropertyUnnumbered:
     pass
 
 class SubtreePropertyCreated:
-    pass
+    time: SemTime
 
 class SemLatexBody:
     pass
@@ -1081,34 +1137,34 @@ class SemInlineMath:
     pass
 
 class SemLeaf:
-    pass
+    text: str
 
 class SemEscaped:
-    pass
+    text: str
 
 class SemNewline:
-    pass
+    text: str
 
 class SemSpace:
-    pass
+    text: str
 
 class SemWord:
-    pass
+    text: str
 
 class SemAtMention:
-    pass
+    text: str
 
 class SemRawText:
-    pass
+    text: str
 
 class SemPunctuation:
-    pass
+    text: str
 
 class SemPlaceholder:
-    pass
+    text: str
 
 class SemBigIdent:
-    pass
+    text: str
 
 class SemMarkup:
     pass
@@ -1142,37 +1198,56 @@ class SemList:
 
 class SemListItem:
     def isDescriptionItem() -> bool: ...
+    checkbox: ListItemCheckbox
+    header: Optional[SemParagraph]
 
 class SemLink:
     def resolve(doc: Document) -> Optional[SemId]: ...
     def resolve() -> Optional[SemId]: ...
+    description: Optional[SemParagraph]
 
 class LinkRaw:
-    pass
+    text: str
 
 class LinkId:
-    pass
+    text: str
 
 class LinkPerson:
-    pass
+    name: str
 
 class LinkFootnote:
-    pass
+    target: str
 
 class LinkFile:
-    pass
+    file: str
 
 class SemDocument:
     def resolve(node: SemId) -> Optional[SemId]: ...
     def getSubtree(id: str) -> Optional[SemSubtree]: ...
     def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
     def getProperty(kind: SubtreePropertyKind, subKind: str) -> Optional[SubtreeProperty]: ...
+    idTable: UnorderedMap[strSemId]
+    nameTable: UnorderedMap[strSemId]
+    footnoteTable: UnorderedMap[strSemId]
+    anchorTable: UnorderedMap[strSemId]
+    title: Optional[SemParagraph]
+    author: Optional[SemParagraph]
+    creator: Optional[SemParagraph]
+    email: Optional[SemRawText]
+    language: Optional[List[str]]
+    options: SemDocumentOptions
+    exportFileName: Optional[str]
 
 class SemParseError:
     pass
 
 class SemFileTarget:
-    pass
+    path: str
+    line: Optional[int]
+    searchTarget: Optional[str]
+    restrictToHeadlines: bool
+    targetId: Optional[str]
+    regexp: Optional[str]
 
 class SemTextSeparator:
     pass
@@ -1195,6 +1270,22 @@ class IncludeOrgDocument:
 class SemDocumentOptions:
     def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
     def getProperty(kind: SubtreePropertyKind, subKind: str) -> Optional[SubtreeProperty]: ...
+    brokenLinks: DocumentOptionsBrokenLinks
+    initialVisibility: DocumentOptionsVisibility
+    tocExport: DocumentOptionsTocExport
+    properties: List[SubtreeProperty]
+    smartQuotes: bool
+    emphasizedText: bool
+    specialStrings: bool
+    fixedWidthSections: bool
+    includeTimestamps: bool
+    preserveLineBreaks: bool
+    plaintextSubscripts: bool
+    exportArchived: bool
+    exportWithAuthor: bool
+    exportBrokenLinks: bool
+    exportWithClock: bool
+    exportWithCreator: bool
 
 class SemDocumentGroup:
     pass
@@ -1205,7 +1296,12 @@ class OrgExporterJson:
     def exportToFile(path: str) -> None: ...
 
 class ExporterTreeOpts:
-    pass
+    withLineCol: _Bool
+    withOriginalId: _Bool
+    withSubnodeIdx: _Bool
+    skipEmptyFields: _Bool
+    startLevel: int
+    withColor: _Bool
 
 class OrgExporterTree:
     def toString(node: SemId, opts: ExporterTreeOpts) -> str: ...

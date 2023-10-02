@@ -48,10 +48,17 @@ class MethodParams:
 
 @beartype
 @dataclass
+class FieldParams:
+    Type: PyType
+    Name: str
+
+@beartype
+@dataclass
 class ClassParams:
     Name: str
     Methods: List[MethodParams] = field(default_factory=list)
     Bases: List[PyType] = field(default_factory=list)
+    Fields: List[FieldParams] = field(default_factory=list)
     
 
 @beartype
@@ -116,6 +123,9 @@ class ASTBuilder(base.AstbuilderBase):
                 b.indent(4, b.stack(p.Func.Body))
             ])
 
+    def Field(self, p: FieldParams) -> BlockId:
+        return self.b.line([self.string(p.Name), self.string(": "), self.Type(p.Type)])
+
     def Enum(self, p: EnumParams) -> BlockId:
         b = self.b
         return b.stack([
@@ -129,8 +139,10 @@ class ASTBuilder(base.AstbuilderBase):
         b = self.b
 
         methods: List[BlockId] = [self.Method(M) for M in p.Methods]
+        fields: List[BlockId] = [self.Field(F) for F in p.Fields]
 
-        if len(methods) == 0:
+
+        if len(methods) == 0 and len(fields) == 0:
             methods = [b.text("pass")]
 
         return self.b.stack([
@@ -140,7 +152,7 @@ class ASTBuilder(base.AstbuilderBase):
                 
                 b.text(":"),
             ]),
-            b.indent(4, b.stack(methods))
+            b.indent(4, b.stack(methods + fields))
         ])
 
 
