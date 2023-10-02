@@ -6,6 +6,7 @@ import sys
 import re
 
 import pyhaxorg as org
+from py_textlayout import *
 from pyhaxorg import OrgContext
 from pyhaxorg import OrgSemKind as osk
 
@@ -26,10 +27,8 @@ def export_class_methods(cls):
 
     class Wrapped(cls):
 
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.exp = org.ExporterPython(
-            )  # Assuming the ExporterPython is initialized here
+        def initExporter(self, *args, **kwargs):
+            self.exp = org.ExporterPython()  
 
             # Direct method to function mappings without kind
             direct_mappings = {
@@ -76,8 +75,6 @@ def export_class_methods(cls):
                                                 None)
 
                         if kind_enum:
-                            print("triggering set of '%s' -- '%s' -- '%s' using '%s'" %
-                                  (method_name, prefix, kind_enum, setter))
                             setter(kind_enum, getattr(type(self), method_name))
                             break
 
@@ -86,11 +83,27 @@ def export_class_methods(cls):
 
     return Wrapped
 
+if True:
+    @export_class_methods
+    class ExporterLatex:
+        def __init__(self):
+            self.initExporter()
+            self.t = TextLayout()
+
+        # def evalSpace(self, node: org.SemSpace) -> BlockId:
+            # return self.t.text(node)
+
+    tex = ExporterLatex()
+
+
 
 if True:
 
     @export_class_methods
     class Decorated:
+        def __init__(self):
+            self.initExporter()
+
         def visitParagraphHook(self, res: Any, node: org.SemParagraph):
             print("VISITING PARAGRAPH", res, node)
 

@@ -897,7 +897,7 @@ class SemRow:
     pass
 
 class SemTable:
-    pass
+    def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
 
 class SemHashTag:
     def prefixMatch(prefix: List[str]) -> bool: ...
@@ -910,6 +910,7 @@ class SemCompletion:
 
 class SemParagraph:
     def isFootnoteDefinition() -> bool: ...
+    def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
 
 class SemFormat:
     pass
@@ -933,7 +934,7 @@ class SemCaption:
     pass
 
 class SemCommandGroup:
-    pass
+    def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
 
 class SemBlock:
     pass

@@ -598,7 +598,7 @@ class SemId:
 
 
 @beartype
-def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> Py11Class:
+def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct, base_map: Mapping[str, GenTuStruct]) -> Py11Class:
     base_type = QualType(typ.name, Spaces=[QualType("sem")])
     id_type = QualType("SemIdT", [base_type], Spaces=[QualType("sem")])
     res = Py11Class(PyName="Sem" + typ.name, Class=id_type)
@@ -607,26 +607,40 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct) -> Py11Class
     res.Bases.append(QualType("SemId", Spaces=[QualType("sem")]))
 
     _self = id_self(id_type)
-    for field in typ.fields:
-        if field.isStatic or hasattr(field, "ignore"):
-            continue
 
-        res.Fields.append(
-            Py11Field.FromGenTu(
-                field,
-                GetImpl=[b.text(f"return {_self.name}->{field.name};")],
-                SetImpl=[b.text(f"{_self.name}->{field.name} = {field.name};")]))
+    def map_obj_fields(Record: GenTuStruct):
+        for field in Record.fields:
+            if field.isStatic or hasattr(field, "ignore"):
+                continue
 
-    for meth in typ.methods:
-        if meth.isStatic or meth.isPureVirtual or meth.name in ["getKind"]:
-            continue
+            res.Fields.append(
+                Py11Field.FromGenTu(
+                    field,
+                    GetImpl=[b.text(f"return {_self.name}->{field.name};")],
+                    SetImpl=[b.text(f"{_self.name}->{field.name} = {field.name};")]))
 
-        passcall = ast.XCallPtr(b.text(_self.name), meth.name,
-                                [b.text(arg.name) for arg in meth.arguments])
-        if meth.result and meth.result != "void":
-            passcall = ast.Return(passcall)
+    def map_obj_methods(Record: GenTuStruct):
+        for meth in Record.methods:
+            if meth.isStatic or meth.isPureVirtual or meth.name in ["getKind"]:
+                continue
 
-        res.Methods.append(Py11Method.FromGenTu(meth, Body=[passcall]))
+            passcall = ast.XCallPtr(b.text(_self.name), meth.name,
+                                    [b.text(arg.name) for arg in meth.arguments])
+            if meth.result and meth.result != "void":
+                passcall = ast.Return(passcall)
+
+            res.Methods.append(Py11Method.FromGenTu(meth, Body=[passcall]))
+    
+    def map_bases(Record: GenTuStruct):
+        for base in Record.bases:
+            if base != "Org":
+                map_obj_fields(base_map[base])
+                map_obj_methods(base_map[base])
+                map_bases(base_map[base])
+
+    map_obj_fields(typ)
+    map_obj_methods(typ)
+    map_bases(typ)
 
     return res
 
@@ -719,13 +733,26 @@ def get_bind_methods(ast: ASTBuilder) -> Py11Module:
                     ])
                 ]))))
 
-    def callback(value: Any) -> None:
+    base_map: Mapping[str, GenTuStruct] = {}
+
+    type_list = get_space_annotated_types()
+
+    def baseCollectorCallback(value: Any) -> None:
+        if isinstance(value, GenTuStruct):
+            base_map[value.name] = value
+
+    iterate_object_tree(GenTuNamespace("sem", type_list), baseCollectorCallback,
+                        iterate_context)
+
+    iterate_context = []
+
+    def codegenConstructCallback(value: Any) -> None:
         nonlocal iterate_context
         scope: List[QualType] = filter_walk_scope(iterate_context)
 
         if isinstance(value, GenTuStruct):
             if hasattr(value, "isOrgType"):
-                res.Decls.append(pybind_org_id(ast, b, value))
+                res.Decls.append(pybind_org_id(ast, b, value, base_map))
 
             else:
                 new = pybind_nested_type(value, scope)
@@ -740,7 +767,7 @@ def get_bind_methods(ast: ASTBuilder) -> Py11Module:
                 [N for N in flat_scope(QualType(value.name, Spaces=scope)) if N != "sem"])
             res.Decls.append(Py11Enum.FromGenTu(value, scope, pyNameOverride=PyName))
 
-    iterate_object_tree(GenTuNamespace("sem", get_space_annotated_types()), callback,
+    iterate_object_tree(GenTuNamespace("sem", type_list), codegenConstructCallback,
                         iterate_context)
 
     for item in get_enums() + [get_osk_enum()]:

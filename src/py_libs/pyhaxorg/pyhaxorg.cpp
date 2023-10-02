@@ -37,6 +37,12 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("rows",
                   [](sem::SemIdT<sem::Table> _self) -> Vec<sem::SemIdT<sem::Row>> { return _self->rows; },
                   [](sem::SemIdT<sem::Table> _self, Vec<sem::SemIdT<sem::Row>> rows) { _self->rows = rows; })
+    .def_property("attached",
+                  [](sem::SemIdT<sem::Table> _self) -> Vec<sem::SemId> { return _self->attached; },
+                  [](sem::SemIdT<sem::Table> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
+    .def("getAttached",
+         [](sem::SemIdT<sem::Table> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
+         pybind11::arg("kind"))
     ;
   pybind11::class_<sem::SemIdT<sem::HashTag>, sem::SemId>(m, "SemHashTag")
     .def(pybind11::init([]() -> sem::SemIdT<sem::HashTag> { return sem::SemIdT<sem::HashTag>::Nil(); }))
@@ -74,9 +80,15 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Paragraph>, sem::SemId>(m, "SemParagraph")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Paragraph> { return sem::SemIdT<sem::Paragraph>::Nil(); }))
+    .def_property("attached",
+                  [](sem::SemIdT<sem::Paragraph> _self) -> Vec<sem::SemId> { return _self->attached; },
+                  [](sem::SemIdT<sem::Paragraph> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
     .def("isFootnoteDefinition",
          [](sem::SemIdT<sem::Paragraph> _self) -> bool { return _self->isFootnoteDefinition(); },
          R"RAW(Check if paragraph defines footnote)RAW")
+    .def("getAttached",
+         [](sem::SemIdT<sem::Paragraph> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
+         pybind11::arg("kind"))
     ;
   pybind11::class_<sem::SemIdT<sem::Format>, sem::SemId>(m, "SemFormat")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Format> { return sem::SemIdT<sem::Format>::Nil(); }))
@@ -104,6 +116,12 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::CommandGroup>, sem::SemId>(m, "SemCommandGroup")
     .def(pybind11::init([]() -> sem::SemIdT<sem::CommandGroup> { return sem::SemIdT<sem::CommandGroup>::Nil(); }))
+    .def_property("attached",
+                  [](sem::SemIdT<sem::CommandGroup> _self) -> Vec<sem::SemId> { return _self->attached; },
+                  [](sem::SemIdT<sem::CommandGroup> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
+    .def("getAttached",
+         [](sem::SemIdT<sem::CommandGroup> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
+         pybind11::arg("kind"))
     ;
   pybind11::class_<sem::SemIdT<sem::Block>, sem::SemId>(m, "SemBlock")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Block> { return sem::SemIdT<sem::Block>::Nil(); }))
@@ -511,30 +529,57 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Escaped>, sem::SemId>(m, "SemEscaped")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Escaped> { return sem::SemIdT<sem::Escaped>::Nil(); }))
+    .def_property("text",
+                  [](sem::SemIdT<sem::Escaped> _self) -> Str { return _self->text; },
+                  [](sem::SemIdT<sem::Escaped> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::Newline>, sem::SemId>(m, "SemNewline")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Newline> { return sem::SemIdT<sem::Newline>::Nil(); }))
+    .def_property("text",
+                  [](sem::SemIdT<sem::Newline> _self) -> Str { return _self->text; },
+                  [](sem::SemIdT<sem::Newline> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::Space>, sem::SemId>(m, "SemSpace")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Space> { return sem::SemIdT<sem::Space>::Nil(); }))
+    .def_property("text",
+                  [](sem::SemIdT<sem::Space> _self) -> Str { return _self->text; },
+                  [](sem::SemIdT<sem::Space> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::Word>, sem::SemId>(m, "SemWord")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Word> { return sem::SemIdT<sem::Word>::Nil(); }))
+    .def_property("text",
+                  [](sem::SemIdT<sem::Word> _self) -> Str { return _self->text; },
+                  [](sem::SemIdT<sem::Word> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::AtMention>, sem::SemId>(m, "SemAtMention")
     .def(pybind11::init([]() -> sem::SemIdT<sem::AtMention> { return sem::SemIdT<sem::AtMention>::Nil(); }))
+    .def_property("text",
+                  [](sem::SemIdT<sem::AtMention> _self) -> Str { return _self->text; },
+                  [](sem::SemIdT<sem::AtMention> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::RawText>, sem::SemId>(m, "SemRawText")
     .def(pybind11::init([]() -> sem::SemIdT<sem::RawText> { return sem::SemIdT<sem::RawText>::Nil(); }))
+    .def_property("text",
+                  [](sem::SemIdT<sem::RawText> _self) -> Str { return _self->text; },
+                  [](sem::SemIdT<sem::RawText> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::Punctuation>, sem::SemId>(m, "SemPunctuation")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Punctuation> { return sem::SemIdT<sem::Punctuation>::Nil(); }))
+    .def_property("text",
+                  [](sem::SemIdT<sem::Punctuation> _self) -> Str { return _self->text; },
+                  [](sem::SemIdT<sem::Punctuation> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::Placeholder>, sem::SemId>(m, "SemPlaceholder")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Placeholder> { return sem::SemIdT<sem::Placeholder>::Nil(); }))
+    .def_property("text",
+                  [](sem::SemIdT<sem::Placeholder> _self) -> Str { return _self->text; },
+                  [](sem::SemIdT<sem::Placeholder> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::BigIdent>, sem::SemId>(m, "SemBigIdent")
     .def(pybind11::init([]() -> sem::SemIdT<sem::BigIdent> { return sem::SemIdT<sem::BigIdent>::Nil(); }))
+    .def_property("text",
+                  [](sem::SemIdT<sem::BigIdent> _self) -> Str { return _self->text; },
+                  [](sem::SemIdT<sem::BigIdent> _self, Str text) { _self->text = text; })
     ;
   pybind11::class_<sem::SemIdT<sem::Markup>, sem::SemId>(m, "SemMarkup")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Markup> { return sem::SemIdT<sem::Markup>::Nil(); }))
