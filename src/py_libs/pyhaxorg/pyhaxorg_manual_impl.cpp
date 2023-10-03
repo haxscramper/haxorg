@@ -133,6 +133,17 @@ void init_py_manual_api(pybind11::module& m) {
             []() -> sem::SemId { return sem::SemId::Nil(); }))
         .def("getKind", &sem::SemId::getKind)
         .def(
+            "__len__",
+            [](sem::SemId const& id) -> int {
+                return id->subnodes.size();
+            })
+        .def(
+            "__iter__",
+            [](sem::SemId const& id) {
+                return py::make_iterator(
+                    id->subnodes.begin(), id->subnodes.end());
+            })
+        .def(
             "__getitem__",
             [](sem::SemId _self, int index) {
                 return getSingleSubnode(_self, index);

@@ -149,7 +149,7 @@ class ASTBuilder(base.AstbuilderBase):
             b.line([
                 b.text("class "), 
                 b.text(p.Name), 
-                
+                *([self.pars(self.csv([self.Type(B) for B in p.Bases]))] if p.Bases else []),
                 b.text(":"),
             ]),
             b.indent(4, b.stack(methods + fields))

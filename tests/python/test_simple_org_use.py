@@ -10,6 +10,9 @@ from py_textlayout import *
 from pyhaxorg import OrgContext
 from pyhaxorg import OrgSemKind as osk
 
+if not TYPE_CHECKING:
+    BlockId = NewType('BlockId', int)
+
 ctx = org.OrgContext()
 assert org.Document
 ctx.parseString("*Text*")
@@ -90,11 +93,16 @@ if True:
             self.initExporter()
             self.t = TextLayout()
 
-        # def evalSpace(self, node: org.SemSpace) -> BlockId:
-            # return self.t.text(node)
+        def evalSpace(self, node: org.SemSpace) -> BlockId:
+            return self.t.text(node.text)
+
+        def evalDocument(self, node: org.SemDocument) -> BlockId:
+            for it in node:
+                print(it.getKind())
 
     tex = ExporterLatex()
-
+    res1 = tex.exp.evalTop(ctx.getNode())
+    print(res1)
 
 
 if True:

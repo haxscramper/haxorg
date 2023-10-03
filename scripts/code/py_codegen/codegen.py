@@ -63,10 +63,10 @@ def iterate_object_tree(tree, callback, context: List[Any]):
     context.pop()
 
 
-def get_type_base_fields(value, base_map):
+def get_type_base_fields(value: GenTuStruct, base_map: Mapping[str, GenTuStruct]) -> List[GenTuField]:
     fields = []
     for base_sym in value.bases:
-        base = base_map.get(base_sym)
+        base = base_map.get(base_sym.name)
         if base:
             fields.extend(base.fields)
             fields.extend(get_type_base_fields(base, base_map))
@@ -472,6 +472,7 @@ class Py11Class:
     Fields: List[Py11Field] = field(default_factory=list)
     Methods: List[Py11Method] = field(default_factory=list)
     InitImpls: List[Py11Method] = field(default_factory=list)
+    PyBases: List[QualType] = field(default_factory=list)
 
     def InitDefault(self):
         self.InitImpls.append(Py11Method("", "", QualType("")))
@@ -571,7 +572,15 @@ class Py11Module:
 
         passes.append(ast.string("""
 class SemId:
-    def getKind() -> OrgSemKind: ...
+    def getKind(self) -> OrgSemKind: ...
+    def __iter__(self) -> Iterator[SemId]: ...
+    def __len__(self) -> int: ...
+
+    @overload
+    def __getitem__(self, idx: int) -> SemId: ...
+
+    @overload
+    def __getitem__(self, slice) -> List[SemId]: ...
 """))
 
         for entry in [E for E in self.Decls if isinstance(E, Py11Class)]:
@@ -607,7 +616,7 @@ class SemId:
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct, base_map: Mapping[str, GenTuStruct]) -> Py11Class:
     base_type = QualType(typ.name, Spaces=[QualType("sem")])
     id_type = QualType("SemIdT", [base_type], Spaces=[QualType("sem")])
-    res = Py11Class(PyName="Sem" + typ.name, Class=id_type)
+    res = Py11Class(PyName="Sem" + typ.name, Class=id_type, PyBases=typ.bases)
 
     res.AddInit([], [ast.Return(ast.CallStatic(id_type, "Nil"))])
     res.Bases.append(QualType("SemId", Spaces=[QualType("sem")]))
@@ -639,10 +648,10 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct, base_map: Ma
     
     def map_bases(Record: GenTuStruct):
         for base in Record.bases:
-            if base != "Org":
-                map_obj_fields(base_map[base])
-                map_obj_methods(base_map[base])
-                map_bases(base_map[base])
+            if base.name != "Org":
+                map_obj_fields(base_map[base.name])
+                map_obj_methods(base_map[base.name])
+                map_bases(base_map[base.name])
 
     map_obj_fields(typ)
     map_obj_methods(typ)

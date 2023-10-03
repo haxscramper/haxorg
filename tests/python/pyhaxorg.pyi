@@ -879,105 +879,113 @@ OrgContext: Type
 ExporterPython: Type
 
 class SemId:
-    def getKind() -> OrgSemKind: ...
+    def getKind(self) -> OrgSemKind: ...
+    def __iter__(self) -> Iterator[SemId]: ...
+    def __len__(self) -> int: ...
 
-class SemStmt:
+    @overload
+    def __getitem__(self, idx: int) -> SemId: ...
+
+    @overload
+    def __getitem__(self, slice) -> List[SemId]: ...
+
+class SemStmt(SemId):
     def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
     attached: List[SemId]
 
-class SemInline:
+class SemInline(SemId):
     pass
 
-class SemStmtList:
+class SemStmtList(SemId):
     pass
 
-class SemEmpty:
+class SemEmpty(SemId):
     pass
 
-class SemRow:
+class SemRow(SemId):
     pass
 
-class SemTable:
+class SemTable(SemId):
     def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
     rows: List[SemRow]
     attached: List[SemId]
 
-class SemHashTag:
+class SemHashTag(SemId):
     def prefixMatch(prefix: List[str]) -> bool: ...
     head: str
     subtags: List[SemHashTag]
 
-class SemFootnote:
+class SemFootnote(SemId):
     tag: str
     definition: Optional[SemId]
 
-class SemCompletion:
+class SemCompletion(SemId):
     done: int
     full: int
     isPercent: bool
 
-class SemParagraph:
+class SemParagraph(SemId):
     def isFootnoteDefinition() -> bool: ...
     def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
     attached: List[SemId]
 
-class SemFormat:
+class SemFormat(SemId):
     pass
 
-class SemCenter:
+class SemCenter(SemId):
     pass
 
-class SemCommand:
+class SemCommand(SemId):
     pass
 
-class SemLineCommand:
+class SemLineCommand(SemId):
     pass
 
-class SemStandalone:
+class SemStandalone(SemId):
     pass
 
-class SemAttached:
+class SemAttached(SemId):
     pass
 
-class SemCaption:
+class SemCaption(SemId):
     text: SemParagraph
 
-class SemCommandGroup:
+class SemCommandGroup(SemId):
     def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
     attached: List[SemId]
 
-class SemBlock:
+class SemBlock(SemId):
     pass
 
-class SemQuote:
+class SemQuote(SemId):
     text: SemParagraph
 
-class SemExample:
+class SemExample(SemId):
     pass
 
-class SemCmdArguments:
+class SemCmdArguments(SemId):
     def popArg(key: str) -> Optional[SemCmdArgument]: ...
     positional: List[SemCmdArgument]
     named: UnorderedMap[strSemCmdArgument]
 
-class SemCmdArgument:
+class SemCmdArgument(SemId):
     def getInt() -> Optional[int]: ...
     def getBool() -> Optional[bool]: ...
     def getString() -> str: ...
     key: Optional[str]
     value: str
 
-class SemExport:
+class SemExport(SemId):
     format: ExportFormat
     exporter: str
     parameters: SemCmdArguments
     placement: Optional[str]
     content: str
 
-class SemAdmonitionBlock:
+class SemAdmonitionBlock(SemId):
     pass
 
-class SemCode:
+class SemCode(SemId):
     lang: Optional[str]
     switches: List[CodeSwitch]
     exports: CodeExports
@@ -1004,7 +1012,7 @@ class CodeSwitchEmphasizeLine:
 class CodeSwitchDedent:
     value: int
 
-class SemTime:
+class SemTime(SemId):
     isActive: bool
 
 class TimeRepeat:
@@ -1019,15 +1027,15 @@ class TimeStatic:
 class TimeDynamic:
     expr: str
 
-class SemTimeRange:
+class SemTimeRange(SemId):
     from: SemTime
     to: SemTime
 
-class SemMacro:
+class SemMacro(SemId):
     name: str
     arguments: List[str]
 
-class SemSymbol:
+class SemSymbol(SemId):
     name: str
     parameters: List[SymbolParam]
     positional: List[SemId]
@@ -1036,7 +1044,7 @@ class SymbolParam:
     key: Optional[str]
     value: str
 
-class SemSubtreeLog:
+class SemSubtreeLog(SemId):
     def setDescription(desc: SemStmtList) -> None: ...
 
 class SubtreeLogDescribedLog:
@@ -1067,7 +1075,7 @@ class SubtreeLogTag:
     tag: SemHashTag
     added: bool
 
-class SemSubtree:
+class SemSubtree(SemId):
     def getTimePeriods(kinds: IntSet[SubtreePeriodKind]) -> List[SubtreePeriod]: ...
     def getProperties(kind: SubtreePropertyKind, subkind: str) -> List[SubtreeProperty]: ...
     def getProperty(kind: SubtreePropertyKind, subkind: str) -> Optional[SubtreeProperty]: ...
@@ -1130,78 +1138,78 @@ class SubtreePropertyUnnumbered:
 class SubtreePropertyCreated:
     time: SemTime
 
-class SemLatexBody:
+class SemLatexBody(SemId):
     pass
 
-class SemInlineMath:
+class SemInlineMath(SemId):
     pass
 
-class SemLeaf:
+class SemLeaf(SemId):
     text: str
 
-class SemEscaped:
+class SemEscaped(SemId):
     text: str
 
-class SemNewline:
+class SemNewline(SemId):
     text: str
 
-class SemSpace:
+class SemSpace(SemId):
     text: str
 
-class SemWord:
+class SemWord(SemId):
     text: str
 
-class SemAtMention:
+class SemAtMention(SemId):
     text: str
 
-class SemRawText:
+class SemRawText(SemId):
     text: str
 
-class SemPunctuation:
+class SemPunctuation(SemId):
     text: str
 
-class SemPlaceholder:
+class SemPlaceholder(SemId):
     text: str
 
-class SemBigIdent:
+class SemBigIdent(SemId):
     text: str
 
-class SemMarkup:
+class SemMarkup(SemId):
     pass
 
-class SemBold:
+class SemBold(SemId):
     pass
 
-class SemUnderline:
+class SemUnderline(SemId):
     pass
 
-class SemMonospace:
+class SemMonospace(SemId):
     pass
 
-class SemMarkQuote:
+class SemMarkQuote(SemId):
     pass
 
-class SemVerbatim:
+class SemVerbatim(SemId):
     pass
 
-class SemItalic:
+class SemItalic(SemId):
     pass
 
-class SemStrike:
+class SemStrike(SemId):
     pass
 
-class SemPar:
+class SemPar(SemId):
     pass
 
-class SemList:
+class SemList(SemId):
     def isDescriptionList() -> bool: ...
 
-class SemListItem:
+class SemListItem(SemId):
     def isDescriptionItem() -> bool: ...
     checkbox: ListItemCheckbox
     header: Optional[SemParagraph]
 
-class SemLink:
+class SemLink(SemId):
     def resolve(doc: Document) -> Optional[SemId]: ...
     def resolve() -> Optional[SemId]: ...
     description: Optional[SemParagraph]
@@ -1221,7 +1229,7 @@ class LinkFootnote:
 class LinkFile:
     file: str
 
-class SemDocument:
+class SemDocument(SemId):
     def resolve(node: SemId) -> Optional[SemId]: ...
     def getSubtree(id: str) -> Optional[SemSubtree]: ...
     def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
@@ -1238,10 +1246,10 @@ class SemDocument:
     options: SemDocumentOptions
     exportFileName: Optional[str]
 
-class SemParseError:
+class SemParseError(SemId):
     pass
 
-class SemFileTarget:
+class SemFileTarget(SemId):
     path: str
     line: Optional[int]
     searchTarget: Optional[str]
@@ -1249,10 +1257,10 @@ class SemFileTarget:
     targetId: Optional[str]
     regexp: Optional[str]
 
-class SemTextSeparator:
+class SemTextSeparator(SemId):
     pass
 
-class SemInclude:
+class SemInclude(SemId):
     pass
 
 class IncludeExample:
@@ -1267,7 +1275,7 @@ class IncludeSrc:
 class IncludeOrgDocument:
     pass
 
-class SemDocumentOptions:
+class SemDocumentOptions(SemId):
     def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
     def getProperty(kind: SubtreePropertyKind, subKind: str) -> Optional[SubtreeProperty]: ...
     brokenLinks: DocumentOptionsBrokenLinks
@@ -1287,7 +1295,7 @@ class SemDocumentOptions:
     exportWithClock: bool
     exportWithCreator: bool
 
-class SemDocumentGroup:
+class SemDocumentGroup(SemId):
     pass
 
 class OrgExporterJson:

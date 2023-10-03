@@ -101,7 +101,7 @@ class GenTuStruct:
     doc: GenTuDoc
     fields: List[GenTuField] = field(default_factory=list)
     methods: List[GenTuFunction] = field(default_factory=list)
-    bases: List[str] = field(default_factory=list)
+    bases: List[QualType] = field(default_factory=list)
     nested: List[GenTuEntry] = field(default_factory=list)
     concreteKind: bool = True
 
@@ -202,7 +202,7 @@ class GenConverter:
         params = RecordParams(
             name=record.name,
             doc=self.convertDoc(record.doc),
-            bases=[QualType(base) for base in record.bases],
+            bases=record.bases,
         )
 
         with GenConverterWithContext(self, QualType(record.name)):
@@ -271,7 +271,7 @@ class GenConverter:
                     "BOOST_DESCRIBE_CLASS",
                     [
                         self.ast.string(record.name),
-                        self.ast.pars(self.ast.csv(record.bases, False)),
+                        self.ast.pars(self.ast.csv([B.name for B in record.bases], False)),
                         self.ast.pars(self.ast.string("")),
                         self.ast.pars(self.ast.string("")),
                         self.ast.pars(
