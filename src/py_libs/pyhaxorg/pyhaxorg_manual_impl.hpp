@@ -301,10 +301,16 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         newOrgResCb[kind] = cb;
     }
 
+    Opt<PyFunc>   newAnyOrgResCb;
+    [[refl]] void setNewAnyOrgRes(PyFunc cb) { newAnyOrgResCb = cb; }
+
     FieldCbMap    newLeafResCb;
     [[refl]] void setNewLeafRes(LeafFieldType kind, PyFunc cb) {
         newLeafResCb[kind] = cb;
     }
+
+    Opt<PyFunc>   newAnyLeafResCb;
+    [[refl]] void setNewAnyLeafRes(PyFunc cb) { newAnyLeafResCb = cb; }
 
     Opt<PyFunc>   pushVisitAnyIdCb;
     [[refl]] void setPushVisitAnyId(PyFunc cb) { pushVisitAnyIdCb = cb; }
@@ -331,27 +337,65 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     }
 
     Res newRes(sem::SemId const& node) {
-        if (newOrgResCb.contains(node->getKind())) {
+        if (newAnyOrgResCb) {
+            __visit_scope(
+                VisitEvent::Kind::NewRes,
+                .visitedNode = node,
+                .msg         = "has universal CB");
+            return newAnyOrgResCb->operator()(_self, node);
+        } else if (newOrgResCb.contains(node->getKind())) {
+            __visit_scope(
+                VisitEvent::Kind::NewRes,
+                .visitedNode = node,
+                .msg         = "has callback for kind");
             return newOrgResCb.at(node->getKind())(_self, node);
         } else {
+            __visit_scope(
+                VisitEvent::Kind::NewRes,
+                .visitedNode = node,
+                .msg = ("no callback for " + to_string(node->getKind())));
             return py::none();
         }
     }
 
     template <sem::IsOrg T>
     Res newRes(sem::SemIdT<T> const& node) {
-        if (newOrgResCb.contains(T::staticKind)) {
+        if (newAnyOrgResCb) {
+            __visit_scope(
+                VisitEvent::Kind::NewRes,
+                .visitedNode = node,
+                .msg         = "has universal CB");
+            return newAnyOrgResCb->operator()(_self, node);
+        } else if (newOrgResCb.contains(T::staticKind)) {
+            __visit_scope(
+                VisitEvent::Kind::NewRes,
+                .visitedNode = node,
+                .msg         = "has callback for kind");
             return newOrgResCb.at(T::staticKind)(_self, node);
         } else {
+            __visit_scope(
+                VisitEvent::Kind::NewRes,
+                .visitedNode = node,
+                .msg = ("no callback for " + to_string(T::staticKind)));
             return py::none();
         }
     }
 
     template <sem::NotOrg T>
     Res newRes(T const& node) {
-        if (newLeafResCb.contains(LeafKindForT<T>::value)) {
+        if (newAnyOrgResCb) {
+            return newAnyLeafResCb->operator()(_self, node);
+        } else if (newLeafResCb.contains(LeafKindForT<T>::value)) {
+            __visit_scope(
+                VisitEvent::Kind::NewRes,
+                .visitedNode = node,
+                .msg         = "has callback for kind");
             return newLeafResCb.at(LeafKindForT<T>::value)(_self, node);
         } else {
+            __visit_scope(
+                VisitEvent::Kind::NewRes,
+                .visitedNode = node,
+                .msg = ("no callback for " + to_string(T::staticKind)));
             return py::none();
         }
     }
@@ -519,6 +563,12 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     void visitField(Res& res, char const* name, sem::SemId value);
 
     [[refl]] Res evalTop(sem::SemId org);
+
+    [[refl]] Res eval(sem::SemId org) {
+        Res tmp = _this()->newRes(org);
+        _this()->visit(tmp, org);
+        return tmp;
+    }
 };
 
 void init_py_manual_api(py::module& m);

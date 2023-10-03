@@ -31,9 +31,8 @@ def export_class_methods(cls):
     class Wrapped(cls):
 
         def initExporter(self, *args, **kwargs):
-            self.exp = org.ExporterPython()  
+            self.exp = org.ExporterPython()
 
-            # Direct method to function mappings without kind
             direct_mappings = {
                 "visitAnyIdAround": self.exp.setVisitAnyIdAround,
                 "visitAnyIdIn": self.exp.setVisitAnyIdIn,
@@ -42,13 +41,13 @@ def export_class_methods(cls):
                 "setPushVisitAnyId": self.exp.setPushVisitAnyId,
                 "setPopVisitAnyId": self.exp.setPopVisitAnyId,
                 "setVisitAnyHookCb": self.exp.setVisitAnyHookCb,
-                # Add others if needed
+                "newOrg": self.exp.setNewAnyOrgRes,
+                "newLeaf": self.exp.setNewAnyLeafRes,
             }
             for method_name, setter in direct_mappings.items():
                 if hasattr(self, method_name):
-                    setter(getattr(self, method_name))
+                    setter(getattr(type(self), method_name))
 
-            # Methods with OrgSemKind or LeafFieldType
             prefix_to_setter_with_kind = [
                 (r"visit(.*)", self.exp.setVisitIdInCb),
                 (r"eval(.*)", self.exp.setEvalIdIn),
@@ -61,12 +60,15 @@ def export_class_methods(cls):
                 (r"setPushVisitId", self.exp.setPushVisitId),
                 (r"setPopVisitIdCb", self.exp.setPopVisitIdCb),
                 (r"visit(.*?)Hook", self.exp.setVisitIdHook),
-                (r"setNewOrgRes", self.exp.setNewOrgRes),
-                (r"setNewLeafRes", self.exp.setNewLeafRes),
+                (r"newOrg(.*)", self.exp.setNewOrgRes),
+                (r"newLeaf(.*)", self.exp.setNewLeafRes),
             ]
 
             # Process methods that match the patterns for OrgSemKind or LeafFieldType
             for method_name in dir(self):
+                if method_name.startswith("__"):
+                    continue
+
                 for (prefix, setter) in prefix_to_setter_with_kind:
                     match = re.match(prefix, method_name)
                     if match:
@@ -86,65 +88,112 @@ def export_class_methods(cls):
 
     return Wrapped
 
+
 if True:
+
     @export_class_methods
     class ExporterLatex:
+        t: TextLayout
+
         def __init__(self):
             self.initExporter()
             self.t = TextLayout()
 
+        def newOrg(self, node: org.SemId):
+            return self.t.text("TODO" + str(node.getKind()))
+
+        def string(self, node: str | BlockId) -> BlockId:
+            if isinstance(node, str):
+                return self.t.text(node)
+
+            else:
+                return node
+
+        def wrap(self, node: str | BlockId, opens: str,
+                 closes: str) -> BlockId:
+            return self.t.line(
+                [self.string(opens),
+                 self.string(node),
+                 self.string(closes)])
+
+        def command(self,
+                    name: str,
+                    args: List[str | BlockId] = [],
+                    opts: List[str | BlockId] = []) -> BlockId:
+            return self.t.line([
+                self.t.text("\\" + name),
+                *[self.wrap(it, "[", "]") for it in opts],
+                *[self.wrap(it, "{", "}") for it in args]
+            ])
+
+        def evalWord(self, node: org.SemWord) -> BlockId:
+            return self.string(node.text)
+
         def evalSpace(self, node: org.SemSpace) -> BlockId:
-            return self.t.text(node.text)
+            return self.string(node.text)
+
+        def evalUnderline(self, node: org.SemUnderline) -> BlockId:
+            return self.command("underline", [self.evalLine(node)])
+
+        def evalBold(self, node: org.SemBold) -> BlockId:
+            return self.command("bold", [self.evalLine(node)])
+
+        def evalLine(self, node: org.SemSpace) -> BlockId:
+            return self.t.line([self.exp.eval(it) for it in node])
+
+        def evalStack(self, node: org.SemId) -> BlockId:
+            return self.t.stack([self.exp.eval(it) for it in node])
+
+        def evalParagraph(self, node: org.SemParagraph) -> BlockId:
+            return self.evalLine(node)
 
         def evalDocument(self, node: org.SemDocument) -> BlockId:
-            for it in node:
-                print(it.getKind())
+            return self.evalStack(node)
 
     tex = ExporterLatex()
-    res1 = tex.exp.evalTop(ctx.getNode())
-    print(res1)
+    tex.exp.enableFileTrace("/tmp/trace")
+    res1: BlockId = tex.exp.evalTop(ctx.getNode())
+    print(tex.t.toString(res1, TextOptions()))
 
+# if True:
 
-if True:
+#     @export_class_methods
+#     class Decorated:
+#         def __init__(self):
+#             self.initExporter()
 
-    @export_class_methods
-    class Decorated:
-        def __init__(self):
-            self.initExporter()
+#         def visitParagraphHook(self, res: Any, node: org.SemParagraph):
+#             print("VISITING PARAGRAPH", res, node)
 
-        def visitParagraphHook(self, res: Any, node: org.SemParagraph):
-            print("VISITING PARAGRAPH", res, node)
+#         def visitDocumentHook(self, res: Any, node: org.SemDocument):
+#             print("[0]", self)
+#             print("[1]", res)
+#             print("[2]", node)
+#             print("VISITING DOCUMENT")
 
-        def visitDocumentHook(self, res: Any, node: org.SemDocument):
-            print("[0]", self)
-            print("[1]", res)
-            print("[2]", node)
-            print("VISITING DOCUMENT")
+#     deco = Decorated()
+#     res1 = deco.exp.evalTop(ctx.getNode())
 
-    deco = Decorated()
-    deco.exp.enableFileTrace("/tmp/trace")
-    res1 = deco.exp.evalTop(ctx.getNode())
+# if True:
 
-if True:
+#     class Wrap:
 
-    class Wrap:
+#         def newRes(self, node: org.SemId):
+#             return [{"kind": str(node.getKind())}]
 
-        def newRes(self, node: org.SemId):
-            return [{"kind": str(node.getKind())}]
+#         def visit(self, res, node: org.SemId):
+#             res.append({"kind": str(node.getKind())})
 
-        def visit(self, res, node: org.SemId):
-            res.append({"kind": str(node.getKind())})
+#         def __init__(self) -> None:
+#             self.exp = org.ExporterPython()
+#             self.res = ""
+#             self.exp.setSelf(self)
+#             self.exp.setNewOrgRes(osk.Document, Wrap.newRes)
+#             self.exp.setVisitAnyIdAround(Wrap.visit)
+#             # self.exp.enablePyStreamTrace(sys.stdout)
 
-        def __init__(self) -> None:
-            self.exp = org.ExporterPython()
-            self.res = ""
-            self.exp.setSelf(self)
-            self.exp.setNewOrgRes(osk.Document, Wrap.newRes)
-            self.exp.setVisitAnyIdAround(Wrap.visit)
-            # self.exp.enablePyStreamTrace(sys.stdout)
-
-    wrap = Wrap()
-    result = wrap.exp.evalTop(ctx.getNode())
-    assert len(result) == 2
-    assert result[0] == {"kind": "OrgSemKind.Document"}
-    assert result[1] == {"kind": "OrgSemKind.DocumentOptions"}
+#     wrap = Wrap()
+#     result = wrap.exp.evalTop(ctx.getNode())
+#     assert len(result) == 2
+#     assert result[0] == {"kind": "OrgSemKind.Document"}
+#     assert result[1] == {"kind": "OrgSemKind.DocumentOptions"}

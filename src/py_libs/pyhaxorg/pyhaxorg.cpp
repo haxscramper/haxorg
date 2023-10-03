@@ -1723,9 +1723,15 @@ return state.)RAW")
          &ExporterPython::setNewOrgRes,
          pybind11::arg("kind"),
          pybind11::arg("cb"))
+    .def("setNewAnyOrgRes",
+         &ExporterPython::setNewAnyOrgRes,
+         pybind11::arg("cb"))
     .def("setNewLeafRes",
          &ExporterPython::setNewLeafRes,
          pybind11::arg("kind"),
+         pybind11::arg("cb"))
+    .def("setNewAnyLeafRes",
+         &ExporterPython::setNewAnyLeafRes,
          pybind11::arg("cb"))
     .def("setPushVisitAnyId",
          &ExporterPython::setPushVisitAnyId,
@@ -1750,6 +1756,9 @@ return state.)RAW")
          pybind11::arg("cb"))
     .def("evalTop",
          &ExporterPython::evalTop,
+         pybind11::arg("org"))
+    .def("eval",
+         &ExporterPython::eval,
          pybind11::arg("org"))
     ;
   pybind11::enum_<LeafFieldType>(m, "LeafFieldType")
