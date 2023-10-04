@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
-from typing import *
 import setup_imports
 import sys
+import os
 import re
+from enum import Enum
+from beartype import beartype
+from beartype.typing import *
 
 import pyhaxorg as org
 from py_textlayout import *
@@ -13,17 +16,9 @@ from pyhaxorg import OrgSemKind as osk
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
 
-ctx = org.OrgContext()
-assert org.Document
-ctx.parseString("*Text*")
-
-assert ctx.getNode().getKind() == org.OrgSemKind.Document
-assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
-assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Bold
-assert ctx.getNode()[0][0][0].getKind() == org.OrgSemKind.Word
-
 
 class ExporterBase:
+
     def __init__(self, derived):
         self.exp = org.ExporterPython()
 
@@ -70,8 +65,7 @@ class ExporterBase:
                     kind_enum = getattr(org.OrgSemKind, kind_str, None)
 
                     if not kind_enum:
-                        kind_enum = getattr(org.LeafFieldType, kind_str,
-                                            None)
+                        kind_enum = getattr(org.LeafFieldType, kind_str, None)
 
                     if kind_enum:
                         setter(kind_enum, getattr(type(derived), method_name))
@@ -80,70 +74,189 @@ class ExporterBase:
         # Always execute this at the end
         self.exp.setSelf(self)
 
-if True:
 
-    class ExporterLatex(ExporterBase):
-        t: TextLayout
+class TexCommand(Enum):
+    part = 1
+    chapter = 2
+    section = 3
+    subsection = 4
+    subsubsection = 5
+    paragraph = 6
+    subparagrap = 7
 
-        def __init__(self):
-            super().__init__(self)
-            self.t = TextLayout()
 
-        def newOrg(self, node: org.SemId):
-            return self.t.text("TODO" + str(node.getKind()))
+@beartype
+class ExporterLatex(ExporterBase):
+    t: TextLayout
 
-        def string(self, node: str | BlockId) -> BlockId:
-            if isinstance(node, str):
-                return self.t.text(node)
+    def __init__(self):
+        super().__init__(self)
+        self.t = TextLayout()
 
+    def newOrg(self, node: org.SemId):
+        return self.t.text("TODO" + str(node.getKind()))
+
+    def string(self, node: str | BlockId) -> BlockId:
+        if isinstance(node, str):
+            return self.t.text(node)
+
+        else:
+            return node
+
+    def wrap(self, node: str | BlockId, opens: str, closes: str) -> BlockId:
+        return self.t.line(
+            [self.string(opens),
+             self.string(node),
+             self.string(closes)])
+
+    def command(self,
+                name: str,
+                args: List[str | BlockId] = [],
+                opts: List[str | BlockId] = []) -> BlockId:
+        return self.t.line([
+            self.t.text("\\" + name),
+            *[self.wrap(it, "[", "]") for it in opts],
+            *[self.wrap(it, "{", "}") for it in args]
+        ])
+
+    def escape(self, value: str) -> str:
+        res = ""
+        for ch in value:
+            if ch in {"&", "_", "}", "{", "#", "%"}:
+                res += "\\" + ch
             else:
-                return node
+                res += ch
 
-        def wrap(self, node: str | BlockId, opens: str,
-                 closes: str) -> BlockId:
-            return self.t.line(
-                [self.string(opens),
-                 self.string(node),
-                 self.string(closes)])
+        return res
 
-        def command(self,
-                    name: str,
-                    args: List[str | BlockId] = [],
-                    opts: List[str | BlockId] = []) -> BlockId:
-            return self.t.line([
-                self.t.text("\\" + name),
-                *[self.wrap(it, "[", "]") for it in opts],
-                *[self.wrap(it, "{", "}") for it in args]
+    def evalPlaceholder(self, node: org.SemPlaceholder) -> BlockId:
+        return self.command("textsc", [
+            self.command("texttt",
+                         [self.string(self.string("<" + node.text + ">"))])
+        ])
+
+    def evalBigIdent(self, node: org.SemBigIdent) -> BlockId:
+        specialColor = ""
+        match node.text:
+            case "TODO":
+                specialColor = "green"
+            case "WIP":
+                specialColor = "brown"
+
+        if specialColor:
+            return self.command("fbox", [
+                self.command("colorbox", [
+                    self.string(specialColor),
+                    self.string(self.escape(node.text))
+                ])
             ])
 
-        def evalWord(self, node: org.SemWord) -> BlockId:
+        else:
             return self.string(node.text)
 
-        def evalSpace(self, node: org.SemSpace) -> BlockId:
-            return self.string(node.text)
+    def evalPunctuation(self, node: org.SemPunctuation) -> BlockId:
+        return self.string(self.escape(node.text))
 
-        def evalUnderline(self, node: org.SemUnderline) -> BlockId:
-            return self.command("underline", [self.evalLine(node)])
+    def evalWord(self, node: org.SemWord) -> BlockId:
+        return self.string(node.text)
 
-        def evalBold(self, node: org.SemBold) -> BlockId:
-            return self.command("bold", [self.evalLine(node)])
+    def evalSpace(self, node: org.SemSpace) -> BlockId:
+        return self.string(node.text)
 
-        def evalLine(self, node: org.SemSpace) -> BlockId:
-            return self.t.line([self.exp.eval(it) for it in node])
+    def evalUnderline(self, node: org.SemUnderline) -> BlockId:
+        return self.command("underline", [self.evalLine(node)])
 
-        def evalStack(self, node: org.SemId) -> BlockId:
-            return self.t.stack([self.exp.eval(it) for it in node])
+    def evalBold(self, node: org.SemBold) -> BlockId:
+        return self.command("bold", [self.evalLine(node)])
 
-        def evalParagraph(self, node: org.SemParagraph) -> BlockId:
-            return self.evalLine(node)
+    def evalLine(self, node: org.SemId) -> BlockId:
+        return self.t.line([self.exp.eval(it) for it in node])
 
-        def evalDocument(self, node: org.SemDocument) -> BlockId:
-            return self.evalStack(node)
+    def evalStack(self, node: org.SemId) -> BlockId:
+        return self.t.stack([self.exp.eval(it) for it in node])
+
+    def evalParagraph(self, node: org.SemParagraph) -> BlockId:
+        return self.evalLine(node)
+
+    def evalDocument(self, node: org.SemDocument) -> BlockId:
+        return self.evalStack(node)
+
+    def getLatexClass(self, node: org.SemDocument) -> str:
+        return "book"
+
+    def getOrgCommand(self, cmd: TexCommand) -> str:
+        return "orgCmd" + str(cmd.name).capitalize()
+
+    def getSubtreeCommand(self, node: org.SemSubtree) -> Optional[TexCommand]:
+        return TexCommand.part
+        lclass = self.getLatexClass(node.getDocument())
+
+    def getRefKind(self, node: org.SemId) -> Optional[str]:
+        match node.getKind():
+            case osk.Subtree:
+                cmd = self.getSubtreeCommand(node)
+                match cmd:
+                    case TexCommand.chapter: return "chap:"
+                    case TexCommand.section: return "sec:"
+                    case TexCommand.part: return "part:"
+
+
+    def evalSubtree(self, node: org.SemSubtree) -> BlockId:
+        res = self.t.stack([])
+        title_text = self.t.line([])
+        for item in node.title:
+            match item.getKind():
+                case osk.Space:
+                    self.t.add_at(title_text, self.exp.eval(item))
+                case _:
+                    self.t.add_at(
+                        title_text,
+                        self.command("texorpdfstring", [
+                            self.exp.eval(item),
+                            self.string(str(item.getKind()))
+                        ]))
+
+        cmd = self.getSubtreeCommand(node)
+        self.t.add_at(
+            res, self.command(self.getOrgCommand(cmd) if cmd else "texbf", [title_text]))
+
+        if cmd in [TexCommand.part, TexCommand.chapter, TexCommand.section]:
+            self.t.add_at(res, self.command("label", [
+                self.string(self.getRefKind(node) or "" + "\\the" + cmd.name)
+            ]))
+
+        for it in node:
+            self.t.add_at(res, self.exp.eval(it))
+
+        return res
+
+    def evalTimeRange(self, node: org.SemTimeRange) -> BlockId:
+        # FIXME `from` field is missing
+        return self.t.line([self.string("--"), self.exp.eval(node.to)])
+
+
+def test_word():
+    ctx = org.OrgContext()
+    assert org.Document
+    ctx.parseString("*Text*")
+
+    assert ctx.getNode().getKind() == org.OrgSemKind.Document
+    assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
+    assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Bold
+    assert ctx.getNode()[0][0][0].getKind() == org.OrgSemKind.Word
+
+
+def test_tex_exporter():
+    ctx = org.OrgContext()
+    with open(os.path.join(setup_imports.root_dir, "tests/corpus/org/all.org"),
+              "r") as f:
+        ctx.parseString(f.read())
 
     tex = ExporterLatex()
     tex.exp.enableFileTrace("/tmp/trace")
     res1: BlockId = tex.exp.evalTop(ctx.getNode())
     print(tex.t.toString(res1, TextOptions()))
+
 
 # if True:
 
