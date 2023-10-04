@@ -23,80 +23,70 @@ assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Bold
 assert ctx.getNode()[0][0][0].getKind() == org.OrgSemKind.Word
 
 
-def export_class_methods(cls):
-    """
-    A decorator that takes a class and binds its methods to the nested ExporterPython.
-    """
+class ExporterBase:
+    def __init__(self, derived):
+        self.exp = org.ExporterPython()
 
-    class Wrapped(cls):
+        direct_mappings = {
+            "visitAnyIdAround": self.exp.setVisitAnyIdAround,
+            "visitAnyIdIn": self.exp.setVisitAnyIdIn,
+            "visitAnyField": self.exp.setVisitAnyField,
+            "evalTopCb": self.exp.setEvalTopCb,
+            "setPushVisitAnyId": self.exp.setPushVisitAnyId,
+            "setPopVisitAnyId": self.exp.setPopVisitAnyId,
+            "setVisitAnyHookCb": self.exp.setVisitAnyHookCb,
+            "newOrg": self.exp.setNewAnyOrgRes,
+            "newLeaf": self.exp.setNewAnyLeafRes,
+        }
+        for method_name, setter in direct_mappings.items():
+            if hasattr(derived, method_name):
+                setter(getattr(type(derived), method_name))
 
-        def initExporter(self, *args, **kwargs):
-            self.exp = org.ExporterPython()
+        prefix_to_setter_with_kind = [
+            (r"visit(.*)", self.exp.setVisitIdInCb),
+            (r"eval(.*)", self.exp.setEvalIdIn),
+            (r"visit(.*?)Around", self.exp.setVisitIdAround),
+            (r"eval(.*?)Around", self.exp.setEvalIdAround),
+            (r"visit(.*?)LeafField", self.exp.setVisitLeafField),
+            (r"eval(.*?)LeafField", self.exp.setEvalLeafField),
+            (r"visit(.*?)OrgField", self.exp.setVisitOrgField),
+            (r"eval(.*?)OrgField", self.exp.setEvalOrgField),
+            (r"setPushVisitId", self.exp.setPushVisitId),
+            (r"setPopVisitIdCb", self.exp.setPopVisitIdCb),
+            (r"visit(.*?)Hook", self.exp.setVisitIdHook),
+            (r"newOrg(.*)", self.exp.setNewOrgRes),
+            (r"newLeaf(.*)", self.exp.setNewLeafRes),
+        ]
 
-            direct_mappings = {
-                "visitAnyIdAround": self.exp.setVisitAnyIdAround,
-                "visitAnyIdIn": self.exp.setVisitAnyIdIn,
-                "visitAnyField": self.exp.setVisitAnyField,
-                "evalTopCb": self.exp.setEvalTopCb,
-                "setPushVisitAnyId": self.exp.setPushVisitAnyId,
-                "setPopVisitAnyId": self.exp.setPopVisitAnyId,
-                "setVisitAnyHookCb": self.exp.setVisitAnyHookCb,
-                "newOrg": self.exp.setNewAnyOrgRes,
-                "newLeaf": self.exp.setNewAnyLeafRes,
-            }
-            for method_name, setter in direct_mappings.items():
-                if hasattr(self, method_name):
-                    setter(getattr(type(self), method_name))
+        # Process methods that match the patterns for OrgSemKind or LeafFieldType
+        for method_name in dir(derived):
+            if method_name.startswith("__"):
+                continue
 
-            prefix_to_setter_with_kind = [
-                (r"visit(.*)", self.exp.setVisitIdInCb),
-                (r"eval(.*)", self.exp.setEvalIdIn),
-                (r"visit(.*?)Around", self.exp.setVisitIdAround),
-                (r"eval(.*?)Around", self.exp.setEvalIdAround),
-                (r"visit(.*?)LeafField", self.exp.setVisitLeafField),
-                (r"eval(.*?)LeafField", self.exp.setEvalLeafField),
-                (r"visit(.*?)OrgField", self.exp.setVisitOrgField),
-                (r"eval(.*?)OrgField", self.exp.setEvalOrgField),
-                (r"setPushVisitId", self.exp.setPushVisitId),
-                (r"setPopVisitIdCb", self.exp.setPopVisitIdCb),
-                (r"visit(.*?)Hook", self.exp.setVisitIdHook),
-                (r"newOrg(.*)", self.exp.setNewOrgRes),
-                (r"newLeaf(.*)", self.exp.setNewLeafRes),
-            ]
+            for (prefix, setter) in prefix_to_setter_with_kind:
+                match = re.match(prefix, method_name)
+                if match:
+                    kind_str = match.group(1)
+                    kind_enum = getattr(org.OrgSemKind, kind_str, None)
 
-            # Process methods that match the patterns for OrgSemKind or LeafFieldType
-            for method_name in dir(self):
-                if method_name.startswith("__"):
-                    continue
+                    if not kind_enum:
+                        kind_enum = getattr(org.LeafFieldType, kind_str,
+                                            None)
 
-                for (prefix, setter) in prefix_to_setter_with_kind:
-                    match = re.match(prefix, method_name)
-                    if match:
-                        kind_str = match.group(1)
-                        kind_enum = getattr(org.OrgSemKind, kind_str, None)
+                    if kind_enum:
+                        setter(kind_enum, getattr(type(derived), method_name))
+                        break
 
-                        if not kind_enum:
-                            kind_enum = getattr(org.LeafFieldType, kind_str,
-                                                None)
-
-                        if kind_enum:
-                            setter(kind_enum, getattr(type(self), method_name))
-                            break
-
-            # Always execute this at the end
-            self.exp.setSelf(self)
-
-    return Wrapped
-
+        # Always execute this at the end
+        self.exp.setSelf(self)
 
 if True:
 
-    @export_class_methods
-    class ExporterLatex:
+    class ExporterLatex(ExporterBase):
         t: TextLayout
 
         def __init__(self):
-            self.initExporter()
+            super().__init__(self)
             self.t = TextLayout()
 
         def newOrg(self, node: org.SemId):
