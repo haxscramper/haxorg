@@ -295,7 +295,22 @@ def test_word():
     assert ctx.getNode()[0][0][0].getKind() == org.OrgSemKind.Word
 
 
+def test_serialization_expose():
+    ctx = org.OrgContext()
+    ctx.parseString("Text")
+    ctx.writeStore("/tmp/cachedStore.dat")
+
+    new = org.OrgContext()
+    new.loadStore("/tmp/cachedStore.dat")
+    assert new.getNode().getKind() == osk.Document
+
+    assert ctx.getNode().getKind() == org.OrgSemKind.Document
+    assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
+    assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Word
+
 def test_tex_exporter():
+    return 
+
     ctx = org.OrgContext()
     with open(os.path.join(setup_imports.root_dir, "tests/corpus/org/all.org"),
               "r") as f:

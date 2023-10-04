@@ -330,6 +330,7 @@ void SemDataStream::read(QDataStream& in, sem::ParseUnitStore& store) {
     }
 }
 
+
 void SemDataStream::write(
     QDataStream&               out,
     const sem::ParseUnitStore& store) {
@@ -374,4 +375,22 @@ void SemDataStream::write(
     for (auto const& unit : store.stores) {
         write(out, unit);
     }
+}
+
+void SemDataStream::read(
+    QDataStream&       in,
+    sem::ContextStore* store,
+    sem::SemId*        rootNode) {
+    in >> rootNode->id;
+    rootNode->context = store;
+    read(in, store);
+}
+
+
+void SemDataStream::write(
+    QDataStream&             out,
+    const sem::ContextStore& store,
+    const sem::SemId&        rootNode) {
+    out << rootNode.id;
+    write(out, store);
 }

@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <exporters/exporteryaml.hpp>
 #include <exporters/exportertree.hpp>
+#include <sem/semdatastream.hpp>
 
 #include <memory>
 
@@ -72,6 +73,21 @@ void OrgExporterTree::stream(
     impl->evalTop(node);
 }
 
+void OrgContext::initLocationResolvers() {
+    locationResolver = [&](CR<PosStr> str) -> LineCol {
+        Slice<int> absolute = tokens.toAbsolute(str.view);
+        return {
+            info.whichLine(absolute.first + str.pos) + 1,
+            info.whichColumn(absolute.first + str.pos),
+            absolute.first + str.pos,
+        };
+    };
+
+    converter.locationResolver = locationResolver;
+    tokenizer->setLocationResolver(locationResolver);
+    parser->setLocationResolver(locationResolver);
+}
+
 void OrgContext::run() {
     tokens.base = source.data();
     info        = LineColInfo{source};
@@ -87,6 +103,29 @@ void OrgContext::run() {
     tokenizer->lexGlobal(*str);
     parser->parseFull(lex);
     node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+}
+
+void OrgContext::loadStore(QString path) {
+    QFile file{path};
+    if (file.open(QIODevice::ReadOnly)) {
+        QDataStream out{&file};
+        SemDataStream().read(out, &store, &node);
+        file.close();
+    } else {
+        throw FilesystemError{
+            "Cannot open file for writing TODO beter msg"};
+    }
+}
+
+void OrgContext::writeStore(QString path) {
+    QFile file{path};
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QDataStream out{&file};
+        SemDataStream().write(out, store, node);
+        file.close();
+    } else {
+        throw FilesystemError{"Cannot open file"};
+    }
 }
 
 std::vector<sem::SemId> getSubnodeRange(
@@ -132,6 +171,8 @@ void init_py_manual_api(pybind11::module& m) {
         .def(pybind11::init(
             []() -> sem::SemId { return sem::SemId::Nil(); }))
         .def("getKind", &sem::SemId::getKind)
+        .def(
+            "getDocument", [](sem::SemId id) { return id->getDocument(); })
         .def(
             "__len__",
             [](sem::SemId const& id) -> int {

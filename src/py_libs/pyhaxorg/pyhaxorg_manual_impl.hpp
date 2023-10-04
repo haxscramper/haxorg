@@ -107,20 +107,7 @@ struct [[refl]] OrgContext {
         qDebug() << "Init Org context in PY";
     }
 
-    [[refl]] void initLocationResolvers() {
-        locationResolver = [&](CR<PosStr> str) -> LineCol {
-            Slice<int> absolute = tokens.toAbsolute(str.view);
-            return {
-                info.whichLine(absolute.first + str.pos) + 1,
-                info.whichColumn(absolute.first + str.pos),
-                absolute.first + str.pos,
-            };
-        };
-
-        converter.locationResolver = locationResolver;
-        tokenizer->setLocationResolver(locationResolver);
-        parser->setLocationResolver(locationResolver);
-    }
+    [[refl]] void initLocationResolvers();
 
     void run();
 
@@ -129,6 +116,10 @@ struct [[refl]] OrgContext {
         source = readFile(QFileInfo(QString::fromStdString(file)));
         run();
     }
+
+    [[refl]] void loadStore(QString path);
+
+    [[refl]] void writeStore(QString path);
 
     [[refl]] void parseString(QString text) {
         source = text;

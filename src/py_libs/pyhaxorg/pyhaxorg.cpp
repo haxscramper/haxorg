@@ -1654,6 +1654,12 @@ return state.)RAW")
     .def("parseFile",
          &OrgContext::parseFile,
          pybind11::arg("file"))
+    .def("loadStore",
+         &OrgContext::loadStore,
+         pybind11::arg("path"))
+    .def("writeStore",
+         &OrgContext::writeStore,
+         pybind11::arg("path"))
     .def("parseString",
          &OrgContext::parseString,
          pybind11::arg("text"))
