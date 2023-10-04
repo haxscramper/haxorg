@@ -154,6 +154,35 @@ class ExporterLatex(ExporterBase):
         else:
             return self.string(node.text)
 
+    def evalNewline(self, node: org.SemNewline) -> BlockId:
+        return self.string(node.text)
+
+    def evalCenter(self, node: org.SemCenter) -> BlockId:
+        res = self.t.stack([])
+        self.t.add_at(res, self.command("begin", [self.string("center")]))
+        for item in node:
+            self.t.add_at(res, self.exp.eval(item))
+
+        self.t.add_at(res, self.command("end", [self.string("center")]))
+
+        return res
+
+    def evalListItem(self, node: org.SemListItem) -> BlockId:
+        res = self.t.line([])
+        if node.isDescriptionItem():
+            self.t.add_at(res, self.command("item", [self.exp.eval(node.header)] if node.header else []))
+
+        else:
+            self.t.add_at(res, self.command("item"))
+
+        self.t.add_at(res, self.string(" "))
+        self.t.add_at(res, self.evalStack(node))
+
+        return res
+
+    def evalTextSeparator(self, node: org.SemTextSeparator) -> BlockId:
+        return self.command("sepline")
+
     def evalPunctuation(self, node: org.SemPunctuation) -> BlockId:
         return self.string(self.escape(node.text))
 
@@ -178,8 +207,28 @@ class ExporterLatex(ExporterBase):
     def evalParagraph(self, node: org.SemParagraph) -> BlockId:
         return self.evalLine(node)
 
+
+    def evalList(self, node: org.SemList) -> BlockId:
+        return self.t.stack([
+            self.command("begin", ["itemize"]),
+            self.evalStack(node),
+            self.command("end", ["itemize"])
+        ])
+
+    def getLatexClassOptions(self, node: org.SemDocument) -> List[BlockId]:
+        return []
+
     def evalDocument(self, node: org.SemDocument) -> BlockId:
-        return self.evalStack(node)
+        res = self.t.stack([])
+
+        self.t.add_at(res, self.command("documentclass", opts=self.getLatexClassOptions(node), args=[self.getLatexClass(node)]))
+
+        for it in node:
+            self.t.add_at(res, self.exp.eval(it))
+
+        self.t.add_at(res, self.command("end", [self.string("document")]))
+
+        return res
 
     def getLatexClass(self, node: org.SemDocument) -> str:
         return "book"
