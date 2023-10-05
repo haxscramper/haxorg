@@ -207,6 +207,15 @@ class ExporterLatex(ExporterBase):
     def evalParagraph(self, node: org.SemParagraph) -> BlockId:
         return self.evalLine(node)
 
+    def evalExport(self, node: org.SemExport) -> BlockId:
+        if node.exporter != "latex" or node.placement:
+            return self.string("")
+
+        else:
+            return self.string(node.content)
+
+    def evalWord(self, node: org.SemWord) -> BlockId:
+        return self.string(self.escape(node.text))
 
     def evalList(self, node: org.SemList) -> BlockId:
         return self.t.stack([
@@ -309,17 +318,20 @@ def test_serialization_expose():
     assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Word
 
 def test_tex_exporter():
-    return 
-
     ctx = org.OrgContext()
-    with open(os.path.join(setup_imports.root_dir, "tests/corpus/org/all.org"),
-              "r") as f:
-        ctx.parseString(f.read())
+    cache_file = "/tmp/doc_cache.dat"
+    if os.path.exists(cache_file):
+        ctx.loadStore(cache_file)
+    else:
+        ctx.parseFile("/home/haxscramper/tmp/doc.org")
+        ctx.writeStore(cache_file)
+
 
     tex = ExporterLatex()
     tex.exp.enableFileTrace("/tmp/trace")
     res1: BlockId = tex.exp.evalTop(ctx.getNode())
-    print(tex.t.toString(res1, TextOptions()))
+    with open("/tmp/result.tex", "w") as file:
+        file.write(tex.t.toString(res1, TextOptions()))
 
 
 # if True:

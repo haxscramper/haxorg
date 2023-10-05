@@ -299,19 +299,27 @@ def py_type(Typ: QualType) -> pya.PyType:
     match flat:
         case ["Vec"]:
             name = "List"
+
         case ["Opt"]:
             name = "Optional"
-        case ["Str"] | ["string"] | ["QString"] | ["basic_string"]:
+
+        case ["Str"] | ["string"] | ["QString"] | ["basic_string"] | ["std", "basic_string"]:
             name = "str"
 
         case ["SemIdT"]:
             name = "Sem" + Typ.Parameters[0].name
+
+        case "Bool":
+            name = "bool"
 
         case ["void"]:
             name = "None"
 
         case ["py", "object"]:
             name = "object"
+
+        case "UserTime":
+            name = "datetime"
 
         case _:
             name = "".join(flat)
@@ -560,6 +568,7 @@ class Py11Module:
 
         passes.append(ast.string("from typing import *"))
         passes.append(ast.string("from enum import Enum"))
+        passes.append(ast.string("from datetime import datetime, date, time"))
 
 
 

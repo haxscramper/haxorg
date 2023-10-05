@@ -16,6 +16,37 @@
 
 #include <frameobject.h>
 
+namespace PYBIND11_NAMESPACE {
+
+namespace detail {
+    template <>
+    struct type_caster<UserTime> {
+      public:
+        PYBIND11_TYPE_CASTER(UserTime, _("datetime.time"));
+
+        bool load(handle src, bool x) {
+            auto sub_load = type_caster<QDateTime>{};
+            if (sub_load.load(src, x)) {
+                value = UserTime(sub_load.getValue());
+                return true;
+
+            } else {
+                return false;
+            }
+        }
+
+        static handle cast(
+            UserTime            src,
+            return_value_policy policy,
+            handle              parent) {
+            return type_caster<QDateTime>::cast(
+                src.getDateTime(), policy, parent);
+        }
+    };
+
+} // namespace detail
+} // namespace PYBIND11_NAMESPACE
+
 
 namespace py = pybind11;
 

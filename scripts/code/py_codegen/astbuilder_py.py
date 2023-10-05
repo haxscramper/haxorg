@@ -87,7 +87,7 @@ class ASTBuilder(base.AstbuilderBase):
             return self.b.line([
                 self.string(p.Name),
                 self.string("["),
-                *[self.Type(T) for T in p.Params],
+                self.csv([self.Type(T) for T in p.Params]),
                 self.string("]")
             ])
 

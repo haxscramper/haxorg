@@ -65,6 +65,8 @@ void ReflASTVisitor::fillType(
     Out->set_isref(In->isReferenceType());
     if (In->isReferenceType()) {
         fillType(Out, In->getPointeeType(), Loc);
+    } else if (In->isBooleanType()) {
+        Out->set_name("bool");
     } else if (In->isBuiltinType()) {
         Out->set_name(In.getAsString());
     } else if (

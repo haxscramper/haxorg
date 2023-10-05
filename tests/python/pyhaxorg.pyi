@@ -1,5 +1,6 @@
 from typing import *
 from enum import Enum
+from datetime import datetime, date, time
 class ExportFormat(Enum):
     Inline = 1
     Line = 2
@@ -967,7 +968,7 @@ class SemExample(SemId):
 class SemCmdArguments(SemId):
     def popArg(key: str) -> Optional[SemCmdArgument]: ...
     positional: List[SemCmdArgument]
-    named: UnorderedMap[strSemCmdArgument]
+    named: UnorderedMap[str, SemCmdArgument]
 
 class SemCmdArgument(SemId):
     def getInt() -> Optional[int]: ...
@@ -1128,7 +1129,7 @@ class SubtreePropertyVisibility:
 
 class SubtreePropertyExportOptions:
     backend: str
-    values: UnorderedMap[strstr]
+    values: UnorderedMap[str, str]
 
 class SubtreePropertyBlocker:
     blockers: List[str]
@@ -1235,10 +1236,10 @@ class SemDocument(SemId):
     def getSubtree(id: str) -> Optional[SemSubtree]: ...
     def getProperties(kind: SubtreePropertyKind, subKind: str) -> List[SubtreeProperty]: ...
     def getProperty(kind: SubtreePropertyKind, subKind: str) -> Optional[SubtreeProperty]: ...
-    idTable: UnorderedMap[strSemId]
-    nameTable: UnorderedMap[strSemId]
-    footnoteTable: UnorderedMap[strSemId]
-    anchorTable: UnorderedMap[strSemId]
+    idTable: UnorderedMap[str, SemId]
+    nameTable: UnorderedMap[str, SemId]
+    footnoteTable: UnorderedMap[str, SemId]
+    anchorTable: UnorderedMap[str, SemId]
     title: Optional[SemParagraph]
     author: Optional[SemParagraph]
     creator: Optional[SemParagraph]
@@ -1305,12 +1306,12 @@ class OrgExporterJson:
     def exportToFile(path: str) -> None: ...
 
 class ExporterTreeOpts:
-    withLineCol: _Bool
-    withOriginalId: _Bool
-    withSubnodeIdx: _Bool
-    skipEmptyFields: _Bool
+    withLineCol: bool
+    withOriginalId: bool
+    withSubnodeIdx: bool
+    skipEmptyFields: bool
     startLevel: int
-    withColor: _Bool
+    withColor: bool
 
 class OrgExporterTree:
     def toString(node: SemId, opts: ExporterTreeOpts) -> str: ...
@@ -1323,7 +1324,7 @@ class OrgExporterYaml:
 
 class OrgContext:
     def initLocationResolvers() -> None: ...
-    def parseFile(file: stdbasic_string) -> None: ...
+    def parseFile(file: str) -> None: ...
     def loadStore(path: str) -> None: ...
     def writeStore(path: str) -> None: ...
     def parseString(text: str) -> None: ...
