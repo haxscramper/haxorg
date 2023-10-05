@@ -294,7 +294,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::TimeRange>, sem::SemId>(m, "SemTimeRange")
     .def(pybind11::init([]() -> sem::SemIdT<sem::TimeRange> { return sem::SemIdT<sem::TimeRange>::Nil(); }))
-    .def_property("from",
+    .def_property("from_",
                   [](sem::SemIdT<sem::TimeRange> _self) -> sem::SemIdT<sem::Time> { return _self->from; },
                   [](sem::SemIdT<sem::TimeRange> _self, sem::SemIdT<sem::Time> from) { _self->from = from; })
     .def_property("to",
@@ -356,14 +356,14 @@ PYBIND11_MODULE(pyhaxorg, m) {
   pybind11::class_<sem::SubtreeLog::Refile>(m, "SubtreeLogRefile")
     .def(pybind11::init<>())
     .def_readwrite("on", &sem::SubtreeLog::Refile::on, R"RAW(When the refiling happened)RAW")
-    .def_readwrite("from", &sem::SubtreeLog::Refile::from, R"RAW(Link to the original subtree)RAW")
+    .def_readwrite("from_", &sem::SubtreeLog::Refile::from, R"RAW(Link to the original subtree)RAW")
     ;
   pybind11::class_<sem::SubtreeLog::Clock>(m, "SubtreeLogClock")
     .def(pybind11::init<>())
     ;
   pybind11::class_<sem::SubtreeLog::State>(m, "SubtreeLogState")
     .def(pybind11::init<>())
-    .def_readwrite("from", &sem::SubtreeLog::State::from)
+    .def_readwrite("from_", &sem::SubtreeLog::State::from)
     .def_readwrite("to", &sem::SubtreeLog::State::to)
     .def_readwrite("on", &sem::SubtreeLog::State::on)
     ;

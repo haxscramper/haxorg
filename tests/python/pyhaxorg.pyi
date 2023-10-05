@@ -1030,7 +1030,7 @@ class TimeDynamic:
     expr: str
 
 class SemTimeRange(SemId):
-    from: SemTime
+    from_: SemTime
     to: SemTime
 
 class SemMacro(SemId):
@@ -1062,13 +1062,13 @@ class SubtreeLogNote:
 
 class SubtreeLogRefile:
     on: SemTime
-    from: SemLink
+    from_: SemLink
 
 class SubtreeLogClock:
     pass
 
 class SubtreeLogState:
-    from: OrgBigIdentKind
+    from_: OrgBigIdentKind
     to: OrgBigIdentKind
     on: SemTime
 

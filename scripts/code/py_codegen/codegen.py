@@ -411,6 +411,12 @@ def maybe_list(it: Any) -> Any:
 
 
 @beartype
+def py_ident(name: str) -> str:
+    match name:
+        case "from": return "from_"
+        case _: return name
+
+@beartype
 @dataclass
 class Py11Field:
     PyName: str
@@ -425,7 +431,7 @@ class Py11Field:
                   pyNameOveride: Optional[str] = None,
                   GetImpl: Optional[List[BlockId]] = None,
                   SetImpl: Optional[List[BlockId]] = None) -> 'Py11Field':
-        return Py11Field(PyName=Field.name if pyNameOveride is None else pyNameOveride,
+        return Py11Field(PyName=py_ident(Field.name) if pyNameOveride is None else pyNameOveride,
                          Type=Field.type,
                          CxxName=Field.name,
                          GetImpl=GetImpl,

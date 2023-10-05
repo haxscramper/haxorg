@@ -290,7 +290,7 @@ class ExporterLatex(ExporterBase):
 
     def evalTimeRange(self, node: org.SemTimeRange) -> BlockId:
         # FIXME `from` field is missing
-        return self.t.line([self.string("--"), self.exp.eval(node.to)])
+        return self.t.line([self.exp.eval(node.from_), self.string("--"), self.exp.eval(node.to)])
 
 
 def test_word():
