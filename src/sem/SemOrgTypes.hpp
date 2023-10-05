@@ -465,7 +465,19 @@ struct Code : public sem::Block {
       int value = 0;
     };
 
-    SUB_VARIANTS(Kind, Data, data, getKind, LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent);
+    using Data = std::variant<LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent>;
+    enum class Kind {
+      LineStart,
+      CalloutFormat,
+      RemoveCallout,
+      EmphasizeLine,
+      Dedent,
+    };
+    BOOST_DESCRIBE_ENUM(Kind, LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent)
+    static Kind getKind(Data const& __input) { return static_cast<Kind>(__input.index()); }
+    Kind getKind() const { return getKind(data); }
+    using variant_enum_type = Kind;
+    using variant_data_type = Data;
     Data data;
     BOOST_DESCRIBE_CLASS(Switch,
                          (),
@@ -580,7 +592,16 @@ struct Time : public sem::Org {
     Str expr;
   };
 
-  SUB_VARIANTS(TimeKind, TimeVariant, time, getTimeKind, Static, Dynamic);
+  using TimeVariant = std::variant<Static, Dynamic>;
+  enum class TimeKind {
+    Static,
+    Dynamic,
+  };
+  BOOST_DESCRIBE_ENUM(TimeKind, Static, Dynamic)
+  static TimeKind getTimeKind(TimeVariant const& __input) { return static_cast<TimeKind>(__input.index()); }
+  TimeKind getTimeKind() const { return getTimeKind(time); }
+  using variant_enum_type = TimeKind;
+  using variant_data_type = TimeVariant;
   TimeVariant time;
   BOOST_DESCRIBE_CLASS(Time,
                        (Org),
@@ -748,7 +769,20 @@ struct SubtreeLog : public sem::Org {
     bool added = false;
   };
 
-  SUB_VARIANTS(Kind, LogEntry, log, getLogKind, Priority, Note, Refile, Clock, State, Tag);
+  using LogEntry = std::variant<Priority, Note, Refile, Clock, State, Tag>;
+  enum class Kind {
+    Priority,
+    Note,
+    Refile,
+    Clock,
+    State,
+    Tag,
+  };
+  BOOST_DESCRIBE_ENUM(Kind, Priority, Note, Refile, Clock, State, Tag)
+  static Kind getLogKind(LogEntry const& __input) { return static_cast<Kind>(__input.index()); }
+  Kind getLogKind() const { return getLogKind(log); }
+  using variant_enum_type = Kind;
+  using variant_data_type = LogEntry;
   LogEntry log = Note{};
   BOOST_DESCRIBE_CLASS(SubtreeLog,
                        (Org),
@@ -898,7 +932,28 @@ struct Subtree : public sem::Org {
       sem::SemIdT<sem::Time> time = SemIdT<Time>::Nil();
     };
 
-    SUB_VARIANTS(Kind, Data, data, getKind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created);
+    using Data = std::variant<Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created>;
+    enum class Kind {
+      Nonblocking,
+      Trigger,
+      Origin,
+      ExportLatexClass,
+      ExportLatexClassOptions,
+      ExportLatexHeader,
+      ExportLatexCompiler,
+      Ordered,
+      Effort,
+      Visibility,
+      ExportOptions,
+      Blocker,
+      Unnumbered,
+      Created,
+    };
+    BOOST_DESCRIBE_ENUM(Kind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created)
+    static Kind getKind(Data const& __input) { return static_cast<Kind>(__input.index()); }
+    Kind getKind() const { return getKind(data); }
+    using variant_enum_type = Kind;
+    using variant_data_type = Data;
     Data data;
     Property(CR<Data> data) : data(data) {}
     bool matches(Kind kind, CR<QString> subkind = "") const;
@@ -1336,7 +1391,19 @@ struct Link : public sem::Org {
     Str file;
   };
 
-  SUB_VARIANTS(Kind, Data, data, getLinkKind, Raw, Id, Person, Footnote, File);
+  using Data = std::variant<Raw, Id, Person, Footnote, File>;
+  enum class Kind {
+    Raw,
+    Id,
+    Person,
+    Footnote,
+    File,
+  };
+  BOOST_DESCRIBE_ENUM(Kind, Raw, Id, Person, Footnote, File)
+  static Kind getLinkKind(Data const& __input) { return static_cast<Kind>(__input.index()); }
+  Kind getLinkKind() const { return getLinkKind(data); }
+  using variant_enum_type = Kind;
+  using variant_data_type = Data;
   Data data;
   BOOST_DESCRIBE_CLASS(Link,
                        (Org),
@@ -1479,7 +1546,18 @@ struct Include : public sem::Org {
     BOOST_DESCRIBE_CLASS(OrgDocument, (), (), (), ())
   };
 
-  SUB_VARIANTS(Kind, Data, data, getIncludeKind, Example, Export, Src, OrgDocument);
+  using Data = std::variant<Example, Export, Src, OrgDocument>;
+  enum class Kind {
+    Example,
+    Export,
+    Src,
+    OrgDocument,
+  };
+  BOOST_DESCRIBE_ENUM(Kind, Example, Export, Src, OrgDocument)
+  static Kind getIncludeKind(Data const& __input) { return static_cast<Kind>(__input.index()); }
+  Kind getIncludeKind() const { return getIncludeKind(data); }
+  using variant_enum_type = Kind;
+  using variant_data_type = Data;
   Data data;
   BOOST_DESCRIBE_CLASS(Include,
                        (Org),

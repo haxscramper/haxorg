@@ -200,6 +200,7 @@ class EnumParams:
     base: Optional[str] = None
     isEnumClass: bool = True
     fields: List[Field] = field(default_factory=list)
+    IsLine: bool = False
 
 
 @beartype
@@ -290,9 +291,9 @@ class RecordParams:
 @beartype
 @dataclass
 class UsingParams:
-    Template: TemplateParams
     newName: str
     baseType: QualType
+    Template: TemplateParams = field(default_factory=TemplateParams)
 
 
 @beartype

@@ -75,6 +75,27 @@ class ExporterBase:
         self.exp.setSelf(self)
 
 
+@beartype
+class ExporterUltraplain(ExporterBase):
+
+    def __init__(self):
+        super().__init__(self)
+
+    def newOrg(self, node: org.SemId):
+        return ""
+
+    def visitWord(self, res: str, node: org.SemWord):
+        res += node.text
+
+    def visitSpace(self, res: str, node: org.SemSpace):
+        res += node.text
+
+    @staticmethod
+    def getStr(node: org.SemId) -> str:
+        exp = ExporterUltraplain()
+        return exp.exp.evalTop(node)
+
+
 class TexCommand(Enum):
     part = 1
     chapter = 2
@@ -170,7 +191,11 @@ class ExporterLatex(ExporterBase):
     def evalListItem(self, node: org.SemListItem) -> BlockId:
         res = self.t.line([])
         if node.isDescriptionItem():
-            self.t.add_at(res, self.command("item", [self.exp.eval(node.header)] if node.header else []))
+            self.t.add_at(
+                res,
+                self.command(
+                    "item",
+                    [self.exp.eval(node.header)] if node.header else []))
 
         else:
             self.t.add_at(res, self.command("item"))
@@ -230,7 +255,13 @@ class ExporterLatex(ExporterBase):
     def evalDocument(self, node: org.SemDocument) -> BlockId:
         res = self.t.stack([])
 
-        self.t.add_at(res, self.command("documentclass", opts=self.getLatexClassOptions(node), args=[self.getLatexClass(node)]))
+        self.t.add_at(
+            res,
+            self.command("documentclass",
+                         opts=self.getLatexClassOptions(node),
+                         args=[self.getLatexClass(node)]))
+
+        # for hdr in node.getProperties(org.SubtreeProper)
 
         for it in node:
             self.t.add_at(res, self.exp.eval(it))
@@ -254,10 +285,12 @@ class ExporterLatex(ExporterBase):
             case osk.Subtree:
                 cmd = self.getSubtreeCommand(node)
                 match cmd:
-                    case TexCommand.chapter: return "chap:"
-                    case TexCommand.section: return "sec:"
-                    case TexCommand.part: return "part:"
-
+                    case TexCommand.chapter:
+                        return "chap:"
+                    case TexCommand.section:
+                        return "sec:"
+                    case TexCommand.part:
+                        return "part:"
 
     def evalSubtree(self, node: org.SemSubtree) -> BlockId:
         res = self.t.stack([])
@@ -271,17 +304,23 @@ class ExporterLatex(ExporterBase):
                         title_text,
                         self.command("texorpdfstring", [
                             self.exp.eval(item),
-                            self.string(str(item.getKind()))
+                            self.string(
+                                self.escape(ExporterUltraplain.getStr(item)))
                         ]))
 
         cmd = self.getSubtreeCommand(node)
         self.t.add_at(
-            res, self.command(self.getOrgCommand(cmd) if cmd else "texbf", [title_text]))
+            res,
+            self.command(
+                self.getOrgCommand(cmd) if cmd else "texbf", [title_text]))
 
         if cmd in [TexCommand.part, TexCommand.chapter, TexCommand.section]:
-            self.t.add_at(res, self.command("label", [
-                self.string(self.getRefKind(node) or "" + "\\the" + cmd.name)
-            ]))
+            self.t.add_at(
+                res,
+                self.command("label", [
+                    self.string(
+                        self.getRefKind(node) or "" + "\\the" + cmd.name)
+                ]))
 
         for it in node:
             self.t.add_at(res, self.exp.eval(it))
@@ -289,8 +328,11 @@ class ExporterLatex(ExporterBase):
         return res
 
     def evalTimeRange(self, node: org.SemTimeRange) -> BlockId:
-        # FIXME `from` field is missing
-        return self.t.line([self.exp.eval(node.from_), self.string("--"), self.exp.eval(node.to)])
+        return self.t.line([
+            self.exp.eval(node.from_),
+            self.string("--"),
+            self.exp.eval(node.to)
+        ])
 
 
 def test_word():
@@ -317,6 +359,7 @@ def test_serialization_expose():
     assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
     assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Word
 
+
 def test_tex_exporter():
     ctx = org.OrgContext()
     cache_file = "/tmp/doc_cache.dat"
@@ -325,7 +368,6 @@ def test_tex_exporter():
     else:
         ctx.parseFile("/home/haxscramper/tmp/doc.org")
         ctx.writeStore(cache_file)
-
 
     tex = ExporterLatex()
     tex.exp.enableFileTrace("/tmp/trace")
