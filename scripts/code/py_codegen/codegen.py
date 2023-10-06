@@ -74,29 +74,31 @@ def get_type_base_fields(value: GenTuStruct, base_map: Mapping[str, GenTuStruct]
     return fields
 
 
-def get_type_group_fields(value):
+@beartype
+def get_type_group_fields(value: GenTuStruct) -> List[GenTuField]:
     return [
         GenTuField(QualType(group.variantName), group.variantField, GenTuDoc(""))
         for group in get_nested_groups(value)
     ]
 
-
-def get_nested_groups(value):
+@beartype
+def get_nested_groups(value: GenTuStruct) -> Sequence[GenTuTypeGroup]:
     return [
         nested for nested in value.nested
         if isinstance(nested, GenTuTypeGroup) and nested.variantField
     ]
 
 
-def get_base_map():
-    base_map = {}
+@beartype
+def get_base_map(expanded: List[GenTuStruct]) -> Mapping[str, GenTuStruct]:
+    base_map: Mapping[str, GenTuStruct] = {}
 
     def callback(obj):
         if isinstance(obj, GenTuStruct):
             base_map[obj.name] = obj
 
     context = []
-    iterate_object_tree(get_types(), callback, context)
+    iterate_object_tree(expanded, callback, context)
     base_map["Org"] = GenTuStruct(
         "Org",
         GenTuDoc(""),
@@ -109,10 +111,11 @@ def get_base_map():
     return base_map
 
 
-def get_exporter_methods(forward):
-    methods = []
+@beartype
+def get_exporter_methods(forward: bool, expanded: List[GenTuStruct]) -> Sequence[GenTuFunction]:
+    methods: List[GenTuFunction] = []
     iterate_tree_context = []
-    base_map = get_base_map()
+    base_map = get_base_map(expanded)
 
     def callback(value):
         nonlocal methods
@@ -188,15 +191,16 @@ def get_exporter_methods(forward):
 
             methods += variant_methods + [method]
 
-    iterate_object_tree(get_types(), callback, iterate_tree_context)
+    iterate_object_tree(expanded, callback, iterate_tree_context)
     return methods
 
 
-def get_concrete_types():
-    return [struct for struct in get_types() if struct.concreteKind]
+@beartype
+def get_concrete_types(expanded: List[GenTuStruct]) -> Sequence[GenTuStruct]:
+    return [struct for struct in expanded if struct.concreteKind]
 
 
-org_type_names = [Typ.name for Typ in get_types()]
+org_type_names: List[str] = []
 
 from copy import deepcopy
 
@@ -713,12 +717,12 @@ def filter_walk_scope(iterate_context) -> List[QualType]:
 
 
 @beartype
-def get_osk_enum() -> GenTuEnum:
+def get_osk_enum(expanded: List[GenTuStruct]) -> GenTuEnum:
     return GenTuEnum(
         t_osk().name,
         GenTuDoc(""),
         fields=[
-            GenTuEnumField(struct.name, GenTuDoc("")) for struct in get_concrete_types()
+            GenTuEnumField(struct.name, GenTuDoc("")) for struct in get_concrete_types(expanded)
         ],
     )
 
@@ -739,7 +743,7 @@ def get_space_annotated_types() -> Sequence[GenTuStruct]:
 
 
 @beartype
-def get_bind_methods(ast: ASTBuilder) -> Py11Module:
+def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module:
     res = Py11Module("pyhaxorg")
     b: TextLayout = ast.b
 
@@ -801,7 +805,7 @@ def get_bind_methods(ast: ASTBuilder) -> Py11Module:
     iterate_object_tree(GenTuNamespace("sem", type_list), codegenConstructCallback,
                         iterate_context)
 
-    for item in get_enums() + [get_osk_enum()]:
+    for item in get_enums() + [get_osk_enum(expanded)]:
         res.Decls.append(Py11Enum.FromGenTu(item, []))
 
     return res
@@ -911,8 +915,19 @@ def conv_proto_enum(en: pb.Enum) -> GenTuEnum:
     return result
 
 
+@beartype
+def expand_type_groups(types: List[GenTuStruct]) -> List[GenTuStruct]:
+    def rec_expand(typ: GenTuStruct) -> GenTuStruct:
+        return typ
+
+    return [rec_expand(T) for T in types]
+
+
+@beartype
 def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:
-    full_enums = get_enums() + [get_osk_enum()]
+    expanded = expand_type_groups(get_types())
+    
+    full_enums = get_enums() + [get_osk_enum(expanded)]
 
     unit = pb.TU()
     assert os.path.exists(reflection_path)
@@ -930,7 +945,11 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
         pprint(gen_structs, width=200, stream=file)
         pprint(gen_enums, width=200, stream=file)
 
-    autogen_structs = get_bind_methods(ast)
+
+    global org_type_names
+    org_type_names = [Typ.name for Typ in expanded]
+
+    autogen_structs = get_bind_methods(ast, expanded)
 
     for item in gen_structs:
         autogen_structs.Decls.append(pybind_nested_type(item, []))
@@ -954,9 +973,9 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 [GenTuPass('#include "exporternlp_enums.hpp"')] + get_nlp_enums(),
             ),
         ),
-        GenUnit(GenTu("{base}/exporters/Exporter.tcc", get_exporter_methods(False))),
+        GenUnit(GenTu("{base}/exporters/Exporter.tcc", get_exporter_methods(False, expanded))),
         GenUnit(GenTu("{base}/exporters/ExporterMethods.tcc",
-                      get_exporter_methods(True))),
+                      get_exporter_methods(True, expanded))),
         GenUnit(
             GenTu(
                 "{base}/py_libs/pyhaxorg/pyhaxorg.cpp",
@@ -974,7 +993,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 with_enum_reflection_api([
                     GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join(
                         [f"    __IMPL({struct.name})"
-                         for struct in get_concrete_types()])))
+                         for struct in get_concrete_types(expanded)])))
                 ]) + full_enums,
             ),
             GenTu(
@@ -1000,7 +1019,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                     GenTuInclude("QDateTime", True),
                     GenTuInclude("sem/SemOrgBase.hpp", True),
                     GenTuInclude("sem/SemOrgEnums.hpp", True),
-                    GenTuNamespace("sem", [GenTuTypeGroup(get_types(), enumName="")]),
+                    GenTuNamespace("sem", [GenTuTypeGroup(expanded, enumName="")]),
                 ],
             )),
     ])
