@@ -44,7 +44,7 @@ def iterate_object_tree(tree, callback, context: List[Any]):
 
     # Primitive types cannot be walked over, end iteration
     elif (tree is True or tree is False or tree is None or isinstance(tree, str) or
-          isinstance(tree, type)):
+          isinstance(tree, type) or isinstance(tree, int)):
         pass
 
     elif isinstance(tree, object):
@@ -63,7 +63,8 @@ def iterate_object_tree(tree, callback, context: List[Any]):
     context.pop()
 
 
-def get_type_base_fields(value: GenTuStruct, base_map: Mapping[str, GenTuStruct]) -> List[GenTuField]:
+def get_type_base_fields(value: GenTuStruct,
+                         base_map: Mapping[str, GenTuStruct]) -> List[GenTuField]:
     fields = []
     for base_sym in value.bases:
         base = base_map.get(base_sym.name)
@@ -80,6 +81,7 @@ def get_type_group_fields(value: GenTuStruct) -> List[GenTuField]:
         GenTuField(QualType(group.variantName), group.variantField, GenTuDoc(""))
         for group in get_nested_groups(value)
     ]
+
 
 @beartype
 def get_nested_groups(value: GenTuStruct) -> Sequence[GenTuTypeGroup]:
@@ -112,7 +114,8 @@ def get_base_map(expanded: List[GenTuStruct]) -> Mapping[str, GenTuStruct]:
 
 
 @beartype
-def get_exporter_methods(forward: bool, expanded: List[GenTuStruct]) -> Sequence[GenTuFunction]:
+def get_exporter_methods(forward: bool,
+                         expanded: List[GenTuStruct]) -> Sequence[GenTuFunction]:
     methods: List[GenTuFunction] = []
     iterate_tree_context = []
     base_map = get_base_map(expanded)
@@ -268,12 +271,14 @@ class Py11Enum:
 
     def build_typedef(self) -> pya.EnumParams:
         count = 0
-        return pya.EnumParams(Name=self.PyName,
-                              Fields=[
-                                  pya.EnumFieldParams(
-                                      ("_" + F.PyName if F.PyName in ["None", "True", "False"] else F.PyName),
-                                      str(count := count + 1)) for F in self.Fields
-                              ])
+        return pya.EnumParams(
+            Name=self.PyName,
+            Fields=[
+                pya.EnumFieldParams(
+                    ("_" +
+                     F.PyName if F.PyName in ["None", "True", "False"] else F.PyName),
+                    str(count := count + 1)) for F in self.Fields
+            ])
 
     def build_bind(self, ast: ASTBuilder) -> BlockId:
         b = ast.b
@@ -307,7 +312,8 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["Opt"]:
             name = "Optional"
 
-        case ["Str"] | ["string"] | ["QString"] | ["basic_string"] | ["std", "basic_string"]:
+        case ["Str"] | ["string"] | ["QString"] | ["basic_string"
+                                                  ] | ["std", "basic_string"]:
             name = "str"
 
         case ["SemIdT"]:
@@ -417,8 +423,11 @@ def maybe_list(it: Any) -> Any:
 @beartype
 def py_ident(name: str) -> str:
     match name:
-        case "from": return "from_"
-        case _: return name
+        case "from":
+            return "from_"
+        case _:
+            return name
+
 
 @beartype
 @dataclass
@@ -435,12 +444,13 @@ class Py11Field:
                   pyNameOveride: Optional[str] = None,
                   GetImpl: Optional[List[BlockId]] = None,
                   SetImpl: Optional[List[BlockId]] = None) -> 'Py11Field':
-        return Py11Field(PyName=py_ident(Field.name) if pyNameOveride is None else pyNameOveride,
-                         Type=Field.type,
-                         CxxName=Field.name,
-                         GetImpl=GetImpl,
-                         Doc=Field.doc,
-                         SetImpl=SetImpl)
+        return Py11Field(
+            PyName=py_ident(Field.name) if pyNameOveride is None else pyNameOveride,
+            Type=Field.type,
+            CxxName=Field.name,
+            GetImpl=GetImpl,
+            Doc=Field.doc,
+            SetImpl=SetImpl)
 
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.FieldParams:
         return pya.FieldParams(py_type(self.Type), self.PyName)
@@ -580,8 +590,6 @@ class Py11Module:
         passes.append(ast.string("from enum import Enum"))
         passes.append(ast.string("from datetime import datetime, date, time"))
 
-
-
         for entry in [E for E in self.Decls if isinstance(E, Py11Enum)]:
             passes.append(ast.Enum(entry.build_typedef()))
             passes.append(ast.string(""))
@@ -589,7 +597,8 @@ class Py11Module:
         for entry in [E for E in self.Decls if isinstance(E, Py11Class)]:
             passes.append(ast.string(f"{entry.PyName}: Type"))
 
-        passes.append(ast.string("""
+        passes.append(
+            ast.string("""
 class SemId:
     def getKind(self) -> OrgSemKind: ...
     def __iter__(self) -> Iterator[SemId]: ...
@@ -633,7 +642,8 @@ class SemId:
 
 
 @beartype
-def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct, base_map: Mapping[str, GenTuStruct]) -> Py11Class:
+def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
+                  base_map: Mapping[str, GenTuStruct]) -> Py11Class:
     base_type = QualType(typ.name, Spaces=[QualType("sem")])
     id_type = QualType("SemIdT", [base_type], Spaces=[QualType("sem")])
     res = Py11Class(PyName="Sem" + typ.name, Class=id_type, PyBases=typ.bases)
@@ -665,7 +675,7 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct, base_map: Ma
                 passcall = ast.Return(passcall)
 
             res.Methods.append(Py11Method.FromGenTu(meth, Body=[passcall]))
-    
+
     def map_bases(Record: GenTuStruct):
         for base in Record.bases:
             if base.name != "Org":
@@ -722,7 +732,8 @@ def get_osk_enum(expanded: List[GenTuStruct]) -> GenTuEnum:
         t_osk().name,
         GenTuDoc(""),
         fields=[
-            GenTuEnumField(struct.name, GenTuDoc("")) for struct in get_concrete_types(expanded)
+            GenTuEnumField(struct.name, GenTuDoc(""))
+            for struct in get_concrete_types(expanded)
         ],
     )
 
@@ -906,34 +917,148 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
 
     return result
 
+
 @beartype
 def conv_proto_enum(en: pb.Enum) -> GenTuEnum:
     result = GenTuEnum(en.name, GenTuDoc(""), [])
     for field in en.fields:
         result.fields.append(GenTuEnumField(field.name, GenTuDoc("")))
-        
+
     return result
 
 
 @beartype
-def expand_type_groups(types: List[GenTuStruct]) -> List[GenTuStruct]:
-    def rec_expand(typ: GenTuStruct) -> GenTuStruct:
+def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuStruct]:
+
+    @beartype
+    def rec_expand_group(
+        record: GenTuTypeGroup
+    ) -> List[Union[GenTuStruct, GenTuEnum, GenTuField, GenTuFunction, GenTuPass]]:
+        result = []
+        for item in record.types:
+            result.append(rec_expand_type(item))
+
+        typeNames: List[str] = []
+
+        for item in record.types:
+            if item.concreteKind:
+                typeNames.append(item.name)
+
+        if record.iteratorMacroName:
+            iteratorMacro = MacroParams(
+                name=record.iteratorMacroName,
+                params=[MacroParams.Param("__IMPL")],
+                doc=DocParams(""),
+            )
+
+            for typeItem in typeNames:
+                iteratorMacro.definition.append(f"__IMPL({typeItem})")
+
+            result.append(GenTuPass(ast.Macro(iteratorMacro)))
+
+        if record.variantName and record.enumName:
+            result.append(
+                GenTuPass(
+                    ast.Using(
+                        UsingParams(newName=record.variantName,
+                                    baseType=QualType(
+                                        "variant",
+                                        Spaces=[QualType("std")],
+                                        Parameters=[QualType(T) for T in typeNames])))))
+
+            result.append(
+                GenTuEnum(name=record.enumName,
+                          doc=GenTuDoc(""),
+                          fields=[GenTuEnumField(N, GenTuDoc("")) for N in typeNames]))
+
+            result.append(
+                GenTuPass(
+                    ast.XCall("BOOST_DESCRIBE_ENUM", [
+                        ast.string(record.enumName),
+                    ] + [ast.string(N) for N in typeNames])))
+
+            result.append(
+                GenTuFunction(
+                    isStatic=True,
+                    doc=GenTuDoc(""),
+                    name=record.kindGetter,
+                    result=QualType(record.enumName),
+                    arguments=[
+                        GenTuIdent(QualType(record.variantName, isConst=True, isRef=True),
+                                   "__input")
+                    ],
+                    impl=ast.Return(
+                        ast.XCall("static_cast",
+                                  args=[ast.XCallRef(ast.string("__input"), "index")],
+                                  Params=[QualType(record.enumName)]))))
+
+            result.append(
+                GenTuFunction(name=record.kindGetter,
+                              result=QualType(record.enumName),
+                              impl=ast.Return(
+                                  ast.XCall(record.kindGetter,
+                                            [ast.string(record.variantField)])),
+                              doc=GenTuDoc(""),
+                              isConst=True))
+
+            result.append(
+                GenTuPass(
+                    ast.Using(
+                        UsingParams(newName="variant_enum_type",
+                                    baseType=QualType(record.enumName)))))
+
+            result.append(
+                GenTuPass(
+                    ast.Using(
+                        UsingParams(newName="variant_data_type",
+                                    baseType=QualType(record.variantName)))))
+
+            result.append(
+                GenTuField(type=QualType(record.variantName),
+                           name=record.variantField,
+                           doc=GenTuDoc(""),
+                           value=ast.string(record.variantValue)
+                           if record.variantValue else None))
+
+        return result
+
+    @beartype
+    def rec_expand_type(typ: GenTuStruct) -> GenTuStruct:
+        converted = []
+        for item in typ.nested:
+            if isinstance(item, GenTuStruct):
+                converted.append(rec_expand_type(item))
+
+            elif isinstance(item, GenTuTypeGroup):
+                for res in rec_expand_group(item):
+                    if isinstance(res, GenTuField):
+                        typ.fields.append(res)
+                    else:
+                        converted.append(res)
+
+            elif isinstance(item, GenTuPass) or isinstance(item, GenTuEnum):
+                converted.append(item)
+
+            else:
+                assert False, type(item)
+
+        typ.nested = converted
+
         return typ
 
-    return [rec_expand(T) for T in types]
+    return [rec_expand_type(T) for T in types]
 
 
 @beartype
 def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:
-    expanded = expand_type_groups(get_types())
-    
+    expanded = expand_type_groups(ast, get_types())
+
     full_enums = get_enums() + [get_osk_enum(expanded)]
 
     unit = pb.TU()
     assert os.path.exists(reflection_path)
     with open(reflection_path, "rb") as f:
         unit = pb.TU.FromString(f.read())
-
 
     with open("/tmp/reflection-structs.py", "w") as file:
         pprint(unit, width=200, stream=file)
@@ -944,7 +1069,6 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     with open("/tmp/reflection_data.py", "w") as file:
         pprint(gen_structs, width=200, stream=file)
         pprint(gen_enums, width=200, stream=file)
-
 
     global org_type_names
     org_type_names = [Typ.name for Typ in expanded]
@@ -973,9 +1097,12 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 [GenTuPass('#include "exporternlp_enums.hpp"')] + get_nlp_enums(),
             ),
         ),
-        GenUnit(GenTu("{base}/exporters/Exporter.tcc", get_exporter_methods(False, expanded))),
-        GenUnit(GenTu("{base}/exporters/ExporterMethods.tcc",
-                      get_exporter_methods(True, expanded))),
+        GenUnit(
+            GenTu("{base}/exporters/Exporter.tcc", get_exporter_methods(False,
+                                                                        expanded))),
+        GenUnit(
+            GenTu("{base}/exporters/ExporterMethods.tcc",
+                  get_exporter_methods(True, expanded))),
         GenUnit(
             GenTu(
                 "{base}/py_libs/pyhaxorg/pyhaxorg.cpp",
@@ -991,9 +1118,10 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
             GenTu(
                 "{base}/sem/SemOrgEnums.hpp",
                 with_enum_reflection_api([
-                    GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join(
-                        [f"    __IMPL({struct.name})"
-                         for struct in get_concrete_types(expanded)])))
+                    GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join([
+                        f"    __IMPL({struct.name})"
+                        for struct in get_concrete_types(expanded)
+                    ])))
                 ]) + full_enums,
             ),
             GenTu(

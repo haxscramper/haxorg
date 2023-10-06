@@ -10,7 +10,7 @@ import os
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
 
-
+@beartype
 class AstbuilderBase:
     b: TextLayout
 

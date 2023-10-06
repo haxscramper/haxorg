@@ -213,9 +213,6 @@ void Exporter<V, R>::visitCode(R& res, In<sem::Code> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Code::Switch::Data const& object) { visitVariants(res, sem::Code::Switch::getKind(object), object); }
-
-template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Code::Switch const& object) { __obj_field(res, object, data); }
 
 template <typename V, typename R>
@@ -237,15 +234,12 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Code::Switch::Dedent const& object) { __obj_field(res, object, value); }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Time::TimeVariant const& object) { visitVariants(res, sem::Time::getTimeKind(object), object); }
-
-template <typename V, typename R>
 void Exporter<V, R>::visitTime(R& res, In<sem::Time> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, isActive);
+  __org_field(res, object, time);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-  __org_field(res, object, time);
 }
 
 template <typename V, typename R>
@@ -299,14 +293,11 @@ void Exporter<V, R>::visit(R& res, sem::Symbol::Param const& object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::SubtreeLog::LogEntry const& object) { visitVariants(res, sem::SubtreeLog::getLogKind(object), object); }
-
-template <typename V, typename R>
 void Exporter<V, R>::visitSubtreeLog(R& res, In<sem::SubtreeLog> object) {
   __visit_specific_kind(res, object);
+  __org_field(res, object, log);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-  __org_field(res, object, log);
 }
 
 template <typename V, typename R>
@@ -379,9 +370,6 @@ void Exporter<V, R>::visit(R& res, sem::Subtree::Period const& object) {
   __obj_field(res, object, kind);
   __obj_field(res, object, period);
 }
-
-template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Subtree::Property::Data const& object) { visitVariants(res, sem::Subtree::Property::getKind(object), object); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Subtree::Property const& object) {
@@ -613,15 +601,12 @@ void Exporter<V, R>::visitListItem(R& res, In<sem::ListItem> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Link::Data const& object) { visitVariants(res, sem::Link::getLinkKind(object), object); }
-
-template <typename V, typename R>
 void Exporter<V, R>::visitLink(R& res, In<sem::Link> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, description);
+  __org_field(res, object, data);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-  __org_field(res, object, data);
 }
 
 template <typename V, typename R>
@@ -685,14 +670,11 @@ void Exporter<V, R>::visitTextSeparator(R& res, In<sem::TextSeparator> object) {
 }
 
 template <typename V, typename R>
-void Exporter<V, R>::visit(R& res, sem::Include::Data const& object) { visitVariants(res, sem::Include::getIncludeKind(object), object); }
-
-template <typename V, typename R>
 void Exporter<V, R>::visitInclude(R& res, In<sem::Include> object) {
   __visit_specific_kind(res, object);
+  __org_field(res, object, data);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-  __org_field(res, object, data);
 }
 
 template <typename V, typename R>

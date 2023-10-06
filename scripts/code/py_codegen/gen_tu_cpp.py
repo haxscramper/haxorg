@@ -3,6 +3,10 @@ from astbuilder_cpp import *
 from beartype.typing import *
 from pprint import pprint
 from beartype import beartype
+from py_textlayout import *
+
+if not TYPE_CHECKING:
+    BlockId = NewType('BlockId', int)
 
 
 @beartype
@@ -52,7 +56,7 @@ class GenTuFunction:
     doc: GenTuDoc
     params: List[GenTuParam] = field(default_factory=list)
     arguments: List[GenTuIdent] = field(default_factory=list)
-    impl: Optional[str] = None
+    impl: Optional[Union[str, BlockId]] = None
     isVirtual: bool = False
     isConst: bool = False
     isStatic: bool = False
@@ -78,7 +82,7 @@ class GenTuField:
     type: QualType
     name: str
     doc: GenTuDoc
-    value: Optional[str] = None
+    value: Optional[Union[str, BlockId]] = None
     isConst: bool = False
     isStatic: bool = False
 
@@ -182,7 +186,10 @@ class GenConverter:
             decl.Template.Stacks = [self.convertParams(func.params)]
 
         if func.impl is not None:
-            decl.Body = [self.ast.string(str) for str in func.impl.split("\n")]
+            if isinstance(func.impl, str):
+                decl.Body = [self.ast.string(str) for str in func.impl.split("\n")]
+            else:
+                decl.Body = [func.impl]
 
         decl.Args = [self.convertIdent(parm) for parm in func.arguments]
 
@@ -222,7 +229,8 @@ class GenConverter:
                             type=member.type,
                             name=member.name,
                             isConst=member.isConst,
-                            defArg=self.ast.string(member.value)
+                            defArg=(self.ast.string(member.value) if isinstance(
+                                member.value, str) else member.value)
                             if member.value else None,
                         ),
                         doc=DocParams(brief=member.doc.brief, full=member.doc.full),
@@ -469,116 +477,9 @@ class GenConverter:
 
     def convertTypeGroup(self, record: GenTuTypeGroup) -> List[BlockId]:
         decls: List[BlockId] = []
-        typeNames: List[str] = []
-
-        for item in record.types:
-            if item.concreteKind:
-                typeNames.append(item.name)
-
-        if record.iteratorMacroName:
-            iteratorMacro = MacroParams(
-                name=record.iteratorMacroName,
-                params=[MacroParams.Param("__IMPL")],
-                doc=DocParams(""),
-            )
-
-            for typeItem in typeNames:
-                iteratorMacro.definition.append(f"__IMPL({typeItem})")
-
-            decls.append(self.ast.Macro(iteratorMacro))
 
         for sub in record.types:
             decls += self.convert(sub)
-
-        if record.variantName and record.enumName:
-            decls.append(
-                self.ast.Using(
-                    UsingParams(newName=record.variantName,
-                                baseType=QualType(
-                                    "variant",
-                                    Spaces=[QualType("std")],
-                                    Parameters=[QualType(T) for T in typeNames]))))
-
-            decls.append(
-                self.ast.Enum(
-                    EnumParams(
-                        name=record.enumName,
-                        doc=DocParams(""),
-                        fields=[EnumParams.Field(DocParams(""), N) for N in typeNames])))
-
-            decls.append(
-                self.ast.XCall("BOOST_DESCRIBE_ENUM", [
-                    self.ast.string(record.enumName),
-                ] + [self.ast.string(N) for N in typeNames]))
-
-            decls.append(
-                self.ast.MethodDecl(
-                    MethodDeclParams(Params=FunctionParams(
-                        doc=DocParams(""),
-                        Name=record.kindGetter,
-                        ResultTy=QualType(record.enumName),
-                        Args=[
-                            ParmVarParams(
-                                QualType(record.variantName, isConst=True, isRef=True),
-                                "__input")
-                        ],
-                        Body=[
-                            self.ast.Return(
-                                self.ast.XCall("static_cast",
-                                               args=[
-                                                   self.ast.XCallRef(
-                                                       self.ast.string("__input"),
-                                                       "index")
-                                               ],
-                                               Params=[QualType(record.enumName)]))
-                        ]),
-                                     isStatic=True)))
-
-            decls.append(
-                self.ast.MethodDecl(
-                    MethodDeclParams(Params=FunctionParams(
-                        Name=record.kindGetter,
-                        ResultTy=QualType(record.enumName),
-                        Body=[
-                            self.ast.Return(
-                                self.ast.XCall(record.kindGetter,
-                                               [self.ast.string(record.variantField)]))
-                        ],
-                        doc=DocParams("")),
-                                     isConst=True)))
-
-            decls.append(
-                self.ast.Using(
-                    UsingParams(newName="variant_enum_type",
-                                baseType=QualType(record.enumName))))
-
-            decls.append(
-                self.ast.Using(
-                    UsingParams(newName="variant_data_type",
-                                baseType=QualType(record.variantName))))
-
-            # Arguments: List[BlockId] = [
-            #     self.ast.string(record.enumName),
-            #     self.ast.string(record.variantName),
-            #     self.ast.string(record.variantField),
-            #     self.ast.string(record.kindGetter),
-            # ]
-
-            # for kind in typeNames:
-            #     Arguments.append(self.ast.string(kind))
-
-            # decls.append(self.ast.XCall("SUB_VARIANTS", Arguments, True))
-            decls.append(
-                self.ast.Field(
-                    RecordField(
-                        params=ParmVarParams(
-                            type=QualType(record.variantName),
-                            name=record.variantField,
-                            defArg=self.ast.string(record.variantValue)
-                            if record.variantValue else None,
-                        ),
-                        doc=DocParams(""),
-                    )))
 
         return decls
 
