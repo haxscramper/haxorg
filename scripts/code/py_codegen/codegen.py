@@ -972,12 +972,6 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                           fields=[GenTuEnumField(N, GenTuDoc("")) for N in typeNames]))
 
             result.append(
-                GenTuPass(
-                    ast.XCall("BOOST_DESCRIBE_ENUM", [
-                        ast.string(record.enumName),
-                    ] + [ast.string(N) for N in typeNames])))
-
-            result.append(
                 GenTuFunction(
                     isStatic=True,
                     doc=GenTuDoc(""),

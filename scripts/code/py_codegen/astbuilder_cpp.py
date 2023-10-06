@@ -1,6 +1,6 @@
 import setup_imports
 from py_textlayout import *
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from beartype.typing import *
 from enum import Enum
 from beartype import beartype
@@ -115,6 +115,7 @@ class StorageClass(Enum):
 class DocParams:
     brief: str
     full: str = ""
+    IsInline: bool = False
 
 
 @beartype
@@ -896,27 +897,35 @@ class ASTBuilder(base.AstbuilderBase):
     def Enum(self, params: EnumParams) -> BlockId:
         assert len(params.name) > 0, "EnumDecl: non-empty enum name required"
 
-        fields = self.b.stack([])
+        fields = self.b.line([]) if params.IsLine else self.b.stack([])
         for field in params.fields:
             content: List[BlockId] = []
-            content.append(self.Doc(field.doc))
-            content.append(self.string(field.name + ","))
+            content.append(self.Doc(replace(field.doc, IsInline=params.IsLine)))
+            content.append(self.string(field.name + (", " if params.IsLine else ",")))
             stack = self.b.stack(content)
 
             self.b.add_at(fields, stack)
 
-        return self.b.stack([
-            self.Doc(params.doc),
-            self.b.line([
-                self.string("enum "),
-                self.string("class " if params.isEnumClass else ""),
-                self.string(params.name + " "),
-                self.string(": " + params.base + " " if params.base else ""),
-                self.string("{")
-            ]),
-            self.b.indent(2, fields),
-            self.string("};"),
+        head = self.b.line([
+            self.string("enum "),
+            self.string("class " if params.isEnumClass else ""),
+            self.string(params.name + " "),
+            self.string(": " + params.base + " " if params.base else ""),
+            self.string("{")
         ])
+
+        if params.IsLine:
+            return self.b.stack([
+                self.Doc(params.doc),
+                self.b.line([head, self.string(" "), fields, self.string("};")])
+            ])
+        else:
+            return self.b.stack([
+                self.Doc(params.doc),
+                head,
+                self.b.indent(2, fields),
+                self.string("};"),
+            ])
 
     def Capture(self, p: LambdaCapture) -> BlockId:
         result = self.b.line([])
@@ -1025,8 +1034,11 @@ class ASTBuilder(base.AstbuilderBase):
 
         result = self.b.stack([])
         for line in content:
-            t: BlockId = self.string("/// " + line)
+            t: BlockId = self.string(("" if doc.IsInline else "/// ") + line)
             self.b.add_at(result, t)
+
+        if doc.IsInline and 0 < len(content):
+            result = self.b.line([self.string("//!"), result, self.string("*/")])
 
         return result
 

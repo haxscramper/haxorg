@@ -398,7 +398,8 @@ class GenConverter:
         else:
             params = EnumParams(name=entry.name,
                                 doc=self.convertDoc(entry.doc),
-                                base=entry.base)
+                                base=entry.base,
+                                IsLine=not any([F.doc.brief for F in entry.fields]))
 
             for field in entry.fields:
                 params.fields.append(
