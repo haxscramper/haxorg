@@ -401,7 +401,7 @@ struct Export : public sem::Block {
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Export block type
-  Format format = Format::Inline;
+  sem::Export::Format format = Format::Inline;
   /// \brief Exporter backend name
   Str exporter;
   /// \brief Additional parameters aside from 'exporter',
@@ -466,23 +466,20 @@ struct Code : public sem::Block {
     };
 
     using Data = std::variant<LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent>;
-    enum class Kind : short int {
-      LineStart,
-      CalloutFormat,
-      RemoveCallout,
-      EmphasizeLine,
-      Dedent,
-    };
+    enum class Kind : short int { LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent)
-    BOOST_DESCRIBE_ENUM(Kind, LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent)
-    Kind getKind(Data const& __input) { return static_cast<Kind>(__input.index()); }
-
-    Kind getKind() { return getKind(data); }
-
     using variant_enum_type = Kind;
     using variant_data_type = Data;
-    BOOST_DESCRIBE_CLASS(Switch, (), (), (), (data))
+    BOOST_DESCRIBE_CLASS(Switch,
+                         (),
+                         (),
+                         (),
+                         (data,
+                          (Kind(Data const&)) getKind,
+                          (Kind() const) getKind))
     Data data;
+    static Kind getKind(Data const& __input) { return static_cast<Kind>(__input.index()); }
+    Kind getKind() const { return getKind(data); }
   };
 
   /// \brief What to do with newly evaluated result
@@ -524,9 +521,9 @@ struct Code : public sem::Block {
   /// \brief Code block language name
   Opt<Str> lang = std::nullopt;
   /// \brief Switch options for block
-  Vec<Switch> switches = {};
+  Vec<sem::Code::Switch> switches = {};
   /// \brief What to export
-  Exports exports = Exports::Both;
+  sem::Code::Exports exports = Exports::Both;
   /// \brief Additional parameters that are language-specific
   sem::SemIdT<sem::CmdArguments> parameters = SemIdT<CmdArguments>::Nil();
   /// \brief Do cache values?
@@ -562,27 +559,20 @@ struct Time : public sem::Org {
     };
     BOOST_DESCRIBE_NESTED_ENUM(Mode, None, Exact, FirstMatch, SameDay)
     /// \brief Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well
-    enum class Period : short int {
-      Year,
-      Month,
-      Week,
-      Day,
-      Hour,
-      Minute,
-    };
+    enum class Period : short int { Year, Month, Week, Day, Hour, Minute, };
     BOOST_DESCRIBE_NESTED_ENUM(Period, Year, Month, Week, Day, Hour, Minute)
     BOOST_DESCRIBE_CLASS(Repeat, (), (), (), (mode, period, count))
     /// \brief mode
-    Mode mode;
+    sem::Time::Repeat::Mode mode;
     /// \brief period
-    Period period;
+    sem::Time::Repeat::Period period;
     /// \brief count
     int count;
   };
 
   struct Static {
     BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, time))
-    Opt<Repeat> repeat;
+    Opt<sem::Time::Static::Repeat> repeat;
     UserTime time;
   };
 
@@ -592,16 +582,8 @@ struct Time : public sem::Org {
   };
 
   using TimeVariant = std::variant<Static, Dynamic>;
-  enum class TimeKind : short int {
-    Static,
-    Dynamic,
-  };
+  enum class TimeKind : short int { Static, Dynamic, };
   BOOST_DESCRIBE_NESTED_ENUM(TimeKind, Static, Dynamic)
-  BOOST_DESCRIBE_ENUM(TimeKind, Static, Dynamic)
-  TimeKind getTimeKind(TimeVariant const& __input) { return static_cast<TimeKind>(__input.index()); }
-
-  TimeKind getTimeKind() { return getTimeKind(time); }
-
   using variant_enum_type = TimeKind;
   using variant_data_type = TimeVariant;
   BOOST_DESCRIBE_CLASS(Time,
@@ -612,7 +594,9 @@ struct Time : public sem::Org {
                         isActive,
                         time,
                         (sem::SemIdT<Time>(sem::SemId, Opt<OrgAdapter>)) create,
-                        (OrgSemKind() const) getKind))
+                        (OrgSemKind() const) getKind,
+                        (TimeKind(TimeVariant const&)) getTimeKind,
+                        (TimeKind() const) getTimeKind))
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief <active> vs [inactive]
@@ -620,6 +604,8 @@ struct Time : public sem::Org {
   TimeVariant time;
   static sem::SemIdT<Time> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
+  static TimeKind getTimeKind(TimeVariant const& __input) { return static_cast<TimeKind>(__input.index()); }
+  TimeKind getTimeKind() const { return getTimeKind(time); }
 };
 
 /// \brief Range of time delimited by two points
@@ -693,7 +679,7 @@ struct Symbol : public sem::Org {
   /// \brief Name of the symbol
   Str name;
   /// \brief Optional list of parameters
-  Vec<Param> parameters;
+  Vec<sem::Symbol::Param> parameters;
   /// \brief Positional parameters
   Vec<sem::SemId> positional;
   static sem::SemIdT<Symbol> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -713,11 +699,7 @@ struct SubtreeLog : public sem::Org {
   /// \brief Priority added
   struct Priority : public sem::SubtreeLog::DescribedLog {
     /// \brief Priority change action
-    enum class Action : short int {
-      Added,
-      Removed,
-      Changed,
-    };
+    enum class Action : short int { Added, Removed, Changed, };
     BOOST_DESCRIBE_NESTED_ENUM(Action, Added, Removed, Changed)
     BOOST_DESCRIBE_CLASS(Priority, (DescribedLog), (), (), (oldPriority, newPriority, on))
     /// \brief Previous priority for change and removal
@@ -771,20 +753,8 @@ struct SubtreeLog : public sem::Org {
   };
 
   using LogEntry = std::variant<Priority, Note, Refile, Clock, State, Tag>;
-  enum class Kind : short int {
-    Priority,
-    Note,
-    Refile,
-    Clock,
-    State,
-    Tag,
-  };
+  enum class Kind : short int { Priority, Note, Refile, Clock, State, Tag, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Tag)
-  BOOST_DESCRIBE_ENUM(Kind, Priority, Note, Refile, Clock, State, Tag)
-  Kind getLogKind(LogEntry const& __input) { return static_cast<Kind>(__input.index()); }
-
-  Kind getLogKind() { return getLogKind(log); }
-
   using variant_enum_type = Kind;
   using variant_data_type = LogEntry;
   BOOST_DESCRIBE_CLASS(SubtreeLog,
@@ -795,13 +765,17 @@ struct SubtreeLog : public sem::Org {
                         log,
                         (sem::SemIdT<SubtreeLog>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (void(sem::SemIdT<sem::StmtList>)) setDescription))
+                        (void(sem::SemIdT<sem::StmtList>)) setDescription,
+                        (Kind(LogEntry const&)) getLogKind,
+                        (Kind() const) getLogKind))
   /// \brief Document
   static OrgSemKind const staticKind;
   LogEntry log = Note{};
   static sem::SemIdT<SubtreeLog> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
   void setDescription(sem::SemIdT<sem::StmtList> desc);
+  static Kind getLogKind(LogEntry const& __input) { return static_cast<Kind>(__input.index()); }
+  Kind getLogKind() const { return getLogKind(log); }
 };
 
 /// \brief Subtree
@@ -846,17 +820,9 @@ struct Subtree : public sem::Org {
 
   /// \brief Single subtree property
   struct Property {
-    enum class SetMode : short int {
-      Override,
-      Add,
-      Subtract,
-    };
+    enum class SetMode : short int { Override, Add, Subtract, };
     BOOST_DESCRIBE_NESTED_ENUM(SetMode, Override, Add, Subtract)
-    enum class InheritanceMode : short int {
-      ThisAndSub,
-      OnlyThis,
-      OnlySub,
-    };
+    enum class InheritanceMode : short int { ThisAndSub, OnlyThis, OnlySub, };
     BOOST_DESCRIBE_NESTED_ENUM(InheritanceMode, ThisAndSub, OnlyThis, OnlySub)
     struct Nonblocking {
       BOOST_DESCRIBE_CLASS(Nonblocking, (), (), (), (isBlocking))
@@ -904,15 +870,10 @@ struct Subtree : public sem::Org {
     };
 
     struct Visibility {
-      enum class Level : short int {
-        Folded,
-        Children,
-        Content,
-        All,
-      };
+      enum class Level : short int { Folded, Children, Content, All, };
       BOOST_DESCRIBE_NESTED_ENUM(Level, Folded, Children, Content, All)
       BOOST_DESCRIBE_CLASS(Visibility, (), (), (), (level))
-      Level level;
+      sem::Subtree::Property::Visibility::Level level;
     };
 
     struct ExportOptions {
@@ -936,28 +897,8 @@ struct Subtree : public sem::Org {
     };
 
     using Data = std::variant<Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created>;
-    enum class Kind : short int {
-      Nonblocking,
-      Trigger,
-      Origin,
-      ExportLatexClass,
-      ExportLatexClassOptions,
-      ExportLatexHeader,
-      ExportLatexCompiler,
-      Ordered,
-      Effort,
-      Visibility,
-      ExportOptions,
-      Blocker,
-      Unnumbered,
-      Created,
-    };
+    enum class Kind : short int { Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, };
     BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created)
-    BOOST_DESCRIBE_ENUM(Kind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created)
-    Kind getKind(Data const& __input) { return static_cast<Kind>(__input.index()); }
-
-    Kind getKind() { return getKind(data); }
-
     using variant_enum_type = Kind;
     using variant_data_type = Data;
     Property(CR<Data> data) : data(data) {}
@@ -966,11 +907,18 @@ struct Subtree : public sem::Org {
                          (),
                          (),
                          (),
-                         (mainSetRule, subSetRule, inheritanceMode, data))
-    SetMode mainSetRule = SetMode::Override;
-    SetMode subSetRule = SetMode::Override;
-    InheritanceMode inheritanceMode = InheritanceMode::ThisAndSub;
+                         (mainSetRule,
+                          subSetRule,
+                          inheritanceMode,
+                          data,
+                          (Kind(Data const&)) getKind,
+                          (Kind() const) getKind))
+    sem::Subtree::Property::SetMode mainSetRule = SetMode::Override;
+    sem::Subtree::Property::SetMode subSetRule = SetMode::Override;
+    sem::Subtree::Property::InheritanceMode inheritanceMode = InheritanceMode::ThisAndSub;
     Data data;
+    static Kind getKind(Data const& __input) { return static_cast<Kind>(__input.index()); }
+    Kind getKind() const { return getKind(data); }
   };
 
   BOOST_DESCRIBE_CLASS(Subtree,
@@ -992,11 +940,11 @@ struct Subtree : public sem::Org {
                         scheduled,
                         (sem::SemIdT<Subtree>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Vec<Period>(IntSet<Period::Kind>) const) getTimePeriods,
-                        (Vec<Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
-                        (Opt<Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty,
-                        (Vec<Property>(Property::Kind, Str const&) const) getContextualProperties,
-                        (Opt<Property>(Property::Kind, Str const&) const) getContextualProperty))
+                        (Vec<sem::Subtree::Period>(IntSet<sem::Subtree::Period::Kind>) const) getTimePeriods,
+                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
+                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty,
+                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getContextualProperties,
+                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getContextualProperty))
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Subtree level
@@ -1015,7 +963,7 @@ struct Subtree : public sem::Org {
   /// \brief Associated subtree log
   Vec<sem::SemIdT<sem::SubtreeLog>> logbook = {};
   /// \brief Immediate properties
-  Vec<Property> properties = {};
+  Vec<sem::Subtree::Property> properties = {};
   /// \brief When subtree was marked as closed
   Opt<sem::SemIdT<sem::Time>> closed = std::nullopt;
   /// \brief When is the deadline
@@ -1024,11 +972,11 @@ struct Subtree : public sem::Org {
   Opt<sem::SemIdT<sem::Time>> scheduled = std::nullopt;
   static sem::SemIdT<Subtree> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
-  Vec<Period> getTimePeriods(IntSet<Period::Kind> kinds) const;
-  Vec<Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
-  Opt<Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
-  Vec<Property> getContextualProperties(Property::Kind kind, Str const& subkind = "") const;
-  Opt<Property> getContextualProperty(Property::Kind kind, Str const& subkind = "") const;
+  Vec<sem::Subtree::Period> getTimePeriods(IntSet<sem::Subtree::Period::Kind> kinds) const;
+  Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
+  Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
+  Vec<sem::Subtree::Property> getContextualProperties(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
+  Opt<sem::Subtree::Property> getContextualProperty(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
 };
 
 /// \brief Latex code body
@@ -1345,11 +1293,7 @@ struct List : public sem::Org {
 
 struct ListItem : public sem::Org {
   using Org::Org;
-  enum class Checkbox : short int {
-    None,
-    Done,
-    Empty,
-  };
+  enum class Checkbox : short int { None, Done, Empty, };
   BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty)
   BOOST_DESCRIBE_CLASS(ListItem,
                        (Org),
@@ -1363,7 +1307,7 @@ struct ListItem : public sem::Org {
                         (bool() const) isDescriptionItem))
   /// \brief Document
   static OrgSemKind const staticKind;
-  Checkbox checkbox = Checkbox::None;
+  sem::ListItem::Checkbox checkbox = Checkbox::None;
   Opt<sem::SemIdT<sem::Paragraph>> header = std::nullopt;
   static sem::SemIdT<ListItem> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::ListItem; }
@@ -1398,19 +1342,8 @@ struct Link : public sem::Org {
   };
 
   using Data = std::variant<Raw, Id, Person, Footnote, File>;
-  enum class Kind : short int {
-    Raw,
-    Id,
-    Person,
-    Footnote,
-    File,
-  };
+  enum class Kind : short int { Raw, Id, Person, Footnote, File, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, Footnote, File)
-  BOOST_DESCRIBE_ENUM(Kind, Raw, Id, Person, Footnote, File)
-  Kind getLinkKind(Data const& __input) { return static_cast<Kind>(__input.index()); }
-
-  Kind getLinkKind() { return getLinkKind(data); }
-
   using variant_enum_type = Kind;
   using variant_data_type = Data;
   BOOST_DESCRIBE_CLASS(Link,
@@ -1423,7 +1356,9 @@ struct Link : public sem::Org {
                         (sem::SemIdT<Link>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
                         (Opt<sem::SemId>(sem::Document const&) const) resolve,
-                        (Opt<sem::SemId>() const) resolve))
+                        (Opt<sem::SemId>() const) resolve,
+                        (Kind(Data const&)) getLinkKind,
+                        (Kind() const) getLinkKind))
   /// \brief Document
   static OrgSemKind const staticKind;
   Opt<sem::SemIdT<sem::Paragraph>> description = std::nullopt;
@@ -1432,6 +1367,8 @@ struct Link : public sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
   Opt<sem::SemId> resolve(sem::Document const& doc) const;
   Opt<sem::SemId> resolve() const;
+  static Kind getLinkKind(Data const& __input) { return static_cast<Kind>(__input.index()); }
+  Kind getLinkKind() const { return getLinkKind(data); }
 };
 
 struct Document : public sem::Org {
@@ -1555,18 +1492,8 @@ struct Include : public sem::Org {
   };
 
   using Data = std::variant<Example, Export, Src, OrgDocument>;
-  enum class Kind : short int {
-    Example,
-    Export,
-    Src,
-    OrgDocument,
-  };
+  enum class Kind : short int { Example, Export, Src, OrgDocument, };
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Src, OrgDocument)
-  BOOST_DESCRIBE_ENUM(Kind, Example, Export, Src, OrgDocument)
-  Kind getIncludeKind(Data const& __input) { return static_cast<Kind>(__input.index()); }
-
-  Kind getIncludeKind() { return getIncludeKind(data); }
-
   using variant_enum_type = Kind;
   using variant_data_type = Data;
   BOOST_DESCRIBE_CLASS(Include,
@@ -1576,33 +1503,24 @@ struct Include : public sem::Org {
                        (staticKind,
                         data,
                         (sem::SemIdT<Include>(sem::SemId, Opt<OrgAdapter>)) create,
-                        (OrgSemKind() const) getKind))
+                        (OrgSemKind() const) getKind,
+                        (Kind(Data const&)) getIncludeKind,
+                        (Kind() const) getIncludeKind))
   /// \brief Document
   static OrgSemKind const staticKind;
   Data data;
   static sem::SemIdT<Include> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Include; }
+  static Kind getIncludeKind(Data const& __input) { return static_cast<Kind>(__input.index()); }
+  Kind getIncludeKind() const { return getIncludeKind(data); }
 };
 
 struct DocumentOptions : public sem::Org {
   using Org::Org;
   using TocExport = Variant<bool, int>;
-  enum class BrokenLinks : short int {
-    Raise,
-    Ignore,
-    Mark,
-  };
+  enum class BrokenLinks : short int { Raise, Ignore, Mark, };
   BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Raise, Ignore, Mark)
-  enum class Visibility : short int {
-    Overview,
-    Content,
-    ShowAll,
-    Show2Levels,
-    Show3Levels,
-    Show4Levels,
-    Show5Levels,
-    ShowEverything,
-  };
+  enum class Visibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
   BOOST_DESCRIBE_NESTED_ENUM(Visibility, Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything)
   BOOST_DESCRIBE_CLASS(DocumentOptions,
                        (Org),
@@ -1631,9 +1549,9 @@ struct DocumentOptions : public sem::Org {
                         (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty))
   /// \brief Document
   static OrgSemKind const staticKind;
-  BrokenLinks brokenLinks = BrokenLinks::Mark;
-  Visibility initialVisibility = Visibility::ShowEverything;
-  TocExport tocExport = false;
+  sem::DocumentOptions::BrokenLinks brokenLinks = BrokenLinks::Mark;
+  sem::DocumentOptions::Visibility initialVisibility = Visibility::ShowEverything;
+  sem::DocumentOptions::TocExport tocExport = false;
   Vec<sem::Subtree::Property> properties;
   bool smartQuotes = false;
   bool emphasizedText = false;

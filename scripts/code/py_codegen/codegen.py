@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from dataclasses import field, dataclass
+from dataclasses import field, dataclass, replace
 from typing import *
 from enum import Enum
 import re
@@ -738,19 +738,7 @@ def get_osk_enum(expanded: List[GenTuStruct]) -> GenTuEnum:
     )
 
 
-@beartype
-def get_space_annotated_types() -> Sequence[GenTuStruct]:
-    iterate_context: Sequence[GenTuStruct] = []
 
-    def callback(value):
-        nonlocal iterate_context
-        if isinstance(value, QualType):
-            if hasattr(value, "isNested"):
-                value.Spaces = filter_walk_scope(iterate_context) + value.Spaces
-
-    type_defs = get_types()
-    iterate_object_tree(GenTuNamespace("sem", type_defs), callback, iterate_context)
-    return type_defs
 
 
 @beartype
@@ -781,13 +769,11 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
 
     base_map: Mapping[str, GenTuStruct] = {}
 
-    type_list = get_space_annotated_types()
-
     def baseCollectorCallback(value: Any) -> None:
         if isinstance(value, GenTuStruct):
             base_map[value.name] = value
 
-    iterate_object_tree(GenTuNamespace("sem", type_list), baseCollectorCallback,
+    iterate_object_tree(GenTuNamespace("sem", expanded), baseCollectorCallback,
                         iterate_context)
 
     iterate_context = []
@@ -813,7 +799,7 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
                 [N for N in flat_scope(QualType(value.name, Spaces=scope)) if N != "sem"])
             res.Decls.append(Py11Enum.FromGenTu(value, scope, pyNameOverride=PyName))
 
-    iterate_object_tree(GenTuNamespace("sem", type_list), codegenConstructCallback,
+    iterate_object_tree(GenTuNamespace("sem", expanded), codegenConstructCallback,
                         iterate_context)
 
     for item in get_enums() + [get_osk_enum(expanded)]:
@@ -1019,6 +1005,8 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
     @beartype
     def rec_expand_type(typ: GenTuStruct) -> GenTuStruct:
         converted = []
+        methods: List[GenTuFunction] = []
+        fields: List[GenTuField] = []
         for item in typ.nested:
             if isinstance(item, GenTuStruct):
                 converted.append(rec_expand_type(item))
@@ -1026,7 +1014,11 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
             elif isinstance(item, GenTuTypeGroup):
                 for res in rec_expand_group(item):
                     if isinstance(res, GenTuField):
-                        typ.fields.append(res)
+                        fields.append(res)
+
+                    elif isinstance(res, GenTuFunction):
+                        methods.append(res)
+
                     else:
                         converted.append(res)
 
@@ -1036,16 +1028,38 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
             else:
                 assert False, type(item)
 
-        typ.nested = converted
+        result = replace(typ,
+                       nested=converted,
+                       methods=typ.methods + methods,
+                       fields=typ.fields + fields)
 
-        return typ
+        if hasattr(typ, "isNested"):
+            setattr(result, "isNested", getattr(typ, "isNested"))
+
+        if hasattr(typ, "isOrgType"):
+            setattr(result, "isOrgType", getattr(typ, "isOrgType"))
+
+        return result
 
     return [rec_expand_type(T) for T in types]
 
 
 @beartype
+def update_namespace_annotations(expanded: List[GenTuStruct]):
+    iterate_context: Sequence[GenTuStruct] = []
+
+    def callback(value):
+        nonlocal iterate_context
+        if isinstance(value, QualType):
+            if hasattr(value, "isNested"):
+                value.Spaces = filter_walk_scope(iterate_context) + value.Spaces
+
+    iterate_object_tree(GenTuNamespace("sem", expanded), callback, iterate_context)
+
+@beartype
 def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:
     expanded = expand_type_groups(ast, get_types())
+    update_namespace_annotations(expanded)
 
     full_enums = get_enums() + [get_osk_enum(expanded)]
 

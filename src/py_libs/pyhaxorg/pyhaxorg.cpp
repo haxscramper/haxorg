@@ -244,6 +244,14 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def(pybind11::init<>())
     .def_readwrite("value", &sem::Code::Switch::Dedent::value)
     ;
+  pybind11::enum_<sem::Code::Switch::Kind>(m, "CodeSwitchKind")
+    .value("LineStart", sem::Code::Switch::Kind::LineStart)
+    .value("CalloutFormat", sem::Code::Switch::Kind::CalloutFormat)
+    .value("RemoveCallout", sem::Code::Switch::Kind::RemoveCallout)
+    .value("EmphasizeLine", sem::Code::Switch::Kind::EmphasizeLine)
+    .value("Dedent", sem::Code::Switch::Kind::Dedent)
+    .export_values()
+    ;
   pybind11::enum_<sem::Code::Results>(m, "CodeResults")
     .value("Replace", sem::Code::Results::Replace, R"RAW(Remove old result, replace with new value)RAW")
     .export_values()
@@ -260,6 +268,11 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("isActive",
                   [](sem::SemIdT<sem::Time> _self) -> bool { return _self->isActive; },
                   [](sem::SemIdT<sem::Time> _self, bool isActive) { _self->isActive = isActive; })
+    .def_property("time",
+                  [](sem::SemIdT<sem::Time> _self) -> TimeVariant { return _self->time; },
+                  [](sem::SemIdT<sem::Time> _self, TimeVariant time) { _self->time = time; })
+    .def("getTimeKind",
+         [](sem::SemIdT<sem::Time> _self) -> TimeKind { return _self->getTimeKind(); })
     ;
   pybind11::class_<sem::Time::Repeat>(m, "TimeRepeat")
     .def(pybind11::init<>())
@@ -291,6 +304,11 @@ PYBIND11_MODULE(pyhaxorg, m) {
   pybind11::class_<sem::Time::Dynamic>(m, "TimeDynamic")
     .def(pybind11::init<>())
     .def_readwrite("expr", &sem::Time::Dynamic::expr)
+    ;
+  pybind11::enum_<sem::Time::TimeKind>(m, "TimeTimeKind")
+    .value("Static", sem::Time::TimeKind::Static)
+    .value("Dynamic", sem::Time::TimeKind::Dynamic)
+    .export_values()
     ;
   pybind11::class_<sem::SemIdT<sem::TimeRange>, sem::SemId>(m, "SemTimeRange")
     .def(pybind11::init([]() -> sem::SemIdT<sem::TimeRange> { return sem::SemIdT<sem::TimeRange>::Nil(); }))
@@ -329,9 +347,14 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::SubtreeLog>, sem::SemId>(m, "SemSubtreeLog")
     .def(pybind11::init([]() -> sem::SemIdT<sem::SubtreeLog> { return sem::SemIdT<sem::SubtreeLog>::Nil(); }))
+    .def_property("log",
+                  [](sem::SemIdT<sem::SubtreeLog> _self) -> LogEntry { return _self->log; },
+                  [](sem::SemIdT<sem::SubtreeLog> _self, LogEntry log) { _self->log = log; })
     .def("setDescription",
          [](sem::SemIdT<sem::SubtreeLog> _self, sem::SemIdT<sem::StmtList> desc) -> void { return _self->setDescription(desc); },
          pybind11::arg("desc"))
+    .def("getLogKind",
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> Kind { return _self->getLogKind(); })
     ;
   pybind11::class_<sem::SubtreeLog::DescribedLog>(m, "SubtreeLogDescribedLog")
     .def(pybind11::init<>())
@@ -372,6 +395,15 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_readwrite("on", &sem::SubtreeLog::Tag::on, R"RAW(When the log was assigned)RAW")
     .def_readwrite("tag", &sem::SubtreeLog::Tag::tag, R"RAW(Tag in question)RAW")
     .def_readwrite("added", &sem::SubtreeLog::Tag::added, R"RAW(Added/removed?)RAW")
+    ;
+  pybind11::enum_<sem::SubtreeLog::Kind>(m, "SubtreeLogKind")
+    .value("Priority", sem::SubtreeLog::Kind::Priority)
+    .value("Note", sem::SubtreeLog::Kind::Note)
+    .value("Refile", sem::SubtreeLog::Kind::Refile)
+    .value("Clock", sem::SubtreeLog::Kind::Clock)
+    .value("State", sem::SubtreeLog::Kind::State)
+    .value("Tag", sem::SubtreeLog::Kind::Tag)
+    .export_values()
     ;
   pybind11::class_<sem::SemIdT<sem::Subtree>, sem::SemId>(m, "SemSubtree")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Subtree> { return sem::SemIdT<sem::Subtree>::Nil(); }))
@@ -515,6 +547,23 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def(pybind11::init<>())
     .def_readwrite("time", &sem::Subtree::Property::Created::time)
     ;
+  pybind11::enum_<sem::Subtree::Property::Kind>(m, "SubtreePropertyKind")
+    .value("Nonblocking", sem::Subtree::Property::Kind::Nonblocking)
+    .value("Trigger", sem::Subtree::Property::Kind::Trigger)
+    .value("Origin", sem::Subtree::Property::Kind::Origin)
+    .value("ExportLatexClass", sem::Subtree::Property::Kind::ExportLatexClass)
+    .value("ExportLatexClassOptions", sem::Subtree::Property::Kind::ExportLatexClassOptions)
+    .value("ExportLatexHeader", sem::Subtree::Property::Kind::ExportLatexHeader)
+    .value("ExportLatexCompiler", sem::Subtree::Property::Kind::ExportLatexCompiler)
+    .value("Ordered", sem::Subtree::Property::Kind::Ordered)
+    .value("Effort", sem::Subtree::Property::Kind::Effort)
+    .value("Visibility", sem::Subtree::Property::Kind::Visibility)
+    .value("ExportOptions", sem::Subtree::Property::Kind::ExportOptions)
+    .value("Blocker", sem::Subtree::Property::Kind::Blocker)
+    .value("Unnumbered", sem::Subtree::Property::Kind::Unnumbered)
+    .value("Created", sem::Subtree::Property::Kind::Created)
+    .export_values()
+    ;
   pybind11::class_<sem::SemIdT<sem::LatexBody>, sem::SemId>(m, "SemLatexBody")
     .def(pybind11::init([]() -> sem::SemIdT<sem::LatexBody> { return sem::SemIdT<sem::LatexBody>::Nil(); }))
     ;
@@ -635,11 +684,16 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("description",
                   [](sem::SemIdT<sem::Link> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->description; },
                   [](sem::SemIdT<sem::Link> _self, Opt<sem::SemIdT<sem::Paragraph>> description) { _self->description = description; })
+    .def_property("data",
+                  [](sem::SemIdT<sem::Link> _self) -> Data { return _self->data; },
+                  [](sem::SemIdT<sem::Link> _self, Data data) { _self->data = data; })
     .def("resolve",
          [](sem::SemIdT<sem::Link> _self, sem::Document const& doc) -> Opt<sem::SemId> { return _self->resolve(doc); },
          pybind11::arg("doc"))
     .def("resolve",
          [](sem::SemIdT<sem::Link> _self) -> Opt<sem::SemId> { return _self->resolve(); })
+    .def("getLinkKind",
+         [](sem::SemIdT<sem::Link> _self) -> Kind { return _self->getLinkKind(); })
     ;
   pybind11::class_<sem::Link::Raw>(m, "LinkRaw")
     .def(pybind11::init<>())
@@ -660,6 +714,14 @@ PYBIND11_MODULE(pyhaxorg, m) {
   pybind11::class_<sem::Link::File>(m, "LinkFile")
     .def(pybind11::init<>())
     .def_readwrite("file", &sem::Link::File::file)
+    ;
+  pybind11::enum_<sem::Link::Kind>(m, "LinkKind")
+    .value("Raw", sem::Link::Kind::Raw)
+    .value("Id", sem::Link::Kind::Id)
+    .value("Person", sem::Link::Kind::Person)
+    .value("Footnote", sem::Link::Kind::Footnote)
+    .value("File", sem::Link::Kind::File)
+    .export_values()
     ;
   pybind11::class_<sem::SemIdT<sem::Document>, sem::SemId>(m, "SemDocument")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Document> { return sem::SemIdT<sem::Document>::Nil(); }))
@@ -740,6 +802,11 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::Include>, sem::SemId>(m, "SemInclude")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Include> { return sem::SemIdT<sem::Include>::Nil(); }))
+    .def_property("data",
+                  [](sem::SemIdT<sem::Include> _self) -> Data { return _self->data; },
+                  [](sem::SemIdT<sem::Include> _self, Data data) { _self->data = data; })
+    .def("getIncludeKind",
+         [](sem::SemIdT<sem::Include> _self) -> Kind { return _self->getIncludeKind(); })
     ;
   pybind11::class_<sem::Include::Example>(m, "IncludeExample")
     .def(pybind11::init<>())
@@ -752,6 +819,13 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::Include::OrgDocument>(m, "IncludeOrgDocument")
     .def(pybind11::init<>())
+    ;
+  pybind11::enum_<sem::Include::Kind>(m, "IncludeKind")
+    .value("Example", sem::Include::Kind::Example)
+    .value("Export", sem::Include::Kind::Export)
+    .value("Src", sem::Include::Kind::Src)
+    .value("OrgDocument", sem::Include::Kind::OrgDocument)
+    .export_values()
     ;
   pybind11::class_<sem::SemIdT<sem::DocumentOptions>, sem::SemId>(m, "SemDocumentOptions")
     .def(pybind11::init([]() -> sem::SemIdT<sem::DocumentOptions> { return sem::SemIdT<sem::DocumentOptions>::Nil(); }))

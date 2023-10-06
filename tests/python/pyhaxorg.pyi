@@ -6,6 +6,13 @@ class ExportFormat(Enum):
     Line = 2
     Block = 3
 
+class CodeSwitchKind(Enum):
+    LineStart = 1
+    CalloutFormat = 2
+    RemoveCallout = 3
+    EmphasizeLine = 4
+    Dedent = 5
+
 class CodeResults(Enum):
     Replace = 1
 
@@ -29,10 +36,22 @@ class TimeRepeatPeriod(Enum):
     Hour = 5
     Minute = 6
 
+class TimeTimeKind(Enum):
+    Static = 1
+    Dynamic = 2
+
 class SubtreeLogPriorityAction(Enum):
     Added = 1
     Removed = 2
     Changed = 3
+
+class SubtreeLogKind(Enum):
+    Priority = 1
+    Note = 2
+    Refile = 3
+    Clock = 4
+    State = 5
+    Tag = 6
 
 class SubtreePeriodKind(Enum):
     Clocked = 1
@@ -58,10 +77,39 @@ class SubtreePropertyVisibilityLevel(Enum):
     Content = 3
     All = 4
 
+class SubtreePropertyKind(Enum):
+    Nonblocking = 1
+    Trigger = 2
+    Origin = 3
+    ExportLatexClass = 4
+    ExportLatexClassOptions = 5
+    ExportLatexHeader = 6
+    ExportLatexCompiler = 7
+    Ordered = 8
+    Effort = 9
+    Visibility = 10
+    ExportOptions = 11
+    Blocker = 12
+    Unnumbered = 13
+    Created = 14
+
 class ListItemCheckbox(Enum):
     _None = 1
     Done = 2
     Empty = 3
+
+class LinkKind(Enum):
+    Raw = 1
+    Id = 2
+    Person = 3
+    Footnote = 4
+    File = 5
+
+class IncludeKind(Enum):
+    Example = 1
+    Export = 2
+    Src = 3
+    OrgDocument = 4
 
 class DocumentOptionsBrokenLinks(Enum):
     Raise = 1
@@ -1015,7 +1063,9 @@ class CodeSwitchDedent:
     value: int
 
 class SemTime(SemId):
+    def getTimeKind() -> TimeKind: ...
     isActive: bool
+    time: TimeVariant
 
 class TimeRepeat:
     mode: TimeRepeatMode
@@ -1048,6 +1098,8 @@ class SymbolParam:
 
 class SemSubtreeLog(SemId):
     def setDescription(desc: SemStmtList) -> None: ...
+    def getLogKind() -> Kind: ...
+    log: LogEntry
 
 class SubtreeLogDescribedLog:
     desc: Optional[SemStmtList]
@@ -1214,7 +1266,9 @@ class SemListItem(SemId):
 class SemLink(SemId):
     def resolve(doc: Document) -> Optional[SemId]: ...
     def resolve() -> Optional[SemId]: ...
+    def getLinkKind() -> Kind: ...
     description: Optional[SemParagraph]
+    data: Data
 
 class LinkRaw:
     text: str
@@ -1263,7 +1317,8 @@ class SemTextSeparator(SemId):
     pass
 
 class SemInclude(SemId):
-    pass
+    def getIncludeKind() -> Kind: ...
+    data: Data
 
 class IncludeExample:
     pass
