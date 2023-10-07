@@ -729,6 +729,9 @@ def get_types() -> Sequence[GenTuStruct]:
                             value="SemIdT<StmtList>::Nil()",
                         )
                     ],
+                    nested=[
+                        GenTuPass("DescribedLog() {}")
+                    ]
                 ),
                 GenTuTypeGroup(
                     [
@@ -743,7 +746,8 @@ def get_types() -> Sequence[GenTuStruct]:
                                     "Added",
                                     "Removed",
                                     "Changed",
-                                )
+                                ),
+                                GenTuPass("Priority() {}")
                             ],
                             fields=[
                                 opt_field(
@@ -767,6 +771,9 @@ def get_types() -> Sequence[GenTuStruct]:
                             fields=[
                                 id_field("Time", "on", GenTuDoc("Where log was taken"))
                             ],
+                            nested=[
+                                GenTuPass("Note() {}")
+                            ],
                         ),
                         GenTuStruct(
                             "Refile",
@@ -777,6 +784,9 @@ def get_types() -> Sequence[GenTuStruct]:
                                          GenTuDoc("When the refiling happened")),
                                 id_field("Link", "from",
                                          GenTuDoc("Link to the original subtree")),
+                            ],
+                            nested=[
+                                GenTuPass("Refile() {}")
                             ],
                         ),
                         GenTuStruct(
@@ -793,6 +803,9 @@ def get_types() -> Sequence[GenTuStruct]:
                                     value="SemIdT<Time>::Nil()",
                                 ),
                                        ignore=True)
+                            ],                            
+                            nested=[
+                                GenTuPass("Clock() {}")
                             ],
                         ),
                         GenTuStruct(
@@ -807,6 +820,9 @@ def get_types() -> Sequence[GenTuStruct]:
                                 GenTuField(QualType("OrgBigIdentKind"), "to",
                                            GenTuDoc("")),
                                 id_field("Time", "on", GenTuDoc("")),
+                            ],                            
+                            nested=[
+                                GenTuPass("State() {}")
                             ],
                         ),
                         GenTuStruct(
@@ -823,6 +839,9 @@ def get_types() -> Sequence[GenTuStruct]:
                                            "added",
                                            GenTuDoc("Added/removed?"),
                                            value="false"),
+                            ],                            
+                            nested=[
+                                GenTuPass("Tag() {}")
                             ],
                         ),
                     ],

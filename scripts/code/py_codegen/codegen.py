@@ -137,11 +137,7 @@ def get_exporter_methods(forward: bool,
                             GenTuDoc(""),
                             params=t_params,
                             arguments=[
-                                GenTuIdent(
-                                    QualType("R"
-                                             #, isRef=True
-                                            ),
-                                    "res"),
+                                GenTuIdent(QualType("R", isRef=True), "res"),
                                 GenTuIdent(
                                     t_cr(field.type),
                                     "object",
@@ -158,11 +154,7 @@ def get_exporter_methods(forward: bool,
                     GenTuDoc(""),
                     params=t_params,
                     arguments=[
-                        GenTuIdent(
-                            QualType("R"
-                                     #, isRef=True
-                                    ),
-                            "res"),
+                        GenTuIdent(QualType("R", isRef=True), "res"),
                         GenTuIdent(QualType("In", [QualType(f"sem::{name}")]), "object"),
                     ],
                     impl=None if forward else f"__visit_specific_kind(res, object);\n%s" %
@@ -175,11 +167,7 @@ def get_exporter_methods(forward: bool,
                     GenTuDoc(""),
                     params=t_params,
                     arguments=[
-                        GenTuIdent(
-                            QualType("R"
-                                     #, isRef=True
-                                    ),
-                            "res"),
+                        GenTuIdent(QualType("R", isRef=True), "res"),
                         GenTuIdent(scoped_target, "object"),
                     ],
                     impl=None if forward else "\n".join(
@@ -952,17 +940,16 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
             for idx, T in enumerate(typeNames):
                 for isConst in [True, False]:
                     result.append(
-                        GenTuFunction(
-                            doc=GenTuDoc(""),
-                            name="get" + T.capitalize(),
-                            result=QualType(
-                                T,
-                                #   isConst=isConst,
-                                Spaces=deepcopy(context)),
-                            isConst=isConst,
-                            impl=ast.Return(
-                                ast.XCall("std::get", [ast.string(record.variantField)],
-                                          Params=[QualType(str(idx))]))))
+                        GenTuFunction(doc=GenTuDoc(""),
+                                      name="get" + (T[0].upper() + T[1:]),
+                                      result=QualType(T,
+                                                      isConst=isConst,
+                                                      Spaces=deepcopy(context)),
+                                      isConst=isConst,
+                                      impl=ast.Return(
+                                          ast.XCall("std::get",
+                                                    [ast.string(record.variantField)],
+                                                    Params=[QualType(str(idx))]))))
 
             enum_type = QualType(record.enumName, Spaces=context)
             variant_type = QualType(record.variantName, Spaces=context)

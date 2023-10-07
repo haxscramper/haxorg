@@ -475,28 +475,28 @@ struct Code : public sem::Block {
                          (),
                          (),
                          (data,
-                          (sem::Code::Switch::LineStart() const) getLinestart,
-                          (sem::Code::Switch::LineStart()) getLinestart,
-                          (sem::Code::Switch::CalloutFormat() const) getCalloutformat,
-                          (sem::Code::Switch::CalloutFormat()) getCalloutformat,
-                          (sem::Code::Switch::RemoveCallout() const) getRemovecallout,
-                          (sem::Code::Switch::RemoveCallout()) getRemovecallout,
-                          (sem::Code::Switch::EmphasizeLine() const) getEmphasizeline,
-                          (sem::Code::Switch::EmphasizeLine()) getEmphasizeline,
-                          (sem::Code::Switch::Dedent() const) getDedent,
+                          (sem::Code::Switch::LineStart const() const) getLineStart,
+                          (sem::Code::Switch::LineStart()) getLineStart,
+                          (sem::Code::Switch::CalloutFormat const() const) getCalloutFormat,
+                          (sem::Code::Switch::CalloutFormat()) getCalloutFormat,
+                          (sem::Code::Switch::RemoveCallout const() const) getRemoveCallout,
+                          (sem::Code::Switch::RemoveCallout()) getRemoveCallout,
+                          (sem::Code::Switch::EmphasizeLine const() const) getEmphasizeLine,
+                          (sem::Code::Switch::EmphasizeLine()) getEmphasizeLine,
+                          (sem::Code::Switch::Dedent const() const) getDedent,
                           (sem::Code::Switch::Dedent()) getDedent,
                           (sem::Code::Switch::Kind(sem::Code::Switch::Data const&)) getKind,
                           (sem::Code::Switch::Kind() const) getKind))
     sem::Code::Switch::Data data;
-    sem::Code::Switch::LineStart getLinestart() const { return std::get<0>(data); }
-    sem::Code::Switch::LineStart getLinestart() { return std::get<0>(data); }
-    sem::Code::Switch::CalloutFormat getCalloutformat() const { return std::get<1>(data); }
-    sem::Code::Switch::CalloutFormat getCalloutformat() { return std::get<1>(data); }
-    sem::Code::Switch::RemoveCallout getRemovecallout() const { return std::get<2>(data); }
-    sem::Code::Switch::RemoveCallout getRemovecallout() { return std::get<2>(data); }
-    sem::Code::Switch::EmphasizeLine getEmphasizeline() const { return std::get<3>(data); }
-    sem::Code::Switch::EmphasizeLine getEmphasizeline() { return std::get<3>(data); }
-    sem::Code::Switch::Dedent getDedent() const { return std::get<4>(data); }
+    sem::Code::Switch::LineStart const getLineStart() const { return std::get<0>(data); }
+    sem::Code::Switch::LineStart getLineStart() { return std::get<0>(data); }
+    sem::Code::Switch::CalloutFormat const getCalloutFormat() const { return std::get<1>(data); }
+    sem::Code::Switch::CalloutFormat getCalloutFormat() { return std::get<1>(data); }
+    sem::Code::Switch::RemoveCallout const getRemoveCallout() const { return std::get<2>(data); }
+    sem::Code::Switch::RemoveCallout getRemoveCallout() { return std::get<2>(data); }
+    sem::Code::Switch::EmphasizeLine const getEmphasizeLine() const { return std::get<3>(data); }
+    sem::Code::Switch::EmphasizeLine getEmphasizeLine() { return std::get<3>(data); }
+    sem::Code::Switch::Dedent const getDedent() const { return std::get<4>(data); }
     sem::Code::Switch::Dedent getDedent() { return std::get<4>(data); }
     static sem::Code::Switch::Kind getKind(sem::Code::Switch::Data const& __input) { return static_cast<sem::Code::Switch::Kind>(__input.index()); }
     sem::Code::Switch::Kind getKind() const { return getKind(data); }
@@ -615,9 +615,9 @@ struct Time : public sem::Org {
                         time,
                         (sem::SemIdT<Time>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (sem::Time::Static() const) getStatic,
+                        (sem::Time::Static const() const) getStatic,
                         (sem::Time::Static()) getStatic,
-                        (sem::Time::Dynamic() const) getDynamic,
+                        (sem::Time::Dynamic const() const) getDynamic,
                         (sem::Time::Dynamic()) getDynamic,
                         (sem::Time::TimeKind(sem::Time::TimeVariant const&)) getTimeKind,
                         (sem::Time::TimeKind() const) getTimeKind))
@@ -628,9 +628,9 @@ struct Time : public sem::Org {
   sem::Time::TimeVariant time;
   static sem::SemIdT<Time> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
-  sem::Time::Static getStatic() const { return std::get<0>(time); }
+  sem::Time::Static const getStatic() const { return std::get<0>(time); }
   sem::Time::Static getStatic() { return std::get<0>(time); }
-  sem::Time::Dynamic getDynamic() const { return std::get<1>(time); }
+  sem::Time::Dynamic const getDynamic() const { return std::get<1>(time); }
   sem::Time::Dynamic getDynamic() { return std::get<1>(time); }
   static sem::Time::TimeKind getTimeKind(sem::Time::TimeVariant const& __input) { return static_cast<sem::Time::TimeKind>(__input.index()); }
   sem::Time::TimeKind getTimeKind() const { return getTimeKind(time); }
@@ -719,6 +719,7 @@ struct SubtreeLog : public sem::Org {
   using Org::Org;
   /// \brief Base value for the log variant
   struct DescribedLog {
+    DescribedLog() {}
     BOOST_DESCRIBE_CLASS(DescribedLog, (), (), (), (desc))
     /// \brief Optional description of the log entry
     Opt<sem::SemIdT<sem::StmtList>> desc = SemIdT<StmtList>::Nil();
@@ -729,6 +730,7 @@ struct SubtreeLog : public sem::Org {
     /// \brief Priority change action
     enum class Action : short int { Added, Removed, Changed, };
     BOOST_DESCRIBE_NESTED_ENUM(Action, Added, Removed, Changed)
+    Priority() {}
     BOOST_DESCRIBE_CLASS(Priority, (DescribedLog), (), (), (oldPriority, newPriority, on))
     /// \brief Previous priority for change and removal
     Opt<QString> oldPriority = std::nullopt;
@@ -740,6 +742,7 @@ struct SubtreeLog : public sem::Org {
 
   /// \brief Timestamped note
   struct Note : public sem::SubtreeLog::DescribedLog {
+    Note() {}
     BOOST_DESCRIBE_CLASS(Note, (DescribedLog), (), (), (on))
     /// \brief Where log was taken
     sem::SemIdT<sem::Time> on = SemIdT<Time>::Nil();
@@ -747,6 +750,7 @@ struct SubtreeLog : public sem::Org {
 
   /// \brief Refiling action
   struct Refile : public sem::SubtreeLog::DescribedLog {
+    Refile() {}
     BOOST_DESCRIBE_CLASS(Refile, (DescribedLog), (), (), (on, from))
     /// \brief When the refiling happened
     sem::SemIdT<sem::Time> on = SemIdT<Time>::Nil();
@@ -756,6 +760,7 @@ struct SubtreeLog : public sem::Org {
 
   /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
   struct Clock : public sem::SubtreeLog::DescribedLog {
+    Clock() {}
     BOOST_DESCRIBE_CLASS(Clock, (DescribedLog), (), (), (range))
     /// \brief Start-end or only start period
     Variant<sem::SemIdT<sem::Time>, sem::SemIdT<sem::TimeRange>> range = SemIdT<Time>::Nil();
@@ -763,6 +768,7 @@ struct SubtreeLog : public sem::Org {
 
   /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
   struct State : public sem::SubtreeLog::DescribedLog {
+    State() {}
     BOOST_DESCRIBE_CLASS(State, (DescribedLog), (), (), (from, to, on))
     OrgBigIdentKind from;
     OrgBigIdentKind to;
@@ -771,6 +777,7 @@ struct SubtreeLog : public sem::Org {
 
   /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
   struct Tag : public sem::SubtreeLog::DescribedLog {
+    Tag() {}
     BOOST_DESCRIBE_CLASS(Tag, (DescribedLog), (), (), (on, tag, added))
     /// \brief When the log was assigned
     sem::SemIdT<sem::Time> on = SemIdT<Time>::Nil();
@@ -794,17 +801,17 @@ struct SubtreeLog : public sem::Org {
                         (sem::SemIdT<SubtreeLog>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
                         (void(sem::SemIdT<sem::StmtList>)) setDescription,
-                        (sem::SubtreeLog::Priority() const) getPriority,
+                        (sem::SubtreeLog::Priority const() const) getPriority,
                         (sem::SubtreeLog::Priority()) getPriority,
-                        (sem::SubtreeLog::Note() const) getNote,
+                        (sem::SubtreeLog::Note const() const) getNote,
                         (sem::SubtreeLog::Note()) getNote,
-                        (sem::SubtreeLog::Refile() const) getRefile,
+                        (sem::SubtreeLog::Refile const() const) getRefile,
                         (sem::SubtreeLog::Refile()) getRefile,
-                        (sem::SubtreeLog::Clock() const) getClock,
+                        (sem::SubtreeLog::Clock const() const) getClock,
                         (sem::SubtreeLog::Clock()) getClock,
-                        (sem::SubtreeLog::State() const) getState,
+                        (sem::SubtreeLog::State const() const) getState,
                         (sem::SubtreeLog::State()) getState,
-                        (sem::SubtreeLog::Tag() const) getTag,
+                        (sem::SubtreeLog::Tag const() const) getTag,
                         (sem::SubtreeLog::Tag()) getTag,
                         (sem::SubtreeLog::Kind(sem::SubtreeLog::LogEntry const&)) getLogKind,
                         (sem::SubtreeLog::Kind() const) getLogKind))
@@ -814,17 +821,17 @@ struct SubtreeLog : public sem::Org {
   static sem::SemIdT<SubtreeLog> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
   void setDescription(sem::SemIdT<sem::StmtList> desc);
-  sem::SubtreeLog::Priority getPriority() const { return std::get<0>(log); }
+  sem::SubtreeLog::Priority const getPriority() const { return std::get<0>(log); }
   sem::SubtreeLog::Priority getPriority() { return std::get<0>(log); }
-  sem::SubtreeLog::Note getNote() const { return std::get<1>(log); }
+  sem::SubtreeLog::Note const getNote() const { return std::get<1>(log); }
   sem::SubtreeLog::Note getNote() { return std::get<1>(log); }
-  sem::SubtreeLog::Refile getRefile() const { return std::get<2>(log); }
+  sem::SubtreeLog::Refile const getRefile() const { return std::get<2>(log); }
   sem::SubtreeLog::Refile getRefile() { return std::get<2>(log); }
-  sem::SubtreeLog::Clock getClock() const { return std::get<3>(log); }
+  sem::SubtreeLog::Clock const getClock() const { return std::get<3>(log); }
   sem::SubtreeLog::Clock getClock() { return std::get<3>(log); }
-  sem::SubtreeLog::State getState() const { return std::get<4>(log); }
+  sem::SubtreeLog::State const getState() const { return std::get<4>(log); }
   sem::SubtreeLog::State getState() { return std::get<4>(log); }
-  sem::SubtreeLog::Tag getTag() const { return std::get<5>(log); }
+  sem::SubtreeLog::Tag const getTag() const { return std::get<5>(log); }
   sem::SubtreeLog::Tag getTag() { return std::get<5>(log); }
   static sem::SubtreeLog::Kind getLogKind(sem::SubtreeLog::LogEntry const& __input) { return static_cast<sem::SubtreeLog::Kind>(__input.index()); }
   sem::SubtreeLog::Kind getLogKind() const { return getLogKind(log); }
@@ -963,33 +970,33 @@ struct Subtree : public sem::Org {
                           subSetRule,
                           inheritanceMode,
                           data,
-                          (sem::Subtree::Property::Nonblocking() const) getNonblocking,
+                          (sem::Subtree::Property::Nonblocking const() const) getNonblocking,
                           (sem::Subtree::Property::Nonblocking()) getNonblocking,
-                          (sem::Subtree::Property::Trigger() const) getTrigger,
+                          (sem::Subtree::Property::Trigger const() const) getTrigger,
                           (sem::Subtree::Property::Trigger()) getTrigger,
-                          (sem::Subtree::Property::Origin() const) getOrigin,
+                          (sem::Subtree::Property::Origin const() const) getOrigin,
                           (sem::Subtree::Property::Origin()) getOrigin,
-                          (sem::Subtree::Property::ExportLatexClass() const) getExportlatexclass,
-                          (sem::Subtree::Property::ExportLatexClass()) getExportlatexclass,
-                          (sem::Subtree::Property::ExportLatexClassOptions() const) getExportlatexclassoptions,
-                          (sem::Subtree::Property::ExportLatexClassOptions()) getExportlatexclassoptions,
-                          (sem::Subtree::Property::ExportLatexHeader() const) getExportlatexheader,
-                          (sem::Subtree::Property::ExportLatexHeader()) getExportlatexheader,
-                          (sem::Subtree::Property::ExportLatexCompiler() const) getExportlatexcompiler,
-                          (sem::Subtree::Property::ExportLatexCompiler()) getExportlatexcompiler,
-                          (sem::Subtree::Property::Ordered() const) getOrdered,
+                          (sem::Subtree::Property::ExportLatexClass const() const) getExportLatexClass,
+                          (sem::Subtree::Property::ExportLatexClass()) getExportLatexClass,
+                          (sem::Subtree::Property::ExportLatexClassOptions const() const) getExportLatexClassOptions,
+                          (sem::Subtree::Property::ExportLatexClassOptions()) getExportLatexClassOptions,
+                          (sem::Subtree::Property::ExportLatexHeader const() const) getExportLatexHeader,
+                          (sem::Subtree::Property::ExportLatexHeader()) getExportLatexHeader,
+                          (sem::Subtree::Property::ExportLatexCompiler const() const) getExportLatexCompiler,
+                          (sem::Subtree::Property::ExportLatexCompiler()) getExportLatexCompiler,
+                          (sem::Subtree::Property::Ordered const() const) getOrdered,
                           (sem::Subtree::Property::Ordered()) getOrdered,
-                          (sem::Subtree::Property::Effort() const) getEffort,
+                          (sem::Subtree::Property::Effort const() const) getEffort,
                           (sem::Subtree::Property::Effort()) getEffort,
-                          (sem::Subtree::Property::Visibility() const) getVisibility,
+                          (sem::Subtree::Property::Visibility const() const) getVisibility,
                           (sem::Subtree::Property::Visibility()) getVisibility,
-                          (sem::Subtree::Property::ExportOptions() const) getExportoptions,
-                          (sem::Subtree::Property::ExportOptions()) getExportoptions,
-                          (sem::Subtree::Property::Blocker() const) getBlocker,
+                          (sem::Subtree::Property::ExportOptions const() const) getExportOptions,
+                          (sem::Subtree::Property::ExportOptions()) getExportOptions,
+                          (sem::Subtree::Property::Blocker const() const) getBlocker,
                           (sem::Subtree::Property::Blocker()) getBlocker,
-                          (sem::Subtree::Property::Unnumbered() const) getUnnumbered,
+                          (sem::Subtree::Property::Unnumbered const() const) getUnnumbered,
                           (sem::Subtree::Property::Unnumbered()) getUnnumbered,
-                          (sem::Subtree::Property::Created() const) getCreated,
+                          (sem::Subtree::Property::Created const() const) getCreated,
                           (sem::Subtree::Property::Created()) getCreated,
                           (sem::Subtree::Property::Kind(sem::Subtree::Property::Data const&)) getKind,
                           (sem::Subtree::Property::Kind() const) getKind))
@@ -997,33 +1004,33 @@ struct Subtree : public sem::Org {
     sem::Subtree::Property::SetMode subSetRule = SetMode::Override;
     sem::Subtree::Property::InheritanceMode inheritanceMode = InheritanceMode::ThisAndSub;
     sem::Subtree::Property::Data data;
-    sem::Subtree::Property::Nonblocking getNonblocking() const { return std::get<0>(data); }
+    sem::Subtree::Property::Nonblocking const getNonblocking() const { return std::get<0>(data); }
     sem::Subtree::Property::Nonblocking getNonblocking() { return std::get<0>(data); }
-    sem::Subtree::Property::Trigger getTrigger() const { return std::get<1>(data); }
+    sem::Subtree::Property::Trigger const getTrigger() const { return std::get<1>(data); }
     sem::Subtree::Property::Trigger getTrigger() { return std::get<1>(data); }
-    sem::Subtree::Property::Origin getOrigin() const { return std::get<2>(data); }
+    sem::Subtree::Property::Origin const getOrigin() const { return std::get<2>(data); }
     sem::Subtree::Property::Origin getOrigin() { return std::get<2>(data); }
-    sem::Subtree::Property::ExportLatexClass getExportlatexclass() const { return std::get<3>(data); }
-    sem::Subtree::Property::ExportLatexClass getExportlatexclass() { return std::get<3>(data); }
-    sem::Subtree::Property::ExportLatexClassOptions getExportlatexclassoptions() const { return std::get<4>(data); }
-    sem::Subtree::Property::ExportLatexClassOptions getExportlatexclassoptions() { return std::get<4>(data); }
-    sem::Subtree::Property::ExportLatexHeader getExportlatexheader() const { return std::get<5>(data); }
-    sem::Subtree::Property::ExportLatexHeader getExportlatexheader() { return std::get<5>(data); }
-    sem::Subtree::Property::ExportLatexCompiler getExportlatexcompiler() const { return std::get<6>(data); }
-    sem::Subtree::Property::ExportLatexCompiler getExportlatexcompiler() { return std::get<6>(data); }
-    sem::Subtree::Property::Ordered getOrdered() const { return std::get<7>(data); }
+    sem::Subtree::Property::ExportLatexClass const getExportLatexClass() const { return std::get<3>(data); }
+    sem::Subtree::Property::ExportLatexClass getExportLatexClass() { return std::get<3>(data); }
+    sem::Subtree::Property::ExportLatexClassOptions const getExportLatexClassOptions() const { return std::get<4>(data); }
+    sem::Subtree::Property::ExportLatexClassOptions getExportLatexClassOptions() { return std::get<4>(data); }
+    sem::Subtree::Property::ExportLatexHeader const getExportLatexHeader() const { return std::get<5>(data); }
+    sem::Subtree::Property::ExportLatexHeader getExportLatexHeader() { return std::get<5>(data); }
+    sem::Subtree::Property::ExportLatexCompiler const getExportLatexCompiler() const { return std::get<6>(data); }
+    sem::Subtree::Property::ExportLatexCompiler getExportLatexCompiler() { return std::get<6>(data); }
+    sem::Subtree::Property::Ordered const getOrdered() const { return std::get<7>(data); }
     sem::Subtree::Property::Ordered getOrdered() { return std::get<7>(data); }
-    sem::Subtree::Property::Effort getEffort() const { return std::get<8>(data); }
+    sem::Subtree::Property::Effort const getEffort() const { return std::get<8>(data); }
     sem::Subtree::Property::Effort getEffort() { return std::get<8>(data); }
-    sem::Subtree::Property::Visibility getVisibility() const { return std::get<9>(data); }
+    sem::Subtree::Property::Visibility const getVisibility() const { return std::get<9>(data); }
     sem::Subtree::Property::Visibility getVisibility() { return std::get<9>(data); }
-    sem::Subtree::Property::ExportOptions getExportoptions() const { return std::get<10>(data); }
-    sem::Subtree::Property::ExportOptions getExportoptions() { return std::get<10>(data); }
-    sem::Subtree::Property::Blocker getBlocker() const { return std::get<11>(data); }
+    sem::Subtree::Property::ExportOptions const getExportOptions() const { return std::get<10>(data); }
+    sem::Subtree::Property::ExportOptions getExportOptions() { return std::get<10>(data); }
+    sem::Subtree::Property::Blocker const getBlocker() const { return std::get<11>(data); }
     sem::Subtree::Property::Blocker getBlocker() { return std::get<11>(data); }
-    sem::Subtree::Property::Unnumbered getUnnumbered() const { return std::get<12>(data); }
+    sem::Subtree::Property::Unnumbered const getUnnumbered() const { return std::get<12>(data); }
     sem::Subtree::Property::Unnumbered getUnnumbered() { return std::get<12>(data); }
-    sem::Subtree::Property::Created getCreated() const { return std::get<13>(data); }
+    sem::Subtree::Property::Created const getCreated() const { return std::get<13>(data); }
     sem::Subtree::Property::Created getCreated() { return std::get<13>(data); }
     static sem::Subtree::Property::Kind getKind(sem::Subtree::Property::Data const& __input) { return static_cast<sem::Subtree::Property::Kind>(__input.index()); }
     sem::Subtree::Property::Kind getKind() const { return getKind(data); }
@@ -1465,15 +1472,15 @@ struct Link : public sem::Org {
                         (OrgSemKind() const) getKind,
                         (Opt<sem::SemId>(sem::Document const&) const) resolve,
                         (Opt<sem::SemId>() const) resolve,
-                        (sem::Link::Raw() const) getRaw,
+                        (sem::Link::Raw const() const) getRaw,
                         (sem::Link::Raw()) getRaw,
-                        (sem::Link::Id() const) getId,
+                        (sem::Link::Id const() const) getId,
                         (sem::Link::Id()) getId,
-                        (sem::Link::Person() const) getPerson,
+                        (sem::Link::Person const() const) getPerson,
                         (sem::Link::Person()) getPerson,
-                        (sem::Link::Footnote() const) getFootnote,
+                        (sem::Link::Footnote const() const) getFootnote,
                         (sem::Link::Footnote()) getFootnote,
-                        (sem::Link::File() const) getFile,
+                        (sem::Link::File const() const) getFile,
                         (sem::Link::File()) getFile,
                         (sem::Link::Kind(sem::Link::Data const&)) getLinkKind,
                         (sem::Link::Kind() const) getLinkKind))
@@ -1485,15 +1492,15 @@ struct Link : public sem::Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
   Opt<sem::SemId> resolve(sem::Document const& doc) const;
   Opt<sem::SemId> resolve() const;
-  sem::Link::Raw getRaw() const { return std::get<0>(data); }
+  sem::Link::Raw const getRaw() const { return std::get<0>(data); }
   sem::Link::Raw getRaw() { return std::get<0>(data); }
-  sem::Link::Id getId() const { return std::get<1>(data); }
+  sem::Link::Id const getId() const { return std::get<1>(data); }
   sem::Link::Id getId() { return std::get<1>(data); }
-  sem::Link::Person getPerson() const { return std::get<2>(data); }
+  sem::Link::Person const getPerson() const { return std::get<2>(data); }
   sem::Link::Person getPerson() { return std::get<2>(data); }
-  sem::Link::Footnote getFootnote() const { return std::get<3>(data); }
+  sem::Link::Footnote const getFootnote() const { return std::get<3>(data); }
   sem::Link::Footnote getFootnote() { return std::get<3>(data); }
-  sem::Link::File getFile() const { return std::get<4>(data); }
+  sem::Link::File const getFile() const { return std::get<4>(data); }
   sem::Link::File getFile() { return std::get<4>(data); }
   static sem::Link::Kind getLinkKind(sem::Link::Data const& __input) { return static_cast<sem::Link::Kind>(__input.index()); }
   sem::Link::Kind getLinkKind() const { return getLinkKind(data); }
@@ -1632,14 +1639,14 @@ struct Include : public sem::Org {
                         data,
                         (sem::SemIdT<Include>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (sem::Include::Example() const) getExample,
+                        (sem::Include::Example const() const) getExample,
                         (sem::Include::Example()) getExample,
-                        (sem::Include::Export() const) getExport,
+                        (sem::Include::Export const() const) getExport,
                         (sem::Include::Export()) getExport,
-                        (sem::Include::Src() const) getSrc,
+                        (sem::Include::Src const() const) getSrc,
                         (sem::Include::Src()) getSrc,
-                        (sem::Include::OrgDocument() const) getOrgdocument,
-                        (sem::Include::OrgDocument()) getOrgdocument,
+                        (sem::Include::OrgDocument const() const) getOrgDocument,
+                        (sem::Include::OrgDocument()) getOrgDocument,
                         (sem::Include::Kind(sem::Include::Data const&)) getIncludeKind,
                         (sem::Include::Kind() const) getIncludeKind))
   /// \brief Document
@@ -1647,14 +1654,14 @@ struct Include : public sem::Org {
   sem::Include::Data data;
   static sem::SemIdT<Include> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Include; }
-  sem::Include::Example getExample() const { return std::get<0>(data); }
+  sem::Include::Example const getExample() const { return std::get<0>(data); }
   sem::Include::Example getExample() { return std::get<0>(data); }
-  sem::Include::Export getExport() const { return std::get<1>(data); }
+  sem::Include::Export const getExport() const { return std::get<1>(data); }
   sem::Include::Export getExport() { return std::get<1>(data); }
-  sem::Include::Src getSrc() const { return std::get<2>(data); }
+  sem::Include::Src const getSrc() const { return std::get<2>(data); }
   sem::Include::Src getSrc() { return std::get<2>(data); }
-  sem::Include::OrgDocument getOrgdocument() const { return std::get<3>(data); }
-  sem::Include::OrgDocument getOrgdocument() { return std::get<3>(data); }
+  sem::Include::OrgDocument const getOrgDocument() const { return std::get<3>(data); }
+  sem::Include::OrgDocument getOrgDocument() { return std::get<3>(data); }
   static sem::Include::Kind getIncludeKind(sem::Include::Data const& __input) { return static_cast<sem::Include::Kind>(__input.index()); }
   sem::Include::Kind getIncludeKind() const { return getIncludeKind(data); }
 };
