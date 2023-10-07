@@ -19,3 +19,9 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
+[tool.ruff]
+ignore = [
+  "F405", # Undefined or defined from `*` imports
+  "F403", # `from astbuilder_cpp import *` used; unable to detect undefined names
+  "E501", # Line length
+]

@@ -6,7 +6,6 @@ from enum import Enum
 import setup_imports
 
 # Now you should be able to import your C++ library
-from py_textlayout import TextLayout, TextOptions
 from astbuilder_cpp import *
 from gen_tu_cpp import *
 

@@ -558,11 +558,6 @@ class ASTBuilder(base.AstbuilderBase):
             stack = inspect.stack()
 
             comment: BlockId
-            frame_range: Tuple[int, int] = (1, 1)
-            if isinstance(frames, tuple):
-                frame_range = frames
-            else:
-                frame_range = (frames, frames)
 
             filter_stack = list(
                 reversed([

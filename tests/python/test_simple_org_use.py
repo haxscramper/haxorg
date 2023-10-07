@@ -193,7 +193,6 @@ class ExporterLatex(ExporterBase):
     def evalLink(self, node: org.SemLink) -> BlockId:
         match node.getLinkKind():
             case org.LinkKind.Id:
-                print(node, node.getParent(), node.getParentChain())
                 target = node.resolve()
                 if target:
                     res = self.t.line([
@@ -204,6 +203,9 @@ class ExporterLatex(ExporterBase):
                         self.t.add_at(res, self.exp.eval(node.description))
 
                     return res
+
+                else:
+                    return self.string("")
 
             case _:
                 return self.string(f"TODO LINK KIND {node.getLinkKind()}")
@@ -335,7 +337,7 @@ class ExporterLatex(ExporterBase):
     def getRefKind(self, node: org.SemId) -> Optional[str]:
         match node.getKind():
             case osk.Subtree:
-                cmd = self.getSubtreeCommand(node)
+                cmd = self.getSubtreeCommand(node._as(osk.Subtree))
                 match cmd:
                     case TexCommand.chapter:
                         return "chap:"

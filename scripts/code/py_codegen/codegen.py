@@ -7,11 +7,6 @@ import re
 
 import setup_imports
 
-import ctypes
-
-ctypes.CDLL(setup_imports.lib_dir + '/py_textlayout.so')
-
-# Now you should be able to import your C++ library
 from py_textlayout import TextLayout, TextOptions
 from astbuilder_cpp import *
 from gen_tu_cpp import *
@@ -157,7 +152,7 @@ def get_exporter_methods(forward: bool,
                         GenTuIdent(QualType("R", isRef=True), "res"),
                         GenTuIdent(QualType("In", [QualType(f"sem::{name}")]), "object"),
                     ],
-                    impl=None if forward else f"__visit_specific_kind(res, object);\n%s" %
+                    impl=None if forward else "__visit_specific_kind(res, object);\n%s" %
                     "\n".join([f"__org_field(res, object, {a.name});" for a in fields]),
                 )
             else:
@@ -1227,7 +1222,6 @@ if __name__ == "__main__":
     import os
     import sys
     import json
-    import sys
 
     t = TextLayout()
     builder = ASTBuilder(t)
