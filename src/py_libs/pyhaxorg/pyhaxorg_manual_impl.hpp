@@ -11,6 +11,8 @@
 #include <parse/OrgTokenizer.hpp>
 #include <parse/OrgTypes.hpp>
 #include <exporters/Exporter.hpp>
+#include <pybind11/stl_bind.h>
+
 
 #include <py_type_casters.hpp>
 
@@ -49,6 +51,40 @@ namespace detail {
 
 
 namespace py = pybind11;
+
+template <typename T>
+void bind_vector(py::module& m, const char* PyNameType) {
+    py::bind_vector<std::vector<T>>(
+        m, (std::string(PyNameType) + "StdVector").c_str());
+    pybind11::class_<Vec<T>, std::vector<T>>(
+        m, (std::string(PyNameType) + "Vec").c_str())
+        .def(pybind11::init<>())
+        .def(pybind11::init<int, const T&>())
+        .def(pybind11::init<std::initializer_list<T>>())
+        .def(pybind11::init<const Vec<T>&>())
+        .def("FromValue", &Vec<T>::FromValue)
+        .def("append", (void(Vec<T>::*)(const Vec<T>&)) & Vec<T>::append);
+}
+
+template <typename K, typename V>
+void bind_mapping(py::module& m, const char* PyNameType) {
+    using M = UnorderedMap<K, V>;
+
+    py::bind_map<std::unordered_map<K, V>>(
+        m, (std::string(PyNameType) + "StdUnorderedMap").c_str());
+
+    py::class_<UnorderedMap<K, V>, std::unordered_map<K, V>>(
+        m, (std::string(PyNameType) + "UnorderedMap").c_str())
+        .def(py::init<>())
+        .def("contains", &M::contains)
+        .def("get", &M::get)
+        .def("keys", &M::keys);
+}
+
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId>);
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId>);
+PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Property>);
+PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Property>);
 
 struct ExporterJson;
 struct ExporterYaml;

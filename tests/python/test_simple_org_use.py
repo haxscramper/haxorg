@@ -261,7 +261,13 @@ class ExporterLatex(ExporterBase):
                          opts=self.getLatexClassOptions(node),
                          args=[self.getLatexClass(node)]))
 
-        # for hdr in node.getProperties(org.SubtreeProper)
+        props = node.getProperties(org.SubtreePropertyKind.ExportLatexHeader)
+        print(len(props))
+        for hdr in props:
+            print("1")
+            print(hdr)
+            print("X")
+            # print(hdr)
 
         for it in node:
             self.t.add_at(res, self.exp.eval(it))
