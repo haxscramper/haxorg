@@ -114,7 +114,6 @@ int field_count() {
 }
 
 
-
 #define __eq(__Type)                                                      \
     bool operator==(CR<__Type> lhs, CR<__Type> rhs) {                     \
         return equal_on_all_fields<__Type>(lhs, rhs);                     \
@@ -171,6 +170,9 @@ TEST(TestFiles, RoundtripBinarySerialization) {
         EXPECT_EQ(lhsStore.values.size(), rhsStore.values.size());
         for (int i = 0; i < lhsStore.size(); ++i) {
             cmpNode(lhsStore.values.at(i), rhsStore.values.at(i));
+            EXPECT_EQ(
+                lhsStore.values.at(i).parent,
+                rhsStore.values.at(i).parent);
         }
     };
 

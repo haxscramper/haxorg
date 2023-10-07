@@ -176,7 +176,26 @@ void init_py_manual_api(pybind11::module& m) {
             []() -> sem::SemId { return sem::SemId::Nil(); }))
         .def("getKind", &sem::SemId::getKind)
         .def(
+            "getParent",
+            [](sem::SemId _self) -> sem::SemId {
+                return _self.getParent();
+            })
+        .def(
+            "getParentChain",
+            [](sem::SemId _self, bool withSelf) {
+                return _self.getParentChain(withSelf);
+            },
+            py::arg_v("withSelf", false))
+        .def(
+            "__repr__",
+            [](sem::SemId id) {
+                return id.isNil() ? "Nil" : id.getReadableId();
+            })
+        .def(
             "getDocument", [](sem::SemId id) { return id->getDocument(); })
+        .def(
+            "getReadableId",
+            [](sem::SemId id) { return id.getReadableId(); })
         .def(
             "_is",
             [](sem::SemId id, OrgSemKind kind) -> bool {

@@ -235,19 +235,6 @@ QDataStream& operator<<(QDataStream& out, OrgAdapter const& value) {
     return out;
 }
 
-QDataStream& operator>>(QDataStream& in, sem::Org& value) {
-    in >> value.subnodes >> value.loc >> value.original >> value.parent
-        >> value.placementContext;
-    return in;
-}
-
-QDataStream& operator<<(QDataStream& out, sem::Org const& value) {
-    out << value.subnodes << value.loc << value.original << value.parent
-        << value.placementContext;
-    return out;
-}
-
-
 template <DescribedRecord T>
 QDataStream& operator<<(QDataStream& out, T const& value) {
     mp_for_each<describe_bases<T, mod_any_access>>([&](auto Base) {
@@ -273,7 +260,7 @@ QDataStream& operator>>(QDataStream& out, T& value) {
     return out;
 }
 
-template <typename T>
+template <DescribedRecord T>
 void write_value(QDataStream& out, T const& value) {
     mp_for_each<describe_bases<T, mod_any_access>>([&](auto Base) {
         write_value<typename decltype(Base)::type>(out, value);
@@ -283,7 +270,7 @@ void write_value(QDataStream& out, T const& value) {
         [&](auto const& field) { out << value.*field.pointer; });
 }
 
-template <typename T>
+template <DescribedRecord T>
 void read_value(QDataStream& out, T& value) {
     using Bd = describe_bases<T, mod_any_access>;
     mp_for_each<Bd>([&](auto Base) {
@@ -299,7 +286,9 @@ void read_store(QDataStream& in, sem::KindStore<Kind>& store) {
     int size = 0;
     in >> size;
     store.values.resize(size);
-    for (auto& value : store.values) {
+    for (Kind& value : store.values) {
+        in >> value.subnodes >> value.loc >> value.original >> value.parent
+            >> value.placementContext;
         read_value(in, value);
     }
 }
@@ -307,7 +296,9 @@ void read_store(QDataStream& in, sem::KindStore<Kind>& store) {
 template <typename Kind>
 void write_store(QDataStream& out, sem::KindStore<Kind> const& store) {
     out << store.size();
-    for (auto const& value : store.values) {
+    for (Kind const& value : store.values) {
+        out << value.subnodes << value.loc << value.original
+            << value.parent << value.placementContext;
         write_value(out, value);
     }
 }

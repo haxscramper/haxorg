@@ -190,6 +190,24 @@ class ExporterLatex(ExporterBase):
 
         return res
 
+    def evalLink(self, node: org.SemLink) -> BlockId:
+        match node.getLinkKind():
+            case org.LinkKind.Id:
+                print(node, node.getParent(), node.getParentChain())
+                target = node.resolve()
+                if target:
+                    res = self.t.line([
+                        self.command("ref", [self.string((self.getRefKind(target) or "") + target.getReadableId())])
+                    ])
+
+                    if node.description:
+                        self.t.add_at(res, self.exp.eval(node.description))
+
+                    return res
+
+            case _:
+                return self.string(f"TODO LINK KIND {node.getLinkKind()}")
+
     def evalListItem(self, node: org.SemListItem) -> BlockId:
         res = self.t.line([])
         if node.isDescriptionItem():
@@ -396,15 +414,28 @@ def test_serialization_expose():
     assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
     assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Word
 
+def toTree(path: str, node: org.SemId):
+    tree = org.OrgExporterTree()
+    opts = org.ExporterTreeOpts()
+    opts.withColor = False
+    tree.toFile(node, path, opts)
 
 def test_tex_exporter():
+    tmp = org.OrgContext()
+    tmp.parseFile("/home/haxscramper/tmp/doc.org")
+    toTree("/tmp/before.txt", tmp.getNode())
+
     ctx = org.OrgContext()
     cache_file = "/tmp/doc_cache.dat"
+
     if os.path.exists(cache_file):
         ctx.loadStore(cache_file)
     else:
         ctx.parseFile("/home/haxscramper/tmp/doc.org")
         ctx.writeStore(cache_file)
+
+    toTree("/tmp/after.txt", ctx.getNode())
+
 
     tex = ExporterLatex()
     tex.exp.enableFileTrace("/tmp/trace")
