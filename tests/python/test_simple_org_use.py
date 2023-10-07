@@ -207,6 +207,9 @@ class ExporterLatex(ExporterBase):
                 else:
                     return self.string("")
 
+            case org.LinkKind.Raw:
+                return self.string(self.escape(node.getRaw().text))
+
             case _:
                 return self.string(f"TODO LINK KIND {node.getLinkKind()}")
 
@@ -244,6 +247,18 @@ class ExporterLatex(ExporterBase):
 
     def evalBold(self, node: org.SemBold) -> BlockId:
         return self.command("bold", [self.evalLine(node)])
+
+    def evalVerbatim(self, node: org.SemVerbatim) -> BlockId:
+        return self.command("textsc", [self.evalLine(node)])
+
+    def evalRawText(self, node: org.SemRawText) -> BlockId:
+        return self.string(self.escape(node.text))
+
+    def evalEscaped(self, node: org.SemEscaped) -> BlockId:
+        return self.string(self.escape(node.text))
+
+    def evalItalic(self, node: org.SemItalic) -> BlockId:
+        return self.command("textit", [self.evalLine(node)])
 
     def evalLine(self, node: org.SemId) -> BlockId:
         return self.t.line([self.exp.eval(it) for it in node])
