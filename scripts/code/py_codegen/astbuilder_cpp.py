@@ -47,6 +47,14 @@ class QualType:
     isPtr: bool = field(default_factory=lambda: False)
     isRef: bool = field(default_factory=lambda: False)
 
+    def __hash__(self) -> int:
+
+        return hash((self.name, self.isConst, self.isPtr, self.isRef, self.isNamespace, tuple([
+            hash(T) for T in self.Spaces
+        ]), tuple([
+            hash(T) for T in self.Parameters
+        ])))
+
     def asNamespace(self, is_namespace=True):
         self.isNamespace = is_namespace
         return self

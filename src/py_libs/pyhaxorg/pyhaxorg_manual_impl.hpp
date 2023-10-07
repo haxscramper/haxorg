@@ -81,11 +81,6 @@ void bind_mapping(py::module& m, const char* PyNameType) {
         .def("keys", &M::keys);
 }
 
-PYBIND11_MAKE_OPAQUE(Vec<sem::SemId>);
-PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId>);
-PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Property>);
-PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Property>);
-
 struct ExporterJson;
 struct ExporterYaml;
 struct ExporterTree;

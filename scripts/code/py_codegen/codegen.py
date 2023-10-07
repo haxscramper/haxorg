@@ -283,6 +283,12 @@ def id_self(Typ: QualType) -> ParmVarParams:
 
 
 @beartype
+def py_type_bind(Typ: QualType) -> pya.PyType:
+    return pya.PyType(Typ.name + ("Of" if Typ.Parameters else "") +
+                      "".join([py_type_bind(T).Name for T in Typ.Parameters]))
+
+
+@beartype
 def py_type(Typ: QualType) -> pya.PyType:
 
     name = ""
@@ -1085,6 +1091,69 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
 
     for item in gen_enums:
         autogen_structs.Decls.append(Py11Enum.FromGenTu(item, []))
+
+    opaque_declarations: List[BlockId] = []
+    specialization_calls: List[BlockId] = []
+
+    type_use_context = []
+    seen_types: Set[QualType] = set()
+
+    def record_specializations(value: Any):
+        nonlocal type_use_context
+        if isinstance(value, QualType):
+
+            def rec_type(T: QualType):
+                def rec_drop(T: QualType) -> QualType:
+                    return replace(T, isConst=False, isRef=False, isPtr=False, isNamespace=False,
+                     Spaces=[rec_drop(S) for S in T.Spaces], Parameters=[rec_drop(P) for P in T.Parameters])
+
+                T = rec_drop(T)
+
+                if T in seen_types:
+                    return
+
+                else:
+                    seen_types.add(T)
+
+
+                if T.name == "Vec":                      
+                    stdvec_t = QualType("vector",
+                                        Spaces=[QualType("std")],
+                                        Parameters=[T.Parameters[0]])
+                    opaque_declarations.append(
+                        ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
+                    opaque_declarations.append(
+                        ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(T)]))
+
+                    # specialization_calls.append(
+                    #     ast.XCall(
+                    #         "pybind11::bind_vector",
+                    #         [ast.string("m"),
+                    #          ast.StringLiteral(py_type_bind(T).Name)],
+                    #         Params=[stdvec_t],
+                    #         Stmt=True))
+
+                    specialization_calls.append(
+                        ast.XCall(
+                            "bind_vector",
+                            [ast.string("m"),
+                             ast.StringLiteral(py_type_bind(T).Name)],
+                            Params=[T.Parameters[0]],
+                            Stmt=True))
+
+                else:
+                    for P in T.Parameters:
+                        rec_type(P)
+
+            rec_type(value)
+
+    iterate_object_tree(autogen_structs, record_specializations, type_use_context)
+
+    for decl in opaque_declarations:
+        autogen_structs.Before.append(decl)
+
+    autogen_structs.Decls = [Py11BindPass(D) for D in specialization_calls
+                            ] + autogen_structs.Decls
 
     return GenFiles([
         GenUnit(

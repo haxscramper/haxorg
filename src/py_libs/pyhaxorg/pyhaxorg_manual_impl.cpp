@@ -167,9 +167,6 @@ OrgIdVariant castAs(sem::SemId id) {
 }
 
 void init_py_manual_api(pybind11::module& m) {
-    bind_vector<sem::SemId>(m, "SemId");
-    bind_vector<sem::Subtree::Property>(m, "SubtreeProperty");
-
     pybind11::class_<sem::SemId>(m, "SemId")
         .def(pybind11::init(
             []() -> sem::SemId { return sem::SemId::Nil(); }))

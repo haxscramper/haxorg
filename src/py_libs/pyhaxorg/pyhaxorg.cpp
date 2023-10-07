@@ -6,7 +6,40 @@
   #define PY_HAXORG_COMPILING
   #include "pyhaxorg_manual_impl.hpp"
 #endif
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemId>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemId>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemIdT<sem::Row>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemIdT<sem::Row>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemIdT<sem::HashTag>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemIdT<sem::HashTag>>)
+PYBIND11_MAKE_OPAQUE(std::vector<Str>)
+PYBIND11_MAKE_OPAQUE(Vec<Str>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemIdT<sem::CmdArgument>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemIdT<sem::CmdArgument>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::Code::Switch>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::Code::Switch>)
+PYBIND11_MAKE_OPAQUE(std::vector<int>)
+PYBIND11_MAKE_OPAQUE(Vec<int>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::Symbol::Param>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::Symbol::Param>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::SemIdT<sem::SubtreeLog>>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::SemIdT<sem::SubtreeLog>>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Property>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Property>)
+PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Period>)
+PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Period>)
 PYBIND11_MODULE(pyhaxorg, m) {
+  bind_vector<sem::SemId>(m, "VecOfSemId");
+  bind_vector<sem::SemIdT<sem::Row>>(m, "VecOfSemIdTOfRow");
+  bind_vector<sem::SemIdT<sem::HashTag>>(m, "VecOfSemIdTOfHashTag");
+  bind_vector<Str>(m, "VecOfStr");
+  bind_vector<sem::SemIdT<sem::CmdArgument>>(m, "VecOfSemIdTOfCmdArgument");
+  bind_vector<sem::Code::Switch>(m, "VecOfSwitch");
+  bind_vector<int>(m, "VecOfint");
+  bind_vector<sem::Symbol::Param>(m, "VecOfParam");
+  bind_vector<sem::SemIdT<sem::SubtreeLog>>(m, "VecOfSemIdTOfSubtreeLog");
+  bind_vector<sem::Subtree::Property>(m, "VecOfProperty");
+  bind_vector<sem::Subtree::Period>(m, "VecOfPeriod");
   #ifndef IN_CLANGD_PROCESSING
     #define PY_HAXORG_COMPILING
     #include "pyhaxorg_manual_wrap.hpp"
