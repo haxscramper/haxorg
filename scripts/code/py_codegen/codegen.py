@@ -316,7 +316,7 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["py", "object"]:
             name = "object"
 
-        case "UserTime":
+        case ["UserTime"]:
             name = "datetime"
 
         case _:
@@ -598,6 +598,9 @@ class SemId:
 
     @overload
     def __getitem__(self, slice) -> List[SemId]: ...
+
+    def eachSubnodeRec(self, cb) -> None: ...
+    def _is(self, kind: OrgSemKind) -> bool: ...
 """))
 
         for entry in [E for E in self.Decls if isinstance(E, Py11Class)]:
@@ -1124,14 +1127,6 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                         ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
                     opaque_declarations.append(
                         ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(T)]))
-
-                    # specialization_calls.append(
-                    #     ast.XCall(
-                    #         "pybind11::bind_vector",
-                    #         [ast.string("m"),
-                    #          ast.StringLiteral(py_type_bind(T).Name)],
-                    #         Params=[stdvec_t],
-                    #         Stmt=True))
 
                     specialization_calls.append(
                         ast.XCall(

@@ -939,6 +939,9 @@ class SemId:
     @overload
     def __getitem__(self, slice) -> List[SemId]: ...
 
+    def eachSubnodeRec(self, cb) -> None: ...
+    def _is(self, kind: OrgSemKind) -> bool: ...
+
 class SemStmt(SemId):
     def getAttached(kind: OrgSemKind) -> Optional[SemId]: ...
     attached: List[SemId]
@@ -1078,7 +1081,7 @@ class TimeRepeat:
 
 class TimeStatic:
     repeat: Optional[TimeRepeat]
-    time: UserTime
+    time: datetime
 
 class TimeDynamic:
     expr: str

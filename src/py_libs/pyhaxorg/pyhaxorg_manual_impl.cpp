@@ -5,6 +5,7 @@
 #include <exporters/exporteryaml.hpp>
 #include <exporters/exportertree.hpp>
 #include <sem/semdatastream.hpp>
+#include <datetime.h>
 
 #include <memory>
 
@@ -167,12 +168,34 @@ OrgIdVariant castAs(sem::SemId id) {
 }
 
 void init_py_manual_api(pybind11::module& m) {
+    PyDateTime_IMPORT;
+    assert(PyDateTimeAPI);
+
     pybind11::class_<sem::SemId>(m, "SemId")
         .def(pybind11::init(
             []() -> sem::SemId { return sem::SemId::Nil(); }))
         .def("getKind", &sem::SemId::getKind)
         .def(
             "getDocument", [](sem::SemId id) { return id->getDocument(); })
+        .def(
+            "_is",
+            [](sem::SemId id, OrgSemKind kind) -> bool {
+                return id->is(kind);
+            })
+        .def(
+            "_as",
+            [](sem::SemId _self, OrgSemKind kind) -> Opt<OrgIdVariant> {
+                if (kind != _self.getKind()) {
+                    return std::nullopt;
+                } else {
+                    switch (_self.getKind()) {
+#define _Kind(__Kind)                                                     \
+    case OrgSemKind::__Kind: return OrgIdVariant{_self.as<sem::__Kind>()};
+                        EACH_SEM_ORG_KIND(_Kind)
+#undef _Kind
+                    }
+                }
+            })
         .def(
             "__len__",
             [](sem::SemId const& id) -> int {
@@ -189,11 +212,14 @@ void init_py_manual_api(pybind11::module& m) {
             [](sem::SemId _self, int index) {
                 return getSingleSubnode(_self, index);
             })
-        .def("__getitem__", [](sem::SemId _self, py::slice slice) {
-            return getSubnodeRange(_self, slice);
+        .def(
+            "__getitem__",
+            [](sem::SemId _self, py::slice slice) {
+                return getSubnodeRange(_self, slice);
+            })
+        .def("eachSubnodeRec", [](sem::SemId _self, py::function cb) {
+            _self.eachSubnodeRec([&](sem::SemId id) { cb(id); });
         });
-
-    ;
 }
 
 void ExporterPython::enablePyStreamTrace(pybind11::object stream) {

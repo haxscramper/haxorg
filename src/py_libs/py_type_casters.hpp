@@ -94,6 +94,7 @@ namespace detail {
         QDateTime getValue() { return value; }
 
         bool load(handle src, bool) {
+            assert(PyDateTimeAPI);
             /* Extract PyObject from handle */
             PyObject* source = src.ptr();
 
@@ -125,6 +126,9 @@ namespace detail {
             QDateTime src,
             return_value_policy /* policy */,
             handle /* parent */) {
+            if (!PyDateTimeAPI) {
+                PyDateTime_IMPORT;
+            }
             QDate date = src.date();
             QTime time = src.time();
 

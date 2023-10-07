@@ -357,7 +357,6 @@ void SemDataStream::write(
 void SemDataStream::read(QDataStream& in, sem::ContextStore* store) {
     int storeCount = 0;
     in >> storeCount;
-    _dbg(storeCount);
     Q_ASSERT_X(storeCount == 1, "DBG", to_string(storeCount));
     currentContenxt = store;
     store->stores.resize(storeCount, store);
@@ -371,7 +370,6 @@ void SemDataStream::write(
     QDataStream&             out,
     const sem::ContextStore& store) {
     out << (int)store.stores.size();
-    _dbg(store.stores.size());
     for (auto const& unit : store.stores) {
         write(out, unit);
     }

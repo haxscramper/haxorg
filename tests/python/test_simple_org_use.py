@@ -8,6 +8,8 @@ from enum import Enum
 from beartype import beartype
 from beartype.typing import *
 
+from datetime import date, time, datetime
+
 import pyhaxorg as org
 from py_textlayout import *
 from pyhaxorg import OrgContext
@@ -103,7 +105,7 @@ class TexCommand(Enum):
     subsection = 4
     subsubsection = 5
     paragraph = 6
-    subparagrap = 7
+    subparagraph = 7
 
 
 @beartype
@@ -261,13 +263,39 @@ class ExporterLatex(ExporterBase):
                          opts=self.getLatexClassOptions(node),
                          args=[self.getLatexClass(node)]))
 
-        props = node.getProperties(org.SubtreePropertyKind.ExportLatexHeader)
-        print(len(props))
-        for hdr in props:
-            print("1")
-            print(hdr)
-            print("X")
-            # print(hdr)
+        self.t.add_at(res, self.command("usepackage", ["csquotes"]))
+        self.t.add_at(res, self.command("usepackage", ["bookmarks"], ["hyperref"]))
+        self.t.add_at(res, self.command("usepackage", ["xcolor"]))
+
+        for value in TexCommand:
+            cmd = self.t.line([self.string("\\newcommand")])
+            arg_count = 1
+            self.t.add_at(cmd, self.wrap("\\" + self.getOrgCommand(value), "{", "}"))
+            self.t.add_at(cmd, self.wrap(self.string(str(arg_count)), "[", "]"))
+            self.t.add_at(cmd, self.wrap(self.command(value.name, ["#1"]), "{", "}"))
+            self.t.add_at(res, cmd)
+
+        headerExports: List[org.SemExport] = []
+        def visit(_id: org.SemId):
+            nonlocal headerExports
+            if _id._is(osk.Export):
+                exp: org.SemExport = _id._as(osk.Export)
+                if exp.placement == "header":
+                    headerExports.append(exp)
+
+        node.eachSubnodeRec(visit)
+
+        for exp in headerExports:
+            self.t.add_at(res, self.string(exp.content))
+
+        self.t.add_at(res, self.string("""
+\\newcommand*\\sepline{%
+  \\begin{center}
+    \\rule[1ex]{\\textwidth}{1pt}
+  \\end{center}}
+
+  \\newcommand{\\quot}[1]{\\textcolor{brown}{#1}}
+        """))
 
         for it in node:
             self.t.add_at(res, self.exp.eval(it))
@@ -332,6 +360,9 @@ class ExporterLatex(ExporterBase):
             self.t.add_at(res, self.exp.eval(it))
 
         return res
+
+    def evalTime(self, node: org.SemTime) -> BlockId:
+        return self.string(node.getStatic().time.strftime("%Y-%m-%d %H:%M:%S"))
 
     def evalTimeRange(self, node: org.SemTimeRange) -> BlockId:
         return self.t.line([

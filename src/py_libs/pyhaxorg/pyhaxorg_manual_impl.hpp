@@ -166,7 +166,6 @@ struct [[refl]] OrgContext {
         , nodes(&tokens)
         , lex(&tokens)
         , converter(sem::OrgConverter(&store)) {
-        qDebug() << "Init Org context in PY";
     }
 
     [[refl]] void initLocationResolvers();
