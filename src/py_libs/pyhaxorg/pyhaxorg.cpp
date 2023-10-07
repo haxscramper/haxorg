@@ -269,10 +269,18 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Time> _self) -> bool { return _self->isActive; },
                   [](sem::SemIdT<sem::Time> _self, bool isActive) { _self->isActive = isActive; })
     .def_property("time",
-                  [](sem::SemIdT<sem::Time> _self) -> TimeVariant { return _self->time; },
-                  [](sem::SemIdT<sem::Time> _self, TimeVariant time) { _self->time = time; })
+                  [](sem::SemIdT<sem::Time> _self) -> sem::Time::TimeVariant { return _self->time; },
+                  [](sem::SemIdT<sem::Time> _self, sem::Time::TimeVariant time) { _self->time = time; })
+    .def("getStatic",
+         [](sem::SemIdT<sem::Time> _self) -> sem::Time::Static { return _self->getStatic(); })
+    .def("getStatic",
+         [](sem::SemIdT<sem::Time> _self) -> sem::Time::Static { return _self->getStatic(); })
+    .def("getDynamic",
+         [](sem::SemIdT<sem::Time> _self) -> sem::Time::Dynamic { return _self->getDynamic(); })
+    .def("getDynamic",
+         [](sem::SemIdT<sem::Time> _self) -> sem::Time::Dynamic { return _self->getDynamic(); })
     .def("getTimeKind",
-         [](sem::SemIdT<sem::Time> _self) -> TimeKind { return _self->getTimeKind(); })
+         [](sem::SemIdT<sem::Time> _self) -> sem::Time::TimeKind { return _self->getTimeKind(); })
     ;
   pybind11::class_<sem::Time::Repeat>(m, "TimeRepeat")
     .def(pybind11::init<>())
@@ -348,13 +356,37 @@ PYBIND11_MODULE(pyhaxorg, m) {
   pybind11::class_<sem::SemIdT<sem::SubtreeLog>, sem::SemId>(m, "SemSubtreeLog")
     .def(pybind11::init([]() -> sem::SemIdT<sem::SubtreeLog> { return sem::SemIdT<sem::SubtreeLog>::Nil(); }))
     .def_property("log",
-                  [](sem::SemIdT<sem::SubtreeLog> _self) -> LogEntry { return _self->log; },
-                  [](sem::SemIdT<sem::SubtreeLog> _self, LogEntry log) { _self->log = log; })
+                  [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::LogEntry { return _self->log; },
+                  [](sem::SemIdT<sem::SubtreeLog> _self, sem::SubtreeLog::LogEntry log) { _self->log = log; })
     .def("setDescription",
          [](sem::SemIdT<sem::SubtreeLog> _self, sem::SemIdT<sem::StmtList> desc) -> void { return _self->setDescription(desc); },
          pybind11::arg("desc"))
+    .def("getPriority",
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Priority { return _self->getPriority(); })
+    .def("getPriority",
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Priority { return _self->getPriority(); })
+    .def("getNote",
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Note { return _self->getNote(); })
+    .def("getNote",
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Note { return _self->getNote(); })
+    .def("getRefile",
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Refile { return _self->getRefile(); })
+    .def("getRefile",
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Refile { return _self->getRefile(); })
+    .def("getClock",
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Clock { return _self->getClock(); })
+    .def("getClock",
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Clock { return _self->getClock(); })
+    .def("getState",
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::State { return _self->getState(); })
+    .def("getState",
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::State { return _self->getState(); })
+    .def("getTag",
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Tag { return _self->getTag(); })
+    .def("getTag",
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Tag { return _self->getTag(); })
     .def("getLogKind",
-         [](sem::SemIdT<sem::SubtreeLog> _self) -> Kind { return _self->getLogKind(); })
+         [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Kind { return _self->getLogKind(); })
     ;
   pybind11::class_<sem::SubtreeLog::DescribedLog>(m, "SubtreeLogDescribedLog")
     .def(pybind11::init<>())
@@ -685,15 +717,35 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Link> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->description; },
                   [](sem::SemIdT<sem::Link> _self, Opt<sem::SemIdT<sem::Paragraph>> description) { _self->description = description; })
     .def_property("data",
-                  [](sem::SemIdT<sem::Link> _self) -> Data { return _self->data; },
-                  [](sem::SemIdT<sem::Link> _self, Data data) { _self->data = data; })
+                  [](sem::SemIdT<sem::Link> _self) -> sem::Link::Data { return _self->data; },
+                  [](sem::SemIdT<sem::Link> _self, sem::Link::Data data) { _self->data = data; })
     .def("resolve",
          [](sem::SemIdT<sem::Link> _self, sem::Document const& doc) -> Opt<sem::SemId> { return _self->resolve(doc); },
          pybind11::arg("doc"))
     .def("resolve",
          [](sem::SemIdT<sem::Link> _self) -> Opt<sem::SemId> { return _self->resolve(); })
+    .def("getRaw",
+         [](sem::SemIdT<sem::Link> _self) -> sem::Link::Raw { return _self->getRaw(); })
+    .def("getRaw",
+         [](sem::SemIdT<sem::Link> _self) -> sem::Link::Raw { return _self->getRaw(); })
+    .def("getId",
+         [](sem::SemIdT<sem::Link> _self) -> sem::Link::Id { return _self->getId(); })
+    .def("getId",
+         [](sem::SemIdT<sem::Link> _self) -> sem::Link::Id { return _self->getId(); })
+    .def("getPerson",
+         [](sem::SemIdT<sem::Link> _self) -> sem::Link::Person { return _self->getPerson(); })
+    .def("getPerson",
+         [](sem::SemIdT<sem::Link> _self) -> sem::Link::Person { return _self->getPerson(); })
+    .def("getFootnote",
+         [](sem::SemIdT<sem::Link> _self) -> sem::Link::Footnote { return _self->getFootnote(); })
+    .def("getFootnote",
+         [](sem::SemIdT<sem::Link> _self) -> sem::Link::Footnote { return _self->getFootnote(); })
+    .def("getFile",
+         [](sem::SemIdT<sem::Link> _self) -> sem::Link::File { return _self->getFile(); })
+    .def("getFile",
+         [](sem::SemIdT<sem::Link> _self) -> sem::Link::File { return _self->getFile(); })
     .def("getLinkKind",
-         [](sem::SemIdT<sem::Link> _self) -> Kind { return _self->getLinkKind(); })
+         [](sem::SemIdT<sem::Link> _self) -> sem::Link::Kind { return _self->getLinkKind(); })
     ;
   pybind11::class_<sem::Link::Raw>(m, "LinkRaw")
     .def(pybind11::init<>())
@@ -803,10 +855,26 @@ PYBIND11_MODULE(pyhaxorg, m) {
   pybind11::class_<sem::SemIdT<sem::Include>, sem::SemId>(m, "SemInclude")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Include> { return sem::SemIdT<sem::Include>::Nil(); }))
     .def_property("data",
-                  [](sem::SemIdT<sem::Include> _self) -> Data { return _self->data; },
-                  [](sem::SemIdT<sem::Include> _self, Data data) { _self->data = data; })
+                  [](sem::SemIdT<sem::Include> _self) -> sem::Include::Data { return _self->data; },
+                  [](sem::SemIdT<sem::Include> _self, sem::Include::Data data) { _self->data = data; })
+    .def("getExample",
+         [](sem::SemIdT<sem::Include> _self) -> sem::Include::Example { return _self->getExample(); })
+    .def("getExample",
+         [](sem::SemIdT<sem::Include> _self) -> sem::Include::Example { return _self->getExample(); })
+    .def("getExport",
+         [](sem::SemIdT<sem::Include> _self) -> sem::Include::Export { return _self->getExport(); })
+    .def("getExport",
+         [](sem::SemIdT<sem::Include> _self) -> sem::Include::Export { return _self->getExport(); })
+    .def("getSrc",
+         [](sem::SemIdT<sem::Include> _self) -> sem::Include::Src { return _self->getSrc(); })
+    .def("getSrc",
+         [](sem::SemIdT<sem::Include> _self) -> sem::Include::Src { return _self->getSrc(); })
+    .def("getOrgdocument",
+         [](sem::SemIdT<sem::Include> _self) -> sem::Include::OrgDocument { return _self->getOrgdocument(); })
+    .def("getOrgdocument",
+         [](sem::SemIdT<sem::Include> _self) -> sem::Include::OrgDocument { return _self->getOrgdocument(); })
     .def("getIncludeKind",
-         [](sem::SemIdT<sem::Include> _self) -> Kind { return _self->getIncludeKind(); })
+         [](sem::SemIdT<sem::Include> _self) -> sem::Include::Kind { return _self->getIncludeKind(); })
     ;
   pybind11::class_<sem::Include::Example>(m, "IncludeExample")
     .def(pybind11::init<>())

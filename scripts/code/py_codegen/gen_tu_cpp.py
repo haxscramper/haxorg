@@ -244,30 +244,10 @@ class GenConverter:
                                      isConst=method.isConst,
                                      isVirtual=method.isVirtual))
 
-            extraFields = []
-            extraMethods = []
             for nested in record.nested:
-                if isinstance(nested, GenTuTypeGroup):
-                    group: GenTuTypeGroup = nested
-                    if group.kindGetter:
-                        extraMethods.append(
-                            GenTuFunction(
-                                name=group.kindGetter,
-                                result=QualType(group.enumName),
-                                isConst=True,
-                                doc=GenTuDoc(""),
-                            ))
-                    if group.variantName:
-                        extraFields.append(
-                            GenTuField(
-                                name=group.variantField,
-                                doc=GenTuDoc(""),
-                                type=QualType(group.variantName),
-                            ))
+                assert not isinstance(nested, GenTuTypeGroup)
 
-            fields = [
-                self.ast.string(field.name) for field in record.fields + extraFields
-            ]
+            fields = [self.ast.string(field.name) for field in record.fields]
             methods = [
                 self.ast.b.line([
                     self.ast.string("("),
@@ -278,7 +258,7 @@ class GenConverter:
                     self.ast.string(" const" if method.isConst else ""),
                     self.ast.string(") "),
                     self.ast.string(method.name),
-                ]) for method in record.methods + extraMethods
+                ]) for method in record.methods
             ]
 
             params.nested.append(

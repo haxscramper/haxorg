@@ -10,4 +10,3 @@ lib_dir = os.path.abspath(os.path.join(script_dir, '..', '..', '..', 'lib'))
 if lib_dir not in sys.path:
     # Add this directory to sys.path
     sys.path.append(lib_dir)
-

@@ -1,4 +1,5 @@
-from dataclasses import field, dataclass
+from dataclasses import field, dataclass, replace
+from copy import deepcopy
 from typing import *
 from enum import Enum
 
@@ -22,22 +23,31 @@ def t_int() -> QualType:
     return QualType("int")
 
 
+@beartype
+def t_space(name: str, Spaces: List[str]) -> QualType:
+    return QualType(name, Spaces=[QualType(S) for S in Spaces])
+
+
 def n_sem() -> QualType:
     return QualType("sem", isNamespace=True)
 
+
 def t_org(name: str, extraSpaces: List[QualType] = []) -> QualType:
     return QualType(name, Spaces=[n_sem()] + extraSpaces)
+
 
 def t_nest(name: Union[str, QualType]) -> QualType:
     result = QualType(name) if isinstance(name, str) else name
     result.__setattr__("isNested", True)
     return result
 
+
 def k_args(obj: Any, **kwargs) -> Any:
     for key, value in kwargs.items():
         obj.__setattr__(key, value)
 
     return obj
+
 
 @beartype
 def t_vec(arg: QualType) -> QualType:
@@ -46,10 +56,10 @@ def t_vec(arg: QualType) -> QualType:
 
 @beartype
 def t_id(target: Optional[Union[QualType, str]] = None) -> QualType:
-    return (QualType("SemIdT", [(target if isinstance(target, QualType) else QualType(
-        target, Spaces=[n_sem()]))],
-                     Spaces=[n_sem()])
-            if target else QualType("SemId", Spaces=[n_sem()]))
+    return (QualType("SemIdT", [
+        (target if isinstance(target, QualType) else QualType(target, Spaces=[n_sem()]))
+    ],
+                     Spaces=[n_sem()]) if target else QualType("SemId", Spaces=[n_sem()]))
 
 
 @beartype
@@ -64,9 +74,7 @@ def t_osk() -> QualType:
 
 @beartype
 def t_cr(arg: QualType) -> QualType:
-    arg.isRef = True
-    arg.isConst = True
-    return arg
+    return replace(deepcopy(arg), isRef=True, isConst=True)
 
 
 def t_var(*args) -> QualType:
@@ -287,7 +295,9 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
             concreteKind=False,
         ),
-        d_org("Center", GenTuDoc("Center nested content in export"), bases=[t_org("Format")]),
+        d_org("Center",
+              GenTuDoc("Center nested content in export"),
+              bases=[t_org("Format")]),
         d_org(
             "Command",
             GenTuDoc("Base class for block or line commands"),
@@ -631,8 +641,8 @@ def get_types() -> Sequence[GenTuStruct]:
                             "Static",
                             GenTuDoc(""),
                             fields=[
-                                GenTuField(t_opt(t_nest("Repeat")), "repeat",
-                                           GenTuDoc("")),
+                                GenTuField(t_opt(t_space("Repeat", ["sem", "Time"])),
+                                           "repeat", GenTuDoc("")),
                                 GenTuField(QualType("UserTime"), "time", GenTuDoc("")),
                             ],
                         ),
@@ -781,7 +791,8 @@ def get_types() -> Sequence[GenTuStruct]:
                                     "range",
                                     GenTuDoc("Start-end or only start period"),
                                     value="SemIdT<Time>::Nil()",
-                                ), ignore=True)
+                                ),
+                                       ignore=True)
                             ],
                         ),
                         GenTuStruct(
@@ -867,8 +878,12 @@ def get_types() -> Sequence[GenTuStruct]:
                     isConst=True,
                     arguments=[
                         GenTuIdent(
-                            QualType("Kind", Spaces=[n_sem(), QualType("Subtree"), QualType("Property")]),
-                            "kind"),
+                            QualType("Kind",
+                                     Spaces=[
+                                         n_sem(),
+                                         QualType("Subtree"),
+                                         QualType("Property")
+                                     ]), "kind"),
                         GenTuIdent(t_cr(t_str()), "subkind", value='""'),
                     ],
                 ),
@@ -879,8 +894,12 @@ def get_types() -> Sequence[GenTuStruct]:
                     isConst=True,
                     arguments=[
                         GenTuIdent(
-                            QualType("Kind", Spaces=[n_sem(), QualType("Subtree"), QualType("Property")]),
-                            "kind"),
+                            QualType("Kind",
+                                     Spaces=[
+                                         n_sem(),
+                                         QualType("Subtree"),
+                                         QualType("Property")
+                                     ]), "kind"),
                         GenTuIdent(t_cr(t_str()), "subkind", value='""'),
                     ],
                 ),
@@ -925,7 +944,8 @@ def get_types() -> Sequence[GenTuStruct]:
                             t_var(t_id("Time"), t_id("TimeRange")),
                             "period",
                             GenTuDoc("Stored time point/range"),
-                        ), ignore=True),
+                        ),
+                               ignore=True),
                     ],
                     methods=[
                         GenTuFunction(
@@ -1103,7 +1123,9 @@ def get_types() -> Sequence[GenTuStruct]:
                 ),
             ],
         ),
-        d_org("LatexBody", GenTuDoc("Latex code body"), bases=[t_org("Org")],
+        d_org("LatexBody",
+              GenTuDoc("Latex code body"),
+              bases=[t_org("Org")],
               concreteKind=False),
         d_org("InlineMath", GenTuDoc("Inline math"), bases=[t_org("LatexBody")]),
         d_org(
@@ -1189,7 +1211,9 @@ def get_types() -> Sequence[GenTuStruct]:
                     "resolve",
                     GenTuDoc(""),
                     isConst=True,
-                    arguments=[GenTuIdent(t_cr(QualType("Document", Spaces=[n_sem()])), "doc")],
+                    arguments=[
+                        GenTuIdent(t_cr(QualType("Document", Spaces=[n_sem()])), "doc")
+                    ],
                 ),
                 GenTuFunction(t_opt(t_id()), "resolve", GenTuDoc(""), isConst=True),
             ],
@@ -1244,22 +1268,36 @@ def get_types() -> Sequence[GenTuStruct]:
                     arguments=[GenTuIdent(t_cr(t_str()), "id")],
                 ),
                 GenTuFunction(
-                    t_vec(QualType("Property", Spaces=[n_sem(), QualType("Subtree")])),
+                    t_vec(QualType("Property", Spaces=[n_sem(),
+                                                       QualType("Subtree")])),
                     "getProperties",
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(QualType("Kind", Spaces=[n_sem(), QualType("Subtree"), QualType("Property")]), "kind"),
+                        GenTuIdent(
+                            QualType("Kind",
+                                     Spaces=[
+                                         n_sem(),
+                                         QualType("Subtree"),
+                                         QualType("Property")
+                                     ]), "kind"),
                         GenTuIdent(t_cr(t_str()), "subKind", value='""'),
                     ],
                 ),
                 GenTuFunction(
-                    t_opt(QualType("Property", Spaces=[n_sem(), QualType("Subtree")])),
+                    t_opt(QualType("Property", Spaces=[n_sem(),
+                                                       QualType("Subtree")])),
                     "getProperty",
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(QualType("Kind", Spaces=[n_sem(), QualType("Subtree"), QualType("Property")]), "kind"),
+                        GenTuIdent(
+                            QualType("Kind",
+                                     Spaces=[
+                                         n_sem(),
+                                         QualType("Subtree"),
+                                         QualType("Property")
+                                     ]), "kind"),
                         GenTuIdent(t_cr(t_str()), "subKind", value='""'),
                     ],
                 ),
@@ -1323,23 +1361,25 @@ def get_types() -> Sequence[GenTuStruct]:
             bases=[t_org("Org")],
             methods=[
                 GenTuFunction(
-                    t_vec(
-                        QualType("Property",
-                                 Spaces=[n_sem(),
-                                         QualType("Subtree")])),
+                    t_vec(QualType("Property", Spaces=[n_sem(),
+                                                       QualType("Subtree")])),
                     "getProperties",
                     GenTuDoc(""),
                     isConst=True,
                     arguments=[
-                        GenTuIdent(QualType("Kind", Spaces=[n_sem(), QualType("Subtree"), QualType("Property")]), "kind"),
+                        GenTuIdent(
+                            QualType("Kind",
+                                     Spaces=[
+                                         n_sem(),
+                                         QualType("Subtree"),
+                                         QualType("Property")
+                                     ]), "kind"),
                         GenTuIdent(t_cr(t_str()), "subKind", value='""'),
                     ],
                 ),
                 GenTuFunction(
-                    t_opt(
-                        QualType("Property",
-                                 Spaces=[n_sem(),
-                                         QualType("Subtree")])),
+                    t_opt(QualType("Property", Spaces=[n_sem(),
+                                                       QualType("Subtree")])),
                     "getProperty",
                     GenTuDoc(""),
                     isConst=True,
@@ -1386,8 +1426,10 @@ def get_types() -> Sequence[GenTuStruct]:
                            "tocExport",
                            GenTuDoc(""),
                            value="false"),
-                GenTuField(t_vec(QualType("Property", Spaces=[n_sem(), QualType("Subtree")])), "properties",
-                           GenTuDoc("")),
+                GenTuField(
+                    t_vec(QualType("Property", Spaces=[n_sem(),
+                                                       QualType("Subtree")])),
+                    "properties", GenTuDoc("")),
                 GenTuField(t_bool(), "smartQuotes", GenTuDoc(""), value="false"),
                 GenTuField(t_bool(), "emphasizedText", GenTuDoc(""), value="false"),
                 GenTuField(t_bool(), "specialStrings", GenTuDoc(""), value="false"),

@@ -11,11 +11,13 @@ import astbuilder_base as base
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
 
+
 @beartype
 @dataclass
 class PyType:
     Name: str
     Params: List['PyType'] = field(default_factory=list)
+
 
 @beartype
 @dataclass
@@ -23,10 +25,12 @@ class IdentParams:
     Type: PyType
     Name: str
 
+
 @beartype
 @dataclass
 class DecoratorParams:
     Name: str
+
 
 @beartype
 @dataclass
@@ -38,7 +42,7 @@ class FunctionDefParams:
     Doc: str = ""
     Body: List[BlockId] = field(default_factory=list)
     IsStub: bool = False
-    
+
 
 @beartype
 @dataclass
@@ -52,6 +56,7 @@ class FieldParams:
     Type: PyType
     Name: str
 
+
 @beartype
 @dataclass
 class ClassParams:
@@ -59,13 +64,14 @@ class ClassParams:
     Methods: List[MethodParams] = field(default_factory=list)
     Bases: List[PyType] = field(default_factory=list)
     Fields: List[FieldParams] = field(default_factory=list)
-    
+
 
 @beartype
 @dataclass
 class EnumFieldParams:
     Name: str
     Value: str
+
 
 @beartype
 @dataclass
@@ -76,6 +82,7 @@ class EnumParams:
 
 @beartype
 class ASTBuilder(base.AstbuilderBase):
+
     def __init__(self, in_b: TextLayout):
         self.b = in_b
 
@@ -100,8 +107,8 @@ class ASTBuilder(base.AstbuilderBase):
     def FuncHead(self, p: FunctionDefParams) -> List[BlockId]:
         b = self.b
         return [
-            b.text("def "), 
-            b.text(p.Name), 
+            b.text("def "),
+            b.text(p.Name),
             self.pars(self.csv([self.Arg(A) for A in p.Args])),
             b.text(" -> "),
             self.Type(p.ResultTy),
@@ -118,10 +125,7 @@ class ASTBuilder(base.AstbuilderBase):
             return b.line(def_head)
 
         else:
-            return b.stack([
-                b.line(def_head),
-                b.indent(4, b.stack(p.Func.Body))
-            ])
+            return b.stack([b.line(def_head), b.indent(4, b.stack(p.Func.Body))])
 
     def Field(self, p: FieldParams) -> BlockId:
         return self.b.line([self.string(p.Name), self.string(": "), self.Type(p.Type)])
@@ -129,10 +133,9 @@ class ASTBuilder(base.AstbuilderBase):
     def Enum(self, p: EnumParams) -> BlockId:
         b = self.b
         return b.stack([
-            b.line([b.text("class "), b.text(p.Name), b.text("(Enum):")]),
-            b.indent(4, b.stack([
-                b.text(f"{F.Name} = {F.Value}") for F in p.Fields
-            ]))
+            b.line([b.text("class "), b.text(p.Name),
+                    b.text("(Enum):")]),
+            b.indent(4, b.stack([b.text(f"{F.Name} = {F.Value}") for F in p.Fields]))
         ])
 
     def Class(self, p: ClassParams) -> BlockId:
@@ -141,20 +144,16 @@ class ASTBuilder(base.AstbuilderBase):
         methods: List[BlockId] = [self.Method(M) for M in p.Methods]
         fields: List[BlockId] = [self.Field(F) for F in p.Fields]
 
-
         if len(methods) == 0 and len(fields) == 0:
             methods = [b.text("pass")]
 
         return self.b.stack([
             b.line([
-                b.text("class "), 
-                b.text(p.Name), 
-                *([self.pars(self.csv([self.Type(B) for B in p.Bases]))] if p.Bases else []),
+                b.text("class "),
+                b.text(p.Name),
+                *([self.pars(self.csv([self.Type(B)
+                                       for B in p.Bases]))] if p.Bases else []),
                 b.text(":"),
             ]),
             b.indent(4, b.stack(methods + fields))
         ])
-
-
-
-

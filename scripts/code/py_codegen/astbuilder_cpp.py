@@ -39,12 +39,13 @@ log.setLevel(logging.DEBUG)
 class QualType:
     name: str = ""
     Parameters: List['QualType'] = field(default_factory=list)
-    isConst: bool = False
-    isPtr: bool = False
-    isRef: bool = False
-    isNamespace: bool = False
     Spaces: List['QualType'] = field(default_factory=list)
+    isNamespace: bool = False
     verticalParamList: bool = False
+
+    isConst: bool = field(default_factory=lambda: False)
+    isPtr: bool = field(default_factory=lambda: False)
+    isRef: bool = field(default_factory=lambda: False)
 
     def asNamespace(self, is_namespace=True):
         self.isNamespace = is_namespace
@@ -65,18 +66,6 @@ class QualType:
     @classmethod
     def from_spaces_and_name(cls, spaces: List[str], name: str):
         return cls(name=name, Spaces=[cls.from_name(space) for space in spaces])
-
-    def Ref(self, set_ref=True):
-        self.isRef = set_ref
-        return self
-
-    def Ptr(self, set_ptr=True):
-        self.isPtr = set_ptr
-        return self
-
-    def Const(self, set_const=True):
-        self.isConst = set_const
-        return self
 
 
 @beartype
@@ -336,6 +325,7 @@ class SwitchStmtParams:
 @beartype
 @dataclass
 class ASTBuilder(base.AstbuilderBase):
+
     def __init__(self, in_b: TextLayout):
         self.b = in_b
 
@@ -706,8 +696,6 @@ class ASTBuilder(base.AstbuilderBase):
 
         return result
 
-
-
     def CompoundStmt(self, p: CompoundStmtParams) -> BlockId:
         return self.brace(p.Stmts)
 
@@ -917,7 +905,8 @@ class ASTBuilder(base.AstbuilderBase):
         if params.IsLine:
             return self.b.stack([
                 self.Doc(params.doc),
-                self.b.line([head, self.string(" "), fields, self.string("};")])
+                self.b.line([head, self.string(" "), fields,
+                             self.string("};")])
             ])
         else:
             return self.b.stack([

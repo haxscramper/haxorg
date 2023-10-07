@@ -76,22 +76,6 @@ def get_type_base_fields(value: GenTuStruct,
 
 
 @beartype
-def get_type_group_fields(value: GenTuStruct) -> List[GenTuField]:
-    return [
-        GenTuField(QualType(group.variantName), group.variantField, GenTuDoc(""))
-        for group in get_nested_groups(value)
-    ]
-
-
-@beartype
-def get_nested_groups(value: GenTuStruct) -> Sequence[GenTuTypeGroup]:
-    return [
-        nested for nested in value.nested
-        if isinstance(nested, GenTuTypeGroup) and nested.variantField
-    ]
-
-
-@beartype
 def get_base_map(expanded: List[GenTuStruct]) -> Mapping[str, GenTuStruct]:
     base_map: Mapping[str, GenTuStruct] = {}
 
@@ -132,8 +116,8 @@ def get_exporter_methods(forward: bool,
             name = value.name
             full_scoped_name = scope_names + [name]
             fields = [
-                field for field in (value.fields + get_type_base_fields(value, base_map) +
-                                    get_type_group_fields(value)) if not (field.isStatic)
+                field for field in (value.fields + get_type_base_fields(value, base_map))
+                if not (field.isStatic)
             ]
 
             scoped_target = t_cr(
@@ -142,28 +126,30 @@ def get_exporter_methods(forward: bool,
             decl_scope = "" if forward else "Exporter<V, R>::"
             t_params = [] if forward else [GenTuParam("V"), GenTuParam("R")]
 
-            variant_methods = [
-                GenTuFunction(
-                    QualType("void"),
-                    f"{decl_scope}visit",
-                    GenTuDoc(""),
-                    params=t_params,
-                    arguments=[
-                        GenTuIdent(QualType("R", isRef=True), "res"),
-                        GenTuIdent(
-                            t_cr(
-                                QualType(
-                                    group.variantName,
-                                    Spaces=[QualType("sem")] +
-                                    [QualType(t) for t in full_scoped_name],
-                                )),
-                            "object",
-                        ),
-                    ],
-                    impl=None if forward else
-                    f"visitVariants(res, sem::{'::'.join(full_scoped_name)}::{group.kindGetter}(object), object);",
-                ) for group in get_nested_groups(value)
-            ]
+            variant_methods: List[GenTuFunction] = []
+            for field in fields:
+                if hasattr(field, "isVariantField"):
+                    kindGetter = getattr(field, "variantGetter")
+                    variant_methods.append(
+                        GenTuFunction(
+                            QualType("void"),
+                            f"{decl_scope}visit",
+                            GenTuDoc(""),
+                            params=t_params,
+                            arguments=[
+                                GenTuIdent(
+                                    QualType("R"
+                                             #, isRef=True
+                                            ),
+                                    "res"),
+                                GenTuIdent(
+                                    t_cr(field.type),
+                                    "object",
+                                ),
+                            ],
+                            impl=None if forward else
+                            f"visitVariants(res, sem::{'::'.join(full_scoped_name)}::{kindGetter}(object), object);",
+                        ))
 
             if len(scope_full) == 0:
                 method = GenTuFunction(
@@ -172,7 +158,11 @@ def get_exporter_methods(forward: bool,
                     GenTuDoc(""),
                     params=t_params,
                     arguments=[
-                        GenTuIdent(QualType("R", isRef=True), "res"),
+                        GenTuIdent(
+                            QualType("R"
+                                     #, isRef=True
+                                    ),
+                            "res"),
                         GenTuIdent(QualType("In", [QualType(f"sem::{name}")]), "object"),
                     ],
                     impl=None if forward else f"__visit_specific_kind(res, object);\n%s" %
@@ -185,7 +175,11 @@ def get_exporter_methods(forward: bool,
                     GenTuDoc(""),
                     params=t_params,
                     arguments=[
-                        GenTuIdent(QualType("R", isRef=True), "res"),
+                        GenTuIdent(
+                            QualType("R"
+                                     #, isRef=True
+                                    ),
+                            "res"),
                         GenTuIdent(scoped_target, "object"),
                     ],
                     impl=None if forward else "\n".join(
@@ -738,9 +732,6 @@ def get_osk_enum(expanded: List[GenTuStruct]) -> GenTuEnum:
     )
 
 
-
-
-
 @beartype
 def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module:
     res = Py11Module("pyhaxorg")
@@ -918,11 +909,12 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
     @beartype
     def rec_expand_group(
-        record: GenTuTypeGroup
+        record: GenTuTypeGroup,
+        context: List[QualType],
     ) -> List[Union[GenTuStruct, GenTuEnum, GenTuField, GenTuFunction, GenTuPass]]:
         result = []
         for item in record.types:
-            result.append(rec_expand_type(item))
+            result.append(rec_expand_type(item, context))
 
         typeNames: List[str] = []
 
@@ -957,24 +949,39 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                           doc=GenTuDoc(""),
                           fields=[GenTuEnumField(N, GenTuDoc("")) for N in typeNames]))
 
+            for idx, T in enumerate(typeNames):
+                for isConst in [True, False]:
+                    result.append(
+                        GenTuFunction(
+                            doc=GenTuDoc(""),
+                            name="get" + T.capitalize(),
+                            result=QualType(
+                                T,
+                                #   isConst=isConst,
+                                Spaces=deepcopy(context)),
+                            isConst=isConst,
+                            impl=ast.Return(
+                                ast.XCall("std::get", [ast.string(record.variantField)],
+                                          Params=[QualType(str(idx))]))))
+
+            enum_type = QualType(record.enumName, Spaces=context)
+            variant_type = QualType(record.variantName, Spaces=context)
+
             result.append(
-                GenTuFunction(
-                    isStatic=True,
-                    doc=GenTuDoc(""),
-                    name=record.kindGetter,
-                    result=QualType(record.enumName),
-                    arguments=[
-                        GenTuIdent(QualType(record.variantName, isConst=True, isRef=True),
-                                   "__input")
-                    ],
-                    impl=ast.Return(
-                        ast.XCall("static_cast",
-                                  args=[ast.XCallRef(ast.string("__input"), "index")],
-                                  Params=[QualType(record.enumName)]))))
+                GenTuFunction(isStatic=True,
+                              doc=GenTuDoc(""),
+                              name=record.kindGetter,
+                              result=enum_type,
+                              arguments=[GenTuIdent(t_cr(variant_type), "__input")],
+                              impl=ast.Return(
+                                  ast.XCall(
+                                      "static_cast",
+                                      args=[ast.XCallRef(ast.string("__input"), "index")],
+                                      Params=[enum_type]))))
 
             result.append(
                 GenTuFunction(name=record.kindGetter,
-                              result=QualType(record.enumName),
+                              result=enum_type,
                               impl=ast.Return(
                                   ast.XCall(record.kindGetter,
                                             [ast.string(record.variantField)])),
@@ -983,36 +990,38 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
             result.append(
                 GenTuPass(
-                    ast.Using(
-                        UsingParams(newName="variant_enum_type",
-                                    baseType=QualType(record.enumName)))))
+                    ast.Using(UsingParams(newName="variant_enum_type",
+                                          baseType=enum_type))))
 
             result.append(
                 GenTuPass(
                     ast.Using(
-                        UsingParams(newName="variant_data_type",
-                                    baseType=QualType(record.variantName)))))
+                        UsingParams(newName="variant_data_type", baseType=variant_type))))
 
-            result.append(
-                GenTuField(type=QualType(record.variantName),
-                           name=record.variantField,
-                           doc=GenTuDoc(""),
-                           value=ast.string(record.variantValue)
-                           if record.variantValue else None))
+            variant_field = GenTuField(
+                type=deepcopy(variant_type),
+                name=record.variantField,
+                doc=GenTuDoc(""),
+                value=ast.string(record.variantValue) if record.variantValue else None)
+
+            setattr(variant_field, "isVariantField", True)
+            setattr(variant_field, "variantGetter", record.kindGetter)
+
+            result.append(variant_field)
 
         return result
 
     @beartype
-    def rec_expand_type(typ: GenTuStruct) -> GenTuStruct:
+    def rec_expand_type(typ: GenTuStruct, context: List[QualType]) -> GenTuStruct:
         converted = []
         methods: List[GenTuFunction] = []
         fields: List[GenTuField] = []
         for item in typ.nested:
             if isinstance(item, GenTuStruct):
-                converted.append(rec_expand_type(item))
+                converted.append(rec_expand_type(item, context + [QualType(item.name)]))
 
             elif isinstance(item, GenTuTypeGroup):
-                for res in rec_expand_group(item):
+                for res in rec_expand_group(item, context):
                     if isinstance(res, GenTuField):
                         fields.append(res)
 
@@ -1029,9 +1038,9 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                 assert False, type(item)
 
         result = replace(typ,
-                       nested=converted,
-                       methods=typ.methods + methods,
-                       fields=typ.fields + fields)
+                         nested=converted,
+                         methods=typ.methods + methods,
+                         fields=typ.fields + fields)
 
         if hasattr(typ, "isNested"):
             setattr(result, "isNested", getattr(typ, "isNested"))
@@ -1041,7 +1050,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
         return result
 
-    return [rec_expand_type(T) for T in types]
+    return [rec_expand_type(T, [QualType("sem"), QualType(T.name)]) for T in types]
 
 
 @beartype
@@ -1055,6 +1064,7 @@ def update_namespace_annotations(expanded: List[GenTuStruct]):
                 value.Spaces = filter_walk_scope(iterate_context) + value.Spaces
 
     iterate_object_tree(GenTuNamespace("sem", expanded), callback, iterate_context)
+
 
 @beartype
 def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:
