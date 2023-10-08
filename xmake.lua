@@ -159,13 +159,13 @@ meta_target("haxorg_codegen", "Execute haxorg code generation step.", {}, functi
   add_deps("py_reflection")
   add_deps("cmake_utils")
   add_rules("dummy")
-  any_files("scripts/code/py_codegen/codegen.py")
+  any_files("scripts/py_codegen/codegen.py")
   any_files("build/reflection.pb")
   on_build(function(target) 
     local utils = import("scripts.utils")
     os.execv("poetry", {
       "run", 
-      "scripts/code/py_codegen/codegen.py", 
+      "scripts/py_codegen/codegen.py", 
       utils.abs_build(),
       utils.abs_script()
     })
@@ -235,7 +235,7 @@ meta_target("cmake_configure_utils", "Execute configuration for utility binary c
   set_kind("phony")
   add_rules("dummy")
   add_deps("download_llvm")
-  add_files("scripts/code/CMakeLists.txt")
+  add_files("scripts/cxx_codegen/CMakeLists.txt")
 
   on_run(function(target)
     local utils = import("scripts.utils")
@@ -274,7 +274,7 @@ end)
 meta_target("reflection_protobuf", "Update protobuf data definition for reflection", {}, function()
   set_kind("phony")
   add_rules("dummy")
-  any_files("scripts/code/reflection_defs.proto")
+  any_files("scripts/cxx_codegen/reflection_defs.proto")
   on_build(function(target)
     local utils = import("scripts.utils")
     local loc = utils.iorun_stripped("poetry", {"env", "info", "--path"})
@@ -283,10 +283,10 @@ meta_target("reflection_protobuf", "Update protobuf data definition for reflecti
       os.execv("protoc", {
         "--plugin=" .. path.join(loc, "/bin/protoc-gen-python_betterproto"),
         "-I",
-        utils.abs_script("scripts/code/py_codegen"),
-        "--proto_path=" .. utils.abs_script("scripts/code"),
-        "--python_betterproto_out=" .. utils.abs_script("scripts/code/py_codegen/proto_lib"),
-        utils.abs_script("scripts/code/reflection_defs.proto")
+        utils.abs_script("scripts/cxx_codegen/py_codegen"),
+        "--proto_path=" .. utils.abs_script("scripts/cxx_codegen"),
+        "--python_betterproto_out=" .. utils.abs_script("scripts/cxx_codegen/py_codegen/proto_lib"),
+        utils.abs_script("scripts/cxx_codegen/reflection_defs.proto")
       })
     end)
   end)

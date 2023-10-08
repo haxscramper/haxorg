@@ -7,7 +7,7 @@ import re
 
 import setup_imports
 
-from scripts.py_textlayout.py_textlayout import TextLayout, TextOptions
+from py_textlayout.py_textlayout import TextLayout, TextOptions
 from astbuilder_cpp import *
 from gen_tu_cpp import *
 
@@ -1101,9 +1101,15 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
         if isinstance(value, QualType):
 
             def rec_type(T: QualType):
+
                 def rec_drop(T: QualType) -> QualType:
-                    return replace(T, isConst=False, isRef=False, isPtr=False, isNamespace=False,
-                     Spaces=[rec_drop(S) for S in T.Spaces], Parameters=[rec_drop(P) for P in T.Parameters])
+                    return replace(T,
+                                   isConst=False,
+                                   isRef=False,
+                                   isPtr=False,
+                                   isNamespace=False,
+                                   Spaces=[rec_drop(S) for S in T.Spaces],
+                                   Parameters=[rec_drop(P) for P in T.Parameters])
 
                 T = rec_drop(T)
 
@@ -1113,8 +1119,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 else:
                     seen_types.add(T)
 
-
-                if T.name == "Vec":                      
+                if T.name == "Vec":
                     stdvec_t = QualType("vector",
                                         Spaces=[QualType("std")],
                                         Parameters=[T.Parameters[0]])
@@ -1148,7 +1153,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     return GenFiles([
         GenUnit(
             GenTu(
-                "{root}/scripts/py_haxorg/pyhaxorg.pyi",
+                "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
                 [GenTuPass(autogen_structs.build_typedef(pyast))],
             )),
         GenUnit(

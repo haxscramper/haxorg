@@ -4,6 +4,7 @@ from py_textlayout.py_textlayout import *
 from py_haxorg.pyhaxorg import OrgSemKind as osk
 from beartype import beartype
 
+
 @beartype
 class ExporterUltraplain(ExporterBase):
 
@@ -23,4 +24,3 @@ class ExporterUltraplain(ExporterBase):
     def getStr(node: org.SemId) -> str:
         exp = ExporterUltraplain()
         return exp.exp.evalTop(node)
-

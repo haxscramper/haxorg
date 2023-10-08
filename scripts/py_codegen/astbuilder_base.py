@@ -1,5 +1,5 @@
 import setup_imports
-from scripts.py_textlayout.py_textlayout import *
+from py_textlayout.py_textlayout import *
 from dataclasses import dataclass, field
 from beartype.typing import *
 from enum import Enum

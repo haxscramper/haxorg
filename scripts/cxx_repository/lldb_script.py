@@ -39,16 +39,13 @@ def simplify_name(name: str) -> str:
     return name
 
 
-def align_on_sides(
-    debugger: lldb.SBDebugger, text1: str, text2: str
-) -> str:
+def align_on_sides(debugger: lldb.SBDebugger, text1: str, text2: str) -> str:
+
     def visible_length(s: str) -> int:
         return len(re.sub(r"\x1B\[[0-?]*[ -/]*[@-~]", "", s))
 
     term_width = debugger.GetTerminalWidth()
-    padding_length = (
-        term_width - visible_length(text1) - visible_length(text2)
-    )
+    padding_length = (term_width - visible_length(text1) - visible_length(text2))
 
     if padding_length > 0:
         padding = " " * padding_length
@@ -75,19 +72,11 @@ def format_frame(frame, unused):
 
 
 def should_skip_frame(frame):
-    return (
-        "Catch" in frame.name
-        or "__gnu" in frame.name
-        or "__libc" in frame.name
-        or "___lldb_unnamed" in frame.name
-        or (
-            frame.line_entry.file.basename
-            and (
-                "std_function" in frame.line_entry.file.basename
-                or "invoke.h" in frame.line_entry.file.basename
-            )
-        )
-    )
+    return ("Catch" in frame.name or "__gnu" in frame.name or "__libc" in frame.name or
+            "___lldb_unnamed" in frame.name or
+            (frame.line_entry.file.basename and
+             ("std_function" in frame.line_entry.file.basename or
+              "invoke.h" in frame.line_entry.file.basename)))
 
 
 def skip_backtrace(debugger, command, result, internal_dict):
@@ -116,7 +105,5 @@ def skip_backtrace(debugger, command, result, internal_dict):
 def __lldb_init_module(debugger, internal_dict):
     debugger.HandleCommand(
         "command script add -f {module}.skip_backtrace skip_backtrace".format(
-            module=__name__
-        )
-    )
+            module=__name__))
     print("Install")

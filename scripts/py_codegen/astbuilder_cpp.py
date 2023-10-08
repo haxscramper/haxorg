@@ -1,5 +1,5 @@
 import setup_imports
-from scripts.py_textlayout.py_textlayout import *
+from py_textlayout.py_textlayout import *
 from dataclasses import dataclass, field, replace
 from beartype.typing import *
 from enum import Enum
@@ -49,11 +49,9 @@ class QualType:
 
     def __hash__(self) -> int:
 
-        return hash((self.name, self.isConst, self.isPtr, self.isRef, self.isNamespace, tuple([
-            hash(T) for T in self.Spaces
-        ]), tuple([
-            hash(T) for T in self.Parameters
-        ])))
+        return hash((self.name, self.isConst, self.isPtr, self.isRef, self.isNamespace,
+                     tuple([hash(T) for T in self.Spaces]),
+                     tuple([hash(T) for T in self.Parameters])))
 
     def asNamespace(self, is_namespace=True):
         self.isNamespace = is_namespace

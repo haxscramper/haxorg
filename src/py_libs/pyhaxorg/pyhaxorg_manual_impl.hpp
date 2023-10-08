@@ -53,6 +53,19 @@ namespace detail {
 namespace py = pybind11;
 
 template <typename T>
+void bind_int_set(py::module& m, const char* PyNameType) {
+    py::class_<IntSet<T>>(m, (std::string(PyNameType) + "IntVec").c_str())
+        .def(py::init([](py::list list) -> IntSet<T> {
+            IntSet<T> result;
+            for (auto const& it : list) {
+                result.incl(it.cast<T>());
+            }
+
+            return result;
+        }));
+}
+
+template <typename T>
 void bind_vector(py::module& m, const char* PyNameType) {
     py::bind_vector<std::vector<T>>(
         m, (std::string(PyNameType) + "StdVector").c_str());

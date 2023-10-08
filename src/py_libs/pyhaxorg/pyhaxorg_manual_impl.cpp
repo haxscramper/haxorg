@@ -170,6 +170,7 @@ OrgIdVariant castAs(sem::SemId id) {
 void init_py_manual_api(pybind11::module& m) {
     PyDateTime_IMPORT;
     assert(PyDateTimeAPI);
+    bind_int_set<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind");
 
     pybind11::class_<sem::SemId>(m, "SemId")
         .def(pybind11::init(

@@ -3,13 +3,14 @@ from beartype.typing import *
 from beartype import beartype
 import time
 from enum import Enum
-import os 
+import os
 from contextlib import contextmanager
 import json
 
 
 class EventType(str, Enum):
     COMPLETE = "X"
+
 
 @beartype
 @dataclass
@@ -30,12 +31,16 @@ class TraceEvent:
 
 @beartype
 class TraceCollector:
+
     def __init__(self):
         self.traceEvents: List[TraceEvent] = []
         self.metadata: Dict[str, Any] = {}
 
     @contextmanager
-    def complete_event(self, name: str, category: str = "", args: Optional[Dict[str, Any]] = None):
+    def complete_event(self,
+                       name: str,
+                       category: str = "",
+                       args: Optional[Dict[str, Any]] = None):
         pid = os.getpid()
         tid = id(self)
         start_time = int(time.time() * 1e6)  # Convert to microseconds
@@ -46,17 +51,14 @@ class TraceCollector:
         duration = end_time - start_time
 
         self.traceEvents.append(
-            TraceEvent(
-                name=name,
-                cat=category,
-                ph=EventType.COMPLETE,
-                ts=start_time,
-                dur=duration,
-                pid=pid,
-                tid=tid,
-                args=args or {}
-            )
-        )
+            TraceEvent(name=name,
+                       cat=category,
+                       ph=EventType.COMPLETE,
+                       ts=start_time,
+                       dur=duration,
+                       pid=pid,
+                       tid=tid,
+                       args=args or {}))
 
     def set_metadata(self, key: str, value: Any):
         self.metadata[key] = value

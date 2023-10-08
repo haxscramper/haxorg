@@ -12,6 +12,7 @@ from py_exporters.export_ultraplain import ExporterUltraplain
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
 
+
 class TexCommand(Enum):
     part = 1
     chapter = 2
@@ -41,18 +42,14 @@ class ExporterLatex(ExporterBase):
             return node
 
     def wrap(self, node: str | BlockId, opens: str, closes: str) -> BlockId:
-        return self.t.line(
-            [self.string(opens),
-             self.string(node),
-             self.string(closes)])
+        return self.t.line([self.string(opens), self.string(node), self.string(closes)])
 
     def command(self,
                 name: str,
                 args: List[str | BlockId] = [],
                 opts: List[str | BlockId] = []) -> BlockId:
         return self.t.line([
-            self.t.text("\\" + name),
-            *[self.wrap(it, "[", "]") for it in opts],
+            self.t.text("\\" + name), *[self.wrap(it, "[", "]") for it in opts],
             *[self.wrap(it, "{", "}") for it in args]
         ])
 
@@ -67,10 +64,9 @@ class ExporterLatex(ExporterBase):
         return res
 
     def evalPlaceholder(self, node: org.SemPlaceholder) -> BlockId:
-        return self.command("textsc", [
-            self.command("texttt",
-                         [self.string(self.string("<" + node.text + ">"))])
-        ])
+        return self.command(
+            "textsc",
+            [self.command("texttt", [self.string(self.string("<" + node.text + ">"))])])
 
     def evalBigIdent(self, node: org.SemBigIdent) -> BlockId:
         specialColor = ""
@@ -82,10 +78,10 @@ class ExporterLatex(ExporterBase):
 
         if specialColor:
             return self.command("fbox", [
-                self.command("colorbox", [
-                    self.string(specialColor),
-                    self.string(self.escape(node.text))
-                ])
+                self.command(
+                    "colorbox",
+                    [self.string(specialColor),
+                     self.string(self.escape(node.text))])
             ])
 
         else:
@@ -110,7 +106,10 @@ class ExporterLatex(ExporterBase):
                 target = node.resolve()
                 if target:
                     res = self.t.line([
-                        self.command("ref", [self.string((self.getRefKind(target) or "") + target.getReadableId())])
+                        self.command("ref", [
+                            self.string((self.getRefKind(target) or "") +
+                                        target.getReadableId())
+                        ])
                     ])
 
                     if node.description:
@@ -132,9 +131,7 @@ class ExporterLatex(ExporterBase):
         if node.isDescriptionItem():
             self.t.add_at(
                 res,
-                self.command(
-                    "item",
-                    [self.exp.eval(node.header)] if node.header else []))
+                self.command("item", [self.exp.eval(node.header)] if node.header else []))
 
         else:
             self.t.add_at(res, self.command("item"))
@@ -225,6 +222,7 @@ class ExporterLatex(ExporterBase):
             self.t.add_at(res, cmd)
 
         headerExports: List[org.SemExport] = []
+
         def visit(_id: org.SemId):
             nonlocal headerExports
             if _id._is(osk.Export):
@@ -237,7 +235,9 @@ class ExporterLatex(ExporterBase):
         for exp in headerExports:
             self.t.add_at(res, self.string(exp.content))
 
-        self.t.add_at(res, self.string("""
+        self.t.add_at(
+            res,
+            self.string("""
 \\newcommand*\\sepline{%
   \\begin{center}
     \\rule[1ex]{\\textwidth}{1pt}
@@ -287,23 +287,19 @@ class ExporterLatex(ExporterBase):
                         title_text,
                         self.command("texorpdfstring", [
                             self.exp.eval(item),
-                            self.string(
-                                self.escape(ExporterUltraplain.getStr(item)))
+                            self.string(self.escape(ExporterUltraplain.getStr(item)))
                         ]))
 
         cmd = self.getSubtreeCommand(node)
         self.t.add_at(
-            res,
-            self.command(
-                self.getOrgCommand(cmd) if cmd else "texbf", [title_text]))
+            res, self.command(self.getOrgCommand(cmd) if cmd else "texbf", [title_text]))
 
         if cmd in [TexCommand.part, TexCommand.chapter, TexCommand.section]:
             self.t.add_at(
                 res,
-                self.command("label", [
-                    self.string(
-                        self.getRefKind(node) or "" + "\\the" + cmd.name)
-                ]))
+                self.command(
+                    "label",
+                    [self.string(self.getRefKind(node) or "" + "\\the" + cmd.name)]))
 
         for it in node:
             self.t.add_at(res, self.exp.eval(it))
@@ -314,9 +310,7 @@ class ExporterLatex(ExporterBase):
         return self.string(node.getStatic().time.strftime("%Y-%m-%d %H:%M:%S"))
 
     def evalTimeRange(self, node: org.SemTimeRange) -> BlockId:
-        return self.t.line([
-            self.exp.eval(node.from_),
-            self.string("--"),
-            self.exp.eval(node.to)
-        ])
-
+        return self.t.line(
+            [self.exp.eval(node.from_),
+             self.string("--"),
+             self.exp.eval(node.to)])

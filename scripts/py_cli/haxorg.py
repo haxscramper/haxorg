@@ -219,10 +219,12 @@ def parse_input(file: List[str], opts: CliRootOptions) -> org.OrgContext:
 
     return ctx
 
+
 def finalize_trace(tr: tracer.TraceCollector, opts: CliRootOptions):
     if opts.trace_path:
         tr.export_to_json(opts.trace_path)
         log.info(f"Wrote execution trace to {opts.trace_path}")
+
 
 @beartype
 @dataclass(frozen=True)
@@ -332,12 +334,13 @@ def export_yaml(ctx: click.Context, file: List[str], out_file: str, out_root: st
 
     with tra.complete_event("export yaml to file"):
         sem.exportToFile(out_file)
-    
+
     log.info(f"Wrote yaml export to {out_file}")
     finalize_trace(tra, ctx.obj["cli"])
 
 
 export.add_command(export_yaml)
+
 
 @click.command("activity-timeline")
 @arg_infile
@@ -355,10 +358,7 @@ def export_yaml(ctx: click.Context, file: List[str], out_file: str, out_root: st
     from py_exporters.export_timeline import ExporterTimeline
     exp = ExporterTimeline()
     with tra.complete_event("visit toplevel"):
-        exp.exp.enableFileTrace("/tmp/export_trace.txt")
         exp.evalTop(org_ctx.getNode())
-
-    org_utils.toTree("/tmp/full_trace.txt", org_ctx.getNode())
 
     print(exp.count)
 

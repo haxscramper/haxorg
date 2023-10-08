@@ -12,18 +12,15 @@ from beartype.typing import *
 from pathlib import Path
 import pandas as pd
 
-
 logging.basicConfig(
     level="NOTSET",
     format="%(message)s",
     datefmt="[%X]",
-    handlers=[
-        RichHandler(
-            markup=True,
-            enable_link_path=False,
-            show_time=False,
-        )
-    ],
+    handlers=[RichHandler(
+        markup=True,
+        enable_link_path=False,
+        show_time=False,
+    )],
 )
 
 
@@ -45,8 +42,6 @@ class TraceEvent:
     args: TraceArgs = field(default_factory=TraceArgs)
 
 
-
-
 @dataclass
 class TraceEventNode:
     event: TraceEvent
@@ -58,6 +53,7 @@ class TraceEventNode:
             "children": [child.to_dict() for child in self.children],
         }
 
+
 @dataclass_json
 @dataclass
 class TraceFile:
@@ -65,7 +61,6 @@ class TraceFile:
     tree: Optional[TraceEventNode] = None
     path: str = ""
     beginningOfTime: int = 0
-
 
 
 def build_flamegraph(trace_events: List[TraceEvent]) -> Optional[TraceEventNode]:
@@ -114,7 +109,7 @@ if __name__ == "__main__":
     path_files: List[Path] = []
     max_len = 1200
     for path in Path(
-        "/mnt/workspace/repos/build-haxorg-Clang_16-RelWithDebInfo/CMakeFiles/"
+            "/mnt/workspace/repos/build-haxorg-Clang_16-RelWithDebInfo/CMakeFiles/"
     ).rglob("*.cpp.json"):
         path_files.append(path)
 
@@ -128,13 +123,9 @@ if __name__ == "__main__":
             converted: TraceFile = TraceFile.from_dict(j)
             converted.path = path
 
-            converted.tree = build_flamegraph(
-                [
-                    e
-                    for e in converted.traceEvents
-                    if e.tid == converted.traceEvents[0].tid
-                ]
-            )
+            converted.tree = build_flamegraph([
+                e for e in converted.traceEvents if e.tid == converted.traceEvents[0].tid
+            ])
 
             all_files.append(converted)
 
@@ -154,13 +145,11 @@ if __name__ == "__main__":
         flattened = []
         for tracefile in tracefiles:
             for event in tracefile.traceEvents:
-                flattened.append(
-                    {
-                        "name": event.name,
-                        "detail": event.args.detail,
-                        "duration": event.dur,
-                    }
-                )
+                flattened.append({
+                    "name": event.name,
+                    "detail": event.args.detail,
+                    "duration": event.dur,
+                })
         return flattened
 
     # Flatten your tracefiles
@@ -198,14 +187,11 @@ if __name__ == "__main__":
             sorted_group = detail_group.sort_values("total_time", ascending=False)
 
             f.write(
-                f"Name: {name} total {sorted_group['total_time'].sum() / 1E6:10.5f}\n"
-            )
+                f"Name: {name} total {sorted_group['total_time'].sum() / 1E6:10.5f}\n")
             for detail, row in sorted_group.iterrows():
-                f.write(
-                    "  {:<10} {:10.5f} {:<20}\n".format(
-                        row["count"], row["total_time"] / 1e6, detail
-                    )
-                )
+                f.write("  {:<10} {:10.5f} {:<20}\n".format(row["count"],
+                                                            row["total_time"] / 1e6,
+                                                            detail))
 
             f.write("\n\n")
 

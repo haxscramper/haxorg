@@ -11,6 +11,7 @@ from py_exporters.export_base import ExporterBase
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
 
+
 @beartype
 class ExporterTimeline(ExporterBase):
     t: TextLayout
@@ -23,6 +24,8 @@ class ExporterTimeline(ExporterBase):
     def newOrg(self, node: org.SemId):
         return None
 
-    def visitAnyHook(self, res, node: org.SemId):
-        self.count += 1
-
+    def visitSubtreeHook(self, res, node: org.SemSubtree):
+        print(
+            node,
+            [P for P in node.getTimePeriods(
+                org.SubtreePeriodKindIntVec([org.SubtreePeriodKind.Created]))])

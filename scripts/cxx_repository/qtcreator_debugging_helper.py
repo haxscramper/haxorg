@@ -27,17 +27,13 @@ def sem_id_dump_common(d, value):
         if d.isExpanded():
             with Children(d, 3):
                 d.putSubItem("ID", value["id"])
-                d.putCallItem(
-                    "Readable ID", "QString", value, "getReadableId"
-                )
+                d.putCallItem("Readable ID", "QString", value, "getReadableId")
                 underlying_type = "sem::" + kind
                 print("Formatting value part as %s" % underlying_type)
                 org_base_ptr = d.call(underlying_type, value, "get")
                 if org_base_ptr.pointer() != 0:
                     sem_ptr = org_base_ptr.cast(underlying_type + "*")
-                    d.putSubItem(
-                        "SEM '" + kind + "'", sem_ptr.dereference()
-                    )
+                    d.putSubItem("SEM '" + kind + "'", sem_ptr.dereference())
                 else:
                     d.putSubItem("SEM '" + kind + "'", "<Nil>")
 

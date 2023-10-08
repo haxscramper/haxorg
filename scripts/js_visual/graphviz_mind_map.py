@@ -79,16 +79,12 @@ class OrgNode:
         return res
 
     def is_leaf(self) -> bool:
-        return (
-            0 < len(self.text) and isinstance(self.text, str)
-        ) or self.kind in ["Link"]
+        return (0 < len(self.text) and
+                isinstance(self.text, str)) or self.kind in ["Link"]
 
     def get_link_description(self) -> Optional["OrgNode"]:
-        return (
-            OrgNode.from_dict(self.extra["description"])
-            if "description" in self.extra
-            else None
-        )
+        return (OrgNode.from_dict(self.extra["description"])
+                if "description" in self.extra else None)
 
     def flat_text(self) -> str:
         match self.kind:
@@ -157,9 +153,8 @@ class NodeMetadata:
     title: str = ""
     outgoing: List[str] = field(default_factory=list)
     nested: List[str] = field(default_factory=list)
-    content: Optional[OrgNode] = field(
-        default=None, metadata=config(decoder=OrgNode.from_dict)
-    )
+    content: Optional[OrgNode] = field(default=None,
+                                       metadata=config(decoder=OrgNode.from_dict))
 
 
 @dataclass_json
@@ -176,9 +171,8 @@ class Graph:
     nodes: Dict[str, Node]
 
 
-def format_node(
-    dot: gv.Digraph, node: Node, entry_links: Set[Tuple[str, int, str]]
-) -> str:
+def format_node(dot: gv.Digraph, node: Node, entry_links: Set[Tuple[str, int,
+                                                                    str]]) -> str:
     soup = BeautifulSoup("<table></table>", "html.parser")
     # soup.table["BORDER"] = 0
     soup.table["CELLBORDER"] = 0
@@ -225,25 +219,19 @@ def format_node(
 
                 if "map" in node.extra:
                     lmap = node.extra["map"]
-                    entry_links.add(
-                        (
-                            lmap["source"],
-                            lmap["out_index"],
-                            lmap["target"],
-                        )
-                    )
+                    entry_links.add((
+                        lmap["source"],
+                        lmap["out_index"],
+                        lmap["target"],
+                    ))
 
                     dot.edge(
-                        lmap["source"]
-                        + ":"
-                        + port
-                        + (":e" if ROW_LINKS else ""),
+                        lmap["source"] + ":" + port + (":e" if ROW_LINKS else ""),
                         lmap["target"],
-                        **(
-                            {"arrowtail": "box", "dir": "both"}
-                            if ROW_LINKS
-                            else {}
-                        ),
+                        **({
+                            "arrowtail": "box",
+                            "dir": "both"
+                        } if ROW_LINKS else {}),
                     )
 
             else:
@@ -350,9 +338,9 @@ def export_dot(file: str):
     for edge in graph.edges:
         if edge.metadata.kind not in ["NestedIn", "InternallyRefers"]:
             if (
-                edge.source,
-                edge.metadata.out_index,
-                edge.target,
+                    edge.source,
+                    edge.metadata.out_index,
+                    edge.target,
             ) not in entry_links:
                 dot.edge(edge.source, edge.target)
 
