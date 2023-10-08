@@ -34,6 +34,7 @@ log = logging.getLogger("rich")
 log.setLevel(logging.DEBUG)
 
 
+
 @beartype
 @dataclass
 class QualType:
@@ -46,6 +47,17 @@ class QualType:
     isConst: bool = field(default_factory=lambda: False)
     isPtr: bool = field(default_factory=lambda: False)
     isRef: bool = field(default_factory=lambda: False)
+
+    @beartype
+    @dataclass
+    class Function:
+        ReturnTy: 'QualType'
+        Args: List['QualType']
+        Ident: str = ""
+        Class: Optional['QualType'] = None
+
+    func: Optional[Function] = None
+
 
     def __hash__(self) -> int:
 
@@ -72,6 +84,7 @@ class QualType:
     @classmethod
     def from_spaces_and_name(cls, spaces: List[str], name: str):
         return cls(name=name, Spaces=[cls.from_name(space) for space in spaces])
+
 
 
 @beartype
@@ -980,23 +993,30 @@ class ASTBuilder(base.AstbuilderBase):
         ])
 
     def Type(self, type_: QualType, noQualifiers: bool = False) -> BlockId:
-        return self.b.line([
-            self.b.join(
-                [self.Type(Space, noQualifiers=noQualifiers) for Space in type_.Spaces] +
-                [self.string(type_.name)], self.string("::")),
-            self.string("") if (len(type_.Parameters) == 0) else self.b.line([
-                self.string("<"),
+        if type_.func:
+            return self.b.line([
+                    self.Type(type_.func.ReturnTy),
+                    self.pars(self.b.line(([self.Type(type_.func.Class), self.string("::")] if type_.func.Class else []) + [self.string("*")])),
+                    self.pars(self.csv([self.Type(T) for T in type_.func.Args]))
+                ])
+        else:
+            return self.b.line([
                 self.b.join(
-                    list(
-                        map(lambda in_: self.Type(in_, noQualifiers=noQualifiers),
-                            type_.Parameters)), self.string(", "),
-                    not type_.verticalParamList),
-                self.string(">")
-            ]), *([] if noQualifiers else [
-                self.string((" const" if type_.isConst else "") +
-                            ("*" if type_.isPtr else "") + ("&" if type_.isRef else ""))
+                    [self.Type(Space, noQualifiers=noQualifiers) for Space in type_.Spaces] +
+                    [self.string(type_.name)], self.string("::")),
+                self.string("") if (len(type_.Parameters) == 0) else self.b.line([
+                    self.string("<"),
+                    self.b.join(
+                        list(
+                            map(lambda in_: self.Type(in_, noQualifiers=noQualifiers),
+                                type_.Parameters)), self.string(", "),
+                        not type_.verticalParamList),
+                    self.string(">")
+                ]), *([] if noQualifiers else [
+                    self.string((" const" if type_.isConst else "") +
+                                ("*" if type_.isPtr else "") + ("&" if type_.isRef else ""))
+                ])
             ])
-        ])
 
     def Dot(self, lhs: BlockId, rhs: BlockId) -> BlockId:
         return self.b.line([lhs, self.string("."), rhs])

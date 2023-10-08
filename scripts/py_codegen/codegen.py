@@ -1,19 +1,22 @@
 #!/usr/bin/env python
 
-from dataclasses import field, dataclass, replace
-from typing import *
-from enum import Enum
 import re
-
-import setup_imports
-
-from py_textlayout.py_textlayout import TextLayout, TextOptions
-from astbuilder_cpp import *
-from gen_tu_cpp import *
-
-from org_codegen_data import *
+from dataclasses import dataclass, field, replace
+import itertools
+from typing import *
 
 import astbuilder_py as pya
+import setup_imports
+from astbuilder_cpp import *
+from gen_tu_cpp import *
+from org_codegen_data import *
+from py_textlayout.py_textlayout import TextLayout, TextOptions
+
+if TYPE_CHECKING:
+    from py_textlayout.py_textlayout import BlockId
+
+else:
+    BlockId = NewType('BlockId', int)
 
 
 def with_enum_reflection_api(body: List[Any]) -> List[Any]:
@@ -44,10 +47,7 @@ def iterate_object_tree(tree, callback, context: List[Any]):
 
     elif isinstance(tree, object):
         # If any object -- walk all slots (attributes)
-        class_of_obj = type(tree)
-        name = class_of_obj.__name__
-        slots = vars(tree)
-        for slot, value in slots.items():
+        for slot, value in vars(tree).items():
             iterate_object_tree(value, callback, context)
 
     # Walk over every item in list
@@ -334,6 +334,7 @@ class Py11Method:
     Args: List[GenTuIdent] = field(default_factory=list)
     Body: Optional[List[BlockId]] = None
     Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
+    IsConst: bool = False
 
     @staticmethod
     def FromGenTu(meth: GenTuFunction,
@@ -345,6 +346,7 @@ class Py11Method:
                           ResultTy=meth.result,
                           CxxName=meth.name,
                           Doc=meth.doc,
+                          IsConst=meth.isConst,
                           Args=meth.arguments)
 
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.MethodParams:
@@ -359,7 +361,15 @@ class Py11Method:
 
         call_pass: BlockId = None
         if self.Body is None:
-            call_pass = ast.Addr(ast.Scoped(Class, ast.string(self.CxxName)))
+            call_pass = ast.XCall("static_cast", args=[
+                ast.Addr(ast.Scoped(Class, ast.string(self.CxxName)))
+            ], Params=[
+                QualType(func=QualType.Function(
+                    ReturnTy=self.ResultTy,
+                    Args=[A.type for A in self.Args],
+                    Class=Class
+                ))
+            ])
 
         else:
             call_pass = ast.Lambda(
@@ -381,7 +391,7 @@ class Py11Method:
                 ], *([ast.StringLiteral(self.Doc.brief, forceRawStr=True)]
                      if self.Doc.brief else [])
             ],
-            Line=False,
+            Line=len(self.Args) == 0,
         )
 
 
@@ -420,7 +430,7 @@ class Py11Field:
     Type: QualType
     GetImpl: Optional[List[BlockId]] = None
     SetImpl: Optional[List[BlockId]] = None
-    Doc: GenTuDoc = field(default_factory=GenTuDoc(""))
+    Doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
 
     @staticmethod
     def FromGenTu(Field: GenTuField,
@@ -491,9 +501,25 @@ class Py11Class:
     def AddInit(self, Args: List[ParmVarParams], Impl: List[BlockId]):
         self.InitImpls.append(Py11Method("", "", QualType(""), Args, Body=Impl))
 
+    def dedup_methods(self) -> List[Py11Method]:
+        res: List[Py11Method] = []
+        for key, _group in itertools.groupby(self.Methods, lambda M: (M.CxxName, M.Args)):
+            group: List[Py11Method] = list(_group)
+            if len(group) == 1:
+                res.append(group[0])
+
+            elif len(group) == 2 and group[1].Args == group[0].Args:
+                res.append(group[0 if group[1].IsConst else 1])
+
+            else:
+                print(len(group))
+                pass
+
+        return res
+
     def build_typedef(self, ast: pya.ASTBuilder) -> pya.ClassParams:
         res = pya.ClassParams(Name=self.PyName, Bases=[py_type(T) for T in self.Bases])
-        for Meth in self.Methods:
+        for Meth in self.dedup_methods():
             res.Methods.append(Meth.build_typedef(ast))
 
         for Field in self.Fields:
@@ -536,7 +562,7 @@ class Py11Class:
         for Field in self.Fields:
             sub.append(Field.build_bind(self.Class, ast))
 
-        for Meth in self.Methods:
+        for Meth in self.dedup_methods():
             sub.append(Meth.build_bind(self.Class, ast))
 
         sub.append(b.text(";"))
@@ -573,12 +599,12 @@ class Py11Module:
         passes.append(ast.string("from enum import Enum"))
         passes.append(ast.string("from datetime import datetime, date, time"))
 
-        for entry in [E for E in self.Decls if isinstance(E, Py11Enum)]:
-            passes.append(ast.Enum(entry.build_typedef()))
+        for _enum in [E for E in self.Decls if isinstance(E, Py11Enum)]:
+            passes.append(ast.Enum(_enum.build_typedef()))
             passes.append(ast.string(""))
 
-        for entry in [E for E in self.Decls if isinstance(E, Py11Class)]:
-            passes.append(ast.string(f"{entry.PyName}: Type"))
+        for _class in [E for E in self.Decls if isinstance(E, Py11Class)]:
+            passes.append(ast.string(f"{_class.PyName}: Type"))
 
         passes.append(
             ast.string("""
@@ -598,8 +624,8 @@ class SemId:
     def _is(self, kind: OrgSemKind) -> bool: ...
 """))
 
-        for entry in [E for E in self.Decls if isinstance(E, Py11Class)]:
-            passes.append(ast.Class(entry.build_typedef(ast)))
+        for _class in [E for E in self.Decls if isinstance(E, Py11Class)]:
+            passes.append(ast.Class(_class.build_typedef(ast)))
             passes.append(ast.string(""))
 
         return ast.b.stack(passes)
@@ -640,15 +666,15 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
     _self = id_self(id_type)
 
     def map_obj_fields(Record: GenTuStruct):
-        for field in Record.fields:
-            if field.isStatic or hasattr(field, "ignore"):
+        for _field in Record.fields:
+            if _field.isStatic or hasattr(_field, "ignore"):
                 continue
 
             res.Fields.append(
                 Py11Field.FromGenTu(
-                    field,
-                    GetImpl=[b.text(f"return {_self.name}->{field.name};")],
-                    SetImpl=[b.text(f"{_self.name}->{field.name} = {field.name};")]))
+                    _field,
+                    GetImpl=[b.text(f"return {_self.name}->{_field.name};")],
+                    SetImpl=[b.text(f"{_self.name}->{_field.name} = {_field.name};")]))
 
     def map_obj_methods(Record: GenTuStruct):
         for meth in Record.methods:
@@ -689,11 +715,11 @@ def pybind_nested_type(value: GenTuStruct, scope: List[QualType]) -> Py11Class:
 
         res.Methods.append(Py11Method.FromGenTu(meth))
 
-    for field in value.fields:
-        if field.isStatic or hasattr(field, "ignore"):
+    for _field in value.fields:
+        if _field.isStatic or hasattr(_field, "ignore"):
             continue
 
-        res.Fields.append(Py11Field.FromGenTu(field))
+        res.Fields.append(Py11Field.FromGenTu(_field))
 
     return res
 
@@ -750,7 +776,7 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
                     ])
                 ]))))
 
-    base_map: Mapping[str, GenTuStruct] = {}
+    base_map: dict[str, GenTuStruct] = {}
 
     def baseCollectorCallback(value: Any) -> None:
         if isinstance(value, GenTuStruct):
@@ -771,10 +797,6 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
 
             else:
                 new = pybind_nested_type(value, scope)
-
-                if new.PyName in ["CodeSwitch", "SubtreeProperty", "SubtreePeriod"]:
-                    return
-
                 res.Decls.append(new)
 
         elif isinstance(value, GenTuEnum):
@@ -865,11 +887,11 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
 @beartype
 def conv_proto_record(record: pb.Record) -> GenTuStruct:
     result = GenTuStruct(record.name, GenTuDoc(""))
-    for field in record.fields:
+    for _field in record.fields:
         result.fields.append(
-            GenTuField(type=conv_proto_type(field.type),
-                       name=field.name,
-                       doc=conv_doc_comment(field.doc)))
+            GenTuField(type=conv_proto_type(_field.type),
+                       name=_field.name,
+                       doc=conv_doc_comment(_field.doc)))
 
     for meth in record.methods:
         if meth.kind != pb.RecordMethodKind.Base:
@@ -890,8 +912,8 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
 @beartype
 def conv_proto_enum(en: pb.Enum) -> GenTuEnum:
     result = GenTuEnum(en.name, GenTuDoc(""), [])
-    for field in en.fields:
-        result.fields.append(GenTuEnumField(field.name, GenTuDoc("")))
+    for _field in en.fields:
+        result.fields.append(GenTuEnumField(_field.name, GenTuDoc("")))
 
     return result
 
@@ -948,6 +970,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                                       name="get" + (T[0].upper() + T[1:]),
                                       result=QualType(T,
                                                       isConst=isConst,
+                                                      isRef=True,
                                                       Spaces=deepcopy(context)),
                                       isConst=isConst,
                                       impl=ast.Return(
@@ -1223,10 +1246,10 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
 
 
 if __name__ == "__main__":
-    from pprint import pprint, pformat
+    import json
     import os
     import sys
-    import json
+    from pprint import pformat, pprint
 
     t = TextLayout()
     builder = ASTBuilder(t)
