@@ -1,7 +1,7 @@
 function(set_target_flags TARGET)
   # add_target_property(${TARGET} COMPILE_OPTIONS -w)
   add_target_property(${TARGET} COMPILE_OPTIONS
-                      @${BASE}/scripts/warning_config.txt)
+                      @${BASE}/scripts/cxx_repository/warning_config.txt)
 
   if(${TRACE_INSTRUMENT})
     add_target_property(${TARGET} COMPILE_OPTIONS -finstrument-functions)

@@ -19,8 +19,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})
 list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
 include(${DEPS_DIR}/conanbuildinfo.cmake)
-include(functions_aux.cmake)
-include(functions_setup.cmake)
+include(src/cmake/functions_aux.cmake)
+include(src/cmake/functions_setup.cmake)
 
 # TODO enable and use
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb")
@@ -41,14 +41,14 @@ find_package(fmt REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(Qt6 COMPONENTS Gui Core Network REQUIRED)
 
-include(target_hstd.cmake)
-include(target_codegen.cmake)
-include(target_lib.cmake)
+include(src/cmake/target_hstd.cmake)
+include(src/cmake/target_codegen.cmake)
+include(src/cmake/target_lib.cmake)
 
-include(target_tests.cmake)
-include(target_cli.cmake)
+include(src/cmake/target_tests.cmake)
+include(src/cmake/target_cli.cmake)
 
 
-include(target_pyhaxorg.cmake)
+include(src/cmake/target_pyhaxorg.cmake)
 
 
