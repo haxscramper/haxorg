@@ -16,6 +16,7 @@ from rich.logging import RichHandler
 import logging
 
 import py_haxorg.pyhaxorg as org
+import tracer
 
 logging.basicConfig(
     level="NOTSET",
@@ -38,8 +39,8 @@ for name in logging.root.manager.loggerDict:
 log = logging.getLogger("rich")
 log.setLevel(logging.DEBUG)
 
-
 CONFIG_FILE_NAME = "pyhaxorg.toml"
+
 
 @beartype
 def find_config_file(withTrace: bool):
@@ -84,12 +85,12 @@ def run_config_provider(file_path: Optional[str], cmd_name: str, withTrace: bool
         traceback.print_exc()
         raise e
 
+
 @beartype
 def config_provider(file_path, cmd_name):
     D = run_config_provider(file_path, cmd_name, False)
     pprint(D)
     return D
-
 
 
 arg_infile = click.argument("file", nargs=-1, type=click.Path(exists=True))
@@ -141,6 +142,7 @@ class CliRootOptions:
     sem_trace: bool
     config: Optional[str]
     cache: Optional[str]
+    trace_path: Optional[str]
 
 
 def pack_context(ctx: click.Context, name: str, T: type):
@@ -161,6 +163,10 @@ def pack_context(ctx: click.Context, name: str, T: type):
               type=click.Path(exists=True),
               default=None,
               help="Cache directory path")
+@click.option("--trace-path",
+              type=click.Path(),
+              default=None,
+              help="Output path for the execution trace")
 @common_trace
 @click_config_file.configuration_option(provider=config_provider,
                                         cmd_name="haxorg",
@@ -176,6 +182,7 @@ def cli(
     parse_trace: bool,
     sem_traceDir: str,
     sem_trace: bool,
+    trace_path: Optional[str],
 ) -> None:
     """Base command."""
     run_config_provider(config, "haxorg", True)
@@ -211,6 +218,10 @@ def parse_input(file: List[str], opts: CliRootOptions) -> org.OrgContext:
 
     return ctx
 
+def finalize_trace(tr: tracer.TraceCollector, opts: CliRootOptions):
+    if opts.trace_path:
+        tr.export_to_json(opts.trace_path)
+        log.info(f"Wrote execution trace to {opts.trace_path}")
 
 @beartype
 @dataclass(frozen=True)
@@ -258,22 +269,18 @@ def export_tex(
 
     log.info(f"Wrote latex export to {out_file}")
 
+
 export.add_command(export_tex)
-    
+
+
 @click.command("sem-tree")
 @arg_infile
 @arg_outfile
 @arg_outroot
 @export_trace
 @click.pass_context
-def export_sem_tree(
-    ctx: click.Context,
-    file: List[str],
-    out_file: str,
-    out_root: str,
-    export_trace: bool,
-    export_traceDir: str
-):
+def export_sem_tree(ctx: click.Context, file: List[str], out_file: str, out_root: str,
+                    export_trace: bool, export_traceDir: str):
     """Export files as sem tree dump"""
     ctx = parse_input(file, ctx.obj["cli"])
     sem = org.OrgExporterTree()
@@ -281,7 +288,8 @@ def export_sem_tree(
     opts.withColor = False
     sem.toFile(ctx.getNode(), out_file, opts)
     log.info(f"Wrote sem tree export to {out_file}")
-    
+
+
 export.add_command(export_sem_tree)
 
 
@@ -291,22 +299,18 @@ export.add_command(export_sem_tree)
 @arg_outroot
 @export_trace
 @click.pass_context
-def export_json(
-    ctx: click.Context,
-    file: List[str],
-    out_file: str,
-    out_root: str,
-    export_trace: bool,
-    export_traceDir: str
-):
+def export_json(ctx: click.Context, file: List[str], out_file: str, out_root: str,
+                export_trace: bool, export_traceDir: str):
     """Export files as sem tree dump"""
     ctx = parse_input(file, ctx.obj["cli"])
     sem = org.OrgExporterJson()
     sem.visitNode(ctx.getNode())
     sem.exportToFile(out_file)
     log.info(f"Wrote json export to {out_file}")
-    
+
+
 export.add_command(export_json)
+
 
 @click.command("yaml")
 @arg_infile
@@ -314,21 +318,24 @@ export.add_command(export_json)
 @arg_outroot
 @export_trace
 @click.pass_context
-def export_yaml(
-    ctx: click.Context,
-    file: List[str],
-    out_file: str,
-    out_root: str,
-    export_trace: bool,
-    export_traceDir: str
-):
+def export_yaml(ctx: click.Context, file: List[str], out_file: str, out_root: str,
+                export_trace: bool, export_traceDir: str):
     """Export files as sem tree dump"""
-    ctx = parse_input(file, ctx.obj["cli"])
+    tra = tracer.TraceCollector()
+    with tra.complete_event("parse input"):
+        org_ctx = parse_input(file, ctx.obj["cli"])
+
     sem = org.OrgExporterYaml()
-    sem.visitNode(ctx.getNode())
-    sem.exportToFile(out_file)
-    log.info(f"Wrote yaml export to {out_file}")
+    with tra.complete_event("visit node for yaml export"):
+        sem.visitNode(org_ctx.getNode())
+
+    with tra.complete_event("export yaml to file"):
+        sem.exportToFile(out_file)
     
+    log.info(f"Wrote yaml export to {out_file}")
+    finalize_trace(tra, ctx.obj["cli"])
+
+
 export.add_command(export_yaml)
 
 if __name__ == "__main__":

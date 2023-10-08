@@ -1,60 +1,70 @@
 from dataclasses import field, dataclass, replace
 from beartype.typing import *
 from beartype import beartype
-from time import time
+import time
+from enum import Enum
+import os 
+from contextlib import contextmanager
+import json
 
 
-@beartype
-@dataclass(frozen=True)
-class PayloadId:
-    id: int
-
-
-@beartype
-@dataclass(frozen=True)
-class EventPayload:
-    kind: str
-    nk: str = field(
-        default=None
-    )  # Placeholder, you'd replace this with a more specific type if available
-    loc: str = field(default=None)  # Placeholder
-    sym: str = field(default=None)  # Placeholder
-    str_: str = field(default=None)
-
+class EventType(str, Enum):
+    COMPLETE = "X"
 
 @beartype
-@dataclass(frozen=True)
+@dataclass
 class TraceEvent:
-    begin: bool
-    payload: PayloadId
-    timeStamp: float
+    name: str
+    cat: str
+    ph: EventType
+    ts: int
+    dur: int
+    pid: int
+    tid: int
+    args: Dict[str, Any]
+    sf: Optional[str] = None
+    stack: Optional[List[str]] = None
+    esf: Optional[str] = None
+    estack: Optional[List[str]] = None
 
 
 @beartype
-@dataclass(frozen=True)
-class Tracer:
-    start: float = field(default_factory=time.time)
-    events: list[TraceEvent] = field(default_factory=list)
-    payloads: list[EventPayload] = field(default_factory=list)
+class TraceCollector:
+    def __init__(self):
+        self.traceEvents: List[TraceEvent] = []
+        self.metadata: Dict[str, Any] = {}
 
-    def startTracer(self):
-        self.start = time.time()
-        self.payloads.append(EventPayload(kind="root"))
-        self.events.append(
-            TraceEvent(begin=True,
-                       payload=PayloadId(len(self.payloads) - 1),
-                       timeStamp=self.start))
+    @contextmanager
+    def complete_event(self, name: str, category: str = "", args: Optional[Dict[str, Any]] = None):
+        pid = os.getpid()
+        tid = id(self)
+        start_time = int(time.time() * 1e6)  # Convert to microseconds
 
-    def finish(self):
-        t = time.time()
-        self.events.append(TraceEvent(begin=False, payload=PayloadId(0), timeStamp=t))
+        yield
 
-    def addPayload(self, payload: EventPayload) -> PayloadId:
-        self.payloads.append(payload)
-        return PayloadId(len(self.payloads) - 1)
+        end_time = int(time.time() * 1e6)
+        duration = end_time - start_time
 
-    def record(self, begin: bool, payload: PayloadId):
-        self.events.append(TraceEvent(begin=begin, payload=payload,
-                                      timeStamp=time.time()))
+        self.traceEvents.append(
+            TraceEvent(
+                name=name,
+                cat=category,
+                ph=EventType.COMPLETE,
+                ts=start_time,
+                dur=duration,
+                pid=pid,
+                tid=tid,
+                args=args or {}
+            )
+        )
 
+    def set_metadata(self, key: str, value: Any):
+        self.metadata[key] = value
 
+    def export_to_json(self, filename: str):
+        data = {
+            "traceEvents": [event.__dict__ for event in self.traceEvents],
+            "otherData": self.metadata
+        }
+        with open(filename, 'w') as f:
+            json.dump(data, f, indent=4)

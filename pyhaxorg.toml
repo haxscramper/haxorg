@@ -1,4 +1,5 @@
 cache = "/tmp"
+trace_path = "/tmp/pyhaxorg_trace.json"
 
 [export.tex]
 out_file = "/tmp/result.tex"

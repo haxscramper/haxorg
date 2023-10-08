@@ -8,7 +8,7 @@ from pprint import pprint
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json, config, Undefined
 import json
-from typing import *
+from beartype.typing import *
 from pathlib import Path
 import pandas as pd
 
