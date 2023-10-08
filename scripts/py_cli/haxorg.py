@@ -39,29 +39,37 @@ log = logging.getLogger("rich")
 log.setLevel(logging.DEBUG)
 
 
+CONFIG_FILE_NAME = "pyhaxorg.toml"
+
 @beartype
-def find_config_file():
+def find_config_file(withTrace: bool):
     """Search for the config file in a list of default locations."""
     # Start with the current directory.
-    potential_paths = [os.path.join(os.getcwd(), "config.toml")]
+    potential_paths = [os.path.join(os.getcwd(), CONFIG_FILE_NAME)]
 
     # Add $XDG_CONFIG_HOME/haxorg/config.toml
     xdg_config_home = os.environ.get("XDG_CONFIG_HOME",
                                      os.path.join(os.path.expanduser("~"), ".config"))
-    potential_paths.append(os.path.join(xdg_config_home, "haxorg", "config.toml"))
+    potential_paths.append(os.path.join(xdg_config_home, "haxorg", CONFIG_FILE_NAME))
 
     # Check each path, return the first that exists.
     for path in potential_paths:
         if os.path.exists(path):
+            if withTrace:
+                log.debug(f"Trying {path} for config -- file exists, using it")
             return path
+
+        elif withTrace:
+            log.debug(f"Trying {path} for config -- file does not exist, skipping")
+
     return None
 
 
 @beartype
-def config_provider(file_path, cmd_name):
+def run_config_provider(file_path: Optional[str], cmd_name: str, withTrace: bool) -> dict:
     try:
-        if (not file_path):
-            file_path = find_config_file()
+        if (not file_path) or (not os.path.exists(file_path)):
+            file_path = find_config_file(withTrace=withTrace)
 
         if (not file_path):
             return {}
@@ -75,6 +83,13 @@ def config_provider(file_path, cmd_name):
     except Exception as e:
         traceback.print_exc()
         raise e
+
+@beartype
+def config_provider(file_path, cmd_name):
+    D = run_config_provider(file_path, cmd_name, False)
+    pprint(D)
+    return D
+
 
 
 arg_infile = click.argument("file", nargs=-1, type=click.Path(exists=True))
@@ -127,6 +142,7 @@ class CliRootOptions:
     config: Optional[str]
     cache: Optional[str]
 
+
 def pack_context(ctx: click.Context, name: str, T: type):
     ctx.ensure_object(dict)
     store = {}
@@ -146,7 +162,9 @@ def pack_context(ctx: click.Context, name: str, T: type):
               default=None,
               help="Cache directory path")
 @common_trace
-@click_config_file.configuration_option(provider=config_provider)
+@click_config_file.configuration_option(provider=config_provider,
+                                        cmd_name="haxorg",
+                                        config_file_name=CONFIG_FILE_NAME)
 @click.pass_context
 def cli(
     ctx: click.Context,
@@ -160,13 +178,14 @@ def cli(
     sem_trace: bool,
 ) -> None:
     """Base command."""
+    run_config_provider(config, "haxorg", True)
     pack_context(ctx, "cli", CliRootOptions)
     pass
 
 
 def parse_input(file: List[str], opts: CliRootOptions) -> org.OrgContext:
     ctx = org.OrgContext()
-    path = file[0] # TODO support multiple files
+    path = file[0]  # TODO support multiple files
 
     if opts.cache:
         if not os.path.exists(opts.cache):
@@ -174,8 +193,11 @@ def parse_input(file: List[str], opts: CliRootOptions) -> org.OrgContext:
 
         cache_file = os.path.join(opts.cache, os.path.basename(path) + ".dat")
 
-        if os.path.exists(cache_file) and os.path.getmtime(path) <= os.path.getmtime(cache_file):
-            log.info(f"Found an up-to-date cache file at {cache_file}, using it to parse {path}")
+        if os.path.exists(cache_file) and os.path.getmtime(path) <= os.path.getmtime(
+                cache_file):
+            log.info(
+                f"Found an up-to-date cache file at {cache_file}, using it to parse {path}"
+            )
             ctx.loadStore(cache_file)
 
         else:
@@ -185,14 +207,16 @@ def parse_input(file: List[str], opts: CliRootOptions) -> org.OrgContext:
 
     else:
         log.info(f"Parsing {path}, no cache dir specified")
-        ctx.parseFile(path) 
+        ctx.parseFile(path)
 
     return ctx
+
 
 @beartype
 @dataclass(frozen=True)
 class CliExportOptions:
     pass
+
 
 @click.group()
 @click.pass_context
@@ -223,6 +247,19 @@ def tex(
 ):
     """Export"""
     ctx = parse_input(file, ctx.obj["cli"])
+    from py_exporters.export_tex import ExporterLatex
+    from py_textlayout.py_textlayout import TextOptions
+
+    log.info("Exporting to latex")
+    tex = ExporterLatex()
+    res = tex.exp.evalTop(ctx.getNode())
+    with open(out_file, "w") as out:
+        log.info(f"Writing to {out_file}")
+        out.write(tex.t.toString(res, TextOptions()))
+
+    log.info("Done")
+
+    
 
 
 export.add_command(tex)

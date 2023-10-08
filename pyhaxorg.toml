@@ -1,0 +1,4 @@
+cache = "/tmp"
+
+[export.tex]
+out_file = "/tmp/result.tex"

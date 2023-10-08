@@ -38,12 +38,6 @@ class CorpusRunner {
             json data;
         };
 
-        struct JsonGraph {
-            Vec<json> nodes;
-            Vec<json> edges;
-            Opt<json> meta;
-        };
-
         SUB_VARIANTS(
             Kind,
             Data,
@@ -51,7 +45,6 @@ class CorpusRunner {
             getKind,
             Plaintext,
             Text,
-            JsonGraph,
             Structured);
 
         ExportResult() {}
