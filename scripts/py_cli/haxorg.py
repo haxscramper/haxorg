@@ -229,14 +229,14 @@ def export(ctx):
 cli.add_command(export)
 
 
-@click.command()
+@click.command("tex")
 @arg_infile
 @arg_outfile
 @arg_outroot
 @export_trace
 @click.option("--backend", default="pdflatex", help="TeX backend to use.")
 @click.pass_context
-def tex(
+def export_tex(
     ctx: click.Context,
     file: List[str],
     backend: str,
@@ -254,15 +254,82 @@ def tex(
     tex = ExporterLatex()
     res = tex.exp.evalTop(ctx.getNode())
     with open(out_file, "w") as out:
-        log.info(f"Writing to {out_file}")
         out.write(tex.t.toString(res, TextOptions()))
 
-    log.info("Done")
+    log.info(f"Wrote latex export to {out_file}")
 
+export.add_command(export_tex)
     
+@click.command("sem-tree")
+@arg_infile
+@arg_outfile
+@arg_outroot
+@export_trace
+@click.pass_context
+def export_sem_tree(
+    ctx: click.Context,
+    file: List[str],
+    out_file: str,
+    out_root: str,
+    export_trace: bool,
+    export_traceDir: str
+):
+    """Export files as sem tree dump"""
+    ctx = parse_input(file, ctx.obj["cli"])
+    sem = org.OrgExporterTree()
+    opts = org.ExporterTreeOpts()
+    opts.withColor = False
+    sem.toFile(ctx.getNode(), out_file, opts)
+    log.info(f"Wrote sem tree export to {out_file}")
+    
+export.add_command(export_sem_tree)
 
 
-export.add_command(tex)
+@click.command("json")
+@arg_infile
+@arg_outfile
+@arg_outroot
+@export_trace
+@click.pass_context
+def export_json(
+    ctx: click.Context,
+    file: List[str],
+    out_file: str,
+    out_root: str,
+    export_trace: bool,
+    export_traceDir: str
+):
+    """Export files as sem tree dump"""
+    ctx = parse_input(file, ctx.obj["cli"])
+    sem = org.OrgExporterJson()
+    sem.visitNode(ctx.getNode())
+    sem.exportToFile(out_file)
+    log.info(f"Wrote json export to {out_file}")
+    
+export.add_command(export_json)
+
+@click.command("yaml")
+@arg_infile
+@arg_outfile
+@arg_outroot
+@export_trace
+@click.pass_context
+def export_yaml(
+    ctx: click.Context,
+    file: List[str],
+    out_file: str,
+    out_root: str,
+    export_trace: bool,
+    export_traceDir: str
+):
+    """Export files as sem tree dump"""
+    ctx = parse_input(file, ctx.obj["cli"])
+    sem = org.OrgExporterYaml()
+    sem.visitNode(ctx.getNode())
+    sem.exportToFile(out_file)
+    log.info(f"Wrote yaml export to {out_file}")
+    
+export.add_command(export_yaml)
 
 if __name__ == "__main__":
     cli()
