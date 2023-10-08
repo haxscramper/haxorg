@@ -3,7 +3,7 @@ from astbuilder_cpp import *
 from beartype.typing import *
 from pprint import pprint
 from beartype import beartype
-from py_textlayout import *
+from scripts.py_textlayout.py_textlayout import *
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)

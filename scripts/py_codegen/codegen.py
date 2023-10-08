@@ -7,7 +7,7 @@ import re
 
 import setup_imports
 
-from py_textlayout import TextLayout, TextOptions
+from scripts.py_textlayout.py_textlayout import TextLayout, TextOptions
 from astbuilder_cpp import *
 from gen_tu_cpp import *
 
@@ -1148,7 +1148,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     return GenFiles([
         GenUnit(
             GenTu(
-                "{root}/tests/python/pyhaxorg.pyi",
+                "{root}/scripts/py_haxorg/pyhaxorg.pyi",
                 [GenTuPass(autogen_structs.build_typedef(pyast))],
             )),
         GenUnit(
