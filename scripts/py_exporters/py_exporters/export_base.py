@@ -5,6 +5,9 @@ import re
 
 class ExporterBase:
 
+    def evalTop(self, node: org.SemId):
+        return self.exp.evalTop(node)
+
     def __init__(self, derived):
         self.exp = org.ExporterPython()
 
@@ -15,7 +18,7 @@ class ExporterBase:
             "evalTopCb": self.exp.setEvalTopCb,
             "setPushVisitAnyId": self.exp.setPushVisitAnyId,
             "setPopVisitAnyId": self.exp.setPopVisitAnyId,
-            "setVisitAnyHookCb": self.exp.setVisitAnyHookCb,
+            "visitAnyHook": self.exp.setVisitAnyHookCb,
             "newOrg": self.exp.setNewAnyOrgRes,
             "newLeaf": self.exp.setNewAnyLeafRes,
         }
@@ -41,7 +44,7 @@ class ExporterBase:
 
         # Process methods that match the patterns for OrgSemKind or LeafFieldType
         for method_name in dir(derived):
-            if method_name.startswith("__"):
+            if method_name.startswith("__") or method_name in direct_mappings:
                 continue
 
             for (prefix, setter) in prefix_to_setter_with_kind:

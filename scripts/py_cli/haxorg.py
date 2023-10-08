@@ -16,6 +16,7 @@ from rich.logging import RichHandler
 import logging
 
 import py_haxorg.pyhaxorg as org
+import py_haxorg.utils as org_utils
 import tracer
 
 logging.basicConfig(
@@ -332,6 +333,35 @@ def export_yaml(ctx: click.Context, file: List[str], out_file: str, out_root: st
     with tra.complete_event("export yaml to file"):
         sem.exportToFile(out_file)
     
+    log.info(f"Wrote yaml export to {out_file}")
+    finalize_trace(tra, ctx.obj["cli"])
+
+
+export.add_command(export_yaml)
+
+@click.command("activity-timeline")
+@arg_infile
+@arg_outfile
+@arg_outroot
+@export_trace
+@click.pass_context
+def export_yaml(ctx: click.Context, file: List[str], out_file: str, out_root: str,
+                export_trace: bool, export_traceDir: str):
+    """Export files as sem tree dump"""
+    tra = tracer.TraceCollector()
+    with tra.complete_event("parse input"):
+        org_ctx = parse_input(file, ctx.obj["cli"])
+
+    from py_exporters.export_timeline import ExporterTimeline
+    exp = ExporterTimeline()
+    with tra.complete_event("visit toplevel"):
+        exp.exp.enableFileTrace("/tmp/export_trace.txt")
+        exp.evalTop(org_ctx.getNode())
+
+    org_utils.toTree("/tmp/full_trace.txt", org_ctx.getNode())
+
+    print(exp.count)
+
     log.info(f"Wrote yaml export to {out_file}")
     finalize_trace(tra, ctx.obj["cli"])
 

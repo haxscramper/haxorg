@@ -165,8 +165,7 @@ struct [[refl]] OrgContext {
         : tokenizer()
         , nodes(&tokens)
         , lex(&tokens)
-        , converter(sem::OrgConverter(&store)) {
-    }
+        , converter(sem::OrgConverter(&store)) {}
 
     [[refl]] void initLocationResolvers();
 
@@ -456,12 +455,28 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     void visitOrgNodeAround(Res& res, sem::SemIdT<T> node) {
         OrgSemKind kind = T::staticKind;
         if (visitAnyNodeAround) {
+            __visit_scope(
+                VisitEvent::Kind::VisitValue,
+                .visitedNode = node,
+                .msg         = "has generic around visitor callback");
             visitAnyNodeAround->operator()(_self, res, node);
         } else if (visitIdAroundCb.contains(kind)) {
+            __visit_scope(
+                VisitEvent::Kind::VisitValue,
+                .visitedNode = node,
+                .msg         = "has specific around visitor callback");
             visitIdAroundCb.at(kind)(_self, res, node);
         } else if (evalIdAroundCb.contains(kind)) {
+            __visit_scope(
+                VisitEvent::Kind::VisitValue,
+                .visitedNode = node,
+                .msg         = "has specific around eval callback");
             res = evalIdAroundCb.at(kind)(_self, node);
         } else {
+            __visit_scope(
+                VisitEvent::Kind::VisitValue,
+                .visitedNode = node,
+                .msg         = "going to dispatched");
             _this()->visitDispatch(res, node);
         }
     }
@@ -472,12 +487,28 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     void visitOrgNodeIn(Res& res, sem::SemIdT<T> node) {
         OrgSemKind kind = T::staticKind;
         if (visitAnyNodeIn) {
+            __visit_scope(
+                VisitEvent::Kind::VisitSpecificKind,
+                .visitedNode = node,
+                .msg         = "has generic visitor callback");
             visitAnyNodeIn->operator()(_self, res, node);
         } else if (visitIdInCb.contains(kind)) {
+            __visit_scope(
+                VisitEvent::Kind::VisitSpecificKind,
+                .visitedNode = node,
+                .msg         = "has specifid visitor callback");
             visitIdInCb.at(kind)(_self, res, node);
         } else if (evalIdInCb.contains(kind)) {
+            __visit_scope(
+                VisitEvent::Kind::VisitSpecificKind,
+                .visitedNode = node,
+                .msg         = "has specifid eval callback");
             res = evalIdInCb.at(kind)(_self, node);
         } else {
+            __visit_scope(
+                VisitEvent::Kind::VisitSpecificKind,
+                .visitedNode = node,
+                .msg         = "deferring to default visitor");
             switch (kind) {
 #define __case(__Kind)                                                    \
     case OrgSemKind::__Kind: {                                            \
@@ -501,25 +532,104 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         sem::SemIdT<T> const& value) {
         OrgSemKind kind = T::staticKind;
         if (visitAnyField) {
+            __visit_scope(
+                VisitEvent::Kind::VisitField,
+                .visitedValue = &res,
+                .field        = QString(name),
+                .visitedNode  = value,
+                .msg          = "has universal CB");
+
             visitAnyField->operator()(_self, res, name, value);
         } else if (visitOrgFieldCb.contains(kind)) {
+            __visit_scope(
+                VisitEvent::Kind::VisitField,
+                .visitedValue = &res,
+                .field        = QString(name),
+                .visitedNode  = value,
+                .msg          = "has specific visitor CB");
+
             visitOrgFieldCb.at(kind)(_self, res, name, value);
         } else if (evalOrgFieldCb.contains(kind)) {
+            __visit_scope(
+                VisitEvent::Kind::VisitField,
+                .visitedValue = &res,
+                .field        = QString(name),
+                .visitedNode  = value,
+                .msg          = "has specific eval CB");
+
             res = evalOrgFieldCb.at(kind)(_self, name, value);
         } else {
+            __visit_scope(
+                VisitEvent::Kind::VisitField,
+                .visitedValue = &res,
+                .field        = QString(name),
+                .visitedNode  = value,
+                .msg          = "using default visit");
+
             visit(res, value);
         }
     }
+
+#define __fallback_visit(__msg)                                           \
+    __visit_scope(                                                        \
+        VisitEvent::Kind::VisitField,                                     \
+        .visitedValue = &res,                                             \
+        .field        = QString(name),                                    \
+        .msg          = __msg);
+
+
+    template <typename T>
+    void fallbackFieldVisitor(Res& res, const char* name, CVec<T> value) {
+        __fallback_visit("using fallback field visitor for vector");
+        for (T const& it : value) {
+            _this()->visit(res, it);
+        }
+    }
+
+    template <typename T>
+    void fallbackFieldVisitor(Res& res, const char* name, Opt<T> value) {
+        __fallback_visit("using fallback field visitor for vector");
+        if (value) {
+            _this()->visit(res, value.value());
+        }
+    }
+
+
+    template <typename T>
+    void fallbackFieldVisitor(Res& res, const char* name, T const& value) {
+        __fallback_visit("using empty leaf field visitor callback");
+    }
+
 
     template <sem::NotOrg T>
     void visitOrgField(Res& res, const char* name, T const& value) {
         LeafFieldType kind = LeafKindForT<T>::value;
         if (visitAnyField) {
+            __visit_scope(
+                VisitEvent::Kind::VisitField,
+                .visitedValue = &res,
+                .field        = QString(name),
+                .msg          = "has universal CB");
+
             visitAnyField->operator()(_self, res, name, value);
         } else if (visitLeafFieldCb.contains(kind)) {
+            __visit_scope(
+                VisitEvent::Kind::VisitField,
+                .visitedValue = &res,
+                .field        = QString(name),
+                .msg          = "has specific visitor CB");
+
             visitLeafFieldCb.at(kind)(_self, res, name, value);
         } else if (evalLeafFieldCb.contains(kind)) {
+            __visit_scope(
+                VisitEvent::Kind::VisitField,
+                .visitedValue = &res,
+                .field        = QString(name),
+                .msg          = "has specific eval CB");
+
             res = evalLeafFieldCb.at(kind)(_self, name, value);
+        } else {
+            _this()->fallbackFieldVisitor(res, name, value);
         }
     }
 
@@ -601,6 +711,14 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
         _this()->visitDispatch(res, node);
     }
 
+    void visit(Res& res, OrgSemPlacement) {}
+    void visit(Res& res, sem::Code::Switch const&) {}
+    void visit(Res& res, sem::Symbol::Param const&) {}
+    void visit(Res& res, sem::Subtree::Property const&) {}
+    void visit(Res& res, Str const&) {}
+    void visit(Res& res, Vec<Str> const&) {}
+    void visit(Res& res, sem::DocumentOptions::TocExport const&) {}
+    void visit(Res& res, int const&) {}
 
     template <sem::IsOrg T>
     void visitField(Res& res, char const* name, sem::SemIdT<T> value) {

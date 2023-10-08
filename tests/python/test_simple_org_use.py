@@ -13,6 +13,7 @@ from py_exporters.export_tex import ExporterLatex
 import py_haxorg.pyhaxorg as org
 from py_haxorg.pyhaxorg import OrgSemKind as osk
 from py_textlayout.py_textlayout import TextOptions, TextLayout
+from py_haxorg.utils import toTree
 
 
 if not TYPE_CHECKING:
@@ -41,12 +42,6 @@ def test_serialization_expose():
     assert ctx.getNode().getKind() == org.OrgSemKind.Document
     assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
     assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Word
-
-def toTree(path: str, node: org.SemId):
-    tree = org.OrgExporterTree()
-    opts = org.ExporterTreeOpts()
-    opts.withColor = False
-    tree.toFile(node, path, opts)
 
 def test_tex_exporter():
     tmp = org.OrgContext()

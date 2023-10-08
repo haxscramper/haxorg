@@ -336,7 +336,7 @@ void ExporterPython::traceVisit(const VisitEvent& ev) {
     }
 
     os << " on " << QFileInfo(ev.file).fileName() << ":" << ev.line << " "
-       << ev.function << " " << os.end();
+       << " " << os.end();
 
     if (0 < ev.type.length()) {
         os << " type:" << demangle(ev.type.toLatin1());
