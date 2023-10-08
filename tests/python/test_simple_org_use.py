@@ -9,8 +9,10 @@ from beartype import beartype
 from beartype.typing import *
 
 from datetime import date, time, datetime
-import py_haxorg.haxorg as org
-from py_haxorg.haxorg import OrgSemKind as osk
+from py_exporters.export_tex import ExporterLatex
+import py_haxorg.pyhaxorg as org
+from py_haxorg.pyhaxorg import OrgSemKind as osk
+from py_textlayout.py_textlayout import TextOptions, TextLayout
 
 
 if not TYPE_CHECKING:

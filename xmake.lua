@@ -5,6 +5,18 @@ set_arch("x64")
 
 add_rules("mode.debug")
 
+-- TODO Add these parts into implementation 
+      -- # Unclutter program output, save command execution to separate file
+      -- - llvm-profdata merge -sparse *.profraw -o coverage.profdata > profdata_output.txt
+      -- - llvm-cov show {{.BINARY}} -instr-profile=coverage.profdata -format=html > coverage.html
+      -- - llvm-cov export -format=lcov -instr-profile=coverage.profdata {{.BINARY}} > coverage.lcov
+      -- - llvm-cov export -format=text -instr-profile=coverage.profdata {{.BINARY}} > coverage.json
+      -- - genhtml -o html coverage.lcov > genhtml_output.txt
+
+        -- doxygen Doxyfile 2>&1 |
+        -- rg --line-buffered warning |
+        -- grep --line-buffered -v "not declared or defined"
+-- TODO Add code checker run 
 
 
 local cmake_options = {

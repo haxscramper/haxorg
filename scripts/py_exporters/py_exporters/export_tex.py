@@ -6,7 +6,11 @@ from beartype.typing import *
 from enum import Enum
 from beartype import beartype
 
-from export_base import ExporterBase
+from py_exporters.export_base import ExporterBase
+from py_exporters.export_ultraplain import ExporterUltraplain
+
+if not TYPE_CHECKING:
+    BlockId = NewType('BlockId', int)
 
 class TexCommand(Enum):
     part = 1
