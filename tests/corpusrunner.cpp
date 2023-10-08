@@ -6,7 +6,6 @@
 #include <exporters/ExporterJson.hpp>
 #include <exporters/exportertree.hpp>
 #include <exporters/exportersimplesexpr.hpp>
-#include <exporters/exportermindmap.hpp>
 #include <exporters/exporteryaml.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/diffs.hpp>
@@ -527,51 +526,6 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
     } else if (exp.name == "sexp") {
         ExporterSimpleSExpr run;
         return withTreeExporter(top, run.b, run);
-
-    } else if (exp.name == "mmap") {
-        ExporterMindMap run;
-        run.evalTop(top);
-        ExporterMindMap::Graph const& g = run.toGraph();
-        ER::JsonGraph                 result;
-
-        for (auto [it, it_end] = boost::edges(g); it != it_end; ++it) {
-            result.edges.push_back(run.toJsonGraphEdge(*it));
-        }
-
-        for (auto [it, it_end] = boost::vertices(g); it != it_end; ++it) {
-            result.nodes.push_back(run.toJsonGraphNode(*it));
-        }
-
-        if (exp.print) {
-            QString     buf;
-            QTextStream stream{&buf};
-            if (!result.nodes.empty()) {
-                stream << "nodes:\n";
-                for (auto const& node : result.nodes) {
-                    stream << "  - "
-                           << to_compact_json(
-                                  node, {.startIndent = 6, .width = 160})
-                           << "\n";
-                }
-            }
-
-            if (!result.edges.empty()) {
-                stream << "edges:\n";
-                for (auto const& edge : result.edges) {
-                    stream << "  - "
-                           << to_compact_json(
-                                  edge, {.startIndent = 6, .width = 160})
-                           << "\n";
-                }
-            }
-
-            writeFileOrStdout(
-                spec.debugFile(exp.name + "result.txt"),
-                buf + "\n\n" + run.toGraphviz() + "\n\n",
-                exp.printToFile);
-        }
-
-        return ER(result);
 
     } else {
         throw std::domain_error(

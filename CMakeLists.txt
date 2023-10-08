@@ -46,7 +46,6 @@ include(src/cmake/target_codegen.cmake)
 include(src/cmake/target_lib.cmake)
 
 include(src/cmake/target_tests.cmake)
-include(src/cmake/target_cli.cmake)
 
 
 include(src/cmake/target_pyhaxorg.cmake)
