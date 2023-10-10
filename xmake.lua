@@ -347,11 +347,22 @@ meta_target("bench_profdata", "Collect performance profile", {}, function ()
     local bench = path.join(dir, "bench")
     utils.info("Running benchmark from directory %s", dir)
 
-    os.execv(bench, {}, {
-      envs = {
-        XRAY_OPTIONS = "patch_premain=true xray_mode=xray-basic verbosity=1"
-      }
-    })
+    for _, file in ipairs(os.files(path.join(dir, "xray-log.bench.*"))) do
+        os.rm(file)
+    end
+
+    for _, file in ipairs(os.files(path.join(dir, "*.profdata"))) do
+        os.rm(file)
+    end
+
+    utils.with_dir(dir, function () 
+      os.execv(bench, {}, {
+        envs = {
+          XRAY_OPTIONS = "patch_premain=true xray_mode=xray-basic verbosity=1"
+        }
+      })  
+    end)
+
 
     local log_files = os.files(path.join(dir, "xray-log.bench.*"))  -- Adjust the pattern if necessary
 
