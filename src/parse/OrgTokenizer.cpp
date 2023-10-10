@@ -389,7 +389,7 @@ struct OrgTokenizerImpl
 
     bool lexSingleProperty(PosStr& str, PosStr const& id);
 
-#define _def(Kind) virtual bool lex##Kind(PosStr& str) override;
+#define _def(Kind) bool lex##Kind(PosStr& str) override;
     EACH_SIMPLE_TOKENIZER_METHOD(_def);
 #undef _def
 
@@ -3105,16 +3105,20 @@ bool OrgTokenizerImpl<TraceState>::lexParagraph(PosStr& str) {
     int        startPos = str.getPos();
     str.pushSlice();
     while (!str.finished() && !ended) {
-        if (atConstructStart(str)      //
-            || atListAhead(str)        //
-            || str.finished()          //
-            || atLogClock(spaced(str)) // HACK for now this is used to make
-            // paragraph lexing more uniform,
-            // but in general it should be moved
-            // to a more complex parsing
-            // strategy
-            || 1 < getVerticalSpaceCount(str)) {
-            ended = true;
+        if (isFirstOnLine(str)) {
+            if (atConstructStart(str)) {
+                ended = true;
+            } else if (atListAhead(str)) {
+                ended = true;
+            } else if (str.finished()) {
+                ended = true;
+            } else if (atLogClock(spaced(str))) {
+                ended = true;
+            } else if (1 < getVerticalSpaceCount(str)) {
+                ended = true;
+            } else {
+                str.next();
+            }
         } else {
             str.next();
         }

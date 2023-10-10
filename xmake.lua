@@ -181,23 +181,20 @@ meta_target("conan_remove", "Remove installed conan dependencies", {}, function(
   end)
 end)
 
-local function rel_conan()
-  return abs_script("build/dependencies/conan")
-end
-
-meta_target("conan_install", "Install conan dependencies", {}, function() 
+meta_target("conan_install", "Install conan dependencies", {}, function()
   set_kind("phony")
   add_rules("dummy")
   add_files("conanprofile.txt", "conanfile.txt")
   on_run(function(target)
+    local utils = import("scripts.utils")
     os.execv("conan", {
       "install",
       ".",
       "--install-folder",
-      rel_conan(),
+      utils.abs_script("build/dependencies/conan"),
       "--build=missing",
       "--profile",
-      abs_script("conanprofile.txt")
+      utils.abs_script("conanprofile.txt")
     })
   end)
 end)

@@ -3,6 +3,7 @@ fmt/9.0.0
 yaml-cpp/0.7.0
 perfetto/34.0
 pybind11/2.10.4
+benchmark/1.8.3
 
 [generators]
 cmake

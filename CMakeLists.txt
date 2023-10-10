@@ -40,13 +40,14 @@ option(USE_SANITIZER "Use sanitizers" ON)
 find_package(fmt REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(Qt6 COMPONENTS Gui Core Network REQUIRED)
+find_package(benchmark REQUIRED)
 
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)
 include(src/cmake/target_lib.cmake)
 
 include(src/cmake/target_tests.cmake)
-
+include(src/cmake/target_bench.cmake)
 
 include(src/cmake/target_pyhaxorg.cmake)
 
