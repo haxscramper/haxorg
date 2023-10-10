@@ -5,6 +5,5 @@ items:
   - name: "Process all nodes"
     file: org/all.org
     exporters:
-      - name: "mmap"
       - name: "sexp"
       - name: "json"
