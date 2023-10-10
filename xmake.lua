@@ -338,6 +338,60 @@ meta_target("cmake_haxorg", "Compile libraries and binaries for haxorg", {}, fun
   end)
 end)
 
+
+meta_target("bench_profdata", "Collect performance profile", {}, function () 
+  on_build(function(target)
+    local utils = import("scripts.utils")
+    local dir = path.join(os.scriptdir(), "build/haxorg/bin")
+    local tools = path.join(os.scriptdir(), "toolchain/llvm/bin")
+    local bench = path.join(dir, "bench")
+    utils.info("Running benchmark from directory %s", dir)
+
+    os.execv(bench, {}, {
+      envs = {
+        XRAY_OPTIONS = "patch_premain=true xray_mode=xray-basic verbosity=1"
+      }
+    })
+
+    local log_files = os.files(path.join(dir, "xray-log.bench.*"))  -- Adjust the pattern if necessary
+
+    table.sort(log_files, function(a, b)
+        return os.mtime(a) > os.mtime(b)
+    end)
+
+    if #log_files > 0 then
+        utils.info("Latest XRay log file '%s'", log_files[1])
+    else
+        raise("No XRay log files found in '" .. dir .. "'")
+    end
+
+    local logfile = log_files[1]
+    os.execv(path.join(tools, "llvm-xray"), {
+      "convert",
+      "--symbolize",
+      "--instr_map=" .. bench,
+      "--output-format=trace_event",
+      "--output=" .. path.join(dir, "trace_events.json"),
+      logfile,
+    })
+
+    os.execv(path.join(tools, "llvm-profdata"), {
+      "merge",
+      "-output=" .. path.join(dir, "bench.profdata"),
+      path.join(dir, "default.profraw")
+    })
+
+    os.execv(path.join(tools, "llvm-cov"), {
+      "show",
+      bench,
+      "-instr-profile=" .. path.join(dir, "bench.profdata"),
+      "-format=html",
+      "-output-dir=" .. path.join(dir, "coverage_report")
+    })
+  end)
+  
+end)
+
 meta_target("test_python", "Execute python tests", {}, function()
   set_kind("phony")
   add_deps("cmake_haxorg")
