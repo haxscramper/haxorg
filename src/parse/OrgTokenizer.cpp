@@ -2746,9 +2746,20 @@ bool OrgTokenizerImpl<TraceState>::atSubtreeStart(CR<PosStr> str) {
 
 template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::atNonParagraph(CR<PosStr> str) {
-    if (atConstructStart(str) || atListAhead(str) || str.finished()
-        || atLogClock(spaced(str)) || 1 < getVerticalSpaceCount(str)) {
+    if (str.finished()) {
         return true;
+    } else if (1 < getVerticalSpaceCount(str)) {
+        return true;
+    } else if (isFirstOnLine(str)) {
+        if (atConstructStart(str)) {
+            return true;
+        } else if (atListAhead(str)) {
+            return true;
+        } else if (atLogClock(spaced(str))) {
+            return true;
+        } else {
+            return false;
+        }
     } else {
         return false;
     }
