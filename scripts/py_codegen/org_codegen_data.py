@@ -487,6 +487,7 @@ def get_types() -> Sequence[GenTuStruct]:
                                                GenTuDoc(""),
                                                value='""')
                                 ],
+                                nested=[GenTuPass("CalloutFormat() {}")]
                             ),
                             GenTuStruct(
                                 "RemoveCallout",
@@ -497,6 +498,7 @@ def get_types() -> Sequence[GenTuStruct]:
                                                GenTuDoc(""),
                                                value="true")
                                 ],
+                                nested=[GenTuPass("RemoveCallout() {}")]
                             ),
                             GenTuStruct(
                                 "EmphasizeLine",
@@ -509,6 +511,7 @@ def get_types() -> Sequence[GenTuStruct]:
                                                GenTuDoc(""),
                                                value="{}")
                                 ],
+                                nested=[GenTuPass("EmphasizeLine() {}")]
                             ),
                             GenTuStruct(
                                 "Dedent",
@@ -516,6 +519,7 @@ def get_types() -> Sequence[GenTuStruct]:
                                 fields=[
                                     GenTuField(t_int(), "value", GenTuDoc(""), value="0")
                                 ],
+                                nested=[GenTuPass("Dedent() {}")]
                             ),
                         ])
                     ],
@@ -967,6 +971,7 @@ def get_types() -> Sequence[GenTuStruct]:
                     ],
                     #  ;; TODO constructors
                     nested=[
+                        GenTuPass("Period() {}"),
                         GenTuEnum(
                             "Kind",
                             GenTuDoc("Period kind"),
@@ -1026,6 +1031,7 @@ def get_types() -> Sequence[GenTuStruct]:
                         ),
                     ],
                     nested=[
+                        GenTuPass("Property() {}"),
                         d_simple_enum("SetMode", GenTuDoc(""), "Override", "Add",
                                       "Subtract"),
                         d_simple_enum("InheritanceMode", GenTuDoc(""), "ThisAndSub",
@@ -1035,17 +1041,20 @@ def get_types() -> Sequence[GenTuStruct]:
                                 "Nonblocking",
                                 GenTuDoc(""),
                                 fields=[GenTuField(t_bool(), "isBlocking", GenTuDoc(""))],
+                                nested=[GenTuPass("Nonblocking() {}")]
                             ),
-                            GenTuStruct("Trigger", GenTuDoc("")),
+                            GenTuStruct("Trigger", GenTuDoc(""), nested=[GenTuPass("Trigger() {}")]),
                             GenTuStruct(
                                 "Origin",
                                 GenTuDoc(""),
                                 fields=[GenTuField(t_str(), "text", GenTuDoc(""))],
+                                nested=[GenTuPass("Origin() {}")]
                             ),
                             GenTuStruct(
                                 "ExportLatexClass",
                                 GenTuDoc(""),
                                 fields=[GenTuField(t_str(), "latexClass", GenTuDoc(""))],
+                                nested=[GenTuPass("ExportLatexClass() {}")]
                             ),
                             GenTuStruct(
                                 "ExportLatexClassOptions",
@@ -1053,21 +1062,25 @@ def get_types() -> Sequence[GenTuStruct]:
                                 fields=[
                                     GenTuField(t_vec(t_str()), "options", GenTuDoc(""))
                                 ],
+                                nested=[GenTuPass("ExportLatexClassOptions() {}")]
                             ),
                             GenTuStruct(
                                 "ExportLatexHeader",
                                 GenTuDoc(""),
                                 fields=[GenTuField(t_str(), "header", GenTuDoc(""))],
+                                nested=[GenTuPass("ExportLatexHeader() {}")]
                             ),
                             GenTuStruct(
                                 "ExportLatexCompiler",
                                 GenTuDoc(""),
                                 fields=[GenTuField(t_str(), "compiler", GenTuDoc(""))],
+                                nested=[GenTuPass("ExportLatexCompiler() {}")]
                             ),
                             GenTuStruct(
                                 "Ordered",
                                 GenTuDoc(""),
                                 fields=[GenTuField(t_bool(), "isOrdered", GenTuDoc(""))],
+                                nested=[GenTuPass("Ordered() {}")]
                             ),
                             GenTuStruct(
                                 "Effort",
@@ -1079,11 +1092,13 @@ def get_types() -> Sequence[GenTuStruct]:
                                                GenTuDoc(""),
                                                value="0"),
                                 ],
+                                nested=[GenTuPass("Effort() {}")]
                             ),
                             GenTuStruct(
                                 "Visibility",
                                 GenTuDoc(""),
                                 nested=[
+                                    GenTuPass("Visibility() {}"),
                                     d_simple_enum(
                                         "Level",
                                         GenTuDoc(""),
@@ -1100,6 +1115,7 @@ def get_types() -> Sequence[GenTuStruct]:
                             GenTuStruct(
                                 "ExportOptions",
                                 GenTuDoc(""),
+                                nested=[GenTuPass("ExportOptions() {}")],
                                 fields=[
                                     GenTuField(t_str(), "backend", GenTuDoc("")),
                                     GenTuField(t_map(t_str(), t_str()), "values",
@@ -1109,14 +1125,16 @@ def get_types() -> Sequence[GenTuStruct]:
                             GenTuStruct(
                                 "Blocker",
                                 GenTuDoc(""),
+                                nested=[GenTuPass("Blocker() {}")],
                                 fields=[
                                     GenTuField(t_vec(t_str()), "blockers", GenTuDoc(""))
                                 ],
                             ),
-                            GenTuStruct("Unnumbered", GenTuDoc("")),
+                            GenTuStruct("Unnumbered", GenTuDoc(""), nested=[GenTuPass("Unnumbered() {}")]),
                             GenTuStruct(
                                 "Created",
                                 GenTuDoc(""),
+                                nested=[GenTuPass("Created() {}")],
                                 fields=[id_field("Time", "time", GenTuDoc(""))],
                             ),
                         ]),

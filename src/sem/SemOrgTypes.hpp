@@ -445,22 +445,26 @@ struct Code : public sem::Block {
     };
 
     struct CalloutFormat {
+      CalloutFormat() {}
       BOOST_DESCRIBE_CLASS(CalloutFormat, (), (), (), (format))
       Str format = "";
     };
 
     struct RemoveCallout {
+      RemoveCallout() {}
       BOOST_DESCRIBE_CLASS(RemoveCallout, (), (), (), (remove))
       bool remove = true;
     };
 
     /// \brief Emphasize single line -- can be repeated multiple times
     struct EmphasizeLine {
+      EmphasizeLine() {}
       BOOST_DESCRIBE_CLASS(EmphasizeLine, (), (), (), (line))
       Vec<int> line = {};
     };
 
     struct Dedent {
+      Dedent() {}
       BOOST_DESCRIBE_CLASS(Dedent, (), (), (), (value))
       int value = 0;
     };
@@ -842,6 +846,7 @@ struct Subtree : public sem::Org {
   using Org::Org;
   /// \brief Type of the subtree associated time periods
   struct Period {
+    Period() {}
     /// \brief Period kind
     enum class Kind : short int {
       /// \brief Time period of the task execution.
@@ -879,56 +884,67 @@ struct Subtree : public sem::Org {
 
   /// \brief Single subtree property
   struct Property {
+    Property() {}
     enum class SetMode : short int { Override, Add, Subtract, };
     BOOST_DESCRIBE_NESTED_ENUM(SetMode, Override, Add, Subtract)
     enum class InheritanceMode : short int { ThisAndSub, OnlyThis, OnlySub, };
     BOOST_DESCRIBE_NESTED_ENUM(InheritanceMode, ThisAndSub, OnlyThis, OnlySub)
     struct Nonblocking {
+      Nonblocking() {}
       BOOST_DESCRIBE_CLASS(Nonblocking, (), (), (), (isBlocking))
       bool isBlocking;
     };
 
     struct Trigger {
+      Trigger() {}
       BOOST_DESCRIBE_CLASS(Trigger, (), (), (), ())
     };
 
     struct Origin {
+      Origin() {}
       BOOST_DESCRIBE_CLASS(Origin, (), (), (), (text))
       Str text;
     };
 
     struct ExportLatexClass {
+      ExportLatexClass() {}
       BOOST_DESCRIBE_CLASS(ExportLatexClass, (), (), (), (latexClass))
       Str latexClass;
     };
 
     struct ExportLatexClassOptions {
+      ExportLatexClassOptions() {}
       BOOST_DESCRIBE_CLASS(ExportLatexClassOptions, (), (), (), (options))
       Vec<Str> options;
     };
 
     struct ExportLatexHeader {
+      ExportLatexHeader() {}
       BOOST_DESCRIBE_CLASS(ExportLatexHeader, (), (), (), (header))
       Str header;
     };
 
     struct ExportLatexCompiler {
+      ExportLatexCompiler() {}
       BOOST_DESCRIBE_CLASS(ExportLatexCompiler, (), (), (), (compiler))
       Str compiler;
     };
 
     struct Ordered {
+      Ordered() {}
       BOOST_DESCRIBE_CLASS(Ordered, (), (), (), (isOrdered))
       bool isOrdered;
     };
 
     struct Effort {
+      Effort() {}
       BOOST_DESCRIBE_CLASS(Effort, (), (), (), (hours, minutes))
       int hours = 0;
       int minutes = 0;
     };
 
     struct Visibility {
+      Visibility() {}
       enum class Level : short int { Folded, Children, Content, All, };
       BOOST_DESCRIBE_NESTED_ENUM(Level, Folded, Children, Content, All)
       BOOST_DESCRIBE_CLASS(Visibility, (), (), (), (level))
@@ -936,21 +952,25 @@ struct Subtree : public sem::Org {
     };
 
     struct ExportOptions {
+      ExportOptions() {}
       BOOST_DESCRIBE_CLASS(ExportOptions, (), (), (), (backend, values))
       Str backend;
       UnorderedMap<Str, Str> values;
     };
 
     struct Blocker {
+      Blocker() {}
       BOOST_DESCRIBE_CLASS(Blocker, (), (), (), (blockers))
       Vec<Str> blockers;
     };
 
     struct Unnumbered {
+      Unnumbered() {}
       BOOST_DESCRIBE_CLASS(Unnumbered, (), (), (), ())
     };
 
     struct Created {
+      Created() {}
       BOOST_DESCRIBE_CLASS(Created, (), (), (), (time))
       sem::SemIdT<sem::Time> time = SemIdT<Time>::Nil();
     };
