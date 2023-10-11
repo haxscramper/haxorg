@@ -875,7 +875,7 @@ struct Subtree : public sem::Org {
     /// \brief Time period kind -- not associated with point/range distinction
     Kind kind;
     /// \brief Stored time point/range
-    Variant<sem::SemIdT<sem::Time>, sem::SemIdT<sem::TimeRange>> period;
+    Variant<sem::SemIdT<sem::Time>, sem::SemIdT<sem::TimeRange>> period = sem::SemIdT<sem::Time>::Nil();
     /// \brief Get associated time point
     sem::SemIdT<sem::Time> getTime() { return std::get<SemIdT<Time>>(period); }
     /// \brief Get associated time period

@@ -22,6 +22,7 @@ message QualType {
     // `repeated string Spaces` + `repated QualType Parents` will be
     // a better alternative.
     bool IsNamespace = 6;
+    string DbgOrigin = 7;
 }
 
 // Enumeration definition

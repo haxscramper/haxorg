@@ -21,6 +21,52 @@ void ReflASTVisitor::fillNamespaces(
 
 void ReflASTVisitor::fillNamespaces(
     QualType*                                   Out,
+    clang::QualType const&                      In,
+    std::optional<clang::SourceLocation> const& Loc) {
+
+    clang::Decl* decl = nullptr;
+    if (const clang::TypedefType* tdType = In->getAs<
+                                           clang::TypedefType>()) {
+        decl = tdType->getDecl();
+    } else if (
+        const clang::RecordType* recordType = In->getAs<
+                                              clang::RecordType>()) {
+        decl = recordType->getDecl();
+    } else {
+        Diag(
+            DiagKind::Warning,
+            "Unhandled namespace expansion for %0 (%1)",
+            Loc)
+            << In << dump(In);
+    }
+
+    if (!decl) {
+        return;
+    }
+
+    llvm::SmallVector<clang::NamespaceDecl*> spaces;
+    clang::DeclContext*                      dc = decl->getDeclContext();
+    while (dc) {
+        if (clang::NamespaceDecl* ns = llvm::dyn_cast<
+                clang::NamespaceDecl>(dc)) {
+            spaces.push_back(ns);
+        }
+        dc = dc->getParent();
+    }
+    std::reverse(spaces.begin(), spaces.end());
+
+    for (auto const* nns : spaces) {
+        if (!nns->isAnonymousNamespace() && !nns->isInlineNamespace()) {
+            auto space = Out->add_spaces();
+            space->set_dbgorigin("regular type namespaces");
+            space->set_name(nns->getNameAsString());
+            space->set_isnamespace(true);
+        }
+    }
+}
+
+void ReflASTVisitor::fillNamespaces(
+    QualType*                                   Out,
     const clang::ElaboratedType*                elab,
     const std::optional<clang::SourceLocation>& Loc) {
     if (const clang::NestedNameSpecifier* nns = elab->getQualifier()) {
@@ -37,13 +83,15 @@ void ReflASTVisitor::fillNamespaces(
             clang::NestedNameSpecifier::SpecifierKind kind = nns->getKind();
             switch (kind) {
                 case clang::NestedNameSpecifier::Identifier: {
-                    Out->add_spaces()->set_name(
-                        nns->getAsIdentifier()->getName());
+                    auto space = Out->add_spaces();
+                    space->set_dbgorigin("Elaborated name identifier");
+                    space->set_name(nns->getAsIdentifier()->getName());
                     break;
                 }
 
                 case clang::NestedNameSpecifier::Namespace: {
                     auto space = Out->add_spaces();
+                    space->set_dbgorigin("Elaborated type namespace");
                     space->set_isnamespace(true);
                     space->set_name(
                         nns->getAsNamespace()->getNameAsString());
@@ -96,6 +144,7 @@ void ReflASTVisitor::fillType(
             fillNamespaces(Out, elab, Loc);
             fillType(Out, elab->getNamedType(), Loc);
         } else if (In->isRecordType()) {
+            fillNamespaces(Out, In, Loc);
             Out->set_name(In->getAs<clang::RecordType>()
                               ->getDecl()
                               ->getNameAsString());
@@ -111,13 +160,13 @@ void ReflASTVisitor::fillType(
                 << In << dump(In);
         }
 
-        // TODO unwrap all typedefs
-        // TODO get declaration location scope with all namespaces
         if (const auto* TST = llvm::dyn_cast<
                 clang::TemplateSpecializationType>(In.getTypePtr())) {
             for (clang::TemplateArgument const& Arg :
                  TST->template_arguments()) {
-                fillType(Out->add_parameters(), Arg, Loc);
+                auto param = Out->add_parameters();
+                param->set_dbgorigin("Type parameter");
+                fillType(param, Arg, Loc);
             }
         }
     }

@@ -283,9 +283,9 @@ meta_target("reflection_protobuf", "Update protobuf data definition for reflecti
       os.execv("protoc", {
         "--plugin=" .. path.join(loc, "/bin/protoc-gen-python_betterproto"),
         "-I",
-        utils.abs_script("scripts/cxx_codegen/py_codegen"),
-        "--proto_path=" .. utils.abs_script("scripts/cxx_codegen"),
-        "--python_betterproto_out=" .. utils.abs_script("scripts/cxx_codegen/py_codegen/proto_lib"),
+        utils.abs_script("scripts/cxx_codegen"),
+        "--proto_path=" .. utils.abs_script("scripts/py_codegen"),
+        "--python_betterproto_out=" .. utils.abs_script("scripts/py_codegen/proto_lib"),
         utils.abs_script("scripts/cxx_codegen/reflection_defs.proto")
       })
     end)

@@ -77,6 +77,11 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
     void fillNamespaces(
         QualType*                                   Out,
+        clang::QualType const&                             In,
+        std::optional<clang::SourceLocation> const& Loc);
+
+    void fillNamespaces(
+        QualType*                                   Out,
         clang::NamespaceDecl const*                 Namespace,
         std::optional<clang::SourceLocation> const& Loc);
 
