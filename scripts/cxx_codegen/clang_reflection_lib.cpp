@@ -4,6 +4,23 @@
 
 void ReflASTVisitor::fillNamespaces(
     QualType*                                   Out,
+    clang::NamespaceDecl const*                 Namespace,
+    std::optional<clang::SourceLocation> const& Loc) {
+    auto space = Out->add_spaces();
+    space->set_name(Namespace->getNameAsString());
+    space->set_isnamespace(true);
+
+    if (Namespace->getDeclContext()->isNamespace()) {
+        fillNamespaces(
+            Out,
+            clang::dyn_cast<clang::NamespaceDecl>(
+                Namespace->getDeclContext()),
+            Loc);
+    }
+}
+
+void ReflASTVisitor::fillNamespaces(
+    QualType*                                   Out,
     const clang::ElaboratedType*                elab,
     const std::optional<clang::SourceLocation>& Loc) {
     if (const clang::NestedNameSpecifier* nns = elab->getQualifier()) {
@@ -18,29 +35,26 @@ void ReflASTVisitor::fillNamespaces(
         std::reverse(spaces.begin(), spaces.end());
         for (auto const* nns : spaces) {
             clang::NestedNameSpecifier::SpecifierKind kind = nns->getKind();
-            QualType* Space = Out->add_spaces();
             switch (kind) {
                 case clang::NestedNameSpecifier::Identifier: {
-                    Space->set_name(nns->getAsIdentifier()->getName());
+                    Out->add_spaces()->set_name(
+                        nns->getAsIdentifier()->getName());
                     break;
                 }
 
                 case clang::NestedNameSpecifier::Namespace: {
-                    Space->set_name(
+                    auto space = Out->add_spaces();
+                    space->set_isnamespace(true);
+                    space->set_name(
                         nns->getAsNamespace()->getNameAsString());
                     break;
                 }
 
                 case clang::NestedNameSpecifier::NamespaceAlias: {
-                    // Namespace aliases must be resolved as protobuf
-                    // QualType definition is designed to map
-                    // non-aliased type
-                    Diag(
-                        DiagKind::Warning,
-                        "TODO Implement namespace alias expansion",
+                    fillNamespaces(
+                        Out,
+                        nns->getAsNamespaceAlias()->getNamespace(),
                         Loc);
-                    Space->set_name(
-                        nns->getAsNamespaceAlias()->getNameAsString());
                     break;
                 }
 
@@ -61,41 +75,50 @@ void ReflASTVisitor::fillType(
     const clang::QualType&                      In,
     const std::optional<clang::SourceLocation>& Loc) {
 
-    Out->set_isconst(In.isConstQualified());
-    Out->set_isref(In->isReferenceType());
-    if (In->isReferenceType()) {
-        fillType(Out, In->getPointeeType(), Loc);
-    } else if (In->isBooleanType()) {
-        Out->set_name("bool");
-    } else if (In->isBuiltinType()) {
-        Out->set_name(In.getAsString());
-    } else if (
-        clang::ElaboratedType const* elab = In->getAs<
-                                            clang::ElaboratedType>()) {
-        // 'fill' operations are additive for namespaces
-        fillNamespaces(Out, elab, Loc);
-        fillType(Out, elab->getNamedType(), Loc);
-    } else if (In->isRecordType()) {
-        Out->set_name(
-            In->getAs<clang::RecordType>()->getDecl()->getNameAsString());
-    } else if (In->isEnumeralType()) {
-        Out->set_name(
-            In->getAs<clang::EnumType>()->getDecl()->getNameAsString());
+    if (const clang::TypedefType* tdType = In->getAs<
+                                           clang::TypedefType>()) {
+        clang::TypedefNameDecl* tdDecl = tdType->getDecl();
+        fillType(Out, tdDecl->getUnderlyingType(), Loc);
     } else {
-        Diag(
-            DiagKind::Warning,
-            "Unhandled serialization for a type %0 (%1)",
-            Loc)
-            << In << dump(In);
-    }
+        Out->set_isconst(In.isConstQualified());
+        Out->set_isref(In->isReferenceType());
 
-    // TODO unwrap all typedefs
-    // TODO get declaration location scope with all namespaces
-    if (const auto* TST = llvm::dyn_cast<
-            clang::TemplateSpecializationType>(In.getTypePtr())) {
-        for (clang::TemplateArgument const& Arg :
-             TST->template_arguments()) {
-            fillType(Out->add_parameters(), Arg, Loc);
+        if (In->isReferenceType()) {
+            fillType(Out, In->getPointeeType(), Loc);
+        } else if (In->isBooleanType()) {
+            Out->set_name("bool");
+        } else if (In->isBuiltinType()) {
+            Out->set_name(In.getAsString());
+        } else if (
+            clang::ElaboratedType const* elab = In->getAs<
+                                                clang::ElaboratedType>()) {
+            // 'fill' operations are additive for namespaces
+            fillNamespaces(Out, elab, Loc);
+            fillType(Out, elab->getNamedType(), Loc);
+        } else if (In->isRecordType()) {
+            Out->set_name(In->getAs<clang::RecordType>()
+                              ->getDecl()
+                              ->getNameAsString());
+        } else if (In->isEnumeralType()) {
+            Out->set_name(In->getAs<clang::EnumType>()
+                              ->getDecl()
+                              ->getNameAsString());
+        } else {
+            Diag(
+                DiagKind::Warning,
+                "Unhandled serialization for a type %0 (%1)",
+                Loc)
+                << In << dump(In);
+        }
+
+        // TODO unwrap all typedefs
+        // TODO get declaration location scope with all namespaces
+        if (const auto* TST = llvm::dyn_cast<
+                clang::TemplateSpecializationType>(In.getTypePtr())) {
+            for (clang::TemplateArgument const& Arg :
+                 TST->template_arguments()) {
+                fillType(Out->add_parameters(), Arg, Loc);
+            }
         }
     }
 }

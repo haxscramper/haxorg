@@ -252,10 +252,13 @@ meta_target("cmake_configure_utils", "Execute configuration for utility binary c
   end)
 end)
 
+
 meta_target("cmake_utils", "Compile libraries and binaries for utils", {}, function()
   set_kind("phony")
   add_rules("dummy")
   add_deps("cmake_configure_utils")
+  any_files("scripts/cxx_codegen/**.hpp")
+  any_files("scripts/cxx_codegen/**.cpp")
   on_build(function(target)
     local dbg = true
     os.execv("cmake", {
