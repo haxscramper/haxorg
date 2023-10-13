@@ -89,17 +89,12 @@ def skip_backtrace(debugger, command, result, internal_dict):
     frames = reversed([frame for frame in thread])
 
     for frame in frames:
-        function_name = frame.GetFunctionName()
-        # if "__cxa_throw" in function_name:
-        #     break
-
-        # elif not should_skip_frame(frame):
         filtered_frames.append(frame)
 
     filtered_frames = reversed(filtered_frames)
 
     for index, frame in enumerate(filtered_frames):
-        print("{frame}".format(index=index, frame=frame))
+        print("{frame}".format(frame=frame))
 
 
 def __lldb_init_module(debugger, internal_dict):

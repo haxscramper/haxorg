@@ -2,7 +2,8 @@ import py_haxorg.pyhaxorg as org
 from py_textlayout.py_textlayout import *
 from py_haxorg.pyhaxorg import OrgSemKind as osk
 
-from beartype.typing import *
+from beartype.typing import List, Union
+from typing import TYPE_CHECKING, NewType
 from enum import Enum
 from beartype import beartype
 

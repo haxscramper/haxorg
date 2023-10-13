@@ -1,11 +1,7 @@
-import setup_imports
-from py_textlayout.py_textlayout import *
-from dataclasses import dataclass, field
-from beartype.typing import *
-from enum import Enum
+from py_textlayout.py_textlayout import TextLayout
+from beartype.typing import List, Union
 from beartype import beartype
-import inspect
-import os
+from typing import TYPE_CHECKING, NewType
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)

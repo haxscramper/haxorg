@@ -1,15 +1,17 @@
-import setup_imports
-from py_textlayout.py_textlayout import *
 from dataclasses import dataclass, field, replace
-from beartype.typing import *
+from beartype.typing import List, Union, NewType, Optional, Tuple
 from enum import Enum
 from beartype import beartype
 import inspect
 import os
 import astbuilder_base as base
+from typing import TYPE_CHECKING
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
+    from py_textlayout.py_textlayout import *
+else:
+    from py_textlayout.py_textlayout import BlockId
 
 import logging
 from rich.logging import RichHandler
@@ -901,10 +903,10 @@ class ASTBuilder(base.AstbuilderBase):
         assert len(params.name) > 0, "EnumDecl: non-empty enum name required"
 
         fields = self.b.line([]) if params.IsLine else self.b.stack([])
-        for field in params.fields:
+        for _field in params.fields:
             content: List[BlockId] = []
-            content.append(self.Doc(replace(field.doc, IsInline=params.IsLine)))
-            content.append(self.string(field.name + (", " if params.IsLine else ",")))
+            content.append(self.Doc(replace(_field.doc, IsInline=params.IsLine)))
+            content.append(self.string(_field.name + (", " if params.IsLine else ",")))
             stack = self.b.stack(content)
 
             self.b.add_at(fields, stack)

@@ -1,11 +1,8 @@
-import setup_imports
 from py_textlayout.py_textlayout import *
 from dataclasses import dataclass, field
-from beartype.typing import *
-from enum import Enum
+from typing import TYPE_CHECKING, NewType
+from beartype.typing import List, Union, Tuple
 from beartype import beartype
-import inspect
-import os
 import astbuilder_base as base
 
 if not TYPE_CHECKING:
