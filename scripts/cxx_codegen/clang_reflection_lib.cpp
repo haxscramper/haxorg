@@ -1,25 +1,90 @@
 #include "clang_reflection_lib.hpp"
 
 #include <llvm/Support/TimeProfiler.h>
+#include <format>
 
-void ReflASTVisitor::fillNamespaces(
+std::vector<QualType> ReflASTVisitor::getNamespaces(
     QualType*                                   Out,
     clang::NamespaceDecl const*                 Namespace,
     std::optional<clang::SourceLocation> const& Loc) {
-    auto space = Out->add_spaces();
-    space->set_name(Namespace->getNameAsString());
-    space->set_isnamespace(true);
+    std::vector<QualType> result;
+    if (!Namespace->isAnonymousNamespace()
+        && !Namespace->isInlineNamespace()) {
+        auto space = &result.emplace_back();
+        space->set_name(Namespace->getNameAsString());
+        space->set_dbgorigin(std::format(
+            "Namespace visitation of '{}'", Namespace->getNameAsString()));
+        space->set_isnamespace(true);
+        assert(!space->name().empty());
+    }
 
     if (Namespace->getDeclContext()->isNamespace()) {
-        fillNamespaces(
+        auto spaces = getNamespaces(
             Out,
             clang::dyn_cast<clang::NamespaceDecl>(
                 Namespace->getDeclContext()),
             Loc);
+        result.insert(result.end(), spaces.begin(), spaces.end());
+    }
+
+    return result;
+}
+
+void ReflASTVisitor::applyNamespaces(
+    QualType*                    Out,
+    const std::vector<QualType>& Namespaces) {
+    std::vector<QualType const*> newNamespaces;
+    std::vector<QualType*>       oldNamespaces;
+    for (auto& Namespace : Namespaces) {
+        newNamespaces.push_back(&Namespace);
+    }
+
+    {
+        auto spaces = Out->mutable_spaces();
+        for (int i = 0; i < spaces->size(); ++i) {
+            oldNamespaces.push_back(&spaces->at(i));
+        }
+    }
+
+    for (int i = 0;
+         i < std::max(newNamespaces.size(), oldNamespaces.size());
+         ++i) {
+        if (i < newNamespaces.size() && i < oldNamespaces.size()) {
+            QualType const* _old = oldNamespaces.at(i);
+            QualType const* _new = newNamespaces.at(i);
+            if (_old->name() != _new->name()) {
+                llvm::outs() << std::format(
+                    "Mismatching namespace types at index {} '{}' (from "
+                    "{}) != '{}' (from {})\n",
+                    i,
+                    _old->name(),
+                    _old->dbgorigin(),
+                    _new->name(),
+                    _new->dbgorigin());
+            }
+
+
+        } else {
+            QualType newSpace = (i < newNamespaces.size())
+                                  ? *newNamespaces.at(i)
+                                  : *oldNamespaces.at(i);
+
+            //            if (newSpace.name().empty()) {
+            //                llvm::outs() << std::format(
+            //                    "Empty namespace formatted from {}\n",
+            //                    newSpace.dbgorigin());
+            //            }
+
+            auto space = Out->add_spaces();
+            space->set_isnamespace(true);
+            space->set_dbgorigin(newSpace.dbgorigin());
+            space->set_name(newSpace.name());
+            // TODO Fill namespace parameters
+        }
     }
 }
 
-void ReflASTVisitor::fillNamespaces(
+std::vector<QualType> ReflASTVisitor::getNamespaces(
     QualType*                                   Out,
     clang::QualType const&                      In,
     std::optional<clang::SourceLocation> const& Loc) {
@@ -41,7 +106,7 @@ void ReflASTVisitor::fillNamespaces(
     }
 
     if (!decl) {
-        return;
+        return {};
     }
 
     llvm::SmallVector<clang::NamespaceDecl*> spaces;
@@ -55,17 +120,21 @@ void ReflASTVisitor::fillNamespaces(
     }
     std::reverse(spaces.begin(), spaces.end());
 
+    std::vector<QualType> result;
+
     for (auto const* nns : spaces) {
         if (!nns->isAnonymousNamespace() && !nns->isInlineNamespace()) {
-            auto space = Out->add_spaces();
+            auto space = &result.emplace_back();
             space->set_dbgorigin("regular type namespaces");
             space->set_name(nns->getNameAsString());
             space->set_isnamespace(true);
         }
     }
+
+    return result;
 }
 
-void ReflASTVisitor::fillNamespaces(
+std::vector<QualType> ReflASTVisitor::getNamespaces(
     QualType*                                   Out,
     const clang::ElaboratedType*                elab,
     const std::optional<clang::SourceLocation>& Loc) {
@@ -79,30 +148,35 @@ void ReflASTVisitor::fillNamespaces(
         }
 
         std::reverse(spaces.begin(), spaces.end());
+        std::vector<QualType> result;
         for (auto const* nns : spaces) {
             clang::NestedNameSpecifier::SpecifierKind kind = nns->getKind();
             switch (kind) {
                 case clang::NestedNameSpecifier::Identifier: {
-                    auto space = Out->add_spaces();
+                    auto space = &result.emplace_back();
                     space->set_dbgorigin("Elaborated name identifier");
                     space->set_name(nns->getAsIdentifier()->getName());
+                    assert(!space->name().empty());
                     break;
                 }
 
                 case clang::NestedNameSpecifier::Namespace: {
-                    auto space = Out->add_spaces();
+                    auto space = &result.emplace_back();
                     space->set_dbgorigin("Elaborated type namespace");
                     space->set_isnamespace(true);
                     space->set_name(
                         nns->getAsNamespace()->getNameAsString());
+                    assert(!space->name().empty());
                     break;
                 }
 
                 case clang::NestedNameSpecifier::NamespaceAlias: {
-                    fillNamespaces(
+                    auto spaces = getNamespaces(
                         Out,
                         nns->getAsNamespaceAlias()->getNamespace(),
                         Loc);
+                    result.insert(
+                        result.end(), spaces.begin(), spaces.end());
                     break;
                 }
 
@@ -115,6 +189,9 @@ void ReflASTVisitor::fillNamespaces(
                 }
             }
         }
+        return result;
+    } else {
+        return {};
     }
 }
 
@@ -141,10 +218,11 @@ void ReflASTVisitor::fillType(
             clang::ElaboratedType const* elab = In->getAs<
                                                 clang::ElaboratedType>()) {
             // 'fill' operations are additive for namespaces
-            fillNamespaces(Out, elab, Loc);
+            applyNamespaces(Out, getNamespaces(Out, elab, Loc));
             fillType(Out, elab->getNamedType(), Loc);
+
         } else if (In->isRecordType()) {
-            fillNamespaces(Out, In, Loc);
+            applyNamespaces(Out, getNamespaces(Out, In, Loc));
             Out->set_name(In->getAs<clang::RecordType>()
                               ->getDecl()
                               ->getNameAsString());

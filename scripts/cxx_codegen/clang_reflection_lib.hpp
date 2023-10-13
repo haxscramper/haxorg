@@ -69,21 +69,25 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     }
 
     /// Fill in information about namespaces used in elaborated type
-    void fillNamespaces(
+    std::vector<QualType> getNamespaces(
         /// Update information on this outgoing type
         QualType*                                   Out,
         clang::ElaboratedType const*                elab,
         std::optional<clang::SourceLocation> const& Loc);
 
-    void fillNamespaces(
+    std::vector<QualType> getNamespaces(
         QualType*                                   Out,
-        clang::QualType const&                             In,
+        clang::QualType const&                      In,
         std::optional<clang::SourceLocation> const& Loc);
 
-    void fillNamespaces(
+    std::vector<QualType> getNamespaces(
         QualType*                                   Out,
         clang::NamespaceDecl const*                 Namespace,
         std::optional<clang::SourceLocation> const& Loc);
+
+    void applyNamespaces(
+        QualType*                    Out,
+        std::vector<QualType> const& Namespaces);
 
     /// This function 'fills' the type in both directions (adding parent
     /// namespaces to the 'left' and parameters to the 'right') around the
