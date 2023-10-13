@@ -435,8 +435,10 @@ struct Code : public sem::Block {
   using Block::Block;
   /// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
   struct Switch {
+    Switch() {}
     /// \brief Enumerate code lines starting from `start` value instead of default indexing.
     struct LineStart {
+      LineStart() {}
       BOOST_DESCRIBE_CLASS(LineStart, (), (), (), (start, extendLast))
       /// \brief First line number
       int start;

@@ -55,6 +55,7 @@ class QualType:
         Args: List['QualType']
         Ident: str = ""
         Class: Optional['QualType'] = None
+        IsConst: bool = False
 
     func: Optional[Function] = None
 
@@ -997,7 +998,8 @@ class ASTBuilder(base.AstbuilderBase):
             return self.b.line([
                     self.Type(type_.func.ReturnTy),
                     self.pars(self.b.line(([self.Type(type_.func.Class), self.string("::")] if type_.func.Class else []) + [self.string("*")])),
-                    self.pars(self.csv([self.Type(T) for T in type_.func.Args]))
+                    self.pars(self.csv([self.Type(T) for T in type_.func.Args])),
+                    self.string(" const" if type_.func.IsConst else ""),
                 ])
         else:
             return self.b.line([

@@ -308,7 +308,10 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["void"]:
             name = "None"
 
-        case ["py", "object"]:
+        case ["pybind11", "function"]:
+            name = "function"
+
+        case ["py", "object"] | ["pybind11", "object"]:
             name = "object"
 
         case ["UserTime"]:
@@ -367,7 +370,8 @@ class Py11Method:
                 QualType(func=QualType.Function(
                     ReturnTy=self.ResultTy,
                     Args=[A.type for A in self.Args],
-                    Class=Class
+                    Class=Class,
+                    IsConst=self.IsConst,
                 ))
             ])
 
@@ -902,6 +906,7 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
                 result=conv_proto_type(meth.return_ty),
                 name=meth.name,
                 doc=conv_doc_comment(meth.doc),
+                isConst=meth.is_const,
                 arguments=[
                     GenTuIdent(conv_proto_type(arg.type), arg.name) for arg in meth.args
                 ]))
@@ -1107,16 +1112,16 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
 
     autogen_structs = get_bind_methods(ast, expanded)
 
-    for item in gen_structs:
-        autogen_structs.Decls.append(pybind_nested_type(item, []))
+    for _struct in gen_structs:
+        autogen_structs.Decls.append(pybind_nested_type(_struct, []))
 
-    for item in gen_enums:
-        autogen_structs.Decls.append(Py11Enum.FromGenTu(item, []))
+    for _enum in gen_enums:
+        autogen_structs.Decls.append(Py11Enum.FromGenTu(_enum, []))
 
     opaque_declarations: List[BlockId] = []
     specialization_calls: List[BlockId] = []
 
-    type_use_context = []
+    type_use_context: List[Any] = []
     seen_types: Set[QualType] = set()
 
     def record_specializations(value: Any):
@@ -1246,10 +1251,9 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
 
 
 if __name__ == "__main__":
-    import json
     import os
     import sys
-    from pprint import pformat, pprint
+    from pprint import pprint
 
     t = TextLayout()
     builder = ASTBuilder(t)
@@ -1287,6 +1291,8 @@ if __name__ == "__main__":
             opts = TextOptions()
             opts.rightMargin = 160
             newCode = t.toString(result, opts)
+
+            # continue
 
             if os.path.exists(path):
                 with open(path, "r") as f:

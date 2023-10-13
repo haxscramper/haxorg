@@ -459,6 +459,7 @@ def get_types() -> Sequence[GenTuStruct]:
                         "Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block"
                     ),
                     nested=[
+                        GenTuPass("Switch() {}"),
                         GenTuTypeGroup([
                             GenTuStruct(
                                 "LineStart",
@@ -477,6 +478,7 @@ def get_types() -> Sequence[GenTuStruct]:
                                         value="false",
                                     ),
                                 ],
+                                nested=[GenTuPass("LineStart() {}")]
                             ),
                             GenTuStruct(
                                 "CalloutFormat",
@@ -952,6 +954,7 @@ def get_types() -> Sequence[GenTuStruct]:
                             t_var(t_id("Time"), t_id("TimeRange")),
                             "period",
                             GenTuDoc("Stored time point/range"),
+                            value="sem::SemIdT<sem::Time>::Nil()"
                         ),
                                ignore=True),
                     ],

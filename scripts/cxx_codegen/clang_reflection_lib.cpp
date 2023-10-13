@@ -205,8 +205,12 @@ void ReflASTVisitor::fillType(
         clang::TypedefNameDecl* tdDecl = tdType->getDecl();
         fillType(Out, tdDecl->getUnderlyingType(), Loc);
     } else {
-        Out->set_isconst(In.isConstQualified());
-        Out->set_isref(In->isReferenceType());
+        if (In.isConstQualified()) {
+            Out->set_isconst(true);
+        }
+        if (In->isReferenceType()) {
+            Out->set_isref(true);
+        }
 
         if (In->isReferenceType()) {
             fillType(Out, In->getPointeeType(), Loc);
@@ -223,6 +227,7 @@ void ReflASTVisitor::fillType(
 
         } else if (In->isRecordType()) {
             applyNamespaces(Out, getNamespaces(Out, In, Loc));
+            Out->set_dbgorigin("record type filler");
             Out->set_name(In->getAs<clang::RecordType>()
                               ->getDecl()
                               ->getNameAsString());
@@ -312,7 +317,22 @@ void ReflASTVisitor::fillParmVarDecl(
     if (doc) {
         arg->set_doc(*doc);
     }
-    fillType(arg->mutable_type(), parm->getType(), parm->getLocation());
+    QualType* ArgType = arg->mutable_type();
+    fillType(ArgType, parm->getType(), parm->getLocation());
+
+//    if (parm->getNameAsString() == "path") {
+//        Diag(
+//            DiagKind::Warning,
+//            "Adding serialization information for %0 %1 %2\n",
+//            parm->getLocation())
+//            << parm
+//            << std::format(
+//                   "Ref {} Const {}\n",
+//                   parm->getType()->isReferenceType(),
+//                   parm->getType().isConstQualified())
+//            << dump(parm->getType());
+//    }
+
     if (parm->hasDefaultArg()) {
         fillExpr(
             arg->mutable_default_(),
@@ -324,6 +344,7 @@ void ReflASTVisitor::fillParmVarDecl(
 void ReflASTVisitor::fillMethodDecl(
     Record::Method*       sub,
     clang::CXXMethodDecl* method) {
+
 
     sub->set_name(method->getNameAsString());
     sub->set_isconst(method->isConst());
