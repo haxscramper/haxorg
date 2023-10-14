@@ -89,6 +89,12 @@ void move_latest_xray_log_to_path(const std::string& path) {
 
 
 void TestProfiler::SetUp() {
+    if (fs::exists(pgo_path)) {
+        fs::remove(pgo_path);
+    }
+    __llvm_profile_set_filename(pgo_path.data());
+
+
     XRayLogRegisterStatus select = __xray_log_select_mode("xray-basic");
     if (select != XRayLogRegisterStatus::XRAY_REGISTRATION_OK) {
         throw std::logic_error(std::format(
@@ -122,8 +128,11 @@ void TestProfiler::SetUp() {
 }
 
 void TestProfiler::TearDown() {
-    __llvm_profile_set_filename(pgo_path.data());
-    __llvm_profile_write_file();
+    int profile_result = __llvm_profile_write_file();
+    if (profile_result != 0) {
+        throw std::logic_error(std::format(
+            "Failed to write PGO data to '{}'", pgo_path.data()));
+    }
 
     auto finalize_status = __xray_log_finalize();
     if (finalize_status != XRAY_LOG_FINALIZED) {
