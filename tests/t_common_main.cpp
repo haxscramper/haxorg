@@ -7,6 +7,8 @@
 #include <QFile>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/wrappers/graphviz.hpp>
+#include <fstream>
+#include "testprofiler.hpp"
 
 FILE* trace_out;
 
@@ -42,7 +44,6 @@ int main(int argc, char** argv) {
     qcout.setDevice(&file);
 
 
-
     QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
     // Q_CHECK_PTR(old);
 
@@ -59,7 +60,13 @@ int main(int argc, char** argv) {
     //    testParameters.corpusGlob = QString::fromStdString(glob);
     ::testing::InitGoogleTest(&argc, argv);
     //    auto result = session.run(argc, argv);
-    return RUN_ALL_TESTS();
+    auto result = RUN_ALL_TESTS();
     //    std::cout << "Done test execution" << std::endl;
     //    return result;
+
+    json          records = TestProfiler::getJsonRecords();
+    std::ofstream test_records{"/tmp/compact_records.json"};
+    test_records << to_compact_json(records);
+
+    return result;
 }

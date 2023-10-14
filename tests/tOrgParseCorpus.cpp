@@ -15,6 +15,8 @@
 
 #include <fnmatch.h>
 #include <ranges>
+#include "testprofiler.hpp"
+
 
 namespace rs = std::views;
 
@@ -53,8 +55,6 @@ struct TestParams {
         *os << point.fullName().toStdString();
     }
 };
-
-class ParseFile : public ::testing::TestWithParam<TestParams> {};
 
 Vec<TestParams> generateTestRuns() {
     Vec<TestParams> results;
@@ -103,11 +103,27 @@ Vec<TestParams> generateTestRuns() {
     return results;
 }
 
+class ParseFile : public ::testing::TestWithParam<TestParams> {
+  protected:
+    Opt<TestProfiler> profiler;
+
+
+    void SetUp() override {
+        profiler = TestProfiler{
+            ("/tmp/" + GetParam().testName() + "_xray").toStdString(),
+            ("/tmp/" + GetParam().testName() + "_pgo").toStdString(),
+        };
+        profiler->SetUp();
+    }
+    void TearDown() override { profiler->TearDown(); }
+};
+
 
 std::string getTestName(
     const testing::TestParamInfo<ParseFile::ParamType>& info) {
     return info.param.testName().toStdString();
 }
+
 
 TEST_P(ParseFile, CorpusAll) {
     TestParams params      = GetParam();
