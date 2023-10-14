@@ -5,6 +5,10 @@
 #include <xray/xray_records.h>
 #include <format>
 #include <exception>
+#include <regex>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 extern "C" void __llvm_profile_reset_counters(void);
 extern "C" void __llvm_profile_set_filename(char*);
@@ -17,6 +21,72 @@ json TestProfiler::getJsonRecords() {
     to_json(res, TestProfiler::runRecords);
     return res;
 }
+
+std::string get_current_program_name() {
+    return fs::read_symlink("/proc/self/exe").filename().string();
+}
+
+void safe_move(const fs::path& from, const fs::path& to) {
+    std::error_code ec_remove, ec_rename, ec_copy;
+
+    // Check if the target file exists, if it does, delete it.
+    if (fs::exists(to)) {
+        fs::remove(to, ec_remove);
+        if (ec_remove) {
+            throw std::runtime_error(
+                "Failed to remove existing destination file: "
+                + ec_remove.message());
+        }
+    }
+
+    // Try to rename (move) the file.
+    fs::rename(from, to, ec_rename);
+    if (ec_rename) {
+        // If rename failed, try to copy and then delete
+        fs::copy(from, to, ec_copy);
+        if (ec_copy) {
+            throw std::runtime_error(
+                "Failed to copy file after rename failed: "
+                + ec_copy.message());
+        }
+        fs::remove(from);
+    }
+}
+
+void move_latest_xray_log_to_path(const std::string& path) {
+
+    // Get the program name
+    std::string program_name = get_current_program_name();
+
+    // Build the regex pattern
+    std::regex pattern("xray-log\\." + program_name + "\\.\\w{6}");
+
+    fs::path           latest_file;
+    fs::file_time_type latest_time;
+
+    bool found = false;
+    for (const auto& entry : fs::directory_iterator(fs::current_path())) {
+        if (std::regex_match(entry.path().filename().string(), pattern)) {
+            // If it's the first match or the file is newer than the
+            // previous match
+            if (!found || entry.last_write_time() > latest_time) {
+                latest_time = entry.last_write_time();
+                latest_file = entry.path();
+                found       = true;
+            }
+        }
+    }
+
+    if (!found) {
+        throw std::logic_error(
+            "No matching xray-log files found for program name '"
+            + program_name + "'");
+    }
+
+    // Move the latest file to the specified path
+    safe_move(latest_file, path);
+}
+
 
 void TestProfiler::SetUp() {
     XRayLogRegisterStatus select = __xray_log_select_mode("xray-basic");
@@ -39,6 +109,7 @@ void TestProfiler::SetUp() {
             (int)init_mode_status));
     }
 
+    __xray_remove_customevent_handler();
 
     auto patch_status = __xray_patch();
     if (patch_status != XRayPatchingStatus::SUCCESS) {
@@ -71,6 +142,7 @@ void TestProfiler::TearDown() {
     }
 
     __xray_unpatch();
+    move_latest_xray_log_to_path(xray_path);
     RunRecord& rec = runRecords.emplace_back();
     rec.xray_path  = xray_path;
     rec.pgo_path   = pgo_path;
