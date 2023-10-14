@@ -41,6 +41,8 @@ find_package(fmt REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(Qt6 COMPONENTS Gui Core Network REQUIRED)
 find_package(benchmark REQUIRED)
+find_package(PythonLibs 3.11)
+find_package(pybind11 CONFIG REQUIRED)
 
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)
@@ -49,10 +51,7 @@ include(src/cmake/target_lib.cmake)
 include(src/cmake/target_tests.cmake)
 include(src/cmake/target_bench.cmake)
 
-target_sources(bench
-  PRIVATE
-    src/py_libs/py_type_casters.cpp
-)
+
 
 include(src/cmake/target_pyhaxorg.cmake)
 

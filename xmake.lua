@@ -177,7 +177,7 @@ meta_target("conan_remove", "Remove installed conan dependencies", {}, function(
   set_kind("phony")
   add_rules("dummy")
   on_run(function(target)
-    os.execv("conan", {"remove", "'*'", "--force"})
+    os.execv("conan", {"remove", "*", "--force"})
   end)
 end)
 

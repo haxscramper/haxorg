@@ -1,6 +1,3 @@
-find_package(PythonLibs 3.11)
-find_package(pybind11 CONFIG)
-
 pybind11_add_module(
     py_textlayout
     "${BASE}/src/py_libs/py_textlayout/py_textlayout.cpp"
