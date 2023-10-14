@@ -1,16 +1,19 @@
 import py_haxorg.pyhaxorg as org
-from py_textlayout.py_textlayout import *
+from py_textlayout.py_textlayout import TextLayout
 from py_haxorg.pyhaxorg import OrgSemKind as osk
 
-from beartype.typing import List, Union
+from beartype.typing import List, Optional
 from typing import TYPE_CHECKING, NewType
 from enum import Enum
 from beartype import beartype
+from datetime import datetime
 
 from py_exporters.export_base import ExporterBase
 from py_exporters.export_ultraplain import ExporterUltraplain
 
-if not TYPE_CHECKING:
+if TYPE_CHECKING:
+    from py_textlayout.py_textlayout import BlockId
+else:
     BlockId = NewType('BlockId', int)
 
 
@@ -149,7 +152,7 @@ class ExporterLatex(ExporterBase):
         return self.string(self.escape(node.text))
 
     def evalWord(self, node: org.SemWord) -> BlockId:
-        return self.string(node.text)
+        return self.string(self.escape(node.text))
 
     def evalSpace(self, node: org.SemSpace) -> BlockId:
         return self.string(node.text)
@@ -188,8 +191,7 @@ class ExporterLatex(ExporterBase):
         else:
             return self.string(node.content)
 
-    def evalWord(self, node: org.SemWord) -> BlockId:
-        return self.string(self.escape(node.text))
+
 
     def evalList(self, node: org.SemList) -> BlockId:
         return self.t.stack([
@@ -308,7 +310,8 @@ class ExporterLatex(ExporterBase):
         return res
 
     def evalTime(self, node: org.SemTime) -> BlockId:
-        return self.string(node.getStatic().time.strftime("%Y-%m-%d %H:%M:%S"))
+        time_val: datetime = datetime.fromtimestamp(node.getStatic().time)
+        return self.string(time_val.strftime("%Y-%m-%d %H:%M:%S"))
 
     def evalTimeRange(self, node: org.SemTimeRange) -> BlockId:
         return self.t.line(

@@ -1,25 +1,22 @@
 #!/usr/bin/env python
 
-import setup_imports
-import sys
 import os
-import re
-from enum import Enum
-from beartype import beartype
 from beartype.typing import *
 
-from datetime import date, time, datetime
+from typing import TYPE_CHECKING
 from py_exporters.export_tex import ExporterLatex
 import py_haxorg.pyhaxorg as org
 from py_haxorg.pyhaxorg import OrgSemKind as osk
-from py_textlayout.py_textlayout import TextOptions, TextLayout
+from py_textlayout.py_textlayout import TextOptions
 from py_haxorg.utils import toTree
 
 
-if not TYPE_CHECKING:
+if TYPE_CHECKING:
+    from py_textlayout.py_textlayout import BlockId
+else:
     BlockId = NewType('BlockId', int)
 
-def test_word():
+def test_word() -> None:
     ctx = org.OrgContext()
     assert org.Document
     ctx.parseString("*Text*")
@@ -30,7 +27,7 @@ def test_word():
     assert ctx.getNode()[0][0][0].getKind() == org.OrgSemKind.Word
 
 
-def test_serialization_expose():
+def test_serialization_expose() -> None:
     ctx = org.OrgContext()
     ctx.parseString("Text")
     ctx.writeStore("/tmp/cachedStore.dat")
@@ -43,7 +40,7 @@ def test_serialization_expose():
     assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
     assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Word
 
-def test_tex_exporter():
+def test_tex_exporter() -> None:
     tmp = org.OrgContext()
     tmp.parseFile("/home/haxscramper/tmp/doc.org")
     toTree("/tmp/before.txt", tmp.getNode())
@@ -54,7 +51,7 @@ def test_tex_exporter():
     if os.path.exists(cache_file):
         ctx.loadStore(cache_file)
     else:
-        ctx.parseFile("/home/haxscramper/tmp/doc.org")
+        ctx.parseFile("/home/haxscramper/tmp/doc2.org")
         ctx.writeStore(cache_file)
 
     toTree("/tmp/after.txt", ctx.getNode())

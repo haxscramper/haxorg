@@ -1,13 +1,14 @@
-from py_textlayout.py_textlayout import *
+from py_textlayout.py_textlayout import TextLayout
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, NewType
-from beartype.typing import List, Union, Tuple
+from beartype.typing import List
 from beartype import beartype
 import astbuilder_base as base
 
-if not TYPE_CHECKING:
+if TYPE_CHECKING:
+    from py_textlayout.py_textlayout import BlockId
+else:
     BlockId = NewType('BlockId', int)
-
 
 @beartype
 @dataclass

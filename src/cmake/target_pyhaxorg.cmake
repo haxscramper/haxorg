@@ -16,30 +16,35 @@ add_custom_target(check_plugin ALL
   DEPENDS "${CMAKE_BINARY_DIR}/binary.stamp"
 )
 
-# List of flags is long, so assembling it in a coule of steps
-set(PLUGIN_FLAGS_LIST
-    "-Xclang" "-add-plugin"
-    "-Xclang" "refl-plugin"
-    "-fplugin=${BASE}/build/utils/libreflection_plugin.so"
-   " -Xclang" "-plugin-arg-refl-plugin" "-Xclang" "out=/tmp/result.pb"
-)
 
-string(JOIN " " PLUGIN_FLAGS ${PLUGIN_FLAGS_LIST})
 
 # Declare python wrapper module
 pybind11_add_module(
     pyhaxorg
     "${BASE}/src/py_libs/pyhaxorg/pyhaxorg.cpp"
+    "${BASE}/src/py_libs/py_type_casters.hpp"
+    "${BASE}/src/py_libs/py_type_casters.cpp"
     "${BASE}/src/py_libs/pyhaxorg/pyhaxorg_manual_impl.cpp"
+    "${BASE}/src/py_libs/pyhaxorg/pyhaxorg_manual_impl.hpp"
 )
 
-# Here, only once file needs to be considered and only one set
-# of reflection metadata, so assigning all parameters directly
-# to a single file.
-set_source_files_properties(
-    "${BASE}/src/py_libs/pyhaxorg/pyhaxorg.cpp"
-    PROPERTIES COMPILE_FLAGS "${PLUGIN_FLAGS}"
-)
+# List of flags is long, so assembling it in a coule of steps
+#set(PLUGIN_FLAGS_LIST
+#    "-Xclang" "-add-plugin"
+#    "-Xclang" "refl-plugin"
+#    "-fplugin=${BASE}/build/utils/libreflection_plugin.so"
+#   " -Xclang" "-plugin-arg-refl-plugin" "-Xclang" "out=/tmp/result.pb"
+#)
+
+#string(JOIN " " PLUGIN_FLAGS ${PLUGIN_FLAGS_LIST})
+
+## Here, only once file needs to be considered and only one set
+## of reflection metadata, so assigning all parameters directly
+## to a single file.
+#set_source_files_properties(
+#    "${BASE}/src/py_libs/pyhaxorg/pyhaxorg.cpp"
+#    PROPERTIES COMPILE_FLAGS "${PLUGIN_FLAGS}"
+#)
 
 set_common_files(pyhaxorg)
 set_target_output(pyhaxorg)

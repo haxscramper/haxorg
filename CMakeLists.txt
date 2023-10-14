@@ -49,6 +49,11 @@ include(src/cmake/target_lib.cmake)
 include(src/cmake/target_tests.cmake)
 include(src/cmake/target_bench.cmake)
 
+target_sources(bench
+  PRIVATE
+    src/py_libs/py_type_casters.cpp
+)
+
 include(src/cmake/target_pyhaxorg.cmake)
 
 

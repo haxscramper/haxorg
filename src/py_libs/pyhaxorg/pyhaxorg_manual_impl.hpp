@@ -19,12 +19,11 @@
 #include <frameobject.h>
 
 namespace PYBIND11_NAMESPACE {
-
 namespace detail {
     template <>
     struct type_caster<UserTime> {
       public:
-        PYBIND11_TYPE_CASTER(UserTime, _("datetime.time"));
+        PYBIND11_TYPE_CASTER(UserTime, _("int"));
 
         bool load(handle src, bool x) {
             auto sub_load = type_caster<QDateTime>{};

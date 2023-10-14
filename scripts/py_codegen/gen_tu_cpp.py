@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from astbuilder_cpp import *
-from beartype.typing import *
-from pprint import pprint
+from beartype.typing import Sequence, List
 from beartype import beartype
 from py_textlayout.py_textlayout import *
 
@@ -306,17 +305,17 @@ class GenConverter:
                 Class = QualType(name="enum_serde", Parameters=[QualType(entry.name)])
 
                 SwichFrom = IfStmtParams(LookupIfStructure=True, Branches=[])
-                for field in entry.fields:
+                for _field in entry.fields:
                     SwichFrom.Branches.append(
                         IfStmtParams.Branch(
                             OneLine=True,
                             Then=self.ast.Return(
-                                self.ast.string(f"{entry.name}::{field.name}")),
+                                self.ast.string(f"{entry.name}::{_field.name}")),
                             Cond=self.ast.XCall(
                                 "==",
                                 [
                                     self.ast.string("value"),
-                                    self.ast.Literal(field.name),
+                                    self.ast.Literal(_field.name),
                                 ],
                             ),
                         ))
@@ -381,12 +380,12 @@ class GenConverter:
                                 base=entry.base,
                                 IsLine=not any([F.doc.brief for F in entry.fields]))
 
-            for field in entry.fields:
+            for _field in entry.fields:
                 params.fields.append(
                     EnumParams.Field(
-                        doc=DocParams(brief=field.doc.brief, full=field.doc.full),
-                        name=field.name,
-                        value=field.value,
+                        doc=DocParams(brief=_field.doc.brief, full=_field.doc.full),
+                        name=_field.name,
+                        value=_field.value,
                     ))
 
             if isToplevel:
