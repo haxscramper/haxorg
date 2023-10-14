@@ -11,6 +11,16 @@ beartype = "^0.16.2"
 rich = "^13.5.3"
 betterproto = {extras = ["compiler"], version = "^1.2.5"}
 pytest = "^7.4.2"
+py_textlayout = {path = "./scripts/py_textlayout", develop=true}
+py_exporters = {path = "./scripts/py_exporters", develop=true}
+py_haxorg = {path = "./scripts/py_haxorg", develop=true}
+click = "^8.1.7"
+rich-click = "^1.6.1"
+toml = "^0.10.2"
+click-config-file = "^0.6.0"
+
+[tool.poetry.group.dev.dependencies]
+yapf = "^0.40.2"
 
 [build-system]
 requires = ["poetry-core"]
@@ -19,3 +29,14 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
+[tool.ruff]
+ignore = [
+  "F405", # Undefined or defined from `*` imports
+  "F403", # `from astbuilder_cpp import *` used; unable to detect undefined names
+  "E501", # Line length
+]
+
+[tool.yapf]
+based_on_style = "google"
+column_limit = 90
+indent_width = 4

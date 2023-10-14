@@ -5,10 +5,5 @@ items:
   - name: "Process all nodes"
     file: org/all.org
     exporters:
-      - name: "mmap"
-      - name: "latex"
-      - name: "html"
       - name: "sexp"
       - name: "json"
-      - name: "subtree_structure"
-      - name: "pandoc"

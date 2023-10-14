@@ -1114,18 +1114,21 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     break;
                 }
                 case org::LatexClass: {
-                    doc->options->properties.push_back(
-                        Prop(Prop::ExportLatexClass{sub.at(0).strVal()}));
+                    Prop::ExportLatexClass res{};
+                    res.latexClass = sub.at(0).strVal();
+                    doc->options->properties.push_back(Prop(res));
                     break;
                 }
                 case org::LatexHeader: {
-                    doc->options->properties.push_back(
-                        Prop(Prop::ExportLatexHeader{sub.at(0).strVal()}));
+                    Prop::ExportLatexHeader res{};
+                    res.header = sub.at(0).strVal();
+                    doc->options->properties.push_back(Prop(res));
                     break;
                 }
                 case org::LatexCompiler: {
-                    doc->options->properties.push_back(Prop(
-                        Prop::ExportLatexCompiler{sub.at(0).strVal()}));
+                    Prop::ExportLatexCompiler res{};
+                    res.compiler = sub.at(0).strVal();
+                    doc->options->properties.push_back(Prop(res));
                     break;
                 }
                 case org::LatexClassOptions: {
@@ -1137,8 +1140,9 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                         value = value.chopped(1);
                     }
 
-                    doc->options->properties.push_back(
-                        Prop(Prop::ExportLatexClassOptions{{value}}));
+                    Prop::ExportLatexClassOptions res;
+                    res.options.push_back(value);
+                    doc->options->properties.push_back(Prop(res));
                     break;
                 }
                 default: {

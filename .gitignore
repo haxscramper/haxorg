@@ -371,3 +371,4 @@ xray-log*
 buck-out
 toolchain
 .pids
+*.xray

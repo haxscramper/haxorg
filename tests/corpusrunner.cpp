@@ -6,14 +6,7 @@
 #include <exporters/ExporterJson.hpp>
 #include <exporters/exportertree.hpp>
 #include <exporters/exportersimplesexpr.hpp>
-#include <exporters/exportersubtreestructure.hpp>
-#include <exporters/exporterhtml.hpp>
-#include <exporters/exportermindmap.hpp>
 #include <exporters/exporteryaml.hpp>
-#include <exporters/exporterlatex.hpp>
-#include <exporters/exporterpandoc.hpp>
-#include <exporters/exportereventlog.hpp>
-#include <exporters/exportergantt.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/diffs.hpp>
 
@@ -509,19 +502,6 @@ void exporterVisit(
     trace.endStream(os);
 }
 
-
-void to_json(json& res, ExporterEventLog::Event const& ev) {
-    res         = json::object();
-    res["kind"] = to_string(ev.getKind());
-    std::visit(
-        [&](auto const& it) {
-            json sub = json::object();
-            to_json(sub, ev);
-            res[to_string(ev.getKind()).toStdString()] = sub;
-        },
-        ev.data);
-}
-
 CorpusRunner::ExportResult CorpusRunner::runExporter(
     ParseSpec const&                 spec,
     sem::SemId                       top,
@@ -547,87 +527,6 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
         ExporterSimpleSExpr run;
         return withTreeExporter(top, run.b, run);
 
-    } else if (exp.name == "pandoc") {
-        return ER(ER::Structured{
-            .data = ExporterPandoc().evalTop(top).unpacked.at(0)});
-
-    } else if (exp.name == "html") {
-        ExporterHtml run;
-        return withTreeExporter(top, run.b, run);
-
-    } else if (exp.name == "event_log") {
-        ExporterEventLog exporter;
-        using Ev = ExporterEventLog::Event;
-        Vec<Ev> events;
-        exporter.logConsumer = [&](ExporterEventLog::Event const& ev) {
-            events.push_back(ev);
-        };
-
-        exporter.evalTop(top);
-
-        json res;
-        to_json(res, events);
-
-        return ER(ER::Structured{.data = res});
-
-    } else if (exp.name == "gantt") {
-        ExporterGantt exporter;
-        exporter.evalTop(top);
-        return ER(ER::Structured{.data = json()});
-
-    } else if (exp.name == "latex") {
-        ExporterLatex run;
-        return withTreeExporter(top, run.b, run);
-
-    } else if (exp.name == "subtree_structure") {
-        return ER(ER::Structured{
-            .data = ExporterSubtreeStructure().evalTop(top)});
-
-    } else if (exp.name == "mmap") {
-        ExporterMindMap run;
-        run.evalTop(top);
-        ExporterMindMap::Graph const& g = run.toGraph();
-        ER::JsonGraph                 result;
-
-        for (auto [it, it_end] = boost::edges(g); it != it_end; ++it) {
-            result.edges.push_back(run.toJsonGraphEdge(*it));
-        }
-
-        for (auto [it, it_end] = boost::vertices(g); it != it_end; ++it) {
-            result.nodes.push_back(run.toJsonGraphNode(*it));
-        }
-
-        if (exp.print) {
-            QString     buf;
-            QTextStream stream{&buf};
-            if (!result.nodes.empty()) {
-                stream << "nodes:\n";
-                for (auto const& node : result.nodes) {
-                    stream << "  - "
-                           << to_compact_json(
-                                  node, {.startIndent = 6, .width = 160})
-                           << "\n";
-                }
-            }
-
-            if (!result.edges.empty()) {
-                stream << "edges:\n";
-                for (auto const& edge : result.edges) {
-                    stream << "  - "
-                           << to_compact_json(
-                                  edge, {.startIndent = 6, .width = 160})
-                           << "\n";
-                }
-            }
-
-            writeFileOrStdout(
-                spec.debugFile(exp.name + "result.txt"),
-                buf + "\n\n" + run.toGraphviz() + "\n\n",
-                exp.printToFile);
-        }
-
-        return ER(result);
-
     } else {
         throw std::domain_error(
             "Unexpected export result name " + exp.name.toStdString());
@@ -641,109 +540,6 @@ CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
     cmp.isOk = true;
     ColStream os;
     switch (result.getKind()) {
-        case ExportResult::Kind::JsonGraph: {
-            auto const& res = result.getJsonGraph();
-            if (exp.expected["nodes"]) {
-                UnorderedMap<std::string, json> given;
-                for (auto const& node : res.nodes) {
-                    given[node["metadata"]["id"].get<std::string>()] = node;
-                }
-
-                for (auto const& node : exp.expected["nodes"]) {
-                    auto id = node["metadata"]["id"].as<std::string>();
-                    if (given.contains(id)) {
-                        int  failCount = 0;
-                        auto expected  = toJson(node);
-                        for (auto const& it :
-                             json_diff(given.at(id), expected)) {
-                            if (it.op == DiffItem::Op::Remove) {
-                                continue;
-                            }
-                            json::json_pointer path{it.path};
-                            os << "- Node with ID '" << id << "'";
-                            describeDiff(os, it, expected, given.at(id));
-                            os << "\n";
-                            ++failCount;
-                        }
-
-                        if (0 < failCount) {
-                            cmp.isOk = false;
-                        }
-
-                    } else {
-                        cmp.isOk = false;
-                        os << "Node with ID '" << os.red() << id
-                           << os.end() << "' missing\n";
-                    }
-                }
-            }
-
-            if (exp.expected["edges"]) {
-                UnorderedMap<
-                    Pair<Pair<std::string, int>, std::string>,
-                    Vec<json>>
-                    generated_map;
-
-                for (auto const& edge : res.edges) {
-                    generated_map
-                        [std::make_pair(
-                             std::make_pair(
-                                 edge["source"].get<std::string>(),
-                                 edge["metadata"]["out_index"].get<int>()),
-                             edge["target"].get<std::string>())]
-                            .push_back(edge);
-                }
-
-                for (auto const& edge_expected : exp.expected["edges"]) {
-                    std::string source = edge_expected["source"]
-                                             .as<std::string>();
-                    std::string target = edge_expected["target"]
-                                             .as<std::string>();
-
-                    int out_index = edge_expected["metadata"]["out_index"]
-                                        .as<int>(0);
-
-                    auto key = std::make_pair(
-                        std::make_pair(source, out_index), target);
-
-                    json expected_json = toJson(edge_expected);
-
-                    if (generated_map.contains(key)
-                        && !generated_map[key].empty()) {
-                        for (auto const& given_json : generated_map[key]) {
-                            int failCount = 0;
-                            for (auto const& it :
-                                 json_diff(given_json, expected_json)) {
-                                if (it.op == DiffItem::Op::Remove) {
-                                    continue;
-                                } else {
-                                    ++failCount;
-                                    json::json_pointer path{it.path};
-                                    os << "- Edge No " << out_index
-                                       << " between '" << source << "' '"
-                                       << target << "' differs: ";
-                                    describeDiff(
-                                        os, it, expected_json, given_json);
-                                    os << "\n";
-                                }
-                            }
-
-                            if (0 < failCount) {
-                                cmp.isOk = false;
-                            }
-                        }
-                    } else {
-                        cmp.isOk = false;
-                        os << "No edge between nodes '" << os.red()
-                           << source << "' and '" << target << os.end()
-                           << "'\n";
-                        os << "  expected " << expected_json.dump()
-                           << "\n";
-                    }
-                }
-            }
-            break;
-        }
         default: {
             qCritical() << ("TODO" + to_string(result.getKind()));
             cmp.isOk = true;

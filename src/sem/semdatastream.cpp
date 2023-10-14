@@ -74,12 +74,13 @@ struct SerdeDefaultProvider<sem::SubtreeLog::Priority> {
 };
 
 
-template <>
-struct SerdeDefaultProvider<sem::Code::Switch> {
-    static sem::Code::Switch get() {
-        return sem::Code::Switch{sem::Code::Switch::Dedent{}};
-    }
-};
+//template <>
+//struct SerdeDefaultProvider<sem::Code::Switch> {
+//    static sem::Code::Switch get() {
+//        return sem::Code::Switch{
+//            sem::Code::Switch::Data{sem::Code::Switch::Dedent{}}};
+//    }
+//};
 
 template <>
 struct SerdeDefaultProvider<sem::Code::Switch::LineStart> {
@@ -235,19 +236,6 @@ QDataStream& operator<<(QDataStream& out, OrgAdapter const& value) {
     return out;
 }
 
-QDataStream& operator>>(QDataStream& in, sem::Org& value) {
-    in >> value.subnodes >> value.loc >> value.original >> value.parent
-        >> value.placementContext;
-    return in;
-}
-
-QDataStream& operator<<(QDataStream& out, sem::Org const& value) {
-    out << value.subnodes << value.loc << value.original << value.parent
-        << value.placementContext;
-    return out;
-}
-
-
 template <DescribedRecord T>
 QDataStream& operator<<(QDataStream& out, T const& value) {
     mp_for_each<describe_bases<T, mod_any_access>>([&](auto Base) {
@@ -273,7 +261,7 @@ QDataStream& operator>>(QDataStream& out, T& value) {
     return out;
 }
 
-template <typename T>
+template <DescribedRecord T>
 void write_value(QDataStream& out, T const& value) {
     mp_for_each<describe_bases<T, mod_any_access>>([&](auto Base) {
         write_value<typename decltype(Base)::type>(out, value);
@@ -283,7 +271,7 @@ void write_value(QDataStream& out, T const& value) {
         [&](auto const& field) { out << value.*field.pointer; });
 }
 
-template <typename T>
+template <DescribedRecord T>
 void read_value(QDataStream& out, T& value) {
     using Bd = describe_bases<T, mod_any_access>;
     mp_for_each<Bd>([&](auto Base) {
@@ -299,7 +287,9 @@ void read_store(QDataStream& in, sem::KindStore<Kind>& store) {
     int size = 0;
     in >> size;
     store.values.resize(size);
-    for (auto& value : store.values) {
+    for (Kind& value : store.values) {
+        in >> value.subnodes >> value.loc >> value.original >> value.parent
+            >> value.placementContext;
         read_value(in, value);
     }
 }
@@ -307,7 +297,9 @@ void read_store(QDataStream& in, sem::KindStore<Kind>& store) {
 template <typename Kind>
 void write_store(QDataStream& out, sem::KindStore<Kind> const& store) {
     out << store.size();
-    for (auto const& value : store.values) {
+    for (Kind const& value : store.values) {
+        out << value.subnodes << value.loc << value.original
+            << value.parent << value.placementContext;
         write_value(out, value);
     }
 }
@@ -329,6 +321,7 @@ void SemDataStream::read(QDataStream& in, sem::ParseUnitStore& store) {
         }
     }
 }
+
 
 void SemDataStream::write(
     QDataStream&               out,
@@ -356,7 +349,6 @@ void SemDataStream::write(
 void SemDataStream::read(QDataStream& in, sem::ContextStore* store) {
     int storeCount = 0;
     in >> storeCount;
-    _dbg(storeCount);
     Q_ASSERT_X(storeCount == 1, "DBG", to_string(storeCount));
     currentContenxt = store;
     store->stores.resize(storeCount, store);
@@ -370,8 +362,25 @@ void SemDataStream::write(
     QDataStream&             out,
     const sem::ContextStore& store) {
     out << (int)store.stores.size();
-    _dbg(store.stores.size());
     for (auto const& unit : store.stores) {
         write(out, unit);
     }
+}
+
+void SemDataStream::read(
+    QDataStream&       in,
+    sem::ContextStore* store,
+    sem::SemId*        rootNode) {
+    in >> rootNode->id;
+    rootNode->context = store;
+    read(in, store);
+}
+
+
+void SemDataStream::write(
+    QDataStream&             out,
+    const sem::ContextStore& store,
+    const sem::SemId&        rootNode) {
+    out << rootNode.id;
+    write(out, store);
 }

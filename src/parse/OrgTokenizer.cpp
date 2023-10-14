@@ -356,6 +356,7 @@ struct OrgTokenizerImpl
     /// construct.
     bool atConstructStart(CR<PosStr> str);
     bool atSubtreeStart(CR<PosStr> str);
+    bool atNonParagraph(CR<PosStr> str);
 
     using LexerStateSimple = LexerState<char>;
 
@@ -389,7 +390,7 @@ struct OrgTokenizerImpl
 
     bool lexSingleProperty(PosStr& str, PosStr const& id);
 
-#define _def(Kind) virtual bool lex##Kind(PosStr& str) override;
+#define _def(Kind) bool lex##Kind(PosStr& str) override;
     EACH_SIMPLE_TOKENIZER_METHOD(_def);
 #undef _def
 
@@ -2744,6 +2745,27 @@ bool OrgTokenizerImpl<TraceState>::atSubtreeStart(CR<PosStr> str) {
 }
 
 template <bool TraceState>
+bool OrgTokenizerImpl<TraceState>::atNonParagraph(CR<PosStr> str) {
+    if (str.finished()) {
+        return true;
+    } else if (1 < getVerticalSpaceCount(str)) {
+        return true;
+    } else if (isFirstOnLine(str)) {
+        if (atConstructStart(str)) {
+            return true;
+        } else if (atListAhead(str)) {
+            return true;
+        } else if (atLogClock(spaced(str))) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+
+template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::atConstructStart(CR<PosStr> str) {
     if (!isFirstOnLine(str)) {
         return false;
@@ -3105,15 +3127,7 @@ bool OrgTokenizerImpl<TraceState>::lexParagraph(PosStr& str) {
     int        startPos = str.getPos();
     str.pushSlice();
     while (!str.finished() && !ended) {
-        if (atConstructStart(str)      //
-            || atListAhead(str)        //
-            || str.finished()          //
-            || atLogClock(spaced(str)) // HACK for now this is used to make
-            // paragraph lexing more uniform,
-            // but in general it should be moved
-            // to a more complex parsing
-            // strategy
-            || 1 < getVerticalSpaceCount(str)) {
+        if (atNonParagraph(str)) {
             ended = true;
         } else {
             str.next();

@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+// Fully qualified C++ type that is designed to uniquely identify the target
+// within a single translation unit. More complex cases are not considered
+// (duplicate type names in different files, across different projects)
+message QualType {
+    // Unmangled type name
+    string Name = 1;
+    // List of wrapping spaces that would allow to uniquely jump to the
+    // type. If something was implicit in the code it will still be listed
+    // fully here.
+    repeated QualType Spaces = 2;
+    // List of template type parameters for the type instance. Qualified types
+    // that are used as parent types can also have parameters.
+    repeated QualType Parameters = 3;
+    // `T const` vs `T`
+    bool IsConst = 4;
+    // `T&` vs `T&` (TODO r-value ref)
+    bool IsRef = 5;
+    // `std::vector` -- std will also be handled as qualified type to
+    // avoid making more complicated spaces structure. TODO revise if
+    // `repeated string Spaces` + `repated QualType Parents` will be
+    // a better alternative.
+    bool IsNamespace = 6;
+    string DbgOrigin = 7;
+}
+
+// Enumeration definition
+message Enum {
+    message Field  {
+        string Name = 1;
+        string Value = 2;
+    }
+
+    repeated Field Fields = 1;
+    string Name = 2;
+    QualType Base = 3;
+    string Doc = 4;
+}
+
+
+enum ExprKind {
+    Lit = 0;
+}
+
+// Simplified representation of arbitrary expression
+message Expr {
+    ExprKind Kind = 1;
+    string Value = 2;
+    repeated Expr Sub = 3;
+}
+
+message Arg {
+    QualType Type = 1;
+    string Name = 2;
+    Expr Default = 3;
+    string Doc = 4;
+}
+
+
+message TemplateTypename {
+    bool IsVariadic = 1;
+    bool IsPlaceholder = 2;
+    string Name = 3;
+    repeated TemplateTypename Nested = 4;
+    string Concept = 5;
+}
+
+message Record {
+    message Field {
+        string Name = 1;
+        QualType Type = 2;
+        string Doc = 3;
+    }
+
+    enum MethodKind {
+        Base = 0;
+        CopyConstructor = 1;
+        MoveConstructor = 2;
+        CopyAssignmentOperator = 3;
+        MoveAssignmentOperator = 4;
+        Destructor = 5;
+        DefaultConstructor = 6;
+        ConvertingConstructor =  7;
+    }
+
+    message Method {
+        QualType ReturnTy = 1;
+        repeated Arg Args = 2;
+        string Name = 3;
+        bool IsConst = 4;
+        bool IsStatic = 5;
+        bool IsVirtual = 6 ;
+        bool IsPureVirtual = 7;
+        bool IsImplicit = 8;
+        bool IsOperator = 9;
+        MethodKind Kind = 10;
+        string Doc = 11;
+        string OperatorName = 12;
+    }
+
+    string Name = 1;
+    repeated QualType Bases = 2;
+    repeated Field Fields = 3;
+    repeated Method Methods = 4;
+    repeated Record NestedRec = 5;
+    repeated Enum NestedEnum = 6;
+    string Doc = 7;
+}
+
+message TU {
+    repeated Record records = 1;
+    repeated Enum enums = 2;
+    string Doc = 3;
+}

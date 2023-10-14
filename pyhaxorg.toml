@@ -1,0 +1,14 @@
+cache = "/tmp"
+trace_path = "/tmp/pyhaxorg_trace.json"
+
+[export.tex]
+out_file = "/tmp/result.tex"
+
+[export.sem-tree]
+out_file = "/tmp/result.txt"
+
+[export.json]
+out_file = "/tmp/result.json"
+
+[export.yaml]
+out_file = "/tmp/result.yaml"

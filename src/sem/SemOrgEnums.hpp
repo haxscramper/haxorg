@@ -123,68 +123,7 @@ struct value_domain<OrgVerticalDirection> : public value_domain_ungapped<OrgVert
                                                                          OrgVerticalDirection::ovdNone,
                                                                          OrgVerticalDirection::ovdBottom> {};
 
-enum class OrgSpecName : short int {
-  Unnamed,
-  Result,
-  Year,
-  Day,
-  Clock,
-  Repeater,
-  Link,
-  Tags,
-  Tag,
-  State,
-  Protocol,
-  Desc,
-  Times,
-  Drawer,
-  Args,
-  Name,
-  Definition,
-  Body,
-  HeaderArgs,
-  File,
-  Kind,
-  Lang,
-  Prefix,
-  Text,
-  Todo,
-  Urgency,
-  Title,
-  Completion,
-  Head,
-  Subnodes,
-  Properties,
-  Logbook,
-  Description,
-  Logs,
-  Newstate,
-  Oldstate,
-  Time,
-  From,
-  EndArgs,
-  Flags,
-  Value,
-  Assoc,
-  Main,
-  Hash,
-  Bullet,
-  Counter,
-  Checkbox,
-  Header,
-  To,
-  Diff,
-  Property,
-  Subname,
-  Values,
-  Cells,
-  Rows,
-  Lines,
-  Chunks,
-  InheritanceMode,
-  MainSetRule,
-  SubSetRule,
-};
+enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Urgency, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
 template <>
 struct enum_serde<OrgSpecName> {
   static Opt<OrgSpecName> from_string(QString value);
@@ -502,29 +441,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::Target> {};
 
-enum class OrgTextContext : short int {
-  otcPlain,
-  otcSubtree0,
-  otcSubtree1,
-  otcSubtree2,
-  otcSubtree3,
-  otcSubtree4,
-  otcSubtree5,
-  otcSubtree6,
-  otcSubtree7,
-  otcSubtree8,
-  otcSubtree9,
-  otcSubtree10,
-  otcSubtree11,
-  otcSubtree12,
-  otcSubtreeOther,
-  otcBold,
-  otcItalic,
-  otcStrike,
-  otcUnderline,
-  otcMonospaceInline,
-  otcMonospaceBlock,
-};
+enum class OrgTextContext : short int { otcPlain, otcSubtree0, otcSubtree1, otcSubtree2, otcSubtree3, otcSubtree4, otcSubtree5, otcSubtree6, otcSubtree7, otcSubtree8, otcSubtree9, otcSubtree10, otcSubtree11, otcSubtree12, otcSubtreeOther, otcBold, otcItalic, otcStrike, otcUnderline, otcMonospaceInline, otcMonospaceBlock, };
 template <>
 struct enum_serde<OrgTextContext> {
   static Opt<OrgTextContext> from_string(QString value);
@@ -1071,35 +988,7 @@ struct value_domain<OrgCommandKind> : public value_domain_ungapped<OrgCommandKin
                                                                    OrgCommandKind::None,
                                                                    OrgCommandKind::TableFormula> {};
 
-enum class OrgPropertyKind : short int {
-  Title,
-  Author,
-  Date,
-  Email,
-  Language,
-  Url,
-  SourceUrl,
-  AttrImg,
-  Toplevel,
-  Blocker,
-  Created,
-  Unnumbered,
-  Trigger,
-  Ordered,
-  Noblocking,
-  ExportOptions,
-  BackendExportOptions,
-  AttrBackend,
-  ColumnSpec,
-  Name,
-  Caption,
-  LinkAbbrev,
-  Filetags,
-  TagConf,
-  LatexHeader,
-  OtherProperty,
-  Id,
-};
+enum class OrgPropertyKind : short int { Title, Author, Date, Email, Language, Url, SourceUrl, AttrImg, Toplevel, Blocker, Created, Unnumbered, Trigger, Ordered, Noblocking, ExportOptions, BackendExportOptions, AttrBackend, ColumnSpec, Name, Caption, LinkAbbrev, Filetags, TagConf, LatexHeader, OtherProperty, Id, };
 template <>
 struct enum_serde<OrgPropertyKind> {
   static Opt<OrgPropertyKind> from_string(QString value);
@@ -1111,11 +1000,7 @@ struct value_domain<OrgPropertyKind> : public value_domain_ungapped<OrgPropertyK
                                                                     OrgPropertyKind::Title,
                                                                     OrgPropertyKind::Id> {};
 
-enum class OrgUnnumberedKind : short int {
-  Notoc,
-  True,
-  False,
-};
+enum class OrgUnnumberedKind : short int { Notoc, True, False, };
 template <>
 struct enum_serde<OrgUnnumberedKind> {
   static Opt<OrgUnnumberedKind> from_string(QString value);
@@ -1127,13 +1012,7 @@ struct value_domain<OrgUnnumberedKind> : public value_domain_ungapped<OrgUnnumbe
                                                                       OrgUnnumberedKind::Notoc,
                                                                       OrgUnnumberedKind::False> {};
 
-enum class OrgBlockLexerState : short int {
-  None,
-  InHeader,
-  InBody,
-  Ended,
-  Complete,
-};
+enum class OrgBlockLexerState : short int { None, InHeader, InBody, Ended, Complete, };
 template <>
 struct enum_serde<OrgBlockLexerState> {
   static Opt<OrgBlockLexerState> from_string(QString value);
@@ -1145,60 +1024,7 @@ struct value_domain<OrgBlockLexerState> : public value_domain_ungapped<OrgBlockL
                                                                        OrgBlockLexerState::None,
                                                                        OrgBlockLexerState::Complete> {};
 
-enum class OrgSemKind : short int {
-  StmtList,
-  Empty,
-  Row,
-  Table,
-  HashTag,
-  Footnote,
-  Completion,
-  Paragraph,
-  Center,
-  Caption,
-  CommandGroup,
-  Quote,
-  Example,
-  CmdArguments,
-  CmdArgument,
-  Export,
-  AdmonitionBlock,
-  Code,
-  Time,
-  TimeRange,
-  Macro,
-  Symbol,
-  SubtreeLog,
-  Subtree,
-  InlineMath,
-  Escaped,
-  Newline,
-  Space,
-  Word,
-  AtMention,
-  RawText,
-  Punctuation,
-  Placeholder,
-  BigIdent,
-  Bold,
-  Underline,
-  Monospace,
-  MarkQuote,
-  Verbatim,
-  Italic,
-  Strike,
-  Par,
-  List,
-  ListItem,
-  Link,
-  Document,
-  ParseError,
-  FileTarget,
-  TextSeparator,
-  Include,
-  DocumentOptions,
-  DocumentGroup,
-};
+enum class OrgSemKind : short int { StmtList, Empty, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CommandGroup, Quote, Example, CmdArguments, CmdArgument, Export, AdmonitionBlock, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, Document, ParseError, FileTarget, TextSeparator, Include, DocumentOptions, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(QString value);

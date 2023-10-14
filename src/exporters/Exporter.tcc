@@ -243,9 +243,9 @@ template <typename V, typename R>
 void Exporter<V, R>::visitTime(R& res, In<sem::Time> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, isActive);
+  __org_field(res, object, time);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-  __org_field(res, object, time);
 }
 
 template <typename V, typename R>
@@ -304,9 +304,9 @@ void Exporter<V, R>::visit(R& res, sem::SubtreeLog::LogEntry const& object) { vi
 template <typename V, typename R>
 void Exporter<V, R>::visitSubtreeLog(R& res, In<sem::SubtreeLog> object) {
   __visit_specific_kind(res, object);
+  __org_field(res, object, log);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-  __org_field(res, object, log);
 }
 
 template <typename V, typename R>
@@ -619,9 +619,9 @@ template <typename V, typename R>
 void Exporter<V, R>::visitLink(R& res, In<sem::Link> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, description);
+  __org_field(res, object, data);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-  __org_field(res, object, data);
 }
 
 template <typename V, typename R>
@@ -690,9 +690,9 @@ void Exporter<V, R>::visit(R& res, sem::Include::Data const& object) { visitVari
 template <typename V, typename R>
 void Exporter<V, R>::visitInclude(R& res, In<sem::Include> object) {
   __visit_specific_kind(res, object);
+  __org_field(res, object, data);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
-  __org_field(res, object, data);
 }
 
 template <typename V, typename R>

@@ -14,7 +14,7 @@
 #include <sem/SemOrgEnums.hpp>
 namespace sem{
 /// \brief Base class for all document-level entries. Note that some node kinds might also have inline entries (examples include links, source code blocks, call blocks)
-struct Stmt : public Org {
+struct Stmt : public sem::Org {
   using Org::Org;
   Stmt() {}
   Stmt(SemId parent, CVec<SemId> attached, CVec<SemId> subnodes) : Org(parent, subnodes), attached(attached) {}
@@ -28,13 +28,13 @@ struct Stmt : public Org {
 };
 
 /// \brief Base class for all inline elements
-struct Inline : public Org {
+struct Inline : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(Inline, (Org), (), (), ())
 };
 
 /// \brief Zero or more statement nodes
-struct StmtList : public Org {
+struct StmtList : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(StmtList,
                        (Org),
@@ -50,7 +50,7 @@ struct StmtList : public Org {
 };
 
 /// \brief Node without content
-struct Empty : public Org {
+struct Empty : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(Empty,
                        (Org),
@@ -66,7 +66,7 @@ struct Empty : public Org {
 };
 
 /// \brief Table row
-struct Row : public Org {
+struct Row : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(Row,
                        (Org),
@@ -82,7 +82,7 @@ struct Row : public Org {
 };
 
 /// \brief Table
-struct Table : public Stmt {
+struct Table : public sem::Stmt {
   using Stmt::Stmt;
   BOOST_DESCRIBE_CLASS(Table,
                        (Stmt),
@@ -101,7 +101,7 @@ struct Table : public Stmt {
 };
 
 /// \brief Single or nested inline hash-tag
-struct HashTag : public Inline {
+struct HashTag : public sem::Inline {
   using Inline::Inline;
   BOOST_DESCRIBE_CLASS(HashTag,
                        (Inline),
@@ -128,7 +128,7 @@ struct HashTag : public Inline {
 /// \brief Inline and regular footnote definition
 ///
 /// \note in-text link to the footnotes are implemented using `Link` nodes
-struct Footnote : public Inline {
+struct Footnote : public sem::Inline {
   using Inline::Inline;
   BOOST_DESCRIBE_CLASS(Footnote,
                        (Inline),
@@ -150,7 +150,7 @@ struct Footnote : public Inline {
 };
 
 /// \brief Completion status of the subtree list element
-struct Completion : public Inline {
+struct Completion : public sem::Inline {
   using Inline::Inline;
   BOOST_DESCRIBE_CLASS(Completion,
                        (Inline),
@@ -175,7 +175,7 @@ struct Completion : public Inline {
 };
 
 /// \brief Top-level or inline paragraph
-struct Paragraph : public Stmt {
+struct Paragraph : public sem::Stmt {
   using Stmt::Stmt;
   BOOST_DESCRIBE_CLASS(Paragraph,
                        (Stmt),
@@ -194,13 +194,13 @@ struct Paragraph : public Stmt {
 };
 
 /// \brief Base class for branch of formatting node classes
-struct Format : public Org {
+struct Format : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(Format, (Org), (), (), ())
 };
 
 /// \brief Center nested content in export
-struct Center : public Format {
+struct Center : public sem::Format {
   using Format::Format;
   BOOST_DESCRIBE_CLASS(Center,
                        (Format),
@@ -216,31 +216,31 @@ struct Center : public Format {
 };
 
 /// \brief Base class for block or line commands
-struct Command : public Org {
+struct Command : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(Command, (Org), (), (), ())
 };
 
 /// \brief Line commands
-struct LineCommand : public Command {
+struct LineCommand : public sem::Command {
   using Command::Command;
   BOOST_DESCRIBE_CLASS(LineCommand, (Command), (), (), ())
 };
 
 /// \brief Standalone commands that can be placed individuall on the the top level and don't have to be attached to any subsequent elements
-struct Standalone : public LineCommand {
+struct Standalone : public sem::LineCommand {
   using LineCommand::LineCommand;
   BOOST_DESCRIBE_CLASS(Standalone, (LineCommand), (), (), ())
 };
 
 /// \brief Line command that might get attached to some block element
-struct Attached : public LineCommand {
+struct Attached : public sem::LineCommand {
   using LineCommand::LineCommand;
   BOOST_DESCRIBE_CLASS(Attached, (LineCommand), (), (), ())
 };
 
 /// \brief Caption annotation for any subsequent node
-struct Caption : public Attached {
+struct Caption : public sem::Attached {
   using Attached::Attached;
   BOOST_DESCRIBE_CLASS(Caption,
                        (Attached),
@@ -259,7 +259,7 @@ struct Caption : public Attached {
 };
 
 /// \brief Multiple attachable commands will get grouped into this element unless it is possible to attached them to some adjacent block command
-struct CommandGroup : public Stmt {
+struct CommandGroup : public sem::Stmt {
   using Stmt::Stmt;
   BOOST_DESCRIBE_CLASS(CommandGroup,
                        (Stmt),
@@ -275,13 +275,13 @@ struct CommandGroup : public Stmt {
 };
 
 /// \brief Block command type
-struct Block : public Command {
+struct Block : public sem::Command {
   using Command::Command;
   BOOST_DESCRIBE_CLASS(Block, (Command), (), (), ())
 };
 
 /// \brief Quotation block
-struct Quote : public Org {
+struct Quote : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(Quote,
                        (Org),
@@ -300,7 +300,7 @@ struct Quote : public Org {
 };
 
 /// \brief Example block
-struct Example : public Block {
+struct Example : public sem::Block {
   using Block::Block;
   BOOST_DESCRIBE_CLASS(Example,
                        (Block),
@@ -316,7 +316,7 @@ struct Example : public Block {
 };
 
 /// \brief Additional arguments for command blocks
-struct CmdArguments : public Org {
+struct CmdArguments : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(CmdArguments,
                        (Org),
@@ -343,7 +343,7 @@ struct CmdArguments : public Org {
 };
 
 /// \brief Single key-value (or positional)
-struct CmdArgument : public Org {
+struct CmdArgument : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(CmdArgument,
                        (Org),
@@ -374,7 +374,7 @@ struct CmdArgument : public Org {
 };
 
 /// \brief Direct export passthrough
-struct Export : public Block {
+struct Export : public sem::Block {
   using Block::Block;
   /// \brief Export block format type
   enum class Format : short int {
@@ -401,7 +401,7 @@ struct Export : public Block {
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Export block type
-  Format format = Format::Inline;
+  sem::Export::Format format = Format::Inline;
   /// \brief Exporter backend name
   Str exporter;
   /// \brief Additional parameters aside from 'exporter',
@@ -415,7 +415,7 @@ struct Export : public Block {
 };
 
 /// \brief Block of text with admonition tag: 'note',', 'warning','
-struct AdmonitionBlock : public Block {
+struct AdmonitionBlock : public sem::Block {
   using Block::Block;
   BOOST_DESCRIBE_CLASS(AdmonitionBlock,
                        (Block),
@@ -431,12 +431,14 @@ struct AdmonitionBlock : public Block {
 };
 
 /// \brief Base class for all code blocks
-struct Code : public Block {
+struct Code : public sem::Block {
   using Block::Block;
   /// \brief Extra configuration switches that can be used to control representation of the rendered code block. This field does not exactly correspond to the `-XX` parameters that can be passed directly in the field, but also works with attached `#+options` from the block
   struct Switch {
+    Switch() {}
     /// \brief Enumerate code lines starting from `start` value instead of default indexing.
     struct LineStart {
+      LineStart() {}
       BOOST_DESCRIBE_CLASS(LineStart, (), (), (), (start, extendLast))
       /// \brief First line number
       int start;
@@ -445,33 +447,65 @@ struct Code : public Block {
     };
 
     struct CalloutFormat {
+      CalloutFormat() {}
       BOOST_DESCRIBE_CLASS(CalloutFormat, (), (), (), (format))
       Str format = "";
     };
 
     struct RemoveCallout {
+      RemoveCallout() {}
       BOOST_DESCRIBE_CLASS(RemoveCallout, (), (), (), (remove))
       bool remove = true;
     };
 
     /// \brief Emphasize single line -- can be repeated multiple times
     struct EmphasizeLine {
+      EmphasizeLine() {}
       BOOST_DESCRIBE_CLASS(EmphasizeLine, (), (), (), (line))
       Vec<int> line = {};
     };
 
     struct Dedent {
+      Dedent() {}
       BOOST_DESCRIBE_CLASS(Dedent, (), (), (), (value))
       int value = 0;
     };
 
-    SUB_VARIANTS(Kind, Data, data, getKind, LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent);
-    Data data;
+    using Data = std::variant<LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent>;
+    enum class Kind : short int { LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent, };
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, LineStart, CalloutFormat, RemoveCallout, EmphasizeLine, Dedent)
+    using variant_enum_type = sem::Code::Switch::Kind;
+    using variant_data_type = sem::Code::Switch::Data;
     BOOST_DESCRIBE_CLASS(Switch,
                          (),
                          (),
                          (),
-                         (data, (Kind() const) getKind))
+                         (data,
+                          (sem::Code::Switch::LineStart const&() const) getLineStart,
+                          (sem::Code::Switch::LineStart&()) getLineStart,
+                          (sem::Code::Switch::CalloutFormat const&() const) getCalloutFormat,
+                          (sem::Code::Switch::CalloutFormat&()) getCalloutFormat,
+                          (sem::Code::Switch::RemoveCallout const&() const) getRemoveCallout,
+                          (sem::Code::Switch::RemoveCallout&()) getRemoveCallout,
+                          (sem::Code::Switch::EmphasizeLine const&() const) getEmphasizeLine,
+                          (sem::Code::Switch::EmphasizeLine&()) getEmphasizeLine,
+                          (sem::Code::Switch::Dedent const&() const) getDedent,
+                          (sem::Code::Switch::Dedent&()) getDedent,
+                          (sem::Code::Switch::Kind(sem::Code::Switch::Data const&)) getKind,
+                          (sem::Code::Switch::Kind() const) getKind))
+    sem::Code::Switch::Data data;
+    sem::Code::Switch::LineStart const& getLineStart() const { return std::get<0>(data); }
+    sem::Code::Switch::LineStart& getLineStart() { return std::get<0>(data); }
+    sem::Code::Switch::CalloutFormat const& getCalloutFormat() const { return std::get<1>(data); }
+    sem::Code::Switch::CalloutFormat& getCalloutFormat() { return std::get<1>(data); }
+    sem::Code::Switch::RemoveCallout const& getRemoveCallout() const { return std::get<2>(data); }
+    sem::Code::Switch::RemoveCallout& getRemoveCallout() { return std::get<2>(data); }
+    sem::Code::Switch::EmphasizeLine const& getEmphasizeLine() const { return std::get<3>(data); }
+    sem::Code::Switch::EmphasizeLine& getEmphasizeLine() { return std::get<3>(data); }
+    sem::Code::Switch::Dedent const& getDedent() const { return std::get<4>(data); }
+    sem::Code::Switch::Dedent& getDedent() { return std::get<4>(data); }
+    static sem::Code::Switch::Kind getKind(sem::Code::Switch::Data const& __input) { return static_cast<sem::Code::Switch::Kind>(__input.index()); }
+    sem::Code::Switch::Kind getKind() const { return getKind(data); }
   };
 
   /// \brief What to do with newly evaluated result
@@ -513,9 +547,9 @@ struct Code : public Block {
   /// \brief Code block language name
   Opt<Str> lang = std::nullopt;
   /// \brief Switch options for block
-  Vec<Switch> switches = {};
+  Vec<sem::Code::Switch> switches = {};
   /// \brief What to export
-  Exports exports = Exports::Both;
+  sem::Code::Exports exports = Exports::Both;
   /// \brief Additional parameters that are language-specific
   sem::SemIdT<sem::CmdArguments> parameters = SemIdT<CmdArguments>::Nil();
   /// \brief Do cache values?
@@ -533,7 +567,7 @@ struct Code : public Block {
 };
 
 /// \brief Single static or dynamic timestamp (active or inactive)
-struct Time : public Org {
+struct Time : public sem::Org {
   using Org::Org;
   bool isStatic() const { return std::holds_alternative<Static>(time); }
   /// \brief Repetition information for static time
@@ -551,27 +585,20 @@ struct Time : public Org {
     };
     BOOST_DESCRIBE_NESTED_ENUM(Mode, None, Exact, FirstMatch, SameDay)
     /// \brief Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well
-    enum class Period : short int {
-      Year,
-      Month,
-      Week,
-      Day,
-      Hour,
-      Minute,
-    };
+    enum class Period : short int { Year, Month, Week, Day, Hour, Minute, };
     BOOST_DESCRIBE_NESTED_ENUM(Period, Year, Month, Week, Day, Hour, Minute)
     BOOST_DESCRIBE_CLASS(Repeat, (), (), (), (mode, period, count))
     /// \brief mode
-    Mode mode;
+    sem::Time::Repeat::Mode mode;
     /// \brief period
-    Period period;
+    sem::Time::Repeat::Period period;
     /// \brief count
     int count;
   };
 
   struct Static {
     BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, time))
-    Opt<Repeat> repeat;
+    Opt<sem::Time::Repeat> repeat;
     UserTime time;
   };
 
@@ -580,8 +607,11 @@ struct Time : public Org {
     Str expr;
   };
 
-  SUB_VARIANTS(TimeKind, TimeVariant, time, getTimeKind, Static, Dynamic);
-  TimeVariant time;
+  using TimeVariant = std::variant<Static, Dynamic>;
+  enum class TimeKind : short int { Static, Dynamic, };
+  BOOST_DESCRIBE_NESTED_ENUM(TimeKind, Static, Dynamic)
+  using variant_enum_type = sem::Time::TimeKind;
+  using variant_data_type = sem::Time::TimeVariant;
   BOOST_DESCRIBE_CLASS(Time,
                        (Org),
                        (),
@@ -591,17 +621,29 @@ struct Time : public Org {
                         time,
                         (sem::SemIdT<Time>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (TimeKind() const) getTimeKind))
+                        (sem::Time::Static const&() const) getStatic,
+                        (sem::Time::Static&()) getStatic,
+                        (sem::Time::Dynamic const&() const) getDynamic,
+                        (sem::Time::Dynamic&()) getDynamic,
+                        (sem::Time::TimeKind(sem::Time::TimeVariant const&)) getTimeKind,
+                        (sem::Time::TimeKind() const) getTimeKind))
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief <active> vs [inactive]
   bool isActive = false;
+  sem::Time::TimeVariant time;
   static sem::SemIdT<Time> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Time; }
+  sem::Time::Static const& getStatic() const { return std::get<0>(time); }
+  sem::Time::Static& getStatic() { return std::get<0>(time); }
+  sem::Time::Dynamic const& getDynamic() const { return std::get<1>(time); }
+  sem::Time::Dynamic& getDynamic() { return std::get<1>(time); }
+  static sem::Time::TimeKind getTimeKind(sem::Time::TimeVariant const& __input) { return static_cast<sem::Time::TimeKind>(__input.index()); }
+  sem::Time::TimeKind getTimeKind() const { return getTimeKind(time); }
 };
 
 /// \brief Range of time delimited by two points
-struct TimeRange : public Org {
+struct TimeRange : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(TimeRange,
                        (Org),
@@ -623,7 +665,7 @@ struct TimeRange : public Org {
 };
 
 /// \brief Inline macro invocation
-struct Macro : public Org {
+struct Macro : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(Macro,
                        (Org),
@@ -645,7 +687,7 @@ struct Macro : public Org {
 };
 
 /// \brief Text symbol or symbol command
-struct Symbol : public Org {
+struct Symbol : public sem::Org {
   using Org::Org;
   /// \brief Symbol parameters
   struct Param {
@@ -671,7 +713,7 @@ struct Symbol : public Org {
   /// \brief Name of the symbol
   Str name;
   /// \brief Optional list of parameters
-  Vec<Param> parameters;
+  Vec<sem::Symbol::Param> parameters;
   /// \brief Positional parameters
   Vec<sem::SemId> positional;
   static sem::SemIdT<Symbol> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
@@ -679,24 +721,22 @@ struct Symbol : public Org {
 };
 
 /// \brief Single subtree log entry
-struct SubtreeLog : public Org {
+struct SubtreeLog : public sem::Org {
   using Org::Org;
   /// \brief Base value for the log variant
   struct DescribedLog {
+    DescribedLog() {}
     BOOST_DESCRIBE_CLASS(DescribedLog, (), (), (), (desc))
     /// \brief Optional description of the log entry
     Opt<sem::SemIdT<sem::StmtList>> desc = SemIdT<StmtList>::Nil();
   };
 
   /// \brief Priority added
-  struct Priority : public DescribedLog {
+  struct Priority : public sem::SubtreeLog::DescribedLog {
     /// \brief Priority change action
-    enum class Action : short int {
-      Added,
-      Removed,
-      Changed,
-    };
+    enum class Action : short int { Added, Removed, Changed, };
     BOOST_DESCRIBE_NESTED_ENUM(Action, Added, Removed, Changed)
+    Priority() {}
     BOOST_DESCRIBE_CLASS(Priority, (DescribedLog), (), (), (oldPriority, newPriority, on))
     /// \brief Previous priority for change and removal
     Opt<QString> oldPriority = std::nullopt;
@@ -707,14 +747,16 @@ struct SubtreeLog : public Org {
   };
 
   /// \brief Timestamped note
-  struct Note : public DescribedLog {
+  struct Note : public sem::SubtreeLog::DescribedLog {
+    Note() {}
     BOOST_DESCRIBE_CLASS(Note, (DescribedLog), (), (), (on))
     /// \brief Where log was taken
     sem::SemIdT<sem::Time> on = SemIdT<Time>::Nil();
   };
 
   /// \brief Refiling action
-  struct Refile : public DescribedLog {
+  struct Refile : public sem::SubtreeLog::DescribedLog {
+    Refile() {}
     BOOST_DESCRIBE_CLASS(Refile, (DescribedLog), (), (), (on, from))
     /// \brief When the refiling happened
     sem::SemIdT<sem::Time> on = SemIdT<Time>::Nil();
@@ -723,14 +765,16 @@ struct SubtreeLog : public Org {
   };
 
   /// \brief Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`
-  struct Clock : public DescribedLog {
+  struct Clock : public sem::SubtreeLog::DescribedLog {
+    Clock() {}
     BOOST_DESCRIBE_CLASS(Clock, (DescribedLog), (), (), (range))
     /// \brief Start-end or only start period
     Variant<sem::SemIdT<sem::Time>, sem::SemIdT<sem::TimeRange>> range = SemIdT<Time>::Nil();
   };
 
   /// \brief Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`
-  struct State : public DescribedLog {
+  struct State : public sem::SubtreeLog::DescribedLog {
+    State() {}
     BOOST_DESCRIBE_CLASS(State, (DescribedLog), (), (), (from, to, on))
     OrgBigIdentKind from;
     OrgBigIdentKind to;
@@ -738,7 +782,8 @@ struct SubtreeLog : public Org {
   };
 
   /// \brief Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`
-  struct Tag : public DescribedLog {
+  struct Tag : public sem::SubtreeLog::DescribedLog {
+    Tag() {}
     BOOST_DESCRIBE_CLASS(Tag, (DescribedLog), (), (), (on, tag, added))
     /// \brief When the log was assigned
     sem::SemIdT<sem::Time> on = SemIdT<Time>::Nil();
@@ -748,8 +793,11 @@ struct SubtreeLog : public Org {
     bool added = false;
   };
 
-  SUB_VARIANTS(Kind, LogEntry, log, getLogKind, Priority, Note, Refile, Clock, State, Tag);
-  LogEntry log = Note{};
+  using LogEntry = std::variant<Priority, Note, Refile, Clock, State, Tag>;
+  enum class Kind : short int { Priority, Note, Refile, Clock, State, Tag, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Priority, Note, Refile, Clock, State, Tag)
+  using variant_enum_type = sem::SubtreeLog::Kind;
+  using variant_data_type = sem::SubtreeLog::LogEntry;
   BOOST_DESCRIBE_CLASS(SubtreeLog,
                        (Org),
                        (),
@@ -759,19 +807,48 @@ struct SubtreeLog : public Org {
                         (sem::SemIdT<SubtreeLog>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
                         (void(sem::SemIdT<sem::StmtList>)) setDescription,
-                        (Kind() const) getLogKind))
+                        (sem::SubtreeLog::Priority const&() const) getPriority,
+                        (sem::SubtreeLog::Priority&()) getPriority,
+                        (sem::SubtreeLog::Note const&() const) getNote,
+                        (sem::SubtreeLog::Note&()) getNote,
+                        (sem::SubtreeLog::Refile const&() const) getRefile,
+                        (sem::SubtreeLog::Refile&()) getRefile,
+                        (sem::SubtreeLog::Clock const&() const) getClock,
+                        (sem::SubtreeLog::Clock&()) getClock,
+                        (sem::SubtreeLog::State const&() const) getState,
+                        (sem::SubtreeLog::State&()) getState,
+                        (sem::SubtreeLog::Tag const&() const) getTag,
+                        (sem::SubtreeLog::Tag&()) getTag,
+                        (sem::SubtreeLog::Kind(sem::SubtreeLog::LogEntry const&)) getLogKind,
+                        (sem::SubtreeLog::Kind() const) getLogKind))
   /// \brief Document
   static OrgSemKind const staticKind;
+  sem::SubtreeLog::LogEntry log = Note{};
   static sem::SemIdT<SubtreeLog> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::SubtreeLog; }
   void setDescription(sem::SemIdT<sem::StmtList> desc);
+  sem::SubtreeLog::Priority const& getPriority() const { return std::get<0>(log); }
+  sem::SubtreeLog::Priority& getPriority() { return std::get<0>(log); }
+  sem::SubtreeLog::Note const& getNote() const { return std::get<1>(log); }
+  sem::SubtreeLog::Note& getNote() { return std::get<1>(log); }
+  sem::SubtreeLog::Refile const& getRefile() const { return std::get<2>(log); }
+  sem::SubtreeLog::Refile& getRefile() { return std::get<2>(log); }
+  sem::SubtreeLog::Clock const& getClock() const { return std::get<3>(log); }
+  sem::SubtreeLog::Clock& getClock() { return std::get<3>(log); }
+  sem::SubtreeLog::State const& getState() const { return std::get<4>(log); }
+  sem::SubtreeLog::State& getState() { return std::get<4>(log); }
+  sem::SubtreeLog::Tag const& getTag() const { return std::get<5>(log); }
+  sem::SubtreeLog::Tag& getTag() { return std::get<5>(log); }
+  static sem::SubtreeLog::Kind getLogKind(sem::SubtreeLog::LogEntry const& __input) { return static_cast<sem::SubtreeLog::Kind>(__input.index()); }
+  sem::SubtreeLog::Kind getLogKind() const { return getLogKind(log); }
 };
 
 /// \brief Subtree
-struct Subtree : public Org {
+struct Subtree : public sem::Org {
   using Org::Org;
   /// \brief Type of the subtree associated time periods
   struct Period {
+    Period() {}
     /// \brief Period kind
     enum class Kind : short int {
       /// \brief Time period of the task execution.
@@ -800,7 +877,7 @@ struct Subtree : public Org {
     /// \brief Time period kind -- not associated with point/range distinction
     Kind kind;
     /// \brief Stored time point/range
-    Variant<sem::SemIdT<sem::Time>, sem::SemIdT<sem::TimeRange>> period;
+    Variant<sem::SemIdT<sem::Time>, sem::SemIdT<sem::TimeRange>> period = sem::SemIdT<sem::Time>::Nil();
     /// \brief Get associated time point
     sem::SemIdT<sem::Time> getTime() { return std::get<SemIdT<Time>>(period); }
     /// \brief Get associated time period
@@ -809,107 +886,176 @@ struct Subtree : public Org {
 
   /// \brief Single subtree property
   struct Property {
-    enum class SetMode : short int {
-      Override,
-      Add,
-      Subtract,
-    };
+    Property() {}
+    enum class SetMode : short int { Override, Add, Subtract, };
     BOOST_DESCRIBE_NESTED_ENUM(SetMode, Override, Add, Subtract)
-    enum class InheritanceMode : short int {
-      ThisAndSub,
-      OnlyThis,
-      OnlySub,
-    };
+    enum class InheritanceMode : short int { ThisAndSub, OnlyThis, OnlySub, };
     BOOST_DESCRIBE_NESTED_ENUM(InheritanceMode, ThisAndSub, OnlyThis, OnlySub)
     struct Nonblocking {
+      Nonblocking() {}
       BOOST_DESCRIBE_CLASS(Nonblocking, (), (), (), (isBlocking))
       bool isBlocking;
     };
 
     struct Trigger {
+      Trigger() {}
       BOOST_DESCRIBE_CLASS(Trigger, (), (), (), ())
     };
 
     struct Origin {
+      Origin() {}
       BOOST_DESCRIBE_CLASS(Origin, (), (), (), (text))
       Str text;
     };
 
     struct ExportLatexClass {
+      ExportLatexClass() {}
       BOOST_DESCRIBE_CLASS(ExportLatexClass, (), (), (), (latexClass))
       Str latexClass;
     };
 
     struct ExportLatexClassOptions {
+      ExportLatexClassOptions() {}
       BOOST_DESCRIBE_CLASS(ExportLatexClassOptions, (), (), (), (options))
       Vec<Str> options;
     };
 
     struct ExportLatexHeader {
+      ExportLatexHeader() {}
       BOOST_DESCRIBE_CLASS(ExportLatexHeader, (), (), (), (header))
       Str header;
     };
 
     struct ExportLatexCompiler {
+      ExportLatexCompiler() {}
       BOOST_DESCRIBE_CLASS(ExportLatexCompiler, (), (), (), (compiler))
       Str compiler;
     };
 
     struct Ordered {
+      Ordered() {}
       BOOST_DESCRIBE_CLASS(Ordered, (), (), (), (isOrdered))
       bool isOrdered;
     };
 
     struct Effort {
+      Effort() {}
       BOOST_DESCRIBE_CLASS(Effort, (), (), (), (hours, minutes))
       int hours = 0;
       int minutes = 0;
     };
 
     struct Visibility {
-      enum class Level : short int {
-        Folded,
-        Children,
-        Content,
-        All,
-      };
+      Visibility() {}
+      enum class Level : short int { Folded, Children, Content, All, };
       BOOST_DESCRIBE_NESTED_ENUM(Level, Folded, Children, Content, All)
       BOOST_DESCRIBE_CLASS(Visibility, (), (), (), (level))
-      Level level;
+      sem::Subtree::Property::Visibility::Level level;
     };
 
     struct ExportOptions {
+      ExportOptions() {}
       BOOST_DESCRIBE_CLASS(ExportOptions, (), (), (), (backend, values))
       Str backend;
       UnorderedMap<Str, Str> values;
     };
 
     struct Blocker {
+      Blocker() {}
       BOOST_DESCRIBE_CLASS(Blocker, (), (), (), (blockers))
       Vec<Str> blockers;
     };
 
     struct Unnumbered {
+      Unnumbered() {}
       BOOST_DESCRIBE_CLASS(Unnumbered, (), (), (), ())
     };
 
     struct Created {
+      Created() {}
       BOOST_DESCRIBE_CLASS(Created, (), (), (), (time))
       sem::SemIdT<sem::Time> time = SemIdT<Time>::Nil();
     };
 
-    SUB_VARIANTS(Kind, Data, data, getKind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created);
-    Data data;
+    using Data = std::variant<Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created>;
+    enum class Kind : short int { Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, };
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, Trigger, Origin, ExportLatexClass, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created)
+    using variant_enum_type = sem::Subtree::Property::Kind;
+    using variant_data_type = sem::Subtree::Property::Data;
     Property(CR<Data> data) : data(data) {}
     bool matches(Kind kind, CR<QString> subkind = "") const;
     BOOST_DESCRIBE_CLASS(Property,
                          (),
                          (),
                          (),
-                         (mainSetRule, subSetRule, inheritanceMode, data, (Kind() const) getKind))
-    SetMode mainSetRule = SetMode::Override;
-    SetMode subSetRule = SetMode::Override;
-    InheritanceMode inheritanceMode = InheritanceMode::ThisAndSub;
+                         (mainSetRule,
+                          subSetRule,
+                          inheritanceMode,
+                          data,
+                          (sem::Subtree::Property::Nonblocking const&() const) getNonblocking,
+                          (sem::Subtree::Property::Nonblocking&()) getNonblocking,
+                          (sem::Subtree::Property::Trigger const&() const) getTrigger,
+                          (sem::Subtree::Property::Trigger&()) getTrigger,
+                          (sem::Subtree::Property::Origin const&() const) getOrigin,
+                          (sem::Subtree::Property::Origin&()) getOrigin,
+                          (sem::Subtree::Property::ExportLatexClass const&() const) getExportLatexClass,
+                          (sem::Subtree::Property::ExportLatexClass&()) getExportLatexClass,
+                          (sem::Subtree::Property::ExportLatexClassOptions const&() const) getExportLatexClassOptions,
+                          (sem::Subtree::Property::ExportLatexClassOptions&()) getExportLatexClassOptions,
+                          (sem::Subtree::Property::ExportLatexHeader const&() const) getExportLatexHeader,
+                          (sem::Subtree::Property::ExportLatexHeader&()) getExportLatexHeader,
+                          (sem::Subtree::Property::ExportLatexCompiler const&() const) getExportLatexCompiler,
+                          (sem::Subtree::Property::ExportLatexCompiler&()) getExportLatexCompiler,
+                          (sem::Subtree::Property::Ordered const&() const) getOrdered,
+                          (sem::Subtree::Property::Ordered&()) getOrdered,
+                          (sem::Subtree::Property::Effort const&() const) getEffort,
+                          (sem::Subtree::Property::Effort&()) getEffort,
+                          (sem::Subtree::Property::Visibility const&() const) getVisibility,
+                          (sem::Subtree::Property::Visibility&()) getVisibility,
+                          (sem::Subtree::Property::ExportOptions const&() const) getExportOptions,
+                          (sem::Subtree::Property::ExportOptions&()) getExportOptions,
+                          (sem::Subtree::Property::Blocker const&() const) getBlocker,
+                          (sem::Subtree::Property::Blocker&()) getBlocker,
+                          (sem::Subtree::Property::Unnumbered const&() const) getUnnumbered,
+                          (sem::Subtree::Property::Unnumbered&()) getUnnumbered,
+                          (sem::Subtree::Property::Created const&() const) getCreated,
+                          (sem::Subtree::Property::Created&()) getCreated,
+                          (sem::Subtree::Property::Kind(sem::Subtree::Property::Data const&)) getKind,
+                          (sem::Subtree::Property::Kind() const) getKind))
+    sem::Subtree::Property::SetMode mainSetRule = SetMode::Override;
+    sem::Subtree::Property::SetMode subSetRule = SetMode::Override;
+    sem::Subtree::Property::InheritanceMode inheritanceMode = InheritanceMode::ThisAndSub;
+    sem::Subtree::Property::Data data;
+    sem::Subtree::Property::Nonblocking const& getNonblocking() const { return std::get<0>(data); }
+    sem::Subtree::Property::Nonblocking& getNonblocking() { return std::get<0>(data); }
+    sem::Subtree::Property::Trigger const& getTrigger() const { return std::get<1>(data); }
+    sem::Subtree::Property::Trigger& getTrigger() { return std::get<1>(data); }
+    sem::Subtree::Property::Origin const& getOrigin() const { return std::get<2>(data); }
+    sem::Subtree::Property::Origin& getOrigin() { return std::get<2>(data); }
+    sem::Subtree::Property::ExportLatexClass const& getExportLatexClass() const { return std::get<3>(data); }
+    sem::Subtree::Property::ExportLatexClass& getExportLatexClass() { return std::get<3>(data); }
+    sem::Subtree::Property::ExportLatexClassOptions const& getExportLatexClassOptions() const { return std::get<4>(data); }
+    sem::Subtree::Property::ExportLatexClassOptions& getExportLatexClassOptions() { return std::get<4>(data); }
+    sem::Subtree::Property::ExportLatexHeader const& getExportLatexHeader() const { return std::get<5>(data); }
+    sem::Subtree::Property::ExportLatexHeader& getExportLatexHeader() { return std::get<5>(data); }
+    sem::Subtree::Property::ExportLatexCompiler const& getExportLatexCompiler() const { return std::get<6>(data); }
+    sem::Subtree::Property::ExportLatexCompiler& getExportLatexCompiler() { return std::get<6>(data); }
+    sem::Subtree::Property::Ordered const& getOrdered() const { return std::get<7>(data); }
+    sem::Subtree::Property::Ordered& getOrdered() { return std::get<7>(data); }
+    sem::Subtree::Property::Effort const& getEffort() const { return std::get<8>(data); }
+    sem::Subtree::Property::Effort& getEffort() { return std::get<8>(data); }
+    sem::Subtree::Property::Visibility const& getVisibility() const { return std::get<9>(data); }
+    sem::Subtree::Property::Visibility& getVisibility() { return std::get<9>(data); }
+    sem::Subtree::Property::ExportOptions const& getExportOptions() const { return std::get<10>(data); }
+    sem::Subtree::Property::ExportOptions& getExportOptions() { return std::get<10>(data); }
+    sem::Subtree::Property::Blocker const& getBlocker() const { return std::get<11>(data); }
+    sem::Subtree::Property::Blocker& getBlocker() { return std::get<11>(data); }
+    sem::Subtree::Property::Unnumbered const& getUnnumbered() const { return std::get<12>(data); }
+    sem::Subtree::Property::Unnumbered& getUnnumbered() { return std::get<12>(data); }
+    sem::Subtree::Property::Created const& getCreated() const { return std::get<13>(data); }
+    sem::Subtree::Property::Created& getCreated() { return std::get<13>(data); }
+    static sem::Subtree::Property::Kind getKind(sem::Subtree::Property::Data const& __input) { return static_cast<sem::Subtree::Property::Kind>(__input.index()); }
+    sem::Subtree::Property::Kind getKind() const { return getKind(data); }
   };
 
   BOOST_DESCRIBE_CLASS(Subtree,
@@ -931,11 +1077,11 @@ struct Subtree : public Org {
                         scheduled,
                         (sem::SemIdT<Subtree>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Vec<Period>(IntSet<Period::Kind>) const) getTimePeriods,
-                        (Vec<Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
-                        (Opt<Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty,
-                        (Vec<Property>(Property::Kind, Str const&) const) getContextualProperties,
-                        (Opt<Property>(Property::Kind, Str const&) const) getContextualProperty))
+                        (Vec<sem::Subtree::Period>(IntSet<sem::Subtree::Period::Kind>) const) getTimePeriods,
+                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperties,
+                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty,
+                        (Vec<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getContextualProperties,
+                        (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getContextualProperty))
   /// \brief Document
   static OrgSemKind const staticKind;
   /// \brief Subtree level
@@ -954,7 +1100,7 @@ struct Subtree : public Org {
   /// \brief Associated subtree log
   Vec<sem::SemIdT<sem::SubtreeLog>> logbook = {};
   /// \brief Immediate properties
-  Vec<Property> properties = {};
+  Vec<sem::Subtree::Property> properties = {};
   /// \brief When subtree was marked as closed
   Opt<sem::SemIdT<sem::Time>> closed = std::nullopt;
   /// \brief When is the deadline
@@ -963,21 +1109,21 @@ struct Subtree : public Org {
   Opt<sem::SemIdT<sem::Time>> scheduled = std::nullopt;
   static sem::SemIdT<Subtree> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Subtree; }
-  Vec<Period> getTimePeriods(IntSet<Period::Kind> kinds) const;
-  Vec<Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
-  Opt<Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
-  Vec<Property> getContextualProperties(Property::Kind kind, Str const& subkind = "") const;
-  Opt<Property> getContextualProperty(Property::Kind kind, Str const& subkind = "") const;
+  Vec<sem::Subtree::Period> getTimePeriods(IntSet<sem::Subtree::Period::Kind> kinds) const;
+  Vec<sem::Subtree::Property> getProperties(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
+  Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
+  Vec<sem::Subtree::Property> getContextualProperties(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
+  Opt<sem::Subtree::Property> getContextualProperty(sem::Subtree::Property::Kind kind, Str const& subkind = "") const;
 };
 
 /// \brief Latex code body
-struct LatexBody : public Org {
+struct LatexBody : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(LatexBody, (Org), (), (), ())
 };
 
 /// \brief Inline math
-struct InlineMath : public LatexBody {
+struct InlineMath : public sem::LatexBody {
   using LatexBody::LatexBody;
   BOOST_DESCRIBE_CLASS(InlineMath,
                        (LatexBody),
@@ -993,7 +1139,7 @@ struct InlineMath : public LatexBody {
 };
 
 /// \brief Final node
-struct Leaf : public Org {
+struct Leaf : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(Leaf, (Org), (), (), (text))
   /// \brief Final leaf value
@@ -1001,7 +1147,7 @@ struct Leaf : public Org {
 };
 
 /// \brief Escaped text
-struct Escaped : public Leaf {
+struct Escaped : public sem::Leaf {
   using Leaf::Leaf;
   BOOST_DESCRIBE_CLASS(Escaped,
                        (Leaf),
@@ -1017,7 +1163,7 @@ struct Escaped : public Leaf {
 };
 
 /// \brief \n newline
-struct Newline : public Leaf {
+struct Newline : public sem::Leaf {
   using Leaf::Leaf;
   BOOST_DESCRIBE_CLASS(Newline,
                        (Leaf),
@@ -1033,7 +1179,7 @@ struct Newline : public Leaf {
 };
 
 /// \brief ' "space",
-struct Space : public Leaf {
+struct Space : public sem::Leaf {
   using Leaf::Leaf;
   BOOST_DESCRIBE_CLASS(Space,
                        (Leaf),
@@ -1049,7 +1195,7 @@ struct Space : public Leaf {
 };
 
 /// \brief word
-struct Word : public Leaf {
+struct Word : public sem::Leaf {
   using Leaf::Leaf;
   BOOST_DESCRIBE_CLASS(Word,
                        (Leaf),
@@ -1065,7 +1211,7 @@ struct Word : public Leaf {
 };
 
 /// \brief @mention
-struct AtMention : public Leaf {
+struct AtMention : public sem::Leaf {
   using Leaf::Leaf;
   BOOST_DESCRIBE_CLASS(AtMention,
                        (Leaf),
@@ -1080,7 +1226,7 @@ struct AtMention : public Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::AtMention; }
 };
 
-struct RawText : public Leaf {
+struct RawText : public sem::Leaf {
   using Leaf::Leaf;
   BOOST_DESCRIBE_CLASS(RawText,
                        (Leaf),
@@ -1095,7 +1241,7 @@ struct RawText : public Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::RawText; }
 };
 
-struct Punctuation : public Leaf {
+struct Punctuation : public sem::Leaf {
   using Leaf::Leaf;
   BOOST_DESCRIBE_CLASS(Punctuation,
                        (Leaf),
@@ -1110,7 +1256,7 @@ struct Punctuation : public Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::Punctuation; }
 };
 
-struct Placeholder : public Leaf {
+struct Placeholder : public sem::Leaf {
   using Leaf::Leaf;
   BOOST_DESCRIBE_CLASS(Placeholder,
                        (Leaf),
@@ -1125,7 +1271,7 @@ struct Placeholder : public Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::Placeholder; }
 };
 
-struct BigIdent : public Leaf {
+struct BigIdent : public sem::Leaf {
   using Leaf::Leaf;
   BOOST_DESCRIBE_CLASS(BigIdent,
                        (Leaf),
@@ -1140,12 +1286,12 @@ struct BigIdent : public Leaf {
   virtual OrgSemKind getKind() const { return OrgSemKind::BigIdent; }
 };
 
-struct Markup : public Org {
+struct Markup : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(Markup, (Org), (), (), ())
 };
 
-struct Bold : public Markup {
+struct Bold : public sem::Markup {
   using Markup::Markup;
   BOOST_DESCRIBE_CLASS(Bold,
                        (Markup),
@@ -1160,7 +1306,7 @@ struct Bold : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Bold; }
 };
 
-struct Underline : public Markup {
+struct Underline : public sem::Markup {
   using Markup::Markup;
   BOOST_DESCRIBE_CLASS(Underline,
                        (Markup),
@@ -1175,7 +1321,7 @@ struct Underline : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Underline; }
 };
 
-struct Monospace : public Markup {
+struct Monospace : public sem::Markup {
   using Markup::Markup;
   BOOST_DESCRIBE_CLASS(Monospace,
                        (Markup),
@@ -1190,7 +1336,7 @@ struct Monospace : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Monospace; }
 };
 
-struct MarkQuote : public Markup {
+struct MarkQuote : public sem::Markup {
   using Markup::Markup;
   BOOST_DESCRIBE_CLASS(MarkQuote,
                        (Markup),
@@ -1205,7 +1351,7 @@ struct MarkQuote : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::MarkQuote; }
 };
 
-struct Verbatim : public Markup {
+struct Verbatim : public sem::Markup {
   using Markup::Markup;
   BOOST_DESCRIBE_CLASS(Verbatim,
                        (Markup),
@@ -1220,7 +1366,7 @@ struct Verbatim : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Verbatim; }
 };
 
-struct Italic : public Markup {
+struct Italic : public sem::Markup {
   using Markup::Markup;
   BOOST_DESCRIBE_CLASS(Italic,
                        (Markup),
@@ -1235,7 +1381,7 @@ struct Italic : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Italic; }
 };
 
-struct Strike : public Markup {
+struct Strike : public sem::Markup {
   using Markup::Markup;
   BOOST_DESCRIBE_CLASS(Strike,
                        (Markup),
@@ -1250,7 +1396,7 @@ struct Strike : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Strike; }
 };
 
-struct Par : public Markup {
+struct Par : public sem::Markup {
   using Markup::Markup;
   BOOST_DESCRIBE_CLASS(Par,
                        (Markup),
@@ -1265,7 +1411,7 @@ struct Par : public Markup {
   virtual OrgSemKind getKind() const { return OrgSemKind::Par; }
 };
 
-struct List : public Org {
+struct List : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(List,
                        (Org),
@@ -1282,13 +1428,9 @@ struct List : public Org {
   bool isDescriptionList() const;
 };
 
-struct ListItem : public Org {
+struct ListItem : public sem::Org {
   using Org::Org;
-  enum class Checkbox : short int {
-    None,
-    Done,
-    Empty,
-  };
+  enum class Checkbox : short int { None, Done, Empty, };
   BOOST_DESCRIBE_NESTED_ENUM(Checkbox, None, Done, Empty)
   BOOST_DESCRIBE_CLASS(ListItem,
                        (Org),
@@ -1302,14 +1444,14 @@ struct ListItem : public Org {
                         (bool() const) isDescriptionItem))
   /// \brief Document
   static OrgSemKind const staticKind;
-  Checkbox checkbox = Checkbox::None;
+  sem::ListItem::Checkbox checkbox = Checkbox::None;
   Opt<sem::SemIdT<sem::Paragraph>> header = std::nullopt;
   static sem::SemIdT<ListItem> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::ListItem; }
   bool isDescriptionItem() const { return header.has_value(); }
 };
 
-struct Link : public Org {
+struct Link : public sem::Org {
   using Org::Org;
   struct Raw {
     BOOST_DESCRIBE_CLASS(Raw, (), (), (), (text))
@@ -1336,8 +1478,11 @@ struct Link : public Org {
     Str file;
   };
 
-  SUB_VARIANTS(Kind, Data, data, getLinkKind, Raw, Id, Person, Footnote, File);
-  Data data;
+  using Data = std::variant<Raw, Id, Person, Footnote, File>;
+  enum class Kind : short int { Raw, Id, Person, Footnote, File, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Raw, Id, Person, Footnote, File)
+  using variant_enum_type = sem::Link::Kind;
+  using variant_data_type = sem::Link::Data;
   BOOST_DESCRIBE_CLASS(Link,
                        (Org),
                        (),
@@ -1349,17 +1494,41 @@ struct Link : public Org {
                         (OrgSemKind() const) getKind,
                         (Opt<sem::SemId>(sem::Document const&) const) resolve,
                         (Opt<sem::SemId>() const) resolve,
-                        (Kind() const) getLinkKind))
+                        (sem::Link::Raw const&() const) getRaw,
+                        (sem::Link::Raw&()) getRaw,
+                        (sem::Link::Id const&() const) getId,
+                        (sem::Link::Id&()) getId,
+                        (sem::Link::Person const&() const) getPerson,
+                        (sem::Link::Person&()) getPerson,
+                        (sem::Link::Footnote const&() const) getFootnote,
+                        (sem::Link::Footnote&()) getFootnote,
+                        (sem::Link::File const&() const) getFile,
+                        (sem::Link::File&()) getFile,
+                        (sem::Link::Kind(sem::Link::Data const&)) getLinkKind,
+                        (sem::Link::Kind() const) getLinkKind))
   /// \brief Document
   static OrgSemKind const staticKind;
   Opt<sem::SemIdT<sem::Paragraph>> description = std::nullopt;
+  sem::Link::Data data;
   static sem::SemIdT<Link> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Link; }
   Opt<sem::SemId> resolve(sem::Document const& doc) const;
   Opt<sem::SemId> resolve() const;
+  sem::Link::Raw const& getRaw() const { return std::get<0>(data); }
+  sem::Link::Raw& getRaw() { return std::get<0>(data); }
+  sem::Link::Id const& getId() const { return std::get<1>(data); }
+  sem::Link::Id& getId() { return std::get<1>(data); }
+  sem::Link::Person const& getPerson() const { return std::get<2>(data); }
+  sem::Link::Person& getPerson() { return std::get<2>(data); }
+  sem::Link::Footnote const& getFootnote() const { return std::get<3>(data); }
+  sem::Link::Footnote& getFootnote() { return std::get<3>(data); }
+  sem::Link::File const& getFile() const { return std::get<4>(data); }
+  sem::Link::File& getFile() { return std::get<4>(data); }
+  static sem::Link::Kind getLinkKind(sem::Link::Data const& __input) { return static_cast<sem::Link::Kind>(__input.index()); }
+  sem::Link::Kind getLinkKind() const { return getLinkKind(data); }
 };
 
-struct Document : public Org {
+struct Document : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(Document,
                        (Org),
@@ -1404,7 +1573,7 @@ struct Document : public Org {
   Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
 };
 
-struct ParseError : public Org {
+struct ParseError : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(ParseError,
                        (Org),
@@ -1419,7 +1588,7 @@ struct ParseError : public Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::ParseError; }
 };
 
-struct FileTarget : public Org {
+struct FileTarget : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(FileTarget,
                        (Org),
@@ -1446,7 +1615,7 @@ struct FileTarget : public Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::FileTarget; }
 };
 
-struct TextSeparator : public Org {
+struct TextSeparator : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(TextSeparator,
                        (Org),
@@ -1461,7 +1630,7 @@ struct TextSeparator : public Org {
   virtual OrgSemKind getKind() const { return OrgSemKind::TextSeparator; }
 };
 
-struct Include : public Org {
+struct Include : public sem::Org {
   using Org::Org;
   struct Example {
     BOOST_DESCRIBE_CLASS(Example, (), (), (), ())
@@ -1479,8 +1648,11 @@ struct Include : public Org {
     BOOST_DESCRIBE_CLASS(OrgDocument, (), (), (), ())
   };
 
-  SUB_VARIANTS(Kind, Data, data, getIncludeKind, Example, Export, Src, OrgDocument);
-  Data data;
+  using Data = std::variant<Example, Export, Src, OrgDocument>;
+  enum class Kind : short int { Example, Export, Src, OrgDocument, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Example, Export, Src, OrgDocument)
+  using variant_enum_type = sem::Include::Kind;
+  using variant_data_type = sem::Include::Data;
   BOOST_DESCRIBE_CLASS(Include,
                        (Org),
                        (),
@@ -1489,32 +1661,39 @@ struct Include : public Org {
                         data,
                         (sem::SemIdT<Include>(sem::SemId, Opt<OrgAdapter>)) create,
                         (OrgSemKind() const) getKind,
-                        (Kind() const) getIncludeKind))
+                        (sem::Include::Example const&() const) getExample,
+                        (sem::Include::Example&()) getExample,
+                        (sem::Include::Export const&() const) getExport,
+                        (sem::Include::Export&()) getExport,
+                        (sem::Include::Src const&() const) getSrc,
+                        (sem::Include::Src&()) getSrc,
+                        (sem::Include::OrgDocument const&() const) getOrgDocument,
+                        (sem::Include::OrgDocument&()) getOrgDocument,
+                        (sem::Include::Kind(sem::Include::Data const&)) getIncludeKind,
+                        (sem::Include::Kind() const) getIncludeKind))
   /// \brief Document
   static OrgSemKind const staticKind;
+  sem::Include::Data data;
   static sem::SemIdT<Include> create(sem::SemId parent, Opt<OrgAdapter> original = std::nullopt);
   virtual OrgSemKind getKind() const { return OrgSemKind::Include; }
+  sem::Include::Example const& getExample() const { return std::get<0>(data); }
+  sem::Include::Example& getExample() { return std::get<0>(data); }
+  sem::Include::Export const& getExport() const { return std::get<1>(data); }
+  sem::Include::Export& getExport() { return std::get<1>(data); }
+  sem::Include::Src const& getSrc() const { return std::get<2>(data); }
+  sem::Include::Src& getSrc() { return std::get<2>(data); }
+  sem::Include::OrgDocument const& getOrgDocument() const { return std::get<3>(data); }
+  sem::Include::OrgDocument& getOrgDocument() { return std::get<3>(data); }
+  static sem::Include::Kind getIncludeKind(sem::Include::Data const& __input) { return static_cast<sem::Include::Kind>(__input.index()); }
+  sem::Include::Kind getIncludeKind() const { return getIncludeKind(data); }
 };
 
-struct DocumentOptions : public Org {
+struct DocumentOptions : public sem::Org {
   using Org::Org;
   using TocExport = Variant<bool, int>;
-  enum class BrokenLinks : short int {
-    Raise,
-    Ignore,
-    Mark,
-  };
+  enum class BrokenLinks : short int { Raise, Ignore, Mark, };
   BOOST_DESCRIBE_NESTED_ENUM(BrokenLinks, Raise, Ignore, Mark)
-  enum class Visibility : short int {
-    Overview,
-    Content,
-    ShowAll,
-    Show2Levels,
-    Show3Levels,
-    Show4Levels,
-    Show5Levels,
-    ShowEverything,
-  };
+  enum class Visibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
   BOOST_DESCRIBE_NESTED_ENUM(Visibility, Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything)
   BOOST_DESCRIBE_CLASS(DocumentOptions,
                        (Org),
@@ -1543,9 +1722,9 @@ struct DocumentOptions : public Org {
                         (Opt<sem::Subtree::Property>(sem::Subtree::Property::Kind, Str const&) const) getProperty))
   /// \brief Document
   static OrgSemKind const staticKind;
-  BrokenLinks brokenLinks = BrokenLinks::Mark;
-  Visibility initialVisibility = Visibility::ShowEverything;
-  TocExport tocExport = false;
+  sem::DocumentOptions::BrokenLinks brokenLinks = BrokenLinks::Mark;
+  sem::DocumentOptions::Visibility initialVisibility = Visibility::ShowEverything;
+  sem::DocumentOptions::TocExport tocExport = false;
   Vec<sem::Subtree::Property> properties;
   bool smartQuotes = false;
   bool emphasizedText = false;
@@ -1565,7 +1744,7 @@ struct DocumentOptions : public Org {
   Opt<sem::Subtree::Property> getProperty(sem::Subtree::Property::Kind kind, Str const& subKind = "") const;
 };
 
-struct DocumentGroup : public Org {
+struct DocumentGroup : public sem::Org {
   using Org::Org;
   BOOST_DESCRIBE_CLASS(DocumentGroup,
                        (Org),

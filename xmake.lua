@@ -5,6 +5,18 @@ set_arch("x64")
 
 add_rules("mode.debug")
 
+-- TODO Add these parts into implementation 
+      -- # Unclutter program output, save command execution to separate file
+      -- - llvm-profdata merge -sparse *.profraw -o coverage.profdata > profdata_output.txt
+      -- - llvm-cov show {{.BINARY}} -instr-profile=coverage.profdata -format=html > coverage.html
+      -- - llvm-cov export -format=lcov -instr-profile=coverage.profdata {{.BINARY}} > coverage.lcov
+      -- - llvm-cov export -format=text -instr-profile=coverage.profdata {{.BINARY}} > coverage.json
+      -- - genhtml -o html coverage.lcov > genhtml_output.txt
+
+        -- doxygen Doxyfile 2>&1 |
+        -- rg --line-buffered warning |
+        -- grep --line-buffered -v "not declared or defined"
+-- TODO Add code checker run 
 
 
 local cmake_options = {
@@ -147,13 +159,13 @@ meta_target("haxorg_codegen", "Execute haxorg code generation step.", {}, functi
   add_deps("py_reflection")
   add_deps("cmake_utils")
   add_rules("dummy")
-  any_files("scripts/code/py_codegen/codegen.py")
+  any_files("scripts/py_codegen/codegen.py")
   any_files("build/reflection.pb")
   on_build(function(target) 
     local utils = import("scripts.utils")
     os.execv("poetry", {
       "run", 
-      "scripts/code/py_codegen/codegen.py", 
+      "scripts/py_codegen/codegen.py", 
       utils.abs_build(),
       utils.abs_script()
     })
@@ -165,27 +177,24 @@ meta_target("conan_remove", "Remove installed conan dependencies", {}, function(
   set_kind("phony")
   add_rules("dummy")
   on_run(function(target)
-    os.execv("conan", {"remove", "'*'", "--force"})
+    os.execv("conan", {"remove", "*", "--force"})
   end)
 end)
 
-local function rel_conan()
-  return abs_script("build/dependencies/conan")
-end
-
-meta_target("conan_install", "Install conan dependencies", {}, function() 
+meta_target("conan_install", "Install conan dependencies", {}, function()
   set_kind("phony")
   add_rules("dummy")
   add_files("conanprofile.txt", "conanfile.txt")
   on_run(function(target)
+    local utils = import("scripts.utils")
     os.execv("conan", {
       "install",
       ".",
       "--install-folder",
-      rel_conan(),
+      utils.abs_script("build/dependencies/conan"),
       "--build=missing",
       "--profile",
-      abs_script("conanprofile.txt")
+      utils.abs_script("conanprofile.txt")
     })
   end)
 end)
@@ -223,7 +232,7 @@ meta_target("cmake_configure_utils", "Execute configuration for utility binary c
   set_kind("phony")
   add_rules("dummy")
   add_deps("download_llvm")
-  add_files("scripts/code/CMakeLists.txt")
+  add_files("scripts/cxx_codegen/CMakeLists.txt")
 
   on_run(function(target)
     local utils = import("scripts.utils")
@@ -243,10 +252,13 @@ meta_target("cmake_configure_utils", "Execute configuration for utility binary c
   end)
 end)
 
+
 meta_target("cmake_utils", "Compile libraries and binaries for utils", {}, function()
   set_kind("phony")
   add_rules("dummy")
   add_deps("cmake_configure_utils")
+  any_files("scripts/cxx_codegen/**.hpp")
+  any_files("scripts/cxx_codegen/**.cpp")
   on_build(function(target)
     local dbg = true
     os.execv("cmake", {
@@ -262,7 +274,7 @@ end)
 meta_target("reflection_protobuf", "Update protobuf data definition for reflection", {}, function()
   set_kind("phony")
   add_rules("dummy")
-  any_files("scripts/code/reflection_defs.proto")
+  any_files("scripts/cxx_codegen/reflection_defs.proto")
   on_build(function(target)
     local utils = import("scripts.utils")
     local loc = utils.iorun_stripped("poetry", {"env", "info", "--path"})
@@ -271,10 +283,10 @@ meta_target("reflection_protobuf", "Update protobuf data definition for reflecti
       os.execv("protoc", {
         "--plugin=" .. path.join(loc, "/bin/protoc-gen-python_betterproto"),
         "-I",
-        utils.abs_script("scripts/code/py_codegen"),
-        "--proto_path=" .. utils.abs_script("scripts/code"),
-        "--python_betterproto_out=" .. utils.abs_script("scripts/code/py_codegen/proto_lib"),
-        utils.abs_script("scripts/code/reflection_defs.proto")
+        utils.abs_script("scripts/cxx_codegen"),
+        "--proto_path=" .. utils.abs_script("scripts/py_codegen"),
+        "--python_betterproto_out=" .. utils.abs_script("scripts/py_codegen/proto_lib"),
+        utils.abs_script("scripts/cxx_codegen/reflection_defs.proto")
       })
     end)
   end)
@@ -327,6 +339,71 @@ meta_target("cmake_haxorg", "Compile libraries and binaries for haxorg", {}, fun
       }
     })
   end)
+end)
+
+
+meta_target("bench_profdata", "Collect performance profile", {}, function () 
+  on_build(function(target)
+    local utils = import("scripts.utils")
+    local dir = path.join(os.scriptdir(), "build/haxorg/bin")
+    local tools = path.join(os.scriptdir(), "toolchain/llvm/bin")
+    local bench = path.join(dir, "bench")
+    utils.info("Running benchmark from directory %s", dir)
+
+    for _, file in ipairs(os.files(path.join(dir, "xray-log.bench.*"))) do
+        os.rm(file)
+    end
+
+    for _, file in ipairs(os.files(path.join(dir, "*.profdata"))) do
+        os.rm(file)
+    end
+
+    utils.with_dir(dir, function () 
+      os.execv(bench, {}, {
+        envs = {
+          XRAY_OPTIONS = "patch_premain=true xray_mode=xray-basic verbosity=1"
+        }
+      })  
+    end)
+
+
+    local log_files = os.files(path.join(dir, "xray-log.bench.*"))  -- Adjust the pattern if necessary
+
+    table.sort(log_files, function(a, b)
+        return os.mtime(a) > os.mtime(b)
+    end)
+
+    if #log_files > 0 then
+        utils.info("Latest XRay log file '%s'", log_files[1])
+    else
+        raise("No XRay log files found in '" .. dir .. "'")
+    end
+
+    local logfile = log_files[1]
+    os.execv(path.join(tools, "llvm-xray"), {
+      "convert",
+      "--symbolize",
+      "--instr_map=" .. bench,
+      "--output-format=trace_event",
+      "--output=" .. path.join(dir, "trace_events.json"),
+      logfile,
+    })
+
+    os.execv(path.join(tools, "llvm-profdata"), {
+      "merge",
+      "-output=" .. path.join(dir, "bench.profdata"),
+      path.join(dir, "default.profraw")
+    })
+
+    os.execv(path.join(tools, "llvm-cov"), {
+      "show",
+      bench,
+      "-instr-profile=" .. path.join(dir, "bench.profdata"),
+      "-format=html",
+      "-output-dir=" .. path.join(dir, "coverage_report")
+    })
+  end)
+  
 end)
 
 meta_target("test_python", "Execute python tests", {}, function()

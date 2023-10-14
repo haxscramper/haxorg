@@ -1,41 +1,64 @@
 #!/usr/bin/env python
 
-from typing import *
-import setup_imports
-import sys
+import os
+from beartype.typing import *
 
-import pyhaxorg as org
-from pyhaxorg import OrgContext
-from pyhaxorg import OrgSemKind as osk
-
-ctx = org.OrgContext()
-assert org.Document
-ctx.parseString("*Text*")
-
-assert ctx.getNode().getKind() == org.OrgSemKind.Document
-assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
-assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Bold
-assert ctx.getNode()[0][0][0].getKind() == org.OrgSemKind.Word
+from typing import TYPE_CHECKING
+from py_exporters.export_tex import ExporterLatex
+import py_haxorg.pyhaxorg as org
+from py_haxorg.pyhaxorg import OrgSemKind as osk
+from py_textlayout.py_textlayout import TextOptions
+from py_haxorg.utils import toTree
 
 
-class Wrap:
-    def newRes(self, node: org.SemId):
-        return [{"kind": str(node.getKind())}]
+if TYPE_CHECKING:
+    from py_textlayout.py_textlayout import BlockId
+else:
+    BlockId = NewType('BlockId', int)
 
-    def visit(self, res, node: org.SemId):
-        res.append({"kind": str(node.getKind())})
+def test_word() -> None:
+    ctx = org.OrgContext()
+    assert org.Document
+    ctx.parseString("*Text*")
 
-    def __init__(self) -> None:
-        self.exp = org.ExporterPython()
-        self.res = ""
-        self.exp.setSelf(self)
-        self.exp.setNewOrgRes(osk.Document, Wrap.newRes)
-        self.exp.setVisitAnyIdAround(Wrap.visit)
-        self.exp.enablePyStreamTrace(sys.stdout)
-        
+    assert ctx.getNode().getKind() == org.OrgSemKind.Document
+    assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
+    assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Bold
+    assert ctx.getNode()[0][0][0].getKind() == org.OrgSemKind.Word
 
-wrap = Wrap()
-result = wrap.exp.evalTop(ctx.getNode())
-assert len(result) == 2
-assert result[0] == {"kind": "OrgSemKind.Document"}
-assert result[1] == {"kind": "OrgSemKind.DocumentOptions"}
+
+def test_serialization_expose() -> None:
+    ctx = org.OrgContext()
+    ctx.parseString("Text")
+    ctx.writeStore("/tmp/cachedStore.dat")
+
+    new = org.OrgContext()
+    new.loadStore("/tmp/cachedStore.dat")
+    assert new.getNode().getKind() == osk.Document
+
+    assert ctx.getNode().getKind() == org.OrgSemKind.Document
+    assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
+    assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Word
+
+def test_tex_exporter() -> None:
+    tmp = org.OrgContext()
+    tmp.parseFile("/home/haxscramper/tmp/doc.org")
+    toTree("/tmp/before.txt", tmp.getNode())
+
+    ctx = org.OrgContext()
+    cache_file = "/tmp/doc_cache.dat"
+
+    if os.path.exists(cache_file):
+        ctx.loadStore(cache_file)
+    else:
+        ctx.parseFile("/home/haxscramper/tmp/doc2.org")
+        ctx.writeStore(cache_file)
+
+    toTree("/tmp/after.txt", ctx.getNode())
+
+
+    tex = ExporterLatex()
+    tex.exp.enableFileTrace("/tmp/trace")
+    res1: BlockId = tex.exp.evalTop(ctx.getNode())
+    with open("/tmp/result.tex", "w") as file:
+        file.write(tex.t.toString(res1, TextOptions()))

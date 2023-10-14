@@ -3,38 +3,7 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 /// \brief Dependency kind
-enum class NlpDepKind : short int {
-  ROOT,
-  acl,
-  advcl,
-  advmod,
-  amod,
-  appos,
-  aux,
-  _case,
-  cc,
-  ccomp,
-  compound,
-  conj,
-  cop,
-  csubj,
-  dep,
-  det,
-  discourse,
-  expl,
-  fixed,
-  iobj,
-  mark,
-  nmod,
-  nsubj,
-  nummod,
-  obj,
-  obl,
-  parataxis,
-  punct,
-  ref,
-  xcomp,
-};
+enum class NlpDepKind : short int { ROOT, acl, advcl, advmod, amod, appos, aux, _case, cc, ccomp, compound, conj, cop, csubj, dep, det, discourse, expl, fixed, iobj, mark, nmod, nsubj, nummod, obj, obl, parataxis, punct, ref, xcomp, };
 template <>
 struct enum_serde<NlpDepKind> {
   static Opt<NlpDepKind> from_string(QString value);

@@ -4,6 +4,8 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <exporters/exporteryaml.hpp>
 #include <exporters/exportertree.hpp>
+#include <sem/semdatastream.hpp>
+#include <datetime.h>
 
 #include <memory>
 
@@ -72,6 +74,21 @@ void OrgExporterTree::stream(
     impl->evalTop(node);
 }
 
+void OrgContext::initLocationResolvers() {
+    locationResolver = [&](CR<PosStr> str) -> LineCol {
+        Slice<int> absolute = tokens.toAbsolute(str.view);
+        return {
+            info.whichLine(absolute.first + str.pos) + 1,
+            info.whichColumn(absolute.first + str.pos),
+            absolute.first + str.pos,
+        };
+    };
+
+    converter.locationResolver = locationResolver;
+    tokenizer->setLocationResolver(locationResolver);
+    parser->setLocationResolver(locationResolver);
+}
+
 void OrgContext::run() {
     tokens.base = source.data();
     info        = LineColInfo{source};
@@ -87,6 +104,29 @@ void OrgContext::run() {
     tokenizer->lexGlobal(*str);
     parser->parseFull(lex);
     node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+}
+
+void OrgContext::loadStore(QString path) {
+    QFile file{path};
+    if (file.open(QIODevice::ReadOnly)) {
+        QDataStream out{&file};
+        SemDataStream().read(out, &store, &node);
+        file.close();
+    } else {
+        throw FilesystemError{
+            "Cannot open file for writing TODO beter msg"};
+    }
+}
+
+void OrgContext::writeStore(QString path) {
+    QFile file{path};
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QDataStream out{&file};
+        SemDataStream().write(out, store, node);
+        file.close();
+    } else {
+        throw FilesystemError{"Cannot open file"};
+    }
 }
 
 std::vector<sem::SemId> getSubnodeRange(
@@ -128,20 +168,78 @@ OrgIdVariant castAs(sem::SemId id) {
 }
 
 void init_py_manual_api(pybind11::module& m) {
+    PyDateTime_IMPORT;
+    assert(PyDateTimeAPI);
+    bind_int_set<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind");
+
     pybind11::class_<sem::SemId>(m, "SemId")
         .def(pybind11::init(
             []() -> sem::SemId { return sem::SemId::Nil(); }))
         .def("getKind", &sem::SemId::getKind)
         .def(
+            "getParent",
+            [](sem::SemId _self) -> sem::SemId {
+                return _self.getParent();
+            })
+        .def(
+            "getParentChain",
+            [](sem::SemId _self, bool withSelf) {
+                return _self.getParentChain(withSelf);
+            },
+            py::arg_v("withSelf", false))
+        .def(
+            "__repr__",
+            [](sem::SemId id) {
+                return id.isNil() ? "Nil" : id.getReadableId();
+            })
+        .def(
+            "getDocument", [](sem::SemId id) { return id->getDocument(); })
+        .def(
+            "getReadableId",
+            [](sem::SemId id) { return id.getReadableId(); })
+        .def(
+            "_is",
+            [](sem::SemId id, OrgSemKind kind) -> bool {
+                return id->is(kind);
+            })
+        .def(
+            "_as",
+            [](sem::SemId _self, OrgSemKind kind) -> Opt<OrgIdVariant> {
+                if (kind != _self.getKind()) {
+                    return std::nullopt;
+                } else {
+                    switch (_self.getKind()) {
+#define _Kind(__Kind)                                                     \
+    case OrgSemKind::__Kind: return OrgIdVariant{_self.as<sem::__Kind>()};
+                        EACH_SEM_ORG_KIND(_Kind)
+#undef _Kind
+                    }
+                }
+            })
+        .def(
+            "__len__",
+            [](sem::SemId const& id) -> int {
+                return id->subnodes.size();
+            })
+        .def(
+            "__iter__",
+            [](sem::SemId const& id) {
+                return py::make_iterator(
+                    id->subnodes.begin(), id->subnodes.end());
+            })
+        .def(
             "__getitem__",
             [](sem::SemId _self, int index) {
                 return getSingleSubnode(_self, index);
             })
-        .def("__getitem__", [](sem::SemId _self, py::slice slice) {
-            return getSubnodeRange(_self, slice);
+        .def(
+            "__getitem__",
+            [](sem::SemId _self, py::slice slice) {
+                return getSubnodeRange(_self, slice);
+            })
+        .def("eachSubnodeRec", [](sem::SemId _self, py::function cb) {
+            _self.eachSubnodeRec([&](sem::SemId id) { cb(id); });
         });
-
-    ;
 }
 
 void ExporterPython::enablePyStreamTrace(pybind11::object stream) {
@@ -198,7 +296,7 @@ void ExporterPython::visitDispatch(Res& res, sem::SemId arg) {
     case OrgSemKind::__Kind: {                                            \
         In<sem::__Kind> tmp = arg.as<sem::__Kind>();                      \
         _this()->pushVisit(res, tmp);                                     \
-        _this()->visitDispatchHook(res, arg);                             \
+        _this()->visitDispatchHook(res, tmp);                             \
         _this()->visitOrgNodeIn(res, tmp);                                \
         _this()->popVisit(res, tmp);                                      \
         break;                                                            \
@@ -234,8 +332,12 @@ void ExporterPython::traceVisit(const VisitEvent& ev) {
         os << " field:" << ev.field;
     }
 
+    if (!ev.msg.isEmpty()) {
+        os << " msg:" << ev.msg;
+    }
+
     os << " on " << QFileInfo(ev.file).fileName() << ":" << ev.line << " "
-       << ev.function << " " << os.end();
+       << " " << os.end();
 
     if (0 < ev.type.length()) {
         os << " type:" << demangle(ev.type.toLatin1());

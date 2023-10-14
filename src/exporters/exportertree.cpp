@@ -68,6 +68,10 @@ void ExporterTree::init(sem::SemId org) {
         os << " [" << ctx.subnodeIdx << "]";
     }
 
+    os << " P: "
+       << (org.getParent().isNil() ? "<nil>"_qs
+                                   : org.getParent().getReadableId());
+
     if (conf.withOriginalId) {
         os << " ID:" << org.getReadableId()
            << " OID:" << org->original.id.getUnmasked();
