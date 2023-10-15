@@ -107,8 +107,31 @@ struct OrgConverter : public OperationsTracer {
     Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
 
   public:
-    UPtr<OrgSpec> spec;
-    OrgConverter() { spec = getOrgSpec(); }
+    UPtr<OrgSpec>        spec;
+    ContextStore*        context;
+    Vec<OrgSemPlacement> placementContext;
+
+    Opt<OrgSemPlacement> getPlacement() const {
+        if (!placementContext.empty()) {
+            return placementContext.back();
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    struct PlacementScope {
+        OrgConverter* converter;
+        PlacementScope(OrgSemPlacement place, OrgConverter* converter)
+            : converter(converter) {
+            converter->placementContext.push_back(place);
+        }
+
+        ~PlacementScope() { converter->placementContext.pop_back(); }
+    };
+
+    OrgConverter(ContextStore* context) : context(context) {
+        spec = getOrgSpec();
+    }
 
     OrgAdapter one(OrgAdapter node, OrgSpecName name) {
         return spec->getSingleSubnode(node, name);
@@ -162,8 +185,11 @@ struct OrgConverter : public OperationsTracer {
     SemIdT<Symbol>          convertSymbol(Up, In);
     SemIdT<Macro>           convertMacro(Up, In);
     SemIdT<Export>          convertExport(Up, In);
+    SemIdT<CmdArgument>     convertCmdArgument(Up, In);
+    SemIdT<CmdArguments>    convertCmdArguments(Up, In);
 
     Vec<SemId> flatConvertAttached(Up, In);
+
 
     template <typename T>
     SemIdT<T> convertAllSubnodes(Up p, In a) {
@@ -178,17 +204,19 @@ struct OrgConverter : public OperationsTracer {
 
     template <typename T>
     SemIdT<T> Sem(Up parent, In adapter) {
-        SemIdT<T> res = GlobalStore::createInSame(
+        SemIdT<T> res = context->createInSame(
             parent, T::staticKind, parent, adapter);
-        res->loc = getLoc(adapter);
+        res->loc              = getLoc(adapter);
+        res->placementContext = getPlacement();
         return res;
     }
 
     template <typename T>
     SemIdT<T> SemLeaf(Up parent, In adapter) {
-        auto res  = Sem<T>(parent, adapter);
-        res->text = adapter.strVal();
-        res->loc  = getLoc(adapter);
+        auto res              = Sem<T>(parent, adapter);
+        res->text             = adapter.strVal();
+        res->loc              = getLoc(adapter);
+        res->placementContext = getPlacement();
         return res;
     }
 

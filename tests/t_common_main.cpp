@@ -6,6 +6,13 @@
 #include <hstd/system/string_convert.hpp>
 #include <QFile>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/wrappers/graphviz.hpp>
+#include <fstream>
+#include "testprofiler.hpp"
+
+#ifdef USE_PERFETTO
+#    include <hstd/wrappers/perfetto_aux.hpp>
+#endif
 
 FILE* trace_out;
 
@@ -34,30 +41,37 @@ const char* __asan_default_options() {
 }
 
 int main(int argc, char** argv) {
-
-    // setlocale(LC_ALL, "en_US.utf8");
     QFile file;
     file.open(stdout, QIODevice::WriteOnly);
     qcout.setDevice(&file);
 
 
     QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
-    // Q_CHECK_PTR(old);
 
-    // trace_out = fopen("/tmp/cyg_profile_trace.log", "w");
-    // finally close{[]() { fclose(trace_out); }};
+#ifdef USE_PERFETTO
+    qInfo() << "Compiled with perfetto trace enabled, starting perfetto";
+    InitializePerfetto();
+    auto tracing_session = StartTracing();
 
+    // Give a custom name for the traced process.
+    perfetto::ProcessTrack process_track = perfetto::ProcessTrack::
+        Current();
+    perfetto::protos::gen::TrackDescriptor desc = process_track
+                                                      .Serialize();
+    desc.mutable_process()->set_process_name("Example");
+    perfetto::TrackEvent::SetTrackDescriptor(process_track, desc);
+#endif
 
-    // std::string glob;
-    //    auto        cli = session.cli()
-    //             | Catch::Clara::Opt(glob, "Glob
-    //             pattern")["--corpus-glob"](
-    //                   "Corpus glob pattern");
-
-    //    testParameters.corpusGlob = QString::fromStdString(glob);
     ::testing::InitGoogleTest(&argc, argv);
-    //    auto result = session.run(argc, argv);
-    return RUN_ALL_TESTS();
-    //    std::cout << "Done test execution" << std::endl;
-    //    return result;
+    auto result = RUN_ALL_TESTS();
+
+    json          records = TestProfiler::getJsonRecords();
+    std::ofstream test_records{"/tmp/compact_records.json"};
+    test_records << to_compact_json(records);
+
+#ifdef USE_PERFETTO
+    StopTracing(std::move(tracing_session));
+#endif
+
+    return result;
 }

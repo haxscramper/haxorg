@@ -1,0 +1,60 @@
+* Subtree
+
+* [2024-01-01] Date
+* [2023-02-12]--[2023-02-12] Time range
+
+/Italic/
+
+*Bold*
+
+_Underline_
+
+~Monospace~
+
+=Verbatim=
+
++strike+
+
+#hashtag
+
+{{{Macro}}}
+
+\(Inline\)
+
+\Escaped
+
+<placeholder>
+
+BIGIDENT
+
+Punctuation , .
+
+@mention
+
+(Par)
+
+Par [fn:target]
+
+[fn:target] definition
+
+#+caption: Caption
+#+begin_quote
+content
+#+end_quote
+
+#+begin_center
+center
+#+end_center
+
+#+begin_example
+example
+#+end_example
+
+#+begin_export latex :placement header
+\test{}
+#+end_export
+
+-----------
+
+- Item
+- Second Item

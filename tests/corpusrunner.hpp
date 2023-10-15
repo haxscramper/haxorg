@@ -11,7 +11,6 @@
 struct QFileInfo;
 
 
-
 class CorpusRunner {
   public:
     // Define environment variable in the QT app run environment to get
@@ -55,12 +54,10 @@ class CorpusRunner {
     };
 
     json toTextLyt(
-        layout::Block::Ptr        block,
+        layout::BlockStore&       b,
+        layout::BlockId           block,
         Func<Str(layout::LytStr)> getStr);
 
-    ExportResult runExporter(
-        sem::SemId                       top,
-        ParseSpec::ExporterExpect const& exp);
 
     struct RunResult {
         struct NodeCompare {
@@ -87,9 +84,10 @@ class CorpusRunner {
             Vec<Run> run;
 
             bool isOk() const {
-                return std::all_of(run.begin(), run.end(), [](CR<Run> r) {
-                    return r.isOk;
-                });
+                return run.empty()
+                    || std::all_of(run.begin(), run.end(), [](CR<Run> r) {
+                           return r.isOk;
+                       });
             }
         };
 
@@ -138,125 +136,14 @@ class CorpusRunner {
         sem::SemId    node,
         json          expected);
 
-    RunResult runSpec(CR<ParseSpec> spec, CR<QString> from) {
-        MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
-        MockFull              p(spec.debug.traceParse, spec.debug.traceLex);
+    RunResult runSpec(CR<ParseSpec> spec, CR<QString> from);
 
-        { // Input source
-            if (spec.debug.printSource) {
-                writeFile(spec.debugFile("source.org"), spec.source);
-            }
-        }
+    ExportResult runExporter(
+        ParseSpec const&                 spec,
+        sem::SemId                       top,
+        ParseSpec::ExporterExpect const& exp);
 
-
-        { // Lexing
-            if (spec.debug.doLex) {
-                p.tokenizer->trace = spec.debug.traceLex;
-                if (spec.debug.lexToFile) {
-                    p.tokenizer->setTraceFile(
-                        spec.debugFile("trace_lex.txt"));
-                }
-
-                p.tokenize(spec.source, lexCb);
-            } else {
-                return RunResult{};
-            }
-
-            if (spec.debug.printLexed) {
-                writeFileOrStdout(
-                    spec.debugFile("lexed.yaml"),
-                    to_string(yamlRepr(p.tokens)) + "\n",
-                    spec.debug.printLexedToFile);
-            }
-
-            if (spec.tokens.has_value()) {
-                Str                   buffer;
-                RunResult::LexCompare result = compareTokens(
-                    p.tokens,
-                    fromFlatTokens<OrgTokenKind>(
-                        spec.tokens.value(), buffer),
-                    spec.conf.tokenMatch);
-                if (!result.isOk) {
-                    return RunResult(result);
-                }
-            }
-        }
-
-        { // Parsing
-            if (spec.debug.doParse) {
-                p.parser->trace = spec.debug.traceParse;
-                if (spec.debug.parseToFile) {
-                    p.parser->setTraceFile(
-                        spec.debugFile("trace_parse.txt"));
-                }
-
-                MockFull::ParserMethod parseCb = getParser(
-                    spec.parseImplName);
-
-                p.parse(parseCb);
-
-                if (spec.debug.printParsed) {
-                    writeFileOrStdout(
-                        spec.debugFile("parsed.yaml"),
-                        to_string(yamlRepr(p.nodes)) + "\n",
-                        spec.debug.printParsedToFile);
-                }
-            } else {
-                return RunResult{};
-            }
-
-            if (spec.subnodes.has_value()) {
-                Str           buffer;
-                OrgNodeGroup  nodes;
-                OrgTokenGroup tokens;
-
-                if (spec.tokens.has_value()) {
-                    tokens = fromFlatTokens<OrgTokenKind>(
-                        spec.tokens.value(), buffer);
-                }
-
-                if (spec.subnodes.has_value()) {
-                    nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind>(
-                        spec.subnodes.value());
-                }
-
-                nodes.tokens = &tokens;
-
-                RunResult::NodeCompare result = compareNodes(
-                    p.nodes, nodes);
-                if (!result.isOk) {
-                    return RunResult(result);
-                }
-            }
-        }
-
-
-        { // Sem conversion
-            if (spec.debug.doSem) {
-                sem::OrgConverter converter;
-
-                converter.trace = spec.debug.traceParse;
-                if (spec.debug.parseToFile) {
-                    converter.setTraceFile(
-                        spec.debugFile("trace_sem.txt"));
-                }
-
-                auto document = converter.toDocument(
-                    OrgAdapter(&p.nodes, OrgId(0)));
-
-                if (spec.sem.has_value()) {
-                    RunResult::SemCompare result = compareSem(
-                        spec, document, spec.sem.value());
-
-                    if (!result.isOk) {
-                        return RunResult(result);
-                    }
-                }
-            } else {
-                return RunResult{};
-            }
-        }
-
-        return RunResult();
-    }
+    RunResult::ExportCompare::Run compareExport(
+        ParseSpec::ExporterExpect const& exp,
+        ExportResult const&              result);
 };

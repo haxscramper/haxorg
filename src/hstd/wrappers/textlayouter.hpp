@@ -15,6 +15,7 @@
 namespace layout {
 
 DECL_ID_TYPE_MASKED(LytStr, LytStrId, u64, 8);
+DECL_ID_TYPE_MASKED(Block, BlockId, u64, 8);
 
 inline const auto LytSpacesId = LytStrId::FromValue(
     value_domain<int>::high() - 120);
@@ -164,7 +165,7 @@ REFL_DEFINE_DESCRIBED_OSTREAM(Event::Newline);
 
 inline QTextStream& operator<<(QTextStream& os, CR<Event> const& value) {
     return os << "{ .kind = " << value.getKind()
-              << ", data = " << variant_to_string(value.data) << "}";
+              << ", data = " << value.data << "}";
 }
 
 
@@ -259,8 +260,8 @@ struct Solution : public SharedPtrApi<Solution> {
 
 struct Options;
 
-struct Block : public SharedPtrApi<Block> {
-
+struct Block {
+    using id_type = BlockId;
     struct Verb {
         Vec<LytStrSpan> textLines;
         bool            firstNl;
@@ -271,21 +272,21 @@ struct Block : public SharedPtrApi<Block> {
     };
 
     struct Wrap {
-        Opt<LytStr>     prefix;
-        LytStr          sep;
-        Vec<Block::Ptr> wrapElements;
+        Opt<LytStr>  prefix;
+        LytStr       sep;
+        Vec<BlockId> wrapElements;
     };
 
     struct Stack {
-        Vec<Block::Ptr> elements;
+        Vec<BlockId> elements;
     };
 
     struct Choice {
-        Vec<Block::Ptr> elements;
+        Vec<BlockId> elements;
     };
 
     struct Line {
-        Vec<Block::Ptr> elements;
+        Vec<BlockId> elements;
     };
 
     struct Empty {};
@@ -303,8 +304,8 @@ struct Block : public SharedPtrApi<Block> {
         Empty);
 
     int  size() const;
-    void add(CR<Block::Ptr> other);
-    void add(CVec<Block::Ptr> others);
+    void add(CR<BlockId> other);
+    void add(CVec<BlockId> others);
 
     bool isLine() const { return getKind() == Kind::Line; }
     bool isStack() const { return getKind() == Kind::Stack; }
@@ -346,20 +347,34 @@ struct Block : public SharedPtrApi<Block> {
 
     Block() = default;
     Block(CR<Data> data) : data(data) {}
+};
 
-    static Block::Ptr text(CR<LytStrSpan> t);
-    static Block::Ptr line(CR<Vec<Block::Ptr>> l = {});
-    static Block::Ptr stack(CR<Vec<Block::Ptr>> l = {});
-    static Block::Ptr choice(CR<Vec<Block::Ptr>> l = {});
-    static Block::Ptr space(int count);
-    static Block::Ptr empty() { return Block::shared(Empty{}); }
 
-    static Block::Ptr spatial(bool isVertical, CR<Vec<Ptr>> l = {});
-    static Block::Ptr surround_non_empty(
-        Block::Ptr content,
-        Block::Ptr before,
-        Block::Ptr after) {
-        if (content->size() == 0) {
+struct BlockStore {
+    dod::Store<BlockId, Block> store;
+
+    Block& at(BlockId const& id) { return store.at(id); }
+    void   add_at(BlockId const& id, BlockId const& next) {
+        at(id).add(next);
+    }
+
+    void add_at(BlockId const& id, Vec<BlockId> const& next) {
+        at(id).add(next);
+    }
+
+    BlockId text(CR<LytStrSpan> t);
+    BlockId line(CR<Vec<BlockId>> l = {});
+    BlockId stack(CR<Vec<BlockId>> l = {});
+    BlockId choice(CR<Vec<BlockId>> l = {});
+    BlockId space(int count);
+    BlockId empty() { return store.add(Block(Block::Empty{})); }
+
+    BlockId spatial(bool isVertical, CR<Vec<BlockId>> l = {});
+    BlockId surround_non_empty(
+        BlockId content,
+        BlockId before,
+        BlockId after) {
+        if (store.at(content).size() == 0) {
             return space(0);
         } else {
             return line({before, content, after});
@@ -367,59 +382,44 @@ struct Block : public SharedPtrApi<Block> {
     }
 
     template <typename T, typename F>
-    static Block::Ptr map_join(
-        CVec<T>        items,
-        F              convert,
-        CR<Block::Ptr> join,
-        bool           isLine     = true,
-        bool           isTrailing = false) {
-        Vec<Block::Ptr> tmp;
+    BlockId map_join(
+        CVec<T>     items,
+        F           convert,
+        CR<BlockId> join,
+        bool        isLine     = true,
+        bool        isTrailing = false) {
+        Vec<BlockId> tmp;
         for (auto const& it : items) {
             tmp.push_back(convert(it));
         }
-        return Block::join(tmp, join, isLine, isTrailing);
+        return this->join(tmp, join, isLine, isTrailing);
     }
 
-    static Block::Ptr join(
-        CVec<Block::Ptr> items,
-        CR<Block::Ptr>   join,
-        bool             isLine     = true,
-        bool             isTrailing = false);
+    BlockId join(
+        CVec<BlockId> items,
+        CR<BlockId>   join,
+        bool          isLine     = true,
+        bool          isTrailing = false);
 
-    static Block::Ptr wrap(
-        CR<Vec<Block::Ptr>> elems,
-        LytStr              sep,
-        int                 breakMult = 1);
-
-    static Block::Ptr indent(
-        int            indent,
-        CR<Block::Ptr> block,
-        int            breakMult = 1);
-
-    static Block::Ptr vertical(
-        const Vec<Block::Ptr>& blocks,
-        const Block::Ptr&      sep);
-
-    static Block::Ptr horizontal(
-        const Vec<Block::Ptr>& blocks,
-        const Block::Ptr&      sep);
-
+    BlockId wrap(CR<Vec<BlockId>> elems, LytStr sep, int breakMult = 1);
+    BlockId indent(int indent, CR<BlockId> block, int breakMult = 1);
+    BlockId vertical(const Vec<BlockId>& blocks, const BlockId& sep);
+    BlockId horizontal(const Vec<BlockId>& blocks, const BlockId& sep);
 
     /// Return all possible formatting layouts for a given block with
     /// provided options. The best layout will be the first in the returned
     /// sequence.
-    Vec<Layout::Ptr> toLayouts(const Options& opts);
+    Vec<Layout::Ptr> toLayouts(BlockId id, const Options& opts);
 
     /// Return first best formatting layout for a given block. This is the
     /// procedure you should be using unless you need to have access to all
     /// the possible layouts.
-    Layout::Ptr toLayout(const Options& opts) {
-        Vec<Layout::Ptr> layouts = toLayouts(opts);
+    Layout::Ptr toLayout(BlockId id, const Options& opts) {
+        Vec<Layout::Ptr> layouts = toLayouts(id, opts);
         Q_ASSERT(!layouts.empty());
         return layouts[0];
     }
 };
-
 
 struct Options {
     int leftMargin  = 0; /// position of the first right margin. Expected 0
@@ -437,11 +437,12 @@ struct Options {
                          /// layouts. Expected value ~0.001
 
 
-    using FormatPolicy = std::function<Vec<Vec<Block::Ptr>>(
-        Vec<Vec<Block::Ptr>>)>;
+    using FormatPolicy = std::function<
+        Vec<Vec<BlockId>>(BlockStore&, Vec<Vec<BlockId>>)>;
 
-    static Vec<Vec<Block::Ptr>> defaultFormatPolicy(
-        const Vec<Vec<Block::Ptr>>& blc);
+    static Vec<Vec<BlockId>> defaultFormatPolicy(
+        BlockStore&              store,
+        const Vec<Vec<BlockId>>& blc);
 
     FormatPolicy formatPolicy = defaultFormatPolicy;
 };
@@ -457,21 +458,28 @@ struct OutConsole {
     void popMargin() { margins.pop_back(); }
 };
 
-generator<Event> formatEvents(Layout::Ptr const& lyt);
+generator<Event> formatEvents(BlockStore& store, Layout::Ptr const& lyt);
 
 struct SimpleStringStore {
     Vec<QString> strings;
+    BlockStore*  store;
 
+    SimpleStringStore(BlockStore* store) : store(store) {}
     LytStr  str(QString const& str);
     QString str(const LytStr& str) const;
-    QString toString(
-        Block::Ptr const& blc,
-        Options const&    opts = Options{});
-    Block::Ptr text(const QString& arg) { return Block::text(str(arg)); }
-    Block::Ptr text(const LytStr& s) { return Block::text(s); }
+    QString toString(BlockId const& blc, Options const& opts = Options{});
+    BlockId text(const QString& arg) { return store->text(str(arg)); }
+    BlockId text(const LytStr& s) { return store->text(s); }
+
+    QString toTreeRepr(BlockId id, bool doRecurse = true);
 };
 
 
 } // namespace layout
+
+template <>
+struct SerdeDefaultProvider<layout::BlockId> {
+    static layout::BlockId get() { return layout::BlockId::Nil(); }
+};
 
 #endif // TEXTLAYOUTER_HPP

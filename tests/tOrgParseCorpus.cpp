@@ -1,4 +1,3 @@
-#include "org_parse_aux.hpp"
 #include "corpusrunner.hpp"
 
 #include <parse/OrgParser.hpp>
@@ -8,6 +7,7 @@
 #include <sem/ErrorWrite.hpp>
 #include <gtest/gtest.h>
 #include <QDirIterator>
+#include <QCoreApplication>
 
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Debug.hpp>
@@ -15,6 +15,11 @@
 
 #include <fnmatch.h>
 #include <ranges>
+#include "testprofiler.hpp"
+
+#ifdef USE_PERFETTO
+#    include <hstd/wrappers/perfetto_aux.hpp>
+#endif
 
 namespace rs = std::views;
 
@@ -54,8 +59,6 @@ struct TestParams {
     }
 };
 
-class ParseFile : public ::testing::TestWithParam<TestParams> {};
-
 Vec<TestParams> generateTestRuns() {
     Vec<TestParams> results;
     QDirIterator    it(
@@ -65,7 +68,10 @@ Vec<TestParams> generateTestRuns() {
         try {
             YAML::Node group = YAML::LoadFile(
                 path.filePath().toStdString());
-            ParseSpecGroup parsed{group, path.filePath()};
+            ParseSpecGroup parsed{
+                group,
+                path.filePath(),
+                __CURRENT_FILE_DIR__ / "corpus"_qs};
             for (const auto& spec : parsed.specs) {
                 results.push_back({spec, path});
             }
@@ -93,12 +99,29 @@ Vec<TestParams> generateTestRuns() {
     for (auto& spec : results) {
         if (spec.spec.debug.debugOutDir.size() == 0) {
             spec.spec.debug.debugOutDir = "/tmp/corpus_runs/"
-                                      + spec.testName();
+                                        + spec.testName();
         }
     }
 
     return results;
 }
+
+class ParseFile : public ::testing::TestWithParam<TestParams> {
+  protected:
+    Opt<TestProfiler> profiler;
+
+
+    void SetUp() override {
+        profiler = TestProfiler{
+            ("/tmp/" + GetParam().testName() + "_xray").toStdString(),
+            ("/tmp/" + GetParam().testName() + "_pgo").toStdString(),
+            json::object({
+                {"meta", GetParam().fullName().toStdString()},
+            })};
+        profiler->SetUp();
+    }
+    void TearDown() override { profiler->TearDown(); }
+};
 
 
 std::string getTestName(
@@ -106,9 +129,12 @@ std::string getTestName(
     return info.param.testName().toStdString();
 }
 
+
 TEST_P(ParseFile, CorpusAll) {
-    TestParams   params = GetParam();
-    auto&        spec   = params.spec;
+    TestParams params = GetParam();
+    __perf_trace("cli", "Execute test");
+    auto& spec             = params.spec;
+    spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
     CorpusRunner runner;
     using RunResult  = CorpusRunner::RunResult;
     RunResult result = runner.runSpec(spec, params.file.filePath());
@@ -138,6 +164,12 @@ TEST_P(ParseFile, CorpusAll) {
             .printSemToFile    = true,
         };
 
+        for (auto& exporter : spec.exporters) {
+            exporter.doTrace     = true;
+            exporter.print       = true;
+            exporter.printToFile = true;
+        }
+
         RunResult fail = runner.runSpec(spec, params.file.filePath());
         ColText   os;
 
@@ -152,7 +184,12 @@ TEST_P(ParseFile, CorpusAll) {
                 [&](RunResult::SemCompare const& node) {
                     os = node.failDescribe;
                 },
-                [&](RunResult::ExportCompare const& node) {},
+                [&](RunResult::ExportCompare const& node) {
+                    for (auto const& exp : node.run) {
+                        os.append(exp.failDescribe);
+                        os.append(ColText("\n"));
+                    }
+                },
                 [&](RunResult::None const& node) {},
             },
             fail.data);

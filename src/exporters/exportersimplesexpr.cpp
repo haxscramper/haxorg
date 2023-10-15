@@ -3,7 +3,7 @@
 
 #include <exporters/Exporter.cpp>
 
-template class Exporter<ExporterSimpleSExpr, layout::Block::Ptr>;
+template class Exporter<ExporterSimpleSExpr, layout::BlockId>;
 
 
 void ExporterSimpleSExpr::visit(Res& res, sem::SemId org) {
@@ -18,8 +18,8 @@ void ExporterSimpleSExpr::visit(Res& res, sem::SemId org) {
         default: {
             Res inner = SemSet{OrgSemKind::Subtree, OrgSemKind::ListItem}
                                 .contains(org->getKind())
-                          ? b::stack()
-                          : b::line();
+                          ? b.stack()
+                          : b.line();
 
             if (SemSet{
                     OrgSemKind::Paragraph,
@@ -28,18 +28,18 @@ void ExporterSimpleSExpr::visit(Res& res, sem::SemId org) {
                     OrgSemKind::Par,
                 }
                     .contains(org->getKind())) {
-                res = b::line({string(to_string(org->getKind()))});
+                res = b.line({string(to_string(org->getKind()))});
 
                 for (const auto& it : org->subnodes) {
-                    res->add(string(" "));
-                    res->add(visit(it));
+                    b.add_at(res, string(" "));
+                    b.add_at(res, eval(it));
                 }
             } else {
                 visitDispatch(inner, org);
-                res = b::line({
+                res = b.line({
                     string(
                         to_string(org->getKind())
-                        + (inner->isStack() ? " " : "")),
+                        + (b.at(inner).isStack() ? " " : "")),
                     inner,
                 });
             }

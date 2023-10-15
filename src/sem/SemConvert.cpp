@@ -96,10 +96,16 @@
         BOOST_PP_OVERLOAD(__json, __VA_ARGS__)(__VA_ARGS__),              \
         BOOST_PP_EMPTY())
 
+
+#define __place(location)                                                 \
+    PlacementScope CONCAT(locationScope, __COUNTER__) = PlacementScope(   \
+        location, this);
+
 using namespace sem;
 
 using org      = OrgNodeKind;
 using otk      = OrgTokenKind;
+using osp      = OrgSemPlacement;
 using Err      = OrgConverter::Errors;
 using Property = sem::Subtree::Property;
 
@@ -397,6 +403,7 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
 
     {
         __field(N::Title);
+        __place(osp::TreeTitle);
         tree->title = convertParagraph(tree, one(a, N::Title));
     }
 
@@ -416,11 +423,8 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
 
     {
         __field(N::Body);
+        __place(osp::TreeBody);
         for (auto const& sub : one(a, N::Body)) {
-            auto const&    g      = GlobalStore::getInstance();
-            Subtree const& direct = g.store.storeSubtree.values.at(
-                tree.getNodeIndex());
-
             auto subres = convert(tree, sub);
             tree->push_back(subres);
         }
@@ -673,6 +677,7 @@ SemIdT<Link> OrgConverter::convertLink(__args) {
 
     if (a.kind() == org::Link) {
         if (one(a, N::Desc).kind() == org::Paragraph) {
+            __place(osp::LinkDescription);
             link->description = convertParagraph(link, one(a, N::Desc));
         }
     }
@@ -696,11 +701,15 @@ SemIdT<ListItem> OrgConverter::convertListItem(__args) {
     __trace();
     auto item = Sem<ListItem>(p, a);
     if (one(a, N::Header).kind() != org::Empty) {
+        __place(osp::ListItemDesc);
         item->header = convertParagraph(item, one(a, N::Header));
     }
 
-    for (const auto& sub : one(a, N::Body)) {
-        item.push_back(convert(item, sub));
+    {
+        __place(osp::ListItemBody);
+        for (const auto& sub : one(a, N::Body)) {
+            item.push_back(convert(item, sub));
+        }
     }
 
     return item;
@@ -822,8 +831,15 @@ SemIdT<Export> OrgConverter::convertExport(__args) {
         }
     }
 
-    eexport->exporter = one(a, N::Name).strVal();
-    eexport->content  = one(a, N::Body).strVal();
+
+    auto values = convertCmdArguments(eexport, one(a, N::Args));
+    if (auto place = values->popArg("placement"); place) {
+        eexport->placement = (*place)->getString();
+    }
+
+    eexport->exporter   = one(a, N::Name).strVal();
+    eexport->parameters = values;
+    eexport->content    = one(a, N::Body).strVal();
 
     return eexport;
 }
@@ -863,6 +879,39 @@ SemIdT<TextSeparator> OrgConverter::convertTextSeparator(__args) {
 
 SemIdT<AtMention> OrgConverter::convertAtMention(__args) {
     return SemLeaf<AtMention>(p, a);
+}
+
+SemIdT<CmdArgument> OrgConverter::convertCmdArgument(__args) {
+    SemIdT<CmdArgument> result = Sem<CmdArgument>(p, a);
+    QString             key    = one(a, N::Name).strVal();
+    result->value              = one(a, N::Value).strVal();
+
+    if (!key.isEmpty()) {
+        result->key = key.remove(QChar(':'));
+    }
+
+
+    return result;
+}
+
+SemIdT<CmdArguments> OrgConverter::convertCmdArguments(__args) {
+    SemIdT<CmdArguments> result = Sem<CmdArguments>(p, a);
+    if (a.getKind() == org::CmdArguments) {
+        for (auto const& item : one(a, N::Values)) {
+            SemIdT<CmdArgument> arg = convertCmdArgument(result, item);
+            if (arg->key) {
+                bool ok = result->named.insert({arg->key.value(), arg})
+                              .second;
+                Q_ASSERT(ok); // TODO generate proper error message
+            } else {
+                result->positional.push_back(arg);
+            }
+        }
+    } else {
+        Q_ASSERT(a.getKind() == org::Empty);
+    }
+
+    return result;
 }
 
 
@@ -1065,18 +1114,35 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     break;
                 }
                 case org::LatexClass: {
-                    doc->options->properties.push_back(
-                        Prop(Prop::ExportLatexClass{sub.at(0).strVal()}));
+                    Prop::ExportLatexClass res{};
+                    res.latexClass = sub.at(0).strVal();
+                    doc->options->properties.push_back(Prop(res));
                     break;
                 }
                 case org::LatexHeader: {
-                    doc->options->properties.push_back(
-                        Prop(Prop::ExportLatexHeader{sub.at(0).strVal()}));
+                    Prop::ExportLatexHeader res{};
+                    res.header = sub.at(0).strVal();
+                    doc->options->properties.push_back(Prop(res));
                     break;
                 }
                 case org::LatexCompiler: {
-                    doc->options->properties.push_back(Prop(
-                        Prop::ExportLatexCompiler{sub.at(0).strVal()}));
+                    Prop::ExportLatexCompiler res{};
+                    res.compiler = sub.at(0).strVal();
+                    doc->options->properties.push_back(Prop(res));
+                    break;
+                }
+                case org::LatexClassOptions: {
+                    auto value = sub.at(0).strVal();
+                    if (value.startsWith('[')) {
+                        value.remove('[');
+                    }
+                    if (value.endsWith(']')) {
+                        value = value.chopped(1);
+                    }
+
+                    Prop::ExportLatexClassOptions res;
+                    res.options.push_back(value);
+                    doc->options->properties.push_back(Prop(res));
                     break;
                 }
                 default: {

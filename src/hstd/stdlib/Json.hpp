@@ -10,19 +10,45 @@
 #include <hstd/stdlib/Opt.hpp>
 
 #include <boost/describe.hpp>
+#include <hstd/system/reflection.hpp>
 
 using json   = nlohmann::json;
 namespace ns = nlohmann;
 
 extern template class nlohmann::basic_json<>;
 
-void to_json(json& j, int i);
-void to_json(json& j, CR<QString> str);
-void to_json(json& j, CR<Str> str);
+namespace nlohmann {
+template <>
+struct adl_serializer<QString> {
+    static void to_json(json& j, const QString& str) {
+        j = str.toStdString();
+    }
 
+    static void from_json(const json& in, QString& out) {
+        out = QString::fromStdString(in.get<std::string>());
+    }
+};
+} // namespace nlohmann
+
+void         to_json(json& j, int i);
+void         to_json(json& j, CR<QString> str);
+void         to_json(json& j, CR<Str> str);
+void         from_json(const json& in, QString& out);
+void         from_json(const json& in, int& out);
+void         from_json(const json& in, bool& out);
 QString      to_string(json const& j);
 QDebug       operator<<(QDebug os, json const& value);
 QTextStream& operator<<(QTextStream& os, json const& value);
+
+struct JsonFormatOptions {
+    int width       = 80;
+    int indent      = 2;
+    int startIndent = 0;
+};
+
+std::string to_compact_json(
+    json const&              j,
+    JsonFormatOptions const& options = JsonFormatOptions{});
 
 template <typename T>
 concept DescribedMembers = boost::describe::has_describe_members<T>::value;
@@ -37,17 +63,69 @@ inline void to_json(json& res, CR<Vec<T>> str);
 template <typename T>
 inline void to_json(json& res, std::unique_ptr<T> const& value);
 
-template <DescribedMembers T>
-void to_json(json& obj, T const& t) {
-    using D1 = boost::describe::
-        describe_members<T, boost::describe::mod_public>;
-    obj = json::object();
-    boost::mp11::mp_for_each<D1>([&](auto D) {
-        json tmp;
-        to_json(tmp, t.*D.pointer);
-        obj[D.name] = tmp;
+template <DescribedEnum E>
+void from_json(json const& j, E& str) {
+    Opt<E> value = enum_serde<E>::from_string(
+        QString::fromStdString(j.get<std::string>()));
+    if (value) {
+        str = value.value();
+    } else {
+        throw json::type_error::create(
+            302,
+            "Could not convert json value <" + j.dump()
+                + "> to enum for type " + typeid(E).name(),
+            nullptr);
+    }
+}
+
+
+template <DescribedRecord T>
+static void to_json(json& j, const T& str) {
+    using Bd = boost::describe::
+        describe_bases<T, boost::describe::mod_any_access>;
+    using Md = boost::describe::
+        describe_members<T, boost::describe::mod_any_access>;
+
+    if (!j.is_object()) {
+        j = json::object();
+    }
+
+    boost::mp11::mp_for_each<Md>(
+        [&](auto const& field) { j[field.name] = str.*field.pointer; });
+
+    boost::mp11::mp_for_each<Bd>([&](auto Base) {
+        to_json<typename decltype(Base)::type>(j, str);
     });
 }
+
+template <DescribedRecord T>
+void from_json(const json& in, T& out) {
+    using Bd = boost::describe::
+        describe_bases<T, boost::describe::mod_any_access>;
+    using Md = boost::describe::
+        describe_members<T, boost::describe::mod_any_access>;
+    boost::mp11::mp_for_each<Md>([&](auto const& field) {
+        if (in.contains(field.name)) {
+            from_json(in[field.name], out.*field.pointer);
+        }
+    });
+
+    boost::mp11::mp_for_each<Bd>([&](auto Base) {
+        from_json<std::remove_cvref_t<typename decltype(Base)::type>>(
+            in, out);
+    });
+}
+
+
+template <typename T>
+void from_json(const json& in, Vec<T>& out) {
+    for (auto const& j : in) {
+        T tmp;
+        from_json(j, tmp);
+        out.push_back(tmp);
+    }
+}
+
 
 template <typename T>
 inline void to_json(json& res, CR<Vec<T>> str) {
@@ -58,6 +136,14 @@ inline void to_json(json& res, CR<Vec<T>> str) {
     }
 }
 
+template <typename T>
+inline void to_json(json& res, CR<std::vector<T>> str) {
+    for (const auto& it : str) {
+        json tmp;
+        to_json(tmp, it);
+        res.push_back(tmp);
+    }
+}
 
 template <typename T>
 inline void to_json(json& res, CR<Opt<T>> str) {

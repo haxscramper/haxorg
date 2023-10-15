@@ -356,6 +356,7 @@ struct OrgTokenizerImpl
     /// construct.
     bool atConstructStart(CR<PosStr> str);
     bool atSubtreeStart(CR<PosStr> str);
+    bool atNonParagraph(CR<PosStr> str);
 
     using LexerStateSimple = LexerState<char>;
 
@@ -389,7 +390,7 @@ struct OrgTokenizerImpl
 
     bool lexSingleProperty(PosStr& str, PosStr const& id);
 
-#define _def(Kind) virtual bool lex##Kind(PosStr& str) override;
+#define _def(Kind) bool lex##Kind(PosStr& str) override;
     EACH_SIMPLE_TOKENIZER_METHOD(_def);
 #undef _def
 
@@ -2197,8 +2198,8 @@ bool OrgTokenizerImpl<TraceState>::lexDrawer(PosStr& str) {
         } else {
             throw ImplementError(
                 "Drawer element '$#' has not been implemented yet "
-                "(normalized as '$#')"
-                % to_string_vec(id.toStr(), norm));
+                "(normalized as '$#'), located at $#"
+                % to_string_vec(id.toStr(), norm, debugPos(str)));
         }
         // qDebug() << str;
 
@@ -2615,10 +2616,20 @@ bool OrgTokenizerImpl<TraceState>::lexCommandArguments(
             lexCommandInclude(str);
             break;
         }
+
+        case ock::BeginExport: {
+            spaceSkip(str);
+            auto src = str.tok(
+                otk::Ident, skipZeroOrMore, charsets::IdentChars);
+            __push(src);
+            spaceSkip(str);
+            lexCommandKeyValue(str);
+            break;
+        }
+
         case ock::Name:
         case ock::LatexClass:
         case ock::LatexCompiler:
-        case ock::BeginExport:
         case ock::BeginAdmonition: {
             spaceSkip(str);
             auto ident = str.tok(otk::Ident, skipPastEOF);
@@ -2728,6 +2739,27 @@ bool OrgTokenizerImpl<TraceState>::atSubtreeStart(CR<PosStr> str) {
             ++shift;
         }
         return str.at(OSpace, shift);
+    } else {
+        return false;
+    }
+}
+
+template <bool TraceState>
+bool OrgTokenizerImpl<TraceState>::atNonParagraph(CR<PosStr> str) {
+    if (str.finished()) {
+        return true;
+    } else if (1 < getVerticalSpaceCount(str)) {
+        return true;
+    } else if (isFirstOnLine(str)) {
+        if (atConstructStart(str)) {
+            return true;
+        } else if (atListAhead(str)) {
+            return true;
+        } else if (atLogClock(spaced(str))) {
+            return true;
+        } else {
+            return false;
+        }
     } else {
         return false;
     }
@@ -3095,15 +3127,7 @@ bool OrgTokenizerImpl<TraceState>::lexParagraph(PosStr& str) {
     int        startPos = str.getPos();
     str.pushSlice();
     while (!str.finished() && !ended) {
-        if (atConstructStart(str)      //
-            || atListAhead(str)        //
-            || str.finished()          //
-            || atLogClock(spaced(str)) // HACK for now this is used to make
-            // paragraph lexing more uniform,
-            // but in general it should be moved
-            // to a more complex parsing
-            // strategy
-            || 1 < getVerticalSpaceCount(str)) {
+        if (atNonParagraph(str)) {
             ended = true;
         } else {
             str.next();

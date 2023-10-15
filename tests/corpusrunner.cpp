@@ -6,9 +6,7 @@
 #include <exporters/ExporterJson.hpp>
 #include <exporters/exportertree.hpp>
 #include <exporters/exportersimplesexpr.hpp>
-#include <exporters/exportersubtreestructure.hpp>
-#include <exporters/exporterhtml.hpp>
-#include <exporters/exporterlatex.hpp>
+#include <exporters/exporteryaml.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/diffs.hpp>
 
@@ -63,8 +61,138 @@ const UnorderedMap<Str, MockFull::ParserMethod> parsers({
     CB(LineCommand),
     CB(ToplevelItem),
     CB(Top),
+    CB(Full),
 });
 #undef CB
+
+struct DiffItem {
+    DECL_DESCRIBED_ENUM(Op, Replace, Remove, Add);
+    Op          op;
+    std::string path;
+    json        value;
+};
+
+
+Vec<DiffItem> json_diff(
+    const json&          source,
+    const json&          target,
+    const std::string&   path   = "",
+    Func<bool(CR<json>)> ignore = [](CR<json>) -> bool { return false; }) {
+
+    // the patch
+    Vec<DiffItem> result;
+
+    if (ignore(target)) {
+        return result;
+    }
+
+    // if the values are the same, return empty patch
+    if (source == target) {
+        return result;
+    }
+
+    if (source.type() != target.type()) {
+        // different types: replace value
+        result.push_back({DiffItem::Op::Replace, path, target});
+        return result;
+    }
+
+    switch (source.type()) {
+        case json::value_t::array: {
+            // first pass: traverse common elements
+            std::size_t i = 0;
+            while (i < source.size() && i < target.size()) {
+                // recursive call to compare array values at index i
+                auto temp_diff = json_diff(
+                    source[i],
+                    target[i],
+                    nlohmann::detail::concat(
+                        path, '/', std::to_string(i)));
+                result.insert(
+                    result.end(), temp_diff.begin(), temp_diff.end());
+                ++i;
+            }
+
+            // We now reached the end of at least one array
+            // in a second pass, traverse the remaining elements
+
+            // remove my remaining elements
+            const auto end_index = static_cast<json::difference_type>(
+                result.size());
+            while (i < source.size()) {
+                // add operations in reverse order to avoid invalid
+                // indices
+                result.insert(
+                    result.begin() + end_index,
+                    {DiffItem::Op::Remove,
+                     nlohmann::detail::concat(
+                         path, '/', std::to_string(i))});
+
+                ++i;
+            }
+
+            // add other remaining elements
+            while (i < target.size()) {
+                result.push_back(
+                    {DiffItem::Op::Add,
+                     nlohmann::detail::concat(path, "/-"),
+                     target[i]});
+                ++i;
+            }
+
+            break;
+        }
+
+        case json::value_t::object: {
+            // first pass: traverse this object's elements
+            for (auto it = source.cbegin(); it != source.cend(); ++it) {
+                // escape the key name to be used in a JSON patch
+                const auto path_key = nlohmann::detail::concat(
+                    path, '/', nlohmann::detail::escape(it.key()));
+
+                if (target.find(it.key()) != target.end()) {
+                    // recursive call to compare object values at key it
+                    auto temp_diff = json_diff(
+                        it.value(), target[it.key()], path_key);
+                    result.insert(
+                        result.end(), temp_diff.begin(), temp_diff.end());
+                } else {
+                    // found a key that is not in o -> remove it
+                    result.push_back({DiffItem::Op::Remove, path_key});
+                }
+            }
+
+            // second pass: traverse other object's elements
+            for (auto it = target.cbegin(); it != target.cend(); ++it) {
+                if (source.find(it.key()) == source.end()) {
+                    // found a key that is not in this -> add it
+                    const auto path_key = nlohmann::detail::concat(
+                        path, '/', nlohmann::detail::escape(it.key()));
+                    result.push_back(
+                        {DiffItem::Op::Add, path_key, it.value()});
+                }
+            }
+
+            break;
+        }
+
+        case json::value_t::null:
+        case json::value_t::string:
+        case json::value_t::boolean:
+        case json::value_t::number_integer:
+        case json::value_t::number_unsigned:
+        case json::value_t::number_float:
+        case json::value_t::binary:
+        case json::value_t::discarded:
+        default: {
+            // both primitive type: replace value
+            result.push_back({DiffItem::Op::Replace, path, target});
+            break;
+        }
+    }
+
+    return result;
+}
 
 
 void CorpusRunner::writeFileOrStdout(
@@ -168,34 +296,69 @@ void format(
 
 
 void describeDiff(
-    ColStream&  os,
-    json const& it,
-    json const& expected,
-    json const& converted) {
-    auto op = it["op"].get<std::string>();
-
-    json::json_pointer path{it["path"].get<std::string>()};
+    ColStream&      os,
+    DiffItem const& it,
+    json const&     expected,
+    json const&     converted) {
+    json::json_pointer path{it.path};
 
     os << "  ";
-    if (op == "remove") {
-        os << os.red() << "missing entry";
-    } else if (op == "add") {
-        os << os.green() << "unexpected entry";
-    } else {
-        os << os.magenta() << "changed entry";
+    switch (it.op) {
+        case DiffItem::Op::Remove: {
+            os << os.red() << "missing entry";
+            break;
+        }
+        case DiffItem::Op::Add: {
+            os << os.green() << "unexpected entry";
+            break;
+        }
+        case DiffItem::Op::Replace: {
+            os << os.magenta() << "changed entry";
+            break;
+        }
     }
 
     os << " on path '" << os.yellow() << path.to_string() << os.end()
        << "' ";
 
-    if (op == "replace") {
-        os << "    from " << os.red() << expected[path].dump() << os.end()
-           << " to " << os.green() << converted[path].dump() << os.end();
+    switch (it.op) {
+        case DiffItem::Op::Remove: {
+            os << "    " << os.red() << converted[path].dump() << os.end();
+            break;
+        }
+        case DiffItem::Op::Add: {
+            os << "    " << it.value.dump();
+            break;
+        }
+        case DiffItem::Op::Replace: {
+            json const& exp  = expected[path];
+            json const& conv = converted[path];
+            std::string from = exp.dump();
+            std::string to   = conv.dump();
 
-    } else if (op == "add") {
-        os << "    " << it["value"].dump();
-    } else if (op == "remove") {
-        os << "    " << os.red() << converted[path].dump() << os.end();
+            if (exp.type() != conv.type()) {
+                os << "type mismatch: " << exp.type_name()
+                   << " != " << conv.type_name() << " ";
+            }
+
+            if (40 < from.size() || 40 < to.size()) {
+                os << "\n";
+                os << "    from " << os.red()
+                   << to_compact_json(
+                          exp, {.width = 120, .startIndent = 10})
+                   << os.end() << "\n";
+                os << "    to   " << os.red()
+                   << to_compact_json(
+                          conv, {.width = 120, .startIndent = 10})
+                   << os.end();
+            } else {
+                os << "    from " << os.red() << from << os.end() << " to "
+                   << os.green() << to << os.end();
+            }
+
+
+            break;
+        }
     }
 }
 
@@ -235,39 +398,40 @@ void writeSimple(ColStream& os, json const& j) {
 
 
 json CorpusRunner::toTextLyt(
-    layout::Block::Ptr        block,
+    layout::BlockStore&       b,
+    layout::BlockId           block,
     Func<Str(layout::LytStr)> getStr) {
-    using b = layout::Block;
+    using B = layout::Block;
 
-    auto getSubnodes = [&](CVec<b::Ptr> elements) {
+    auto getSubnodes = [&](CVec<layout::BlockId> elements) {
         json res = json::array();
         for (auto const& e : elements) {
-            res.push_back(toTextLyt(e, getStr));
+            res.push_back(toTextLyt(b, e, getStr));
         }
         return res;
     };
 
     return std::visit(
         overloaded{
-            [&](b::Empty const&) -> json {
+            [&](B::Empty const&) -> json {
                 return {{"kind", "empty"}};
             },
-            [&](b::Line const& l) -> json {
+            [&](B::Line const& l) -> json {
                 return {
                     {"kind", "line"},
                     {"subnodes", getSubnodes(l.elements)}};
             },
-            [&](b::Stack const& l) -> json {
+            [&](B::Stack const& l) -> json {
                 return {
                     {"kind", "block"},
                     {"subnodes", getSubnodes(l.elements)}};
             },
-            [&](b::Choice const& l) -> json {
+            [&](B::Choice const& l) -> json {
                 return {
                     {"kind", "choice"},
                     {"subnodes", getSubnodes(l.elements)}};
             },
-            [&](b::Verb const& l) -> json {
+            [&](B::Verb const& l) -> json {
                 json arr = json::array();
                 for (auto const& i : l.textLines) {
                     json line = json::array();
@@ -280,14 +444,14 @@ json CorpusRunner::toTextLyt(
                 return {
                     {"kind", "verb"}, {"fistNl", "bool"}, {"lines", arr}};
             },
-            [&](b::Text const& l) -> json {
+            [&](B::Text const& l) -> json {
                 json arr = json::array();
                 for (auto const& i : l.text.strs) {
                     arr.push_back(getStr(i));
                 }
                 return {{"kind", "text"}, {"tokens", arr}};
             },
-            [&](b::Wrap const& text) -> json {
+            [&](B::Wrap const& text) -> json {
                 return {
                     {"kind", "wrap"},
                     {"sep", getStr(text.sep)},
@@ -297,7 +461,7 @@ json CorpusRunner::toTextLyt(
                     {"subnodes", getSubnodes(text.wrapElements)}};
             },
         },
-        block->data);
+        b.at(block).data);
 }
 
 
@@ -338,8 +502,8 @@ void exporterVisit(
     trace.endStream(os);
 }
 
-
 CorpusRunner::ExportResult CorpusRunner::runExporter(
+    ParseSpec const&                 spec,
     sem::SemId                       top,
     const ParseSpec::ExporterExpect& exp) {
     using ER = ExportResult;
@@ -349,37 +513,41 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
         return [&](layout::LytStr str) { return store.str(str); };
     };
 
-    auto withTreeExporter = [this,
-                             &strForStore](sem::SemId top, auto& run) {
-        auto block = run.visitTop(top);
-        return ER(
-            ER::Text{.textLyt = toTextLyt(block, strForStore(run.store))});
-    };
+    auto withTreeExporter =
+        [this,
+         &strForStore](sem::SemId top, layout::BlockStore& b, auto& run) {
+            auto block = run.evalTop(top);
+            return ER(ER::Text{
+                .textLyt = toTextLyt(b, block, strForStore(run.store))});
+        };
 
-    if (exp.exporterName == "json") {
-        return ER(ER::Structured{.data = ExporterJson().visitTop(top)});
-    } else if (exp.exporterName == "sexp") {
+    if (exp.name == "json") {
+        return ER(ER::Structured{.data = ExporterJson().evalTop(top)});
+    } else if (exp.name == "sexp") {
         ExporterSimpleSExpr run;
-        return withTreeExporter(top, run);
-
-    } else if (exp.exporterName == "html") {
-        ExporterHtml run;
-        return withTreeExporter(top, run);
-
-    } else if (exp.exporterName == "latex") {
-        ExporterLatex run;
-        return withTreeExporter(top, run);
-
-    } else if (exp.exporterName == "subtree_structure") {
-        return ER(ER::Structured{
-            .data = ExporterSubtreeStructure().visitTop(top)});
-
+        return withTreeExporter(top, run.b, run);
 
     } else {
         throw std::domain_error(
-            "Unexpected export result name "
-            + exp.exporterName.toStdString());
+            "Unexpected export result name " + exp.name.toStdString());
     }
+}
+
+CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
+    const ParseSpec::ExporterExpect& exp,
+    const ExportResult&              result) {
+    RunResult::ExportCompare::Run cmp;
+    cmp.isOk = true;
+    ColStream os;
+    switch (result.getKind()) {
+        default: {
+            qCritical() << ("TODO" + to_string(result.getKind()));
+            cmp.isOk = true;
+        }
+    }
+
+    cmp.failDescribe = os.getBuffer();
+    return cmp;
 }
 
 CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
@@ -544,26 +712,20 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
         exporterVisit<ExporterJson>(trace, ev);
     };
 
-    json      converted = exporter.visitTop(node);
-    json      diff      = json::diff(converted, expected);
-    int       failCount = 0;
-    ColStream os;
+    json          converted = exporter.evalTop(node);
+    Vec<DiffItem> diff      = json_diff(converted, expected);
+    int           failCount = 0;
+    ColStream     os;
     if (useQFormat()) {
         os.colored = false;
     }
-    UnorderedMap<std::string, json> ops;
+    UnorderedMap<std::string, DiffItem> ops;
 
 
     for (auto const& it : diff) {
-        ops[it["path"].get<std::string>()] = it;
-        auto               op              = it["op"].get<std::string>();
-        json::json_pointer path{it["path"].get<std::string>()};
-        if (!path.empty()               //
-            && op == "remove"           //
-            && (path.back() == "id"     //
-                || path.back() == "loc" //
-                || path.back() == "subnodes"
-                || path.back() == "attached")) {
+        ops[it.path] = it;
+        json::json_pointer path{it.path};
+        if (!path.empty() && it.op == DiffItem::Op::Remove) {
             continue;
         } else {
             ++failCount;
@@ -645,4 +807,151 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     } else {
         return {.isOk = true};
     }
+}
+
+CorpusRunner::RunResult CorpusRunner::runSpec(
+    CR<ParseSpec> spec,
+    CR<QString>   from) {
+    MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
+    MockFull              p(spec.debug.traceParse, spec.debug.traceLex);
+
+    { // Input source
+        if (spec.debug.printSource) {
+            writeFile(spec.debugFile("source.org"), spec.source);
+        }
+    }
+
+
+    { // Lexing
+        if (spec.debug.doLex) {
+            p.tokenizer->trace = spec.debug.traceLex;
+            if (spec.debug.lexToFile) {
+                p.tokenizer->setTraceFile(spec.debugFile("trace_lex.txt"));
+            }
+
+            p.tokenize(spec.source, lexCb);
+        } else {
+            return RunResult{};
+        }
+
+        if (spec.debug.printLexed) {
+            writeFileOrStdout(
+                spec.debugFile("lexed.yaml"),
+                to_string(yamlRepr(p.tokens)) + "\n",
+                spec.debug.printLexedToFile);
+        }
+
+        if (spec.tokens.has_value()) {
+            Str                   buffer;
+            RunResult::LexCompare result = compareTokens(
+                p.tokens,
+                fromFlatTokens<OrgTokenKind>(spec.tokens.value(), buffer),
+                spec.conf.tokenMatch);
+            if (!result.isOk) {
+                return RunResult(result);
+            }
+        }
+    }
+
+    { // Parsing
+        if (spec.debug.doParse) {
+            p.parser->trace = spec.debug.traceParse;
+            if (spec.debug.parseToFile) {
+                p.parser->setTraceFile(spec.debugFile("trace_parse.txt"));
+            }
+
+            MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
+
+            p.parse(parseCb);
+
+            if (spec.debug.printParsed) {
+                writeFileOrStdout(
+                    spec.debugFile("parsed.yaml"),
+                    to_string(yamlRepr(p.nodes)) + "\n",
+                    spec.debug.printParsedToFile);
+
+                writeFileOrStdout(
+                    spec.debugFile("parsed.txt"),
+                    OrgAdapter(&p.nodes, OrgId(0)).treeRepr(false) + "\n",
+                    spec.debug.printParsedToFile);
+            }
+        } else {
+            return RunResult{};
+        }
+
+        if (spec.subnodes.has_value()) {
+            Str           buffer;
+            OrgNodeGroup  nodes;
+            OrgTokenGroup tokens;
+
+            if (spec.tokens.has_value()) {
+                tokens = fromFlatTokens<OrgTokenKind>(
+                    spec.tokens.value(), buffer);
+            }
+
+            if (spec.subnodes.has_value()) {
+                nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind>(
+                    spec.subnodes.value());
+            }
+
+            nodes.tokens = &tokens;
+
+            RunResult::NodeCompare result = compareNodes(p.nodes, nodes);
+            if (!result.isOk) {
+                return RunResult(result);
+            }
+        }
+    }
+
+
+    { // Sem conversion
+        if (spec.debug.doSem) {
+            sem::ContextStore context;
+            sem::OrgConverter converter(&context);
+
+            converter.trace = spec.debug.traceSem;
+            if (spec.debug.semToFile) {
+                converter.setTraceFile(spec.debugFile("trace_sem.txt"));
+            }
+
+            auto document = converter.toDocument(
+                OrgAdapter(&p.nodes, OrgId(0)));
+
+
+            if (spec.debug.printSem) {
+                ExporterYaml exporter;
+                exporter.skipNullFields  = true;
+                exporter.skipFalseFields = true;
+                exporter.skipZeroFields  = true;
+                exporter.skipLocation    = true;
+                exporter.skipId          = true;
+                writeFileOrStdout(
+                    spec.debugFile("sem.yaml"),
+                    to_string(exporter.evalTop(document)) + "\n",
+                    spec.debug.printSemToFile);
+            }
+
+            if (spec.sem.has_value()) {
+                RunResult::SemCompare result = compareSem(
+                    spec, document, spec.sem.value());
+
+
+                if (!result.isOk) {
+                    return RunResult(result);
+                }
+            }
+
+            if (!spec.exporters.empty()) {
+                RunResult::ExportCompare cmp;
+                for (auto const& exp : spec.exporters) {
+                    cmp.run.push_back(compareExport(
+                        exp, runExporter(spec, document, exp)));
+                }
+
+                return RunResult(cmp);
+            }
+        }
+    }
+
+    return RunResult();
 }

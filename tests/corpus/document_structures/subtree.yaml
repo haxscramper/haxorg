@@ -89,38 +89,5 @@ items:
   - name: "Lorem ipsum subtree"
     debug:
       doParse: false
-    source: |
-      #+title: TITLE WORDS
-      #+FILETAGS: :DO_NOT_ORG_ROAM:
-      #+property: header-args :exports code
-      #+columns: %7TODO(To do) %40ITEM(Task)
-      #+options: broken-links:mark
+    file: org/lorem_ipsum_subtree.org
 
-      * 2020
-
-      ** 2020-03 March
-
-      *** [2020-03-22 Sun]
-
-      Lorem
-
-      * 2022
-        :PROPERTIES:
-        :ID:       14825771-5b1c-44d2-b0a4-996d0cf2b6b2
-        :END:
-
-      ** 2022-03 March
-
-      *** 2022-03-01 Tuesday
-
-      **** [2022-03-01 Tue 01:07:00] content :from_tg:nim##bug:todo:
-           :PROPERTIES:
-           :CREATED:  [2022-03-01 Tue 01:07:00]
-           :ID:       a5a2076a-5c7f-46b2-8144-e7a65e9a440e
-           :END:
-
-      #todo Lorem
-
-      #+begin_src nim
-      iterator b() {.closure.} =
-      #+end_src

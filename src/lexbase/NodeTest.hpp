@@ -5,43 +5,10 @@
 
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/Yaml.hpp>
+#include <hstd/system/macros.hpp>
 
 
-#define __define_field_aux(first, second, third)                          \
-    __unpack_pars first second = third;
-
-#define __per_field(class_bases_bases, field) __define_field(field)
-
-#define __get_field_name_aux(a, fieldName, d) fieldName
-#define __get_field_name(_, arg) , __get_field_name_aux arg
-#define __drop_leading_comma(first, ...) __VA_ARGS__
-
-#define __define_field(arg) __define_field_aux arg
-#define __define_field_only(_, arg) __define_field_aux arg
-
-#define __pass_args_field_aux(_1, fieldname, _3) fieldname(args.fieldname),
-#define __pass_args_field(_, arg) __pass_args_field_aux arg
-
-#define EMPTY()
-
-#define DECL_FIELDS(classname, bases, ...)                                \
-    FOR_EACH_CALL_WITH_PASS(__per_field, (classname, bases), __VA_ARGS__) \
-                                                                          \
-    BOOST_DESCRIBE_CLASS(                                                 \
-        classname,                                                        \
-        bases, /* Expand teh list of fields and leave only the the name   \
-    of the field to be passed to the public members of the                \
-    boost describe */                                                     \
-        (      /* < Extra wrapping paren, __get_field_name leaves out the \
-      a,b,c,d,e list*/                                                    \
-         __drop_leading_comma EMPTY()(EXPAND(FOR_EACH_CALL_WITH_PASS(     \
-             __get_field_name,                                            \
-             () /* < Nothing to pass around */,                           \
-             __VA_ARGS__)))),                                             \
-        () /* For simplicity reasons, sem nodes have public fields and no \
-              protected/private members */                                \
-        ,                                                                 \
-        ());
+json toJson(CR<yaml> node);
 
 struct ParseSpec {
     QString getLocMsg() const {
@@ -64,14 +31,18 @@ struct ParseSpec {
         DECL_FIELDS(
             Dbg,
             (),
+            /// Do trace for lex/parse/sem
             ((bool), traceLex, false),
             ((bool), traceParse, false),
             ((bool), traceSem, false),
+            /// Output trace to the file
             ((bool), lexToFile, false),
             ((bool), parseToFile, false),
             ((bool), semToFile, false),
+            /// Print lex/parse/sem/source values for processing
             ((bool), printLexed, false),
             ((bool), printParsed, false),
+            ((bool), printSem, false),
             ((bool), printSource, false),
             /// Test should run lex/parse/sem stages
             ((bool), doParse, true),
@@ -89,13 +60,15 @@ struct ParseSpec {
         DECL_FIELDS(
             ExporterExpect,
             (),
-            ((QString), exporterName, ""),
+            ((QString), name, ""),
             /// Optional parameters to pass to the exporter run.
             ((Opt<yaml>), parmeters, std::nullopt),
             ((yaml), expected, yaml()),
+            ((bool), print, false),
+            ((bool), printToFile, false),
             /// Print additional trace logs for exporter in the debug
             /// directory for parent test?
-            ((bool), traceExport, false));
+            ((bool), doTrace, false));
     };
 
     QFileInfo debugFile(QString relativePath, bool create = true) const;
@@ -114,7 +87,7 @@ struct ParseSpec {
 
     BOOST_DESCRIBE_NESTED_ENUM(ExpectedMode, Flat, Nested, Named);
 
-    ParseSpec(CR<yaml> node, CR<QString> specFile);
+    ParseSpec(CR<yaml> node, CR<QString> specFile, CR<QString> testRoot);
 
     template <typename N, typename K>
     NodeGroup<N, K> getNodeGroup() {
@@ -139,12 +112,13 @@ struct ParseSpec {
         /// parameters to supply to the exporter. Specific handling of
         /// different exporter variations is implemented in the corpus
         /// file.
-        ((Vec<ExporterExpect>), exporterExpect, {}),
+        ((Vec<ExporterExpect>), exporters, {}),
         /// Name of the method to call for lexing or parsing. Pointer to
         /// implementation is resolved externally, spec file just contains
         /// the required name.
         ((Str), lexImplName, ""),
         ((Str), parseImplName, ""),
+        ((Opt<QString>), file, std::nullopt),
         ((Dbg), debug, Dbg{}),
         ((Conf), conf, Conf{}),
         ((Opt<yaml>), subnodes, std::nullopt),
@@ -158,7 +132,7 @@ struct ParseSpec {
 };
 
 struct ParseSpecGroup {
-    ParseSpecGroup(CR<yaml> node, CR<QString> from);
+    ParseSpecGroup(CR<yaml> node, CR<QString> from, CR<QString> testRoot);
 
     Vec<ParseSpec> specs;
 };

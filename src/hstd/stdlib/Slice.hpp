@@ -157,6 +157,13 @@ constexpr Slice<T> slice1(CR<T> first, CR<T> last) {
     return slice(first, last);
 }
 
+template <typename T>
+constexpr Slice<T> sliceT()
+    requires ImplementsLow<T> && ImplementsHigh<T>
+{
+    return slice1<T>(value_domain<T>::low(), value_domain<T>::high());
+}
+
 /// Return heterogeneous inclusive slice of values
 template <typename A, typename B>
 HSlice<A, B> slice(CR<A> first, CR<B> last) {

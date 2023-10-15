@@ -16,21 +16,27 @@ yaml ExporterYaml::newRes(sem::SemId org) {
             osm::Space,
             osm::Punctuation,
             osm::BigIdent,
-            osm::Newline}
+            osm::Newline,
+        }
             .contains(org->getKind())) {
         res.SetStyle(YAML::EmitterStyle::Flow);
     }
 
+    if (!skipLocation) {
+        yaml loc;
+        loc.SetStyle(YAML::EmitterStyle::Flow);
+        loc["parent"] = org->parent.id;
+        loc["line"]   = org->loc ? yaml(org->loc->line) : yaml();
+        loc["col"]    = org->loc ? yaml(org->loc->column) : yaml();
+        loc["id"]     = org->original.id.isNil()
+                          ? yaml()
+                          : yaml(org->original.id.getValue());
+        res["loc"]    = loc;
+    }
 
-    yaml loc;
-    loc.SetStyle(YAML::EmitterStyle::Flow);
-    loc["parent"] = org->parent.id;
-    loc["line"]   = org->loc ? yaml(org->loc->line) : yaml();
-    loc["col"]    = org->loc ? yaml(org->loc->column) : yaml();
-    loc["id"]     = org->original.id.isNil()
-                      ? yaml()
-                      : yaml(org->original.id.getValue());
-    res["loc"]    = loc;
-    res["id"]     = org.id;
+    if (!skipId) {
+        res["id"] = org.getReadableId();
+    }
+
     return res;
 }

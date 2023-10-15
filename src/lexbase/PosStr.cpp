@@ -115,19 +115,19 @@ void PosStr::back(int count) {
     }
 }
 
-void PosStr::next(int count) {
+[[clang::xray_always_instrument]] void PosStr::next(int count) {
     for (int i = 0; i < count; ++i) {
         ++pos;
     }
 }
 
-QChar PosStr::get(int offset) const {
-    QChar result = QChar(QChar('\0'));
-    auto  target = pos + offset;
+[[clang::xray_always_instrument]] QChar PosStr::get(int offset) const {
+    auto target = pos + offset;
     if (0 <= target && target < view.size()) {
-        result = view[target];
+        return view.at(target);
+    } else {
+        return QChar(QChar('\0'));
     }
-    return result;
 }
 
 bool PosStr::finished() const { return get() == QChar('\0'); }
@@ -142,15 +142,21 @@ QChar PosStr::pop() {
     return result;
 }
 
-bool PosStr::at(QChar expected, int offset) const {
+[[clang::xray_always_instrument]] bool PosStr::at(
+    QChar expected,
+    int   offset) const {
     return get(offset) == expected;
 }
 
-bool PosStr::at(CR<CharSet> expected, int offset) const {
+[[clang::xray_always_instrument]] bool PosStr::at(
+    CR<CharSet> expected,
+    int         offset) const {
     return expected.contains(get(offset));
 }
 
-bool PosStr::at(CR<QString> expected, int offset) const {
+[[clang::xray_always_instrument]] bool PosStr::at(
+    CR<QString> expected,
+    int         offset) const {
     int idx = 0;
     for (const auto& ch : expected) {
         if (get(offset + idx) != ch) {
@@ -394,8 +400,8 @@ UnexpectedCharError PosStr::makeUnexpected(
 
 
 void skipBalancedSlice(PosStr& str, CR<BalancedSkipArgs> args) {
-    auto fullCount               = args.skippedStart ? 1 : 0;
-    int  count[sizeof(char) * 8] = {};
+    auto fullCount = args.skippedStart ? 1 : 0;
+    int  count[pow_v<2, 8 * sizeof(char)>::res] = {};
     while (str.hasNext()) {
         if (args.allowEscape && str.at(QChar('\\'))) {
             str.next();

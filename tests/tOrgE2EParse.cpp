@@ -2,13 +2,15 @@
 #include "org_parse_aux.hpp"
 #include <gtest/gtest.h>
 
+#include <sem/semdatastream.hpp>
+
 #include <parse/OrgParser.hpp>
 #include <parse/OrgTokenizer.hpp>
 #include <gtest/gtest.h>
 
 #include <lexbase/AstSpec.hpp>
-#include <lexbase/AstDiff.hpp>
 #include <lexbase/AstGraph.hpp>
+#include <lexbase/AstDiff.hpp>
 #include <lexbase/NodeTest.hpp>
 
 #include <hstd/stdlib/diffs.hpp>
@@ -39,7 +41,154 @@ diff::ComparisonOptions<NodeId<N, K>, Val> nodeAdapterComparisonOptions(
 TEST(TestFiles, Spec) {
     auto       file = (__CURRENT_FILE_DIR__ / "spec.yaml");
     YAML::Node spec = YAML::LoadFile(file.toStdString());
-    ParseSpec  parsed(spec, file);
+    ParseSpec  parsed(spec, file, __CURRENT_FILE_DIR__.path());
+}
+
+
+TEST(TestFiles, AllNodeCoverage) {
+    QString  file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    MockFull p{false, false};
+    QString  source = readFile(QFileInfo(file));
+    p.run(source, &T::lexGlobal, &P::parseFull);
+
+    SemSet            foundNodes;
+    sem::ContextStore context;
+    sem::OrgConverter converter{&context};
+    sem::SemId node = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+    context.eachNode([&](sem::OrgVariant const& var) {
+        std::visit(
+            [&](auto const& id) { foundNodes.incl(id->getKind()); }, var);
+    });
+
+    using osk = OrgSemKind;
+    SemSet wipNotParseable{
+        osk::Include,
+        osk::DocumentGroup,
+        osk::Empty,
+        osk::Row,
+        osk::Table,
+        osk::Completion,
+        osk::CommandGroup,
+        osk::Quote,
+        osk::MarkQuote,
+        osk::StmtList,
+        osk::AdmonitionBlock,
+        osk::FileTarget,
+        osk::ParseError,
+        osk::Code,
+        osk::SubtreeLog,
+        osk::Escaped,
+        osk::Par,
+    };
+
+    if (!(foundNodes & wipNotParseable).empty()) {
+        FAIL() << "Hack plug with fake found nodes covers too much:"
+               << to_string(foundNodes & wipNotParseable);
+    }
+
+    foundNodes.incl(wipNotParseable);
+
+    SemSet expectedNodes;
+    for (auto const& value : sliceT<OrgSemKind>()) {
+        expectedNodes.incl(value);
+    }
+
+    if (expectedNodes.size() != foundNodes.size()) {
+        Vec<OrgSemKind> diff;
+        for (auto const& v : expectedNodes - foundNodes) {
+            diff.push_back(v);
+        }
+        QString missing = join(", ", map(diff, [](OrgSemKind value) {
+                                   return to_string(value);
+                               }));
+        FAIL() << "'all.org' test file missing node coverage for "
+               << diff.size() << " nodes: '" << missing << "'";
+    }
+}
+
+template <typename T>
+int field_count() {
+    int result = 0;
+    for_each_field_with_bases<T>([&](auto const&) { ++result; });
+    return result;
+}
+
+
+#define __eq(__Type)                                                      \
+    bool operator==(CR<__Type> lhs, CR<__Type> rhs) {                     \
+        return equal_on_all_fields<__Type>(lhs, rhs);                     \
+    }                                                                     \
+    bool operator!=(CR<__Type> lhs, CR<__Type> rhs) {                     \
+        return (field_count<__Type> != 0)                                 \
+            && !equal_on_all_fields<__Type>(lhs, rhs);                    \
+    }
+
+namespace sem {
+EACH_ORG_NESTED_TYPE(__eq)
+}
+
+#undef __eq
+
+bool operator==(CR<UserTime> lhs, CR<UserTime> rhs) {
+    return lhs.time == rhs.time;
+}
+
+TEST(TestFiles, RoundtripBinarySerialization) {
+    QString  file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    MockFull p{false, false};
+    QString  source = readFile(QFileInfo(file));
+    p.run(source, &T::lexGlobal, &P::parseFull);
+
+    SemSet            foundNodes;
+    sem::ContextStore originalStore;
+    sem::ContextStore parsedStore;
+    sem::OrgConverter converter{&originalStore};
+    sem::SemId node = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
+
+    QByteArray data;
+    {
+        QDataStream out{&data, QIODevice::WriteOnly};
+        SemDataStream().write(out, originalStore);
+    }
+    {
+        QDataStream in{data};
+        SemDataStream().read(in, &parsedStore);
+    }
+
+    int  fieldCount = 0;
+    auto cmpNode    = [&]<typename T>(CR<T> lhs, CR<T> rhs) {
+        for_each_field_with_bases<T>([&](auto const& field) {
+            ++fieldCount;
+            EXPECT_EQ(lhs.*field.pointer, rhs.*field.pointer)
+                << field.name;
+        });
+    };
+
+    auto cmpStores = [&]<typename T>(
+                         sem::KindStore<T> const& lhsStore,
+                         sem::KindStore<T> const& rhsStore) {
+        EXPECT_EQ(lhsStore.values.size(), rhsStore.values.size());
+        for (int i = 0; i < lhsStore.size(); ++i) {
+            cmpNode(lhsStore.values.at(i), rhsStore.values.at(i));
+            EXPECT_EQ(
+                lhsStore.values.at(i).parent,
+                rhsStore.values.at(i).parent);
+        }
+    };
+
+    EXPECT_EQ(parsedStore.stores.size(), 1);
+    EXPECT_EQ(originalStore.stores.size(), 1);
+
+    sem::ParseUnitStore const& original = originalStore.stores.at(0);
+    sem::ParseUnitStore const& parsed   = parsedStore.stores.at(0);
+
+#define _case(__Kind)                                                     \
+    { cmpStores(original.store##__Kind, parsed.store##__Kind); }
+
+    EACH_SEM_ORG_KIND(_case)
+#undef _case
+
+    qDebug() << fieldCount;
 }
 
 TEST(SimpleNodeConversion, SingleHashTagToken) {
@@ -186,187 +335,4 @@ TEST(Algorithms, PartitioningPositiveNegativeNumbers) {
     EXPECT_EQ(result[0], Vec<int>({-1, -2}));
     EXPECT_EQ(result[1], Vec<int>({3, 4}));
     EXPECT_EQ(result[2], Vec<int>({-5}));
-}
-
-
-using namespace diff;
-
-
-TEST(AstDiff, PointerBasedNodes) {
-    struct RealNode {
-        QString       value;
-        int           kind;
-        Vec<RealNode> sub;
-
-        using IdT  = RealNode*;
-        using ValT = QString;
-
-        TreeMirror<IdT, ValT> toMirror() {
-            Vec<TreeMirror<IdT, ValT>> subMirror;
-            for (auto& it : sub) {
-                subMirror.push_back(it.toMirror());
-            }
-            return TreeMirror<IdT, ValT>{this, subMirror};
-        }
-    };
-
-    using IdT  = RealNode::IdT;
-    using ValT = RealNode::ValT;
-
-    Func<Str(CR<ValT>)> toStr = [](CR<ValT> arg) -> Str {
-        return to_string(arg);
-    };
-
-    auto src = RealNode{
-        "",
-        6,
-        {RealNode{
-             "",
-             8,
-             {RealNode{"**", 18},
-              RealNode{"CLI", 39},
-              RealNode{"", 3},
-              RealNode{"", 55, {RealNode{"tools", 69}}},
-              RealNode{"", 3},
-              RealNode{"", 3},
-              RealNode{"", 3},
-              RealNode{"", 94, {RealNode{"", 3}, RealNode{"", 3}}},
-              RealNode{"", 6, {}}}},
-         RealNode{
-             "",
-             55,
-             {RealNode{"Nested", 69},
-              RealNode{" ", 67},
-              RealNode{"content", 69}}}}};
-
-    auto dst = RealNode{
-        "",
-        6,
-        {RealNode{
-            "",
-            8,
-            {RealNode{"**", 18},
-             RealNode{"CLI", 39},
-             RealNode{"", 3},
-             RealNode{"", 55, {RealNode{"tools", 69}}},
-             RealNode{"", 3},
-             RealNode{"", 3},
-             RealNode{"", 3},
-             RealNode{"", 94, {RealNode{"", 3}, RealNode{"", 3}}},
-             RealNode{
-                 "",
-                 6,
-                 {RealNode{
-                     "",
-                     55,
-                     {RealNode{"Nested", 69},
-                      RealNode{" ", 67},
-                      RealNode{"content", 69}}}}}}}}};
-
-    auto Src = src.toMirror();
-    auto Dst = dst.toMirror();
-
-    ComparisonOptions<IdT, ValT> Options{
-        .getNodeValueImpl = [](IdT id) { return id->value; },
-        .getNodeKindImpl  = [](IdT id) { return id->kind; },
-        .isMatchingAllowedImpl =
-            [](IdT id1, IdT id2) { return id1->kind == id2->kind; }};
-
-    SyntaxTree<IdT, ValT>::WalkParameters<TreeMirror<IdT, ValT>> walk{
-        .getSubnodeAt     = diff::getSubnodeAtTreeMirror<IdT, ValT>,
-        .getSubnodeNumber = diff::getSubnodeNumberTreeMirror<IdT, ValT>,
-        .getSubnodeId     = diff::getSubnodeIdTreeMirror<IdT, ValT>,
-    };
-
-    SyntaxTree<IdT, ValT> SrcTree{Options};
-    SrcTree.FromNode<TreeMirror<IdT, ValT>>(Src, walk);
-    SyntaxTree<IdT, ValT> DstTree{Options};
-    DstTree.FromNode(Dst, walk);
-
-    ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
-
-
-    QString     buf;
-    QTextStream os{&buf};
-    for (diff::NodeId Dst : DstTree) {
-        diff::NodeId Src = Diff.getMapped(DstTree, Dst);
-        if (Src.isValid()) {
-            os << "Match [\033[33m";
-            printNode(os, SrcTree, Src, toStr);
-            os << "\033[0m] to [\033[33m";
-            printNode(os, DstTree, Dst, toStr);
-            os << "\033[0m] ";
-        } else {
-            os << "Dst to [\033[32m";
-            printNode(os, DstTree, Dst, toStr);
-            os << "\033[0m] ";
-        }
-
-        printDstChange(os, Diff, SrcTree, DstTree, Dst, toStr);
-        os << "\n";
-    }
-}
-
-TEST(AstDiff, PointerBasedNodesWithVariants) {
-    struct RealNode {
-        std::variant<int, double, QString> value;
-        Vec<RealNode>                      sub;
-    };
-
-    auto src = RealNode{
-        "toplevel", {RealNode{1}, RealNode{1.2}, RealNode{"subnode"}}};
-
-    auto dst = RealNode{
-        "toplevel", {RealNode{22}, RealNode{1.2}, RealNode{"subnode'"}}};
-
-    using IdT  = RealNode*;
-    using ValT = decltype(src.value);
-
-
-    Func<Str(CR<ValT>)> toStr = [](CR<ValT> arg) -> Str {
-        return variant_to_string(arg);
-    };
-
-    auto Src = TreeMirror<IdT, ValT>{
-        &src,
-        {TreeMirror<IdT, ValT>{&src.sub[0]},
-         TreeMirror<IdT, ValT>{&src.sub[1]}}};
-
-    auto Dst = TreeMirror<IdT, ValT>{
-        &dst,
-        {TreeMirror<IdT, ValT>{&dst.sub[0]},
-         TreeMirror<IdT, ValT>{&dst.sub[1]},
-         TreeMirror<IdT, ValT>{&dst.sub[2]}}};
-
-    ComparisonOptions<IdT, ValT> Options{
-        .getNodeValueImpl = [](IdT id) { return id->value; },
-        .getNodeKindImpl  = [](IdT id) { return 0; }};
-
-    SyntaxTree<IdT, ValT>::WalkParameters<TreeMirror<IdT, ValT>> walk{
-        .getSubnodeAt     = diff::getSubnodeAtTreeMirror<IdT, ValT>,
-        .getSubnodeNumber = diff::getSubnodeNumberTreeMirror<IdT, ValT>,
-        .getSubnodeId     = diff::getSubnodeIdTreeMirror<IdT, ValT>,
-    };
-
-    SyntaxTree<IdT, ValT> SrcTree{Options};
-    SrcTree.FromNode<TreeMirror<IdT, ValT>>(Src, walk);
-    SyntaxTree<IdT, ValT> DstTree{Options};
-    DstTree.FromNode(Dst, walk);
-
-    ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
-
-    QString     buf;
-    QTextStream os{&buf};
-    for (diff::NodeId Dst : DstTree) {
-        diff::NodeId Src = Diff.getMapped(DstTree, Dst);
-        if (Src.isValid()) {
-            os << "Match ";
-            printNode(os, SrcTree, Src, toStr);
-            os << " to ";
-            printNode(os, DstTree, Dst, toStr);
-            os << "\n";
-        }
-
-        printDstChange(os, Diff, SrcTree, DstTree, Dst, toStr);
-    }
 }

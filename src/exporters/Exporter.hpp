@@ -51,6 +51,7 @@ struct Exporter {
         QString         function;
         bool            isStart = true;
         QString         type;
+        QString         msg;
     };
 
     using VisitEventCb = Func<void(VisitEvent const&)>;
@@ -144,7 +145,7 @@ struct Exporter {
     using __ExporterBase::visitDispatchHook;                              \
     using __ExporterBase::visitStart;                                     \
     using __ExporterBase::visitEnd;                                       \
-    using __ExporterBase::visitTop;                                       \
+    using __ExporterBase::evalTop;                                        \
     using __ExporterBase::In;                                             \
     EACH_SEM_ORG_KIND(__EXPORTER_USING_DEFINE)
 
@@ -153,7 +154,7 @@ struct Exporter {
     void visitSubnode(R& tmp, int, sem::SemId val);
 
     /// \brief Create default instance of the new result type
-    R newRes(sem::SemId) { return R{}; }
+    R newRes(sem::SemId) { return SerdeDefaultProvider<R>::get(); }
 
 
     /// \brief Additional hook that is called for each node before
@@ -215,7 +216,7 @@ struct Exporter {
     ///
     /// User can redefined this function as well, or provided it's own
     /// implementation.
-    R visitTop(sem::SemId org);
+    R evalTop(sem::SemId org);
 
 
     V* _this() { return static_cast<V*>(this); }

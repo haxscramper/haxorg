@@ -419,6 +419,41 @@ bool SemId::is(OrgSemKind kind) const {
     return !isNil() && get()->is(kind);
 }
 
+Str CmdArgument::getString() const { return value; }
+
+Opt<bool> CmdArgument::getBool() const {
+    if (value == "yes" || value == "true" || value == "on"
+        || value == "t") {
+        return true;
+    } else if (
+        value == "no" || value == "false" || value == "nil"
+        || value == "off") {
+        return false;
+    } else {
+        return std::nullopt;
+    }
+}
+
+Opt<int> CmdArgument::getInt() const {
+    bool isOk   = false;
+    int  result = value.toInt(&isOk);
+    if (isOk) {
+        return result;
+    } else {
+        return std::nullopt;
+    }
+}
+
+Opt<SemIdT<CmdArgument>> CmdArguments::popArg(Str key) {
+    if (named.contains(key)) {
+        auto result = named.at(key);
+        named.erase(key);
+        return result;
+    } else {
+        return std::nullopt;
+    }
+}
+
 namespace sem {
 QTextStream& operator<<(QTextStream& os, SemId const& value) {
     return os << value.getStoreIndex() << ":" << to_string(value.getKind())

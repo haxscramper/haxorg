@@ -1,0 +1,9 @@
+lex: "Global"
+expected: "Flat"
+parse: "Full"
+items:
+  - name: "Process all nodes"
+    file: org/all.org
+    exporters:
+      - name: "sexp"
+      - name: "json"

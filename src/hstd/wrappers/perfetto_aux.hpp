@@ -21,4 +21,9 @@ void InitializePerfetto();
 void StopTracing(
     std::unique_ptr<perfetto::TracingSession> tracing_session);
 
+#    define __perf_trace(category, message) TRACE_EVENT(category, message)
+
+#else
+#    define __perf_trace(category, message, ...)
+
 #endif

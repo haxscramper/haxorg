@@ -20,7 +20,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     }
 
 
-    yaml visit(CR<Str> value) {
+    yaml eval(CR<Str> value) {
         yaml tmp = yaml(value.toStdString());
         return tmp;
     }
@@ -31,31 +31,31 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     }
 
 
-    yaml visit(CR<bool> value) { return yaml(value); }
-    yaml visit(CR<int> value) { return yaml(value); }
-    yaml visit(CR<QString> value) { return yaml(value); }
-    yaml visit(CR<QDateTime> value) {
+    yaml eval(CR<bool> value) { return yaml(value); }
+    yaml eval(CR<int> value) { return yaml(value); }
+    yaml eval(CR<QString> value) { return yaml(value); }
+    yaml eval(CR<QDateTime> value) {
         return yaml(value.toString(Qt::ISODate).toStdString());
     }
 
-    yaml visit(CR<QDate> value) {
+    yaml eval(CR<QDate> value) {
         return yaml(value.toString(Qt::ISODate).toStdString());
     }
 
-    yaml visit(CR<QTime> value) {
+    yaml eval(CR<QTime> value) {
         return yaml(value.toString(Qt::ISODate).toStdString());
     }
 
 
     template <typename E>
-    yaml visit(E value)
+    yaml eval(E value)
         requires(std::is_enum<E>::value)
     {
         return yaml(to_string(value).toStdString());
     }
 
     template <typename T>
-    yaml visit(CR<T> arg)
+    yaml eval(CR<T> arg)
         requires(!std::is_enum<T>::value)
     {
         yaml tmp = _this()->newRes(arg);
@@ -68,26 +68,28 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     template <typename T>
     void visitField(yaml& j, const char* name, CR<Opt<T>> value) {
         if (value) {
-            j[name] = visit(value.value());
+            j[name] = eval(value.value());
         } else {
-            j[name] = yaml();
+            if (!skipNullFields) {
+                j[name] = yaml();
+            }
         }
     }
 
     template <typename T>
-    yaml visit(CR<Vec<T>> values) {
+    yaml eval(CR<Vec<T>> values) {
         yaml tmp;
         for (const auto& it : values) {
-            tmp.push_back(visit(it));
+            tmp.push_back(eval(it));
         }
         return tmp;
     }
 
     template <typename T>
-    yaml visit(CR<UnorderedMap<Str, T>> map) {
+    yaml eval(CR<UnorderedMap<Str, T>> map) {
         yaml tmp;
         for (const auto& [key, val] : map) {
-            tmp[key.toStdString()] = visit(val);
+            tmp[key.toStdString()] = eval(val);
         }
         return tmp;
     }
@@ -97,10 +99,33 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
         char const* name,
         CR<UnorderedMap<int, sem::SemId>>) {}
 
+    void visitField(yaml& j, const char* name, int field) {
+        yaml result = eval(field);
+        if (!skipZeroFields || field != 0) {
+            j[name] = result;
+        }
+    }
+
+    void visitField(yaml& j, const char* name, bool field) {
+        if (!skipFalseFields || field != false) {
+            j[name] = eval(field);
+        }
+    }
+
+
     template <typename T>
     void visitField(yaml& j, const char* name, CR<T> field) {
-        j[name] = visit(field);
+        yaml result = eval(field);
+        if (!skipNullFields || !result.IsNull()) {
+            j[name] = result;
+        }
     }
+
+    bool skipNullFields  = false;
+    bool skipFalseFields = false;
+    bool skipZeroFields  = false;
+    bool skipLocation    = false;
+    bool skipId          = false;
 };
 
 extern template class Exporter<ExporterYaml, yaml>;

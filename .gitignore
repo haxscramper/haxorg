@@ -354,7 +354,7 @@ CMakeLists.txt.user*
 
 **/*.tmp*
 **/*.bin
-docs/*
+docs/html
 .xmake
 deps
 
@@ -364,3 +364,12 @@ build*
 perf.data*
 heaptrack.*
 **/*.pftrace
+
+bin
+lib
+xray-log*
+buck-out
+toolchain
+.pids
+*.xray
+*.dot

@@ -260,6 +260,12 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                          .sub({Field(
                              Range(slice(0, 1_B), N::Flags),
                              OrgPattern(org::CmdFlag))})}),
+                Field(
+                    Range(1, N::Values),
+                    {OrgPattern(org::InlineStmtList)
+                         .sub({Field(
+                             Range(slice(0, 1_B), N::Value),
+                             OrgPattern(org::CmdValue))})}),
             })},
         SpecPair{
             org::CmdValue,
@@ -431,7 +437,10 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             org::BlockExport,
             OrgPattern({
                 Field(Range(0, N::Name), OrgPattern({org::Ident})),
-                Field(Range(1, N::Body), OrgPattern({org::RawText})),
+                Field(
+                    Range(1, N::Args),
+                    OrgPattern({org::Empty, org::CmdArguments})),
+                Field(Range(2, N::Body), OrgPattern({org::RawText})),
             })},
         SpecPair{
             org::CommandInclude,

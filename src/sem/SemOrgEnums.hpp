@@ -16,6 +16,8 @@
     __IMPL(CommandGroup) \
     __IMPL(Quote) \
     __IMPL(Example) \
+    __IMPL(CmdArguments) \
+    __IMPL(CmdArgument) \
     __IMPL(Export) \
     __IMPL(AdmonitionBlock) \
     __IMPL(Code) \
@@ -52,7 +54,32 @@
     __IMPL(TextSeparator) \
     __IMPL(Include) \
     __IMPL(DocumentOptions) \
-    __IMPL(DocumentGroup) \
+    __IMPL(DocumentGroup)
+/// \brief Semantic location of the sem org node in the parent tree
+enum class OrgSemPlacement : short int {
+  /// \brief Subtree title
+  TreeTitle,
+  /// \brief Inner content of the subtree
+  TreeBody,
+  /// \brief Description paragraph for the link
+  LinkDescription,
+  /// \brief Statement list or inner content of the list item body
+  ListItemBody,
+  /// \brief Description part of the list item
+  ListItemDesc,
+  /// \brief Toplevel document
+  DocBody,
+};
+template <>
+struct enum_serde<OrgSemPlacement> {
+  static Opt<OrgSemPlacement> from_string(QString value);
+  static QString to_string(OrgSemPlacement value);
+};
+
+template <>
+struct value_domain<OrgSemPlacement> : public value_domain_ungapped<OrgSemPlacement,
+                                                                    OrgSemPlacement::TreeTitle,
+                                                                    OrgSemPlacement::DocBody> {};
 
 enum class OrgHorizontalDirection : short int {
   /// \brief No specific positioning requirements
@@ -64,7 +91,6 @@ enum class OrgHorizontalDirection : short int {
   /// \brief Align to the center
   ohdCenter,
 };
-
 template <>
 struct enum_serde<OrgHorizontalDirection> {
   static Opt<OrgHorizontalDirection> from_string(QString value);
@@ -86,7 +112,6 @@ enum class OrgVerticalDirection : short int {
   /// \brief Bottom
   ovdBottom,
 };
-
 template <>
 struct enum_serde<OrgVerticalDirection> {
   static Opt<OrgVerticalDirection> from_string(QString value);
@@ -98,69 +123,7 @@ struct value_domain<OrgVerticalDirection> : public value_domain_ungapped<OrgVert
                                                                          OrgVerticalDirection::ovdNone,
                                                                          OrgVerticalDirection::ovdBottom> {};
 
-enum class OrgSpecName : short int {
-  Unnamed,
-  Result,
-  Year,
-  Day,
-  Clock,
-  Repeater,
-  Link,
-  Tags,
-  Tag,
-  State,
-  Protocol,
-  Desc,
-  Times,
-  Drawer,
-  Args,
-  Name,
-  Definition,
-  Body,
-  HeaderArgs,
-  File,
-  Kind,
-  Lang,
-  Prefix,
-  Text,
-  Todo,
-  Urgency,
-  Title,
-  Completion,
-  Head,
-  Subnodes,
-  Properties,
-  Logbook,
-  Description,
-  Logs,
-  Newstate,
-  Oldstate,
-  Time,
-  From,
-  EndArgs,
-  Flags,
-  Value,
-  Assoc,
-  Main,
-  Hash,
-  Bullet,
-  Counter,
-  Checkbox,
-  Header,
-  To,
-  Diff,
-  Property,
-  Subname,
-  Values,
-  Cells,
-  Rows,
-  Lines,
-  Chunks,
-  InheritanceMode,
-  MainSetRule,
-  SubSetRule,
-};
-
+enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Urgency, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
 template <>
 struct enum_serde<OrgSpecName> {
   static Opt<OrgSpecName> from_string(QString value);
@@ -209,10 +172,7 @@ enum class OrgNodeKind : short int {
   /// \brief Single invalid token
   ErrorToken,
   InlineStmtList,
-  /// \brief List of statements, possibly recursive. Used as toplevel
-  ///                  part of the document, in recursive parsing of subtrees,
-  ///                  or as regular list, in cases where multiple subnodes have
-  ///                  to be grouped together.
+  /// \brief List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together.
   StmtList,
   /// \brief Associated list of statements - AST elements like commands and links are grouped together if placed on adjacent lines
   AssocStmtList,
@@ -232,19 +192,11 @@ enum class OrgNodeKind : short int {
   /// \brief Auxilliary wrapper for the paragraph placed at the start of the description list.
   ListTag,
   Counter,
-  /// \brief Inline or trailling comment. Can be used addition to `#+comment:`
-  ///    line or `#+begin-comment` section. Nested comment syntax is allowed
-  ///    (`#[ level1 #[ level2 ]# ]#`), but only outermost one is
-  ///    represented as separate AST node, everything else is a `.text`
+  /// \brief Inline or trailling comment. Can be used addition to `#+comment:` line or `#+begin-comment` section. Nested comment syntax is allowed (`#[ level1 #[ level2 ]# ]#`), but only outermost one is represented as separate AST node, everything else is a `.text`
   Comment,
-  /// \brief Raw string of text from input buffer. Things like particular syntax
-  ///    details of every single command, link formats are not handled in
-  ///    parser, deferring formatting to future processing layers
+  /// \brief Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers
   RawText,
-  /// \brief Part of the org-mode document that is yet to be parsed. This node
-  ///    should not be created manually, it is only used for handling
-  ///    mutually recursive DSLs such as tables, which might include lists,
-  ///    which in turn might contain more tables in different bullet points.
+  /// \brief Part of the org-mode document that is yet to be parsed. This node should not be created manually, it is only used for handling mutually recursive DSLs such as tables, which might include lists, which in turn might contain more tables in different bullet points.
   Unparsed,
   /// \brief Undefined single-line command -- most likely custom user-provided oe
   Command,
@@ -277,28 +229,19 @@ enum class OrgNodeKind : short int {
   File,
   BlockExport,
   InlineExport,
-  /// \brief Multiline command such as code block, latex equation, large block
-  ///    of passthrough code. Some built-in org-mode commands do not
-  ///    requires `#+begin` prefix, (such as `#+quote` or `#+example`) are
-  ///    represented by this type of block as well.
+  /// \brief Multiline command such as code block, latex equation, large block of passthrough code. Some built-in org-mode commands do not requires `#+begin` prefix, (such as `#+quote` or `#+example`) are represented by this type of block as well.
   MultilineCommand,
   /// \brief Command evaluation result
   Result,
-  /// \brief regular identifier - `alnum + [-_]` characters for punctuation.
-  ///    Identifiers are compared and parsed in style-insensetive manner,
-  ///    meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical.
+  /// \brief regular identifier - `alnum + [-_]` characters for punctuation. Identifiers are compared and parsed in style-insensetive manner, meaning `CODE_BLOCK`, `code-block` and `codeblock` are identical.
   Ident,
   /// \brief Bare identifier - any characters are allowed
   BareIdent,
-  /// \brief Big ident used in conjunction with colon at the start of paragraph
-  ///    is considered an admonition tag: `NOTE: Text`, `WARNING: text` etc.
+  /// \brief Big ident used in conjunction with colon at the start of paragraph is considered an admonition tag: `NOTE: Text`, `WARNING: text` etc.
   AdmonitionTag,
   /// \brief full-uppsercase identifier such as `MUST` or `TODO`
   BigIdent,
-  /// \brief Verbatim mulitiline block that *might* be a part of
-  ///    `orgMultilineCommand` (in case of `#+begin-src`), but not
-  ///    necessarily. Can also be a part of =quote= and =example= multiline
-  ///    blocks.
+  /// \brief Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.
   VerbatimMultilineBlock,
   /// \brief Single line of source code
   CodeLine,
@@ -317,16 +260,11 @@ enum class OrgNodeKind : short int {
   Example,
   /// \brief Block of source code - can be multiline, single-line and
   SrcCode,
-  /// \brief inline piece of code (such as `src_nim`). Latter is different from
-  ///      regular monospaced text inside of `~~` pair as it contains
-  ///      additional internal structure, optional parameter for code
-  ///      evaluation etc.
+  /// \brief inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.
   SrcInlineCode,
   /// \brief Call to named source code block. Inline, multiline, or single-line.
   CallCode,
-  /// \brief Passthrough block. Inline, multiline, or single-line. Syntax is
-  ///      `@@<backend-name>:<any-body>@@`. Has line and block syntax
-  ///      respectively
+  /// \brief Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively
   PassCode,
   /// \brief Command arguments
   CmdArguments,
@@ -336,22 +274,13 @@ enum class OrgNodeKind : short int {
   CmdValue,
   /// \brief Key-value pair for source code block call.
   CmdNamedValue,
-  /// \brief Subtree importance level, such as `[#A]` or `[#B]`. Default
-  ///      org-mode only allows single character for contents inside of `[]`,
-  ///      but this parser makes it possible to use any regular identifier,
-  ///      such as `[#urgent]`.
+  /// \brief Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.
   UrgencyStatus,
   /// \brief Long horizontal line `----`
   TextSeparator,
-  /// \brief Single 'paragraph' of text. Used as generic container for any place
-  ///      in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited
-  ///      to actual paragraph
+  /// \brief Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph
   Paragraph,
-  /// \brief Annotated paragraph -- a wrapper around a regular paragraph kind
-  ///      with added admonition, footnote, list tag prefix and similar types.
-  ///      `[fn:ID] Some Text` is an annotated paragraph, just like `NOTE:
-  ///      Text` or `- Prefix :: Body` (in this case list header is an
-  ///      annotated paragraph)
+  /// \brief Annotated paragraph -- a wrapper around a regular paragraph kind with added admonition, footnote, list tag prefix and similar types. `[fn:ID] Some Text` is an annotated paragraph, just like `NOTE: Text` or `- Prefix :: Body` (in this case list header is an annotated paragraph)
   AnnotatedParagraph,
   /// \brief Region of text with formatting, which contains standalone words -
   ///      can itself contain subnodes, which allows to represent nested
@@ -380,9 +309,7 @@ enum class OrgNodeKind : short int {
   Space,
   Punctuation,
   Colon,
-  /// \brief Regular word - technically not different from `orgIdent`, but
-  ///      defined separately to disiguish between places where special syntax
-  ///      is required and free-form text.
+  /// \brief Regular word - technically not different from `orgIdent`, but defined separately to disiguish between places where special syntax is required and free-form text.
   Word,
   /// \brief Escaped formatting character in the text
   Escaped,
@@ -409,18 +336,14 @@ enum class OrgNodeKind : short int {
   ///      <single-backend-line>` and `#+begin-export <backend>`
   ///      `<multiple-lines>`.
   BackendRaw,
-  /// \brief Special symbol that should be exported differently to various
-  ///      backends - greek letters (`lpha`), mathematical notations and so
-  ///      on.
+  /// \brief Special symbol that should be exported differently to various backends - greek letters (`lpha`), mathematical notations and so on.
   Symbol,
   /// \brief Time association pair for the subtree deadlines.
   TimeAssoc,
   StaticActiveTime,
   StaticInactiveTime,
   DynamicActiveTime,
-  /// \brief Single date and time entry (active or inactive), possibly with
-  ///    repeater interval. Is not parsed directly, and instead contains
-  ///    `orgRawText` that can be parsed later
+  /// \brief Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later
   DynamicInactiveTime,
   /// \brief Date and time range format - two `orgDateTime` entries
   TimeRange,
@@ -443,11 +366,9 @@ enum class OrgNodeKind : short int {
   TableCell,
   /// \brief Inline footnote with text placed directly in the node body.
   InlineFootnote,
-  /// \brief Footnote entry. Just as regular links - internal content is not
-  ///    parsed, and instead just cut out verbatim into target AST node.
+  /// \brief Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.
   Footnote,
-  /// \brief Horizotal rule. Rule body might contain other subnodes, to represnt
-  ///    `---- some text ----` kind of formatting.
+  /// \brief Horizotal rule. Rule body might contain other subnodes, to represnt `---- some text ----` kind of formatting.
   Horizontal,
   /// \brief `#+filetags:` line command
   Filetags,
@@ -455,7 +376,7 @@ enum class OrgNodeKind : short int {
   ///    contain one or mode identifgiers, but does not provide support for
   ///    nesting - `:tag1:tag2:`. Can only be placed within restricted set
   ///    of places such as subtree headings and has separate place in AST
-  ///    when allowed (`orgSubtree` always has subnode `No4` with either
+  ///    when allowed (`orgSubtree` always has subnode `№4` with either
   ///    `orgEmpty` or `orgOrgTag`)
   OrgTag,
   /// \brief More commonly used `#hashtag` format, with some additional
@@ -467,10 +388,7 @@ enum class OrgNodeKind : short int {
   MetaSymbol,
   /// \brief `@user`
   AtMention,
-  /// \brief Custom extension to org-mode. Similarly to `BigIdent` used to have
-  ///    something like informal keywords `MUST`, `OPTIONAL`, but instead
-  ///    aimed /specifically/ at commit message headers - `[FEATURE]`,
-  ///    `[FIX]` and so on.
+  /// \brief Custom extension to org-mode. Similarly to `BigIdent` used to have something like informal keywords `MUST`, `OPTIONAL`, but instead aimed /specifically/ at commit message headers - `[FEATURE]`, `[FIX]` and so on.
   BracTag,
   /// \brief Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`
   Drawer,
@@ -479,8 +397,7 @@ enum class OrgNodeKind : short int {
   LatexCompiler,
   LatexClassOptions,
   HtmlHead,
-  /// \brief `#+columns:` line command for specifying formatting of the org-mode
-  ///    clock table visualization on per-file basis.
+  /// \brief `#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.
   Columns,
   PropertyList,
   /// \brief Property entry, either in `#+property:` command, or in `:property:` drawer
@@ -513,7 +430,6 @@ enum class OrgNodeKind : short int {
   /// \brief `<<TARGET>>`
   Target,
 };
-
 template <>
 struct enum_serde<OrgNodeKind> {
   static Opt<OrgNodeKind> from_string(QString value);
@@ -525,30 +441,7 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::Target> {};
 
-enum class OrgTextContext : short int {
-  otcPlain,
-  otcSubtree0,
-  otcSubtree1,
-  otcSubtree2,
-  otcSubtree3,
-  otcSubtree4,
-  otcSubtree5,
-  otcSubtree6,
-  otcSubtree7,
-  otcSubtree8,
-  otcSubtree9,
-  otcSubtree10,
-  otcSubtree11,
-  otcSubtree12,
-  otcSubtreeOther,
-  otcBold,
-  otcItalic,
-  otcStrike,
-  otcUnderline,
-  otcMonospaceInline,
-  otcMonospaceBlock,
-};
-
+enum class OrgTextContext : short int { otcPlain, otcSubtree0, otcSubtree1, otcSubtree2, otcSubtree3, otcSubtree4, otcSubtree5, otcSubtree6, otcSubtree7, otcSubtree8, otcSubtree9, otcSubtree10, otcSubtree11, otcSubtree12, otcSubtreeOther, otcBold, otcItalic, otcStrike, otcUnderline, otcMonospaceInline, otcMonospaceBlock, };
 template <>
 struct enum_serde<OrgTextContext> {
   static Opt<OrgTextContext> from_string(QString value);
@@ -562,11 +455,9 @@ struct value_domain<OrgTextContext> : public value_domain_ungapped<OrgTextContex
 
 enum class OrgBigIdentKind : short int {
   None,
-  /// \brief MUST This word, or the terms "REQUIRED" or "SHALL", mean that the
-  ///    definition is an absolute requirement of the specification.
+  /// \brief MUST This word, or the terms "REQUIRED" or "SHALL", mean that the definition is an absolute requirement of the specification.
   Must,
-  /// \brief MUST NOT This phrase, or the phrase "SHALL NOT", mean that the
-  ///    definition is an absolute prohibition of the specification.
+  /// \brief MUST NOT This phrase, or the phrase "SHALL NOT", mean that the definition is an absolute prohibition of the specification.
   MustNot,
   /// \brief SHOULD This word, or the adjective "RECOMMENDED", mean that there
   ///    may exist valid reasons in particular circumstances to ignore a
@@ -656,7 +547,6 @@ enum class OrgBigIdentKind : short int {
   StructElse,
   StructWhile,
 };
-
 template <>
 struct enum_serde<OrgBigIdentKind> {
   static Opt<OrgBigIdentKind> from_string(QString value);
@@ -678,15 +568,12 @@ enum class OrgTokenKind : short int {
   ErrorTerminator,
   CommandPrefix,
   LineCommand,
-  /// \brief `#+begin` part of the multiline command. `begin_<block-type>` is
-  ///    split into two tokens - `begin_` prefix and `ockBegin<block-type>`
-  ///    section.
+  /// \brief `#+begin` part of the multiline command. `begin_<block-type>` is split into two tokens - `begin_` prefix and `ockBegin<block-type>` section.
   CommandBegin,
   CommandEnd,
   DoubleColon,
   Text,
-  /// \brief Unlexed group of statements - used in the list content to enable
-  ///    secondary parsing.
+  /// \brief Unlexed group of statements - used in the list content to enable secondary parsing.
   StmtList,
   /// \brief Start of the expanded statement list content
   StmtListOpen,
@@ -762,8 +649,7 @@ enum class OrgTokenKind : short int {
   CommandBracket,
   /// \brief Literal block with `:`
   ColonLiteral,
-  /// \brief Drawer or source code block wrappers with colon-wrapped
-  ///    identifiers. `:results:`, `:end:` etc.
+  /// \brief Drawer or source code block wrappers with colon-wrapped identifiers. `:results:`, `:end:` etc.
   ColonIdent,
   /// \brief Start of the `:PROPERTIES:` block drawer block
   ColonProperties,
@@ -785,8 +671,7 @@ enum class OrgTokenKind : short int {
   CodeContentBegin,
   /// \brief End of the expanded code content
   CodeContentEnd,
-  /// \brief Uninterrupted text span without newlines - either a whole line or
-  ///    sub subsection of it if callout or tangle elements were detected
+  /// \brief Uninterrupted text span without newlines - either a whole line or sub subsection of it if callout or tangle elements were detected
   CodeText,
   /// \brief Block of text inside `#+table`
   TableContent,
@@ -851,13 +736,11 @@ enum class OrgTokenKind : short int {
   LinkInternal,
   /// \brief Protocol used by the link - `file:`, `https:` etc.
   LinkProtocol,
-  /// \brief Full token for the link, used in cases where it does not make sense
-  ///    to fracture the token - regular https URLs etc.
+  /// \brief Full token for the link, used in cases where it does not make sense to fracture the token - regular https URLs etc.
   LinkFull,
   /// \brief Link path for searches in file
   LinkPath,
-  /// \brief Target of the link protocol that does not follow regular URI
-  ///    encoding scheme - for example `id:`, `elisp`, or `shell` links.
+  /// \brief Target of the link protocol that does not follow regular URI encoding scheme - for example `id:`, `elisp`, or `shell` links.
   LinkTarget,
   /// \brief Separator of the extra content in the link, `::`
   LinkExtraSeparator,
@@ -1002,12 +885,9 @@ enum class OrgTokenKind : short int {
   AngleOpen,
   /// \brief Placeholder close
   AngleClose,
-  /// \brief Code before noweb placeholder. Requires separate token to handle
-  ///    `##<<commented>>` - prefix comment should be duplicated for each
-  ///    line of the placeholder expansion.
+  /// \brief Code before noweb placeholder. Requires separate token to handle `##<<commented>>` - prefix comment should be duplicated for each line of the placeholder expansion.
   TextBlock,
 };
-
 template <>
 struct enum_serde<OrgTokenKind> {
   static Opt<OrgTokenKind> from_string(QString value);
@@ -1097,7 +977,6 @@ enum class OrgCommandKind : short int {
   /// \brief `#+tblfm:`
   TableFormula,
 };
-
 template <>
 struct enum_serde<OrgCommandKind> {
   static Opt<OrgCommandKind> from_string(QString value);
@@ -1109,36 +988,7 @@ struct value_domain<OrgCommandKind> : public value_domain_ungapped<OrgCommandKin
                                                                    OrgCommandKind::None,
                                                                    OrgCommandKind::TableFormula> {};
 
-enum class OrgPropertyKind : short int {
-  Title,
-  Author,
-  Date,
-  Email,
-  Language,
-  Url,
-  SourceUrl,
-  AttrImg,
-  Toplevel,
-  Blocker,
-  Created,
-  Unnumbered,
-  Trigger,
-  Ordered,
-  Noblocking,
-  ExportOptions,
-  BackendExportOptions,
-  AttrBackend,
-  ColumnSpec,
-  Name,
-  Caption,
-  LinkAbbrev,
-  Filetags,
-  TagConf,
-  LatexHeader,
-  OtherProperty,
-  Id,
-};
-
+enum class OrgPropertyKind : short int { Title, Author, Date, Email, Language, Url, SourceUrl, AttrImg, Toplevel, Blocker, Created, Unnumbered, Trigger, Ordered, Noblocking, ExportOptions, BackendExportOptions, AttrBackend, ColumnSpec, Name, Caption, LinkAbbrev, Filetags, TagConf, LatexHeader, OtherProperty, Id, };
 template <>
 struct enum_serde<OrgPropertyKind> {
   static Opt<OrgPropertyKind> from_string(QString value);
@@ -1150,12 +1000,7 @@ struct value_domain<OrgPropertyKind> : public value_domain_ungapped<OrgPropertyK
                                                                     OrgPropertyKind::Title,
                                                                     OrgPropertyKind::Id> {};
 
-enum class OrgUnnumberedKind : short int {
-  Notoc,
-  True,
-  False,
-};
-
+enum class OrgUnnumberedKind : short int { Notoc, True, False, };
 template <>
 struct enum_serde<OrgUnnumberedKind> {
   static Opt<OrgUnnumberedKind> from_string(QString value);
@@ -1167,14 +1012,7 @@ struct value_domain<OrgUnnumberedKind> : public value_domain_ungapped<OrgUnnumbe
                                                                       OrgUnnumberedKind::Notoc,
                                                                       OrgUnnumberedKind::False> {};
 
-enum class OrgBlockLexerState : short int {
-  None,
-  InHeader,
-  InBody,
-  Ended,
-  Complete,
-};
-
+enum class OrgBlockLexerState : short int { None, InHeader, InBody, Ended, Complete, };
 template <>
 struct enum_serde<OrgBlockLexerState> {
   static Opt<OrgBlockLexerState> from_string(QString value);
@@ -1186,59 +1024,7 @@ struct value_domain<OrgBlockLexerState> : public value_domain_ungapped<OrgBlockL
                                                                        OrgBlockLexerState::None,
                                                                        OrgBlockLexerState::Complete> {};
 
-enum class OrgSemKind : short int {
-  StmtList,
-  Empty,
-  Row,
-  Table,
-  HashTag,
-  Footnote,
-  Completion,
-  Paragraph,
-  Center,
-  Caption,
-  CommandGroup,
-  Quote,
-  Example,
-  Export,
-  AdmonitionBlock,
-  Code,
-  Time,
-  TimeRange,
-  Macro,
-  Symbol,
-  SubtreeLog,
-  Subtree,
-  InlineMath,
-  Escaped,
-  Newline,
-  Space,
-  Word,
-  AtMention,
-  RawText,
-  Punctuation,
-  Placeholder,
-  BigIdent,
-  Bold,
-  Underline,
-  Monospace,
-  MarkQuote,
-  Verbatim,
-  Italic,
-  Strike,
-  Par,
-  List,
-  ListItem,
-  Link,
-  Document,
-  ParseError,
-  FileTarget,
-  TextSeparator,
-  Include,
-  DocumentOptions,
-  DocumentGroup,
-};
-
+enum class OrgSemKind : short int { StmtList, Empty, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CommandGroup, Quote, Example, CmdArguments, CmdArgument, Export, AdmonitionBlock, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, Document, ParseError, FileTarget, TextSeparator, Include, DocumentOptions, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
   static Opt<OrgSemKind> from_string(QString value);

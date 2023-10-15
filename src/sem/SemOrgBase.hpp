@@ -46,11 +46,20 @@ struct SemIdT;
 using OrgVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 #undef __id
 
+struct ContextStore;
+
+struct SemValue {
+    int     getInt() const;
+    QString getString() const;
+    bool    getBool() const;
+    QString value;
+};
 
 struct SemId {
-    using IdType      = u64;
-    using NodeIndexT  = u32;
-    using StoreIndexT = u32;
+    using IdType          = u64;
+    using NodeIndexT      = u32;
+    using StoreIndexT     = u32;
+    ContextStore* context = nullptr;
 
     IdType id = 0;
     bool   isNil() const { return id == 0; }
@@ -58,12 +67,17 @@ struct SemId {
     bool operator==(SemId const& other) const { return id == other.id; }
 
     static SemId Nil() {
-        auto res = SemId(0, OrgSemKind(0), 0);
+        auto res = SemId(0, OrgSemKind(0), 0, nullptr);
         res.id   = 0;
         return res;
     }
 
-    SemId(StoreIndexT storeIndex, OrgSemKind kind, NodeIndexT nodeIndex) {
+    SemId(
+        StoreIndexT   storeIndex,
+        OrgSemKind    kind,
+        NodeIndexT    nodeIndex,
+        ContextStore* _store)
+        : context(_store) {
         setStoreIndex(storeIndex);
         setKind(kind);
         setNodeIndex(nodeIndex);
@@ -158,6 +172,11 @@ struct SemId {
     /// \brief Recursively visit each subnode in the tree and apply the
     /// provided callback
     void eachSubnodeRec(SubnodeVisitor cb);
+
+    QString getReadableId() const {
+        return to_string(getStoreIndex()) + "_" + to_string(getKind())
+             + "_" + to_string(getNodeIndex());
+    }
 };
 
 
@@ -182,6 +201,14 @@ struct SemIdT : public SemId {
     static SemIdT<T> Nil() { return SemIdT<T>(SemId::Nil()); }
 };
 
+template <typename T>
+struct DefaultSemId {
+    SemIdT<T> id = SemIdT<T>::Nil();
+    DefaultSemId() {}
+    DefaultSemId(SemIdT<T> id) : id(id) {}
+    operator SemIdT<T>() const { return id; }
+};
+
 
 /// \brief Base class for all org nodes. Provides essential baseline API
 /// and information.
@@ -204,7 +231,8 @@ struct Org {
 
 
     /// \brief Pointer to the parent node in sem tree, might be null.
-    SemId parent = SemId::Nil();
+    SemId                parent           = SemId::Nil();
+    Opt<OrgSemPlacement> placementContext = std::nullopt;
     /// \brief Adapter to the original parsed node.
     ///
     /// Set by the conversion functions from linearized representation,
