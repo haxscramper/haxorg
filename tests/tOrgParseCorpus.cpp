@@ -17,6 +17,9 @@
 #include <ranges>
 #include "testprofiler.hpp"
 
+#ifdef USE_PERFETTO
+#    include <hstd/wrappers/perfetto_aux.hpp>
+#endif
 
 namespace rs = std::views;
 
@@ -126,8 +129,9 @@ std::string getTestName(
 
 
 TEST_P(ParseFile, CorpusAll) {
-    TestParams params      = GetParam();
-    auto&      spec        = params.spec;
+    TestParams params = GetParam();
+    __perf_trace("cli", "Execute test");
+    auto& spec             = params.spec;
     spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
     CorpusRunner runner;
     using RunResult  = CorpusRunner::RunResult;

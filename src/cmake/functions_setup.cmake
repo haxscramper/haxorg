@@ -53,14 +53,21 @@ function(set_target_flags TARGET)
         add_target_property(${TARGET} COMPILE_DEFINITIONS USE_PERFETTO)
     endif()
 
-    add_target_property(${TARGET} COMPILE_DEFINITIONS QT_FORCE_ASSERTS)
+    if(${USE_XRAY})
+        add_target_property(${TARGET} COMPILE_DEFINITIONS USE_XRAY)
+    endif()
 
-    if(${PROFILE_GENERATE})
+    if(${USE_PGO})
+        add_target_property(${TARGET} COMPILE_DEFINITIONS USE_PGO)
         add_target_property(${TARGET} COMPILE_OPTIONS "-fprofile-instr-generate")
         add_target_property(${TARGET} LINK_OPTIONS "-fprofile-instr-generate")
         add_target_property(${TARGET} COMPILE_OPTIONS "-fcoverage-mapping")
         add_target_property(${TARGET} LINK_OPTIONS "-fcoverage-mapping")
     endif()
+
+    add_target_property(${TARGET} COMPILE_DEFINITIONS QT_FORCE_ASSERTS)
+
+
 
     if(${PROFILE_USE})
         add_target_property(${TARGET} COMPILE_OPTIONS

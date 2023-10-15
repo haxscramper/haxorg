@@ -11,27 +11,51 @@ from pydantic import BaseModel, root_validator
 from typing import Optional
 
 class LLVMSegment(BaseModel):
-    line_number: int
-    count: int
-    another_number: int  # You can replace with an appropriate name.
-    bool_val1: bool
-    bool_val2: bool
-    bool_val3: bool
+    line: int
+    column: int
+    count: int 
+    has_count: bool
+    in_region_entry: bool
+    is_gap_region: bool
     
-    # Use a root validator to transform the list into the model's fields.
     @root_validator(pre=True)
     def parse_list_to_fields(cls, values):
         if isinstance(values, list):
             return {
-                'line_number': values[0],
-                'count': values[1],
-                'another_number': values[2],
-                'bool_val1': values[3],
-                'bool_val2': values[4],
-                'bool_val3': values[5]
+                'line': values[0],
+                'column': values[1],
+                'count': values[2],
+                'has_count': values[3],
+                'in_region_entry': values[4],
+                'is_gap_region': values[5]
             }
         return values
 
+
+class LLVMBranch(BaseModel):
+    line_start: int
+    column_start: int
+    line_end: int
+    column_end: int
+    count: int  
+    file_id: int
+    expanded_file_id: int
+    kind: int
+    
+    @root_validator(pre=True)
+    def parse_list_to_fields(cls, values):
+        if isinstance(values, list):
+            return {
+                'line_start': values[0], 
+                'column_start': values[1], 
+                'line_end': values[2], 
+                'column_end': values[3], 
+                'count': values[4], 
+                'file_id': values[5], 
+                'expanded_file_id': values[6], 
+                'kind': values[7], 
+            }
+        return values
 
 class LLVMCoverSummary(BaseModel):
     count: int
@@ -47,7 +71,7 @@ class LLVMFileCoverageSummary(BaseModel):
     regions: LLVMCoverSummary
 
 class LLVMFileCov(BaseModel):
-    branches: List
+    branches: List[LLVMBranch]
     expansions: List
     filename: str
     segments: List[LLVMSegment]
@@ -132,14 +156,16 @@ def convert_profiling_data(file_path: str) -> List[RunRecord]:
 
         xray_output_file = os.path.join(directory, f"{xray_file}.json")
         logging.info(f"Converting Xray data for {xray_output_file}...")
-        local["llvm-xray"][
+        llvm_xray = local["llvm-xray"][
             "convert",
             "-symbolize",
             "-output-format=trace_event",
             "--instr_map=" + base_binary,
             "--output=" + xray_output_file,
             os.path.join(directory, xray_file),
-        ].run()
+        ]
+        
+        # llvm_xray.run()
 
         results.append(
             RunRecord(pgo_converted=pgo_output_file, xray_converted=xray_output_file))

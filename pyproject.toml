@@ -14,11 +14,12 @@ pytest = "^7.4.2"
 py_textlayout = {path = "./scripts/py_textlayout", develop=true}
 py_exporters = {path = "./scripts/py_exporters", develop=true}
 py_haxorg = {path = "./scripts/py_haxorg", develop=true}
+py_scriptutils = {path = "./scripts/py_scriptutils", develop=true}
 click = "^8.1.7"
 rich-click = "^1.6.1"
 toml = "^0.10.2"
 click-config-file = "^0.6.0"
-plumbum = "^1.8.2"
+plumbum = "^1.8.2"ch
 pydantic = "^2.4.2"
 
 [tool.poetry.group.dev.dependencies]
@@ -36,6 +37,7 @@ ignore = [
   "F405", # Undefined or defined from `*` imports
   "F403", # `from astbuilder_cpp import *` used; unable to detect undefined names
   "E501", # Line length
+  "F841", # Assigned but never used
 ]
 
 [tool.yapf]

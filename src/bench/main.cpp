@@ -27,7 +27,7 @@ static void impl() {
     tokens.base = base.data();
     PosStr str{base};
     tokenizer->lexGlobal(str);
-    qDebug() << "Completed run";
+    qDebug() << "Completed run to" << tokens.size() << "tokens";
 }
 
 static void BenchLexFile(benchmark::State& state) { impl(); }

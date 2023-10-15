@@ -8,6 +8,10 @@
 #include <regex>
 #include <filesystem>
 
+#ifdef USE_PERFETTO
+#    include <hstd/wrappers/perfetto_aux.hpp>
+#endif
+
 namespace fs = std::filesystem;
 
 extern "C" void __llvm_profile_reset_counters(void);
@@ -89,71 +93,134 @@ void move_latest_xray_log_to_path(const std::string& path) {
 
 
 void TestProfiler::SetUp() {
+#ifdef USE_PERFETTO
+    TRACE_EVENT_BEGIN("cli", "Execute test");
+#endif
+    __perf_trace("cli", "Setup test");
+
+#ifdef USE_PGO
     if (fs::exists(pgo_path)) {
         fs::remove(pgo_path);
     }
     __llvm_profile_set_filename(pgo_path.data());
+#endif
+
+#ifdef USE_XRAY
+    {
+        __perf_trace("cli", "XRay setup for test");
+        {
+            __perf_trace("cli", "Log select mode ");
+            XRayLogRegisterStatus select = __xray_log_select_mode(
+                "xray-basic");
+            if (select != XRayLogRegisterStatus::XRAY_REGISTRATION_OK) {
+                throw std::logic_error(std::format(
+                    "Failed to select xray-basic mode, the code was '{}'",
+                    (int)select));
+            }
+        }
 
 
-    XRayLogRegisterStatus select = __xray_log_select_mode("xray-basic");
-    if (select != XRayLogRegisterStatus::XRAY_REGISTRATION_OK) {
-        throw std::logic_error(std::format(
-            "Failed to select xray-basic mode, the code was '{}'",
-            (int)select));
+        {
+            __perf_trace("cli", "Log init mode");
+            std::string options = std::format(
+                "verbosity=1 no_file_flush=true xray_logfile_base={}",
+                xray_path);
+
+            XRayLogInitStatus init_mode_status = __xray_log_init_mode(
+                "xray-basic", options.data());
+
+            if (init_mode_status
+                != XRayLogInitStatus::XRAY_LOG_INITIALIZED) {
+                throw std::logic_error(std::format(
+                    "__xray_log_init_mode() failed, the code was '{}'",
+                    (int)init_mode_status));
+            }
+        }
+        {
+            __perf_trace("cli", "Remove custom event handlers");
+            __xray_remove_customevent_handler();
+        }
+        {
+            __perf_trace("cli", "Xray patch");
+            auto patch_status = __xray_patch();
+            if (patch_status != XRayPatchingStatus::SUCCESS) {
+                throw std::logic_error(std::format(
+                    "__xray_patch() failed, the code was '{}'",
+                    (int)patch_status));
+            }
+        }
     }
+#endif
 
-
-    std::string options = std::format(
-        "verbosity=1 no_file_flush=true xray_logfile_base={}", xray_path);
-
-    XRayLogInitStatus init_mode_status = __xray_log_init_mode(
-        "xray-basic", options.data());
-
-    if (init_mode_status != XRayLogInitStatus::XRAY_LOG_INITIALIZED) {
-        throw std::logic_error(std::format(
-            "__xray_log_init_mode() failed, the code was '{}'",
-            (int)init_mode_status));
+#ifdef USE_PGO
+    {
+        __perf_trace("cli", "Remove LLVM counters");
+        __llvm_profile_reset_counters();
     }
-
-    __xray_remove_customevent_handler();
-
-    auto patch_status = __xray_patch();
-    if (patch_status != XRayPatchingStatus::SUCCESS) {
-        throw std::logic_error(std::format(
-            "__xray_patch() failed, the code was '{}'",
-            (int)patch_status));
-    }
-
-    __llvm_profile_reset_counters();
+#endif
 }
 
 void TestProfiler::TearDown() {
-    int profile_result = __llvm_profile_write_file();
-    if (profile_result != 0) {
-        throw std::logic_error(std::format(
-            "Failed to write PGO data to '{}'", pgo_path.data()));
+    __perf_trace("cli", "Finalize test");
+
+#ifdef USE_PGO
+    {
+        __perf_trace("cli", "Write PGO profile data");
+        int profile_result = __llvm_profile_write_file();
+        if (profile_result != 0) {
+            throw std::logic_error(std::format(
+                "Failed to write PGO data to '{}'", pgo_path.data()));
+        }
+    }
+#endif
+
+#ifdef USE_XRAY
+    {
+        __perf_trace("cli", "XRay finalize data");
+        auto finalize_status = __xray_log_finalize();
+        if (finalize_status != XRAY_LOG_FINALIZED) {
+            throw std::logic_error(std::format(
+                "Failed to finalize XRAY Log, the status is, the code was "
+                "'{}'",
+                (int)finalize_status));
+        }
     }
 
-    auto finalize_status = __xray_log_finalize();
-    if (finalize_status != XRAY_LOG_FINALIZED) {
-        throw std::logic_error(std::format(
-            "Failed to finalize XRAY Log, the status is, the code was "
-            "'{}'",
-            (int)finalize_status));
+    {
+        __perf_trace("cli", "XRay flush log");
+        auto flush_status = __xray_log_flushLog();
+        if (flush_status != XRAY_LOG_FLUSHED) {
+            throw std::logic_error(std::format(
+                "Failed to flush XRAY log, the status is "
+                "'{}'",
+                (int)flush_status));
+        }
     }
 
-    auto flush_status = __xray_log_flushLog();
-    if (flush_status != XRAY_LOG_FLUSHED) {
-        throw std::logic_error(std::format(
-            "Failed to flush XRAY log, the status is "
-            "'{}'",
-            (int)flush_status));
+    {
+        __perf_trace("cli", "XRay unpatch");
+        __xray_unpatch();
     }
 
-    __xray_unpatch();
-    move_latest_xray_log_to_path(xray_path);
+    {
+        __perf_trace("cli", "XRay move log to target");
+        move_latest_xray_log_to_path(xray_path);
+    }
+#endif
+
+
     RunRecord& rec = runRecords.emplace_back();
-    rec.xray_path  = xray_path;
-    rec.pgo_path   = pgo_path;
     rec.metadata   = metadata;
+
+#ifdef USE_XRAY
+    rec.xray_path = xray_path;
+#endif
+#ifdef USE_PGO
+    rec.pgo_path = pgo_path;
+#endif
+
+
+#ifdef USE_PERFETTO
+    TRACE_EVENT_END("cli");
+#endif
 }
