@@ -12,7 +12,7 @@ def IsNewInput(input_path: str, output_path: str):
     output_exists = os.path.exists(output_path)
 
     # If input exists but output doesn't, execute the body
-    if input_exists and not output_exists:
+    if not output_exists:
         should_execute = True
 
     # If both exist, check their modification times

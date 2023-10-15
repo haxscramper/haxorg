@@ -17,7 +17,6 @@ from py_scriptutils import tracer
 from py_scriptutils.script_logging import log
 from collections import defaultdict
 
-
 from PyQt6.QtCore import QAbstractTableModel, Qt, QUrl
 from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtQml import QQmlApplicationEngine
@@ -305,6 +304,7 @@ def generate_html_table(file: FileCover) -> tags.table:
 
     return table
 
+
 @beartype
 def write_as_csv(file: FileCover, outpath: str) -> tags.table:
     table = tags.table()
@@ -316,25 +316,17 @@ def write_as_csv(file: FileCover, outpath: str) -> tags.table:
             test_set.add(cover.testname)
 
     tests: List[str] = sorted([t for t in test_set])
-    
+
     with open(outpath, "w", newline="") as f:
         writer = csv.writer(f, delimiter="\t", quoting=csv.QUOTE_ALL)
 
-        writer.writerow([
-            "Idx",
-            *tests,
-            "Path"
-        ])
+        writer.writerow(["Idx", *tests, "Path"])
 
-        cover_map = defaultdict(int) 
+        cover_map = defaultdict(int)
         for cover in line.covered_by:
             cover_map[cover.testname] = cover.count
 
-        writer.writerow([
-            line.index,
-            *[cover_map[test] for test in tests],
-            line.text
-        ])
+        writer.writerow([line.index, *[cover_map[test] for test in tests], line.text])
 
     return table
 
@@ -370,12 +362,13 @@ def generate_html_page(datasets: List[FileCover]) -> str:
 
 
 class TableModel(QAbstractTableModel):
-    def __init__(self, file_lines):
+
+    def __init__(self, file_lines: List[FileLine]):
         super(TableModel, self).__init__()
         self.file_lines = file_lines
 
     def data(self, index, role):
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             line = self.file_lines[index.row()]
             if index.column() == 0:
                 return line.text
@@ -389,6 +382,7 @@ class TableModel(QAbstractTableModel):
 
     def columnCount(self, index):
         return 3
+
 
 if __name__ == "__main__":
     local.env.path.append("/mnt/workspace/repos/haxorg/toolchain/llvm/bin")
@@ -423,7 +417,8 @@ if __name__ == "__main__":
     ctx = engine.rootContext()
     if ctx:
         ctx.setContextProperty("tableModel", table_model)
-        engine.load(QUrl("main.qml"))
+        engine.load(
+            QUrl(os.path.join(os.path.dirname(os.path.realpath(__file__)), "main.qml")))
 
         if not engine.rootObjects():
             sys.exit(-1)
@@ -432,4 +427,3 @@ if __name__ == "__main__":
 
     else:
         sys.exit(-1)
-

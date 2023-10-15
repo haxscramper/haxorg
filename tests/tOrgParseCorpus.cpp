@@ -17,9 +17,7 @@
 #include <ranges>
 #include "testprofiler.hpp"
 
-#ifdef USE_PERFETTO
-#    include <hstd/wrappers/perfetto_aux.hpp>
-#endif
+#include <hstd/wrappers/perfetto_aux.hpp>
 
 namespace rs = std::views;
 

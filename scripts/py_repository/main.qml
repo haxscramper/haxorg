@@ -1,5 +1,5 @@
 import QtQuick 2.12
-import QtQuick.Controls 2.5
+import QtQuick.Controls 2.12
 
 ApplicationWindow {
     visible: true
@@ -10,23 +10,11 @@ ApplicationWindow {
     TableView {
         anchors.fill: parent
         model: tableModel
-
-        TableViewColumn {
-            title: "Line Text"
-            role: "lineText"
-            width: 300
-        }
-
-        TableViewColumn {
-            title: "Test Names"
-            role: "testNames"
-            width: 300
-        }
-
-        TableViewColumn {
-            title: "Counts"
-            role: "counts"
-            width: 200
+        delegate: Rectangle {
+            implicitHeight: 20
+            Text {
+                text: display
+            }
         }
     }
 }

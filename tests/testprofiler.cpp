@@ -8,9 +8,7 @@
 #include <regex>
 #include <filesystem>
 
-#ifdef USE_PERFETTO
-#    include <hstd/wrappers/perfetto_aux.hpp>
-#endif
+#include <hstd/wrappers/perfetto_aux.hpp>
 
 namespace fs = std::filesystem;
 
