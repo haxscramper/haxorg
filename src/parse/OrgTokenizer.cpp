@@ -91,6 +91,7 @@ OrgCommandKind classifyCommand(QString const& command) {
 
 namespace {
 
+
 bool atNewline(PosStr const& str, int offset = 0) {
     return str.at('\n', offset);
 }
@@ -595,11 +596,11 @@ void OrgTokenizerImpl<TraceState>::spaceSkip(PosStr& str, bool require) {
     OrgToken tmp = require ? str.tok(
                        otk::SkipSpace,
                        skipOneOrMore,
-                       charsets::HorizontalSpace)
+                       cr(CharSet{QChar('\t'), QChar(' ')}))
                            : str.tok(
                                otk::SkipSpace,
                                skipZeroOrMore,
-                               charsets::HorizontalSpace);
+                               cr(CharSet{QChar('\t'), QChar(' ')}));
 
     if (0 < tmp.size()) {
         __push(tmp);
@@ -2330,7 +2331,7 @@ bool OrgTokenizerImpl<TraceState>::lexSubtreeTitle(PosStr& str) {
         completion = full.sliced(shift + 1, full.size() - 1 - shift);
         full       = full.sliced(0, shift).trimmed();
 
-    not_progress : {}
+    not_progress: {}
     }
 
 
@@ -2435,7 +2436,7 @@ bool OrgTokenizerImpl<TraceState>::lexCommandOptions(PosStr& str) {
             }
             default: {
                 auto raw = str.tok(otk::RawText, [](PosStr& str) {
-                    while (str.notAt(charsets::HorizontalSpace)) {
+                    while (str.notAt(CharSet{QChar('\t'), QChar(' ')})) {
                         str.next();
                     }
                 });
@@ -2459,7 +2460,7 @@ bool OrgTokenizerImpl<TraceState>::lexCommandInclude(PosStr& str) {
             otk::RawText);
     } else {
         auto text = str.tok(otk::RawText, [](PosStr& str) {
-            while (str.notAt(charsets::HorizontalSpace)) {
+            while (str.notAt(CharSet{QChar('\t'), QChar(' ')})) {
                 str.next();
             }
         });
@@ -2494,6 +2495,11 @@ bool OrgTokenizerImpl<TraceState>::lexCommandKeyValue(PosStr& str) {
                 break;
             }
             case ' ': {
+                qDebug() << str << str.at(CharSet{QChar('\t'), QChar(' ')})
+                         << CharSet{QChar('\t'), QChar(' ')} << str.get()
+                         << CharSet{QChar('\t'), QChar(' ')}.contains(
+                                str.get());
+
                 spaceSkip(str);
                 break;
             }
@@ -2501,7 +2507,8 @@ bool OrgTokenizerImpl<TraceState>::lexCommandKeyValue(PosStr& str) {
                 auto value = str.tok(otk::CommandValue, [](PosStr& str) {
                     auto hasColon = false;
                     while (!str.finished() && !hasColon) {
-                        while (str.notAt(charsets::HorizontalSpace)) {
+                        while (
+                            str.notAt(CharSet{QChar('\t'), QChar(' ')})) {
                             str.next();
                         }
                         if (!str.finished()) {
@@ -2699,16 +2706,16 @@ bool OrgTokenizerImpl<TraceState>::lexCommandBlock(PosStr& str) {
 
 template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::isFirstOnLine(CR<PosStr> str) {
-    static const auto set = charsets::Newline + CharSet{QChar('\0')};
-    if (str.at(set, -1)) {
+    if (str.at(QChar('\0'), -1) || str.at(QChar('\n', -1))) {
         return true;
     }
 
     auto pos = -1;
-    while (str.at(charsets::HorizontalSpace, pos)) {
+    while (atSpace(str, pos)) {
         --pos;
     }
-    return str.at(set, pos);
+
+    return str.at(QChar('\0'), pos) || str.at(QChar('\n', pos));
 }
 
 template <bool TraceState>

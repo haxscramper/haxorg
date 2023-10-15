@@ -8,6 +8,7 @@ from plumbum import local
 import os
 from beartype import beartype
 import csv
+import sys
 
 from pydantic import BaseModel, root_validator
 from beartype.typing import Optional, List, Dict
@@ -15,6 +16,11 @@ from py_scriptutils.files import IsNewInput, pickle_or_new
 from py_scriptutils import tracer
 from py_scriptutils.script_logging import log
 from collections import defaultdict
+
+
+from PyQt6.QtCore import QAbstractTableModel, Qt, QUrl
+from PyQt6.QtGui import QGuiApplication
+from PyQt6.QtQml import QQmlApplicationEngine
 
 
 class LLVMSegment(BaseModel):
@@ -137,7 +143,7 @@ def convert_profiling_data(file_path: str) -> List[RunRecord]:
         records = json.load(f)
 
     results = []
-    for record in records:
+    for record in records[:2]:
         pgo_files = find_files_with_prefix(directory,
                                            os.path.basename(record["pgo_path"]))
         xray_files = find_files_with_prefix(directory,
@@ -363,6 +369,27 @@ def generate_html_page(datasets: List[FileCover]) -> str:
     return str(doc)
 
 
+class TableModel(QAbstractTableModel):
+    def __init__(self, file_lines):
+        super(TableModel, self).__init__()
+        self.file_lines = file_lines
+
+    def data(self, index, role):
+        if role == Qt.DisplayRole:
+            line = self.file_lines[index.row()]
+            if index.column() == 0:
+                return line.text
+            elif index.column() == 1:
+                return ", ".join([cover.testname for cover in line.covered_by])
+            elif index.column() == 2:
+                return ", ".join([str(cover.count) for cover in line.covered_by])
+
+    def rowCount(self, index):
+        return len(self.file_lines)
+
+    def columnCount(self, index):
+        return 3
+
 if __name__ == "__main__":
     local.env.path.append("/mnt/workspace/repos/haxorg/toolchain/llvm/bin")
     logging.getLogger("plumbum.local").setLevel(logging.DEBUG)
@@ -381,11 +408,28 @@ if __name__ == "__main__":
             with tracer.GlobCompleteEvent(CAT, "merge coverage information"):
                 merge_coverage(cover, coverage_model, record.name)
 
+    records = [f for _, f in cover.files.items() if "Tokenizer" in f.path]
     with tracer.GlobCompleteEvent(CAT, "generate HTML page"):
-        page = generate_html_page(
-            [f for _, f in cover.files.items() if "Tokenizer" in f.path])
+        page = generate_html_page(records)
         with open("/tmp/result.html", "w") as file:
             file.write(page)
             log.info("Wrote HTML table")
 
     tracer.GlobExportJson("/tmp/profile_converter.json")
+
+    app = QGuiApplication(sys.argv)
+    engine = QQmlApplicationEngine()
+    table_model = TableModel(records[0].lines)
+    ctx = engine.rootContext()
+    if ctx:
+        ctx.setContextProperty("tableModel", table_model)
+        engine.load(QUrl("main.qml"))
+
+        if not engine.rootObjects():
+            sys.exit(-1)
+
+        sys.exit(app.exec())
+
+    else:
+        sys.exit(-1)
+

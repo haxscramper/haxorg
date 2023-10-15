@@ -151,6 +151,7 @@ QChar PosStr::pop() {
 [[clang::xray_always_instrument]] bool PosStr::at(
     CR<CharSet> expected,
     int         offset) const {
+    Q_ASSERT(!expected.empty());
     return expected.contains(get(offset));
 }
 
