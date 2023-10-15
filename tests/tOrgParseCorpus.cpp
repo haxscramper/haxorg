@@ -115,7 +115,9 @@ class ParseFile : public ::testing::TestWithParam<TestParams> {
         profiler = TestProfiler{
             ("/tmp/" + GetParam().testName() + "_xray").toStdString(),
             ("/tmp/" + GetParam().testName() + "_pgo").toStdString(),
-        };
+            json::object({
+                {"meta", GetParam().fullName().toStdString()},
+            })};
         profiler->SetUp();
     }
     void TearDown() override { profiler->TearDown(); }

@@ -148,6 +148,17 @@ files = [
 six = "*"
 
 [[package]]
+name = "dominate"
+version = "2.8.0"
+description = "Dominate is a Python library for creating and manipulating HTML documents using an elegant DOM API."
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+files = [
+    {file = "dominate-2.8.0-py2.py3-none-any.whl", hash = "sha256:1a916479c45b95fedba0d077b081d77c2d2e0f0f484ac827105087af23661d73"},
+    {file = "dominate-2.8.0.tar.gz", hash = "sha256:4c90c3befaf88e612b71f4b39af7bcbef8977acfa855cec957225a8fbf504007"},
+]
+
+[[package]]
 name = "grpclib"
 version = "0.4.6"
 description = "Pure-Python gRPC implementation for asyncio"
@@ -909,4 +920,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "8e2d2d926c6568d069e09a4815ec46ae4e73c8b8b614dd0f1d6282f3d148da64"
+content-hash = "080a0602144fed8073acdeb4eea35530ba4f369f63bb181e2c54621beab8ca4a"

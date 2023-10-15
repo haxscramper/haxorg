@@ -2,15 +2,18 @@
 
 import json
 import logging
-from dataclasses import dataclass
-from typing import List
+from dataclasses import dataclass, field
+from dominate import document, tags
 from plumbum import local
 import os
+from beartype import beartype
 
 from pydantic import BaseModel, root_validator
-from typing import Optional
+from beartype.typing import Optional, List, Dict
 from py_scriptutils.files import IsNewInput, pickle_or_new
 from py_scriptutils import tracer
+from py_scriptutils.script_logging import log
+from collections import defaultdict
 
 
 class LLVMSegment(BaseModel):
@@ -109,13 +112,11 @@ def read_llvm_cov_from_json(filepath: str) -> LLVMCovData:
         return LLVMCovData.model_validate_json(data)
 
 
-logging.basicConfig(level=logging.INFO)
-
-
 @dataclass
 class RunRecord:
     pgo_converted: str
     xray_converted: str
+    name: str
 
 
 def find_files_with_prefix(directory: str, prefix: str) -> List[str]:
@@ -135,7 +136,7 @@ def convert_profiling_data(file_path: str) -> List[RunRecord]:
         records = json.load(f)
 
     results = []
-    for record in records:
+    for record in records[:2]:
         pgo_files = find_files_with_prefix(directory,
                                            os.path.basename(record["pgo_path"]))
         xray_files = find_files_with_prefix(directory,
@@ -151,7 +152,8 @@ def convert_profiling_data(file_path: str) -> List[RunRecord]:
 
         pgo_output_file = os.path.join(directory, f"{pgo_file}.json")
         pgo_tmp_file = pgo_output_file + ".profdata"
-        if IsNewInput(pgo_file, pgo_tmp_file):
+        force_convert = True
+        if force_convert or IsNewInput(pgo_file, pgo_tmp_file):
             with tracer.GlobCompleteEvent(CAT, "Merge raw profile data"):
                 local["llvm-profdata"][
                     "merge",
@@ -161,9 +163,9 @@ def convert_profiling_data(file_path: str) -> List[RunRecord]:
 
         base_binary = "/mnt/workspace/repos/haxorg/build/haxorg/bin/tests"
 
-        if IsNewInput(pgo_tmp_file, pgo_output_file):
+        if force_convert or IsNewInput(pgo_tmp_file, pgo_output_file):
             with tracer.GlobCompleteEvent(CAT, "convert profile data to json"):
-                logging.info(f"Converting PGO data for {pgo_output_file}...")
+                log.info(f"Converting PGO data for {pgo_output_file}...")
                 llvm_cov = local["llvm-cov"][
                     "export",
                     base_binary,
@@ -174,9 +176,9 @@ def convert_profiling_data(file_path: str) -> List[RunRecord]:
                 llvm_cov.run()
 
         xray_output_file = os.path.join(directory, f"{xray_file}.json")
-        if IsNewInput(xray_file, xray_output_file):
+        if force_convert or IsNewInput(xray_file, xray_output_file):
             with tracer.GlobCompleteEvent(CAT, "convert xray data"):
-                logging.info(f"Converting Xray data for {xray_output_file}...")
+                log.info(f"Converting Xray data for {xray_output_file}...")
                 llvm_xray = local["llvm-xray"][
                     "convert",
                     "-symbolize",
@@ -189,9 +191,131 @@ def convert_profiling_data(file_path: str) -> List[RunRecord]:
                 # llvm_xray.run()
 
         results.append(
-            RunRecord(pgo_converted=pgo_output_file, xray_converted=xray_output_file))
+            RunRecord(pgo_converted=pgo_output_file,
+                      xray_converted=xray_output_file,
+                      name=record["metadata"]["meta"]))
 
     return results
+
+
+@beartype
+@dataclass
+class TestRunInfo:
+    name: str
+
+
+@beartype
+@dataclass
+class CoverReference:
+    testname: str
+    count: int
+
+
+@beartype
+@dataclass
+class FileLine:
+    text: str
+    index: int
+    covered_by: List[CoverReference] = field(default_factory=list)
+
+
+@beartype
+@dataclass
+class FileCover:
+    path: str
+    lines: List[FileLine] = field(default_factory=list)
+
+    @staticmethod
+    def from_path(path: str) -> "FileCover":
+        res = FileCover(path=path)
+        with open(path, "r") as file:
+            for idx, line in enumerate(file.readlines()):
+                res.lines.append(FileLine(line, idx))
+
+        return res
+
+
+@beartype
+@dataclass
+class FullData:
+    files: Dict[str, FileCover] = field(default_factory=dict)
+    test_map: Dict[str, TestRunInfo] = field(default_factory=dict)
+
+
+@beartype
+def merge_coverage(data: FullData, cover: LLVMCovData, name: str):
+    for entry in cover.data:
+        for file in entry.files:
+            path = file.filename
+            if path not in data.files:
+                data.files[path] = FileCover.from_path(path)
+
+            file_cover = data.files[path]
+
+            for segment in file.segments:
+                file_cover.lines[segment.line - 1].covered_by.append(
+                    CoverReference(testname=name, count=segment.count))
+
+
+@beartype
+def generate_html_table(file: FileCover) -> tags.table:
+    table = tags.table()
+
+    # Extract unique tests.
+    test_set: set[str] = set()
+    for line in file.lines:
+        for cover in line.covered_by:
+            test_set.add(cover.testname)
+
+    tests: List[str] = sorted([t for t in test_set])
+
+    with table:
+        # Create table header.
+        with tags.thead():
+            with tags.tr():
+                short = "width: 20px; background-color: #f2f2f2; writing-mode: vertical-rl; transform: rotate(180deg);"
+                tags.th("Idx", style=short)
+
+                for test in tests:
+                    tags.th(test, style=short)
+
+                tags.th(f'{file.path}')
+
+        # Create table body.
+        with tags.tbody():
+            for line in file.lines:
+                with tags.tr():
+                    cover_map = defaultdict(int)  # Default to 0 for tests not present.
+                    for cover in line.covered_by:
+                        cover_map[cover.testname] = cover.count
+
+                    tags.td(str(line.index))
+
+                    for test in tests:
+                        tags.td(cover_map[test])
+
+                    tags.td(tags.pre(line.text))
+
+    return table
+
+
+@beartype
+def generate_html_page(datasets: List[FileCover]) -> str:
+    doc = document(title='Coverage Table')
+
+    # Add table styling
+    with doc.head:
+        tags.style("""
+        table { border-collapse: collapse; width: 100%; margin-bottom: 0px; }
+        th, td { border: 0px; padding: 0px; margin: 0px; }
+        pre { margin: 0; }
+        """)
+
+    with doc:
+        for data in datasets:
+            generate_html_table(data)
+
+    return str(doc)
 
 
 if __name__ == "__main__":
@@ -201,11 +325,22 @@ if __name__ == "__main__":
     with tracer.GlobCompleteEvent(CAT, "convert profiling data"):
         converted_records = convert_profiling_data("/tmp/compact_records.json")
 
+    cover: FullData = FullData()
     with tracer.GlobCompleteEvent(CAT, "parse records"):
         for record in converted_records:
             print(record)
             coverage_model: LLVMCovData = pickle_or_new(record.pgo_converted,
                                                         record.pgo_converted + ".pickle",
                                                         read_llvm_cov_from_json)
+
+            with tracer.GlobCompleteEvent(CAT, "merge coverage information"):
+                merge_coverage(cover, coverage_model, record.name)
+
+    with tracer.GlobCompleteEvent(CAT, "generate HTML page"):
+        page = generate_html_page(
+            [f for _, f in cover.files.items() if "Tokenizer" in f.path])
+        with open("/tmp/result.html", "w") as file:
+            file.write(page)
+            log.info("Wrote HTML table")
 
     tracer.GlobExportJson("/tmp/profile_converter.json")

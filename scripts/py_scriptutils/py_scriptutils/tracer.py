@@ -84,7 +84,7 @@ def getGlobalTraceCollector():
 
 
 @contextmanager
-def GlobCompleteEvent(category: str, name: str, args: Optional[Dict[str, Any]] = None):
+def GlobCompleteEvent(name: str, category: str, args: Optional[Dict[str, Any]] = None):
     with getGlobalTraceCollector().complete_event(name, category, args):
         yield
 
