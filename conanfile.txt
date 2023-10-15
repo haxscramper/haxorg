@@ -8,4 +8,3 @@ benchmark/1.8.3
 [generators]
 cmake
 cmake_find_package
-
