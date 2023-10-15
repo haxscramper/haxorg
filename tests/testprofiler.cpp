@@ -57,7 +57,8 @@ void safe_move(const fs::path& from, const fs::path& to) {
     }
 }
 
-void move_latest_xray_log_to_path(const std::string& path) {
+
+bool move_latest_xray_log_to_path(const std::string& path) {
 
     // Get the program name
     std::string program_name = get_current_program_name();
@@ -81,14 +82,17 @@ void move_latest_xray_log_to_path(const std::string& path) {
         }
     }
 
-    if (!found) {
-        throw std::logic_error(
-            "No matching xray-log files found for program name '"
-            + program_name + "'");
-    }
+    if (found) {
+        // Move the latest file to the specified path
+        safe_move(latest_file, path);
+        return true;
 
-    // Move the latest file to the specified path
-    safe_move(latest_file, path);
+    } else {
+        qWarning()
+            << ("No matching xray-log files found for program name '"
+                + program_name + "'");
+        return false;
+    }
 }
 
 
@@ -111,7 +115,7 @@ void TestProfiler::SetUp() {
         {
             __perf_trace("cli", "Log select mode ");
             XRayLogRegisterStatus select = __xray_log_select_mode(
-                "xray-basic");
+                "xray-fdr");
             if (select != XRayLogRegisterStatus::XRAY_REGISTRATION_OK) {
                 throw std::logic_error(std::format(
                     "Failed to select xray-basic mode, the code was '{}'",
@@ -123,11 +127,12 @@ void TestProfiler::SetUp() {
         {
             __perf_trace("cli", "Log init mode");
             std::string options = std::format(
-                "verbosity=1 no_file_flush=true xray_logfile_base={}",
-                xray_path);
+                "buffer_size=16384:"
+                "buffer_max={}",
+                (1 << 16));
 
             XRayLogInitStatus init_mode_status = __xray_log_init_mode(
-                "xray-basic", options.data());
+                "xray-fdr", options.data());
 
             if (init_mode_status
                 != XRayLogInitStatus::XRAY_LOG_INITIALIZED) {
@@ -199,12 +204,23 @@ void TestProfiler::TearDown() {
 
     {
         __perf_trace("cli", "XRay unpatch");
-        __xray_unpatch();
+        XRayPatchingStatus status = __xray_unpatch();
+        if (status != XRayPatchingStatus::SUCCESS) {
+            throw std::logic_error(std::format(
+                "Failed to unpatch xray, the status is "
+                "'{}'",
+                (int)status));
+        }
     }
 
+    bool hasXray = false;
     {
         __perf_trace("cli", "XRay move log to target");
-        move_latest_xray_log_to_path(xray_path);
+        hasXray = move_latest_xray_log_to_path(xray_path);
+    }
+    {
+        __perf_trace("cli", "Remove xray log implementation");
+        __xray_remove_log_impl();
     }
 #endif
 
@@ -213,8 +229,11 @@ void TestProfiler::TearDown() {
     rec.metadata   = metadata;
 
 #ifdef USE_XRAY
-    rec.xray_path = xray_path;
+    if (hasXray) {
+        rec.xray_path = xray_path;
+    }
 #endif
+
 #ifdef USE_PGO
     rec.pgo_path = pgo_path;
 #endif
