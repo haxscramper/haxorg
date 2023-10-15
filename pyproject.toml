@@ -19,7 +19,7 @@ click = "^8.1.7"
 rich-click = "^1.6.1"
 toml = "^0.10.2"
 click-config-file = "^0.6.0"
-plumbum = "^1.8.2"ch
+plumbum = "^1.8.2"
 pydantic = "^2.4.2"
 
 [tool.poetry.group.dev.dependencies]

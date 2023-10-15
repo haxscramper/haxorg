@@ -3,7 +3,7 @@ name = "py-scriptutils"
 version = "0.1.0"
 description = ""
 authors = ["haxscramper <haxscramper@gmail.com>"]
-readme = "README.org"
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"

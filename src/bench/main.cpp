@@ -3,6 +3,8 @@
 
 #include <benchmark/benchmark.h>
 
+#include "/home/haxscramper/software/coz/include/coz.h"
+
 static void impl() {
     qDebug() << "Running bench";
     OrgTokenGroup       tokens;
@@ -35,6 +37,11 @@ static void BenchLexFile(benchmark::State& state) { impl(); }
 
 QTextStream qcout;
 
-int main() { impl(); }
+int main() {
+    for (int i = 0; i < 500; ++i) {
+        impl();
+        COZ_PROGRESS;
+    }
+}
 // BENCHMARK(BenchLexFile);
 // BENCHMARK_MAIN();

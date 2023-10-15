@@ -65,6 +65,9 @@ function(set_target_flags TARGET)
         add_target_property(${TARGET} LINK_OPTIONS "-fcoverage-mapping")
     endif()
 
+    add_target_property(${TARGET} COMPILE_OPTIONS "-gdwarf-3")
+    add_target_property(${TARGET} LINK_OPTIONS "-gdwarf-3")
+
     add_target_property(${TARGET} COMPILE_DEFINITIONS QT_FORCE_ASSERTS)
 
 
