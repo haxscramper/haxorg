@@ -7,6 +7,7 @@ from dominate import document, tags
 from plumbum import local
 import os
 from beartype import beartype
+import csv
 
 from pydantic import BaseModel, root_validator
 from beartype.typing import Optional, List, Dict
@@ -136,7 +137,7 @@ def convert_profiling_data(file_path: str) -> List[RunRecord]:
         records = json.load(f)
 
     results = []
-    for record in records[:2]:
+    for record in records:
         pgo_files = find_files_with_prefix(directory,
                                            os.path.basename(record["pgo_path"]))
         xray_files = find_files_with_prefix(directory,
@@ -152,7 +153,7 @@ def convert_profiling_data(file_path: str) -> List[RunRecord]:
 
         pgo_output_file = os.path.join(directory, f"{pgo_file}.json")
         pgo_tmp_file = pgo_output_file + ".profdata"
-        force_convert = True
+        force_convert = False
         if force_convert or IsNewInput(pgo_file, pgo_tmp_file):
             with tracer.GlobCompleteEvent(CAT, "Merge raw profile data"):
                 local["llvm-profdata"][
@@ -298,6 +299,39 @@ def generate_html_table(file: FileCover) -> tags.table:
 
     return table
 
+@beartype
+def write_as_csv(file: FileCover, outpath: str) -> tags.table:
+    table = tags.table()
+
+    # Extract unique tests.
+    test_set: set[str] = set()
+    for line in file.lines:
+        for cover in line.covered_by:
+            test_set.add(cover.testname)
+
+    tests: List[str] = sorted([t for t in test_set])
+    
+    with open(outpath, "w", newline="") as f:
+        writer = csv.writer(f, delimiter="\t", quoting=csv.QUOTE_ALL)
+
+        writer.writerow([
+            "Idx",
+            *tests,
+            "Path"
+        ])
+
+        cover_map = defaultdict(int) 
+        for cover in line.covered_by:
+            cover_map[cover.testname] = cover.count
+
+        writer.writerow([
+            line.index,
+            *[cover_map[test] for test in tests],
+            line.text
+        ])
+
+    return table
+
 
 @beartype
 def generate_html_page(datasets: List[FileCover]) -> str:
@@ -309,6 +343,17 @@ def generate_html_page(datasets: List[FileCover]) -> str:
         table { border-collapse: collapse; width: 100%; margin-bottom: 0px; }
         th, td { border: 0px; padding: 0px; margin: 0px; }
         pre { margin: 0; }
+
+        thead th {
+            position: sticky;
+            top: 0;  /* Adjust this value based on where you want the header to stick */
+            background-color: white;  /* Ensures the header remains opaque and content below doesn't show through */
+            z-index: 10;  /* Keeps the header above other content */
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;  /* Change to your preferred highlight color */
+        }
         """)
 
     with doc:
