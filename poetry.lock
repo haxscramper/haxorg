@@ -566,6 +566,19 @@ type = "directory"
 url = "scripts/py_haxorg"
 
 [[package]]
+name = "py-scriptutils"
+version = "0.1.0"
+description = ""
+optional = false
+python-versions = "^3.11"
+files = []
+develop = true
+
+[package.source]
+type = "directory"
+url = "scripts/py_scriptutils"
+
+[[package]]
 name = "py-textlayout"
 version = "0.1.0"
 description = ""
@@ -896,4 +909,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "8ef446145812a436475ea32525d8c0439ab04cf8fddd5413ac09ff70bf87ef99"
+content-hash = "8e2d2d926c6568d069e09a4815ec46ae4e73c8b8b614dd0f1d6282f3d148da64"

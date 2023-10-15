@@ -10,14 +10,13 @@ import functools
 from dataclasses import dataclass
 
 from beartype import beartype
-from beartype.typing import Optional, Tuple, List, Sequence
+from beartype.typing import Optional, List
 
 from rich.logging import RichHandler
 import logging
 
 import py_haxorg.pyhaxorg as org
-import py_haxorg.utils as org_utils
-import tracer
+import py_scriptutils.py_scriptutils.tracer as tracer
 
 logging.basicConfig(
     level="NOTSET",
