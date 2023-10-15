@@ -406,6 +406,13 @@ meta_target("bench_profdata", "Collect performance profile", {}, function ()
       logfile,
     })
 
+    os.execv(path.join(tools, "llvm-xray"), {
+      "graph",
+      "--instr_map=" .. bench,
+      "--output=" .. path.join(dir, "trace_events.dot"),
+      logfile,
+    })
+
     os.execv(path.join(tools, "llvm-profdata"), {
       "merge",
       "-output=" .. path.join(dir, "bench.profdata"),
