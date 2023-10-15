@@ -1,0 +1,3 @@
+[never]
+src:/usr/include*
+src:*.conan/data*

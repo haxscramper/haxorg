@@ -42,7 +42,8 @@ def test_serialization_expose() -> None:
 
 def test_tex_exporter() -> None:
     tmp = org.OrgContext()
-    tmp.parseFile("/home/haxscramper/tmp/doc.org")
+    PATH = "/mnt/workspace/repos/haxorg/tests/corpus/org/all.org"
+    tmp.parseFile(PATH)
     toTree("/tmp/before.txt", tmp.getNode())
 
     ctx = org.OrgContext()
@@ -51,7 +52,7 @@ def test_tex_exporter() -> None:
     if os.path.exists(cache_file):
         ctx.loadStore(cache_file)
     else:
-        ctx.parseFile("/home/haxscramper/tmp/doc2.org")
+        ctx.parseFile(PATH)
         ctx.writeStore(cache_file)
 
     toTree("/tmp/after.txt", ctx.getNode())

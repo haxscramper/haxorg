@@ -1,5 +1,5 @@
-from dataclasses import field, dataclass, replace
-from beartype.typing import *
+from dataclasses import dataclass
+from beartype.typing import Dict, Optional, List, Any
 from beartype import beartype
 import time
 from enum import Enum
@@ -32,14 +32,14 @@ class TraceEvent:
 @beartype
 class TraceCollector:
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.traceEvents: List[TraceEvent] = []
         self.metadata: Dict[str, Any] = {}
 
     @contextmanager
     def complete_event(self,
+                       category: str,
                        name: str,
-                       category: str = "",
                        args: Optional[Dict[str, Any]] = None):
         pid = os.getpid()
         tid = id(self)
@@ -70,3 +70,24 @@ class TraceCollector:
         }
         with open(filename, 'w') as f:
             json.dump(data, f, indent=4)
+
+
+__global_trace_collector: Optional[TraceCollector] = None
+
+
+def getGlobalTraceCollector():
+    global __global_trace_collector
+    if not __global_trace_collector:
+        __global_trace_collector = TraceCollector()
+
+    return __global_trace_collector
+
+
+@contextmanager
+def GlobCompleteEvent(name: str, category: str, args: Optional[Dict[str, Any]] = None):
+    with getGlobalTraceCollector().complete_event(name, category, args):
+        yield
+
+
+def GlobExportJson(file: str):
+    return getGlobalTraceCollector().export_to_json(file)

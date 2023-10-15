@@ -15,6 +15,11 @@
 
 #include <fnmatch.h>
 #include <ranges>
+#include "testprofiler.hpp"
+
+#ifdef USE_PERFETTO
+#    include <hstd/wrappers/perfetto_aux.hpp>
+#endif
 
 namespace rs = std::views;
 
@@ -53,8 +58,6 @@ struct TestParams {
         *os << point.fullName().toStdString();
     }
 };
-
-class ParseFile : public ::testing::TestWithParam<TestParams> {};
 
 Vec<TestParams> generateTestRuns() {
     Vec<TestParams> results;
@@ -103,15 +106,34 @@ Vec<TestParams> generateTestRuns() {
     return results;
 }
 
+class ParseFile : public ::testing::TestWithParam<TestParams> {
+  protected:
+    Opt<TestProfiler> profiler;
+
+
+    void SetUp() override {
+        profiler = TestProfiler{
+            ("/tmp/" + GetParam().testName() + "_xray").toStdString(),
+            ("/tmp/" + GetParam().testName() + "_pgo").toStdString(),
+            json::object({
+                {"meta", GetParam().fullName().toStdString()},
+            })};
+        profiler->SetUp();
+    }
+    void TearDown() override { profiler->TearDown(); }
+};
+
 
 std::string getTestName(
     const testing::TestParamInfo<ParseFile::ParamType>& info) {
     return info.param.testName().toStdString();
 }
 
+
 TEST_P(ParseFile, CorpusAll) {
-    TestParams params      = GetParam();
-    auto&      spec        = params.spec;
+    TestParams params = GetParam();
+    __perf_trace("cli", "Execute test");
+    auto& spec             = params.spec;
     spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
     CorpusRunner runner;
     using RunResult  = CorpusRunner::RunResult;

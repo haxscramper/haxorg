@@ -45,22 +45,29 @@ function(set_target_flags TARGET)
     if(${USE_XRAY})
         add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-instrument")
         add_target_property(${TARGET} LINK_OPTIONS "-fxray-instrument")
-        add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-instruction-threshold=5")
-#        add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-attr-list=${BASE}/xray_list.txt")
+        add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-instruction-threshold=50")
+        add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-attr-list=${BASE}/scripts/cxx_repository/xray_list.txt")
     endif()
 
     if(${USE_PERFETTO})
         add_target_property(${TARGET} COMPILE_DEFINITIONS USE_PERFETTO)
     endif()
 
-    add_target_property(${TARGET} COMPILE_DEFINITIONS QT_FORCE_ASSERTS)
+    if(${USE_XRAY})
+        add_target_property(${TARGET} COMPILE_DEFINITIONS USE_XRAY)
+    endif()
 
-    if(${PROFILE_GENERATE})
+    if(${USE_PGO})
+        add_target_property(${TARGET} COMPILE_DEFINITIONS USE_PGO)
         add_target_property(${TARGET} COMPILE_OPTIONS "-fprofile-instr-generate")
         add_target_property(${TARGET} LINK_OPTIONS "-fprofile-instr-generate")
         add_target_property(${TARGET} COMPILE_OPTIONS "-fcoverage-mapping")
         add_target_property(${TARGET} LINK_OPTIONS "-fcoverage-mapping")
     endif()
+
+    add_target_property(${TARGET} COMPILE_DEFINITIONS QT_FORCE_ASSERTS)
+
+
 
     if(${PROFILE_USE})
         add_target_property(${TARGET} COMPILE_OPTIONS

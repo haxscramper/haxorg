@@ -341,6 +341,23 @@ meta_target("cmake_haxorg", "Compile libraries and binaries for haxorg", {}, fun
   end)
 end)
 
+meta_target("debug_pytests", "Execute lldb on the debug test target", {}, function () 
+  on_run(function (target) 
+    os.execv("poetry", {
+      "run",
+      "lldb",
+      "--batch",
+      "-o",
+      "run tests/python/test_test.py",
+      "--one-line-on-crash",
+      "bt",
+      "--one-line-on-crash",
+      "exit",
+      "--",
+      "python",
+    })
+  end)
+end)
 
 meta_target("bench_profdata", "Collect performance profile", {}, function () 
   on_build(function(target)
@@ -386,6 +403,13 @@ meta_target("bench_profdata", "Collect performance profile", {}, function ()
       "--instr_map=" .. bench,
       "--output-format=trace_event",
       "--output=" .. path.join(dir, "trace_events.json"),
+      logfile,
+    })
+
+    os.execv(path.join(tools, "llvm-xray"), {
+      "graph",
+      "--instr_map=" .. bench,
+      "--output=" .. path.join(dir, "trace_events.dot"),
       logfile,
     })
 

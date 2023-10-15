@@ -372,3 +372,4 @@ buck-out
 toolchain
 .pids
 *.xray
+*.dot
