@@ -207,11 +207,9 @@ meta_target("download_llvm", "Download LLVM toolchain dependency", {}, function(
         -- Check if the directory exists
         if not os.isdir("toolchain/llvm") then
             print("LLVM not found. Downloading...")
-            local llvm_version = "17.0.2"
             
             -- Download the archive
-            os.exec("curl -L -o llvm.tar.xz https://github.com/llvm/llvm-project/releases/download/llvmorg-" 
-              .. llvm_version .. "/clang+llvm-" .. llvm_version .. "-x86_64-linux-gnu-ubuntu-22.04.tar.xz")
+            os.exec("curl -L -o llvm.tar.xz https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.3/clang+llvm-16.0.3-x86_64-linux-gnu-ubuntu-22.04.tar.xz")
             
             -- Create the toolchain directory if it doesn't exist
             if not os.isdir("toolchain") then
@@ -219,8 +217,7 @@ meta_target("download_llvm", "Download LLVM toolchain dependency", {}, function(
             end
 
             -- Unpack the archive
-            os.exec("tar -xf llvm.tar.xz -C toolchain && mv toolchain/clang+llvm-" 
-              .. llvm_version .. "-x86_64-linux-gnu-ubuntu-22.04 toolchain/llvm")
+            os.exec("tar -xf llvm.tar.xz -C toolchain && mv toolchain/clang+llvm-16.0.3-x86_64-linux-gnu-ubuntu-22.04 toolchain/llvm")
 
             os.rm("llvm.tar.xz")
 
