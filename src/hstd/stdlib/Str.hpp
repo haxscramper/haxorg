@@ -7,23 +7,23 @@
 #include <hstd/stdlib/Pair.hpp>
 
 struct Str : public std::string {
-    using std::string::std::string;
     using std::string::operator[];
     using std::string::reserve;
 
-
-    explicit Str(Span<QChar> view) : std::string(view.data(), view.size()) {}
-    explicit Str(std::stringView view) : std::string(view.data(), view.size()) {}
+    explicit Str(Span<char> view)
+        : std::string(view.data(), view.size()) {}
+    explicit Str(std::string_view view)
+        : std::string(view.data(), view.size()) {}
     Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
     Str(char c) : std::string(c) {}
     Str(wchar_t c) : std::string(to_string(c)) {}
     Str() = default;
 
-    QChar*       data() { return std::string::data(); }
-    const QChar* data() const { return std::string::data(); }
+    char*       data() { return std::string::data(); }
+    const char* data() const { return std::string::data(); }
 
     Str substr(int start, int count = -1) const {
-        return Str(std::string::mid(start, count));
+        return Str(std::string::substr(start, count));
     }
 
 
@@ -35,7 +35,7 @@ struct Str : public std::string {
     }
 
     Str dropPrefix(CR<Str> prefix) const {
-        if (startsWith(prefix)) {
+        if (prefix.starts_with(prefix)) {
             return substr(prefix.size());
         } else {
             return *this;
@@ -43,14 +43,14 @@ struct Str : public std::string {
     }
 
     Str dropSuffix(CR<Str> suffix) const {
-        if (endsWith(suffix)) {
+        if (suffix.ends_with(suffix)) {
             return substr(0, size() - suffix.size());
         } else {
             return *this;
         }
     }
 
-    QChar& at(int pos) {
+    char& at(int pos) {
         if (0 <= pos && pos < size()) {
             return std::string::operator[](pos);
         } else {
@@ -60,46 +60,39 @@ struct Str : public std::string {
         }
     }
 
-    QChar& at(BackwardsIndex pos) { return at(size() - pos.value); }
+    char& at(BackwardsIndex pos) { return at(size() - pos.value); }
 
     template <typename A, typename B>
-    std::stringView at(CR<HSlice<A, B>> s, bool checkRange = true) {
+    std::string_view at(CR<HSlice<A, B>> s, bool checkRange = true) {
         const auto [start, end] = getSpan(size(), s, checkRange);
-        return std::stringView(this->data() + start, end);
+        return std::string_view(this->data() + start, end);
     }
 
     template <typename A, typename B>
-    const std::stringView at(CR<HSlice<A, B>> s, bool checkRange = true)
+    const std::string_view at(CR<HSlice<A, B>> s, bool checkRange = true)
         const {
         const auto [start, end] = getSpan(size(), s, checkRange);
-        return std::stringView(this->data() + start, end);
+        return std::string_view(this->data() + start, end);
     }
 
     template <typename A, typename B>
-    std::stringView operator[](CR<HSlice<A, B>> s) {
+    std::string_view operator[](CR<HSlice<A, B>> s) {
         return at(s, false);
     }
 
     template <typename A, typename B>
-    const std::stringView operator[](CR<HSlice<A, B>> s) const {
+    const std::string_view operator[](CR<HSlice<A, B>> s) const {
         return at(s, false);
     }
 
-    Span<QChar> toSpan() const {
-        Q_CHECK_PTR(this->data());
-        return Span<QChar>(const_cast<QChar*>(this->data()), size());
+    Span<char> toSpan() const {
+        return Span<char>(const_cast<char*>(this->data()), size());
     }
 
-    bool    empty() const { return size() == 0; }
+    bool        empty() const { return size() == 0; }
     std::string toBase() const { return *this; }
 };
 
-template <>
-struct std::hash<Str> {
-    std::size_t operator()(Str const& s) const noexcept {
-        return qHash(static_cast<std::string>(s));
-    }
-};
 
 inline Str operator+(CR<std::string> in, CR<Str> other) {
     Str res;

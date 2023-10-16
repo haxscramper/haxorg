@@ -997,7 +997,7 @@ std::string unicodeCharMappings[256][15] = {
 };
 
 
-std::string styledUnicodeMapping(QChar ch, AsciiStyle style) {
+std::string styledUnicodeMapping(char ch, AsciiStyle style) {
     char latin = ch.toLatin1();
     if (unicodeCharMappings[(int)latin][(int)style] != std::string("\0")) {
         return unicodeCharMappings[(int)latin][(int)style];
@@ -1017,9 +1017,9 @@ std::string styledUnicodeMapping(std::string const& str, AsciiStyle style) {
 
 Str strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing) {
     if (0 < string.size()) {
-        Span<QChar> view = string.toSpan();
+        Span<char> view = string.toSpan();
         Q_CHECK_PTR(view.data());
-        QChar* end = view.data() + string.size();
+        char* end = view.data() + string.size();
 
         while (0 < view.size() && leading.contains(view.at(0))) {
             view.moveStart(1, end);
@@ -1035,7 +1035,7 @@ Str strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing) {
     }
 }
 
-Vec<Str> split(CR<Str> str, QChar ch) {
+Vec<Str> split(CR<Str> str, char ch) {
     Vec<Str> res;
     for (const auto& it : str.split(ch)) {
         res.push_back(it);
@@ -1070,7 +1070,7 @@ Vec<Str> split_keep_separator(const Str& str, CharSet sep) {
 
 Vec<Str> visibleUnicodeName(std::string str, bool useUnicode) {
     Vec<Str> result;
-    for (QChar ch : str) {
+    for (char ch : str) {
         if (ch.unicode() <= 127) {
             if (useUnicode) {
                 result.push_back(visibleName(ch).first);
@@ -1085,43 +1085,43 @@ Vec<Str> visibleUnicodeName(std::string str, bool useUnicode) {
     return result;
 }
 
-Pair<QChar, std::string> visibleName(QChar ch) {
+Pair<char, std::string> visibleName(char ch) {
     switch (ch.unicode()) {
-        case '\x00': return {QChar(L'␀'), "[NUL]"}; // Null character
-        case '\x01': return {QChar(L'␁'), "[SOH]"}; // Start of header
-        case '\x02': return {QChar(L'␂'), "[STX]"}; // Start of text
-        case '\x03': return {QChar(L'␃'), "[ETX]"}; // End of text
-        case '\x04': return {QChar(L'␄'), "[EOT]"}; // End transmission
-        case '\x05': return {QChar(L'␅'), "[ENQ]"}; // Enquiry
-        case '\x06': return {QChar(L'␆'), "[ACK]"}; // Acknowledge
-        case '\x07': return {QChar(L'␇'), "[BEL]"}; // Bell
-        case '\x08': return {QChar(L'␈'), "[BS]"};  // Backspace
-        case '\x09': return {QChar(L'␉'), "[HT]"};  // Horizontal tab
-        case '\x0A': return {QChar(L'␤'), "[LF]"};  // Line feed
-        case '\x0B': return {QChar(L'␋'), "[VT]"};  // Vertical tab
-        case '\x0C': return {QChar(L'␌'), "[FF]"};  // Form feed
-        case '\x0D': return {QChar(L'␍'), "[CR]"};  // Carriage return
-        case '\x0E': return {QChar(L'␎'), "[SO]"};  // Shift out
-        case '\x0F': return {QChar(L'␏'), "[SI]"};  // Shift in
-        case '\x10': return {QChar(L'␐'), "[DLE]"}; // Data link escape
-        case '\x11': return {QChar(L'␑'), "[DC1]"}; // Device control 1
-        case '\x12': return {QChar(L'␒'), "[DC2]"}; // Device control 2
-        case '\x13': return {QChar(L'␓'), "[DC3]"}; // Device control 3
-        case '\x14': return {QChar(L'␔'), "[DC4]"}; // Device control 4
-        case '\x15': return {QChar(L'␕'), "[NAK]"}; // Negative ack
-        case '\x16': return {QChar(L'␖'), "[SYN]"}; // Synchronous idle
-        case '\x17': return {QChar(L'␗'), "[ETB]"}; // End tr. block
-        case '\x18': return {QChar(L'␘'), "[CAN]"}; // Cancel
-        case '\x19': return {QChar(L'␙'), "[EM]"};  // End of medium
-        case '\x1A': return {QChar(L'␚'), "[SUB]"}; // Substitute
-        case '\x1B': return {QChar(L'␛'), "[ESC]"}; // Escape
-        case '\x1C': return {QChar(L'␜'), "[FS]"};  // File separator
-        case '\x1D': return {QChar(L'␝'), "[GS]"};  // Group separator
-        case '\x1E': return {QChar(L'␞'), "[RS]"};  // Record separator
-        case '\x1F': return {QChar(L'␟'), "[US]"};  // Unit separator
-        case '\x7f': return {QChar(L'␡'), "[DEL]"}; // Delete
-        case ' ': return {QChar(L'␣'), "[SPC]"};    // Space
-        default: return {QChar(ch), std::string(ch)};
+        case '\x00': return {char(L'␀'), "[NUL]"}; // Null character
+        case '\x01': return {char(L'␁'), "[SOH]"}; // Start of header
+        case '\x02': return {char(L'␂'), "[STX]"}; // Start of text
+        case '\x03': return {char(L'␃'), "[ETX]"}; // End of text
+        case '\x04': return {char(L'␄'), "[EOT]"}; // End transmission
+        case '\x05': return {char(L'␅'), "[ENQ]"}; // Enquiry
+        case '\x06': return {char(L'␆'), "[ACK]"}; // Acknowledge
+        case '\x07': return {char(L'␇'), "[BEL]"}; // Bell
+        case '\x08': return {char(L'␈'), "[BS]"};  // Backspace
+        case '\x09': return {char(L'␉'), "[HT]"};  // Horizontal tab
+        case '\x0A': return {char(L'␤'), "[LF]"};  // Line feed
+        case '\x0B': return {char(L'␋'), "[VT]"};  // Vertical tab
+        case '\x0C': return {char(L'␌'), "[FF]"};  // Form feed
+        case '\x0D': return {char(L'␍'), "[CR]"};  // Carriage return
+        case '\x0E': return {char(L'␎'), "[SO]"};  // Shift out
+        case '\x0F': return {char(L'␏'), "[SI]"};  // Shift in
+        case '\x10': return {char(L'␐'), "[DLE]"}; // Data link escape
+        case '\x11': return {char(L'␑'), "[DC1]"}; // Device control 1
+        case '\x12': return {char(L'␒'), "[DC2]"}; // Device control 2
+        case '\x13': return {char(L'␓'), "[DC3]"}; // Device control 3
+        case '\x14': return {char(L'␔'), "[DC4]"}; // Device control 4
+        case '\x15': return {char(L'␕'), "[NAK]"}; // Negative ack
+        case '\x16': return {char(L'␖'), "[SYN]"}; // Synchronous idle
+        case '\x17': return {char(L'␗'), "[ETB]"}; // End tr. block
+        case '\x18': return {char(L'␘'), "[CAN]"}; // Cancel
+        case '\x19': return {char(L'␙'), "[EM]"};  // End of medium
+        case '\x1A': return {char(L'␚'), "[SUB]"}; // Substitute
+        case '\x1B': return {char(L'␛'), "[ESC]"}; // Escape
+        case '\x1C': return {char(L'␜'), "[FS]"};  // File separator
+        case '\x1D': return {char(L'␝'), "[GS]"};  // Group separator
+        case '\x1E': return {char(L'␞'), "[RS]"};  // Record separator
+        case '\x1F': return {char(L'␟'), "[US]"};  // Unit separator
+        case '\x7f': return {char(L'␡'), "[DEL]"}; // Delete
+        case ' ': return {char(L'␣'), "[SPC]"};    // Space
+        default: return {char(ch), std::string(ch)};
     }
 }
 
@@ -1135,7 +1135,7 @@ Str indent(CR<Str> str, int spaces, char space, Str prefix) {
 
 Str normalize(CR<Str> in) {
     Str res;
-    for (QChar c : in) {
+    for (char c : in) {
         if (!(c == '_' || c == '-')) {
             if (c.isLower()) {
                 res += c;
@@ -1156,7 +1156,7 @@ Str repeat(CR<Str> str, int count) {
     return res;
 }
 
-std::string left_aligned(CR<std::string> str, int n, QChar c) {
+std::string left_aligned(CR<std::string> str, int n, char c) {
     auto s = str;
     if (s.size() < n) {
         s.append(std::string(c).repeated(n - s.size()));
@@ -1164,7 +1164,7 @@ std::string left_aligned(CR<std::string> str, int n, QChar c) {
     return s;
 }
 
-std::string right_aligned(CR<std::string> str, int n, QChar c) {
+std::string right_aligned(CR<std::string> str, int n, char c) {
     std::string res;
     if (str.size() < n) {
         res.append(std::string(c).repeated(n - str.size()));

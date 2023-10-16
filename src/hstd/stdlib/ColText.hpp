@@ -161,9 +161,9 @@ std::string to_colored_string(
 /// performance. The API must stay the same in any case, so improved
 /// version can be implemented in the future.
 struct ColRune {
-    QChar    rune  = QChar(L' ');
+    char    rune  = char(L' ');
     ColStyle style = ColStyle{};
-    inline ColRune(QChar rune = ' ', CR<ColStyle> style = ColStyle{})
+    inline ColRune(char rune = ' ', CR<ColStyle> style = ColStyle{})
         : rune(rune), style(style) {}
 
     ColRune operator+(ColStyle const& other) const {
@@ -196,7 +196,7 @@ struct ColText : Vec<ColRune> {
 
     ColText(CR<std::string> text) : ColText(ColStyle{}, text) {}
 
-    ColText(CR<ColStyle> style, QChar text)
+    ColText(CR<ColStyle> style, char text)
         : Vec<ColRune>({ColRune(text, style)}) {}
 
 
@@ -327,7 +327,7 @@ inline ColStream& operator<<(ColStream& os, Style const& value) {
     return os << os.active + ColStyle(value);
 }
 
-inline ColStream& operator<<(ColStream& os, QChar const& value) {
+inline ColStream& operator<<(ColStream& os, char const& value) {
     os.write(ColText(os.active, value));
     return os;
 }

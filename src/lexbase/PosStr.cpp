@@ -58,7 +58,7 @@ std::string PosStr::printToString(PrintParams params, bool colored) const {
 
 PosStr::PosStr(std::stringView inView, int inPos) : view(inView), pos(inPos) {}
 
-PosStr::PosStr(const QChar* data, int count, int inPos)
+PosStr::PosStr(const char* data, int count, int inPos)
     : view(data, count), pos(inPos) {}
 
 PosStr::PosStr(const std::string& str, int inPos)
@@ -121,12 +121,12 @@ void PosStr::back(int count) {
     }
 }
 
-[[clang::xray_always_instrument]] QChar PosStr::get(int offset) const {
+[[clang::xray_always_instrument]] char PosStr::get(int offset) const {
     auto target = pos + offset;
     if (0 <= target && target < view.size()) {
         return view.at(target);
     } else {
-        return QChar('\0');
+        return char('\0');
     }
 }
 
@@ -136,14 +136,14 @@ bool PosStr::atStart() const { return pos == 0; }
 
 bool PosStr::beforeEnd() const { return !hasNext(1); }
 
-QChar PosStr::pop() {
-    QChar result = get();
+char PosStr::pop() {
+    char result = get();
     next();
     return result;
 }
 
 [[clang::xray_always_instrument]] bool PosStr::at(
-    QChar expected,
+    char expected,
     int   offset) const {
     return get(offset) == expected;
 }
@@ -241,7 +241,7 @@ void PosStr::skip(std::string expected, int offset) {
 }
 
 
-void PosStr::skip(QChar expected, int offset, int count) {
+void PosStr::skip(char expected, int offset, int count) {
     if (get(offset) == expected) {
         next(count);
     } else {
@@ -408,11 +408,11 @@ void skipBalancedSlice(PosStr& str, CR<BalancedSkipArgs> args) {
             str.next();
         } else if (str.at(args.openChars)) {
             ++fullCount;
-            ++count[value_domain<QChar>::ord(str.pop())];
+            ++count[value_domain<char>::ord(str.pop())];
         } else if (str.at(args.closeChars)) {
             --fullCount;
             if ((0 < fullCount) || args.consumeLast) {
-                --count[value_domain<QChar>::ord(str.pop())];
+                --count[value_domain<char>::ord(str.pop())];
             }
             if (fullCount == 0) {
                 return;

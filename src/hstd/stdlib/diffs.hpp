@@ -133,11 +133,11 @@ struct DiffFormatConf {
         };
     /// Split line into chunks for formatting
     Func<Vec<Str>(CR<Str>)> lineSplit = [](CR<Str> a) -> Vec<Str> {
-        return split_keep_separator(a, QChar('\n'));
+        return split_keep_separator(a, char('\n'));
     };
     /// Convert invisible character (whitespace or control) to
     /// human-readable representation -
-    Func<Str(QChar)> explainChar = [](QChar ch) -> Str {
+    Func<Str(char)> explainChar = [](char ch) -> Str {
         const auto [uc, ascii] = visibleName(ch);
         return uc;
     };

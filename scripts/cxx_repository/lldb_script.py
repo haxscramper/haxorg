@@ -18,7 +18,7 @@ def simplify_name(name: str) -> str:
         ("OrgParser::", ""),
         ("OrgConverter::", ""),
         ("Token<OrgTokenKind>", "OrgTok"),
-        ("IntSet<QChar>", "CharSet"),
+        ("IntSet<char>", "CharSet"),
         ("std::function", "Func"),
         ("long", "i32"),
         ("unsigned long long", "u64"),

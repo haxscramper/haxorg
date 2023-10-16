@@ -190,30 +190,30 @@ class StrCache : public Cache {
 };
 
 struct Characters {
-    QChar hbar;
-    QChar vbar;
-    QChar xbar;
-    QChar vbar_break;
-    QChar vbar_gap;
+    char hbar;
+    char vbar;
+    char xbar;
+    char vbar_break;
+    char vbar_gap;
 
-    QChar uarrow;
-    QChar rarrow;
+    char uarrow;
+    char rarrow;
 
-    QChar ltop;
-    QChar mtop;
-    QChar rtop;
-    QChar lbot;
-    QChar rbot;
-    QChar mbot;
+    char ltop;
+    char mtop;
+    char rtop;
+    char lbot;
+    char rbot;
+    char mbot;
 
-    QChar lbox;
-    QChar rbox;
+    char lbox;
+    char rbox;
 
-    QChar lcross;
-    QChar rcross;
+    char lcross;
+    char rcross;
 
-    QChar underbar;
-    QChar underline;
+    char underbar;
+    char underline;
 };
 
 enum LabelKind
@@ -371,7 +371,7 @@ struct Config {
     ColStyle unimportant_color = ColStyle{} + TermColorBg8Bit::Default;
     ColStyle note_color        = ColStyle{} + TermColorBg8Bit::Cyan;
 
-    std::pair<QChar, int> char_width(QChar c, int col) const;
+    std::pair<char, int> char_width(char c, int col) const;
 
 
     bool           cross_gap;

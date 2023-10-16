@@ -340,8 +340,8 @@ struct OrgTokenizerImpl
 
     Vec<OrgToken> lexDelimited(
         PosStr&                          str,
-        const Pair<QChar, OrgTokenKind>& start,
-        const Pair<QChar, OrgTokenKind>& finish,
+        const Pair<char, OrgTokenKind>& start,
+        const Pair<char, OrgTokenKind>& finish,
         const OrgTokenKind&              middle);
 
     void endGroup(PosStr& str);
@@ -428,7 +428,7 @@ CR<CharSet> OCommandChars = charsets::IdentChars
 
 
 CR<CharSet> OBigIdentChars  = CharSet{slice('A', 'Z')};
-const QChar OEndOfFile      = '\x00';
+const char OEndOfFile      = '\x00';
 CR<CharSet> OBareIdentChars = charsets::AllChars - charsets::Whitespace;
 CR<CharSet> OWhitespace     = charsets::Whitespace - CharSet{'\n'};
 CR<CharSet> OEmptyChars     = OWhitespace + CharSet{OEndOfFile};
@@ -467,11 +467,11 @@ CR<CharSet> OBulletListChars = CharSet{'-', '+', '*'};
 CR<CharSet> OListChars       = ONumberedListChars + OBulletListChars;
 
 
-const QChar OSubtreeStart   = '*';
-const QChar OSubtreeOrList  = '*';
-const QChar OBulletListStar = '*';
-const QChar OSpace          = ' ';
-const QChar ONewline        = '\n';
+const char OSubtreeStart   = '*';
+const char OSubtreeOrList  = '*';
+const char OBulletListStar = '*';
+const char OSpace          = ' ';
+const char ONewline        = '\n';
 
 const CharSet OBulletListStart = CharSet{
     '-',
@@ -502,7 +502,7 @@ const CharSet markupKeys{
 // clang-format off
 /// Table of the markup config information, to reduce usage of the
 /// character literals directly in the code.
-const TypArray<QChar, MarkupConfigPair> markupConfig{{
+const TypArray<char, MarkupConfigPair> markupConfig{{
     {'*', {otk::BoldOpen,      otk::BoldClose,      otk::BoldInline}},
     {'/', {otk::ItalicOpen,    otk::ItalicClose,    otk::ItalicInline}},
     {'=', {otk::VerbatimOpen,  otk::VerbatimClose,  otk::VerbatimInline}},
@@ -1564,8 +1564,8 @@ bool OrgTokenizerImpl<TraceState>::lexCommandContent(
 template <bool TraceState>
 Vec<OrgToken> OrgTokenizerImpl<TraceState>::lexDelimited(
     PosStr&                          str,
-    const Pair<QChar, OrgTokenKind>& start,
-    const Pair<QChar, OrgTokenKind>& finish,
+    const Pair<char, OrgTokenKind>& start,
+    const Pair<char, OrgTokenKind>& finish,
     const OrgTokenKind&              middle) {
     __perf_trace("lexDelimited");
     __trace();
@@ -1984,7 +1984,7 @@ bool OrgTokenizerImpl<TraceState>::lexText(PosStr& str) {
             break;
         }
         default: {
-            if (QChar ch = str.get();
+            if (char ch = str.get();
                 (ch == '*' || //
                  ch == '/' || //
                  ch == '_' || //
@@ -3421,7 +3421,7 @@ bool OrgTokenizerImpl<TraceState>::lexStructure(PosStr& str) {
             if (atListStart(str)) {
                 // Numbered list
                 lexList(str);
-            } else if (QChar ch = str.get(0);
+            } else if (char ch = str.get(0);
                        ch.isLetter() || ch == '~' || ch == '[') {
                 lexParagraph(str);
             } else {

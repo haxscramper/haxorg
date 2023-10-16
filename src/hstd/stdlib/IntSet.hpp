@@ -49,7 +49,7 @@ template <typename T>
 // subset of values from `low<T>..high<T>` need to be stored in the set,
 // everything else is not needed. For example, I want to store values only
 // in range of `-200..-9000`, but I want to use integer to avoid constant
-// conversions all over the place. Or I'm using `QChar` sets, but I don't
+// conversions all over the place. Or I'm using `char` sets, but I don't
 // want to pay for the full size of the unicode code point.
 struct IntSet : public SetBase<IntSet<T>, T> {
     // constrain the size of the object to avoid blowing up the set size.

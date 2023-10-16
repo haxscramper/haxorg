@@ -47,7 +47,7 @@ Vec<T> expandOn(CR<BacktrackRes> back, CR<Vec<T>> in, bool onX) {
 
 
 Str levEditText(const Str& a, const Str& b) {
-    Vec<SeqEdit> ops = levenshteinDistance<const QChar>(
+    Vec<SeqEdit> ops = levenshteinDistance<const char>(
                            a.toSpan(), b.toSpan())
                            .operations;
     return formatDiffedEx(ops, a.toSpan(), b.toSpan());

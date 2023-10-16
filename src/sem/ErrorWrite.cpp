@@ -1,30 +1,30 @@
 #include <hstd/stdlib/sequtils.hpp>
 #include <sem/ErrorWrite.hpp>
-#include <QChar>
+#include <char>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
 Characters unicode() {
     return Characters{
-        .hbar       = QChar(L'─'),
-        .vbar       = QChar(L'│'),
-        .xbar       = QChar(L'┼'),
-        .vbar_break = QChar(L'┆'),
-        .vbar_gap   = QChar(L'┆'),
-        .uarrow     = QChar(L'^'),
-        .rarrow     = QChar(L'>'),
-        .ltop       = QChar(L'╭'),
-        .mtop       = QChar(L'┬'),
-        .rtop       = QChar(L'╮'),
-        .lbot       = QChar(L'╰'),
-        .rbot       = QChar(L'╯'),
-        .mbot       = QChar(L'┴'),
-        .lbox       = QChar(L'['),
-        .rbox       = QChar(L']'),
-        .lcross     = QChar(L'├'),
-        .rcross     = QChar(L'┤'),
-        .underbar   = QChar(L'┬'),
-        .underline  = QChar(L'─'),
+        .hbar       = char(L'─'),
+        .vbar       = char(L'│'),
+        .xbar       = char(L'┼'),
+        .vbar_break = char(L'┆'),
+        .vbar_gap   = char(L'┆'),
+        .uarrow     = char(L'^'),
+        .rarrow     = char(L'>'),
+        .ltop       = char(L'╭'),
+        .mtop       = char(L'┬'),
+        .rtop       = char(L'╮'),
+        .lbot       = char(L'╰'),
+        .rbot       = char(L'╯'),
+        .mbot       = char(L'┴'),
+        .lbox       = char(L'['),
+        .rbox       = char(L']'),
+        .lcross     = char(L'├'),
+        .rcross     = char(L'┤'),
+        .underbar   = char(L'┬'),
+        .underline  = char(L'─'),
     };
 }
 
@@ -474,7 +474,7 @@ void whatever(MarginContext const& c, int row, int arrow_len) {
         std::array<ColRune, 2> ct_array;
         if (Opt<LineLabel> vbar = get_vbar(
                 col, row, c.line_labels, c.margin_label)) {
-            std::array<QChar, 2> ct_inner;
+            std::array<char, 2> ct_inner;
             if (underline) {
                 if (vbar->label.span->len() <= 1 || true) {
                     ct_inner = {c.draw.underbar, c.draw.underline};
@@ -917,7 +917,7 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
             // Line
             if (!is_ellipsis) {
                 int col = 0;
-                for (QChar c : line.chars) {
+                for (char c : line.chars) {
                     Opt<CRw<Label>> highlight = get_highlight(
                         col,
                         multi_labels,
@@ -1058,7 +1058,7 @@ Slice<int> Source::get_line_range(const CodeSpan& span) {
     }
 }
 
-std::pair<QChar, int> Config::char_width(QChar c, int col) const {
+std::pair<char, int> Config::char_width(char c, int col) const {
     if (c == '\t') {
         // Find the column that the tab should end at
         int tab_end = (col / tab_width + 1) * tab_width;

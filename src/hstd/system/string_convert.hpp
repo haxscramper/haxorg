@@ -68,7 +68,7 @@ inline std::string escape_literal(std::string const& in) {
     std::string res;
     res.reserve(in.size() + 2);
     res += "«";
-    for (QChar c : in) {
+    for (char c : in) {
         if (c == '\n') {
             res += "␤";
 

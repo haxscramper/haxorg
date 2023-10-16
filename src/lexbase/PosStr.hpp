@@ -27,7 +27,7 @@
 /// helper methods for better skipping such as `skipZeroOrMore`
 template <typename S>
 concept PosStrCheckable = (                                 //
-    std::convertible_to<std::remove_cvref_t<S>, QChar>      //
+    std::convertible_to<std::remove_cvref_t<S>, char>      //
     || std::convertible_to<std::remove_cvref_t<S>, CharSet> //
     || std::convertible_to<std::remove_cvref_t<S>, std::string>);
 
@@ -71,7 +71,7 @@ struct PosStr {
 
     /// \brief Consturct positional stirng using start view data and size
     /// of the string
-    PosStr(const QChar* data, int count, int inPos = 0);
+    PosStr(const char* data, int count, int inPos = 0);
 
     /// \brief Consturct positional stirng using start view data and size
     /// of the string
@@ -204,7 +204,7 @@ struct PosStr {
     void next(int count = 1);
 
     /// \brief Get character at current position + \arg offset
-    QChar get(int offset = 0) const;
+    char get(int offset = 0) const;
 
     /// \brief No new characters left
     bool finished() const;
@@ -214,7 +214,7 @@ struct PosStr {
     bool beforeEnd() const;
 
     /// \brief Get current character and advance one step forward
-    QChar pop();
+    char pop();
 
 
     int getSkip(const PosStrCheckable auto& item) const {
@@ -248,11 +248,11 @@ struct PosStr {
 
     LineCol getLineCol();
 
-    using CheckableSkip = Variant<CharSet, std::string, QChar>;
+    using CheckableSkip = Variant<CharSet, std::string, char>;
 
     /// Skip \arg count steps  ahead if character at \arg offset is
     /// equal to \arg expected
-    void skip(QChar expected, int offset = 0, int steps = 1);
+    void skip(char expected, int offset = 0, int steps = 1);
     void skip(std::string expected, int offset = 0);
     void skip(CR<CharSet> expected, int offset = 0, int steps = 1);
     void skip(CR<QRegularExpression> expected, int offset = 0);
@@ -260,7 +260,7 @@ struct PosStr {
 
     /// Check if the current position (with given \arg offset) contains
     /// expected character.
-    bool at(QChar expected, int offset = 0) const;
+    bool at(char expected, int offset = 0) const;
     bool at(CR<CharSet> expected, int offset = 0) const;
     bool at(CR<std::string> expected, int offset = 0) const;
     bool at(CR<QRegularExpression> expected, int offset = 0) const;
@@ -402,7 +402,7 @@ struct BalancedSkipArgs {
 
 void skipBalancedSlice(PosStr& str, CR<BalancedSkipArgs> args);
 
-inline void skipBalancedSlice(PosStr& str, QChar open, QChar close) {
+inline void skipBalancedSlice(PosStr& str, char open, char close) {
     skipBalancedSlice(
         str, {.openChars = CharSet{open}, .closeChars = CharSet{close}});
 }
@@ -411,13 +411,13 @@ inline void skipPastEOF(PosStr& str) { str.skipPastEOF(); }
 inline void skipPastEOL(PosStr& str) { str.skipPastEOL(); }
 inline void skipToEOL(PosStr& str) { str.skipToEOL(); }
 inline void skipCount(PosStr& str, int count) { str.next(count); }
-inline void skipBefore(PosStr& str, QChar item) { str.skipBefore(item); }
-inline void skipTo(PosStr& str, QChar item) { str.skipTo(item); }
-inline void skipOne(PosStr& str, QChar item) { str.skip(item); }
-inline void skipZeroOrMore(PosStr& str, QChar item) {
+inline void skipBefore(PosStr& str, char item) { str.skipBefore(item); }
+inline void skipTo(PosStr& str, char item) { str.skipTo(item); }
+inline void skipOne(PosStr& str, char item) { str.skip(item); }
+inline void skipZeroOrMore(PosStr& str, char item) {
     str.skipZeroOrMore(item);
 }
-inline void skipOneOrMore(PosStr& str, QChar item) {
+inline void skipOneOrMore(PosStr& str, char item) {
     str.skipOneOrMore(item);
 }
 

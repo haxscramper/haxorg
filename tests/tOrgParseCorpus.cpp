@@ -32,7 +32,7 @@ struct TestParams {
 
     std::string testName() const {
         std::string final;
-        for (QChar const& ch : fullName()) {
+        for (char const& ch : fullName()) {
             if (ch.isDigit() || ch.isLetter() || ch == '_') {
                 final.push_back(ch);
             } else {

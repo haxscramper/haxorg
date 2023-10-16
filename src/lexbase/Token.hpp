@@ -96,7 +96,7 @@ struct Token {
     /// starting point of the view that was used in the originating
     /// positional string and so the behavior with 'fake' token is going to
     /// be invalid when used with any other position in the string.
-    std::size_t offsetFrom(const QChar* start) const {
+    std::size_t offsetFrom(const char* start) const {
         if (hasData()) {
             return std::distance(getText().data(), start);
         } else {
@@ -160,7 +160,7 @@ struct TokenGroup {
     Slice<int> toAbsolute(std::stringView view) const {
         if (base.has_value()) {
             auto main = base.value();
-            assert(is_within_memory_block<QChar>(
+            assert(is_within_memory_block<char>(
                 view.data(), main.data(), main.size()));
             int offset = static_cast<int>(
                 pointer_distance(main.data(), view.data()));

@@ -88,8 +88,8 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                 while (
                     ((i < formatstr.size())
                      && (charsets::Digits.contains(formatstr[i])))) {
-                    j = ((j * 10) + value_domain<QChar>::ord(formatstr[i]))
-                      - value_domain<QChar>::ord('0');
+                    j = ((j * 10) + value_domain<char>::ord(formatstr[i]))
+                      - value_domain<char>::ord('0');
                     i += 1;
                 }
                 if (negative) {
@@ -114,8 +114,8 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                               .contains(formatstr[j])))) {
                     if (charsets::Digits.contains(formatstr[j])) {
                         k = ((k * 10)
-                             + value_domain<QChar>::ord(formatstr[j]))
-                          - value_domain<QChar>::ord('0');
+                             + value_domain<char>::ord(formatstr[j]))
+                          - value_domain<char>::ord('0');
                         if (isNumber == 0) {
                             isNumber = 1;
                         }

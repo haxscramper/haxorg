@@ -24,7 +24,7 @@ template <>
 inline ::std::string PrintToString(const std::string& str) {
     std::string        result;
     std::ostringstream escaped_str;
-    for (QChar c : str) {
+    for (char c : str) {
         if (c == '\n') {
             result += "\\n";
         } else if (c == '\t') {
