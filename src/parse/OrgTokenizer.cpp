@@ -522,7 +522,7 @@ struct AdvCheck {
     std::string       func;
     struct Error : public std::runtime_error {
         explicit Error(std::string const& msg)
-            : std::runtime_error(msg.toStdString()) {}
+            : std::runtime_error(msg) {}
     };
 
     AdvCheck(CR<PosStr> str, OrgTokenizer* tok, CR<std::string> func)

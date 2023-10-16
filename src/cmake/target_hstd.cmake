@@ -19,5 +19,4 @@ target_link_libraries(hstd PUBLIC
     fmt::fmt
     enchant-2
     perfetto
-    yaml-cpp::yaml-cpp
-    Qt6::Core Qt6::Gui)
+    yaml-cpp::yaml-cpp)

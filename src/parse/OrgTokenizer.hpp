@@ -16,7 +16,7 @@
 
 struct ImplementError : public std::runtime_error {
     explicit inline ImplementError(const std::string& message = "")
-        : std::runtime_error(message.toStdString()) {}
+        : std::runtime_error(message) {}
 };
 
 OrgCommandKind classifyCommand(std::string const& command);

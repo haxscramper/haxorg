@@ -67,7 +67,7 @@ json jsonRepr(
                         % to_string_vec(idx, to_string(name), nodeSize));
                 }
             }
-            subnodes[to_string(name).toStdString()] = items;
+            subnodes[to_string(name)] = items;
         }
         result["subnodes"] = subnodes;
     }
@@ -99,10 +99,10 @@ yaml yamlRepr(
         for (const auto& [name, range] : expanded) {
             for (int idx : range) {
                 if (idx < nodeSize) {
-                    result[to_string(name).toStdString()].push_back(
+                    result[to_string(name)].push_back(
                         yamlRepr(spec, node.at(idx)));
                 } else {
-                    result[to_string(name).toStdString()]
+                    result[to_string(name)]
                         = "Error, node is missing entry on index $# for "
                           "with name $#. Node size is $#"
                         % to_string_vec(idx, to_string(name), nodeSize);

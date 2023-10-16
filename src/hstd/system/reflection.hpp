@@ -30,7 +30,7 @@ namespace boost::describe {
 inline void throw_invalid_name(char const* name, char const* type) {
     throw std::runtime_error((std::string("Invalid enumerator name '") + name
                               + "' for enum type '" + type + "'")
-                                 .toStdString());
+                                 );
 }
 
 template <class E>
@@ -85,7 +85,7 @@ struct enum_serde<E> {
 
     static inline std::optional<E> from_string(std::string const& str) {
         try {
-            std::string tmp = str.toStdString();
+            std::string tmp = str;
             return boost::describe::string_to_enum<E>(tmp.c_str());
         } catch (...) { return std::nullopt; }
     }

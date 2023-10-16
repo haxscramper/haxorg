@@ -1,62 +1,55 @@
 #include <hstd/stdlib/Filesystem.hpp>
+#include <fstream>
 
-void writeFile(const QFileInfo& target, const std::string& content) {
-    QFile file;
-    file.setFileName(target.filePath());
-    if (file.open(QIODevice::WriteOnly | QFile::Truncate)) {
-        std::ostream stream{&file};
-        stream << content;
-        file.close();
+void writeFile(const fs::path& target, const std::string& content) {
+    std::ofstream file{target.native()};
+    // REFACTOR truncate file on write
+    // REFACTOR add error message on write failure
+    if (file.is_open()) {
+        file << content;
     } else {
         throw FilesystemError(
-            "Could not write to file '" + target.filePath()
-            + "': " + file.errorString());
+            "Could not write to file '" + target.native());
     }
 }
 
-std::string readFile(const QFileInfo& target) {
-    QFile file;
-    file.setFileName(target.filePath());
-    if (file.open(QIODevice::ReadOnly)) {
-        std::ostream stream{&file};
-        std::string     result = stream.readAll();
-        file.close();
+std::string readFile(const fs::path& target) {
+    std::ifstream in{target.native()};
+    if (in.is_open()) {
+        std::string result;
+        in >> result;
         return result;
     } else {
         throw FilesystemError(
-            "Could not open file '" + target.filePath()
-            + "': " + file.errorString());
+            "Could not open file '" + target.native() + "'");
     }
 }
 
 void writeFileOrStdout(
-    const QFileInfo& target,
-    const std::string&   content,
-    bool             useFile,
-    bool             useStdoutStream) {
+    const fs::path&    target,
+    const std::string& content,
+    bool               useFile,
+    bool               useStdoutStream) {
     if (useFile) {
         writeFile(target, content);
 
     } else {
-        QFile file;
-        file.open(useStdoutStream ? stdout : stderr, QIODevice::WriteOnly);
-        std::ostream stream{&file};
-        stream << content;
+        std::cout << content;
     }
 }
 
 
 SPtr<IoContext> openFileOrStream(
-    const QFileInfo& info,
-    bool             useFile,
-    IoOpenConf       conf) {
+    const fs::path& info,
+    bool            useFile,
+    IoOpenConf      conf) {
 
 
     SPtr<IoContext> context = std::make_shared<IoContext>();
     context->stream         = std::make_shared<std::ostream>();
     if (useFile) {
         if (conf.createDirs) {
-            if (!info.dir().exists()) {
+            if (!info.parent_path().exists()) {
                 info.dir().mkpath(info.dir().absolutePath());
             }
         }

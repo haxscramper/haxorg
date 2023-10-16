@@ -78,7 +78,7 @@ struct convert<Vec<T>> {
 
 template <>
 struct convert<Str> {
-    static Node encode(Str const& v) { return Node(v.toStdString()); }
+    static Node encode(Str const& v) { return Node(v); }
 
     static bool decode(Node const& in, Str& out) {
         out = std::string::fromStdString(in.as<std::string>());
@@ -157,7 +157,7 @@ struct verbose_convert {
                 std::string      msg = "unexpected field name '" + name
                                 + "', expected "
                                 + join(" or ", knownFieldCache.keys())
-                                      .toStdString();
+                                      ;
                 throw RepresentationException(it.first.Mark(), msg);
             }
         }

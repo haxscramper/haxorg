@@ -23,11 +23,6 @@ T value_from_bitset_index(int index) {
     return static_cast<T>(index);
 }
 
-template <>
-inline QChar value_from_bitset_index(int index) {
-    return QChar(index);
-}
-
 /*!
 \brief Packet set of integral values
 

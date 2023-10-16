@@ -30,7 +30,7 @@ inline ::std::string PrintToString(const std::string& str) {
         } else if (c == '\t') {
             result += "\\t";
         } else {
-            result += std::string(c).toStdString();
+            result += std::string(c);
         }
     }
 

@@ -55,7 +55,7 @@ struct TestParams {
 
     // Provide a friend overload.
     friend void PrintTo(const TestParams& point, std::ostream* os) {
-        *os << point.fullName().toStdString();
+        *os << point.fullName();
     }
 };
 
@@ -67,7 +67,7 @@ Vec<TestParams> generateTestRuns() {
     auto addSpecs = [&](QFileInfo const& path) {
         try {
             YAML::Node group = YAML::LoadFile(
-                path.filePath().toStdString());
+                path.filePath());
             ParseSpecGroup parsed{
                 group,
                 path.filePath(),
@@ -83,7 +83,7 @@ Vec<TestParams> generateTestRuns() {
     while (it.hasNext()) {
         QFileInfo path{it.next()};
         if (path.isFile() && path.fileName().endsWith(".yaml")) {
-            std::string p = path.filePath().toStdString();
+            std::string p = path.filePath();
             if (corpusGlob.empty()) {
                 addSpecs(path);
             } else {
@@ -113,10 +113,10 @@ class ParseFile : public ::testing::TestWithParam<TestParams> {
 
     void SetUp() override {
         profiler = TestProfiler{
-            ("/tmp/" + GetParam().testName() + "_xray").toStdString(),
-            ("/tmp/" + GetParam().testName() + "_pgo").toStdString(),
+            ("/tmp/" + GetParam().testName() + "_xray"),
+            ("/tmp/" + GetParam().testName() + "_pgo"),
             json::object({
-                {"meta", GetParam().fullName().toStdString()},
+                {"meta", GetParam().fullName()},
             })};
         profiler->SetUp();
     }
@@ -126,7 +126,7 @@ class ParseFile : public ::testing::TestWithParam<TestParams> {
 
 std::string getTestName(
     const testing::TestParamInfo<ParseFile::ParamType>& info) {
-    return info.param.testName().toStdString();
+    return info.param.testName();
 }
 
 
@@ -205,7 +205,7 @@ TEST_P(ParseFile, CorpusAll) {
         if (runner.useQFormat()) {
             FAIL() << params.fullName() << "failed, wrote debug to"
                    << spec.debug.debugOutDir << "\n"
-                   << os.toString(false).toStdString();
+                   << os.toString(false);
         } else {
             FAIL() << params.fullName() << " failed, , wrote debug to "
                    << spec.debug.debugOutDir;

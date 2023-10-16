@@ -27,7 +27,7 @@ struct AddfFragment {
 
 struct FormatStringError : public std::runtime_error {
     explicit FormatStringError(const std::string& message)
-        : std::runtime_error(message.toStdString()) {}
+        : std::runtime_error(message) {}
 };
 
 

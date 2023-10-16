@@ -56,7 +56,7 @@ void Solution::add(
             ("Internal error: bad layout: (k " + to_string(knot) + ", s "
              + to_string(span) + ", i " + to_string(intercept) + ", g "
              + to_string(gradient) + ")")
-                .toStdString());
+                );
     }
 
     knots.push_back(knot);

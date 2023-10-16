@@ -75,7 +75,7 @@ struct ParseSpec {
 
     struct SpecValidationError : public std::runtime_error {
         explicit SpecValidationError(const std::string& message)
-            : std::runtime_error(message.toStdString()) {}
+            : std::runtime_error(message) {}
     };
 
     enum class ExpectedMode

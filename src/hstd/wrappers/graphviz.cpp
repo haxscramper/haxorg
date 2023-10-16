@@ -65,7 +65,7 @@ Graphviz::Edge::Edge(Agraph_t* graph, CR<Node> head, CR<Node> tail)
 Graphviz::Graph::Graph(const std::string& name, Agdesc_t desc)
     : defaultEdge(nullptr, nullptr), defaultNode(nullptr, nullptr) {
     Agraph_t* graph_ = agopen(
-        const_cast<char*>(name.toStdString().c_str()), desc, nullptr);
+        const_cast<char*>(name.c_str()), desc, nullptr);
     if (!graph_) {
         throw std::runtime_error("Failed to create graph");
     } else {
@@ -175,7 +175,7 @@ void Graphviz::writeFile(
     CR<Graph>      graph,
     RenderFormat   format) {
     if (format == RenderFormat::DOT) {
-        FILE* output_file = fopen(fileName.toStdString().c_str(), "w");
+        FILE* output_file = fopen(fileName.c_str(), "w");
         if (output_file == NULL) {
             perror("Error opening output file");
             return 1;
@@ -229,7 +229,7 @@ Graphviz::Node::Node(
 
 Graphviz::Node::Node(Agraph_t* graph, const std::string& name) {
     auto node_ = agnode(
-        graph, const_cast<char*>(name.toStdString().c_str()), 1);
+        graph, const_cast<char*>(name.c_str()), 1);
     if (!node_) {
         throw std::runtime_error("Failed to create node");
     } else {

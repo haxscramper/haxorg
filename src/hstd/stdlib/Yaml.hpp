@@ -9,7 +9,7 @@
 
 struct BadTypeConversion : public YAML::RepresentationException {
     explicit BadTypeConversion(YAML::Mark mark, const std::string& message)
-        : YAML::RepresentationException(mark, message.toStdString()) {}
+        : YAML::RepresentationException(mark, message) {}
 };
 
 
@@ -71,7 +71,7 @@ template <>
 struct convert<std::string> {
     static Node encode(std::string const& str) {
         Node result;
-        result = str.toStdString();
+        result = str;
         return result;
     }
     static bool decode(Node const& in, std::string& out) {
@@ -85,7 +85,7 @@ template <IsEnum E>
 struct convert<E> {
     static Node encode(E const& str) {
         Node result;
-        result = enum_to_string(str).toStdString();
+        result = enum_to_string(str);
         return result;
     }
     static bool decode(Node const& in, E& out) {

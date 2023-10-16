@@ -5,6 +5,8 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <format>
+#include <sstream>
 
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
@@ -46,7 +48,7 @@ template <typename T>
 std::string to_string(T const& value)
     requires StringStreamable<T>
 {
-    std::string     out;
+    std::string  out;
     std::ostream os{&out};
     os << value;
     return out;
@@ -59,9 +61,6 @@ concept StringConvertible = requires(T value) {
     { to_string(value) } -> std::same_as<std::string>;
 };
 
-inline std::ostream& operator<<(std::ostream& os, std::string const& value) {
-    return os << std::string::fromStdString(value);
-}
 
 /// \brief Escape string literal, converting newline and other (TODO)
 /// control characters into unicode.
@@ -85,9 +84,9 @@ inline std::string escape_literal(std::string const& in) {
 
 template <typename Iterable>
 std::ostream& join(
-    std::ostream&    os,
-    std::string const&  sep,
-    Iterable const& list) {
+    std::ostream&      os,
+    std::string const& sep,
+    Iterable const&    list) {
     int index = 0;
     for (const auto& it : list) {
         if (0 < index) {
@@ -101,30 +100,21 @@ std::ostream& join(
 
 template <typename Iterable>
 std::string join(std::string const& sep, Iterable const& list) {
-    std::string     out;
+    std::string  out;
     std::ostream os{&out};
-    join(os, sep, list);
+    std::string  join(os, sep, list);
     return out;
 }
 
 /// \brief Small insanity to allow for `os << "[" << join(os, "", "wer")
 /// <<` and other stuff without having to break everything into multiple
 /// lines. Yes, this overload makes zero sense but whatever.
-inline std::ostream& operator<<(std::ostream& os, std::ostream const& value) {
-    return os;
-}
-
-
 inline std::ostream& operator<<(
     std::ostream&       os,
     std::ostream const& value) {
     return os;
 }
 
-
-inline std::ostream& operator<<(std::ostream& os, std::string const& value) {
-    return os << value.toStdString();
-}
 
 #define __xxloc() std::cout << __FILE__ << ":" << __LINE__ << "\n";
 

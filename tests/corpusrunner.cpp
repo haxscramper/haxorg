@@ -529,7 +529,7 @@ CorpusRunner::ExportResult CorpusRunner::runExporter(
 
     } else {
         throw std::domain_error(
-            "Unexpected export result name " + exp.name.toStdString());
+            "Unexpected export result name " + exp.name);
     }
 }
 

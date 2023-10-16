@@ -66,7 +66,7 @@ template <typename T>
 json ExporterJson::eval(CR<UnorderedMap<Str, T>> map) {
     json tmp = json::object();
     for (const auto& [key, val] : map) {
-        tmp[key.toStdString()] = eval(val);
+        tmp[key] = eval(val);
     }
     return tmp;
 }
@@ -83,7 +83,7 @@ json ExporterJson::eval(CR<Vec<T>> values) {
 template <typename T>
 json ExporterJson::eval(CR<T> arg) {
     if constexpr (std::is_enum<T>::value) {
-        return json(to_string(arg).toStdString());
+        return json(to_string(arg));
     } else {
         json tmp = _this()->newRes(arg);
         _this()->visit(tmp, arg);

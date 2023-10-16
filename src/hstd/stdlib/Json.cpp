@@ -27,7 +27,7 @@ std::string to_string(const json& j) {
 void to_json(json& j, CR<Str> str) { to_json(j, str.toBase()); }
 
 void to_json(json& j, CR<std::string> str) {
-    ns::to_json(j, str.toStdString());
+    ns::to_json(j, str);
 }
 
 void to_json(json& j, int i) { ns::to_json(j, i); }

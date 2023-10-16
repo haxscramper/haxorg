@@ -80,8 +80,8 @@ TEST(AstDiff, BaselineApi) {
         EXPECT_EQ(changes.size(), 1);
         TestDiff::Change ch0 = changes.at(0);
         EXPECT_EQ(ch0.getKind(), ChKind::None);
-        EXPECT_EQ(ch0.getSrcValue().toStdString(), std::string("same"));
-        EXPECT_EQ(ch0.getDstValue().toStdString(), std::string("same"));
+        EXPECT_EQ(ch0.getSrcValue(), std::string("same"));
+        EXPECT_EQ(ch0.getDstValue(), std::string("same"));
         EXPECT_EQ(ch0.getBaseDstChain().at(0)->value, "same");
         EXPECT_EQ(ch0.getBaseSrcChain().at(0)->value, "same");
         auto dstPath = ch0.getDstPath();

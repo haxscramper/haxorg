@@ -21,7 +21,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
 
 
     yaml eval(CR<Str> value) {
-        yaml tmp = yaml(value.toStdString());
+        yaml tmp = yaml(value);
         return tmp;
     }
 
@@ -35,15 +35,15 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     yaml eval(CR<int> value) { return yaml(value); }
     yaml eval(CR<std::string> value) { return yaml(value); }
     yaml eval(CR<QDateTime> value) {
-        return yaml(value.toString(Qt::ISODate).toStdString());
+        return yaml(value.toString(Qt::ISODate));
     }
 
     yaml eval(CR<QDate> value) {
-        return yaml(value.toString(Qt::ISODate).toStdString());
+        return yaml(value.toString(Qt::ISODate));
     }
 
     yaml eval(CR<QTime> value) {
-        return yaml(value.toString(Qt::ISODate).toStdString());
+        return yaml(value.toString(Qt::ISODate));
     }
 
 
@@ -51,7 +51,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     yaml eval(E value)
         requires(std::is_enum<E>::value)
     {
-        return yaml(to_string(value).toStdString());
+        return yaml(to_string(value));
     }
 
     template <typename T>
@@ -89,7 +89,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     yaml eval(CR<UnorderedMap<Str, T>> map) {
         yaml tmp;
         for (const auto& [key, val] : map) {
-            tmp[key.toStdString()] = eval(val);
+            tmp[key] = eval(val);
         }
         return tmp;
     }

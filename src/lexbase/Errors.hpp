@@ -22,10 +22,10 @@ struct ParseError : public std::runtime_error {
     std::variant<LineCol, int> loc;
 
     explicit ParseError(const std::string& message, LineCol _loc = LineCol{})
-        : std::runtime_error(message.toStdString()), loc(_loc) {}
+        : std::runtime_error(message), loc(_loc) {}
 
     explicit ParseError(const std::string& message, int _loc)
-        : std::runtime_error(message.toStdString()), loc(_loc) {}
+        : std::runtime_error(message), loc(_loc) {}
 };
 
 /// \brief Base lexer error type

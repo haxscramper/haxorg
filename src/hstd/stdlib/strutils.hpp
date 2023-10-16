@@ -79,5 +79,5 @@ std::string styledUnicodeMapping(QChar ch, AsciiStyle style);
 std::string styledUnicodeMapping(std::string const& str, AsciiStyle style);
 
 inline char* strdup(std::string const& str) {
-    return strdup(str.toStdString().c_str());
+    return strdup(str.c_str());
 }

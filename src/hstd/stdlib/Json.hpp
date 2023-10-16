@@ -21,7 +21,7 @@ namespace nlohmann {
 template <>
 struct adl_serializer<std::string> {
     static void to_json(json& j, const std::string& str) {
-        j = str.toStdString();
+        j = str;
     }
 
     static void from_json(const json& in, std::string& out) {
