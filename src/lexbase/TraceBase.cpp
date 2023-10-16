@@ -8,10 +8,10 @@ void OperationsTracer::setTraceFile(const QFileInfo& outfile) {
     trace       = true;
     traceToFile = true;
     file        = std::make_shared<QFile>();
-    stream      = std::make_shared<QTextStream>();
+    stream      = std::make_shared<std::ostream>();
     file->setFileName(outfile.absoluteFilePath());
     if (file->open(QIODevice::ReadWrite | QFile::Truncate)) {
-        //        qDebug() << "Opened" << outfile.absoluteFilePath()
+        //        DLOG(INFO) << "Opened" << outfile.absoluteFilePath()
         //                 << "for writing";
         stream->setDevice(file.get());
     } else {

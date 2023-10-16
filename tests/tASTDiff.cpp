@@ -7,23 +7,23 @@ using namespace diff;
 
 struct TestNode : SharedPtrApi<TestNode> {
     Vec<TestNode::Ptr> subnodes;
-    QString            value;
+    std::string            value;
     int                kind = 0;
-    TestNode(int kind, QString const& value, Vec<TestNode::Ptr> sub)
+    TestNode(int kind, std::string const& value, Vec<TestNode::Ptr> sub)
         : kind(kind), subnodes(sub), value(value) {}
 };
 
 TestNode::Ptr n(
     int                kind,
-    QString const&     val,
+    std::string const&     val,
     Vec<TestNode::Ptr> subnodes = {}) {
     return TestNode::shared(kind, val, subnodes);
 }
 
-using TestSyntaxTree = SyntaxTree<TestNode*, QString>;
+using TestSyntaxTree = SyntaxTree<TestNode*, std::string>;
 using TestWalker     = TestSyntaxTree::WalkParameters<TestNode::Ptr>;
-using TestDiff       = ASTDiff<TestNode*, QString>;
-using TestOptions    = ComparisonOptions<TestNode*, QString>;
+using TestDiff       = ASTDiff<TestNode*, std::string>;
+using TestOptions    = ComparisonOptions<TestNode*, std::string>;
 
 TestWalker getTestWalker() {
     return TestWalker{
@@ -40,7 +40,7 @@ TestWalker getTestWalker() {
 
 TestOptions getTestOptions() {
     return TestOptions{
-        .getNodeValueImpl = [](TestNode* id) -> QString const& {
+        .getNodeValueImpl = [](TestNode* id) -> std::string const& {
             return id->value;
         },
         .getNodeKindImpl = [](TestNode* id) { return id->kind; },
@@ -134,12 +134,12 @@ TEST(AstDiff, GreedyTopDown) {
 
 TEST(AstDiff, PointerBasedNodes) {
     struct RealNode {
-        QString       value;
+        std::string       value;
         int           kind;
         Vec<RealNode> sub;
 
         using IdT  = RealNode*;
-        using ValT = QString;
+        using ValT = std::string;
 
         TreeMirror<IdT, ValT> toMirror() {
             Vec<TreeMirror<IdT, ValT>> subMirror;
@@ -226,8 +226,8 @@ TEST(AstDiff, PointerBasedNodes) {
     ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
 
 
-    QString     buf;
-    QTextStream os{&buf};
+    std::string     buf;
+    std::ostream os{&buf};
     for (diff::NodeId Dst : DstTree) {
         diff::NodeId Src = Diff.getMapped(DstTree, Dst);
         if (Src.isValid()) {
@@ -249,7 +249,7 @@ TEST(AstDiff, PointerBasedNodes) {
 
 TEST(AstDiff, PointerBasedNodesWithVariants) {
     struct RealNode {
-        std::variant<int, double, QString> value;
+        std::variant<int, double, std::string> value;
         Vec<RealNode>                      sub;
     };
 
@@ -295,8 +295,8 @@ TEST(AstDiff, PointerBasedNodesWithVariants) {
 
     ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
 
-    QString     buf;
-    QTextStream os{&buf};
+    std::string     buf;
+    std::ostream os{&buf};
     for (diff::NodeId Dst : DstTree) {
         diff::NodeId Src = Diff.getMapped(DstTree, Dst);
         if (Src.isValid()) {

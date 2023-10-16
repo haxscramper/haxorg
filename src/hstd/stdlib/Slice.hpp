@@ -171,8 +171,8 @@ HSlice<A, B> slice(CR<A> first, CR<B> last) {
 }
 
 template <typename A, typename B>
-inline QTextStream& operator<<(
-    QTextStream&        os,
+inline std::ostream& operator<<(
+    std::ostream&        os,
     HSlice<A, B> const& value) {
     return os << "[" << value.first << ".." << value.last << "]";
 }
@@ -210,9 +210,9 @@ Pair<A, A> getSpan(
             && (0 <= endPos && endPos < size))) {
         throw OutOfRangeError(
             "Container index is out of range: real span range is "
-            + QString::number(startPos) + ".." + QString::number(endPos)
+            + std::string::number(startPos) + ".." + std::string::number(endPos)
             + " computed from " + to_string(s)
-            + ", but full extent length is only " + QString::number(size));
+            + ", but full extent length is only " + std::string::number(size));
     }
 
     return {startPos, endPos};

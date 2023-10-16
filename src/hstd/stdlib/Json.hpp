@@ -1,7 +1,7 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
-#include <QString>
+#include <string>
 #include <sstream>
 #include <memory>
 
@@ -19,26 +19,26 @@ extern template class nlohmann::basic_json<>;
 
 namespace nlohmann {
 template <>
-struct adl_serializer<QString> {
-    static void to_json(json& j, const QString& str) {
+struct adl_serializer<std::string> {
+    static void to_json(json& j, const std::string& str) {
         j = str.toStdString();
     }
 
-    static void from_json(const json& in, QString& out) {
-        out = QString::fromStdString(in.get<std::string>());
+    static void from_json(const json& in, std::string& out) {
+        out = std::string::fromStdString(in.get<std::string>());
     }
 };
 } // namespace nlohmann
 
 void         to_json(json& j, int i);
-void         to_json(json& j, CR<QString> str);
+void         to_json(json& j, CR<std::string> str);
 void         to_json(json& j, CR<Str> str);
-void         from_json(const json& in, QString& out);
+void         from_json(const json& in, std::string& out);
 void         from_json(const json& in, int& out);
 void         from_json(const json& in, bool& out);
-QString      to_string(json const& j);
+std::string      to_string(json const& j);
 QDebug       operator<<(QDebug os, json const& value);
-QTextStream& operator<<(QTextStream& os, json const& value);
+std::ostream& operator<<(std::ostream& os, json const& value);
 
 struct JsonFormatOptions {
     int width       = 80;
@@ -66,7 +66,7 @@ inline void to_json(json& res, std::unique_ptr<T> const& value);
 template <DescribedEnum E>
 void from_json(json const& j, E& str) {
     Opt<E> value = enum_serde<E>::from_string(
-        QString::fromStdString(j.get<std::string>()));
+        std::string::fromStdString(j.get<std::string>()));
     if (value) {
         str = value.value();
     } else {

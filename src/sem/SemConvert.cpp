@@ -110,7 +110,7 @@ using Err      = OrgConverter::Errors;
 using Property = sem::Subtree::Property;
 
 template <class E>
-Opt<E> parseOrgEnum(QString const& name) {
+Opt<E> parseOrgEnum(std::string const& name) {
     bool found = false;
     E    r     = {};
 
@@ -135,7 +135,7 @@ using N   = OrgSpecName;
 using osk = OrgSemKind;
 
 
-OrgBigIdentKind parseBigIdent(QString const& id) {
+OrgBigIdentKind parseBigIdent(std::string const& id) {
     using K = OrgBigIdentKind;
     if (id == "TODO") {
         return K::Todo;
@@ -247,10 +247,10 @@ SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             }
 
             default: {
-                qDebug() << "Unexpected incoming tree kind for subtree "
+                DLOG(INFO) << "Unexpected incoming tree kind for subtree "
                             "converter"
                          << head.kind();
-                qDebug().noquote() << head.treeRepr();
+                DLOG(INFO).noquote() << head.treeRepr();
             }
         }
 
@@ -311,7 +311,7 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
     __perf_trace("convertPropertyList");
     __trace();
 
-    QString       name = normalize(strip(
+    std::string       name = normalize(strip(
         one(a, N::Name).strVal(),
         CharSet{QChar(':')},
         CharSet{QChar(':')}));
@@ -319,7 +319,7 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
     if (name == "exportoptions") {
         Property::ExportOptions res;
         res.backend = one(a, N::Subname).strVal();
-        for (QString const& pair : one(a, N::Values).strVal().split(' ')) {
+        for (std::string const& pair : one(a, N::Values).strVal().split(' ')) {
             auto kv           = pair.split(':');
             res.values[kv[0]] = kv[1];
         }
@@ -350,7 +350,7 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
         }
 
     } else if (name == "effort") {
-        QString const&   value    = one(a, N::Values).strVal();
+        std::string const&   value    = one(a, N::Values).strVal();
         auto             duration = value.split(":");
         Property::Effort prop;
 
@@ -475,7 +475,7 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
             }
         }
 
-        QString datetime;
+        std::string datetime;
         if (one(a, N::Year).kind() != org::Empty) {
             datetime += one(a, N::Year).strVal();
         }
@@ -488,7 +488,7 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
         }
 
         struct Spec {
-            QString pattern;
+            std::string pattern;
             bool    useTime = true;
             bool    useDate = true;
         };
@@ -883,7 +883,7 @@ SemIdT<AtMention> OrgConverter::convertAtMention(__args) {
 
 SemIdT<CmdArgument> OrgConverter::convertCmdArgument(__args) {
     SemIdT<CmdArgument> result = Sem<CmdArgument>(p, a);
-    QString             key    = one(a, N::Name).strVal();
+    std::string             key    = one(a, N::Name).strVal();
     result->value              = one(a, N::Value).strVal();
 
     if (!key.isEmpty()) {
@@ -1059,7 +1059,7 @@ void fillDocumentOptions(SemIdT<DocumentOptions> opts, OrgAdapter a) {
     }
 
     for (OrgAdapter const& item : a) {
-        QString value = item.strVal();
+        std::string value = item.strVal();
         if (value.contains(':')) {
             auto split = value.split(':');
             auto head  = split[0];

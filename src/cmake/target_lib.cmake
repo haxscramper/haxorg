@@ -19,7 +19,7 @@ add_target_property(haxorg INCLUDE_DIRECTORIES "/usr/include/enchant-2")
 
 if (${USE_PCH})
     target_precompile_headers(haxorg PRIVATE
-      <QString>
+      <std::string>
       <QDateTime>
       <QDebug>
       <nlohmann/json.hpp>

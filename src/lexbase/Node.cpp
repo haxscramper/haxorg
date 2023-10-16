@@ -129,7 +129,7 @@ typename NodeGroup<N, K>::Id NodeGroup<N, K>::subnode(Id node, int index)
 
 template <typename N, typename K>
 void NodeGroup<N, K>::lispRepr(
-    QTextStream&     os,
+    std::ostream&     os,
     Id               node,
     CR<TreeReprConf> conf) const {
     os << "(" << to_string(node.getMask()) << ":"
@@ -138,8 +138,8 @@ void NodeGroup<N, K>::lispRepr(
     if (at(node).isTerminal()) {
         auto tok = at(node).getToken();
         os << " '";
-        QString     str;
-        QTextStream stream{&str};
+        std::string     str;
+        std::ostream stream{&str};
         tok.streamTo(stream, "", true);
         os << str;
         os << "'";
@@ -184,8 +184,8 @@ void NodeGroup<N, K>::treeRepr(
         if (tok.isNil()) {
             os << " # <nil>";
         } else {
-            QString     str;
-            QTextStream stream{&str};
+            std::string     str;
+            std::ostream stream{&str};
             tok.streamTo(stream, "", conf.withTokenMask);
             os << " #" << str << " " << at(tok);
         }
@@ -240,9 +240,9 @@ void NodeGroup<N, K>::treeRepr(
 }
 
 template <typename N, typename K>
-QString NodeGroup<N, K>::treeRepr(Id node, CR<TreeReprConf> conf) const {
-    QString     buffer;
-    QTextStream os{&buffer};
+std::string NodeGroup<N, K>::treeRepr(Id node, CR<TreeReprConf> conf) const {
+    std::string     buffer;
+    std::ostream os{&buffer};
     ColStream   text{os};
     treeRepr(text, node, 0, conf);
     return buffer;

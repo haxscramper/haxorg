@@ -284,13 +284,13 @@ class GenConverter:
             Name="from_string",
             doc=DocParams(""),
             ResultTy=QualType("Opt", Parameters=[QualType(entry.name)]),
-            Args=[ParmVarParams(type=QualType("QString"), name="value")],
+            Args=[ParmVarParams(type=QualType("std::string"), name="value")],
         )
 
         ToParams = FunctionParams(
             Name="to_string",
             doc=DocParams(""),
-            ResultTy=QualType("QString"),
+            ResultTy=QualType("std::string"),
             Args=[ParmVarParams(type=QualType(entry.name), name="value")],
         )
 

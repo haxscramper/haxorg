@@ -33,7 +33,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
 
     yaml eval(CR<bool> value) { return yaml(value); }
     yaml eval(CR<int> value) { return yaml(value); }
-    yaml eval(CR<QString> value) { return yaml(value); }
+    yaml eval(CR<std::string> value) { return yaml(value); }
     yaml eval(CR<QDateTime> value) {
         return yaml(value.toString(Qt::ISODate).toStdString());
     }

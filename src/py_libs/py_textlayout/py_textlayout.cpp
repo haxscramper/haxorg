@@ -35,10 +35,10 @@ struct TextLayout {
     ~TextLayout() {}
 
     void dbg() {
-        qDebug() << __LINE__ << b.store.size() << store.strings.size();
+        DLOG(INFO) << __LINE__ << b.store.size() << store.strings.size();
     }
 
-    Id text(QString t) { return store.text(t); }
+    Id text(std::string t) { return store.text(t); }
 
     Vec<BlockId> tmpVec(std::vector<Id> const& ids) {
         return map(ids, [](Id t) { return t.id; });
@@ -63,17 +63,17 @@ struct TextLayout {
         return b.join(tmpVec(items), join, isLine, isTrailing);
     }
 
-    Id wrap(std::vector<Id> const& ids, QString sep) {
+    Id wrap(std::vector<Id> const& ids, std::string sep) {
         return b.wrap(tmpVec(ids), store.str(sep));
     }
 
-    QString toString(Id id, CR<Options> options) {
+    std::string toString(Id id, CR<Options> options) {
         try {
             return store.toString(id);
         } catch (...) { exception_breakpoint(); }
     }
 
-    QString toTreeRepr(Id id) {
+    std::string toTreeRepr(Id id) {
         try {
             return store.toTreeRepr(id);
         } catch (...) { exception_breakpoint(); }
@@ -174,7 +174,7 @@ BOOST_DESCRIBE_STRUCT(
 PYBIND11_MODULE(py_textlayout, m) {
     using namespace pybind11;
 
-    //    pywrap::register_converters<QString>();
+    //    pywrap::register_converters<std::string>();
     //    pywrap::register_converters<layout::BlockId>();
     //    pywrap::register_converters<Vec<layout::BlockId>>();
 

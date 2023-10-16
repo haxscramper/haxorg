@@ -117,8 +117,8 @@ struct [[refl]] OrgExporterJson {
     /// Visit top-level node of the exporter, filling in the internal
     /// return state.
     [[refl]] void    visitNode(sem::SemId node /*! Input node */);
-    [[refl]] QString exportToString();
-    [[refl]] void    exportToFile(QString path);
+    [[refl]] std::string exportToString();
+    [[refl]] void    exportToFile(std::string path);
 };
 
 struct [[refl]] ExporterTreeOpts {
@@ -134,14 +134,14 @@ struct [[refl]] OrgExporterTree {
     SPtr<ExporterTree> impl;
     OrgExporterTree();
     ColStream        os;
-    [[refl]] QString toString(sem::SemId node, ExporterTreeOpts opts);
+    [[refl]] std::string toString(sem::SemId node, ExporterTreeOpts opts);
     [[refl]] void    toFile(
            sem::SemId       node,
-           QString          path,
+           std::string          path,
            ExporterTreeOpts opts);
 
     void stream(
-        QTextStream&     stream,
+        std::ostream&     stream,
         sem::SemId       node,
         ExporterTreeOpts opts);
 };
@@ -155,8 +155,8 @@ struct [[refl]] OrgExporterYaml {
     /// Visit top-level node of the exporter, filling in the internal
     /// return state.
     [[refl]] void    visitNode(sem::SemId node);
-    [[refl]] QString exportToString();
-    [[refl]] void    exportToFile(QString path);
+    [[refl]] std::string exportToString();
+    [[refl]] void    exportToFile(std::string path);
 };
 
 struct [[refl]] OrgContext {
@@ -164,7 +164,7 @@ struct [[refl]] OrgContext {
     SPtr<OrgTokenizer>         tokenizer;
     OrgNodeGroup               nodes;
     SPtr<OrgParser>            parser;
-    QString                    source;
+    std::string                    source;
     sem::OrgConverter          converter;
     LineColInfo                info;
     Lexer<OrgTokenKind>        lex;
@@ -185,15 +185,15 @@ struct [[refl]] OrgContext {
 
 
     [[refl]] void parseFile(std::string file) {
-        source = readFile(QFileInfo(QString::fromStdString(file)));
+        source = readFile(QFileInfo(std::string::fromStdString(file)));
         run();
     }
 
-    [[refl]] void loadStore(QString path);
+    [[refl]] void loadStore(std::string path);
 
-    [[refl]] void writeStore(QString path);
+    [[refl]] void writeStore(std::string path);
 
-    [[refl]] void parseString(QString text) {
+    [[refl]] void parseString(std::string text) {
         source = text;
         run();
     }
@@ -292,14 +292,14 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     Opt<OperationsTracer> exportTracer;
 
     ColStream                traceStream;
-    QString                  traceBuffer;
+    std::string                  traceBuffer;
     SPtr<PythonStreamDevice> pyStreamDevice;
     SPtr<IoContext>          writeStreamContext;
 
     [[refl]] void    enablePyStreamTrace(py::object stream);
     [[refl]] void    enableBufferTrace();
-    [[refl]] QString getTraceBuffer() const;
-    [[refl]] void    enableFileTrace(QString const& path);
+    [[refl]] std::string getTraceBuffer() const;
+    [[refl]] void    enableFileTrace(std::string const& path);
 
     Opt<PyFunc>   visitAnyNodeAround;
     [[refl]] void setVisitAnyIdAround(PyFunc cb) {
@@ -547,7 +547,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
             __visit_scope(
                 VisitEvent::Kind::VisitField,
                 .visitedValue = &res,
-                .field        = QString(name),
+                .field        = std::string(name),
                 .visitedNode  = value,
                 .msg          = "has universal CB");
 
@@ -556,7 +556,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
             __visit_scope(
                 VisitEvent::Kind::VisitField,
                 .visitedValue = &res,
-                .field        = QString(name),
+                .field        = std::string(name),
                 .visitedNode  = value,
                 .msg          = "has specific visitor CB");
 
@@ -565,7 +565,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
             __visit_scope(
                 VisitEvent::Kind::VisitField,
                 .visitedValue = &res,
-                .field        = QString(name),
+                .field        = std::string(name),
                 .visitedNode  = value,
                 .msg          = "has specific eval CB");
 
@@ -574,7 +574,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
             __visit_scope(
                 VisitEvent::Kind::VisitField,
                 .visitedValue = &res,
-                .field        = QString(name),
+                .field        = std::string(name),
                 .visitedNode  = value,
                 .msg          = "using default visit");
 
@@ -586,7 +586,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     __visit_scope(                                                        \
         VisitEvent::Kind::VisitField,                                     \
         .visitedValue = &res,                                             \
-        .field        = QString(name),                                    \
+        .field        = std::string(name),                                    \
         .msg          = __msg);
 
 
@@ -620,7 +620,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
             __visit_scope(
                 VisitEvent::Kind::VisitField,
                 .visitedValue = &res,
-                .field        = QString(name),
+                .field        = std::string(name),
                 .msg          = "has universal CB");
 
             visitAnyField->operator()(_self, res, name, value);
@@ -628,7 +628,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
             __visit_scope(
                 VisitEvent::Kind::VisitField,
                 .visitedValue = &res,
-                .field        = QString(name),
+                .field        = std::string(name),
                 .msg          = "has specific visitor CB");
 
             visitLeafFieldCb.at(kind)(_self, res, name, value);
@@ -636,7 +636,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
             __visit_scope(
                 VisitEvent::Kind::VisitField,
                 .visitedValue = &res,
-                .field        = QString(name),
+                .field        = std::string(name),
                 .msg          = "has specific eval CB");
 
             res = evalLeafFieldCb.at(kind)(_self, name, value);

@@ -6,8 +6,8 @@
 DECL_ID_TYPE_MASKED(Value1, Id1, u8, 2);
 
 template <typename T>
-QString bits(T val) {
-    return QString::fromStdString(
+std::string bits(T val) {
+    return std::string::fromStdString(
         std::bitset<8 * sizeof(T)>(val).to_string());
 }
 
@@ -18,7 +18,7 @@ TEST(DODContainersTest, MaskedNodes) {
     EXPECT_EQ(id.getValue(), 1_u8);
     EXPECT_EQ(id.getValue(), 0b1_u8);
     id.setMask(2_u8);
-    EXPECT_EQ(bits(id.getValue()), QString("10000001"));
+    EXPECT_EQ(bits(id.getValue()), std::string("10000001"));
     EXPECT_EQ(id.getMask(), 2_u8);
     EXPECT_EQ(id.getIndex(), 0);
     {

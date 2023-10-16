@@ -5,7 +5,7 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/strformat.hpp>
 
-#include <QDebug>
+#include <absl/log/log.h>
 
 #include "common.hpp"
 

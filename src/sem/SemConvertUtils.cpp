@@ -64,7 +64,7 @@ Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
     return std::nullopt;
 }
 
-QString OrgConverter::getLocMsg(CR<OrgAdapter> adapter) {
+std::string OrgConverter::getLocMsg(CR<OrgAdapter> adapter) {
     Opt<LineCol>    loc = getLoc(adapter);
     Opt<OrgTokenId> tok;
     if (adapter.get().isTerminal()) {
@@ -99,8 +99,8 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
     }
 
 
-    auto getLoc = [&]() -> QString {
-        QString res;
+    auto getLoc = [&]() -> std::string {
+        std::string res;
         if (locationResolver && in.node.has_value()) {
             Opt<LineCol> loc = this->getLoc(in.node.value());
             if (loc.has_value()) {

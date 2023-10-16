@@ -4,7 +4,7 @@
 #include <fstream>
 #include <string>
 #include <QFile>
-#include <QFileInfo>
+#include <filesystem>
 
 #include <hstd/stdlib/ColText.hpp>
 
@@ -16,7 +16,7 @@ struct OperationsTracer {
     OperationsTracer(QFileInfo const& info) { setTraceFile(info); }
 
     SPtr<QFile>       file;
-    SPtr<QTextStream> stream;
+    SPtr<std::ostream> stream;
     void              setTraceFile(QFileInfo const& outfile);
     ColStream         getStream();
     void              endStream(ColStream& stream);

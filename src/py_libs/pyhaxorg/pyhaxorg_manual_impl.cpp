@@ -13,15 +13,15 @@
 
 template class Exporter<ExporterPython, py::object>;
 
-QTextStream qcout;
+std::ostream qcout;
 
 OrgExporterJson::OrgExporterJson() {
     impl = std::make_shared<ExporterJson>();
 }
 
-QString OrgExporterJson::exportToString() { return to_string(result); }
+std::string OrgExporterJson::exportToString() { return to_string(result); }
 
-void OrgExporterJson::exportToFile(QString path) {
+void OrgExporterJson::exportToFile(std::string path) {
     writeFile(QFileInfo(path), exportToString());
 }
 
@@ -33,9 +33,9 @@ OrgExporterYaml::OrgExporterYaml() {
     impl = std::make_shared<ExporterYaml>();
 }
 
-QString OrgExporterYaml::exportToString() { return to_string(result); }
+std::string OrgExporterYaml::exportToString() { return to_string(result); }
 
-void OrgExporterYaml::exportToFile(QString path) {
+void OrgExporterYaml::exportToFile(std::string path) {
     writeFile(QFileInfo(path), exportToString());
 }
 
@@ -47,22 +47,22 @@ OrgExporterTree::OrgExporterTree() {
     impl = std::make_shared<ExporterTree>(os);
 }
 
-QString OrgExporterTree::toString(sem::SemId node, ExporterTreeOpts opts) {
-    QString     buf;
-    QTextStream os{&buf};
+std::string OrgExporterTree::toString(sem::SemId node, ExporterTreeOpts opts) {
+    std::string     buf;
+    std::ostream os{&buf};
     stream(os, node, opts);
 }
 
 void OrgExporterTree::toFile(
     sem::SemId       node,
-    QString          path,
+    std::string          path,
     ExporterTreeOpts opts) {
     auto ctx = openFileOrStream(QFileInfo(path), true);
     stream(*ctx->stream, node, opts);
 }
 
 void OrgExporterTree::stream(
-    QTextStream&     stream,
+    std::ostream&     stream,
     sem::SemId       node,
     ExporterTreeOpts opts) {
     os                         = ColStream{stream};
@@ -106,7 +106,7 @@ void OrgContext::run() {
     node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
 }
 
-void OrgContext::loadStore(QString path) {
+void OrgContext::loadStore(std::string path) {
     QFile file{path};
     if (file.open(QIODevice::ReadOnly)) {
         QDataStream out{&file};
@@ -118,7 +118,7 @@ void OrgContext::loadStore(QString path) {
     }
 }
 
-void OrgContext::writeStore(QString path) {
+void OrgContext::writeStore(std::string path) {
     QFile file{path};
     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         QDataStream out{&file};
@@ -245,7 +245,7 @@ void init_py_manual_api(pybind11::module& m) {
 void ExporterPython::enablePyStreamTrace(pybind11::object stream) {
     pyStreamDevice     = std::make_shared<PythonStreamDevice>(stream);
     writeStreamContext = std::make_shared<IoContext>();
-    writeStreamContext->stream      = std::make_shared<QTextStream>();
+    writeStreamContext->stream      = std::make_shared<std::ostream>();
     this->exportTracer              = OperationsTracer{};
     this->exportTracer->stream      = writeStreamContext->stream;
     this->exportTracer->traceToFile = true;
@@ -257,7 +257,7 @@ void ExporterPython::enablePyStreamTrace(pybind11::object stream) {
 
 void ExporterPython::enableBufferTrace() {
     writeStreamContext              = std::make_shared<IoContext>();
-    writeStreamContext->stream      = std::make_shared<QTextStream>();
+    writeStreamContext->stream      = std::make_shared<std::ostream>();
     this->exportTracer->stream      = writeStreamContext->stream;
     this->exportTracer->traceToFile = true;
     writeStreamContext->stream->setString(&traceBuffer);
@@ -266,9 +266,9 @@ void ExporterPython::enableBufferTrace() {
     };
 }
 
-QString ExporterPython::getTraceBuffer() const { return traceBuffer; }
+std::string ExporterPython::getTraceBuffer() const { return traceBuffer; }
 
-void ExporterPython::enableFileTrace(const QString& path) {
+void ExporterPython::enableFileTrace(const std::string& path) {
     writeStreamContext         = openFileOrStream(QFileInfo(path), true);
     traceStream.ostream        = writeStreamContext->stream.get();
     traceStream.colored        = false;

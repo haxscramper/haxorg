@@ -91,7 +91,7 @@ class Cache {
     virtual std::shared_ptr<Source> fetch(Id const& id) = 0;
 
     // Display the given ID. as a single inline value.
-    virtual std::optional<QString> display(Id const& id) const = 0;
+    virtual std::optional<std::string> display(Id const& id) const = 0;
 };
 
 
@@ -99,7 +99,7 @@ class Cache {
 struct Line {
     int     offset;
     int     len;
-    QString chars;
+    std::string chars;
 
     // Get the offset of this line in the original `Source` (i.e: the
     // number of characters that precede it).
@@ -114,7 +114,7 @@ struct Line {
 
 BOOST_DESCRIBE_STRUCT(Line, (), (offset, len, chars));
 
-inline QTextStream& operator<<(QTextStream& os, Line const& value) {
+inline std::ostream& operator<<(std::ostream& os, Line const& value) {
     return described_class_printer(os, value);
 }
 
@@ -126,9 +126,9 @@ struct Source {
     Vec<Line> lines;
     int       len;
 
-    Source(QString const& l) {
+    Source(std::string const& l) {
         int offset = 0;
-        for (QString const& line : l.split('\n')) {
+        for (std::string const& line : l.split('\n')) {
             Line l{
                 .offset = offset,
                 .len    = line.size() + 1,
@@ -173,9 +173,9 @@ class StrCache : public Cache {
     // Cache interface
   public:
     UnorderedMap<Id, std::shared_ptr<Source>> sources;
-    UnorderedMap<Id, QString>                 names;
+    UnorderedMap<Id, std::string>                 names;
 
-    inline void add(Id id, QString const& source, QString const& name) {
+    inline void add(Id id, std::string const& source, std::string const& name) {
         sources[id] = std::make_shared<Source>(source);
         names[id]   = name;
     }
@@ -184,7 +184,7 @@ class StrCache : public Cache {
         return sources.at(id);
     }
 
-    inline std::optional<QString> display(const Id& id) const override {
+    inline std::optional<std::string> display(const Id& id) const override {
         return names.get(id);
     }
 };
@@ -387,7 +387,7 @@ struct Config {
 class Report {
   public:
     ReportKind             kind     = ReportKind::Error;
-    std::optional<QString> code     = std::nullopt;
+    std::optional<std::string> code     = std::nullopt;
     std::optional<ColText> msg      = std::nullopt;
     std::optional<ColText> note     = std::nullopt;
     std::optional<ColText> help     = std::nullopt;
@@ -398,7 +398,7 @@ class Report {
 
     // Give this report a numerical code that may be used to more precisely
     // look up the error in documentation.
-    inline Report& with_code(const QString& code) {
+    inline Report& with_code(const std::string& code) {
         this->code = code;
         return *this;
     }
@@ -465,7 +465,7 @@ class Report {
     Vec<SourceGroup> get_source_groups(Cache* cache);
 
 
-    inline void write(Cache& cache, QTextStream& w) {
+    inline void write(Cache& cache, std::ostream& w) {
         write_for_stream(cache, w);
     }
 
@@ -477,5 +477,5 @@ class Report {
     inline void print(Cache& cache) { write(cache, qcout); }
 
 
-    void write_for_stream(Cache& cache, QTextStream& w);
+    void write_for_stream(Cache& cache, std::ostream& w);
 };

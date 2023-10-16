@@ -11,7 +11,7 @@
 json toJson(CR<yaml> node);
 
 struct ParseSpec {
-    QString getLocMsg() const {
+    std::string getLocMsg() const {
         return "$# at $#:$#"
              % to_string_vec(
                    name ? *name : "<test>", specFile, specLocation.line);
@@ -53,14 +53,14 @@ struct ParseSpec {
             ((bool), printParsedToFile, false),
             ((bool), printSemToFile, false),
             /// directory to write debug files to
-            ((QString), debugOutDir, ""));
+            ((std::string), debugOutDir, ""));
     };
 
     struct ExporterExpect {
         DECL_FIELDS(
             ExporterExpect,
             (),
-            ((QString), name, ""),
+            ((std::string), name, ""),
             /// Optional parameters to pass to the exporter run.
             ((Opt<yaml>), parmeters, std::nullopt),
             ((yaml), expected, yaml()),
@@ -71,10 +71,10 @@ struct ParseSpec {
             ((bool), doTrace, false));
     };
 
-    QFileInfo debugFile(QString relativePath, bool create = true) const;
+    QFileInfo debugFile(std::string relativePath, bool create = true) const;
 
     struct SpecValidationError : public std::runtime_error {
-        explicit SpecValidationError(const QString& message)
+        explicit SpecValidationError(const std::string& message)
             : std::runtime_error(message.toStdString()) {}
     };
 
@@ -87,7 +87,7 @@ struct ParseSpec {
 
     BOOST_DESCRIBE_NESTED_ENUM(ExpectedMode, Flat, Nested, Named);
 
-    ParseSpec(CR<yaml> node, CR<QString> specFile, CR<QString> testRoot);
+    ParseSpec(CR<yaml> node, CR<std::string> specFile, CR<std::string> testRoot);
 
     template <typename N, typename K>
     NodeGroup<N, K> getNodeGroup() {
@@ -118,21 +118,21 @@ struct ParseSpec {
         /// the required name.
         ((Str), lexImplName, ""),
         ((Str), parseImplName, ""),
-        ((Opt<QString>), file, std::nullopt),
+        ((Opt<std::string>), file, std::nullopt),
         ((Dbg), debug, Dbg{}),
         ((Conf), conf, Conf{}),
         ((Opt<yaml>), subnodes, std::nullopt),
         ((Opt<yaml>), tokens, std::nullopt),
         ((Opt<json>), sem, std::nullopt),
         ((Str), source, ""),
-        ((Opt<QString>), name, std::nullopt),
+        ((Opt<std::string>), name, std::nullopt),
         ((YAML::Mark), specLocation, YAML::Mark()),
         ((YAML::Mark), sourceLocation, YAML::Mark()),
-        ((QString), specFile, ""), );
+        ((std::string), specFile, ""), );
 };
 
 struct ParseSpecGroup {
-    ParseSpecGroup(CR<yaml> node, CR<QString> from, CR<QString> testRoot);
+    ParseSpecGroup(CR<yaml> node, CR<std::string> from, CR<std::string> testRoot);
 
     Vec<ParseSpec> specs;
 };

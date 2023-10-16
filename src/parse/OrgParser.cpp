@@ -566,7 +566,7 @@ Slice<OrgId> OrgParserImpl<TraceState>::parseText(OrgLexer& lex) {
     __perf_trace("parseText");
     __trace();
     OrgId   first     = back();
-    QString forMsg    = getLocMsg(lex);
+    std::string forMsg    = getLocMsg(lex);
     int     treeStart = treeDepth();
     textFold(lex);
     int treeEnd = treeDepth();
@@ -1755,7 +1755,7 @@ OrgId OrgParserImpl<TraceState>::parseSubtreeProperties(OrgLexer& lex) {
 
         __skip(lex, otk::SkipSpace);
 
-        QString strName = normalize(group->strVal(name));
+        std::string strName = normalize(group->strVal(name));
 
         if (strName == "created") {
             parseTimeStamp(lex);
@@ -1819,7 +1819,7 @@ OrgId OrgParserImpl<TraceState>::parseSubtreeCompletion(OrgLexer& lex) {
 
     } else {
         __start(org::Completion);
-        qDebug() << "Parse subtree completion [" << lex << "]";
+        DLOG(INFO) << "Parse subtree completion [" << lex << "]";
         __end_return();
     }
 }
@@ -2371,7 +2371,7 @@ void OrgParserImpl<TraceState>::extendAttachedTrails(OrgId position) {
             OrgId   nextId = stmt + 2;
             OrgNode next   = g.at(nextId);
 
-            // qDebug() << "Next element from" << annotation << "has kind"
+            // DLOG(INFO) << "Next element from" << annotation << "has kind"
             //          << next.kind << "at" << nextId;
 
             if (OrgAttachableCommands.contains(next.kind)) {
@@ -2450,8 +2450,8 @@ void OrgParserImpl<TraceState>::report(CR<Report> in) {
         }
     };
 
-    auto getLoc = [&]() -> QString {
-        QString res;
+    auto getLoc = [&]() -> std::string {
+        std::string res;
         if (in.lex != nullptr) {
             Opt<LineCol> loc = this->getLoc(*in.lex);
             if (loc.has_value()) {

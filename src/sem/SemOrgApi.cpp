@@ -309,7 +309,7 @@ Opt<Property> Subtree::getProperty(Property::Kind kind, CR<Str> subkind)
     }
 }
 
-bool Subtree::Property::matches(Kind kind, CR<QString> subkind) const {
+bool Subtree::Property::matches(Kind kind, CR<std::string> subkind) const {
     if (getKind() == kind) {
         return true;
     } else if (
@@ -455,7 +455,7 @@ Opt<SemIdT<CmdArgument>> CmdArguments::popArg(Str key) {
 }
 
 namespace sem {
-QTextStream& operator<<(QTextStream& os, SemId const& value) {
+std::ostream& operator<<(std::ostream& os, SemId const& value) {
     return os << value.getStoreIndex() << ":" << to_string(value.getKind())
               << ":" << value.getNodeIndex();
 }

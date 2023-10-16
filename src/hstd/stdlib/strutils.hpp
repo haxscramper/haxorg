@@ -7,7 +7,7 @@
 
 
 template <typename T>
-QTextStream& join(QTextStream& os, CR<QString> sep, generator<T>& list) {
+std::ostream& join(std::ostream& os, CR<std::string> sep, generator<T>& list) {
     int index = 0;
     for (const auto& it : list) {
         if (0 < index) {
@@ -20,40 +20,40 @@ QTextStream& join(QTextStream& os, CR<QString> sep, generator<T>& list) {
 }
 
 template <typename T>
-QTextStream& join(QTextStream& os, CR<QString> sep, generator<T>&& list) {
+std::ostream& join(std::ostream& os, CR<std::string> sep, generator<T>&& list) {
     auto tmp = std::move(list);
     return join(os, sep, tmp);
 }
 
 
 template <typename T>
-QString join(CR<QString> sep, generator<T>& list) {
-    QString     out;
-    QTextStream os{&out};
+std::string join(CR<std::string> sep, generator<T>& list) {
+    std::string     out;
+    std::ostream os{&out};
     join(os, sep, list);
     return out;
 }
 
 
 template <typename T>
-QString join(CR<QString> sep, generator<T>&& list) {
+std::string join(CR<std::string> sep, generator<T>&& list) {
     auto tmp = std::move(list);
     return join(sep, tmp);
 }
 
 /// Get visible name of the character.
-Pair<QChar, QString> visibleName(QChar ch);
+Pair<QChar, std::string> visibleName(QChar ch);
 Str indent(CR<Str> str, int spaces, char space = ' ', Str prefix = "");
 
-Vec<Str> visibleUnicodeName(QString str, bool useUnicode = true);
+Vec<Str> visibleUnicodeName(std::string str, bool useUnicode = true);
 Vec<Str> split_keep_separator(const Str& str, CharSet sep = {QChar(' ')});
 Str      strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing);
 Vec<Str> split(CR<Str> str, QChar ch);
-QString  right_aligned(CR<QString> str, int n, QChar c = ' ');
-QString  left_aligned(CR<QString> str, int n, QChar c = ' ');
+std::string  right_aligned(CR<std::string> str, int n, QChar c = ' ');
+std::string  left_aligned(CR<std::string> str, int n, QChar c = ' ');
 Str      normalize(CR<Str> in);
 Str      repeat(CR<Str> str, int count);
-QString  escape_for_write(QString const& str, bool quote = true);
+std::string  escape_for_write(std::string const& str, bool quote = true);
 
 enum class AsciiStyle
 {
@@ -75,9 +75,9 @@ enum class AsciiStyle
 };
 
 
-QString styledUnicodeMapping(QChar ch, AsciiStyle style);
-QString styledUnicodeMapping(QString const& str, AsciiStyle style);
+std::string styledUnicodeMapping(QChar ch, AsciiStyle style);
+std::string styledUnicodeMapping(std::string const& str, AsciiStyle style);
 
-inline char* strdup(QString const& str) {
+inline char* strdup(std::string const& str) {
     return strdup(str.toStdString().c_str());
 }

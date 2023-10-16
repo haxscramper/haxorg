@@ -752,12 +752,12 @@ def get_types() -> Sequence[GenTuStruct]:
                             ],
                             fields=[
                                 opt_field(
-                                    QualType("QString"),
+                                    QualType("std::string"),
                                     "oldPriority",
                                     GenTuDoc("Previous priority for change and removal"),
                                 ),
                                 opt_field(
-                                    QualType("QString"),
+                                    QualType("std::string"),
                                     "newPriority",
                                     GenTuDoc("New priority for change and addition"),
                                 ),
@@ -1143,7 +1143,7 @@ def get_types() -> Sequence[GenTuStruct]:
                         ]),
                         GenTuPass("Property(CR<Data> data) : data(data) {}"),
                         GenTuPass(
-                            'bool matches(Kind kind, CR<QString> subkind = "") const;'),
+                            'bool matches(Kind kind, CR<std::string> subkind = "") const;'),
                     ],
                 ),
             ],

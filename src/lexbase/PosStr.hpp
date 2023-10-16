@@ -20,7 +20,7 @@
 
 #include <lexbase/Token.hpp>
 #include <lexbase/Errors.hpp>
-#include <QDebug>
+#include <absl/log/log.h>
 
 /// Type constraint for types that can be passed into base methods of the
 /// positional string checking such as `.at()` or `.skip()` as well as all
@@ -29,7 +29,7 @@ template <typename S>
 concept PosStrCheckable = (                                 //
     std::convertible_to<std::remove_cvref_t<S>, QChar>      //
     || std::convertible_to<std::remove_cvref_t<S>, CharSet> //
-    || std::convertible_to<std::remove_cvref_t<S>, QString>);
+    || std::convertible_to<std::remove_cvref_t<S>, std::string>);
 
 
 /// \brief String wrapper with tracked position
@@ -48,10 +48,10 @@ struct PosStr {
     void    print(ColStream& os, CR<PrintParams> params) const;
     void    print() const;
     void    print(ColStream& os) const;
-    void    print(QTextStream& os, CR<PrintParams> params) const;
+    void    print(std::ostream& os, CR<PrintParams> params) const;
     void    print(CR<PrintParams> params) const;
-    QString printToString(bool colored = false) const;
-    QString printToString(PrintParams params, bool colored = false) const;
+    std::string printToString(bool colored = false) const;
+    std::string printToString(PrintParams params, bool colored = false) const;
 
     struct SliceStartData {
         int pos;
@@ -60,14 +60,14 @@ struct PosStr {
     /// \brief Pending slice content
     Vec<SliceStartData> slices;
     /// \brief Underlying string view
-    QStringView view;
+    std::stringView view;
     /// \brief Absolute offset from the start of string view
     int pos = 0;
 
 
     /// \brief Consturct stirng using base view and starting position in
     /// the view
-    PosStr(QStringView inView, int inPos = 0);
+    PosStr(std::stringView inView, int inPos = 0);
 
     /// \brief Consturct positional stirng using start view data and size
     /// of the string
@@ -75,14 +75,14 @@ struct PosStr {
 
     /// \brief Consturct positional stirng using start view data and size
     /// of the string
-    PosStr(QString const& str, int inPos = 0);
+    PosStr(std::string const& str, int inPos = 0);
 
     /// \brief Convert underlying view to the string
     Str toStr() const;
     /// \brief Get size of hte underlying view
     int size() const;
 
-    QStringView getOffsetView(int ahead = 0) const;
+    std::stringView getOffsetView(int ahead = 0) const;
 
     /// \brief Create new positional string using \arg s slice to cut into
     /// underlying view.
@@ -122,7 +122,7 @@ struct PosStr {
 
 
     /// \brief Complete view with given offset parameters
-    QStringView completeView(
+    std::stringView completeView(
         CR<SliceStartData> slice,
         Offset             offset = Offset()) const;
 
@@ -248,12 +248,12 @@ struct PosStr {
 
     LineCol getLineCol();
 
-    using CheckableSkip = Variant<CharSet, QString, QChar>;
+    using CheckableSkip = Variant<CharSet, std::string, QChar>;
 
     /// Skip \arg count steps  ahead if character at \arg offset is
     /// equal to \arg expected
     void skip(QChar expected, int offset = 0, int steps = 1);
-    void skip(QString expected, int offset = 0);
+    void skip(std::string expected, int offset = 0);
     void skip(CR<CharSet> expected, int offset = 0, int steps = 1);
     void skip(CR<QRegularExpression> expected, int offset = 0);
     void skipAny(CR<CheckableSkip> expected, int offset = 0);
@@ -262,7 +262,7 @@ struct PosStr {
     /// expected character.
     bool at(QChar expected, int offset = 0) const;
     bool at(CR<CharSet> expected, int offset = 0) const;
-    bool at(CR<QString> expected, int offset = 0) const;
+    bool at(CR<std::string> expected, int offset = 0) const;
     bool at(CR<QRegularExpression> expected, int offset = 0) const;
     bool atAny(CR<CheckableSkip> expected, int offset = 0) const;
     /// Check if the string is not positioned at a specific item.
@@ -346,7 +346,7 @@ struct PosStr {
 
     void skipBeforeEOL();
 
-    QString getAhead(Slice<int> slice) const;
+    std::string getAhead(Slice<int> slice) const;
     bool    hasAhead(
            const PosStrCheckable auto& item,
            int                         maxLimit = INT_MAX) {
@@ -375,8 +375,8 @@ struct PosStr {
     /// Create new QChar('unexpected character') error at the current
     /// string parsing position.
     UnexpectedCharError makeUnexpected(
-        CR<QString> expected, ///< What we expected to find?
-        CR<QString> parsing   ///< Description of the thing we are
+        CR<std::string> expected, ///< What we expected to find?
+        CR<std::string> parsing   ///< Description of the thing we are
                               /// parsing at the moment
     );
 };
@@ -445,8 +445,8 @@ void skipStringLit(PosStr& str);
 void skipDigit(Ref<PosStr> str);
 
 inline QDebug operator<<(QDebug os, PosStr const& value) {
-    QString     str;
-    QTextStream stream{&str};
+    std::string     str;
+    std::ostream stream{&str};
     ColStream   col{stream};
     value.print(
         col, {.withEnd = false, .withSeparation = false, .maxTokens = 40});

@@ -3,17 +3,17 @@
 
 #include <exporters/Exporter.cpp>
 
-template class Exporter<ExporterUltraplain, QString>;
+template class Exporter<ExporterUltraplain, std::string>;
 
 
-QString ExporterUltraplain::toStr(sem::SemId node) {
+std::string ExporterUltraplain::toStr(sem::SemId node) {
     return strip(
         ExporterUltraplain{}.evalTop(node),
         CharSet{QChar(' ')},
         CharSet{QChar(' ')});
 }
 
-void ExporterUltraplain::visitLink(QString& res, In<sem::Link> link) {
+void ExporterUltraplain::visitLink(std::string& res, In<sem::Link> link) {
     if (link->description) {
         visitDispatch(res, *link->description);
     } else {

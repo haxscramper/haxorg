@@ -6,10 +6,10 @@
 
 struct OrgText {
     struct Word {
-        QString    text;
+        std::string    text;
         sem::SemId id = sem::SemId::Nil();
 
-        QString getText() const { return text; }
+        std::string getText() const { return text; }
     };
 
     Vec<Word> text;
@@ -22,8 +22,8 @@ struct OrgText {
                    });
     }
 
-    QString flatText() const {
-        QString res;
+    std::string flatText() const {
+        std::string res;
         for (auto const& word : this->text) {
             res += word.getText();
         }
@@ -35,7 +35,7 @@ struct OrgText {
         int                               offset = 0;
         Vec<sem::SemId>                   result;
         for (auto const& word : text) {
-            QString    text  = word.getText();
+            std::string    text  = word.getText();
             Slice<int> range = slice1<int>(offset, offset + text.length());
             offset += text.length();
             rangeForId.push_back({range, word.id});

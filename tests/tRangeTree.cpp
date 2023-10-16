@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <QString>
-#include <QDebug>
+#include <string>
+#include <absl/log/log.h>
 #include <hstd/stdlib/RangeTree.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Map.hpp>
@@ -52,7 +52,7 @@ TEST(RangeTreeTest, Queries) {
 }
 
 TEST(LineAndColumnInfoTest, RangeTree) {
-    auto rangeInfo = [](QString const& text) -> LineColInfo {
+    auto rangeInfo = [](std::string const& text) -> LineColInfo {
         return LineColInfo(text);
     };
 

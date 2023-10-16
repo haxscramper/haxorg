@@ -16,7 +16,7 @@
 inline QRegularExpression operator"" _qr(
     const char*   value,
     unsigned long size) {
-    return QRegularExpression(QString(value));
+    return QRegularExpression(std::string(value));
 }
 
 
@@ -25,7 +25,7 @@ using otk = OrgTokenKind;
 
 using Err = OrgTokenizer::Errors;
 
-const auto commandNameMap = std::unordered_map<QString, OrgCommandKind>{
+const auto commandNameMap = std::unordered_map<std::string, OrgCommandKind>{
     {"begin", ock::BeginDynamic},
     {"end", ock::EndDynamic},
 
@@ -78,8 +78,8 @@ const auto commandNameMap = std::unordered_map<QString, OrgCommandKind>{
     {"tblfm", ock::TableFormula},
 };
 
-OrgCommandKind classifyCommand(QString const& command) {
-    QString norm = normalize(command);
+OrgCommandKind classifyCommand(std::string const& command) {
+    std::string norm = normalize(command);
     if (commandNameMap.contains(norm)) {
         return commandNameMap.at(norm);
     } else {
@@ -164,8 +164,8 @@ struct OrgTokenizerImpl
     OrgTokenizerImpl(OrgTokenGroup* out) : Tokenizer<OrgTokenKind>(out) {}
 
 
-    QString debugPos(CR<PosStr> str) const {
-        QString res;
+    std::string debugPos(CR<PosStr> str) const {
+        std::string res;
         if (locationResolver) {
             auto loc = locationResolver(str);
             res      = "$#:$#" % to_string_vec(loc.line, loc.column);
@@ -210,8 +210,8 @@ struct OrgTokenizerImpl
         os << repeat("  ", depth);
 
 
-        auto getLoc = [&]() -> QString {
-            QString res;
+        auto getLoc = [&]() -> std::string {
+            std::string res;
             if (locationResolver && in.str != nullptr) {
                 LineCol loc = locationResolver(*in.str);
                 res = "$#:$# " % to_string_vec(loc.line, loc.column);
@@ -519,13 +519,13 @@ struct AdvCheck {
     int           pos = 0;
     CR<PosStr>    str;
     OrgTokenizer* tok;
-    QString       func;
+    std::string       func;
     struct Error : public std::runtime_error {
-        explicit Error(QString const& msg)
+        explicit Error(std::string const& msg)
             : std::runtime_error(msg.toStdString()) {}
     };
 
-    AdvCheck(CR<PosStr> str, OrgTokenizer* tok, CR<QString> func)
+    AdvCheck(CR<PosStr> str, OrgTokenizer* tok, CR<std::string> func)
         : pos(str.getPos()), str(str), tok(tok), func(func) {}
     ~AdvCheck() {
         if (!(pos < str.getPos())) {
@@ -1164,7 +1164,7 @@ bool OrgTokenizerImpl<TraceState>::lexParenArguments(PosStr& str) {
     auto open = str.tok(otk::ParOpen, skipCb('('));
     __push(open);
     while (str.notAt(QChar(')'))) {
-        qDebug() << str;
+        DLOG(INFO) << str;
         // Read argument until the first comma or closing parent
         auto raw = str.tok(
             otk::RawText,
@@ -1214,7 +1214,7 @@ bool OrgTokenizerImpl<TraceState>::lexTextDollar(PosStr& str) {
             // buf.add(tmp.tok(skip otk::DollarClose,
             // QChar('$'), QChar('$')));
         } else {
-            qDebug() << getLoc(str) << str;
+            DLOG(INFO) << getLoc(str) << str;
 
             buf.push_back(tmp.tok(otk::DollarOpen, skipCb('$')));
             buf.push_back(
@@ -2031,7 +2031,7 @@ bool OrgTokenizerImpl<TraceState>::lexSingleProperty(
     }
 
     spaceSkip(str);
-    QString name = normalize(id.toStr());
+    std::string name = normalize(id.toStr());
     if (name == "created") {
         lexTimeStamp(str);
     } else {
@@ -2169,7 +2169,7 @@ bool OrgTokenizerImpl<TraceState>::lexDrawer(PosStr& str) {
     spaceSkip(str);
     auto strEnded = false;
     while (!str.finished() && !strEnded) {
-        // qDebug() << str;
+        // DLOG(INFO) << str;
         spaceSkip(str);
         const auto id = str.slice([this](PosStr& str) {
             oskipOne(str, QChar(':'));
@@ -2201,7 +2201,7 @@ bool OrgTokenizerImpl<TraceState>::lexDrawer(PosStr& str) {
                 "(normalized as '$#'), located at $#"
                 % to_string_vec(id.toStr(), norm, debugPos(str)));
         }
-        // qDebug() << str;
+        // DLOG(INFO) << str;
 
         auto ahead = str;
         ahead.space();
@@ -2212,13 +2212,13 @@ bool OrgTokenizerImpl<TraceState>::lexDrawer(PosStr& str) {
                 str      = ahead;
             }
         }
-        // qDebug() << strEnded;
+        // DLOG(INFO) << strEnded;
         if (!strEnded) {
             while (str.at(ONewline)) {
                 newlineSkip(str);
             }
         }
-        // qDebug() << str;
+        // DLOG(INFO) << str;
     }
     __end(str);
     return true;
@@ -2263,10 +2263,10 @@ bool OrgTokenizerImpl<TraceState>::lexSubtreeTitle(PosStr& str) {
     spaceSkip(str);
     auto body = str.slice(skipToEOL);
 
-    QStringView      full = body.view;
-    Opt<QStringView> tags;
-    Opt<QStringView> completion;
-    QStringView      title;
+    std::stringView      full = body.view;
+    Opt<std::stringView> tags;
+    Opt<std::stringView> completion;
+    std::stringView      title;
 
     if (full.endsWith(':')) {
         int shift = full.size() - 1;
@@ -3401,7 +3401,7 @@ bool OrgTokenizerImpl<TraceState>::lexStructure(PosStr& str) {
         case ' ': {
             spaceSkip(str);
             if (atListAhead(str)) {
-                qDebug() << str;
+                DLOG(INFO) << str;
                 auto err = Errors::UnexpectedConstruct(
                     str,
                     "encountered indented list during top-level "

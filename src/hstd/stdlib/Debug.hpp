@@ -3,14 +3,14 @@
 #include <hstd/system/string_convert.hpp>
 #include <hstd/stdlib/ColText.hpp>
 
-#include <QDebug>
-#include <QString>
-#include <QTextStream>
+#include <absl/log/log.h>
+#include <string>
+#include <iostream>
 
 template <StringConvertible T>
 QDebug operator<<(QDebug debug, T const& value) {
-    QString          result;
-    QTextStream      stream{&result};
+    std::string          result;
+    std::ostream      stream{&result};
     QDebugStateSaver saver{debug};
     stream << to_string(value);
     debug.nospace().noquote() << result;
@@ -20,25 +20,25 @@ QDebug operator<<(QDebug debug, T const& value) {
 void tracedMessageHandler(
     QtMsgType                 type,
     const QMessageLogContext& context,
-    const QString&            msg);
+    const std::string&            msg);
 
-void setMessageStream(QTextStream& stream);
+void setMessageStream(std::ostream& stream);
 
 inline void qt_assert_x(
-    CR<QString> where,
-    CR<QString> what,
+    CR<std::string> where,
+    CR<std::string> what,
     const char* file,
     int         line) noexcept {
     qt_assert_x(strdup(where), strdup(what), file, line);
 }
 
-inline void fatal(CR<QString> msg) { fatal(strdup(msg)); }
+inline void fatal(CR<std::string> msg) { fatal(strdup(msg)); }
 
 #define qDebugIndent(indent)                                              \
-    qDebug().noquote() << QString("  ").repeated(indent)
+    DLOG(INFO).noquote() << std::string("  ").repeated(indent)
 
 #define _dbg(expr)                                                        \
     ([](auto const& it) {                                                 \
-        qDebug() << (#expr) << " = ⦃" << it << "⦄";                       \
+        DLOG(INFO) << (#expr) << " = ⦃" << it << "⦄";                       \
         return it;                                                        \
     }((expr)))

@@ -1754,9 +1754,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
          pybind11::arg("node"),
          R"RAW(Visit top-level node of the exporter, filling in the internal
 return state.)RAW")
-    .def("exportToString", static_cast<QString(OrgExporterJson::*)()>(&OrgExporterJson::exportToString))
+    .def("exportToString", static_cast<std::string(OrgExporterJson::*)()>(&OrgExporterJson::exportToString))
     .def("exportToFile",
-         static_cast<void(OrgExporterJson::*)(QString)>(&OrgExporterJson::exportToFile),
+         static_cast<void(OrgExporterJson::*)(std::string)>(&OrgExporterJson::exportToFile),
          pybind11::arg("path"))
     ;
   pybind11::class_<ExporterTreeOpts>(m, "ExporterTreeOpts")
@@ -1771,11 +1771,11 @@ return state.)RAW")
   pybind11::class_<OrgExporterTree>(m, "OrgExporterTree")
     .def(pybind11::init<>())
     .def("toString",
-         static_cast<QString(OrgExporterTree::*)(sem::SemId, ExporterTreeOpts)>(&OrgExporterTree::toString),
+         static_cast<std::string(OrgExporterTree::*)(sem::SemId, ExporterTreeOpts)>(&OrgExporterTree::toString),
          pybind11::arg("node"),
          pybind11::arg("opts"))
     .def("toFile",
-         static_cast<void(OrgExporterTree::*)(sem::SemId, QString, ExporterTreeOpts)>(&OrgExporterTree::toFile),
+         static_cast<void(OrgExporterTree::*)(sem::SemId, std::string, ExporterTreeOpts)>(&OrgExporterTree::toFile),
          pybind11::arg("node"),
          pybind11::arg("path"),
          pybind11::arg("opts"))
@@ -1787,9 +1787,9 @@ return state.)RAW")
          pybind11::arg("node"),
          R"RAW(Visit top-level node of the exporter, filling in the internal
 return state.)RAW")
-    .def("exportToString", static_cast<QString(OrgExporterYaml::*)()>(&OrgExporterYaml::exportToString))
+    .def("exportToString", static_cast<std::string(OrgExporterYaml::*)()>(&OrgExporterYaml::exportToString))
     .def("exportToFile",
-         static_cast<void(OrgExporterYaml::*)(QString)>(&OrgExporterYaml::exportToFile),
+         static_cast<void(OrgExporterYaml::*)(std::string)>(&OrgExporterYaml::exportToFile),
          pybind11::arg("path"))
     ;
   pybind11::class_<OrgContext>(m, "OrgContext")
@@ -1799,13 +1799,13 @@ return state.)RAW")
          static_cast<void(OrgContext::*)(std::basic_string<char>)>(&OrgContext::parseFile),
          pybind11::arg("file"))
     .def("loadStore",
-         static_cast<void(OrgContext::*)(QString)>(&OrgContext::loadStore),
+         static_cast<void(OrgContext::*)(std::string)>(&OrgContext::loadStore),
          pybind11::arg("path"))
     .def("writeStore",
-         static_cast<void(OrgContext::*)(QString)>(&OrgContext::writeStore),
+         static_cast<void(OrgContext::*)(std::string)>(&OrgContext::writeStore),
          pybind11::arg("path"))
     .def("parseString",
-         static_cast<void(OrgContext::*)(QString)>(&OrgContext::parseString),
+         static_cast<void(OrgContext::*)(std::string)>(&OrgContext::parseString),
          pybind11::arg("text"))
     .def("getNode", static_cast<sem::SemIdT<sem::Document>(OrgContext::*)()>(&OrgContext::getNode))
     ;
@@ -1815,9 +1815,9 @@ return state.)RAW")
          static_cast<void(ExporterPython::*)(pybind11::object)>(&ExporterPython::enablePyStreamTrace),
          pybind11::arg("stream"))
     .def("enableBufferTrace", static_cast<void(ExporterPython::*)()>(&ExporterPython::enableBufferTrace))
-    .def("getTraceBuffer", static_cast<QString(ExporterPython::*)() const>(&ExporterPython::getTraceBuffer))
+    .def("getTraceBuffer", static_cast<std::string(ExporterPython::*)() const>(&ExporterPython::getTraceBuffer))
     .def("enableFileTrace",
-         static_cast<void(ExporterPython::*)(QString const&)>(&ExporterPython::enableFileTrace),
+         static_cast<void(ExporterPython::*)(std::string const&)>(&ExporterPython::enableFileTrace),
          pybind11::arg("path"))
     .def("setVisitAnyIdAround",
          static_cast<void(ExporterPython::*)(pybind11::function)>(&ExporterPython::setVisitAnyIdAround),

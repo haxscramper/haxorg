@@ -1,6 +1,6 @@
 #include "SemOrgEnums.hpp"
 
-Opt<OrgSemPlacement> enum_serde<OrgSemPlacement>::from_string(QString value) {
+Opt<OrgSemPlacement> enum_serde<OrgSemPlacement>::from_string(std::string value) {
   if (value == "TreeTitle") { return OrgSemPlacement::TreeTitle; } else
   if (value == "TreeBody") { return OrgSemPlacement::TreeBody; } else
   if (value == "LinkDescription") { return OrgSemPlacement::LinkDescription; } else
@@ -9,7 +9,7 @@ Opt<OrgSemPlacement> enum_serde<OrgSemPlacement>::from_string(QString value) {
   if (value == "DocBody") { return OrgSemPlacement::DocBody; } else
   { return std::nullopt; }
 }
-QString enum_serde<OrgSemPlacement>::to_string(OrgSemPlacement value) {
+std::string enum_serde<OrgSemPlacement>::to_string(OrgSemPlacement value) {
   switch (value) {
     case OrgSemPlacement::TreeTitle: return "TreeTitle";
     case OrgSemPlacement::TreeBody: return "TreeBody";
@@ -21,14 +21,14 @@ QString enum_serde<OrgSemPlacement>::to_string(OrgSemPlacement value) {
   }
 }
 
-Opt<OrgHorizontalDirection> enum_serde<OrgHorizontalDirection>::from_string(QString value) {
+Opt<OrgHorizontalDirection> enum_serde<OrgHorizontalDirection>::from_string(std::string value) {
   if (value == "ohdNone") { return OrgHorizontalDirection::ohdNone; } else
   if (value == "ohdLeft") { return OrgHorizontalDirection::ohdLeft; } else
   if (value == "ohdRight") { return OrgHorizontalDirection::ohdRight; } else
   if (value == "ohdCenter") { return OrgHorizontalDirection::ohdCenter; } else
   { return std::nullopt; }
 }
-QString enum_serde<OrgHorizontalDirection>::to_string(OrgHorizontalDirection value) {
+std::string enum_serde<OrgHorizontalDirection>::to_string(OrgHorizontalDirection value) {
   switch (value) {
     case OrgHorizontalDirection::ohdNone: return "ohdNone";
     case OrgHorizontalDirection::ohdLeft: return "ohdLeft";
@@ -38,14 +38,14 @@ QString enum_serde<OrgHorizontalDirection>::to_string(OrgHorizontalDirection val
   }
 }
 
-Opt<OrgVerticalDirection> enum_serde<OrgVerticalDirection>::from_string(QString value) {
+Opt<OrgVerticalDirection> enum_serde<OrgVerticalDirection>::from_string(std::string value) {
   if (value == "ovdNone") { return OrgVerticalDirection::ovdNone; } else
   if (value == "ovdTop") { return OrgVerticalDirection::ovdTop; } else
   if (value == "ovdCenter") { return OrgVerticalDirection::ovdCenter; } else
   if (value == "ovdBottom") { return OrgVerticalDirection::ovdBottom; } else
   { return std::nullopt; }
 }
-QString enum_serde<OrgVerticalDirection>::to_string(OrgVerticalDirection value) {
+std::string enum_serde<OrgVerticalDirection>::to_string(OrgVerticalDirection value) {
   switch (value) {
     case OrgVerticalDirection::ovdNone: return "ovdNone";
     case OrgVerticalDirection::ovdTop: return "ovdTop";
@@ -55,7 +55,7 @@ QString enum_serde<OrgVerticalDirection>::to_string(OrgVerticalDirection value) 
   }
 }
 
-Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(QString value) {
+Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(std::string value) {
   if (value == "Unnamed") { return OrgSpecName::Unnamed; } else
   if (value == "Result") { return OrgSpecName::Result; } else
   if (value == "Year") { return OrgSpecName::Year; } else
@@ -118,7 +118,7 @@ Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(QString value) {
   if (value == "SubSetRule") { return OrgSpecName::SubSetRule; } else
   { return std::nullopt; }
 }
-QString enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
+std::string enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
   switch (value) {
     case OrgSpecName::Unnamed: return "Unnamed";
     case OrgSpecName::Result: return "Result";
@@ -184,7 +184,7 @@ QString enum_serde<OrgSpecName>::to_string(OrgSpecName value) {
   }
 }
 
-Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(QString value) {
+Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "None") { return OrgNodeKind::None; } else
   if (value == "Document") { return OrgNodeKind::Document; } else
   if (value == "UserNode") { return OrgNodeKind::UserNode; } else
@@ -328,7 +328,7 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(QString value) {
   if (value == "Target") { return OrgNodeKind::Target; } else
   { return std::nullopt; }
 }
-QString enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
+std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
   switch (value) {
     case OrgNodeKind::None: return "None";
     case OrgNodeKind::Document: return "Document";
@@ -475,7 +475,7 @@ QString enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
   }
 }
 
-Opt<OrgTextContext> enum_serde<OrgTextContext>::from_string(QString value) {
+Opt<OrgTextContext> enum_serde<OrgTextContext>::from_string(std::string value) {
   if (value == "otcPlain") { return OrgTextContext::otcPlain; } else
   if (value == "otcSubtree0") { return OrgTextContext::otcSubtree0; } else
   if (value == "otcSubtree1") { return OrgTextContext::otcSubtree1; } else
@@ -499,7 +499,7 @@ Opt<OrgTextContext> enum_serde<OrgTextContext>::from_string(QString value) {
   if (value == "otcMonospaceBlock") { return OrgTextContext::otcMonospaceBlock; } else
   { return std::nullopt; }
 }
-QString enum_serde<OrgTextContext>::to_string(OrgTextContext value) {
+std::string enum_serde<OrgTextContext>::to_string(OrgTextContext value) {
   switch (value) {
     case OrgTextContext::otcPlain: return "otcPlain";
     case OrgTextContext::otcSubtree0: return "otcSubtree0";
@@ -526,7 +526,7 @@ QString enum_serde<OrgTextContext>::to_string(OrgTextContext value) {
   }
 }
 
-Opt<OrgBigIdentKind> enum_serde<OrgBigIdentKind>::from_string(QString value) {
+Opt<OrgBigIdentKind> enum_serde<OrgBigIdentKind>::from_string(std::string value) {
   if (value == "None") { return OrgBigIdentKind::None; } else
   if (value == "Must") { return OrgBigIdentKind::Must; } else
   if (value == "MustNot") { return OrgBigIdentKind::MustNot; } else
@@ -594,7 +594,7 @@ Opt<OrgBigIdentKind> enum_serde<OrgBigIdentKind>::from_string(QString value) {
   if (value == "StructWhile") { return OrgBigIdentKind::StructWhile; } else
   { return std::nullopt; }
 }
-QString enum_serde<OrgBigIdentKind>::to_string(OrgBigIdentKind value) {
+std::string enum_serde<OrgBigIdentKind>::to_string(OrgBigIdentKind value) {
   switch (value) {
     case OrgBigIdentKind::None: return "None";
     case OrgBigIdentKind::Must: return "Must";
@@ -665,7 +665,7 @@ QString enum_serde<OrgBigIdentKind>::to_string(OrgBigIdentKind value) {
   }
 }
 
-Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(QString value) {
+Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "None") { return OrgTokenKind::None; } else
   if (value == "Eof") { return OrgTokenKind::Eof; } else
   if (value == "GroupStart") { return OrgTokenKind::GroupStart; } else
@@ -886,7 +886,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(QString value) {
   if (value == "TextBlock") { return OrgTokenKind::TextBlock; } else
   { return std::nullopt; }
 }
-QString enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
+std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
   switch (value) {
     case OrgTokenKind::None: return "None";
     case OrgTokenKind::Eof: return "Eof";
@@ -1110,7 +1110,7 @@ QString enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
   }
 }
 
-Opt<OrgCommandKind> enum_serde<OrgCommandKind>::from_string(QString value) {
+Opt<OrgCommandKind> enum_serde<OrgCommandKind>::from_string(std::string value) {
   if (value == "None") { return OrgCommandKind::None; } else
   if (value == "Include") { return OrgCommandKind::Include; } else
   if (value == "Filetags") { return OrgCommandKind::Filetags; } else
@@ -1162,7 +1162,7 @@ Opt<OrgCommandKind> enum_serde<OrgCommandKind>::from_string(QString value) {
   if (value == "TableFormula") { return OrgCommandKind::TableFormula; } else
   { return std::nullopt; }
 }
-QString enum_serde<OrgCommandKind>::to_string(OrgCommandKind value) {
+std::string enum_serde<OrgCommandKind>::to_string(OrgCommandKind value) {
   switch (value) {
     case OrgCommandKind::None: return "None";
     case OrgCommandKind::Include: return "Include";
@@ -1217,7 +1217,7 @@ QString enum_serde<OrgCommandKind>::to_string(OrgCommandKind value) {
   }
 }
 
-Opt<OrgPropertyKind> enum_serde<OrgPropertyKind>::from_string(QString value) {
+Opt<OrgPropertyKind> enum_serde<OrgPropertyKind>::from_string(std::string value) {
   if (value == "Title") { return OrgPropertyKind::Title; } else
   if (value == "Author") { return OrgPropertyKind::Author; } else
   if (value == "Date") { return OrgPropertyKind::Date; } else
@@ -1247,7 +1247,7 @@ Opt<OrgPropertyKind> enum_serde<OrgPropertyKind>::from_string(QString value) {
   if (value == "Id") { return OrgPropertyKind::Id; } else
   { return std::nullopt; }
 }
-QString enum_serde<OrgPropertyKind>::to_string(OrgPropertyKind value) {
+std::string enum_serde<OrgPropertyKind>::to_string(OrgPropertyKind value) {
   switch (value) {
     case OrgPropertyKind::Title: return "Title";
     case OrgPropertyKind::Author: return "Author";
@@ -1280,13 +1280,13 @@ QString enum_serde<OrgPropertyKind>::to_string(OrgPropertyKind value) {
   }
 }
 
-Opt<OrgUnnumberedKind> enum_serde<OrgUnnumberedKind>::from_string(QString value) {
+Opt<OrgUnnumberedKind> enum_serde<OrgUnnumberedKind>::from_string(std::string value) {
   if (value == "Notoc") { return OrgUnnumberedKind::Notoc; } else
   if (value == "True") { return OrgUnnumberedKind::True; } else
   if (value == "False") { return OrgUnnumberedKind::False; } else
   { return std::nullopt; }
 }
-QString enum_serde<OrgUnnumberedKind>::to_string(OrgUnnumberedKind value) {
+std::string enum_serde<OrgUnnumberedKind>::to_string(OrgUnnumberedKind value) {
   switch (value) {
     case OrgUnnumberedKind::Notoc: return "Notoc";
     case OrgUnnumberedKind::True: return "True";
@@ -1295,7 +1295,7 @@ QString enum_serde<OrgUnnumberedKind>::to_string(OrgUnnumberedKind value) {
   }
 }
 
-Opt<OrgBlockLexerState> enum_serde<OrgBlockLexerState>::from_string(QString value) {
+Opt<OrgBlockLexerState> enum_serde<OrgBlockLexerState>::from_string(std::string value) {
   if (value == "None") { return OrgBlockLexerState::None; } else
   if (value == "InHeader") { return OrgBlockLexerState::InHeader; } else
   if (value == "InBody") { return OrgBlockLexerState::InBody; } else
@@ -1303,7 +1303,7 @@ Opt<OrgBlockLexerState> enum_serde<OrgBlockLexerState>::from_string(QString valu
   if (value == "Complete") { return OrgBlockLexerState::Complete; } else
   { return std::nullopt; }
 }
-QString enum_serde<OrgBlockLexerState>::to_string(OrgBlockLexerState value) {
+std::string enum_serde<OrgBlockLexerState>::to_string(OrgBlockLexerState value) {
   switch (value) {
     case OrgBlockLexerState::None: return "None";
     case OrgBlockLexerState::InHeader: return "InHeader";
@@ -1314,7 +1314,7 @@ QString enum_serde<OrgBlockLexerState>::to_string(OrgBlockLexerState value) {
   }
 }
 
-Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(QString value) {
+Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(std::string value) {
   if (value == "StmtList") { return OrgSemKind::StmtList; } else
   if (value == "Empty") { return OrgSemKind::Empty; } else
   if (value == "Row") { return OrgSemKind::Row; } else
@@ -1369,7 +1369,7 @@ Opt<OrgSemKind> enum_serde<OrgSemKind>::from_string(QString value) {
   if (value == "DocumentGroup") { return OrgSemKind::DocumentGroup; } else
   { return std::nullopt; }
 }
-QString enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
+std::string enum_serde<OrgSemKind>::to_string(OrgSemKind value) {
   switch (value) {
     case OrgSemKind::StmtList: return "StmtList";
     case OrgSemKind::Empty: return "Empty";

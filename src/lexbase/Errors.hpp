@@ -10,7 +10,7 @@ struct LineCol {
     int pos = -1;
 };
 
-inline QTextStream& operator<<(QTextStream& os, LineCol const& value) {
+inline std::ostream& operator<<(std::ostream& os, LineCol const& value) {
     return os << "{.line = $#, .column = $#, .pos = $#}"
                      % to_string_vec(value.line, value.column, value.pos);
 }
@@ -21,30 +21,30 @@ struct ParseError : public std::runtime_error {
     /// offset
     std::variant<LineCol, int> loc;
 
-    explicit ParseError(const QString& message, LineCol _loc = LineCol{})
+    explicit ParseError(const std::string& message, LineCol _loc = LineCol{})
         : std::runtime_error(message.toStdString()), loc(_loc) {}
 
-    explicit ParseError(const QString& message, int _loc)
+    explicit ParseError(const std::string& message, int _loc)
         : std::runtime_error(message.toStdString()), loc(_loc) {}
 };
 
 /// \brief Base lexer error type
 struct LexerError : public ParseError {
-    explicit LexerError(const QString& message, LineCol _loc = LineCol{})
+    explicit LexerError(const std::string& message, LineCol _loc = LineCol{})
         : ParseError(message, _loc) {}
 
-    explicit LexerError(const QString& message, int _loc)
+    explicit LexerError(const std::string& message, int _loc)
         : ParseError(message, _loc) {}
 };
 
 /// \brief Raised when unexpected character is encountered at position
 struct UnexpectedCharError : public LexerError {
     explicit UnexpectedCharError(
-        const QString& message,
+        const std::string& message,
         LineCol        _loc = LineCol{})
         : LexerError(message, _loc) {}
 
-    explicit UnexpectedCharError(const QString& message, int pos)
+    explicit UnexpectedCharError(const std::string& message, int pos)
         : LexerError(message, pos) {}
 };
 
@@ -52,11 +52,11 @@ struct UnexpectedCharError : public LexerError {
 /// \brief Raised when string unexpectedly ended
 struct UnexpectedEndError : public LexerError {
     explicit UnexpectedEndError(
-        const QString& message,
+        const std::string& message,
         LineCol        _loc = LineCol{})
         : LexerError(message, _loc) {}
 
-    explicit UnexpectedEndError(const QString& message, int pos)
+    explicit UnexpectedEndError(const std::string& message, int pos)
         : LexerError(message, pos) {}
 };
 

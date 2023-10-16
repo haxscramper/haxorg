@@ -4,17 +4,15 @@
 #include <graphviz/cgraph.h>
 #include <string>
 #include <stdexcept>
-#include <QString>
+#include <string>
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
-#include <QPointF>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <new>
 #include <hstd/stdlib/Func.hpp>
-#include <QColor>
 #include <hstd/system/generator.hpp>
 
 class QFileInfo;
@@ -62,8 +60,8 @@ class Graphviz {
         Right
     };
 
-    static QString alignText(QString const& text, TextAlign direction) {
-        QString res = text;
+    static std::string alignText(std::string const& text, TextAlign direction) {
+        std::string res = text;
         switch (direction) {
             case TextAlign::Left: res.replace("\n", "\\l"); break;
             case TextAlign::Right: res.replace("\n", "\\r"); break;
@@ -77,7 +75,7 @@ class Graphviz {
         using CRTP_this_method<T>::_this;
 
         template <typename Rec, typename... Args>
-        Rec* bindRecord(QString const& name, Args&&... args) {
+        Rec* bindRecord(std::string const& name, Args&&... args) {
             Rec* result = (Rec*)agbindrec(
                 _this()->get(), strdup(name), sizeof(Rec), false);
             if (result != nullptr) {
@@ -89,72 +87,72 @@ class Graphviz {
         }
 
         template <typename Rec>
-        Rec* getRecord(QString const& name) {
+        Rec* getRecord(std::string const& name) {
             return (Rec*)aggetrec(_this()->get(), strdup(name), false);
         }
 
-        void delRecord(QString const& name) {
+        void delRecord(std::string const& name) {
             agdelrec(_this()->get(), strdup(name));
         }
 
-        Func<void(QString const&, QString const&)> setOverride;
+        Func<void(std::string const&, std::string const&)> setOverride;
 
 
         void setAttr(
-            QString const& attribute,
-            QString const& value,
+            std::string const& attribute,
+            std::string const& value,
             TextAlign      direction) {
             setAttr(attribute, alignText(value, direction));
         }
 
         template <typename AttrType>
-        Opt<AttrType> getAttr(QString const& attribute) const {
+        Opt<AttrType> getAttr(std::string const& attribute) const {
             Opt<AttrType> res;
             getAttr(attribute, res);
             return res;
         }
 
-        bool hasAttr(QString const& attribute) {
+        bool hasAttr(std::string const& attribute) {
             return agget(_this()->get(), strdup(attribute)) != nullptr;
         }
 
-        void getAttr(QString const& attribute, Opt<QString>& value) const {
+        void getAttr(std::string const& attribute, Opt<std::string>& value) const {
             char* found = agget(
                 (void*)(_this()->get()), strdup(attribute));
 
             if (found != nullptr) {
-                value = QString::fromStdString(found);
+                value = std::string::fromStdString(found);
             } else {
                 value = std::nullopt;
             }
         }
 
-        void getAttr(QString const& key, Opt<int>& value) const {
-            Opt<QString> tmp;
+        void getAttr(std::string const& key, Opt<int>& value) const {
+            Opt<std::string> tmp;
             getAttr(key, tmp);
             if (tmp) {
                 value = tmp->toInt();
             }
         }
 
-        void getAttr(QString const& key, Opt<double>& value) const {
-            Opt<QString> tmp;
+        void getAttr(std::string const& key, Opt<double>& value) const {
+            Opt<std::string> tmp;
             getAttr(key, tmp);
             if (tmp) {
                 value = tmp->toDouble();
             }
         }
 
-        void getAttr(QString const& key, Opt<QColor>& value) const {
-            Opt<QString> tmp;
+        void getAttr(std::string const& key, Opt<QColor>& value) const {
+            Opt<std::string> tmp;
             getAttr(key, tmp);
             if (tmp) {
                 value = QColor::fromString(*tmp);
             }
         }
 
-        void getAttr(QString const& key, Opt<bool>& value) const {
-            Opt<QString> tmp;
+        void getAttr(std::string const& key, Opt<bool>& value) const {
+            Opt<std::string> tmp;
             getAttr(key, tmp);
             if (tmp) {
                 value = *tmp == "true";
@@ -162,8 +160,8 @@ class Graphviz {
         }
 
 
-        void getAttr(QString const& key, Opt<QPointF>& value) const {
-            Opt<QString> tmp;
+        void getAttr(std::string const& key, Opt<QPointF>& value) const {
+            Opt<std::string> tmp;
             getAttr(key, tmp);
             if (tmp) {
                 auto split = tmp->split(",");
@@ -171,7 +169,7 @@ class Graphviz {
             }
         }
 
-        void setAttr(QString const& attribute, QString const& value) {
+        void setAttr(std::string const& attribute, std::string const& value) {
             if (setOverride) {
                 setOverride(attribute, value);
             } else {
@@ -183,25 +181,25 @@ class Graphviz {
             }
         }
 
-        void setAttr(QString const& key, int value) {
-            _this()->setAttr(key, QString::number(value));
+        void setAttr(std::string const& key, int value) {
+            _this()->setAttr(key, std::string::number(value));
         }
 
-        void setAttr(QString const& key, QPointF value) {
+        void setAttr(std::string const& key, QPointF value) {
             _this()->setAttr(
-                key, QString("%1,%2").arg(value.x(), value.y()));
+                key, std::string("%1,%2").arg(value.x(), value.y()));
         }
 
-        void setAttr(QString const& key, double value) {
-            _this()->setAttr(key, QString::number(value));
+        void setAttr(std::string const& key, double value) {
+            _this()->setAttr(key, std::string::number(value));
         }
 
-        void setAttr(QString const& key, QColor const& value) {
+        void setAttr(std::string const& key, QColor const& value) {
             _this()->setAttr(key, value.name());
         }
 
-        void setAttr(QString const& key, bool value) {
-            _this()->setAttr(key, QString(value ? "true" : "false"));
+        void setAttr(std::string const& key, bool value) {
+            _this()->setAttr(key, std::string(value ? "true" : "false"));
         }
 
         Agobj_s*       obj() { return (Agobj_s*)(_this()->get()); }
@@ -218,8 +216,8 @@ class Graphviz {
     class Node : public GraphvizObjBase<Node> {
       public:
         struct Record {
-            static QString escape(QString const& input) {
-                QString escaped = input;
+            static std::string escape(std::string const& input) {
+                std::string escaped = input;
                 escaped.replace("\\", "\\\\");
                 escaped.replace("\"", "\\\"");
                 escaped.replace("<", "\\<");
@@ -251,7 +249,7 @@ class Graphviz {
                 return std::holds_alternative<Str>(content);
             }
 
-            void set(QString const& columnKey, CR<Record> value);
+            void set(std::string const& columnKey, CR<Record> value);
 
             bool       isRecord() const { return !isFinal(); }
             Str&       getLabel() { return std::get<Str>(content); }
@@ -276,18 +274,18 @@ class Graphviz {
 
         void finishRecord() { setLabel(getNodeRecord()->toString()); }
 
-        Node(Agraph_t* graph, QString const& name, Record const& record);
+        Node(Agraph_t* graph, std::string const& name, Record const& record);
 
         Node(Agraph_t* graph, Agnode_t* node_)
             : node(node_), graph(graph) {}
 
-        Node(Agraph_t* graph, QString const& name);
+        Node(Agraph_t* graph, std::string const& name);
 
         Agnode_t*       get() { return node; }
         Agnode_t const* get() const { return node; }
 
-        QString name() const {
-            return QString::fromStdString(agnameof(node));
+        std::string name() const {
+            return std::string::fromStdString(agnameof(node));
         }
 
         generator<CRw<Edge>> outgoing();
@@ -419,23 +417,23 @@ class Graphviz {
         /// \brief Font color of the node's label
         _attr(FontColor, fontcolor, QColor);
         /// \brief Font name of the node's label
-        _attr(FontName, fontname, QString);
+        _attr(FontName, fontname, std::string);
         /// \brief Font size of the node's label
         _attr(FontSize, fontsize, double);
         /// \brief Height of the node
         _attr(Height, height, double);
         /// \brief Label (text) of the node
-        _attr_aligned(Label, label, QString);
+        _attr_aligned(Label, label, std::string);
         /// \brief Position of the node's center
         _attr(Position, pos, QPointF);
         /// \brief Shape of the node
-        _attr(Shape, shape, QString);
+        _attr(Shape, shape, std::string);
         /// \brief URL associated with the node
-        _attr(URL, URL, QString);
+        _attr(URL, URL, std::string);
         /// \brief Width of the node
         _attr(Width, width, double);
         /// \brief External label (text) of the node
-        _attr_aligned(XLabel, xlabel, QString);
+        _attr_aligned(XLabel, xlabel, std::string);
         /// \brief Position of the node's external label
         _attr(XLabelPosition, xlabelpos, QPointF);
 
@@ -458,25 +456,25 @@ class Graphviz {
         Node tail() { return Node(graph, AGTAIL(edge_)); }
 
         /// \brief Color of the edge
-        _attr(Color, color, QString /*QColor*/);
+        _attr(Color, color, std::string /*QColor*/);
         /// \brief Font color of the edge's label
-        _attr(FontColor, fontcolor, QString /*QColor*/);
+        _attr(FontColor, fontcolor, std::string /*QColor*/);
         /// \brief Font name of the edge's label
-        _attr(FontName, fontname, QString);
+        _attr(FontName, fontname, std::string);
         /// \brief Font size of the edge's label
         _attr(FontSize, fontsize, double);
         /// \brief Label (text) of the edge
-        _attr_aligned(Label, label, QString);
+        _attr_aligned(Label, label, std::string);
         /// \brief Position of the edge's label
         _attr(LabelPosition, lp, QPointF);
         /// \brief Width of the edge's line
         _attr(PenWidth, penwidth, double);
         /// \brief Style of the edge's line
-        _attr(Style, style, QString);
+        _attr(Style, style, std::string);
         /// \brief URL associated with the edge
-        _attr(URL, URL, QString);
-        _attr(LHead, lhead, QString);
-        _attr(LTail, ltail, QString);
+        _attr(URL, URL, std::string);
+        _attr(LHead, lhead, std::string);
+        _attr(LTail, ltail, std::string);
 
         void setLHead(Node node) { setLHead(node.name()); }
         void setLTail(Node node) { setLTail(node.name()); }
@@ -494,7 +492,7 @@ class Graphviz {
         Edge defaultEdge;
 
 
-        Graph(QString const& name, Agdesc_t desc = Agdirected);
+        Graph(std::string const& name, Agdesc_t desc = Agdirected);
         Graph(QFileInfo const& file);
         Graph(Agraph_t* graph)
             : graph(graph)
@@ -514,7 +512,7 @@ class Graphviz {
         };
 
 
-        Graph newSubgraph(QString const& name) {
+        Graph newSubgraph(std::string const& name) {
             return Graph(agsubg(graph, strdup(name), 1));
         }
 
@@ -524,7 +522,7 @@ class Graphviz {
 
 
         /// Set default attriute value for edge
-        void setDefaultEdgeAttr(QString const& key, QString const& value) {
+        void setDefaultEdgeAttr(std::string const& key, std::string const& value) {
 
         }
 
@@ -532,7 +530,7 @@ class Graphviz {
             agsubnode(graph, node.node, 1);
             return node;
         }
-        Node node(QString const& name) {
+        Node node(std::string const& name) {
             Q_CHECK_PTR(graph);
             auto tmp = Node(graph, name);
             return tmp;
@@ -544,7 +542,7 @@ class Graphviz {
             return tmp;
         }
 
-        Edge edge(CR<QString> head, CR<QString> tail) {
+        Edge edge(CR<std::string> head, CR<std::string> tail) {
             return edge(Node(graph, head), Node(graph, tail));
         }
 
@@ -563,7 +561,7 @@ class Graphviz {
         /// \brief Spring constant factor for force-directed layout
         _attr(K, K, double);
         /// \brief URL associated with the graph
-        _attr(URL, URL, QString);
+        _attr(URL, URL, std::string);
         /// \brief Desired aspect ratio of the drawing
         _attr(AspectRatio, aspect, double);
         /// \brief Background color of the graph
@@ -577,29 +575,29 @@ class Graphviz {
         /// \brief Font color
         _attr(FontColor, fontcolor, QColor);
         /// \brief Font name
-        _attr(FontName, fontname, QString);
+        _attr(FontName, fontname, std::string);
         /// \brief Font size
         _attr(FontSize, fontsize, double);
         /// \brief Label (title) of the graph
-        _attr_aligned(Label, label, QString);
+        _attr_aligned(Label, label, std::string);
         /// \brief URL associated with the graph label
-        _attr_aligned(LabelURL, labelURL, QString);
+        _attr_aligned(LabelURL, labelURL, std::string);
         /// \brief Horizontal placement of the graph label
-        _attr(LabelJustification, labeljust, QString);
+        _attr(LabelJustification, labeljust, std::string);
         /// \brief Vertical placement of the graph label
-        _attr(LabelLocator, labelloc, QString);
+        _attr(LabelLocator, labelloc, std::string);
         /// \brief Layer separator character
-        _attr(LayerListSeparator, layersep, QString);
+        _attr(LayerListSeparator, layersep, std::string);
         /// \brief List of layers in the graph
-        _attr(Layers, layers, QString);
+        _attr(Layers, layers, std::string);
         /// \brief Margin around the drawing
         _attr(Margin, margin, QPointF);
         /// \brief Minimum separation between nodes
         _attr(NodeSeparation, nodesep, double);
         /// \brief Order in which nodes and edges are drawn
-        _attr(OutputOrder, outputorder, QString);
+        _attr(OutputOrder, outputorder, std::string);
         /// \brief Direction of page layout
-        _attr(PageDirection, pagedir, QString);
+        _attr(PageDirection, pagedir, std::string);
         /// \brief Height of output pages
         _attr(PageHeight, pageheight, double);
         /// \brief Width of output pages
@@ -615,9 +613,9 @@ class Graphviz {
         /// \brief Maximum size of the drawing
         _attr(Size, size, QPointF);
         /// \brief Type of edges (splines, lines, etc.)
-        _attr(Spline, splines, QString);
+        _attr(Spline, splines, std::string);
         /// \brief Style sheet used for the output
-        _attr(StyleSheet, stylesheet, QString);
+        _attr(StyleSheet, stylesheet, std::string);
         /// \brief Whether to use truecolor in the output
         _attr(TrueColor, truecolor, bool);
         /// \brief Viewport size and position
@@ -665,9 +663,9 @@ class Graphviz {
     };
 
 
-    QString layoutTypeToString(LayoutType layoutType);
+    std::string layoutTypeToString(LayoutType layoutType);
 
-    QString renderFormatToString(RenderFormat renderFormat);
+    std::string renderFormatToString(RenderFormat renderFormat);
 
     void createLayout(
         CR<Graph>  graph,
@@ -676,12 +674,12 @@ class Graphviz {
     void freeLayout(Graph graph);
 
     void writeFile(
-        QString const& fileName,
+        std::string const& fileName,
         CR<Graph>      graph,
         RenderFormat   format = RenderFormat::DOT);
 
     void renderToFile(
-        QString const& fileName,
+        std::string const& fileName,
         CR<Graph>      graph,
         RenderFormat   format = RenderFormat::PNG,
         LayoutType     layout = LayoutType::Dot);

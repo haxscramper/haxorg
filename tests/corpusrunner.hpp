@@ -3,7 +3,7 @@
 #include "org_parse_aux.hpp"
 
 #include <cstdlib>
-#include <QString>
+#include <string>
 
 #include <lexbase/NodeTest.hpp>
 #include <hstd/wrappers/textlayouter.hpp>
@@ -19,7 +19,7 @@ class CorpusRunner {
 
     void writeFileOrStdout(
         QFileInfo const& target,
-        QString const&   content,
+        std::string const&   content,
         bool             useFile);
 
     MockFull::ParserMethod getParser(CR<Str> name);
@@ -27,7 +27,7 @@ class CorpusRunner {
 
     struct ExportResult {
         struct Plaintext {
-            QString text;
+            std::string text;
         };
 
         struct Text {
@@ -136,7 +136,7 @@ class CorpusRunner {
         sem::SemId    node,
         json          expected);
 
-    RunResult runSpec(CR<ParseSpec> spec, CR<QString> from);
+    RunResult runSpec(CR<ParseSpec> spec, CR<std::string> from);
 
     ExportResult runExporter(
         ParseSpec const&                 spec,

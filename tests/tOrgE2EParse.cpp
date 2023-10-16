@@ -46,9 +46,9 @@ TEST(TestFiles, Spec) {
 
 
 TEST(TestFiles, AllNodeCoverage) {
-    QString  file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    std::string  file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
     MockFull p{false, false};
-    QString  source = readFile(QFileInfo(file));
+    std::string  source = readFile(QFileInfo(file));
     p.run(source, &T::lexGlobal, &P::parseFull);
 
     SemSet            foundNodes;
@@ -98,7 +98,7 @@ TEST(TestFiles, AllNodeCoverage) {
         for (auto const& v : expectedNodes - foundNodes) {
             diff.push_back(v);
         }
-        QString missing = join(", ", map(diff, [](OrgSemKind value) {
+        std::string missing = join(", ", map(diff, [](OrgSemKind value) {
                                    return to_string(value);
                                }));
         FAIL() << "'all.org' test file missing node coverage for "
@@ -134,9 +134,9 @@ bool operator==(CR<UserTime> lhs, CR<UserTime> rhs) {
 }
 
 TEST(TestFiles, RoundtripBinarySerialization) {
-    QString  file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    std::string  file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
     MockFull p{false, false};
-    QString  source = readFile(QFileInfo(file));
+    std::string  source = readFile(QFileInfo(file));
     p.run(source, &T::lexGlobal, &P::parseFull);
 
     SemSet            foundNodes;
@@ -188,7 +188,7 @@ TEST(TestFiles, RoundtripBinarySerialization) {
     EACH_SEM_ORG_KIND(_case)
 #undef _case
 
-    qDebug() << fieldCount;
+    DLOG(INFO) << fieldCount;
 }
 
 TEST(SimpleNodeConversion, SingleHashTagToken) {
@@ -204,8 +204,8 @@ TEST(SimpleNodeConversion, DoubleHashTag) {
     EXPECT_EQ(p.k(0), org::HashTag);
     EXPECT_EQ(p.k(1), org::RawText);
     EXPECT_EQ(p.s(1), "#test");
-    QString     buf;
-    QTextStream ss{&buf};
+    std::string     buf;
+    std::ostream ss{&buf};
     auto        spec = getOrgSpec();
     ss << "start validation output" << Qt::endl;
     ss << spec->validateSelf(p.a(0)) << "\n";
@@ -225,8 +225,8 @@ TEST(SimpleNodeConversion, NestedHashTag) {
     auto node = yamlRepr(p.a(0));
     yamlRepr(p.nodes);
     yamlRepr(p.tokens);
-    QString     buf;
-    QTextStream ss{&buf};
+    std::string     buf;
+    std::ostream ss{&buf};
     auto        spec = getOrgSpec();
     ss << "yaml node\n" << yamlRepr(*spec, p.a(0)) << "\nend yaml node\n";
     ss << "json node\n" << jsonRepr(*spec, p.a(0)) << "\nend json node\n";

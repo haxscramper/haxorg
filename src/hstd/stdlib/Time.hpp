@@ -46,7 +46,7 @@ struct UserTime {
         return std::get<QDateTime>(time);
     }
 
-    QString toString() const {
+    std::string toString() const {
         switch (getKind()) {
             case UserTime::Kind::Date: {
                 return getDate().toString(Qt::ISODate);

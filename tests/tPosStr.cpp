@@ -3,14 +3,14 @@
 #include <gtest/gtest.h>
 
 #define __init(text)                                                      \
-    QString base{text};                                                   \
+    std::string base{text};                                                   \
     PosStr  str{base};
 
 
 TEST(
     PositionalStringCursorMovementsTest,
     CheckForCharactersOnPositionAhead) {
-    QString base{"01234"};
+    std::string base{"01234"};
     PosStr  str{base};
 
     EXPECT_TRUE(str.at(QChar('0')));
@@ -21,7 +21,7 @@ TEST(
 TEST(
     PositionalStringCursorMovementsTest,
     CheckForCharacterSetOnPositionAhead) {
-    QString base{"01234"};
+    std::string base{"01234"};
     PosStr  str{base};
 
     EXPECT_TRUE(str.at({slice(QChar('0'), QChar('9'))}));
@@ -30,7 +30,7 @@ TEST(
 }
 
 TEST(PositionalStringCursorMovementsTest, SkipWhileSingleCharacter) {
-    QString base{"01234"};
+    std::string base{"01234"};
     PosStr  str{base};
 
     str.skipZeroOrMore(QChar('0'));
@@ -38,7 +38,7 @@ TEST(PositionalStringCursorMovementsTest, SkipWhileSingleCharacter) {
 }
 
 TEST(PositionalStringCursorMovementsTest, SkipWhileCharacterSet) {
-    QString base{"01234"};
+    std::string base{"01234"};
     PosStr  str{base};
 
     EXPECT_TRUE(str.at(QChar('0')));
@@ -47,7 +47,7 @@ TEST(PositionalStringCursorMovementsTest, SkipWhileCharacterSet) {
 }
 
 TEST(PositionalStringCursorMovementsTest, SkipBeforeCharacter) {
-    QString base{"01234"};
+    std::string base{"01234"};
     PosStr  str{base};
 
     str.skipBefore(QChar('3'));
@@ -55,7 +55,7 @@ TEST(PositionalStringCursorMovementsTest, SkipBeforeCharacter) {
 }
 
 TEST(PositionalStringCursorMovementsTest, SkipToCharacter) {
-    QString base{"01234"};
+    std::string base{"01234"};
     PosStr  str{base};
 
     str.skipTo(QChar('3'));
@@ -63,7 +63,7 @@ TEST(PositionalStringCursorMovementsTest, SkipToCharacter) {
 }
 
 TEST(PositionalStringCursorMovementsTest, SkipUntilOneOfCharacters) {
-    QString base{"01234"};
+    std::string base{"01234"};
     PosStr  str{base};
 
     str.skipBefore(CharSet{QChar('3'), QChar('4')});
@@ -71,7 +71,7 @@ TEST(PositionalStringCursorMovementsTest, SkipUntilOneOfCharacters) {
 }
 
 TEST(PositionalStringCursorMovementsTest, SkipUntilStringIsFound) {
-    QString base{"01234"};
+    std::string base{"01234"};
     PosStr  str{base};
 
     str.skipBefore("34");

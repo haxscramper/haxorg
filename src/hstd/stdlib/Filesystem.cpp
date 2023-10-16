@@ -1,10 +1,10 @@
 #include <hstd/stdlib/Filesystem.hpp>
 
-void writeFile(const QFileInfo& target, const QString& content) {
+void writeFile(const QFileInfo& target, const std::string& content) {
     QFile file;
     file.setFileName(target.filePath());
     if (file.open(QIODevice::WriteOnly | QFile::Truncate)) {
-        QTextStream stream{&file};
+        std::ostream stream{&file};
         stream << content;
         file.close();
     } else {
@@ -14,12 +14,12 @@ void writeFile(const QFileInfo& target, const QString& content) {
     }
 }
 
-QString readFile(const QFileInfo& target) {
+std::string readFile(const QFileInfo& target) {
     QFile file;
     file.setFileName(target.filePath());
     if (file.open(QIODevice::ReadOnly)) {
-        QTextStream stream{&file};
-        QString     result = stream.readAll();
+        std::ostream stream{&file};
+        std::string     result = stream.readAll();
         file.close();
         return result;
     } else {
@@ -31,7 +31,7 @@ QString readFile(const QFileInfo& target) {
 
 void writeFileOrStdout(
     const QFileInfo& target,
-    const QString&   content,
+    const std::string&   content,
     bool             useFile,
     bool             useStdoutStream) {
     if (useFile) {
@@ -40,7 +40,7 @@ void writeFileOrStdout(
     } else {
         QFile file;
         file.open(useStdoutStream ? stdout : stderr, QIODevice::WriteOnly);
-        QTextStream stream{&file};
+        std::ostream stream{&file};
         stream << content;
     }
 }
@@ -53,7 +53,7 @@ SPtr<IoContext> openFileOrStream(
 
 
     SPtr<IoContext> context = std::make_shared<IoContext>();
-    context->stream         = std::make_shared<QTextStream>();
+    context->stream         = std::make_shared<std::ostream>();
     if (useFile) {
         if (conf.createDirs) {
             if (!info.dir().exists()) {
@@ -97,7 +97,7 @@ SPtr<IoContext> openFileOrStream(
 }
 
 
-QTextStream& operator<<(QTextStream& stream, QFileInfo const& info) {
+std::ostream& operator<<(std::ostream& stream, QFileInfo const& info) {
     stream << '"' << info.filePath() << '"';
     return stream;
 }

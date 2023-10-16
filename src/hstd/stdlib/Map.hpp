@@ -59,7 +59,7 @@ struct SortedMap
 };
 
 template <typename K, typename V>
-QTextStream& operator<<(QTextStream& os, UnorderedMap<K, V> const& map) {
+std::ostream& operator<<(std::ostream& os, UnorderedMap<K, V> const& map) {
     os << "{";
     bool first = true;
     for (const auto& [key, value] : map) {

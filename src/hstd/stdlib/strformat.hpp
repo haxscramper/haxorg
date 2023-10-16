@@ -21,29 +21,29 @@ enum class AddfFragmentKind
 
 struct AddfFragment {
     AddfFragmentKind kind;
-    QString          text;
+    std::string          text;
     int              idx = 0;
 };
 
 struct FormatStringError : public std::runtime_error {
-    explicit FormatStringError(const QString& message)
+    explicit FormatStringError(const std::string& message)
         : std::runtime_error(message.toStdString()) {}
 };
 
 
 /*! Iterate over interpolation fragments of the `formatstr` */
-std::vector<AddfFragment> addfFragments(const QString& formatstr);
+std::vector<AddfFragment> addfFragments(const std::string& formatstr);
 
 /*! The same as `add(s, formatstr % a)`, but more efficient. */
 void addf(
-    QString&                      s,
+    std::string&                      s,
     CR<std::vector<AddfFragment>> fragments,
-    const std::vector<QString>&   a);
+    const std::vector<std::string>&   a);
 
 
-inline std::vector<QString> fold_format_pairs(
-    CR<std::vector<Pair<QString, QString>>> values) {
-    std::vector<QString> tmp;
+inline std::vector<std::string> fold_format_pairs(
+    CR<std::vector<Pair<std::string, std::string>>> values) {
+    std::vector<std::string> tmp;
     for (const auto& [key, val] : values) {
         tmp.push_back(key);
         tmp.push_back(val);
@@ -51,31 +51,31 @@ inline std::vector<QString> fold_format_pairs(
     return tmp;
 }
 
-inline QString addf(
+inline std::string addf(
     CR<std::vector<AddfFragment>> format,
-    CR<std::vector<QString>>      values) {
-    QString result;
+    CR<std::vector<std::string>>      values) {
+    std::string result;
     addf(result, format, values);
     return result;
 }
 
-inline QString operator%(
-    CR<QString>              format,
-    CR<std::vector<QString>> values) {
+inline std::string operator%(
+    CR<std::string>              format,
+    CR<std::vector<std::string>> values) {
     return addf(addfFragments(format), values);
 }
 
-inline QString operator%(
-    CR<QString>                             format,
-    CR<std::vector<Pair<QString, QString>>> values) {
+inline std::string operator%(
+    CR<std::string>                             format,
+    CR<std::vector<Pair<std::string, std::string>>> values) {
     return addf(addfFragments(format), fold_format_pairs(values));
 }
 
-inline void to_string_vec_impl(std::vector<QString>& out) {}
+inline void to_string_vec_impl(std::vector<std::string>& out) {}
 
 template <typename T, typename... Tail>
 void to_string_vec_impl(
-    std::vector<QString>& out,
+    std::vector<std::string>& out,
     CR<T>&                in,
     Tail&&... tail)
     requires StringConvertible<T>
@@ -85,8 +85,8 @@ void to_string_vec_impl(
 }
 
 template <typename... Args>
-std::vector<QString> to_string_vec(Args&&... args) {
-    std::vector<QString> result{};
+std::vector<std::string> to_string_vec(Args&&... args) {
+    std::vector<std::string> result{};
     result.reserve(sizeof...(Args));
     to_string_vec_impl(result, args...);
     return result;

@@ -13,7 +13,7 @@ struct OrgParser : public OperationsTracer {
   public:
     struct TokenWithValue {
         OrgTokenKind kind;
-        QString      value;
+        std::string      value;
     };
 
     using OrgExpectable = Variant<
@@ -27,14 +27,14 @@ struct OrgParser : public OperationsTracer {
             Opt<OrgToken> token;
             OrgTokenId    id;
             Opt<LineCol>  loc;
-            QString       extraMsg;
-            QString       getLocMsg() const;
+            std::string       extraMsg;
+            std::string       getLocMsg() const;
 
             Base(CR<OrgLexer> lex, Opt<LineCol> loc = std::nullopt);
 
             Base(
                 CR<OrgLexer> lex,
-                CR<QString>  extraMsg,
+                CR<std::string>  extraMsg,
                 Opt<LineCol> loc = std::nullopt);
         };
 
@@ -84,7 +84,7 @@ struct OrgParser : public OperationsTracer {
 
     ParserError          wrapError(CR<Error> err, CR<OrgLexer> lex);
     virtual Opt<LineCol> getLoc(CR<OrgLexer> lex) = 0;
-    QString              getLocMsg(CR<OrgLexer> lex);
+    std::string              getLocMsg(CR<OrgLexer> lex);
 
   public:
     enum class ReportKind
@@ -175,6 +175,6 @@ struct OrgParser : public OperationsTracer {
     virtual void parseCSVArguments(OrgLexer& lex)     = 0;
 };
 
-inline QString to_string(OrgParser::TokenWithValue const& tok) {
+inline std::string to_string(OrgParser::TokenWithValue const& tok) {
     return "($# $#)" % to_string_vec(tok.kind, tok.value);
 }

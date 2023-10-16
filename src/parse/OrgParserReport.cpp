@@ -1,6 +1,6 @@
 #include <parse/OrgParser.hpp>
 
-QString OrgParser::Errors::Base::getLocMsg() const {
+std::string OrgParser::Errors::Base::getLocMsg() const {
     return "$#:$# (tok $#, pos $#)"
          % to_string_vec(
                loc ? loc->line : -1,
@@ -19,7 +19,7 @@ OrgParser::Errors::Base::Base(CR<OrgLexer> lex, Opt<LineCol> loc)
 
 OrgParser::Errors::Base::Base(
     CR<OrgLexer> lex,
-    CR<QString>  extraMsg,
+    CR<std::string>  extraMsg,
     Opt<LineCol> loc)
     : id(lex.pos), loc(loc), extraMsg(extraMsg) {
     if (!lex.finished()) {

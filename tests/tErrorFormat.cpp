@@ -2,8 +2,8 @@
 #include <gtest/gtest.h>
 
 TEST(PrintError, MultipleFiles) {
-    QString a_tao = R"''(def five = 5)''";
-    QString b_tao = R"''(def six = five + "1")''";
+    std::string a_tao = R"''(def five = 5)''";
+    std::string b_tao = R"''(def six = five + "1")''";
 
     ColText natColorized  = "Nat"_qs;
     ColText strColorized  = "Str"_qs;
@@ -20,8 +20,8 @@ TEST(PrintError, MultipleFiles) {
     sources.add(a_id, a_tao, "a_tao");
     sources.add(b_id, b_tao, "b_tao");
 
-    QString     buf;
-    QTextStream os{&buf};
+    std::string     buf;
+    std::ostream os{&buf};
     Report(ReportKind::Error, b_id, 10)
         .with_code("3")
         .with_message("Cannot add types Nat and Str"_qs)
@@ -50,13 +50,13 @@ TEST(PrintError, MultipleFiles) {
             + " is a number and can only be added to other numbers")
         .write(sources, os);
 
-    qDebug().noquote() << "\n" << buf;
-    qDebug() << "First error run complete complete";
+    DLOG(INFO).noquote() << "\n" << buf;
+    DLOG(INFO) << "First error run complete complete";
 }
 
 TEST(PrintError, MultipleAnnotations) {
     Id       id   = 0;
-    QString  code = R"(def fives = ["5", 5]
+    std::string  code = R"(def fives = ["5", 5]
 
 def sixes = ["6", 6, True, (), []]
 
@@ -67,8 +67,8 @@ def multiline :: Str = match Some 5 in {
 })";
     StrCache sources;
     sources.add(id, code, "tao");
-    QString     buf;
-    QTextStream os{&buf};
+    std::string     buf;
+    std::ostream os{&buf};
     Report(ReportKind::Error, id, 13)
         .with_code("3")
         .with_message(("Incompatible types"_qs))
@@ -203,5 +203,5 @@ def multiline :: Str = match Some 5 in {
                          .with_tab_width(4))
         .write(sources, os);
 
-    qDebug().noquote() << buf;
+    DLOG(INFO).noquote() << buf;
 }

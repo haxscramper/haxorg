@@ -51,7 +51,7 @@ TEST(StringFormatting, BasicInterpolationFragmentParsing) {
 
 
 TEST(StringFormatting, InterpolateValuesByIndex) {
-    EXPECT_EQ(to_string_vec("#"), std::vector<QString>({"#"}));
+    EXPECT_EQ(to_string_vec("#"), std::vector<std::string>({"#"}));
     EXPECT_EQ("$1" % to_string_vec("#"), "#");
     EXPECT_EQ("$1+$2" % to_string_vec("@", "@"), "@+@");
     EXPECT_EQ("$1A" % to_string_vec("@"), "@A");

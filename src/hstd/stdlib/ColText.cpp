@@ -1,27 +1,27 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
-QString ansiEsc(const TermColorFg8Bit& col) {
+std::string ansiEsc(const TermColorFg8Bit& col) {
     if ((u8)col <= 7) { // Regular colors
         return ansiEsc(value_domain<TermColorFg8Bit>::ord(col) + 30);
     } else if ((u8)col <= 15) { // Bright colors
         return ansiEsc(value_domain<TermColorFg8Bit>::ord(col) + 30 + 60);
     } else { // Full colors
-        return ESC_PREFIX "38;5;" + QString::number((u8)col) + "m";
+        return ESC_PREFIX "38;5;" + std::string::number((u8)col) + "m";
     }
 }
 
-QString ansiEsc(const TermColorBg8Bit& col) {
+std::string ansiEsc(const TermColorBg8Bit& col) {
     if ((u8)col <= 7) {
         return ansiEsc(value_domain<TermColorBg8Bit>::ord(col) + 40);
     } else if ((u8)col <= 15) {
         return ansiEsc(value_domain<TermColorBg8Bit>::ord(col) + 40 + 60);
     } else {
-        return ESC_PREFIX "48;5;" + QString::number((u8)col) + "m";
+        return ESC_PREFIX "48;5;" + std::string::number((u8)col) + "m";
     };
 }
 
-QString ansiEsc(const Style& style, const bool& open) {
+std::string ansiEsc(const Style& style, const bool& open) {
     const auto diff = open ? 0 : 20;
     switch (style) {
         case Style::Bright: return ansiEsc(1 + diff);
@@ -66,8 +66,8 @@ Str ansiDiff(const ColStyle& s1, const ColStyle& s2) {
     return result;
 }
 
-QString to_string(const ColRune& rune, const bool& color) {
-    QString result;
+std::string to_string(const ColRune& rune, const bool& color) {
+    std::string result;
     if (color) {
         result += ansiDiff(ColStyle{}, rune.style);
         result += rune.rune;
@@ -78,8 +78,8 @@ QString to_string(const ColRune& rune, const bool& color) {
     return result;
 }
 
-QString to_colored_string(const Vec<ColRune>& runes, const bool& color) {
-    QString result;
+std::string to_colored_string(const Vec<ColRune>& runes, const bool& color) {
+    std::string result;
     if (color) {
         auto prev = ColStyle();
         for (const auto& rune : runes) {

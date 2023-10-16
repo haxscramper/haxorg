@@ -231,7 +231,7 @@ static_assert(
 
 /// \brief Vector formatting operator
 template <typename T>
-QTextStream& operator<<(QTextStream& os, Vec<T> const& value) {
+std::ostream& operator<<(std::ostream& os, Vec<T> const& value) {
     os << "[" << join(os, ", ", value) << "]";
     return os;
 }

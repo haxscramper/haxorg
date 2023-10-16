@@ -1,14 +1,14 @@
 #pragma once
 
 #include <yaml-cpp/yaml.h>
-#include <QString>
+#include <string>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/strformat.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <boost/mp11.hpp>
 
 struct BadTypeConversion : public YAML::RepresentationException {
-    explicit BadTypeConversion(YAML::Mark mark, const QString& message)
+    explicit BadTypeConversion(YAML::Mark mark, const std::string& message)
         : YAML::RepresentationException(mark, message.toStdString()) {}
 };
 
@@ -17,7 +17,7 @@ using yaml = YAML::Node;
 
 template <typename E>
 inline E to_enum(yaml const& in, E fallback) {
-    return string_to_enum<E>(in.as<QString>()).value_or(fallback);
+    return string_to_enum<E>(in.as<std::string>()).value_or(fallback);
 }
 
 template <typename T>
@@ -38,7 +38,7 @@ inline void maybe_enum_field(
     }
 }
 
-inline QTextStream& operator<<(QTextStream& os, YAML::Node const& value) {
+inline std::ostream& operator<<(std::ostream& os, YAML::Node const& value) {
     std::stringstream ss;
     ss << value;
     return os << ss.str();
@@ -68,14 +68,14 @@ struct convert<std::optional<T>> {
 };
 
 template <>
-struct convert<QString> {
-    static Node encode(QString const& str) {
+struct convert<std::string> {
+    static Node encode(std::string const& str) {
         Node result;
         result = str.toStdString();
         return result;
     }
-    static bool decode(Node const& in, QString& out) {
-        out = QString::fromStdString(in.as<std::string>());
+    static bool decode(Node const& in, std::string& out) {
+        out = std::string::fromStdString(in.as<std::string>());
         return true;
     }
 };
@@ -89,7 +89,7 @@ struct convert<E> {
         return result;
     }
     static bool decode(Node const& in, E& out) {
-        auto res = enum_serde<E>::from_string(in.as<QString>());
+        auto res = enum_serde<E>::from_string(in.as<std::string>());
         if (res.has_value()) {
             out = res.value();
             return true;

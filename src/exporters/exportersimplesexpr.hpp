@@ -23,7 +23,7 @@ struct ExporterSimpleSExpr
     ExporterSimpleSExpr() : store{&b} {}
     Res newRes(CR<sem::SemId> id) { return Res::Nil(); }
 
-    Res string(QString const& str) { return b.text(store.str(str)); }
+    Res string(std::string const& str) { return b.text(store.str(str)); }
 
     void visit(Res& res, sem::SemId org);
 
@@ -66,7 +66,7 @@ struct ExporterSimpleSExpr
     Res eval(int value) { return string(to_string(value)); }
     Res eval(CR<Str> value) { return string(escape_for_write(value)); }
 
-    Res eval(CR<QString> value) { return string(escape_for_write(value)); }
+    Res eval(CR<std::string> value) { return string(escape_for_write(value)); }
 
 
     template <typename T>

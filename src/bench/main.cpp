@@ -4,11 +4,11 @@
 #include <benchmark/benchmark.h>
 
 static void impl() {
-    qDebug() << "Running bench";
+    DLOG(INFO) << "Running bench";
     OrgTokenGroup       tokens;
     SPtr<OrgTokenizer>  tokenizer = OrgTokenizer::initImpl(&tokens, false);
     OrgNodeGroup        nodes{nullptr};
-    QString             base;
+    std::string             base;
     Lexer<OrgTokenKind> lex{&tokens};
     SPtr<OrgParser>     parser = OrgParser::initImpl(&nodes, false);
     UPtr<OrgSpec>       spec;
@@ -27,13 +27,13 @@ static void impl() {
     tokens.base = base.data();
     PosStr str{base};
     tokenizer->lexGlobal(str);
-    qDebug() << "Completed run to" << tokens.size() << "tokens";
+    DLOG(INFO) << "Completed run to" << tokens.size() << "tokens";
 }
 
 static void BenchLexFile(benchmark::State& state) { impl(); }
 
 
-QTextStream qcout;
+std::ostream qcout;
 
 int main() { impl(); }
 // BENCHMARK(BenchLexFile);

@@ -6,26 +6,24 @@
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Pair.hpp>
 
-#include <QHash>
-
-struct Str : public QString {
-    using QString::QString;
-    using QString::operator[];
-    using QString::reserve;
+struct Str : public std::string {
+    using std::string::std::string;
+    using std::string::operator[];
+    using std::string::reserve;
 
 
-    explicit Str(Span<QChar> view) : QString(view.data(), view.size()) {}
-    explicit Str(QStringView view) : QString(view.data(), view.size()) {}
-    Str(CR<QString> it) : QString(it.data(), it.size()) {}
-    Str(char c) : QString(c) {}
-    Str(wchar_t c) : QString(to_string(c)) {}
+    explicit Str(Span<QChar> view) : std::string(view.data(), view.size()) {}
+    explicit Str(std::stringView view) : std::string(view.data(), view.size()) {}
+    Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
+    Str(char c) : std::string(c) {}
+    Str(wchar_t c) : std::string(to_string(c)) {}
     Str() = default;
 
-    QChar*       data() { return QString::data(); }
-    const QChar* data() const { return QString::data(); }
+    QChar*       data() { return std::string::data(); }
+    const QChar* data() const { return std::string::data(); }
 
     Str substr(int start, int count = -1) const {
-        return Str(QString::mid(start, count));
+        return Str(std::string::mid(start, count));
     }
 
 
@@ -54,7 +52,7 @@ struct Str : public QString {
 
     QChar& at(int pos) {
         if (0 <= pos && pos < size()) {
-            return QString::operator[](pos);
+            return std::string::operator[](pos);
         } else {
             throw std::out_of_range(
                 "String index out of range wanted " + std::to_string(pos)
@@ -65,25 +63,25 @@ struct Str : public QString {
     QChar& at(BackwardsIndex pos) { return at(size() - pos.value); }
 
     template <typename A, typename B>
-    QStringView at(CR<HSlice<A, B>> s, bool checkRange = true) {
+    std::stringView at(CR<HSlice<A, B>> s, bool checkRange = true) {
         const auto [start, end] = getSpan(size(), s, checkRange);
-        return QStringView(this->data() + start, end);
+        return std::stringView(this->data() + start, end);
     }
 
     template <typename A, typename B>
-    const QStringView at(CR<HSlice<A, B>> s, bool checkRange = true)
+    const std::stringView at(CR<HSlice<A, B>> s, bool checkRange = true)
         const {
         const auto [start, end] = getSpan(size(), s, checkRange);
-        return QStringView(this->data() + start, end);
+        return std::stringView(this->data() + start, end);
     }
 
     template <typename A, typename B>
-    QStringView operator[](CR<HSlice<A, B>> s) {
+    std::stringView operator[](CR<HSlice<A, B>> s) {
         return at(s, false);
     }
 
     template <typename A, typename B>
-    const QStringView operator[](CR<HSlice<A, B>> s) const {
+    const std::stringView operator[](CR<HSlice<A, B>> s) const {
         return at(s, false);
     }
 
@@ -93,17 +91,17 @@ struct Str : public QString {
     }
 
     bool    empty() const { return size() == 0; }
-    QString toBase() const { return *this; }
+    std::string toBase() const { return *this; }
 };
 
 template <>
 struct std::hash<Str> {
     std::size_t operator()(Str const& s) const noexcept {
-        return qHash(static_cast<QString>(s));
+        return qHash(static_cast<std::string>(s));
     }
 };
 
-inline Str operator+(CR<QString> in, CR<Str> other) {
+inline Str operator+(CR<std::string> in, CR<Str> other) {
     Str res;
     res.append(in);
     res.append(other);

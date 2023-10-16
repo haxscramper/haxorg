@@ -18,8 +18,8 @@ struct BacktrackRes {
 
 BOOST_DESCRIBE_STRUCT(BacktrackRes, (), (lhsIndex, rhsIndex));
 
-inline QTextStream& operator<<(
-    QTextStream&        os,
+inline std::ostream& operator<<(
+    std::ostream&        os,
     BacktrackRes const& value) {
     return os << described_class_printer(os, value);
 }
@@ -348,7 +348,7 @@ inline bool hasInvisibleChanges(
 }
 
 inline bool hasInvisible(
-    QString text,
+    std::string text,
     CharSet startSet = Invis + CharSet{QChar(' ')}) {
     // Does string have significant invisible characters?
     CharSet invisSet = startSet;

@@ -12,7 +12,7 @@ struct MockFull {
     OrgTokenGroup       tokens;
     SPtr<OrgTokenizer>  tokenizer;
     OrgNodeGroup        nodes;
-    QString             base;
+    std::string             base;
     Lexer<OrgTokenKind> lex;
     SPtr<OrgParser>     parser;
     LineColInfo         info;
@@ -49,7 +49,7 @@ struct MockFull {
     OrgToken&   t(int idx) { return tokens.at(OrgTokenId(idx)); }
     OrgNodeKind k(int idx) { return n(idx).kind; }
 
-    QString s(int idx) {
+    std::string s(int idx) {
         if (nodes.at(OrgId(idx)).isTerminal()) {
             return nodes.strVal(OrgId(idx));
         } else {
@@ -57,7 +57,7 @@ struct MockFull {
         }
     }
 
-    void tokenize(CR<QString> content, LexerMethod lexMethod) {
+    void tokenize(CR<std::string> content, LexerMethod lexMethod) {
         base        = content;
         info        = LineColInfo{base};
         tokens.base = base.data();
@@ -70,7 +70,7 @@ struct MockFull {
     }
 
     void run(
-        CR<QString>  content,
+        CR<std::string>  content,
         LexerMethod  lexMethod,
         ParserMethod parseMethod) {
         tokenize(content, lexMethod);

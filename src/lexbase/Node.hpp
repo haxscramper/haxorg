@@ -8,7 +8,7 @@
 #include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/ColText.hpp>
-#include <QFileInfo>
+#include <filesystem>
 
 #include <lexbase/Token.hpp>
 
@@ -54,9 +54,9 @@ struct value_domain<NodeId<N, K, IdBase, MaskType>> {
 };
 
 template <typename N, typename K>
-QTextStream& operator<<(QTextStream& os, NodeId<N, K> const& value) {
+std::ostream& operator<<(std::ostream& os, NodeId<N, K> const& value) {
     return value.streamTo(
-        os, QString("NodeId<") + demangle(typeid(N).name()) + ">");
+        os, std::string("NodeId<") + demangle(typeid(N).name()) + ">");
 }
 
 template <typename N, typename K>
@@ -298,11 +298,11 @@ struct NodeGroup {
             LineEnd,
         };
 
-        Func<void(QTextStream&, Id, WritePos)> customWrite;
+        Func<void(std::ostream&, Id, WritePos)> customWrite;
     };
 
     void lispRepr(
-        QTextStream&     os,
+        std::ostream&     os,
         Id               node,
         CR<TreeReprConf> conf = TreeReprConf()) const;
 
@@ -314,13 +314,13 @@ struct NodeGroup {
         CR<TreeReprConf> conf       = TreeReprConf(),
         int              subnodeIdx = 0) const;
 
-    QString treeRepr(Id node, CR<TreeReprConf> conf = TreeReprConf())
+    std::string treeRepr(Id node, CR<TreeReprConf> conf = TreeReprConf())
         const;
 };
 
 
 template <typename N, typename K>
-QTextStream& operator<<(QTextStream& os, Node<N, K> const& value) {
+std::ostream& operator<<(std::ostream& os, Node<N, K> const& value) {
     os << "{" << to_string(value.kind) << " ";
     if (value.isTerminal()) {
         os << value.getToken();
@@ -333,7 +333,7 @@ QTextStream& operator<<(QTextStream& os, Node<N, K> const& value) {
 
 
 template <StringConvertible N, StringConvertible K>
-QTextStream& operator<<(QTextStream& os, NodeGroup<N, K> const& nodes) {
+std::ostream& operator<<(std::ostream& os, NodeGroup<N, K> const& nodes) {
     for (const auto& [idx, node] : nodes.nodes.pairs()) {
         os << left_aligned(to_string(idx.getUnmasked()), 5) << " | "
            << *node << "\n";
@@ -403,7 +403,7 @@ struct NodeTree {
                     text += tok.str.value();
                     tokens.at(id) = Token<K>(
                         tok.kind,
-                        QStringView(
+                        std::stringView(
                             text.data() + start, tok.str.value().size()));
                 } else {
                     tokens.at(id) = Token<K>(tok.kind);
@@ -479,7 +479,7 @@ struct NodeAdapter {
     void treeRepr(QFileInfo const& path) const {
         QFile file{path.absoluteFilePath()};
         if (file.open(QIODevice::ReadWrite | QFile::Truncate)) {
-            QTextStream os{&file};
+            std::ostream os{&file};
             ColStream   text{os};
             text.colored = false;
             treeRepr(text);
@@ -489,9 +489,9 @@ struct NodeAdapter {
         }
     }
 
-    QString treeRepr(bool colored = true) const {
-        QString     buffer;
-        QTextStream os{&buffer};
+    std::string treeRepr(bool colored = true) const {
+        std::string     buffer;
+        std::ostream os{&buffer};
         ColStream   text{os};
         text.colored = colored;
         treeRepr(text);

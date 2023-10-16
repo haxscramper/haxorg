@@ -65,8 +65,8 @@ class RangeTree {
 
 
 template <typename T>
-QTextStream& auxPrintNode(
-    QTextStream&                       os,
+std::ostream& auxPrintNode(
+    std::ostream&                       os,
     typename RangeTree<T>::Node const& node) {
     os << node.range << "{ ";
     if (node.left != nullptr) {
@@ -83,7 +83,7 @@ QTextStream& auxPrintNode(
 }
 
 template <typename T>
-QTextStream& operator<<(QTextStream& os, RangeTree<T> const& value) {
+std::ostream& operator<<(std::ostream& os, RangeTree<T> const& value) {
     if (value.root == nullptr) {
         return os << "nil";
     } else {

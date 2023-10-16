@@ -38,7 +38,7 @@ struct [[nodiscard]] TokenId
 };
 
 template <typename K>
-QTextStream& operator<<(QTextStream& os, TokenId<K> const& value) {
+std::ostream& operator<<(std::ostream& os, TokenId<K> const& value) {
     return value.streamTo(os, demangle(typeid(K).name()));
 }
 
@@ -51,11 +51,11 @@ struct Token {
     K kind; /// Specific kind of the token
     /// Token view on the base input text or offset position in case the
     /// token is not attached to real data (fake token).
-    Variant<int, QStringView> text;
+    Variant<int, std::stringView> text;
 
     Token() = default;
     /// \brief Create token that points to the real string data
-    Token(K _kind, QStringView _text) : kind(_kind), text(_text) {}
+    Token(K _kind, std::stringView _text) : kind(_kind), text(_text) {}
     /// \brief Create fake token that is positioned at some point in the
     /// base string.
     Token(K _kind, int offset = 0) : kind(_kind), text(offset) {}
@@ -72,12 +72,12 @@ struct Token {
     bool hasOffset() const { return std::holds_alternative<int>(text); }
     /// \brief Check if token text is a view over real data
     bool hasData() const {
-        return std::holds_alternative<QStringView>(text);
+        return std::holds_alternative<std::stringView>(text);
     }
     int                getOffset() const { return std::get<int>(text); }
-    QStringView&       getText() { return std::get<QStringView>(text); }
-    QStringView const& getText() const {
-        return std::get<QStringView>(text);
+    std::stringView&       getText() { return std::get<std::stringView>(text); }
+    std::stringView const& getText() const {
+        return std::get<std::stringView>(text);
     }
     /// Return character count for the token. If it does not contain any
     /// data return 0.
@@ -107,7 +107,7 @@ struct Token {
 
 
 template <StringConvertible K>
-QTextStream& operator<<(QTextStream& os, Token<K> const& value) {
+std::ostream& operator<<(std::ostream& os, Token<K> const& value) {
     os << "Token<" << to_string(value.kind) << ">(";
     if (value.hasData()) {
         os << escape_literal(to_string(value.getText()));
@@ -123,9 +123,9 @@ QTextStream& operator<<(QTextStream& os, Token<K> const& value) {
 template <typename K>
 struct TokenGroup {
     dod::Store<TokenId<K>, Token<K>> tokens;
-    Opt<QStringView>                 base;
+    Opt<std::stringView>                 base;
 
-    TokenGroup(Opt<QStringView> base = std::nullopt) : base(base) {}
+    TokenGroup(Opt<std::stringView> base = std::nullopt) : base(base) {}
     TokenId<K> add(CR<Token<K>> tok) { return tokens.add(tok); }
 
     Vec<TokenId<K>> add(CR<Vec<Token<K>>> tok) {
@@ -157,7 +157,7 @@ struct TokenGroup {
         tokens.resize(size, value);
     }
 
-    Slice<int> toAbsolute(QStringView view) const {
+    Slice<int> toAbsolute(std::stringView view) const {
         if (base.has_value()) {
             auto main = base.value();
             assert(is_within_memory_block<QChar>(
@@ -171,7 +171,7 @@ struct TokenGroup {
 };
 
 template <StringConvertible K>
-QTextStream& operator<<(QTextStream& os, TokenGroup<K> const& tokens) {
+std::ostream& operator<<(std::ostream& os, TokenGroup<K> const& tokens) {
     for (const auto& [idx, tok] : tokens.tokens.pairs()) {
         os << left_aligned(to_string(idx), 16) << " | " << *tok << "\n";
     }
@@ -306,13 +306,13 @@ struct LexerCommon {
     }
 
 
-    QString printToString(bool colored = false) const {
+    std::string printToString(bool colored = false) const {
         return printToString(PrintParams{}, colored);
     }
 
-    QString printToString(PrintParams params, bool colored = false) const {
-        QString     result;
-        QTextStream stream{&result};
+    std::string printToString(PrintParams params, bool colored = false) const {
+        std::string     result;
+        std::ostream stream{&result};
         ColStream   out{stream};
         out.colored = colored;
         print(out, params);
@@ -501,7 +501,7 @@ struct LexerCommon {
 };
 
 template <typename K>
-QTextStream& operator<<(QTextStream& os, LexerCommon<K> const& value) {
+std::ostream& operator<<(std::ostream& os, LexerCommon<K> const& value) {
     return os << value.printToString();
 }
 
@@ -590,7 +590,7 @@ struct LineColInfo {
     Opt<Slice<int>> whichRange(int pos) { return lineRanges.query(pos); }
 
     LineColInfo() = default;
-    LineColInfo(QString const& text) {
+    LineColInfo(std::string const& text) {
         Vec<Slice<int>> slices;
         int             start = 0;
         for (int i = 0; i < text.size(); ++i) {
@@ -614,8 +614,8 @@ struct LineColInfo {
 
 template <typename K>
 QDebug operator<<(QDebug os, LexerCommon<K> const& value) {
-    QString     str;
-    QTextStream stream{&str};
+    std::string     str;
+    std::ostream stream{&str};
     ColStream   col{stream};
     using P = typename LexerCommon<K>::PrintParams;
     value.print(col, P{});

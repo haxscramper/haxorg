@@ -2,8 +2,8 @@
 #include <hstd/stdlib/strformat.hpp>
 #include <hstd/stdlib/Func.hpp>
 
-QString puml::Gantt::toString() const {
-    QString result;
+std::string puml::Gantt::toString() const {
+    std::string result;
 
     Slice<QDateTime> convex = timeSpan ? *timeSpan : events[0].convex();
     if (!timeSpan) {
@@ -74,8 +74,8 @@ Slice<QDateTime> puml::Gantt::Event::minmax() const {
     return slice(this->start.min(), this->stop.max());
 }
 
-QString puml::Gantt::Event::toString() const {
-    QString result;
+std::string puml::Gantt::Event::toString() const {
+    std::string result;
     struct PassCtx {
         CR<Event>  e;
         Opt<Event> parent;

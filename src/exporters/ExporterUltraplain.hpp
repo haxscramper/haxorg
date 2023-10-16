@@ -1,50 +1,50 @@
 #include <exporters/Exporter.hpp>
 
-struct ExporterUltraplain : public Exporter<ExporterUltraplain, QString> {
-#define __ExporterBase Exporter<ExporterUltraplain, QString>
+struct ExporterUltraplain : public Exporter<ExporterUltraplain, std::string> {
+#define __ExporterBase Exporter<ExporterUltraplain, std::string>
     EXPORTER_USING()
 #undef __ExporterBase
 
-    static QString toStr(sem::SemId node);
+    static std::string toStr(sem::SemId node);
 
-    void visitLink(QString& res, In<sem::Link> link);
+    void visitLink(std::string& res, In<sem::Link> link);
 
     template <sem::NotOrg T>
-    void visit(QString& res, CR<T> value) {}
+    void visit(std::string& res, CR<T> value) {}
 
-    void visitTimeRange(QString& res, In<sem::TimeRange> range) {
+    void visitTimeRange(std::string& res, In<sem::TimeRange> range) {
         visit(res, range->from);
         res += "--";
         visit(res, range->to);
     }
 
-    void visitTime(QString& res, In<sem::Time> time) {
+    void visitTime(std::string& res, In<sem::Time> time) {
         if (time->isStatic()) {
             res += time->getStatic().time.toString();
         }
     }
 
     template <typename T>
-    void visit(QString& res, CVec<T> values) {
+    void visit(std::string& res, CVec<T> values) {
         for (const auto& value : values) {
             visit(res, value);
         }
     }
 
     template <typename T>
-    void visit(QString& res, CR<Opt<T>> opt) {
+    void visit(std::string& res, CR<Opt<T>> opt) {
         if (opt) {
             visit(res, *opt);
         }
     }
 
     template <typename T>
-    void visitField(QString& res, const char* name, CR<T> field) {
+    void visitField(std::string& res, const char* name, CR<T> field) {
         visit(res, field);
     }
 
 #define __visit(__Kind)                                                   \
-    void visit##__Kind(QString& res, In<sem::__Kind> leaf) {              \
+    void visit##__Kind(std::string& res, In<sem::__Kind> leaf) {              \
         res += leaf->text;                                                \
     }
 
@@ -60,4 +60,4 @@ struct ExporterUltraplain : public Exporter<ExporterUltraplain, QString> {
 #undef __visit
 };
 
-extern template class Exporter<ExporterUltraplain, QString>;
+extern template class Exporter<ExporterUltraplain, std::string>;

@@ -16,7 +16,7 @@
 
 FILE* trace_out;
 
-QTextStream qcout;
+std::ostream qcout;
 
 extern "C" __attribute__((no_instrument_function)) void __cyg_profile_func_enter(
     void* this_fn,

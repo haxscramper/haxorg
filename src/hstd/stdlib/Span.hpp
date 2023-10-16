@@ -4,7 +4,7 @@
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/system/string_convert.hpp>
 #include <span>
-#include <QDebug>
+#include <absl/log/log.h>
 
 template <typename T>
 class Span : public std::span<T> {
@@ -148,7 +148,7 @@ class Span : public std::span<T> {
 };
 
 template <typename T>
-QTextStream& operator<<(QTextStream& os, Span<T> const& value) {
+std::ostream& operator<<(std::ostream& os, Span<T> const& value) {
     os << "[" << join(os, ", ", value) << "]";
     return os;
 }

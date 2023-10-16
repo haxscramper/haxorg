@@ -72,8 +72,8 @@ enum class OrgSemPlacement : short int {
 };
 template <>
 struct enum_serde<OrgSemPlacement> {
-  static Opt<OrgSemPlacement> from_string(QString value);
-  static QString to_string(OrgSemPlacement value);
+  static Opt<OrgSemPlacement> from_string(std::string value);
+  static std::string to_string(OrgSemPlacement value);
 };
 
 template <>
@@ -93,8 +93,8 @@ enum class OrgHorizontalDirection : short int {
 };
 template <>
 struct enum_serde<OrgHorizontalDirection> {
-  static Opt<OrgHorizontalDirection> from_string(QString value);
-  static QString to_string(OrgHorizontalDirection value);
+  static Opt<OrgHorizontalDirection> from_string(std::string value);
+  static std::string to_string(OrgHorizontalDirection value);
 };
 
 template <>
@@ -114,8 +114,8 @@ enum class OrgVerticalDirection : short int {
 };
 template <>
 struct enum_serde<OrgVerticalDirection> {
-  static Opt<OrgVerticalDirection> from_string(QString value);
-  static QString to_string(OrgVerticalDirection value);
+  static Opt<OrgVerticalDirection> from_string(std::string value);
+  static std::string to_string(OrgVerticalDirection value);
 };
 
 template <>
@@ -126,8 +126,8 @@ struct value_domain<OrgVerticalDirection> : public value_domain_ungapped<OrgVert
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Urgency, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
 template <>
 struct enum_serde<OrgSpecName> {
-  static Opt<OrgSpecName> from_string(QString value);
-  static QString to_string(OrgSpecName value);
+  static Opt<OrgSpecName> from_string(std::string value);
+  static std::string to_string(OrgSpecName value);
 };
 
 template <>
@@ -432,8 +432,8 @@ enum class OrgNodeKind : short int {
 };
 template <>
 struct enum_serde<OrgNodeKind> {
-  static Opt<OrgNodeKind> from_string(QString value);
-  static QString to_string(OrgNodeKind value);
+  static Opt<OrgNodeKind> from_string(std::string value);
+  static std::string to_string(OrgNodeKind value);
 };
 
 template <>
@@ -444,8 +444,8 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
 enum class OrgTextContext : short int { otcPlain, otcSubtree0, otcSubtree1, otcSubtree2, otcSubtree3, otcSubtree4, otcSubtree5, otcSubtree6, otcSubtree7, otcSubtree8, otcSubtree9, otcSubtree10, otcSubtree11, otcSubtree12, otcSubtreeOther, otcBold, otcItalic, otcStrike, otcUnderline, otcMonospaceInline, otcMonospaceBlock, };
 template <>
 struct enum_serde<OrgTextContext> {
-  static Opt<OrgTextContext> from_string(QString value);
-  static QString to_string(OrgTextContext value);
+  static Opt<OrgTextContext> from_string(std::string value);
+  static std::string to_string(OrgTextContext value);
 };
 
 template <>
@@ -549,8 +549,8 @@ enum class OrgBigIdentKind : short int {
 };
 template <>
 struct enum_serde<OrgBigIdentKind> {
-  static Opt<OrgBigIdentKind> from_string(QString value);
-  static QString to_string(OrgBigIdentKind value);
+  static Opt<OrgBigIdentKind> from_string(std::string value);
+  static std::string to_string(OrgBigIdentKind value);
 };
 
 template <>
@@ -890,8 +890,8 @@ enum class OrgTokenKind : short int {
 };
 template <>
 struct enum_serde<OrgTokenKind> {
-  static Opt<OrgTokenKind> from_string(QString value);
-  static QString to_string(OrgTokenKind value);
+  static Opt<OrgTokenKind> from_string(std::string value);
+  static std::string to_string(OrgTokenKind value);
 };
 
 template <>
@@ -979,8 +979,8 @@ enum class OrgCommandKind : short int {
 };
 template <>
 struct enum_serde<OrgCommandKind> {
-  static Opt<OrgCommandKind> from_string(QString value);
-  static QString to_string(OrgCommandKind value);
+  static Opt<OrgCommandKind> from_string(std::string value);
+  static std::string to_string(OrgCommandKind value);
 };
 
 template <>
@@ -991,8 +991,8 @@ struct value_domain<OrgCommandKind> : public value_domain_ungapped<OrgCommandKin
 enum class OrgPropertyKind : short int { Title, Author, Date, Email, Language, Url, SourceUrl, AttrImg, Toplevel, Blocker, Created, Unnumbered, Trigger, Ordered, Noblocking, ExportOptions, BackendExportOptions, AttrBackend, ColumnSpec, Name, Caption, LinkAbbrev, Filetags, TagConf, LatexHeader, OtherProperty, Id, };
 template <>
 struct enum_serde<OrgPropertyKind> {
-  static Opt<OrgPropertyKind> from_string(QString value);
-  static QString to_string(OrgPropertyKind value);
+  static Opt<OrgPropertyKind> from_string(std::string value);
+  static std::string to_string(OrgPropertyKind value);
 };
 
 template <>
@@ -1003,8 +1003,8 @@ struct value_domain<OrgPropertyKind> : public value_domain_ungapped<OrgPropertyK
 enum class OrgUnnumberedKind : short int { Notoc, True, False, };
 template <>
 struct enum_serde<OrgUnnumberedKind> {
-  static Opt<OrgUnnumberedKind> from_string(QString value);
-  static QString to_string(OrgUnnumberedKind value);
+  static Opt<OrgUnnumberedKind> from_string(std::string value);
+  static std::string to_string(OrgUnnumberedKind value);
 };
 
 template <>
@@ -1015,8 +1015,8 @@ struct value_domain<OrgUnnumberedKind> : public value_domain_ungapped<OrgUnnumbe
 enum class OrgBlockLexerState : short int { None, InHeader, InBody, Ended, Complete, };
 template <>
 struct enum_serde<OrgBlockLexerState> {
-  static Opt<OrgBlockLexerState> from_string(QString value);
-  static QString to_string(OrgBlockLexerState value);
+  static Opt<OrgBlockLexerState> from_string(std::string value);
+  static std::string to_string(OrgBlockLexerState value);
 };
 
 template <>
@@ -1027,8 +1027,8 @@ struct value_domain<OrgBlockLexerState> : public value_domain_ungapped<OrgBlockL
 enum class OrgSemKind : short int { StmtList, Empty, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CommandGroup, Quote, Example, CmdArguments, CmdArgument, Export, AdmonitionBlock, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, Document, ParseError, FileTarget, TextSeparator, Include, DocumentOptions, DocumentGroup, };
 template <>
 struct enum_serde<OrgSemKind> {
-  static Opt<OrgSemKind> from_string(QString value);
-  static QString to_string(OrgSemKind value);
+  static Opt<OrgSemKind> from_string(std::string value);
+  static std::string to_string(OrgSemKind value);
 };
 
 template <>

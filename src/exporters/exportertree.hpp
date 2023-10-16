@@ -61,7 +61,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     void pushVisit(int&, sem::SemId org) { pushIndent(); }
     void popVisit(int&, sem::SemId org) { popIndent(); }
     void visitDispatchHook(int&, sem::SemId org) { init(org); }
-    void indent() { os << QString("  ").repeated(stack.back().level); }
+    void indent() { os << std::string("  ").repeated(stack.back().level); }
 
     struct ScopedField {
         ExporterTree* exp;
@@ -99,7 +99,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     void visit(int& arg, CR<Opt<T>> opt);
 
     template <typename T>
-    QString typeName() {
+    std::string typeName() {
         return demangle(typeid(T).name()).replace("sem::", "");
     }
 

@@ -6,8 +6,8 @@
 enum class NlpDepKind : short int { ROOT, acl, advcl, advmod, amod, appos, aux, _case, cc, ccomp, compound, conj, cop, csubj, dep, det, discourse, expl, fixed, iobj, mark, nmod, nsubj, nummod, obj, obl, parataxis, punct, ref, xcomp, };
 template <>
 struct enum_serde<NlpDepKind> {
-  static Opt<NlpDepKind> from_string(QString value);
-  static QString to_string(NlpDepKind value);
+  static Opt<NlpDepKind> from_string(std::string value);
+  static std::string to_string(NlpDepKind value);
 };
 
 template <>
@@ -111,8 +111,8 @@ enum class NlpPosTag : short int {
 };
 template <>
 struct enum_serde<NlpPosTag> {
-  static Opt<NlpPosTag> from_string(QString value);
-  static QString to_string(NlpPosTag value);
+  static Opt<NlpPosTag> from_string(std::string value);
+  static std::string to_string(NlpPosTag value);
 };
 
 template <>

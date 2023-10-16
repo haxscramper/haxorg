@@ -1,22 +1,22 @@
 #include <hstd/stdlib/Debug.hpp>
-#include <QTextStream>
-#include <QFileInfo>
+#include <iostream>
+#include <filesystem>
 #include <QMutex>
 
-std::reference_wrapper<QTextStream> messageStream = qcout;
+std::reference_wrapper<std::ostream> messageStream = qcout;
 
-void setMessageStream(QTextStream& stream) { messageStream = stream; }
+void setMessageStream(std::ostream& stream) { messageStream = stream; }
 
 QMutex logMutex;
 
 void tracedMessageHandler(
     QtMsgType                 type,
     const QMessageLogContext& context,
-    const QString&            msg) {
+    const std::string&            msg) {
     logMutex.lock();
     ColStream os{messageStream.get()};
 
-    QString res;
+    std::string res;
     os.magenta();
     switch (type) {
         case QtMsgType::QtInfoMsg: os << "INFO "; break;

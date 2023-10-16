@@ -21,7 +21,7 @@ namespace testing {
 // this still needs to be investigated.
 /// \internal
 template <>
-inline ::std::string PrintToString(const QString& str) {
+inline ::std::string PrintToString(const std::string& str) {
     std::string        result;
     std::ostringstream escaped_str;
     for (QChar c : str) {
@@ -30,7 +30,7 @@ inline ::std::string PrintToString(const QString& str) {
         } else if (c == '\t') {
             result += "\\t";
         } else {
-            result += QString(c).toStdString();
+            result += std::string(c).toStdString();
         }
     }
 

@@ -3,8 +3,8 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <QString>
-#include <QTextStream>
+#include <string>
+#include <iostream>
 
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
@@ -17,7 +17,7 @@
 #    include <memory>
 #    include <cxxabi.h>
 
-inline QString demangle(const char* name) {
+inline std::string demangle(const char* name) {
 
     int status = -4; // some arbitrary value to eliminate the compiler
                      // warning
@@ -32,41 +32,41 @@ inline QString demangle(const char* name) {
 #else
 
 // does nothing if not g++
-inline QString demangle(const char* name) { return name; }
+inline std::string demangle(const char* name) { return name; }
 
 #endif
 
 
 template <typename T>
-concept StringStreamable = requires(T value, QTextStream& os) {
-    { os << value } -> std::same_as<QTextStream&>;
+concept StringStreamable = requires(T value, std::ostream& os) {
+    { os << value } -> std::same_as<std::ostream&>;
 };
 
 template <typename T>
-QString to_string(T const& value)
+std::string to_string(T const& value)
     requires StringStreamable<T>
 {
-    QString     out;
-    QTextStream os{&out};
+    std::string     out;
+    std::ostream os{&out};
     os << value;
     return out;
 }
 
-inline QString to_string(bool b) { return b ? "true" : "false"; }
+inline std::string to_string(bool b) { return b ? "true" : "false"; }
 
 template <typename T>
 concept StringConvertible = requires(T value) {
-    { to_string(value) } -> std::same_as<QString>;
+    { to_string(value) } -> std::same_as<std::string>;
 };
 
-inline QTextStream& operator<<(QTextStream& os, std::string const& value) {
-    return os << QString::fromStdString(value);
+inline std::ostream& operator<<(std::ostream& os, std::string const& value) {
+    return os << std::string::fromStdString(value);
 }
 
 /// \brief Escape string literal, converting newline and other (TODO)
 /// control characters into unicode.
-inline QString escape_literal(QString const& in) {
-    QString res;
+inline std::string escape_literal(std::string const& in) {
+    std::string res;
     res.reserve(in.size() + 2);
     res += "«";
     for (QChar c : in) {
@@ -84,9 +84,9 @@ inline QString escape_literal(QString const& in) {
 }
 
 template <typename Iterable>
-QTextStream& join(
-    QTextStream&    os,
-    QString const&  sep,
+std::ostream& join(
+    std::ostream&    os,
+    std::string const&  sep,
     Iterable const& list) {
     int index = 0;
     for (const auto& it : list) {
@@ -100,9 +100,9 @@ QTextStream& join(
 }
 
 template <typename Iterable>
-QString join(QString const& sep, Iterable const& list) {
-    QString     out;
-    QTextStream os{&out};
+std::string join(std::string const& sep, Iterable const& list) {
+    std::string     out;
+    std::ostream os{&out};
     join(os, sep, list);
     return out;
 }
@@ -110,7 +110,7 @@ QString join(QString const& sep, Iterable const& list) {
 /// \brief Small insanity to allow for `os << "[" << join(os, "", "wer")
 /// <<` and other stuff without having to break everything into multiple
 /// lines. Yes, this overload makes zero sense but whatever.
-inline QTextStream& operator<<(QTextStream& os, QTextStream const& value) {
+inline std::ostream& operator<<(std::ostream& os, std::ostream const& value) {
     return os;
 }
 
@@ -122,10 +122,10 @@ inline std::ostream& operator<<(
 }
 
 
-inline std::ostream& operator<<(std::ostream& os, QString const& value) {
+inline std::ostream& operator<<(std::ostream& os, std::string const& value) {
     return os << value.toStdString();
 }
 
 #define __xxloc() std::cout << __FILE__ << ":" << __LINE__ << "\n";
 
-extern QTextStream qcout;
+extern std::ostream qcout;

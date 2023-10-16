@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdexcept>
-#include <QString>
+#include <string>
 
 inline void assert_has_idx(int size, int wanted, std::string failure) {
     if (!(wanted < size)) {
@@ -10,33 +10,33 @@ inline void assert_has_idx(int size, int wanted, std::string failure) {
 }
 
 struct GetterError : public std::runtime_error {
-    explicit inline GetterError(const QString& message)
+    explicit inline GetterError(const std::string& message)
         : std::runtime_error(message.toStdString()) {}
 };
 
 struct KeyError : public std::runtime_error {
-    explicit KeyError(const QString& message)
+    explicit KeyError(const std::string& message)
         : std::runtime_error(message.toStdString()) {}
 };
 
 
 struct LogicError : public std::logic_error {
-    explicit inline LogicError(const QString& message)
+    explicit inline LogicError(const std::string& message)
         : std::logic_error(message.toStdString()) {}
 };
 
 struct UnexpectedKindError : public LogicError {
-    explicit inline UnexpectedKindError(const QString& message)
+    explicit inline UnexpectedKindError(const std::string& message)
         : LogicError(message) {}
 };
 
 struct RangeError : public std::range_error {
-    explicit RangeError(const QString& message)
+    explicit RangeError(const std::string& message)
         : std::range_error(message.toStdString()) {}
 };
 
 
 struct OutOfRangeError : public std::out_of_range {
-    explicit OutOfRangeError(const QString& message)
+    explicit OutOfRangeError(const std::string& message)
         : std::out_of_range(message.toStdString()) {}
 };

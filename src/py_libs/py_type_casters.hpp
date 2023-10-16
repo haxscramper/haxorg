@@ -12,9 +12,9 @@
 namespace PYBIND11_NAMESPACE {
 namespace detail {
     template <>
-    struct type_caster<QString> {
+    struct type_caster<std::string> {
       public:
-        PYBIND11_TYPE_CASTER(QString, _("str"));
+        PYBIND11_TYPE_CASTER(std::string, _("str"));
 
         bool load(handle src, bool) {
 
@@ -33,7 +33,7 @@ namespace detail {
             }
 
             /* Now try to convert into a C++ int */
-            value = QString::fromUtf8(ptr, size);
+            value = std::string::fromUtf8(ptr, size);
 
             /* Ensure return code was OK (to avoid out-of-range errors etc)
              */
@@ -41,7 +41,7 @@ namespace detail {
         }
 
         static handle cast(
-            QString src,
+            std::string src,
             return_value_policy /* policy */,
             handle /* parent */) {
             return (PyUnicode_FromString(src.toUtf8().data()));
@@ -70,7 +70,7 @@ namespace detail {
             }
 
             /* Now try to convert into a C++ int */
-            value = QString::fromUtf8(ptr, size);
+            value = std::string::fromUtf8(ptr, size);
 
             /* Ensure return code was OK (to avoid out-of-range errors etc)
              */
@@ -78,7 +78,7 @@ namespace detail {
         }
 
         static handle cast(
-            QString src,
+            std::string src,
             return_value_policy /* policy */,
             handle /* parent */) {
             return (PyUnicode_FromString(src.toUtf8().data()));

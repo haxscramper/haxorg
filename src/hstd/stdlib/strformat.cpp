@@ -2,9 +2,9 @@
 #include <hstd/stdlib/Debug.hpp>
 
 void addf(
-    QString&                      s,
+    std::string&                      s,
     CR<std::vector<AddfFragment>> fragments,
-    const std::vector<QString>&   a) {
+    const std::vector<std::string>&   a) {
     for (const auto& fr : fragments) {
         switch (fr.kind) {
             case AddfFragmentKind::Dollar: {
@@ -23,8 +23,8 @@ void addf(
                 if (idx < 0 || a.size() <= idx) {
                     throw FormatStringError(
                         "Argument index out of bounds. Accessed ["
-                        + QString::number(idx) + "], but only "
-                        + QString::number(a.size())
+                        + std::string::number(idx) + "], but only "
+                        + std::string::number(a.size())
                         + " arguments were supplied");
                 }
                 s += a[idx];
@@ -54,7 +54,7 @@ void addf(
     }
 }
 
-std::vector<AddfFragment> addfFragments(const QString& formatstr) {
+std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
     std::vector<AddfFragment> result{};
     auto                      i   = 0;
     auto                      num = 0;
@@ -165,7 +165,7 @@ std::vector<AddfFragment> addfFragments(const QString& formatstr) {
             } else {
                 throw FormatStringError(
                     "unexpected char after '$' :'"
-                    + QString(formatstr[i + 1]) + "'");
+                    + std::string(formatstr[i + 1]) + "'");
             }
         } else {
             auto trange = slice(i, i);

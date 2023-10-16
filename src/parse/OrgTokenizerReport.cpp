@@ -3,7 +3,7 @@
 using E = OrgTokenizer::Errors;
 
 
-QString E::Base::getLocMsg() const {
+std::string E::Base::getLocMsg() const {
     return "on $#:$# (pos $#)"
          % to_string_vec(
                loc ? loc->line : -1, loc ? loc->column : -1, pos);
@@ -25,8 +25,8 @@ const char* OrgTokenizer::Errors::MissingElement::what() const noexcept {
 
 OrgTokenizer::Errors::MissingElement::MissingElement(
     CR<PosStr>  str,
-    CR<QString> missing,
-    CR<QString> where)
+    CR<std::string> missing,
+    CR<std::string> where)
     : Base(str), missing(missing), where(where) {}
 
 const char* OrgTokenizer::Errors::UnexpectedConstruct::what()
@@ -43,7 +43,7 @@ const char* OrgTokenizer::Errors::UnknownConstruct::what() const noexcept {
         + "' " + getLocMsg());
 }
 
-QStringView OrgTokenizer::TokenizerError::getView() const {
+std::stringView OrgTokenizer::TokenizerError::getView() const {
     return std::visit([](auto const& in) { return in.view; }, err);
 }
 

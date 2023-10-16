@@ -40,7 +40,7 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     }
 
     json eval(CR<Str> value) { return json(value); }
-    json eval(CR<QString> value) { return json(value); }
+    json eval(CR<std::string> value) { return json(value); }
     json eval(CR<bool> value) { return json(value); }
     json eval(CR<int> value) { return json(value); }
 

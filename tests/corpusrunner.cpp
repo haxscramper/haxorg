@@ -197,7 +197,7 @@ Vec<DiffItem> json_diff(
 
 void CorpusRunner::writeFileOrStdout(
     const QFileInfo& target,
-    const QString&   content,
+    const std::string&   content,
     bool             useFile) {
     if (useFile) {
         writeFile(target, content);
@@ -205,7 +205,7 @@ void CorpusRunner::writeFileOrStdout(
     } else {
         QFile file;
         file.open(stdout, QIODevice::WriteOnly);
-        QTextStream stream{&file};
+        std::ostream stream{&file};
         stream << content;
     }
 }
@@ -606,8 +606,8 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
                     opts.flags.incl(HDisplayFlag::UseAscii);
                 }
 
-                QString result = //
-                    QString(
+                std::string result = //
+                    std::string(
                         useQFormat()
                             ? (isLhs ? "${kind} \"${text}\" <"
                                      : "> \"${text}\" ${kind}")
@@ -620,7 +620,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
                         // {tok.hasData()},
                     });
 
-                auto indexFmt = QString("[%1]").arg(id);
+                auto indexFmt = std::string("[%1]").arg(id);
                 return useQFormat()
                          ? (isLhs ? indexFmt
                                         + right_aligned(
@@ -690,7 +690,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                                HDisplayOpts().excl(
                                    HDisplayFlag::UseQuotes))
                                .toString(false))
-                                         : QString(""),
+                                         : std::string(""),
                        node.kind,
                        node.isTerminal()
                            ? "tok=" + to_string(node.getToken().getIndex())
@@ -811,7 +811,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
 
 CorpusRunner::RunResult CorpusRunner::runSpec(
     CR<ParseSpec> spec,
-    CR<QString>   from) {
+    CR<std::string>   from) {
     MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
     MockFull              p(spec.debug.traceParse, spec.debug.traceLex);
 

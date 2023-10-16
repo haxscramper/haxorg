@@ -295,7 +295,7 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["Opt"]:
             name = "Optional"
 
-        case ["Str"] | ["string"] | ["QString"] | ["basic_string"
+        case ["Str"] | ["string"] | ["std::string"] | ["basic_string"
                                                   ] | ["std", "basic_string"]:
             name = "str"
 

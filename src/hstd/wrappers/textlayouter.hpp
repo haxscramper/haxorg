@@ -163,7 +163,7 @@ REFL_DEFINE_DESCRIBED_OSTREAM(Event::Spaces);
 REFL_DEFINE_DESCRIBED_OSTREAM(Event::Newline);
 
 
-inline QTextStream& operator<<(QTextStream& os, CR<Event> const& value) {
+inline std::ostream& operator<<(std::ostream& os, CR<Event> const& value) {
     return os << "{ .kind = " << value.getKind()
               << ", data = " << value.data << "}";
 }
@@ -461,17 +461,17 @@ struct OutConsole {
 generator<Event> formatEvents(BlockStore& store, Layout::Ptr const& lyt);
 
 struct SimpleStringStore {
-    Vec<QString> strings;
+    Vec<std::string> strings;
     BlockStore*  store;
 
     SimpleStringStore(BlockStore* store) : store(store) {}
-    LytStr  str(QString const& str);
-    QString str(const LytStr& str) const;
-    QString toString(BlockId const& blc, Options const& opts = Options{});
-    BlockId text(const QString& arg) { return store->text(str(arg)); }
+    LytStr  str(std::string const& str);
+    std::string str(const LytStr& str) const;
+    std::string toString(BlockId const& blc, Options const& opts = Options{});
+    BlockId text(const std::string& arg) { return store->text(str(arg)); }
     BlockId text(const LytStr& s) { return store->text(s); }
 
-    QString toTreeRepr(BlockId id, bool doRecurse = true);
+    std::string toTreeRepr(BlockId id, bool doRecurse = true);
 };
 
 

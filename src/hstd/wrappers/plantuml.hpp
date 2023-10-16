@@ -2,7 +2,7 @@
 #define PLANTUML_HPP
 
 #include <QDate>
-#include <QString>
+#include <string>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Vec.hpp>
@@ -20,19 +20,19 @@ namespace puml {
 
 
 struct Gantt {
-    _property(Title, title, QString);
-    _property(DateFormat, dateFormat, QString);
+    _property(Title, title, std::string);
+    _property(DateFormat, dateFormat, std::string);
     _property(Today, today, QDate);
     _e_property(PrintScale, printscale, daily, weekly, monthly, yearly);
     _e_property(Scale, scale, auto_, fixed, compact);
     _property(ProjectStart, projectstart, QDate);
     _property(ProjectEnd, projectend, QDate);
-    _property(Legend, legend, QString);
-    _property(BarStyle, barstyle, QString);
-    _property(TaskBarStyle, taskbarstyle, QString);
-    _property(Calendar, calendar, QString);
-    _property(WorkingDays, workingdays, QString);
-    _property(WeekEnds, weekEnds, QString);
+    _property(Legend, legend, std::string);
+    _property(BarStyle, barstyle, std::string);
+    _property(TaskBarStyle, taskbarstyle, std::string);
+    _property(Calendar, calendar, std::string);
+    _property(WorkingDays, workingdays, std::string);
+    _property(WeekEnds, weekEnds, std::string);
     _property(Holidays, holidays, UserTime);
 
     struct CloseDay {
@@ -49,7 +49,7 @@ struct Gantt {
     struct Event {
         UserTime   start;
         UserTime   stop;
-        QString    name;
+        std::string    name;
         Opt<int>   completion;
         Vec<Event> nested;
 
@@ -60,7 +60,7 @@ struct Gantt {
         Slice<QDateTime> convex() const;
         Slice<QDateTime> minmax() const;
 
-        QString toString() const;
+        std::string toString() const;
 
         json toJson() const;
     };
@@ -69,7 +69,7 @@ struct Gantt {
 
     Vec<Event> events;
 
-    QString toString() const;
+    std::string toString() const;
     json    toJson() const;
 };
 

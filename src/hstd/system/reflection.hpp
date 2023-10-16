@@ -28,7 +28,7 @@ concept DescribedRecord = boost::describe::has_describe_members<
 namespace boost::describe {
 
 inline void throw_invalid_name(char const* name, char const* type) {
-    throw std::runtime_error((QString("Invalid enumerator name '") + name
+    throw std::runtime_error((std::string("Invalid enumerator name '") + name
                               + "' for enum type '" + type + "'")
                                  .toStdString());
 }
@@ -59,7 +59,7 @@ struct enum_serde;
 
 template <typename T>
 concept SerializableEnum = IsEnum<T> && requires(CR<T> value) {
-    { enum_serde<T>::to_string(value) } -> std::same_as<QString>;
+    { enum_serde<T>::to_string(value) } -> std::same_as<std::string>;
 };
 
 template <typename T>
@@ -67,23 +67,23 @@ concept NonSerializableEnum = IsEnum<T> && !SerializableEnum<T>;
 
 
 template <SerializableEnum T>
-QTextStream& operator<<(QTextStream& os, T value) {
+std::ostream& operator<<(std::ostream& os, T value) {
     return os << enum_serde<T>::to_string(value);
 }
 
 template <NonSerializableEnum T>
-QTextStream& operator<<(QTextStream& os, T value) {
-    return os << QString::number((int)value);
+std::ostream& operator<<(std::ostream& os, T value) {
+    return os << std::string::number((int)value);
 }
 
 
 template <DescribedEnum E>
 struct enum_serde<E> {
-    static inline QString to_string(E const& value) {
+    static inline std::string to_string(E const& value) {
         return boost::describe::enum_to_string(value, "<unnamed>");
     }
 
-    static inline std::optional<E> from_string(QString const& str) {
+    static inline std::optional<E> from_string(std::string const& str) {
         try {
             std::string tmp = str.toStdString();
             return boost::describe::string_to_enum<E>(tmp.c_str());
@@ -104,7 +104,7 @@ constexpr auto describe_enumerators_as_array() {
 
 template <class E>
 struct EnumFieldDesc {
-    QString name;
+    std::string name;
     E       value;
     int     index;
 };
@@ -126,9 +126,9 @@ std::vector<EnumFieldDesc<E>> describe_enumerators() {
 }
 
 template <class E>
-std::vector<QString> enumerator_names() {
+std::vector<std::string> enumerator_names() {
     auto                 tmp = ::describe_enumerators<E>();
-    std::vector<QString> result;
+    std::vector<std::string> result;
     for (const auto& it : tmp) {
         result.push_back(it.name);
     }
@@ -162,7 +162,7 @@ template <
     class Md = boost::describe::
         describe_members<T, boost::describe::mod_any_access>,
     class En = std::enable_if_t<!std::is_union<T>::value>>
-QTextStream& described_class_printer(QTextStream& os, T const& t) {
+std::ostream& described_class_printer(std::ostream& os, T const& t) {
     os << "{";
 
     bool first = true;
@@ -229,8 +229,8 @@ bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
 
 
 #define REFL_DEFINE_DESCRIBED_OSTREAM(TypeName)                           \
-    inline QTextStream& operator<<(                                       \
-        QTextStream& os, CR<TypeName> const& value) {                     \
+    inline std::ostream& operator<<(                                       \
+        std::ostream& os, CR<TypeName> const& value) {                     \
         return os << described_class_printer(os, value);                  \
     }
 

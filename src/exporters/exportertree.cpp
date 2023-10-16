@@ -1,5 +1,5 @@
 #include <exporters/exportertree.hpp>
-#include <QFileInfo>
+#include <filesystem>
 
 #define __scope() ScopedField CONCAT(close, __COUNTER__){this};
 
@@ -42,7 +42,7 @@ void ExporterTree::treeRepr(sem::SemId org) {
 void ExporterTree::treeRepr(sem::SemId org, const QFileInfo& path) {
     QFile file{path.absoluteFilePath()};
     if (file.open(QIODevice::ReadWrite | QFile::Truncate)) {
-        QTextStream stream{&file};
+        std::ostream stream{&file};
         ColStream   os{stream};
         os.colored = false;
         ExporterTree(os).evalTop(org);

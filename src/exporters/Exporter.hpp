@@ -45,13 +45,13 @@ struct Exporter {
         Opt<sem::SemId> visitedNode  = std::nullopt;
         R*              visitedValue = nullptr;
         int             level        = 0;
-        QString         file;
+        std::string         file;
         int             line = 0;
-        QString         field;
-        QString         function;
+        std::string         field;
+        std::string         function;
         bool            isStart = true;
-        QString         type;
-        QString         msg;
+        std::string         type;
+        std::string         msg;
     };
 
     using VisitEventCb = Func<void(VisitEvent const&)>;

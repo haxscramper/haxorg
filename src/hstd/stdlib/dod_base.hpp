@@ -120,7 +120,7 @@ struct [[nodiscard]] Id {
         }
     }
     /// Get string representation of the ID value
-    auto getStr() const -> QString { return std::to_string(value); }
+    auto getStr() const -> std::string { return std::to_string(value); }
 
     /// Compare *unmasked* parts of the ID. Only unmasked part is compared
     /// because mask ordering is unlikely to be any of any relevance for
@@ -147,9 +147,9 @@ struct [[nodiscard]] Id {
     }
 
     /// \brief Write strig representation of the ID into output stream
-    QTextStream& streamTo(
-        QTextStream& os,
-        QString      name     = "dod::Id",
+    std::ostream& streamTo(
+        std::ostream& os,
+        std::string      name     = "dod::Id",
         bool         withMask = true) const {
         if (name.size() != 0) {
             os << name << "(";
@@ -205,8 +205,8 @@ struct [[nodiscard]] Id {
     };                                                                    \
                                                                           \
                                                                           \
-    inline QTextStream& operator<<(                                       \
-        QTextStream& os, __name const& value) {                           \
+    inline std::ostream& operator<<(                                       \
+        std::ostream& os, __name const& value) {                           \
         return value.streamTo(os, #__name);                               \
     }
 
@@ -229,7 +229,7 @@ concept IsIdType = is_base_of_template_v<Id, D>;
 
 /// \brief Generic ostream template for the ID types
 template <IsIdType Id>
-QTextStream& operator<<(QTextStream& os, Id const& value) {
+std::ostream& operator<<(std::ostream& os, Id const& value) {
     return value.streamTo(os, demangle(typeid(Id).name()));
 }
 

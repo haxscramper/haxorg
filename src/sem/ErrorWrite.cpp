@@ -311,15 +311,15 @@ Pair<ColRune, ColRune> get_corner_elements(
 }
 
 void write_margin(MarginContext const& c) {
-    QString line_no_margin;
+    std::string line_no_margin;
     if (c.is_line && !c.is_ellipsis) {
         int line_no    = c.idx + 1;
-        line_no_margin = QString(" ").repeated(
+        line_no_margin = std::string(" ").repeated(
                              c.line_no_width
-                             - QString::number(line_no).length())
-                       + QString::number(line_no) + " " + c.draw.vbar;
+                             - std::string::number(line_no).length())
+                       + std::string::number(line_no) + " " + c.draw.vbar;
     } else {
-        line_no_margin = QString(" ").repeated(c.line_no_width + 1)
+        line_no_margin = std::string(" ").repeated(c.line_no_width + 1)
                        + (c.is_ellipsis ? c.draw.vbar_gap
                                         : c.draw.vbar_break);
     }
@@ -606,7 +606,7 @@ void build_line_labels(
 int get_line_no_width(Vec<SourceGroup> const& groups, Cache& cache) {
     int line_no_width = 0;
     for (const auto& group : groups) {
-        QString src_name = cache.display(group.src_id)
+        std::string src_name = cache.display(group.src_id)
                                .value_or("<unknown>");
 
         try {
@@ -614,7 +614,7 @@ int get_line_no_width(Vec<SourceGroup> const& groups, Cache& cache) {
 
             auto line_range = src->get_line_range(
                 RangeCodeSpan(group.span));
-            int width     = QString::number(line_range.last).size();
+            int width     = std::string::number(line_range.last).size();
             line_no_width = std::max(line_no_width, width);
         } catch (const std::exception& e) {
             std::cerr << "Unable to fetch source " << src_name << ": "
@@ -752,7 +752,7 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) {
     return groups;
 }
 
-void Report::write_for_stream(Cache& cache, QTextStream& stream) {
+void Report::write_for_stream(Cache& cache, std::ostream& stream) {
     ColStream w{stream};
     w.colored       = true;
     Characters draw = Characters{};
@@ -765,7 +765,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
 
 
     ColStyle kind_color;
-    QString  kindName;
+    std::string  kindName;
     switch (kind) {
         case ReportKind::Error: {
             kind_color = config.error_color;
@@ -804,7 +804,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
         SourceGroup const& group               = groups[group_idx];
         auto const& [src_id, Codespan, labels] = group;
 
-        QString src_name = cache.display(src_id).value_or("<unknown>");
+        std::string src_name = cache.display(src_id).value_or("<unknown>");
 
         std::shared_ptr<Source> src;
         try {
@@ -815,7 +815,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
             continue;
         }
 
-        w << QString(" ").repeated(line_no_width + 2) //
+        w << std::string(" ").repeated(line_no_width + 2) //
           << (group_idx == 0 ? ColRune(draw.ltop) : ColRune(draw.lcross))
                  + config.margin_color                //
           << ColRune(draw.hbar) + config.margin_color //
@@ -840,7 +840,7 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
         w << ColRune(draw.rbox) + config.margin_color << "\n";
 
         if (!config.compact) {
-            w << QString(" ").repeated(line_no_width + 2)
+            w << std::string(" ").repeated(line_no_width + 2)
               << ColRune(draw.vbar) + config.margin_color << "\n";
         }
 
@@ -1014,16 +1014,16 @@ void Report::write_for_stream(Cache& cache, QTextStream& stream) {
         // Tail of report
         if (!config.compact) {
             if (is_final_group) {
-                w << QString(draw.hbar).repeated(line_no_width + 2)
+                w << std::string(draw.hbar).repeated(line_no_width + 2)
                   << draw.rbot << "\n";
             } else {
-                w << QString(" ").repeated(line_no_width + 2) << draw.vbar
+                w << std::string(" ").repeated(line_no_width + 2) << draw.vbar
                   << "\n";
             }
         }
     }
 
-    qDebug() << w.getBuffer();
+    DLOG(INFO) << w.getBuffer();
 }
 
 std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {

@@ -7,7 +7,7 @@ import dumper
 print("Running debugger helper scrpt")
 
 
-def qStringData(d, value):
+def std::stringData(d, value):
     # Calculate the string length and get the data pointer
     data, size, _ = d.stringData(value)
 
@@ -19,15 +19,15 @@ def qStringData(d, value):
 def sem_id_dump_common(d, value):
     print("Running dumper for ", value.type)
     try:
-        readable_id = d.call("QString", value, "getReadableId")
-        kind = qStringData(d, readable_id).split("_")[1]
+        readable_id = d.call("std::string", value, "getReadableId")
+        kind = std::stringData(d, readable_id).split("_")[1]
         d.putStringValue(readable_id)
         d.putExpandable()
         d.putNumChild(3)
         if d.isExpanded():
             with Children(d, 3):
                 d.putSubItem("ID", value["id"])
-                d.putCallItem("Readable ID", "QString", value, "getReadableId")
+                d.putCallItem("Readable ID", "std::string", value, "getReadableId")
                 underlying_type = "sem::" + kind
                 print("Formatting value part as %s" % underlying_type)
                 org_base_ptr = d.call(underlying_type, value, "get")

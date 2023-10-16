@@ -125,6 +125,6 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
 };
 
 template <typename T, int Size>
-QTextStream& operator<<(QTextStream& os, Array<T, Size> const& value) {
+std::ostream& operator<<(std::ostream& os, Array<T, Size> const& value) {
     return os << "[" << join(os, ", ", value) << "]";
 }

@@ -115,7 +115,7 @@ yaml yamlRepr(
 
 template <typename N, typename K>
 NodeTree<N, K> fromHomogeneous(CR<yaml> node) {
-    Opt<N> kind = enum_serde<N>::from_string(node["kind"].as<QString>());
+    Opt<N> kind = enum_serde<N>::from_string(node["kind"].as<std::string>());
     if (node["subnodes"]) {
         Vec<NodeTree<N, K>> subnodes;
         for (const auto& it : node["subnodes"]) {
@@ -125,9 +125,9 @@ NodeTree<N, K> fromHomogeneous(CR<yaml> node) {
     } else {
         typename NodeTree<N, K>::TreeToken token = {
             .index = node["tok_idx"].as<int>(),
-            .str   = node["str"] ? Opt<Str>(node["str"].as<QString>())
+            .str   = node["str"] ? Opt<Str>(node["str"].as<std::string>())
                                  : Opt<Str>(std::nullopt),
-            .kind  = enum_serde<K>::from_string(node["tok"].as<QString>())
+            .kind  = enum_serde<K>::from_string(node["tok"].as<std::string>())
                         .value()};
 
         return NodeTree<N, K>(kind.value(), token);
@@ -142,7 +142,7 @@ TokenGroup<K> fromFlatTokens(CR<yaml> node, Str& buf) {
     int bufferSize = 0;
     for (const auto& it : node) {
         if (it["str"]) {
-            bufferSize += it["str"].as<QString>().size();
+            bufferSize += it["str"].as<std::string>().size();
         }
     }
 
@@ -154,13 +154,13 @@ TokenGroup<K> fromFlatTokens(CR<yaml> node, Str& buf) {
         auto start         = buf.size();
         auto id            = TokenId<K>(index);
         result.at(id).kind = enum_serde<K>::from_string(
-                                 it["kind"].as<QString>())
+                                 it["kind"].as<std::string>())
                                  .value();
 
         if (it["str"]) {
-            QString str = it["str"].as<QString>();
+            std::string str = it["str"].as<std::string>();
             buf += str;
-            result.at(id).text = QStringView(data + start, str.size());
+            result.at(id).text = std::stringView(data + start, str.size());
         }
 
         ++index;
@@ -176,7 +176,7 @@ NodeGroup<N, K> fromFlatNodes(CR<yaml> node) {
         node.size(), Node(value_domain<N>::low(), TokenId<K>::Nil()));
     int index = 0;
     for (const auto& it : node) {
-        N kind = enum_serde<N>::from_string(it["kind"].as<QString>())
+        N kind = enum_serde<N>::from_string(it["kind"].as<std::string>())
                      .value();
         if (it["extent"]) {
             result.at(NodeId<N, K>(index)) = Node<N, K>(

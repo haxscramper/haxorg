@@ -974,14 +974,14 @@ Vec<Layout::Ptr> BlockStore::toLayouts(BlockId id, const Options& opts) {
     return sln.value()->layouts;
 }
 
-QString SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
-    QString                         resOut;
-    QTextStream                     os{&resOut};
+std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
+    std::string                         resOut;
+    std::ostream                     os{&resOut};
     UnorderedSet<BlockId>           visited;
     Func<void(const BlockId&, int)> aux;
 
     aux = [&](const BlockId& blId, int level) -> void {
-        QString pref2 = repeat(" ", level * 2 + 2);
+        std::string pref2 = repeat(" ", level * 2 + 2);
         os << pref2 << "ID:" << blId << " ";
         if (id.isNil()) {
             os << "<nil>";
@@ -993,7 +993,7 @@ QString SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
             visited.incl(blId);
         }
 
-        QString      name;
+        std::string      name;
         Block const& bl = store->at(blId);
         switch (bl.getKind()) {
             case Block::Kind::Line: name = "Ln"; break;
@@ -1055,7 +1055,7 @@ QString SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                 break;
             }
             case Block::Kind::Text: {
-                QString text;
+                std::string text;
                 for (auto const& it : bl.getText().text.strs) {
                     text += str(it);
                 }
@@ -1108,25 +1108,25 @@ Vec<Vec<BlockId>> Options::defaultFormatPolicy(
     return result;
 }
 
-LytStr SimpleStringStore::str(const QString& str) {
+LytStr SimpleStringStore::str(const std::string& str) {
     LytStr result(strings.size(), str.length());
     strings.push_back(str);
     return result;
 }
 
-QString SimpleStringStore::str(const LytStr& str) const {
+std::string SimpleStringStore::str(const LytStr& str) const {
     if (str.isSpaces()) {
-        return QString(" ").repeated(str.len);
+        return std::string(" ").repeated(str.len);
     } else {
         return strings[str.toIndex()];
     };
 }
 
-QString SimpleStringStore::toString(
+std::string SimpleStringStore::toString(
     const BlockId& blc,
     const Options& opts) {
     Layout::Ptr lyt = store->toLayout(blc, opts);
-    QString     result;
+    std::string     result;
     for (const auto& event : formatEvents(*store, lyt)) {
         switch (event.getKind()) {
             case Event::Kind::Newline: {
@@ -1146,7 +1146,7 @@ QString SimpleStringStore::toString(
         }
     }
 
-    Vec<QString> fin;
+    Vec<std::string> fin;
     for (const auto& line : result.split("\n")) {
         fin.push_back(strip(line, CharSet{}, CharSet{QChar(' ')}));
     }

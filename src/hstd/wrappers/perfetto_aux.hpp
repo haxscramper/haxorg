@@ -3,7 +3,7 @@
 #ifdef USE_PERFETTO
 
 #    include <perfetto.h>
-#    include <QFileInfo>
+#    include <filesystem>
 
 
 // The set of track event categories that the example is using.

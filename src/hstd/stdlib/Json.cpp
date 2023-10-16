@@ -9,10 +9,10 @@
 template class nlohmann::basic_json<>;
 
 
-QTextStream& operator<<(QTextStream& os, const json& value) {
+std::ostream& operator<<(std::ostream& os, const json& value) {
     std::stringstream ss;
     ss << value;
-    os << QString::fromStdString(ss.str());
+    os << std::string::fromStdString(ss.str());
     return os;
 }
 
@@ -20,13 +20,13 @@ QDebug operator<<(QDebug os, const json& value) {
     QDebugStateSaver saved{os};
     return os << to_string(value);
 }
-QString to_string(const json& j) {
-    return QString::fromStdString(nlohmann::to_string(j));
+std::string to_string(const json& j) {
+    return std::string::fromStdString(nlohmann::to_string(j));
 }
 
 void to_json(json& j, CR<Str> str) { to_json(j, str.toBase()); }
 
-void to_json(json& j, CR<QString> str) {
+void to_json(json& j, CR<std::string> str) {
     ns::to_json(j, str.toStdString());
 }
 
@@ -124,8 +124,8 @@ std::string to_compact_json(
     return format(options.startIndent, j);
 }
 
-void from_json(const json& in, QString& out) {
-    out = QString::fromStdString(in.get<std::string>());
+void from_json(const json& in, std::string& out) {
+    out = std::string::fromStdString(in.get<std::string>());
 }
 
 void from_json(const json& in, int& out) { out = in.get<int>(); }

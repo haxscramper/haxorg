@@ -15,11 +15,11 @@
 #include <lexbase/TraceBase.hpp>
 
 struct ImplementError : public std::runtime_error {
-    explicit inline ImplementError(const QString& message = "")
+    explicit inline ImplementError(const std::string& message = "")
         : std::runtime_error(message.toStdString()) {}
 };
 
-OrgCommandKind classifyCommand(QString const& command);
+OrgCommandKind classifyCommand(std::string const& command);
 
 /// Store common types of the lexer state
 template <typename Flag>
@@ -137,10 +137,10 @@ struct OrgTokenizer : public OperationsTracer {
         /// \brief Base error, not thrown anywhere
         struct Base : std::runtime_error {
             // TODO add extent information about the error
-            QStringView  view;
+            std::stringView  view;
             int          pos = 0;
             Opt<LineCol> loc;
-            QString      getLocMsg() const;
+            std::string      getLocMsg() const;
 
             Base(CR<PosStr> str)
                 : std::runtime_error(""), view(str.view), pos(str.pos) {}
@@ -159,20 +159,20 @@ struct OrgTokenizer : public OperationsTracer {
         };
 
         struct MissingElement : Base {
-            QString     missing;
-            QString     where;
+            std::string     missing;
+            std::string     where;
             const char* what() const noexcept override;
 
             MissingElement(
                 CR<PosStr>  str,
-                CR<QString> missing,
-                CR<QString> where);
+                CR<std::string> missing,
+                CR<std::string> where);
         };
 
         struct UnexpectedConstruct : Base {
             const char* what() const noexcept override;
-            QString     desc;
-            UnexpectedConstruct(CR<PosStr> str, CR<QString> desc)
+            std::string     desc;
+            UnexpectedConstruct(CR<PosStr> str, CR<std::string> desc)
                 : Base(str), desc(desc) {}
         };
 
@@ -195,7 +195,7 @@ struct OrgTokenizer : public OperationsTracer {
         TokenizerError() : std::runtime_error(""), err(Errors::None()) {}
         explicit TokenizerError(CR<Error> err)
             : std::runtime_error(""), err(err) {}
-        QStringView  getView() const;
+        std::stringView  getView() const;
         int          getPos() const;
         void         setLoc(CR<LineCol> loc);
         Opt<LineCol> getLoc() const;

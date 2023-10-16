@@ -6,7 +6,7 @@ TEST(BasicLexerTest, Lex) {
     OrgTokenGroup      res;
     SPtr<OrgTokenizer> lexer;
     lexer = OrgTokenizer::initImpl(&res, false);
-    QString base{"word"};
+    std::string base{"word"};
     PosStr  str{base};
 
     lexer->lexText(str);

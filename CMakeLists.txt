@@ -40,7 +40,6 @@ option(USE_SANITIZER "Use sanitizers" ON)
 
 find_package(fmt REQUIRED)
 find_package(yaml-cpp REQUIRED)
-find_package(Qt6 COMPONENTS Gui Core Network REQUIRED)
 find_package(benchmark REQUIRED)
 find_package(PythonLibs 3.11)
 find_package(pybind11 CONFIG REQUIRED)

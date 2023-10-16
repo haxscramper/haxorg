@@ -1,7 +1,7 @@
 #pragma once
 #include <concepts>
 #include <cstdint>
-#include <QString>
+#include <string>
 
 /// Helper implementation to pass multiple types around in a 'pack'
 template <typename... Args>
@@ -28,8 +28,8 @@ inline u8 operator"" _u8(unsigned long long int value) {
     return static_cast<u8>(value);
 }
 
-inline QString operator"" _qs(const char* value, unsigned long size) {
-    return QString(value);
+inline std::string operator"" _qs(const char* value, unsigned long size) {
+    return std::string(value);
 }
 
 template <typename T> using Ref   = T&;

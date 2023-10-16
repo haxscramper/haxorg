@@ -1,6 +1,6 @@
 #include <lexbase/NodeTest.hpp>
-#include <QString>
-#include <QDir>
+#include <string>
+#include <filesystem>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/system/reflection.hpp>
 #include <boost/mp11.hpp>
@@ -34,7 +34,7 @@ json toJson(CR<yaml> node) {
 
         case YAML::NodeType::Scalar: {
             bool    ok     = false;
-            QString scalar = QString::fromStdString(node.Scalar());
+            std::string scalar = std::string::fromStdString(node.Scalar());
             {
                 long long int intValue = scalar.toLongLong(&ok);
                 if (ok) {
@@ -81,7 +81,7 @@ struct convert<Str> {
     static Node encode(Str const& v) { return Node(v.toStdString()); }
 
     static bool decode(Node const& in, Str& out) {
-        out = QString::fromStdString(in.as<std::string>());
+        out = std::string::fromStdString(in.as<std::string>());
         return true;
     }
 };
@@ -185,7 +185,7 @@ struct convert<ParseSpec> : verbose_convert<ParseSpec> {};
 } // namespace YAML
 
 
-QFileInfo ParseSpec::debugFile(QString relativePath, bool create) const {
+QFileInfo ParseSpec::debugFile(std::string relativePath, bool create) const {
     if (debug.debugOutDir.isEmpty()) {
         throw FilesystemError(
             "Cannot get relative path for the spec configuration that "
@@ -207,8 +207,8 @@ QFileInfo ParseSpec::debugFile(QString relativePath, bool create) const {
 
 ParseSpec::ParseSpec(
     CR<yaml>    node,
-    CR<QString> specFile,
-    CR<QString> testRoot)
+    CR<std::string> specFile,
+    CR<std::string> testRoot)
     : specFile(specFile) {
     specLocation = node.Mark();
 
@@ -217,7 +217,7 @@ ParseSpec::ParseSpec(
             "Input spec must contain 'source' string field or 'file'");
     } else if (node["file"]) {
         QDir    root{testRoot};
-        QString path = node["file"].as<QString>();
+        std::string path = node["file"].as<std::string>();
         auto    full = QFileInfo{root.absoluteFilePath(path)};
         if (!QFileInfo{path}.isRelative()) {
             throw SpecValidationError(
@@ -240,8 +240,8 @@ ParseSpec::ParseSpec(
 
 ParseSpecGroup::ParseSpecGroup(
     CR<yaml>    node,
-    CR<QString> from,
-    CR<QString> testRoot) {
+    CR<std::string> from,
+    CR<std::string> testRoot) {
     auto validate = [&](CR<ParseSpec> spec) {
         if (spec.parseImplName.empty() || spec.lexImplName.empty()) {
             throw ParseSpec::SpecValidationError(
@@ -261,18 +261,18 @@ ParseSpecGroup::ParseSpecGroup(
                 auto spec = ParseSpec(it, from, testRoot);
 
                 if (spec.lexImplName.empty() && node["lex"]) {
-                    spec.lexImplName = node["lex"].as<QString>();
+                    spec.lexImplName = node["lex"].as<std::string>();
                 }
 
                 if (spec.parseImplName.empty() && node["parse"]) {
-                    spec.parseImplName = node["parse"].as<QString>();
+                    spec.parseImplName = node["parse"].as<std::string>();
                 }
 
                 validate(spec);
 
                 if (!spec.name) {
                     if (node["name"]) {
-                        spec.name = node["name"].as<QString>();
+                        spec.name = node["name"].as<std::string>();
                     }
                 }
 
@@ -280,7 +280,7 @@ ParseSpecGroup::ParseSpecGroup(
                     spec.expectedMode =
                         //
                         enum_serde<ParseSpec::ExpectedMode>::from_string(
-                            node["expected"].as<QString>())
+                            node["expected"].as<std::string>())
                             .value_or(ParseSpec::ExpectedMode::Nested);
                 }
 

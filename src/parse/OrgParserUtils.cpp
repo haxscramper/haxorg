@@ -18,9 +18,9 @@ OrgParser::ParserError OrgParser::wrapError(
 }
 
 
-QString OrgParser::getLocMsg(CR<OrgLexer> lex) {
-    QString result;
-    QString pos = lex.pos.isNil() ? "<nil>"
+std::string OrgParser::getLocMsg(CR<OrgLexer> lex) {
+    std::string result;
+    std::string pos = lex.pos.isNil() ? "<nil>"
                                   : to_string(lex.pos.getIndex());
 
     if (auto loc = getLoc(lex)) {

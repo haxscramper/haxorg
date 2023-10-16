@@ -1,6 +1,6 @@
 #include "exporternlp_enums.hpp"
 
-Opt<NlpDepKind> enum_serde<NlpDepKind>::from_string(QString value) {
+Opt<NlpDepKind> enum_serde<NlpDepKind>::from_string(std::string value) {
   if (value == "ROOT") { return NlpDepKind::ROOT; } else
   if (value == "acl") { return NlpDepKind::acl; } else
   if (value == "advcl") { return NlpDepKind::advcl; } else
@@ -33,7 +33,7 @@ Opt<NlpDepKind> enum_serde<NlpDepKind>::from_string(QString value) {
   if (value == "xcomp") { return NlpDepKind::xcomp; } else
   { return std::nullopt; }
 }
-QString enum_serde<NlpDepKind>::to_string(NlpDepKind value) {
+std::string enum_serde<NlpDepKind>::to_string(NlpDepKind value) {
   switch (value) {
     case NlpDepKind::ROOT: return "ROOT";
     case NlpDepKind::acl: return "acl";
@@ -69,7 +69,7 @@ QString enum_serde<NlpDepKind>::to_string(NlpDepKind value) {
   }
 }
 
-Opt<NlpPosTag> enum_serde<NlpPosTag>::from_string(QString value) {
+Opt<NlpPosTag> enum_serde<NlpPosTag>::from_string(std::string value) {
   if (value == "ADJP") { return NlpPosTag::ADJP; } else
   if (value == "ADVP") { return NlpPosTag::ADVP; } else
   if (value == "ADD") { return NlpPosTag::ADD; } else
@@ -162,7 +162,7 @@ Opt<NlpPosTag> enum_serde<NlpPosTag>::from_string(QString value) {
   if (value == "X") { return NlpPosTag::X; } else
   { return std::nullopt; }
 }
-QString enum_serde<NlpPosTag>::to_string(NlpPosTag value) {
+std::string enum_serde<NlpPosTag>::to_string(NlpPosTag value) {
   switch (value) {
     case NlpPosTag::ADJP: return "ADJP";
     case NlpPosTag::ADVP: return "ADVP";

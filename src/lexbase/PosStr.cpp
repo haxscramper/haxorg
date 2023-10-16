@@ -36,19 +36,19 @@ void PosStr::print(ColStream& os, CR<PrintParams> params) const {
 void PosStr::print() const { print(qcout, PrintParams()); }
 void PosStr::print(ColStream& os) const { print(os, PrintParams()); }
 void PosStr::print(CR<PrintParams> params) const { print(qcout, params); }
-void PosStr::print(QTextStream& os, CR<PrintParams> params) const {
+void PosStr::print(std::ostream& os, CR<PrintParams> params) const {
     ColStream stream{os};
     print(stream, params);
 }
 
 
-QString PosStr::printToString(bool colored) const {
+std::string PosStr::printToString(bool colored) const {
     return printToString(PrintParams{}, colored);
 }
 
-QString PosStr::printToString(PrintParams params, bool colored) const {
-    QString     result;
-    QTextStream stream{&result};
+std::string PosStr::printToString(PrintParams params, bool colored) const {
+    std::string     result;
+    std::ostream stream{&result};
     ColStream   out{stream};
     params.withEnd = false;
     out.colored    = colored;
@@ -56,20 +56,20 @@ QString PosStr::printToString(PrintParams params, bool colored) const {
     return result;
 }
 
-PosStr::PosStr(QStringView inView, int inPos) : view(inView), pos(inPos) {}
+PosStr::PosStr(std::stringView inView, int inPos) : view(inView), pos(inPos) {}
 
 PosStr::PosStr(const QChar* data, int count, int inPos)
     : view(data, count), pos(inPos) {}
 
-PosStr::PosStr(const QString& str, int inPos)
+PosStr::PosStr(const std::string& str, int inPos)
     : view(str.data(), str.size()), pos(inPos) {}
 
 Str PosStr::toStr() const { return Str(view); }
 
 int PosStr::size() const { return view.size(); }
 
-QStringView PosStr::getOffsetView(int ahead) const {
-    return QStringView(
+std::stringView PosStr::getOffsetView(int ahead) const {
+    return std::stringView(
         view.data() + pos + ahead, view.size() - (pos + ahead));
 }
 
@@ -82,15 +82,15 @@ void PosStr::setPos(int _pos) {
     pos = _pos;
 }
 
-QStringView PosStr::completeView(CR<SliceStartData> slice, Offset offset)
+std::stringView PosStr::completeView(CR<SliceStartData> slice, Offset offset)
     const {
-    return QStringView(
+    return std::stringView(
         view.data() + slice.pos + offset.start,
         pos - slice.pos + offset.end);
 }
 
 PosStr PosStr::sliceBetween(int start, int end) const {
-    return PosStr{QStringView(view.data() + start, end - start + 1)};
+    return PosStr{std::stringView(view.data() + start, end - start + 1)};
 }
 
 PosStr PosStr::popSlice(Offset offset) {
@@ -155,7 +155,7 @@ QChar PosStr::pop() {
 }
 
 [[clang::xray_always_instrument]] bool PosStr::at(
-    CR<QString> expected,
+    CR<std::string> expected,
     int         offset) const {
     int idx = 0;
     for (const auto& ch : expected) {
@@ -178,8 +178,8 @@ bool PosStr::at(CR<QRegularExpression> expected, int offset) const {
 }
 
 
-QString PosStr::getAhead(Slice<int> slice) const {
-    QString result;
+std::string PosStr::getAhead(Slice<int> slice) const {
+    std::string result;
     for (int idx : slice) {
         result += get(idx);
     }
@@ -195,7 +195,7 @@ bool PosStr::atAny(CR<PosStr::CheckableSkip> expected, int offset) const {
         [&](auto const& it) { return at(it, offset); }, expected);
 }
 
-QStringView viewForward(QStringView view, int position, int span) {
+std::stringView viewForward(std::stringView view, int position, int span) {
     return view.sliced(
         position, std::min<int>(view.size() - position, span));
 }
@@ -224,7 +224,7 @@ void PosStr::skip(CR<QRegularExpression> expected, int offset) {
     }
 }
 
-void PosStr::skip(QString expected, int offset) {
+void PosStr::skip(std::string expected, int offset) {
     if (at(expected, offset)) {
         next(expected.size());
     } else {
@@ -386,8 +386,8 @@ bool PosStr::hasMoreIndent(const int& indent, const bool& exactIndent)
 void PosStr::skipIdent(const CharSet& chars) { skipZeroOrMore(chars); }
 
 UnexpectedCharError PosStr::makeUnexpected(
-    CR<QString> expected, ///< What we expected to find?
-    CR<QString> parsing   ///< Description of the thing we are
+    CR<std::string> expected, ///< What we expected to find?
+    CR<std::string> parsing   ///< Description of the thing we are
                           /// parsing at the moment
 ) {
     return UnexpectedCharError(

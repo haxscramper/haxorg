@@ -18,16 +18,16 @@
 #include <functional>
 
 template <typename T>
-QTextStream& operator<<(
-    QTextStream&                 os,
+std::ostream& operator<<(
+    std::ostream&                 os,
     std::unordered_set<T> const& value) {
     return os << "{" << join(os, ", ", value) << "}";
 }
 
 template <typename T>
-QString to_string(std::unordered_set<T> const& value) {
-    QString     out;
-    QTextStream os{&out};
+std::string to_string(std::unordered_set<T> const& value) {
+    std::string     out;
+    std::ostream os{&out};
     os << value;
     return out;
 }
@@ -36,7 +36,7 @@ QString to_string(std::unordered_set<T> const& value) {
 namespace astspec {
 
 struct FieldAccessError : public GetterError {
-    explicit FieldAccessError(const QString& message)
+    explicit FieldAccessError(const std::string& message)
         : GetterError(message) {}
 };
 
@@ -168,8 +168,8 @@ struct AstRange {
 
 
 template <typename Name>
-inline QTextStream& operator<<(
-    QTextStream&          os,
+inline std::ostream& operator<<(
+    std::ostream&          os,
     AstRange<Name> const& arange) {
     switch (arange.kind) {
         case AstRangeKind::Point: return os << arange.idx;

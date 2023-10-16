@@ -23,7 +23,7 @@ struct OrgConverter : public OperationsTracer {
                 : loc(loc), adapter(adapter), node(node) {}
 
 
-            QString getLocMsg() const {
+            std::string getLocMsg() const {
                 return "$#:$# (pos $#)"
                      % to_string_vec(
                            loc ? loc->line : -1,
@@ -77,7 +77,7 @@ struct OrgConverter : public OperationsTracer {
     Func<LineCol(CR<PosStr>)> locationResolver;
     ConvertError wrapError(CR<Error> err, CR<OrgAdapter> adapter);
     Opt<LineCol> getLoc(CR<OrgAdapter> adapter);
-    QString      getLocMsg(CR<OrgAdapter> adapter);
+    std::string      getLocMsg(CR<OrgAdapter> adapter);
 
   public:
     enum class ReportKind

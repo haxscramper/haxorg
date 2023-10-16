@@ -1,8 +1,8 @@
 #include <hstd/wrappers/graphviz.hpp>
-#include <QFileInfo>
+#include <filesystem>
 
 void Graphviz::Node::Record::set(
-    const QString& columnKey,
+    const std::string& columnKey,
     CR<Record>     value) {
     if (isFinal()) {
         content = Vec<Record>{Record({Record(columnKey), value})};
@@ -62,7 +62,7 @@ Graphviz::Edge::Edge(Agraph_t* graph, CR<Node> head, CR<Node> tail)
     }
 }
 
-Graphviz::Graph::Graph(const QString& name, Agdesc_t desc)
+Graphviz::Graph::Graph(const std::string& name, Agdesc_t desc)
     : defaultEdge(nullptr, nullptr), defaultNode(nullptr, nullptr) {
     Agraph_t* graph_ = agopen(
         const_cast<char*>(name.toStdString().c_str()), desc, nullptr);
@@ -82,7 +82,7 @@ Graphviz::Graph::Graph(const QFileInfo& file)
     , defaultNode(graph, nullptr) {
     Q_ASSERT(file.exists());
 
-    QString absolute = file.absoluteFilePath();
+    std::string absolute = file.absoluteFilePath();
     FILE*   fp       = fopen(absolute.toLatin1().data(), "r");
     graph            = agread(fp, nullptr);
 
@@ -96,7 +96,7 @@ void Graphviz::Graph::initDefaultSetters() {
     // this->graph` does not have this issue, but that's not how this is
     // supposed to work.
     defaultNode.setOverride =
-        [graph = this->graph](QString const& key, QString const& value) {
+        [graph = this->graph](std::string const& key, std::string const& value) {
             auto& r = *graph;
             Q_CHECK_PTR(graph);
             agattr(graph, AGNODE, strdup(key), strdup(value));
@@ -104,7 +104,7 @@ void Graphviz::Graph::initDefaultSetters() {
 
     defaultEdge.graph = graph;
     defaultEdge.setOverride =
-        [graph = this->graph](QString const& key, QString const& value) {
+        [graph = this->graph](std::string const& key, std::string const& value) {
             auto& r = *graph;
             Q_CHECK_PTR(graph);
             agattr(graph, AGEDGE, strdup(key), strdup(value));
@@ -128,7 +128,7 @@ void Graphviz::Graph::eachEdge(Func<void(Edge)> cb) {
     }
 }
 
-QString Graphviz::layoutTypeToString(LayoutType layoutType) {
+std::string Graphviz::layoutTypeToString(LayoutType layoutType) {
     switch (layoutType) {
         case LayoutType::Dot: return "dot";
         case LayoutType::Neato: return "neato";
@@ -140,7 +140,7 @@ QString Graphviz::layoutTypeToString(LayoutType layoutType) {
     }
 }
 
-QString Graphviz::renderFormatToString(RenderFormat renderFormat) {
+std::string Graphviz::renderFormatToString(RenderFormat renderFormat) {
     switch (renderFormat) {
         case RenderFormat::PNG: return "png";
         case RenderFormat::PDF: return "pdf";
@@ -171,7 +171,7 @@ void Graphviz::freeLayout(Graph graph) {
 }
 
 void Graphviz::writeFile(
-    const QString& fileName,
+    const std::string& fileName,
     CR<Graph>      graph,
     RenderFormat   format) {
     if (format == RenderFormat::DOT) {
@@ -200,7 +200,7 @@ void Graphviz::writeFile(
 }
 
 void Graphviz::renderToFile(
-    const QString& fileName,
+    const std::string& fileName,
     CR<Graph>      graph,
     RenderFormat   format,
     LayoutType     layout) {
@@ -220,14 +220,14 @@ void Graphviz::renderToFile(
 
 Graphviz::Node::Node(
     Agraph_t*      graph,
-    const QString& name,
+    const std::string& name,
     const Record&  record)
     : Node(graph, name) {
     setShape(Shape::record);
     setLabel(record.toString());
 }
 
-Graphviz::Node::Node(Agraph_t* graph, const QString& name) {
+Graphviz::Node::Node(Agraph_t* graph, const std::string& name) {
     auto node_ = agnode(
         graph, const_cast<char*>(name.toStdString().c_str()), 1);
     if (!node_) {

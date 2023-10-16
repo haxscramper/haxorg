@@ -30,8 +30,8 @@ struct TestParams {
     ParseSpec spec;
     QFileInfo file;
 
-    QString testName() const {
-        QString final;
+    std::string testName() const {
+        std::string final;
         for (QChar const& ch : fullName()) {
             if (ch.isDigit() || ch.isLetter() || ch == '_') {
                 final.push_back(ch);
@@ -43,11 +43,11 @@ struct TestParams {
         return final;
     }
 
-    QString fullName() const {
+    std::string fullName() const {
         return "$# at $#:$#:$#"
              % to_string_vec(
                    spec.name.has_value() ? spec.name.value()
-                                         : QString("<spec>"),
+                                         : std::string("<spec>"),
                    file.fileName(),
                    spec.specLocation.line,
                    spec.specLocation.column);

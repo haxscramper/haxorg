@@ -25,8 +25,8 @@ TEST(StringOperationsTest, BasicOperations) {
     EXPECT_TRUE(empty.empty());
     EXPECT_EQ(s1[1], 'e');
     // String slices are inclusive
-    EXPECT_EQ((s1[Slice<int>{1, 3}]), QString("ell"));
-    EXPECT_EQ((s1 + s2), QString("HelloWorld"));
+    EXPECT_EQ((s1[Slice<int>{1, 3}]), std::string("ell"));
+    EXPECT_EQ((s1 + s2), std::string("HelloWorld"));
 }
 
 TEST(StringOperationsTest, StringMutations) {
