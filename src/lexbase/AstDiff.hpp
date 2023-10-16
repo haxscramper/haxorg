@@ -1389,7 +1389,7 @@ void ASTDiff<Id, Val>::computeChangeKinds(Mapping& M) {
 
 template <typename Id, typename Val>
 static void printNode(
-    std::ostream&         OS,
+    std::ostream&        OS,
     SyntaxTree<Id, Val>& Tree,
     NodeId               id,
     Func<Str(CR<Val>)>   ValoStr) {
@@ -1405,7 +1405,7 @@ static void printNode(
 
 template <typename Id, typename Val>
 static void printDstChange(
-    std::ostream&         OS,
+    std::ostream&        OS,
     ASTDiff<Id, Val>&    Diff,
     SyntaxTree<Id, Val>& SrcTree,
     SyntaxTree<Id, Val>& DstTree,

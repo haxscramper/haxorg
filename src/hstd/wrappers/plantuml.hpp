@@ -47,11 +47,11 @@ struct Gantt {
     };
 
     struct Event {
-        UserTime   start;
-        UserTime   stop;
-        std::string    name;
-        Opt<int>   completion;
-        Vec<Event> nested;
+        UserTime    start;
+        UserTime    stop;
+        std::string name;
+        Opt<int>    completion;
+        Vec<Event>  nested;
 
         bool hasHours   = true;
         bool hasMinutes = true;
@@ -70,7 +70,7 @@ struct Gantt {
     Vec<Event> events;
 
     std::string toString() const;
-    json    toJson() const;
+    json        toJson() const;
 };
 
 }; // namespace puml

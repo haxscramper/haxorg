@@ -115,7 +115,8 @@ yaml yamlRepr(
 
 template <typename N, typename K>
 NodeTree<N, K> fromHomogeneous(CR<yaml> node) {
-    Opt<N> kind = enum_serde<N>::from_string(node["kind"].as<std::string>());
+    Opt<N> kind = enum_serde<N>::from_string(
+        node["kind"].as<std::string>());
     if (node["subnodes"]) {
         Vec<NodeTree<N, K>> subnodes;
         for (const auto& it : node["subnodes"]) {
@@ -127,7 +128,8 @@ NodeTree<N, K> fromHomogeneous(CR<yaml> node) {
             .index = node["tok_idx"].as<int>(),
             .str   = node["str"] ? Opt<Str>(node["str"].as<std::string>())
                                  : Opt<Str>(std::nullopt),
-            .kind  = enum_serde<K>::from_string(node["tok"].as<std::string>())
+            .kind  = enum_serde<K>::from_string(
+                        node["tok"].as<std::string>())
                         .value()};
 
         return NodeTree<N, K>(kind.value(), token);

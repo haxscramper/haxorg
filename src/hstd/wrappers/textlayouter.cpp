@@ -55,8 +55,7 @@ void Solution::add(
         throw std::runtime_error(
             ("Internal error: bad layout: (k " + to_string(knot) + ", s "
              + to_string(span) + ", i " + to_string(intercept) + ", g "
-             + to_string(gradient) + ")")
-                );
+             + to_string(gradient) + ")"));
     }
 
     knots.push_back(knot);
@@ -975,8 +974,8 @@ Vec<Layout::Ptr> BlockStore::toLayouts(BlockId id, const Options& opts) {
 }
 
 std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
-    std::string                         resOut;
-    std::ostream                     os{&resOut};
+    std::string                     resOut;
+    std::ostream                    os{&resOut};
     UnorderedSet<BlockId>           visited;
     Func<void(const BlockId&, int)> aux;
 
@@ -993,7 +992,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
             visited.incl(blId);
         }
 
-        std::string      name;
+        std::string  name;
         Block const& bl = store->at(blId);
         switch (bl.getKind()) {
             case Block::Kind::Line: name = "Ln"; break;
@@ -1126,7 +1125,7 @@ std::string SimpleStringStore::toString(
     const BlockId& blc,
     const Options& opts) {
     Layout::Ptr lyt = store->toLayout(blc, opts);
-    std::string     result;
+    std::string result;
     for (const auto& event : formatEvents(*store, lyt)) {
         switch (event.getKind()) {
             case Event::Kind::Newline: {

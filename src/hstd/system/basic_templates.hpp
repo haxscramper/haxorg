@@ -12,37 +12,29 @@ struct value_domain;
 
 template <typename T>
 concept ImplementsSucc = requires(CR<T> value) {
-                             {
-                                 value_domain<T>::succ(value)
-                                 } -> std::same_as<T>;
-                         };
+    { value_domain<T>::succ(value) } -> std::same_as<T>;
+};
 
 template <typename T>
 concept ImplementsPrev = requires(CR<T> value) {
-                             {
-                                 value_domain<T>::prev(value)
-                                 } -> std::same_as<T>;
-                         };
+    { value_domain<T>::prev(value) } -> std::same_as<T>;
+};
 
 
 template <typename T>
 concept ImplementsLow = requires(CR<T> value) {
-                            { value_domain<T>::low() } -> std::same_as<T>;
-                        };
+    { value_domain<T>::low() } -> std::same_as<T>;
+};
 
 template <typename T>
 concept ImplementsHigh = requires(CR<T> value) {
-                             {
-                                 value_domain<T>::high()
-                                 } -> std::same_as<T>;
-                         };
+    { value_domain<T>::high() } -> std::same_as<T>;
+};
 
 template <typename T>
 concept ImplementsOrd = requires(CR<T> value) {
-                            {
-                                value_domain<T>::ord(value)
-                                } -> std::convertible_to<long long int>;
-                        };
+    { value_domain<T>::ord(value) } -> std::convertible_to<long long int>;
+};
 
 template <std::integral T>
 struct value_domain<T> {

@@ -60,7 +60,9 @@ class Graphviz {
         Right
     };
 
-    static std::string alignText(std::string const& text, TextAlign direction) {
+    static std::string alignText(
+        std::string const& text,
+        TextAlign          direction) {
         std::string res = text;
         switch (direction) {
             case TextAlign::Left: res.replace("\n", "\\l"); break;
@@ -101,7 +103,7 @@ class Graphviz {
         void setAttr(
             std::string const& attribute,
             std::string const& value,
-            TextAlign      direction) {
+            TextAlign          direction) {
             setAttr(attribute, alignText(value, direction));
         }
 
@@ -116,7 +118,8 @@ class Graphviz {
             return agget(_this()->get(), strdup(attribute)) != nullptr;
         }
 
-        void getAttr(std::string const& attribute, Opt<std::string>& value) const {
+        void getAttr(std::string const& attribute, Opt<std::string>& value)
+            const {
             char* found = agget(
                 (void*)(_this()->get()), strdup(attribute));
 
@@ -169,7 +172,9 @@ class Graphviz {
             }
         }
 
-        void setAttr(std::string const& attribute, std::string const& value) {
+        void setAttr(
+            std::string const& attribute,
+            std::string const& value) {
             if (setOverride) {
                 setOverride(attribute, value);
             } else {
@@ -274,7 +279,10 @@ class Graphviz {
 
         void finishRecord() { setLabel(getNodeRecord()->toString()); }
 
-        Node(Agraph_t* graph, std::string const& name, Record const& record);
+        Node(
+            Agraph_t*          graph,
+            std::string const& name,
+            Record const&      record);
 
         Node(Agraph_t* graph, Agnode_t* node_)
             : node(node_), graph(graph) {}
@@ -522,9 +530,9 @@ class Graphviz {
 
 
         /// Set default attriute value for edge
-        void setDefaultEdgeAttr(std::string const& key, std::string const& value) {
-
-        }
+        void setDefaultEdgeAttr(
+            std::string const& key,
+            std::string const& value) {}
 
         Node subNode(Node const& node) {
             agsubnode(graph, node.node, 1);
@@ -675,14 +683,14 @@ class Graphviz {
 
     void writeFile(
         std::string const& fileName,
-        CR<Graph>      graph,
-        RenderFormat   format = RenderFormat::DOT);
+        CR<Graph>          graph,
+        RenderFormat       format = RenderFormat::DOT);
 
     void renderToFile(
         std::string const& fileName,
-        CR<Graph>      graph,
-        RenderFormat   format = RenderFormat::PNG,
-        LayoutType     layout = LayoutType::Dot);
+        CR<Graph>          graph,
+        RenderFormat       format = RenderFormat::PNG,
+        LayoutType         layout = LayoutType::Dot);
 
   private:
     GVC_t* gvc;

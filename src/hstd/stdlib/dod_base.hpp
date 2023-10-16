@@ -149,8 +149,8 @@ struct [[nodiscard]] Id {
     /// \brief Write strig representation of the ID into output stream
     std::ostream& streamTo(
         std::ostream& os,
-        std::string      name     = "dod::Id",
-        bool         withMask = true) const {
+        std::string   name     = "dod::Id",
+        bool          withMask = true) const {
         if (name.size() != 0) {
             os << name << "(";
         }
@@ -205,8 +205,8 @@ struct [[nodiscard]] Id {
     };                                                                    \
                                                                           \
                                                                           \
-    inline std::ostream& operator<<(                                       \
-        std::ostream& os, __name const& value) {                           \
+    inline std::ostream& operator<<(                                      \
+        std::ostream& os, __name const& value) {                          \
         return value.streamTo(os, #__name);                               \
     }
 

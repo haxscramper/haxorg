@@ -8,7 +8,7 @@ static void impl() {
     OrgTokenGroup       tokens;
     SPtr<OrgTokenizer>  tokenizer = OrgTokenizer::initImpl(&tokens, false);
     OrgNodeGroup        nodes{nullptr};
-    std::string             base;
+    std::string         base;
     Lexer<OrgTokenKind> lex{&tokens};
     SPtr<OrgParser>     parser = OrgParser::initImpl(&nodes, false);
     UPtr<OrgSpec>       spec;

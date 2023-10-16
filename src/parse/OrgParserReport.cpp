@@ -18,9 +18,9 @@ OrgParser::Errors::Base::Base(CR<OrgLexer> lex, Opt<LineCol> loc)
 }
 
 OrgParser::Errors::Base::Base(
-    CR<OrgLexer> lex,
-    CR<std::string>  extraMsg,
-    Opt<LineCol> loc)
+    CR<OrgLexer>    lex,
+    CR<std::string> extraMsg,
+    Opt<LineCol>    loc)
     : id(lex.pos), loc(loc), extraMsg(extraMsg) {
     if (!lex.finished()) {
         token = lex.tok();

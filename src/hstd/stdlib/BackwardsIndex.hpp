@@ -15,7 +15,7 @@ inline BackwardsIndex operator"" _B(unsigned long long int value) {
 }
 
 inline std::ostream& operator<<(
-    std::ostream&          os,
+    std::ostream&         os,
     BackwardsIndex const& value) {
     return os << "^" << std::string::number(value.value);
 }

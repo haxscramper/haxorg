@@ -320,18 +320,18 @@ void ReflASTVisitor::fillParmVarDecl(
     QualType* ArgType = arg->mutable_type();
     fillType(ArgType, parm->getType(), parm->getLocation());
 
-//    if (parm->getNameAsString() == "path") {
-//        Diag(
-//            DiagKind::Warning,
-//            "Adding serialization information for %0 %1 %2\n",
-//            parm->getLocation())
-//            << parm
-//            << std::format(
-//                   "Ref {} Const {}\n",
-//                   parm->getType()->isReferenceType(),
-//                   parm->getType().isConstQualified())
-//            << dump(parm->getType());
-//    }
+    //    if (parm->getNameAsString() == "path") {
+    //        Diag(
+    //            DiagKind::Warning,
+    //            "Adding serialization information for %0 %1 %2\n",
+    //            parm->getLocation())
+    //            << parm
+    //            << std::format(
+    //                   "Ref {} Const {}\n",
+    //                   parm->getType()->isReferenceType(),
+    //                   parm->getType().isConstQualified())
+    //            << dump(parm->getType());
+    //    }
 
     if (parm->hasDefaultArg()) {
         fillExpr(

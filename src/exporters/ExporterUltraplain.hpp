@@ -1,6 +1,7 @@
 #include <exporters/Exporter.hpp>
 
-struct ExporterUltraplain : public Exporter<ExporterUltraplain, std::string> {
+struct ExporterUltraplain
+    : public Exporter<ExporterUltraplain, std::string> {
 #define __ExporterBase Exporter<ExporterUltraplain, std::string>
     EXPORTER_USING()
 #undef __ExporterBase
@@ -44,7 +45,7 @@ struct ExporterUltraplain : public Exporter<ExporterUltraplain, std::string> {
     }
 
 #define __visit(__Kind)                                                   \
-    void visit##__Kind(std::string& res, In<sem::__Kind> leaf) {              \
+    void visit##__Kind(std::string& res, In<sem::__Kind> leaf) {          \
         res += leaf->text;                                                \
     }
 

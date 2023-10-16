@@ -3,15 +3,15 @@
 #include <gtest/gtest.h>
 
 #define __init(text)                                                      \
-    std::string base{text};                                                   \
-    PosStr  str{base};
+    std::string base{text};                                               \
+    PosStr      str{base};
 
 
 TEST(
     PositionalStringCursorMovementsTest,
     CheckForCharactersOnPositionAhead) {
     std::string base{"01234"};
-    PosStr  str{base};
+    PosStr      str{base};
 
     EXPECT_TRUE(str.at('0'));
     EXPECT_TRUE(str.at('1', 1));
@@ -22,7 +22,7 @@ TEST(
     PositionalStringCursorMovementsTest,
     CheckForCharacterSetOnPositionAhead) {
     std::string base{"01234"};
-    PosStr  str{base};
+    PosStr      str{base};
 
     EXPECT_TRUE(str.at({slice('0', '9')}));
     EXPECT_TRUE(str.at(charsets::Digits));
@@ -31,7 +31,7 @@ TEST(
 
 TEST(PositionalStringCursorMovementsTest, SkipWhileSingleCharacter) {
     std::string base{"01234"};
-    PosStr  str{base};
+    PosStr      str{base};
 
     str.skipZeroOrMore('0');
     EXPECT_TRUE(str.at('1'));
@@ -39,7 +39,7 @@ TEST(PositionalStringCursorMovementsTest, SkipWhileSingleCharacter) {
 
 TEST(PositionalStringCursorMovementsTest, SkipWhileCharacterSet) {
     std::string base{"01234"};
-    PosStr  str{base};
+    PosStr      str{base};
 
     EXPECT_TRUE(str.at('0'));
     str.skipZeroOrMore(CharSet{'0', '1', '2'});
@@ -48,7 +48,7 @@ TEST(PositionalStringCursorMovementsTest, SkipWhileCharacterSet) {
 
 TEST(PositionalStringCursorMovementsTest, SkipBeforeCharacter) {
     std::string base{"01234"};
-    PosStr  str{base};
+    PosStr      str{base};
 
     str.skipBefore('3');
     EXPECT_TRUE(str.at('2'));
@@ -56,7 +56,7 @@ TEST(PositionalStringCursorMovementsTest, SkipBeforeCharacter) {
 
 TEST(PositionalStringCursorMovementsTest, SkipToCharacter) {
     std::string base{"01234"};
-    PosStr  str{base};
+    PosStr      str{base};
 
     str.skipTo('3');
     EXPECT_TRUE(str.at('3'));
@@ -64,7 +64,7 @@ TEST(PositionalStringCursorMovementsTest, SkipToCharacter) {
 
 TEST(PositionalStringCursorMovementsTest, SkipUntilOneOfCharacters) {
     std::string base{"01234"};
-    PosStr  str{base};
+    PosStr      str{base};
 
     str.skipBefore(CharSet{'3', '4'});
     EXPECT_TRUE(str.at('2'));
@@ -72,7 +72,7 @@ TEST(PositionalStringCursorMovementsTest, SkipUntilOneOfCharacters) {
 
 TEST(PositionalStringCursorMovementsTest, SkipUntilStringIsFound) {
     std::string base{"01234"};
-    PosStr  str{base};
+    PosStr      str{base};
 
     str.skipBefore("34");
     EXPECT_TRUE(str.at('2'));

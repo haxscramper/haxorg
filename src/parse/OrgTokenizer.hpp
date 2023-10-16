@@ -137,10 +137,10 @@ struct OrgTokenizer : public OperationsTracer {
         /// \brief Base error, not thrown anywhere
         struct Base : std::runtime_error {
             // TODO add extent information about the error
-            std::stringView  view;
-            int          pos = 0;
-            Opt<LineCol> loc;
-            std::string      getLocMsg() const;
+            std::stringView view;
+            int             pos = 0;
+            Opt<LineCol>    loc;
+            std::string     getLocMsg() const;
 
             Base(CR<PosStr> str)
                 : std::runtime_error(""), view(str.view), pos(str.pos) {}
@@ -159,19 +159,19 @@ struct OrgTokenizer : public OperationsTracer {
         };
 
         struct MissingElement : Base {
-            std::string     missing;
-            std::string     where;
+            std::string missing;
+            std::string where;
             const char* what() const noexcept override;
 
             MissingElement(
-                CR<PosStr>  str,
+                CR<PosStr>      str,
                 CR<std::string> missing,
                 CR<std::string> where);
         };
 
         struct UnexpectedConstruct : Base {
             const char* what() const noexcept override;
-            std::string     desc;
+            std::string desc;
             UnexpectedConstruct(CR<PosStr> str, CR<std::string> desc)
                 : Base(str), desc(desc) {}
         };
@@ -195,11 +195,11 @@ struct OrgTokenizer : public OperationsTracer {
         TokenizerError() : std::runtime_error(""), err(Errors::None()) {}
         explicit TokenizerError(CR<Error> err)
             : std::runtime_error(""), err(err) {}
-        std::stringView  getView() const;
-        int          getPos() const;
-        void         setLoc(CR<LineCol> loc);
-        Opt<LineCol> getLoc() const;
-        const char*  what() const noexcept override;
+        std::stringView getView() const;
+        int             getPos() const;
+        void            setLoc(CR<LineCol> loc);
+        Opt<LineCol>    getLoc() const;
+        const char*     what() const noexcept override;
     };
 
 

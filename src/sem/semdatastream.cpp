@@ -74,13 +74,13 @@ struct SerdeDefaultProvider<sem::SubtreeLog::Priority> {
 };
 
 
-//template <>
-//struct SerdeDefaultProvider<sem::Code::Switch> {
-//    static sem::Code::Switch get() {
-//        return sem::Code::Switch{
-//            sem::Code::Switch::Data{sem::Code::Switch::Dedent{}}};
-//    }
-//};
+// template <>
+// struct SerdeDefaultProvider<sem::Code::Switch> {
+//     static sem::Code::Switch get() {
+//         return sem::Code::Switch{
+//             sem::Code::Switch::Data{sem::Code::Switch::Dedent{}}};
+//     }
+// };
 
 template <>
 struct SerdeDefaultProvider<sem::Code::Switch::LineStart> {

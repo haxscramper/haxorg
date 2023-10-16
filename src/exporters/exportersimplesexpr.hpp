@@ -66,7 +66,9 @@ struct ExporterSimpleSExpr
     Res eval(int value) { return string(to_string(value)); }
     Res eval(CR<Str> value) { return string(escape_for_write(value)); }
 
-    Res eval(CR<std::string> value) { return string(escape_for_write(value)); }
+    Res eval(CR<std::string> value) {
+        return string(escape_for_write(value));
+    }
 
 
     template <typename T>

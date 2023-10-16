@@ -66,7 +66,7 @@ class RangeTree {
 
 template <typename T>
 std::ostream& auxPrintNode(
-    std::ostream&                       os,
+    std::ostream&                      os,
     typename RangeTree<T>::Node const& node) {
     os << node.range << "{ ";
     if (node.left != nullptr) {

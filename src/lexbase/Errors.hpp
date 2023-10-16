@@ -21,7 +21,9 @@ struct ParseError : public std::runtime_error {
     /// offset
     std::variant<LineCol, int> loc;
 
-    explicit ParseError(const std::string& message, LineCol _loc = LineCol{})
+    explicit ParseError(
+        const std::string& message,
+        LineCol            _loc = LineCol{})
         : std::runtime_error(message), loc(_loc) {}
 
     explicit ParseError(const std::string& message, int _loc)
@@ -30,7 +32,9 @@ struct ParseError : public std::runtime_error {
 
 /// \brief Base lexer error type
 struct LexerError : public ParseError {
-    explicit LexerError(const std::string& message, LineCol _loc = LineCol{})
+    explicit LexerError(
+        const std::string& message,
+        LineCol            _loc = LineCol{})
         : ParseError(message, _loc) {}
 
     explicit LexerError(const std::string& message, int _loc)
@@ -41,7 +45,7 @@ struct LexerError : public ParseError {
 struct UnexpectedCharError : public LexerError {
     explicit UnexpectedCharError(
         const std::string& message,
-        LineCol        _loc = LineCol{})
+        LineCol            _loc = LineCol{})
         : LexerError(message, _loc) {}
 
     explicit UnexpectedCharError(const std::string& message, int pos)
@@ -53,7 +57,7 @@ struct UnexpectedCharError : public LexerError {
 struct UnexpectedEndError : public LexerError {
     explicit UnexpectedEndError(
         const std::string& message,
-        LineCol        _loc = LineCol{})
+        LineCol            _loc = LineCol{})
         : LexerError(message, _loc) {}
 
     explicit UnexpectedEndError(const std::string& message, int pos)

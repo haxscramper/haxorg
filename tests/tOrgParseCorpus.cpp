@@ -66,8 +66,7 @@ Vec<TestParams> generateTestRuns() {
 
     auto addSpecs = [&](QFileInfo const& path) {
         try {
-            YAML::Node group = YAML::LoadFile(
-                path.filePath());
+            YAML::Node     group = YAML::LoadFile(path.filePath());
             ParseSpecGroup parsed{
                 group,
                 path.filePath(),

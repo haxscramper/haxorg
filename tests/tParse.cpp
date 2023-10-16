@@ -66,7 +66,7 @@ NodeId<NodeKind, TokenKind> parse(
 }
 
 TEST(CoreLinearlizedASTParserTest, Node) {
-    std::string               base{"{{{{{{DDD}{WEWE}{VVVV}}}{EEEE}}}}"};
+    std::string           base{"{{{{{{DDD}{WEWE}{VVVV}}}{EEEE}}}}"};
     TokenGroup<TokenKind> tokens;
     PosStr                str(base);
     L                     tokenizer(&tokens);

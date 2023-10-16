@@ -77,7 +77,7 @@ struct OrgConverter : public OperationsTracer {
     Func<LineCol(CR<PosStr>)> locationResolver;
     ConvertError wrapError(CR<Error> err, CR<OrgAdapter> adapter);
     Opt<LineCol> getLoc(CR<OrgAdapter> adapter);
-    std::string      getLocMsg(CR<OrgAdapter> adapter);
+    std::string  getLocMsg(CR<OrgAdapter> adapter);
 
   public:
     enum class ReportKind

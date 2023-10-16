@@ -116,9 +116,9 @@ struct [[refl]] OrgExporterJson {
     OrgExporterJson();
     /// Visit top-level node of the exporter, filling in the internal
     /// return state.
-    [[refl]] void    visitNode(sem::SemId node /*! Input node */);
+    [[refl]] void        visitNode(sem::SemId node /*! Input node */);
     [[refl]] std::string exportToString();
-    [[refl]] void    exportToFile(std::string path);
+    [[refl]] void        exportToFile(std::string path);
 };
 
 struct [[refl]] ExporterTreeOpts {
@@ -133,15 +133,15 @@ struct [[refl]] ExporterTreeOpts {
 struct [[refl]] OrgExporterTree {
     SPtr<ExporterTree> impl;
     OrgExporterTree();
-    ColStream        os;
+    ColStream            os;
     [[refl]] std::string toString(sem::SemId node, ExporterTreeOpts opts);
-    [[refl]] void    toFile(
-           sem::SemId       node,
-           std::string          path,
-           ExporterTreeOpts opts);
+    [[refl]] void        toFile(
+               sem::SemId       node,
+               std::string      path,
+               ExporterTreeOpts opts);
 
     void stream(
-        std::ostream&     stream,
+        std::ostream&    stream,
         sem::SemId       node,
         ExporterTreeOpts opts);
 };
@@ -154,9 +154,9 @@ struct [[refl]] OrgExporterYaml {
     OrgExporterYaml();
     /// Visit top-level node of the exporter, filling in the internal
     /// return state.
-    [[refl]] void    visitNode(sem::SemId node);
+    [[refl]] void        visitNode(sem::SemId node);
     [[refl]] std::string exportToString();
-    [[refl]] void    exportToFile(std::string path);
+    [[refl]] void        exportToFile(std::string path);
 };
 
 struct [[refl]] OrgContext {
@@ -164,7 +164,7 @@ struct [[refl]] OrgContext {
     SPtr<OrgTokenizer>         tokenizer;
     OrgNodeGroup               nodes;
     SPtr<OrgParser>            parser;
-    std::string                    source;
+    std::string                source;
     sem::OrgConverter          converter;
     LineColInfo                info;
     Lexer<OrgTokenKind>        lex;
@@ -292,14 +292,14 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     Opt<OperationsTracer> exportTracer;
 
     ColStream                traceStream;
-    std::string                  traceBuffer;
+    std::string              traceBuffer;
     SPtr<PythonStreamDevice> pyStreamDevice;
     SPtr<IoContext>          writeStreamContext;
 
-    [[refl]] void    enablePyStreamTrace(py::object stream);
-    [[refl]] void    enableBufferTrace();
+    [[refl]] void        enablePyStreamTrace(py::object stream);
+    [[refl]] void        enableBufferTrace();
     [[refl]] std::string getTraceBuffer() const;
-    [[refl]] void    enableFileTrace(std::string const& path);
+    [[refl]] void        enableFileTrace(std::string const& path);
 
     Opt<PyFunc>   visitAnyNodeAround;
     [[refl]] void setVisitAnyIdAround(PyFunc cb) {
@@ -586,7 +586,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
     __visit_scope(                                                        \
         VisitEvent::Kind::VisitField,                                     \
         .visitedValue = &res,                                             \
-        .field        = std::string(name),                                    \
+        .field        = std::string(name),                                \
         .msg          = __msg);
 
 

@@ -175,8 +175,7 @@ SemIdT<HashTag> OrgConverter::convertHashTag(__args) {
 
     aux = [p, &aux, this](OrgAdapter a) -> SemIdT<HashTag> {
         SemIdT<HashTag> result = Sem<HashTag>(p, a);
-        result->head           = strip(
-            a.at(0).strVal(), CharSet{'#'}, CharSet{});
+        result->head = strip(a.at(0).strVal(), CharSet{'#'}, CharSet{});
         if (1 < a.size()) {
             for (auto& node : a.at(slice(1, 1_B))) {
                 result->subtags.push_back(aux(node));
@@ -248,8 +247,8 @@ SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
 
             default: {
                 DLOG(INFO) << "Unexpected incoming tree kind for subtree "
-                            "converter"
-                         << head.kind();
+                              "converter"
+                           << head.kind();
                 DLOG(INFO).noquote() << head.treeRepr();
             }
         }
@@ -311,15 +310,14 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
     __perf_trace("convertPropertyList");
     __trace();
 
-    std::string       name = normalize(strip(
-        one(a, N::Name).strVal(),
-        CharSet{':'},
-        CharSet{':'}));
+    std::string name = normalize(
+        strip(one(a, N::Name).strVal(), CharSet{':'}, CharSet{':'}));
     Opt<Property> result;
     if (name == "exportoptions") {
         Property::ExportOptions res;
         res.backend = one(a, N::Subname).strVal();
-        for (std::string const& pair : one(a, N::Values).strVal().split(' ')) {
+        for (std::string const& pair :
+             one(a, N::Values).strVal().split(' ')) {
             auto kv           = pair.split(':');
             res.values[kv[0]] = kv[1];
         }
@@ -350,9 +348,9 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
         }
 
     } else if (name == "effort") {
-        std::string const&   value    = one(a, N::Values).strVal();
-        auto             duration = value.split(":");
-        Property::Effort prop;
+        std::string const& value    = one(a, N::Values).strVal();
+        auto               duration = value.split(":");
+        Property::Effort   prop;
 
         if (duration.length() == 1) {
             prop.minutes = duration[0].toInt();
@@ -489,8 +487,8 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
 
         struct Spec {
             std::string pattern;
-            bool    useTime = true;
-            bool    useDate = true;
+            bool        useTime = true;
+            bool        useDate = true;
         };
 
         Vec<Spec> formats = {
@@ -883,7 +881,7 @@ SemIdT<AtMention> OrgConverter::convertAtMention(__args) {
 
 SemIdT<CmdArgument> OrgConverter::convertCmdArgument(__args) {
     SemIdT<CmdArgument> result = Sem<CmdArgument>(p, a);
-    std::string             key    = one(a, N::Name).strVal();
+    std::string         key    = one(a, N::Name).strVal();
     result->value              = one(a, N::Value).strVal();
 
     if (!key.isEmpty()) {

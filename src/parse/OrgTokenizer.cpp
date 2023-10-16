@@ -25,58 +25,59 @@ using otk = OrgTokenKind;
 
 using Err = OrgTokenizer::Errors;
 
-const auto commandNameMap = std::unordered_map<std::string, OrgCommandKind>{
-    {"begin", ock::BeginDynamic},
-    {"end", ock::EndDynamic},
+const auto commandNameMap = std::
+    unordered_map<std::string, OrgCommandKind>{
+        {"begin", ock::BeginDynamic},
+        {"end", ock::EndDynamic},
 
-    {"beginsrc", ock::BeginSrc},
-    {"endsrc", ock::EndSrc},
+        {"beginsrc", ock::BeginSrc},
+        {"endsrc", ock::EndSrc},
 
-    {"beginquote", ock::BeginQuote},
-    {"endquote", ock::EndQuote},
+        {"beginquote", ock::BeginQuote},
+        {"endquote", ock::EndQuote},
 
-    {"beginexample", ock::BeginExample},
-    {"endexample", ock::EndExample},
+        {"beginexample", ock::BeginExample},
+        {"endexample", ock::EndExample},
 
-    {"beginexport", ock::BeginExport},
-    {"endexport", ock::EndExport},
+        {"beginexport", ock::BeginExport},
+        {"endexport", ock::EndExport},
 
-    {"begintable", ock::BeginTable},
-    {"endtable", ock::EndTable},
+        {"begintable", ock::BeginTable},
+        {"endtable", ock::EndTable},
 
-    {"begincenter", ock::BeginCenter},
-    {"endcenter", ock::EndCenter},
+        {"begincenter", ock::BeginCenter},
+        {"endcenter", ock::EndCenter},
 
-    {"title", ock::Title},
-    {"include", ock::Include},
-    {"language", ock::Language},
-    {"caption", ock::Caption},
-    {"name", ock::Name},
-    {"attrimg", ock::AttrImg},
-    {"author", ock::Author},
-    {"bind", ock::Bind},
-    {"creator", ock::Creator},
-    {"filetags", ock::Filetags},
+        {"title", ock::Title},
+        {"include", ock::Include},
+        {"language", ock::Language},
+        {"caption", ock::Caption},
+        {"name", ock::Name},
+        {"attrimg", ock::AttrImg},
+        {"author", ock::Author},
+        {"bind", ock::Bind},
+        {"creator", ock::Creator},
+        {"filetags", ock::Filetags},
 
-    {"htmlhead", ock::HtmlHead},
-    {"attrhtml", ock::AttrHtml},
+        {"htmlhead", ock::HtmlHead},
+        {"attrhtml", ock::AttrHtml},
 
-    {"row", ock::Row},
-    {"cell", ock::Cell},
-    {"header", ock::Header},
-    {"options", ock::Options},
-    {"property", ock::Property},
-    {"columns", ock::Columns},
-    {"results", ock::Results},
-    {"call", ock::Call},
-    {"latexclass", ock::LatexClass},
-    {"latexcompiler", ock::LatexCompiler},
-    {"latexclassoptions", ock::LatexClassOptions},
-    {"beginadmonition", ock::BeginAdmonition},
-    {"endadmonition", ock::EndAdmonition},
-    {"latexheader", ock::LatexHeader},
-    {"tblfm", ock::TableFormula},
-};
+        {"row", ock::Row},
+        {"cell", ock::Cell},
+        {"header", ock::Header},
+        {"options", ock::Options},
+        {"property", ock::Property},
+        {"columns", ock::Columns},
+        {"results", ock::Results},
+        {"call", ock::Call},
+        {"latexclass", ock::LatexClass},
+        {"latexcompiler", ock::LatexCompiler},
+        {"latexclassoptions", ock::LatexClassOptions},
+        {"beginadmonition", ock::BeginAdmonition},
+        {"endadmonition", ock::EndAdmonition},
+        {"latexheader", ock::LatexHeader},
+        {"tblfm", ock::TableFormula},
+    };
 
 OrgCommandKind classifyCommand(std::string const& command) {
     std::string norm = normalize(command);
@@ -339,10 +340,10 @@ struct OrgTokenizerImpl
     void pushResolved(CR<OrgToken> token);
 
     Vec<OrgToken> lexDelimited(
-        PosStr&                          str,
+        PosStr&                         str,
         const Pair<char, OrgTokenKind>& start,
         const Pair<char, OrgTokenKind>& finish,
-        const OrgTokenKind&              middle);
+        const OrgTokenKind&             middle);
 
     void endGroup(PosStr& str);
     void startGroup(PosStr& str);
@@ -423,43 +424,20 @@ CR<CharSet> OIdentStartChars = charsets::IdentChars
                              };
 
 
-CR<CharSet> OCommandChars = charsets::IdentChars
-                          + CharSet{'-', '_'};
+CR<CharSet> OCommandChars = charsets::IdentChars + CharSet{'-', '_'};
 
 
 CR<CharSet> OBigIdentChars  = CharSet{slice('A', 'Z')};
-const char OEndOfFile      = '\x00';
+const char  OEndOfFile      = '\x00';
 CR<CharSet> OBareIdentChars = charsets::AllChars - charsets::Whitespace;
 CR<CharSet> OWhitespace     = charsets::Whitespace - CharSet{'\n'};
 CR<CharSet> OEmptyChars     = OWhitespace + CharSet{OEndOfFile};
 CR<CharSet> OLinebreaks     = charsets::Newlines + CharSet{OEndOfFile};
-CR<CharSet> OMarkupChars    = CharSet{
-    '*',
-    '_',
-    '/',
-    '+',
-    '~',
-    '`'};
-CR<CharSet> OVerbatimChars = CharSet{'`', '~', '='};
-CR<CharSet> OPunctChars    = CharSet{
-    '(',
-    ')',
-    '[',
-    ']',
-    '.',
-    '?',
-    '!',
-    ','};
-CR<CharSet> OPunctOpenChars = CharSet{
-    '(',
-    '[',
-    '{',
-    '<'};
-CR<CharSet> OPunctCloseChars = CharSet{
-    ')',
-    ']',
-    '}',
-    '>'};
+CR<CharSet> OMarkupChars    = CharSet{'*', '_', '/', '+', '~', '`'};
+CR<CharSet> OVerbatimChars  = CharSet{'`', '~', '='};
+CR<CharSet> OPunctChars = CharSet{'(', ')', '[', ']', '.', '?', '!', ','};
+CR<CharSet> OPunctOpenChars    = CharSet{'(', '[', '{', '<'};
+CR<CharSet> OPunctCloseChars   = CharSet{')', ']', '}', '>'};
 CR<CharSet> ONumberedListChars = CharSet{slice('0', '9')}
                                + CharSet{slice('a', 'z')}
                                + CharSet{slice('A', 'Z')};
@@ -488,15 +466,7 @@ struct MarkupConfigPair {
 const CharSet ONumberOrLetter = charsets::Digits + charsets::AsciiLetters;
 
 
-const CharSet markupKeys{
-    '*',
-    '/',
-    '=',
-    '`',
-    '~',
-    '_',
-    '+',
-    '"'};
+const CharSet markupKeys{'*', '/', '=', '`', '~', '_', '+', '"'};
 
 
 // clang-format off
@@ -519,10 +489,9 @@ struct AdvCheck {
     int           pos = 0;
     CR<PosStr>    str;
     OrgTokenizer* tok;
-    std::string       func;
+    std::string   func;
     struct Error : public std::runtime_error {
-        explicit Error(std::string const& msg)
-            : std::runtime_error(msg) {}
+        explicit Error(std::string const& msg) : std::runtime_error(msg) {}
     };
 
     AdvCheck(CR<PosStr> str, OrgTokenizer* tok, CR<std::string> func)
@@ -545,8 +514,8 @@ struct AdvCheck {
     AdvCheck CONCAT(advance, __COUNTER__){str, this, __func__};
 
 
-const CharSet ListStart = CharSet{'-', '+', '*'}
-                        + charsets::Digits + charsets::AsciiLetters;
+const CharSet ListStart = CharSet{'-', '+', '*'} + charsets::Digits
+                        + charsets::AsciiLetters;
 
 const auto NonText = CharSet{
     ONewline,
@@ -700,9 +669,7 @@ bool OrgTokenizerImpl<TraceState>::lexDynamicTimeStamp(PosStr& str) {
 
     auto tok = str.tok(otk::DynamicTimeContent, [this](PosStr& str) {
         skipBalancedSlice(
-            str,
-            {.openChars  = CharSet{'('},
-             .closeChars = CharSet{')'}});
+            str, {.openChars = CharSet{'('}, .closeChars = CharSet{')'}});
     });
     __push(tok);
 
@@ -1217,8 +1184,7 @@ bool OrgTokenizerImpl<TraceState>::lexTextDollar(PosStr& str) {
             DLOG(INFO) << getLoc(str) << str;
 
             buf.push_back(tmp.tok(otk::DollarOpen, skipCb('$')));
-            buf.push_back(
-                tmp.tok(otk::LatexInlineRaw, skipBefore, '$'));
+            buf.push_back(tmp.tok(otk::LatexInlineRaw, skipBefore, '$'));
             buf.push_back(tmp.tok(otk::DollarClose, skipCb('$')));
         }
         for (const auto& tok : buf) {
@@ -1563,10 +1529,10 @@ bool OrgTokenizerImpl<TraceState>::lexCommandContent(
 
 template <bool TraceState>
 Vec<OrgToken> OrgTokenizerImpl<TraceState>::lexDelimited(
-    PosStr&                          str,
+    PosStr&                         str,
     const Pair<char, OrgTokenKind>& start,
     const Pair<char, OrgTokenKind>& finish,
-    const OrgTokenKind&              middle) {
+    const OrgTokenKind&             middle) {
     __perf_trace("lexDelimited");
     __trace();
     Vec<OrgToken> result;
@@ -1591,8 +1557,7 @@ bool OrgTokenizerImpl<TraceState>::lexCommandProperty(PosStr& str) {
     __perf_trace("lexCommandProperty");
     __trace();
     spaceSkip(str);
-    auto ident = str.tok(
-        otk::Ident, skipBefore, cr(CharSet{OSpace, ':'}));
+    auto ident = str.tok(otk::Ident, skipBefore, cr(CharSet{OSpace, ':'}));
     __push(ident);
     if (str.at(':')) {
         auto colon = str.tok(otk::Colon, skipCount, 1);
@@ -2271,8 +2236,7 @@ bool OrgTokenizerImpl<TraceState>::lexSubtreeTitle(PosStr& str) {
     if (full.endsWith(':')) {
         int shift = full.size() - 1;
         while (0 <= shift
-               && (CharSet{':', '#', '@', '_'}
-                       .contains(full.at(shift))
+               && (CharSet{':', '#', '@', '_'}.contains(full.at(shift))
                    || full.at(shift).isLetterOrNumber())) {
             --shift;
         }
@@ -2395,15 +2359,11 @@ bool OrgTokenizerImpl<TraceState>::lexCommandCall(PosStr& str) {
     __push(call);
     if (str.at('[')) {
         auto header = str.tok(
-            otk::CallInsideHeader,
-            skipBalancedSlice,
-            '[',
-            ']');
+            otk::CallInsideHeader, skipBalancedSlice, '[', ']');
         __push(header);
     }
 
-    auto args = str.tok(
-        otk::CallArgs, skipBalancedSlice, '(', ')');
+    auto args = str.tok(otk::CallArgs, skipBalancedSlice, '(', ')');
     __push(args);
     if (!str.finished()) {
         auto text = str.tok(otk::RawText, skipPastEOF);
@@ -2485,9 +2445,7 @@ bool OrgTokenizerImpl<TraceState>::lexCommandKeyValue(PosStr& str) {
             }
             case ':': {
                 static const CharSet commandChars = charsets::IdentChars
-                                                  + CharSet{
-                                                      '-',
-                                                      ':'};
+                                                  + CharSet{'-', ':'};
                 auto command = str.tok(
                     otk::CommandKey, skipZeroOrMore, cr(commandChars));
                 __push(command);
@@ -2852,8 +2810,7 @@ bool OrgTokenizerImpl<TraceState>::atListStart(CR<PosStr> tmp) {
             }
         });
 
-        return (str.at(')') || str.at('.'))
-            && (str.at(' ', 1));
+        return (str.at(')') || str.at('.')) && (str.at(' ', 1));
     } else {
         if (str.at(OBulletListStart)) {
             str.next();
@@ -2903,8 +2860,7 @@ bool OrgTokenizerImpl<TraceState>::lexListBullet(
     if (str.at("\\[[Xx - ]\\]")) {
         auto tok = str.tok(otk::Checkbox, [this](PosStr& str) {
             oskipOne(str, '[');
-            oskipOne(
-                str, CharSet{'X', 'x', OSpace, '-'});
+            oskipOne(str, CharSet{'X', 'x', OSpace, '-'});
             oskipOne(str, ']');
         });
         __push(tok);
@@ -3382,8 +3338,7 @@ bool OrgTokenizerImpl<TraceState>::lexStructure(PosStr& str) {
 
         case '-': {
             if (atConstructStart(str)) {
-                auto sep = str.tok(
-                    otk::TextSeparator, skipOneOrMore, '-');
+                auto sep = str.tok(otk::TextSeparator, skipOneOrMore, '-');
                 __push(sep);
                 newlineSkip(str);
             } else if (atListStart(str)) {

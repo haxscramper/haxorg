@@ -49,9 +49,9 @@ using OrgVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
 struct ContextStore;
 
 struct SemValue {
-    int     getInt() const;
+    int         getInt() const;
     std::string getString() const;
-    bool    getBool() const;
+    bool        getBool() const;
     std::string value;
 };
 

@@ -78,7 +78,9 @@ std::string to_string(const ColRune& rune, const bool& color) {
     return result;
 }
 
-std::string to_colored_string(const Vec<ColRune>& runes, const bool& color) {
+std::string to_colored_string(
+    const Vec<ColRune>& runes,
+    const bool&         color) {
     std::string result;
     if (color) {
         auto prev = ColStyle();

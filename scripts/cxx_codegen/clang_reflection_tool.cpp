@@ -80,8 +80,8 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
         }
     }
 
-    // TODO Redirect warnings and other diagnostics into a temporary location
-    // Use serif output.
+    // TODO Redirect warnings and other diagnostics into a temporary
+    // location Use serif output.
     filteredArgs.push_back("-Wno-everything");
     filteredArgs.push_back("-isystem");
     filteredArgs.push_back(ToolchainInclude);

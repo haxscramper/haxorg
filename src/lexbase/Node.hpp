@@ -302,7 +302,7 @@ struct NodeGroup {
     };
 
     void lispRepr(
-        std::ostream&     os,
+        std::ostream&    os,
         Id               node,
         CR<TreeReprConf> conf = TreeReprConf()) const;
 
@@ -480,7 +480,7 @@ struct NodeAdapter {
         QFile file{path.absoluteFilePath()};
         if (file.open(QIODevice::ReadWrite | QFile::Truncate)) {
             std::ostream os{&file};
-            ColStream   text{os};
+            ColStream    text{os};
             text.colored = false;
             treeRepr(text);
         } else {
@@ -490,9 +490,9 @@ struct NodeAdapter {
     }
 
     std::string treeRepr(bool colored = true) const {
-        std::string     buffer;
+        std::string  buffer;
         std::ostream os{&buffer};
-        ColStream   text{os};
+        ColStream    text{os};
         text.colored = colored;
         treeRepr(text);
         return buffer;

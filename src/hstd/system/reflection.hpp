@@ -28,9 +28,9 @@ concept DescribedRecord = boost::describe::has_describe_members<
 namespace boost::describe {
 
 inline void throw_invalid_name(char const* name, char const* type) {
-    throw std::runtime_error((std::string("Invalid enumerator name '") + name
-                              + "' for enum type '" + type + "'")
-                                 );
+    throw std::runtime_error(
+        (std::string("Invalid enumerator name '") + name
+         + "' for enum type '" + type + "'"));
 }
 
 template <class E>
@@ -105,8 +105,8 @@ constexpr auto describe_enumerators_as_array() {
 template <class E>
 struct EnumFieldDesc {
     std::string name;
-    E       value;
-    int     index;
+    E           value;
+    int         index;
 };
 
 template <class E>
@@ -127,7 +127,7 @@ std::vector<EnumFieldDesc<E>> describe_enumerators() {
 
 template <class E>
 std::vector<std::string> enumerator_names() {
-    auto                 tmp = ::describe_enumerators<E>();
+    auto                     tmp = ::describe_enumerators<E>();
     std::vector<std::string> result;
     for (const auto& it : tmp) {
         result.push_back(it.name);
@@ -227,10 +227,9 @@ bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
 }
 
 
-
 #define REFL_DEFINE_DESCRIBED_OSTREAM(TypeName)                           \
-    inline std::ostream& operator<<(                                       \
-        std::ostream& os, CR<TypeName> const& value) {                     \
+    inline std::ostream& operator<<(                                      \
+        std::ostream& os, CR<TypeName> const& value) {                    \
         return os << described_class_printer(os, value);                  \
     }
 

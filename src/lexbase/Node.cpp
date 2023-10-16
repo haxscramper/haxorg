@@ -31,7 +31,8 @@ typename NodeGroup<N, K>::Id NodeGroup<N, K>::failTree(
 }
 
 template <typename N, typename K>
-typename NodeGroup<N, K>::iterator NodeGroup<N, K>::begin(NodeGroup<N, K>::Id start) const {
+typename NodeGroup<N, K>::iterator NodeGroup<N, K>::begin(
+    NodeGroup<N, K>::Id start) const {
     if (start.getIndex() < size()) {
         auto result = iterator(start, this);
         result.check();
@@ -42,7 +43,8 @@ typename NodeGroup<N, K>::iterator NodeGroup<N, K>::begin(NodeGroup<N, K>::Id st
 }
 
 template <typename N, typename K>
-typename NodeGroup<N, K>::iterator NodeGroup<N, K>::end(NodeGroup<N, K>::Id last) const {
+typename NodeGroup<N, K>::iterator NodeGroup<N, K>::end(
+    NodeGroup<N, K>::Id last) const {
     ++last;
     return iterator(last, this);
 }
@@ -74,7 +76,8 @@ Opt<Slice<typename NodeGroup<N, K>::Id>> NodeGroup<N, K>::allSubnodesOf(
 }
 
 template <typename N, typename K>
-typename NodeGroup<N, K>::Id NodeGroup<N, K>::parent(NodeGroup<N, K>::Id node) const {
+typename NodeGroup<N, K>::Id NodeGroup<N, K>::parent(
+    NodeGroup<N, K>::Id node) const {
     NodeGroup<N, K>::Id parent = node;
     --parent;
     while (!parent.isNil()) {
@@ -129,7 +132,7 @@ typename NodeGroup<N, K>::Id NodeGroup<N, K>::subnode(Id node, int index)
 
 template <typename N, typename K>
 void NodeGroup<N, K>::lispRepr(
-    std::ostream&     os,
+    std::ostream&    os,
     Id               node,
     CR<TreeReprConf> conf) const {
     os << "(" << to_string(node.getMask()) << ":"
@@ -138,7 +141,7 @@ void NodeGroup<N, K>::lispRepr(
     if (at(node).isTerminal()) {
         auto tok = at(node).getToken();
         os << " '";
-        std::string     str;
+        std::string  str;
         std::ostream stream{&str};
         tok.streamTo(stream, "", true);
         os << str;
@@ -184,7 +187,7 @@ void NodeGroup<N, K>::treeRepr(
         if (tok.isNil()) {
             os << " # <nil>";
         } else {
-            std::string     str;
+            std::string  str;
             std::ostream stream{&str};
             tok.streamTo(stream, "", conf.withTokenMask);
             os << " #" << str << " " << at(tok);
@@ -195,8 +198,8 @@ void NodeGroup<N, K>::treeRepr(
         }
 
         auto [begin, end] = subnodesOf(node).value();
-        int  idx = 0;
-        auto id  = end.id;
+        int  idx          = 0;
+        auto id           = end.id;
         for (; begin != end &&
                (begin.id <= end.id
                 /* FIXME hack to handle tree that is created by the sweep operation  */);) {
@@ -240,10 +243,11 @@ void NodeGroup<N, K>::treeRepr(
 }
 
 template <typename N, typename K>
-std::string NodeGroup<N, K>::treeRepr(Id node, CR<TreeReprConf> conf) const {
-    std::string     buffer;
+std::string NodeGroup<N, K>::treeRepr(Id node, CR<TreeReprConf> conf)
+    const {
+    std::string  buffer;
     std::ostream os{&buffer};
-    ColStream   text{os};
+    ColStream    text{os};
     treeRepr(text, node, 0, conf);
     return buffer;
 }

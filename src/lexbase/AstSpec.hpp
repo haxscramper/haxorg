@@ -19,14 +19,14 @@
 
 template <typename T>
 std::ostream& operator<<(
-    std::ostream&                 os,
+    std::ostream&                os,
     std::unordered_set<T> const& value) {
     return os << "{" << join(os, ", ", value) << "}";
 }
 
 template <typename T>
 std::string to_string(std::unordered_set<T> const& value) {
-    std::string     out;
+    std::string  out;
     std::ostream os{&out};
     os << value;
     return out;
@@ -169,7 +169,7 @@ struct AstRange {
 
 template <typename Name>
 inline std::ostream& operator<<(
-    std::ostream&          os,
+    std::ostream&         os,
     AstRange<Name> const& arange) {
     switch (arange.kind) {
         case AstRangeKind::Point: return os << arange.idx;

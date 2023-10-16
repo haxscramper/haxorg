@@ -8,9 +8,7 @@ template class Exporter<ExporterUltraplain, std::string>;
 
 std::string ExporterUltraplain::toStr(sem::SemId node) {
     return strip(
-        ExporterUltraplain{}.evalTop(node),
-        CharSet{' '},
-        CharSet{' '});
+        ExporterUltraplain{}.evalTop(node), CharSet{' '}, CharSet{' '});
 }
 
 void ExporterUltraplain::visitLink(std::string& res, In<sem::Link> link) {

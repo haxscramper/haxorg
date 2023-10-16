@@ -161,7 +161,7 @@ std::string to_colored_string(
 /// performance. The API must stay the same in any case, so improved
 /// version can be implemented in the future.
 struct ColRune {
-    char    rune  = char(L' ');
+    char     rune  = char(L' ');
     ColStyle style = ColStyle{};
     inline ColRune(char rune = ' ', CR<ColStyle> style = ColStyle{})
         : rune(rune), style(style) {}
@@ -263,8 +263,8 @@ struct StreamState {
 
 struct ColStream : public ColText {
     std::ostream* ostream = nullptr;
-    bool         buffered;
-    bool         colored = true;
+    bool          buffered;
+    bool          colored = true;
 
 
     CR<ColText> getBuffer() const {
@@ -352,7 +352,7 @@ template <typename T>
 ColStream& operator<<(ColStream& os, CR<T> const& value)
     requires StringStreamable<T>
 {
-    std::string     out;
+    std::string  out;
     std::ostream string{&out};
     string << value;
     return os << out;
@@ -475,9 +475,9 @@ ColStream& hshow(ColStream& os, CR<Str> value, CR<HDisplayOpts> opts);
 
 template <>
 inline ColStream& hshow(
-    ColStream&       os,
-    CR<std::stringView>  value,
-    CR<HDisplayOpts> opts) {
+    ColStream&          os,
+    CR<std::stringView> value,
+    CR<HDisplayOpts>    opts) {
     if (value.data() == nullptr) {
         return os << os.red() << "nil" << os.end();
     } else {

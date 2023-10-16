@@ -2,9 +2,9 @@
 #include <hstd/stdlib/Debug.hpp>
 
 void addf(
-    std::string&                      s,
-    CR<std::vector<AddfFragment>> fragments,
-    const std::vector<std::string>&   a) {
+    std::string&                    s,
+    CR<std::vector<AddfFragment>>   fragments,
+    const std::vector<std::string>& a) {
     for (const auto& fr : fragments) {
         switch (fr.kind) {
             case AddfFragmentKind::Dollar: {
@@ -110,8 +110,7 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                 auto isNumber = 0;
                 while (
                     ((j < formatstr.size())
-                     && (!CharSet({'\0', '}'})
-                              .contains(formatstr[j])))) {
+                     && (!CharSet({'\0', '}'}).contains(formatstr[j])))) {
                     if (charsets::Digits.contains(formatstr[j])) {
                         k = ((k * 10)
                              + value_domain<char>::ord(formatstr[j]))
@@ -147,8 +146,7 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
 
             } else if (
                 charsets::Letters.contains(c) || c == '_'
-                || CharSet(slice('\xF0', '\xFF'))
-                       .contains(c)) {
+                || CharSet(slice('\xF0', '\xFF')).contains(c)) {
                 auto j = i + 1;
                 while (j < formatstr.size()
                        && PatternChars.contains(formatstr[j])) {

@@ -462,12 +462,14 @@ generator<Event> formatEvents(BlockStore& store, Layout::Ptr const& lyt);
 
 struct SimpleStringStore {
     Vec<std::string> strings;
-    BlockStore*  store;
+    BlockStore*      store;
 
     SimpleStringStore(BlockStore* store) : store(store) {}
-    LytStr  str(std::string const& str);
+    LytStr      str(std::string const& str);
     std::string str(const LytStr& str) const;
-    std::string toString(BlockId const& blc, Options const& opts = Options{});
+    std::string toString(
+        BlockId const& blc,
+        Options const& opts = Options{});
     BlockId text(const std::string& arg) { return store->text(str(arg)); }
     BlockId text(const LytStr& s) { return store->text(s); }
 

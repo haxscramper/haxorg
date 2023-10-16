@@ -20,7 +20,7 @@ TEST(PrintError, MultipleFiles) {
     sources.add(a_id, a_tao, "a_tao");
     sources.add(b_id, b_tao, "b_tao");
 
-    std::string     buf;
+    std::string  buf;
     std::ostream os{&buf};
     Report(ReportKind::Error, b_id, 10)
         .with_code("3")
@@ -55,8 +55,8 @@ TEST(PrintError, MultipleFiles) {
 }
 
 TEST(PrintError, MultipleAnnotations) {
-    Id       id   = 0;
-    std::string  code = R"(def fives = ["5", 5]
+    Id          id   = 0;
+    std::string code = R"(def fives = ["5", 5]
 
 def sixes = ["6", 6, True, (), []]
 
@@ -65,9 +65,9 @@ def multiline :: Str = match Some 5 in {
     | None => 0
 
 })";
-    StrCache sources;
+    StrCache    sources;
     sources.add(id, code, "tao");
-    std::string     buf;
+    std::string  buf;
     std::ostream os{&buf};
     Report(ReportKind::Error, id, 13)
         .with_code("3")

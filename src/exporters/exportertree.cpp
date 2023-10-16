@@ -43,7 +43,7 @@ void ExporterTree::treeRepr(sem::SemId org, const QFileInfo& path) {
     QFile file{path.absoluteFilePath()};
     if (file.open(QIODevice::ReadWrite | QFile::Truncate)) {
         std::ostream stream{&file};
-        ColStream   os{stream};
+        ColStream    os{stream};
         os.colored = false;
         ExporterTree(os).evalTop(org);
     } else {

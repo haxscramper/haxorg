@@ -33,7 +33,7 @@ json toJson(CR<yaml> node) {
         }
 
         case YAML::NodeType::Scalar: {
-            bool    ok     = false;
+            bool        ok     = false;
             std::string scalar = std::string::fromStdString(node.Scalar());
             {
                 long long int intValue = scalar.toLongLong(&ok);
@@ -156,8 +156,7 @@ struct verbose_convert {
                 Vec<std::string> names;
                 std::string      msg = "unexpected field name '" + name
                                 + "', expected "
-                                + join(" or ", knownFieldCache.keys())
-                                      ;
+                                + join(" or ", knownFieldCache.keys());
                 throw RepresentationException(it.first.Mark(), msg);
             }
         }
@@ -185,7 +184,8 @@ struct convert<ParseSpec> : verbose_convert<ParseSpec> {};
 } // namespace YAML
 
 
-QFileInfo ParseSpec::debugFile(std::string relativePath, bool create) const {
+QFileInfo ParseSpec::debugFile(std::string relativePath, bool create)
+    const {
     if (debug.debugOutDir.isEmpty()) {
         throw FilesystemError(
             "Cannot get relative path for the spec configuration that "
@@ -206,7 +206,7 @@ QFileInfo ParseSpec::debugFile(std::string relativePath, bool create) const {
 }
 
 ParseSpec::ParseSpec(
-    CR<yaml>    node,
+    CR<yaml>        node,
     CR<std::string> specFile,
     CR<std::string> testRoot)
     : specFile(specFile) {
@@ -216,9 +216,9 @@ ParseSpec::ParseSpec(
         throw SpecValidationError(
             "Input spec must contain 'source' string field or 'file'");
     } else if (node["file"]) {
-        QDir    root{testRoot};
+        QDir        root{testRoot};
         std::string path = node["file"].as<std::string>();
-        auto    full = QFileInfo{root.absoluteFilePath(path)};
+        auto        full = QFileInfo{root.absoluteFilePath(path)};
         if (!QFileInfo{path}.isRelative()) {
             throw SpecValidationError(
                 "'file' field must store a relative path, but '" + path
@@ -239,7 +239,7 @@ ParseSpec::ParseSpec(
 }
 
 ParseSpecGroup::ParseSpecGroup(
-    CR<yaml>    node,
+    CR<yaml>        node,
     CR<std::string> from,
     CR<std::string> testRoot) {
     auto validate = [&](CR<ParseSpec> spec) {

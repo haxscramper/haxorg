@@ -607,7 +607,7 @@ int get_line_no_width(Vec<SourceGroup> const& groups, Cache& cache) {
     int line_no_width = 0;
     for (const auto& group : groups) {
         std::string src_name = cache.display(group.src_id)
-                               .value_or("<unknown>");
+                                   .value_or("<unknown>");
 
         try {
             auto src = cache.fetch(group.src_id);
@@ -764,8 +764,8 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
     // --- Header ---
 
 
-    ColStyle kind_color;
-    std::string  kindName;
+    ColStyle    kind_color;
+    std::string kindName;
     switch (kind) {
         case ReportKind::Error: {
             kind_color = config.error_color;
@@ -1017,8 +1017,8 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
                 w << std::string(draw.hbar).repeated(line_no_width + 2)
                   << draw.rbot << "\n";
             } else {
-                w << std::string(" ").repeated(line_no_width + 2) << draw.vbar
-                  << "\n";
+                w << std::string(" ").repeated(line_no_width + 2)
+                  << draw.vbar << "\n";
             }
         }
     }

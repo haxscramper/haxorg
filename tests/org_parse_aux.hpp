@@ -12,7 +12,7 @@ struct MockFull {
     OrgTokenGroup       tokens;
     SPtr<OrgTokenizer>  tokenizer;
     OrgNodeGroup        nodes;
-    std::string             base;
+    std::string         base;
     Lexer<OrgTokenKind> lex;
     SPtr<OrgParser>     parser;
     LineColInfo         info;
@@ -20,7 +20,8 @@ struct MockFull {
 
     Func<LineCol(CR<PosStr>)> locationResolver;
 
-    MockFull(bool tracedParser, bool tracedLexer) : tokenizer(), nodes(nullptr), lex(&tokens) {
+    MockFull(bool tracedParser, bool tracedLexer)
+        : tokenizer(), nodes(nullptr), lex(&tokens) {
         spec         = getOrgSpec();
         parser       = OrgParser::initImpl(&nodes, tracedParser);
         tokenizer    = OrgTokenizer::initImpl(&tokens, tracedLexer);
@@ -70,9 +71,9 @@ struct MockFull {
     }
 
     void run(
-        CR<std::string>  content,
-        LexerMethod  lexMethod,
-        ParserMethod parseMethod) {
+        CR<std::string> content,
+        LexerMethod     lexMethod,
+        ParserMethod    parseMethod) {
         tokenize(content, lexMethod);
         parse(parseMethod);
     }

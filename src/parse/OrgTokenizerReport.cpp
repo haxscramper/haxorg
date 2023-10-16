@@ -24,7 +24,7 @@ const char* OrgTokenizer::Errors::MissingElement::what() const noexcept {
 }
 
 OrgTokenizer::Errors::MissingElement::MissingElement(
-    CR<PosStr>  str,
+    CR<PosStr>      str,
     CR<std::string> missing,
     CR<std::string> where)
     : Base(str), missing(missing), where(where) {}

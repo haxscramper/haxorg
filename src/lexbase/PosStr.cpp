@@ -47,16 +47,17 @@ std::string PosStr::printToString(bool colored) const {
 }
 
 std::string PosStr::printToString(PrintParams params, bool colored) const {
-    std::string     result;
+    std::string  result;
     std::ostream stream{&result};
-    ColStream   out{stream};
+    ColStream    out{stream};
     params.withEnd = false;
     out.colored    = colored;
     print(out, params);
     return result;
 }
 
-PosStr::PosStr(std::stringView inView, int inPos) : view(inView), pos(inPos) {}
+PosStr::PosStr(std::stringView inView, int inPos)
+    : view(inView), pos(inPos) {}
 
 PosStr::PosStr(const char* data, int count, int inPos)
     : view(data, count), pos(inPos) {}
@@ -82,8 +83,9 @@ void PosStr::setPos(int _pos) {
     pos = _pos;
 }
 
-std::stringView PosStr::completeView(CR<SliceStartData> slice, Offset offset)
-    const {
+std::stringView PosStr::completeView(
+    CR<SliceStartData> slice,
+    Offset             offset) const {
     return std::stringView(
         view.data() + slice.pos + offset.start,
         pos - slice.pos + offset.end);
@@ -144,7 +146,7 @@ char PosStr::pop() {
 
 [[clang::xray_always_instrument]] bool PosStr::at(
     char expected,
-    int   offset) const {
+    int  offset) const {
     return get(offset) == expected;
 }
 
@@ -156,7 +158,7 @@ char PosStr::pop() {
 
 [[clang::xray_always_instrument]] bool PosStr::at(
     CR<std::string> expected,
-    int         offset) const {
+    int             offset) const {
     int idx = 0;
     for (const auto& ch : expected) {
         if (get(offset + idx) != ch) {
@@ -388,7 +390,7 @@ void PosStr::skipIdent(const CharSet& chars) { skipZeroOrMore(chars); }
 UnexpectedCharError PosStr::makeUnexpected(
     CR<std::string> expected, ///< What we expected to find?
     CR<std::string> parsing   ///< Description of the thing we are
-                          /// parsing at the moment
+                              /// parsing at the moment
 ) {
     return UnexpectedCharError(
         "Unexpected character encountered during lexing: found "
@@ -455,8 +457,7 @@ void skipDigit(Ref<PosStr> str) {
         str.skipZeroOrMore(CharSet{'0', '1'});
     } else {
         str.skip(charsets::Digits);
-        str.skipZeroOrMore(
-            charsets::Digits + CharSet{'_', '.'});
+        str.skipZeroOrMore(charsets::Digits + CharSet{'_', '.'});
     }
 }
 

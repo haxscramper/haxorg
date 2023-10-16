@@ -46,9 +46,9 @@ TEST(TestFiles, Spec) {
 
 
 TEST(TestFiles, AllNodeCoverage) {
-    std::string  file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
-    MockFull p{false, false};
-    std::string  source = readFile(QFileInfo(file));
+    std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    MockFull    p{false, false};
+    std::string source = readFile(QFileInfo(file));
     p.run(source, &T::lexGlobal, &P::parseFull);
 
     SemSet            foundNodes;
@@ -99,8 +99,8 @@ TEST(TestFiles, AllNodeCoverage) {
             diff.push_back(v);
         }
         std::string missing = join(", ", map(diff, [](OrgSemKind value) {
-                                   return to_string(value);
-                               }));
+                                       return to_string(value);
+                                   }));
         FAIL() << "'all.org' test file missing node coverage for "
                << diff.size() << " nodes: '" << missing << "'";
     }
@@ -134,9 +134,9 @@ bool operator==(CR<UserTime> lhs, CR<UserTime> rhs) {
 }
 
 TEST(TestFiles, RoundtripBinarySerialization) {
-    std::string  file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
-    MockFull p{false, false};
-    std::string  source = readFile(QFileInfo(file));
+    std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    MockFull    p{false, false};
+    std::string source = readFile(QFileInfo(file));
     p.run(source, &T::lexGlobal, &P::parseFull);
 
     SemSet            foundNodes;
@@ -204,9 +204,9 @@ TEST(SimpleNodeConversion, DoubleHashTag) {
     EXPECT_EQ(p.k(0), org::HashTag);
     EXPECT_EQ(p.k(1), org::RawText);
     EXPECT_EQ(p.s(1), "#test");
-    std::string     buf;
+    std::string  buf;
     std::ostream ss{&buf};
-    auto        spec = getOrgSpec();
+    auto         spec = getOrgSpec();
     ss << "start validation output" << Qt::endl;
     ss << spec->validateSelf(p.a(0)) << "\n";
     ss << spec->validateSub(p.a(0), 0) << "\n";
@@ -225,9 +225,9 @@ TEST(SimpleNodeConversion, NestedHashTag) {
     auto node = yamlRepr(p.a(0));
     yamlRepr(p.nodes);
     yamlRepr(p.tokens);
-    std::string     buf;
+    std::string  buf;
     std::ostream ss{&buf};
-    auto        spec = getOrgSpec();
+    auto         spec = getOrgSpec();
     ss << "yaml node\n" << yamlRepr(*spec, p.a(0)) << "\nend yaml node\n";
     ss << "json node\n" << jsonRepr(*spec, p.a(0)) << "\nend json node\n";
     ss << "flat repr\n" << jsonRepr(p.nodes) << "\nend flat nodes\n";

@@ -172,7 +172,7 @@ HSlice<A, B> slice(CR<A> first, CR<B> last) {
 
 template <typename A, typename B>
 inline std::ostream& operator<<(
-    std::ostream&        os,
+    std::ostream&       os,
     HSlice<A, B> const& value) {
     return os << "[" << value.first << ".." << value.last << "]";
 }
@@ -210,9 +210,10 @@ Pair<A, A> getSpan(
             && (0 <= endPos && endPos < size))) {
         throw OutOfRangeError(
             "Container index is out of range: real span range is "
-            + std::string::number(startPos) + ".." + std::string::number(endPos)
-            + " computed from " + to_string(s)
-            + ", but full extent length is only " + std::string::number(size));
+            + std::string::number(startPos) + ".."
+            + std::string::number(endPos) + " computed from "
+            + to_string(s) + ", but full extent length is only "
+            + std::string::number(size));
     }
 
     return {startPos, endPos};

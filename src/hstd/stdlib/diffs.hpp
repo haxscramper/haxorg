@@ -19,7 +19,7 @@ struct BacktrackRes {
 BOOST_DESCRIBE_STRUCT(BacktrackRes, (), (lhsIndex, rhsIndex));
 
 inline std::ostream& operator<<(
-    std::ostream&        os,
+    std::ostream&       os,
     BacktrackRes const& value) {
     return os << described_class_printer(os, value);
 }
@@ -349,7 +349,7 @@ inline bool hasInvisibleChanges(
 
 inline bool hasInvisible(
     std::string text,
-    CharSet startSet = Invis + CharSet{' '}) {
+    CharSet     startSet = Invis + CharSet{' '}) {
     // Does string have significant invisible characters?
     CharSet invisSet = startSet;
     if (scanInvisible(text, invisSet)) {
@@ -1151,6 +1151,5 @@ inline ColText formatDiffed(
     const Str&            text1,
     const Str&            text2,
     const DiffFormatConf& conf = DiffFormatConf{}) {
-    return formatDiffed(
-        split(text1, '\n'), split(text2, '\n'), conf);
+    return formatDiffed(split(text1, '\n'), split(text2, '\n'), conf);
 }

@@ -97,8 +97,8 @@ class Cache {
 
 // A type representing a single line of a `Source`.
 struct Line {
-    int     offset;
-    int     len;
+    int         offset;
+    int         len;
     std::string chars;
 
     // Get the offset of this line in the original `Source` (i.e: the
@@ -173,9 +173,12 @@ class StrCache : public Cache {
     // Cache interface
   public:
     UnorderedMap<Id, std::shared_ptr<Source>> sources;
-    UnorderedMap<Id, std::string>                 names;
+    UnorderedMap<Id, std::string>             names;
 
-    inline void add(Id id, std::string const& source, std::string const& name) {
+    inline void add(
+        Id                 id,
+        std::string const& source,
+        std::string const& name) {
         sources[id] = std::make_shared<Source>(source);
         names[id]   = name;
     }
@@ -184,7 +187,8 @@ class StrCache : public Cache {
         return sources.at(id);
     }
 
-    inline std::optional<std::string> display(const Id& id) const override {
+    inline std::optional<std::string> display(
+        const Id& id) const override {
         return names.get(id);
     }
 };
@@ -386,14 +390,14 @@ struct Config {
 
 class Report {
   public:
-    ReportKind             kind     = ReportKind::Error;
+    ReportKind                 kind     = ReportKind::Error;
     std::optional<std::string> code     = std::nullopt;
-    std::optional<ColText> msg      = std::nullopt;
-    std::optional<ColText> note     = std::nullopt;
-    std::optional<ColText> help     = std::nullopt;
-    std::pair<Id, int>     location = {0, 0};
-    Vec<Label>             labels   = {};
-    Config                 config   = Config{};
+    std::optional<ColText>     msg      = std::nullopt;
+    std::optional<ColText>     note     = std::nullopt;
+    std::optional<ColText>     help     = std::nullopt;
+    std::pair<Id, int>         location = {0, 0};
+    Vec<Label>                 labels   = {};
+    Config                     config   = Config{};
 
 
     // Give this report a numerical code that may be used to more precisely

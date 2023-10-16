@@ -71,7 +71,8 @@ struct ParseSpec {
             ((bool), doTrace, false));
     };
 
-    QFileInfo debugFile(std::string relativePath, bool create = true) const;
+    QFileInfo debugFile(std::string relativePath, bool create = true)
+        const;
 
     struct SpecValidationError : public std::runtime_error {
         explicit SpecValidationError(const std::string& message)
@@ -87,7 +88,10 @@ struct ParseSpec {
 
     BOOST_DESCRIBE_NESTED_ENUM(ExpectedMode, Flat, Nested, Named);
 
-    ParseSpec(CR<yaml> node, CR<std::string> specFile, CR<std::string> testRoot);
+    ParseSpec(
+        CR<yaml>        node,
+        CR<std::string> specFile,
+        CR<std::string> testRoot);
 
     template <typename N, typename K>
     NodeGroup<N, K> getNodeGroup() {
@@ -132,7 +136,10 @@ struct ParseSpec {
 };
 
 struct ParseSpecGroup {
-    ParseSpecGroup(CR<yaml> node, CR<std::string> from, CR<std::string> testRoot);
+    ParseSpecGroup(
+        CR<yaml>        node,
+        CR<std::string> from,
+        CR<std::string> testRoot);
 
     Vec<ParseSpec> specs;
 };

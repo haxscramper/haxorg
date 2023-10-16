@@ -18,9 +18,9 @@ class CorpusRunner {
     bool useQFormat() { return getenv("IN_QT_RUN") == "true"; }
 
     void writeFileOrStdout(
-        QFileInfo const& target,
-        std::string const&   content,
-        bool             useFile);
+        QFileInfo const&   target,
+        std::string const& content,
+        bool               useFile);
 
     MockFull::ParserMethod getParser(CR<Str> name);
     MockFull::LexerMethod  getLexer(CR<Str> name);

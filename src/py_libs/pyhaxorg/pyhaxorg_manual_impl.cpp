@@ -47,22 +47,24 @@ OrgExporterTree::OrgExporterTree() {
     impl = std::make_shared<ExporterTree>(os);
 }
 
-std::string OrgExporterTree::toString(sem::SemId node, ExporterTreeOpts opts) {
-    std::string     buf;
+std::string OrgExporterTree::toString(
+    sem::SemId       node,
+    ExporterTreeOpts opts) {
+    std::string  buf;
     std::ostream os{&buf};
     stream(os, node, opts);
 }
 
 void OrgExporterTree::toFile(
     sem::SemId       node,
-    std::string          path,
+    std::string      path,
     ExporterTreeOpts opts) {
     auto ctx = openFileOrStream(QFileInfo(path), true);
     stream(*ctx->stream, node, opts);
 }
 
 void OrgExporterTree::stream(
-    std::ostream&     stream,
+    std::ostream&    stream,
     sem::SemId       node,
     ExporterTreeOpts opts) {
     os                         = ColStream{stream};

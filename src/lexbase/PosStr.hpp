@@ -27,7 +27,7 @@
 /// helper methods for better skipping such as `skipZeroOrMore`
 template <typename S>
 concept PosStrCheckable = (                                 //
-    std::convertible_to<std::remove_cvref_t<S>, char>      //
+    std::convertible_to<std::remove_cvref_t<S>, char>       //
     || std::convertible_to<std::remove_cvref_t<S>, CharSet> //
     || std::convertible_to<std::remove_cvref_t<S>, std::string>);
 
@@ -45,13 +45,14 @@ struct PosStr {
     };
 
 
-    void    print(ColStream& os, CR<PrintParams> params) const;
-    void    print() const;
-    void    print(ColStream& os) const;
-    void    print(std::ostream& os, CR<PrintParams> params) const;
-    void    print(CR<PrintParams> params) const;
+    void        print(ColStream& os, CR<PrintParams> params) const;
+    void        print() const;
+    void        print(ColStream& os) const;
+    void        print(std::ostream& os, CR<PrintParams> params) const;
+    void        print(CR<PrintParams> params) const;
     std::string printToString(bool colored = false) const;
-    std::string printToString(PrintParams params, bool colored = false) const;
+    std::string printToString(PrintParams params, bool colored = false)
+        const;
 
     struct SliceStartData {
         int pos;
@@ -347,9 +348,9 @@ struct PosStr {
     void skipBeforeEOL();
 
     std::string getAhead(Slice<int> slice) const;
-    bool    hasAhead(
-           const PosStrCheckable auto& item,
-           int                         maxLimit = INT_MAX) {
+    bool        hasAhead(
+               const PosStrCheckable auto& item,
+               int                         maxLimit = INT_MAX) {
         bool result;
         int  pos = 0;
         while (hasNext(pos) && pos < maxLimit) {
@@ -377,7 +378,7 @@ struct PosStr {
     UnexpectedCharError makeUnexpected(
         CR<std::string> expected, ///< What we expected to find?
         CR<std::string> parsing   ///< Description of the thing we are
-                              /// parsing at the moment
+                                  /// parsing at the moment
     );
 };
 
@@ -445,9 +446,9 @@ void skipStringLit(PosStr& str);
 void skipDigit(Ref<PosStr> str);
 
 inline QDebug operator<<(QDebug os, PosStr const& value) {
-    std::string     str;
+    std::string  str;
     std::ostream stream{&str};
-    ColStream   col{stream};
+    ColStream    col{stream};
     value.print(
         col, {.withEnd = false, .withSeparation = false, .maxTokens = 40});
     QDebugStateSaver saver{os};

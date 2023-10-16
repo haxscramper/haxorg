@@ -196,9 +196,9 @@ Vec<DiffItem> json_diff(
 
 
 void CorpusRunner::writeFileOrStdout(
-    const QFileInfo& target,
-    const std::string&   content,
-    bool             useFile) {
+    const QFileInfo&   target,
+    const std::string& content,
+    bool               useFile) {
     if (useFile) {
         writeFile(target, content);
 
@@ -810,8 +810,8 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
 }
 
 CorpusRunner::RunResult CorpusRunner::runSpec(
-    CR<ParseSpec> spec,
-    CR<std::string>   from) {
+    CR<ParseSpec>   spec,
+    CR<std::string> from) {
     MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
     MockFull              p(spec.debug.traceParse, spec.debug.traceLex);
 

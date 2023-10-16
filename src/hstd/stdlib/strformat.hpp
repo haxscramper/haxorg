@@ -21,7 +21,7 @@ enum class AddfFragmentKind
 
 struct AddfFragment {
     AddfFragmentKind kind;
-    std::string          text;
+    std::string      text;
     int              idx = 0;
 };
 
@@ -36,9 +36,9 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr);
 
 /*! The same as `add(s, formatstr % a)`, but more efficient. */
 void addf(
-    std::string&                      s,
-    CR<std::vector<AddfFragment>> fragments,
-    const std::vector<std::string>&   a);
+    std::string&                    s,
+    CR<std::vector<AddfFragment>>   fragments,
+    const std::vector<std::string>& a);
 
 
 inline std::vector<std::string> fold_format_pairs(
@@ -53,7 +53,7 @@ inline std::vector<std::string> fold_format_pairs(
 
 inline std::string addf(
     CR<std::vector<AddfFragment>> format,
-    CR<std::vector<std::string>>      values) {
+    CR<std::vector<std::string>>  values) {
     std::string result;
     addf(result, format, values);
     return result;
@@ -66,7 +66,7 @@ inline std::string operator%(
 }
 
 inline std::string operator%(
-    CR<std::string>                             format,
+    CR<std::string>                                 format,
     CR<std::vector<Pair<std::string, std::string>>> values) {
     return addf(addfFragments(format), fold_format_pairs(values));
 }
@@ -76,7 +76,7 @@ inline void to_string_vec_impl(std::vector<std::string>& out) {}
 template <typename T, typename... Tail>
 void to_string_vec_impl(
     std::vector<std::string>& out,
-    CR<T>&                in,
+    CR<T>&                    in,
     Tail&&... tail)
     requires StringConvertible<T>
 {

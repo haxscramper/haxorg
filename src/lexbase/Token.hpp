@@ -74,8 +74,8 @@ struct Token {
     bool hasData() const {
         return std::holds_alternative<std::stringView>(text);
     }
-    int                getOffset() const { return std::get<int>(text); }
-    std::stringView&       getText() { return std::get<std::stringView>(text); }
+    int              getOffset() const { return std::get<int>(text); }
+    std::stringView& getText() { return std::get<std::stringView>(text); }
     std::stringView const& getText() const {
         return std::get<std::stringView>(text);
     }
@@ -123,7 +123,7 @@ std::ostream& operator<<(std::ostream& os, Token<K> const& value) {
 template <typename K>
 struct TokenGroup {
     dod::Store<TokenId<K>, Token<K>> tokens;
-    Opt<std::stringView>                 base;
+    Opt<std::stringView>             base;
 
     TokenGroup(Opt<std::stringView> base = std::nullopt) : base(base) {}
     TokenId<K> add(CR<Token<K>> tok) { return tokens.add(tok); }
@@ -310,10 +310,11 @@ struct LexerCommon {
         return printToString(PrintParams{}, colored);
     }
 
-    std::string printToString(PrintParams params, bool colored = false) const {
-        std::string     result;
+    std::string printToString(PrintParams params, bool colored = false)
+        const {
+        std::string  result;
         std::ostream stream{&result};
-        ColStream   out{stream};
+        ColStream    out{stream};
         out.colored = colored;
         print(out, params);
         return result;
@@ -614,9 +615,9 @@ struct LineColInfo {
 
 template <typename K>
 QDebug operator<<(QDebug os, LexerCommon<K> const& value) {
-    std::string     str;
+    std::string  str;
     std::ostream stream{&str};
-    ColStream   col{stream};
+    ColStream    col{stream};
     using P = typename LexerCommon<K>::PrintParams;
     value.print(col, P{});
     QDebugStateSaver saver{os};

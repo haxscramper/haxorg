@@ -6,8 +6,8 @@
 
 struct OrgText {
     struct Word {
-        std::string    text;
-        sem::SemId id = sem::SemId::Nil();
+        std::string text;
+        sem::SemId  id = sem::SemId::Nil();
 
         std::string getText() const { return text; }
     };
@@ -35,7 +35,7 @@ struct OrgText {
         int                               offset = 0;
         Vec<sem::SemId>                   result;
         for (auto const& word : text) {
-            std::string    text  = word.getText();
+            std::string text = word.getText();
             Slice<int> range = slice1<int>(offset, offset + text.length());
             offset += text.length();
             rangeForId.push_back({range, word.id});

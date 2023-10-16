@@ -3,7 +3,7 @@
 
 void Graphviz::Node::Record::set(
     const std::string& columnKey,
-    CR<Record>     value) {
+    CR<Record>         value) {
     if (isFinal()) {
         content = Vec<Record>{Record({Record(columnKey), value})};
     } else {
@@ -83,8 +83,8 @@ Graphviz::Graph::Graph(const QFileInfo& file)
     Q_ASSERT(file.exists());
 
     std::string absolute = file.absoluteFilePath();
-    FILE*   fp       = fopen(absolute.toLatin1().data(), "r");
-    graph            = agread(fp, nullptr);
+    FILE*       fp       = fopen(absolute.toLatin1().data(), "r");
+    graph                = agread(fp, nullptr);
 
     initDefaultSetters();
 }
@@ -95,20 +95,22 @@ void Graphviz::Graph::initDefaultSetters() {
     // graph is deleted somewhere else or the pointer is modified. `graph =
     // this->graph` does not have this issue, but that's not how this is
     // supposed to work.
-    defaultNode.setOverride =
-        [graph = this->graph](std::string const& key, std::string const& value) {
-            auto& r = *graph;
-            Q_CHECK_PTR(graph);
-            agattr(graph, AGNODE, strdup(key), strdup(value));
-        };
+    defaultNode.setOverride = [graph = this->graph](
+                                  std::string const& key,
+                                  std::string const& value) {
+        auto& r = *graph;
+        Q_CHECK_PTR(graph);
+        agattr(graph, AGNODE, strdup(key), strdup(value));
+    };
 
-    defaultEdge.graph = graph;
-    defaultEdge.setOverride =
-        [graph = this->graph](std::string const& key, std::string const& value) {
-            auto& r = *graph;
-            Q_CHECK_PTR(graph);
-            agattr(graph, AGEDGE, strdup(key), strdup(value));
-        };
+    defaultEdge.graph       = graph;
+    defaultEdge.setOverride = [graph = this->graph](
+                                  std::string const& key,
+                                  std::string const& value) {
+        auto& r = *graph;
+        Q_CHECK_PTR(graph);
+        agattr(graph, AGEDGE, strdup(key), strdup(value));
+    };
 }
 
 void Graphviz::Graph::eachNode(Func<void(Node)> cb) {
@@ -172,8 +174,8 @@ void Graphviz::freeLayout(Graph graph) {
 
 void Graphviz::writeFile(
     const std::string& fileName,
-    CR<Graph>      graph,
-    RenderFormat   format) {
+    CR<Graph>          graph,
+    RenderFormat       format) {
     if (format == RenderFormat::DOT) {
         FILE* output_file = fopen(fileName.c_str(), "w");
         if (output_file == NULL) {
@@ -201,9 +203,9 @@ void Graphviz::writeFile(
 
 void Graphviz::renderToFile(
     const std::string& fileName,
-    CR<Graph>      graph,
-    RenderFormat   format,
-    LayoutType     layout) {
+    CR<Graph>          graph,
+    RenderFormat       format,
+    LayoutType         layout) {
     Q_CHECK_PTR(graph.get());
     Q_CHECK_PTR(gvc);
     if (format == RenderFormat::DOT) {
@@ -219,17 +221,16 @@ void Graphviz::renderToFile(
 }
 
 Graphviz::Node::Node(
-    Agraph_t*      graph,
+    Agraph_t*          graph,
     const std::string& name,
-    const Record&  record)
+    const Record&      record)
     : Node(graph, name) {
     setShape(Shape::record);
     setLabel(record.toString());
 }
 
 Graphviz::Node::Node(Agraph_t* graph, const std::string& name) {
-    auto node_ = agnode(
-        graph, const_cast<char*>(name.c_str()), 1);
+    auto node_ = agnode(graph, const_cast<char*>(name.c_str()), 1);
     if (!node_) {
         throw std::runtime_error("Failed to create node");
     } else {

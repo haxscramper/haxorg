@@ -38,7 +38,9 @@ inline void maybe_enum_field(
     }
 }
 
-inline std::ostream& operator<<(std::ostream& os, YAML::Node const& value) {
+inline std::ostream& operator<<(
+    std::ostream&     os,
+    YAML::Node const& value) {
     std::stringstream ss;
     ss << value;
     return os << ss.str();

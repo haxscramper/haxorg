@@ -7,7 +7,7 @@ TEST(BasicLexerTest, Lex) {
     SPtr<OrgTokenizer> lexer;
     lexer = OrgTokenizer::initImpl(&res, false);
     std::string base{"word"};
-    PosStr  str{base};
+    PosStr      str{base};
 
     lexer->lexText(str);
 }

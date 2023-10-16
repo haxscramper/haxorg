@@ -7,7 +7,7 @@ using namespace diff;
 
 struct TestNode : SharedPtrApi<TestNode> {
     Vec<TestNode::Ptr> subnodes;
-    std::string            value;
+    std::string        value;
     int                kind = 0;
     TestNode(int kind, std::string const& value, Vec<TestNode::Ptr> sub)
         : kind(kind), subnodes(sub), value(value) {}
@@ -15,7 +15,7 @@ struct TestNode : SharedPtrApi<TestNode> {
 
 TestNode::Ptr n(
     int                kind,
-    std::string const&     val,
+    std::string const& val,
     Vec<TestNode::Ptr> subnodes = {}) {
     return TestNode::shared(kind, val, subnodes);
 }
@@ -134,7 +134,7 @@ TEST(AstDiff, GreedyTopDown) {
 
 TEST(AstDiff, PointerBasedNodes) {
     struct RealNode {
-        std::string       value;
+        std::string   value;
         int           kind;
         Vec<RealNode> sub;
 
@@ -226,7 +226,7 @@ TEST(AstDiff, PointerBasedNodes) {
     ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
 
 
-    std::string     buf;
+    std::string  buf;
     std::ostream os{&buf};
     for (diff::NodeId Dst : DstTree) {
         diff::NodeId Src = Diff.getMapped(DstTree, Dst);
@@ -250,7 +250,7 @@ TEST(AstDiff, PointerBasedNodes) {
 TEST(AstDiff, PointerBasedNodesWithVariants) {
     struct RealNode {
         std::variant<int, double, std::string> value;
-        Vec<RealNode>                      sub;
+        Vec<RealNode>                          sub;
     };
 
     auto src = RealNode{
@@ -295,7 +295,7 @@ TEST(AstDiff, PointerBasedNodesWithVariants) {
 
     ASTDiff<IdT, ValT> Diff{SrcTree, DstTree, Options};
 
-    std::string     buf;
+    std::string  buf;
     std::ostream os{&buf};
     for (diff::NodeId Dst : DstTree) {
         diff::NodeId Src = Diff.getMapped(DstTree, Dst);

@@ -565,9 +565,9 @@ template <bool TraceState>
 Slice<OrgId> OrgParserImpl<TraceState>::parseText(OrgLexer& lex) {
     __perf_trace("parseText");
     __trace();
-    OrgId   first     = back();
+    OrgId       first     = back();
     std::string forMsg    = getLocMsg(lex);
-    int     treeStart = treeDepth();
+    int         treeStart = treeDepth();
     textFold(lex);
     int treeEnd = treeDepth();
     __print(
@@ -2371,7 +2371,8 @@ void OrgParserImpl<TraceState>::extendAttachedTrails(OrgId position) {
             OrgId   nextId = stmt + 2;
             OrgNode next   = g.at(nextId);
 
-            // DLOG(INFO) << "Next element from" << annotation << "has kind"
+            // DLOG(INFO) << "Next element from" << annotation << "has
+            // kind"
             //          << next.kind << "at" << nextId;
 
             if (OrgAttachableCommands.contains(next.kind)) {

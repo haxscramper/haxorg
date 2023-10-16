@@ -21,7 +21,7 @@ OrgParser::ParserError OrgParser::wrapError(
 std::string OrgParser::getLocMsg(CR<OrgLexer> lex) {
     std::string result;
     std::string pos = lex.pos.isNil() ? "<nil>"
-                                  : to_string(lex.pos.getIndex());
+                                      : to_string(lex.pos.getIndex());
 
     if (auto loc = getLoc(lex)) {
         result = "$#:$# (tok $#, pos $#)"
