@@ -1,0 +1,3 @@
+[submodule "toolchain/RE-flex"]
+	path = toolchain/RE-flex
+	url = https://github.com/Genivia/RE-flex.git

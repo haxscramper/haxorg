@@ -369,7 +369,6 @@ bin
 lib
 xray-log*
 buck-out
-toolchain
 .pids
 *.xray
 *.dot
