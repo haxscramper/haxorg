@@ -126,11 +126,11 @@ void PosStr::back(int count) {
     if (0 <= target && target < view.size()) {
         return view.at(target);
     } else {
-        return QChar(QChar('\0'));
+        return QChar('\0');
     }
 }
 
-bool PosStr::finished() const { return get() == QChar('\0'); }
+bool PosStr::finished() const { return get() == '\0'; }
 
 bool PosStr::atStart() const { return pos == 0; }
 
@@ -212,7 +212,7 @@ void PosStr::skip(CR<QRegularExpression> expected, int offset) {
         // TODO move message generatoin logic into a separate function
         throw UnexpectedCharError(
             "Unexpected text encountered during lexing: found "
-            "QChar('$#') but expected regexp pattern $# at position $# "
+            "'$#' but expected regexp pattern $# at position $# "
             "view is $#"
             % to_string_vec(
                 get(),
@@ -230,7 +230,7 @@ void PosStr::skip(std::string expected, int offset) {
     } else {
         throw UnexpectedCharError(
             "Unexpected text encountered during lexing: found "
-            "QChar('$#') but expected QChar('$#') at position $# view is "
+            "'$#' but expected '$#' at position $# view is "
             "$#"
             % to_string_vec(
                 get(),
@@ -247,7 +247,7 @@ void PosStr::skip(QChar expected, int offset, int count) {
     } else {
         throw UnexpectedCharError(
             "Unexpected character encountered during lexing: found "
-            "QChar('$#') but expected QChar('$#') at position $# view is "
+            "'$#' but expected '$#' at position $# view is "
             "$#"
             % to_string_vec(
                 get(offset),
@@ -263,7 +263,7 @@ void PosStr::skip(CR<CharSet> expected, int offset, int steps) {
     } else {
         throw UnexpectedCharError(
             "Unexpected character encountered during lexing: found "
-            "QChar('$#') but expected any of (char set) QChar('$#')"
+            "'$#' but expected any of (char set) '$#'"
             "at position $# view is $#"
             % to_string_vec(
                 get(offset),
@@ -276,7 +276,7 @@ void PosStr::skip(CR<CharSet> expected, int offset, int steps) {
 
 void PosStr::space(bool requireOne) {
     if (requireOne) {
-        skip(QChar(' '));
+        skip(' ');
     }
     skipZeroOrMore(charsets::HorizontalSpace);
 }
@@ -353,7 +353,7 @@ int PosStr::getIndent() const {
 int PosStr::getColumn() const {
     int result = 0;
     int offset = -1;
-    while (hasNext(offset) && !at(QChar('\n'), offset)) {
+    while (hasNext(offset) && !at('\n', offset)) {
         ++result;
         --offset;
     }
@@ -392,7 +392,7 @@ UnexpectedCharError PosStr::makeUnexpected(
 ) {
     return UnexpectedCharError(
         "Unexpected character encountered during lexing: found "
-        "QChar('$#') but expected $# while parsing $# at position $# view "
+        "'$#' but expected $# while parsing $# at position $# view "
         "is $#"
         % to_string_vec(
             get(), expected, parsing, pos, viewForward(view, pos, 20)));
@@ -403,7 +403,7 @@ void skipBalancedSlice(PosStr& str, CR<BalancedSkipArgs> args) {
     auto fullCount = args.skippedStart ? 1 : 0;
     int  count[pow_v<2, 8 * sizeof(char)>::res] = {};
     while (str.hasNext()) {
-        if (args.allowEscape && str.at(QChar('\\'))) {
+        if (args.allowEscape && str.at('\\')) {
             str.next();
             str.next();
         } else if (str.at(args.openChars)) {
@@ -442,21 +442,21 @@ void skipBalancedSlice(PosStr& str, CR<BalancedSkipArgs> args) {
 
 /// \brief Skip over decimal/hex/octal/binary digt
 void skipDigit(Ref<PosStr> str) {
-    if (str.at(QChar('-'))) {
+    if (str.at('-')) {
         str.next();
     }
     if (str.at("0x")) {
         str.next(2);
         str.skip(charsets::HexDigits);
-        str.skipZeroOrMore(charsets::HexDigits + CharSet{QChar('_')});
+        str.skipZeroOrMore(charsets::HexDigits + CharSet{'_'});
     } else if (str.at("0b")) {
         str.next(2);
-        str.skip(CharSet{QChar('0'), QChar('1')});
-        str.skipZeroOrMore(CharSet{QChar('0'), QChar('1')});
+        str.skip(CharSet{'0', '1'});
+        str.skipZeroOrMore(CharSet{'0', '1'});
     } else {
         str.skip(charsets::Digits);
         str.skipZeroOrMore(
-            charsets::Digits + CharSet{QChar('_'), QChar('.')});
+            charsets::Digits + CharSet{'_', '.'});
     }
 }
 
@@ -464,7 +464,7 @@ void skipStringLit(PosStr& str) {
     auto found = false;
     str.next();
     while (!found) {
-        found = str.at(QChar('"')) && !str.at(QChar('\\'), -1);
+        found = str.at('"') && !str.at('\\', -1);
         str.next();
     }
 }

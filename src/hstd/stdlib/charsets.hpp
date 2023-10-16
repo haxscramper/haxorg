@@ -2,129 +2,86 @@
 
 #include <hstd/stdlib/IntSet.hpp>
 
-using CharSet = IntSet<QChar>;
+using CharSet = IntSet<char>;
 
 template <>
-struct value_domain<QChar> {
-    static inline QChar low() {
-        return QChar(value_domain<wchar_t>::low());
-    }
-    static inline QChar high() {
-        return QChar(value_domain<wchar_t>::high());
+struct value_domain<char> {
+    static inline char low() { return char(value_domain<char>::low()); }
+    static inline char high() { return char(value_domain<char>::high()); }
+
+    static inline long long int ord(char c) {
+        return static_cast<long long int>(c);
     }
 
-    static inline long long int ord(QChar c) {
-        return static_cast<long long int>(c.unicode());
-    }
-
-    static inline QChar succ(QChar c) { return QChar(c.unicode() + 1); }
+    static inline char succ(char c) { return char(c + 1); }
 };
 
 namespace charsets {
 /// All character values
-Const<CharSet> AllChars{slice(QChar('\x00'), QChar('\x7F'))};
+Const<CharSet> AllChars{slice('\x00', '\x7F')};
 /// Arabic digits
-Const<CharSet> Digits{slice(QChar('0'), QChar('9'))};
+Const<CharSet> Digits{slice('0', '9')};
 /// Characters that can be used in C++-style identifiers
 Const<CharSet> IdentChars{
-    slice(QChar('a'), QChar('z')),
-    slice(QChar('A'), QChar('Z')),
-    slice(QChar('0'), QChar('9')),
-    QChar('_')};
+    slice('a', 'z'),
+    slice('A', 'Z'),
+    slice('0', '9'),
+    '_'};
 
 /// Characters that can be used as an identifier start
-Const<CharSet> IdentStartChars{
-    slice(QChar('a'), QChar('z')),
-    slice(QChar('A'), QChar('Z')),
-    QChar('_')};
+Const<CharSet> IdentStartChars{slice('a', 'z'), slice('A', 'Z'), '_'};
 /// Lowercase and uppercase latin letters
-Const<CharSet> Letters{
-    slice(QChar('A'), QChar('Z')),
-    slice(QChar('a'), QChar('z'))};
-Const<CharSet> Newlines{QChar('\r'), QChar('\n')};
+Const<CharSet> Letters{slice('A', 'Z'), slice('a', 'z')};
+Const<CharSet> Newlines{'\r', '\n'};
 /// Any kind of horizontal or vertical whitespace
-Const<CharSet> Whitespace{
-    QChar(' '),
-    QChar('\t'),
-    QChar('\v'),
-    QChar('\r'),
-    QChar('\n'),
-    QChar('\f')};
+Const<CharSet> Whitespace{' ', '\t', '\v', '\r', '\n', '\f'};
 
 /// Any character that can be a part of UTF-8 encoded string
-Const<CharSet> Utf8Any{slice(QChar('\x80'), QChar('\xFF'))};
+Const<CharSet> Utf8Any{slice('\x80', '\xFF')};
 /// UTF8 continuation
 Const<CharSet> Utf8Continuations{
-    slice(QChar(char(0b10000000)), QChar(char(0b10111111)))};
+    slice(char(char(0b10000000)), char(char(0b10111111)))};
 /// Start of the two-byte utf8 rune
 Const<CharSet> Utf8Starts2{
-    slice(QChar(char(0b11000000)), QChar(char(0b11011111)))};
+    slice(char(char(0b11000000)), char(char(0b11011111)))};
 /// Start of the three-byte utf8 rune
 Const<CharSet> Utf8Starts3{
-    slice(QChar(char(0b11100000)), QChar(char(0b11101111)))};
+    slice(char(char(0b11100000)), char(char(0b11101111)))};
 /// Start of the four-byte utf8 rune
 Const<CharSet> Utf8Starts4{
-    slice(QChar(char(0b11110000)), QChar(char(0b11110111)))};
+    slice(char(char(0b11110000)), char(char(0b11110111)))};
 /// Start of any utf8 rune
 Const<CharSet> Utf8Starts = Utf8Starts2 + Utf8Starts3 + Utf8Starts4;
 
-Const<CharSet> LowerAsciiLetters{slice(QChar('a'), QChar('z'))};
-Const<CharSet> HighAsciiLetters{slice(QChar('A'), QChar('Z'))};
+Const<CharSet> LowerAsciiLetters{slice('a', 'z')};
+Const<CharSet> HighAsciiLetters{slice('A', 'Z')};
 Const<CharSet> AsciiLetters    = LowerAsciiLetters + HighAsciiLetters;
-Const<CharSet> AnyRegularAscii = {slice(QChar('\x00'), QChar('\x7F'))};
-Const<CharSet> ControlChars    = {
-    slice(QChar('\x00'), QChar('\x1F')),
-    QChar('\x7F')};
-Const<CharSet> MaybeLetters = AsciiLetters + Utf8Any;
-Const<CharSet> IntegerStartChars{
-    slice(QChar('0'), QChar('9')),
-    QChar('-'),
-    QChar('+')};
-Const<CharSet>
-    HexDigitsLow = CharSet{QChar('a'), QChar('b'), QChar('c'), QChar('d'), QChar('e'), QChar('f')}
-                 + Digits;
-Const<CharSet>
-    HexDigitsHigh = CharSet{QChar('A'), QChar('B'), QChar('C'), QChar('D'), QChar('E'), QChar('F')}
-                  + Digits;
+Const<CharSet> AnyRegularAscii = {slice('\x00', '\x7F')};
+Const<CharSet> ControlChars    = {slice('\x00', '\x1F'), '\x7F'};
+Const<CharSet> MaybeLetters    = AsciiLetters + Utf8Any;
+Const<CharSet> IntegerStartChars{slice('0', '9'), '-', '+'};
+Const<CharSet> HexDigitsLow = CharSet{'a', 'b', 'c', 'd', 'e', 'f'}
+                            + Digits;
+Const<CharSet> HexDigitsHigh = CharSet{'A', 'B', 'C', 'D', 'E', 'F'}
+                             + Digits;
 Const<CharSet> HexDigits = HexDigitsLow + HexDigitsHigh;
-Const<CharSet> PunctOpenChars{
-    QChar('('),
-    QChar('['),
-    QChar('{'),
-    QChar('<')};
-Const<CharSet> PunctCloseChars{
-    QChar(')'),
-    QChar(']'),
-    QChar('}'),
-    QChar('>')};
-Const<CharSet> PunctSentenceChars{
-    QChar(','),
-    QChar('.'),
-    QChar('?'),
-    QChar('!'),
-    QChar(';'),
-    QChar(':')};
-Const<CharSet> MathChars = {
-    QChar('+'),
-    QChar('/'),
-    QChar('%'),
-    QChar('*'),
-    QChar('=')};
+Const<CharSet> PunctOpenChars{'(', '[', '{', '<'};
+Const<CharSet> PunctCloseChars{')', ']', '}', '>'};
+Const<CharSet> PunctSentenceChars{',', '.', '?', '!', ';', ':'};
+Const<CharSet> MathChars  = {'+', '/', '%', '*', '='};
 Const<CharSet> PunctChars = PunctOpenChars + PunctCloseChars
                           + PunctSentenceChars;
-Const<CharSet> Newline{QChar('\n')};
+Const<CharSet> Newline{'\n'};
 Const<CharSet> AllSpace        = Whitespace;
 Const<CharSet> HorizontalSpace = AllSpace - Newline;
 Const<CharSet> DashIdentChars  = LowerAsciiLetters + HighAsciiLetters
-                              + CharSet{QChar('_'), QChar('-')};
+                              + CharSet{'_', '-'};
 Const<CharSet> VeritcalSpace = Newline;
 
 // Character found in regular text line. All chars excluding special
 // controls (newline, line feed, carriage return etc.). This does include
 // tabulation, because it is not uncommon in regular text.
-Const<CharSet> TextLineChars = AllChars - ControlChars
-                             + CharSet{QChar('\t')};
+Const<CharSet> TextLineChars = AllChars - ControlChars + CharSet{'\t'};
 
-Const<CharSet> TextChars = MaybeLetters + Digits
-                         + CharSet{QChar('.'), QChar(','), QChar('-')};
+Const<CharSet> TextChars = MaybeLetters + Digits + CharSet{'.', ',', '-'};
 } // namespace charsets

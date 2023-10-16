@@ -171,12 +171,12 @@ SemIdT<HashTag> OrgConverter::convertHashTag(__args) {
     __trace();
     auto                              result = Sem<HashTag>(p, a);
     Func<SemIdT<HashTag>(OrgAdapter)> aux;
-    result->head = strip(a.at(0).strVal(), CharSet{QChar('#')}, CharSet{});
+    result->head = strip(a.at(0).strVal(), CharSet{'#'}, CharSet{});
 
     aux = [p, &aux, this](OrgAdapter a) -> SemIdT<HashTag> {
         SemIdT<HashTag> result = Sem<HashTag>(p, a);
         result->head           = strip(
-            a.at(0).strVal(), CharSet{QChar('#')}, CharSet{});
+            a.at(0).strVal(), CharSet{'#'}, CharSet{});
         if (1 < a.size()) {
             for (auto& node : a.at(slice(1, 1_B))) {
                 result->subtags.push_back(aux(node));
@@ -313,8 +313,8 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
 
     std::string       name = normalize(strip(
         one(a, N::Name).strVal(),
-        CharSet{QChar(':')},
-        CharSet{QChar(':')}));
+        CharSet{':'},
+        CharSet{':'}));
     Opt<Property> result;
     if (name == "exportoptions") {
         Property::ExportOptions res;
@@ -887,7 +887,7 @@ SemIdT<CmdArgument> OrgConverter::convertCmdArgument(__args) {
     result->value              = one(a, N::Value).strVal();
 
     if (!key.isEmpty()) {
-        result->key = key.remove(QChar(':'));
+        result->key = key.remove(':');
     }
 
 

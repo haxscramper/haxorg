@@ -9,7 +9,7 @@ TEST(TestIntegralSetOperations, InitialSetContent) {
     // `.size()` zero
     EXPECT_EQ(s.size(), 0);
     // You can include values to the set using `.incl` method
-    s.incl(QChar('a'));
+    s.incl('a');
     // `.size()` shows the number of values included in the set
     EXPECT_EQ(s.size(), 1);
 }
@@ -19,15 +19,15 @@ TEST(TestIntegralSetOperations, ContainsForSingleItem) {
     CharSet other;
     // Presence of specific element can be tested using `.contains()`
     // value
-    EXPECT_FALSE(s.contains(QChar('c')));
+    EXPECT_FALSE(s.contains('c'));
     // Elements can be added
-    s.incl(QChar('c'));
+    s.incl('c');
     // Tested again
-    EXPECT_TRUE(s.contains(QChar('c')));
+    EXPECT_TRUE(s.contains('c'));
     // Then excluded
-    s.excl(QChar('c'));
+    s.excl('c');
     // And then tested again, now for absence
-    EXPECT_FALSE(s.contains(QChar('c')));
+    EXPECT_FALSE(s.contains('c'));
 }
 
 TEST(TestIntegralSetOperations, ContainsForSetOperations) {
@@ -41,7 +41,7 @@ TEST(TestIntegralSetOperations, ContainsForSetOperations) {
     EXPECT_EQ(other.size(), 0);
     EXPECT_EQ(s.size(), 0);
     // After adding element to the set  this no longer holds
-    s.incl(QChar('s'));
+    s.incl('s');
     EXPECT_TRUE(s.contains(other));
     EXPECT_FALSE(other.contains(s));
     // You can test for subset relation using `<` operator: it tests
@@ -50,7 +50,7 @@ TEST(TestIntegralSetOperations, ContainsForSetOperations) {
     // You can also test for a regular subset operation, using `<=`
     // operator which is analogous to the `s.contains(other)`
     EXPECT_TRUE(other <= s);
-    other.incl(QChar('s'));
+    other.incl('s');
     // After including the same element in the set `<` no longer holds
     EXPECT_FALSE(other < s);
     // But regular subset check is ok
@@ -64,9 +64,9 @@ TEST(TestIntegralSetOperations, SetOperations) {
     CharSet other;
     EXPECT_EQ((s + other).size(), 0);
     EXPECT_EQ((s - other).size(), 0);
-    EXPECT_TRUE(s < (s + CharSet{QChar('1')}));
-    EXPECT_TRUE(s < (s | CharSet{QChar('1')}));
-    EXPECT_TRUE(s == (s & CharSet{QChar('1')}));
+    EXPECT_TRUE(s < (s + CharSet{'1'}));
+    EXPECT_TRUE(s < (s | CharSet{'1'}));
+    EXPECT_TRUE(s == (s & CharSet{'1'}));
 }
 
 TEST(TestIntegralSetOperations, IntegerSetOperators) {

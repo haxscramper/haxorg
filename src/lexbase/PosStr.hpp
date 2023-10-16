@@ -372,7 +372,7 @@ struct PosStr {
 
     void skipIdent(CharSet const& chars = charsets::IdentChars);
 
-    /// Create new QChar('unexpected character') error at the current
+    /// Create new 'unexpected character' error at the current
     /// string parsing position.
     UnexpectedCharError makeUnexpected(
         CR<std::string> expected, ///< What we expected to find?

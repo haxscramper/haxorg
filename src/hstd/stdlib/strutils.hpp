@@ -46,7 +46,7 @@ Pair<QChar, std::string> visibleName(QChar ch);
 Str indent(CR<Str> str, int spaces, char space = ' ', Str prefix = "");
 
 Vec<Str> visibleUnicodeName(std::string str, bool useUnicode = true);
-Vec<Str> split_keep_separator(const Str& str, CharSet sep = {QChar(' ')});
+Vec<Str> split_keep_separator(const Str& str, CharSet sep = {' '});
 Str      strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing);
 Vec<Str> split(CR<Str> str, QChar ch);
 std::string  right_aligned(CR<std::string> str, int n, QChar c = ' ');

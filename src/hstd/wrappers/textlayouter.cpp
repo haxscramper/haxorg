@@ -1148,7 +1148,7 @@ std::string SimpleStringStore::toString(
 
     Vec<std::string> fin;
     for (const auto& line : result.split("\n")) {
-        fin.push_back(strip(line, CharSet{}, CharSet{QChar(' ')}));
+        fin.push_back(strip(line, CharSet{}, CharSet{' '}));
     }
 
     return join("\n", fin);

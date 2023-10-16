@@ -8,7 +8,7 @@ void addf(
     for (const auto& fr : fragments) {
         switch (fr.kind) {
             case AddfFragmentKind::Dollar: {
-                s += QChar('$');
+                s += '$';
                 break;
             }
             case AddfFragmentKind::Positional:
@@ -59,29 +59,29 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
     auto                      i   = 0;
     auto                      num = 0;
     const CharSet             PatternChars{
-        slice(QChar('a'), QChar('z')),
-        slice(QChar('A'), QChar('Z')),
-        slice(QChar('0'), QChar('9')),
-        slice(QChar('\xF0'), QChar('\xFF')),
-        QChar('_')};
+        slice('a', 'z'),
+        slice('A', 'Z'),
+        slice('0', '9'),
+        slice('\xF0', '\xFF'),
+        '_'};
 
     while (i < formatstr.size()) {
-        if (formatstr[i] == QChar('$') && (i + 1) < formatstr.size()) {
+        if (formatstr[i] == '$' && (i + 1) < formatstr.size()) {
             const auto c = formatstr[i + 1];
-            if (c == QChar('#')) {
+            if (c == '#') {
                 result.push_back(
                     {.kind = AddfFragmentKind::Indexed, .idx = num});
                 i += 2;
                 num += 1;
-            } else if (c == QChar('$')) {
+            } else if (c == '$') {
                 i += 2;
                 result.push_back({.kind = AddfFragmentKind::Dollar});
 
-            } else if (charsets::Digits.contains(c) || c == QChar('|')) {
+            } else if (charsets::Digits.contains(c) || c == '|') {
                 auto j = 0;
                 i += 1;
                 const auto starti   = i;
-                auto       negative = formatstr[i] == QChar('-');
+                auto       negative = formatstr[i] == '-';
                 if (negative) {
                     i += 1;
                 }
@@ -89,7 +89,7 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                     ((i < formatstr.size())
                      && (charsets::Digits.contains(formatstr[i])))) {
                     j = ((j * 10) + value_domain<QChar>::ord(formatstr[i]))
-                      - value_domain<QChar>::ord(QChar('0'));
+                      - value_domain<QChar>::ord('0');
                     i += 1;
                 }
                 if (negative) {
@@ -99,10 +99,10 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                     result.push_back(
                         {.kind = AddfFragmentKind::Indexed, .idx = j - 1});
                 }
-            } else if (c == QChar('{')) {
+            } else if (c == '{') {
                 auto       j        = i + 2;
                 auto       k        = 0;
-                auto       negative = formatstr[j] == QChar('-');
+                auto       negative = formatstr[j] == '-';
                 const auto starti   = j;
                 if (negative) {
                     j += 1;
@@ -110,12 +110,12 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                 auto isNumber = 0;
                 while (
                     ((j < formatstr.size())
-                     && (!CharSet({QChar('\0'), QChar('}')})
+                     && (!CharSet({'\0', '}'})
                               .contains(formatstr[j])))) {
                     if (charsets::Digits.contains(formatstr[j])) {
                         k = ((k * 10)
                              + value_domain<QChar>::ord(formatstr[j]))
-                          - value_domain<QChar>::ord(QChar('0'));
+                          - value_domain<QChar>::ord('0');
                         if (isNumber == 0) {
                             isNumber = 1;
                         }
@@ -146,8 +146,8 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                 i = j + 1;
 
             } else if (
-                charsets::Letters.contains(c) || c == QChar('_')
-                || CharSet(slice(QChar('\xF0'), QChar('\xFF')))
+                charsets::Letters.contains(c) || c == '_'
+                || CharSet(slice('\xF0', '\xFF'))
                        .contains(c)) {
                 auto j = i + 1;
                 while (j < formatstr.size()
@@ -170,7 +170,7 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
         } else {
             auto trange = slice(i, i);
             while (trange.last < formatstr.size()
-                   && formatstr[trange.last] != QChar('$')) {
+                   && formatstr[trange.last] != '$') {
                 trange.last += 1;
             }
             trange.last -= 1;
