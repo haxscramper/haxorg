@@ -23,8 +23,8 @@ void addf(
                 if (idx < 0 || a.size() <= idx) {
                     throw FormatStringError(
                         "Argument index out of bounds. Accessed ["
-                        + std::string::number(idx) + "], but only "
-                        + std::string::number(a.size())
+                        + std::to_string(idx) + "], but only "
+                        + std::to_string(a.size())
                         + " arguments were supplied");
                 }
                 s += a[idx];
@@ -140,7 +140,7 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
 
                     result.push_back(
                         {.kind = AddfFragmentKind::Expr,
-                         .text = formatstr.mid(first, count)});
+                         .text = formatstr.substr(first, count)});
                 }
                 i = j + 1;
 
@@ -158,12 +158,12 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
 
                 result.push_back(
                     {.kind = AddfFragmentKind::Var,
-                     .text = formatstr.mid(first, last - first + 1)});
+                     .text = formatstr.substr(first, last - first + 1)});
                 i = j;
             } else {
                 throw FormatStringError(
                     "unexpected char after '$' :'"
-                    + std::string(formatstr[i + 1]) + "'");
+                    + std::string(1, formatstr[i + 1]) + "'");
             }
         } else {
             auto trange = slice(i, i);

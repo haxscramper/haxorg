@@ -4,40 +4,21 @@
 #include <hstd/system/generator.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Vec.hpp>
-
-
-template <typename T>
-std::ostream& join(
-    std::ostream&   os,
-    CR<std::string> sep,
-    generator<T>&   list) {
-    int index = 0;
-    for (const auto& it : list) {
-        if (0 < index) {
-            os << sep;
-        }
-        os << to_string(it);
-        ++index;
-    }
-    return os;
-}
-
-template <typename T>
-std::ostream& join(
-    std::ostream&   os,
-    CR<std::string> sep,
-    generator<T>&&  list) {
-    auto tmp = std::move(list);
-    return join(os, sep, tmp);
-}
+#include <sstream>
 
 
 template <typename T>
 std::string join(CR<std::string> sep, generator<T>& list) {
-    std::string  out;
-    std::ostream os{&out};
-    join(os, sep, list);
-    return out;
+    std::string os;
+    int         index = 0;
+    for (const auto& it : list) {
+        if (0 < index) {
+            os += sep;
+        }
+        os << std::format("{}", it);
+        ++index;
+    }
+    return os;
 }
 
 

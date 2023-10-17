@@ -123,7 +123,7 @@ struct ColText;
 
 /*! Create ansi escape sequence with given code */
 inline std::string ansiEsc(int code) {
-    return ESC_PREFIX + std::string::number(code) + "m";
+    return ESC_PREFIX + std::to_string(code) + "m";
 }
 
 
@@ -347,16 +347,6 @@ inline ColStream& operator<<(ColStream& os, ColRune const& value) {
     return os;
 }
 
-
-template <typename T>
-ColStream& operator<<(ColStream& os, CR<T> const& value)
-    requires StringStreamable<T>
-{
-    std::string  out;
-    std::ostream string{&out};
-    string << value;
-    return os << out;
-}
 
 inline ColText operator+(CR<ColText> text, CR<ColText> other) {
     ColStream s;

@@ -73,7 +73,7 @@ class Span : public std::span<T> {
                             ? clampSize(size(), data, maxEnd)
                             : clampSize(size() - steps, data, maxEnd);
 
-            Q_ASSERT(0 <= newSize && newSize <= oldSize);
+            assert(0 <= newSize && newSize <= oldSize);
 
             *this = Span<T>(data, newSize);
         } else {

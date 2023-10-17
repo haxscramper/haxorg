@@ -1,5 +1,6 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <fstream>
+#include <absl/log/check.h>
 
 void writeFile(const fs::path& target, const std::string& content) {
     std::ofstream file{target.native()};
@@ -44,13 +45,12 @@ SPtr<IoContext> openFileOrStream(
     bool            useFile,
     IoOpenConf      conf) {
 
-
     SPtr<IoContext> context = std::make_shared<IoContext>();
     context->stream         = std::make_shared<std::ostream>();
     if (useFile) {
         if (conf.createDirs) {
-            if (!info.parent_path().exists()) {
-                info.dir().mkpath(info.dir().absolutePath());
+            if (!fs::exists(info.parent_path())) {
+                fs::create_directories(info.parent_path());
             }
         }
 
@@ -66,18 +66,18 @@ SPtr<IoContext> openFileOrStream(
             }
         }
 
-        Q_ASSERT_X(
-            !info.filePath().isEmpty(),
-            "open file name",
-            "cannot open empty file name -- was provided with zero "
-            "length");
+        CHECK(!info.native().empty())
+            << "open file name"
+            << "cannot open empty file name -- was provided with zero "
+               "length";
+
         context->file.setFileName(info.filePath());
         if (context->file.open(mode)) {
             context->stream->setDevice(&context->file);
             context->needClose = true;
         } else {
             throw FilesystemError(
-                "Could not open file '" + info.filePath()
+                "Could not open file '" + info.native()
                 + "': " + context->file.errorString());
         }
     } else {

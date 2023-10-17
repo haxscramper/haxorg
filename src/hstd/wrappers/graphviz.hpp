@@ -48,7 +48,9 @@ class QFileInfo;
     }
 
 class Graphviz {
+
   public:
+    using Point = std::tuple<float, float>;
     struct UserDataBase {
         Agrec_t header;
     };
@@ -63,10 +65,10 @@ class Graphviz {
     static std::string alignText(
         std::string const& text,
         TextAlign          direction) {
-        std::string res = text;
+        Str res = text;
         switch (direction) {
-            case TextAlign::Left: res.replace("\n", "\\l"); break;
-            case TextAlign::Right: res.replace("\n", "\\r"); break;
+            case TextAlign::Left: res.replaceAll("\n", "\\l"); break;
+            case TextAlign::Right: res.replaceAll("\n", "\\r"); break;
         }
 
         return res;
@@ -146,11 +148,12 @@ class Graphviz {
             }
         }
 
-        void getAttr(std::string const& key, Opt<QColor>& value) const {
+        void getAttr(std::string const& key, Opt<std::string>& value)
+            const {
             Opt<std::string> tmp;
             getAttr(key, tmp);
             if (tmp) {
-                value = QColor::fromString(*tmp);
+                value = std::string::fromString(*tmp);
             }
         }
 
@@ -163,12 +166,12 @@ class Graphviz {
         }
 
 
-        void getAttr(std::string const& key, Opt<QPointF>& value) const {
+        void getAttr(std::string const& key, Opt<Point>& value) const {
             Opt<std::string> tmp;
             getAttr(key, tmp);
             if (tmp) {
                 auto split = tmp->split(",");
-                value = QPointF(split[0].toDouble(), split[1].toDouble());
+                value = Point(split[0].toDouble(), split[1].toDouble());
             }
         }
 
@@ -187,21 +190,18 @@ class Graphviz {
         }
 
         void setAttr(std::string const& key, int value) {
-            _this()->setAttr(key, std::string::number(value));
+            _this()->setAttr(key, std::to_string(value));
         }
 
-        void setAttr(std::string const& key, QPointF value) {
+        void setAttr(std::string const& key, Point value) {
             _this()->setAttr(
                 key, std::string("%1,%2").arg(value.x(), value.y()));
         }
 
         void setAttr(std::string const& key, double value) {
-            _this()->setAttr(key, std::string::number(value));
+            _this()->setAttr(key, std::to_string(value));
         }
 
-        void setAttr(std::string const& key, QColor const& value) {
-            _this()->setAttr(key, value.name());
-        }
 
         void setAttr(std::string const& key, bool value) {
             _this()->setAttr(key, std::string(value ? "true" : "false"));
@@ -222,14 +222,20 @@ class Graphviz {
       public:
         struct Record {
             static std::string escape(std::string const& input) {
-                std::string escaped = input;
-                escaped.replace("\\", "\\\\");
-                escaped.replace("\"", "\\\"");
-                escaped.replace("<", "\\<");
-                escaped.replace(">", "\\>");
-                escaped.replace("|", "\\|");
-                escaped.replace("{", "\\{");
-                escaped.replace("}", "\\}");
+                std::string escaped;
+                escaped.reserve(input.size());
+                for (char c : input) {
+                    switch (c) {
+                        case '"':
+                        case '>':
+                        case '<':
+                        case '{':
+                        case '}':
+                        case '|':
+                        case '\\': escaped += '\\';
+                        default: escaped += c;
+                    }
+                }
                 return escaped;
             }
 
@@ -419,11 +425,11 @@ class Graphviz {
 
 
         /// \brief Color of the node's border
-        _attr(Color, color, QColor);
+        _attr(Color, color, std::string);
         /// \brief Fill color of the node
-        _attr(FillColor, fillcolor, QColor);
+        _attr(FillColor, fillcolor, std::string);
         /// \brief Font color of the node's label
-        _attr(FontColor, fontcolor, QColor);
+        _attr(FontColor, fontcolor, std::string);
         /// \brief Font name of the node's label
         _attr(FontName, fontname, std::string);
         /// \brief Font size of the node's label
@@ -433,7 +439,7 @@ class Graphviz {
         /// \brief Label (text) of the node
         _attr_aligned(Label, label, std::string);
         /// \brief Position of the node's center
-        _attr(Position, pos, QPointF);
+        _attr(Position, pos, Point);
         /// \brief Shape of the node
         _attr(Shape, shape, std::string);
         /// \brief URL associated with the node
@@ -443,7 +449,7 @@ class Graphviz {
         /// \brief External label (text) of the node
         _attr_aligned(XLabel, xlabel, std::string);
         /// \brief Position of the node's external label
-        _attr(XLabelPosition, xlabelpos, QPointF);
+        _attr(XLabelPosition, xlabelpos, Point);
 
       public:
         Agnode_t* node;
@@ -464,9 +470,9 @@ class Graphviz {
         Node tail() { return Node(graph, AGTAIL(edge_)); }
 
         /// \brief Color of the edge
-        _attr(Color, color, std::string /*QColor*/);
+        _attr(Color, color, std::string /*std::string*/);
         /// \brief Font color of the edge's label
-        _attr(FontColor, fontcolor, std::string /*QColor*/);
+        _attr(FontColor, fontcolor, std::string /*std::string*/);
         /// \brief Font name of the edge's label
         _attr(FontName, fontname, std::string);
         /// \brief Font size of the edge's label
@@ -474,7 +480,7 @@ class Graphviz {
         /// \brief Label (text) of the edge
         _attr_aligned(Label, label, std::string);
         /// \brief Position of the edge's label
-        _attr(LabelPosition, lp, QPointF);
+        _attr(LabelPosition, lp, Point);
         /// \brief Width of the edge's line
         _attr(PenWidth, penwidth, double);
         /// \brief Style of the edge's line
@@ -573,15 +579,15 @@ class Graphviz {
         /// \brief Desired aspect ratio of the drawing
         _attr(AspectRatio, aspect, double);
         /// \brief Background color of the graph
-        _attr(BackgroundColor, bgcolor, QColor);
+        _attr(BackgroundColor, bgcolor, std::string);
         /// \brief Default edge length
         _attr(DefaultDistance, defaultdist, double);
         /// \brief Default node color
-        _attr(DefaultNodeColor, defaultNodeColor, QColor);
+        _attr(DefaultNodeColor, defaultNodeColor, std::string);
         /// \brief Default edge color
-        _attr(DefaultEdgeColor, defaultEdgeColor, QColor);
+        _attr(DefaultEdgeColor, defaultEdgeColor, std::string);
         /// \brief Font color
-        _attr(FontColor, fontcolor, QColor);
+        _attr(FontColor, fontcolor, std::string);
         /// \brief Font name
         _attr(FontName, fontname, std::string);
         /// \brief Font size
@@ -599,7 +605,7 @@ class Graphviz {
         /// \brief List of layers in the graph
         _attr(Layers, layers, std::string);
         /// \brief Margin around the drawing
-        _attr(Margin, margin, QPointF);
+        _attr(Margin, margin, Point);
         /// \brief Minimum separation between nodes
         _attr(NodeSeparation, nodesep, double);
         /// \brief Order in which nodes and edges are drawn
@@ -619,7 +625,7 @@ class Graphviz {
         /// \brief Size of the layout search space
         _attr(SearchSize, searchsize, int);
         /// \brief Maximum size of the drawing
-        _attr(Size, size, QPointF);
+        _attr(Size, size, Point);
         /// \brief Type of edges (splines, lines, etc.)
         _attr(Spline, splines, std::string);
         /// \brief Style sheet used for the output
@@ -627,7 +633,7 @@ class Graphviz {
         /// \brief Whether to use truecolor in the output
         _attr(TrueColor, truecolor, bool);
         /// \brief Viewport size and position
-        _attr(ViewPort, viewport, QPointF);
+        _attr(ViewPort, viewport, Point);
         _attr(Compound, compound, bool);
         _attr(Concentrate, concentrate, bool);
 

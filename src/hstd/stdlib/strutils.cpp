@@ -1,5 +1,6 @@
 #include <hstd/stdlib/strutils.hpp>
 #include <absl/log/log.h>
+#include <absl/log/check.h>
 
 std::string unicodeCharMappings[256][15] = {
     [(int)'A']
@@ -1544,11 +1545,10 @@ std::string unicodeCharMappings[256][15] = {
 
 
 std::string styledUnicodeMapping(char ch, AsciiStyle style) {
-    char latin = ch.toLatin1();
-    if (unicodeCharMappings[(int)latin][(int)style] != std::string("\0")) {
-        return unicodeCharMappings[(int)latin][(int)style];
+    if (unicodeCharMappings[(int)ch][(int)style] != std::string("\0")) {
+        return unicodeCharMappings[(int)ch][(int)style];
     } else {
-        return ch;
+        return std::string(1, ch);
     }
 }
 
@@ -1566,7 +1566,7 @@ std::string styledUnicodeMapping(
 Str strip(CR<Str> string, CR<CharSet> leading, CR<CharSet> trailing) {
     if (0 < string.size()) {
         Span<char> view = string.toSpan();
-        Q_CHECK_PTR(view.data());
+        CHECK(view.data() != nullptr);
         char* end = view.data() + string.size();
 
         while (0 < view.size() && leading.contains(view.at(0))) {

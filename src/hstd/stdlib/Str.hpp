@@ -14,8 +14,9 @@ struct Str : public std::string {
         : std::string(view.data(), view.size()) {}
     explicit Str(std::string_view view)
         : std::string(view.data(), view.size()) {}
+    Str(const char* conv) : std::string(conv) {}
     Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
-    Str(char c) : std::string(c) {}
+    Str(char c) : std::string(1, c) {}
     Str(wchar_t c) : std::string(to_string(c)) {}
     Str() = default;
 
@@ -26,13 +27,6 @@ struct Str : public std::string {
         return Str(std::string::substr(start, count));
     }
 
-
-    template <StringConvertible T>
-    Str operator+(T const& other) const {
-        Str result = *this;
-        result.append(other);
-        return result;
-    }
 
     Str dropPrefix(CR<Str> prefix) const {
         if (prefix.starts_with(prefix)) {
@@ -57,6 +51,15 @@ struct Str : public std::string {
             throw std::out_of_range(
                 "String index out of range wanted " + std::to_string(pos)
                 + " but size() is " + std::to_string(size()));
+        }
+    }
+
+    void replaceAll(const std::string& from, const std::string& to) {
+        size_t startPos = 0;
+        while ((startPos = this->find(from, startPos))
+               != std::string::npos) {
+            this->replace(startPos, from.length(), to);
+            startPos += to.length();
         }
     }
 

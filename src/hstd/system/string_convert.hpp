@@ -13,6 +13,7 @@
 
 #include <locale>
 #include <codecvt>
+#include <format>
 
 #ifdef __GNUG__
 #    include <cstdlib>
@@ -38,29 +39,7 @@ inline std::string demangle(const char* name) { return name; }
 
 #endif
 
-
-template <typename T>
-concept StringStreamable = requires(T value, std::ostream& os) {
-    { os << value } -> std::same_as<std::ostream&>;
-};
-
-template <typename T>
-std::string to_string(T const& value)
-    requires StringStreamable<T>
-{
-    std::string  out;
-    std::ostream os{&out};
-    os << value;
-    return out;
-}
-
 inline std::string to_string(bool b) { return b ? "true" : "false"; }
-
-template <typename T>
-concept StringConvertible = requires(T value) {
-    { to_string(value) } -> std::same_as<std::string>;
-};
-
 
 /// \brief Escape string literal, converting newline and other (TODO)
 /// control characters into unicode.
@@ -83,27 +62,17 @@ inline std::string escape_literal(std::string const& in) {
 }
 
 template <typename Iterable>
-std::ostream& join(
-    std::ostream&      os,
-    std::string const& sep,
-    Iterable const&    list) {
-    int index = 0;
+std::string join(std::string const& sep, Iterable const& list) {
+    std::string os;
+    int         index = 0;
     for (const auto& it : list) {
         if (0 < index) {
-            os << sep;
+            os += sep;
         }
-        os << to_string(it);
+        os += std::format("{}", it);
         ++index;
     }
     return os;
-}
-
-template <typename Iterable>
-std::string join(std::string const& sep, Iterable const& list) {
-    std::string  out;
-    std::ostream os{&out};
-    std::string  join(os, sep, list);
-    return out;
 }
 
 /// \brief Small insanity to allow for `os << "[" << join(os, "", "wer")

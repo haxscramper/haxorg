@@ -7,6 +7,7 @@
 #include <hstd/system/exceptions.hpp>
 #include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/BackwardsIndex.hpp>
+#include <format>
 
 #include <stdexcept>
 
@@ -208,12 +209,13 @@ Pair<A, A> getSpan(
         && !(
             (0 <= startPos && startPos < size)
             && (0 <= endPos && endPos < size))) {
-        throw OutOfRangeError(
-            "Container index is out of range: real span range is "
-            + std::string::number(startPos) + ".."
-            + std::string::number(endPos) + " computed from "
-            + to_string(s) + ", but full extent length is only "
-            + std::string::number(size));
+        throw OutOfRangeError(std::format(
+            "Container index is out of range: real span range is {}..{} "
+            "computed from {}, but full extent length is only {}",
+            startPos,
+            endPos,
+            s,
+            size));
     }
 
     return {startPos, endPos};
