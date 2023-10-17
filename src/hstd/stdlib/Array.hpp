@@ -125,6 +125,9 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
 };
 
 template <typename T, int Size>
-std::ostream& operator<<(std::ostream& os, Array<T, Size> const& value) {
-    return os << "[" << join(os, ", ", value) << "]";
-}
+struct std::formatter<Array<T, Size>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Array<T, Size>& p, FormatContext& ctx) {
+        return "[" << join(", ", p) << "]";
+    }
+};

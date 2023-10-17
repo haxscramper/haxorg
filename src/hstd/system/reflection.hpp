@@ -11,6 +11,7 @@
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/system/basic_templates.hpp>
 #include <vector>
+#include <format>
 
 template <typename T>
 concept IsEnum = std::is_enum<T>::value;
@@ -234,7 +235,7 @@ bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
     struct std::formatter<__TypeName> : std::formatter<std::string> {     \
         template <typename FormatContext>                                 \
         auto format(const __TypeName& p, FormatContext& ctx) {            \
-            return described_class_printer(os, value);                    \
+            return described_class_printer(value);                        \
         }                                                                 \
     };
 

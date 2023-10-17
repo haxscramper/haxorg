@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/Vec.hpp>
+#include <format>
 
 struct Str : public std::string {
     using std::string::operator[];
@@ -95,3 +96,11 @@ inline Str operator+(const char* in, CR<Str> other) {
     res.append(other);
     return res;
 }
+
+template <>
+struct std::formatter<Str> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Str& p, FormatContext& ctx) {
+        return std::formatter<std::string>::format(p.toBase(), ctx);
+    }
+};

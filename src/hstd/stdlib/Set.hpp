@@ -46,6 +46,9 @@ struct UnorderedSet
 };
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, UnorderedSet<T> const& value) {
-    return os << "{" << join(os, ", ", value) << "}";
-}
+struct std::formatter<UnorderedSet<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const UnorderedSet<T>& p, FormatContext& ctx) {
+        return "{" << join(", ", p) << "}";
+    }
+};

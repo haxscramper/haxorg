@@ -148,7 +148,9 @@ class Span : public std::span<T> {
 };
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, Span<T> const& value) {
-    os << "[" << join(os, ", ", value) << "]";
-    return os;
-}
+struct std::formatter<Span<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Span<T>& p, FormatContext& ctx) {
+        return "[" << join(", ", p) << "]";
+    }
+};

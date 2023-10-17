@@ -19,21 +19,23 @@ struct is_variant<std::variant<Args...>> : std::true_type {};
 template <typename T>
 concept IsVariant = is_variant<std::remove_cvref_t<T>>::value;
 
-// Does not conform to regular `ostream<<` implementation in order to avoid
-// implicit conversion from value types. Not sure this can be circumvented
-// by disallowing to-argument conversion in some way.
 template <IsVariant V>
-std::ostream& operator<<(std::ostream& os, V const& value) {
-    os << "Var(" << value.index() << ": ";
-    std::visit(
-        [&os](const auto& value) {
-            os << value;
-            return 0;
-        },
-        value);
-    os << ")";
-    return os;
-}
+struct std::formatter<V> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const V& p, FormatContext& ctx) {
+        std::string res;
+        res += std::format("Var({}: ", p.index());
+        std::visit(
+            [&res](const auto& value) {
+                res += std::format("{}", value);
+                return 0;
+            },
+            p);
+        res += ")";
+        return res;
+    }
+};
+
 
 template <IsVariant V>
 auto variant_from_index(size_t index) -> V {

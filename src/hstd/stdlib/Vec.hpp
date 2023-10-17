@@ -231,10 +231,13 @@ static_assert(
 
 /// \brief Vector formatting operator
 template <typename T>
-std::ostream& operator<<(std::ostream& os, Vec<T> const& value) {
-    os << "[" << join(os, ", ", value) << "]";
-    return os;
-}
+struct std::formatter<Vec<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Vec<T>& p, FormatContext& ctx) {
+        return "[" << join(", ", p) << "]";
+    }
+};
+
 
 template <typename T>
 using CVec = CR<Vec<T>>;

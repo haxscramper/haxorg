@@ -1,16 +1,20 @@
 #pragma once
 
 #include <optional>
-#include <iostream>
+#include <format>
 
 template <typename T>
 using Opt = std::optional<T>;
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, Opt<T> const& value) {
-    if (value.has_value()) {
-        return os << "some(" << value.value() << ")";
-    } else {
-        return os << "none()";
+struct std::formatter<Opt<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Opt<T>& p, FormatContext& ctx) {
+        if (p.has_value()) {
+            return std::format("some({})", p.value());
+        } else {
+            return "none()";
+        }
+        return std::formatter<std::string>::format(p.to_string(), ctx);
     }
-}
+};

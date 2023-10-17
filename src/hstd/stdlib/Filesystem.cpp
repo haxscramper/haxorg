@@ -90,7 +90,3 @@ SPtr<IoContext> openFileOrStream(
 }
 
 
-std::ostream& operator<<(std::ostream& stream, QFileInfo const& info) {
-    stream << '"' << info.filePath() << '"';
-    return stream;
-}

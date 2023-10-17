@@ -4,6 +4,7 @@
 #include <string>
 #include <filesystem>
 #include <hstd/stdlib/Ptrs.hpp>
+#include <format>
 
 namespace fs = std::filesystem;
 
@@ -42,3 +43,11 @@ SPtr<IoContext> openFileOrStream(
 void        writeFile(fs::path const& target, std::string const& content);
 std::string readFile(fs::path const& target);
 std::ostream& operator<<(std::ostream& stream, fs::path const& info);
+
+template <>
+struct std::formatter<fs::path> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const fs::path& p, FormatContext& ctx) {
+        return std::formatter<std::string>::format(p.native(), ctx);
+    }
+};

@@ -171,12 +171,15 @@ HSlice<A, B> slice(CR<A> first, CR<B> last) {
     return {.first = first, .last = last};
 }
 
+
 template <typename A, typename B>
-inline std::ostream& operator<<(
-    std::ostream&       os,
-    HSlice<A, B> const& value) {
-    return os << "[" << value.first << ".." << value.last << "]";
-}
+struct std::formatter<HSlice<A, B>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const HSlice<A, B>& p, FormatContext& ctx) {
+        return std::format("[{}..{}]", p.first, p.last);
+    }
+};
+
 
 template <typename T>
 struct std::hash<Slice<T>> {

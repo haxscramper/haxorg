@@ -12,6 +12,7 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Str.hpp>
+#include <format>
 
 namespace layout {
 
@@ -41,7 +42,7 @@ struct LytStr {
 };
 
 BOOST_DESCRIBE_STRUCT(LytStr, (), (id, len));
-REFL_DEFINE_DESCRIBED_OSTREAM(LytStr);
+(LytStr);
 
 inline const auto LytEmptyStr = LytStr(LytStrId::Nil(), 0);
 
@@ -59,7 +60,6 @@ struct LytStrSpan {
 };
 
 BOOST_DESCRIBE_STRUCT(LytStrSpan, (), (strs, len));
-REFL_DEFINE_DESCRIBED_OSTREAM(LytStrSpan);
 
 struct LayoutElement;
 struct Layout;
@@ -158,16 +158,6 @@ struct Event {
 BOOST_DESCRIBE_STRUCT(Event::Text, (), (str));
 BOOST_DESCRIBE_STRUCT(Event::Spaces, (), (spaces));
 BOOST_DESCRIBE_STRUCT(Event::Newline, (), ());
-
-REFL_DEFINE_DESCRIBED_OSTREAM(Event::Text);
-REFL_DEFINE_DESCRIBED_OSTREAM(Event::Spaces);
-REFL_DEFINE_DESCRIBED_OSTREAM(Event::Newline);
-
-
-inline std::ostream& operator<<(std::ostream& os, CR<Event> const& value) {
-    return os << "{ .kind = " << value.getKind()
-              << ", data = " << value.data << "}";
-}
 
 
 struct Block;
@@ -482,5 +472,18 @@ template <>
 struct SerdeDefaultProvider<layout::BlockId> {
     static layout::BlockId get() { return layout::BlockId::Nil(); }
 };
+
+REFL_DEFINE_DESCRIBED_OSTREAM(layout::LytStr);
+REFL_DEFINE_DESCRIBED_OSTREAM(layout::LytStrSpan);
+REFL_DEFINE_DESCRIBED_OSTREAM(layout::Event::Text);
+REFL_DEFINE_DESCRIBED_OSTREAM(layout::Event::Spaces);
+REFL_DEFINE_DESCRIBED_OSTREAM(layout::Event::Newline);
+
+
+inline std::ostream& operator<<(std::ostream& os, CR<Event> const& value) {
+    return os << "{ .kind = " << value.getKind()
+              << ", data = " << value.data << "}";
+}
+
 
 #endif // TEXTLAYOUTER_HPP

@@ -196,6 +196,9 @@ struct IntSet : public SetBase<IntSet<T>, T> {
 
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, IntSet<T> const& value) {
-    return os << "{" << join(os, ", ", value) << "}";
-}
+struct std::formatter<IntSet<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const IntSet<T>& p, FormatContext& ctx) {
+        return "{" << join(", ", p) << "}";
+    }
+};

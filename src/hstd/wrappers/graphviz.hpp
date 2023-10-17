@@ -123,7 +123,7 @@ class Graphviz {
                 (void*)(_this()->get()), strdup(attribute));
 
             if (found != nullptr) {
-                value = Str::fromStdString(found);
+                value = found;
             } else {
                 value = std::nullopt;
             }
@@ -149,7 +149,7 @@ class Graphviz {
             Opt<Str> tmp;
             getAttr(key, tmp);
             if (tmp) {
-                value = Str::fromString(*tmp);
+                value = *tmp;
             }
         }
 

@@ -58,17 +58,22 @@ struct SortedMap
     using Base::operator[];
 };
 
+
 template <typename K, typename V>
-std::ostream& operator<<(std::ostream& os, UnorderedMap<K, V> const& map) {
-    os << "{";
-    bool first = true;
-    for (const auto& [key, value] : map) {
-        if (!first) {
-            os << ", ";
+struct std::formatter<UnorderedMap<K, V>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const UnorderedMap<K, V>& p, FormatContext& ctx) {
+        std::string res;
+        res += "{";
+        bool first = true;
+        for (const auto& [key, value] : p) {
+            if (!first) {
+                res += ", ";
+            }
+            first = false;
+            res += std::format("{}: {}", key, value);
         }
-        first = false;
-        os << key << ": " << value;
+        res += "}";
+        return res;
     }
-    os << "}";
-    return os;
-}
+};
