@@ -1619,7 +1619,7 @@ Vec<Str> split_keep_separator(const Str& str, CharSet sep) {
 Vec<Str> visibleUnicodeName(std::string str, bool useUnicode) {
     Vec<Str> result;
     for (char ch : str) {
-        if (ch.unicode() <= 127) {
+        if (ch <= 127) {
             if (useUnicode) {
                 result.push_back(visibleName(ch).first);
             } else {
@@ -1633,43 +1633,45 @@ Vec<Str> visibleUnicodeName(std::string str, bool useUnicode) {
     return result;
 }
 
-Pair<char, std::string> visibleName(char ch) {
-    switch (ch.unicode()) {
-        case '\x00': return {char(L'␀'), "[NUL]"}; // Null character
-        case '\x01': return {char(L'␁'), "[SOH]"}; // Start of header
-        case '\x02': return {char(L'␂'), "[STX]"}; // Start of text
-        case '\x03': return {char(L'␃'), "[ETX]"}; // End of text
-        case '\x04': return {char(L'␄'), "[EOT]"}; // End transmission
-        case '\x05': return {char(L'␅'), "[ENQ]"}; // Enquiry
-        case '\x06': return {char(L'␆'), "[ACK]"}; // Acknowledge
-        case '\x07': return {char(L'␇'), "[BEL]"}; // Bell
-        case '\x08': return {char(L'␈'), "[BS]"};  // Backspace
-        case '\x09': return {char(L'␉'), "[HT]"};  // Horizontal tab
-        case '\x0A': return {char(L'␤'), "[LF]"};  // Line feed
-        case '\x0B': return {char(L'␋'), "[VT]"};  // Vertical tab
-        case '\x0C': return {char(L'␌'), "[FF]"};  // Form feed
-        case '\x0D': return {char(L'␍'), "[CR]"};  // Carriage return
-        case '\x0E': return {char(L'␎'), "[SO]"};  // Shift out
-        case '\x0F': return {char(L'␏'), "[SI]"};  // Shift in
-        case '\x10': return {char(L'␐'), "[DLE]"}; // Data link escape
-        case '\x11': return {char(L'␑'), "[DC1]"}; // Device control 1
-        case '\x12': return {char(L'␒'), "[DC2]"}; // Device control 2
-        case '\x13': return {char(L'␓'), "[DC3]"}; // Device control 3
-        case '\x14': return {char(L'␔'), "[DC4]"}; // Device control 4
-        case '\x15': return {char(L'␕'), "[NAK]"}; // Negative ack
-        case '\x16': return {char(L'␖'), "[SYN]"}; // Synchronous idle
-        case '\x17': return {char(L'␗'), "[ETB]"}; // End tr. block
-        case '\x18': return {char(L'␘'), "[CAN]"}; // Cancel
-        case '\x19': return {char(L'␙'), "[EM]"};  // End of medium
-        case '\x1A': return {char(L'␚'), "[SUB]"}; // Substitute
-        case '\x1B': return {char(L'␛'), "[ESC]"}; // Escape
-        case '\x1C': return {char(L'␜'), "[FS]"};  // File separator
-        case '\x1D': return {char(L'␝'), "[GS]"};  // Group separator
-        case '\x1E': return {char(L'␞'), "[RS]"};  // Record separator
-        case '\x1F': return {char(L'␟'), "[US]"};  // Unit separator
-        case '\x7f': return {char(L'␡'), "[DEL]"}; // Delete
-        case ' ': return {char(L'␣'), "[SPC]"};    // Space
-        default: return {char(ch), std::string(ch)};
+Pair<std::string, std::string> visibleName(char ch) {
+    switch (ch) {
+            // clang-format off
+        case '\x00': return {std::string("␀"), "[NUL]"}; // Null character
+        case '\x01': return {std::string("␁"), "[SOH]"}; // Start of header
+        case '\x02': return {std::string("␂"), "[STX]"}; // Start of text
+        case '\x03': return {std::string("␃"), "[ETX]"}; // End of text
+        case '\x04': return {std::string("␄"), "[EOT]"}; // End transmission
+        case '\x05': return {std::string("␅"), "[ENQ]"}; // Enquiry
+        case '\x06': return {std::string("␆"), "[ACK]"}; // Acknowledge
+        case '\x07': return {std::string("␇"), "[BEL]"}; // Bell
+        case '\x08': return {std::string("␈"), "[BS]"};  // Backspace
+        case '\x09': return {std::string("␉"), "[HT]"};  // Horizontal tab
+        case '\x0A': return {std::string("␤"), "[LF]"};  // Line feed
+        case '\x0B': return {std::string("␋"), "[VT]"};  // Vertical tab
+        case '\x0C': return {std::string("␌"), "[FF]"};  // Form feed
+        case '\x0D': return {std::string("␍"), "[CR]"};  // Carriage return
+        case '\x0E': return {std::string("␎"), "[SO]"};  // Shift out
+        case '\x0F': return {std::string("␏"), "[SI]"};  // Shift in
+        case '\x10': return {std::string("␐"), "[DLE]"}; // Data link escape
+        case '\x11': return {std::string("␑"), "[DC1]"}; // Device control 1
+        case '\x12': return {std::string("␒"), "[DC2]"}; // Device control 2
+        case '\x13': return {std::string("␓"), "[DC3]"}; // Device control 3
+        case '\x14': return {std::string("␔"), "[DC4]"}; // Device control 4
+        case '\x15': return {std::string("␕"), "[NAK]"}; // Negative ack
+        case '\x16': return {std::string("␖"), "[SYN]"}; // Synchronous idle
+        case '\x17': return {std::string("␗"), "[ETB]"}; // End tr. block
+        case '\x18': return {std::string("␘"), "[CAN]"}; // Cancel
+        case '\x19': return {std::string("␙"), "[EM]"};  // End of medium
+        case '\x1A': return {std::string("␚"), "[SUB]"}; // Substitute
+        case '\x1B': return {std::string("␛"), "[ESC]"}; // Escape
+        case '\x1C': return {std::string("␜"), "[FS]"};  // File separator
+        case '\x1D': return {std::string("␝"), "[GS]"};  // Group separator
+        case '\x1E': return {std::string("␞"), "[RS]"};  // Record separator
+        case '\x1F': return {std::string("␟"), "[US]"};  // Unit separator
+        case '\x7f': return {std::string("␡"), "[DEL]"}; // Delete
+        case ' ': return {std::string("␣"), "[SPC]"};    // Space
+            // clang-format on
+        default: return {std::string(1, ch), std::string(1, ch)};
     }
 }
 
@@ -1685,7 +1687,7 @@ Str normalize(CR<Str> in) {
     Str res;
     for (char c : in) {
         if (!(c == '_' || c == '-')) {
-            if (c.isLower()) {
+            if (islower(c)) {
                 res += c;
             } else if (c.isUpper()) {
                 res += c.toLower();
@@ -1704,25 +1706,25 @@ Str repeat(CR<Str> str, int count) {
     return res;
 }
 
-std::string left_aligned(CR<std::string> str, int n, char c) {
+Str left_aligned(CR<Str> str, int n, char c) {
     auto s = str;
     if (s.size() < n) {
-        s.append(std::string(c).repeated(n - s.size()));
+        s.append(Str(c).repeated(n - s.size()));
     }
     return s;
 }
 
-std::string right_aligned(CR<std::string> str, int n, char c) {
-    std::string res;
+Str right_aligned(CR<Str> str, int n, char c) {
+    Str res;
     if (str.size() < n) {
-        res.append(std::string(c).repeated(n - str.size()));
+        res.append(Str(c).repeated(n - str.size()));
     }
     res.append(str);
     return res;
 }
 
-std::string escape_for_write(const std::string& str, bool quote) {
-    std::string res;
+Str escape_for_write(const Str& str, bool quote) {
+    Str res;
     res.reserve(str.size());
     if (quote) {
         res += "\"";

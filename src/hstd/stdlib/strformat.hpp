@@ -78,9 +78,9 @@ void to_string_vec_impl(
     std::vector<std::string>& out,
     CR<T>&                    in,
     Tail&&... tail)
-    requires StringConvertible<T>
+    requires StdFormattable<T>
 {
-    out.push_back(to_string(in));
+    out.push_back(std::format("{}", in));
     to_string_vec_impl(out, tail...);
 }
 

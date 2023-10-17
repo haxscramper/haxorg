@@ -7,7 +7,7 @@ std::string ansiEsc(const TermColorFg8Bit& col) {
     } else if ((u8)col <= 15) { // Bright colors
         return ansiEsc(value_domain<TermColorFg8Bit>::ord(col) + 30 + 60);
     } else { // Full colors
-        return ESC_PREFIX "38;5;" + std::string::number((u8)col) + "m";
+        return ESC_PREFIX "38;5;" + std::to_string((u8)col) + "m";
     }
 }
 
@@ -17,7 +17,7 @@ std::string ansiEsc(const TermColorBg8Bit& col) {
     } else if ((u8)col <= 15) {
         return ansiEsc(value_domain<TermColorBg8Bit>::ord(col) + 40 + 60);
     } else {
-        return ESC_PREFIX "48;5;" + std::string::number((u8)col) + "m";
+        return ESC_PREFIX "48;5;" + std::to_string((u8)col) + "m";
     };
 }
 
@@ -134,7 +134,7 @@ ColStream& hshow(ColStream& os, CR<Str> value, CR<HDisplayOpts> opts) {
                 os << " ";
             }
             first = false;
-            os << Str("'") + it + Str("'");
+            os << std::format("'{}'", it);
         }
     } else {
         for (const auto& it : visibleUnicodeName(

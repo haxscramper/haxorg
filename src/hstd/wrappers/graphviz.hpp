@@ -62,9 +62,7 @@ class Graphviz {
         Right
     };
 
-    static std::string alignText(
-        std::string const& text,
-        TextAlign          direction) {
+    static Str alignText(Str const& text, TextAlign direction) {
         Str res = text;
         switch (direction) {
             case TextAlign::Left: res.replaceAll("\n", "\\l"); break;
@@ -79,7 +77,7 @@ class Graphviz {
         using CRTP_this_method<T>::_this;
 
         template <typename Rec, typename... Args>
-        Rec* bindRecord(std::string const& name, Args&&... args) {
+        Rec* bindRecord(Str const& name, Args&&... args) {
             Rec* result = (Rec*)agbindrec(
                 _this()->get(), strdup(name), sizeof(Rec), false);
             if (result != nullptr) {
@@ -91,74 +89,72 @@ class Graphviz {
         }
 
         template <typename Rec>
-        Rec* getRecord(std::string const& name) {
+        Rec* getRecord(Str const& name) {
             return (Rec*)aggetrec(_this()->get(), strdup(name), false);
         }
 
-        void delRecord(std::string const& name) {
+        void delRecord(Str const& name) {
             agdelrec(_this()->get(), strdup(name));
         }
 
-        Func<void(std::string const&, std::string const&)> setOverride;
+        Func<void(Str const&, Str const&)> setOverride;
 
 
         void setAttr(
-            std::string const& attribute,
-            std::string const& value,
-            TextAlign          direction) {
+            Str const& attribute,
+            Str const& value,
+            TextAlign  direction) {
             setAttr(attribute, alignText(value, direction));
         }
 
         template <typename AttrType>
-        Opt<AttrType> getAttr(std::string const& attribute) const {
+        Opt<AttrType> getAttr(Str const& attribute) const {
             Opt<AttrType> res;
             getAttr(attribute, res);
             return res;
         }
 
-        bool hasAttr(std::string const& attribute) {
+        bool hasAttr(Str const& attribute) {
             return agget(_this()->get(), strdup(attribute)) != nullptr;
         }
 
-        void getAttr(std::string const& attribute, Opt<std::string>& value)
-            const {
+        void getAttr(Str const& attribute, Opt<Str>& value) const {
             char* found = agget(
                 (void*)(_this()->get()), strdup(attribute));
 
             if (found != nullptr) {
-                value = std::string::fromStdString(found);
+                value = Str::fromStdString(found);
             } else {
                 value = std::nullopt;
             }
         }
 
-        void getAttr(std::string const& key, Opt<int>& value) const {
-            Opt<std::string> tmp;
+        void getAttr(Str const& key, Opt<int>& value) const {
+            Opt<Str> tmp;
             getAttr(key, tmp);
             if (tmp) {
                 value = tmp->toInt();
             }
         }
 
-        void getAttr(std::string const& key, Opt<double>& value) const {
-            Opt<std::string> tmp;
+        void getAttr(Str const& key, Opt<double>& value) const {
+            Opt<Str> tmp;
             getAttr(key, tmp);
             if (tmp) {
                 value = tmp->toDouble();
             }
         }
 
-        void getAttr(std::string const& key, Opt<std::string>& value)
-            const {
-            Opt<std::string> tmp;
+        void getAttr(Str const& key, Opt<Str>& value) const {
+            Opt<Str> tmp;
             getAttr(key, tmp);
             if (tmp) {
-                value = std::string::fromString(*tmp);
+                value = Str::fromString(*tmp);
             }
         }
 
-        void getAttr(std::string const& key, Opt<bool>& value) const {
-            Opt<std::string> tmp;
+        void getAttr(Str const& key, Opt<bool>& value) const {
+            Opt<Str> tmp;
             getAttr(key, tmp);
             if (tmp) {
                 value = *tmp == "true";
@@ -166,8 +162,8 @@ class Graphviz {
         }
 
 
-        void getAttr(std::string const& key, Opt<Point>& value) const {
-            Opt<std::string> tmp;
+        void getAttr(Str const& key, Opt<Point>& value) const {
+            Opt<Str> tmp;
             getAttr(key, tmp);
             if (tmp) {
                 auto split = tmp->split(",");
@@ -175,9 +171,7 @@ class Graphviz {
             }
         }
 
-        void setAttr(
-            std::string const& attribute,
-            std::string const& value) {
+        void setAttr(Str const& attribute, Str const& value) {
             if (setOverride) {
                 setOverride(attribute, value);
             } else {
@@ -189,22 +183,24 @@ class Graphviz {
             }
         }
 
-        void setAttr(std::string const& key, int value) {
+        void setAttr(Str const& key, int value) {
             _this()->setAttr(key, std::to_string(value));
         }
 
-        void setAttr(std::string const& key, Point value) {
+        void setAttr(Str const& key, Point value) {
             _this()->setAttr(
-                key, std::string("%1,%2").arg(value.x(), value.y()));
+                key,
+                std::format(
+                    "{},{}", std::get<0>(value), std::get<1>(value)));
         }
 
-        void setAttr(std::string const& key, double value) {
+        void setAttr(Str const& key, double value) {
             _this()->setAttr(key, std::to_string(value));
         }
 
 
-        void setAttr(std::string const& key, bool value) {
-            _this()->setAttr(key, std::string(value ? "true" : "false"));
+        void setAttr(Str const& key, bool value) {
+            _this()->setAttr(key, Str(value ? "true" : "false"));
         }
 
         Agobj_s*       obj() { return (Agobj_s*)(_this()->get()); }
@@ -221,8 +217,8 @@ class Graphviz {
     class Node : public GraphvizObjBase<Node> {
       public:
         struct Record {
-            static std::string escape(std::string const& input) {
-                std::string escaped;
+            static Str escape(Str const& input) {
+                Str escaped;
                 escaped.reserve(input.size());
                 for (char c : input) {
                     switch (c) {
@@ -260,7 +256,7 @@ class Graphviz {
                 return std::holds_alternative<Str>(content);
             }
 
-            void set(std::string const& columnKey, CR<Record> value);
+            void set(Str const& columnKey, CR<Record> value);
 
             bool       isRecord() const { return !isFinal(); }
             Str&       getLabel() { return std::get<Str>(content); }
@@ -285,22 +281,17 @@ class Graphviz {
 
         void finishRecord() { setLabel(getNodeRecord()->toString()); }
 
-        Node(
-            Agraph_t*          graph,
-            std::string const& name,
-            Record const&      record);
+        Node(Agraph_t* graph, Str const& name, Record const& record);
 
         Node(Agraph_t* graph, Agnode_t* node_)
             : node(node_), graph(graph) {}
 
-        Node(Agraph_t* graph, std::string const& name);
+        Node(Agraph_t* graph, Str const& name);
 
         Agnode_t*       get() { return node; }
         Agnode_t const* get() const { return node; }
 
-        std::string name() const {
-            return std::string::fromStdString(agnameof(node));
-        }
+        Str name() const { return agnameof(node); }
 
         generator<CRw<Edge>> outgoing();
         generator<CRw<Edge>> ingoing();
@@ -425,29 +416,29 @@ class Graphviz {
 
 
         /// \brief Color of the node's border
-        _attr(Color, color, std::string);
+        _attr(Color, color, Str);
         /// \brief Fill color of the node
-        _attr(FillColor, fillcolor, std::string);
+        _attr(FillColor, fillcolor, Str);
         /// \brief Font color of the node's label
-        _attr(FontColor, fontcolor, std::string);
+        _attr(FontColor, fontcolor, Str);
         /// \brief Font name of the node's label
-        _attr(FontName, fontname, std::string);
+        _attr(FontName, fontname, Str);
         /// \brief Font size of the node's label
         _attr(FontSize, fontsize, double);
         /// \brief Height of the node
         _attr(Height, height, double);
         /// \brief Label (text) of the node
-        _attr_aligned(Label, label, std::string);
+        _attr_aligned(Label, label, Str);
         /// \brief Position of the node's center
         _attr(Position, pos, Point);
         /// \brief Shape of the node
-        _attr(Shape, shape, std::string);
+        _attr(Shape, shape, Str);
         /// \brief URL associated with the node
-        _attr(URL, URL, std::string);
+        _attr(URL, URL, Str);
         /// \brief Width of the node
         _attr(Width, width, double);
         /// \brief External label (text) of the node
-        _attr_aligned(XLabel, xlabel, std::string);
+        _attr_aligned(XLabel, xlabel, Str);
         /// \brief Position of the node's external label
         _attr(XLabelPosition, xlabelpos, Point);
 
@@ -470,25 +461,25 @@ class Graphviz {
         Node tail() { return Node(graph, AGTAIL(edge_)); }
 
         /// \brief Color of the edge
-        _attr(Color, color, std::string /*std::string*/);
+        _attr(Color, color, Str /*Str*/);
         /// \brief Font color of the edge's label
-        _attr(FontColor, fontcolor, std::string /*std::string*/);
+        _attr(FontColor, fontcolor, Str /*Str*/);
         /// \brief Font name of the edge's label
-        _attr(FontName, fontname, std::string);
+        _attr(FontName, fontname, Str);
         /// \brief Font size of the edge's label
         _attr(FontSize, fontsize, double);
         /// \brief Label (text) of the edge
-        _attr_aligned(Label, label, std::string);
+        _attr_aligned(Label, label, Str);
         /// \brief Position of the edge's label
         _attr(LabelPosition, lp, Point);
         /// \brief Width of the edge's line
         _attr(PenWidth, penwidth, double);
         /// \brief Style of the edge's line
-        _attr(Style, style, std::string);
+        _attr(Style, style, Str);
         /// \brief URL associated with the edge
-        _attr(URL, URL, std::string);
-        _attr(LHead, lhead, std::string);
-        _attr(LTail, ltail, std::string);
+        _attr(URL, URL, Str);
+        _attr(LHead, lhead, Str);
+        _attr(LTail, ltail, Str);
 
         void setLHead(Node node) { setLHead(node.name()); }
         void setLTail(Node node) { setLTail(node.name()); }
@@ -506,7 +497,7 @@ class Graphviz {
         Edge defaultEdge;
 
 
-        Graph(std::string const& name, Agdesc_t desc = Agdirected);
+        Graph(Str const& name, Agdesc_t desc = Agdirected);
         Graph(QFileInfo const& file);
         Graph(Agraph_t* graph)
             : graph(graph)
@@ -526,7 +517,7 @@ class Graphviz {
         };
 
 
-        Graph newSubgraph(std::string const& name) {
+        Graph newSubgraph(Str const& name) {
             return Graph(agsubg(graph, strdup(name), 1));
         }
 
@@ -536,15 +527,13 @@ class Graphviz {
 
 
         /// Set default attriute value for edge
-        void setDefaultEdgeAttr(
-            std::string const& key,
-            std::string const& value) {}
+        void setDefaultEdgeAttr(Str const& key, Str const& value) {}
 
         Node subNode(Node const& node) {
             agsubnode(graph, node.node, 1);
             return node;
         }
-        Node node(std::string const& name) {
+        Node node(Str const& name) {
             Q_CHECK_PTR(graph);
             auto tmp = Node(graph, name);
             return tmp;
@@ -556,7 +545,7 @@ class Graphviz {
             return tmp;
         }
 
-        Edge edge(CR<std::string> head, CR<std::string> tail) {
+        Edge edge(CR<Str> head, CR<Str> tail) {
             return edge(Node(graph, head), Node(graph, tail));
         }
 
@@ -575,43 +564,43 @@ class Graphviz {
         /// \brief Spring constant factor for force-directed layout
         _attr(K, K, double);
         /// \brief URL associated with the graph
-        _attr(URL, URL, std::string);
+        _attr(URL, URL, Str);
         /// \brief Desired aspect ratio of the drawing
         _attr(AspectRatio, aspect, double);
         /// \brief Background color of the graph
-        _attr(BackgroundColor, bgcolor, std::string);
+        _attr(BackgroundColor, bgcolor, Str);
         /// \brief Default edge length
         _attr(DefaultDistance, defaultdist, double);
         /// \brief Default node color
-        _attr(DefaultNodeColor, defaultNodeColor, std::string);
+        _attr(DefaultNodeColor, defaultNodeColor, Str);
         /// \brief Default edge color
-        _attr(DefaultEdgeColor, defaultEdgeColor, std::string);
+        _attr(DefaultEdgeColor, defaultEdgeColor, Str);
         /// \brief Font color
-        _attr(FontColor, fontcolor, std::string);
+        _attr(FontColor, fontcolor, Str);
         /// \brief Font name
-        _attr(FontName, fontname, std::string);
+        _attr(FontName, fontname, Str);
         /// \brief Font size
         _attr(FontSize, fontsize, double);
         /// \brief Label (title) of the graph
-        _attr_aligned(Label, label, std::string);
+        _attr_aligned(Label, label, Str);
         /// \brief URL associated with the graph label
-        _attr_aligned(LabelURL, labelURL, std::string);
+        _attr_aligned(LabelURL, labelURL, Str);
         /// \brief Horizontal placement of the graph label
-        _attr(LabelJustification, labeljust, std::string);
+        _attr(LabelJustification, labeljust, Str);
         /// \brief Vertical placement of the graph label
-        _attr(LabelLocator, labelloc, std::string);
+        _attr(LabelLocator, labelloc, Str);
         /// \brief Layer separator character
-        _attr(LayerListSeparator, layersep, std::string);
+        _attr(LayerListSeparator, layersep, Str);
         /// \brief List of layers in the graph
-        _attr(Layers, layers, std::string);
+        _attr(Layers, layers, Str);
         /// \brief Margin around the drawing
         _attr(Margin, margin, Point);
         /// \brief Minimum separation between nodes
         _attr(NodeSeparation, nodesep, double);
         /// \brief Order in which nodes and edges are drawn
-        _attr(OutputOrder, outputorder, std::string);
+        _attr(OutputOrder, outputorder, Str);
         /// \brief Direction of page layout
-        _attr(PageDirection, pagedir, std::string);
+        _attr(PageDirection, pagedir, Str);
         /// \brief Height of output pages
         _attr(PageHeight, pageheight, double);
         /// \brief Width of output pages
@@ -627,9 +616,9 @@ class Graphviz {
         /// \brief Maximum size of the drawing
         _attr(Size, size, Point);
         /// \brief Type of edges (splines, lines, etc.)
-        _attr(Spline, splines, std::string);
+        _attr(Spline, splines, Str);
         /// \brief Style sheet used for the output
-        _attr(StyleSheet, stylesheet, std::string);
+        _attr(StyleSheet, stylesheet, Str);
         /// \brief Whether to use truecolor in the output
         _attr(TrueColor, truecolor, bool);
         /// \brief Viewport size and position
@@ -677,9 +666,9 @@ class Graphviz {
     };
 
 
-    std::string layoutTypeToString(LayoutType layoutType);
+    Str layoutTypeToString(LayoutType layoutType);
 
-    std::string renderFormatToString(RenderFormat renderFormat);
+    Str renderFormatToString(RenderFormat renderFormat);
 
     void createLayout(
         CR<Graph>  graph,
@@ -688,15 +677,15 @@ class Graphviz {
     void freeLayout(Graph graph);
 
     void writeFile(
-        std::string const& fileName,
-        CR<Graph>          graph,
-        RenderFormat       format = RenderFormat::DOT);
+        Str const&   fileName,
+        CR<Graph>    graph,
+        RenderFormat format = RenderFormat::DOT);
 
     void renderToFile(
-        std::string const& fileName,
-        CR<Graph>          graph,
-        RenderFormat       format = RenderFormat::PNG,
-        LayoutType         layout = LayoutType::Dot);
+        Str const&   fileName,
+        CR<Graph>    graph,
+        RenderFormat format = RenderFormat::PNG,
+        LayoutType   layout = LayoutType::Dot);
 
   private:
     GVC_t* gvc;

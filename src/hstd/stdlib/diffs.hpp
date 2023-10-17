@@ -1138,7 +1138,7 @@ ColText formatDiffed(
     Func<bool(const T&, const T&)> eqCmp =
         [](const T& a, const T& b) { return a == b; },
     Func<Str(const T&)> strConv =
-        [](const T& a) { return to_string(a); }) {
+        [](const T& a) { return std::format("{}", a); }) {
 
     auto          diff = myersDiff(oldSeq, newSeq, eqCmp);
     ShiftedDiff   shifted{diff};

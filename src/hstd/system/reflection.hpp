@@ -10,6 +10,7 @@
 #include <hstd/system/string_convert.hpp>
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/system/basic_templates.hpp>
+#include <vector>
 
 template <typename T>
 concept IsEnum = std::is_enum<T>::value;
@@ -73,7 +74,7 @@ std::ostream& operator<<(std::ostream& os, T value) {
 
 template <NonSerializableEnum T>
 std::ostream& operator<<(std::ostream& os, T value) {
-    return os << std::string::number((int)value);
+    return os << std::to_string((int)value);
 }
 
 
@@ -162,31 +163,32 @@ template <
     class Md = boost::describe::
         describe_members<T, boost::describe::mod_any_access>,
     class En = std::enable_if_t<!std::is_union<T>::value>>
-std::ostream& described_class_printer(std::ostream& os, T const& t) {
-    os << "{";
+std::string described_class_printer(std::string os, T const& t) {
+    std::string result;
+    result += "{";
 
     bool first = true;
 
     boost::mp11::mp_for_each<Bd>([&](auto D) {
         if (!first) {
-            os << ", ";
+            result += ", ";
         }
         first = false;
 
         using B = typename decltype(D)::type;
-        os << (B const&)t;
+        result += (B const&)t;
     });
 
     boost::mp11::mp_for_each<Md>([&](auto D) {
         if (!first) {
-            os << ", ";
+            result += ", ";
         }
         first = false;
 
-        os << "." << D.name << " = " << t.*D.pointer;
+        result += std::format(".{} = {}", D.name, t.*D.pointer);
     });
 
-    os << "}";
+    result += "}";
     return os;
 }
 
@@ -227,11 +229,15 @@ bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
 }
 
 
-#define REFL_DEFINE_DESCRIBED_OSTREAM(TypeName)                           \
-    inline std::ostream& operator<<(                                      \
-        std::ostream& os, CR<TypeName> const& value) {                    \
-        return os << described_class_printer(os, value);                  \
-    }
+#define REFL_DEFINE_DESCRIBED_OSTREAM(__TypeName)                         \
+    template <>                                                           \
+    struct std::formatter<__TypeName> : std::formatter<std::string> {     \
+        template <typename FormatContext>                                 \
+        auto format(const __TypeName& p, FormatContext& ctx) {            \
+            return described_class_printer(os, value);                    \
+        }                                                                 \
+    };
+
 
 // clang-format off
 

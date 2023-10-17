@@ -5,6 +5,7 @@
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Pair.hpp>
+#include <hstd/stdlib/Vec.hpp>
 
 struct Str : public std::string {
     using std::string::operator[];
@@ -28,42 +29,19 @@ struct Str : public std::string {
     }
 
 
-    Str dropPrefix(CR<Str> prefix) const {
-        if (prefix.starts_with(prefix)) {
-            return substr(prefix.size());
-        } else {
-            return *this;
-        }
-    }
+    Str      dropPrefix(CR<Str> prefix) const;
+    Str      dropSuffix(CR<Str> suffix) const;
+    char&    at(int pos);
+    void     replaceAll(const std::string& from, const std::string& to);
+    char&    at(BackwardsIndex pos) { return at(size() - pos.value); }
+    Vec<Str> split(char delimiter) const;
+    Vec<Str> split(const Str& delimiter) const;
+    float    toFloat() const { return std::stof(*this); }
+    float    toDouble() const { return std::stod(*this); }
+    void     append(Str const& str) { this->append(str.toBase()); }
 
-    Str dropSuffix(CR<Str> suffix) const {
-        if (suffix.ends_with(suffix)) {
-            return substr(0, size() - suffix.size());
-        } else {
-            return *this;
-        }
-    }
 
-    char& at(int pos) {
-        if (0 <= pos && pos < size()) {
-            return std::string::operator[](pos);
-        } else {
-            throw std::out_of_range(
-                "String index out of range wanted " + std::to_string(pos)
-                + " but size() is " + std::to_string(size()));
-        }
-    }
-
-    void replaceAll(const std::string& from, const std::string& to) {
-        size_t startPos = 0;
-        while ((startPos = this->find(from, startPos))
-               != std::string::npos) {
-            this->replace(startPos, from.length(), to);
-            startPos += to.length();
-        }
-    }
-
-    char& at(BackwardsIndex pos) { return at(size() - pos.value); }
+    std::string repeated(int N) const;
 
     template <typename A, typename B>
     std::string_view at(CR<HSlice<A, B>> s, bool checkRange = true) {
@@ -92,8 +70,15 @@ struct Str : public std::string {
         return Span<char>(const_cast<char*>(this->data()), size());
     }
 
-    bool        empty() const { return size() == 0; }
-    std::string toBase() const { return *this; }
+    bool               empty() const { return size() == 0; }
+    std::string const& toBase() const { return *this; }
+
+    inline Str operator+(CR<Str> other) {
+        Str res;
+        res.append(*this);
+        res.append(other);
+        return res;
+    }
 };
 
 

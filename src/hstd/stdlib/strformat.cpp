@@ -174,7 +174,7 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
             trange.last -= 1;
             result.push_back(
                 {.kind = AddfFragmentKind::Text,
-                 .text = formatstr.mid(
+                 .text = formatstr.substr(
                      trange.first, trange.last - trange.first + 1)});
             i = trange.last;
             i += 1;

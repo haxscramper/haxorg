@@ -17,26 +17,13 @@ namespace ns = nlohmann;
 
 extern template class nlohmann::basic_json<>;
 
-namespace nlohmann {
-template <>
-struct adl_serializer<std::string> {
-    static void to_json(json& j, const std::string& str) { j = str; }
-
-    static void from_json(const json& in, std::string& out) {
-        out = std::string::fromStdString(in.get<std::string>());
-    }
-};
-} // namespace nlohmann
-
-void          to_json(json& j, int i);
-void          to_json(json& j, CR<std::string> str);
-void          to_json(json& j, CR<Str> str);
-void          from_json(const json& in, std::string& out);
-void          from_json(const json& in, int& out);
-void          from_json(const json& in, bool& out);
-std::string   to_string(json const& j);
-QDebug        operator<<(QDebug os, json const& value);
-std::ostream& operator<<(std::ostream& os, json const& value);
+void        to_json(json& j, int i);
+void        to_json(json& j, CR<std::string> str);
+void        to_json(json& j, CR<Str> str);
+void        from_json(const json& in, std::string& out);
+void        from_json(const json& in, int& out);
+void        from_json(const json& in, bool& out);
+std::string to_string(json const& j);
 
 struct JsonFormatOptions {
     int width       = 80;
@@ -63,8 +50,7 @@ inline void to_json(json& res, std::unique_ptr<T> const& value);
 
 template <DescribedEnum E>
 void from_json(json const& j, E& str) {
-    Opt<E> value = enum_serde<E>::from_string(
-        std::string::fromStdString(j.get<std::string>()));
+    Opt<E> value = enum_serde<E>::from_string(j.get<std::string>());
     if (value) {
         str = value.value();
     } else {

@@ -1115,17 +1115,15 @@ LytStr SimpleStringStore::str(const std::string& str) {
 
 std::string SimpleStringStore::str(const LytStr& str) const {
     if (str.isSpaces()) {
-        return std::string(" ").repeated(str.len);
+        return Str(" ").repeated(str.len);
     } else {
         return strings[str.toIndex()];
     };
 }
 
-std::string SimpleStringStore::toString(
-    const BlockId& blc,
-    const Options& opts) {
+Str SimpleStringStore::toString(const BlockId& blc, const Options& opts) {
     Layout::Ptr lyt = store->toLayout(blc, opts);
-    std::string result;
+    Str         result;
     for (const auto& event : formatEvents(*store, lyt)) {
         switch (event.getKind()) {
             case Event::Kind::Newline: {
@@ -1134,7 +1132,7 @@ std::string SimpleStringStore::toString(
             }
 
             case Event::Kind::Spaces: {
-                result += std::string(event.getSpaces().spaces, ' ');
+                result += Str(event.getSpaces().spaces, ' ');
                 break;
             }
 
@@ -1145,7 +1143,7 @@ std::string SimpleStringStore::toString(
         }
     }
 
-    Vec<std::string> fin;
+    Vec<Str> fin;
     for (const auto& line : result.split("\n")) {
         fin.push_back(strip(line, CharSet{}, CharSet{' '}));
     }

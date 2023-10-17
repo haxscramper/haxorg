@@ -29,7 +29,7 @@ std::string join(CR<std::string> sep, generator<T>&& list) {
 }
 
 /// Get visible name of the character.
-Pair<char, std::string> visibleName(char ch);
+Pair<std::string, std::string> visibleName(char ch);
 Str indent(CR<Str> str, int spaces, char space = ' ', Str prefix = "");
 
 Vec<Str> visibleUnicodeName(std::string str, bool useUnicode = true);

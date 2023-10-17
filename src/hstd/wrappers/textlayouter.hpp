@@ -11,6 +11,7 @@
 #include <hstd/system/generator.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Func.hpp>
+#include <hstd/stdlib/Str.hpp>
 
 namespace layout {
 
@@ -465,11 +466,9 @@ struct SimpleStringStore {
     BlockStore*      store;
 
     SimpleStringStore(BlockStore* store) : store(store) {}
-    LytStr      str(std::string const& str);
-    std::string str(const LytStr& str) const;
-    std::string toString(
-        BlockId const& blc,
-        Options const& opts = Options{});
+    LytStr  str(std::string const& str);
+    Str     str(const LytStr& str) const;
+    Str     toString(BlockId const& blc, Options const& opts = Options{});
     BlockId text(const std::string& arg) { return store->text(str(arg)); }
     BlockId text(const LytStr& s) { return store->text(s); }
 

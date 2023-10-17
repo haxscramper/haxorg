@@ -451,7 +451,7 @@ ColStream& hshow(
     CR<T>            value,
     CR<HDisplayOpts> opts = HDisplayOpts{});
 
-template <StringConvertible T>
+template <StdFormattable T>
 ColStream& hshow(
     ColStream&       s,
     CR<T>            value,
@@ -465,18 +465,18 @@ ColStream& hshow(ColStream& os, CR<Str> value, CR<HDisplayOpts> opts);
 
 template <>
 inline ColStream& hshow(
-    ColStream&          os,
-    CR<std::stringView> value,
-    CR<HDisplayOpts>    opts) {
+    ColStream&           os,
+    CR<std::string_view> value,
+    CR<HDisplayOpts>     opts) {
     if (value.data() == nullptr) {
         return os << os.red() << "nil" << os.end();
     } else {
-        return hshow(os, Str(to_string(value)), opts);
+        return hshow(os, Str(value), opts);
     }
 }
 
 
-template <StringConvertible T>
+template <StdFormattable T>
 ColText hshow(CR<T> value, CR<HDisplayOpts> opts = HDisplayOpts{}) {
     ColStream out;
     hshow(out, value, opts);
