@@ -473,17 +473,10 @@ struct SerdeDefaultProvider<layout::BlockId> {
     static layout::BlockId get() { return layout::BlockId::Nil(); }
 };
 
-REFL_DEFINE_DESCRIBED_OSTREAM(layout::LytStr);
-REFL_DEFINE_DESCRIBED_OSTREAM(layout::LytStrSpan);
-REFL_DEFINE_DESCRIBED_OSTREAM(layout::Event::Text);
-REFL_DEFINE_DESCRIBED_OSTREAM(layout::Event::Spaces);
-REFL_DEFINE_DESCRIBED_OSTREAM(layout::Event::Newline);
-
-
-inline std::ostream& operator<<(std::ostream& os, CR<Event> const& value) {
-    return os << "{ .kind = " << value.getKind()
-              << ", data = " << value.data << "}";
-}
-
+REFL_DEFINE_DESCRIBED_FORMATTER(layout::LytStr);
+REFL_DEFINE_DESCRIBED_FORMATTER(layout::LytStrSpan);
+REFL_DEFINE_DESCRIBED_FORMATTER(layout::Event::Text);
+REFL_DEFINE_DESCRIBED_FORMATTER(layout::Event::Spaces);
+REFL_DEFINE_DESCRIBED_FORMATTER(layout::Event::Newline);
 
 #endif // TEXTLAYOUTER_HPP

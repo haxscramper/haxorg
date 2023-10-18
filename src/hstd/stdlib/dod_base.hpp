@@ -147,31 +147,30 @@ struct [[nodiscard]] Id {
     }
 
     /// \brief Write strig representation of the ID into output stream
-    std::ostream& streamTo(
-        std::ostream& os,
-        std::string   name     = "dod::Id",
-        bool          withMask = true) const {
+    std::string format(std::string name = "dod::Id", bool withMask = true)
+        const {
+        std::string result;
         if (name.size() != 0) {
-            os << name << "(";
+            result += name + "(";
         }
 
         if (withMask) {
             if (0 < mask_size) {
-                os << getMask() << ":";
+                result += std::to_string(getMask()) + ":";
             }
         }
 
         if (isNil()) {
-            os << "<nil>";
+            result += "<nil>";
         } else {
-            os << getIndex();
+            result += std::to_string(getIndex());
         }
 
         if (name.size() != 0) {
-            os << ")";
+            result += ")";
         }
 
-        return os;
+        return result;
     }
 
   protected:
@@ -202,13 +201,7 @@ struct [[nodiscard]] Id {
                 __type,                                                   \
                 __type,                                                   \
                 std::integral_constant<__type, __mask>>(arg) {}           \
-    };                                                                    \
-                                                                          \
-                                                                          \
-    inline std::ostream& operator<<(                                      \
-        std::ostream& os, __name const& value) {                          \
-        return value.streamTo(os, #__name);                               \
-    }
+    };
 
 
 /// Declare new ID type, derived from the `dod::Id` with specified \arg
@@ -226,13 +219,6 @@ struct [[nodiscard]] Id {
 /// Concent for base ID type and all it's publcily derived types
 template <typename D>
 concept IsIdType = is_base_of_template_v<Id, D>;
-
-/// \brief Generic ostream template for the ID types
-template <IsIdType Id>
-std::ostream& operator<<(std::ostream& os, Id const& value) {
-    return value.streamTo(os, demangle(typeid(Id).name()));
-}
-
 
 /// \brief Saturated (won't overflow, stops at zero) In-place decrement of
 /// the ID
@@ -563,6 +549,16 @@ struct MultiStore {
 }; // namespace dod
 
 namespace std {
+
+template <dod::IsIdType Id>
+struct std::formatter<Id> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Id& p, FormatContext& ctx) {
+        return std::formatter<std::string>::format(p.to_string(), ctx);
+    }
+};
+
+
 template <dod::IsIdType Id>
 struct hash<Id> {
     /// \brief Get hash (ID value)

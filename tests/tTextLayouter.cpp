@@ -9,11 +9,6 @@
 
 #include "common.hpp"
 
-std::ostream& operator<<(std::ostream& os, CR<Str> s) {
-    return os << to_string(s);
-}
-
-
 using namespace layout;
 using namespace testing;
 

@@ -5,6 +5,7 @@
 #include <hstd/system/string_convert.hpp>
 #include <span>
 #include <absl/log/log.h>
+#include <absl/log/check.h>
 
 template <typename T>
 class Span : public std::span<T> {
@@ -48,9 +49,9 @@ class Span : public std::span<T> {
 
 
     int clampSize(int size, T const* data, T const* end) const {
-        Q_ASSERT(data <= end);
-        Q_CHECK_PTR(data);
-        Q_CHECK_PTR(end);
+        CHECK(data <= end);
+        CHECK(data != nullptr);
+        CHECK(end != nullptr);
         auto d_raw    = std::distance(data, end);
         int  distance = static_cast<int>(d_raw + 1);
         return std::clamp<int>(size, 0, distance);

@@ -3,6 +3,7 @@
 #include <hstd/stdlib/strformat.hpp>
 #include <hstd/system/string_convert.hpp>
 #include <variant>
+#include <format>
 
 struct LineCol {
     int line;
@@ -10,10 +11,15 @@ struct LineCol {
     int pos = -1;
 };
 
-inline std::ostream& operator<<(std::ostream& os, LineCol const& value) {
-    return os << "{.line = $#, .column = $#, .pos = $#}"
-                     % to_string_vec(value.line, value.column, value.pos);
-}
+template <>
+struct std::formatter<LineCol> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const LineCol& p, FormatContext& ctx) {
+        return "{.line = $#, .column = $#, .pos = $#}"
+             % to_string_vec(p.line, p.column, p.pos);
+    }
+};
+
 
 /// \brief Base parse error
 struct ParseError : public std::runtime_error {

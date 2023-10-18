@@ -221,22 +221,25 @@ struct Node {
 
     bool isLeaf() const { return Subnodes.empty(); }
 };
-
-inline std::ostream& operator<<(std::ostream& os, NodeId id) {
-    os << id.Offset;
-    return os;
-}
+} // namespace diff
 
 template <typename Id, typename Val>
-std::ostream& operator<<(std::ostream& os, Node<Id, Val> const& node) {
-    os << "{H:" << node.Height << ", D:" << node.Depth
-       << ", S:" << node.Shift << ", P:" << node.Parent
-       << ", L:" << node.LeftMostDescendant
-       << ", R:" << node.RightMostDescendant << "}";
-    return os;
-}
+struct std::formatter<diff::Node<Id, Val>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const diff::Node<Id, Val>& p, FormatContext& ctx) {
+        return std::format(
+            "<H: {}, D: {}, S: {}, P: {}, L: {}, R: {}>",
+            node.Height,
+            node.Depth,
+            node.Shift,
+            node.Parent,
+            node.LeftMostDescendant,
+            node.RightMostDescendant);
+    }
+};
 
 
+namespace diff {
 /// SyntaxTree objects represent subtrees of the AST.
 ///
 /// There are only two instances of the SyntaxTree class during comparison
@@ -1446,3 +1449,11 @@ static void printDstChange(
     }
 }
 } // namespace diff
+
+template <>
+struct std::formatter<diff::NodeId> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const diff::NodeId& p, FormatContext& ctx) {
+        return std::to_string(p.Offset);
+    }
+};

@@ -20,7 +20,8 @@ struct Str : public std::string {
     Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
     Str(char c) : std::string(1, c) {}
     Str(wchar_t c) : std::string(to_string(c)) {}
-    Str() = default;
+    Str()                 = default;
+    Str(Str const& other) = default;
 
     char*       data() { return std::string::data(); }
     const char* data() const { return std::string::data(); }

@@ -9,8 +9,10 @@
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <filesystem>
+#include <absl/log/check.h>
 
 #include <lexbase/Token.hpp>
+#include <format>
 
 #include <variant>
 
@@ -53,11 +55,18 @@ struct value_domain<NodeId<N, K, IdBase, MaskType>> {
     }
 };
 
+
 template <typename N, typename K>
-std::ostream& operator<<(std::ostream& os, NodeId<N, K> const& value) {
-    return value.streamTo(
-        os, std::string("NodeId<") + demangle(typeid(N).name()) + ">");
-}
+struct std::formatter<NodeId<N, K>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const NodeId<N, K>& p, FormatContext& ctx) {
+        std::stringstream os;
+        p.streamTo(
+            os, std::format("NodeId<{}>", demangle(typeid(N).name())));
+        return os.str();
+    }
+};
+
 
 template <typename N, typename K>
 struct Node {
@@ -85,8 +94,8 @@ struct Node {
     }
 
     void extend(int extent) {
-        Q_ASSERT(isNonTerminal());
-        Q_ASSERT(0 <= extent);
+        CHECK(isNonTerminal());
+        CHECK(0 <= extent);
         value = extent;
     }
 
@@ -320,26 +329,34 @@ struct NodeGroup {
 
 
 template <typename N, typename K>
-std::ostream& operator<<(std::ostream& os, Node<N, K> const& value) {
-    os << "{" << to_string(value.kind) << " ";
-    if (value.isTerminal()) {
-        os << value.getToken();
-    } else {
-        os << value.getExtent();
-    }
+struct std::formatter<Node<N, K>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Node<N, K>& p, FormatContext& ctx) {
+        std::string result = "{";
+        result += std::format("{} ", value.kind);
+        if (value.isTerminal()) {
+            result += std::format("{}", value.getToken());
+        } else {
+            result += std::format("{}", value.getExtent());
+        }
 
-    return os << "}";
-}
+        return result + "}";
+    }
+};
 
 
 template <StringConvertible N, StringConvertible K>
-std::ostream& operator<<(std::ostream& os, NodeGroup<N, K> const& nodes) {
-    for (const auto& [idx, node] : nodes.nodes.pairs()) {
-        os << left_aligned(to_string(idx.getUnmasked()), 5) << " | "
-           << *node << "\n";
+struct std::formatter<Person> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Person& p, FormatContext& ctx) {
+        std::string res;
+        for (const auto& [idx, node] : nodes.nodes.pairs()) {
+            res += std::format("{:<5} | {}\n", idx.getUnmasked(), *node);
+        }
+        return res;
     }
-    return os;
-}
+};
+
 
 /// Nested representation of the tree, intended to be used as intermediate
 /// representation for converting from nested formats to a flat linearized

@@ -114,9 +114,14 @@ struct Line {
 
 BOOST_DESCRIBE_STRUCT(Line, (), (offset, len, chars));
 
-inline std::ostream& operator<<(std::ostream& os, Line const& value) {
-    return described_class_printer(os, value);
-}
+template <>
+struct std::formatter<Line> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Line& p, FormatContext& ctx) {
+        return described_class_printer(os, value);
+    }
+};
+
 
 // A type representing a single source that may be referred to by
 // `CodeSpan`s.

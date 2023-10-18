@@ -1,6 +1,7 @@
 #include <sem/SemOrg.hpp>
 #include <boost/mp11.hpp>
 #include <concepts>
+#include <format>
 
 #define _define_static(__Kind)                                            \
     const OrgSemKind sem::__Kind::staticKind = OrgSemKind::__Kind;
@@ -454,9 +455,11 @@ Opt<SemIdT<CmdArgument>> CmdArguments::popArg(Str key) {
     }
 }
 
-namespace sem {
-std::ostream& operator<<(std::ostream& os, SemId const& value) {
-    return os << value.getStoreIndex() << ":" << to_string(value.getKind())
-              << ":" << value.getNodeIndex();
-}
-} // namespace sem
+template <>
+struct std::formatter<sem::SemId> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const sem::SemId& p, FormatContext& ctx) {
+        return std::format(
+            "{}:{}:{}", p.getStoreIndex(), p.getKind(), p.getNodeIndex());
+    }
+};

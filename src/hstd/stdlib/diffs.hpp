@@ -17,12 +17,7 @@ struct BacktrackRes {
 };
 
 BOOST_DESCRIBE_STRUCT(BacktrackRes, (), (lhsIndex, rhsIndex));
-
-inline std::ostream& operator<<(
-    std::ostream&       os,
-    BacktrackRes const& value) {
-    return os << described_class_printer(os, value);
-}
+REFL_DEFINE_DESCRIBED_FORMATTER(BacktrackRes);
 
 enum class SeqEditKind : u8
 {

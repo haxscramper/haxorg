@@ -83,13 +83,19 @@ std::ostream& auxPrintNode(
 }
 
 template <typename T>
-std::ostream& operator<<(std::ostream& os, RangeTree<T> const& value) {
-    if (value.root == nullptr) {
-        return os << "nil";
-    } else {
-        typename RangeTree<T>::Node& node = *(value.root.get());
-        return auxPrintNode<T>(os, node);
+struct std::formatter<RangeTree<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const RangeTree<T>& p, FormatContext& ctx) {
+        if (p.root == nullptr) {
+            return "nil";
+        } else {
+            typename RangeTree<T>::Node& node = *(p.root.get());
+            std::stringstream            os;
+            auxPrintNode<T>(os, node);
+            return os.str();
+        }
     }
-}
+};
+
 
 extern template class RangeTree<int>;

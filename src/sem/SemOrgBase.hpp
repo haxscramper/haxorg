@@ -10,6 +10,7 @@
 #include <hstd/stdlib/Opt.hpp>
 
 #include <parse/OrgTypes.hpp>
+#include <format>
 
 using SemSet = IntSet<OrgSemKind>;
 
@@ -174,14 +175,12 @@ struct SemId {
     void eachSubnodeRec(SubnodeVisitor cb);
 
     std::string getReadableId() const {
-        return to_string(getStoreIndex()) + "_" + to_string(getKind())
-             + "_" + to_string(getNodeIndex());
+        return std::format(
+            "{}_{}_{}", getStoreIndex(), getKind(), getNodeIndex());
     }
 };
 
 
-/// \brief Print `store:kind:index` triple
-std::ostream& operator<<(std::ostream& os, SemId const& value);
 
 /// \brief Derived node for more explicit APIs
 ///

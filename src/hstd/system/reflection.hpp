@@ -69,14 +69,21 @@ concept NonSerializableEnum = IsEnum<T> && !SerializableEnum<T>;
 
 
 template <SerializableEnum T>
-std::ostream& operator<<(std::ostream& os, T value) {
-    return os << enum_serde<T>::to_string(value);
-}
+struct std::formatter<T> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const T& p, FormatContext& ctx) {
+        return enum_serde<T>::to_string(value);
+    }
+};
+
 
 template <NonSerializableEnum T>
-std::ostream& operator<<(std::ostream& os, T value) {
-    return os << std::to_string((int)value);
-}
+struct std::formatter<Person> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Person& p, FormatContext& ctx) {
+        return std::to_string((int)value);
+    }
+};
 
 
 template <DescribedEnum E>
@@ -164,7 +171,7 @@ template <
     class Md = boost::describe::
         describe_members<T, boost::describe::mod_any_access>,
     class En = std::enable_if_t<!std::is_union<T>::value>>
-std::string described_class_printer(std::string os, T const& t) {
+std::string described_class_printer(T const& t) {
     std::string result;
     result += "{";
 
@@ -190,7 +197,7 @@ std::string described_class_printer(std::string os, T const& t) {
     });
 
     result += "}";
-    return os;
+    return result;
 }
 
 template <typename T, typename Func>
@@ -230,11 +237,11 @@ bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
 }
 
 
-#define REFL_DEFINE_DESCRIBED_OSTREAM(__TypeName)                         \
+#define REFL_DEFINE_DESCRIBED_FORMATTER(__TypeName)                       \
     template <>                                                           \
     struct std::formatter<__TypeName> : std::formatter<std::string> {     \
         template <typename FormatContext>                                 \
-        auto format(const __TypeName& p, FormatContext& ctx) {            \
+        auto format(const __TypeName& value, FormatContext& ctx) {        \
             return described_class_printer(value);                        \
         }                                                                 \
     };

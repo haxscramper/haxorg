@@ -42,7 +42,6 @@ SPtr<IoContext> openFileOrStream(
 
 void        writeFile(fs::path const& target, std::string const& content);
 std::string readFile(fs::path const& target);
-std::ostream& operator<<(std::ostream& stream, fs::path const& info);
 
 template <>
 struct std::formatter<fs::path> : std::formatter<std::string> {

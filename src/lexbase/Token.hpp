@@ -38,9 +38,13 @@ struct [[nodiscard]] TokenId
 };
 
 template <typename K>
-std::ostream& operator<<(std::ostream& os, TokenId<K> const& value) {
-    return value.streamTo(os, demangle(typeid(K).name()));
-}
+struct std::formatter<TokenId<K>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const TokenId<K>& p, FormatContext& ctx) {
+        return p.format(demangle(typeid(K).name()));
+    }
+};
+
 
 /// Generic token containing minimal required information: span of text and
 /// tag. Line/Column information can be computed on the as-needed basis
@@ -107,17 +111,21 @@ struct Token {
 
 
 template <StringConvertible K>
-std::ostream& operator<<(std::ostream& os, Token<K> const& value) {
-    os << "Token<" << to_string(value.kind) << ">(";
-    if (value.hasData()) {
-        os << escape_literal(to_string(value.getText()));
-    } else if (value.hasOffset()) {
-        os << "offset:" << value.getOffset();
-    } else {
-        os << "?";
+struct std::formatter<Token<K>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Token<K>& p, FormatContext& ctx) {
+        std::string result;
+        result += std::format("Token<{}>(", value.kind);
+        if (value.hasData()) {
+            result += escape_literal(std::format("{}", value.getText()));
+        } else if (value.hasOffset()) {
+            result += "offset:" + std::to_string(value.getOffset());
+        } else {
+            result += "?";
+        }
+        return result + ")";
     }
-    return os << ")";
-}
+};
 
 
 template <typename K>
@@ -171,12 +179,29 @@ struct TokenGroup {
 };
 
 template <StringConvertible K>
-std::ostream& operator<<(std::ostream& os, TokenGroup<K> const& tokens) {
-    for (const auto& [idx, tok] : tokens.tokens.pairs()) {
-        os << left_aligned(to_string(idx), 16) << " | " << *tok << "\n";
+struct std::formatter<TokenGroup<K>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const TokenGroup<K>& p, FormatContext& ctx) {
+        std::string res;
+        for (const auto& [idx, tok] : tokens.tokens.pairs()) {
+            res += std::format("{:<16} | {}\n", idx, *tok);
+        }
+        return res;
     }
-    return os;
-}
+};
+
+
+template <StringConvertible K>
+struct std::formatter<TokenGroup<K>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const TokenGroup<K>& p, FormatContext& ctx) {
+        std::string res;
+        for (const auto& [idx, tok] : tokens.tokens.pairs()) {
+            res std::format("{:<16} | {}\n", idx, *tok);
+        }
+        return res;
+    }
+};
 
 
 template <typename K>
@@ -502,9 +527,13 @@ struct LexerCommon {
 };
 
 template <typename K>
-std::ostream& operator<<(std::ostream& os, LexerCommon<K> const& value) {
-    return os << value.printToString();
-}
+struct std::formatter<LexerCommon<K>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const LexerCommon<K>& p, FormatContext& ctx) {
+        return p.printToString();
+    }
+};
+
 
 /// \brief Lexer specialization for iterating over fixed sequence of IDs
 template <typename K>
