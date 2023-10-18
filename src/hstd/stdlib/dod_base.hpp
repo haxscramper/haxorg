@@ -549,16 +549,6 @@ struct MultiStore {
 }; // namespace dod
 
 namespace std {
-
-template <dod::IsIdType Id>
-struct std::formatter<Id> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const Id& p, FormatContext& ctx) {
-        return std::formatter<std::string>::format(p.to_string(), ctx);
-    }
-};
-
-
 template <dod::IsIdType Id>
 struct hash<Id> {
     /// \brief Get hash (ID value)
@@ -569,3 +559,11 @@ struct hash<Id> {
     }
 };
 }; // namespace std
+
+template <dod::IsIdType Id>
+struct std::formatter<Id> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const Id& p, FormatContext& ctx) {
+        return std::formatter<std::string>::format(p.to_string(), ctx);
+    }
+};

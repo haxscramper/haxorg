@@ -13,6 +13,7 @@
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <format>
+#include <absl/log/check.h>
 
 namespace layout {
 
@@ -42,7 +43,6 @@ struct LytStr {
 };
 
 BOOST_DESCRIBE_STRUCT(LytStr, (), (id, len));
-(LytStr);
 
 inline const auto LytEmptyStr = LytStr(LytStrId::Nil(), 0);
 
@@ -317,14 +317,16 @@ struct Block {
 
         template <typename T>
         std::size_t operator()(CR<Vec<T>> items) const {
-            qFatal("TODO");
+            CHECK(false) << "TODO";
         }
 
-        std::size_t operator()(CR<Solution>) const { qFatal("TODO"); }
+        std::size_t operator()(CR<Solution>) const {
+            CHECK(false) << "TODO";
+        }
 
         template <typename T>
         std::size_t operator()(CR<SPtr<T>> opt) const {
-            Q_CHECK_PTR(opt);
+            CHECK(opt != nullptr);
             return std::hash<T*>{}(opt.get());
         }
     };
@@ -407,7 +409,7 @@ struct BlockStore {
     /// the possible layouts.
     Layout::Ptr toLayout(BlockId id, const Options& opts) {
         Vec<Layout::Ptr> layouts = toLayouts(id, opts);
-        Q_ASSERT(!layouts.empty());
+        CHECK(!layouts.empty());
         return layouts[0];
     }
 };
@@ -478,5 +480,6 @@ REFL_DEFINE_DESCRIBED_FORMATTER(layout::LytStrSpan);
 REFL_DEFINE_DESCRIBED_FORMATTER(layout::Event::Text);
 REFL_DEFINE_DESCRIBED_FORMATTER(layout::Event::Spaces);
 REFL_DEFINE_DESCRIBED_FORMATTER(layout::Event::Newline);
+
 
 #endif // TEXTLAYOUTER_HPP

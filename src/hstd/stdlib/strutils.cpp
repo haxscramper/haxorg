@@ -1689,8 +1689,8 @@ Str normalize(CR<Str> in) {
         if (!(c == '_' || c == '-')) {
             if (islower(c)) {
                 res += c;
-            } else if (c.isUpper()) {
-                res += c.toLower();
+            } else if (islower(c)) {
+                res += toupper(c);
             }
         }
     }

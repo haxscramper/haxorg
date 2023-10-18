@@ -1,9 +1,8 @@
 #include <hstd/wrappers/graphviz.hpp>
 #include <filesystem>
+#include <format>
 
-void Graphviz::Node::Record::set(
-    const std::string& columnKey,
-    CR<Record>         value) {
+void Graphviz::Node::Record::set(const Str& columnKey, CR<Record> value) {
     if (isFinal()) {
         content = Vec<Record>{Record({Record(columnKey), value})};
     } else {
@@ -25,7 +24,7 @@ Str Graphviz::Node::Record::toString(bool braceCount) const {
     Str result;
     if (isFinal()) {
         if (tag) {
-            result += "<" + *tag + "> ";
+            result += std::format("<{}>", *tag);
         }
         result += Record::escape(getLabel());
     } else {
@@ -47,7 +46,7 @@ Str Graphviz::Node::Record::toString(bool braceCount) const {
 
 Graphviz::Edge::Edge(Agraph_t* graph, CR<Node> head, CR<Node> tail)
     : graph(graph) {
-    Q_CHECK_PTR(graph);
+    CHECK(graph != nullptr);
     Agedge_t* edge = agedge(
         graph,
         const_cast<Agnode_t*>(head.get()),
@@ -62,7 +61,7 @@ Graphviz::Edge::Edge(Agraph_t* graph, CR<Node> head, CR<Node> tail)
     }
 }
 
-Graphviz::Graph::Graph(const std::string& name, Agdesc_t desc)
+Graphviz::Graph::Graph(const Str& name, Agdesc_t desc)
     : defaultEdge(nullptr, nullptr), defaultNode(nullptr, nullptr) {
     Agraph_t* graph_ = agopen(
         const_cast<char*>(name.c_str()), desc, nullptr);
@@ -73,18 +72,18 @@ Graphviz::Graph::Graph(const std::string& name, Agdesc_t desc)
     }
 
     initDefaultSetters();
-    Q_CHECK_PTR(graph);
+    CHECK(graph != nullptr);
 }
 
-Graphviz::Graph::Graph(const QFileInfo& file)
+Graphviz::Graph::Graph(const fs::path& file)
     : graph(nullptr)
     , defaultEdge(graph, nullptr)
     , defaultNode(graph, nullptr) {
-    Q_ASSERT(file.exists());
+    CHECK(fs::is_regular_file(file));
 
-    std::string absolute = file.absoluteFilePath();
-    FILE*       fp       = fopen(absolute.toLatin1().data(), "r");
-    graph                = agread(fp, nullptr);
+    Str   absolute = file.native();
+    FILE* fp       = fopen(absolute.data(), "r");
+    graph          = agread(fp, nullptr);
 
     initDefaultSetters();
 }
@@ -96,19 +95,17 @@ void Graphviz::Graph::initDefaultSetters() {
     // this->graph` does not have this issue, but that's not how this is
     // supposed to work.
     defaultNode.setOverride = [graph = this->graph](
-                                  std::string const& key,
-                                  std::string const& value) {
+                                  Str const& key, Str const& value) {
         auto& r = *graph;
-        Q_CHECK_PTR(graph);
+        CHECK(graph != nullptr);
         agattr(graph, AGNODE, strdup(key), strdup(value));
     };
 
     defaultEdge.graph       = graph;
     defaultEdge.setOverride = [graph = this->graph](
-                                  std::string const& key,
-                                  std::string const& value) {
+                                  Str const& key, Str const& value) {
         auto& r = *graph;
-        Q_CHECK_PTR(graph);
+        CHECK(graph != nullptr);
         agattr(graph, AGEDGE, strdup(key), strdup(value));
     };
 }
@@ -130,7 +127,7 @@ void Graphviz::Graph::eachEdge(Func<void(Edge)> cb) {
     }
 }
 
-std::string Graphviz::layoutTypeToString(LayoutType layoutType) {
+Str Graphviz::layoutTypeToString(LayoutType layoutType) {
     switch (layoutType) {
         case LayoutType::Dot: return "dot";
         case LayoutType::Neato: return "neato";
@@ -142,7 +139,7 @@ std::string Graphviz::layoutTypeToString(LayoutType layoutType) {
     }
 }
 
-std::string Graphviz::renderFormatToString(RenderFormat renderFormat) {
+Str Graphviz::renderFormatToString(RenderFormat renderFormat) {
     switch (renderFormat) {
         case RenderFormat::PNG: return "png";
         case RenderFormat::PDF: return "pdf";
@@ -162,20 +159,19 @@ void Graphviz::createLayout(CR<Graph> graph, LayoutType layout) {
         gvc,
         const_cast<Agraph_t*>(graph.get()),
         strdup(layoutTypeToString(layout)));
-    qWarning() << res;
 }
 
 void Graphviz::freeLayout(Graph graph) {
-    Q_ASSERT(gvLayoutDone(graph.get()));
-    Q_CHECK_PTR(graph.get());
-    Q_CHECK_PTR(gvc);
+    CHECK(gvLayoutDone(graph.get()));
+    CHECK(graph.get() != nullptr);
+    CHECK(gvc != nullptr);
     gvFreeLayout(gvc, const_cast<Agraph_t*>(graph.get()));
 }
 
 void Graphviz::writeFile(
-    const std::string& fileName,
-    CR<Graph>          graph,
-    RenderFormat       format) {
+    const Str&   fileName,
+    CR<Graph>    graph,
+    RenderFormat format) {
     if (format == RenderFormat::DOT) {
         FILE* output_file = fopen(fileName.c_str(), "w");
         if (output_file == NULL) {
@@ -187,12 +183,11 @@ void Graphviz::writeFile(
         fclose(output_file);
 
     } else {
-        Q_ASSERT_X(
-            GD_drawing(graph.get()) != nullptr,
-            "render to file",
-            "Writing non-DOT format to file requires layout. Call "
-            "`createLayout()` before writing or use 'renderToFile' to "
-            "execute render in one step");
+        CHECK(GD_drawing(graph.get()) != nullptr)
+            << "render to file"
+            << "Writing non-DOT format to file requires layout. Call "
+               "`createLayout()` before writing or use 'renderToFile' to "
+               "execute render in one step";
         gvRenderFilename(
             gvc,
             const_cast<Agraph_t*>(graph.get()),
@@ -202,12 +197,12 @@ void Graphviz::writeFile(
 }
 
 void Graphviz::renderToFile(
-    const std::string& fileName,
-    CR<Graph>          graph,
-    RenderFormat       format,
-    LayoutType         layout) {
-    Q_CHECK_PTR(graph.get());
-    Q_CHECK_PTR(gvc);
+    const Str&   fileName,
+    CR<Graph>    graph,
+    RenderFormat format,
+    LayoutType   layout) {
+    CHECK(graph.get() != nullptr);
+    CHECK(gvc != nullptr);
     if (format == RenderFormat::DOT) {
         writeFile(fileName, graph, format);
 
@@ -221,15 +216,15 @@ void Graphviz::renderToFile(
 }
 
 Graphviz::Node::Node(
-    Agraph_t*          graph,
-    const std::string& name,
-    const Record&      record)
+    Agraph_t*     graph,
+    const Str&    name,
+    const Record& record)
     : Node(graph, name) {
     setShape(Shape::record);
     setLabel(record.toString());
 }
 
-Graphviz::Node::Node(Agraph_t* graph, const std::string& name) {
+Graphviz::Node::Node(Agraph_t* graph, const Str& name) {
     auto node_ = agnode(graph, const_cast<char*>(name.c_str()), 1);
     if (!node_) {
         throw std::runtime_error("Failed to create node");

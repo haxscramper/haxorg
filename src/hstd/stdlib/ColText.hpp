@@ -203,10 +203,6 @@ struct ColText : Vec<ColRune> {
     template <typename T>
     explicit ColText(CR<T> it) : ColText(ColStyle{}, to_string(it)) {}
 
-    template <typename T>
-    explicit ColText(CR<ColStyle> style, CR<T> it)
-        : ColText(style, std::format("{}", it)) {}
-
     inline ColText operator<<=(int n) const { return leftAligned(n); }
     inline ColText operator>>=(int n) const { return rightAligned(n); }
 

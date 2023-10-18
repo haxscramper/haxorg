@@ -4,6 +4,8 @@
 #include <hstd/stdlib/charsets.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/Set.hpp>
+#include <algorithm>
+#include <absl/log/check.h>
 
 using namespace layout;
 
@@ -289,8 +291,8 @@ Solution::Ptr hPlusSolution(
     Solution::Ptr& s1,
     Solution::Ptr& s2,
     const Options& opts) {
-    Q_CHECK_PTR(s1);
-    Q_CHECK_PTR(s2);
+    CHECK(s1 != nullptr);
+    CHECK(s2 != nullptr);
     s1->reset();
     s2->reset();
     int s1Margin = 0;
@@ -850,7 +852,7 @@ void Block::add(CR<BlockId> other) {
             [&](Stack& w) { w.elements.push_back(other); },
             [&](Choice& w) { w.elements.push_back(other); },
             [&](Wrap& w) { w.wrapElements.push_back(other); },
-            [&](const auto&) { qFatal("TODO ERRMSG"); },
+            [&](const auto&) { CHECK(false) << ("TODO ERRMSG"); },
         },
         data);
 }
@@ -862,7 +864,7 @@ void Block::add(CVec<BlockId> others) {
             [&](Stack& w) { w.elements.append(others); },
             [&](Choice& w) { w.elements.append(others); },
             [&](Wrap& w) { w.wrapElements.append(others); },
-            [&](const auto&) { qFatal("TODO ERRMSG"); },
+            [&](const auto&) { CHECK(false) << ("TODO ERRMSG"); },
         },
         data);
 }
@@ -974,19 +976,18 @@ Vec<Layout::Ptr> BlockStore::toLayouts(BlockId id, const Options& opts) {
 }
 
 std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
-    std::string                     resOut;
-    std::ostream                    os{&resOut};
+    std::stringstream               os;
     UnorderedSet<BlockId>           visited;
     Func<void(const BlockId&, int)> aux;
 
     aux = [&](const BlockId& blId, int level) -> void {
         std::string pref2 = repeat(" ", level * 2 + 2);
-        os << pref2 << "ID:" << blId << " ";
+        os << fmt_str(pref2) << "ID:" << fmt_str(blId) << " ";
         if (id.isNil()) {
             os << "<nil>";
             return;
         } else if (visited.contains(blId)) {
-            os << "<visited> " << blId;
+            os << "<visited> " << fmt_str(blId);
             return;
         } else {
             visited.incl(blId);
@@ -1005,8 +1006,8 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
         }
 
         os << right_aligned(name + " ", level * 2) << "brk: {"
-           << bl.isBreaking << "} "
-           << "mul: {" << std::to_string(bl.breakMult) << "}";
+           << fmt_str(bl.isBreaking) << "} "
+           << "mul: {" << fmt_str(bl.breakMult) << "}";
 
         switch (bl.getKind()) {
             case Block::Kind::Line: {
@@ -1015,7 +1016,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                     if (doRecurse) {
                         aux(elem, level + 1);
                     } else {
-                        os << " " << elem;
+                        os << " " << fmt_str(elem);
                     }
                 }
                 break;
@@ -1026,7 +1027,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                     if (doRecurse) {
                         aux(elem, level + 1);
                     } else {
-                        os << " " << elem;
+                        os << " " << fmt_str(elem);
                     }
                 }
                 break;
@@ -1037,7 +1038,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                     if (doRecurse) {
                         aux(elem, level + 1);
                     } else {
-                        os << " " << elem;
+                        os << " " << fmt_str(elem);
                     }
                 }
                 break;
@@ -1048,7 +1049,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                     if (doRecurse) {
                         aux(elem, level + 1);
                     } else {
-                        os << " " << elem;
+                        os << " " << fmt_str(elem);
                     }
                 }
                 break;
@@ -1072,7 +1073,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                 for (const auto& line : bl.getVerb().textLines) {
                     os << pref2
                        << repeat("  ", std::clamp(level - 1, 0, INT_MAX))
-                       << "  〚" << line << "〛\n";
+                       << "  〚" << fmt_str(line) << "〛\n";
                 }
                 break;
             }
@@ -1080,7 +1081,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
     };
 
     aux(id, 0);
-    return resOut;
+    return os.str();
 }
 
 Vec<Vec<BlockId>> Options::defaultFormatPolicy(
@@ -1113,7 +1114,7 @@ LytStr SimpleStringStore::str(const std::string& str) {
     return result;
 }
 
-std::string SimpleStringStore::str(const LytStr& str) const {
+Str SimpleStringStore::str(const LytStr& str) const {
     if (str.isSpaces()) {
         return Str(" ").repeated(str.len);
     } else {

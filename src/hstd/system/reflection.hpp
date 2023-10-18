@@ -72,16 +72,16 @@ template <SerializableEnum T>
 struct std::formatter<T> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const T& p, FormatContext& ctx) {
-        return enum_serde<T>::to_string(value);
+        return enum_serde<T>::to_string(p);
     }
 };
 
 
 template <NonSerializableEnum T>
-struct std::formatter<Person> : std::formatter<std::string> {
+struct std::formatter<T> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const Person& p, FormatContext& ctx) {
-        return std::to_string((int)value);
+    auto format(const T& p, FormatContext& ctx) {
+        return std::to_string((int)p);
     }
 };
 

@@ -18,6 +18,7 @@ struct Str : public std::string {
         : std::string(view.data(), view.size()) {}
     Str(const char* conv) : std::string(conv) {}
     Str(CR<std::string> it) : std::string(it.data(), it.size()) {}
+    Str(int count, char c) : std::string(count, c) {}
     Str(char c) : std::string(1, c) {}
     Str(wchar_t c) : std::string(to_string(c)) {}
     Str()                 = default;
@@ -40,6 +41,7 @@ struct Str : public std::string {
     Vec<Str> split(const Str& delimiter) const;
     float    toFloat() const { return std::stof(*this); }
     float    toDouble() const { return std::stod(*this); }
+    int      toInt() const { return std::stoi(*this); }
     void     append(Str const& str) { this->append(str.toBase()); }
 
 

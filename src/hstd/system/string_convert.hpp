@@ -98,3 +98,8 @@ struct is_formattable<
 
 template <typename T>
 concept StdFormattable = is_formattable<T>::value;
+
+template <StdFormattable T>
+std::string fmt_str(T const& t) {
+    return std::format("{}", t);
+}

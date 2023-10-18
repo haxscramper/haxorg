@@ -14,8 +14,8 @@
 #include <new>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/system/generator.hpp>
-
-class QFileInfo;
+#include <absl/log/check.h>
+#include <hstd/stdlib/Filesystem.hpp>
 
 #define _attr_aligned(Method, key, Type)                                  \
     void set##Method(                                                     \
@@ -142,14 +142,6 @@ class Graphviz {
             getAttr(key, tmp);
             if (tmp) {
                 value = tmp->toDouble();
-            }
-        }
-
-        void getAttr(Str const& key, Opt<Str>& value) const {
-            Opt<Str> tmp;
-            getAttr(key, tmp);
-            if (tmp) {
-                value = *tmp;
             }
         }
 
@@ -498,7 +490,7 @@ class Graphviz {
 
 
         Graph(Str const& name, Agdesc_t desc = Agdirected);
-        Graph(QFileInfo const& file);
+        Graph(fs::path const& file);
         Graph(Agraph_t* graph)
             : graph(graph)
             , defaultEdge(graph, nullptr)
@@ -534,13 +526,13 @@ class Graphviz {
             return node;
         }
         Node node(Str const& name) {
-            Q_CHECK_PTR(graph);
+            CHECK(graph != nullptr);
             auto tmp = Node(graph, name);
             return tmp;
         }
 
         Edge edge(CR<Node> head, CR<Node> tail) {
-            Q_CHECK_PTR(graph);
+            CHECK(graph != nullptr);
             auto tmp = Edge(graph, head, tail);
             return tmp;
         }

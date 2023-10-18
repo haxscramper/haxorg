@@ -35,10 +35,6 @@ struct IoOpenConf {
     bool truncateWrite = true;
 };
 
-SPtr<IoContext> openFileOrStream(
-    fs::path const& info,
-    bool            useFile,
-    IoOpenConf      conf = {});
 
 void        writeFile(fs::path const& target, std::string const& content);
 std::string readFile(fs::path const& target);
