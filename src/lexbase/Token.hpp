@@ -59,11 +59,11 @@ struct Token {
     K kind; /// Specific kind of the token
     /// Token view on the base input text or offset position in case the
     /// token is not attached to real data (fake token).
-    Variant<int, std::stringView> text;
+    Variant<int, std::string_view> text;
 
     Token() = default;
     /// \brief Create token that points to the real string data
-    Token(K _kind, std::stringView _text) : kind(_kind), text(_text) {}
+    Token(K _kind, std::string_view _text) : kind(_kind), text(_text) {}
     /// \brief Create fake token that is positioned at some point in the
     /// base string.
     Token(K _kind, int offset = 0) : kind(_kind), text(offset) {}
@@ -80,12 +80,14 @@ struct Token {
     bool hasOffset() const { return std::holds_alternative<int>(text); }
     /// \brief Check if token text is a view over real data
     bool hasData() const {
-        return std::holds_alternative<std::stringView>(text);
+        return std::holds_alternative<std::string_view>(text);
     }
-    int              getOffset() const { return std::get<int>(text); }
-    std::stringView& getText() { return std::get<std::stringView>(text); }
-    std::stringView const& getText() const {
-        return std::get<std::stringView>(text);
+    int               getOffset() const { return std::get<int>(text); }
+    std::string_view& getText() {
+        return std::get<std::string_view>(text);
+    }
+    std::string_view const& getText() const {
+        return std::get<std::string_view>(text);
     }
     /// Return character count for the token. If it does not contain any
     /// data return 0.
@@ -135,9 +137,9 @@ struct std::formatter<Token<K>> : std::formatter<std::string> {
 template <typename K>
 struct TokenGroup {
     dod::Store<TokenId<K>, Token<K>> tokens;
-    Opt<std::stringView>             base;
+    Opt<std::string_view>            base;
 
-    TokenGroup(Opt<std::stringView> base = std::nullopt) : base(base) {}
+    TokenGroup(Opt<std::string_view> base = std::nullopt) : base(base) {}
     TokenId<K> add(CR<Token<K>> tok) { return tokens.add(tok); }
 
     Vec<TokenId<K>> add(CR<Vec<Token<K>>> tok) {
@@ -169,7 +171,7 @@ struct TokenGroup {
         tokens.resize(size, value);
     }
 
-    Slice<int> toAbsolute(std::stringView view) const {
+    Slice<int> toAbsolute(std::string_view view) const {
         if (base.has_value()) {
             auto main = base.value();
             assert(is_within_memory_block<char>(
@@ -598,62 +600,3 @@ struct Lexer : public LexerCommon<K> {
 
     Lexer(TokenGroup<K>* in) : LexerCommon<K>(in) {}
 };
-
-struct LineColInfo {
-    UnorderedMap<Slice<int>, int> lines;
-    RangeTree<int>                lineRanges;
-
-    int whichLine(int pos) const {
-        auto range = lineRanges.query(pos);
-        if (range.has_value() && lines.contains(range.value())) {
-            return lines.at(range.value());
-        } else {
-            return -1;
-        }
-    }
-
-    int whichColumn(int pos) const {
-        auto range = lineRanges.query(pos);
-        if (range.has_value()) {
-            return pos - range.value().first;
-        } else {
-            return -1;
-        }
-    }
-
-    Opt<Slice<int>> whichRange(int pos) { return lineRanges.query(pos); }
-
-    LineColInfo() = default;
-    LineColInfo(std::string const& text) {
-        Vec<Slice<int>> slices;
-        int             start = 0;
-        for (int i = 0; i < text.size(); ++i) {
-            if (text.at(i) == '\n') {
-                slices.push_back(slice(start, i));
-                start = i + 1;
-            }
-        }
-
-        if (start != text.size()) {
-            slices.push_back(slice1<int>(start, text.size() - 1));
-        }
-
-        for (int line = 0; line < slices.size(); ++line) {
-            lines[slices.at(line)] = line;
-        }
-
-        lineRanges = RangeTree<int>(slices);
-    }
-};
-
-template <typename K>
-QDebug operator<<(QDebug os, LexerCommon<K> const& value) {
-    std::string  str;
-    std::ostream stream{&str};
-    ColStream    col{stream};
-    using P = typename LexerCommon<K>::PrintParams;
-    value.print(col, P{});
-    QDebugStateSaver saver{os};
-    os.noquote() << str;
-    return os;
-}

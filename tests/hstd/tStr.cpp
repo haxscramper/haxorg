@@ -16,10 +16,10 @@ TEST(StringOperationsTest, BasicOperations) {
     Str s2{"World"};
     Str empty;
 
-    EXPECT_TRUE(s1.startsWith("He"));
-    EXPECT_FALSE(s1.startsWith("Wo"));
-    EXPECT_TRUE(s1.endsWith("lo"));
-    EXPECT_FALSE(s1.endsWith("or"));
+    EXPECT_TRUE(s1.starts_with("He"));
+    EXPECT_FALSE(s1.starts_with("Wo"));
+    EXPECT_TRUE(s1.ends_with("lo"));
+    EXPECT_FALSE(s1.ends_with("or"));
     EXPECT_EQ(s1.size(), 5);
     EXPECT_FALSE(s1.empty());
     EXPECT_TRUE(empty.empty());

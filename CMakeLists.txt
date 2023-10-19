@@ -11,7 +11,13 @@ project(haxorg LANGUAGES CXX)
 set(BASE "${CMAKE_SOURCE_DIR}")
 message(INFO "CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
 set(LLVM_DIR "${BASE}/toolchain/llvm")
+
 set(CMAKE_CXX_COMPILER "${LLVM_DIR}/bin/clang++")
+set(CMAKE_CXX_COMPILER_ID "clang")
+
+set(CMAKE_C_COMPILER "${LLVM_DIR}/bin/clang")
+set(CMAKE_C_COMPILER_ID "clang")
+
 set(DEPS_DIR "${BASE}/build/dependencies/conan")
 set(AUTOGEN_BUILD_DIR "${BASE}/build/autogen")
 set(SCRIPT_DIR "${BASE}/src/scripts")
@@ -43,12 +49,14 @@ find_package(yaml-cpp REQUIRED)
 find_package(benchmark REQUIRED)
 find_package(PythonLibs 3.11)
 find_package(pybind11 CONFIG REQUIRED)
+find_package(absl REQUIRED)
 
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)
 include(src/cmake/target_lib.cmake)
 
 include(src/cmake/target_tests.cmake)
+include(src/cmake/target_tests_hstd.cmake)
 include(src/cmake/target_bench.cmake)
 
 

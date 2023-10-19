@@ -37,12 +37,12 @@ TEST(VectorTest, SliceAndIndexingOperators) {
 TEST(VectorTest, VectorAlloc) {
     {
         std::vector<int> v{0, 0, 0, 0, 0};
-        Q_CHECK_PTR(v.data());
+        CHECK(v.data() != nullptr);
         EXPECT_EQ(v[0], 0);
     }
     {
         Vec<int> v{0, 0, 0, 0, 0};
-        Q_CHECK_PTR(v.data());
+        CHECK(v.data() != nullptr);
         EXPECT_EQ(v[0], 0);
     }
 }
@@ -52,7 +52,7 @@ TEST(VectorTest, EditDataViaSpanView) {
 
     // Test modification using slice operator
     std::span<int> span = v[slice(1, 3)];
-    Q_CHECK_PTR(span.data());
+    CHECK(span.data() != nullptr);
     for (int& x : span) {
         x = 42;
     }

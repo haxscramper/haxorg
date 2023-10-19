@@ -107,3 +107,6 @@ struct std::formatter<Str, CharT> : std::formatter<std::string, CharT> {
         return std::formatter<std::string, CharT>::format(p.toBase(), ctx);
     }
 };
+
+template <>
+struct std::hash<Str> : std::hash<std::string> {};

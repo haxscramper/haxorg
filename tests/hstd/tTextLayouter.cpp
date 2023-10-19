@@ -7,17 +7,17 @@
 
 #include <absl/log/log.h>
 
-#include "common.hpp"
+#include "../common.hpp"
 
 using namespace layout;
 using namespace testing;
 
 
 /// \internal
-template <>
-void internal::PrintTo(CR<Event> e, ::std::ostream* os) {
-    *os << to_string(e);
-}
+//template <> // FIXME COMPILATION
+//void internal::PrintTo(CR<Event> e, ::std::ostream* os) {
+//    *os << to_string(e);
+//}
 
 
 using b = Block;

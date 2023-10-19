@@ -13,10 +13,13 @@ find_library(GRAPHVIZ_GVC_LIBRARY gvc)
 
 add_target_property(hstd INCLUDE_DIRECTORIES "/usr/include/enchant-2")
 
-target_link_libraries(hstd PUBLIC
+target_link_libraries(
+    hstd
+    PUBLIC
     ${GRAPHVIZ_CGRAPH_LIBRARY}
     ${GRAPHVIZ_GVC_LIBRARY}
     fmt::fmt
-    enchant-2
+    yaml-cpp::yaml-cpp
+    absl_log
     perfetto
-    yaml-cpp::yaml-cpp)
+)

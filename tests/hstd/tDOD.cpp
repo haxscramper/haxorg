@@ -7,8 +7,7 @@ DECL_ID_TYPE_MASKED(Value1, Id1, u8, 2);
 
 template <typename T>
 std::string bits(T val) {
-    return std::string::fromStdString(
-        std::bitset<8 * sizeof(T)>(val).to_string());
+    return std::bitset<8 * sizeof(T)>(val).to_string();
 }
 
 TEST(DODContainersTest, MaskedNodes) {

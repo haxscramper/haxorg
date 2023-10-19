@@ -4,7 +4,6 @@
 #include <hstd/stdlib/RangeTree.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Map.hpp>
-#include <lexbase/Token.hpp>
 
 bool operator==(Slice<int> lhs, Slice<int> rhs) {
     return lhs.operator==(rhs);
@@ -51,27 +50,3 @@ TEST(RangeTreeTest, Queries) {
     EXPECT_EQ(overlapping.query(12).value(), slice(7, 12));
 }
 
-TEST(LineAndColumnInfoTest, RangeTree) {
-    auto rangeInfo = [](std::string const& text) -> LineColInfo {
-        return LineColInfo(text);
-    };
-
-    // Line range information from empty string
-    { auto lineInfo = rangeInfo(""); }
-
-    // Line range information
-    {
-        auto info = rangeInfo("0");
-        EXPECT_EQ(info.whichLine(0), 0);
-        EXPECT_EQ(info.whichColumn(0), 0);
-    }
-
-    // Two lines
-    {
-        auto info = rangeInfo("0123\n576");
-        EXPECT_EQ(info.whichLine(0), 0);
-        EXPECT_EQ(info.whichColumn(1), 1);
-        EXPECT_EQ(info.whichLine(5), 1);
-        EXPECT_EQ(info.whichColumn(5), 0);
-    }
-}
