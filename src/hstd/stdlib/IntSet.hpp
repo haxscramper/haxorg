@@ -197,8 +197,13 @@ struct IntSet : public SetBase<IntSet<T>, T> {
 
 template <typename T>
 struct std::formatter<IntSet<T>> : std::formatter<std::string> {
+    using FmtType = IntSet<T>;
     template <typename FormatContext>
-    auto format(const IntSet<T>& p, FormatContext& ctx) {
-        return "{" << join(", ", p) << "}";
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        fmt.format("{", ctx);
+        fmt.format(join(", ", p), ctx);
+        return fmt.format("}", ctx);
     }
 };

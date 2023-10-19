@@ -10,6 +10,7 @@
 #include <hstd/stdlib/RangeTree.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <format>
 
 #include <lexbase/Errors.hpp>
 
@@ -40,8 +41,11 @@ struct [[nodiscard]] TokenId
 template <typename K>
 struct std::formatter<TokenId<K>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const TokenId<K>& p, FormatContext& ctx) {
-        return p.format(demangle(typeid(K).name()));
+    typename FormatContext::iterator format(
+        const TokenId<K>& p,
+        FormatContext&    ctx) {
+        std::formatter<std::string> fmt;
+        return fmt.format(p.format(demangle(typeid(K).name())), ctx);
     }
 };
 

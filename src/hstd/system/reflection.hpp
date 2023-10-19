@@ -70,18 +70,22 @@ concept NonSerializableEnum = IsEnum<T> && !SerializableEnum<T>;
 
 template <SerializableEnum T>
 struct std::formatter<T> : std::formatter<std::string> {
+    using FmtType = T;
     template <typename FormatContext>
-    auto format(const T& p, FormatContext& ctx) {
-        return enum_serde<T>::to_string(p);
+    auto format(FmtType const& p, FormatContext& ctx) {
+        std::formatter<std::string> fmt;
+        return fmt.format(enum_serde<T>::to_string(p), ctx);
     }
 };
 
 
 template <NonSerializableEnum T>
 struct std::formatter<T> : std::formatter<std::string> {
+    using FmtType = T;
     template <typename FormatContext>
-    auto format(const T& p, FormatContext& ctx) {
-        return std::to_string((int)p);
+    auto format(FmtType const& p, FormatContext& ctx) {
+        std::formatter<std::string> fmt;
+        return fmt.format(std::to_string((int)p), ctx);
     }
 };
 
@@ -241,8 +245,11 @@ bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
     template <>                                                           \
     struct std::formatter<__TypeName> : std::formatter<std::string> {     \
         template <typename FormatContext>                                 \
-        auto format(const __TypeName& value, FormatContext& ctx) {        \
-            return described_class_printer(value);                        \
+        FormatContext::iterator format(                                   \
+            const __TypeName& value,                                      \
+            FormatContext&    ctx) const {                                   \
+            std::formatter<std::string> fmt;                              \
+            return fmt.format(described_class_printer(value), ctx);       \
         }                                                                 \
     };
 

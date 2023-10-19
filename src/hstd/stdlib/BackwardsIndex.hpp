@@ -16,9 +16,11 @@ inline BackwardsIndex operator"" _B(unsigned long long int value) {
 
 template <>
 struct std::formatter<BackwardsIndex> : std::formatter<std::string> {
+    using FmtType = BackwardsIndex;
     template <typename FormatContext>
-    auto format(const BackwardsIndex& p, FormatContext& ctx) {
-        return std::formatter<std::string>::format(
-            "^" + std::to_string(p.value), ctx);
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        return fmt.format("^" + std::to_string(p.value), ctx);
     }
 };

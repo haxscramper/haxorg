@@ -61,19 +61,22 @@ struct SortedMap
 
 template <typename K, typename V>
 struct std::formatter<UnorderedMap<K, V>> : std::formatter<std::string> {
+    using FmtType = UnorderedMap<K, V>;
     template <typename FormatContext>
-    auto format(const UnorderedMap<K, V>& p, FormatContext& ctx) {
-        std::string res;
-        res += "{";
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        fmt.format("{", ctx);
         bool first = true;
         for (const auto& [key, value] : p) {
             if (!first) {
-                res += ", ";
+                fmt.format(", ", ctx);
             }
             first = false;
-            res += std::format("{}: {}", key, value);
+            fmt.format(key, ctx);
+            fmt.format(": ", ctx);
+            fmt.format(value, ctx);
         }
-        res += "}";
-        return res;
+        return fmt.format("}", ctx);
     }
 };

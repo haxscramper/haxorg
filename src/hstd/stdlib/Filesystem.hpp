@@ -41,8 +41,11 @@ std::string readFile(fs::path const& target);
 
 template <>
 struct std::formatter<fs::path> : std::formatter<std::string> {
+    using FmtType = fs::path;
     template <typename FormatContext>
-    auto format(const fs::path& p, FormatContext& ctx) {
-        return std::formatter<std::string>::format(p.native(), ctx);
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        return fmt.format(p.native(), ctx);
     }
 };

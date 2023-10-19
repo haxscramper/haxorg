@@ -5,6 +5,7 @@
 #include <hstd/system/all.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/system/string_convert.hpp>
+#include <hstd/system/Formatter.hpp>
 
 #include <span>
 #include <array>
@@ -124,10 +125,14 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
     }
 };
 
-template <typename T, int Size>
-struct std::formatter<Array<T, Size>> : std::formatter<std::string> {
+template <typename T, int Size, typename CharT>
+struct std::formatter<Array<T, Size>, CharT> : Fmt<std::string, CharT> {
+    using FmtType = Array<T, Size>;
     template <typename FormatContext>
-    auto format(const Array<T, Size>& p, FormatContext& ctx) {
-        return "[" << join(", ", p) << "]";
+    typename FormatContext::iterator format(FmtType const& p, FormatContext& ctx) {
+        Fmt<std::string, CharT> fmt;
+        fmt.format("[", ctx);
+        fmt.format(join(", ", p));
+        return fmt.format("]", ctx);
     }
 };

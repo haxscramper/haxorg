@@ -232,12 +232,16 @@ struct ColText : Vec<ColRune> {
     }
 };
 
-
-template <>
-struct std::formatter<ColText> : std::formatter<std::string> {
+template <typename CharT>
+struct std::formatter<ColText, CharT>
+    : std::formatter<std::string, CharT> {
+    using FmtType = ColText;
     template <typename FormatContext>
-    auto format(const ColText& p, FormatContext& ctx) {
-        return to_colored_string(p, true);
+    typename FormatContext::iterator format(
+        FmtType const& p,
+        FormatContext& ctx) {
+        std::formatter<std::string, CharT> fmt;
+        return fmt.format(to_colored_string(p, true), ctx);
     }
 };
 

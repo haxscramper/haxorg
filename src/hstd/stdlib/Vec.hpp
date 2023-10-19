@@ -232,9 +232,14 @@ static_assert(
 /// \brief Vector formatting operator
 template <typename T>
 struct std::formatter<Vec<T>> : std::formatter<std::string> {
+    using FmtType = Vec<T>;
     template <typename FormatContext>
-    auto format(const Vec<T>& p, FormatContext& ctx) {
-        return "[" << join(", ", p) << "]";
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        fmt.format("[", ctx);
+        fmt.format(join(", ", p), ctx);
+        return fmt.format("]", ctx);
     }
 };
 

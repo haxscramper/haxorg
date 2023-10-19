@@ -117,8 +117,11 @@ BOOST_DESCRIBE_STRUCT(Line, (), (offset, len, chars));
 template <>
 struct std::formatter<Line> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const Line& p, FormatContext& ctx) {
-        return described_class_printer(os, value);
+    typename FormatContext::iterator format(
+        const Line&    p,
+        FormatContext& ctx) {
+        std::formatter<std::string> fmt;
+        return fmt.format(described_class_printer(os, value), ctx);
     }
 };
 

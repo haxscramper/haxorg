@@ -560,10 +560,14 @@ struct hash<Id> {
 };
 }; // namespace std
 
+
 template <dod::IsIdType Id>
 struct std::formatter<Id> : std::formatter<std::string> {
+    using FmtType = Id;
     template <typename FormatContext>
-    auto format(const Id& p, FormatContext& ctx) {
-        return std::formatter<std::string>::format(p.to_string(), ctx);
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        return fmt.format(p.format(), ctx);
     }
 };

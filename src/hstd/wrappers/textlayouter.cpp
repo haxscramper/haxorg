@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Set.hpp>
 #include <algorithm>
 #include <absl/log/check.h>
+#include <numeric>
 
 using namespace layout;
 

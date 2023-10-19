@@ -175,8 +175,30 @@ HSlice<A, B> slice(CR<A> first, CR<B> last) {
 template <typename A, typename B>
 struct std::formatter<HSlice<A, B>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const HSlice<A, B>& p, FormatContext& ctx) {
-        return std::format("[{}..{}]", p.first, p.last);
+    typename FormatContext::iterator format(
+        HSlice<A, B> const& p,
+        FormatContext&      ctx) const {
+        std::formatter<std::string> fmt;
+        fmt.format("[", ctx);
+        std::format_to(ctx.out(), "{}", p.first);
+        fmt.format("..", ctx);
+        std::format_to(ctx.out(), "{}", p.last);
+        return fmt.format("]", ctx);
+    }
+};
+
+template <typename T>
+struct std::formatter<Slice<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    typename FormatContext::iterator format(
+        Slice<T> const& p,
+        FormatContext&  ctx) {
+        std::formatter<std::string> fmt;
+        fmt.format("[", ctx);
+        std::format_to(ctx.out(), "{}", p.first);
+        fmt.format("..", ctx);
+        std::format_to(ctx.out(), "{}", p.last);
+        return fmt.format("]", ctx);
     }
 };
 

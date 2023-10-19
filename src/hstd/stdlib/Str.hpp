@@ -100,10 +100,10 @@ inline Str operator+(const char* in, CR<Str> other) {
     return res;
 }
 
-template <>
-struct std::formatter<Str> : std::formatter<std::string> {
+template <class CharT>
+struct std::formatter<Str, CharT> : std::formatter<std::string, CharT> {
     template <typename FormatContext>
-    auto format(const Str& p, FormatContext& ctx) {
-        return std::formatter<std::string>::format(p.toBase(), ctx);
+    auto format(const Str& p, FormatContext& ctx) const {
+        return std::formatter<std::string, CharT>::format(p.toBase(), ctx);
     }
 };
