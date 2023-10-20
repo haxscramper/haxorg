@@ -22,10 +22,7 @@ include(${DEPS_DIR}/conanbuildinfo.cmake)
 include(src/cmake/functions_aux.cmake)
 include(src/cmake/functions_setup.cmake)
 
-# TODO enable and use
-#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -ggdb")
-
-conan_basic_setup()
+conan_basic_setup(TARGETS)
 
 option(USE_PCH "Use precompiled headers" ON)
 option(TRACE_INSTRUMENT "Generate instrumentation trace")
@@ -38,13 +35,14 @@ option(USE_XRAY "Use LLVM XRay instrumentation for profiling")
 option(USE_SANITIZER "Use sanitizers" ON)
 
 
-find_package(absl REQUIRED MODULE)
 find_package(fmt REQUIRED MODULE)
 find_package(yaml-cpp REQUIRED MODULE)
 find_package(benchmark REQUIRED MODULE)
 find_package(PythonLibs 3.11 MODULE)
 find_package(pybind11 REQUIRED MODULE)
+find_package(perfetto REQUIRED MODULE)
 
+add_subdirectory("${BASE}/deps/abseil-cpp")
 
 
 include(src/cmake/target_hstd.cmake)

@@ -11,8 +11,6 @@ find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
 find_library(GRAPHVIZ_GVC_LIBRARY gvc)
 
 
-add_target_property(hstd INCLUDE_DIRECTORIES "/usr/include/enchant-2")
-
 target_link_libraries(
     hstd
     PUBLIC
@@ -21,7 +19,6 @@ target_link_libraries(
     fmt::fmt
     yaml-cpp::yaml-cpp
     absl::base
-    absl::raw_logging_internal
-    absl::log_severity
-    perfetto
+    absl::log
+    perfetto::perfetto
 )

@@ -15,8 +15,6 @@ set_target_flags(haxorg)
 find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
 find_library(GRAPHVIZ_GVC_LIBRARY gvc)
 
-add_target_property(haxorg INCLUDE_DIRECTORIES "/usr/include/enchant-2")
-
 if (${USE_PCH})
     target_precompile_headers(haxorg PRIVATE
       <std::string>
