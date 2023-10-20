@@ -1616,7 +1616,7 @@ Vec<Str> split_keep_separator(const Str& str, CharSet sep) {
     return result;
 }
 
-Vec<Str> visibleUnicodeName(std::string str, bool useUnicode) {
+Vec<Str> visibleUnicodeName(Str str, bool useUnicode) {
     Vec<Str> result;
     for (char ch : str) {
         if (ch <= 127) {

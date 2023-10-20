@@ -2,21 +2,13 @@ cmake_minimum_required(VERSION 3.5)
 
 #include(conda_toolchain.cmake)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CXX_STANDARD 23)
+
 
 project(haxorg LANGUAGES CXX)
 
 set(BASE "${CMAKE_SOURCE_DIR}")
 message(INFO "CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
 set(LLVM_DIR "${BASE}/toolchain/llvm")
-
-set(CMAKE_CXX_COMPILER "${LLVM_DIR}/bin/clang++")
-set(CMAKE_CXX_COMPILER_ID "clang")
-
-set(CMAKE_C_COMPILER "${LLVM_DIR}/bin/clang")
-set(CMAKE_C_COMPILER_ID "clang")
 
 set(DEPS_DIR "${BASE}/build/dependencies/conan")
 set(AUTOGEN_BUILD_DIR "${BASE}/build/autogen")
@@ -25,6 +17,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})
 list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
+message(">>> ${DEPS_DIR}")
 include(${DEPS_DIR}/conanbuildinfo.cmake)
 include(src/cmake/functions_aux.cmake)
 include(src/cmake/functions_setup.cmake)
@@ -44,12 +37,15 @@ option(PROFILE_USE "Compile binary using profile data generation")
 option(USE_XRAY "Use LLVM XRay instrumentation for profiling")
 option(USE_SANITIZER "Use sanitizers" ON)
 
-find_package(fmt REQUIRED)
-find_package(yaml-cpp REQUIRED)
-find_package(benchmark REQUIRED)
-find_package(PythonLibs 3.11)
-find_package(pybind11 CONFIG REQUIRED)
-find_package(absl REQUIRED)
+
+find_package(absl REQUIRED MODULE)
+find_package(fmt REQUIRED MODULE)
+find_package(yaml-cpp REQUIRED MODULE)
+find_package(benchmark REQUIRED MODULE)
+find_package(PythonLibs 3.11 MODULE)
+find_package(pybind11 REQUIRED MODULE)
+
+
 
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)

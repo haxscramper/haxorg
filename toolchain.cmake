@@ -1,0 +1,10 @@
+set(BASE "${CMAKE_SOURCE_DIR}")
+message(INFO "CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
+set(LLVM_DIR "${BASE}/toolchain/llvm")
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CXX_STANDARD 23)
+
+set(CMAKE_CXX_COMPILER "${LLVM_DIR}/bin/clang++")
+set(CMAKE_C_COMPILER "${LLVM_DIR}/bin/clang")

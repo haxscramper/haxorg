@@ -20,6 +20,8 @@ target_link_libraries(
     ${GRAPHVIZ_GVC_LIBRARY}
     fmt::fmt
     yaml-cpp::yaml-cpp
-    absl_log
+    absl::base
+    absl::raw_logging_internal
+    absl::log_severity
     perfetto
 )
