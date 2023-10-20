@@ -77,7 +77,7 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                 i += 2;
                 result.push_back({.kind = AddfFragmentKind::Dollar});
 
-            } else if (charsets::Digits.contains(c) || c == '|') {
+            } else if (std::isdigit(c) || c == '|') {
                 auto j = 0;
                 i += 1;
                 const auto starti   = i;
@@ -87,7 +87,7 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                 }
                 while (
                     ((i < formatstr.size())
-                     && (charsets::Digits.contains(formatstr[i])))) {
+                     && (std::isdigit(formatstr[i])))) {
                     j = ((j * 10) + value_domain<char>::ord(formatstr[i]))
                       - value_domain<char>::ord('0');
                     i += 1;
@@ -111,7 +111,7 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                 while (
                     ((j < formatstr.size())
                      && (!CharSet({'\0', '}'}).contains(formatstr[j])))) {
-                    if (charsets::Digits.contains(formatstr[j])) {
+                    if (std::isdigit(formatstr[j])) {
                         k = ((k * 10)
                              + value_domain<char>::ord(formatstr[j]))
                           - value_domain<char>::ord('0');
@@ -145,7 +145,7 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                 i = j + 1;
 
             } else if (
-                charsets::Letters.contains(c) || c == '_'
+                std::isalnum(c) || c == '_'
                 || CharSet(slice('\xF0', '\xFF')).contains(c)) {
                 auto j = i + 1;
                 while (j < formatstr.size()

@@ -42,7 +42,7 @@ struct Str : public std::string {
     float    toFloat() const { return std::stof(*this); }
     float    toDouble() const { return std::stod(*this); }
     int      toInt() const { return std::stoi(*this); }
-    void     append(Str const& str) { this->append(str.toBase()); }
+    void     append(Str const& str) { std::string::append(str.toBase()); }
 
 
     std::string repeated(int N) const;
