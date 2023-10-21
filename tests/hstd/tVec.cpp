@@ -1,6 +1,11 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <gtest/gtest.h>
 
+TEST(BackwardsIndexTest, BackwardsIndexFormat) {
+    std::string f1 = std::format("{}", 1_B);
+    ASSERT_EQ(f1, "^1");
+}
+
 TEST(VectorTest, SliceAndIndexingOperators) {
     Vec<int> v{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 

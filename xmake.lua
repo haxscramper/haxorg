@@ -359,6 +359,39 @@ meta_target("debug_pytests", "Execute lldb on the debug test target", {}, functi
   end)
 end)
 
+meta_target("std_coverage", "Collect hstd coverage information", {}, function () 
+  on_build(function(target)
+    local utills = import("scripts.utils")
+    local dir = path.join(os.scriptdir(), "build/haxorg/bin")
+    local tools = path.join(os.scriptdir(), "toolchain/llvm/bin")
+    local test = path.join(dir, "tests_hstd")
+
+    for _, file in ipairs(os.files(path.join(dir, "*.profdata"))) do
+      os.rm(file)
+    end
+
+    utils.with_dir(dir, function () 
+      os.execv(test)  
+    end)
+
+    os.execv(path.join(tools, "llvm-profdata"), {
+      "merge",
+      "-output=" .. path.join(dir, "test.profdata"),
+      path.join(dir, "default.profraw")
+    })
+
+    os.execv(path.join(tools, "llvm-cov"), {
+      "show",
+      test,
+      "-ignore-filename-regex", 
+      ".*/deps/.*",
+      "-instr-profile=" .. path.join(dir, "test.profdata"),
+      "-format=html",
+      "-output-dir=" .. path.join(dir, "coverage_report")
+    })
+  end)
+end)
+
 meta_target("bench_profdata", "Collect performance profile", {}, function () 
   on_build(function(target)
     local utils = import("scripts.utils")

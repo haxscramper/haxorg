@@ -1,7 +1,7 @@
 #include "Str.hpp"
 
 Str Str::dropPrefix(CR<Str> prefix) const {
-    if (prefix.starts_with(prefix)) {
+    if (this->starts_with(prefix)) {
         return substr(prefix.size());
     } else {
         return *this;
@@ -9,10 +9,20 @@ Str Str::dropPrefix(CR<Str> prefix) const {
 }
 
 Str Str::dropSuffix(CR<Str> suffix) const {
-    if (suffix.ends_with(suffix)) {
+    if (this->ends_with(suffix)) {
         return substr(0, size() - suffix.size());
     } else {
         return *this;
+    }
+}
+
+char Str::at(int pos) const {
+    if (0 <= pos && pos < size()) {
+        return std::string::operator[](pos);
+    } else {
+        throw std::out_of_range(
+            "String index out of range wanted " + std::to_string(pos)
+            + " but size() is " + std::to_string(size()));
     }
 }
 
@@ -26,12 +36,14 @@ char& Str::at(int pos) {
     }
 }
 
-void Str::replaceAll(const std::string& from, const std::string& to) {
+Str Str::replaceAll(const Str& from, const Str& to) const {
     size_t startPos = 0;
-    while ((startPos = this->find(from, startPos)) != std::string::npos) {
-        this->replace(startPos, from.length(), to);
+    Str    result   = *this;
+    while ((startPos = result.find(from, startPos)) != std::string::npos) {
+        result.replace(startPos, from.length(), to);
         startPos += to.length();
     }
+    return result;
 }
 
 Vec<Str> Str::split(char delimiter) const {
@@ -69,4 +81,28 @@ std::string Str::repeated(int N) const {
         result += *this;
     }
     return result;
+}
+
+int Str::runeLen() const {
+    int count = 0;
+    for (int i = 0; i < length();) {
+        unsigned char byte = static_cast<unsigned char>(at(i));
+        if (byte <= 127) {
+            i += 1;
+        } else if ((byte >> 5) == 0b110) {
+            i += 2;
+        } else if ((byte >> 4) == 0b1110) {
+            i += 3;
+        } else if ((byte >> 3) == 0b11110) {
+            i += 4;
+        } else if ((byte >> 2) == 0b111110) {
+            i += 5;
+        } else if ((byte >> 1) == 0b1111110) {
+            i += 6;
+        } else {
+            i += 1;
+        }
+        count++;
+    }
+    return count;
 }

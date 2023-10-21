@@ -34,8 +34,9 @@ struct Str : public std::string {
 
     Str      dropPrefix(CR<Str> prefix) const;
     Str      dropSuffix(CR<Str> suffix) const;
+    char     at(int pos) const;
     char&    at(int pos);
-    void     replaceAll(const std::string& from, const std::string& to);
+    Str      replaceAll(const Str& from, const Str& to) const;
     char&    at(BackwardsIndex pos) { return at(size() - pos.value); }
     Vec<Str> split(char delimiter) const;
     Vec<Str> split(const Str& delimiter) const;
@@ -83,6 +84,8 @@ struct Str : public std::string {
         res.append(other);
         return res;
     }
+
+    int runeLen() const;
 };
 
 

@@ -56,3 +56,57 @@ TEST(StringOperationsTest, StringMutations) {
     //     // Out of range error for empty string access
     // }
 }
+
+TEST(StringOperationsTest, StringApi) {
+    Str pref1 = Str("?$??").dropPrefix("?");
+    EXPECT_EQ(pref1, "$??");
+
+    Str pref2 = Str("XXXX").dropPrefix("YYY");
+    EXPECT_EQ(pref2, "XXXX");
+
+    Str suff1 = Str("??$?").dropSuffix("?");
+    EXPECT_EQ(suff1, "??$");
+
+    Str suff2 = Str("XXXX").dropSuffix("YYY");
+    EXPECT_EQ(suff2, "XXXX");
+
+    EXPECT_EQ(Str("0").at(0), '0');
+    EXPECT_THROW(Str("0").at(120), std::out_of_range);
+
+    EXPECT_EQ((Str("").replaceAll("0", "1")), Str(""));
+    EXPECT_EQ((Str("0").replaceAll("0", "1")), Str("1"));
+    EXPECT_EQ((Str("0000").replaceAll("0", "1")), Str("1111"));
+    EXPECT_EQ((Str("0000").replaceAll("000", "1")), Str("10"));
+    EXPECT_EQ(
+        (Str("0-0-0").split("-")),
+        (Vec<Str>{Str("0"), Str("0"), Str("0")}));
+    EXPECT_EQ(
+        (Str("0-0-0").split('-')),
+        (Vec<Str>{Str("0"), Str("0"), Str("0")}));
+    EXPECT_EQ(Str("1").repeated(4), Str("1111"));
+
+    EXPECT_EQ(Str("1").toInt(), 1);
+    EXPECT_FLOAT_EQ(Str("1").toFloat(), 1);
+    EXPECT_FLOAT_EQ(Str("1").toDouble(), 1);
+    EXPECT_EQ(Str("0").at(1_B), '0');
+}
+
+
+TEST(StringOperationsTest, UnicodeLength) {
+    {
+        Str a = "añyóng";
+        EXPECT_EQ(a.runeLen(), 6);
+        EXPECT_NE(a.length(), 6);
+        EXPECT_EQ(a.length(), 8);
+    }
+    {
+        Str b = "Hello";
+        EXPECT_EQ(b.runeLen(), 5);
+        EXPECT_EQ(b.length(), 5);
+    }
+    {
+        Str c = "";
+        EXPECT_EQ(c.runeLen(), 0);
+        EXPECT_EQ(c.length(), 0);
+    }
+}
