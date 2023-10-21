@@ -2,1560 +2,1013 @@
 #include <absl/log/log.h>
 #include <absl/log/check.h>
 
-std::string unicodeCharMappings[256][15] = {
+Str unicodeCharMappings[256][15] = {
     [(int)'A']
-    = {std::string("A"),
-       std::string("Ɐ"),
-       std::string("𝔄"),
-       std::string("𝕬"),
-       std::string("𝔸"),
-       std::string("𝐀"),
-       std::string("𝐴"),
-       std::string("𝑨"),
-       std::string("𝒜"),
-       std::string("𝓐"),
-       std::string("𝖠"),
-       std::string("𝗔"),
-       std::string("𝘈"),
-       std::string("𝘼"),
-       std::string("𝙰")},
+    = {Str("A"),
+       Str("Ɐ"),
+       Str("𝔄"),
+       Str("𝕬"),
+       Str("𝔸"),
+       Str("𝐀"),
+       Str("𝐴"),
+       Str("𝑨"),
+       Str("𝒜"),
+       Str("𝓐"),
+       Str("𝖠"),
+       Str("𝗔"),
+       Str("𝘈"),
+       Str("𝘼"),
+       Str("𝙰")},
     [(int)'B']
-    = {std::string("B"),
-       std::string("B"),
-       std::string("𝔅"),
-       std::string("𝕭"),
-       std::string("𝔹"),
-       std::string("𝐁"),
-       std::string("𝐵"),
-       std::string("𝑩"),
-       std::string("ℬ"),
-       std::string("𝓑"),
-       std::string("𝖡"),
-       std::string("𝗕"),
-       std::string("𝘉"),
-       std::string("𝘽"),
-       std::string("𝙱")},
+    = {Str("B"),
+       Str("B"),
+       Str("𝔅"),
+       Str("𝕭"),
+       Str("𝔹"),
+       Str("𝐁"),
+       Str("𝐵"),
+       Str("𝑩"),
+       Str("ℬ"),
+       Str("𝓑"),
+       Str("𝖡"),
+       Str("𝗕"),
+       Str("𝘉"),
+       Str("𝘽"),
+       Str("𝙱")},
     [(int)'C']
-    = {std::string("C"),
-       std::string("Ɔ"),
-       std::string("ℭ"),
-       std::string("𝕮"),
-       std::string("ℂ"),
-       std::string("𝐂"),
-       std::string("𝐶"),
-       std::string("𝑪"),
-       std::string("𝒞"),
-       std::string("𝓒"),
-       std::string("𝖢"),
-       std::string("𝗖"),
-       std::string("𝘊"),
-       std::string("𝘾"),
-       std::string("𝙲")},
+    = {Str("C"),
+       Str("Ɔ"),
+       Str("ℭ"),
+       Str("𝕮"),
+       Str("ℂ"),
+       Str("𝐂"),
+       Str("𝐶"),
+       Str("𝑪"),
+       Str("𝒞"),
+       Str("𝓒"),
+       Str("𝖢"),
+       Str("𝗖"),
+       Str("𝘊"),
+       Str("𝘾"),
+       Str("𝙲")},
     [(int)'D']
-    = {std::string("D"),
-       std::string("D"),
-       std::string("𝔇"),
-       std::string("𝕯"),
-       std::string("𝔻"),
-       std::string("𝐃"),
-       std::string("𝐷"),
-       std::string("𝑫"),
-       std::string("𝒟"),
-       std::string("𝓓"),
-       std::string("𝖣"),
-       std::string("𝗗"),
-       std::string("𝘋"),
-       std::string("𝘿"),
-       std::string("𝙳")},
+    = {Str("D"),
+       Str("D"),
+       Str("𝔇"),
+       Str("𝕯"),
+       Str("𝔻"),
+       Str("𝐃"),
+       Str("𝐷"),
+       Str("𝑫"),
+       Str("𝒟"),
+       Str("𝓓"),
+       Str("𝖣"),
+       Str("𝗗"),
+       Str("𝘋"),
+       Str("𝘿"),
+       Str("𝙳")},
     [(int)'E']
-    = {std::string("E"),
-       std::string("Ǝ"),
-       std::string("𝔈"),
-       std::string("𝕰"),
-       std::string("𝔼"),
-       std::string("𝐄"),
-       std::string("𝐸"),
-       std::string("𝑬"),
-       std::string("ℰ"),
-       std::string("𝓔"),
-       std::string("𝖤"),
-       std::string("𝗘"),
-       std::string("𝘌"),
-       std::string("𝙀"),
-       std::string("𝙴")},
+    = {Str("E"),
+       Str("Ǝ"),
+       Str("𝔈"),
+       Str("𝕰"),
+       Str("𝔼"),
+       Str("𝐄"),
+       Str("𝐸"),
+       Str("𝑬"),
+       Str("ℰ"),
+       Str("𝓔"),
+       Str("𝖤"),
+       Str("𝗘"),
+       Str("𝘌"),
+       Str("𝙀"),
+       Str("𝙴")},
     [(int)'F']
-    = {std::string("F"),
-       std::string("Ⅎ"),
-       std::string("𝔉"),
-       std::string("𝕱"),
-       std::string("𝔽"),
-       std::string("𝐅"),
-       std::string("𝐹"),
-       std::string("𝑭"),
-       std::string("ℱ"),
-       std::string("𝓕"),
-       std::string("𝖥"),
-       std::string("𝗙"),
-       std::string("𝘍"),
-       std::string("𝙁"),
-       std::string("𝙵")},
+    = {Str("F"),
+       Str("Ⅎ"),
+       Str("𝔉"),
+       Str("𝕱"),
+       Str("𝔽"),
+       Str("𝐅"),
+       Str("𝐹"),
+       Str("𝑭"),
+       Str("ℱ"),
+       Str("𝓕"),
+       Str("𝖥"),
+       Str("𝗙"),
+       Str("𝘍"),
+       Str("𝙁"),
+       Str("𝙵")},
     [(int)'G']
-    = {std::string("G"),
-       std::string("⅁"),
-       std::string("𝔊"),
-       std::string("𝕲"),
-       std::string("𝔾"),
-       std::string("𝐆"),
-       std::string("𝐺"),
-       std::string("𝑮"),
-       std::string("𝒢"),
-       std::string("𝓖"),
-       std::string("𝖦"),
-       std::string("𝗚"),
-       std::string("𝘎"),
-       std::string("𝙂"),
-       std::string("𝙶")},
+    = {Str("G"),
+       Str("⅁"),
+       Str("𝔊"),
+       Str("𝕲"),
+       Str("𝔾"),
+       Str("𝐆"),
+       Str("𝐺"),
+       Str("𝑮"),
+       Str("𝒢"),
+       Str("𝓖"),
+       Str("𝖦"),
+       Str("𝗚"),
+       Str("𝘎"),
+       Str("𝙂"),
+       Str("𝙶")},
     [(int)'H']
-    = {std::string("H"),
-       std::string("H"),
-       std::string("ℌ"),
-       std::string("𝕳"),
-       std::string("ℍ"),
-       std::string("𝐇"),
-       std::string("𝐻"),
-       std::string("𝑯"),
-       std::string("ℋ"),
-       std::string("𝓗"),
-       std::string("𝖧"),
-       std::string("𝗛"),
-       std::string("𝘏"),
-       std::string("𝙃"),
-       std::string("𝙷")},
+    = {Str("H"),
+       Str("H"),
+       Str("ℌ"),
+       Str("𝕳"),
+       Str("ℍ"),
+       Str("𝐇"),
+       Str("𝐻"),
+       Str("𝑯"),
+       Str("ℋ"),
+       Str("𝓗"),
+       Str("𝖧"),
+       Str("𝗛"),
+       Str("𝘏"),
+       Str("𝙃"),
+       Str("𝙷")},
     [(int)'I']
-    = {std::string("I"),
-       std::string("I"),
-       std::string("ℑ"),
-       std::string("𝕴"),
-       std::string("𝕀"),
-       std::string("𝐈"),
-       std::string("𝐼"),
-       std::string("𝑰"),
-       std::string("ℐ"),
-       std::string("𝓘"),
-       std::string("𝖨"),
-       std::string("𝗜"),
-       std::string("𝘐"),
-       std::string("𝙄"),
-       std::string("𝙸")},
+    = {Str("I"),
+       Str("I"),
+       Str("ℑ"),
+       Str("𝕴"),
+       Str("𝕀"),
+       Str("𝐈"),
+       Str("𝐼"),
+       Str("𝑰"),
+       Str("ℐ"),
+       Str("𝓘"),
+       Str("𝖨"),
+       Str("𝗜"),
+       Str("𝘐"),
+       Str("𝙄"),
+       Str("𝙸")},
     [(int)'J']
-    = {std::string("J"),
-       std::string("ſ"),
-       std::string("𝔍"),
-       std::string("𝕵"),
-       std::string("𝕁"),
-       std::string("𝐉"),
-       std::string("𝐽"),
-       std::string("𝑱"),
-       std::string("𝒥"),
-       std::string("𝓙"),
-       std::string("𝖩"),
-       std::string("𝗝"),
-       std::string("𝘑"),
-       std::string("𝙅"),
-       std::string("𝙹")},
+    = {Str("J"),
+       Str("ſ"),
+       Str("𝔍"),
+       Str("𝕵"),
+       Str("𝕁"),
+       Str("𝐉"),
+       Str("𝐽"),
+       Str("𝑱"),
+       Str("𝒥"),
+       Str("𝓙"),
+       Str("𝖩"),
+       Str("𝗝"),
+       Str("𝘑"),
+       Str("𝙅"),
+       Str("𝙹")},
     [(int)'K']
-    = {std::string("K"),
-       std::string("Ʞ"),
-       std::string("𝔎"),
-       std::string("𝕶"),
-       std::string("𝕂"),
-       std::string("𝐊"),
-       std::string("𝐾"),
-       std::string("𝑲"),
-       std::string("𝒦"),
-       std::string("𝓚"),
-       std::string("𝖪"),
-       std::string("𝗞"),
-       std::string("𝘒"),
-       std::string("𝙆"),
-       std::string("𝙺")},
+    = {Str("K"),
+       Str("Ʞ"),
+       Str("𝔎"),
+       Str("𝕶"),
+       Str("𝕂"),
+       Str("𝐊"),
+       Str("𝐾"),
+       Str("𝑲"),
+       Str("𝒦"),
+       Str("𝓚"),
+       Str("𝖪"),
+       Str("𝗞"),
+       Str("𝘒"),
+       Str("𝙆"),
+       Str("𝙺")},
     [(int)'L']
-    = {std::string("L"),
-       std::string("Ꞁ"),
-       std::string("𝔏"),
-       std::string("𝕷"),
-       std::string("𝕃"),
-       std::string("𝐋"),
-       std::string("𝐿"),
-       std::string("𝑳"),
-       std::string("ℒ"),
-       std::string("𝓛"),
-       std::string("𝖫"),
-       std::string("𝗟"),
-       std::string("𝘓"),
-       std::string("𝙇"),
-       std::string("𝙻")},
+    = {Str("L"),
+       Str("Ꞁ"),
+       Str("𝔏"),
+       Str("𝕷"),
+       Str("𝕃"),
+       Str("𝐋"),
+       Str("𝐿"),
+       Str("𝑳"),
+       Str("ℒ"),
+       Str("𝓛"),
+       Str("𝖫"),
+       Str("𝗟"),
+       Str("𝘓"),
+       Str("𝙇"),
+       Str("𝙻")},
     [(int)'M']
-    = {std::string("M"),
-       std::string("Ɯ"),
-       std::string("𝔐"),
-       std::string("𝕸"),
-       std::string("𝕄"),
-       std::string("𝐌"),
-       std::string("𝑀"),
-       std::string("𝑴"),
-       std::string("ℳ"),
-       std::string("𝓜"),
-       std::string("𝖬"),
-       std::string("𝗠"),
-       std::string("𝘔"),
-       std::string("𝙈"),
-       std::string("𝙼")},
+    = {Str("M"),
+       Str("Ɯ"),
+       Str("𝔐"),
+       Str("𝕸"),
+       Str("𝕄"),
+       Str("𝐌"),
+       Str("𝑀"),
+       Str("𝑴"),
+       Str("ℳ"),
+       Str("𝓜"),
+       Str("𝖬"),
+       Str("𝗠"),
+       Str("𝘔"),
+       Str("𝙈"),
+       Str("𝙼")},
     [(int)'N']
-    = {std::string("N"),
-       std::string("N"),
-       std::string("𝔑"),
-       std::string("𝕹"),
-       std::string("ℕ"),
-       std::string("𝐍"),
-       std::string("𝑁"),
-       std::string("𝑵"),
-       std::string("𝒩"),
-       std::string("𝓝"),
-       std::string("𝖭"),
-       std::string("𝗡"),
-       std::string("𝘕"),
-       std::string("𝙉"),
-       std::string("𝙽")},
+    = {Str("N"),
+       Str("N"),
+       Str("𝔑"),
+       Str("𝕹"),
+       Str("ℕ"),
+       Str("𝐍"),
+       Str("𝑁"),
+       Str("𝑵"),
+       Str("𝒩"),
+       Str("𝓝"),
+       Str("𝖭"),
+       Str("𝗡"),
+       Str("𝘕"),
+       Str("𝙉"),
+       Str("𝙽")},
     [(int)'O']
-    = {std::string("O"),
-       std::string("O"),
-       std::string("𝔒"),
-       std::string("𝕺"),
-       std::string("𝕆"),
-       std::string("𝐎"),
-       std::string("𝑂"),
-       std::string("𝑶"),
-       std::string("𝒪"),
-       std::string("𝓞"),
-       std::string("𝖮"),
-       std::string("𝗢"),
-       std::string("𝘖"),
-       std::string("𝙊"),
-       std::string("𝙾")},
+    = {Str("O"),
+       Str("O"),
+       Str("𝔒"),
+       Str("𝕺"),
+       Str("𝕆"),
+       Str("𝐎"),
+       Str("𝑂"),
+       Str("𝑶"),
+       Str("𝒪"),
+       Str("𝓞"),
+       Str("𝖮"),
+       Str("𝗢"),
+       Str("𝘖"),
+       Str("𝙊"),
+       Str("𝙾")},
     [(int)'P']
-    = {std::string("P"),
-       std::string("Ԁ"),
-       std::string("𝔓"),
-       std::string("𝕻"),
-       std::string("ℙ"),
-       std::string("𝐏"),
-       std::string("𝑃"),
-       std::string("𝑷"),
-       std::string("𝒫"),
-       std::string("𝓟"),
-       std::string("𝖯"),
-       std::string("𝗣"),
-       std::string("𝘗"),
-       std::string("𝙋"),
-       std::string("𝙿")},
+    = {Str("P"),
+       Str("Ԁ"),
+       Str("𝔓"),
+       Str("𝕻"),
+       Str("ℙ"),
+       Str("𝐏"),
+       Str("𝑃"),
+       Str("𝑷"),
+       Str("𝒫"),
+       Str("𝓟"),
+       Str("𝖯"),
+       Str("𝗣"),
+       Str("𝘗"),
+       Str("𝙋"),
+       Str("𝙿")},
     [(int)'Q']
-    = {std::string("Q"),
-       std::string("Ò"),
-       std::string("𝔔"),
-       std::string("𝕼"),
-       std::string("ℚ"),
-       std::string("𝐐"),
-       std::string("𝑄"),
-       std::string("𝑸"),
-       std::string("𝒬"),
-       std::string("𝓠"),
-       std::string("𝖰"),
-       std::string("𝗤"),
-       std::string("𝘘"),
-       std::string("𝙌"),
-       std::string("𝚀")},
+    = {Str("Q"),
+       Str("Ò"),
+       Str("𝔔"),
+       Str("𝕼"),
+       Str("ℚ"),
+       Str("𝐐"),
+       Str("𝑄"),
+       Str("𝑸"),
+       Str("𝒬"),
+       Str("𝓠"),
+       Str("𝖰"),
+       Str("𝗤"),
+       Str("𝘘"),
+       Str("𝙌"),
+       Str("𝚀")},
     [(int)'R']
-    = {std::string("R"),
-       std::string("ᴚ"),
-       std::string("ℜ"),
-       std::string("𝕽"),
-       std::string("ℝ"),
-       std::string("𝐑"),
-       std::string("𝑅"),
-       std::string("𝑹"),
-       std::string("ℛ"),
-       std::string("𝓡"),
-       std::string("𝖱"),
-       std::string("𝗥"),
-       std::string("𝘙"),
-       std::string("𝙍"),
-       std::string("𝚁")},
+    = {Str("R"),
+       Str("ᴚ"),
+       Str("ℜ"),
+       Str("𝕽"),
+       Str("ℝ"),
+       Str("𝐑"),
+       Str("𝑅"),
+       Str("𝑹"),
+       Str("ℛ"),
+       Str("𝓡"),
+       Str("𝖱"),
+       Str("𝗥"),
+       Str("𝘙"),
+       Str("𝙍"),
+       Str("𝚁")},
     [(int)'S']
-    = {std::string("S"),
-       std::string("S"),
-       std::string("𝔖"),
-       std::string("𝕾"),
-       std::string("𝕊"),
-       std::string("𝐒"),
-       std::string("𝑆"),
-       std::string("𝑺"),
-       std::string("𝒮"),
-       std::string("𝓢"),
-       std::string("𝖲"),
-       std::string("𝗦"),
-       std::string("𝘚"),
-       std::string("𝙎"),
-       std::string("𝚂")},
+    = {Str("S"),
+       Str("S"),
+       Str("𝔖"),
+       Str("𝕾"),
+       Str("𝕊"),
+       Str("𝐒"),
+       Str("𝑆"),
+       Str("𝑺"),
+       Str("𝒮"),
+       Str("𝓢"),
+       Str("𝖲"),
+       Str("𝗦"),
+       Str("𝘚"),
+       Str("𝙎"),
+       Str("𝚂")},
     [(int)'T']
-    = {std::string("T"),
-       std::string("Ʇ"),
-       std::string("𝔗"),
-       std::string("𝕿"),
-       std::string("𝕋"),
-       std::string("𝐓"),
-       std::string("𝑇"),
-       std::string("𝑻"),
-       std::string("𝒯"),
-       std::string("𝓣"),
-       std::string("𝖳"),
-       std::string("𝗧"),
-       std::string("𝘛"),
-       std::string("𝙏"),
-       std::string("𝚃")},
+    = {Str("T"),
+       Str("Ʇ"),
+       Str("𝔗"),
+       Str("𝕿"),
+       Str("𝕋"),
+       Str("𝐓"),
+       Str("𝑇"),
+       Str("𝑻"),
+       Str("𝒯"),
+       Str("𝓣"),
+       Str("𝖳"),
+       Str("𝗧"),
+       Str("𝘛"),
+       Str("𝙏"),
+       Str("𝚃")},
     [(int)'U']
-    = {std::string("U"),
-       std::string("∩"),
-       std::string("𝔘"),
-       std::string("𝖀"),
-       std::string("𝕌"),
-       std::string("𝐔"),
-       std::string("𝑈"),
-       std::string("𝑼"),
-       std::string("𝒰"),
-       std::string("𝓤"),
-       std::string("𝖴"),
-       std::string("𝗨"),
-       std::string("𝘜"),
-       std::string("𝙐"),
-       std::string("𝚄")},
+    = {Str("U"),
+       Str("∩"),
+       Str("𝔘"),
+       Str("𝖀"),
+       Str("𝕌"),
+       Str("𝐔"),
+       Str("𝑈"),
+       Str("𝑼"),
+       Str("𝒰"),
+       Str("𝓤"),
+       Str("𝖴"),
+       Str("𝗨"),
+       Str("𝘜"),
+       Str("𝙐"),
+       Str("𝚄")},
     [(int)'V']
-    = {std::string("V"),
-       std::string("Ʌ"),
-       std::string("𝔙"),
-       std::string("𝖁"),
-       std::string("𝕍"),
-       std::string("𝐕"),
-       std::string("𝑉"),
-       std::string("𝑽"),
-       std::string("𝒱"),
-       std::string("𝓥"),
-       std::string("𝖵"),
-       std::string("𝗩"),
-       std::string("𝘝"),
-       std::string("𝙑"),
-       std::string("𝚅")},
+    = {Str("V"),
+       Str("Ʌ"),
+       Str("𝔙"),
+       Str("𝖁"),
+       Str("𝕍"),
+       Str("𝐕"),
+       Str("𝑉"),
+       Str("𝑽"),
+       Str("𝒱"),
+       Str("𝓥"),
+       Str("𝖵"),
+       Str("𝗩"),
+       Str("𝘝"),
+       Str("𝙑"),
+       Str("𝚅")},
     [(int)'W']
-    = {std::string("W"),
-       std::string("ʍ"),
-       std::string("𝔚"),
-       std::string("𝖂"),
-       std::string("𝕎"),
-       std::string("𝐖"),
-       std::string("𝑊"),
-       std::string("𝑾"),
-       std::string("𝒲"),
-       std::string("𝓦"),
-       std::string("𝖶"),
-       std::string("𝗪"),
-       std::string("𝘞"),
-       std::string("𝙒"),
-       std::string("𝚆")},
+    = {Str("W"),
+       Str("ʍ"),
+       Str("𝔚"),
+       Str("𝖂"),
+       Str("𝕎"),
+       Str("𝐖"),
+       Str("𝑊"),
+       Str("𝑾"),
+       Str("𝒲"),
+       Str("𝓦"),
+       Str("𝖶"),
+       Str("𝗪"),
+       Str("𝘞"),
+       Str("𝙒"),
+       Str("𝚆")},
     [(int)'X']
-    = {std::string("X"),
-       std::
-           string("X"),
-       std::
-           string("𝔛"),
-       std::
-           string("𝖃"),
-       std::
-           string("𝕏"),
-       std::
-           string("𝐗"),
-       std::
-           string("𝑋"),
-       std::
-           string("𝑿"),
-       std::
-           string("𝒳"),
-       std::
-           string("𝓧"),
-       std::
-           string("𝖷"),
-       std::
-           string("𝗫"),
-       std::
-           string("𝘟"),
-       std::
-           string("𝙓"),
-       std::
-           string("𝚇")},
+    = {Str("X"),
+       Str("X"),
+       Str("𝔛"),
+       Str("𝖃"),
+       Str("𝕏"),
+       Str("𝐗"),
+       Str("𝑋"),
+       Str("𝑿"),
+       Str("𝒳"),
+       Str("𝓧"),
+       Str("𝖷"),
+       Str("𝗫"),
+       Str("𝘟"),
+       Str("𝙓"),
+       Str("𝚇")},
     [(int)'Y']
-    = {std::string("Y"),
-       std::
-           string("⅄"),
-       std::
-           string("𝔜"),
-       std::
-           string("𝖄"),
-       std::
-           string("𝕐"),
-       std::
-           string("𝐘"),
-       std::
-           string("𝑌"),
-       std::
-           string("𝒀"),
-       std::
-           string("𝒴"),
-       std::
-           string("𝓨"),
-       std::
-           string("𝖸"),
-       std::
-           string("𝗬"),
-       std::
-           string("𝘠"),
-       std::
-           string("𝙔"),
-       std::
-           string("𝚈")},
+    = {Str("Y"),
+       Str("⅄"),
+       Str("𝔜"),
+       Str("𝖄"),
+       Str("𝕐"),
+       Str("𝐘"),
+       Str("𝑌"),
+       Str("𝒀"),
+       Str("𝒴"),
+       Str("𝓨"),
+       Str("𝖸"),
+       Str("𝗬"),
+       Str("𝘠"),
+       Str("𝙔"),
+       Str("𝚈")},
     [(int)'Z']
-    = {std::string("Z"),
-       std::
-           string("Z"),
-       std::
-           string("ℨ"),
-       std::
-           string("𝖅"),
-       std::
-           string("ℤ"),
-       std::
-           string("𝐙"),
-       std::
-           string("𝑍"),
-       std::
-           string("𝒁"),
-       std::
-           string("𝒵"),
-       std::
-           string("𝓩"),
-       std::
-           string("𝖹"),
-       std::
-           string("𝗭"),
-       std::
-           string("𝘡"),
-       std::
-           string("𝙕"),
-       std::
-           string("𝚉")},
+    = {Str("Z"),
+       Str("Z"),
+       Str("ℨ"),
+       Str("𝖅"),
+       Str("ℤ"),
+       Str("𝐙"),
+       Str("𝑍"),
+       Str("𝒁"),
+       Str("𝒵"),
+       Str("𝓩"),
+       Str("𝖹"),
+       Str("𝗭"),
+       Str("𝘡"),
+       Str("𝙕"),
+       Str("𝚉")},
     [(int)'a']
-    = {std::string("a"),
-       std::
-           string("ɐ"),
-       std::
-           string("𝔞"),
-       std::
-           string("𝖆"),
-       std::
-           string("𝕒"),
-       std::
-           string("𝐚"),
-       std::
-           string("𝑎"),
-       std::
-           string("𝒂"),
-       std::
-           string("𝒶"),
-       std::
-           string("𝓪"),
-       std::
-           string("𝖺"),
-       std::
-           string("𝗮"),
-       std::
-           string("𝘢"),
-       std::
-           string("𝙖"),
-       std::
-           string("𝚊")},
+    = {Str("a"),
+       Str("ɐ"),
+       Str("𝔞"),
+       Str("𝖆"),
+       Str("𝕒"),
+       Str("𝐚"),
+       Str("𝑎"),
+       Str("𝒂"),
+       Str("𝒶"),
+       Str("𝓪"),
+       Str("𝖺"),
+       Str("𝗮"),
+       Str("𝘢"),
+       Str("𝙖"),
+       Str("𝚊")},
     [(int)'b']
-    = {std::string("b"),
-       std::
-           string("q"),
-       std::
-           string("𝔟"),
-       std::
-           string("𝖇"),
-       std::
-           string("𝕓"),
-       std::
-           string("𝐛"),
-       std::
-           string("𝑏"),
-       std::
-           string("𝒃"),
-       std::
-           string("𝒷"),
-       std::
-           string("𝓫"),
-       std::
-           string("𝖻"),
-       std::
-           string("𝗯"),
-       std::
-           string("𝘣"),
-       std::
-           string("𝙗"),
-       std::
-           string("𝚋")},
+    = {Str("b"),
+       Str("q"),
+       Str("𝔟"),
+       Str("𝖇"),
+       Str("𝕓"),
+       Str("𝐛"),
+       Str("𝑏"),
+       Str("𝒃"),
+       Str("𝒷"),
+       Str("𝓫"),
+       Str("𝖻"),
+       Str("𝗯"),
+       Str("𝘣"),
+       Str("𝙗"),
+       Str("𝚋")},
     [(int)'c']
-    = {std::string("c"),
-       std::
-           string("ɔ"),
-       std::
-           string("𝔠"),
-       std::
-           string("𝖈"),
-       std::
-           string("𝕔"),
-       std::
-           string("𝐜"),
-       std::
-           string("𝑐"),
-       std::
-           string("𝒄"),
-       std::
-           string("𝒸"),
-       std::
-           string("𝓬"),
-       std::
-           string("𝖼"),
-       std::
-           string("𝗰"),
-       std::
-           string("𝘤"),
-       std::
-           string("𝙘"),
-       std::
-           string("𝚌")},
+    = {Str("c"),
+       Str("ɔ"),
+       Str("𝔠"),
+       Str("𝖈"),
+       Str("𝕔"),
+       Str("𝐜"),
+       Str("𝑐"),
+       Str("𝒄"),
+       Str("𝒸"),
+       Str("𝓬"),
+       Str("𝖼"),
+       Str("𝗰"),
+       Str("𝘤"),
+       Str("𝙘"),
+       Str("𝚌")},
     [(int)'d']
-    = {std::string("d"),
-       std::
-           string("p"),
-       std::
-           string("𝔡"),
-       std::
-           string("𝖉"),
-       std::
-           string("𝕕"),
-       std::
-           string("𝐝"),
-       std::
-           string("𝑑"),
-       std::
-           string("𝒅"),
-       std::
-           string("𝒹"),
-       std::
-           string("𝓭"),
-       std::
-           string("𝖽"),
-       std::
-           string("𝗱"),
-       std::
-           string("𝘥"),
-       std::
-           string("𝙙"),
-       std::
-           string("𝚍")},
+    = {Str("d"),
+       Str("p"),
+       Str("𝔡"),
+       Str("𝖉"),
+       Str("𝕕"),
+       Str("𝐝"),
+       Str("𝑑"),
+       Str("𝒅"),
+       Str("𝒹"),
+       Str("𝓭"),
+       Str("𝖽"),
+       Str("𝗱"),
+       Str("𝘥"),
+       Str("𝙙"),
+       Str("𝚍")},
     [(int)'e']
-    = {std::string("e"),
-       std::
-           string("ǝ"),
-       std::
-           string("𝔢"),
-       std::
-           string("𝖊"),
-       std::
-           string("𝕖"),
-       std::
-           string("𝐞"),
-       std::
-           string("𝑒"),
-       std::
-           string("𝒆"),
-       std::
-           string("ℯ"),
-       std::
-           string("𝓮"),
-       std::
-           string("𝖾"),
-       std::
-           string("𝗲"),
-       std::
-           string("𝘦"),
-       std::
-           string("𝙚"),
-       std::
-           string("𝚎")},
+    = {Str("e"),
+       Str("ǝ"),
+       Str("𝔢"),
+       Str("𝖊"),
+       Str("𝕖"),
+       Str("𝐞"),
+       Str("𝑒"),
+       Str("𝒆"),
+       Str("ℯ"),
+       Str("𝓮"),
+       Str("𝖾"),
+       Str("𝗲"),
+       Str("𝘦"),
+       Str("𝙚"),
+       Str("𝚎")},
     [(int)'f']
-    = {std::string("f"),
-       std::
-           string("ɟ"),
-       std::
-           string("𝔣"),
-       std::
-           string("𝖋"),
-       std::
-           string("𝕗"),
-       std::
-           string("𝐟"),
-       std::
-           string("𝑓"),
-       std::
-           string("𝒇"),
-       std::
-           string("𝒻"),
-       std::
-           string("𝓯"),
-       std::
-           string("𝖿"),
-       std::
-           string("𝗳"),
-       std::
-           string("𝘧"),
-       std::
-           string("𝙛"),
-       std::
-           string("𝚏")},
+    = {Str("f"),
+       Str("ɟ"),
+       Str("𝔣"),
+       Str("𝖋"),
+       Str("𝕗"),
+       Str("𝐟"),
+       Str("𝑓"),
+       Str("𝒇"),
+       Str("𝒻"),
+       Str("𝓯"),
+       Str("𝖿"),
+       Str("𝗳"),
+       Str("𝘧"),
+       Str("𝙛"),
+       Str("𝚏")},
     [(int)'g']
-    = {std::string("g"),
-       std::
-           string("ᵷ"),
-       std::
-           string("𝔤"),
-       std::
-           string("𝖌"),
-       std::
-           string("𝕘"),
-       std::
-           string("𝐠"),
-       std::
-           string("𝑔"),
-       std::
-           string("𝒈"),
-       std::
-           string("ℊ"),
-       std::
-           string("𝓰"),
-       std::
-           string("𝗀"),
-       std::
-           string("𝗴"),
-       std::
-           string("𝘨"),
-       std::
-           string("𝙜"),
-       std::
-           string("𝚐")},
+    = {Str("g"),
+       Str("ᵷ"),
+       Str("𝔤"),
+       Str("𝖌"),
+       Str("𝕘"),
+       Str("𝐠"),
+       Str("𝑔"),
+       Str("𝒈"),
+       Str("ℊ"),
+       Str("𝓰"),
+       Str("𝗀"),
+       Str("𝗴"),
+       Str("𝘨"),
+       Str("𝙜"),
+       Str("𝚐")},
     [(int)'h']
-    = {std::string("h"),
-       std::
-           string("ɥ"),
-       std::
-           string("𝔥"),
-       std::
-           string("𝖍"),
-       std::
-           string("𝕙"),
-       std::
-           string("𝐡"),
-       std::
-           string("ℎ"),
-       std::
-           string("𝒉"),
-       std::
-           string("𝒽"),
-       std::
-           string("𝓱"),
-       std::
-           string("𝗁"),
-       std::
-           string("𝗵"),
-       std::
-           string("𝘩"),
-       std::
-           string("𝙝"),
-       std::
-           string("𝚑")},
+    = {Str("h"),
+       Str("ɥ"),
+       Str("𝔥"),
+       Str("𝖍"),
+       Str("𝕙"),
+       Str("𝐡"),
+       Str("ℎ"),
+       Str("𝒉"),
+       Str("𝒽"),
+       Str("𝓱"),
+       Str("𝗁"),
+       Str("𝗵"),
+       Str("𝘩"),
+       Str("𝙝"),
+       Str("𝚑")},
     [(int)'i']
-    = {std::string("i"),
-       std::
-           string("ᴉ"),
-       std::
-           string("𝔦"),
-       std::
-           string("𝖎"),
-       std::
-           string("𝕚"),
-       std::
-           string("𝐢"),
-       std::
-           string("𝑖"),
-       std::
-           string("𝒊"),
-       std::
-           string("𝒾"),
-       std::
-           string("𝓲"),
-       std::
-           string("𝗂"),
-       std::
-           string("𝗶"),
-       std::
-           string("𝘪"),
-       std::
-           string("𝙞"),
-       std::
-           string("𝚒")},
+    = {Str("i"),
+       Str("ᴉ"),
+       Str("𝔦"),
+       Str("𝖎"),
+       Str("𝕚"),
+       Str("𝐢"),
+       Str("𝑖"),
+       Str("𝒊"),
+       Str("𝒾"),
+       Str("𝓲"),
+       Str("𝗂"),
+       Str("𝗶"),
+       Str("𝘪"),
+       Str("𝙞"),
+       Str("𝚒")},
     [(int)'j']
-    = {std::string("j"),
-       std::
-           string("f"),
-       std::
-           string("𝔧"),
-       std::
-           string("𝖏"),
-       std::
-           string("𝕛"),
-       std::
-           string("𝐣"),
-       std::
-           string("𝑗"),
-       std::
-           string("𝒋"),
-       std::
-           string("𝒿"),
-       std::
-           string("𝓳"),
-       std::
-           string("𝗃"),
-       std::
-           string("𝗷"),
-       std::
-           string("𝘫"),
-       std::
-           string("𝙟"),
-       std::
-           string("𝚓")},
+    = {Str("j"),
+       Str("f"),
+       Str("𝔧"),
+       Str("𝖏"),
+       Str("𝕛"),
+       Str("𝐣"),
+       Str("𝑗"),
+       Str("𝒋"),
+       Str("𝒿"),
+       Str("𝓳"),
+       Str("𝗃"),
+       Str("𝗷"),
+       Str("𝘫"),
+       Str("𝙟"),
+       Str("𝚓")},
     [(int)'k']
-    = {std::string("k"),
-       std::
-           string("ʞ"),
-       std::
-           string("𝔨"),
-       std::
-           string("𝖐"),
-       std::
-           string("𝕜"),
-       std::
-           string("𝐤"),
-       std::
-           string("𝑘"),
-       std::
-           string("𝒌"),
-       std::
-           string("𝓀"),
-       std::
-           string("𝓴"),
-       std::
-           string("𝗄"),
-       std::
-           string("𝗸"),
-       std::
-           string("𝘬"),
-       std::
-           string("𝙠"),
-       std::
-           string("𝚔")},
+    = {Str("k"),
+       Str("ʞ"),
+       Str("𝔨"),
+       Str("𝖐"),
+       Str("𝕜"),
+       Str("𝐤"),
+       Str("𝑘"),
+       Str("𝒌"),
+       Str("𝓀"),
+       Str("𝓴"),
+       Str("𝗄"),
+       Str("𝗸"),
+       Str("𝘬"),
+       Str("𝙠"),
+       Str("𝚔")},
     [(int)'l']
-    = {std::string("l"),
-       std::
-           string("ꞁ"),
-       std::
-           string("𝔩"),
-       std::
-           string("𝖑"),
-       std::
-           string("𝕝"),
-       std::
-           string("𝐥"),
-       std::
-           string("𝑙"),
-       std::
-           string("𝒍"),
-       std::
-           string("𝓁"),
-       std::
-           string("𝓵"),
-       std::
-           string("𝗅"),
-       std::
-           string("𝗹"),
-       std::
-           string("𝘭"),
-       std::
-           string("𝙡"),
-       std::
-           string("𝚕")},
+    = {Str("l"),
+       Str("ꞁ"),
+       Str("𝔩"),
+       Str("𝖑"),
+       Str("𝕝"),
+       Str("𝐥"),
+       Str("𝑙"),
+       Str("𝒍"),
+       Str("𝓁"),
+       Str("𝓵"),
+       Str("𝗅"),
+       Str("𝗹"),
+       Str("𝘭"),
+       Str("𝙡"),
+       Str("𝚕")},
     [(int)'m']
-    = {std::string("m"),
-       std::
-           string("ɯ"),
-       std::
-           string("𝔪"),
-       std::
-           string("𝖒"),
-       std::
-           string("𝕞"),
-       std::
-           string("𝐦"),
-       std::
-           string("𝑚"),
-       std::
-           string("𝒎"),
-       std::
-           string("𝓂"),
-       std::
-           string("𝓶"),
-       std::
-           string("𝗆"),
-       std::
-           string("𝗺"),
-       std::
-           string("𝘮"),
-       std::
-           string("𝙢"),
-       std::
-           string("𝚖")},
+    = {Str("m"),
+       Str("ɯ"),
+       Str("𝔪"),
+       Str("𝖒"),
+       Str("𝕞"),
+       Str("𝐦"),
+       Str("𝑚"),
+       Str("𝒎"),
+       Str("𝓂"),
+       Str("𝓶"),
+       Str("𝗆"),
+       Str("𝗺"),
+       Str("𝘮"),
+       Str("𝙢"),
+       Str("𝚖")},
     [(int)'n']
-    = {std::string("n"),
-       std::
-           string("u"),
-       std::
-           string("𝔫"),
-       std::
-           string("𝖓"),
-       std::
-           string("𝕟"),
-       std::
-           string("𝐧"),
-       std::
-           string("𝑛"),
-       std::
-           string("𝒏"),
-       std::
-           string("𝓃"),
-       std::
-           string("𝓷"),
-       std::
-           string("𝗇"),
-       std::
-           string("𝗻"),
-       std::
-           string("𝘯"),
-       std::
-           string("𝙣"),
-       std::
-           string("𝚗")},
+    = {Str("n"),
+       Str("u"),
+       Str("𝔫"),
+       Str("𝖓"),
+       Str("𝕟"),
+       Str("𝐧"),
+       Str("𝑛"),
+       Str("𝒏"),
+       Str("𝓃"),
+       Str("𝓷"),
+       Str("𝗇"),
+       Str("𝗻"),
+       Str("𝘯"),
+       Str("𝙣"),
+       Str("𝚗")},
     [(int)'o']
-    = {std::string("o"),
-       std::
-           string("o"),
-       std::
-           string("𝔬"),
-       std::
-           string("𝖔"),
-       std::
-           string("𝕠"),
-       std::
-           string("𝐨"),
-       std::
-           string("𝑜"),
-       std::
-           string("𝒐"),
-       std::
-           string("ℴ"),
-       std::
-           string("𝓸"),
-       std::
-           string("𝗈"),
-       std::
-           string("𝗼"),
-       std::
-           string("𝘰"),
-       std::
-           string("𝙤"),
-       std::
-           string("𝚘")},
+    = {Str("o"),
+       Str("o"),
+       Str("𝔬"),
+       Str("𝖔"),
+       Str("𝕠"),
+       Str("𝐨"),
+       Str("𝑜"),
+       Str("𝒐"),
+       Str("ℴ"),
+       Str("𝓸"),
+       Str("𝗈"),
+       Str("𝗼"),
+       Str("𝘰"),
+       Str("𝙤"),
+       Str("𝚘")},
     [(int)'p']
-    = {std::string("p"),
-       std::
-           string("d"),
-       std::
-           string("𝔭"),
-       std::
-           string("𝖕"),
-       std::
-           string("𝕡"),
-       std::
-           string("𝐩"),
-       std::
-           string("𝑝"),
-       std::
-           string("𝒑"),
-       std::
-           string("𝓅"),
-       std::
-           string("𝓹"),
-       std::
-           string("𝗉"),
-       std::
-           string("𝗽"),
-       std::
-           string("𝘱"),
-       std::
-           string("𝙥"),
-       std::
-           string("𝚙")},
+    = {Str("p"),
+       Str("d"),
+       Str("𝔭"),
+       Str("𝖕"),
+       Str("𝕡"),
+       Str("𝐩"),
+       Str("𝑝"),
+       Str("𝒑"),
+       Str("𝓅"),
+       Str("𝓹"),
+       Str("𝗉"),
+       Str("𝗽"),
+       Str("𝘱"),
+       Str("𝙥"),
+       Str("𝚙")},
     [(int)'q']
-    = {std::string("q"),
-       std::
-           string("b"),
-       std::
-           string("𝔮"),
-       std::
-           string("𝖖"),
-       std::
-           string("𝕢"),
-       std::
-           string("𝐪"),
-       std::
-           string("𝑞"),
-       std::
-           string("𝒒"),
-       std::
-           string("𝓆"),
-       std::
-           string("𝓺"),
-       std::
-           string("𝗊"),
-       std::
-           string("𝗾"),
-       std::
-           string("𝘲"),
-       std::
-           string("𝙦"),
-       std::
-           string("𝚚")},
+    = {Str("q"),
+       Str("b"),
+       Str("𝔮"),
+       Str("𝖖"),
+       Str("𝕢"),
+       Str("𝐪"),
+       Str("𝑞"),
+       Str("𝒒"),
+       Str("𝓆"),
+       Str("𝓺"),
+       Str("𝗊"),
+       Str("𝗾"),
+       Str("𝘲"),
+       Str("𝙦"),
+       Str("𝚚")},
     [(int)'r']
-    = {std::string("r"),
-       std::
-           string("ɹ"),
-       std::
-           string("𝔯"),
-       std::
-           string("𝖗"),
-       std::
-           string("𝕣"),
-       std::
-           string("𝐫"),
-       std::
-           string("𝑟"),
-       std::
-           string("𝒓"),
-       std::
-           string("𝓇"),
-       std::
-           string("𝓻"),
-       std::
-           string("𝗋"),
-       std::
-           string("𝗿"),
-       std::
-           string("𝘳"),
-       std::
-           string("𝙧"),
-       std::
-           string("𝚛")},
+    = {Str("r"),
+       Str("ɹ"),
+       Str("𝔯"),
+       Str("𝖗"),
+       Str("𝕣"),
+       Str("𝐫"),
+       Str("𝑟"),
+       Str("𝒓"),
+       Str("𝓇"),
+       Str("𝓻"),
+       Str("𝗋"),
+       Str("𝗿"),
+       Str("𝘳"),
+       Str("𝙧"),
+       Str("𝚛")},
     [(int)'s']
-    = {std::string("s"),
-       std::
-           string("s"),
-       std::
-           string("𝔰"),
-       std::
-           string("𝖘"),
-       std::
-           string("𝕤"),
-       std::
-           string("𝐬"),
-       std::
-           string("𝑠"),
-       std::
-           string("𝒔"),
-       std::
-           string("𝓈"),
-       std::
-           string("𝓼"),
-       std::
-           string("𝗌"),
-       std::
-           string("𝘀"),
-       std::
-           string("𝘴"),
-       std::
-           string("𝙨"),
-       std::
-           string("𝚜")},
+    = {Str("s"),
+       Str("s"),
+       Str("𝔰"),
+       Str("𝖘"),
+       Str("𝕤"),
+       Str("𝐬"),
+       Str("𝑠"),
+       Str("𝒔"),
+       Str("𝓈"),
+       Str("𝓼"),
+       Str("𝗌"),
+       Str("𝘀"),
+       Str("𝘴"),
+       Str("𝙨"),
+       Str("𝚜")},
     [(int)'t']
-    = {std::string("t"),
-       std::
-           string("ʇ"),
-       std::
-           string("𝔱"),
-       std::
-           string("𝖙"),
-       std::
-           string("𝕥"),
-       std::
-           string("𝐭"),
-       std::
-           string("𝑡"),
-       std::
-           string("𝒕"),
-       std::
-           string("𝓉"),
-       std::
-           string("𝓽"),
-       std::
-           string("𝗍"),
-       std::
-           string("𝘁"),
-       std::
-           string("𝘵"),
-       std::
-           string("𝙩"),
-       std::
-           string("𝚝")},
+    = {Str("t"),
+       Str("ʇ"),
+       Str("𝔱"),
+       Str("𝖙"),
+       Str("𝕥"),
+       Str("𝐭"),
+       Str("𝑡"),
+       Str("𝒕"),
+       Str("𝓉"),
+       Str("𝓽"),
+       Str("𝗍"),
+       Str("𝘁"),
+       Str("𝘵"),
+       Str("𝙩"),
+       Str("𝚝")},
     [(int)'u']
-    = {std::string("u"),
-       std::
-           string("n"),
-       std::
-           string("𝔲"),
-       std::
-           string("𝖚"),
-       std::
-           string("𝕦"),
-       std::
-           string("𝐮"),
-       std::
-           string("𝑢"),
-       std::
-           string("𝒖"),
-       std::
-           string("𝓊"),
-       std::
-           string("𝓾"),
-       std::
-           string("𝗎"),
-       std::
-           string("𝘂"),
-       std::
-           string("𝘶"),
-       std::
-           string("𝙪"),
-       std::
-           string("𝚞")},
+    = {Str("u"),
+       Str("n"),
+       Str("𝔲"),
+       Str("𝖚"),
+       Str("𝕦"),
+       Str("𝐮"),
+       Str("𝑢"),
+       Str("𝒖"),
+       Str("𝓊"),
+       Str("𝓾"),
+       Str("𝗎"),
+       Str("𝘂"),
+       Str("𝘶"),
+       Str("𝙪"),
+       Str("𝚞")},
     [(int)'v']
-    = {std::string("v"),
-       std::
-           string("ʌ"),
-       std::
-           string("𝔳"),
-       std::
-           string("𝖛"),
-       std::
-           string("𝕧"),
-       std::
-           string("𝐯"),
-       std::
-           string("𝑣"),
-       std::
-           string("𝒗"),
-       std::
-           string("𝓋"),
-       std::
-           string("𝓿"),
-       std::
-           string("𝗏"),
-       std::
-           string("𝘃"),
-       std::
-           string("𝘷"),
-       std::
-           string("𝙫"),
-       std::
-           string("𝚟")},
+    = {Str("v"),
+       Str("ʌ"),
+       Str("𝔳"),
+       Str("𝖛"),
+       Str("𝕧"),
+       Str("𝐯"),
+       Str("𝑣"),
+       Str("𝒗"),
+       Str("𝓋"),
+       Str("𝓿"),
+       Str("𝗏"),
+       Str("𝘃"),
+       Str("𝘷"),
+       Str("𝙫"),
+       Str("𝚟")},
     [(int)'w']
-    = {std::string("w"),
-       std::
-           string("ʍ"),
-       std::
-           string("𝔴"),
-       std::
-           string("𝖜"),
-       std::
-           string("𝕨"),
-       std::
-           string("𝐰"),
-       std::
-           string("𝑤"),
-       std::
-           string("𝒘"),
-       std::
-           string("𝓌"),
-       std::
-           string("𝔀"),
-       std::
-           string("𝗐"),
-       std::
-           string("𝘄"),
-       std::
-           string("𝘸"),
-       std::
-           string("𝙬"),
-       std::
-           string("𝚠")},
+    = {Str("w"),
+       Str("ʍ"),
+       Str("𝔴"),
+       Str("𝖜"),
+       Str("𝕨"),
+       Str("𝐰"),
+       Str("𝑤"),
+       Str("𝒘"),
+       Str("𝓌"),
+       Str("𝔀"),
+       Str("𝗐"),
+       Str("𝘄"),
+       Str("𝘸"),
+       Str("𝙬"),
+       Str("𝚠")},
     [(int)'x']
     = {std::string("x"),
-       std::
-           string("x"),
-       std::
-           string("𝔵"),
-       std::
-           string("𝖝"),
-       std::
-           string("𝕩"),
-       std::
-           string("𝐱"),
-       std::
-           string("𝑥"),
-       std::
-           string("𝒙"),
-       std::
-           string("𝓍"),
-       std::
-           string("𝔁"),
-       std::
-           string("𝗑"),
-       std::
-           string("𝘅"),
-       std::
-           string("𝘹"),
-       std::
-           string("𝙭"),
-       std::
-           string("𝚡")},
+       Str("x"),
+       Str("𝔵"),
+       Str("𝖝"),
+       Str("𝕩"),
+       Str("𝐱"),
+       Str("𝑥"),
+       Str("𝒙"),
+       Str("𝓍"),
+       Str("𝔁"),
+       Str("𝗑"),
+       Str("𝘅"),
+       Str("𝘹"),
+       Str("𝙭"),
+       Str("𝚡")},
     [(int)'y']
     = {std::string("y"),
-       std::
-           string("ʎ"),
-       std::
-           string("𝔶"),
-       std::
-           string("𝖞"),
-       std::
-           string("𝕪"),
-       std::
-           string("𝐲"),
-       std::
-           string("𝑦"),
-       std::
-           string("𝒚"),
-       std::
-           string("𝓎"),
-       std::
-           string("𝔂"),
-       std::
-           string("𝗒"),
-       std::
-           string("𝘆"),
-       std::
-           string("𝘺"),
-       std::
-           string("𝙮"),
-       std::
-           string("𝚢")},
+       Str("ʎ"),
+       Str("𝔶"),
+       Str("𝖞"),
+       Str("𝕪"),
+       Str("𝐲"),
+       Str("𝑦"),
+       Str("𝒚"),
+       Str("𝓎"),
+       Str("𝔂"),
+       Str("𝗒"),
+       Str("𝘆"),
+       Str("𝘺"),
+       Str("𝙮"),
+       Str("𝚢")},
     [(int)'z']
     = {std::string("z"),
-       std::
-           string("z"),
-       std::
-           string("𝔷"),
-       std::
-           string("𝖟"),
-       std::
-           string("𝕫"),
-       std::
-           string("𝐳"),
-       std::
-           string("𝑧"),
-       std::
-           string("𝒛"),
-       std::
-           string("𝓏"),
-       std::
-           string("𝔃"),
-       std::
-           string("𝗓"),
-       std::
-           string("𝘇"),
-       std::
-           string("𝘻"),
-       std::
-           string("𝙯"),
-       std::
-           string("𝚣")},
+       Str("z"),
+       Str("𝔷"),
+       Str("𝖟"),
+       Str("𝕫"),
+       Str("𝐳"),
+       Str("𝑧"),
+       Str("𝒛"),
+       Str("𝓏"),
+       Str("𝔃"),
+       Str("𝗓"),
+       Str("𝘇"),
+       Str("𝘻"),
+       Str("𝙯"),
+       Str("𝚣")},
     [(int)'0']
     = {std::string("0"),
-       std::
-           string("0"),
-       std::
-           string("0"),
-       std::
-           string("0"),
-       std::
-           string("𝟘"),
-       std::
-           string("𝟎"),
-       std::
-           string("0"),
-       std::
-           string("0"),
-       std::
-           string("0"),
-       std::
-           string("0"),
-       std::
-           string("0"),
-       std::
-           string("𝟢"),
-       std::
-           string("𝟬"),
-       std::
-           string("0"),
-       std::
-           string("𝟶")},
+       Str("0"),
+       Str("0"),
+       Str("0"),
+       Str("𝟘"),
+       Str("𝟎"),
+       Str("0"),
+       Str("0"),
+       Str("0"),
+       Str("0"),
+       Str("0"),
+       Str("𝟢"),
+       Str("𝟬"),
+       Str("0"),
+       Str("𝟶")},
     [(int)'1']
     = {std::string("1"),
-       std::
-           string("1"),
-       std::
-           string("1"),
-       std::
-           string("1"),
-       std::
-           string("𝟙"),
-       std::
-           string("𝟏"),
-       std::
-           string("1"),
-       std::
-           string("1"),
-       std::
-           string("1"),
-       std::
-           string("1"),
-       std::
-           string("1"),
-       std::
-           string("𝟣"),
-       std::
-           string("𝟭"),
-       std::
-           string("1"),
-       std::
-           string("𝟷")},
+       Str("1"),
+       Str("1"),
+       Str("1"),
+       Str("𝟙"),
+       Str("𝟏"),
+       Str("1"),
+       Str("1"),
+       Str("1"),
+       Str("1"),
+       Str("1"),
+       Str("𝟣"),
+       Str("𝟭"),
+       Str("1"),
+       Str("𝟷")},
     [(int)'2']
     = {std::string("2"),
-       std::
-           string("2"),
-       std::
-           string("2"),
-       std::
-           string("2"),
-       std::
-           string("𝟚"),
-       std::
-           string("𝟐"),
-       std::
-           string("2"),
-       std::
-           string("2"),
-       std::
-           string("2"),
-       std::
-           string("2"),
-       std::
-           string("2"),
-       std::
-           string("𝟤"),
-       std::
-           string("𝟮"),
-       std::
-           string("2"),
-       std::
-           string("𝟸")},
+       Str("2"),
+       Str("2"),
+       Str("2"),
+       Str("𝟚"),
+       Str("𝟐"),
+       Str("2"),
+       Str("2"),
+       Str("2"),
+       Str("2"),
+       Str("2"),
+       Str("𝟤"),
+       Str("𝟮"),
+       Str("2"),
+       Str("𝟸")},
     [(int)'3']
     = {std::string("3"),
-       std::
-           string("3"),
-       std::
-           string("3"),
-       std::
-           string("3"),
-       std::
-           string("𝟛"),
-       std::
-           string("𝟑"),
-       std::
-           string("3"),
-       std::
-           string("3"),
-       std::
-           string("3"),
-       std::
-           string("3"),
-       std::
-           string("3"),
-       std::
-           string("𝟥"),
-       std::
-           string("𝟯"),
-       std::
-           string("3"),
-       std::
-           string("𝟹")},
+       Str("3"),
+       Str("3"),
+       Str("3"),
+       Str("𝟛"),
+       Str("𝟑"),
+       Str("3"),
+       Str("3"),
+       Str("3"),
+       Str("3"),
+       Str("3"),
+       Str("𝟥"),
+       Str("𝟯"),
+       Str("3"),
+       Str("𝟹")},
     [(int)'4']
     = {std::string("4"),
-       std::
-           string("4"),
-       std::
-           string("4"),
-       std::
-           string("4"),
-       std::
-           string("𝟜"),
-       std::
-           string("𝟒"),
-       std::
-           string("4"),
-       std::
-           string("4"),
-       std::
-           string("4"),
-       std::
-           string("4"),
-       std::
-           string("4"),
-       std::
-           string("𝟦"),
-       std::
-           string("𝟰"),
-       std::
-           string("4"),
-       std::
-           string("𝟺")},
+       Str("4"),
+       Str("4"),
+       Str("4"),
+       Str("𝟜"),
+       Str("𝟒"),
+       Str("4"),
+       Str("4"),
+       Str("4"),
+       Str("4"),
+       Str("4"),
+       Str("𝟦"),
+       Str("𝟰"),
+       Str("4"),
+       Str("𝟺")},
     [(int)'5']
     = {std::string("5"),
-       std::
-           string("5"),
-       std::
-           string("5"),
-       std::
-           string("5"),
-       std::
-           string("𝟝"),
-       std::
-           string("𝟓"),
-       std::
-           string("5"),
-       std::
-           string("5"),
-       std::
-           string("5"),
-       std::
-           string("5"),
-       std::
-           string("5"),
-       std::
-           string("𝟧"),
-       std::
-           string("𝟱"),
-       std::
-           string("5"),
-       std::
-           string("𝟻")},
+       Str("5"),
+       Str("5"),
+       Str("5"),
+       Str("𝟝"),
+       Str("𝟓"),
+       Str("5"),
+       Str("5"),
+       Str("5"),
+       Str("5"),
+       Str("5"),
+       Str("𝟧"),
+       Str("𝟱"),
+       Str("5"),
+       Str("𝟻")},
     [(int)'6']
     = {std::string("6"),
-       std::
-           string("6"),
-       std::
-           string("6"),
-       std::
-           string("6"),
-       std::
-           string("𝟞"),
-       std::
-           string("𝟔"),
-       std::
-           string("6"),
-       std::
-           string("6"),
-       std::
-           string("6"),
-       std::
-           string("6"),
-       std::
-           string("6"),
-       std::
-           string("𝟨"),
-       std::
-           string("𝟲"),
-       std::
-           string("6"),
-       std::
-           string("𝟼")},
+       Str("6"),
+       Str("6"),
+       Str("6"),
+       Str("𝟞"),
+       Str("𝟔"),
+       Str("6"),
+       Str("6"),
+       Str("6"),
+       Str("6"),
+       Str("6"),
+       Str("𝟨"),
+       Str("𝟲"),
+       Str("6"),
+       Str("𝟼")},
     [(int)'7']
     = {std::string("7"),
-       std::
-           string("7"),
-       std::
-           string("7"),
-       std::
-           string("7"),
-       std::
-           string("𝟟"),
-       std::
-           string("𝟕"),
-       std::
-           string("7"),
-       std::
-           string("7"),
-       std::
-           string("7"),
-       std::
-           string("7"),
-       std::
-           string("7"),
-       std::
-           string("𝟩"),
-       std::
-           string("𝟳"),
-       std::
-           string("7"),
-       std::
-           string("𝟽")},
+       Str("7"),
+       Str("7"),
+       Str("7"),
+       Str("𝟟"),
+       Str("𝟕"),
+       Str("7"),
+       Str("7"),
+       Str("7"),
+       Str("7"),
+       Str("7"),
+       Str("𝟩"),
+       Str("𝟳"),
+       Str("7"),
+       Str("𝟽")},
     [(int)'8']
     = {std::string("8"),
-       std::
-           string("8"),
-       std::
-           string("8"),
-       std::
-           string("8"),
-       std::
-           string("𝟠"),
-       std::
-           string("𝟖"),
-       std::
-           string("8"),
-       std::
-           string("8"),
-       std::
-           string("8"),
-       std::
-           string("8"),
-       std::
-           string("8"),
-       std::
-           string("𝟪"),
-       std::
-           string("𝟴"),
-       std::
-           string("8"),
-       std::
-           string("𝟾")},
+       Str("8"),
+       Str("8"),
+       Str("8"),
+       Str("𝟠"),
+       Str("𝟖"),
+       Str("8"),
+       Str("8"),
+       Str("8"),
+       Str("8"),
+       Str("8"),
+       Str("𝟪"),
+       Str("𝟴"),
+       Str("8"),
+       Str("𝟾")},
     [(int)'9']
     = {std::string("9"),
-       std::
-           string("9"),
-       std::
-           string("9"),
-       std::
-           string("9"),
-       std::
-           string("𝟡"),
-       std::
-           string("𝟗"),
-       std::
-           string("9"),
-       std::
-           string("9"),
-       std::
-           string("9"),
-       std::
-           string("9"),
-       std::
-           string("9"),
-       std::
-           string("𝟫"),
-       std::
-           string("𝟵"),
-       std::
-           string("9"),
-       std::
-           string("𝟿")},
+       Str("9"),
+       Str("9"),
+       Str("9"),
+       Str("𝟡"),
+       Str("𝟗"),
+       Str("9"),
+       Str("9"),
+       Str("9"),
+       Str("9"),
+       Str("9"),
+       Str("𝟫"),
+       Str("𝟵"),
+       Str("9"),
+       Str("𝟿")},
 };
 
 
-std::string styledUnicodeMapping(char ch, AsciiStyle style) {
-    if (unicodeCharMappings[(int)ch][(int)style] != std::string("\0")) {
-        return unicodeCharMappings[(int)ch][(int)style];
+Str styledUnicodeMapping(char ch, AsciiStyle style) {
+    int chIdx = value_domain<char>::ord(ch);
+    if (unicodeCharMappings[chIdx][(int)style] != Str("\0")) {
+        return unicodeCharMappings[chIdx][(int)style];
     } else {
-        return std::string(1, ch);
+        return Str(1, ch);
     }
 }
 
-std::string styledUnicodeMapping(
-    std::string const& str,
-    AsciiStyle         style) {
-    std::string result;
+Str styledUnicodeMapping(Str const& str, AsciiStyle style) {
+    Str result;
     result.reserve(str.size());
     for (const auto& ch : str) {
         result += styledUnicodeMapping(ch, style);
@@ -1633,45 +1086,45 @@ Vec<Str> visibleUnicodeName(Str str, bool useUnicode) {
     return result;
 }
 
-Pair<std::string, std::string> visibleName(char ch) {
+Pair<Str, Str> visibleName(char ch) {
     switch (ch) {
             // clang-format off
-        case '\x00': return {std::string("␀"), "[NUL]"}; // Null character
-        case '\x01': return {std::string("␁"), "[SOH]"}; // Start of header
-        case '\x02': return {std::string("␂"), "[STX]"}; // Start of text
-        case '\x03': return {std::string("␃"), "[ETX]"}; // End of text
-        case '\x04': return {std::string("␄"), "[EOT]"}; // End transmission
-        case '\x05': return {std::string("␅"), "[ENQ]"}; // Enquiry
-        case '\x06': return {std::string("␆"), "[ACK]"}; // Acknowledge
-        case '\x07': return {std::string("␇"), "[BEL]"}; // Bell
-        case '\x08': return {std::string("␈"), "[BS]"};  // Backspace
-        case '\x09': return {std::string("␉"), "[HT]"};  // Horizontal tab
-        case '\x0A': return {std::string("␤"), "[LF]"};  // Line feed
-        case '\x0B': return {std::string("␋"), "[VT]"};  // Vertical tab
-        case '\x0C': return {std::string("␌"), "[FF]"};  // Form feed
-        case '\x0D': return {std::string("␍"), "[CR]"};  // Carriage return
-        case '\x0E': return {std::string("␎"), "[SO]"};  // Shift out
-        case '\x0F': return {std::string("␏"), "[SI]"};  // Shift in
-        case '\x10': return {std::string("␐"), "[DLE]"}; // Data link escape
-        case '\x11': return {std::string("␑"), "[DC1]"}; // Device control 1
-        case '\x12': return {std::string("␒"), "[DC2]"}; // Device control 2
-        case '\x13': return {std::string("␓"), "[DC3]"}; // Device control 3
-        case '\x14': return {std::string("␔"), "[DC4]"}; // Device control 4
-        case '\x15': return {std::string("␕"), "[NAK]"}; // Negative ack
-        case '\x16': return {std::string("␖"), "[SYN]"}; // Synchronous idle
-        case '\x17': return {std::string("␗"), "[ETB]"}; // End tr. block
-        case '\x18': return {std::string("␘"), "[CAN]"}; // Cancel
-        case '\x19': return {std::string("␙"), "[EM]"};  // End of medium
-        case '\x1A': return {std::string("␚"), "[SUB]"}; // Substitute
-        case '\x1B': return {std::string("␛"), "[ESC]"}; // Escape
-        case '\x1C': return {std::string("␜"), "[FS]"};  // File separator
-        case '\x1D': return {std::string("␝"), "[GS]"};  // Group separator
-        case '\x1E': return {std::string("␞"), "[RS]"};  // Record separator
-        case '\x1F': return {std::string("␟"), "[US]"};  // Unit separator
-        case '\x7f': return {std::string("␡"), "[DEL]"}; // Delete
-        case ' ': return {std::string("␣"), "[SPC]"};    // Space
+        case '\x00': return {Str("␀"), "[NUL]"}; // Null character
+        case '\x01': return {Str("␁"), "[SOH]"}; // Start of header
+        case '\x02': return {Str("␂"), "[STX]"}; // Start of text
+        case '\x03': return {Str("␃"), "[ETX]"}; // End of text
+        case '\x04': return {Str("␄"), "[EOT]"}; // End transmission
+        case '\x05': return {Str("␅"), "[ENQ]"}; // Enquiry
+        case '\x06': return {Str("␆"), "[ACK]"}; // Acknowledge
+        case '\x07': return {Str("␇"), "[BEL]"}; // Bell
+        case '\x08': return {Str("␈"), "[BS]"};  // Backspace
+        case '\x09': return {Str("␉"), "[HT]"};  // Horizontal tab
+        case '\x0A': return {Str("␤"), "[LF]"};  // Line feed
+        case '\x0B': return {Str("␋"), "[VT]"};  // Vertical tab
+        case '\x0C': return {Str("␌"), "[FF]"};  // Form feed
+        case '\x0D': return {Str("␍"), "[CR]"};  // Carriage return
+        case '\x0E': return {Str("␎"), "[SO]"};  // Shift out
+        case '\x0F': return {Str("␏"), "[SI]"};  // Shift in
+        case '\x10': return {Str("␐"), "[DLE]"}; // Data link escape
+        case '\x11': return {Str("␑"), "[DC1]"}; // Device control 1
+        case '\x12': return {Str("␒"), "[DC2]"}; // Device control 2
+        case '\x13': return {Str("␓"), "[DC3]"}; // Device control 3
+        case '\x14': return {Str("␔"), "[DC4]"}; // Device control 4
+        case '\x15': return {Str("␕"), "[NAK]"}; // Negative ack
+        case '\x16': return {Str("␖"), "[SYN]"}; // Synchronous idle
+        case '\x17': return {Str("␗"), "[ETB]"}; // End tr. block
+        case '\x18': return {Str("␘"), "[CAN]"}; // Cancel
+        case '\x19': return {Str("␙"), "[EM]"};  // End of medium
+        case '\x1A': return {Str("␚"), "[SUB]"}; // Substitute
+        case '\x1B': return {Str("␛"), "[ESC]"}; // Escape
+        case '\x1C': return {Str("␜"), "[FS]"};  // File separator
+        case '\x1D': return {Str("␝"), "[GS]"};  // Group separator
+        case '\x1E': return {Str("␞"), "[RS]"};  // Record separator
+        case '\x1F': return {Str("␟"), "[US]"};  // Unit separator
+        case '\x7f': return {Str("␡"), "[DEL]"}; // Delete
+        case ' ': return {Str("␣"), "[SPC]"};    // Space
             // clang-format on
-        default: return {std::string(1, ch), std::string(1, ch)};
+        default: return {Str(1, ch), Str(1, ch)};
     }
 }
 
@@ -1689,8 +1142,8 @@ Str normalize(CR<Str> in) {
         if (!(c == '_' || c == '-')) {
             if (islower(c)) {
                 res += c;
-            } else if (islower(c)) {
-                res += toupper(c);
+            } else if (isupper(c)) {
+                res += tolower(c);
             }
         }
     }

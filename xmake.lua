@@ -371,7 +371,9 @@ meta_target("std_coverage", "Collect hstd coverage information", {}, function ()
     end
 
     utils.with_dir(dir, function () 
-      os.execv(test)  
+      os.execv(test, {
+        -- "--gtest_filter=VectorTest.*"
+      })  
     end)
 
     os.execv(path.join(tools, "llvm-profdata"), {
@@ -384,10 +386,10 @@ meta_target("std_coverage", "Collect hstd coverage information", {}, function ()
       "show",
       test,
       "-ignore-filename-regex", 
-      ".*/deps/.*",
+      ".*/_?deps/.*",
       "-instr-profile=" .. path.join(dir, "test.profdata"),
       "-format=html",
-      "-output-dir=" .. path.join(dir, "coverage_report")
+      "-output-dir=" .. path.join(dir, "coverage_report"),
     })
   end)
 end)

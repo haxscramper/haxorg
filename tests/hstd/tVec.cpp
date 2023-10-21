@@ -6,6 +6,21 @@ TEST(BackwardsIndexTest, BackwardsIndexFormat) {
     ASSERT_EQ(f1, "^1");
 }
 
+TEST(VectorTest, Formatter) {
+    EXPECT_EQ((std::format("{}", Vec<int>{})), "[]");
+    EXPECT_EQ((std::format("{}", Vec<int>{1})), "[1]");
+    EXPECT_EQ((std::format("{}", Vec<int>{1, 2})), "[1, 2]");
+    EXPECT_EQ(
+        (std::format("{}", Vec<std::string>{"first", "second"})),
+        "[first, second]");
+}
+
+TEST(VectorTest, ContainsFind) {
+    EXPECT_EQ(Vec<int>{}.indexOf(1), -1);
+    EXPECT_EQ((Vec<int>{1, 2}.indexOf(1)), 0);
+    EXPECT_EQ((Vec<int>{0, 1}.indexOf(2)), -1);
+}
+
 TEST(VectorTest, SliceAndIndexingOperators) {
     Vec<int> v{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
@@ -52,28 +67,41 @@ TEST(VectorTest, VectorAlloc) {
     }
 }
 
-TEST(VectorTest, EditDataViaSpanView) {
-    Vec<int> v{0, 0, 0, 0, 0};
-
-    // Test modification using slice operator
-    std::span<int> span = v[slice(1, 3)];
-    CHECK(span.data() != nullptr);
-    for (int& x : span) {
-        x = 42;
+TEST(VectorTest, SpanViews) {
+    {
+        const Vec<int> v{0, 1, 2, 3, 4};
+        std::span<int> span = v.at(slice(1, 1));
+        EXPECT_EQ(span[0], 1);
+        EXPECT_EQ(span[1], 2);
     }
-    EXPECT_EQ(v[0], 0);
-    EXPECT_EQ(v[1], 42);
-    EXPECT_EQ(v[2], 42);
-    EXPECT_EQ(v[3], 42);
-    EXPECT_EQ(v[4], 0);
+    {
+        Vec<int> v{0, 0, 0, 0, 0};
+        // Test modification using slice operator
+        std::span<int> span = v[slice(1, 3)];
+        CHECK(span.data() != nullptr);
+        for (int& x : span) {
+            x = 42;
+        }
+        EXPECT_EQ(v[0], 0);
+        EXPECT_EQ(v[1], 42);
+        EXPECT_EQ(v[2], 42);
+        EXPECT_EQ(v[3], 42);
+        EXPECT_EQ(v[4], 0);
 
-    // Test modification using indexing operator
-    v[1] = 0;
-    v[2] = 0;
-    v[3] = 0;
-    EXPECT_EQ(v[0], 0);
-    EXPECT_EQ(v[1], 0);
-    EXPECT_EQ(v[2], 0);
-    EXPECT_EQ(v[3], 0);
-    EXPECT_EQ(v[4], 0);
+        // Test modification using indexing operator
+        v[1] = 0;
+        v[2] = 0;
+        v[3] = 0;
+        EXPECT_EQ(v[0], 0);
+        EXPECT_EQ(v[1], 0);
+        EXPECT_EQ(v[2], 0);
+        EXPECT_EQ(v[3], 0);
+        EXPECT_EQ(v[4], 0);
+    }
+}
+
+TEST(VectorTest, BackIndex) {
+    EXPECT_THROW(Vec<int>{}.back(), std::out_of_range);
+    EXPECT_EQ(Vec<int>{1}.back(), 1);
+    EXPECT_EQ((Vec<int>{2, 1}.back()), 1);
 }

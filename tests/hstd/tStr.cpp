@@ -1,5 +1,8 @@
 #include <hstd/stdlib/Str.hpp>
 #include <gtest/gtest.h>
+#include <hstd/stdlib/strutils.hpp>
+#include <fuzztest/fuzztest.h>
+#include <hstd/stdlib/strformat.hpp>
 
 
 TEST(StringOperationsTest, StringViews) {
@@ -37,24 +40,6 @@ TEST(StringOperationsTest, StringMutations) {
     // Change the first character of s1 to 'J'
     s1[0] = '!';
     EXPECT_EQ(s1, "!1234");
-
-    // FIXME enable exceptions
-    // try {
-    //     // Try to change the first character of empty to 'X'
-    //     empty.at(0);
-    //     FAIL() << "Expected std::out_of_range";
-    // } catch (std::out_of_range& ex) {
-    //     // Out of range error for empty string access
-    // }
-
-    // try {
-    //     // Try to change the last two characters of empty to "zz" using
-    //     // the slice operator
-    //     empty.at(Slice<int>{1, 2});
-    //     FAIL() << "Expected std::out_of_range";
-    // } catch (std::out_of_range& ex) {
-    //     // Out of range error for empty string access
-    // }
 }
 
 TEST(StringOperationsTest, StringApi) {
@@ -110,3 +95,96 @@ TEST(StringOperationsTest, UnicodeLength) {
         EXPECT_EQ(c.length(), 0);
     }
 }
+
+TEST(StringFormatting, Plaintext) {
+    EXPECT_EQ("A" % to_string_vec("a"), "A");
+}
+
+TEST(StringFormatting, BasicInterpolationFragmentParsing) {
+    {
+        auto f = addfFragments("${A}+${B}");
+        EXPECT_EQ(f.size(), 3);
+        EXPECT_EQ(f[0].text, "A");
+        EXPECT_EQ(f[0].kind, AddfFragmentKind::Expr);
+        EXPECT_EQ(f[1].kind, AddfFragmentKind::Text);
+        EXPECT_EQ(f[1].text, "+");
+        EXPECT_EQ(f[2].kind, AddfFragmentKind::Expr);
+        EXPECT_EQ(f[2].text, "B");
+    }
+    {
+        auto f = addfFragments("A");
+        EXPECT_EQ(f.size(), 1);
+        EXPECT_EQ(f[0].kind, AddfFragmentKind::Text);
+        EXPECT_EQ(f[0].text, "A");
+    }
+    {
+        auto f = addfFragments("$A");
+        EXPECT_EQ(f.size(), 1);
+        EXPECT_EQ(f[0].kind, AddfFragmentKind::Var);
+        EXPECT_EQ(f[0].text, "A");
+    }
+    {
+        auto f = addfFragments("${A}");
+        EXPECT_EQ(f.size(), 1);
+        EXPECT_EQ(f[0].kind, AddfFragmentKind::Expr);
+        EXPECT_EQ(f[0].text, "A");
+    }
+}
+
+#define EXPECT_THROW_WITH_MESSAGE(stmt, etype, whatstring)                \
+    try {                                                                 \
+        stmt;                                                             \
+        FAIL() << "Expected " << #etype << " with message \""             \
+               << whatstring << "\"";                                     \
+    } catch (const etype& e) {                                            \
+        EXPECT_EQ(std::string(e.what()), std::string(whatstring));        \
+    } catch (...) {                                                       \
+        FAIL() << "Expected " << #etype << " with message \""             \
+               << whatstring << "\"";                                     \
+    }
+
+
+TEST(StringFormatting, InterpolateValuesByIndex) {
+    EXPECT_EQ(to_string_vec("#"), std::vector<std::string>({"#"}));
+    EXPECT_EQ("$1" % to_string_vec("#"), "#");
+    EXPECT_EQ("$1+$2" % to_string_vec("@", "@"), "@+@");
+    EXPECT_EQ("$1A" % to_string_vec("@"), "@A");
+    EXPECT_EQ("${1A}" % to_string_vec("1A", "VALUE"), "VALUE");
+    EXPECT_EQ("$$" % to_string_vec("1"), "$");
+    EXPECT_EQ("$1" % to_string_vec("1", "9"), "1");
+    EXPECT_EQ("$2" % to_string_vec("1", "9"), "9");
+    EXPECT_EQ("$#" % to_string_vec("1", "9"), "1");
+    EXPECT_THROW("$9" % to_string_vec("1"), FormatStringError);
+}
+
+TEST(StringFormatting, InterpolateValuesByNames) {
+    EXPECT_EQ("$name" % to_string_vec("name", "VALUE"), "VALUE");
+    EXPECT_EQ("${name}" % to_string_vec("name", "VALUE"), "VALUE");
+}
+
+
+TEST(Strutils, Mappings) {
+    EXPECT_EQ(visibleName('\x00').second, "[NUL]");
+    EXPECT_EQ(visibleName('\x00').first.runeLen(), 1);
+    EXPECT_EQ(indent("", 0), "");
+    EXPECT_EQ(indent("", 2), "");
+    EXPECT_EQ(indent("-", 2), "  -");
+    EXPECT_EQ(normalize("aAz+1!"), "aaz");
+    EXPECT_EQ(left_aligned("", 2), "  ");
+    EXPECT_EQ(left_aligned("X", 2), "X ");
+    EXPECT_EQ(right_aligned("X", 2), " X");
+    EXPECT_EQ(right_aligned("", 2), "  ");
+}
+
+namespace {
+void SafeStrOps(Str const& value) {
+    visibleUnicodeName(value, false);
+    visibleUnicodeName(value, true);
+    for (AsciiStyle style : sliceT<AsciiStyle>()) {
+        styledUnicodeMapping(value, style);
+    }
+}
+} // namespace
+
+FUZZ_TEST(FuzzStrutils, SafeStrOps)
+    .WithDomains(fuzztest::Arbitrary<std::string>());

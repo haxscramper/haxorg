@@ -3,6 +3,7 @@
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Span.hpp>
+#include <hstd/stdlib/sequtils.hpp>
 
 #include <vector>
 #include <span>
@@ -175,33 +176,40 @@ class Vec : public std::vector<T> {
         return this->at(this->size() - idx.value);
     }
 
+    void failEmpty() const {
+        if (empty()) {
+            throw std::out_of_range(
+                "Operation does not work with an empty vector");
+        }
+    }
+
     /// \brief Reference to the last element. Checks for proper array size
     T& back() {
         // It will cause segfault anyway, just in a way that you least
         // expect, so easier to check things here than get absolutely
         // destroyed by some bug later on.
-        assert(!empty());
+        failEmpty();
         return Base::back();
     }
 
     /// \brief constant reference to the last element, checks for vector
     /// size
     T const& back() const {
-        assert(!empty());
+        failEmpty();
         return Base::back();
     }
 
     /// \brief Override of the 'back' accessor of the standard vector, but
     /// with check for proper size
     void pop_back() {
-        assert(!empty());
+        failEmpty();
         Base::pop_back();
     }
 
     /// \brief Get last value and pop it out of the vector itself
     T pop_back_v() {
         // QUESTION use `std::move` and rvalue to eject elements?
-        assert(!empty());
+        failEmpty();
         auto result = back();
         pop_back();
         return result;
@@ -222,7 +230,7 @@ class Vec : public std::vector<T> {
     }
 
 
-    std::vector<T> toBase() const { return *this; }
+    std::vector<T> const& toBase() const { return *this; }
 };
 
 static_assert(

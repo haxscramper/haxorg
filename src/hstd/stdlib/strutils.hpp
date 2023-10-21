@@ -8,9 +8,9 @@
 
 
 template <typename T>
-std::string join(CR<std::string> sep, generator<T>& list) {
-    std::string os;
-    int         index = 0;
+Str join(CR<Str> sep, generator<T>& list) {
+    Str os;
+    int index = 0;
     for (const auto& it : list) {
         if (0 < index) {
             os += sep;
@@ -23,13 +23,13 @@ std::string join(CR<std::string> sep, generator<T>& list) {
 
 
 template <typename T>
-std::string join(CR<std::string> sep, generator<T>&& list) {
+Str join(CR<Str> sep, generator<T>&& list) {
     auto tmp = std::move(list);
     return join(sep, tmp);
 }
 
 /// Get visible name of the character.
-Pair<std::string, std::string> visibleName(char ch);
+Pair<Str, Str> visibleName(char ch);
 Str indent(CR<Str> str, int spaces, char space = ' ', Str prefix = "");
 
 Vec<Str> visibleUnicodeName(Str str, bool useUnicode = true);
@@ -62,7 +62,14 @@ enum class AsciiStyle
 };
 
 
-std::string styledUnicodeMapping(char ch, AsciiStyle style);
-std::string styledUnicodeMapping(std::string const& str, AsciiStyle style);
+template <>
+struct value_domain<AsciiStyle>
+    : public value_domain_ungapped<
+          AsciiStyle,
+          AsciiStyle::Regular,
+          AsciiStyle::Monospace> {};
+
+Str styledUnicodeMapping(char ch, AsciiStyle style);
+Str styledUnicodeMapping(Str const& str, AsciiStyle style);
 
 inline char* strdup(std::string const& str) { return strdup(str.c_str()); }
