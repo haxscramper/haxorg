@@ -119,3 +119,19 @@ template <DefaultConstructible T>
 struct SerdeDefaultProvider<T> {
     static T get() { return T{}; }
 };
+
+template <>
+struct value_domain<char> {
+    static inline char          low() { return '\x00'; }
+    static inline char          high() { return '\xFF'; }
+    static inline long long int ord(char c) {
+        int res = static_cast<int>(c);
+        if (res < 0) {
+            return res + 256;
+        } else {
+            return res;
+        }
+    }
+
+    static inline char succ(char c) { return char(c + 1); }
+};

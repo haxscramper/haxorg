@@ -2,6 +2,7 @@
 #include <hstd/stdlib/charsets.hpp>
 #include <gtest/gtest.h>
 #include <fuzztest/fuzztest.h>
+#include <absl/log/log.h>
 
 TEST(TestIntegralSetOperations, InitialSetContent) {
     CharSet s;
@@ -104,18 +105,61 @@ TEST(TestIntegralSetOperations, IntegerSetOperators) {
     EXPECT_EQ((empty ^ s1), s1);
 }
 
+
+TEST(TestIntegralSetOperations, ValueDomainSanityChecks) {
+    EXPECT_EQ(static_cast<int>('\x00'), 0);
+    using D = value_domain<char>;
+    EXPECT_EQ(D::low(), '\x00');
+    EXPECT_EQ(D::low(), '\x00');
+    EXPECT_EQ(D::high(), '\xFF');
+    EXPECT_EQ(D::ord(D::low()), 0);
+    EXPECT_EQ(D::ord(D::high()), 255);
+    EXPECT_EQ(D::ord('\x00'), 0x00);
+    EXPECT_EQ(D::ord('A'), 0x41);
+    EXPECT_EQ(D::ord('!'), 0x21);
+    EXPECT_EQ(D::ord('~'), 0x7E);
+    EXPECT_EQ(D::ord('\xAF'), 0xAF);
+    IntSet<char>{slice1('\211', '\211')};
+
+    int count = 0;
+    for (unsigned char uc = 0;; ++uc) {
+        char c = static_cast<char>(uc);
+        EXPECT_EQ(D::ord(c), count)
+            << std::format("'{}' ({:B} {:B}) != '{}'", c, c, uc, count);
+        ++count;
+        if (uc == 255) {
+            break;
+        }
+    }
+}
+
 using namespace fuzztest;
 
-Domain<std::pair<u8, u8>> AnyPairOfOrderedNumbers() {
+template <typename T>
+Domain<std::pair<T, T>> AnyPairOfOrderedValues() {
     return FlatMap(
-        [](u8 a) {
+        [](T a) {
             return PairOf(
-                Just(a), InRange(a, std::numeric_limits<u8>::max()));
+                Just(a), InRange(a, std::numeric_limits<T>::max()));
         },
-        Arbitrary<u8>());
+        Arbitrary<T>());
 }
+
 
 void IntSliceSet(std::pair<u8, u8> const& range) {
     IntSet<u8> set{slice1(range.first, range.second)};
 }
-FUZZ_TEST(IntSetFuzz, IntSliceSet).WithDomains(AnyPairOfOrderedNumbers());
+
+FUZZ_TEST(IntSetFuzz, IntSliceSet)
+    .WithDomains(AnyPairOfOrderedValues<u8>());
+
+void CharSliceSet(std::pair<char, char> const& range) {
+    try {
+        IntSet<char> set{slice1(range.first, range.second)};
+    } catch (std::exception& e) {
+        FAIL() << range.first << range.second << e.what();
+    }
+}
+
+FUZZ_TEST(IntSetFuzz, CharSliceSet)
+    .WithDomains(AnyPairOfOrderedValues<char>());
