@@ -1,6 +1,7 @@
 #include <hstd/stdlib/strformat.hpp>
 //#include "common.hpp"
 #include <gtest/gtest.h>
+#include <absl/log/check.h>
 
 TEST(StringFormatting, Plaintext) {
     EXPECT_EQ("A" % to_string_vec("a"), "A");

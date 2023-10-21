@@ -1,5 +1,5 @@
 #include "strformat.hpp"
-#include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Slice.hpp>
 
 void addf(
     std::string&                    s,
@@ -58,12 +58,6 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
     std::vector<AddfFragment> result{};
     auto                      i   = 0;
     auto                      num = 0;
-    const CharSet             PatternChars{
-        slice('a', 'z'),
-        slice('A', 'Z'),
-        slice('0', '9'),
-        slice('\xF0', '\xFF'),
-        '_'};
 
     while (i < formatstr.size()) {
         if (formatstr[i] == '$' && (i + 1) < formatstr.size()) {
@@ -110,7 +104,7 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                 auto isNumber = 0;
                 while (
                     ((j < formatstr.size())
-                     && (!CharSet({'\0', '}'}).contains(formatstr[j])))) {
+                     && (!(formatstr[j] == '\0' || formatstr[j] == '}')))) {
                     if (std::isdigit(formatstr[j])) {
                         k = ((k * 10)
                              + value_domain<char>::ord(formatstr[j]))
@@ -144,12 +138,11 @@ std::vector<AddfFragment> addfFragments(const std::string& formatstr) {
                 }
                 i = j + 1;
 
-            } else if (
-                std::isalnum(c) || c == '_'
-                || CharSet(slice('\xF0', '\xFF')).contains(c)) {
+            } else if (std::isalnum(c) || c == '_') {
                 auto j = i + 1;
                 while (j < formatstr.size()
-                       && PatternChars.contains(formatstr[j])) {
+                       && (std::isalnum(formatstr[j])
+                           || formatstr[j] == '_')) {
                     j += 1;
                 }
 

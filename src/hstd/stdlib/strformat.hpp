@@ -4,7 +4,6 @@
 #include <vector>
 #include <stdexcept>
 
-#include <hstd/stdlib/charsets.hpp>
 #include <hstd/stdlib/sequtils.hpp>
 #include <hstd/system/all.hpp>
 
