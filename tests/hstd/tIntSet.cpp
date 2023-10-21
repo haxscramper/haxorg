@@ -1,6 +1,7 @@
 #include <hstd/stdlib/IntSet.hpp>
 #include <hstd/stdlib/charsets.hpp>
 #include <gtest/gtest.h>
+#include <fuzztest/fuzztest.h>
 
 TEST(TestIntegralSetOperations, InitialSetContent) {
     CharSet s;
@@ -102,3 +103,19 @@ TEST(TestIntegralSetOperations, IntegerSetOperators) {
     // 3}
     EXPECT_EQ((empty ^ s1), s1);
 }
+
+using namespace fuzztest;
+
+Domain<std::pair<u8, u8>> AnyPairOfOrderedNumbers() {
+    return FlatMap(
+        [](u8 a) {
+            return PairOf(
+                Just(a), InRange(a, std::numeric_limits<u8>::max()));
+        },
+        Arbitrary<u8>());
+}
+
+void IntSliceSet(std::pair<u8, u8> const& range) {
+    IntSet<u8> set{slice1(range.first, range.second)};
+}
+FUZZ_TEST(IntSetFuzz, IntSliceSet).WithDomains(AnyPairOfOrderedNumbers());

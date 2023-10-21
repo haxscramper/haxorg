@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include <absl/log/check.h>
 
+
 TEST(StringFormatting, Plaintext) {
     EXPECT_EQ("A" % to_string_vec("a"), "A");
 }
@@ -57,27 +58,9 @@ TEST(StringFormatting, InterpolateValuesByIndex) {
     EXPECT_EQ("$1+$2" % to_string_vec("@", "@"), "@+@");
     EXPECT_EQ("$1A" % to_string_vec("@"), "@A");
     EXPECT_EQ("${1A}" % to_string_vec("1A", "VALUE"), "VALUE");
-
-    // Use a lambda function to test for exception cases
-    //    auto test_function = []() { return "$1000" % to_string_vec(); };
-    //    EXPECT_THROW_WITH_MESSAGE(
-    //        test_function(),
-    //        FormatStringError,
-    //        "Argument index out of bounds. Accessed [999], but only 0 "
-    //        "arguments were supplied");
 }
 
 TEST(StringFormatting, InterpolateValuesByNames) {
     EXPECT_EQ("$name" % to_string_vec("name", "VALUE"), "VALUE");
     EXPECT_EQ("${name}" % to_string_vec("name", "VALUE"), "VALUE");
-    //    EXPECT_EQ(
-    //        "${name}*${name}" % to_string_vec("name", "VALUE"),
-    //        "VALUE*VALUE");
-
-    //    // Use a lambda function to test for exception cases
-    //    auto test_function = []() { return "${RANDOM}" % to_string_vec();
-    //    }; EXPECT_THROW_WITH_MESSAGE(
-    //        test_function(),
-    //        FormatStringError,
-    //        "No interpolation argument named 'RANDOM'");
 }

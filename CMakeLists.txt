@@ -17,7 +17,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})
 list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
-message(">>> ${DEPS_DIR}")
 include(${DEPS_DIR}/conanbuildinfo.cmake)
 include(src/cmake/functions_aux.cmake)
 include(src/cmake/functions_setup.cmake)
@@ -42,8 +41,8 @@ find_package(PythonLibs 3.11 MODULE)
 find_package(pybind11 REQUIRED MODULE)
 find_package(perfetto REQUIRED MODULE)
 
-add_subdirectory("${BASE}/deps/abseil-cpp")
-
+#add_subdirectory("${BASE}/deps/abseil-cpp")
+add_subdirectory("${BASE}/deps/fuzztest")
 
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)

@@ -9,3 +9,7 @@ target_link_libraries(
     gtest
     hstd
 )
+
+include_directories("${BASE}/deps/fuzztest")
+
+link_fuzztest(tests_hstd)
