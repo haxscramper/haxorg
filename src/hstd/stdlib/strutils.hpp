@@ -15,7 +15,7 @@ Str join(CR<Str> sep, generator<T>& list) {
         if (0 < index) {
             os += sep;
         }
-        os << std::format("{}", it);
+        os += std::format("{}", it);
         ++index;
     }
     return os;

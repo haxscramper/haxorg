@@ -154,10 +154,6 @@ struct NodeGroup {
 
     int size() const { return nodes.size(); }
 
-    bool hasData(Id id) const {
-        return tokens->at(at(id).getToken()).hasData();
-    }
-
     V const& val(Id id) const {
         assert(notNil(tokens));
         assert(at(id).isTerminal());

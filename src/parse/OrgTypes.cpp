@@ -2,7 +2,7 @@
 
 #include <lexbase/Node.cpp>
 
-template class NodeGroup<OrgNodeKind, OrgTokenKind>;
+template class NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill>;
 
 using org = OrgNodeKind;
 

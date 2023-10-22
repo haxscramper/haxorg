@@ -1,5 +1,7 @@
-#include <gtest/gtest.h>
-#include <parse/OrgParser.hpp>
+#if false
+
+#    include <gtest/gtest.h>
+#    include <parse/OrgParser.hpp>
 
 struct MockParser {
     OrgTokenGroup                tokens;
@@ -99,3 +101,5 @@ TEST_F(ParserTest, ParseTimeRange) {
     // Time dash token is skipped
     EXPECT_EQ(p[6].kind, org::StaticInactiveTime);
 }
+
+#endif

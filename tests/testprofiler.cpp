@@ -8,9 +8,7 @@
 #include <regex>
 #include <filesystem>
 
-#ifdef USE_PERFETTO
-#    include <hstd/wrappers/perfetto_aux.hpp>
-#endif
+#include <hstd/wrappers/perfetto_aux.hpp>
 
 namespace fs = std::filesystem;
 
@@ -88,7 +86,7 @@ bool move_latest_xray_log_to_path(const std::string& path) {
         return true;
 
     } else {
-        qWarning()
+        LOG(WARNING)
             << ("No matching xray-log files found for program name '"
                 + program_name + "'");
         return false;

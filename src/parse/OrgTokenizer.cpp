@@ -1,4 +1,5 @@
 #pragma once
+#if false
 
 #include "OrgTokenizer.hpp"
 
@@ -8,8 +9,6 @@
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
-
-#include <QRegularExpression>
 
 #include "OrgTokenizerMacros.hpp"
 
@@ -3426,3 +3425,5 @@ SPtr<OrgTokenizer> OrgTokenizer::initImpl(
         return std::make_shared<OrgTokenizerImpl<false>>(out);
     }
 }
+
+#endif

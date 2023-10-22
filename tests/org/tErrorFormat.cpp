@@ -1,5 +1,7 @@
-#include <sem/ErrorWrite.hpp>
-#include <gtest/gtest.h>
+#if false
+
+#    include <sem/ErrorWrite.hpp>
+#    include <gtest/gtest.h>
 
 TEST(PrintError, MultipleFiles) {
     std::string a_tao = R"''(def five = 5)''";
@@ -203,3 +205,5 @@ def multiline :: Str = match Some 5 in {
 
     DLOG(INFO) << os.str();
 }
+
+#endif

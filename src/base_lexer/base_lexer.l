@@ -4,21 +4,17 @@
 #include <locale>
 #include <codecvt>
 #include <iostream>
-#include "token.hpp"  // assuming you've defined the above structures in token.h
+#include "base_token.hpp"
 %}
 
 %option fast freespace unicode
 
 %class{
   public:
-    std::vector<Token> tokens;
-    std::vector<int> linenos;
-    std::vector<int> columnos;
+    std::vector<BaseToken> tokens;
 
-    void add(TokenKind token) {
-      linenos.push_back(lineno());
-      columnos.push_back(columno());
-      tokens.emplace_back(matcher().text(), token);
+    void add(BaseTokenKind token) {
+        tokens.emplace_back(BaseToken{token, BaseFill{ matcher().text(), lineno(), columno()}});
     }
 
     void unknown() {
@@ -34,71 +30,69 @@
 
 %%
 
-"# -*- "                { add(TokenKind::FileVarComment); }
-[0-9]+                  { add(TokenKind::Number); }
-^\s+                    { add(TokenKind::LeadingSpace); }
-\s+                     { add(TokenKind::Whitespace); }
-^\*+                    { add(TokenKind::SubtreeStars); }
-\[                      { add(TokenKind::BraceOpen); }
-\]                      { add(TokenKind::BraceClose); }
-\d{4}-\d{2}-\d{2}       { add(TokenKind::Date); }
-\d{2}:\d{2}:\d{2}       { add(TokenKind::Time); }
-"=>"                    { add(TokenKind::TimeArrow); }
-"# .*?$"                { add(TokenKind::Comment); }
-":END:"                 { add(TokenKind::TreePropertyEnd); }
-":LOGBOOK:"             { add(TokenKind::TreePropertyLogbook); }
-":PROPERTIES:"          { add(TokenKind::TreePropertyProperties); }
-":\w+:"                 { add(TokenKind::TreePropertyName); }
-"CLOCK:"                { add(TokenKind::TreeClock); }
-&                       { add(TokenKind::Ampersand); }
-!                       { add(TokenKind::Exclamation); }
-[,\./?]                 { add(TokenKind::AnyPunct); }
-\+                      { add(TokenKind::Plus); }
-\-                      { add(TokenKind::Minus); }
-\"                      { add(TokenKind::DoubleQuote); }
-\'                      { add(TokenKind::SingleQuote); }
-\\\\                    { add(TokenKind::DoubleSlash); }
-#\w+                    { add(TokenKind::HashIdent); }
-##                      { add(TokenKind::DoubleHash); }
-#\+begin_\w+            { add(TokenKind::BeginBlock); }
-#\+end_\w+              { add(TokenKind::EndBlock); }
-\(                      { add(TokenKind::LeftPar); }
-\)                      { add(TokenKind::RightPar); }
-~                       { add(TokenKind::Tilda); }
-=                       { add(TokenKind::Equals); }
-\;                      { add(TokenKind::Semicolon); }
-\*                      { add(TokenKind::Asterisk); }
-<<                      { add(TokenKind::DoubleLeftAngle); }
->>                      { add(TokenKind::DoubleRightAngle); }
-<                       { add(TokenKind::LeftAngle); }
->                       { add(TokenKind::RightAngle); }
-\^                      { add(TokenKind::Circumflex); }
-\{\{\{                  { add(TokenKind::MacroBegin); }
-\}\}\}                  { add(TokenKind::MacroEnd); }
-\{                      { add(TokenKind::LeftCurly); }
-\}                      { add(TokenKind::RightCurly); }
-\\.                     { add(TokenKind::EscapedChar); }
-#\+\w+:                 { add(TokenKind::LineCommand); }
-\%                      { add(TokenKind::Percent); }
-@                       { add(TokenKind::At); }
-\|                      { add(TokenKind::Pipe); }
-```                     { add(TokenKind::TripleBacktick); }
-`                       { add(TokenKind::Backtick); }
-\p{Punctuation}         { add(TokenKind::AnyPunct); }
-\w+                     { add(TokenKind::Word); }
-\$                      { add(TokenKind::Dollar); }
+"# -*- "                { add(BaseTokenKind::FileVarComment); }
+[0-9]+                  { add(BaseTokenKind::Number); }
+^\s+                    { add(BaseTokenKind::LeadingSpace); }
+\s+                     { add(BaseTokenKind::Whitespace); }
+^\*+                    { add(BaseTokenKind::SubtreeStars); }
+\[                      { add(BaseTokenKind::BraceOpen); }
+\]                      { add(BaseTokenKind::BraceClose); }
+\d{4}-\d{2}-\d{2}       { add(BaseTokenKind::Date); }
+\d{2}:\d{2}:\d{2}       { add(BaseTokenKind::Time); }
+"=>"                    { add(BaseTokenKind::TimeArrow); }
+"# .*?$"                { add(BaseTokenKind::Comment); }
+":END:"                 { add(BaseTokenKind::TreePropertyEnd); }
+":LOGBOOK:"             { add(BaseTokenKind::TreePropertyLogbook); }
+":PROPERTIES:"          { add(BaseTokenKind::TreePropertyProperties); }
+":\w+:"                 { add(BaseTokenKind::TreePropertyName); }
+"CLOCK:"                { add(BaseTokenKind::TreeClock); }
+&                       { add(BaseTokenKind::Ampersand); }
+!                       { add(BaseTokenKind::Exclamation); }
+[,\./?]                 { add(BaseTokenKind::AnyPunct); }
+\+                      { add(BaseTokenKind::Plus); }
+\-                      { add(BaseTokenKind::Minus); }
+\"                      { add(BaseTokenKind::DoubleQuote); }
+\'                      { add(BaseTokenKind::SingleQuote); }
+\\\\                    { add(BaseTokenKind::DoubleSlash); }
+#\w+                    { add(BaseTokenKind::HashIdent); }
+##                      { add(BaseTokenKind::DoubleHash); }
+#\+begin_\w+            { add(BaseTokenKind::BeginBlock); }
+#\+end_\w+              { add(BaseTokenKind::EndBlock); }
+\(                      { add(BaseTokenKind::LeftPar); }
+\)                      { add(BaseTokenKind::RightPar); }
+~                       { add(BaseTokenKind::Tilda); }
+=                       { add(BaseTokenKind::Equals); }
+\;                      { add(BaseTokenKind::Semicolon); }
+\*                      { add(BaseTokenKind::Asterisk); }
+<<                      { add(BaseTokenKind::DoubleLeftAngle); }
+>>                      { add(BaseTokenKind::DoubleRightAngle); }
+<                       { add(BaseTokenKind::LeftAngle); }
+>                       { add(BaseTokenKind::RightAngle); }
+\^                      { add(BaseTokenKind::Circumflex); }
+\{\{\{                  { add(BaseTokenKind::MacroBegin); }
+\}\}\}                  { add(BaseTokenKind::MacroEnd); }
+\{                      { add(BaseTokenKind::LeftCurly); }
+\}                      { add(BaseTokenKind::RightCurly); }
+\\.                     { add(BaseTokenKind::EscapedChar); }
+#\+\w+:                 { add(BaseTokenKind::LineCommand); }
+\%                      { add(BaseTokenKind::Percent); }
+@                       { add(BaseTokenKind::At); }
+\|                      { add(BaseTokenKind::Pipe); }
+```                     { add(BaseTokenKind::TripleBacktick); }
+`                       { add(BaseTokenKind::Backtick); }
+\p{Punctuation}         { add(BaseTokenKind::AnyPunct); }
+\w+                     { add(BaseTokenKind::Word); }
+\$                      { add(BaseTokenKind::Dollar); }
 
-[\x{0256}-\x{10FFFF}]|© { add(TokenKind::MiscUnicode); }
+[\x{0256}-\x{10FFFF}]|© { add(BaseTokenKind::MiscUnicode); }
 
 .                       { unknown(); }
 
 %%
 
-std::vector<Token> tokenize(const char* input, int size) {
-    Lexer lex(input);
+std::vector<BaseToken> tokenize(const char* input, int size) {
+    base_lexer::Lexer lex(input);
     lex.tokens.reserve(size / 3);
-    lex.linenos.reserve(size / 3);
-    lex.columnos.reserve(size / 3);
     lex.lex();
     return lex.tokens;
 }

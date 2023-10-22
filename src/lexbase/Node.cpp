@@ -122,29 +122,6 @@ typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::subnode(
     }
 }
 
-template <typename N, typename K, typename V>
-void NodeGroup<N, K, V>::lispRepr(
-    std::ostream&    os,
-    Id               node,
-    CR<TreeReprConf> conf) const {
-    os << "(" << to_string(node.getMask()) << ":"
-       << to_string(node.getUnmasked()) << " " << to_string(at(node).kind);
-
-    if (at(node).isTerminal()) {
-        auto tok = at(node).getToken();
-        os << std::format("'{}'", tok);
-    } else {
-        auto maybe_iter = subnodesOf(node);
-        if (maybe_iter) {
-            auto [begin, end] = *maybe_iter;
-            for (; begin != end; ++begin) {
-                os << " ";
-                lispRepr(os, *begin, conf);
-            }
-        }
-    }
-    os << ")";
-}
 
 template <typename N, typename K, typename V>
 void NodeGroup<N, K, V>::treeRepr(
@@ -156,7 +133,7 @@ void NodeGroup<N, K, V>::treeRepr(
 
     os << repeat("  ", level);
 
-    os << to_string(at(node).kind);
+    os << std::format("{}", at(node).kind);
     if (conf.withSubnodeIdx) {
         os << "[" << subnodeIdx << "]";
     }
@@ -174,7 +151,8 @@ void NodeGroup<N, K, V>::treeRepr(
         if (tok.isNil()) {
             os << " # <nil>";
         } else {
-            os << std::format("# {} {}", tok, at(tok));
+            CHECK(false) << "TODO";
+            // os << std::format("# {} {}", tok, at(tok));
         }
     } else {
         if (conf.withExt) {

@@ -6,7 +6,7 @@ void OperationsTracer::setTraceFile(const fs::path& outfile) {
         << "Expected non-empty filename for the output";
     trace       = true;
     traceToFile = true;
-    stream      = std::make_shared<std::ostream>(
+    stream      = std::make_shared<std::ofstream>(
         std::ofstream{outfile.native()});
 }
 

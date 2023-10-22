@@ -1,11 +1,11 @@
 add_library(haxorg)
 set_common_files(haxorg)
 
-glob_add_sources2(haxorg "${BASE}/src/exporters/.*")
+#glob_add_sources2(haxorg "${BASE}/src/exporters/.*")
 glob_add_sources2(haxorg "${BASE}/src/annotators/.*")
 glob_add_sources2(haxorg "${BASE}/src/lexbase/.*")
 glob_add_sources2(haxorg "${BASE}/src/parse/.*")
-glob_add_sources2(haxorg "${BASE}/src/sem/.*")
+#glob_add_sources2(haxorg "${BASE}/src/sem/.*")
 glob_add_sources2(haxorg "${BASE}/src/tools/.*")
 glob_add_sources2(haxorg "${BASE}/src/types/.*")
 glob_add_sources2(haxorg "${BASE}/src/base_lexer/.*")
@@ -34,7 +34,12 @@ target_link_libraries(haxorg PUBLIC
     ${GRAPHVIZ_CGRAPH_LIBRARY}
     ${GRAPHVIZ_GVC_LIBRARY}
     hstd
+    reflex
+    perfetto::perfetto
 )
+
+target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")
+target_include_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/include")
 
 
 add_executable(tests_org)
@@ -43,5 +48,6 @@ set_common_files(tests_org)
 set_target_output(tests_org)
 set_target_flags(tests_org)
 glob_add_sources2(tests_org "${BASE}/tests/org/.*")
-target_link_libraries(tests_org PUBLIC haxorg gtest perfetto)
+target_sources(tests_org PRIVATE "${BASE}/tests/testprofiler.cpp")
+target_link_libraries(tests_org PUBLIC haxorg gtest)
 

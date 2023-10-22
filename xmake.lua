@@ -163,6 +163,7 @@ meta_target("haxorg_base_lexer", "Generate base lexer for haxorg", {}, function 
       "--fast",
       "--batch=1024",
       "--outfile=" .. utils.abs_script("src/base_lexer/base_lexer.cpp"),
+      "--namespace=base_lexer",
       utils.abs_script("src/base_lexer/base_lexer.l")
     }, {
       ENVS = {
