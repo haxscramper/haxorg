@@ -9,6 +9,7 @@
 
 %option fast freespace unicode
 
+
 %class{
   public:
     std::vector<BaseToken> tokens;
@@ -22,13 +23,46 @@
       std::u32string utf32_str = conv.from_bytes(matcher().text());
       char32_t codepoint = utf32_str[0];
 
-      std::cerr << lineno() << ":" << columno()
+      std::cerr << std::dec << lineno() << ":" << columno() << " in state " 
+                << top_state() 
                 << " >" << matcher().text() << "< ("
-                << std::hex << (uint32_t)codepoint << ")" << matcher().span() << "\n";
+                << std::hex << (uint32_t)codepoint << ") " << matcher().span() << "\n";
     }
 }
 
+%xstate COMMAND
+%state COMMAND_TEXT
+// Commands with options ave exclusive state for lexing content
+%xstate COMMAND_OPTS 
+%xstate COMMAND_EXAMPLE
+
 %%
+
+#\+                     { add(BaseTokenKind::LineCommand); push_state(COMMAND); }
+
+<COMMAND>begin_src      { add(BaseTokenKind::CmdBeginSrc); push_state(COMMAND_OPTS); }
+
+<COMMAND_OPTS>:\w+      { add(BaseTokenKind::CmdColonIdent); }
+// Drop two levels of command nesting -- at the end of the line exit from `COMMAND_OPTS`
+// and from `COMMAND` itself.
+<COMMAND_OPTS>\n        { add(BaseTokenKind::Newline); pop_state(); pop_state(); }
+<COMMAND_OPTS>\w+       { add(BaseTokenKind::CmdIdent); }
+<COMMAND_OPTS>\s+       { add(BaseTokenKind::Whitespace); }
+<COMMAND_OPTS>.         { unknown(); }
+<COMMAND>end_src        { add(BaseTokenKind::CmdEndSrc); }
+
+<COMMAND>begin_example  { add(BaseTokenKind::CmdBeginExample); }
+<COMMAND>end_example    { add(BaseTokenKind::CmdEndExample); }
+<COMMAND>begin_quote    { add(BaseTokenKind::CmdBeginQuote); }
+<COMMAND>end_quote      { add(BaseTokenKind::CmdEndQuote); }
+
+// Caption command has a regular text lexing content
+<COMMAND>caption        { add(BaseTokenKind::CmdCaption); push_state(COMMAND_TEXT); }
+<COMMAND_TEXT>\n        { add(BaseTokenKind::Newline); pop_state(); pop_state(); }
+
+
+<COMMAND>\n             { add(BaseTokenKind::Newline); pop_state(); }
+<COMMAND>.              { unknown(); }
 
 "# -*- "                { add(BaseTokenKind::FileVarComment); }
 [0-9]+                  { add(BaseTokenKind::Number); }
@@ -56,8 +90,11 @@
 \\\\                    { add(BaseTokenKind::DoubleSlash); }
 #\w+                    { add(BaseTokenKind::HashIdent); }
 ##                      { add(BaseTokenKind::DoubleHash); }
-#\+begin_\w+            { add(BaseTokenKind::BeginBlock); }
-#\+end_\w+              { add(BaseTokenKind::EndBlock); }
+
+
+
+
+
 \(                      { add(BaseTokenKind::LeftPar); }
 \)                      { add(BaseTokenKind::RightPar); }
 ~                       { add(BaseTokenKind::Tilda); }
@@ -74,7 +111,6 @@
 \{                      { add(BaseTokenKind::LeftCurly); }
 \}                      { add(BaseTokenKind::RightCurly); }
 \\.                     { add(BaseTokenKind::EscapedChar); }
-#\+\w+:                 { add(BaseTokenKind::LineCommand); }
 \%                      { add(BaseTokenKind::Percent); }
 @                       { add(BaseTokenKind::At); }
 \|                      { add(BaseTokenKind::Pipe); }
