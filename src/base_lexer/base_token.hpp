@@ -75,6 +75,11 @@
     __op(CmdOptions) \
     __op(CmdColonIdent) \
     __op(CmdIdent) \
+    __op(SrcTangleOpen) \
+    __op(SrcTangleClose) \
+    __op(SrcContent) \
+    __op(MacroOpen) \
+    __op(MacroClose) \
 
 
 

@@ -103,6 +103,10 @@
   pop_expect(COMMAND, INITIAL); 
 }
 
+<BODY_SRC>"<<" { add(BaseTokenKind::SrcTangleOpen); }
+<BODY_SRC>">>" { add(BaseTokenKind::SrcTangleClose); }
+<BODY_SRC>.+   { add(BaseTokenKind::SrcContent); }
+
 <COMMAND_OPTS,COMMAND_SRC>{
 :\w+      { add(BaseTokenKind::CmdColonIdent); }
 // Drop two levels of command nesting -- at the end of the line exit from `COMMAND_OPTS`
