@@ -17,9 +17,8 @@ find_library(GRAPHVIZ_GVC_LIBRARY gvc)
 
 if (${USE_PCH})
     target_precompile_headers(haxorg PRIVATE
-      <std::string>
-      <QDateTime>
-      <QDebug>
+      <string>
+      <format>
       <nlohmann/json.hpp>
       <optional>
       <vector>
@@ -33,10 +32,15 @@ endif()
 target_link_libraries(haxorg PUBLIC
     ${GRAPHVIZ_CGRAPH_LIBRARY}
     ${GRAPHVIZ_GVC_LIBRARY}
-    fmt::fmt
-    perfetto
     hstd
-    yaml-cpp::yaml-cpp
-    )
+)
 
+
+add_executable(tests_org)
+target_link_libraries(tests_org PUBLIC haxorg)
+set_common_files(tests_org)
+set_target_output(tests_org)
+set_target_flags(tests_org)
+glob_add_sources2(tests_org "${BASE}/tests/org/.*")
+target_link_libraries(tests_org PUBLIC haxorg gtest perfetto)
 

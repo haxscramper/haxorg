@@ -49,7 +49,6 @@ include(src/cmake/target_codegen.cmake)
 include(src/cmake/target_lib.cmake)
 
 include(src/cmake/target_tests.cmake)
-include(src/cmake/target_tests_hstd.cmake)
 include(src/cmake/target_bench.cmake)
 
 
