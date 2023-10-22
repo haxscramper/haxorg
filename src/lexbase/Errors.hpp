@@ -15,8 +15,12 @@ template <>
 struct std::formatter<LineCol> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(const LineCol& p, FormatContext& ctx) {
-        return std::string("{.line = $#, .column = $#, .pos = $#}")
-             % to_string_vec(p.line, p.column, p.pos);
+        std::formatter<std::string> fmt;
+        fmt.format(p.line, ctx);
+        fmt.format(":", ctx);
+        fmt.format(p.column, ctx);
+        fmt.format(":", ctx);
+        return fmt.format(p.pos, ctx);
     }
 };
 

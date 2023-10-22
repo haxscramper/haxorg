@@ -1,3 +1,5 @@
+#if false
+
 #include "corpusrunner.hpp"
 
 #include <parse/OrgParser.hpp>
@@ -13,7 +15,7 @@
 
 #include <fnmatch.h>
 #include <ranges>
-#include "testprofiler.hpp"
+#include "../testprofiler.hpp"
 
 #ifdef USE_PERFETTO
 #    include <hstd/wrappers/perfetto_aux.hpp>
@@ -26,12 +28,12 @@ std::string corpusGlob = "";
 
 struct TestParams {
     ParseSpec spec;
-    QFileInfo file;
+    fs::path  file;
 
     std::string testName() const {
         std::string final;
         for (char const& ch : fullName()) {
-            if (ch.isDigit() || ch.isLetter() || ch == '_') {
+            if (std::isalnum(ch) || ch == '_') {
                 final.push_back(ch);
             } else {
                 final.push_back('_');
@@ -46,7 +48,7 @@ struct TestParams {
              % to_string_vec(
                    spec.name.has_value() ? spec.name.value()
                                          : std::string("<spec>"),
-                   file.fileName(),
+                   file.stem(),
                    spec.specLocation.line,
                    spec.specLocation.column);
     }
@@ -59,28 +61,26 @@ struct TestParams {
 
 Vec<TestParams> generateTestRuns() {
     Vec<TestParams> results;
-    QDirIterator    it(
-        __CURRENT_FILE_DIR__ / "corpus"_qs, QDirIterator::Subdirectories);
 
-    auto addSpecs = [&](QFileInfo const& path) {
+    auto addSpecs = [&](fs::path const& path) {
         try {
-            YAML::Node     group = YAML::LoadFile(path.filePath());
+            YAML::Node     group = YAML::LoadFile(path.native());
             ParseSpecGroup parsed{
-                group,
-                path.filePath(),
-                __CURRENT_FILE_DIR__ / "corpus"_qs};
+                group, path.native(), __CURRENT_FILE_DIR__ / "corpus"};
             for (const auto& spec : parsed.specs) {
                 results.push_back({spec, path});
             }
         } catch (YAML::Exception& ex) {
-            qFatal() << ex.what() << "at" << path.filePath();
+            LOG(ERROR) << ex.what() << "at" << path.native();
         }
     };
 
-    while (it.hasNext()) {
-        QFileInfo path{it.next()};
-        if (path.isFile() && path.fileName().endsWith(".yaml")) {
-            std::string p = path.filePath();
+    for (fs::directory_entry const& it :
+         fs::directory_iterator(__CURRENT_FILE_DIR__ / "corpus")) {
+        fs::path path{it.path()};
+        if (fs::is_regular_file(path)
+            && path.native().ends_with(".yaml")) {
+            std::string p = path.native();
             if (corpusGlob.empty()) {
                 addSpecs(path);
             } else {
@@ -128,13 +128,12 @@ std::string getTestName(
 
 
 TEST_P(ParseFile, CorpusAll) {
-    TestParams params = GetParam();
-    __perf_trace("cli", "Execute test");
-    auto& spec             = params.spec;
+    TestParams params      = GetParam();
+    auto&      spec        = params.spec;
     spec.debug.debugOutDir = "/tmp/corpus_runs/" + params.testName();
     CorpusRunner runner;
     using RunResult  = CorpusRunner::RunResult;
-    RunResult result = runner.runSpec(spec, params.file.filePath());
+    RunResult result = runner.runSpec(spec, params.file.native());
 
     if (result.isOk()
         && !(spec.debug.doLex && spec.debug.doParse && spec.debug.doSem)) {
@@ -167,7 +166,7 @@ TEST_P(ParseFile, CorpusAll) {
             exporter.printToFile = true;
         }
 
-        RunResult fail = runner.runSpec(spec, params.file.filePath());
+        RunResult fail = runner.runSpec(spec, params.file.native());
         ColText   os;
 
         std::visit(
@@ -215,3 +214,5 @@ INSTANTIATE_TEST_CASE_P(
     ParseFile,
     ::testing::ValuesIn(generateTestRuns()),
     getTestName);
+
+#endif

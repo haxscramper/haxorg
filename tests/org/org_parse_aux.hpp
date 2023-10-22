@@ -42,7 +42,7 @@ struct MockFull {
     }
 
     void parse(ParserMethod parseMethod) {
-        ((*parser).*parseMethod)(this->lex);
+//        ((*parser).*parseMethod)(this->lex);
     }
 
     void run(

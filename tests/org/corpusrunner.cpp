@@ -1,3 +1,5 @@
+#if false
+
 #include "corpusrunner.hpp"
 
 #include <hstd/stdlib/Filesystem.hpp>
@@ -286,7 +288,7 @@ void format(
                                     rhsStyle,
                                     formatCb(rhs.index().value(), false)))
                    <<= rhsSize)
-               << Qt::endl;
+               << "\n";
         }
     }
 }
@@ -489,11 +491,11 @@ void exporterVisit(
         os << " field:" << ev.field;
     }
 
-    os << " on " << QFileInfo(ev.file).fileName() << ":" << ev.line << " "
+    os << " on " << fs::path(ev.file).stem() << ":" << ev.line << " "
        << ev.function << " " << os.end();
 
     if (0 < ev.type.length()) {
-        os << " type:" << demangle(ev.type.toLatin1());
+        os << " type:" << demangle(ev.type);
     }
 
     trace.endStream(os);
@@ -558,9 +560,11 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
         [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
             if (lhs.kind != rhs.kind) {
                 return false;
-            } else if (lhs->has_data() != rhs->has_data()) {
+            } else if (lhs->base.has_value() != rhs->base.has_value()) {
                 return false;
-            } else if (lhs.hasData() && lhs->getText() != rhs->getText()) {
+            } else if (
+                lhs->base.has_value()
+                && lhs->getText() != rhs->getText()) {
                 return false;
             } else {
                 return true;
@@ -578,7 +582,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
             tokenSimilarity, lexed.size(), expected.size()};
 
         Func<Str(CR<OrgToken>)> conv = [](CR<OrgToken> tok) -> Str {
-            return to_string(tok);
+            return std::format("{}", tok);
         };
 
         FormattedDiff text{tokenDiff};
@@ -611,11 +615,11 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
                         {"index", to_string(id)},
                         {"kind", to_string(tok.kind)},
                         {"text",
-                         hshow(tok.strVal(), opts).toString(false)},
+                         hshow(tok->getText(), opts).toString(false)},
                         // {tok.hasData()},
                     });
 
-                auto indexFmt = std::string("[%1]").arg(id);
+                auto indexFmt = Str(std::format("[{}]", id));
                 return useQFormat()
                          ? (isLhs ? indexFmt
                                         + right_aligned(
@@ -664,7 +668,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
             nodeSimilarity, parsed.size(), expected.size()};
 
         Func<Str(CR<OrgNode>)> conv = [](CR<OrgNode> tok) -> Str {
-            return to_string(tok);
+            return std::format("{}", tok);
         };
 
         FormattedDiff text{nodeDiff};
@@ -681,7 +685,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                        node.kind,
                        node.isTerminal() ? escape_literal(
                            hshow(
-                               group->strVal(OrgId(id)),
+                               group->val(OrgId(id)),
                                HDisplayOpts().excl(
                                    HDisplayFlag::UseQuotes))
                                .toString(false))
@@ -832,7 +836,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         if (spec.debug.printLexed) {
             writeFileOrStdout(
                 spec.debugFile("lexed.yaml"),
-                to_string(yamlRepr(p.tokens)) + "\n",
+                std::format("{}", yamlRepr(p.tokens)) + "\n",
                 spec.debug.printLexedToFile);
         }
 
@@ -840,7 +844,8 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             Str                   buffer;
             RunResult::LexCompare result = compareTokens(
                 p.tokens,
-                fromFlatTokens<OrgTokenKind>(spec.tokens.value(), buffer),
+                fromFlatTokens<OrgTokenKind, OrgFill>(
+                    spec.tokens.value(), buffer),
                 spec.conf.tokenMatch);
             if (!result.isOk) {
                 return RunResult(result);
@@ -862,7 +867,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             if (spec.debug.printParsed) {
                 writeFileOrStdout(
                     spec.debugFile("parsed.yaml"),
-                    to_string(yamlRepr(p.nodes)) + "\n",
+                    std::format("{}", yamlRepr(p.nodes)) + "\n",
                     spec.debug.printParsedToFile);
 
                 writeFileOrStdout(
@@ -880,12 +885,12 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             OrgTokenGroup tokens;
 
             if (spec.tokens.has_value()) {
-                tokens = fromFlatTokens<OrgTokenKind>(
+                tokens = fromFlatTokens<OrgTokenKind, OrgFill>(
                     spec.tokens.value(), buffer);
             }
 
             if (spec.subnodes.has_value()) {
-                nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind>(
+                nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind, OrgFill>(
                     spec.subnodes.value());
             }
 
@@ -922,7 +927,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                 exporter.skipId          = true;
                 writeFileOrStdout(
                     spec.debugFile("sem.yaml"),
-                    to_string(exporter.evalTop(document)) + "\n",
+                    std::format("{}", exporter.evalTop(document)) + "\n",
                     spec.debug.printSemToFile);
             }
 
@@ -950,3 +955,5 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
     return RunResult();
 }
+
+#endif

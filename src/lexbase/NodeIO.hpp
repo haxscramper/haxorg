@@ -102,3 +102,62 @@ json jsonRepr(CR<TokenGroup<K, V>> group, bool withIdx = false) {
     }
     return out;
 }
+
+template <typename N, typename K, typename V>
+NodeGroup<N, K, V> fromFlatNodes(CR<yaml> node) {
+    NodeGroup<N, K, V> result;
+    result.nodes.resize(
+        node.size(), Node(value_domain<N>::low(), TokenId<K, V>::Nil()));
+    int index = 0;
+    for (const auto& it : node) {
+        N kind = enum_serde<N>::from_string(it["kind"].as<std::string>())
+                     .value();
+        if (it["extent"]) {
+            result.at(NodeId<N, K, V>(index)) = Node<N, K, V>(
+                kind, it["extent"].as<int>());
+        } else {
+            result.at(NodeId<N, K, V>(index)) = Node<N, K, V>(
+                kind, TokenId<K, V>(it["tok_idx"].as<int>()));
+        }
+        ++index;
+    }
+
+    return result;
+}
+
+template <typename K, typename V>
+TokenGroup<K, V> fromFlatTokens(CR<yaml> node, Str& buf) {
+    TokenGroup<K, V> result;
+    assert(false);
+    // TODO
+    //    result.tokens.resize(node.size());
+    //    int bufferSize = 0;
+    //    for (const auto& it : node) {
+    //        if (it["str"]) {
+    //            bufferSize += it["str"].as<QString>().size();
+    //        }
+    //    }
+
+    //    buf.reserve(bufferSize);
+    //    auto data = buf.data();
+
+    //    int index = 0;
+    //    for (const auto& it : node) {
+    //        auto start         = buf.size();
+    //        auto id            = TokenId<K>(index);
+    //        result.at(id).kind = enum_serde<K>::from_string(
+    //                                 it["kind"].as<QString>())
+    //                                 .value();
+
+    //        if (it["str"]) {
+    //            QString str = it["str"].as<QString>();
+    //            buf += str;
+    //            result.at(id).text = QStringView(data + start,
+    //            str.size());
+    //        }
+
+    //        ++index;
+    //    }
+
+    return result;
+}

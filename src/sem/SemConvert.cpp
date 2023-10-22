@@ -435,16 +435,16 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
     __perf_trace("convertTime");
     __trace();
 
-    Q_ASSERT_X(
+    CHECK(
         ((OrgSet{
               org::DynamicActiveTime,
               org::DynamicInactiveTime,
               org::StaticActiveTime,
               org::StaticInactiveTime,
           })
-             .contains(a.kind())),
-        "convert subtree",
-        to_string(a.kind()));
+             .contains(a.kind())) <<
+        "convert subtree" <<
+        to_string(a.kind());
 
     auto time      = Sem<Time>(p, a);
     time->isActive = (a.kind() == org::DynamicActiveTime)
@@ -900,13 +900,13 @@ SemIdT<CmdArguments> OrgConverter::convertCmdArguments(__args) {
             if (arg->key) {
                 bool ok = result->named.insert({arg->key.value(), arg})
                               .second;
-                Q_ASSERT(ok); // TODO generate proper error message
+                CHECK(ok); // TODO generate proper error message
             } else {
                 result->positional.push_back(arg);
             }
         }
     } else {
-        Q_ASSERT(a.getKind() == org::Empty);
+        CHECK(a.getKind() == org::Empty);
     }
 
     return result;
@@ -1012,10 +1012,8 @@ SemId OrgConverter::convert(__args) {
                 Q_CHECK_PTR(it);
             }
 
-            Q_ASSERT_X(
-                !nested.empty(),
-                "nested command wrap",
-                "Nested command result had size 0");
+            CHECK(!nested.empty()) << "nested command wrap"
+                                   << "Nested command result had size 0";
 
             if (nested.size() == 1) {
                 return nested[0];

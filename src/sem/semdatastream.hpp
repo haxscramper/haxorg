@@ -1,7 +1,8 @@
 #pragma once
 
 #include <sem/SemOrg.hpp>
-#include <QDataStream>
+
+struct QDataStream {};
 
 struct SemDataStream {
     void read(QDataStream& in, sem::ContextStore* store);

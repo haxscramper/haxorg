@@ -14,7 +14,6 @@ struct OperationsTracer {
     OperationsTracer() {}
     OperationsTracer(fs::path const& info) { setTraceFile(info); }
 
-    SPtr<fs::path>     file;
     SPtr<std::ostream> stream;
     void               setTraceFile(fs::path const& outfile);
     ColStream          getStream();

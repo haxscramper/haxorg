@@ -375,7 +375,10 @@ struct OrgTokenizerImpl
         const int&        indent,
         LexerStateSimple& state);
 
-    bool lexListBullet(BaseLexer& str, int indent, LexerStateSimple& state);
+    bool lexListBullet(
+        BaseLexer&        str,
+        int               indent,
+        LexerStateSimple& state);
     bool lexListDescription(
         PosStr&           str,
         int               indent,
@@ -384,7 +387,9 @@ struct OrgTokenizerImpl
 
 
     bool lexListItems(BaseLexer& str, LexerStateSimple& state);
-    bool lexTableState(BaseLexer& str, LexerState<OrgBlockLexerState>& state);
+    bool lexTableState(
+        BaseLexer&                      str,
+        LexerState<OrgBlockLexerState>& state);
     bool lexCommandContent(BaseLexer& str, const OrgCommandKind& kind);
     bool lexCommandArguments(BaseLexer& str, const OrgCommandKind& kind);
     bool lexCommandBlockDelimited(BaseLexer& str, PosStr id, int column);
@@ -483,9 +488,6 @@ const TypArray<char, MarkupConfigPair> markupConfig{{
     {'"', {otk::QuoteOpen,     otk::QuoteClose,     otk::None}},
 }};
 // clang-format on
-
-
-
 
 
 template <bool TraceState>
@@ -624,11 +626,12 @@ bool OrgTokenizerImpl<TraceState>::lexStaticTimeStamp(BaseLexer& str) {
 
     // Timestamp without date information, only time
     if (!atHourColonMinute(str, 0)) {
-        auto date = str.tok(otk::StaticTimeDatePart, [this](BaseLexer& str) {
-            while (str.at('-') || str.at('/') || str.get().isDigit()) {
-                str.next();
-            }
-        });
+        auto date = str.tok(
+            otk::StaticTimeDatePart, [this](BaseLexer& str) {
+                while (str.at('-') || str.at('/') || str.get().isDigit()) {
+                    str.next();
+                }
+            });
         __push(date);
         spaceSkip(str);
 
@@ -647,11 +650,12 @@ bool OrgTokenizerImpl<TraceState>::lexStaticTimeStamp(BaseLexer& str) {
 
     if (str.get().isNumber()) {
         __trace("Static time clock");
-        auto day = str.tok(otk::StaticTimeClockPart, [this](BaseLexer& str) {
-            while (str.at(':') || str.get().isNumber()) {
-                str.next();
-            }
-        });
+        auto day = str.tok(
+            otk::StaticTimeClockPart, [this](BaseLexer& str) {
+                while (str.at(':') || str.get().isNumber()) {
+                    str.next();
+                }
+            });
         __push(day);
         spaceSkip(str);
     }
@@ -1126,14 +1130,15 @@ bool OrgTokenizerImpl<TraceState>::lexSlashEntity(BaseLexer& str) {
             while (str.at('[')) {
                 auto open = str.tok(otk::MetaBraceOpen, skipCb('['));
                 __push(open);
-                auto body = str.tok(otk::MetaBraceBody, [](BaseLexer& str) {
-                    skipBalancedSlice(
-                        str,
-                        {.openChars    = {'['},
-                         .closeChars   = {']'},
-                         .skippedStart = true,
-                         .consumeLast  = false});
-                });
+                auto body = str.tok(
+                    otk::MetaBraceBody, [](BaseLexer& str) {
+                        skipBalancedSlice(
+                            str,
+                            {.openChars    = {'['},
+                             .closeChars   = {']'},
+                             .skippedStart = true,
+                             .consumeLast  = false});
+                    });
                 __push(body);
                 auto close = str.tok(otk::MetaBraceClose, skipCb(']'));
                 __push(close);
@@ -1429,10 +1434,9 @@ bool OrgTokenizerImpl<TraceState>::lexCommandContent(
             break;
         }
         default: {
-            Q_ASSERT_X(
-                false,
-                "lex command content",
-                "lex command content for kind " + to_string(kind));
+            CHECK(false) << "lex command content"
+                         << "lex command content for kind "
+                                + to_string(kind);
         }
     };
     auto end = str.fakeTok(otk::CommandContentEnd);
@@ -1506,8 +1510,8 @@ bool OrgTokenizerImpl<TraceState>::lexTextAtSign(BaseLexer& str) {
 template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::lexCommandBlockDelimited(
     BaseLexer& str,
-    PosStr  id,
-    int     column) {
+    PosStr     id,
+    int        column) {
     __perf_trace("lexCommandBlockDelimited");
     __trace();
     auto begin = Token(otk::CommandBegin, id.view);
@@ -1615,21 +1619,22 @@ bool OrgTokenizerImpl<TraceState>::lexTextVerbatim(BaseLexer& str) {
             auto open = str.tok(
                 markupConfig[start].startKind, skipCount, 1);
             __push(open);
-            auto text = str.tok(otk::RawText, [this, &start](BaseLexer& str) {
-                bool ended = false;
-                while (!str.finished() && !ended) {
-                    while (str.notAt(start)) {
-                        str.next();
+            auto text = str.tok(
+                otk::RawText, [this, &start](BaseLexer& str) {
+                    bool ended = false;
+                    while (!str.finished() && !ended) {
+                        while (str.notAt(start)) {
+                            str.next();
+                        }
+                        if (str.at(start)
+                            && (str.at(closingTokens, +1)
+                                || !str.hasNext(1))) {
+                            ended = true;
+                        } else {
+                            str.next();
+                        }
                     }
-                    if (str.at(start)
-                        && (str.at(closingTokens, +1)
-                            || !str.hasNext(1))) {
-                        ended = true;
-                    } else {
-                        str.next();
-                    }
-                }
-            });
+                });
 
             __push(text);
             auto end = str.tok(
@@ -2369,24 +2374,25 @@ bool OrgTokenizerImpl<TraceState>::lexCommandKeyValue(BaseLexer& str) {
                 break;
             }
             default: {
-                auto value = str.tok(otk::CommandValue, [](BaseLexer& str) {
-                    auto hasColon = false;
-                    while (!str.finished() && !hasColon) {
-                        while (str.notAt(charsets::HorizontalSpace)) {
-                            str.next();
-                        }
-                        if (!str.finished()) {
-                            auto tmp = str;
-                            tmp.space();
-                            if (tmp.notAt(':')) {
-                                tmp.next();
-                                str = tmp;
-                            } else {
-                                hasColon = true;
+                auto value = str.tok(
+                    otk::CommandValue, [](BaseLexer& str) {
+                        auto hasColon = false;
+                        while (!str.finished() && !hasColon) {
+                            while (str.notAt(charsets::HorizontalSpace)) {
+                                str.next();
+                            }
+                            if (!str.finished()) {
+                                auto tmp = str;
+                                tmp.space();
+                                if (tmp.notAt(':')) {
+                                    tmp.next();
+                                    str = tmp;
+                                } else {
+                                    hasColon = true;
+                                }
                             }
                         }
-                    }
-                });
+                    });
                 __push(value);
             }
         }
@@ -3393,7 +3399,7 @@ template <bool TraceState>
 bool OrgTokenizerImpl<TraceState>::lexGlobal(BaseLexer& str) {
     __perf_trace("lexGlobal");
     __trace();
-    Q_ASSERT(locationResolver);
+    CHECK(locationResolver);
     while (!str.finished()) {
         lexStructure(str);
     }

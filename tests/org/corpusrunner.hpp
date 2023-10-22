@@ -8,9 +8,6 @@
 #include <lexbase/NodeTest.hpp>
 #include <hstd/wrappers/textlayouter.hpp>
 
-struct QFileInfo;
-
-
 class CorpusRunner {
   public:
     // Define environment variable in the QT app run environment to get

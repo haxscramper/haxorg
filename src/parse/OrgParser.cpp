@@ -29,7 +29,7 @@ class OrgParserImpl : public OrgParser {
     }
 
     CR<OrgNode> pending() const {
-        Q_ASSERT(0 <= group->treeDepth());
+        CHECK(0 <= group->treeDepth());
         return group->lastPending();
     }
 
@@ -45,13 +45,13 @@ class OrgParserImpl : public OrgParser {
     OrgId back() const { return group->nodes.back(); }
 
     int treeDepth() const {
-        Q_ASSERT(0 <= group->treeDepth());
+        CHECK(0 <= group->treeDepth());
         return group->treeDepth();
     }
 
     OrgId start(OrgNodeKind kind) { return group->startTree(kind); }
     OrgId end() {
-        Q_ASSERT(0 <= group->treeDepth());
+        CHECK(0 <= group->treeDepth());
         return group->endTree();
     }
     OrgId   empty() { return token(getEmpty()); }
@@ -574,12 +574,11 @@ Slice<OrgId> OrgParserImpl<TraceState>::parseText(OrgLexer& lex) {
         "Trace levels after text fold start:$#, end:$#"
         % to_string_vec(treeStart, treeEnd));
 
-    Q_ASSERT_X(
-        treeStart <= treeEnd,
-        "parseText",
-        ("Text fold created unbalanced tree - starting with depth $# "
-         "ended up on depth $# on position $# (starting from $#)"
-         % to_string_vec(treeStart, treeEnd, getLocMsg(lex), forMsg)));
+    CHECK(treeStart <= treeEnd)
+        << "parseText"
+        << ("Text fold created unbalanced tree - starting with depth $# "
+            "ended up on depth $# on position $# (starting from $#)"
+            % to_string_vec(treeStart, treeEnd, getLocMsg(lex), forMsg));
 
     while (treeStart < treeDepth()) {
         __print("Warn, force closing content on " + getLocMsg(lex));
@@ -2215,60 +2214,61 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
     Func<void(Id)> aux;
     aux = [&](Id top) {
         auto& g = *group;
-        Q_ASSERT(g.nodes.contains(top));
+        CHECK(g.nodes.contains(top));
         if (g.at(top).isTerminal() || g.at(top).isMono()) {
             return;
         }
 
-        Q_ASSERT(g.at(top).kind != org::Empty);
+        CHECK(g.at(top).kind != org::Empty);
 
         Id start = top + 1;
         Id id    = start;
 
         if (Opt<Slice<Id>> extentOpt = g.allSubnodesOf(top)) {
             Slice<Id> extent = extentOpt.value();
-            Q_ASSERT(g.nodes.contains(extent.first));
-            Q_ASSERT(g.nodes.contains(extent.last));
+            CHECK(g.nodes.contains(extent.first));
+            CHECK(g.nodes.contains(extent.last));
 
             int index = 0;
             while (extent.contains(id)) {
-                Q_ASSERT(g.nodes.contains(id));
+                CHECK(g.nodes.contains(id));
                 aux(id);
 
                 id = id + g.at(id).getExtent();
-                Q_ASSERT_X(
-                    g.nodes.contains(id),
-                    "next subnode",
-                    "Step over the subnode of $# with extent $# yielded "
-                    "id $# which is outsize of the group range (index is "
-                    "$#, group size is $#), subnode index is $#, size "
-                    "overflow is $#"
-                        % to_string_vec(
-                            start.getUnmasked(),
-                            extent,
-                            id.getUnmasked(),
-                            id.getIndex(),
-                            g.size(),
-                            index,
-                            id - g.nodes.back()));
+                CHECK(g.nodes.contains(id))
+                    << "next subnode"
+                    << "Step over the subnode of $# with extent $# "
+                       "yielded "
+                       "id $# which is outsize of the group range (index "
+                       "is "
+                       "$#, group size is $#), subnode index is $#, size "
+                       "overflow is $#"
+                           % to_string_vec(
+                               start.getUnmasked(),
+                               extent,
+                               id.getUnmasked(),
+                               id.getIndex(),
+                               g.size(),
+                               index,
+                               id - g.nodes.back());
 
 
                 id = id + 1;
                 ++index;
             }
 
-            Q_ASSERT_X(
-                extent.last + 1 == id,
-                "range end",
-                "Iteration over subnode ranges for $# did not end at the "
-                "$# -- combined subnode extent strides summed up to $#. "
-                "Total subnode count is $#, full extent is $#"
-                    % to_string_vec(
-                        top.getUnmasked(),
-                        (extent.last + 1).getUnmasked(),
-                        id.getUnmasked(),
-                        index,
-                        extent));
+            CHECK(extent.last + 1 == id)
+                << "range end"
+                << "Iteration over subnode ranges for $# did not end at "
+                   "the $# -- combined subnode extent strides summed up "
+                   "to "
+                   "$#. Total subnode count is $#, full extent is $#"
+                       % to_string_vec(
+                           top.getUnmasked(),
+                           (extent.last + 1).getUnmasked(),
+                           id.getUnmasked(),
+                           index,
+                           extent);
         }
     };
 
@@ -2298,9 +2298,9 @@ void OrgParserImpl<TraceState>::extendSubtreeTrails(OrgId position) {
                 int         sub   = g.strVal(subId).size();
                 if (level < sub) {
                     OrgId stmt = g.subnode(tree, 8);
-                    Q_ASSERT(g.at(stmt).kind == org::StmtList);
+                    CHECK(g.at(stmt).kind == org::StmtList);
                     id = aux(stmt + 1, sub);
-                    Q_ASSERT(stmt + 1 <= id);
+                    CHECK(stmt + 1 <= id);
                     // AUX returns next position to start looping from, so
                     // the tree size is 'end - start - 1' to account for
                     // the offset.
@@ -2317,16 +2317,16 @@ void OrgParserImpl<TraceState>::extendSubtreeTrails(OrgId position) {
                     // debugging of the implementation, malformed incoming
                     // data is not expected.
                     assertValidStructure(group, tree);
-                    Q_ASSERT(treeSlice.last <= g.nodes.back());
-                    Q_ASSERT(stmtSlice.last <= g.nodes.back());
-                    Q_ASSERT_X(
-                        treeSlice.last == stmtSlice.last,
-                        "extend tree",
-                        "$# -- $#" % to_string_vec(treeSlice, stmtSlice));
-                    Q_ASSERT_X(
-                        treeSlice.contains(stmtSlice),
-                        "statement containment",
-                        "$# -- $#" % to_string_vec(treeSlice, stmtSlice));
+                    CHECK(treeSlice.last <= g.nodes.back());
+                    CHECK(stmtSlice.last <= g.nodes.back());
+                    CHECK(treeSlice.last == stmtSlice.last)
+                        << "extend tree"
+                        << "$# -- $#"
+                               % to_string_vec(treeSlice, stmtSlice);
+                    CHECK(treeSlice.contains(stmtSlice))
+                        << "statement containment"
+                        << "$# -- $#"
+                               % to_string_vec(treeSlice, stmtSlice);
 
 
                 } else {
@@ -2364,10 +2364,10 @@ void OrgParserImpl<TraceState>::extendAttachedTrails(OrgId position) {
             OrgId const annotation = id;
             // Get ID of the nested statement list
             OrgId const stmt = g.subnode(annotation, 1);
-            Q_ASSERT(g.at(stmt).kind == org::StmtList);
+            CHECK(g.at(stmt).kind == org::StmtList);
             // Next element after command block is the non-optional newline
             // to separate them.
-            Q_ASSERT(g.at(stmt + 1).kind == org::SkipNewline);
+            CHECK(g.at(stmt + 1).kind == org::SkipNewline);
             OrgId   nextId = stmt + 2;
             OrgNode next   = g.at(nextId);
 

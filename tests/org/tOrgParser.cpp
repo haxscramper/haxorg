@@ -2,10 +2,10 @@
 #include <parse/OrgParser.hpp>
 
 struct MockParser {
-    OrgTokenGroup                  tokens;
-    OrgNodeGroup                   nodes;
-    SPtr<OrgParser>                parser;
-    Lexer<OrgTokenKind, BaseToken> lex;
+    OrgTokenGroup                tokens;
+    OrgNodeGroup                 nodes;
+    SPtr<OrgParser>              parser;
+    Lexer<OrgTokenKind, OrgFill> lex;
     MockParser(Vec<OrgTokenKind> kinds = {})
         : nodes(nullptr), lex(&tokens) {
         parser       = OrgParser::initImpl(&nodes, false);

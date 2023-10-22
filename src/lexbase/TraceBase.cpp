@@ -1,25 +1,13 @@
 #include <lexbase/TraceBase.hpp>
 
-void OperationsTracer::setTraceFile(
-    const std::filesystem::__cxx11::path& outfile) {
-    Q_ASSERT_X(
-        outfile.absoluteFilePath().length() != 0,
-        "setTraceFile",
-        "Expected non-empty filename for the output");
+void OperationsTracer::setTraceFile(const fs::path& outfile) {
+    CHECK(outfile.native().size() != 0)
+        << "setTraceFile"
+        << "Expected non-empty filename for the output";
     trace       = true;
     traceToFile = true;
-    file        = std::make_shared<QFile>();
-    stream      = std::make_shared<std::ostream>();
-    file->setFileName(outfile.absoluteFilePath());
-    if (file->open(QIODevice::ReadWrite | QFile::Truncate)) {
-        //        DLOG(INFO) << "Opened" << outfile.absoluteFilePath()
-        //                 << "for writing";
-        stream->setDevice(file.get());
-    } else {
-        qCritical() << "Could not open file "
-                    << outfile.absoluteFilePath();
-        abort();
-    }
+    stream      = std::make_shared<std::ostream>(
+        std::ofstream{outfile.native()});
 }
 
 ColStream OperationsTracer::getStream() {
@@ -31,7 +19,7 @@ ColStream OperationsTracer::getStream() {
         os.buffered = false;
         return os;
     } else {
-        return ColStream{qcout};
+        return ColStream{std::cout};
     }
 }
 
@@ -39,6 +27,6 @@ void OperationsTracer::endStream(ColStream& stream) {
     if (traceToBuffer) {
         stream << "\n";
     } else {
-        (*stream.ostream) << Qt::endl;
+        (*stream.ostream) << std::endl;
     }
 }

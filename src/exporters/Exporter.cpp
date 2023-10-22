@@ -20,14 +20,14 @@ void Exporter<V, R>::visitVariants(R& res, Kind kind, CR<T> var) {
     _this()->visitField(res, "kind", kind);
     std::visit(
         [&, this](const auto& it) {
-            _this()->visitField(res, fieldName.toLatin1(), it);
+            _this()->visitField(res, fieldName.c_str(), it);
         },
         var);
 }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<UserTime> time) {
-    visitVariants(res, time.getKind(), time.time);
+//    visitVariants(res, time.getKind(), time.time);
 }
 
 template <typename V, typename R>

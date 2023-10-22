@@ -41,7 +41,7 @@ struct OrgParser : public OperationsTracer {
         struct None : Base {
             None()
                 : Base(
-                    SubLexer<OrgTokenKind, BaseToken>{
+                    SubLexer<OrgTokenKind, OrgFill>{
                         nullptr,
                         Vec<OrgTokenId>{}},
                     std::nullopt) {}

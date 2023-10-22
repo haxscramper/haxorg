@@ -36,7 +36,7 @@ struct [[nodiscard]] NodeId
         return res;
     }
 
-    auto operator==(NodeId<N, K, IdBase> other) const -> bool {
+    auto operator==(NodeId<N, K, V, IdBase> other) const -> bool {
         return this->getValue() == other.getValue();
     }
 
@@ -378,7 +378,7 @@ struct NodeAdapter {
         NodeGroup<N, K, V> const* group,
         NodeId<N, K, V>           id)
         : group(group), id(id) {
-        Q_ASSERT(group->nodes.contains(id));
+        CHECK(group->nodes.contains(id));
     }
 
     NodeAdapter() : group(nullptr), id(NodeId<N, K, V>::Nil()) {}

@@ -74,7 +74,7 @@ struct KindStore {
     KindStore(ContextStore* context) : context(context) {}
 
     T* getForIndex(SemId::NodeIndexT index) {
-        Q_ASSERT(0 <= index && index < values.size());
+        CHECK(0 <= index && index < values.size());
         return &values.at(index);
     }
 

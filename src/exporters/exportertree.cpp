@@ -123,7 +123,7 @@ void ExporterTree::visit(int& arg, CR<T> opt) {
     if constexpr (std::is_enum<T>::value) {
         __scope();
         indent();
-        os << os.red() << to_string(opt) << os.end() << "\n";
+        os << os.red() << std::format("{}", opt) << os.end() << "\n";
     } else {
         __scope();
         indent();

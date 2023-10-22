@@ -100,7 +100,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
 
     template <typename T>
     std::string typeName() {
-        return demangle(typeid(T).name()).replace("sem::", "");
+        return Str(demangle(typeid(T).name())).replaceAll("sem::", "");
     }
 
     template <typename T>

@@ -5,7 +5,7 @@
 #include <vector>
 #include <lexbase/Token.hpp>
 
-enum class BaseTokenKind
+enum class BaseTokenKind : u16
 {
     Identifier,
     Keyword,

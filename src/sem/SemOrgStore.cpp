@@ -42,7 +42,7 @@ Org* ParseUnitStore::get(OrgSemKind kind, SemId::NodeIndexT index) {
 #define _case(__Kind)                                                     \
     case OrgSemKind::__Kind: {                                            \
         sem::__Kind* res = store##__Kind.getForIndex(index);              \
-        Q_ASSERT(res->getKind() == kind);                                 \
+        CHECK(res->getKind() == kind);                                    \
         return res;                                                       \
     }
         EACH_SEM_ORG_KIND(_case)
@@ -63,10 +63,9 @@ SemId ParseUnitStore::create(
     case OrgSemKind::__Kind: {                                            \
         auto result = store##__Kind.create(                               \
             selfIndex, parent, original, context);                        \
-        Q_ASSERT_X(                                                       \
-            result.getKind() == kind,                                     \
-            "create node in local store",                                 \
-            to_string(result.getKind()) + " != " + to_string(kind));      \
+        CHECK(result.getKind() == kind)                                   \
+            << "create node in local store"                               \
+            << to_string(result.getKind()) + " != " + to_string(kind);    \
         return result;                                                    \
     }
 
@@ -93,7 +92,7 @@ EACH_SEM_ORG_KIND(_create)
 #undef _create
 
 Org* SemId::get() {
-    Q_ASSERT(!isNil());
+    CHECK(!isNil());
     Q_CHECK_PTR(context);
     return context->getStoreByIndex(getStoreIndex())
         .get(getKind(), getNodeIndex());
@@ -102,7 +101,7 @@ Org* SemId::get() {
 Org const* SemId::get() const {
     Org const* res = context->getStoreByIndex(getStoreIndex())
                          .get(getKind(), getNodeIndex());
-    Q_ASSERT(res->getKind() == getKind());
+    CHECK(res->getKind() == getKind());
     return res;
 }
 
@@ -115,7 +114,7 @@ ParseUnitStore& ContextStore::getStoreByIndex(SemId::StoreIndexT index) {
 
 void ContextStore::ensureStoreForIndex(SemId::StoreIndexT index) {
     int diff = index - stores.size();
-    Q_ASSERT(diff < 120000); // Debugging assertion
+    CHECK(diff < 120000); // Debugging assertion
 
     while (!(index < stores.size())) {
         stores.emplace_back(this);

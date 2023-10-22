@@ -11,6 +11,7 @@
 
 #include <parse/OrgTypes.hpp>
 #include <format>
+#include <hstd/system/reflection.hpp>
 
 using SemSet = IntSet<OrgSemKind>;
 
@@ -179,7 +180,6 @@ struct SemId {
             "{}_{}_{}", getStoreIndex(), getKind(), getNodeIndex());
     }
 };
-
 
 
 /// \brief Derived node for more explicit APIs

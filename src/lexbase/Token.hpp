@@ -32,9 +32,11 @@ struct [[nodiscard]] TokenId
         res.setValue(arg);
         return res;
     }
-    auto operator==(TokenId<K, IdBase> other) const -> bool {
+
+    auto operator==(TokenId<K, V, IdBase> other) const -> bool {
         return this->getValue() == other.getValue();
     }
+
     MaskType getStoreIdx() const { return this->getMask(); }
 
     explicit TokenId(IdBase arg)

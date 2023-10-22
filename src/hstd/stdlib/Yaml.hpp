@@ -134,3 +134,15 @@ struct convert<T> {
     }
 };
 }; // namespace YAML
+
+template <>
+struct std::formatter<yaml> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(yaml const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        std::stringstream           os;
+        os << p;
+        return fmt.format(os.str(), ctx);
+    }
+};

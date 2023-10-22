@@ -6,10 +6,35 @@
 #include <lexbase/Node.hpp>
 #include <sem/SemOrgEnums.hpp>
 #include <base_lexer/base_token.hpp>
+#include <hstd/system/reflection.hpp>
+
+
+template <>
+struct std::formatter<OrgTokenKind> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        OrgTokenKind const& p,
+        FormatContext&      ctx) const {
+        std::formatter<std::string> fmt;
+        return fmt.format(enum_serde<OrgTokenKind>::to_string(p), ctx);
+    }
+};
+
+template <>
+struct std::formatter<OrgSpecName> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        OrgSpecName const& p,
+        FormatContext&     ctx) const {
+        std::formatter<std::string> fmt;
+        return fmt.format(enum_serde<OrgSpecName>::to_string(p), ctx);
+    }
+};
+
 
 struct OrgFill {
-    Opt<BaseToken> base;
-    Str            getText() const { return base.value().text; }
+    Opt<BaseFill> base;
+    Str           getText() const { return base.value().text; }
 };
 
 using OrgToken      = Token<OrgTokenKind, OrgFill>;
