@@ -205,6 +205,6 @@ concept IsOrg = std::derived_from<
 template <>
 struct std::hash<sem::SemId> {
     std::size_t operator()(sem::SemId const& s) const noexcept {
-        return qHash(s.id);
+        return std::hash<u64>{}(s.id);
     }
 };

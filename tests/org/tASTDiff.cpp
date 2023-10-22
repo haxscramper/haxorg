@@ -154,7 +154,7 @@ TEST(AstDiff, PointerBasedNodes) {
     using ValT = RealNode::ValT;
 
     Func<Str(CR<ValT>)> toStr = [](CR<ValT> arg) -> Str {
-        return to_string(arg);
+        return std::format("{}", arg);
     };
 
     auto src = RealNode{
@@ -264,7 +264,7 @@ TEST(AstDiff, PointerBasedNodesWithVariants) {
 
 
     Func<Str(CR<ValT>)> toStr = [](CR<ValT> arg) -> Str {
-        return to_string(arg);
+        return std::format("{}", arg);
     };
 
     auto Src = TreeMirror<IdT, ValT>{

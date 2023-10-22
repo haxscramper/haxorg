@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <lexbase/Token.hpp>
 
 enum class BaseTokenKind
 {
@@ -64,11 +65,10 @@ enum class BaseTokenKind
     MiscUnicode
 };
 
-struct Token {
-    std::string value;
-    TokenKind   kind;
-
-    Token(std::string v, TokenKind k) : value(v), kind(k) {}
+struct BaseFill {
+    std::string text;
 };
 
-std::vector<Token> tokenize(const char* input, int size);
+using BaseToken = Token<BaseTokenKind, BaseFill>;
+
+std::vector<BaseToken> tokenize(const char* input, int size);

@@ -1,6 +1,7 @@
 #include <lexbase/TraceBase.hpp>
 
-void OperationsTracer::setTraceFile(const QFileInfo& outfile) {
+void OperationsTracer::setTraceFile(
+    const std::filesystem::__cxx11::path& outfile) {
     Q_ASSERT_X(
         outfile.absoluteFilePath().length() != 0,
         "setTraceFile",

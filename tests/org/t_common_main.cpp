@@ -4,7 +4,6 @@
 #include <hstd/system/aux_utils.hpp>
 #include <iostream>
 #include <hstd/system/string_convert.hpp>
-#include <QFile>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/wrappers/graphviz.hpp>
 #include <fstream>
@@ -15,8 +14,6 @@
 #endif
 
 FILE* trace_out;
-
-std::ostream qcout;
 
 extern "C" __attribute__((no_instrument_function)) void __cyg_profile_func_enter(
     void* this_fn,
@@ -41,13 +38,6 @@ const char* __asan_default_options() {
 }
 
 int main(int argc, char** argv) {
-    QFile file;
-    file.open(stdout, QIODevice::WriteOnly);
-    qcout.setDevice(&file);
-
-
-    QtMessageHandler old = qInstallMessageHandler(tracedMessageHandler);
-
 #ifdef USE_PERFETTO
     qInfo() << "Compiled with perfetto trace enabled, starting perfetto";
     InitializePerfetto();

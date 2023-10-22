@@ -3,9 +3,8 @@
 #include <memory>
 #include <fstream>
 #include <string>
-#include <QFile>
-#include <filesystem>
 
+#include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/ColText.hpp>
 
 struct OperationsTracer {
@@ -13,11 +12,11 @@ struct OperationsTracer {
     bool traceToFile   = false;
     bool traceToBuffer = false;
     OperationsTracer() {}
-    OperationsTracer(QFileInfo const& info) { setTraceFile(info); }
+    OperationsTracer(fs::path const& info) { setTraceFile(info); }
 
-    SPtr<QFile>        file;
+    SPtr<fs::path>     file;
     SPtr<std::ostream> stream;
-    void               setTraceFile(QFileInfo const& outfile);
+    void               setTraceFile(fs::path const& outfile);
     ColStream          getStream();
     void               endStream(ColStream& stream);
 };

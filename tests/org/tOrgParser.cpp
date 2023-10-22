@@ -11,17 +11,17 @@ struct MockParser {
         parser       = OrgParser::initImpl(&nodes, false);
         nodes.tokens = &tokens;
         for (const auto k : kinds) {
-            tokens.add(Token(k));
+            tokens.add(OrgToken(k));
         }
     }
 
     void add(Vec<OrgTokenKind> kinds) {
         for (const auto k : kinds) {
-            tokens.add(Token(k));
+            tokens.add(OrgToken(k));
         }
     }
 
-    void         add(OrgTokenKind k) { tokens.add(Token(k)); }
+    void         add(OrgTokenKind k) { tokens.add(OrgToken(k)); }
     OrgNode&     operator[](int idx) { return nodes.at(OrgId(idx)); }
     Vec<OrgNode> flat() const {
         Vec<OrgNode> res;

@@ -121,7 +121,7 @@ struct std::formatter<Line> : std::formatter<std::string> {
         const Line&    p,
         FormatContext& ctx) {
         std::formatter<std::string> fmt;
-        return fmt.format(described_class_printer(os, value), ctx);
+        return fmt.format(described_class_printer(os, p), ctx);
     }
 };
 
@@ -134,7 +134,7 @@ struct Source {
     Vec<Line> lines;
     int       len;
 
-    Source(std::string const& l) {
+    Source(Str const& l) {
         int offset = 0;
         for (std::string const& line : l.split('\n')) {
             Line l{
@@ -480,14 +480,6 @@ class Report {
     inline void write(Cache& cache, std::ostream& w) {
         write_for_stream(cache, w);
     }
-
-    // Write this diagnostic out to stderr.
-    inline void eprint(Cache& cache) { write(cache, qcout); }
-
-    // Write this diagnostic out to stdout.
-    // In most cases, eprint is the more correct function to use.
-    inline void print(Cache& cache) { write(cache, qcout); }
-
 
     void write_for_stream(Cache& cache, std::ostream& w);
 };

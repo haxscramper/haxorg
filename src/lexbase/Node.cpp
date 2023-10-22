@@ -3,36 +3,26 @@
 #include "Node.hpp"
 
 
-template <typename N, typename K>
-Str NodeGroup<N, K>::strVal(NodeGroup<N, K>::Id id) const {
-    assert(notNil(tokens));
-    if (at(id).isTerminal()) {
-        return tokens->at(at(id).getToken()).strVal();
-    } else {
-        return "";
-    }
-}
-
-template <typename N, typename K>
-typename NodeGroup<N, K>::Id NodeGroup<N, K>::endTree(int offset) {
-    Q_ASSERT(0 < pendingTrees.size());
+template <typename N, typename K, typename V>
+typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::endTree(int offset) {
+    CHECK(0 < pendingTrees.size());
     auto start = pendingTrees.pop_back_v();
     nodes.at(start).extend(distance(start, nodes.back()) + offset);
     return start;
 }
 
-template <typename N, typename K>
-typename NodeGroup<N, K>::Id NodeGroup<N, K>::failTree(
-    Node<N, K> replacement) {
-    Q_ASSERT(0 < pendingTrees.size());
+template <typename N, typename K, typename V>
+typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::failTree(
+    Node<N, K, V> replacement) {
+    CHECK(0 < pendingTrees.size());
     auto start      = pendingTrees.pop_back_v();
     nodes.at(start) = replacement;
     return start;
 }
 
-template <typename N, typename K>
-typename NodeGroup<N, K>::iterator NodeGroup<N, K>::begin(
-    NodeGroup<N, K>::Id start) const {
+template <typename N, typename K, typename V>
+typename NodeGroup<N, K, V>::iterator NodeGroup<N, K, V>::begin(
+    NodeGroup<N, K, V>::Id start) const {
     if (start.getIndex() < size()) {
         auto result = iterator(start, this);
         result.check();
@@ -42,18 +32,19 @@ typename NodeGroup<N, K>::iterator NodeGroup<N, K>::begin(
     }
 }
 
-template <typename N, typename K>
-typename NodeGroup<N, K>::iterator NodeGroup<N, K>::end(
-    NodeGroup<N, K>::Id last) const {
+template <typename N, typename K, typename V>
+typename NodeGroup<N, K, V>::iterator NodeGroup<N, K, V>::end(
+    NodeGroup<N, K, V>::Id last) const {
     ++last;
     return iterator(last, this);
 }
 
 
-template <typename N, typename K>
-Opt<Pair<typename NodeGroup<N, K>::iterator, typename NodeGroup<N, K>::iterator>> NodeGroup<
+template <typename N, typename K, typename V>
+Opt<Pair<typename NodeGroup<N, K, V>::iterator, typename NodeGroup<N, K, V>::iterator>> NodeGroup<
     N,
-    K>::subnodesOf(NodeGroup<N, K>::Id node) const {
+    K,
+    V>::subnodesOf(typename NodeGroup<N, K, V>::Id node) const {
     // TODO return empty range for iterator start
     if (at(node).isTerminal()) {
         return std::nullopt;
@@ -65,9 +56,9 @@ Opt<Pair<typename NodeGroup<N, K>::iterator, typename NodeGroup<N, K>::iterator>
     }
 }
 
-template <typename N, typename K>
-Opt<Slice<typename NodeGroup<N, K>::Id>> NodeGroup<N, K>::allSubnodesOf(
-    Id node) const {
+template <typename N, typename K, typename V>
+Opt<Slice<typename NodeGroup<N, K, V>::Id>> NodeGroup<N, K, V>::
+    allSubnodesOf(Id node) const {
     if (0 < at(node).getExtent()) {
         return slice<Id>(node + 1, node + at(node).getExtent());
     } else {
@@ -75,10 +66,10 @@ Opt<Slice<typename NodeGroup<N, K>::Id>> NodeGroup<N, K>::allSubnodesOf(
     }
 }
 
-template <typename N, typename K>
-typename NodeGroup<N, K>::Id NodeGroup<N, K>::parent(
-    NodeGroup<N, K>::Id node) const {
-    NodeGroup<N, K>::Id parent = node;
+template <typename N, typename K, typename V>
+typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::parent(
+    NodeGroup<N, K, V>::Id node) const {
+    NodeGroup<N, K, V>::Id parent = node;
     --parent;
     while (!parent.isNil()) {
         auto extent = allSubnodesOf(parent);
@@ -94,8 +85,8 @@ typename NodeGroup<N, K>::Id NodeGroup<N, K>::parent(
     return Id::Nil();
 }
 
-template <typename N, typename K>
-int NodeGroup<N, K>::size(Id node) const {
+template <typename N, typename K, typename V>
+int NodeGroup<N, K, V>::size(Id node) const {
     if (auto pair = subnodesOf(node)) {
         auto [begin, end] = *pair;
         int result        = 0;
@@ -109,9 +100,10 @@ int NodeGroup<N, K>::size(Id node) const {
     }
 }
 
-template <typename N, typename K>
-typename NodeGroup<N, K>::Id NodeGroup<N, K>::subnode(Id node, int index)
-    const {
+template <typename N, typename K, typename V>
+typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::subnode(
+    Id  node,
+    int index) const {
     if (auto pair = subnodesOf(node)) {
         auto [begin, end] = *pair;
         int i             = 0;
@@ -126,12 +118,12 @@ typename NodeGroup<N, K>::Id NodeGroup<N, K>::subnode(Id node, int index)
             "-- it contains only $# items"
             % to_string_vec(index, node.getUnmasked(), i));
     } else {
-        qFatal("Cannot get subnode for token, TODO error msg");
+        CHECK(false) << "Cannot get subnode for token, TODO error msg";
     }
 }
 
-template <typename N, typename K>
-void NodeGroup<N, K>::lispRepr(
+template <typename N, typename K, typename V>
+void NodeGroup<N, K, V>::lispRepr(
     std::ostream&    os,
     Id               node,
     CR<TreeReprConf> conf) const {
@@ -140,12 +132,7 @@ void NodeGroup<N, K>::lispRepr(
 
     if (at(node).isTerminal()) {
         auto tok = at(node).getToken();
-        os << " '";
-        std::string  str;
-        std::ostream stream{&str};
-        tok.streamTo(stream, "", true);
-        os << str;
-        os << "'";
+        os << std::format("'{}'", tok);
     } else {
         auto maybe_iter = subnodesOf(node);
         if (maybe_iter) {
@@ -159,8 +146,8 @@ void NodeGroup<N, K>::lispRepr(
     os << ")";
 }
 
-template <typename N, typename K>
-void NodeGroup<N, K>::treeRepr(
+template <typename N, typename K, typename V>
+void NodeGroup<N, K, V>::treeRepr(
     ColStream&       os,
     Id               node,
     int              level,
@@ -187,10 +174,7 @@ void NodeGroup<N, K>::treeRepr(
         if (tok.isNil()) {
             os << " # <nil>";
         } else {
-            std::string  str;
-            std::ostream stream{&str};
-            tok.streamTo(stream, "", conf.withTokenMask);
-            os << " #" << str << " " << at(tok);
+            os << std::format("# {} {}", tok, at(tok));
         }
     } else {
         if (conf.withExt) {
@@ -203,9 +187,9 @@ void NodeGroup<N, K>::treeRepr(
         for (; begin != end &&
                (begin.id <= end.id
                 /* FIXME hack to handle tree that is created by the sweep operation  */);) {
-            Q_ASSERT(id == end.id);
-            Q_ASSERT(begin.id != end.id);
-            Q_ASSERT(begin.id <= end.id);
+            CHECK(id == end.id);
+            CHECK(begin.id != end.id);
+            CHECK(begin.id <= end.id);
             if (conf.flushEach) {
                 os.flush();
             }
@@ -218,7 +202,7 @@ void NodeGroup<N, K>::treeRepr(
             ++idx;
             Id before = begin.id;
             ++begin;
-            // Q_ASSERT_X(
+            // CHECK_X(
             //     begin.id <= end.id,
             //     "treeRepr",
             //     "Increment of the starting operator should not go "
@@ -242,12 +226,11 @@ void NodeGroup<N, K>::treeRepr(
     }
 }
 
-template <typename N, typename K>
-std::string NodeGroup<N, K>::treeRepr(Id node, CR<TreeReprConf> conf)
+template <typename N, typename K, typename V>
+std::string NodeGroup<N, K, V>::treeRepr(Id node, CR<TreeReprConf> conf)
     const {
-    std::string  buffer;
-    std::ostream os{&buffer};
-    ColStream    text{os};
+    std::stringstream buffer;
+    ColStream         text{buffer};
     treeRepr(text, node, 0, conf);
     return buffer;
 }

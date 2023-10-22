@@ -157,7 +157,11 @@ struct NodeGroup {
         return tokens->at(at(id).getToken()).hasData();
     }
 
-    Str strVal(Id id) const;
+    V const& val(Id id) const {
+        assert(notNil(tokens));
+        assert(at(id).isTerminal());
+        return tokens->at(at(id).getToken()).value;
+    }
 
     NodeGroup(TokenGroup<K, V>* _tokens = nullptr) : tokens(_tokens) {}
 
@@ -349,90 +353,6 @@ struct std::formatter<Node<N, K, V>> : std::formatter<std::string> {
 };
 
 
-/// Nested representation of the tree, intended to be used as intermediate
-/// representation for converting from nested formats to a flat linearized
-/// representation.
-template <typename N, typename K, typename V>
-struct NodeTree {
-
-    struct TreeToken {
-        int      index;
-        Opt<Str> str;
-        K        kind;
-    };
-
-    NodeTree(N kind, CR<TreeToken> tok, Opt<int> index = std::nullopt)
-        : kind(kind), content(tok), indexInParent(index) {}
-    NodeTree(
-        N                       kind,
-        CR<Vec<NodeTree<N, K>>> subnodes,
-        Opt<int>                index = std::nullopt)
-        : kind(kind), content(subnodes), indexInParent(index) {}
-
-    Opt<int>                                indexInParent;
-    N                                       kind;
-    Variant<TreeToken, Vec<NodeTree<N, K>>> content;
-
-    inline bool isToken() const {
-        return std::holds_alternative<TreeToken>(content);
-    }
-
-    inline CR<TreeToken> getToken() const {
-        return std::get<TreeToken>(content);
-    }
-
-    inline CR<Vec<NodeTree<N, K>>> getSubnodes() const {
-        return std::get<Vec<NodeTree<N, K>>>(content);
-    }
-
-    inline int maxTokenIndex() const {
-        if (isToken()) {
-            return getToken().index;
-        } else {
-            int result = 0;
-            for (const auto& sub : getSubnodes()) {
-                result = std::max(result, sub.maxTokenIndex());
-            }
-            return result;
-        }
-    }
-
-    inline Pair<NodeGroup<N, K, V>, TokenGroup<K, V>> flatten(
-        Str& text) const {
-        TokenGroup<K, V>               tokens;
-        NodeGroup<N, K, V>             nodes;
-        Func<void(CR<NodeTree<N, K>>)> aux;
-        tokens.tokens.resize(maxTokenIndex() + 1, Token<K, V>());
-        aux = [&](CR<NodeTree<N, K>> tree) {
-            if (tree.isToken()) {
-                auto tok   = tree.getToken();
-                auto id    = TokenId<K, V>(tok.index);
-                auto start = text.size();
-                if (tok.str.has_value()) {
-                    text += tok.str.value();
-                    tokens.at(id) = Token<K, V>(
-                        tok.kind,
-                        std::stringView(
-                            text.data() + start, tok.str.value().size()));
-                } else {
-                    tokens.at(id) = Token<K, V>(tok.kind);
-                }
-
-                nodes.token(tree.kind, id);
-            } else {
-                auto head = nodes.startTree(Node<N, K, V>(tree.kind));
-                for (const auto& sub : tree.getSubnodes()) {
-                    aux(sub);
-                }
-                nodes.endTree();
-            }
-        };
-
-        aux(*this);
-        return {nodes, tokens};
-    }
-};
-
 /// \brief Node adapter for more convenient access operations on the tree
 template <typename N, typename K, typename V>
 struct NodeAdapter {
@@ -447,13 +367,15 @@ struct NodeAdapter {
         return group == nullptr && id == NodeId<N, K, V>::Nil();
     }
 
-    Str strVal() const { return group->strVal(id); }
-    N   kind() const { return group->at(id).kind; }
+    V const& val() const { return group->strVal(id); }
+    N        kind() const { return group->at(id).kind; }
 
     CR<Node<N, K, V>> get() const { return group->at(id); }
 
 
-    NodeAdapter<N, K>(NodeGroup<N, K, V> const* group, NodeId<N, K, V> id)
+    NodeAdapter<N, K, V>(
+        NodeGroup<N, K, V> const* group,
+        NodeId<N, K, V>           id)
         : group(group), id(id) {
         Q_ASSERT(group->nodes.contains(id));
     }
@@ -468,11 +390,11 @@ struct NodeAdapter {
         return !id.isNil() && id.getIndex() < group->size();
     }
 
-    NodeAdapter<N, K> at(int index) const {
+    NodeAdapter<N, K, V> at(int index) const {
         return {group, group->subnode(id, index)};
     }
 
-    NodeAdapter<N, K> operator[](int index) const {
+    NodeAdapter<N, K, V> operator[](int index) const {
         return {group, group->subnode(id, index)};
     }
 
@@ -485,37 +407,23 @@ struct NodeAdapter {
         group->treeRepr(os, id, level, conf);
     }
 
-    void treeRepr(QFileInfo const& path) const {
-        QFile file{path.absoluteFilePath()};
-        if (file.open(QIODevice::ReadWrite | QFile::Truncate)) {
-            std::ostream os{&file};
-            ColStream    text{os};
-            text.colored = false;
-            treeRepr(text);
-        } else {
-            qWarning() << "Could not open path" << path.absoluteFilePath()
-                       << "for writing tree repr";
-        }
-    }
-
     std::string treeRepr(bool colored = true) const {
-        std::string  buffer;
-        std::ostream os{&buffer};
-        ColStream    text{os};
+        std::stringstream buffer;
+        ColStream         text{buffer};
         text.colored = colored;
         treeRepr(text);
-        return buffer;
+        return buffer.str();
     }
 
-    generator<NodeAdapter<N, K>> items() {
+    generator<NodeAdapter<N, K, V>> items() {
         for (int i = 0; i < group->size(id); ++i) {
             co_yield this->operator[](i);
         }
     }
 
     template <typename H, typename L>
-    Vec<NodeAdapter<N, K>> at(HSlice<H, L> range) {
-        Vec<NodeAdapter<N, K>> result;
+    Vec<NodeAdapter<N, K, V>> at(HSlice<H, L> range) {
+        Vec<NodeAdapter<N, K, V>> result;
         const auto [start, end] = getSpan(group->size(id), range, true);
         for (const auto& i : slice(start, end)) {
             result.push_back(this->operator[](i));
@@ -529,17 +437,17 @@ struct NodeAdapter {
 
       public:
         typedef std::forward_iterator_tag iterator_category;
-        typedef NodeAdapter<N, K>         value_type;
-        typedef NodeAdapter<N, K>*        pointer;
-        typedef NodeAdapter<N, K>&        reference;
+        typedef NodeAdapter<N, K, V>      value_type;
+        typedef NodeAdapter<N, K, V>*     pointer;
+        typedef NodeAdapter<N, K, V>&     reference;
         typedef std::ptrdiff_t            difference_type;
 
         iterator(typename NodeGroup<N, K, V>::iterator iter)
             : iter(iter) {}
 
-        NodeAdapter<N, K> operator*() {
+        NodeAdapter<N, K, V> operator*() {
             // get current value
-            return NodeAdapter<N, K>(iter.group, iter.id);
+            return NodeAdapter<N, K, V>(iter.group, iter.id);
         }
 
         iterator& operator++() {

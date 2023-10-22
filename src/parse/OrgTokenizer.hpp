@@ -9,7 +9,6 @@
 #include <hstd/stdlib/charsets.hpp>
 #include <hstd/stdlib/ColText.hpp>
 
-#include <lexbase/PosStr.hpp>
 #include <parse/OrgTypes.hpp>
 
 #include <lexbase/TraceBase.hpp>
@@ -18,98 +17,6 @@ struct ImplementError : public std::runtime_error {
     explicit inline ImplementError(const std::string& message = "")
         : std::runtime_error(message) {}
 };
-
-OrgCommandKind classifyCommand(std::string const& command);
-
-/// Store common types of the lexer state
-template <typename Flag>
-struct LexerState {
-    Vec<Flag> flagStack = Vec<Flag>();
-    Vec<int>  indent    = Vec<int>(); /// Indentation steps encountered by
-                                      /// the lexer state
-    /// Check if state has any indentation levels stored
-    bool hasIndent() { return 0 < indent.size(); }
-
-    Flag toFlag(Flag flag) {
-        auto old         = flagStack.back();
-        flagStack.back() = flag;
-    }
-    void lift(Flag flag) { flagStack.push_back(flag); }
-    void drop(Flag flag) { flagStack.pop_back_v(); }
-
-    Flag topFlag() const { return flagStack.at(1_B); }
-
-    bool hasFlag(Flag flag) const { return flagStack.find(flag) != -1; }
-
-    enum LexerIndentKind
-    {
-        likIncIndent,  /// Indentation increased on current position
-        likDecIndent,  /// Decreased on current position
-        likSameIndent, /// No indentation change
-        likEmptyLine,  /// Multiple whitespaces followed by newline -
-                       /// special case for indented blocks.
-        likNoIndent,   /// Not at position where indentation can be
-                       /// determine (e.g. is inside of a identifier or
-                       /// at the start of the line)
-    };
-
-
-    /// Get total indentation level from the state
-    int getIndent() const {
-        int result = 0;
-        for (const auto& level : indent) {
-            result += level;
-        }
-        return result;
-    }
-
-    void addIndent(int ind) { indent.push_back(ind); }
-
-    int popIndent() { return indent.pop_back_v(); }
-
-    /// Skip all indentation levels in the lexer - consume leading
-    /// whitespaces and calculate list of the indentation level
-    /// changes.
-    ///
-    /// NOTE: indentation calculations are independent from the actual
-    /// column values and are only based on the actual spaces used in
-    /// the input.
-    Vec<LexerIndentKind> skipIndent(PosStr& str) {
-        Vec<LexerIndentKind> result;
-        if (str.at(charsets::Newline)) {
-            str.next();
-        }
-
-        int skip = 0;
-        while (str.at(charsets::HorizontalSpace, skip)) {
-            ++skip;
-        }
-
-        str.next(skip);
-        if (str.at(charsets::Newline)) {
-            result.push_back(likEmptyLine);
-        } else {
-            const int now = getIndent();
-            if (skip == now) {
-                result.push_back(likSameIndent);
-            } else if (now < skip) {
-                result.push_back(likIncIndent);
-                // add single indentation level;
-                addIndent(skip - now);
-            } else if (skip < now) { // indentation level decreased
-                                     // from the current one - pop all
-                // indentation levels until it will be the same.
-                while (skip < getIndent()) {
-                    popIndent();
-                    result.push_back(likDecIndent);
-                }
-            }
-        }
-
-        return result;
-    }
-};
-
 
 /// \brief Base implementation of the tokenizer.
 ///
@@ -126,7 +33,7 @@ struct OrgTokenizer : public OperationsTracer {
     // is large enough to justify all the hacks with explicit
     // initialization, but for the time being I don't want to get into this
     // and try and check what is really going on.
-    using Base = Tokenizer<OrgTokenKind>;
+    using Base = Tokenizer<OrgTokenKind, BaseToken>;
 
   public:
     /// \brief Create tokenizer implementation object
@@ -137,53 +44,38 @@ struct OrgTokenizer : public OperationsTracer {
         /// \brief Base error, not thrown anywhere
         struct Base : std::runtime_error {
             // TODO add extent information about the error
-            std::stringView view;
-            int             pos = 0;
-            Opt<LineCol>    loc;
-            std::string     getLocMsg() const;
-
-            Base(CR<PosStr> str)
-                : std::runtime_error(""), view(str.view), pos(str.pos) {}
+            int          pos = 0;
+            Opt<LineCol> loc;
+            std::string  getLocMsg() const;
+            Base() : std::runtime_error("") {}
         };
 
         /// \brief Empty placeholder
         struct None : Base {
-            None() : Base(PosStr("", 1)) {}
+            None() {}
         };
 
-        struct UnexpectedChar : Base {
-            PosStr::CheckableSkip wanted;
-            const char*           what() const noexcept override;
-            UnexpectedChar(CR<PosStr> str, PosStr::CheckableSkip wanted_)
-                : Base(str), wanted(wanted_) {}
-        };
 
         struct MissingElement : Base {
             std::string missing;
             std::string where;
             const char* what() const noexcept override;
-
-            MissingElement(
-                CR<PosStr>      str,
-                CR<std::string> missing,
-                CR<std::string> where);
+            MissingElement() {}
         };
 
         struct UnexpectedConstruct : Base {
             const char* what() const noexcept override;
             std::string desc;
-            UnexpectedConstruct(CR<PosStr> str, CR<std::string> desc)
-                : Base(str), desc(desc) {}
+            UnexpectedConstruct() {}
         };
 
         struct UnknownConstruct : Base {
             const char* what() const noexcept override;
-            UnknownConstruct(CR<PosStr> str) : Base(str) {}
+            UnknownConstruct() {}
         };
     };
 
     using Error = Variant<
-        Errors::UnexpectedChar,
         Errors::UnexpectedConstruct,
         Errors::UnknownConstruct,
         Errors::MissingElement,
@@ -195,11 +87,10 @@ struct OrgTokenizer : public OperationsTracer {
         TokenizerError() : std::runtime_error(""), err(Errors::None()) {}
         explicit TokenizerError(CR<Error> err)
             : std::runtime_error(""), err(err) {}
-        std::stringView getView() const;
-        int             getPos() const;
-        void            setLoc(CR<LineCol> loc);
-        Opt<LineCol>    getLoc() const;
-        const char*     what() const noexcept override;
+        int          getPos() const;
+        void         setLoc(CR<LineCol> loc);
+        Opt<LineCol> getLoc() const;
+        const char*  what() const noexcept override;
     };
 
 
@@ -225,29 +116,26 @@ struct OrgTokenizer : public OperationsTracer {
         Str            name;
         OrgToken       tok;
         OrgTokenId     id = OrgTokenId::Nil();
-        QFileInfo      location;
+        fs::path       location;
         int            line;
         Opt<Str>       subname;
-        PosStr const*  str = nullptr;
         TokenizerError error;
     };
 
 
   public:
     Vec<OrgTokenId> groupStack;
-    void            startGroup(PosStr& str);
-    void            endGroup(PosStr& str);
+    void            startGroup(BaseLexer& str);
+    void            endGroup(BaseLexer& str);
 
   public:
-    using LocationResolverCb = Func<LineCol(CR<PosStr>)>;
-    using ReportHookCb       = Func<void(CR<Report>)>;
-    using TraceUpdateHookCb  = Func<void(CR<Report>, bool&, bool)>;
+    using ReportHookCb      = Func<void(CR<Report>)>;
+    using TraceUpdateHookCb = Func<void(CR<Report>, bool&, bool)>;
 
-    virtual void         setReportHook(ReportHookCb)             = 0;
-    virtual void         setTraceUpdateHook(TraceUpdateHookCb)   = 0;
-    virtual void         setLocationResolver(LocationResolverCb) = 0;
-    virtual void         reserve(int size)                       = 0;
-    virtual Opt<LineCol> getLoc(CR<PosStr> str)                  = 0;
+    virtual void         setReportHook(ReportHookCb)           = 0;
+    virtual void         setTraceUpdateHook(TraceUpdateHookCb) = 0;
+    virtual void         reserve(int size)                     = 0;
+    virtual Opt<LineCol> getLoc(CR<BaseLexer> str)             = 0;
 
 
 #define EACH_SIMPLE_TOKENIZER_METHOD(__IMPL)                              \
@@ -301,7 +189,7 @@ struct OrgTokenizer : public OperationsTracer {
     __IMPL(TextCall);                                                     \
     __IMPL(TextWord);
 
-#define _def(Kind) virtual bool lex##Kind(PosStr& str) = 0;
+#define _def(Kind) virtual bool lex##Kind(BaseLexer& str) = 0;
     EACH_SIMPLE_TOKENIZER_METHOD(_def);
 #undef _def
 };

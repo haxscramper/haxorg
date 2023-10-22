@@ -41,7 +41,9 @@ struct OrgParser : public OperationsTracer {
         struct None : Base {
             None()
                 : Base(
-                    SubLexer<OrgTokenKind>{nullptr, Vec<OrgTokenId>{}},
+                    SubLexer<OrgTokenKind, BaseToken>{
+                        nullptr,
+                        Vec<OrgTokenId>{}},
                     std::nullopt) {}
         };
 
@@ -80,8 +82,6 @@ struct OrgParser : public OperationsTracer {
         }
     };
 
-    virtual void setLocationResolver(Func<LineCol(CR<PosStr>)>) = 0;
-
     ParserError          wrapError(CR<Error> err, CR<OrgLexer> lex);
     virtual Opt<LineCol> getLoc(CR<OrgLexer> lex) = 0;
     std::string          getLocMsg(CR<OrgLexer> lex);
@@ -100,7 +100,7 @@ struct OrgParser : public OperationsTracer {
 
     struct Report {
         ReportKind kind;
-        QFileInfo  location;
+        fs::path   location;
         int        line;
         Opt<Str>   name;
         Opt<Str>   subname;

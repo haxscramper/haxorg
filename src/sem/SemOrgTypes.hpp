@@ -9,9 +9,9 @@
 #include <boost/describe.hpp>
 #include <hstd/system/macros.hpp>
 #include <functional>
-#include <QDateTime>
 #include <sem/SemOrgBase.hpp>
 #include <sem/SemOrgEnums.hpp>
+
 namespace sem {
 /// \brief Base class for all document-level entries. Note that some node
 /// kinds might also have inline entries (examples include links, source

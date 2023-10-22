@@ -12,6 +12,7 @@
 #include <hstd/system/basic_templates.hpp>
 #include <vector>
 #include <format>
+#include <type_traits>
 
 template <typename T>
 concept IsEnum = std::is_enum<T>::value;

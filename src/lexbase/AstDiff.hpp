@@ -8,6 +8,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>
+#include <absl/log/check.h>
 
 
 #include <iostream>
@@ -229,12 +230,12 @@ struct std::formatter<diff::Node<Id, Val>> : std::formatter<std::string> {
     auto format(const diff::Node<Id, Val>& p, FormatContext& ctx) {
         return std::format(
             "<H: {}, D: {}, S: {}, P: {}, L: {}, R: {}>",
-            node.Height,
-            node.Depth,
-            node.Shift,
-            node.Parent,
-            node.LeftMostDescendant,
-            node.RightMostDescendant);
+            p.Height,
+            p.Depth,
+            p.Shift,
+            p.Parent,
+            p.LeftMostDescendant,
+            p.RightMostDescendant);
     }
 };
 
@@ -505,10 +506,10 @@ class ASTDiff {
         Vec<Id> getBaseSrcChain(bool withSelf = true) const { return diff->src.getBaseParentIdChain(src, withSelf); }
         Vec<Id> getBaseDstChain(bool withSelf = true) const { return diff->dst.getBaseParentIdChain(dst, withSelf); }
 
-        Val getSrcValue() const { Q_ASSERT(src.isValid()); return diff->src.getNodeValue(src); }
-        Val getDstValue() const { Q_ASSERT(dst.isValid()); return diff->dst.getNodeValue(dst); }
-        int getSrcKind() const { Q_ASSERT(src.isValid()); return diff->dst.getNodeKind(dst); }
-        int getDstKind() const { Q_ASSERT(dst.isValid()); return diff->src.getNodeKind(src); }
+        Val getSrcValue() const { CHECK(src.isValid()); return diff->src.getNodeValue(src); }
+        Val getDstValue() const { CHECK(dst.isValid()); return diff->dst.getNodeValue(dst); }
+        int getSrcKind() const { CHECK(src.isValid()); return diff->dst.getNodeKind(dst); }
+        int getDstKind() const { CHECK(dst.isValid()); return diff->src.getNodeKind(src); }
         // clang-format on
     };
 
