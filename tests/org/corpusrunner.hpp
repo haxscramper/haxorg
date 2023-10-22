@@ -18,7 +18,7 @@ class CorpusRunner {
     bool useQFormat() { return getenv("IN_QT_RUN") == "true"; }
 
     void writeFileOrStdout(
-        QFileInfo const&   target,
+        const fs::path&    target,
         std::string const& content,
         bool               useFile);
 
@@ -122,13 +122,13 @@ class CorpusRunner {
     };
 
     RunResult::LexCompare compareTokens(
-        CR<TokenGroup<OrgTokenKind>> lexed,
-        CR<TokenGroup<OrgTokenKind>> expected,
-        ParseSpec::Conf::MatchMode   match);
+        CR<OrgTokenGroup>          lexed,
+        CR<OrgTokenGroup>          expected,
+        ParseSpec::Conf::MatchMode match);
 
     RunResult::NodeCompare compareNodes(
-        CR<NodeGroup<OrgNodeKind, OrgTokenKind>> parsed,
-        CR<NodeGroup<OrgNodeKind, OrgTokenKind>> expected);
+        CR<OrgNodeGroup> parsed,
+        CR<OrgNodeGroup> expected);
 
 
     RunResult::SemCompare compareSem(

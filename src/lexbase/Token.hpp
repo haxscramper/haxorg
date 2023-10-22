@@ -66,8 +66,8 @@ struct Token {
     Token() = default;
     Token(K kind) : kind(kind) {}
     Token(K kind, V value) : kind(kind), value(value) {}
-    V&       operator->() { return this->value; }
-    V const& operator->() const { return this->value; }
+    V*       operator->() { return &this->value; }
+    V const* operator->() const { return &this->value; }
 };
 
 

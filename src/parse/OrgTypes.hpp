@@ -7,23 +7,24 @@
 #include <sem/SemOrgEnums.hpp>
 #include <base_lexer/base_token.hpp>
 
+struct OrgFill {
+    Opt<BaseToken> base;
+    Str            getText() const { return base.value().text; }
+};
 
-using OrgToken      = Token<OrgTokenKind, BaseToken>;
-using OrgTokenId    = TokenId<OrgTokenKind, BaseToken>;
-using OrgTokenStore = TokenStore<OrgTokenKind, BaseToken>;
-using OrgTokenGroup = TokenGroup<OrgTokenKind, BaseToken>;
+using OrgToken      = Token<OrgTokenKind, OrgFill>;
+using OrgTokenId    = TokenId<OrgTokenKind, OrgFill>;
+using OrgTokenStore = TokenStore<OrgTokenKind, OrgFill>;
+using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
+using OrgNode       = Node<OrgNodeKind, OrgTokenKind, OrgFill>;
+using OrgId         = NodeId<OrgNodeKind, OrgTokenKind, OrgFill>;
+using OrgNodeGroup  = NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill>;
+using BaseLexer     = LexerCommon<BaseTokenKind, BaseFill>;
+using OrgLexer      = LexerCommon<OrgTokenKind, OrgFill>;
+using OrgTokSet     = IntSet<OrgTokenKind>;
+using OrgAdapter    = NodeAdapter<OrgNodeKind, OrgTokenKind, OrgFill>;
+using OrgSet        = IntSet<OrgNodeKind>;
 
-using OrgNode      = Node<OrgNodeKind, OrgTokenKind, BaseToken>;
-using OrgId        = NodeId<OrgNodeKind, OrgTokenKind, BaseToken>;
-using OrgNodeGroup = NodeGroup<OrgNodeKind, OrgTokenKind, BaseToken>;
-
-extern template class NodeGroup<OrgNodeKind, OrgTokenKind, BaseToken>;
-
-using BaseLexer  = LexerCommon<BaseTokenKind, BaseFill>;
-using OrgLexer   = LexerCommon<OrgTokenKind, BaseToken>;
-using OrgTokSet  = IntSet<OrgTokenKind>;
-using OrgAdapter = NodeAdapter<OrgNodeKind, OrgTokenKind, BaseToken>;
-using OrgSet     = IntSet<OrgNodeKind>;
-
+extern template class NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill>;
 extern const OrgSet OrgAttachableCommands;
 extern const OrgSet OrgTrailableCommands;

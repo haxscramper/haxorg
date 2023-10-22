@@ -5,6 +5,7 @@
 #include <hstd/wrappers/textlayouter.hpp>
 #include <concepts>
 #include <hstd/stdlib/strutils.hpp>
+#include <absl/log/check.h>
 
 
 struct ExporterSimpleSExpr
@@ -41,18 +42,6 @@ struct ExporterSimpleSExpr
         }
     }
 
-
-    void visit(Res& res, CR<QDateTime> time) {
-        res = string(escape_for_write(time.toString(Qt::ISODate)));
-    }
-
-    void visit(Res& res, CR<QDate> time) {
-        res = string(escape_for_write(time.toString(Qt::ISODate)));
-    }
-
-    void visit(Res& res, CR<QTime> time) {
-        res = string(escape_for_write(time.toString(Qt::ISODate)));
-    }
 
     template <typename T>
     void visit(Res& res, CR<Opt<T>> value) {
@@ -98,7 +87,7 @@ struct ExporterSimpleSExpr
 
     template <typename T>
     void visitField(Res& res, char const* name, CR<T> value) {
-        Q_ASSERT(!res.isNil());
+        CHECK(!res.isNil());
         if (b.at(res).isLine()) {
             b.add_at(res, string(" "));
         }
@@ -108,7 +97,7 @@ struct ExporterSimpleSExpr
     void visitTime(Res& res, In<sem::Time> time) {
         if (time->isStatic()) {
             res = b.line(
-                {string(" "), eval(time->getStatic().time.getDateTime())});
+                {string(" "), eval(time->getStatic().time.toString())});
         } else {
             res = string("dynamic-time");
         }

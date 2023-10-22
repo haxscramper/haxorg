@@ -67,6 +67,8 @@ enum class BaseTokenKind
 
 struct BaseFill {
     std::string text;
+    int         line;
+    int         col;
 };
 
 using BaseToken = Token<BaseTokenKind, BaseFill>;

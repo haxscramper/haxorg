@@ -184,7 +184,7 @@ struct convert<ParseSpec> : verbose_convert<ParseSpec> {};
 } // namespace YAML
 
 
-QFileInfo ParseSpec::debugFile(std::string relativePath, bool create)
+fs::path ParseSpec::debugFile(std::string relativePath, bool create)
     const {
     if (debug.debugOutDir.isEmpty()) {
         throw FilesystemError(

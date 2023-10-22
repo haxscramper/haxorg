@@ -15,6 +15,7 @@
 #include <format>
 
 #include <variant>
+#include <absl/log/check.h>
 
 template <typename N, typename K, typename V>
 struct Node;
@@ -248,14 +249,14 @@ struct NodeGroup {
         }
 
         void check() const {
-            Q_ASSERT_X(
-                !id.isNil() && id.getIndex() < group->size(),
-                "Check node id iterator",
-                "$# < $#" % to_string_vec(id.getIndex(), group->size()));
+            CHECK(!id.isNil() && id.getIndex() < group->size())
+                << "Check node id iterator"
+                << ("$# < $#"
+                    % to_string_vec(id.getIndex(), group->size()));
         }
 
         iterator& operator++() {
-            Q_ASSERT(group->nodes.contains(id));
+            CHECK(group->nodes.contains(id));
             int        extent = group->at(id).getExtent();
             const auto start  = id;
             id                = id + extent + 1;

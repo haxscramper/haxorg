@@ -10,11 +10,11 @@
 #include <hstd/stdlib/Yaml.hpp>
 
 
-template <typename N, typename K>
+template <typename N, typename K, typename V>
 yaml yamlRepr(
-    CR<NodeGroup<N, K>> group,
-    bool                withStrings = true,
-    bool                withId      = false) {
+    CR<NodeGroup<N, K, V>> group,
+    bool                   withStrings = true,
+    bool                   withId      = false) {
     yaml out;
     for (const auto& [id, node] : group.nodes.pairs()) {
         yaml item;
@@ -24,8 +24,8 @@ yaml yamlRepr(
         }
 
         if (node->isTerminal()) {
-            TokenId<K> tokenId = node->getToken();
-            item["tok_idx"]    = tokenId.getIndex();
+            TokenId<K, V> tokenId = node->getToken();
+            item["tok_idx"]       = tokenId.getIndex();
             if (withStrings && group.hasData(id)) {
                 item["str"] = group.strVal(id).toBase();
             }
@@ -40,15 +40,15 @@ yaml yamlRepr(
 }
 
 
-template <typename N, typename K>
-json jsonRepr(CR<NodeGroup<N, K>> group, bool withStrings = true) {
+template <typename N, typename K, typename V>
+json jsonRepr(CR<NodeGroup<N, K, V>> group, bool withStrings = true) {
     json out = json::array();
     for (const auto& [id, node] : group.nodes.pairs()) {
         json item;
         item["kind"] = to_string(node->kind);
         if (node->isTerminal()) {
-            TokenId<K> tokenId = node->getToken();
-            item["tok_idx"]    = tokenId.getIndex();
+            TokenId<K, V> tokenId = node->getToken();
+            item["tok_idx"]       = tokenId.getIndex();
             if (withStrings && group.hasData(id)) {
                 item["str"] = group.strVal(id).toBase();
             }
@@ -60,11 +60,11 @@ json jsonRepr(CR<NodeGroup<N, K>> group, bool withStrings = true) {
     return out;
 }
 
-template <typename K>
+template <typename K, typename V>
 yaml yamlRepr(
-    TokenId<K> const& id,
-    Token<K> const&   token,
-    bool              withIdx = false) {
+    TokenId<K, V> const& id,
+    Token<K, V> const&   token,
+    bool                 withIdx = false) {
     yaml item;
     if (withIdx) {
         item["idx"] = id.getIndex();
@@ -77,8 +77,8 @@ yaml yamlRepr(
     return item;
 }
 
-template <typename K>
-yaml yamlRepr(CR<TokenGroup<K>> group, bool withIdx = false) {
+template <typename K, typename V>
+yaml yamlRepr(CR<TokenGroup<K, V>> group, bool withIdx = false) {
     yaml out;
     for (const auto& [id, token] : group.tokens.pairs()) {
         out.push_back(yamlRepr(id, *token, withIdx));
@@ -86,8 +86,8 @@ yaml yamlRepr(CR<TokenGroup<K>> group, bool withIdx = false) {
     return out;
 }
 
-template <typename K>
-json jsonRepr(CR<TokenGroup<K>> group, bool withIdx = false) {
+template <typename K, typename V>
+json jsonRepr(CR<TokenGroup<K, V>> group, bool withIdx = false) {
     json out = json::array();
     for (const auto& [id, token] : group.tokens.pairs()) {
         json item;

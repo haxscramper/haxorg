@@ -9,16 +9,13 @@ using org = OrgNodeKind;
 using otk = OrgTokenKind;
 
 struct MockFull {
-    OrgTokenGroup       tokens;
-    SPtr<OrgTokenizer>  tokenizer;
-    OrgNodeGroup        nodes;
-    std::string         base;
-    Lexer<OrgTokenKind> lex;
-    SPtr<OrgParser>     parser;
-    LineColInfo         info;
-    UPtr<OrgSpec>       spec;
-
-    Func<LineCol(CR<PosStr>)> locationResolver;
+    OrgTokenGroup                  tokens;
+    SPtr<OrgTokenizer>             tokenizer;
+    OrgNodeGroup                   nodes;
+    std::string                    base;
+    Lexer<OrgTokenKind, BaseToken> lex;
+    SPtr<OrgParser>                parser;
+    UPtr<OrgSpec>                  spec;
 
     MockFull(bool tracedParser, bool tracedLexer)
         : tokenizer(), nodes(nullptr), lex(&tokens) {
@@ -26,21 +23,9 @@ struct MockFull {
         parser       = OrgParser::initImpl(&nodes, tracedParser);
         tokenizer    = OrgTokenizer::initImpl(&tokens, tracedLexer);
         nodes.tokens = &tokens;
-
-        locationResolver = [&](CR<PosStr> str) -> LineCol {
-            Slice<int> absolute = tokens.toAbsolute(str.view);
-            return {
-                info.whichLine(absolute.first + str.pos) + 1,
-                info.whichColumn(absolute.first + str.pos),
-                absolute.first + str.pos,
-            };
-        };
-
-        tokenizer->setLocationResolver(locationResolver);
-        parser->setLocationResolver(locationResolver);
     }
 
-    using LexerMethod  = bool (OrgTokenizer::*)(PosStr&);
+    using LexerMethod  = bool (OrgTokenizer::*)(BaseLexer&);
     using ParserMethod = OrgId (OrgParser::*)(OrgLexer&);
 
     OrgAdapter a(int idx) { return OrgAdapter(&nodes, OrgId(idx)); }
@@ -50,20 +35,10 @@ struct MockFull {
     OrgToken&   t(int idx) { return tokens.at(OrgTokenId(idx)); }
     OrgNodeKind k(int idx) { return n(idx).kind; }
 
-    std::string s(int idx) {
-        if (nodes.at(OrgId(idx)).isTerminal()) {
-            return nodes.strVal(OrgId(idx));
-        } else {
-            return "";
-        }
-    }
-
     void tokenize(CR<std::string> content, LexerMethod lexMethod) {
-        base        = content;
-        info        = LineColInfo{base};
-        tokens.base = base.data();
-        PosStr str{base};
-        ((*tokenizer).*lexMethod)(str);
+        //        base = content;
+        //        PosStr str{base};
+        //        ((*tokenizer).*lexMethod)(str);
     }
 
     void parse(ParserMethod parseMethod) {
@@ -80,28 +55,9 @@ struct MockFull {
 
 
     void treeRepr() {
-        std::cout << "\n";
-        ColStream os{qcout};
+        ColStream os{std::cout};
         nodes.treeRepr(os, OrgId(0), 0);
         std::cout << std::endl;
-    }
-
-
-    void jsonRepr() { std::cout << ::jsonRepr(*spec, a(0)) << "\n"; }
-
-    void yamlRepr(bool withNames = true) {
-        if (withNames) {
-            std::cout << ::yamlRepr(*spec, a(0)) << "\n";
-        } else {
-            std::cout << ::yamlRepr(a(0)) << "\n";
-        }
-    }
-
-    void tokenRepr() {
-        for (const auto& [idx, tok] : tokens.tokens.pairs()) {
-            qcout << left_aligned(to_string(idx), 16) << " | " << *tok
-                  << Qt::endl;
-        }
     }
 };
 

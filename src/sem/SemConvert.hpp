@@ -74,7 +74,6 @@ struct OrgConverter : public OperationsTracer {
         }
     };
 
-    Func<LineCol(CR<PosStr>)> locationResolver;
     ConvertError wrapError(CR<Error> err, CR<OrgAdapter> adapter);
     Opt<LineCol> getLoc(CR<OrgAdapter> adapter);
     std::string  getLocMsg(CR<OrgAdapter> adapter);
@@ -91,7 +90,7 @@ struct OrgConverter : public OperationsTracer {
 
     struct Report {
         ReportKind       kind;
-        QFileInfo        location;
+        fs::path         location;
         int              line;
         Opt<Str>         name;
         Opt<Str>         subname;
@@ -214,7 +213,7 @@ struct OrgConverter : public OperationsTracer {
     template <typename T>
     SemIdT<T> SemLeaf(Up parent, In adapter) {
         auto res              = Sem<T>(parent, adapter);
-        res->text             = adapter.strVal();
+        res->text             = adapter.val();
         res->loc              = getLoc(adapter);
         res->placementContext = getPlacement();
         return res;

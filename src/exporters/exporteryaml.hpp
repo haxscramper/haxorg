@@ -34,18 +34,6 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     yaml eval(CR<bool> value) { return yaml(value); }
     yaml eval(CR<int> value) { return yaml(value); }
     yaml eval(CR<std::string> value) { return yaml(value); }
-    yaml eval(CR<QDateTime> value) {
-        return yaml(value.toString(Qt::ISODate));
-    }
-
-    yaml eval(CR<QDate> value) {
-        return yaml(value.toString(Qt::ISODate));
-    }
-
-    yaml eval(CR<QTime> value) {
-        return yaml(value.toString(Qt::ISODate));
-    }
-
 
     template <typename E>
     yaml eval(E value)

@@ -121,7 +121,7 @@ struct std::formatter<Line> : std::formatter<std::string> {
         const Line&    p,
         FormatContext& ctx) {
         std::formatter<std::string> fmt;
-        return fmt.format(described_class_printer(os, p), ctx);
+        return fmt.format(described_class_printer(p), ctx);
     }
 };
 

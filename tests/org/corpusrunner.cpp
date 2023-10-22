@@ -196,17 +196,14 @@ Vec<DiffItem> json_diff(
 
 
 void CorpusRunner::writeFileOrStdout(
-    const QFileInfo&   target,
+    const fs::path&    target,
     const std::string& content,
     bool               useFile) {
     if (useFile) {
         writeFile(target, content);
 
     } else {
-        QFile file;
-        file.open(stdout, QIODevice::WriteOnly);
-        std::ostream stream{&file};
-        stream << content;
+        std::cout << content;
     }
 }
 
@@ -541,7 +538,7 @@ CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
     ColStream os;
     switch (result.getKind()) {
         default: {
-            qCritical() << ("TODO" + to_string(result.getKind()));
+            DLOG(ERROR) << ("TODO" + to_string(result.getKind()));
             cmp.isOk = true;
         }
     }
@@ -551,9 +548,9 @@ CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
 }
 
 CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
-    CR<TokenGroup<OrgTokenKind>> lexed,
-    CR<TokenGroup<OrgTokenKind>> expected,
-    ParseSpec::Conf::MatchMode   match) {
+    CR<OrgTokenGroup>          lexed,
+    CR<OrgTokenGroup>          expected,
+    ParseSpec::Conf::MatchMode match) {
     using Mode                   = ParseSpec::Conf::MatchMode;
     BacktrackRes tokenSimilarity = longestCommonSubsequence<OrgToken>(
         lexed.tokens.content,
@@ -561,11 +558,9 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
         [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
             if (lhs.kind != rhs.kind) {
                 return false;
-            } else if (lhs.hasData() != rhs.hasData()) {
+            } else if (lhs->has_data() != rhs->has_data()) {
                 return false;
-            } else if (
-                lhs.hasData()
-                && Str(lhs.getText()) != Str(rhs.getText())) {
+            } else if (lhs.hasData() && lhs->getText() != rhs->getText()) {
                 return false;
             } else {
                 return true;
@@ -640,8 +635,8 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
 }
 
 CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
-    CR<NodeGroup<OrgNodeKind, OrgTokenKind>> parsed,
-    CR<NodeGroup<OrgNodeKind, OrgTokenKind>> expected) {
+    CR<OrgNodeGroup> parsed,
+    CR<OrgNodeGroup> expected) {
     BacktrackRes nodeSimilarity = longestCommonSubsequence<OrgNode>(
         parsed.nodes.content,
         expected.nodes.content,

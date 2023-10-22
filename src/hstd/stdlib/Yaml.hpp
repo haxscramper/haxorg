@@ -38,16 +38,8 @@ inline void maybe_enum_field(
     }
 }
 
-inline std::ostream& operator<<(
-    std::ostream&     os,
-    YAML::Node const& value) {
-    std::stringstream ss;
-    ss << value;
-    return os << ss.str();
-}
 
 namespace YAML {
-
 template <typename T>
 struct convert<std::optional<T>> {
     static Node encode(std::optional<T> const& str) {
@@ -68,20 +60,6 @@ struct convert<std::optional<T>> {
         return true;
     }
 };
-
-template <>
-struct convert<std::string> {
-    static Node encode(std::string const& str) {
-        Node result;
-        result = str;
-        return result;
-    }
-    static bool decode(Node const& in, std::string& out) {
-        out = std::string::fromStdString(in.as<std::string>());
-        return true;
-    }
-};
-
 
 template <IsEnum E>
 struct convert<E> {

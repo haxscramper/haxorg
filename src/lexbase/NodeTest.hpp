@@ -71,8 +71,7 @@ struct ParseSpec {
             ((bool), doTrace, false));
     };
 
-    QFileInfo debugFile(std::string relativePath, bool create = true)
-        const;
+    fs::path debugFile(std::string relativePath, bool create = true) const;
 
     struct SpecValidationError : public std::runtime_error {
         explicit SpecValidationError(const std::string& message)
@@ -93,16 +92,16 @@ struct ParseSpec {
         CR<std::string> specFile,
         CR<std::string> testRoot);
 
-    template <typename N, typename K>
-    NodeGroup<N, K> getNodeGroup() {
-        NodeGroup<N, K> result;
+    template <typename N, typename K, typename V>
+    NodeGroup<N, K, V> getNodeGroup() {
+        NodeGroup<N, K, V> result;
 
         return result;
     }
 
-    template <typename K>
-    TokenGroup<K> getTokenGroup() {
-        TokenGroup<K> result;
+    template <typename K, typename V>
+    TokenGroup<K, V> getTokenGroup() {
+        TokenGroup<K, V> result;
 
         return result;
     }

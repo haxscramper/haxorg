@@ -7,7 +7,7 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/wrappers/graphviz.hpp>
 #include <fstream>
-#include "testprofiler.hpp"
+#include "../testprofiler.hpp"
 
 #ifdef USE_PERFETTO
 #    include <hstd/wrappers/perfetto_aux.hpp>

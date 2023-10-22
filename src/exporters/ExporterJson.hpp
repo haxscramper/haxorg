@@ -44,18 +44,6 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
     json eval(CR<bool> value) { return json(value); }
     json eval(CR<int> value) { return json(value); }
 
-    json eval(CR<QDate> value) {
-        return json(value.toString(Qt::ISODate));
-    }
-
-    json eval(CR<QTime> value) {
-        return json(value.toString(Qt::ISODate));
-    }
-
-    json eval(CR<QDateTime> value) {
-        return json(value.toString(Qt::ISODate));
-    }
-
     template <typename T>
     json eval(CR<T> arg);
 

@@ -232,5 +232,5 @@ std::string NodeGroup<N, K, V>::treeRepr(Id node, CR<TreeReprConf> conf)
     std::stringstream buffer;
     ColStream         text{buffer};
     treeRepr(text, node, 0, conf);
-    return buffer;
+    return buffer.str();
 }

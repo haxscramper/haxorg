@@ -6,8 +6,6 @@
 #include <lexbase/NodeTest.hpp>
 #include <sem/ErrorWrite.hpp>
 #include <gtest/gtest.h>
-#include <QDirIterator>
-#include <QCoreApplication>
 
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Debug.hpp>

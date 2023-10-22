@@ -17,24 +17,8 @@
 #include <unordered_map>
 #include <functional>
 
-template <typename T>
-std::ostream& operator<<(
-    std::ostream&                os,
-    std::unordered_set<T> const& value) {
-    return os << "{" << join(os, ", ", value) << "}";
-}
-
-template <typename T>
-std::string to_string(std::unordered_set<T> const& value) {
-    std::string  out;
-    std::ostream os{&out};
-    os << value;
-    return out;
-}
-
 
 namespace astspec {
-
 struct FieldAccessError : public GetterError {
     explicit FieldAccessError(const std::string& message)
         : GetterError(message) {}
@@ -590,10 +574,11 @@ struct AstSpec {
 
         auto diff = all - visited;
         if (!diff.empty()) {
-            throw astspec::FieldAccessError(
-                "Indices missing from the field description $# are not "
-                "covered in spec for node $#"
-                % to_string_vec(to_string(diff), to_string(kind)));
+            throw astspec::FieldAccessError(std::format(
+                "Indices missing from the field description {} are not "
+                "covered in spec for node {}",
+                diff,
+                kind));
         }
 
         return result;
@@ -719,11 +704,13 @@ struct AstSpec {
         CR<Name>           name,
         Opt<Slice<int>>    slice,
         CR<AstRange<Name>> range) const {
-        return FieldAccessError(
-            "Range " + to_string(name) + " for node kind "
-            + to_string(kind) + " was resolved into slice "
-            + to_string(slice) + "(required ast range is "
-            + to_string(range) + ")");
+        return FieldAccessError(std::format(
+            "Range {} for node kind {} was resolved into slice {} "
+            "(required ast range is {})",
+            name,
+            kind,
+            slice,
+            range));
     }
 
     FieldAccessError makeMissingPositional(Kind kind, CR<Name> name)
