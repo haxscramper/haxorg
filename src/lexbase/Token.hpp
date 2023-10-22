@@ -14,17 +14,21 @@
 
 #include <lexbase/Errors.hpp>
 
-template <typename K>
+template <typename K, typename V>
 struct Token;
 
 
-template <typename K, typename IdBase = u64, typename MaskType = IdBase>
+template <
+    typename K,
+    typename V,
+    typename IdBase   = u64,
+    typename MaskType = IdBase>
 struct [[nodiscard]] TokenId
     : dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
-    using value_type = Token<K>;
+    using value_type = Token<K, V>;
     static auto Nil() -> TokenId { return FromValue(0); };
-    static auto FromValue(IdBase arg) -> TokenId<K> {
-        TokenId<K> res{IdBase{}};
+    static auto FromValue(IdBase arg) -> TokenId<K, V> {
+        TokenId<K, V> res{IdBase{}};
         res.setValue(arg);
         return res;
     }
@@ -38,12 +42,12 @@ struct [[nodiscard]] TokenId
             arg) {}
 };
 
-template <typename K>
-struct std::formatter<TokenId<K>> : std::formatter<std::string> {
+template <typename K, typename V>
+struct std::formatter<TokenId<K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
     typename FormatContext::iterator format(
-        const TokenId<K>& p,
-        FormatContext&    ctx) {
+        const TokenId<K, V>& p,
+        FormatContext&       ctx) {
         std::formatter<std::string> fmt;
         return fmt.format(p.format(demangle(typeid(K).name())), ctx);
     }
@@ -53,91 +57,38 @@ struct std::formatter<TokenId<K>> : std::formatter<std::string> {
 /// Generic token containing minimal required information: span of text and
 /// tag. Line/Column information can be computed on the as-needed basis
 /// from the base string.
-template <typename K>
+template <typename K, typename V>
 struct Token {
-    using id_type = TokenId<K>;
+    using id_type = TokenId<K, V>;
     K kind; /// Specific kind of the token
-    /// Token view on the base input text or offset position in case the
-    /// token is not attached to real data (fake token).
-    Variant<int, std::string_view> text;
+    V value;
 
     Token() = default;
-    /// \brief Create token that points to the real string data
-    Token(K _kind, std::string_view _text) : kind(_kind), text(_text) {}
-    /// \brief Create fake token that is positioned at some point in the
-    /// base string.
-    Token(K _kind, int offset = 0) : kind(_kind), text(offset) {}
-
-    Str strVal() const {
-        if (hasData()) {
-            return Str(getText().data(), getText().size());
-        } else {
-            return "";
-        }
-    }
-
-    /// \brief Check if token has any offset information
-    bool hasOffset() const { return std::holds_alternative<int>(text); }
-    /// \brief Check if token text is a view over real data
-    bool hasData() const {
-        return std::holds_alternative<std::string_view>(text);
-    }
-    int               getOffset() const { return std::get<int>(text); }
-    std::string_view& getText() {
-        return std::get<std::string_view>(text);
-    }
-    std::string_view const& getText() const {
-        return std::get<std::string_view>(text);
-    }
-    /// Return character count for the token. If it does not contain any
-    /// data return 0.
-    int size() const {
-        if (hasData()) {
-            return getText().size();
-        } else {
-            return 0;
-        }
-    }
-
-
-    /// Return offset from the starting point of the string. If token does
-    /// not have real data, return faked position (`.size()` of the text)
-    /// instead. \warning This function is intended to be used with real
-    /// starting point of the view that was used in the originating
-    /// positional string and so the behavior with 'fake' token is going to
-    /// be invalid when used with any other position in the string.
-    std::size_t offsetFrom(const char* start) const {
-        if (hasData()) {
-            return std::distance(getText().data(), start);
-        } else {
-            return getText().size();
-        }
-    }
+    Token(K kind) : kind(kind) {}
+    Token(K kind, V value) : kind(kind), value(value) {}
+    V&       operator->() { return this->value; }
+    V const& operator->() const { return this->value; }
 };
 
 
-template <StringConvertible K>
-struct std::formatter<Token<K>> : std::formatter<std::string> {
+template <StdFormattable K, typename V>
+struct std::formatter<Token<K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const Token<K>& p, FormatContext& ctx) {
-        std::string result;
-        result += std::format("Token<{}>(", value.kind);
-        if (value.hasData()) {
-            result += escape_literal(std::format("{}", value.getText()));
-        } else if (value.hasOffset()) {
-            result += "offset:" + std::to_string(value.getOffset());
-        } else {
-            result += "?";
-        }
-        return result + ")";
+    auto format(const Token<K, V>& p, FormatContext& ctx) {
+        std::formatter<std::string> fmt;
+        fmt.format("Token<", ctx);
+        fmt.format(p.kind, ctx);
+        fmt.format(">(", ctx);
+        fmt.format(p.value, ctx);
+        return fmt.format(")", ctx);
     }
 };
 
 
-template <typename K>
+template <typename K, typename V>
 struct TokenGroup {
-    dod::Store<TokenId<K>, Token<K>> tokens;
-    Opt<std::string_view>            base;
+    dod::Store<TokenId<K, V>, Token<K, V>> tokens;
+    Opt<std::string_view>                  base;
 
     TokenGroup(Opt<std::string_view> base = std::nullopt) : base(base) {}
     TokenId<K> add(CR<Token<K>> tok) { return tokens.add(tok); }

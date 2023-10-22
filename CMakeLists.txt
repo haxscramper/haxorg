@@ -47,10 +47,7 @@ add_subdirectory("${BASE}/deps/fuzztest")
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)
 include(src/cmake/target_lib.cmake)
-
-include(src/cmake/target_tests.cmake)
 include(src/cmake/target_bench.cmake)
-
 
 include(src/cmake/target_pyhaxorg.cmake)
 

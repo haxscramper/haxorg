@@ -4,7 +4,7 @@
 #include <string_view>
 #include <vector>
 
-enum class TokenKind
+enum class BaseTokenKind
 {
     Identifier,
     Keyword,

@@ -8,6 +8,7 @@ glob_add_sources2(haxorg "${BASE}/src/parse/.*")
 glob_add_sources2(haxorg "${BASE}/src/sem/.*")
 glob_add_sources2(haxorg "${BASE}/src/tools/.*")
 glob_add_sources2(haxorg "${BASE}/src/types/.*")
+glob_add_sources2(haxorg "${BASE}/src/base_lexer/.*")
 
 set_target_output(haxorg)
 set_target_flags(haxorg)

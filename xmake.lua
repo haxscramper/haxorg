@@ -154,6 +154,24 @@ meta_target("py_reflection", "Update reflection artifacts using standalone build
   end)
 end)
 
+meta_target("haxorg_base_lexer", "Generate base lexer for haxorg", {}, function () 
+  set_kind("phony")
+  on_build(function(target)
+    local utils = import("scripts.utils")
+    local reflex = path.join(utils.abs_script(), "toolchain/RE-flex/bin/reflex")
+    os.execv(reflex, {
+      "--fast",
+      "--batch=1024",
+      "--outfile=" .. utils.abs_script("src/base_lexer/base_lexer.cpp"),
+      utils.abs_script("src/base_lexer/base_lexer.l")
+    }, {
+      ENVS = {
+        LD_LIBRARY_PATH = path.join(utils.abs_script(), "toolchain/RE-flex/lib")
+      }
+    })
+  end)
+end)
+
 meta_target("haxorg_codegen", "Execute haxorg code generation step.", {}, function() 
   set_kind("phony")
   add_deps("py_reflection")
