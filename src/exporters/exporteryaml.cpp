@@ -9,7 +9,7 @@ using osm = OrgSemKind;
 
 yaml ExporterYaml::newRes(sem::SemId org) {
     yaml res;
-    res["kind"] = to_string(org->getKind());
+    res["kind"] = std::format("{}", org->getKind());
 
     if (IntSet<osm>{
             osm::Word,

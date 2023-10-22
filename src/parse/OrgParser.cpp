@@ -144,9 +144,9 @@ class OrgParserImpl : public OrgParser {
                 for (int i : Vec<int>{-1, 1}) {
                     if (lex.hasNext(offset * i)) {
                         OrgToken tok = lex.tok(offset * i);
-                        if (tok.hasData()) {
-                            PosStr str{tok.getText()};
-                            return locationResolver(str);
+                        if (tok.value.base) {
+                            return LineCol{
+                                tok.value.base->line, tok.value.base->col};
                         }
                         // If offset falls out of the lexer range on both
                         // ends, terminate lookup.
@@ -349,7 +349,7 @@ void OrgParserImpl<TraceState>::textFold(OrgLexer& lex) {
                       getLocMsg(lex),                                     \
                       __LINE__);                                          \
             __print(msg);                                                 \
-            qFatal(strdup(msg));                                          \
+            CHECK(false) << msg;                                          \
             fail(pop(lex, otk::Kind##Close));                             \
         }                                                                 \
         break;                                                            \
@@ -1034,7 +1034,7 @@ OrgId OrgParserImpl<TraceState>::parseParagraph(
         return back();
     }
 
-    SubLexer<OrgTokenKind> sub = SubLexer<OrgTokenKind>(
+    SubLexer<OrgTokenKind, OrgFill> sub = SubLexer<OrgTokenKind, OrgFill>(
         lex.in, paragraphTokens);
 
     UnorderedMap<OrgTokenKind, bool> lastClosing({
@@ -2457,9 +2457,7 @@ void OrgParserImpl<TraceState>::report(CR<Report> in) {
         return res;
     };
 
-    if (treeDepth() < 0) {
-        qFatal("Negative tree depth");
-    }
+    CHECK(0 <= treeDepth()) << "Negative tree depth";
 
     switch (in.kind) {
         case ReportKind::Error: {
@@ -2476,9 +2474,12 @@ void OrgParserImpl<TraceState>::report(CR<Report> in) {
 
         case ReportKind::AddToken: {
             auto id = in.node.value();
-            os << "  # add [" << id.getIndex() << "] "
-               << to_string(group->at(id).kind) << " at " << in.line
-               << " with " << escape_literal(group->strVal(id));
+            os << std::format(
+                "  # add [{}] {} at {} with {}",
+                id.getIndex(),
+                group->at(id).kind,
+                in.line,
+                escape_literal(group->strVal(id)));
             break;
         }
 

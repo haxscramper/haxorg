@@ -208,3 +208,39 @@ struct std::hash<sem::SemId> {
         return std::hash<u64>{}(s.id);
     }
 };
+
+
+#define __hack_fmt(__kind)                                                \
+    template <>                                                           \
+    struct std::formatter<__kind> : std::formatter<std::string> {         \
+        template <typename FormatContext>                                 \
+        FormatContext::iterator format(                                   \
+            __kind const&  p,                                             \
+            FormatContext& ctx) const {                                   \
+            std::formatter<std::string> fmt;                              \
+            return fmt.format(enum_serde<__kind>::to_string(p), ctx);     \
+        }                                                                 \
+    };
+
+
+__hack_fmt(OrgBigIdentKind);
+__hack_fmt(OrgNodeKind);
+__hack_fmt(OrgSemPlacement);
+__hack_fmt(sem::DocumentOptions::BrokenLinks);
+__hack_fmt(sem::DocumentOptions::Visibility);
+__hack_fmt(sem::Export::Format);
+__hack_fmt(sem::Include::Kind);
+__hack_fmt(sem::Link::Kind);
+__hack_fmt(sem::ListItem::Checkbox);
+__hack_fmt(sem::Subtree::Period::Kind);
+__hack_fmt(sem::SubtreeLog::Kind);
+__hack_fmt(sem::Time::Repeat::Mode);
+__hack_fmt(sem::Time::Repeat::Period);
+
+__hack_fmt(sem::Code::Switch::Kind);
+__hack_fmt(sem::Time::TimeKind);
+__hack_fmt(sem::Subtree::Property::Kind);
+__hack_fmt(sem::Code::Exports);
+__hack_fmt(sem::Subtree::Property::SetMode);
+__hack_fmt(sem::Subtree::Property::InheritanceMode);
+__hack_fmt(sem::Subtree::Property::Visibility::Level);

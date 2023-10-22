@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/Yaml.hpp>
 #include <hstd/system/macros.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
 
 
 json toJson(CR<yaml> node);

@@ -37,7 +37,7 @@ const char* OrgParser::Errors::UnexpectedToken::what() const noexcept {
                         return "$# ('$#')"
                              % to_string_vec(it.kind, it.value);
                     },
-                    [](auto const& it) { return to_string(it); }},
+                    [](auto const& it) { return std::format("{}", it); }},
                 wanted),
             this->token,
             getLocMsg(),

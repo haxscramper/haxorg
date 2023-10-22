@@ -140,12 +140,12 @@ struct verbose_convert {
         for (auto const& it : in) {
             std::string name = it.first.as<std::string>();
             if (!knownFieldCache.contains(name)) {
-                // TODO 'did you mean' with corrections
-                Vec<std::string> names;
-                std::string      msg = "unexpected field name '" + name
-                                + "', expected "
-                                + join(" or ", knownFieldCache.keys());
-                throw RepresentationException(it.first.Mark(), msg);
+                throw RepresentationException(
+                    it.first.Mark(),
+                    std::format(
+                        "Unexpected field name '{}', expected {}",
+                        name,
+                        join(" or ", knownFieldCache.keys())));
             }
         }
 
@@ -180,8 +180,8 @@ fs::path ParseSpec::debugFile(std::string relativePath, bool create)
             "does not provide debug output directory path");
     } else {
         auto dir = fs::path{debug.debugOutDir};
-        if (!fs::is_directory(dir)) {
-            if (!QDir().mkpath(dir.absolutePath())) {
+        if (!fs::exists(dir)) {
+            if (!fs::create_directories(dir)) {
                 throw FilesystemError(
                     "Failed to create debugging directory for writing "
                     "test log"
@@ -189,7 +189,7 @@ fs::path ParseSpec::debugFile(std::string relativePath, bool create)
             }
         }
 
-        return QFileInfo(dir.filePath(relativePath));
+        return fs::path(dir / relativePath);
     }
 }
 
@@ -207,17 +207,17 @@ ParseSpec::ParseSpec(
         fs::path    root{testRoot};
         std::string path = node["file"].as<std::string>();
         auto        full = fs::path{root / path};
-        if (!QFileInfo{path}.isRelative()) {
+        if (!root.is_relative()) {
             throw SpecValidationError(
                 "'file' field must store a relative path, but '" + path
                 + "' is not relative");
         }
 
-        if (!full.exists()) {
+        if (!fs::is_regular_file(full)) {
             throw SpecValidationError(
                 "'file' field must store a relative path, but '$#' does "
                 "not exist (test root '$#')"
-                % to_string_vec(full.absoluteFilePath(), testRoot));
+                % to_string_vec(fs::absolute(full), testRoot));
         }
 
         this->source = readFile(full);

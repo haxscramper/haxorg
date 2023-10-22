@@ -67,8 +67,8 @@ struct Exporter {
 
     static void writeEvent(OperationsTracer& ot, VisitEvent const& ev) {
         auto os = ot.getStream();
-        os << os.indent(ev.level * 2) << to_string(ev.kind) << ev.function
-           << os.end();
+        os << os.indent(ev.level * 2) << std::format("{}", ev.kind)
+           << ev.function << os.end();
         using K = typename VisitEvent::Kind;
     }
 
