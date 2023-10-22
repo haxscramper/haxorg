@@ -88,21 +88,19 @@ struct std::formatter<Token<K, V>> : std::formatter<std::string> {
 template <typename K, typename V>
 struct TokenGroup {
     dod::Store<TokenId<K, V>, Token<K, V>> tokens;
-    Opt<std::string_view>                  base;
+    TokenGroup(Opt<std::string_view> base = std::nullopt) {}
+    TokenId<K, V> add(CR<Token<K, V>> tok) { return tokens.add(tok); }
 
-    TokenGroup(Opt<std::string_view> base = std::nullopt) : base(base) {}
-    TokenId<K> add(CR<Token<K>> tok) { return tokens.add(tok); }
-
-    Vec<TokenId<K>> add(CR<Vec<Token<K>>> tok) {
-        Vec<TokenId<K>> result;
+    Vec<TokenId<K, V>> add(CR<Vec<Token<K, V>>> tok) {
+        Vec<TokenId<K, V>> result;
         for (const auto& t : tok) {
             result.push_back(tokens.add(t));
         }
         return result;
     }
 
-    Vec<TokenId<K>> add(CR<std::span<Token<K>>> tok) {
-        Vec<TokenId<K>> result;
+    Vec<TokenId<K, V>> add(CR<std::span<Token<K, V>>> tok) {
+        Vec<TokenId<K, V>> result;
         for (const auto& t : tok) {
             result.push_back(tokens.add(t));
         }
@@ -110,82 +108,65 @@ struct TokenGroup {
     }
 
 
-    Token<K>& at(TokenId<K> pos) { return tokens.at(pos); }
+    Token<K, V>& at(TokenId<K, V> pos) { return tokens.at(pos); }
 
-    std::span<Token<K>> at(HSlice<TokenId<K>, TokenId<K>> slice) {
+    std::span<Token<K, V>> at(HSlice<TokenId<K, V>, TokenId<K, V>> slice) {
         assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
         tokens.at(slice(slice.first.getIndex(), slice.last.getIndex()));
     }
 
     int  size() const { return tokens.size(); }
-    void resize(int size, Token<K> const& value = Token<K>()) {
+    void resize(int size, Token<K, V> const& value = Token<K, V>()) {
         tokens.resize(size, value);
     }
-
-    Slice<int> toAbsolute(std::string_view view) const {
-        if (base.has_value()) {
-            auto main = base.value();
-            assert(is_within_memory_block<char>(
-                view.data(), main.data(), main.size()));
-            int offset = static_cast<int>(
-                pointer_distance(main.data(), view.data()));
-            return slice<int>(
-                offset, static_cast<int>(offset + view.size()));
-        }
-    }
 };
 
-template <StringConvertible K>
-struct std::formatter<TokenGroup<K>> : std::formatter<std::string> {
+template <StdFormattable K, StdFormattable V>
+struct std::formatter<TokenGroup<K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const TokenGroup<K>& p, FormatContext& ctx) {
-        std::string res;
-        for (const auto& [idx, tok] : tokens.tokens.pairs()) {
-            res += std::format("{:<16} | {}\n", idx, *tok);
+    auto format(const TokenGroup<K, V>& p, FormatContext& ctx) {
+        std::formatter<std::string> fmt;
+        for (const auto& [idx, tok] : p.tokens.pairs()) {
+            fmt.format(std::format("{:<16}", idx), ctx);
+            fmt.format(" | ", ctx);
+            fmt.format(*tok, ctx);
+            fmt.format("\n", ctx);
         }
-        return res;
+
+        return fmt.format("", ctx);
     }
 };
 
 
-template <StringConvertible K>
-struct std::formatter<TokenGroup<K>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const TokenGroup<K>& p, FormatContext& ctx) {
-        std::string res;
-        for (const auto& [idx, tok] : tokens.tokens.pairs()) {
-            res std::format("{:<16} | {}\n", idx, *tok);
-        }
-        return res;
-    }
-};
-
-
-template <typename K>
+template <typename K, typename V>
 struct TokenStore {
-    Vec<TokenGroup<K>> groups;
-    Token<K>& at(TokenId<K> id) { return groups.at(id.getStoreIdx()); }
+    Vec<TokenGroup<K, V>> groups;
+    Token<K, V>&          at(TokenId<K, V> id) {
+        return groups.at(id.getStoreIdx());
+    }
 
-    std::span<Token<K>> at(HSlice<TokenId<K>, TokenId<K>> slice) {
+    std::span<Token<K, V>> at(HSlice<TokenId<K, V>, TokenId<K, V>> slice) {
         assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
         groups.at(slice.first.getStoreIdx()).at(slice);
     }
 };
 
-template <typename K>
+template <typename K, typename V>
 struct Tokenizer {
-    TokenGroup<K>* out;
-    Tokenizer(TokenGroup<K>* _out) : out(_out) {}
-    Vec<Vec<Token<K>>*> buffer;
+    TokenGroup<K, V>* out;
+    Tokenizer(TokenGroup<K, V>* _out) : out(_out) {}
+    Vec<Vec<Token<K, V>>*> buffer;
     /// \brief Set new active buffer pointer
-    void setBuffer(Vec<Token<K>>* _buffer) { buffer.push_back(_buffer); }
+    void setBuffer(Vec<Token<K, V>>* _buffer) {
+        buffer.push_back(_buffer);
+    }
     void clearBuffer() { buffer.pop_back(); }
     /// \brief Get reference to token with specified ID
-    Token<K>& at(TokenId<K> id) { return out->at(id); }
+    Token<K, V>& at(TokenId<K, V> id) { return out->at(id); }
     /// \brief Get ID of the last token
-    TokenId<K> back() const { return out->tokens.back(); }
-    int        size() const { return out->size(); }
-    void       resize(int size, Token<K> value = Token<K>()) {
+    TokenId<K, V> back() const { return out->tokens.back(); }
+    int           size() const { return out->size(); }
+    void          resize(int size, Token<K, V> value = Token<K, V>()) {
         out->resize(size, value);
     }
 
@@ -196,52 +177,56 @@ struct Tokenizer {
     ///
     /// \warning Returns nil IDs or empty list with active buffer!
     ///@{
-    TokenId<K> push(CR<Token<K>> tok) {
+    TokenId<K, V> push(CR<Token<K, V>> tok) {
         if (buffer.empty()) {
             return out->add(tok);
         } else {
             buffer.back()->push_back(tok);
-            return TokenId<K>::Nil();
+            return TokenId<K, V>::Nil();
         }
     }
 
-    Vec<TokenId<K>> push(CR<std::span<Token<K>>> tok) {
+    Vec<TokenId<K, V>> push(CR<std::span<Token<K, V>>> tok) {
         if (buffer.empty()) {
             return out->add(tok);
         } else {
             buffer.back()->append(tok);
-            return Vec<TokenId<K>>();
+            return Vec<TokenId<K, V>>();
         }
     }
 
-    Vec<TokenId<K>> push(CR<Vec<Token<K>>> tok) {
+    Vec<TokenId<K, V>> push(CR<Vec<Token<K, V>>> tok) {
         if (buffer.empty()) {
             return out->add(tok);
         } else {
             buffer.back()->append(tok);
-            return Vec<TokenId<K>>();
+            return Vec<TokenId<K, V>>();
         }
     }
     ///@}
 };
 
-template <typename K>
+template <typename K, typename V>
 struct LexerCommon {
   public:
-    TokenGroup<K>* in;
-    TokenId<K>     pos;
-    LexerCommon(TokenGroup<K>* _in, TokenId<K> startPos = TokenId<K>(0))
+    TokenGroup<K, V>* in;
+    TokenId<K, V>     pos;
+    LexerCommon(
+        TokenGroup<K, V>* _in,
+        TokenId<K, V>     startPos = TokenId<K, V>(0))
         : in(_in), pos(startPos) {}
 
     Str strVal(int offset = 0) const {
         return in->at(get(offset)).strVal();
     }
 
-    K            kind(int offset = 0) const { return tok(offset).kind; }
-    Token<K>&    tok(TokenId<K> id) { return in->at(id); }
-    CR<Token<K>> tok(TokenId<K> id) const { return in->at(id); }
-    CR<Token<K>> tok(int offset = 0) const { return in->at(get(offset)); }
-    TokenId<K>   get(int offset = 0) const { return pos + offset; }
+    K               kind(int offset = 0) const { return tok(offset).kind; }
+    Token<K, V>&    tok(TokenId<K, V> id) { return in->at(id); }
+    CR<Token<K, V>> tok(TokenId<K, V> id) const { return in->at(id); }
+    CR<Token<K, V>> tok(int offset = 0) const {
+        return in->at(get(offset));
+    }
+    TokenId<K, V> get(int offset = 0) const { return pos + offset; }
 
     struct PrintParams {
         int  maxTokens   = 10;
@@ -294,36 +279,35 @@ struct LexerCommon {
 
     std::string printToString(PrintParams params, bool colored = false)
         const {
-        std::string  result;
-        std::ostream stream{&result};
-        ColStream    out{stream};
+        std::stringstream stream;
+        ColStream         out{stream};
         out.colored = colored;
         print(out, params);
-        return result;
+        return stream.str();
     }
 
-    TokenId<K> pop() {
-        TokenId<K> result = pos;
+    TokenId<K, V> pop() {
+        TokenId<K, V> result = pos;
         next();
         return result;
     }
 
 
-    TokenId<K> pop(IntSet<K> kind) {
-        TokenId<K> result = get();
+    TokenId<K, V> pop(IntSet<K> kind) {
+        TokenId<K, V> result = get();
         skip(kind);
         return result;
     }
 
-    TokenId<K> pop(K kind) {
-        TokenId<K> result = get();
+    TokenId<K, V> pop(K kind) {
+        TokenId<K, V> result = get();
         skip(kind);
         return result;
     }
 
-    Vec<TokenId<K>> pop(int count) {
+    Vec<TokenId<K, V>> pop(int count) {
         assert(0 <= count);
-        Vec<TokenId<K>> result;
+        Vec<TokenId<K, V>> result;
         for (int i = 0; i < count; ++i) {
             result.push_back(pop());
         }
@@ -446,9 +430,9 @@ struct LexerCommon {
         }
     }
 
-    Vec<TokenId<K>> getInside(IntSet<K> start, IntSet<K> finish) {
-        Vec<TokenId<K>> result;
-        int             count = 0;
+    Vec<TokenId<K, V>> getInside(IntSet<K> start, IntSet<K> finish) {
+        Vec<TokenId<K, V>> result;
+        int                count = 0;
         while (start.contains(kind())) {
             next();
         }
@@ -483,25 +467,25 @@ struct LexerCommon {
     }
 };
 
-template <typename K>
-struct std::formatter<LexerCommon<K>> : std::formatter<std::string> {
+template <typename K, typename V>
+struct std::formatter<LexerCommon<K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const LexerCommon<K>& p, FormatContext& ctx) {
+    auto format(const LexerCommon<K, V>& p, FormatContext& ctx) {
         return p.printToString();
     }
 };
 
 
 /// \brief Lexer specialization for iterating over fixed sequence of IDs
-template <typename K>
-struct SubLexer : public LexerCommon<K> {
+template <typename K, typename V>
+struct SubLexer : public LexerCommon<K, V> {
     // FIXME without this annotation public fields of the base class are
     // not not accessible. I don't think this is caused by the shadowing
     // issue, but aside from that I don't really know.
-    using LexerCommon<K>::pos;
+    using LexerCommon<K, V>::pos;
 
-    int             subPos = 0;
-    Vec<TokenId<K>> tokens;
+    int                subPos = 0;
+    Vec<TokenId<K, V>> tokens;
 
 
     bool hasNext(int offset = 1) const override {
@@ -516,27 +500,27 @@ struct SubLexer : public LexerCommon<K> {
             pos = tokens.at(subPos);
         } else {
             subPos += offset;
-            pos = TokenId<K>::Nil();
+            pos = TokenId<K, V>::Nil();
         }
     }
 
-    SubLexer(TokenGroup<K>* in, Vec<TokenId<K>> _tokens)
-        : LexerCommon<K>(in, _tokens.at(0)), tokens(_tokens) {}
+    SubLexer(TokenGroup<K, V>* in, Vec<TokenId<K, V>> _tokens)
+        : LexerCommon<K, V>(in, _tokens.at(0)), tokens(_tokens) {}
 };
 
 
 /// \brief Lexer specialization for iterating over all tokens in the token
 /// group
-template <typename K>
-struct Lexer : public LexerCommon<K> {
-    using LexerCommon<K>::pos;
-    using LexerCommon<K>::in;
+template <typename K, typename V>
+struct Lexer : public LexerCommon<K, V> {
+    using LexerCommon<K, V>::pos;
+    using LexerCommon<K, V>::in;
 
     void next(int offset = 1) override {
         if (hasNext(offset)) {
             pos = pos + offset;
         } else {
-            pos = TokenId<K>::Nil();
+            pos = TokenId<K, V>::Nil();
         }
     }
 
@@ -549,5 +533,5 @@ struct Lexer : public LexerCommon<K> {
         }
     }
 
-    Lexer(TokenGroup<K>* in) : LexerCommon<K>(in) {}
+    Lexer(TokenGroup<K, V>* in) : LexerCommon<K, V>(in) {}
 };

@@ -26,9 +26,9 @@
 /// positional string checking such as `.at()` or `.skip()` as well as all
 /// helper methods for better skipping such as `skipZeroOrMore`
 template <typename S>
-concept PosStrCheckable = (                                 //
-    std::convertible_to<std::remove_cvref_t<S>, char>       //
-    || std::convertible_to<std::remove_cvref_t<S>, CharSet> //
+concept PosStrCheckable = (                                      //
+    std::convertible_to<std::remove_cvref_t<S>, char>            //
+    || std::convertible_to<std::remove_cvref_t<S>, IntSet<char>> //
     || std::convertible_to<std::remove_cvref_t<S>, std::string>);
 
 
@@ -61,14 +61,14 @@ struct PosStr {
     /// \brief Pending slice content
     Vec<SliceStartData> slices;
     /// \brief Underlying string view
-    std::stringView view;
+    std::string_view view;
     /// \brief Absolute offset from the start of string view
     int pos = 0;
 
 
     /// \brief Consturct stirng using base view and starting position in
     /// the view
-    PosStr(std::stringView inView, int inPos = 0);
+    PosStr(std::string_view inView, int inPos = 0);
 
     /// \brief Consturct positional stirng using start view data and size
     /// of the string
@@ -83,7 +83,7 @@ struct PosStr {
     /// \brief Get size of hte underlying view
     int size() const;
 
-    std::stringView getOffsetView(int ahead = 0) const;
+    std::string_view getOffsetView(int ahead = 0) const;
 
     /// \brief Create new positional string using \arg s slice to cut into
     /// underlying view.
@@ -123,7 +123,7 @@ struct PosStr {
 
 
     /// \brief Complete view with given offset parameters
-    std::stringView completeView(
+    std::string_view completeView(
         CR<SliceStartData> slice,
         Offset             offset = Offset()) const;
 

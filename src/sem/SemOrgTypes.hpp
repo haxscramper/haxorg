@@ -916,9 +916,9 @@ struct SubtreeLog : public sem::Org {
             (),
             (oldPriority, newPriority, on))
         /// \brief Previous priority for change and removal
-        Opt<std::string> oldPriority = std::nullopt;
+        Opt<Str> oldPriority = std::nullopt;
         /// \brief New priority for change and addition
-        Opt<std::string> newPriority = std::nullopt;
+        Opt<Str> newPriority = std::nullopt;
         /// \brief When priority was changed
         sem::SemIdT<sem::Time> on = SemIdT<Time>::Nil();
     };
@@ -1307,7 +1307,7 @@ struct Subtree : public sem::Org {
         using variant_enum_type = sem::Subtree::Property::Kind;
         using variant_data_type = sem::Subtree::Property::Data;
         Property(CR<Data> data) : data(data) {}
-        bool matches(Kind kind, CR<std::string> subkind = "") const;
+        bool matches(Kind kind, CR<Str> subkind = "") const;
         BOOST_DESCRIBE_CLASS(
             Property,
             (),

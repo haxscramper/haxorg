@@ -310,7 +310,7 @@ Opt<Property> Subtree::getProperty(Property::Kind kind, CR<Str> subkind)
     }
 }
 
-bool Subtree::Property::matches(Kind kind, CR<std::string> subkind) const {
+bool Subtree::Property::matches(Kind kind, CR<Str> subkind) const {
     if (getKind() == kind) {
         return true;
     } else if (
@@ -437,7 +437,7 @@ Opt<bool> CmdArgument::getBool() const {
 
 Opt<int> CmdArgument::getInt() const {
     bool isOk   = false;
-    int  result = value.toInt(&isOk);
+    int  result = value.toInt();
     if (isOk) {
         return result;
     } else {
@@ -455,11 +455,3 @@ Opt<SemIdT<CmdArgument>> CmdArguments::popArg(Str key) {
     }
 }
 
-template <>
-struct std::formatter<sem::SemId> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(const sem::SemId& p, FormatContext& ctx) {
-        return std::format(
-            "{}:{}:{}", p.getStoreIndex(), p.getKind(), p.getNodeIndex());
-    }
-};

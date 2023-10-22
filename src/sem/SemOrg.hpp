@@ -12,7 +12,6 @@
 #include <hstd/system/macros.hpp>
 #include <functional>
 
-#include <QDateTime>
 
 #include <sem/SemOrgBase.hpp>
 

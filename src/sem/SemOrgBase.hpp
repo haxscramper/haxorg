@@ -281,3 +281,12 @@ struct Org {
     __IMPL(Punctuation)                                                   \
     __IMPL(Placeholder)                                                   \
     __IMPL(BigIdent)
+
+template <>
+struct std::formatter<sem::SemId> : std::formatter<std::string> {
+    template <typename FormatContext>
+    auto format(const sem::SemId& p, FormatContext& ctx) {
+        return std::format(
+            "{}:{}:{}", p.getStoreIndex(), p.getKind(), p.getNodeIndex());
+    }
+};
