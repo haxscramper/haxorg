@@ -256,7 +256,7 @@ struct LexerCommon {
                 const auto& t = tok(i);
                 os << " "
                    << styledUnicodeMapping(
-                          to_string(t.kind), AsciiStyle::Italic);
+                          std::format("{}", t.kind), AsciiStyle::Italic);
                 if (t.hasData()) {
                     os << " '";
                     hshow(

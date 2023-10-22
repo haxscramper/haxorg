@@ -115,7 +115,6 @@ class OrgParserImpl : public OrgParser {
     void extendAttachedTrails(OrgId position) override;
 
     using OrgParser::OrgParser;
-    Func<LineCol(CR<PosStr>)> locationResolver;
 
 
     void setReportHook(Func<void(CR<Report>)> in) override {
@@ -125,10 +124,6 @@ class OrgParserImpl : public OrgParser {
     void setTraceUpdateHook(
         Func<void(CR<Report>, bool&, bool)> in) override {
         traceUpdateHook = in;
-    }
-
-    void setLocationResolver(Func<LineCol(CR<PosStr>)> in) override {
-        locationResolver = in;
     }
 
 
@@ -2497,7 +2492,8 @@ void OrgParserImpl<TraceState>::report(CR<Report> in) {
             }
 
             os << " [" << id.getIndex() << "] "
-               << to_string(group->at(id).kind) << " at " << in.line;
+               << std::format("{}", group->at(id).kind) << " at "
+               << in.line;
             if (in.kind == ReportKind::EndNode) {
                 os << " ext=" << group->at(id).getExtent();
             }

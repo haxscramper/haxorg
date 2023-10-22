@@ -39,7 +39,7 @@ struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     yaml eval(E value)
         requires(std::is_enum<E>::value)
     {
-        return yaml(to_string(value));
+        return yaml(std::format("{}", value));
     }
 
     template <typename T>

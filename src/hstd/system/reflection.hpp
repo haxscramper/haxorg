@@ -170,8 +170,6 @@ struct value_domain<E> {
 };
 
 
-
-
 template <
     class T,
     class Bd = boost::describe::
@@ -207,6 +205,16 @@ std::string described_class_printer(T const& t) {
     result += "}";
     return result;
 }
+
+template <DescribedRecord R>
+struct std::formatter<R> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(R const& p, FormatContext& ctx) const {
+        std::formatter<std::string> fmt;
+        return fmt.format(described_class_printer(p), ctx);
+    }
+};
+
 
 template <typename T, typename Func>
 void for_each_field_with_bases(Func cb, bool pre_bases = true) {

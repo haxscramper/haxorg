@@ -16,7 +16,7 @@ void Exporter<V, R>::visit(
 template <typename V, typename R>
 template <typename T, typename Kind>
 void Exporter<V, R>::visitVariants(R& res, Kind kind, CR<T> var) {
-    std::string fieldName = to_string(kind);
+    std::string fieldName = std::format("{}", kind);
     _this()->visitField(res, "kind", kind);
     std::visit(
         [&, this](const auto& it) {
@@ -27,7 +27,7 @@ void Exporter<V, R>::visitVariants(R& res, Kind kind, CR<T> var) {
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, CR<UserTime> time) {
-//    visitVariants(res, time.getKind(), time.time);
+    //    visitVariants(res, time.getKind(), time.time);
 }
 
 template <typename V, typename R>

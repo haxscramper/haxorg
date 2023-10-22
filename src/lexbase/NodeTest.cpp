@@ -33,23 +33,11 @@ json toJson(CR<yaml> node) {
         }
 
         case YAML::NodeType::Scalar: {
-            bool        ok     = false;
-            std::string scalar = std::string::fromStdString(node.Scalar());
-            {
-                long long int intValue = scalar.toLongLong(&ok);
-                if (ok) {
-                    return intValue;
-                }
-            }
-
-            {
-                double doubleVal = scalar.toDouble(&ok);
-                if (ok) {
-                    return doubleVal;
-                }
-            }
-
-            { return node.Scalar(); }
+            bool ok     = false;
+            Str  scalar = Str(node.Scalar());
+            return scalar.toDouble();
+            return scalar.toInt();
+            return node.Scalar();
         }
     }
 }
@@ -81,7 +69,7 @@ struct convert<Str> {
     static Node encode(Str const& v) { return Node(v); }
 
     static bool decode(Node const& in, Str& out) {
-        out = std::string::fromStdString(in.as<std::string>());
+        out = Str(in.as<std::string>());
         return true;
     }
 };
@@ -186,13 +174,13 @@ struct convert<ParseSpec> : verbose_convert<ParseSpec> {};
 
 fs::path ParseSpec::debugFile(std::string relativePath, bool create)
     const {
-    if (debug.debugOutDir.isEmpty()) {
+    if (debug.debugOutDir.empty()) {
         throw FilesystemError(
             "Cannot get relative path for the spec configuration that "
             "does not provide debug output directory path");
     } else {
-        auto dir = QDir(debug.debugOutDir);
-        if (!dir.exists()) {
+        auto dir = fs::path{debug.debugOutDir};
+        if (!fs::is_directory(dir)) {
             if (!QDir().mkpath(dir.absolutePath())) {
                 throw FilesystemError(
                     "Failed to create debugging directory for writing "
@@ -216,9 +204,9 @@ ParseSpec::ParseSpec(
         throw SpecValidationError(
             "Input spec must contain 'source' string field or 'file'");
     } else if (node["file"]) {
-        QDir        root{testRoot};
+        fs::path    root{testRoot};
         std::string path = node["file"].as<std::string>();
-        auto        full = QFileInfo{root.absoluteFilePath(path)};
+        auto        full = fs::path{root / path};
         if (!QFileInfo{path}.isRelative()) {
             throw SpecValidationError(
                 "'file' field must store a relative path, but '" + path

@@ -35,25 +35,24 @@ void ExporterTree::visitField(
 }
 
 void ExporterTree::treeRepr(sem::SemId org) {
-    ColStream os{qcout};
+    ColStream os{std::cout};
     ExporterTree(os).evalTop(org);
 }
 
-void ExporterTree::treeRepr(sem::SemId org, const QFileInfo& path) {
-    QFile file{path.absoluteFilePath()};
-    if (file.open(QIODevice::ReadWrite | QFile::Truncate)) {
-        std::ostream stream{&file};
-        ColStream    os{stream};
+void ExporterTree::treeRepr(sem::SemId org, const fs::path& path) {
+    std::ofstream file{path.native()};
+    if (file.is_open()) {
+        ColStream os{file};
         os.colored = false;
         ExporterTree(os).evalTop(org);
     } else {
-        qWarning() << "Could not open file" << path
+        LOG(ERROR) << "Could not open file" << path
                    << "for writing tree repr";
     }
 }
 
 void ExporterTree::treeRepr(sem::SemId org, CR<TreeReprConf> conf) {
-    ColStream    os{qcout};
+    ColStream    os{std::cout};
     ExporterTree exporter{os};
     exporter.conf = conf;
     exporter.evalTop(org);
@@ -62,7 +61,7 @@ void ExporterTree::treeRepr(sem::SemId org, CR<TreeReprConf> conf) {
 void ExporterTree::init(sem::SemId org) {
     auto ctx = stack.back();
     indent();
-    os << os.green() << to_string(org->getKind()) << os.end();
+    os << os.green() << std::format("{}", org->getKind()) << os.end();
 
     if (conf.withSubnodeIdx && ctx.subnodeIdx != -1) {
         os << " [" << ctx.subnodeIdx << "]";

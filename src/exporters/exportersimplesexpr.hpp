@@ -31,7 +31,7 @@ struct ExporterSimpleSExpr
 
     template <sem::NotOrg T>
     void visit(Res& res, CR<T> value) {
-        res = b.line({string(escape_for_write(to_string(value)))});
+        res = b.line({string(escape_for_write(std::format("{}", value)))});
     }
 
     template <typename T>
