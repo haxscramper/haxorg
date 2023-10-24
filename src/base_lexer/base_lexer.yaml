@@ -46,8 +46,8 @@ rules:
   - { re: "[,\\./?]", token: AnyPunct }
   - { re: "\\+", token: Plus }
   - { re: "\\-", token: Minus }
-  - { re: \\", token: DoubleQuote }
-  - { re: \\', token: SingleQuote }
+  - { re: "\\\"", token: DoubleQuote }
+  - { re: "\\'", token: SingleQuote }
   - { re: "\\\\\\\\", token: DoubleSlash }
   - { re: "#\\w+", token: HashIdent }
   - { re: "##", token: DoubleHash }
@@ -62,10 +62,10 @@ rules:
   - { re: "<", token: LeftAngle }
   - { re: ">", token: RightAngle }
   - { re: "\\^", token: Circumflex }
-  - { re: "\\{\\{\\{", token: MacroBegin }
-  - { re: "\\}\\}\\}", token: MacroEnd }
-  - { re: "\\{", token: LeftCurly }
-  - { re: "\\}", token: RightCurly }
+  - { lit: "{{{", token: MacroBegin }
+  - { lit: "}}}", token: MacroEnd }
+  - { lit: "{", token: LeftCurly }
+  - { lit: "}", token: RightCurly }
   - { re: "\\\\.", token: EscapedChar }
   - { re: "\\%", token: Percent }
   - { re: "@", token: At }

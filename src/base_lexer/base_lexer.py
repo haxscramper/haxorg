@@ -3,7 +3,8 @@
 import yaml
 from yaml.loader import SafeLoader
 from pydantic import BaseModel, validator
-from typing import List, Optional, Union
+from beartype.typing import List, Optional, Set
+from beartype import beartype
 import os
 
 class Action(BaseModel):
@@ -40,6 +41,7 @@ class SafeLineLoader(SafeLoader):
         mapping['__line__'] = node.start_mark.line + 1
         return mapping
 
+@beartype
 def parse_yaml_to_pydantic(file_path: str) -> Configuration:
     with open(file_path, 'r') as f:
         data = yaml.load(f, Loader=SafeLineLoader)
@@ -54,8 +56,10 @@ def parse_yaml_to_pydantic(file_path: str) -> Configuration:
     return Configuration(**data)
 
 MATCH_WIDTH = 40
+ENUM_NAME = "BaseTokenKind"
 
 # Convert rule data to re/flex code pattern
+@beartype
 def rule_to_reflex_code(rule: Rule) -> str:
     state_prefix = ""
     if rule.states:
@@ -77,12 +81,28 @@ def rule_to_reflex_code(rule: Rule) -> str:
                 actions.append(f"pop_expect({action.from_}, {action.to});")
 
     actions_code = " ".join(actions)
-    return f"{state_prefix} {{ /*{rule.line:<4}*/ add(BaseTokenKind::{rule.token}); {actions_code} }}"
+    return f"{state_prefix} {{ /*{rule.line:<4}*/ add({ENUM_NAME}::{rule.token}); {actions_code} }}"
 
+@beartype
 def generate_reflex_code(config: Configuration) -> str:
-    return "\n".join([rule_to_reflex_code(rule) for rule in config.rules])
+    rules = "\n".join([rule_to_reflex_code(rule) for rule in config.rules])
+    tokens: List[str] = sorted(set([rule.token for rule in config.rules]))
+
+    return """
+enum %s {
+  %s,
+};
+
+%%%%
+
+%s    
+    """ % (
+        ENUM_NAME,
+        ",\n  ".join(tokens),
+        rules,
+    )
 
 # Example usage:
 config = parse_yaml_to_pydantic(os.path.join(os.path.dirname(os.path.abspath(__file__)), "base_lexer.yaml"))
-for rule in config.rules:
-    print(rule_to_reflex_code(rule))
+with open("/tmp/base_lexer.l", "w") as file:
+    file.write(generate_reflex_code(config))
