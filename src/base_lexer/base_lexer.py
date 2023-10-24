@@ -17,11 +17,12 @@ class Action(BaseModel):
         return values.get('from')
 
 class Rule(BaseModel):
-    re: str
+    re: Optional[str] = None
+    lit: Optional[str] = None
     token: str
     states: Optional[List[str]] = None
-    actions: List[Action]
-    line: Optional[int]
+    actions: Optional[List[Action]] = None
+    line: Optional[int] = None
 
 class State(BaseModel):
     name: str
@@ -60,18 +61,23 @@ def rule_to_reflex_code(rule: Rule) -> str:
     if rule.states:
         state_prefix = "<{}>".format(",".join(rule.states))
 
-    state_prefix = (state_prefix + rule.re).ljust(MATCH_WIDTH)
+    if rule.re:
+        state_prefix = (state_prefix + rule.re).ljust(MATCH_WIDTH)
+
+    else:
+        state_prefix = f"{state_prefix}\"{rule.lit}\"".ljust(MATCH_WIDTH)
 
     actions = []
 
-    for action in rule.actions:
-        if action.do == "push":
-            actions.append(f"push_state({action.to});")
-        elif action.do == "pop":
-            actions.append(f"pop_expect({action.from_}, {action.to});")
+    if rule.actions:
+        for action in rule.actions:
+            if action.do == "push":
+                actions.append(f"push_state({action.to});")
+            elif action.do == "pop":
+                actions.append(f"pop_expect({action.from_}, {action.to});")
 
     actions_code = " ".join(actions)
-    return f"{state_prefix} {{ add(BaseTokenKind::{rule.token}); {actions_code} }}"
+    return f"{state_prefix} {{ /*{rule.line:<4}*/ add(BaseTokenKind::{rule.token}); {actions_code} }}"
 
 def generate_reflex_code(config: Configuration) -> str:
     return "\n".join([rule_to_reflex_code(rule) for rule in config.rules])

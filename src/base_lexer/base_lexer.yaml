@@ -1,25 +1,78 @@
 states:
-  - name: "COMMAND"
+  - name: COMMAND
     kind: "xstate"
   - name: "COMMAND_TEXT"
     kind: "state"
 rules:
   - re: "#\\+"
     token: LineCommand
-    actions: [ { "do": "push", "to": "COMMAND" } ]
+    actions: [{ do: "push", to: COMMAND }]
   - re: "begin_src"
-    states: [ "COMMAND" ]
-    token: "CmdSrcBegin"
-    actions: [ { "do": "push", "to": "COMMAND_SRC" } ]
+    states: [COMMAND]
+    token: CmdSrcBegin
+    actions: [{ do: "push", to: COMMAND_SRC }]
   - re: "\\n"
-    states: [ "COMMAND_SRC" ]
-    token: "Newline"
+    states: [COMMAND_SRC]
+    token: Newline
     actions:
-      - do: "pop"
-        from: "COMMAND_SRC"
-        to: "COMMAND"
-      - do: "pop"
-        from: "COMMAND"
-        to: "INITIAL"
-      - do: "push"
-        to: "BODY_SRC"
+      - { do: "pop", from: COMMAND_SRC, to: COMMAND }
+      - { do: "pop", from: COMMAND, to: INITIAL }
+      - { do: "push", to: "BODY_SRC" }
+  - { lit: "<<", states: [BODY_SRC], token: SrcTangleOpen }
+  - { lit: ">>", states: [BODY_SRC], token: SrcTangleClose }
+  - { re: ".+", states: [BODY_SRC], token: SrcContent }
+  - { re: "\\w+", states: [COMMAND_OPTS, COMMAND_SRC], token: CmdColonIdent }
+  - { re: "\\w+", states: [COMMAND_OPTS, COMMAND_SRC], token: CmdIdent }
+  - { re: "\\s+", states: [COMMAND_OPTS, COMMAND_SRC], token: Whitespace }
+
+  - { lit: "# -*- ", token: FileVarComment }
+  - { re: "[0-9]+", token: Number }
+  - { re: "^\\s+", token: LeadingSpace }
+  - { re: "\\s+", token: Whitespace }
+  - { re: "^\\*+", token: SubtreeStars }
+  - { re: "\\[", token: BraceOpen }
+  - { re: "\\]", token: BraceClose }
+  - { re: "\\d{4}-\\d{2}-\\d{2}", token: Date }
+  - { re: "\\d{2}:\\d{2}:\\d{2}", token: Time }
+  - { re: "=>", token: TimeArrow }
+  - { re: "# .*?$", token: Comment }
+  - { re: ":END:", token: TreePropertyEnd }
+  - { re: ":LOGBOOK:", token: TreePropertyLogbook }
+  - { re: ":PROPERTIES:", token: TreePropertyProperties }
+  - { re: ":\\w+:", token: TreePropertyName }
+  - { re: "CLOCK:", token: TreeClock }
+  - { re: "&", token: Ampersand }
+  - { re: "!", token: Exclamation }
+  - { re: "[,\\./?]", token: AnyPunct }
+  - { re: "\\+", token: Plus }
+  - { re: "\\-", token: Minus }
+  - { re: \\", token: DoubleQuote }
+  - { re: \\', token: SingleQuote }
+  - { re: "\\\\\\\\", token: DoubleSlash }
+  - { re: "#\\w+", token: HashIdent }
+  - { re: "##", token: DoubleHash }
+  - { re: "\\( ", token: LeftPar }
+  - { re: "\\)", token: RightPar }
+  - { re: "~", token: Tilda }
+  - { re: "=", token: Equals }
+  - { re: "\\;", token: Semicolon }
+  - { re: "\\*", token: Asterisk }
+  - { re: "<<", token: DoubleLeftAngle }
+  - { re: ">>", token: DoubleRightAngle }
+  - { re: "<", token: LeftAngle }
+  - { re: ">", token: RightAngle }
+  - { re: "\\^", token: Circumflex }
+  - { re: "\\{\\{\\{", token: MacroBegin }
+  - { re: "\\}\\}\\}", token: MacroEnd }
+  - { re: "\\{", token: LeftCurly }
+  - { re: "\\}", token: RightCurly }
+  - { re: "\\\\.", token: EscapedChar }
+  - { re: "\\%", token: Percent }
+  - { re: "@", token: At }
+  - { re: "\\|", token: Pipe }
+  - { re: "```", token: TripleBacktick }
+  - { re: "`", token: Backtick }
+  - { re: "\\p{Punctuation}", token: AnyPunct }
+  - { re: "\\w+", token: Word }
+  - { re: "\\$", token: Dollar }
+  - { re: "[\\x{0256}-\\x{10FFFF}]|©", token: MiscUnicode }
