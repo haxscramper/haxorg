@@ -1,0 +1,25 @@
+states:
+  - name: "COMMAND"
+    kind: "xstate"
+  - name: "COMMAND_TEXT"
+    kind: "state"
+rules:
+  - re: "#\\+"
+    token: LineCommand
+    actions: [ { "do": "push", "to": "COMMAND" } ]
+  - re: "begin_src"
+    states: [ "COMMAND" ]
+    token: "CmdSrcBegin"
+    actions: [ { "do": "push", "to": "COMMAND_SRC" } ]
+  - re: "\\n"
+    states: [ "COMMAND_SRC" ]
+    token: "Newline"
+    actions:
+      - do: "pop"
+        from: "COMMAND_SRC"
+        to: "COMMAND"
+      - do: "pop"
+        from: "COMMAND"
+        to: "INITIAL"
+      - do: "push"
+        to: "BODY_SRC"
