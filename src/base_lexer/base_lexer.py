@@ -2,20 +2,19 @@
 
 import yaml
 from yaml.loader import SafeLoader
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, Field
 from beartype.typing import List, Optional, Set
 from beartype import beartype
 import os
 
+
 class Action(BaseModel):
     do: str
-    to: Optional[str]
-    from_: Optional[str] = None
+    to: str
+    from_: str = Field(alias="from")
 
-    # Convert "from" from the YAML to "from_" in our model
-    @validator("from_", pre=True, always=True)
-    def from_field(cls, v, values):
-        return values.get('from')
+
+
 
 class Rule(BaseModel):
     re: Optional[str] = None
@@ -25,10 +24,12 @@ class Rule(BaseModel):
     actions: Optional[List[Action]] = None
     line: Optional[int] = None
 
+
 class State(BaseModel):
     name: str
     kind: str
     line: Optional[int]
+
 
 class Configuration(BaseModel):
     states: List[State]
@@ -36,16 +37,18 @@ class Configuration(BaseModel):
 
 
 class SafeLineLoader(SafeLoader):
+
     def construct_mapping(self, node, deep=False):
         mapping = super(SafeLineLoader, self).construct_mapping(node, deep=deep)
         mapping['__line__'] = node.start_mark.line + 1
         return mapping
 
+
 @beartype
 def parse_yaml_to_pydantic(file_path: str) -> Configuration:
     with open(file_path, 'r') as f:
         data = yaml.load(f, Loader=SafeLineLoader)
-        
+
     # Process line information for sub-lists
     for state in data["states"]:
         state["line"] = state.pop("__line__", None)
@@ -55,8 +58,10 @@ def parse_yaml_to_pydantic(file_path: str) -> Configuration:
 
     return Configuration(**data)
 
+
 MATCH_WIDTH = 40
 ENUM_NAME = "BaseTokenKind"
+
 
 # Convert rule data to re/flex code pattern
 @beartype
@@ -83,6 +88,7 @@ def rule_to_reflex_code(rule: Rule) -> str:
     actions_code = " ".join(actions)
     return f"{state_prefix} {{ /*{rule.line:<4}*/ add({ENUM_NAME}::{rule.token}); {actions_code} }}"
 
+
 @beartype
 def generate_enum(config: Configuration) -> str:
     return """
@@ -90,10 +96,13 @@ enum class {enum} : unsigned short int {{
   {tokens},
 }};
     
-""".format(enum=ENUM_NAME, tokens=",\n  ".join(sorted(set([rule.token for rule in config.rules]))))
+""".format(enum=ENUM_NAME,
+           tokens=",\n  ".join(sorted(set([rule.token for rule in config.rules]))))
+
 
 @beartype
-def generate_state_name(config: Configuration) -> str:
+def generate_state(config: Configuration) -> str:
+    tokens = sorted(set([rule.token for rule in config.rules]))
     return """
 std::string BaseLexerImpl::state_name(int state) {{
     switch(state) {{
@@ -101,7 +110,21 @@ std::string BaseLexerImpl::state_name(int state) {{
         default: return std::to_string(state);
     }}
 }}
-""".format(mappings="\n".join([f"        case {idx}: return \"{state.name}\";" for idx, state in enumerate(config.states)]))
+
+std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {{
+    switch(value) {{
+{values}
+    }}
+}}
+
+""".format(mappings="\n".join([
+        f"        case {idx}: return \"{state.name}\";"
+        for idx, state in enumerate(config.states)
+    ]),
+           values="\n".join([
+               f"        case BaseTokenKind::{name}: return \"{name}\";" for name in tokens
+           ]))
+
 
 @beartype
 def generate_reflex_code(config: Configuration) -> str:
@@ -118,6 +141,8 @@ def generate_reflex_code(config: Configuration) -> str:
 #include <format>
 #include <absl/log/check.h>
 #include "base_token.hpp"
+
+#define pop_expect(current, next) pop_expect_impl(current, next, __LINE__)
 %}}
 
 %option fast freespace unicode
@@ -135,7 +160,7 @@ def generate_reflex_code(config: Configuration) -> str:
 
 %%
 
-#define pop_expect(current, next) pop_expect_impl(current, next, __LINE__)
+
 
 {rules}  
 
@@ -149,20 +174,20 @@ std::vector<BaseToken> tokenize(const char* input, int size) {{
     return lex.impl.tokens;
 }}
 
-    """.format(
-        rules=rules,
-        states="\n".join([f"%{state.kind} {state.name}".format() for state in config.states])
-    )
+    """.format(rules=rules,
+               states="\n".join(
+                   [f"%{state.kind} {state.name}".format() for state in config.states]))
+
 
 # Example usage:
 DIR = os.path.dirname(os.path.abspath(__file__))
 config = parse_yaml_to_pydantic(os.path.join(DIR, "base_lexer.yaml"))
 
-with open(os.path.join(DIR, "base_token_kind.hpp"), "w") as file:
-    file.write(generate_enum(config))
+def write_if_new(path: str, content: str):
+    if not os.path.exists(path) or open(path).read() != content:
+        with open(path, "w") as file:
+            file.write(content)
 
-with open(os.path.join(DIR, "base_token_state.tcc"), "w") as file:
-    file.write(generate_state_name(config))
-
-with open(os.path.join(DIR, "base_lexer.l"), "w") as file:
-    file.write(generate_reflex_code(config))
+write_if_new(os.path.join(DIR, "base_token_kind.hpp"), generate_enum(config))
+write_if_new(os.path.join(DIR, "base_token_state.tcc"), generate_state(config)) 
+write_if_new(os.path.join(DIR, "base_lexer.l"), generate_reflex_code(config)) 

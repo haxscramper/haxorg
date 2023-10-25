@@ -159,11 +159,15 @@ meta_target("haxorg_base_lexer", "Generate base lexer for haxorg", {}, function 
   on_build(function(target)
     local utils = import("scripts.utils")
     local reflex = path.join(utils.abs_script(), "toolchain/RE-flex/bin/reflex")
+    os.execv("poetry", {
+      "run",
+      "src/base_lexer/base_lexer.py"
+    })
     os.execv(reflex, {
       "--fast",
       "--batch=1024",
       -- "--debug",
-      "--outfile=" .. utils.abs_script("src/base_lexer/base_lexer.cpp"),
+      "--outfile=" .. utils.abs_script("src/base_lexer/base_lexer_gen.cpp"),
       "--namespace=base_lexer",
       utils.abs_script("src/base_lexer/base_lexer.l")
     }, {

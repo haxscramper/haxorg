@@ -9,6 +9,8 @@
 #include <format>
 #include <absl/log/check.h>
 #include "base_token.hpp"
+
+#define pop_expect(current, next) pop_expect_impl(current, next, __LINE__)
 %}
 
 %option fast freespace unicode
@@ -31,11 +33,11 @@
 
 %%
 
-#define pop_expect(current, next) pop_expect_impl(current, next, __LINE__)
+
 
 #\+                                      { /*10  */ add(BaseTokenKind::LineCommand); push_state(COMMAND); }
 <COMMAND>begin_src                       { /*13  */ add(BaseTokenKind::CmdSrcBegin); push_state(COMMAND_SRC); }
-<COMMAND_SRC>\n                          { /*17  */ add(BaseTokenKind::Newline); pop_expect(None, COMMAND); pop_expect(None, INITIAL); push_state(BODY_SRC); }
+<COMMAND_SRC>\n                          { /*17  */ add(BaseTokenKind::Newline); pop_expect(COMMAND_SRC, COMMAND); pop_expect(COMMAND, INITIAL); push_state(BODY_SRC); }
 <BODY_SRC>"<<"                           { /*24  */ add(BaseTokenKind::SrcTangleOpen);  }
 <BODY_SRC>">>"                           { /*25  */ add(BaseTokenKind::SrcTangleClose);  }
 <BODY_SRC>.+                             { /*26  */ add(BaseTokenKind::SrcContent);  }
@@ -68,27 +70,27 @@ CLOCK:                                   { /*46  */ add(BaseTokenKind::TreeClock
 \\\\                                     { /*54  */ add(BaseTokenKind::DoubleSlash);  }
 #\w+                                     { /*55  */ add(BaseTokenKind::HashIdent);  }
 ##                                       { /*56  */ add(BaseTokenKind::DoubleHash);  }
-\(                                       { /*57  */ add(BaseTokenKind::LeftPar);  }
-\)                                       { /*58  */ add(BaseTokenKind::RightPar);  }
-~                                        { /*59  */ add(BaseTokenKind::Tilda);  }
-=                                        { /*60  */ add(BaseTokenKind::Equals);  }
-\;                                       { /*61  */ add(BaseTokenKind::Semicolon);  }
-\*                                       { /*62  */ add(BaseTokenKind::Asterisk);  }
-<<                                       { /*63  */ add(BaseTokenKind::DoubleLeftAngle);  }
->>                                       { /*64  */ add(BaseTokenKind::DoubleRightAngle);  }
-<                                        { /*65  */ add(BaseTokenKind::LeftAngle);  }
->                                        { /*66  */ add(BaseTokenKind::RightAngle);  }
-\^                                       { /*67  */ add(BaseTokenKind::Circumflex);  }
+"("                                      { /*57  */ add(BaseTokenKind::LeftPar);  }
+")"                                      { /*58  */ add(BaseTokenKind::RightPar);  }
+"~"                                      { /*59  */ add(BaseTokenKind::Tilda);  }
+"="                                      { /*60  */ add(BaseTokenKind::Equals);  }
+";"                                      { /*61  */ add(BaseTokenKind::Semicolon);  }
+"*"                                      { /*62  */ add(BaseTokenKind::Asterisk);  }
+"<<"                                     { /*63  */ add(BaseTokenKind::DoubleLeftAngle);  }
+">>"                                     { /*64  */ add(BaseTokenKind::DoubleRightAngle);  }
+"<"                                      { /*65  */ add(BaseTokenKind::LeftAngle);  }
+">"                                      { /*66  */ add(BaseTokenKind::RightAngle);  }
+"^"                                      { /*67  */ add(BaseTokenKind::Circumflex);  }
 "{{{"                                    { /*68  */ add(BaseTokenKind::MacroBegin);  }
 "}}}"                                    { /*69  */ add(BaseTokenKind::MacroEnd);  }
 "{"                                      { /*70  */ add(BaseTokenKind::LeftCurly);  }
 "}"                                      { /*71  */ add(BaseTokenKind::RightCurly);  }
 \\.                                      { /*72  */ add(BaseTokenKind::EscapedChar);  }
-\%                                       { /*73  */ add(BaseTokenKind::Percent);  }
-@                                        { /*74  */ add(BaseTokenKind::At);  }
-\|                                       { /*75  */ add(BaseTokenKind::Pipe);  }
-```                                      { /*76  */ add(BaseTokenKind::TripleBacktick);  }
-`                                        { /*77  */ add(BaseTokenKind::Backtick);  }
+"%"                                      { /*73  */ add(BaseTokenKind::Percent);  }
+"@"                                      { /*74  */ add(BaseTokenKind::At);  }
+"|"                                      { /*75  */ add(BaseTokenKind::Pipe);  }
+"```"                                    { /*76  */ add(BaseTokenKind::TripleBacktick);  }
+"`"                                      { /*77  */ add(BaseTokenKind::Backtick);  }
 \p{Punctuation}                          { /*78  */ add(BaseTokenKind::AnyPunct);  }
 \w+                                      { /*79  */ add(BaseTokenKind::Word);  }
 \$                                       { /*80  */ add(BaseTokenKind::Dollar);  }

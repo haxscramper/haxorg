@@ -3,12 +3,15 @@
 #include <reflex/abslexer.h>
 #include <reflex/matcher.h>
 
+#include "base_token_state.tcc"
+
 void BaseLexerImpl::add(BaseTokenKind token) {
     tokens.emplace_back(BaseToken{
         token,
         BaseFill{
             impl->matcher().text(), impl->lineno(), impl->columno()}});
 }
+
 
 void BaseLexerImpl::pop_expect_impl(int current, int next, int line) {
     CHECK(impl->start() == current) << std::format(
@@ -45,3 +48,4 @@ std::string BaseLexerImpl::view() {
 }
 
 void BaseLexerImpl::unknown() { std::cerr << view() << "\n"; }
+

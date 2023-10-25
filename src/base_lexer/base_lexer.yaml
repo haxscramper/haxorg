@@ -9,18 +9,18 @@ states:
 rules:
   - re: "#\\+"
     token: LineCommand
-    actions: [{ do: "push", to: COMMAND }]
+    actions: [{ do: "push", to: COMMAND, from: INITIAL }]
   - re: "begin_src"
     states: [COMMAND]
     token: CmdSrcBegin
-    actions: [{ do: "push", to: COMMAND_SRC }]
+    actions: [{ do: "push", to: COMMAND_SRC, from: COMMAND }]
   - re: "\\n"
     states: [COMMAND_SRC]
     token: Newline
     actions:
       - { do: "pop", from: COMMAND_SRC, to: COMMAND }
       - { do: "pop", from: COMMAND, to: INITIAL }
-      - { do: "push", to: "BODY_SRC" }
+      - { do: "push", to: BODY_SRC, from: INITIAL }
   - { lit: "<<", states: [BODY_SRC], token: SrcTangleOpen }
   - { lit: ">>", states: [BODY_SRC], token: SrcTangleClose }
   - { re: ".+", states: [BODY_SRC], token: SrcContent }
@@ -54,27 +54,27 @@ rules:
   - { re: "\\\\\\\\", token: DoubleSlash }
   - { re: "#\\w+", token: HashIdent }
   - { re: "##", token: DoubleHash }
-  - { re: "\\( ", token: LeftPar }
-  - { re: "\\)", token: RightPar }
-  - { re: "~", token: Tilda }
-  - { re: "=", token: Equals }
-  - { re: "\\;", token: Semicolon }
-  - { re: "\\*", token: Asterisk }
-  - { re: "<<", token: DoubleLeftAngle }
-  - { re: ">>", token: DoubleRightAngle }
-  - { re: "<", token: LeftAngle }
-  - { re: ">", token: RightAngle }
-  - { re: "\\^", token: Circumflex }
+  - { lit: "(", token: LeftPar }
+  - { lit: ")", token: RightPar }
+  - { lit: "~", token: Tilda }
+  - { lit: "=", token: Equals }
+  - { lit: ";", token: Semicolon }
+  - { lit: "*", token: Asterisk }
+  - { lit: "<<", token: DoubleLeftAngle }
+  - { lit: ">>", token: DoubleRightAngle }
+  - { lit: "<", token: LeftAngle }
+  - { lit: ">", token: RightAngle }
+  - { lit: "^", token: Circumflex }
   - { lit: "{{{", token: MacroBegin }
   - { lit: "}}}", token: MacroEnd }
   - { lit: "{", token: LeftCurly }
   - { lit: "}", token: RightCurly }
   - { re: "\\\\.", token: EscapedChar }
-  - { re: "\\%", token: Percent }
-  - { re: "@", token: At }
-  - { re: "\\|", token: Pipe }
-  - { re: "```", token: TripleBacktick }
-  - { re: "`", token: Backtick }
+  - { lit: "%", token: Percent }
+  - { lit: "@", token: At }
+  - { lit: "|", token: Pipe }
+  - { lit: "```", token: TripleBacktick }
+  - { lit: "`", token: Backtick }
   - { re: "\\p{Punctuation}", token: AnyPunct }
   - { re: "\\w+", token: Word }
   - { re: "\\$", token: Dollar }
