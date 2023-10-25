@@ -84,25 +84,57 @@ def rule_to_reflex_code(rule: Rule) -> str:
     return f"{state_prefix} {{ /*{rule.line:<4}*/ add({ENUM_NAME}::{rule.token}); {actions_code} }}"
 
 @beartype
+def generate_enum(config: Configuration) -> str:
+    return """
+enum class {enum} : unsigned short int {{
+  {tokens},
+}};
+    
+""".format(enum=ENUM_NAME, tokens=",\n  ".join(sorted(set([rule.token for rule in config.rules]))))
+
+@beartype
+def generate_state_name(config: Configuration) -> str:
+    return """
+std::string get_state_name(int state) {{
+    switch(state) {{
+{mappings}
+        default: return std::to_string(state);
+    }}
+}}
+""".format(mappings="\n".join([f"        case {idx}: return \"{state.name}\";" for idx, state in enumerate(config.states)]))
+
+@beartype
 def generate_reflex_code(config: Configuration) -> str:
     rules = "\n".join([rule_to_reflex_code(rule) for rule in config.rules])
-    tokens: List[str] = sorted(set([rule.token for rule in config.rules]))
 
-    return """
-enum %s {
-  %s,
-};
+    return """#pragma once
 
-%%%%
+%top{{
+#include <string_view>
+#include <vector>
+#include <locale>
+#include <codecvt>
+#include <iostream>
+#include <format>
+#include <absl/log/check.h>
+#include "base_token.hpp"
+%}}
 
-%s    
-    """ % (
-        ENUM_NAME,
-        ",\n  ".join(tokens),
-        rules,
+%option fast freespace unicode
+
+{states}
+
+%%
+
+{rules}  
+    """.format(
+        rules=rules,
+        states="\n".join([f"%{state.kind} {state.name}".format() for state in config.states])
     )
 
 # Example usage:
 config = parse_yaml_to_pydantic(os.path.join(os.path.dirname(os.path.abspath(__file__)), "base_lexer.yaml"))
 with open("/tmp/base_lexer.l", "w") as file:
+    file.write(generate_enum(config))
+    file.write(generate_state_name(config))
     file.write(generate_reflex_code(config))
