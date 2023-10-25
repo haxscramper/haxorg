@@ -1,8 +1,11 @@
 states:
-  - name: COMMAND
-    kind: "xstate"
-  - name: "COMMAND_TEXT"
-    kind: "state"
+  - { kind: xstate, name: COMMAND }
+  - { kind: state, name: COMMAND_TEXT }
+  - { kind: xstate, name: COMMAND_OPTS }
+  - { kind: xstate, name: COMMAND_EXAMPLE }
+  - { kind: xstate, name: COMMAND_SRC }
+  - { kind: xstate, name: BODY_SRC }
+
 rules:
   - re: "#\\+"
     token: LineCommand
@@ -21,9 +24,9 @@ rules:
   - { lit: "<<", states: [BODY_SRC], token: SrcTangleOpen }
   - { lit: ">>", states: [BODY_SRC], token: SrcTangleClose }
   - { re: ".+", states: [BODY_SRC], token: SrcContent }
-  - { re: "\\w+", states: [COMMAND_OPTS, COMMAND_SRC], token: CmdColonIdent }
+  - { re: ":\\w+", states: [COMMAND_OPTS, COMMAND_SRC], token: CmdColonIdent }
   - { re: "\\w+", states: [COMMAND_OPTS, COMMAND_SRC], token: CmdIdent }
-  - { re: "\\s+", states: [COMMAND_OPTS, COMMAND_SRC], token: Whitespace }
+  - { re: "[\\t ]+", states: [COMMAND_OPTS, COMMAND_SRC], token: Whitespace }
 
   - { lit: "# -*- ", token: FileVarComment }
   - { re: "[0-9]+", token: Number }

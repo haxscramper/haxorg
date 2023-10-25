@@ -1,3 +1,5 @@
+
+
 %top{
 #include <string_view>
 #include <vector>
@@ -13,189 +15,93 @@
 
 %xstate COMMAND
 %state COMMAND_TEXT
-// Commands with options ave exclusive state for lexing content
-%xstate COMMAND_OPTS 
+%xstate COMMAND_OPTS
 %xstate COMMAND_EXAMPLE
 %xstate COMMAND_SRC
 %xstate BODY_SRC
 
 %class{
   public:
-    std::vector<BaseToken> tokens;
-
-    void add(BaseTokenKind token) {
-        tokens.emplace_back(BaseToken{token, BaseFill{ matcher().text(), lineno(), columno()}});
-    }
-
-    std::string state_name(int name) {
-      #define __state(__idx, __it) case __idx: return #__it;
-      switch(name) {
-        __state(0, INITIAL);
-        __state(1, COMMAND);
-        __state(2, COMMAND_TEXT);
-        __state(3, COMMAND_OPTS);
-        __state(4, COMMAND_EXAMPLE);
-        __state(5, COMMAND_SRC);
-        __state(6, BODY_SRC);
-        default: return std::format("<unknown {}>", name);
-      }
-      #undef __state
-    }
-
-    #define pop_expect(current, next) pop_expect_impl(current, next, __LINE__)
+    BaseLexerImpl impl;
+    void add(BaseTokenKind token) { impl.add(token); }
     void pop_expect_impl(int current, int next, int line) {
-      CHECK(start() == current) << 
-        std::format("Expected current state to be {} at {} but got {} '{}'", 
-          state_name(current), 
-          line,
-          state_name(start()),
-          view());
-          
-      pop_state();
-      CHECK(start() == next) <<
-        std::format("After popping {} expected next state to be {} at {} but got {} '{}'",
-          state_name(current),
-          state_name(next),
-          line,
-          state_name(start()),
-          view()
-        );
-    }
-
-    std::string view() {
-      std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
-      std::u32string utf32_str = conv.from_bytes(matcher().text());
-      char32_t codepoint = utf32_str[0];
-      return std::format("{}:{} in state {} ({}) >{}< (code {}) span: '{}'",
-        lineno(),
-        columno(),
-        state_name(top_state()),
-        top_state(),
-        matcher().text(),
-        (uint32_t)codepoint,
-        matcher().span()
-      );
-    }
-
-    void unknown() {
-      std::cerr << view() << "\n";
+        impl.pop_expect_impl(current, next, line);
     }
 }
-
-
 
 %%
 
-#\+                     { add(BaseTokenKind::LineCommand); push_state(COMMAND); }
+#define pop_expect(current, next) pop_expect_impl(current, next, __LINE__)
 
-<COMMAND>begin_src      { add(BaseTokenKind::CmdBeginSrc); push_state(COMMAND_SRC); }
-
-<COMMAND_SRC>\n         { 
-  add(BaseTokenKind::Newline); 
-  pop_expect(COMMAND_SRC, COMMAND); 
-  pop_expect(COMMAND, INITIAL); 
-  push_state(BODY_SRC); 
-}
-
-<COMMAND_OPTS>\n        { 
-  add(BaseTokenKind::Newline); 
-  pop_expect(COMMAND_SRC, COMMAND); 
-  pop_expect(COMMAND, INITIAL); 
-}
-
-<BODY_SRC>"<<" { add(BaseTokenKind::SrcTangleOpen); }
-<BODY_SRC>">>" { add(BaseTokenKind::SrcTangleClose); }
-<BODY_SRC>.+   { add(BaseTokenKind::SrcContent); }
-
-<COMMAND_OPTS,COMMAND_SRC>{
-:\w+      { add(BaseTokenKind::CmdColonIdent); }
-// Drop two levels of command nesting -- at the end of the line exit from `COMMAND_OPTS`
-// and from `COMMAND` itself.
-\w+       { add(BaseTokenKind::CmdIdent); }
-\s+       { add(BaseTokenKind::Whitespace); }
-.         { unknown(); }
-}
-
-<COMMAND>end_src        { add(BaseTokenKind::CmdEndSrc); pop_state(); }
-
-<COMMAND>begin_example  { add(BaseTokenKind::CmdBeginExample); push_state(COMMAND_EXAMPLE); }
-<COMMAND>end_example    { add(BaseTokenKind::CmdEndExample); }
-<COMMAND>begin_quote    { add(BaseTokenKind::CmdBeginQuote); }
-<COMMAND>end_quote      { add(BaseTokenKind::CmdEndQuote); }
-
-// Caption command has a regular text lexing content
-<COMMAND>caption        { add(BaseTokenKind::CmdCaption); push_state(COMMAND_TEXT); }
-<COMMAND_TEXT>\n        { add(BaseTokenKind::Newline); pop_state(); pop_state(); }
-
-
-<COMMAND>\n             { add(BaseTokenKind::Newline); pop_state(); }
-<COMMAND>.              { unknown(); }
-
-"# -*- "                { add(BaseTokenKind::FileVarComment); }
-[0-9]+                  { add(BaseTokenKind::Number); }
-^\s+                    { add(BaseTokenKind::LeadingSpace); }
-\s+                     { add(BaseTokenKind::Whitespace); }
-^\*+                    { add(BaseTokenKind::SubtreeStars); }
-\[                      { add(BaseTokenKind::BraceOpen); }
-\]                      { add(BaseTokenKind::BraceClose); }
-\d{4}-\d{2}-\d{2}       { add(BaseTokenKind::Date); }
-\d{2}:\d{2}:\d{2}       { add(BaseTokenKind::Time); }
-"=>"                    { add(BaseTokenKind::TimeArrow); }
-"# .*?$"                { add(BaseTokenKind::Comment); }
-":END:"                 { add(BaseTokenKind::TreePropertyEnd); }
-":LOGBOOK:"             { add(BaseTokenKind::TreePropertyLogbook); }
-":PROPERTIES:"          { add(BaseTokenKind::TreePropertyProperties); }
-":\w+:"                 { add(BaseTokenKind::TreePropertyName); }
-"CLOCK:"                { add(BaseTokenKind::TreeClock); }
-&                       { add(BaseTokenKind::Ampersand); }
-!                       { add(BaseTokenKind::Exclamation); }
-[,\./?]                 { add(BaseTokenKind::AnyPunct); }
-\+                      { add(BaseTokenKind::Plus); }
-\-                      { add(BaseTokenKind::Minus); }
-\"                      { add(BaseTokenKind::DoubleQuote); }
-\'                      { add(BaseTokenKind::SingleQuote); }
-\\\\                    { add(BaseTokenKind::DoubleSlash); }
-#\w+                    { add(BaseTokenKind::HashIdent); }
-##                      { add(BaseTokenKind::DoubleHash); }
-
-
-
-
-
-\(                      { add(BaseTokenKind::LeftPar); }
-\)                      { add(BaseTokenKind::RightPar); }
-~                       { add(BaseTokenKind::Tilda); }
-=                       { add(BaseTokenKind::Equals); }
-\;                      { add(BaseTokenKind::Semicolon); }
-\*                      { add(BaseTokenKind::Asterisk); }
-<<                      { add(BaseTokenKind::DoubleLeftAngle); }
->>                      { add(BaseTokenKind::DoubleRightAngle); }
-<                       { add(BaseTokenKind::LeftAngle); }
->                       { add(BaseTokenKind::RightAngle); }
-\^                      { add(BaseTokenKind::Circumflex); }
-\{\{\{                  { add(BaseTokenKind::MacroBegin); }
-\}\}\}                  { add(BaseTokenKind::MacroEnd); }
-\{                      { add(BaseTokenKind::LeftCurly); }
-\}                      { add(BaseTokenKind::RightCurly); }
-\\.                     { add(BaseTokenKind::EscapedChar); }
-\%                      { add(BaseTokenKind::Percent); }
-@                       { add(BaseTokenKind::At); }
-\|                      { add(BaseTokenKind::Pipe); }
-```                     { add(BaseTokenKind::TripleBacktick); }
-`                       { add(BaseTokenKind::Backtick); }
-\p{Punctuation}         { add(BaseTokenKind::AnyPunct); }
-\w+                     { add(BaseTokenKind::Word); }
-\$                      { add(BaseTokenKind::Dollar); }
-
-[\x{0256}-\x{10FFFF}]|© { add(BaseTokenKind::MiscUnicode); }
-
-.                       { unknown(); }
+#\+                                      { /*10  */ add(BaseTokenKind::LineCommand); push_state(COMMAND); }
+<COMMAND>begin_src                       { /*13  */ add(BaseTokenKind::CmdSrcBegin); push_state(COMMAND_SRC); }
+<COMMAND_SRC>\n                          { /*17  */ add(BaseTokenKind::Newline); pop_expect(None, COMMAND); pop_expect(None, INITIAL); push_state(BODY_SRC); }
+<BODY_SRC>"<<"                           { /*24  */ add(BaseTokenKind::SrcTangleOpen);  }
+<BODY_SRC>">>"                           { /*25  */ add(BaseTokenKind::SrcTangleClose);  }
+<BODY_SRC>.+                             { /*26  */ add(BaseTokenKind::SrcContent);  }
+<COMMAND_OPTS,COMMAND_SRC>:\w+           { /*27  */ add(BaseTokenKind::CmdColonIdent);  }
+<COMMAND_OPTS,COMMAND_SRC>\w+            { /*28  */ add(BaseTokenKind::CmdIdent);  }
+<COMMAND_OPTS,COMMAND_SRC>[\t ]+         { /*29  */ add(BaseTokenKind::Whitespace);  }
+"# -*- "                                 { /*31  */ add(BaseTokenKind::FileVarComment);  }
+[0-9]+                                   { /*32  */ add(BaseTokenKind::Number);  }
+^\s+                                     { /*33  */ add(BaseTokenKind::LeadingSpace);  }
+\s+                                      { /*34  */ add(BaseTokenKind::Whitespace);  }
+^\*+                                     { /*35  */ add(BaseTokenKind::SubtreeStars);  }
+\[                                       { /*36  */ add(BaseTokenKind::BraceOpen);  }
+\]                                       { /*37  */ add(BaseTokenKind::BraceClose);  }
+\d{4}-\d{2}-\d{2}                        { /*38  */ add(BaseTokenKind::Date);  }
+\d{2}:\d{2}:\d{2}                        { /*39  */ add(BaseTokenKind::Time);  }
+=>                                       { /*40  */ add(BaseTokenKind::TimeArrow);  }
+# .*?$                                   { /*41  */ add(BaseTokenKind::Comment);  }
+:END:                                    { /*42  */ add(BaseTokenKind::TreePropertyEnd);  }
+:LOGBOOK:                                { /*43  */ add(BaseTokenKind::TreePropertyLogbook);  }
+:PROPERTIES:                             { /*44  */ add(BaseTokenKind::TreePropertyProperties);  }
+:\w+:                                    { /*45  */ add(BaseTokenKind::TreePropertyName);  }
+CLOCK:                                   { /*46  */ add(BaseTokenKind::TreeClock);  }
+&                                        { /*47  */ add(BaseTokenKind::Ampersand);  }
+!                                        { /*48  */ add(BaseTokenKind::Exclamation);  }
+[,\./?]                                  { /*49  */ add(BaseTokenKind::AnyPunct);  }
+\+                                       { /*50  */ add(BaseTokenKind::Plus);  }
+\-                                       { /*51  */ add(BaseTokenKind::Minus);  }
+\"                                       { /*52  */ add(BaseTokenKind::DoubleQuote);  }
+\'                                       { /*53  */ add(BaseTokenKind::SingleQuote);  }
+\\\\                                     { /*54  */ add(BaseTokenKind::DoubleSlash);  }
+#\w+                                     { /*55  */ add(BaseTokenKind::HashIdent);  }
+##                                       { /*56  */ add(BaseTokenKind::DoubleHash);  }
+\(                                       { /*57  */ add(BaseTokenKind::LeftPar);  }
+\)                                       { /*58  */ add(BaseTokenKind::RightPar);  }
+~                                        { /*59  */ add(BaseTokenKind::Tilda);  }
+=                                        { /*60  */ add(BaseTokenKind::Equals);  }
+\;                                       { /*61  */ add(BaseTokenKind::Semicolon);  }
+\*                                       { /*62  */ add(BaseTokenKind::Asterisk);  }
+<<                                       { /*63  */ add(BaseTokenKind::DoubleLeftAngle);  }
+>>                                       { /*64  */ add(BaseTokenKind::DoubleRightAngle);  }
+<                                        { /*65  */ add(BaseTokenKind::LeftAngle);  }
+>                                        { /*66  */ add(BaseTokenKind::RightAngle);  }
+\^                                       { /*67  */ add(BaseTokenKind::Circumflex);  }
+"{{{"                                    { /*68  */ add(BaseTokenKind::MacroBegin);  }
+"}}}"                                    { /*69  */ add(BaseTokenKind::MacroEnd);  }
+"{"                                      { /*70  */ add(BaseTokenKind::LeftCurly);  }
+"}"                                      { /*71  */ add(BaseTokenKind::RightCurly);  }
+\\.                                      { /*72  */ add(BaseTokenKind::EscapedChar);  }
+\%                                       { /*73  */ add(BaseTokenKind::Percent);  }
+@                                        { /*74  */ add(BaseTokenKind::At);  }
+\|                                       { /*75  */ add(BaseTokenKind::Pipe);  }
+```                                      { /*76  */ add(BaseTokenKind::TripleBacktick);  }
+`                                        { /*77  */ add(BaseTokenKind::Backtick);  }
+\p{Punctuation}                          { /*78  */ add(BaseTokenKind::AnyPunct);  }
+\w+                                      { /*79  */ add(BaseTokenKind::Word);  }
+\$                                       { /*80  */ add(BaseTokenKind::Dollar);  }
+[\x{0256}-\x{10FFFF}]|©                  { /*81  */ add(BaseTokenKind::MiscUnicode);  }  
 
 %%
 
 std::vector<BaseToken> tokenize(const char* input, int size) {
     base_lexer::Lexer lex(input);
-    lex.tokens.reserve(size / 3);
+    lex.impl.impl = &lex;
+    lex.impl.tokens.reserve(size / 3);
     lex.lex();
-    return lex.tokens;
+    return lex.impl.tokens;
 }
+
+    

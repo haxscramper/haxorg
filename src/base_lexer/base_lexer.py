@@ -95,7 +95,7 @@ enum class {enum} : unsigned short int {{
 @beartype
 def generate_state_name(config: Configuration) -> str:
     return """
-std::string get_state_name(int state) {{
+std::string BaseLexerImpl::state_name(int state) {{
     switch(state) {{
 {mappings}
         default: return std::to_string(state);
@@ -107,7 +107,7 @@ std::string get_state_name(int state) {{
 def generate_reflex_code(config: Configuration) -> str:
     rules = "\n".join([rule_to_reflex_code(rule) for rule in config.rules])
 
-    return """#pragma once
+    return """
 
 %top{{
 #include <string_view>
@@ -124,17 +124,45 @@ def generate_reflex_code(config: Configuration) -> str:
 
 {states}
 
+%class{{
+  public:
+    BaseLexerImpl impl;
+    void add(BaseTokenKind token) {{ impl.add(token); }}
+    void pop_expect_impl(int current, int next, int line) {{
+        impl.pop_expect_impl(current, next, line);
+    }}
+}}
+
 %%
 
+#define pop_expect(current, next) pop_expect_impl(current, next, __LINE__)
+
 {rules}  
+
+%%
+
+std::vector<BaseToken> tokenize(const char* input, int size) {{
+    base_lexer::Lexer lex(input);
+    lex.impl.impl = &lex;
+    lex.impl.tokens.reserve(size / 3);
+    lex.lex();
+    return lex.impl.tokens;
+}}
+
     """.format(
         rules=rules,
         states="\n".join([f"%{state.kind} {state.name}".format() for state in config.states])
     )
 
 # Example usage:
-config = parse_yaml_to_pydantic(os.path.join(os.path.dirname(os.path.abspath(__file__)), "base_lexer.yaml"))
-with open("/tmp/base_lexer.l", "w") as file:
+DIR = os.path.dirname(os.path.abspath(__file__))
+config = parse_yaml_to_pydantic(os.path.join(DIR, "base_lexer.yaml"))
+
+with open(os.path.join(DIR, "base_token_kind.hpp"), "w") as file:
     file.write(generate_enum(config))
+
+with open(os.path.join(DIR, "base_token_state.tcc"), "w") as file:
     file.write(generate_state_name(config))
+
+with open(os.path.join(DIR, "base_lexer.l"), "w") as file:
     file.write(generate_reflex_code(config))
