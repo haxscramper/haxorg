@@ -40,6 +40,7 @@ ignore = [
   "F403", # `from astbuilder_cpp import *` used; unable to detect undefined names
   "E501", # Line length
   "F841", # Assigned but never used
+  "F522", # UNused format arguments
 ]
 
 [tool.yapf]

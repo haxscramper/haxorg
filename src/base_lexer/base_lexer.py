@@ -14,8 +14,6 @@ class Action(BaseModel):
     from_: str = Field(alias="from")
 
 
-
-
 class Rule(BaseModel):
     re: Optional[str] = None
     lit: Optional[str] = None
@@ -81,12 +79,18 @@ def rule_to_reflex_code(rule: Rule) -> str:
     if rule.actions:
         for action in rule.actions:
             if action.do == "push":
-                actions.append(f"push_state({action.to});")
+                actions.append(f"push_expect({action.from_}, {action.to});")
             elif action.do == "pop":
                 actions.append(f"pop_expect({action.from_}, {action.to});")
 
     actions_code = " ".join(actions)
-    return f"{state_prefix} {{ /*{rule.line:<4}*/ add({ENUM_NAME}::{rule.token}); {actions_code} }}"
+    content = " ".join([
+        "impl.before(__LINE__);",
+        f"impl.add({ENUM_NAME}::{rule.token});",
+        actions_code,
+        "impl.after(__LINE__);",
+    ])
+    return f"{state_prefix} {{ /*{rule.line:<4}*/ {content} }}"
 
 
 @beartype
@@ -106,6 +110,7 @@ def generate_state(config: Configuration) -> str:
     return """
 std::string BaseLexerImpl::state_name(int state) {{
     switch(state) {{
+        case 0: return "INITIAL";
 {mappings}
         default: return std::to_string(state);
     }}
@@ -117,13 +122,14 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {{
     }}
 }}
 
-""".format(mappings="\n".join([
-        f"        case {idx}: return \"{state.name}\";"
-        for idx, state in enumerate(config.states)
-    ]),
-           values="\n".join([
-               f"        case BaseTokenKind::{name}: return \"{name}\";" for name in tokens
-           ]))
+""".format(
+        mappings="\n".join([
+            f"        case {idx + 1}: return \"{state.name}\";"
+            for idx, state in enumerate(config.states)
+        ]),
+        values="\n".join([
+            f"        case BaseTokenKind::{name}: return \"{name}\";" for name in tokens
+        ]))
 
 
 @beartype
@@ -142,7 +148,8 @@ def generate_reflex_code(config: Configuration) -> str:
 #include <absl/log/check.h>
 #include "base_token.hpp"
 
-#define pop_expect(current, next) pop_expect_impl(current, next, __LINE__)
+#define pop_expect(current, next) impl.pop_expect_impl(current, next, __LINE__)
+#define push_expect(current, next) impl.push_expect_impl(current, next, __LINE__)
 %}}
 
 %option fast freespace unicode
@@ -152,17 +159,14 @@ def generate_reflex_code(config: Configuration) -> str:
 %class{{
   public:
     BaseLexerImpl impl;
-    void add(BaseTokenKind token) {{ impl.add(token); }}
-    void pop_expect_impl(int current, int next, int line) {{
-        impl.pop_expect_impl(current, next, line);
-    }}
 }}
 
 %%
 
-
-
 {rules}  
+
+(.|\\n) {{ impl.unknown(); }}
+{unknowns}
 
 %%
 
@@ -175,6 +179,10 @@ std::vector<BaseToken> tokenize(const char* input, int size) {{
 }}
 
     """.format(rules=rules,
+               unknowns="\n".join([
+                   f"<{state.name}>(.|\\n) {{ impl.unknown(); }}" for state in config.states
+                   if (state.kind == "xstate" and state.name not in ["BODY_SRC"])
+               ]),
                states="\n".join(
                    [f"%{state.kind} {state.name}".format() for state in config.states]))
 
@@ -183,11 +191,13 @@ std::vector<BaseToken> tokenize(const char* input, int size) {{
 DIR = os.path.dirname(os.path.abspath(__file__))
 config = parse_yaml_to_pydantic(os.path.join(DIR, "base_lexer.yaml"))
 
+
 def write_if_new(path: str, content: str):
     if not os.path.exists(path) or open(path).read() != content:
         with open(path, "w") as file:
             file.write(content)
 
+
 write_if_new(os.path.join(DIR, "base_token_kind.hpp"), generate_enum(config))
-write_if_new(os.path.join(DIR, "base_token_state.tcc"), generate_state(config)) 
-write_if_new(os.path.join(DIR, "base_lexer.l"), generate_reflex_code(config)) 
+write_if_new(os.path.join(DIR, "base_token_state.tcc"), generate_state(config))
+write_if_new(os.path.join(DIR, "base_lexer.l"), generate_reflex_code(config))

@@ -165,8 +165,11 @@ meta_target("haxorg_base_lexer", "Generate base lexer for haxorg", {}, function 
     })
     os.execv(reflex, {
       "--fast",
-      "--batch=1024",
+      -- "--full",
+      -- "--batch=1024",
       -- "--debug",
+      -- "--nodefault",
+      "--case-insensitive",
       "--outfile=" .. utils.abs_script("src/base_lexer/base_lexer_gen.cpp"),
       "--namespace=base_lexer",
       utils.abs_script("src/base_lexer/base_lexer.l")

@@ -42,4 +42,7 @@ struct BaseLexerImpl {
     void                   unknown();
 
     void pop_expect_impl(int current, int next, int line);
+    void push_expect_impl(int current, int next, int line);
+    void before(int line);
+    void after(int line);
 };

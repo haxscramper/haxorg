@@ -12,13 +12,15 @@ TEST(BaseLexTest, WriteOut) {
     std::stringstream buffer;
     buffer << inFile.rdbuf();
     std::string content = buffer.str();
+    //    std::cout << std::format("Content:\n--->{}<---\n", content);
 
     std::vector<BaseToken> tokens = tokenize(
         content.data(), content.size());
-    std::ofstream out{"/tmp/token.txt"};
+    std::ofstream out{"/tmp/token.csv"};
+    out << "Line,Column,Text,Kind\n";
     for (const BaseToken& token : tokens) {
-        out << token->line << ":" << token->col << " " << token->text
-            << "', kind: "
+        out << token->line << "," << token->col << ", \""
+            << escape_for_write(token->text, false) << "\", "
             << enum_serde<BaseTokenKind>::to_string(token.kind) << "\n";
     }
     std::cout << "Found " << tokens.size() << " tokens\n";

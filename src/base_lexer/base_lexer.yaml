@@ -1,15 +1,46 @@
 states:
-  - { kind: xstate, name: COMMAND }
   - { kind: state, name: COMMAND_TEXT }
-  - { kind: xstate, name: COMMAND_OPTS }
+  - { kind: state, name: SUBTREE_HEAD }
+  - { kind: state, name: PROPERTY_ANY }
+
+  - { kind: xstate, name: COMMAND }
   - { kind: xstate, name: COMMAND_EXAMPLE }
+  - { kind: xstate, name: COMMAND_COLUMNS }
   - { kind: xstate, name: COMMAND_SRC }
   - { kind: xstate, name: BODY_SRC }
+  - { kind: xstate, name: PROPERTIES }
+  - { kind: xstate, name: PROPERTY_LITERAL }
 
 rules:
-  - re: "#\\+"
+  - lit: "#+"
     token: LineCommand
     actions: [{ do: "push", to: COMMAND, from: INITIAL }]
+
+  # Document columns command
+  - re: "columns"
+    token: CmdColumns
+    states: [COMMAND]
+    actions:
+      - { do: push, from: COMMAND, to: COMMAND_COLUMNS }
+
+  - { lit: "%", token: Percent, states: [COMMAND_COLUMNS] }
+  - { re: "\\d+", token: Digit, states: [COMMAND_COLUMNS] }
+  - { re: "[a-zA-Z_]+", token: CmdIdent, states: [COMMAND_COLUMNS] }
+  - { lit: "(", token: LeftPar, states: [COMMAND_COLUMNS] }
+  - { lit: ")", token: RightPar, states: [COMMAND_COLUMNS] }
+  - { lit: "{", token: LeftCurly, states: [COMMAND_COLUMNS] }
+  - { lit: "}", token: RightCurly, states: [COMMAND_COLUMNS] }
+  - { lit: ":", token: Colon, states: [COMMAND_COLUMNS] }
+  - { re: "\\h+", token: Whitespace, states: [COMMAND_COLUMNS] }
+
+  - re: "\\n"
+    token: Newline
+    states: [COMMAND_COLUMNS]
+    actions:
+      - { do: pop, from: COMMAND_COLUMNS, to: COMMAND }
+      - { do: pop, from: COMMAND, to: INITIAL }
+
+  # Source code block command
   - re: "begin_src"
     states: [COMMAND]
     token: CmdSrcBegin
@@ -23,29 +54,91 @@ rules:
       - { do: "push", to: BODY_SRC, from: INITIAL }
   - { lit: "<<", states: [BODY_SRC], token: SrcTangleOpen }
   - { lit: ">>", states: [BODY_SRC], token: SrcTangleClose }
+  - { re: "\\h*#\\+src_end", states: [BODY_SRC], token: SrcContentEnd }
   - { re: ".+", states: [BODY_SRC], token: SrcContent }
-  - { re: ":\\w+", states: [COMMAND_OPTS, COMMAND_SRC], token: CmdColonIdent }
-  - { re: "\\w+", states: [COMMAND_OPTS, COMMAND_SRC], token: CmdIdent }
-  - { re: "[\\t ]+", states: [COMMAND_OPTS, COMMAND_SRC], token: Whitespace }
 
-  - { lit: "# -*- ", token: FileVarComment }
+  # Command with parameters
+  - { re: ":\\w+", states: [COMMAND_SRC], token: CmdColonIdent }
+  - { re: "\\w+", states: [COMMAND_SRC], token: CmdIdent }
+  - { re: "\\h+", states: [COMMAND_SRC], token: Whitespace }
+
+  # Caption command
+  - lit: "caption"
+    states: [COMMAND]
+    token: CmdCaption
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+  - re: "\\n"
+    token: Newline
+    states: [COMMAND_TEXT]
+    actions:
+      - { do: pop, from: COMMAND_TEXT, to: COMMAND }
+      - { do: pop, from: COMMAND, to: INITIAL }
+
+  - re: "^\\*+"
+    token: SubtreeStars
+    actions:
+      - { do: push, from: INITIAL, to: SUBTREE_HEAD }
+
+  - re: "\\[#\\w\\]"
+    token: SubtreePriority
+    states: [SUBTREE_HEAD]
+
+  - re: "\\n"
+    token: Newline
+    states: [SUBTREE_HEAD]
+    actions:
+      - { do: pop, from: SUBTREE_HEAD, to: INITIAL }
+
+  # - { lit: "# -*- ", token: FileVarComment }
   - { re: "[0-9]+", token: Number }
-  - { re: "^\\s+", token: LeadingSpace }
-  - { re: "\\s+", token: Whitespace }
-  - { re: "^\\*+", token: SubtreeStars }
+  - { re: "^\\h+", token: LeadingSpace }
+  - { re: "\\h+", token: Whitespace }
   - { re: "\\[", token: BraceOpen }
   - { re: "\\]", token: BraceClose }
   - { re: "\\d{4}-\\d{2}-\\d{2}", token: Date }
   - { re: "\\d{2}:\\d{2}:\\d{2}", token: Time }
   - { re: "=>", token: TimeArrow }
-  - { re: "# .*?$", token: Comment }
-  - { re: ":END:", token: TreePropertyEnd }
-  - { re: ":LOGBOOK:", token: TreePropertyLogbook }
-  - { re: ":PROPERTIES:", token: TreePropertyProperties }
-  - { re: ":\\w+:", token: TreePropertyName }
-  - { re: "CLOCK:", token: TreeClock }
-  - { re: "&", token: Ampersand }
-  - { re: "!", token: Exclamation }
+  - { re: "#\\h+.*?$", token: Comment }
+  - { lit: ":LOGBOOK:", token: TreePropertyLogbook }
+
+  - lit: ":PROPERTIES:"
+    token: TreePropertyProperties
+    actions:
+      - { do: push, from: INITIAL, to: PROPERTIES }
+
+  - re: "\\n"
+    token: Newline
+    states: [PROPERTIES]
+
+  - re: "^\\h+"
+    token: LeadingSpace
+    states: [PROPERTIES]
+
+  - lit: ":END:"
+    token: TreePropertyEnd
+    states: [PROPERTIES]
+    actions:
+      - { do: pop, from: PROPERTIES, to: INITIAL }
+
+  - re: ":(CREATED|created|origin|ORIGIN):"
+    token: TreePropertyText
+    states: [PROPERTIES]
+    actions:
+      - { do: push, from: PROPERTIES, to: PROPERTY_ANY }
+
+  - re: "\\n"
+    token: Newline
+    states: [PROPERTY_ANY]
+    actions:
+      - { do: pop, from: PROPERTY_ANY, to: PROPERTIES }
+
+  - re: ":\\w+:"
+    token: TreePropertyName
+    states: [PROPERTIES]
+
+  - { lit: "CLOCK:", token: TreeClock }
+  - { lit: "&", token: Ampersand }
+  - { lit: "!", token: Exclamation }
   - { re: "[,\\./?]", token: AnyPunct }
   - { re: "\\+", token: Plus }
   - { re: "\\-", token: Minus }
@@ -79,3 +172,4 @@ rules:
   - { re: "\\w+", token: Word }
   - { re: "\\$", token: Dollar }
   - { re: "[\\x{0256}-\\x{10FFFF}]|©", token: MiscUnicode }
+  - { re: "\\n", token: Newline }
