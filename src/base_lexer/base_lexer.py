@@ -29,9 +29,16 @@ class State(BaseModel):
     line: Optional[int]
 
 
+class RxMacro(BaseModel):
+    name: str
+    value: str
+    line: Optional[int] = None
+
+
 class Configuration(BaseModel):
     states: List[State]
     rules: List[Rule]
+    rx_macros: List[RxMacro] = Field(default_factory=list)
 
 
 class SafeLineLoader(SafeLoader):
@@ -63,13 +70,13 @@ ENUM_NAME = "BaseTokenKind"
 
 # Convert rule data to re/flex code pattern
 @beartype
-def rule_to_reflex_code(rule: Rule) -> str:
+def rule_to_reflex_code(rule: Rule, macros: dict[str, str]) -> str:
     state_prefix = ""
     if rule.states:
         state_prefix = "<{}>".format(",".join(rule.states))
 
     if rule.re:
-        state_prefix = (state_prefix + rule.re).ljust(MATCH_WIDTH)
+        state_prefix = (state_prefix + rule.re.format(**macros)).ljust(MATCH_WIDTH)
 
     else:
         state_prefix = f"{state_prefix}\"{rule.lit}\"".ljust(MATCH_WIDTH)
@@ -138,7 +145,8 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {{
 
 @beartype
 def generate_reflex_code(config: Configuration) -> str:
-    rules = "\n".join([rule_to_reflex_code(rule) for rule in config.rules])
+    macros = {m.name: m.value for m in config.rx_macros}
+    rules = "\n".join([rule_to_reflex_code(rule, macros) for rule in config.rules])
 
     return """
 
@@ -182,13 +190,14 @@ std::vector<BaseToken> tokenize(const char* input, int size) {{
     return lex.impl.tokens;
 }}
 
-    """.format(rules=rules,
-               unknowns="\n".join([
-                   f"<{state.name}>(.|\\n) {{ impl.unknown(); }}" for state in config.states
-                   if (state.kind == "xstate" and state.name not in ["BODY_SRC"])
-               ]),
-               states="\n".join(
-                   [f"%{state.kind} {state.name}".format() for state in config.states]))
+    """.format(
+        rules=rules,
+        unknowns="\n".join([
+            f"<{state.name}>(.|\\n) {{ impl.unknown(); }}" for state in config.states
+            if (state.kind == "xstate" and state.name not in ["BODY_SRC"])
+        ]),
+        states="\n".join(
+            [f"%{state.kind} {state.name}".format() for state in config.states]))
 
 
 # Example usage:

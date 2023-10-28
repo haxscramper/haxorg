@@ -20,6 +20,9 @@ states:
   - { kind: xstate, name: PROPERTIES }
   - { kind: xstate, name: PROPERTY_LITERAL }
 
+rx_macros:
+  - { name: space, value: "\\h" }
+
 rules:
   - lit: "#+"
     states: [LEAD]
@@ -43,7 +46,7 @@ rules:
   - { lit: "{", token: LeftCurly, states: [COMMAND_COLUMNS] }
   - { lit: "}", token: RightCurly, states: [COMMAND_COLUMNS] }
   - { lit: ":", token: Colon, states: [COMMAND_COLUMNS] }
-  - { re: "\\h+", token: Whitespace, states: [COMMAND_COLUMNS] }
+  - { re: "{space}+", token: Whitespace, states: [COMMAND_COLUMNS] }
 
   - re: "\\n"
     token: Newline
@@ -69,7 +72,7 @@ rules:
     token: CmdExampleBegin
     actions: [{ do: push, from: COMMAND, to: COMMAND_EXAMPLE }]
 
-  - re: "^\\h*#\\+end_example\\h*$"
+  - re: "^{space}*#\\+end_example{space}*$"
     states: [COMMAND_EXAMPLE]
     token: CmdExampleEnd
     actions:
@@ -89,7 +92,7 @@ rules:
     states: [COMMAND]
     token: CmdSrcBegin
     actions: [{ do: "push", to: COMMAND_SRC, from: COMMAND }]
-  - re: "^\\h*#\\+end_src\\h*$"
+  - re: "^{space}*#\\+end_src{space}*$"
     states: [BODY_SRC]
     token: SrcContentEnd
     actions:
@@ -110,7 +113,7 @@ rules:
   # Command with parameters
   - { re: ":\\w+", states: [COMMAND_ARGS, COMMAND_SRC], token: CmdColonIdent }
   - { re: "\\w+", states: [COMMAND_ARGS, COMMAND_SRC], token: CmdIdent }
-  - { re: "\\h+", states: [COMMAND_ARGS, COMMAND_SRC], token: Whitespace }
+  - { re: "{space}+", states: [COMMAND_ARGS, COMMAND_SRC], token: Whitespace }
   - { re: "\\H+", states: [COMMAND_ARGS, COMMAND_SRC], token: CmdRawArg }
 
   # Caption command
@@ -171,18 +174,18 @@ rules:
 
   # - { lit: "# -*- ", token: FileVarComment }
   - { re: "[0-9]+", token: Number }
-  - re: "^\\h+"
+  - re: "^{space}+"
     token: LeadingSpace
     actions:
       - { do: push, to: LEAD, from: INITIAL }
 
-  - { re: "\\h+", token: Whitespace }
+  - { re: "{space}+", token: Whitespace }
   - { re: "\\[", token: BraceOpen }
   - { re: "\\]", token: BraceClose }
-  - { re: "\\d{4}-\\d{2}-\\d{2}", token: Date }
-  - { re: "\\d{2}:\\d{2}:\\d{2}", token: Time }
+  - { re: "\\d{{4}}-\\d{{2}}-\\d{{2}}", token: Date }
+  - { re: "\\d{{2}}:\\d{{2}}:\\d{{2}}", token: Time }
   - { re: "=>", token: TimeArrow }
-  - { re: "#\\h+.*?$", token: Comment }
+  - { re: "#{space}+.*?$", token: Comment }
   - { lit: ":LOGBOOK:", token: TreePropertyLogbook }
 
   ## Subtree property lexing
@@ -197,7 +200,7 @@ rules:
     token: Newline
     states: [PROPERTIES]
 
-  - re: "^\\h+"
+  - re: "^{space}+"
     token: LeadingSpace
     states: [PROPERTIES]
     actions:
@@ -217,7 +220,7 @@ rules:
       - { do: pop, from: PROPERTY_LEAD, to: PROPERTIES }
       - { do: push, from: PROPERTIES, to: PROPERTY_LITERAL }
 
-  - re: "\\h+"
+  - re: "{space}+"
     token: Whitespace
     states: [PROPERTY_LITERAL]
 
@@ -282,10 +285,10 @@ rules:
   - { lit: "|", token: Pipe }
   - { lit: "```", token: TripleBacktick }
   - { lit: "`", token: Backtick }
-  - { re: "\\p{Punctuation}", token: AnyPunct }
+  - { re: "\\p{{Punctuation}}", token: AnyPunct }
   - { re: "\\w+", token: Word }
   - { re: "\\$", token: Dollar }
-  - { re: "[\\x{0256}-\\x{10FFFF}]|©", token: MiscUnicode }
+  - { re: "[\\x{{0256}}-\\x{{10FFFF}}]|©", token: MiscUnicode }
   - re: "\\n"
     states: [LEAD]
     token: Newline
