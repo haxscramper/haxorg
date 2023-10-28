@@ -5,13 +5,14 @@ std::string BaseLexerImpl::state_name(int state) {
         case 1: return "COMMAND_TEXT";
         case 2: return "SUBTREE_HEAD";
         case 3: return "PROPERTY_ANY";
-        case 4: return "COMMAND";
-        case 5: return "COMMAND_EXAMPLE";
-        case 6: return "COMMAND_COLUMNS";
-        case 7: return "COMMAND_SRC";
-        case 8: return "BODY_SRC";
-        case 9: return "PROPERTIES";
-        case 10: return "PROPERTY_LITERAL";
+        case 4: return "LEAD";
+        case 5: return "COMMAND";
+        case 6: return "COMMAND_EXAMPLE";
+        case 7: return "COMMAND_COLUMNS";
+        case 8: return "COMMAND_SRC";
+        case 9: return "BODY_SRC";
+        case 10: return "PROPERTIES";
+        case 11: return "PROPERTY_LITERAL";
         default: return std::to_string(state);
     }
 }
@@ -29,7 +30,12 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::CmdCaption: return "CmdCaption";
         case BaseTokenKind::CmdColonIdent: return "CmdColonIdent";
         case BaseTokenKind::CmdColumns: return "CmdColumns";
+        case BaseTokenKind::CmdExampleBegin: return "CmdExampleBegin";
+        case BaseTokenKind::CmdExampleEnd: return "CmdExampleEnd";
+        case BaseTokenKind::CmdExampleLine: return "CmdExampleLine";
         case BaseTokenKind::CmdIdent: return "CmdIdent";
+        case BaseTokenKind::CmdQuoteBegin: return "CmdQuoteBegin";
+        case BaseTokenKind::CmdQuoteEnd: return "CmdQuoteEnd";
         case BaseTokenKind::CmdSrcBegin: return "CmdSrcBegin";
         case BaseTokenKind::Colon: return "Colon";
         case BaseTokenKind::Comment: return "Comment";
@@ -59,6 +65,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::Percent: return "Percent";
         case BaseTokenKind::Pipe: return "Pipe";
         case BaseTokenKind::Plus: return "Plus";
+        case BaseTokenKind::RawText: return "RawText";
         case BaseTokenKind::RightAngle: return "RightAngle";
         case BaseTokenKind::RightCurly: return "RightCurly";
         case BaseTokenKind::RightPar: return "RightPar";
@@ -75,6 +82,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::TimeArrow: return "TimeArrow";
         case BaseTokenKind::TreeClock: return "TreeClock";
         case BaseTokenKind::TreePropertyEnd: return "TreePropertyEnd";
+        case BaseTokenKind::TreePropertyLiteral: return "TreePropertyLiteral";
         case BaseTokenKind::TreePropertyLogbook: return "TreePropertyLogbook";
         case BaseTokenKind::TreePropertyName: return "TreePropertyName";
         case BaseTokenKind::TreePropertyProperties: return "TreePropertyProperties";

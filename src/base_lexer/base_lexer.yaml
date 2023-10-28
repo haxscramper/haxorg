@@ -2,6 +2,7 @@ states:
   - { kind: state, name: COMMAND_TEXT }
   - { kind: state, name: SUBTREE_HEAD }
   - { kind: state, name: PROPERTY_ANY }
+  - { kind: state, name: LEAD }
 
   - { kind: xstate, name: COMMAND }
   - { kind: xstate, name: COMMAND_EXAMPLE }
@@ -40,11 +41,49 @@ rules:
       - { do: pop, from: COMMAND_COLUMNS, to: COMMAND }
       - { do: pop, from: COMMAND, to: INITIAL }
 
+  # Quote block command
+  - lit: "begin_quote"
+    states: [COMMAND]
+    token: CmdQuoteBegin
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
+  - lit: "end_quote"
+    states: [COMMAND]
+    token: CmdQuoteEnd
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
+  # Example literal command
+  - lit: "begin_example"
+    states: [COMMAND]
+    token: CmdExampleBegin
+    actions: [{ do: push, from: COMMAND, to: COMMAND_EXAMPLE }]
+
+  - re: "^\\h*#\\+end_example\\h*$"
+    states: [COMMAND_EXAMPLE]
+    token: CmdExampleEnd
+    actions:
+      - { do: pop, from: COMMAND_EXAMPLE, to: COMMAND }
+      - { do: pop, from: COMMAND, to: INITIAL }
+
+  - re: "^.*$"
+    states: [COMMAND_EXAMPLE]
+    token: CmdExampleLine
+
+  - re: "\\n"
+    states: [COMMAND_EXAMPLE]
+    token: Newline
+
   # Source code block command
   - re: "begin_src"
     states: [COMMAND]
     token: CmdSrcBegin
     actions: [{ do: "push", to: COMMAND_SRC, from: COMMAND }]
+  - re: "^\\h*#\\+end_src\\h*$"
+    states: [BODY_SRC]
+    token: SrcContentEnd
+    actions:
+      - { do: pop, from: BODY_SRC, to: INITIAL }
+
   - re: "\\n"
     states: [COMMAND_SRC]
     token: Newline
@@ -54,8 +93,8 @@ rules:
       - { do: "push", to: BODY_SRC, from: INITIAL }
   - { lit: "<<", states: [BODY_SRC], token: SrcTangleOpen }
   - { lit: ">>", states: [BODY_SRC], token: SrcTangleClose }
-  - { re: "\\h*#\\+src_end", states: [BODY_SRC], token: SrcContentEnd }
   - { re: ".+", states: [BODY_SRC], token: SrcContent }
+  - { re: "\\n", states: [BODY_SRC], token: Newline }
 
   # Command with parameters
   - { re: ":\\w+", states: [COMMAND_SRC], token: CmdColonIdent }
@@ -120,7 +159,28 @@ rules:
     actions:
       - { do: pop, from: PROPERTIES, to: INITIAL }
 
-  - re: ":(CREATED|created|origin|ORIGIN):"
+  - re: ":(id|effort):"
+    token: TreePropertyLiteral
+    states: [PROPERTIES]
+    actions:
+      - { do: push, from: PROPERTIES, to: PROPERTY_LITERAL }
+
+  - re: "\\h+"
+    token: Whitespace
+    states: [PROPERTY_LITERAL]
+
+  - re: ".*$"
+    token: RawText
+    states: [PROPERTY_LITERAL]
+
+  - re: "\\n"
+    token: Newline
+    states: [PROPERTY_LITERAL]
+    actions:
+      - { do: pop, from: PROPERTY_LITERAL, to: PROPERTIES }
+
+  # Properties with text content
+  - re: ":(created|origin|blocker):"
     token: TreePropertyText
     states: [PROPERTIES]
     actions:
@@ -158,6 +218,7 @@ rules:
   - { lit: "<", token: LeftAngle }
   - { lit: ">", token: RightAngle }
   - { lit: "^", token: Circumflex }
+  - { lit: ":", token: Colon }
   - { lit: "{{{", token: MacroBegin }
   - { lit: "}}}", token: MacroEnd }
   - { lit: "{", token: LeftCurly }

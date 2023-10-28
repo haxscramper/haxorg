@@ -34,6 +34,8 @@ std::vector<BaseToken> tokenize(const char* input, int size);
 
 struct BaseLexerImpl {
     reflex::AbstractLexer<reflex::Matcher>* impl;
+    int                                     maxUnknown     = 20;
+    int                                     visitedUnknown = 0;
 
     std::vector<BaseToken> tokens;
     void                   add(BaseTokenKind token);

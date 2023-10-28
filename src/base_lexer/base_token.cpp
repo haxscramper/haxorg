@@ -74,4 +74,6 @@ std::string BaseLexerImpl::view() {
 
 void BaseLexerImpl::unknown() {
     std::cerr << "Unknown " << view() << std::endl;
+    CHECK(++visitedUnknown < maxUnknown)
+        << std::format("Max {} visited {}", maxUnknown, visitedUnknown);
 }
