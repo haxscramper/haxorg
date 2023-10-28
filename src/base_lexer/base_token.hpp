@@ -36,6 +36,14 @@ struct BaseLexerImpl {
     reflex::AbstractLexer<reflex::Matcher>* impl;
     int                                     maxUnknown     = 20;
     int                                     visitedUnknown = 0;
+    struct PushInfo {
+        int         stateId;
+        int         line;
+        int         column;
+        std::string matched;
+    };
+
+    Vec<PushInfo> states;
 
     std::vector<BaseToken> tokens;
     void                   add(BaseTokenKind token);

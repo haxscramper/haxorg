@@ -3,22 +3,33 @@ states:
   - { kind: state, name: SUBTREE_HEAD }
   - { kind: state, name: PROPERTY_ANY }
   - { kind: state, name: LEAD }
+  # Separately handle leading whitespaces in list of properties
+  # and logbook entries. This is necessary to make `:end:` push
+  # and pop different states depending on the context where
+  # it was triggered.
+  - { kind: state, name: PROPERTY_LEAD }
+  - { kind: state, name: LOGBOOK_LEAD }
 
   - { kind: xstate, name: COMMAND }
   - { kind: xstate, name: COMMAND_EXAMPLE }
   - { kind: xstate, name: COMMAND_COLUMNS }
   - { kind: xstate, name: COMMAND_SRC }
+  - { kind: xstate, name: COMMAND_ARGS }
+  - { kind: xstate, name: COMMAND_TBLFM }
   - { kind: xstate, name: BODY_SRC }
   - { kind: xstate, name: PROPERTIES }
   - { kind: xstate, name: PROPERTY_LITERAL }
 
 rules:
   - lit: "#+"
+    states: [LEAD]
     token: LineCommand
-    actions: [{ do: "push", to: COMMAND, from: INITIAL }]
+    actions:
+      - { do: pop, to: INITIAL, from: LEAD }
+      - { do: push, to: COMMAND, from: INITIAL }
 
   # Document columns command
-  - re: "columns"
+  - lit: "columns"
     token: CmdColumns
     states: [COMMAND]
     actions:
@@ -97,9 +108,10 @@ rules:
   - { re: "\\n", states: [BODY_SRC], token: Newline }
 
   # Command with parameters
-  - { re: ":\\w+", states: [COMMAND_SRC], token: CmdColonIdent }
-  - { re: "\\w+", states: [COMMAND_SRC], token: CmdIdent }
-  - { re: "\\h+", states: [COMMAND_SRC], token: Whitespace }
+  - { re: ":\\w+", states: [COMMAND_ARGS, COMMAND_SRC], token: CmdColonIdent }
+  - { re: "\\w+", states: [COMMAND_ARGS, COMMAND_SRC], token: CmdIdent }
+  - { re: "\\h+", states: [COMMAND_ARGS, COMMAND_SRC], token: Whitespace }
+  - { re: "\\H+", states: [COMMAND_ARGS, COMMAND_SRC], token: CmdRawArg }
 
   # Caption command
   - lit: "caption"
@@ -113,6 +125,35 @@ rules:
       - { do: pop, from: COMMAND_TEXT, to: COMMAND }
       - { do: pop, from: COMMAND, to: INITIAL }
 
+  # Latex header
+  - lit: "latex_header:"
+    states: [COMMAND]
+    token: CmdLatexHeader
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+  - re: "\\n"
+    token: Newline
+    states: [COMMAND_ARGS]
+    actions:
+      - { do: pop, from: COMMAND_ARGS, to: COMMAND }
+      - { do: pop, from: COMMAND, to: INITIAL }
+
+  # Table formulas
+  - lit: "tblfm:"
+    states: [COMMAND]
+    token: CmdTblfm
+    actions: [{ do: push, to: COMMAND_TBLFM, from: COMMAND }]
+  - { re: "\\$\\d+", states: [COMMAND_TBLFM], token: TblColumnRef }
+  - { re: "=", states: [COMMAND_TBLFM], token: TblAssign }
+  - { re: "@-?\\d+", states: [COMMAND_TBLFM], token: TblRelativeColumnRef }
+
+  - re: "\\n"
+    token: Newline
+    states: [COMMAND_TBLFM]
+    actions:
+      - { do: pop, from: COMMAND_TBLFM, to: COMMAND }
+      - { do: pop, from: COMMAND, to: INITIAL }
+
+  # Subtree
   - re: "^\\*+"
     token: SubtreeStars
     actions:
@@ -130,7 +171,11 @@ rules:
 
   # - { lit: "# -*- ", token: FileVarComment }
   - { re: "[0-9]+", token: Number }
-  - { re: "^\\h+", token: LeadingSpace }
+  - re: "^\\h+"
+    token: LeadingSpace
+    actions:
+      - { do: push, to: LEAD, from: INITIAL }
+
   - { re: "\\h+", token: Whitespace }
   - { re: "\\[", token: BraceOpen }
   - { re: "\\]", token: BraceClose }
@@ -140,9 +185,12 @@ rules:
   - { re: "#\\h+.*?$", token: Comment }
   - { lit: ":LOGBOOK:", token: TreePropertyLogbook }
 
+  ## Subtree property lexing
   - lit: ":PROPERTIES:"
     token: TreePropertyProperties
+    states: [LEAD]
     actions:
+      - { do: pop, from: LEAD, to: INITIAL }
       - { do: push, from: INITIAL, to: PROPERTIES }
 
   - re: "\\n"
@@ -152,17 +200,21 @@ rules:
   - re: "^\\h+"
     token: LeadingSpace
     states: [PROPERTIES]
+    actions:
+      - { do: push, to: PROPERTY_LEAD, from: PROPERTIES }
 
   - lit: ":END:"
     token: TreePropertyEnd
-    states: [PROPERTIES]
+    states: [PROPERTY_LEAD]
     actions:
+      - { do: pop, from: PROPERTY_LEAD, to: PROPERTIES }
       - { do: pop, from: PROPERTIES, to: INITIAL }
 
   - re: ":(id|effort):"
     token: TreePropertyLiteral
-    states: [PROPERTIES]
+    states: [PROPERTY_LEAD]
     actions:
+      - { do: pop, from: PROPERTY_LEAD, to: PROPERTIES }
       - { do: push, from: PROPERTIES, to: PROPERTY_LITERAL }
 
   - re: "\\h+"
@@ -182,8 +234,9 @@ rules:
   # Properties with text content
   - re: ":(created|origin|blocker):"
     token: TreePropertyText
-    states: [PROPERTIES]
+    states: [PROPERTY_LEAD]
     actions:
+      - { do: pop, from: PROPERTY_LEAD, to: PROPERTIES }
       - { do: push, from: PROPERTIES, to: PROPERTY_ANY }
 
   - re: "\\n"
@@ -233,4 +286,8 @@ rules:
   - { re: "\\w+", token: Word }
   - { re: "\\$", token: Dollar }
   - { re: "[\\x{0256}-\\x{10FFFF}]|©", token: MiscUnicode }
+  - re: "\\n"
+    states: [LEAD]
+    token: Newline
+    actions: [{ do: pop, from: LEAD, to: INITIAL }]
   - { re: "\\n", token: Newline }

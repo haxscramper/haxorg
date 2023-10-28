@@ -29,6 +29,18 @@ void BaseLexerImpl::pop_expect_impl(int current, int next, int line) {
         line,
         state_name(impl->start()),
         view());
+    states.pop_back();
+    if (!states.empty()) {
+        CHECK(states.back().stateId == next);
+    }
+
+    //    std::cout << std::format(
+    //        "Move {} -> {} at {} with {}",
+    //        state_name(current),
+    //        state_name(next),
+    //        line,
+    //        view())
+    //              << std::endl;
 }
 
 void BaseLexerImpl::push_expect_impl(int current, int next, int line) {
@@ -41,6 +53,19 @@ void BaseLexerImpl::push_expect_impl(int current, int next, int line) {
         state_name(next),
         view());
     impl->push_state(next);
+    states.push_back(PushInfo{
+        .stateId = next,
+        .line    = impl->lineno(),
+        .column  = impl->columno(),
+        .matched = impl->str()});
+
+    //    std::cout << std::format(
+    //        "Move {} -> {} at {} with {}",
+    //        state_name(current),
+    //        state_name(next),
+    //        line,
+    //        view())
+    //              << std::endl;
 }
 
 void BaseLexerImpl::before(int line) {
@@ -60,8 +85,19 @@ std::string BaseLexerImpl::view() {
     std::u32string utf32_str = conv.from_bytes(text);
     char32_t       codepoint = utf32_str[0];
     std::string    span      = std::string(impl->matcher().span());
+    std::string    states;
+
+    for (PushInfo const& state : this->states) {
+        states += std::format(
+            " <'{}':{}:{}:{}>",
+            state.matched,
+            state_name(state.stateId),
+            state.line,
+            state.column);
+    }
+
     return std::format(
-        "{}:{} in state {} ({}) >{}< (code {}) span: '{}'",
+        "{}:{} in state {} ({}) >{}< (code {}) span: '{}', states:{}",
         impl->lineno(),
         impl->columno(),
         state_name(impl->start()),
@@ -69,7 +105,8 @@ std::string BaseLexerImpl::view() {
         escape_for_write(text),
         (uint32_t)codepoint,
         escape_for_write(
-            span.substr(impl->columno(), span.length() - 1), false));
+            span.substr(impl->columno(), span.length() - 1), false),
+        states);
 }
 
 void BaseLexerImpl::unknown() {

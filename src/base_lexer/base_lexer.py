@@ -80,8 +80,12 @@ def rule_to_reflex_code(rule: Rule) -> str:
         for action in rule.actions:
             if action.do == "push":
                 actions.append(f"push_expect({action.from_}, {action.to});")
+
             elif action.do == "pop":
                 actions.append(f"pop_expect({action.from_}, {action.to});")
+
+            elif action.do == "set":
+                actions.append(f"start({action.to});")
 
     actions_code = " ".join(actions)
     content = " ".join([

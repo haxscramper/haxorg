@@ -6,13 +6,17 @@ std::string BaseLexerImpl::state_name(int state) {
         case 2: return "SUBTREE_HEAD";
         case 3: return "PROPERTY_ANY";
         case 4: return "LEAD";
-        case 5: return "COMMAND";
-        case 6: return "COMMAND_EXAMPLE";
-        case 7: return "COMMAND_COLUMNS";
-        case 8: return "COMMAND_SRC";
-        case 9: return "BODY_SRC";
-        case 10: return "PROPERTIES";
-        case 11: return "PROPERTY_LITERAL";
+        case 5: return "PROPERTY_LEAD";
+        case 6: return "LOGBOOK_LEAD";
+        case 7: return "COMMAND";
+        case 8: return "COMMAND_EXAMPLE";
+        case 9: return "COMMAND_COLUMNS";
+        case 10: return "COMMAND_SRC";
+        case 11: return "COMMAND_ARGS";
+        case 12: return "COMMAND_TBLFM";
+        case 13: return "BODY_SRC";
+        case 14: return "PROPERTIES";
+        case 15: return "PROPERTY_LITERAL";
         default: return std::to_string(state);
     }
 }
@@ -34,9 +38,12 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::CmdExampleEnd: return "CmdExampleEnd";
         case BaseTokenKind::CmdExampleLine: return "CmdExampleLine";
         case BaseTokenKind::CmdIdent: return "CmdIdent";
+        case BaseTokenKind::CmdLatexHeader: return "CmdLatexHeader";
         case BaseTokenKind::CmdQuoteBegin: return "CmdQuoteBegin";
         case BaseTokenKind::CmdQuoteEnd: return "CmdQuoteEnd";
+        case BaseTokenKind::CmdRawArg: return "CmdRawArg";
         case BaseTokenKind::CmdSrcBegin: return "CmdSrcBegin";
+        case BaseTokenKind::CmdTblfm: return "CmdTblfm";
         case BaseTokenKind::Colon: return "Colon";
         case BaseTokenKind::Comment: return "Comment";
         case BaseTokenKind::Date: return "Date";
@@ -77,6 +84,9 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::SrcTangleOpen: return "SrcTangleOpen";
         case BaseTokenKind::SubtreePriority: return "SubtreePriority";
         case BaseTokenKind::SubtreeStars: return "SubtreeStars";
+        case BaseTokenKind::TblAssign: return "TblAssign";
+        case BaseTokenKind::TblColumnRef: return "TblColumnRef";
+        case BaseTokenKind::TblRelativeColumnRef: return "TblRelativeColumnRef";
         case BaseTokenKind::Tilda: return "Tilda";
         case BaseTokenKind::Time: return "Time";
         case BaseTokenKind::TimeArrow: return "TimeArrow";
