@@ -63,6 +63,7 @@ enum class BaseTokenKind : unsigned short int {
   SubtreeStars,
   TblAssign,
   TblColumnRef,
+  TblOperator,
   TblRelativeColumnRef,
   Tilda,
   Time,

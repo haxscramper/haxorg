@@ -97,7 +97,7 @@ std::string BaseLexerImpl::view() {
     }
 
     return std::format(
-        "{}:{} in state {} ({}) >{}< (code {}) span: '{}', states:{}",
+        "{}:{} in state {} ({}) >{}< (code {:0X}) span: '{}', states:{}",
         impl->lineno(),
         impl->columno(),
         state_name(impl->start()),

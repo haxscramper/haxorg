@@ -21,7 +21,7 @@ states:
   - { kind: xstate, name: PROPERTY_LITERAL }
 
 rx_macros:
-  - { name: space, value: "\\h" }
+  - { name: space, value: "[\\h\\xA0]" }
 
 rules:
   - lit: "#+"
@@ -114,7 +114,11 @@ rules:
   - { re: ":\\w+", states: [COMMAND_ARGS, COMMAND_SRC], token: CmdColonIdent }
   - { re: "\\w+", states: [COMMAND_ARGS, COMMAND_SRC], token: CmdIdent }
   - { re: "{space}+", states: [COMMAND_ARGS, COMMAND_SRC], token: Whitespace }
-  - { re: "\\H+", states: [COMMAND_ARGS, COMMAND_SRC], token: CmdRawArg }
+  - {
+      re: "[\\H--[\\n]]+",
+      states: [COMMAND_ARGS, COMMAND_SRC],
+      token: CmdRawArg,
+    }
 
   # Caption command
   - lit: "caption"
@@ -148,6 +152,8 @@ rules:
   - { re: "\\$\\d+", states: [COMMAND_TBLFM], token: TblColumnRef }
   - { re: "=", states: [COMMAND_TBLFM], token: TblAssign }
   - { re: "@-?\\d+", states: [COMMAND_TBLFM], token: TblRelativeColumnRef }
+  - { re: "{space}+", states: [COMMAND_TBLFM], token: Whitespace }
+  - { re: "[-]", states: [COMMAND_TBLFM], token: TblOperator }
 
   - re: "\\n"
     token: Newline

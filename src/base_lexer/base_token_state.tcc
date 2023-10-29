@@ -86,6 +86,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::SubtreeStars: return "SubtreeStars";
         case BaseTokenKind::TblAssign: return "TblAssign";
         case BaseTokenKind::TblColumnRef: return "TblColumnRef";
+        case BaseTokenKind::TblOperator: return "TblOperator";
         case BaseTokenKind::TblRelativeColumnRef: return "TblRelativeColumnRef";
         case BaseTokenKind::Tilda: return "Tilda";
         case BaseTokenKind::Time: return "Time";

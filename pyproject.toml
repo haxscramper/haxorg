@@ -6,7 +6,7 @@ authors = ["haxscramper <haxscramper@gmail.com>"]
 readme = "README.org"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.8.0 <3.13"
 beartype = "^0.16.2"
 rich = "^13.5.3"
 betterproto = {extras = ["compiler"], version = "^1.2.5"}
@@ -23,6 +23,7 @@ plumbum = "^1.8.2"
 pydantic = "^2.4.2"
 dominate = "^2.8.0"
 pyyaml = "^6.0.1"
+pyside6 = "^6.6.0"
 
 [tool.poetry.group.dev.dependencies]
 yapf = "^0.40.2"

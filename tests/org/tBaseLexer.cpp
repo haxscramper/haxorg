@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <base_lexer/base_token.hpp>
 #include <fstream>
+#include <hstd/stdlib/Json.hpp>
 
 TEST(BaseLexTest, WriteOut) {
     std::ifstream inFile("/home/haxscramper/tmp/doc2.org");
@@ -16,12 +17,16 @@ TEST(BaseLexTest, WriteOut) {
 
     std::vector<BaseToken> tokens = tokenize(
         content.data(), content.size());
-    std::ofstream out{"/tmp/token.csv"};
-    out << "Line,Column,Text,Kind\n";
+    json out = json::array();
     for (const BaseToken& token : tokens) {
-        out << token->line << "," << token->col << ", \""
-            << escape_for_write(token->text, false) << "\", "
-            << enum_serde<BaseTokenKind>::to_string(token.kind) << "\n";
+        out.push_back(json(
+            {{"line", token->line},
+             {"col", token->col},
+             {"text", token->text},
+             {"kind", enum_serde<BaseTokenKind>::to_string(token.kind)}}));
     }
+    std::ofstream file{"/tmp/token.json"};
+    CHECK(file.is_open());
+    file << json::object({{"tokens", out}}) << std::endl;
     std::cout << "Found " << tokens.size() << " tokens\n";
 }
