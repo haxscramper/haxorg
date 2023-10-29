@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 
 #include(conda_toolchain.cmake)
 
+set(ABSL_CC_LIB_COPTS "-fPIC")
+set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 
 project(haxorg LANGUAGES CXX)
