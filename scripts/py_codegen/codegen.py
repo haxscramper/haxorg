@@ -1209,7 +1209,19 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                         f"    __IMPL({struct.name})"
                         for struct in get_concrete_types(expanded)
                     ])))
-                ]) + full_enums,
+                ]) + full_enums + ([
+                    GenTuPass("""
+template <>
+struct std::formatter<OrgSemKind> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(OrgSemKind const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        return fmt.format(enum_serde<OrgSemKind>::to_string(p), ctx);
+    }
+};
+                    """)
+                ]),
             ),
             GenTu(
                 "{base}/sem/SemOrgEnums.cpp",
@@ -1231,7 +1243,6 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                     GenTuInclude("boost/describe.hpp", True),
                     GenTuInclude("hstd/system/macros.hpp", True),
                     GenTuInclude("functional", True),
-                    GenTuInclude("QDateTime", True),
                     GenTuInclude("sem/SemOrgBase.hpp", True),
                     GenTuInclude("sem/SemOrgEnums.hpp", True),
                     GenTuNamespace("sem", [GenTuTypeGroup(expanded, enumName="")]),

@@ -10,7 +10,6 @@
 #include <boost/describe.hpp>
 #include <hstd/system/macros.hpp>
 #include <functional>
-#include <QDateTime>
 #include <sem/SemOrgBase.hpp>
 #include <sem/SemOrgEnums.hpp>
 namespace sem{

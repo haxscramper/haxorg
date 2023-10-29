@@ -965,6 +965,16 @@ rich = ">=10.7.0"
 dev = ["pre-commit"]
 
 [[package]]
+name = "sexpdata"
+version = "1.0.1"
+description = "S-expression parser for Python"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "sexpdata-1.0.1.tar.gz", hash = "sha256:6f65f115291890cbce5cd269c13bdf1f82a4cd23bc61b6e150a27511ee6a7d5e"},
+]
+
+[[package]]
 name = "shiboken6"
 version = "6.6.0"
 description = "Python/C++ bindings helper module"
@@ -1065,4 +1075,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.0 <3.13"
-content-hash = "6071d721d747c51308ac12d0a12fe6b72d7c12f91b5c7cf4a52978f989706681"
+content-hash = "b76737206e60af3c33eaa4bce1462faa18fbf36147980286142b72c467c44767"

@@ -1037,4 +1037,15 @@ struct value_domain<OrgSemKind> : public value_domain_ungapped<OrgSemKind,
                                                                OrgSemKind::StmtList,
                                                                OrgSemKind::DocumentGroup> {};
 
+
+template <>
+struct std::formatter<OrgSemKind> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(OrgSemKind const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        return fmt.format(enum_serde<OrgSemKind>::to_string(p), ctx);
+    }
+};
+
 /* clang-format on */
