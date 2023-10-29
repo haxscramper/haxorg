@@ -2,7 +2,6 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <boost/stacktrace.hpp>
 #include <hstd/stdlib/Debug.hpp>
-#include <QFile>
 #undef slots
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>

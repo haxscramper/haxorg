@@ -1185,16 +1185,6 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 [GenTuPass(autogen_structs.build_typedef(pyast))],
             )),
         GenUnit(
-            GenTu(
-                "{base}/exporters/exporternlp_enums.hpp",
-                with_enum_reflection_api(get_nlp_enums()),
-            ),
-            GenTu(
-                "{base}/exporters/exporternlp_enums.cpp",
-                [GenTuPass('#include "exporternlp_enums.hpp"')] + get_nlp_enums(),
-            ),
-        ),
-        GenUnit(
             GenTu("{base}/exporters/Exporter.tcc", get_exporter_methods(False,
                                                                         expanded))),
         GenUnit(

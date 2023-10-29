@@ -1,3 +1,4 @@
+/* clang-format off */
 from typing import *
 from enum import Enum
 from datetime import datetime, date, time
@@ -1473,3 +1474,5 @@ class ExporterPython:
     def setVisitIdHook(kind: OrgSemKind, cb: function) -> None: ...
     def evalTop(org: SemId) -> object: ...
     def eval(org: SemId) -> object: ...
+
+/* clang-format on */

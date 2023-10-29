@@ -1,3 +1,4 @@
+/* clang-format off */
 template <typename V, typename R>
 void Exporter<V, R>::visitStmt(R& res, In<sem::Stmt> object) {
   __visit_specific_kind(res, object);
@@ -736,3 +737,5 @@ void Exporter<V, R>::visitDocumentGroup(R& res, In<sem::DocumentGroup> object) {
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
 }
+
+/* clang-format on */

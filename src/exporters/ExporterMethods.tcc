@@ -1,3 +1,4 @@
+/* clang-format off */
 void visitStmt(R& res, In<sem::Stmt> object);
 void visitInline(R& res, In<sem::Inline> object);
 void visitStmtList(R& res, In<sem::StmtList> object);
@@ -109,3 +110,4 @@ void visit(R& res, sem::Include::Src const& object);
 void visit(R& res, sem::Include::OrgDocument const& object);
 void visitDocumentOptions(R& res, In<sem::DocumentOptions> object);
 void visitDocumentGroup(R& res, In<sem::DocumentGroup> object);
+/* clang-format on */

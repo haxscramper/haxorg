@@ -204,8 +204,11 @@ class GenConverter:
 
     def convertTu(self, tu: GenTu) -> BlockId:
         decls: List[BlockId] = []
+        decls.append(self.ast.Comment(["clang-format off"]))
         for item in tu.entries:
             decls += self.convertWithToplevel(item)
+
+        decls.append(self.ast.Comment(["clang-format on"]))
 
         return self.ast.TranslationUnit(decls)
 
