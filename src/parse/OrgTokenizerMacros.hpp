@@ -10,7 +10,7 @@
     })
 
 #define __print2(__text, __str)                                           \
-    if constexpr (TraceState) {                                           \
+    if (TraceState) {                                                     \
         report(Report{                                                    \
             .kind     = ReportKind::Print,                                \
             .location = __CURRENT_FILE_PATH__,                            \
@@ -29,7 +29,7 @@
 
 
 #define __trace2(__subname, __str)                                        \
-    if constexpr (TraceState) {                                           \
+    if (TraceState) {                                                     \
         Report rep = __INIT_REPORT(__subname, __str);                     \
         rep.kind   = ReportKind::Enter;                                   \
         rep.name   = __func__;                                            \
@@ -38,7 +38,7 @@
                                                                           \
     finally CONCAT(close, __COUNTER__) = finally::init<Str>(              \
         ([&](CR<Str> name) {                                              \
-            if constexpr (TraceState) {                                   \
+            if (TraceState) {                                             \
                 Report rep = __INIT_REPORT(__subname, __str);             \
                 rep.kind   = ReportKind::Leave;                           \
                 rep.name   = name;                                        \
@@ -55,7 +55,7 @@
     }
 
 #define __push2(token, __is_buffered)                                     \
-    if constexpr (TraceState) {                                           \
+    if (TraceState) {                                                     \
         Report rep      = __INIT_REPORT(std::nullopt, str);               \
         rep.kind        = ReportKind::Push;                               \
         rep.tok         = token;                                          \
@@ -85,7 +85,7 @@
 
 
 #define __report_error(err)                                               \
-    if constexpr (TraceState) {                                           \
+    if (TraceState) {                                                     \
         Report rep = Report({                                             \
             .line  = __LINE__,                                            \
             .kind  = ReportKind::Error,                                   \
