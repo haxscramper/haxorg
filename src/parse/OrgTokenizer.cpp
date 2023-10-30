@@ -14,6 +14,34 @@
 
 using ock = OrgCommandKind;
 using otk = OrgTokenKind;
+using obt = BaseTokenKind;
+
+Vec<BaseToken> OrgTokenizer::rewriteIndents(BaseLexer& lex) {
+    Vec<BaseToken> result;
+    while (lex.hasNext()) {
+        result.push_back(lex.tok());
+        lex.next();
+    }
+
+    return result;
+}
+
+OrgFill fill(BaseLexer& lex) { return OrgFill{.base = lex.tok().value}; }
+
+Vec<OrgToken> OrgTokenizer::recombine(BaseLexer& lex) {
+    Vec<OrgToken> result;
+
+    while (lex.hasNext()) {
+        switch (lex.kind()) {
+            case obt::Ampersand: {
+                result.push_back(OrgToken{otk::Punctuation, fill(lex)});
+                break;
+            }
+        }
+    }
+
+    return result;
+}
 
 void OrgTokenizer::report(CR<Report> in) {
     if (!TraceState) {
