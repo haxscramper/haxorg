@@ -21,15 +21,27 @@ struct enum_serde<BaseTokenKind> {
 };
 
 
+template <>
+struct std::formatter<BaseTokenKind> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        BaseTokenKind const& p,
+        FormatContext&       ctx) const {
+        std::formatter<std::string> fmt;
+        return fmt.format(enum_serde<BaseTokenKind>::to_string(p), ctx);
+    }
+};
+
 struct BaseFill {
     std::string text;
     int         line;
     int         col;
 };
 
-using BaseToken = Token<BaseTokenKind, BaseFill>;
+using BaseToken      = Token<BaseTokenKind, BaseFill>;
+using BaseTokenGroup = TokenGroup<BaseTokenKind, BaseFill>;
 
-std::vector<BaseToken> tokenize(const char* input, int size);
+BaseTokenGroup tokenize(const char* input, int size);
 
 
 struct BaseLexerImpl {
@@ -45,11 +57,11 @@ struct BaseLexerImpl {
 
     Vec<PushInfo> states;
 
-    std::vector<BaseToken> tokens;
-    void                   add(BaseTokenKind token);
-    std::string            state_name(int name);
-    std::string            view();
-    void                   unknown();
+    BaseTokenGroup tokens;
+    void           add(BaseTokenKind token);
+    std::string    state_name(int name);
+    std::string    view();
+    void           unknown();
 
     void pop_expect_impl(int current, int next, int line);
     void push_expect_impl(int current, int next, int line);

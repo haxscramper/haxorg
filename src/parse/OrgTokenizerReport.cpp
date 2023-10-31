@@ -1,50 +1,105 @@
 #include <parse/OrgTokenizer.hpp>
 
-using E = OrgTokenizer::Errors;
+void OrgTokenizer::report(CR<Report> in) {
+    if (!TraceState) {
+        return;
+    }
+
+    if (reportHook) {
+        reportHook(in);
+    }
+
+    if (traceUpdateHook) {
+        traceUpdateHook(in, trace, true);
+    }
+
+    if (!trace) {
+        if (traceUpdateHook) {
+            traceUpdateHook(in, trace, false);
+        }
+        return;
+    }
 
 
-std::string E::Base::getLocMsg() const {
-    return "on $#:$# (pos $#)"
-         % to_string_vec(
-               loc ? loc->line : -1, loc ? loc->column : -1, pos);
-}
+    using fg = TermColorFg8Bit;
+    if (in.kind == ReportKind::Enter) {
+        ++depth;
+    }
+
+    ColStream os = getStream();
+    os << repeat("  ", depth);
 
 
-const char* OrgTokenizer::Errors::MissingElement::what() const noexcept {
-    return strdup(
-        "Missing '$#' for $# $#"
-        % to_string_vec(missing, where, getLocMsg()));
-}
+    auto getLoc = [&]() -> std::string {
+        std::string res;
+        return res;
+    };
+
+    auto printString = [&]() {
+
+    };
+
+    switch (in.kind) {
+        case ReportKind::Print: {
+            os << "  " << in.line << getLoc() << ":" << in.subname.value();
+            printString();
+            break;
+        }
+
+        case ReportKind::SetBuffer: {
+            os << "  ! set buffer";
+            break;
+        }
+
+        case ReportKind::Error: {
+            break;
+        }
+
+        case ReportKind::ClearBuffer: {
+            os << "  ! clear buffer" << getLoc();
+            break;
+        }
+
+        case ReportKind::PushResolved: {
+            os << "  + push resolved" << getLoc();
+            break;
+        }
+
+        case ReportKind::Push: {
+            if (in.id.isNil()) {
+                os << "  + buffer token " << getLoc()
+                   << std::format("{}", in.tok.kind);
+            } else {
+                os << "  + add token " << getLoc() << in.id.getIndex()
+                   << " " << std::format("{}", at(in.id).kind);
+            }
+            os << " at " << fg::Cyan << in.line << os.end();
+            break;
+        }
+        case ReportKind::Enter:
+        case ReportKind::Leave: {
+            os << (in.kind == ReportKind::Enter ? "> " : "< ") << fg::Green
+               << getLoc() << in.name << os.end() << ":" << fg::Cyan
+               << in.line << os.end();
+
+            if (in.subname.has_value()) {
+                os << " " << in.subname.value();
+            }
+
+            printString();
+
+            break;
+        }
+    }
 
 
-const char* OrgTokenizer::Errors::UnexpectedConstruct::what()
-    const noexcept {
-    return strdup(
-        "Unexpected construct at $#: $#"
-        % to_string_vec(getLocMsg(), desc));
-}
+    endStream(os);
 
-const char* OrgTokenizer::Errors::UnknownConstruct::what() const noexcept {
-    return strdup("Unexpected construct");
-}
+    if (in.kind == ReportKind::Leave) {
+        --depth;
+    }
 
-int OrgTokenizer::TokenizerError::getPos() const {
-    return std::visit([](auto const& in) { return in.pos; }, err);
-}
-
-void OrgTokenizer::TokenizerError::setLoc(CR<LineCol> loc) {
-    std::visit(
-        [&loc](auto& in) {
-            in.loc = loc;
-            return 0;
-        },
-        err);
-}
-
-Opt<LineCol> OrgTokenizer::TokenizerError::getLoc() const {
-    return std::visit([](auto const& in) { return in.loc; }, err);
-}
-
-const char* OrgTokenizer::TokenizerError::what() const noexcept {
-    return std::visit([](auto const& in) { return in.what(); }, err);
+    if (traceUpdateHook) {
+        traceUpdateHook(in, trace, false);
+    }
 }

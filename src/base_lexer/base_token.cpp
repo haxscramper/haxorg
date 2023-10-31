@@ -6,7 +6,7 @@
 #include "base_token_state.tcc"
 
 void BaseLexerImpl::add(BaseTokenKind token) {
-    tokens.emplace_back(BaseToken{
+    tokens.add(BaseToken{
         token,
         BaseFill{impl->matcher().str(), impl->lineno(), impl->columno()}});
 }

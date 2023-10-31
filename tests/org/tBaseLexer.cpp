@@ -2,6 +2,8 @@
 #include <base_lexer/base_token.hpp>
 #include <fstream>
 #include <hstd/stdlib/Json.hpp>
+#include <absl/log/log.h>
+#include <parse/OrgTokenizer.hpp>
 
 TEST(BaseLexTest, WriteOut) {
     std::ifstream inFile("/home/haxscramper/tmp/doc2.org");
@@ -17,11 +19,10 @@ TEST(BaseLexTest, WriteOut) {
     //    std::cout << std::format("Content:\n--->{}<---\n", content);
 
     DLOG(INFO) << "Tokenizing string";
-    std::vector<BaseToken> tokens = tokenize(
-        content.data(), content.size());
+    BaseTokenGroup tokens = tokenize(content.data(), content.size());
     DLOG(INFO) << "Constructing JSON object";
     json out = json::array();
-    for (const BaseToken& token : tokens) {
+    for (const BaseToken& token : tokens.tokens.content) {
         out.push_back(json(
             {{"line", token->line},
              {"col", token->col},
@@ -33,4 +34,10 @@ TEST(BaseLexTest, WriteOut) {
     CHECK(file.is_open());
     file << json::object({{"tokens", out}}) << std::endl;
     std::cout << "Found " << tokens.size() << " tokens\n";
+
+    OrgTokenGroup target;
+    OrgTokenizer  tok(&target);
+    tok.convert(tokens);
+    std::cout << std::format(
+        "Converterd to {} org tokens\n", target.size());
 }

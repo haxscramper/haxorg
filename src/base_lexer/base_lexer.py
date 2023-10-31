@@ -182,10 +182,10 @@ def generate_reflex_code(config: Configuration) -> str:
 
 %%
 
-std::vector<BaseToken> tokenize(const char* input, int size) {{
+TokenGroup<BaseTokenKind, BaseFill> tokenize(const char* input, int size) {{
     base_lexer::Lexer lex(input);
     lex.impl.impl = &lex;
-    lex.impl.tokens.reserve(size / 3);
+    lex.impl.tokens.tokens.reserve(size / 3);
     lex.lex();
     return lex.impl.tokens;
 }}

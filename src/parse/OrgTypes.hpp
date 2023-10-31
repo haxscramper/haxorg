@@ -37,18 +37,19 @@ struct OrgFill {
     Str           getText() const { return base.value().text; }
 };
 
-using OrgToken      = Token<OrgTokenKind, OrgFill>;
-using OrgTokenId    = TokenId<OrgTokenKind, OrgFill>;
-using OrgTokenStore = TokenStore<OrgTokenKind, OrgFill>;
-using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
-using OrgNode       = Node<OrgNodeKind, OrgTokenKind, OrgFill>;
-using OrgId         = NodeId<OrgNodeKind, OrgTokenKind, OrgFill>;
-using OrgNodeGroup  = NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill>;
-using BaseLexer     = LexerCommon<BaseTokenKind, BaseFill>;
-using OrgLexer      = LexerCommon<OrgTokenKind, OrgFill>;
-using OrgTokSet     = IntSet<OrgTokenKind>;
-using OrgAdapter    = NodeAdapter<OrgNodeKind, OrgTokenKind, OrgFill>;
-using OrgSet        = IntSet<OrgNodeKind>;
+using OrgToken       = Token<OrgTokenKind, OrgFill>;
+using OrgTokenId     = TokenId<OrgTokenKind, OrgFill>;
+using OrgTokenStore  = TokenStore<OrgTokenKind, OrgFill>;
+using OrgTokenGroup  = TokenGroup<OrgTokenKind, OrgFill>;
+using OrgNode        = Node<OrgNodeKind, OrgTokenKind, OrgFill>;
+using OrgId          = NodeId<OrgNodeKind, OrgTokenKind, OrgFill>;
+using OrgNodeGroup   = NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill>;
+using BaseTokenGroup = TokenGroup<BaseTokenKind, BaseFill>;
+using BaseLexer      = LexerCommon<BaseTokenKind, BaseFill>;
+using OrgLexer       = LexerCommon<OrgTokenKind, OrgFill>;
+using OrgTokSet      = IntSet<OrgTokenKind>;
+using OrgAdapter     = NodeAdapter<OrgNodeKind, OrgTokenKind, OrgFill>;
+using OrgSet         = IntSet<OrgNodeKind>;
 
 extern template class NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill>;
 extern const OrgSet OrgAttachableCommands;

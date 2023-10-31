@@ -83,8 +83,25 @@ struct OrgTokenizer
     void       push(CR<Vec<OrgToken>> tok) { out->add(tok); }
     OrgTokenId push(CR<OrgToken> tok) { return out->add(tok); }
 
-    Vec<BaseToken> rewriteIndents(BaseLexer& lex);
-    Vec<OrgToken>  recombine(BaseLexer& lex);
+    OrgTokenizer(OrgTokenGroup* out)
+        : Tokenizer<OrgTokenKind, OrgFill>(out) {}
+
+    /// Convert stream of leading space indentations into indent, dedent
+    /// and 'same indent' tokens.
+    void rewriteIndents(BaseLexer& lex);
+
+    /// Rewrite stream of base lexer tokens to the org token stream, adding
+    /// boundaries for the paragraph elements, closing unterminated
+    /// elements that can be detected on this stage.
+    void recombine(BaseLexer& lex);
+
+    /// Iterate the sequence of tokens, searching for text context spans
+    /// and convert markup delimiter tokens into direct opening/closing or
+    /// back to the regular punctuation (if no match can be found).
+    void assignMarkupDirections();
+
+    void convert(BaseTokenGroup& input);
+    void convert(BaseLexer& lex);
 
     int  depth = 0;
     void report(CR<Report> in);
