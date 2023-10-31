@@ -89,20 +89,30 @@ struct std::formatter<Token<K, V>> : std::formatter<std::string> {
 
 template <typename K, typename V>
 struct TokenGroup {
-    dod::Store<TokenId<K, V>, Token<K, V>> tokens;
-    TokenGroup(Opt<std::string_view> base = std::nullopt) {}
-    TokenId<K, V> add(CR<Token<K, V>> tok) { return tokens.add(tok); }
+    using TokenT    = Token<K, V>;
+    using IdT       = TokenId<K, V>;
+    using StoreT    = dod::Store<IdT, TokenT>;
+    using IteratorT = typename StoreT::ContentT::iterator;
 
-    Vec<TokenId<K, V>> add(CR<Vec<Token<K, V>>> tok) {
-        Vec<TokenId<K, V>> result;
+    StoreT    tokens;
+    IteratorT begin() { return tokens.content.begin(); }
+    IteratorT end() { return tokens.content.end(); }
+    IteratorT iterator(IdT id) { return begin() + id.getIndex(); }
+
+
+    TokenGroup() {}
+    TokenId<K, V> add(CR<TokenT> tok) { return tokens.add(tok); }
+
+    Vec<IdT> add(CR<Vec<TokenT>> tok) {
+        Vec<IdT> result;
         for (const auto& t : tok) {
             result.push_back(tokens.add(t));
         }
         return result;
     }
 
-    Vec<TokenId<K, V>> add(CR<std::span<Token<K, V>>> tok) {
-        Vec<TokenId<K, V>> result;
+    Vec<IdT> add(CR<std::span<TokenT>> tok) {
+        Vec<IdT> result;
         for (const auto& t : tok) {
             result.push_back(tokens.add(t));
         }
@@ -110,15 +120,15 @@ struct TokenGroup {
     }
 
 
-    Token<K, V>& at(TokenId<K, V> pos) { return tokens.at(pos); }
+    TokenT& at(IdT pos) { return tokens.at(pos); }
 
-    std::span<Token<K, V>> at(HSlice<TokenId<K, V>, TokenId<K, V>> slice) {
+    std::span<TokenT> at(HSlice<IdT, IdT> slice) {
         assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
         tokens.at(slice(slice.first.getIndex(), slice.last.getIndex()));
     }
 
     int  size() const { return tokens.size(); }
-    void resize(int size, Token<K, V> const& value = Token<K, V>()) {
+    void resize(int size, TokenT const& value = TokenT()) {
         tokens.resize(size, value);
     }
 };
@@ -229,6 +239,10 @@ struct LexerCommon {
         return in->at(get(offset));
     }
     TokenId<K, V> get(int offset = 0) const { return pos + offset; }
+
+    using IteratorT = typename TokenGroup<K, V>::IteratorT;
+    IteratorT begin() { return in->iterator(this->pos); }
+    IteratorT end() { return in->end(); }
 
     struct PrintParams {
         int  maxTokens   = 10;

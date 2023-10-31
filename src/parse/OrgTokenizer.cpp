@@ -25,19 +25,41 @@ void OrgTokenizer::rewriteIndents(BaseLexer& lex) {
 OrgFill fill(BaseLexer& lex) { return OrgFill{.base = lex.tok().value}; }
 
 void OrgTokenizer::recombine(BaseLexer& lex) {
+#define add_as(__to) out->add(OrgToken{__to, fill(lex)});
 #define direct(__from, __to)                                              \
     case __from: {                                                        \
-        out->add(OrgToken{__to, fill(lex)});                              \
+        add_as(__to);                                                     \
+        lex.next();                                                       \
         break;                                                            \
     }
 
     while (lex.hasNext()) {
+        BaseToken const&   tok = lex.tok();
+        BaseFill const&    val = tok.value;
+        std::string const& str = tok.value.text;
         switch (lex.kind()) {
             direct(obt::Ampersand, otk::Punctuation);
+            direct(obt::Whitespace, otk::Space);
+            direct(obt::Word, otk::Word);
+            direct(obt::AnyPunct, otk::Punctuation);
+            direct(obt::Newline, otk::Newline);
+            direct(obt::Comment, otk::Comment);
+            direct(obt::HashIdent, otk::HashTag);
+            case obt::BraceOpen: {
+                switch (lex.tok(-1).kind) {
+                    case obt::HashIdent: add_as(otk::HashTagOpen); break;
+                    default: add_as(otk::Punctuation);
+                }
+            }
             default: {
-                CHECK(false) << std::format(
-                    "Unhanled kind for token conversion, got {}",
-                    lex.kind());
+                DLOG(ERROR) << std::format(
+                    "Unhanled kind for token conversion, got {}:{} {} "
+                    "\"{}\"",
+                    val.line,
+                    val.col,
+                    lex.kind(),
+                    val.text);
+                lex.next();
             }
         }
     }

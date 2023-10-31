@@ -315,6 +315,7 @@ template <IsIdType Id, typename T>
 /// existing object from an ID.
 struct Store {
     Vec<T> content;
+    using ContentT = Vec<T>;
 
     Store() = default;
     void resize(int size, T const& value = T()) {
