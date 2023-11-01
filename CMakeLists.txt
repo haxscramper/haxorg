@@ -52,5 +52,6 @@ include(src/cmake/target_lib.cmake)
 include(src/cmake/target_bench.cmake)
 
 include(src/cmake/target_pyhaxorg.cmake)
+include(src/cmake/target_lsp.cmake)
 
 
