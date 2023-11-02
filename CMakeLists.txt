@@ -17,6 +17,14 @@ set(AUTOGEN_BUILD_DIR "${BASE}/build/autogen")
 set(SCRIPT_DIR "${BASE}/src/scripts")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Enable the sanitizer options. They are set globally primarity for the
+# in-source dependencies like google fuzztest, ABSL and so on -- if there
+# is a way to set them in a more focused manner they should be moved to the
+# respective consumers of these flags.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined,address")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=undefined,address")
+
+
 file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})
 list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
 include(${DEPS_DIR}/conanbuildinfo.cmake)

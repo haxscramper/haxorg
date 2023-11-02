@@ -36,10 +36,10 @@ function(set_target_flags TARGET)
     add_target_property(${TARGET} COMPILE_OPTIONS "-fPIC")
 
     if(${USE_SANITIZER})
-        add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize=undefined")
+        add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize=undefined,address")
         add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
         add_target_property(${TARGET} LINK_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
-        add_target_property(${TARGET} LINK_OPTIONS "-fsanitize=undefined")
+        add_target_property(${TARGET} LINK_OPTIONS "-fsanitize=undefined,address")
     endif()
 
     if(${USE_XRAY})
