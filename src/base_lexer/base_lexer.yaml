@@ -305,3 +305,6 @@ rules:
   #   token: MediumNewline
   - re: "\\n"
     token: Newline
+  - re: "<<EOF>>"
+    token: "EndOfFile"
+    actions: [{ do: raw, raw: "return 0;" }]

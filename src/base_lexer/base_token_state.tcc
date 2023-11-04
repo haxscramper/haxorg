@@ -54,6 +54,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::DoubleQuote: return "DoubleQuote";
         case BaseTokenKind::DoubleRightAngle: return "DoubleRightAngle";
         case BaseTokenKind::DoubleSlash: return "DoubleSlash";
+        case BaseTokenKind::EndOfFile: return "EndOfFile";
         case BaseTokenKind::Equals: return "Equals";
         case BaseTokenKind::EscapedChar: return "EscapedChar";
         case BaseTokenKind::Exclamation: return "Exclamation";

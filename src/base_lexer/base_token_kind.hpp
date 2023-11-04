@@ -31,6 +31,7 @@ enum class BaseTokenKind : unsigned short int {
   DoubleQuote,
   DoubleRightAngle,
   DoubleSlash,
+  EndOfFile,
   Equals,
   EscapedChar,
   Exclamation,

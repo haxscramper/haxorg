@@ -32,7 +32,7 @@ TEST(BaseLexTest, WriteOut) {
     DLOG(INFO) << "Writing file out";
     std::ofstream file{"/tmp/token.json"};
     CHECK(file.is_open());
-    file << json::object({{"tokens", out}}) << std::endl;
+    file << to_compact_json(json::object({{"tokens", out}})) << std::endl;
     std::cout << "Found " << tokens.size() << " tokens\n";
 
     OrgTokenGroup target;

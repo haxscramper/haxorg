@@ -141,7 +141,8 @@
 \$                                       { /*296 */ impl.before(__LINE__); impl.add(BaseTokenKind::Dollar);  impl.after(__LINE__); }
 [\x{0256}-\x{10FFFF}]|©                  { /*297 */ impl.before(__LINE__); impl.add(BaseTokenKind::MiscUnicode);  impl.after(__LINE__); }
 <LEAD>\n                                 { /*298 */ impl.before(__LINE__); impl.add(BaseTokenKind::Newline); pop_expect(LEAD, INITIAL); impl.after(__LINE__); }
-\n                                       { /*306 */ impl.before(__LINE__); impl.add(BaseTokenKind::Newline);  impl.after(__LINE__); }  
+\n                                       { /*306 */ impl.before(__LINE__); impl.add(BaseTokenKind::Newline);  impl.after(__LINE__); }
+<<EOF>>                                  { /*308 */ impl.before(__LINE__); impl.add(BaseTokenKind::EndOfFile); return 0; impl.after(__LINE__); }  
 
 (.|\n) { impl.unknown(); }
 <COMMAND>(.|\n) { impl.unknown(); }

@@ -3,15 +3,16 @@
 import yaml
 from yaml.loader import SafeLoader
 from pydantic import BaseModel, Field
-from beartype.typing import List, Optional, Set
+from beartype.typing import List, Optional
 from beartype import beartype
 import os
 
 
 class Action(BaseModel):
     do: str
-    to: str
-    from_: str = Field(alias="from")
+    to: Optional[str] = None
+    from_: Optional[str] = Field(alias="from", default=None)
+    raw: Optional[str] = None
 
 
 class Rule(BaseModel):
@@ -93,6 +94,9 @@ def rule_to_reflex_code(rule: Rule, macros: dict[str, str]) -> str:
 
             elif action.do == "set":
                 actions.append(f"start({action.to});")
+
+            elif action.do == "raw":
+                actions.append(action.raw)
 
     actions_code = " ".join(actions)
     content = " ".join([
