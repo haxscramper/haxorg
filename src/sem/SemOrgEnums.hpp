@@ -1,5 +1,6 @@
-/* clang-format off */
 #pragma once
+
+/* clang-format off */
 #include <hstd/system/basic_templates.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Opt.hpp>

@@ -299,10 +299,10 @@ rules:
     states: [LEAD]
     token: Newline
     actions: [{ do: pop, from: LEAD, to: INITIAL }]
-  # - re: "{space}*\\n{space}*\\n({space}*\\n)+"
-  #   token: LongNewline
-  # - re: "{space}*\\n{space}*\\n"
-  #   token: MediumNewline
+  - re: "\\n{space}*\\n({space}*\\n)+"
+    token: LongNewline
+  - re: "\\n{space}*\\n"
+    token: MediumNewline
   - re: "\\n"
     token: Newline
   - re: "<<EOF>>"

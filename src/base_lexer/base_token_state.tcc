@@ -64,8 +64,10 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::LeftCurly: return "LeftCurly";
         case BaseTokenKind::LeftPar: return "LeftPar";
         case BaseTokenKind::LineCommand: return "LineCommand";
+        case BaseTokenKind::LongNewline: return "LongNewline";
         case BaseTokenKind::MacroBegin: return "MacroBegin";
         case BaseTokenKind::MacroEnd: return "MacroEnd";
+        case BaseTokenKind::MediumNewline: return "MediumNewline";
         case BaseTokenKind::Minus: return "Minus";
         case BaseTokenKind::MiscUnicode: return "MiscUnicode";
         case BaseTokenKind::Newline: return "Newline";
