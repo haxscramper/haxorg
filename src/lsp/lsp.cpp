@@ -43,53 +43,30 @@ class Session : public std::enable_shared_from_this<Session> {
     }
 
     void start_body_read(
-        std::size_t content_length,
-        std::size_t expected_content) {
-        LOG(INFO) << fmt(
-            "starting read of the body with the full size {} and missing "
-            "size {}",
-            content_length,
-            expected_content);
+        std::size_t total_body_read,
+        std::size_t expected_to_read) {
 
-        timer.expires_from_now(std::chrono::seconds(2));
-        timer.async_wait([&](const boost::system::error_code& ec) {
-            if (!ec) {
-                socket.cancel();
-                LOG(ERROR) << "Body content read timeout";
-            }
-        });
+        CHECK(streambuf.size() + expected_to_read == total_body_read)
+            << fmt("Staring body read with {} already in buffer, missing "
+                   "{} and total expected {}, mismatch is {} bytes",
+                   streambuf.size(),
+                   expected_to_read,
+                   total_body_read,
+                   int(streambuf.size()) + int(expected_to_read)
+                       - int(total_body_read));
 
         // Read the JSON body of the message
         asio::async_read(
             socket,
             streambuf,
-            [this, expected_content](
-                const boost::system::error_code& error,
-                std::size_t bytes_transferred) -> std::size_t {
-                if (error) {
-                    LOG(ERROR)
-                        << "Detected failure during stream buffer reading "
-                        << error.message();
-                    return 0;
-                } else if (bytes_transferred >= expected_content) {
-                    LOG(INFO) << "Completed the transfer";
-                    return 0;
-                } else {
-                    auto left = expected_content - bytes_transferred;
-                    LOG(INFO)
-                        << fmt("Transferred {}, {} left",
-                               bytes_transferred,
-                               left);
-                    return left;
-                }
-            },
-            [this, content_length, self = shared_from_this()](
+            asio::transfer_exactly(expected_to_read),
+            [this, total_body_read, self = shared_from_this()](
                 boost::system::error_code ec, std::size_t length) {
                 if (ec) {
                     LOG(ERROR) << "LSP request body transfer error " << ec
                                << " " << ec.message();
                 } else {
-                    self->process_body_content(content_length);
+                    self->process_body_content(total_body_read);
                 }
                 start();
             });
@@ -103,6 +80,19 @@ class Session : public std::enable_shared_from_this<Session> {
                 {"jsonrpc", "2.0"},
                 {"id", request["id"]},
                 {"result", {{"completions", {"word1", "word2"}}}}};
+        } else if (request["method"] == "initialize") {
+            return {
+                {"jsonrpc", "2.0"},
+                {"id", request["id"]},
+                {"result",
+                 {{"capabilities",
+                   {{"textDocumentSync", 1},
+                    {"completionProvider",
+                     {{"resolveProvider", false},
+                      {"triggerCharacters", {".", ":", "(", "\""}}}}}}}}};
+        } else if (request["method"] == "initialized") {
+            LOG(INFO) << "Client confirmed initialization";
+            return {};
 
         } else {
             DLOG(ERROR) << "Unknown request method" << request["method"];
@@ -114,26 +104,42 @@ class Session : public std::enable_shared_from_this<Session> {
     void process_body_content(std::size_t length) {
         std::string body;
         body.resize(length);
+
         asio::buffer_copy(
             asio::buffer(&body[0], length), streambuf.data(), length);
 
-        LOG(INFO) << fmt(
-            "Handling raw request to read content of {} chars ",
-            body.size())
-                  << body;
+        CHECK(length <= streambuf.size())
+            << "Body content processing requires stream buffer containing "
+               "at least "
+            << length << " bytes of content, but stream buffer only has "
+            << streambuf.size();
 
-        json        request     = json::parse(body);
-        json        response    = build_response(request);
-        std::string responseStr = response.dump();
-        std::string headers     = "Content-Length: "
-                            + std::to_string(responseStr.size())
-                            + "\r\n\r\n";
-        socket.send(asio::buffer(headers + responseStr));
+        CHECK(body.size() == length) //
+            << fmt("Handling raw request to read content, expected {} but "
+                   "got {}",
+                   length,
+                   body.size())
+            << body.substr(0, std::max<int>(body.length(), 250)) << ".."
+            << body.substr(std::min<int>(0, body.length() - 250));
+
+        try {
+            json        request     = json::parse(body);
+            json        response    = build_response(request);
+            std::string responseStr = response.dump();
+            std::string headers     = "Content-Length: "
+                                + std::to_string(responseStr.size())
+                                + "\r\n\r\n";
+            socket.send(asio::buffer(headers + responseStr));
+        } catch (json::parse_error& err) {
+            LOG(ERROR) << "Failed to parse content request";
+            LOG(ERROR) << body;
+            LOG(ERROR) << err.what();
+        }
     }
 
     void process_header_content(
         const boost::system::error_code& ec,
-        size_t                           length) {
+        std::size_t                      length) {
         if (ec) {
             LOG(ERROR) << "LSP request header transfer error " << ec << " "
                        << ec.message();
@@ -145,33 +151,57 @@ class Session : public std::enable_shared_from_this<Session> {
             std::string  headers;
             headers.resize(length);
             is.read(&headers[0], length);
-            std::size_t pos = headers.find("Content-Length: ");
-            if (pos == std::string::npos) {
+            std::string field     = "Content-Length: ";
+            std::size_t start_pos = headers.find(field);
+            if (start_pos == std::string::npos) {
                 DLOG(ERROR)
                     << "Missing content-length header in the input";
                 // Error: Missing Content-Length header
                 return;
-            } else {
-                LOG(INFO) << "Header content" << headers;
             }
 
-            std::size_t content_length = std::stoi(
-                headers.substr(pos + 16));
+            LOG(INFO) << "Header" << headers;
 
-            std::size_t expected_content = content_length
-                                         - (streambuf.size()
-                                            - headers.size())
-                                         - 24;
+            std::size_t num_end_pos      = headers.find("\r\n", start_pos);
+            std::size_t content_len_size = num_end_pos - field.size()
+                                         - start_pos;
+            std::string content_len_text = headers.substr(
+                start_pos + 16, content_len_size);
+
+
             LOG(INFO) << fmt(
-                "Header size is {}, buffer size {}, buffer capacity {}, "
-                "expected content size {}, with {} expected to be read",
-                headers.size(),
-                streambuf.size(),
-                streambuf.capacity(),
-                content_length,
-                expected_content);
+                "Content text length text ['{}'], start pos {} end pos {}",
+                content_len_text,
+                start_pos,
+                num_end_pos);
 
-            start_body_read(content_length, expected_content);
+            std::size_t total_body_read = std::stoi(content_len_text);
+
+            std::size_t header_end_offset = headers.find(
+                "\r\n\r\n", start_pos);
+
+            std::size_t expected_to_read = total_body_read
+                                         - streambuf.size();
+
+            std::string body{};
+            body.resize(streambuf.size());
+            asio::buffer_copy(
+                asio::buffer(&body[0], streambuf.size()),
+                streambuf.data(),
+                streambuf.size());
+
+            LOG(INFO) << body;
+
+            LOG(INFO) << fmt(
+                "Header size is {}, "
+                "expected content size {}, with {} expected to be read, "
+                "header offset is {}",
+                headers.size(),
+                total_body_read,
+                expected_to_read,
+                header_end_offset - start_pos);
+
+            start_body_read(total_body_read, expected_to_read);
         }
     }
 
