@@ -31,7 +31,6 @@ class Session : public std::enable_shared_from_this<Session> {
     void start() { start_header_read(); }
 
     void start_header_read() {
-        LOG(INFO) << "Started header reading";
         asio::async_read_until(
             socket,
             streambuf,
@@ -72,32 +71,51 @@ class Session : public std::enable_shared_from_this<Session> {
             });
     }
 
-    json build_response(const json& request) {
+    Opt<json> build_response(const json& request) {
         // Example: Check for completion request and send a
         // response
-        if (request["method"] == "textDocument/completion") {
-            return {
-                {"jsonrpc", "2.0"},
-                {"id", request["id"]},
-                {"result", {{"completions", {"word1", "word2"}}}}};
-        } else if (request["method"] == "initialize") {
-            return {
-                {"jsonrpc", "2.0"},
-                {"id", request["id"]},
-                {"result",
-                 {{"capabilities",
-                   {{"textDocumentSync", 1},
-                    {"completionProvider",
-                     {{"resolveProvider", false},
-                      {"triggerCharacters", {".", ":", "(", "\""}}}}}}}}};
-        } else if (request["method"] == "initialized") {
+        std::string method = request["method"];
+        if (method == "textDocument/completion") {
+            LOG(INFO) << "Compiletion request";
+            json result            = json::object();
+            result["isIncomplete"] = false;
+            result["items"]        = {
+                json::object({{"label", "word1"}, {"kind", 1}}),
+                json::object({{"label", "word2"}, {"kind", 1}})};
+
+            return result;
+
+        } else if (method == "initialize") {
+            return json(
+                {{"capabilities",
+                  {{"textDocumentSync", 1},
+                   {"completionProvider",
+                    {{"resolveProvider", false},
+                     {"triggerCharacters", {".", ":", "(", "\""}}}}}}});
+
+        } else if (method == "initialized") {
             LOG(INFO) << "Client confirmed initialization";
-            return {};
+            return std::nullopt;
+
+        } else if (method == "textDocument/didSave") {
+            return std::nullopt;
+
+        } else if (method == "textDocument/didChange") {
+            return std::nullopt;
+
+        } else if (method == "textDocument/didOpen") {
+            LOG(INFO) << "Opened "
+                      << request["params"]["textDocument"]["uri"];
+            return std::nullopt;
+
+        } else if (method == "shutdown") {
+            LOG(INFO) << "Client disconnected";
+            return std::nullopt;
 
         } else {
-            DLOG(ERROR) << "Unknown request method" << request["method"];
-            DLOG(ERROR) << request.dump();
-            return {};
+            LOG(ERROR) << "Unknown request method" << request["method"];
+            LOG(ERROR) << request.dump();
+            return std::nullopt;
         }
     }
 
@@ -123,13 +141,22 @@ class Session : public std::enable_shared_from_this<Session> {
             << body.substr(std::min<int>(0, body.length() - 250));
 
         try {
-            json        request     = json::parse(body);
-            json        response    = build_response(request);
-            std::string responseStr = response.dump();
-            std::string headers     = "Content-Length: "
-                                + std::to_string(responseStr.size())
-                                + "\r\n\r\n";
-            socket.send(asio::buffer(headers + responseStr));
+            json      request  = json::parse(body);
+            Opt<json> response = build_response(request);
+            if (response) {
+                json final = json::object(
+                    {{"jsonrpc", "2.0"},
+                     {"id", request["id"]},
+                     {"result", *response}});
+
+
+                std::string responseStr = final.dump();
+                LOG(INFO) << "Sending completion" << responseStr;
+                std::string headers = "Content-Length: "
+                                    + std::to_string(responseStr.size())
+                                    + "\r\n\r\n";
+                socket.send(asio::buffer(headers + responseStr));
+            }
         } catch (json::parse_error& err) {
             LOG(ERROR) << "Failed to parse content request";
             LOG(ERROR) << body;
@@ -145,7 +172,7 @@ class Session : public std::enable_shared_from_this<Session> {
                        << ec.message();
 
         } else {
-            DLOG(INFO) << "Received request to read LSP";
+            LOG(INFO) << "Received request to read LSP";
             // Extract Content-Length from headers
             std::istream is(&streambuf);
             std::string  headers;
@@ -154,13 +181,10 @@ class Session : public std::enable_shared_from_this<Session> {
             std::string field     = "Content-Length: ";
             std::size_t start_pos = headers.find(field);
             if (start_pos == std::string::npos) {
-                DLOG(ERROR)
-                    << "Missing content-length header in the input";
+                LOG(ERROR) << "Missing content-length header in the input";
                 // Error: Missing Content-Length header
                 return;
             }
-
-            LOG(INFO) << "Header" << headers;
 
             std::size_t num_end_pos      = headers.find("\r\n", start_pos);
             std::size_t content_len_size = num_end_pos - field.size()
@@ -236,7 +260,7 @@ class Server {
             LOG(INFO) << "Accepted connection and created session";
             session->start();
         } else {
-            DLOG(ERROR) << "Failed to start the session" << err.message();
+            LOG(ERROR) << "Failed to start the session" << err.message();
         }
         start_accept();
     }
@@ -273,14 +297,12 @@ int main(int argc, char* argv[]) {
     absl::log_internal::SetTimeZone(absl::LocalTimeZone());
     absl::log_internal::SetInitialized();
 
-    DLOG(INFO) << "Started LSP server";
-    try {
-        asio::io_service ios;
-        Server           s(ios, 8080);
-        ios.run();
-        LOG(INFO) << "Completed server execution";
-    } catch (std::exception& e) {
-        DLOG(ERROR) << "IO service exited with exception" << e.what();
-    }
+    LOG(INFO) << "Started LSP server";
+
+    asio::io_service ios;
+    Server           s(ios, 8080);
+    ios.run();
+    LOG(INFO) << "Completed server execution";
+
     return 0;
 }
