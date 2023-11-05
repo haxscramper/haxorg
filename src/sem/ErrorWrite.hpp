@@ -202,30 +202,30 @@ class StrCache : public Cache {
 };
 
 struct Characters {
-    char hbar;
-    char vbar;
-    char xbar;
-    char vbar_break;
-    char vbar_gap;
+    Str hbar;
+    Str vbar;
+    Str xbar;
+    Str vbar_break;
+    Str vbar_gap;
 
-    char uarrow;
-    char rarrow;
+    Str uarrow;
+    Str rarrow;
 
-    char ltop;
-    char mtop;
-    char rtop;
-    char lbot;
-    char rbot;
-    char mbot;
+    Str ltop;
+    Str mtop;
+    Str rtop;
+    Str lbot;
+    Str rbot;
+    Str mbot;
 
-    char lbox;
-    char rbox;
+    Str lbox;
+    Str rbox;
 
-    char lcross;
-    char rcross;
+    Str lcross;
+    Str rcross;
 
-    char underbar;
-    char underline;
+    Str underbar;
+    Str underline;
 };
 
 enum LabelKind

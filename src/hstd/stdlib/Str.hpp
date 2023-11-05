@@ -50,7 +50,7 @@ struct Str : public std::string {
     }
 
 
-    std::string repeated(int N) const;
+    Str repeated(int N) const;
 
     template <typename A, typename B>
     std::string_view at(CR<HSlice<A, B>> s, bool checkRange = true) {

@@ -65,7 +65,7 @@ SemId ParseUnitStore::create(
             selfIndex, parent, original, context);                        \
         CHECK(result.getKind() == kind)                                   \
             << "create node in local store"                               \
-            << to_string(result.getKind()) + " != " + to_string(kind);    \
+            << fmt1(result.getKind()) + " != " + fmt1(kind);              \
         return result;                                                    \
     }
 
@@ -73,9 +73,9 @@ SemId ParseUnitStore::create(
 #undef _case
     }
 
-    qFatal(strdup(
-        "Unhandled node kind for automatic creation $#"
-        % to_string_vec(kind)));
+    CHECK(false)
+        << ("Unhandled node kind for automatic creation $#"
+            % to_string_vec(kind));
 }
 
 #define _create(__Kind)                                                   \
@@ -93,7 +93,7 @@ EACH_SEM_ORG_KIND(_create)
 
 Org* SemId::get() {
     CHECK(!isNil());
-    Q_CHECK_PTR(context);
+    CHECK(context != nullptr);
     return context->getStoreByIndex(getStoreIndex())
         .get(getKind(), getNodeIndex());
 }

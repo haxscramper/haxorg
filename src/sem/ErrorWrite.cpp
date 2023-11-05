@@ -1,54 +1,53 @@
 #include <hstd/stdlib/sequtils.hpp>
 #include <sem/ErrorWrite.hpp>
-#include <char>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Debug.hpp>
 
 Characters unicode() {
     return Characters{
-        .hbar       = char(L'─'),
-        .vbar       = char(L'│'),
-        .xbar       = char(L'┼'),
-        .vbar_break = char(L'┆'),
-        .vbar_gap   = char(L'┆'),
-        .uarrow     = char(L'^'),
-        .rarrow     = char(L'>'),
-        .ltop       = char(L'╭'),
-        .mtop       = char(L'┬'),
-        .rtop       = char(L'╮'),
-        .lbot       = char(L'╰'),
-        .rbot       = char(L'╯'),
-        .mbot       = char(L'┴'),
-        .lbox       = char(L'['),
-        .rbox       = char(L']'),
-        .lcross     = char(L'├'),
-        .rcross     = char(L'┤'),
-        .underbar   = char(L'┬'),
-        .underline  = char(L'─'),
+        .hbar       = Str("─"),
+        .vbar       = Str("│"),
+        .xbar       = Str("┼"),
+        .vbar_break = Str("┆"),
+        .vbar_gap   = Str("┆"),
+        .uarrow     = Str("^"),
+        .rarrow     = Str(">"),
+        .ltop       = Str("╭"),
+        .mtop       = Str("┬"),
+        .rtop       = Str("╮"),
+        .lbot       = Str("╰"),
+        .rbot       = Str("╯"),
+        .mbot       = Str("┴"),
+        .lbox       = Str("["),
+        .rbox       = Str("]"),
+        .lcross     = Str("├"),
+        .rcross     = Str("┤"),
+        .underbar   = Str("┬"),
+        .underline  = Str("─"),
     };
 }
 
 Characters ascii() {
     return Characters{
-        .hbar       = '-',
-        .vbar       = '|',
-        .xbar       = '+',
-        .vbar_break = '*',
-        .vbar_gap   = ':',
-        .uarrow     = '^',
-        .rarrow     = '>',
-        .ltop       = ',',
-        .mtop       = 'v',
-        .rtop       = '.',
-        .lbot       = '`',
-        .rbot       = '\'',
-        .mbot       = '^',
-        .lbox       = '[',
-        .rbox       = ']',
-        .lcross     = '|',
-        .rcross     = '|',
-        .underbar   = '|',
-        .underline  = '^',
+        .hbar       = Str("-"),
+        .vbar       = Str("|"),
+        .xbar       = Str("+"),
+        .vbar_break = Str("*"),
+        .vbar_gap   = Str(":"),
+        .uarrow     = Str("^"),
+        .rarrow     = Str(">"),
+        .ltop       = Str(","),
+        .mtop       = Str("v"),
+        .rtop       = Str("."),
+        .lbot       = Str("`"),
+        .rbot       = Str("\'"),
+        .mbot       = Str("^"),
+        .lbox       = Str("["),
+        .rbox       = Str("]"),
+        .lcross     = Str("|"),
+        .rcross     = Str("|"),
+        .underbar   = Str("|"),
+        .underline  = Str("^"),
     };
 }
 
@@ -311,17 +310,15 @@ Pair<ColRune, ColRune> get_corner_elements(
 }
 
 void write_margin(MarginContext const& c) {
-    std::string line_no_margin;
+    Str line_no_margin;
     if (c.is_line && !c.is_ellipsis) {
         int line_no    = c.idx + 1;
-        line_no_margin = std::string(" ").repeated(
-                             c.line_no_width
-                             - std::string::number(line_no).length())
-                       + std::string::number(line_no) + " " + c.draw.vbar;
+        line_no_margin = Str(" ").repeated(
+                             c.line_no_width - fmt1(line_no).length())
+                       + Str(fmt1(line_no)) + Str(" ") + Str(c.draw.vbar);
     } else {
-        line_no_margin = std::string(" ").repeated(c.line_no_width + 1)
-                       + (c.is_ellipsis ? c.draw.vbar_gap
-                                        : c.draw.vbar_break);
+        line_no_margin = Str(" ").repeated(c.line_no_width + 1);
+        line_no_margin += (c.is_ellipsis ? c.draw.vbar_gap : c.draw.vbar_break);
     }
 
     c.w << " " << line_no_margin + c.config.margin_color
@@ -474,7 +471,7 @@ void whatever(MarginContext const& c, int row, int arrow_len) {
         std::array<ColRune, 2> ct_array;
         if (Opt<LineLabel> vbar = get_vbar(
                 col, row, c.line_labels, c.margin_label)) {
-            std::array<char, 2> ct_inner;
+            std::array<Str, 2> ct_inner;
             if (underline) {
                 if (vbar->label.span->len() <= 1 || true) {
                     ct_inner = {c.draw.underbar, c.draw.underline};
@@ -606,15 +603,14 @@ void build_line_labels(
 int get_line_no_width(Vec<SourceGroup> const& groups, Cache& cache) {
     int line_no_width = 0;
     for (const auto& group : groups) {
-        std::string src_name = cache.display(group.src_id)
-                                   .value_or("<unknown>");
+        Str src_name = cache.display(group.src_id).value_or("<unknown>");
 
         try {
             auto src = cache.fetch(group.src_id);
 
             auto line_range = src->get_line_range(
                 RangeCodeSpan(group.span));
-            int width     = std::string::number(line_range.last).size();
+            int width     = fmt1(line_range.last).size();
             line_no_width = std::max(line_no_width, width);
         } catch (const std::exception& e) {
             std::cerr << "Unable to fetch source " << src_name << ": "
@@ -764,8 +760,8 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
     // --- Header ---
 
 
-    ColStyle    kind_color;
-    std::string kindName;
+    ColStyle kind_color;
+    Str      kindName;
     switch (kind) {
         case ReportKind::Error: {
             kind_color = config.error_color;
@@ -804,7 +800,7 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
         SourceGroup const& group               = groups[group_idx];
         auto const& [src_id, Codespan, labels] = group;
 
-        std::string src_name = cache.display(src_id).value_or("<unknown>");
+        Str src_name = cache.display(src_id).value_or("<unknown>");
 
         std::shared_ptr<Source> src;
         try {
@@ -815,7 +811,7 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
             continue;
         }
 
-        w << std::string(" ").repeated(line_no_width + 2) //
+        w << Str(" ").repeated(line_no_width + 2) //
           << (group_idx == 0 ? ColRune(draw.ltop) : ColRune(draw.lcross))
                  + config.margin_color                //
           << ColRune(draw.hbar) + config.margin_color //
@@ -840,7 +836,7 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
         w << ColRune(draw.rbox) + config.margin_color << "\n";
 
         if (!config.compact) {
-            w << std::string(" ").repeated(line_no_width + 2)
+            w << Str(" ").repeated(line_no_width + 2)
               << ColRune(draw.vbar) + config.margin_color << "\n";
         }
 
@@ -930,7 +926,7 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
 
                     auto [wc, width] = config.char_width(c, col);
 
-                    if (c.isSpace()) {
+                    if (c == ' ' || c == '\t') {
                         for (int i = 0; i < width; ++i) {
                             w << ColRune(wc, color);
                         }
@@ -1014,16 +1010,16 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
         // Tail of report
         if (!config.compact) {
             if (is_final_group) {
-                w << std::string(draw.hbar).repeated(line_no_width + 2)
+                w << Str(draw.hbar).repeated(line_no_width + 2)
                   << draw.rbot << "\n";
             } else {
-                w << std::string(" ").repeated(line_no_width + 2)
-                  << draw.vbar << "\n";
+                w << Str(" ").repeated(line_no_width + 2) << draw.vbar
+                  << "\n";
             }
         }
     }
 
-    DLOG(INFO) << w.getBuffer();
+    DLOG(INFO) << w.getBuffer().toString();
 }
 
 std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
@@ -1063,7 +1059,7 @@ std::pair<char, int> Config::char_width(char c, int col) const {
         // Find the column that the tab should end at
         int tab_end = (col / tab_width + 1) * tab_width;
         return std::make_pair(' ', tab_end - col);
-    } else if (c.isSpace()) {
+    } else if (c == ' ') {
         return std::make_pair(' ', 1);
     } else {
         // Assuming you have a function called 'width()' to get the

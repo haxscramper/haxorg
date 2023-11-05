@@ -74,7 +74,7 @@ Vec<Str> Str::split(const Str& delimiter) const {
     return tokens;
 }
 
-std::string Str::repeated(int N) const {
+Str Str::repeated(int N) const {
     Str result;
     result.reserve(size() * N);
     for (int i = 0; i < N; ++i) {

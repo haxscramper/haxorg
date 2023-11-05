@@ -161,9 +161,9 @@ std::string to_colored_string(
 /// performance. The API must stay the same in any case, so improved
 /// version can be implemented in the future.
 struct ColRune {
-    char     rune  = char(L' ');
+    Str      rune  = " ";
     ColStyle style = ColStyle{};
-    inline ColRune(char rune = ' ', CR<ColStyle> style = ColStyle{})
+    inline ColRune(Str rune = " ", CR<ColStyle> style = ColStyle{})
         : rune(rune), style(style) {}
 
     ColRune operator+(ColStyle const& other) const {
@@ -183,7 +183,7 @@ struct ColText : Vec<ColRune> {
     using Base = Vec<ColRune>;
     using Base::append;
 
-    std::string toString(bool colored = true) {
+    std::string toString(bool colored = true) const {
         return to_colored_string(*this, colored);
     }
 
