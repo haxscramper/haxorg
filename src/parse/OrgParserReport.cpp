@@ -62,12 +62,15 @@ void OrgParser::report(CR<Report> in) {
 
     ColStream os = getStream();
     os << repeat("  ", depth);
+    auto print_token = [](ColStream& os, OrgToken const& t) {
+        os << escape_for_write(t->getText());
+    };
 
     auto printTokens = [&]() {
         if (in.lex != nullptr) {
             os << " [";
             OrgLexer::PrintParams params;
-            // in.lex->print(os, params);
+            in.lex->print(os, print_token, params);
             os << "]";
         }
     };
@@ -93,7 +96,7 @@ void OrgParser::report(CR<Report> in) {
 
         case ReportKind::Print: {
             os << std::format(
-                "  {} {}:{}", in.line, getLoc(), in.subname.value());
+                "  {} {}:{} ", in.line, getLoc(), in.subname.value());
             printTokens();
             break;
         }
@@ -136,7 +139,7 @@ void OrgParser::report(CR<Report> in) {
         case ReportKind::EnterParse:
         case ReportKind::LeaveParse: {
             os << std::format(
-                "{} ~ {}",
+                "{} ~ {} ",
                 in.kind == ReportKind::EnterParse ? "> " : "< ",
                 treeDepth())
                << fg::Green << fmt1(in.name.value()) << os.end() << ":"

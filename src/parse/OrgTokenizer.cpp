@@ -102,7 +102,7 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
                     pop();
                 }
 
-                pop_as(otk::Newline);
+                pop_as(otk::SkipNewline);
                 break;
             }
             case obt::BraceOpen: {

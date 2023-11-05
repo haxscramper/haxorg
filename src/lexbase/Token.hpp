@@ -261,7 +261,7 @@ struct LexerCommon {
             if (pos.isNil()) {
                 os << "#" << os.red() << "nil" << os.end();
             } else {
-                os << "#" << pos.getIndex() << "/" << in->size();
+                os << fmt("#{}/{}", pos.getIndex(), in->size());
             }
         }
 

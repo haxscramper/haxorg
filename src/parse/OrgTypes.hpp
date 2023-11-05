@@ -34,7 +34,10 @@ struct std::formatter<OrgSpecName> : std::formatter<std::string> {
 
 struct OrgFill {
     Opt<BaseFill> base;
-    Str           getText() const { return base.value().text; }
+    Str           getText() const { return base ? base.value().text : ""; }
+    bool          isEmpty() const { return !base.has_value(); }
+    int           getLine() const { return base ? base->line : -1; }
+    int           getCol() const { return base ? base->col : -1; }
 };
 
 template <>
@@ -43,17 +46,17 @@ struct std::formatter<OrgFill> : std::formatter<std::string> {
     FormatContext::iterator format(OrgFill const& p, FormatContext& ctx)
         const {
         std::formatter<std::string> fmt;
-        if (p.base) {
+        if (p.isEmpty()) {
+            return fmt.format("<none>", ctx);
+        } else {
             return fmt.format(
                 std::format(
                     "{}:{}:{}",
-                    p.base->line,
-                    p.base->col,
+                    p.getLine(),
+                    p.getCol(),
                     escape_for_write(p.base->text.substr(
-                        std::min<int>(120, p.base->text.size() - 1)))),
+                        std::min<int>(120, p.getText().size() - 1)))),
                 ctx);
-        } else {
-            return fmt.format("<none>", ctx);
         }
     }
 };
