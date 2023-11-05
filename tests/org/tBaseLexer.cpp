@@ -63,7 +63,11 @@ TEST(BaseLexTest, WriteOut) {
         file << to_compact_json(json::object({{"tokens", out}}))
              << std::endl;
     }
+    OrgNodeGroup nodes{&target};
     {
-        OrgParser parser;
+        OrgParser                    parser{&nodes};
+        Lexer<OrgTokenKind, OrgFill> lex{&target};
+        parser.setTraceFile("/tmp/parse_trace.txt");
+        parser.parseFull(lex);
     }
 }

@@ -2101,7 +2101,7 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
                            "range (index is $#, group size is $#), "
                            "subnode index is $#, size overflow is $#",
                            start.getUnmasked(),
-                           with_std_formatter(extent),
+                           extent,
                            id.getUnmasked(),
                            id.getIndex(),
                            g.size(),

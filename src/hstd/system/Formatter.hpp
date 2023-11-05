@@ -6,7 +6,7 @@ template <typename T, typename CharT>
 using Fmt = std::formatter<T, CharT>;
 
 template <typename T>
-std::string with_std_formatter(T const& value) {
+void with_std_formatter(T const& value) {
     if (false) {
         std::format_context*     ctx;
         std::formatter<T> const* fmt;
