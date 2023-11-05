@@ -63,7 +63,7 @@ struct std::formatter<NodeId<N, K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
         const NodeId<N, K, V>& p,
-        FormatContext&         ctx) {
+        FormatContext&         ctx) const {
         std::formatter<std::string> fmt;
         return fmt.format(
             p.format(
@@ -366,7 +366,7 @@ struct NodeAdapter {
         return group == nullptr && id == NodeId<N, K, V>::Nil();
     }
 
-    V const& val() const { return group->strVal(id); }
+    V const& val() const { return group->val(id); }
     N        kind() const { return group->at(id).kind; }
 
     CR<Node<N, K, V>> get() const { return group->at(id); }

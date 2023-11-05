@@ -310,7 +310,7 @@ Opt<Property> Subtree::getProperty(Property::Kind kind, CR<Str> subkind)
     }
 }
 
-bool Subtree::Property::matches(Kind kind, CR<Str> subkind) const {
+bool Subtree::Property::matches(Kind kind, CR<std::string> subkind) const {
     if (getKind() == kind) {
         return true;
     } else if (
@@ -370,8 +370,8 @@ Opt<SemIdT<Subtree>> Document::getSubtree(CR<Str> id) const {
 }
 
 Opt<SemId> Document::resolve(CR<SemId> node) const {
-    Q_CHECK_PTR(node);
-    Q_CHECK_PTR(this);
+    CHECK(!node.isNil());
+    CHECK(this != nullptr);
     switch (node->getKind()) {
         case osk::Link: return node.as<Link>()->resolve(*this);
         default: return std::nullopt;
@@ -454,4 +454,3 @@ Opt<SemIdT<CmdArgument>> CmdArguments::popArg(Str key) {
         return std::nullopt;
     }
 }
-

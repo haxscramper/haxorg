@@ -12,6 +12,7 @@
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Set.hpp>
+#include <hstd/system/Formatter.hpp>
 
 #include <unordered_set>
 #include <unordered_map>
@@ -50,11 +51,11 @@ Str toPath(const N& ast, const Vec<int>& path) {
     Func<Vec<Str>(N const&, Span<const int> const&)> aux;
     aux = [&aux](const N& a, const Span<const int>& path) {
         Vec<Str> result;
-        result.push_back(to_string(a.getKind()));
+        result.push_back(fmt1(a.getKind()));
         if (1 < path.size()) {
             result.append(aux(a[path[0]], path[slice(1, 1_B)]));
         } else if (path.size() == 1) {
-            result.push_back("[" + to_string(path[0]) + "]");
+            result.push_back("[" + fmt1(path[0]) + "]");
         }
         return result;
     };
@@ -149,24 +150,51 @@ struct AstRange {
         return slice.has_value() && slice->contains(idx);
     }
 };
+} // namespace astspec
 
 
 template <typename Name>
-inline std::ostream& operator<<(
-    std::ostream&         os,
-    AstRange<Name> const& arange) {
-    switch (arange.kind) {
-        case AstRangeKind::Point: return os << arange.idx;
-        case AstRangeKind::InversePoint: return os << "^" << arange.idx;
-        case AstRangeKind::DirectSlice:
-            return os << arange.first << ".." << arange.last;
-        case AstRangeKind::InverseSlice:
-            return os << "^" << arange.first << "..^" << arange.last;
-        case AstRangeKind::MixedSlice:
-            return os << arange.first << "..^" << arange.last;
+struct std::formatter<astspec::AstRange<Name>>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        astspec::AstRange<Name> const& p,
+        FormatContext&                 ctx) const {
+        switch (p.kind) {
+            case astspec::AstRangeKind::Point: {
+                fmt_ctx(p.idx, ctx);
+                break;
+            }
+            case astspec::AstRangeKind::InversePoint: {
+                fmt_ctx("^", ctx);
+                fmt_ctx(p.idx, ctx);
+                break;
+            }
+            case astspec::AstRangeKind::DirectSlice: {
+                fmt_ctx(p.first, ctx);
+                fmt_ctx("..", ctx);
+                fmt_ctx(p.last, ctx);
+                break;
+            }
+            case astspec::AstRangeKind::InverseSlice: {
+                fmt_ctx("^", ctx);
+                fmt_ctx(p.first, ctx);
+                fmt_ctx("..^", ctx);
+                fmt_ctx(p.last, ctx);
+                break;
+            }
+            case astspec::AstRangeKind::MixedSlice: {
+                fmt_ctx(p.first, ctx);
+                fmt_ctx("..^", ctx);
+                fmt_ctx(p.last, ctx);
+                break;
+            }
+        }
+        return ctx.out();
     }
-}
+};
 
+namespace astspec {
 
 template <typename Node, typename Kind, typename Name>
 struct AstCheckFail {
@@ -235,8 +263,7 @@ struct AstCheckFail {
                         // }
 
                         if (fail.got.has_value()) {
-                            s << ", but got "
-                              << to_string(fail.got.value());
+                            s << ", but got " << fmt1(fail.got.value());
                         }
                     }
                 } else if (fail.isMissing) {
@@ -253,7 +280,7 @@ struct AstCheckFail {
                       << toPath(node, fail.path) << s.end();
                 } else {
                     s << " for subnode of " << fg::Green
-                      << to_string(fail.parent) << s.end();
+                      << fmt1(fail.parent) << s.end();
                 }
 
                 if (!fail.range.fieldDoc.empty()) {
@@ -546,7 +573,7 @@ struct AstSpec {
                     "and '$#' had ast ranges specified as '$#' and '$#' "
                     "respectively which resolved to $# and $# for node of "
                     "size $# kind $#"
-                    % to_string_vec(
+                    % fmt1_vec(
                         lhs->first,
                         rhs->first,
                         nodeRanges.at(kind).at(lhs->first),
@@ -554,7 +581,7 @@ struct AstSpec {
                         lhs->second,
                         rhs->second,
                         size,
-                        to_string(kind)));
+                        fmt1(kind)));
             }
         }
 
@@ -626,7 +653,7 @@ struct AstSpec {
             }
 
             if (!p.expected.empty()) {
-                s << to_string(p.expected);
+                s << fmt1(p.expected);
             }
 
             for (const auto [idx, arange] : enumerate(p.ranges)) {
@@ -647,7 +674,7 @@ struct AstSpec {
 
         for (const auto [kind, pattern] : spec.pairs()) {
             if (pattern->has_value()) {
-                s << to_string(kind) << "\n";
+                s << fmt1(kind) << "\n";
                 aux(pattern->value(), 1);
                 s << "\n";
             }
@@ -674,7 +701,7 @@ struct AstSpec {
             } else {
                 throw UnexpectedKindError(
                     "Cannot get single subnode index for element "
-                    + to_string(name) + " of node kind " + to_string(kind)
+                    + fmt1(name) + " of node kind " + fmt1(kind)
                     + " - field exists, but allowed AST range is of kind "
                     + enum_serde<AstRangeKind>::to_string(range.kind)
                     + " and requires node length, but it "
@@ -707,10 +734,10 @@ struct AstSpec {
         return FieldAccessError(std::format(
             "Range {} for node kind {} was resolved into slice {} "
             "(required ast range is {})",
-            name,
-            kind,
-            slice,
-            range));
+            fmt1(name),
+            fmt1(kind),
+            fmt1(slice),
+            fmt1(range)));
     }
 
     FieldAccessError makeMissingPositional(Kind kind, CR<Name> name)
@@ -721,15 +748,15 @@ struct AstSpec {
         } else {
             Vec<Str> tmp;
             for (const auto& key : nodeRanges.at(kind).keys()) {
-                tmp.push_back(to_string(key));
+                tmp.push_back(fmt1(key));
             }
 
             names = "Available names: " + join(", ", tmp);
         }
 
         return FieldAccessError(
-            "Cannot get positional node with name '" + to_string(name)
-            + "' from node of kind '" + to_string(kind) + "'. "
+            "Cannot get positional node with name '" + fmt1(name)
+            + "' from node of kind '" + fmt1(kind) + "'. "
             + names.toBase());
     }
 

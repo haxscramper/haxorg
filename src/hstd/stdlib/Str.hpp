@@ -44,6 +44,10 @@ struct Str : public std::string {
     float    toDouble() const { return std::stod(*this); }
     int      toInt() const { return std::stoi(*this); }
     void     append(Str const& str) { std::string::append(str.toBase()); }
+    bool contains(char ch) const { return find(ch) != std::string::npos; }
+    bool contains(Str const& ch) const {
+        return find(ch) != std::string::npos;
+    }
 
 
     std::string repeated(int N) const;

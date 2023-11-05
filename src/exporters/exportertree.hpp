@@ -39,7 +39,9 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     };
 
     static void treeRepr(sem::SemId org);
-    static void treeRepr(sem::SemId org, const std::filesystem::__cxx11::path &path);
+    static void treeRepr(
+        sem::SemId                            org,
+        const std::filesystem::__cxx11::path& path);
     static void treeRepr(sem::SemId org, CR<TreeReprConf> conf);
 
     struct TreeReprCtx {
@@ -61,7 +63,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     void pushVisit(int&, sem::SemId org) { pushIndent(); }
     void popVisit(int&, sem::SemId org) { popIndent(); }
     void visitDispatchHook(int&, sem::SemId org) { init(org); }
-    void indent() { os << std::string("  ").repeated(stack.back().level); }
+    void indent() { os << Str("  ").repeated(stack.back().level); }
 
     struct ScopedField {
         ExporterTree* exp;

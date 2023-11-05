@@ -1,7 +1,6 @@
 #include <sem/SemConvert.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <parse/OrgSpec.hpp>
-#include <QDateTime>
 
 #include <hstd/stdlib/Debug.hpp>
 
@@ -9,12 +8,7 @@
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <hstd/wrappers/perfetto_aux.hpp>
 #include <exporters/exportertree.hpp>
-
-#ifdef USE_PERFETTO
-#    define __perf_trace(name) TRACE_EVENT("convert", name);
-#else
-#    define __perf_trace(a)
-#endif
+#include <absl/log/log.h>
 
 #define __INIT_REPORT(__subname, __node)                                  \
     (Report{                                                              \
@@ -152,13 +146,13 @@ OrgBigIdentKind parseBigIdent(std::string const& id) {
     } else if (id == "PARTIALLY") {
         return K::Partially;
     } else {
-        qWarning() << "Unexpected value to parse big ident" << id;
+        LOG(WARNING) << "Unexpected value to parse big ident" << id;
         return K::Done;
     }
 }
 
 SemIdT<Table> OrgConverter::convertTable(__args) {
-    __perf_trace("convertTable");
+    __perf_trace("convert", "convertTable");
     __trace();
     auto result = Sem<Table>(p, a);
 
@@ -167,15 +161,16 @@ SemIdT<Table> OrgConverter::convertTable(__args) {
 
 
 SemIdT<HashTag> OrgConverter::convertHashTag(__args) {
-    __perf_trace("convertHashTag");
+    __perf_trace("convert", "convertHashTag");
     __trace();
     auto                              result = Sem<HashTag>(p, a);
     Func<SemIdT<HashTag>(OrgAdapter)> aux;
-    result->head = strip(a.at(0).strVal(), CharSet{'#'}, CharSet{});
+    result->head = strip(a.at(0).val().getText(), CharSet{'#'}, CharSet{});
 
     aux = [p, &aux, this](OrgAdapter a) -> SemIdT<HashTag> {
         SemIdT<HashTag> result = Sem<HashTag>(p, a);
-        result->head = strip(a.at(0).strVal(), CharSet{'#'}, CharSet{});
+        result->head           = strip(
+            a.at(0).val().getText(), CharSet{'#'}, CharSet{});
         if (1 < a.size()) {
             for (auto& node : a.at(slice(1, 1_B))) {
                 result->subtags.push_back(aux(node));
@@ -194,7 +189,7 @@ SemIdT<HashTag> OrgConverter::convertHashTag(__args) {
 };
 
 SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
-    __perf_trace("convertHashTag");
+    __perf_trace("convert", "convertHashTag");
     auto log = Sem<SubtreeLog>(p, a);
 
     using Entry = SubtreeLog::LogEntry;
@@ -207,7 +202,7 @@ SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             case org::LogbookTagChange: {
                 Log::Tag tag;
                 tag.tag   = convertHashTag(log, one(head, N::Tag));
-                tag.added = one(head, N::State).strVal() == "Added";
+                tag.added = one(head, N::State).val().getText() == "Added";
                 tag.on    = convertTime(log, one(head, N::Time));
 
                 log->log = Entry(tag);
@@ -227,8 +222,9 @@ SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
                 Log::State state{};
 
                 state.from = parseBigIdent(
-                    one(head, N::Oldstate).strVal());
-                state.to = parseBigIdent(one(head, N::Newstate).strVal());
+                    one(head, N::Oldstate).val().getText());
+                state.to = parseBigIdent(
+                    one(head, N::Newstate).val().getText());
                 state.on = convertTime(log, one(head, N::Time));
 
                 log->log = Entry(state);
@@ -246,10 +242,10 @@ SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             }
 
             default: {
-                DLOG(INFO) << "Unexpected incoming tree kind for subtree "
-                              "converter"
-                           << head.kind();
-                DLOG(INFO).noquote() << head.treeRepr();
+                LOG(INFO) << "Unexpected incoming tree kind for subtree "
+                             "converter"
+                          << fmt1(head.kind());
+                LOG(INFO) << head.treeRepr();
             }
         }
 
@@ -277,7 +273,7 @@ SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
 }
 
 void OrgConverter::convertSubtreeDrawer(SemIdT<Subtree>& tree, In a) {
-    __perf_trace("convertSubtreeDrawer");
+    __perf_trace("convert", "convertSubtreeDrawer");
     __trace();
     if (a.kind() != org::Empty) {
         for (const auto& group : a) {
@@ -307,17 +303,17 @@ void OrgConverter::convertSubtreeDrawer(SemIdT<Subtree>& tree, In a) {
 }
 
 void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
-    __perf_trace("convertPropertyList");
+    __perf_trace("convert", "convertPropertyList");
     __trace();
 
-    std::string name = normalize(
-        strip(one(a, N::Name).strVal(), CharSet{':'}, CharSet{':'}));
+    std::string   name = normalize(strip(
+        one(a, N::Name).val().getText(), CharSet{':'}, CharSet{':'}));
     Opt<Property> result;
     if (name == "exportoptions") {
         Property::ExportOptions res;
-        res.backend = one(a, N::Subname).strVal();
-        for (std::string const& pair :
-             one(a, N::Values).strVal().split(' ')) {
+        res.backend = one(a, N::Subname).val().getText();
+        for (Str const& pair :
+             one(a, N::Values).val().getText().split(' ')) {
             auto kv           = pair.split(':');
             res.values[kv[0]] = kv[1];
         }
@@ -325,7 +321,7 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
         result = Property(res);
 
     } else if (name == "id") {
-        tree->treeId = one(a, N::Values).strVal();
+        tree->treeId = one(a, N::Values).val().getText();
 
     } else if (name == "created") {
         Property::Created created;
@@ -334,13 +330,13 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
 
     } else if (name == "origin") {
         Property::Origin origin;
-        origin.text = one(a, N::Values).strVal();
+        origin.text = one(a, N::Values).val().getText();
         result      = Property(origin);
 
     } else if (name == "visibility") {
         if (auto visibility = parseOrgEnum<
                 sem::Subtree::Property::Visibility::Level>(
-                one(a, N::Values).strVal());
+                one(a, N::Values).val().getText());
             visibility) {
             Property::Visibility prop;
             prop.level = visibility.value();
@@ -348,13 +344,13 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
         }
 
     } else if (name == "effort") {
-        std::string const& value    = one(a, N::Values).strVal();
-        auto               duration = value.split(":");
-        Property::Effort   prop;
+        Str const&       value    = one(a, N::Values).val().getText();
+        Vec<Str>         duration = value.split(":");
+        Property::Effort prop;
 
-        if (duration.length() == 1) {
+        if (duration.size() == 1) {
             prop.minutes = duration[0].toInt();
-        } else if (duration.length() == 2) {
+        } else if (duration.size() == 2) {
             prop.minutes = duration[0].toInt();
             prop.hours   = duration[1].toInt();
         }
@@ -362,26 +358,26 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
         result = Property(prop);
 
     } else {
-        qCritical().noquote() << "Unknown property name" << name << "\n"
-                              << a.treeRepr();
+        LOG(ERROR) << "Unknown property name" << name << "\n"
+                   << a.treeRepr();
     }
 
     if (result) {
-        const auto inh = one(a, N::InheritanceMode).strVal();
+        const auto inh = one(a, N::InheritanceMode).val().getText();
         if (inh == "!!") {
             result->inheritanceMode = Property::InheritanceMode::OnlyThis;
         } else if (inh == "!") {
             result->inheritanceMode = Property::InheritanceMode::OnlySub;
         }
 
-        const auto sub = one(a, N::SubSetRule).strVal();
+        const auto sub = one(a, N::SubSetRule).val().getText();
         if (sub == "+") {
             result->subSetRule = Property::SetMode::Add;
         } else if (sub == "-") {
             result->subSetRule = Property::SetMode::Subtract;
         }
 
-        const auto main = one(a, N::MainSetRule).strVal();
+        const auto main = one(a, N::MainSetRule).val().getText();
         if (main == "+") {
             result->subSetRule = Property::SetMode::Add;
         } else if (main == "-") {
@@ -393,11 +389,11 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
 }
 
 SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
-    __perf_trace("convertSubtree");
+    __perf_trace("convert", "convertSubtree");
     __trace();
     auto tree = Sem<Subtree>(p, a);
 
-    tree->level = one(a, N::Prefix).strVal().size();
+    tree->level = one(a, N::Prefix).val().getText().size();
 
     {
         __field(N::Title);
@@ -432,19 +428,18 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
 }
 
 SemIdT<Time> OrgConverter::convertTime(__args) {
-    __perf_trace("convertTime");
+    __perf_trace("convert", "convertTime");
     __trace();
 
-    CHECK(
-        ((OrgSet{
-              org::DynamicActiveTime,
-              org::DynamicInactiveTime,
-              org::StaticActiveTime,
-              org::StaticInactiveTime,
-          })
-             .contains(a.kind())) <<
-        "convert subtree" <<
-        to_string(a.kind());
+    bool cond = OrgSet{
+                      org::DynamicActiveTime,
+                      org::DynamicInactiveTime,
+                      org::StaticActiveTime,
+                      org::StaticInactiveTime,
+                  }
+                     .contains(a.kind());
+
+    CHECK(cond) << "convert subtree" << fmt1(a.kind());
 
     auto time      = Sem<Time>(p, a);
     time->isActive = (a.kind() == org::DynamicActiveTime)
@@ -452,22 +447,22 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
 
     if (a.kind() == org::DynamicInactiveTime
         || a.kind() == org::DynamicActiveTime) {
-        time->time = Time::Dynamic{.expr = a.strVal()};
+        time->time = Time::Dynamic{.expr = a.val().getText()};
     } else if (
         a.kind() == org::StaticActiveTime
         || a.kind() == org::StaticInactiveTime) {
-        Str repeat      = one(a, N::Repeater).strVal();
+        Str repeat      = one(a, N::Repeater).val().getText();
         using Mode      = Time::Repeat::Mode;
         Mode repeatMode = Mode::None;
 
         if (0 < repeat.size()) {
-            if (repeat.startsWith("++")) {
+            if (repeat.starts_with("++")) {
                 repeatMode = Mode::FirstMatch;
                 repeat     = repeat.dropPrefix("++");
-            } else if (repeat.startsWith(".+")) {
+            } else if (repeat.starts_with(".+")) {
                 repeatMode = Mode::SameDay;
                 repeat     = repeat.dropPrefix(".+");
-            } else if (repeat.startsWith("+")) {
+            } else if (repeat.starts_with("+")) {
                 repeatMode = Mode::Exact;
                 repeat     = repeat.dropPrefix("+");
             }
@@ -475,20 +470,19 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
 
         std::string datetime;
         if (one(a, N::Year).kind() != org::Empty) {
-            datetime += one(a, N::Year).strVal();
+            datetime += one(a, N::Year).val().getText();
         }
 
         if (one(a, N::Clock).kind() != org::Empty) {
-            if (!datetime.isEmpty()) {
+            if (!datetime.empty()) {
                 datetime += " ";
             }
-            datetime += one(a, N::Clock).strVal();
+            datetime += one(a, N::Clock).val().getText();
         }
 
         struct Spec {
-            std::string pattern;
-            bool        useTime = true;
-            bool        useDate = true;
+            std::string         pattern;
+            UserTime::Alignment align = UserTime::Alignment::Second;
         };
 
         Vec<Spec> formats = {
@@ -497,32 +491,38 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
             Spec{.pattern = "dd-MM-yyyy HH:mm:ss"},
             Spec{.pattern = "dd/MM/yyyy HH:mm:ss"},
             Spec{.pattern = "yyyy-MM-dd HH:mm"},
-            Spec{.pattern = "HH:mm", .useDate = false},
-            Spec{.pattern = "yyyy-MM-dd", .useTime = false},
+            Spec{
+                .pattern = "yyyy-MM-dd",
+                .align   = UserTime::Alignment::Day},
             // Add other formats as needed
         };
 
-        QDateTime parsedDateTime;
-        Spec      matching;
+        absl::Time parsedDateTime;
+        bool       foundTime = false;
+        Spec       matching;
         for (const auto& format : formats) {
-            parsedDateTime = QDateTime::fromString(
-                datetime, format.pattern);
-            if (parsedDateTime.isValid()) {
-                matching = format;
+            std::string error;
+            if (absl::ParseTime(
+                    datetime,
+                    format.pattern,
+                    absl::TimeZone(),
+                    &parsedDateTime,
+                    &error)) {
+                matching  = format;
+                foundTime = true;
                 break;
             }
         }
 
-        if (!parsedDateTime.isValid()) {
+        if (!foundTime) {
             // TODO implement proper, non-fatal error reporting
-            qFatal(strdup(
-                "Could not parse date time entry in format: $# at $#"
-                % to_string_vec(datetime, getLocMsg(a))));
+            LOG(ERROR)
+                << ("Could not parse date time entry in format: $# at $#"
+                    % to_string_vec(datetime, getLocMsg(a)));
         }
 
         time->time = Time::Static{
-            .time = UserTime(
-                parsedDateTime, matching.useDate, matching.useTime)};
+            .time = UserTime{parsedDateTime, .align = matching.align}};
 
         if (repeatMode != Mode::None) {
             time->getStatic().repeat = Time::Repeat{
@@ -536,7 +536,7 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
 }
 
 SemIdT<TimeRange> OrgConverter::convertTimeRange(__args) {
-    __perf_trace("convertTimeRange");
+    __perf_trace("convert", "convertTimeRange");
     __trace();
     auto range = Sem<TimeRange>(p, a);
     {
@@ -551,7 +551,7 @@ SemIdT<TimeRange> OrgConverter::convertTimeRange(__args) {
 }
 
 SemIdT<Macro> OrgConverter::convertMacro(__args) {
-    __perf_trace("convertMacro");
+    __perf_trace("convert", "convertMacro");
     __trace();
     auto macro = Sem<Macro>(p, a);
 
@@ -560,18 +560,18 @@ SemIdT<Macro> OrgConverter::convertMacro(__args) {
 }
 
 SemIdT<Symbol> OrgConverter::convertSymbol(__args) {
-    __perf_trace("convertSymbol");
+    __perf_trace("convert", "convertSymbol");
     __trace();
     auto sym = Sem<Symbol>(p, a);
 
     int idx = 0;
     for (const auto& sub : a) {
         if (idx == 0) {
-            sym->name = sub.strVal();
+            sym->name = sub.val().getText();
         } else if (sub.kind() == org::RawText) {
-            auto params = sub.strVal().split(" ");
+            auto params = sub.val().getText().split(" ");
             for (int i = 0; i < params.size();) {
-                if (params.at(i).startsWith(":")
+                if (params.at(i).starts_with(":")
                     && (i + 1) < params.size()) {
                     sym->parameters.push_back(Symbol::Param{
                         .key = params.at(i), .value = params.at(i + 1)});
@@ -595,7 +595,7 @@ SemIdT<Paragraph> OrgConverter::convertParagraph(__args) {
     // information about this -- right now `NOTE:` is represented using
     // first two starting elements for paragraph subnodes.
 
-    __perf_trace("convertParagraph");
+    __perf_trace("convert", "convertParagraph");
     __trace();
     auto par   = Sem<Paragraph>(p, a);
     bool first = true;
@@ -612,7 +612,7 @@ SemIdT<Paragraph> OrgConverter::convertParagraph(__args) {
 }
 
 SemIdT<StmtList> OrgConverter::convertStmtList(__args) {
-    __perf_trace("convertStmtList");
+    __perf_trace("convert", "convertStmtList");
     __trace();
     auto stmt = Sem<StmtList>(p, a);
 
@@ -625,7 +625,7 @@ SemIdT<StmtList> OrgConverter::convertStmtList(__args) {
 
 
 SemIdT<Footnote> OrgConverter::convertFootnote(__args) {
-    __perf_trace("convertLink");
+    __perf_trace("convert", "convertLink");
     __trace();
     if (a.kind() == org::InlineFootnote) {
         auto note        = Sem<Footnote>(p, a);
@@ -634,9 +634,9 @@ SemIdT<Footnote> OrgConverter::convertFootnote(__args) {
     } else {
         auto link = Sem<Footnote>(p, a);
         if (a.size() == 1) {
-            link->tag = a[0].strVal();
+            link->tag = a[0].val().getText();
         } else {
-            qFatal("TODO");
+            CHECK(false) << ("TODO");
         }
 
         return link;
@@ -644,32 +644,35 @@ SemIdT<Footnote> OrgConverter::convertFootnote(__args) {
 }
 
 SemIdT<Link> OrgConverter::convertLink(__args) {
-    __perf_trace("convertLink");
+    __perf_trace("convert", "convertLink");
     __trace();
     auto link = Sem<Link>(p, a);
     if (a.kind() == org::RawLink) {
-        link->data = Link::Raw{.text = a.strVal()};
+        link->data = Link::Raw{.text = a.val().getText()};
 
     } else if (a.kind() == org::Footnote) {
-        link->data = Link::Footnote{.target = one(a, N::Name).strVal()};
+        link->data = Link::Footnote{
+            .target = one(a, N::Name).val().getText()};
 
     } else {
-        Str protocol = normalize(one(a, N::Protocol).strVal());
+        Str protocol = normalize(one(a, N::Protocol).val().getText());
         if (protocol == "") {
-            link->data = Link::Raw{.text = one(a, N::Link).strVal()};
+            link->data = Link::Raw{
+                .text = one(a, N::Link).val().getText()};
         } else if (protocol == "id") {
-            link->data = Link::Id{.text = one(a, N::Link).strVal()};
+            link->data = Link::Id{.text = one(a, N::Link).val().getText()};
 
         } else if (protocol == "person") {
-            link->data = Link::Person{.name = one(a, N::Link).strVal()};
+            link->data = Link::Person{
+                .name = one(a, N::Link).val().getText()};
 
         } else if (protocol == "file") {
-            link->data = Link::File{.file = one(a, N::Link).strVal()};
+            link->data = Link::File{
+                .file = one(a, N::Link).val().getText()};
 
         } else {
-            qCritical().noquote()
-                << "Unhandled protocol kind" << protocol << "\n"
-                << a.treeRepr();
+            LOG(ERROR) << "Unhandled protocol kind" << protocol << "\n"
+                       << a.treeRepr();
         }
     }
 
@@ -684,7 +687,7 @@ SemIdT<Link> OrgConverter::convertLink(__args) {
 }
 
 SemIdT<List> OrgConverter::convertList(__args) {
-    __perf_trace("convertList");
+    __perf_trace("convert", "convertList");
     __trace();
     auto list = Sem<List>(p, a);
     for (const auto& it : a) {
@@ -695,7 +698,7 @@ SemIdT<List> OrgConverter::convertList(__args) {
 }
 
 SemIdT<ListItem> OrgConverter::convertListItem(__args) {
-    __perf_trace("convertListItem");
+    __perf_trace("convert", "convertListItem");
     __trace();
     auto item = Sem<ListItem>(p, a);
     if (one(a, N::Header).kind() != org::Empty) {
@@ -714,7 +717,7 @@ SemIdT<ListItem> OrgConverter::convertListItem(__args) {
 }
 
 SemIdT<Caption> OrgConverter::convertCaption(__args) {
-    __perf_trace("convertCaption");
+    __perf_trace("convert", "convertCaption");
     __trace();
     auto caption  = Sem<Caption>(p, a);
     caption->text = convertParagraph(caption, one(a, N::Args)[0]);
@@ -729,7 +732,7 @@ SemIdT<Word> OrgConverter::convertWord(__args) {
 }
 
 SemIdT<Placeholder> OrgConverter::convertPlaceholder(__args) {
-    __perf_trace("convertPlaceholder");
+    __perf_trace("convert", "convertPlaceholder");
     __trace();
     return SemLeaf<Placeholder>(p, a);
 }
@@ -757,7 +760,7 @@ SemIdT<Punctuation> OrgConverter::convertPunctuation(__args) {
 }
 
 SemIdT<BigIdent> OrgConverter::convertBigIdent(__args) {
-    __perf_trace("convertBigIdent");
+    __perf_trace("convert", "convertBigIdent");
     __trace();
     return SemLeaf<BigIdent>(p, a);
 }
@@ -768,49 +771,49 @@ SemIdT<sem::ParseError> OrgConverter::convertParseError(__args) {
 
 
 SemIdT<MarkQuote> OrgConverter::convertMarkQuote(__args) {
-    __perf_trace("convertMarkQuote");
+    __perf_trace("convert", "convertMarkQuote");
     __trace();
     return convertAllSubnodes<MarkQuote>(p, a);
 }
 
 SemIdT<Verbatim> OrgConverter::convertVerbatim(__args) {
-    __perf_trace("convertVerbatim");
+    __perf_trace("convert", "convertVerbatim");
     __trace();
     return convertAllSubnodes<Verbatim>(p, a);
 }
 
 SemIdT<Bold> OrgConverter::convertBold(__args) {
-    __perf_trace("convertBold");
+    __perf_trace("convert", "convertBold");
     __trace();
     return convertAllSubnodes<Bold>(p, a);
 }
 
 SemIdT<Monospace> OrgConverter::convertMonospace(__args) {
-    __perf_trace("convertMonospace");
+    __perf_trace("convert", "convertMonospace");
     __trace();
     return convertAllSubnodes<Monospace>(p, a);
 }
 
 SemIdT<Strike> OrgConverter::convertStrike(__args) {
-    __perf_trace("convertStrike");
+    __perf_trace("convert", "convertStrike");
     __trace();
     return convertAllSubnodes<Strike>(p, a);
 }
 
 SemIdT<Par> OrgConverter::convertPar(__args) {
-    __perf_trace("convertPar");
+    __perf_trace("convert", "convertPar");
     __trace();
     return convertAllSubnodes<Par>(p, a);
 }
 
 SemIdT<Italic> OrgConverter::convertItalic(__args) {
-    __perf_trace("convertItalic");
+    __perf_trace("convert", "convertItalic");
     __trace();
     return convertAllSubnodes<Italic>(p, a);
 }
 
 SemIdT<Underline> OrgConverter::convertUnderline(__args) {
-    __perf_trace("convertUnderline");
+    __perf_trace("convert", "convertUnderline");
     __trace();
     return convertAllSubnodes<Underline>(p, a);
 }
@@ -835,9 +838,9 @@ SemIdT<Export> OrgConverter::convertExport(__args) {
         eexport->placement = (*place)->getString();
     }
 
-    eexport->exporter   = one(a, N::Name).strVal();
+    eexport->exporter   = one(a, N::Name).val().getText();
     eexport->parameters = values;
-    eexport->content    = one(a, N::Body).strVal();
+    eexport->content    = one(a, N::Body).val().getText();
 
     return eexport;
 }
@@ -860,13 +863,13 @@ SemIdT<LatexBody> OrgConverter::convertMath(__args) {
     if (a.kind() == org::InlineMath) {
         return Sem<InlineMath>(p, a);
     } else {
-        qFatal("Unhanled kind for inline math TODO");
+        CHECK(false) << "Unhanled kind for inline math TODO";
     }
 }
 
 SemIdT<Include> OrgConverter::convertInclude(__args) {
     SemIdT<Include> include = Sem<Include>(p, a);
-    qWarning() << "TODO implement include";
+    LOG(WARNING) << "TODO implement include";
 
     return include;
 }
@@ -881,11 +884,11 @@ SemIdT<AtMention> OrgConverter::convertAtMention(__args) {
 
 SemIdT<CmdArgument> OrgConverter::convertCmdArgument(__args) {
     SemIdT<CmdArgument> result = Sem<CmdArgument>(p, a);
-    std::string         key    = one(a, N::Name).strVal();
-    result->value              = one(a, N::Value).strVal();
+    Str                 key    = one(a, N::Name).val().getText();
+    result->value              = one(a, N::Value).val().getText();
 
-    if (!key.isEmpty()) {
-        result->key = key.remove(':');
+    if (!key.empty()) {
+        // result->key = key.remove(':');
     }
 
 
@@ -921,11 +924,11 @@ Vec<SemId> OrgConverter::flatConvertAttached(__args) {
         switch (a.kind()) {
             case org::CommandCaption: res = convertCaption(p, a); break;
             default:
-                qFatal(strdup(
-                    "TODO unhandled kind $#" % to_string_vec(a.kind())));
+                CHECK(false)
+                    << "TODO unhandled kind $#" % to_string_vec(a.kind());
         }
 
-        Q_CHECK_PTR(res);
+        CHECK(!res.isNil());
         result.push_back(res);
         if (OrgTrailableCommands.contains(a.kind())) {
             aux(one(a, N::Body));
@@ -941,7 +944,8 @@ Vec<SemId> OrgConverter::flatConvertAttached(__args) {
 SemId OrgConverter::convert(__args) {
     __trace();
     if (!a.isValid()) {
-        qWarning() << "Invalid node encountered during conversion" << a.id;
+        LOG(WARNING) << "Invalid node encountered during conversion"
+                     << fmt1(a.id);
         return Sem<Space>(p, a);
     }
 
@@ -1001,7 +1005,8 @@ SemId OrgConverter::convert(__args) {
             if (a.size() == 1) {
                 return convertLink(p, a);
             } else {
-                qFatal("TODO");
+                CHECK(false)
+                    << "TODO implement conversion of nested footnote";
             }
         }
 
@@ -1009,7 +1014,7 @@ SemId OrgConverter::convert(__args) {
             // TODO update parent nodes after restructuring
             Vec<SemId> nested = flatConvertAttached(p, a);
             for (const auto& it : nested) {
-                Q_CHECK_PTR(it);
+                CHECK(!it.isNil());
             }
 
             CHECK(!nested.empty()) << "nested command wrap"
@@ -1025,7 +1030,7 @@ SemId OrgConverter::convert(__args) {
                 // Get last wrapped statement
                 SemId lastNested = nested.back();
                 Stmt* trailed = dynamic_cast<sem::Stmt*>(lastNested.get());
-                Q_CHECK_PTR(trailed);
+                CHECK(trailed != nullptr);
                 for (const auto& it : nested[slice(0, 2_B)]) {
                     trailed->attached.push_back(it);
                 }
@@ -1041,10 +1046,8 @@ SemId OrgConverter::convert(__args) {
         }
 
         default:
-            qCritical() << "Unhandled node type" << a.kind() << __LINE__;
-            //            qCritical().noquote() << a.treeRepr();
+            LOG(ERROR) << "Unhandled node type" << fmt1(a.kind());
             return Sem<Empty>(p, a);
-            //            throw wrapError(Err::UnhandledKind(a.kind()), a);
     }
 #undef CASE
 }
@@ -1055,7 +1058,7 @@ void fillDocumentOptions(SemIdT<DocumentOptions> opts, OrgAdapter a) {
     }
 
     for (OrgAdapter const& item : a) {
-        std::string value = item.strVal();
+        Str value = item.val().getText();
         if (value.contains(':')) {
             auto split = value.split(':');
             auto head  = split[0];
@@ -1072,7 +1075,7 @@ void fillDocumentOptions(SemIdT<DocumentOptions> opts, OrgAdapter a) {
                     opts->tocExport = true;
                 } else if (tail == "nil") {
                     opts->tocExport = false;
-                } else if (tail[0].isDigit()) {
+                } else if ('0' <= tail[0] && tail[0] <= '9') {
                     opts->tocExport = tail.toInt();
                 }
             }
@@ -1084,7 +1087,7 @@ void fillDocumentOptions(SemIdT<DocumentOptions> opts, OrgAdapter a) {
         } else if (value == "^") {
             opts->plaintextSubscripts = true;
         } else {
-            qCritical() << "Unexpected document option value" << value;
+            LOG(ERROR) << "Unexpected document option value" << value;
         }
     }
 }
@@ -1098,7 +1101,7 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
         for (const auto& sub : adapter) {
             switch (sub.kind()) {
                 case org::Columns: {
-                    qWarning() << "TODO: Skipping 'columns' node";
+                    LOG(WARNING) << "TODO: Skipping 'columns' node";
                     break;
                 }
                 case org::CommandTitle: {
@@ -1111,29 +1114,31 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                 }
                 case org::LatexClass: {
                     Prop::ExportLatexClass res{};
-                    res.latexClass = sub.at(0).strVal();
+                    res.latexClass = sub.at(0).val().getText();
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
                 case org::LatexHeader: {
                     Prop::ExportLatexHeader res{};
-                    res.header = sub.at(0).strVal();
+                    res.header = sub.at(0).val().getText();
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
                 case org::LatexCompiler: {
                     Prop::ExportLatexCompiler res{};
-                    res.compiler = sub.at(0).strVal();
+                    res.compiler = sub.at(0).val().getText();
                     doc->options->properties.push_back(Prop(res));
                     break;
                 }
                 case org::LatexClassOptions: {
-                    auto value = sub.at(0).strVal();
-                    if (value.startsWith('[')) {
-                        value.remove('[');
+                    auto value = sub.at(0).val().getText();
+                    if (value.starts_with('[')) {
+                        CHECK(false) << "TODO";
+                        // value.remove('[');
                     }
-                    if (value.endsWith(']')) {
-                        value = value.chopped(1);
+                    if (value.starts_with(']')) {
+                        CHECK(false) << "TODO";
+                        //  value = value.chopped(1);
                     }
 
                     Prop::ExportLatexClassOptions res;

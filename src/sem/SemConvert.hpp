@@ -213,7 +213,7 @@ struct OrgConverter : public OperationsTracer {
     template <typename T>
     SemIdT<T> SemLeaf(Up parent, In adapter) {
         auto res              = Sem<T>(parent, adapter);
-        res->text             = adapter.val();
+        res->text             = adapter.val().getText();
         res->loc              = getLoc(adapter);
         res->placementContext = getPlacement();
         return res;

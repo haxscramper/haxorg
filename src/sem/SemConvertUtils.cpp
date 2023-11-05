@@ -27,10 +27,6 @@ OrgConverter::ConvertError OrgConverter::wrapError(
 }
 
 Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
-    if (!locationResolver) {
-        return std::nullopt;
-    }
-
     int   offset  = 0;
     auto& g       = *adapter.group;
     bool  inRange = true;
@@ -48,9 +44,8 @@ Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
                 }
                 if (g.at(OrgId(idx)).isTerminal()) {
                     auto tok = g.tokens->at(g.at(OrgId(idx)).getToken());
-                    if (tok.hasData()) {
-                        PosStr str{tok.getText()};
-                        return locationResolver(str);
+                    if (!tok->isEmpty()) {
+                        return LineCol{tok->getLine(), tok->getCol()};
                     }
                 }
             }
@@ -101,7 +96,7 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
 
     auto getLoc = [&]() -> std::string {
         std::string res;
-        if (locationResolver && in.node.has_value()) {
+        if (in.node.has_value()) {
             Opt<LineCol> loc = this->getLoc(in.node.value());
             if (loc.has_value()) {
                 res = "$#:$# " % to_string_vec(loc->line, loc->column);
@@ -121,12 +116,12 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
 
     switch (in.kind) {
         case ReportKind::EnterField: {
-            os << "@{ " << to_string(in.field.value()) << " " << getLoc();
+            os << "@{ " << fmt1(in.field.value()) << " " << getLoc();
             break;
         }
 
         case ReportKind::LeaveField: {
-            os << "@} " << to_string(in.field.value()) << " " << getLoc();
+            os << "@} " << fmt1(in.field.value()) << " " << getLoc();
             break;
         }
 
@@ -137,14 +132,14 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
         case ReportKind::Enter: {
             os << "> " << in.name.value();
             if (in.node.has_value() && in.node->isValid()) {
-                os << " " << to_string(in.node->kind())
+                os << " " << fmt1(in.node->kind())
                    << " ID:" << in.node->id.getUnmasked();
             }
 
             os << " " << getLoc();
             if (in.node.has_value() && in.node->isValid()
                 && in.node->get().isTerminal()) {
-                os << escape_literal(in.node->strVal());
+                os << escape_literal(in.node->val().getText());
             }
             break;
         }
