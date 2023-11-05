@@ -37,6 +37,28 @@ struct OrgFill {
     Str           getText() const { return base.value().text; }
 };
 
+template <>
+struct std::formatter<OrgFill> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(OrgFill const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        if (p.base) {
+            return fmt.format(
+                std::format(
+                    "{}:{}:{}",
+                    p.base->line,
+                    p.base->col,
+                    escape_for_write(p.base->text.substr(
+                        std::max<int>(120, p.base->text.size() - 1)))),
+                ctx);
+        } else {
+            return fmt.format("<none>", ctx);
+        }
+    }
+};
+
+
 using OrgToken       = Token<OrgTokenKind, OrgFill>;
 using OrgTokenId     = TokenId<OrgTokenKind, OrgFill>;
 using OrgTokenStore  = TokenStore<OrgTokenKind, OrgFill>;

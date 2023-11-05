@@ -10,6 +10,7 @@
 #include <hstd/stdlib/RangeTree.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Func.hpp>
 #include <format>
 
 #include <lexbase/Errors.hpp>
@@ -76,12 +77,14 @@ struct Token {
 template <StdFormattable K, typename V>
 struct std::formatter<Token<K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const Token<K, V>& p, FormatContext& ctx) {
+    FormatContext::iterator format(
+        const Token<K, V>& p,
+        FormatContext&     ctx) const {
         std::formatter<std::string> fmt;
         fmt.format("Token<", ctx);
-        fmt.format(p.kind, ctx);
+        std::formatter<K>{}.format(p.kind, ctx);
         fmt.format(">(", ctx);
-        fmt.format(p.value, ctx);
+        std::formatter<V>{}.format(p.value, ctx);
         return fmt.format(")", ctx);
     }
 };
@@ -228,10 +231,6 @@ struct LexerCommon {
         TokenId<K, V>     startPos = TokenId<K, V>(0))
         : in(_in), pos(startPos) {}
 
-    Str strVal(int offset = 0) const {
-        return in->at(get(offset)).strVal();
-    }
-
     K               kind(int offset = 0) const { return tok(offset).kind; }
     Token<K, V>&    tok(TokenId<K, V> id) { return in->at(id); }
     CR<Token<K, V>> tok(TokenId<K, V> id) const { return in->at(id); }
@@ -239,6 +238,8 @@ struct LexerCommon {
         return in->at(get(offset));
     }
     TokenId<K, V> get(int offset = 0) const { return pos + offset; }
+    V const&      val(int offset = 0) const { return tok(offset).value; }
+    V&            val(int offset = 0) { return in->at(get(offset)).value; }
 
     using IteratorT = typename TokenGroup<K, V>::IteratorT;
     IteratorT begin() { return in->iterator(this->pos); }
@@ -252,7 +253,10 @@ struct LexerCommon {
         bool withOffsets = false;
     };
 
-    void print(ColStream& os, CR<PrintParams> params) const {
+    using TokenFormatCb = Func<void(ColStream&, Token<K, V> const&)>;
+
+    void print(ColStream& os, TokenFormatCb format, CR<PrintParams> params)
+        const {
         if (params.withPos) {
             if (pos.isNil()) {
                 os << "#" << os.red() << "nil" << os.end();
@@ -271,34 +275,25 @@ struct LexerCommon {
                 os << " "
                    << styledUnicodeMapping(
                           std::format("{}", t.kind), AsciiStyle::Italic);
-                if (t.hasData()) {
-                    os << " '";
-                    hshow(
-                        os,
-                        t.getText(),
-                        HDisplayOpts().excl(HDisplayFlag::UseQuotes));
-                    os << "'";
-                } else {
-                    if (params.withOffsets) {
-                        os << " " << os.cyan() << t.getOffset()
-                           << os.end();
-                    }
-                }
+                format(os, t);
             }
         }
     }
 
 
-    std::string printToString(bool colored = false) const {
-        return printToString(PrintParams{}, colored);
+    std::string printToString(TokenFormatCb format, bool colored = false)
+        const {
+        return printToString(PrintParams{}, format, colored);
     }
 
-    std::string printToString(PrintParams params, bool colored = false)
-        const {
+    std::string printToString(
+        PrintParams   params,
+        TokenFormatCb format,
+        bool          colored = false) const {
         std::stringstream stream;
         ColStream         out{stream};
         out.colored = colored;
-        print(out, params);
+        print(out, format, params);
         return stream.str();
     }
 
@@ -377,10 +372,10 @@ struct LexerCommon {
     /// (and lexeme value if it is supplied). Raise exception if the
     /// token does not match and return true otherwise.
     template <typename T>
-    bool expect(T kind, CR<Str> str = "")
+    bool expect(T kind)
         requires IsAnyOf<std::remove_cvref_t<T>, K, IntSet<K>>
     {
-        if (at(kind) && (str.empty() || strVal() == str)) {
+        if (at(kind)) {
             return true;
         } else if (finished()) {
             throw UnexpectedEndError(
@@ -390,32 +385,18 @@ struct LexerCommon {
                 pos.getIndex());
 
         } else {
-            if (str.empty()) {
-                throw UnexpectedCharError(
-                    "Expected '$#' but found '$#' at index $#"
-                        % to_string_vec(
-                            kind, this->kind(), pos.getIndex()),
-                    pos.getIndex());
-            } else {
-                throw UnexpectedCharError(
-                    "Expected '$#' with value '$#' but found '$#' with "
-                    "value '$#' at index $#"
-                        % to_string_vec(
-                            kind,
-                            str,
-                            this->kind(),
-                            strVal(),
-                            pos.getIndex()),
-                    pos.getIndex());
-            }
+            throw UnexpectedCharError(
+                "Expected '$#' but found '$#' at index $#"
+                    % to_string_vec(kind, this->kind(), pos.getIndex()),
+                pos.getIndex());
         }
     }
 
     template <typename T>
-    void skip(T kind, CR<Str> str = "")
+    void skip(T kind)
         requires IsAnyOf<std::remove_cvref_t<T>, K, IntSet<K>>
     {
-        if (expect(kind, str)) {
+        if (expect(kind)) {
             next();
         }
     }
@@ -486,8 +467,12 @@ struct LexerCommon {
 template <typename K, typename V>
 struct std::formatter<LexerCommon<K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const LexerCommon<K, V>& p, FormatContext& ctx) {
-        return p.printToString();
+    FormatContext::iteartor format(
+        const LexerCommon<K, V>& p,
+        FormatContext&           ctx) const {
+        std::formatter<std::string> fmt;
+        return fmt.format(
+            p.printToString([](ColStream&, Token<K, V> const&) {}), ctx);
     }
 };
 

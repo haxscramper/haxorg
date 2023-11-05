@@ -61,14 +61,16 @@ struct value_domain<NodeId<N, K, IdBase, MaskType>> {
 template <typename N, typename K, typename V>
 struct std::formatter<NodeId<N, K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const NodeId<N, K, V>& p, FormatContext& ctx) {
-        std::stringstream os;
-        p.streamTo(
-            os, std::format("NodeId<{}>", demangle(typeid(N).name())));
-        return os.str();
+    FormatContext::iterator format(
+        const NodeId<N, K, V>& p,
+        FormatContext&         ctx) {
+        std::formatter<std::string> fmt;
+        return fmt.format(
+            p.format(
+                std::format("NodeId<{}>", demangle(typeid(N).name()))),
+            ctx);
     }
 };
-
 
 template <typename N, typename K, typename V>
 struct Node {

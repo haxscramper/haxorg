@@ -103,3 +103,4 @@ template <StdFormattable T>
 std::string fmt_str(T const& t) {
     return std::format("{}", t);
 }
+

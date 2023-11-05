@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Json.hpp>
 #include <absl/log/log.h>
 #include <parse/OrgTokenizer.hpp>
+#include <parse/OrgParser.hpp>
 
 TEST(BaseLexTest, WriteOut) {
     std::ifstream inFile("/home/haxscramper/tmp/doc2.org");
@@ -61,5 +62,8 @@ TEST(BaseLexTest, WriteOut) {
         CHECK(file.is_open());
         file << to_compact_json(json::object({{"tokens", out}}))
              << std::endl;
+    }
+    {
+        OrgParser parser;
     }
 }

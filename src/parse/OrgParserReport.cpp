@@ -14,7 +14,8 @@ OrgParser::Errors::Base::Base(CR<OrgLexer> lex, Opt<LineCol> loc)
     if (!lex.finished()) {
         token = lex.tok();
     }
-    extraMsg = lex.printToString(false);
+    extraMsg = lex.printToString(
+        [](ColStream&, OrgToken const&) {}, false);
 }
 
 OrgParser::Errors::Base::Base(

@@ -19,7 +19,7 @@
     })
 
 #define __trace2(__subname, __lex)                                        \
-    if constexpr (TraceState) {                                           \
+    if (TraceState) {                                                     \
         Report rep = __INIT_REPORT(__subname, __lex);                     \
         rep.kind   = ReportKind::EnterParse;                              \
         rep.name   = __func__;                                            \
@@ -28,7 +28,7 @@
                                                                           \
     finally CONCAT(close, __COUNTER__) = finally::init<Str>(              \
         ([&](CR<Str> name) {                                              \
-            if constexpr (TraceState) {                                   \
+            if (TraceState) {                                             \
                 Report rep = __INIT_REPORT(__subname, __lex);             \
                 rep.kind   = ReportKind::LeaveParse;                      \
                 rep.name   = name;                                        \
@@ -48,7 +48,7 @@
 
 
 #define __print2(__text, __lex)                                           \
-    if constexpr (TraceState) {                                           \
+    if (TraceState) {                                                     \
         report(Report{                                                    \
             .kind     = ReportKind::Print,                                \
             .location = __CURRENT_FILE_PATH__,                            \
@@ -68,7 +68,7 @@
 
 #define __end2(__subname, __lex)                                          \
     OrgId CONCAT(tmpNode, __LINE__) = end();                              \
-    if constexpr (TraceState) {                                           \
+    if (TraceState) {                                                     \
         Report rep = __INIT_REPORT(__subname, __lex);                     \
         rep.kind   = ReportKind::EndNode;                                 \
         rep.node   = CONCAT(tmpNode, __LINE__);                           \
@@ -89,7 +89,7 @@
     return CONCAT(tmpNode, __LINE__);
 
 #define __start3(__node, __subname, __lex)                                  \
-    if constexpr (TraceState) {                                             \
+    if (TraceState) {                                                       \
         OrgId  CONCAT(tmpNode, __LINE__) = start(__node);                   \
         Report rep                       = __INIT_REPORT(__subname, __lex); \
         rep.kind                         = ReportKind::StartNode;           \
@@ -110,7 +110,7 @@
 
 
 #define __token3(__node, __subname, __lex)                                \
-    if constexpr (TraceState) {                                           \
+    if (TraceState) {                                                     \
         Report rep = __INIT_REPORT(__subname, __lex);                     \
         rep.kind   = ReportKind::AddToken;                                \
         rep.node   = __node;                                              \
@@ -127,7 +127,7 @@
 
 
 #define __skip(__lex, __kind)                                             \
-    if constexpr (TraceState) {                                           \
+    if (TraceState) {                                                     \
         if (!at(__lex, __kind)) {                                         \
             __print(                                                      \
                 "!! $#: Expected token '$#' $# but got '$#'"              \

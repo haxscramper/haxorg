@@ -1,7 +1,7 @@
 #pragma once
 
 #include <optional>
-#include <format>
+#include <hstd/system/Formatter.hpp>
 
 template <typename T>
 using Opt = std::optional<T>;
@@ -14,7 +14,8 @@ struct std::formatter<Opt<T>> : std::formatter<std::string> {
         std::formatter<std::string> fmt;
         if (p.has_value()) {
             fmt.format("some(", ctx);
-            fmt.format(p.value(), ctx);
+            with_std_formatter(p.value());
+            std::formatter<T>{}.format(p.value(), ctx);
             return fmt.format(")", ctx);
         } else {
             return fmt.format("none()", ctx);
