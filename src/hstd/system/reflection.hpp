@@ -73,7 +73,8 @@ template <SerializableEnum T>
 struct std::formatter<T> : std::formatter<std::string> {
     using FmtType = T;
     template <typename FormatContext>
-    auto format(FmtType const& p, FormatContext& ctx) {
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+        const {
         std::formatter<std::string> fmt;
         return fmt.format(enum_serde<T>::to_string(p), ctx);
     }
@@ -84,7 +85,8 @@ template <NonSerializableEnum T>
 struct std::formatter<T> : std::formatter<std::string> {
     using FmtType = T;
     template <typename FormatContext>
-    auto format(FmtType const& p, FormatContext& ctx) {
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+        const {
         std::formatter<std::string> fmt;
         return fmt.format(std::to_string((int)p), ctx);
     }

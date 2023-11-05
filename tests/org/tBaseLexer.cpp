@@ -68,6 +68,7 @@ TEST(BaseLexTest, WriteOut) {
         OrgParser                    parser{&nodes};
         Lexer<OrgTokenKind, OrgFill> lex{&target};
         parser.setTraceFile("/tmp/parse_trace.txt");
+        parser.TraceState = true;
         parser.parseFull(lex);
     }
 }

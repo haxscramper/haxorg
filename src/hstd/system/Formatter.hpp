@@ -16,3 +16,16 @@ void with_std_formatter(T const& value) {
                       std::format_context::iterator>);
     }
 }
+
+template <typename... _Args>
+[[nodiscard]] inline std::string fmt(
+    std::format_string<_Args...> __fmt,
+    _Args&&... __args) {
+    return std::vformat(__fmt.get(), std::make_format_args(__args...));
+}
+
+template <typename T>
+std::string fmt1(T const& t) {
+    with_std_formatter(t);
+    return std::format("{}", t);
+}

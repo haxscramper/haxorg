@@ -15,13 +15,6 @@
 namespace asio = boost::asio;
 using asio::ip::tcp;
 
-template <typename... _Args>
-[[nodiscard]] inline std::string fmt(
-    std::format_string<_Args...> __fmt,
-    _Args&&... __args) {
-    return std::vformat(__fmt.get(), std::make_format_args(__args...));
-}
-
 class Session : public std::enable_shared_from_this<Session> {
   public:
     Session(asio::io_service& ios) : socket{ios}, timer{ios} {}

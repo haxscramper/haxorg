@@ -10,10 +10,8 @@
 using ParseCb = std::function<OrgId(OrgLexer&)>;
 
 struct OrgParser : public OperationsTracer {
-  private:
-    bool TraceState;
-
   public:
+    bool TraceState;
     struct TokenWithValue {
         OrgTokenKind kind;
         std::string  value;
@@ -37,6 +35,7 @@ struct OrgParser : public OperationsTracer {
             : id(lex.pos), extraMsg(extraMsg) {
             if (!lex.finished()) {
                 token = lex.tok();
+                loc   = OrgParser::getLoc(lex);
             }
         }
     };
@@ -215,7 +214,7 @@ struct OrgParser : public OperationsTracer {
         traceUpdateHook = in;
     }
 
-    Opt<LineCol> getLoc(CR<OrgLexer> lex);
+    static Opt<LineCol> getLoc(CR<OrgLexer> lex);
 
     Slice<OrgId> parseText(OrgLexer& lex);
 
