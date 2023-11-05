@@ -1,6 +1,6 @@
 #include <parse/OrgParser.hpp>
 
-std::string OrgParser::Errors::Base::getLocMsg() const {
+std::string OrgParser::Error::getLocMsg() const {
     return "$#:$# (tok $#, pos $#)"
          % to_string_vec(
                loc ? loc->line : -1,
@@ -9,26 +9,7 @@ std::string OrgParser::Errors::Base::getLocMsg() const {
                loc ? loc->pos : -1);
 }
 
-OrgParser::Errors::Base::Base(CR<OrgLexer> lex, Opt<LineCol> loc)
-    : id(lex.pos), loc(loc) {
-    if (!lex.finished()) {
-        token = lex.tok();
-    }
-    extraMsg = lex.printToString(
-        [](ColStream&, OrgToken const&) {}, false);
-}
-
-OrgParser::Errors::Base::Base(
-    CR<OrgLexer>    lex,
-    CR<std::string> extraMsg,
-    Opt<LineCol>    loc)
-    : id(lex.pos), loc(loc), extraMsg(extraMsg) {
-    if (!lex.finished()) {
-        token = lex.tok();
-    }
-}
-
-const char* OrgParser::Errors::UnexpectedToken::what() const noexcept {
+const char* OrgParser::UnexpectedToken::what() const noexcept {
     return strdup(
         "Expected $#, but got $# at $# ($#)"
         % to_string_vec(
@@ -45,8 +26,12 @@ const char* OrgParser::Errors::UnexpectedToken::what() const noexcept {
             this->extraMsg));
 }
 
-const char* OrgParser::Errors::UnhandledToken::what() const noexcept {
+const char* OrgParser::UnhandledToken::what() const noexcept {
     return strdup(
-        "Encountered $# at $#, which is was not expected ($#)"
-        % to_string_vec(this->token, getLocMsg(), this->extraMsg));
+        std::format(
+            "Encountered {} at {}, which is was not expected ({})",
+            token,
+            getLocMsg(),
+            extraMsg)
+            .c_str());
 }

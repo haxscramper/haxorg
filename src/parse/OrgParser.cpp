@@ -10,7 +10,6 @@
 using otk = OrgTokenKind;
 using org = OrgNodeKind;
 using ock = OrgCommandKind;
-using Err = OrgParser::Errors;
 
 #include "OrgParserMacros.hpp"
 
@@ -336,12 +335,10 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::BacktickInline:
             case otk::UnderlineInline:
             case otk::StrikeInline: {
-                throw wrapError(
-                    Err::UnhandledToken(
-                        lex,
-                        "Non-directional inline markup token incountered "
-                        "during text parsing"),
-                    lex);
+                throw UnhandledToken(
+                    lex,
+                    "Non-directional inline markup token incountered "
+                    "during text parsing");
             }
 
             case otk::GroupStart: {
@@ -370,14 +367,13 @@ void OrgParser::textFold(OrgLexer& lex) {
                         (void)parseTarget(lex);
                         break;
                     }
-                    default:
-                        throw wrapError(Err::UnhandledToken(lex), lex);
+                    default: throw UnhandledToken(lex);
                 }
                 break;
             }
 
             default: {
-                throw wrapError(Err::UnhandledToken(lex), lex);
+                throw UnhandledToken(lex);
             }
         }
     }
@@ -999,7 +995,7 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind) {
         case ock::BeginCenter: __start(org::CenterBlock); break;
         case ock::BeginQuote: __start(org::QuoteBlock); break;
         case ock::BeginAdmonition: __start(org::AdmonitionBlock); break;
-        default: wrapError(Err::UnhandledToken(lex), lex);
+        default: throw UnhandledToken(lex);
     }
 
     __skip(lex, otk::CommandPrefix);
@@ -1404,10 +1400,8 @@ OrgId OrgParser::parseSubtreeLogbookListEntry(OrgLexer& lex) {
                 CHECK(lex.val().getText() == "at");
                 __skip(lex, otk::Word);
             } else {
-                throw wrapError(
-                    Err::UnhandledToken(
-                        lex, "Unexpected priority action " + str),
-                    lex);
+                throw UnhandledToken(
+                    lex, "Unexpected priority action " + str);
             }
 
             space(lex);
@@ -1526,7 +1520,7 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
                 break;
             }
             default: {
-                throw wrapError(Err::UnhandledToken(lex), lex);
+                throw UnhandledToken(lex);
             }
         }
     }
@@ -1952,7 +1946,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
 
         default: {
             throw wrapError(
-                Err::UnhandledToken(lex, to_string(kind)), lex);
+                UnhandledToken(lex, to_string(kind)), lex);
         }
     }
 
@@ -2002,7 +1996,7 @@ OrgId OrgParser::parseToplevelItem(OrgLexer& lex) {
 #endif
         }
         default: {
-            throw wrapError(Err::UnhandledToken(lex), lex);
+            throw UnhandledToken(lex);
         }
     }
 }
@@ -2061,8 +2055,7 @@ bool OrgParser::at(CR<OrgLexer> lex, CR<OrgExpectable> item) {
 
 void OrgParser::expect(CR<OrgLexer> lex, CR<OrgExpectable> item) {
     if (!(at(lex, item))) {
-        throw wrapError(
-            Err::UnexpectedToken(lex, getLoc(lex), {item}), lex);
+        throw UnexpectedToken(lex, {item});
     }
 }
 

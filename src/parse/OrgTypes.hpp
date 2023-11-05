@@ -50,7 +50,7 @@ struct std::formatter<OrgFill> : std::formatter<std::string> {
                     p.base->line,
                     p.base->col,
                     escape_for_write(p.base->text.substr(
-                        std::max<int>(120, p.base->text.size() - 1)))),
+                        std::min<int>(120, p.base->text.size() - 1)))),
                 ctx);
         } else {
             return fmt.format("<none>", ctx);

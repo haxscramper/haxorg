@@ -26,67 +26,37 @@ struct OrgParser : public OperationsTracer {
         Vec<OrgTokenKind>>;
 
     // TODO Move out of the parser base
-    struct Errors {
-        struct Base : std::exception {
-            Opt<OrgToken> token;
-            OrgTokenId    id;
-            Opt<LineCol>  loc;
-            std::string   extraMsg;
-            std::string   getLocMsg() const;
+    struct Error : std::exception {
+        Opt<OrgToken> token;
+        OrgTokenId    id;
+        Opt<LineCol>  loc;
+        std::string   extraMsg;
+        std::string   getLocMsg() const;
 
-            Base(CR<OrgLexer> lex, Opt<LineCol> loc = std::nullopt);
-
-            Base(
-                CR<OrgLexer>    lex,
-                CR<std::string> extraMsg,
-                Opt<LineCol>    loc = std::nullopt);
-        };
-
-        struct None : Base {
-            None()
-                : Base(
-                    SubLexer<OrgTokenKind, OrgFill>{
-                        nullptr,
-                        Vec<OrgTokenId>{}},
-                    std::nullopt) {}
-        };
-
-        struct UnexpectedToken : public Base {
-            OrgExpectable wanted;
-            UnexpectedToken(
-                CR<OrgLexer>      lex,
-                Opt<LineCol>      loc,
-                CR<OrgExpectable> wanted)
-                : Base(lex, loc), wanted(wanted) {}
-
-            const char* what() const noexcept override;
-        };
-
-        struct UnhandledToken : public Base {
-            using Base::Base;
-            const char* what() const noexcept override;
-        };
-    };
-
-    using Error = Variant<
-        typename Errors::None,
-        typename Errors::UnhandledToken,
-        typename Errors::UnexpectedToken>;
-
-    struct ParserError : std::exception {
-        Error err;
-        ParserError() : err(Errors::None()) {}
-        explicit ParserError(CR<Error> err) : err(err) {}
-        const char* what() const noexcept override {
-            return std::visit(
-                [](auto const& in) { return in.what(); }, err);
-        }
-        void setLoc(CR<LineCol> loc) {
-            std::visit([&loc](auto& in) { in.loc = loc; }, err);
+        Error(CR<OrgLexer> lex, CR<std::string> extraMsg = "")
+            : id(lex.pos), extraMsg(extraMsg) {
+            if (!lex.finished()) {
+                token = lex.tok();
+            }
         }
     };
 
-    ParserError wrapError(CR<Error> err, CR<OrgLexer> lex);
+    struct UnexpectedToken : public Error {
+        OrgExpectable wanted;
+        UnexpectedToken(
+            CR<OrgLexer>      lex,
+            CR<OrgExpectable> wanted) noexcept
+            : Error(lex), wanted(wanted) {}
+
+        const char* what() const noexcept override;
+    };
+
+    struct UnhandledToken : public Error {
+        using Error::Error;
+        UnhandledToken(CR<OrgLexer> lex) noexcept : Error(lex) {}
+        const char* what() const noexcept override;
+    };
+
     std::string getLocMsg(CR<OrgLexer> lex);
 
   public:
