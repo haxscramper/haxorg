@@ -139,11 +139,11 @@ void NodeGroup<N, K, V>::treeRepr(
     }
 
     if (conf.withTreeMask) {
-        os << " MASK:" << to_string(node.getMask());
+        os << " MASK:" << fmt1(node.getMask());
     }
 
     if (conf.withTreeId) {
-        os << " ID:" << to_string(node.getUnmasked());
+        os << " ID:" << fmt1(node.getUnmasked());
     }
 
     if (at(node).isTerminal()) {
@@ -156,7 +156,7 @@ void NodeGroup<N, K, V>::treeRepr(
         }
     } else {
         if (conf.withExt) {
-            os << " EXT: " << to_string(at(node).getExtent());
+            os << " EXT: " << fmt1(at(node).getExtent());
         }
 
         auto [begin, end] = subnodesOf(node).value();

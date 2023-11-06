@@ -9,6 +9,7 @@
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Opt.hpp>
 
+#include <hstd/system/Formatter.hpp>
 #include <parse/OrgTypes.hpp>
 #include <format>
 #include <hstd/system/reflection.hpp>
@@ -285,8 +286,17 @@ struct Org {
 template <>
 struct std::formatter<sem::SemId> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const sem::SemId& p, FormatContext& ctx) {
-        return std::format(
-            "{}:{}:{}", p.getStoreIndex(), p.getKind(), p.getNodeIndex());
+    FormatContext::iterator format(const sem::SemId& p, FormatContext& ctx)
+        const {
+        return fmt_ctx(p.getReadableId(), ctx);
+    }
+};
+
+template <typename T>
+struct std::formatter<sem::SemIdT<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(const sem::SemId& p, FormatContext& ctx)
+        const {
+        return fmt_ctx(p.getReadableId(), ctx);
     }
 };

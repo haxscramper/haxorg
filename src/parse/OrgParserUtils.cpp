@@ -3,8 +3,7 @@
 
 std::string OrgParser::getLocMsg(CR<OrgLexer> lex) {
     std::string result;
-    std::string pos = lex.pos.isNil() ? "<nil>"
-                                      : to_string(lex.pos.getIndex());
+    std::string pos = lex.pos.isNil() ? "<nil>" : fmt1(lex.pos.getIndex());
 
     if (auto loc = getLoc(lex)) {
         result = "$#:$# (tok $#, pos $#)"
@@ -30,7 +29,7 @@ Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
                     OrgToken tok = lex.tok(offset * i);
                     if (tok.value.base) {
                         return LineCol{
-                                       tok.value.base->line, tok.value.base->col};
+                            tok.value.base->line, tok.value.base->col};
                     }
                     // If offset falls out of the lexer range on both
                     // ends, terminate lookup.

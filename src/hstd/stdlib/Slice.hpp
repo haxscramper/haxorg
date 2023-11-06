@@ -129,19 +129,19 @@ constexpr Slice<T> slice(CR<T> first, CR<T> last) {
             if constexpr (std::is_signed_v<T>) {
                 throw RangeError(
                     "Expected first <= last but got first='"
-                    + to_string(static_cast<i64>(first)) + "' last='"
-                    + to_string(static_cast<i64>(last)) + "'");
+                    + std::to_string(static_cast<i64>(first)) + "' last='"
+                    + std::to_string(static_cast<i64>(last)) + "'");
             } else {
                 throw RangeError(
                     "Expected first <= last but got first='"
-                    + to_string(static_cast<u64>(first)) + "' last='"
-                    + to_string(static_cast<u64>(last)) + "'");
+                    + std::to_string(static_cast<u64>(first)) + "' last='"
+                    + std::to_string(static_cast<u64>(last)) + "'");
             }
 
-        } else if constexpr (requires { to_string(first); }) {
+        } else if constexpr (requires { fmt1(first); }) {
             throw RangeError(
-                "Expected first <= last but got first='" + to_string(first)
-                + "' last='" + to_string(last) + "'");
+                "Expected first <= last but got first='" + fmt1(first)
+                + "' last='" + fmt1(last) + "'");
         } else {
             throw RangeError(
                 "Expected first <= last but got <unformattable type>");

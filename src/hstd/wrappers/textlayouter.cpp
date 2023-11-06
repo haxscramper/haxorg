@@ -57,9 +57,9 @@ void Solution::add(
 
     if (knot < 0 || span < 0 || intercept < 0 || gradient < 0) {
         throw std::runtime_error(
-            ("Internal error: bad layout: (k " + to_string(knot) + ", s "
-             + to_string(span) + ", i " + to_string(intercept) + ", g "
-             + to_string(gradient) + ")"));
+            ("Internal error: bad layout: (k " + fmt1(knot) + ", s "
+             + fmt1(span) + ", i " + fmt1(intercept) + ", g "
+             + fmt1(gradient) + ")"));
     }
 
     knots.push_back(knot);

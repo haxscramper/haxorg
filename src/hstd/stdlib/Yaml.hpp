@@ -1,7 +1,7 @@
 #pragma once
 
 #include <yaml-cpp/yaml.h>
-#include <string>
+#include <hstd/stdlib/Str.hpp>>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/strformat.hpp>
 #include <hstd/stdlib/Variant.hpp>
@@ -79,6 +79,19 @@ struct convert<E> {
                 "Could not convert $# to $#"
                     % to_string_vec(in, demangle(typeid(E).name())));
         }
+    }
+};
+
+template <>
+struct convert<Str> {
+    static Node encode(Str const& str) {
+        Node result;
+        result = str.toBase();
+        return result;
+    }
+    static bool decode(Node const& in, Str& out) {
+        out = in.as<std::string>();
+        return true;
     }
 };
 

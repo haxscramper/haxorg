@@ -39,7 +39,7 @@ inline std::string demangle(const char* name) { return name; }
 
 #endif
 
-inline std::string to_string(bool b) { return b ? "true" : "false"; }
+
 
 /// \brief Escape string literal, converting newline and other (TODO)
 /// control characters into unicode.

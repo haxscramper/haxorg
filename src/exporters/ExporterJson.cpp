@@ -11,7 +11,7 @@ json ExporterJson::newRes(sem::SemId org) {
         return json();
     } else {
         json res    = json::object();
-        res["kind"] = to_string(org->getKind());
+        res["kind"] = fmt1(org->getKind());
         if (!skipLocation) {
             json loc      = json::object();
             loc["line"]   = org->loc ? json(org->loc->line) : json();
@@ -83,7 +83,7 @@ json ExporterJson::eval(CR<Vec<T>> values) {
 template <typename T>
 json ExporterJson::eval(CR<T> arg) {
     if constexpr (std::is_enum<T>::value) {
-        return json(to_string(arg));
+        return json(fmt1(arg));
     } else {
         json tmp = _this()->newRes(arg);
         _this()->visit(tmp, arg);

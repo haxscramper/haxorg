@@ -28,8 +28,8 @@ struct OrgConverter : public OperationsTracer {
                      % to_string_vec(
                            loc ? loc->line : -1,
                            loc ? loc->column : -1,
-                           adapter ? to_string(adapter->id.getIndex())
-                                   : to_string("<none>"));
+                           adapter ? fmt1(adapter->id.getIndex())
+                                   : fmt1("<none>"));
             }
         };
 

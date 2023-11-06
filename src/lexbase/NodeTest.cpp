@@ -65,17 +65,6 @@ struct convert<Vec<T>> {
 };
 
 template <>
-struct convert<Str> {
-    static Node encode(Str const& v) { return Node(v); }
-
-    static bool decode(Node const& in, Str& out) {
-        out = Str(in.as<std::string>());
-        return true;
-    }
-};
-
-
-template <>
 struct convert<json> {
     static Node encode(json const& v) { return Node(); }
     static bool decode(Node const& in, json& out) {

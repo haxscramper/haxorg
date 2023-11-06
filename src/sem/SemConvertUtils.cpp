@@ -71,7 +71,7 @@ std::string OrgConverter::getLocMsg(CR<OrgAdapter> adapter) {
                loc ? loc->line : -1,
                loc ? loc->column : -1,
                adapter.id.getIndex(),
-               tok ? to_string(tok->getIndex()) : to_string("<none>"),
+               tok ? fmt1(tok->getIndex()) : fmt1("<none>"),
                loc ? loc->pos : -1);
 }
 

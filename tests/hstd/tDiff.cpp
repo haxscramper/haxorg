@@ -7,21 +7,21 @@ Str formatDiffedEx(CR<Vec<SeqEdit>> ops, Span<T> oldSeq, Span<T> newSeq) {
     for (const auto& op : ops) {
         switch (op.kind) {
             case SeqEditKind::Keep:
-                result += to_string(oldSeq[op.sourcePos]);
+                result += fmt1(oldSeq[op.sourcePos]);
                 break;
             case SeqEditKind::Delete:
-                result += "[del " + to_string(oldSeq[op.sourcePos]) + "]";
+                result += "[del " + fmt1(oldSeq[op.sourcePos]) + "]";
                 break;
             case SeqEditKind::Insert:
-                result += "[ins " + to_string(newSeq[op.targetPos]) + "]";
+                result += "[ins " + fmt1(newSeq[op.targetPos]) + "]";
                 break;
             case SeqEditKind::Transpose:
-                result += "[trans " + to_string(oldSeq[op.sourcePos])
-                        + " <> " + to_string(newSeq[op.targetPos]) + "]";
+                result += "[trans " + fmt1(oldSeq[op.sourcePos]) + " <> "
+                        + fmt1(newSeq[op.targetPos]) + "]";
                 break;
             case SeqEditKind::Replace:
-                result += "[repl " + to_string(oldSeq[op.sourcePos])
-                        + " -> " + to_string(newSeq[op.targetPos]) + "]";
+                result += "[repl " + fmt1(oldSeq[op.sourcePos]) + " -> "
+                        + fmt1(newSeq[op.targetPos]) + "]";
                 break;
             case SeqEditKind::None: assert(false); break;
         }

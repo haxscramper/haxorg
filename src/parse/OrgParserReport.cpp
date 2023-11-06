@@ -5,7 +5,7 @@ std::string OrgParser::Error::getLocMsg() const {
          % to_string_vec(
                loc ? loc->line : -1,
                loc ? loc->column : -1,
-               id.isNil() ? "<none>" : to_string(id.getIndex()),
+               id.isNil() ? "<none>" : fmt1(id.getIndex()),
                loc ? loc->pos : -1);
 }
 

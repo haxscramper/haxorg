@@ -4,6 +4,7 @@
 #include <map>
 #include <optional>
 
+#include <hstd/system/Formatter.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/system/all.hpp>
 
@@ -73,9 +74,9 @@ struct std::formatter<UnorderedMap<K, V>> : std::formatter<std::string> {
                 fmt.format(", ", ctx);
             }
             first = false;
-            fmt.format(key, ctx);
+            fmt_ctx(key, ctx);
             fmt.format(": ", ctx);
-            fmt.format(value, ctx);
+            fmt_ctx(value, ctx);
         }
         return fmt.format("}", ctx);
     }
