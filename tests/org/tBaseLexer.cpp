@@ -5,6 +5,8 @@
 #include <absl/log/log.h>
 #include <parse/OrgTokenizer.hpp>
 #include <parse/OrgParser.hpp>
+#include <sem/SemConvert.hpp>
+#include <exporters/exporteryaml.hpp>
 
 TEST(BaseLexTest, WriteOut) {
     std::ifstream inFile("/home/haxscramper/tmp/doc2.org");
@@ -70,5 +72,21 @@ TEST(BaseLexTest, WriteOut) {
         parser.setTraceFile("/tmp/parse_trace.txt");
         parser.TraceState = true;
         parser.parseFull(lex);
+    }
+    {
+        sem::ContextStore context;
+        sem::OrgConverter converter(&context);
+        converter.setTraceFile("/tmp/trace_convert.txt");
+        auto document = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+        ExporterYaml exporter;
+        exporter.skipNullFields  = true;
+        exporter.skipFalseFields = true;
+        exporter.skipZeroFields  = true;
+        exporter.skipLocation    = true;
+        exporter.skipId          = true;
+        writeFileOrStdout(
+            "/tmp/sem.yaml",
+            std::format("{}", exporter.evalTop(document)) + "\n",
+            true);
     }
 }
