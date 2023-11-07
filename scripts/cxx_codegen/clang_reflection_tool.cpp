@@ -32,7 +32,6 @@ llvm::cl::opt<std::string> outputPathOverride(
 llvm::cl::opt<std::string> ToolchainInclude(
     "toolchain-include",
     llvm::cl::desc("Path to the LLVM Toolchain include directory"),
-    llvm::cl::Required,
     llvm::cl::cat(ToolingSampleCategory));
 
 class ReflFrontendAction : public clang::ASTFrontendAction {
@@ -120,12 +119,15 @@ int main(int argc, const char** argv) {
     clang::tooling::ClangTool tool(
         adjustedCompilations, OptionsParser.getSourcePathList());
 
-    if (!fs::is_directory(std::string(ToolchainInclude))) {
-        llvm::errs()
-            << "Toolchain include is not a directory or does not exist '"
-            << ToolchainInclude << "'\n";
-        return 1;
+    if (!ToolchainInclude.empty()) {
+        if (!fs::is_directory(std::string(ToolchainInclude))) {
+            llvm::errs() << "Toolchain include is not a directory or does "
+                            "not exist '"
+                         << ToolchainInclude << "'\n";
+            return 1;
+        }
     }
+
 
     int result = tool.run(
         clang::tooling::newFrontendActionFactory<ReflFrontendAction>()

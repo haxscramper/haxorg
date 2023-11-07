@@ -121,6 +121,12 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     bool VisitEnumDecl(clang::EnumDecl* Decl);
     bool isRefl(clang::Decl* Decl);
     std::optional<std::string> getDoc(const clang::Decl* Decl);
+    bool                       shouldVisit(clang::Decl* Decl) {
+        return !requireReflAnnotation || isRefl(Decl);
+    }
+
+
+    bool requireReflAnnotation = true;
 
   private:
     clang::ASTContext* Ctx;
@@ -136,7 +142,9 @@ class ReflASTConsumer : public clang::ASTConsumer {
     explicit ReflASTConsumer(clang::CompilerInstance& CI)
         : out(std::make_unique<TU>())
         , Visitor(&CI.getASTContext(), out.get())
-        , CI(CI) {}
+        , CI(CI) {
+        Visitor.requireReflAnnotation = false;
+    }
 
     virtual void HandleTranslationUnit(clang::ASTContext& Context);
 };

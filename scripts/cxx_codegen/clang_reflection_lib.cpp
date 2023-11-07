@@ -420,7 +420,7 @@ std::optional<std::string> ReflASTVisitor::getDoc(
 
 bool ReflASTVisitor::VisitCXXRecordDecl(
     clang::CXXRecordDecl* Declaration) {
-    if (isRefl(Declaration)) {
+    if (shouldVisit(Declaration)) {
         llvm::TimeTraceScope timeScope{
             "reflection-visit-record" + Declaration->getNameAsString()};
 
@@ -434,13 +434,13 @@ bool ReflASTVisitor::VisitCXXRecordDecl(
         rec->set_name(Declaration->getNameAsString());
 
         for (clang::FieldDecl* field : Declaration->fields()) {
-            if (isRefl(field)) {
+            if (shouldVisit(field)) {
                 fillFieldDecl(rec->add_fields(), field);
             }
         }
 
         for (clang::CXXMethodDecl* method : Declaration->methods()) {
-            if (isRefl(method)) {
+            if (shouldVisit(method)) {
                 fillMethodDecl(rec->add_methods(), method);
             }
         }
@@ -451,7 +451,7 @@ bool ReflASTVisitor::VisitCXXRecordDecl(
 }
 
 bool ReflASTVisitor::VisitEnumDecl(clang::EnumDecl* Decl) {
-    if (isRefl(Decl)) {
+    if (shouldVisit(Decl)) {
         Diag(
             DiagKind::Note,
             "Adding serialization information for %0",
