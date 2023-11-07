@@ -107,9 +107,15 @@ def conv_proto_enum(en: pb.Enum) -> GenTuEnum:
 
     return result
 
+@beartype
+@dataclass
+class ConvTu:
+    structs: List[GenTuStruct]
+    functions: List[GenTuFunction]
+    enums: List[GenTuEnum]
 
 @beartype
-def conv_proto_file(path: str) -> Tuple[List[GenTuStruct], List[GenTuEnum]]:
+def conv_proto_file(path: str) -> ConvTu:
     unit = pb.TU()
     assert os.path.exists(path)
 
@@ -122,4 +128,4 @@ def conv_proto_file(path: str) -> Tuple[List[GenTuStruct], List[GenTuEnum]]:
 
     gen_structs: List[GenTuStruct] = [conv_proto_record(rec) for rec in unit.records]
     gen_enums: List[GenTuEnum] = [conv_proto_enum(rec) for rec in unit.enums]
-    return (gen_structs, gen_enums)
+    return ConvTu(structs=gen_structs, enums=gen_enums, functions=[])

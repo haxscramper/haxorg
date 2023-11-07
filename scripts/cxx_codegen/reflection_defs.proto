@@ -17,12 +17,20 @@ message QualType {
     bool IsConst = 4;
     // `T&` vs `T&` (TODO r-value ref)
     bool IsRef = 5;
+    bool IsPointer = 6;
+    // Pointer to standalone function -- not pointer to member.
+    // Return type is stored as a first argument, parameter types
+    // are provided as trailing arguments
+    bool IsFunctionPointer = 7;
+    // Pointer to class method. Return type is stored as a first
+    // parameter, class type is a second, argument are trailing. 
+    bool IsMethodPointer = 8;
     // `std::vector` -- std will also be handled as qualified type to
     // avoid making more complicated spaces structure. TODO revise if
     // `repeated string Spaces` + `repated QualType Parents` will be
     // a better alternative.
-    bool IsNamespace = 6;
-    string DbgOrigin = 7;
+    bool IsNamespace = 9;
+    string DbgOrigin = 10;
 }
 
 // Enumeration definition
@@ -64,6 +72,12 @@ message TemplateTypename {
     string Name = 3;
     repeated TemplateTypename Nested = 4;
     string Concept = 5;
+}
+
+message Function {
+    string Name = 1;
+    QualType ResultTy = 2;
+    repeated Arg Arguments = 3;
 }
 
 message Record {
@@ -111,5 +125,6 @@ message Record {
 message TU {
     repeated Record records = 1;
     repeated Enum enums = 2;
-    string Doc = 3;
+    repeated Function functions = 3;
+    string Doc = 4;
 }

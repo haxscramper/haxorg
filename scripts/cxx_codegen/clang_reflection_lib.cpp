@@ -208,11 +208,16 @@ void ReflASTVisitor::fillType(
         if (In.isConstQualified()) {
             Out->set_isconst(true);
         }
+
         if (In->isReferenceType()) {
             Out->set_isref(true);
         }
 
-        if (In->isReferenceType()) {
+        if (In->isPointerType()) {
+            Out->set_ispointer(true);
+        }
+
+        if (In->isReferenceType() || In->isPointerType()) {
             fillType(Out, In->getPointeeType(), Loc);
         } else if (In->isBooleanType()) {
             Out->set_name("bool");
@@ -235,6 +240,17 @@ void ReflASTVisitor::fillType(
             Out->set_name(In->getAs<clang::EnumType>()
                               ->getDecl()
                               ->getNameAsString());
+        } else if (In->isFunctionProtoType()) {
+            Out->set_isfunctionpointer(true);
+            Out->set_name("function_ptr");
+            const clang::FunctionProtoType* FPT = In->getAs<
+                clang::FunctionProtoType>();
+            fillType(Out->add_parameters(), FPT->getReturnType(), Loc);
+            for (clang::QualType const& param : FPT->param_types()) {
+                fillType(Out->add_parameters(), param, Loc);
+            }
+
+
         } else {
             Diag(
                 DiagKind::Warning,
@@ -424,12 +440,6 @@ bool ReflASTVisitor::VisitCXXRecordDecl(
         llvm::TimeTraceScope timeScope{
             "reflection-visit-record" + Declaration->getNameAsString()};
 
-        Diag(
-            DiagKind::Note,
-            "Adding serialization information for %0",
-            Declaration->getLocation())
-            << Declaration;
-
         Record* rec = out->add_records();
         rec->set_name(Declaration->getNameAsString());
 
@@ -447,6 +457,22 @@ bool ReflASTVisitor::VisitCXXRecordDecl(
     }
 
 
+    return true;
+}
+
+bool ReflASTVisitor::VisitFunctionDecl(clang::FunctionDecl* Decl) {
+    if (shouldVisit(Decl)) {
+        Function* func = out->add_functions();
+        func->set_name(Decl->getNameAsString());
+        for (clang::ParmVarDecl* Parm : Decl->parameters()) {
+            fillParmVarDecl(func->add_arguments(), Parm);
+        }
+
+        fillType(
+            func->mutable_resultty(),
+            Decl->getReturnType(),
+            Decl->getLocation());
+    }
     return true;
 }
 
