@@ -23,6 +23,11 @@ states:
 rx_macros:
   - { name: space, value: "[\\h\\xA0]" }
 
+tokens: 
+  - { name: "Indent" }
+  - { name: "Dedent" }
+  - { name: "SameIndent" }
+
 rules:
   - lit: "#+"
     states: [LEAD]

@@ -36,9 +36,14 @@ class RxMacro(BaseModel):
     line: Optional[int] = None
 
 
+class TokenDesc(BaseModel):
+    name: str
+
+
 class Configuration(BaseModel):
     states: List[State]
     rules: List[Rule]
+    tokens: List[TokenDesc] = Field(default_factory=list)
     rx_macros: List[RxMacro] = Field(default_factory=list)
 
 
@@ -116,7 +121,10 @@ enum class {enum} : unsigned short int {{
 }};
     
 """.format(enum=ENUM_NAME,
-           tokens=",\n  ".join(sorted(set([rule.token for rule in config.rules]))))
+           tokens=",\n  ".join(
+               sorted(
+                   set([token.name for token in config.tokens] +
+                       [rule.token for rule in config.rules]))))
 
 
 @beartype
