@@ -40,6 +40,21 @@ struct BaseFill {
 
 using BaseToken      = Token<BaseTokenKind, BaseFill>;
 using BaseTokenGroup = TokenGroup<BaseTokenKind, BaseFill>;
+using BaseTokenId    = TokenId<BaseTokenKind, BaseFill>;
+
+template <>
+struct std::formatter<BaseFill> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(BaseFill const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        return fmt.format(
+            std::format(
+                "<{}>:{}:{}", escape_for_write(p.text), p.line, p.col),
+            ctx);
+    }
+};
+
 
 BaseTokenGroup tokenize(const char* input, int size);
 

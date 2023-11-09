@@ -50,7 +50,7 @@ struct std::formatter<TokenId<K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
     typename FormatContext::iterator format(
         const TokenId<K, V>& p,
-        FormatContext&       ctx) {
+        FormatContext&       ctx) const {
         std::formatter<std::string> fmt;
         return fmt.format(p.format(demangle(typeid(K).name())), ctx);
     }

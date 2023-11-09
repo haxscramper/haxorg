@@ -95,11 +95,6 @@ struct OrgTokenizer
     /// elements that can be detected on this stage.
     void recombine(BaseLexer& lex);
 
-    /// Iterate the sequence of tokens, searching for text context spans
-    /// and convert markup delimiter tokens into direct opening/closing or
-    /// back to the regular punctuation (if no match can be found).
-    void assignMarkupDirections();
-
     void convert(BaseTokenGroup& input);
     void convert(BaseLexer& lex);
 
