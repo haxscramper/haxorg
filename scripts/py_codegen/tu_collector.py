@@ -7,6 +7,7 @@ from pprint import pprint
 from plumbum import local
 from hashlib import md5
 import json
+import time
 import os
 from pathlib import Path
 
@@ -27,6 +28,7 @@ class TuOptions(BaseModel):
                             default="/tmp/tu_collector")
     toolchain_include: str = Field(
         description="Path to the toolchain that was used to compile indexing tool")
+    reflect_cache: str = Field(description="Store last reflection convert timestamps", default="/tmp/tu_collector/runs.json")
     path_suffixes: List[str] = Field(
         description="List of file suffixes used for dir list filtering",
         default=[".hpp", ".cpp", ".h", ".c", ".cxx"],
@@ -63,6 +65,15 @@ def run_collector(conf: TuOptions, input: Path, output: Path):
     if not tmp.exists():
         tmp.mkdir(parents=True)
 
+    refl = {}
+    if Path(conf.reflect_cache).exists():
+        with open(conf.reflect_cache, "r") as file:
+            refl = json.load(file)
+
+    if (str(input) in refl) and (input.stat().st_mtime < refl[str(input)]) and (output.exists()):
+        log.info(f"{input} has already been converted to {output}")
+        return
+
     tool = local[conf.indexing_tool]
 
     tmp_output = tmp.joinpath(md5(str(output).encode("utf-8")).hexdigest() + ".pb")
@@ -95,6 +106,9 @@ def run_collector(conf: TuOptions, input: Path, output: Path):
             pprint(tu, width=200, stream=file)
 
         log.info(f"Converted TU file to {output}")
+        refl[str(input)] = time.time()
+        with open(conf.reflect_cache, "w") as file:
+            file.write(json.dumps(refl, indent=2))
 
 
 def model_options(f):
@@ -116,8 +130,10 @@ def run(ctx: click.Context, config: str, **kwargs):
                            conf_provider.merge_cli_model(ctx, config_base, TuOptions))
 
     paths: List[Path] = expand_input(conf.input, conf.path_suffixes)
-    for path in paths[:2]:
+    for path in paths[:5]:
         run_collector(conf, path, path.with_suffix(".py"))
+
+    log.info("Finished conversion")
 
 
 if __name__ == "__main__":
