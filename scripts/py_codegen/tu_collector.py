@@ -13,6 +13,7 @@ import time
 import os
 from pathlib import Path
 import igraph as ig
+import graphviz as gv
 
 from py_scriptutils.script_logging import log
 import py_scriptutils.toml_config_profiler as conf_provider
@@ -132,7 +133,6 @@ def hash_qual_type(t: QualType) -> int:
     for param in t.Parameters:
         parts.append(hash_qual_type(param))
 
-    pprint(parts)
     return hash(tuple(parts))
 
 
@@ -157,33 +157,106 @@ class GenGraph:
     graph: ig.Graph = field(default_factory=lambda: ig.Graph())
     subgraphs: List[Sub] = field(default_factory=list)
 
-    def hash_from_entry(self,
+    id_map: Dict[int, int] = field(default_factory=dict)
+
+    def id_from_entry(self,
                         entry: Union[GenTuFunction, GenTuStruct, GenTuEnum],
                         parent: Optional[QualType] = None) -> int:
+        hashed: int = 0
         if isinstance(entry, GenTuStruct):
-            return hash_qual_type(entry.qual_name)
+            hashed = hash_qual_type(entry.qual_name)
 
         else:
             assert False
+
+        if hashed not in self.id_map:
+            self.id_map[hashed] = len(self.id_map)
+
+        return self.id_map[hashed]
 
     def merge_structs(self, stored: GenTuStruct, added: GenTuStruct):
         pass
 
     def add_struct(self, struct: GenTuStruct, sub: Sub):
-        _id = self.hash_from_entry(struct)
+        _id = self.id_from_entry(struct)
         if _id not in self.id_to_entry:
             self.id_to_entry[_id] = deepcopy(struct)
 
         merge = self.id_to_entry[_id]
         self.merge_structs(merge, struct)
         sub.nodes.add(_id)
-
+        if len(self.graph.vs) <= _id:
+            self.graph.add_vertex()
+            self.graph.vs[_id]["label"] = struct.qual_name.name
+        
 
     def add_unit(self, wrap: TuWrap):
         sub = GenGraph.Sub(wrap.name)
         self.subgraphs.append(sub)
         for struct in wrap.tu.structs:
             self.add_struct(struct, sub)
+
+    def to_graphviz(self, output_file: str):
+        dot = gv.Digraph(format='dot')
+        dot.attr(rankdir="LR")
+        dot.attr("node", shape="rect")
+        g = self.graph
+
+        # Track which nodes have been added to subgraphs
+        added_nodes = set()
+
+
+        parent_tus: Dict[int, List[str]] = {}
+        for node in g.vs:
+            for sub in self.subgraphs:
+                if node.index in sub.nodes:
+                    if node.index not in parent_tus:
+                        parent_tus[node.index] = [sub.name]
+
+                    else:
+                        parent_tus[node.index].append(sub.name)
+
+
+        # Add nodes to subgraphs
+        for sub in self.subgraphs:
+            with dot.subgraph(name=f'cluster_{sub.name}') as c:
+                c.attr(label=sub.name)
+                for node in sub.nodes:
+                    c.node(f'{sub.name}_{node}', **{attr: g.vs[node][attr] for attr in g.vs.attributes()})
+                    added_nodes.add(node)
+                    if node in parent_tus and 1 < len(parent_tus[node]):
+                        for target in parent_tus[node]:
+                            if target != sub.name:
+                                dot.edge(f"{target}_{node}", f"{sub.name}_{node}")
+
+        
+
+        # Add top-level nodes
+        for node in range(len(g.vs)):
+            if node not in added_nodes:
+                dot.node(str(node), **{attr: g.vs[node][attr] for attr in g.vs.attributes()})
+
+        # Add edges
+        for edge in g.es:
+            source, target = edge.tuple
+            
+            # Check if nodes are in subgraphs and link accordingly
+            source_in_subgraph = source in added_nodes
+            target_in_subgraph = target in added_nodes
+
+            if source_in_subgraph and target_in_subgraph:
+                # Find subgraphs of source and target
+                source_subs = [sub.name for sub in self.subgraphs if source in sub.nodes]
+                target_subs = [sub.name for sub in self.subgraphs if target in sub.nodes]
+                
+                for s_sub in source_subs:
+                    for t_sub in target_subs:
+                        dot.edge(f'{s_sub}_{source}', f'{t_sub}_{target}')
+            else:
+                dot.edge(str(source), str(target))
+
+        # Render the graph to a file
+        dot.render(output_file)
 
 
 def model_options(f):
@@ -217,6 +290,9 @@ def run(ctx: click.Context, config: str, **kwargs):
         graph.add_unit(wrap)
 
     log.info("Finished conversion")
+
+    graph.graph["rankdir"] = "LR"
+    graph.to_graphviz("/tmp/output.dot")
 
 
 if __name__ == "__main__":

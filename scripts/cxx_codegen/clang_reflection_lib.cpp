@@ -561,11 +561,12 @@ bool ReflASTVisitor::VisitRecordDecl(
             // name from the scattered bits of brain tissue that was left
             // by the developers of this frankenstein feature.
             rec->set_name(Typedef->getNameAsString());
-            rec->mutable_qualname()->set_name(Typedef->getNameAsString());
             fillType(
                 rec->mutable_qualname(),
                 Typedef->getASTContext().getTypedefType(Typedef),
                 Decl->getLocation());
+
+            rec->mutable_qualname()->set_name(Typedef->getNameAsString());
 
         } else {
             rec->set_name(Decl->getNameAsString());
