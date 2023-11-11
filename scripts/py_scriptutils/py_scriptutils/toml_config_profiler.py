@@ -1,23 +1,25 @@
 from beartype import beartype
 import os
 from beartype.typing import List, Dict, Any, get_origin, get_args
-# trunk-ignore(mypy/import)
 import toml
 import traceback
 import rich_click as click
 import functools
 from pydantic import BaseModel
+from pprint import pprint
 
 from py_scriptutils.script_logging import log
+
+EXPLICIT_KEY = "__explicitly__"
 
 def merge_cli_model(ctx: click.Context, base: Dict, ModelT: type) -> Any:
     store = {}
     for param, value in ctx.params.items():
-        store[param] = value
+        if param in ctx.obj[EXPLICIT_KEY]:
+            store[param] = value
 
     final_data = merge_dicts([base, store])
 
-    # trunk-ignore(mypy/attr-defined)
     return ModelT.model_validate(final_data)
 
 
@@ -32,6 +34,20 @@ def py_type_to_click(T):
         return click.STRING
 
 
+@beartype
+def callback(ctx: click.Context, param: click.Option, value: Any):
+    # Set a custom attribute in the context to indicate the option was provided
+    if value is not None:
+        ctx.ensure_object(dict)
+        
+        if EXPLICIT_KEY in ctx.obj:
+            ctx.obj[EXPLICIT_KEY] = set([param.name]).union(ctx.obj[EXPLICIT_KEY])
+        else:
+            ctx.obj[EXPLICIT_KEY] = set([param.name])
+
+    return value
+
+
 def options_from_model(model: BaseModel) -> List[click.option]:
     result: List[click.option] = []
     for name, field in model.model_fields.items():
@@ -39,6 +55,9 @@ def options_from_model(model: BaseModel) -> List[click.option]:
             click.option("--" + (field.alias if field.alias else name),
                          type=py_type_to_click(field.annotation),
                          help=field.description,
+                         # Track which options were explicitly provided on the command line and 
+                         # override configuration file only in these cases
+                         callback=callback,
                          multiple=get_origin(field.annotation) is list))
 
     return result

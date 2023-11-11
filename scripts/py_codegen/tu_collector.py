@@ -4,7 +4,7 @@ from beartype import beartype
 from beartype.typing import List, Dict, get_args, get_origin, cast, Any
 from pydantic import BaseModel, Field
 from pprint import pprint
-import plumbum
+from plumbum import local
 import json
 import os
 from pathlib import Path
@@ -19,10 +19,13 @@ CONFIG_FILE_NAME = "tu_collector.toml"
 
 class TuOptions(BaseModel):
     input: List[str] = Field(description="List of input files, directories or globs")
+    indexing_tool: str = Field(description="Path to the TU index generator tool")
     path_suffixes: List[str] = Field(
         description="List of file suffixes used for dir list filtering",
         default=[".hpp", ".cpp", ".h", ".c", ".cxx"],
         alias="path-suffixes")
+
+
 
 
 @beartype
@@ -44,6 +47,16 @@ def expand_input(input: List[str], path_suffixes: List[str]) -> List[Path]:
 
     return result
 
+@beartype 
+def run_collector(indexing_tool: Path, input: Path, output: Path):
+    assert(indexing_tool.exists())
+    assert input.exists()
+    if not output.parent.exists():
+        output.parent.mkdir(parents=True)
+
+    log.info(input)
+
+    pass
 
 def model_options(f):
     return conf_provider.apply_options(f, conf_provider.options_from_model(TuOptions))
@@ -64,6 +77,8 @@ def run(ctx: click.Context, config: str, **kwargs):
                            conf_provider.merge_cli_model(ctx, config_base, TuOptions))
 
     paths: List[Path] = expand_input(conf.input, conf.path_suffixes)
+    for path in paths[:2]:
+        run_collector(Path(conf.indexing_tool), path, path.with_suffix(".pb"))
 
 
 if __name__ == "__main__":
