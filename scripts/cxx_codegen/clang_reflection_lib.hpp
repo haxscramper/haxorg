@@ -122,12 +122,23 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     bool VisitEnumDecl(clang::EnumDecl* Decl);
     bool isRefl(clang::Decl* Decl);
     std::optional<std::string> getDoc(const clang::Decl* Decl);
-    bool                       shouldVisit(clang::Decl* Decl) {
-        return !requireReflAnnotation || isRefl(Decl);
-    }
 
+    bool shouldVisit(clang::Decl* Decl);
 
-    bool requireReflAnnotation = true;
+    /// List of absolute paths for files whose declarations must be added
+    /// to the information about the translation units.
+    std::vector<std::string> targetFiles;
+    /// What group of declarations must be handled by the visitor
+    enum class VisitMode
+    {
+        /// All elements that are explicitly annotated with `[[refl]]`
+        /// attribute, irreespective of the declaration file.
+        AllAnnotated,
+        /// All declarations contained in explicitly allowed target files.
+        AllTargeted,
+    };
+
+    VisitMode visitMode = VisitMode::AllAnnotated;
 
   private:
     clang::ASTContext* Ctx;
@@ -143,9 +154,7 @@ class ReflASTConsumer : public clang::ASTConsumer {
     explicit ReflASTConsumer(clang::CompilerInstance& CI)
         : out(std::make_unique<TU>())
         , Visitor(&CI.getASTContext(), out.get())
-        , CI(CI) {
-        Visitor.requireReflAnnotation = false;
-    }
+        , CI(CI) {}
 
     virtual void HandleTranslationUnit(clang::ASTContext& Context);
 };

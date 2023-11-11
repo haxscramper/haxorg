@@ -3,6 +3,25 @@
 #include <llvm/Support/TimeProfiler.h>
 #include <format>
 
+std::string getAbsoluteDeclLocation(clang::Decl* Decl) {
+    clang::SourceLocation       loc           = Decl->getLocation();
+    const clang::ASTContext&    astContext    = Decl->getASTContext();
+    clang::SourceManager const& sourceManager = astContext
+                                                    .getSourceManager();
+
+    std::string filePath;
+    if (loc.isValid()) {
+        clang::SourceLocation fullLoc = sourceManager.getExpansionLoc(loc);
+        if (fullLoc.isValid()) {
+            filePath = sourceManager.getFilename(fullLoc).str();
+        } else {
+            filePath = sourceManager.getFilename(loc).str();
+        }
+    }
+
+    return filePath;
+}
+
 std::vector<QualType> ReflASTVisitor::getNamespaces(
     QualType*                                   Out,
     clang::NamespaceDecl const*                 Namespace,
@@ -431,6 +450,25 @@ std::optional<std::string> ReflASTVisitor::getDoc(
         return commentText.str();
     } else {
         return std::nullopt;
+    }
+}
+
+bool ReflASTVisitor::shouldVisit(clang::Decl* Decl) {
+    switch (visitMode) {
+        case VisitMode::AllAnnotated: {
+            return isRefl(Decl);
+        }
+        case VisitMode::AllTargeted: {
+            std::string DeclLoc = getAbsoluteDeclLocation(Decl);
+            std::cerr << "Decl location " << DeclLoc << std::endl;
+            return !DeclLoc.empty()
+                && std::any_of(
+                    targetFiles.begin(),
+                    targetFiles.end(),
+                    [&](std::string const& path) {
+                        return DeclLoc == path;
+                    });
+        }
     }
 }
 
