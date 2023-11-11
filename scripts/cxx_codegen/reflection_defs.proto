@@ -114,7 +114,7 @@ message Record {
     }
 
     string Name = 1;
-    string QualName = 2;
+    QualType QualName = 2;
     repeated QualType Bases = 3;
     repeated Field Fields = 4;
     repeated Method Methods = 5;

@@ -75,7 +75,7 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
 
 @beartype
 def conv_proto_record(record: pb.Record) -> GenTuStruct:
-    result = GenTuStruct(record.name, GenTuDoc(""))
+    result = GenTuStruct(record.name, GenTuDoc(""), conv_proto_type(record.qual_name))
     for _field in record.fields:
         result.fields.append(
             GenTuField(type=conv_proto_type(_field.type),

@@ -102,6 +102,7 @@ GenTuEntry = Union[
 class GenTuStruct:
     name: str
     doc: GenTuDoc
+    qual_name: QualType
     fields: List[GenTuField] = field(default_factory=list)
     methods: List[GenTuFunction] = field(default_factory=list)
     bases: List[QualType] = field(default_factory=list)

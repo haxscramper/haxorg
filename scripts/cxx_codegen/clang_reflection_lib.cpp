@@ -469,22 +469,26 @@ bool ReflASTVisitor::shouldVisit(clang::Decl* Decl) {
     }
 }
 
-bool ReflASTVisitor::VisitCXXRecordDecl(
-    clang::CXXRecordDecl* Declaration) {
-    if (shouldVisit(Declaration)) {
+bool ReflASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl* Decl) {
+    if (shouldVisit(Decl)) {
         llvm::TimeTraceScope timeScope{
-            "reflection-visit-record" + Declaration->getNameAsString()};
+            "reflection-visit-record" + Decl->getNameAsString()};
 
         Record* rec = out->add_records();
-        rec->set_name(Declaration->getNameAsString());
+        rec->set_name(Decl->getNameAsString());
 
-        for (clang::FieldDecl* field : Declaration->fields()) {
+        fillType(
+            rec->mutable_qualname(),
+            Decl->getASTContext().getRecordType(Decl),
+            Decl->getLocation());
+
+        for (clang::FieldDecl* field : Decl->fields()) {
             if (shouldVisit(field)) {
                 fillFieldDecl(rec->add_fields(), field);
             }
         }
 
-        for (clang::CXXMethodDecl* method : Declaration->methods()) {
+        for (clang::CXXMethodDecl* method : Decl->methods()) {
             if (shouldVisit(method)) {
                 fillMethodDecl(rec->add_methods(), method);
             }
@@ -532,24 +536,46 @@ bool ReflASTVisitor::VisitEnumDecl(clang::EnumDecl* Decl) {
 
 bool ReflASTVisitor::VisitTypedefDecl(
     clang::TypedefDecl* TypedefDeclaration) {
+    if (clang::RecordDecl* RecordDecl = TypedefDeclaration
+                                            ->getUnderlyingType()
+                                            ->getAsRecordDecl()) {
 
-    if (clang::CXXRecordDecl* RecordDecl = TypedefDeclaration
-                                               ->getUnderlyingType()
-                                               ->getAsCXXRecordDecl()) {
-        return VisitCXXRecordDecl(RecordDecl);
+        return VisitRecordDecl(RecordDecl, TypedefDeclaration);
     } else {
         return true;
     }
 }
 
-bool ReflASTVisitor::VisitRecordDecl(clang::RecordDecl* Decl) {
-    Decl->dumpColor();
-    if (shouldVisit(Decl)) {
+bool ReflASTVisitor::VisitRecordDecl(
+    clang::RecordDecl*  Decl,
+    clang::TypedefDecl* Typedef) {
+    if (Decl->getNameAsString().empty() && Typedef == nullptr) {
+        return true;
+    } else if (shouldVisit(Decl)) {
         llvm::TimeTraceScope timeScope{
             "reflection-visit-record" + Decl->getNameAsString()};
 
         Record* rec = out->add_records();
-        rec->set_name(Decl->getNameAsString());
+        if (Decl->getNameAsString().empty()) {
+            // typedef struct abomination handling -- need to conjure up a
+            // name from the scattered bits of brain tissue that was left
+            // by the developers of this frankenstein feature.
+            rec->set_name(Typedef->getNameAsString());
+            rec->mutable_qualname()->set_name(Typedef->getNameAsString());
+            fillType(
+                rec->mutable_qualname(),
+                Typedef->getASTContext().getTypedefType(Typedef),
+                Decl->getLocation());
+
+        } else {
+            rec->set_name(Decl->getNameAsString());
+
+            fillType(
+                rec->mutable_qualname(),
+                Decl->getASTContext().getRecordType(Decl),
+                Decl->getLocation());
+        }
+
 
         for (clang::FieldDecl* field : Decl->fields()) {
             if (shouldVisit(field)) {
@@ -557,6 +583,7 @@ bool ReflASTVisitor::VisitRecordDecl(clang::RecordDecl* Decl) {
             }
         }
     }
+
     return true;
 }
 

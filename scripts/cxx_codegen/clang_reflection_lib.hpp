@@ -122,8 +122,11 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     bool VisitFunctionDecl(clang::FunctionDecl* Decl);
     bool VisitEnumDecl(clang::EnumDecl* Decl);
     bool VisitTypedefDecl(clang::TypedefDecl* TypedefDeclaration);
-    bool VisitRecordDecl(clang::RecordDecl* Decl);
-    bool isRefl(clang::Decl* Decl);
+    bool VisitRecordDecl(
+        clang::RecordDecl*  Decl,
+        clang::TypedefDecl* Typedef = nullptr);
+
+    bool                       isRefl(clang::Decl* Decl);
     std::optional<std::string> getDoc(const clang::Decl* Decl);
 
     bool shouldVisit(clang::Decl* Decl);
