@@ -44,6 +44,7 @@ ignore = [
   "E501", # Line length
   "F841", # Assigned but never used
   "F522", # UNused format arguments
+  "F401", # Imported but not used -- just drives me crazy when I write code
 ]
 
 [tool.yapf]

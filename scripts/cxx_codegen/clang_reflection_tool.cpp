@@ -43,10 +43,10 @@ llvm::cl::opt<std::string> TargetFiles(
     llvm::cl::cat(ToolingSampleCategory));
 
 std::vector<std::string> parseTargetFiles(std::string path) {
-    std::ifstream ifs("data.json");
+    std::ifstream ifs{path};
     if (!ifs.is_open()) {
         throw std::domain_error(std::format(
-            "Failed to open the target file list: {}, {}",
+            "Failed to open the target file list: '{}', {}",
             path,
             std::strerror(errno)));
     }
@@ -91,14 +91,14 @@ class ReflFrontendAction : public clang::ASTFrontendAction {
             consumer->outputPathOverride = outputPathOverride;
         }
         if (TargetFiles.empty()) {
+            consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
+                AllAnnotated;
+        } else {
             std::vector files = parseTargetFiles(TargetFiles.getValue());
             consumer->Visitor.targetFiles.insert(
                 files.begin(), files.end());
             consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
                 AllTargeted;
-        } else {
-            consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
-                AllAnnotated;
         }
 
         return consumer;
