@@ -129,9 +129,15 @@ def run_collector(conf: TuOptions, input: Path, output: Path) -> Optional[ConvTu
 
 def hash_qual_type(t: QualType) -> int:
     parts: List[str] = []
-    parts.append(hash(t.name))
-    for param in t.Parameters:
-        parts.append(hash_qual_type(param))
+    if t.func:
+        parts.append(hash_qual_type(t.func.ReturnTy))
+        for T in t.func.Args:
+            parts.append(hash_qual_type(T))
+
+    else:
+        parts.append(hash(t.name))
+        for param in t.Parameters:
+            parts.append(hash_qual_type(param))
 
     return hash(tuple(parts))
 
@@ -159,20 +165,35 @@ class GenGraph:
 
     id_map: Dict[int, int] = field(default_factory=dict)
 
-    def id_from_entry(self,
-                        entry: Union[GenTuFunction, GenTuStruct, GenTuEnum],
-                        parent: Optional[QualType] = None) -> int:
-        hashed: int = 0
-        if isinstance(entry, GenTuStruct):
-            hashed = hash_qual_type(entry.qual_name)
+    
 
-        else:
-            assert False
-
+    def id_from_hash(self, hashed: int) -> int:
         if hashed not in self.id_map:
             self.id_map[hashed] = len(self.id_map)
 
         return self.id_map[hashed]
+
+    def id_from_entry(self,
+                        entry: Union[GenTuFunction, GenTuStruct, GenTuEnum],
+                        parent: Optional[QualType] = None) -> int:
+        if isinstance(entry, GenTuStruct):
+            return self.id_from_hash(hash_qual_type(entry.qual_name))
+
+        else:
+            assert False
+        
+
+    def use_type(self, _id: int, Type: QualType):
+        _type = self.id_from_hash(hash_qual_type(Type))
+        if _type == len(self.graph.vs):
+            self.graph.add_vertex()
+            self.graph.vs[_type]["label"] = Type.format()
+        else:
+            if self.graph.vs[_type]["label"] == "":
+                print(Type)
+
+        if not self.graph.are_connected(_id, _type):
+            self.graph.add_edge(_id, _type)
 
     def merge_structs(self, stored: GenTuStruct, added: GenTuStruct):
         pass
@@ -187,7 +208,12 @@ class GenGraph:
         sub.nodes.add(_id)
         if len(self.graph.vs) <= _id:
             self.graph.add_vertex()
-            self.graph.vs[_id]["label"] = struct.qual_name.name
+
+        self.graph.vs[_id]["label"] = struct.qual_name.name
+        self.graph.vs[_id]["color"] = "green"
+
+        for field in struct.fields:
+            self.use_type(_id, field.type)
         
 
     def add_unit(self, wrap: TuWrap):

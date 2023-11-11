@@ -251,7 +251,11 @@ void ReflASTVisitor::fillType(
 
         } else if (In->isRecordType()) {
             applyNamespaces(Out, getNamespaces(Out, In, Loc));
-            Out->set_dbgorigin("record type filler");
+
+            Out->set_dbgorigin(
+                "record type filler "
+                + Loc->printToString(Ctx->getSourceManager()));
+
             Out->set_name(In->getAs<clang::RecordType>()
                               ->getDecl()
                               ->getNameAsString());

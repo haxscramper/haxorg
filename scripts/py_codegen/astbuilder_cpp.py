@@ -68,6 +68,22 @@ class QualType:
                      tuple([hash(T) for T in self.Spaces]),
                      tuple([hash(T) for T in self.Parameters])))
 
+    def format(self) -> str:
+        if self.func:
+            return "%s(%s)" % (
+                self.func.ReturnTy.format(),
+                ", ".join([T.format() for T in self.func.Args])
+            )
+
+        else:
+            return "{name}{args}{const}{ptr}{ref}".format(
+                name=self.name,
+                args=("<" + ", ".join([T.format() for T in self.Parameters]) + ">") if self.Parameters else "",
+                const=" const" if self.isConst else "",
+                ptr="*" if self.isPtr else "",
+                ref="&" if self.isRef else "",
+            )
+
     def asNamespace(self, is_namespace=True):
         self.isNamespace = is_namespace
         return self
