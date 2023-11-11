@@ -10,6 +10,7 @@
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/ASTConsumers.h>
 #include <clang/Sema/Sema.h>
+#include <unordered_set>
 
 // Auto-generated protobuf definition, provided by cmake run
 #include "reflection_defs.pb.h"
@@ -127,7 +128,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
     /// List of absolute paths for files whose declarations must be added
     /// to the information about the translation units.
-    std::vector<std::string> targetFiles;
+    std::unordered_set<std::string> targetFiles;
     /// What group of declarations must be handled by the visitor
     enum class VisitMode
     {

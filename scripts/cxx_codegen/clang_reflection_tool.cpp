@@ -91,8 +91,9 @@ class ReflFrontendAction : public clang::ASTFrontendAction {
             consumer->outputPathOverride = outputPathOverride;
         }
         if (TargetFiles.empty()) {
-            consumer->Visitor.targetFiles = parseTargetFiles(
-                TargetFiles.getValue());
+            std::vector files = parseTargetFiles(TargetFiles.getValue());
+            consumer->Visitor.targetFiles.insert(
+                files.begin(), files.end());
             consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
                 AllTargeted;
         } else {

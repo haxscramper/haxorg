@@ -462,12 +462,7 @@ bool ReflASTVisitor::shouldVisit(clang::Decl* Decl) {
             std::string DeclLoc = getAbsoluteDeclLocation(Decl);
             std::cerr << "Decl location " << DeclLoc << std::endl;
             return !DeclLoc.empty()
-                && std::any_of(
-                    targetFiles.begin(),
-                    targetFiles.end(),
-                    [&](std::string const& path) {
-                        return DeclLoc == path;
-                    });
+                && targetFiles.find(DeclLoc) != targetFiles.end();
         }
     }
 }

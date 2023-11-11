@@ -25,6 +25,7 @@ dominate = "^2.8.0"
 pyyaml = "^6.0.1"
 pyside6 = "^6.6.0"
 sexpdata = "^1.0.1"
+types-toml = "^0.10.8.7"
 
 [tool.poetry.group.dev.dependencies]
 yapf = "^0.40.2"
