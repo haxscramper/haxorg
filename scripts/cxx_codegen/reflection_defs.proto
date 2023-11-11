@@ -114,12 +114,13 @@ message Record {
     }
 
     string Name = 1;
-    repeated QualType Bases = 2;
-    repeated Field Fields = 3;
-    repeated Method Methods = 4;
-    repeated Record NestedRec = 5;
-    repeated Enum NestedEnum = 6;
-    string Doc = 7;
+    string QualName = 2;
+    repeated QualType Bases = 3;
+    repeated Field Fields = 4;
+    repeated Method Methods = 5;
+    repeated Record NestedRec = 6;
+    repeated Enum NestedEnum = 7;
+    string Doc = 8;
 }
 
 message TU {

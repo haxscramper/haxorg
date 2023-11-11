@@ -460,7 +460,9 @@ bool ReflASTVisitor::shouldVisit(clang::Decl* Decl) {
         }
         case VisitMode::AllTargeted: {
             std::string DeclLoc = getAbsoluteDeclLocation(Decl);
-            std::cerr << "Decl location " << DeclLoc << std::endl;
+            //            std::cerr << "Decl location " <<
+            //            Decl->getDeclKindName() << " "
+            //                      << DeclLoc << std::endl;
             return !DeclLoc.empty()
                 && targetFiles.find(DeclLoc) != targetFiles.end();
         }
@@ -525,6 +527,36 @@ bool ReflASTVisitor::VisitEnumDecl(clang::EnumDecl* Decl) {
         }
     }
 
+    return true;
+}
+
+bool ReflASTVisitor::VisitTypedefDecl(
+    clang::TypedefDecl* TypedefDeclaration) {
+
+    if (clang::CXXRecordDecl* RecordDecl = TypedefDeclaration
+                                               ->getUnderlyingType()
+                                               ->getAsCXXRecordDecl()) {
+        return VisitCXXRecordDecl(RecordDecl);
+    } else {
+        return true;
+    }
+}
+
+bool ReflASTVisitor::VisitRecordDecl(clang::RecordDecl* Decl) {
+    Decl->dumpColor();
+    if (shouldVisit(Decl)) {
+        llvm::TimeTraceScope timeScope{
+            "reflection-visit-record" + Decl->getNameAsString()};
+
+        Record* rec = out->add_records();
+        rec->set_name(Decl->getNameAsString());
+
+        for (clang::FieldDecl* field : Decl->fields()) {
+            if (shouldVisit(field)) {
+                fillFieldDecl(rec->add_fields(), field);
+            }
+        }
+    }
     return true;
 }
 

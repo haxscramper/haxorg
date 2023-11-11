@@ -42,7 +42,7 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
         # Removing the leading /** or /*! and trailing */
         content = comment[3:-2].strip()
         # Remove any '*' prefixes that might exist on each line
-        content = '\n'.join(line.lstrip('* ') for line in content.splitlines())
+        content = '\n'.join(line.strip().lstrip('* ') for line in content.splitlines())
         return process_content(content.splitlines())
     elif comment.startswith("//"):
         return process_content(comment[2:].splitlines())
@@ -51,7 +51,7 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
         content = comment[2:]
         if content.endswith("*/"):
             content = content[:-2]
-        content = '\n'.join(line.lstrip('* ') for line in content.splitlines())
+        content = '\n'.join(line.strip().lstrip('* ') for line in content.splitlines())
         return process_content(content.splitlines())
     else:
         raise ValueError(f"Unrecognized comment style: {comment}")

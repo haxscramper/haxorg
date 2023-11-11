@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 from beartype import beartype
-from beartype.typing import List, cast, Any, Tuple
+from beartype.typing import List, cast, Any, Tuple, Union
 from pydantic import BaseModel, Field
 from pprint import pprint
 from plumbum import local
 from hashlib import md5
+from gen_tu_cpp import *
 import json
 import time
 import os
@@ -28,7 +29,8 @@ class TuOptions(BaseModel):
                             default="/tmp/tu_collector")
     toolchain_include: str = Field(
         description="Path to the toolchain that was used to compile indexing tool")
-    reflect_cache: str = Field(description="Store last reflection convert timestamps", default="/tmp/tu_collector/runs.json")
+    reflect_cache: str = Field(description="Store last reflection convert timestamps",
+                               default="/tmp/tu_collector/runs.json")
     path_suffixes: List[str] = Field(
         description="List of file suffixes used for dir list filtering",
         default=[".hpp", ".cpp", ".h", ".c", ".cxx"],
@@ -70,9 +72,12 @@ def run_collector(conf: TuOptions, input: Path, output: Path):
         with open(conf.reflect_cache, "r") as file:
             refl = json.load(file)
 
-    if (str(input) in refl) and (input.stat().st_mtime < refl[str(input)]) and (output.exists()):
+    if (str(input) in refl) and (max(input.stat().st_mtime,
+                                     Path(conf.indexing_tool).stat().st_mtime)
+                                 < refl[str(input)]) and (output.exists()):
         log.info(f"{input} has already been converted to {output}")
-        return
+        # return
+        pass
 
     tool = local[conf.indexing_tool]
 
@@ -92,15 +97,21 @@ def run_collector(conf: TuOptions, input: Path, output: Path):
             str(input),
         ),
                  retcode=None))
-
+    
     if res_code != 0:
         if res_stdout:
-            log.error(res_stdout)
+            print(res_stdout)
 
         if res_stderr:
-            log.error(res_stderr)
+            print(res_stderr)
 
     else:
+        if res_stdout:
+            print(res_stdout)
+
+        if res_stderr:
+            print(res_stderr)
+
         tu = conv_proto_file(str(tmp_output))
         with open(output, "w") as file:
             pprint(tu, width=200, stream=file)
@@ -109,6 +120,27 @@ def run_collector(conf: TuOptions, input: Path, output: Path):
         refl[str(input)] = time.time()
         with open(conf.reflect_cache, "w") as file:
             file.write(json.dumps(refl, indent=2))
+
+
+def hash_qual_type(t: QualType) -> int:
+    parts: List[str] = []
+    parts.append(hash(t.name))
+    for param in t.Parameters:
+        parts.append(hash_qual_type(param))
+
+    return hash(tuple(parts))
+
+
+class GenGraph:
+
+    def has_from_entry(self,
+                       entry: Union[GenTuFunction, GenTuStruct],
+                       parent: Optional[QualType] = None) -> int:
+        if isinstance(entry, GenTuStruct):
+            pass
+            # hash_qual_type(entry.q)
+
+        return 0
 
 
 def model_options(f):
