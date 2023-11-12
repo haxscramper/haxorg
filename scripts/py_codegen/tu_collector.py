@@ -14,6 +14,9 @@ import os
 from pathlib import Path
 import igraph as ig
 import graphviz as gv
+from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
+import astbuilder_nim as nim
+from py_textlayout.py_textlayout import TextLayout, TextOptions
 
 from py_scriptutils.script_logging import log
 import py_scriptutils.toml_config_profiler as conf_provider
@@ -38,6 +41,9 @@ class TuOptions(BaseModel):
         description="List of file suffixes used for dir list filtering",
         default=[".hpp", ".cpp", ".h", ".c", ".cxx"],
         alias="path-suffixes")
+
+    execution_trace: str = Field(description="Output path for the execution trace json",
+                                 default="/tmp/tu_collector_trace.json")
 
 
 @beartype
@@ -97,7 +103,8 @@ def run_collector(conf: TuOptions, input: Path, output: Path) -> Optional[ConvTu
         str(input),
     ]
 
-    res_code, res_stdout, res_stderr = cast(Tuple[int, str, str], tool.run(flags, retcode=None))
+    res_code, res_stdout, res_stderr = cast(Tuple[int, str, str],
+                                            tool.run(flags, retcode=None))
 
     if res_code != 0:
         if res_stdout:
@@ -150,6 +157,7 @@ def hash_qual_type(t: QualType) -> int:
 class TuWrap:
     name: str
     tu: ConvTu
+    original: Path
 
 
 @beartype
@@ -160,6 +168,7 @@ class GenGraph:
     @dataclass
     class Sub:
         name: str
+        original: Path
         nodes: Set[int] = field(default_factory=set)
 
     id_to_entry: Dict[int, Union[GenTuFunction, GenTuStruct,
@@ -252,7 +261,7 @@ class GenGraph:
         self.graph.vs[_id]["color"] = "blue"
 
     def add_unit(self, wrap: TuWrap):
-        sub = GenGraph.Sub(wrap.name)
+        sub = GenGraph.Sub(wrap.name, wrap.original)
         self.subgraphs.append(sub)
         for struct in wrap.tu.structs:
             self.add_struct(struct, sub)
@@ -262,6 +271,139 @@ class GenGraph:
 
         for typedef in wrap.tu.typedefs:
             self.add_typedef(typedef, sub)
+
+    def type_to_nim(self, t: QualType) -> nim.Type:
+        if t.func:
+            return nim.Type(Name="",
+                            Kind=nim.TypeKind.Function,
+                            Parameters=[
+                                self.type_to_nim(t.func.ReturnTy),
+                            ] + [self.type_to_nim(arg) for arg in t.func.Args])
+        elif t.name == "char" and t.isConst and t.isPtr:
+            return nim.Type("cstring")
+
+        else:
+            t_map = t.name
+            match t.name:
+                case "int":
+                    t_map = "cint"
+                case "short":
+                    t_map = "cshort"
+                case "unsigned short":
+                    t_map = "cushort"
+
+                case "int":
+                    t_map = "cint"
+                case "unsigned" | "unsigned int":
+                    t_map = "cuint"
+
+                case "long":
+                    t_map = "clong"
+                case "unsigned long":
+                    t_map = "culong"
+
+                case "long long":
+                    t_map = "clonglong"
+                case "unsigned long long":
+                    t_map = "culonglong"
+
+                case "void":
+                    t_map = "void"
+
+                case "char":
+                    t_map = "char"
+                case "unsigned char":
+                    t_map = "uint8"
+
+                case "float":
+                    t_map = "cfloat"
+                case "double":
+                    t_map = "cdouble"
+                case "bool":
+                    t_map = "bool"
+                case "size_t":
+                    t_map = "csize_t"
+                case "ssize_t":
+                    t_map = "csize_t"
+
+                case "int8_t":
+                    t_map = "int8"
+                case "int16_t":
+                    t_map = "int16"
+                case "int32_t":
+                    t_map = "int32"
+                case "int64_t":
+                    t_map = "int64"
+
+                case "uint8_t":
+                    t_map = "uint8"
+                case "uint16_t":
+                    t_map = "uint16"
+                case "uint32_t":
+                    t_map = "uint32"
+                case "uint64_t":
+                    t_map = "uint64"
+                case "auto":
+                    t_map = "auto"
+
+            return nim.Type(Name=t_map)
+
+    def enum_to_nim(self, b: nim.ASTBuilder, enum: GenTuEnum) -> nim.EnumParams:
+        return nim.EnumParams(
+            Name=enum.name.name,
+            Fields=[nim.EnumFieldParams(Name=f.name, Value=0) for f in enum.fields])
+
+    def struct_to_nim(self, b: nim.ASTBuilder, rec: GenTuStruct) -> nim.ObjectParams:
+        return nim.ObjectParams(Name=rec.name.name,
+                                Fields=[
+                                    nim.FieldParams(Name=f.name,
+                                                    Type=self.type_to_nim(f.type))
+                                    for f in rec.fields
+                                ])
+
+    def typedef_to_nim(self, b: nim.ASTBuilder,
+                       typdef: GenTuTypedef) -> nim.TypedefParams:
+        return nim.TypedefParams(Name=typdef.name.name,
+                                 Base=self.type_to_nim(typdef.base))
+
+    def to_nim(self, sub: Sub):
+        t = TextLayout()
+        builder = nim.ASTBuilder(t)
+        result = sub.original.with_suffix(".nim")
+
+        block = t.stack([])
+
+        count = 0
+        for _id in sub.nodes:
+            count += 1
+            decl = self.id_to_entry[_id]
+            added: BlockId
+            if isinstance(decl, GenTuEnum):
+                added = builder.Enum(self.enum_to_nim(builder, decl))
+
+            elif isinstance(decl, GenTuStruct):
+                added = builder.Object(self.struct_to_nim(builder, decl))
+
+            elif isinstance(decl, GenTuTypedef):
+                added = builder.Typedef(self.typedef_to_nim(builder, decl))
+
+            else:
+                assert False
+
+            added = t.stack([builder.string("type"), t.indent(2, added)])
+
+            t.add_at(block, added)
+
+        if 0 < count:
+            log.info(f"Writing to {result}")
+            with open(result, "w") as file:
+                opts = TextOptions()
+                opts.rightMargin = 160
+                newCode = t.toString(block, opts)
+                file.write(newCode)
+
+        else:
+            log.warning(f"No declarations found for {result}")
 
     def to_graphviz(self, output_file: str):
         dot = gv.Digraph(format='dot')
@@ -349,37 +491,50 @@ class CompileCommand(BaseModel):
 @model_options
 @click.pass_context
 def run(ctx: click.Context, config: str, **kwargs):
-    
     config_base = conf_provider.run_config_provider(
         ([config] if config else
          conf_provider.find_default_search_locations(CONFIG_FILE_NAME)), True)
     conf: TuOptions = cast(TuOptions,
                            conf_provider.merge_cli_model(ctx, config_base, TuOptions))
 
-    paths: List[Path] = expand_input(conf.input, conf.path_suffixes)
+    paths: List[Path] = expand_input(conf.input, conf.path_suffixes)[:10]
     wraps: List[TuWrap] = []
 
-    
-    commands: List[CompileCommand] = [CompileCommand.model_validate(d) for d in json.load(open(conf.compilation_database))]
+    with GlobCompleteEvent("Load compilation database", "config"):
+        commands: List[CompileCommand] = [
+            CompileCommand.model_validate(d)
+            for d in json.load(open(conf.compilation_database))
+        ]
 
-    for path in paths:
-        if any([cmd.file == str(path) for cmd in commands]):
-            log.info(path)
-            tu: ConvTu = run_collector(conf, path, path.with_suffix(".py"))
-            if tu is not None:
-                wraps.append(TuWrap(name=path.stem, tu=tu))
+    with GlobCompleteEvent("Run reflection collector", "read"):
+        for path in paths:
+            if any([cmd.file == str(path) for cmd in commands]):
+                log.info(f"Reading {path}")
+                with GlobCompleteEvent("Run collector", "read", {"path": str(path)}):
+                    tu: ConvTu = run_collector(conf, path, path.with_suffix(".py"))
+                    if tu is not None:
+                        wraps.append(TuWrap(name=path.stem, tu=tu, original=path))
 
-        else:
-            log.warnin(f"No compile commands for {path}")
+            else:
+                log.warning(f"No compile commands for {path}")
 
-    graph: GenGraph = GenGraph()
-    for wrap in wraps:
-        graph.add_unit(wrap)
+    with GlobCompleteEvent("Merge graph information", "build"):
+        graph: GenGraph = GenGraph()
+        for wrap in wraps:
+            graph.add_unit(wrap)
 
-    log.info("Finished conversion")
+        log.info("Finished conversion")
 
-    graph.graph["rankdir"] = "LR"
-    graph.to_graphviz("/tmp/output.dot")
+    with GlobCompleteEvent("Generate graphviz image", "write"):
+        graph.graph["rankdir"] = "LR"
+        graph.to_graphviz("/tmp/output.dot")
+
+    with GlobCompleteEvent("Write wrapper output", "write"):
+        for sub in graph.subgraphs:
+            graph.to_nim(sub)
+
+    GlobExportJson(conf.execution_trace)
+    log.info("Done all")
 
 
 if __name__ == "__main__":

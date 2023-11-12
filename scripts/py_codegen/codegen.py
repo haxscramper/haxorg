@@ -296,7 +296,7 @@ def py_type(Typ: QualType) -> pya.PyType:
             name = "Optional"
 
         case ["Str"] | ["string"] | ["std::string"] | ["basic_string"
-                                                  ] | ["std", "basic_string"]:
+                                                      ] | ["std", "basic_string"]:
             name = "str"
 
         case ["SemIdT"]:
@@ -364,16 +364,17 @@ class Py11Method:
 
         call_pass: BlockId = None
         if self.Body is None:
-            call_pass = ast.XCall("static_cast", args=[
-                ast.Addr(ast.Scoped(Class, ast.string(self.CxxName)))
-            ], Params=[
-                QualType(func=QualType.Function(
-                    ReturnTy=self.ResultTy,
-                    Args=[A.type for A in self.Args],
-                    Class=Class,
-                    IsConst=self.IsConst,
-                ))
-            ])
+            call_pass = ast.XCall(
+                "static_cast",
+                args=[ast.Addr(ast.Scoped(Class, ast.string(self.CxxName)))],
+                Params=[
+                    QualType(func=QualType.Function(
+                        ReturnTy=self.ResultTy,
+                        Args=[A.type for A in self.Args],
+                        Class=Class,
+                        IsConst=self.IsConst,
+                    ))
+                ])
 
         else:
             call_pass = ast.Lambda(
@@ -817,7 +818,6 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
     return res
 
 
-
 @beartype
 def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuStruct]:
 
@@ -978,6 +978,7 @@ def update_namespace_annotations(expanded: List[GenTuStruct]):
                 value.Spaces = filter_walk_scope(iterate_context) + value.Spaces
 
     iterate_object_tree(GenTuNamespace("sem", expanded), callback, iterate_context)
+
 
 @beartype
 def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:

@@ -36,7 +36,6 @@ log = logging.getLogger("rich")
 log.setLevel(logging.DEBUG)
 
 
-
 @beartype
 @dataclass
 class QualType:
@@ -64,7 +63,6 @@ class QualType:
     func: Optional[Function] = None
     expr: Optional[str] = ""
 
-
     def __hash__(self) -> int:
 
         return hash((self.name, self.isConst, self.isPtr, self.isRef, self.isNamespace,
@@ -73,15 +71,14 @@ class QualType:
 
     def format(self) -> str:
         if self.func:
-            return "%s(%s)" % (
-                self.func.ReturnTy.format(),
-                ", ".join([T.format() for T in self.func.Args])
-            )
+            return "%s(%s)" % (self.func.ReturnTy.format(), ", ".join(
+                [T.format() for T in self.func.Args]))
 
         else:
             return "{name}{args}{const}{ptr}{ref}".format(
                 name=self.name,
-                args=("<" + ", ".join([T.format() for T in self.Parameters]) + ">") if self.Parameters else "",
+                args=("<" + ", ".join([T.format() for T in self.Parameters]) +
+                      ">") if self.Parameters else "",
                 const=" const" if self.isConst else "",
                 ptr="*" if self.isPtr else "",
                 ref="&" if self.isRef else "",
@@ -106,7 +103,6 @@ class QualType:
     @classmethod
     def from_spaces_and_name(cls, spaces: List[str], name: str):
         return cls(name=name, Spaces=[cls.from_name(space) for space in spaces])
-
 
 
 @beartype
@@ -1017,16 +1013,19 @@ class ASTBuilder(base.AstbuilderBase):
     def Type(self, type_: QualType, noQualifiers: bool = False) -> BlockId:
         if type_.func:
             return self.b.line([
-                    self.Type(type_.func.ReturnTy),
-                    self.pars(self.b.line(([self.Type(type_.func.Class), self.string("::")] if type_.func.Class else []) + [self.string("*")])),
-                    self.pars(self.csv([self.Type(T) for T in type_.func.Args])),
-                    self.string(" const" if type_.func.IsConst else ""),
-                ])
+                self.Type(type_.func.ReturnTy),
+                self.pars(
+                    self.b.line(([self.Type(type_.func.Class),
+                                  self.string("::")] if type_.func.Class else []) +
+                                [self.string("*")])),
+                self.pars(self.csv([self.Type(T) for T in type_.func.Args])),
+                self.string(" const" if type_.func.IsConst else ""),
+            ])
         else:
             return self.b.line([
-                self.b.join(
-                    [self.Type(Space, noQualifiers=noQualifiers) for Space in type_.Spaces] +
-                    [self.string(type_.name)], self.string("::")),
+                self.b.join([
+                    self.Type(Space, noQualifiers=noQualifiers) for Space in type_.Spaces
+                ] + [self.string(type_.name)], self.string("::")),
                 self.string("") if (len(type_.Parameters) == 0) else self.b.line([
                     self.string("<"),
                     self.b.join(
@@ -1037,7 +1036,8 @@ class ASTBuilder(base.AstbuilderBase):
                     self.string(">")
                 ]), *([] if noQualifiers else [
                     self.string((" const" if type_.isConst else "") +
-                                ("*" if type_.isPtr else "") + ("&" if type_.isRef else ""))
+                                ("*" if type_.isPtr else "") +
+                                ("&" if type_.isRef else ""))
                 ])
             ])
 

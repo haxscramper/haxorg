@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 else:
     BlockId = NewType('BlockId', int)
 
+
 @beartype
 @dataclass
 class PyType:
