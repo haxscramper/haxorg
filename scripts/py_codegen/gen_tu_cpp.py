@@ -31,6 +31,13 @@ class GenTuDoc:
 
 @beartype
 @dataclass
+class GenTuTypedef:
+    name: QualType
+    base: QualType
+
+
+@beartype
+@dataclass
 class GenTuEnumField:
     name: str
     doc: GenTuDoc
@@ -40,7 +47,7 @@ class GenTuEnumField:
 @beartype
 @dataclass
 class GenTuEnum:
-    name: str
+    name: QualType
     doc: GenTuDoc
     fields: List[GenTuEnumField]
     base: Optional[str] = "short int"

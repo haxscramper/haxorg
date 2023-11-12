@@ -139,6 +139,8 @@ def hash_qual_type(t: QualType) -> int:
         for param in t.Parameters:
             parts.append(hash_qual_type(param))
 
+    assert parts != [0], pformat(t)
+
     return hash(tuple(parts))
 
 
@@ -174,10 +176,16 @@ class GenGraph:
         return self.id_map[hashed]
 
     def id_from_entry(self,
-                        entry: Union[GenTuFunction, GenTuStruct, GenTuEnum],
+                        entry: Union[GenTuFunction, GenTuStruct, GenTuEnum, GenTuTypedef],
                         parent: Optional[QualType] = None) -> int:
         if isinstance(entry, GenTuStruct):
             return self.id_from_hash(hash_qual_type(entry.qual_name))
+
+        elif isinstance(entry, GenTuEnum):
+            return self.id_from_hash(hash_qual_type(entry.name))
+
+        elif isinstance(entry, GenTuTypedef):
+            return self.id_from_hash(hash_qual_type(entry.name))
 
         else:
             assert False
@@ -198,29 +206,64 @@ class GenGraph:
     def merge_structs(self, stored: GenTuStruct, added: GenTuStruct):
         pass
 
-    def add_struct(self, struct: GenTuStruct, sub: Sub):
-        _id = self.id_from_entry(struct)
-        if _id not in self.id_to_entry:
-            self.id_to_entry[_id] = deepcopy(struct)
+    def merge_enums(self, stored: GenTuEnum, added: GenTuEnum):
+        pass
 
-        merge = self.id_to_entry[_id]
-        self.merge_structs(merge, struct)
+    def add_entry(self, entry: Union[GenTuStruct, GenTuEnum, GenTuTypedef], sub: Sub) -> int:
+        _id = self.id_from_entry(entry)
+        if _id not in self.id_to_entry:
+            self.id_to_entry[_id] = deepcopy(entry)
+
         sub.nodes.add(_id)
         if len(self.graph.vs) <= _id:
             self.graph.add_vertex()
 
+        return _id
+
+    def add_struct(self, struct: GenTuStruct, sub: Sub):
+        _id = self.add_entry(struct, sub)
+
+        merge = self.id_to_entry[_id]
+        self.merge_structs(merge, struct)
+
         self.graph.vs[_id]["label"] = struct.qual_name.name
+        self.graph.vs[_id]["dbg_origin"] = struct.qual_name.dbg_origin
         self.graph.vs[_id]["color"] = "green"
 
         for field in struct.fields:
             self.use_type(_id, field.type)
         
 
+    def add_enum(self, enum: GenTuEnum, sub: Sub):
+        _id = self.add_entry(enum, sub)
+
+        merge = self.id_to_entry[_id]
+        self.merge_enums(merge, enum)
+
+        self.graph.vs[_id]["label"] = enum.name.format()
+        self.graph.vs[_id]["dbg_origin"] = enum.name.dbg_origin
+        self.graph.vs[_id]["color"] = "red"
+
+    def add_typedef(self, typedef: GenTuTypedef, sub: Sub):
+        _id = self.add_entry(typedef, sub)
+        merge = self.id_to_entry[_id]
+
+        self.graph.vs[_id]["label"] = typedef.name.format()
+        self.graph.vs[_id]["dbg_origin"] = typedef.name.dbg_origin
+        self.graph.vs[_id]["color"] = "blue"
+
+
     def add_unit(self, wrap: TuWrap):
         sub = GenGraph.Sub(wrap.name)
         self.subgraphs.append(sub)
         for struct in wrap.tu.structs:
             self.add_struct(struct, sub)
+
+        for enum in wrap.tu.enums:
+            self.add_enum(enum, sub)
+
+        for typedef in wrap.tu.typedefs:
+            self.add_typedef(typedef, sub)
 
     def to_graphviz(self, output_file: str):
         dot = gv.Digraph(format='dot')

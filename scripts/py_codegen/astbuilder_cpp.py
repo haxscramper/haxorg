@@ -49,6 +49,7 @@ class QualType:
     isConst: bool = field(default_factory=lambda: False)
     isPtr: bool = field(default_factory=lambda: False)
     isRef: bool = field(default_factory=lambda: False)
+    dbg_origin: str = ""
 
     @beartype
     @dataclass

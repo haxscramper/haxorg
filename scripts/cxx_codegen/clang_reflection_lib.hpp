@@ -71,19 +71,19 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
     /// Fill in information about namespaces used in elaborated type
     std::vector<QualType> getNamespaces(
-        /// Update information on this outgoing type
-        QualType*                                   Out,
         clang::ElaboratedType const*                elab,
         std::optional<clang::SourceLocation> const& Loc);
 
     std::vector<QualType> getNamespaces(
-        QualType*                                   Out,
         clang::QualType const&                      In,
         std::optional<clang::SourceLocation> const& Loc);
 
     std::vector<QualType> getNamespaces(
-        QualType*                                   Out,
         clang::NamespaceDecl const*                 Namespace,
+        std::optional<clang::SourceLocation> const& Loc);
+
+    std::vector<QualType> getNamespaces(
+        clang::Decl*                                Decl,
         std::optional<clang::SourceLocation> const& Loc);
 
     void applyNamespaces(
@@ -120,8 +120,10 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration);
     bool VisitFunctionDecl(clang::FunctionDecl* Decl);
-    bool VisitEnumDecl(clang::EnumDecl* Decl);
-    bool VisitTypedefDecl(clang::TypedefDecl* TypedefDeclaration);
+    bool VisitEnumDecl(
+        clang::EnumDecl*    Decl,
+        clang::TypedefDecl* Typedef = nullptr);
+    bool VisitTypedefDecl(clang::TypedefDecl* Decl);
     bool VisitRecordDecl(
         clang::RecordDecl*  Decl,
         clang::TypedefDecl* Typedef = nullptr);

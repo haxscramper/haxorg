@@ -41,7 +41,7 @@ message Enum {
     }
 
     repeated Field Fields = 1;
-    string Name = 2;
+    QualType Name = 2;
     QualType Base = 3;
     string Doc = 4;
 }
@@ -74,10 +74,23 @@ message TemplateTypename {
     string Concept = 5;
 }
 
+message TemplateSpec {
+    repeated TemplateTypename Parameters = 1;
+}
+
 message Function {
     string Name = 1;
     QualType ResultTy = 2;
     repeated Arg Arguments = 3;
+    repeated TemplateSpec Templates = 4;
+}
+
+message Typedef {
+    /// Fully qualified name of the type definition -- trailing name and all parent scopes
+    QualType Name = 1;
+    /// Base type used in declaration
+    QualType BaseType = 2;
+    repeated TemplateSpec Templates = 3;
 }
 
 message Record {
@@ -120,12 +133,15 @@ message Record {
     repeated Method Methods = 5;
     repeated Record NestedRec = 6;
     repeated Enum NestedEnum = 7;
-    string Doc = 8;
+    repeated Typedef NestedTypedef = 8;
+    string Doc = 9;
+    repeated TemplateSpec Templates = 10;
 }
 
 message TU {
     repeated Record records = 1;
     repeated Enum enums = 2;
     repeated Function functions = 3;
-    string Doc = 4;
+    repeated Typedef typedefs = 4;
+    string Doc = 5;
 }

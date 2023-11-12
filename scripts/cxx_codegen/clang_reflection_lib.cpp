@@ -23,7 +23,6 @@ std::string getAbsoluteDeclLocation(clang::Decl* Decl) {
 }
 
 std::vector<QualType> ReflASTVisitor::getNamespaces(
-    QualType*                                   Out,
     clang::NamespaceDecl const*                 Namespace,
     std::optional<clang::SourceLocation> const& Loc) {
     std::vector<QualType> result;
@@ -39,7 +38,6 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
     if (Namespace->getDeclContext()->isNamespace()) {
         auto spaces = getNamespaces(
-            Out,
             clang::dyn_cast<clang::NamespaceDecl>(
                 Namespace->getDeclContext()),
             Loc);
@@ -48,6 +46,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
     return result;
 }
+
 
 void ReflASTVisitor::applyNamespaces(
     QualType*                    Out,
@@ -104,7 +103,6 @@ void ReflASTVisitor::applyNamespaces(
 }
 
 std::vector<QualType> ReflASTVisitor::getNamespaces(
-    QualType*                                   Out,
     clang::QualType const&                      In,
     std::optional<clang::SourceLocation> const& Loc) {
 
@@ -124,12 +122,18 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
             << In << dump(In);
     }
 
-    if (!decl) {
+    if (decl) {
+        return getNamespaces(decl, Loc);
+    } else {
         return {};
     }
+}
 
+std::vector<QualType> ReflASTVisitor::getNamespaces(
+    clang::Decl*                                Decl,
+    const std::optional<clang::SourceLocation>& Loc) {
     llvm::SmallVector<clang::NamespaceDecl*> spaces;
-    clang::DeclContext*                      dc = decl->getDeclContext();
+    clang::DeclContext*                      dc = Decl->getDeclContext();
     while (dc) {
         if (clang::NamespaceDecl* ns = llvm::dyn_cast<
                 clang::NamespaceDecl>(dc)) {
@@ -153,8 +157,8 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
     return result;
 }
 
+
 std::vector<QualType> ReflASTVisitor::getNamespaces(
-    QualType*                                   Out,
     const clang::ElaboratedType*                elab,
     const std::optional<clang::SourceLocation>& Loc) {
     if (const clang::NestedNameSpecifier* nns = elab->getQualifier()) {
@@ -191,9 +195,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
                 case clang::NestedNameSpecifier::NamespaceAlias: {
                     auto spaces = getNamespaces(
-                        Out,
-                        nns->getAsNamespaceAlias()->getNamespace(),
-                        Loc);
+                        nns->getAsNamespaceAlias()->getNamespace(), Loc);
                     result.insert(
                         result.end(), spaces.begin(), spaces.end());
                     break;
@@ -222,7 +224,10 @@ void ReflASTVisitor::fillType(
     if (const clang::TypedefType* tdType = In->getAs<
                                            clang::TypedefType>()) {
         clang::TypedefNameDecl* tdDecl = tdType->getDecl();
-        fillType(Out, tdDecl->getUnderlyingType(), Loc);
+        Out->set_name(tdType->getTypeClassName());
+        Out->set_dbgorigin(
+            "typedef type " + Loc->printToString(Ctx->getSourceManager()));
+        applyNamespaces(Out, getNamespaces(tdDecl, Loc));
     } else {
         if (In.isConstQualified()) {
             Out->set_isconst(true);
@@ -246,11 +251,11 @@ void ReflASTVisitor::fillType(
             clang::ElaboratedType const* elab = In->getAs<
                                                 clang::ElaboratedType>()) {
             // 'fill' operations are additive for namespaces
-            applyNamespaces(Out, getNamespaces(Out, elab, Loc));
+            applyNamespaces(Out, getNamespaces(elab, Loc));
             fillType(Out, elab->getNamedType(), Loc);
 
         } else if (In->isRecordType()) {
-            applyNamespaces(Out, getNamespaces(Out, In, Loc));
+            applyNamespaces(Out, getNamespaces(In, Loc));
 
             Out->set_dbgorigin(
                 "record type filler "
@@ -519,7 +524,13 @@ bool ReflASTVisitor::VisitFunctionDecl(clang::FunctionDecl* Decl) {
     return true;
 }
 
-bool ReflASTVisitor::VisitEnumDecl(clang::EnumDecl* Decl) {
+bool ReflASTVisitor::VisitEnumDecl(
+    clang::EnumDecl*    Decl,
+    clang::TypedefDecl* Typedef) {
+    if (Typedef == nullptr && Decl->getNameAsString().empty()) {
+        return true;
+    }
+
     if (shouldVisit(Decl)) {
         Diag(
             DiagKind::Note,
@@ -527,7 +538,21 @@ bool ReflASTVisitor::VisitEnumDecl(clang::EnumDecl* Decl) {
             Decl->getLocation())
             << Decl;
         Enum* rec = out->add_enums();
-        rec->set_name(Decl->getNameAsString());
+        if (Typedef != nullptr) {
+            rec->mutable_name()->set_name(Typedef->getNameAsString());
+            rec->mutable_name()->set_dbgorigin(
+                "enum typedef " + Typedef->getNameAsString()
+                + Typedef->getLocation().printToString(
+                    Ctx->getSourceManager()));
+        } else {
+            rec->mutable_name()->set_name(Decl->getNameAsString());
+            rec->mutable_name()->set_dbgorigin(
+                "enum direct "
+                + Decl->getLocation().printToString(
+                    Ctx->getSourceManager()));
+        }
+        applyNamespaces(
+            rec->mutable_name(), getNamespaces(Decl, Decl->getLocation()));
 
         for (clang::EnumConstantDecl* field : Decl->enumerators()) {
             Enum_Field* sub = rec->add_fields();
@@ -538,14 +563,38 @@ bool ReflASTVisitor::VisitEnumDecl(clang::EnumDecl* Decl) {
     return true;
 }
 
-bool ReflASTVisitor::VisitTypedefDecl(
-    clang::TypedefDecl* TypedefDeclaration) {
-    if (clang::RecordDecl* RecordDecl = TypedefDeclaration
-                                            ->getUnderlyingType()
+bool ReflASTVisitor::VisitTypedefDecl(clang::TypedefDecl* Decl) {
+    if (clang::RecordDecl* RecordDecl = Decl->getUnderlyingType()
                                             ->getAsRecordDecl()) {
 
-        return VisitRecordDecl(RecordDecl, TypedefDeclaration);
+        return VisitRecordDecl(RecordDecl, Decl);
+    } else if (
+        const auto* enumType = Decl->getUnderlyingType()
+                                   ->getAs<clang::EnumType>()) {
+        if (enumType->getDecl()->getNameAsString().empty()) {
+            return VisitEnumDecl(enumType->getDecl(), Decl);
+        } else {
+            goto is_regular_typedef;
+        }
+
     } else {
+    is_regular_typedef:
+        if (shouldVisit(Decl)) {
+            Typedef* def = out->add_typedefs();
+            def->mutable_name()->set_name(Decl->getNameAsString());
+            def->mutable_name()->set_dbgorigin(
+                Decl->getLocation().printToString(
+                    Ctx->getSourceManager()));
+            applyNamespaces(
+                def->mutable_name(),
+                getNamespaces(Decl, Decl->getLocation()));
+
+            fillType(
+                def->mutable_basetype(),
+                Decl->getUnderlyingType(),
+                Decl->getLocation());
+        }
+
         return true;
     }
 }

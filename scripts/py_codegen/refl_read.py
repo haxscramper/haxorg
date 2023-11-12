@@ -5,6 +5,7 @@ from beartype import beartype
 from gen_tu_cpp import *
 from pprint import pprint
 
+
 @beartype
 def conv_doc_comment(comment: str) -> GenTuDoc:
     if not comment:
@@ -60,6 +61,7 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
 @beartype
 def conv_proto_type(typ: pb.QualType) -> QualType:
     res: QualType = QualType(typ.name)
+    res.dbg_origin = typ.dbg_origin
 
     for space in typ.spaces:
         res.Spaces.append(conv_proto_type(space))
@@ -68,8 +70,8 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
         res.name = ""
         res.func = QualType.Function(
             ReturnTy=conv_proto_type(typ.parameters[0]),
-            Args=[conv_proto_type(Arg) for Arg in typ.parameters[1:]] if 1 < len(typ.parameters) else []
-        )
+            Args=[conv_proto_type(Arg) for Arg in typ.parameters[1:]]
+            if 1 < len(typ.parameters) else [])
 
     else:
         for param in typ.parameters:
@@ -112,11 +114,19 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
 
 @beartype
 def conv_proto_enum(en: pb.Enum) -> GenTuEnum:
-    result = GenTuEnum(en.name, GenTuDoc(""), [])
+    result = GenTuEnum(conv_proto_type(en.name), GenTuDoc(""), [])
     for _field in en.fields:
         result.fields.append(GenTuEnumField(_field.name, GenTuDoc("")))
 
     return result
+
+@beartype
+def conv_proto_typedef(rec: pb.Typedef) -> GenTuTypedef:
+    return GenTuTypedef(
+        name=conv_proto_type(rec.name),
+        base=conv_proto_type(rec.base_type),
+    )
+
 
 @beartype
 @dataclass
@@ -124,12 +134,13 @@ class ConvTu:
     structs: List[GenTuStruct]
     functions: List[GenTuFunction]
     enums: List[GenTuEnum]
+    typedefs: List[GenTuTypedef]
+
 
 @beartype
 def conv_proto_file(path: str) -> ConvTu:
     unit = pb.TU()
     assert os.path.exists(path)
-
 
     with open(path, "rb") as f:
         unit = pb.TU.FromString(f.read())
@@ -137,6 +148,7 @@ def conv_proto_file(path: str) -> ConvTu:
     with open("/tmp/reflection-structs.py", "w") as file:
         pprint(unit, width=200, stream=file)
 
-    gen_structs: List[GenTuStruct] = [conv_proto_record(rec) for rec in unit.records]
-    gen_enums: List[GenTuEnum] = [conv_proto_enum(rec) for rec in unit.enums]
-    return ConvTu(structs=gen_structs, enums=gen_enums, functions=[])
+    return ConvTu(structs=[conv_proto_record(rec) for rec in unit.records],
+                  enums=[conv_proto_enum(rec) for rec in unit.enums],
+                  typedefs=[conv_proto_typedef(rec) for rec in unit.typedefs],
+                  functions=[])
