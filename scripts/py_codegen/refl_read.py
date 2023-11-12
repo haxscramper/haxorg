@@ -88,7 +88,7 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
 
 @beartype
 def conv_proto_record(record: pb.Record) -> GenTuStruct:
-    result = GenTuStruct(record.name, GenTuDoc(""), conv_proto_type(record.qual_name))
+    result = GenTuStruct(conv_proto_type(record.name), GenTuDoc(""))
     for _field in record.fields:
         result.fields.append(
             GenTuField(type=conv_proto_type(_field.type),
@@ -119,6 +119,7 @@ def conv_proto_enum(en: pb.Enum) -> GenTuEnum:
         result.fields.append(GenTuEnumField(_field.name, GenTuDoc("")))
 
     return result
+
 
 @beartype
 def conv_proto_typedef(rec: pb.Typedef) -> GenTuTypedef:

@@ -224,7 +224,7 @@ void ReflASTVisitor::fillType(
     if (const clang::TypedefType* tdType = In->getAs<
                                            clang::TypedefType>()) {
         clang::TypedefNameDecl* tdDecl = tdType->getDecl();
-        Out->set_name(tdType->getTypeClassName());
+        Out->set_name(tdDecl->getNameAsString());
         Out->set_dbgorigin(
             "typedef type " + Loc->printToString(Ctx->getSourceManager()));
         applyNamespaces(Out, getNamespaces(tdDecl, Loc));
@@ -484,10 +484,8 @@ bool ReflASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl* Decl) {
             "reflection-visit-record" + Decl->getNameAsString()};
 
         Record* rec = out->add_records();
-        rec->set_name(Decl->getNameAsString());
-
         fillType(
-            rec->mutable_qualname(),
+            rec->mutable_name(),
             Decl->getASTContext().getRecordType(Decl),
             Decl->getLocation());
 
@@ -613,19 +611,17 @@ bool ReflASTVisitor::VisitRecordDecl(
             // typedef struct abomination handling -- need to conjure up a
             // name from the scattered bits of brain tissue that was left
             // by the developers of this frankenstein feature.
-            rec->set_name(Typedef->getNameAsString());
             fillType(
-                rec->mutable_qualname(),
+                rec->mutable_name(),
                 Typedef->getASTContext().getTypedefType(Typedef),
                 Decl->getLocation());
 
-            rec->mutable_qualname()->set_name(Typedef->getNameAsString());
+            rec->mutable_name()->set_name(Typedef->getNameAsString());
 
         } else {
-            rec->set_name(Decl->getNameAsString());
 
             fillType(
-                rec->mutable_qualname(),
+                rec->mutable_name(),
                 Decl->getASTContext().getRecordType(Decl),
                 Decl->getLocation());
         }

@@ -126,16 +126,15 @@ message Record {
         string OperatorName = 12;
     }
 
-    string Name = 1;
-    QualType QualName = 2;
-    repeated QualType Bases = 3;
-    repeated Field Fields = 4;
-    repeated Method Methods = 5;
-    repeated Record NestedRec = 6;
-    repeated Enum NestedEnum = 7;
-    repeated Typedef NestedTypedef = 8;
-    string Doc = 9;
-    repeated TemplateSpec Templates = 10;
+    QualType Name = 1;
+    repeated QualType Bases = 2;
+    repeated Field Fields = 3;
+    repeated Method Methods = 4;
+    repeated Record NestedRec = 5;
+    repeated Enum NestedEnum = 6;
+    repeated Typedef NestedTypedef = 7;
+    string Doc = 8;
+    repeated TemplateSpec Templates = 9;
 }
 
 message TU {

@@ -107,9 +107,8 @@ GenTuEntry = Union[
 @beartype
 @dataclass
 class GenTuStruct:
-    name: str
+    name: QualType
     doc: GenTuDoc
-    qual_name: QualType
     fields: List[GenTuField] = field(default_factory=list)
     methods: List[GenTuFunction] = field(default_factory=list)
     bases: List[QualType] = field(default_factory=list)

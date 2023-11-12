@@ -167,8 +167,6 @@ class GenGraph:
 
     id_map: Dict[int, int] = field(default_factory=dict)
 
-    
-
     def id_from_hash(self, hashed: int) -> int:
         if hashed not in self.id_map:
             self.id_map[hashed] = len(self.id_map)
@@ -176,10 +174,10 @@ class GenGraph:
         return self.id_map[hashed]
 
     def id_from_entry(self,
-                        entry: Union[GenTuFunction, GenTuStruct, GenTuEnum, GenTuTypedef],
-                        parent: Optional[QualType] = None) -> int:
+                      entry: Union[GenTuFunction, GenTuStruct, GenTuEnum, GenTuTypedef],
+                      parent: Optional[QualType] = None) -> int:
         if isinstance(entry, GenTuStruct):
-            return self.id_from_hash(hash_qual_type(entry.qual_name))
+            return self.id_from_hash(hash_qual_type(entry.name))
 
         elif isinstance(entry, GenTuEnum):
             return self.id_from_hash(hash_qual_type(entry.name))
@@ -189,19 +187,18 @@ class GenGraph:
 
         else:
             assert False
-        
 
-    def use_type(self, _id: int, Type: QualType):
+    def use_type(self, _id: int, Type: QualType, dbg_from: str = ""):
         _type = self.id_from_hash(hash_qual_type(Type))
         if _type == len(self.graph.vs):
             self.graph.add_vertex()
             self.graph.vs[_type]["label"] = Type.format()
-        else:
-            if self.graph.vs[_type]["label"] == "":
-                print(Type)
+            self.graph.vs[_type]["dbg_origin"] = Type.dbg_origin
 
         if not self.graph.are_connected(_id, _type):
             self.graph.add_edge(_id, _type)
+            self.graph.es[self.graph.get_eid(
+                _id, _type)]["dbg_origin"] = f"{dbg_from} -> {Type.format()}"
 
     def merge_structs(self, stored: GenTuStruct, added: GenTuStruct):
         pass
@@ -209,7 +206,8 @@ class GenGraph:
     def merge_enums(self, stored: GenTuEnum, added: GenTuEnum):
         pass
 
-    def add_entry(self, entry: Union[GenTuStruct, GenTuEnum, GenTuTypedef], sub: Sub) -> int:
+    def add_entry(self, entry: Union[GenTuStruct, GenTuEnum, GenTuTypedef],
+                  sub: Sub) -> int:
         _id = self.id_from_entry(entry)
         if _id not in self.id_to_entry:
             self.id_to_entry[_id] = deepcopy(entry)
@@ -226,13 +224,12 @@ class GenGraph:
         merge = self.id_to_entry[_id]
         self.merge_structs(merge, struct)
 
-        self.graph.vs[_id]["label"] = struct.qual_name.name
-        self.graph.vs[_id]["dbg_origin"] = struct.qual_name.dbg_origin
+        self.graph.vs[_id]["label"] = struct.name.format()
+        self.graph.vs[_id]["dbg_origin"] = struct.name.dbg_origin
         self.graph.vs[_id]["color"] = "green"
 
         for field in struct.fields:
-            self.use_type(_id, field.type)
-        
+            self.use_type(_id, field.type, dbg_from=struct.name.format())
 
     def add_enum(self, enum: GenTuEnum, sub: Sub):
         _id = self.add_entry(enum, sub)
@@ -251,7 +248,6 @@ class GenGraph:
         self.graph.vs[_id]["label"] = typedef.name.format()
         self.graph.vs[_id]["dbg_origin"] = typedef.name.dbg_origin
         self.graph.vs[_id]["color"] = "blue"
-
 
     def add_unit(self, wrap: TuWrap):
         sub = GenGraph.Sub(wrap.name)
@@ -274,7 +270,6 @@ class GenGraph:
         # Track which nodes have been added to subgraphs
         added_nodes = set()
 
-
         parent_tus: Dict[int, List[str]] = {}
         for node in g.vs:
             for sub in self.subgraphs:
@@ -285,30 +280,29 @@ class GenGraph:
                     else:
                         parent_tus[node.index].append(sub.name)
 
-
         # Add nodes to subgraphs
         for sub in self.subgraphs:
             with dot.subgraph(name=f'cluster_{sub.name}') as c:
                 c.attr(label=sub.name)
                 for node in sub.nodes:
-                    c.node(f'{sub.name}_{node}', **{attr: g.vs[node][attr] for attr in g.vs.attributes()})
+                    c.node(f'{sub.name}_{node}',
+                           **{attr: g.vs[node][attr] for attr in g.vs.attributes()})
                     added_nodes.add(node)
                     if node in parent_tus and 1 < len(parent_tus[node]):
                         for target in parent_tus[node]:
                             if target != sub.name:
                                 dot.edge(f"{target}_{node}", f"{sub.name}_{node}")
 
-        
-
         # Add top-level nodes
         for node in range(len(g.vs)):
             if node not in added_nodes:
-                dot.node(str(node), **{attr: g.vs[node][attr] for attr in g.vs.attributes()})
+                dot.node(str(node),
+                         **{attr: g.vs[node][attr] for attr in g.vs.attributes()})
 
         # Add edges
         for edge in g.es:
             source, target = edge.tuple
-            
+
             # Check if nodes are in subgraphs and link accordingly
             source_in_subgraph = source in added_nodes
             target_in_subgraph = target in added_nodes
@@ -317,12 +311,16 @@ class GenGraph:
                 # Find subgraphs of source and target
                 source_subs = [sub.name for sub in self.subgraphs if source in sub.nodes]
                 target_subs = [sub.name for sub in self.subgraphs if target in sub.nodes]
-                
+
                 for s_sub in source_subs:
                     for t_sub in target_subs:
                         dot.edge(f'{s_sub}_{source}', f'{t_sub}_{target}')
             else:
-                dot.edge(str(source), str(target))
+                dot.edge(
+                    str(source), str(target), **{
+                        attr: g.es[g.get_eid(source, target)][attr]
+                        for attr in g.es.attributes()
+                    })
 
         # Render the graph to a file
         dot.render(output_file)
