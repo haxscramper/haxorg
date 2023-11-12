@@ -66,22 +66,28 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
     for space in typ.spaces:
         res.Spaces.append(conv_proto_type(space))
 
-    if typ.is_function_pointer:
-        res.name = ""
-        res.func = QualType.Function(
-            ReturnTy=conv_proto_type(typ.parameters[0]),
-            Args=[conv_proto_type(Arg) for Arg in typ.parameters[1:]]
-            if 1 < len(typ.parameters) else [])
+    match typ.kind:
+        case pb.TypeKind.RegularType:
+            for param in typ.parameters:
+                res.Parameters.append(conv_proto_type(param))
 
-    else:
-        for param in typ.parameters:
-            res.Parameters.append(conv_proto_type(param))
+            assert res.name != "", typ
+
+        case pb.TypeKind.FunctionPtr:
+            res.func = QualType.Function(
+                ReturnTy=conv_proto_type(typ.parameters[0]),
+                Args=[conv_proto_type(Arg) for Arg in typ.parameters[1:]]
+                if 1 < len(typ.parameters) else [])
+
+        case pb.TypeKind.Array:
+            res.isArray = True
+            res.Parameters = [ conv_proto_type(t) for t in typ.parameters ]
+
 
     res.isConst = typ.is_const
     res.isNamespace = typ.is_namespace
-    res.isRef = typ.is_ref
-
-    assert typ.is_function_pointer or res.name != "", typ
+    res.isRef = typ.ref_kind != pb.ReferenceKind.NotRef
+    
 
     return res
 

@@ -1,5 +1,35 @@
 syntax = "proto3";
 
+enum ExprKind {
+    Lit = 0;
+}
+
+// Simplified representation of arbitrary expression
+message Expr {
+    ExprKind Kind = 1;
+    string Value = 2;
+    repeated Expr Sub = 3;
+}
+
+enum TypeKind {
+    RegularType = 0;
+    // Pointer to standalone function -- not pointer to member.
+    // Return type is stored as a first argument, parameter types
+    // are provided as trailing arguments
+    FunctionPtr = 1;
+    // Pointer to class method. Return type is stored as a first
+    // parameter, class type is a second, argument are trailing. 
+    MethodPtr = 2;
+    Array = 3;
+    TypeExpr = 4;
+}
+
+enum ReferenceKind {
+    NotRef = 0;
+    LValue = 1;
+    RValue = 2;
+}
+
 // Fully qualified C++ type that is designed to uniquely identify the target
 // within a single translation unit. More complex cases are not considered
 // (duplicate type names in different files, across different projects)
@@ -16,15 +46,10 @@ message QualType {
     // `T const` vs `T`
     bool IsConst = 4;
     // `T&` vs `T&` (TODO r-value ref)
-    bool IsRef = 5;
+    ReferenceKind RefKind = 5;
     bool IsPointer = 6;
-    // Pointer to standalone function -- not pointer to member.
-    // Return type is stored as a first argument, parameter types
-    // are provided as trailing arguments
-    bool IsFunctionPointer = 7;
-    // Pointer to class method. Return type is stored as a first
-    // parameter, class type is a second, argument are trailing. 
-    bool IsMethodPointer = 8;
+    TypeKind Kind = 7;
+    Expr TypeValue = 8;
     // `std::vector` -- std will also be handled as qualified type to
     // avoid making more complicated spaces structure. TODO revise if
     // `repeated string Spaces` + `repated QualType Parents` will be
@@ -47,16 +72,7 @@ message Enum {
 }
 
 
-enum ExprKind {
-    Lit = 0;
-}
 
-// Simplified representation of arbitrary expression
-message Expr {
-    ExprKind Kind = 1;
-    string Value = 2;
-    repeated Expr Sub = 3;
-}
 
 message Arg {
     QualType Type = 1;

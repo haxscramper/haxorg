@@ -46,9 +46,10 @@ class QualType:
     isNamespace: bool = False
     verticalParamList: bool = False
 
-    isConst: bool = field(default_factory=lambda: False)
-    isPtr: bool = field(default_factory=lambda: False)
-    isRef: bool = field(default_factory=lambda: False)
+    isConst: bool = False
+    isPtr: bool = False
+    isRef: bool = False
+    isArray: bool = False
     dbg_origin: str = ""
 
     @beartype
@@ -61,6 +62,7 @@ class QualType:
         IsConst: bool = False
 
     func: Optional[Function] = None
+    expr: Optional[str] = ""
 
 
     def __hash__(self) -> int:

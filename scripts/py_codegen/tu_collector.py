@@ -78,7 +78,6 @@ def run_collector(conf: TuOptions, input: Path, output: Path) -> Optional[ConvTu
     if (str(input) in refl) and (max(input.stat().st_mtime,
                                      Path(conf.indexing_tool).stat().st_mtime)
                                  < refl[str(input)]) and (output.exists()):
-        log.info(f"{input} has already been converted to {output}")
         # return
         pass
 
@@ -89,17 +88,16 @@ def run_collector(conf: TuOptions, input: Path, output: Path) -> Optional[ConvTu
     with open(str(target_files), "w") as file:
         file.write(json.dumps([str(input)], indent=2))
 
-    res_code, res_stdout, res_stderr = cast(
-        Tuple[int, str, str],
-        tool.run((
-            f"-p={conf.compilation_database}",
-            f"--compilation-database={conf.compilation_database}",
-            f"--out={str(tmp_output)}",
-            f"--toolchain-include={conf.toolchain_include}",
-            f"--target-files={target_files}",
-            str(input),
-        ),
-                 retcode=None))
+    flags = [
+        f"-p={conf.compilation_database}",
+        f"--compilation-database={conf.compilation_database}",
+        f"--out={str(tmp_output)}",
+        f"--toolchain-include={conf.toolchain_include}",
+        f"--target-files={target_files}",
+        str(input),
+    ]
+
+    res_code, res_stdout, res_stderr = cast(Tuple[int, str, str], tool.run(flags, retcode=None))
 
     if res_code != 0:
         if res_stdout:
@@ -107,6 +105,8 @@ def run_collector(conf: TuOptions, input: Path, output: Path) -> Optional[ConvTu
 
         if res_stderr:
             print(res_stderr)
+
+        print(" \\ \n".join([conf.indexing_tool] + ["    " + f for f in flags]))
 
     else:
         if res_stdout:
@@ -119,7 +119,6 @@ def run_collector(conf: TuOptions, input: Path, output: Path) -> Optional[ConvTu
         with open(output, "w") as file:
             pprint(tu, width=200, stream=file)
 
-        log.info(f"Converted TU file to {output}")
         refl[str(input)] = time.time()
         with open(conf.reflect_cache, "w") as file:
             file.write(json.dumps(refl, indent=2))
@@ -133,6 +132,9 @@ def hash_qual_type(t: QualType) -> int:
         parts.append(hash_qual_type(t.func.ReturnTy))
         for T in t.func.Args:
             parts.append(hash_qual_type(T))
+
+    elif t.isArray:
+        parts.append(hash("<c-array>"))
 
     else:
         parts.append(hash(t.name))
@@ -303,24 +305,26 @@ class GenGraph:
         for edge in g.es:
             source, target = edge.tuple
 
-            # Check if nodes are in subgraphs and link accordingly
-            source_in_subgraph = source in added_nodes
-            target_in_subgraph = target in added_nodes
+            source_subs = [sub.name for sub in self.subgraphs if source in sub.nodes]
+            target_subs = [sub.name for sub in self.subgraphs if target in sub.nodes]
 
-            if source_in_subgraph and target_in_subgraph:
+            attrs = {
+                attr: g.es[g.get_eid(source, target)][attr] for attr in g.es.attributes()
+            }
+
+            if source_subs and target_subs:
                 # Find subgraphs of source and target
-                source_subs = [sub.name for sub in self.subgraphs if source in sub.nodes]
-                target_subs = [sub.name for sub in self.subgraphs if target in sub.nodes]
+                dot.edge(f'{source_subs[0]}_{source}', f'{target_subs[0]}_{target}',
+                         **attrs)
 
-                for s_sub in source_subs:
-                    for t_sub in target_subs:
-                        dot.edge(f'{s_sub}_{source}', f'{t_sub}_{target}')
+            elif source_subs:
+                dot.edge(f'{source_subs[0]}_{source}', f'{target}', **attrs)
+
+            elif target_subs:
+                dot.edge(f'{source}', f'{target_subs[0]}_{target}', **attrs)
+
             else:
-                dot.edge(
-                    str(source), str(target), **{
-                        attr: g.es[g.get_eid(source, target)][attr]
-                        for attr in g.es.attributes()
-                    })
+                dot.edge(str(source), str(target), **attrs)
 
         # Render the graph to a file
         dot.render(output_file)
@@ -328,6 +332,13 @@ class GenGraph:
 
 def model_options(f):
     return conf_provider.apply_options(f, conf_provider.options_from_model(TuOptions))
+
+
+class CompileCommand(BaseModel):
+    directory: str
+    command: str
+    file: str
+    output: Optional[str] = None
 
 
 @click.command()
@@ -338,6 +349,7 @@ def model_options(f):
 @model_options
 @click.pass_context
 def run(ctx: click.Context, config: str, **kwargs):
+    
     config_base = conf_provider.run_config_provider(
         ([config] if config else
          conf_provider.find_default_search_locations(CONFIG_FILE_NAME)), True)
@@ -347,10 +359,18 @@ def run(ctx: click.Context, config: str, **kwargs):
     paths: List[Path] = expand_input(conf.input, conf.path_suffixes)
     wraps: List[TuWrap] = []
 
-    for path in paths[:5]:
-        tu: ConvTu = run_collector(conf, path, path.with_suffix(".py"))
-        if tu is not None:
-            wraps.append(TuWrap(name=path.stem, tu=tu))
+    
+    commands: List[CompileCommand] = [CompileCommand.model_validate(d) for d in json.load(open(conf.compilation_database))]
+
+    for path in paths:
+        if any([cmd.file == str(path) for cmd in commands]):
+            log.info(path)
+            tu: ConvTu = run_collector(conf, path, path.with_suffix(".py"))
+            if tu is not None:
+                wraps.append(TuWrap(name=path.stem, tu=tu))
+
+        else:
+            log.warnin(f"No compile commands for {path}")
 
     graph: GenGraph = GenGraph()
     for wrap in wraps:

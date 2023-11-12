@@ -226,7 +226,9 @@ void ReflASTVisitor::fillType(
         clang::TypedefNameDecl* tdDecl = tdType->getDecl();
         Out->set_name(tdDecl->getNameAsString());
         Out->set_dbgorigin(
-            "typedef type " + Loc->printToString(Ctx->getSourceManager()));
+            "typedef type "
+            + tdDecl->getLocation().printToString(
+                Ctx->getSourceManager()));
         applyNamespaces(Out, getNamespaces(tdDecl, Loc));
     } else {
         if (In.isConstQualified()) {
@@ -234,7 +236,7 @@ void ReflASTVisitor::fillType(
         }
 
         if (In->isReferenceType()) {
-            Out->set_isref(true);
+            Out->set_refkind(ReferenceKind::LValue);
         }
 
         if (In->isPointerType()) {
@@ -269,13 +271,27 @@ void ReflASTVisitor::fillType(
                               ->getDecl()
                               ->getNameAsString());
         } else if (In->isFunctionProtoType()) {
-            Out->set_isfunctionpointer(true);
-            Out->set_name("function_ptr");
+            Out->set_kind(TypeKind::FunctionPtr);
             const clang::FunctionProtoType* FPT = In->getAs<
                 clang::FunctionProtoType>();
             fillType(Out->add_parameters(), FPT->getReturnType(), Loc);
             for (clang::QualType const& param : FPT->param_types()) {
                 fillType(Out->add_parameters(), param, Loc);
+            }
+
+        } else if (In->isConstantArrayType()) {
+            clang::ArrayType const* ARRT = dyn_cast<clang::ArrayType>(
+                In.getTypePtr());
+
+            clang::ConstantArrayType const* C_ARRT = dyn_cast<
+                clang::ConstantArrayType>(ARRT);
+
+            Out->set_kind(TypeKind::Array);
+            fillType(Out->add_parameters(), C_ARRT->getElementType(), Loc);
+            Out->add_parameters()->set_kind(TypeKind::TypeExpr);
+            if (auto size = C_ARRT->getSizeExpr()) {
+                fillExpr(
+                    Out->add_parameters()->mutable_typevalue(), size, Loc);
             }
 
 
@@ -661,11 +677,6 @@ void ReflASTConsumer::HandleTranslationUnit(clang::ASTContext& Context) {
     if (file.is_open()) {
         out->SerializePartialToOstream(&file);
         file.close();
-        Diags.Report(Diags.getCustomDiagID(
-            clang::DiagnosticsEngine::Remark,
-            "Wrote compiler reflection to file: "
-            "'%0'"))
-            << path;
     } else {
         Diags.Report(Diags.getCustomDiagID(
             clang::DiagnosticsEngine::Warning,
