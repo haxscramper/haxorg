@@ -68,6 +68,10 @@ class GenTuFunction:
     isStatic: bool = False
     isPureVirtual: bool = False
 
+    def format(self) -> str:
+        return "%s %s(%s)" % (self.result.format(), self.name, ", ".join(
+            [Arg.name + " " + Arg.type.format() for Arg in self.arguments]))
+
 
 @beartype
 @dataclass

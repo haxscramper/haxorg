@@ -185,7 +185,8 @@ class GenGraph:
         return self.id_map[hashed]
 
     def id_from_entry(self,
-                      entry: Union[GenTuFunction, GenTuStruct, GenTuEnum, GenTuTypedef],
+                      entry: Union[GenTuFunction, GenTuStruct, GenTuEnum, GenTuTypedef,
+                                   GenTuFunction],
                       parent: Optional[QualType] = None) -> int:
         if isinstance(entry, GenTuStruct):
             return self.id_from_hash(hash_qual_type(entry.name))
@@ -195,6 +196,14 @@ class GenGraph:
 
         elif isinstance(entry, GenTuTypedef):
             return self.id_from_hash(hash_qual_type(entry.name))
+
+        elif isinstance(entry, GenTuFunction):
+            return self.id_from_hash(
+                hash(
+                    tuple([
+                        hash_qual_type(entry.result),
+                        hash(entry.name),
+                    ] + [hash_qual_type(t.type) for t in entry.arguments])))
 
         else:
             assert False
@@ -217,7 +226,10 @@ class GenGraph:
     def merge_enums(self, stored: GenTuEnum, added: GenTuEnum):
         pass
 
-    def add_entry(self, entry: Union[GenTuStruct, GenTuEnum, GenTuTypedef],
+    def merge_functions(self, stored: GenTuFunction, added: GenTuFunction):
+        pass
+
+    def add_entry(self, entry: Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction],
                   sub: Sub) -> int:
         _id = self.id_from_entry(entry)
         if _id not in self.id_to_entry:
@@ -260,6 +272,14 @@ class GenGraph:
         self.graph.vs[_id]["dbg_origin"] = typedef.name.dbg_origin
         self.graph.vs[_id]["color"] = "blue"
 
+    def add_function(self, func: GenTuFunction, sub: Sub):
+        _id = self.add_entry(func, sub)
+        merge = self.id_to_entry[_id]
+        self.merge_functions(merge, func)
+
+        self.graph.vs[_id]["label"] = func.format()
+        self.graph.vs[_id]["color"] = "magenta"
+
     def add_unit(self, wrap: TuWrap):
         sub = GenGraph.Sub(wrap.name, wrap.original)
         self.subgraphs.append(sub)
@@ -271,6 +291,9 @@ class GenGraph:
 
         for typedef in wrap.tu.typedefs:
             self.add_typedef(typedef, sub)
+
+        for func in wrap.tu.functions:
+            self.add_function(func, sub)
 
     def type_to_nim(self, t: QualType) -> nim.Type:
         if t.func:
@@ -356,7 +379,7 @@ class GenGraph:
     def struct_to_nim(self, b: nim.ASTBuilder, rec: GenTuStruct) -> nim.ObjectParams:
         return nim.ObjectParams(Name=rec.name.name,
                                 Fields=[
-                                    nim.FieldParams(Name=f.name,
+                                    nim.IdentParams(Name=f.name,
                                                     Type=self.type_to_nim(f.type))
                                     for f in rec.fields
                                 ])
@@ -365,6 +388,16 @@ class GenGraph:
                        typdef: GenTuTypedef) -> nim.TypedefParams:
         return nim.TypedefParams(Name=typdef.name.name,
                                  Base=self.type_to_nim(typdef.base))
+
+    def function_to_nim(self, b: nim.ASTBuilder,
+                        func: GenTuFunction) -> nim.FunctionParams:
+        return nim.FunctionParams(Name=func.name,
+                                  ReturnTy=self.type_to_nim(func.result),
+                                  Arguments=[
+                                      nim.IdentParams(Arg.name,
+                                                      self.type_to_nim(Arg.type))
+                                      for Arg in func.arguments
+                                  ])
 
     def to_nim(self, sub: Sub):
         t = TextLayout()
@@ -386,6 +419,9 @@ class GenGraph:
 
             elif isinstance(decl, GenTuTypedef):
                 added = builder.Typedef(self.typedef_to_nim(builder, decl))
+
+            elif isinstance(decl, GenTuFunction):
+                added = builder.Function(self.function_to_nim(builder, decl))
 
             else:
                 assert False

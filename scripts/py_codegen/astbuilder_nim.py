@@ -49,7 +49,7 @@ class PragmaParams:
 
 @beartype
 @dataclass
-class FieldParams:
+class IdentParams:
     Name: str
     Type: Type
 
@@ -60,7 +60,7 @@ class ObjectParams:
     Name: str
     Exported: bool = True
     Pragmas: List[PragmaParams] = field(default_factory=list)
-    Fields: List[FieldParams] = field(default_factory=list)
+    Fields: List[IdentParams] = field(default_factory=list)
 
 
 @beartype
@@ -82,6 +82,14 @@ class EnumFieldParams:
 class EnumParams:
     Name: str
     Fields: List[EnumFieldParams]
+
+
+@beartype
+@dataclass
+class FunctionParams:
+    Name: str
+    ReturnTy: Type = field(default_factory=lambda: Type("void"))
+    Arguments: List[IdentParams] = field(default_factory=list)
 
 
 @beartype
@@ -116,7 +124,10 @@ class ASTBuilder(base.AstbuilderBase):
              self.Type(typedef.Base)])
 
     def EnumField(self, f: EnumFieldParams) -> BlockId:
-        return self.b.line([self.string(f.Name), self.string(" = "), self.string(str(f.Value))])
+        return self.b.line(
+            [self.string(f.Name),
+             self.string(" = "),
+             self.string(str(f.Value))])
 
     def Enum(self, enum: EnumParams) -> BlockId:
         head = self.b.line(
@@ -124,11 +135,23 @@ class ASTBuilder(base.AstbuilderBase):
              self.string(" = "),
              self.string("enum")])
 
-        
+        return self.b.stack([
+            head,
+            self.b.indent(2, self.b.stack([self.EnumField(f) for f in enum.Fields]))
+        ])
 
-        return self.b.stack([head, self.b.indent(2, self.b.stack([self.EnumField(f) for f in enum.Fields]))])
+    def Function(self, func: FunctionParams) -> BlockId:
+        head = self.b.line([self.string("proc "), self.string(func.Name)])
 
-    def Field(self, f: FieldParams) -> BlockId:
+        tail = self.b.line([self.string(": "), self.Type(func.ReturnTy)])
+
+        return self.b.line([
+            head,
+            self.b.indent(
+                2, self.pars(self.csv([self.Field(Arg) for Arg in func.Arguments]))), tail
+        ])
+
+    def Field(self, f: IdentParams) -> BlockId:
         return self.b.line([self.string(f.Name), self.string(": "), self.Type(f.Type)])
 
     def Object(self, Obj: ObjectParams) -> BlockId:

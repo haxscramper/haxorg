@@ -126,6 +126,19 @@ def conv_proto_enum(en: pb.Enum) -> GenTuEnum:
 
 
 @beartype
+def conv_proto_arg(arg: pb.Arg) -> GenTuIdent:
+    return GenTuIdent(name=arg.name, type=conv_proto_type(arg.type))
+
+
+@beartype
+def conv_proto_function(rec: pb.Function) -> GenTuFunction:
+    return GenTuFunction(result=conv_proto_type(rec.result_ty),
+                         name=rec.name,
+                         arguments=[conv_proto_arg(arg) for arg in rec.arguments],
+                         doc=GenTuDoc(""))
+
+
+@beartype
 def conv_proto_typedef(rec: pb.Typedef) -> GenTuTypedef:
     return GenTuTypedef(
         name=conv_proto_type(rec.name),
@@ -156,4 +169,4 @@ def conv_proto_file(path: str) -> ConvTu:
     return ConvTu(structs=[conv_proto_record(rec) for rec in unit.records],
                   enums=[conv_proto_enum(rec) for rec in unit.enums],
                   typedefs=[conv_proto_typedef(rec) for rec in unit.typedefs],
-                  functions=[])
+                  functions=[conv_proto_function(rec) for rec in unit.functions])
