@@ -30,6 +30,13 @@ enum ReferenceKind {
     RValue = 2;
 }
 
+enum TypeTag {
+    TypeTagNone = 0;
+    TypeTagStruct = 1;
+    TypeTagEnum = 2;
+    TypeTagUnion = 3;
+}
+
 // Fully qualified C++ type that is designed to uniquely identify the target
 // within a single translation unit. More complex cases are not considered
 // (duplicate type names in different files, across different projects)
@@ -56,6 +63,7 @@ message QualType {
     // a better alternative.
     bool IsNamespace = 9;
     string DbgOrigin = 10;
+    TypeTag Tag = 11;
 }
 
 // Enumeration definition
@@ -69,6 +77,11 @@ message Enum {
     QualType Name = 2;
     QualType Base = 3;
     string Doc = 4;
+    /// In case enumeration was defined in C context, under both typedef and own name
+    /// both are stored in the result. Generated data aims to have the most easily accessible
+    /// 'name' for the enumeration declaration in the `Name` field, but if there is more data
+    /// in the construction then it is pushed here. 
+    QualType EnumDefName = 5;
 }
 
 
@@ -151,6 +164,8 @@ message Record {
     repeated Typedef NestedTypedef = 7;
     string Doc = 8;
     repeated TemplateSpec Templates = 9;
+    /// See 'EnumDefName' description in the enumeration message. 
+    QualType RecordDefName = 10;
 }
 
 message TU {

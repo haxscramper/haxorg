@@ -551,22 +551,35 @@ bool ReflASTVisitor::VisitEnumDecl(
             "Adding serialization information for %0",
             Decl->getLocation())
             << Decl;
-        Enum* rec = out->add_enums();
+        Enum*       rec    = out->add_enums();
+        std::string origin = (Typedef
+                                  ? "typedef:" + Typedef->getNameAsString()
+                                  : "")
+                           + (Typedef ? "name:" + Decl->getNameAsString()
+                                      : "")
+                           + Typedef->getLocation().printToString(
+                               Ctx->getSourceManager());
+
+        auto name   = rec->mutable_name();
+        auto spaces = getNamespaces(Decl, Decl->getLocation());
+
         if (Typedef != nullptr) {
-            rec->mutable_name()->set_name(Typedef->getNameAsString());
-            rec->mutable_name()->set_dbgorigin(
-                "enum typedef " + Typedef->getNameAsString()
-                + Typedef->getLocation().printToString(
-                    Ctx->getSourceManager()));
+            name->set_name(Typedef->getNameAsString());
+            name->set_dbgorigin("enum typedef " + origin);
+            if (!Decl->getNameAsString().empty()) {
+                auto ed = rec->mutable_enumdefname();
+                ed->set_name(Decl->getNameAsString());
+                ed->set_dbgorigin("enum direct " + origin);
+                ed->set_tag(TypeTag::TypeTagEnum);
+                applyNamespaces(ed, spaces);
+            }
         } else {
-            rec->mutable_name()->set_name(Decl->getNameAsString());
-            rec->mutable_name()->set_dbgorigin(
-                "enum direct "
-                + Decl->getLocation().printToString(
-                    Ctx->getSourceManager()));
+            name->set_name(Decl->getNameAsString());
+            name->set_dbgorigin("enum direct " + origin);
         }
-        applyNamespaces(
-            rec->mutable_name(), getNamespaces(Decl, Decl->getLocation()));
+
+
+        applyNamespaces(name, spaces);
 
         for (clang::EnumConstantDecl* field : Decl->enumerators()) {
             Enum_Field* sub = rec->add_fields();
@@ -622,8 +635,9 @@ bool ReflASTVisitor::VisitRecordDecl(
         llvm::TimeTraceScope timeScope{
             "reflection-visit-record" + Decl->getNameAsString()};
 
-        Record* rec = out->add_records();
-        if (Decl->getNameAsString().empty()) {
+        Record* rec  = out->add_records();
+        auto    name = rec->mutable_name();
+        if (Typedef != nullptr) {
             // typedef struct abomination handling -- need to conjure up a
             // name from the scattered bits of brain tissue that was left
             // by the developers of this frankenstein feature.
@@ -632,12 +646,21 @@ bool ReflASTVisitor::VisitRecordDecl(
                 Typedef->getASTContext().getTypedefType(Typedef),
                 Decl->getLocation());
 
-            rec->mutable_name()->set_name(Typedef->getNameAsString());
+            name->set_name(Typedef->getNameAsString());
+
+            if (!Decl->getNameAsString().empty()) {
+                auto ed = rec->mutable_recorddefname();
+                fillType(
+                    rec->mutable_name(),
+                    Typedef->getASTContext().getTypedefType(Typedef),
+                    Decl->getLocation());
+                ed->set_name(Decl->getNameAsString());
+                ed->set_tag(TypeTag::TypeTagStruct);
+            }
 
         } else {
-
             fillType(
-                rec->mutable_name(),
+                name,
                 Decl->getASTContext().getRecordType(Decl),
                 Decl->getLocation());
         }
