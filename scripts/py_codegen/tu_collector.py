@@ -369,12 +369,16 @@ class GenGraph:
                 case "auto":
                     t_map = "auto"
 
-            return nim.Type(Name=t_map)
+            if t.isPtr:
+                return nim.Type(Name="ptr", Parameters=[nim.Type(Name=t_map)])
+
+            else:
+                return nim.Type(Name=t_map)
 
     def enum_to_nim(self, b: nim.ASTBuilder, enum: GenTuEnum) -> nim.EnumParams:
         return nim.EnumParams(
             Name=enum.name.name,
-            Fields=[nim.EnumFieldParams(Name=f.name, Value=0) for f in enum.fields])
+            Fields=[nim.EnumFieldParams(Name=f.name, Value=b.string(str(f.value))) for f in enum.fields])
 
     def struct_to_nim(self, b: nim.ASTBuilder, rec: GenTuStruct) -> nim.ObjectParams:
         return nim.ObjectParams(Name=rec.name.name,

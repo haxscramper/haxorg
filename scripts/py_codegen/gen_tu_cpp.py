@@ -41,7 +41,7 @@ class GenTuTypedef:
 class GenTuEnumField:
     name: str
     doc: GenTuDoc
-    value: Optional[str] = None
+    value: Optional[int] = None
 
 
 @beartype

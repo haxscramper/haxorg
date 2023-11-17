@@ -120,7 +120,7 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
 def conv_proto_enum(en: pb.Enum) -> GenTuEnum:
     result = GenTuEnum(conv_proto_type(en.name), GenTuDoc(""), [])
     for _field in en.fields:
-        result.fields.append(GenTuEnumField(_field.name, GenTuDoc("")))
+        result.fields.append(GenTuEnumField(_field.name, GenTuDoc(""), value=_field.value))
 
     return result
 

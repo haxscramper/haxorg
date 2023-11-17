@@ -584,6 +584,7 @@ bool ReflASTVisitor::VisitEnumDecl(
         for (clang::EnumConstantDecl* field : Decl->enumerators()) {
             Enum_Field* sub = rec->add_fields();
             sub->set_name(field->getNameAsString());
+            sub->set_value(field->getInitVal().getExtValue());
         }
     }
 
