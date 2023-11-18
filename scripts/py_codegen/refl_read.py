@@ -158,16 +158,19 @@ class ConvTu:
 
 
 @beartype
-def conv_proto_file(path: str) -> ConvTu:
+def open_proto_file(path: str) -> pb.TU:
     unit = pb.TU()
     assert os.path.exists(path)
 
     with open(path, "rb") as f:
         unit = pb.TU.FromString(f.read())
 
-    with open("/tmp/reflection-structs.py", "w") as file:
-        pprint(unit, width=200, stream=file)
+    return unit
 
+
+@beartype
+def conv_proto_file(path: str) -> ConvTu:
+    unit = open_proto_file(path)
     return ConvTu(structs=[conv_proto_record(rec) for rec in unit.records],
                   enums=[conv_proto_enum(rec) for rec in unit.enums],
                   typedefs=[conv_proto_typedef(rec) for rec in unit.typedefs],

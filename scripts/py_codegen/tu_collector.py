@@ -21,7 +21,7 @@ from py_textlayout.py_textlayout import TextLayout, TextOptions
 
 from py_scriptutils.script_logging import log
 import py_scriptutils.toml_config_profiler as conf_provider
-from refl_read import conv_proto_file, ConvTu
+from refl_read import conv_proto_file, ConvTu, open_proto_file
 
 import rich_click as click
 
@@ -46,29 +46,46 @@ class TuOptions(BaseModel):
     execution_trace: str = Field(description="Output path for the execution trace json",
                                  default="/tmp/tu_collector_trace.json")
 
+    output_directory: str = Field(description="Directory to write output wrapped files")
+
 
 @beartype
-def expand_input(input: List[str], path_suffixes: List[str]) -> List[Path]:
-    result: List[str] = []
+@dataclass
+class PathMapping:
+    path: Path
+    root: Optional[Path] = None
+
+
+@beartype
+def expand_input(input: List[str], path_suffixes: List[str]) -> List[PathMapping]:
+    result: List[PathMapping] = []
     for item in input:
         path = Path(item)
         if path.is_file():
-            result.append(item)
+            result.append(PathMapping(item))
 
         elif path.is_dir():
             for sub in path.rglob("*"):
                 if sub.suffix in path_suffixes:
-                    result.append(sub)
+                    result.append(PathMapping(sub, path))
 
         else:
             for sub in Path().glob(item):
-                result.append(sub)
+                result.append(PathMapping(sub))
 
     return result
 
 
 @beartype
-def run_collector(conf: TuOptions, input: Path, output: Path) -> Optional[ConvTu]:
+@dataclass
+class CollectorRunResult:
+    conv_tu: ConvTu
+    pb_path: Path
+
+
+@beartype
+def run_collector(conf: TuOptions, input: Path,
+                  output: Path) -> Optional[CollectorRunResult]:
     assert input.exists()
     if not output.parent.exists():
         output.parent.mkdir(parents=True)
@@ -90,6 +107,8 @@ def run_collector(conf: TuOptions, input: Path, output: Path) -> Optional[ConvTu
 
     tool = local[conf.indexing_tool]
 
+    # Create a temporary list of files content will be added to the dumped translation
+    # unit.
     tmp_output = tmp.joinpath(md5(str(output).encode("utf-8")).hexdigest() + ".pb")
     target_files = tmp_output.with_suffix(".json")
     with open(str(target_files), "w") as file:
@@ -124,14 +143,12 @@ def run_collector(conf: TuOptions, input: Path, output: Path) -> Optional[ConvTu
             print(res_stderr)
 
         tu = conv_proto_file(str(tmp_output))
-        with open(output, "w") as file:
-            pprint(tu, width=200, stream=file)
 
         refl[str(input)] = time.time()
         with open(conf.reflect_cache, "w") as file:
             file.write(json.dumps(refl, indent=2))
 
-        return tu
+        return CollectorRunResult(tu, tmp_output)
 
 
 def hash_qual_type(t: QualType) -> int:
@@ -159,6 +176,7 @@ class TuWrap:
     name: str
     tu: ConvTu
     original: Path
+    mapping: Path
 
 
 @beartype
@@ -178,6 +196,7 @@ class GenGraph:
     class Sub:
         name: str
         original: Path
+        result: Path
         nodes: Set[int] = field(default_factory=set)
 
     id_to_entry: Dict[int, Union[GenTuFunction, GenTuStruct,
@@ -290,7 +309,7 @@ class GenGraph:
         self.graph.vs[_id]["color"] = "magenta"
 
     def add_unit(self, wrap: TuWrap):
-        sub = GenGraph.Sub(wrap.name, wrap.original)
+        sub = GenGraph.Sub(wrap.name, wrap.original, wrap.mapping)
         self.subgraphs.append(sub)
         for struct in wrap.tu.structs:
             self.add_struct(struct, sub)
@@ -420,7 +439,8 @@ class GenGraph:
                 Name="toCInt",
                 Arguments=[
                     nim.IdentParams(Name="args",
-                                    Type=nim.Type("set", Parameters=[nim.Type(enum.name.name)]))
+                                    Type=nim.Type("set",
+                                                  Parameters=[nim.Type(enum.name.name)]))
                 ],
                 ReturnTy=nim.Type("cint"),
                 Implementation=b.b.stack([
@@ -432,8 +452,9 @@ class GenGraph:
                             b.b.indent(
                                 2,
                                 b.b.stack([
-                                    b.string(f"of {f.name}: result = cint(result or {f.value})")
-                                    for f in enum.fields
+                                    b.string(
+                                        f"of {f.name}: result = cint(result or {f.value})"
+                                    ) for f in enum.fields
                                 ])),
                         ])),
                 ])))
@@ -514,7 +535,6 @@ class GenGraph:
     def to_nim(self, sub: Sub):
         t = TextLayout()
         builder = nim.ASTBuilder(t)
-        result = sub.original.with_suffix(".nim")
 
         types: List[BlockId] = []
         procs: List[BlockId] = []
@@ -551,8 +571,8 @@ class GenGraph:
                     types.append(builder.Typedef(_type))
 
         if 0 < len(types) or 0 < len(procs):
-            log.info(f"Writing to {result}")
-            with open(result, "w") as file:
+            log.info(f"Writing to {sub.result}")
+            with open(str(sub.result), "w") as file:
                 opts = TextOptions()
                 opts.rightMargin = 160
                 if 0 < len(types):
@@ -571,7 +591,7 @@ class GenGraph:
                 file.write(newCode)
 
         else:
-            log.warning(f"No declarations found for {result}")
+            log.warning(f"No declarations found for {sub.result}")
 
     def to_graphviz(self, output_file: str):
         dot = gv.Digraph(format='dot')
@@ -665,7 +685,7 @@ def run(ctx: click.Context, config: str, **kwargs):
     conf: TuOptions = cast(TuOptions,
                            conf_provider.merge_cli_model(ctx, config_base, TuOptions))
 
-    paths: List[Path] = expand_input(conf.input, conf.path_suffixes)[:10]
+    paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes) # [:10]
     wraps: List[TuWrap] = []
 
     with GlobCompleteEvent("Load compilation database", "config"):
@@ -675,13 +695,32 @@ def run(ctx: click.Context, config: str, **kwargs):
         ]
 
     with GlobCompleteEvent("Run reflection collector", "read"):
-        for path in paths:
+        mapping: PathMapping
+        for mapping in paths:
+            path = mapping.path
             if any([cmd.file == str(path) for cmd in commands]):
                 log.info(f"Reading {path}")
                 with GlobCompleteEvent("Run collector", "read", {"path": str(path)}):
-                    tu: ConvTu = run_collector(conf, path, path.with_suffix(".py"))
+                    tu: Optional[CollectorRunResult] = run_collector(
+                        conf, path, path.with_suffix(".py"))
                     if tu is not None:
-                        wraps.append(TuWrap(name=path.stem, tu=tu, original=path))
+                        relative = Path(conf.output_directory).joinpath(
+                            path.relative_to(mapping.root))
+
+                        if not relative.parent.exists():
+                            relative.parent.mkdir(parents=True)
+                            
+
+
+                        with open(str(relative.with_suffix(".json")), "w") as file:
+                            file.write(open_proto_file(str(tu.pb_path)).to_json(2))
+                            log.info(f"Wrote TU data to {relative.with_suffix('.json')}")
+
+                        wraps.append(
+                            TuWrap(name=path.stem,
+                                   tu=tu.conv_tu,
+                                   original=path,
+                                   mapping=relative.with_suffix(".nim")))
 
             else:
                 log.warning(f"No compile commands for {path}")
