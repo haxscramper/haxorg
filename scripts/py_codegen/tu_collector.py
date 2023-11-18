@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from beartype import beartype
-from beartype.typing import List, cast, Any, Tuple, Union, Dict, Set, Optional, TypeAlias
+from beartype.typing import List, cast, Any, Tuple, Union, Dict, Set, Optional, TypeAlias, NewType
 from pydantic import BaseModel, Field
 from pprint import pprint, pformat
 from plumbum import local
@@ -19,6 +19,7 @@ import graphviz as gv
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
 import astbuilder_nim as nim
 from py_textlayout.py_textlayout import TextLayout, TextOptions
+import deal
 
 from py_scriptutils.script_logging import log
 import py_scriptutils.toml_config_profiler as conf_provider
@@ -26,7 +27,14 @@ from refl_read import conv_proto_file, ConvTu, open_proto_file
 
 import rich_click as click
 
+from typing import TYPE_CHECKING
+
 CONFIG_FILE_NAME = "tu_collector.toml"
+
+if TYPE_CHECKING:
+    from py_textlayout.py_textlayout import BlockId
+else:
+    BlockId = NewType('BlockId', int)
 
 
 class TuOptions(BaseModel):
@@ -87,6 +95,8 @@ class CollectorRunResult:
 @beartype
 def run_collector(conf: TuOptions, input: Path,
                   output: Path) -> Optional[CollectorRunResult]:
+    # Execute reflection data collector binary, producing a new converted translation
+    # unit or an empty result of conversion has failed.
     assert input.exists()
     if not output.parent.exists():
         output.parent.mkdir(parents=True)
@@ -135,6 +145,8 @@ def run_collector(conf: TuOptions, input: Path,
             print(res_stderr)
 
         print(" \\ \n".join([conf.indexing_tool] + ["    " + f for f in flags]))
+        # TODO Store failed logs in the result instead of immediately printing
+        # them to the output.
 
     else:
         if res_stdout:
@@ -153,6 +165,9 @@ def run_collector(conf: TuOptions, input: Path,
 
 
 def hash_qual_type(t: QualType) -> int:
+    # Generate a hashed value for qualified type, ignoring constant qualifiers,
+    # pointers and other elements. This function is primarily used to map
+    # declared entries to some simpler value for ID.
     parts: List[str] = []
     if t.func:
         parts.append(hash_qual_type(t.func.ReturnTy))
@@ -183,6 +198,8 @@ class TuWrap:
 @beartype
 @dataclass
 class ConvRes:
+    # Result of the single entry conversion: main declaration and
+    # additional wrapper structures and procedures accompanying it.
     procs: List[nim.FunctionParams] = field(default_factory=list)
     types: List[Union[nim.EnumParams, nim.ObjectParams,
                       nim.TypedefParams]] = field(default_factory=list)
@@ -214,22 +231,33 @@ class GenGraph:
     def get_out_path(self, path: Path) -> Path:
         return self.out_map[path]
 
-    def get_sub(self, _id: int) -> Sub:
+    def get_sub(self, _id: int) -> Optional[Sub]:
         matching: List[GenGraph.Sub] = []
         for sub in self.subgraphs:
             if _id in sub.nodes:
                 matching.append(sub)
 
-        assert len(matching) == 1
-        return matching[0]
+        assert len(matching) <= 1, [
+            f"{m.name}, {m.original}, id: {_id}, entry: {self.id_to_entry[_id].format()}"
+            for m in matching
+        ]
+        if len(matching) == 1:
+            return matching[0]
 
-    def gen_import(self, result: Path, target: int) -> Optional[str]:
-        sub = self.get_sub(target)
-        if self.get_out_path(sub.original) == result:
+        else:
+            return None
+
+    def get_declared_sub(self, typ: QualType) -> Optional[Sub]:
+        _id = self.id_from_hash(hash_qual_type(typ))
+        return self.get_sub(_id)
+
+    def gen_import(self, result: Path, sub: Sub) -> Optional[str]:
+        base = self.get_out_path(sub.original)
+        if base == result:
             return None
 
         else:
-            return str(self.get_out_path(sub.original).relative_to(result))
+            return os.path.relpath(base.resolve(), result.resolve())
 
     def id_from_hash(self, hashed: int) -> int:
         if hashed not in self.id_map:
@@ -270,6 +298,28 @@ class GenGraph:
             self.graph.es[self.graph.get_eid(
                 _id, _type)]["dbg_origin"] = f"{dbg_from} -> {Type.format()}"
 
+    @deal.post(lambda result: not any([it is None for it in result]))
+    def get_used_type(self, decl: GenTuUnion) -> List[QualType]:
+        result: List[QualType] = []
+        if isinstance(decl, GenTuStruct):
+            for _field in decl.fields:
+                assert _field.type, _field
+                result.append(_field.type)
+
+        elif isinstance(decl, GenTuFunction):
+            for arg in decl.arguments:
+                assert arg.type, arg
+                result.append(arg.type)
+
+            assert decl.result, decl
+            result.append(decl.result)
+
+        elif isinstance(decl, GenTuTypedef):
+            assert decl.base, decl
+            result.append(decl.base)
+
+        return result
+
     def merge_structs(self, stored: GenTuStruct, added: GenTuStruct):
         pass
 
@@ -281,10 +331,39 @@ class GenGraph:
 
     def add_entry(self, entry: GenTuUnion, sub: Sub) -> int:
         _id = self.id_from_entry(entry)
-        if _id not in self.id_to_entry:
-            self.id_to_entry[_id] = deepcopy(entry)
+        if _id in self.id_to_entry:
+            if isinstance(entry, GenTuStruct) or isinstance(entry, GenTuEnum):
+                olddef = self.id_to_entry[_id]
+                if olddef.IsForwardDecl and not entry.IsForwardDecl:
+                    # Previously added declaration was a forward declaration and it needs to be removed from
+                    # all subgraphs since there is not a proper definition present in the graph
+                    for old in self.subgraphs:
+                        if _id in old.nodes:
+                            old.nodes.discard(_id)
 
-        sub.nodes.add(_id)
+                elif not olddef.IsForwardDecl and entry.IsForwardDecl:
+                    # Newly introduced type is a forward declaration and should not be added to a new subgraph
+                    pass
+
+                elif olddef.IsForwardDecl and entry.IsForwardDecl:
+                    # Haven't found proper forward declaration yet, new ones still don't need to be added to 
+                    # more graphs
+                    pass
+
+                elif not olddef.IsForwardDecl and not entry.IsForwardDecl:
+                    log.error(f"Two full definitions of the same entry {entry.format()} in the code")
+
+            else:
+                # Multiple declarations of the same functions across different modules, TODO is this an error
+                sub.nodes.add(_id)
+
+
+        else:
+            # This ID has never been registered for the type graph and it should be added to the 
+            # translation unit subgraph unconditionally
+            self.id_to_entry[_id] = deepcopy(entry)
+            sub.nodes.add(_id)
+
         if len(self.graph.vs) <= _id:
             self.graph.add_vertex()
 
@@ -300,8 +379,8 @@ class GenGraph:
         self.graph.vs[_id]["dbg_origin"] = struct.name.dbg_origin
         self.graph.vs[_id]["color"] = "green"
 
-        for _field in struct.fields:
-            self.use_type(_id, _field.type, dbg_from=struct.name.format())
+        for typ in self.get_used_type(struct):
+            self.use_type(_id, typ, dbg_from=struct.name.format())
 
     def add_enum(self, enum: GenTuEnum, sub: Sub):
         _id = self.add_entry(enum, sub)
@@ -562,10 +641,19 @@ class GenGraph:
 
         types: List[BlockId] = []
         procs: List[BlockId] = []
+        header: List[BlockId] = []
+        depend_on: Set[str] = set()
 
         for _id in sub.nodes:
             decl = self.id_to_entry[_id]
             conv: ConvRes = ConvRes()
+            for typ in self.get_used_type(decl):
+                dep = self.get_declared_sub(typ)
+                if dep is not None:
+                    imp = self.gen_import(self.get_out_path(sub.original), dep)
+                    if imp is not None:
+                        depend_on.add(imp)
+
             if isinstance(decl, GenTuEnum):
                 conv = self.enum_to_nim(builder, decl)
 
@@ -594,6 +682,9 @@ class GenGraph:
                 elif isinstance(_type, nim.TypedefParams):
                     types.append(builder.Typedef(_type))
 
+        for item in sorted([it for it in depend_on]):
+            header.append(builder.string(f"import \"{item}\""))
+
         if 0 < len(types) or 0 < len(procs):
             log.info(f"Writing to {result}")
             with open(str(result), "w") as file:
@@ -602,6 +693,7 @@ class GenGraph:
                 if 0 < len(types):
                     newCode = t.toString(
                         builder.sep_stack([
+                            t.stack(header),
                             t.stack([
                                 t.text("type"),
                                 t.indent(2, builder.sep_stack(types)),
@@ -610,7 +702,8 @@ class GenGraph:
                         ] + procs), opts)
 
                 else:
-                    newCode = t.toString(builder.sep_stack(procs), opts)
+                    newCode = t.toString(t.stack(header + [builder.sep_stack(procs)]),
+                                         opts)
 
                 file.write(newCode)
 
@@ -709,7 +802,7 @@ def run(ctx: click.Context, config: str, **kwargs):
     conf: TuOptions = cast(TuOptions,
                            conf_provider.merge_cli_model(ctx, config_base, TuOptions))
 
-    paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes)[:10]
+    paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes)  # [:10]
     wraps: List[TuWrap] = []
 
     with GlobCompleteEvent("Load compilation database", "config"):

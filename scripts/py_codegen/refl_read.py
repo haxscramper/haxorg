@@ -94,6 +94,7 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
 @beartype
 def conv_proto_record(record: pb.Record) -> GenTuStruct:
     result = GenTuStruct(conv_proto_type(record.name), GenTuDoc(""))
+    result.IsForwardDecl = record.is_forward_decl
     for _field in record.fields:
         result.fields.append(
             GenTuField(type=conv_proto_type(_field.type),
@@ -120,6 +121,7 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
 @beartype
 def conv_proto_enum(en: pb.Enum) -> GenTuEnum:
     result = GenTuEnum(conv_proto_type(en.name), GenTuDoc(""), [])
+    result.IsForwardDecl = en.is_forward_decl
     for _field in en.fields:
         result.fields.append(GenTuEnumField(_field.name, GenTuDoc(""),
                                             value=_field.value))

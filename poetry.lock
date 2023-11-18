@@ -153,6 +153,24 @@ files = [
 six = "*"
 
 [[package]]
+name = "deal"
+version = "4.24.3"
+description = "**Deal** is a Python library for [design by contract][wiki] (DbC) programming."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "deal-4.24.3-py3-none-any.whl", hash = "sha256:c9e7244114a265b5bd42e8af650336f410cfbc27803594f461fa0bdafbc48ead"},
+    {file = "deal-4.24.3.tar.gz", hash = "sha256:5e845e5d8e785de44e4901ac80ec55a5fa62683f811d699e0e360ce303243c93"},
+]
+
+[package.extras]
+all = ["astroid (>=2.11.0)", "deal-solver (>=0.1.2)", "hypothesis", "pygments", "typeguard (>=3.0.0)", "vaa (>=0.2.1)"]
+docs = ["m2r2", "myst-parser", "sphinx (==3.5.*)", "sphinx-rtd-theme (==0.5.*)"]
+integration = ["astroid (>=2.11.0)", "deal-solver (>=0.1.2)", "flake8", "hypothesis", "marshmallow", "pygments", "sphinx (>=4.5.0)", "typeguard (<4.0.0)", "vaa (>=0.2.1)"]
+lint = ["deal-solver (>=0.1.2)", "flake8", "flake8-commas", "flake8-quotes", "hypothesis", "isort", "mypy (>=0.900)", "mypy_test (>=0.1.1)", "pygments", "typeguard (<4.0.0)", "unify"]
+test = ["coverage-conditional-plugin", "coverage[toml]", "docstring-parser", "pytest", "pytest-cov", "urllib3"]
+
+[[package]]
 name = "dominate"
 version = "2.8.0"
 description = "Dominate is a Python library for creating and manipulating HTML documents using an elegant DOM API."
@@ -1170,4 +1188,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.0 <3.13"
-content-hash = "d21659d176b2a8ef935c6e4017723b5431411de9f69e86d88b4df5233b1a37b1"
+content-hash = "07230dedc49bea1aaf0950b22941310c38ae7c40310cc3dba98874fab2485525"

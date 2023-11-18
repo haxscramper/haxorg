@@ -52,6 +52,7 @@ class GenTuEnum:
     fields: List[GenTuEnumField]
     base: Optional[str] = "short int"
     refl: bool = False
+    IsForwardDecl: bool = False
 
 
 @beartype
@@ -118,6 +119,10 @@ class GenTuStruct:
     bases: List[QualType] = field(default_factory=list)
     nested: List[GenTuEntry] = field(default_factory=list)
     concreteKind: bool = True
+    IsForwardDecl: bool = False
+
+    def format(self) -> str:
+        return self.name.format()
 
 
 @beartype

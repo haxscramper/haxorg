@@ -523,6 +523,7 @@ bool ReflASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl* Decl) {
             "reflection-visit-record" + Decl->getNameAsString()};
 
         Record* rec = out->add_records();
+        rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
         fillType(
             rec->mutable_name(),
             Decl->getASTContext().getRecordType(Decl),
@@ -574,7 +575,8 @@ bool ReflASTVisitor::VisitEnumDecl(
             "Adding serialization information for %0",
             Decl->getLocation())
             << Decl;
-        Enum*       rec    = out->add_enums();
+        Enum* rec = out->add_enums();
+        rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
         std::string origin = (Typedef
                                   ? "typedef:" + Typedef->getNameAsString()
                                   : "")
@@ -659,8 +661,9 @@ bool ReflASTVisitor::VisitRecordDecl(
         llvm::TimeTraceScope timeScope{
             "reflection-visit-record" + Decl->getNameAsString()};
 
-        Record* rec  = out->add_records();
-        auto    name = rec->mutable_name();
+        Record* rec = out->add_records();
+        rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
+        auto name = rec->mutable_name();
         if (Typedef != nullptr) {
             // typedef struct abomination handling -- need to conjure up a
             // name from the scattered bits of brain tissue that was left

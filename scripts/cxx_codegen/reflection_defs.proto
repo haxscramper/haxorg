@@ -82,6 +82,7 @@ message Enum {
     /// 'name' for the enumeration declaration in the `Name` field, but if there is more data
     /// in the construction then it is pushed here. 
     QualType EnumDefName = 5;
+    bool IsForwardDecl = 6;
 }
 
 
@@ -166,6 +167,7 @@ message Record {
     repeated TemplateSpec Templates = 9;
     /// See 'EnumDefName' description in the enumeration message. 
     QualType RecordDefName = 10;
+    bool IsForwardDecl = 11;
 }
 
 message TU {
