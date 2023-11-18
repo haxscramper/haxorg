@@ -86,6 +86,7 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
     res.isConst = typ.is_const
     res.isNamespace = typ.is_namespace
     res.isRef = typ.ref_kind != pb.ReferenceKind.NotRef
+    res.isPtr = typ.is_pointer
 
     return res
 
@@ -120,7 +121,8 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
 def conv_proto_enum(en: pb.Enum) -> GenTuEnum:
     result = GenTuEnum(conv_proto_type(en.name), GenTuDoc(""), [])
     for _field in en.fields:
-        result.fields.append(GenTuEnumField(_field.name, GenTuDoc(""), value=_field.value))
+        result.fields.append(GenTuEnumField(_field.name, GenTuDoc(""),
+                                            value=_field.value))
 
     return result
 

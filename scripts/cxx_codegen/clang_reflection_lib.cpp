@@ -233,26 +233,38 @@ void ReflASTVisitor::fillType(
     } else {
         if (In.isConstQualified()) {
             Out->set_isconst(true);
+            Out->mutable_dbgorigin()->append(" T-const");
         }
 
         if (In->isReferenceType()) {
             Out->set_refkind(ReferenceKind::LValue);
+            Out->mutable_dbgorigin()->append(" T-reference");
         }
 
         if (In->isPointerType()) {
             Out->set_ispointer(true);
+            Out->mutable_dbgorigin()->append(" T-pointer");
         }
 
         if (In->isReferenceType() || In->isPointerType()) {
+            Out->mutable_dbgorigin()->append(" >ref/ptr");
             fillType(Out, In->getPointeeType(), Loc);
         } else if (In->isBooleanType()) {
+            Out->mutable_dbgorigin()->append(" >bool");
             Out->set_name("bool");
+
+        } else if (In->isCharType()) {
+            Out->mutable_dbgorigin()->append(" >char");
+            Out->set_name("char");
+
         } else if (In->isBuiltinType()) {
+            Out->mutable_dbgorigin()->append(" >builtin");
             Out->set_name(In.getAsString());
+
         } else if (
             clang::ElaboratedType const* elab = In->getAs<
                                                 clang::ElaboratedType>()) {
-            // 'fill' operations are additive for namespaces
+            Out->mutable_dbgorigin()->append(" >elaborated");
             applyNamespaces(Out, getNamespaces(elab, Loc));
             fillType(Out, elab->getNamedType(), Loc);
 
@@ -267,10 +279,13 @@ void ReflASTVisitor::fillType(
                               ->getDecl()
                               ->getNameAsString());
         } else if (In->isEnumeralType()) {
+            Out->mutable_dbgorigin()->append(" >enum");
             Out->set_name(In->getAs<clang::EnumType>()
                               ->getDecl()
                               ->getNameAsString());
+
         } else if (In->isFunctionProtoType()) {
+            Out->mutable_dbgorigin()->append(" >func");
             Out->set_kind(TypeKind::FunctionPtr);
             const clang::FunctionProtoType* FPT = In->getAs<
                 clang::FunctionProtoType>();
@@ -280,6 +295,7 @@ void ReflASTVisitor::fillType(
             }
 
         } else if (In->isConstantArrayType()) {
+            Out->mutable_dbgorigin()->append(" >constarray");
             clang::ArrayType const* ARRT = dyn_cast<clang::ArrayType>(
                 In.getTypePtr());
 

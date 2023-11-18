@@ -369,21 +369,31 @@ class GenGraph:
                 case "auto":
                     t_map = "auto"
 
+            result = nim.Type(Name=t_map)
+
             if t.isPtr:
-                return nim.Type(Name="ptr", Parameters=[nim.Type(Name=t_map)])
+                return nim.Type(Name="ptr", Parameters=[result])
 
             else:
-                return nim.Type(Name=t_map)
+                return result
 
     def enum_to_nim(self, b: nim.ASTBuilder, enum: GenTuEnum) -> nim.EnumParams:
-        return nim.EnumParams(
-            Name=enum.name.name,
-            Fields=[nim.EnumFieldParams(Name=f.name, Value=b.string(str(f.value))) for f in enum.fields])
+        return nim.EnumParams(Name=enum.name.name,
+                              Fields=[
+                                  nim.EnumFieldParams(Name=f.name,
+                                                      Value=b.string(str(f.value)))
+                                  for f in enum.fields
+                              ])
 
     def struct_to_nim(self, b: nim.ASTBuilder, rec: GenTuStruct) -> nim.ObjectParams:
         return nim.ObjectParams(Name=rec.name.name,
+                                Pragmas=[
+                                    nim.PragmaParams("importc"),
+                                    nim.PragmaParams("bycopy"),
+                                ],
                                 Fields=[
                                     nim.IdentParams(Name=f.name,
+                                                    Exported=True,
                                                     Type=self.type_to_nim(f.type))
                                     for f in rec.fields
                                 ])
@@ -408,38 +418,44 @@ class GenGraph:
         builder = nim.ASTBuilder(t)
         result = sub.original.with_suffix(".nim")
 
-        block = t.stack([])
+        types: List[BlockId] = []
+        procs: List[BlockId] = []
 
-        count = 0
         for _id in sub.nodes:
-            count += 1
             decl = self.id_to_entry[_id]
-            added: BlockId
             if isinstance(decl, GenTuEnum):
-                added = builder.Enum(self.enum_to_nim(builder, decl))
+                types.append(builder.Enum(self.enum_to_nim(builder, decl)))
 
             elif isinstance(decl, GenTuStruct):
-                added = builder.Object(self.struct_to_nim(builder, decl))
+                types.append(builder.Object(self.struct_to_nim(builder, decl)))
 
             elif isinstance(decl, GenTuTypedef):
-                added = builder.Typedef(self.typedef_to_nim(builder, decl))
+                types.append(builder.Typedef(self.typedef_to_nim(builder, decl)))
 
             elif isinstance(decl, GenTuFunction):
-                added = builder.Function(self.function_to_nim(builder, decl))
+                procs.append(builder.Function(self.function_to_nim(builder, decl)))
 
             else:
                 assert False
 
-            added = t.stack([builder.string("type"), t.indent(2, added)])
-
-            t.add_at(block, added)
-
-        if 0 < count:
+        if 0 < len(types) or 0 < len(procs):
             log.info(f"Writing to {result}")
             with open(result, "w") as file:
                 opts = TextOptions()
                 opts.rightMargin = 160
-                newCode = t.toString(block, opts)
+                if 0 < len(types):
+                    newCode = t.toString(
+                        t.stack([
+                            t.stack([
+                                t.text("type"),
+                                t.indent(2, t.stack(types)),
+                            ]),
+                            t.text(""),
+                        ] + procs), opts)
+
+                else:
+                    newCode = t.toString(t.stack(procs), opts)
+
                 file.write(newCode)
 
         else:

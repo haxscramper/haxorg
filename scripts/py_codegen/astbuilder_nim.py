@@ -43,7 +43,7 @@ class PragmaParams:
 class IdentParams:
     Name: str
     Type: Type
-    Exported: bool = True
+    Exported: bool = False
 
 
 @beartype
@@ -80,6 +80,7 @@ class EnumParams:
 @dataclass
 class FunctionParams:
     Name: str
+    Exported: bool = True
     ReturnTy: Type = field(default_factory=lambda: Type("void"))
     Arguments: List[IdentParams] = field(default_factory=list)
 
@@ -107,7 +108,22 @@ class ASTBuilder(base.AstbuilderBase):
             ])
 
         else:
-            return self.string(t.Name)
+            head: BlockId = self.string(t.Name)
+
+            if 0 < len(t.Parameters):
+                if t.Name == "ptr":
+                    return self.b.line(
+                        [head, self.string(" "),
+                         self.Type(t.Parameters[0])])
+
+                else:
+                    return self.b.line([
+                        head,
+                        self.pars(self.csv([self.Type(p) for p in t.Parameters])),
+                    ])
+
+            else:
+                return head
 
     def Typedef(self, typedef: TypedefParams) -> BlockId:
         return self.b.line([
@@ -134,13 +150,17 @@ class ASTBuilder(base.AstbuilderBase):
 
         return self.b.stack([
             head,
-            self.b.indent(2, self.b.stack([self.EnumField(f, padTo=field_widths) for f in enum.Fields]))
+            self.b.indent(
+                2,
+                self.b.stack([self.EnumField(f, padTo=field_widths) for f in enum.Fields
+                             ]))
         ])
 
     def Function(self, func: FunctionParams) -> BlockId:
         head = self.b.line([
             self.string("proc "),
             self.string(func.Name),
+            self.string("*" if func.Exported else "")
         ])
 
         tail = self.b.line([
@@ -150,8 +170,7 @@ class ASTBuilder(base.AstbuilderBase):
 
         return self.b.line([
             head,
-            self.pars(self.csv([self.Field(Arg) for Arg in func.Arguments])), 
-            tail
+            self.pars(self.csv([self.Field(Arg) for Arg in func.Arguments])), tail
         ])
 
     def Field(self, f: IdentParams, padTo: int = 0) -> BlockId:
@@ -162,10 +181,21 @@ class ASTBuilder(base.AstbuilderBase):
             self.Type(f.Type),
         ])
 
+    def Pragma(self, p: PragmaParams) -> BlockId:
+        return self.b.line([self.string(p.Name)])
+
+    def Pragmas(self, pragmas: List[PragmaParams]) -> BlockId:
+        return self.b.line([
+            self.string(" {."),
+            self.csv([self.Pragma(p) for p in pragmas]),
+            self.string(".}"),
+        ]) if 0 < len(pragmas) else self.string("")
+
     def Object(self, Obj: ObjectParams) -> BlockId:
         head = self.b.line([
             self.string(Obj.Name),
             self.string("*" if Obj.Exported else ""),
+            self.Pragmas(Obj.Pragmas),
             self.string(" = "),
             self.string("object"),
         ])

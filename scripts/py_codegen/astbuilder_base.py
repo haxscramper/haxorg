@@ -3,7 +3,9 @@ from beartype.typing import List, Union
 from beartype import beartype
 from typing import TYPE_CHECKING, NewType
 
-if not TYPE_CHECKING:
+if TYPE_CHECKING:
+    from py_textlayout.py_textlayout import BlockId
+else:
     BlockId = NewType('BlockId', int)
 
 
@@ -14,11 +16,18 @@ class AstbuilderBase:
     def string(self, text: str) -> BlockId:
         return self.b.text(text)
 
-    def brace(self, elements: List[BlockId]) -> BlockId:
-        return self.b.stack([self.string("{"), self.b.stack(elements), self.string("}")])
+    def brace(self,
+              elements: List[BlockId],
+              left: str = "{",
+              right: str = "}") -> BlockId:
+        return self.b.stack([
+            self.string(left),
+            self.b.stack(elements),
+            self.string(right),
+        ])
 
-    def pars(self, arg: BlockId) -> BlockId:
-        return self.b.line([self.string("("), arg, self.string(")")])
+    def pars(self, arg: BlockId, left: str = "(", right: str = ")") -> BlockId:
+        return self.b.line([self.string(left), arg, self.string(right)])
 
     def csv(self,
             items: Union[List[str], List[BlockId]],
