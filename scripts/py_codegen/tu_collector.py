@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
 from beartype import beartype
-from beartype.typing import List, cast, Any, Tuple, Union, Dict, Set
+from beartype.typing import List, cast, Any, Tuple, Union, Dict, Set, Optional, TypeAlias
 from pydantic import BaseModel, Field
 from pprint import pprint, pformat
 from plumbum import local
 from hashlib import md5
-from gen_tu_cpp import *
+from gen_tu_cpp import GenTuStruct, GenTuFunction, GenTuEnum, QualType, GenTuTypedef, GenTuEnumField
+from dataclasses import dataclass, field
 from copy import deepcopy
 import json
 import time
@@ -187,6 +188,9 @@ class ConvRes:
                       nim.TypedefParams]] = field(default_factory=list)
 
 
+GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction]
+
+
 @beartype
 @dataclass
 class GenGraph:
@@ -196,7 +200,6 @@ class GenGraph:
     class Sub:
         name: str
         original: Path
-        result: Path
         nodes: Set[int] = field(default_factory=set)
 
     id_to_entry: Dict[int, Union[GenTuFunction, GenTuStruct,
@@ -206,16 +209,35 @@ class GenGraph:
 
     id_map: Dict[int, int] = field(default_factory=dict)
 
+    out_map: Dict[Path, Path] = field(default_factory=dict)
+
+    def get_out_path(self, path: Path) -> Path:
+        return self.out_map[path]
+
+    def get_sub(self, _id: int) -> Sub:
+        matching: List[GenGraph.Sub] = []
+        for sub in self.subgraphs:
+            if _id in sub.nodes:
+                matching.append(sub)
+
+        assert len(matching) == 1
+        return matching[0]
+
+    def gen_import(self, result: Path, target: int) -> Optional[str]:
+        sub = self.get_sub(target)
+        if self.get_out_path(sub.original) == result:
+            return None
+
+        else:
+            return str(self.get_out_path(sub.original).relative_to(result))
+
     def id_from_hash(self, hashed: int) -> int:
         if hashed not in self.id_map:
             self.id_map[hashed] = len(self.id_map)
 
         return self.id_map[hashed]
 
-    def id_from_entry(self,
-                      entry: Union[GenTuFunction, GenTuStruct, GenTuEnum, GenTuTypedef,
-                                   GenTuFunction],
-                      parent: Optional[QualType] = None) -> int:
+    def id_from_entry(self, entry: GenTuUnion, parent: Optional[QualType] = None) -> int:
         if isinstance(entry, GenTuStruct):
             return self.id_from_hash(hash_qual_type(entry.name))
 
@@ -257,8 +279,7 @@ class GenGraph:
     def merge_functions(self, stored: GenTuFunction, added: GenTuFunction):
         pass
 
-    def add_entry(self, entry: Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction],
-                  sub: Sub) -> int:
+    def add_entry(self, entry: GenTuUnion, sub: Sub) -> int:
         _id = self.id_from_entry(entry)
         if _id not in self.id_to_entry:
             self.id_to_entry[_id] = deepcopy(entry)
@@ -279,8 +300,8 @@ class GenGraph:
         self.graph.vs[_id]["dbg_origin"] = struct.name.dbg_origin
         self.graph.vs[_id]["color"] = "green"
 
-        for field in struct.fields:
-            self.use_type(_id, field.type, dbg_from=struct.name.format())
+        for _field in struct.fields:
+            self.use_type(_id, _field.type, dbg_from=struct.name.format())
 
     def add_enum(self, enum: GenTuEnum, sub: Sub):
         _id = self.add_entry(enum, sub)
@@ -309,7 +330,8 @@ class GenGraph:
         self.graph.vs[_id]["color"] = "magenta"
 
     def add_unit(self, wrap: TuWrap):
-        sub = GenGraph.Sub(wrap.name, wrap.original, wrap.mapping)
+        sub = GenGraph.Sub(wrap.name, wrap.original)
+        self.out_map[wrap.original] = wrap.mapping
         self.subgraphs.append(sub)
         for struct in wrap.tu.structs:
             self.add_struct(struct, sub)
@@ -433,6 +455,7 @@ class GenGraph:
                 OneLineImpl=True,
             ))
 
+        w = max([len(f.name) for f in enum.fields] + [0])
         result.procs.append(
             nim.FunctionParams(
                 Kind=nim.FunctionKind.CONVERTER,
@@ -453,7 +476,7 @@ class GenGraph:
                                 2,
                                 b.b.stack([
                                     b.string(
-                                        f"of {f.name}: result = cint(result or {f.value})"
+                                        f"of {f.name.ljust(w)}: result = cint(result or {f.value})"
                                     ) for f in enum.fields
                                 ])),
                         ])),
@@ -535,6 +558,7 @@ class GenGraph:
     def to_nim(self, sub: Sub):
         t = TextLayout()
         builder = nim.ASTBuilder(t)
+        result = self.get_out_path(sub.original)
 
         types: List[BlockId] = []
         procs: List[BlockId] = []
@@ -571,16 +595,16 @@ class GenGraph:
                     types.append(builder.Typedef(_type))
 
         if 0 < len(types) or 0 < len(procs):
-            log.info(f"Writing to {sub.result}")
-            with open(str(sub.result), "w") as file:
+            log.info(f"Writing to {result}")
+            with open(str(result), "w") as file:
                 opts = TextOptions()
                 opts.rightMargin = 160
                 if 0 < len(types):
                     newCode = t.toString(
                         builder.sep_stack([
-                            builder.sep_stack([
+                            t.stack([
                                 t.text("type"),
-                                t.indent(2, t.stack(types)),
+                                t.indent(2, builder.sep_stack(types)),
                             ]),
                             t.text(""),
                         ] + procs), opts)
@@ -591,7 +615,7 @@ class GenGraph:
                 file.write(newCode)
 
         else:
-            log.warning(f"No declarations found for {sub.result}")
+            log.warning(f"No declarations found for {result}")
 
     def to_graphviz(self, output_file: str):
         dot = gv.Digraph(format='dot')
@@ -685,7 +709,7 @@ def run(ctx: click.Context, config: str, **kwargs):
     conf: TuOptions = cast(TuOptions,
                            conf_provider.merge_cli_model(ctx, config_base, TuOptions))
 
-    paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes) # [:10]
+    paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes)[:10]
     wraps: List[TuWrap] = []
 
     with GlobCompleteEvent("Load compilation database", "config"):
@@ -709,8 +733,6 @@ def run(ctx: click.Context, config: str, **kwargs):
 
                         if not relative.parent.exists():
                             relative.parent.mkdir(parents=True)
-                            
-
 
                         with open(str(relative.with_suffix(".json")), "w") as file:
                             file.write(open_proto_file(str(tu.pb_path)).to_json(2))

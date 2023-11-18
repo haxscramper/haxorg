@@ -173,8 +173,8 @@ class ASTBuilder(base.AstbuilderBase):
     def Function(self, func: FunctionParams) -> BlockId:
         head = self.b.line([
             self.string(str(func.Kind.name).lower() + " "),
-            self.string(func.Name)
-            if all([c.isalnum() for c in func.Name]) else self.string(f"`{func.Name}`"),
+            self.string(func.Name) if all([(c.isalnum() or c == "_") for c in func.Name])
+            else self.string(f"`{func.Name}`"),
             self.string("*" if func.Exported else "")
         ])
 
