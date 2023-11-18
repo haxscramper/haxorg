@@ -29,6 +29,17 @@ class AstbuilderBase:
     def pars(self, arg: BlockId, left: str = "(", right: str = ")") -> BlockId:
         return self.b.line([self.string(left), arg, self.string(right)])
 
+    def sep_stack(self, args: List[BlockId]) -> BlockId:
+        res: List[BlockId] = []
+        for idx, value in enumerate(args):
+            if idx != 0:
+                res.append(self.string(""))
+
+            res.append(value)
+
+        return self.b.stack(res)
+
+
     def csv(self,
             items: Union[List[str], List[BlockId]],
             isLine=True,

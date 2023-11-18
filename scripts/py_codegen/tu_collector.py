@@ -11,6 +11,7 @@ from copy import deepcopy
 import json
 import time
 import os
+import math
 from pathlib import Path
 import igraph as ig
 import graphviz as gv
@@ -158,6 +159,14 @@ class TuWrap:
     name: str
     tu: ConvTu
     original: Path
+
+
+@beartype
+@dataclass
+class ConvRes:
+    procs: List[nim.FunctionParams] = field(default_factory=list)
+    types: List[Union[nim.EnumParams, nim.ObjectParams,
+                      nim.TypedefParams]] = field(default_factory=list)
 
 
 @beartype
@@ -377,41 +386,130 @@ class GenGraph:
             else:
                 return result
 
-    def enum_to_nim(self, b: nim.ASTBuilder, enum: GenTuEnum) -> nim.EnumParams:
-        return nim.EnumParams(Name=enum.name.name,
-                              Fields=[
-                                  nim.EnumFieldParams(Name=f.name,
-                                                      Value=b.string(str(f.value)))
-                                  for f in enum.fields
-                              ])
+    def enum_to_nim(self, b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
+        result = ConvRes()
+        c_name = "c_" + enum.name.name
 
-    def struct_to_nim(self, b: nim.ASTBuilder, rec: GenTuStruct) -> nim.ObjectParams:
-        return nim.ObjectParams(Name=rec.name.name,
-                                Pragmas=[
-                                    nim.PragmaParams("importc"),
-                                    nim.PragmaParams("bycopy"),
-                                ],
-                                Fields=[
-                                    nim.IdentParams(Name=f.name,
-                                                    Exported=True,
-                                                    Type=self.type_to_nim(f.type))
-                                    for f in rec.fields
-                                ])
+        def c_enum_field(f: GenTuEnumField) -> nim.EnumFieldParams:
+            value: str = ""
 
-    def typedef_to_nim(self, b: nim.ASTBuilder,
-                       typdef: GenTuTypedef) -> nim.TypedefParams:
-        return nim.TypedefParams(Name=typdef.name.name,
-                                 Base=self.type_to_nim(typdef.base))
+            if f.value == 0:
+                value = "0 shl 0"
 
-    def function_to_nim(self, b: nim.ASTBuilder,
-                        func: GenTuFunction) -> nim.FunctionParams:
-        return nim.FunctionParams(Name=func.name,
-                                  ReturnTy=self.type_to_nim(func.result),
-                                  Arguments=[
-                                      nim.IdentParams(Arg.name,
-                                                      self.type_to_nim(Arg.type))
-                                      for Arg in func.arguments
-                                  ])
+            elif 0 < f.value and math.log2(f.value).is_integer():
+                value = f"1 shl {int(math.log2(f.value))}"
+
+            else:
+                value = str(f.value)
+
+            return nim.EnumFieldParams(Name="c_" + f.name, Value=b.string(value))
+
+        result.procs.append(
+            nim.FunctionParams(
+                Kind=nim.FunctionKind.CONVERTER,
+                Name="toCInt",
+                Arguments=[nim.IdentParams(Name="arg", Type=nim.Type(c_name))],
+                ReturnTy=nim.Type("cint"),
+                Implementation=b.string("cint(ord(arg))"),
+                OneLineImpl=True,
+            ))
+
+        result.procs.append(
+            nim.FunctionParams(
+                Kind=nim.FunctionKind.CONVERTER,
+                Name="toCInt",
+                Arguments=[
+                    nim.IdentParams(Name="args",
+                                    Type=nim.Type("set", Parameters=[nim.Type(enum.name.name)]))
+                ],
+                ReturnTy=nim.Type("cint"),
+                Implementation=b.b.stack([
+                    b.string("for value in items(args):"),
+                    b.b.indent(
+                        2,
+                        b.b.stack([
+                            b.string("case value:"),
+                            b.b.indent(
+                                2,
+                                b.b.stack([
+                                    b.string(f"of {f.name}: result = cint(result or {f.value})")
+                                    for f in enum.fields
+                                ])),
+                        ])),
+                ])))
+
+        for op in ["-", "+"]:
+            for arguments in [
+                [
+                    nim.IdentParams("arg", nim.Type(c_name)),
+                    nim.IdentParams("offset", nim.Type("int"))
+                ],
+                [
+                    nim.IdentParams("offset", nim.Type("int")),
+                    nim.IdentParams("arg", nim.Type(c_name))
+                ],
+            ]:
+
+                result.procs.append(
+                    nim.FunctionParams(
+                        Kind=nim.FunctionKind.FUNC,
+                        Name=op,
+                        Arguments=arguments,
+                        ReturnTy=nim.Type("cint"),
+                        Implementation=b.string(f"cast[{c_name}](ord(arg) {op} offset)"),
+                        OneLineImpl=True,
+                    ))
+
+        result.types.append(
+            nim.EnumParams(Name=c_name,
+                           Pragmas=[
+                               nim.PragmaParams(Name="size",
+                                                Arguments=[
+                                                    b.string("sizeof(cint)"),
+                                                ])
+                           ],
+                           Fields=[c_enum_field(f) for f in enum.fields]))
+
+        result.types.append(
+            nim.EnumParams(Name=enum.name.name,
+                           Fields=[nim.EnumFieldParams(Name=f.name) for f in enum.fields
+                                  ]))
+
+        return result
+
+    def struct_to_nim(self, b: nim.ASTBuilder, rec: GenTuStruct) -> ConvRes:
+        return ConvRes(types=[
+            nim.ObjectParams(Name=rec.name.name,
+                             Pragmas=[
+                                 nim.PragmaParams("importc"),
+                                 nim.PragmaParams("bycopy"),
+                             ],
+                             Fields=[
+                                 nim.IdentParams(Name=f.name,
+                                                 Exported=True,
+                                                 Type=self.type_to_nim(f.type))
+                                 for f in rec.fields
+                             ])
+        ])
+
+    def typedef_to_nim(self, b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
+        return ConvRes(types=[
+            nim.TypedefParams(Name=typdef.name.name, Base=self.type_to_nim(typdef.base))
+        ])
+
+    def function_to_nim(self, b: nim.ASTBuilder, func: GenTuFunction) -> ConvRes:
+        return ConvRes(procs=[
+            nim.FunctionParams(Name=func.name,
+                               ReturnTy=self.type_to_nim(func.result),
+                               Pragmas=[
+                                   nim.PragmaParams("git2Proc"),
+                                   nim.PragmaParams("importc"),
+                               ],
+                               Arguments=[
+                                   nim.IdentParams(Arg.name, self.type_to_nim(Arg.type))
+                                   for Arg in func.arguments
+                               ])
+        ])
 
     def to_nim(self, sub: Sub):
         t = TextLayout()
@@ -423,20 +521,34 @@ class GenGraph:
 
         for _id in sub.nodes:
             decl = self.id_to_entry[_id]
+            conv: ConvRes = ConvRes()
             if isinstance(decl, GenTuEnum):
-                types.append(builder.Enum(self.enum_to_nim(builder, decl)))
+                conv = self.enum_to_nim(builder, decl)
 
             elif isinstance(decl, GenTuStruct):
-                types.append(builder.Object(self.struct_to_nim(builder, decl)))
+                conv = self.struct_to_nim(builder, decl)
 
             elif isinstance(decl, GenTuTypedef):
-                types.append(builder.Typedef(self.typedef_to_nim(builder, decl)))
+                conv = self.typedef_to_nim(builder, decl)
 
             elif isinstance(decl, GenTuFunction):
-                procs.append(builder.Function(self.function_to_nim(builder, decl)))
+                conv = self.function_to_nim(builder, decl)
 
             else:
                 assert False
+
+            for proc in conv.procs:
+                procs.append(builder.Function(proc))
+
+            for _type in conv.types:
+                if isinstance(_type, nim.EnumParams):
+                    types.append(builder.Enum(_type))
+
+                elif isinstance(_type, nim.ObjectParams):
+                    types.append(builder.Object(_type))
+
+                elif isinstance(_type, nim.TypedefParams):
+                    types.append(builder.Typedef(_type))
 
         if 0 < len(types) or 0 < len(procs):
             log.info(f"Writing to {result}")
@@ -445,8 +557,8 @@ class GenGraph:
                 opts.rightMargin = 160
                 if 0 < len(types):
                     newCode = t.toString(
-                        t.stack([
-                            t.stack([
+                        builder.sep_stack([
+                            builder.sep_stack([
                                 t.text("type"),
                                 t.indent(2, t.stack(types)),
                             ]),
@@ -454,7 +566,7 @@ class GenGraph:
                         ] + procs), opts)
 
                 else:
-                    newCode = t.toString(t.stack(procs), opts)
+                    newCode = t.toString(builder.sep_stack(procs), opts)
 
                 file.write(newCode)
 

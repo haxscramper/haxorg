@@ -294,6 +294,7 @@ void ReflASTVisitor::fillType(
                 fillType(Out->add_parameters(), param, Loc);
             }
 
+
         } else if (In->isConstantArrayType()) {
             Out->mutable_dbgorigin()->append(" >constarray");
             clang::ArrayType const* ARRT = dyn_cast<clang::ArrayType>(
@@ -310,6 +311,12 @@ void ReflASTVisitor::fillType(
                     Out->add_parameters()->mutable_typevalue(), size, Loc);
             }
 
+        } else if (In->isArrayType()) {
+            Out->mutable_dbgorigin()->append(" >array");
+            clang::ArrayType const* ARRT = dyn_cast<clang::ArrayType>(
+                In.getTypePtr());
+            Out->set_kind(TypeKind::Array);
+            fillType(Out->add_parameters(), ARRT->getElementType(), Loc);
 
         } else {
             Diag(

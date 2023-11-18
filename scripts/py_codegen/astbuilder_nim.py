@@ -66,7 +66,7 @@ class TypedefParams:
 @dataclass
 class EnumFieldParams:
     Name: str
-    Value: BlockId
+    Value: Optional[BlockId] = None
 
 
 @beartype
@@ -74,6 +74,16 @@ class EnumFieldParams:
 class EnumParams:
     Name: str
     Fields: List[EnumFieldParams]
+    Pragmas: List[PragmaParams] = field(default_factory=list)
+
+
+class FunctionKind(Enum):
+    PROC = 0
+    FUNC = 1
+    CONVERTER = 2
+    MACRO = 3
+    TEMPLATE = 4
+    METHOD = 5
 
 
 @beartype
@@ -83,6 +93,10 @@ class FunctionParams:
     Exported: bool = True
     ReturnTy: Type = field(default_factory=lambda: Type("void"))
     Arguments: List[IdentParams] = field(default_factory=list)
+    Pragmas: List[PragmaParams] = field(default_factory=list)
+    Implementation: Optional[BlockId] = None
+    Kind: FunctionKind = FunctionKind.PROC
+    OneLineImpl: bool = False
 
 
 @beartype
@@ -135,13 +149,13 @@ class ASTBuilder(base.AstbuilderBase):
     def EnumField(self, f: EnumFieldParams, padTo: int = 0) -> BlockId:
         return self.b.line([
             self.string(f.Name.ljust(padTo)),
-            self.string(" = "),
-            f.Value,
+            *([] if f.Value is None else [self.string(" = "), f.Value]),
         ])
 
     def Enum(self, enum: EnumParams) -> BlockId:
         head = self.b.line([
             self.string(enum.Name),
+            self.Pragmas(enum.Pragmas),
             self.string(" = "),
             self.string("enum"),
         ])
@@ -158,20 +172,36 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Function(self, func: FunctionParams) -> BlockId:
         head = self.b.line([
-            self.string("proc "),
-            self.string(func.Name),
+            self.string(str(func.Kind.name).lower() + " "),
+            self.string(func.Name)
+            if all([c.isalnum() for c in func.Name]) else self.string(f"`{func.Name}`"),
             self.string("*" if func.Exported else "")
         ])
 
         tail = self.b.line([
             self.string(": "),
             self.Type(func.ReturnTy),
+            self.Pragmas(func.Pragmas),
         ])
 
-        return self.b.line([
+        result = self.b.line([
             head,
-            self.pars(self.csv([self.Field(Arg) for Arg in func.Arguments])), tail
+            self.pars(self.csv([self.Field(Arg) for Arg in func.Arguments])),
+            tail,
         ])
+
+        if func.Implementation is None:
+            return result
+
+        else:
+            if func.OneLineImpl:
+                return self.b.line([result, self.string(" = "), func.Implementation])
+
+            else:
+                return self.b.stack([
+                    self.b.line([result, self.string(" = ")]),
+                    self.b.indent(2, func.Implementation),
+                ])
 
     def Field(self, f: IdentParams, padTo: int = 0) -> BlockId:
         return self.b.line([
@@ -182,7 +212,12 @@ class ASTBuilder(base.AstbuilderBase):
         ])
 
     def Pragma(self, p: PragmaParams) -> BlockId:
-        return self.b.line([self.string(p.Name)])
+        return self.b.line([
+            self.string(p.Name), *([] if len(p.Arguments) == 0 else [
+                self.string(": "),
+                *p.Arguments,
+            ])
+        ])
 
     def Pragmas(self, pragmas: List[PragmaParams]) -> BlockId:
         return self.b.line([
