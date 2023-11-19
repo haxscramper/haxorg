@@ -494,25 +494,32 @@ class GenConverter:
     def convert(self, entry: GenTuEntry) -> List[BlockId]:
         decls: List[BlockId] = []
 
-        if isinstance(entry, GenTuInclude):
-            decls.append(self.ast.Include(entry.what, entry.isSystem))
-        elif isinstance(entry, GenTuEnum):
-            decls.append(self.convertEnum(entry))
-        elif isinstance(entry, GenTuFunction):
-            decls.append(self.convertFunctionBlock(self.convertFunction(entry)))
-        elif isinstance(entry, GenTuStruct):
-            decls.append(self.convertStruct(entry))
-        elif isinstance(entry, GenTuTypeGroup):
-            decls.extend(self.convertTypeGroup(entry))
-        elif isinstance(entry, GenTuPass):
-            if isinstance(entry.what, str):
-                decls.append(self.ast.string(entry.what))
-            else:
-                decls.append(entry.what)
+        match entry:
+            case GenTuInclude():
+                decls.append(self.ast.Include(entry.what, entry.isSystem))
 
-        elif isinstance(entry, GenTuNamespace):
-            decls.append(self.convertNamespace(entry))
-        else:
-            raise ValueError("Unexpected kind '%s'" % type(entry))
+            case GenTuEnum():
+                decls.append(self.convertEnum(entry))
+
+            case GenTuFunction():
+                decls.append(self.convertFunctionBlock(self.convertFunction(entry)))
+
+            case GenTuStruct():
+                decls.append(self.convertStruct(entry))
+
+            case GenTuTypeGroup():
+                decls.extend(self.convertTypeGroup(entry))
+
+            case GenTuPass():
+                if isinstance(entry.what, str):
+                    decls.append(self.ast.string(entry.what))
+                else:
+                    decls.append(entry.what)
+
+            case GenTuNamespace():
+                decls.append(self.convertNamespace(entry))
+
+            case _:
+                raise ValueError("Unexpected kind '%s'" % type(entry))
 
         return decls

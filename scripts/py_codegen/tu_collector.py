@@ -21,6 +21,8 @@ from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
 import astbuilder_nim as nim
 from py_textlayout.py_textlayout import TextLayout, TextOptions
 import deal
+import shutil
+
 
 from py_scriptutils.script_logging import log
 import py_scriptutils.toml_config_profiler as conf_provider
@@ -57,6 +59,12 @@ class TuOptions(BaseModel):
                                  default="/tmp/tu_collector_trace.json")
 
     output_directory: str = Field(description="Directory to write output wrapped files")
+
+    convert_failure_log_dir: str = Field(
+        default="/tmp/tu_collector/converter_fails",
+        description=
+        "Directory to dump debug information about failed translation unit converter runs"
+    )
 
 
 @beartype
@@ -835,6 +843,12 @@ def run(ctx: click.Context, config: str, **kwargs):
     paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes)  # [:10]
     wraps: List[TuWrap] = []
 
+    debug_dir = Path(conf.convert_failure_log_dir)
+    if debug_dir.exists():
+        shutil.rmtree(str(debug_dir))
+
+    debug_dir.mkdir(parents=True)
+
     with GlobCompleteEvent("Load compilation database", "config"):
         commands: List[CompileCommand] = [
             CompileCommand.model_validate(d)
@@ -864,6 +878,17 @@ def run(ctx: click.Context, config: str, **kwargs):
                                    tu=tu.conv_tu,
                                    original=path,
                                    mapping=relative.with_suffix(".nim")))
+
+                    else:
+                        sanitized = "".join([c if c.isalnum() else "_" for c in str(path)])
+                        log.warning(f"Failed to run conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}")
+
+                        with open(debug_dir.joinpath(sanitized), "w") as file:
+                            file.write("\nFailure stdout:\n")
+                            file.write(tu.res_stdout)
+                            file.write("\nFailure stderr:\n")
+                            file.write(tu.res_stderr)
+
 
             else:
                 log.warning(f"No compile commands for {path}")

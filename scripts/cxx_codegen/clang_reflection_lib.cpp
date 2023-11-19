@@ -584,7 +584,7 @@ bool ReflASTVisitor::VisitEnumDecl(
                                   : "")
                            + (Typedef ? "name:" + Decl->getNameAsString()
                                       : "")
-                           + Typedef->getLocation().printToString(
+                           + Decl->getLocation().printToString(
                                Ctx->getSourceManager());
 
         auto name   = rec->mutable_name();
