@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from pprint import pprint, pformat
 from plumbum import local
 from hashlib import md5
-from gen_tu_cpp import GenTuStruct, GenTuFunction, GenTuEnum, QualType, GenTuTypedef, GenTuEnumField
+from gen_tu_cpp import (GenTuStruct, GenTuFunction, GenTuEnum, QualType, GenTuTypedef, GenTuEnumField, QualTypeKind)
 from dataclasses import dataclass, field
 from copy import deepcopy
 import json
@@ -164,23 +164,25 @@ def run_collector(conf: TuOptions, input: Path,
         return CollectorRunResult(tu, tmp_output)
 
 
+@beartype
 def hash_qual_type(t: QualType) -> int:
     # Generate a hashed value for qualified type, ignoring constant qualifiers,
     # pointers and other elements. This function is primarily used to map
     # declared entries to some simpler value for ID.
-    parts: List[str] = []
-    if t.func:
-        parts.append(hash_qual_type(t.func.ReturnTy))
-        for T in t.func.Args:
-            parts.append(hash_qual_type(T))
+    parts: List[str] = [hash(t.Kind)]
+    match t.Kind:
+        case QualTypeKind.FunctionPtr:
+            parts.append(hash_qual_type(t.func.ReturnTy))
+            for T in t.func.Args:
+                parts.append(hash_qual_type(T))
 
-    elif t.isArray:
-        parts.append(hash("<c-array>"))
+        case QualTypeKind.Array:
+            pass
 
-    else:
-        parts.append(hash(t.name))
-        for param in t.Parameters:
-            parts.append(hash_qual_type(param))
+        case QualTypeKind.RegularType:
+            parts.append(hash(t.name))
+            for param in t.Parameters:
+                parts.append(hash_qual_type(param))
 
     assert parts != [0], pformat(t)
 
@@ -351,7 +353,7 @@ class GenGraph:
                     pass
 
                 elif not olddef.IsForwardDecl and not entry.IsForwardDecl:
-                    log.error(f"Two full definitions of the same entry {entry.format()} in the code")
+                    log.error(f"Two full definitions of the same entry {entry.format()} == {olddef.format()} in the code")
 
             else:
                 # Multiple declarations of the same functions across different modules, TODO is this an error
@@ -431,7 +433,7 @@ class GenGraph:
                             Parameters=[
                                 self.type_to_nim(t.func.ReturnTy),
                             ] + [self.type_to_nim(arg) for arg in t.func.Args])
-        elif t.name == "char" and t.isConst and t.isPtr:
+        elif t.name == "char" and t.isConst and t.ptrCount == 1:
             return nim.Type("cstring")
 
         else:
@@ -500,11 +502,10 @@ class GenGraph:
 
             result = nim.Type(Name=t_map)
 
-            if t.isPtr:
-                return nim.Type(Name="ptr", Parameters=[result])
+            for i in range(t.ptrCount):
+                result = nim.Type(Name="ptr", Parameters=[result])
 
-            else:
-                return result
+            return result
 
     def enum_to_nim(self, b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
         result = ConvRes()

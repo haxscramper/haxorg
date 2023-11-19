@@ -6,6 +6,7 @@ import inspect
 import os
 import astbuilder_base as base
 from typing import TYPE_CHECKING
+from pydantic import BaseModel, Field
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
@@ -35,25 +36,39 @@ for name in logging.root.manager.loggerDict:
 log = logging.getLogger("rich")
 log.setLevel(logging.DEBUG)
 
+class QualTypeKind(Enum):
+    RegularType = 0
+    FunctionPtr = 1
+    MethodPtr = 2
+    Array = 3
+    TypeExpr = 4
+
+class ReferenceKind(Enum):
+    NotRef = 0
+    LValue = 1
+    RValue = 2
 
 @beartype
-@dataclass
-class QualType:
+class QualType(BaseModel):
     name: str = ""
-    Parameters: List['QualType'] = field(default_factory=list)
-    Spaces: List['QualType'] = field(default_factory=list)
+    Parameters: List['QualType'] = Field(default_factory=list)
+    Spaces: List['QualType'] = Field(default_factory=list)
     isNamespace: bool = False
     verticalParamList: bool = False
 
     isConst: bool = False
-    isPtr: bool = False
-    isRef: bool = False
-    isArray: bool = False
+    ptrCount: int = 0
+    RefKind: ReferenceKind = ReferenceKind.NotRef
     dbg_origin: str = ""
 
+    expr: Optional[str] = ""
+    Kind: QualTypeKind = QualTypeKind.RegularType
+
+    def isArray(self) -> bool:
+        return self.Kind == QualTypeKind.Array
+
     @beartype
-    @dataclass
-    class Function:
+    class Function(BaseModel):
         ReturnTy: 'QualType'
         Args: List['QualType']
         Ident: str = ""
@@ -61,28 +76,45 @@ class QualType:
         IsConst: bool = False
 
     func: Optional[Function] = None
-    expr: Optional[str] = ""
 
     def __hash__(self) -> int:
-
-        return hash((self.name, self.isConst, self.isPtr, self.isRef, self.isNamespace,
+        return hash((self.name, self.isConst, self.ptrCount, self.RefKind, self.isNamespace,
                      tuple([hash(T) for T in self.Spaces]),
                      tuple([hash(T) for T in self.Parameters])))
 
     def format(self) -> str:
-        if self.func:
-            return "%s(%s)" % (self.func.ReturnTy.format(), ", ".join(
-                [T.format() for T in self.func.Args]))
+        cvref = "{const}{ptr}{ref}".format(
+            const=" const" if self.isConst else "",
+            ptr=("*" * self.ptrCount),
+            ref={
+                ReferenceKind.LValue: "&",
+                ReferenceKind.RValue: "&&",
+                ReferenceKind.NotRef: ""
+            }[self.RefKind],
+        )
 
-        else:
-            return "{name}{args}{const}{ptr}{ref}".format(
-                name=self.name,
-                args=("<" + ", ".join([T.format() for T in self.Parameters]) +
-                      ">") if self.Parameters else "",
-                const=" const" if self.isConst else "",
-                ptr="*" if self.isPtr else "",
-                ref="&" if self.isRef else "",
-            )
+        match self.Kind:
+            case QualTypeKind.FunctionPtr:
+                return "%s(%s)" % (self.func.ReturnTy.format(), ", ".join(
+                    [T.format() for T in self.func.Args]))
+
+            case QualTypeKind.Array:
+                return "{first}[{expr}]{cvref}".format(
+                    first=self.Parameters[0].format(),
+                    expr=self.Parameters[1].format() if 1 < len(self.Parameters) else "",
+                    cvref=cvref,
+                )
+
+            case QualTypeKind.RegularType:
+                return "{name}{args}{cvref}".format(
+                    name=self.name,
+                    args=("<" + ", ".join([T.format() for T in self.Parameters]) +
+                        ">") if self.Parameters else "",
+                    cvref=cvref
+                )
+
+            case _:
+                assert False, self.Kind
 
     def asNamespace(self, is_namespace=True):
         self.isNamespace = is_namespace

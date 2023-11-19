@@ -54,6 +54,9 @@ class GenTuEnum:
     refl: bool = False
     IsForwardDecl: bool = False
 
+    def format(self) -> str:
+        return "enum " + self.name.format()
+
 
 @beartype
 @dataclass
@@ -70,7 +73,7 @@ class GenTuFunction:
     isPureVirtual: bool = False
 
     def format(self) -> str:
-        return "%s %s(%s)" % (self.result.format(), self.name, ", ".join(
+        return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(
             [Arg.name + " " + Arg.type.format() for Arg in self.arguments]))
 
 
@@ -122,7 +125,7 @@ class GenTuStruct:
     IsForwardDecl: bool = False
 
     def format(self) -> str:
-        return self.name.format()
+        return "record " + self.name.format()
 
 
 @beartype

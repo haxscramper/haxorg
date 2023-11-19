@@ -60,7 +60,7 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
 
 @beartype
 def conv_proto_type(typ: pb.QualType) -> QualType:
-    res: QualType = QualType(typ.name)
+    res: QualType = QualType(name=typ.name)
     res.dbg_origin = typ.dbg_origin
 
     for space in typ.spaces:
@@ -74,19 +74,25 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
             assert res.name != "", typ
 
         case pb.TypeKind.FunctionPtr:
+            res.Kind = QualTypeKind.FunctionPtr
             res.func = QualType.Function(
                 ReturnTy=conv_proto_type(typ.parameters[0]),
                 Args=[conv_proto_type(Arg) for Arg in typ.parameters[1:]]
                 if 1 < len(typ.parameters) else [])
 
         case pb.TypeKind.Array:
-            res.isArray = True
+            res.Kind = QualTypeKind.Array
             res.Parameters = [conv_proto_type(t) for t in typ.parameters]
 
     res.isConst = typ.is_const
     res.isNamespace = typ.is_namespace
-    res.isRef = typ.ref_kind != pb.ReferenceKind.NotRef
-    res.isPtr = typ.is_pointer
+    res.RefKind = {
+        pb.ReferenceKind.NotRef: ReferenceKind.NotRef,
+        pb.ReferenceKind.LValue: ReferenceKind.LValue,
+        pb.ReferenceKind.RValue: ReferenceKind.RValue,
+    }[typ.ref_kind]
+
+    res.ptrCount = 1 if typ.is_pointer else 0
 
     return res
 
