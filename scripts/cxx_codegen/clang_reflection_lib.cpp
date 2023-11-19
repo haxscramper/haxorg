@@ -246,6 +246,8 @@ void ReflASTVisitor::fillType(
             Out->mutable_dbgorigin()->append(" T-pointer");
         }
 
+        Out->set_isbuiltin(In->isBuiltinType());
+
         if (In->isReferenceType() || In->isPointerType()) {
             Out->mutable_dbgorigin()->append(" >ref/ptr");
             fillType(Out, In->getPointeeType(), Loc);

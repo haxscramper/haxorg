@@ -108,8 +108,11 @@ class TranslationUnitInfo(BaseModel):
 @beartype
 @dataclass
 class CollectorRunResult:
-    conv_tu: ConvTu
-    pb_path: Path
+    conv_tu: Optional[ConvTu]
+    pb_path: Optional[Path]
+    success: bool
+    res_stdout: str
+    res_stderr: str
 
 
 @beartype
@@ -158,30 +161,23 @@ def run_collector(conf: TuOptions, input: Path,
                                             tool.run(flags, retcode=None))
 
     if res_code != 0:
-        if res_stdout:
-            print(res_stdout)
-
-        if res_stderr:
-            print(res_stderr)
-
-        print(" \\ \n".join([conf.indexing_tool] + ["    " + f for f in flags]))
-        # TODO Store failed logs in the result instead of immediately printing
-        # them to the output.
+        return CollectorRunResult(None,
+                                  None,
+                                  success=False,
+                                  res_stdout=res_stdout,
+                                  res_stderr=res_stderr)
 
     else:
-        if res_stdout:
-            print(res_stdout)
-
-        if res_stderr:
-            print(res_stderr)
-
         tu = conv_proto_file(str(tmp_output))
-
         refl[str(input)] = time.time()
         with open(conf.reflect_cache, "w") as file:
             file.write(json.dumps(refl, indent=2))
 
-        return CollectorRunResult(tu, tmp_output)
+        return CollectorRunResult(tu,
+                                  tmp_output,
+                                  success=True,
+                                  res_stdout=res_stdout,
+                                  res_stderr=res_stderr)
 
 
 @beartype
@@ -271,6 +267,10 @@ class GenGraph:
 
     def get_declared_sub(self, typ: QualType) -> Optional[Sub]:
         _id = self.id_from_hash(hash_qual_type(typ))
+        if not (typ.isPrimitive() or typ.isArray() or
+                typ.isFunction()) and _id not in self.id_to_entry:
+            log.warning(f"No known declaration of the [red]{typ.format()}[/red]")
+
         return self.get_sub(_id)
 
     def gen_import(self, result: Path, sub: Sub) -> Optional[str]:
@@ -288,25 +288,26 @@ class GenGraph:
         return self.id_map[hashed]
 
     def id_from_entry(self, entry: GenTuUnion, parent: Optional[QualType] = None) -> int:
-        if isinstance(entry, GenTuStruct):
-            return self.id_from_hash(hash_qual_type(entry.name))
+        match entry:
+            case GenTuStruct():
+                return self.id_from_hash(hash_qual_type(entry.name))
 
-        elif isinstance(entry, GenTuEnum):
-            return self.id_from_hash(hash_qual_type(entry.name))
+            case GenTuEnum():
+                return self.id_from_hash(hash_qual_type(entry.name))
 
-        elif isinstance(entry, GenTuTypedef):
-            return self.id_from_hash(hash_qual_type(entry.name))
+            case GenTuTypedef():
+                return self.id_from_hash(hash_qual_type(entry.name))
 
-        elif isinstance(entry, GenTuFunction):
-            return self.id_from_hash(
-                hash(
-                    tuple([
-                        hash_qual_type(entry.result),
-                        hash(entry.name),
-                    ] + [hash_qual_type(t.type) for t in entry.arguments])))
+            case GenTuFunction():
+                return self.id_from_hash(
+                    hash(
+                        tuple([
+                            hash_qual_type(entry.result),
+                            hash(entry.name),
+                        ] + [hash_qual_type(t.type) for t in entry.arguments])))
 
-        else:
-            assert False
+            case _:
+                assert False
 
     def use_type(self, _id: int, Type: QualType, dbg_from: str = ""):
         _type = self.id_from_hash(hash_qual_type(Type))
@@ -323,22 +324,23 @@ class GenGraph:
     @deal.post(lambda result: not any([it is None for it in result]))
     def get_used_type(self, decl: GenTuUnion) -> List[QualType]:
         result: List[QualType] = []
-        if isinstance(decl, GenTuStruct):
-            for _field in decl.fields:
-                assert _field.type, _field
-                result.append(_field.type)
+        match decl:
+            case GenTuStruct():
+                for _field in decl.fields:
+                    assert _field.type, _field
+                    result.append(_field.type)
 
-        elif isinstance(decl, GenTuFunction):
-            for arg in decl.arguments:
-                assert arg.type, arg
-                result.append(arg.type)
+            case GenTuFunction():
+                for arg in decl.arguments:
+                    assert arg.type, arg
+                    result.append(arg.type)
 
-            assert decl.result, decl
-            result.append(decl.result)
+                assert decl.result, decl
+                result.append(decl.result)
 
-        elif isinstance(decl, GenTuTypedef):
-            assert decl.base, decl
-            result.append(decl.base)
+            case GenTuTypedef():
+                assert decl.base, decl
+                result.append(decl.base)
 
         return result
 
@@ -662,7 +664,8 @@ class GenGraph:
         for _id in sub.nodes:
             decl = self.id_to_entry[_id]
             match decl:
-                case GenTuEnum(name=name) | GenTuStruct(name=name) | GenTuTypedef(name=name):
+                case GenTuEnum(name=name) | GenTuStruct(name=name) | GenTuTypedef(
+                    name=name):
                     result.Defines.append(name)
 
         return result
@@ -733,11 +736,9 @@ class GenGraph:
                     ] + procs), opts)
 
             else:
-                newCode = t.toString(t.stack(header + [builder.sep_stack(procs)]),
-                                        opts)
+                newCode = t.toString(t.stack(header + [builder.sep_stack(procs)]), opts)
 
             return newCode
-
 
     def to_graphviz(self, output_file: str):
         dot = gv.Digraph(format='dot')
@@ -831,7 +832,7 @@ def run(ctx: click.Context, config: str, **kwargs):
     conf: TuOptions = cast(TuOptions,
                            conf_provider.merge_cli_model(ctx, config_base, TuOptions))
 
-    paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes)[:10]
+    paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes)  # [:10]
     wraps: List[TuWrap] = []
 
     with GlobCompleteEvent("Load compilation database", "config"):
@@ -846,9 +847,9 @@ def run(ctx: click.Context, config: str, **kwargs):
             path = mapping.path
             if any([cmd.file == str(path) for cmd in commands]):
                 with GlobCompleteEvent("Run collector", "read", {"path": str(path)}):
-                    tu: Optional[CollectorRunResult] = run_collector(
-                        conf, path, path.with_suffix(".py"))
-                    if tu is not None:
+                    tu: CollectorRunResult = run_collector(conf, path,
+                                                           path.with_suffix(".py"))
+                    if tu.success:
                         relative = Path(conf.output_directory).joinpath(
                             path.relative_to(mapping.root))
 
@@ -894,7 +895,6 @@ def run(ctx: click.Context, config: str, **kwargs):
             info = graph.to_decl_info(sub)
             result = graph.get_out_path(sub.original)
             result = result.with_stem(result.stem + "-tu").with_suffix(".json")
-            log.info(f"Writing extra translation unit information to {result}")
             with open(str(result), "w") as file:
                 file.write(json.dumps(info.model_dump(), indent=2))
 

@@ -36,6 +36,7 @@ for name in logging.root.manager.loggerDict:
 log = logging.getLogger("rich")
 log.setLevel(logging.DEBUG)
 
+
 class QualTypeKind(str, Enum):
     RegularType = "RegularType"
     FunctionPtr = "FunctionPtr"
@@ -43,10 +44,12 @@ class QualTypeKind(str, Enum):
     Array = "Array"
     TypeExpr = "TypeExpr"
 
+
 class ReferenceKind(str, Enum):
     NotRef = "NotRef"
     LValue = "LValue"
     RValue = "RValue"
+
 
 @beartype
 class QualType(BaseModel):
@@ -60,12 +63,26 @@ class QualType(BaseModel):
     RefKind: ReferenceKind = ReferenceKind.NotRef
     dbg_origin: str = Field(default="", exclude=True)
     verticalParamList: bool = Field(default=False, exclude=True)
+    isBuiltin: bool = Field(default=False)
 
     expr: Optional[str] = None
     Kind: QualTypeKind = QualTypeKind.RegularType
 
     def isArray(self) -> bool:
         return self.Kind == QualTypeKind.Array
+
+    def isFunction(self) -> bool:
+        return self.Kind == QualTypeKind.FunctionPtr
+
+    def isPrimitive(self) -> bool:
+        return self.isBuiltin or self.name in [
+            "size_t",
+            "uint32_t",
+            "uint16_t",
+            "int32_t",
+            "int64_t",
+            "uint64_t",
+        ]
 
     @beartype
     class Function(BaseModel):
@@ -78,9 +95,10 @@ class QualType(BaseModel):
     func: Optional[Function] = None
 
     def __hash__(self) -> int:
-        return hash((self.name, self.isConst, self.ptrCount, self.RefKind, self.isNamespace,
-                     tuple([hash(T) for T in self.Spaces]),
-                     tuple([hash(T) for T in self.Parameters])))
+        return hash(
+            (self.name, self.isConst, self.ptrCount, self.RefKind, self.isNamespace,
+             tuple([hash(T) for T in self.Spaces]),
+             tuple([hash(T) for T in self.Parameters])))
 
     def format(self) -> str:
         cvref = "{const}{ptr}{ref}".format(
@@ -109,9 +127,8 @@ class QualType(BaseModel):
                 return "{name}{args}{cvref}".format(
                     name=self.name,
                     args=("<" + ", ".join([T.format() for T in self.Parameters]) +
-                        ">") if self.Parameters else "",
-                    cvref=cvref
-                )
+                          ">") if self.Parameters else "",
+                    cvref=cvref)
 
             case _:
                 assert False, self.Kind

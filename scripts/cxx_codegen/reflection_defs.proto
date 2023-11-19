@@ -64,6 +64,7 @@ message QualType {
     bool IsNamespace = 9;
     string DbgOrigin = 10;
     TypeTag Tag = 11;
+    bool IsBuiltin = 12;
 }
 
 // Enumeration definition

@@ -68,6 +68,7 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
 
     match typ.kind:
         case pb.TypeKind.RegularType:
+            res.isBuiltin = typ.is_builtin
             for param in typ.parameters:
                 res.Parameters.append(conv_proto_type(param))
 
