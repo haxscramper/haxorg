@@ -36,17 +36,17 @@ for name in logging.root.manager.loggerDict:
 log = logging.getLogger("rich")
 log.setLevel(logging.DEBUG)
 
-class QualTypeKind(Enum):
-    RegularType = 0
-    FunctionPtr = 1
-    MethodPtr = 2
-    Array = 3
-    TypeExpr = 4
+class QualTypeKind(str, Enum):
+    RegularType = "RegularType"
+    FunctionPtr = "FunctionPtr"
+    MethodPtr = "MethodPtr"
+    Array = "Array"
+    TypeExpr = "TypeExpr"
 
-class ReferenceKind(Enum):
-    NotRef = 0
-    LValue = 1
-    RValue = 2
+class ReferenceKind(str, Enum):
+    NotRef = "NotRef"
+    LValue = "LValue"
+    RValue = "RValue"
 
 @beartype
 class QualType(BaseModel):
@@ -54,14 +54,14 @@ class QualType(BaseModel):
     Parameters: List['QualType'] = Field(default_factory=list)
     Spaces: List['QualType'] = Field(default_factory=list)
     isNamespace: bool = False
-    verticalParamList: bool = False
 
     isConst: bool = False
     ptrCount: int = 0
     RefKind: ReferenceKind = ReferenceKind.NotRef
-    dbg_origin: str = ""
+    dbg_origin: str = Field(default="", exclude=True)
+    verticalParamList: bool = Field(default=False, exclude=True)
 
-    expr: Optional[str] = ""
+    expr: Optional[str] = None
     Kind: QualTypeKind = QualTypeKind.RegularType
 
     def isArray(self) -> bool:

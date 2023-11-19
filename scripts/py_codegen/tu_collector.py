@@ -6,7 +6,8 @@ from pydantic import BaseModel, Field
 from pprint import pprint, pformat
 from plumbum import local
 from hashlib import md5
-from gen_tu_cpp import (GenTuStruct, GenTuFunction, GenTuEnum, QualType, GenTuTypedef, GenTuEnumField, QualTypeKind)
+from gen_tu_cpp import (GenTuStruct, GenTuFunction, GenTuEnum, QualType, GenTuTypedef,
+                        GenTuEnumField, QualTypeKind)
 from dataclasses import dataclass, field
 from copy import deepcopy
 import json
@@ -83,6 +84,25 @@ def expand_input(input: List[str], path_suffixes: List[str]) -> List[PathMapping
                 result.append(PathMapping(sub))
 
     return result
+
+
+@beartype
+class TranslationUnitLocations(BaseModel):
+    # Information about external dependencies of a translation unit -- `Name` of the dependency
+    # library/package and the relative path inside of this library.
+    Name: str = Field(description="Name of the translation unit group", default="")
+    Files: List[Path] = Field(
+        description="Paths relative to the root directory of this translation unit group")
+
+
+@beartype
+class TranslationUnitInfo(BaseModel):
+    Defines: List[QualType] = Field(
+        description="List of types defined in the translation module",
+        default_factory=list)
+    Depends: List[TranslationUnitLocations] = Field(
+        description="Dependencies on translation units from other external locations",
+        default_factory=list)
 
 
 @beartype
@@ -348,20 +368,21 @@ class GenGraph:
                     pass
 
                 elif olddef.IsForwardDecl and entry.IsForwardDecl:
-                    # Haven't found proper forward declaration yet, new ones still don't need to be added to 
+                    # Haven't found proper forward declaration yet, new ones still don't need to be added to
                     # more graphs
                     pass
 
                 elif not olddef.IsForwardDecl and not entry.IsForwardDecl:
-                    log.error(f"Two full definitions of the same entry {entry.format()} == {olddef.format()} in the code")
+                    log.error(
+                        f"Two full definitions of the same entry {entry.format()} == {olddef.format()} in the code"
+                    )
 
             else:
                 # Multiple declarations of the same functions across different modules, TODO is this an error
                 sub.nodes.add(_id)
 
-
         else:
-            # This ID has never been registered for the type graph and it should be added to the 
+            # This ID has never been registered for the type graph and it should be added to the
             # translation unit subgraph unconditionally
             self.id_to_entry[_id] = deepcopy(entry)
             sub.nodes.add(_id)
@@ -635,10 +656,20 @@ class GenGraph:
                                ])
         ])
 
-    def to_nim(self, sub: Sub):
+    def to_decl_info(self, sub: Sub) -> TranslationUnitInfo:
+        result = TranslationUnitInfo()
+
+        for _id in sub.nodes:
+            decl = self.id_to_entry[_id]
+            match decl:
+                case GenTuEnum(name=name) | GenTuStruct(name=name) | GenTuTypedef(name=name):
+                    result.Defines.append(name)
+
+        return result
+
+    def to_nim(self, sub: Sub) -> Optional[str]:
         t = TextLayout()
         builder = nim.ASTBuilder(t)
-        result = self.get_out_path(sub.original)
 
         types: List[BlockId] = []
         procs: List[BlockId] = []
@@ -655,20 +686,21 @@ class GenGraph:
                     if imp is not None:
                         depend_on.add(imp)
 
-            if isinstance(decl, GenTuEnum):
-                conv = self.enum_to_nim(builder, decl)
+            match decl:
+                case GenTuEnum():
+                    conv = self.enum_to_nim(builder, decl)
 
-            elif isinstance(decl, GenTuStruct):
-                conv = self.struct_to_nim(builder, decl)
+                case GenTuStruct():
+                    conv = self.struct_to_nim(builder, decl)
 
-            elif isinstance(decl, GenTuTypedef):
-                conv = self.typedef_to_nim(builder, decl)
+                case GenTuTypedef():
+                    conv = self.typedef_to_nim(builder, decl)
 
-            elif isinstance(decl, GenTuFunction):
-                conv = self.function_to_nim(builder, decl)
+                case GenTuFunction():
+                    conv = self.function_to_nim(builder, decl)
 
-            else:
-                assert False
+                case _:
+                    assert False
 
             for proc in conv.procs:
                 procs.append(builder.Function(proc))
@@ -687,29 +719,25 @@ class GenGraph:
             header.append(builder.string(f"import \"{item}\""))
 
         if 0 < len(types) or 0 < len(procs):
-            log.info(f"Writing to {result}")
-            with open(str(result), "w") as file:
-                opts = TextOptions()
-                opts.rightMargin = 160
-                if 0 < len(types):
-                    newCode = t.toString(
-                        builder.sep_stack([
-                            t.stack(header),
-                            t.stack([
-                                t.text("type"),
-                                t.indent(2, builder.sep_stack(types)),
-                            ]),
-                            t.text(""),
-                        ] + procs), opts)
+            opts = TextOptions()
+            opts.rightMargin = 160
+            if 0 < len(types):
+                newCode = t.toString(
+                    builder.sep_stack([
+                        t.stack(header),
+                        t.stack([
+                            t.text("type"),
+                            t.indent(2, builder.sep_stack(types)),
+                        ]),
+                        t.text(""),
+                    ] + procs), opts)
 
-                else:
-                    newCode = t.toString(t.stack(header + [builder.sep_stack(procs)]),
-                                         opts)
+            else:
+                newCode = t.toString(t.stack(header + [builder.sep_stack(procs)]),
+                                        opts)
 
-                file.write(newCode)
+            return newCode
 
-        else:
-            log.warning(f"No declarations found for {result}")
 
     def to_graphviz(self, output_file: str):
         dot = gv.Digraph(format='dot')
@@ -803,7 +831,7 @@ def run(ctx: click.Context, config: str, **kwargs):
     conf: TuOptions = cast(TuOptions,
                            conf_provider.merge_cli_model(ctx, config_base, TuOptions))
 
-    paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes)  # [:10]
+    paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes)[:10]
     wraps: List[TuWrap] = []
 
     with GlobCompleteEvent("Load compilation database", "config"):
@@ -817,7 +845,6 @@ def run(ctx: click.Context, config: str, **kwargs):
         for mapping in paths:
             path = mapping.path
             if any([cmd.file == str(path) for cmd in commands]):
-                log.info(f"Reading {path}")
                 with GlobCompleteEvent("Run collector", "read", {"path": str(path)}):
                     tu: Optional[CollectorRunResult] = run_collector(
                         conf, path, path.with_suffix(".py"))
@@ -830,7 +857,6 @@ def run(ctx: click.Context, config: str, **kwargs):
 
                         with open(str(relative.with_suffix(".json")), "w") as file:
                             file.write(open_proto_file(str(tu.pb_path)).to_json(2))
-                            log.info(f"Wrote TU data to {relative.with_suffix('.json')}")
 
                         wraps.append(
                             TuWrap(name=path.stem,
@@ -854,7 +880,23 @@ def run(ctx: click.Context, config: str, **kwargs):
 
     with GlobCompleteEvent("Write wrapper output", "write"):
         for sub in graph.subgraphs:
-            graph.to_nim(sub)
+            code: Optional[str] = graph.to_nim(sub)
+            if code:
+                result = graph.get_out_path(sub.original)
+                with open(str(result), "w") as file:
+                    file.write(code)
+
+            else:
+                log.warning(f"No declarations found for {sub.original}")
+
+    with GlobCompleteEvent("Write translation unit information", "write"):
+        for sub in graph.subgraphs:
+            info = graph.to_decl_info(sub)
+            result = graph.get_out_path(sub.original)
+            result = result.with_stem(result.stem + "-tu").with_suffix(".json")
+            log.info(f"Writing extra translation unit information to {result}")
+            with open(str(result), "w") as file:
+                file.write(json.dumps(info.model_dump(), indent=2))
 
     GlobExportJson(conf.execution_trace)
     log.info("Done all")
