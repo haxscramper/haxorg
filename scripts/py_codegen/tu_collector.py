@@ -850,10 +850,10 @@ def run(ctx: click.Context, config: str, **kwargs):
     wraps: List[TuWrap] = []
 
     debug_dir = Path(conf.convert_failure_log_dir)
-    if debug_dir.exists():
-        shutil.rmtree(str(debug_dir))
+    # if debug_dir.exists():
+    #     shutil.rmtree(str(debug_dir))
 
-    debug_dir.mkdir(parents=True)
+    debug_dir.mkdir(parents=True, exist_ok=True)
 
     with GlobCompleteEvent("Load compilation database", "config"):
         commands: List[CompileCommand] = [
@@ -885,34 +885,35 @@ def run(ctx: click.Context, config: str, **kwargs):
                                    original=path,
                                    mapping=relative.with_suffix(".nim")))
 
-                    else:
-                        sanitized = "".join(
-                            [c if c.isalnum() else "_" for c in str(path)])
+                    sanitized = "".join(
+                        [c if c.isalnum() else "_" for c in str(path)])
+
+                    if not tu.success:
                         log.warning(
                             f"Failed to run conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}"
                         )
 
-                        with open(debug_dir.joinpath(sanitized), "w") as file:
+                    with open(debug_dir.joinpath(sanitized), "w") as file:
 
-                            def sep(name: str):
-                                file.write("\n\n" + name + "-" * 120 + "\n\n")
+                        def sep(name: str):
+                            file.write("\n\n" + name + "-" * 120 + "\n\n")
 
-                            sep("Failure stdout:")
-                            file.write(tu.res_stdout)
+                        sep("Failure stdout:")
+                        file.write(tu.res_stdout)
 
-                            sep("Failure stderr:")
-                            file.write(tu.res_stderr)
+                        sep("Failure stderr:")
+                        file.write(tu.res_stderr)
 
-                            for cmd in commands:
-                                if cmd.file == str(path):
-                                    sep("Compile commands:")
-                                    file.write(json.dumps(cmd.model_dump(), indent=2))
+                        for cmd in commands:
+                            if cmd.file == str(path):
+                                sep("Compile commands:")
+                                file.write(json.dumps(cmd.model_dump(), indent=2))
 
-                                    sep("Binary command:")
-                                    file.write(" \\\n    ".join(cmd.command.split()))
+                                sep("Binary command:")
+                                file.write(" \\\n    ".join(cmd.command.split()))
 
-                            sep("Flags:")
-                            file.write(" \\\n    ".join([conf.indexing_tool] + tu.flags))
+                        sep("Flags:")
+                        file.write(" \\\n    ".join([conf.indexing_tool] + tu.flags))
 
             else:
                 log.warning(f"No compile commands for {path}")

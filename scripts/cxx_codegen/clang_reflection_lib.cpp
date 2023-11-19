@@ -573,9 +573,33 @@ bool ReflASTVisitor::VisitFunctionDecl(clang::FunctionDecl* Decl) {
     return true;
 }
 
-bool ReflASTVisitor::VisitEnumDecl(
-    clang::EnumDecl*    Decl,
-    clang::TypedefDecl* Typedef) {
+clang::TypedefDecl* findTypedefForDecl(
+    clang::Decl*       Decl,
+    clang::ASTContext* Ctx) {
+    Decl->dump(llvm::outs());
+    clang::DeclContext* Context = Decl->getDeclContext();
+    for (auto D : Context->decls()) {
+        if (auto* TD = llvm::dyn_cast<clang::TypedefDecl>(D)) {
+            if (TD->getUnderlyingType()->getAsRecordDecl() == Decl) {
+                return TD;
+            } else if (
+                const clang::EnumType* ET = TD->getUnderlyingType()
+                                                ->getAs<clang::EnumType>();
+                ET && ET->getDecl() == Decl) {
+                return TD;
+
+            } else if (TD->getUnderlyingDecl() == Decl) {
+                return TD;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+bool ReflASTVisitor::VisitEnumDecl(clang::EnumDecl* Decl) {
+    clang::TypedefDecl* Typedef = findTypedefForDecl(Decl, Ctx);
+
     if (Typedef == nullptr && Decl->getNameAsString().empty()) {
         return true;
     }
@@ -631,18 +655,11 @@ bool ReflASTVisitor::VisitTypedefDecl(clang::TypedefDecl* Decl) {
     if (clang::RecordDecl* RecordDecl = Decl->getUnderlyingType()
                                             ->getAsRecordDecl()) {
 
-        return VisitRecordDecl(RecordDecl, Decl);
     } else if (
         const auto* enumType = Decl->getUnderlyingType()
                                    ->getAs<clang::EnumType>()) {
-        if (enumType->getDecl()->getNameAsString().empty()) {
-            return VisitEnumDecl(enumType->getDecl(), Decl);
-        } else {
-            goto is_regular_typedef;
-        }
 
     } else {
-    is_regular_typedef:
         if (shouldVisit(Decl)) {
             Typedef* def = out->add_typedefs();
             def->mutable_name()->set_name(Decl->getNameAsString());
@@ -658,14 +675,12 @@ bool ReflASTVisitor::VisitTypedefDecl(clang::TypedefDecl* Decl) {
                 Decl->getUnderlyingType(),
                 Decl->getLocation());
         }
-
-        return true;
     }
+    return true;
 }
 
-bool ReflASTVisitor::VisitRecordDecl(
-    clang::RecordDecl*  Decl,
-    clang::TypedefDecl* Typedef) {
+bool ReflASTVisitor::VisitRecordDecl(clang::RecordDecl* Decl) {
+    clang::TypedefDecl* Typedef = findTypedefForDecl(Decl, Ctx);
     if (Decl->getNameAsString().empty() && Typedef == nullptr) {
         return true;
     } else if (shouldVisit(Decl)) {
