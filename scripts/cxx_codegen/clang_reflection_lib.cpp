@@ -509,12 +509,21 @@ bool ReflASTVisitor::shouldVisit(clang::Decl* Decl) {
             return isRefl(Decl);
         }
         case VisitMode::AllTargeted: {
-            std::string DeclLoc = getAbsoluteDeclLocation(Decl);
-            //            std::cerr << "Decl location " <<
-            //            Decl->getDeclKindName() << " "
-            //                      << DeclLoc << std::endl;
-            return !DeclLoc.empty()
-                && targetFiles.find(DeclLoc) != targetFiles.end();
+            // 'all targeted' mode should have all fields visited in any
+            // case, but sometimes fields can have a different location
+            // attached to them
+            // for some reason (`#line` annotation for instance) and decl-location-based
+            // sourcing is not fully accurate. Wherewher possible, more
+            // surefire way of detecting acceptance criteria should be
+            // used.
+            if (Decl->getKind() == clang::Decl::Kind::Field
+                || Decl->getKind() == clang::Decl::Kind::CXXMethod) {
+                return true;
+            } else {
+                std::string DeclLoc = getAbsoluteDeclLocation(Decl);
+                return !DeclLoc.empty()
+                    && targetFiles.find(DeclLoc) != targetFiles.end();
+            }
         }
     }
 }
@@ -686,14 +695,26 @@ bool ReflASTVisitor::VisitRecordDecl(
                 ed->set_name(Decl->getNameAsString());
                 ed->set_tag(TypeTag::TypeTagStruct);
             }
+            name->mutable_dbgorigin()->append(" > typedef!=nullptr");
 
         } else {
             fillType(
                 name,
                 Decl->getASTContext().getRecordType(Decl),
                 Decl->getLocation());
+            name->mutable_dbgorigin()->append(" > typedef==nullptr");
         }
 
+        name->mutable_dbgorigin()->append(
+            " > " + Decl->getKindName().str());
+
+        if (false) {
+            std::string              str;
+            llvm::raw_string_ostream buf{str};
+            Decl->dump(buf);
+            buf.flush();
+            name->mutable_dbgorigin()->append(str);
+        }
 
         for (clang::FieldDecl* field : Decl->fields()) {
             if (shouldVisit(field)) {

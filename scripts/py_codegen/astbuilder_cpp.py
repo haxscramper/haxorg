@@ -100,7 +100,7 @@ class QualType(BaseModel):
              tuple([hash(T) for T in self.Spaces]),
              tuple([hash(T) for T in self.Parameters])))
 
-    def format(self) -> str:
+    def format(self, dbgOrigin: bool = False) -> str:
         cvref = "{const}{ptr}{ref}".format(
             const=" const" if self.isConst else "",
             ptr=("*" * self.ptrCount),
@@ -111,24 +111,31 @@ class QualType(BaseModel):
             }[self.RefKind],
         )
 
+        origin = self.dbg_origin if dbgOrigin else ""
+
         match self.Kind:
             case QualTypeKind.FunctionPtr:
-                return "%s(%s)" % (self.func.ReturnTy.format(), ", ".join(
-                    [T.format() for T in self.func.Args]))
+                return "%s(%s)" % (
+                    self.func.ReturnTy.format(),
+                    ", ".join([T.format() for T in self.func.Args]),
+                )
 
             case QualTypeKind.Array:
-                return "{first}[{expr}]{cvref}".format(
+                return "{first}[{expr}]{cvref}{origin}".format(
                     first=self.Parameters[0].format(),
                     expr=self.Parameters[1].format() if 1 < len(self.Parameters) else "",
                     cvref=cvref,
+                    origin=origin,
                 )
 
             case QualTypeKind.RegularType:
-                return "{name}{args}{cvref}".format(
+                return "{name}{args}{cvref}{origin}".format(
                     name=self.name,
                     args=("<" + ", ".join([T.format() for T in self.Parameters]) +
                           ">") if self.Parameters else "",
-                    cvref=cvref)
+                    cvref=cvref,
+                    origin=origin,
+                )
 
             case _:
                 assert False, self.Kind

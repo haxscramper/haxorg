@@ -23,7 +23,6 @@ from py_textlayout.py_textlayout import TextLayout, TextOptions
 import deal
 import shutil
 
-
 from py_scriptutils.script_logging import log
 import py_scriptutils.toml_config_profiler as conf_provider
 from refl_read import conv_proto_file, ConvTu, open_proto_file
@@ -121,6 +120,7 @@ class CollectorRunResult:
     success: bool
     res_stdout: str
     res_stderr: str
+    flags: List[str] = field(default_factory=list)
 
 
 @beartype
@@ -169,11 +169,14 @@ def run_collector(conf: TuOptions, input: Path,
                                             tool.run(flags, retcode=None))
 
     if res_code != 0:
-        return CollectorRunResult(None,
-                                  None,
-                                  success=False,
-                                  res_stdout=res_stdout,
-                                  res_stderr=res_stderr)
+        return CollectorRunResult(
+            None,
+            None,
+            success=False,
+            res_stdout=res_stdout,
+            res_stderr=res_stderr,
+            flags=flags,
+        )
 
     else:
         tu = conv_proto_file(str(tmp_output))
@@ -181,11 +184,14 @@ def run_collector(conf: TuOptions, input: Path,
         with open(conf.reflect_cache, "w") as file:
             file.write(json.dumps(refl, indent=2))
 
-        return CollectorRunResult(tu,
-                                  tmp_output,
-                                  success=True,
-                                  res_stdout=res_stdout,
-                                  res_stderr=res_stderr)
+        return CollectorRunResult(
+            tu,
+            tmp_output,
+            success=True,
+            res_stdout=res_stdout,
+            res_stderr=res_stderr,
+            flags=flags,
+        )
 
 
 @beartype
@@ -384,7 +390,7 @@ class GenGraph:
 
                 elif not olddef.IsForwardDecl and not entry.IsForwardDecl:
                     log.error(
-                        f"Two full definitions of the same entry {entry.format()} == {olddef.format()} in the code"
+                        f"Two full definitions of the same entry {entry.format(dbgOrigin=True)} == {olddef.format(dbgOrigin=True)} in the code"
                     )
 
             else:
@@ -880,15 +886,33 @@ def run(ctx: click.Context, config: str, **kwargs):
                                    mapping=relative.with_suffix(".nim")))
 
                     else:
-                        sanitized = "".join([c if c.isalnum() else "_" for c in str(path)])
-                        log.warning(f"Failed to run conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}")
+                        sanitized = "".join(
+                            [c if c.isalnum() else "_" for c in str(path)])
+                        log.warning(
+                            f"Failed to run conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}"
+                        )
 
                         with open(debug_dir.joinpath(sanitized), "w") as file:
-                            file.write("\nFailure stdout:\n")
+
+                            def sep(name: str):
+                                file.write("\n\n" + name + "-" * 120 + "\n\n")
+
+                            sep("Failure stdout:")
                             file.write(tu.res_stdout)
-                            file.write("\nFailure stderr:\n")
+
+                            sep("Failure stderr:")
                             file.write(tu.res_stderr)
 
+                            for cmd in commands:
+                                if cmd.file == str(path):
+                                    sep("Compile commands:")
+                                    file.write(json.dumps(cmd.model_dump(), indent=2))
+
+                                    sep("Binary command:")
+                                    file.write(" \\\n    ".join(cmd.command.split()))
+
+                            sep("Flags:")
+                            file.write(" \\\n    ".join([conf.indexing_tool] + tu.flags))
 
             else:
                 log.warning(f"No compile commands for {path}")

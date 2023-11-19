@@ -54,8 +54,8 @@ class GenTuEnum:
     refl: bool = False
     IsForwardDecl: bool = False
 
-    def format(self) -> str:
-        return "enum " + self.name.format()
+    def format(self, dbgOrigin: bool = False) -> str:
+        return "enum " + self.name.format(dbgOrigin=dbgOrigin)
 
 
 @beartype
@@ -124,8 +124,8 @@ class GenTuStruct:
     concreteKind: bool = True
     IsForwardDecl: bool = False
 
-    def format(self) -> str:
-        return "record " + self.name.format()
+    def format(self, dbgOrigin: bool = False) -> str:
+        return "record " + self.name.format(dbgOrigin=dbgOrigin)
 
 
 @beartype
