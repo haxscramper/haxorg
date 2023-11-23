@@ -77,6 +77,7 @@ class EnumParams:
     Name: str
     Fields: List[EnumFieldParams]
     Pragmas: List[PragmaParams] = field(default_factory=list)
+    Exported: bool = False
 
 
 class FunctionKind(Enum):
@@ -100,6 +101,7 @@ class FunctionParams:
     Kind: FunctionKind = FunctionKind.PROC
     OneLineImpl: bool = False
 
+
 @beartype
 class ASTBuilder(base.AstbuilderBase):
 
@@ -108,73 +110,73 @@ class ASTBuilder(base.AstbuilderBase):
 
     def safename(self, name: str) -> str:
         if name in set([
-            "addr",
-            "and",
-            "as",
-            "asm",
-            "bind",
-            "block",
-            "break",
-            "case",
-            "cast",
-            "concept",
-            "const",
-            "continue",
-            "converter",
-            "defer",
-            "discard",
-            "distinct",
-            "div",
-            "do",
-            "elif",
-            "else",
-            "end",
-            "enum",
-            "except",
-            "export",
-            "finally",
-            "for",
-            "from",
-            "func",
-            "if",
-            "import",
-            "in",
-            "include",
-            "interface",
-            "is",
-            "isnot",
-            "iterator",
-            "let",
-            "macro",
-            "method",
-            "mixin",
-            "mod",
-            "nil",
-            "not",
-            "notin",
-            "object",
-            "of",
-            "or",
-            "out",
-            "proc",
-            "ptr",
-            "raise",
-            "ref",
-            "return",
-            "shl",
-            "shr",
-            "static",
-            "template",
-            "try",
-            "tuple",
-            "type",
-            "using",
-            "var",
-            "when",
-            "while",
-            "xor",
-            "yield",
-        ]): 
+                "addr",
+                "and",
+                "as",
+                "asm",
+                "bind",
+                "block",
+                "break",
+                "case",
+                "cast",
+                "concept",
+                "const",
+                "continue",
+                "converter",
+                "defer",
+                "discard",
+                "distinct",
+                "div",
+                "do",
+                "elif",
+                "else",
+                "end",
+                "enum",
+                "except",
+                "export",
+                "finally",
+                "for",
+                "from",
+                "func",
+                "if",
+                "import",
+                "in",
+                "include",
+                "interface",
+                "is",
+                "isnot",
+                "iterator",
+                "let",
+                "macro",
+                "method",
+                "mixin",
+                "mod",
+                "nil",
+                "not",
+                "notin",
+                "object",
+                "of",
+                "or",
+                "out",
+                "proc",
+                "ptr",
+                "raise",
+                "ref",
+                "return",
+                "shl",
+                "shr",
+                "static",
+                "template",
+                "try",
+                "tuple",
+                "type",
+                "using",
+                "var",
+                "when",
+                "while",
+                "xor",
+                "yield",
+        ]):
             return f"`{name}`"
 
         else:
@@ -207,12 +209,13 @@ class ASTBuilder(base.AstbuilderBase):
                     if t.Name == "ptr":
                         return self.b.line(
                             [head, self.string(" "),
-                            self.Type(t.Parameters[0])])
+                             self.Type(t.Parameters[0])])
 
                     else:
                         return self.b.line([
                             head,
-                            self.pars(self.csv([self.Type(p) for p in t.Parameters]), "[", "]"),
+                            self.pars(self.csv([self.Type(p) for p in t.Parameters]), "[",
+                                      "]"),
                         ])
 
                 else:
@@ -235,6 +238,7 @@ class ASTBuilder(base.AstbuilderBase):
     def Enum(self, enum: EnumParams) -> BlockId:
         head = self.b.line([
             self.string(self.safename(enum.Name)),
+            self.string("*" if enum.Exported else ""),
             self.Pragmas(enum.Pragmas),
             self.string(" = "),
             self.string("enum"),
@@ -315,7 +319,8 @@ class ASTBuilder(base.AstbuilderBase):
             self.string("object"),
         ])
 
-        field_widths: int = max([len(self.safename(f.Name)) for f in Obj.Fields] + [0]) + 1
+        field_widths: int = max([len(self.safename(f.Name))
+                                 for f in Obj.Fields] + [0]) + 1
 
         return self.b.stack([
             head,

@@ -4,5 +4,5 @@ toolchain_include = "/mnt/workspace/repos/haxorg/toolchain/llvm/lib/clang/16/inc
 output_directory = "/mnt/workspace/repos/hlibgit2/src/hlibgit2"
 
 universal_import = [
-  "libgit2_config"
+  "libgit2_config.nim"
 ]

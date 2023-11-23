@@ -1,13 +1,20 @@
 #!/usr/bin/env python
 
 from beartype import beartype
-from beartype.typing import List, cast, Any, Tuple, Union, Dict, Set, Optional, TypeAlias, NewType
+from beartype.typing import (List, cast, Any, Tuple, Union, Dict, Set, Optional, TypeAlias, NewType,)
 from pydantic import BaseModel, Field
 from pprint import pprint, pformat
 from plumbum import local
 from hashlib import md5
-from gen_tu_cpp import (GenTuStruct, GenTuFunction, GenTuEnum, QualType, GenTuTypedef,
-                        GenTuEnumField, QualTypeKind)
+from gen_tu_cpp import (
+    GenTuStruct,
+    GenTuFunction,
+    GenTuEnum,
+    QualType,
+    GenTuTypedef,
+    GenTuEnumField,
+    QualTypeKind,
+)
 from dataclasses import dataclass, field
 from copy import deepcopy
 import json
@@ -40,14 +47,21 @@ else:
     BlockId = NewType('BlockId', int)
 
 
-
-def relpath(base: Path, target: Path) -> str:
+def file_relpath(base: Path, target: Path) -> str:
     if base.parent == target.parent:
         return "./" + target.name
 
     else:
-        return os.path.relpath(base.resolve(), target.resolve())
-    
+        dir_source = os.path.dirname(base.resolve())
+
+        # Compute the relative path
+        relative_path = os.path.relpath(target.resolve(), dir_source)
+
+        # Ensure the path starts with "./" if it doesn't go up in the hierarchy
+        if not relative_path.startswith(("..", "/")):
+            relative_path = f"./{relative_path}"
+
+        return relative_path
 
 
 class TuOptions(BaseModel):
@@ -302,13 +316,12 @@ class GenGraph:
         return self.get_sub(_id)
 
     # Generate import from file placed in `result` to the content defined in `sub`
-    def gen_import(self, result: Path, sub: Sub) -> Optional[str]:
-        base = self.get_out_path(sub.original)
-        if base == result:
+    def gen_import(self, result: Path, base: Path) -> Optional[str]:
+        if base.resolve() == result.resolve():
             return None
 
         else:
-            return relpath(result, base)
+            return file_relpath(result, base)
 
     def id_from_hash(self, hashed: int) -> int:
         if hashed not in self.id_map:
@@ -353,28 +366,43 @@ class GenGraph:
     @deal.post(lambda result: not any([it is None for it in result]))
     def get_used_type(self, decl: GenTuUnion) -> List[QualType]:
         result: List[QualType] = []
+
+        def use_rec_type(t: QualType):
+            match t.Kind:
+                case QualTypeKind.RegularType:
+                    result.append(t)
+                    for p in t.Parameters:
+                        use_rec_type(p)
+
+                case QualTypeKind.FunctionPtr:
+                    for arg in t.func.Args:
+                        use_rec_type(arg)
+
         match decl:
             case GenTuStruct():
                 for _field in decl.fields:
                     assert _field.type, _field
-                    result.append(_field.type)
+                    use_rec_type(_field.type)
 
             case GenTuFunction():
                 for arg in decl.arguments:
                     assert arg.type, arg
-                    result.append(arg.type)
+                    use_rec_type(arg.type)
 
                 assert decl.result, decl
-                result.append(decl.result)
+                use_rec_type(decl.result)
 
             case GenTuTypedef():
                 assert decl.base, decl
-                result.append(decl.base)
+                use_rec_type(decl.base)
 
         return result
 
     def merge_structs(self, stored: GenTuStruct, added: GenTuStruct):
-        pass
+        stored_fields = set([f.name for f in stored.fields])
+        for _field in added.fields:
+            if _field.name not in stored_fields:
+                stored.fields.append(deepcopy(_field))
 
     def merge_enums(self, stored: GenTuEnum, added: GenTuEnum):
         pass
@@ -393,6 +421,10 @@ class GenGraph:
                     for old in self.subgraphs:
                         if _id in old.nodes:
                             old.nodes.discard(_id)
+
+                    # New subgraph properly introduces type definition and it should contain
+                    # the content instead.
+                    sub.nodes.add(_id)
 
                 elif not olddef.IsForwardDecl and entry.IsForwardDecl:
                     # Newly introduced type is a forward declaration and should not be added to a new subgraph
@@ -492,16 +524,17 @@ class GenGraph:
             return nim.Type("pointer")
 
         elif t.Kind == QualTypeKind.Array:
-            return nim.Type("array", Parameters=[
-                self.type_to_nim(b, t.Parameters[1]),
-                self.type_to_nim(b, t.Parameters[0]),
-            ])
+            return nim.Type("array",
+                            Parameters=[
+                                self.type_to_nim(b, t.Parameters[1]),
+                                self.type_to_nim(b, t.Parameters[0]),
+                            ])
 
         elif t.Kind == QualTypeKind.TypeExpr:
             return nim.Type("", Kind=nim.TypeKind.Expr, Expr=b.string(t.expr))
 
         else:
-            assert(t.Kind == QualTypeKind.RegularType)
+            assert (t.Kind == QualTypeKind.RegularType)
             t_map = t.name
             match t.name:
                 case "int":
@@ -653,23 +686,24 @@ class GenGraph:
 
         fields: List[GenTuEnumField] = []
 
-        for key, group in itertools.groupby(sorted(enum.fields, key=lambda f: f.value), key=lambda f: f.value):
+        for key, group in itertools.groupby(sorted(enum.fields, key=lambda f: f.value),
+                                            key=lambda f: f.value):
             fields.append(list(group)[0])
-            
-
 
         result.types.append(
-            nim.EnumParams(
-                Name=c_name,
-                Pragmas=[
-                    nim.PragmaParams(Name="size", Arguments=[
-                        b.string("sizeof(cint)"),
-                    ])
-                ],
-                Fields=[c_enum_field(idx, f) for idx, f in enumerate(fields)]))
+            nim.EnumParams(Name=c_name,
+                           Exported=True,
+                           Pragmas=[
+                               nim.PragmaParams(Name="size",
+                                                Arguments=[
+                                                    b.string("sizeof(cint)"),
+                                                ])
+                           ],
+                           Fields=[c_enum_field(idx, f) for idx, f in enumerate(fields)]))
 
         result.types.append(
             nim.EnumParams(Name=enum.name.name,
+                           Exported=True,
                            Fields=[nim.EnumFieldParams(Name=f.name) for f in enum.fields
                                   ]))
 
@@ -677,22 +711,26 @@ class GenGraph:
 
     def struct_to_nim(self, b: nim.ASTBuilder, rec: GenTuStruct) -> ConvRes:
         return ConvRes(types=[
-            nim.ObjectParams(Name=rec.name.name,
-                             Pragmas=[
-                                 nim.PragmaParams("importc"),
-                                 nim.PragmaParams("bycopy"),
-                             ],
-                             Fields=[
-                                 nim.IdentParams(Name=f.name,
-                                                 Exported=True,
-                                                 Type=self.type_to_nim(b, f.type))
-                                 for f in rec.fields
-                             ])
+            nim.ObjectParams(
+                Name=rec.name.name,
+                Pragmas=[
+                    nim.PragmaParams("importc"),
+                    nim.PragmaParams("bycopy"),
+                    *([nim.PragmaParams("incompleteStruct")] if rec.IsForwardDecl else []
+                     ),
+                ],
+                Fields=[
+                    nim.IdentParams(
+                        Name=f.name, Exported=True, Type=self.type_to_nim(b, f.type))
+                    for f in rec.fields
+                ])
         ])
 
     def typedef_to_nim(self, b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
         return ConvRes(types=[
-            nim.TypedefParams(Name=typdef.name.name, Exported=True, Base=self.type_to_nim(b, typdef.base))
+            nim.TypedefParams(Name=typdef.name.name,
+                              Exported=True,
+                              Base=self.type_to_nim(b, typdef.base))
         ])
 
     def function_to_nim(self, b: nim.ASTBuilder, func: GenTuFunction) -> ConvRes:
@@ -704,8 +742,8 @@ class GenGraph:
                                    nim.PragmaParams("importc"),
                                ],
                                Arguments=[
-                                   nim.IdentParams(Arg.name, self.type_to_nim(b, Arg.type))
-                                   for Arg in func.arguments
+                                   nim.IdentParams(Arg.name, self.type_to_nim(
+                                       b, Arg.type)) for Arg in func.arguments
                                ])
         ])
 
@@ -730,13 +768,20 @@ class GenGraph:
         header: List[BlockId] = []
         depend_on: Set[str] = set()
 
+        for imp in sorted(conf.universal_import):
+            gen = self.gen_import(self.get_out_path(sub.original), Path(conf.output_directory).joinpath(imp))
+            if gen is not None:
+                depend_on.add(gen)
+
+
         for _id in sub.nodes:
             decl = self.id_to_entry[_id]
             conv: ConvRes = ConvRes()
             for typ in self.get_used_type(decl):
                 dep = self.get_declared_sub(typ)
                 if dep is not None:
-                    imp = self.gen_import(self.get_out_path(sub.original), dep)
+                    imp = self.gen_import(self.get_out_path(sub.original),
+                                          self.get_out_path(dep.original))
                     if imp is not None:
                         depend_on.add(imp)
 
@@ -772,8 +817,6 @@ class GenGraph:
         for item in sorted([it for it in depend_on]):
             header.append(builder.string(f"import \"{item}\""))
 
-        for imp in sorted(conf.universal_import):
-            header.append(builder.string(f"import {imp}"))
 
         if 0 < len(types) or 0 < len(procs):
             opts = TextOptions()

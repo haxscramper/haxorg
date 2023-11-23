@@ -255,6 +255,9 @@ void ReflASTVisitor::fillType(
             Out->mutable_dbgorigin()->append(" >bool");
             Out->set_name("bool");
 
+        } else if (In->isVoidType() || In->isVoidPointerType()) {
+            Out->set_name("void");
+
         } else if (In->isCharType()) {
             Out->mutable_dbgorigin()->append(" >char");
             Out->set_name("char");
