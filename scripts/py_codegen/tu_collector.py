@@ -486,6 +486,9 @@ class GenGraph:
         self.graph.vs[_id]["dbg_origin"] = typedef.name.dbg_origin
         self.graph.vs[_id]["color"] = "blue"
 
+        for typ in self.get_used_type(typedef):
+            self.use_type(_id, typ, dbg_from=typedef.name.format())
+
     def add_function(self, func: GenTuFunction, sub: Sub):
         _id = self.add_entry(func, sub)
         merge = self.id_to_entry[_id]
@@ -837,7 +840,7 @@ class GenGraph:
 
             return newCode
 
-    def to_graphviz(self, output_file: str):
+    def to_graphviz(self, output_file: str, with_subgraphs: bool = True):
         dot = gv.Digraph(format='dot')
         dot.attr(rankdir="LR")
         dot.attr("node", shape="rect")
@@ -856,18 +859,29 @@ class GenGraph:
                     else:
                         parent_tus[node.index].append(sub.name)
 
+
+        def rec_subgraph(target: gv.Graph, sub: GenGraph.Sub):
+            for node in sub.nodes:
+                target.node(f'{sub.name}_{node}',
+                        **{attr: g.vs[node][attr] for attr in g.vs.attributes()})
+                added_nodes.add(node)
+                if node in parent_tus and 1 < len(parent_tus[node]):
+                    for target in parent_tus[node]:
+                        if target != sub.name:
+                            dot.edge(f"{target}_{node}", f"{sub.name}_{node}")           
+
         # Add nodes to subgraphs
         for sub in self.subgraphs:
-            with dot.subgraph(name=f'cluster_{sub.name}') as c:
-                c.attr(label=sub.name)
-                for node in sub.nodes:
-                    c.node(f'{sub.name}_{node}',
-                           **{attr: g.vs[node][attr] for attr in g.vs.attributes()})
-                    added_nodes.add(node)
-                    if node in parent_tus and 1 < len(parent_tus[node]):
-                        for target in parent_tus[node]:
-                            if target != sub.name:
-                                dot.edge(f"{target}_{node}", f"{sub.name}_{node}")
+            if with_subgraphs:
+                with dot.subgraph(name=f'cluster_{sub.name}') as c:
+                    c.attr(label=sub.name)
+                    rec_subgraph(c, sub)
+
+            else:
+                rec_subgraph(dot, sub)
+
+            
+
 
         # Add top-level nodes
         for node in range(len(g.vs)):
@@ -1011,7 +1025,7 @@ def run(ctx: click.Context, config: str, **kwargs):
 
     with GlobCompleteEvent("Generate graphviz image", "write"):
         graph.graph["rankdir"] = "LR"
-        graph.to_graphviz("/tmp/output.dot")
+        graph.to_graphviz("/tmp/output.dot", with_subgraphs=False)
 
     with GlobCompleteEvent("Write wrapper output", "write"):
         for sub in graph.subgraphs:
