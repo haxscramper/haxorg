@@ -65,6 +65,9 @@ class TuOptions(BaseModel):
         "Directory to dump debug information about failed translation unit converter runs"
     )
 
+    universal_import: List[str] = Field(default=[],
+                                        description="Import added to all generated files")
+
 
 @beartype
 @dataclass
@@ -287,6 +290,7 @@ class GenGraph:
 
         return self.get_sub(_id)
 
+    # Generate import from file placed in `result` to the content defined in `sub`
     def gen_import(self, result: Path, sub: Sub) -> Optional[str]:
         base = self.get_out_path(sub.original)
         if base == result:
@@ -548,10 +552,12 @@ class GenGraph:
         result = ConvRes()
         c_name = "c_" + enum.name.name
 
-        def c_enum_field(f: GenTuEnumField) -> nim.EnumFieldParams:
+        def c_enum_field(idx: int, f: GenTuEnumField) -> nim.EnumFieldParams:
             value: str = ""
+            if f.value == idx:
+                value = str(f.value)
 
-            if f.value == 0:
+            elif f.value == 0:
                 value = "0 shl 0"
 
             elif 0 < f.value and math.log2(f.value).is_integer():
@@ -622,14 +628,14 @@ class GenGraph:
                     ))
 
         result.types.append(
-            nim.EnumParams(Name=c_name,
-                           Pragmas=[
-                               nim.PragmaParams(Name="size",
-                                                Arguments=[
-                                                    b.string("sizeof(cint)"),
-                                                ])
-                           ],
-                           Fields=[c_enum_field(f) for f in enum.fields]))
+            nim.EnumParams(
+                Name=c_name,
+                Pragmas=[
+                    nim.PragmaParams(Name="size", Arguments=[
+                        b.string("sizeof(cint)"),
+                    ])
+                ],
+                Fields=[c_enum_field(idx, f) for idx, f in enumerate(enum.fields)]))
 
         result.types.append(
             nim.EnumParams(Name=enum.name.name,
@@ -684,7 +690,7 @@ class GenGraph:
 
         return result
 
-    def to_nim(self, sub: Sub) -> Optional[str]:
+    def to_nim(self, sub: Sub, conf: TuOptions) -> Optional[str]:
         t = TextLayout()
         builder = nim.ASTBuilder(t)
 
@@ -734,6 +740,9 @@ class GenGraph:
 
         for item in sorted([it for it in depend_on]):
             header.append(builder.string(f"import \"{item}\""))
+
+        for imp in sorted(conf.universal_import):
+            header.append(builder.string(f"import {imp}"))
 
         if 0 < len(types) or 0 < len(procs):
             opts = TextOptions()
@@ -843,8 +852,10 @@ def run(ctx: click.Context, config: str, **kwargs):
     config_base = conf_provider.run_config_provider(
         ([config] if config else
          conf_provider.find_default_search_locations(CONFIG_FILE_NAME)), True)
-    conf: TuOptions = cast(TuOptions,
-                           conf_provider.merge_cli_model(ctx, config_base, TuOptions))
+    conf: TuOptions = cast(
+        TuOptions, conf_provider.merge_cli_model(ctx, config_base, kwargs, TuOptions))
+
+    log.info(conf.universal_import)
 
     paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes)  # [:10]
     wraps: List[TuWrap] = []
@@ -885,8 +896,7 @@ def run(ctx: click.Context, config: str, **kwargs):
                                    original=path,
                                    mapping=relative.with_suffix(".nim")))
 
-                    sanitized = "".join(
-                        [c if c.isalnum() else "_" for c in str(path)])
+                    sanitized = "".join([c if c.isalnum() else "_" for c in str(path)])
 
                     if not tu.success:
                         log.warning(
@@ -931,7 +941,7 @@ def run(ctx: click.Context, config: str, **kwargs):
 
     with GlobCompleteEvent("Write wrapper output", "write"):
         for sub in graph.subgraphs:
-            code: Optional[str] = graph.to_nim(sub)
+            code: Optional[str] = graph.to_nim(sub, conf)
             if code:
                 result = graph.get_out_path(sub.original)
                 with open(str(result), "w") as file:

@@ -3,23 +3,79 @@ import os
 from beartype.typing import List, Dict, Any, get_origin, get_args
 import toml
 import traceback
+from dataclasses import dataclass
 import rich_click as click
 import functools
 from pydantic import BaseModel
+from pydantic_core import PydanticUndefined
 from pprint import pprint
+from copy import deepcopy
 
 from py_scriptutils.script_logging import log
 
-EXPLICIT_KEY = "__explicitly__"
 
-def merge_cli_model(ctx: click.Context, base: Dict, ModelT: type) -> Any:
-    store = {}
+class DefaultWrapper(click.ParamType):
+    name = "DefaultWrapper"
+
+    def __init__(self, base_type):
+        self.base_type = base_type
+
+    def convert(self, value, param, ctx):
+        if isinstance(value, DefaultWrapperValue):
+            return value
+
+        else:
+            return DefaultWrapperValue(value=self.base_type.convert(value, param, ctx),
+                                       is_provided=True)
+
+
+class DefaultWrapperValue:
+    # Your custom type logic here
+    def __init__(self, value, is_provided: bool = True):
+        self.value = value
+        self.is_provided = is_provided
+
+    def __repr__(self):
+        return f"DefaultWrapperValue({self.value}, {self.is_provided})"
+
+
+def merge_cli_model(ctx: click.Context, file_config: Dict, on_cli_args: Dict,
+                    ModelT: type) -> Any:
+    on_cli = {}
+    on_default = {}
+    ctx.ensure_object(dict)
     for param, value in ctx.params.items():
-        if param in ctx.obj[EXPLICIT_KEY]:
-            store[param] = value
+        if isinstance(value, DefaultWrapperValue):
+            if value.is_provided:
+                on_cli[param] = value.value
 
-    final_data = merge_dicts([base, store])
+            else:
+                on_default[param] = value.value
 
+        elif isinstance(value, list) or isinstance(value, tuple) and 0 < len(value) and (
+                isinstance(value[0], DefaultWrapperValue)):
+            if value[0].is_provided:
+                on_cli[param] = [it.value for it in value]
+
+            else:
+                on_default[param] = [it.value for it in value]
+
+    for d in [on_default, file_config, on_cli]:
+        for k, v in d.items():
+            assert not isinstance(v, DefaultWrapper)
+
+    final_data = merge_dicts([on_default, file_config, on_cli])
+    with open("/tmp/res.py", "w") as file:
+        print("# On default", file=file)
+        pprint(on_default, stream=file)
+        print("# On file config", file=file)
+        pprint(file_config, stream=file)
+        print("# On cli", file=file)
+        pprint(on_cli, stream=file)
+        print("# Final data", file=file)
+        pprint(final_data, stream=file)
+
+    # trunk-ignore(mypy/attr-defined)
     return ModelT.model_validate(final_data)
 
 
@@ -34,40 +90,32 @@ def py_type_to_click(T):
         return click.STRING
 
 
-@beartype
-def callback(ctx: click.Context, param: click.Option, value: Any):
-    # Set a custom attribute in the context to indicate the option was provided
-    if value is not None:
-        ctx.ensure_object(dict)
-        
-        if EXPLICIT_KEY in ctx.obj:
-            ctx.obj[EXPLICIT_KEY] = set([param.name]).union(ctx.obj[EXPLICIT_KEY])
-        else:
-            ctx.obj[EXPLICIT_KEY] = set([param.name])
-
-    return value
-
-
 def options_from_model(model: BaseModel) -> List[click.option]:
     result: List[click.option] = []
     for name, field in model.model_fields.items():
+        has_default = field.default is not None and field.default != PydanticUndefined
+        is_multiple = get_origin(field.annotation) is list
         result.append(
-            click.option("--" + (field.alias if field.alias else name),
-                         type=py_type_to_click(field.annotation),
-                         help=field.description,
-                         # Track which options were explicitly provided on the command line and 
-                         # override configuration file only in these cases
-                         callback=callback,
-                         multiple=get_origin(field.annotation) is list))
+            click.option(
+                "--" + (field.alias if field.alias else name),
+                type=DefaultWrapper(py_type_to_click(field.annotation)),
+                help=field.description,
+                expose_value=True,
+                **({
+                    "default": [DefaultWrapperValue(it, False) for it in field.default] if
+                               is_multiple else DefaultWrapperValue(field.default, False)
+                } if has_default else {}),
+                multiple=is_multiple))
 
     return result
 
+
 @beartype
 def merge_dicts(dicts: List[Dict]) -> Dict:
+
     def recursive_merge(base: Dict, new: Dict) -> None:
         for key, value in new.items():
-            if (isinstance(value, dict) and key in base 
-                and isinstance(base[key], dict)):
+            if (isinstance(value, dict) and key in base and isinstance(base[key], dict)):
                 recursive_merge(base[key], value)
             else:
                 base[key] = value
@@ -78,9 +126,9 @@ def merge_dicts(dicts: List[Dict]) -> Dict:
 
     return result
 
+
 def apply_options(f, options):
     return functools.reduce(lambda x, opt: opt(x), options, f)
-
 
 
 @beartype
@@ -99,6 +147,7 @@ def get_parent_directories(path: str) -> List[str]:
         path = new_path
 
     return directories
+
 
 @beartype
 def find_default_search_locations(config_file_name: str) -> List[str]:
@@ -147,6 +196,7 @@ def run_config_provider(search_paths: List[str], withTrace: bool) -> dict:
 
 @beartype
 def make_config_provider(config_file_name: str):
+
     def implementation(file_path: str, cmd_name: str):
         D = run_config_provider(file_path, cmd_name, False, config_file_name)
         return D
