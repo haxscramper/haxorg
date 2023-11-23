@@ -85,6 +85,10 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
             res.Kind = QualTypeKind.Array
             res.Parameters = [conv_proto_type(t) for t in typ.parameters]
 
+        case pb.TypeKind.TypeExpr:
+            res.Kind = QualTypeKind.TypeExpr
+            res.expr = typ.type_value.value
+
     res.isConst = typ.is_const
     res.isNamespace = typ.is_namespace
     res.RefKind = {

@@ -20,6 +20,7 @@ class ExprKind(Enum):
 class TypeKind(Enum):
     RegularType = 0
     Function = 1
+    Expr = 2
 
 
 @beartype
@@ -60,6 +61,7 @@ class ObjectParams:
 class TypedefParams:
     Name: str
     Base: Type
+    Exported: bool = False
 
 
 @beartype
@@ -98,69 +100,147 @@ class FunctionParams:
     Kind: FunctionKind = FunctionKind.PROC
     OneLineImpl: bool = False
 
-
 @beartype
 class ASTBuilder(base.AstbuilderBase):
 
     def __init__(self, in_b: TextLayout):
         self.b = in_b
 
-    def Type(self, t: Type) -> BlockId:
-        if t.Kind == TypeKind.Function:
-            return self.b.line([
-                self.string("proc "),
-                self.pars(
-                    self.csv([
-                        self.b.line([
-                            self.string("a" + str(idx)),
-                            self.string(": "),
-                            self.Type(t),
-                        ]) for idx, t in enumerate(t.Parameters[1:])
-                    ])),
-                self.string(": "),
-                self.Type(t.Parameters[0])
-            ])
+    def safename(self, name: str) -> str:
+        if name in set([
+            "addr",
+            "and",
+            "as",
+            "asm",
+            "bind",
+            "block",
+            "break",
+            "case",
+            "cast",
+            "concept",
+            "const",
+            "continue",
+            "converter",
+            "defer",
+            "discard",
+            "distinct",
+            "div",
+            "do",
+            "elif",
+            "else",
+            "end",
+            "enum",
+            "except",
+            "export",
+            "finally",
+            "for",
+            "from",
+            "func",
+            "if",
+            "import",
+            "in",
+            "include",
+            "interface",
+            "is",
+            "isnot",
+            "iterator",
+            "let",
+            "macro",
+            "method",
+            "mixin",
+            "mod",
+            "nil",
+            "not",
+            "notin",
+            "object",
+            "of",
+            "or",
+            "out",
+            "proc",
+            "ptr",
+            "raise",
+            "ref",
+            "return",
+            "shl",
+            "shr",
+            "static",
+            "template",
+            "try",
+            "tuple",
+            "type",
+            "using",
+            "var",
+            "when",
+            "while",
+            "xor",
+            "yield",
+        ]): 
+            return f"`{name}`"
 
         else:
-            head: BlockId = self.string(t.Name)
+            return name
 
-            if 0 < len(t.Parameters):
-                if t.Name == "ptr":
-                    return self.b.line(
-                        [head, self.string(" "),
-                         self.Type(t.Parameters[0])])
+    def Type(self, t: Type) -> BlockId:
+        match t.Kind:
+            case TypeKind.Function:
+                return self.b.line([
+                    self.string("proc "),
+                    self.pars(
+                        self.csv([
+                            self.b.line([
+                                self.string("a" + str(idx)),
+                                self.string(": "),
+                                self.Type(t),
+                            ]) for idx, t in enumerate(t.Parameters[1:])
+                        ])),
+                    self.string(": "),
+                    self.Type(t.Parameters[0])
+                ])
+
+            case TypeKind.Expr:
+                return t.Expr
+
+            case TypeKind.RegularType:
+                head: BlockId = self.string(self.safename(t.Name))
+
+                if 0 < len(t.Parameters):
+                    if t.Name == "ptr":
+                        return self.b.line(
+                            [head, self.string(" "),
+                            self.Type(t.Parameters[0])])
+
+                    else:
+                        return self.b.line([
+                            head,
+                            self.pars(self.csv([self.Type(p) for p in t.Parameters]), "[", "]"),
+                        ])
 
                 else:
-                    return self.b.line([
-                        head,
-                        self.pars(self.csv([self.Type(p) for p in t.Parameters])),
-                    ])
-
-            else:
-                return head
+                    return head
 
     def Typedef(self, typedef: TypedefParams) -> BlockId:
         return self.b.line([
             self.string(typedef.Name),
+            self.string("*" if typedef.Exported else ""),
             self.string(" = "),
             self.Type(typedef.Base),
         ])
 
     def EnumField(self, f: EnumFieldParams, padTo: int = 0) -> BlockId:
         return self.b.line([
-            self.string(f.Name.ljust(padTo)),
+            self.string(self.safename(f.Name).ljust(padTo)),
             *([] if f.Value is None else [self.string(" = "), f.Value]),
         ])
 
     def Enum(self, enum: EnumParams) -> BlockId:
         head = self.b.line([
-            self.string(enum.Name),
+            self.string(self.safename(enum.Name)),
             self.Pragmas(enum.Pragmas),
             self.string(" = "),
             self.string("enum"),
         ])
 
-        field_widths: int = max([len(f.Name) for f in enum.Fields] + [0])
+        field_widths: int = max([len(self.safename(f.Name)) for f in enum.Fields] + [0])
 
         return self.b.stack([
             head,
@@ -205,7 +285,7 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Field(self, f: IdentParams, padTo: int = 0) -> BlockId:
         return self.b.line([
-            self.string(f.Name.ljust(padTo)),
+            self.string(self.safename(f.Name).ljust(padTo)),
             self.string("*" if f.Exported else ""),
             self.string(": "),
             self.Type(f.Type),
@@ -213,7 +293,7 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Pragma(self, p: PragmaParams) -> BlockId:
         return self.b.line([
-            self.string(p.Name), *([] if len(p.Arguments) == 0 else [
+            self.string(self.safename(p.Name)), *([] if len(p.Arguments) == 0 else [
                 self.string(": "),
                 *p.Arguments,
             ])
@@ -235,7 +315,7 @@ class ASTBuilder(base.AstbuilderBase):
             self.string("object"),
         ])
 
-        field_widths: int = max([len(f.Name) for f in Obj.Fields] + [0]) + 1
+        field_widths: int = max([len(self.safename(f.Name)) for f in Obj.Fields] + [0]) + 1
 
         return self.b.stack([
             head,

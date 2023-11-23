@@ -22,6 +22,7 @@ import astbuilder_nim as nim
 from py_textlayout.py_textlayout import TextLayout, TextOptions
 import deal
 import shutil
+import itertools
 
 from py_scriptutils.script_logging import log
 import py_scriptutils.toml_config_profiler as conf_provider
@@ -37,6 +38,16 @@ if TYPE_CHECKING:
     from py_textlayout.py_textlayout import BlockId
 else:
     BlockId = NewType('BlockId', int)
+
+
+
+def relpath(base: Path, target: Path) -> str:
+    if base.parent == target.parent:
+        return "./" + target.name
+
+    else:
+        return os.path.relpath(base.resolve(), target.resolve())
+    
 
 
 class TuOptions(BaseModel):
@@ -297,7 +308,7 @@ class GenGraph:
             return None
 
         else:
-            return os.path.relpath(base.resolve(), result.resolve())
+            return relpath(result, base)
 
     def id_from_hash(self, hashed: int) -> int:
         if hashed not in self.id_map:
@@ -467,17 +478,30 @@ class GenGraph:
         for func in wrap.tu.functions:
             self.add_function(func, sub)
 
-    def type_to_nim(self, t: QualType) -> nim.Type:
+    def type_to_nim(self, b: nim.ASTBuilder, t: QualType) -> nim.Type:
         if t.func:
             return nim.Type(Name="",
                             Kind=nim.TypeKind.Function,
                             Parameters=[
-                                self.type_to_nim(t.func.ReturnTy),
-                            ] + [self.type_to_nim(arg) for arg in t.func.Args])
+                                self.type_to_nim(b, t.func.ReturnTy),
+                            ] + [self.type_to_nim(b, arg) for arg in t.func.Args])
         elif t.name == "char" and t.isConst and t.ptrCount == 1:
             return nim.Type("cstring")
 
+        elif t.name == "void" and t.ptrCount == 1:
+            return nim.Type("pointer")
+
+        elif t.Kind == QualTypeKind.Array:
+            return nim.Type("array", Parameters=[
+                self.type_to_nim(b, t.Parameters[1]),
+                self.type_to_nim(b, t.Parameters[0]),
+            ])
+
+        elif t.Kind == QualTypeKind.TypeExpr:
+            return nim.Type("", Kind=nim.TypeKind.Expr, Expr=b.string(t.expr))
+
         else:
+            assert(t.Kind == QualTypeKind.RegularType)
             t_map = t.name
             match t.name:
                 case "int":
@@ -627,6 +651,13 @@ class GenGraph:
                         OneLineImpl=True,
                     ))
 
+        fields: List[GenTuEnumField] = []
+
+        for key, group in itertools.groupby(sorted(enum.fields, key=lambda f: f.value), key=lambda f: f.value):
+            fields.append(list(group)[0])
+            
+
+
         result.types.append(
             nim.EnumParams(
                 Name=c_name,
@@ -635,7 +666,7 @@ class GenGraph:
                         b.string("sizeof(cint)"),
                     ])
                 ],
-                Fields=[c_enum_field(idx, f) for idx, f in enumerate(enum.fields)]))
+                Fields=[c_enum_field(idx, f) for idx, f in enumerate(fields)]))
 
         result.types.append(
             nim.EnumParams(Name=enum.name.name,
@@ -654,26 +685,26 @@ class GenGraph:
                              Fields=[
                                  nim.IdentParams(Name=f.name,
                                                  Exported=True,
-                                                 Type=self.type_to_nim(f.type))
+                                                 Type=self.type_to_nim(b, f.type))
                                  for f in rec.fields
                              ])
         ])
 
     def typedef_to_nim(self, b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
         return ConvRes(types=[
-            nim.TypedefParams(Name=typdef.name.name, Base=self.type_to_nim(typdef.base))
+            nim.TypedefParams(Name=typdef.name.name, Exported=True, Base=self.type_to_nim(b, typdef.base))
         ])
 
     def function_to_nim(self, b: nim.ASTBuilder, func: GenTuFunction) -> ConvRes:
         return ConvRes(procs=[
             nim.FunctionParams(Name=func.name,
-                               ReturnTy=self.type_to_nim(func.result),
+                               ReturnTy=self.type_to_nim(b, func.result),
                                Pragmas=[
                                    nim.PragmaParams("git2Proc"),
                                    nim.PragmaParams("importc"),
                                ],
                                Arguments=[
-                                   nim.IdentParams(Arg.name, self.type_to_nim(Arg.type))
+                                   nim.IdentParams(Arg.name, self.type_to_nim(b, Arg.type))
                                    for Arg in func.arguments
                                ])
         ])

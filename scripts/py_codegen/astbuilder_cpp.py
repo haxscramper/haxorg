@@ -137,6 +137,9 @@ class QualType(BaseModel):
                     origin=origin,
                 )
 
+            case QualTypeKind.TypeExpr:
+                return self.expr
+
             case _:
                 assert False, self.Kind
 

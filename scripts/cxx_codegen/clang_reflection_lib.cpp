@@ -307,10 +307,14 @@ void ReflASTVisitor::fillType(
 
             Out->set_kind(TypeKind::Array);
             fillType(Out->add_parameters(), C_ARRT->getElementType(), Loc);
-            Out->add_parameters()->set_kind(TypeKind::TypeExpr);
+            auto expr_param = Out->add_parameters();
+            expr_param->set_kind(TypeKind::TypeExpr);
             if (auto size = C_ARRT->getSizeExpr()) {
-                fillExpr(
-                    Out->add_parameters()->mutable_typevalue(), size, Loc);
+                fillExpr(expr_param->mutable_typevalue(), size, Loc);
+            } else {
+                expr_param->mutable_typevalue()->set_value(
+                    std::to_string(C_ARRT->getSize().getSExtValue()));
+                expr_param->mutable_dbgorigin()->append(" >int value");
             }
 
         } else if (In->isArrayType()) {
