@@ -203,7 +203,7 @@ def run_collector(conf: TuOptions, input: Path,
         str(input),
     ]
 
-    if IsNewInput(str(input), tmp_output):
+    if IsNewInput([str(input), conf.indexing_tool], tmp_output):
         with open(str(target_files), "w") as file:
             file.write(json.dumps([str(input)], indent=2))
 
@@ -216,6 +216,7 @@ def run_collector(conf: TuOptions, input: Path,
         res_stderr = ""
 
     if res_code != 0:
+        log.warning(f"Failed to run collector for {input}")
         return CollectorRunResult(
             None,
             None,
@@ -300,7 +301,7 @@ class GenGraph:
 
     id_to_entry: Dict[int, Union[GenTuFunction, GenTuStruct,
                                  GenTuEnum]] = field(default_factory=dict)
-    graph: ig.Graph = field(default_factory=lambda: ig.Graph())
+    graph: ig.Graph = field(default_factory=lambda: ig.Graph(directed=True))
     subgraphs: List[Sub] = field(default_factory=list)
 
     id_map: Dict[int, int] = field(default_factory=dict)
@@ -345,31 +346,22 @@ class GenGraph:
                                     FormatMode=nim.ImportParamsMode.Single)
 
     def to_nim_imports(self, sub: Sub) -> nim.ImportParams:
-        dep_types: Dict[str, List[QualType]] = {}
+        external: Set[int] = set()
         for _id in sub.nodes:
-            decl = self.id_to_entry[_id]
-            for typ in self.get_used_type(decl):
-                dep = self.get_declared_sub(typ)
-                if dep is not None:
-                    orig = dep.original
-                    if orig not in dep_types:
-                        dep_types[orig] = []
+            for out in self.graph.incident(_id, mode="out"):
+                target = self.graph.es[out].target
+                if target not in sub.nodes:
+                    external.add(target)
 
-                    if hash_qual_type(typ) not in [
-                            hash_qual_type(t) for t in dep_types[orig]
-                    ]:
-                        dep_types[orig].append(typ)
-
+        target_groups = [sub for sub in self.subgraphs if 0 < len(sub.nodes.intersection(external))]
         result = nim.ImportParams(QuoteImport=True,
                                   FormatMode=nim.ImportParamsMode.Single)
-        for original_path, used_types in dep_types.items():
+        for target in target_groups:
             import_source = self.get_out_path(sub.original)
-            import_target = self.get_out_path(Path(original_path))
+            import_target = self.get_out_path(target.original)
             if import_source.resolve() != import_target.resolve():
                 result.Imported.append(
-                    nim.ImportParamsFile(Name=file_relpath(import_source, import_target),
-                                         Comment=", ".join(
-                                             [f"{t.format()}" for t in used_types])))
+                    nim.ImportParamsFile(Name=file_relpath(import_source, import_target)))
 
         return result
 
@@ -578,13 +570,42 @@ class GenGraph:
 
     def connect_usages(self, conf: TuOptions):
         for _id, decl in self.id_to_entry.items():
-            if not isinstance(decl, GenTuFunction):
-                for used_type in self.get_used_type(decl):
-                    self.use_type(_id, used_type)
+            for used_type in self.get_used_type(decl):
+                self.use_type(_id, used_type)
+
+        # Cross-subgraph usage does not generate cycles all the time. This code expands edge structure
+        # through all the types placed in a single file. Given a file `FA` with types `A1, A2` defined
+        # and file `FB` with types `B1, B2` and `A1 -> B2`, `A2 -> B1` relation, there is no cycle in 
+        # in the type graph, but when imports are generated, the import will be cyclic, because "is in
+        # the same file" is also a relation that affects how the code is ought to be structured. 
+        # 
+        # By adding `A1 -> A2 -> ... AN -> A1` link, converter puts a new cycle into the type graph 
+        # and mutually recursive detection will pick it up later on.
+        for sub in self.subgraphs:
+            type_ids = list(itertools.dropwhile(lambda _id: isinstance(self.id_to_entry[_id], GenTuFunction), sub.nodes))
+
+            if 1 < len(type_ids):
+                for decl1, decl2 in itertools.pairwise(type_ids):
+                    if decl1 != decl2:
+                        self.graph.add_edge(decl1, decl2)
+
+                self.graph.add_edge(type_ids[-1], type_ids[0])
+
 
     def group_connected_files(self, conf: TuOptions):
         # Find strongly connected components
-        sccs = self.graph.connected_components(mode="strong")
+        g = self.graph
+        sccs = [scc for scc in g.connected_components(mode="strong") if 1 < len(scc)]
+
+        with open("/tmp/sccs.txt", "w") as file:
+            for idx, scc in enumerate(sccs):
+                print(f"[{idx}] SCC group " + "~" * 120, file=file)
+                for node in scc:
+                    print(f"  Node {g.vs[node]['label']} in {g.vs[node]['dbg_origin']}", file=file)
+                    for edge in g.incident(node, mode="out"):
+                        print(f"    -> {g.vs[g.es[edge].target]['label']}", file=file)
+
+
 
         # Map each vertex to its corresponding strongly connected component
         vertex_to_scc = {
@@ -595,13 +616,19 @@ class GenGraph:
         def get_scc_indices(sub: GenGraph.Sub):
             return {vertex_to_scc[v] for v in sub.nodes if v in vertex_to_scc}
 
+
+        ungrouped_sets: List[GenGraph.Sub] = []
         # Group vertex sets by their SCCs
         grouped_sets: Dict[frozenset, List[GenGraph.Sub]] = {}
         for vertex_set in self.subgraphs:
             scc_indices = frozenset(get_scc_indices(vertex_set))
-            if scc_indices not in grouped_sets:
-                grouped_sets[scc_indices] = []
-            grouped_sets[scc_indices].append(vertex_set)
+            if len(scc_indices) == 0:
+                ungrouped_sets.append(vertex_set)
+
+            else:
+                if scc_indices not in grouped_sets:
+                    grouped_sets[scc_indices] = []
+                grouped_sets[scc_indices].append(vertex_set)
 
         new_grouped: List[GenGraph.Sub] = []
         for group in grouped_sets.values():
@@ -615,7 +642,7 @@ class GenGraph:
                 log.info("Merging strongly connected files %s" %
                          (", ".join([f"[green]{g.original}[/green]" for g in group])))
 
-        self.subgraphs = new_grouped
+        self.subgraphs = new_grouped + ungrouped_sets
 
     def type_to_nim(self, b: nim.ASTBuilder, t: QualType) -> nim.Type:
         if t.func:
@@ -1068,7 +1095,8 @@ class GenGraph:
                 dot.edge(str(source), str(target), **attrs)
 
         # Render the graph to a file
-        dot.render(output_file)
+        with open(output_file, "w") as file:
+            file.write(dot.source)
 
 
 def model_options(f):

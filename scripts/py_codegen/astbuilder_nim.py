@@ -347,7 +347,7 @@ class ASTBuilder(base.AstbuilderBase):
                         return self.string(f" ## {comment}")
 
             else:
-                return self.string
+                return self.string("")
 
         match p.FormatMode:
             case ImportParamsMode.Single:

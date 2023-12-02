@@ -22,6 +22,47 @@ std::string getAbsoluteDeclLocation(clang::Decl* Decl) {
     return filePath;
 }
 
+
+std::string formatSourceLocation(
+    const clang::SourceLocation& loc,
+    clang::SourceManager&        srcMgr) {
+    if (loc.isValid()) {
+        clang::PresumedLoc presumedLoc = srcMgr.getPresumedLoc(loc);
+
+        if (presumedLoc.isValid()) {
+            std::string filePath = presumedLoc.getFilename();
+            unsigned    line     = presumedLoc.getLine();
+            unsigned    column   = presumedLoc.getColumn();
+
+            // Split the filePath and get the last three parts
+            std::vector<std::string> pathParts;
+            std::istringstream       f(filePath);
+            std::string              s;
+            while (getline(f, s, '/')) {
+                pathParts.push_back(s);
+            }
+
+            const int paths = 4;
+
+            std::string shortPath;
+            int         pathSize = pathParts.size();
+            for (int i = std::max(0, pathSize - paths); i < pathSize;
+                 ++i) {
+                if (i > std::max(0, pathSize - paths)) {
+                    shortPath += "/";
+                }
+                shortPath += pathParts[i];
+            }
+
+            // Format with line and column
+            std::ostringstream formattedLoc;
+            formattedLoc << shortPath << ":" << line << ":" << column;
+            return formattedLoc.str();
+        }
+    }
+    return "Invalid SourceLocation";
+}
+
 std::vector<QualType> ReflASTVisitor::getNamespaces(
     clang::NamespaceDecl const*                 Namespace,
     std::optional<clang::SourceLocation> const& Loc) {
@@ -30,7 +71,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
         && !Namespace->isInlineNamespace()) {
         auto space = &result.emplace_back();
         space->set_name(Namespace->getNameAsString());
-        space->set_dbgorigin(std::format(
+        space->mutable_dbgorigin()->append(std::format(
             "Namespace visitation of '{}'", Namespace->getNameAsString()));
         space->set_isnamespace(true);
         assert(!space->name().empty());
@@ -95,7 +136,7 @@ void ReflASTVisitor::applyNamespaces(
 
             auto space = Out->add_spaces();
             space->set_isnamespace(true);
-            space->set_dbgorigin(newSpace.dbgorigin());
+            space->mutable_dbgorigin()->append(newSpace.dbgorigin());
             space->set_name(newSpace.name());
             // TODO Fill namespace parameters
         }
@@ -148,7 +189,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
     for (auto const* nns : spaces) {
         if (!nns->isAnonymousNamespace() && !nns->isInlineNamespace()) {
             auto space = &result.emplace_back();
-            space->set_dbgorigin("regular type namespaces");
+            space->mutable_dbgorigin()->append("regular type namespaces");
             space->set_name(nns->getNameAsString());
             space->set_isnamespace(true);
         }
@@ -177,7 +218,8 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
             switch (kind) {
                 case clang::NestedNameSpecifier::Identifier: {
                     auto space = &result.emplace_back();
-                    space->set_dbgorigin("Elaborated name identifier");
+                    space->mutable_dbgorigin()->append(
+                        "Elaborated name identifier");
                     space->set_name(nns->getAsIdentifier()->getName());
                     assert(!space->name().empty());
                     break;
@@ -185,7 +227,8 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
                 case clang::NestedNameSpecifier::Namespace: {
                     auto space = &result.emplace_back();
-                    space->set_dbgorigin("Elaborated type namespace");
+                    space->mutable_dbgorigin()->append(
+                        "Elaborated type namespace");
                     space->set_isnamespace(true);
                     space->set_name(
                         nns->getAsNamespace()->getNameAsString());
@@ -225,10 +268,11 @@ void ReflASTVisitor::fillType(
                                            clang::TypedefType>()) {
         clang::TypedefNameDecl* tdDecl = tdType->getDecl();
         Out->set_name(tdDecl->getNameAsString());
-        Out->set_dbgorigin(
-            "typedef type "
-            + tdDecl->getLocation().printToString(
-                Ctx->getSourceManager()));
+        Out->mutable_dbgorigin()->append(
+            " typedef type "
+            + formatSourceLocation(
+                tdDecl->getLocation(), Ctx->getSourceManager()));
+
         applyNamespaces(Out, getNamespaces(tdDecl, Loc));
     } else {
         if (In.isConstQualified()) {
@@ -276,9 +320,10 @@ void ReflASTVisitor::fillType(
         } else if (In->isRecordType()) {
             applyNamespaces(Out, getNamespaces(In, Loc));
 
-            Out->set_dbgorigin(
+            Out->mutable_dbgorigin()->append(
                 "record type filler "
-                + Loc->printToString(Ctx->getSourceManager()));
+                + formatSourceLocation(
+                    Loc.value(), Ctx->getSourceManager()));
 
             Out->set_name(In->getAs<clang::RecordType>()
                               ->getDecl()
@@ -340,7 +385,7 @@ void ReflASTVisitor::fillType(
             for (clang::TemplateArgument const& Arg :
                  TST->template_arguments()) {
                 auto param = Out->add_parameters();
-                param->set_dbgorigin("Type parameter");
+                param->mutable_dbgorigin()->append("Type parameter");
                 fillType(param, Arg, Loc);
             }
         }
@@ -601,6 +646,7 @@ clang::TypedefDecl* findTypedefForDecl(
         }
     }
 
+
     return nullptr;
 }
 
@@ -624,25 +670,26 @@ bool ReflASTVisitor::VisitEnumDecl(clang::EnumDecl* Decl) {
                                   : "")
                            + (Typedef ? "name:" + Decl->getNameAsString()
                                       : "")
-                           + Decl->getLocation().printToString(
-                               Ctx->getSourceManager());
+                           + formatSourceLocation(
+                                 Decl->getLocation(),
+                                 Ctx->getSourceManager());
 
         auto name   = rec->mutable_name();
         auto spaces = getNamespaces(Decl, Decl->getLocation());
 
         if (Typedef != nullptr) {
             name->set_name(Typedef->getNameAsString());
-            name->set_dbgorigin("enum typedef " + origin);
+            name->mutable_dbgorigin()->append("enum typedef " + origin);
             if (!Decl->getNameAsString().empty()) {
                 auto ed = rec->mutable_enumdefname();
                 ed->set_name(Decl->getNameAsString());
-                ed->set_dbgorigin("enum direct " + origin);
+                ed->mutable_dbgorigin()->append("enum direct " + origin);
                 ed->set_tag(TypeTag::TypeTagEnum);
                 applyNamespaces(ed, spaces);
             }
         } else {
             name->set_name(Decl->getNameAsString());
-            name->set_dbgorigin("enum direct " + origin);
+            name->mutable_dbgorigin()->append("enum direct " + origin);
         }
 
 
@@ -670,12 +717,15 @@ bool ReflASTVisitor::VisitTypedefDecl(clang::TypedefDecl* Decl) {
         if (shouldVisit(Decl)) {
             Typedef* def = out->add_typedefs();
             def->mutable_name()->set_name(Decl->getNameAsString());
-            def->mutable_name()->set_dbgorigin(
-                Decl->getLocation().printToString(
-                    Ctx->getSourceManager()));
+            def->mutable_name()->mutable_dbgorigin()->append(
+                formatSourceLocation(
+                    Decl->getLocation(), Ctx->getSourceManager()));
             applyNamespaces(
                 def->mutable_name(),
                 getNamespaces(Decl, Decl->getLocation()));
+
+            def->mutable_basetype()->mutable_dbgorigin()->append(
+                " Typedef Decl Visit");
 
             fillType(
                 def->mutable_basetype(),
