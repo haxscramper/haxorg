@@ -32,6 +32,7 @@ import shutil
 import itertools
 
 from py_scriptutils.script_logging import log
+from py_scriptutils.files import IsNewInput
 import py_scriptutils.toml_config_profiler as conf_provider
 from refl_read import conv_proto_file, ConvTu, open_proto_file
 
@@ -181,8 +182,6 @@ def run_collector(conf: TuOptions, input: Path,
     # unit.
     tmp_output = tmp.joinpath(md5(str(output).encode("utf-8")).hexdigest() + ".pb")
     target_files = tmp_output.with_suffix(".json")
-    with open(str(target_files), "w") as file:
-        file.write(json.dumps([str(input)], indent=2))
 
     flags = [
         f"-p={conf.compilation_database}",
@@ -193,8 +192,17 @@ def run_collector(conf: TuOptions, input: Path,
         str(input),
     ]
 
-    res_code, res_stdout, res_stderr = cast(Tuple[int, str, str],
-                                            tool.run(flags, retcode=None))
+    if IsNewInput(str(input), tmp_output):
+        with open(str(target_files), "w") as file:
+            file.write(json.dumps([str(input)], indent=2))
+
+        res_code, res_stdout, res_stderr = cast(Tuple[int, str, str],
+                                                tool.run(flags, retcode=None))
+
+    else:
+        res_code = 0
+        res_stdout = ""
+        res_stderr = ""
 
     if res_code != 0:
         return CollectorRunResult(
@@ -928,6 +936,63 @@ class CompileCommand(BaseModel):
     file: str
     output: Optional[str] = None
 
+@beartype
+def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: Path, commands: List[CompileCommand]):
+    debug_dir = Path(conf.convert_failure_log_dir)
+    # if debug_dir.exists():
+    #     shutil.rmtree(str(debug_dir))
+
+    debug_dir.mkdir(parents=True, exist_ok=True)
+    sanitized = "".join([c if c.isalnum() else "_" for c in str(path)])
+
+    if not tu.success:
+        log.warning(
+            f"Failed to run conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}"
+        )
+
+    with open(debug_dir.joinpath(sanitized), "w") as file:
+
+        def sep(name: str):
+            file.write("\n\n" + name + "-" * 120 + "\n\n")
+
+        sep("Failure stdout:")
+        file.write(tu.res_stdout)
+
+        sep("Failure stderr:")
+        file.write(tu.res_stderr)
+
+        for cmd in commands:
+            if cmd.file == str(path):
+                sep("Compile commands:")
+                file.write(json.dumps(cmd.model_dump(), indent=2))
+
+                sep("Binary command:")
+                file.write(" \\\n    ".join(cmd.command.split()))
+
+        sep("Flags:")
+        file.write(" \\\n    ".join([conf.indexing_tool] + tu.flags))
+
+@beartype
+def run_collector_for_path(conf: TuOptions, mapping: PathMapping, commands: List[CompileCommand]) -> Optional[TuWrap]:
+    path = mapping.path
+    tu: CollectorRunResult = run_collector(conf, path,
+                                            path.with_suffix(".py"))
+    if tu.success:
+        relative = Path(conf.output_directory).joinpath(
+            path.relative_to(mapping.root))
+
+        if not relative.parent.exists():
+            relative.parent.mkdir(parents=True)
+
+        with open(str(relative.with_suffix(".json")), "w") as file:
+            file.write(open_proto_file(str(tu.pb_path)).to_json(2))
+
+        write_run_result_information(conf, tu, path, commands)
+
+        return TuWrap(name=path.stem,
+                    tu=tu.conv_tu,
+                    original=path,
+                    mapping=relative.with_suffix(".nim"))
 
 @click.command()
 @click.option("--config",
@@ -948,11 +1013,6 @@ def run(ctx: click.Context, config: str, **kwargs):
     paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes)  # [:10]
     wraps: List[TuWrap] = []
 
-    debug_dir = Path(conf.convert_failure_log_dir)
-    # if debug_dir.exists():
-    #     shutil.rmtree(str(debug_dir))
-
-    debug_dir.mkdir(parents=True, exist_ok=True)
 
     with GlobCompleteEvent("Load compilation database", "config"):
         commands: List[CompileCommand] = [
@@ -963,58 +1023,14 @@ def run(ctx: click.Context, config: str, **kwargs):
     with GlobCompleteEvent("Run reflection collector", "read"):
         mapping: PathMapping
         for mapping in paths:
-            path = mapping.path
-            if any([cmd.file == str(path) for cmd in commands]):
-                with GlobCompleteEvent("Run collector", "read", {"path": str(path)}):
-                    tu: CollectorRunResult = run_collector(conf, path,
-                                                           path.with_suffix(".py"))
-                    if tu.success:
-                        relative = Path(conf.output_directory).joinpath(
-                            path.relative_to(mapping.root))
-
-                        if not relative.parent.exists():
-                            relative.parent.mkdir(parents=True)
-
-                        with open(str(relative.with_suffix(".json")), "w") as file:
-                            file.write(open_proto_file(str(tu.pb_path)).to_json(2))
-
-                        wraps.append(
-                            TuWrap(name=path.stem,
-                                   tu=tu.conv_tu,
-                                   original=path,
-                                   mapping=relative.with_suffix(".nim")))
-
-                    sanitized = "".join([c if c.isalnum() else "_" for c in str(path)])
-
-                    if not tu.success:
-                        log.warning(
-                            f"Failed to run conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}"
-                        )
-
-                    with open(debug_dir.joinpath(sanitized), "w") as file:
-
-                        def sep(name: str):
-                            file.write("\n\n" + name + "-" * 120 + "\n\n")
-
-                        sep("Failure stdout:")
-                        file.write(tu.res_stdout)
-
-                        sep("Failure stderr:")
-                        file.write(tu.res_stderr)
-
-                        for cmd in commands:
-                            if cmd.file == str(path):
-                                sep("Compile commands:")
-                                file.write(json.dumps(cmd.model_dump(), indent=2))
-
-                                sep("Binary command:")
-                                file.write(" \\\n    ".join(cmd.command.split()))
-
-                        sep("Flags:")
-                        file.write(" \\\n    ".join([conf.indexing_tool] + tu.flags))
+            if any([cmd.file == str(mapping.path) for cmd in commands]):
+                with GlobCompleteEvent("Run collector", "read", {"path": str(mapping.path)}):
+                    wrap = run_collector_for_path(conf, mapping, commands)
+                    if wrap:
+                        wraps.append(wrap)
 
             else:
-                log.warning(f"No compile commands for {path}")
+                log.warning(f"No compile commands for {mapping.path}")
 
     with GlobCompleteEvent("Merge graph information", "build"):
         graph: GenGraph = GenGraph()
@@ -1029,22 +1045,28 @@ def run(ctx: click.Context, config: str, **kwargs):
 
     with GlobCompleteEvent("Write wrapper output", "write"):
         for sub in graph.subgraphs:
-            code: Optional[str] = graph.to_nim(sub, conf)
-            if code:
-                result = graph.get_out_path(sub.original)
-                with open(str(result), "w") as file:
-                    file.write(code)
+            with GlobCompleteEvent("Single file wrap", "write", {"original": str(sub.original)}):
+                code: Optional[str] = graph.to_nim(sub, conf)
+                if code:
+                    result = graph.get_out_path(sub.original)
+                    with open(str(result), "w") as file:
+                        file.write(code)
 
-            else:
-                log.warning(f"No declarations found for {sub.original}")
+                else:
+                    log.warning(f"No declarations found for {sub.original}")
 
     with GlobCompleteEvent("Write translation unit information", "write"):
         for sub in graph.subgraphs:
-            info = graph.to_decl_info(sub)
-            result = graph.get_out_path(sub.original)
-            result = result.with_stem(result.stem + "-tu").with_suffix(".json")
-            with open(str(result), "w") as file:
-                file.write(json.dumps(info.model_dump(), indent=2))
+            with GlobCompleteEvent("Write subgraph information", "write", {"original": str(sub.original)}):
+                with GlobCompleteEvent("Collect declaration info", "write"):
+                    info = graph.to_decl_info(sub)
+
+                result = graph.get_out_path(sub.original)
+                result = result.with_stem(result.stem + "-tu").with_suffix(".json")
+
+                with GlobCompleteEvent("Write JSON information for file", "write"):
+                    with open(str(result), "w") as file:
+                        file.write(json.dumps(info.model_dump(), indent=2))
 
     GlobExportJson(conf.execution_trace)
     log.info("Done all")
