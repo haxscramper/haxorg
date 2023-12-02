@@ -48,6 +48,8 @@ else:
     BlockId = NewType('BlockId', int)
 
 
+
+
 def file_relpath(base: Path, target: Path) -> str:
     if base.parent == target.parent:
         return "./" + target.name
@@ -520,6 +522,40 @@ class GenGraph:
 
         for func in wrap.tu.functions:
             self.add_function(func, sub)
+
+    def group_connected_files(self, conf: TuOptions):
+        # Find strongly connected components
+        sccs = self.graph.connected_components(mode="strong")
+
+        # Map each vertex to its corresponding strongly connected component
+        vertex_to_scc = {vertex: scc_index for scc_index, scc in enumerate(sccs) for vertex in scc}
+
+        # Function to get the SCC index for a set of vertices
+        def get_scc_indices(sub: GenGraph.Sub):
+            return {vertex_to_scc[v] for v in sub.nodes if v in vertex_to_scc}
+
+        # Group vertex sets by their SCCs
+        grouped_sets: Dict[frozenset, List[GenGraph.Sub]] = {}
+        for vertex_set in self.subgraphs:
+            scc_indices = frozenset(get_scc_indices(vertex_set))
+            if scc_indices not in grouped_sets:
+                grouped_sets[scc_indices] = []
+            grouped_sets[scc_indices].append(vertex_set)
+
+        new_grouped: List[GenGraph.Sub] = []
+        for group in grouped_sets.values():
+            result = GenGraph.Sub(original=group[0].original, name=group[0].name)
+            for item in group:
+                result.nodes = result.nodes.union(item.nodes)
+
+            new_grouped.append(result)
+
+            if 1 < len(group):
+                log.info("Merging strongly connected files %s" % (
+                    ", ".join([f"[green]{g.original}[/green]" for g in group])
+                ))
+
+        self.subgraphs = new_grouped
 
     def type_to_nim(self, b: nim.ASTBuilder, t: QualType) -> nim.Type:
         if t.func:
@@ -1038,6 +1074,9 @@ def run(ctx: click.Context, config: str, **kwargs):
             graph.add_unit(wrap)
 
         log.info("Finished conversion")
+
+    with GlobCompleteEvent("Group connected files", "build"):
+        graph.group_connected_files(conf)
 
     with GlobCompleteEvent("Generate graphviz image", "write"):
         graph.graph["rankdir"] = "LR"
