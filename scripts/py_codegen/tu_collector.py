@@ -25,6 +25,7 @@ from gen_tu_cpp import (
     GenTuTypedef,
     GenTuEnumField,
     QualTypeKind,
+    GenTuField
 )
 from dataclasses import dataclass, field
 from copy import deepcopy
@@ -743,6 +744,9 @@ class GenGraph:
         result = ConvRes()
         c_name = "c_" + enum.name.name
 
+        def f_name(f: GenTuField) -> str:
+            return nim.sanitize_name(f.name)
+
         def c_enum_field(idx: int, f: GenTuEnumField) -> nim.EnumFieldParams:
             value: str = ""
             if f.value == idx:
@@ -757,7 +761,7 @@ class GenGraph:
             else:
                 value = str(f.value)
 
-            return nim.EnumFieldParams(Name="c_" + f.name, Value=b.string(value))
+            return nim.EnumFieldParams(Name="c_" + f_name(f), Value=b.string(value))
 
         result.procs.append(
             nim.FunctionParams(
@@ -769,7 +773,7 @@ class GenGraph:
                 OneLineImpl=True,
             ))
 
-        w = max([len(f.name) for f in enum.fields] + [0])
+        w = max([len(f_name(f)) for f in enum.fields] + [0])
         result.procs.append(
             nim.FunctionParams(
                 Kind=nim.FunctionKind.CONVERTER,
@@ -790,7 +794,7 @@ class GenGraph:
                                 2,
                                 b.b.stack([
                                     b.string(
-                                        f"of {f.name.ljust(w)}: result = cint(result or {f.value})"
+                                        f"of {f_name(f).ljust(w)}: result = cint(result or {f.value})"
                                     ) for f in enum.fields
                                 ])),
                         ])),
@@ -838,8 +842,15 @@ class GenGraph:
         result.types.append(
             nim.EnumParams(Name=enum.name.name,
                            Exported=True,
-                           Fields=[nim.EnumFieldParams(Name=f.name) for f in enum.fields
+                           Fields=[nim.EnumFieldParams(Name=f_name(f)) for f in enum.fields
                                   ]))
+
+        return result
+
+    def field_to_nim(self, b: nim.ASTBuilder, f: GenTuField) -> nim.IdentParams:
+        result = nim.IdentParams(Name=nim.sanitize_name(f.name), Exported=True, Type=self.type_to_nim(b, f.type))
+        if result.Name != f.name:
+            result.Pragmas.append(nim.PragmaParams("importc", [b.Lit(f.name)]))
 
         return result
 
@@ -853,11 +864,7 @@ class GenGraph:
                     *([nim.PragmaParams("incompleteStruct")] if rec.IsForwardDecl else []
                      ),
                 ],
-                Fields=[
-                    nim.IdentParams(
-                        Name=f.name, Exported=True, Type=self.type_to_nim(b, f.type))
-                    for f in rec.fields
-                ])
+                Fields=[self.field_to_nim(b, f) for f in rec.fields])
         ])
 
     def typedef_to_nim(self, b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
@@ -869,11 +876,11 @@ class GenGraph:
 
     def function_to_nim(self, b: nim.ASTBuilder, func: GenTuFunction) -> ConvRes:
         return ConvRes(procs=[
-            nim.FunctionParams(Name=func.name,
+            nim.FunctionParams(Name=nim.sanitize_name(func.name),
                                ReturnTy=self.type_to_nim(b, func.result),
                                Pragmas=[
                                    nim.PragmaParams("git2Proc"),
-                                   nim.PragmaParams("importc"),
+                                   nim.PragmaParams("importc", [b.Lit(func.name)]),
                                ],
                                Arguments=[
                                    nim.IdentParams(Arg.name, self.type_to_nim(

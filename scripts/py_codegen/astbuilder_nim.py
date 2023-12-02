@@ -1,11 +1,12 @@
 from py_textlayout.py_textlayout import TextLayout
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, NewType
-from beartype.typing import List, Optional
+from beartype.typing import List, Optional, Union
 from beartype import beartype
 import astbuilder_base as base
 from enum import Enum
 import itertools
+import re
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout import BlockId
@@ -69,6 +70,7 @@ class IdentParams:
     Name: str
     Type: Type
     Exported: bool = False
+    Pragmas: List[PragmaParams] = field(default_factory=list)
 
 
 @beartype
@@ -125,6 +127,14 @@ class FunctionParams:
     Kind: FunctionKind = FunctionKind.PROC
     OneLineImpl: bool = False
 
+@beartype
+def sanitize_name(name: str) -> str:
+    name = re.sub("^_+", "", name)
+    name = re.sub("_+$", "", name)
+    while "__" in name:
+        name = re.sub("_{2,}", "_", name)
+
+    return name
 
 @beartype
 class ASTBuilder(base.AstbuilderBase):
@@ -259,6 +269,14 @@ class ASTBuilder(base.AstbuilderBase):
             *([] if f.Value is None else [self.string(" = "), f.Value]),
         ])
 
+    def Lit(self, value: Union[str, int]) -> BlockId:
+        match value:
+            case str():
+                return self.string(f"\"{value}\"")
+
+            case int():
+                return self.string(str(value))
+
     def Enum(self, enum: EnumParams) -> BlockId:
         head = self.b.line([
             self.string(self.safename(enum.Name)),
@@ -315,6 +333,7 @@ class ASTBuilder(base.AstbuilderBase):
         return self.b.line([
             self.string(self.safename(f.Name).ljust(padTo)),
             self.string("*" if f.Exported else ""),
+            self.Pragmas(f.Pragmas),
             self.string(": "),
             self.Type(f.Type),
         ])
