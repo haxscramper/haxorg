@@ -1,7 +1,18 @@
 #!/usr/bin/env python
 
 from beartype import beartype
-from beartype.typing import (List, cast, Any, Tuple, Union, Dict, Set, Optional, TypeAlias, NewType,)
+from beartype.typing import (
+    List,
+    cast,
+    Any,
+    Tuple,
+    Union,
+    Dict,
+    Set,
+    Optional,
+    TypeAlias,
+    NewType,
+)
 from pydantic import BaseModel, Field
 from pprint import pprint, pformat
 from plumbum import local
@@ -46,8 +57,6 @@ if TYPE_CHECKING:
     from py_textlayout.py_textlayout import BlockId
 else:
     BlockId = NewType('BlockId', int)
-
-
 
 
 def file_relpath(base: Path, target: Path) -> str:
@@ -326,12 +335,43 @@ class GenGraph:
         return self.get_sub(_id)
 
     # Generate import from file placed in `result` to the content defined in `sub`
-    def gen_import(self, result: Path, base: Path) -> Optional[str]:
-        if base.resolve() == result.resolve():
-            return None
+    def gen_file_import(self, import_source: Path,
+                        import_target: Path) -> Optional[nim.ImportParams]:
+        if import_target.resolve() != import_source.resolve():
+            return nim.ImportParams([
+                nim.ImportParamsFile(file_relpath(import_source, import_target),
+                                     "From gen file")
+            ],
+                                    FormatMode=nim.ImportParamsMode.Single)
 
-        else:
-            return file_relpath(result, base)
+    def to_nim_imports(self, sub: Sub) -> nim.ImportParams:
+        dep_types: Dict[str, List[QualType]] = {}
+        for _id in sub.nodes:
+            decl = self.id_to_entry[_id]
+            for typ in self.get_used_type(decl):
+                dep = self.get_declared_sub(typ)
+                if dep is not None:
+                    orig = dep.original
+                    if orig not in dep_types:
+                        dep_types[orig] = []
+
+                    if hash_qual_type(typ) not in [
+                            hash_qual_type(t) for t in dep_types[orig]
+                    ]:
+                        dep_types[orig].append(typ)
+
+        result = nim.ImportParams(QuoteImport=True,
+                                  FormatMode=nim.ImportParamsMode.Single)
+        for original_path, used_types in dep_types.items():
+            import_source = self.get_out_path(sub.original)
+            import_target = self.get_out_path(Path(original_path))
+            if import_source.resolve() != import_target.resolve():
+                result.Imported.append(
+                    nim.ImportParamsFile(Name=file_relpath(import_source, import_target),
+                                         Comment=", ".join(
+                                             [f"{t.format()}" for t in used_types])))
+
+        return result
 
     def id_from_hash(self, hashed: int) -> int:
         if hashed not in self.id_map:
@@ -367,6 +407,9 @@ class GenGraph:
             self.graph.add_vertex()
             self.graph.vs[_type]["label"] = Type.format()
             self.graph.vs[_type]["dbg_origin"] = Type.dbg_origin
+            self.graph.vs[_type]["is_builtin"] = Type.isBuiltin or Type.name in [
+                "size_t", "uint32_t", "uint16_t", "int32_t"
+            ]
 
         if not self.graph.are_connected(_id, _type):
             self.graph.add_edge(_id, _type)
@@ -388,6 +431,16 @@ class GenGraph:
                     for arg in t.func.Args:
                         use_rec_type(arg)
 
+                case QualTypeKind.Array:
+                    for p in t.Parameters:
+                        use_rec_type(p)
+
+                case QualTypeKind.TypeExpr:
+                    pass
+
+                case _:
+                    assert False, t.Kind
+
         match decl:
             case GenTuStruct():
                 for _field in decl.fields:
@@ -405,6 +458,12 @@ class GenGraph:
             case GenTuTypedef():
                 assert decl.base, decl
                 use_rec_type(decl.base)
+
+            case GenTuEnum():
+                pass
+
+            case _:
+                assert False, type(decl)
 
         return result
 
@@ -475,9 +534,6 @@ class GenGraph:
         self.graph.vs[_id]["dbg_origin"] = struct.name.dbg_origin
         self.graph.vs[_id]["color"] = "green"
 
-        for typ in self.get_used_type(struct):
-            self.use_type(_id, typ, dbg_from=struct.name.format())
-
     def add_enum(self, enum: GenTuEnum, sub: Sub):
         _id = self.add_entry(enum, sub)
 
@@ -495,9 +551,6 @@ class GenGraph:
         self.graph.vs[_id]["label"] = typedef.name.format()
         self.graph.vs[_id]["dbg_origin"] = typedef.name.dbg_origin
         self.graph.vs[_id]["color"] = "blue"
-
-        for typ in self.get_used_type(typedef):
-            self.use_type(_id, typ, dbg_from=typedef.name.format())
 
     def add_function(self, func: GenTuFunction, sub: Sub):
         _id = self.add_entry(func, sub)
@@ -523,12 +576,20 @@ class GenGraph:
         for func in wrap.tu.functions:
             self.add_function(func, sub)
 
+    def connect_usages(self, conf: TuOptions):
+        for _id, decl in self.id_to_entry.items():
+            if not isinstance(decl, GenTuFunction):
+                for used_type in self.get_used_type(decl):
+                    self.use_type(_id, used_type)
+
     def group_connected_files(self, conf: TuOptions):
         # Find strongly connected components
         sccs = self.graph.connected_components(mode="strong")
 
         # Map each vertex to its corresponding strongly connected component
-        vertex_to_scc = {vertex: scc_index for scc_index, scc in enumerate(sccs) for vertex in scc}
+        vertex_to_scc = {
+            vertex: scc_index for scc_index, scc in enumerate(sccs) for vertex in scc
+        }
 
         # Function to get the SCC index for a set of vertices
         def get_scc_indices(sub: GenGraph.Sub):
@@ -551,9 +612,8 @@ class GenGraph:
             new_grouped.append(result)
 
             if 1 < len(group):
-                log.info("Merging strongly connected files %s" % (
-                    ", ".join([f"[green]{g.original}[/green]" for g in group])
-                ))
+                log.info("Merging strongly connected files %s" %
+                         (", ".join([f"[green]{g.original}[/green]" for g in group])))
 
         self.subgraphs = new_grouped
 
@@ -813,24 +873,19 @@ class GenGraph:
         types: List[BlockId] = []
         procs: List[BlockId] = []
         header: List[BlockId] = []
-        depend_on: Set[str] = set()
+        depend_on: List[nim.ImportParams] = []
 
         for imp in sorted(conf.universal_import):
-            gen = self.gen_import(self.get_out_path(sub.original), Path(conf.output_directory).joinpath(imp))
+            gen = self.gen_file_import(self.get_out_path(sub.original),
+                                       Path(conf.output_directory).joinpath(imp))
             if gen is not None:
-                depend_on.add(gen)
+                depend_on.append(gen)
 
+        depend_on.append(self.to_nim_imports(sub))
 
         for _id in sub.nodes:
             decl = self.id_to_entry[_id]
             conv: ConvRes = ConvRes()
-            for typ in self.get_used_type(decl):
-                dep = self.get_declared_sub(typ)
-                if dep is not None:
-                    imp = self.gen_import(self.get_out_path(sub.original),
-                                          self.get_out_path(dep.original))
-                    if imp is not None:
-                        depend_on.add(imp)
 
             match decl:
                 case GenTuEnum():
@@ -861,9 +916,8 @@ class GenGraph:
                 elif isinstance(_type, nim.TypedefParams):
                     types.append(builder.Typedef(_type))
 
-        for item in sorted([it for it in depend_on]):
-            header.append(builder.string(f"import \"{item}\""))
-
+        for item in depend_on:
+            header.append(builder.Import(item))
 
         if 0 < len(types) or 0 < len(procs):
             opts = TextOptions()
@@ -884,14 +938,68 @@ class GenGraph:
 
             return newCode
 
-    def to_graphviz(self, output_file: str, with_subgraphs: bool = True):
+    def to_csv(self, node_file, edge_file):
+        """
+        Export an igraph graph to CSV files for nodes and edges.
+
+        Args:
+        - graph (ig.Graph): The igraph graph to export.
+        - node_file (str): File path for the nodes CSV.
+        - edge_file (str): File path for the edges CSV.
+        """
+        import pandas as pd
+
+        g = self.graph
+
+        # Export Nodes to CSV
+        nodes_data = [
+            dict(node_id=node, **{attr: g.vs[node][attr]
+                                  for attr in g.vs.attributes()})
+            for node in range(len(g.vs))
+        ]
+        nodes_df = pd.DataFrame(nodes_data)
+        nodes_df.to_csv(node_file, index=False)
+
+        # Export Edges to CSV
+        edges_data = [
+            dict(edge_id=edge,
+                 source_id=g.es[edge].source,
+                 target_id=g.es[edge].target,
+                 **{attr: g.es[edge][attr]
+                    for attr in g.es.attributes()})
+            for edge in range(len(g.es))
+        ]
+        edges_df = pd.DataFrame(edges_data)
+        edges_df.to_csv(edge_file, index=False)
+
+    def to_graphviz(self, output_file: str, with_subgraphs: bool = True, drop_zero_degree: bool = False, drop_builtin_types: bool = True):
         dot = gv.Digraph(format='dot')
         dot.attr(rankdir="LR")
+        dot.attr(overlap="false")
+        dot.attr(splies="true")
+        dot.attr(ranksep="3")
         dot.attr("node", shape="rect")
+        dot.attr(concentrate="true")
         g = self.graph
 
         # Track which nodes have been added to subgraphs
         added_nodes = set()
+
+
+        @beartype
+        def is_accepted_node(node: int) -> bool:
+            if drop_zero_degree and g.degree(node) == 0:
+                return False
+
+            elif drop_builtin_types and g.vs[node]["is_builtin"]:
+                return False
+
+            else:
+                return True
+
+        @beartype
+        def is_accepted_connection(edge: ig.Edge) -> bool:
+            return not drop_builtin_types or not g.vs[edge.target]["is_builtin"]
 
         parent_tus: Dict[int, List[str]] = {}
         for node in g.vs:
@@ -903,16 +1011,16 @@ class GenGraph:
                     else:
                         parent_tus[node.index].append(sub.name)
 
-
         def rec_subgraph(target: gv.Graph, sub: GenGraph.Sub):
             for node in sub.nodes:
-                target.node(f'{sub.name}_{node}',
-                        **{attr: g.vs[node][attr] for attr in g.vs.attributes()})
-                added_nodes.add(node)
-                if node in parent_tus and 1 < len(parent_tus[node]):
-                    for target in parent_tus[node]:
-                        if target != sub.name:
-                            dot.edge(f"{target}_{node}", f"{sub.name}_{node}")           
+                if is_accepted_node(node):
+                    target.node(f'{sub.name}_{node}',
+                                **{attr: str(g.vs[node][attr]) for attr in g.vs.attributes()})
+                    added_nodes.add(node)
+                    if node in parent_tus and 1 < len(parent_tus[node]):
+                        for target in parent_tus[node]:
+                            if target != sub.name:
+                                dot.edge(f"{target}_{node}", f"{sub.name}_{node}")
 
         # Add nodes to subgraphs
         for sub in self.subgraphs:
@@ -924,17 +1032,18 @@ class GenGraph:
             else:
                 rec_subgraph(dot, sub)
 
-            
-
-
         # Add top-level nodes
         for node in range(len(g.vs)):
             if node not in added_nodes:
-                dot.node(str(node),
-                         **{attr: g.vs[node][attr] for attr in g.vs.attributes()})
+                if is_accepted_node(node):
+                    dot.node(str(node),
+                            **{attr: str(g.vs[node][attr]) for attr in g.vs.attributes()})
 
         # Add edges
         for edge in g.es:
+            if not is_accepted_connection(edge):
+                continue
+            
             source, target = edge.tuple
 
             source_subs = [sub.name for sub in self.subgraphs if source in sub.nodes]
@@ -972,8 +1081,10 @@ class CompileCommand(BaseModel):
     file: str
     output: Optional[str] = None
 
+
 @beartype
-def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: Path, commands: List[CompileCommand]):
+def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: Path,
+                                 commands: List[CompileCommand]):
     debug_dir = Path(conf.convert_failure_log_dir)
     # if debug_dir.exists():
     #     shutil.rmtree(str(debug_dir))
@@ -1008,14 +1119,14 @@ def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: 
         sep("Flags:")
         file.write(" \\\n    ".join([conf.indexing_tool] + tu.flags))
 
+
 @beartype
-def run_collector_for_path(conf: TuOptions, mapping: PathMapping, commands: List[CompileCommand]) -> Optional[TuWrap]:
+def run_collector_for_path(conf: TuOptions, mapping: PathMapping,
+                           commands: List[CompileCommand]) -> Optional[TuWrap]:
     path = mapping.path
-    tu: CollectorRunResult = run_collector(conf, path,
-                                            path.with_suffix(".py"))
+    tu: CollectorRunResult = run_collector(conf, path, path.with_suffix(".py"))
     if tu.success:
-        relative = Path(conf.output_directory).joinpath(
-            path.relative_to(mapping.root))
+        relative = Path(conf.output_directory).joinpath(path.relative_to(mapping.root))
 
         if not relative.parent.exists():
             relative.parent.mkdir(parents=True)
@@ -1026,9 +1137,10 @@ def run_collector_for_path(conf: TuOptions, mapping: PathMapping, commands: List
         write_run_result_information(conf, tu, path, commands)
 
         return TuWrap(name=path.stem,
-                    tu=tu.conv_tu,
-                    original=path,
-                    mapping=relative.with_suffix(".nim"))
+                      tu=tu.conv_tu,
+                      original=path,
+                      mapping=relative.with_suffix(".nim"))
+
 
 @click.command()
 @click.option("--config",
@@ -1049,7 +1161,6 @@ def run(ctx: click.Context, config: str, **kwargs):
     paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes)  # [:10]
     wraps: List[TuWrap] = []
 
-
     with GlobCompleteEvent("Load compilation database", "config"):
         commands: List[CompileCommand] = [
             CompileCommand.model_validate(d)
@@ -1060,7 +1171,8 @@ def run(ctx: click.Context, config: str, **kwargs):
         mapping: PathMapping
         for mapping in paths:
             if any([cmd.file == str(mapping.path) for cmd in commands]):
-                with GlobCompleteEvent("Run collector", "read", {"path": str(mapping.path)}):
+                with GlobCompleteEvent("Run collector", "read",
+                                       {"path": str(mapping.path)}):
                     wrap = run_collector_for_path(conf, mapping, commands)
                     if wrap:
                         wraps.append(wrap)
@@ -1075,16 +1187,22 @@ def run(ctx: click.Context, config: str, **kwargs):
 
         log.info("Finished conversion")
 
+    with GlobCompleteEvent("Build graph edges", "build"):
+        graph.connect_usages(conf)
+
     with GlobCompleteEvent("Group connected files", "build"):
         graph.group_connected_files(conf)
 
     with GlobCompleteEvent("Generate graphviz image", "write"):
-        graph.graph["rankdir"] = "LR"
-        graph.to_graphviz("/tmp/output.dot", with_subgraphs=False)
+        graph.to_graphviz("/tmp/output.dot", drop_zero_degree=True)
+        graph.to_csv("/tmp/nodes.csv", "/tmp/edges.csv")
+
+    graph.graph.write_graphml("/tmp/output.graphml")
 
     with GlobCompleteEvent("Write wrapper output", "write"):
         for sub in graph.subgraphs:
-            with GlobCompleteEvent("Single file wrap", "write", {"original": str(sub.original)}):
+            with GlobCompleteEvent("Single file wrap", "write",
+                                   {"original": str(sub.original)}):
                 code: Optional[str] = graph.to_nim(sub, conf)
                 if code:
                     result = graph.get_out_path(sub.original)
@@ -1096,7 +1214,8 @@ def run(ctx: click.Context, config: str, **kwargs):
 
     with GlobCompleteEvent("Write translation unit information", "write"):
         for sub in graph.subgraphs:
-            with GlobCompleteEvent("Write subgraph information", "write", {"original": str(sub.original)}):
+            with GlobCompleteEvent("Write subgraph information", "write",
+                                   {"original": str(sub.original)}):
                 with GlobCompleteEvent("Collect declaration info", "write"):
                     info = graph.to_decl_info(sub)
 

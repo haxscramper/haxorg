@@ -5,6 +5,7 @@ from beartype.typing import List, Optional
 from beartype import beartype
 import astbuilder_base as base
 from enum import Enum
+import itertools
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout import BlockId
@@ -30,6 +31,29 @@ class Type:
     Kind: TypeKind = TypeKind.RegularType
     Parameters: List['Type'] = field(default_factory=list)
     Expr: Optional[BlockId] = None
+
+
+@beartype
+@dataclass
+class ImportParamsFile:
+    Name: str
+    Comment: str = ""
+
+
+class ImportParamsMode(Enum):
+    Stack = 1  ## If multiple elements are provided, stack import statements with `[]`
+    Single = 2  ## If multiple statements provided, put each import on its own line
+    Oneline = 3  ## Format the whole import as one line
+
+
+@beartype
+@dataclass
+class ImportParams:
+    ## Configuration for the import statement
+    Imported: List[ImportParamsFile] = field(
+        default_factory=list)  ## One or more files to be imported
+    QuoteImport: bool = True  ## Quote each individual import statement or paste them as raw identifiers
+    FormatMode: ImportParamsMode = ImportParamsMode.Stack
 
 
 @beartype
@@ -302,6 +326,45 @@ class ASTBuilder(base.AstbuilderBase):
                 *p.Arguments,
             ])
         ])
+
+    def Import(self, p: ImportParams) -> BlockId:
+
+        @beartype
+        def quot(item: str) -> BlockId:
+            if p.QuoteImport:
+                return self.string(f"\"{item}\"")
+
+            else:
+                return self.string(item)
+
+        def comm(comment: str) -> BlockId:
+            if 0 < len(comment):
+                match p.FormatMode:
+                    case ImportParamsMode.Oneline:
+                        return self.string(f" ##[ {comment} ]##")
+
+                    case ImportParamsMode.Stack | ImportParamsMode.Single:
+                        return self.string(f" ## {comment}")
+
+            else:
+                return self.string
+
+        match p.FormatMode:
+            case ImportParamsMode.Single:
+                return self.b.stack([
+                    self.b.line([self.string("import "),
+                                 quot(it.Name),
+                                 comm(it.Comment)]) for it in p.Imported
+                ])
+
+            case ImportParamsMode.Oneline:
+                return self.b.line([
+                    self.string("import "),
+                    self.csv([
+                        self.b.line([quot(it.Name), comm(it.Comment)])
+                        for it in p.Imported
+                    ])
+                ])
 
     def Pragmas(self, pragmas: List[PragmaParams]) -> BlockId:
         return self.b.line([

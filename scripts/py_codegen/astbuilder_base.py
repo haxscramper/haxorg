@@ -39,7 +39,6 @@ class AstbuilderBase:
 
         return self.b.stack(res)
 
-
     def csv(self,
             items: Union[List[str], List[BlockId]],
             isLine=True,
