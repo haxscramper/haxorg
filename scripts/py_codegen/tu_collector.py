@@ -213,6 +213,8 @@ def run_collector(conf: TuOptions, input: Path,
         with open(str(target_files), "w") as file:
             file.write(json.dumps([str(input)], indent=2))
 
+        log.info(f"Running collector on {input}")
+
         res_code, res_stdout, res_stderr = cast(Tuple[int, str, str],
                                                 tool.run(flags, retcode=None))
 

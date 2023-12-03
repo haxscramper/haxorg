@@ -307,8 +307,14 @@ void ReflASTVisitor::fillType(
             Out->set_name("char");
 
         } else if (In->isBuiltinType()) {
-            Out->mutable_dbgorigin()->append(" >builtin");
-            Out->set_name(In.getAsString());
+            Out->mutable_dbgorigin()->append(" >builtin/unqual");
+            auto unqual = In.getUnqualifiedType().getAsString();
+            if (unqual.starts_with("const ")) {
+                unqual = unqual.substr(strlen("const "));
+            }
+
+
+            Out->set_name(unqual);
 
         } else if (
             clang::ElaboratedType const* elab = In->getAs<
