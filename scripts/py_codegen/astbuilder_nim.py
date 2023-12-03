@@ -127,6 +127,7 @@ class FunctionParams:
     Kind: FunctionKind = FunctionKind.PROC
     OneLineImpl: bool = False
 
+
 @beartype
 def sanitize_name(name: str) -> str:
     name = re.sub("^_+", "", name)
@@ -136,11 +137,12 @@ def sanitize_name(name: str) -> str:
 
     return name
 
+
 @beartype
 class ASTBuilder(base.AstbuilderBase):
 
     def __init__(self, in_b: TextLayout):
-        self.b = in_b
+        super().__init__(in_b)
 
     def safename(self, name: str) -> str:
         if name in set([
@@ -213,6 +215,9 @@ class ASTBuilder(base.AstbuilderBase):
         ]):
             return f"`{name}`"
 
+        elif not all([c.isalnum() or c == "_" for c in name]):
+            return f"`{name}`"
+
         else:
             return name
 
@@ -237,7 +242,9 @@ class ASTBuilder(base.AstbuilderBase):
                 return t.Expr
 
             case TypeKind.RegularType:
-                head: BlockId = self.string(t.Name) if t.Name in ["ptr", "ref"] else self.string(self.safename(t.Name)) 
+                head: BlockId = self.string(
+                    t.Name) if t.Name in ["ptr", "ref"] else self.string(
+                        self.safename(t.Name))
 
                 if 0 < len(t.Parameters):
                     if t.Name == "ptr":
@@ -299,35 +306,51 @@ class ASTBuilder(base.AstbuilderBase):
     def Function(self, func: FunctionParams) -> BlockId:
         head = self.b.line([
             self.string(str(func.Kind.name).lower() + " "),
-            self.string(func.Name) if all([(c.isalnum() or c == "_") for c in func.Name])
-            else self.string(f"`{func.Name}`"),
+            self.string(self.safename(func.Name)),
             self.string("*" if func.Exported else "")
         ])
 
-        tail = self.b.line([
-            self.string(": "),
-            self.Type(func.ReturnTy),
-            self.Pragmas(func.Pragmas),
-        ])
+        with self.Line():
+            self.Item(": ")
+            self.Item(self.Type(func.ReturnTy))
+            self.Item(self.Pragmas(func.Pragmas))
 
-        result = self.b.line([
-            head,
-            self.pars(self.csv([self.Field(Arg) for Arg in func.Arguments])),
-            tail,
-        ])
+            if func.Implementation:
+                self.Item(" = ")
 
-        if func.Implementation is None:
-            return result
+        tail = self.Result()
 
-        else:
-            if func.OneLineImpl:
-                return self.b.line([result, self.string(" = "), func.Implementation])
+        with self.Spatial(stack=not func.OneLineImpl):
+            if len(func.Arguments) <= 2 or func.OneLineImpl:
+                with self.Line():
+                    self.Item(head)
+                    self.Item(
+                        self.pars(self.csv([self.Field(Arg) for Arg in func.Arguments])))
+                    self.Item(tail)
 
             else:
-                return self.b.stack([
-                    self.b.line([result, self.string(" = ")]),
-                    self.b.indent(2, func.Implementation),
-                ])
+                with self.Line():
+                    self.Item(head)
+                    self.Item("(")
+
+                with self.Indent(4):
+                    for arg in func.Arguments:
+                        with self.Line():
+                            self.Item(self.Field(arg))
+                            self.Item(",")
+
+                with self.Line():
+                    self.Item(")")
+                    self.Item(tail)
+
+            if func.Implementation:
+                if func.OneLineImpl:
+                    self.Item(func.Implementation)
+
+                else:
+                    self.Item(self.indent(2, func.Implementation))
+
+        return self.Result()
 
     def Field(self, f: IdentParams, padTo: int = 0) -> BlockId:
         return self.b.line([

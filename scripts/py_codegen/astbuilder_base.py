@@ -66,29 +66,6 @@ class AstStackCtx:
             self.builder.context_stack[-1].block_ids.append(stack_id)
 
 
-class AstItemCtx:
-
-    def __init__(self, builder, value: Union[str, BlockId]):
-        self.builder = builder
-        self.value = value
-
-    def __enter__(self):
-        match self.value:
-            case str():
-                block_id = self.builder.b.text(self.value)
-
-            case _:
-                block_id = self.value
-
-        if self.builder.context_stack:
-            self.builder.context_stack[-1].block_ids.append(block_id)
-
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-
-
 @beartype
 @dataclass
 class AstbuilderBase:
@@ -96,6 +73,13 @@ class AstbuilderBase:
     context_stack: List[Union[AstLineCtx, AstStackCtx,
                               AstIndentCtx]] = field(default_factory=list)
     last_result: Optional[BlockId] = None
+
+    def Spatial(self, stack: bool):
+        if stack:
+            return self.Stack()
+
+        else:
+            return self.Line()
 
     def Line(self):
         return AstLineCtx(self)
@@ -107,7 +91,14 @@ class AstbuilderBase:
         return AstIndentCtx(self, indent)
 
     def Item(self, value: Union[str, BlockId]):
-        return AstItemCtx(self, value)
+        match value:
+            case str():
+                block_id = self.b.text(value)
+
+            case _:
+                block_id = value
+
+        self.context_stack[-1].block_ids.append(block_id)
 
     def Result(self) -> BlockId:
         assert self.last_result
