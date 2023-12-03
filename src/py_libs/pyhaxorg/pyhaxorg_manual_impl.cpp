@@ -108,28 +108,6 @@ void OrgContext::run() {
     node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
 }
 
-void OrgContext::loadStore(std::string path) {
-    QFile file{path};
-    if (file.open(QIODevice::ReadOnly)) {
-        QDataStream out{&file};
-        SemDataStream().read(out, &store, &node);
-        file.close();
-    } else {
-        throw FilesystemError{
-            "Cannot open file for writing TODO beter msg"};
-    }
-}
-
-void OrgContext::writeStore(std::string path) {
-    QFile file{path};
-    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        QDataStream out{&file};
-        SemDataStream().write(out, store, node);
-        file.close();
-    } else {
-        throw FilesystemError{"Cannot open file"};
-    }
-}
 
 std::vector<sem::SemId> getSubnodeRange(
     sem::SemId      id,

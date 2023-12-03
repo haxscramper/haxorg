@@ -10,7 +10,7 @@ from astbuilder_cpp import *
 from gen_tu_cpp import *
 from org_codegen_data import *
 from py_textlayout.py_textlayout import TextLayout, TextOptions
-from refl_read import conv_proto_file
+from refl_read import conv_proto_file, ConvTu
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout import BlockId
@@ -76,15 +76,16 @@ def get_base_map(expanded: List[GenTuStruct]) -> Mapping[str, GenTuStruct]:
 
     def callback(obj):
         if isinstance(obj, GenTuStruct):
-            base_map[obj.name] = obj
+            base_map[obj.name.name] = obj
 
     context = []
     iterate_object_tree(expanded, callback, context)
     base_map["Org"] = GenTuStruct(
-        "Org",
+        QualType.ForName("Org"),
         GenTuDoc(""),
         [
-            GenTuField(QualType("OrgSemPlacement"), "placementContext", GenTuDoc("")),
+            GenTuField(QualType.ForName("OrgSemPlacement"), "placementContext",
+                       GenTuDoc("")),
             GenTuField(t_vec(t_id()), "subnodes", GenTuDoc("")),
         ],
     )
@@ -99,25 +100,26 @@ def get_exporter_methods(forward: bool,
     iterate_tree_context = []
     base_map = get_base_map(expanded)
 
-    def callback(value):
+    def callback(value: Any) -> None:
         nonlocal methods
         nonlocal base_map
         nonlocal iterate_tree_context
         if isinstance(value, GenTuStruct):
-            scope_full = [
+            scope_full: List[GenTuStruct] = [
                 scope for scope in iterate_tree_context if isinstance(scope, GenTuStruct)
             ]
-            scope_names = [scope.name for scope in scope_full]
-            name = value.name
-            full_scoped_name = scope_names + [name]
-            fields = [
+            scope_names: List[str] = [scope.name.name for scope in scope_full]
+            name: str = value.name.name
+            full_scoped_name: List[str] = scope_names + [name]
+            fields: List[GenTuField] = [
                 field for field in (value.fields + get_type_base_fields(value, base_map))
                 if not (field.isStatic)
             ]
 
             scoped_target = t_cr(
-                QualType(name,
-                         Spaces=[QualType("sem")] + [QualType(t) for t in scope_names]))
+                QualType.ForName(name,
+                                 Spaces=[QualType.ForName("sem")] +
+                                 [QualType.ForName(t) for t in scope_names]))
             decl_scope = "" if forward else "Exporter<V, R>::"
             t_params = [] if forward else [GenTuParam("V"), GenTuParam("R")]
 
@@ -127,12 +129,12 @@ def get_exporter_methods(forward: bool,
                     kindGetter = getattr(field, "variantGetter")
                     variant_methods.append(
                         GenTuFunction(
-                            QualType("void"),
+                            QualType.ForName("void"),
                             f"{decl_scope}visit",
                             GenTuDoc(""),
                             params=t_params,
                             arguments=[
-                                GenTuIdent(QualType("R", isRef=True), "res"),
+                                GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue), "res"),
                                 GenTuIdent(
                                     t_cr(field.type),
                                     "object",
@@ -144,25 +146,28 @@ def get_exporter_methods(forward: bool,
 
             if len(scope_full) == 0:
                 method = GenTuFunction(
-                    QualType("void"),
+                    QualType.ForName("void"),
                     f"{decl_scope}visit{name}",
                     GenTuDoc(""),
                     params=t_params,
                     arguments=[
-                        GenTuIdent(QualType("R", isRef=True), "res"),
-                        GenTuIdent(QualType("In", [QualType(f"sem::{name}")]), "object"),
+                        GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue), "res"),
+                        GenTuIdent(
+                            QualType.ForName(
+                                "In", Parameters=[QualType.ForName(f"sem::{name}")]),
+                            "object"),
                     ],
                     impl=None if forward else "__visit_specific_kind(res, object);\n%s" %
                     "\n".join([f"__org_field(res, object, {a.name});" for a in fields]),
                 )
             else:
                 method = GenTuFunction(
-                    QualType("void"),
+                    QualType.ForName("void"),
                     f"{decl_scope}visit",
                     GenTuDoc(""),
                     params=t_params,
                     arguments=[
-                        GenTuIdent(QualType("R", isRef=True), "res"),
+                        GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue), "res"),
                         GenTuIdent(scoped_target, "object"),
                     ],
                     impl=None if forward else "\n".join(
@@ -189,7 +194,7 @@ from copy import deepcopy
 def in_sem(typ: QualType) -> QualType:
     typ = deepcopy(typ)
     if typ.name in ["SemId", "SemIdT", "Param"] + org_type_names:
-        typ.Spaces.insert(0, QualType("sem"))
+        typ.Spaces.insert(0, QualType.ForName("sem"))
 
     typ.Parameters = [in_sem(P) for P in typ.Parameters]
 
@@ -224,7 +229,7 @@ class Py11EnumField:
     def build_bind(self, Enum: 'Py11Enum', ast: ASTBuilder) -> BlockId:
         return ast.XCall(".value", [
             ast.Literal(self.PyName),
-            ast.Type(QualType(self.CxxName, Spaces=[Enum.Enum]))
+            ast.Type(QualType.ForName(self.CxxName, Spaces=[Enum.Enum]))
         ] + maybe_list(get_doc_literal(ast, self.Doc)))
 
 
@@ -240,11 +245,12 @@ class Py11Enum:
     def FromGenTu(Enum: GenTuEnum,
                   Scope: List[QualType] = [],
                   pyNameOverride: Optional[str] = None) -> 'Py11Enum':
-        return Py11Enum(PyName="".join(flat_scope(QualType(Enum.name, Spaces=Scope)))
-                        if pyNameOverride is None else pyNameOverride,
-                        Enum=QualType(Enum.name, Spaces=Scope),
-                        Doc=Enum.doc,
-                        Fields=[Py11EnumField.FromGenTu(F) for F in Enum.fields])
+        return Py11Enum(
+            PyName="".join(flat_scope(QualType.ForName(Enum.name.name, Spaces=Scope)))
+            if pyNameOverride is None else pyNameOverride,
+            Enum=QualType.ForName(Enum.name.name, Spaces=Scope),
+            Doc=Enum.doc,
+            Fields=[Py11EnumField.FromGenTu(F) for F in Enum.fields])
 
     def build_typedef(self) -> pya.EnumParams:
         count = 0
@@ -295,7 +301,7 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["Opt"]:
             name = "Optional"
 
-        case ["Str"] | ["string"] | ["std::string"] | ["basic_string"
+        case ["Str"] | ["string"] | ["std", "string"] | ["basic_string"
                                                       ] | ["std", "basic_string"]:
             name = "str"
 
@@ -308,7 +314,7 @@ def py_type(Typ: QualType) -> pya.PyType:
         case ["void"]:
             name = "None"
 
-        case ["pybind11", "function"]:
+        case ["pybind11", "function"] | ["PyFunc"]:
             name = "function"
 
         case ["py", "object"] | ["pybind11", "object"]:
@@ -501,10 +507,10 @@ class Py11Class:
     PyBases: List[QualType] = field(default_factory=list)
 
     def InitDefault(self):
-        self.InitImpls.append(Py11Method("", "", QualType("")))
+        self.InitImpls.append(Py11Method("", "", QualType.ForName("")))
 
     def AddInit(self, Args: List[ParmVarParams], Impl: List[BlockId]):
-        self.InitImpls.append(Py11Method("", "", QualType(""), Args, Body=Impl))
+        self.InitImpls.append(Py11Method("", "", QualType.ForName(""), Args, Body=Impl))
 
     def dedup_methods(self) -> List[Py11Method]:
         res: List[Py11Method] = []
@@ -661,12 +667,14 @@ class SemId:
 @beartype
 def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
                   base_map: Mapping[str, GenTuStruct]) -> Py11Class:
-    base_type = QualType(typ.name, Spaces=[QualType("sem")])
-    id_type = QualType("SemIdT", [base_type], Spaces=[QualType("sem")])
-    res = Py11Class(PyName="Sem" + typ.name, Class=id_type, PyBases=typ.bases)
+    base_type = QualType.ForName(typ.name.name, Spaces=[QualType.ForName("sem")])
+    id_type = QualType.ForName("SemIdT",
+                               Parameters=[base_type],
+                               Spaces=[QualType.ForName("sem")])
+    res = Py11Class(PyName="Sem" + typ.name.name, Class=id_type, PyBases=typ.bases)
 
     res.AddInit([], [ast.Return(ast.CallStatic(id_type, "Nil"))])
-    res.Bases.append(QualType("SemId", Spaces=[QualType("sem")]))
+    res.Bases.append(QualType.ForName("SemId", Spaces=[QualType.ForName("sem")]))
 
     _self = id_self(id_type)
 
@@ -709,9 +717,9 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 
 @beartype
 def pybind_nested_type(value: GenTuStruct, scope: List[QualType]) -> Py11Class:
-    name = "".join([typ.name for typ in scope if typ.name != "sem"] + [value.name])
+    name = "".join([typ.name for typ in scope if typ.name != "sem"] + [value.name.name])
 
-    res = Py11Class(PyName=name, Class=QualType(value.name, Spaces=scope))
+    res = Py11Class(PyName=name, Class=QualType.ForName(value.name.name, Spaces=scope))
     res.InitDefault()
 
     for meth in value.methods:
@@ -734,11 +742,12 @@ def filter_walk_scope(iterate_context) -> List[QualType]:
     scope: List[QualType] = []
 
     for s in iterate_context:
-        if isinstance(s, GenTuStruct):
-            scope.append(QualType(s.name))
+        match s:
+            case GenTuStruct():
+                scope.append(s.name)
 
-        elif isinstance(s, GenTuNamespace):
-            scope.append(QualType(s.name))
+            case GenTuNamespace():
+                scope.append(QualType.ForName(s.name))
 
     return scope
 
@@ -746,10 +755,10 @@ def filter_walk_scope(iterate_context) -> List[QualType]:
 @beartype
 def get_osk_enum(expanded: List[GenTuStruct]) -> GenTuEnum:
     return GenTuEnum(
-        t_osk().name,
+        QualType.ForName(t_osk().name),
         GenTuDoc(""),
         fields=[
-            GenTuEnumField(struct.name, GenTuDoc(""))
+            GenTuEnumField(struct.name.name, GenTuDoc(""))
             for struct in get_concrete_types(expanded)
         ],
     )
@@ -785,7 +794,7 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
 
     def baseCollectorCallback(value: Any) -> None:
         if isinstance(value, GenTuStruct):
-            base_map[value.name] = value
+            base_map[value.name.name] = value
 
     iterate_object_tree(GenTuNamespace("sem", expanded), baseCollectorCallback,
                         iterate_context)
@@ -805,8 +814,10 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
                 res.Decls.append(new)
 
         elif isinstance(value, GenTuEnum):
-            PyName = "".join(
-                [N for N in flat_scope(QualType(value.name, Spaces=scope)) if N != "sem"])
+            PyName = "".join([
+                N for N in flat_scope(QualType.ForName(value.name.name, Spaces=scope))
+                if N != "sem"
+            ])
             res.Decls.append(Py11Enum.FromGenTu(value, scope, pyNameOverride=PyName))
 
     iterate_object_tree(GenTuNamespace("sem", expanded), codegenConstructCallback,
@@ -830,7 +841,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
         for item in record.types:
             result.append(rec_expand_type(item, context))
 
-        typeNames: List[str] = []
+        typeNames: List[QualType] = []
 
         for item in record.types:
             if item.concreteKind:
@@ -844,7 +855,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
             )
 
             for typeItem in typeNames:
-                iteratorMacro.definition.append(f"__IMPL({typeItem})")
+                iteratorMacro.definition.append(f"__IMPL({typeItem.name})")
 
             result.append(GenTuPass(ast.Macro(iteratorMacro)))
 
@@ -853,33 +864,32 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                 GenTuPass(
                     ast.Using(
                         UsingParams(newName=record.variantName,
-                                    baseType=QualType(
-                                        "variant",
-                                        Spaces=[QualType("std")],
-                                        Parameters=[QualType(T) for T in typeNames])))))
+                                    baseType=QualType(name="variant",
+                                                      Spaces=[QualType.ForName("std")],
+                                                      Parameters=typeNames)))))
 
             result.append(
-                GenTuEnum(name=record.enumName,
-                          doc=GenTuDoc(""),
-                          fields=[GenTuEnumField(N, GenTuDoc("")) for N in typeNames]))
+                GenTuEnum(
+                    name=QualType.ForName(record.enumName),
+                    doc=GenTuDoc(""),
+                    fields=[GenTuEnumField(N.name, GenTuDoc("")) for N in typeNames]))
 
             for idx, T in enumerate(typeNames):
                 for isConst in [True, False]:
                     result.append(
-                        GenTuFunction(doc=GenTuDoc(""),
-                                      name="get" + (T[0].upper() + T[1:]),
-                                      result=QualType(T,
-                                                      isConst=isConst,
-                                                      isRef=True,
-                                                      Spaces=deepcopy(context)),
-                                      isConst=isConst,
-                                      impl=ast.Return(
-                                          ast.XCall("std::get",
-                                                    [ast.string(record.variantField)],
-                                                    Params=[QualType(str(idx))]))))
+                        GenTuFunction(
+                            doc=GenTuDoc(""),
+                            name="get" + (T.name[0].upper() + T.name[1:]),
+                            result=T.model_copy(update=dict(RefKind=ReferenceKind.LValue,
+                                                            isConst=isConst,
+                                                            Spaces=context)),
+                            isConst=isConst,
+                            impl=ast.Return(
+                                ast.XCall("std::get", [ast.string(record.variantField)],
+                                          Params=[QualType.ForName(str(idx))]))))
 
-            enum_type = QualType(record.enumName, Spaces=context)
-            variant_type = QualType(record.variantName, Spaces=context)
+            enum_type = QualType.ForName(record.enumName, Spaces=context)
+            variant_type = QualType.ForName(record.variantName, Spaces=context)
 
             result.append(
                 GenTuFunction(isStatic=True,
@@ -932,7 +942,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
         fields: List[GenTuField] = []
         for item in typ.nested:
             if isinstance(item, GenTuStruct):
-                converted.append(rec_expand_type(item, context + [QualType(item.name)]))
+                converted.append(rec_expand_type(item, context + [item.name]))
 
             elif isinstance(item, GenTuTypeGroup):
                 for res in rec_expand_group(item, context):
@@ -964,7 +974,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
         return result
 
-    return [rec_expand_type(T, [QualType("sem"), QualType(T.name)]) for T in types]
+    return [rec_expand_type(T, [QualType.ForName("sem"), T.name]) for T in types]
 
 
 @beartype
@@ -974,7 +984,7 @@ def update_namespace_annotations(expanded: List[GenTuStruct]):
     def callback(value):
         nonlocal iterate_context
         if isinstance(value, QualType):
-            if hasattr(value, "isNested"):
+            if "isNested" in value.meta:
                 value.Spaces = filter_walk_scope(iterate_context) + value.Spaces
 
     iterate_object_tree(GenTuNamespace("sem", expanded), callback, iterate_context)
@@ -986,21 +996,21 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     update_namespace_annotations(expanded)
 
     full_enums = get_enums() + [get_osk_enum(expanded)]
-    gen_structs, gen_enums = conv_proto_file(reflection_path)
+    tu: ConvTu = conv_proto_file(reflection_path)
 
     with open("/tmp/reflection_data.py", "w") as file:
-        pprint(gen_structs, width=200, stream=file)
-        pprint(gen_enums, width=200, stream=file)
+        pprint(tu.structs, width=200, stream=file)
+        pprint(tu.enums, width=200, stream=file)
 
     global org_type_names
     org_type_names = [Typ.name for Typ in expanded]
 
     autogen_structs = get_bind_methods(ast, expanded)
 
-    for _struct in gen_structs:
+    for _struct in tu.structs:
         autogen_structs.Decls.append(pybind_nested_type(_struct, []))
 
-    for _enum in gen_enums:
+    for _enum in tu.enums:
         autogen_structs.Decls.append(Py11Enum.FromGenTu(_enum, []))
 
     opaque_declarations: List[BlockId] = []
@@ -1016,13 +1026,13 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
             def rec_type(T: QualType):
 
                 def rec_drop(T: QualType) -> QualType:
-                    return replace(T,
-                                   isConst=False,
-                                   isRef=False,
-                                   isPtr=False,
-                                   isNamespace=False,
-                                   Spaces=[rec_drop(S) for S in T.Spaces],
-                                   Parameters=[rec_drop(P) for P in T.Parameters])
+                    return T.model_copy(
+                        update=dict(isConst=False,
+                                    isRef=False,
+                                    isPtr=False,
+                                    isNamespace=False,
+                                    Spaces=[rec_drop(S) for S in T.Spaces],
+                                    Parameters=[rec_drop(P) for P in T.Parameters]))
 
                 T = rec_drop(T)
 
@@ -1033,9 +1043,9 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                     seen_types.add(T)
 
                 if T.name == "Vec":
-                    stdvec_t = QualType("vector",
-                                        Spaces=[QualType("std")],
-                                        Parameters=[T.Parameters[0]])
+                    stdvec_t = QualType.ForName("vector",
+                                                Spaces=[QualType.ForName("std")],
+                                                Parameters=[T.Parameters[0]])
                     opaque_declarations.append(
                         ast.XCall("PYBIND11_MAKE_OPAQUE", [ast.Type(stdvec_t)]))
                     opaque_declarations.append(
@@ -1091,7 +1101,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 "{base}/sem/SemOrgEnums.hpp",
                 with_enum_reflection_api([
                     GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join([
-                        f"    __IMPL({struct.name})"
+                        f"    __IMPL({struct.name.name})"
                         for struct in get_concrete_types(expanded)
                     ])))
                 ]) + full_enums + ([

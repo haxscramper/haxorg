@@ -189,10 +189,6 @@ struct [[refl]] OrgContext {
         run();
     }
 
-    [[refl]] void loadStore(std::string path);
-
-    [[refl]] void writeStore(std::string path);
-
     [[refl]] void parseString(std::string text) {
         source = text;
         run();
@@ -230,14 +226,6 @@ struct LeafKindForT<int> : LeafKindForBase<int, LeafFieldType::Int> {};
 template <>
 struct LeafKindForT<UserTime::Kind>
     : LeafKindForBase<UserTime::Kind, LeafFieldType::UserTimeKind> {};
-
-template <>
-struct LeafKindForT<QDate>
-    : LeafKindForBase<QDate, LeafFieldType::QDate> {};
-
-template <>
-struct LeafKindForT<QDateTime>
-    : LeafKindForBase<QDateTime, LeafFieldType::QDateTime> {};
 
 template <>
 struct LeafKindForT<Str> : LeafKindForBase<Str, LeafFieldType::Str> {};

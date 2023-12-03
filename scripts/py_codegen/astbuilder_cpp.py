@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field, replace
-from beartype.typing import List, Union, NewType, Optional, Tuple
+from beartype.typing import List, Union, NewType, Optional, Tuple, Dict, Any
 from enum import Enum
 from beartype import beartype
 import inspect
 import os
 import astbuilder_base as base
 from typing import TYPE_CHECKING
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, Extra
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
@@ -52,7 +52,7 @@ class ReferenceKind(str, Enum):
 
 
 @beartype
-class QualType(BaseModel):
+class QualType(BaseModel, extra=Extra.forbid):
     name: str = ""
     Parameters: List['QualType'] = Field(default_factory=list)
     Spaces: List['QualType'] = Field(default_factory=list)
@@ -67,6 +67,12 @@ class QualType(BaseModel):
 
     expr: Optional[str] = None
     Kind: QualTypeKind = QualTypeKind.RegularType
+
+    meta: Dict[str, Any] = Field(default={})
+
+    @staticmethod
+    def ForName(name: str, **args) -> 'QualType':
+        return QualType(name=name, **args)
 
     def isArray(self) -> bool:
         return self.Kind == QualTypeKind.Array
@@ -219,7 +225,7 @@ class FunctionParams:
     Name: str
     doc: DocParams
     Template: TemplateParams = field(default_factory=TemplateParams)
-    ResultTy: Optional[QualType] = field(default_factory=lambda: QualType("void"))
+    ResultTy: Optional[QualType] = field(default_factory=lambda: QualType.ForName("void"))
     Args: List[ParmVarParams] = field(default_factory=list)
     Storage: StorageClass = StorageClass.None_
     Body: Optional[List[BlockId]] = None
@@ -238,7 +244,7 @@ class LambdaCapture:
 @dataclass
 class LambdaParams:
     Args: List[ParmVarParams] = field(default_factory=list)
-    ResultTy: Optional[QualType] = field(default_factory=lambda: QualType("auto"))
+    ResultTy: Optional[QualType] = field(default_factory=lambda: QualType.ForName("auto"))
     Template: TemplateParams = field(default_factory=TemplateParams)
     Body: List[BlockId] = field(default_factory=list)
     CaptureList: List[LambdaCapture] = field(default_factory=list)
@@ -1095,8 +1101,8 @@ class ASTBuilder(base.AstbuilderBase):
                     self.string(">")
                 ]), *([] if noQualifiers else [
                     self.string((" const" if type_.isConst else "") +
-                                ("*" if type_.isPtr else "") +
-                                ("&" if type_.isRef else ""))
+                                ("*" * type_.ptrCount) +
+                                ("&" if type_.RefKind == ReferenceKind.LValue else ""))
                 ])
             ])
 

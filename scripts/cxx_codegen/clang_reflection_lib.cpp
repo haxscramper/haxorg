@@ -643,7 +643,6 @@ bool ReflASTVisitor::VisitFunctionDecl(clang::FunctionDecl* Decl) {
 clang::TypedefDecl* findTypedefForDecl(
     clang::Decl*       Decl,
     clang::ASTContext* Ctx) {
-    Decl->dump(llvm::outs());
     clang::DeclContext* Context = Decl->getDeclContext();
     for (auto D : Context->decls()) {
         if (auto* TD = llvm::dyn_cast<clang::TypedefDecl>(D)) {
