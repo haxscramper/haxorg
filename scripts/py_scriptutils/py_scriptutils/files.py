@@ -1,30 +1,22 @@
 import os
-from typing import Callable, TypeVar
+from typing import Callable, TypeVar, Union, List
 import pickle
+from pathlib import Path
 
 T = TypeVar('T')
 
-def IsNewInput(input_path: str, output_path: str):
-    should_execute = False
-    
-    # Check if the files exist
-    input_exists = os.path.exists(input_path)
-    output_exists = os.path.exists(output_path)
 
-    # If input exists but output doesn't, execute the body
-    if input_exists and not output_exists:
-        should_execute = True
+def IsNewInput(input_path: Union[str, List[str]], output_path: str):
+    input_path: List[str] = input_path if isinstance(input_path, list) else [input_path]
+    if not os.path.exists(output_path):
+        return True
 
-    # If both exist, check their modification times
-    elif input_exists and output_exists:
-        input_mtime = os.path.getmtime(input_path)
-        output_mtime = os.path.getmtime(output_path)
-        
-        # If input was modified after output, execute the body
-        if input_mtime > output_mtime:
-            should_execute = True
-    
-    return should_execute
+    else:
+        in_mtimes = [
+            os.path.getmtime(p) if os.path.exists(p) else os.path.getmtime(output_path) +
+            1 for p in input_path
+        ]
+        return os.path.getmtime(output_path) < max(in_mtimes)
 
 
 def pickle_or_new(input_path: str, output_path: str, builder_cb: Callable[[str], T]) -> T:
@@ -38,4 +30,20 @@ def pickle_or_new(input_path: str, output_path: str, builder_cb: Callable[[str],
     else:
         with open(output_path, "rb") as file:
             return pickle.load(file)
-        
+
+
+def file_relpath(base: Path, target: Path) -> str:
+    if base.parent == target.parent:
+        return "./" + target.name
+
+    else:
+        dir_source = os.path.dirname(base.resolve())
+
+        # Compute the relative path
+        relative_path = os.path.relpath(target.resolve(), dir_source)
+
+        # Ensure the path starts with "./" if it doesn't go up in the hierarchy
+        if not relative_path.startswith(("..", "/")):
+            relative_path = f"./{relative_path}"
+
+        return relative_path

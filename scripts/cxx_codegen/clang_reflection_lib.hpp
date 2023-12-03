@@ -10,6 +10,7 @@
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/ASTConsumers.h>
 #include <clang/Sema/Sema.h>
+#include <unordered_set>
 
 // Auto-generated protobuf definition, provided by cmake run
 #include "reflection_defs.pb.h"
@@ -70,19 +71,19 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
     /// Fill in information about namespaces used in elaborated type
     std::vector<QualType> getNamespaces(
-        /// Update information on this outgoing type
-        QualType*                                   Out,
         clang::ElaboratedType const*                elab,
         std::optional<clang::SourceLocation> const& Loc);
 
     std::vector<QualType> getNamespaces(
-        QualType*                                   Out,
         clang::QualType const&                      In,
         std::optional<clang::SourceLocation> const& Loc);
 
     std::vector<QualType> getNamespaces(
-        QualType*                                   Out,
         clang::NamespaceDecl const*                 Namespace,
+        std::optional<clang::SourceLocation> const& Loc);
+
+    std::vector<QualType> getNamespaces(
+        clang::Decl*                                Decl,
         std::optional<clang::SourceLocation> const& Loc);
 
     void applyNamespaces(
@@ -118,9 +119,30 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     void fillMethodDecl(Record::Method* sub, clang::CXXMethodDecl* method);
 
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration);
+    bool VisitFunctionDecl(clang::FunctionDecl* Decl);
     bool VisitEnumDecl(clang::EnumDecl* Decl);
-    bool isRefl(clang::Decl* Decl);
+    bool VisitTypedefDecl(clang::TypedefDecl* Decl);
+    bool VisitRecordDecl(clang::RecordDecl* Decl);
+
+    bool                       isRefl(clang::Decl* Decl);
     std::optional<std::string> getDoc(const clang::Decl* Decl);
+
+    bool shouldVisit(clang::Decl* Decl);
+
+    /// List of absolute paths for files whose declarations must be added
+    /// to the information about the translation units.
+    std::unordered_set<std::string> targetFiles;
+    /// What group of declarations must be handled by the visitor
+    enum class VisitMode
+    {
+        /// All elements that are explicitly annotated with `[[refl]]`
+        /// attribute, irreespective of the declaration file.
+        AllAnnotated,
+        /// All declarations contained in explicitly allowed target files.
+        AllTargeted,
+    };
+
+    VisitMode visitMode = VisitMode::AllAnnotated;
 
   private:
     clang::ASTContext* Ctx;

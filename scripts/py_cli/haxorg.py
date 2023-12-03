@@ -2,96 +2,18 @@
 
 import rich_click as click
 import click_config_file
-import toml
-import traceback
 import os
-from pprint import pprint
-import functools
 from dataclasses import dataclass
 
 from beartype import beartype
 from beartype.typing import Optional, List
 
-from rich.logging import RichHandler
-import logging
-
 import py_haxorg.pyhaxorg as org
 import py_scriptutils.py_scriptutils.tracer as tracer
-
-logging.basicConfig(
-    level="NOTSET",
-    format="%(message)s",
-    datefmt="[%X]",
-    handlers=[
-        RichHandler(
-            rich_tracebacks=True,
-            markup=True,
-            enable_link_path=False,
-            show_time=False,
-        )
-    ],
-)
-
-for name in logging.root.manager.loggerDict:
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.WARNING)
-
-log = logging.getLogger("rich")
-log.setLevel(logging.DEBUG)
+from py_scriptutils.script_logging import log
+from py_scriptutils.toml_config_profiler import make_config_provider, run_config_provider, apply_options
 
 CONFIG_FILE_NAME = "pyhaxorg.toml"
-
-
-@beartype
-def find_config_file(withTrace: bool):
-    """Search for the config file in a list of default locations."""
-    # Start with the current directory.
-    potential_paths = [os.path.join(os.getcwd(), CONFIG_FILE_NAME)]
-
-    # Add $XDG_CONFIG_HOME/haxorg/config.toml
-    xdg_config_home = os.environ.get("XDG_CONFIG_HOME",
-                                     os.path.join(os.path.expanduser("~"), ".config"))
-    potential_paths.append(os.path.join(xdg_config_home, "haxorg", CONFIG_FILE_NAME))
-
-    # Check each path, return the first that exists.
-    for path in potential_paths:
-        if os.path.exists(path):
-            if withTrace:
-                log.debug(f"Trying {path} for config -- file exists, using it")
-            return path
-
-        elif withTrace:
-            log.debug(f"Trying {path} for config -- file does not exist, skipping")
-
-    return None
-
-
-@beartype
-def run_config_provider(file_path: Optional[str], cmd_name: str, withTrace: bool) -> dict:
-    try:
-        if (not file_path) or (not os.path.exists(file_path)):
-            file_path = find_config_file(withTrace=withTrace)
-
-        if (not file_path):
-            return {}
-
-        if os.path.exists(file_path):
-            with open(file_path) as config_data:
-                return toml.load(config_data)
-        else:
-            return {}
-
-    except Exception as e:
-        traceback.print_exc()
-        raise e
-
-
-@beartype
-def config_provider(file_path, cmd_name):
-    D = run_config_provider(file_path, cmd_name, False)
-    pprint(D)
-    return D
-
 
 arg_infile = click.argument("file", nargs=-1, type=click.Path(exists=True))
 arg_outfile = click.option("--out-file",
@@ -114,10 +36,6 @@ def make_trace_options(kind: str) -> List[click.option]:
                          type=click.BOOL,
                          default=False,
                          help=f"Whether to trace {kind} execution"))
-
-
-def apply_options(f, options):
-    return functools.reduce(lambda x, opt: opt(x), options, f)
 
 
 def common_trace(f):
@@ -168,7 +86,7 @@ def pack_context(ctx: click.Context, name: str, T: type):
               default=None,
               help="Output path for the execution trace")
 @common_trace
-@click_config_file.configuration_option(provider=config_provider,
+@click_config_file.configuration_option(provider=make_config_provider("pyhaxorg.toml"),
                                         cmd_name="haxorg",
                                         config_file_name=CONFIG_FILE_NAME)
 @click.pass_context

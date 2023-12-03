@@ -1,0 +1,15 @@
+indexing_tool = "/mnt/workspace/repos/haxorg/build/utils_debug/reflection_tool"
+compilation_database = "/mnt/workspace/repos/libgit2/compile_commands.json"
+toolchain_include = "/mnt/workspace/repos/haxorg/toolchain/llvm/lib/clang/16/include"
+output_directory = "/mnt/workspace/repos/hlibgit2/src/hlibgit2"
+
+
+
+[nim]
+function_renames = [
+  { original = "git_odb_write_pack", renamed = "git_odb_write_pack_fn" }
+]
+
+universal_import = [
+  "libgit2_config.nim"
+]

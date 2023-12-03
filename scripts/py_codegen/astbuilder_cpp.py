@@ -1,11 +1,12 @@
 from dataclasses import dataclass, field, replace
-from beartype.typing import List, Union, NewType, Optional, Tuple
+from beartype.typing import List, Union, NewType, Optional, Tuple, Dict, Any
 from enum import Enum
 from beartype import beartype
 import inspect
 import os
 import astbuilder_base as base
 from typing import TYPE_CHECKING
+from pydantic import BaseModel, Field, Extra
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
@@ -36,23 +37,61 @@ log = logging.getLogger("rich")
 log.setLevel(logging.DEBUG)
 
 
+class QualTypeKind(str, Enum):
+    RegularType = "RegularType"
+    FunctionPtr = "FunctionPtr"
+    MethodPtr = "MethodPtr"
+    Array = "Array"
+    TypeExpr = "TypeExpr"
+
+
+class ReferenceKind(str, Enum):
+    NotRef = "NotRef"
+    LValue = "LValue"
+    RValue = "RValue"
+
 
 @beartype
-@dataclass
-class QualType:
+class QualType(BaseModel, extra=Extra.forbid):
     name: str = ""
-    Parameters: List['QualType'] = field(default_factory=list)
-    Spaces: List['QualType'] = field(default_factory=list)
+    Parameters: List['QualType'] = Field(default_factory=list)
+    Spaces: List['QualType'] = Field(default_factory=list)
     isNamespace: bool = False
-    verticalParamList: bool = False
 
-    isConst: bool = field(default_factory=lambda: False)
-    isPtr: bool = field(default_factory=lambda: False)
-    isRef: bool = field(default_factory=lambda: False)
+    isConst: bool = False
+    ptrCount: int = 0
+    RefKind: ReferenceKind = ReferenceKind.NotRef
+    dbg_origin: str = Field(default="", exclude=True)
+    verticalParamList: bool = Field(default=False, exclude=True)
+    isBuiltin: bool = Field(default=False)
+
+    expr: Optional[str] = None
+    Kind: QualTypeKind = QualTypeKind.RegularType
+
+    meta: Dict[str, Any] = Field(default={})
+
+    @staticmethod
+    def ForName(name: str, **args) -> 'QualType':
+        return QualType(name=name, **args)
+
+    def isArray(self) -> bool:
+        return self.Kind == QualTypeKind.Array
+
+    def isFunction(self) -> bool:
+        return self.Kind == QualTypeKind.FunctionPtr
+
+    def isPrimitive(self) -> bool:
+        return self.isBuiltin or self.name in [
+            "size_t",
+            "uint32_t",
+            "uint16_t",
+            "int32_t",
+            "int64_t",
+            "uint64_t",
+        ]
 
     @beartype
-    @dataclass
-    class Function:
+    class Function(BaseModel):
         ReturnTy: 'QualType'
         Args: List['QualType']
         Ident: str = ""
@@ -61,12 +100,54 @@ class QualType:
 
     func: Optional[Function] = None
 
-
     def __hash__(self) -> int:
+        return hash(
+            (self.name, self.isConst, self.ptrCount, self.RefKind, self.isNamespace,
+             tuple([hash(T) for T in self.Spaces]),
+             tuple([hash(T) for T in self.Parameters])))
 
-        return hash((self.name, self.isConst, self.isPtr, self.isRef, self.isNamespace,
-                     tuple([hash(T) for T in self.Spaces]),
-                     tuple([hash(T) for T in self.Parameters])))
+    def format(self, dbgOrigin: bool = False) -> str:
+        cvref = "{const}{ptr}{ref}".format(
+            const=" const" if self.isConst else "",
+            ptr=("*" * self.ptrCount),
+            ref={
+                ReferenceKind.LValue: "&",
+                ReferenceKind.RValue: "&&",
+                ReferenceKind.NotRef: ""
+            }[self.RefKind],
+        )
+
+        origin = self.dbg_origin if dbgOrigin else ""
+
+        match self.Kind:
+            case QualTypeKind.FunctionPtr:
+                return "%s(%s)" % (
+                    self.func.ReturnTy.format(),
+                    ", ".join([T.format() for T in self.func.Args]),
+                )
+
+            case QualTypeKind.Array:
+                return "{first}[{expr}]{cvref}{origin}".format(
+                    first=self.Parameters[0].format(),
+                    expr=self.Parameters[1].format() if 1 < len(self.Parameters) else "",
+                    cvref=cvref,
+                    origin=origin,
+                )
+
+            case QualTypeKind.RegularType:
+                return "{name}{args}{cvref}{origin}".format(
+                    name=self.name,
+                    args=("<" + ", ".join([T.format() for T in self.Parameters]) +
+                          ">") if self.Parameters else "",
+                    cvref=cvref,
+                    origin=origin,
+                )
+
+            case QualTypeKind.TypeExpr:
+                return self.expr
+
+            case _:
+                assert False, self.Kind
 
     def asNamespace(self, is_namespace=True):
         self.isNamespace = is_namespace
@@ -87,7 +168,6 @@ class QualType:
     @classmethod
     def from_spaces_and_name(cls, spaces: List[str], name: str):
         return cls(name=name, Spaces=[cls.from_name(space) for space in spaces])
-
 
 
 @beartype
@@ -145,7 +225,7 @@ class FunctionParams:
     Name: str
     doc: DocParams
     Template: TemplateParams = field(default_factory=TemplateParams)
-    ResultTy: Optional[QualType] = field(default_factory=lambda: QualType("void"))
+    ResultTy: Optional[QualType] = field(default_factory=lambda: QualType.ForName("void"))
     Args: List[ParmVarParams] = field(default_factory=list)
     Storage: StorageClass = StorageClass.None_
     Body: Optional[List[BlockId]] = None
@@ -164,7 +244,7 @@ class LambdaCapture:
 @dataclass
 class LambdaParams:
     Args: List[ParmVarParams] = field(default_factory=list)
-    ResultTy: Optional[QualType] = field(default_factory=lambda: QualType("auto"))
+    ResultTy: Optional[QualType] = field(default_factory=lambda: QualType.ForName("auto"))
     Template: TemplateParams = field(default_factory=TemplateParams)
     Body: List[BlockId] = field(default_factory=list)
     CaptureList: List[LambdaCapture] = field(default_factory=list)
@@ -998,16 +1078,19 @@ class ASTBuilder(base.AstbuilderBase):
     def Type(self, type_: QualType, noQualifiers: bool = False) -> BlockId:
         if type_.func:
             return self.b.line([
-                    self.Type(type_.func.ReturnTy),
-                    self.pars(self.b.line(([self.Type(type_.func.Class), self.string("::")] if type_.func.Class else []) + [self.string("*")])),
-                    self.pars(self.csv([self.Type(T) for T in type_.func.Args])),
-                    self.string(" const" if type_.func.IsConst else ""),
-                ])
+                self.Type(type_.func.ReturnTy),
+                self.pars(
+                    self.b.line(([self.Type(type_.func.Class),
+                                  self.string("::")] if type_.func.Class else []) +
+                                [self.string("*")])),
+                self.pars(self.csv([self.Type(T) for T in type_.func.Args])),
+                self.string(" const" if type_.func.IsConst else ""),
+            ])
         else:
             return self.b.line([
-                self.b.join(
-                    [self.Type(Space, noQualifiers=noQualifiers) for Space in type_.Spaces] +
-                    [self.string(type_.name)], self.string("::")),
+                self.b.join([
+                    self.Type(Space, noQualifiers=noQualifiers) for Space in type_.Spaces
+                ] + [self.string(type_.name)], self.string("::")),
                 self.string("") if (len(type_.Parameters) == 0) else self.b.line([
                     self.string("<"),
                     self.b.join(
@@ -1018,7 +1101,8 @@ class ASTBuilder(base.AstbuilderBase):
                     self.string(">")
                 ]), *([] if noQualifiers else [
                     self.string((" const" if type_.isConst else "") +
-                                ("*" if type_.isPtr else "") + ("&" if type_.isRef else ""))
+                                ("*" * type_.ptrCount) +
+                                ("&" if type_.RefKind == ReferenceKind.LValue else ""))
                 ])
             ])
 

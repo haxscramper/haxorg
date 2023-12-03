@@ -38,8 +38,8 @@ class TraceCollector:
 
     @contextmanager
     def complete_event(self,
-                       category: str,
                        name: str,
+                       category: str,
                        args: Optional[Dict[str, Any]] = None):
         pid = os.getpid()
         tid = id(self)

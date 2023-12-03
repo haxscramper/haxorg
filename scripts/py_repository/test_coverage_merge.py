@@ -299,6 +299,7 @@ def generate_html_table(file: FileCover) -> tags.table:
 
     return table
 
+
 @beartype
 def write_as_csv(file: FileCover, outpath: str) -> tags.table:
     table = tags.table()
@@ -310,25 +311,17 @@ def write_as_csv(file: FileCover, outpath: str) -> tags.table:
             test_set.add(cover.testname)
 
     tests: List[str] = sorted([t for t in test_set])
-    
+
     with open(outpath, "w", newline="") as f:
         writer = csv.writer(f, delimiter="\t", quoting=csv.QUOTE_ALL)
 
-        writer.writerow([
-            "Idx",
-            *tests,
-            "Path"
-        ])
+        writer.writerow(["Idx", *tests, "Path"])
 
-        cover_map = defaultdict(int) 
+        cover_map = defaultdict(int)
         for cover in line.covered_by:
             cover_map[cover.testname] = cover.count
 
-        writer.writerow([
-            line.index,
-            *[cover_map[test] for test in tests],
-            line.text
-        ])
+        writer.writerow([line.index, *[cover_map[test] for test in tests], line.text])
 
     return table
 

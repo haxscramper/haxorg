@@ -3,8 +3,67 @@
 #include <llvm/Support/TimeProfiler.h>
 #include <format>
 
+std::string getAbsoluteDeclLocation(clang::Decl* Decl) {
+    clang::SourceLocation       loc           = Decl->getLocation();
+    const clang::ASTContext&    astContext    = Decl->getASTContext();
+    clang::SourceManager const& sourceManager = astContext
+                                                    .getSourceManager();
+
+    std::string filePath;
+    if (loc.isValid()) {
+        clang::SourceLocation fullLoc = sourceManager.getExpansionLoc(loc);
+        if (fullLoc.isValid()) {
+            filePath = sourceManager.getFilename(fullLoc).str();
+        } else {
+            filePath = sourceManager.getFilename(loc).str();
+        }
+    }
+
+    return filePath;
+}
+
+
+std::string formatSourceLocation(
+    const clang::SourceLocation& loc,
+    clang::SourceManager&        srcMgr) {
+    if (loc.isValid()) {
+        clang::PresumedLoc presumedLoc = srcMgr.getPresumedLoc(loc);
+
+        if (presumedLoc.isValid()) {
+            std::string filePath = presumedLoc.getFilename();
+            unsigned    line     = presumedLoc.getLine();
+            unsigned    column   = presumedLoc.getColumn();
+
+            // Split the filePath and get the last three parts
+            std::vector<std::string> pathParts;
+            std::istringstream       f(filePath);
+            std::string              s;
+            while (getline(f, s, '/')) {
+                pathParts.push_back(s);
+            }
+
+            const int paths = 4;
+
+            std::string shortPath;
+            int         pathSize = pathParts.size();
+            for (int i = std::max(0, pathSize - paths); i < pathSize;
+                 ++i) {
+                if (i > std::max(0, pathSize - paths)) {
+                    shortPath += "/";
+                }
+                shortPath += pathParts[i];
+            }
+
+            // Format with line and column
+            std::ostringstream formattedLoc;
+            formattedLoc << shortPath << ":" << line << ":" << column;
+            return formattedLoc.str();
+        }
+    }
+    return "Invalid SourceLocation";
+}
+
 std::vector<QualType> ReflASTVisitor::getNamespaces(
-    QualType*                                   Out,
     clang::NamespaceDecl const*                 Namespace,
     std::optional<clang::SourceLocation> const& Loc) {
     std::vector<QualType> result;
@@ -12,7 +71,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
         && !Namespace->isInlineNamespace()) {
         auto space = &result.emplace_back();
         space->set_name(Namespace->getNameAsString());
-        space->set_dbgorigin(std::format(
+        space->mutable_dbgorigin()->append(std::format(
             "Namespace visitation of '{}'", Namespace->getNameAsString()));
         space->set_isnamespace(true);
         assert(!space->name().empty());
@@ -20,7 +79,6 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
     if (Namespace->getDeclContext()->isNamespace()) {
         auto spaces = getNamespaces(
-            Out,
             clang::dyn_cast<clang::NamespaceDecl>(
                 Namespace->getDeclContext()),
             Loc);
@@ -29,6 +87,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
     return result;
 }
+
 
 void ReflASTVisitor::applyNamespaces(
     QualType*                    Out,
@@ -77,7 +136,7 @@ void ReflASTVisitor::applyNamespaces(
 
             auto space = Out->add_spaces();
             space->set_isnamespace(true);
-            space->set_dbgorigin(newSpace.dbgorigin());
+            space->mutable_dbgorigin()->append(newSpace.dbgorigin());
             space->set_name(newSpace.name());
             // TODO Fill namespace parameters
         }
@@ -85,7 +144,6 @@ void ReflASTVisitor::applyNamespaces(
 }
 
 std::vector<QualType> ReflASTVisitor::getNamespaces(
-    QualType*                                   Out,
     clang::QualType const&                      In,
     std::optional<clang::SourceLocation> const& Loc) {
 
@@ -105,12 +163,18 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
             << In << dump(In);
     }
 
-    if (!decl) {
+    if (decl) {
+        return getNamespaces(decl, Loc);
+    } else {
         return {};
     }
+}
 
+std::vector<QualType> ReflASTVisitor::getNamespaces(
+    clang::Decl*                                Decl,
+    const std::optional<clang::SourceLocation>& Loc) {
     llvm::SmallVector<clang::NamespaceDecl*> spaces;
-    clang::DeclContext*                      dc = decl->getDeclContext();
+    clang::DeclContext*                      dc = Decl->getDeclContext();
     while (dc) {
         if (clang::NamespaceDecl* ns = llvm::dyn_cast<
                 clang::NamespaceDecl>(dc)) {
@@ -125,7 +189,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
     for (auto const* nns : spaces) {
         if (!nns->isAnonymousNamespace() && !nns->isInlineNamespace()) {
             auto space = &result.emplace_back();
-            space->set_dbgorigin("regular type namespaces");
+            space->mutable_dbgorigin()->append("regular type namespaces");
             space->set_name(nns->getNameAsString());
             space->set_isnamespace(true);
         }
@@ -134,8 +198,8 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
     return result;
 }
 
+
 std::vector<QualType> ReflASTVisitor::getNamespaces(
-    QualType*                                   Out,
     const clang::ElaboratedType*                elab,
     const std::optional<clang::SourceLocation>& Loc) {
     if (const clang::NestedNameSpecifier* nns = elab->getQualifier()) {
@@ -154,7 +218,8 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
             switch (kind) {
                 case clang::NestedNameSpecifier::Identifier: {
                     auto space = &result.emplace_back();
-                    space->set_dbgorigin("Elaborated name identifier");
+                    space->mutable_dbgorigin()->append(
+                        "Elaborated name identifier");
                     space->set_name(nns->getAsIdentifier()->getName());
                     assert(!space->name().empty());
                     break;
@@ -162,7 +227,8 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
                 case clang::NestedNameSpecifier::Namespace: {
                     auto space = &result.emplace_back();
-                    space->set_dbgorigin("Elaborated type namespace");
+                    space->mutable_dbgorigin()->append(
+                        "Elaborated type namespace");
                     space->set_isnamespace(true);
                     space->set_name(
                         nns->getAsNamespace()->getNameAsString());
@@ -172,9 +238,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
                 case clang::NestedNameSpecifier::NamespaceAlias: {
                     auto spaces = getNamespaces(
-                        Out,
-                        nns->getAsNamespaceAlias()->getNamespace(),
-                        Loc);
+                        nns->getAsNamespaceAlias()->getNamespace(), Loc);
                     result.insert(
                         result.end(), spaces.begin(), spaces.end());
                     break;
@@ -203,38 +267,126 @@ void ReflASTVisitor::fillType(
     if (const clang::TypedefType* tdType = In->getAs<
                                            clang::TypedefType>()) {
         clang::TypedefNameDecl* tdDecl = tdType->getDecl();
-        fillType(Out, tdDecl->getUnderlyingType(), Loc);
+        Out->set_name(tdDecl->getNameAsString());
+        Out->mutable_dbgorigin()->append(
+            " typedef type "
+            + formatSourceLocation(
+                tdDecl->getLocation(), Ctx->getSourceManager()));
+
+        applyNamespaces(Out, getNamespaces(tdDecl, Loc));
     } else {
-        if (In.isConstQualified()) {
-            Out->set_isconst(true);
-        }
-        if (In->isReferenceType()) {
-            Out->set_isref(true);
+        if (In.isConstQualified() || In->isPointerType()) {
+            auto cvq = Out->add_qualifiers();
+            if (In.isConstQualified()) {
+                cvq->set_isconst(true);
+                Out->mutable_dbgorigin()->append(" T-const");
+            }
+
+            if (In->isPointerType()) {
+                cvq->set_ispointer(true);
+                Out->mutable_dbgorigin()->append(" T-pointer");
+            }
+
+            if (In.isVolatileQualified()) {
+                cvq->set_isvolatile(true);
+                Out->mutable_dbgorigin()->append(" T-volatile");
+            }
         }
 
+
         if (In->isReferenceType()) {
+            Out->set_refkind(ReferenceKind::LValue);
+            Out->mutable_dbgorigin()->append(" T-reference");
+        }
+
+        Out->set_isbuiltin(In->isBuiltinType());
+
+        if (In->isReferenceType() || In->isPointerType()) {
+            Out->mutable_dbgorigin()->append(" >ref/ptr");
             fillType(Out, In->getPointeeType(), Loc);
         } else if (In->isBooleanType()) {
+            Out->mutable_dbgorigin()->append(" >bool");
             Out->set_name("bool");
+
+        } else if (In->isVoidType() || In->isVoidPointerType()) {
+            Out->set_name("void");
+
+        } else if (In->isCharType()) {
+            Out->mutable_dbgorigin()->append(" >char");
+            Out->set_name("char");
+
         } else if (In->isBuiltinType()) {
-            Out->set_name(In.getAsString());
+            Out->mutable_dbgorigin()->append(" >builtin/unqual");
+            auto unqual = In.getUnqualifiedType().getAsString();
+            if (unqual.starts_with("const ")) {
+                unqual = unqual.substr(strlen("const "));
+            }
+
+
+            Out->set_name(unqual);
+
         } else if (
             clang::ElaboratedType const* elab = In->getAs<
                                                 clang::ElaboratedType>()) {
-            // 'fill' operations are additive for namespaces
-            applyNamespaces(Out, getNamespaces(Out, elab, Loc));
+            Out->mutable_dbgorigin()->append(" >elaborated");
+            applyNamespaces(Out, getNamespaces(elab, Loc));
             fillType(Out, elab->getNamedType(), Loc);
 
         } else if (In->isRecordType()) {
-            applyNamespaces(Out, getNamespaces(Out, In, Loc));
-            Out->set_dbgorigin("record type filler");
+            applyNamespaces(Out, getNamespaces(In, Loc));
+
+            Out->mutable_dbgorigin()->append(
+                "record type filler "
+                + formatSourceLocation(
+                    Loc.value(), Ctx->getSourceManager()));
+
             Out->set_name(In->getAs<clang::RecordType>()
                               ->getDecl()
                               ->getNameAsString());
         } else if (In->isEnumeralType()) {
+            Out->mutable_dbgorigin()->append(" >enum");
             Out->set_name(In->getAs<clang::EnumType>()
                               ->getDecl()
                               ->getNameAsString());
+
+        } else if (In->isFunctionProtoType()) {
+            Out->mutable_dbgorigin()->append(" >func");
+            Out->set_kind(TypeKind::FunctionPtr);
+            const clang::FunctionProtoType* FPT = In->getAs<
+                clang::FunctionProtoType>();
+            fillType(Out->add_parameters(), FPT->getReturnType(), Loc);
+            for (clang::QualType const& param : FPT->param_types()) {
+                fillType(Out->add_parameters(), param, Loc);
+            }
+
+
+        } else if (In->isConstantArrayType()) {
+            Out->mutable_dbgorigin()->append(" >constarray");
+            clang::ArrayType const* ARRT = dyn_cast<clang::ArrayType>(
+                In.getTypePtr());
+
+            clang::ConstantArrayType const* C_ARRT = dyn_cast<
+                clang::ConstantArrayType>(ARRT);
+
+            Out->set_kind(TypeKind::Array);
+            fillType(Out->add_parameters(), C_ARRT->getElementType(), Loc);
+            auto expr_param = Out->add_parameters();
+            expr_param->set_kind(TypeKind::TypeExpr);
+            if (auto size = C_ARRT->getSizeExpr()) {
+                fillExpr(expr_param->mutable_typevalue(), size, Loc);
+            } else {
+                expr_param->mutable_typevalue()->set_value(
+                    std::to_string(C_ARRT->getSize().getSExtValue()));
+                expr_param->mutable_dbgorigin()->append(" >int value");
+            }
+
+        } else if (In->isArrayType()) {
+            Out->mutable_dbgorigin()->append(" >array");
+            clang::ArrayType const* ARRT = dyn_cast<clang::ArrayType>(
+                In.getTypePtr());
+            Out->set_kind(TypeKind::Array);
+            fillType(Out->add_parameters(), ARRT->getElementType(), Loc);
+
         } else {
             Diag(
                 DiagKind::Warning,
@@ -248,7 +400,7 @@ void ReflASTVisitor::fillType(
             for (clang::TemplateArgument const& Arg :
                  TST->template_arguments()) {
                 auto param = Out->add_parameters();
-                param->set_dbgorigin("Type parameter");
+                param->mutable_dbgorigin()->append("Type parameter");
                 fillType(param, Arg, Loc);
             }
         }
@@ -418,29 +570,51 @@ std::optional<std::string> ReflASTVisitor::getDoc(
     }
 }
 
-bool ReflASTVisitor::VisitCXXRecordDecl(
-    clang::CXXRecordDecl* Declaration) {
-    if (isRefl(Declaration)) {
-        llvm::TimeTraceScope timeScope{
-            "reflection-visit-record" + Declaration->getNameAsString()};
+bool ReflASTVisitor::shouldVisit(clang::Decl* Decl) {
+    switch (visitMode) {
+        case VisitMode::AllAnnotated: {
+            return isRefl(Decl);
+        }
+        case VisitMode::AllTargeted: {
+            // 'all targeted' mode should have all fields visited in any
+            // case, but sometimes fields can have a different location
+            // attached to them
+            // for some reason (`#line` annotation for instance) and decl-location-based
+            // sourcing is not fully accurate. Wherewher possible, more
+            // surefire way of detecting acceptance criteria should be
+            // used.
+            if (Decl->getKind() == clang::Decl::Kind::Field
+                || Decl->getKind() == clang::Decl::Kind::CXXMethod) {
+                return true;
+            } else {
+                std::string DeclLoc = getAbsoluteDeclLocation(Decl);
+                return !DeclLoc.empty()
+                    && targetFiles.find(DeclLoc) != targetFiles.end();
+            }
+        }
+    }
+}
 
-        Diag(
-            DiagKind::Note,
-            "Adding serialization information for %0",
-            Declaration->getLocation())
-            << Declaration;
+bool ReflASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl* Decl) {
+    if (shouldVisit(Decl)) {
+        llvm::TimeTraceScope timeScope{
+            "reflection-visit-record" + Decl->getNameAsString()};
 
         Record* rec = out->add_records();
-        rec->set_name(Declaration->getNameAsString());
+        rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
+        fillType(
+            rec->mutable_name(),
+            Decl->getASTContext().getRecordType(Decl),
+            Decl->getLocation());
 
-        for (clang::FieldDecl* field : Declaration->fields()) {
-            if (isRefl(field)) {
+        for (clang::FieldDecl* field : Decl->fields()) {
+            if (shouldVisit(field)) {
                 fillFieldDecl(rec->add_fields(), field);
             }
         }
 
-        for (clang::CXXMethodDecl* method : Declaration->methods()) {
-            if (isRefl(method)) {
+        for (clang::CXXMethodDecl* method : Decl->methods()) {
+            if (shouldVisit(method)) {
                 fillMethodDecl(rec->add_methods(), method);
             }
         }
@@ -450,19 +624,188 @@ bool ReflASTVisitor::VisitCXXRecordDecl(
     return true;
 }
 
+bool ReflASTVisitor::VisitFunctionDecl(clang::FunctionDecl* Decl) {
+    if (shouldVisit(Decl)) {
+        Function* func = out->add_functions();
+        func->set_name(Decl->getNameAsString());
+        for (clang::ParmVarDecl* Parm : Decl->parameters()) {
+            fillParmVarDecl(func->add_arguments(), Parm);
+        }
+
+        fillType(
+            func->mutable_resultty(),
+            Decl->getReturnType(),
+            Decl->getLocation());
+    }
+    return true;
+}
+
+clang::TypedefDecl* findTypedefForDecl(
+    clang::Decl*       Decl,
+    clang::ASTContext* Ctx) {
+    clang::DeclContext* Context = Decl->getDeclContext();
+    for (auto D : Context->decls()) {
+        if (auto* TD = llvm::dyn_cast<clang::TypedefDecl>(D)) {
+            if (TD->getUnderlyingType()->getAsRecordDecl() == Decl) {
+                return TD;
+            } else if (
+                const clang::EnumType* ET = TD->getUnderlyingType()
+                                                ->getAs<clang::EnumType>();
+                ET && ET->getDecl() == Decl) {
+                return TD;
+
+            } else if (TD->getUnderlyingDecl() == Decl) {
+                return TD;
+            }
+        }
+    }
+
+
+    return nullptr;
+}
+
 bool ReflASTVisitor::VisitEnumDecl(clang::EnumDecl* Decl) {
-    if (isRefl(Decl)) {
+    clang::TypedefDecl* Typedef = findTypedefForDecl(Decl, Ctx);
+
+    if (Typedef == nullptr && Decl->getNameAsString().empty()) {
+        return true;
+    }
+
+    if (shouldVisit(Decl)) {
         Diag(
             DiagKind::Note,
             "Adding serialization information for %0",
             Decl->getLocation())
             << Decl;
         Enum* rec = out->add_enums();
-        rec->set_name(Decl->getNameAsString());
+        rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
+        std::string origin = (Typedef
+                                  ? "typedef:" + Typedef->getNameAsString()
+                                  : "")
+                           + (Typedef ? "name:" + Decl->getNameAsString()
+                                      : "")
+                           + formatSourceLocation(
+                                 Decl->getLocation(),
+                                 Ctx->getSourceManager());
+
+        auto name   = rec->mutable_name();
+        auto spaces = getNamespaces(Decl, Decl->getLocation());
+
+        if (Typedef != nullptr) {
+            name->set_name(Typedef->getNameAsString());
+            name->mutable_dbgorigin()->append("enum typedef " + origin);
+            if (!Decl->getNameAsString().empty()) {
+                auto ed = rec->mutable_enumdefname();
+                ed->set_name(Decl->getNameAsString());
+                ed->mutable_dbgorigin()->append("enum direct " + origin);
+                ed->set_tag(TypeTag::TypeTagEnum);
+                applyNamespaces(ed, spaces);
+            }
+        } else {
+            name->set_name(Decl->getNameAsString());
+            name->mutable_dbgorigin()->append("enum direct " + origin);
+        }
+
+
+        applyNamespaces(name, spaces);
 
         for (clang::EnumConstantDecl* field : Decl->enumerators()) {
             Enum_Field* sub = rec->add_fields();
             sub->set_name(field->getNameAsString());
+            sub->set_value(field->getInitVal().getExtValue());
+        }
+    }
+
+    return true;
+}
+
+bool ReflASTVisitor::VisitTypedefDecl(clang::TypedefDecl* Decl) {
+    if (clang::RecordDecl* RecordDecl = Decl->getUnderlyingType()
+                                            ->getAsRecordDecl()) {
+
+    } else if (
+        const auto* enumType = Decl->getUnderlyingType()
+                                   ->getAs<clang::EnumType>()) {
+
+    } else {
+        if (shouldVisit(Decl)) {
+            Typedef* def = out->add_typedefs();
+            def->mutable_name()->set_name(Decl->getNameAsString());
+            def->mutable_name()->mutable_dbgorigin()->append(
+                formatSourceLocation(
+                    Decl->getLocation(), Ctx->getSourceManager()));
+            applyNamespaces(
+                def->mutable_name(),
+                getNamespaces(Decl, Decl->getLocation()));
+
+            def->mutable_basetype()->mutable_dbgorigin()->append(
+                " Typedef Decl Visit");
+
+            fillType(
+                def->mutable_basetype(),
+                Decl->getUnderlyingType(),
+                Decl->getLocation());
+        }
+    }
+    return true;
+}
+
+bool ReflASTVisitor::VisitRecordDecl(clang::RecordDecl* Decl) {
+    clang::TypedefDecl* Typedef = findTypedefForDecl(Decl, Ctx);
+    if (Decl->getNameAsString().empty() && Typedef == nullptr) {
+        return true;
+    } else if (shouldVisit(Decl)) {
+        llvm::TimeTraceScope timeScope{
+            "reflection-visit-record" + Decl->getNameAsString()};
+
+        Record* rec = out->add_records();
+        rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
+        auto name = rec->mutable_name();
+        if (Typedef != nullptr) {
+            // typedef struct abomination handling -- need to conjure up a
+            // name from the scattered bits of brain tissue that was left
+            // by the developers of this frankenstein feature.
+            fillType(
+                rec->mutable_name(),
+                Typedef->getASTContext().getTypedefType(Typedef),
+                Decl->getLocation());
+
+            name->set_name(Typedef->getNameAsString());
+
+            if (!Decl->getNameAsString().empty()) {
+                auto ed = rec->mutable_recorddefname();
+                fillType(
+                    rec->mutable_name(),
+                    Typedef->getASTContext().getTypedefType(Typedef),
+                    Decl->getLocation());
+                ed->set_name(Decl->getNameAsString());
+                ed->set_tag(TypeTag::TypeTagStruct);
+            }
+            name->mutable_dbgorigin()->append(" > typedef!=nullptr");
+
+        } else {
+            fillType(
+                name,
+                Decl->getASTContext().getRecordType(Decl),
+                Decl->getLocation());
+            name->mutable_dbgorigin()->append(" > typedef==nullptr");
+        }
+
+        name->mutable_dbgorigin()->append(
+            " > " + Decl->getKindName().str());
+
+        if (false) {
+            std::string              str;
+            llvm::raw_string_ostream buf{str};
+            Decl->dump(buf);
+            buf.flush();
+            name->mutable_dbgorigin()->append(str);
+        }
+
+        for (clang::FieldDecl* field : Decl->fields()) {
+            if (shouldVisit(field)) {
+                fillFieldDecl(rec->add_fields(), field);
+            }
         }
     }
 
@@ -493,11 +836,6 @@ void ReflASTConsumer::HandleTranslationUnit(clang::ASTContext& Context) {
     if (file.is_open()) {
         out->SerializePartialToOstream(&file);
         file.close();
-        Diags.Report(Diags.getCustomDiagID(
-            clang::DiagnosticsEngine::Remark,
-            "Wrote compiler reflection to file: "
-            "'%0'"))
-            << path;
     } else {
         Diags.Report(Diags.getCustomDiagID(
             clang::DiagnosticsEngine::Warning,

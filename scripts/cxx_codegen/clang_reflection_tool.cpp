@@ -7,6 +7,8 @@
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/JSONCompilationDatabase.h>
 #include <filesystem>
+#include <format>
+#include <llvm/Support/JSON.h>
 
 namespace fs = std::filesystem;
 
@@ -32,8 +34,52 @@ llvm::cl::opt<std::string> outputPathOverride(
 llvm::cl::opt<std::string> ToolchainInclude(
     "toolchain-include",
     llvm::cl::desc("Path to the LLVM Toolchain include directory"),
-    llvm::cl::Required,
     llvm::cl::cat(ToolingSampleCategory));
+
+llvm::cl::opt<std::string> TargetFiles(
+    "target-files",
+    llvm::cl::desc("File with json array, list of absolute paths whose "
+                   "declarations will be included into TU dump."),
+    llvm::cl::cat(ToolingSampleCategory));
+
+std::vector<std::string> parseTargetFiles(std::string path) {
+    std::ifstream ifs{path};
+    if (!ifs.is_open()) {
+        throw std::domain_error(std::format(
+            "Failed to open the target file list: '{}', {}",
+            path,
+            std::strerror(errno)));
+    }
+
+    std::string jsonContent(
+        (std::istreambuf_iterator<char>(ifs)),
+        (std::istreambuf_iterator<char>()));
+
+    llvm::Expected<llvm::json::Value> parsed = llvm::json::parse(
+        jsonContent);
+
+    if (!parsed) {
+        throw std::domain_error(std::format(
+            "Failed to parse error {}",
+            llvm::toString(parsed.takeError())));
+    }
+
+    llvm::json::Array* arr = parsed->getAsArray();
+    if (!arr) {
+        throw std::domain_error("JSON is not an array");
+    }
+
+    std::vector<std::string> result;
+    for (auto& val : *arr) {
+        if (val.kind() != llvm::json::Value::String) {
+            throw std::domain_error("Array element is not a string");
+        }
+        result.push_back(val.getAsString()->str());
+    }
+
+    return result;
+}
+
 
 class ReflFrontendAction : public clang::ASTFrontendAction {
   protected:
@@ -44,10 +90,24 @@ class ReflFrontendAction : public clang::ASTFrontendAction {
         if (!outputPathOverride.empty()) {
             consumer->outputPathOverride = outputPathOverride;
         }
+        if (TargetFiles.empty()) {
+            consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
+                AllAnnotated;
+        } else {
+            std::vector files = parseTargetFiles(TargetFiles.getValue());
+            consumer->Visitor.targetFiles.insert(
+                files.begin(), files.end());
+            consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::
+                AllTargeted;
+        }
+
         return consumer;
     }
 };
 
+/// Filter out compilation options that were used in the compilation
+/// database -- remove reflection plugin usage, precompiled headers, and
+/// add provided toolchain include configuration.
 clang::tooling::CommandLineArguments dropReflectionPLugin(
     const clang::tooling::CommandLineArguments& Args,
     llvm::StringRef                             Filename) {
@@ -120,11 +180,13 @@ int main(int argc, const char** argv) {
     clang::tooling::ClangTool tool(
         adjustedCompilations, OptionsParser.getSourcePathList());
 
-    if (!fs::is_directory(std::string(ToolchainInclude))) {
-        llvm::errs()
-            << "Toolchain include is not a directory or does not exist '"
-            << ToolchainInclude << "'\n";
-        return 1;
+    if (!ToolchainInclude.empty()) {
+        if (!fs::is_directory(std::string(ToolchainInclude))) {
+            llvm::errs() << "Toolchain include is not a directory or does "
+                            "not exist '"
+                         << ToolchainInclude << "'\n";
+            return 1;
+        }
     }
 
     int result = tool.run(
