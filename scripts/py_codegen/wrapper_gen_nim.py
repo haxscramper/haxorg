@@ -1,32 +1,19 @@
-import astbuilder_nim as nim
-from gen_tu_cpp import (
-    GenTuStruct,
-    GenTuFunction,
-    GenTuEnum,
-    QualType,
-    GenTuTypedef,
-    GenTuEnumField,
-    QualTypeKind,
-    GenTuField,
-)
-
-from pydantic import BaseModel, Field
-
-import math
-
-from beartype import beartype
-from beartype.typing import List, Union, Optional, NewType, Callable, Set
-from dataclasses import dataclass, field
 import itertools
-from pathlib import Path
-from py_scriptutils.files import file_relpath
-
+import math
 import re
-
-from py_textlayout.py_textlayout import TextLayout, TextOptions
-
+from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING
 
+from beartype import beartype
+from beartype.typing import Callable, List, NewType, Optional, Set, Union
+from py_scriptutils.files import file_relpath
+from py_textlayout.py_textlayout import TextLayout, TextOptions
+from pydantic import BaseModel, Field
+
+import astbuilder_nim as nim
+from gen_tu_cpp import (GenTuEnum, GenTuEnumField, GenTuField, GenTuFunction,
+                        GenTuStruct, GenTuTypedef, QualType, QualTypeKind)
 from wrapper_graph import GenGraph
 
 if TYPE_CHECKING:

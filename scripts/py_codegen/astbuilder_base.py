@@ -1,8 +1,9 @@
-from py_textlayout.py_textlayout import TextLayout
-from beartype.typing import List, Union, Optional
-from beartype import beartype
-from typing import TYPE_CHECKING, NewType
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, NewType
+
+from beartype import beartype
+from beartype.typing import List, Optional, Union
+from py_textlayout.py_textlayout import TextLayout
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout import BlockId

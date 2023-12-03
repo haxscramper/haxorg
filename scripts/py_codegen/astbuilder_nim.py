@@ -1,12 +1,14 @@
-from py_textlayout.py_textlayout import TextLayout
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, NewType
-from beartype.typing import List, Optional, Union
-from beartype import beartype
-import astbuilder_base as base
-from enum import Enum
 import itertools
 import re
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import TYPE_CHECKING, NewType
+
+from beartype import beartype
+from beartype.typing import List, Optional, Union
+from py_textlayout.py_textlayout import TextLayout
+
+import astbuilder_base as base
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout import BlockId

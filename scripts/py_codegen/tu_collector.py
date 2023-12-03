@@ -1,40 +1,29 @@
 #!/usr/bin/env python
 
-from beartype import beartype
-from beartype.typing import (
-    List,
-    cast,
-    Any,
-    Tuple,
-    Union,
-    Dict,
-    Set,
-    Optional,
-    TypeAlias,
-    NewType,
-)
-from pydantic import BaseModel, Field
-from pprint import pprint, pformat
-from plumbum import local
-from hashlib import md5
-from gen_tu_cpp import (QualType)
-from dataclasses import dataclass, field
-from copy import deepcopy
 import json
 import time
+from copy import deepcopy
+from dataclasses import dataclass, field
+from hashlib import md5
 from pathlib import Path
-from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
-
-from py_scriptutils.script_logging import log
-from py_scriptutils.files import IsNewInput
-import py_scriptutils.toml_config_profiler as conf_provider
-from refl_read import conv_proto_file, ConvTu, open_proto_file
-
-import rich_click as click
-import wrapper_gen_nim as gen_nim
-from wrapper_graph import GenGraph, TuWrap
-
+from pprint import pformat, pprint
 from typing import TYPE_CHECKING
+
+import py_scriptutils.toml_config_profiler as conf_provider
+import rich_click as click
+from beartype import beartype
+from beartype.typing import (Any, Dict, List, NewType, Optional, Set, Tuple,
+                             TypeAlias, Union, cast)
+from plumbum import local
+from py_scriptutils.files import IsNewInput
+from py_scriptutils.script_logging import log
+from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
+from pydantic import BaseModel, Field
+
+import wrapper_gen_nim as gen_nim
+from gen_tu_cpp import QualType
+from refl_read import ConvTu, conv_proto_file, open_proto_file
+from wrapper_graph import GenGraph, TuWrap
 
 CONFIG_FILE_NAME = "tu_collector.toml"
 

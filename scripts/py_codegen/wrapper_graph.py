@@ -1,26 +1,18 @@
-from beartype import beartype
-from beartype.typing import Union, TypeAlias, List, Dict, Set, Optional
-from pathlib import Path
-from dataclasses import dataclass, field
-from gen_tu_cpp import (
-    GenTuStruct,
-    GenTuFunction,
-    GenTuEnum,
-    QualType,
-    GenTuTypedef,
-    GenTuEnumField,
-    QualTypeKind,
-    GenTuField,
-)
-
-from py_scriptutils.script_logging import log
-from pprint import pformat
-import igraph as ig
-import graphviz as gv
-from copy import deepcopy
 import itertools
+from copy import deepcopy
+from dataclasses import dataclass, field
+from pathlib import Path
+from pprint import pformat
+
+import graphviz as gv
+import igraph as ig
+from beartype import beartype
+from beartype.typing import Dict, List, Optional, Set, TypeAlias, Union
+from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
 
+from gen_tu_cpp import (GenTuEnum, GenTuEnumField, GenTuField, GenTuFunction,
+                        GenTuStruct, GenTuTypedef, QualType, QualTypeKind)
 from refl_read import ConvTu
 
 GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction]
@@ -28,9 +20,11 @@ GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunctio
 
 @beartype
 def hash_qual_type(t: QualType) -> int:
-    # Generate a hashed value for qualified type, ignoring constant qualifiers,
-    # pointers and other elements. This function is primarily used to map
-    # declared entries to some simpler value for ID.
+    """
+    Generate a hashed value for qualified type, ignoring constant qualifiers,
+    pointers and other elements. This function is primarily used to map
+    declared entries to some simpler value for ID.
+    """
     parts: List[str] = [hash(t.Kind)]
     match t.Kind:
         case QualTypeKind.FunctionPtr:
@@ -53,8 +47,10 @@ def hash_qual_type(t: QualType) -> int:
 
 @beartype
 class TranslationUnitLocations(BaseModel):
-    # Information about external dependencies of a translation unit -- `Name` of the dependency
-    # library/package and the relative path inside of this library.
+    """
+    Information about external dependencies of a translation unit -- `Name` of the dependency
+    library/package and the relative path inside of this library.
+    """
     Name: str = Field(description="Name of the translation unit group", default="")
     Files: List[Path] = Field(
         description="Paths relative to the root directory of this translation unit group")
@@ -62,6 +58,11 @@ class TranslationUnitLocations(BaseModel):
 
 @beartype
 class TranslationUnitInfo(BaseModel):
+    """
+    Helper information for the translation unit conversion, can be written
+    alongside the generated files and translation unit JSON dumps, to simplify
+    search for "who defines" and "what is imported" information.
+    """
     Defines: List[QualType] = Field(
         description="List of types defined in the translation module",
         default_factory=list)
@@ -72,31 +73,59 @@ class TranslationUnitInfo(BaseModel):
 
 @dataclass
 class TuWrap:
+    """
+    Converted translation unit
+    """
     name: str
     tu: ConvTu
-    original: Path
-    mapping: Path
+    original: Path ## Path of the original main file of the translation unit
+    ## TODO move customization point further down the line, no need to keep it directly with collectr
+    mapping: Path ## Target generated mapping, constructed based during collector
+                  ## run. 
+
 
 
 @beartype
 @dataclass
 class GenGraph:
+    """
+    Graph structure constructed from the translation unit modules. Collection 
+    of translation units is added to the generation graph, rearranged to resolve
+    internal links (mainly mutually recursive type usages) and a new list of subgraphs
+    can then be converted to target language definitions. 
+    """
 
     @beartype
     @dataclass
     class Sub:
+        """
+        Single sugbraph containing an unordered series of definitions. At the 
+        start each translation unit gets its own subgraph, later on the subgraphs
+        might be merged together if mutually recursive file imports are detected. 
+        """
+        ## Name of the original translatuion unit
         name: str
+        ## Full path of the path of the main translation unit file
         original: Path
+        ## **Unordered** collection of definitions in the graph
         nodes: Set[int] = field(default_factory=set)
 
     id_to_entry: Dict[int, Union[GenTuFunction, GenTuStruct,
                                  GenTuEnum]] = field(default_factory=dict)
-    graph: ig.Graph = field(default_factory=lambda: ig.Graph(directed=True))
-    subgraphs: List[Sub] = field(default_factory=list)
 
+    ## Main directed graph holding all declarations and type usage links.
+    graph: ig.Graph = field(default_factory=lambda: ig.Graph(directed=True))
+
+    ## List of currently registered subgraphs
+    subgraphs: List[Sub] = field(default_factory=list)
+    ## Mapping from the hashed value of the type or procedure to the graph ID
     id_map: Dict[int, int] = field(default_factory=dict)
 
     def get_sub(self, _id: int) -> Optional[Sub]:
+        """
+        Find which subgraph definition belongs to. If No definition is found, return
+        empty subgraph. 
+        """
         matching: List[GenGraph.Sub] = []
         for sub in self.subgraphs:
             if _id in sub.nodes:
@@ -113,6 +142,7 @@ class GenGraph:
             return None
 
     def get_declared_sub(self, typ: QualType) -> Optional[Sub]:
+        """Get subgraph defining the qualified type"""
         _id = self.id_from_hash(hash_qual_type(typ))
         if not (typ.isPrimitive() or typ.isArray() or
                 typ.isFunction()) and _id not in self.id_to_entry:
@@ -127,6 +157,7 @@ class GenGraph:
         return self.id_map[hashed]
 
     def id_from_entry(self, entry: GenTuUnion, parent: Optional[QualType] = None) -> int:
+        """Get ID from the entry declartion"""
         match entry:
             case GenTuStruct():
                 return self.id_from_hash(hash_qual_type(entry.name))
@@ -164,6 +195,10 @@ class GenGraph:
                 _id, _type)]["dbg_origin"] = f"{dbg_from} -> {Type.format()}"
 
     def get_used_type(self, decl: GenTuUnion) -> List[QualType]:
+        """
+        Get list of types used in the declaration -- field types, arguments, return
+        types, structure bases etc. 
+        """
         result: List[QualType] = []
 
         def use_rec_type(t: QualType):
@@ -189,6 +224,9 @@ class GenGraph:
 
         match decl:
             case GenTuStruct():
+                for base in decl.bases:
+                    use_rec_type(base)
+
                 for _field in decl.fields:
                     assert _field.type, _field
                     use_rec_type(_field.type)
@@ -226,6 +264,17 @@ class GenGraph:
         pass
 
     def add_entry(self, entry: GenTuUnion, sub: Sub) -> int:
+        """
+        Register new entry in the graph or update existing registration. 
+
+        If the entry has already been added in a simpler form (formward declared in a different
+        translation unit), then old declaration is removed and added the `sub` subgraph. If new
+        declaration itself is a forward declaration then no entry addition will happen. 
+
+        If this is a completely new declaration/definition then new vertex will be added to the graph
+        and a full deep copy of the entry will be stored into the `id_to_entry` field for
+        future modifications and merges in case it is encountered through a different translation unit.
+        """
         _id = self.id_from_entry(entry)
         if _id in self.id_to_entry:
             if isinstance(entry, GenTuStruct) or isinstance(entry, GenTuEnum):
@@ -307,6 +356,7 @@ class GenGraph:
         self.graph.vs[_id]["color"] = "magenta"
 
     def add_unit(self, wrap: TuWrap):
+        """Add all declarations from the converted translation unit"""
         sub = GenGraph.Sub(wrap.name, wrap.original)
         self.subgraphs.append(sub)
         for struct in wrap.tu.structs:
@@ -322,6 +372,15 @@ class GenGraph:
             self.add_function(func, sub)
 
     def connect_usages(self):
+        """
+        Iterate overlall registered declarations in the graph and establish outgoing links
+        from every node that uses some type -- functions, structures etc.
+
+        Note: This method must be called after the graph is fully constructed, otherwise some
+        dependencies might be missing becase target types could not be found. Additionally, 
+        the method links together declarations from the same subgraph, so it must be called
+        before the connected file grouping. 
+        """
         for _id, decl in self.id_to_entry.items():
             for used_type in self.get_used_type(decl):
                 self.use_type(_id, used_type)
@@ -347,8 +406,10 @@ class GenGraph:
 
                 self.graph.add_edge(type_ids[-1], type_ids[0])
 
-    def group_connected_files(self):
-        # Find strongly connected components
+    def group_connected_files(self) -> None:
+        """
+        Find mutually recursive subgraphs and merge them into single blocks
+        """
         g = self.graph
         sccs = [scc for scc in g.connected_components(mode="strong") if 1 < len(scc)]
 
@@ -370,8 +431,9 @@ class GenGraph:
         def get_scc_indices(sub: GenGraph.Sub):
             return {vertex_to_scc[v] for v in sub.nodes if v in vertex_to_scc}
 
+        # Group vertex sets by their SCCs and directly pass subgraphs that are not
+        # placed in any SCC -- those are standalone files, can be used on their own
         ungrouped_sets: List[GenGraph.Sub] = []
-        # Group vertex sets by their SCCs
         grouped_sets: Dict[frozenset, List[GenGraph.Sub]] = {}
         for vertex_set in self.subgraphs:
             scc_indices = frozenset(get_scc_indices(vertex_set))
@@ -414,7 +476,6 @@ class GenGraph:
         Export an igraph graph to CSV files for nodes and edges.
 
         Args:
-        - graph (ig.Graph): The igraph graph to export.
         - node_file (str): File path for the nodes CSV.
         - edge_file (str): File path for the edges CSV.
         """
