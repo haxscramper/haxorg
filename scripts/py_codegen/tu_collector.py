@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from pprint import pprint, pformat
 from plumbum import local
 from hashlib import md5
+import re
 from gen_tu_cpp import (GenTuStruct, GenTuFunction, GenTuEnum, QualType, GenTuTypedef,
                         GenTuEnumField, QualTypeKind, GenTuField)
 from dataclasses import dataclass, field
@@ -68,6 +69,10 @@ def file_relpath(base: Path, target: Path) -> str:
 
         return relative_path
 
+class WrapRenameRule(BaseModel):
+    original: str = Field(description="Regex pattern for input text matching")
+    renamed: str = Field(description="Replacement pattern")
+
 
 class TuOptions(BaseModel):
     input: List[str] = Field(description="List of input files, directories or globs")
@@ -98,6 +103,14 @@ class TuOptions(BaseModel):
     universal_import: List[str] = Field(default=[],
                                         description="Import added to all generated files")
 
+    function_renames: List[WrapRenameRule] = Field(default=[], description="List of renaming rules for generated wrappers")
+
+def apply_rename(name: str, renames: List[WrapRenameRule]) -> str:
+    for rule in renames:
+        if re.match(rule.original, name):
+            return re.sub(rule.original, rule.renamed, name)
+
+    return name
 
 @beartype
 @dataclass
@@ -867,9 +880,9 @@ class GenGraph:
                               Base=self.type_to_nim(b, typdef.base))
         ])
 
-    def function_to_nim(self, b: nim.ASTBuilder, func: GenTuFunction) -> ConvRes:
+    def function_to_nim(self, b: nim.ASTBuilder, func: GenTuFunction, conf: TuOptions) -> ConvRes:
         return ConvRes(procs=[
-            nim.FunctionParams(Name=nim.sanitize_name(func.name),
+            nim.FunctionParams(Name=nim.sanitize_name(apply_rename(func.name, conf.function_renames)),
                                ReturnTy=self.type_to_nim(b, func.result),
                                Pragmas=[
                                    nim.PragmaParams("git2Proc"),
@@ -925,7 +938,7 @@ class GenGraph:
                     conv = self.typedef_to_nim(builder, decl)
 
                 case GenTuFunction():
-                    conv = self.function_to_nim(builder, decl)
+                    conv = self.function_to_nim(builder, decl, conf)
 
                 case _:
                     assert False

@@ -6,3 +6,7 @@ output_directory = "/mnt/workspace/repos/hlibgit2/src/hlibgit2"
 universal_import = [
   "libgit2_config.nim"
 ]
+
+function_renames = [
+  { original = "git_odb_write_pack", renamed = "git_odb_write_pack_fn" }
+]
