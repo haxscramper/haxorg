@@ -237,7 +237,7 @@ class ASTBuilder(base.AstbuilderBase):
                 return t.Expr
 
             case TypeKind.RegularType:
-                head: BlockId = self.string(self.safename(t.Name))
+                head: BlockId = self.string(t.Name) if t.Name in ["ptr", "ref"] else self.string(self.safename(t.Name)) 
 
                 if 0 < len(t.Parameters):
                     if t.Name == "ptr":

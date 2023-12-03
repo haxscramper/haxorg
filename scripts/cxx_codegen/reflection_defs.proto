@@ -37,6 +37,12 @@ enum TypeTag {
     TypeTagUnion = 3;
 }
 
+message CVQual {
+    bool IsPointer = 1;
+    bool IsConst = 2;
+    bool IsVolatile = 3;
+}
+
 // Fully qualified C++ type that is designed to uniquely identify the target
 // within a single translation unit. More complex cases are not considered
 // (duplicate type names in different files, across different projects)
@@ -50,21 +56,19 @@ message QualType {
     // List of template type parameters for the type instance. Qualified types
     // that are used as parent types can also have parameters.
     repeated QualType Parameters = 3;
-    // `T const` vs `T`
-    bool IsConst = 4;
+    repeated CVQual Qualifiers = 4;
     // `T&` vs `T&` (TODO r-value ref)
     ReferenceKind RefKind = 5;
-    bool IsPointer = 6;
-    TypeKind Kind = 7;
-    Expr TypeValue = 8;
+    TypeKind Kind = 6;
+    Expr TypeValue = 7;
     // `std::vector` -- std will also be handled as qualified type to
     // avoid making more complicated spaces structure. TODO revise if
     // `repeated string Spaces` + `repated QualType Parents` will be
     // a better alternative.
-    bool IsNamespace = 9;
-    string DbgOrigin = 10;
-    TypeTag Tag = 11;
-    bool IsBuiltin = 12;
+    bool IsNamespace = 8;
+    string DbgOrigin = 9;
+    TypeTag Tag = 10;
+    bool IsBuiltin = 11;
 }
 
 // Enumeration definition

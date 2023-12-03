@@ -4,6 +4,7 @@ import re
 from beartype import beartype
 from gen_tu_cpp import *
 from pprint import pprint
+import itertools
 
 
 @beartype
@@ -89,7 +90,7 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
             res.Kind = QualTypeKind.TypeExpr
             res.expr = typ.type_value.value
 
-    res.isConst = typ.is_const
+    res.isConst = any([it.is_const for it in typ.qualifiers])
     res.isNamespace = typ.is_namespace
     res.RefKind = {
         pb.ReferenceKind.NotRef: ReferenceKind.NotRef,
@@ -97,7 +98,7 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
         pb.ReferenceKind.RValue: ReferenceKind.RValue,
     }[typ.ref_kind]
 
-    res.ptrCount = 1 if typ.is_pointer else 0
+    res.ptrCount = len([it for it in typ.qualifiers if it.is_pointer])
 
     return res
 

@@ -275,19 +275,28 @@ void ReflASTVisitor::fillType(
 
         applyNamespaces(Out, getNamespaces(tdDecl, Loc));
     } else {
-        if (In.isConstQualified()) {
-            Out->set_isconst(true);
-            Out->mutable_dbgorigin()->append(" T-const");
+        if (In.isConstQualified() || In->isPointerType()) {
+            auto cvq = Out->add_qualifiers();
+            if (In.isConstQualified()) {
+                cvq->set_isconst(true);
+                Out->mutable_dbgorigin()->append(" T-const");
+            }
+
+            if (In->isPointerType()) {
+                cvq->set_ispointer(true);
+                Out->mutable_dbgorigin()->append(" T-pointer");
+            }
+
+            if (In.isVolatileQualified()) {
+                cvq->set_isvolatile(true);
+                Out->mutable_dbgorigin()->append(" T-volatile");
+            }
         }
+
 
         if (In->isReferenceType()) {
             Out->set_refkind(ReferenceKind::LValue);
             Out->mutable_dbgorigin()->append(" T-reference");
-        }
-
-        if (In->isPointerType()) {
-            Out->set_ispointer(true);
-            Out->mutable_dbgorigin()->append(" T-pointer");
         }
 
         Out->set_isbuiltin(In->isBuiltinType());
