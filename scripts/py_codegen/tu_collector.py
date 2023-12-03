@@ -17,16 +17,8 @@ from pydantic import BaseModel, Field
 from pprint import pprint, pformat
 from plumbum import local
 from hashlib import md5
-from gen_tu_cpp import (
-    GenTuStruct,
-    GenTuFunction,
-    GenTuEnum,
-    QualType,
-    GenTuTypedef,
-    GenTuEnumField,
-    QualTypeKind,
-    GenTuField
-)
+from gen_tu_cpp import (GenTuStruct, GenTuFunction, GenTuEnum, QualType, GenTuTypedef,
+                        GenTuEnumField, QualTypeKind, GenTuField)
 from dataclasses import dataclass, field
 from copy import deepcopy
 import json
@@ -354,7 +346,9 @@ class GenGraph:
                 if target not in sub.nodes:
                     external.add(target)
 
-        target_groups = [sub for sub in self.subgraphs if 0 < len(sub.nodes.intersection(external))]
+        target_groups = [
+            sub for sub in self.subgraphs if 0 < len(sub.nodes.intersection(external))
+        ]
         result = nim.ImportParams(QuoteImport=True,
                                   FormatMode=nim.ImportParamsMode.Single)
         for target in target_groups:
@@ -576,14 +570,17 @@ class GenGraph:
 
         # Cross-subgraph usage does not generate cycles all the time. This code expands edge structure
         # through all the types placed in a single file. Given a file `FA` with types `A1, A2` defined
-        # and file `FB` with types `B1, B2` and `A1 -> B2`, `A2 -> B1` relation, there is no cycle in 
+        # and file `FB` with types `B1, B2` and `A1 -> B2`, `A2 -> B1` relation, there is no cycle in
         # in the type graph, but when imports are generated, the import will be cyclic, because "is in
-        # the same file" is also a relation that affects how the code is ought to be structured. 
-        # 
-        # By adding `A1 -> A2 -> ... AN -> A1` link, converter puts a new cycle into the type graph 
+        # the same file" is also a relation that affects how the code is ought to be structured.
+        #
+        # By adding `A1 -> A2 -> ... AN -> A1` link, converter puts a new cycle into the type graph
         # and mutually recursive detection will pick it up later on.
         for sub in self.subgraphs:
-            type_ids = list(itertools.dropwhile(lambda _id: isinstance(self.id_to_entry[_id], GenTuFunction), sub.nodes))
+            type_ids = list(
+                itertools.dropwhile(
+                    lambda _id: isinstance(self.id_to_entry[_id], GenTuFunction),
+                    sub.nodes))
 
             if 1 < len(type_ids):
                 for decl1, decl2 in itertools.pairwise(type_ids):
@@ -591,7 +588,6 @@ class GenGraph:
                         self.graph.add_edge(decl1, decl2)
 
                 self.graph.add_edge(type_ids[-1], type_ids[0])
-
 
     def group_connected_files(self, conf: TuOptions):
         # Find strongly connected components
@@ -602,11 +598,10 @@ class GenGraph:
             for idx, scc in enumerate(sccs):
                 print(f"[{idx}] SCC group " + "~" * 120, file=file)
                 for node in scc:
-                    print(f"  Node {g.vs[node]['label']} in {g.vs[node]['dbg_origin']}", file=file)
+                    print(f"  Node {g.vs[node]['label']} in {g.vs[node]['dbg_origin']}",
+                          file=file)
                     for edge in g.incident(node, mode="out"):
                         print(f"    -> {g.vs[g.es[edge].target]['label']}", file=file)
-
-
 
         # Map each vertex to its corresponding strongly connected component
         vertex_to_scc = {
@@ -616,7 +611,6 @@ class GenGraph:
         # Function to get the SCC index for a set of vertices
         def get_scc_indices(sub: GenGraph.Sub):
             return {vertex_to_scc[v] for v in sub.nodes if v in vertex_to_scc}
-
 
         ungrouped_sets: List[GenGraph.Sub] = []
         # Group vertex sets by their SCCs
@@ -744,7 +738,7 @@ class GenGraph:
         result = ConvRes()
         c_name = "c_" + enum.name.name
 
-        def f_name(f: GenTuField) -> str:
+        def f_name(f: GenTuEnumField) -> str:
             return nim.sanitize_name(f.name)
 
         def c_enum_field(idx: int, f: GenTuEnumField) -> nim.EnumFieldParams:
@@ -784,21 +778,19 @@ class GenGraph:
                                                   Parameters=[nim.Type(enum.name.name)]))
                 ],
                 ReturnTy=nim.Type("cint"),
-                Implementation=b.b.stack([
+                Implementation=b.stack(
                     b.string("for value in items(args):"),
-                    b.b.indent(
+                    b.indent(
                         2,
-                        b.b.stack([
-                            b.string("case value:"),
-                            b.b.indent(
-                                2,
-                                b.b.stack([
-                                    b.string(
-                                        f"of {f_name(f).ljust(w)}: result = cint(result or {f.value})"
-                                    ) for f in enum.fields
-                                ])),
-                        ])),
-                ])))
+                        b.string("case value:"),
+                        b.indent(
+                            2, *[
+                                b.string(
+                                    f"of {f_name(f).ljust(w)}: result = cint(result or {f.value})"
+                                ) for f in enum.fields
+                            ]),
+                    ),
+                )))
 
         for op in ["-", "+"]:
             for arguments in [
@@ -840,15 +832,17 @@ class GenGraph:
                            Fields=[c_enum_field(idx, f) for idx, f in enumerate(fields)]))
 
         result.types.append(
-            nim.EnumParams(Name=enum.name.name,
-                           Exported=True,
-                           Fields=[nim.EnumFieldParams(Name=f_name(f)) for f in enum.fields
-                                  ]))
+            nim.EnumParams(
+                Name=enum.name.name,
+                Exported=True,
+                Fields=[nim.EnumFieldParams(Name=f_name(f)) for f in enum.fields]))
 
         return result
 
     def field_to_nim(self, b: nim.ASTBuilder, f: GenTuField) -> nim.IdentParams:
-        result = nim.IdentParams(Name=nim.sanitize_name(f.name), Exported=True, Type=self.type_to_nim(b, f.type))
+        result = nim.IdentParams(Name=nim.sanitize_name(f.name),
+                                 Exported=True,
+                                 Type=self.type_to_nim(b, f.type))
         if result.Name != f.name:
             result.Pragmas.append(nim.PragmaParams("importc", [b.Lit(f.name)]))
 
@@ -856,15 +850,14 @@ class GenGraph:
 
     def struct_to_nim(self, b: nim.ASTBuilder, rec: GenTuStruct) -> ConvRes:
         return ConvRes(types=[
-            nim.ObjectParams(
-                Name=rec.name.name,
-                Pragmas=[
-                    nim.PragmaParams("importc"),
-                    nim.PragmaParams("bycopy"),
-                    *([nim.PragmaParams("incompleteStruct")] if rec.IsForwardDecl else []
-                     ),
-                ],
-                Fields=[self.field_to_nim(b, f) for f in rec.fields])
+            nim.ObjectParams(Name=rec.name.name,
+                             Pragmas=[
+                                 nim.PragmaParams("importc"),
+                                 nim.PragmaParams("bycopy"),
+                                 *([nim.PragmaParams("incompleteStruct")] if rec.
+                                   IsForwardDecl else []),
+                             ],
+                             Fields=[self.field_to_nim(b, f) for f in rec.fields])
         ])
 
     def typedef_to_nim(self, b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
@@ -1006,7 +999,11 @@ class GenGraph:
         edges_df = pd.DataFrame(edges_data)
         edges_df.to_csv(edge_file, index=False)
 
-    def to_graphviz(self, output_file: str, with_subgraphs: bool = True, drop_zero_degree: bool = False, drop_builtin_types: bool = True):
+    def to_graphviz(self,
+                    output_file: str,
+                    with_subgraphs: bool = True,
+                    drop_zero_degree: bool = False,
+                    drop_builtin_types: bool = True):
         dot = gv.Digraph(format='dot')
         dot.attr(rankdir="LR")
         dot.attr(overlap="false")
@@ -1018,7 +1015,6 @@ class GenGraph:
 
         # Track which nodes have been added to subgraphs
         added_nodes = set()
-
 
         @beartype
         def is_accepted_node(node: int) -> bool:
@@ -1048,8 +1044,9 @@ class GenGraph:
         def rec_subgraph(target: gv.Graph, sub: GenGraph.Sub):
             for node in sub.nodes:
                 if is_accepted_node(node):
-                    target.node(f'{sub.name}_{node}',
-                                **{attr: str(g.vs[node][attr]) for attr in g.vs.attributes()})
+                    target.node(
+                        f'{sub.name}_{node}',
+                        **{attr: str(g.vs[node][attr]) for attr in g.vs.attributes()})
                     added_nodes.add(node)
                     if node in parent_tus and 1 < len(parent_tus[node]):
                         for target in parent_tus[node]:
@@ -1071,13 +1068,13 @@ class GenGraph:
             if node not in added_nodes:
                 if is_accepted_node(node):
                     dot.node(str(node),
-                            **{attr: str(g.vs[node][attr]) for attr in g.vs.attributes()})
+                             **{attr: str(g.vs[node][attr]) for attr in g.vs.attributes()})
 
         # Add edges
         for edge in g.es:
             if not is_accepted_connection(edge):
                 continue
-            
+
             source, target = edge.tuple
 
             source_subs = [sub.name for sub in self.subgraphs if source in sub.nodes]
