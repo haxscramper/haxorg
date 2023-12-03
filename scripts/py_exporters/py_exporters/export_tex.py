@@ -191,8 +191,6 @@ class ExporterLatex(ExporterBase):
         else:
             return self.string(node.content)
 
-
-
     def evalList(self, node: org.SemList) -> BlockId:
         return self.t.stack([
             self.command("begin", ["itemize"]),

@@ -1,10 +1,18 @@
 import astbuilder_nim as nim
-from gen_tu_cpp import (GenTuStruct, GenTuFunction, GenTuEnum, QualType, GenTuTypedef,
-                        GenTuEnumField, QualTypeKind, GenTuField,)
+from gen_tu_cpp import (
+    GenTuStruct,
+    GenTuFunction,
+    GenTuEnum,
+    QualType,
+    GenTuTypedef,
+    GenTuEnumField,
+    QualTypeKind,
+    GenTuField,
+)
 
 from pydantic import BaseModel, Field
 
-import math                        
+import math
 
 from beartype import beartype
 from beartype.typing import List, Union, Optional, NewType, Callable, Set
@@ -26,13 +34,15 @@ if TYPE_CHECKING:
 else:
     BlockId = NewType('BlockId', int)
 
+
 class WrapRenameRule(BaseModel):
     original: str = Field(description="Regex pattern for input text matching")
     renamed: str = Field(description="Replacement pattern")
 
 
 class NimOptions(BaseModel):
-    function_renames: List[WrapRenameRule] = Field(default=[], description="List of renaming rules for generated wrappers")
+    function_renames: List[WrapRenameRule] = Field(
+        default=[], description="List of renaming rules for generated wrappers")
     universal_import: List[str] = Field(default=[],
                                         description="Import added to all generated files")
 
@@ -45,6 +55,7 @@ def apply_rename(name: str, renames: List[WrapRenameRule]) -> str:
 
     return name
 
+
 @beartype
 @dataclass
 class ConvRes:
@@ -53,6 +64,7 @@ class ConvRes:
     procs: List[nim.FunctionParams] = field(default_factory=list)
     types: List[Union[nim.EnumParams, nim.ObjectParams,
                       nim.TypedefParams]] = field(default_factory=list)
+
 
 @beartype
 def type_to_nim(b: nim.ASTBuilder, t: QualType) -> nim.Type:
@@ -157,18 +169,22 @@ def type_to_nim(b: nim.ASTBuilder, t: QualType) -> nim.Type:
 
         return result
 
+
 @beartype
 # Generate import from file placed in `result` to the content defined in `sub`
-def gen_file_import(import_source: Path, import_target: Path) -> Optional[nim.ImportParams]:
+def gen_file_import(import_source: Path,
+                    import_target: Path) -> Optional[nim.ImportParams]:
     if import_target.resolve() != import_source.resolve():
         return nim.ImportParams([
             nim.ImportParamsFile(file_relpath(import_source, import_target),
-                                    "From gen file")
+                                 "From gen file")
         ],
                                 FormatMode=nim.ImportParamsMode.Single)
 
+
 @beartype
-def to_nim_imports(graph: GenGraph, sub: GenGraph.Sub, get_out_path: Callable[[Path], Path]) -> nim.ImportParams:
+def to_nim_imports(graph: GenGraph, sub: GenGraph.Sub,
+                   get_out_path: Callable[[Path], Path]) -> nim.ImportParams:
     external: Set[int] = set()
     for _id in sub.nodes:
         for out in graph.graph.incident(_id, mode="out"):
@@ -179,8 +195,7 @@ def to_nim_imports(graph: GenGraph, sub: GenGraph.Sub, get_out_path: Callable[[P
     target_groups = [
         sub for sub in graph.subgraphs if 0 < len(sub.nodes.intersection(external))
     ]
-    result = nim.ImportParams(QuoteImport=True,
-                                FormatMode=nim.ImportParamsMode.Single)
+    result = nim.ImportParams(QuoteImport=True, FormatMode=nim.ImportParamsMode.Single)
     for target in target_groups:
         import_source = get_out_path(sub.original)
         import_target = get_out_path(target.original)
@@ -189,6 +204,7 @@ def to_nim_imports(graph: GenGraph, sub: GenGraph.Sub, get_out_path: Callable[[P
                 nim.ImportParamsFile(Name=file_relpath(import_source, import_target)))
 
     return result
+
 
 @beartype
 def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
@@ -232,7 +248,7 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
             Arguments=[
                 nim.IdentParams(Name="args",
                                 Type=nim.Type("set",
-                                                Parameters=[nim.Type(enum.name.name)]))
+                                              Parameters=[nim.Type(enum.name.name)]))
             ],
             ReturnTy=nim.Type("cint"),
             Implementation=b.stack(
@@ -279,71 +295,76 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
 
     result.types.append(
         nim.EnumParams(Name=c_name,
-                        Exported=True,
-                        Pragmas=[
-                            nim.PragmaParams(Name="size",
+                       Exported=True,
+                       Pragmas=[
+                           nim.PragmaParams(Name="size",
                                             Arguments=[
                                                 b.string("sizeof(cint)"),
                                             ])
-                        ],
-                        Fields=[c_enum_field(idx, f) for idx, f in enumerate(fields)]))
+                       ],
+                       Fields=[c_enum_field(idx, f) for idx, f in enumerate(fields)]))
 
     result.types.append(
-        nim.EnumParams(
-            Name=enum.name.name,
-            Exported=True,
-            Fields=[nim.EnumFieldParams(Name=f_name(f)) for f in enum.fields]))
+        nim.EnumParams(Name=enum.name.name,
+                       Exported=True,
+                       Fields=[nim.EnumFieldParams(Name=f_name(f)) for f in enum.fields]))
 
     return result
+
 
 @beartype
 def field_to_nim(b: nim.ASTBuilder, f: GenTuField) -> nim.IdentParams:
     result = nim.IdentParams(Name=nim.sanitize_name(f.name),
-                                Exported=True,
-                                Type=type_to_nim(b, f.type))
+                             Exported=True,
+                             Type=type_to_nim(b, f.type))
     # if result.Name != f.name:
     #     result.Pragmas.append(nim.PragmaParams("importc", [b.Lit(f.name)]))
 
     return result
 
+
 @beartype
 def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct) -> ConvRes:
     return ConvRes(types=[
-        nim.ObjectParams(Name=rec.name.name,
-                            Pragmas=[
-                            #  nim.PragmaParams("importc"),
-                                nim.PragmaParams("bycopy"),
-                                *([nim.PragmaParams("incompleteStruct")] if rec.
-                                IsForwardDecl else []),
-                            ],
-                            Fields=[field_to_nim(b, f) for f in rec.fields])
+        nim.ObjectParams(
+            Name=rec.name.name,
+            Pragmas=[
+                #  nim.PragmaParams("importc"),
+                nim.PragmaParams("bycopy"),
+                *([nim.PragmaParams("incompleteStruct")] if rec.IsForwardDecl else []),
+            ],
+            Fields=[field_to_nim(b, f) for f in rec.fields])
     ])
+
 
 @beartype
 def typedef_to_nim(b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
     return ConvRes(types=[
-        nim.TypedefParams(Name=typdef.name.name,
-                            Exported=True,
-                            Base=type_to_nim(b, typdef.base))
+        nim.TypedefParams(
+            Name=typdef.name.name, Exported=True, Base=type_to_nim(b, typdef.base))
     ])
+
 
 @beartype
 def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions) -> ConvRes:
     return ConvRes(procs=[
-        nim.FunctionParams(Name=nim.sanitize_name(apply_rename(func.name, conf.function_renames)),
-                            ReturnTy=type_to_nim(b, func.result),
-                            Pragmas=[
-                                nim.PragmaParams("git2Proc"),
-                                nim.PragmaParams("importc", [b.Lit(func.name)]),
-                            ],
-                            Arguments=[
-                                nim.IdentParams(Arg.name, type_to_nim(
-                                    b, Arg.type)) for Arg in func.arguments
-                            ])
+        nim.FunctionParams(Name=nim.sanitize_name(
+            apply_rename(func.name, conf.function_renames)),
+                           ReturnTy=type_to_nim(b, func.result),
+                           Pragmas=[
+                               nim.PragmaParams("git2Proc"),
+                               nim.PragmaParams("importc", [b.Lit(func.name)]),
+                           ],
+                           Arguments=[
+                               nim.IdentParams(Arg.name, type_to_nim(b, Arg.type))
+                               for Arg in func.arguments
+                           ])
     ])
 
+
 @beartype
-def to_nim(graph: GenGraph, sub: GenGraph.Sub, conf: NimOptions, get_out_path: Callable[[Path], Path], output_directory: Path) -> Optional[str]:
+def to_nim(graph: GenGraph, sub: GenGraph.Sub, conf: NimOptions,
+           get_out_path: Callable[[Path], Path], output_directory: Path) -> Optional[str]:
     t = TextLayout()
     builder = nim.ASTBuilder(t)
 
@@ -353,8 +374,7 @@ def to_nim(graph: GenGraph, sub: GenGraph.Sub, conf: NimOptions, get_out_path: C
     depend_on: List[nim.ImportParams] = []
 
     for imp in sorted(conf.universal_import):
-        gen = gen_file_import(get_out_path(sub.original),
-                                    output_directory.joinpath(imp))
+        gen = gen_file_import(get_out_path(sub.original), output_directory.joinpath(imp))
         if gen is not None:
             depend_on.append(gen)
 
@@ -402,13 +422,13 @@ def to_nim(graph: GenGraph, sub: GenGraph.Sub, conf: NimOptions, get_out_path: C
         stacked: BlockId
         if 0 < len(types):
             stacked = builder.sep_stack([
-                    *([t.stack(header)] if 0 < len(header) else []),
-                    t.stack([
-                        t.text("type"),
-                        t.indent(2, builder.sep_stack(types)),
-                    ]),
-                    t.text(""),
-                ] + procs)
+                *([t.stack(header)] if 0 < len(header) else []),
+                t.stack([
+                    t.text("type"),
+                    t.indent(2, builder.sep_stack(types)),
+                ]),
+                t.text(""),
+            ] + procs)
 
         else:
             stacked = t.stack(header + [builder.sep_stack(procs)])

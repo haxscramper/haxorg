@@ -2,8 +2,16 @@ from beartype import beartype
 from beartype.typing import Union, TypeAlias, List, Dict, Set, Optional
 from pathlib import Path
 from dataclasses import dataclass, field
-from gen_tu_cpp import (GenTuStruct, GenTuFunction, GenTuEnum, QualType, GenTuTypedef,
-                        GenTuEnumField, QualTypeKind, GenTuField,)
+from gen_tu_cpp import (
+    GenTuStruct,
+    GenTuFunction,
+    GenTuEnum,
+    QualType,
+    GenTuTypedef,
+    GenTuEnumField,
+    QualTypeKind,
+    GenTuField,
+)
 
 from py_scriptutils.script_logging import log
 from pprint import pformat
@@ -16,6 +24,7 @@ from pydantic import BaseModel, Field
 from refl_read import ConvTu
 
 GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction]
+
 
 @beartype
 def hash_qual_type(t: QualType) -> int:
@@ -41,6 +50,7 @@ def hash_qual_type(t: QualType) -> int:
 
     return hash(tuple(parts))
 
+
 @beartype
 class TranslationUnitLocations(BaseModel):
     # Information about external dependencies of a translation unit -- `Name` of the dependency
@@ -59,14 +69,13 @@ class TranslationUnitInfo(BaseModel):
         description="Dependencies on translation units from other external locations",
         default_factory=list)
 
+
 @dataclass
 class TuWrap:
     name: str
     tu: ConvTu
     original: Path
     mapping: Path
-
-
 
 
 @beartype
@@ -110,8 +119,6 @@ class GenGraph:
             log.warning(f"No known declaration of the [red]{typ.format()}[/red]")
 
         return self.get_sub(_id)
-
-
 
     def id_from_hash(self, hashed: int) -> int:
         if hashed not in self.id_map:
@@ -390,8 +397,6 @@ class GenGraph:
 
         self.subgraphs = new_grouped + ungrouped_sets
 
-
-
     def to_decl_info(self, sub: Sub) -> TranslationUnitInfo:
         result = TranslationUnitInfo()
 
@@ -540,4 +545,3 @@ class GenGraph:
         # Render the graph to a file
         with open(output_file, "w") as file:
             file.write(dot.source)
-

@@ -25,7 +25,7 @@ class ExporterTimeline(ExporterBase):
         return None
 
     def visitSubtreeHook(self, res, node: org.SemSubtree):
-        print(
-            node,
-            [P for P in node.getTimePeriods(
-                org.SubtreePeriodKindIntVec([org.SubtreePeriodKind.Created]))])
+        print(node, [
+            P for P in node.getTimePeriods(
+                org.SubtreePeriodKindIntVec([org.SubtreePeriodKind.Created]))
+        ])

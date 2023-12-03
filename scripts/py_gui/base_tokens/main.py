@@ -19,10 +19,13 @@ class Token(BaseModel):
     line: int
     text: str
 
+
 class TokenList(BaseModel):
     tokens: List[Token]
 
+
 class TokenProvider(QObject):
+
     def __init__(self):
         super().__init__()
         self._tokenRows = []
