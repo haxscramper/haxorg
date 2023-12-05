@@ -43,6 +43,13 @@ using BaseTokenGroup = TokenGroup<BaseTokenKind, BaseFill>;
 using BaseTokenId    = TokenId<BaseTokenKind, BaseFill>;
 
 template <>
+struct value_domain<BaseTokenKind>
+    : public value_domain_ungapped<
+          BaseTokenKind,
+          BaseTokenKind::Ampersand,
+          BaseTokenKind::Word> {};
+
+template <>
 struct std::formatter<BaseFill> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(BaseFill const& p, FormatContext& ctx)

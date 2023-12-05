@@ -58,6 +58,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::Equals: return "Equals";
         case BaseTokenKind::EscapedChar: return "EscapedChar";
         case BaseTokenKind::Exclamation: return "Exclamation";
+        case BaseTokenKind::ForwardSlash: return "ForwardSlash";
         case BaseTokenKind::HashIdent: return "HashIdent";
         case BaseTokenKind::LeadingSpace: return "LeadingSpace";
         case BaseTokenKind::LeftAngle: return "LeftAngle";

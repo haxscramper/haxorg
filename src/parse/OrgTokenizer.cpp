@@ -22,6 +22,14 @@ void OrgTokenizer::rewriteIndents(BaseLexer& lex) {
     }
 }
 
+#define IN_SET(value, first, ...)                                         \
+    (IntSet<decltype((first))>{first, __VA_ARGS__}.contains((value)))
+
+template <typename T, typename... Args>
+auto in_set(T const& value, Args&&... args) -> bool {
+    IntSet<T> set = IntSet<T>{std::forward<Args>(args)...};
+    return set.contains(value);
+}
 
 DECL_DESCRIBED_ENUM_STANDALONE(State, None, Paragraph);
 DECL_DESCRIBED_ENUM_STANDALONE(
@@ -94,7 +102,7 @@ struct RecombineState {
 
     // Finalize the markup token pair
     Opt<Mark> mark_pop(MarkKind value, OrgTokenKind __to) {
-        OrgTokenId added = add_as(__to);
+        add_as(__to);
         lex.next();
         CHECK(!mark.empty())
             << "Expected the markup stack to not be empty";
@@ -143,20 +151,48 @@ struct RecombineState {
     }
 
     void recombine_markup() {
-        // TODO Check if we are in the paragraph element or some other place.
+        // TODO Check if we are in the paragraph element or some other
+        // place.
         auto prev = prev_token();
         auto next = next_token();
         switch (lex.kind()) {
+            case obt::ForwardSlash:
             case obt::Asterisk: {
+                MarkKind mark{};
+                otk      open{};
+                otk      close{};
+
+                switch (lex.kind()) {
+                    case obt::Asterisk:
+                        mark  = MarkKind::Bold;
+                        open  = otk::BoldClose;
+                        close = otk::BoldClose;
+                        break;
+                    case obt::ForwardSlash:
+                        mark  = MarkKind::Italic;
+                        open  = otk::ItalicOpen;
+                        close = otk::ItalicClose;
+                        break;
+                }
+
                 if (prev && next) {
-                    LOG(INFO) << fmt("prev={} next={}", prev, next);
                     if (prev->kind == obt::Whitespace
                         && next->kind == obt::Word) {
-                        mark_toggle(MarkKind::Bold, otk::BoldOpen);
+                        mark_toggle(mark, open);
+                    } else if (
+                        prev->kind == obt::Word
+                        && in_set(
+                            next->kind, obt::Asterisk, obt::Whitespace)) {
+                        mark_toggle(mark, close);
+                    } else {
+                        LOG(INFO) << fmt("prev={} next={}", prev, next);
                     }
 
                 } else if (!prev) {
-                    mark_push(MarkKind::Bold, otk::BoldOpen);
+                    mark_push(mark, open);
+
+                } else {
+                    LOG(WARNING) << "Not mapped markup recombination";
                 }
 
                 break;
@@ -193,6 +229,7 @@ struct RecombineState {
                 direct(obt::Comment, otk::Comment);
                 direct(obt::HashIdent, otk::HashTag);
 
+                case obt::ForwardSlash:
                 case obt::Asterisk: {
                     recombine_markup();
                     break;
@@ -256,9 +293,10 @@ struct RecombineState {
             }
 
             CHECK((lex.pos != start)) << std::format(
-                "Non-terminating token conversion case, got kind {} "
-                "text {} "
-                "at id {} with no movement",
+                "Non-terminating token conversion case, got kind '{}' "
+                "text '{}' at id {} with no movement. This is a bug in "
+                "the implementation -- we iterated over baseline tokens, "
+                "but did not find where to map the item to",
                 lex.kind(),
                 val.text,
                 lex.pos.format());

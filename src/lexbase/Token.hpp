@@ -100,7 +100,12 @@ struct TokenGroup {
     StoreT    tokens;
     IteratorT begin() { return tokens.content.begin(); }
     IteratorT end() { return tokens.content.end(); }
+    IteratorT rbegin() { return tokens.content.rbegin(); }
+    IteratorT rend() { return tokens.content.rend(); }
     IteratorT iterator(IdT id) { return begin() + id.getIndex(); }
+    IteratorT riterator(IdT id) {
+        return rbegin() + (tokens.content().size() - id.getIndex() - 1);
+    }
 
 
     TokenGroup() {}
@@ -244,6 +249,37 @@ struct LexerCommon {
     using IteratorT = typename TokenGroup<K, V>::IteratorT;
     IteratorT begin() { return in->iterator(this->pos); }
     IteratorT end() { return in->end(); }
+
+    struct WholeTmp {
+        LexerCommon<K, V>* _this;
+        Opt<TokenId<K, V>> currentPos;
+
+        /// Get iterator to the first token in sequence, ignoring lexer
+        /// offsets
+        IteratorT begin() { return _this->in->begin(); }
+        /// Get iterator to the final end of the token, same as lexer base
+        /// end()
+        IteratorT end() { return _this->end(); }
+        /// Get iterator pointing to the current token (if the lexer moves
+        /// it will change)
+        IteratorT current() {
+            return _this->in->iterator(
+                currentPos ? *currentPos : _this->pos);
+        }
+
+        IteratorT rbegin() { return _this->in->rbegin(); }
+        IteratorT rend() { return _this->in->rend(); }
+        IteratorT rcurrent() {
+            return _this->in->riterator(
+                currentPos ? *currentPos : _this->pos);
+        }
+    };
+
+    /// Get temporary access range for the whole sequence of tokens
+    WholeTmp whole() { return WholeTmp{this}; }
+    /// Return access to the 'whole' range that will not change when the
+    /// lexer moves around.
+    WholeTmp whole_fixed() { return WholeTmp{this, pos}; }
 
     struct PrintParams {
         int  maxTokens   = 10;

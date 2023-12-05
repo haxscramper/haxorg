@@ -266,7 +266,8 @@ rules:
   - { lit: "CLOCK:", token: TreeClock }
   - { lit: "&", token: Ampersand }
   - { lit: "!", token: Exclamation }
-  - { re: "[,\\./?]", token: AnyPunct }
+  - { lit: "/", token: ForwardSlash }
+  - { re: "[,\\.?]", token: AnyPunct }
   - { re: "\\+", token: Plus }
   - { re: "\\-", token: Minus }
   - { re: "\\\"", token: DoubleQuote }

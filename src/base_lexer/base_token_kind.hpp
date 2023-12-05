@@ -36,6 +36,7 @@ enum class BaseTokenKind : unsigned short int {
   Equals,
   EscapedChar,
   Exclamation,
+  ForwardSlash,
   HashIdent,
   Indent,
   LeadingSpace,
