@@ -251,6 +251,19 @@ struct std::formatter<Vec<T>> : std::formatter<std::string> {
     }
 };
 
+template <typename T>
+struct std::formatter<std::vector<T>> : std::formatter<std::string> {
+    using FmtType = std::vector<T>;
+    template <typename FormatContext>
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
+        const {
+        std::formatter<std::string> fmt;
+        fmt.format("[", ctx);
+        fmt.format(join(", ", p), ctx);
+        return fmt.format("]", ctx);
+    }
+};
+
 
 template <typename T>
 using CVec = CR<Vec<T>>;

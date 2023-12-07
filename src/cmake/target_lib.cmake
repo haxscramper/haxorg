@@ -40,6 +40,7 @@ target_link_libraries(haxorg PUBLIC
     hstd
     ReflexLibStatic
     perfetto::perfetto
+    CONAN_PKG::range-v3
 )
 
 target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")

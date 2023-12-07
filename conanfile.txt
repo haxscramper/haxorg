@@ -4,6 +4,7 @@ yaml-cpp/0.7.0
 perfetto/34.0
 pybind11/2.10.4
 benchmark/1.8.3
+range-v3/0.12.0
 
 [generators]
 cmake

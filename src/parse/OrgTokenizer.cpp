@@ -11,6 +11,12 @@
 
 #include "OrgTokenizerMacros.hpp"
 
+#include <range/v3/all.hpp>
+
+namespace rv = ranges::views;
+namespace rs = ranges;
+using ranges::operator|;
+
 
 using ock = OrgCommandKind;
 using otk = OrgTokenKind;
@@ -43,6 +49,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(
 
 
 OrgFill fill(BaseLexer& lex) { return OrgFill{.base = lex.tok().value}; }
+
 
 namespace {
 
@@ -186,6 +193,13 @@ struct RecombineState {
                         mark_toggle(mark, close);
                     } else {
                         LOG(INFO) << fmt("prev={} next={}", prev, next);
+                        auto w = lex.whole();
+                        for (auto const& item :
+                             rs::subrange(w.begin(), w.end())
+                                 | rv::sliding(3)) {
+                            LOG(INFO) << std::format(
+                                "> {}", item | rs::to<std::vector>());
+                        }
                     }
 
                 } else if (!prev) {

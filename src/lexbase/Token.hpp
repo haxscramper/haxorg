@@ -92,18 +92,30 @@ struct std::formatter<Token<K, V>> : std::formatter<std::string> {
 
 template <typename K, typename V>
 struct TokenGroup {
-    using TokenT    = Token<K, V>;
-    using IdT       = TokenId<K, V>;
-    using StoreT    = dod::Store<IdT, TokenT>;
-    using IteratorT = typename StoreT::ContentT::iterator;
+    using TokenT         = Token<K, V>;
+    using IdT            = TokenId<K, V>;
+    using StoreT         = dod::Store<IdT, TokenT>;
+    using iterator       = typename StoreT::ContentT::iterator;
+    using const_iterator = typename StoreT::ContentT::const_iterator;
 
-    StoreT    tokens;
-    IteratorT begin() { return tokens.content.begin(); }
-    IteratorT end() { return tokens.content.end(); }
-    IteratorT rbegin() { return tokens.content.rbegin(); }
-    IteratorT rend() { return tokens.content.rend(); }
-    IteratorT iterator(IdT id) { return begin() + id.getIndex(); }
-    IteratorT riterator(IdT id) {
+    StoreT   tokens;
+    iterator begin() { return tokens.content.begin(); }
+    iterator end() { return tokens.content.end(); }
+    iterator rbegin() { return tokens.content.rbegin(); }
+    iterator rend() { return tokens.content.rend(); }
+    iterator pos_iterator(IdT id) { return begin() + id.getIndex(); }
+    iterator rpos_iterator(IdT id) {
+        return rbegin() + (tokens.content().size() - id.getIndex() - 1);
+    }
+
+    const_iterator begin() const { return tokens.content.begin(); }
+    const_iterator end() const { return tokens.content.end(); }
+    const_iterator rbegin() const { return tokens.content.rbegin(); }
+    const_iterator rend() const { return tokens.content.rend(); }
+    const_iterator pos_iterator(IdT id) const {
+        return begin() + id.getIndex();
+    }
+    const_iterator rpos_iterator(IdT id) const {
         return rbegin() + (tokens.content().size() - id.getIndex() - 1);
     }
 
@@ -246,31 +258,54 @@ struct LexerCommon {
     V const&      val(int offset = 0) const { return tok(offset).value; }
     V&            val(int offset = 0) { return in->at(get(offset)).value; }
 
-    using IteratorT = typename TokenGroup<K, V>::IteratorT;
-    IteratorT begin() { return in->iterator(this->pos); }
-    IteratorT end() { return in->end(); }
+    using iterator       = typename TokenGroup<K, V>::iterator;
+    using const_iterator = typename TokenGroup<K, V>::const_iterator;
+
+    iterator       begin() { return in->iterator(this->pos); }
+    iterator       end() { return in->end(); }
+    const_iterator begin() const { return in->iterator(this->pos); }
+    const_iterator end() const { return in->end(); }
 
     struct WholeTmp {
         LexerCommon<K, V>* _this;
         Opt<TokenId<K, V>> currentPos;
 
+        LexerCommon<K, V>*       __this() { return _this; }
+        LexerCommon<K, V> const* __this() const { return _this; }
+
         /// Get iterator to the first token in sequence, ignoring lexer
         /// offsets
-        IteratorT begin() { return _this->in->begin(); }
+        iterator       begin() { return __this()->in->begin(); }
+        const_iterator begin() const { return __this()->in->begin(); }
         /// Get iterator to the final end of the token, same as lexer base
         /// end()
-        IteratorT end() { return _this->end(); }
+        iterator       end() { return __this()->end(); }
+        const_iterator end() const { return __this()->end(); }
         /// Get iterator pointing to the current token (if the lexer moves
         /// it will change)
-        IteratorT current() {
-            return _this->in->iterator(
+        iterator current() {
+            return __this()->in->iterator(
+                currentPos ? *currentPos : __this()->pos);
+        }
+
+        const_iterator current() const {
+            return __this()->in->iterator(
+                currentPos ? *currentPos : __this()->pos);
+        }
+
+        iterator       rbegin() { return __this()->in->rbegin(); }
+        const iterator rbegin() const { return __this()->in->rbegin(); }
+
+        iterator       rend() { return __this()->in->rend(); }
+        const_iterator rend() const { return __this()->in->rend(); }
+
+        iterator rcurrent() {
+            return __this()->in->riterator(
                 currentPos ? *currentPos : _this->pos);
         }
 
-        IteratorT rbegin() { return _this->in->rbegin(); }
-        IteratorT rend() { return _this->in->rend(); }
-        IteratorT rcurrent() {
-            return _this->in->riterator(
+        const iterator rcurrent() const {
+            return __this()->in->riterator(
                 currentPos ? *currentPos : _this->pos);
         }
     };
