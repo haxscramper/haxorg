@@ -40,8 +40,8 @@ class ExporterTree : public Exporter<ExporterTree, int> {
 
     static void treeRepr(sem::SemId org);
     static void treeRepr(
-        sem::SemId                            org,
-        const std::filesystem::__cxx11::path& path);
+        sem::SemId                   org,
+        const std::filesystem::path& path);
     static void treeRepr(sem::SemId org, CR<TreeReprConf> conf);
 
     struct TreeReprCtx {

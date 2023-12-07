@@ -18,7 +18,26 @@ set(SCRIPT_DIR "${BASE}/src/scripts")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
+## Describe relative paths to the shared and header libraries packaged with LLVM
+## in order for the code to compile, link and execute correctly. Note that runtime
+## execution will use these library paths as well
 
+# Directory with clang-related runtime libraries such as asan that are shipped 
+# with LLVM
+set(LLVM_GNU_CLANG_DIR "${LLVM_DIR}/lib/clang/17/lib/x86_64-unknown-linux-gnu")
+# Standard library, libc++.so and other things
+set(LLVM_STD_DIRS "${LLVM_DIR}/lib/x86_64-unknown-linux-gnu")
+# Declare variable for the asan library path, it is used in target setups, this
+# is not some specific variable that is implicitly consumed, just declared it here
+set(LLVM_ASAN_LIBRARY "${LLVM_GNU_CLANG_DIR}/libclang_rt.asan.so")
+# Headers that standard library apparently uses to interface with the system?
+set(LLVM_GNU_INCLUDE "${LLVM_DIR}/include/x86_64-unknown-linux-gnu/c++/v1")
+# Standard library headers
+set(LLVM_STD_INCLUDE "${LLVM_DIR}/include/c++/v1/")
+
+# Globally configure compiler flags with all necessary flags etc., this will be shared 
+# down to all sub-components and dependencies. 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2b -stdlib=libc++ -I${LLVM_STD_INCLUDE} -I${LLVM_GNU_INCLUDE} -L${LLVM_DIR}/lib")
 
 file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})
 list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})

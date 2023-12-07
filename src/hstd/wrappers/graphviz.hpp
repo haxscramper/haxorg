@@ -1,5 +1,5 @@
 #pragma once
-
+#if false
 #include <graphviz/gvc.h>
 #include <graphviz/cgraph.h>
 #include <string>
@@ -682,3 +682,5 @@ class Graphviz {
   private:
     GVC_t* gvc;
 };
+
+#endif

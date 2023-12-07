@@ -1,3 +1,5 @@
+#if false
+
 #include <hstd/wrappers/graphviz.hpp>
 #include <filesystem>
 #include <format>
@@ -254,3 +256,5 @@ generator<CRw<Graphviz::Edge>> Graphviz::Node::edges() {
         co_yield std::ref(value);
     }
 }
+
+#endif

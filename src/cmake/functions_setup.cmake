@@ -37,10 +37,19 @@ function(set_target_flags TARGET)
 
     if(${USE_SANITIZER})
         add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize=undefined,address")
+        # LLVM ships with sanitizer runtime and I could not figure out how to compile it 
+        # in statically nor do I know whether this is really necessary or not
+        add_target_property(${TARGET} COMPILE_OPTIONS "-shared-libasan")
         add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
         add_target_property(${TARGET} LINK_OPTIONS "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
         add_target_property(${TARGET} LINK_OPTIONS "-fsanitize=undefined,address")
+        add_target_property(${TARGET} LINK_OPTIONS "-shared-libasan")
+        target_link_libraries(${TARGET} PRIVATE ${ASAN_LIBRARY})
     endif()
+        
+    # Specify runtime search paths for the libraries so created binaries did not have to 
+    # depend on the LD_PRELOAD_PATH being set up correctly. 
+    add_target_property(${TARGET} LINK_OPTIONS "-Wl,-rpath,${LLVM_GNU_CLANG_DIR},-rpath,${LLVM_STD_DIRS}")
 
     if(${USE_XRAY})
         add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-instrument")

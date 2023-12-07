@@ -54,11 +54,13 @@ struct std::formatter<BaseFill> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(BaseFill const& p, FormatContext& ctx)
         const {
-        std::formatter<std::string> fmt;
-        return fmt.format(
-            std::format(
-                "<{}>:{}:{}", escape_for_write(p.text), p.line, p.col),
-            ctx);
+        fmt_ctx("<", ctx);
+        fmt_ctx(escape_for_write(p.text), ctx);
+        fmt_ctx(">:", ctx);
+        fmt_ctx(p.line, ctx);
+        fmt_ctx(":", ctx);
+        fmt_ctx(p.col, ctx);
+        return ctx.out();
     }
 };
 

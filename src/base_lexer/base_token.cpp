@@ -96,17 +96,19 @@ std::string BaseLexerImpl::view() {
             state.column);
     }
 
-    return std::format(
-        "{}:{} in state {} ({}) >{}< (code {:0X}) span: '{}', states:{}",
-        impl->lineno(),
-        impl->columno(),
-        state_name(impl->start()),
-        impl->start(),
-        escape_for_write(text),
-        (uint32_t)codepoint,
-        escape_for_write(
-            span.substr(impl->columno(), span.length() - 1), false),
-        states);
+    return "";
+#warning FIXME FIX TOKEN
+    // return std::format(
+    //     "{}:{} in state {} ({}) >{}< (code {}) span: '{}', states:{}",
+    //     impl->lineno(),
+    //     impl->columno(),
+    //     state_name(impl->start()),
+    //     impl->start(),
+    //     escape_for_write(text),
+    //     (uint32_t)codepoint,
+    //     escape_for_write(
+    //         span.substr(impl->columno(), span.length() - 1), false),
+    //     states);
 }
 
 void BaseLexerImpl::unknown() {

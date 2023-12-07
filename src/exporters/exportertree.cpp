@@ -39,7 +39,9 @@ void ExporterTree::treeRepr(sem::SemId org) {
     ExporterTree(os).evalTop(org);
 }
 
-void ExporterTree::treeRepr(sem::SemId org, const fs::path& path) {
+void ExporterTree::treeRepr(
+    sem::SemId                   org,
+    const std::filesystem::path& path) {
     std::ofstream file{path.native()};
     if (file.is_open()) {
         ColStream os{file};

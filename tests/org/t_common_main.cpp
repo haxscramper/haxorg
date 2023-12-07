@@ -5,7 +5,6 @@
 #include <iostream>
 #include <hstd/system/string_convert.hpp>
 #include <hstd/stdlib/Debug.hpp>
-#include <hstd/wrappers/graphviz.hpp>
 #include <fstream>
 #include "../testprofiler.hpp"
 
