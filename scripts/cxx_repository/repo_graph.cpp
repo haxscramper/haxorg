@@ -1,7 +1,7 @@
 #include "repo_graph.hpp"
 
-CommitGraph::CommitGraph(git_repository* repo) {
-    SPtr<git_revwalk> walker = git::revwalk_new(repo).value();
+CommitGraph::CommitGraph(SPtr<git_repository> repo) {
+    SPtr<git_revwalk> walker = git::revwalk_new(repo.get()).value();
     git::revwalk_sorting(walker.get(), GIT_SORT_NONE);
 
     git::revwalk_push_head(walker.get());
@@ -9,7 +9,8 @@ CommitGraph::CommitGraph(git_repository* repo) {
     git_oid oid;
     while (git_revwalk_next(&oid, walker.get()) == 0) {
         auto             current = get_desc(oid);
-        SPtr<git_commit> commit  = git::commit_lookup(repo, &oid).value();
+        SPtr<git_commit> commit  = git::commit_lookup(repo.get(), &oid)
+                                      .value();
 
         for (int i = 0; i < git::commit_parentcount(commit.get()); ++i) {
             auto oid        = *git::commit_parent_id(commit.get(), i);

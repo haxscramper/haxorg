@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma once
-
 #include <cassert>
 #include <iostream>
 #include <filesystem>
@@ -70,7 +68,6 @@ struct Commit {
     i64      time;     /// posix time
     int      timezone; /// timezone where commit was taken
     Str      hash;     /// git hash of the commit
-    int      period; /// Number of the period that commit was attributed to
     Str      message; /// Commit message
 };
 

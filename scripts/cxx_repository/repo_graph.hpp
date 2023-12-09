@@ -26,7 +26,7 @@ struct CommitInfo {
 };
 
 struct CommitEdge {
-    bool is_main;
+    bool is_main = false;
 };
 
 
@@ -111,5 +111,5 @@ struct CommitGraph {
 
 
     VDesc get_desc(CR<git_oid> oid);
-    CommitGraph(git_repository* repo);
+    CommitGraph(SPtr<git_repository> repo);
 };

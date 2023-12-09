@@ -6,7 +6,10 @@ add_executable(code_forensics
     git_ir.hpp
     repo_graph.hpp
     git_interface.hpp
-    repo_graph.cpp)
+    repo_graph.cpp
+    program_state.hpp
+    repo_processing.cpp
+    repo_processing.hpp)
 
 set_common_files(code_forensics)
 set_target_output(code_forensics)
