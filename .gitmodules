@@ -1,3 +1,9 @@
 [submodule "toolchain/RE-flex"]
 	path = toolchain/RE-flex
 	url = https://github.com/Genivia/RE-flex.git
+[submodule "thirdparty/immer"]
+	path = thirdparty/immer
+	url = https://github.com/arximboldi/immer.git
+[submodule "thirdparty/lager"]
+	path = thirdparty/lager
+	url = https://github.com/arximboldi/lager.git
