@@ -111,7 +111,6 @@ inline const char* commit_message(const git_commit* commit) {
     return __result;
 }
 
-
 inline GitResult<SPtr<git_patch>> patch_from_diff(
     git_diff* diff,
     size_t    idx) {

@@ -2,14 +2,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CXX_STANDARD 23)
 
-add_executable(code_forensics
-    git_ir.hpp
-    repo_graph.hpp
-    git_interface.hpp
-    repo_graph.cpp
-    program_state.hpp
-    repo_processing.cpp
-    repo_processing.hpp)
+add_executable(code_forensics)
 
 set_common_files(code_forensics)
 set_target_output(code_forensics)

@@ -58,7 +58,7 @@ struct [[nodiscard]] Id {
 
     /// \brief Start position of the least significant bit of the mask
     static const inline int mask_offset = (8 * sizeof(IdType))
-                                        - MaskSizeT::value;
+                                        - MaskSizeT::value - 1;
 
     /// \brief Number of bits allotted for the mask value
     static const inline int mask_size = MaskSizeT::value;

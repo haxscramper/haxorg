@@ -3,13 +3,20 @@
 #include "git_interface.hpp"
 #include "repo_graph.hpp"
 #include <git2/patch.h>
+#include <hstd/stdlib/Map.hpp>
+#include <immer/flex_vector_transient.hpp>
 
 #include <boost/asio/thread_pool.hpp>
 #include <boost/asio/post.hpp>
 
 
+#include <range/v3/all.hpp>
 #include <algorithm>
 
+
+using ranges::operator|;
+namespace rv = ranges::views;
+namespace rs = ranges;
 using namespace ir;
 
 int get_nesting(CR<Str> line) {
@@ -26,6 +33,111 @@ int get_nesting(CR<Str> line) {
 
     return result;
 }
+
+template <class T>
+struct generator_view : rs::view_facade<generator_view<T>> {
+  private:
+    friend rs::range_access;
+    struct Data {
+        generator<T>           gen_;
+        generator<T>::iterator iter;
+        explicit Data(generator<T>&& gen)
+            : gen_(std::move(gen)), iter(gen_.begin()) {
+            ++iter;
+        }
+    };
+
+    SPtr<Data> data;
+
+    struct cursor {
+      private:
+        friend rs::range_access;
+        using single_pass    = std::true_type;
+        generator_view* rng_ = nullptr;
+
+      public:
+        cursor() = default;
+        explicit cursor(generator_view* rng) : rng_(rng) {}
+
+        void next() { rng_->next(); }
+        T&   read() const noexcept { return rng_->cached(); }
+        bool equal(rs::default_sentinel_t) const {
+            return rng_->data->iter == rng_->data->gen_.end();
+        }
+    };
+
+    void next() { ++data->iter; }
+
+    cursor begin_cursor() { return cursor{this}; }
+
+  public:
+    generator_view() = default;
+    explicit generator_view(generator<T>&& gen)
+        : data(std::make_shared<Data>(std::move(gen))) {
+        ++data->iter;
+    }
+
+    T& cached() noexcept { return *data->iter; }
+};
+
+template <typename T>
+generator_view<T> gen_view(generator<T>&& gen) {
+    return generator_view<T>(std::move(gen));
+}
+
+template <class T>
+struct owning_range : rs::view_facade<owning_range<T>> {
+    using iterator = std::remove_cvref_t<
+        decltype(std::declval<T>().begin())>;
+    using value_type = iterator::value_type;
+
+  private:
+    friend rs::range_access;
+    struct Data {
+        T        gen_;
+        iterator iter;
+        explicit Data(T&& gen)
+            : gen_(std::move(gen)), iter(gen_.begin()) {}
+    };
+
+    SPtr<Data> data;
+
+    struct cursor {
+      private:
+        friend rs::range_access;
+        using single_pass  = std::true_type;
+        owning_range* rng_ = nullptr;
+
+      public:
+        cursor() = default;
+        explicit cursor(owning_range* rng) : rng_(rng) {}
+
+        void        next() { rng_->next(); }
+        value_type& read() const noexcept { return rng_->cached(); }
+        bool        equal(rs::default_sentinel_t) const {
+            return rng_->data->iter == rng_->data->gen_.end();
+        }
+    };
+
+    void next() { ++data->iter; }
+
+    cursor begin_cursor() { return cursor{this}; }
+
+  public:
+    owning_range() = default;
+    explicit owning_range(T&& gen)
+        : data(std::make_shared<Data>(std::move(gen))) {
+        ++data->iter;
+    }
+
+    value_type& cached() noexcept { return *data->iter; }
+};
+
+template <typename T>
+owning_range<T> own_view(T&& gen) {
+    return owning_range<T>(std::move(gen));
+}
+
 
 void open_walker(git_oid& oid, walker_state& state) {
     // Read HEAD on master
@@ -67,22 +179,67 @@ struct FullCommitData {
     CommitId         id;
 };
 
-void for_each_commit(walker_state* state) {
-    CommitGraph g{state->repo};
 
-    LOG(INFO) << "Getting list of files changed per each commit";
-    git_commit*           prev     = nullptr;
+struct RemoveAction {
+    int removed;
+};
+
+struct AddAction {
+    int        added;
+    ir::LineId id;
+};
+
+struct FileRenameAction {};
+
+using Action = std::variant<RemoveAction, AddAction, FileRenameAction>;
+
+
+struct CommitTask {
+    CommitId       id;
+    SPtr<git_tree> prev_tree;
+    SPtr<git_tree> this_tree;
+    Opt<git_oid>   prev_hash;
+    git_oid        this_hash;
+};
+
+struct CommitActions {
+    UnorderedMap<ir::FileTrackId, Vec<Action>> actions;
+};
+
+struct CommitWalkState {
+    UnorderedMap<ir::FilePathId, ir::FileTrackId> tracks;
+
+    ir::FileTrackId getTrack(walker_state* state, fs::path const& path) {
+        auto path_id = state->content->getFilePath(path);
+        if (tracks.contains(path_id)) {
+            return tracks.at(path_id);
+        } else {
+            ir::FileTrackId result = state->content->add(FileTrack{});
+            tracks.insert({path_id, result});
+            return result;
+        }
+    }
+};
+
+template <typename Res, typename... CallbackArgs>
+Pair<Res (*)(CallbackArgs..., void*), Func<Res(CallbackArgs...)>> git_callback_wrapper(
+    Func<Res(CallbackArgs...)> lambda) {
+    auto trampoline = [](CallbackArgs... args, void* payload) -> Res {
+        auto& lambda = *static_cast<Func<Res(CallbackArgs...)>*>(payload);
+        return lambda(std::forward<CallbackArgs>(args)...);
+    };
+
+    return {trampoline, lambda};
+}
+
+CommitActions get_commit_actions(
+    walker_state*    state,
+    CR<CommitTask>   task,
+    CommitWalkState& commit_walk) {
+    CommitActions         result;
     git_diff_options      diffopts = GIT_DIFF_OPTIONS_INIT;
     git_diff_find_options findopts = GIT_DIFF_FIND_OPTIONS_INIT;
-    // TODO expose configuration metrics via the CLI or some other
-    // solution. IDEA with boost/descrive it should be possible to
-    // automatically map a structure fields to the command-line flags with
-    // the default values. Documentation is going to be a little more
-    // problematic, but I think adding `name->description` map of the
-    // content will be sufficient.
-    //
-    // Assigned values are said to be 'default' in the libgith
-    // documentation
+    // Assigned values are said to be 'default' in the libgit documentation
     findopts.rename_threshold              = 50;
     findopts.rename_from_rewrite_threshold = 50;
     findopts.copy_threshold                = 50;
@@ -90,14 +247,101 @@ void for_each_commit(walker_state* state) {
     findopts.rename_limit                  = 1000;
 
 
-    struct CommitTask {
-        CommitId       id;
-        SPtr<git_tree> prev_tree;
-        SPtr<git_tree> this_tree;
-        Opt<git_oid>   prev_hash;
-        git_oid        this_hash;
-    };
+    {
+        auto [trampoline, lambda] = git_callback_wrapper(
+            Func<int(char const*, git_tree_entry const*)>(
+                [&](char const* root, git_tree_entry const* entry) -> int {
+                    result.actions[commit_walk.getTrack(
+                        state, fs::path{git_tree_entry_name(entry)})];
+                    return 0;
+                }));
 
+        git_tree_walk(
+            task.this_tree.get(), GIT_TREEWALK_PRE, trampoline, &lambda);
+    }
+
+    SPtr<git_diff> diff = git::diff_tree_to_tree(
+                              state->repo.get(),
+                              task.prev_tree.get(),
+                              task.this_tree.get(),
+                              &diffopts)
+                              .value();
+
+    git_diff_find_similar(diff.get(), &findopts);
+
+    int  deltas    = git::diff_num_deltas(diff.get());
+    auto id_commit = task.id;
+
+
+    for (int i = 0; i < deltas; ++i) {
+        SPtr<git_patch> patch = git::patch_from_diff(diff.get(), i)
+                                    .value();
+        const git_diff_delta* delta = git::patch_get_delta(patch.get());
+
+
+        ir::FileTrackId track = commit_walk.getTrack(
+            state,
+            fs::path{
+                delta->old_file.path == nullptr ? delta->new_file.path
+                                                : delta->old_file.path});
+
+        auto& actions = result.actions[track];
+
+        int num_hunks = git_patch_num_hunks(patch.get());
+        for (int hunk_idx = 0; hunk_idx < num_hunks; ++hunk_idx) {
+            const git_diff_hunk* hunk;
+            git_patch_get_hunk(&hunk, NULL, patch.get(), hunk_idx);
+
+            int num_lines = git_patch_num_lines_in_hunk(
+                patch.get(), hunk_idx);
+            for (int line_idx = 0; line_idx < num_lines; ++line_idx) {
+                const git_diff_line* line;
+                git_patch_get_line_in_hunk(
+                    &line, patch.get(), hunk_idx, line_idx);
+
+                switch (line->origin) {
+                    case GIT_DIFF_LINE_ADDITION: {
+                        ir::LineId line_id = state->content->add(LineData{
+                            .content = state->content->add(String{
+                                Str{line->content, line->content_len}}),
+                            .commit  = id_commit,
+                        });
+
+
+                        actions.push_back(AddAction{
+                            .added = line->new_lineno,
+                            line_id,
+                        });
+                        break;
+                    }
+
+                    case GIT_DIFF_LINE_DELETION: {
+                        actions.push_back(
+                            RemoveAction{.removed = line->old_lineno});
+                        break;
+                    }
+                }
+            }
+        }
+
+
+        auto new_path = state->content->getFilePath(delta->new_file.path);
+        if (delta->old_file.path
+            && strcmp(delta->old_file.path, delta->new_file.path) != 0) {
+            auto old_path = state->content->getFilePath(
+                delta->old_file.path);
+            // result.push_back(FileRenameAction{});
+        }
+    }
+
+    return result;
+}
+
+void for_each_commit(walker_state* state) {
+    CommitGraph g{state->repo};
+
+    LOG(INFO) << "Getting list of files changed per each commit";
+    git_commit*     prev = nullptr;
     Vec<CommitTask> tasks;
 
     using VDesc = CommitGraph::VDesc;
@@ -113,53 +357,81 @@ void for_each_commit(walker_state* state) {
         return trees[v];
     };
 
-    for (auto [main, base] : g.commit_pairs()) {
-        if (!g.is_merge(main)) {
-            tasks.push_back(CommitTask{
+    auto make_task =
+        [&](Pair<VDesc, Opt<VDesc>> const& pair) -> Opt<CommitTask> {
+        auto [main, base] = pair;
+        if (g.is_merge(main)) {
+            return std::nullopt;
+        } else {
+            return CommitTask{
                 .id        = state->get_id(g[main].oid),
                 .prev_tree = base ? get_tree(base.value()) : nullptr,
                 .this_tree = get_tree(main),
                 .prev_hash = base ? Opt<git_oid>{g[base.value()].oid}
                                   : Opt<git_oid>{},
                 .this_hash = g[main].oid,
-            });
+            };
         }
+    };
+
+    CommitWalkState commit_walk;
+
+    struct TaskActionGroup {
+        ir::CommitId    commit;
+        ir::FileTrackId track_id;
+        Vec<Action>     actions;
+    };
+
+    for (auto const& [commit_id, track_id, actions] :
+         gen_view(g.commit_pairs())     //
+             | rv::transform(make_task) //
+             | rv::remove_if(
+                 [](auto const& opt) -> bool { return !opt.has_value(); })
+             | rv::transform([](Opt<CommitTask> const& opt) -> CommitTask {
+                   return opt.value();
+               })
+             | rv::transform([&](CommitTask const& task) {
+                   return own_view(
+                              get_commit_actions(state, task, commit_walk)
+                                  .actions)
+                        | rv::transform([id = task.id](const auto& pair) {
+                              return std::make_tuple(
+                                  id, pair.first, pair.second);
+                          });
+               })
+             | rv::join) {
+
+        FileTrack& track      = state->content->at(track_id);
+        auto       section_id = state->content->add(FileTrackSection{
+                  .commit_id = commit_id,
+                  .path      = ir::FilePathId::Nil(),
+        });
+
+        track.sections.push_back(section_id);
+
+        ir::FileTrackSection& section = state->content->at(section_id);
+        if (1 < track.sections.size()) {
+            section.lines = state->content
+                                ->at(track.sections.at(
+                                    track.sections.size() - 2))
+                                .lines;
+        }
+
+        rs::for_each(actions, [&](auto const& edit) {
+            std::visit(
+                overloaded{
+                    [&](AddAction const& add) {
+                        section.lines = section.lines.insert(
+                            add.added, add.id);
+                    },
+                    [&](RemoveAction const& remove) {
+                        section.lines = section.lines.erase(
+                            remove.removed);
+                    },
+                    [&](FileRenameAction const& rename) {}},
+                edit);
+        });
     }
-
-    std::mutex tick_mutex;
-    auto       task_executor =
-        [state, &tick_mutex, &diffopts, &findopts](CR<CommitTask> task) {
-            SPtr<git_diff> diff = git::diff_tree_to_tree(
-                                      state->repo.get(),
-                                      task.prev_tree.get(),
-                                      task.this_tree.get(),
-                                      &diffopts)
-                                      .value();
-
-            git_diff_find_similar(diff.get(), &findopts);
-
-            int  deltas    = git::diff_num_deltas(diff.get());
-            auto id_commit = task.id;
-
-            for (int i = 0; i < deltas; ++i) {
-                SPtr<git_patch> patch = git::patch_from_diff(diff.get(), i)
-                                            .value();
-                const git_diff_delta* delta = git::patch_get_delta(
-                    patch.get());
-
-                SLock lock{tick_mutex};
-
-                auto new_path = state->content->getFilePath(
-                    delta->new_file.path);
-                if (delta->old_file.path
-                    && strcmp(delta->old_file.path, delta->new_file.path)
-                           != 0) {
-                    auto old_path = state->content->getFilePath(
-                        delta->old_file.path);
-                    // File rename registered
-                }
-            }
-        };
 }
 
 CommitId process_commit(git_oid commit_oid, walker_state* state) {

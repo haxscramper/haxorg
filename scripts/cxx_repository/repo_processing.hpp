@@ -17,18 +17,11 @@ auto get_nesting(CR<Str> line) -> int;
 /// Append new line to the file and update related counteres (total
 /// complexity, line count and so on)
 void push_line(
-    ir::FileId       id,
+    ir::FileTrackId  id,
     walker_state*    walker,
     CR<ir::LineData> line,
     bool             changed,
     int              period);
-
-ir::FileId exec_walker(
-    git_oid               commit_oid,
-    walker_state*         state,
-    ir::CommitId          commit,
-    const char*           root,
-    const git_tree_entry* entry);
 
 struct SubTaskParams {
     git_oid      commit_oid; ///< Original git commit iD
@@ -44,13 +37,6 @@ struct SubTaskParams {
 /// available in the repository at the time and process each file
 /// individually, filling data into the content store.
 ir::CommitId process_commit(git_oid commit_oid, walker_state* state);
-
-void file_tasks(
-    Vec<SubTaskParams>& treewalk, /// List of subtasks that need to be
-                                  /// executed for each specific file.
-    walker_state* state,
-    git_oid       commit_oid,
-    ir::CommitId  out_commit);
 
 void open_walker(git_oid& oid, walker_state& state);
 

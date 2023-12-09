@@ -4,11 +4,12 @@
 #include <iostream>
 #include <filesystem>
 #include <unordered_map>
+#include "git_interface.hpp"
 #include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <immer/vector.hpp>
+#include <immer/flex_vector.hpp>
 
 template <dod::IsIdType T>
 auto operator<<(std::ostream& stream, T id) -> std::ostream& {
@@ -24,7 +25,7 @@ namespace ir {
 
 DECL_ID_TYPE(LineData, LineId, std::size_t);
 DECL_ID_TYPE(Commit, CommitId, std::size_t);
-DECL_ID_TYPE(File, FileId, std::size_t);
+DECL_ID_TYPE(FileTrack, FileTrackId, std::size_t);
 DECL_ID_TYPE(FilePath, FilePathId, std::size_t);
 DECL_ID_TYPE(Directory, DirectoryId, std::size_t);
 DECL_ID_TYPE(String, StringId, std::size_t);
@@ -68,21 +69,22 @@ struct Commit {
     i64      time;     /// posix time
     int      timezone; /// timezone where commit was taken
     Str      hash;     /// git hash of the commit
-    Str      message; /// Commit message
+    Str      message;  /// Commit message
 };
 
 struct FileTrackSection {
     using id_type = FileTrackSectionId;
     ir::CommitId commit_id; /// Id of the commit this version of the file
                             /// was recorded in
-    ir::FilePathId        path;
-    immer::vector<LineId> lines; /// List of all lines found in the file
+    ir::FilePathId             path;
+    immer::flex_vector<LineId> lines; /// List of all lines found in the
+                                      /// file
 };
 
 /// \brief single version of the file that appeared in some commit
 /// \ingroup db_mapped
-struct File {
-    using id_type = FileId;
+struct FileTrack {
+    using id_type = FileTrackId;
     Vec<FileTrackSectionId> sections;
 };
 
@@ -130,15 +132,11 @@ struct Author {
 /// some line. Interned in the main storage.
 struct LineData {
     using id_type = LineId;
-    AuthorId author;  /// Line author ID
-    i64      time;    /// Time line was written
     StringId content; /// Content of the line
     CommitId commit;
-    int      nesting; /// Line indentation depth
 
     auto operator==(CR<LineData> other) const -> bool {
-        return author == other.author && time == other.time
-            && content == other.content;
+        return commit == other.commit && content == other.content;
     }
 };
 } // namespace ir
@@ -173,7 +171,7 @@ inline void hash_combine(std::size_t& seed, const T& v, Rest... rest) {
 // Add hashing declarations for the author and line data - they will be
 // interned. `std::string` already has the hash structure.
 MAKE_HASHABLE(ir::Author, it, it.name, it.email);
-MAKE_HASHABLE(ir::LineData, it, it.author, it.time, it.content);
+MAKE_HASHABLE(ir::LineData, it, it.content);
 MAKE_HASHABLE(ir::Directory, it, it.name, it.parent);
 MAKE_HASHABLE(ir::String, it, it.text);
 MAKE_HASHABLE(ir::FilePath, it, it.path);
@@ -182,9 +180,10 @@ namespace ir {
 /// \brief Main store for repository analysis
 struct content_manager {
     dod::MultiStore<
-        dod::InternStore<AuthorId, Author>,       // Full list of authors
-        dod::InternStore<LineId, LineData>,       // found lines
-        dod::Store<FileId, File>,                 // files
+        dod::InternStore<AuthorId, Author>, // Full list of authors
+        dod::InternStore<LineId, LineData>, // found lines
+        dod::Store<FileTrackSectionId, FileTrackSection>,
+        dod::Store<FileTrackId, FileTrack>,       // file tracks
         dod::InternStore<FilePathId, FilePath>,   // file paths
         dod::Store<CommitId, Commit>,             // all commits
         dod::InternStore<DirectoryId, Directory>, // all directories
@@ -240,7 +239,7 @@ struct content_manager {
     }
 
     template <dod::IsIdType Id>
-    [[nodiscard]] auto cat(Id id) const -> CR<dod::value_type_t<Id>> {
+    [[nodiscard]] auto at(Id id) const -> CR<dod::value_type_t<Id>> {
         return multi.at<Id>(id);
     }
 
