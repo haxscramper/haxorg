@@ -7,3 +7,6 @@
 [submodule "thirdparty/lager"]
 	path = thirdparty/lager
 	url = https://github.com/arximboldi/lager.git
+[submodule "thirdparty/libgit2"]
+	path = thirdparty/libgit2
+	url = https://github.com/libgit2/libgit2.git

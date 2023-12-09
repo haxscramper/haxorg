@@ -3,6 +3,7 @@
 #include <coroutine>
 #include <type_traits>
 #include <optional>
+#include <exception>
 
 template <typename T>
 struct generator {

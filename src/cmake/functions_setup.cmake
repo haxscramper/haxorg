@@ -15,6 +15,7 @@ function(set_target_flags TARGET)
   endif()
 
 
+  target_compile_features(${TARGET} PUBLIC cxx_std_23)
 
   add_target_property(${TARGET} COMPILE_OPTIONS "-ftime-trace")
   add_target_property(${TARGET} LINK_OPTIONS "-ftime-trace")
