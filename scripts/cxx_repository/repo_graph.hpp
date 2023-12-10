@@ -112,4 +112,6 @@ struct CommitGraph {
 
     VDesc get_desc(CR<git_oid> oid);
     CommitGraph(SPtr<git_repository> repo);
+
+    std::string toGraphviz() const;
 };

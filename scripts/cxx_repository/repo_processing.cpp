@@ -5,6 +5,7 @@
 #include <git2/patch.h>
 #include <hstd/stdlib/Map.hpp>
 #include <immer/flex_vector_transient.hpp>
+#include <fstream>
 
 #include <boost/asio/thread_pool.hpp>
 #include <hstd/stdlib/strutils.hpp>
@@ -75,7 +76,7 @@ struct generator_view : rs::view_facade<generator_view<T>> {
     generator_view() = default;
     explicit generator_view(generator<T>&& gen)
         : data(std::make_shared<Data>(std::move(gen))) {
-        ++data->iter;
+        // ++data->iter;
     }
 
     T& cached() noexcept { return *data->iter; }
@@ -128,7 +129,6 @@ struct owning_range : rs::view_facade<owning_range<T>> {
     owning_range() = default;
     explicit owning_range(T&& gen)
         : data(std::make_shared<Data>(std::move(gen))) {
-        ++data->iter;
     }
 
     value_type& cached() noexcept { return *data->iter; }
@@ -358,7 +358,6 @@ CommitActions get_commit_actions(
     int  deltas    = git::diff_num_deltas(diff.get());
     auto id_commit = task.id;
 
-
     for (int i = 0; i < deltas; ++i) {
         SPtr<git_patch> patch = git::patch_from_diff(diff.get(), i)
                                     .value();
@@ -398,7 +397,7 @@ CommitActions get_commit_actions(
 
 
                         actions.push_back(AddAction{
-                            .added = line->new_lineno,
+                            .added = line->new_lineno - 1,
                             line_id,
                         });
                         break;
@@ -406,7 +405,7 @@ CommitActions get_commit_actions(
 
                     case GIT_DIFF_LINE_DELETION: {
                         actions.push_back(
-                            RemoveAction{.removed = line->old_lineno});
+                            RemoveAction{.removed = line->old_lineno - 1});
                         break;
                     }
                 }
@@ -430,6 +429,13 @@ void for_each_commit(walker_state* state) {
     CommitGraph g{state->repo};
 
     LOG(INFO) << "Getting list of files changed per each commit";
+
+    {
+        std::ofstream file{"/tmp/graph.dot"};
+        file << g.toGraphviz();
+    }
+
+
     git_commit*     prev = nullptr;
     Vec<CommitTask> tasks;
 
@@ -449,18 +455,14 @@ void for_each_commit(walker_state* state) {
     auto make_task =
         [&](Pair<VDesc, Opt<VDesc>> const& pair) -> Opt<CommitTask> {
         auto [main, base] = pair;
-        if (g.is_merge(main)) {
-            return std::nullopt;
-        } else {
-            return CommitTask{
-                .id        = state->get_id(g[main].oid),
-                .prev_tree = base ? get_tree(base.value()) : nullptr,
-                .this_tree = get_tree(main),
-                .prev_hash = base ? Opt<git_oid>{g[base.value()].oid}
-                                  : Opt<git_oid>{},
-                .this_hash = g[main].oid,
-            };
-        }
+        return CommitTask{
+            .id        = state->get_id(g[main].oid),
+            .prev_tree = base ? get_tree(base.value()) : nullptr,
+            .this_tree = get_tree(main),
+            .prev_hash = base ? Opt<git_oid>{g[base.value()].oid}
+                              : Opt<git_oid>{},
+            .this_hash = g[main].oid,
+        };
     };
 
     CommitWalkState commit_walk;
@@ -516,11 +518,22 @@ void for_each_commit(walker_state* state) {
             std::visit(
                 overloaded{
                     [&](AddAction const& add) {
+                        // CHECK(add.added <= section.lines.size())
+                        //     << "Cannot add line at index " << add.added
+                        //     << " from section version "
+                        //     << section.lines.size();
+
                         section.added_lines.push_back(add.added);
                         section.lines = section.lines.insert(
                             add.added, add.id);
                     },
                     [&](RemoveAction const& remove) {
+                        // CHECK(remove.removed <= section.lines.size())
+                        //     << "Cannot remove line index "
+                        //     << remove.removed << " from section version
+                        //     "
+                        //     << section.lines.size();
+
                         section.removed_lines.push_back(remove.removed);
                         section.lines = section.lines.erase(
                             remove.removed);

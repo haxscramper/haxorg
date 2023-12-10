@@ -1,5 +1,8 @@
 #include "repo_graph.hpp"
 
+#include <boost/graph/graphml.hpp>
+#include <boost/graph/graphviz.hpp>
+
 CommitGraph::CommitGraph(SPtr<git_repository> repo) {
     SPtr<git_revwalk> walker = git::revwalk_new(repo.get()).value();
     git::revwalk_sorting(walker.get(), GIT_SORT_NONE);
@@ -66,6 +69,34 @@ CommitGraph::CommitGraph(SPtr<git_repository> repo) {
             }
         }
     }
+}
+
+
+std::string CommitGraph::toGraphviz() const {
+    std::stringstream         os;
+    boost::dynamic_properties dp;
+
+    dp //
+        .property("node_id", get(boost::vertex_index, g))
+        .property(
+            "splines",
+            boost::make_constant_property<Graph*>(std::string("polyline")))
+        .property(
+            "shape",
+            boost::make_constant_property<Graph::vertex_descriptor>(
+                std::string("rect")))
+        .property(
+            "label",
+            make_transform_value_property_map<std::string>(
+                [&](CommitInfo const& prop) -> std::string {
+                    return fmt("{}", prop.oid).substr(0, 8);
+                },
+                get(boost::vertex_bundle, g)));
+
+
+    write_graphviz_dp(os, g, dp);
+
+    return os.str();
 }
 
 CommitGraph::VDesc CommitGraph::get_desc(CR<git_oid> oid) {
