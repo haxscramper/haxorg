@@ -74,11 +74,15 @@ struct Commit {
 
 struct FileTrackSection {
     using id_type = FileTrackSectionId;
-    ir::CommitId commit_id; /// Id of the commit this version of the file
-                            /// was recorded in
-    ir::FilePathId             path;
-    immer::flex_vector<LineId> lines; /// List of all lines found in the
-                                      /// file
+    /// Id of the commit this version of the file was recorded in
+    ir::CommitId commit_id;
+    /// What path was assigned to a file at the time this section was
+    /// recorded?
+    ir::FilePathId path;
+    /// List of all lines found in the file
+    immer::flex_vector<LineId> lines;
+    Vec<int>                   added_lines;
+    Vec<int>                   removed_lines;
 };
 
 /// \brief single version of the file that appeared in some commit

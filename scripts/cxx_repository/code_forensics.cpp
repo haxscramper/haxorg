@@ -5,12 +5,15 @@
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
+#include <fstream>
 
 #include "repo_processing.hpp"
 #include "program_state.hpp"
 #include <absl/log/log.h>
+#include <hstd/stdlib/Filesystem.hpp>
 
 namespace rv = ranges::views;
+namespace rs = ranges;
 
 
 #define GIT_SUCCESS 0
@@ -45,7 +48,8 @@ auto main(int argc, const char** argv) -> int {
     // Check whether threads can be enabled
     assert(git_libgit2_features() & GIT_FEATURE_THREADS);
 
-    auto heads_path = fs::path{config->repo.toBase()} / config->heads.toBase();
+    auto heads_path = fs::path{config->repo.toBase()}
+                    / config->heads.toBase();
     if (!fs::exists(config->repo.toBase())) {
         LOG(ERROR) << "Input directory '" << config->repo
                    << "' does not exist, aborting analysis";
@@ -78,6 +82,38 @@ auto main(int argc, const char** argv) -> int {
     }
 
     LOG(INFO) << "Finished execution, DB written successfully";
+
+    std::ofstream file{"/tmp/repo_stats.txt"};
+    for (auto const& [id, value] :
+         state->content->multi.store<ir::FileTrack>().pairs()) {
+        file << "File\n";
+        for (ir::FileTrackSectionId section_id : value->sections) {
+            auto& section = state->content->at(section_id);
+            file << fmt(
+                "  Section [{}] = {} at {} +{} -{}\n",
+                section_id,
+                escape_literal(
+                    state->content
+                        ->at(state->content->at(section.path).path)
+                        .text),
+                state->content->at(section.commit_id).hash.substr(0, 8),
+                section.added_lines,
+                section.removed_lines);
+
+            for (auto const& [idx, line_id] : enumerate(section.lines)) {
+                file << fmt(
+                    "   [{}] = ({}) {} {}\n",
+                    idx,
+                    line_id,
+                    (rs::contains(section.added_lines, idx) ? "+" : " "),
+                    escape_literal(
+                        state->content
+                            ->at(state->content->at(line_id).content)
+                            .text));
+            }
+        }
+    }
+
 
     return 0;
 }

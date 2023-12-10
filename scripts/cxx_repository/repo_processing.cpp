@@ -7,6 +7,7 @@
 #include <immer/flex_vector_transient.hpp>
 
 #include <boost/asio/thread_pool.hpp>
+#include <hstd/stdlib/strutils.hpp>
 #include <boost/asio/post.hpp>
 
 
@@ -139,6 +140,84 @@ owning_range<T> own_view(T&& gen) {
 }
 
 
+template <class Rng>
+struct transform_view
+    : public rs::
+          view_interface<transform_view<Rng>, rs::cardinality::finite> {
+
+    using Collected      = std::vector<rs::range_value_t<Rng>>;
+    using iterator       = typename Collected::iterator;
+    using const_iterator = typename Collected::const_iterator;
+    using value_type     = typename Collected::value_type;
+
+    Collected values;
+    iterator  iter;
+
+    constexpr const_iterator begin() const noexcept {
+        return values.begin();
+    }
+
+    constexpr const_iterator end() const noexcept { return values.end(); }
+    constexpr iterator       begin() noexcept { return values.begin(); }
+    constexpr iterator       end() noexcept { return values.end(); }
+    constexpr bool           empty() const { return values.empty(); }
+    constexpr auto           size() const { return values.size(); }
+    void                     next() { ++iter; }
+    void                     prev() { --iter; }
+    constexpr auto&          advance(rs::iter_difference_t<iterator> n) {
+        iter += n;
+        return *this;
+    }
+
+    transform_view() = default;
+    transform_view(Rng&& rng) {
+        for (auto const& it : rng) {
+            values.push_back(it);
+        }
+        iter = values.begin();
+    }
+};
+
+template <class Rng>
+transform_view<Rng> transform(Rng&& rng) {
+    return {std::forward<Rng>(rng)};
+}
+
+template <typename Rng>
+    requires rs::viewable_range<Rng>
+void take_viewable_range(Rng const& r) {}
+
+template <typename Rng>
+    requires rs::bidirectional_range<Rng>
+void take_bidirectional_range(Rng const& r) {}
+
+auto make_collect() {
+    auto tran = transform(rv::iota(1, 4));
+    using T   = decltype(tran);
+    take_viewable_range(tran);
+    take_bidirectional_range(tran);
+    rs::views::reverse(tran);
+
+    return rs::make_pipeable([](auto&& rng) {
+        auto tran = transform(rng);
+        using T   = decltype(tran);
+        static_assert(requires() { rs::bidirectional_range<T>; });
+        static_assert(requires() { rs::viewable_range<T>; });
+        return tran;
+    });
+}
+
+template <typename T, typename In>
+generator<T> indexed_get_iterator(
+    In const&               in,
+    Func<int(In const&)>    size_get,
+    Func<T(In const&, int)> getter) {
+    int size = size_get(in);
+    for (int i = 0; i < size; ++i) {
+        co_yield getter(in, i);
+    }
+}
+
 void open_walker(git_oid& oid, walker_state& state) {
     // Read HEAD on master
     fs::path head_filepath = fs::path{state.config->repo.toBase()}
@@ -190,8 +269,12 @@ struct AddAction {
 };
 
 struct FileRenameAction {};
+struct NameAction {
+    ir::FilePathId path;
+};
 
-using Action = std::variant<RemoveAction, AddAction, FileRenameAction>;
+using Action = std::
+    variant<NameAction, RemoveAction, AddAction, FileRenameAction>;
 
 
 struct CommitTask {
@@ -251,8 +334,11 @@ CommitActions get_commit_actions(
         auto [trampoline, lambda] = git_callback_wrapper(
             Func<int(char const*, git_tree_entry const*)>(
                 [&](char const* root, git_tree_entry const* entry) -> int {
-                    result.actions[commit_walk.getTrack(
-                        state, fs::path{git_tree_entry_name(entry)})];
+                    auto path  = fs::path{git_tree_entry_name(entry)};
+                    auto track = commit_walk.getTrack(state, path);
+                    result.actions[track].push_back(NameAction{
+                        .path = state->content->getFilePath(path)});
+                    result.actions[track];
                     return 0;
                 }));
 
@@ -277,15 +363,16 @@ CommitActions get_commit_actions(
         SPtr<git_patch> patch = git::patch_from_diff(diff.get(), i)
                                     .value();
         const git_diff_delta* delta = git::patch_get_delta(patch.get());
+        fs::path              path{
+            delta->old_file.path == nullptr ? delta->new_file.path
+                                                         : delta->old_file.path};
 
-
-        ir::FileTrackId track = commit_walk.getTrack(
-            state,
-            fs::path{
-                delta->old_file.path == nullptr ? delta->new_file.path
-                                                : delta->old_file.path});
+        ir::FileTrackId track = commit_walk.getTrack(state, path);
 
         auto& actions = result.actions[track];
+
+        actions.push_back(
+            NameAction{.path = state->content->getFilePath(path)});
 
         int num_hunks = git_patch_num_hunks(patch.get());
         for (int hunk_idx = 0; hunk_idx < num_hunks; ++hunk_idx) {
@@ -302,8 +389,10 @@ CommitActions get_commit_actions(
                 switch (line->origin) {
                     case GIT_DIFF_LINE_ADDITION: {
                         ir::LineId line_id = state->content->add(LineData{
-                            .content = state->content->add(String{
-                                Str{line->content, line->content_len}}),
+                            .content = state->content->add(String{strip(
+                                Str{line->content, line->content_len},
+                                {},
+                                {'\n'})}),
                             .commit  = id_commit,
                         });
 
@@ -376,17 +465,15 @@ void for_each_commit(walker_state* state) {
 
     CommitWalkState commit_walk;
 
-    struct TaskActionGroup {
-        ir::CommitId    commit;
-        ir::FileTrackId track_id;
-        Vec<Action>     actions;
-    };
-
     for (auto const& [commit_id, track_id, actions] :
          gen_view(g.commit_pairs())     //
+             | make_collect()           //
+             | rv::reverse              //
+             | rv::take(10)             //
              | rv::transform(make_task) //
-             | rv::remove_if(
-                 [](auto const& opt) -> bool { return !opt.has_value(); })
+             | rv::remove_if([](Opt<CommitTask> const& opt) -> bool {
+                   return !opt.has_value();
+               })
              | rv::transform([](Opt<CommitTask> const& opt) -> CommitTask {
                    return opt.value();
                })
@@ -401,10 +488,18 @@ void for_each_commit(walker_state* state) {
                })
              | rv::join) {
 
+
+        auto is_naming = [](Action const& v) -> bool {
+            return std::holds_alternative<NameAction>(v);
+        };
+
+        CHECK(rs::any_of(actions, is_naming));
+
         FileTrack& track      = state->content->at(track_id);
         auto       section_id = state->content->add(FileTrackSection{
                   .commit_id = commit_id,
-                  .path      = ir::FilePathId::Nil(),
+                  .path = std::get<NameAction>(*rs::find_if(actions, is_naming))
+                        .path,
         });
 
         track.sections.push_back(section_id);
@@ -421,14 +516,18 @@ void for_each_commit(walker_state* state) {
             std::visit(
                 overloaded{
                     [&](AddAction const& add) {
+                        section.added_lines.push_back(add.added);
                         section.lines = section.lines.insert(
                             add.added, add.id);
                     },
                     [&](RemoveAction const& remove) {
+                        section.removed_lines.push_back(remove.removed);
                         section.lines = section.lines.erase(
                             remove.removed);
                     },
-                    [&](FileRenameAction const& rename) {}},
+                    [&](FileRenameAction const& rename) {},
+                    [&](NameAction const& rename) {},
+                },
                 edit);
         });
     }
