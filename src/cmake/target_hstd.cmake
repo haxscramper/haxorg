@@ -16,11 +16,10 @@ target_link_libraries(
     PUBLIC
     ${GRAPHVIZ_CGRAPH_LIBRARY}
     ${GRAPHVIZ_GVC_LIBRARY}
-    fmt::fmt
-    yaml-cpp::yaml-cpp
+    yaml_lib
     absl::base
     absl::log
-    perfetto::perfetto
+    perfetto_lib
 )
 
 add_executable(tests_hstd)

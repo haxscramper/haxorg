@@ -14,8 +14,8 @@ add_subdirectory("${BASE}/thirdparty/libgit2" "${CMAKE_BINARY_DIR}/libgit2_build
 
 target_link_libraries(code_forensics PUBLIC
     hstd
-    perfetto::perfetto
-    CONAN_PKG::range-v3
+    perfetto_lib
+    range_v3_lib
     libgit2package
 )
 

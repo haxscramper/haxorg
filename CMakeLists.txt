@@ -12,7 +12,6 @@ set(BASE "${CMAKE_SOURCE_DIR}")
 message(INFO "CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
 set(LLVM_DIR "${BASE}/toolchain/llvm")
 
-set(DEPS_DIR "${BASE}/build/dependencies/conan")
 set(AUTOGEN_BUILD_DIR "${BASE}/build/autogen")
 set(SCRIPT_DIR "${BASE}/src/scripts")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -41,11 +40,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -I${LLVM_STD_INCLUDE} -I$
 
 file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})
 list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
-include(${DEPS_DIR}/conanbuildinfo.cmake)
 include(src/cmake/functions_aux.cmake)
 include(src/cmake/functions_setup.cmake)
-
-conan_basic_setup(TARGETS)
 
 option(USE_PCH "Use precompiled headers" ON)
 option(TRACE_INSTRUMENT "Generate instrumentation trace")
@@ -66,16 +62,73 @@ if (${USE_SANITIZER})
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=undefined,address")
 endif()
 
+include(ExternalProject)
 
-find_package(fmt REQUIRED MODULE)
-find_package(yaml-cpp REQUIRED MODULE)
-find_package(benchmark REQUIRED MODULE)
-find_package(PythonLibs 3.11 MODULE)
-find_package(pybind11 REQUIRED MODULE)
-find_package(perfetto REQUIRED MODULE)
+set(DEPS_DIR "${BASE}/thirdparty")
+set(DEPS_BINARY "${CMAKE_BINARY_DIR}/deps")
+
+ExternalProject_Add(yaml_project
+    SOURCE_DIR "${DEPS_DIR}/yaml-cpp"
+    BINARY_DIR "${DEPS_BINARY}"
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
+    INSTALL_COMMAND ""
+)
+
+add_library(yaml_lib IMPORTED STATIC)
+set_target_properties(yaml_lib PROPERTIES
+    IMPORTED_LOCATION "${DEPS_BINARY}/libyaml-cpp.a"
+    INCLUDE_DIRECTORIES "${DEPS_DIR}/yaml-cpp/include"
+)
+
+ExternalProject_Add(perfetto_project
+    SOURCE_DIR "${DEPS_DIR}/perfetto"
+    BINARY_DIR "${DEPS_BINARY}"
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
+    INSTALL_COMMAND ""
+)
+
+add_library(perfetto_lib IMPORTED STATIC)
+set_target_properties(perfetto_lib PROPERTIES
+    IMPORTED_LOCATION "${DEPS_BINARY}/libperfetto.a"
+    INCLUDE_DIRECTORIES "${DEPS_DIR}/perfetto/include"
+)
+
+
+ExternalProject_Add(range_v3_project
+    SOURCE_DIR "${DEPS_DIR}/range-v3"
+    BINARY_DIR "${DEPS_BINARY}"
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
+    INSTALL_COMMAND ""
+)
+
+add_library(range_v3_lib IMPORTED STATIC)
+set_target_properties(range_v3_lib PROPERTIES
+    IMPORTED_LOCATION "${DEPS_BINARY}/libperfetto.a"
+    INCLUDE_DIRECTORIES "${DEPS_DIR}/perfetto/include"
+)
+
+add_library(immer_lib INTERFACE)
+target_include_directories(immer_lib INTERFACE "${DEPS_DIR}/immer")
+
+add_library(lager_lib INTERFACE)
+target_include_directories(lager_lib INTERFACE "${DEPS_DIR}/lager")
+
+# ExternalProject_Add(google_benchmark
+#     SOURCE_DIR "${DEPS_DIR}/benchmark"
+#     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_TESTING=OFF
+#     INSTALL_COMMAND ""
+# )
+
+# find_package(fmt REQUIRED MODULE)
+# find_package(yaml-cpp REQUIRED MODULE)
+# find_package(benchmark REQUIRED MODULE)
+# find_package(PythonLibs 3.11 MODULE)
+# find_package(pybind11 REQUIRED MODULE)
+# find_package(perfetto REQUIRED MODULE)
 
 #add_subdirectory("${BASE}/deps/abseil-cpp")
-add_subdirectory("${BASE}/deps/fuzztest")
+add_subdirectory("${DEPS_DIR}/fuzztest")
+add_subdirectory("${DEPS_DIR}/pybind11")
 
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)
@@ -86,3 +139,7 @@ include(src/cmake/target_pyhaxorg.cmake)
 include(src/cmake/target_lsp.cmake)
 
 add_subdirectory(scripts/cxx_repository)
+
+
+
+

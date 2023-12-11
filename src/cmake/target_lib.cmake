@@ -39,7 +39,6 @@ target_link_libraries(haxorg PUBLIC
     ${GRAPHVIZ_GVC_LIBRARY}
     hstd
     ReflexLibStatic
-    perfetto::perfetto
     CONAN_PKG::range-v3
 )
 
