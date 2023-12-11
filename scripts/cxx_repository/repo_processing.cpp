@@ -128,8 +128,7 @@ struct owning_range : rs::view_facade<owning_range<T>> {
   public:
     owning_range() = default;
     explicit owning_range(T&& gen)
-        : data(std::make_shared<Data>(std::move(gen))) {
-    }
+        : data(std::make_shared<Data>(std::move(gen))) {}
 
     value_type& cached() noexcept { return *data->iter; }
 };
@@ -274,7 +273,7 @@ struct NameAction {
 };
 
 using Action = std::
-    variant<NameAction, RemoveAction, AddAction, FileRenameAction>;
+    variant<NameAction, FileRenameAction, RemoveAction, AddAction>;
 
 
 struct CommitTask {
@@ -372,6 +371,8 @@ CommitActions get_commit_actions(
 
         actions.push_back(
             NameAction{.path = state->content->getFilePath(path)});
+        Vec<Action> delete_actions;
+        Vec<Action> add_actions;
 
         int num_hunks = git_patch_num_hunks(patch.get());
         for (int hunk_idx = 0; hunk_idx < num_hunks; ++hunk_idx) {
@@ -396,7 +397,7 @@ CommitActions get_commit_actions(
                         });
 
 
-                        actions.push_back(AddAction{
+                        add_actions.push_back(AddAction{
                             .added = line->new_lineno - 1,
                             line_id,
                         });
@@ -404,7 +405,7 @@ CommitActions get_commit_actions(
                     }
 
                     case GIT_DIFF_LINE_DELETION: {
-                        actions.push_back(
+                        delete_actions.push_back(
                             RemoveAction{.removed = line->old_lineno - 1});
                         break;
                     }
@@ -412,6 +413,8 @@ CommitActions get_commit_actions(
             }
         }
 
+        actions.append(delete_actions);
+        actions.append(add_actions);
 
         auto new_path = state->content->getFilePath(delta->new_file.path);
         if (delta->old_file.path
@@ -518,21 +521,26 @@ void for_each_commit(walker_state* state) {
             std::visit(
                 overloaded{
                     [&](AddAction const& add) {
-                        // CHECK(add.added <= section.lines.size())
-                        //     << "Cannot add line at index " << add.added
-                        //     << " from section version "
-                        //     << section.lines.size();
+                        CHECK(add.added <= section.lines.size())
+                            << "Cannot add line at index " << add.added
+                            << " from section version "
+                            << section.lines.size();
 
                         section.added_lines.push_back(add.added);
                         section.lines = section.lines.insert(
                             add.added, add.id);
                     },
                     [&](RemoveAction const& remove) {
-                        // CHECK(remove.removed <= section.lines.size())
-                        //     << "Cannot remove line index "
-                        //     << remove.removed << " from section version
-                        //     "
-                        //     << section.lines.size();
+                        CHECK(remove.removed <= section.lines.size())
+                            << "Cannot remove line index "
+                            << remove.removed << " from section version "
+                            << section.lines.size() << " path "
+                            << state->content
+                                   ->at(state->content->at(section.path)
+                                            .path)
+                                   .text
+                            << " commit "
+                            << state->content->at(section.commit_id).hash;
 
                         section.removed_lines.push_back(remove.removed);
                         section.lines = section.lines.erase(
