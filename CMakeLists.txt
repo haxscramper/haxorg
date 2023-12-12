@@ -41,6 +41,11 @@ set(LLVM_STD_INCLUDE "${LLVM_DIR}/include/c++/v1/")
 # Globally configure compiler flags with all necessary flags etc., this will be shared 
 # down to all sub-components and dependencies. 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -Wno-unused-command-line-argument -I${LLVM_STD_INCLUDE} -I${LLVM_GNU_INCLUDE} -L${LLVM_DIR}/lib -ftemplate-backtrace-limit=0")
+# It is important to specify linker flags globally for the whole project here -- benchmark
+# subdirectory depends on the cxx_feature_check which fails if the shared parts of the standard
+# library are not found. Regex check compiles test code, everything is ok, but running
+# would fail without adding stdc++ runtime search paths
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,${LLVM_GNU_CLANG_DIR},-rpath,${LLVM_STD_DIRS}")
 
 file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})
 list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
@@ -66,8 +71,6 @@ if (${USE_SANITIZER})
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=undefined,address")
 endif()
 
-include(ExternalProject)
-
 set(DEPS_DIR "${BASE}/thirdparty")
 set(DEPS_BINARY "${CMAKE_BINARY_DIR}/deps")
 message(INFO "Binary directory for dependencies ${DEPS_BINARY}")
@@ -85,16 +88,9 @@ target_include_directories(immer_lib INTERFACE "${DEPS_DIR}/immer")
 add_library(lager_lib INTERFACE)
 target_include_directories(lager_lib INTERFACE "${DEPS_DIR}/lager")
 
-# find_package(fmt REQUIRED MODULE)
-# find_package(yaml-cpp REQUIRED MODULE)
-# find_package(benchmark REQUIRED MODULE)
-# find_package(PythonLibs 3.11 MODULE)
-# find_package(pybind11 REQUIRED MODULE)
-# find_package(perfetto REQUIRED MODULE)
-
-#add_subdirectory("${BASE}/deps/abseil-cpp")
 add_subdirectory("${DEPS_DIR}/fuzztest")
 add_subdirectory("${DEPS_DIR}/pybind11")
+add_subdirectory("${DEPS_DIR}/benchmark")
 
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)
