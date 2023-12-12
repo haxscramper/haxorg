@@ -39,7 +39,7 @@ target_link_libraries(haxorg PUBLIC
     ${GRAPHVIZ_GVC_LIBRARY}
     hstd
     ReflexLibStatic
-    CONAN_PKG::range-v3
+    range-v3
 )
 
 target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")

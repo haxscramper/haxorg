@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 
+cmake_policy(SET CMP0135 NEW)
+cmake_policy(SET CMP0148 OLD) # or NEW
+
+
 #include(conda_toolchain.cmake)
 
 set(ABSL_CC_LIB_COPTS "-fPIC")
@@ -36,7 +40,7 @@ set(LLVM_STD_INCLUDE "${LLVM_DIR}/include/c++/v1/")
 
 # Globally configure compiler flags with all necessary flags etc., this will be shared 
 # down to all sub-components and dependencies. 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -I${LLVM_STD_INCLUDE} -I${LLVM_GNU_INCLUDE} -L${LLVM_DIR}/lib -ftemplate-backtrace-limit=0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -Wno-unused-command-line-argument -I${LLVM_STD_INCLUDE} -I${LLVM_GNU_INCLUDE} -L${LLVM_DIR}/lib -ftemplate-backtrace-limit=0")
 
 file(MAKE_DIRECTORY ${AUTOGEN_BUILD_DIR})
 list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
@@ -66,58 +70,20 @@ include(ExternalProject)
 
 set(DEPS_DIR "${BASE}/thirdparty")
 set(DEPS_BINARY "${CMAKE_BINARY_DIR}/deps")
+message(INFO "Binary directory for dependencies ${DEPS_BINARY}")
 
-ExternalProject_Add(yaml_project
-    SOURCE_DIR "${DEPS_DIR}/yaml-cpp"
-    BINARY_DIR "${DEPS_BINARY}"
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
-    INSTALL_COMMAND ""
-)
+add_subdirectory("${DEPS_DIR}/yaml-cpp")
 
-add_library(yaml_lib IMPORTED STATIC)
-set_target_properties(yaml_lib PROPERTIES
-    IMPORTED_LOCATION "${DEPS_BINARY}/libyaml-cpp.a"
-    INCLUDE_DIRECTORIES "${DEPS_DIR}/yaml-cpp/include"
-)
+add_library(perfetto STATIC "${DEPS_DIR}/perfetto/sdk/perfetto.cc")
+target_include_directories(perfetto PUBLIC "${DEPS_DIR}/perfetto/sdk")
 
-ExternalProject_Add(perfetto_project
-    SOURCE_DIR "${DEPS_DIR}/perfetto"
-    BINARY_DIR "${DEPS_BINARY}"
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
-    INSTALL_COMMAND ""
-)
-
-add_library(perfetto_lib IMPORTED STATIC)
-set_target_properties(perfetto_lib PROPERTIES
-    IMPORTED_LOCATION "${DEPS_BINARY}/libperfetto.a"
-    INCLUDE_DIRECTORIES "${DEPS_DIR}/perfetto/include"
-)
-
-
-ExternalProject_Add(range_v3_project
-    SOURCE_DIR "${DEPS_DIR}/range-v3"
-    BINARY_DIR "${DEPS_BINARY}"
-    CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
-    INSTALL_COMMAND ""
-)
-
-add_library(range_v3_lib IMPORTED STATIC)
-set_target_properties(range_v3_lib PROPERTIES
-    IMPORTED_LOCATION "${DEPS_BINARY}/libperfetto.a"
-    INCLUDE_DIRECTORIES "${DEPS_DIR}/perfetto/include"
-)
+add_subdirectory("${DEPS_DIR}/range-v3")
 
 add_library(immer_lib INTERFACE)
 target_include_directories(immer_lib INTERFACE "${DEPS_DIR}/immer")
 
 add_library(lager_lib INTERFACE)
 target_include_directories(lager_lib INTERFACE "${DEPS_DIR}/lager")
-
-# ExternalProject_Add(google_benchmark
-#     SOURCE_DIR "${DEPS_DIR}/benchmark"
-#     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_TESTING=OFF
-#     INSTALL_COMMAND ""
-# )
 
 # find_package(fmt REQUIRED MODULE)
 # find_package(yaml-cpp REQUIRED MODULE)

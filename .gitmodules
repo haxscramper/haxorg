@@ -16,12 +16,12 @@
 [submodule "thirdparty/yaml-cpp"]
 	path = thirdparty/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
-[submodule "thirdparty/perfetto"]
-	path = thirdparty/perfetto
-	url = https://github.com/google/perfetto.git
 [submodule "thirdparty/pybind11"]
 	path = thirdparty/pybind11
 	url = https://github.com/pybind/pybind11.git
 [submodule "thirdparty/range-v3"]
 	path = thirdparty/range-v3
 	url = https://github.com/ericniebler/range-v3.git
+[submodule "thirdparty/perfetto"]
+	path = thirdparty/perfetto
+	url = https://android.googlesource.com/platform/external/perfetto
