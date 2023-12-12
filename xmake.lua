@@ -200,32 +200,6 @@ meta_target("haxorg_codegen", "Execute haxorg code generation step.", {}, functi
   end)
 end)
 
-meta_target("conan_remove", "Remove installed conan dependencies", {}, function()
-  set_kind("phony")
-  add_rules("dummy")
-  on_run(function(target)
-    os.execv("conan", {"remove", "*", "--force"})
-  end)
-end)
-
-meta_target("conan_install", "Install conan dependencies", {}, function()
-  set_kind("phony")
-  add_rules("dummy")
-  add_files("conanprofile.txt", "conanfile.txt")
-  on_run(function(target)
-    local utils = import("scripts.utils")
-    os.execv("conan", {
-      "install",
-      ".",
-      "--install-folder",
-      utils.abs_script("build/dependencies/conan"),
-      "--build=missing",
-      "--profile",
-      utils.abs_script("conanprofile.txt")
-    })
-  end)
-end)
-
 meta_target("download_llvm", "Download LLVM toolchain dependency", {}, function()
     set_kind("phony")
     add_rules("dummy")
