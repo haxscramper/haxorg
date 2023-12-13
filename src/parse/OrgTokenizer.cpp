@@ -193,13 +193,6 @@ struct RecombineState {
                         mark_toggle(mark, close);
                     } else {
                         LOG(INFO) << fmt("prev={} next={}", prev, next);
-                        auto w = lex.whole();
-                        for (auto const& item :
-                             rs::subrange(w.begin(), w.end())
-                                 | rv::sliding(3)) {
-                            LOG(INFO) << std::format(
-                                "> {}", item | rs::to<std::vector>());
-                        }
                     }
 
                 } else if (!prev) {

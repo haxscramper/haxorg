@@ -9,24 +9,23 @@ using org = OrgNodeKind;
 using otk = OrgTokenKind;
 
 struct MockFull {
-    OrgTokenGroup                  tokens;
-    SPtr<OrgTokenizer>             tokenizer;
-    OrgNodeGroup                   nodes;
-    std::string                    base;
-    Lexer<OrgTokenKind, BaseToken> lex;
-    SPtr<OrgParser>                parser;
-    UPtr<OrgSpec>                  spec;
+    OrgTokenGroup                tokens;
+    SPtr<OrgTokenizer>           tokenizer;
+    OrgNodeGroup                 nodes;
+    std::string                  base;
+    Lexer<OrgTokenKind, OrgFill> lex;
+    SPtr<OrgParser>              parser;
+    UPtr<OrgSpec>                spec;
 
     MockFull(bool tracedParser, bool tracedLexer)
         : tokenizer(), nodes(nullptr), lex(&tokens) {
-        spec         = getOrgSpec();
-        parser       = OrgParser::initImpl(&nodes, tracedParser);
-        tokenizer    = OrgTokenizer::initImpl(&tokens, tracedLexer);
-        nodes.tokens = &tokens;
+        spec                  = getOrgSpec();
+        parser                = std::make_shared<OrgParser>(&nodes);
+        parser->TraceState    = tracedParser;
+        tokenizer             = std::make_shared<OrgTokenizer>(&tokens);
+        tokenizer->TraceState = tracedLexer;
+        nodes.tokens          = &tokens;
     }
-
-    using LexerMethod  = bool (OrgTokenizer::*)(BaseLexer&);
-    using ParserMethod = OrgId (OrgParser::*)(OrgLexer&);
 
     OrgAdapter a(int idx) { return OrgAdapter(&nodes, OrgId(idx)); }
     OrgAdapter a(OrgId id) { return OrgAdapter(&nodes, id); }
@@ -35,22 +34,17 @@ struct MockFull {
     OrgToken&   t(int idx) { return tokens.at(OrgTokenId(idx)); }
     OrgNodeKind k(int idx) { return n(idx).kind; }
 
-    void tokenize(CR<std::string> content, LexerMethod lexMethod) {
-        //        base = content;
-        //        PosStr str{base};
-        //        ((*tokenizer).*lexMethod)(str);
+    void tokenize(CR<std::string> content) {
+        BaseTokenGroup tokens = ::tokenize(content.data(), content.size());
+        OrgTokenizer   tok(&this->tokens);
+        tok.convert(tokens);
     }
 
-    void parse(ParserMethod parseMethod) {
-//        ((*parser).*parseMethod)(this->lex);
-    }
+    void parse() { parser->parseFull(lex); }
 
-    void run(
-        CR<std::string> content,
-        LexerMethod     lexMethod,
-        ParserMethod    parseMethod) {
-        tokenize(content, lexMethod);
-        parse(parseMethod);
+    void run(CR<std::string> content) {
+        tokenize(content);
+        parse();
     }
 
 

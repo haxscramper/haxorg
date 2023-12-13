@@ -1,5 +1,3 @@
-#if false
-
 #include "corpusrunner.hpp"
 
 #include <hstd/stdlib/Filesystem.hpp>
@@ -12,60 +10,32 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/diffs.hpp>
 
+namespace YAML {
+template <>
+struct convert<BaseFill> {
+    static Node encode(BaseFill const& str) {
+        Node result;
+        result["text"] = str.text;
+        result["line"] = str.line;
+        result["col"]  = str.col;
+        return result;
+    }
+    static bool decode(Node const& in, BaseFill& out) { return true; }
+};
 
-#define CB(name)                                                          \
-    { Str(#name), &OrgTokenizer::lex##name }
+template <>
+struct convert<OrgFill> {
+    static Node encode(OrgFill const& str) {
+        Node result;
+        if (str.base) {
+            result["base"] = convert<BaseFill>::encode(*str.base);
+        }
+        return result;
+    }
+    static bool decode(Node const& in, OrgFill& out) { return true; }
+};
+} // namespace YAML
 
-
-const UnorderedMap<Str, MockFull::LexerMethod> lexers({
-    CB(Angle),          CB(TimeStamp),      CB(TimeRange),
-    CB(LinkTarget),     CB(Bracket),        CB(TextChars),
-    CB(ParenArguments), CB(Text),           CB(Logbook),
-    CB(Properties),     CB(Description),    CB(Drawer),
-    CB(SubtreeTodo),    CB(SubtreeUrgency), CB(SubtreeTitle),
-    CB(SubtreeTimes),   CB(Subtree),        CB(SourceBlockContent),
-    CB(CommandBlock),   CB(List),           CB(Paragraph),
-    CB(Comment),        CB(Table),          CB(Structure),
-    CB(Global),
-});
-#undef CB
-
-#define CB(name)                                                          \
-    { Str(#name), &OrgParser::parse##name }
-const UnorderedMap<Str, MockFull::ParserMethod> parsers({
-    CB(HashTag),
-    CB(Macro),
-    CB(RawUrl),
-    CB(Link),
-    CB(InlineMath),
-    CB(Symbol),
-    CB(HashTag),
-    CB(TimeStamp),
-    CB(TimeRange),
-    CB(Ident),
-    CB(SrcInline),
-    CB(Table),
-    CB(CommandArguments),
-    CB(SrcArguments),
-    CB(Src),
-    CB(ListItemBody),
-    CB(ListItem),
-    CB(TopParagraph),
-    CB(InlineParagraph),
-    CB(NestedList),
-    CB(List),
-    CB(SubtreeLogbookClockEntry),
-    CB(SubtreeLogbookListEntry),
-    CB(SubtreeLogbook),
-    CB(SubtreeDrawer),
-    CB(Subtree),
-    CB(OrgFile),
-    CB(LineCommand),
-    CB(ToplevelItem),
-    CB(Top),
-    CB(Full),
-});
-#undef CB
 
 struct DiffItem {
     DECL_DESCRIBED_ENUM(Op, Replace, Remove, Add);
@@ -209,27 +179,6 @@ void CorpusRunner::writeFileOrStdout(
     }
 }
 
-MockFull::ParserMethod CorpusRunner::getParser(CR<Str> name) {
-    if (parsers.contains(name)) {
-        return parsers.at(name);
-    } else {
-        throw GetterError(
-            "'$#$#' is missing from parser method table"
-            % to_string_vec(name, name.empty() ? "(empty)" : ""));
-    }
-}
-
-MockFull::LexerMethod CorpusRunner::getLexer(CR<Str> name) {
-    if (lexers.contains(name)) {
-        return lexers.at(name);
-    } else {
-        throw GetterError(
-            "'$#$#' is missing from lexer method table"
-            % to_string_vec(name, name.empty() ? "(empty)" : ""));
-    }
-}
-
-
 void format(
     ColStream&               os,
     CR<FormattedDiff>        text,
@@ -275,18 +224,16 @@ void format(
             auto rhsStyle = useQFormat ? ColStyle() : toStyle(rhs.prefix);
 
             os << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= 2)
-               << ((lhs.empty()
-                        ? ColText("")
-                        : ColText(
-                            lhsStyle, formatCb(lhs.index().value(), true)))
+               << ((lhs.empty() ? ColText("")
+                                : formatCb(lhs.index().value(), true)
+                                      .withStyle(lhsStyle))
                    <<= lhsSize)
                << (useQFormat
                        ? ColText("")
                        : (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= 2))
                << ((rhs.empty() ? ColText("")
-                                : ColText(
-                                    rhsStyle,
-                                    formatCb(rhs.index().value(), false)))
+                                : formatCb(rhs.index().value(), false)
+                                      .withStyle(rhsStyle))
                    <<= rhsSize)
                << "\n";
         }
@@ -481,10 +428,10 @@ void exporterVisit(
 
 
     os << os.indent(ev.level * 2) << (ev.isStart ? ">" : "<") << " "
-       << to_string(ev.kind);
+       << fmt1(ev.kind);
 
     if (ev.visitedNode) {
-        os << " node:" << to_string(ev.visitedNode->getKind());
+        os << " node:" << fmt1(ev.visitedNode->getKind());
     }
 
     if (0 < ev.field.length()) {
@@ -495,7 +442,7 @@ void exporterVisit(
        << ev.function << " " << os.end();
 
     if (0 < ev.type.length()) {
-        os << " type:" << demangle(ev.type);
+        os << " type:" << demangle(ev.type.c_str());
     }
 
     trace.endStream(os);
@@ -540,7 +487,7 @@ CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
     ColStream os;
     switch (result.getKind()) {
         default: {
-            DLOG(ERROR) << ("TODO" + to_string(result.getKind()));
+            DLOG(ERROR) << ("TODO" + fmt1(result.getKind()));
             cmp.isOk = true;
         }
     }
@@ -612,8 +559,8 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
                                      : "> \"${text}\" ${kind}")
                             : "${index} ${kind} ${text}")
                     % fold_format_pairs({
-                        {"index", to_string(id)},
-                        {"kind", to_string(tok.kind)},
+                        {"index", fmt1(id)},
+                        {"kind", fmt1(tok.kind)},
                         {"text",
                          hshow(tok->getText(), opts).toString(false)},
                         // {tok.hasData()},
@@ -692,8 +639,8 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                                          : std::string(""),
                        node.kind,
                        node.isTerminal()
-                           ? "tok=" + to_string(node.getToken().getIndex())
-                           : "ext=" + to_string(node.getExtent()));
+                           ? "tok=" + fmt1(node.getToken().getIndex())
+                           : "ext=" + fmt1(node.getExtent()));
         });
 
         return {.isOk = false, .failDescribe = os.getBuffer()};
@@ -811,8 +758,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
 CorpusRunner::RunResult CorpusRunner::runSpec(
     CR<ParseSpec>   spec,
     CR<std::string> from) {
-    MockFull::LexerMethod lexCb = getLexer(spec.lexImplName);
-    MockFull              p(spec.debug.traceParse, spec.debug.traceLex);
+    MockFull p(spec.debug.traceParse, spec.debug.traceLex);
 
     { // Input source
         if (spec.debug.printSource) {
@@ -828,16 +774,15 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                 p.tokenizer->setTraceFile(spec.debugFile("trace_lex.txt"));
             }
 
-            p.tokenize(spec.source, lexCb);
+            p.tokenize(spec.source);
         } else {
             return RunResult{};
         }
 
         if (spec.debug.printLexed) {
-            writeFileOrStdout(
+            writeFile(
                 spec.debugFile("lexed.yaml"),
-                std::format("{}", yamlRepr(p.tokens)) + "\n",
-                spec.debug.printLexedToFile);
+                std::format("{}", yamlRepr(p.tokens)) + "\n");
         }
 
         if (spec.tokens.has_value()) {
@@ -860,20 +805,16 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                 p.parser->setTraceFile(spec.debugFile("trace_parse.txt"));
             }
 
-            MockFull::ParserMethod parseCb = getParser(spec.parseImplName);
-
-            p.parse(parseCb);
+            p.parse();
 
             if (spec.debug.printParsed) {
-                writeFileOrStdout(
+                writeFile(
                     spec.debugFile("parsed.yaml"),
-                    std::format("{}", yamlRepr(p.nodes)) + "\n",
-                    spec.debug.printParsedToFile);
+                    std::format("{}", yamlRepr(p.nodes)) + "\n");
 
-                writeFileOrStdout(
+                writeFile(
                     spec.debugFile("parsed.txt"),
-                    OrgAdapter(&p.nodes, OrgId(0)).treeRepr(false) + "\n",
-                    spec.debug.printParsedToFile);
+                    OrgAdapter(&p.nodes, OrgId(0)).treeRepr(false) + "\n");
             }
         } else {
             return RunResult{};
@@ -955,5 +896,3 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
     return RunResult();
 }
-
-#endif

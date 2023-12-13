@@ -17,13 +17,12 @@ namespace ns = nlohmann;
 
 extern template class nlohmann::basic_json<>;
 
-void        to_json(json& j, int i);
-void        to_json(json& j, CR<std::string> str);
-void        to_json(json& j, CR<Str> str);
-void        from_json(const json& in, std::string& out);
-void        from_json(const json& in, int& out);
-void        from_json(const json& in, bool& out);
-std::string to_string(json const& j);
+void to_json(json& j, int i);
+void to_json(json& j, CR<std::string> str);
+void to_json(json& j, CR<Str> str);
+void from_json(const json& in, std::string& out);
+void from_json(const json& in, int& out);
+void from_json(const json& in, bool& out);
 
 struct JsonFormatOptions {
     int width       = 80;

@@ -19,9 +19,6 @@ class CorpusRunner {
         std::string const& content,
         bool               useFile);
 
-    MockFull::ParserMethod getParser(CR<Str> name);
-    MockFull::LexerMethod  getLexer(CR<Str> name);
-
     struct ExportResult {
         struct Plaintext {
             std::string text;

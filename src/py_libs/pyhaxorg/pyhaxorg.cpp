@@ -21,18 +21,13 @@ PYBIND11_MAKE_OPAQUE(std::vector<sem::Code::Switch>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Code::Switch>)
 PYBIND11_MAKE_OPAQUE(std::vector<int>)
 PYBIND11_MAKE_OPAQUE(Vec<int>)
-PYBIND11_MAKE_OPAQUE(std::vector<Str>)
 PYBIND11_MAKE_OPAQUE(Vec<Str>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Symbol::Param>)
 PYBIND11_MAKE_OPAQUE(std::vector<sem::SemIdT<sem::SubtreeLog>>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::SemIdT<sem::SubtreeLog>>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Property>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Property>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Period>)
 PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Period>)
-PYBIND11_MAKE_OPAQUE(std::vector<sem::Subtree::Property>)
-PYBIND11_MAKE_OPAQUE(Vec<sem::Subtree::Property>)
 PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemId>(m, "VecOfSemId");
   bind_vector<sem::SemIdT<sem::Row>>(m, "VecOfSemIdTOfRow");
@@ -1842,95 +1837,95 @@ return state.)RAW")
     .def("enableBufferTrace", static_cast<void(ExporterPython::*)()>(&ExporterPython::enableBufferTrace))
     .def("getTraceBuffer", static_cast<std::string(ExporterPython::*)() const>(&ExporterPython::getTraceBuffer))
     .def("enableFileTrace",
-         static_cast<void(ExporterPython::*)(std::string&)>(&ExporterPython::enableFileTrace),
+         static_cast<void(ExporterPython::*)(std::string const&)>(&ExporterPython::enableFileTrace),
          pybind11::arg("path"))
     .def("setVisitAnyIdAround",
-         static_cast<void(ExporterPython::*)(PyFunc)>(&ExporterPython::setVisitAnyIdAround),
+         static_cast<void(ExporterPython::*)(pybind11::function)>(&ExporterPython::setVisitAnyIdAround),
          pybind11::arg("cb"))
     .def("setVisitAnyIdIn",
-         static_cast<void(ExporterPython::*)(PyFunc)>(&ExporterPython::setVisitAnyIdIn),
+         static_cast<void(ExporterPython::*)(pybind11::function)>(&ExporterPython::setVisitAnyIdIn),
          pybind11::arg("cb"))
     .def("setVisitAnyField",
-         static_cast<void(ExporterPython::*)(PyFunc)>(&ExporterPython::setVisitAnyField),
+         static_cast<void(ExporterPython::*)(pybind11::function)>(&ExporterPython::setVisitAnyField),
          pybind11::arg("cb"))
     .def("setEvalTopCb",
-         static_cast<void(ExporterPython::*)(PyFunc)>(&ExporterPython::setEvalTopCb),
+         static_cast<void(ExporterPython::*)(pybind11::function)>(&ExporterPython::setEvalTopCb),
          pybind11::arg("cb"))
     .def("setVisitIdAround",
-         static_cast<void(ExporterPython::*)(OrgSemKind, PyFunc)>(&ExporterPython::setVisitIdAround),
+         static_cast<void(ExporterPython::*)(OrgSemKind, pybind11::function)>(&ExporterPython::setVisitIdAround),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalIdAround",
-         static_cast<void(ExporterPython::*)(OrgSemKind, PyFunc)>(&ExporterPython::setEvalIdAround),
+         static_cast<void(ExporterPython::*)(OrgSemKind, pybind11::function)>(&ExporterPython::setEvalIdAround),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitIdInCb",
-         static_cast<void(ExporterPython::*)(OrgSemKind, PyFunc)>(&ExporterPython::setVisitIdInCb),
+         static_cast<void(ExporterPython::*)(OrgSemKind, pybind11::function)>(&ExporterPython::setVisitIdInCb),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalIdIn",
-         static_cast<void(ExporterPython::*)(OrgSemKind, PyFunc)>(&ExporterPython::setEvalIdIn),
+         static_cast<void(ExporterPython::*)(OrgSemKind, pybind11::function)>(&ExporterPython::setEvalIdIn),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitLeafField",
-         static_cast<void(ExporterPython::*)(LeafFieldType, PyFunc)>(&ExporterPython::setVisitLeafField),
+         static_cast<void(ExporterPython::*)(LeafFieldType, pybind11::function)>(&ExporterPython::setVisitLeafField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalLeafField",
-         static_cast<void(ExporterPython::*)(LeafFieldType, PyFunc)>(&ExporterPython::setEvalLeafField),
+         static_cast<void(ExporterPython::*)(LeafFieldType, pybind11::function)>(&ExporterPython::setEvalLeafField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitOrgField",
-         static_cast<void(ExporterPython::*)(OrgSemKind, PyFunc)>(&ExporterPython::setVisitOrgField),
+         static_cast<void(ExporterPython::*)(OrgSemKind, pybind11::function)>(&ExporterPython::setVisitOrgField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalOrgField",
-         static_cast<void(ExporterPython::*)(OrgSemKind, PyFunc)>(&ExporterPython::setEvalOrgField),
+         static_cast<void(ExporterPython::*)(OrgSemKind, pybind11::function)>(&ExporterPython::setEvalOrgField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setSelf",
          static_cast<void(ExporterPython::*)(pybind11::object)>(&ExporterPython::setSelf),
          pybind11::arg("val"))
     .def("setNewOrgRes",
-         static_cast<void(ExporterPython::*)(OrgSemKind, PyFunc)>(&ExporterPython::setNewOrgRes),
+         static_cast<void(ExporterPython::*)(OrgSemKind, pybind11::function)>(&ExporterPython::setNewOrgRes),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setNewAnyOrgRes",
-         static_cast<void(ExporterPython::*)(PyFunc)>(&ExporterPython::setNewAnyOrgRes),
+         static_cast<void(ExporterPython::*)(pybind11::function)>(&ExporterPython::setNewAnyOrgRes),
          pybind11::arg("cb"))
     .def("setNewLeafRes",
-         static_cast<void(ExporterPython::*)(LeafFieldType, PyFunc)>(&ExporterPython::setNewLeafRes),
+         static_cast<void(ExporterPython::*)(LeafFieldType, pybind11::function)>(&ExporterPython::setNewLeafRes),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setNewAnyLeafRes",
-         static_cast<void(ExporterPython::*)(PyFunc)>(&ExporterPython::setNewAnyLeafRes),
+         static_cast<void(ExporterPython::*)(pybind11::function)>(&ExporterPython::setNewAnyLeafRes),
          pybind11::arg("cb"))
     .def("setPushVisitAnyId",
-         static_cast<void(ExporterPython::*)(PyFunc)>(&ExporterPython::setPushVisitAnyId),
+         static_cast<void(ExporterPython::*)(pybind11::function)>(&ExporterPython::setPushVisitAnyId),
          pybind11::arg("cb"))
     .def("setPopVisitAnyId",
-         static_cast<void(ExporterPython::*)(PyFunc)>(&ExporterPython::setPopVisitAnyId),
+         static_cast<void(ExporterPython::*)(pybind11::function)>(&ExporterPython::setPopVisitAnyId),
          pybind11::arg("cb"))
     .def("setPushVisitId",
-         static_cast<void(ExporterPython::*)(OrgSemKind, PyFunc)>(&ExporterPython::setPushVisitId),
+         static_cast<void(ExporterPython::*)(OrgSemKind, pybind11::function)>(&ExporterPython::setPushVisitId),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setPopVisitIdCb",
-         static_cast<void(ExporterPython::*)(OrgSemKind, PyFunc)>(&ExporterPython::setPopVisitIdCb),
+         static_cast<void(ExporterPython::*)(OrgSemKind, pybind11::function)>(&ExporterPython::setPopVisitIdCb),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitAnyHookCb",
-         static_cast<void(ExporterPython::*)(PyFunc)>(&ExporterPython::setVisitAnyHookCb),
+         static_cast<void(ExporterPython::*)(pybind11::function)>(&ExporterPython::setVisitAnyHookCb),
          pybind11::arg("cb"))
     .def("setVisitIdHook",
-         static_cast<void(ExporterPython::*)(OrgSemKind, PyFunc)>(&ExporterPython::setVisitIdHook),
+         static_cast<void(ExporterPython::*)(OrgSemKind, pybind11::function)>(&ExporterPython::setVisitIdHook),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("evalTop",
-         static_cast<Res(ExporterPython::*)(sem::SemId)>(&ExporterPython::evalTop),
+         static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId)>(&ExporterPython::evalTop),
          pybind11::arg("org"))
     .def("eval",
-         static_cast<Res(ExporterPython::*)(sem::SemId)>(&ExporterPython::eval),
+         static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId)>(&ExporterPython::eval),
          pybind11::arg("org"))
     ;
   pybind11::enum_<LeafFieldType>(m, "LeafFieldType")

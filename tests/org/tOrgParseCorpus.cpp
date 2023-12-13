@@ -1,5 +1,3 @@
-#if false
-
 #include "corpusrunner.hpp"
 
 #include <parse/OrgParser.hpp>
@@ -14,14 +12,9 @@
 #include <sem/SemConvert.hpp>
 
 #include <fnmatch.h>
-#include <ranges>
 #include "../testprofiler.hpp"
 
-#ifdef USE_PERFETTO
-#    include <hstd/wrappers/perfetto_aux.hpp>
-#endif
-
-namespace rs = std::views;
+#include <hstd/wrappers/perfetto_aux.hpp>
 
 // std::string corpusGlob = "*text.yaml";
 std::string corpusGlob = "";
@@ -75,13 +68,16 @@ Vec<TestParams> generateTestRuns() {
         }
     };
 
-    for (fs::directory_entry const& it :
-         fs::directory_iterator(__CURRENT_FILE_DIR__ / "corpus")) {
+    LOG(INFO) << "Searching for corpus tests in " << __CURRENT_FILE_DIR__;
+
+    for (fs::directory_entry const& it : fs::recursive_directory_iterator(
+             __CURRENT_FILE_DIR__ / "corpus")) {
         fs::path path{it.path()};
         if (fs::is_regular_file(path)
             && path.native().ends_with(".yaml")) {
             std::string p = path.native();
             if (corpusGlob.empty()) {
+                LOG(INFO) << "Adding " << p;
                 addSpecs(path);
             } else {
                 int matchRes = fnmatch(
@@ -214,5 +210,3 @@ INSTANTIATE_TEST_CASE_P(
     ParseFile,
     ::testing::ValuesIn(generateTestRuns()),
     getTestName);
-
-#endif

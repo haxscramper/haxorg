@@ -11,6 +11,8 @@
 
 #include <hstd/system/reflection.hpp>
 
+using std::operator""s;
+
 struct BacktrackRes {
     Vec<int> lhsIndex = {};
     Vec<int> rhsIndex = {};
@@ -117,10 +119,10 @@ struct DiffFormatConf {
                 case SeqEditKind::Replace:
                 case SeqEditKind::Transpose:
                     if (isInline && secondary == SeqEditKind::Delete) {
-                        return "[" + ColText(fg::Yellow, word) + " -> ";
+                        return "["s + ColText(fg::Yellow, word) + " -> "s;
                     } else if (
                         isInline && secondary == SeqEditKind::Insert) {
-                        return ColText(fg::Yellow, word) + "]";
+                        return ColText(fg::Yellow, word) + "]"s;
                     } else {
                         return ColText(fg::Yellow, word);
                     }

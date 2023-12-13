@@ -13,8 +13,6 @@
 
 template class Exporter<ExporterPython, py::object>;
 
-std::ostream qcout;
-
 OrgExporterJson::OrgExporterJson() {
     impl = std::make_shared<ExporterJson>();
 }
@@ -22,7 +20,7 @@ OrgExporterJson::OrgExporterJson() {
 std::string OrgExporterJson::exportToString() { return to_string(result); }
 
 void OrgExporterJson::exportToFile(std::string path) {
-    writeFile(QFileInfo(path), exportToString());
+    writeFile(fs::path{path}, exportToString());
 }
 
 void OrgExporterJson::visitNode(sem::SemId node) {
@@ -33,10 +31,14 @@ OrgExporterYaml::OrgExporterYaml() {
     impl = std::make_shared<ExporterYaml>();
 }
 
-std::string OrgExporterYaml::exportToString() { return to_string(result); }
+std::string OrgExporterYaml::exportToString() {
+    std::stringstream os;
+    os << result;
+    return os.str();
+}
 
 void OrgExporterYaml::exportToFile(std::string path) {
-    writeFile(QFileInfo(path), exportToString());
+    writeFile(fs::path{path}, exportToString());
 }
 
 void OrgExporterYaml::visitNode(sem::SemId node) {
@@ -50,17 +52,17 @@ OrgExporterTree::OrgExporterTree() {
 std::string OrgExporterTree::toString(
     sem::SemId       node,
     ExporterTreeOpts opts) {
-    std::string  buf;
-    std::ostream os{&buf};
+    std::stringstream os;
     stream(os, node, opts);
+    return os.str();
 }
 
 void OrgExporterTree::toFile(
     sem::SemId       node,
     std::string      path,
     ExporterTreeOpts opts) {
-    auto ctx = openFileOrStream(QFileInfo(path), true);
-    stream(*ctx->stream, node, opts);
+    std::ofstream file{path};
+    stream(file, node, opts);
 }
 
 void OrgExporterTree::stream(
@@ -76,22 +78,8 @@ void OrgExporterTree::stream(
     impl->evalTop(node);
 }
 
-void OrgContext::initLocationResolvers() {
-    locationResolver = [&](CR<PosStr> str) -> LineCol {
-        Slice<int> absolute = tokens.toAbsolute(str.view);
-        return {
-            info.whichLine(absolute.first + str.pos) + 1,
-            info.whichColumn(absolute.first + str.pos),
-            absolute.first + str.pos,
-        };
-    };
-
-    converter.locationResolver = locationResolver;
-    tokenizer->setLocationResolver(locationResolver);
-    parser->setLocationResolver(locationResolver);
-}
-
 void OrgContext::run() {
+#if false
     tokens.base = source.data();
     info        = LineColInfo{source};
     parser      = OrgParser::initImpl(&nodes, false);
@@ -106,6 +94,7 @@ void OrgContext::run() {
     tokenizer->lexGlobal(*str);
     parser->parseFull(lex);
     node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
+#endif
 }
 
 
@@ -225,22 +214,26 @@ void init_py_manual_api(pybind11::module& m) {
 void ExporterPython::enablePyStreamTrace(pybind11::object stream) {
     pyStreamDevice     = std::make_shared<PythonStreamDevice>(stream);
     writeStreamContext = std::make_shared<IoContext>();
-    writeStreamContext->stream      = std::make_shared<std::ostream>();
+    // TODO fixme the constructor
+    // writeStreamContext->stream      = std::make_shared<std::ostream>();
     this->exportTracer              = OperationsTracer{};
     this->exportTracer->stream      = writeStreamContext->stream;
     this->exportTracer->traceToFile = true;
-    writeStreamContext->stream->setDevice(&(*pyStreamDevice));
+    assert(false);
+    // writeStreamContext->stream->setDevice(&(*pyStreamDevice));
     this->visitEventCb = [this](ExporterPython::VisitEvent const& ev) {
         this->traceVisit(ev);
     };
 }
 
 void ExporterPython::enableBufferTrace() {
-    writeStreamContext              = std::make_shared<IoContext>();
-    writeStreamContext->stream      = std::make_shared<std::ostream>();
+    writeStreamContext = std::make_shared<IoContext>();
+    // TODO fixme create tracer
+    // writeStreamContext->stream      = std::make_shared<std::ostream>();
     this->exportTracer->stream      = writeStreamContext->stream;
     this->exportTracer->traceToFile = true;
-    writeStreamContext->stream->setString(&traceBuffer);
+    assert(false);
+    // writeStreamContext->stream->setString(&traceBuffer);
     this->visitEventCb = [this](ExporterPython::VisitEvent const& ev) {
         this->traceVisit(ev);
     };
@@ -249,11 +242,13 @@ void ExporterPython::enableBufferTrace() {
 std::string ExporterPython::getTraceBuffer() const { return traceBuffer; }
 
 void ExporterPython::enableFileTrace(const std::string& path) {
-    writeStreamContext         = openFileOrStream(QFileInfo(path), true);
-    traceStream.ostream        = writeStreamContext->stream.get();
-    traceStream.colored        = false;
-    this->exportTracer         = OperationsTracer{};
-    this->exportTracer->stream = writeStreamContext->stream;
+    assert(false);
+    // writeStreamContext         = openFileOrStream(QFileInfo(path),
+    // true);
+    traceStream.ostream             = writeStreamContext->stream.get();
+    traceStream.colored             = false;
+    this->exportTracer              = OperationsTracer{};
+    this->exportTracer->stream      = writeStreamContext->stream;
     this->exportTracer->traceToFile = true;
     this->visitEventCb = [this](ExporterPython::VisitEvent const& ev) {
         this->traceVisit(ev);
@@ -302,25 +297,25 @@ void ExporterPython::traceVisit(const VisitEvent& ev) {
 
 
     os << os.indent(ev.level * 2) << (ev.isStart ? ">" : "<") << " "
-       << to_string(ev.kind);
+       << fmt1(ev.kind);
 
     if (ev.visitedNode) {
-        os << " node:" << to_string(ev.visitedNode->getKind());
+        os << " node:" << fmt1(ev.visitedNode->getKind());
     }
 
     if (0 < ev.field.length()) {
         os << " field:" << ev.field;
     }
 
-    if (!ev.msg.isEmpty()) {
+    if (!ev.msg.empty()) {
         os << " msg:" << ev.msg;
     }
 
-    os << " on " << QFileInfo(ev.file).fileName() << ":" << ev.line << " "
+    os << " on " << fs::path(ev.file).stem() << ":" << ev.line << " "
        << " " << os.end();
 
     if (0 < ev.type.length()) {
-        os << " type:" << demangle(ev.type.toLatin1());
+        os << " type:" << demangle(ev.type.c_str());
     }
 
     exportTracer->endStream(os);

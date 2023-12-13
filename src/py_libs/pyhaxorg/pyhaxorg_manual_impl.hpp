@@ -18,37 +18,6 @@
 
 #include <frameobject.h>
 
-namespace PYBIND11_NAMESPACE {
-namespace detail {
-    template <>
-    struct type_caster<UserTime> {
-      public:
-        PYBIND11_TYPE_CASTER(UserTime, _("int"));
-
-        bool load(handle src, bool x) {
-            auto sub_load = type_caster<QDateTime>{};
-            if (sub_load.load(src, x)) {
-                value = UserTime(sub_load.getValue());
-                return true;
-
-            } else {
-                return false;
-            }
-        }
-
-        static handle cast(
-            UserTime            src,
-            return_value_policy policy,
-            handle              parent) {
-            return type_caster<QDateTime>::cast(
-                src.getDateTime(), policy, parent);
-        }
-    };
-
-} // namespace detail
-} // namespace PYBIND11_NAMESPACE
-
-
 namespace py = pybind11;
 
 template <typename T>
@@ -166,17 +135,12 @@ struct [[refl]] OrgContext {
     SPtr<OrgParser>            parser;
     std::string                source;
     sem::OrgConverter          converter;
-    LineColInfo                info;
-    Lexer<OrgTokenKind>        lex;
     sem::SemIdT<sem::Document> node = sem::SemIdT<sem::Document>::Nil();
-    SPtr<PosStr>               str;
-    Func<LineCol(CR<PosStr>)>  locationResolver;
     sem::ContextStore          store;
 
     OrgContext()
         : tokenizer()
         , nodes(&tokens)
-        , lex(&tokens)
         , converter(sem::OrgConverter(&store)) {}
 
     [[refl]] void initLocationResolvers();
@@ -185,7 +149,7 @@ struct [[refl]] OrgContext {
 
 
     [[refl]] void parseFile(std::string file) {
-        source = readFile(QFileInfo(std::string::fromStdString(file)));
+        source = readFile(fs::path{file});
         run();
     }
 
@@ -223,9 +187,6 @@ struct LeafKindForBase {
 template <>
 struct LeafKindForT<int> : LeafKindForBase<int, LeafFieldType::Int> {};
 
-template <>
-struct LeafKindForT<UserTime::Kind>
-    : LeafKindForBase<UserTime::Kind, LeafFieldType::UserTimeKind> {};
 
 template <>
 struct LeafKindForT<Str> : LeafKindForBase<Str, LeafFieldType::Str> {};
@@ -245,21 +206,11 @@ template <typename T>
 struct LeafKindForT : LeafKindForBase<T, LeafFieldType::Any> {};
 
 
-class PythonStreamDevice : public QIODevice {
+class PythonStreamDevice {
   public:
-    PythonStreamDevice(py::object py_stream, QObject* parent = nullptr)
-        : QIODevice(parent), stream(py_stream) {
-        open(QIODevice::WriteOnly);
+    PythonStreamDevice(py::object py_stream) : stream(py_stream) {
         write = stream.attr("write");
     }
-
-  protected:
-    qint64 writeData(const char* data, qint64 len) override {
-        write(std::string(data, len));
-        return len;
-    }
-
-    qint64 readData(char* /*data*/, qint64 /*len*/) override { return -1; }
 
   private:
     py::function write;
@@ -404,7 +355,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
             __visit_scope(
                 VisitEvent::Kind::NewRes,
                 .visitedNode = node,
-                .msg = ("no callback for " + to_string(node->getKind())));
+                .msg = ("no callback for " + fmt1(node->getKind())));
             return py::none();
         }
     }
@@ -658,7 +609,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
                 VisitEvent::Kind::VisitDispatchHook,
                 .visitedValue = &res,
                 .visitedNode  = id,
-                .msg = ("no callback for " + to_string(T::staticKind)));
+                .msg = ("no callback for " + fmt1(T::staticKind)));
         }
     }
 
@@ -698,7 +649,7 @@ struct [[refl]] ExporterPython : Exporter<ExporterPython, py::object> {
                 VisitEvent::Kind::PopVisit,
                 .visitedValue = &res,
                 .visitedNode  = id,
-                .msg = ("no callback for " + to_string(T::staticKind)));
+                .msg = ("no callback for " + fmt1(T::staticKind)));
         }
     }
 

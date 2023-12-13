@@ -18,7 +18,7 @@ yaml yamlRepr(
     yaml out;
     for (const auto& [id, node] : group.nodes.pairs()) {
         yaml item;
-        item["kind"] = to_string(node->kind);
+        item["kind"] = fmt1(node->kind);
         if (withId) {
             item["id"] = id.getUnmasked();
         }
@@ -26,8 +26,8 @@ yaml yamlRepr(
         if (node->isTerminal()) {
             TokenId<K, V> tokenId = node->getToken();
             item["tok_idx"]       = tokenId.getIndex();
-            if (withStrings && group.hasData(id)) {
-                item["str"] = group.strVal(id).toBase();
+            if (withStrings) {
+                item["str"] = group.val(id);
             }
         } else {
             item["extent"] = node->getExtent();
@@ -69,10 +69,8 @@ yaml yamlRepr(
     if (withIdx) {
         item["idx"] = id.getIndex();
     }
-    item["kind"] = to_string(token.kind);
-    if (token.hasData()) {
-        item["str"] = token.strVal().toBase();
-    }
+    item["kind"] = fmt1(token.kind);
+    item["str"]  = token.value;
     item.SetStyle(YAML::EmitterStyle::Flow);
     return item;
 }

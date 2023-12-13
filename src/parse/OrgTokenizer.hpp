@@ -37,10 +37,6 @@ struct OrgTokenizer
     // and try and check what is really going on.
     using Base = Tokenizer<OrgTokenKind, BaseToken>;
 
-  public:
-    /// \brief Create tokenizer implementation object
-    static SPtr<OrgTokenizer> initImpl(OrgTokenGroup* out, bool doTrace);
-
 
   public:
     enum class ReportKind

@@ -83,7 +83,6 @@ struct OrgParser : public OperationsTracer {
 
   public:
     OrgParser() {}
-    static SPtr<OrgParser> initImpl(OrgNodeGroup* _group, bool doTrace);
 
     OrgId parseFootnote(OrgLexer& lex);
     OrgId parseMacro(OrgLexer& lex);
@@ -228,7 +227,3 @@ struct OrgParser : public OperationsTracer {
     /// nodes as needed.
     void parseTextRecursiveFold(Slice<OrgId> range);
 };
-
-inline std::string to_string(OrgParser::TokenWithValue const& tok) {
-    return "($# $#)" % to_string_vec(tok.kind, tok.value);
-}

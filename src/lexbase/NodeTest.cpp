@@ -35,8 +35,14 @@ json toJson(CR<yaml> node) {
         case YAML::NodeType::Scalar: {
             bool ok     = false;
             Str  scalar = Str(node.Scalar());
-            return scalar.toDouble();
-            return scalar.toInt();
+            try {
+                return scalar.toDouble();
+            } catch (std::invalid_argument&) {}
+
+            try {
+                return scalar.toInt();
+            } catch (std::invalid_argument&) {}
+
             return node.Scalar();
         }
     }
@@ -196,7 +202,7 @@ ParseSpec::ParseSpec(
         fs::path    root{testRoot};
         std::string path = node["file"].as<std::string>();
         auto        full = fs::path{root / path};
-        if (!root.is_relative()) {
+        if (!fs::path{path}.is_relative()) {
             throw SpecValidationError(
                 "'file' field must store a relative path, but '" + path
                 + "' is not relative");

@@ -321,7 +321,7 @@ void write_margin(MarginContext const& c) {
         line_no_margin += (c.is_ellipsis ? c.draw.vbar_gap : c.draw.vbar_break);
     }
 
-    c.w << " " << line_no_margin + c.config.margin_color
+    c.w << " " << ColText(c.config.margin_color, line_no_margin)
         << (c.config.compact ? "" : " ");
 
 
@@ -786,10 +786,10 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
     }
 
     if (code.has_value()) {
-        w << ("[" + *code + "] ") + kind_color;
+        w << ColText(kind_color, ("[" + *code + "] "));
     }
 
-    w << kindName + kind_color << ": " << msg.value() << "\n";
+    w << ColText(kind_color, kindName) << ": " << msg.value() << "\n";
 
     auto groups = get_source_groups(&cache);
 

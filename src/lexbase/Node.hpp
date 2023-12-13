@@ -337,17 +337,16 @@ struct NodeGroup {
 template <typename N, typename K, typename V>
 struct std::formatter<Node<N, K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const Node<N, K, V>& p, FormatContext& ctx) {
-        std::formatter<std::string> fmt;
-        fmt.format("{", ctx);
-        fmt.format(p.kind, ctx);
+    auto format(const Node<N, K, V>& p, FormatContext& ctx) const {
+        fmt_ctx("{", ctx);
+        fmt_ctx(p.kind, ctx);
         if (p.isTerminal()) {
-            fmt.format(p.getToken(), ctx);
+            fmt_ctx(p.getToken(), ctx);
         } else {
-            fmt.format(p.getExtent(), ctx);
+            fmt_ctx(p.getExtent(), ctx);
         }
 
-        return fmt.format("}", ctx);
+        return fmt_ctx("}", ctx);
     }
 };
 

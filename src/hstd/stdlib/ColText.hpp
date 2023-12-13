@@ -187,6 +187,13 @@ struct ColText : Vec<ColRune> {
         return to_colored_string(*this, colored);
     }
 
+    ColText& withStyle(CR<ColStyle> style) {
+        for (auto& ch : *this) {
+            ch.style = style;
+        }
+        return *this;
+    }
+
     ColText() = default;
     ColText(CR<ColStyle> style, CR<std::string> text) {
         for (const auto& ch : text) {
@@ -199,9 +206,6 @@ struct ColText : Vec<ColRune> {
     ColText(CR<ColStyle> style, char text)
         : Vec<ColRune>({ColRune(text, style)}) {}
 
-
-    template <typename T>
-    explicit ColText(CR<T> it) : ColText(ColStyle{}, to_string(it)) {}
 
     inline ColText operator<<=(int n) const { return leftAligned(n); }
     inline ColText operator>>=(int n) const { return rightAligned(n); }
@@ -359,21 +363,6 @@ inline ColText operator+(CR<ColText> text, CR<ColText> other) {
     return s.getBuffer();
 }
 
-template <typename T>
-ColText operator+(CR<ColText> text, CR<T> other) {
-    ColStream s;
-    s << text << other;
-    return s.getBuffer();
-}
-
-
-template <typename T>
-ColText operator+(CR<T> other, CR<ColText> text) {
-    ColStream s;
-    s << other << text;
-    return s.getBuffer();
-}
-
 enum class HDisplayVerbosity : u8
 {
     Minimal,
@@ -461,7 +450,7 @@ ColStream& hshow(
     ColStream&       s,
     CR<T>            value,
     CR<HDisplayOpts> opts = HDisplayOpts{}) {
-    return s << to_string(value);
+    return s << std::format("{}", value);
 }
 
 

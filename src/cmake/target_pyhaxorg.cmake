@@ -1,20 +1,20 @@
 find_package(PythonLibs 3.11)
-find_package(pybind11 CONFIG)
+# find_package(pybind11 CONFIG)
 
 
 # Check if plugin has changed and consider it as a dependency when
 # rebuilding the python wrappers. This helps keeping reflection data
 # up to date if the plugin logic has changed
-add_custom_command(
-  OUTPUT "${CMAKE_BINARY_DIR}/binary.stamp"
-  COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/binary.stamp"
-  DEPENDS "${BASE}/build/utils/libreflection_plugin.so"
-  COMMENT "Checking if external binary has changed in ${CMAKE_BINARY_DIR}/binary.stamp ..."
-)
+# add_custom_command(
+#   OUTPUT "${CMAKE_BINARY_DIR}/binary.stamp"
+#   COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/binary.stamp"
+#   DEPENDS "${BASE}/build/utils/libreflection_plugin.so"
+#   COMMENT "Checking if external binary has changed in ${CMAKE_BINARY_DIR}/binary.stamp ..."
+# )
 
-add_custom_target(check_plugin ALL
-  DEPENDS "${CMAKE_BINARY_DIR}/binary.stamp"
-)
+# add_custom_target(check_plugin ALL
+#   DEPENDS "${CMAKE_BINARY_DIR}/binary.stamp"
+# )
 
 
 
@@ -50,7 +50,7 @@ set_common_files(pyhaxorg)
 set_target_output(pyhaxorg)
 set_target_flags(pyhaxorg)
 
-add_dependencies(pyhaxorg check_plugin)
+# add_dependencies(pyhaxorg check_plugin)
 
 set_target_properties(pyhaxorg PROPERTIES
     OUTPUT_NAME "pyhaxorg"
@@ -64,17 +64,6 @@ target_include_directories(
     "${BASE}/src/py_libs"
     ${PYTHON_INCLUDE_DIRS}
 )
-
-if (${USE_PCH})
-    target_precompile_headers(
-        pyhaxorg
-        PRIVATE
-        <sem/SemConvert.hpp>
-        <parse/OrgParser.hpp>
-        <parse/OrgTokenizer.hpp>
-        <parse/OrgTypes.hpp>
-    )
-endif()
 
 target_link_libraries(pyhaxorg PRIVATE hstd ${PYTHON_LIBRARIES} ubsan haxorg)
 target_compile_options(pyhaxorg PRIVATE -shared-libasan)
