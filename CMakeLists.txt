@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 cmake_policy(SET CMP0135 NEW)
 cmake_policy(SET CMP0148 OLD) # or NEW
+cmake_policy(SET CMP0155 NEW)
 
 
 #include(conda_toolchain.cmake)

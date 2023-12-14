@@ -390,7 +390,8 @@ CommitActions get_commit_actions(
                     case GIT_DIFF_LINE_ADDITION: {
                         ir::LineId line_id = state->content->add(LineData{
                             .content = state->content->add(String{strip(
-                                Str{line->content, line->content_len},
+                                Str{line->content,
+                                    static_cast<int>(line->content_len)},
                                 {},
                                 {'\n'})}),
                             .commit  = id_commit,
@@ -399,7 +400,7 @@ CommitActions get_commit_actions(
 
                         add_actions.push_back(AddAction{
                             .added = line->new_lineno - 1,
-                            line_id,
+                            .id    = line_id,
                         });
                         break;
                     }

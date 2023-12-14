@@ -132,7 +132,7 @@ struct Source {
         for (std::string const& line : l.split('\n')) {
             Line l{
                 .offset = offset,
-                .len    = line.size() + 1,
+                .len    = static_cast<int>(line.size()) + 1,
                 .chars  = line,
             };
 

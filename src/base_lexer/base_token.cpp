@@ -8,7 +8,11 @@
 void BaseLexerImpl::add(BaseTokenKind token) {
     tokens.add(BaseToken{
         token,
-        BaseFill{impl->matcher().str(), impl->lineno(), impl->columno()}});
+        BaseFill{
+            impl->matcher().str(),
+            static_cast<int>(impl->lineno()),
+            static_cast<int>(impl->columno()),
+        }});
 }
 
 
@@ -55,9 +59,10 @@ void BaseLexerImpl::push_expect_impl(int current, int next, int line) {
     impl->push_state(next);
     states.push_back(PushInfo{
         .stateId = next,
-        .line    = impl->lineno(),
-        .column  = impl->columno(),
-        .matched = impl->str()});
+        .line    = static_cast<int>(impl->lineno()),
+        .column  = static_cast<int>(impl->columno()),
+        .matched = impl->str(),
+    });
 
     //    std::cout << std::format(
     //        "Move {} -> {} at {} with {}",

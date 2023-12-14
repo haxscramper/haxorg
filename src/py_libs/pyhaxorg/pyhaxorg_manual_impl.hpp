@@ -1,4 +1,8 @@
 #pragma once
+// Separate reflection tool will collect the attributes, regular clang process
+// does not need to run with a plugin enabled
+#pragma clang diagnostic ignored "-Wunknown-attributes"
+
 #undef slots
 #include <pybind11/pybind11.h>
 #include <sem/SemOrg.hpp>
