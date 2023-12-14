@@ -1,5 +1,3 @@
-#if false
-
 #include <hstd/stdlib/Ptrs.hpp>
 #include <lexbase/AstDiff.hpp>
 #include <gtest/gtest.h>
@@ -310,5 +308,3 @@ TEST(AstDiff, PointerBasedNodesWithVariants) {
         printDstChange(os, Diff, SrcTree, DstTree, Dst, toStr);
     }
 }
-
-#endif

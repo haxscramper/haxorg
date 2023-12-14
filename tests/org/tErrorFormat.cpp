@@ -1,7 +1,5 @@
-#if false
-
-#    include <sem/ErrorWrite.hpp>
-#    include <gtest/gtest.h>
+#include <sem/ErrorWrite.hpp>
+#include <gtest/gtest.h>
 
 TEST(PrintError, MultipleFiles) {
     std::string a_tao = R"''(def five = 5)''";
@@ -28,27 +26,29 @@ TEST(PrintError, MultipleFiles) {
         .with_message("Cannot add types Nat and Str"_qs)
         .with_label(
             Label(std::make_shared<TupleCodeSpan>(b_id, slice(10, 14)))
-                .with_message("This is of type " + natColorized)
+                .with_message(ColText("This is of type ") + natColorized)
                 .with_color(a))
         .with_label(
             Label(std::make_shared<TupleCodeSpan>(b_id, slice(17, 20)))
-                .with_message("This is of typee " + strColorized)
+                .with_message(ColText("This is of typee ") + strColorized)
                 .with_color(b))
         .with_label(
             Label(std::make_shared<TupleCodeSpan>(b_id, slice(15, 16)))
                 .with_message(
-                    natColorized + " and " + strColorized
-                    + " undergo addition here")
+                    natColorized + ColText(" and ") + strColorized
+                    + ColText(" undergo addition here"))
                 .with_color(c)
                 .with_order(10))
         .with_label(
             Label(std::make_shared<TupleCodeSpan>(a_id, slice(4, 8)))
                 .with_message(
-                    "Original definition of " + fiveColorized + " is here")
+                    ColText("Original definition of ") + fiveColorized
+                    + ColText(" is here"))
                 .with_color(a))
         .with_note(
             natColorized
-            + " is a number and can only be added to other numbers")
+            + ColText(
+                " is a number and can only be added to other numbers"))
         .write(sources, os);
 
     DLOG(INFO) << "\n" << os.str();
@@ -201,9 +201,8 @@ def multiline :: Str = match Some 5 in {
                          .with_compact(true)
                          .with_underlines(true)
                          .with_tab_width(4))
-        .write(sources, os);
+        //.write(sources, os)
+        ;
 
     DLOG(INFO) << os.str();
 }
-
-#endif

@@ -1,7 +1,5 @@
-#if false
-
-#    include <gtest/gtest.h>
-#    include <parse/OrgParser.hpp>
+#include <gtest/gtest.h>
+#include <parse/OrgParser.hpp>
 
 struct MockParser {
     OrgTokenGroup                tokens;
@@ -10,7 +8,7 @@ struct MockParser {
     Lexer<OrgTokenKind, OrgFill> lex;
     MockParser(Vec<OrgTokenKind> kinds = {})
         : nodes(nullptr), lex(&tokens) {
-        parser       = OrgParser::initImpl(&nodes, false);
+        parser       = std::make_shared<OrgParser>(&nodes);
         nodes.tokens = &tokens;
         for (const auto k : kinds) {
             tokens.add(OrgToken(k));
@@ -101,5 +99,3 @@ TEST_F(ParserTest, ParseTimeRange) {
     // Time dash token is skipped
     EXPECT_EQ(p[6].kind, org::StaticInactiveTime);
 }
-
-#endif

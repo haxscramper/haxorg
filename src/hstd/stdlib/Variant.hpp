@@ -1,9 +1,9 @@
 #pragma once
 
-#include <sstream>
 #include <variant>
 #include <hstd/system/string_convert.hpp>
 #include <hstd/system/basic_templates.hpp>
+#include <hstd/system/Formatter.hpp>
 
 template <typename... Types>
 using Variant = std::variant<Types...>;
@@ -19,20 +19,17 @@ struct is_variant<std::variant<Args...>> : std::true_type {};
 template <typename T>
 concept IsVariant = is_variant<std::remove_cvref_t<T>>::value;
 
+
 template <IsVariant V>
 struct std::formatter<V> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const V& p, FormatContext& ctx) {
+    FormatContext::iterator format(const V& p, FormatContext& ctx) const {
         std::string res;
-        res += std::format("Var({}: ", p.index());
-        std::visit(
-            [&res](const auto& value) {
-                res += std::format("{}", value);
-                return 0;
-            },
-            p);
-        res += ")";
-        return res;
+        fmt_ctx("Var(", ctx);
+        fmt_ctx(p.index(), ctx);
+        fmt_ctx(": ", ctx);
+        std::visit([&ctx](const auto& value) { fmt_ctx(value, ctx); }, p);
+        return fmt_ctx(")", ctx);
     }
 };
 

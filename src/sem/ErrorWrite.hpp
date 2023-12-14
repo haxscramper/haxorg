@@ -3,20 +3,13 @@
 #include "hstd/stdlib/Slice.hpp"
 #include <string>
 #include <vector>
-#include <sstream>
 #include <utility>
 #include <memory>
 #include <functional>
-#include <ranges>
 #include <optional>
-#include <cmath>
 #include <iostream>
 #include <algorithm>
-#include <numeric>
 
-#include <cassert>
-
-#include <fmt/core.h>
 #include <hstd/stdlib/Vec.hpp>
 
 #include <boost/describe.hpp>
@@ -119,7 +112,7 @@ struct std::formatter<Line> : std::formatter<std::string> {
     template <typename FormatContext>
     typename FormatContext::iterator format(
         const Line&    p,
-        FormatContext& ctx) {
+        FormatContext& ctx) const {
         std::formatter<std::string> fmt;
         return fmt.format(described_class_printer(p), ctx);
     }

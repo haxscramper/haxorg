@@ -11,7 +11,7 @@ using ParseCb = std::function<OrgId(OrgLexer&)>;
 
 struct OrgParser : public OperationsTracer {
   public:
-    bool TraceState;
+    bool TraceState = false;
     struct TokenWithValue {
         OrgTokenKind kind;
         std::string  value;

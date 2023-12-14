@@ -1,5 +1,3 @@
-#if false
-
 #include "../common.hpp"
 #include "org_parse_aux.hpp"
 #include <gtest/gtest.h>
@@ -25,24 +23,18 @@ template <
     typename K,
     /// Node value kind
     typename Val>
-diff::ComparisonOptions<NodeId<N, K>, Val> nodeAdapterComparisonOptions(
+diff::ComparisonOptions<NodeId<N, K, Val>, Val> nodeAdapterComparisonOptions(
     /// Map DOD node ID to the node object
-    Func<CR<Node<N, K>>(NodeId<N, K>)> getNode,
+    Func<CR<Node<N, K, Val>>(NodeId<N, K, Val>)> getNode,
     /// Map DOD node value from node object
-    Func<CR<Val>(NodeId<N, K>)> getValue) {
+    Func<CR<Val>(NodeId<N, K, Val>)> getValue) {
     return {
         .getNodeValueImpl =
-            [getValue](NodeId<N, K> id) { return getValue(id); },
+            [getValue](NodeId<N, K, Val> id) { return getValue(id); },
         .getNodeKindImpl =
-            [getNode](NodeId<N, K> id) {
+            [getNode](NodeId<N, K, Val> id) {
                 return static_cast<int>(getNode(id).kind);
             }};
-}
-
-TEST(TestFiles, Spec) {
-    auto       file = (__CURRENT_FILE_DIR__ / "spec.yaml");
-    YAML::Node spec = YAML::LoadFile(file);
-    ParseSpec  parsed(spec, file, __CURRENT_FILE_DIR__.native());
 }
 
 
@@ -50,7 +42,7 @@ TEST(TestFiles, AllNodeCoverage) {
     std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
     MockFull    p{false, false};
     std::string source = readFile(fs::path(file));
-    p.run(source, &T::lexGlobal, &P::parseFull);
+    p.run(source);
 
     SemSet            foundNodes;
     sem::ContextStore context;
@@ -84,7 +76,7 @@ TEST(TestFiles, AllNodeCoverage) {
 
     if (!(foundNodes & wipNotParseable).empty()) {
         FAIL() << "Hack plug with fake found nodes covers too much:"
-               << to_string(foundNodes & wipNotParseable);
+               << fmt1(foundNodes & wipNotParseable);
     }
 
     foundNodes.incl(wipNotParseable);
@@ -99,9 +91,8 @@ TEST(TestFiles, AllNodeCoverage) {
         for (auto const& v : expectedNodes - foundNodes) {
             diff.push_back(v);
         }
-        std::string missing = join(", ", map(diff, [](OrgSemKind value) {
-                                       return to_string(value);
-                                   }));
+        std::string missing = join(
+            ", ", map(diff, [](OrgSemKind value) { return fmt1(value); }));
         FAIL() << "'all.org' test file missing node coverage for "
                << diff.size() << " nodes: '" << missing << "'";
     }
@@ -134,60 +125,15 @@ bool operator==(CR<UserTime> lhs, CR<UserTime> rhs) {
     return lhs.time == rhs.time;
 }
 
-TEST(TestFiles, RoundtripBinarySerialization) {
-    std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
-    MockFull    p{false, false};
-    std::string source = readFile(fs::path(file));
-    p.run(source, &T::lexGlobal, &P::parseFull);
-
-    SemSet            foundNodes;
-    sem::ContextStore originalStore;
-    sem::ContextStore parsedStore;
-    sem::OrgConverter converter{&originalStore};
-    sem::SemId node = converter.toDocument(OrgAdapter(&p.nodes, OrgId(0)));
-
-    int  fieldCount = 0;
-    auto cmpNode    = [&]<typename T>(CR<T> lhs, CR<T> rhs) {
-        for_each_field_with_bases<T>([&](auto const& field) {
-            ++fieldCount;
-            EXPECT_EQ(lhs.*field.pointer, rhs.*field.pointer)
-                << field.name;
-        });
-    };
-
-    auto cmpStores = [&]<typename T>(
-                         sem::KindStore<T> const& lhsStore,
-                         sem::KindStore<T> const& rhsStore) {
-        EXPECT_EQ(lhsStore.values.size(), rhsStore.values.size());
-        for (int i = 0; i < lhsStore.size(); ++i) {
-            cmpNode(lhsStore.values.at(i), rhsStore.values.at(i));
-            EXPECT_EQ(
-                lhsStore.values.at(i).parent,
-                rhsStore.values.at(i).parent);
-        }
-    };
-
-    EXPECT_EQ(parsedStore.stores.size(), 1);
-    EXPECT_EQ(originalStore.stores.size(), 1);
-
-    sem::ParseUnitStore const& original = originalStore.stores.at(0);
-    sem::ParseUnitStore const& parsed   = parsedStore.stores.at(0);
-
-#define _case(__Kind)                                                     \
-    { cmpStores(original.store##__Kind, parsed.store##__Kind); }
-
-    EACH_SEM_ORG_KIND(_case)
-#undef _case
-
-    DLOG(INFO) << fieldCount;
-}
-
+#warning Temp disabled implementation of the simple node API
+#if false
 TEST(SimpleNodeConversion, SingleHashTagToken) {
     MockFull p(false, false);
     p.run("#test", &T::lexText, &P::parseHashTag);
     EXPECT_EQ(p.n(0).kind, org::HashTag);
     EXPECT_EQ(p.n(1).kind, org::RawText);
 }
+
 
 TEST(SimpleNodeConversion, DoubleHashTag) {
     MockFull p(false, false);
@@ -257,6 +203,7 @@ TEST(SimpleNodeConversion, GraphRepr) {
                << "\"]";
         });
 }
+#endif
 
 TEST(SimpleNodeConversion, LCSCompile) {
     Vec<int> first{1, 2, 3};
@@ -327,5 +274,3 @@ TEST(Algorithms, PartitioningPositiveNegativeNumbers) {
     EXPECT_EQ(result[1], Vec<int>({3, 4}));
     EXPECT_EQ(result[2], Vec<int>({-5}));
 }
-
-#endif

@@ -1,8 +1,7 @@
-#if false
-#    include <lexbase/Node.hpp>
-#    include <lexbase/Node.cpp>
-#    include <hstd/system/reflection.hpp>
-#    include <gtest/gtest.h>
+#include <lexbase/Node.hpp>
+#include <lexbase/Node.cpp>
+#include <hstd/system/reflection.hpp>
+#include <gtest/gtest.h>
 
 enum class NodeKind : u8
 {
@@ -113,5 +112,3 @@ TEST(GeneralNodeAPITest, FlatSubnodeWithNoDeepNesting) {
     EXPECT_EQ(subtoks.at(2).getIndex(), 2);
     EXPECT_EQ(tokens.at(subtoks.at(0)).kind, TokenKind::T1);
 }
-
-#endif
