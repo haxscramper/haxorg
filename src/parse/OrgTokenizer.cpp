@@ -37,7 +37,7 @@ auto in_set(T const& value, Args&&... args) -> bool {
     return set.contains(value);
 }
 
-DECL_DESCRIBED_ENUM_STANDALONE(State, None, Paragraph);
+DECL_DESCRIBED_ENUM_STANDALONE(State, None, Paragraph, RawMonospace);
 DECL_DESCRIBED_ENUM_STANDALONE(
     MarkKind,
     Bold,
@@ -45,6 +45,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     Markup,
     Parens,
     Curly,
+    Verbatim,
     Quotes);
 
 
@@ -109,7 +110,7 @@ struct RecombineState {
 
     // Finalize the markup token pair
     Opt<Mark> mark_pop(MarkKind value, OrgTokenKind __to) {
-        add_as(__to);
+        (void)add_as(__to);
         lex.next();
         CHECK(!mark.empty())
             << "Expected the markup stack to not be empty";
@@ -149,7 +150,7 @@ struct RecombineState {
     }
 
     void pop_as(OrgTokenKind __to) {
-        add_as(__to);
+        (void)add_as(__to);
         lex.next();
     }
 
@@ -164,6 +165,7 @@ struct RecombineState {
         auto next = next_token();
         switch (lex.kind()) {
             case obt::ForwardSlash:
+            case obt::Equals:
             case obt::Asterisk: {
                 MarkKind mark{};
                 otk      open{};
@@ -180,6 +182,12 @@ struct RecombineState {
                         open  = otk::ItalicOpen;
                         close = otk::ItalicClose;
                         break;
+                    case obt::Equals:
+                        mark  = MarkKind::Verbatim;
+                        open  = otk::VerbatimOpen;
+                        close = otk::VerbatimClose;
+                        break;
+                    default: break;
                 }
 
                 if (prev && next) {
@@ -198,6 +206,9 @@ struct RecombineState {
                 } else if (!prev) {
                     mark_push(mark, open);
 
+                } else if (!next) {
+                    mark_push(mark, close);
+
                 } else {
                     LOG(WARNING) << "Not mapped markup recombination";
                 }
@@ -212,8 +223,6 @@ struct RecombineState {
         }
     }
 
-    void recombine_impl() {
-
 #define direct(__from, __to)                                              \
     case __from: {                                                        \
         pop_as(__to);                                                     \
@@ -221,92 +230,139 @@ struct RecombineState {
     }
 
 
+    void map_interpreted_token() {
+        BaseTokenId        start = lex.pos;
+        BaseToken const&   tok   = lex.tok();
+        BaseFill const&    val   = tok.value;
+        std::string const& str   = tok.value.text;
+
+        switch (lex.kind()) {
+            direct(obt::Ampersand, otk::Punctuation);
+            direct(obt::Whitespace, otk::Space);
+            direct(obt::AnyPunct, otk::Punctuation);
+            direct(obt::Newline, otk::Newline);
+            direct(obt::Comment, otk::Comment);
+            direct(obt::HashIdent, otk::HashTag);
+
+            case obt::ForwardSlash:
+            case obt::Equals:
+            case obt::Asterisk: {
+                recombine_markup();
+                break;
+            }
+
+            case obt::Tilda: {
+                if (state_top() == State::RawMonospace) {
+                    state_pop();
+                } else {
+                    state_push(State::RawMonospace);
+                }
+                lex.next();
+                break;
+            }
+
+            case obt::EndOfFile: {
+                while (!state.empty()) {
+                    switch (state_top()) {
+                        case State::Paragraph: {
+                            (void)add_fake(otk::ParagraphEnd);
+                            break;
+                        }
+                        case State::None: {
+                            break;
+                        }
+                        default: {
+                            CHECK(false) << fmt(
+                                "Encountered end of file while state "
+                                "stack was not completely closed, the "
+                                "top element was {}. Expected 'none' "
+                                "or 'paragraph'.",
+                                state_top());
+                        }
+                    }
+                    state_pop();
+                }
+                lex.next();
+                break;
+            }
+
+            case obt::Word: {
+                if (state_top() == State::None) {
+                    (void)add_fake(otk::ParagraphStart);
+                    state_push(State::Paragraph);
+                }
+
+                pop_as(otk::Word);
+                break;
+            }
+
+            case obt::MediumNewline: {
+                if (state_top() == State::Paragraph) {
+                    (void)add_fake(otk::ParagraphEnd);
+                    state_pop();
+                }
+
+                pop_as(otk::SkipNewline);
+                break;
+            }
+
+            case obt::BraceOpen: {
+                if (lex.hasNext(-1)) {
+                    switch (lex.tok(-1).kind) {
+                        case obt::HashIdent:
+                            pop_as(otk::HashTagOpen);
+                            break;
+                        default: pop_as(otk::Punctuation);
+                    }
+                } else {
+                    pop_as(otk::Punctuation);
+                }
+            }
+
+            case obt::SubtreeStars: {
+                pop_as(otk::SubtreeStars);
+                break;
+            }
+
+            default: {
+                DLOG(ERROR) << std::format(
+                    "Unhanled kind for token conversion, got {}:{} {} "
+                    "\"{}\", top state was {}",
+                    val.line,
+                    val.col,
+                    lex.kind(),
+                    val.text,
+                    state_top());
+                lex.next();
+            }
+        }
+    }
+
+    void recombine_impl() {
+
+
         while (lex.hasNext(0)) {
-            BaseTokenId        start = lex.pos;
-            BaseToken const&   tok   = lex.tok();
-            BaseFill const&    val   = tok.value;
-            std::string const& str   = tok.value.text;
+            BaseTokenId     start = lex.pos;
+            BaseFill const& val   = lex.tok().value;
 
+            if (state_top() == State::RawMonospace
+                && lex.kind() != obt::Tilda) {
+                pop_as(otk::RawText);
 
-            switch (lex.kind()) {
-                direct(obt::Ampersand, otk::Punctuation);
-                direct(obt::Whitespace, otk::Space);
-                direct(obt::AnyPunct, otk::Punctuation);
-                direct(obt::Newline, otk::Newline);
-                direct(obt::Comment, otk::Comment);
-                direct(obt::HashIdent, otk::HashTag);
-
-                case obt::ForwardSlash:
-                case obt::Asterisk: {
-                    recombine_markup();
-                    break;
-                }
-
-                case obt::EndOfFile: {
-                    while (!state.empty()) {
-                        switch (state_top()) {
-                            case State::Paragraph: {
-                                add_fake(otk::ParagraphEnd);
-                                break;
-                            }
-                        }
-                        state_pop();
-                    }
-                    lex.next();
-                    break;
-                }
-
-                case obt::Word: {
-                    if (state_top() == State::None) {
-                        add_fake(otk::ParagraphStart);
-                        state_push(State::Paragraph);
-                    }
-
-                    pop_as(otk::Word);
-                    break;
-                }
-
-                case obt::MediumNewline: {
-                    if (state_top() == State::Paragraph) {
-                        add_fake(otk::ParagraphEnd);
-                        state_pop();
-                    }
-
-                    pop_as(otk::SkipNewline);
-                    break;
-                }
-                case obt::BraceOpen: {
-                    if (lex.hasNext(-1)) {
-                        switch (lex.tok(-1).kind) {
-                            case obt::HashIdent:
-                                pop_as(otk::HashTagOpen);
-                                break;
-                            default: pop_as(otk::Punctuation);
-                        }
-                    } else {
-                        pop_as(otk::Punctuation);
-                    }
-                }
-                default: {
-                    DLOG(ERROR) << std::format(
-                        "Unhanled kind for token conversion, got {}:{} {} "
-                        "\"{}\"",
-                        val.line,
-                        val.col,
-                        lex.kind(),
-                        val.text);
-                    lex.next();
-                }
+            } else {
+                map_interpreted_token();
             }
 
             CHECK((lex.pos != start)) << std::format(
                 "Non-terminating token conversion case, got kind '{}' "
                 "text '{}' at id {} with no movement. This is a bug in "
                 "the implementation -- we iterated over baseline tokens, "
-                "but did not find where to map the item to",
+                "but did not find where to map the item to. The current "
+                "conversion state top is {}",
                 lex.kind(),
                 val.text,
-                lex.pos.format());
+                lex.pos.format(),
+                state_top());
         }
     }
 };
