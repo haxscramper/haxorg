@@ -1,4 +1,4 @@
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 #include <gtest/gtest.h>
 
 TEST(BackwardsIndexTest, BackwardsIndexFormat) {

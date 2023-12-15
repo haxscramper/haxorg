@@ -1,11 +1,13 @@
 #pragma once
 
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
+
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Opt.hpp>
 
 #include <hstd/system/generator.hpp>
+#include <hstd/stdlib/Pair.hpp>
 
 
 /// \brief In-place reverse of the vector content

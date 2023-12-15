@@ -3,7 +3,7 @@
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/algorithms.hpp>
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/ColText.hpp>

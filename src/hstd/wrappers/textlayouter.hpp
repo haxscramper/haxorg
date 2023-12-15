@@ -4,7 +4,7 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/system/aux_utils.hpp>
 #include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 #include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Opt.hpp>

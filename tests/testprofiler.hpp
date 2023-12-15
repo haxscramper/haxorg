@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/system/macros.hpp>
 

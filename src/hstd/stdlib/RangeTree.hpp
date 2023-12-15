@@ -6,7 +6,7 @@
 
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Slice.hpp>
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 
 #include <hstd/stdlib/Ptrs.hpp>
 

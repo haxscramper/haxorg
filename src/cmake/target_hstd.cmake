@@ -1,9 +1,7 @@
 add_library(hstd)
 set_common_files(hstd)
-glob_add_sources(hstd *.cpp "${BASE}/src/system/.*")
-glob_add_sources(hstd *.cpp "${BASE}/src/hstd/.*")
-glob_add_sources(hstd *.hpp "${BASE}/src/system/.*")
-glob_add_sources(hstd *.hpp "${BASE}/src/hstd/.*")
+glob_add_sources2(hstd "${BASE}/src/system/.*")
+glob_add_sources2(hstd "${BASE}/src/hstd/.*")
 set_target_output(hstd)
 set_target_flags(hstd)
 

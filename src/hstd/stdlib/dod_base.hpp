@@ -6,7 +6,7 @@
 #include <hstd/system/all.hpp>
 #include <hstd/system/generator.hpp>
 
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 #include <hstd/stdlib/Slice.hpp>
 
 

@@ -5,7 +5,7 @@
 #include <hstd/system/macros.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <absl/log/check.h>

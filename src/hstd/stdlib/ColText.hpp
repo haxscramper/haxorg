@@ -3,7 +3,7 @@
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Array.hpp>
 

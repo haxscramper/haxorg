@@ -6,7 +6,7 @@
 #include <memory>
 
 #include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 #include <hstd/stdlib/Opt.hpp>
 
 #include <boost/describe.hpp>

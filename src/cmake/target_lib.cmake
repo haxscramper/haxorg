@@ -16,18 +16,6 @@ set_target_flags(haxorg)
 find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
 find_library(GRAPHVIZ_GVC_LIBRARY gvc)
 
-if (${USE_PCH})
-    target_precompile_headers(haxorg PRIVATE
-      <string>
-      <format>
-      <nlohmann/json.hpp>
-      <optional>
-      <vector>
-      <boost/mp11.hpp>
-      <boost/describe.hpp>
-      <sem/SemOrg.hpp>
-    )
-endif()
 
 # Use re-flex static library as a direct dependency here so it would be compiled
 # and linked with right sanitizer options (otherwise it triggers lots of false 

@@ -1,11 +1,12 @@
 #pragma once
 
+import hstd.stdlib.Vec;
+
 #include <hstd/system/string_convert.hpp>
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Pair.hpp>
-#include <hstd/stdlib/Vec.hpp>
 #include <format>
 
 struct Str : public std::string {

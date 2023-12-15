@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Time.hpp>
 #include <hstd/stdlib/Opt.hpp>

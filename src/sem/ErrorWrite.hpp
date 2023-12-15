@@ -10,7 +10,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 
 #include <boost/describe.hpp>
 #include <hstd/stdlib/Debug.hpp>

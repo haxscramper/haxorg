@@ -6,7 +6,7 @@
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 #include <hstd/stdlib/Opt.hpp>
 
 #include <hstd/system/Formatter.hpp>

@@ -23,8 +23,6 @@ function(set_target_output TARGET)
     # Set target output suffix and location relative to the cmake sorce
     # directory
     get_target_property(target_type ${TARGET} TYPE)
-    message(INFO "Outputting ${TARGET} to ${BASE}/(bin|lib) (type is ${target_type}")
-
     add_custom_command(TARGET ${TARGET} POST_BUILD
                        COMMAND "${CMAKE_COMMAND}" -E create_symlink
                                "${CMAKE_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/build/haxorg")
@@ -105,4 +103,9 @@ endfunction()
 function(glob_add_sources2 TARGET LS_REGEX)
     glob_add_sources("${TARGET}" *.cpp "${LS_REGEX}")
     glob_add_sources("${TARGET}" *.hpp "${LS_REGEX}")
+    list_filter_files(MODULE_FILES *.cppm "${LS_REGEX}")
+    message("MODULES FOR ${TARGET} in ${LS_REGEX} >>${MODULE_FILES}<<")
+    if(MODULE_FILES)
+        target_sources("${TARGET}" PUBLIC FILE_SET CXX_MODULES FILES "${MODULE_FILES}")
+    endif()
 endfunction()

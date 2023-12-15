@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 #include <sem/SemOrg.hpp>
 #include <hstd/system/aux_utils.hpp>
 

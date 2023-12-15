@@ -1,5 +1,5 @@
 #include <hstd/wrappers/textlayouter.hpp>
-#include <hstd/stdlib/Vec.hpp>
+import hstd.stdlib.Vec;
 #include <boost/stacktrace.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #undef slots
