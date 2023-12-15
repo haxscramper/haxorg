@@ -6,7 +6,7 @@
 #include "base_token_state.tcc"
 
 void BaseLexerImpl::add(BaseTokenKind token) {
-    tokens.add(BaseToken{
+    (void)tokens.add(BaseToken{
         token,
         BaseFill{
             impl->matcher().str(),

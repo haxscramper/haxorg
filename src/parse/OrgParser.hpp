@@ -147,9 +147,9 @@ struct OrgParser : public OperationsTracer {
     }
 
     OrgId fail(OrgTokenId invalid) {
-        token(OrgNodeKind::ErrorToken, invalid);
+        (void)token(OrgNodeKind::ErrorToken, invalid);
         /// TODO insert token with error description
-        token(OrgNodeKind::ErrorTerminator, OrgTokenId::Nil());
+        (void)token(OrgNodeKind::ErrorTerminator, OrgTokenId::Nil());
         OrgId failed           = end();
         group->at(failed).kind = OrgNodeKind::Error;
         return failed;

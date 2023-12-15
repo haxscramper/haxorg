@@ -122,15 +122,6 @@ function(set_common_files TARGET)
     add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
 
 
-  # target_precompile_headers(
-  #   "${TARGET}"
-  #   PRIVATE
-  #   src/lexbase/PosStr.hpp
-  #   src/lexbase/Node.hpp
-  #   src/lexbase/Token.hpp
-  # )
-
-
     if(${USE_PERFETTO})
         add_target_property(${TARGET} PRECOMPILE_HEADERS <perfetto.h>)
     endif()

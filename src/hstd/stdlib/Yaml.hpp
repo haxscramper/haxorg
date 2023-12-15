@@ -1,7 +1,7 @@
 #pragma once
 
 #include <yaml-cpp/yaml.h>
-#include <hstd/stdlib/Str.hpp>>
+#include <hstd/stdlib/Str.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/strformat.hpp>
 #include <hstd/stdlib/Variant.hpp>

@@ -23,8 +23,6 @@ function(set_target_output TARGET)
     # Set target output suffix and location relative to the cmake sorce
     # directory
     get_target_property(target_type ${TARGET} TYPE)
-    message(INFO "Outputting ${TARGET} to ${BASE}/(bin|lib) (type is ${target_type}")
-
     add_custom_command(TARGET ${TARGET} POST_BUILD
                        COMMAND "${CMAKE_COMMAND}" -E create_symlink
                                "${CMAKE_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/build/haxorg")

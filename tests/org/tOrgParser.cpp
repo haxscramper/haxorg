@@ -11,13 +11,13 @@ struct MockParser {
         parser       = std::make_shared<OrgParser>(&nodes);
         nodes.tokens = &tokens;
         for (const auto k : kinds) {
-            tokens.add(OrgToken(k));
+            (void)tokens.add(OrgToken(k));
         }
     }
 
     void add(Vec<OrgTokenKind> kinds) {
         for (const auto k : kinds) {
-            tokens.add(OrgToken(k));
+            (void)tokens.add(OrgToken(k));
         }
     }
 
@@ -92,7 +92,7 @@ TEST_F(ParserTest, ParseTimeRange) {
         otk::StaticTimeDatePart,
         otk::InactiveTimeEnd,
     });
-    p.parser->parseTimeRange(p.lex);
+    (void)p.parser->parseTimeRange(p.lex);
     EXPECT_EQ(p[0].kind, org::TimeRange);
     // start of the time range extent, two elements
     EXPECT_EQ(p[1].kind, org::StaticInactiveTime);

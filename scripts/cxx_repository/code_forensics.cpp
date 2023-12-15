@@ -1,4 +1,3 @@
-#include <range/v3/all.hpp>
 
 #include "git_ir.hpp"
 
@@ -11,9 +10,8 @@
 #include "program_state.hpp"
 #include <absl/log/log.h>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
-namespace rv = ranges::views;
-namespace rs = ranges;
 
 
 #define GIT_SUCCESS 0
