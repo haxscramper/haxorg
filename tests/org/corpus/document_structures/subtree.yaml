@@ -19,6 +19,8 @@ items:
 
   - name: "Regular subtree"
     source: "* Subtree"
+    debug:
+      doParse: false
     tokens:
       - {kind: SubtreeStars, str: "*"}
       - {kind: SkipSpace, str: " "}
@@ -29,6 +31,8 @@ items:
 
   - name: "Subtree with time annotations"
     source: "* [2023-03-05] Subtree title"
+    debug:
+      doParse: false
     tokens:
       - {kind: SubtreeStars, str: "*"}
       - {kind: SkipSpace, str: " "}
@@ -45,6 +49,8 @@ items:
 
   - name: "Subtree with nested content"
     source: "** CLI Tools\n\nNested content"
+    debug:
+      doParse: false
     tokens:
       - {kind: SubtreeStars, str: "**"}
       - {kind: SkipSpace, str: " "}
@@ -63,6 +69,8 @@ items:
       - {kind: ParagraphEnd}
 
   - name: "Headline after paragraph"
+    debug:
+      doParse: false
     source: |
       Paragraph text
       * New headline

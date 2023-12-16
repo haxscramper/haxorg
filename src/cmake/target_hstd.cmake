@@ -18,6 +18,7 @@ target_link_libraries(
     absl::base
     absl::log
     perfetto
+    range-v3
 )
 
 add_executable(tests_hstd)

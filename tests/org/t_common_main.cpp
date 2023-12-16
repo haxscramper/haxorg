@@ -1,5 +1,3 @@
-#pragma once
-
 #include <gtest/gtest.h>
 #include <hstd/system/aux_utils.hpp>
 #include <iostream>

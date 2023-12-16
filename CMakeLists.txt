@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.28)
 cmake_policy(SET CMP0135 NEW)
 cmake_policy(SET CMP0148 OLD) # or NEW
 cmake_policy(SET CMP0155 NEW)
-
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 #include(conda_toolchain.cmake)
 
@@ -90,7 +90,6 @@ target_include_directories(lager_lib INTERFACE "${DEPS_DIR}/lager")
 
 add_subdirectory("${DEPS_DIR}/fuzztest")
 add_subdirectory("${DEPS_DIR}/pybind11")
-add_subdirectory("${DEPS_DIR}/benchmark")
 
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)

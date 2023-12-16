@@ -265,7 +265,7 @@ struct Label {
         if (msg.has_value() != other.msg.has_value()) {
             return false;
         } else {
-            if (msg && msg.value() != other.msg.value()) {
+            if (msg && !(msg.value() == other.msg.value())) {
                 return false;
             } else {
                 return true;

@@ -4,6 +4,9 @@ expected: "Flat"
 items:
   - name: "Bold text"
     source: "*bold*"
+    debug:
+      doParse: false
+      doLex: false
     tokens:
       - {kind: ParagraphStart}
       - {kind: BoldOpen, str: "*"}
@@ -25,8 +28,15 @@ items:
                   text: "bold"
 
   - source: "/italic/"
+    debug:
+      doParse: false
+      doLex: false
   - source: "[[link][description]]"
+    debug:
+      doParse: false
   - source: "\\symbol{}"
+    debug:
+      doLex: false
     sem:
       kind: Document
       subnodes:
@@ -37,6 +47,8 @@ items:
               parameters: []
               positional: [{kind: Paragraph}]
   - source: "\\symbol{\"Argument\"}"
+    debug:
+      doLex: false
     sem:
       kind: Document
       subnodes:
@@ -54,34 +66,43 @@ items:
   - source: |
       <G>: Some text
         Indentation
+    debug:
+      doLex: false
+
   - name: "Multiple starts for tilda"
     source: "~ssh-copy-id -i ~/.ssh/id_rsa.pub $E:VSC_TV_ACCESS~"
     debug:
       doParse: false
+      doLex: false
 
   - name: "Multiple joined starts for verbatim"
     source: "==Content="
     debug:
       doParse: false
+      doLex: false
 
   - source: |
       *QUESTION: [19:43]*/"As a user,
     debug:
+      doLex: false
       doParse: false
 
   - name: "Standalone inline markup"
     source: "One == one"
     debug: 
+      doLex: false
       doParse: false
 
   - name: "=verbatim=-dash"
     source: "=random=-dashed"
     debug:
+      doLex: false
       doParse: false
 
   - name: "Ambigious italic text"
     source: "One/Another/<Placeholder>"
     debug:
+      doLex: false
       doParse: false
     tokens:
       - {kind: ParagraphStart}

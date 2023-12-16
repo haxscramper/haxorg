@@ -11,17 +11,17 @@ struct MockParser {
         parser       = std::make_shared<OrgParser>(&nodes);
         nodes.tokens = &tokens;
         for (const auto k : kinds) {
-            tokens.add(OrgToken(k));
+            (void)tokens.add(OrgToken(k));
         }
     }
 
     void add(Vec<OrgTokenKind> kinds) {
         for (const auto k : kinds) {
-            tokens.add(OrgToken(k));
+            (void)tokens.add(OrgToken(k));
         }
     }
 
-    void         add(OrgTokenKind k) { tokens.add(OrgToken(k)); }
+    void         add(OrgTokenKind k) { (void)tokens.add(OrgToken(k)); }
     OrgNode&     operator[](int idx) { return nodes.at(OrgId(idx)); }
     Vec<OrgNode> flat() const {
         Vec<OrgNode> res;
@@ -78,7 +78,7 @@ TEST_F(ParserTest, ParseSingleTimeEntry) {
         {otk::InactiveTimeBegin,
          otk::StaticTimeDatePart,
          otk::InactiveTimeEnd});
-    p.parser->parseTimeStamp(p.lex);
+    (void)p.parser->parseTimeStamp(p.lex);
     EXPECT_EQ(p[0], tok(org::StaticInactiveTime, 0));
 }
 
@@ -92,7 +92,7 @@ TEST_F(ParserTest, ParseTimeRange) {
         otk::StaticTimeDatePart,
         otk::InactiveTimeEnd,
     });
-    p.parser->parseTimeRange(p.lex);
+    (void)p.parser->parseTimeRange(p.lex);
     EXPECT_EQ(p[0].kind, org::TimeRange);
     // start of the time range extent, two elements
     EXPECT_EQ(p[1].kind, org::StaticInactiveTime);
