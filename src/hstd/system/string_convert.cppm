@@ -1,4 +1,4 @@
-#pragma once
+module; 
 
 #include <iostream>
 #include <string>
@@ -15,6 +15,9 @@
 #include <codecvt>
 #include <format>
 
+export module hstd.system.string_convert; 
+
+export {
 #ifdef __GNUG__
 #    include <cstdlib>
 #    include <memory>
@@ -99,3 +102,4 @@ struct is_formattable<
 template <typename T>
 concept StdFormattable = is_formattable<T>::value;
 
+}

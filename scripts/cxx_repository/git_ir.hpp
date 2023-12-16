@@ -5,10 +5,10 @@
 #include <filesystem>
 #include <unordered_map>
 #include "git_interface.hpp"
-#include <hstd/stdlib/dod_base.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
+import std.stdlib.dod_base;
+import std.stdlib.Str;
+import std.stdlib.Opt;
+import std.stdlib.Filesystem;
 #include <immer/flex_vector.hpp>
 
 template <dod::IsIdType T>

@@ -1,5 +1,5 @@
 #include <sem/SemConvert.hpp>
-#include <hstd/stdlib/Func.hpp>
+import std.stdlib.Func;
 
 
 using namespace sem;

@@ -1,7 +1,7 @@
 #include "pyhaxorg_manual_impl.hpp"
 
 #include <exporters/ExporterJson.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
+import std.stdlib.Filesystem;
 #include <exporters/exporteryaml.hpp>
 #include <exporters/exportertree.hpp>
 #include <sem/semdatastream.hpp>

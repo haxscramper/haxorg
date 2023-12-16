@@ -1,12 +1,15 @@
-#pragma once
+module; 
 
 import std.stdlib.charsets;
 import std.system.generator;
 import std.stdlib.Str;
 #include <sstream>
 
+export module hstd.stdlib.strutils;
+
 import hstd.stdlib.Vec;
 
+export {
 template <typename T>
 Str join(CR<Str> sep, generator<T>& list) {
     Str os;
@@ -73,3 +76,4 @@ Str styledUnicodeMapping(char ch, AsciiStyle style);
 Str styledUnicodeMapping(Str const& str, AsciiStyle style);
 
 inline char* strdup(std::string const& str) { return strdup(str.c_str()); }
+}

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <hstd/system/string_convert.hpp>
-#include <hstd/system/reflection.hpp>
-#include <hstd/system/macros.hpp>
-#include <hstd/system/generator.hpp>
-#include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Func.hpp>
+import std.system.string_convert;
+import std.system.reflection;
+import std.system.macros;
+import std.system.generator;
+import std.stdlib.Variant;
+import std.stdlib.Str;
+import std.stdlib.Func;
 #include <absl/log/check.h>
 
 #include <iostream>

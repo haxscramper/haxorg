@@ -1,7 +1,7 @@
 #ifndef EXPORTERTREE_HPP
 #define EXPORTERTREE_HPP
 
-#include <hstd/stdlib/ColText.hpp>
+import std.stdlib.ColText;
 #include <exporters/Exporter.hpp>
 
 struct QFileInfo;

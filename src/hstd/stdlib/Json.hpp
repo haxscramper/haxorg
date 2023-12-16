@@ -5,11 +5,11 @@
 #include <sstream>
 #include <memory>
 
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Opt.hpp>
+import std.stdlib.Str;
+import std.stdlib.Opt;
 
 #include <boost/describe.hpp>
-#include <hstd/system/reflection.hpp>
+import std.system.reflection;
 
 import hstd.stdlib.Vec;
 

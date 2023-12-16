@@ -4,7 +4,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <absl/log/log.h>
-#include <hstd/stdlib/Json.hpp>
+import std.stdlib.Json;
 #include <absl/strings/str_split.h>
 #include <absl/strings/str_format.h>
 #include <absl/log/log_sink_registry.h>

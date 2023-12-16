@@ -4,8 +4,8 @@
 #include <fstream>
 #include <string>
 
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/ColText.hpp>
+import std.stdlib.Filesystem;
+import std.stdlib.ColText;
 
 struct OperationsTracer {
     bool trace         = false;

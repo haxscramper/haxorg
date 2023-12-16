@@ -4,9 +4,9 @@
 #include <map>
 #include <optional>
 
-#include <hstd/system/Formatter.hpp>
-#include <hstd/system/generator.hpp>
-#include <hstd/system/all.hpp>
+import std.system.Formatter;
+import std.system.generator;
+import std.system.all;
 
 template <typename Map, typename K, typename V>
 struct MapBase : public CRTP_this_method<Map> {

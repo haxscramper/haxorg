@@ -2,7 +2,7 @@
 #define EXPORTERYAML_HPP
 
 #include <exporters/Exporter.hpp>
-#include <hstd/stdlib/Yaml.hpp>
+import std.stdlib.Yaml;
 
 struct ExporterYaml : public Exporter<ExporterYaml, yaml> {
     using Base = Exporter<ExporterYaml, yaml>;

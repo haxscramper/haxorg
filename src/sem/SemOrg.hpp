@@ -1,14 +1,14 @@
 #pragma once
 
-#include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/Time.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Func.hpp>
+import std.stdlib.Variant;
+import std.stdlib.Time;
+import std.stdlib.Opt;
+import std.stdlib.Str;
+import std.stdlib.Func;
 #include <parse/OrgTypes.hpp>
 
 #include <boost/describe.hpp>
-#include <hstd/system/macros.hpp>
+import std.system.macros;
 #include <functional>
 
 

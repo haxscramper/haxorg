@@ -1,8 +1,8 @@
 #pragma once
 
-#include <hstd/system/basic_typedefs.hpp>
+import std.system.basic_typedefs;
 #include <algorithm>
-#include <hstd/stdlib/Pair.hpp>
+import std.stdlib.Pair;
 
 template <typename T, typename Ref>
 struct EnumerateState {

@@ -1,20 +1,20 @@
 #pragma once
 
-#include <hstd/stdlib/dod_base.hpp>
-#include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/strformat.hpp>
-#include <hstd/stdlib/strutils.hpp>
-#include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/RangeTree.hpp>
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/Debug.hpp>
-#include <hstd/stdlib/Func.hpp>
+import std.stdlib.dod_base;
+import std.stdlib.IntSet;
+import std.stdlib.Str;
+import std.stdlib.ColText;
+import std.stdlib.strformat;
+import std.stdlib.strutils;
+import std.stdlib.Variant;
+import std.stdlib.RangeTree;
+import std.stdlib.Map;
+import std.stdlib.Debug;
+import std.stdlib.Func;
 #include <format>
 
 #include <lexbase/Errors.hpp>
-#include <hstd/stdlib/Ranges.hpp>
+import std.stdlib.Ranges;
 
 template <typename K, typename V>
 struct Token;

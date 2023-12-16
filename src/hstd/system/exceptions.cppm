@@ -1,8 +1,11 @@
-#pragma once
+module;
 
 #include <stdexcept>
 #include <string>
 
+export module hstd.system.exceptions;
+
+export {
 inline void assert_has_idx(int size, int wanted, std::string failure) {
     if (!(wanted < size)) {
         throw std::range_error(failure);
@@ -40,3 +43,4 @@ struct OutOfRangeError : public std::out_of_range {
     explicit OutOfRangeError(const std::string& message)
         : std::out_of_range(message) {}
 };
+}

@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include <hstd/system/aux_utils.hpp>
+import std.system.aux_utils;
 #include <iostream>
-#include <hstd/system/string_convert.hpp>
-#include <hstd/stdlib/Debug.hpp>
+import std.system.string_convert;
+import std.stdlib.Debug;
 #include <fstream>
 #include "../testprofiler.hpp"
 #include <absl/strings/str_split.h>

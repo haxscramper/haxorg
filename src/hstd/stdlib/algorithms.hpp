@@ -1,11 +1,11 @@
 #pragma once
 
-#include <hstd/stdlib/Span.hpp>
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/Opt.hpp>
+import std.stdlib.Span;
+import std.stdlib.Func;
+import std.stdlib.Opt;
 
-#include <hstd/system/generator.hpp>
-#include <hstd/stdlib/Pair.hpp>
+import std.system.generator;
+import std.stdlib.Pair;
 
 import hstd.stdlib.Vec;
 

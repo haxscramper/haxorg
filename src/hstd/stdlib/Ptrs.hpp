@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <hstd/system/aux_utils.hpp>
+import std.system.aux_utils;
 
 template <typename T>
 using UPtr = std::unique_ptr<T>;

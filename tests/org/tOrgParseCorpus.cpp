@@ -7,14 +7,14 @@
 #include <sem/ErrorWrite.hpp>
 #include <gtest/gtest.h>
 
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Debug.hpp>
+import std.stdlib.Filesystem;
+import std.stdlib.Debug;
 #include <sem/SemConvert.hpp>
 
 #include <fnmatch.h>
 #include "../testprofiler.hpp"
 
-#include <hstd/wrappers/perfetto_aux.hpp>
+import std.wrappers.perfetto_aux;
 
 // std::string corpusGlob = "*text.yaml";
 std::string corpusGlob = "";

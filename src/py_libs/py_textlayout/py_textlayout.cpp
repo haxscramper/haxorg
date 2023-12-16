@@ -1,10 +1,10 @@
-#include <hstd/wrappers/textlayouter.hpp>
+import std.wrappers.textlayouter;
 #include <boost/stacktrace.hpp>
-#include <hstd/stdlib/Debug.hpp>
+import std.stdlib.Debug;
 #undef slots
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <hstd/stdlib/algorithms.hpp>
+import std.stdlib.algorithms;
 
 #include <py_type_casters.hpp>
 

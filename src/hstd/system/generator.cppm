@@ -1,10 +1,14 @@
-#pragma once
+module; 
 
 #include <coroutine>
 #include <type_traits>
 #include <optional>
 #include <exception>
 
+export module hstd.system.generator;
+
+
+export {
 template <typename T>
 struct generator {
     struct promise_type {
@@ -73,3 +77,4 @@ struct generator {
 
     std::coroutine_handle<promise_type> p;
 };
+}

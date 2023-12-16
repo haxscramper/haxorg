@@ -2,8 +2,8 @@
 
 #include <parse/OrgTypes.hpp>
 #include <parse/OrgTokenizer.hpp>
-#include <hstd/stdlib/sequtils.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
+import std.stdlib.sequtils;
+import std.stdlib.Ptrs;
 
 #include <lexbase/TraceBase.hpp>
 

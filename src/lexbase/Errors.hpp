@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/strformat.hpp>
-#include <hstd/system/string_convert.hpp>
+import std.stdlib.strformat;
+import std.system.string_convert;
 #include <variant>
 #include <format>
 

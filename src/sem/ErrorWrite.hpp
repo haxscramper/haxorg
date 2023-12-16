@@ -13,9 +13,9 @@
 import hstd.stdlib.Vec;
 
 #include <boost/describe.hpp>
-#include <hstd/stdlib/Debug.hpp>
-#include <hstd/system/reflection.hpp>
-#include <hstd/stdlib/ColText.hpp>
+import std.stdlib.Debug;
+import std.system.reflection;
+import std.stdlib.ColText;
 
 class Source;
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/system/string_convert.hpp>
-#include <hstd/stdlib/ColText.hpp>
+import std.system.string_convert;
+import std.stdlib.ColText;
 
 #include <absl/log/log.h>
 #include <string>

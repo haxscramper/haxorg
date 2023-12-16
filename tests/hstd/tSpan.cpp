@@ -1,4 +1,4 @@
-#include <hstd/stdlib/Str.hpp>
+import std.stdlib.Str;
 #include <gtest/gtest.h>
 
 import hstd.stdlib.Vec;

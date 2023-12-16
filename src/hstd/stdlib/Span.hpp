@@ -1,12 +1,15 @@
-#pragma once
+module; 
 
-#include <hstd/system/all.hpp>
-#include <hstd/stdlib/Slice.hpp>
-#include <hstd/system/string_convert.hpp>
+import std.system.all;
+import std.stdlib.Slice;
+import std.system.string_convert;
 #include <span>
 #include <absl/log/log.h>
 #include <absl/log/check.h>
 
+export module hstd.stdlib.Span;
+
+export {
 template <typename T>
 class Span : public std::span<T> {
   public:
@@ -155,3 +158,4 @@ struct std::formatter<Span<T>> : std::formatter<std::string> {
         return "[" << join(", ", p) << "]";
     }
 };
+}

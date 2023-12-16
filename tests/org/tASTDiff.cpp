@@ -1,4 +1,4 @@
-#include <hstd/stdlib/Ptrs.hpp>
+import std.stdlib.Ptrs;
 #include <lexbase/AstDiff.hpp>
 #include <gtest/gtest.h>
 

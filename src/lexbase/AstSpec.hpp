@@ -1,17 +1,17 @@
 #pragma once
 
-#include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/Array.hpp>
-#include <hstd/system/exceptions.hpp>
-#include <hstd/system/reflection.hpp>
-#include <hstd/stdlib/strutils.hpp>
-#include <hstd/stdlib/algorithms.hpp>
-#include <hstd/stdlib/Set.hpp>
-#include <hstd/system/Formatter.hpp>
+import std.stdlib.IntSet;
+import std.stdlib.ColText;
+import std.stdlib.Func;
+import std.stdlib.Opt;
+import std.stdlib.Map;
+import std.stdlib.Array;
+import std.system.exceptions;
+import std.system.reflection;
+import std.stdlib.strutils;
+import std.stdlib.algorithms;
+import std.stdlib.Set;
+import std.system.Formatter;
 
 #include <unordered_set>
 #include <unordered_map>

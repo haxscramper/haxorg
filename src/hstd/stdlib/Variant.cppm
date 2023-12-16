@@ -1,10 +1,13 @@
-#pragma once
+module;
 
 #include <variant>
-#include <hstd/system/string_convert.hpp>
-#include <hstd/system/basic_templates.hpp>
-#include <hstd/system/Formatter.hpp>
+import std.system.string_convert;
+import std.system.basic_templates;
+import std.system.Formatter;
 
+export module hstd.stdlib.Variant;
+
+export {
 template <typename... Types>
 using Variant = std::variant<Types...>;
 
@@ -46,3 +49,4 @@ auto variant_from_index(size_t index) -> V {
 
 template <IsVariant V>
 struct resolve_variant_index {};
+}

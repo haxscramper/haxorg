@@ -5,17 +5,17 @@
 #include <string>
 #include <stdexcept>
 #include <string>
-#include <hstd/system/all.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
-#include <hstd/stdlib/strutils.hpp>
-#include <hstd/system/reflection.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Variant.hpp>
+import std.system.all;
+import std.stdlib.Ptrs;
+import std.stdlib.strutils;
+import std.system.reflection;
+import std.stdlib.Opt;
+import std.stdlib.Variant;
 #include <new>
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/system/generator.hpp>
+import std.stdlib.Func;
+import std.system.generator;
 #include <absl/log/check.h>
-#include <hstd/stdlib/Filesystem.hpp>
+import std.stdlib.Filesystem;
 
 #define _attr_aligned(Method, key, Type)                                  \
     void set##Method(                                                     \

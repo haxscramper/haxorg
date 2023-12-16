@@ -1,4 +1,4 @@
-#include <hstd/stdlib/strutils.hpp>
+import std.stdlib.strutils;
 #include <absl/log/log.h>
 #include <absl/log/check.h>
 

@@ -1,10 +1,10 @@
-#include <hstd/system/aux_templates.hpp>
+import std.system.aux_templates;
 #include <gtest/gtest.h>
 #include <string>
 #include <absl/log/log.h>
-#include <hstd/stdlib/RangeTree.hpp>
-#include <hstd/stdlib/Debug.hpp>
-#include <hstd/stdlib/Map.hpp>
+import std.stdlib.RangeTree;
+import std.stdlib.Debug;
+import std.stdlib.Map;
 
 bool operator==(Slice<int> lhs, Slice<int> rhs) {
     return lhs.operator==(rhs);

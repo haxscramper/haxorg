@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/system/all.hpp>
-#include <hstd/stdlib/Slice.hpp>
+import std.system.all;
+import std.stdlib.Slice;
 
 template <typename Set, typename Val>
 struct SetBase : public CRTP_this_method<Set> {

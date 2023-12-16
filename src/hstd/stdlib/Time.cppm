@@ -1,11 +1,14 @@
-#pragma once
+module;
 
-#include <hstd/stdlib/Variant.hpp>
-#include <hstd/system/aux_utils.hpp>
+import std.stdlib.Variant;
+import std.system.aux_utils;
 #include <absl/time/civil_time.h>
 #include <absl/time/time.h>
-#include <hstd/stdlib/Str.hpp>
+import std.stdlib.Str;
 
+export module hstd.stdlib.Time;
+
+export {
 struct UserTime {
     DECL_DESCRIBED_ENUM(Alignment, Year, Month, Day, Hour, Minute, Second);
     Str toString() const { return absl::FormatTime(time, zone); }
@@ -15,3 +18,4 @@ struct UserTime {
     Alignment      align;
     BOOST_DESCRIBE_CLASS(UserTime, (), (time, zone, align), (), ());
 };
+}

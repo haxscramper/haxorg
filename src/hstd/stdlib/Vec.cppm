@@ -1,9 +1,9 @@
 module;
 
-#include <hstd/system/all.hpp>
-#include <hstd/stdlib/Slice.hpp>
-#include <hstd/stdlib/Span.hpp>
-#include <hstd/stdlib/sequtils.hpp>
+import std.system.all;
+import std.stdlib.Slice;
+import std.stdlib.Span;
+import std.stdlib.sequtils;
 
 #include <vector>
 #include <span>

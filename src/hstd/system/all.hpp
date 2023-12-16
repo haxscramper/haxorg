@@ -1,7 +1,7 @@
-#pragma once
+export module hstd.system.all;
 
-#include <hstd/system/basic_templates.hpp>
-#include <hstd/system/basic_typedefs.hpp>
-#include <hstd/system/aux_templates.hpp>
-#include <hstd/system/string_convert.hpp>
-#include <hstd/system/aux_utils.hpp>
+export import std.system.basic_templates;
+export import std.system.basic_typedefs;
+export import std.system.aux_templates;
+export import std.system.string_convert;
+export import std.system.aux_utils;

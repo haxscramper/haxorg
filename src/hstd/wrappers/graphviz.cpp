@@ -1,6 +1,6 @@
 #if false
 
-#include <hstd/wrappers/graphviz.hpp>
+import std.wrappers.graphviz;
 #include <filesystem>
 #include <format>
 

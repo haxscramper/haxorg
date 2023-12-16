@@ -1,11 +1,11 @@
 #pragma once
 
-#include <hstd/stdlib/Slice.hpp>
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/system/all.hpp>
-#include <hstd/system/generator.hpp>
-#include <hstd/system/string_convert.hpp>
-#include <hstd/system/Formatter.hpp>
+import std.stdlib.Slice;
+import std.stdlib.Map;
+import std.system.all;
+import std.system.generator;
+import std.system.string_convert;
+import std.system.Formatter;
 
 #include <span>
 #include <array>

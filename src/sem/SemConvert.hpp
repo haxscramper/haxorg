@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sem/SemOrg.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
+import std.stdlib.Ptrs;
 #include <parse/OrgParser.hpp>
 #include <parse/OrgSpec.hpp>
 

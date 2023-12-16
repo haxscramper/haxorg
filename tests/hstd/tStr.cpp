@@ -1,8 +1,8 @@
-#include <hstd/stdlib/Str.hpp>
+import std.stdlib.Str;
 #include <gtest/gtest.h>
-#include <hstd/stdlib/strutils.hpp>
+import std.stdlib.strutils;
 #include <fuzztest/fuzztest.h>
-#include <hstd/stdlib/strformat.hpp>
+import std.stdlib.strformat;
 
 
 TEST(StringOperationsTest, StringViews) {

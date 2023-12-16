@@ -1,12 +1,15 @@
-#pragma once
+module; 
 
 #include <yaml-cpp/yaml.h>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/system/reflection.hpp>
-#include <hstd/stdlib/strformat.hpp>
-#include <hstd/stdlib/Variant.hpp>
+import std.stdlib.Str;
+import std.system.reflection;
+import std.stdlib.strformat;
+import std.stdlib.Variant;
 #include <boost/mp11.hpp>
 
+export module hstd.stdlib.Yaml
+
+export {
 struct BadTypeConversion : public YAML::RepresentationException {
     explicit BadTypeConversion(YAML::Mark mark, const std::string& message)
         : YAML::RepresentationException(mark, message) {}
@@ -159,3 +162,4 @@ struct std::formatter<yaml> : std::formatter<std::string> {
         return fmt.format(os.str(), ctx);
     }
 };
+}

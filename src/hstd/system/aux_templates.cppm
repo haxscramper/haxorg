@@ -2,6 +2,9 @@
 
 #include <experimental/type_traits>
 
+export module hstd.system.aux_templates;
+
+export {
 template <int N, int M>
 struct pow_v {
     enum
@@ -79,3 +82,4 @@ struct is_in_pack<V> {
 /// `::value` accessor for the 'is in pack' type trait
 template <typename T, typename... Pack>
 inline constexpr bool is_in_pack_v = is_in_pack<T, Pack...>::value;
+}

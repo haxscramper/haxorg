@@ -1,10 +1,10 @@
 #pragma once
 
-#include <hstd/system/basic_typedefs.hpp>
-#include <hstd/stdlib/strutils.hpp>
-#include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Array.hpp>
+import std.system.basic_typedefs;
+import std.stdlib.strutils;
+import std.stdlib.IntSet;
+import std.stdlib.Str;
+import std.stdlib.Array;
 
 #include <locale>
 #include <codecvt>

@@ -3,6 +3,9 @@
 #include <functional>
 #include "macros.hpp"
 
+export module hstd.system.aux_utils;
+
+export {
 /// \brief Trigger callback when exiting the scope. Ad-hoc RAII
 /// implementation
 struct finally {
@@ -78,4 +81,5 @@ bool is_pointer_valid(T const* ptr, T const* start, std::size_t size) {
 template <typename T>
 std::ptrdiff_t pointer_distance(T const* first, T const* last) {
     return last - first;
+}
 }

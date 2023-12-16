@@ -1,12 +1,15 @@
-#pragma once
+module; 
 
 #include <string>
 #include <vector>
 #include <stdexcept>
 
-#include <hstd/stdlib/sequtils.hpp>
-#include <hstd/system/all.hpp>
+import std.stdlib.sequtils;
+import std.system.all;
 
+export module hstd.stdlib.strformat; 
+
+export {
 enum class AddfFragmentKind
 {
     Text,        /// Regular text fragment
@@ -89,4 +92,5 @@ std::vector<std::string> to_string_vec(Args&&... args) {
     result.reserve(sizeof...(Args));
     to_string_vec_impl(result, args...);
     return result;
+}
 }

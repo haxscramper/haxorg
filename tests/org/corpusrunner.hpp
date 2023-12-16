@@ -6,7 +6,7 @@
 #include <string>
 
 #include <lexbase/NodeTest.hpp>
-#include <hstd/wrappers/textlayouter.hpp>
+import std.wrappers.textlayouter;
 
 class CorpusRunner {
   public:

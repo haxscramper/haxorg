@@ -2,11 +2,11 @@
 
 #include <string>
 
-#include <hstd/stdlib/Array.hpp>
-#include <hstd/stdlib/strutils.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/charsets.hpp>
-#include <hstd/stdlib/ColText.hpp>
+import std.stdlib.Array;
+import std.stdlib.strutils;
+import std.stdlib.Filesystem;
+import std.stdlib.charsets;
+import std.stdlib.ColText;
 
 #include <parse/OrgTypes.hpp>
 

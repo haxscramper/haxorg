@@ -4,10 +4,10 @@
 #include <unordered_map>
 #include <span>
 
-#include <hstd/system/all.hpp>
-#include <hstd/system/generator.hpp>
+import std.system.all;
+import std.system.generator;
 
-#include <hstd/stdlib/Slice.hpp>
+import std.stdlib.Slice;
 
 #define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)              \
     struct __value;                                                       \

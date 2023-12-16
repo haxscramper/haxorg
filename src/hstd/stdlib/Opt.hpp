@@ -1,7 +1,7 @@
 #pragma once
 
 #include <optional>
-#include <hstd/system/Formatter.hpp>
+import std.system.Formatter;
 
 template <typename T>
 using Opt = std::optional<T>;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <exporters/Exporter.hpp>
-#include <hstd/stdlib/Time.hpp>
-#include <hstd/stdlib/Json.hpp>
+import std.stdlib.Time;
+import std.stdlib.Json;
 
 struct ExporterJson : public Exporter<ExporterJson, json> {
     using Base = Exporter<ExporterJson, json>;

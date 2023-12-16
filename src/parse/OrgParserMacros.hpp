@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/wrappers/perfetto_aux.hpp>
+import std.wrappers.perfetto_aux;
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
 

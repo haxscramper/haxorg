@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/stdlib/Str.hpp>
+import std.stdlib.Str;
 
 struct TestParameters {
     Str corpusGlob;

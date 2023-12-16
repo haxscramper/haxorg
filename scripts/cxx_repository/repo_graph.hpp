@@ -2,8 +2,8 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <unordered_map>
-#include <hstd/system/generator.hpp>
-#include <hstd/stdlib/Opt.hpp>
+import std.system.generator;
+import std.stdlib.Opt;
 
 #include "git_interface.hpp"
 

@@ -3,7 +3,7 @@
 #include <string>
 #include <regex>
 #include <limits>
-#include <hstd/stdlib/Func.hpp>
+import std.stdlib.Func;
 
 
 template class nlohmann::basic_json<>;

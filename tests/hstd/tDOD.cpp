@@ -1,6 +1,6 @@
 //#include "common.hpp"
 #include <gtest/gtest.h>
-#include <hstd/stdlib/dod_base.hpp>
+import std.stdlib.dod_base;
 #include <bitset>
 
 DECL_ID_TYPE_MASKED(Value1, Id1, u8, 2);

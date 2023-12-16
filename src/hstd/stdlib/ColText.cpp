@@ -1,5 +1,5 @@
-#include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/Debug.hpp>
+import std.stdlib.ColText;
+import std.stdlib.Debug;
 
 std::string ansiEsc(const TermColorFg8Bit& col) {
     if ((u8)col <= 7) { // Regular colors

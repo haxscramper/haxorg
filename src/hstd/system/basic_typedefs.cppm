@@ -1,8 +1,12 @@
-#pragma once
+module;
+
 #include <concepts>
 #include <cstdint>
 #include <string>
 
+export module hstd.system.basic_typedefs;
+
+export {
 /// Helper implementation to pass multiple types around in a 'pack'
 template <typename... Args>
 struct arg_pack {};
@@ -47,3 +51,4 @@ CR<T> cr(CR<T> in) {
 
 template<typename T, typename ... U>
 concept IsAnyOf = (std::same_as<T, U> || ...);
+}

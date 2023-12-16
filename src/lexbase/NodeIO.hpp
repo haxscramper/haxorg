@@ -4,10 +4,10 @@
 #include <lexbase/Node.hpp>
 #include <lexbase/Token.hpp>
 #include <lexbase/AstSpec.hpp>
-#include <hstd/stdlib/algorithms.hpp>
+import std.stdlib.algorithms;
 
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/Yaml.hpp>
+import std.stdlib.Json;
+import std.stdlib.Yaml;
 
 
 template <typename N, typename K, typename V>

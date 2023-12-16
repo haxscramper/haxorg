@@ -1,7 +1,11 @@
-#pragma once
+module;
 
 #include <format>
 
+export module hstd.system.Formatter;
+
+
+export {
 template <typename T, typename CharT>
 using Fmt = std::formatter<T, CharT>;
 
@@ -34,4 +38,5 @@ template <typename T, typename FormatContext>
 FormatContext::iterator fmt_ctx(T const& t, FormatContext& ctx) {
     with_std_formatter(t);
     return std::formatter<T>{}.format(t, ctx);
+}
 }

@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <hstd/stdlib/BackwardsIndex.hpp>
+import std.stdlib.BackwardsIndex;
 
 import hstd.stdlib.Vec;
 

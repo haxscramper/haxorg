@@ -4,7 +4,7 @@
 #include <string_view>
 #include <vector>
 #include <lexbase/Token.hpp>
-#include <hstd/system/reflection.hpp>
+import std.system.reflection;
 
 
 #include "base_token_kind.hpp"

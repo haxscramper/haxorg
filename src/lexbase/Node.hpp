@@ -1,13 +1,13 @@
 #pragma once
 
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Func.hpp>
+import std.stdlib.Str;
+import std.stdlib.Variant;
+import std.stdlib.Opt;
+import std.stdlib.Func;
 
-#include <hstd/stdlib/dod_base.hpp>
-#include <hstd/stdlib/strutils.hpp>
-#include <hstd/stdlib/ColText.hpp>
+import std.stdlib.dod_base;
+import std.stdlib.strutils;
+import std.stdlib.ColText;
 #include <filesystem>
 #include <absl/log/check.h>
 

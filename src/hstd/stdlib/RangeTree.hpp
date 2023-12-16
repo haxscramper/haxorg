@@ -4,9 +4,9 @@
 #include <vector>
 #include <algorithm>
 
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Slice.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
+import std.stdlib.Opt;
+import std.stdlib.Slice;
+import std.stdlib.Ptrs;
 
 import hstd.stdlib.Vec;
 

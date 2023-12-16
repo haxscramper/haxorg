@@ -1,12 +1,12 @@
 #pragma once
 
-#include <hstd/stdlib/dod_base.hpp>
+import std.stdlib.dod_base;
 
 #include <lexbase/Token.hpp>
 #include <lexbase/Node.hpp>
 #include <sem/SemOrgEnums.hpp>
 #include <base_lexer/base_token.hpp>
-#include <hstd/system/reflection.hpp>
+import std.system.reflection;
 
 
 template <>

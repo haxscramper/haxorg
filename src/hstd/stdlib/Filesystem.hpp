@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 #include <filesystem>
-#include <hstd/stdlib/Ptrs.hpp>
+import std.stdlib.Ptrs;
 #include <format>
 
 namespace fs = std::filesystem;

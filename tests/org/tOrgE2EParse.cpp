@@ -12,9 +12,9 @@
 #include <lexbase/AstDiff.hpp>
 #include <lexbase/NodeTest.hpp>
 
-#include <hstd/stdlib/diffs.hpp>
+import std.stdlib.diffs;
 
-#include <hstd/stdlib/Filesystem.hpp>
+import std.stdlib.Filesystem;
 
 template <
     /// Node kind

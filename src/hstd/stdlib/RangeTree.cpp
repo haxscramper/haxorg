@@ -1,3 +1,3 @@
-#include <hstd/stdlib/RangeTree.hpp>
+import std.stdlib.RangeTree;
 
 template class RangeTree<int>;

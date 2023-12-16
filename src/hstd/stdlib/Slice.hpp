@@ -1,16 +1,19 @@
-#pragma once
+module;
 
-#include <hstd/system/basic_templates.hpp>
-#include <hstd/system/string_convert.hpp>
+import std.system.basic_templates;
+import std.system.string_convert;
 #include <boost/container_hash/hash.hpp>
 
-#include <hstd/system/exceptions.hpp>
-#include <hstd/stdlib/Pair.hpp>
-#include <hstd/stdlib/BackwardsIndex.hpp>
+import std.system.exceptions;
+import std.stdlib.Pair;
+import std.stdlib.BackwardsIndex;
 #include <format>
 
 #include <stdexcept>
 
+export module hstd.stdlib.Slice;
+
+export {
 template <typename A, typename B>
 struct HSlice {
     A first;
@@ -244,4 +247,5 @@ Pair<A, A> getSpan(
     }
 
     return {startPos, endPos};
+}
 }

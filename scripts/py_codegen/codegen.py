@@ -22,9 +22,9 @@ else:
 def with_enum_reflection_api(body: List[Any]) -> List[Any]:
     return [
         GenTuPass("#pragma once"),
-        GenTuPass("#include <hstd/system/basic_templates.hpp>"),
-        GenTuPass("#include <hstd/system/reflection.hpp>"),
-        GenTuPass("#include <hstd/stdlib/Opt.hpp>"),
+        GenTuPass("import std.system.basic_templates;"),
+        GenTuPass("import std.system.reflection;"),
+        GenTuPass("import std.stdlib.Opt;"),
     ] + body
 
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/stdlib/IntSet.hpp>
+import std.stdlib.IntSet;
 
 
 const auto otcSubtreeKinds = IntSet<OrgTextContext>{

@@ -13,11 +13,11 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/describe.hpp>
 #include <boost/mp11.hpp>
-#include <hstd/system/Formatter.hpp>
+import std.system.Formatter;
 
 #include "git_interface.hpp"
 #include "git_ir.hpp"
-#include <hstd/system/reflection.hpp>
+import std.system.reflection;
 
 using Logger = boost::log::sources::severity_logger<
     boost::log::trivial::severity_level>;

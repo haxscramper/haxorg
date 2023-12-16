@@ -2,9 +2,9 @@
 #define EXPORTERSIMPLESEXPR_HPP
 
 #include <exporters/Exporter.hpp>
-#include <hstd/wrappers/textlayouter.hpp>
+import std.wrappers.textlayouter;
 #include <concepts>
-#include <hstd/stdlib/strutils.hpp>
+import std.stdlib.strutils;
 #include <absl/log/check.h>
 
 

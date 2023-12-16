@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/system/macros.hpp>
+import std.stdlib.Json;
+import std.system.macros;
 
 import hstd.stdlib.Vec;
 

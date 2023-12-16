@@ -1,8 +1,8 @@
 #include <lexbase/NodeTest.hpp>
 #include <string>
 #include <filesystem>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/system/reflection.hpp>
+import std.stdlib.Filesystem;
+import std.system.reflection;
 #include <boost/mp11.hpp>
 
 

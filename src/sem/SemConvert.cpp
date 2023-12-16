@@ -1,12 +1,12 @@
 #include <sem/SemConvert.hpp>
-#include <hstd/stdlib/Func.hpp>
+import std.stdlib.Func;
 #include <parse/OrgSpec.hpp>
 
-#include <hstd/stdlib/Debug.hpp>
+import std.stdlib.Debug;
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
-#include <hstd/wrappers/perfetto_aux.hpp>
+import std.wrappers.perfetto_aux;
 #include <exporters/exportertree.hpp>
 #include <absl/log/log.h>
 

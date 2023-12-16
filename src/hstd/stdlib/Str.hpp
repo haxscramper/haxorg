@@ -1,15 +1,18 @@
-#pragma once
+module;
 
-#include <hstd/system/string_convert.hpp>
-#include <hstd/system/basic_typedefs.hpp>
-#include <hstd/stdlib/Slice.hpp>
-#include <hstd/stdlib/Span.hpp>
-#include <hstd/stdlib/Pair.hpp>
+import std.system.string_convert;
+import std.system.basic_typedefs;
+import std.stdlib.Slice;
+import std.stdlib.Span;
+import std.stdlib.Pair;
 #include <format>
 #include <string>
 
+export module hstd.stdlib.Str;
+
 import hstd.stdlib.Vec;
 
+export {
 struct Str : public std::string {
     using std::string::operator[];
     using std::string::reserve;
@@ -119,3 +122,4 @@ struct std::formatter<Str, CharT> : std::formatter<std::string, CharT> {
 
 template <>
 struct std::hash<Str> : std::hash<std::string> {};
+}

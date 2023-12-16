@@ -1,17 +1,17 @@
 #pragma once
 
-#include <hstd/system/basic_typedefs.hpp>
+import std.system.basic_typedefs;
 #include <sem/SemOrgEnums.hpp>
 
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/Opt.hpp>
+import std.stdlib.Str;
+import std.stdlib.Func;
+import std.stdlib.IntSet;
+import std.stdlib.Opt;
 
-#include <hstd/system/Formatter.hpp>
+import std.system.Formatter;
 #include <parse/OrgTypes.hpp>
 #include <format>
-#include <hstd/system/reflection.hpp>
+import std.system.reflection;
 
 import hstd.stdlib.Vec;
 

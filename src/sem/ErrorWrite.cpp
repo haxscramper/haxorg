@@ -1,7 +1,7 @@
-#include <hstd/stdlib/sequtils.hpp>
+import std.stdlib.sequtils;
 #include <sem/ErrorWrite.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Debug.hpp>
+import std.stdlib.Opt;
+import std.stdlib.Debug;
 
 Characters unicode() {
     return Characters{

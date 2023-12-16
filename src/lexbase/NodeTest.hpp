@@ -3,10 +3,10 @@
 #include <lexbase/Node.hpp>
 #include <lexbase/Token.hpp>
 
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/Yaml.hpp>
-#include <hstd/system/macros.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
+import std.stdlib.Json;
+import std.stdlib.Yaml;
+import std.system.macros;
+import std.stdlib.Filesystem;
 
 
 json toJson(CR<yaml> node);

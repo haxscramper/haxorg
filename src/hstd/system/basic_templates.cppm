@@ -1,11 +1,16 @@
 #pragma once
 
+module;
+
 #include <concepts>
 #include <limits>
 #include <algorithm>
 
-#include <hstd/system/basic_typedefs.hpp>
+export module hstd.system.basic_templates;
 
+import std.system.basic_typedefs;
+
+export {
 /// \brief get next value
 template <typename T>
 struct value_domain;
@@ -135,3 +140,4 @@ struct value_domain<char> {
 
     static inline char succ(char c) { return char(c + 1); }
 };
+}

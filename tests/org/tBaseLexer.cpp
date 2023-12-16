@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <base_lexer/base_token.hpp>
 #include <fstream>
-#include <hstd/stdlib/Json.hpp>
+import std.stdlib.Json;
 #include <absl/log/log.h>
 #include <parse/OrgTokenizer.hpp>
 #include <parse/OrgParser.hpp>

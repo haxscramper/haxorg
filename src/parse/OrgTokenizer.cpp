@@ -1,12 +1,12 @@
 #include "OrgTokenizer.hpp"
 
-#include <hstd/stdlib/algorithms.hpp>
-#include <hstd/stdlib/Debug.hpp>
-#include <hstd/wrappers/perfetto_aux.hpp>
+import std.stdlib.algorithms;
+import std.stdlib.Debug;
+import std.wrappers.perfetto_aux;
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
-#include <hstd/stdlib/Ranges.hpp>
+import std.stdlib.Ranges;
 
 using ock = OrgCommandKind;
 using otk = OrgTokenKind;

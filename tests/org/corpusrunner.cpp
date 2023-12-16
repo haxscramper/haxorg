@@ -1,14 +1,14 @@
 #include "corpusrunner.hpp"
 
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Debug.hpp>
+import std.stdlib.Filesystem;
+import std.stdlib.Debug;
 
 #include <exporters/ExporterJson.hpp>
 #include <exporters/exportertree.hpp>
 #include <exporters/exportersimplesexpr.hpp>
 #include <exporters/exporteryaml.hpp>
-#include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/diffs.hpp>
+import std.stdlib.ColText;
+import std.stdlib.diffs;
 
 
 

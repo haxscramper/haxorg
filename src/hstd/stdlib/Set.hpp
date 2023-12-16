@@ -1,8 +1,8 @@
 #pragma once
 
-#include <hstd/system/all.hpp>
-#include <hstd/system/string_convert.hpp>
-#include <hstd/stdlib/SetCommon.hpp>
+import std.system.all;
+import std.system.string_convert;
+import std.stdlib.SetCommon;
 #include <unordered_set>
 #include <set>
 
