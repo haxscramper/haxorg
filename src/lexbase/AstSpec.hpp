@@ -1,6 +1,6 @@
 #pragma once
 
-import hstd.stdlib.Vec;
+
 #include <hstd/stdlib/IntSet.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Func.hpp>
@@ -18,6 +18,7 @@ import hstd.stdlib.Vec;
 #include <unordered_map>
 #include <functional>
 
+import hstd.stdlib.Vec;
 
 namespace astspec {
 struct FieldAccessError : public GetterError {

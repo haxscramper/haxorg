@@ -5,11 +5,9 @@
 #include <hstd/system/macros.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/stdlib/Variant.hpp>
-import hstd.stdlib.Vec;
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <absl/log/check.h>
-
 
 #include <iostream>
 #include <cassert>
@@ -21,6 +19,8 @@ import hstd.stdlib.Vec;
 #include <memory>
 #include <optional>
 #include <vector>
+
+import hstd.stdlib.Vec;
 
 
 #define COUT std::cout << "[\033[33m" << __LINE__ << "\033[0m] "

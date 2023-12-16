@@ -1,5 +1,3 @@
-#pragma once
-
 #include <exporters/ExporterBase.hpp>
 
 template <typename V, typename R>

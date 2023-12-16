@@ -3,12 +3,13 @@
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/IntSet.hpp>
-import hstd.stdlib.Vec;
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Array.hpp>
 
 #include <locale>
 #include <codecvt>
+
+import hstd.stdlib.Vec;
 
 struct TermColorBgFull {
     u8 color;

@@ -6,9 +6,9 @@
 
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Slice.hpp>
-import hstd.stdlib.Vec;
-
 #include <hstd/stdlib/Ptrs.hpp>
+
+import hstd.stdlib.Vec;
 
 template <typename T>
 class RangeTree {

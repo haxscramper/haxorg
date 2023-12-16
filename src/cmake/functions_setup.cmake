@@ -1,36 +1,28 @@
 function(set_target_flags TARGET)
-  add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
-  add_target_property(${TARGET} COMPILE_OPTIONS "-Qunused-arguments")
-  # add_target_property(${TARGET} COMPILE_OPTIONS
-  #                     @${BASE}/scripts/cxx_repository/warning_config.txt)
+    add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
+    add_target_property(${TARGET} COMPILE_OPTIONS "-Qunused-arguments")
+    # add_target_property(${TARGET} COMPILE_OPTIONS
+    #                     @${BASE}/scripts/cxx_repository/warning_config.txt)
 
-  if(${TRACE_INSTRUMENT})
-    add_target_property(${TARGET} COMPILE_OPTIONS -finstrument-functions)
-  endif()
+    if(${TRACE_INSTRUMENT})
+        add_target_property(${TARGET} COMPILE_OPTIONS -finstrument-functions)
+    endif()
 
-  if(${USE_XRAY})
+    if(${USE_XRAY})
 
-  else()
-      add_target_property(${TARGET} COMPILE_OPTIONS "-fuse-ld=mold")
-      add_target_property(${TARGET} LINK_OPTIONS "-fuse-ld=mold")
-  endif()
+    else()
+        add_target_property(${TARGET} COMPILE_OPTIONS "-fuse-ld=mold")
+        add_target_property(${TARGET} LINK_OPTIONS "-fuse-ld=mold")
+    endif()
 
 
-  target_compile_features(${TARGET} PUBLIC cxx_std_23)
+    target_compile_features(${TARGET} PUBLIC cxx_std_23)
 
-  add_target_property(${TARGET} COMPILE_OPTIONS "-ftime-trace")
-  add_target_property(${TARGET} LINK_OPTIONS "-ftime-trace")
+    add_target_property(${TARGET} COMPILE_OPTIONS "-ftime-trace")
+    add_target_property(${TARGET} LINK_OPTIONS "-ftime-trace")
 
-  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     # Avoid getting flooded with compilation errors
     set(CMAKE_CXX_COMPILER clang++)
-#    if(NOT ${MAX_COMPILE_ERRORS} MATCHES ON)
-#        add_target_property(${TARGET} COMPILE_OPTIONS
-#                            "-ferror-limit=${MAX_COMPILE_ERRORS}")
-#    endif()
-
-    # add_target_property(${TARGET} COMPILE_OPTIONS "-v")
-
     # add_target_property(${TARGET} COMPILE_OPTIONS
     #                     "-fdiagnostics-format=sarif")
 
@@ -93,20 +85,6 @@ function(set_target_flags TARGET)
                           -fprofile-instr-generate -fcoverage-mapping)
 
     endif()
-  endif()
-
-  if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
-    # Same configuration option for g++ compiler
-    set(CMAKE_CXX_COMPILER g++)
-    add_target_property(${TARGET} COMPILE_OPTIONS
-                        "-fmax-errors=${MAX_COMPILE_ERRORS}")
-
-    if(${TEST_COVERAGE})
-      target_compile_options(${TARGET} PRIVATE --coverage)
-      target_link_options(${TARGET} PRIVATE -lgcov --coverage)
-    endif()
-
-  endif()
 endfunction()
 
 function(set_common_files TARGET)

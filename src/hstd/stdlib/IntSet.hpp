@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/SetCommon.hpp>
 #include <hstd/system/basic_templates.hpp>
+#include <hstd/system/aux_templates.hpp>
 
 template <typename T, typename InT>
 concept ConvertibleToSet

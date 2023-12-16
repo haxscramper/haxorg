@@ -3,9 +3,9 @@
 #include <hstd/stdlib/charsets.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/stdlib/Str.hpp>
-import hstd.stdlib.Vec;
 #include <sstream>
 
+import hstd.stdlib.Vec;
 
 template <typename T>
 Str join(CR<Str> sep, generator<T>& list) {

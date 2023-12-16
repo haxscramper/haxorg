@@ -4,7 +4,6 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/system/aux_utils.hpp>
 #include <hstd/stdlib/Variant.hpp>
-import hstd.stdlib.Vec;
 #include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Opt.hpp>
@@ -14,6 +13,8 @@ import hstd.stdlib.Vec;
 #include <hstd/stdlib/Str.hpp>
 #include <format>
 #include <absl/log/check.h>
+
+import hstd.stdlib.Vec;
 
 namespace layout {
 

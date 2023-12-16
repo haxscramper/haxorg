@@ -3,7 +3,12 @@ cmake_minimum_required(VERSION 3.28)
 cmake_policy(SET CMP0135 NEW)
 cmake_policy(SET CMP0148 OLD) # or NEW
 cmake_policy(SET CMP0155 NEW)
-set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
+set(CMAKE_CXX_SCAN_FOR_MODULES ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD 26)
+set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 #include(conda_toolchain.cmake)
 
@@ -52,7 +57,6 @@ list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
 include(src/cmake/functions_aux.cmake)
 include(src/cmake/functions_setup.cmake)
 
-option(USE_PCH "Use precompiled headers" ON)
 option(TRACE_INSTRUMENT "Generate instrumentation trace")
 option(TEST_COVERAGE "Enable test coverage")
 option(MAX_COMPILE_ERRORS "Max number of compilation errors before compiler stops")

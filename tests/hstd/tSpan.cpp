@@ -1,7 +1,7 @@
-import hstd.stdlib.Vec;
 #include <hstd/stdlib/Str.hpp>
-
 #include <gtest/gtest.h>
+
+import hstd.stdlib.Vec;
 
 TEST(SpanTest, SpanFromVector) {
     Vec<int>   data{0, 1, 2, 3, 4, 5, 6, 7, 8};

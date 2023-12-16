@@ -1,4 +1,4 @@
-#pragma once
+module;
 
 #include <hstd/system/all.hpp>
 #include <hstd/stdlib/Slice.hpp>
@@ -8,6 +8,9 @@
 #include <vector>
 #include <span>
 
+export module hstd.stdlib.Vec;
+
+export {
 /// \brief Derivation of the standard vector with better API for quick
 /// operations. and added overloads for slicing and backwards indexing.
 ///
@@ -277,3 +280,4 @@ struct std::formatter<std::vector<T>> : std::formatter<std::string> {
 
 template <typename T>
 using CVec = CR<Vec<T>>;
+}

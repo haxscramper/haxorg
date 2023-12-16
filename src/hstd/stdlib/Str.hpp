@@ -1,13 +1,14 @@
 #pragma once
 
-import hstd.stdlib.Vec;
-
 #include <hstd/system/string_convert.hpp>
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Pair.hpp>
 #include <format>
+#include <string>
+
+import hstd.stdlib.Vec;
 
 struct Str : public std::string {
     using std::string::operator[];

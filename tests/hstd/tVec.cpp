@@ -1,5 +1,7 @@
-import hstd.stdlib.Vec;
 #include <gtest/gtest.h>
+#include <hstd/stdlib/BackwardsIndex.hpp>
+
+import hstd.stdlib.Vec;
 
 TEST(BackwardsIndexTest, BackwardsIndexFormat) {
     std::string f1 = std::format("{}", 1_B);

@@ -6,11 +6,12 @@
 #include <memory>
 
 #include <hstd/stdlib/Str.hpp>
-import hstd.stdlib.Vec;
 #include <hstd/stdlib/Opt.hpp>
 
 #include <boost/describe.hpp>
 #include <hstd/system/reflection.hpp>
+
+import hstd.stdlib.Vec;
 
 using json   = nlohmann::json;
 namespace ns = nlohmann;

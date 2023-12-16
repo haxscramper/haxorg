@@ -1,5 +1,4 @@
 #include <hstd/wrappers/textlayouter.hpp>
-import hstd.stdlib.Vec;
 #include <boost/stacktrace.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #undef slots
@@ -8,6 +7,8 @@ import hstd.stdlib.Vec;
 #include <hstd/stdlib/algorithms.hpp>
 
 #include <py_type_casters.hpp>
+
+import hstd.stdlib.Vec;
 
 using namespace layout;
 

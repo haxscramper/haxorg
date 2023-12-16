@@ -1,3 +1,4 @@
+#include <hstd/system/aux_templates.hpp>
 #include <gtest/gtest.h>
 #include <string>
 #include <absl/log/log.h>

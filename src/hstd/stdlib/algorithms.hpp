@@ -1,7 +1,5 @@
 #pragma once
 
-import hstd.stdlib.Vec;
-
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Opt.hpp>
@@ -9,6 +7,7 @@ import hstd.stdlib.Vec;
 #include <hstd/system/generator.hpp>
 #include <hstd/stdlib/Pair.hpp>
 
+import hstd.stdlib.Vec;
 
 /// \brief In-place reverse of the vector content
 template <typename T>

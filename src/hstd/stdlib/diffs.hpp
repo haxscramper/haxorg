@@ -3,13 +3,16 @@
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/algorithms.hpp>
-import hstd.stdlib.Vec;
+
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Span.hpp>
 
 #include <hstd/system/reflection.hpp>
+
+import hstd.stdlib.Vec;
 
 using std::operator""s;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-import hstd.stdlib.Vec;
+
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Time.hpp>
 #include <hstd/stdlib/Opt.hpp>
@@ -18,6 +18,7 @@ import hstd.stdlib.Vec;
 //#include <sem/SemOrgTypes_old.hpp>
 #include <sem/SemOrgTypes.hpp>
 
+import hstd.stdlib.Vec;
 
 #define EACH_ORG_NESTED_TYPE(__IMPL)                                      \
     __IMPL(sem::Code::Switch)                                             \

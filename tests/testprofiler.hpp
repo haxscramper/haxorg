@@ -1,9 +1,10 @@
 #pragma once
 
 #include <string>
-import hstd.stdlib.Vec;
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/system/macros.hpp>
+
+import hstd.stdlib.Vec;
 
 struct TestProfiler {
     std::string xray_path;

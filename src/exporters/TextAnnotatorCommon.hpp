@@ -1,8 +1,9 @@
 #pragma once
 
-import hstd.stdlib.Vec;
 #include <sem/SemOrg.hpp>
 #include <hstd/system/aux_utils.hpp>
+
+import hstd.stdlib.Vec;
 
 struct OrgText {
     struct Word {
