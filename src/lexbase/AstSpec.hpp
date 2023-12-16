@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <hstd/stdlib/IntSet.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Func.hpp>

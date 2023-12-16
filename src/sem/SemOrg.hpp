@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Time.hpp>
 #include <hstd/stdlib/Opt.hpp>

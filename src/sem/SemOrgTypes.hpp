@@ -1,4 +1,5 @@
 /* clang-format off */
+
 #pragma once
 #include <sem/SemOrgEnums.hpp>
 #include <hstd/stdlib/Variant.hpp>
