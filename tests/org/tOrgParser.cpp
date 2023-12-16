@@ -21,7 +21,7 @@ struct MockParser {
         }
     }
 
-    void         add(OrgTokenKind k) { tokens.add(OrgToken(k)); }
+    void         add(OrgTokenKind k) { (void)tokens.add(OrgToken(k)); }
     OrgNode&     operator[](int idx) { return nodes.at(OrgId(idx)); }
     Vec<OrgNode> flat() const {
         Vec<OrgNode> res;
@@ -78,7 +78,7 @@ TEST_F(ParserTest, ParseSingleTimeEntry) {
         {otk::InactiveTimeBegin,
          otk::StaticTimeDatePart,
          otk::InactiveTimeEnd});
-    p.parser->parseTimeStamp(p.lex);
+    (void)p.parser->parseTimeStamp(p.lex);
     EXPECT_EQ(p[0], tok(org::StaticInactiveTime, 0));
 }
 

@@ -10,31 +10,7 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/diffs.hpp>
 
-namespace YAML {
-template <>
-struct convert<BaseFill> {
-    static Node encode(BaseFill const& str) {
-        Node result;
-        result["text"] = str.text;
-        result["line"] = str.line;
-        result["col"]  = str.col;
-        return result;
-    }
-    static bool decode(Node const& in, BaseFill& out) { return true; }
-};
 
-template <>
-struct convert<OrgFill> {
-    static Node encode(OrgFill const& str) {
-        Node result;
-        if (str.base) {
-            result["base"] = convert<BaseFill>::encode(*str.base);
-        }
-        return result;
-    }
-    static bool decode(Node const& in, OrgFill& out) { return true; }
-};
-} // namespace YAML
 
 
 struct DiffItem {

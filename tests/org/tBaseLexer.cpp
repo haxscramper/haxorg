@@ -71,7 +71,7 @@ TEST(BaseLexTest, WriteOut) {
         Lexer<OrgTokenKind, OrgFill> lex{&target};
         parser.setTraceFile("/tmp/parse_trace.txt");
         parser.TraceState = true;
-        parser.parseFull(lex);
+        (void)parser.parseFull(lex);
     }
     {
         sem::ContextStore context;

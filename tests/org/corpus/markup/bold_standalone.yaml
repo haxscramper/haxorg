@@ -1,3 +1,5 @@
 lexImplName: "Paragraph"
 parseImplName: "TopParagraph"
 source: "*bold*"
+debug:
+  doLex: false

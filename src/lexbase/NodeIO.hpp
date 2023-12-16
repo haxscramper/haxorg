@@ -126,36 +126,21 @@ NodeGroup<N, K, V> fromFlatNodes(CR<yaml> node) {
 template <typename K, typename V>
 TokenGroup<K, V> fromFlatTokens(CR<yaml> node, Str& buf) {
     TokenGroup<K, V> result;
-    assert(false);
-    // TODO
-    //    result.tokens.resize(node.size());
-    //    int bufferSize = 0;
-    //    for (const auto& it : node) {
-    //        if (it["str"]) {
-    //            bufferSize += it["str"].as<QString>().size();
-    //        }
-    //    }
+    result.tokens.resize(node.size());
+    int index = 0;
+    for (const auto& it : node) {
+        auto start         = buf.size();
+        auto id            = TokenId<K, V>(index);
+        result.at(id).kind = enum_serde<K>::from_string(
+                                 it["kind"].as<Str>())
+                                 .value();
 
-    //    buf.reserve(bufferSize);
-    //    auto data = buf.data();
+        if (it["value"]) {
+            result.at(id).value = it["value"].as<V>();
+        }
 
-    //    int index = 0;
-    //    for (const auto& it : node) {
-    //        auto start         = buf.size();
-    //        auto id            = TokenId<K>(index);
-    //        result.at(id).kind = enum_serde<K>::from_string(
-    //                                 it["kind"].as<QString>())
-    //                                 .value();
-
-    //        if (it["str"]) {
-    //            QString str = it["str"].as<QString>();
-    //            buf += str;
-    //            result.at(id).text = QStringView(data + start,
-    //            str.size());
-    //        }
-
-    //        ++index;
-    //    }
+        ++index;
+    }
 
     return result;
 }

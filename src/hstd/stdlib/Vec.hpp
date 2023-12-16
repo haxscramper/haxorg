@@ -107,6 +107,7 @@ class Vec : public std::vector<T> {
 
     /// \brief Check if vector has enough elements to access index \arg idx
     bool has(int idx) const { return 0 <= idx && idx < size(); }
+    bool has(BackwardsIndex idx) const { return has(size() - idx.value); }
 
     /// \brief Access span of elements in mutable vector
     template <typename A, typename B>
@@ -142,6 +143,17 @@ class Vec : public std::vector<T> {
         }
     }
 
+    /// \brief Get reference wrapper to a value at specified index or empty
+    /// option if the index is out of range
+    std::optional<Rw<T>> get(BackwardsIndex idx) {
+        return get(index(idx));
+    }
+
+    /// \brief Overload for constant vector
+    std::optional<CRw<T>> get(BackwardsIndex idx) const {
+        return get(index(idx));
+    }
+
     template <typename A, typename B>
     Span<T> operator[](CR<HSlice<A, B>> s) {
 #ifdef DEBUG
@@ -160,21 +172,19 @@ class Vec : public std::vector<T> {
 #endif
     }
 
+    int index(BackwardsIndex idx) const {
+        return this->size() - idx.value;
+    }
+
     /// \brief Access vector value using backwards index, identical to
     /// `size() - <index value>`
-    T& operator[](BackwardsIndex idx) {
-        return (*this)[this->size() - idx.value];
-    }
+    T& operator[](BackwardsIndex idx) { return (*this)[index(idx)]; }
 
     /// \brief 'at' operation for accessing value using backwards indexing,
     /// recommended for use as it unconiditionally does the bound checking
-    T& at(BackwardsIndex idx) {
-        return this->at(this->size() - idx.value);
-    }
+    T& at(BackwardsIndex idx) { return this->at(index(idx)); }
 
-    T const& at(BackwardsIndex idx) const {
-        return this->at(this->size() - idx.value);
-    }
+    T const& at(BackwardsIndex idx) const { return this->at(index(idx)); }
 
     void failEmpty() const {
         if (empty()) {

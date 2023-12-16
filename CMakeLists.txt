@@ -90,7 +90,6 @@ target_include_directories(lager_lib INTERFACE "${DEPS_DIR}/lager")
 
 add_subdirectory("${DEPS_DIR}/fuzztest")
 add_subdirectory("${DEPS_DIR}/pybind11")
-add_subdirectory("${DEPS_DIR}/benchmark")
 
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)

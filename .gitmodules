@@ -25,6 +25,3 @@
 [submodule "thirdparty/perfetto"]
 	path = thirdparty/perfetto
 	url = https://android.googlesource.com/platform/external/perfetto
-[submodule "thirdparty/benchmark"]
-	path = thirdparty/benchmark
-	url = https://github.com/google/benchmark.git

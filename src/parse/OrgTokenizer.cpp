@@ -1,5 +1,3 @@
-#pragma once
-
 #include "OrgTokenizer.hpp"
 
 #include <hstd/stdlib/algorithms.hpp>
@@ -8,15 +6,7 @@
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
-
-#include "OrgTokenizerMacros.hpp"
-
-#include <range/v3/all.hpp>
-
-namespace rv = ranges::views;
-namespace rs = ranges;
-using ranges::operator|;
-
+#include <hstd/stdlib/Ranges.hpp>
 
 using ock = OrgCommandKind;
 using otk = OrgTokenKind;
@@ -37,7 +27,12 @@ auto in_set(T const& value, Args&&... args) -> bool {
     return set.contains(value);
 }
 
-DECL_DESCRIBED_ENUM_STANDALONE(State, None, Paragraph, RawMonospace);
+DECL_DESCRIBED_ENUM_STANDALONE(
+    State,
+    None,
+    Paragraph,
+    RawMonospace,
+    Subtree);
 DECL_DESCRIBED_ENUM_STANDALONE(
     MarkKind,
     Bold,
@@ -230,6 +225,68 @@ struct RecombineState {
     }
 
 
+    const IntSet<BaseTokenKind> tree_tags{
+        obt::Colon,
+        obt::Word,
+        obt::DoubleHash,
+    };
+
+    const IntSet<BaseTokenKind> line_end{
+        obt::Newline,
+        obt::MediumNewline,
+        obt::LongNewline,
+        obt::EndOfFile,
+    };
+
+
+    void map_open_brace() {
+        if (lex.hasNext(-1)) {
+            switch (lex.tok(-1).kind) {
+                case obt::HashIdent: pop_as(otk::HashTagOpen); break;
+                default: pop_as(otk::Punctuation);
+            }
+            // } else if (lex.at(obt::BraceOpen, +1)) {
+
+        } else {
+            pop_as(otk::Punctuation);
+        }
+    }
+
+    void map_colon() {
+        auto const& state_1 = state.get(1_B);
+        auto const& state_2 = state.get(2_B);
+        if (state_1 && state_2 && state_1.value() == State::Paragraph
+            && state_2.value() == State::Subtree) {
+
+
+            auto ahead = lex.whole_fixed().range()
+                       | rv::take_while([&](BaseToken const& t) -> bool {
+                             return tree_tags.contains(t.kind);
+                         })
+                       | rs::to<std::vector>;
+
+            LOG(INFO) << fmt("Tokens ahead for subtree {}", ahead);
+
+            if (line_end.contains((lex.begin() + ahead.size())->kind)) {
+                while (!line_end.contains(lex.kind())) {
+                    switch (lex.kind()) {
+                        case obt::Colon:
+                            pop_as(otk::SubtreeTagSeparator);
+                            break;
+                        case obt::Word: pop_as(otk::HashTag); break;
+                        case obt::DoubleHash: pop_as(otk::HashTag); break;
+                        default:
+                    }
+                }
+            } else {
+                pop_as(otk::Colon);
+            }
+
+        } else {
+            pop_as(otk::Colon);
+        }
+    }
+
     void map_interpreted_token() {
         BaseTokenId        start = lex.pos;
         BaseToken const&   tok   = lex.tok();
@@ -243,6 +300,11 @@ struct RecombineState {
             direct(obt::Newline, otk::Newline);
             direct(obt::Comment, otk::Comment);
             direct(obt::HashIdent, otk::HashTag);
+
+            case obt::Colon: {
+                map_colon();
+                break;
+            }
 
             case obt::ForwardSlash:
             case obt::Equals:
@@ -307,16 +369,8 @@ struct RecombineState {
             }
 
             case obt::BraceOpen: {
-                if (lex.hasNext(-1)) {
-                    switch (lex.tok(-1).kind) {
-                        case obt::HashIdent:
-                            pop_as(otk::HashTagOpen);
-                            break;
-                        default: pop_as(otk::Punctuation);
-                    }
-                } else {
-                    pop_as(otk::Punctuation);
-                }
+                map_open_brace();
+                break;
             }
 
             case obt::SubtreeStars: {
@@ -327,12 +381,13 @@ struct RecombineState {
             default: {
                 DLOG(ERROR) << std::format(
                     "Unhanled kind for token conversion, got {}:{} {} "
-                    "\"{}\", top state was {}",
+                    "\"{}\", top state was {}, lexer context {}",
                     val.line,
                     val.col,
                     lex.kind(),
                     val.text,
-                    state_top());
+                    state_top(),
+                    lex);
                 lex.next();
             }
         }
@@ -358,11 +413,15 @@ struct RecombineState {
                 "text '{}' at id {} with no movement. This is a bug in "
                 "the implementation -- we iterated over baseline tokens, "
                 "but did not find where to map the item to. The current "
-                "conversion state top is {}",
+                "conversion state top is {} and the lexer was {}",
                 lex.kind(),
                 val.text,
                 lex.pos.format(),
-                state_top());
+                state_top(),
+                lex.printToString([](ColStream& os, BaseToken const& t) {
+                    os << os.yellow() << escape_for_write(t.value.text)
+                       << os.end();
+                }));
         }
     }
 };

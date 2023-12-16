@@ -113,9 +113,9 @@ owning_range<T> own_view(T&& gen) {
 
 
 template <class Rng>
-struct transform_view
+struct collector_view
     : public rs::
-          view_interface<transform_view<Rng>, rs::cardinality::finite> {
+          view_interface<collector_view<Rng>, rs::cardinality::finite> {
 
     using Collected      = std::vector<rs::range_value_t<Rng>>;
     using iterator       = typename Collected::iterator;
@@ -141,8 +141,8 @@ struct transform_view
         return *this;
     }
 
-    transform_view() = default;
-    transform_view(Rng&& rng) {
+    collector_view() = default;
+    collector_view(Rng&& rng) {
         for (auto const& it : rng) {
             values.push_back(it);
         }
@@ -151,7 +151,7 @@ struct transform_view
 };
 
 template <class Rng>
-transform_view<Rng> transform(Rng&& rng) {
+collector_view<Rng> transform(Rng&& rng) {
     return {std::forward<Rng>(rng)};
 }
 

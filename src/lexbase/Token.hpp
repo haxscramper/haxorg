@@ -14,6 +14,7 @@
 #include <format>
 
 #include <lexbase/Errors.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 template <typename K, typename V>
 struct Token;
@@ -261,9 +262,9 @@ struct LexerCommon {
     using iterator       = typename TokenGroup<K, V>::iterator;
     using const_iterator = typename TokenGroup<K, V>::const_iterator;
 
-    iterator       begin() { return in->iterator(this->pos); }
+    iterator       begin() { return in->pos_iterator(this->pos); }
     iterator       end() { return in->end(); }
-    const_iterator begin() const { return in->iterator(this->pos); }
+    const_iterator begin() const { return in->pos_iterator(this->pos); }
     const_iterator end() const { return in->end(); }
 
     struct WholeTmp {
@@ -307,6 +308,22 @@ struct LexerCommon {
         const iterator rcurrent() const {
             return __this()->in->riterator(
                 currentPos ? *currentPos : _this->pos);
+        }
+
+        rs::subrange<iterator> range() {
+            return rs::subrange(begin(), end());
+        }
+
+        rs::subrange<const_iterator> range() const {
+            return rs::subrange(begin(), end());
+        }
+
+        rs::subrange<iterator> rrange() {
+            return rs::subrange(rbegin(), rend());
+        }
+
+        rs::subrange<const_iterator> rrange() const {
+            return rs::subrange(rbegin(), rend());
         }
     };
 
@@ -538,11 +555,10 @@ struct LexerCommon {
 template <typename K, typename V>
 struct std::formatter<LexerCommon<K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iteartor format(
+    FormatContext::iterator format(
         const LexerCommon<K, V>& p,
         FormatContext&           ctx) const {
-        std::formatter<std::string> fmt;
-        return fmt.format(
+        return fmt_ctx(
             p.printToString([](ColStream&, Token<K, V> const&) {}), ctx);
     }
 };
@@ -597,7 +613,7 @@ struct Lexer : public LexerCommon<K, V> {
     }
 
     bool hasNext(int offset = 1) const override {
-        if (pos.isNil()) {
+        if (pos.isNil() || (pos + offset).isNil()) {
             return false;
         } else {
             auto idx = (pos + offset).getIndex();
