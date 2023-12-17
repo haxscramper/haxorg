@@ -185,27 +185,24 @@ struct RecombineState {
                     default: break;
                 }
 
-                if (prev && next) {
-                    if (prev->kind == obt::Whitespace
-                        && next->kind == obt::Word) {
-                        mark_toggle(mark, open);
-                    } else if (
-                        prev->kind == obt::Word
-                        && in_set(
-                            next->kind, obt::Asterisk, obt::Whitespace)) {
-                        mark_toggle(mark, close);
-                    } else {
-                        LOG(INFO) << fmt("prev={} next={}", prev, next);
-                    }
+                IntSet<BaseTokenKind> EmptyToken{
+                    obt::Whitespace,
+                    obt::EndOfFile,
+                    obt::Newline,
+                    obt::MediumNewline,
+                    obt::LongNewline,
+                    obt::AnyPunct,
+                };
 
-                } else if (!prev) {
-                    mark_push(mark, open);
+                bool prev_empty = !prev || EmptyToken.contains(prev->kind);
+                bool next_empty = !next || EmptyToken.contains(next->kind);
 
-                } else if (!next) {
-                    mark_push(mark, close);
-
+                if (prev_empty && !next_empty) {
+                    mark_toggle(mark, open);
+                } else if (!prev_empty && next_empty) {
+                    mark_toggle(mark, close);
                 } else {
-                    LOG(WARNING) << "Not mapped markup recombination";
+                    pop_as(otk::Punctuation);
                 }
 
                 break;
@@ -287,6 +284,20 @@ struct RecombineState {
         }
     }
 
+    void maybe_paragraph_start() {
+        if (state_top() == State::None) {
+            (void)add_fake(otk::ParagraphStart);
+            state_push(State::Paragraph);
+        }
+    }
+
+    void maybe_paragraph_end() {
+        if (state_top() == State::Paragraph) {
+            (void)add_fake(otk::ParagraphEnd);
+            state_pop();
+        }
+    }
+
     void map_interpreted_token() {
         BaseTokenId        start = lex.pos;
         BaseToken const&   tok   = lex.tok();
@@ -309,6 +320,7 @@ struct RecombineState {
             case obt::ForwardSlash:
             case obt::Equals:
             case obt::Asterisk: {
+                maybe_paragraph_start();
                 recombine_markup();
                 break;
             }
@@ -349,21 +361,13 @@ struct RecombineState {
             }
 
             case obt::Word: {
-                if (state_top() == State::None) {
-                    (void)add_fake(otk::ParagraphStart);
-                    state_push(State::Paragraph);
-                }
-
+                maybe_paragraph_start();
                 pop_as(otk::Word);
                 break;
             }
 
             case obt::MediumNewline: {
-                if (state_top() == State::Paragraph) {
-                    (void)add_fake(otk::ParagraphEnd);
-                    state_pop();
-                }
-
+                maybe_paragraph_end();
                 pop_as(otk::SkipNewline);
                 break;
             }

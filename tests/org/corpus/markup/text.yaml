@@ -28,9 +28,13 @@ items:
                   text: "bold"
 
   - source: "/italic/"
-    debug:
-      doParse: false
-      doLex: false
+    tokens:
+      - {kind: ParagraphStart}
+      - {kind: ItalicOpen, str: "/"}
+      - {kind: Word, str: "italic"}
+      - {kind: ItalicClose, str: "/"}
+      - {kind: ParagraphEnd}
+
   - source: "[[link][description]]"
     debug:
       doParse: false

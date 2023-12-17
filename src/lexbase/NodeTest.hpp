@@ -120,8 +120,6 @@ struct ParseSpec {
         /// Name of the method to call for lexing or parsing. Pointer to
         /// implementation is resolved externally, spec file just contains
         /// the required name.
-        ((Str), lexImplName, ""),
-        ((Str), parseImplName, ""),
         ((Opt<std::string>), file, std::nullopt),
         ((Dbg), debug, Dbg{}),
         ((Conf), conf, Conf{}),

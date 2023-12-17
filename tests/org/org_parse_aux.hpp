@@ -20,7 +20,21 @@ struct convert<BaseFill> {
         result["col"]  = str.col;
         return result;
     }
-    static bool decode(Node const& in, BaseFill& out) { return true; }
+    static bool decode(Node const& in, BaseFill& out) {
+        if (in["text"]) {
+            out.text = in["text"].as<Str>();
+        }
+
+        if (in["line"]) {
+            out.line = in["line"].as<int>();
+        }
+
+        if (in["col"]) {
+            out.col = in["col"].as<int>();
+        }
+
+        return true;
+    }
 };
 
 template <>
@@ -32,8 +46,36 @@ struct convert<OrgFill> {
         }
         return result;
     }
-    static bool decode(Node const& in, OrgFill& out) { return true; }
+    static bool decode(Node const& in, OrgFill& out) {
+        if (in["str"]) {
+            out.base = BaseFill{.text = in["str"].as<Str>()};
+        } else if (in["base"]) {
+            out.base = in["base"].as<BaseFill>();
+        }
+        return true;
+    }
 };
+
+template <>
+struct convert<OrgToken> {
+    static Node encode(OrgToken const& str) {
+        Node result;
+        result["kind"] = fmt1(str.kind);
+        result["str"]  = str->base->text;
+        return result;
+    }
+    static bool decode(Node const& in, OrgToken& out) {
+        LOG(INFO) << fmt1(in);
+        if (in["str"]) {
+            out->base = BaseFill{.text = in["str"].as<Str>()};
+        }
+        out.kind = enum_serde<OrgTokenKind>::from_string(
+                       in["kind"].as<std::string>())
+                       .value();
+        return true;
+    }
+};
+
 } // namespace YAML
 
 

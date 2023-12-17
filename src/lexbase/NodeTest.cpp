@@ -225,31 +225,11 @@ ParseSpecGroup::ParseSpecGroup(
     CR<yaml>        node,
     CR<std::string> from,
     CR<std::string> testRoot) {
-    auto validate = [&](CR<ParseSpec> spec) {
-        if (spec.parseImplName.empty() || spec.lexImplName.empty()) {
-            throw ParseSpec::SpecValidationError(
-                "$# function name missing from specifiction "
-                "-- must be provided as `$#` in either "
-                "specific parser test case on toplevel of the "
-                "test file or in specific test in $#"
-                % to_string_vec(
-                    spec.parseImplName.empty() ? "Parser" : "Lexer",
-                    spec.parseImplName.empty() ? "lex" : "parse",
-                    from));
-        }
-    };
+    auto validate = [&](CR<ParseSpec> spec) {};
     if (node["items"]) {
         if (node["items"].IsSequence()) {
             for (const auto& it : node["items"]) {
                 auto spec = ParseSpec(it, from, testRoot);
-
-                if (spec.lexImplName.empty() && node["lex"]) {
-                    spec.lexImplName = node["lex"].as<std::string>();
-                }
-
-                if (spec.parseImplName.empty() && node["parse"]) {
-                    spec.parseImplName = node["parse"].as<std::string>();
-                }
 
                 validate(spec);
 

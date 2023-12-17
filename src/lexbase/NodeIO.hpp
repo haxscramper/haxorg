@@ -60,17 +60,42 @@ json jsonRepr(CR<NodeGroup<N, K, V>> group, bool withStrings = true) {
     return out;
 }
 
+namespace YAML {
+
+template <typename K, typename V>
+struct convert<typename ::Token<K, V>> {
+    static Node encode(typename ::Token<K, V> const& str) {
+        Node result;
+        result["kind"] = fmt1(str.kind);
+        result["str"]  = str.value;
+
+
+        return result;
+    }
+
+    static bool decode(Node const& in, typename ::Token<K, V>& out) {
+        out.kind = enum_serde<K>::from_string(in["kind"].as<Str>())
+                       .value();
+
+        if (in["value"]) {
+            out.value = in["value"].as<V>();
+        }
+
+        return true;
+    }
+};
+} // namespace YAML
+
 template <typename K, typename V>
 yaml yamlRepr(
     TokenId<K, V> const& id,
     Token<K, V> const&   token,
     bool                 withIdx = false) {
-    yaml item;
+    yaml item = YAML::convert<Token<K, V>>::encode(token);
     if (withIdx) {
         item["idx"] = id.getIndex();
     }
-    item["kind"] = fmt1(token.kind);
-    item["str"]  = token.value;
+
     item.SetStyle(YAML::EmitterStyle::Flow);
     return item;
 }
@@ -129,16 +154,9 @@ TokenGroup<K, V> fromFlatTokens(CR<yaml> node, Str& buf) {
     result.tokens.resize(node.size());
     int index = 0;
     for (const auto& it : node) {
-        auto start         = buf.size();
-        auto id            = TokenId<K, V>(index);
-        result.at(id).kind = enum_serde<K>::from_string(
-                                 it["kind"].as<Str>())
-                                 .value();
-
-        if (it["value"]) {
-            result.at(id).value = it["value"].as<V>();
-        }
-
+        auto start    = buf.size();
+        auto id       = TokenId<K, V>(index);
+        result.at(id) = it.as<Token<K, V>>();
         ++index;
     }
 

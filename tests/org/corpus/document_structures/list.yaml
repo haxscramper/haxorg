@@ -4,7 +4,8 @@ expected: "Flat"
 items:
   - source: "- item"
     name: "Single item"
-    debug.doParse: false
+    debug:
+      doParse: false
     tokens:
       - {kind: ListStart}
       - {kind: ListItemStart, str: "-"}
@@ -18,7 +19,8 @@ items:
       - {kind: ListEnd}
 
   - name: "List with two items"
-    debug.doParse: false
+    debug:
+      doParse: false
     source: |
       - Item1
       - Item2
@@ -54,7 +56,8 @@ items:
       - {kind: ListEnd}
 
   - name: "List with two adjacent items, first one is multiline"
-    debug.doParse: false
+    debug:
+      doParse: false
     source: |
       - Item1
         Line1
@@ -93,7 +96,8 @@ items:
       - {kind: ListItemEnd}
       - {kind: ListEnd}
   - name: "Nested list with two items"
-    debug.doParse: false
+    debug:
+      doParse: false
     source: |
       - Item1
         - Nested1
@@ -161,7 +165,8 @@ items:
       # End of the whole list
       - {kind: ListEnd}
   - name: "List with space in the nested content"
-    debug.doParse: false
+    debug:
+      doParse: false
     source: |
       - Item1
         - Nested1
@@ -209,7 +214,8 @@ items:
       - {kind: Dedent}
       - {kind: ListEnd}
   - name: "List with unindented source code block"
-    debug.doParse: false
+    debug:
+      doParse: false
     source: |
       - Item1
         #+begin_src nim
@@ -259,7 +265,8 @@ items:
       - {kind: ListEnd}
 
   - name: "Indent and dedent long list"
-    debug.doParse: false
+    debug:
+      doParse: false
     source: |
         - item1
         - item2
@@ -437,7 +444,8 @@ items:
       - {kind: ListEnd}
 
   - name: "Indent and dedent long list, subset"
-    debug.doParse: false
+    debug:
+      doParse: false
     conf:
       tokenMatch: "ExpectedSubset"
     # debug:

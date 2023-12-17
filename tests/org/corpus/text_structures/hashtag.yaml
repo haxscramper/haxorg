@@ -1,11 +1,13 @@
-lex: "Text"
 items:
   - source: "#test##a"
-    debug.doParse: false
+    debug:
+      doParse: false
   - source: "#test##[a, b]"
-    debug.doParse: false
+    debug:
+      doParse: false
   - source: "#test"
-    debug.doParse: false
+    debug:
+      doParse: false
     subnodes:
       - {kind: HashTag, extent: 1}
       - {kind: RawText, tok_idx: 0, str: "#test"}

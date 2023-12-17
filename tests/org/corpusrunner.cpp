@@ -11,8 +11,6 @@
 #include <hstd/stdlib/diffs.hpp>
 
 
-
-
 struct DiffItem {
     DECL_DESCRIBED_ENUM(Op, Replace, Remove, Add);
     Op          op;
@@ -756,9 +754,13 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         }
 
         if (spec.debug.printLexed) {
-            writeFile(
-                spec.debugFile("lexed.yaml"),
-                std::format("{}", yamlRepr(p.tokens)) + "\n");
+            auto content = std::format("{}", yamlRepr(p.tokens));
+
+            if (spec.debug.printLexedToFile) {
+                writeFile(spec.debugFile("lexed.yaml"), content + "\n");
+            } else {
+                std::cout << content << std::endl;
+            }
         }
 
         if (spec.tokens.has_value()) {
