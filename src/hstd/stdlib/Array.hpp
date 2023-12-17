@@ -1,4 +1,4 @@
-#pragma once
+export module hstd.stdlib.Array;
 
 import hstd.stdlib.Slice;
 import hstd.stdlib.Map;
@@ -6,8 +6,11 @@ import hstd.system.all;
 import hstd.system.generator;
 import hstd.system.string_convert;
 import hstd.system.Formatter;
+import std_span;
+import hstd.stdlib.BackwardsIndex;
+import hstd.stdlib.Pair;
 
-
+export {
 template <typename T, int Size>
 struct Array : std::array<T, Size> {
     using std::array<T, Size>::array; // Inherit constructor
@@ -134,3 +137,4 @@ struct std::formatter<Array<T, Size>, CharT> : Fmt<std::string, CharT> {
         return fmt.format("]", ctx);
     }
 };
+}
