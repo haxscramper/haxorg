@@ -1,7 +1,7 @@
 module hstd.stdlib.Filesystem;
-import std_filesystem;
-import std_fstream;
-import std_iostream;
+import std;
+import std;
+import std;
 
 
 void writeFile(const fs::path& target, const std::string& content) {

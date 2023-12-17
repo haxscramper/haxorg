@@ -1,5 +1,5 @@
 export module hstd.system.Formatter;
-export import std_format;
+export import std;
 
 export {
 template <typename T, typename CharT>

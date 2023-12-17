@@ -6,7 +6,7 @@ import hstd.system.all;
 import hstd.system.generator;
 import hstd.system.string_convert;
 import hstd.system.Formatter;
-import std_span;
+import std;
 import hstd.stdlib.BackwardsIndex;
 import hstd.stdlib.Pair;
 

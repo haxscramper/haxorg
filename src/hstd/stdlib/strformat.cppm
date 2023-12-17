@@ -2,10 +2,10 @@ export module hstd.stdlib.strformat;
 
 import hstd.stdlib.sequtils;
 import hstd.system.all;
-import std_string;
-import std_vector;
+import std;
+import std;
 import hstd.stdlib.Pair;
-import std_format;
+import std;
 
 export {
 enum class AddfFragmentKind

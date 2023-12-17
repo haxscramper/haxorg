@@ -8,7 +8,7 @@ import hstd.system.generator;
 import hstd.stdlib.Pair;
 
 import hstd.stdlib.Vec;
-import std_algorithm;
+import std;
 import hstd.system.basic_typedefs;
 import hstd.stdlib.Slice;
 

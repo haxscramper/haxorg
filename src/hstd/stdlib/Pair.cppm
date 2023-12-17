@@ -3,7 +3,7 @@ module;
 #include <boost/container_hash/hash.hpp>
 
 export module hstd.stdlib.Pair;
-export import std_utility;
+export import std;
 
 export {
 template <typename A, typename B>

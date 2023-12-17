@@ -1,9 +1,9 @@
 export module hstd.system.basic_templates;
 
 import hstd.system.basic_typedefs;
-import std_type_traits;
-import std_concepts;
-import std_cmath;
+import std;
+import std;
+import std;
 
 export {
 /// \brief get next value

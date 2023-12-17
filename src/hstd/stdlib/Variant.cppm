@@ -5,7 +5,7 @@ import hstd.system.basic_templates;
 import hstd.system.Formatter;
 import boost.mp11;
 
-export import std_variant;
+export import std;
 
 export {
 template <typename... Types>

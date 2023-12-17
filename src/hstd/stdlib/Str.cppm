@@ -6,9 +6,9 @@ import hstd.stdlib.Slice;
 import hstd.stdlib.Span;
 import hstd.stdlib.Pair;
 import hstd.stdlib.Vec;
-export import std_string;
+export import std;
 import hstd.stdlib.BackwardsIndex;
-import std_format;
+import std;
 
 export {
 struct Str : public std::string {

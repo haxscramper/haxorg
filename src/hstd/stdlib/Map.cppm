@@ -3,8 +3,8 @@ export module hstd.stdlib.Map;
 import hstd.system.Formatter;
 import hstd.system.generator;
 import hstd.system.all;
-import std_map;
-import std_unordered_map;
+import std;
+import std;
 
 export {
 template <typename Map, typename K, typename V>

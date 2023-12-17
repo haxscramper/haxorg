@@ -1,7 +1,7 @@
 export module hstd.system.exceptions;
 
-import std_string;
-import std_exception;
+import std;
+import std;
 
 
 export {

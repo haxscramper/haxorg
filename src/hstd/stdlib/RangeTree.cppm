@@ -7,10 +7,10 @@ import hstd.stdlib.Ptrs;
 import hstd.stdlib.Vec;
 import hstd.system.basic_typedefs;
 import hstd.stdlib.Ptrs;
-import std_iostream;
+import std;
 import hstd.stdlib.BackwardsIndex;
-import std_format;
-import std_sstream;
+import std;
+import std;
 
 export {
 template <typename T>

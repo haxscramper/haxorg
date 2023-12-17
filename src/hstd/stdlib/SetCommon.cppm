@@ -1,7 +1,8 @@
-export hstd.stdlib.SetCommon;
+export module hstd.stdlib.SetCommon;
 
 import hstd.system.all;
 import hstd.stdlib.Slice;
+
 export {
 template <typename Set, typename Val>
 struct SetBase : public CRTP_this_method<Set> {

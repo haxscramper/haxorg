@@ -1,6 +1,6 @@
 export module hstd.stdlib.Opt;
 import hstd.system.Formatter;
-export import std_optional;
+export import std;
 
 export {
 template <typename T>

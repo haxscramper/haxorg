@@ -1,5 +1,5 @@
 module hstd.stdlib.Str;
-import std_sstream;
+import std;
 
 Str Str::dropPrefix(CR<Str> prefix) const {
     if (this->starts_with(prefix)) {

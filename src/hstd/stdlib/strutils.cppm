@@ -4,9 +4,9 @@ import hstd.system.generator;
 import hstd.stdlib.Str;
 import hstd.stdlib.Vec;
 import hstd.system.basic_typedefs;
-import std_string;
-import std_sstream;
-import std_format;
+import std;
+import std;
+import std;
 import hstd.stdlib.Pair;
 import hstd.stdlib.IntSet;
 

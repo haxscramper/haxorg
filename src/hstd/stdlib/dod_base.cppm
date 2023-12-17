@@ -4,12 +4,12 @@ import hstd.system.all;
 import hstd.system.generator;
 import hstd.stdlib.Slice;
 import hstd.stdlib.Vec;
-import std_concepts;
-import std_string;
+import std;
+import std;
 import hstd.system.exceptions;
-import std_span;
-import std_unordered_map;
-import std_format;
+import std;
+import std;
+import std;
 
 export {
 /// \brief Data-oriented design primitives

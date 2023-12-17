@@ -8,7 +8,7 @@ export module hstd.stdlib.Span;
 import hstd.system.all;
 import hstd.stdlib.Slice;
 import hstd.system.string_convert;
-import std_span;
+import std;
 import hstd.stdlib.BackwardsIndex;
 import hstd.system.Formatter;
 

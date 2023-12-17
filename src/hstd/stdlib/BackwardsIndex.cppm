@@ -1,6 +1,6 @@
 export module hstd.stdlib.BackwardsIndex;
-import std_format;
-import std_string;
+import std;
+import std;
 
 export {
 struct BackwardsIndex {

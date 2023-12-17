@@ -1,8 +1,8 @@
 export module hstd.stdlib.Ptrs;
 
 import hstd.system.aux_utils;
-export import std_memory;
-import std_utility;
+export import std;
+import std;
 
 export {
 template <typename T>

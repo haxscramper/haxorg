@@ -11,9 +11,9 @@ module;
 
 export module hstd.system.string_convert; 
 
-import std_type_traits;
-import std_string;
-import std_format;
+import std;
+import std;
+import std;
 import boost.mp11;
 
 export {

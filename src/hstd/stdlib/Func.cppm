@@ -1,6 +1,6 @@
 export module hstd.stdlib.Func;
 
-export import std_functional;
+import std;
 
 export {
 template <typename T>

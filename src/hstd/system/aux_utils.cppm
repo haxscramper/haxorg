@@ -4,7 +4,7 @@ module;
 
 export module hstd.system.aux_utils;
 
-import std_functional;
+import std;
 
 
 export {
