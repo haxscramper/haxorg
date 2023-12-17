@@ -1,12 +1,11 @@
 #pragma once
 
-import std;
 
-import std.system.all;
-import std.stdlib.Slice;
-import std.stdlib.SetCommon;
-import std.system.basic_templates;
-import std.system.aux_templates;
+import hstd.system.all;
+import hstd.stdlib.Slice;
+import hstd.stdlib.SetCommon;
+import hstd.system.basic_templates;
+import hstd.system.aux_templates;
 
 template <typename T, typename InT>
 concept ConvertibleToSet

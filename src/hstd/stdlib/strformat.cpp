@@ -1,5 +1,5 @@
-#include "strformat.hpp"
-import std.stdlib.Slice;
+module hstd.stdlib.strformat;
+import hstd.stdlib.Slice;
 
 void addf(
     std::string&                    s,

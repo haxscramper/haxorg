@@ -1,25 +1,21 @@
-#pragma once
+module;
+import hstd.stdlib.IntSet;
+import hstd.stdlib.ColText;
+import hstd.stdlib.Func;
+import hstd.stdlib.Opt;
+import hstd.stdlib.Map;
+import hstd.stdlib.Array;
+import hstd.system.exceptions;
+import hstd.system.reflection;
+import hstd.stdlib.strutils;
+import hstd.stdlib.algorithms;
+import hstd.stdlib.Set;
+import hstd.system.Formatter;
 
-import std.stdlib.IntSet;
-import std.stdlib.ColText;
-import std.stdlib.Func;
-import std.stdlib.Opt;
-import std.stdlib.Map;
-import std.stdlib.Array;
-import std.system.exceptions;
-import std.system.reflection;
-import std.stdlib.strutils;
-import std.stdlib.algorithms;
-import std.stdlib.Set;
-import std.system.Formatter;
-
-import std;
-import std;
-import std;
 
 import hstd.stdlib.Vec;
 
-namespace astspec {
+export namespace astspec {
 struct FieldAccessError : public GetterError {
     explicit FieldAccessError(const std::string& message)
         : GetterError(message) {}

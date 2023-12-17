@@ -1,8 +1,7 @@
 #pragma once
 
-import std;
-import std.stdlib.Json;
-import std.system.macros;
+import hstd.stdlib.Json;
+import hstd.system.macros;
 
 import hstd.stdlib.Vec;
 

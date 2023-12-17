@@ -1,12 +1,10 @@
 module;
 
-import std.system.all;
-import std.stdlib.Slice;
-import std.stdlib.Span;
-import std.stdlib.sequtils;
+import hstd.system.all;
+import hstd.stdlib.Slice;
+import hstd.stdlib.Span;
+import hstd.stdlib.sequtils;
 
-import std;
-import std;
 
 export module hstd.stdlib.Vec;
 

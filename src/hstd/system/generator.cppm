@@ -1,12 +1,8 @@
-module; 
-
-import std;
-import std;
-import std;
-import std;
-
 export module hstd.system.generator;
 
+import std_optional;
+import std_coroutine;
+import std_exception;
 
 export {
 template <typename T>

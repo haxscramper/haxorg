@@ -163,12 +163,6 @@ def generate_reflex_code(config: Configuration) -> str:
     return """
 
 %top{{
-import std;
-import std;
-import std;
-import std;
-import std;
-import std;
 #include <absl/log/check.h>
 #include "base_token.hpp"
 

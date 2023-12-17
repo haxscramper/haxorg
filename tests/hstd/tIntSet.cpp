@@ -1,5 +1,5 @@
-import std.stdlib.IntSet;
-import std.stdlib.charsets;
+import hstd.stdlib.IntSet;
+import hstd.stdlib.charsets;
 #include <gtest/gtest.h>
 #include <fuzztest/fuzztest.h>
 #include <absl/log/log.h>

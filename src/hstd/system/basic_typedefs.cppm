@@ -1,8 +1,8 @@
 module;
 
-import std;
-import std;
-import std;
+import std_string;
+import std_type_traits;
+import std_concepts;
 
 export module hstd.system.basic_typedefs;
 

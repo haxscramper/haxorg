@@ -2,8 +2,8 @@
 
 import org.parse.OrgTypes;
 import org.parse.OrgTokenizer;
-import std.stdlib.sequtils;
-import std.stdlib.Ptrs;
+import hstd.stdlib.sequtils;
+import hstd.stdlib.Ptrs;
 
 import org.lexbase.TraceBase;
 

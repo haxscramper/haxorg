@@ -1,18 +1,19 @@
-#pragma once
+module;
 
 #include <nlohmann/json.hpp>
-import std;
-import std;
-import std;
-
-import std.stdlib.Str;
-import std.stdlib.Opt;
-
 #include <boost/describe.hpp>
-import std.system.reflection;
+
+
+import hstd.stdlib.Str;
+import hstd.stdlib.Opt;
+
+import hstd.system.reflection;
 
 import hstd.stdlib.Vec;
 
+export module hstd.stdlib.Json;
+
+export {
 using json   = nlohmann::json;
 namespace ns = nlohmann;
 
@@ -145,4 +146,5 @@ inline void to_json(json& res, std::unique_ptr<T> const& value) {
     } else {
         res = json();
     }
+}
 }

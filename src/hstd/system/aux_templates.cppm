@@ -1,8 +1,10 @@
-#pragma once
+module;
 
 #include <experimental/type_traits>
 
 export module hstd.system.aux_templates;
+
+import hstd.system.basic_typedefs;
 
 export {
 template <int N, int M>

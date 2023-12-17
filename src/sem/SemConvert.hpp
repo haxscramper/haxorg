@@ -1,7 +1,7 @@
 #pragma once
 
 import org.sem.SemOrg;
-import std.stdlib.Ptrs;
+import hstd.stdlib.Ptrs;
 import org.parse.OrgParser;
 import org.parse.OrgSpec;
 

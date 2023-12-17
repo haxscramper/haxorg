@@ -1,9 +1,9 @@
 import std.wrappers.textlayouter;
-import std.stdlib.Str;
-import std.stdlib.strutils;
-import std.stdlib.Debug;
-import std.stdlib.Ranges;
-import std.stdlib.strformat;
+import hstd.stdlib.Str;
+import hstd.stdlib.strutils;
+import hstd.stdlib.Debug;
+import hstd.stdlib.Ranges;
+import hstd.stdlib.strformat;
 
 #include <absl/log/log.h>
 

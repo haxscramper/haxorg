@@ -1,7 +1,5 @@
 import org.sem.SemOrg;
 #include <boost/mp11.hpp>
-import std;
-import std;
 
 #define _define_static(__Kind)                                            \
     const OrgSemKind sem::__Kind::staticKind = OrgSemKind::__Kind;

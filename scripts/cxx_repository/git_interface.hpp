@@ -2,11 +2,9 @@
 
 #include <git2.h>
 
-import std.stdlib.Str;
-import std;
-import std.stdlib.Func;
-import std;
-import std.stdlib.Ptrs;
+import hstd.stdlib.Str;
+import hstd.stdlib.Func;
+import hstd.stdlib.Ptrs;
 
 /// \brief Convert git ID object to it's string representation
 inline Str oid_tostr(git_oid oid) {

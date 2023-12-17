@@ -1,17 +1,16 @@
 #ifndef TEXTLAYOUTER_HPP
 #define TEXTLAYOUTER_HPP
 
-import std.stdlib.Ptrs;
-import std.system.aux_utils;
-import std.stdlib.Variant;
-import std.stdlib.dod_base;
-import std.stdlib.Map;
-import std.stdlib.Opt;
-import std.system.generator;
-import std.system.reflection;
-import std.stdlib.Func;
-import std.stdlib.Str;
-import std;
+import hstd.stdlib.Ptrs;
+import hstd.system.aux_utils;
+import hstd.stdlib.Variant;
+import hstd.stdlib.dod_base;
+import hstd.stdlib.Map;
+import hstd.stdlib.Opt;
+import hstd.system.generator;
+import hstd.system.reflection;
+import hstd.stdlib.Func;
+import hstd.stdlib.Str;
 #include <absl/log/check.h>
 
 import hstd.stdlib.Vec;

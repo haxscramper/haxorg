@@ -4,8 +4,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/chrono.h>
-import std.stdlib.algorithms;
-import std.stdlib.Str;
+import hstd.stdlib.algorithms;
+import hstd.stdlib.Str;
 
 
 namespace PYBIND11_NAMESPACE {

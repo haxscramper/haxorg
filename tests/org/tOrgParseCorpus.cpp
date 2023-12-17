@@ -7,8 +7,8 @@ import org.lexbase.NodeTest;
 import org.sem.ErrorWrite;
 #include <gtest/gtest.h>
 
-import std.stdlib.Filesystem;
-import std.stdlib.Debug;
+import hstd.stdlib.Filesystem;
+import hstd.stdlib.Debug;
 import org.sem.SemConvert;
 
 #include <fnmatch.h>

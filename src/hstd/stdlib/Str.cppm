@@ -1,15 +1,10 @@
-module;
-
-import std.system.string_convert;
-import std.system.basic_typedefs;
-import std.stdlib.Slice;
-import std.stdlib.Span;
-import std.stdlib.Pair;
-import std;
-import std;
-
 export module hstd.stdlib.Str;
 
+import hstd.system.string_convert;
+import hstd.system.basic_typedefs;
+import hstd.stdlib.Slice;
+import hstd.stdlib.Span;
+import hstd.stdlib.Pair;
 import hstd.stdlib.Vec;
 
 export {

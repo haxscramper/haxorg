@@ -1,9 +1,11 @@
-#pragma once
+module; 
 
-import std;
 #include "macros.hpp"
 
 export module hstd.system.aux_utils;
+
+import std_functional;
+
 
 export {
 /// \brief Trigger callback when exiting the scope. Ad-hoc RAII

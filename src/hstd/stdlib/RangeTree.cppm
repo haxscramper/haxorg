@@ -1,15 +1,13 @@
-#pragma once
 
-import std;
-import std;
-import std;
-
-import std.stdlib.Opt;
-import std.stdlib.Slice;
-import std.stdlib.Ptrs;
+import hstd.stdlib.Opt;
+import hstd.stdlib.Slice;
+import hstd.stdlib.Ptrs;
 
 import hstd.stdlib.Vec;
 
+export module hstd.stdlib.RangeTree;
+
+export {
 template <typename T>
 class RangeTree {
   public:
@@ -99,3 +97,4 @@ struct std::formatter<RangeTree<T>> : std::formatter<std::string> {
 
 
 extern template class RangeTree<int>;
+}

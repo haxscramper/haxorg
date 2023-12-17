@@ -1,8 +1,8 @@
 #pragma once
 
 import org.exporters.Exporter;
-import std.stdlib.Time;
-import std.stdlib.Json;
+import hstd.stdlib.Time;
+import hstd.stdlib.Json;
 
 struct ExporterJson : public Exporter<ExporterJson, json> {
     using Base = Exporter<ExporterJson, json>;

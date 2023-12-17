@@ -1,16 +1,16 @@
 #pragma once
 
-import std.stdlib.Map;
-import std.stdlib.Func;
-import std.stdlib.algorithms;
+import hstd.stdlib.Map;
+import hstd.stdlib.Func;
+import hstd.stdlib.algorithms;
 
-import std.stdlib.Opt;
-import std.stdlib.Variant;
-import std.stdlib.ColText;
-import std.stdlib.Debug;
-import std.stdlib.Span;
+import hstd.stdlib.Opt;
+import hstd.stdlib.Variant;
+import hstd.stdlib.ColText;
+import hstd.stdlib.Debug;
+import hstd.stdlib.Span;
 
-import std.system.reflection;
+import hstd.system.reflection;
 
 import hstd.stdlib.Vec;
 

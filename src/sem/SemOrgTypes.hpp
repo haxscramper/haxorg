@@ -2,14 +2,13 @@
 
 #pragma once
 import org.sem.SemOrgEnums;
-import std.stdlib.Variant;
-import std.stdlib.Time;
-import std.stdlib.Opt;
-import std.stdlib.Str;
+import hstd.stdlib.Variant;
+import hstd.stdlib.Time;
+import hstd.stdlib.Opt;
+import hstd.stdlib.Str;
 import org.parse.OrgTypes;
 #include <boost/describe.hpp>
-import std.system.macros;
-import std;
+import hstd.system.macros;
 import org.sem.SemOrgBase;
 import org.sem.SemOrgEnums;
 

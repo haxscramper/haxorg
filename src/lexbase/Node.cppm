@@ -1,22 +1,17 @@
-#pragma once
+import hstd.stdlib.Str;
+import hstd.stdlib.Variant;
+import hstd.stdlib.Opt;
+import hstd.stdlib.Func;
 
-import std.stdlib.Str;
-import std.stdlib.Variant;
-import std.stdlib.Opt;
-import std.stdlib.Func;
-
-import std.stdlib.dod_base;
-import std.stdlib.strutils;
-import std.stdlib.ColText;
-import std;
-#include <absl/log/check.h>
+import hstd.stdlib.dod_base;
+import hstd.stdlib.strutils;
+import hstd.stdlib.ColText;
 
 import org.lexbase.Token;
-import std;
 
-import std;
-#include <absl/log/check.h>
+import absl.log.check;
 
+export {
 template <typename N, typename K, typename V>
 struct Node;
 
@@ -484,3 +479,4 @@ struct NodeAdapter {
         return iterator(group->end(id + group->at(id).getExtent()));
     }
 };
+}

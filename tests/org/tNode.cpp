@@ -1,6 +1,6 @@
 import org.lexbase.Node;
 #include <lexbase/Node.cpp>
-import std.system.reflection;
+import hstd.system.reflection;
 #include <gtest/gtest.h>
 
 enum class NodeKind : u8

@@ -1,9 +1,9 @@
 module;
 
-import std;
 
 export module hstd.system.Formatter;
 
+export import std_format;
 
 export {
 template <typename T, typename CharT>

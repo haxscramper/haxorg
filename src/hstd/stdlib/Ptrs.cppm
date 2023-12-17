@@ -1,8 +1,10 @@
-#pragma once
+export module hstd.stdlib.Ptrs;
 
-import std;
-import std.system.aux_utils;
+import hstd.system.aux_utils;
+import std_memory;
+import std_utility;
 
+export {
 template <typename T>
 using UPtr = std::unique_ptr<T>;
 
@@ -51,3 +53,4 @@ struct remove_smart_pointer<std::weak_ptr<T>> {
 };
 
 extern template class std::unique_ptr<char, void (*)(void*)>;
+}

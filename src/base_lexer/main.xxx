@@ -1,9 +1,4 @@
 #include "token.hpp"
-import std;
-import std;
-import std;
-import std;
-import std;
 
 int main() {
   std::ifstream inFile(

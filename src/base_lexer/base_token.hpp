@@ -1,10 +1,7 @@
 #pragma once
 
-import std;
-import std;
-import std;
 import org.lexbase.Token;
-import std.system.reflection;
+import hstd.system.reflection;
 
 
 #include "base_token_kind.hpp"

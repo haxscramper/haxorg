@@ -3,17 +3,15 @@
 #include "git_interface.hpp"
 #include "repo_graph.hpp"
 #include <git2/patch.h>
-import std.stdlib.Map;
+import hstd.stdlib.Map;
 #include <immer/flex_vector_transient.hpp>
-import std;
 
 #include <boost/asio/thread_pool.hpp>
-import std.stdlib.strutils;
+import hstd.stdlib.strutils;
 #include <boost/asio/post.hpp>
 
-import std;
 
-import std.stdlib.Ranges;
+import hstd.stdlib.Ranges;
 
 using namespace ir;
 

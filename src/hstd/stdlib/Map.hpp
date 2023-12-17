@@ -1,12 +1,9 @@
 #pragma once
 
-import std;
-import std;
-import std;
 
-import std.system.Formatter;
-import std.system.generator;
-import std.system.all;
+import hstd.system.Formatter;
+import hstd.system.generator;
+import hstd.system.all;
 
 template <typename Map, typename K, typename V>
 struct MapBase : public CRTP_this_method<Map> {

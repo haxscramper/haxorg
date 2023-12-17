@@ -1,10 +1,8 @@
 #pragma once
 
-import std.system.all;
-import std.system.string_convert;
-import std.stdlib.SetCommon;
-import std;
-import std;
+import hstd.system.all;
+import hstd.system.string_convert;
+import hstd.stdlib.SetCommon;
 
 template <typename T>
 struct UnorderedSet

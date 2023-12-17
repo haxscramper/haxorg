@@ -1,5 +1,4 @@
-import std.stdlib.Filesystem;
-import std;
+import hstd.stdlib.Filesystem;
 #include <absl/log/check.h>
 
 void writeFile(const fs::path& target, const std::string& content) {

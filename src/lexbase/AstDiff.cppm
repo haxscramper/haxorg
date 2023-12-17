@@ -1,24 +1,12 @@
-#pragma once
+import hstd.system.string_convert;
+import hstd.system.reflection;
+import hstd.system.macros;
+import hstd.system.generator;
+import hstd.stdlib.Variant;
+import hstd.stdlib.Str;
+import hstd.stdlib.Func;
+import absl.log.check;
 
-import std.system.string_convert;
-import std.system.reflection;
-import std.system.macros;
-import std.system.generator;
-import std.stdlib.Variant;
-import std.stdlib.Str;
-import std.stdlib.Func;
-#include <absl/log/check.h>
-
-import std;
-import std;
-import std;
-import std;
-import std;
-import std;
-import std;
-import std;
-import std;
-import std;
 
 import hstd.stdlib.Vec;
 

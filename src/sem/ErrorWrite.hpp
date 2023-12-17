@@ -1,21 +1,13 @@
 #pragma once
 
 #include "hstd/stdlib/Slice.hpp"
-import std;
-import std;
-import std;
-import std;
-import std;
-import std;
-import std;
-import std;
 
 import hstd.stdlib.Vec;
 
 #include <boost/describe.hpp>
-import std.stdlib.Debug;
-import std.system.reflection;
-import std.stdlib.ColText;
+import hstd.stdlib.Debug;
+import hstd.system.reflection;
+import hstd.stdlib.ColText;
 
 class Source;
 

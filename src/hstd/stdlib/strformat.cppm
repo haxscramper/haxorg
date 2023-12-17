@@ -1,11 +1,8 @@
 module; 
 
-import std;
-import std;
-import std;
 
-import std.stdlib.sequtils;
-import std.system.all;
+import hstd.stdlib.sequtils;
+import hstd.system.all;
 
 export module hstd.stdlib.strformat; 
 

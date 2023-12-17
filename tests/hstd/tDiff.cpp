@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-import std.stdlib.diffs;
+import hstd.stdlib.diffs;
 
 template <typename T>
 Str formatDiffedEx(CR<Vec<SeqEdit>> ops, Span<T> oldSeq, Span<T> newSeq) {

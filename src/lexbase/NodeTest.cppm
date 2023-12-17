@@ -1,14 +1,18 @@
-#pragma once
+module;
+
+#include <hstd/system/macros.hpp>
+
+export module org.lexbase.NodeTest;
 
 import org.lexbase.Node;
 import org.lexbase.Token;
 
-import std.stdlib.Json;
-import std.stdlib.Yaml;
-import std.system.macros;
-import std.stdlib.Filesystem;
+import hstd.stdlib.Json;
+import hstd.stdlib.Yaml;
+import hstd.system.macros;
+import hstd.stdlib.Filesystem;
 
-
+export {
 json toJson(CR<yaml> node);
 
 struct ParseSpec {
@@ -143,3 +147,4 @@ struct ParseSpecGroup {
 
     Vec<ParseSpec> specs;
 };
+}

@@ -1,6 +1,6 @@
 #pragma once
 
-import std.stdlib.IntSet;
+import hstd.stdlib.IntSet;
 
 using CharSet = IntSet<char>;
 

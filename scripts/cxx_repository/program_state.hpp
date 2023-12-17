@@ -4,20 +4,17 @@
 #ifndef PROGRAM_STATE_HPP
 #define PROGRAM_STATE_HPP
 
-import std;
-import std;
-import std;
 
 #include <boost/log/trivial.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/describe.hpp>
 #include <boost/mp11.hpp>
-import std.system.Formatter;
+import hstd.system.Formatter;
 
 #include "git_interface.hpp"
 #include "git_ir.hpp"
-import std.system.reflection;
+import hstd.system.reflection;
 
 using Logger = boost::log::sources::severity_logger<
     boost::log::trivial::severity_level>;

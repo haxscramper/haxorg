@@ -7,8 +7,8 @@
 #include <pybind11/pybind11.h>
 import org.sem.SemOrg;
 #include <pybind11/stl.h>
-import std.stdlib.Yaml;
-import std.stdlib.Json;
+import hstd.stdlib.Yaml;
+import hstd.stdlib.Json;
 
 import org.sem.SemConvert;
 import org.parse.OrgParser;

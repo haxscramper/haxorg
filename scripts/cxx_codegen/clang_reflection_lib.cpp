@@ -1,7 +1,6 @@
 #include "clang_reflection_lib.hpp"
 
 #include <llvm/Support/TimeProfiler.h>
-import std;
 
 std::string getAbsoluteDeclLocation(clang::Decl* Decl) {
     clang::SourceLocation       loc           = Decl->getLocation();

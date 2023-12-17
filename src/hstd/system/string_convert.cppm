@@ -1,28 +1,23 @@
 module; 
 
-import std;
-import std;
-import std;
-import std;
-import std;
-import std;
-import std;
-
-#include <boost/mp11.hpp>
-#include <boost/describe.hpp>
-
-import std;
-import std;
-import std;
-
-export module hstd.system.string_convert; 
-
-export {
 #ifdef __GNUG__
 #    include <cstdlib>
 #    include <memory>
 #    include <cxxabi.h>
+#endif
 
+#include <boost/mp11.hpp>
+#include <boost/describe.hpp>
+
+export module hstd.system.string_convert; 
+
+import std_type_traits;
+import std_string;
+import std_format;
+import boost.mp11;
+
+export {
+#ifdef __GNUG__
 inline std::string demangle(const char* name) {
 
     int status = -4; // some arbitrary value to eliminate the compiler

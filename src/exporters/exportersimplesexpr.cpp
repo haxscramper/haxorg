@@ -1,5 +1,5 @@
 #include "exportersimplesexpr.hpp"
-import std.stdlib.strutils;
+import hstd.stdlib.strutils;
 
 #include <exporters/Exporter.cpp>
 

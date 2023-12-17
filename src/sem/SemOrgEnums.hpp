@@ -1,8 +1,8 @@
 /* clang-format off */
 #pragma once
-import std.system.basic_templates;
-import std.system.reflection;
-import std.stdlib.Opt;
+import hstd.system.basic_templates;
+import hstd.system.reflection;
+import hstd.stdlib.Opt;
 #define EACH_SEM_ORG_KIND(__IMPL) \
     __IMPL(StmtList) \
     __IMPL(Empty) \

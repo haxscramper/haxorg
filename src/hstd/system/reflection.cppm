@@ -1,22 +1,15 @@
 module;
 
-import std;
-import std;
-import std;
-import std;
 
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
 
-import std;
-import std;
-import std;
 
 export module hstd.system.reflection;
 
-import std.system.string_convert;
-import std.system.basic_typedefs;
-import std.system.basic_templates;
+import hstd.system.string_convert;
+import hstd.system.basic_typedefs;
+import hstd.system.basic_templates;
 
 export {
 template <typename T>

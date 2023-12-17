@@ -2,20 +2,16 @@
 #if false
 #include <graphviz/gvc.h>
 #include <graphviz/cgraph.h>
-import std;
-import std;
-import std;
-import std.system.all;
-import std.stdlib.Ptrs;
-import std.stdlib.strutils;
-import std.system.reflection;
-import std.stdlib.Opt;
-import std.stdlib.Variant;
-import std;
-import std.stdlib.Func;
-import std.system.generator;
+import hstd.system.all;
+import hstd.stdlib.Ptrs;
+import hstd.stdlib.strutils;
+import hstd.system.reflection;
+import hstd.stdlib.Opt;
+import hstd.stdlib.Variant;
+import hstd.stdlib.Func;
+import hstd.system.generator;
 #include <absl/log/check.h>
-import std.stdlib.Filesystem;
+import hstd.stdlib.Filesystem;
 
 #define _attr_aligned(Method, key, Type)                                  \
     void set##Method(                                                     \

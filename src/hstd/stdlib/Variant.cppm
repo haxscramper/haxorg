@@ -1,11 +1,10 @@
-module;
-
-import std;
-import std.system.string_convert;
-import std.system.basic_templates;
-import std.system.Formatter;
+import hstd.system.string_convert;
+import hstd.system.basic_templates;
+import hstd.system.Formatter;
 
 export module hstd.stdlib.Variant;
+
+export import std_variant;
 
 export {
 template <typename... Types>

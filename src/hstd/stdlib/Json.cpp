@@ -1,10 +1,6 @@
-#include "Json.hpp"
+module hstd.stdlib.Json;
 
-import std;
-import std;
-import std;
-import std.stdlib.Func;
-
+import hstd.stdlib.Func;
 
 template class nlohmann::basic_json<>;
 

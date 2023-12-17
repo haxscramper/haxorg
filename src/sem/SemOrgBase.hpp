@@ -1,17 +1,16 @@
 #pragma once
 
-import std.system.basic_typedefs;
+import hstd.system.basic_typedefs;
 import org.sem.SemOrgEnums;
 
-import std.stdlib.Str;
-import std.stdlib.Func;
-import std.stdlib.IntSet;
-import std.stdlib.Opt;
+import hstd.stdlib.Str;
+import hstd.stdlib.Func;
+import hstd.stdlib.IntSet;
+import hstd.stdlib.Opt;
 
-import std.system.Formatter;
+import hstd.system.Formatter;
 import org.parse.OrgTypes;
-import std;
-import std.system.reflection;
+import hstd.system.reflection;
 
 import hstd.stdlib.Vec;
 

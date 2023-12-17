@@ -4,7 +4,6 @@
 #ifndef REPO_PROCESSING_HPP
 #define REPO_PROCESSING_HPP
 
-import std;
 #include <boost/process.hpp>
 
 #include "git_ir.hpp"

@@ -1,15 +1,13 @@
-#pragma once
+import hstd.system.basic_typedefs;
+import hstd.stdlib.strutils;
+import hstd.stdlib.IntSet;
+import hstd.stdlib.Str;
+import hstd.stdlib.Array;
 
-import std.system.basic_typedefs;
-import std.stdlib.strutils;
-import std.stdlib.IntSet;
-import std.stdlib.Str;
-import std.stdlib.Array;
-
-import std;
-import std;
 
 import hstd.stdlib.Vec;
+
+export module hstd.stdlib.ColText;
 
 struct TermColorBgFull {
     u8 color;

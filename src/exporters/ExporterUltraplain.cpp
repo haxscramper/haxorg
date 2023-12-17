@@ -1,5 +1,5 @@
 import org.exporters.ExporterUltraplain;
-import std.stdlib.strutils;
+import hstd.stdlib.strutils;
 
 #include <exporters/Exporter.cpp>
 

@@ -1,7 +1,7 @@
-import std.stdlib.sequtils;
+import hstd.stdlib.sequtils;
 import org.sem.ErrorWrite;
-import std.stdlib.Opt;
-import std.stdlib.Debug;
+import hstd.stdlib.Opt;
+import hstd.stdlib.Debug;
 
 Characters unicode() {
     return Characters{

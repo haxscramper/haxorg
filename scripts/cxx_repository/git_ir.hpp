@@ -1,14 +1,10 @@
 #pragma once
 
-import std;
-import std;
-import std;
-import std;
 #include "git_interface.hpp"
-import std.stdlib.dod_base;
-import std.stdlib.Str;
-import std.stdlib.Opt;
-import std.stdlib.Filesystem;
+import hstd.stdlib.dod_base;
+import hstd.stdlib.Str;
+import hstd.stdlib.Opt;
+import hstd.stdlib.Filesystem;
 #include <immer/flex_vector.hpp>
 
 template <dod::IsIdType T>

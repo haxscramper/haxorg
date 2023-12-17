@@ -1,11 +1,11 @@
 #pragma once
 
-import std.stdlib.Span;
-import std.stdlib.Func;
-import std.stdlib.Opt;
+import hstd.stdlib.Span;
+import hstd.stdlib.Func;
+import hstd.stdlib.Opt;
 
-import std.system.generator;
-import std.stdlib.Pair;
+import hstd.system.generator;
+import hstd.stdlib.Pair;
 
 import hstd.stdlib.Vec;
 

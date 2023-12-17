@@ -1,9 +1,7 @@
-#pragma once
+import hstd.stdlib.strformat;
+import hstd.system.string_convert;
 
-import std.stdlib.strformat;
-import std.system.string_convert;
-import std;
-import std;
+export {
 
 struct LineCol {
     int line;
@@ -78,3 +76,4 @@ struct UnbalancedWrapError : public LexerError {};
 /// \brief Can be raised by user-provided lexer to indicate malformed token
 /// at position
 struct MalformedTokenError : public LexerError {};
+}

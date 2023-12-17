@@ -1,15 +1,14 @@
-#pragma once
+export module org.lexbase.NodeIO;
 
-import std;
 import org.lexbase.Node;
 import org.lexbase.Token;
 import org.lexbase.AstSpec;
-import std.stdlib.algorithms;
+import hstd.stdlib.algorithms;
 
-import std.stdlib.Json;
-import std.stdlib.Yaml;
+import hstd.stdlib.Json;
+import hstd.stdlib.Yaml;
 
-
+export {
 template <typename N, typename K, typename V>
 yaml yamlRepr(
     CR<NodeGroup<N, K, V>> group,
@@ -143,4 +142,5 @@ TokenGroup<K, V> fromFlatTokens(CR<yaml> node, Str& buf) {
     }
 
     return result;
+}
 }

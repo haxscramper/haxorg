@@ -1,14 +1,12 @@
 #pragma once
 
-import std.stdlib.Slice;
-import std.stdlib.Map;
-import std.system.all;
-import std.system.generator;
-import std.system.string_convert;
-import std.system.Formatter;
+import hstd.stdlib.Slice;
+import hstd.stdlib.Map;
+import hstd.system.all;
+import hstd.system.generator;
+import hstd.system.string_convert;
+import hstd.system.Formatter;
 
-import std;
-import std;
 
 template <typename T, int Size>
 struct Array : std::array<T, Size> {

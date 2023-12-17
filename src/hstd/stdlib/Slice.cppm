@@ -1,17 +1,16 @@
 module;
 
-import std.system.basic_templates;
-import std.system.string_convert;
 #include <boost/container_hash/hash.hpp>
 
-import std.system.exceptions;
-import std.stdlib.Pair;
-import std.stdlib.BackwardsIndex;
-import std;
-
-import std;
-
 export module hstd.stdlib.Slice;
+
+import hstd.system.basic_templates;
+import hstd.system.string_convert;
+
+import hstd.system.exceptions;
+import hstd.stdlib.Pair;
+import hstd.stdlib.BackwardsIndex;
+
 
 export {
 template <typename A, typename B>

@@ -1,24 +1,23 @@
-#pragma once
+export module org.lexbase.Token;
 
-import std.stdlib.dod_base;
-import std.stdlib.IntSet;
-import std.stdlib.Str;
-import std.stdlib.ColText;
-import std.stdlib.strformat;
-import std.stdlib.strutils;
-import std.stdlib.Variant;
-import std.stdlib.RangeTree;
-import std.stdlib.Map;
-import std.stdlib.Debug;
-import std.stdlib.Func;
-import std;
+import hstd.stdlib.dod_base;
+import hstd.stdlib.IntSet;
+import hstd.stdlib.Str;
+import hstd.stdlib.ColText;
+import hstd.stdlib.strformat;
+import hstd.stdlib.strutils;
+import hstd.stdlib.Variant;
+import hstd.stdlib.RangeTree;
+import hstd.stdlib.Map;
+import hstd.stdlib.Debug;
+import hstd.stdlib.Func;
 
 import org.lexbase.Errors;
-import std.stdlib.Ranges;
+import hstd.stdlib.Ranges;
 
+export {
 template <typename K, typename V>
 struct Token;
-
 
 template <
     typename K,
@@ -623,3 +622,4 @@ struct Lexer : public LexerCommon<K, V> {
 
     Lexer(TokenGroup<K, V>* in) : LexerCommon<K, V>(in) {}
 };
+}

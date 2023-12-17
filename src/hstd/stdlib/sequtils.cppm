@@ -1,9 +1,7 @@
-#pragma once
+import hstd.system.basic_typedefs;
+import hstd.stdlib.Pair;
 
-import std.system.basic_typedefs;
-import std;
-import std.stdlib.Pair;
-
+export {
 template <typename T, typename Ref>
 struct EnumerateState {
 
@@ -79,4 +77,5 @@ int index_of(CR<Container> container, CR<T> item) {
 template <typename T, typename Pred>
 bool all_of(CR<T> seq, CR<Pred> pr) {
     return std::all_of(seq.begin(), seq.end(), pr);
+}
 }

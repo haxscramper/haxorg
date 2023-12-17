@@ -1,9 +1,8 @@
 module; 
 
-import std.stdlib.charsets;
-import std.system.generator;
-import std.stdlib.Str;
-import std;
+import hstd.stdlib.charsets;
+import hstd.system.generator;
+import hstd.stdlib.Str;
 
 export module hstd.stdlib.strutils;
 

@@ -3,8 +3,7 @@
 
 import org.exporters.Exporter;
 import std.wrappers.textlayouter;
-import std;
-import std.stdlib.strutils;
+import hstd.stdlib.strutils;
 #include <absl/log/check.h>
 
 

@@ -1,4 +1,4 @@
-#include "Str.hpp"
+module hstd.stdlib.Str;
 
 Str Str::dropPrefix(CR<Str> prefix) const {
     if (this->starts_with(prefix)) {

@@ -1,12 +1,10 @@
-#pragma once
+export module org.lexbase.TraceBase;
 
-import std;
-import std;
-import std;
 
-import std.stdlib.Filesystem;
-import std.stdlib.ColText;
+import hstd.stdlib.Filesystem;
+import hstd.stdlib.ColText;
 
+export {
 struct OperationsTracer {
     bool trace         = false;
     bool traceToFile   = false;
@@ -19,3 +17,4 @@ struct OperationsTracer {
     ColStream          getStream();
     void               endStream(ColStream& stream);
 };
+}

@@ -1,10 +1,10 @@
 module;
 
-import std.stdlib.Variant;
-import std.system.aux_utils;
+import hstd.stdlib.Variant;
+import hstd.system.aux_utils;
 #include <absl/time/civil_time.h>
 #include <absl/time/time.h>
-import std.stdlib.Str;
+import hstd.stdlib.Str;
 
 export module hstd.stdlib.Time;
 

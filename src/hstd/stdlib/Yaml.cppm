@@ -1,13 +1,14 @@
 module; 
 
 #include <yaml-cpp/yaml.h>
-import std.stdlib.Str;
-import std.system.reflection;
-import std.stdlib.strformat;
-import std.stdlib.Variant;
-#include <boost/mp11.hpp>
 
-export module hstd.stdlib.Yaml
+export module hstd.stdlib.Yaml;
+
+import hstd.stdlib.Str;
+import hstd.system.reflection;
+import hstd.stdlib.strformat;
+import hstd.stdlib.Variant;
+import boost.mp11;
 
 export {
 struct BadTypeConversion : public YAML::RepresentationException {

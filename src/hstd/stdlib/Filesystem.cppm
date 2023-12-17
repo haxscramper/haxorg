@@ -1,16 +1,14 @@
-#pragma once
+export module hstd.stdlib.Filesystem;
 
-import std;
-import std;
-import std;
-import std.stdlib.Ptrs;
-import std;
+import hstd.stdlib.Ptrs;
+import std_filesystem;
+import std_format;
 
 namespace fs = std::filesystem;
 
-#define __CURRENT_FILE_PATH__ fs::path(__FILE__)
-#define __CURRENT_FILE_DIR__ fs::path(__FILE__).parent_path()
 
+
+export {
 struct FilesystemError : public std::runtime_error {
     explicit FilesystemError(const std::string& message)
         : std::runtime_error(message) {}
@@ -49,3 +47,4 @@ struct std::formatter<fs::path> : std::formatter<std::string> {
         return fmt.format(p.native(), ctx);
     }
 };
+}

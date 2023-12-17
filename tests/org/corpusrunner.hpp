@@ -2,8 +2,6 @@
 
 #include "org_parse_aux.hpp"
 
-import std;
-import std;
 
 import org.lexbase.NodeTest;
 import std.wrappers.textlayouter;

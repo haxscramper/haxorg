@@ -1,8 +1,8 @@
 import org.sem.SemConvert;
-import std.stdlib.Func;
+import hstd.stdlib.Func;
 import org.parse.OrgSpec;
 
-import std.stdlib.Debug;
+import hstd.stdlib.Debug;
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>

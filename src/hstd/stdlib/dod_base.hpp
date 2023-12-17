@@ -1,13 +1,10 @@
 #pragma once
 
-import std;
-import std;
-import std;
 
-import std.system.all;
-import std.system.generator;
+import hstd.system.all;
+import hstd.system.generator;
 
-import std.stdlib.Slice;
+import hstd.stdlib.Slice;
 
 #define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)              \
     struct __value;                                                       \

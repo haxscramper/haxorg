@@ -1,12 +1,11 @@
 #pragma once
 
-import std;
 
-import std.stdlib.Array;
-import std.stdlib.strutils;
-import std.stdlib.Filesystem;
-import std.stdlib.charsets;
-import std.stdlib.ColText;
+import hstd.stdlib.Array;
+import hstd.stdlib.strutils;
+import hstd.stdlib.Filesystem;
+import hstd.stdlib.charsets;
+import hstd.stdlib.ColText;
 
 import org.parse.OrgTypes;
 

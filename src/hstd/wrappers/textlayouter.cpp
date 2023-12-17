@@ -1,13 +1,11 @@
 #include "textlayouter.hpp"
-import std.stdlib.Ranges;
-import std.system.generator;
-import std.stdlib.charsets;
-import std.stdlib.strutils;
-import std.stdlib.Set;
-import std;
+import hstd.stdlib.Ranges;
+import hstd.system.generator;
+import hstd.stdlib.charsets;
+import hstd.stdlib.strutils;
+import hstd.stdlib.Set;
 #include <absl/log/check.h>
-import std;
-import std.system.Formatter;
+import hstd.system.Formatter;
 
 using namespace layout;
 

@@ -1,11 +1,9 @@
 #pragma once
 
-import std.system.string_convert;
-import std.stdlib.ColText;
+import hstd.system.string_convert;
+import hstd.stdlib.ColText;
 
 #include <absl/log/log.h>
-import std;
-import std;
 
 void setMessageStream(std::ostream& stream);
 

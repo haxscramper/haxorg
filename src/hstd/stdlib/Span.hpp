@@ -1,9 +1,8 @@
 module; 
 
-import std.system.all;
-import std.stdlib.Slice;
-import std.system.string_convert;
-import std;
+import hstd.system.all;
+import hstd.stdlib.Slice;
+import hstd.system.string_convert;
 #include <absl/log/log.h>
 #include <absl/log/check.h>
 

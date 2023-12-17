@@ -1,9 +1,8 @@
 #pragma once
 
 #include <boost/graph/adjacency_list.hpp>
-import std;
-import std.system.generator;
-import std.stdlib.Opt;
+import hstd.system.generator;
+import hstd.stdlib.Opt;
 
 #include "git_interface.hpp"
 

@@ -1,5 +1,5 @@
-import std.stdlib.Set;
-import std.stdlib.Str;
+import hstd.stdlib.Set;
+import hstd.stdlib.Str;
 #include <gtest/gtest.h>
 
 TEST(UnorderedSetOperationsTest, Correctness) {

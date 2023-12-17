@@ -1,14 +1,9 @@
-#pragma once
-
-module;
-
-import std;
-import std;
-import std;
-
 export module hstd.system.basic_templates;
 
-import std.system.basic_typedefs;
+import hstd.system.basic_typedefs;
+import std_type_traits;
+import std_concepts;
+import std_cmath;
 
 export {
 /// \brief get next value

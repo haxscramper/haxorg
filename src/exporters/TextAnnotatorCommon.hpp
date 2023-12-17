@@ -1,7 +1,7 @@
 #pragma once
 
 import org.sem.SemOrg;
-import std.system.aux_utils;
+import hstd.system.aux_utils;
 
 import hstd.stdlib.Vec;
 

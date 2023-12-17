@@ -12,9 +12,9 @@ import org.lexbase.AstSpec;
 import org.lexbase.AstDiff;
 import org.lexbase.NodeTest;
 
-import std.stdlib.diffs;
+import hstd.stdlib.diffs;
 
-import std.stdlib.Filesystem;
+import hstd.stdlib.Filesystem;
 
 template <
     /// Node kind

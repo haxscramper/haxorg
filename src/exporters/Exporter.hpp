@@ -2,7 +2,6 @@
 
 import org.sem.SemOrg;
 #include <boost/mp11.hpp>
-import std;
 import org.lexbase.TraceBase;
 
 using boost::mp11::mp_for_each;

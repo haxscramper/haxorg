@@ -1,9 +1,8 @@
-module;
-
-import std;
-import std;
-
 export module hstd.system.exceptions;
+
+import std_string;
+import std_exception;
+
 
 export {
 inline void assert_has_idx(int size, int wanted, std::string failure) {
