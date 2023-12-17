@@ -167,6 +167,7 @@ items:
   - name: "List with space in the nested content"
     debug:
       doParse: false
+      doLex: false
     source: |
       - Item1
         - Nested1
@@ -446,6 +447,7 @@ items:
   - name: "Indent and dedent long list, subset"
     debug:
       doParse: false
+      doLex: false
     conf:
       tokenMatch: "ExpectedSubset"
     # debug:

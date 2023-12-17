@@ -1,5 +1,6 @@
 #include <exporters/exportertree.hpp>
 #include <filesystem>
+#include <fstream>
 
 #define __scope() ScopedField CONCAT(close, __COUNTER__){this};
 

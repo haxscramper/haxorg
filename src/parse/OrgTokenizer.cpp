@@ -8,6 +8,8 @@
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 
+#include "OrgTokenizerMacros.hpp"
+
 using ock = OrgCommandKind;
 using otk = OrgTokenKind;
 using obt = BaseTokenKind;
@@ -17,6 +19,22 @@ void OrgTokenizer::rewriteIndents(BaseLexer& lex) {
         lex.next();
     }
 }
+
+template <typename T>
+bool opt_equal(CR<Opt<T>> opt, CR<T> value) {
+    return opt.has_value() && opt.value() == value;
+}
+
+template <typename T>
+bool opt_equal(CR<Opt<CRw<T>>> opt, CR<T> value) {
+    return opt.has_value() && opt.value() == value;
+}
+
+template <typename K, typename V>
+bool opt_equal_kind(CR<Opt<CRw<Token<K, V>>>> opt, CR<K> value) {
+    return opt.has_value() && opt.value().get().kind == value;
+}
+
 
 #define IN_SET(value, first, ...)                                         \
     (IntSet<decltype((first))>{first, __VA_ARGS__}.contains((value)))
@@ -56,12 +74,16 @@ struct RecombineState {
         OrgTokenId set;
     };
 
-    Vec<Mark>  mark;
-    Vec<State> state;
-    BaseLexer& lex;
+    Vec<Mark>   mark;
+    Vec<State>  state;
+    BaseLexer&  lex;
+    bool const& TraceState;
+
+    void report(OrgTokenizer::Report const& report) { d->report(report); }
 
 
-    RecombineState(OrgTokenizer* d, BaseLexer& lex) : d(d), lex(lex) {}
+    RecombineState(OrgTokenizer* d, BaseLexer& lex)
+        : d(d), lex(lex), TraceState(d->TraceState) {}
 
     auto prev_token() -> Opt<BaseToken> {
         if (lex.hasNext(-1)) {
@@ -154,6 +176,7 @@ struct RecombineState {
     }
 
     void recombine_markup() {
+        __trace();
         // TODO Check if we are in the paragraph element or some other
         // place.
         auto prev = prev_token();
@@ -250,6 +273,7 @@ struct RecombineState {
     }
 
     void map_colon() {
+        __trace();
         auto const& state_1 = state.get(1_B);
         auto const& state_2 = state.get(2_B);
         if (state_1 && state_2 && state_1.value() == State::Paragraph
@@ -285,6 +309,7 @@ struct RecombineState {
     }
 
     void maybe_paragraph_start() {
+        __trace();
         if (state_top() == State::None) {
             (void)add_fake(otk::ParagraphStart);
             state_push(State::Paragraph);
@@ -292,13 +317,67 @@ struct RecombineState {
     }
 
     void maybe_paragraph_end() {
+        __trace();
         if (state_top() == State::Paragraph) {
             (void)add_fake(otk::ParagraphEnd);
             state_pop();
         }
     }
 
+    IntSet<BaseTokenKind> HashTagTokens{
+        obt::DoubleHash,
+        obt::BraceOpen,
+        obt::BraceClose,
+        obt::Whitespace,
+        obt::Indent,
+    };
+
+    void map_hashtag() {
+        LOG(INFO) << "Trace state " << TraceState;
+        __trace();
+        if (lex.hasNext(+1)) {
+            if (opt_equal_kind(lex.opt(+1), obt::DoubleHash)) {
+                pop_as(otk::HashTag);
+                auto while_tag = lex.whole().range()
+                               | rv::take_while(
+                                     [&](BaseToken const& tok) -> bool {
+                                         return HashTagTokens.contains(
+                                             tok.kind);
+                                     });
+
+                // TODO minimize size of the range ahead by
+                // dropping unnecessary tokens, counting balancing
+                // elements in the tree.
+
+                for (auto const& tok : while_tag) {
+                    switch (lex.kind()) {
+                        case obt::BraceOpen:
+                            pop_as(otk::HashTagOpen);
+                            break;
+                        case obt::BraceClose:
+                            pop_as(otk::HashTagClose);
+                            break;
+                        case obt::Word: pop_as(otk::HashTag); break;
+                        case obt::DoubleHash:
+                            pop_as(otk::HashTagSub);
+                            break;
+                        case obt::Whitespace:
+                            pop_as(otk::SkipSpace);
+                            break;
+                        default:
+                    }
+                }
+
+            } else {
+                pop_as(otk::HashTag);
+            }
+        } else {
+            pop_as(otk::HashTag);
+        }
+    }
+
     void map_interpreted_token() {
+        __trace();
         BaseTokenId        start = lex.pos;
         BaseToken const&   tok   = lex.tok();
         BaseFill const&    val   = tok.value;
@@ -310,7 +389,12 @@ struct RecombineState {
             direct(obt::AnyPunct, otk::Punctuation);
             direct(obt::Newline, otk::Newline);
             direct(obt::Comment, otk::Comment);
-            direct(obt::HashIdent, otk::HashTag);
+
+            case obt::HashIdent: {
+                maybe_paragraph_start();
+                map_hashtag();
+                break;
+            }
 
             case obt::Colon: {
                 map_colon();
@@ -398,8 +482,6 @@ struct RecombineState {
     }
 
     void recombine_impl() {
-
-
         while (lex.hasNext(0)) {
             BaseTokenId     start = lex.pos;
             BaseFill const& val   = lex.tok().value;

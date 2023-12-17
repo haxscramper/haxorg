@@ -1,10 +1,11 @@
 #include <lexbase/TraceBase.hpp>
+#include <fstream>
 
 void OperationsTracer::setTraceFile(const fs::path& outfile) {
     CHECK(outfile.native().size() != 0)
         << "setTraceFile"
         << "Expected non-empty filename for the output";
-    trace       = true;
+    TraceState  = true;
     traceToFile = true;
     stream      = std::make_shared<std::ofstream>(
         std::ofstream{outfile.native()});

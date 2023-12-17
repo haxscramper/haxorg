@@ -259,6 +259,14 @@ struct LexerCommon {
     V const&      val(int offset = 0) const { return tok(offset).value; }
     V&            val(int offset = 0) { return in->at(get(offset)).value; }
 
+    Opt<CRw<Token<K, V>>> opt(int offset = 0) {
+        if (hasNext(offset)) {
+            return tok(offset);
+        } else {
+            return std::nullopt;
+        }
+    }
+
     using iterator       = typename TokenGroup<K, V>::iterator;
     using const_iterator = typename TokenGroup<K, V>::const_iterator;
 

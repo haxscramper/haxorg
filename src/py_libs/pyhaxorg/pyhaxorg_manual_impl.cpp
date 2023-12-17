@@ -6,6 +6,7 @@
 #include <exporters/exportertree.hpp>
 #include <sem/semdatastream.hpp>
 #include <datetime.h>
+#include <fstream>
 
 #include <memory>
 

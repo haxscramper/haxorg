@@ -168,6 +168,10 @@ void format(
             lines.push_back(pair);
         }
 
+        if (lines.empty()) {
+            return;
+        }
+
         Slice<int> range = slice(0, lines.size() - 1);
         for (int i = 0; i <= range.last; ++i) {
             if (lines[i].first.prefix == SeqEditKind::Keep
@@ -743,7 +747,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
     { // Lexing
         if (spec.debug.doLex) {
-            p.tokenizer->trace = spec.debug.traceLex;
+            p.tokenizer->TraceState = spec.debug.traceLex;
             if (spec.debug.lexToFile) {
                 p.tokenizer->setTraceFile(spec.debugFile("trace_lex.txt"));
             }
@@ -778,7 +782,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
     { // Parsing
         if (spec.debug.doParse) {
-            p.parser->trace = spec.debug.traceParse;
+            p.parser->TraceState = spec.debug.traceParse;
             if (spec.debug.parseToFile) {
                 p.parser->setTraceFile(spec.debugFile("trace_parse.txt"));
             }
@@ -828,7 +832,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             sem::ContextStore context;
             sem::OrgConverter converter(&context);
 
-            converter.trace = spec.debug.traceSem;
+            converter.TraceState = spec.debug.traceSem;
             if (spec.debug.semToFile) {
                 converter.setTraceFile(spec.debugFile("trace_sem.txt"));
             }

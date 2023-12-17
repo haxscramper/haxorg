@@ -2,9 +2,13 @@ items:
   - source: "#test##a"
     debug:
       doParse: false
+    tokens:
+      - {kind: HashTag}
+
   - source: "#test##[a, b]"
     debug:
       doParse: false
+
   - source: "#test"
     debug:
       doParse: false

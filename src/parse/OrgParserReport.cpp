@@ -45,11 +45,12 @@ void OrgParser::report(CR<Report> in) {
     }
 
     if (traceUpdateHook) {
-        traceUpdateHook(in, trace, true);
+        traceUpdateHook(in, TraceState, true);
     }
-    if (!trace) {
+
+    if (!TraceState) {
         if (traceUpdateHook) {
-            traceUpdateHook(in, trace, false);
+            traceUpdateHook(in, TraceState, false);
         }
 
         return;
@@ -163,6 +164,6 @@ void OrgParser::report(CR<Report> in) {
     }
 
     if (traceUpdateHook) {
-        traceUpdateHook(in, trace, false);
+        traceUpdateHook(in, TraceState, false);
     }
 }

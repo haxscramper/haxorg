@@ -77,7 +77,6 @@ Vec<TestParams> generateTestRuns() {
             && path.native().ends_with(".yaml")) {
             std::string p = path.native();
             if (corpusGlob.empty()) {
-                LOG(INFO) << "Adding " << p;
                 addSpecs(path);
             } else {
                 int matchRes = fnmatch(
@@ -205,7 +204,7 @@ TEST_P(ParseFile, CorpusAll) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
     CorpusAllParametrized,
     ParseFile,
     ::testing::ValuesIn(generateTestRuns()),

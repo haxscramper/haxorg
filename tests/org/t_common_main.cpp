@@ -58,10 +58,10 @@ class LinePrinterLogSink : public absl::LogSink {
 };
 
 int main(int argc, char** argv) {
-    LinePrinterLogSink Sink("/tmp/test_log.log");
-    absl::AddLogSink(&Sink);
-    absl::log_internal::SetTimeZone(absl::LocalTimeZone());
-    absl::log_internal::SetInitialized();
+    // LinePrinterLogSink Sink("/tmp/test_log.log");
+    // absl::AddLogSink(&Sink);
+    // absl::log_internal::SetTimeZone(absl::LocalTimeZone());
+    // absl::log_internal::SetInitialized();
 
 #ifdef USE_PERFETTO
     qInfo() << "Compiled with perfetto trace enabled, starting perfetto";

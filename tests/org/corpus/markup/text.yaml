@@ -4,9 +4,6 @@ expected: "Flat"
 items:
   - name: "Bold text"
     source: "*bold*"
-    debug:
-      doParse: false
-      doLex: false
     tokens:
       - {kind: ParagraphStart}
       - {kind: BoldOpen, str: "*"}

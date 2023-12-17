@@ -59,6 +59,7 @@ struct OrgTokenizer
         fs::path   location;
         int        line;
         Opt<Str>   subname;
+        BaseLexer* lex;
     };
 
 
@@ -72,7 +73,6 @@ struct OrgTokenizer
     /// reference to the `trace` member and the last one provides
     /// information about call location (before report or after report).
     OrgTokenizer::TraceUpdateHookCb traceUpdateHook;
-    bool                            TraceState = false;
 
     void       push(CR<std::span<OrgToken>> tok) { out->add(tok); }
     void       push(CR<Vec<OrgToken>> tok) { out->add(tok); }

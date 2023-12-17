@@ -10,12 +10,12 @@ void OrgTokenizer::report(CR<Report> in) {
     }
 
     if (traceUpdateHook) {
-        traceUpdateHook(in, trace, true);
+        traceUpdateHook(in, TraceState, true);
     }
 
-    if (!trace) {
+    if (!TraceState) {
         if (traceUpdateHook) {
-            traceUpdateHook(in, trace, false);
+            traceUpdateHook(in, TraceState, false);
         }
         return;
     }
@@ -36,7 +36,13 @@ void OrgTokenizer::report(CR<Report> in) {
     };
 
     auto printString = [&]() {
-
+        in.lex->print(
+            os,
+            [](ColStream& os, BaseToken const& t) {
+                os << os.yellow() << escape_for_write(t.value.text)
+                   << os.end();
+            },
+            BaseLexer::PrintParams{});
     };
 
     switch (in.kind) {
@@ -100,6 +106,6 @@ void OrgTokenizer::report(CR<Report> in) {
     }
 
     if (traceUpdateHook) {
-        traceUpdateHook(in, trace, false);
+        traceUpdateHook(in, TraceState, false);
     }
 }

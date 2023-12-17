@@ -65,7 +65,6 @@ struct convert<OrgToken> {
         return result;
     }
     static bool decode(Node const& in, OrgToken& out) {
-        LOG(INFO) << fmt1(in);
         if (in["str"]) {
             out->base = BaseFill{.text = in["str"].as<Str>()};
         }
@@ -107,8 +106,7 @@ struct MockFull {
 
     void tokenize(CR<std::string> content) {
         BaseTokenGroup tokens = ::tokenize(content.data(), content.size());
-        OrgTokenizer   tok(&this->tokens);
-        tok.convert(tokens);
+        tokenizer->convert(tokens);
     }
 
     void parse() { (void)parser->parseFull(lex); }

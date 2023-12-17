@@ -1,14 +1,10 @@
 #pragma once
 
-#include <memory>
-#include <fstream>
-#include <string>
-
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/ColText.hpp>
 
 struct OperationsTracer {
-    bool trace         = false;
+    bool TraceState    = false;
     bool traceToFile   = false;
     bool traceToBuffer = false;
     OperationsTracer() {}

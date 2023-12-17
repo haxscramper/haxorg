@@ -2,21 +2,20 @@
 
 
 #define __INIT_REPORT(__subname, __str)                                   \
-    (Report{                                                              \
+    (::OrgTokenizer::Report{                                              \
         .location = __CURRENT_FILE_PATH__,                                \
         .line     = __LINE__,                                             \
         .subname  = __subname,                                            \
-        .str      = &__str,                                               \
+        .lex      = &lex,                                                 \
     })
 
 #define __print2(__text, __str)                                           \
     if (TraceState) {                                                     \
-        report(Report{                                                    \
+        report(::OrgTokenizer::Report{                                    \
             .kind     = ReportKind::Print,                                \
             .location = __CURRENT_FILE_PATH__,                            \
             .line     = __LINE__,                                         \
             .subname  = __text,                                           \
-            .str      = __str,                                            \
         });                                                               \
     }
 
@@ -30,18 +29,19 @@
 
 #define __trace2(__subname, __str)                                        \
     if (TraceState) {                                                     \
-        Report rep = __INIT_REPORT(__subname, __str);                     \
-        rep.kind   = ReportKind::Enter;                                   \
-        rep.name   = __func__;                                            \
+        ::OrgTokenizer::Report rep = __INIT_REPORT(__subname, __str);     \
+        rep.kind                   = ::OrgTokenizer::ReportKind::Enter;   \
+        rep.name                   = __func__;                            \
         report(rep);                                                      \
     }                                                                     \
                                                                           \
     finally CONCAT(close, __COUNTER__) = finally::init<Str>(              \
         ([&](CR<Str> name) {                                              \
             if (TraceState) {                                             \
-                Report rep = __INIT_REPORT(__subname, __str);             \
-                rep.kind   = ReportKind::Leave;                           \
-                rep.name   = name;                                        \
+                ::OrgTokenizer::Report rep = __INIT_REPORT(               \
+                    __subname, __str);                                    \
+                rep.kind = ::OrgTokenizer::ReportKind::Leave;             \
+                rep.name = name;                                          \
                 report(rep);                                              \
             }                                                             \
         }),                                                               \
@@ -49,15 +49,15 @@
 
 
 #define __push_rep()                                                      \
-    Report {                                                              \
-        .line = __LINE__, .kind = ReportKind::Push,                       \
+    ::OrgTokenizer::Report {                                              \
+        .line = __LINE__, .kind = ::OrgTokenizer::ReportKind::Push,       \
         .location = __CURRENT_FILE_PATH__                                 \
     }
 
 #define __push2(token, __is_buffered)                                     \
     if (TraceState) {                                                     \
         Report rep      = __INIT_REPORT(std::nullopt, str);               \
-        rep.kind        = ReportKind::Push;                               \
+        rep.kind        = ::OrgTokenizer::ReportKind::Push;               \
         rep.tok         = token;                                          \
         auto id         = push(token);                                    \
         rep.id          = id;                                             \
@@ -86,7 +86,7 @@
 
 #define __report_error(err)                                               \
     if (TraceState) {                                                     \
-        Report rep = Report({                                             \
+        ::OrgTokenizer::Report rep = ::OrgTokenizer::Report({             \
             .line  = __LINE__,                                            \
             .kind  = ReportKind::Error,                                   \
             .name  = __func__,                                            \
