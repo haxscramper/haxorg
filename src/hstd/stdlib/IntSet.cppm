@@ -1,10 +1,13 @@
+export module hstd.stdlib.IntSet;
+
 import hstd.system.all;
 import hstd.stdlib.Slice;
 import hstd.stdlib.SetCommon;
 import hstd.system.basic_templates;
 import hstd.system.aux_templates;
-
-export module hstd.stdlib.IntSet;
+import std_concepts;
+import std_bitset;
+import std_format;
 
 export {
 template <typename T, typename InT>

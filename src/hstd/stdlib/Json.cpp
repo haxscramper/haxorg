@@ -1,12 +1,9 @@
 module hstd.stdlib.Json;
-
 import hstd.stdlib.Func;
-
-template class nlohmann::basic_json<>;
+import hstd.stdlib.Pair;
+import std_unordered_map;
 
 void to_json(json& j, CR<Str> str) { to_json(j, str.toBase()); }
-void to_json(json& j, CR<std::string> str) { ns::to_json(j, str); }
-void to_json(json& j, int i) { ns::to_json(j, i); }
 
 std::string to_compact_json(
     const json&              j,

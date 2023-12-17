@@ -1,30 +1,26 @@
 module;
 
 #include <nlohmann/json.hpp>
-#include <boost/describe.hpp>
 
+export module hstd.stdlib.Json;
 
 import hstd.stdlib.Str;
 import hstd.stdlib.Opt;
+import boost.describe;
+import boost.mp11;
 
 import hstd.system.reflection;
+import hstd.system.basic_typedefs;
 
 import hstd.stdlib.Vec;
-
-export module hstd.stdlib.Json;
 
 export {
 using json   = nlohmann::json;
 namespace ns = nlohmann;
 
-extern template class nlohmann::basic_json<>;
 
-void to_json(json& j, int i);
-void to_json(json& j, CR<std::string> str);
+
 void to_json(json& j, CR<Str> str);
-void from_json(const json& in, std::string& out);
-void from_json(const json& in, int& out);
-void from_json(const json& in, bool& out);
 
 struct JsonFormatOptions {
     int width       = 80;
@@ -65,11 +61,11 @@ void from_json(json const& j, E& str) {
 
 
 template <DescribedRecord T>
-static void to_json(json& j, const T& str) {
+void to_json(json& j, const T& str) {
     using Bd = boost::describe::
-        describe_bases<T, boost::describe::mod_any_access>;
+        describe_bases<T, boost::describe::mod_any_access_exp>;
     using Md = boost::describe::
-        describe_members<T, boost::describe::mod_any_access>;
+        describe_members<T, boost::describe::mod_any_access_exp>;
 
     if (!j.is_object()) {
         j = json::object();
@@ -86,9 +82,9 @@ static void to_json(json& j, const T& str) {
 template <DescribedRecord T>
 void from_json(const json& in, T& out) {
     using Bd = boost::describe::
-        describe_bases<T, boost::describe::mod_any_access>;
+        describe_bases<T, boost::describe::mod_any_access_exp>;
     using Md = boost::describe::
-        describe_members<T, boost::describe::mod_any_access>;
+        describe_members<T, boost::describe::mod_any_access_exp>;
     boost::mp11::mp_for_each<Md>([&](auto const& field) {
         if (in.contains(field.name)) {
             from_json(in[field.name], out.*field.pointer);

@@ -1,5 +1,8 @@
 module hstd.stdlib.ColText;
-import hstd.stdlib.Debug;
+
+import std_ostream;
+
+#define ESC_PREFIX "\033["
 
 std::string ansiEsc(const TermColorFg8Bit& col) {
     if ((u8)col <= 7) { // Regular colors

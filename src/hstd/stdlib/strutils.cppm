@@ -9,6 +9,7 @@ import std_sstream;
 import std_format;
 import hstd.stdlib.Pair;
 import hstd.stdlib.IntSet;
+import hstd.system.basic_templates;
 
 export {
 template <typename T>

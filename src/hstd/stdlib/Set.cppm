@@ -3,6 +3,9 @@ export module hstd.stdlib.Set;
 import hstd.system.all;
 import hstd.system.string_convert;
 import hstd.stdlib.SetCommon;
+import std_unordered_set;
+import std_format;
+import std_concepts;
 
 export {
 template <typename T>

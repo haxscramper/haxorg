@@ -1,6 +1,12 @@
-import hstd.stdlib.strutils;
+module; 
+
 #include <absl/log/log.h>
 #include <absl/log/check.h>
+
+module hstd.stdlib.strutils;
+import hstd.stdlib.Str;
+import hstd.stdlib.Span;
+import hstd.stdlib.BackwardsIndex;
 
 Str unicodeCharMappings[256][15] = {
     [(int)'A']

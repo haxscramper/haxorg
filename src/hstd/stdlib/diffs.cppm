@@ -1,3 +1,7 @@
+module;
+
+#include <hstd/system/macros.hpp>
+
 export module hstd.stdlib.diffs;
 
 import hstd.stdlib.Map;
@@ -7,12 +11,23 @@ import hstd.stdlib.algorithms;
 import hstd.stdlib.Opt;
 import hstd.stdlib.Variant;
 import hstd.stdlib.ColText;
-import hstd.stdlib.Debug;
 import hstd.stdlib.Span;
-
 import hstd.system.reflection;
-
 import hstd.stdlib.Vec;
+import std_string;
+import hstd.system.Formatter;
+import hstd.system.basic_typedefs;
+import hstd.system.basic_templates;
+import hstd.stdlib.Str;
+import hstd.stdlib.ColText;
+import std_span;
+import hstd.stdlib.Slice;
+import hstd.stdlib.strutils;
+import hstd.system.generator;
+import hstd.stdlib.IntSet;
+import hstd.stdlib.Pair;
+import hstd.stdlib.Array;
+import std_coroutine;
 
 export {
 using std::operator""s;

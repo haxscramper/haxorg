@@ -1,5 +1,7 @@
 export module hstd.stdlib.Vec;
 
+export import std_vector;
+
 import hstd.system.all;
 import hstd.stdlib.Slice;
 import hstd.stdlib.Span;

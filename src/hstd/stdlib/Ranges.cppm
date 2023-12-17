@@ -1,8 +1,5 @@
-module;
-
-#include <range/v3/all.hpp>
-
-export hstd.stdlib.Ranges;
+export module hstd.stdlib.Ranges;
+import range_v3;
 
 export {
 namespace rv = ranges::views;

@@ -9,6 +9,10 @@ import hstd.system.reflection;
 import hstd.stdlib.strformat;
 import hstd.stdlib.Variant;
 import boost.mp11;
+import boost.describe;
+import std_typeinfo;
+import hstd.system.string_convert;
+import std_format;
 
 export {
 struct BadTypeConversion : public YAML::RepresentationException {
@@ -116,9 +120,9 @@ struct variant_convert {
 template <DescribedRecord T>
 struct convert<T> {
     using Bd = boost::describe::
-        describe_bases<T, boost::describe::mod_any_access>;
+        describe_bases<T, boost::describe::mod_any_access_exp>;
     using Md = boost::describe::
-        describe_members<T, boost::describe::mod_any_access>;
+        describe_members<T, boost::describe::mod_any_access_exp>;
 
     static Node encode(T const& str) {
         Node in;

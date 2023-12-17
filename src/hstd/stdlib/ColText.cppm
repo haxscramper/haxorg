@@ -1,14 +1,20 @@
+export module hstd.stdlib.ColText;
+
 import hstd.system.basic_typedefs;
 import hstd.stdlib.strutils;
 import hstd.stdlib.IntSet;
 import hstd.stdlib.Str;
 import hstd.stdlib.Array;
+import hstd.system.basic_typedefs;
+import hstd.system.basic_templates;
+import std_span;
+import hstd.system.Formatter;
+import hstd.system.string_convert;
 
 
 import hstd.stdlib.Vec;
 
-export module hstd.stdlib.ColText;
-
+export {
 struct TermColorBgFull {
     u8 color;
 };
@@ -302,18 +308,6 @@ struct ColStream : public ColText {
 };
 
 
-inline StreamState::StreamState(ColStream& stream) : stream(stream) {
-    start = stream.active;
-}
-
-inline StreamState::~StreamState() { stream.active = start; }
-
-
-inline ColStream& ColStream::indent(int level) {
-    write(ColText(ColStyle{}, repeat(" ", level)));
-    return *this;
-}
-
 inline ColStream& operator<<(ColStream& os, ColStream& value) {
     return os;
 }
@@ -489,4 +483,17 @@ ColText join(CR<ColText> separator, CR<T> container) {
         out << item;
     }
     return out.getBuffer();
+}
+}
+
+
+StreamState::StreamState(ColStream& stream) : stream(stream) {
+    start = stream.active;
+}
+
+StreamState::~StreamState() { stream.active = start; }
+
+ColStream& ColStream::indent(int level) {
+    write(ColText(ColStyle{}, repeat(" ", level)));
+    return *this;
 }

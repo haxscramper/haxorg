@@ -258,16 +258,4 @@ bool equal_on_all_fields(CR<T> lhs, CR<T> rhs) {
     return equal;
 }
 
-
-#define REFL_DEFINE_DESCRIBED_FORMATTER(__TypeName)                       \
-    template <>                                                           \
-    struct std::formatter<__TypeName> : std::formatter<std::string> {     \
-        template <typename FormatContext>                                 \
-        FormatContext::iterator format(                                   \
-            const __TypeName& value,                                      \
-            FormatContext&    ctx) const {                                   \
-            std::formatter<std::string> fmt;                              \
-            return fmt.format(described_class_printer(value), ctx);       \
-        }                                                                 \
-    };
 }
