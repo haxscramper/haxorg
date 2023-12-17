@@ -3,10 +3,14 @@ module;
 #include <absl/log/log.h>
 #include <absl/log/check.h>
 
+#pragma clang diagnostic ignored "-Wc99-designator"
+
 module hstd.stdlib.strutils;
 import hstd.stdlib.Str;
 import hstd.stdlib.Span;
 import hstd.stdlib.BackwardsIndex;
+import hstd.system.string_convert;
+import std_type_traits;
 
 Str unicodeCharMappings[256][15] = {
     [(int)'A']

@@ -4,6 +4,7 @@ module;
 
 export module hstd.stdlib.Json;
 
+import std_type_traits;
 import hstd.stdlib.Str;
 import hstd.stdlib.Opt;
 import boost.describe;

@@ -6,7 +6,6 @@ import hstd.system.all;
 import hstd.stdlib.Slice;
 import hstd.stdlib.Span;
 import hstd.stdlib.sequtils;
-import std_vector;
 import std_span;
 import hstd.stdlib.BackwardsIndex;
 import hstd.stdlib.Opt;

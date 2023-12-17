@@ -2,6 +2,8 @@ module hstd.stdlib.Json;
 import hstd.stdlib.Func;
 import hstd.stdlib.Pair;
 import std_unordered_map;
+import std_map;
+import std_array;
 
 void to_json(json& j, CR<Str> str) { to_json(j, str.toBase()); }
 
@@ -32,6 +34,9 @@ std::string to_compact_json(
                 case json::value_t::boolean:
                 case json::value_t::number_float:
                 case json::value_t::number_integer:
+                case json::value_t::binary:
+                case json::value_t::discarded:
+                case json::value_t::null:
                 case json::value_t::number_unsigned:
                     return j.dump();
                     break;
