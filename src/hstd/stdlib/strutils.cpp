@@ -10,7 +10,6 @@ import hstd.stdlib.Str;
 import hstd.stdlib.Span;
 import hstd.stdlib.BackwardsIndex;
 import hstd.system.string_convert;
-import std_type_traits;
 
 Str unicodeCharMappings[256][15] = {
     [(int)'A']

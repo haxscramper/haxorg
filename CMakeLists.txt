@@ -41,11 +41,13 @@ set(LLVM_ASAN_LIBRARY "${LLVM_GNU_CLANG_DIR}/libclang_rt.asan.so")
 # Headers that standard library apparently uses to interface with the system?
 set(LLVM_GNU_INCLUDE "${LLVM_DIR}/include/x86_64-unknown-linux-gnu/c++/v1")
 # Standard library headers
-set(LLVM_STD_INCLUDE "${LLVM_DIR}/include/c++/v1/")
+set(LLVM_STD_INCLUDE "${LLVM_DIR}/include/c++/v1")
 
 # Globally configure compiler flags with all necessary flags etc., this will be shared 
 # down to all sub-components and dependencies. 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fimplicit-modules -fimplicit-module-maps -stdlib=libc++ -Wno-unused-command-line-argument -I${LLVM_STD_INCLUDE} -I${LLVM_GNU_INCLUDE} -L${LLVM_DIR}/lib -ftemplate-backtrace-limit=0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -I${LLVM_STD_INCLUDE} -I${LLVM_GNU_INCLUDE} -L${LLVM_DIR}/lib")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-implicit-modules -fno-implicit-module-maps")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-command-line-argument  -ftemplate-backtrace-limit=0")
 # It is important to specify linker flags globally for the whole project here -- benchmark
 # subdirectory depends on the cxx_feature_check which fails if the shared parts of the standard
 # library are not found. Regex check compiles test code, everything is ok, but running

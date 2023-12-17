@@ -4,6 +4,7 @@ module;
 
 export module hstd.system.aux_templates;
 
+import std_type_traits;
 import hstd.system.basic_typedefs;
 
 export {
