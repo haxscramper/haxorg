@@ -45,7 +45,7 @@ set(LLVM_STD_INCLUDE "${LLVM_DIR}/include/c++/v1/")
 
 # Globally configure compiler flags with all necessary flags etc., this will be shared 
 # down to all sub-components and dependencies. 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fimplicit-modules -fimplicit-module-maps -stdlib=libc++ -Wno-unused-command-line-argument -I${LLVM_STD_INCLUDE} -I${LLVM_GNU_INCLUDE} -L${LLVM_DIR}/lib -ftemplate-backtrace-limit=0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-implicit-modules -fimplicit-module-maps -stdlib=libc++ -Wno-unused-command-line-argument -I${LLVM_STD_INCLUDE} -I${LLVM_GNU_INCLUDE} -L${LLVM_DIR}/lib -ftemplate-backtrace-limit=0")
 # It is important to specify linker flags globally for the whole project here -- benchmark
 # subdirectory depends on the cxx_feature_check which fails if the shared parts of the standard
 # library are not found. Regex check compiles test code, everything is ok, but running

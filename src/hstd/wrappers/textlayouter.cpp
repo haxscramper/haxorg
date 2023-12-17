@@ -1,10 +1,10 @@
 #include "textlayouter.hpp"
+
 import hstd.stdlib.Ranges;
 import hstd.system.generator;
 import hstd.stdlib.charsets;
 import hstd.stdlib.strutils;
 import hstd.stdlib.Set;
-#include <absl/log/check.h>
 import hstd.system.Formatter;
 
 using namespace layout;

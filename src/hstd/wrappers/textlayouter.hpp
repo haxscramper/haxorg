@@ -1,5 +1,4 @@
-#ifndef TEXTLAYOUTER_HPP
-#define TEXTLAYOUTER_HPP
+export module hstd.wrappers.textlayouter;
 
 import hstd.stdlib.Ptrs;
 import hstd.system.aux_utils;
@@ -11,11 +10,11 @@ import hstd.system.generator;
 import hstd.system.reflection;
 import hstd.stdlib.Func;
 import hstd.stdlib.Str;
-#include <absl/log/check.h>
+import absl.log.check;
 
 import hstd.stdlib.Vec;
 
-namespace layout {
+export namespace layout {
 
 DECL_ID_TYPE_MASKED(LytStr, LytStrId, u64, 8);
 DECL_ID_TYPE_MASKED(Block, BlockId, u64, 8);
@@ -481,5 +480,3 @@ REFL_DEFINE_DESCRIBED_FORMATTER(layout::Event::Text);
 REFL_DEFINE_DESCRIBED_FORMATTER(layout::Event::Spaces);
 REFL_DEFINE_DESCRIBED_FORMATTER(layout::Event::Newline);
 
-
-#endif // TEXTLAYOUTER_HPP

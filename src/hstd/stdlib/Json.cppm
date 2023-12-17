@@ -3,6 +3,7 @@ module;
 #include <nlohmann/json.hpp>
 #include <boost/describe.hpp>
 
+export module hstd.stdlib.Json;
 
 import hstd.stdlib.Str;
 import hstd.stdlib.Opt;
@@ -11,7 +12,6 @@ import hstd.system.reflection;
 
 import hstd.stdlib.Vec;
 
-export module hstd.stdlib.Json;
 
 export {
 using json   = nlohmann::json;
