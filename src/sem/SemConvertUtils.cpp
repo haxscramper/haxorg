@@ -1,4 +1,4 @@
-#include <sem/SemConvert.hpp>
+import org.sem.SemConvert;
 import std.stdlib.Func;
 
 

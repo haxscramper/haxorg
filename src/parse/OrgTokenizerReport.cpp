@@ -1,4 +1,4 @@
-#include <parse/OrgTokenizer.hpp>
+import org.parse.OrgTokenizer;
 
 void OrgTokenizer::report(CR<Report> in) {
     if (!TraceState) {

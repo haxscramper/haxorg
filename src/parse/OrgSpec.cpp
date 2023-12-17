@@ -1,4 +1,4 @@
-#include <parse/OrgSpec.hpp>
+import org.parse.OrgSpec;
 
 using org        = OrgNodeKind;
 using otk        = OrgTokenKind;

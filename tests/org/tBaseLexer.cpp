@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 #include <base_lexer/base_token.hpp>
-#include <fstream>
+import std;
 import std.stdlib.Json;
 #include <absl/log/log.h>
-#include <parse/OrgTokenizer.hpp>
-#include <parse/OrgParser.hpp>
-#include <sem/SemConvert.hpp>
-#include <exporters/exporteryaml.hpp>
+import org.parse.OrgTokenizer;
+import org.parse.OrgParser;
+import org.sem.SemConvert;
+import org.exporters.exporteryaml;
 
 TEST(BaseLexTest, WriteOut) {
     std::ifstream inFile("/home/haxscramper/tmp/doc2.org");

@@ -1,15 +1,15 @@
 #include "corpusrunner.hpp"
 
-#include <parse/OrgParser.hpp>
-#include <parse/OrgTokenizer.hpp>
-#include <lexbase/NodeIO.hpp>
-#include <lexbase/NodeTest.hpp>
-#include <sem/ErrorWrite.hpp>
+import org.parse.OrgParser;
+import org.parse.OrgTokenizer;
+import org.lexbase.NodeIO;
+import org.lexbase.NodeTest;
+import org.sem.ErrorWrite;
 #include <gtest/gtest.h>
 
 import std.stdlib.Filesystem;
 import std.stdlib.Debug;
-#include <sem/SemConvert.hpp>
+import org.sem.SemConvert;
 
 #include <fnmatch.h>
 #include "../testprofiler.hpp"

@@ -1,5 +1,5 @@
-#include <sem/SemOrg.hpp>
-#include <sem/SemConvert.hpp>
+import org.sem.SemOrg;
+import org.sem.SemConvert;
 
 // #include <benchmark/benchmark.h>
 

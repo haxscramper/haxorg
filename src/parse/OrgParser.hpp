@@ -1,11 +1,11 @@
 #pragma once
 
-#include <parse/OrgTypes.hpp>
-#include <parse/OrgTokenizer.hpp>
+import org.parse.OrgTypes;
+import org.parse.OrgTokenizer;
 import std.stdlib.sequtils;
 import std.stdlib.Ptrs;
 
-#include <lexbase/TraceBase.hpp>
+import org.lexbase.TraceBase;
 
 using ParseCb = std::function<OrgId(OrgLexer&)>;
 

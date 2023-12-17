@@ -1,4 +1,4 @@
-#include <parse/OrgParser.hpp>
+import org.parse.OrgParser;
 import std.stdlib.Debug;
 
 std::string OrgParser::getLocMsg(CR<OrgLexer> lex) {

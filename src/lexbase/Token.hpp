@@ -11,9 +11,9 @@ import std.stdlib.RangeTree;
 import std.stdlib.Map;
 import std.stdlib.Debug;
 import std.stdlib.Func;
-#include <format>
+import std;
 
-#include <lexbase/Errors.hpp>
+import org.lexbase.Errors;
 import std.stdlib.Ranges;
 
 template <typename K, typename V>

@@ -1,9 +1,9 @@
 module; 
 
-#include <coroutine>
-#include <type_traits>
-#include <optional>
-#include <exception>
+import std;
+import std;
+import std;
+import std;
 
 export module hstd.system.generator;
 

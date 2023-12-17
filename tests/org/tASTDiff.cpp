@@ -1,5 +1,5 @@
 import std.stdlib.Ptrs;
-#include <lexbase/AstDiff.hpp>
+import org.lexbase.AstDiff;
 #include <gtest/gtest.h>
 
 using namespace diff;

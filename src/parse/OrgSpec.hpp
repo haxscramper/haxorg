@@ -1,7 +1,7 @@
 #pragma once
 
-#include <lexbase/AstSpec.hpp>
-#include <parse/OrgTypes.hpp>
+import org.lexbase.AstSpec;
+import org.parse.OrgTypes;
 
 
 using OrgSpec = astspec::AstSpec<OrgAdapter, OrgNodeKind, OrgSpecName>;

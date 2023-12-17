@@ -4,8 +4,8 @@ import std.system.string_convert;
 import std.stdlib.ColText;
 
 #include <absl/log/log.h>
-#include <string>
-#include <iostream>
+import std;
+import std;
 
 void setMessageStream(std::ostream& stream);
 

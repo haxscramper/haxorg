@@ -1,4 +1,4 @@
-#include <parse/OrgTypes.hpp>
+import org.parse.OrgTypes;
 
 #include <lexbase/Node.cpp>
 

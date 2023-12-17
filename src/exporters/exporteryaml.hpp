@@ -1,7 +1,7 @@
 #ifndef EXPORTERYAML_HPP
 #define EXPORTERYAML_HPP
 
-#include <exporters/Exporter.hpp>
+import org.exporters.Exporter;
 import std.stdlib.Yaml;
 
 struct ExporterYaml : public Exporter<ExporterYaml, yaml> {

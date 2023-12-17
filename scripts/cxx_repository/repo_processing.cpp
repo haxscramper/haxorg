@@ -5,13 +5,13 @@
 #include <git2/patch.h>
 import std.stdlib.Map;
 #include <immer/flex_vector_transient.hpp>
-#include <fstream>
+import std;
 
 #include <boost/asio/thread_pool.hpp>
 import std.stdlib.strutils;
 #include <boost/asio/post.hpp>
 
-#include <algorithm>
+import std;
 
 import std.stdlib.Ranges;
 

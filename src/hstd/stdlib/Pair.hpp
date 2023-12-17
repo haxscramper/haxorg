@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utility>
+import std;
 #include <boost/container_hash/hash.hpp>
 
 template <typename A, typename B>

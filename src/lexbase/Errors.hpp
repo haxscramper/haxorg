@@ -2,8 +2,8 @@
 
 import std.stdlib.strformat;
 import std.system.string_convert;
-#include <variant>
-#include <format>
+import std;
+import std;
 
 struct LineCol {
     int line;

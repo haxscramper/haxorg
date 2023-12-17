@@ -1,8 +1,8 @@
 module; 
 
-#include <string>
-#include <vector>
-#include <stdexcept>
+import std;
+import std;
+import std;
 
 import std.stdlib.sequtils;
 import std.system.all;

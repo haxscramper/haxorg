@@ -1,9 +1,9 @@
 #include "token.hpp"
-#include <cassert>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <vector>
+import std;
+import std;
+import std;
+import std;
+import std;
 
 int main() {
   std::ifstream inFile(

@@ -1,4 +1,4 @@
-#include <parse/OrgParser.hpp>
+import org.parse.OrgParser;
 
 std::string OrgParser::Error::getLocMsg() const {
     return "$#:$# (tok $#, pos $#)"

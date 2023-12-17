@@ -1,4 +1,4 @@
-#include <exporters/Exporter.hpp>
+import org.exporters.Exporter;
 
 struct ExporterUltraplain
     : public Exporter<ExporterUltraplain, std::string> {

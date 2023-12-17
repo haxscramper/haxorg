@@ -2,10 +2,10 @@
 
 #include "org_parse_aux.hpp"
 
-#include <cstdlib>
-#include <string>
+import std;
+import std;
 
-#include <lexbase/NodeTest.hpp>
+import org.lexbase.NodeTest;
 import std.wrappers.textlayouter;
 
 class CorpusRunner {

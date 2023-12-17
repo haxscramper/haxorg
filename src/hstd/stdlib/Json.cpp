@@ -1,8 +1,8 @@
 #include "Json.hpp"
 
-#include <string>
-#include <regex>
-#include <limits>
+import std;
+import std;
+import std;
 import std.stdlib.Func;
 
 

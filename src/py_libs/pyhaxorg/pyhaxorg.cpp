@@ -1,7 +1,7 @@
 /* clang-format off */
 #undef slots
 #include <pybind11/pybind11.h>
-#include <sem/SemOrg.hpp>
+import org.sem.SemOrg;
 #include <pybind11/stl.h>
 #ifndef IN_CLANGD_PROCESSING
   #define PY_HAXORG_COMPILING

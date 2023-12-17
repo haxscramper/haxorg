@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <parse/OrgParser.hpp>
+import org.parse.OrgParser;
 
 struct MockParser {
     OrgTokenGroup                tokens;

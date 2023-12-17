@@ -1,7 +1,7 @@
 #pragma once
 
-#include <lexbase/Node.hpp>
-#include <lexbase/Token.hpp>
+import org.lexbase.Node;
+import org.lexbase.Token;
 
 import std.stdlib.Json;
 import std.stdlib.Yaml;

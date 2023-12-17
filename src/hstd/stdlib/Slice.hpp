@@ -7,9 +7,9 @@ import std.system.string_convert;
 import std.system.exceptions;
 import std.stdlib.Pair;
 import std.stdlib.BackwardsIndex;
-#include <format>
+import std;
 
-#include <stdexcept>
+import std;
 
 export module hstd.stdlib.Slice;
 

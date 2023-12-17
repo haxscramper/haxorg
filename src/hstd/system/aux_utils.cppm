@@ -1,6 +1,6 @@
 #pragma once
 
-#include <functional>
+import std;
 #include "macros.hpp"
 
 export module hstd.system.aux_utils;
@@ -51,13 +51,6 @@ struct CRTP_this_method {
     inline T const* _this() const { return static_cast<T const*>(this); }
 };
 
-#define CONCAT(a, b) CONCAT_INNER(a, b)
-#define CONCAT_INNER(a, b) a##b
-
-
-#define __ploc()                                                          \
-    std::cout << __FILE__ << ":" << __LINE__ << " at " << __func__        \
-              << std::endl;
 
 
 template <typename T>

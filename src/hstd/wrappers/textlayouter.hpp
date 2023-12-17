@@ -11,7 +11,7 @@ import std.system.generator;
 import std.system.reflection;
 import std.stdlib.Func;
 import std.stdlib.Str;
-#include <format>
+import std;
 #include <absl/log/check.h>
 
 import hstd.stdlib.Vec;

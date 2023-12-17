@@ -1,6 +1,6 @@
 #pragma once
 
-#include <optional>
+import std;
 import std.system.Formatter;
 
 template <typename T>

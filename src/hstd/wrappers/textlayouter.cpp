@@ -4,9 +4,9 @@ import std.system.generator;
 import std.stdlib.charsets;
 import std.stdlib.strutils;
 import std.stdlib.Set;
-#include <algorithm>
+import std;
 #include <absl/log/check.h>
-#include <numeric>
+import std;
 import std.system.Formatter;
 
 using namespace layout;

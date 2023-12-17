@@ -1,6 +1,6 @@
 module;
 
-#include <variant>
+import std;
 import std.system.string_convert;
 import std.system.basic_templates;
 import std.system.Formatter;

@@ -4,9 +4,9 @@
 #ifndef PROGRAM_STATE_HPP
 #define PROGRAM_STATE_HPP
 
-#include <unordered_set>
-#include <algorithm>
-#include <chrono>
+import std;
+import std;
+import std;
 
 #include <boost/log/trivial.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>

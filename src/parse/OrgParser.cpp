@@ -1,6 +1,6 @@
 #pragma once
 
-#include <parse/OrgParser.hpp>
+import org.parse.OrgParser;
 #pragma clang diagnostic ignored "-Wunused-result"
 #pragma clang diagnostic ignored "-Wformat-security"
 #include <absl/log/log.h>

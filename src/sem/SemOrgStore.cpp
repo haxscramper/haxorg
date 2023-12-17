@@ -1,4 +1,4 @@
-#include <sem/SemOrg.hpp>
+import org.sem.SemOrg;
 
 using namespace sem;
 

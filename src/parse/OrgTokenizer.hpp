@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+import std;
 
 import std.stdlib.Array;
 import std.stdlib.strutils;
@@ -8,9 +8,9 @@ import std.stdlib.Filesystem;
 import std.stdlib.charsets;
 import std.stdlib.ColText;
 
-#include <parse/OrgTypes.hpp>
+import org.parse.OrgTypes;
 
-#include <lexbase/TraceBase.hpp>
+import org.lexbase.TraceBase;
 
 struct ImplementError : public std::runtime_error {
     explicit inline ImplementError(const std::string& message = "")

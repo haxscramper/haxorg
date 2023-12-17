@@ -5,17 +5,17 @@ import std.stdlib.Time;
 import std.stdlib.Opt;
 import std.stdlib.Str;
 import std.stdlib.Func;
-#include <parse/OrgTypes.hpp>
+import org.parse.OrgTypes;
 
 #include <boost/describe.hpp>
 import std.system.macros;
-#include <functional>
+import std;
 
 
-#include <sem/SemOrgBase.hpp>
+import org.sem.SemOrgBase;
 
-//#include <sem/SemOrgTypes_old.hpp>
-#include <sem/SemOrgTypes.hpp>
+//import org.sem.SemOrgTypes_old;
+import org.sem.SemOrgTypes;
 
 import hstd.stdlib.Vec;
 

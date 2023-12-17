@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+import std;
 import std.stdlib.Json;
 import std.system.macros;
 

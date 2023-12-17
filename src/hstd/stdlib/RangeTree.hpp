@@ -1,8 +1,8 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
-#include <algorithm>
+import std;
+import std;
+import std;
 
 import std.stdlib.Opt;
 import std.stdlib.Slice;

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <nlohmann/json.hpp>
-#include <string>
-#include <sstream>
-#include <memory>
+import std;
+import std;
+import std;
 
 import std.stdlib.Str;
 import std.stdlib.Opt;

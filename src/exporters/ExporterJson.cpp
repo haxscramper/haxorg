@@ -1,4 +1,4 @@
-#include <exporters/ExporterJson.hpp>
+import org.exporters.ExporterJson;
 
 #include <boost/mp11.hpp>
 

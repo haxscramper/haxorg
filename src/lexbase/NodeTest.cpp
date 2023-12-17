@@ -1,6 +1,6 @@
-#include <lexbase/NodeTest.hpp>
-#include <string>
-#include <filesystem>
+import org.lexbase.NodeTest;
+import std;
+import std;
 import std.stdlib.Filesystem;
 import std.system.reflection;
 #include <boost/mp11.hpp>

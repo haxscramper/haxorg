@@ -6,8 +6,8 @@ import std.stdlib.IntSet;
 import std.stdlib.Str;
 import std.stdlib.Array;
 
-#include <locale>
-#include <codecvt>
+import std;
+import std;
 
 import hstd.stdlib.Vec;
 

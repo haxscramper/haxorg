@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 import std.system.aux_utils;
-#include <iostream>
+import std;
 import std.system.string_convert;
 import std.stdlib.Debug;
-#include <fstream>
+import std;
 #include "../testprofiler.hpp"
 #include <absl/strings/str_split.h>
 #include <absl/log/log_sink_registry.h>

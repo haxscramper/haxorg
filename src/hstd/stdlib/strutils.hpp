@@ -3,7 +3,7 @@
 import std.stdlib.charsets;
 import std.system.generator;
 import std.stdlib.Str;
-#include <sstream>
+import std;
 
 import hstd.stdlib.Vec;
 

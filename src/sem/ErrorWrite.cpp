@@ -1,5 +1,5 @@
 import std.stdlib.sequtils;
-#include <sem/ErrorWrite.hpp>
+import org.sem.ErrorWrite;
 import std.stdlib.Opt;
 import std.stdlib.Debug;
 

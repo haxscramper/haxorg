@@ -1,9 +1,9 @@
 #pragma once
 
-#include <sem/SemOrg.hpp>
-#include <sem/SemConvert.hpp>
-#include <parse/OrgSpec.hpp>
-#include <lexbase/NodeIO.hpp>
+import org.sem.SemOrg;
+import org.sem.SemConvert;
+import org.parse.OrgSpec;
+import org.lexbase.NodeIO;
 
 using org = OrgNodeKind;
 using otk = OrgTokenKind;

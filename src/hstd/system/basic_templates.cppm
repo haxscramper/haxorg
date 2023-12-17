@@ -2,9 +2,9 @@
 
 module;
 
-#include <concepts>
-#include <limits>
-#include <algorithm>
+import std;
+import std;
+import std;
 
 export module hstd.system.basic_templates;
 

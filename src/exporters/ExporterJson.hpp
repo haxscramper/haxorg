@@ -1,6 +1,6 @@
 #pragma once
 
-#include <exporters/Exporter.hpp>
+import org.exporters.Exporter;
 import std.stdlib.Time;
 import std.stdlib.Json;
 

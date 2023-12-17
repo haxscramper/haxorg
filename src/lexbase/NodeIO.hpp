@@ -1,9 +1,9 @@
 #pragma once
 
-#include <unordered_set>
-#include <lexbase/Node.hpp>
-#include <lexbase/Token.hpp>
-#include <lexbase/AstSpec.hpp>
+import std;
+import org.lexbase.Node;
+import org.lexbase.Token;
+import org.lexbase.AstSpec;
 import std.stdlib.algorithms;
 
 import std.stdlib.Json;

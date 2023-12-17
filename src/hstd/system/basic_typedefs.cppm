@@ -1,8 +1,8 @@
 module;
 
-#include <concepts>
-#include <cstdint>
-#include <string>
+import std;
+import std;
+import std;
 
 export module hstd.system.basic_typedefs;
 

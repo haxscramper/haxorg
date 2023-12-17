@@ -1,6 +1,6 @@
 #pragma once
 
-#include <memory>
+import std;
 import std.system.aux_utils;
 
 template <typename T>

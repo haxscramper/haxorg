@@ -1,8 +1,8 @@
 #pragma once
 
-#include <memory>
-#include <fstream>
-#include <string>
+import std;
+import std;
+import std;
 
 import std.stdlib.Filesystem;
 import std.stdlib.ColText;

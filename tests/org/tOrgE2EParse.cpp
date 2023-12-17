@@ -2,15 +2,15 @@
 #include "org_parse_aux.hpp"
 #include <gtest/gtest.h>
 
-#include <sem/semdatastream.hpp>
+import org.sem.semdatastream;
 
-#include <parse/OrgParser.hpp>
-#include <parse/OrgTokenizer.hpp>
+import org.parse.OrgParser;
+import org.parse.OrgTokenizer;
 #include <gtest/gtest.h>
 
-#include <lexbase/AstSpec.hpp>
-#include <lexbase/AstDiff.hpp>
-#include <lexbase/NodeTest.hpp>
+import org.lexbase.AstSpec;
+import org.lexbase.AstDiff;
+import org.lexbase.NodeTest;
 
 import std.stdlib.diffs;
 

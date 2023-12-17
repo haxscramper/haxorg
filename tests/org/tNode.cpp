@@ -1,4 +1,4 @@
-#include <lexbase/Node.hpp>
+import org.lexbase.Node;
 #include <lexbase/Node.cpp>
 import std.system.reflection;
 #include <gtest/gtest.h>

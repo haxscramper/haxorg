@@ -1,4 +1,4 @@
-#include <exporters/ExporterBase.hpp>
+import org.exporters.ExporterBase;
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(

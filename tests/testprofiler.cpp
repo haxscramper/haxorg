@@ -3,10 +3,10 @@
 #include <xray/xray_interface.h>
 #include <xray/xray_log_interface.h>
 #include <xray/xray_records.h>
-#include <format>
-#include <exception>
-#include <regex>
-#include <filesystem>
+import std;
+import std;
+import std;
+import std;
 
 import std.wrappers.perfetto_aux;
 

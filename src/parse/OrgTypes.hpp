@@ -2,9 +2,9 @@
 
 import std.stdlib.dod_base;
 
-#include <lexbase/Token.hpp>
-#include <lexbase/Node.hpp>
-#include <sem/SemOrgEnums.hpp>
+import org.lexbase.Token;
+import org.lexbase.Node;
+import org.sem.SemOrgEnums;
 #include <base_lexer/base_token.hpp>
 import std.system.reflection;
 

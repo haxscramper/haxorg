@@ -3,9 +3,9 @@
 #include <git2.h>
 
 import std.stdlib.Str;
-#include <array>
+import std;
 import std.stdlib.Func;
-#include <expected>
+import std;
 import std.stdlib.Ptrs;
 
 /// \brief Convert git ID object to it's string representation

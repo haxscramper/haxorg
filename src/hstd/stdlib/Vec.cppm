@@ -5,8 +5,8 @@ import std.stdlib.Slice;
 import std.stdlib.Span;
 import std.stdlib.sequtils;
 
-#include <vector>
-#include <span>
+import std;
+import std;
 
 export module hstd.stdlib.Vec;
 

@@ -1,4 +1,4 @@
-#include <lexbase/TraceBase.hpp>
+import org.lexbase.TraceBase;
 
 void OperationsTracer::setTraceFile(const fs::path& outfile) {
     CHECK(outfile.native().size() != 0)

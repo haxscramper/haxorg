@@ -6,8 +6,8 @@
 #include <llvm/Support/CommandLine.h>
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/JSONCompilationDatabase.h>
-#include <filesystem>
-#include <format>
+import std;
+import std;
 #include <llvm/Support/JSON.h>
 
 namespace fs = std::filesystem;

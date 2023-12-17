@@ -1,6 +1,6 @@
 import std.system.aux_templates;
 #include <gtest/gtest.h>
-#include <string>
+import std;
 #include <absl/log/log.h>
 import std.stdlib.RangeTree;
 import std.stdlib.Debug;

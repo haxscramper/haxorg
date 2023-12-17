@@ -1,1 +1,1 @@
-#include <sem/SemOrg.hpp>
+import org.sem.SemOrg;

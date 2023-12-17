@@ -4,7 +4,7 @@
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
-#include <fstream>
+import std;
 
 #include "repo_processing.hpp"
 #include "program_state.hpp"

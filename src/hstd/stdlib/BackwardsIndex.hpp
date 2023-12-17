@@ -1,5 +1,5 @@
 #pragma once
-#include <format>
+import std;
 
 struct BackwardsIndex {
     int value;

@@ -1,4 +1,4 @@
-#include <exporters/ExporterUltraplain.hpp>
+import org.exporters.ExporterUltraplain;
 import std.stdlib.strutils;
 
 #include <exporters/Exporter.cpp>

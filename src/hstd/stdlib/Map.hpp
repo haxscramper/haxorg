@@ -1,8 +1,8 @@
 #pragma once
 
-#include <unordered_map>
-#include <map>
-#include <optional>
+import std;
+import std;
+import std;
 
 import std.system.Formatter;
 import std.system.generator;

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string>
-#include <unordered_map>
-#include <span>
+import std;
+import std;
+import std;
 
 import std.system.all;
 import std.system.generator;

@@ -1,14 +1,14 @@
 #pragma once
 
 #include "hstd/stdlib/Slice.hpp"
-#include <string>
-#include <vector>
-#include <utility>
-#include <memory>
-#include <functional>
-#include <optional>
-#include <iostream>
-#include <algorithm>
+import std;
+import std;
+import std;
+import std;
+import std;
+import std;
+import std;
+import std;
 
 import hstd.stdlib.Vec;
 

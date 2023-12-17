@@ -1,6 +1,6 @@
 #pragma once
 
-#include <bitset>
+import std;
 
 import std.system.all;
 import std.stdlib.Slice;

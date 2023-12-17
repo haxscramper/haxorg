@@ -13,9 +13,9 @@ import std.stdlib.algorithms;
 import std.stdlib.Set;
 import std.system.Formatter;
 
-#include <unordered_set>
-#include <unordered_map>
-#include <functional>
+import std;
+import std;
+import std;
 
 import hstd.stdlib.Vec;
 

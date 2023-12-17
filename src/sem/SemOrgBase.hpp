@@ -1,7 +1,7 @@
 #pragma once
 
 import std.system.basic_typedefs;
-#include <sem/SemOrgEnums.hpp>
+import org.sem.SemOrgEnums;
 
 import std.stdlib.Str;
 import std.stdlib.Func;
@@ -9,8 +9,8 @@ import std.stdlib.IntSet;
 import std.stdlib.Opt;
 
 import std.system.Formatter;
-#include <parse/OrgTypes.hpp>
-#include <format>
+import org.parse.OrgTypes;
+import std;
 import std.system.reflection;
 
 import hstd.stdlib.Vec;

@@ -5,8 +5,8 @@ import std.system.basic_typedefs;
 import std.stdlib.Slice;
 import std.stdlib.Span;
 import std.stdlib.Pair;
-#include <format>
-#include <string>
+import std;
+import std;
 
 export module hstd.stdlib.Str;
 

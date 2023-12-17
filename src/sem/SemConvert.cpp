@@ -1,13 +1,13 @@
-#include <sem/SemConvert.hpp>
+import org.sem.SemConvert;
 import std.stdlib.Func;
-#include <parse/OrgSpec.hpp>
+import org.parse.OrgSpec;
 
 import std.stdlib.Debug;
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
 import std.wrappers.perfetto_aux;
-#include <exporters/exportertree.hpp>
+import org.exporters.exportertree;
 #include <absl/log/log.h>
 
 #define __INIT_REPORT(__subname, __node)                                  \

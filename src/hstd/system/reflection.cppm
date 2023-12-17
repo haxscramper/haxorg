@@ -1,16 +1,16 @@
 module;
 
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <optional>
+import std;
+import std;
+import std;
+import std;
 
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
 
-#include <vector>
-#include <format>
-#include <type_traits>
+import std;
+import std;
+import std;
 
 export module hstd.system.reflection;
 

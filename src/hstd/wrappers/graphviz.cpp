@@ -1,8 +1,8 @@
 #if false
 
 import std.wrappers.graphviz;
-#include <filesystem>
-#include <format>
+import std;
+import std;
 
 void Graphviz::Node::Record::set(const Str& columnKey, CR<Record> value) {
     if (isFinal()) {

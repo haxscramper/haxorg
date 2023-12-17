@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cassert>
-#include <iostream>
-#include <filesystem>
-#include <unordered_map>
+import std;
+import std;
+import std;
+import std;
 #include "git_interface.hpp"
 import std.stdlib.dod_base;
 import std.stdlib.Str;

@@ -7,8 +7,8 @@ import std.system.generator;
 import std.system.string_convert;
 import std.system.Formatter;
 
-#include <span>
-#include <array>
+import std;
+import std;
 
 template <typename T, int Size>
 struct Array : std::array<T, Size> {

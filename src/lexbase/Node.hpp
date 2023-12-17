@@ -8,13 +8,13 @@ import std.stdlib.Func;
 import std.stdlib.dod_base;
 import std.stdlib.strutils;
 import std.stdlib.ColText;
-#include <filesystem>
+import std;
 #include <absl/log/check.h>
 
-#include <lexbase/Token.hpp>
-#include <format>
+import org.lexbase.Token;
+import std;
 
-#include <variant>
+import std;
 #include <absl/log/check.h>
 
 template <typename N, typename K, typename V>

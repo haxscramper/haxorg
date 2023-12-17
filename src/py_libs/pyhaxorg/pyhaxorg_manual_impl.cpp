@@ -1,13 +1,13 @@
 #include "pyhaxorg_manual_impl.hpp"
 
-#include <exporters/ExporterJson.hpp>
+import org.exporters.ExporterJson;
 import std.stdlib.Filesystem;
-#include <exporters/exporteryaml.hpp>
-#include <exporters/exportertree.hpp>
-#include <sem/semdatastream.hpp>
+import org.exporters.exporteryaml;
+import org.exporters.exportertree;
+import org.sem.semdatastream;
 #include <datetime.h>
 
-#include <memory>
+import std;
 
 #include <exporters/Exporter.cpp>
 

@@ -1,17 +1,17 @@
 /* clang-format off */
 
 #pragma once
-#include <sem/SemOrgEnums.hpp>
+import org.sem.SemOrgEnums;
 import std.stdlib.Variant;
 import std.stdlib.Time;
 import std.stdlib.Opt;
 import std.stdlib.Str;
-#include <parse/OrgTypes.hpp>
+import org.parse.OrgTypes;
 #include <boost/describe.hpp>
 import std.system.macros;
-#include <functional>
-#include <sem/SemOrgBase.hpp>
-#include <sem/SemOrgEnums.hpp>
+import std;
+import org.sem.SemOrgBase;
+import org.sem.SemOrgEnums;
 
 import hstd.stdlib.Vec;
 

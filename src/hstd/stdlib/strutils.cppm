@@ -3,7 +3,7 @@ module;
 import std.stdlib.charsets;
 import std.system.generator;
 import std.stdlib.Str;
-#include <sstream>
+import std;
 
 export module hstd.stdlib.strutils;
 

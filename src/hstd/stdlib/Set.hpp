@@ -3,8 +3,8 @@
 import std.system.all;
 import std.system.string_convert;
 import std.stdlib.SetCommon;
-#include <unordered_set>
-#include <set>
+import std;
+import std;
 
 template <typename T>
 struct UnorderedSet

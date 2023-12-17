@@ -1,9 +1,9 @@
 #pragma once
 
-#include <sem/SemOrg.hpp>
+import org.sem.SemOrg;
 import std.stdlib.Ptrs;
-#include <parse/OrgParser.hpp>
-#include <parse/OrgSpec.hpp>
+import org.parse.OrgParser;
+import org.parse.OrgSpec;
 
 namespace sem {
 struct OrgConverter : public OperationsTracer {

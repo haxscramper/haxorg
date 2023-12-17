@@ -1,9 +1,9 @@
 #pragma once
 
-#include <sem/SemOrg.hpp>
+import org.sem.SemOrg;
 #include <boost/mp11.hpp>
-#include <concepts>
-#include <lexbase/TraceBase.hpp>
+import std;
+import org.lexbase.TraceBase;
 
 using boost::mp11::mp_for_each;
 using namespace boost::describe;

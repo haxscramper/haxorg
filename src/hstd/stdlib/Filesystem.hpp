@@ -1,10 +1,10 @@
 #pragma once
 
-#include <iostream>
-#include <string>
-#include <filesystem>
+import std;
+import std;
+import std;
 import std.stdlib.Ptrs;
-#include <format>
+import std;
 
 namespace fs = std::filesystem;
 

@@ -9,16 +9,16 @@ import std.stdlib.Str;
 import std.stdlib.Func;
 #include <absl/log/check.h>
 
-#include <iostream>
-#include <cassert>
-#include <queue>
-#include <algorithm>
-#include <unordered_set>
-#include <limits>
-#include <functional>
-#include <memory>
-#include <optional>
-#include <vector>
+import std;
+import std;
+import std;
+import std;
+import std;
+import std;
+import std;
+import std;
+import std;
+import std;
 
 import hstd.stdlib.Vec;
 

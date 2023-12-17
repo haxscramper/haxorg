@@ -5,16 +5,16 @@
 
 #undef slots
 #include <pybind11/pybind11.h>
-#include <sem/SemOrg.hpp>
+import org.sem.SemOrg;
 #include <pybind11/stl.h>
 import std.stdlib.Yaml;
 import std.stdlib.Json;
 
-#include <sem/SemConvert.hpp>
-#include <parse/OrgParser.hpp>
-#include <parse/OrgTokenizer.hpp>
-#include <parse/OrgTypes.hpp>
-#include <exporters/Exporter.hpp>
+import org.sem.SemConvert;
+import org.parse.OrgParser;
+import org.parse.OrgTokenizer;
+import org.parse.OrgTypes;
+import org.exporters.Exporter;
 #include <pybind11/stl_bind.h>
 
 

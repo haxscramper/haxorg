@@ -3,7 +3,7 @@ module;
 import std.system.all;
 import std.stdlib.Slice;
 import std.system.string_convert;
-#include <span>
+import std;
 #include <absl/log/log.h>
 #include <absl/log/check.h>
 

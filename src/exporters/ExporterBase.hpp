@@ -1,6 +1,6 @@
 #pragma once
 
-#include <exporters/Exporter.hpp>
+import org.exporters.Exporter;
 
 /// \brief Trigger field visitation for value object
 #define __obj_field(res, obj, name)                                       \

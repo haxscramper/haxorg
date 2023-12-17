@@ -1,4 +1,4 @@
-#include <sem/ErrorWrite.hpp>
+import org.sem.ErrorWrite;
 #include <gtest/gtest.h>
 
 TEST(PrintError, MultipleFiles) {

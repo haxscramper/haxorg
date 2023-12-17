@@ -1,6 +1,6 @@
 module;
 
-#include <format>
+import std;
 
 export module hstd.system.Formatter;
 

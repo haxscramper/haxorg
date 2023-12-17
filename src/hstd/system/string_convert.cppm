@@ -1,19 +1,19 @@
 module; 
 
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <string>
-#include <iostream>
-#include <format>
-#include <sstream>
+import std;
+import std;
+import std;
+import std;
+import std;
+import std;
+import std;
 
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
 
-#include <locale>
-#include <codecvt>
-#include <format>
+import std;
+import std;
+import std;
 
 export module hstd.system.string_convert; 
 

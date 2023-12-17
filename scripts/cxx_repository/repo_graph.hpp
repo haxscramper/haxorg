@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/graph/adjacency_list.hpp>
-#include <unordered_map>
+import std;
 import std.system.generator;
 import std.stdlib.Opt;
 

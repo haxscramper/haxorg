@@ -1,9 +1,9 @@
 #pragma once
 
-#include <string>
-#include <string_view>
-#include <vector>
-#include <lexbase/Token.hpp>
+import std;
+import std;
+import std;
+import org.lexbase.Token;
 import std.system.reflection;
 
 

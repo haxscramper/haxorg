@@ -1,8 +1,8 @@
 #pragma once
 
-#include <iostream>
-#include <fstream>
-#include <optional>
+import std;
+import std;
+import std;
 
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/RecursiveASTVisitor.h>
@@ -10,7 +10,7 @@
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/ASTConsumers.h>
 #include <clang/Sema/Sema.h>
-#include <unordered_set>
+import std;
 
 // Auto-generated protobuf definition, provided by cmake run
 #include "reflection_defs.pb.h"

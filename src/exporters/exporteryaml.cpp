@@ -1,4 +1,4 @@
-#include <exporters/exporteryaml.hpp>
+import org.exporters.exporteryaml;
 
 
 #include <exporters/Exporter.cpp>

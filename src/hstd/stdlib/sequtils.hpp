@@ -1,7 +1,7 @@
 #pragma once
 
 import std.system.basic_typedefs;
-#include <algorithm>
+import std;
 import std.stdlib.Pair;
 
 template <typename T, typename Ref>

@@ -3,10 +3,10 @@
 import std.stdlib.Filesystem;
 import std.stdlib.Debug;
 
-#include <exporters/ExporterJson.hpp>
-#include <exporters/exportertree.hpp>
-#include <exporters/exportersimplesexpr.hpp>
-#include <exporters/exporteryaml.hpp>
+import org.exporters.ExporterJson;
+import org.exporters.exportertree;
+import org.exporters.exportersimplesexpr;
+import org.exporters.exporteryaml;
 import std.stdlib.ColText;
 import std.stdlib.diffs;
 
