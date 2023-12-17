@@ -1,7 +1,7 @@
 export module hstd.stdlib.Ptrs;
 
 import hstd.system.aux_utils;
-import std_memory;
+export import std_memory;
 import std_utility;
 
 export {

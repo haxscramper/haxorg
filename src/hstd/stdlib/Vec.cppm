@@ -1,12 +1,14 @@
-module;
+export module hstd.stdlib.Vec;
 
 import hstd.system.all;
 import hstd.stdlib.Slice;
 import hstd.stdlib.Span;
 import hstd.stdlib.sequtils;
-
-
-export module hstd.stdlib.Vec;
+import std_vector;
+import std_span;
+import hstd.stdlib.BackwardsIndex;
+import hstd.stdlib.Opt;
+import hstd.system.Formatter;
 
 export {
 /// \brief Derivation of the standard vector with better API for quick

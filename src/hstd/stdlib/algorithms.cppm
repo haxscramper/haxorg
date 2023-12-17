@@ -1,4 +1,4 @@
-#pragma once
+export module hstd.stdlib.algorithms;
 
 import hstd.stdlib.Span;
 import hstd.stdlib.Func;
@@ -8,7 +8,11 @@ import hstd.system.generator;
 import hstd.stdlib.Pair;
 
 import hstd.stdlib.Vec;
+import std_algorithm;
+import hstd.system.basic_typedefs;
+import hstd.stdlib.Slice;
 
+export {
 /// \brief In-place reverse of the vector content
 template <typename T>
 void reverse(Vec<T>& vec) {
@@ -110,4 +114,5 @@ generator<Pair<typename A::value_type const*, typename B::value_type const*>> ca
             co_yield {&lhsIt, &rhsIt};
         }
     }
+}
 }

@@ -1,8 +1,8 @@
-#pragma once
+export hstd.stdlib.SetCommon;
 
 import hstd.system.all;
 import hstd.stdlib.Slice;
-
+export {
 template <typename Set, typename Val>
 struct SetBase : public CRTP_this_method<Set> {
     using CRTP_this_method<Set>::_this;
@@ -71,3 +71,4 @@ struct SetBase : public CRTP_this_method<Set> {
         return other.contains(*_this());
     }
 };
+}

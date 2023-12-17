@@ -7,9 +7,15 @@ module;
 
 export module hstd.system.reflection;
 
+import boost.mp11;
 import hstd.system.string_convert;
 import hstd.system.basic_typedefs;
 import hstd.system.basic_templates;
+import std_string;
+import std_typeinfo;
+import std_concepts;
+import std_format;
+import std_vector;
 
 export {
 template <typename T>

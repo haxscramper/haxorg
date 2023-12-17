@@ -1,4 +1,4 @@
-#include "diffs.hpp"
+module hstd.stdlib.diffs;
 
 Vec<BacktrackRes> longestCommonSubsequence(
     int                   lhsSize,

@@ -1,10 +1,12 @@
-#pragma once
-
+export module hstd.stdlib.Map;
 
 import hstd.system.Formatter;
 import hstd.system.generator;
 import hstd.system.all;
+import std_map;
+import std_unordered_map;
 
+export {
 template <typename Map, typename K, typename V>
 struct MapBase : public CRTP_this_method<Map> {
     using CRTP_this_method<Map>::_this;
@@ -78,3 +80,4 @@ struct std::formatter<UnorderedMap<K, V>> : std::formatter<std::string> {
         return fmt.format("}", ctx);
     }
 };
+}

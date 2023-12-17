@@ -1,10 +1,11 @@
-module; 
-
+export module hstd.stdlib.strformat; 
 
 import hstd.stdlib.sequtils;
 import hstd.system.all;
-
-export module hstd.stdlib.strformat; 
+import std_string;
+import std_vector;
+import hstd.stdlib.Pair;
+import std_format;
 
 export {
 enum class AddfFragmentKind

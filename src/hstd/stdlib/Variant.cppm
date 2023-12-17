@@ -1,8 +1,9 @@
+export module hstd.stdlib.Variant;
+
 import hstd.system.string_convert;
 import hstd.system.basic_templates;
 import hstd.system.Formatter;
-
-export module hstd.stdlib.Variant;
+import boost.mp11;
 
 export import std_variant;
 

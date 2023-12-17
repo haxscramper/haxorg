@@ -2,13 +2,11 @@ export module hstd.stdlib.Filesystem;
 
 import hstd.stdlib.Ptrs;
 import std_filesystem;
-import std_format;
-
-namespace fs = std::filesystem;
-
-
+export import std_format;
 
 export {
+namespace fs = std::filesystem;
+
 struct FilesystemError : public std::runtime_error {
     explicit FilesystemError(const std::string& message)
         : std::runtime_error(message) {}

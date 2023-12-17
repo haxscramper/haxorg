@@ -1,5 +1,8 @@
-#pragma once
+export module hstd.stdlib.BackwardsIndex;
+import std_format;
+import std_string;
 
+export {
 struct BackwardsIndex {
     int value;
 };
@@ -23,3 +26,4 @@ struct std::formatter<BackwardsIndex> : std::formatter<std::string> {
         return fmt.format("^" + std::to_string(p.value), ctx);
     }
 };
+}

@@ -1,4 +1,4 @@
-#pragma once
+export module hstd.stdlib.diffs;
 
 import hstd.stdlib.Map;
 import hstd.stdlib.Func;
@@ -14,6 +14,7 @@ import hstd.system.reflection;
 
 import hstd.stdlib.Vec;
 
+export {
 using std::operator""s;
 
 struct BacktrackRes {
@@ -1152,4 +1153,5 @@ inline ColText formatDiffed(
     const Str&            text2,
     const DiffFormatConf& conf = DiffFormatConf{}) {
     return formatDiffed(split(text1, '\n'), split(text2, '\n'), conf);
+}
 }

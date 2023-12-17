@@ -10,6 +10,8 @@ import hstd.system.string_convert;
 import hstd.system.exceptions;
 import hstd.stdlib.Pair;
 import hstd.stdlib.BackwardsIndex;
+import hstd.system.basic_typedefs;
+import hstd.system.Formatter;
 
 
 export {

@@ -1,11 +1,16 @@
+export module hstd.stdlib.RangeTree;
 
 import hstd.stdlib.Opt;
 import hstd.stdlib.Slice;
 import hstd.stdlib.Ptrs;
 
 import hstd.stdlib.Vec;
-
-export module hstd.stdlib.RangeTree;
+import hstd.system.basic_typedefs;
+import hstd.stdlib.Ptrs;
+import std_iostream;
+import hstd.stdlib.BackwardsIndex;
+import std_format;
+import std_sstream;
 
 export {
 template <typename T>

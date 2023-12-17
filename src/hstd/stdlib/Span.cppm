@@ -1,12 +1,16 @@
 module; 
 
-import hstd.system.all;
-import hstd.stdlib.Slice;
-import hstd.system.string_convert;
 #include <absl/log/log.h>
 #include <absl/log/check.h>
 
 export module hstd.stdlib.Span;
+
+import hstd.system.all;
+import hstd.stdlib.Slice;
+import hstd.system.string_convert;
+import std_span;
+import hstd.stdlib.BackwardsIndex;
+import hstd.system.Formatter;
 
 export {
 template <typename T>

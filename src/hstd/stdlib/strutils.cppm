@@ -1,12 +1,14 @@
-module; 
-
-import hstd.stdlib.charsets;
-import hstd.system.generator;
-import hstd.stdlib.Str;
-
 export module hstd.stdlib.strutils;
 
+import hstd.system.generator;
+import hstd.stdlib.Str;
 import hstd.stdlib.Vec;
+import hstd.system.basic_typedefs;
+import std_string;
+import std_sstream;
+import std_format;
+import hstd.stdlib.Pair;
+import hstd.stdlib.IntSet;
 
 export {
 template <typename T>

@@ -1,12 +1,12 @@
-#pragma once
-
-
 import hstd.system.all;
 import hstd.stdlib.Slice;
 import hstd.stdlib.SetCommon;
 import hstd.system.basic_templates;
 import hstd.system.aux_templates;
 
+export module hstd.stdlib.IntSet;
+
+export {
 template <typename T, typename InT>
 concept ConvertibleToSet
     = (std::same_as<std::remove_cvref_t<InT>, T> //
@@ -207,3 +207,7 @@ struct std::formatter<IntSet<T>> : std::formatter<std::string> {
         return fmt.format("}", ctx);
     }
 };
+
+using CharSet = IntSet<char>;
+
+}

@@ -1,5 +1,8 @@
+export module hstd.stdlib.sequtils;
+
 import hstd.system.basic_typedefs;
 import hstd.stdlib.Pair;
+import std_algorithm;
 
 export {
 template <typename T, typename Ref>

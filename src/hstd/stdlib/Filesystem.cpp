@@ -1,5 +1,8 @@
-import hstd.stdlib.Filesystem;
-#include <absl/log/check.h>
+module hstd.stdlib.Filesystem;
+import std_filesystem;
+import std_fstream;
+import std_iostream;
+
 
 void writeFile(const fs::path& target, const std::string& content) {
     std::ofstream file{target.native()};

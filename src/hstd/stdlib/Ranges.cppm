@@ -1,13 +1,13 @@
-#pragma once
+module;
 
 #include <range/v3/all.hpp>
 
+export hstd.stdlib.Ranges;
 
+export {
 namespace rv = ranges::views;
 namespace rs = ranges;
 using ranges::operator|;
-
-
 
 template <class T>
 struct generator_view : rs::view_facade<generator_view<T>> {
@@ -188,4 +188,5 @@ generator<T> indexed_get_iterator(
     for (int i = 0; i < size; ++i) {
         co_yield getter(in, i);
     }
+}
 }

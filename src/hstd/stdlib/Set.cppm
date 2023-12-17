@@ -1,9 +1,10 @@
-#pragma once
+export module hstd.stdlib.Set;
 
 import hstd.system.all;
 import hstd.system.string_convert;
 import hstd.stdlib.SetCommon;
 
+export {
 template <typename T>
 struct UnorderedSet
     : public std::unordered_set<T>
@@ -50,3 +51,4 @@ struct std::formatter<UnorderedSet<T>> : std::formatter<std::string> {
         return "{" << join(", ", p) << "}";
     }
 };
+}

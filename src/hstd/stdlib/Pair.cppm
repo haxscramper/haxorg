@@ -1,7 +1,11 @@
-#pragma once
+module;
 
 #include <boost/container_hash/hash.hpp>
 
+export module hstd.stdlib.Pair;
+export import std_utility;
+
+export {
 template <typename A, typename B>
 using Pair = std::pair<A, B>;
 
@@ -14,3 +18,4 @@ struct std::hash<Pair<A, B>> {
         return result;
     }
 };
+}

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/describe.hpp>
+
 #define PARENS ()
 
 #define EXPAND(...) EXPAND4(EXPAND4(EXPAND4(EXPAND4(__VA_ARGS__))))

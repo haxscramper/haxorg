@@ -1,7 +1,8 @@
-#pragma once
-
+export module hstd.stdlib.Opt;
 import hstd.system.Formatter;
+export import std_optional;
 
+export {
 template <typename T>
 using Opt = std::optional<T>;
 
@@ -21,3 +22,4 @@ struct std::formatter<Opt<T>> : std::formatter<std::string> {
         }
     }
 };
+}

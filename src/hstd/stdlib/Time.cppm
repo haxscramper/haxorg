@@ -1,12 +1,13 @@
 module;
+#include <absl/time/civil_time.h>
+#include <absl/time/time.h>
+#include <hstd/system/macros.hpp>
+
+export module hstd.stdlib.Time;
 
 import hstd.stdlib.Variant;
 import hstd.system.aux_utils;
-#include <absl/time/civil_time.h>
-#include <absl/time/time.h>
 import hstd.stdlib.Str;
-
-export module hstd.stdlib.Time;
 
 export {
 struct UserTime {
