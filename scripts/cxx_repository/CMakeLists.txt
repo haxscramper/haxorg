@@ -10,6 +10,7 @@ set_target_flags(code_forensics)
 
 glob_add_sources2(code_forensics "${BASE}/scripts/cxx_repository/.*")
 
+set(BUILD_TESTS OFF CACHE BOOL "Do not build tests in the subdirectory" FORCE)
 add_subdirectory("${BASE}/thirdparty/libgit2" "${CMAKE_BINARY_DIR}/libgit2_build")
 
 target_link_libraries(code_forensics PUBLIC

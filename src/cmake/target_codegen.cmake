@@ -22,4 +22,4 @@ target_include_directories(
 )
 
 target_link_libraries(py_textlayout PRIVATE hstd ${PYTHON_LIBRARIES} ubsan)
-target_compile_options(py_textlayout PRIVATE -shared-libasan)
+# target_compile_options(py_textlayout PRIVATE -shared-libasan)

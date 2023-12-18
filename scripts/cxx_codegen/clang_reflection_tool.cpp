@@ -146,15 +146,22 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
     filteredArgs.push_back("-isystem");
     filteredArgs.push_back(ToolchainInclude);
 
+    std::cerr << "Filtered command line arguments\n";
+    for (auto const& arg : filteredArgs) {
+        std::cerr << arg << "\n";
+    }
+
     return filteredArgs;
 }
 
 
 int main(int argc, const char** argv) {
+    std::cerr << "Starting data processing" << std::endl;
     auto cli = clang::tooling::CommonOptionsParser::create(
         argc, argv, ToolingSampleCategory);
 
     if (!cli) {
+        std::cerr << "CLI is invalid" << std::endl;
         llvm::errs() << cli.takeError();
         return 1;
     }
@@ -168,6 +175,8 @@ int main(int argc, const char** argv) {
         clang::tooling::JSONCommandLineSyntax::AutoDetect);
 
     if (!JSONDB) {
+        std::cerr << "Failed to process provided JSON DB, failure was:"
+                  << std::endl;
         llvm::errs() << ErrorMessage;
         return 1;
     }

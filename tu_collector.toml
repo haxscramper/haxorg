@@ -1,6 +1,6 @@
 indexing_tool = "/mnt/workspace/repos/haxorg/build/utils_debug/reflection_tool"
 compilation_database = "/mnt/workspace/repos/libgit2/compile_commands.json"
-toolchain_include = "/mnt/workspace/repos/haxorg/toolchain/llvm/lib/clang/16/include"
+toolchain_include = "/mnt/workspace/repos/haxorg/toolchain/llvm/lib/clang/17/include"
 output_directory = "/mnt/workspace/repos/hlibgit2/src/hlibgit2"
 
 

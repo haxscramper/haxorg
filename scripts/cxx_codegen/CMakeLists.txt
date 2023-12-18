@@ -4,10 +4,12 @@ project(ConvertConstRef)
 
 # Specify the path to the LLVM toolchain
 set(TOOLCHAIN "${CMAKE_SOURCE_DIR}/../../toolchain")
+# Set the LLVM_DIR to the location of LLVMConfig.cmake
 set(LLVM_DIR "${TOOLCHAIN}/llvm/lib/cmake/llvm")
 set(Clang_DIR "${TOOLCHAIN}/llvm/lib/cmake/clang")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 
+set(LLVM_LIB_DIR "${TOOLCHAIN}/llvm/lib")
 
 # Find the LLVM package. This also defines a lot of variables, see: 
 # https://llvm.org/docs/CMake.html#embedding-llvm-in-your-project
@@ -24,7 +26,7 @@ include_directories(${CLANG_INCLUDE_DIRS})
 # Create the executable target
 
 # Link against LLVM libraries
-llvm_map_components_to_libnames(llvm_libs support core irreader)
+llvm_map_components_to_libnames(llvm_libs support core)
 
 add_executable(convert_const_ref convert_const_ref.cpp)
 target_link_libraries(
@@ -72,7 +74,7 @@ set_target_properties(reflection_tool PROPERTIES CXX_STANDARD 20)
 target_link_options(reflection_tool PRIVATE "-Wl,--copy-dt-needed-entries")
 target_link_libraries(reflection_tool PRIVATE
     reflection_lib
-    LLVM
+    ${llvm_libs}
     clangBasic
     clangASTMatchers
     clangTooling

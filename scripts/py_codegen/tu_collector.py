@@ -224,10 +224,10 @@ def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: 
                 file.write(json.dumps(cmd.model_dump(), indent=2))
 
                 sep("Binary command:")
-                file.write(" \\\n    ".join(cmd.command.split()))
+                file.write(" ^\n    ".join(cmd.command.split()))
 
         sep("Flags:")
-        file.write(" \\\n    ".join([conf.indexing_tool] + tu.flags))
+        file.write(" ^\n    ".join([conf.indexing_tool] + tu.flags))
 
 
 @beartype
@@ -250,6 +250,9 @@ def run_collector_for_path(conf: TuOptions, mapping: PathMapping,
                       tu=tu.conv_tu,
                       original=path,
                       mapping=relative.with_suffix(".nim"))
+
+    else:
+        write_run_result_information(conf, tu, path, commands)
 
 
 @click.command()
