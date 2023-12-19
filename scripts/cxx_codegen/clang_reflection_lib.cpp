@@ -3,6 +3,58 @@
 #include <llvm/Support/TimeProfiler.h>
 #include <format>
 
+clang::TypedefDecl* findTypedefForDecl(
+    clang::Decl*       Decl,
+    clang::ASTContext* Ctx) {
+    clang::DeclContext* Context = Decl->getDeclContext();
+    for (auto D : Context->decls()) {
+        if (auto* TD = llvm::dyn_cast<clang::TypedefDecl>(D)) {
+            if (TD->getUnderlyingType()->getAsRecordDecl() == Decl) {
+                return TD;
+            } else if (
+                const clang::EnumType* ET = TD->getUnderlyingType()
+                                                ->getAs<clang::EnumType>();
+                ET && ET->getDecl() == Decl) {
+                return TD;
+
+            } else if (TD->getUnderlyingDecl() == Decl) {
+                return TD;
+            }
+        }
+    }
+
+
+    return nullptr;
+}
+
+clang::FieldDecl* findFieldForDecl(
+    clang::Decl*       Decl,
+    clang::ASTContext* Ctx) {
+    clang::DeclContext* Context = Decl->getDeclContext();
+    for (auto D : Context->decls()) {
+        if (auto* FD = llvm::dyn_cast<clang::FieldDecl>(D)) {
+            clang::Type const* FieldType = FD->getType().getTypePtr();
+            if (FD->getType()->getAsRecordDecl() == Decl) {
+                return FD;
+            } else if (
+                const clang::EnumType* ET = FD->getType()
+                                                ->getAs<clang::EnumType>();
+                ET && ET->getDecl() == Decl) {
+                return FD;
+
+            } else if (
+                FieldType && FieldType->getAs<clang::RecordType>()
+                && FieldType->getAs<clang::RecordType>()->getDecl()
+                       == Decl) {
+                return FD;
+            }
+        }
+    }
+
+
+    return nullptr;
+}
+
 std::string getAbsoluteDeclLocation(clang::Decl* Decl) {
     clang::SourceLocation       loc           = Decl->getLocation();
     const clang::ASTContext&    astContext    = Decl->getASTContext();
@@ -458,7 +510,20 @@ void ReflASTVisitor::fillFieldDecl(
     if (doc) {
         sub->set_doc(*doc);
     }
-    fillType(sub->mutable_type(), field->getType(), field->getLocation());
+
+    clang::QualType const& Type = field->getType();
+    if (clang::RecordType const* RecType = Type.getTypePtr()
+                                               ->getAs<
+                                                   clang::RecordType>();
+        RecType != nullptr && RecType->getDecl()
+        && RecType->getDecl()->isAnonymousStructOrUnion()) {
+        fillRecordDecl(sub->mutable_typedecl(), RecType->getDecl());
+        sub->set_istypedecl(true);
+    } else {
+        fillType(
+            sub->mutable_type(), field->getType(), field->getLocation());
+        sub->set_istypedecl(false);
+    }
 }
 
 void ReflASTVisitor::fillParmVarDecl(
@@ -542,6 +607,75 @@ void ReflASTVisitor::fillMethodDecl(
 
     for (clang::ParmVarDecl const* parm : method->parameters()) {
         fillParmVarDecl(sub->add_args(), parm);
+    }
+}
+
+void ReflASTVisitor::fillRecordDecl(Record* rec, clang::RecordDecl* Decl) {
+    rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
+    rec->set_isunion(Decl->isUnion());
+    auto&               Diags   = Ctx->getDiagnostics();
+    clang::TypedefDecl* Typedef = findTypedefForDecl(Decl, Ctx);
+    if (Decl->getNameAsString().empty() && Typedef == nullptr) {
+        Diags.Report(Diags.getCustomDiagID(
+            clang::DiagnosticsEngine::Warning,
+            "No name provided for '%0'"))
+            << Decl;
+        rec->set_hasname(false);
+    } else {
+        auto name = rec->mutable_name();
+        rec->set_hasname(true);
+        if (Typedef != nullptr) {
+            // typedef struct abomination handling -- need to conjure
+            // up a name from the scattered bits of brain tissue that
+            // was left by the developers of this frankenstein feature.
+            fillType(
+                rec->mutable_name(),
+                Typedef->getASTContext().getTypedefType(Typedef),
+                Decl->getLocation());
+
+            name->set_name(Typedef->getNameAsString());
+
+            if (!Decl->getNameAsString().empty()) {
+                auto ed = rec->mutable_recorddefname();
+                fillType(
+                    rec->mutable_name(),
+                    Typedef->getASTContext().getTypedefType(Typedef),
+                    Decl->getLocation());
+                ed->set_name(Decl->getNameAsString());
+                ed->set_tag(TypeTag::TypeTagStruct);
+            }
+            name->mutable_dbgorigin()->append(" > typedef!=nullptr");
+
+        } else {
+            fillType(
+                name,
+                Decl->getASTContext().getRecordType(Decl),
+                Decl->getLocation());
+            name->mutable_dbgorigin()->append(" > typedef==nullptr");
+        }
+
+        name->mutable_dbgorigin()->append(
+            " > " + Decl->getKindName().str());
+
+        if (name->mutable_name()->empty()) {
+            Diags.Report(Diags.getCustomDiagID(
+                clang::DiagnosticsEngine::Warning, "Empty name '%0'"))
+                << Decl;
+        }
+
+        if (false) {
+            std::string              str;
+            llvm::raw_string_ostream buf{str};
+            Decl->dump(buf);
+            buf.flush();
+            name->mutable_dbgorigin()->append(str);
+        }
+    }
+
+    for (clang::FieldDecl* field : Decl->fields()) {
+        if (shouldVisit(field)) {
+            fillFieldDecl(rec->add_fields(), field);
+        }
     }
 }
 
@@ -640,29 +774,6 @@ bool ReflASTVisitor::VisitFunctionDecl(clang::FunctionDecl* Decl) {
     return true;
 }
 
-clang::TypedefDecl* findTypedefForDecl(
-    clang::Decl*       Decl,
-    clang::ASTContext* Ctx) {
-    clang::DeclContext* Context = Decl->getDeclContext();
-    for (auto D : Context->decls()) {
-        if (auto* TD = llvm::dyn_cast<clang::TypedefDecl>(D)) {
-            if (TD->getUnderlyingType()->getAsRecordDecl() == Decl) {
-                return TD;
-            } else if (
-                const clang::EnumType* ET = TD->getUnderlyingType()
-                                                ->getAs<clang::EnumType>();
-                ET && ET->getDecl() == Decl) {
-                return TD;
-
-            } else if (TD->getUnderlyingDecl() == Decl) {
-                return TD;
-            }
-        }
-    }
-
-
-    return nullptr;
-}
 
 bool ReflASTVisitor::VisitEnumDecl(clang::EnumDecl* Decl) {
     clang::TypedefDecl* Typedef = findTypedefForDecl(Decl, Ctx);
@@ -751,80 +862,18 @@ bool ReflASTVisitor::VisitTypedefDecl(clang::TypedefDecl* Decl) {
 }
 
 bool ReflASTVisitor::VisitRecordDecl(clang::RecordDecl* Decl) {
-    clang::TypedefDecl* Typedef = findTypedefForDecl(Decl, Ctx);
+    clang::TypedefDecl* Typedef   = findTypedefForDecl(Decl, Ctx);
+    clang::FieldDecl*   FieldDecl = findFieldForDecl(Decl, Ctx);
     if (Decl->getNameAsString().empty() && Typedef == nullptr) {
+        return true;
+    } else if (Decl->isAnonymousStructOrUnion() && FieldDecl != nullptr) {
         return true;
     } else if (shouldVisit(Decl)) {
         llvm::TimeTraceScope timeScope{
             "reflection-visit-record" + Decl->getNameAsString()};
 
         Record* rec = out->add_records();
-        rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
-        rec->set_isunion(Decl->isUnion());
-        auto& Diags = Ctx->getDiagnostics();
-
-        if (Decl->getNameAsString().empty() && Typedef == nullptr) {
-            Diags.Report(Diags.getCustomDiagID(
-                clang::DiagnosticsEngine::Warning,
-                "No name provided for '%0'"))
-                << Decl;
-            rec->set_hasname(true);
-        } else {
-            auto name = rec->mutable_name();
-            rec->set_hasname(true);
-            if (Typedef != nullptr) {
-                // typedef struct abomination handling -- need to conjure
-                // up a name from the scattered bits of brain tissue that
-                // was left by the developers of this frankenstein feature.
-                fillType(
-                    rec->mutable_name(),
-                    Typedef->getASTContext().getTypedefType(Typedef),
-                    Decl->getLocation());
-
-                name->set_name(Typedef->getNameAsString());
-
-                if (!Decl->getNameAsString().empty()) {
-                    auto ed = rec->mutable_recorddefname();
-                    fillType(
-                        rec->mutable_name(),
-                        Typedef->getASTContext().getTypedefType(Typedef),
-                        Decl->getLocation());
-                    ed->set_name(Decl->getNameAsString());
-                    ed->set_tag(TypeTag::TypeTagStruct);
-                }
-                name->mutable_dbgorigin()->append(" > typedef!=nullptr");
-
-            } else {
-                fillType(
-                    name,
-                    Decl->getASTContext().getRecordType(Decl),
-                    Decl->getLocation());
-                name->mutable_dbgorigin()->append(" > typedef==nullptr");
-            }
-
-            name->mutable_dbgorigin()->append(
-                " > " + Decl->getKindName().str());
-
-            if (name->mutable_name()->empty()) {
-                Diags.Report(Diags.getCustomDiagID(
-                    clang::DiagnosticsEngine::Warning, "Empty name '%0'"))
-                    << Decl;
-            }
-
-            if (false) {
-                std::string              str;
-                llvm::raw_string_ostream buf{str};
-                Decl->dump(buf);
-                buf.flush();
-                name->mutable_dbgorigin()->append(str);
-            }
-        }
-
-        for (clang::FieldDecl* field : Decl->fields()) {
-            if (shouldVisit(field)) {
-                fillFieldDecl(rec->add_fields(), field);
-            }
-        }
+        fillRecordDecl(rec, Decl);
     }
 
     return true;

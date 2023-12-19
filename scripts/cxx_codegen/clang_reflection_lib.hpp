@@ -117,6 +117,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     void fillParmVarDecl(Arg* arg, clang::ParmVarDecl const* parm);
 
     void fillMethodDecl(Record::Method* sub, clang::CXXMethodDecl* method);
+    void fillRecordDecl(Record* rec, clang::RecordDecl* Decl);
 
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration);
     bool VisitFunctionDecl(clang::FunctionDecl* Decl);

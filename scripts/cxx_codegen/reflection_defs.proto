@@ -131,8 +131,10 @@ message Typedef {
 message Record {
     message Field {
         string Name = 1;
-        QualType Type = 2;
-        string Doc = 3;
+        string Doc = 2;
+        QualType Type = 3;
+        Record TypeDecl = 4;
+        bool IsTypeDecl = 5;
     }
 
     enum MethodKind {
