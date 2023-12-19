@@ -186,7 +186,36 @@ def run_config_provider(search_paths: List[str], withTrace: bool) -> dict:
         if (not file_paths):
             return {}
 
-        configs = [toml.load(path) for path in file_paths if os.path.exists(path)]
+        configs: List[Dict] = []
+        for path in file_paths:
+            if os.path.exists(path):
+
+                def rec_rewrite(d: Any) -> Any:
+                    match d:
+                        case int():
+                            return d
+
+                        case float():
+                            return d
+
+                        case str():
+                            return d.format(
+                                config_path=path,
+                                config_dir=os.path.dirname(path),
+                                # HACK TEMP hardcoded path
+                                tool_dir="/mnt/workspace/repos/haxorg")
+
+                        case list():
+                            return [rec_rewrite(it) for it in d]
+
+                        case dict():
+                            return {k: rec_rewrite(v) for k, v in d.items()}
+
+                        case _:
+                            return d
+
+                configs.append(rec_rewrite(toml.load(path)))
+
         return merge_dicts(configs)
 
     except Exception as e:

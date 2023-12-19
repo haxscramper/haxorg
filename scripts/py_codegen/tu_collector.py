@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING
 import py_scriptutils.toml_config_profiler as conf_provider
 import rich_click as click
 from beartype import beartype
-from beartype.typing import (Any, Dict, List, NewType, Optional, Set, Tuple,
-                             TypeAlias, Union, cast)
+from beartype.typing import (Any, Dict, List, NewType, Optional, Set, Tuple, TypeAlias,
+                             Union, cast)
 from plumbum import local
 from py_scriptutils.files import IsNewInput
 from py_scriptutils.script_logging import log
@@ -43,6 +43,8 @@ class TuOptions(BaseModel):
         description="Path to the toolchain that was used to compile indexing tool")
     reflect_cache: str = Field(description="Store last reflection convert timestamps",
                                default="/tmp/tu_collector/runs.json")
+    directory_root: Optional[str] = Field(description="Root of the source header directory", 
+        default=None)
     path_suffixes: List[str] = Field(
         description="List of file suffixes used for dir list filtering",
         default=[".hpp", ".cpp", ".h", ".c", ".cxx"],
@@ -66,25 +68,29 @@ class TuOptions(BaseModel):
 @dataclass
 class PathMapping:
     path: Path
-    root: Optional[Path] = None
+    root: Path
 
 
 @beartype
-def expand_input(input: List[str], path_suffixes: List[str]) -> List[PathMapping]:
+def expand_input(input: List[str], path_suffixes: List[str],
+                 directory_root: Optional[Path]) -> List[PathMapping]:
     result: List[PathMapping] = []
     for item in input:
         path = Path(item)
         if path.is_file():
-            result.append(PathMapping(item))
+            result.append(PathMapping(path, directory_root))
 
         elif path.is_dir():
             for sub in path.rglob("*"):
                 if sub.suffix in path_suffixes:
-                    result.append(PathMapping(sub, path))
+                    result.append(PathMapping(sub, directory_root or path))
 
         else:
+            if "*" not in item and "?" not in item:
+                log.warning(f"{item} is not a file or directory, treating as glob")
+
             for sub in Path().glob(item):
-                result.append(PathMapping(sub))
+                result.append(PathMapping(sub, directory_root))
 
     return result
 
@@ -150,6 +156,7 @@ def run_collector(conf: TuOptions, input: Path,
                                                 tool.run(flags, retcode=None))
 
     else:
+        log.info(f"Using cache for {input}")
         res_code = 0
         res_stdout = ""
         res_stderr = ""
@@ -269,7 +276,8 @@ def run(ctx: click.Context, config: str, **kwargs):
     conf: TuOptions = cast(
         TuOptions, conf_provider.merge_cli_model(ctx, config_base, kwargs, TuOptions))
 
-    paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes)  # [:10]
+    paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes,
+                                            conf.directory_root and Path(conf.directory_root))  # [:10]
     wraps: List[TuWrap] = []
 
     with GlobCompleteEvent("Load compilation database", "config"):
