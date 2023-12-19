@@ -161,6 +161,9 @@ message Record {
         string OperatorName = 12;
     }
 
+    /// Name can be truly absent here, in case of `union {int a; char b};` that is
+    /// used to splice inner members or for similar C-style approaches to the code 
+    /// building. 
     QualType Name = 1;
     repeated QualType Bases = 2;
     repeated Field Fields = 3;
@@ -173,6 +176,14 @@ message Record {
     /// See 'EnumDefName' description in the enumeration message. 
     QualType RecordDefName = 10;
     bool IsForwardDecl = 11;
+    /// Unions share most of the features with the regular records, so it is easier
+    /// to introduce a side channel here. List of bases would be unnecessary, but 
+    /// everything else can still be used in enum. 
+    bool IsUnion = 12;
+    /// Python protobuf generator I had to use to get type annotations does not support
+    /// optional types (not important, I know), so I need to hack it around as a boolean
+    /// field here. 
+    bool HasName = 13;
 }
 
 message TU {

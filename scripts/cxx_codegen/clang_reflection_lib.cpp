@@ -760,46 +760,64 @@ bool ReflASTVisitor::VisitRecordDecl(clang::RecordDecl* Decl) {
 
         Record* rec = out->add_records();
         rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
-        auto name = rec->mutable_name();
-        if (Typedef != nullptr) {
-            // typedef struct abomination handling -- need to conjure up a
-            // name from the scattered bits of brain tissue that was left
-            // by the developers of this frankenstein feature.
-            fillType(
-                rec->mutable_name(),
-                Typedef->getASTContext().getTypedefType(Typedef),
-                Decl->getLocation());
+        rec->set_isunion(Decl->isUnion());
+        auto& Diags = Ctx->getDiagnostics();
 
-            name->set_name(Typedef->getNameAsString());
-
-            if (!Decl->getNameAsString().empty()) {
-                auto ed = rec->mutable_recorddefname();
+        if (Decl->getNameAsString().empty() && Typedef == nullptr) {
+            Diags.Report(Diags.getCustomDiagID(
+                clang::DiagnosticsEngine::Warning,
+                "No name provided for '%0'"))
+                << Decl;
+            rec->set_hasname(true);
+        } else {
+            auto name = rec->mutable_name();
+            rec->set_hasname(true);
+            if (Typedef != nullptr) {
+                // typedef struct abomination handling -- need to conjure
+                // up a name from the scattered bits of brain tissue that
+                // was left by the developers of this frankenstein feature.
                 fillType(
                     rec->mutable_name(),
                     Typedef->getASTContext().getTypedefType(Typedef),
                     Decl->getLocation());
-                ed->set_name(Decl->getNameAsString());
-                ed->set_tag(TypeTag::TypeTagStruct);
+
+                name->set_name(Typedef->getNameAsString());
+
+                if (!Decl->getNameAsString().empty()) {
+                    auto ed = rec->mutable_recorddefname();
+                    fillType(
+                        rec->mutable_name(),
+                        Typedef->getASTContext().getTypedefType(Typedef),
+                        Decl->getLocation());
+                    ed->set_name(Decl->getNameAsString());
+                    ed->set_tag(TypeTag::TypeTagStruct);
+                }
+                name->mutable_dbgorigin()->append(" > typedef!=nullptr");
+
+            } else {
+                fillType(
+                    name,
+                    Decl->getASTContext().getRecordType(Decl),
+                    Decl->getLocation());
+                name->mutable_dbgorigin()->append(" > typedef==nullptr");
             }
-            name->mutable_dbgorigin()->append(" > typedef!=nullptr");
 
-        } else {
-            fillType(
-                name,
-                Decl->getASTContext().getRecordType(Decl),
-                Decl->getLocation());
-            name->mutable_dbgorigin()->append(" > typedef==nullptr");
-        }
+            name->mutable_dbgorigin()->append(
+                " > " + Decl->getKindName().str());
 
-        name->mutable_dbgorigin()->append(
-            " > " + Decl->getKindName().str());
+            if (name->mutable_name()->empty()) {
+                Diags.Report(Diags.getCustomDiagID(
+                    clang::DiagnosticsEngine::Warning, "Empty name '%0'"))
+                    << Decl;
+            }
 
-        if (false) {
-            std::string              str;
-            llvm::raw_string_ostream buf{str};
-            Decl->dump(buf);
-            buf.flush();
-            name->mutable_dbgorigin()->append(str);
+            if (false) {
+                std::string              str;
+                llvm::raw_string_ostream buf{str};
+                Decl->dump(buf);
+                buf.flush();
+                name->mutable_dbgorigin()->append(str);
+            }
         }
 
         for (clang::FieldDecl* field : Decl->fields()) {
