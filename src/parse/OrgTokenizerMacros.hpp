@@ -123,7 +123,7 @@
 
 #define EMPTY()
 
-#ifdef USE_PERFETTO
+#ifdef ORG_USE_PERFETTO
 #    define __perf_trace(name) TRACE_EVENT("lexing", name)
 #else
 #    define __perf_trace(a)

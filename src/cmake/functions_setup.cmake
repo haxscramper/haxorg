@@ -4,11 +4,11 @@ function(set_target_flags TARGET)
   # add_target_property(${TARGET} COMPILE_OPTIONS
   #                     @${BASE}/scripts/cxx_repository/warning_config.txt)
 
-  if(${TRACE_INSTRUMENT})
+  if(${ORG_INSTRUMENT_TRACE})
     add_target_property(${TARGET} COMPILE_OPTIONS -finstrument-functions)
   endif()
 
-  if(${USE_XRAY})
+  if(${ORG_USE_XRAY})
 
   else()
       add_target_property(${TARGET} COMPILE_OPTIONS "-fuse-ld=mold")
@@ -37,7 +37,7 @@ function(set_target_flags TARGET)
     add_target_property(${TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
     add_target_property(${TARGET} COMPILE_OPTIONS "-fPIC")
 
-    if(${USE_SANITIZER})
+    if(${ORG_USE_SANITIZER})
         add_target_property(${TARGET} COMPILE_OPTIONS "-fsanitize=undefined,address")
         # LLVM ships with sanitizer runtime and I could not figure out how to compile it 
         # in statically nor do I know whether this is really necessary or not
@@ -53,23 +53,23 @@ function(set_target_flags TARGET)
     # depend on the LD_PRELOAD_PATH being set up correctly. 
     add_target_property(${TARGET} LINK_OPTIONS "-Wl,-rpath,${LLVM_GNU_CLANG_DIR},-rpath,${LLVM_STD_DIRS}")
 
-    if(${USE_XRAY})
+    if(${ORG_USE_XRAY})
         add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-instrument")
         add_target_property(${TARGET} LINK_OPTIONS "-fxray-instrument")
         add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-instruction-threshold=50")
         add_target_property(${TARGET} COMPILE_OPTIONS "-fxray-attr-list=${BASE}/scripts/cxx_repository/xray_list.txt")
     endif()
 
-    if(${USE_PERFETTO})
-        add_target_property(${TARGET} COMPILE_DEFINITIONS USE_PERFETTO)
+    if(${ORG_USE_PERFETTO})
+        add_target_property(${TARGET} COMPILE_DEFINITIONS ORG_USE_PERFETTO)
     endif()
 
-    if(${USE_XRAY})
-        add_target_property(${TARGET} COMPILE_DEFINITIONS USE_XRAY)
+    if(${ORG_USE_XRAY})
+        add_target_property(${TARGET} COMPILE_DEFINITIONS ORG_USE_XRAY)
     endif()
 
-    if(${USE_PGO})
-        add_target_property(${TARGET} COMPILE_DEFINITIONS USE_PGO)
+    if(${ORG_USE_PGO})
+        add_target_property(${TARGET} COMPILE_DEFINITIONS ORG_USE_PGO)
         add_target_property(${TARGET} COMPILE_OPTIONS "-fprofile-instr-generate")
         add_target_property(${TARGET} LINK_OPTIONS "-fprofile-instr-generate")
         add_target_property(${TARGET} COMPILE_OPTIONS "-fcoverage-mapping")
@@ -85,7 +85,7 @@ function(set_target_flags TARGET)
             "-fprofile-use=${BASE}/haxorg-compile.profdata")
     endif()
 
-    if(${TEST_COVERAGE})
+    if(${ORG_USE_COVERAGE})
       target_compile_options(
         ${TARGET} PRIVATE -fprofile-instr-generate -fcoverage-mapping
                           -ftest-coverage)
@@ -101,7 +101,7 @@ function(set_target_flags TARGET)
     add_target_property(${TARGET} COMPILE_OPTIONS
                         "-fmax-errors=${MAX_COMPILE_ERRORS}")
 
-    if(${TEST_COVERAGE})
+    if(${ORG_USE_COVERAGE})
       target_compile_options(${TARGET} PRIVATE --coverage)
       target_link_options(${TARGET} PRIVATE -lgcov --coverage)
     endif()
@@ -122,7 +122,7 @@ function(set_common_files TARGET)
     add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
 
 
-    if(${USE_PERFETTO})
+    if(${ORG_USE_PERFETTO})
         add_target_property(${TARGET} PRECOMPILE_HEADERS <perfetto.h>)
     endif()
 

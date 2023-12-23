@@ -16,7 +16,7 @@ set_target_flags(haxorg)
 find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
 find_library(GRAPHVIZ_GVC_LIBRARY gvc)
 
-if (${USE_PCH})
+if (${ORG_USE_PCH})
     target_precompile_headers(haxorg PRIVATE
       <string>
       <format>

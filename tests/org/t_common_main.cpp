@@ -10,7 +10,7 @@
 #include <absl/log/initialize.h>
 #include <absl/log/internal/globals.h>
 
-#ifdef USE_PERFETTO
+#ifdef ORG_USE_PERFETTO
 #    include <hstd/wrappers/perfetto_aux.hpp>
 #endif
 
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
     // absl::log_internal::SetTimeZone(absl::LocalTimeZone());
     // absl::log_internal::SetInitialized();
 
-#ifdef USE_PERFETTO
+#ifdef ORG_USE_PERFETTO
     qInfo() << "Compiled with perfetto trace enabled, starting perfetto";
     InitializePerfetto();
     auto tracing_session = StartTracing();
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
     std::ofstream test_records{"/tmp/compact_records.json"};
     test_records << to_compact_json(records);
 
-#ifdef USE_PERFETTO
+#ifdef ORG_USE_PERFETTO
     StopTracing(std::move(tracing_session));
 #endif
 

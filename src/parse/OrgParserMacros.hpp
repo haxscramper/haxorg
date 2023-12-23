@@ -4,7 +4,7 @@
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
 
-#ifdef USE_PERFETTO
+#ifdef ORG_USE_PERFETTO
 #    define __perf_trace(name) TRACE_EVENT("parsing", name)
 #else
 #    define __perf_trace(_)

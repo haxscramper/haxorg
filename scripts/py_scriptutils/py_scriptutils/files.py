@@ -84,6 +84,7 @@ class FileOperation:
     input: List[Path]
     output: Optional[List[Path]] = None
     output_stamp: Optional[Path] = None
+    stamp_content: Optional[str] = None
 
     @classmethod
     def InOut(
@@ -91,36 +92,53 @@ class FileOperation:
         input: SomePaths,
         output: SomePaths,
         output_stamp: Optional[Path] = None,
+        stamp_content: Optional[str] = None,
     ) -> 'FileOperation':
         return FileOperation(
             normalize_paths(input),
             output=normalize_paths(output),
             output_stamp=output_stamp,
+            stamp_content=stamp_content,
         )
 
     @classmethod
-    def InTmp(self, input: SomePaths, output: Path) -> 'FileOperation':
-        return FileOperation(normalize_paths(input), output_stamp=output)
+    def InTmp(self,
+              input: SomePaths,
+              output: Path,
+              stamp_content: Optional[str] = None) -> 'FileOperation':
+        return FileOperation(normalize_paths(input),
+                             output_stamp=output,
+                             stamp_content=stamp_content)
+
+    def stamp_content_is_new(self) -> bool:
+        return bool(self.output_stamp.exists() and self.stamp_content and
+                    self.output_stamp.read_text() != self.stamp_content)
+
+    def get_output_files(self) -> List[Path]:
+        return (self.output or []) + ([self.output_stamp] if self.output_stamp else [])
 
     def should_run(self) -> bool:
-        return IsNewInput(
-            self.input,
-            (self.output or []) + ([self.output_stamp] if self.output_stamp else []),
-        )
+        return IsNewInput(self.input,
+                          self.get_output_files()) or self.stamp_content_is_new()
 
     def explain(self, name: str) -> str:
         if self.should_run():
             why = f"[red]{name}[/red] needs rebuild,"
             if self.output_stamp and not self.output_stamp.exists():
-                why += "output stamp file is missing "
+                why += " output stamp file is missing "
 
-            min_time = min_mtime(self.output)
-            newer = [
-                p for p in self.input if p.exists() and min_mtime < p.stat().st_mtime
-            ]
+            if self.stamp_content_is_new():
+                why += (
+                    f" stamp content value changed, was [red]{self.stamp_content.read_text()}[/red], "
+                    + f"now [green]{self.stamp_content}[/green]")
+
+            min_time = min_mtime(self.get_output_files())
+            newer = [p for p in self.input if p.exists() and min_time < p.stat().st_mtime]
             if newer:
                 why += f" {len(newer)} files were changed since last creation: " + ", ".join(
-                    (it.name + it.suffix for it in newer))
+                    (it.name for it in newer))
+
+            return why
 
         else:
             return f"[green]{name}[/green] task is [green]up to date[/green]"
@@ -129,8 +147,7 @@ class FileOperation:
         return self
 
     def __exit__(self, exc_type: Optional[Type[BaseException]],
-                 exc_value: Optional[BaseException],
-                 traceback: Optional[traceback.TracebackException]) -> Optional[bool]:
+                 exc_value: Optional[BaseException], traceback) -> Optional[bool]:
         if exc_type is None and exc_value is None and self.output_stamp is not None:
             if not self.output_stamp.parent.exists():
                 self.output_stamp.parent.mkdir(parents=True)

@@ -52,17 +52,17 @@ list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
 include(src/cmake/functions_aux.cmake)
 include(src/cmake/functions_setup.cmake)
 
-option(USE_PCH "Use precompiled headers" ON)
-option(TRACE_INSTRUMENT "Generate instrumentation trace")
-option(TEST_COVERAGE "Enable test coverage")
+option(ORG_USE_PCH "Use precompiled headers" ON)
+option(ORG_INSTRUMENT_TRACE "Generate instrumentation trace")
+option(ORG_USE_COVERAGE "Enable test coverage")
 option(MAX_COMPILE_ERRORS "Max number of compilation errors before compiler stops")
-option(USE_PERFETTO "Enable perfetto profiling")
-option(USE_PGO "Compile binary with profile data generation")
+option(ORG_USE_PERFETTO "Enable perfetto profiling")
+option(ORG_USE_PGO "Compile binary with profile data generation")
 option(PROFILE_USE "Compile binary using profile data generation")
-option(USE_XRAY "Use LLVM XRay instrumentation for profiling")
-option(USE_SANITIZER "Use sanitizers" ON)
+option(ORG_USE_XRAY "Use LLVM XRay instrumentation for profiling")
+option(ORG_USE_SANITIZER "Use sanitizers" ON)
 
-if (${USE_SANITIZER})
+if (${ORG_USE_SANITIZER})
     # Enable the sanitizer options. They are set globally primarity for the
     # in-source dependencies like google fuzztest, ABSL and so on -- if there
     # is a way to set them in a more focused manner they should be moved to the

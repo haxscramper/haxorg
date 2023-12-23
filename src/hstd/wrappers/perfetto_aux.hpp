@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef USE_PERFETTO
+#ifdef ORG_USE_PERFETTO
 
 #    include <perfetto.h>
 #    include <filesystem>

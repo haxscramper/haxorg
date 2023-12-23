@@ -2,7 +2,7 @@ from plumbum import local, ProcessExecutionError, FG
 from py_scriptutils.script_logging import log
 from pathlib import Path
 import os
-from invoke import task
+from invoke import task, Failure
 from invoke.context import Context
 from beartype.typing import Optional, List, Union
 from shutil import which
@@ -52,11 +52,12 @@ def run_command(
     cmd: Union[str, Path],
     args: List[str],
     capture: bool = False,
+    allow_fail: bool = False,
     env: dict[str, str] = {},
     cwd: Optional[str] = None,
 ) -> tuple[int, str, str]:
     if isinstance(cmd, Path):
-        assert cmd.exists()
+        assert cmd.exists(), cmd
         cmd = str(cmd.resolve())
 
     else:
@@ -73,19 +74,28 @@ def run_command(
 
     try:
         if capture or is_quiet(ctx):
-            retcode, stdout, stderr = run.run(tuple(args))
+            retcode, stdout, stderr = run.run(
+                tuple(args),
+                retcode=None if allow_fail else 0,
+            )
             return (retcode, stdout, stderr)
 
         else:
-            run[*args].with_env() & FG
+            run[*args] & FG
             return (0, "", "")
 
     except ProcessExecutionError as e:
-        print("")
-        log.error(f"Failed to execute the command {cmd}")
-        exit(1)
+        if allow_fail:
+            return (0, "", "")
+
+        else:
+            print("")
+            log.error(f"Failed to execute the command {cmd}")
+            exit(1)
+
 
 def task_time(func: callable) -> callable:
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         name = func.__name__
@@ -99,7 +109,7 @@ def task_time(func: callable) -> callable:
         GlobExportJson(get_build_root("task_build_time.json"))
 
         return result
-        
+
     return wrapper
 
 
@@ -280,8 +290,6 @@ def cmake_configure_haxorg(ctx: Context):
             run_command(ctx, "cmake", tuple(pass_flags))
 
 
-
-
 @task(pre=[cmake_configure_haxorg])
 @task_time
 def cmake_haxorg(ctx):
@@ -298,6 +306,46 @@ def cmake_haxorg(ctx):
             run_command(ctx,
                         "cmake", ["--build", build_dir],
                         env={'NINJA_FORCE_COLOR': '1'})
+
+
+@task(pre=[cmake_haxorg])
+@task_time
+def std_coverage(ctx):
+    dir = get_build_root("haxorg")
+    tools = get_llvm_root() / "bin"
+    test = dir / "tests_hstd"
+
+    # Remove .profdata files
+    for file in dir.glob("*.profdata"):
+        file.unlink()
+
+    # Running tests
+    with ctx.cd(str(dir)):
+        run_command(ctx, test, [], allow_fail=True)
+
+    profraw = dir / "default.profraw"
+    if profraw.exists():
+        # Merging profdata
+        run_command(ctx, tools / "llvm-profdata", [
+            "merge",
+            "-output=" + str(dir / "test.profdata"),
+            str(),
+        ])
+
+        # Generating coverage report
+        run_command(ctx, tools / "llvm-cov", [
+            "show",
+            str(test),
+            "-ignore-filename-regex",
+            ".*/(_?deps|thirdparty)/.*",
+            "-instr-profile=" + str(dir / "test.profdata"),
+            "-format=html",
+            "-output-dir=" + str(dir / "coverage_report"),
+        ])
+
+    else:
+        raise Failure(f"{profraw} does not exist after running tests")
+
 
 @task
 def update_reflection(ctx: Context):

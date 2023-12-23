@@ -20,15 +20,15 @@ add_rules("mode.debug")
 
 
 local cmake_options = {
-    {"USE_PCH", "Use precompiled headers", true},
-    {"TRACE_INSTRUMENT", "Generate instrumentation trace", false},
-    {"TEST_COVERAGE", "Enable test coverage", false},
+    {"ORG_USE_PCH", "Use precompiled headers", true},
+    {"ORG_INSTRUMENT_TRACE", "Generate instrumentation trace", false},
+    {"ORG_USE_COVERAGE", "Enable test coverage", false},
     {"MAX_COMPILE_ERRORS", "Max number of compilation errors before compiler stops", false},
-    {"USE_PERFETTO", "Enable perfetto profiling", false},
+    {"ORG_USE_PERFETTO", "Enable perfetto profiling", false},
     {"PROFILE_GENERATE", "Compile binary with profile data generation", false},
     {"PROFILE_USE", "Compile binary using profile data generation", false},
-    {"USE_XRAY", "Use LLVM XRay instrumentation for profiling", false},
-    {"USE_SANITIZER", "Use sanitizers", true}
+    {"ORG_USE_XRAY", "Use LLVM XRay instrumentation for profiling", false},
+    {"ORG_USE_SANITIZER", "Use sanitizers", true}
 }
 
 for _, it in ipairs(cmake_options) do

@@ -95,19 +95,19 @@ bool move_latest_xray_log_to_path(const std::string& path) {
 
 
 void TestProfiler::SetUp() {
-#ifdef USE_PERFETTO
+#ifdef ORG_USE_PERFETTO
     TRACE_EVENT_BEGIN("cli", "Execute test");
 #endif
     __perf_trace("cli", "Setup test");
 
-#ifdef USE_PGO
+#ifdef ORG_USE_PGO
     if (fs::exists(pgo_path)) {
         fs::remove(pgo_path);
     }
     __llvm_profile_set_filename(pgo_path.data());
 #endif
 
-#ifdef USE_XRAY
+#ifdef ORG_USE_XRAY
     {
         __perf_trace("cli", "XRay setup for test");
         {
@@ -155,7 +155,7 @@ void TestProfiler::SetUp() {
     }
 #endif
 
-#ifdef USE_PGO
+#ifdef ORG_USE_PGO
     {
         __perf_trace("cli", "Remove LLVM counters");
         __llvm_profile_reset_counters();
@@ -166,7 +166,7 @@ void TestProfiler::SetUp() {
 void TestProfiler::TearDown() {
     __perf_trace("cli", "Finalize test");
 
-#ifdef USE_PGO
+#ifdef ORG_USE_PGO
     {
         __perf_trace("cli", "Write PGO profile data");
         int profile_result = __llvm_profile_write_file();
@@ -177,7 +177,7 @@ void TestProfiler::TearDown() {
     }
 #endif
 
-#ifdef USE_XRAY
+#ifdef ORG_USE_XRAY
     {
         __perf_trace("cli", "XRay finalize data");
         auto finalize_status = __xray_log_finalize();
@@ -226,18 +226,18 @@ void TestProfiler::TearDown() {
     RunRecord& rec = runRecords.emplace_back();
     rec.metadata   = metadata;
 
-#ifdef USE_XRAY
+#ifdef ORG_USE_XRAY
     if (hasXray) {
         rec.xray_path = xray_path;
     }
 #endif
 
-#ifdef USE_PGO
+#ifdef ORG_USE_PGO
     rec.pgo_path = pgo_path;
 #endif
 
 
-#ifdef USE_PERFETTO
+#ifdef ORG_USE_PERFETTO
     TRACE_EVENT_END("cli");
 #endif
 }
