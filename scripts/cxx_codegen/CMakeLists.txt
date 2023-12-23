@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.10)
 
 project(ConvertConstRef)
 
+set(ROOT_DIR "${CMAKE_SOURCE_DIR}/../..")
 # Specify the path to the LLVM toolchain
-set(TOOLCHAIN "${CMAKE_SOURCE_DIR}/../../toolchain")
+set(TOOLCHAIN "${ROOT_DIR}/toolchain")
 # Set the LLVM_DIR to the location of LLVMConfig.cmake
 set(LLVM_DIR "${TOOLCHAIN}/llvm/lib/cmake/llvm")
 set(Clang_DIR "${TOOLCHAIN}/llvm/lib/cmake/clang")
@@ -82,7 +83,7 @@ target_link_libraries(reflection_tool PRIVATE
 
 add_custom_command(TARGET reflection_tool POST_BUILD
                    COMMAND "${CMAKE_COMMAND}" -E create_symlink
-                           "${CMAKE_BINARY_DIR}" "${CMAKE_SOURCE_DIR}/build/utils")
+                           "${CMAKE_BINARY_DIR}" "${ROOT_DIR}/build/utils")
 
 # Shared library can be loaded as clang plugin
 

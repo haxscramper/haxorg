@@ -372,3 +372,7 @@ buck-out
 .pids
 *.xray
 *.dot
+
+html
+latex
+docs/html

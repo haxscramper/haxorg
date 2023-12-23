@@ -105,6 +105,8 @@ class ReflFrontendAction : public clang::ASTFrontendAction {
     }
 };
 
+std::ostream& LOG_CERR() {return std::cerr << "[clang-reflect] ";}
+
 /// Filter out compilation options that were used in the compilation
 /// database -- remove reflection plugin usage, precompiled headers, and
 /// add provided toolchain include configuration.
@@ -146,9 +148,9 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
     filteredArgs.push_back("-isystem");
     filteredArgs.push_back(ToolchainInclude);
 
-    std::cerr << "Filtered command line arguments\n";
+    LOG_CERR() << "Filtered command line arguments\n";
     for (auto const& arg : filteredArgs) {
-        std::cerr << arg << "\n";
+        LOG_CERR() << arg << "\n";
     }
 
     return filteredArgs;
@@ -156,12 +158,11 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
 
 
 int main(int argc, const char** argv) {
-    std::cerr << "Starting data processing" << std::endl;
     auto cli = clang::tooling::CommonOptionsParser::create(
         argc, argv, ToolingSampleCategory);
 
     if (!cli) {
-        std::cerr << "CLI is invalid" << std::endl;
+        LOG_CERR() << "CLI is invalid" << std::endl;
         llvm::errs() << cli.takeError();
         return 1;
     }
@@ -175,9 +176,9 @@ int main(int argc, const char** argv) {
         clang::tooling::JSONCommandLineSyntax::AutoDetect);
 
     if (!JSONDB) {
-        std::cerr << "Failed to process provided JSON DB, failure was:"
+        LOG_CERR() << "Failed to process provided JSON DB, failure was:"
                   << std::endl;
-        llvm::errs() << ErrorMessage;
+        LOG_CERR() << ErrorMessage;
         return 1;
     }
 
@@ -191,7 +192,7 @@ int main(int argc, const char** argv) {
 
     if (!ToolchainInclude.empty()) {
         if (!fs::is_directory(std::string(ToolchainInclude))) {
-            llvm::errs() << "Toolchain include is not a directory or does "
+            LOG_CERR() << "Toolchain include is not a directory or does "
                             "not exist '"
                          << ToolchainInclude << "'\n";
             return 1;

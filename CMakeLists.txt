@@ -91,6 +91,9 @@ target_include_directories(lager_lib INTERFACE "${DEPS_DIR}/lager")
 add_subdirectory("${DEPS_DIR}/fuzztest")
 add_subdirectory("${DEPS_DIR}/pybind11")
 
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+add_subdirectory(thirdparty/json)
+
 include(src/cmake/target_hstd.cmake)
 include(src/cmake/target_codegen.cmake)
 include(src/cmake/target_lib.cmake)

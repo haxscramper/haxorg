@@ -158,7 +158,7 @@ meta_target("haxorg_base_lexer", "Generate base lexer for haxorg", {}, function 
   set_kind("phony")
   on_build(function(target)
     local utils = import("scripts.utils")
-    local reflex = path.join(utils.abs_script(), "toolchain/RE-flex/bin/reflex")
+    local reflex = path.join(utils.abs_script(), "toolchain/RE-flex/build/reflex")
     os.execv("poetry", {
       "run",
       "src/base_lexer/base_lexer.py"

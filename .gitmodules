@@ -25,3 +25,12 @@
 [submodule "thirdparty/perfetto"]
 	path = thirdparty/perfetto
 	url = https://android.googlesource.com/platform/external/perfetto
+[submodule "thirdparty/json"]
+	path = thirdparty/json
+	url = https://github.com/nlohmann/json.git
+[submodule "thirdparty/mp11"]
+	path = thirdparty/mp11
+	url = https://github.com/boostorg/mp11.git
+[submodule "thirdparty/describe"]
+	path = thirdparty/describe
+	url = https://github.com/boostorg/describe.git

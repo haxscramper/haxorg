@@ -1,2 +1,0 @@
-CompileFlags:                     # Tweak the parse settings
-  Add: ["-DIN_CLANGD_PROCESSING"]             # treat all files as C++, enable more warnings
