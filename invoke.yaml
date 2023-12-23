@@ -1,2 +1,4 @@
 quiet: false
 debug: true
+instrument:
+  coverage: true

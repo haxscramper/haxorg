@@ -47,6 +47,10 @@ def is_debug(ctx: Context) -> bool:
     return ctx.config.get('debug', False)
 
 
+def is_instrumented_coverage(ctx: Context) -> bool:
+    return ctx.config.get("instrument")["coverage"]
+
+
 def run_command(
     ctx: Context,
     cmd: Union[str, Path],
@@ -89,9 +93,7 @@ def run_command(
             return (0, "", "")
 
         else:
-            print("")
-            log.error(f"Failed to execute the command {cmd}")
-            exit(1)
+            raise Failure(f"Failed to execute the command {cmd}")
 
 
 def task_time(func: callable) -> callable:
@@ -104,13 +106,27 @@ def task_time(func: callable) -> callable:
             result = func(*args, **kwargs)
 
         last = getGlobalTraceCollector().get_last_event()
-        log.info(f"Completed [green]{name}[/green] in [blue]{last.ts * 10e6:5.3}[/blue]s")
+        log.info(f"Completed [green]{name}[/green] in [blue]{last.dur:5.1f}[/blue]ms")
 
         GlobExportJson(get_build_root("task_build_time.json"))
 
         return result
 
     return wrapper
+
+
+def get_cmake_defines(ctx: Context) -> List[str]:
+    result: List[str] = []
+    if is_instrumented_coverage(ctx):
+        result.append("-DORG_USE_COVERAGE=ON")
+
+    if is_debug(ctx):
+        result.append("-DCMAKE_BUILD_TYPE=Debug")
+
+    else:
+        result.append("-DCMAKE_BUILD_TYPE=RelWithDebInfo")
+
+    return result
 
 
 @task
@@ -268,23 +284,24 @@ def reflection_protobuf(ctx: Context):
 def cmake_configure_haxorg(ctx: Context):
     """Execute cmake configuration step for haxorg"""
 
-    with FileOperation.InTmp([
+    with FileOperation.InTmp(
+        [
             Path("CMakeLists.txt"),
             Path("src/cmake").rglob("*.cmake"),
-    ], get_task_stamp("cmake_configure_haxorg")) as op:
+        ],
+            stamp_path=get_task_stamp("cmake_configure_haxorg"),
+            stamp_content=str(get_cmake_defines(ctx)),
+    ) as op:
         log.info(op.explain("cmake configuration"))
         if op.should_run():
             log.info("running haxorg cmake configuration")
             build_dir = "build/haxorg_debug" if is_debug(ctx) else "build/haxorg_release"
             pass_flags = [
                 "-B",
-                get_script_root(build_dir),
-                "-S",
-                get_script_root(),
-                "-G",
-                "Ninja",
-                f"-DCMAKE_BUILD_TYPE={'Debug' if is_debug(ctx) else 'RelWithDebInfo'}",
+                get_script_root(build_dir), "-S",
+                get_script_root(), "-G", "Ninja",
                 f"-DCMAKE_CXX_COMPILER={get_llvm_root('bin/clang++')}",
+                *get_cmake_defines(ctx)
             ]
 
             run_command(ctx, "cmake", tuple(pass_flags))
@@ -295,11 +312,15 @@ def cmake_configure_haxorg(ctx: Context):
 def cmake_haxorg(ctx):
     "Compile main set of libraries and binaries for org-mode parser"
     build_dir = f'build/haxorg_{"debug" if is_debug(ctx) else "release"}'
-    with FileOperation.InTmp([
+    with FileOperation.InTmp(
+        [
             Path("src").rglob("*.cpp"),
             Path("src").rglob("*.hpp"),
             Path("src").rglob("*.cppm"),
-    ], get_task_stamp("cmake_haxorg")) as op:
+        ],
+            stamp_path=get_task_stamp("cmake_haxorg"),
+            stamp_content=str(get_cmake_defines(ctx)),
+    ) as op:
         log.info(op.explain("Main C++"))
         if op.should_run():
             log.info('Running cmake haxorg build')
@@ -319,17 +340,17 @@ def std_coverage(ctx):
     for file in dir.glob("*.profdata"):
         file.unlink()
 
-    # Running tests
-    with ctx.cd(str(dir)):
-        run_command(ctx, test, [], allow_fail=True)
+    assert dir.exists()
+    run_command(ctx, test, [], allow_fail=True, cwd=str(dir))
 
     profraw = dir / "default.profraw"
+    coverage_dir = dir / "coverage_report"
     if profraw.exists():
         # Merging profdata
         run_command(ctx, tools / "llvm-profdata", [
             "merge",
             "-output=" + str(dir / "test.profdata"),
-            str(),
+            str(profraw),
         ])
 
         # Generating coverage report
@@ -340,11 +361,13 @@ def std_coverage(ctx):
             ".*/(_?deps|thirdparty)/.*",
             "-instr-profile=" + str(dir / "test.profdata"),
             "-format=html",
-            "-output-dir=" + str(dir / "coverage_report"),
+            "-output-dir=" + str(coverage_dir),
         ])
 
+        log.info(f"Generated coverage to {coverage_dir}")
+
     else:
-        raise Failure(f"{profraw} does not exist after running tests")
+        raise Failure(f"{profraw} does not exist after running tests. Instrumentation was set to {is_instrumented_coverage(ctx)}")
 
 
 @task

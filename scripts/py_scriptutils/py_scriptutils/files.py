@@ -83,7 +83,7 @@ def IsNewInput(input_path: SomePaths, output_path: SomePaths) -> bool:
 class FileOperation:
     input: List[Path]
     output: Optional[List[Path]] = None
-    output_stamp: Optional[Path] = None
+    stamp_path: Optional[Path] = None
     stamp_content: Optional[str] = None
 
     @classmethod
@@ -91,31 +91,31 @@ class FileOperation:
         self,
         input: SomePaths,
         output: SomePaths,
-        output_stamp: Optional[Path] = None,
+        stamp_path: Optional[Path] = None,
         stamp_content: Optional[str] = None,
     ) -> 'FileOperation':
         return FileOperation(
             normalize_paths(input),
             output=normalize_paths(output),
-            output_stamp=output_stamp,
+            stamp_path=stamp_path,
             stamp_content=stamp_content,
         )
 
     @classmethod
     def InTmp(self,
               input: SomePaths,
-              output: Path,
+              stamp_path: Path,
               stamp_content: Optional[str] = None) -> 'FileOperation':
         return FileOperation(normalize_paths(input),
-                             output_stamp=output,
+                             stamp_path=stamp_path,
                              stamp_content=stamp_content)
 
     def stamp_content_is_new(self) -> bool:
-        return bool(self.output_stamp.exists() and self.stamp_content and
-                    self.output_stamp.read_text() != self.stamp_content)
+        return bool(self.stamp_path.exists() and self.stamp_content and
+                    self.stamp_path.read_text() != self.stamp_content)
 
     def get_output_files(self) -> List[Path]:
-        return (self.output or []) + ([self.output_stamp] if self.output_stamp else [])
+        return (self.output or []) + ([self.stamp_path] if self.stamp_path else [])
 
     def should_run(self) -> bool:
         return IsNewInput(self.input,
@@ -124,12 +124,12 @@ class FileOperation:
     def explain(self, name: str) -> str:
         if self.should_run():
             why = f"[red]{name}[/red] needs rebuild,"
-            if self.output_stamp and not self.output_stamp.exists():
+            if self.stamp_path and not self.stamp_path.exists():
                 why += " output stamp file is missing "
 
             if self.stamp_content_is_new():
                 why += (
-                    f" stamp content value changed, was [red]{self.stamp_content.read_text()}[/red], "
+                    f" stamp content value changed, was [red]{self.stamp_path.read_text()}[/red], "
                     + f"now [green]{self.stamp_content}[/green]")
 
             min_time = min_mtime(self.get_output_files())
@@ -148,12 +148,16 @@ class FileOperation:
 
     def __exit__(self, exc_type: Optional[Type[BaseException]],
                  exc_value: Optional[BaseException], traceback) -> Optional[bool]:
-        if exc_type is None and exc_value is None and self.output_stamp is not None:
-            if not self.output_stamp.parent.exists():
-                self.output_stamp.parent.mkdir(parents=True)
+        if exc_type is None and exc_value is None and self.stamp_path is not None:
+            if not self.stamp_path.parent.exists():
+                self.stamp_path.parent.mkdir(parents=True)
 
-            with open(str(self.output_stamp), "w") as file:
-                file.write("xx")
+            with open(str(self.stamp_path), "w") as file:
+                if self.stamp_content:
+                    file.write(self.stamp_content)
+
+                else:
+                    file.write("xx")
 
 
 def pickle_or_new(input_path: str, output_path: str, builder_cb: Callable[[str], T]) -> T:
