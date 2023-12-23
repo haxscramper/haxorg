@@ -13,7 +13,7 @@ import py_scriptutils.toml_config_profiler as conf_provider
 import rich_click as click
 from beartype import beartype
 from beartype.typing import (Any, Dict, List, NewType, Optional, Set, Tuple, TypeAlias,
-                             Union, cast)
+                             Union, cast,)
 from plumbum import local
 from py_scriptutils.files import IsNewInput
 from py_scriptutils.script_logging import log

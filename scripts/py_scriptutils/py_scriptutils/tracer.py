@@ -6,6 +6,7 @@ from enum import Enum
 import os
 from contextlib import contextmanager
 import json
+from pathlib import Path
 
 
 class EventType(str, Enum):
@@ -36,6 +37,9 @@ class TraceCollector:
         self.traceEvents: List[TraceEvent] = []
         self.metadata: Dict[str, Any] = {}
 
+    def get_last_event(self) -> Optional[TraceEvent]:
+        return self.traceEvents and self.traceEvents[0]
+
     @contextmanager
     def complete_event(self,
                        name: str,
@@ -51,24 +55,26 @@ class TraceCollector:
         duration = end_time - start_time
 
         self.traceEvents.append(
-            TraceEvent(name=name,
-                       cat=category,
-                       ph=EventType.COMPLETE,
-                       ts=start_time,
-                       dur=duration,
-                       pid=pid,
-                       tid=tid,
-                       args=args or {}))
+            TraceEvent(
+                name=name,
+                cat=category,
+                ph=EventType.COMPLETE,
+                ts=start_time,
+                dur=duration,
+                pid=pid,
+                tid=tid,
+                args=args or {},
+            ))
 
     def set_metadata(self, key: str, value: Any):
         self.metadata[key] = value
 
-    def export_to_json(self, filename: str):
+    def export_to_json(self, filename: Path):
         data = {
             "traceEvents": [event.__dict__ for event in self.traceEvents],
             "otherData": self.metadata
         }
-        with open(filename, 'w') as f:
+        with open(str(filename), 'w') as f:
             json.dump(data, f, indent=4)
 
 
@@ -89,5 +95,5 @@ def GlobCompleteEvent(name: str, category: str, args: Optional[Dict[str, Any]] =
         yield
 
 
-def GlobExportJson(file: str):
+def GlobExportJson(file: Path):
     return getGlobalTraceCollector().export_to_json(file)

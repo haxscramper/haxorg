@@ -6,6 +6,9 @@ from invoke import task
 from invoke.context import Context
 from beartype.typing import Optional, List, Union
 from shutil import which
+from py_scriptutils.files import FileOperation
+from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson, getGlobalTraceCollector
+from functools import wraps
 
 
 def get_script_root(relative: Optional[str] = None) -> Path:
@@ -23,6 +26,11 @@ def get_build_root(relative: Optional[str] = None) -> Path:
 
     return value
 
+
+def get_task_stamp(name: str) -> Path:
+    return get_build_root().joinpath(f"stamps/{name}.stamp")
+
+
 def get_llvm_root(relative: Optional[str] = None) -> Path:
     value = get_script_root().joinpath("toolchain/llvm")
     if relative:
@@ -30,8 +38,10 @@ def get_llvm_root(relative: Optional[str] = None) -> Path:
 
     return value
 
+
 def is_quiet(ctx: Context) -> bool:
     return ctx.config.get('quiet', False)
+
 
 def is_debug(ctx: Context) -> bool:
     return ctx.config.get('debug', False)
@@ -56,11 +66,10 @@ def run_command(
 
     run = local[cmd]
     if env:
-        run = run.with_env(env)
+        run = run.with_env(**env)
 
     if cwd is not None:
         run = run.with_cwd(cwd)
-
 
     try:
         if capture or is_quiet(ctx):
@@ -70,23 +79,44 @@ def run_command(
         else:
             run[*args].with_env() & FG
             return (0, "", "")
-        
+
     except ProcessExecutionError as e:
         print("")
         log.error(f"Failed to execute the command {cmd}")
         exit(1)
 
+def task_time(func: callable) -> callable:
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        name = func.__name__
+        log.info(f"Running [yellow]{name}[/yellow] ...")
+        with GlobCompleteEvent(f"task {name}", "build"):
+            result = func(*args, **kwargs)
+
+        last = getGlobalTraceCollector().get_last_event()
+        log.info(f"Completed [green]{name}[/green] in [blue]{last.ts * 10e6:5.3}[/blue]s")
+
+        GlobExportJson(get_build_root("task_build_time.json"))
+
+        return result
+        
+    return wrapper
+
+
 @task
+@task_time
 def git_init_submodules(ctx: Context):
     if get_script_root().joinpath("thirdparty/mp11").exists():
         log.info("Submodules were checked out")
     else:
         log.info("Submodules were not checked out, running update")
-        run_command(ctx, "git", ("submodule", "update", "--init", "--recursive", "--progress"))
+        run_command(ctx, "git",
+                    ("submodule", "update", "--init", "--recursive", "--progress"))
+
 
 @task
+@task_time
 def download_llvm(ctx: Context):
-    log.info("Downloading LLVM toolchain dependency")
     llvm_dir = get_script_root("toolchain/llvm")
     if not os.path.isdir(llvm_dir):
         log.info("LLVM not found. Downloading...")
@@ -108,23 +138,27 @@ def download_llvm(ctx: Context):
 
 
 @task(pre=[git_init_submodules, download_llvm])
+@task_time
 def base_environment(ctx: Context):
     pass
 
+
 @task(pre=[base_environment])
+@task_time
 def cmake_configure_utils(ctx: Context, debug=True):
     """Execute configuration for utility binary compilation"""
     log.info("Configuring cmake utils build")
     build_dir = "build/utils_debug" if debug else "build/utils_release"
     run_command(
-        ctx, 
+        ctx,
         "cmake",
         (
             "-B",
             get_script_root(build_dir),
             "-S",
             str(get_script_root().joinpath("scripts/cxx_codegen")),
-            "-G", "Ninja",
+            "-G",
+            "Ninja",
             f"-DCMAKE_BUILD_TYPE={'Debug' if debug else 'RelWithDebInfo'}",
             f"-DCMAKE_CXX_COMPILER={get_script_root('toolchain/llvm/bin/clang++')}",
         ),
@@ -132,6 +166,7 @@ def cmake_configure_utils(ctx: Context, debug=True):
 
 
 @task(pre=[cmake_configure_utils])
+@task_time
 def cmake_utils(ctx: Context, debug=True):
     log.info("Building build utils")
     """Compile libraries and binaries for utils"""
@@ -139,11 +174,13 @@ def cmake_utils(ctx: Context, debug=True):
     run_command(ctx, "cmake", ("--build", get_script_root(build_dir)))
     log.info("CMake utils build ok")
 
+
 @task(pre=[cmake_utils])
+@task_time
 def py_reflection(ctx: Context):
     log.info("Updating reflection artifacts using standalone build tool")
     run_command(
-        ctx, 
+        ctx,
         get_build_root("utils/reflection_tool"),
         (
             "-p=build/haxorg/compile_commands.json",
@@ -156,11 +193,12 @@ def py_reflection(ctx: Context):
 
 
 @task(pre=[base_environment])
+@task_time
 def haxorg_base_lexer(ctx: Context):
     log.info("Generating base lexer for haxorg")
     run_command(ctx, "poetry", ("run", "src/base_lexer/base_lexer.py"))
     run_command(
-        ctx, 
+        ctx,
         get_script_root("toolchain/RE-flex/build/reflex"),
         (
             "--fast",
@@ -175,13 +213,14 @@ def haxorg_base_lexer(ctx: Context):
 
 
 @task
+@task_time
 def haxorg_codegen(ctx: Context):
     log.info("Executing haxorg code generation step.")
     run_command(
-        ctx, 
+        ctx,
         "poetry",
         (
-            " run",
+            "run",
             "scripts/py_codegen/codegen.py",
             get_build_root(),
             get_script_root(),
@@ -192,6 +231,7 @@ def haxorg_codegen(ctx: Context):
 
 
 @task
+@task_time
 def reflection_protobuf(ctx: Context):
     """Update protobuf data definition for reflection"""
     poetry = local["poetry"]
@@ -200,7 +240,7 @@ def reflection_protobuf(ctx: Context):
     protoc_plugin = os.path.join(stdout, "bin/protoc-gen-python_betterproto")
 
     run_command(
-        ctx, 
+        ctx,
         "protoc",
         (
             f"--plugin={protoc_plugin}",
@@ -214,34 +254,50 @@ def reflection_protobuf(ctx: Context):
     )
 
 
-@task(pre=[download_llvm, haxorg_codegen])
+@task(pre=[download_llvm])
 def cmake_configure_haxorg(ctx: Context):
     """Execute cmake configuration step for haxorg"""
-    build_dir = "build/haxorg_debug" if is_debug(ctx) else "build/haxorg_release"
-    pass_flags = [
-        "-B",
-        get_script_root(build_dir),
-        "-S",
-        get_script_root(),
-        "-G", "Ninja",
-        f"-DCMAKE_BUILD_TYPE={'Debug' if is_debug(ctx) else 'RelWithDebInfo'}",
-        f"-DCMAKE_CXX_COMPILER={get_llvm_root('bin/clang++')}",
-    ]
 
-    run_command(ctx, "cmake", tuple(pass_flags))
+    with FileOperation.InTmp([
+            Path("CMakeLists.txt"),
+            Path("src/cmake").rglob("*.cmake"),
+    ], get_task_stamp("cmake_configure_haxorg")) as op:
+        log.info(op.explain("cmake configuration"))
+        if op.should_run():
+            log.info("running haxorg cmake configuration")
+            build_dir = "build/haxorg_debug" if is_debug(ctx) else "build/haxorg_release"
+            pass_flags = [
+                "-B",
+                get_script_root(build_dir),
+                "-S",
+                get_script_root(),
+                "-G",
+                "Ninja",
+                f"-DCMAKE_BUILD_TYPE={'Debug' if is_debug(ctx) else 'RelWithDebInfo'}",
+                f"-DCMAKE_CXX_COMPILER={get_llvm_root('bin/clang++')}",
+            ]
+
+            run_command(ctx, "cmake", tuple(pass_flags))
+
+
 
 
 @task(pre=[cmake_configure_haxorg])
-@task
+@task_time
 def cmake_haxorg(ctx):
-    cmake = local['cmake']
+    "Compile main set of libraries and binaries for org-mode parser"
     build_dir = f'build/haxorg_{"debug" if is_debug(ctx) else "release"}'
-    
-    log.info('Running cmake haxorg build')
-    
-    cmake.run('--build', build_dir, 
-              env={'NINJA_FORCE_COLOR': '1'})
-    
+    with FileOperation.InTmp([
+            Path("src").rglob("*.cpp"),
+            Path("src").rglob("*.hpp"),
+            Path("src").rglob("*.cppm"),
+    ], get_task_stamp("cmake_haxorg")) as op:
+        log.info(op.explain("Main C++"))
+        if op.should_run():
+            log.info('Running cmake haxorg build')
+            run_command(ctx,
+                        "cmake", ["--build", build_dir],
+                        env={'NINJA_FORCE_COLOR': '1'})
 
 @task
 def update_reflection(ctx: Context):
@@ -252,7 +308,7 @@ def update_reflection(ctx: Context):
 
     try:
         run_command(
-            ctx, 
+            ctx,
             "build/utils/reflection_tool",
             (
                 "-p",
@@ -283,7 +339,7 @@ def generate_lexer(ctx: Context):
 
     with local.env(LD_LIBRARY_PATH=f"{get_script_root()}/toolchain/RE-flex/lib"):
         run_command(
-            ctx, 
+            ctx,
             get_script_root("/toolchain/RE-flex/build/reflex"),
             (
                 "--fast",
@@ -307,4 +363,3 @@ def test_python(ctx: Context):
 def build_cxx_docs(ctx: Context):
     run_command(ctx, "doxygen", str(get_script_root("Doxyfile")))
     log.info("Completed CXX docs build")
-

@@ -2,7 +2,7 @@
 # To learn more about the format of this file, see https://docs.trunk.io/reference/trunk-yaml
 version: 0.1
 cli:
-  version: 1.17.2
+  version: 1.18.1
 plugins:
   sources:
     - id: trunk
@@ -12,16 +12,14 @@ runtimes:
   enabled:
     - python@3.10.8
 lint:
-  disabled:
-    - yapf
   enabled:
-    - trufflehog@3.62.1
-    - ruff@0.1.5
-    - mypy
+    - yapf@0.40.2
+    - mypy@1.7.1
 actions:
   disabled:
     - trunk-announce
     - trunk-check-pre-push
     - trunk-fmt-pre-commit
   enabled:
+    - trunk-cache-prune
     - trunk-upgrade-available
