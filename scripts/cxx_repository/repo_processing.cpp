@@ -139,6 +139,104 @@ Pair<Res (*)(CallbackArgs..., void*), Func<Res(CallbackArgs...)>> git_callback_w
     return {trampoline, lambda};
 }
 
+void maybe_file_rename(
+    walker_state*         state,
+    git_diff_delta const* delta,
+    Vec<Action>&          actions) {
+    auto new_path = state->content->getFilePath(delta->new_file.path);
+    if (delta->old_file.path
+        && strcmp(delta->old_file.path, delta->new_file.path) != 0) {
+        auto old_path = state->content->getFilePath(delta->old_file.path);
+        actions.push_back(FileRenameAction{
+            .this_path = new_path,
+            .prev_path = old_path,
+        });
+    }
+}
+
+void line_edit_action(
+    walker_state*        state,
+    git_diff_line const* line,
+    Vec<Action>&         delete_actions,
+    Vec<Action>&         add_actions,
+    ir::CommitId         id_commit) {
+    ir::StringId string_id = state->content->add(String{strip(
+        Str{line->content, static_cast<int>(line->content_len)},
+        {},
+        {'\n'})});
+
+    switch (line->origin) {
+        case GIT_DIFF_LINE_ADDITION: {
+            ir::LineId line_id = state->content->add(LineData{
+                .content = string_id,
+                .commit  = id_commit,
+            });
+
+
+            add_actions.push_back(AddAction{
+                .added = line->new_lineno - 1,
+                .id    = line_id,
+            });
+            break;
+        }
+
+        case GIT_DIFF_LINE_DELETION: {
+            delete_actions.push_back(RemoveAction{
+                .removed = line->old_lineno - 1,
+                .id      = string_id,
+            });
+            break;
+        }
+    }
+}
+
+void file_edit_actions(
+    SPtr<git_patch> patch,
+    walker_state*   state,
+    ir::CommitId    id_commit,
+    Vec<Action>&    actions) {
+    Vec<Action> delete_actions;
+    Vec<Action> add_actions;
+
+    int num_hunks = git_patch_num_hunks(patch.get());
+    for (int hunk_idx = 0; hunk_idx < num_hunks; ++hunk_idx) {
+        const git_diff_hunk* hunk;
+        git_patch_get_hunk(&hunk, NULL, patch.get(), hunk_idx);
+
+        int num_lines = git_patch_num_lines_in_hunk(patch.get(), hunk_idx);
+        for (int line_idx = 0; line_idx < num_lines; ++line_idx) {
+            const git_diff_line* line;
+            git_patch_get_line_in_hunk(
+                &line, patch.get(), hunk_idx, line_idx);
+            line_edit_action(
+                state, line, delete_actions, add_actions, id_commit);
+        }
+    }
+
+    std::reverse(delete_actions.begin(), delete_actions.end());
+    actions.append(delete_actions);
+    actions.append(add_actions);
+}
+
+void file_name_actions(
+    walker_state*  state,
+    CommitActions& result,
+    CR<CommitTask> task) {
+    auto [trampoline, lambda] = git_callback_wrapper(
+        Func<int(char const*, git_tree_entry const*)>(
+            [&](char const* root, git_tree_entry const* entry) -> int {
+                auto path  = fs::path{git_tree_entry_name(entry)};
+                auto track = state->content->getFilePath(path);
+                result.actions[track].push_back(
+                    NameAction{.path = state->content->getFilePath(path)});
+                result.actions[track];
+                return 0;
+            }));
+
+    git_tree_walk(
+        task.this_tree.get(), GIT_TREEWALK_PRE, trampoline, &lambda);
+}
+
 CommitActions get_commit_actions(
     walker_state*  state,
     CR<CommitTask> task) {
@@ -152,22 +250,7 @@ CommitActions get_commit_actions(
     findopts.break_rewrite_threshold       = 60;
     findopts.rename_limit                  = 1000;
 
-
-    {
-        auto [trampoline, lambda] = git_callback_wrapper(
-            Func<int(char const*, git_tree_entry const*)>(
-                [&](char const* root, git_tree_entry const* entry) -> int {
-                    auto path  = fs::path{git_tree_entry_name(entry)};
-                    auto track = state->content->getFilePath(path);
-                    result.actions[track].push_back(NameAction{
-                        .path = state->content->getFilePath(path)});
-                    result.actions[track];
-                    return 0;
-                }));
-
-        git_tree_walk(
-            task.this_tree.get(), GIT_TREEWALK_PRE, trampoline, &lambda);
-    }
+    file_name_actions(state, result, task);
 
     SPtr<git_diff> diff = git::diff_tree_to_tree(
                               state->repo.get(),
@@ -200,72 +283,8 @@ CommitActions get_commit_actions(
                 break;
             }
             default: {
-                auto new_path = state->content->getFilePath(
-                    delta->new_file.path);
-                if (delta->old_file.path
-                    && strcmp(delta->old_file.path, delta->new_file.path)
-                           != 0) {
-                    auto old_path = state->content->getFilePath(
-                        delta->old_file.path);
-                    actions.push_back(FileRenameAction{
-                        .this_path = new_path,
-                        .prev_path = old_path,
-                    });
-                }
-
-                Vec<Action> delete_actions;
-                Vec<Action> add_actions;
-
-                int num_hunks = git_patch_num_hunks(patch.get());
-                for (int hunk_idx = 0; hunk_idx < num_hunks; ++hunk_idx) {
-                    const git_diff_hunk* hunk;
-                    git_patch_get_hunk(&hunk, NULL, patch.get(), hunk_idx);
-
-                    int num_lines = git_patch_num_lines_in_hunk(
-                        patch.get(), hunk_idx);
-                    for (int line_idx = 0; line_idx < num_lines;
-                         ++line_idx) {
-                        const git_diff_line* line;
-                        git_patch_get_line_in_hunk(
-                            &line, patch.get(), hunk_idx, line_idx);
-
-                        ir::StringId string_id = state->content->add(
-                            String{strip(
-                                Str{line->content,
-                                    static_cast<int>(line->content_len)},
-                                {},
-                                {'\n'})});
-
-                        switch (line->origin) {
-                            case GIT_DIFF_LINE_ADDITION: {
-                                ir::LineId line_id = state->content->add(
-                                    LineData{
-                                        .content = string_id,
-                                        .commit  = id_commit,
-                                    });
-
-
-                                add_actions.push_back(AddAction{
-                                    .added = line->new_lineno - 1,
-                                    .id    = line_id,
-                                });
-                                break;
-                            }
-
-                            case GIT_DIFF_LINE_DELETION: {
-                                delete_actions.push_back(RemoveAction{
-                                    .removed = line->old_lineno - 1,
-                                    .id      = string_id,
-                                });
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                std::reverse(delete_actions.begin(), delete_actions.end());
-                actions.append(delete_actions);
-                actions.append(add_actions);
+                maybe_file_rename(state, delta, actions);
+                file_edit_actions(patch, state, id_commit, actions);
             }
         }
     }
