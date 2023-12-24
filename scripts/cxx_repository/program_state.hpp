@@ -139,6 +139,11 @@ struct walker_state {
     ir::content_manager* content;
     /// \brief main application logger entry
     SPtr<Logger> logger;
+
+    template <dod::IsIdType Id>
+    auto at(Id id) -> typename dod::value_type_t<Id>& {
+        return this->content->at(id);
+    }
 };
 
 #endif // PROGRAM_STATE_HPP

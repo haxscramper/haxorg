@@ -14,6 +14,7 @@ from beartype.typing import Dict, List, Callable
 import logging
 from pprint import pprint
 import textwrap
+import json
 
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
@@ -64,6 +65,7 @@ def is_debug(ctx: Context) -> bool:
 def is_instrumented_coverage(ctx: Context) -> bool:
     return ctx.config.get("instrument")["coverage"]
 
+
 def is_xray_coverage(ctx: Context) -> bool:
     return ctx.config.get("instrument")["xray"]
 
@@ -112,7 +114,7 @@ def run_command(
             return (1, "", "")
 
         else:
-            raise Failure(f"Failed to execute the command {cmd}")
+            raise Failure(f"Failed to execute the command {cmd}") from None
 
 
 TASK_DEPS: Dict[Callable, List[Callable]] = {}
@@ -336,16 +338,14 @@ def cmake_configure_haxorg(ctx: Context):
 
 
 @org_task(pre=[cmake_configure_haxorg])
-def cmake_haxorg(ctx):
+def cmake_haxorg(ctx: Context):
     "Compile main set of libraries and binaries for org-mode parser"
     build_dir = f'build/haxorg_{"debug" if is_debug(ctx) else "release"}'
     with FileOperation.InTmp(
         [
-            Path("src").rglob("*.cpp"),
-            Path("src").rglob("*.hpp"),
-            Path("src").rglob("*.cppm"),
-            Path("tests").rglob("*.cpp"),
-            Path("tests").rglob("*.hpp"),
+            Path(path).rglob(glob)
+            for path in ["src", "scripts", "tests"]
+            for glob in ["*.cpp", "*.hpp", "*.cppm"]
         ],
             stamp_path=get_task_stamp("cmake_haxorg"),
             stamp_content=str(get_cmake_defines(ctx)),
@@ -365,6 +365,40 @@ def cmake_haxorg(ctx):
     haxorg_link = get_script_root("scripts/py_haxorg/py_haxorg/pyhaxorg.so")
     if not haxorg_link.exists():
         haxorg_link.symlink_to("haxorg/pyhaxorg.so")
+
+
+LLDB_AUTO_BACKTRACE: List[str] = [
+    "--one-line-on-crash", "bt", "--one-line-on-crash", "exit"
+]
+
+
+@org_task(pre=[cmake_haxorg])
+def haxorg_code_forensics(ctx: Context, debug: bool = False):
+    "Generate code forensics dump for the repository"
+    tool = get_build_root("haxorg/scripts/cxx_repository/code_forensics")
+    config = {
+        "repo": {
+            "path": str(get_script_root()),
+            "branch": "master"
+        },
+        "out": {
+            "text_dump": "/tmp/code_forenics.txt"
+        },
+    }
+    if debug:
+        run_command(ctx, "lldb", [
+            str(tool),
+            "--batch",
+            "-o",
+            f"command script import {get_script_root('scripts/cxx_repository/lldb_script.py')}",
+            "-o",
+            "run",
+            "--source-on-crash",
+            str(get_script_root("scripts/cxx_repository/lldb-script.txt")),
+            json.dumps(config),
+        ])
+    else:
+        run_command(ctx, tool, [json.dumps(config)])
 
 
 @org_task(pre=[cmake_utils, python_protobuf_files])
@@ -473,7 +507,6 @@ def xray_coverage(ctx: Context, test: Path):
     dir = test.parent
     tools = get_llvm_root("bin")
 
-
     # Remove existing XRay log and profdata files
     for file in dir.glob(f"xray-log.{test.stem}.*"):
         file.unlink()
@@ -484,16 +517,16 @@ def xray_coverage(ctx: Context, test: Path):
     log.info(f"Running XRAY log agregation for directory {dir}")
     run_command(
         ctx,
-        test,
-        [],
+        test, [],
         env={"XRAY_OPTIONS": "patch_premain=true xray_mode=xray-basic verbosity=1"},
         allow_fail=True,
         capture=True,
-        cwd=dir
-    )
+        cwd=dir)
 
     # Find the latest XRay log file
-    log_files = sorted(dir.glob(f"xray-log.{test.stem}.*"), key=os.path.getmtime, reverse=True)
+    log_files = sorted(dir.glob(f"xray-log.{test.stem}.*"),
+                       key=os.path.getmtime,
+                       reverse=True)
     if log_files:
         log.info(f"Latest XRay log file '{log_files[0]}'")
         logfile = log_files[0]
@@ -529,7 +562,9 @@ def xray_coverage(ctx: Context, test: Path):
             "-output-dir=" + str(dir / "coverage_report"),
         ])
     else:
-        raise Failure(f"No XRay log files found in '{dir}', xray coverage enabled in settings {is_xray_coverage(ctx)}")
+        raise Failure(
+            f"No XRay log files found in '{dir}', xray coverage enabled in settings {is_xray_coverage(ctx)}"
+        )
 
 
 @org_task(pre=[cmake_haxorg])
@@ -581,10 +616,7 @@ def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None
                 "--batch",
                 "-o",
                 f"run {debug_test}",
-                "--one-line-on-crash",
-                "bt",
-                "--one-line-on-crash",
-                "exit",
+                *LLDB_AUTO_BACKTRACE,
                 "--",
                 "python",
             ],

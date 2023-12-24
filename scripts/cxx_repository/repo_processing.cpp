@@ -14,6 +14,8 @@
 #include <algorithm>
 
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/Variant.hpp>
 
 using namespace ir;
 
@@ -74,21 +76,44 @@ struct FullCommitData {
 
 
 struct RemoveAction {
-    int removed;
+    int          removed;
+    ir::StringId id;
+    BOOST_DESCRIBE_CLASS(RemoveAction, (), (removed), (), ());
 };
 
 struct AddAction {
     int        added;
     ir::LineId id;
+    BOOST_DESCRIBE_CLASS(AddAction, (), (added, id), (), ());
 };
 
-struct FileRenameAction {};
+struct FileRenameAction {
+    ir::FilePathId prev_path;
+    ir::FilePathId this_path;
+    BOOST_DESCRIBE_CLASS(
+        FileRenameAction,
+        (),
+        (prev_path, this_path),
+        (),
+        ());
+};
+
+struct FileDeleteAction {
+    ir::FilePathId path;
+    BOOST_DESCRIBE_CLASS(FileDeleteAction, (), (path), (), ());
+};
+
 struct NameAction {
     ir::FilePathId path;
+    BOOST_DESCRIBE_CLASS(NameAction, (), (path), (), ());
 };
 
-using Action = std::
-    variant<NameAction, FileRenameAction, RemoveAction, AddAction>;
+using Action = Variant<
+    NameAction,
+    FileRenameAction,
+    RemoveAction,
+    AddAction,
+    FileDeleteAction>;
 
 
 struct CommitTask {
@@ -100,22 +125,7 @@ struct CommitTask {
 };
 
 struct CommitActions {
-    UnorderedMap<ir::FileTrackId, Vec<Action>> actions;
-};
-
-struct CommitWalkState {
-    UnorderedMap<ir::FilePathId, ir::FileTrackId> tracks;
-
-    ir::FileTrackId getTrack(walker_state* state, fs::path const& path) {
-        auto path_id = state->content->getFilePath(path);
-        if (tracks.contains(path_id)) {
-            return tracks.at(path_id);
-        } else {
-            ir::FileTrackId result = state->content->add(FileTrack{});
-            tracks.insert({path_id, result});
-            return result;
-        }
-    }
+    UnorderedMap<ir::FilePathId, Vec<Action>> actions;
 };
 
 template <typename Res, typename... CallbackArgs>
@@ -130,9 +140,8 @@ Pair<Res (*)(CallbackArgs..., void*), Func<Res(CallbackArgs...)>> git_callback_w
 }
 
 CommitActions get_commit_actions(
-    walker_state*    state,
-    CR<CommitTask>   task,
-    CommitWalkState& commit_walk) {
+    walker_state*  state,
+    CR<CommitTask> task) {
     CommitActions         result;
     git_diff_options      diffopts = GIT_DIFF_OPTIONS_INIT;
     git_diff_find_options findopts = GIT_DIFF_FIND_OPTIONS_INIT;
@@ -149,7 +158,7 @@ CommitActions get_commit_actions(
             Func<int(char const*, git_tree_entry const*)>(
                 [&](char const* root, git_tree_entry const* entry) -> int {
                     auto path  = fs::path{git_tree_entry_name(entry)};
-                    auto track = commit_walk.getTrack(state, path);
+                    auto track = state->content->getFilePath(path);
                     result.actions[track].push_back(NameAction{
                         .path = state->content->getFilePath(path)});
                     result.actions[track];
@@ -176,73 +185,197 @@ CommitActions get_commit_actions(
         SPtr<git_patch> patch = git::patch_from_diff(diff.get(), i)
                                     .value();
         const git_diff_delta* delta = git::patch_get_delta(patch.get());
-        fs::path              path{
+
+        fs::path path{
             delta->old_file.path == nullptr ? delta->new_file.path
-                                                         : delta->old_file.path};
+                                            : delta->old_file.path};
+        ir::FilePathId track   = state->content->getFilePath(path);
+        auto&          actions = result.actions[track];
+        actions.push_back(NameAction{.path = track});
 
-        ir::FileTrackId track = commit_walk.getTrack(state, path);
+        switch (delta->status) {
+            case GIT_DELTA_DELETED: {
+                actions.push_back(FileDeleteAction{
+                    .path = state->content->getFilePath(path)});
+                break;
+            }
+            default: {
+                auto new_path = state->content->getFilePath(
+                    delta->new_file.path);
+                if (delta->old_file.path
+                    && strcmp(delta->old_file.path, delta->new_file.path)
+                           != 0) {
+                    auto old_path = state->content->getFilePath(
+                        delta->old_file.path);
+                    actions.push_back(FileRenameAction{
+                        .this_path = new_path,
+                        .prev_path = old_path,
+                    });
+                }
 
-        auto& actions = result.actions[track];
+                Vec<Action> delete_actions;
+                Vec<Action> add_actions;
 
-        actions.push_back(
-            NameAction{.path = state->content->getFilePath(path)});
-        Vec<Action> delete_actions;
-        Vec<Action> add_actions;
+                int num_hunks = git_patch_num_hunks(patch.get());
+                for (int hunk_idx = 0; hunk_idx < num_hunks; ++hunk_idx) {
+                    const git_diff_hunk* hunk;
+                    git_patch_get_hunk(&hunk, NULL, patch.get(), hunk_idx);
 
-        int num_hunks = git_patch_num_hunks(patch.get());
-        for (int hunk_idx = 0; hunk_idx < num_hunks; ++hunk_idx) {
-            const git_diff_hunk* hunk;
-            git_patch_get_hunk(&hunk, NULL, patch.get(), hunk_idx);
+                    int num_lines = git_patch_num_lines_in_hunk(
+                        patch.get(), hunk_idx);
+                    for (int line_idx = 0; line_idx < num_lines;
+                         ++line_idx) {
+                        const git_diff_line* line;
+                        git_patch_get_line_in_hunk(
+                            &line, patch.get(), hunk_idx, line_idx);
 
-            int num_lines = git_patch_num_lines_in_hunk(
-                patch.get(), hunk_idx);
-            for (int line_idx = 0; line_idx < num_lines; ++line_idx) {
-                const git_diff_line* line;
-                git_patch_get_line_in_hunk(
-                    &line, patch.get(), hunk_idx, line_idx);
-
-                switch (line->origin) {
-                    case GIT_DIFF_LINE_ADDITION: {
-                        ir::LineId line_id = state->content->add(LineData{
-                            .content = state->content->add(String{strip(
+                        ir::StringId string_id = state->content->add(
+                            String{strip(
                                 Str{line->content,
                                     static_cast<int>(line->content_len)},
                                 {},
-                                {'\n'})}),
-                            .commit  = id_commit,
-                        });
+                                {'\n'})});
+
+                        switch (line->origin) {
+                            case GIT_DIFF_LINE_ADDITION: {
+                                ir::LineId line_id = state->content->add(
+                                    LineData{
+                                        .content = string_id,
+                                        .commit  = id_commit,
+                                    });
 
 
-                        add_actions.push_back(AddAction{
-                            .added = line->new_lineno - 1,
-                            .id    = line_id,
-                        });
-                        break;
-                    }
+                                add_actions.push_back(AddAction{
+                                    .added = line->new_lineno - 1,
+                                    .id    = line_id,
+                                });
+                                break;
+                            }
 
-                    case GIT_DIFF_LINE_DELETION: {
-                        delete_actions.push_back(
-                            RemoveAction{.removed = line->old_lineno - 1});
-                        break;
+                            case GIT_DIFF_LINE_DELETION: {
+                                delete_actions.push_back(RemoveAction{
+                                    .removed = line->old_lineno - 1,
+                                    .id      = string_id,
+                                });
+                                break;
+                            }
+                        }
                     }
                 }
+
+                std::reverse(delete_actions.begin(), delete_actions.end());
+                actions.append(delete_actions);
+                actions.append(add_actions);
             }
-        }
-
-        actions.append(delete_actions);
-        actions.append(add_actions);
-
-        auto new_path = state->content->getFilePath(delta->new_file.path);
-        if (delta->old_file.path
-            && strcmp(delta->old_file.path, delta->new_file.path) != 0) {
-            auto old_path = state->content->getFilePath(
-                delta->old_file.path);
-            // result.push_back(FileRenameAction{});
         }
     }
 
     return result;
 }
+
+struct ChangeIterationState {
+    walker_state* state;
+
+    FileTrack*            track;
+    ir::FileTrackSection* section;
+
+    // Keep track of the mapping between file path and file track IDs. When
+    // a file is seen for the first time a track is created for, with later
+    // renames adding a layer of indirection. `path1->path2->path3` -- when
+    // changes are made to the `path3` in some commit, the corresponding
+    // file track should be the same as `path1` and `path2`.
+    UnorderedMap<ir::FilePathId, ir::FileTrackId> tracks;
+    UnorderedMap<ir::FilePathId, ir::FilePathId>  active_track_renames;
+
+    ir::FileTrackId which_track(ir::FilePathId path) {
+        ir::FilePathId target_path = path;
+        while (active_track_renames.contains(target_path)) {
+            target_path = active_track_renames.at(target_path);
+        }
+
+        if (tracks.contains(target_path)) {
+            return tracks.at(target_path);
+        } else {
+            ir::FileTrackId result = state->content->add(FileTrack{});
+            tracks.insert({target_path, result});
+            return result;
+        }
+    }
+
+    UnorderedMap<ir::FileTrackId, Vec<Action>> actions;
+
+    void apply(ir::CommitId commit_id, CR<FileRenameAction> rename) {
+        active_track_renames.insert_or_assign(
+            rename.this_path, rename.prev_path);
+    }
+
+    void apply(ir::CommitId commit_id, CR<FileDeleteAction> del) {
+        // Active track renames are fully reset when a file is deleted --
+        // all historical context is dropped when a file is cleaned up from
+        // the index. If a new file is added with the same name, it will
+        // have a new file track history.
+        ir::FilePathId to_delete = del.path;
+        while (active_track_renames.contains(to_delete)) {
+            auto tmp  = to_delete;
+            to_delete = active_track_renames.at(to_delete);
+            active_track_renames.erase(tmp);
+        }
+
+        tracks.erase(to_delete);
+    }
+
+    void apply(ir::CommitId commit_id, CR<AddAction> add) {
+        int to_add = add.added;
+        CHECK(to_add <= section->lines.size())
+            << "Cannot add line at index " << to_add
+            << " from section version " << section->lines.size()
+            << " path " << state->at(state->at(section->path).path).text
+            << " commit " << state->at(section->commit_id).hash << " "
+            << fmt1(add);
+
+        section->added_lines.push_back(to_add);
+        section->lines = section->lines.insert(to_add, add.id);
+    }
+
+    void apply(ir::CommitId commit_id, CR<RemoveAction> remove) {
+        int to_remove  = remove.removed;
+        int lines_size = section->lines.size();
+
+        CHECK(
+            state->at(section->lines.at(to_remove)).content == remove.id);
+
+        CHECK(to_remove <= lines_size)
+            << "Cannot remove line index " << to_remove
+            << " from section version " << section->lines.size()
+            << " path " << state->at(state->at(section->path).path).text
+            << " commit " << state->at(section->commit_id).hash << " "
+            << fmt1(remove);
+
+
+        section->removed_lines.push_back(to_remove);
+        section->lines = section->lines.erase(to_remove);
+    }
+
+    void apply(ir::CommitId commit_id, CR<NameAction> name) {
+        ir::FileTrackId track_id = which_track(name.path);
+        this->track              = &state->at(track_id);
+
+        auto section_id = state->content->add(FileTrackSection{
+            .commit_id = commit_id,
+            .path      = name.path,
+        });
+
+        track->sections.push_back(section_id);
+
+        section = &state->at(section_id);
+        if (1 < track->sections.size()) {
+            section->lines = state
+                                 ->at(track->sections.at(
+                                     track->sections.size() - 2))
+                                 .lines;
+        }
+    }
+};
 
 void for_each_commit(walker_state* state) {
     CommitGraph g{state->repo};
@@ -284,87 +417,54 @@ void for_each_commit(walker_state* state) {
         };
     };
 
-    CommitWalkState commit_walk;
-
-    for (auto const& [commit_id, track_id, actions] :
-         gen_view(g.commit_pairs())     //
-             | make_collect()           //
-             | rv::reverse              //
-             | rv::take(10)             //
-             | rv::transform(make_task) //
+    // Mutable iteration state internally implements state machine that
+    // keeps track of the current file track, relevant renames and target
+    // file section
+    ChangeIterationState iter_state{.state = state};
+    for (auto const& [commit_id, actions] :
+         gen_view(g.commit_pairs())
+             // make the commit pairs list reversible
+             | make_collect()
+             // start from the first commit
+             | rv::reverse
+             // TODO allow arbitrary N of commits
+             | rv::take(10)
+             // package each commit pair into a commit processing task
+             | rv::transform(make_task)
+             // Filter out skipped commit tasks
              | rv::remove_if([](Opt<CommitTask> const& opt) -> bool {
                    return !opt.has_value();
                })
              | rv::transform([](Opt<CommitTask> const& opt) -> CommitTask {
                    return opt.value();
                })
+             // Expand each commit task into list of actions applied to a
+             // file in this particular commit -- list of events that state
+             // machine will respond to.
              | rv::transform([&](CommitTask const& task) {
-                   return own_view(
-                              get_commit_actions(state, task, commit_walk)
-                                  .actions)
-                        | rv::transform([id = task.id](const auto& pair) {
-                              return std::make_tuple(
-                                  id, pair.first, pair.second);
-                          });
+                   // `own_view` is used to avoid result of the commit
+                   // actions getter going out of scope.
+                   return own_view(std::move(
+                              get_commit_actions(state, task).actions))
+                        // Expand each commit action group into own
+                        // transformation range generator
+                        | rv::transform(
+                              [id = task.id](const auto& pair)
+                                  -> std::
+                                      tuple<ir::CommitId, Vec<Action>> {
+                                          return std::make_tuple(
+                                              id, pair.second);
+                                      });
                })
+             // Flatten the list of commit processing actions
              | rv::join) {
 
-
-        auto is_naming = [](Action const& v) -> bool {
-            return std::holds_alternative<NameAction>(v);
-        };
-
-        CHECK(rs::any_of(actions, is_naming));
-
-        FileTrack& track      = state->content->at(track_id);
-        auto       section_id = state->content->add(FileTrackSection{
-                  .commit_id = commit_id,
-                  .path = std::get<NameAction>(*rs::find_if(actions, is_naming))
-                        .path,
-        });
-
-        track.sections.push_back(section_id);
-
-        ir::FileTrackSection& section = state->content->at(section_id);
-        if (1 < track.sections.size()) {
-            section.lines = state->content
-                                ->at(track.sections.at(
-                                    track.sections.size() - 2))
-                                .lines;
-        }
-
+        // Apply actions to the commit iteration state. It will insert new
+        // file tracks, keep track of the historical context of the repo
+        // changes and so on.
         rs::for_each(actions, [&](auto const& edit) {
             std::visit(
-                overloaded{
-                    [&](AddAction const& add) {
-                        CHECK(add.added <= section.lines.size())
-                            << "Cannot add line at index " << add.added
-                            << " from section version "
-                            << section.lines.size();
-
-                        section.added_lines.push_back(add.added);
-                        section.lines = section.lines.insert(
-                            add.added, add.id);
-                    },
-                    [&](RemoveAction const& remove) {
-                        CHECK(remove.removed <= section.lines.size())
-                            << "Cannot remove line index "
-                            << remove.removed << " from section version "
-                            << section.lines.size() << " path "
-                            << state->content
-                                   ->at(state->content->at(section.path)
-                                            .path)
-                                   .text
-                            << " commit "
-                            << state->content->at(section.commit_id).hash;
-
-                        section.removed_lines.push_back(remove.removed);
-                        section.lines = section.lines.erase(
-                            remove.removed);
-                    },
-                    [&](FileRenameAction const& rename) {},
-                    [&](NameAction const& rename) {},
-                },
+                [&](auto const& act) { iter_state.apply(commit_id, act); },
                 edit);
         });
     }

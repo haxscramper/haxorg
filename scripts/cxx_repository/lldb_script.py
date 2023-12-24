@@ -7,6 +7,7 @@ import os
 
 def simplify_name(name: str) -> str:
     replacements = [
+        ("std::__1::__", "std"),
         (
             "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char>>",
             "std::string",

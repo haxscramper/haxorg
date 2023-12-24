@@ -11,8 +11,7 @@
 #include <absl/log/log.h>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Ranges.hpp>
-
-
+#include <hstd/stdlib/Json.hpp>
 
 #define GIT_SUCCESS 0
 
@@ -23,9 +22,12 @@ struct cli_state {
 };
 
 auto main(int argc, const char** argv) -> int {
+    LOG(INFO) << "Input JSON cofig value is " << argv[1];
+    json in_config = json::parse(argv[1]);
+    LOG(INFO) << "Parsed input JSON to " << in_config.dump();
     cli_state in{
-        .repo   = "/mnt/workspace/repos/haxorg",
-        .branch = "test/code-forensics",
+        .repo   = in_config["repo"]["path"],
+        .branch = in_config["repo"]["branch"],
     };
 
 
@@ -42,13 +44,14 @@ auto main(int argc, const char** argv) -> int {
         .allow_sample  = [](CR<PTime> date, CR<Str> author, CR<Str> id)
             -> bool { return true; }});
 
+
     git_libgit2_init();
     // Check whether threads can be enabled
     assert(git_libgit2_features() & GIT_FEATURE_THREADS);
 
     auto heads_path = fs::path{config->repo.toBase()}
                     / config->heads.toBase();
-    if (!fs::exists(config->repo.toBase())) {
+    if (!fs::is_directory(config->repo.toBase())) {
         LOG(ERROR) << "Input directory '" << config->repo
                    << "' does not exist, aborting analysis";
         return 1;
@@ -81,7 +84,7 @@ auto main(int argc, const char** argv) -> int {
 
     LOG(INFO) << "Finished execution, DB written successfully";
 
-    std::ofstream file{"/tmp/repo_stats.txt"};
+    std::ofstream file{in_config["out"]["text_dump"].get<std::string>()};
     for (auto const& [id, value] :
          state->content->multi.store<ir::FileTrack>().pairs()) {
         file << "File\n";
