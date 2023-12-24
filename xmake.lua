@@ -463,7 +463,6 @@ meta_target("bench_profdata", "Collect performance profile", {}, function ()
       "-output-dir=" .. path.join(dir, "coverage_report")
     })
   end)
-  
 end)
 
 meta_target("test_python", "Execute python tests", {}, function()

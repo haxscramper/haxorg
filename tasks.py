@@ -16,10 +16,8 @@ from pprint import pprint
 import textwrap
 
 graphviz_logger = logging.getLogger("graphviz._tools")
-graphviz_logger.setLevel(logging.WARNING) 
+graphviz_logger.setLevel(logging.WARNING)
 import graphviz
-
-
 
 # Major version of the LLVM toolchain used for the project. This is not a configuration
 # value, only as constant to avoid typing the same thing all over.
@@ -65,6 +63,9 @@ def is_debug(ctx: Context) -> bool:
 
 def is_instrumented_coverage(ctx: Context) -> bool:
     return ctx.config.get("instrument")["coverage"]
+
+def is_xray_coverage(ctx: Context) -> bool:
+    return ctx.config.get("instrument")["xray"]
 
 
 def run_command(
@@ -116,10 +117,13 @@ def run_command(
 
 TASK_DEPS: Dict[Callable, List[Callable]] = {}
 
+
 @beartype
 def org_task(task_name: Optional[str] = None, pre: List[Callable] = []) -> Callable:
+
     def org_inner(func: Callable) -> Callable:
         TASK_DEPS[func] = pre
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             name = task_name or func.__name__
@@ -129,14 +133,15 @@ def org_task(task_name: Optional[str] = None, pre: List[Callable] = []) -> Calla
 
             last = getGlobalTraceCollector().get_last_event()
             log.info(
-                f"Completed [green]{name}[/green] in [blue]{last.dur / 10e3:5.1f}[/blue]ms")
+                f"Completed [green]{name}[/green] in [blue]{last.dur / 10e3:5.1f}[/blue]ms"
+            )
 
             GlobExportJson(get_build_root("task_build_time.json"))
 
             return result
 
         return task(wrapper, pre=pre)
-    
+
     return org_inner
 
 
@@ -144,6 +149,9 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     result: List[str] = []
     if is_instrumented_coverage(ctx):
         result.append("-DORG_USE_COVERAGE=ON")
+
+    if is_xray_coverage(ctx):
+        result.append("-DORG_USE_XRAY=ON")
 
     if is_debug(ctx):
         result.append("-DCMAKE_BUILD_TYPE=Debug")
@@ -158,13 +166,13 @@ def get_cmake_defines(ctx: Context) -> List[str]:
 def create_graph(call_map: Dict[Callable, List[Callable]]) -> graphviz.Digraph:
     dot = graphviz.Digraph(comment='Function Call Graph')
     dot.attr(rankdir="LR")
-    
+
     for func, callees in call_map.items():
         func_name = func.__name__
         task_name = func_name.replace("_", "-")
         if func.__doc__:
             doc_text = "<BR/>".join(textwrap.wrap(func.__doc__, width=50))
-            func_label = f"<<B>{task_name}</B><BR/><FONT POINT-SIZE='10'>{doc_text}</FONT>>" 
+            func_label = f"<<B>{task_name}</B><BR/><FONT POINT-SIZE='10'>{doc_text}</FONT>>"
 
         else:
             func_label = task_name
@@ -175,8 +183,9 @@ def create_graph(call_map: Dict[Callable, List[Callable]]) -> graphviz.Digraph:
             callee_name = callee.__name__
             dot.node(callee_name, shape='rectangle', fontname='Iosevka')
             dot.edge(callee_name, func_name)
-    
+
     return dot
+
 
 @org_task()
 def org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot"):
@@ -185,6 +194,7 @@ def org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot"):
     with open(dot_file, "w") as file:
         file.write(graph.source)
         log.info(f"Wrote graph to {dot_file}")
+
 
 @org_task()
 def git_init_submodules(ctx: Context):
@@ -334,6 +344,8 @@ def cmake_haxorg(ctx):
             Path("src").rglob("*.cpp"),
             Path("src").rglob("*.hpp"),
             Path("src").rglob("*.cppm"),
+            Path("tests").rglob("*.cpp"),
+            Path("tests").rglob("*.hpp"),
         ],
             stamp_path=get_task_stamp("cmake_haxorg"),
             stamp_content=str(get_cmake_defines(ctx)),
@@ -353,6 +365,7 @@ def cmake_haxorg(ctx):
     haxorg_link = get_script_root("scripts/py_haxorg/py_haxorg/pyhaxorg.so")
     if not haxorg_link.exists():
         haxorg_link.symlink_to("haxorg/pyhaxorg.so")
+
 
 @org_task(pre=[cmake_utils, python_protobuf_files])
 def update_py_haxorg_reflection(ctx: Context):
@@ -389,7 +402,7 @@ def update_py_haxorg_reflection(ctx: Context):
 @org_task(pre=[cmake_utils, update_py_haxorg_reflection])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     "Update auto-generated source files"
-    # TODO source file generation should optionally overwrite the target OR 
+    # TODO source file generation should optionally overwrite the target OR
     # compare the new and old source code (to avoid breaking the subsequent
     # compilation of the source)
     log.info("Executing haxorg code generation step.")
@@ -455,6 +468,76 @@ def binary_coverage(ctx: Context, test: Path):
         )
 
 
+@beartype
+def xray_coverage(ctx: Context, test: Path):
+    dir = test.parent
+    tools = get_llvm_root("bin")
+
+
+    # Remove existing XRay log and profdata files
+    for file in dir.glob(f"xray-log.{test.stem}.*"):
+        file.unlink()
+
+    for file in dir.glob("*.profdata"):
+        file.unlink()
+
+    log.info(f"Running XRAY log agregation for directory {dir}")
+    run_command(
+        ctx,
+        test,
+        [],
+        env={"XRAY_OPTIONS": "patch_premain=true xray_mode=xray-basic verbosity=1"},
+        allow_fail=True,
+        capture=True,
+        cwd=dir
+    )
+
+    # Find the latest XRay log file
+    log_files = sorted(dir.glob(f"xray-log.{test.stem}.*"), key=os.path.getmtime, reverse=True)
+    if log_files:
+        log.info(f"Latest XRay log file '{log_files[0]}'")
+        logfile = log_files[0]
+
+        # Process log file with llvm-xray and llvm-profdata
+        run_command(ctx, tools / "llvm-xray", [
+            "convert",
+            "--symbolize",
+            "--instr_map=" + str(test),
+            "--output-format=trace_event",
+            "--output=" + str(dir / "trace_events.json"),
+            logfile,
+        ])
+
+        run_command(ctx, tools / "llvm-xray", [
+            "graph",
+            "--instr_map=" + str(test),
+            "--output=" + str(dir / "trace_events.dot"),
+            logfile,
+        ])
+
+        run_command(ctx, tools / "llvm-profdata", [
+            "merge",
+            "-output=" + str(dir / "bench.profdata"),
+            dir / "default.profraw",
+        ])
+
+        run_command(ctx, tools / "llvm-cov", [
+            "show",
+            test,
+            "-instr-profile=" + str(dir / "bench.profdata"),
+            "-format=html",
+            "-output-dir=" + str(dir / "coverage_report"),
+        ])
+    else:
+        raise Failure(f"No XRay log files found in '{dir}', xray coverage enabled in settings {is_xray_coverage(ctx)}")
+
+
+@org_task(pre=[cmake_haxorg])
+def std_xray(ctx: Context):
+    "Generate test xray information for STD"
+    xray_coverage(ctx, get_build_root("haxorg") / "tests_hstd")
+
+
 @org_task(pre=[cmake_haxorg])
 def std_coverage(ctx: Context):
     "Generate test coverage information for STD"
@@ -491,10 +574,10 @@ def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None
             "poetry",
             [
                 "run",
-                "lldb", # NOTE using system-provided LLDB instead of the get_llvm_root("bin/lldb"),
-                        # because the latter one is not guaranteed to be compiled with the python
-                        # installed on the system. For example, 17.0.6 required python 3.10, but the
-                        # arch linux already moved to 3.11 here. 
+                "lldb",  # NOTE using system-provided LLDB instead of the get_llvm_root("bin/lldb"),
+                # because the latter one is not guaranteed to be compiled with the python
+                # installed on the system. For example, 17.0.6 required python 3.10, but the
+                # arch linux already moved to 3.11 here.
                 "--batch",
                 "-o",
                 f"run {debug_test}",
@@ -519,9 +602,6 @@ def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None
         )
     if retcode != 0:
         exit(1)
-
-
-
 
 
 @org_task()
@@ -569,6 +649,7 @@ def build_py_docs(ctx: Context):
             get_script_root("docs/sphinx_config/source"),
             get_script_root("docs/sphinx_config/build"),
         ])
+
 
 @org_task(pre=[build_py_docs, build_cxx_docs])
 def build_all_docs(ctx: Context):

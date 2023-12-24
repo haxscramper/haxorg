@@ -10,6 +10,7 @@ std::string bits(T val) {
     return std::bitset<8 * sizeof(T)>(val).to_string();
 }
 
+
 TEST(DODContainersTest, MaskedNodes) {
     Id1 id{0};
     id.setValue(1_u8);
@@ -17,7 +18,7 @@ TEST(DODContainersTest, MaskedNodes) {
     EXPECT_EQ(id.getValue(), 1_u8);
     EXPECT_EQ(id.getValue(), 0b1_u8);
     id.setMask(2_u8);
-    EXPECT_EQ(bits(id.getValue()), std::string("10000001"));
+    EXPECT_EQ(bits(id.getValue()), std::string("01000001"));
     EXPECT_EQ(id.getMask(), 2_u8);
     EXPECT_EQ(id.getIndex(), 0);
     {
