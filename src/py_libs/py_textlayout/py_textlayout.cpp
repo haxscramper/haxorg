@@ -93,7 +93,6 @@ struct TextLayout {
     }
 
     static void py_define(pybind11::module& m) {
-        LOG(INFO) << "Py define";
         pybind11::class_<TextLayout>(m, "TextLayout")
             .def(pybind11::init<>())
             .def("dbg", &TextLayout::dbg)
@@ -129,7 +128,6 @@ struct TextLayout {
                     &TextLayout::add_at))
             //
             ;
-        LOG(INFO) << "Py define done";
     }
 };
 
@@ -175,8 +173,6 @@ BOOST_DESCRIBE_STRUCT(
 
 PYBIND11_MODULE(py_textlayout, m) {
     using namespace pybind11;
-    LOG(INFO) << "Constructing text layout module";
-
     TextLayout::py_define(m);
 
     class_<layout::Options>(m, "TextOptions")

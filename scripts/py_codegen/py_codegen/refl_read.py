@@ -1,8 +1,8 @@
-import proto_lib.reflection_defs as pb
+import py_codegen.proto_lib.reflection_defs as pb
 import re
 
 from beartype import beartype
-from gen_tu_cpp import *
+from py_codegen.gen_tu_cpp import *
 from pprint import pprint
 import itertools
 

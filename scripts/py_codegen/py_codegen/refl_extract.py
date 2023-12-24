@@ -27,8 +27,8 @@ from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
 
 import py_codegen.wrapper_gen_nim as gen_nim
-from gen_tu_cpp import QualType
-from refl_read import ConvTu, conv_proto_file, open_proto_file
+from py_codegen.gen_tu_cpp import QualType
+from py_codegen.refl_read import ConvTu, conv_proto_file, open_proto_file
 from py_codegen.refl_wrapper_graph import GenGraph, TuWrap
 
 if TYPE_CHECKING:

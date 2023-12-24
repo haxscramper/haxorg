@@ -59,7 +59,12 @@ def max_mtime(input_paths: List[Path]) -> float:
 
 @beartype
 def min_mtime(input_paths: List[Path]) -> float:
-    return min((p.stat().st_mtime for p in input_paths if p.exists()))
+    input_paths = [p.stat().st_mtime for p in input_paths if p.exists()]
+    if input_paths:
+        return min(input_paths)
+    
+    else:
+        return 0.0
 
 
 @beartype

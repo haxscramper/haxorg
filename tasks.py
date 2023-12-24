@@ -291,23 +291,40 @@ def haxorg_base_lexer(ctx: Context):
 @org_task()
 def python_protobuf_files(ctx: Context):
     "Generate new python code from the protobuf reflection files"
-    _, stdout, _ = run_command(ctx, "poetry", ("env", "info", "--path"), capture=True)
-    print(f"Using protoc plugin path '{stdout}'")
-    protoc_plugin = os.path.join(stdout, "bin/protoc-gen-python_betterproto")
+    proto_config = get_script_root("scripts/cxx_codegen/reflection_defs.proto")
+    with FileOperation.InTmp(
+        [proto_config],
+        stamp_path=get_task_stamp("python-protobuf-files"),
+    ) as op:
+        if op.should_run():
+            log.info(f"Running protc {op.explain('python protobuf')}")
+            _, stdout, _ = run_command(ctx, "poetry", ("env", "info", "--path"), capture=True)
+            stdout = stdout.strip()
+            log.info(f"Using protoc plugin path '{stdout}'")
+            protoc_plugin = Path(stdout).joinpath("bin/protoc-gen-python_betterproto")
 
-    run_command(
-        ctx,
-        "protoc",
-        (
-            f"--plugin={protoc_plugin}",
-            "-I",
-            get_script_root("scripts/cxx_codegen"),
-            "--proto_path=" + str(get_script_root("scripts/py_codegen")),
-            "--python_betterproto_out=" +
-            str(get_script_root("scripts/py_codegen/proto_lib")),
-            get_script_root("scripts/cxx_codegen/reflection_defs.proto"),
-        ),
-    )
+            if not protoc_plugin.exists():
+                raise Failure(
+                    f"Protoc plugin for better python is not installed correctly, {protoc_plugin} does not exist"
+                )
+
+            proto_lib = get_script_root("scripts/py_codegen/py_codegen/proto_lib")
+
+            if not proto_lib.exists():
+                proto_lib.mkdir()
+
+            run_command(
+                ctx,
+                "protoc",
+                (
+                    f"--plugin={protoc_plugin}",
+                    "-I",
+                    get_script_root("scripts/cxx_codegen"),
+                    "--proto_path=" + str(get_script_root("scripts/py_codegen/py_codegen")),
+                    "--python_betterproto_out=" + str(proto_lib),
+                    proto_config,
+                ),
+            )
 
 
 @org_task(pre=[base_environment])
@@ -585,7 +602,7 @@ def org_coverage(ctx: Context):
     binary_coverage(ctx, get_build_root("haxorg") / "tests_org")
 
 
-@org_task(pre=[cmake_haxorg])
+@org_task(pre=[cmake_haxorg, python_protobuf_files])
 def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None):
     """
     Execute the whole python test suite or run a single test file in non-interactive

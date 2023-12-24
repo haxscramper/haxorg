@@ -6,7 +6,7 @@ import inspect
 import os
 import py_codegen.astbuilder_base as base
 from typing import TYPE_CHECKING
-from pydantic import BaseModel, Field, Extra
+from pydantic import BaseModel, Field
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
@@ -38,7 +38,7 @@ log.setLevel(logging.DEBUG)
 
 
 class QualTypeKind(str, Enum):
-    RegularType = "RegularType"
+    RegularType = "RegularTyp0e"
     FunctionPtr = "FunctionPtr"
     MethodPtr = "MethodPtr"
     Array = "Array"
@@ -52,7 +52,7 @@ class ReferenceKind(str, Enum):
 
 
 @beartype
-class QualType(BaseModel, extra=Extra.forbid):
+class QualType(BaseModel, extra="forbid"):
     name: str = ""
     Parameters: List['QualType'] = Field(default_factory=list)
     Spaces: List['QualType'] = Field(default_factory=list)
