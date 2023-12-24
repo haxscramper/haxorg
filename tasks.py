@@ -11,6 +11,11 @@ from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson, getGlobalTr
 from functools import wraps
 from beartype import beartype
 
+# Major version of the LLVM toolchain used for the project. This is not a configuration
+# value, only as constant to avoid typing the same thing all over.
+LLVM_MAJOR = "17"
+LLVM_VERSION = f"{LLVM_MAJOR}.0.6"
+
 
 def get_script_root(relative: Optional[str] = None) -> Path:
     current_script_path = os.path.abspath(__file__)
@@ -109,7 +114,8 @@ def task_time(func: callable) -> callable:
             result = func(*args, **kwargs)
 
         last = getGlobalTraceCollector().get_last_event()
-        log.info(f"Completed [green]{name}[/green] in [blue]{last.dur / 10e3:5.1f}[/blue]ms")
+        log.info(
+            f"Completed [green]{name}[/green] in [blue]{last.dur / 10e3:5.1f}[/blue]ms")
 
         GlobExportJson(get_build_root("task_build_time.json"))
 
@@ -331,6 +337,15 @@ def cmake_haxorg(ctx):
                         "cmake", ["--build", build_dir],
                         env={'NINJA_FORCE_COLOR': '1'})
 
+    text_layout_link = get_script_root(
+        "scripts/py_textlayout/py_textlayout/py_textlayout.so")
+    if not text_layout_link.exists():
+        text_layout_link.symlink_to("haxorg/py_textlayout.so")
+
+    haxorg_link = get_script_root("scripts/py_haxorg/py_haxorg/pyhaxorg.so")
+    if not haxorg_link.exists():
+        haxorg_link.symlink_to("haxorg/pyhaxorg.so")
+
 
 @task(pre=[cmake_haxorg])
 @task_time
@@ -396,8 +411,55 @@ def org_coverage(ctx: Context):
 
 @task(pre=[cmake_haxorg])
 @task_time
-def py_tests(ctx: Context):
-    retcode, _, _ = run_command(ctx, "poetry", ["run", "pytest", "-s"], allow_fail=True)
+def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None):
+    """
+    Execute the whole python test suite or run a single test file in non-interactive
+    LLDB debugger to work on compiled component issues. 
+    """
+    preload = {
+        "LD_PRELOAD":
+            str(
+                get_llvm_root(
+                    f"lib/clang/{LLVM_MAJOR}/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"
+                ))
+    }
+
+    if debug:
+        debug_test: Path = Path(debug_test)
+        if not debug_test.is_absolute():
+            debug_test = get_script_root("tests").joinpath(debug_test)
+
+        retcode, _, _ = run_command(
+            ctx,
+            "poetry",
+            [
+                "run",
+                "lldb", # NOTE using system-provided LLDB instead of the get_llvm_root("bin/lldb"),
+                        # because the latter one is not guaranteed to be compiled with the python
+                        # installed on the system. For example, 17.0.6 required python 3.10, but the
+                        # arch linux already moved to 3.11 here. 
+                "--batch",
+                "-o",
+                f"run {debug_test}",
+                "--one-line-on-crash",
+                "bt",
+                "--one-line-on-crash",
+                "exit",
+                "--",
+                "python",
+            ],
+            allow_fail=True,
+            env=preload,
+        )
+
+    else:
+        retcode, _, _ = run_command(
+            ctx,
+            "poetry",
+            ["run", "pytest", "-s"],
+            allow_fail=True,
+            env=preload,
+        )
     if retcode != 0:
         exit(1)
 
@@ -405,7 +467,7 @@ def py_tests(ctx: Context):
 @task
 def update_reflection(ctx: Context):
     compile_commands = local.path("build/haxorg/compile_commands.json")
-    include_dir = local.path("toolchain/llvm/lib/clang/17/include")
+    include_dir = local.path(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
     out_file = local.path("build/reflection.pb")
     src_file = "src/py_libs/pyhaxorg/pyhaxorg.cpp"
 
@@ -478,7 +540,7 @@ def build_py_docs(ctx: Context):
         rmtree(autogen_dir)
 
     auto_config_content = "import sys\n"
-    
+
     for source_dir, doc_dir in [
         (get_script_root(), "main"),
             *[(d, d.name) for d in [

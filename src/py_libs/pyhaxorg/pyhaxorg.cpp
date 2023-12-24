@@ -36,10 +36,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
   bind_vector<sem::SemIdT<sem::CmdArgument>>(m, "VecOfSemIdTOfCmdArgument");
   bind_vector<sem::Code::Switch>(m, "VecOfSwitch");
   bind_vector<int>(m, "VecOfint");
-  bind_vector<Str>(m, "VecOfStr");
   bind_vector<sem::Symbol::Param>(m, "VecOfParam");
   bind_vector<sem::SemIdT<sem::SubtreeLog>>(m, "VecOfSemIdTOfSubtreeLog");
-  bind_vector<sem::Subtree::Property>(m, "VecOfProperty");
   bind_vector<sem::Subtree::Period>(m, "VecOfPeriod");
   bind_vector<sem::Subtree::Property>(m, "VecOfProperty");
   #ifndef IN_CLANGD_PROCESSING
@@ -1751,9 +1749,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<OrgExporterJson>(m, "OrgExporterJson")
     .def(pybind11::init<>())
-    ;
-  pybind11::class_<OrgExporterJson>(m, "OrgExporterJson")
-    .def(pybind11::init<>())
     .def("visitNode",
          static_cast<void(OrgExporterJson::*)(sem::SemId)>(&OrgExporterJson::visitNode),
          pybind11::arg("node"),
@@ -1773,18 +1768,6 @@ return state.)RAW")
     .def_readwrite("startLevel", &ExporterTreeOpts::startLevel)
     .def_readwrite("withColor", &ExporterTreeOpts::withColor)
     ;
-  pybind11::class_<ExporterTreeOpts>(m, "ExporterTreeOpts")
-    .def(pybind11::init<>())
-    .def_readwrite("withLineCol", &ExporterTreeOpts::withLineCol)
-    .def_readwrite("withOriginalId", &ExporterTreeOpts::withOriginalId)
-    .def_readwrite("withSubnodeIdx", &ExporterTreeOpts::withSubnodeIdx)
-    .def_readwrite("skipEmptyFields", &ExporterTreeOpts::skipEmptyFields)
-    .def_readwrite("startLevel", &ExporterTreeOpts::startLevel)
-    .def_readwrite("withColor", &ExporterTreeOpts::withColor)
-    ;
-  pybind11::class_<OrgExporterTree>(m, "OrgExporterTree")
-    .def(pybind11::init<>())
-    ;
   pybind11::class_<OrgExporterTree>(m, "OrgExporterTree")
     .def(pybind11::init<>())
     .def("toString",
@@ -1796,9 +1779,6 @@ return state.)RAW")
          pybind11::arg("node"),
          pybind11::arg("path"),
          pybind11::arg("opts"))
-    ;
-  pybind11::class_<OrgExporterYaml>(m, "OrgExporterYaml")
-    .def(pybind11::init<>())
     ;
   pybind11::class_<OrgExporterYaml>(m, "OrgExporterYaml")
     .def(pybind11::init<>())
@@ -1814,10 +1794,6 @@ return state.)RAW")
     ;
   pybind11::class_<OrgContext>(m, "OrgContext")
     .def(pybind11::init<>())
-    ;
-  pybind11::class_<OrgContext>(m, "OrgContext")
-    .def(pybind11::init<>())
-    .def("initLocationResolvers", static_cast<void(OrgContext::*)()>(&OrgContext::initLocationResolvers))
     .def("parseFile",
          static_cast<void(OrgContext::*)(std::string)>(&OrgContext::parseFile),
          pybind11::arg("file"))
@@ -1825,9 +1801,6 @@ return state.)RAW")
          static_cast<void(OrgContext::*)(std::string)>(&OrgContext::parseString),
          pybind11::arg("text"))
     .def("getNode", static_cast<sem::SemIdT<sem::Document>(OrgContext::*)()>(&OrgContext::getNode))
-    ;
-  pybind11::class_<ExporterPython>(m, "ExporterPython")
-    .def(pybind11::init<>())
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init<>())

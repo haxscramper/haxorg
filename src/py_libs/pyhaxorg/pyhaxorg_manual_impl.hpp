@@ -147,8 +147,6 @@ struct [[refl]] OrgContext {
         , nodes(&tokens)
         , converter(sem::OrgConverter(&store)) {}
 
-    [[refl]] void initLocationResolvers();
-
     void run();
 
 

@@ -8,12 +8,13 @@
 #include <hstd/stdlib/algorithms.hpp>
 
 #include <py_type_casters.hpp>
+#include <absl/log/log.h>
 
 using namespace layout;
 
 void exception_breakpoint() {
-    std::cout << "Stacktrace:\n"
-              << boost::stacktrace::stacktrace() << std::endl;
+    // std::cout << "Stacktrace:\n"
+    //           << boost::stacktrace::stacktrace() << std::endl;
     throw; // rethrow the same exception
 }
 
@@ -67,15 +68,15 @@ struct TextLayout {
     }
 
     std::string toString(Id id, CR<Options> options) {
-        try {
+        // try {
             return store.toString(id);
-        } catch (...) { exception_breakpoint(); }
+        // } catch (...) { exception_breakpoint(); }
     }
 
     std::string toTreeRepr(Id id) {
-        try {
+        // try {
             return store.toTreeRepr(id);
-        } catch (...) { exception_breakpoint(); }
+        // } catch (...) { exception_breakpoint(); }
     }
 
     void add_at(Id const& id, Id const& next) { b.add_at(id, next); }
@@ -92,6 +93,7 @@ struct TextLayout {
     }
 
     static void py_define(pybind11::module& m) {
+        LOG(INFO) << "Py define";
         pybind11::class_<TextLayout>(m, "TextLayout")
             .def(pybind11::init<>())
             .def("dbg", &TextLayout::dbg)
@@ -127,6 +129,7 @@ struct TextLayout {
                     &TextLayout::add_at))
             //
             ;
+        LOG(INFO) << "Py define done";
     }
 };
 
@@ -172,13 +175,9 @@ BOOST_DESCRIBE_STRUCT(
 
 PYBIND11_MODULE(py_textlayout, m) {
     using namespace pybind11;
-
-    //    pywrap::register_converters<std::string>();
-    //    pywrap::register_converters<layout::BlockId>();
-    //    pywrap::register_converters<Vec<layout::BlockId>>();
+    LOG(INFO) << "Constructing text layout module";
 
     TextLayout::py_define(m);
-
 
     class_<layout::Options>(m, "TextOptions")
         .def(pybind11::init<>())

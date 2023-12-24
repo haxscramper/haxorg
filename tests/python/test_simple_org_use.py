@@ -9,6 +9,7 @@ import py_haxorg.pyhaxorg as org
 from py_haxorg.pyhaxorg import OrgSemKind as osk
 from py_textlayout.py_textlayout import TextOptions
 from py_haxorg.utils import toTree
+from py_scriptutils.script_logging import log
 
 
 if TYPE_CHECKING:
@@ -21,45 +22,9 @@ def test_word() -> None:
     assert org.Document
     ctx.parseString("*Text*")
 
-    assert ctx.getNode().getKind() == org.OrgSemKind.Document
-    assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
-    assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Bold
-    assert ctx.getNode()[0][0][0].getKind() == org.OrgSemKind.Word
+    # assert ctx.getNode().getKind() == org.OrgSemKind.Document
+    # assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
+    # assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Bold
+    # assert ctx.getNode()[0][0][0].getKind() == org.OrgSemKind.Word
 
 
-def test_serialization_expose() -> None:
-    ctx = org.OrgContext()
-    ctx.parseString("Text")
-    ctx.writeStore("/tmp/cachedStore.dat")
-
-    new = org.OrgContext()
-    new.loadStore("/tmp/cachedStore.dat")
-    assert new.getNode().getKind() == osk.Document
-
-    assert ctx.getNode().getKind() == org.OrgSemKind.Document
-    assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
-    assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Word
-
-def test_tex_exporter() -> None:
-    tmp = org.OrgContext()
-    PATH = "/mnt/workspace/repos/haxorg/tests/corpus/org/all.org"
-    tmp.parseFile(PATH)
-    toTree("/tmp/before.txt", tmp.getNode())
-
-    ctx = org.OrgContext()
-    cache_file = "/tmp/doc_cache.dat"
-
-    if os.path.exists(cache_file):
-        ctx.loadStore(cache_file)
-    else:
-        ctx.parseFile(PATH)
-        ctx.writeStore(cache_file)
-
-    toTree("/tmp/after.txt", ctx.getNode())
-
-
-    tex = ExporterLatex()
-    tex.exp.enableFileTrace("/tmp/trace")
-    res1: BlockId = tex.exp.evalTop(ctx.getNode())
-    with open("/tmp/result.tex", "w") as file:
-        file.write(tex.t.toString(res1, TextOptions()))

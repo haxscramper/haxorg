@@ -90,8 +90,6 @@ void OrgContext::run() {
     tokenizer->reserve(source.size() / 3);
     parser->reserve(source.size() / 3);
 
-    initLocationResolvers();
-
     tokenizer->lexGlobal(*str);
     parser->parseFull(lex);
     node = converter.toDocument(OrgAdapter(&nodes, OrgId(0)));
