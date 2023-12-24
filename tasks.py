@@ -10,6 +10,16 @@ from py_scriptutils.files import FileOperation
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson, getGlobalTraceCollector
 from functools import wraps
 from beartype import beartype
+from beartype.typing import Dict, List, Callable
+import logging
+from pprint import pprint
+import textwrap
+
+graphviz_logger = logging.getLogger("graphviz._tools")
+graphviz_logger.setLevel(logging.WARNING) 
+import graphviz
+
+
 
 # Major version of the LLVM toolchain used for the project. This is not a configuration
 # value, only as constant to avoid typing the same thing all over.
@@ -104,24 +114,30 @@ def run_command(
             raise Failure(f"Failed to execute the command {cmd}")
 
 
-def task_time(func: callable) -> callable:
+TASK_DEPS: Dict[Callable, List[Callable]] = {}
 
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        name = func.__name__
-        log.info(f"Running [yellow]{name}[/yellow] ...")
-        with GlobCompleteEvent(f"task {name}", "build"):
-            result = func(*args, **kwargs)
+@beartype
+def org_task(task_name: Optional[str] = None, pre: List[Callable] = []) -> Callable:
+    def org_inner(func: Callable) -> Callable:
+        TASK_DEPS[func] = pre
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            name = task_name or func.__name__
+            log.info(f"Running [yellow]{name}[/yellow] ...")
+            with GlobCompleteEvent(f"task {name}", "build"):
+                result = func(*args, **kwargs)
 
-        last = getGlobalTraceCollector().get_last_event()
-        log.info(
-            f"Completed [green]{name}[/green] in [blue]{last.dur / 10e3:5.1f}[/blue]ms")
+            last = getGlobalTraceCollector().get_last_event()
+            log.info(
+                f"Completed [green]{name}[/green] in [blue]{last.dur / 10e3:5.1f}[/blue]ms")
 
-        GlobExportJson(get_build_root("task_build_time.json"))
+            GlobExportJson(get_build_root("task_build_time.json"))
 
-        return result
+            return result
 
-    return wrapper
+        return task(wrapper, pre=pre)
+    
+    return org_inner
 
 
 def get_cmake_defines(ctx: Context) -> List[str]:
@@ -138,9 +154,41 @@ def get_cmake_defines(ctx: Context) -> List[str]:
     return result
 
 
-@task
-@task_time
+@beartype
+def create_graph(call_map: Dict[Callable, List[Callable]]) -> graphviz.Digraph:
+    dot = graphviz.Digraph(comment='Function Call Graph')
+    dot.attr(rankdir="LR")
+    
+    for func, callees in call_map.items():
+        func_name = func.__name__
+        task_name = func_name.replace("_", "-")
+        if func.__doc__:
+            doc_text = "<BR/>".join(textwrap.wrap(func.__doc__, width=50))
+            func_label = f"<<B>{task_name}</B><BR/><FONT POINT-SIZE='10'>{doc_text}</FONT>>" 
+
+        else:
+            func_label = task_name
+
+        dot.node(func_name, label=func_label, shape='rectangle', fontname='Iosevka')
+
+        for callee in callees:
+            callee_name = callee.__name__
+            dot.node(callee_name, shape='rectangle', fontname='Iosevka')
+            dot.edge(callee_name, func_name)
+    
+    return dot
+
+@org_task()
+def org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot"):
+    "Generate graphviz for task graph"
+    graph = create_graph(TASK_DEPS)
+    with open(dot_file, "w") as file:
+        file.write(graph.source)
+        log.info(f"Wrote graph to {dot_file}")
+
+@org_task()
 def git_init_submodules(ctx: Context):
+    "Init submodules if missing"
     if get_script_root().joinpath("thirdparty/mp11").exists():
         log.info("Submodules were checked out")
     else:
@@ -149,9 +197,9 @@ def git_init_submodules(ctx: Context):
                     ("submodule", "update", "--init", "--recursive", "--progress"))
 
 
-@task
-@task_time
+@org_task()
 def download_llvm(ctx: Context):
+    "Download LLVM toolchain if missing"
     llvm_dir = get_script_root("toolchain/llvm")
     if not os.path.isdir(llvm_dir):
         log.info("LLVM not found. Downloading...")
@@ -172,14 +220,13 @@ def download_llvm(ctx: Context):
         log.info("LLVM already exists. Skipping download.")
 
 
-@task(pre=[git_init_submodules, download_llvm])
-@task_time
+@org_task(pre=[git_init_submodules, download_llvm])
 def base_environment(ctx: Context):
+    "Ensure base dependencies are installed"
     pass
 
 
-@task(pre=[base_environment])
-@task_time
+@org_task(pre=[base_environment])
 def cmake_configure_utils(ctx: Context, debug=True):
     """Execute configuration for utility binary compilation"""
     log.info("Configuring cmake utils build")
@@ -200,36 +247,18 @@ def cmake_configure_utils(ctx: Context, debug=True):
     )
 
 
-@task(pre=[cmake_configure_utils])
-@task_time
+@org_task(task_name="Build cmake utils", pre=[cmake_configure_utils])
 def cmake_utils(ctx: Context, debug=True):
-    log.info("Building build utils")
     """Compile libraries and binaries for utils"""
+    log.info("Building build utils")
     build_dir = "build/utils_debug" if debug else "build/utils_release"
     run_command(ctx, "cmake", ("--build", get_script_root(build_dir)))
     log.info("CMake utils build ok")
 
 
-@task(pre=[cmake_utils])
-@task_time
-def py_reflection(ctx: Context):
-    log.info("Updating reflection artifacts using standalone build tool")
-    run_command(
-        ctx,
-        get_build_root("utils/reflection_tool"),
-        (
-            "-p=build/haxorg/compile_commands.json",
-            "--compilation-database=build/haxorg/compile_commands.json",
-            f"--toolchain-include={get_script_root('toolchain/llvm/lib/clang/16/include')}",
-            f"--out={get_build_root('reflection.pb')}",
-            "src/py_libs/pyhaxorg/pyhaxorg.cpp",
-        ),
-    )
-
-
-@task(pre=[base_environment])
-@task_time
+@org_task(pre=[base_environment])
 def haxorg_base_lexer(ctx: Context):
+    "Generate base lexer file definitions and compile them to C code"
     log.info("Generating base lexer for haxorg")
     run_command(ctx, "poetry", ("run", "src/base_lexer/base_lexer.py"))
     run_command(
@@ -247,29 +276,9 @@ def haxorg_base_lexer(ctx: Context):
     )
 
 
-@task
-@task_time
-def haxorg_codegen(ctx: Context):
-    log.info("Executing haxorg code generation step.")
-    run_command(
-        ctx,
-        "poetry",
-        (
-            "run",
-            "scripts/py_codegen/codegen.py",
-            get_build_root(),
-            get_script_root(),
-        ),
-    )
-
-    log.info("Updated code definitions")
-
-
-@task
-@task_time
-def reflection_protobuf(ctx: Context):
-    """Update protobuf data definition for reflection"""
-    poetry = local["poetry"]
+@org_task()
+def python_protobuf_files(ctx: Context):
+    "Generate new python code from the protobuf reflection files"
     _, stdout, _ = run_command(ctx, "poetry", ("env", "info", "--path"), capture=True)
     print(f"Using protoc plugin path '{stdout}'")
     protoc_plugin = os.path.join(stdout, "bin/protoc-gen-python_betterproto")
@@ -289,7 +298,7 @@ def reflection_protobuf(ctx: Context):
     )
 
 
-@task(pre=[download_llvm])
+@org_task(pre=[base_environment])
 def cmake_configure_haxorg(ctx: Context):
     """Execute cmake configuration step for haxorg"""
 
@@ -316,8 +325,7 @@ def cmake_configure_haxorg(ctx: Context):
             run_command(ctx, "cmake", tuple(pass_flags))
 
 
-@task(pre=[cmake_configure_haxorg])
-@task_time
+@org_task(pre=[cmake_configure_haxorg])
 def cmake_haxorg(ctx):
     "Compile main set of libraries and binaries for org-mode parser"
     build_dir = f'build/haxorg_{"debug" if is_debug(ctx) else "release"}'
@@ -346,10 +354,62 @@ def cmake_haxorg(ctx):
     if not haxorg_link.exists():
         haxorg_link.symlink_to("haxorg/pyhaxorg.so")
 
+@org_task(pre=[cmake_utils, python_protobuf_files])
+def update_py_haxorg_reflection(ctx: Context):
+    "Generate new source code reflection file for the python source code wrapper"
+    compile_commands = local.path("build/haxorg/compile_commands.json")
+    include_dir = local.path(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
+    out_file = local.path("build/reflection.pb")
+    src_file = "src/py_libs/pyhaxorg/pyhaxorg.cpp"
 
-@task(pre=[cmake_haxorg])
-@task_time
+    try:
+        run_command(
+            ctx,
+            "build/utils/reflection_tool",
+            (
+                "-p",
+                compile_commands,
+                "--compilation-database",
+                compile_commands,
+                "--toolchain-include",
+                include_dir,
+                "--out",
+                out_file,
+                src_file,
+            ),
+        )
+    except ProcessExecutionError as e:
+        log.error("Reflection tool failed: %s", e)
+        raise
+
+    log.info("Updated reflection")
+
+
+# TODO Make compiled reflection generation build optional
+@org_task(pre=[cmake_utils, update_py_haxorg_reflection])
+def haxorg_codegen(ctx: Context, as_diff: bool = False):
+    "Update auto-generated source files"
+    # TODO source file generation should optionally overwrite the target OR 
+    # compare the new and old source code (to avoid breaking the subsequent
+    # compilation of the source)
+    log.info("Executing haxorg code generation step.")
+    run_command(
+        ctx,
+        "poetry",
+        (
+            "run",
+            "scripts/py_codegen/codegen.py",
+            get_build_root(),
+            get_script_root(),
+        ),
+    )
+
+    log.info("Updated code definitions")
+
+
+@org_task(pre=[cmake_haxorg])
 def std_tests(ctx):
+    "Execute standard library tests"
     dir = get_build_root("haxorg")
     test = dir / "tests_hstd"
     run_command(ctx, test, [], cwd=str(dir))
@@ -395,22 +455,19 @@ def binary_coverage(ctx: Context, test: Path):
         )
 
 
-@task(pre=[cmake_haxorg])
-@task_time
+@org_task(pre=[cmake_haxorg])
 def std_coverage(ctx: Context):
     "Generate test coverage information for STD"
     binary_coverage(ctx, get_build_root("haxorg") / "tests_hstd")
 
 
-@task(pre=[cmake_haxorg])
-@task_time
+@org_task(pre=[cmake_haxorg])
 def org_coverage(ctx: Context):
     "Generate test coverage information for ORG"
     binary_coverage(ctx, get_build_root("haxorg") / "tests_org")
 
 
-@task(pre=[cmake_haxorg])
-@task_time
+@org_task(pre=[cmake_haxorg])
 def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None):
     """
     Execute the whole python test suite or run a single test file in non-interactive
@@ -464,77 +521,19 @@ def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None
         exit(1)
 
 
-@task
-def update_reflection(ctx: Context):
-    compile_commands = local.path("build/haxorg/compile_commands.json")
-    include_dir = local.path(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
-    out_file = local.path("build/reflection.pb")
-    src_file = "src/py_libs/pyhaxorg/pyhaxorg.cpp"
-
-    try:
-        run_command(
-            ctx,
-            "build/utils/reflection_tool",
-            (
-                "-p",
-                compile_commands,
-                "--compilation-database",
-                compile_commands,
-                "--toolchain-include",
-                include_dir,
-                "--out",
-                out_file,
-                src_file,
-            ),
-        )
-    except ProcessExecutionError as e:
-        log.error("Reflection tool failed: %s", e)
-        raise
-
-    log.info("Updated reflection")
 
 
-@task
-def generate_lexer(ctx: Context):
-    lexer_l = f"{get_script_root()}/src/base_lexer/base_lexer.l"
-    lexer_out = f"{get_script_root()}/src/base_lexer/base_lexer_gen.cpp"
-    poetry = local["poetry"]
 
-    poetry["run", "src/base_lexer/base_lexer.py"] & FG
-
-    with local.env(LD_LIBRARY_PATH=f"{get_script_root()}/toolchain/RE-flex/lib"):
-        run_command(
-            ctx,
-            get_script_root("/toolchain/RE-flex/build/reflex"),
-            (
-                "--fast",
-                "--nodefault",
-                "--case-insensitive",
-                f"--outfile={lexer_out}",
-                f"--namespace=base_lexer",
-                lexer_l,
-            ),
-        )
-
-    log.info("Generated base lexer")
-
-
-@task
-@task_time
-def test_python(ctx: Context):
-    run_command(ctx, "poetry", ("run", "pytest", "-s"))
-
-
-@task
-@task_time
+@org_task()
 def build_cxx_docs(ctx: Context):
+    "Build Doxygen docunentation for the project"
     run_command(ctx, "doxygen", str(get_script_root("Doxyfile")))
     log.info("Completed CXX docs build")
 
 
-@task
-@task_time
+@org_task()
 def build_py_docs(ctx: Context):
+    "Build python documentation for the project"
     autogen_dir = get_script_root(f"docs/sphinx_config/api_source")
     if autogen_dir.exists():
         rmtree(autogen_dir)
@@ -570,3 +569,8 @@ def build_py_docs(ctx: Context):
             get_script_root("docs/sphinx_config/source"),
             get_script_root("docs/sphinx_config/build"),
         ])
+
+@org_task(pre=[build_py_docs, build_cxx_docs])
+def build_all_docs(ctx: Context):
+    "Build all documentation for the project"
+    pass
