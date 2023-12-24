@@ -11,11 +11,11 @@ from py_textlayout.py_textlayout import TextOptions
 from py_haxorg.utils import toTree
 from py_scriptutils.script_logging import log
 
-
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout import BlockId
 else:
     BlockId = NewType('BlockId', int)
+
 
 def test_word() -> None:
     ctx = org.OrgContext()
@@ -26,5 +26,3 @@ def test_word() -> None:
     # assert ctx.getNode()[0].getKind() == org.OrgSemKind.Paragraph
     # assert ctx.getNode()[0][0].getKind() == org.OrgSemKind.Bold
     # assert ctx.getNode()[0][0][0].getKind() == org.OrgSemKind.Word
-
-

@@ -134,7 +134,9 @@ def get_exporter_methods(forward: bool,
                             GenTuDoc(""),
                             params=t_params,
                             arguments=[
-                                GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue), "res"),
+                                GenTuIdent(
+                                    QualType.ForName("R", RefKind=ReferenceKind.LValue),
+                                    "res"),
                                 GenTuIdent(
                                     t_cr(field.type),
                                     "object",
@@ -151,7 +153,8 @@ def get_exporter_methods(forward: bool,
                     GenTuDoc(""),
                     params=t_params,
                     arguments=[
-                        GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue), "res"),
+                        GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue),
+                                   "res"),
                         GenTuIdent(
                             QualType.ForName(
                                 "In", Parameters=[QualType.ForName(f"sem::{name}")]),
@@ -167,7 +170,8 @@ def get_exporter_methods(forward: bool,
                     GenTuDoc(""),
                     params=t_params,
                     arguments=[
-                        GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue), "res"),
+                        GenTuIdent(QualType.ForName("R", RefKind=ReferenceKind.LValue),
+                                   "res"),
                         GenTuIdent(scoped_target, "object"),
                     ],
                     impl=None if forward else "\n".join(
@@ -302,7 +306,7 @@ def py_type(Typ: QualType) -> pya.PyType:
             name = "Optional"
 
         case ["Str"] | ["string"] | ["std", "string"] | ["basic_string"
-                                                      ] | ["std", "basic_string"]:
+                                                        ] | ["std", "basic_string"]:
             name = "str"
 
         case ["SemIdT"]:

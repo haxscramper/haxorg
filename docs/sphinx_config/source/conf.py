@@ -3,7 +3,9 @@ copyright = "2023, haxscramper"
 author = "haxscramper"
 
 extensions = [
-    "sphinx.ext.todo", "sphinx.ext.viewcode", "sphinx.ext.autodoc",
+    "sphinx.ext.todo",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.autodoc",
     "sphinx.ext.coverage",
 ]
 
@@ -21,4 +23,3 @@ full_path = Path(__file__).parent / "../api_source"
 sys.path.insert(0, str(full_path.resolve()))
 
 import sphinx_autoconf
-

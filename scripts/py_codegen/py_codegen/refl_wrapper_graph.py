@@ -11,9 +11,9 @@ from beartype.typing import Dict, List, Optional, Set, TypeAlias, Union
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
 
-from gen_tu_cpp import (GenTuEnum, GenTuEnumField, GenTuField, GenTuFunction,
-                        GenTuStruct, GenTuTypedef, QualType, QualTypeKind)
-from refl_read import ConvTu
+from py_codegen.gen_tu_cpp import (GenTuEnum, GenTuEnumField, GenTuField, GenTuFunction,
+                                   GenTuStruct, GenTuTypedef, QualType, QualTypeKind)
+from py_codegen.refl_read import ConvTu
 
 GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction]
 
@@ -78,11 +78,10 @@ class TuWrap:
     """
     name: str
     tu: ConvTu
-    original: Path ## Path of the original main file of the translation unit
+    original: Path  ## Path of the original main file of the translation unit
     ## TODO move customization point further down the line, no need to keep it directly with collectr
-    mapping: Path ## Target generated mapping, constructed based during collector
-                  ## run. 
-
+    mapping: Path  ## Target generated mapping, constructed based during collector
+    ## run.
 
 
 @beartype

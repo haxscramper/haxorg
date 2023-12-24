@@ -4,7 +4,7 @@ from enum import Enum
 from beartype import beartype
 import inspect
 import os
-import astbuilder_base as base
+import py_codegen.astbuilder_base as base
 from typing import TYPE_CHECKING
 from pydantic import BaseModel, Field, Extra
 

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from astbuilder_cpp import *
+from py_codegen.astbuilder_cpp import *
 from beartype.typing import Sequence, List
 from beartype import beartype
 from py_textlayout.py_textlayout import *

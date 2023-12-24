@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "py-codegen"
+version = "0.1.0"
+description = ""
+authors = ["haxscramper <haxscramper@gmail.com>"]
+readme = "README.org"
+
+
+[tool.poetry.dependencies]
+python = "^3.9.0 <3.13"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
