@@ -5,10 +5,11 @@ import os
 from invoke import task, Failure
 from invoke.context import Context
 from beartype.typing import Optional, List, Union
-from shutil import which
+from shutil import which, rmtree
 from py_scriptutils.files import FileOperation
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson, getGlobalTraceCollector
 from functools import wraps
+from beartype import beartype
 
 
 def get_script_root(relative: Optional[str] = None) -> Path:
@@ -67,7 +68,9 @@ def run_command(
     else:
         assert which(cmd), cmd
 
-    log.debug(f"Running [red]{cmd}[/red]")
+    args_repr = " ".join((str(s) for s in args))
+
+    log.debug(f"Running [red]{cmd}[/red] [cyan]{args_repr}[/cyan]")
 
     run = local[cmd]
     if env:
@@ -90,7 +93,7 @@ def run_command(
 
     except ProcessExecutionError as e:
         if allow_fail:
-            return (0, "", "")
+            return (1, "", "")
 
         else:
             raise Failure(f"Failed to execute the command {cmd}")
@@ -106,7 +109,7 @@ def task_time(func: callable) -> callable:
             result = func(*args, **kwargs)
 
         last = getGlobalTraceCollector().get_last_event()
-        log.info(f"Completed [green]{name}[/green] in [blue]{last.dur:5.1f}[/blue]ms")
+        log.info(f"Completed [green]{name}[/green] in [blue]{last.dur / 10e3:5.1f}[/blue]ms")
 
         GlobExportJson(get_build_root("task_build_time.json"))
 
@@ -331,11 +334,16 @@ def cmake_haxorg(ctx):
 
 @task(pre=[cmake_haxorg])
 @task_time
-def std_coverage(ctx):
+def std_tests(ctx):
     dir = get_build_root("haxorg")
-    tools = get_llvm_root() / "bin"
     test = dir / "tests_hstd"
+    run_command(ctx, test, [], cwd=str(dir))
 
+
+@beartype
+def binary_coverage(ctx: Context, test: Path):
+    dir = test.parent
+    tools = get_llvm_root() / "bin"
     # Remove .profdata files
     for file in dir.glob("*.profdata"):
         file.unlink()
@@ -367,7 +375,31 @@ def std_coverage(ctx):
         log.info(f"Generated coverage to {coverage_dir}")
 
     else:
-        raise Failure(f"{profraw} does not exist after running tests. Instrumentation was set to {is_instrumented_coverage(ctx)}")
+        raise Failure(
+            f"{profraw} does not exist after running tests. Instrumentation was set to {is_instrumented_coverage(ctx)}"
+        )
+
+
+@task(pre=[cmake_haxorg])
+@task_time
+def std_coverage(ctx: Context):
+    "Generate test coverage information for STD"
+    binary_coverage(ctx, get_build_root("haxorg") / "tests_hstd")
+
+
+@task(pre=[cmake_haxorg])
+@task_time
+def org_coverage(ctx: Context):
+    "Generate test coverage information for ORG"
+    binary_coverage(ctx, get_build_root("haxorg") / "tests_org")
+
+
+@task(pre=[cmake_haxorg])
+@task_time
+def py_tests(ctx: Context):
+    retcode, _, _ = run_command(ctx, "poetry", ["run", "pytest", "-s"], allow_fail=True)
+    if retcode != 0:
+        exit(1)
 
 
 @task
@@ -426,11 +458,53 @@ def generate_lexer(ctx: Context):
 
 
 @task
+@task_time
 def test_python(ctx: Context):
     run_command(ctx, "poetry", ("run", "pytest", "-s"))
 
 
 @task
+@task_time
 def build_cxx_docs(ctx: Context):
     run_command(ctx, "doxygen", str(get_script_root("Doxyfile")))
     log.info("Completed CXX docs build")
+
+
+@task
+@task_time
+def build_py_docs(ctx: Context):
+    autogen_dir = get_script_root(f"docs/sphinx_config/api_source")
+    if autogen_dir.exists():
+        rmtree(autogen_dir)
+
+    auto_config_content = "import sys\n"
+    
+    for source_dir, doc_dir in [
+        (get_script_root(), "main"),
+            *[(d, d.name) for d in [
+                Path(get_script_root(f"scripts/{d}"))
+                for d in os.listdir(get_script_root("scripts"))
+            ] if d.is_dir() and d.name.startswith("py_")],
+    ]:
+        run_command(ctx, "poetry", [
+            "run",
+            "sphinx-apidoc",
+            "-o",
+            autogen_dir / doc_dir,
+            source_dir,
+        ])
+
+        auto_config_content += f"sys.path.append('{source_dir.resolve()}')\n"
+
+    with open(autogen_dir / "sphinx_autoconf.py", "w") as file:
+        file.write(auto_config_content)
+
+    for format in ["html", "json"]:
+        run_command(ctx, "poetry", [
+            "run",
+            "sphinx-build",
+            "-M",
+            format,
+            get_script_root("docs/sphinx_config/source"),
+            get_script_root("docs/sphinx_config/build"),
+        ])

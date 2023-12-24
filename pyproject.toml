@@ -33,6 +33,7 @@ invoke = "^2.2.0"
 
 [tool.poetry.group.dev.dependencies]
 yapf = "^0.40.2"
+sphinx = "^7.2.6"
 
 [build-system]
 requires = ["poetry-core"]

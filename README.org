@@ -1,1 +1,3 @@
-README
+#+title: haxorg
+
+Implementation of the org-mode parser and exporter in C++
