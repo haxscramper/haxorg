@@ -9,9 +9,10 @@ from py_codegen.refl_read import ConvTu, GenTuStruct
 
 def run_provider(text: str) -> ConvTu:
     with (
-            NamedTemporaryFile(mode="w", suffix=".cpp", delete=True) as file,
+        # TODO Delete only when test run is ok
+            NamedTemporaryFile(mode="w", suffix=".cpp", delete=False) as file,
             TemporaryDirectory() as dir,
-            NamedTemporaryFile(mode="w", suffix=".json", delete=True) as compile_commands,
+            NamedTemporaryFile(mode="w", suffix=".json", delete=False) as compile_commands,
     ):
         base_dict = dict(
             input=[file.name],
@@ -65,7 +66,21 @@ def test_structure_field_registration():
     assert field.name == "field"
     assert field.type.name == "int"
 
-# def test_imported_type_as_structure_field():
-#     struct = get_struct("#include <vector>\nstruct Test { std::vector<int> field; };")
-#     assert len(struct.fields) == 1
-
+def test_anon_structure_fields():
+    struct = get_struct("struct Main { union { int int_field; char char_field; }; };")
+    with open("/tmp/a.py", "w") as file:
+        pprint(struct, stream=file)
+        
+    assert len(struct.nested) == 1
+    union: GenTuStruct = struct.nested[0]
+    assert not union.has_name
+    assert len(union.fields) == 2
+    field1 = union.fields[0]
+    field2 = union.fields[1]
+    assert field1.name == "int_field"
+    assert field2.name == "char_field"
+    assert field1.type.name == "int"
+    assert field2.type.name == "char"
+    
+    
+    

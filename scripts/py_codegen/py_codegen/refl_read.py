@@ -60,7 +60,7 @@ def conv_doc_comment(comment: str) -> GenTuDoc:
 
 
 @beartype
-def conv_proto_type(typ: pb.QualType) -> QualType:
+def conv_proto_type(typ: pb.QualType, is_anon_name: bool = False) -> QualType:
     res: QualType = QualType(name=typ.name)
     res.dbg_origin = typ.dbg_origin
 
@@ -73,7 +73,8 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
             for param in typ.parameters:
                 res.Parameters.append(conv_proto_type(param))
 
-            assert res.name != "", typ
+            if not is_anon_name:
+                assert res.name != "", typ
 
         case pb.TypeKind.FunctionPtr:
             res.Kind = QualTypeKind.FunctionPtr
@@ -105,8 +106,9 @@ def conv_proto_type(typ: pb.QualType) -> QualType:
 
 @beartype
 def conv_proto_record(record: pb.Record) -> GenTuStruct:
-    result = GenTuStruct(conv_proto_type(record.name), GenTuDoc(""))
+    result = GenTuStruct(conv_proto_type(record.name, is_anon_name=not record.has_name), GenTuDoc(""))
     result.IsForwardDecl = record.is_forward_decl
+    result.has_name = record.has_name
     for _field in record.fields:
         result.fields.append(
             GenTuField(type=conv_proto_type(_field.type),
@@ -126,6 +128,12 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
                 arguments=[
                     GenTuIdent(conv_proto_type(arg.type), arg.name) for arg in meth.args
                 ]))
+        
+    for record in record.nested_rec:
+        result.nested.append(conv_proto_record(record))
+
+    for _enum in record.nested_enum:
+        result.nested.append(conv_proto_enum(_enum))
 
     return result
 

@@ -74,7 +74,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     }
 
 
-    std::string dump(clang::Decl* Decl) {
+    std::string dump(clang::Decl const* Decl) {
         std::string              tree;
         llvm::raw_string_ostream rso(tree);
         Decl->dump(rso);
@@ -131,12 +131,14 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
     void fillMethodDecl(Record::Method* sub, clang::CXXMethodDecl* method);
     void fillRecordDecl(Record* rec, clang::RecordDecl* Decl);
+    void fillCxxRecordDecl(Record* rec, const clang::CXXRecordDecl* Decl);
 
     bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration);
     bool VisitFunctionDecl(clang::FunctionDecl* Decl);
     bool VisitEnumDecl(clang::EnumDecl* Decl);
     bool VisitTypedefDecl(clang::TypedefDecl* Decl);
     bool VisitRecordDecl(clang::RecordDecl* Decl);
+    bool IndirectFieldDecl(clang::IndirectFieldDecl* Decl);
 
     bool                       isRefl(clang::Decl* Decl);
     std::optional<std::string> getDoc(const clang::Decl* Decl);

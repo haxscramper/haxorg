@@ -123,6 +123,7 @@ class GenTuStruct:
     nested: List[GenTuEntry] = field(default_factory=list)
     concreteKind: bool = True
     IsForwardDecl: bool = False
+    has_name: bool = True
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "record " + self.name.format(dbgOrigin=dbgOrigin)

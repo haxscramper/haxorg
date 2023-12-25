@@ -516,6 +516,7 @@ void ReflASTVisitor::fillExpr(
 void ReflASTVisitor::fillFieldDecl(
     Record::Field*    sub,
     clang::FieldDecl* field) {
+    log_visit(field);
     sub->set_name(field->getNameAsString());
     auto doc = getDoc(field);
     if (doc) {
@@ -684,11 +685,12 @@ void ReflASTVisitor::fillRecordDecl(Record* rec, clang::RecordDecl* Decl) {
     }
 
     for (clang::FieldDecl* field : Decl->fields()) {
-        if (shouldVisit(field)) {
+        if (shouldVisit(field) && !field->isImplicit()) {
             fillFieldDecl(rec->add_fields(), field);
         }
     }
 }
+
 
 bool ReflASTVisitor::isRefl(clang::Decl* Decl) {
     for (clang::AnnotateAttr* Attr :
@@ -740,33 +742,60 @@ bool ReflASTVisitor::shouldVisit(clang::Decl* Decl) {
     }
 }
 
+void ReflASTVisitor::fillCxxRecordDecl(
+    Record*                     rec,
+    clang::CXXRecordDecl const* Decl) {
+    rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
+    fillType(
+        rec->mutable_name(),
+        Decl->getASTContext().getRecordType(Decl),
+        Decl->getLocation());
+
+    for (clang::FieldDecl* field : Decl->fields()) {
+        if (shouldVisit(field) && !field->isImplicit()) {
+            fillFieldDecl(rec->add_fields(), field);
+        }
+    }
+
+    for (clang::CXXMethodDecl* method : Decl->methods()) {
+        if (shouldVisit(method)) {
+            fillMethodDecl(rec->add_methods(), method);
+        }
+    }
+
+    for (clang::Decl const* SubDecl : Decl->decls()) {
+        if (clang::CXXRecordDecl const* SubRecord = llvm::dyn_cast<
+                clang::CXXRecordDecl>(SubDecl);
+            SubRecord != nullptr &&
+            // Filter out implicit structure records added to the ast of
+            // the cxx records
+            !SubRecord->isImplicit()) {
+            Record* sub_rec = rec->add_nestedrec();
+            fillCxxRecordDecl(sub_rec, SubRecord);
+        } else if (
+            llvm::isa<clang::IndirectFieldDecl>(SubDecl)
+            || llvm::isa<clang::FieldDecl>(SubDecl)) {
+            // pass
+        } else {
+            Diag(
+                DiagKind::Warning,
+                "Unknown nested serialization content for %0",
+                SubDecl->getLocation())
+                << dump(SubDecl);
+        }
+    }
+}
+
 bool ReflASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl* Decl) {
-    if (shouldVisit(Decl)) {
+    if (shouldVisit(Decl) && Decl->getDeclContext()->isTranslationUnit()) {
         log_visit(Decl);
 
         llvm::TimeTraceScope timeScope{
             "reflection-visit-record" + Decl->getNameAsString()};
 
         Record* rec = out->add_records();
-        rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
-        fillType(
-            rec->mutable_name(),
-            Decl->getASTContext().getRecordType(Decl),
-            Decl->getLocation());
-
-        for (clang::FieldDecl* field : Decl->fields()) {
-            if (shouldVisit(field)) {
-                fillFieldDecl(rec->add_fields(), field);
-            }
-        }
-
-        for (clang::CXXMethodDecl* method : Decl->methods()) {
-            if (shouldVisit(method)) {
-                fillMethodDecl(rec->add_methods(), method);
-            }
-        }
+        fillCxxRecordDecl(rec, Decl);
     }
-
 
     return true;
 }
@@ -891,6 +920,10 @@ bool ReflASTVisitor::VisitRecordDecl(clang::RecordDecl* Decl) {
     }
 
     return true;
+}
+
+bool ReflASTVisitor::IndirectFieldDecl(clang::IndirectFieldDecl* Decl) {
+    return false;
 }
 
 
