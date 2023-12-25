@@ -36,6 +36,11 @@ llvm::cl::opt<std::string> ToolchainInclude(
     llvm::cl::desc("Path to the LLVM Toolchain include directory"),
     llvm::cl::cat(ToolingSampleCategory));
 
+llvm::cl::opt<bool> VerboseRun(
+    "verbose",
+    llvm::cl::desc("Run compilation in verbose mode"),
+    llvm::cl::cat(ToolingSampleCategory));
+
 llvm::cl::opt<std::string> TargetFiles(
     "target-files",
     llvm::cl::desc("File with json array, list of absolute paths whose "
@@ -81,12 +86,18 @@ std::vector<std::string> parseTargetFiles(std::string path) {
 }
 
 
+std::ostream& LOG_CERR() { return std::cerr << "[clang-reflect] "; }
+
+
 class ReflFrontendAction : public clang::ASTFrontendAction {
   protected:
     std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(
         clang::CompilerInstance& CI,
         llvm::StringRef) override {
-        auto consumer = std::make_unique<ReflASTConsumer>(CI);
+        LOG_CERR() << "Ast consumer verbose: " << VerboseRun.getValue()
+                   << std::endl;
+        auto consumer = std::make_unique<ReflASTConsumer>(
+            CI, VerboseRun.getValue());
         if (!outputPathOverride.empty()) {
             consumer->outputPathOverride = outputPathOverride;
         }
@@ -104,8 +115,6 @@ class ReflFrontendAction : public clang::ASTFrontendAction {
         return consumer;
     }
 };
-
-std::ostream& LOG_CERR() {return std::cerr << "[clang-reflect] ";}
 
 /// Filter out compilation options that were used in the compilation
 /// database -- remove reflection plugin usage, precompiled headers, and
@@ -150,7 +159,7 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
 
     LOG_CERR() << "Filtered command line arguments\n";
     for (auto const& arg : filteredArgs) {
-        LOG_CERR() << arg << "\n";
+        LOG_CERR() << "[ ] " << arg << "\n";
     }
 
     return filteredArgs;
@@ -177,7 +186,7 @@ int main(int argc, const char** argv) {
 
     if (!JSONDB) {
         LOG_CERR() << "Failed to process provided JSON DB, failure was:"
-                  << std::endl;
+                   << std::endl;
         LOG_CERR() << ErrorMessage;
         return 1;
     }
@@ -193,12 +202,13 @@ int main(int argc, const char** argv) {
     if (!ToolchainInclude.empty()) {
         if (!fs::is_directory(std::string(ToolchainInclude))) {
             LOG_CERR() << "Toolchain include is not a directory or does "
-                            "not exist '"
-                         << ToolchainInclude << "'\n";
+                          "not exist '"
+                       << ToolchainInclude << "'\n";
             return 1;
         }
     }
 
+    LOG_CERR() << "Configuration parse OK, running tool\n";
     int result = tool.run(
         clang::tooling::newFrontendActionFactory<ReflFrontendAction>()
             .get());

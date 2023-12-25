@@ -605,7 +605,7 @@ def org_coverage(ctx: Context):
     binary_coverage(ctx, get_build_root("haxorg") / "tests_org")
 
 
-@org_task(pre=[cmake_haxorg, python_protobuf_files])
+@org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
 def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None):
     """
     Execute the whole python test suite or run a single test file in non-interactive

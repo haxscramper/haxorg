@@ -251,6 +251,17 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 }
 
 
+#define log_visit(Decl)                                                   \
+    if (verbose) {                                                        \
+        Diag(                                                             \
+            DiagKind::Remark,                                             \
+            "Adding serialization information for %0 on %1, full "        \
+            "dump:\n%2",                                                  \
+            Decl->getLocation())                                          \
+            << Decl << __LINE__ << dump(Decl);                            \
+    }
+
+
 std::vector<QualType> ReflASTVisitor::getNamespaces(
     const clang::ElaboratedType*                elab,
     const std::optional<clang::SourceLocation>& Loc) {
@@ -731,6 +742,8 @@ bool ReflASTVisitor::shouldVisit(clang::Decl* Decl) {
 
 bool ReflASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl* Decl) {
     if (shouldVisit(Decl)) {
+        log_visit(Decl);
+
         llvm::TimeTraceScope timeScope{
             "reflection-visit-record" + Decl->getNameAsString()};
 
@@ -760,6 +773,7 @@ bool ReflASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl* Decl) {
 
 bool ReflASTVisitor::VisitFunctionDecl(clang::FunctionDecl* Decl) {
     if (shouldVisit(Decl)) {
+        log_visit(Decl);
         Function* func = out->add_functions();
         func->set_name(Decl->getNameAsString());
         for (clang::ParmVarDecl* Parm : Decl->parameters()) {
@@ -783,11 +797,7 @@ bool ReflASTVisitor::VisitEnumDecl(clang::EnumDecl* Decl) {
     }
 
     if (shouldVisit(Decl)) {
-        Diag(
-            DiagKind::Note,
-            "Adding serialization information for %0",
-            Decl->getLocation())
-            << Decl;
+        log_visit(Decl);
         Enum* rec = out->add_enums();
         rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
         std::string origin = (Typedef
@@ -840,6 +850,7 @@ bool ReflASTVisitor::VisitTypedefDecl(clang::TypedefDecl* Decl) {
 
     } else {
         if (shouldVisit(Decl)) {
+            log_visit(Decl);
             Typedef* def = out->add_typedefs();
             def->mutable_name()->set_name(Decl->getNameAsString());
             def->mutable_name()->mutable_dbgorigin()->append(
@@ -869,11 +880,14 @@ bool ReflASTVisitor::VisitRecordDecl(clang::RecordDecl* Decl) {
     } else if (Decl->isAnonymousStructOrUnion() && FieldDecl != nullptr) {
         return true;
     } else if (shouldVisit(Decl)) {
-        llvm::TimeTraceScope timeScope{
-            "reflection-visit-record" + Decl->getNameAsString()};
+        if (!llvm::isa<clang::CXXRecordDecl>(Decl)) {
+            log_visit(Decl);
+            llvm::TimeTraceScope timeScope{
+                "reflection-visit-record" + Decl->getNameAsString()};
 
-        Record* rec = out->add_records();
-        fillRecordDecl(rec, Decl);
+            Record* rec = out->add_records();
+            fillRecordDecl(rec, Decl);
+        }
     }
 
     return true;

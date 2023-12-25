@@ -71,6 +71,8 @@ class TuOptions(BaseModel):
     print_reflection_run_fail_to_stdout: bool = Field(
         description="If reflection tool run fails, write the error report to stdout",
         default=False)
+    
+    reflection_run_verbose: bool = Field(default=False)
 
 
 @beartype
@@ -161,6 +163,9 @@ def run_collector(conf: TuOptions, input: Path,
         f"--target-files={target_files}",
         str(input),
     ]
+
+    if conf.reflection_run_verbose:
+        flags.append("--verbose")
 
     if IsNewInput([str(input), conf.indexing_tool], tmp_output):
         with open(str(target_files), "w") as file:

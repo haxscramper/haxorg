@@ -14,7 +14,7 @@ class ReflPluginAction : public clang::PluginASTAction {
         clang::CompilerInstance& CI,
         llvm::StringRef) override {
 
-        auto tmp                = std::make_unique<ReflASTConsumer>(CI);
+        auto tmp                = std::make_unique<ReflASTConsumer>(CI, false);
         tmp->outputPathOverride = outputPathOverride;
         return tmp;
     }

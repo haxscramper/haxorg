@@ -39,9 +39,13 @@ struct ExampleAttrInfo : public clang::ParsedAttrInfo {
 /// definitions that can later be imported by the python scripts.
 class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
   public:
-    TU* out;
-    explicit ReflASTVisitor(clang::ASTContext* Context, TU* tu)
-        : Ctx(Context), out(tu) {}
+    TU*  out;
+    bool verbose = false;
+    explicit ReflASTVisitor(
+        clang::ASTContext* Context,
+        TU*                tu,
+        bool               verbose)
+        : Ctx(Context), out(tu), verbose(verbose) {}
 
     using DiagKind = clang::DiagnosticsEngine::Level;
 
@@ -67,6 +71,15 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         Typ.dump(rso, *Ctx);
         rso.flush();
         return typeName;
+    }
+
+
+    std::string dump(clang::Decl* Decl) {
+        std::string              tree;
+        llvm::raw_string_ostream rso(tree);
+        Decl->dump(rso);
+        rso.flush();
+        return tree;
     }
 
     /// Fill in information about namespaces used in elaborated type
@@ -156,9 +169,9 @@ class ReflASTConsumer : public clang::ASTConsumer {
     clang::CompilerInstance& CI;
 
     std::optional<std::string> outputPathOverride;
-    explicit ReflASTConsumer(clang::CompilerInstance& CI)
+    explicit ReflASTConsumer(clang::CompilerInstance& CI, bool verbose)
         : out(std::make_unique<TU>())
-        , Visitor(&CI.getASTContext(), out.get())
+        , Visitor(&CI.getASTContext(), out.get(), verbose)
         , CI(CI) {}
 
     virtual void HandleTranslationUnit(clang::ASTContext& Context);
