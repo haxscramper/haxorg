@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from pydantic_core import PydanticUndefined
 from pprint import pprint
 from copy import deepcopy
+from pathlib import Path
 
 from py_scriptutils.script_logging import log
 
@@ -65,16 +66,6 @@ def merge_cli_model(ctx: click.Context, file_config: Dict, on_cli_args: Dict,
             assert not isinstance(v, DefaultWrapper)
 
     final_data = merge_dicts([on_default, file_config, on_cli])
-    with open("/tmp/res.py", "w") as file:
-        print("# On default", file=file)
-        pprint(on_default, stream=file)
-        print("# On file config", file=file)
-        pprint(file_config, stream=file)
-        print("# On cli", file=file)
-        pprint(on_cli, stream=file)
-        print("# Final data", file=file)
-        pprint(final_data, stream=file)
-
     # trunk-ignore(mypy/attr-defined)
     return ModelT.model_validate(final_data)
 
@@ -178,8 +169,58 @@ def find_config_files(withTrace: bool, potential_paths: List[str]) -> List[str]:
     return result
 
 
+class SafeDict(dict):
+
+    def __missing__(self, key):
+        return '{' + key + '}'
+
+
 @beartype
-def run_config_provider(search_paths: List[str], withTrace: bool) -> dict:
+def interpolate_dictionary(base: Dict, substitution: Dict[str, str]) -> Dict:
+    """
+    Recursively replace string values from dictionary 'base' with strings interpolated using
+    substitution values. 
+
+    {"base": "ZZ{replace}XX"} + {"replace": "---"} --> {"base": "ZZ---XX"}
+
+    This is used to interpolate configuration values in the toml files. 
+    """
+
+    def rec_rewrite(d: Any) -> Any:
+        match d:
+            case int():
+                return d
+
+            case float():
+                return d
+
+            case str():
+                return d.format_map(SafeDict(**substitution))
+
+            case list():
+                return [rec_rewrite(it) for it in d]
+
+            case dict():
+                return {k: rec_rewrite(v) for k, v in d.items()}
+
+            case _:
+                return d
+
+    return rec_rewrite(base)
+
+
+def get_haxorg_repo_root_path() -> Path:
+    result = Path(__file__).parent.parent.parent.parent
+    assert result.exists(), result
+    assert result.is_dir(), result
+    assert result.joinpath("tasks.py").exists(), result
+    return result
+
+
+@beartype
+def run_config_provider(search_paths: List[str],
+                        withTrace: bool,
+                        content_value_substitution: Dict[str, str] = {}) -> dict:
     try:
         file_paths = find_config_files(withTrace=withTrace, potential_paths=search_paths)
 
@@ -189,32 +230,12 @@ def run_config_provider(search_paths: List[str], withTrace: bool) -> dict:
         configs: List[Dict] = []
         for path in file_paths:
             if os.path.exists(path):
-
-                def rec_rewrite(d: Any) -> Any:
-                    match d:
-                        case int():
-                            return d
-
-                        case float():
-                            return d
-
-                        case str():
-                            return d.format(
-                                config_path=path,
-                                config_dir=os.path.dirname(path),
-                                # HACK TEMP hardcoded path
-                                tool_dir="/mnt/workspace/repos/haxorg")
-
-                        case list():
-                            return [rec_rewrite(it) for it in d]
-
-                        case dict():
-                            return {k: rec_rewrite(v) for k, v in d.items()}
-
-                        case _:
-                            return d
-
-                configs.append(rec_rewrite(toml.load(path)))
+                configs.append(
+                    interpolate_dictionary(
+                        toml.load(path), content_value_substitution +
+                        dict(config_path=path,
+                             config_dir=os.path.dirname(path),
+                             haxorg_root=get_haxorg_repo_root_path())))
 
         return merge_dicts(configs)
 

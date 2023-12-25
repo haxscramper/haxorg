@@ -8,6 +8,9 @@ from py_codegen.refl_extract import (
     CompileCommand,
     TuWrap,
     expand_input,
+    run_collector_for_path,
+    GenGraph,
+    read_compile_cmmands,
 )
 
 from beartype.typing import (
@@ -17,7 +20,11 @@ from beartype.typing import (
     cast,
 )
 
+from py_scriptutils.script_logging import log
 from py_scriptutils.tracer import GlobCompleteEvent, GlobExportJson
+from pathlib import Path
+import py_codegen.wrapper_gen_nim as gen_nim
+import json
 
 CONFIG_FILE_NAME = "tu_collector.toml"
 
@@ -40,16 +47,11 @@ def run(ctx: click.Context, config: str, **kwargs):
     conf: TuOptions = cast(
         TuOptions, conf_provider.merge_cli_model(ctx, config_base, kwargs, TuOptions))
 
-    paths: List[PathMapping] = expand_input(conf.input, conf.path_suffixes,
-                                            conf.directory_root and
-                                            Path(conf.directory_root))  # [:10]
+    paths: List[PathMapping] = expand_input(conf)  # [:10]
     wraps: List[TuWrap] = []
 
     with GlobCompleteEvent("Load compilation database", "config"):
-        commands: List[CompileCommand] = [
-            CompileCommand.model_validate(d)
-            for d in json.load(open(conf.compilation_database))
-        ]
+        commands: List[CompileCommand] = read_compile_cmmands(conf)
 
     out_map: Dict[Path, Path] = {}
 

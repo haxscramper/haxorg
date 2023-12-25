@@ -1,3 +1,4 @@
+import io
 import json
 import time
 from copy import deepcopy
@@ -6,6 +7,7 @@ from hashlib import md5
 from pathlib import Path
 from pprint import pformat, pprint
 from typing import TYPE_CHECKING
+import sys
 
 import py_scriptutils.toml_config_profiler as conf_provider
 from beartype import beartype
@@ -66,6 +68,9 @@ class TuOptions(BaseModel):
     )
 
     nim: Optional[gen_nim.NimOptions] = None
+    print_reflection_run_fail_to_stdout: bool = Field(
+        description="If reflection tool run fails, write the error report to stdout",
+        default=False)
 
 
 @beartype
@@ -76,17 +81,21 @@ class PathMapping:
 
 
 @beartype
-def expand_input(input: List[str], path_suffixes: List[str],
-                 directory_root: Optional[Path]) -> List[PathMapping]:
+def expand_input(conf: TuOptions) -> List[PathMapping]:
+    """
+    Generate list of file mappings based on input configuration options -- individual
+    files, globs or recursive directories. 
+    """
+    directory_root = conf.directory_root and Path(conf.directory_root)
     result: List[PathMapping] = []
-    for item in input:
+    for item in conf.input:
         path = Path(item)
         if path.is_file():
             result.append(PathMapping(path, directory_root))
 
         elif path.is_dir():
             for sub in path.rglob("*"):
-                if sub.suffix in path_suffixes:
+                if sub.suffix in conf.path_suffixes:
                     result.append(PathMapping(sub, directory_root or path))
 
         else:
@@ -133,6 +142,9 @@ def run_collector(conf: TuOptions, input: Path,
                                  < refl[str(input)]) and (output.exists()):
         # return
         pass
+
+    assert Path(conf.indexing_tool).exists(
+    ), f"Indexing tool binary is missing, '{conf.indexing_tool}' does not exist"
 
     tool = local[conf.indexing_tool]
 
@@ -200,6 +212,15 @@ class CompileCommand(BaseModel):
 
 
 @beartype
+def read_compile_cmmands(conf: TuOptions):
+    assert Path(conf.compilation_database).exists(), conf.compilation_database
+    return [
+        CompileCommand.model_validate(d)
+        for d in json.load(open(conf.compilation_database))
+    ]
+
+
+@beartype
 def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: Path,
                                  commands: List[CompileCommand]):
     debug_dir = Path(conf.convert_failure_log_dir)
@@ -210,12 +231,12 @@ def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: 
     sanitized = "".join([c if c.isalnum() else "_" for c in str(path)])
 
     if not tu.success:
-        log.warning(
-            f"Failed to run conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}"
-        )
+        if not conf.print_reflection_run_fail_to_stdout:
+            log.warning(
+                f"Failed to run conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}"
+            )
 
-    with open(debug_dir.joinpath(sanitized), "w") as file:
-
+    def write_reflection_fail(file: io.TextIOWrapper):
         def sep(name: str):
             file.write("\n\n" + name + "-" * 120 + "\n\n")
 
@@ -235,6 +256,17 @@ def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: 
 
         sep("Flags:")
         file.write(" ^\n    ".join([conf.indexing_tool] + tu.flags))
+
+    if conf.print_reflection_run_fail_to_stdout:
+        buffer = io.StringIO()
+        write_reflection_fail(buffer)
+        log.error(buffer.getvalue())
+
+    else:
+        with open(debug_dir.joinpath(sanitized), "w") as file:
+            write_reflection_fail(file)
+
+
 
 
 @beartype

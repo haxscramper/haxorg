@@ -294,11 +294,13 @@ def python_protobuf_files(ctx: Context):
     proto_config = get_script_root("scripts/cxx_codegen/reflection_defs.proto")
     with FileOperation.InTmp(
         [proto_config],
-        stamp_path=get_task_stamp("python-protobuf-files"),
+            stamp_path=get_task_stamp("python-protobuf-files"),
     ) as op:
         if op.should_run():
             log.info(f"Running protc {op.explain('python protobuf')}")
-            _, stdout, _ = run_command(ctx, "poetry", ("env", "info", "--path"), capture=True)
+            _, stdout, _ = run_command(ctx,
+                                       "poetry", ("env", "info", "--path"),
+                                       capture=True)
             stdout = stdout.strip()
             log.info(f"Using protoc plugin path '{stdout}'")
             protoc_plugin = Path(stdout).joinpath("bin/protoc-gen-python_betterproto")
@@ -320,7 +322,8 @@ def python_protobuf_files(ctx: Context):
                     f"--plugin={protoc_plugin}",
                     "-I",
                     get_script_root("scripts/cxx_codegen"),
-                    "--proto_path=" + str(get_script_root("scripts/py_codegen/py_codegen")),
+                    "--proto_path=" +
+                    str(get_script_root("scripts/py_codegen/py_codegen")),
                     "--python_betterproto_out=" + str(proto_lib),
                     proto_config,
                 ),
@@ -645,7 +648,7 @@ def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None
         retcode, _, _ = run_command(
             ctx,
             "poetry",
-            ["run", "pytest", "-s"],
+            ["run", "pytest", "-s", "--tb=short"],
             allow_fail=True,
             env=preload,
         )
