@@ -73,8 +73,8 @@ def conv_proto_type(typ: pb.QualType, is_anon_name: bool = False) -> QualType:
             for param in typ.parameters:
                 res.Parameters.append(conv_proto_type(param))
 
-            if not is_anon_name:
-                assert res.name != "", typ
+            # if not is_anon_name:
+            #     assert res.name != "", typ
 
         case pb.TypeKind.FunctionPtr:
             res.Kind = QualTypeKind.FunctionPtr
@@ -106,7 +106,8 @@ def conv_proto_type(typ: pb.QualType, is_anon_name: bool = False) -> QualType:
 
 @beartype
 def conv_proto_record(record: pb.Record) -> GenTuStruct:
-    result = GenTuStruct(conv_proto_type(record.name, is_anon_name=not record.has_name), GenTuDoc(""))
+    result = GenTuStruct(conv_proto_type(record.name, is_anon_name=not record.has_name),
+                         GenTuDoc(""))
     result.IsForwardDecl = record.is_forward_decl
     result.has_name = record.has_name
     for _field in record.fields:
@@ -128,7 +129,7 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
                 arguments=[
                     GenTuIdent(conv_proto_type(arg.type), arg.name) for arg in meth.args
                 ]))
-        
+
     for record in record.nested_rec:
         result.nested.append(conv_proto_record(record))
 

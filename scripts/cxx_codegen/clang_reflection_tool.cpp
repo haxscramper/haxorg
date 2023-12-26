@@ -106,6 +106,9 @@ class ReflFrontendAction : public clang::ASTFrontendAction {
                 AllAnnotated;
         } else {
             std::vector files = parseTargetFiles(TargetFiles.getValue());
+            for (auto const& file : files) {
+                LOG_CERR() << "Target file " << file << std::endl;
+            }
             consumer->Visitor.targetFiles.insert(
                 files.begin(), files.end());
             consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::

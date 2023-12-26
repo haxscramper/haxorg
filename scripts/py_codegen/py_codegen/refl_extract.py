@@ -71,7 +71,7 @@ class TuOptions(BaseModel):
     print_reflection_run_fail_to_stdout: bool = Field(
         description="If reflection tool run fails, write the error report to stdout",
         default=False)
-    
+
     reflection_run_verbose: bool = Field(default=False)
 
 
@@ -235,13 +235,14 @@ def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: 
     debug_dir.mkdir(parents=True, exist_ok=True)
     sanitized = "".join([c if c.isalnum() else "_" for c in str(path)])
 
-    if not tu.success:
+    if not tu.success or conf.reflection_run_verbose:
         if not conf.print_reflection_run_fail_to_stdout:
             log.warning(
-                f"Failed to run conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}"
+                f"{'Executed' if tu.success else 'Failed to run'} conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}"
             )
 
-    def write_reflection_fail(file: io.TextIOWrapper):
+    def write_reflection_stats(file: io.TextIOWrapper):
+
         def sep(name: str):
             file.write("\n\n" + name + "-" * 120 + "\n\n")
 
@@ -264,14 +265,12 @@ def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: 
 
     if conf.print_reflection_run_fail_to_stdout:
         buffer = io.StringIO()
-        write_reflection_fail(buffer)
+        write_reflection_stats(buffer)
         log.error(buffer.getvalue())
 
     else:
         with open(debug_dir.joinpath(sanitized), "w") as file:
-            write_reflection_fail(file)
-
-
+            write_reflection_stats(file)
 
 
 @beartype
@@ -285,8 +284,10 @@ def run_collector_for_path(conf: TuOptions, mapping: PathMapping,
         if not relative.parent.exists():
             relative.parent.mkdir(parents=True)
 
-        with open(str(relative.with_suffix(".json")), "w") as file:
+        path = relative.with_suffix(".json")
+        with open(str(path), "w") as file:
             file.write(open_proto_file(str(tu.pb_path)).to_json(2))
+            log.info(f"Wrote dump to {path}")
 
         write_run_result_information(conf, tu, path, commands)
 
