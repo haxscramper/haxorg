@@ -111,10 +111,22 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
     result.IsForwardDecl = record.is_forward_decl
     result.has_name = record.has_name
     for _field in record.fields:
-        result.fields.append(
-            GenTuField(type=conv_proto_type(_field.type),
-                       name=_field.name,
-                       doc=conv_doc_comment(_field.doc)))
+        if _field.is_type_decl:
+            result.fields.append(
+                GenTuField(
+                    type=None,
+                    name=_field.name,
+                    doc=conv_doc_comment(_field.doc),
+                    isTypeDecl=True, 
+                    decl=conv_proto_record(_field.type_decl)
+                )
+            )
+
+        else:
+            result.fields.append(
+                GenTuField(type=conv_proto_type(_field.type),
+                        name=_field.name,
+                        doc=conv_doc_comment(_field.doc)))
 
     for meth in record.methods:
         if meth.kind != pb.RecordMethodKind.Base:

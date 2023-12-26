@@ -160,10 +160,27 @@ def test_anon_struct_for_field():
     assert len(struct.nested) == 0
     assert len(struct.fields) == 1
     assert len(struct.methods) == 0
+    field = struct.fields[0]
+    assert field.isTypeDecl
+    assert field.name == "field"
+    decl = field.decl
+    assert len(decl.fields) == 1
+    assert decl.fields[0].name == "nested"
     
 def test_anon_struct_for_field():
-    struct = get_struct("struct Main { struct Named { int nested; } field; };", stable_cpp_file = STABLE_FILE_NAME)
+    struct = get_struct("struct Main { struct Named { int nested; } field; };")
     assert struct.name.name == "Main"
     assert len(struct.nested) == 1
     assert len(struct.fields) == 1
     assert len(struct.methods) == 0
+    nested = struct.nested[0]
+    field = struct.fields[0]
+
+    assert nested.name.name == "Named"
+    assert field.name == "field"
+    assert field.type.name == "Named"
+
+    # FIXME namespace extraction should take declaration locations into location
+    # at the moment this is not implemented
+    # assert len(field.type.Spaces) == 1
+    # assert len(field.type.Spaces[0].name) == "Main"

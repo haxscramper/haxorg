@@ -93,12 +93,14 @@ class GenTuPass:
 @beartype
 @dataclass
 class GenTuField:
-    type: QualType
+    type: Optional[QualType]
     name: str
     doc: GenTuDoc
+    decl: Optional[Union['GenTuStruct', 'GenTuEnum']] = None
     value: Optional[Union[str, BlockId]] = None
     isConst: bool = False
     isStatic: bool = False
+    isTypeDecl: bool = False
 
 
 GenTuEntry = Union[
