@@ -9,9 +9,10 @@ from py_codegen.refl_read import ConvTu, GenTuStruct, GenTuEnum, GenTuFunction
 from beartype.typing import Optional
 from beartype import beartype
 
+STABLE_FILE_NAME = "/tmp/cpp_stable.cpp"
 
 @beartype
-def run_provider(text: str, stable_cpp_file: Optional[str] = None) -> ConvTu:
+def run_provider(text: str, stable_cpp_file: Optional[str] = None, print_reflection_run_fail_to_stdout: bool = False) -> ConvTu:
     with (
             # TODO Delete only when test run is ok
         (open(stable_cpp_file, "w") if stable_cpp_file else NamedTemporaryFile(
@@ -32,7 +33,7 @@ def run_provider(text: str, stable_cpp_file: Optional[str] = None) -> ConvTu:
             interpolate_dictionary(base_dict,
                                    {"haxorg_root": get_haxorg_repo_root_path()}))
 
-        # conf.print_reflection_run_fail_to_stdout = True
+        conf.print_reflection_run_fail_to_stdout = print_reflection_run_fail_to_stdout
         conf.reflection_run_verbose = True
 
         compile_commands.write(
@@ -55,20 +56,20 @@ def run_provider(text: str, stable_cpp_file: Optional[str] = None) -> ConvTu:
         return wrap.tu
 
 
-def get_struct(text: str) -> GenTuStruct:
-    tu = run_provider(text)
+def get_struct(text: str, **kwargs) -> GenTuStruct:
+    tu = run_provider(text, **kwargs)
     assert len(tu.structs) == 1
     return tu.structs[0]
 
 
-def get_enum(text: str) -> GenTuEnum:
-    tu = run_provider(text)
+def get_enum(text: str, **kwargs) -> GenTuEnum:
+    tu = run_provider(text, **kwargs)
     assert len(tu.enums) == 1
     return tu.enums[0]
 
 
-def get_function(text: str) -> GenTuFunction:
-    tu = run_provider(text)
+def get_function(text: str, **kwargs) -> GenTuFunction:
+    tu = run_provider(text, **kwargs)
     assert len(tu.functions) == 1
     return tu.functions[0]
 
@@ -136,8 +137,7 @@ def test_function_extract_args():
 
 
 def test_field_with_std_import():
-    tu = run_provider("#include <vector>\nstruct Content { std::vector<int> items; };",
-                      stable_cpp_file="/tmp/cpp_content.cpp")
+    tu = run_provider("#include <vector>\nstruct Content { std::vector<int> items; };")
     
     assert len(tu.structs) == 1
     assert len(tu.enums) == 0
@@ -153,3 +153,17 @@ def test_field_with_std_import():
     assert field.type.Spaces[0].name == "std"
     assert len(field.type.Parameters) == 1
     assert field.type.Parameters[0].name == "int"
+
+def test_anon_struct_for_field():
+    struct = get_struct("struct Main { struct { int nested; } field; };")
+    assert struct.name.name == "Main"
+    assert len(struct.nested) == 0
+    assert len(struct.fields) == 1
+    assert len(struct.methods) == 0
+    
+def test_anon_struct_for_field():
+    struct = get_struct("struct Main { struct Named { int nested; } field; };", stable_cpp_file = STABLE_FILE_NAME)
+    assert struct.name.name == "Main"
+    assert len(struct.nested) == 1
+    assert len(struct.fields) == 1
+    assert len(struct.methods) == 0

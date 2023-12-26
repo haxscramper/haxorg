@@ -28,9 +28,9 @@ clang::TypedefDecl* findTypedefForDecl(
 }
 
 clang::FieldDecl* findFieldForDecl(
-    clang::Decl*       Decl,
+    clang::Decl const* Decl,
     clang::ASTContext* Ctx) {
-    clang::DeclContext* Context = Decl->getDeclContext();
+    clang::DeclContext const* Context = Decl->getDeclContext();
     for (auto D : Context->decls()) {
         if (auto* FD = llvm::dyn_cast<clang::FieldDecl>(D)) {
             clang::Type const* FieldType = FD->getType().getTypePtr();
@@ -529,6 +529,8 @@ void ReflASTVisitor::fillFieldDecl(
                                                    clang::RecordType>();
         RecType != nullptr && RecType->getDecl()
         && RecType->getDecl()->isAnonymousStructOrUnion()) {
+        clang::RecordDecl const* RecDecl = RecType->getDecl();
+        log_visit(RecDecl);
         fillRecordDecl(sub->mutable_typedecl(), RecType->getDecl());
         sub->set_istypedecl(true);
     } else {
@@ -754,12 +756,45 @@ void ReflASTVisitor::fillCxxRecordDecl(
     for (clang::Decl const* SubDecl : Decl->decls()) {
         if (clang::CXXRecordDecl const* SubRecord = llvm::dyn_cast<
                 clang::CXXRecordDecl>(SubDecl);
-            SubRecord != nullptr &&
+            SubRecord != nullptr) {
             // Filter out implicit structure records added to the ast of
             // the cxx records
-            !SubRecord->isImplicit()) {
-            Record* sub_rec = rec->add_nestedrec();
-            fillCxxRecordDecl(sub_rec, SubRecord);
+            if (!SubRecord->isImplicit()) {
+                clang::FieldDecl* FieldDecl = findFieldForDecl(
+                    SubRecord, Ctx);
+
+
+                if (
+                    // `struct something { int a; };`
+                    // -- not field-bound
+                    FieldDecl == nullptr
+                    // `struct { int field; }`
+                    // -- not an implicit anon field
+                    || FieldDecl->isImplicit()
+                           && SubRecord->isAnonymousStructOrUnion()
+                    // `struct Named { int a; } field;`
+                    // -- not a joined field+name
+                    || (!FieldDecl->isImplicit()
+                        && !SubRecord->isAnonymousStructOrUnion())) {
+                    log_visit(SubRecord);
+                    Record* sub_rec = rec->add_nestedrec();
+                    fillCxxRecordDecl(sub_rec, SubRecord);
+                } else {
+                    if (verbose) {
+                        std::cerr << std::format(
+                            "Dropping decl field decl: {}, implicit: {}, "
+                            "is anon "
+                            "subrec: {}\n",
+                            FieldDecl != nullptr,
+                            (FieldDecl ? (
+                                 FieldDecl->isImplicit() ? "implicit"
+                                                         : "not implicit")
+                                       : "no field"),
+                            SubRecord->isAnonymousStructOrUnion());
+                    }
+                }
+            }
+
         } else if (
             llvm::isa<clang::IndirectFieldDecl>(SubDecl)
             || llvm::isa<clang::FieldDecl>(SubDecl)) {
