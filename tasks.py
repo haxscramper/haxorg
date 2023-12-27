@@ -648,7 +648,7 @@ def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None
         retcode, _, _ = run_command(
             ctx,
             "poetry",
-            ["run", "pytest", "-s", "--tb=short"],
+            ["run", "pytest", "-v", "-ra", "-s", "--tb=short"],
             allow_fail=True,
             env=preload,
         )
