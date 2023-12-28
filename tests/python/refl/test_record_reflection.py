@@ -1,5 +1,7 @@
-from refl_test_driver import run_provider, STABLE_FILE_NAME, GenTuStruct, get_enum, get_function, get_struct
+from refl_test_driver import run_provider, STABLE_FILE_NAME, GenTuStruct, get_struct, get_nim_code
 import pytest
+from pprint import pprint
+
 
 def test_simple_structure_registration():
     struct = get_struct("struct Test {};")
@@ -28,6 +30,7 @@ def test_anon_structure_fields():
     assert field2.name == "char_field"
     assert field1.type.name == "int"
     assert field2.type.name == "char"
+
 
 def test_field_with_std_import():
     tu = run_provider("#include <vector>\nstruct Content { std::vector<int> items; };")
@@ -83,11 +86,33 @@ def test_namespace_extraction_for_nested_struct():
     assert len(field.type.Spaces) == 1
     assert len(field.type.Spaces[0].name) == "Main"
 
+
 def test_namespace_extraction():
-    struct = get_struct("namespace Space { struct Nest {}; } struct Main { Space::Nest field; };")
+    struct = get_struct(
+        "namespace Space { struct Nest {}; } struct Main { Space::Nest field; };")
     field = struct.fields[0]
     assert len(field.type.Spaces) == 1
     assert field.type.name == "Nest"
     assert field.type.Spaces[0].name == "Space"
 
 
+def test_nim_record_conversion():
+    conv = get_nim_code(get_struct("struct Main {};"))
+    assert len(conv.procs) == 0
+    assert len(conv.types) == 1
+    record = conv.types[0]
+    assert record.Name == "Main"
+    assert record.Exported == True
+    assert record.Pragmas[0].Name == "bycopy"
+
+
+def test_nim_record_field_conversion():
+    conv = get_nim_code(get_struct("struct Main { int field; };"))
+    assert len(conv.procs) == 0
+    assert len(conv.types) == 1
+    record = conv.types[0]
+    assert record.Name == "Main"
+    assert len(record.Fields) == 1
+    field = record.Fields[0]
+    assert field.Name == "field"
+    assert field.Type.Name == "cint"

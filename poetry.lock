@@ -650,6 +650,17 @@ files = [
 ]
 
 [[package]]
+name = "more-itertools"
+version = "10.1.0"
+description = "More routines for operating on iterables, beyond itertools"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "more-itertools-10.1.0.tar.gz", hash = "sha256:626c369fa0eb37bac0291bce8259b332fd59ac792fa5497b59837309cd5b114a"},
+    {file = "more_itertools-10.1.0-py3-none-any.whl", hash = "sha256:64e0735fcfdc6f3464ea133afe8ea4483b1c5fe3a3d69852e6503b43a0b222e6"},
+]
+
+[[package]]
 name = "multidict"
 version = "6.0.4"
 description = "multidict implementation"
@@ -948,6 +959,19 @@ files = [
     {file = "protobuf-4.24.4-py3-none-any.whl", hash = "sha256:80797ce7424f8c8d2f2547e2d42bfbb6c08230ce5832d6c099a37335c9c90a92"},
     {file = "protobuf-4.24.4.tar.gz", hash = "sha256:5a70731910cd9104762161719c3d883c960151eea077134458503723b60e3667"},
 ]
+
+[[package]]
+name = "py-codegen"
+version = "0.1.0"
+description = ""
+optional = false
+python-versions = "^3.9.0 <3.13"
+files = []
+develop = true
+
+[package.source]
+type = "directory"
+url = "scripts/py_codegen"
 
 [[package]]
 name = "py-exporters"
@@ -1689,4 +1713,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.0 <3.13"
-content-hash = "b5b3bd10a64fb20eb364514bf4aab1dcb37f39c013f8f26fed65b6f240ccb776"
+content-hash = "98e308f2ba60fad309c4273aac2c89716d0aea19f1eca206234f1f1955c1d39d"

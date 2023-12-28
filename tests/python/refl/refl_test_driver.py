@@ -10,8 +10,76 @@ import json
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import interpolate_dictionary, get_haxorg_repo_root_path
 from pprint import pprint
+import py_codegen.wrapper_gen_nim as gen_nim
 
 STABLE_FILE_NAME = "/tmp/cpp_stable.cpp"
+
+
+@beartype
+class PathComponentKind(enum.Enum):
+    DICT_KEY = "dict_key"
+    LIST_INDEX = "list_index"
+
+
+@beartype
+class PathComponent(NamedTuple):
+    kind: PathComponentKind
+    value: str
+
+
+@beartype
+class PathFail(NamedTuple):
+    path: List[PathComponent]
+    message: str
+    given_node: Any
+    expected_node: Any
+
+
+@beartype
+def is_dict_subset(expected: dict,
+                   given: dict,
+                   path: List[PathComponent] = []) -> List[PathFail]:
+
+    failures = []
+    if isinstance(expected, dict) and isinstance(given, dict):
+        missing_keys = set(expected.keys()).difference(set(given.keys()))
+        if 0 < len(missing_keys):
+            return [
+                PathFail(path, f"Expected had keys not present in given {missing_keys}")
+            ]
+
+        else:
+            for key in expected.keys():
+                failures += is_dict_subset(
+                    expected=expected[key],
+                    given=given[key],
+                    path=path + [PathComponent(PathComponentKind.DICT_KEY, key)])
+
+    elif isinstance(expected, list) and isinstance(given, list):
+        if len(expected) != len(given):
+            return [
+                PathFail(
+                    path,
+                    f"List len mismatch {len(expected)} for expected, {len(given)} for given"
+                )
+            ]
+
+        else:
+            fails = []
+            for index, (expected_item, given_item) in enumerate(zip(expected, given)):
+                fails += is_dict_subset(
+                    expected_item, given_item,
+                    path + [PathComponent(PathComponentKind.LIST_INDEX, str(index))])
+
+    elif isinstance(expected, set) and isinstance(given, set):
+        if not set(expected).issubset(set(given)):
+            failures.append(PathFail(path, "Subset mismatch in set", given, expected))
+
+    elif expected != given:
+        failures.append(PathFail(path, "Value mismatch", given, expected))
+
+    return failures
+
 
 @beartype
 def run_provider(text: str,
@@ -76,3 +144,9 @@ def get_function(text: str, **kwargs) -> GenTuFunction:
     tu = run_provider(text, **kwargs)
     assert len(tu.functions) == 1
     return tu.functions[0]
+
+
+def get_nim_code(content: gen_nim.GenTuUnion) -> gen_nim.ConvRes:
+    t = gen_nim.nim.TextLayout()
+    builder = gen_nim.nim.ASTBuilder(t)
+    return gen_nim.conv_res_to_nim(builder, content, gen_nim.NimOptions())

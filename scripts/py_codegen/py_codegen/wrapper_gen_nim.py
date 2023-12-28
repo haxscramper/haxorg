@@ -12,17 +12,9 @@ from py_textlayout.py_textlayout import TextLayout, TextOptions
 from pydantic import BaseModel, Field
 
 import py_codegen.astbuilder_nim as nim
-from py_codegen.gen_tu_cpp import (
-    GenTuEnum,
-    GenTuEnumField,
-    GenTuField,
-    GenTuFunction,
-    GenTuStruct,
-    GenTuTypedef,
-    QualType,
-    QualTypeKind,
-)
-from py_codegen.refl_wrapper_graph import GenGraph
+from py_codegen.gen_tu_cpp import (GenTuEnum, GenTuEnumField, GenTuField, GenTuFunction,
+                                   GenTuStruct, GenTuTypedef, QualType, QualTypeKind)
+from py_codegen.refl_wrapper_graph import GenGraph, GenTuUnion
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout import BlockId
@@ -225,21 +217,60 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
 
         return nim.EnumFieldParams(Name="c_" + f_name(f), Value=b.string(value))
 
-    result.procs.append(
-        nim.FunctionParams(
-            Kind=nim.FunctionKind.CONVERTER,
-            Name="toCInt",
-            Arguments=[nim.IdentParams(Name="arg", Type=nim.Type(c_name))],
-            ReturnTy=nim.Type("cint"),
-            Implementation=b.string("cint(ord(arg))"),
-            OneLineImpl=True,
-        ))
+    to_cint_name = "toCInt"
+
+    for expr, name in [
+            # Implicit conversion of the C enum value to cint type
+        ("cint(ord(arg))", c_name),
+            # Implicit conversion of the Nim enum values to the cint type
+        (f"cint(ord(to_{c_name}(arg)))", enum.name.name),
+    ]:
+        result.procs.append(
+            nim.FunctionParams(
+                Kind=nim.FunctionKind.CONVERTER,
+                Name=to_cint_name,
+                Arguments=[nim.IdentParams(Name="arg", Type=nim.Type(name))],
+                ReturnTy=nim.Type("cint"),
+                Implementation=b.string(expr),
+                OneLineImpl=True,
+            ))
 
     w = max([len(f_name(f)) for f in enum.fields] + [0])
+    for config in [
+            dict(kind=nim.FunctionKind.CONVERTER,
+                 in_name=c_name,
+                 out_name=enum.name.name,
+                 is_c=True),
+            dict(kind=nim.FunctionKind.PROC,
+                 in_name=enum.name.name,
+                 out_name=c_name,
+                 is_c=False),
+    ]:
+        result.procs.append(
+            nim.FunctionParams(
+                Kind=config["kind"],
+                Name="to_" + config["out_name"],
+                Arguments=[nim.IdentParams(Name="arg", Type=nim.Type(config["in_name"]))],
+                ReturnTy=nim.Type(config["out_name"]),
+                Implementation=b.stack([
+                    b.string("case arg:"),
+                    b.indent(
+                        2,
+                        b.stack([
+                            b.string(f"of c_{f_name(f).ljust(w)}: {f_name(f).ljust(w)}"
+                                     if config["is_c"] else
+                                     f"of {f_name(f).ljust(w)}: c_{f_name(f).ljust(w)}")
+                            for f in enum.fields
+                        ]))
+                ]),
+                OneLineImpl=True,
+            ))
+
+    # Implicit map of the enum set to cint value
     result.procs.append(
         nim.FunctionParams(
             Kind=nim.FunctionKind.CONVERTER,
-            Name="toCInt",
+            Name=to_cint_name,
             Arguments=[
                 nim.IdentParams(Name="args",
                                 Type=nim.Type("set",
@@ -358,6 +389,25 @@ def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions) ->
 
 
 @beartype
+def conv_res_to_nim(builder: nim.ASTBuilder, decl: GenTuUnion, conf: NimOptions):
+    match decl:
+        case GenTuEnum():
+            return enum_to_nim(builder, decl)
+
+        case GenTuStruct():
+            return struct_to_nim(builder, decl)
+
+        case GenTuTypedef():
+            return typedef_to_nim(builder, decl)
+
+        case GenTuFunction():
+            return function_to_nim(builder, decl, conf)
+
+        case _:
+            assert False
+
+
+@beartype
 def to_nim(graph: GenGraph, sub: GenGraph.Sub, conf: NimOptions,
            get_out_path: Callable[[Path], Path], output_directory: Path) -> Optional[str]:
     t = TextLayout()
@@ -376,24 +426,7 @@ def to_nim(graph: GenGraph, sub: GenGraph.Sub, conf: NimOptions,
     depend_on.append(to_nim_imports(graph, sub, get_out_path=get_out_path))
 
     for _id in sub.nodes:
-        decl = graph.id_to_entry[_id]
-        conv: ConvRes = ConvRes()
-
-        match decl:
-            case GenTuEnum():
-                conv = enum_to_nim(builder, decl)
-
-            case GenTuStruct():
-                conv = struct_to_nim(builder, decl)
-
-            case GenTuTypedef():
-                conv = typedef_to_nim(builder, decl)
-
-            case GenTuFunction():
-                conv = function_to_nim(builder, decl, conf)
-
-            case _:
-                assert False
+        conv: ConvRes = conv_res_to_nim(builder, graph.id_to_entry[_id], conf)
 
         for proc in conv.procs:
             procs.append(builder.Function(proc))

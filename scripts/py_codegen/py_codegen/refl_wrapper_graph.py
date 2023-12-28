@@ -109,8 +109,7 @@ class GenGraph:
         ## **Unordered** collection of definitions in the graph
         nodes: Set[int] = field(default_factory=set)
 
-    id_to_entry: Dict[int, Union[GenTuFunction, GenTuStruct,
-                                 GenTuEnum]] = field(default_factory=dict)
+    id_to_entry: Dict[int, GenTuUnion] = field(default_factory=dict)
 
     ## Main directed graph holding all declarations and type usage links.
     graph: ig.Graph = field(default_factory=lambda: ig.Graph(directed=True))

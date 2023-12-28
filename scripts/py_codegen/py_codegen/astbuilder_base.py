@@ -2,8 +2,9 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, NewType
 
 from beartype import beartype
-from beartype.typing import List, Optional, Union
+from beartype.typing import List, Optional, Union, overload
 from py_textlayout.py_textlayout import TextLayout
+import itertools
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout import BlockId
@@ -108,8 +109,11 @@ class AstbuilderBase:
     def string(self, text: str) -> BlockId:
         return self.b.text(text)
 
-    def stack(self, *args: BlockId) -> BlockId:
-        return self.b.stack(args)
+    def stack(self, *args: BlockId | List[BlockId]) -> BlockId:
+        if any(isinstance(arg, list) for arg in args):
+            return self.b.stack(list(itertools.chain(*args)))
+        else:
+            return self.b.stack(args)
 
     def line(self, *args: BlockId) -> BlockId:
         return self.b.line(args)
