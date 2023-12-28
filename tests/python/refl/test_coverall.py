@@ -1,0 +1,25 @@
+from refl_test_driver import run_provider, STABLE_FILE_NAME, get_nim_code
+import pytest
+from pprint import pprint
+from more_itertools import first_true
+import py_codegen.wrapper_gen_nim as gen_nim
+from pathlib import Path
+
+INPUT = Path(__file__).parent.joinpath("test_coverall_input.cpp")
+
+def test_coverall_extract():
+    value = run_provider(INPUT.read_text())
+
+def test_coverall_nim():
+    value = run_provider(INPUT.read_text())
+    for _enum in value.enums:
+        get_nim_code(_enum)
+
+    for _function in value.functions:
+        get_nim_code(_function)
+
+    for _record in value.structs:
+        get_nim_code(_record)
+
+    for _typedef in value.typedefs:
+        get_nim_code(_typedef)
