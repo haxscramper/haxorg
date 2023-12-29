@@ -23,6 +23,14 @@ SomePath: TypeAlias = Union[str, Path, GeneratorType]
 SomePaths: TypeAlias = Union[SomePath, List[SomePath]]
 
 
+def get_haxorg_repo_root_path() -> Path:
+    result = Path(__file__).parent.parent.parent.parent
+    assert result.exists(), result
+    assert result.is_dir(), result
+    assert result.joinpath("tasks.py").exists(), result
+    return result
+
+
 @beartype
 def normalize_paths(input_paths: SomePaths) -> List[Path]:
     result: List[Path] = []
@@ -62,7 +70,7 @@ def min_mtime(input_paths: List[Path]) -> float:
     input_paths = [p.stat().st_mtime for p in input_paths if p.exists()]
     if input_paths:
         return min(input_paths)
-    
+
     else:
         return 0.0
 

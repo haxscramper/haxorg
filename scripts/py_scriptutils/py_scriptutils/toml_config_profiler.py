@@ -12,6 +12,7 @@ from pprint import pprint
 from copy import deepcopy
 from pathlib import Path
 
+from py_scriptutils.files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
 
 
@@ -207,14 +208,6 @@ def interpolate_dictionary(base: Dict, substitution: Dict[str, str]) -> Dict:
                 return d
 
     return rec_rewrite(base)
-
-
-def get_haxorg_repo_root_path() -> Path:
-    result = Path(__file__).parent.parent.parent.parent
-    assert result.exists(), result
-    assert result.is_dir(), result
-    assert result.joinpath("tasks.py").exists(), result
-    return result
 
 
 @beartype
