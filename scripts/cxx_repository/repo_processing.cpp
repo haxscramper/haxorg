@@ -382,6 +382,7 @@ struct ChangeIterationState {
         auto section_id = state->content->add(FileTrackSection{
             .commit_id = commit_id,
             .path      = name.path,
+            .track     = track_id,
         });
 
         track->sections.push_back(section_id);

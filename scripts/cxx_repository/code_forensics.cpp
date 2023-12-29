@@ -12,6 +12,174 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <SQLiteCpp/SQLiteCpp.h>
+
+void CreateTables(SQLite::Database& db) {
+    auto path = __CURRENT_FILE_DIR__ / "code_forensics.sql";
+    LOG(INFO) << "Loading the DB creation query " << path.native();
+    std::string sql = readFile(path);
+    db.exec(sql);
+    LOG(INFO) << "Created table";
+}
+
+
+i64 idcast(u64 value) { return static_cast<i64>(value); }
+
+void InsertFilePaths(
+    SQLite::Database&                                     db,
+    const dod::InternStore<ir::FilePathId, ir::FilePath>& filePaths) {
+    SQLite::Statement query(db, "INSERT INTO FilePath VALUES (?, ?, ?)");
+
+    for (const auto& [id, item] : filePaths.pairs()) {
+        query.bind(1, idcast(id.getValue()));
+        query.bind(2, idcast(item->path.getValue()));
+        query.bind(
+            3,
+            idcast(
+                item->dir.has_value() ? item->dir.value().getValue()
+                                      : 0) // TOOD NULL
+        );
+
+        query.exec();
+        query.reset();
+    }
+}
+
+
+// InsertCommits Function
+void InsertCommits(
+    SQLite::Database&                           db,
+    const dod::Store<ir::CommitId, ir::Commit>& commits) {
+    SQLite::Statement query(
+        db, "INSERT INTO GitCommit VALUES (?, ?, ?, ?, ?, ?)");
+
+    for (const auto& [id, item] : commits.pairs()) {
+        query.bind(1, idcast(id.getValue()));
+        query.bind(2, item->author.getValue());
+        query.bind(3, static_cast<i64>(item->time));
+        query.bind(4, item->timezone);
+        query.bind(5, item->hash.toBase());
+        query.bind(6, item->message.toBase());
+
+        query.exec();
+        query.reset();
+    }
+}
+
+void InsertFileTracks(
+    SQLite::Database&                              db,
+    CR<dod::Store<ir::FileTrackId, ir::FileTrack>> tracks) {
+    SQLite::Statement query(db, "INSERT INTO FileTrack VALUES (?)");
+
+    for (const auto& [id, item] : tracks.pairs()) {
+        query.bind(1, idcast(id.getValue()));
+        query.exec();
+        query.reset();
+    }
+}
+
+// InsertFileTrackSections Function
+void InsertFileTrackSections(
+    SQLite::Database& db,
+    const dod::Store<ir::FileTrackSectionId, ir::FileTrackSection>&
+        fileTrackSections) {
+    SQLite::Statement query(
+        db, "INSERT INTO FileTrackSection VALUES (?, ?, ?, ?)");
+
+    SQLite::Statement lineQuery(
+        db, "INSERT INTO FileSectionLines VALUES (?, ?, ?)");
+
+    for (const auto& [id, item] : fileTrackSections.pairs()) {
+        query.bind(1, idcast(id.getValue()));
+        query.bind(2, idcast(item->commit_id.getValue()));
+        query.bind(3, idcast(item->path.getValue()));
+        // Serialization for lines, added_lines, removed_lines is necessary
+        // Assuming these are serialized to a string or blob
+
+        query.exec();
+        query.reset();
+
+        int idx = 0;
+        for (auto const& line : item->lines) {
+            lineQuery.bind(1, idcast(id.getValue()));
+            lineQuery.bind(2, idx);
+            ++idx;
+            lineQuery.bind(3, idcast(line.getValue()));
+            lineQuery.exec();
+            lineQuery.reset();
+        }
+    }
+}
+
+// InsertDirectories Function
+void InsertDirectories(
+    SQLite::Database&                                       db,
+    const dod::InternStore<ir::DirectoryId, ir::Directory>& directories) {
+    SQLite::Statement query(db, "INSERT INTO Directory VALUES (?, ?, ?)");
+
+    for (const auto& [id, item] : directories.pairs()) {
+        query.bind(1, idcast(id.getValue()));
+        query.bind(
+            2,
+            idcast(
+                item->parent.has_value() ? item->parent.value().getValue()
+                                         : 0)
+            // TODO NULL
+        );
+        query.bind(3, item->name.toBase());
+
+        query.exec();
+        query.reset();
+    }
+}
+
+// InsertStrings Function
+void InsertStrings(
+    SQLite::Database&                                 db,
+    const dod::InternStore<ir::StringId, ir::String>& strings) {
+    SQLite::Statement query(db, "INSERT INTO String VALUES (?, ?)");
+
+    for (const auto& [id, item] : strings.pairs()) {
+        query.bind(1, idcast(id.getValue()));
+        query.bind(2, item->text.toBase());
+
+        query.exec();
+        query.reset();
+    }
+}
+
+// InsertAuthors Function
+void InsertAuthors(
+    SQLite::Database&                                 db,
+    const dod::InternStore<ir::AuthorId, ir::Author>& authors) {
+    SQLite::Statement query(db, "INSERT INTO Author VALUES (?, ?, ?)");
+
+    for (const auto& [id, item] : authors.pairs()) {
+        query.bind(1, id.getValue());
+        query.bind(2, item->name.toBase());
+        query.bind(3, item->email.toBase());
+
+        query.exec();
+        query.reset();
+    }
+}
+
+// InsertLineData Function
+void InsertLineData(
+    SQLite::Database&                                 db,
+    const dod::InternStore<ir::LineId, ir::LineData>& lineData) {
+    SQLite::Statement query(db, "INSERT INTO LineData VALUES (?, ?, ?)");
+
+    for (const auto& [id, item] : lineData.pairs()) {
+        query.bind(1, idcast(id.getValue()));
+        query.bind(2, idcast(item->content.getValue()));
+        query.bind(3, idcast(item->commit.getValue()));
+
+        query.exec();
+        query.reset();
+    }
+}
+
 
 #define GIT_SUCCESS 0
 
@@ -115,6 +283,27 @@ auto main(int argc, const char** argv) -> int {
         }
     }
 
+    fs::path db_file = "/tmp/result.sqlite";
+    if (fs::exists(db_file)) {
+        fs::remove(db_file);
+    }
+
+    SQLite::Database db(
+        db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    CreateTables(db);
+    LOG(INFO) << "Inserting data content";
+    db.exec("BEGIN");
+    auto& m = state->content->multi;
+    InsertFileTrackSections(db, m.store<ir::FileTrackSection>());
+    InsertFileTracks(db, m.store<ir::FileTrack>());
+    InsertStrings(db, m.store<ir::String>());
+    InsertFilePaths(db, m.store<ir::FilePath>());
+    InsertAuthors(db, m.store<ir::Author>());
+    InsertCommits(db, m.store<ir::Commit>());
+    InsertDirectories(db, m.store<ir::Directory>());
+    db.exec("COMMIT");
+
+    LOG(INFO) << "Completed DB write";
 
     return 0;
 }

@@ -34,3 +34,6 @@
 [submodule "thirdparty/describe"]
 	path = thirdparty/describe
 	url = https://github.com/boostorg/describe.git
+[submodule "thirdparty/SQLiteCpp"]
+	path = thirdparty/SQLiteCpp
+	url = https://github.com/SRombauts/SQLiteCpp

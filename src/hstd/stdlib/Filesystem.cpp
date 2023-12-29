@@ -1,6 +1,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <fstream>
 #include <absl/log/check.h>
+#include <sstream>
 
 void writeFile(const fs::path& target, const std::string& content) {
     std::ofstream file{target.native()};
@@ -17,9 +18,9 @@ void writeFile(const fs::path& target, const std::string& content) {
 std::string readFile(const fs::path& target) {
     std::ifstream in{target.native()};
     if (in.is_open()) {
-        std::string result;
-        in >> result;
-        return result;
+        std::stringstream result;
+        result << in.rdbuf();
+        return result.str();
     } else {
         throw FilesystemError(
             "Could not open file '" + target.native() + "'");
@@ -38,5 +39,3 @@ void writeFileOrStdout(
         std::cout << content;
     }
 }
-
-

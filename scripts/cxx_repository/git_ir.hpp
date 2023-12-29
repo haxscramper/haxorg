@@ -79,6 +79,8 @@ struct FileTrackSection {
     /// What path was assigned to a file at the time this section was
     /// recorded?
     ir::FilePathId path;
+    /// File track this section belongs to
+    ir::FileTrackId track;
     /// List of all lines found in the file
     immer::flex_vector<LineId> lines;
     Vec<int>                   added_lines;
