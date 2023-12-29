@@ -252,38 +252,47 @@ auto main(int argc, const char** argv) -> int {
 
     LOG(INFO) << "Finished execution, DB written successfully";
 
-    std::ofstream file{in_config["out"]["text_dump"].get<std::string>()};
-    for (auto const& [id, value] :
-         state->content->multi.store<ir::FileTrack>().pairs()) {
-        file << "File\n";
-        for (ir::FileTrackSectionId section_id : value->sections) {
-            auto& section = state->content->at(section_id);
-            file << fmt(
-                "  Section [{}] = {} at {} +{} -{}\n",
-                section_id,
-                escape_literal(
-                    state->content
-                        ->at(state->content->at(section.path).path)
-                        .text),
-                state->content->at(section.commit_id).hash.substr(0, 8),
-                section.added_lines,
-                section.removed_lines);
-
-            for (auto const& [idx, line_id] : enumerate(section.lines)) {
+    if (in_config["out"].contains("text_dump")) {
+        LOG(INFO) << "Text dump option specified, writing debug";
+        std::ofstream file{
+            in_config["out"]["text_dump"].get<std::string>()};
+        for (auto const& [id, value] :
+             state->content->multi.store<ir::FileTrack>().pairs()) {
+            file << "File\n";
+            for (ir::FileTrackSectionId section_id : value->sections) {
+                auto& section = state->content->at(section_id);
                 file << fmt(
-                    "   [{}] = ({}) {} {}\n",
-                    idx,
-                    line_id,
-                    (rs::contains(section.added_lines, idx) ? "+" : " "),
+                    "  Section [{}] = {} at {} +{} -{}\n",
+                    section_id,
                     escape_literal(
                         state->content
-                            ->at(state->content->at(line_id).content)
-                            .text));
+                            ->at(state->content->at(section.path).path)
+                            .text),
+                    state->content->at(section.commit_id)
+                        .hash.substr(0, 8),
+                    section.added_lines,
+                    section.removed_lines);
+
+                for (auto const& [idx, line_id] :
+                     enumerate(section.lines)) {
+                    file << fmt(
+                        "   [{}] = ({}) {} {}\n",
+                        idx,
+                        line_id,
+                        (rs::contains(section.added_lines, idx) ? "+"
+                                                                : " "),
+                        escape_literal(
+                            state->content
+                                ->at(state->content->at(line_id).content)
+                                .text));
+                }
             }
         }
     }
 
-    fs::path db_file = "/tmp/result.sqlite";
+
+    std::string db_path = in_config["out"]["db_path"].get<std::string>();
+    fs::path    db_file = db_path;
     if (fs::exists(db_file)) {
         fs::remove(db_file);
     }
@@ -291,7 +300,7 @@ auto main(int argc, const char** argv) -> int {
     SQLite::Database db(
         db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     CreateTables(db);
-    LOG(INFO) << "Inserting data content";
+    LOG(INFO) << "Inserting data content, specified db path " << db_path;
     db.exec("BEGIN");
     auto& m = state->content->multi;
     InsertFileTrackSections(db, m.store<ir::FileTrackSection>());
