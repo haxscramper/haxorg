@@ -15,11 +15,9 @@
 #include <SQLiteCpp/SQLiteCpp.h>
 
 void CreateTables(SQLite::Database& db) {
-    auto path = __CURRENT_FILE_DIR__ / "code_forensics.sql";
-    LOG(INFO) << "Loading the DB creation query " << path.native();
-    std::string sql = readFile(path);
+    auto        path = __CURRENT_FILE_DIR__ / "code_forensics.sql";
+    std::string sql  = readFile(path);
     db.exec(sql);
-    LOG(INFO) << "Created table";
 }
 
 
@@ -93,6 +91,7 @@ void InsertFileTrackSections(
         query.bind(1, idcast(id.getValue()));
         query.bind(2, idcast(item->commit_id.getValue()));
         query.bind(3, idcast(item->path.getValue()));
+        query.bind(4, idcast(item->track.getValue()));
         // Serialization for lines, added_lines, removed_lines is necessary
         // Assuming these are serialized to a string or blob
 

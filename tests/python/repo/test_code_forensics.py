@@ -4,7 +4,7 @@ from tempfile import NamedTemporaryFile, TemporaryDirectory, mktemp
 from plumbum import local
 from py_scriptutils.files import get_haxorg_repo_root_path
 from beartype import beartype
-from beartype.typing import Dict, Optional, Type
+from beartype.typing import Dict, Optional, Type, List
 from types import TracebackType
 from py_scriptutils.toml_config_profiler import merge_dicts
 from pathlib import Path
@@ -17,16 +17,19 @@ import shutil
 from rich.console import Console
 from rich.table import Column, Table, Style
 from rich import box
-
+from sqlalchemy import create_engine, Engine
+import io
 
 @beartype
-def print_df_rich(df: pd.DataFrame, title: str):
-    console = Console()
+def print_df_rich(df: pd.DataFrame, title: str, file: Optional[io.TextIOWrapper] = None):
+    console = Console(file=file, force_terminal=False, color_system=None) if file else Console()
+
     table = Table(show_lines=False,
                   box=box.ASCII,
                   padding=(0, 1),
                   show_edge=False,
                   title=f"[red]{title}[/red]",
+                  min_width=len(title),
                   title_justify="left")
 
     # Add columns to the table
@@ -143,35 +146,62 @@ class GitTestRepository:
             db.unlink()
 
 
-def print_connection_tables(conn: sqlite3.Connection):
-    tables = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table';", conn)
+@beartype
+def print_connection_tables(engine: Engine, exclude: List[str] = [], file: Optional[io.TextIOWrapper] = None):
+    tables = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table';",
+                               engine)
 
-    print("")
+    print("", file=file)
     for table_name in tables['name'].tolist():
-        if table_name not in ["FileTrack"]:
-            df = pd.read_sql_query(f"SELECT * from {table_name}", conn)
-            print_df_rich(df, title=table_name)
+        if table_name not in exclude:
+            df = pd.read_sql_table(table_name, engine)
+            print_df_rich(df, title=table_name, file=file)
 
 
 def test_can_run_dir():
-    with GitTestRepository({"a": "init_commit_content"},
+    with GitTestRepository({"a": "fixed_line\ninit_commit_content"},
                            fixedDir="/tmp/fixed_git_dir_1") as repo:
         assert not Path(repo.db).exists(), repo.db
 
-        git_write_files(repo.git_dir(), {"a": "line_one_edit\nline_two_edit"})
+        git_write_files(repo.git_dir(), {"a": "fixed_line\nline_1_edit1\nline_2_edit1"})
         git_add(repo.git_dir())
         git_commit(repo.git_dir(), "second")
 
+        git_write_files(repo.git_dir(), {"a": "fixed_line\nline_1_edit2\nline_2_edit2"})
+        git_add(repo.git_dir())
+        git_commit(repo.git_dir(), "third")
+
         _, stdout, stderr = run_forensics(
-            repo.git_dir(),
-            {"out": {
-                "db_path": str(repo.db),
-                "text_dump": "/tmp/test_run.txt",
-                "graphviz": "/tmp/graph.dot"
-            }})
-        
+            repo.git_dir(), {
+                "out": {
+                    "db_path": str(repo.db),
+                    "text_dump": "/tmp/test_run.txt",
+                    "graphviz": "/tmp/graph.dot"
+                }
+            })
+
         assert Path(repo.db).exists(), repo.db
-        conn = sqlite3.connect(repo.db)
-        print_connection_tables(conn)
+        engine = create_engine("sqlite:///" + repo.db)
+        print_connection_tables(engine, file=open("/tmp/table_dump.txt", "w"))
         print(stdout)
         print(stderr)
+
+        df_string = pd.read_sql_table("String", engine)["text"].to_list()
+        assert "init_commit_content" in df_string
+        assert "line_1_edit1" in df_string
+        assert "line_1_edit2" in df_string
+        assert "line_2_edit1" in df_string
+        assert "line_2_edit2" in df_string
+        assert df_string.count("fixed_line") == 1
+
+        df_commits = [
+            c.strip()
+            for c in pd.read_sql_table("GitCommit", engine)["message"].to_list()
+        ]
+
+        assert "second" in df_commits
+        assert "init" in df_commits
+
+        df_section_lines = pd.read_sql_query("SELECT * FROM ViewJoinedFileSectionLines", engine)
+        print_df_rich(df_section_lines, "section_lines")
+        # df_section_lines.groupby()

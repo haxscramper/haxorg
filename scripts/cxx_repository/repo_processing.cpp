@@ -240,6 +240,7 @@ void file_name_actions(
 CommitActions get_commit_actions(
     walker_state*  state,
     CR<CommitTask> task) {
+    LOG(INFO) << "Getting commit actions";
     CommitActions         result;
     git_diff_options      diffopts = GIT_DIFF_OPTIONS_INIT;
     git_diff_find_options findopts = GIT_DIFF_FIND_OPTIONS_INIT;
@@ -274,7 +275,6 @@ CommitActions get_commit_actions(
                                             : delta->old_file.path};
         ir::FilePathId track   = state->content->getFilePath(path);
         auto&          actions = result.actions[track];
-        actions.push_back(NameAction{.path = track});
 
         switch (delta->status) {
             case GIT_DELTA_DELETED: {
@@ -379,6 +379,7 @@ struct ChangeIterationState {
         ir::FileTrackId track_id = which_track(name.path);
         this->track              = &state->at(track_id);
 
+        LOG(INFO) << "File track section name action";
         auto section_id = state->content->add(FileTrackSection{
             .commit_id = commit_id,
             .path      = name.path,
@@ -432,6 +433,19 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
         return task;
     };
 
+    auto expand_commit_task = [&](CommitTask const& task) {
+        // `own_view` is used to avoid result of the commit
+        // actions getter going out of scope.
+        return own_view(std::move(get_commit_actions(state, task).actions))
+             // Expand each commit action group into own
+             // transformation range generator
+             | rv::transform(
+                   [id = task.id](const auto& pair)
+                       -> std::tuple<ir::CommitId, Vec<Action>> {
+                       return std::make_tuple(id, pair.second);
+                   });
+    };
+
     // Mutable iteration state internally implements state machine that
     // keeps track of the current file track, relevant renames and target
     // file section
@@ -461,23 +475,10 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
              // Expand each commit task into list of actions applied to a
              // file in this particular commit -- list of events that state
              // machine will respond to.
-             | rv::transform([&](CommitTask const& task) {
-                   // `own_view` is used to avoid result of the commit
-                   // actions getter going out of scope.
-                   return own_view(std::move(
-                              get_commit_actions(state, task).actions))
-                        // Expand each commit action group into own
-                        // transformation range generator
-                        | rv::transform(
-                              [id = task.id](const auto& pair)
-                                  -> std::
-                                      tuple<ir::CommitId, Vec<Action>> {
-                                          return std::make_tuple(
-                                              id, pair.second);
-                                      });
-               })
+             | rv::transform(expand_commit_task)
              // Flatten the list of commit processing actions
              | rv::join) {
+
 
         // Apply actions to the commit iteration state. It will insert new
         // file tracks, keep track of the historical context of the repo

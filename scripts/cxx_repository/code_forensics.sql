@@ -37,3 +37,10 @@ CREATE TABLE IF NOT EXISTS FileSectionLines(
     section                    INTEGER,
     line_index INTEGER,
     line_id INTEGER REFERENCES LineData(id));
+
+CREATE VIEW ViewJoinedFileSectionLines AS
+SELECT FileSectionLines.section as section_id, FileSectionLines.line_index, String.text
+FROM FileSectionLines
+JOIN LineData ON FileSectionLines.line_id = LineData.id
+JOIN String ON LineData.content = String.id
+;
