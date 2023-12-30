@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <hstd/system/generator.hpp>
 #include <hstd/stdlib/Opt.hpp>
+#include <absl/log/log.h>
 
 #include "git_interface.hpp"
 
@@ -45,12 +46,14 @@ struct CommitGraph {
     Graph g;
 
     std::unordered_map<git_oid, VDesc> rev_map;
-    std::unordered_set<VDesc>          main_set;
+    // TODO check if this heurstics is reliable and covers all the
+    // necessary cases
+    /// For merge commits 'main' is the first commit that was merged in the
+    /// sequence -- one that everything else was merged *to*.
+    std::unordered_set<VDesc> main_set;
 
 
   public:
-    std::vector<VDesc> main_path;
-
     inline int in_degree(VDesc v) const { return bg::in_degree(v, g); }
     inline int out_degree(VDesc v) const { return bg::out_degree(v, g); }
     inline CommitInfo& operator[](VDesc v) { return g[v]; }
@@ -104,7 +107,10 @@ struct CommitGraph {
         for (auto v : commits()) {
             if (tried.find(v) == tried.end()) {
                 tried.insert(v);
-                co_yield {v, get_base(v)};
+                Pair<VDesc, Opt<VDesc>> value{v, get_base(v)};
+                LOG(INFO) << std::format(
+                    ">> {} {}", value.first, value.second);
+                co_yield value;
             }
         }
     }

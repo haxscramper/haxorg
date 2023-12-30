@@ -31,7 +31,7 @@ struct GitFail {
 };
 
 template <typename T>
-using GitResult [[nodiscard]] = std::expected<T, GitFail>;
+using GitResult = std::expected<T, GitFail>;
 
 
 // NOLINTNEXTLINE

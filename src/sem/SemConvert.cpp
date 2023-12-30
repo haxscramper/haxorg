@@ -297,6 +297,9 @@ void OrgConverter::convertSubtreeDrawer(SemIdT<Subtree>& tree, In a) {
                     }
                     break;
                 }
+
+                default: {
+                }
             }
         }
     }
@@ -522,7 +525,8 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
         }
 
         time->time = Time::Static{
-            .time = UserTime{parsedDateTime, .align = matching.align}};
+            .time = UserTime{
+                .time = parsedDateTime, .align = matching.align}};
 
         if (repeatMode != Mode::None) {
             time->getStatic().repeat = Time::Repeat{

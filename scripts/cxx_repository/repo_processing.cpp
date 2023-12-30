@@ -397,16 +397,8 @@ struct ChangeIterationState {
     }
 };
 
-void for_each_commit(walker_state* state) {
-    CommitGraph g{state->repo};
-
+void for_each_commit(CommitGraph& g, walker_state* state) {
     LOG(INFO) << "Getting list of files changed per each commit";
-
-    {
-        std::ofstream file{"/tmp/graph.dot"};
-        file << g.toGraphviz();
-    }
-
 
     git_commit*     prev = nullptr;
     Vec<CommitTask> tasks;
@@ -427,7 +419,8 @@ void for_each_commit(walker_state* state) {
     auto make_task =
         [&](Pair<VDesc, Opt<VDesc>> const& pair) -> Opt<CommitTask> {
         auto [main, base] = pair;
-        return CommitTask{
+
+        auto task = CommitTask{
             .id        = state->get_id(g[main].oid),
             .prev_tree = base ? get_tree(base.value()) : nullptr,
             .this_tree = get_tree(main),
@@ -435,6 +428,8 @@ void for_each_commit(walker_state* state) {
                               : Opt<git_oid>{},
             .this_hash = g[main].oid,
         };
+
+        return task;
     };
 
     // Mutable iteration state internally implements state machine that
@@ -448,8 +443,13 @@ void for_each_commit(walker_state* state) {
              // start from the first commit
              | rv::reverse
              // TODO allow arbitrary N of commits
-             | rv::take(10)
+             // | rv::take(10)
              // package each commit pair into a commit processing task
+             //
+             // FIXME 'make task' is called twice in this pipeline. It does
+             // not produce any extra values, but it looks like the whole
+             // thing might be recomputated too many times. Tests for the
+             // range algorithm logic are sorely missing at the moment.
              | rv::transform(make_task)
              // Filter out skipped commit tasks
              | rv::remove_if([](Opt<CommitTask> const& opt) -> bool {
@@ -494,16 +494,6 @@ CommitId process_commit(git_oid commit_oid, walker_state* state) {
     SPtr<git_commit> commit = git::commit_lookup(
                                   state->repo.get(), &commit_oid)
                                   .value();
-    // commit information should be cleaned up when we exit the scope
-    finally close{[commit]() {
-        // FIXME freeing the commit causes segmentation fault and I have no
-        // idea what is causing this - the issue occurs even in the
-        // sequential, non-parallelized mode. The issue was introduces in
-        // the commit '4e0bda9'
-        //
-        // commit_free(commit);
-    }};
-
     auto hash = oid_tostr(*git_commit_id(commit.get()));
 
     if (state->config->try_incremental) {
@@ -532,7 +522,7 @@ CommitId process_commit(git_oid commit_oid, walker_state* state) {
 }
 
 
-Vec<CommitId> launch_analysis(git_oid& oid, walker_state* state) {
+CommitGraph build_repo_graph(git_oid& oid, walker_state* state) {
     // All constructed information
     Vec<CommitId> processed{};
     // Walk over every commit in the history
@@ -571,7 +561,5 @@ Vec<CommitId> launch_analysis(git_oid& oid, walker_state* state) {
         state->add_full_commit(commit);
     }
 
-    for_each_commit(state);
-
-    return processed;
+    return CommitGraph{state->repo};
 }

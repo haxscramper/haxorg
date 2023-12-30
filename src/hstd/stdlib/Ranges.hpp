@@ -1,13 +1,14 @@
 #pragma once
 
 #include <range/v3/all.hpp>
-
+#include <hstd/system/generator.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/Func.hpp>
+#include <absl/log/log.h>
 
 namespace rv = ranges::views;
 namespace rs = ranges;
 using ranges::operator|;
-
-
 
 template <class T>
 struct generator_view : rs::view_facade<generator_view<T>> {
@@ -17,9 +18,7 @@ struct generator_view : rs::view_facade<generator_view<T>> {
         generator<T>           gen_;
         generator<T>::iterator iter;
         explicit Data(generator<T>&& gen)
-            : gen_(std::move(gen)), iter(gen_.begin()) {
-            ++iter;
-        }
+            : gen_(std::move(gen)), iter(gen_.begin()) {}
     };
 
     SPtr<Data> data;
@@ -48,9 +47,7 @@ struct generator_view : rs::view_facade<generator_view<T>> {
   public:
     generator_view() = default;
     explicit generator_view(generator<T>&& gen)
-        : data(std::make_shared<Data>(std::move(gen))) {
-        // ++data->iter;
-    }
+        : data(std::make_shared<Data>(std::move(gen))) {}
 
     T& cached() noexcept { return *data->iter; }
 };
@@ -123,7 +120,7 @@ struct collector_view
     using value_type     = typename Collected::value_type;
 
     Collected values;
-    iterator  iter;
+    // iterator  iter;
 
     constexpr const_iterator begin() const noexcept {
         return values.begin();
@@ -134,19 +131,19 @@ struct collector_view
     constexpr iterator       end() noexcept { return values.end(); }
     constexpr bool           empty() const { return values.empty(); }
     constexpr auto           size() const { return values.size(); }
-    void                     next() { ++iter; }
-    void                     prev() { --iter; }
-    constexpr auto&          advance(rs::iter_difference_t<iterator> n) {
-        iter += n;
-        return *this;
-    }
+    // void                     next() { ++iter; }
+    // void                     prev() { --iter; }
+    // constexpr auto&          advance(rs::iter_difference_t<iterator> n) {
+    //     // iter += n;
+    //     return *this;
+    // }
 
     collector_view() = default;
     collector_view(Rng&& rng) {
         for (auto const& it : rng) {
             values.push_back(it);
         }
-        iter = values.begin();
+        // iter = values.begin();
     }
 };
 
@@ -164,12 +161,6 @@ template <typename Rng>
 void take_bidirectional_range(Rng const& r) {}
 
 inline auto make_collect() {
-    auto tran = transform(rv::iota(1, 4));
-    using T   = decltype(tran);
-    take_viewable_range(tran);
-    take_bidirectional_range(tran);
-    rs::views::reverse(tran);
-
     return rs::make_pipeable([](auto&& rng) {
         auto tran = transform(rng);
         using T   = decltype(tran);

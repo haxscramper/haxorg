@@ -42,7 +42,7 @@ def print_df_rich(df: pd.DataFrame, title: str):
                 row_data.append(f"[cyan]{item}[/cyan]")
             elif isinstance(item, str):
                 # Quote strings and highlight in yellow
-                row_data.append(f"[yellow]\"{item}\"[/yellow]")
+                row_data.append(f"[yellow]\"{item.strip()}\"[/yellow]")
             else:
                 row_data.append(str(item))
         table.add_row(*row_data)
@@ -91,12 +91,13 @@ def git_commit(dir: Path,
 
 
 @beartype
-def run_forensics(dir: Path, params: dict):
+def run_forensics(dir: Path, params: dict) -> tuple[int, str, str]:
     run = local[str(get_haxorg_repo_root_path().joinpath(
         "build/haxorg/scripts/cxx_repository/code_forensics"))]
     params = merge_dicts([params, {"repo": {"path": str(dir), "branch": "master"}}])
 
-    run.run((json.dumps(params)))
+    print(json.dumps(params))
+    return run.run((json.dumps(params)))
 
 
 @beartype
@@ -136,24 +137,41 @@ class GitTestRepository:
         self.dir.__exit__(exc_type, exc_value, traceback)
         if exc_type is not None:
             return False
-        
+
         db = Path(self.db)
         if db.exists() and not self.fixedDir:
             db.unlink()
 
 
-def test_can_run_dir():
-    with GitTestRepository({"a": "b"}, fixedDir="/tmp/fixed_git_dir_1") as repo:
-        assert not Path(repo.db).exists(), repo.db
-        run_forensics(repo.git_dir(), {"out": {"db_path": str(repo.db)}})
-        assert Path(repo.db).exists(), repo.db
+def print_connection_tables(conn: sqlite3.Connection):
+    tables = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table';", conn)
 
-        conn = sqlite3.connect(repo.db)
-
-        tables = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table';",
-                                   conn)
-
-        print("")
-        for table_name in tables['name'].tolist():
+    print("")
+    for table_name in tables['name'].tolist():
+        if table_name not in ["FileTrack"]:
             df = pd.read_sql_query(f"SELECT * from {table_name}", conn)
             print_df_rich(df, title=table_name)
+
+
+def test_can_run_dir():
+    with GitTestRepository({"a": "init_commit_content"},
+                           fixedDir="/tmp/fixed_git_dir_1") as repo:
+        assert not Path(repo.db).exists(), repo.db
+
+        git_write_files(repo.git_dir(), {"a": "line_one_edit\nline_two_edit"})
+        git_add(repo.git_dir())
+        git_commit(repo.git_dir(), "second")
+
+        _, stdout, stderr = run_forensics(
+            repo.git_dir(),
+            {"out": {
+                "db_path": str(repo.db),
+                "text_dump": "/tmp/test_run.txt",
+                "graphviz": "/tmp/graph.dot"
+            }})
+        
+        assert Path(repo.db).exists(), repo.db
+        conn = sqlite3.connect(repo.db)
+        print_connection_tables(conn)
+        print(stdout)
+        print(stderr)

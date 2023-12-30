@@ -27,6 +27,7 @@ void ExporterUltraplain::visitLink(std::string& res, In<sem::Link> link) {
             case sem::Link::Kind::Raw: {
                 res += link->getRaw().text;
             }
+            default: {}
         }
     }
 }

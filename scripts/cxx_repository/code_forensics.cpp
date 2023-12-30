@@ -190,9 +190,7 @@ struct cli_state {
 };
 
 auto main(int argc, const char** argv) -> int {
-    LOG(INFO) << "Input JSON cofig value is " << argv[1];
-    json in_config = json::parse(argv[1]);
-    LOG(INFO) << "Parsed input JSON to " << in_config.dump();
+    json      in_config = json::parse(argv[1]);
     cli_state in{
         .repo   = in_config["repo"]["path"],
         .branch = in_config["repo"]["branch"],
@@ -245,10 +243,15 @@ auto main(int argc, const char** argv) -> int {
     open_walker(oid, *state);
     // Store finalized commit IDs from executed tasks
     Vec<ir::CommitId> commits{};
-    auto              result = launch_analysis(oid, state.get());
-    for (auto& commit : result) {
-        commits.push_back(commit);
+    CommitGraph       result = build_repo_graph(oid, state.get());
+    if (in_config["out"].contains("graphviz")) {
+        std::string graph_repr = result.toGraphviz();
+        writeFile(
+            fs::path(in_config["out"]["graphviz"].get<std::string>()),
+            graph_repr);
     }
+
+    for_each_commit(result, state.get());
 
     LOG(INFO) << "Finished execution, DB written successfully";
 
@@ -310,6 +313,7 @@ auto main(int argc, const char** argv) -> int {
     InsertAuthors(db, m.store<ir::Author>());
     InsertCommits(db, m.store<ir::Commit>());
     InsertDirectories(db, m.store<ir::Directory>());
+    InsertLineData(db, m.store<ir::LineData>());
     db.exec("COMMIT");
 
     LOG(INFO) << "Completed DB write";

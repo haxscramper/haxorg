@@ -15,6 +15,7 @@ CommitGraph::CommitGraph(SPtr<git_repository> repo) {
         SPtr<git_commit> commit  = git::commit_lookup(repo.get(), &oid)
                                       .value();
 
+        // Extract DAG graph of commits from the history
         for (int i = 0; i < git::commit_parentcount(commit.get()); ++i) {
             auto oid        = *git::commit_parent_id(commit.get(), i);
             auto parent     = get_desc(oid);
@@ -57,9 +58,10 @@ CommitGraph::CommitGraph(SPtr<git_repository> repo) {
         }
     }
 
+    // Find main path of commits in the current repository, starting from
+    // the commit head and then finding all other incoming commits.
     VDesc current = head;
-    while (boost::in_degree(current, g) != 0) {
-        main_path.push_back(current);
+    do {
         main_set.insert(current);
         for (auto [begin, end] = bg::in_edges(current, g); begin != end;
              ++begin) {
@@ -68,7 +70,10 @@ CommitGraph::CommitGraph(SPtr<git_repository> repo) {
                 current = bg::source(e, g);
             }
         }
-    }
+        // Do not continue iterating if the current commit has no inputs,
+        // but the commit itself must be added -- starting commits on the
+        // repo never have any inputs, but they must be analyzed as well.
+    } while (boost::in_degree(current, g) != 0);
 }
 
 

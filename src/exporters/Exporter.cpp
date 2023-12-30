@@ -1,11 +1,9 @@
-#pragma once
-
 #include <exporters/ExporterBase.hpp>
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(
-    R&                                                    res,
-    CR<Variant<In<sem::Time>, In<sem::TimeRange>>> const& range) {
+    R&                                             res,
+    CR<Variant<In<sem::Time>, In<sem::TimeRange>>> range) {
     std::visit(
         [&, this](const auto& it) {
             _this()->visitField(res, "range", it);

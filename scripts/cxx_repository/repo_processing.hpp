@@ -9,6 +9,7 @@
 
 #include "git_ir.hpp"
 #include "program_state.hpp"
+#include "repo_graph.hpp"
 
 using SLock = std::scoped_lock<std::mutex>;
 
@@ -40,7 +41,8 @@ ir::CommitId process_commit(git_oid commit_oid, walker_state* state);
 
 void open_walker(git_oid& oid, walker_state& state);
 
-Vec<ir::CommitId> launch_analysis(git_oid& oid, walker_state* state);
+void for_each_commit(CommitGraph& g, walker_state* state);
 
+CommitGraph build_repo_graph(git_oid& oid, walker_state* state);
 
 #endif // REPO_PROCESSING_HPP
