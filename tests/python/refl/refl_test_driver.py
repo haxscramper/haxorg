@@ -87,10 +87,9 @@ def run_provider(text: str,
                  print_reflection_run_fail_to_stdout: bool = False) -> ConvTu:
     with (
             # TODO Delete only when test run is ok
-        (open(stable_cpp_file, "w") if stable_cpp_file else NamedTemporaryFile(
-            mode="w", suffix=".cpp", delete=False)) as file,
-            NamedTemporaryFile(mode="w", suffix=".json", delete=False) as
-            compile_commands,
+            open(stable_cpp_file, "w")
+            if stable_cpp_file else NamedTemporaryFile(mode="w", suffix=".cpp") as file,
+            NamedTemporaryFile(mode="w", suffix=".json") as compile_commands,
     ):
         tmp_parent = str(Path(file.name).parent)
         base_dict = dict(

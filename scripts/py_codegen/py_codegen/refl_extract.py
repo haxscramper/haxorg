@@ -22,6 +22,7 @@ from beartype.typing import (
     TypeAlias,
     Union,
     cast,
+    Literal,
 )
 from plumbum import local
 from py_scriptutils.files import IsNewInput
@@ -73,6 +74,16 @@ class TuOptions(BaseModel):
         default=False)
 
     reflection_run_verbose: bool = Field(default=False)
+    reflection_run_serialize: bool = Field(
+        default=False,
+        description="Serialize result of the reflection collector run into a JSON file")
+    reflection_run_path: Optional[str] = Field(
+        default=None,
+        description=
+        "Absolute path to the reflection run serialization output. If not specified but the "
+        "reflection serialization itself is requested, script will will write JSON file "
+        "in the same output directory as the rest of the conversion."
+    )
 
 
 @beartype
@@ -285,9 +296,11 @@ def run_collector_for_path(conf: TuOptions, mapping: PathMapping,
             relative.parent.mkdir(parents=True)
 
         path = relative.with_suffix(".json")
-        with open(str(path), "w") as file:
-            file.write(open_proto_file(str(tu.pb_path)).to_json(2))
-            log.info(f"Wrote dump to {path}")
+        if conf.reflection_run_serialize:
+            out_path = conf.reflection_run_path or str(path)
+            with open(out_path, "w") as file:
+                file.write(open_proto_file(str(tu.pb_path)).to_json(2))
+                log.info(f"Wrote dump to {path}")
 
         write_run_result_information(conf, tu, path, commands)
 
