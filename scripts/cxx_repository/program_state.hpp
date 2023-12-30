@@ -144,6 +144,8 @@ struct walker_state {
     auto at(Id id) -> typename dod::value_type_t<Id>& {
         return this->content->at(id);
     }
+
+    Str const& str(ir::StringId id) { return this->at(id).text; }
 };
 
 #endif // PROGRAM_STATE_HPP

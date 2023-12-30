@@ -94,18 +94,6 @@ struct FileTrack {
     Vec<FileTrackSectionId> sections;
 };
 
-/// \brief Full directory path and it's parent ID
-/// \ingroup db_mapped
-struct Directory {
-    using id_type = DirectoryId;
-    Opt<DirectoryId> parent; /// Parent directory ID
-    Str              name;   /// Id of the string
-
-    auto operator==(CR<Directory> other) const -> bool {
-        return name == other.name && parent == other.parent;
-    }
-};
-
 /// \brief Table of interned stirngs for different purposes
 /// \ingroup db_mapped
 struct String {
@@ -178,7 +166,6 @@ inline void hash_combine(std::size_t& seed, const T& v, Rest... rest) {
 // interned. `std::string` already has the hash structure.
 MAKE_HASHABLE(ir::Author, it, it.name, it.email);
 MAKE_HASHABLE(ir::LineData, it, it.content);
-MAKE_HASHABLE(ir::Directory, it, it.name, it.parent);
 MAKE_HASHABLE(ir::String, it, it.text);
 MAKE_HASHABLE(ir::FilePath, it, it.path);
 
@@ -189,38 +176,12 @@ struct content_manager {
         dod::InternStore<AuthorId, Author>, // Full list of authors
         dod::InternStore<LineId, LineData>, // found lines
         dod::Store<FileTrackSectionId, FileTrackSection>,
-        dod::Store<FileTrackId, FileTrack>,       // file tracks
-        dod::InternStore<FilePathId, FilePath>,   // file paths
-        dod::Store<CommitId, Commit>,             // all commits
-        dod::InternStore<DirectoryId, Directory>, // all directories
-        dod::InternStore<StringId, String>        // all interned strings
+        dod::Store<FileTrackId, FileTrack>,     // file tracks
+        dod::InternStore<FilePathId, FilePath>, // file paths
+        dod::Store<CommitId, Commit>,           // all commits
+        dod::InternStore<StringId, String>      // all interned strings
         >
         multi;
-
-    std::unordered_map<Str, DirectoryId> prefixes;
-
-    /// \brief Get *optional* parent directory Id from the path
-    auto parentDirectory(CR<fs::path> dir) -> Opt<DirectoryId> {
-        if (dir.has_parent_path()) {
-            auto parent = dir.parent_path();
-            auto native = parent.native();
-            if (prefixes.contains(native)) {
-                return prefixes.at(native);
-            } else {
-                auto result = getDirectory(parent);
-                prefixes.insert({parent.native(), result});
-                return result;
-            }
-        } else {
-            return Opt<DirectoryId>{};
-        }
-    }
-
-    /// \brief Get directory ID from the provided path
-    auto getDirectory(CR<fs::path> dir) -> DirectoryId {
-        return add(ir::Directory{
-            .parent = parentDirectory(dir), .name = dir.native()});
-    }
 
     FilePathId getFilePath(CR<fs::path> file) {
         if (file.native().starts_with(" ")) {
@@ -229,9 +190,8 @@ struct content_manager {
         }
 
 
-        auto result = add(ir::FilePath{
-            .path = add(String{file.native()}),
-            .dir  = parentDirectory(file)});
+        auto result = add(
+            ir::FilePath{.path = add(String{file.native()})});
 
         assert(!at(at(result).path).text.starts_with(" "));
 

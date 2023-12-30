@@ -243,3 +243,11 @@ FROM
         assert trimall(commit1["section_commit_message"].to_list()) == ["init", "init"]
         assert trimall(commit2["section_commit_message"].to_list()) == ["second", "second", "second"]
         assert trimall(commit3["section_commit_message"].to_list()) == ["third", "third", "third"]
+
+@pytest.mark.slow
+def test_haxorg_forensics():
+    _, stdout, stderr = run_forensics(get_haxorg_repo_root_path(), {
+        "out": {
+            "db_path": "/tmp/haxorg_repo.sqlite",
+        }
+    })

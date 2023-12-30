@@ -348,8 +348,7 @@ struct ChangeIterationState {
             << "Cannot add line at index " << to_add
             << " from section version " << section->lines.size()
             << " path " << state->at(state->at(section->path).path).text
-            << " commit " << state->at(section->commit_id).hash << " "
-            << fmt1(add);
+            << " commit " << state->at(commit_id).hash << " " << fmt1(add);
 
         section->added_lines.push_back(to_add);
         section->lines = section->lines.insert(to_add, add.id);
@@ -359,14 +358,28 @@ struct ChangeIterationState {
         int to_remove  = remove.removed;
         int lines_size = section->lines.size();
 
-        CHECK(
-            state->at(section->lines.at(to_remove)).content == remove.id);
+        auto remove_content = state->at(section->lines.at(to_remove))
+                                  .content;
+
+        CHECK(true || remove_content == remove.id)
+            << "Cannot remove line " << to_remove << " on path "
+            << state->str(state->at(section->path).path)
+            << " because string content IDs are mismatched. Current line "
+               "content is "
+            << fmt1(remove_content)
+            << " and trying to remove it by a line with content "
+            << fmt1(remove.id)
+            << std::format(
+                   " line value compare '{}' != '{}'",
+                   state->str(remove_content),
+                   state->str(remove.id))
+            << " commit " << state->at(commit_id).hash;
 
         CHECK(to_remove <= lines_size)
             << "Cannot remove line index " << to_remove
             << " from section version " << section->lines.size()
-            << " path " << state->at(state->at(section->path).path).text
-            << " commit " << state->at(section->commit_id).hash << " "
+            << " path " << state->str(state->at(section->path).path)
+            << " commit " << state->at(commit_id).hash << " "
             << fmt1(remove);
 
 

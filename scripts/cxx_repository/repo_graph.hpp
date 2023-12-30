@@ -108,8 +108,6 @@ struct CommitGraph {
             if (tried.find(v) == tried.end()) {
                 tried.insert(v);
                 Pair<VDesc, Opt<VDesc>> value{v, get_base(v)};
-                LOG(INFO) << std::format(
-                    ">> {} {}", value.first, value.second);
                 co_yield value;
             }
         }

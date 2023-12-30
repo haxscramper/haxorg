@@ -110,28 +110,6 @@ void InsertFileTrackSections(
     }
 }
 
-// InsertDirectories Function
-void InsertDirectories(
-    SQLite::Database&                                       db,
-    const dod::InternStore<ir::DirectoryId, ir::Directory>& directories) {
-    SQLite::Statement query(db, "INSERT INTO Directory VALUES (?, ?, ?)");
-
-    for (const auto& [id, item] : directories.pairs()) {
-        query.bind(1, idcast(id.getValue()));
-        query.bind(
-            2,
-            idcast(
-                item->parent.has_value() ? item->parent.value().getValue()
-                                         : 0)
-            // TODO NULL
-        );
-        query.bind(3, item->name.toBase());
-
-        query.exec();
-        query.reset();
-    }
-}
-
 // InsertStrings Function
 void InsertStrings(
     SQLite::Database&                                 db,
@@ -311,7 +289,6 @@ auto main(int argc, const char** argv) -> int {
     InsertFilePaths(db, m.store<ir::FilePath>());
     InsertAuthors(db, m.store<ir::Author>());
     InsertCommits(db, m.store<ir::Commit>());
-    InsertDirectories(db, m.store<ir::Directory>());
     InsertLineData(db, m.store<ir::LineData>());
     db.exec("COMMIT");
 
