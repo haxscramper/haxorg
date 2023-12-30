@@ -1,3 +1,65 @@
 #+title: haxorg
 
 Implementation of the org-mode parser and exporter in C++
+
+The library is currently in the 'work in progress state' and is not generally usable.
+
+Documentation deployment via CI is in todo, for now things are just documented in the source code.
+
+* Development process
+
+Project's main build system is written in python and uses the =invoke= library to manage tasks and dependencies between them. Inside, there are two cmake configurations that are intended to be self-contained, e.g., one should be able to compile the whole thing without running any code generation components. Just check out submodules and build the C++ code. At least that is the intention, implementation is not quite there yet (see [[id:2e97816d-eb26-463c-9a9b-db60b15fdc55][Where?]]).
+
+* Sub-projects
+
+** Lexer configuration
+
+** Code generation
+
+** Reflection data collection
+
+Automatically wrapping all C++ code in =pybind11= wrappers is too time-consuming. It is more efficient to use =libtooling= API to collect all the required information about the types, methods, typedefs, enums and other things and automatically generate the wrappers.
+
+** Main org-mode parser
+
+** Test corpus verification
+
+Collection of yaml files with a smaller pieces of code and expected tokens, parsed trees and sem converted trees. This is main part of the test suite for checking if the implementation is working as expected.
+
+** Standard library helpers
+
+** Code forensics
+
+This is a script largely unrelated to the org-mode processing itself, an implementation of [[https://www.amazon.com/Your-Code-Crime-Scene-Bottlenecks/dp/1680500384][Code Forensics]] book. A smaller side project I put here because it uses the stdlib helpers and pretty much all of the other infrastructure I set up. Would be too much work to maintain it independently.
+
+* Development considerations, planning, some questions
+
+** Why?
+
+The most logical question about any project is of course, "why?", what sort of purpose it serves and where it might be useful. In this case the answer is rather straightforward, at least it seems this way to me -- there is no working and usable org-mode parser that can be decoupled from emacs /and even emacs one is absolute garbage/. Let's start with the 'canonical' implementation: aside from the fact it seems more like a huge collection of random regex rules, it barely has an AST, certainly not in a way that is ready for export into other consumers. Exporter customization system still mainly revolves around string manipulation. Very few parts are implemented as a data processing pipelines where you take in an AST and return some other content -- this is not limited to the exporters, org agenda customization is also a string processing. ~subtree.isRecurring()~ is easy to implement in the C++, but for emacs it is a ~re-search-forward~ with some ~rx~ hacks on top. And so on.
+
+So while the emacs is certainly a good org-mode editor, it does a terrible job at being org-mode processor (all default exports block the UI, batch exporting in CLI is something you need to hack around) unless you are planning to dive knee-deep into the lisp programming and figure out all the details of how things need to fit together. Adding support for new source block languages is also tricky. And be a lisp programmer, again. Most people aren't lisp programmers -- I don't consider myself one for example, even after using emacs for half a decade at this point. There are far more python and c++ programmers out there than lisp ones. Although you can certainly get a lot more done with ChatGPT nowadays, which I really suggest you to use if you still want to stick around with emacs.
+
+This pretty much sums up the problem statement -- *implement an org-mode parser in some programming language that /I/ know and expose the interface in python for quicker scripting*. C++ fits the bill, so that's what I went with. Might've been a good opportunity to use Rust or Zig or some other PL, but as it turned out the C++ can be moved into a very ergonomic direction even without full syntax revamps like Carbon or =cppfront= (aka C++ Syntax 2).
+
+Additionally, this is partially a research and learning project for me -- using the latest C++ standard I can get my hands on, modules, fuzzy testing, sanitizers, static code analysis and other useful tools. Then, the whole project data model will be based around data-oriented design, similar to the approach by Carbon, Zig, Nimskull compilers. Flat list of tokens, range-based node storage instead of pointer tree. I want this project to
+
+** How?
+
+*** Tooling, libraries used
+
+After I stated what in the world I'm doing here in this project, lets take a closer look at how I'm planning to actually carry this out. Let's go over the development tools first. The programming language is C++, specifically the latest C++23 -- to simplify toolchain and stdlib bundling I will just use LLVM releases directly. Dependencies are managed by submodules because not all the libraries I used even have conan packaging (=fuzztest=, abseil, =libgit2= (1 year outdated), other things). And
+
+*** Feature parity
+
+*** Testing
+
+** Where?
+   :PROPERTIES:
+   :ID:       2e97816d-eb26-463c-9a9b-db60b15fdc55
+   :END:
+
+Where is the project on the roadmap at the moment, are there any fixed plans or it is just me bumping around the code and fixing things if I see anything that catches my attention this particular moment? Not in a formal sense at the moment, but a rough outline of the things I want to do is:
+
+- *Finish rewrite to the standard library types and RE-flex lexer* -- implementation with Qt types was working correctly as far back as August 2023, but since then I decided to completely drop dependency on Qt, use the RE-flex lexer instead of hand-rolled one and so some other things reorganizing the project. It has taken quite a bit of time, the main missing link being the new lexer implementation. Parser and sem convert don't have to change as much.
+- *Stabilize exposed python API* -- =pybind11= wrapper generation relies on the
