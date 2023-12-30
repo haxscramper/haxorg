@@ -240,7 +240,6 @@ void file_name_actions(
 CommitActions get_commit_actions(
     walker_state*  state,
     CR<CommitTask> task) {
-    LOG(INFO) << "Getting commit actions";
     CommitActions         result;
     git_diff_options      diffopts = GIT_DIFF_OPTIONS_INIT;
     git_diff_find_options findopts = GIT_DIFF_FIND_OPTIONS_INIT;
@@ -379,7 +378,6 @@ struct ChangeIterationState {
         ir::FileTrackId track_id = which_track(name.path);
         this->track              = &state->at(track_id);
 
-        LOG(INFO) << "File track section name action";
         auto section_id = state->content->add(FileTrackSection{
             .commit_id = commit_id,
             .path      = name.path,

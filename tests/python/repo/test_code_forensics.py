@@ -13,6 +13,7 @@ from dataclasses import dataclass
 import sqlite3
 import pandas as pd
 import shutil
+from pprint import pprint
 
 from rich.console import Console
 from rich.table import Column, Table, Style
@@ -111,6 +112,7 @@ class GitTestRepository:
     dir: Optional[TemporaryDirectory | Path] = None
     initMessage: str = "init"
     fixedDir: Optional[str] = None
+    fixedDb: Optional[str] = None
 
     def git_dir(self) -> Path:
         return self.dir if isinstance(self.dir, Path) else Path(self.dir.name)
@@ -131,7 +133,13 @@ class GitTestRepository:
         git_write_files(self.git_dir(), self.startFiles)
         git_add(self.git_dir())
         git_commit(self.git_dir(), self.initMessage)
-        self.db = mktemp(suffix=".sqlite")
+
+        if self.fixedDb:
+            self.db = self.fixedDb
+
+        else:
+            self.db = mktemp(suffix=".sqlite")
+
         return self
 
     def __exit__(self, exc_type: Optional[Type[BaseException]],
@@ -142,7 +150,7 @@ class GitTestRepository:
             return False
 
         db = Path(self.db)
-        if db.exists() and not self.fixedDir:
+        if db.exists() and not self.fixedDb:
             db.unlink()
 
 
@@ -160,14 +168,14 @@ def print_connection_tables(engine: Engine, exclude: List[str] = [], file: Optio
 
 def test_can_run_dir():
     with GitTestRepository({"a": "fixed_line\ninit_commit_content"},
-                           fixedDir="/tmp/fixed_git_dir_1") as repo:
-        assert not Path(repo.db).exists(), repo.db
+                           fixedDir="/tmp/fixed_git_dir_1",
+                           fixedDb="/tmp/result.sqlite") as repo:
 
         git_write_files(repo.git_dir(), {"a": "fixed_line\nline_1_edit1\nline_2_edit1"})
         git_add(repo.git_dir())
         git_commit(repo.git_dir(), "second")
 
-        git_write_files(repo.git_dir(), {"a": "fixed_line\nline_1_edit2\nline_2_edit2"})
+        git_write_files(repo.git_dir(), {"a": "fixed_line\nline_1_edit2\nline_2_edit1"})
         git_add(repo.git_dir())
         git_commit(repo.git_dir(), "third")
 
@@ -191,7 +199,7 @@ def test_can_run_dir():
         assert "line_1_edit1" in df_string
         assert "line_1_edit2" in df_string
         assert "line_2_edit1" in df_string
-        assert "line_2_edit2" in df_string
+        assert "line_2_edit1" in df_string
         assert df_string.count("fixed_line") == 1
 
         df_commits = [
@@ -202,6 +210,36 @@ def test_can_run_dir():
         assert "second" in df_commits
         assert "init" in df_commits
 
-        df_section_lines = pd.read_sql_query("SELECT * FROM ViewJoinedFileSectionLines", engine)
+        df_section_lines = pd.read_sql_query(
+            """SELECT
+    text,
+    section_id,
+    GitLineCommit.message AS line_commit_message,
+    GitLineCommit.time AS line_commit_time,
+    GitSectionCommit.message AS section_commit_message,
+    GitSectionCommit.time AS section_commit_time
+FROM
+    ViewJoinedFileSectionLines
+    JOIN GitCommit AS GitLineCommit ON ViewJoinedFileSectionLines.line_commit = GitLineCommit.id
+    JOIN GitCommit AS GitSectionCommit ON ViewJoinedFileSectionLines.section_commit = GitSectionCommit.id
+    """, 
+            engine)
+        
         print_df_rich(df_section_lines, "section_lines")
-        # df_section_lines.groupby()
+        section_versions = df_section_lines.groupby(["section_id"])
+        assert len(section_versions) == 3  
+        commit1, commit2, commit3 = [group for _, group in section_versions]
+        assert commit1["text"].to_list() == ["fixed_line", "init_commit_content"]
+        assert commit2["text"].to_list() == ["fixed_line", "line_1_edit1", "line_2_edit1"]
+        assert commit3["text"].to_list() == ["fixed_line", "line_1_edit2", "line_2_edit1"]
+
+        def trimall(values: List[str]) -> List[str]:
+            return [s.strip() for s in values]
+
+        assert trimall(commit1["line_commit_message"].to_list()) == ["init", "init"]
+        assert trimall(commit2["line_commit_message"].to_list()) == ["init", "second", "second"]
+        assert trimall(commit3["line_commit_message"].to_list()) == ["init", "third", "second"]
+
+        assert trimall(commit1["section_commit_message"].to_list()) == ["init", "init"]
+        assert trimall(commit2["section_commit_message"].to_list()) == ["second", "second", "second"]
+        assert trimall(commit3["section_commit_message"].to_list()) == ["third", "third", "third"]
