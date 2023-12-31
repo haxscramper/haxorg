@@ -162,10 +162,12 @@ void maybe_file_rename(
         && strcmp(delta->old_file.path, delta->new_file.path) != 0) {
         auto old_path = state->content->getFilePath(delta->old_file.path);
 
-        LOG(INFO) << std::format(
-            "File rename from {} to {}",
-            delta->old_file.path,
-            delta->new_file.path);
+        if (state->verbose_consistency_checks) {
+            LOG(INFO) << std::format(
+                "File rename from {} to {}",
+                delta->old_file.path,
+                delta->new_file.path);
+        }
 
         actions.rename_action = FileRenameAction{
             .this_path = new_path,
@@ -361,12 +363,14 @@ struct ChangeIterationState {
             track_history.push_back(target_path);
         }
 
-        LOG(INFO) << std::format(
-            "File path ID {} resolved via {} to {} has known track:{}",
-            path,
-            track_history,
-            target_path,
-            tracks.contains(target_path));
+        if (state->verbose_consistency_checks) {
+            LOG(INFO) << std::format(
+                "File path ID {} resolved via {} to {} has known track:{}",
+                path,
+                track_history,
+                target_path,
+                tracks.contains(target_path));
+        }
 
         if (tracks.contains(target_path)) {
             return tracks.at(target_path);
@@ -398,8 +402,11 @@ struct ChangeIterationState {
         active_track_renames.insert_or_assign(
             rename.this_path, rename.prev_path);
 
-        LOG(INFO) << std::format(
-            "File rename action, track renames: {}", active_track_renames);
+        if (state->verbose_consistency_checks) {
+            LOG(INFO) << std::format(
+                "File rename action, track renames: {}",
+                active_track_renames);
+        }
     }
 
     void apply(ir::CommitId commit_id, CR<FileDeleteAction> del) {
@@ -418,6 +425,20 @@ struct ChangeIterationState {
         tracks.erase(to_delete);
     }
 
+    std::string format_section_lines() {
+        return section->lines //
+             | rv ::enumerate //
+             | rv::transform([&](auto const& line) {
+                   return std::format(
+                       "[{:<4}] '{:<100}'",
+                       line.first,
+                       state->str(state->at(line.second).content));
+               })
+             | rv::intersperse("\n") //
+             | rv::join              //
+             | rs::to<std::string>();
+    }
+
     void apply(ir::CommitId commit_id, CR<AddAction> add) {
         dbg_expect_set_section();
         int to_add = add.added;
@@ -427,17 +448,7 @@ struct ChangeIterationState {
             << " path '" << state->str(state->at(section->path).path)
             << "' commit " << state->at(commit_id).hash << " " << fmt1(add)
             << std::format("On track:{}\n", track)
-            << (section->lines   //
-                | rv ::enumerate //
-                | rv::transform([&](auto const& line) {
-                      return std::format(
-                          "[{:<4}] '{:<100}'",
-                          line.first,
-                          state->str(state->at(line.second).content));
-                  })
-                | rv::intersperse("\n") //
-                | rv::join              //
-                | rs::to<std::string>());
+            << format_section_lines();
 
         CHECK(to_add <= section->lines.size());
 
@@ -453,21 +464,6 @@ struct ChangeIterationState {
         auto remove_content = state->at(section->lines.at(to_remove))
                                   .content;
 
-        CHECK(true || remove_content == remove.id)
-            << "Cannot remove line " << to_remove << " on path "
-            << state->str(state->at(section->path).path)
-            << " because string content IDs are mismatched. Current "
-               "line "
-               "content is "
-            << fmt1(remove_content)
-            << " and trying to remove it by a line with content "
-            << fmt1(remove.id)
-            << std::format(
-                   " line value compare '{}' != '{}'",
-                   state->str(remove_content),
-                   state->str(remove.id))
-            << " commit " << state->at(commit_id).hash;
-
         CHECK(to_remove <= lines_size)
             << "Cannot remove line index " << to_remove
             << " from section version " << section->lines.size()
@@ -475,6 +471,23 @@ struct ChangeIterationState {
             << " commit " << state->at(commit_id).hash << " "
             << fmt1(remove);
 
+        LOG_IF(INFO, remove_content != remove.id)
+            << "Cannot remove line " << to_remove << " on path "
+            << state->str(state->at(section->path).path)
+            << " because string content IDs are mismatched. Current "
+               "line content is "
+            << fmt1(remove_content)
+            << " and trying to remove it by a line with content "
+            << fmt1(remove.id)
+            << std::format(
+                   " line value compare '{}' != '{}'",
+                   state->str(remove_content),
+                   state->str(remove.id))
+            << " commit " << state->at(commit_id).hash
+            << std::format("On track:{}\n", track)
+            << format_section_lines();
+
+        CHECK(remove_content == remove.id);
 
         section->removed_lines.push_back(to_remove);
         section->lines = section->lines.erase(to_remove);
@@ -485,10 +498,13 @@ struct ChangeIterationState {
         CHECK(!name.getPath().isNil());
         this->track = which_track(name.getPath());
 
-        LOG(INFO) << std::format(
-            "Applying name action, path name {} track {}",
-            state->at(state->at(name.getPath()).path).text,
-            this->track);
+        if (state->verbose_consistency_checks) {
+            LOG(INFO) << std::format(
+                "Applying name action, path name {} track {}",
+                state->at(state->at(name.getPath()).path).text,
+                this->track);
+        }
+
 
         ir::FileTrack& tmp_track = state->at(this->track);
 
@@ -735,10 +751,12 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
                })) {
 
         for (auto const& [file_id, actions] : commit_actions.actions) {
-            LOG(INFO) << std::format(
-                "New action on file {} {}",
-                file_id,
-                state->str(state->at(file_id).path));
+            if (state->verbose_consistency_checks) {
+                LOG(INFO) << std::format(
+                    "New action on file {} {}",
+                    file_id,
+                    state->str(state->at(file_id).path));
+            }
 
             if (actions.rename_action) {
                 iter_state.apply(
@@ -762,17 +780,22 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
             iter_state.end_file_track();
         }
 
-        LOG(INFO) << "------------------------- checking file tree "
-                     "representation consistency for "
-                  << state->at(commit_actions.id).hash;
+        Vec<Str> debug_commits{
+            // "8cc22e03ea815cbc763541570a6d96d4959ecd06",
+            // "d1294a7b427724183d75b257c731cb2d84cd4f6d",
+            // "9980c8ee74e810eda8ef7dd262765de23a624227",
+        };
 
-        git_tree_walk_lambda(
-            commit_actions.this_tree,
-            [&](char const* root, git_tree_entry const* entry) -> int {
-                check_tree_entry_consistency(
-                    state, iter_state, commit_actions, root, entry);
-                return 0;
-            });
+        if (state->verbose_consistency_checks
+            || debug_commits.contains(state->at(commit_actions.id).hash)) {
+            git_tree_walk_lambda(
+                commit_actions.this_tree,
+                [&](char const* root, git_tree_entry const* entry) -> int {
+                    check_tree_entry_consistency(
+                        state, iter_state, commit_actions, root, entry);
+                    return 0;
+                });
+        }
     }
 }
 

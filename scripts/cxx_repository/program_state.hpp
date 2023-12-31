@@ -109,6 +109,8 @@ struct walker_state {
     /// Current git repository
     SPtr<git_repository> repo;
 
+    bool verbose_consistency_checks = false;
+
     /// Ordered list of commits that were considered for the processing run
     Vec<git_oid>                              full_commits;
     std::unordered_map<git_oid, ir::CommitId> commit_ids;
