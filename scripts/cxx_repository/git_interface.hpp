@@ -118,6 +118,13 @@ inline GitResult<SPtr<git_patch>> patch_from_diff(
         git_patch_from_diff, git_patch_free, diff, idx);
 }
 
+inline GitResult<SPtr<git_blob>> blob_lookup(
+    git_repository* repo,
+    const git_oid*  oid) {
+    return wrap_ptr_result<git_blob, git_repository*, const git_oid*>(
+        git_blob_lookup, git_blob_free, repo, oid);
+}
+
 inline const git_signature* commit_author(const git_commit* commit) {
     auto __result = git_commit_author(commit);
     return __result;

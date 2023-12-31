@@ -13,6 +13,11 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <SQLiteCpp/SQLiteCpp.h>
+#include <absl/log/log_sink_registry.h>
+#include <absl/strings/str_split.h>
+#include <absl/strings/str_format.h>
+#include <absl/log/initialize.h>
+#include <absl/log/internal/globals.h>
 
 void CreateTables(SQLite::Database& db) {
     auto        path = __CURRENT_FILE_DIR__ / "code_forensics.sql";
@@ -166,12 +171,41 @@ struct cli_state {
     Str outfile;
 };
 
+class LinePrinterLogSink : public absl::LogSink {
+  public:
+    LinePrinterLogSink(std::string const& path) : file(path) {}
+    void Send(const absl::LogEntry& entry) override {
+        for (absl::string_view line : absl::StrSplit(
+                 entry.text_message_with_prefix(), absl::ByChar('\n'))) {
+            // Overprint severe entries for emphasis:
+            for (int i = static_cast<int>(absl::LogSeverity::kInfo);
+                 i <= static_cast<int>(entry.log_severity());
+                 i++) {
+                file << line << std::endl;
+            }
+        }
+    }
+
+  private:
+    std::ofstream file;
+};
+
+
 auto main(int argc, const char** argv) -> int {
     json      in_config = json::parse(argv[1]);
     cli_state in{
         .repo   = in_config["repo"]["path"],
         .branch = in_config["repo"]["branch"],
     };
+
+    SPtr<LinePrinterLogSink> Sink;
+    if (in_config.contains("log_file")) {
+        Sink = std::make_shared<LinePrinterLogSink>(
+            in_config["log_file"].get<std::string>());
+        absl::AddLogSink(Sink.get());
+        absl::log_internal::SetTimeZone(absl::LocalTimeZone());
+        absl::log_internal::SetInitialized();
+    }
 
 
     const bool use_fusion = false;

@@ -125,6 +125,8 @@ struct CommitTask {
 };
 
 struct CommitActions {
+    CommitId                                  id;
+    SPtr<git_tree>                            this_tree;
     UnorderedMap<ir::FilePathId, Vec<Action>> actions;
 };
 
@@ -218,39 +220,47 @@ void file_edit_actions(
     actions.append(add_actions);
 }
 
-void file_name_actions(
-    walker_state*  state,
-    CommitActions& result,
-    CR<CommitTask> task) {
+void git_tree_walk_lambda(
+    SPtr<git_tree>                                this_tree,
+    Func<int(char const*, git_tree_entry const*)> callback) {
     auto [trampoline, lambda] = git_callback_wrapper(
-        Func<int(char const*, git_tree_entry const*)>(
-            [&](char const* root, git_tree_entry const* entry) -> int {
-                auto path  = fs::path{git_tree_entry_name(entry)};
+        Func<int(char const*, git_tree_entry const*)>(callback));
+
+    git_tree_walk(this_tree.get(), GIT_TREEWALK_PRE, trampoline, &lambda);
+}
+
+void file_name_actions(walker_state* state, CommitActions& result) {
+    git_tree_walk_lambda(
+        result.this_tree,
+        [&](char const* root, git_tree_entry const* entry) -> int {
+            const git_object_t entry_type = git_tree_entry_type(entry);
+            if (entry_type == GIT_OBJECT_BLOB) {
+                auto path = fs::path{root}
+                          / fs::path{git_tree_entry_name(entry)};
                 auto track = state->content->getFilePath(path);
                 result.actions[track].push_back(
                     NameAction{.path = state->content->getFilePath(path)});
                 result.actions[track];
-                return 0;
-            }));
-
-    git_tree_walk(
-        task.this_tree.get(), GIT_TREEWALK_PRE, trampoline, &lambda);
+            }
+            return 0;
+        });
 }
 
 CommitActions get_commit_actions(
     walker_state*  state,
     CR<CommitTask> task) {
-    CommitActions         result;
-    git_diff_options      diffopts = GIT_DIFF_OPTIONS_INIT;
+    CommitActions    result{.id = task.id, .this_tree = task.this_tree};
+    git_diff_options diffopts      = GIT_DIFF_OPTIONS_INIT;
     git_diff_find_options findopts = GIT_DIFF_FIND_OPTIONS_INIT;
-    // Assigned values are said to be 'default' in the libgit documentation
+    // Assigned values are said to be 'default' in the libgit
+    // documentation
     findopts.rename_threshold              = 50;
     findopts.rename_from_rewrite_threshold = 50;
     findopts.copy_threshold                = 50;
     findopts.break_rewrite_threshold       = 60;
     findopts.rename_limit                  = 1000;
 
-    file_name_actions(state, result, task);
+    file_name_actions(state, result);
 
     SPtr<git_diff> diff = git::diff_tree_to_tree(
                               state->repo.get(),
@@ -297,11 +307,12 @@ struct ChangeIterationState {
     FileTrack*            track;
     ir::FileTrackSection* section;
 
-    // Keep track of the mapping between file path and file track IDs. When
-    // a file is seen for the first time a track is created for, with later
-    // renames adding a layer of indirection. `path1->path2->path3` -- when
-    // changes are made to the `path3` in some commit, the corresponding
-    // file track should be the same as `path1` and `path2`.
+    // Keep track of the mapping between file path and file track IDs.
+    // When a file is seen for the first time a track is created for,
+    // with later renames adding a layer of indirection.
+    // `path1->path2->path3` -- when changes are made to the `path3` in
+    // some commit, the corresponding file track should be the same as
+    // `path1` and `path2`.
     UnorderedMap<ir::FilePathId, ir::FileTrackId> tracks;
     UnorderedMap<ir::FilePathId, ir::FilePathId>  active_track_renames;
 
@@ -328,10 +339,10 @@ struct ChangeIterationState {
     }
 
     void apply(ir::CommitId commit_id, CR<FileDeleteAction> del) {
-        // Active track renames are fully reset when a file is deleted --
-        // all historical context is dropped when a file is cleaned up from
-        // the index. If a new file is added with the same name, it will
-        // have a new file track history.
+        // Active track renames are fully reset when a file is deleted
+        // -- all historical context is dropped when a file is cleaned
+        // up from the index. If a new file is added with the same
+        // name, it will have a new file track history.
         ir::FilePathId to_delete = del.path;
         while (active_track_renames.contains(to_delete)) {
             auto tmp  = to_delete;
@@ -346,9 +357,10 @@ struct ChangeIterationState {
         int to_add = add.added;
         CHECK(to_add <= section->lines.size())
             << "Cannot add line at index " << to_add
-            << " from section version " << section->lines.size()
-            << " path " << state->at(state->at(section->path).path).text
-            << " commit " << state->at(commit_id).hash << " " << fmt1(add);
+            << " from section of size " << section->lines.size()
+            << " path '" << state->str(state->at(section->path).path)
+            << "' commit " << state->at(commit_id).hash << " "
+            << fmt1(add);
 
         section->added_lines.push_back(to_add);
         section->lines = section->lines.insert(to_add, add.id);
@@ -364,7 +376,8 @@ struct ChangeIterationState {
         CHECK(true || remove_content == remove.id)
             << "Cannot remove line " << to_remove << " on path "
             << state->str(state->at(section->path).path)
-            << " because string content IDs are mismatched. Current line "
+            << " because string content IDs are mismatched. Current "
+               "line "
                "content is "
             << fmt1(remove_content)
             << " and trying to remove it by a line with content "
@@ -401,13 +414,101 @@ struct ChangeIterationState {
 
         section = &state->at(section_id);
         if (1 < track->sections.size()) {
-            section->lines = state
-                                 ->at(track->sections.at(
-                                     track->sections.size() - 2))
-                                 .lines;
+            ir::FileTrackSectionId prev_section = track->sections.at(
+                track->sections.size() - 2);
+            section->lines = state->at(prev_section).lines;
+            CHECK(
+                state->at(prev_section).track
+                == state->at(section_id).track)
+                << std::format(
+                       "New track section copied lines from the wrong "
+                       "track. Section {} is placed in track {}, but the "
+                       "previous section {} had track {}",
+                       section_id,
+                       state->at(section_id).track,
+                       prev_section,
+                       state->at(prev_section).track);
         }
     }
 };
+
+void check_tree_entry_consistency(
+    walker_state*         state,
+    ChangeIterationState& iter_state,
+    CommitActions const&  commit_actions,
+    char const*           root,
+    git_tree_entry const* entry) {
+    const git_object_t entry_type = git_tree_entry_type(entry);
+    if (entry_type != GIT_OBJECT_BLOB) {
+        return;
+    }
+
+    fs::path path = fs::path{root} / fs::path{git_tree_entry_name(entry)};
+    ir::FilePathId path_id = state->content->getFilePath(path);
+
+    if (!commit_actions.actions.contains(path_id)) {
+        return;
+    }
+
+    ir::FileTrackId        track_id   = iter_state.which_track(path_id);
+    ir::FileTrackSectionId section_id = state->at(track_id)
+                                            .sections.back();
+
+    // Get the blob from the tree entry
+    const git_oid* oid  = git_tree_entry_id(entry);
+    SPtr<git_blob> blob = git::blob_lookup(state->repo.get(), oid).value();
+
+    // Get the blob content
+    const char* content_ptr = (const char*)git_blob_rawcontent(blob.get());
+
+    ir::FileTrackSection const& section = state->at(section_id);
+
+    std::string where = std::format(
+        "section-id:{} track-id:{} commit-hash:{} file-path:{} "
+        "section-path:{} track:{} section-index:{}",
+        section_id,
+        track_id,
+        state->at(commit_actions.id).hash,
+        path,
+        section.path,
+        section.track,
+        state->at(track_id).sections.size() - 1);
+
+    std::string track_dump = std::format(
+        "tracks: {} active-tracks:{}",
+        iter_state.tracks,
+        iter_state.active_track_renames);
+
+    auto content_lines = Str{content_ptr}.split('\n');
+
+
+    CHECK(content_lines.size() == section.lines.size()) << std::format(
+        "Section lines size and content lines size mismatch: section:{} "
+        "content:{} where:{} tracks:[{}]",
+        section.lines.size(),
+        content_lines.size(),
+        where,
+        track_dump);
+
+    for (auto const& [idx, pair] :
+         rv::zip(section.lines, content_lines) | rv::enumerate) {
+
+        Str const& section_line = state->str(
+            state->at(pair.first).content);
+        Str const& content_line{pair.second};
+
+        CHECK(section_line == content_line) << std::format(
+            "Line {} compare at did not match, section:'{}' != "
+            "content:'{}', file '{}', {}",
+            idx,
+            section_line,
+            content_line,
+            path,
+            where);
+    }
+
+    LOG(INFO) << std::format("{} ok", where);
+}
 
 void for_each_commit(CommitGraph& g, walker_state* state) {
     LOG(INFO) << "Getting list of files changed per each commit";
@@ -444,24 +545,11 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
         return task;
     };
 
-    auto expand_commit_task = [&](CommitTask const& task) {
-        // `own_view` is used to avoid result of the commit
-        // actions getter going out of scope.
-        return own_view(std::move(get_commit_actions(state, task).actions))
-             // Expand each commit action group into own
-             // transformation range generator
-             | rv::transform(
-                   [id = task.id](const auto& pair)
-                       -> std::tuple<ir::CommitId, Vec<Action>> {
-                       return std::make_tuple(id, pair.second);
-                   });
-    };
-
     // Mutable iteration state internally implements state machine that
-    // keeps track of the current file track, relevant renames and target
-    // file section
+    // keeps track of the current file track, relevant renames and
+    // target file section
     ChangeIterationState iter_state{.state = state};
-    for (auto const& [commit_id, actions] :
+    for (CommitActions const& commit_actions :
          gen_view(g.commit_pairs())
              // make the commit pairs list reversible
              | make_collect()
@@ -471,10 +559,11 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
              // | rv::take(10)
              // package each commit pair into a commit processing task
              //
-             // FIXME 'make task' is called twice in this pipeline. It does
-             // not produce any extra values, but it looks like the whole
-             // thing might be recomputated too many times. Tests for the
-             // range algorithm logic are sorely missing at the moment.
+             // FIXME 'make task' is called twice in this pipeline. It
+             // does not produce any extra values, but it looks like
+             // the whole thing might be recomputated too many times.
+             // Tests for the range algorithm logic are sorely missing
+             // at the moment.
              | rv::transform(make_task)
              // Filter out skipped commit tasks
              | rv::remove_if([](Opt<CommitTask> const& opt) -> bool {
@@ -483,22 +572,33 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
              | rv::transform([](Opt<CommitTask> const& opt) -> CommitTask {
                    return opt.value();
                })
-             // Expand each commit task into list of actions applied to a
-             // file in this particular commit -- list of events that state
-             // machine will respond to.
-             | rv::transform(expand_commit_task)
-             // Flatten the list of commit processing actions
-             | rv::join) {
+             // Expand each commit task into list of actions applied to
+             // a file in this particular commit -- list of events that
+             // state machine will respond to.
+             | rv::transform([&state](CR<CommitTask> task) {
+                   return get_commit_actions(state, task);
+               })) {
 
+        for (auto const& [file_id, actions] : commit_actions.actions) {
+            // Apply actions to the commit iteration state. It will
+            // insert new file tracks, keep track of the historical
+            // context of the repo changes and so on.
+            rs::for_each(actions, [&](auto const& edit) {
+                std::visit(
+                    [&](auto const& act) {
+                        iter_state.apply(commit_actions.id, act);
+                    },
+                    edit);
+            });
+        }
 
-        // Apply actions to the commit iteration state. It will insert new
-        // file tracks, keep track of the historical context of the repo
-        // changes and so on.
-        rs::for_each(actions, [&](auto const& edit) {
-            std::visit(
-                [&](auto const& act) { iter_state.apply(commit_id, act); },
-                edit);
-        });
+        git_tree_walk_lambda(
+            commit_actions.this_tree,
+            [&](char const* root, git_tree_entry const* entry) -> int {
+                check_tree_entry_consistency(
+                    state, iter_state, commit_actions, root, entry);
+                return 0;
+            });
     }
 }
 
@@ -555,14 +655,15 @@ CommitGraph build_repo_graph(git_oid& oid, walker_state* state) {
 
         // check if we can process it
         //
-        // FIXME `commit_author` returns invalid signature here that causes
-        // a segfault during conversion to a string. Otherwise
-        // `commit_author(commit)->name` is the correct way (according to
-        // the documentation least).
+        // FIXME `commit_author` returns invalid signature here that
+        // causes a segfault during conversion to a string. Otherwise
+        // `commit_author(commit)->name` is the correct way (according
+        // to the documentation least).
         if (state->config->allow_sample(date, "", oid_tostr(oid))) {
             // Store in the list of commits for sampling
             state->sampled_commits.insert({oid, id});
-            // LOG(INFO) << fmt("Processing commit {} at {}", oid, date);
+            // LOG(INFO) << fmt("Processing commit {} at {}", oid,
+            // date);
         }
     }
 

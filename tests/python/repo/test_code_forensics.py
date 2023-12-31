@@ -249,5 +249,6 @@ def test_haxorg_forensics():
     _, stdout, stderr = run_forensics(get_haxorg_repo_root_path(), {
         "out": {
             "db_path": "/tmp/haxorg_repo.sqlite",
-        }
+        },
+        "log_file": "/tmp/haxorg_repo_anal_log.log"
     })
