@@ -31,17 +31,11 @@ i64 idcast(u64 value) { return static_cast<i64>(value); }
 void InsertFilePaths(
     SQLite::Database&                                     db,
     const dod::InternStore<ir::FilePathId, ir::FilePath>& filePaths) {
-    SQLite::Statement query(db, "INSERT INTO FilePath VALUES (?, ?, ?)");
+    SQLite::Statement query(db, "INSERT INTO FilePath VALUES (?, ?)");
 
     for (const auto& [id, item] : filePaths.pairs()) {
         query.bind(1, idcast(id.getValue()));
         query.bind(2, idcast(item->path.getValue()));
-        query.bind(
-            3,
-            idcast(
-                item->dir.has_value() ? item->dir.value().getValue()
-                                      : 0) // TOOD NULL
-        );
 
         query.exec();
         query.reset();

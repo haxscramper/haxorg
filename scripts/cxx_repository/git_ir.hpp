@@ -28,7 +28,6 @@ DECL_ID_TYPE(LineData, LineId, std::size_t);
 DECL_ID_TYPE(Commit, CommitId, std::size_t);
 DECL_ID_TYPE(FileTrack, FileTrackId, std::size_t);
 DECL_ID_TYPE(FilePath, FilePathId, std::size_t);
-DECL_ID_TYPE(Directory, DirectoryId, std::size_t);
 DECL_ID_TYPE(String, StringId, std::size_t);
 DECL_ID_TYPE(FileTrackSection, FileTrackSectionId, std::size_t);
 
@@ -54,8 +53,7 @@ DECL_ID_TYPE(Author, AuthorId, int);
 /// \ingroup db_mapped
 struct FilePath {
     using id_type = FilePathId;
-    ir::StringId         path;
-    Opt<ir::DirectoryId> dir;
+    ir::StringId path;
 
     bool operator==(CR<FilePath> other) const {
         return this->path == other.path;
