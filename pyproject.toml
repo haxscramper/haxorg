@@ -33,6 +33,8 @@ pandas = "^2.1.3"
 invoke = "^2.2.0"
 more-itertools = "^10.1.0"
 sqlalchemy = "^2.0.24"
+hypothesis = "^6.92.2"
+setuptools = "^69.0.3"
 
 [tool.poetry.group.dev.dependencies]
 yapf = "^0.40.2"

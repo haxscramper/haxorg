@@ -10,10 +10,8 @@ from py_scriptutils.toml_config_profiler import merge_dicts
 from pathlib import Path
 from datetime import datetime
 from dataclasses import dataclass
-import sqlite3
 import pandas as pd
 import shutil
-from pprint import pprint
 
 from rich.console import Console
 from rich.table import Column, Table, Style
@@ -21,6 +19,57 @@ from rich import box
 from sqlalchemy import create_engine, Engine
 import io
 
+from pydantic import BaseModel
+from typing import List, Optional, Literal
+from hypothesis import strategies as st
+from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle
+
+class FileOperation(BaseModel):
+    filename: str
+    operation: Literal["delete", "modify", "rename"]
+    new_name: Optional[str] = None  # Only used for 'rename' operation
+
+
+class Commit(BaseModel):
+    operations: List[FileOperation]
+
+
+file_names = st.text(min_size=1, max_size=10, alphabet=st.characters(blacklist_characters="/\\"))
+
+
+class GitRepoStateMachine(RuleBasedStateMachine):
+    files = Bundle("files")
+    commits = []
+
+    @rule(target=files, name=file_names)
+    def add_file(self, name=file_names):
+        self.files.add(name)
+        return name
+
+    @rule(target=files, name=file_names)
+    def delete_file(self, name):
+        if name in self.files:
+            self.files.remove(name)
+
+    @rule(name=file_names, new_name=file_names)
+    def rename_file(self, name, new_name):
+        if name in self.files:
+            self.files.remove(name)
+            self.files.add(new_name)
+
+    @rule()
+    def commit(self):
+        operations = []
+        for name in self.files:
+            operation = st.sampled_from(['delete', 'modify', 'rename'])
+            new_name = None if operation != 'rename' else f"renamed_{name}"
+            operations.append(FileOperation(filename=name, operation=operation, new_name=new_name))
+
+        self.commits.append(Commit(operations=operations))
+        if len(self.commits) >= 3:
+            self.files.clear()  # Reset after 3 commits
+
+TestGitRepo = GitRepoStateMachine.TestCase
 
 @beartype
 def print_df_rich(df: pd.DataFrame, title: str, file: Optional[io.TextIOWrapper] = None):
@@ -65,7 +114,7 @@ def get_git(dir: Path):
 
 @beartype
 def git_init_repo(dir: Path):
-    get_git(dir).run(("init"))
+    get_git(dir).run(("init",))
 
 
 @beartype
@@ -88,6 +137,7 @@ def git_move_files(dir: Path, source: str, target: str):
 def git_remove_files(dir: Path, file: str):
     dir.joinpath(file).unlink()
 
+
 @beartype
 def git_add(dir: Path):
     get_git(dir).run(("add", "."))
@@ -108,7 +158,7 @@ def git_commit(dir: Path,
 
 @beartype
 def run_forensics(dir: Path,
-                  params: dict = {},
+                  params: dict = dict(),
                   db: Optional[str] = None) -> tuple[int, str, str]:
     run = local[str(get_haxorg_repo_root_path().joinpath(
         "build/haxorg/scripts/cxx_repository/code_forensics"))]
@@ -180,7 +230,7 @@ class GitTestRepository:
 
 @beartype
 def print_connection_tables(engine: Engine,
-                            exclude: List[str] = [],
+                            exclude: List[str] = list(),
                             file: Optional[io.TextIOWrapper] = None):
     tables = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table' OR type='view';",
                                engine)
@@ -278,6 +328,7 @@ def test_file_delete():
         git_commit(repo.git_dir(), "deleted")
         run_forensics(repo.git_dir(), db=str(repo.db))
 
+
 def test_file_delete_and_recreate():
     with GitTestRepository({"base": "content"}) as repo:
         git_remove_files(repo.git_dir(), "base")
@@ -287,6 +338,7 @@ def test_file_delete_and_recreate():
         git_write_files(repo.git_dir(), {"base": "content"})
         git_commit(repo.git_dir(), "added-base-v2")
         run_forensics(repo.git_dir(), db=str(repo.db))
+
 
 def test_fast_forward_merge():
     with GitTestRepository({"base": "content"}) as repo:
