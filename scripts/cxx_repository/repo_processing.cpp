@@ -104,8 +104,15 @@ struct FileDeleteAction {
 };
 
 struct NameAction {
-    ir::FilePathId path;
+    NameAction(ir::FilePathId path) : path(path) { CHECK(!path.isNil()); }
     BOOST_DESCRIBE_CLASS(NameAction, (), (path), (), ());
+    ir::FilePathId getPath() const {
+        CHECK(!path.isNil());
+        return path;
+    }
+
+  private:
+    ir::FilePathId path = ir::FilePathId::Nil();
 };
 
 using Action = Variant<
@@ -124,10 +131,14 @@ struct CommitTask {
     git_oid        this_hash;
 };
 
+struct CommitActionGroup : Vec<Action> {
+    Opt<NameAction> leading_name;
+};
+
 struct CommitActions {
-    CommitId                                  id;
-    SPtr<git_tree>                            this_tree;
-    UnorderedMap<ir::FilePathId, Vec<Action>> actions;
+    CommitId                                        id;
+    SPtr<git_tree>                                  this_tree;
+    UnorderedMap<ir::FilePathId, CommitActionGroup> actions;
 };
 
 template <typename Res, typename... CallbackArgs>
@@ -237,10 +248,11 @@ void file_name_actions(walker_state* state, CommitActions& result) {
             if (entry_type == GIT_OBJECT_BLOB) {
                 auto path = fs::path{root}
                           / fs::path{git_tree_entry_name(entry)};
-                auto track = state->content->getFilePath(path);
-                result.actions[track].push_back(
-                    NameAction{.path = state->content->getFilePath(path)});
-                result.actions[track];
+                auto  track   = state->content->getFilePath(path);
+                auto& actions = result.actions[track];
+                CHECK(!actions.leading_name);
+                actions.leading_name = NameAction{
+                    state->content->getFilePath(path)};
             }
             return 0;
         });
@@ -279,11 +291,9 @@ CommitActions get_commit_actions(
                                     .value();
         const git_diff_delta* delta = git::patch_get_delta(patch.get());
 
-        fs::path path{
-            delta->old_file.path == nullptr ? delta->new_file.path
-                                            : delta->old_file.path};
+        fs::path       path{delta->new_file.path};
         ir::FilePathId track   = state->content->getFilePath(path);
-        auto&          actions = result.actions[track];
+        auto&          actions = result.actions.at(track);
 
         switch (delta->status) {
             case GIT_DELTA_DELETED: {
@@ -291,9 +301,19 @@ CommitActions get_commit_actions(
                     .path = state->content->getFilePath(path)});
                 break;
             }
-            default: {
+
+            case GIT_DELTA_RENAMED: {
+                maybe_file_rename(state, delta, actions);
+                break;
+            }
+
+            case GIT_DELTA_ADDED:
+            case GIT_DELTA_MODIFIED: {
                 maybe_file_rename(state, delta, actions);
                 file_edit_actions(patch, state, id_commit, actions);
+                break;
+            }
+            default: {
             }
         }
     }
@@ -331,14 +351,30 @@ struct ChangeIterationState {
         }
     }
 
-    UnorderedMap<ir::FileTrackId, Vec<Action>> actions;
+    void end_file_track() {
+        section = nullptr;
+        track   = nullptr;
+    }
+
+    void dbg_expect_clean_section_residuals() {
+        CHECK(section == nullptr);
+        CHECK(track == nullptr);
+    }
+
+    void dbg_expect_set_section() {
+        CHECK(section != nullptr);
+        CHECK(track != nullptr);
+    }
+
 
     void apply(ir::CommitId commit_id, CR<FileRenameAction> rename) {
+        dbg_expect_set_section();
         active_track_renames.insert_or_assign(
             rename.this_path, rename.prev_path);
     }
 
     void apply(ir::CommitId commit_id, CR<FileDeleteAction> del) {
+        dbg_expect_set_section();
         // Active track renames are fully reset when a file is deleted
         // -- all historical context is dropped when a file is cleaned
         // up from the index. If a new file is added with the same
@@ -354,6 +390,7 @@ struct ChangeIterationState {
     }
 
     void apply(ir::CommitId commit_id, CR<AddAction> add) {
+        dbg_expect_set_section();
         int to_add = add.added;
         CHECK(to_add <= section->lines.size())
             << "Cannot add line at index " << to_add
@@ -367,6 +404,7 @@ struct ChangeIterationState {
     }
 
     void apply(ir::CommitId commit_id, CR<RemoveAction> remove) {
+        dbg_expect_set_section();
         int to_remove  = remove.removed;
         int lines_size = section->lines.size();
 
@@ -401,18 +439,21 @@ struct ChangeIterationState {
     }
 
     void apply(ir::CommitId commit_id, CR<NameAction> name) {
-        ir::FileTrackId track_id = which_track(name.path);
+        dbg_expect_clean_section_residuals();
+        CHECK(!name.getPath().isNil());
+        ir::FileTrackId track_id = which_track(name.getPath());
         this->track              = &state->at(track_id);
 
         auto section_id = state->content->add(FileTrackSection{
             .commit_id = commit_id,
-            .path      = name.path,
+            .path      = name.getPath(),
             .track     = track_id,
         });
 
         track->sections.push_back(section_id);
 
         section = &state->at(section_id);
+        CHECK(!section->path.isNil());
         if (1 < track->sections.size()) {
             ir::FileTrackSectionId prev_section = track->sections.at(
                 track->sections.size() - 2);
@@ -431,6 +472,34 @@ struct ChangeIterationState {
         }
     }
 };
+
+template <typename R1, typename R2>
+auto zip_longest(const R1& r1, const R2& r2) {
+    using OptionalT1 = Opt<rs::range_value_t<R1>>;
+    using OptionalT2 = Opt<rs::range_value_t<R2>>;
+
+    auto pad1 = rv::repeat_n(
+        OptionalT1{},
+        std::max<int>(0, rs::distance(r2) - rs::distance(r1)));
+
+    auto pad2 = rv::repeat_n(
+        OptionalT2{},
+        std::max<int>(0, rs::distance(r1) - rs::distance(r2)));
+
+    auto padded1 = rv::concat(
+        r1 | rv::transform([](auto&& v) -> OptionalT1 {
+            return OptionalT1{std::forward<decltype(v)>(v)};
+        }),
+        pad1);
+
+    auto padded2 = rv::concat(
+        r2 | rv::transform([](auto&& v) -> OptionalT2 {
+            return OptionalT2{std::forward<decltype(v)>(v)};
+        }),
+        pad2);
+
+    return rv::zip(padded1, padded2);
+}
 
 void check_tree_entry_consistency(
     walker_state*         state,
@@ -464,11 +533,11 @@ void check_tree_entry_consistency(
     ir::FileTrackSection const& section = state->at(section_id);
 
     std::string where = std::format(
-        "section-id:{} track-id:{} commit-hash:{} file-path:{} "
+        "section:{} track:{} file-path:\"{}\" "
         "section-path:{} track:{} section-index:{}",
         section_id,
         track_id,
-        state->at(commit_actions.id).hash,
+        // state->at(commit_actions.id).hash,
         path,
         section.path,
         section.track,
@@ -481,14 +550,42 @@ void check_tree_entry_consistency(
 
     auto content_lines = Str{content_ptr}.split('\n');
 
+    std::string concat_content =                  //
+        zip_longest(section.lines, content_lines) //
+        | rv::enumerate                           //
+        | rv::transform(
+            [&](auto const& line_pair)
+                -> std::tuple<int, std::string, std::string> {
+                return std::tuple(
+                    line_pair.first,
+                    line_pair.second.first ? state->str(
+                        state->at(*line_pair.second.first).content)
+                                           : "",
+                    line_pair.second.second ? *line_pair.second.second
+                                            : "");
+            })
+        | rv::transform([](auto const& line_tuple) -> std::string {
+              return std::format(
+                  "[{:<4}] '{:<100}' '{:<100}'",
+                  std::get<0>(line_tuple),
+                  std::get<1>(line_tuple),
+                  std::get<2>(line_tuple));
+          })
+        | rv::intersperse("\n") //
+        | rv::join              //
+        | rs::to<std::string>();
 
-    CHECK(content_lines.size() == section.lines.size()) << std::format(
-        "Section lines size and content lines size mismatch: section:{} "
-        "content:{} where:{} tracks:[{}]",
-        section.lines.size(),
-        content_lines.size(),
-        where,
-        track_dump);
+    LOG_IF(INFO, content_lines.size() != section.lines.size())
+        << std::format(
+               "Section lines size and content lines size mismatch: "
+               "section:{} "
+               "content:{} where:{} tracks:[{}]\nfull content:\n{}",
+               section.lines.size(),
+               content_lines.size(),
+               where,
+               track_dump,
+               concat_content);
+    CHECK(content_lines.size() == section.lines.size());
 
     for (auto const& [idx, pair] :
          rv::zip(section.lines, content_lines) | rv::enumerate) {
@@ -497,14 +594,16 @@ void check_tree_entry_consistency(
             state->at(pair.first).content);
         Str const& content_line{pair.second};
 
-        CHECK(section_line == content_line) << std::format(
+        LOG_IF(INFO, section_line != content_line) << std::format(
             "Line {} compare at did not match, section:'{}' != "
-            "content:'{}', file '{}', {}",
+            "content:'{}', file '{}', {}\nfull content:\n{}",
             idx,
             section_line,
             content_line,
             path,
-            where);
+            where,
+            concat_content);
+        CHECK(section_line == content_line);
     }
 
     LOG(INFO) << std::format("{} ok", where);
@@ -580,6 +679,8 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
                })) {
 
         for (auto const& [file_id, actions] : commit_actions.actions) {
+            iter_state.apply(
+                commit_actions.id, actions.leading_name.value());
             // Apply actions to the commit iteration state. It will
             // insert new file tracks, keep track of the historical
             // context of the repo changes and so on.
@@ -590,6 +691,8 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
                     },
                     edit);
             });
+
+            iter_state.end_file_track();
         }
 
         git_tree_walk_lambda(
@@ -639,8 +742,6 @@ CommitGraph build_repo_graph(git_oid& oid, walker_state* state) {
     Vec<CommitId> processed{};
     // Walk over every commit in the history
     Vec<FullCommitData> full_commits;
-    // TODO get commit count and tick here instead of `full_commit`
-    // addition.
     while (git::revwalk_next(&oid, state->walker.get()) == 0) {
         // Get commit from the provided oid
         SPtr<git_commit>

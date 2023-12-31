@@ -10,6 +10,7 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <immer/flex_vector.hpp>
+#include <absl/log/log.h>
 
 template <dod::IsIdType T>
 auto operator<<(std::ostream& stream, T id) -> std::ostream& {
@@ -186,14 +187,16 @@ struct content_manager {
     FilePathId getFilePath(CR<fs::path> file) {
         if (file.native().starts_with(" ")) {
             std::cerr << file << std::endl;
-            assert(false);
+            CHECK(false);
         }
 
 
         auto result = add(
             ir::FilePath{.path = add(String{file.native()})});
 
-        assert(!at(at(result).path).text.starts_with(" "));
+        CHECK(!at(at(result).path).text.starts_with(" "));
+        CHECK(!result.isNil())
+            << std::format("ID:{} PATH:{}", result, file);
 
         return result;
     }

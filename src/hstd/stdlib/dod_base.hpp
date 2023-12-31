@@ -147,7 +147,7 @@ struct [[nodiscard]] Id {
     }
 
     /// \brief Write strig representation of the ID into output stream
-    std::string format(std::string name = "dod::Id", bool withMask = true)
+    std::string format(std::string name = "Id", bool withMask = true)
         const {
         std::string result;
         if (name.size() != 0) {
