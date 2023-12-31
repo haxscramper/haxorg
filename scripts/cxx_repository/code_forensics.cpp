@@ -19,6 +19,10 @@
 #include <absl/log/initialize.h>
 #include <absl/log/internal/globals.h>
 
+#include "repo_profile.hpp"
+
+#include <hstd/wrappers/perfetto_aux_impl_template.hpp>
+
 void CreateTables(SQLite::Database& db) {
     auto        path = __CURRENT_FILE_DIR__ / "code_forensics.sql";
     std::string sql  = readFile(path);
@@ -192,6 +196,8 @@ auto main(int argc, const char** argv) -> int {
         .branch = in_config["repo"]["branch"],
     };
 
+    json const& out = in_config["out"];
+
     SPtr<LinePrinterLogSink> Sink;
     if (in_config.contains("log_file")) {
         Sink = std::make_shared<LinePrinterLogSink>(
@@ -199,6 +205,11 @@ auto main(int argc, const char** argv) -> int {
         absl::AddLogSink(Sink.get());
         absl::log_internal::SetTimeZone(absl::LocalTimeZone());
         absl::log_internal::SetInitialized();
+    }
+
+    std::unique_ptr<perfetto::TracingSession> perfetto_session;
+    if (out.contains("perfetto")) {
+        perfetto_session = StartProcessTracing("code_forensics");
     }
 
 
@@ -249,21 +260,19 @@ auto main(int argc, const char** argv) -> int {
     // Store finalized commit IDs from executed tasks
     Vec<ir::CommitId> commits{};
     CommitGraph       result = build_repo_graph(oid, state.get());
-    if (in_config["out"].contains("graphviz")) {
+    if (out.contains("graphviz")) {
         std::string graph_repr = result.toGraphviz();
         writeFile(
-            fs::path(in_config["out"]["graphviz"].get<std::string>()),
-            graph_repr);
+            fs::path(out["graphviz"].get<std::string>()), graph_repr);
     }
 
     for_each_commit(result, state.get());
 
     LOG(INFO) << "Finished execution, DB written successfully";
 
-    if (in_config["out"].contains("text_dump")) {
+    if (out.contains("text_dump")) {
         LOG(INFO) << "Text dump option specified, writing debug";
-        std::ofstream file{
-            in_config["out"]["text_dump"].get<std::string>()};
+        std::ofstream file{out["text_dump"].get<std::string>()};
         for (auto const& [id, value] :
              state->content->multi.store<ir::FileTrack>().pairs()) {
             file << "File\n";
@@ -299,7 +308,7 @@ auto main(int argc, const char** argv) -> int {
     }
 
 
-    std::string db_path = in_config["out"]["db_path"].get<std::string>();
+    std::string db_path = out["db_path"].get<std::string>();
     fs::path    db_file = db_path;
     if (fs::exists(db_file)) {
         fs::remove(db_file);
@@ -321,6 +330,12 @@ auto main(int argc, const char** argv) -> int {
     db.exec("COMMIT");
 
     LOG(INFO) << "Completed DB write";
+
+    if (out.contains("perfetto")) {
+        fs::path out_path{out["perfetto"].get<std::string>()};
+        LOG(INFO) << std::format("Perfetto output {}", out_path);
+        StopTracing(std::move(perfetto_session), out_path);
+    }
 
     return 0;
 }

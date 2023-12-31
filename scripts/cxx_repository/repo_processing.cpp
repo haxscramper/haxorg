@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Map.hpp>
 #include <immer/flex_vector_transient.hpp>
 #include <fstream>
+#include "repo_profile.hpp"
 
 #include <boost/asio/thread_pool.hpp>
 #include <hstd/stdlib/strutils.hpp>
@@ -683,6 +684,7 @@ void check_tree_entry_consistency(
 
 void for_each_commit(CommitGraph& g, walker_state* state) {
     LOG(INFO) << "Getting list of files changed per each commit";
+    TRACE_EVENT("repo", "For each commit");
 
     git_commit*     prev = nullptr;
     Vec<CommitTask> tasks;
@@ -750,7 +752,18 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
                    return get_commit_actions(state, task);
                })) {
 
+        TRACE_EVENT(
+            "repo",
+            "Actions for commit",
+            "hash",
+            state->at(commit_actions.id).hash);
+
         for (auto const& [file_id, actions] : commit_actions.actions) {
+            TRACE_EVENT(
+                "repo",
+                "Actions for file",
+                "path",
+                state->str(state->at(file_id).path));
             if (state->verbose_consistency_checks) {
                 LOG(INFO) << std::format(
                     "New action on file {} {}",
@@ -832,6 +845,7 @@ CommitId process_commit(git_oid commit_oid, walker_state* state) {
 
 
 CommitGraph build_repo_graph(git_oid& oid, walker_state* state) {
+    TRACE_EVENT("repo", "build repo graph main");
     // All constructed information
     Vec<CommitId> processed{};
     // Walk over every commit in the history
@@ -869,5 +883,6 @@ CommitGraph build_repo_graph(git_oid& oid, walker_state* state) {
         state->add_full_commit(commit);
     }
 
+    TRACE_EVENT("repo", "construct repo graph structure");
     return CommitGraph{state->repo};
 }

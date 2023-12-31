@@ -184,7 +184,8 @@ def test_can_run_dir():
                 "out": {
                     "db_path": str(repo.db),
                     "text_dump": "/tmp/test_run.txt",
-                    "graphviz": "/tmp/graph.dot"
+                    "graphviz": "/tmp/graph.dot",
+                    "perfetto": "/tmp/code_forensics.pftrace"
                 }
             })
 
