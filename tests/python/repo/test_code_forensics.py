@@ -210,21 +210,7 @@ def test_can_run_dir():
         assert "second" in df_commits
         assert "init" in df_commits
 
-        df_section_lines = pd.read_sql_query(
-            """SELECT
-    text,
-    section_id,
-    GitLineCommit.message AS line_commit_message,
-    GitLineCommit.time AS line_commit_time,
-    GitSectionCommit.message AS section_commit_message,
-    GitSectionCommit.time AS section_commit_time
-FROM
-    ViewJoinedFileSectionLines
-    JOIN GitCommit AS GitLineCommit ON ViewJoinedFileSectionLines.line_commit = GitLineCommit.id
-    JOIN GitCommit AS GitSectionCommit ON ViewJoinedFileSectionLines.section_commit = GitSectionCommit.id
-    """, 
-            engine)
-        
+        df_section_lines = pd.read_sql_table("ViewFullFileSectionLines", engine)
         print_df_rich(df_section_lines, "section_lines")
         section_versions = df_section_lines.groupby(["section_id"])
         assert len(section_versions) == 3  

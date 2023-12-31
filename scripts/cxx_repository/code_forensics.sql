@@ -70,3 +70,19 @@ FROM
     JOIN GitCommit as GitCommitForSection ON FileTrackSection.commit_id = GitCommitForSection.id
     --
 ;
+
+CREATE VIEW
+    ViewFullFileSectionLines AS
+SELECT
+    text,
+    section_id,
+    GitLineCommit.message AS line_commit_message,
+    GitLineCommit.time AS line_commit_time,
+    GitSectionCommit.message AS section_commit_message,
+    GitSectionCommit.time AS section_commit_time
+FROM
+    ViewJoinedFileSectionLines
+    JOIN GitCommit AS GitLineCommit ON ViewJoinedFileSectionLines.line_commit = GitLineCommit.id
+    JOIN GitCommit AS GitSectionCommit ON ViewJoinedFileSectionLines.section_commit = GitSectionCommit.id
+    --
+;
