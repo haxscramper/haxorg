@@ -116,12 +116,7 @@ struct NameAction {
     ir::FilePathId path = ir::FilePathId::Nil();
 };
 
-using Action = Variant<
-    NameAction,
-    FileRenameAction,
-    RemoveAction,
-    AddAction,
-    FileDeleteAction>;
+using Action = Variant<RemoveAction, AddAction>;
 
 
 struct CommitTask {
@@ -135,6 +130,7 @@ struct CommitTask {
 struct CommitActionGroup : Vec<Action> {
     Opt<NameAction>       leading_name;
     Opt<FileRenameAction> rename_action;
+    Opt<FileDeleteAction> delete_action;
 };
 
 struct CommitActions {
@@ -318,8 +314,8 @@ CommitActions get_commit_actions(
 
         switch (delta->status) {
             case GIT_DELTA_DELETED: {
-                actions.push_back(FileDeleteAction{
-                    .path = state->content->getFilePath(path)});
+                actions.delete_action = FileDeleteAction{
+                    .path = state->content->getFilePath(path)};
                 break;
             }
 
@@ -341,8 +337,6 @@ CommitActions get_commit_actions(
 struct ChangeIterationState {
     walker_state* state;
 
-    ir::FileTrackId       track = ir::FileTrackId::Nil();
-    ir::FileTrackSection* section;
 
     // Keep track of the mapping between file path and file track IDs.
     // When a file is seen for the first time a track is created for,
@@ -383,22 +377,6 @@ struct ChangeIterationState {
         }
     }
 
-    void end_file_track() {
-        section = nullptr;
-        track   = ir::FileTrackId::Nil();
-    }
-
-    void dbg_expect_clean_section_residuals() {
-        CHECK(section == nullptr);
-        CHECK(track.isNil());
-    }
-
-    void dbg_expect_set_section() {
-        CHECK(section != nullptr);
-        CHECK(!track.isNil());
-    }
-
-
     void apply(ir::CommitId commit_id, CR<FileRenameAction> rename) {
         active_track_renames.insert_or_assign(
             rename.this_path, rename.prev_path);
@@ -411,7 +389,6 @@ struct ChangeIterationState {
     }
 
     void apply(ir::CommitId commit_id, CR<FileDeleteAction> del) {
-        dbg_expect_set_section();
         // Active track renames are fully reset when a file is deleted
         // -- all historical context is dropped when a file is cleaned
         // up from the index. If a new file is added with the same
@@ -426,9 +403,9 @@ struct ChangeIterationState {
         tracks.erase(to_delete);
     }
 
-    std::string format_section_lines() {
-        return section->lines //
-             | rv ::enumerate //
+    std::string format_section_lines(ir::FileTrackSectionId section_id) {
+        return state->at(section_id).lines //
+             | rv ::enumerate              //
              | rv::transform([&](auto const& line) {
                    return std::format(
                        "[{:<4}] '{:<100}'",
@@ -440,41 +417,50 @@ struct ChangeIterationState {
              | rs::to<std::string>();
     }
 
-    void apply(ir::CommitId commit_id, CR<AddAction> add) {
-        dbg_expect_set_section();
-        int to_add = add.added;
-        LOG_IF(INFO, !(to_add <= section->lines.size()))
+    void apply(
+        ir::FileTrackId        track,
+        ir::FileTrackSectionId section_id,
+        ir::CommitId           commit_id,
+        CR<AddAction>          add) {
+
+        ir::FileTrackSection& section = state->at(section_id);
+        int                   to_add  = add.added;
+        LOG_IF(INFO, !(to_add <= section.lines.size()))
             << "Cannot add line at index " << to_add
-            << " from section of size " << section->lines.size()
-            << " path '" << state->str(state->at(section->path).path)
+            << " from section of size " << section.lines.size()
+            << " path '" << state->str(state->at(section.path).path)
             << "' commit " << state->at(commit_id).hash << " " << fmt1(add)
             << std::format("On track:{}\n", track)
-            << format_section_lines();
+            << format_section_lines(section_id);
 
-        CHECK(to_add <= section->lines.size());
+        CHECK(to_add <= section.lines.size());
 
-        section->added_lines.push_back(to_add);
-        section->lines = section->lines.insert(to_add, add.id);
+        section.added_lines.push_back(to_add);
+        section.lines = section.lines.insert(to_add, add.id);
     }
 
-    void apply(ir::CommitId commit_id, CR<RemoveAction> remove) {
-        dbg_expect_set_section();
-        int to_remove  = remove.removed;
-        int lines_size = section->lines.size();
+    void apply(
+        ir::FileTrackId        track,
+        ir::FileTrackSectionId section_id,
+        ir::CommitId           commit_id,
+        CR<RemoveAction>       remove) {
 
-        auto remove_content = state->at(section->lines.at(to_remove))
+        int                   to_remove  = remove.removed;
+        ir::FileTrackSection& section    = state->at(section_id);
+        int                   lines_size = section.lines.size();
+
+        auto remove_content = state->at(section.lines.at(to_remove))
                                   .content;
 
         CHECK(to_remove <= lines_size)
             << "Cannot remove line index " << to_remove
-            << " from section version " << section->lines.size()
-            << " path " << state->str(state->at(section->path).path)
-            << " commit " << state->at(commit_id).hash << " "
-            << fmt1(remove);
+            << " from section version " << section.lines.size() << " path "
+            << state->str(state->at(section.path).path) << " commit "
+            << state->at(commit_id).hash << " " << fmt1(remove);
 
         LOG_IF(INFO, remove_content != remove.id)
             << "Cannot remove line " << to_remove << " on path "
-            << state->str(state->at(section->path).path)
+            << state->str(state->at(section.path).path)
             << " because string content IDs are mismatched. Current "
                "line content is "
             << fmt1(remove_content)
@@ -486,43 +472,44 @@ struct ChangeIterationState {
                    state->str(remove.id))
             << " commit " << state->at(commit_id).hash
             << std::format("On track:{}\n", track)
-            << format_section_lines();
+            << format_section_lines(section_id);
 
         CHECK(remove_content == remove.id);
 
-        section->removed_lines.push_back(to_remove);
-        section->lines = section->lines.erase(to_remove);
+        section.removed_lines.push_back(to_remove);
+        section.lines = section.lines.erase(to_remove);
     }
 
-    void apply(ir::CommitId commit_id, CR<NameAction> name) {
-        dbg_expect_clean_section_residuals();
+    auto apply(ir::CommitId commit_id, CR<NameAction> name)
+        -> Pair<ir::FileTrackId, ir::FileTrackSectionId> {
         CHECK(!name.getPath().isNil());
-        this->track = which_track(name.getPath());
+        ir::FileTrackId track = which_track(name.getPath());
 
         if (state->verbose_consistency_checks) {
             LOG(INFO) << std::format(
                 "Applying name action, path name {} track {}",
                 state->at(state->at(name.getPath()).path).text,
-                this->track);
+                track);
         }
 
 
-        ir::FileTrack& tmp_track = state->at(this->track);
+        ir::FileTrack& tmp_track = state->at(track);
 
         auto section_id = state->content->add(FileTrackSection{
             .commit_id = commit_id,
             .path      = name.getPath(),
-            .track     = this->track,
+            .track     = track,
         });
+
+        ir::FileTrackSection& section = state->at(section_id);
 
         tmp_track.sections.push_back(section_id);
 
-        section = &state->at(section_id);
-        CHECK(!section->path.isNil());
+        CHECK(!section.path.isNil());
         if (1 < tmp_track.sections.size()) {
             ir::FileTrackSectionId prev_section = tmp_track.sections.at(
                 tmp_track.sections.size() - 2);
-            section->lines = state->at(prev_section).lines;
+            section.lines = state->at(prev_section).lines;
             CHECK(
                 state->at(prev_section).track
                 == state->at(section_id).track)
@@ -535,6 +522,8 @@ struct ChangeIterationState {
                        prev_section,
                        state->at(prev_section).track);
         }
+
+        return {track, section_id};
     }
 };
 
@@ -776,7 +765,12 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
                     commit_actions.id, *actions.rename_action);
             }
 
-            iter_state.apply(
+            if (actions.delete_action) {
+                iter_state.apply(
+                    commit_actions.id, *actions.delete_action);
+            }
+
+            auto [track_id, section_id] = iter_state.apply(
                 commit_actions.id, actions.leading_name.value());
             // Apply actions to the commit iteration state. It will
             // insert new file tracks, keep track of the historical
@@ -784,13 +778,11 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
             rs::for_each(actions, [&](auto const& edit) {
                 std::visit(
                     [&](auto const& act) {
-                        // LOG(INFO) << std::format("{}", act);
-                        iter_state.apply(commit_actions.id, act);
+                        iter_state.apply(
+                            track_id, section_id, commit_actions.id, act);
                     },
                     edit);
             });
-
-            iter_state.end_file_track();
         }
 
         Vec<Str> debug_commits{
