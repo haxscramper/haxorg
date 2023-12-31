@@ -1,3 +1,5 @@
+from pprint import pprint
+
 import pytest
 import json
 from tempfile import NamedTemporaryFile, TemporaryDirectory, mktemp
@@ -20,13 +22,15 @@ from sqlalchemy import create_engine, Engine
 import io
 
 from pydantic import BaseModel
-from typing import List, Optional, Literal
+from beartype.typing import List, Optional, Literal, Set
 from hypothesis import strategies as st
-from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle
+from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle, precondition
+from py_scriptutils.script_logging import log
+
 
 class FileOperation(BaseModel):
     filename: str
-    operation: Literal["delete", "modify", "rename"]
+    operation: Literal["delete", "modify", "rename", "add"]
     new_name: Optional[str] = None  # Only used for 'rename' operation
 
 
@@ -34,42 +38,58 @@ class Commit(BaseModel):
     operations: List[FileOperation]
 
 
-file_names = st.text(min_size=1, max_size=10, alphabet=st.characters(blacklist_characters="/\\"))
+file_names = st.text(min_size=5,
+                     max_size=20,
+                     alphabet=st.characters(min_codepoint=ord('a'),
+                                            max_codepoint=ord('z')))
 
 
 class GitRepoStateMachine(RuleBasedStateMachine):
-    files = Bundle("files")
-    commits = []
+    operations = Bundle("operations")
+    active_files: List[str] = list()
+    commits: List[Commit] = list()
+    operation_count: int = 0
 
-    @rule(target=files, name=file_names)
+    @rule(target=operations, name=file_names)
     def add_file(self, name=file_names):
-        self.files.add(name)
-        return name
+        self.active_files.append(name)
+        self.operation_count += 1
+        return FileOperation(filename=name, operation="add")
 
-    @rule(target=files, name=file_names)
+    @precondition(lambda self: 0 < len(self.active_files))
+    @rule(target=operations, name=st.sampled_from(active_files))
     def delete_file(self, name):
-        if name in self.files:
-            self.files.remove(name)
+        self.active_files.remove(name)
+        self.operation_count += 1
+        return FileOperation(filename=name, operation="delete")
 
-    @rule(name=file_names, new_name=file_names)
+    @precondition(lambda self: 0 < len(self.active_files))
+    @rule(target=operations, name=st.sampled_from(active_files), new_name=file_names)
     def rename_file(self, name, new_name):
-        if name in self.files:
-            self.files.remove(name)
-            self.files.add(new_name)
+        self.active_files.remove(name)
+        self.active_files.append(new_name)
+        self.operation_count += 1
+        return FileOperation(filename=name, operation="rename", new_name=new_name)
 
-    @rule()
-    def commit(self):
-        operations = []
-        for name in self.files:
-            operation = st.sampled_from(['delete', 'modify', 'rename'])
-            new_name = None if operation != 'rename' else f"renamed_{name}"
-            operations.append(FileOperation(filename=name, operation=operation, new_name=new_name))
+    @precondition(lambda self: 0 < len(self.active_files))
+    @rule(target=operations, name=st.sampled_from(active_files))
+    def modify_file(self, name):
+        self.operation_count += 1
+        return FileOperation(filename=name, operation="modify")
 
+    @precondition(lambda self: 10 < self.operation_count)
+    @rule(operations=operations)
+    def commit(self, operations):
         self.commits.append(Commit(operations=operations))
-        if len(self.commits) >= 3:
-            self.files.clear()  # Reset after 3 commits
+        self.operation_count = 0
 
-TestGitRepo = GitRepoStateMachine.TestCase
+
+def test_git_repo_generation():
+    test_git_repo = GitRepoStateMachine.TestCase()
+    test_git_repo.run()
+    pprint(test_git_repo.commits)
+
+
 
 @beartype
 def print_df_rich(df: pd.DataFrame, title: str, file: Optional[io.TextIOWrapper] = None):
@@ -188,7 +208,7 @@ class GitTestRepository:
 
     def git_dir(self) -> Path:
         return self.dir if isinstance(self.dir, Path) else Path(self.dir.name)
-    
+
     def get_engine(self) -> Engine:
         return create_engine("sqlite:///" + self.db)
 
@@ -232,8 +252,8 @@ class GitTestRepository:
 def print_connection_tables(engine: Engine,
                             exclude: List[str] = list(),
                             file: Optional[io.TextIOWrapper] = None):
-    tables = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table' OR type='view';",
-                               engine)
+    tables = pd.read_sql_query(
+        "SELECT name FROM sqlite_master WHERE type='table' OR type='view';", engine)
 
     print("", file=file)
     for table_name in tables['name'].tolist():
