@@ -21,9 +21,11 @@ from rich import box
 from sqlalchemy import create_engine, Engine
 import io
 
+
 @beartype
 def print_df_rich(df: pd.DataFrame, title: str, file: Optional[io.TextIOWrapper] = None):
-    console = Console(file=file, force_terminal=False, color_system=None) if file else Console()
+    console = Console(file=file, force_terminal=False,
+                      color_system=None) if file else Console()
 
     table = Table(show_lines=False,
                   box=box.ASCII,
@@ -78,6 +80,15 @@ def git_write_files(dir: Path, files: Dict[str, str]):
 
 
 @beartype
+def git_move_files(dir: Path, source: str, target: str):
+    dir.joinpath(source).rename(dir.joinpath(target))
+
+
+@beartype
+def git_remove_files(dir: Path, file: str):
+    dir.joinpath(file).unlink()
+
+@beartype
 def git_add(dir: Path):
     get_git(dir).run(("add", "."))
 
@@ -88,6 +99,7 @@ def git_commit(dir: Path,
                date: datetime = datetime.now(),
                author: str = "haxorg-test-author",
                email="haxorg-test-email@email.com"):
+    git_add(dir)
     git = get_git(dir)
     git = git.with_env(GIT_AUTHOR_DATE=date.strftime("%Y-%m-%d %H:%M:%S"),
                        GIT_COMMITTER_DATE=date.strftime("%Y-%m-%d %H:%M:%S"))
@@ -95,12 +107,22 @@ def git_commit(dir: Path,
 
 
 @beartype
-def run_forensics(dir: Path, params: dict) -> tuple[int, str, str]:
+def run_forensics(dir: Path,
+                  params: dict = {},
+                  db: Optional[str] = None) -> tuple[int, str, str]:
     run = local[str(get_haxorg_repo_root_path().joinpath(
         "build/haxorg/scripts/cxx_repository/code_forensics"))]
-    params = merge_dicts([params, {"repo": {"path": str(dir), "branch": "master"}}])
+    params = merge_dicts([{
+        "out": {
+            "db_path": db
+        }
+    }, params, {
+        "repo": {
+            "path": str(dir),
+            "branch": "master"
+        }
+    }])
 
-    print(json.dumps(params))
     return run.run((json.dumps(params)))
 
 
@@ -116,6 +138,9 @@ class GitTestRepository:
 
     def git_dir(self) -> Path:
         return self.dir if isinstance(self.dir, Path) else Path(self.dir.name)
+    
+    def get_engine(self) -> Engine:
+        return create_engine("sqlite:///" + self.db)
 
     def __enter__(self):
         if self.fixedDir:
@@ -131,7 +156,6 @@ class GitTestRepository:
 
         git_init_repo(self.git_dir())
         git_write_files(self.git_dir(), self.startFiles)
-        git_add(self.git_dir())
         git_commit(self.git_dir(), self.initMessage)
 
         if self.fixedDb:
@@ -155,8 +179,10 @@ class GitTestRepository:
 
 
 @beartype
-def print_connection_tables(engine: Engine, exclude: List[str] = [], file: Optional[io.TextIOWrapper] = None):
-    tables = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table';",
+def print_connection_tables(engine: Engine,
+                            exclude: List[str] = [],
+                            file: Optional[io.TextIOWrapper] = None):
+    tables = pd.read_sql_query("SELECT name FROM sqlite_master WHERE type='table' OR type='view';",
                                engine)
 
     print("", file=file)
@@ -172,11 +198,9 @@ def test_can_run_dir():
                            fixedDb="/tmp/result.sqlite") as repo:
 
         git_write_files(repo.git_dir(), {"a": "fixed_line\nline_1_edit1\nline_2_edit1"})
-        git_add(repo.git_dir())
         git_commit(repo.git_dir(), "second")
 
         git_write_files(repo.git_dir(), {"a": "fixed_line\nline_1_edit2\nline_2_edit1"})
-        git_add(repo.git_dir())
         git_commit(repo.git_dir(), "third")
 
         _, stdout, stderr = run_forensics(
@@ -190,11 +214,7 @@ def test_can_run_dir():
             })
 
         assert Path(repo.db).exists(), repo.db
-        engine = create_engine("sqlite:///" + repo.db)
-        print_connection_tables(engine, file=open("/tmp/table_dump.txt", "w"))
-        print(stdout)
-        print(stderr)
-
+        engine = repo.get_engine()
         df_string = pd.read_sql_table("String", engine)["text"].to_list()
         assert "init_commit_content" in df_string
         assert "line_1_edit1" in df_string
@@ -212,9 +232,8 @@ def test_can_run_dir():
         assert "init" in df_commits
 
         df_section_lines = pd.read_sql_table("ViewFullFileSectionLines", engine)
-        print_df_rich(df_section_lines, "section_lines")
         section_versions = df_section_lines.groupby(["section_id"])
-        assert len(section_versions) == 3  
+        assert len(section_versions) == 3
         commit1, commit2, commit3 = [group for _, group in section_versions]
         assert commit1["text"].to_list() == ["fixed_line", "init_commit_content"]
         assert commit2["text"].to_list() == ["fixed_line", "line_1_edit1", "line_2_edit1"]
@@ -224,18 +243,72 @@ def test_can_run_dir():
             return [s.strip() for s in values]
 
         assert trimall(commit1["line_commit_message"].to_list()) == ["init", "init"]
-        assert trimall(commit2["line_commit_message"].to_list()) == ["init", "second", "second"]
-        assert trimall(commit3["line_commit_message"].to_list()) == ["init", "third", "second"]
+        assert trimall(
+            commit2["line_commit_message"].to_list()) == ["init", "second", "second"]
+        assert trimall(
+            commit3["line_commit_message"].to_list()) == ["init", "third", "second"]
 
         assert trimall(commit1["section_commit_message"].to_list()) == ["init", "init"]
-        assert trimall(commit2["section_commit_message"].to_list()) == ["second", "second", "second"]
-        assert trimall(commit3["section_commit_message"].to_list()) == ["third", "third", "third"]
+        assert trimall(commit2["section_commit_message"].to_list()) == [
+            "second", "second", "second"
+        ]
+        assert trimall(
+            commit3["section_commit_message"].to_list()) == ["third", "third", "third"]
 
-@pytest.mark.xfail(reason="Algorithm does not handle all the edge cases for the larger repo")
+
+def test_file_move():
+    with GitTestRepository({"original_path": "content"}) as repo:
+        git_move_files(repo.git_dir(), "original_path", "new_path")
+        git_commit(repo.git_dir(), "move1")
+        run_forensics(repo.git_dir(), db=str(repo.db))
+
+
+def test_file_move_and_edit():
+    with GitTestRepository({"original_path": "\n".join(["original"] * 100)}) as repo:
+        git_move_files(repo.git_dir(), "original_path", "new_path")
+        git_write_files(repo.git_dir(),
+                        {"new_path": "\n".join(["original"] * 90 + ["changed"] * 10)})
+        git_commit(repo.git_dir(), "move1")
+        run_forensics(repo.git_dir(), db=str(repo.db))
+
+
+def test_file_delete():
+    with GitTestRepository({"base": "content"}) as repo:
+        git_remove_files(repo.git_dir(), "base")
+        git_commit(repo.git_dir(), "deleted")
+        run_forensics(repo.git_dir(), db=str(repo.db))
+
+def test_file_delete_and_recreate():
+    with GitTestRepository({"base": "content"}) as repo:
+        git_remove_files(repo.git_dir(), "base")
+        git_commit(repo.git_dir(), "deleted-base")
+        git_write_files(repo.git_dir(), {"separate": "content"})
+        git_commit(repo.git_dir(), "added-separate")
+        git_write_files(repo.git_dir(), {"base": "content"})
+        git_commit(repo.git_dir(), "added-base-v2")
+        run_forensics(repo.git_dir(), db=str(repo.db))
+
+def test_fast_forward_merge():
+    with GitTestRepository({"base": "content"}) as repo:
+        git_write_files(repo.git_dir(), {"file-1": "content-1"})
+        git_commit(repo.git_dir(), "on-master")
+        get_git(repo.git_dir()).run(("checkout", "-b", "from-master"))
+        git_write_files(repo.git_dir(), {"file-2": "content-2"})
+        git_commit(repo.git_dir(), "on-branch-1")
+        git_write_files(repo.git_dir(), {"file-3": "content-3"})
+        git_commit(repo.git_dir(), "on-branch-2")
+        get_git(repo.git_dir()).run(("checkout", "master"))
+        get_git(repo.git_dir()).run(("merge", "from-master"))
+        run_forensics(repo.git_dir(), db=str(repo.db))
+
+
+@pytest.mark.xfail(
+    reason="Algorithm does not handle all the edge cases for the larger repo")
 def test_haxorg_forensics():
-    _, stdout, stderr = run_forensics(get_haxorg_repo_root_path(), {
-        "out": {
-            "db_path": "/tmp/haxorg_repo.sqlite",
-        },
-        "log_file": "/tmp/haxorg_repo_anal_log.log"
-    })
+    _, stdout, stderr = run_forensics(
+        get_haxorg_repo_root_path(), {
+            "out": {
+                "db_path": "/tmp/haxorg_repo.sqlite",
+            },
+            "log_file": "/tmp/haxorg_repo_anal_log.log"
+        })
