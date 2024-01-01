@@ -1,4 +1,5 @@
 import enum
+from copy import copy
 from pprint import pprint
 
 import pytest
@@ -12,7 +13,7 @@ from types import TracebackType
 from py_scriptutils.toml_config_profiler import merge_dicts
 from pathlib import Path
 from datetime import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import pandas as pd
 import shutil
 
@@ -27,6 +28,7 @@ from beartype.typing import List, Optional, Literal, Set, Callable
 from hypothesis import strategies as st, settings, given, assume, Verbosity, Phase
 from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle, precondition, run_state_machine_as_test
 from py_scriptutils.script_logging import log
+from collections import OrderedDict
 
 
 @beartype
@@ -340,6 +342,17 @@ file_names = st.text(
     max_size=20,
 )
 
+line_content = st.text(
+    alphabet=st.characters(
+        whitelist_categories=('Lu', 'Ll', 'Nd'),
+        whitelist_characters='',
+        min_codepoint=48,
+        max_codepoint=122,
+    ),
+    min_size=15,
+    max_size=20,
+)
+
 MAX_FILES = 5
 
 
@@ -351,16 +364,89 @@ class GitOperationKind(enum.Enum):
     REPO_COMMIT = 4
 
 
-class GitOperation(BaseModel):
+class GitFileEditKind(enum.Enum):
+    REMOVE_LINE = 0
+    INSERT_LINE = 1
+    CHANGE_LINE = 2
+
+
+@beartype
+@dataclass
+class GitFileEdit:
+    kind: GitFileEditKind
+    line_index: int
+    line_content: Optional[str] = None
+
+
+class GitFileEditStrategy:
+
+    def __init__(self, lines: List[str]):
+        self.lines = ["" for _ in lines]
+
+    def get_ops(self, draw):
+        if not self.lines:
+            operation = GitFileEdit(kind=GitFileEditKind.INSERT_LINE,
+                                    line_index=0,
+                                    line_content=draw(line_content))
+
+        else:
+            which_line = draw(st.integers(min_value=0, max_value=len(self.lines) - 1))
+            what_to_do = draw(st.sampled_from(list(GitFileEditKind)))
+
+            match what_to_do:
+                case GitFileEditKind.INSERT_LINE:
+                    operation = GitFileEdit(kind=what_to_do,
+                                            line_content=draw(line_content),
+                                            line_index=which_line)
+
+                case GitFileEditKind.CHANGE_LINE:
+                    operation = GitFileEdit(kind=what_to_do,
+                                            line_content=draw(line_content),
+                                            line_index=which_line)
+
+                case GitFileEditKind.REMOVE_LINE:
+                    operation = GitFileEdit(kind=what_to_do, line_index=which_line)
+
+        edit_file_content_1(operation, self.lines)
+        return operation
+
+
+@beartype
+@dataclass
+class GitOperation:
     operation: GitOperationKind
     filename: Optional[str] = None
     new_name: Optional[str] = None  # Only used for 'rename' operation
+    file_content: Optional[List[str]] = None
+
+
+@beartype
+def edit_file_content_1(edit: GitFileEdit, content: List[str]):
+    match edit:
+        case GitFileEdit(kind=GitFileEditKind.REMOVE_LINE, line_index=index):
+            content.pop(index)
+
+        case GitFileEdit(kind=GitFileEditKind.CHANGE_LINE,
+                         line_index=index,
+                         line_content=text):
+            content[index] = text
+
+        case GitFileEdit(kind=GitFileEditKind.INSERT_LINE,
+                         line_index=index,
+                         line_content=text):
+            content.insert(index, text)
+
+
+@beartype
+def edit_file_content(modifications: List[GitFileEdit], content: List[str]):
+    for edit in modifications:
+        edit_file_content_1(edit, content)
 
 
 class GitOpStrategy:
 
     def __init__(self) -> None:
-        self.files: List[str] = list()
+        self.files: OrderedDict[str, List[str]] = OrderedDict()
         self.uncommited_ops_count = 0
 
     def file_ops(self, draw):
@@ -383,7 +469,7 @@ class GitOpStrategy:
                 allowed_ops.append(GitOperationKind.DELETE_FILE)
 
             allowed_ops += [
-                # GitOperationKind.MODIFY_FILE,
+                GitOperationKind.MODIFY_FILE,
                 GitOperationKind.RENAME_FILE,
             ]
 
@@ -392,25 +478,37 @@ class GitOpStrategy:
         match op:
             case GitOperationKind.CREATE_FILE:
                 name = draw(file_names.filter(lambda x: x not in self.files))
-                self.files.append(name)
-                return GitOperation(operation=op, filename=name)
+                self.files[name] = [draw(line_content)]
+                return GitOperation(operation=op,
+                                    filename=name,
+                                    file_content=self.files[name])
 
             case GitOperationKind.DELETE_FILE:
                 name = draw(st.sampled_from(self.files))
-                self.files.remove(name)
+                del self.files[name]
                 return GitOperation(operation=op, filename=name)
 
             case GitOperationKind.RENAME_FILE:
                 old_name = draw(st.sampled_from(self.files))
                 new_name = draw(file_names.filter(lambda x: x not in self.files))
-                self.files.remove(old_name)
-                self.files.append(new_name)
+                self.files[new_name] = self.files[old_name]
+                del self.files[old_name]
                 return GitOperation(operation=op, filename=old_name, new_name=new_name)
 
-            case GitOperationKind.DELETE_FILE:
+            case GitOperationKind.MODIFY_FILE:
                 name = draw(st.sampled_from(self.files))
-                self.files.remove(name)
-                return GitOperation(operation=op, filename=name)
+                state = GitFileEditStrategy(self.files[name])
+
+                @st.composite
+                def get_operations(draw: st.DrawFn):
+                    return state.get_ops(draw)
+
+                modifications = draw(st.lists(get_operations(), min_size=5))
+                edit_file_content(modifications, self.files[name])
+
+                return GitOperation(operation=op,
+                                    filename=name,
+                                    file_content=copy(self.files[name]))
 
             case _:
                 assert False, f"Unexpected git operation {op}"
@@ -433,8 +531,10 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
             case GitOperation(operation=GitOperationKind.DELETE_FILE, filename=file):
                 git_remove_files(repo.git_dir(), file)
 
-            case GitOperation(operation=GitOperationKind.MODIFY_FILE, filename=file):
-                pprint(file)
+            case GitOperation(operation=GitOperationKind.MODIFY_FILE,
+                              filename=file,
+                              file_content=file_content):
+                repo.git_dir().joinpath(file).write_text("\n".join(file_content))
 
             case GitOperation(operation=GitOperationKind.CREATE_FILE, filename=file):
                 git_write_files(repo.git_dir(), {file: "-----"})
@@ -449,13 +549,16 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
 
 
 @given(multiple_files_strategy())
-@settings(max_examples=20,
-          deadline=1000,
-          verbosity=Verbosity.quiet,
-          # Shrinking phase is very expensive and I don't see it yielding any particularly useful results
-          phases=[Phase.explicit, Phase.reuse, Phase.generate])
+@settings(
+    max_examples=20,
+    deadline=1000,
+    verbosity=Verbosity.quiet,
+    # Shrinking phase is very expensive and I don't see it yielding any particularly useful results
+    phases=[Phase.explicit, Phase.reuse, Phase.generate])
 def test_strategic_repo_edits(operations):
     with GitTestRepository({"init": "init"}) as repo:
         run_repo_operations(repo, operations)
         git_commit(repo.git_dir(), "final commit")
         run_forensics(repo.git_dir(), db=str(repo.db))
+        # engine = repo.get_engine()
+        # print_connection_tables(engine=engine)
