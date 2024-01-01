@@ -618,85 +618,45 @@ def run_repo_operations_test(operations: List[GitOperation]):
 
 
 def test_repo_operations_example_1():
+    # yapf:disable
     run_repo_operations_test([
-        GitOperation(operation=GitOperationKind.CREATE_FILE,
-                     filename='00000',
-                     file_content=['000000000000000']),
-        GitOperation(
-            operation=GitOperationKind.RENAME_FILE, filename='00000', new_name='00002'),
-        GitOperation(operation=GitOperationKind.CREATE_FILE,
-                     filename='00001',
-                     file_content=['000000000000000']),
-        GitOperation(
-            operation=GitOperationKind.RENAME_FILE, filename='00002', new_name='00000'),
+        GitOperation(operation=GitOperationKind.CREATE_FILE, filename='00000', file_content=['000000000000000']),
+        GitOperation(operation=GitOperationKind.RENAME_FILE, filename='00000', new_name='00002'),
+        GitOperation(operation=GitOperationKind.CREATE_FILE, filename='00001', file_content=['000000000000000']),
+        GitOperation(operation=GitOperationKind.RENAME_FILE, filename='00002', new_name='00000'),
         GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout='00002'),
         GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout='00000'),
-        GitOperation(operation=GitOperationKind.JOIN_BRANCH,
-                     branch_to_checkout='00002',
-                     branch_to_merge='00000'),
+        GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='00002', branch_to_merge='00000'),
         GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout='00001'),
-        GitOperation(operation=GitOperationKind.JOIN_BRANCH,
-                     branch_to_checkout='00002',
-                     branch_to_merge='00001'),
-        GitOperation(operation=GitOperationKind.JOIN_BRANCH,
-                     branch_to_checkout='master',
-                     branch_to_merge='00002')
+        GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='00002', branch_to_merge='00001'),
+        GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='master', branch_to_merge='00002')
     ],)
+    # yapf:enable
 
 
 def test_repo_operations_example_2():
-    run_repo_operations_test([
-        GitOperation(operation=GitOperationKind.FORK_BRANCH,
-                     branch_to_checkout='JbWE5TXWZHKK'),
-        GitOperation(operation=GitOperationKind.JOIN_BRANCH,
-                     branch_to_checkout='master',
-                     branch_to_merge='JbWE5TXWZHKK'),
-        GitOperation(operation=GitOperationKind.CREATE_FILE,
-                     filename='nlAjw',
-                     file_content=['55HPsjzi5joBchT', 'n3BtxWyZQHjgrB08Hy5u']),
-        GitOperation(operation=GitOperationKind.FORK_BRANCH,
-                     branch_to_checkout='C5RGCKw'),
-        GitOperation(operation=GitOperationKind.MODIFY_FILE,
-                     filename='nlAjw',
-                     file_content=['BebTFIjVzClRpeo']),
-        GitOperation(operation=GitOperationKind.JOIN_BRANCH,
-                     branch_to_checkout='master',
-                     branch_to_merge='C5RGCKw'),
-        GitOperation(
-            operation=GitOperationKind.RENAME_FILE, filename='nlAjw', new_name='TkxO1B'),
-        GitOperation(operation=GitOperationKind.MODIFY_FILE,
-                     filename='TkxO1B',
-                     file_content=[
-                         'IKg0kaEBYCeraVBI', '4aZcYZyYGFziOsh', 'FmzjICazxQMfRcVU',
-                         'BAaKDLvCFmqvzbXyMa'
-                     ]),
-        GitOperation(operation=GitOperationKind.CREATE_FILE,
-                     filename='DRgnfGjgVGQX6v',
-                     file_content=['xQaxNCazTBYU65o9YL2P']),
-        GitOperation(operation=GitOperationKind.RENAME_FILE,
-                     filename='DRgnfGjgVGQX6v',
-                     new_name='vP9woVMYqc6SeQnNTEQn'),
-        GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout='8RG9Q'),
-        GitOperation(operation=GitOperationKind.REPO_COMMIT),
-        GitOperation(operation=GitOperationKind.MODIFY_FILE,
-                     filename='TkxO1B',
-                     file_content=[
-                         'AHxNeMGfKpdlJkOR7', 'og8YCVAtJ2FLJk7sMH',
-                         'n3BtxWyZQHjgrB08Hy5u', '4aZcYZyYGFziOsh'
-                     ]),
-        GitOperation(operation=GitOperationKind.MODIFY_FILE,
-                     filename='TkxO1B',
-                     file_content=['55HPsjzi5joBchT', 'n3BtxWyZQHjgrB08Hy5u']),
-        GitOperation(operation=GitOperationKind.CREATE_FILE,
-                     filename='WDmICkCg',
-                     file_content=['3bhx2yd4D22nkmQd']),
-        GitOperation(operation=GitOperationKind.JOIN_BRANCH,
-                     branch_to_checkout='master',
-                     branch_to_merge='8RG9Q'),
-        GitOperation(operation=GitOperationKind.CREATE_FILE,
-                     filename='IPwllW',
-                     file_content=['GHte9uhs1xNPohXX'])
-    ],)
+    # yapf:disable
+    run_repo_operations_test(
+        [
+            GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout='JbWE5TXWZHKK'),
+            GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='master', branch_to_merge='JbWE5TXWZHKK'),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename='nlAjw', file_content=['55HPsjzi5joBchT', 'n3BtxWyZQHjgrB08Hy5u']),
+            GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout='C5RGCKw'),
+            GitOperation(operation=GitOperationKind.MODIFY_FILE, filename='nlAjw', file_content=['BebTFIjVzClRpeo']),
+            GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='master', branch_to_merge='C5RGCKw'),
+            GitOperation(operation=GitOperationKind.RENAME_FILE, filename='nlAjw', new_name='TkxO1B'),
+            GitOperation(operation=GitOperationKind.MODIFY_FILE, filename='TkxO1B', file_content=['IKg0kaEBYCeraVBI', '4aZcYZyYGFziOsh', 'FmzjICazxQMfRcVU', 'BAaKDLvCFmqvzbXyMa']),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename='DRgnfGjgVGQX6v', file_content=['xQaxNCazTBYU65o9YL2P']),
+            GitOperation(operation=GitOperationKind.RENAME_FILE, filename='DRgnfGjgVGQX6v', new_name='vP9woVMYqc6SeQnNTEQn'),
+            GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout='8RG9Q'),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.MODIFY_FILE, filename='TkxO1B', file_content=['AHxNeMGfKpdlJkOR7', 'og8YCVAtJ2FLJk7sMH', 'n3BtxWyZQHjgrB08Hy5u', '4aZcYZyYGFziOsh']),
+            GitOperation(operation=GitOperationKind.MODIFY_FILE, filename='TkxO1B', file_content=['55HPsjzi5joBchT', 'n3BtxWyZQHjgrB08Hy5u']),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename='WDmICkCg', file_content=['3bhx2yd4D22nkmQd']),
+            GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='master', branch_to_merge='8RG9Q'),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename='IPwllW', file_content=['GHte9uhs1xNPohXX'])
+        ],)
+    # yapf:enable
 
 
 @given(multiple_files_strategy())
