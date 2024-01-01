@@ -391,6 +391,7 @@ LLDB_AUTO_BACKTRACE: List[str] = [
     "--one-line-on-crash", "bt", "--one-line-on-crash", "exit"
 ]
 
+
 @org_task(pre=[cmake_haxorg])
 def haxorg_code_forensics(ctx: Context, debug: bool = False):
     "Generate code forensics dump for the repository"
@@ -647,7 +648,11 @@ def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None
         retcode, _, _ = run_command(
             ctx,
             "poetry",
-            ["run", "pytest", "-v", "-ra", "-s", "--tb=short"],
+            [
+                "run", "pytest", "-v", "-ra", "-s", "--tb=short",
+                "--hypothesis-show-statistics",
+                # "--hypothesis-seed=11335865684259357953579948907097829183"
+            ],
             allow_fail=True,
             env=preload,
         )

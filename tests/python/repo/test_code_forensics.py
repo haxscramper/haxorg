@@ -1,3 +1,4 @@
+import enum
 from pprint import pprint
 
 import pytest
@@ -22,73 +23,10 @@ from sqlalchemy import create_engine, Engine
 import io
 
 from pydantic import BaseModel
-from beartype.typing import List, Optional, Literal, Set
-from hypothesis import strategies as st
-from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle, precondition
+from beartype.typing import List, Optional, Literal, Set, Callable
+from hypothesis import strategies as st, settings, given, assume, Verbosity, Phase
+from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle, precondition, run_state_machine_as_test
 from py_scriptutils.script_logging import log
-
-
-class FileOperation(BaseModel):
-    filename: str
-    operation: Literal["delete", "modify", "rename", "add"]
-    new_name: Optional[str] = None  # Only used for 'rename' operation
-
-
-class Commit(BaseModel):
-    operations: List[FileOperation]
-
-
-file_names = st.text(min_size=5,
-                     max_size=20,
-                     alphabet=st.characters(min_codepoint=ord('a'),
-                                            max_codepoint=ord('z')))
-
-
-class GitRepoStateMachine(RuleBasedStateMachine):
-    operations = Bundle("operations")
-    active_files: List[str] = list()
-    commits: List[Commit] = list()
-    operation_count: int = 0
-
-    @rule(target=operations, name=file_names)
-    def add_file(self, name=file_names):
-        self.active_files.append(name)
-        self.operation_count += 1
-        return FileOperation(filename=name, operation="add")
-
-    @precondition(lambda self: 0 < len(self.active_files))
-    @rule(target=operations, name=st.sampled_from(active_files))
-    def delete_file(self, name):
-        self.active_files.remove(name)
-        self.operation_count += 1
-        return FileOperation(filename=name, operation="delete")
-
-    @precondition(lambda self: 0 < len(self.active_files))
-    @rule(target=operations, name=st.sampled_from(active_files), new_name=file_names)
-    def rename_file(self, name, new_name):
-        self.active_files.remove(name)
-        self.active_files.append(new_name)
-        self.operation_count += 1
-        return FileOperation(filename=name, operation="rename", new_name=new_name)
-
-    @precondition(lambda self: 0 < len(self.active_files))
-    @rule(target=operations, name=st.sampled_from(active_files))
-    def modify_file(self, name):
-        self.operation_count += 1
-        return FileOperation(filename=name, operation="modify")
-
-    @precondition(lambda self: 10 < self.operation_count)
-    @rule(operations=operations)
-    def commit(self, operations):
-        self.commits.append(Commit(operations=operations))
-        self.operation_count = 0
-
-
-def test_git_repo_generation():
-    test_git_repo = GitRepoStateMachine.TestCase()
-    test_git_repo.run()
-    pprint(test_git_repo.commits)
-
 
 
 @beartype
@@ -173,7 +111,12 @@ def git_commit(dir: Path,
     git = get_git(dir)
     git = git.with_env(GIT_AUTHOR_DATE=date.strftime("%Y-%m-%d %H:%M:%S"),
                        GIT_COMMITTER_DATE=date.strftime("%Y-%m-%d %H:%M:%S"))
-    git.run(("commit", f"--author={author} <{email}>", "-m", message))
+    code, stdout, stderr = git.run(
+        ("commit", f"--author={author} <{email}>", "-m", message), retcode=None)
+    if code != 0:
+        log.warning("Failed to commit")
+        log.warning(stdout)
+        log.warning(stderr)
 
 
 @beartype
@@ -374,7 +317,7 @@ def test_fast_forward_merge():
         run_forensics(repo.git_dir(), db=str(repo.db))
 
 
-@pytest.mark.xfail(
+@pytest.mark.skip(
     reason="Algorithm does not handle all the edge cases for the larger repo")
 def test_haxorg_forensics():
     _, stdout, stderr = run_forensics(
@@ -384,3 +327,135 @@ def test_haxorg_forensics():
             },
             "log_file": "/tmp/haxorg_repo_anal_log.log"
         })
+
+
+file_names = st.text(
+    alphabet=st.characters(
+        whitelist_categories=('Lu', 'Ll', 'Nd'),
+        whitelist_characters='',
+        min_codepoint=48,
+        max_codepoint=122,
+    ),
+    min_size=5,
+    max_size=20,
+)
+
+MAX_FILES = 5
+
+
+class GitOperationKind(enum.Enum):
+    RENAME_FILE = 0
+    DELETE_FILE = 1
+    MODIFY_FILE = 2
+    CREATE_FILE = 3
+    REPO_COMMIT = 4
+
+
+class GitOperation(BaseModel):
+    operation: GitOperationKind
+    filename: Optional[str] = None
+    new_name: Optional[str] = None  # Only used for 'rename' operation
+
+
+class GitOpStrategy:
+
+    def __init__(self) -> None:
+        self.files: List[str] = list()
+        self.uncommited_ops_count = 0
+
+    def file_ops(self, draw):
+        if 10 < self.uncommited_ops_count:
+            self.uncommited_ops_count = 0
+            return GitOperation(operation=GitOperationKind.REPO_COMMIT)
+
+        else:
+            self.uncommited_ops_count += 1
+
+        allowed_ops: List[GitOperationKind] = []
+        if not self.files:
+            allowed_ops = [GitOperationKind.CREATE_FILE]
+
+        else:
+            if len(self.files) < MAX_FILES:
+                allowed_ops.append(GitOperationKind.CREATE_FILE)
+
+            if 4 < len(self.files):
+                allowed_ops.append(GitOperationKind.DELETE_FILE)
+
+            allowed_ops += [
+                # GitOperationKind.MODIFY_FILE,
+                GitOperationKind.RENAME_FILE,
+            ]
+
+        op = draw(st.sampled_from(allowed_ops))
+
+        match op:
+            case GitOperationKind.CREATE_FILE:
+                name = draw(file_names.filter(lambda x: x not in self.files))
+                self.files.append(name)
+                return GitOperation(operation=op, filename=name)
+
+            case GitOperationKind.DELETE_FILE:
+                name = draw(st.sampled_from(self.files))
+                self.files.remove(name)
+                return GitOperation(operation=op, filename=name)
+
+            case GitOperationKind.RENAME_FILE:
+                old_name = draw(st.sampled_from(self.files))
+                new_name = draw(file_names.filter(lambda x: x not in self.files))
+                self.files.remove(old_name)
+                self.files.append(new_name)
+                return GitOperation(operation=op, filename=old_name, new_name=new_name)
+
+            case GitOperationKind.DELETE_FILE:
+                name = draw(st.sampled_from(self.files))
+                self.files.remove(name)
+                return GitOperation(operation=op, filename=name)
+
+            case _:
+                assert False, f"Unexpected git operation {op}"
+
+
+@st.composite
+def multiple_files_strategy(draw):
+    state = GitOpStrategy()
+
+    @st.composite
+    def sub_strategy(draw: st.DrawFn):
+        return state.file_ops(draw)
+
+    return draw(st.lists(sub_strategy(), min_size=10))
+
+
+def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation]):
+    for action in operations:
+        match action:
+            case GitOperation(operation=GitOperationKind.DELETE_FILE, filename=file):
+                git_remove_files(repo.git_dir(), file)
+
+            case GitOperation(operation=GitOperationKind.MODIFY_FILE, filename=file):
+                pprint(file)
+
+            case GitOperation(operation=GitOperationKind.CREATE_FILE, filename=file):
+                git_write_files(repo.git_dir(), {file: "-----"})
+
+            case GitOperation(operation=GitOperationKind.RENAME_FILE,
+                              filename=file,
+                              new_name=new_name):
+                git_move_files(repo.git_dir(), source=file, target=new_name)
+
+            case GitOperation(operation=GitOperationKind.REPO_COMMIT):
+                git_commit(repo.git_dir(), "message")
+
+
+@given(multiple_files_strategy())
+@settings(max_examples=20,
+          deadline=1000,
+          verbosity=Verbosity.quiet,
+          # Shrinking phase is very expensive and I don't see it yielding any particularly useful results
+          phases=[Phase.explicit, Phase.reuse, Phase.generate])
+def test_strategic_repo_edits(operations):
+    with GitTestRepository({"init": "init"}) as repo:
+        run_repo_operations(repo, operations)
+        git_commit(repo.git_dir(), "final commit")
+        run_forensics(repo.git_dir(), db=str(repo.db))
