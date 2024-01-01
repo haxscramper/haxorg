@@ -649,8 +649,13 @@ def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None
             ctx,
             "poetry",
             [
-                "run", "pytest", "-v", "-ra", "-s", "--tb=short",
-                "--hypothesis-show-statistics",
+                "run",
+                "pytest",
+                "-v",
+                "-ra",
+                "-s",
+                "--tb=short",
+                # "--hypothesis-show-statistics",
                 # "--hypothesis-seed=11335865684259357953579948907097829183"
             ],
             allow_fail=True,
