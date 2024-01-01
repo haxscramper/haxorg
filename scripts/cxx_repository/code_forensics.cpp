@@ -254,6 +254,14 @@ auto main(int argc, const char** argv) -> int {
         .content = &content,
     });
 
+    if (in_config.contains("verbose_consistency_checks")) {
+        state->verbose_consistency_checks = //
+            in_config["verbose_consistency_checks"].get<bool>();
+        LOG(INFO) << std::format(
+            "Verbose consistency check was set to {}",
+            state->verbose_consistency_checks);
+    }
+
     git_oid oid;
     // Initialize state of the commit walker
     open_walker(oid, *state);

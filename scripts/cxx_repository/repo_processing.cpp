@@ -360,10 +360,13 @@ struct ChangeIterationState {
 
         if (state->verbose_consistency_checks) {
             LOG(INFO) << std::format(
-                "File path ID {} resolved via {} to {} has known track:{}",
+                "[state] File path ID {} '{}' resolved via {} to {} '{}' "
+                "has known track:{}",
                 path,
+                state->str(path),
                 track_history,
                 target_path,
+                state->str(target_path),
                 tracks.contains(target_path));
         }
 
@@ -383,7 +386,7 @@ struct ChangeIterationState {
 
         if (state->verbose_consistency_checks) {
             LOG(INFO) << std::format(
-                "File rename action, track renames: {}",
+                "[apply] File rename action, track renames: {}",
                 active_track_renames);
         }
     }
@@ -404,17 +407,23 @@ struct ChangeIterationState {
     }
 
     std::string format_section_lines(ir::FileTrackSectionId section_id) {
-        return state->at(section_id).lines //
-             | rv ::enumerate              //
-             | rv::transform([&](auto const& line) {
-                   return std::format(
-                       "[{:<4}] '{:<100}'",
-                       line.first,
-                       state->str(state->at(line.second).content));
-               })
-             | rv::intersperse("\n") //
-             | rv::join              //
-             | rs::to<std::string>();
+        auto const& section = state->at(section_id);
+        if (section.lines.empty()) {
+            return "<no-lines>";
+        } else {
+            return std::string{"\n"}
+                 + (state->at(section_id).lines //
+                    | rv ::enumerate            //
+                    | rv::transform([&](auto const& line) {
+                          return std::format(
+                              "[{:<4}] '{:<100}'",
+                              line.first,
+                              state->str(state->at(line.second).content));
+                      })
+                    | rv::intersperse("\n") //
+                    | rv::join              //
+                    | rs::to<std::string>());
+        }
     }
 
     void apply(
@@ -422,15 +431,18 @@ struct ChangeIterationState {
         ir::FileTrackSectionId section_id,
         ir::CommitId           commit_id,
         CR<AddAction>          add) {
+        if (state->verbose_consistency_checks) {
+            LOG(INFO) << std::format("[apply] {}", add);
+        }
 
         ir::FileTrackSection& section = state->at(section_id);
         int                   to_add  = add.added;
         LOG_IF(INFO, !(to_add <= section.lines.size()))
-            << "Cannot add line at index " << to_add
+            << "[apply] Cannot add line at index " << to_add
             << " from section of size " << section.lines.size()
             << " path '" << state->str(state->at(section.path).path)
             << "' commit " << state->at(commit_id).hash << " " << fmt1(add)
-            << std::format("On track:{}\n", track)
+            << std::format("On track:{}", track)
             << format_section_lines(section_id);
 
         CHECK(to_add <= section.lines.size());
@@ -444,22 +456,27 @@ struct ChangeIterationState {
         ir::FileTrackSectionId section_id,
         ir::CommitId           commit_id,
         CR<RemoveAction>       remove) {
+        if (state->verbose_consistency_checks) {
+            LOG(INFO) << std::format("[apply] {}", remove);
+        }
 
         int                   to_remove  = remove.removed;
         ir::FileTrackSection& section    = state->at(section_id);
         int                   lines_size = section.lines.size();
 
+        CHECK(to_remove < lines_size)
+            << "[apply] Cannot remove line index " << to_remove
+            << " from section version " << section.lines.size() << " path "
+            << state->str(state->at(section.path).path) << " commit "
+            << state->at(commit_id).hash << " " << fmt1(remove)
+            << std::format(" on track:{}", track)
+            << format_section_lines(section_id);
+
         auto remove_content = state->at(section.lines.at(to_remove))
                                   .content;
 
-        CHECK(to_remove <= lines_size)
-            << "Cannot remove line index " << to_remove
-            << " from section version " << section.lines.size() << " path "
-            << state->str(state->at(section.path).path) << " commit "
-            << state->at(commit_id).hash << " " << fmt1(remove);
-
         LOG_IF(INFO, remove_content != remove.id)
-            << "Cannot remove line " << to_remove << " on path "
+            << "[apply] Cannot remove line " << to_remove << " on path "
             << state->str(state->at(section.path).path)
             << " because string content IDs are mismatched. Current "
                "line content is "
@@ -487,8 +504,8 @@ struct ChangeIterationState {
 
         if (state->verbose_consistency_checks) {
             LOG(INFO) << std::format(
-                "Applying name action, path name {} track {}",
-                state->at(state->at(name.getPath()).path).text,
+                "[apply] Applying name action, path name '{}' track {}",
+                state->str(name.getPath()),
                 track);
         }
 
@@ -514,7 +531,8 @@ struct ChangeIterationState {
                 state->at(prev_section).track
                 == state->at(section_id).track)
                 << std::format(
-                       "New track section copied lines from the wrong "
+                       "[apply] New track section copied lines from the "
+                       "wrong "
                        "track. Section {} is placed in track {}, but the "
                        "previous section {} had track {}",
                        section_id,
@@ -707,18 +725,29 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
         return task;
     };
 
+    std::vector<Pair<VDesc, Opt<VDesc>>>
+        commit_ordering = gen_view(g.commit_pairs())
+                        // make the commit pairs list reversible
+                        | make_collect()
+                        // start from the first commit
+                        | rv::reverse //
+                        | rs::to<std::vector>();
+
+    if (state->verbose_consistency_checks) {
+        for (auto const& [this_commit, prev_commit] : commit_ordering) {
+            LOG(INFO) << std::format(
+                "[mainloop] ordering commit pair {} {}",
+                g[this_commit].oid,
+                prev_commit ? fmt1(g[*prev_commit].oid) : "<no-prev>");
+        }
+    }
+
     // Mutable iteration state internally implements state machine that
     // keeps track of the current file track, relevant renames and
     // target file section
     ChangeIterationState iter_state{.state = state};
     for (CommitActions const& commit_actions :
-         gen_view(g.commit_pairs())
-             // make the commit pairs list reversible
-             | make_collect()
-             // start from the first commit
-             | rv::reverse
-             // TODO allow arbitrary N of commits
-             // | rv::take(10)
+         commit_ordering
              // package each commit pair into a commit processing task
              //
              // FIXME 'make task' is called twice in this pipeline. It
@@ -747,6 +776,12 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
             "hash",
             state->at(commit_actions.id).hash);
 
+        if (state->verbose_consistency_checks) {
+            LOG(INFO) << std::format(
+                "[mainloop] Processing commit {}",
+                state->at(commit_actions.id).hash);
+        }
+
         for (auto const& [file_id, actions] : commit_actions.actions) {
             TRACE_EVENT(
                 "repo",
@@ -755,7 +790,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
                 state->str(state->at(file_id).path));
             if (state->verbose_consistency_checks) {
                 LOG(INFO) << std::format(
-                    "New action on file {} {}",
+                    "[mainloop] New action on file {} {}",
                     file_id,
                     state->str(state->at(file_id).path));
             }

@@ -22,6 +22,7 @@ from rich.table import Column, Table, Style
 from rich import box
 from sqlalchemy import create_engine, Engine
 import io
+from py_scriptutils.auto_lldb import get_lldb_params
 
 from pydantic import BaseModel
 from beartype.typing import List, Optional, Literal, Set, Callable
@@ -32,17 +33,23 @@ from collections import OrderedDict
 
 
 @beartype
-def print_df_rich(df: pd.DataFrame, title: str, file: Optional[io.TextIOWrapper] = None):
+def print_df_rich(
+    df: pd.DataFrame,
+    title: str,
+    file: Optional[io.TextIOWrapper] = None,
+):
     console = Console(file=file, force_terminal=False,
                       color_system=None) if file else Console()
 
-    table = Table(show_lines=False,
-                  box=box.ASCII,
-                  padding=(0, 1),
-                  show_edge=False,
-                  title=f"[red]{title}[/red]",
-                  min_width=len(title),
-                  title_justify="left")
+    table = Table(
+        show_lines=False,
+        box=box.ASCII,
+        padding=(0, 1),
+        show_edge=False,
+        title=f"[red]{title}[/red]",
+        min_width=len(title),
+        title_justify="left",
+    )
 
     # Add columns to the table
     for column in df.columns:
@@ -104,12 +111,14 @@ def git_add(dir: Path):
 
 
 @beartype
-def git_commit(dir: Path,
-               message: str,
-               date: datetime = datetime.now(),
-               author: str = "haxorg-test-author",
-               email="haxorg-test-email@email.com",
-               allow_fail=False):
+def git_commit(
+    dir: Path,
+    message: str,
+    date: datetime = datetime.now(),
+    author: str = "haxorg-test-author",
+    email="haxorg-test-email@email.com",
+    allow_fail=False,
+):
     git_add(dir)
     git = get_git(dir)
     git = git.with_env(GIT_AUTHOR_DATE=date.strftime("%Y-%m-%d %H:%M:%S"),
@@ -124,15 +133,21 @@ def git_commit(dir: Path,
 
 
 @beartype
-def run_forensics(dir: Path,
-                  params: dict = dict(),
-                  db: Optional[str] = None) -> tuple[int, str, str]:
-    run = local[str(get_haxorg_repo_root_path().joinpath(
-        "build/haxorg/scripts/cxx_repository/code_forensics"))]
+def run_forensics(
+    dir: Path,
+    params: dict = dict(),
+    db: Optional[str] = None,
+    with_debugger: bool = False,
+    verbose_consistency_checks: bool = False,
+) -> tuple[int, str, str]:
+    tool_path = str(get_haxorg_repo_root_path().joinpath(
+        "build/haxorg/scripts/cxx_repository/code_forensics"))
+
     params = merge_dicts([{
         "out": {
-            "db_path": db
-        }
+            "db_path": db,
+        },
+        "verbose_consistency_checks": verbose_consistency_checks,
     }, params, {
         "repo": {
             "path": str(dir),
@@ -140,7 +155,19 @@ def run_forensics(dir: Path,
         }
     }])
 
-    return run.run((json.dumps(params)))
+    if with_debugger:
+        run_parameters = [tool_path, *get_lldb_params(), "--", json.dumps(params)]
+        code, stdout, stderr = local["lldb"].run(tuple(run_parameters))
+        print(run_parameters)
+        if code != 0:
+            log.warning(f"{tool_path} run failed")
+            log.warning(stdout)
+            log.warning(stderr)
+
+        return code, stdout, stderr
+
+    else:
+        return local[tool_path].run((json.dumps(params)))
 
 
 @beartype
@@ -199,9 +226,11 @@ class GitTestRepository:
 
 
 @beartype
-def print_connection_tables(engine: Engine,
-                            exclude: List[str] = list(),
-                            file: Optional[io.TextIOWrapper] = None):
+def print_connection_tables(
+        engine: Engine,
+        exclude: List[str] = list(),
+        file: Optional[io.TextIOWrapper] = None,
+):
     tables = pd.read_sql_query(
         "SELECT name FROM sqlite_master WHERE type='table' OR type='view';", engine)
 
@@ -571,11 +600,10 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
             ):
                 repo.git_dir().joinpath(file).write_text("\n".join(file_content))
 
-            case GitOperation(
-                operation=GitOperationKind.CREATE_FILE,
-                filename=file,
-            ):
-                git_write_files(repo.git_dir(), {file: "-----"})
+            case GitOperation(operation=GitOperationKind.CREATE_FILE,
+                              filename=file,
+                              file_content=content):
+                git_write_files(repo.git_dir(), {file: "\n".join(content)})
 
             case GitOperation(
                 operation=GitOperationKind.RENAME_FILE,
@@ -608,11 +636,27 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
                 assert False, f"Unhandled git repo operation {action}"
 
 
-def run_repo_operations_test(operations: List[GitOperation]):
-    with GitTestRepository({"init": "init"}) as repo:
+def run_repo_operations_test(
+    operations: List[GitOperation],
+    with_debugger: bool = False,
+    fixedDir: Optional[str] = None,
+    verbose_consistency_checks: bool = False,
+    log_file: Optional[str] = None,
+):
+    with GitTestRepository({"init": "init"}, fixedDir=fixedDir) as repo:
         run_repo_operations(repo, operations)
         git_commit(repo.git_dir(), "final commit", allow_fail=True)
-        run_forensics(repo.git_dir(), db=str(repo.db))
+        params = {}
+        if log_file:
+            params["log_file"] = log_file
+
+        run_forensics(
+            repo.git_dir(),
+            db=str(repo.db),
+            with_debugger=with_debugger,
+            verbose_consistency_checks=verbose_consistency_checks,
+            params=params,
+        )
         # engine = repo.get_engine()
         # print_connection_tables(engine=engine)
 
@@ -630,7 +674,11 @@ def test_repo_operations_example_1():
         GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout='00001'),
         GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='00002', branch_to_merge='00001'),
         GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='master', branch_to_merge='00002')
-    ],)
+    ],
+        fixedDir="/tmp/test_repo_operations_example_1_dir",
+        verbose_consistency_checks=True,
+        log_file="/tmp/test_repo_operations_example_1.log"
+    )
     # yapf:enable
 
 
@@ -655,7 +703,7 @@ def test_repo_operations_example_2():
             GitOperation(operation=GitOperationKind.CREATE_FILE, filename='WDmICkCg', file_content=['3bhx2yd4D22nkmQd']),
             GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='master', branch_to_merge='8RG9Q'),
             GitOperation(operation=GitOperationKind.CREATE_FILE, filename='IPwllW', file_content=['GHte9uhs1xNPohXX'])
-        ],)
+        ])
     # yapf:enable
 
 

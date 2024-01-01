@@ -148,6 +148,9 @@ struct walker_state {
     }
 
     Str const& str(ir::StringId id) { return this->at(id).text; }
+    Str const& str(ir::FilePathId id) {
+        return this->str(content->at(id).path);
+    }
 };
 
 #endif // PROGRAM_STATE_HPP
