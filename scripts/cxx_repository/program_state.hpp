@@ -60,6 +60,34 @@ struct std::formatter<PTime> : std::formatter<std::string> {
     }
 };
 
+struct cli_repo_config {
+    DECL_FIELDS(
+        cli_repo_config,
+        (),
+        ((std::string), path, ""),
+        ((std::string), branch, ""));
+};
+
+struct cli_out_config {
+    DECL_FIELDS(
+        cli_out_config,
+        (),
+        ((std::string), db_path, ""),
+        ((Opt<std::string>), log_file, std::nullopt),
+        ((Opt<std::string>), text_dump, std::nullopt),
+        ((Opt<std::string>), graphviz, std::nullopt),
+        ((Opt<std::string>), perfetto, std::nullopt));
+};
+
+struct cli_config {
+    DECL_FIELDS(
+        cli_config,
+        (),
+        ((cli_repo_config), repo, cli_repo_config{}),
+        ((bool), verbose_consistency_checks, false),
+        ((cli_out_config), out, cli_out_config{}));
+};
+
 
 /// \brief runtime configuration state object
 struct walker_config {
@@ -75,13 +103,15 @@ struct walker_config {
         sequential
     };
     threading_mode use_threading = threading_mode::async;
-    /// Current project root path (absolute path)
-    Str repo;
     /// Which repository branch to use
-    Str            heads;
     Vec<Analytics> analytics;
-    Str            branch;
     bool           try_incremental;
+    cli_config     cli;
+
+    fs::path    repo_path() const { return fs::path{cli.repo.path}; }
+    std::string heads_path() const {
+        return fmt(".git/refs/heads/{}", cli.repo.branch);
+    }
 
     /// Allow processing of a specific path in the repository
     Func<bool(CR<Str>)> allow_path;

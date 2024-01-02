@@ -163,31 +163,6 @@ void InsertLineData(
 
 #define GIT_SUCCESS 0
 
-struct cli_repo_config {
-    DECL_FIELDS(
-        cli_repo_config,
-        (),
-        ((std::string), path, ""),
-        ((std::string), branch, ""));
-};
-
-struct cli_out_config {
-    DECL_FIELDS(
-        cli_out_config,
-        (),
-        ((std::string), db_path, ""),
-        ((Opt<std::string>), log_file, std::nullopt),
-        ((Opt<std::string>), text_dump, std::nullopt),
-        ((Opt<std::string>), perfetto, std::nullopt));
-};
-
-struct cli_config {
-    DECL_FIELDS(
-        cli_config,
-        (),
-        ((cli_repo_config), repo, cli_repo_config{}),
-        ((cli_out_config), out, cli_out_config{}));
-};
 
 class LinePrinterLogSink : public absl::LogSink {
   public:
@@ -210,55 +185,52 @@ class LinePrinterLogSink : public absl::LogSink {
 
 
 auto main(int argc, const char** argv) -> int {
-    json       in_config = json::parse(argv[1]);
-    cli_config in;
-    from_json(in_config, in);
 
-    json const& out = in_config["out"];
+    auto config = UPtr<walker_config>(new walker_config{
+        // Full process parallelization
+        .use_threading = walker_config::async,
+        .allow_path    = [](CR<Str> path) -> bool { return true; },
+        .allow_sample  = [](CR<PTime> date, CR<Str> author, CR<Str> id)
+            -> bool { return true; }});
+
+    {
+        json in_config = json::parse(argv[1]);
+        from_json(in_config, config->cli);
+    }
 
     SPtr<LinePrinterLogSink> Sink;
-    if (in.out.log_file) {
-        Sink = std::make_shared<LinePrinterLogSink>(*in.out.log_file);
+    if (config->cli.out.log_file) {
+        Sink = std::make_shared<LinePrinterLogSink>(
+            *config->cli.out.log_file);
         absl::AddLogSink(Sink.get());
         absl::log_internal::SetTimeZone(absl::LocalTimeZone());
         absl::log_internal::SetInitialized();
     }
 
     std::unique_ptr<perfetto::TracingSession> perfetto_session;
-    if (in.out.perfetto) {
+    if (config->cli.out.perfetto) {
         perfetto_session = StartProcessTracing("code_forensics");
     }
 
 
     const bool use_fusion = false;
 
-    // Provide implementation callback strategies
-    auto config = UPtr<walker_config>(new walker_config{
-        // Full process parallelization
-        .use_threading = walker_config::async,
-        .repo          = in.repo.path,
-        .heads         = fmt(".git/refs/heads/{}", in.repo.branch),
-        .branch        = in.repo.branch,
-        .allow_path    = [](CR<Str> path) -> bool { return true; },
-        .allow_sample  = [](CR<PTime> date, CR<Str> author, CR<Str> id)
-            -> bool { return true; }});
-
 
     git_libgit2_init();
     // Check whether threads can be enabled
     assert(git_libgit2_features() & GIT_FEATURE_THREADS);
+    std::string heads = fmt(".git/refs/heads/{}", config->cli.repo.branch);
 
-    auto heads_path = fs::path{config->repo.toBase()}
-                    / config->heads.toBase();
-    if (!fs::is_directory(config->repo.toBase())) {
-        LOG(ERROR) << "Input directory '" << config->repo
+    auto heads_path = config->repo_path() / heads;
+    if (!fs::is_directory(config->repo_path())) {
+        LOG(ERROR) << "Input directory '" << config->cli.repo.path
                    << "' does not exist, aborting analysis";
         return 1;
     } else if (!fs::exists(heads_path)) {
-        LOG(ERROR) << "The branch '" << in.repo.branch
+        LOG(ERROR) << "The branch '" << config->cli.repo.branch
                    << "' does not exist in the repository at path "
-                   << config->repo << " the full path " << heads_path
-                   << " does not exist";
+                   << config->cli.repo.path << " the full path "
+                   << heads_path << " does not exist";
         return 1;
     }
 
@@ -266,14 +238,15 @@ auto main(int argc, const char** argv) -> int {
     // Create main walker state used in the whole commit analysis state
     auto state = UPtr<walker_state>(new walker_state{
         .config = config.get(),
-        .repo = git::repository_open_ext(config->repo.c_str(), 0, nullptr)
+        .repo   = git::repository_open_ext(
+                    config->cli.repo.path.c_str(), 0, nullptr)
                     .value(),
         .content = &content,
     });
 
-    if (in_config.contains("verbose_consistency_checks")) {
-        state->verbose_consistency_checks = //
-            in_config["verbose_consistency_checks"].get<bool>();
+    if (config->cli.verbose_consistency_checks) {
+        state->verbose_consistency_checks = config->cli
+                                                .verbose_consistency_checks;
         LOG(INFO) << std::format(
             "Verbose consistency check was set to {}",
             state->verbose_consistency_checks);
@@ -285,19 +258,18 @@ auto main(int argc, const char** argv) -> int {
     // Store finalized commit IDs from executed tasks
     Vec<ir::CommitId> commits{};
     CommitGraph       result = build_repo_graph(oid, state.get());
-    if (out.contains("graphviz")) {
+    if (config->cli.out.graphviz) {
         std::string graph_repr = result.toGraphviz();
-        writeFile(
-            fs::path(out["graphviz"].get<std::string>()), graph_repr);
+        writeFile(fs::path(*config->cli.out.graphviz), graph_repr);
     }
 
     for_each_commit(result, state.get());
 
     LOG(INFO) << "Finished execution, DB written successfully";
 
-    if (in.out.text_dump) {
+    if (config->cli.out.text_dump) {
         LOG(INFO) << "Text dump option specified, writing debug";
-        std::ofstream file{*in.out.text_dump};
+        std::ofstream file{*config->cli.out.text_dump};
         for (auto const& [id, value] :
              state->content->multi.store<ir::FileTrack>().pairs()) {
             file << "File\n";
@@ -321,8 +293,7 @@ auto main(int argc, const char** argv) -> int {
                         "   [{}] = ({}) {} {}\n",
                         idx,
                         line_id,
-                        (rs::contains(section.added_lines, idx) ? "+"
-                                                                : " "),
+                        rs::contains(section.added_lines, idx) ? "+" : " ",
                         escape_literal(
                             state->content
                                 ->at(state->content->at(line_id).content)
@@ -333,7 +304,7 @@ auto main(int argc, const char** argv) -> int {
     }
 
 
-    fs::path db_file{in.out.db_path};
+    fs::path db_file{config->cli.out.db_path};
     if (fs::exists(db_file)) {
         fs::remove(db_file);
     }
@@ -342,7 +313,7 @@ auto main(int argc, const char** argv) -> int {
         db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     CreateTables(db);
     LOG(INFO) << "Inserting data content, specified db path "
-              << in.out.db_path;
+              << config->cli.out.db_path;
     db.exec("BEGIN");
     auto& m = state->content->multi;
     InsertFileTrackSections(db, m.store<ir::FileTrackSection>());
@@ -356,8 +327,8 @@ auto main(int argc, const char** argv) -> int {
 
     LOG(INFO) << "Completed DB write";
 
-    if (in.out.perfetto) {
-        fs::path out_path{*in.out.perfetto};
+    if (config->cli.out.perfetto) {
+        fs::path out_path{*config->cli.out.perfetto};
         LOG(INFO) << std::format("Perfetto output {}", out_path);
         StopTracing(std::move(perfetto_session), out_path);
     }

@@ -38,8 +38,8 @@ int get_nesting(CR<Str> line) {
 
 void open_walker(git_oid& oid, walker_state& state) {
     // Read HEAD on master
-    fs::path head_filepath = fs::path{state.config->repo.toBase()}
-                           / fs::path{state.config->heads.toBase()};
+    fs::path head_filepath = state.config->repo_path()
+                           / state.config->heads_path();
     // REFACTOR this part was copied from the SO example and I'm pretty
     // sure it can be implemented in a cleaner manner, but I haven't
     // touched this part yet.
@@ -923,5 +923,5 @@ CommitGraph build_repo_graph(git_oid& oid, walker_state* state) {
     }
 
     TRACE_EVENT("repo", "construct repo graph structure");
-    return CommitGraph{state->repo, state->config->branch};
+    return CommitGraph{state->repo, state->config->cli.repo.branch};
 }
