@@ -24,11 +24,10 @@ using boost::vertices;
 
 struct CommitInfo {
     git_oid oid;
+    bool    is_main = false;
 };
 
-struct CommitEdge {
-    bool is_main = false;
-};
+struct CommitEdge {};
 
 
 struct CommitGraph {
@@ -43,15 +42,9 @@ struct CommitGraph {
     using VDesc       = GraphTraits::vertex_descriptor;
     using EDesc       = GraphTraits::edge_descriptor;
 
-    Graph g;
-
+    Graph                              g;
     std::unordered_map<git_oid, VDesc> rev_map;
-    // TODO check if this heurstics is reliable and covers all the
-    // necessary cases
-    /// For merge commits 'main' is the first commit that was merged in the
-    /// sequence -- one that everything else was merged *to*.
-    std::unordered_set<VDesc> main_set;
-
+    git_oid                            first_oid;
 
   public:
     inline int in_degree(VDesc v) const { return bg::in_degree(v, g); }
@@ -63,33 +56,9 @@ struct CommitGraph {
     inline VDesc target(EDesc e) const { return bg::target(e, g); }
     inline bool  is_merge(VDesc v) const { return 1 < in_degree(v); }
 
-    inline bool is_main(VDesc v) const {
-        return main_set.find(v) != main_set.end();
-    }
+    Opt<VDesc> get_base(VDesc v) const;
 
-    inline Opt<VDesc> get_base(VDesc v) const {
-        for (auto in : parent_commits(v)) {
-            if (g[in].is_main) {
-                return source(in);
-            }
-        }
-
-        return Opt<VDesc>{};
-    }
-
-    inline generator<EDesc> parent_commits(VDesc v) const {
-        for (auto [begin, end] = bg::in_edges(v, g); begin != end;
-             ++begin) {
-            co_yield *begin;
-        }
-    }
-
-    inline generator<EDesc> next_commits(VDesc v) const {
-        for (auto [begin, end] = bg::out_edges(v, g); begin != end;
-             ++begin) {
-            co_yield *begin;
-        }
-    }
+    Vec<EDesc> parent_commits(VDesc v) const;
 
     inline generator<VDesc> commits() const {
         for (auto [begin, end] = bg::vertices(g); begin != end; ++begin) {
@@ -102,20 +71,11 @@ struct CommitGraph {
     /// filtered out using `is_base()` predicate.
     ///
     /// can return empty 'base' commit for starting commits
-    inline generator<Pair<VDesc, Opt<VDesc>>> commit_pairs() const {
-        std::unordered_set<VDesc> tried;
-        for (auto v : commits()) {
-            if (tried.find(v) == tried.end()) {
-                tried.insert(v);
-                Pair<VDesc, Opt<VDesc>> value{v, get_base(v)};
-                co_yield value;
-            }
-        }
-    }
+    Vec<Pair<VDesc, Opt<VDesc>>> commit_pairs() const;
 
 
     VDesc get_desc(CR<git_oid> oid);
-    CommitGraph(SPtr<git_repository> repo);
+    CommitGraph(SPtr<git_repository> repo, const Str& branch);
 
     std::string toGraphviz() const;
 };

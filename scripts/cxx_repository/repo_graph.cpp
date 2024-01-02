@@ -2,18 +2,34 @@
 
 #include <boost/graph/graphml.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <absl/log/log.h>
 
-CommitGraph::CommitGraph(SPtr<git_repository> repo) {
+CommitGraph::CommitGraph(
+    SPtr<git_repository> repo,
+    Str const&           branch_name) {
     SPtr<git_revwalk> walker = git::revwalk_new(repo.get()).value();
     git::revwalk_sorting(walker.get(), GIT_SORT_NONE);
 
-    git::revwalk_push_head(walker.get());
+    auto branch = git::branch_lookup(repo.get(), branch_name).value();
+    auto first_commit = git::reference_peel(branch.get());
+    git_oid_cpy(&first_oid, git_commit_id(first_commit->get()));
+    git_revwalk_push(walker.get(), &first_oid);
+
+    LOG(INFO) << std::format(
+        "[repo-graph] First commit on branch '{}' is '{}'",
+        branch_name,
+        first_oid);
 
     git_oid oid;
     while (git_revwalk_next(&oid, walker.get()) == 0) {
-        auto             current = get_desc(oid);
+        LOG(INFO) << std::format("[repo-graph] Adding {}", oid);
+        VDesc            current = get_desc(oid);
         SPtr<git_commit> commit  = git::commit_lookup(repo.get(), &oid)
                                       .value();
+
+        if (git_oid_cmp(&oid, &first_oid) == 0) {
+            g[current].is_main = true;
+        }
 
         // Extract DAG graph of commits from the history
         for (int i = 0; i < git::commit_parentcount(commit.get()); ++i) {
@@ -21,59 +37,10 @@ CommitGraph::CommitGraph(SPtr<git_repository> repo) {
             auto parent     = get_desc(oid);
             auto [edge, ok] = bg::add_edge(parent, current, g);
             if (i == 0) {
-                g[edge].is_main = true;
-            }
-        }
-
-        int main_in_count = 0;
-        for (auto [begin, end] = bg::in_edges(current, g); begin != end;
-             ++begin) {
-            auto e = *begin;
-            if (g[e].is_main) {
-                ++main_in_count;
-            }
-        }
-
-        if (1 < main_in_count) {
-            assert(false);
-        }
-    }
-
-    VDesc head;
-    for (auto [begin, end] = bg::vertices(g); begin != end; ++begin) {
-        VDesc v = *begin;
-        if (boost::out_degree(v, g) == 0) {
-            head = v;
-        } else {
-            int in_count = 0;
-            for (auto [begin, end] = bg::in_edges(v, g); begin != end;
-                 ++begin) {
-                ++in_count;
-            }
-            if (in_count == 0) {
-                // TODO somehow handle multiple starting commits - they are
-                // not particularly useful, but might come in handy for
-                // some analytics
+                g[parent].is_main = true;
             }
         }
     }
-
-    // Find main path of commits in the current repository, starting from
-    // the commit head and then finding all other incoming commits.
-    VDesc current = head;
-    do {
-        main_set.insert(current);
-        for (auto [begin, end] = bg::in_edges(current, g); begin != end;
-             ++begin) {
-            auto e = *begin;
-            if (g[e].is_main) {
-                current = bg::source(e, g);
-            }
-        }
-        // Do not continue iterating if the current commit has no inputs,
-        // but the commit itself must be added -- starting commits on the
-        // repo never have any inputs, but they must be analyzed as well.
-    } while (boost::in_degree(current, g) != 0);
 }
 
 
@@ -90,6 +57,13 @@ std::string CommitGraph::toGraphviz() const {
             "shape",
             boost::make_constant_property<Graph::vertex_descriptor>(
                 std::string("rect")))
+        .property(
+            "color",
+            make_transform_value_property_map<std::string>(
+                [&](CommitInfo const& prop) -> std::string {
+                    return prop.is_main ? "green" : "yellow";
+                },
+                get(boost::vertex_bundle, g)))
         .property(
             "label",
             make_transform_value_property_map<std::string>(
@@ -115,4 +89,38 @@ CommitGraph::VDesc CommitGraph::get_desc(CR<git_oid> oid) {
         rev_map[oid] = vert;
         return vert;
     }
+}
+Opt<CommitGraph::VDesc> CommitGraph::get_base(VDesc v) const {
+    for (auto in : parent_commits(v)) {
+        if (g[bg::target(in, g)].is_main) {
+            return source(in);
+        }
+    }
+
+    return Opt<VDesc>{};
+}
+
+Vec<CommitGraph::EDesc> CommitGraph::parent_commits(VDesc v) const {
+    Vec<EDesc> result;
+    for (auto [begin, end] = bg::in_edges(v, g); begin != end; ++begin) {
+        result.push_back(*begin);
+    }
+    return result;
+}
+
+auto CommitGraph::commit_pairs() const -> Vec<Pair<VDesc, Opt<VDesc>>> {
+    Vec<Pair<VDesc, Opt<VDesc>>> result;
+    VDesc                        current = rev_map.at(first_oid);
+    while (true) {
+        Opt<VDesc> prev = get_base(current);
+        result.push_back({current, prev});
+        if (prev) {
+            current = *prev;
+        } else {
+            break;
+        }
+    }
+
+    std::reverse(result.begin(), result.end());
+    return result;
 }

@@ -125,6 +125,30 @@ inline GitResult<SPtr<git_blob>> blob_lookup(
         git_blob_lookup, git_blob_free, repo, oid);
 }
 
+inline GitResult<SPtr<git_reference>> branch_lookup(
+    git_repository*    repo,
+    std::string const& name,
+    git_branch_t       type = GIT_BRANCH_LOCAL) {
+    return wrap_ptr_result<
+        git_reference,
+        git_repository*,
+        char const*,
+        git_branch_t>(
+        git_branch_lookup, git_reference_free, repo, name.c_str(), type);
+}
+
+inline GitResult<SPtr<git_commit>> reference_peel(
+    git_reference* branch_ref) {
+    return wrap_ptr_result<git_commit, git_reference*, git_object_t>(
+        +[](git_commit** a1, git_reference* a3, git_object_t a4) -> int {
+            return git_reference_peel((git_object**)a1, a3, a4);
+        },
+        git_commit_free,
+        branch_ref,
+        GIT_OBJECT_COMMIT);
+}
+
+
 inline const git_signature* commit_author(const git_commit* commit) {
     auto __result = git_commit_author(commit);
     return __result;

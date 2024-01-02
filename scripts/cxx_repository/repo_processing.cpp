@@ -588,8 +588,9 @@ void check_tree_entry_consistency(
     ir::FilePathId path_id = state->content->getFilePath(path);
 
     if (!commit_actions.actions.contains(path_id)) {
-        LOG(INFO) << "No file actions recorded for path " << path
-                  << " on commit " << state->at(commit_actions.id).hash;
+        LOG(INFO) << "[state-verify] No file actions recorded for path "
+                  << path << " on commit "
+                  << state->at(commit_actions.id).hash;
         return;
     }
 
@@ -651,7 +652,8 @@ void check_tree_entry_consistency(
 
     LOG_IF(INFO, content_lines.size() != section.lines.size())
         << std::format(
-               "Section lines size and content lines size mismatch: "
+               "[state-verify] Section lines size and content lines size "
+               "mismatch: "
                "commit-hash:{} section:{} "
                "content:{} where:{} tracks:[{}]\nfull content:\n{}",
                state->at(commit_actions.id).hash,
@@ -671,7 +673,8 @@ void check_tree_entry_consistency(
         Str const& content_line{pair.second};
 
         LOG_IF(INFO, section_line != content_line) << std::format(
-            "Line {} compare at did not match, section:'{}' != "
+            "[state-verify] Line {} compare at did not match, "
+            "section:'{}' != "
             "content:'{}', file '{}', {}\nfull content:\n{}",
             idx,
             section_line,
@@ -683,7 +686,7 @@ void check_tree_entry_consistency(
     }
 
     LOG(INFO) << std::format(
-        "{} ok at commit {} line count {}",
+        "[state-verify] {} ok at commit {} line count {}",
         where,
         state->at(commit_actions.id).hash,
         section.lines.size());
@@ -725,14 +728,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
         return task;
     };
 
-    std::vector<Pair<VDesc, Opt<VDesc>>>
-        commit_ordering = gen_view(g.commit_pairs())
-                        // make the commit pairs list reversible
-                        | make_collect()
-                        // start from the first commit
-                        | rv::reverse //
-                        | rs::to<std::vector>();
-
+    auto commit_ordering = g.commit_pairs();
     if (state->verbose_consistency_checks) {
         for (auto const& [this_commit, prev_commit] : commit_ordering) {
             LOG(INFO) << std::format(
@@ -888,19 +884,6 @@ CommitGraph build_repo_graph(git_oid& oid, walker_state* state) {
         auto id = process_commit(oid, state);
         full_commits.push_back({oid, date, commit, id});
         state->add_id_mapping(oid, id);
-
-        // check if we can process it
-        //
-        // FIXME `commit_author` returns invalid signature here that
-        // causes a segfault during conversion to a string. Otherwise
-        // `commit_author(commit)->name` is the correct way (according
-        // to the documentation least).
-        if (state->config->allow_sample(date, "", oid_tostr(oid))) {
-            // Store in the list of commits for sampling
-            state->sampled_commits.insert({oid, id});
-            // LOG(INFO) << fmt("Processing commit {} at {}", oid,
-            // date);
-        }
     }
 
     std::reverse(full_commits.begin(), full_commits.end());
@@ -911,5 +894,5 @@ CommitGraph build_repo_graph(git_oid& oid, walker_state* state) {
     }
 
     TRACE_EVENT("repo", "construct repo graph structure");
-    return CommitGraph{state->repo};
+    return CommitGraph{state->repo, state->config->branch};
 }

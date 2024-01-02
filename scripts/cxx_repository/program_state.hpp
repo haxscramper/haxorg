@@ -80,6 +80,7 @@ struct walker_config {
     /// Which repository branch to use
     Str            heads;
     Vec<Analytics> analytics;
+    Str            branch;
 
     Str  db_path;
     bool try_incremental;
@@ -132,9 +133,6 @@ struct walker_state {
     }
 
     ir::CommitId get_id(CR<git_oid> oid) { return commit_ids.at(oid); }
-
-    /// List of commits that were selected for the processing run
-    std::unordered_map<git_oid, ir::CommitId> sampled_commits;
 
     /// \brief common mutex for synchronizing content manager mutations
     std::mutex           m;

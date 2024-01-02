@@ -173,12 +173,12 @@ def run_forensics(
 @beartype
 @dataclass
 class GitTestRepository:
-    startFiles: Dict[str, str]
+    start_files: Dict[str, str]
     db: Optional[str] = ""
     dir: Optional[TemporaryDirectory | Path] = None
-    initMessage: str = "init"
-    fixedDir: Optional[str] = None
-    fixedDb: Optional[str] = None
+    init_message: str = "init"
+    fixed_dir: Optional[str] = None
+    fixed_db: Optional[str] = None
 
     def cmd(self):
         return get_git(self.git_dir())
@@ -190,8 +190,8 @@ class GitTestRepository:
         return create_engine("sqlite:///" + self.db)
 
     def __enter__(self):
-        if self.fixedDir:
-            self.dir = Path(self.fixedDir)
+        if self.fixed_dir:
+            self.dir = Path(self.fixed_dir)
             if self.dir.exists():
                 shutil.rmtree(self.dir)
 
@@ -202,11 +202,11 @@ class GitTestRepository:
             self.dir.__enter__()
 
         git_init_repo(self.git_dir())
-        git_write_files(self.git_dir(), self.startFiles)
-        git_commit(self.git_dir(), self.initMessage)
+        git_write_files(self.git_dir(), self.start_files)
+        git_commit(self.git_dir(), self.init_message)
 
-        if self.fixedDb:
-            self.db = self.fixedDb
+        if self.fixed_db:
+            self.db = self.fixed_db
 
         else:
             self.db = mktemp(suffix=".sqlite")
@@ -221,7 +221,7 @@ class GitTestRepository:
             return False
 
         db = Path(self.db)
-        if db.exists() and not self.fixedDb:
+        if db.exists() and not self.fixed_db:
             db.unlink()
 
 
@@ -243,8 +243,8 @@ def print_connection_tables(
 
 def test_can_run_dir():
     with GitTestRepository({"a": "fixed_line\ninit_commit_content"},
-                           fixedDir="/tmp/fixed_git_dir_1",
-                           fixedDb="/tmp/result.sqlite") as repo:
+                           fixed_dir="/tmp/fixed_git_dir_1",
+                           fixed_db="/tmp/result.sqlite") as repo:
 
         git_write_files(repo.git_dir(), {"a": "fixed_line\nline_1_edit1\nline_2_edit1"})
         git_commit(repo.git_dir(), "second")
@@ -257,9 +257,10 @@ def test_can_run_dir():
                 "out": {
                     "db_path": str(repo.db),
                     "text_dump": "/tmp/test_run.txt",
-                    "graphviz": "/tmp/graph.dot",
+                    # "graphviz": "/tmp/graph.dot",
                     "perfetto": "/tmp/code_forensics.pftrace"
-                }
+                },
+                "log_file": "/tmp/test_can_run_dir.log"
             })
 
         assert Path(repo.db).exists(), repo.db
@@ -636,19 +637,22 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
                 assert False, f"Unhandled git repo operation {action}"
 
 
-def run_repo_operations_test(
-    operations: List[GitOperation],
-    with_debugger: bool = False,
-    fixedDir: Optional[str] = None,
-    verbose_consistency_checks: bool = False,
-    log_file: Optional[str] = None,
-):
-    with GitTestRepository({"init": "init"}, fixedDir=fixedDir) as repo:
+def run_repo_operations_test(operations: List[GitOperation],
+                             with_debugger: bool = False,
+                             fixed_dir: Optional[str] = None,
+                             verbose_consistency_checks: bool = False,
+                             log_file: Optional[str] = None,
+                             graphviz_file: Optional[str] = None):
+    with GitTestRepository({"init": "init"}, fixed_dir=fixed_dir) as repo:
         run_repo_operations(repo, operations)
         git_commit(repo.git_dir(), "final commit", allow_fail=True)
         params = {}
         if log_file:
             params["log_file"] = log_file
+
+        if graphviz_file:
+            params["out"] = {}
+            params["out"]["graphviz"] = graphviz_file
 
         run_forensics(
             repo.git_dir(),
@@ -675,9 +679,10 @@ def test_repo_operations_example_1():
         GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='00002', branch_to_merge='00001'),
         GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='master', branch_to_merge='00002')
     ],
-        fixedDir="/tmp/test_repo_operations_example_1_dir",
+        fixed_dir="/tmp/test_repo_operations_example_1_dir",
         verbose_consistency_checks=True,
-        log_file="/tmp/test_repo_operations_example_1.log"
+        log_file="/tmp/test_repo_operations_example_1.log",
+        graphviz_file="/tmp/graph.dot"
     )
     # yapf:enable
 

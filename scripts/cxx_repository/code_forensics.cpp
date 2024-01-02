@@ -222,6 +222,7 @@ auto main(int argc, const char** argv) -> int {
         .repo          = in.repo,
         .heads         = fmt(".git/refs/heads/{}", in.branch),
         .db_path       = in.outfile,
+        .branch        = in.branch,
         .allow_path    = [](CR<Str> path) -> bool { return true; },
         .allow_sample  = [](CR<PTime> date, CR<Str> author, CR<Str> id)
             -> bool { return true; }});
