@@ -12,6 +12,18 @@ CREATE TABLE
     );
 
 CREATE TABLE
+    IF NOT EXISTS GitCommitActions (
+        `commit_id` INTEGER REFERENCES GitCommit (id),
+        `kind` INTEGER,
+        `track` INTEGER REFERENCES FileTrack (id),
+        `old_path` INTEGER REFERENCES FilePath (id),
+        `new_path` INTEGER REFERENCES FilePath (id),
+        `file` INTEGER REFERENCES FilePath (id),
+        `added` INTEGER,
+        `removed` INTEGER
+    );
+
+CREATE TABLE
     IF NOT EXISTS FileTrackSection (
         `id` INTEGER PRIMARY KEY,
         `commit_id` INTEGER REFERENCES GitCommit (id),

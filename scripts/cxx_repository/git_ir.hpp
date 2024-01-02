@@ -69,6 +69,20 @@ struct Commit {
     int      timezone; /// timezone where commit was taken
     Str      hash;     /// git hash of the commit
     Str      message;  /// Commit message
+
+    DECL_DESCRIBED_ENUM(ActionKind, Modify, Delete, Rename, Add);
+
+    struct Action {
+        ActionKind      kind;
+        ir::FileTrackId track    = ir::FileTrackId::Nil();
+        ir::FilePathId  old_path = ir::FilePathId::Nil();
+        ir::FilePathId  new_path = ir::FilePathId::Nil();
+        ir::FilePathId  file     = ir::FilePathId::Nil();
+        int             added    = 0;
+        int             removed  = 0;
+    };
+
+    Vec<Action> actions;
 };
 
 struct FileTrackSection {

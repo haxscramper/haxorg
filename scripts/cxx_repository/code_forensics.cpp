@@ -54,6 +54,11 @@ void InsertCommits(
     SQLite::Statement query(
         db, "INSERT INTO GitCommit VALUES (?, ?, ?, ?, ?, ?)");
 
+    SQLite::Statement actions(
+        db,
+        "INSERT INTO GitCommitActions VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+
+
     for (const auto& [id, item] : commits.pairs()) {
         query.bind(1, idcast(id.getValue()));
         query.bind(2, item->author.getValue());
@@ -64,6 +69,30 @@ void InsertCommits(
 
         query.exec();
         query.reset();
+
+        for (auto const& act : item->actions) {
+            actions.bind(1, idcast(id.getValue()));
+            actions.bind(2, (int)act.kind);
+            actions.bind(3, idcast(act.track.getValue()));
+            if (!act.old_path.isNil()) {
+                actions.bind(4, idcast(act.old_path.getValue()));
+            }
+
+            if (!act.new_path.isNil()) {
+                actions.bind(5, idcast(act.new_path.getValue()));
+            }
+
+            if (!act.file.isNil()) {
+                actions.bind(6, idcast(act.file.getValue()));
+            }
+
+            if (act.kind == ir::Commit::ActionKind::Modify) {
+                actions.bind(7, act.added);
+                actions.bind(8, act.removed);
+            }
+            actions.exec();
+            actions.reset();
+        }
     }
 }
 

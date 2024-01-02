@@ -105,6 +105,18 @@ struct FileDeleteAction {
     BOOST_DESCRIBE_CLASS(FileDeleteAction, (), (path), (), ());
 };
 
+struct FileModifyAction {
+    ir::FilePathId path;
+    int            added;
+    int            removed;
+    BOOST_DESCRIBE_CLASS(
+        FileModifyAction,
+        (),
+        (path, added, removed),
+        (),
+        ());
+};
+
 struct NameAction {
     NameAction(ir::FilePathId path) : path(path) { CHECK(!path.isNil()); }
     BOOST_DESCRIBE_CLASS(NameAction, (), (path), (), ());
@@ -132,6 +144,7 @@ struct CommitActionGroup : Vec<Action> {
     Opt<NameAction>       leading_name;
     Opt<FileRenameAction> rename_action;
     Opt<FileDeleteAction> delete_action;
+    Opt<FileModifyAction> modify_action;
 };
 
 struct CommitActions {
@@ -369,6 +382,21 @@ CommitActions get_commit_actions(
             case GIT_DELTA_MODIFIED: {
                 maybe_file_rename(state, delta, actions);
                 file_edit_actions(patch, state, id_commit, actions);
+                if (delta->status == GIT_DELTA_MODIFIED) {
+                    actions.modify_action = FileModifyAction{
+                        .path  = state->content->getFilePath(path),
+                        .added = (int)rs::count_if(
+                            actions,
+                            [](Action const& act) {
+                                return std::holds_alternative<AddAction>(
+                                    act);
+                            }),
+                        .removed = (int)rs::count_if(
+                            actions, [](Action const& act) {
+                                return std::holds_alternative<
+                                    RemoveAction>(act);
+                            })};
+                }
                 break;
             }
             default: {
@@ -411,6 +439,13 @@ struct ChangeIterationState {
         tracks.erase(rename.prev_path);
         tracks.insert({rename.this_path, prev_track});
 
+        state->at(commit_id).actions.push_back(ir::Commit::Action{
+            .kind     = ir::Commit::ActionKind::Rename,
+            .old_path = rename.prev_path,
+            .new_path = rename.this_path,
+            .track    = prev_track,
+        });
+
         if (state->do_checks()
             && (state->should_check_file(rename.this_path)
                 || state->should_check_file(rename.prev_path))) {
@@ -425,11 +460,26 @@ struct ChangeIterationState {
     }
 
     void apply(ir::CommitId commit_id, CR<FileDeleteAction> del) {
-        // Active track renames are fully reset when a file is deleted
-        // -- all historical context is dropped when a file is cleaned
-        // up from the index. If a new file is added with the same
-        // name, it will have a new file track history.
-        tracks.erase(del.path);
+        // FIXME main repository has commit that deletes already deleted path
+        if (tracks.contains(del.path)) {
+            state->at(commit_id).actions.push_back(ir::Commit::Action{
+                .kind  = ir::Commit::ActionKind::Delete,
+                .file  = del.path,
+                .track = tracks.at(del.path),
+            });
+
+            tracks.erase(del.path);
+        }
+    }
+
+    void apply(ir::CommitId commit_id, CR<FileModifyAction> del) {
+        state->at(commit_id).actions.push_back(ir::Commit::Action{
+            .kind    = ir::Commit::ActionKind::Modify,
+            .file    = del.path,
+            .track   = tracks.at(del.path),
+            .removed = del.removed,
+            .added   = del.added,
+        });
     }
 
     std::string format_section_lines(ir::FileTrackSectionId section_id) {
@@ -457,6 +507,7 @@ struct ChangeIterationState {
         ir::FileTrackSectionId section_id,
         ir::CommitId           commit_id,
         CR<AddAction>          add) {
+
         ir::FileTrackSection& section = state->at(section_id);
 
         if (state->do_checks() && state->should_check_file(section.path)) {
@@ -824,6 +875,11 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
             if (actions.delete_action) {
                 iter_state.apply(
                     commit_actions.id, *actions.delete_action);
+            }
+
+            if (actions.modify_action) {
+                iter_state.apply(
+                    commit_actions.id, *actions.modify_action);
             }
 
             auto [track_id, section_id] = iter_state.apply(

@@ -255,10 +255,10 @@ def base_environment(ctx: Context):
 
 
 @org_task(pre=[base_environment])
-def cmake_configure_utils(ctx: Context, debug=True):
+def cmake_configure_utils(ctx: Context):
     """Execute configuration for utility binary compilation"""
     log.info("Configuring cmake utils build")
-    build_dir = "build/utils_debug" if debug else "build/utils_release"
+    build_dir = "build/utils_debug" if is_debug(ctx) else "build/utils_release"
     run_command(
         ctx,
         "cmake",
@@ -269,17 +269,17 @@ def cmake_configure_utils(ctx: Context, debug=True):
             str(get_script_root().joinpath("scripts/cxx_codegen")),
             "-G",
             "Ninja",
-            f"-DCMAKE_BUILD_TYPE={'Debug' if debug else 'RelWithDebInfo'}",
+            f"-DCMAKE_BUILD_TYPE={'Debug' if is_debug(ctx) else 'RelWithDebInfo'}",
             f"-DCMAKE_CXX_COMPILER={get_script_root('toolchain/llvm/bin/clang++')}",
         ],
     )
 
 
 @org_task(task_name="Build cmake utils", pre=[cmake_configure_utils])
-def cmake_utils(ctx: Context, debug=True):
+def cmake_utils(ctx: Context):
     """Compile libraries and binaries for utils"""
     log.info("Building build utils")
-    build_dir = "build/utils_debug" if debug else "build/utils_release"
+    build_dir = "build/utils_debug" if is_debug(ctx) else "build/utils_release"
     run_command(ctx, "cmake", ["--build", get_script_root(build_dir)])
     log.info("CMake utils build ok")
 
