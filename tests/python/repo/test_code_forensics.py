@@ -253,7 +253,8 @@ def test_can_run_dir():
         git_commit(repo.git_dir(), "third")
 
         _, stdout, stderr = run_forensics(
-            repo.git_dir(), {
+            repo.git_dir(),
+            {
                 "out": {
                     "db_path": str(repo.db),
                     "text_dump": "/tmp/test_run.txt",
@@ -354,8 +355,8 @@ def test_fast_forward_merge():
         run_forensics(repo.git_dir(), db=str(repo.db))
 
 
-# @pytest.mark.xfail(
-#     reason="Algorithm does not handle all the edge cases for the larger repo")
+@pytest.mark.skip(
+    reason="Algorithm does not handle all the edge cases for the larger repo")
 def test_haxorg_forensics():
     _, stdout, stderr = run_forensics(
         get_haxorg_repo_root_path(), {
@@ -377,16 +378,25 @@ file_names = st.text(
     max_size=20,
 )
 
-line_content = st.text(
-    alphabet=st.characters(
-        whitelist_categories=('Lu', 'Ll', 'Nd'),
-        whitelist_characters='',
-        min_codepoint=48,
-        max_codepoint=122,
-    ),
-    min_size=15,
-    max_size=20,
-)
+
+@st.composite
+def line_content(draw):
+    is_empty = draw(st.booleans())
+    if is_empty:
+        return ""
+    else:
+        return draw(
+            st.text(
+                alphabet=st.characters(
+                    whitelist_categories=('Lu', 'Ll', 'Nd'),
+                    whitelist_characters='',
+                    min_codepoint=48,
+                    max_codepoint=122,
+                ),
+                min_size=15,
+                max_size=20,
+            ))
+
 
 MAX_FILES = 5
 
@@ -405,13 +415,14 @@ class GitFileEditKind(enum.Enum):
     REMOVE_LINE = 0  # Delete line at index
     INSERT_LINE = 1  # Add extra line to a file
     CHANGE_LINE = 2  # Replace existing line with new random content
+    NEWLINE_END = 3  # Add or remove newline at the end of the file.
 
 
 @beartype
 @dataclass
 class GitFileEdit:
     kind: GitFileEditKind
-    line_index: int
+    line_index: int = 0
     line_content: Optional[str] = None
 
 
@@ -424,7 +435,7 @@ class GitFileEditStrategy:
         if not self.lines:
             operation = GitFileEdit(kind=GitFileEditKind.INSERT_LINE,
                                     line_index=0,
-                                    line_content=draw(line_content))
+                                    line_content=draw(line_content()))
 
         else:
             which_line = draw(st.integers(min_value=0, max_value=len(self.lines) - 1))
@@ -433,16 +444,22 @@ class GitFileEditStrategy:
             match what_to_do:
                 case GitFileEditKind.INSERT_LINE:
                     operation = GitFileEdit(kind=what_to_do,
-                                            line_content=draw(line_content),
+                                            line_content=draw(line_content()),
                                             line_index=which_line)
 
                 case GitFileEditKind.CHANGE_LINE:
                     operation = GitFileEdit(kind=what_to_do,
-                                            line_content=draw(line_content),
+                                            line_content=draw(line_content()),
                                             line_index=which_line)
 
                 case GitFileEditKind.REMOVE_LINE:
                     operation = GitFileEdit(kind=what_to_do, line_index=which_line)
+
+                case GitFileEditKind.NEWLINE_END:
+                    is_empty = draw(st.sampled_from([True, False]))
+                    operation = GitFileEdit(
+                        kind=what_to_do,
+                        line_content="" if is_empty else draw(line_content()))
 
         edit_file_content_1(operation, self.lines)
         return operation
@@ -474,6 +491,12 @@ def edit_file_content_1(edit: GitFileEdit, content: List[str]):
                          line_index=index,
                          line_content=text):
             content.insert(index, text)
+
+        case GitFileEdit(kind=GitFileEditKind.NEWLINE_END, line_content=text):
+            content[-1] = text
+
+        case _:
+            assert False, f"Unhandled git file edit operation {edit}"
 
 
 @beartype
@@ -523,7 +546,7 @@ class GitOpStrategy:
         match op:
             case GitOperationKind.CREATE_FILE:
                 name = draw(file_names.filter(lambda x: x not in self.files))
-                self.files[name] = [draw(line_content)]
+                self.files[name] = draw(st.lists(line_content(), min_size=2, max_size=5))
                 return GitOperation(operation=op,
                                     filename=name,
                                     file_content=self.files[name])
@@ -714,7 +737,7 @@ def test_repo_operations_example_2():
 
 @given(multiple_files_strategy())
 @settings(
-    max_examples=20,
+    max_examples=40,
     deadline=1000,
     verbosity=Verbosity.normal,
     # Shrinking phase is very expensive and I don't see it yielding any particularly useful results

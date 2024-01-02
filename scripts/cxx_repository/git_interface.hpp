@@ -22,6 +22,18 @@ BOOST_DESCRIBE_ENUM(
     GIT_DELTA_UNREADABLE,
     GIT_DELTA_CONFLICTED);
 
+BOOST_DESCRIBE_ENUM(
+    git_object_t,
+    GIT_OBJECT_ANY,
+    GIT_OBJECT_INVALID,
+    GIT_OBJECT_COMMIT,
+    GIT_OBJECT_TREE,
+    GIT_OBJECT_BLOB,
+    GIT_OBJECT_TAG,
+    GIT_OBJECT_OFS_DELTA,
+    GIT_OBJECT_REF_DELTA);
+
+
 /// \brief Convert git ID object to it's string representation
 inline Str oid_tostr(git_oid oid) {
     std::array<char, GIT_OID_HEXSZ + 1> result;

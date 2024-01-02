@@ -4,6 +4,7 @@
 #include "repo_graph.hpp"
 #include <git2/patch.h>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/Set.hpp>
 #include <immer/flex_vector_transient.hpp>
 #include <fstream>
 #include "repo_profile.hpp"
@@ -137,6 +138,7 @@ struct CommitActions {
     CommitId                                        id;
     SPtr<git_tree>                                  this_tree;
     UnorderedMap<ir::FilePathId, CommitActionGroup> actions;
+    UnorderedSet<Str>                               directory_paths;
 };
 
 template <typename Res, typename... CallbackArgs>
@@ -251,14 +253,24 @@ void file_name_actions(walker_state* state, CommitActions& result) {
         result.this_tree,
         [&](char const* root, git_tree_entry const* entry) -> int {
             const git_object_t entry_type = git_tree_entry_type(entry);
+            auto               path       = fs::path{root}
+                      / fs::path{git_tree_entry_name(entry)};
             if (entry_type == GIT_OBJECT_BLOB) {
-                auto path = fs::path{root}
-                          / fs::path{git_tree_entry_name(entry)};
+
                 auto  track   = state->content->getFilePath(path);
                 auto& actions = result.actions[track];
                 CHECK(!actions.leading_name);
                 actions.leading_name = NameAction{
                     state->content->getFilePath(path)};
+            } else if (
+                entry_type == GIT_OBJECT_TREE
+                || entry_type == GIT_OBJECT_COMMIT) {
+                result.directory_paths.incl(path.native());
+            } else {
+                LOG(INFO) << std::format(
+                    "Commit has '{}' with type {}",
+                    path.native(),
+                    entry_type);
             }
             return 0;
         });
@@ -297,7 +309,19 @@ CommitActions get_commit_actions(
                                     .value();
         const git_diff_delta* delta = git::patch_get_delta(patch.get());
         fs::path              path{delta->new_file.path};
-        ir::FilePathId        path_id = state->content->getFilePath(path);
+        if (result.directory_paths.contains(path.native())) {
+            LOG_IF(INFO, state->verbose_consistency_checks) << std::format(
+                "Delta contained directory-related changes (submodule "
+                "addition) that were ignored. Path '{}' on commit {} with "
+                "delta kind {}.",
+                path,
+                state->at(task.id).hash,
+                delta->status);
+
+            continue;
+        }
+
+        ir::FilePathId path_id = state->content->getFilePath(path);
 
         if (delta->status == GIT_DELTA_DELETED) {
             CHECK(!result.actions.contains(path_id));
@@ -306,11 +330,13 @@ CommitActions get_commit_actions(
         }
 
         CHECK(result.actions.contains(path_id)) << std::format(
-            "Missing action group for path {} path_id {} for commit {}, delta kind {}",
+            "Missing action group for path '{}' path_id {} for commit {}, "
+            "delta kind {}. The path is a known directory: {}",
             path,
             path_id,
             state->at(task.id).hash,
-            delta->status);
+            delta->status,
+            result.directory_paths.contains(path.native()));
 
         auto& actions = result.actions.at(path_id);
 
@@ -444,7 +470,7 @@ struct ChangeIterationState {
             << " from section of size " << section.lines.size()
             << " path '" << state->str(state->at(section.path).path)
             << "' commit " << state->at(commit_id).hash << " " << fmt1(add)
-            << std::format("On track:{}", track)
+            << std::format(" on track:{}", track)
             << format_section_lines(section_id);
 
         CHECK(to_add <= section.lines.size());
@@ -468,19 +494,19 @@ struct ChangeIterationState {
 
         CHECK(to_remove < lines_size)
             << "[apply] Cannot remove line index " << to_remove
-            << " from section version " << section.lines.size() << " path "
-            << state->str(state->at(section.path).path) << " commit "
-            << state->at(commit_id).hash << " " << fmt1(remove)
-            << std::format(" on track:{}", track)
+            << " from section version " << section.lines.size()
+            << " path '" << state->str(state->at(section.path).path)
+            << "' commit " << state->at(commit_id).hash << " "
+            << fmt1(remove) << std::format(" on track:{}", track)
             << format_section_lines(section_id);
 
         auto remove_content = state->at(section.lines.at(to_remove))
                                   .content;
 
         LOG_IF(INFO, remove_content != remove.id)
-            << "[apply] Cannot remove line " << to_remove << " on path "
+            << "[apply] Cannot remove line " << to_remove << " on path '"
             << state->str(state->at(section.path).path)
-            << " because string content IDs are mismatched. Current "
+            << "' because string content IDs are mismatched. Current "
                "line content is "
             << fmt1(remove_content)
             << " and trying to remove it by a line with content "
@@ -490,7 +516,7 @@ struct ChangeIterationState {
                    state->str(remove_content),
                    state->str(remove.id))
             << " commit " << state->at(commit_id).hash
-            << std::format("On track:{}\n", track)
+            << std::format(" on track:{}", track)
             << format_section_lines(section_id);
 
         CHECK(remove_content == remove.id);
@@ -620,11 +646,6 @@ void check_tree_entry_consistency(
         section.track,
         state->at(track_id).sections.size() - 1);
 
-    std::string track_dump = std::format(
-        "tracks: {} active-tracks:{}",
-        iter_state.tracks,
-        iter_state.active_track_renames);
-
     auto content_lines = Str{content_ptr}.split('\n');
 
     std::string concat_content =                  //
@@ -643,8 +664,11 @@ void check_tree_entry_consistency(
             })
         | rv::transform([](auto const& line_tuple) -> std::string {
               return std::format(
-                  "[{:<4}] '{:<100}' '{:<100}'",
+                  "[{:<4}] [{}] '{:<100}' '{:<100}'",
                   std::get<0>(line_tuple),
+                  std::get<1>(line_tuple) == std::get<2>(line_tuple)
+                      ? "ok"
+                      : "er",
                   std::get<1>(line_tuple),
                   std::get<2>(line_tuple));
           })
@@ -657,12 +681,11 @@ void check_tree_entry_consistency(
                "[state-verify] Section lines size and content lines size "
                "mismatch: "
                "commit-hash:{} section:{} "
-               "content:{} where:{} tracks:[{}]\nfull content:\n{}",
+               "content:{} where:{}\nfull content:\n{}",
                state->at(commit_actions.id).hash,
                section.lines.size(),
                content_lines.size(),
                where,
-               track_dump,
                concat_content);
 
     CHECK(content_lines.size() == section.lines.size());
@@ -822,6 +845,10 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
             // "8cc22e03ea815cbc763541570a6d96d4959ecd06",
             // "d1294a7b427724183d75b257c731cb2d84cd4f6d",
             // "9980c8ee74e810eda8ef7dd262765de23a624227",
+            "769735f96b398a3893bdff186572e28ff42b8e7d",
+            "734a9eccee96968865f18ba6753dcc41d4ea2a25",
+            "8f466f11907e69f8bbed82bd8e7d9aa5351b3585",
+            "5ef62b9d5c067e7fe0125ef6fbe24a8c610a5554",
         };
 
         if (state->verbose_consistency_checks

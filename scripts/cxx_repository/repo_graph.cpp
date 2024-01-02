@@ -22,7 +22,6 @@ CommitGraph::CommitGraph(
 
     git_oid oid;
     while (git_revwalk_next(&oid, walker.get()) == 0) {
-        LOG(INFO) << std::format("[repo-graph] Adding {}", oid);
         VDesc            current = get_desc(oid);
         SPtr<git_commit> commit  = git::commit_lookup(repo.get(), &oid)
                                       .value();
