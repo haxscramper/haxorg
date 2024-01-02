@@ -64,6 +64,7 @@ struct cli_repo_config {
     DECL_FIELDS(
         cli_repo_config,
         (),
+        ((Vec<std::string>), debug_commits, {}),
         ((std::string), path, ""),
         ((std::string), branch, ""));
 };
@@ -137,8 +138,6 @@ struct walker_state {
     /// Current git repository
     SPtr<git_repository> repo;
 
-    bool verbose_consistency_checks = false;
-
     /// Ordered list of commits that were considered for the processing run
     Vec<git_oid>                              full_commits;
     std::unordered_map<git_oid, ir::CommitId> commit_ids;
@@ -157,6 +156,10 @@ struct walker_state {
 
     void add_id_mapping(CR<git_oid> oid, ir::CommitId id) {
         commit_ids.insert({oid, id});
+    }
+
+    bool do_checks() const {
+        return config->cli.verbose_consistency_checks;
     }
 
     ir::CommitId get_id(CR<git_oid> oid) { return commit_ids.at(oid); }

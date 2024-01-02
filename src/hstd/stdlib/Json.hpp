@@ -62,7 +62,7 @@ void from_json(json const& j, E& str) {
 }
 
 template <typename T>
-void from_json(json const& json, Opt<T> value) {
+void from_json(json const& json, Opt<T>& value) {
     value = SerdeDefaultProvider<T>::get();
     from_json(json, *value);
 }

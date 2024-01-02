@@ -362,8 +362,16 @@ def test_haxorg_forensics():
         get_haxorg_repo_root_path(), {
             "out": {
                 "db_path": "/tmp/haxorg_repo.sqlite",
+                "log_file": "/tmp/haxorg_repo_anal_log.log"
             },
-            "log_file": "/tmp/haxorg_repo_anal_log.log"
+            "repo": {
+                "debug_commits": [
+                    "769735f96b398a3893bdff186572e28ff42b8e7d",
+                    "734a9eccee96968865f18ba6753dcc41d4ea2a25",
+                    "8f466f11907e69f8bbed82bd8e7d9aa5351b3585",
+                    "5ef62b9d5c067e7fe0125ef6fbe24a8c610a5554",
+                ]
+            },
         })
 
 

@@ -161,7 +161,7 @@ void maybe_file_rename(
         && strcmp(delta->old_file.path, delta->new_file.path) != 0) {
         auto old_path = state->content->getFilePath(delta->old_file.path);
 
-        if (state->verbose_consistency_checks) {
+        if (state->do_checks()) {
             LOG(INFO) << std::format(
                 "File rename from {} to {}",
                 delta->old_file.path,
@@ -310,7 +310,7 @@ CommitActions get_commit_actions(
         const git_diff_delta* delta = git::patch_get_delta(patch.get());
         fs::path              path{delta->new_file.path};
         if (result.directory_paths.contains(path.native())) {
-            LOG_IF(INFO, state->verbose_consistency_checks) << std::format(
+            LOG_IF(INFO, state->do_checks()) << std::format(
                 "Delta contained directory-related changes (submodule "
                 "addition) that were ignored. Path '{}' on commit {} with "
                 "delta kind {}.",
@@ -386,7 +386,7 @@ struct ChangeIterationState {
             track_history.push_back(target_path);
         }
 
-        if (state->verbose_consistency_checks) {
+        if (state->do_checks()) {
             LOG(INFO) << std::format(
                 "[state] File path ID {} '{}' resolved via {} to {} '{}' "
                 "has known track:{}",
@@ -412,7 +412,7 @@ struct ChangeIterationState {
         active_track_renames.insert_or_assign(
             rename.this_path, rename.prev_path);
 
-        if (state->verbose_consistency_checks) {
+        if (state->do_checks()) {
             LOG(INFO) << std::format(
                 "[apply] File rename action, track renames: {}",
                 active_track_renames);
@@ -459,7 +459,7 @@ struct ChangeIterationState {
         ir::FileTrackSectionId section_id,
         ir::CommitId           commit_id,
         CR<AddAction>          add) {
-        if (state->verbose_consistency_checks) {
+        if (state->do_checks()) {
             LOG(INFO) << std::format("[apply] {}", add);
         }
 
@@ -484,7 +484,7 @@ struct ChangeIterationState {
         ir::FileTrackSectionId section_id,
         ir::CommitId           commit_id,
         CR<RemoveAction>       remove) {
-        if (state->verbose_consistency_checks) {
+        if (state->do_checks()) {
             LOG(INFO) << std::format("[apply] {}", remove);
         }
 
@@ -530,7 +530,7 @@ struct ChangeIterationState {
         CHECK(!name.getPath().isNil());
         ir::FileTrackId track = which_track(name.getPath());
 
-        if (state->verbose_consistency_checks) {
+        if (state->do_checks()) {
             LOG(INFO) << std::format(
                 "[apply] Applying name action, path name '{}' track {}",
                 state->str(name.getPath()),
@@ -754,7 +754,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
     };
 
     auto commit_ordering = g.commit_pairs();
-    if (state->verbose_consistency_checks) {
+    if (state->do_checks()) {
         for (auto const& [this_commit, prev_commit] : commit_ordering) {
             LOG(INFO) << std::format(
                 "[mainloop] ordering commit pair {} {}",
@@ -797,7 +797,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
             "hash",
             state->at(commit_actions.id).hash);
 
-        if (state->verbose_consistency_checks) {
+        if (state->do_checks()) {
             LOG(INFO) << std::format(
                 "[mainloop] Processing commit {}",
                 state->at(commit_actions.id).hash);
@@ -809,7 +809,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
                 "Actions for file",
                 "path",
                 state->str(state->at(file_id).path));
-            if (state->verbose_consistency_checks) {
+            if (state->do_checks()) {
                 LOG(INFO) << std::format(
                     "[mainloop] New action on file {} {}",
                     file_id,
@@ -841,18 +841,10 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
             });
         }
 
-        Vec<Str> debug_commits{
-            // "8cc22e03ea815cbc763541570a6d96d4959ecd06",
-            // "d1294a7b427724183d75b257c731cb2d84cd4f6d",
-            // "9980c8ee74e810eda8ef7dd262765de23a624227",
-            "769735f96b398a3893bdff186572e28ff42b8e7d",
-            "734a9eccee96968865f18ba6753dcc41d4ea2a25",
-            "8f466f11907e69f8bbed82bd8e7d9aa5351b3585",
-            "5ef62b9d5c067e7fe0125ef6fbe24a8c610a5554",
-        };
 
-        if (state->verbose_consistency_checks
-            || debug_commits.contains(state->at(commit_actions.id).hash)) {
+        if (state->do_checks()
+            || state->config->cli.repo.debug_commits.contains(
+                state->at(commit_actions.id).hash)) {
             git_tree_walk_lambda(
                 commit_actions.this_tree,
                 [&](char const* root, git_tree_entry const* entry) -> int {

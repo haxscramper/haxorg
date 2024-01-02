@@ -200,11 +200,16 @@ auto main(int argc, const char** argv) -> int {
 
     SPtr<LinePrinterLogSink> Sink;
     if (config->cli.out.log_file) {
+        LOG(INFO)
+            << "Log file configuration was provided, writing to file";
         Sink = std::make_shared<LinePrinterLogSink>(
             *config->cli.out.log_file);
         absl::AddLogSink(Sink.get());
         absl::log_internal::SetTimeZone(absl::LocalTimeZone());
         absl::log_internal::SetInitialized();
+    } else {
+        LOG(INFO)
+            << "No log file configured, writing to regular logging output";
     }
 
     std::unique_ptr<perfetto::TracingSession> perfetto_session;
@@ -245,11 +250,9 @@ auto main(int argc, const char** argv) -> int {
     });
 
     if (config->cli.verbose_consistency_checks) {
-        state->verbose_consistency_checks = config->cli
-                                                .verbose_consistency_checks;
         LOG(INFO) << std::format(
             "Verbose consistency check was set to {}",
-            state->verbose_consistency_checks);
+            config->cli.verbose_consistency_checks);
     }
 
     git_oid oid;
