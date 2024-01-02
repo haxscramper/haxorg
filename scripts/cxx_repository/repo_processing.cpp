@@ -174,7 +174,7 @@ void maybe_file_rename(
         && strcmp(delta->old_file.path, delta->new_file.path) != 0) {
         auto old_path = state->content->getFilePath(delta->old_file.path);
 
-        if (state->do_checks()) {
+        if (state->should_debug()) {
             LOG(INFO) << std::format(
                 "[actions] File rename from '{}' to '{}', ID mapping is: "
                 "new:{} -> old:{}",
@@ -331,7 +331,7 @@ CommitActions get_commit_actions(
         const git_diff_delta* delta = git::patch_get_delta(patch.get());
         fs::path              path{delta->new_file.path};
 
-        bool should_debug_path = state->do_checks()
+        bool should_debug_path = state->should_debug()
                               && (state->should_check_file(path.native())
                                   || state->should_debug_commit(task.id));
 
@@ -416,7 +416,7 @@ struct ChangeIterationState {
 
     ir::FileTrackId which_track(ir::FilePathId path) {
         ir::FilePathId target_path = path;
-        if (state->do_checks() && state->should_check_file(path)) {
+        if (state->should_debug() && state->should_debug_file(path)) {
             LOG(INFO) << std::format(
                 "[state] File path ID {} '{}' resolved to {} '{}' "
                 "has known track:{}",
@@ -449,9 +449,9 @@ struct ChangeIterationState {
             .track    = prev_track,
         });
 
-        if (state->do_checks()
-            && (state->should_check_file(rename.this_path)
-                || state->should_check_file(rename.prev_path))) {
+        if (state->should_debug()
+            && (state->should_debug_file(rename.this_path)
+                || state->should_debug_file(rename.prev_path))) {
             LOG(INFO) << std::format(
                 "[apply] File rename action, track {} moved from path "
                 "'{}' "
@@ -514,7 +514,7 @@ struct ChangeIterationState {
 
         ir::FileTrackSection& section = state->at(section_id);
 
-        if (state->do_checks() && state->should_check_file(section.path)) {
+        if (state->should_debug() && state->should_debug_file(section.path)) {
             LOG(INFO) << std::format(
                 "[apply] {} '{}'",
                 add,
@@ -543,7 +543,7 @@ struct ChangeIterationState {
         CR<RemoveAction>       remove) {
 
         ir::FileTrackSection& section = state->at(section_id);
-        if (state->do_checks() && state->should_check_file(section.path)) {
+        if (state->should_debug() && state->should_debug_file(section.path)) {
             LOG(INFO) << std::format("[apply] {}", remove);
         }
 
@@ -588,8 +588,8 @@ struct ChangeIterationState {
         CHECK(!name.getPath().isNil());
         ir::FileTrackId track = which_track(name.getPath());
 
-        if (state->do_checks()
-            && state->should_check_file(name.getPath())) {
+        if (state->should_debug()
+            && state->should_debug_file(name.getPath())) {
             LOG(INFO) << std::format(
                 "[apply] Applying name action, path name '{}' track {}",
                 state->str(name.getPath()),
@@ -851,7 +851,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
             "hash",
             state->at(commit_actions.id).hash);
 
-        if (state->do_checks()
+        if (state->should_debug()
             && state->should_debug_commit(commit_actions.id)) {
             LOG(INFO) << std::format(
                 "[mainloop] Processing commit {}",
@@ -864,7 +864,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
                 "Actions for file",
                 "path",
                 state->str(state->at(file_id).path));
-            if (state->do_checks() && state->should_check_file(file_id)) {
+            if (state->should_debug() && state->should_debug_file(file_id)) {
                 LOG(INFO) << std::format(
                     "[mainloop] New action on file {} {}",
                     file_id,
@@ -902,7 +902,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
         }
 
 
-        if (state->do_checks()
+        if (state->should_debug()
             || state->should_debug_commit(commit_actions.id)) {
             git_tree_walk_lambda(
                 commit_actions.this_tree,

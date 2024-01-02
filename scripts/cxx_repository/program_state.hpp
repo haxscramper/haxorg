@@ -115,11 +115,6 @@ struct walker_config {
     std::string heads_path() const {
         return fmt(".git/refs/heads/{}", cli.repo.branch);
     }
-
-    /// Allow processing of a specific path in the repository
-    Func<bool(CR<Str>)> allow_path;
-    /// Check whether commits at the specified date should be analysed
-    Func<bool(CR<PTime>, CR<Str>, CR<Str>)> allow_sample;
 };
 
 /// \brief stdlib time point alias
@@ -154,7 +149,7 @@ struct walker_state {
         commit_ids.insert({oid, id});
     }
 
-    bool do_checks() const {
+    bool should_debug() const {
         return config->cli.config.verbose_consistency_checks;
     }
 
@@ -163,7 +158,7 @@ struct walker_state {
             || config->cli.config.debug_paths.contains(path);
     }
 
-    bool should_check_file(ir::FilePathId id) {
+    bool should_debug_file(ir::FilePathId id) {
         return should_check_file(str(id));
     }
 

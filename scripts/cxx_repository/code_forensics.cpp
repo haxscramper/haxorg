@@ -215,11 +215,7 @@ class LinePrinterLogSink : public absl::LogSink {
 
 auto main(int argc, const char** argv) -> int {
 
-    auto config = UPtr<walker_config>(new walker_config{
-        // Full process parallelization
-        .allow_path   = [](CR<Str> path) -> bool { return true; },
-        .allow_sample = [](CR<PTime> date, CR<Str> author, CR<Str> id)
-            -> bool { return true; }});
+    auto config = UPtr<walker_config>(new walker_config{});
 
     {
         json in_config = json::parse(argv[1]);
