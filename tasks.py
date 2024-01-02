@@ -622,7 +622,12 @@ def org_coverage(ctx: Context):
 
 
 @org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
-def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None):
+def py_tests(
+    ctx: Context,
+    debug: bool = False,
+    debug_test: Optional[str] = None,
+    pytest_pass: List[str] = [],
+):
     """
     Execute the whole python test suite or run a single test file in non-interactive
     LLDB debugger to work on compiled component issues. 
@@ -665,12 +670,7 @@ def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None
             ctx,
             "poetry",
             [
-                "run",
-                "pytest",
-                "-v",
-                "-ra",
-                "-s",
-                "--tb=short",
+                "run", "pytest", "-v", "-ra", "-s", "--tb=short", *pytest_pass
                 # "tests/python/repo/test_code_forensics.py::test_haxorg_forensics",
                 # "tests/python/repo/test_code_forensics.py::test_repo_operations_example_4",
                 # "--hypothesis-show-statistics",

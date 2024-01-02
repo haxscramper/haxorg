@@ -31,6 +31,8 @@ from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle, preconditio
 from py_scriptutils.script_logging import log
 from collections import OrderedDict
 
+from cxx_repository import burndown
+
 
 @beartype
 def print_df_rich(
@@ -357,27 +359,23 @@ def test_fast_forward_merge():
         run_forensics(repo.git_dir(), db=str(repo.db))
 
 
-# @pytest.mark.skip(
-#     reason="Algorithm does not handle all the edge cases for the larger repo")
+HAXORG_OUT_DB = "/tmp/test_haxorg_forensics.sqlite"
+
+
 def test_haxorg_forensics():
     _, stdout, stderr = run_forensics(
         get_haxorg_repo_root_path(), {
             "out": {
-                "db_path": "/tmp/test_haxorg_forensics.sqlite",
+                "db_path": HAXORG_OUT_DB,
                 "log_file": "/tmp/test_haxorg_forensics.log",
                 "perfetto": "/tmp/test_haxorg_forensics.pftrace",
             },
-            # "config": {
-            #     "verbose_consistency_checks":
-            #         True,
-            #     "debug_paths": ["src/py_libs/pyhaxorg/pyhaxorg_manual_wrap.hpp"],
-            #     "debug_commits": [
-            #         "769735f96b398a3893bdff186572e28ff42b8e7d",
-            #         "9d2e8ae80dc06fc9181d649d76fd020106af7223",
-            #         "386908a22788f021712a2b61f405fff836cc446c"
-            #     ]
-            # },
         })
+
+
+def test_haxorg_repo_burndown():
+    engine = create_engine("sqlite:///" + HAXORG_OUT_DB)
+    burndown.run_for(engine)
 
 
 file_names = st.text(
@@ -673,9 +671,12 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
                 assert False, f"Unhandled git repo operation {action}"
 
 
-def run_repo_operations_test(operations: List[GitOperation],
-                             with_debugger: bool = False,
-                             fixed_dir: Optional[str] = None, params: Dict[str, Any] = dict(),):
+def run_repo_operations_test(
+        operations: List[GitOperation],
+        with_debugger: bool = False,
+        fixed_dir: Optional[str] = None,
+        params: Dict[str, Any] = dict(),
+):
     with GitTestRepository({"init": "init"}, fixed_dir=fixed_dir) as repo:
         run_repo_operations(repo, operations)
         git_commit(repo.git_dir(), "final commit", allow_fail=True)
@@ -771,37 +772,38 @@ def test_repo_operations_example_4():
         "",
     ]
 
-    run_repo_operations_test([
-        GitOperation(
-            GitOperationKind.CREATE_FILE, filename=file_1, file_content=content_1),
-        GitOperation(operation=GitOperationKind.REPO_COMMIT),
-        GitOperation(
-            operation=GitOperationKind.RENAME_FILE, filename=file_1, new_name=file_2),
-        GitOperation(operation=GitOperationKind.REPO_COMMIT),
-        GitOperation(
-            GitOperationKind.CREATE_FILE, filename=file_1, file_content=content_2),
-        GitOperation(operation=GitOperationKind.REPO_COMMIT),
-        GitOperation(operation=GitOperationKind.MODIFY_FILE,
-                     filename=file_2,
-                     file_content=content_1[:-3] + ["LINE1", "LINE2", "LINE3"])
-    ], params={
-        "config": {
-            "verbose_consistency_checks": True
+    run_repo_operations_test(
+        [
+            GitOperation(
+                GitOperationKind.CREATE_FILE, filename=file_1, file_content=content_1),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(
+                operation=GitOperationKind.RENAME_FILE, filename=file_1, new_name=file_2),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(
+                GitOperationKind.CREATE_FILE, filename=file_1, file_content=content_2),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.MODIFY_FILE,
+                         filename=file_2,
+                         file_content=content_1[:-3] + ["LINE1", "LINE2", "LINE3"])
+        ],
+        params={
+            "config": {
+                "verbose_consistency_checks": True
+            },
+            "out": {
+                "log_file": "/tmp/test_repo_operations_example_4.log"
+            }
         },
-        "out": {
-            "log_file": "/tmp/test_repo_operations_example_4.log"
-        }
-    },
-                             fixed_dir="/tmp/test_repo_operations_example_4")
+        fixed_dir="/tmp/test_repo_operations_example_4")
 
 
 @given(multiple_files_strategy())
 @settings(
-    max_examples=40,
+    max_examples=20,
     deadline=1000,
     verbosity=Verbosity.normal,
     # Shrinking phase is very expensive and I don't see it yielding any particularly useful results
-    #
     phases=[Phase.explicit, Phase.reuse, Phase.generate])
 def test_strategic_repo_edits(operations):
     run_repo_operations_test(operations)

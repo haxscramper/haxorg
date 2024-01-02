@@ -16,6 +16,7 @@ py_exporters = {path = "./scripts/py_exporters", develop=true}
 py_haxorg = {path = "./scripts/py_haxorg", develop=true}
 py_scriptutils = {path = "./scripts/py_scriptutils", develop=true}
 py_codegen = {path = "./scripts/py_codegen", develop=true}
+cxx_repository = {path = "./scripts/cxx_repository", develop=true}
 click = "^8.1.7"
 rich-click = "^1.6.1"
 toml = "^0.10.2"
@@ -35,6 +36,7 @@ more-itertools = "^10.1.0"
 sqlalchemy = "^2.0.24"
 hypothesis = "^6.92.2"
 setuptools = "^69.0.3"
+matplotlib = "^3.8.2"
 
 [tool.poetry.group.dev.dependencies]
 yapf = "^0.40.2"
