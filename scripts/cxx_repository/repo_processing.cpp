@@ -306,10 +306,12 @@ CommitActions get_commit_actions(
         }
 
         CHECK(result.actions.contains(path_id)) << std::format(
-            "Missing action group for path {} path_id {} for commit {}",
+            "Missing action group for path {} path_id {} for commit {}, delta kind {}",
             path,
             path_id,
-            state->at(task.id).hash);
+            state->at(task.id).hash,
+            delta->status);
+
         auto& actions = result.actions.at(path_id);
 
         switch (delta->status) {

@@ -354,8 +354,8 @@ def test_fast_forward_merge():
         run_forensics(repo.git_dir(), db=str(repo.db))
 
 
-@pytest.mark.skip(
-    reason="Algorithm does not handle all the edge cases for the larger repo")
+# @pytest.mark.xfail(
+#     reason="Algorithm does not handle all the edge cases for the larger repo")
 def test_haxorg_forensics():
     _, stdout, stderr = run_forensics(
         get_haxorg_repo_root_path(), {

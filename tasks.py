@@ -216,8 +216,7 @@ def git_init_submodules(ctx: Context):
         log.info("Submodules were checked out")
     else:
         log.info("Submodules were not checked out, running update")
-        run_command(ctx, "git",
-                    ("submodule", "update", "--init", "--recursive", "--progress"))
+        run_command(ctx, "git", ["submodule", "update", "--init", "--recursive", "--progress"])
 
 
 @org_task()
@@ -257,7 +256,7 @@ def cmake_configure_utils(ctx: Context, debug=True):
     run_command(
         ctx,
         "cmake",
-        (
+        [
             "-B",
             get_script_root(build_dir),
             "-S",
@@ -266,7 +265,7 @@ def cmake_configure_utils(ctx: Context, debug=True):
             "Ninja",
             f"-DCMAKE_BUILD_TYPE={'Debug' if debug else 'RelWithDebInfo'}",
             f"-DCMAKE_CXX_COMPILER={get_script_root('toolchain/llvm/bin/clang++')}",
-        ),
+        ],
     )
 
 
@@ -275,7 +274,7 @@ def cmake_utils(ctx: Context, debug=True):
     """Compile libraries and binaries for utils"""
     log.info("Building build utils")
     build_dir = "build/utils_debug" if debug else "build/utils_release"
-    run_command(ctx, "cmake", ("--build", get_script_root(build_dir)))
+    run_command(ctx, "cmake", ["--build", get_script_root(build_dir)])
     log.info("CMake utils build ok")
 
 
@@ -283,18 +282,18 @@ def cmake_utils(ctx: Context, debug=True):
 def haxorg_base_lexer(ctx: Context):
     "Generate base lexer file definitions and compile them to C code"
     log.info("Generating base lexer for haxorg")
-    run_command(ctx, "poetry", ("run", "src/base_lexer/base_lexer.py"))
+    run_command(ctx, "poetry", ["run", "src/base_lexer/base_lexer.py"])
     run_command(
         ctx,
         get_script_root("toolchain/RE-flex/build/reflex"),
-        (
+        [
             "--fast",
             "--nodefault",
             "--case-insensitive",
             f"--outfile={get_script_root('src/base_lexer/base_lexer_gen.cpp')}",
             "--namespace=base_lexer",
             get_script_root("src/base_lexer/base_lexer.l"),
-        ),
+        ],
         env={"LD_LIBRARY_PATH": str(get_script_root("toolchain/RE-flex/lib"))},
     )
 
@@ -310,7 +309,7 @@ def python_protobuf_files(ctx: Context):
         if op.should_run():
             log.info(f"Running protc {op.explain('python protobuf')}")
             _, stdout, _ = run_command(ctx,
-                                       "poetry", ("env", "info", "--path"),
+                                       "poetry", ["env", "info", "--path"],
                                        capture=True)
             stdout = stdout.strip()
             log.info(f"Using protoc plugin path '{stdout}'")
@@ -329,7 +328,7 @@ def python_protobuf_files(ctx: Context):
             run_command(
                 ctx,
                 "protoc",
-                (
+                [
                     f"--plugin={protoc_plugin}",
                     "-I",
                     get_script_root("scripts/cxx_codegen"),
@@ -337,7 +336,7 @@ def python_protobuf_files(ctx: Context):
                     str(get_script_root("scripts/py_codegen/py_codegen")),
                     "--python_betterproto_out=" + str(proto_lib),
                     proto_config,
-                ),
+                ],
             )
 
 
@@ -444,7 +443,7 @@ def update_py_haxorg_reflection(ctx: Context):
         run_command(
             ctx,
             "build/utils/reflection_tool",
-            (
+            [
                 "-p",
                 compile_commands,
                 "--compilation-database",
@@ -454,7 +453,7 @@ def update_py_haxorg_reflection(ctx: Context):
                 "--out",
                 out_file,
                 src_file,
-            ),
+            ],
         )
     except ProcessExecutionError as e:
         log.error("Reflection tool failed: %s", e)
@@ -474,12 +473,12 @@ def haxorg_codegen(ctx: Context, as_diff: bool = False):
     run_command(
         ctx,
         "poetry",
-        (
+        [
             "run",
             "scripts/py_codegen/codegen.py",
             get_build_root(),
             get_script_root(),
-        ),
+        ],
     )
 
     log.info("Updated code definitions")
@@ -497,7 +496,7 @@ def std_tests(ctx):
 def binary_coverage(ctx: Context, test: Path):
     dir = test.parent
     tools = get_llvm_root() / "bin"
-    # Remove .profdata files
+    # Remove `.profdata` files
     for file in dir.glob("*.profdata"):
         file.unlink()
 
@@ -600,19 +599,19 @@ def xray_coverage(ctx: Context, test: Path):
 
 @org_task(pre=[cmake_haxorg])
 def std_xray(ctx: Context):
-    "Generate test xray information for STD"
+    """Generate test xray information for STD"""
     xray_coverage(ctx, get_build_root("haxorg") / "tests_hstd")
 
 
 @org_task(pre=[cmake_haxorg])
 def std_coverage(ctx: Context):
-    "Generate test coverage information for STD"
+    """Generate test coverage information for STD"""
     binary_coverage(ctx, get_build_root("haxorg") / "tests_hstd")
 
 
 @org_task(pre=[cmake_haxorg])
 def org_coverage(ctx: Context):
-    "Generate test coverage information for ORG"
+    """Generate test coverage information for ORG"""
     binary_coverage(ctx, get_build_root("haxorg") / "tests_org")
 
 
@@ -679,7 +678,7 @@ def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None
 @org_task()
 def build_cxx_docs(ctx: Context):
     "Build Doxygen docunentation for the project"
-    run_command(ctx, "doxygen", str(get_script_root("Doxyfile")))
+    run_command(ctx, "doxygen", [str(get_script_root("Doxyfile"))])
     log.info("Completed CXX docs build")
 
 

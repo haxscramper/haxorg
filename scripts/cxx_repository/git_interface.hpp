@@ -8,6 +8,20 @@
 #include <expected>
 #include <hstd/stdlib/Ptrs.hpp>
 
+BOOST_DESCRIBE_ENUM(
+    git_delta_t,
+    GIT_DELTA_UNMODIFIED,
+    GIT_DELTA_ADDED,
+    GIT_DELTA_DELETED,
+    GIT_DELTA_MODIFIED,
+    GIT_DELTA_RENAMED,
+    GIT_DELTA_COPIED,
+    GIT_DELTA_IGNORED,
+    GIT_DELTA_UNTRACKED,
+    GIT_DELTA_TYPECHANGE,
+    GIT_DELTA_UNREADABLE,
+    GIT_DELTA_CONFLICTED);
+
 /// \brief Convert git ID object to it's string representation
 inline Str oid_tostr(git_oid oid) {
     std::array<char, GIT_OID_HEXSZ + 1> result;
