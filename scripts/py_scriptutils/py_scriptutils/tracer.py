@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from beartype.typing import Dict, Optional, List, Any
+from beartype.typing import Dict, Optional, List, Any, Iterator
 from beartype import beartype
 import time
 from enum import Enum
@@ -38,33 +38,35 @@ class TraceCollector:
         self.metadata: Dict[str, Any] = {}
 
     def get_last_event(self) -> Optional[TraceEvent]:
-        return self.traceEvents and self.traceEvents[0]
+        return self.traceEvents and self.traceEvents[-1]
 
     @contextmanager
     def complete_event(self,
                        name: str,
                        category: str,
-                       args: Optional[Dict[str, Any]] = None):
+                       args: Optional[Dict[str, Any]] = None) -> Iterator[TraceEvent]:
         pid = os.getpid()
         tid = id(self)
         start_time = int(time.time() * 1e6)  # Convert to microseconds
 
-        yield
+        new_event = TraceEvent(
+            name=name,
+            cat=category,
+            ph=EventType.COMPLETE,
+            ts=start_time,
+            dur=0,
+            pid=pid,
+            tid=tid,
+            args=args or {},
+        )
 
-        end_time = int(time.time() * 1e6)
-        duration = end_time - start_time
+        try:
+            yield new_event
 
-        self.traceEvents.append(
-            TraceEvent(
-                name=name,
-                cat=category,
-                ph=EventType.COMPLETE,
-                ts=start_time,
-                dur=duration,
-                pid=pid,
-                tid=tid,
-                args=args or {},
-            ))
+        finally:
+            end_time = int(time.time() * 1e6)
+            new_event.dur = end_time - start_time
+            self.traceEvents.append(new_event)
 
     def set_metadata(self, key: str, value: Any):
         self.metadata[key] = value
@@ -90,9 +92,9 @@ def getGlobalTraceCollector():
 
 
 @contextmanager
-def GlobCompleteEvent(name: str, category: str, args: Optional[Dict[str, Any]] = None):
-    with getGlobalTraceCollector().complete_event(name, category, args):
-        yield
+def GlobCompleteEvent(name: str, category: str, args: Optional[Dict[str, Any]] = None) -> Iterator[TraceEvent]:
+    with getGlobalTraceCollector().complete_event(name, category, args) as new_event:
+        yield new_event
 
 
 def GlobExportJson(file: Path):

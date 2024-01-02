@@ -116,6 +116,10 @@ def run_command(
         else:
             raise Failure(f"Failed to execute the command {cmd}") from None
 
+@beartype
+def ui_notify(message: str):
+    local["notify-send"].run((message))
+
 
 TASK_DEPS: Dict[Callable, List[Callable]] = {}
 
@@ -130,15 +134,22 @@ def org_task(task_name: Optional[str] = None, pre: List[Callable] = []) -> Calla
         def wrapper(*args, **kwargs):
             name = task_name or func.__name__
             log.info(f"Running [yellow]{name}[/yellow] ...")
-            with GlobCompleteEvent(f"task {name}", "build"):
-                result = func(*args, **kwargs)
+            try:
+                with GlobCompleteEvent(f"task {name}", "build") as last:
+                    result = func(*args, **kwargs)
 
-            last = getGlobalTraceCollector().get_last_event()
-            log.info(
-                f"Completed [green]{name}[/green] in [blue]{last.dur / 10e3:5.1f}[/blue]ms"
-            )
+            finally:
+                log.info(
+                    f"Completed [green]{name}[/green] in [blue]{last.dur / 10e3:5.1f}[/blue]ms"
+                )
 
-            GlobExportJson(get_build_root("task_build_time.json"))
+                color = "green"
+                name_format = f"<span color='#{color}'>{name:^40}</span>"
+                if 1000 < last.dur:
+                    ui_notify(f"DONE [<b>{name:^40}</b>] in {last.dur / 10e2:05.1f}ms")
+
+
+                GlobExportJson(get_build_root("task_build_time.json"))
 
             return result
 
