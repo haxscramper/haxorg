@@ -81,10 +81,7 @@ struct walker_config {
     Str            heads;
     Vec<Analytics> analytics;
     Str            branch;
-
-    Str  db_path;
-    bool try_incremental;
-    bool log_progress_bars;
+    bool           try_incremental;
 
     /// Allow processing of a specific path in the repository
     Func<bool(CR<Str>)> allow_path;

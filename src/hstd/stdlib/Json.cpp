@@ -105,3 +105,6 @@ std::string to_compact_json(
 
 void from_json(const json& in, int& out) { out = in.get<int>(); }
 void from_json(const json& in, bool& out) { out = in.get<bool>(); }
+void from_json(const json& in, std::string& out) {
+    out = in.get<std::string>();
+}

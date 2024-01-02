@@ -61,6 +61,12 @@ void from_json(json const& j, E& str) {
     }
 }
 
+template <typename T>
+void from_json(json const& json, Opt<T> value) {
+    value = SerdeDefaultProvider<T>::get();
+    from_json(json, *value);
+}
+
 
 template <DescribedRecord T>
 static void to_json(json& j, const T& str) {
@@ -98,7 +104,6 @@ void from_json(const json& in, T& out) {
             in, out);
     });
 }
-
 
 template <typename T>
 void from_json(const json& in, Vec<T>& out) {

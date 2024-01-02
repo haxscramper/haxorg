@@ -163,10 +163,30 @@ void InsertLineData(
 
 #define GIT_SUCCESS 0
 
-struct cli_state {
-    Str repo;
-    Str branch;
-    Str outfile;
+struct cli_repo_config {
+    DECL_FIELDS(
+        cli_repo_config,
+        (),
+        ((std::string), path, ""),
+        ((std::string), branch, ""));
+};
+
+struct cli_out_config {
+    DECL_FIELDS(
+        cli_out_config,
+        (),
+        ((std::string), db_path, ""),
+        ((Opt<std::string>), log_file, std::nullopt),
+        ((Opt<std::string>), text_dump, std::nullopt),
+        ((Opt<std::string>), perfetto, std::nullopt));
+};
+
+struct cli_config {
+    DECL_FIELDS(
+        cli_config,
+        (),
+        ((cli_repo_config), repo, cli_repo_config{}),
+        ((cli_out_config), out, cli_out_config{}));
 };
 
 class LinePrinterLogSink : public absl::LogSink {
@@ -190,25 +210,22 @@ class LinePrinterLogSink : public absl::LogSink {
 
 
 auto main(int argc, const char** argv) -> int {
-    json      in_config = json::parse(argv[1]);
-    cli_state in{
-        .repo   = in_config["repo"]["path"],
-        .branch = in_config["repo"]["branch"],
-    };
+    json       in_config = json::parse(argv[1]);
+    cli_config in;
+    from_json(in_config, in);
 
     json const& out = in_config["out"];
 
     SPtr<LinePrinterLogSink> Sink;
-    if (in_config.contains("log_file")) {
-        Sink = std::make_shared<LinePrinterLogSink>(
-            in_config["log_file"].get<std::string>());
+    if (in.out.log_file) {
+        Sink = std::make_shared<LinePrinterLogSink>(*in.out.log_file);
         absl::AddLogSink(Sink.get());
         absl::log_internal::SetTimeZone(absl::LocalTimeZone());
         absl::log_internal::SetInitialized();
     }
 
     std::unique_ptr<perfetto::TracingSession> perfetto_session;
-    if (out.contains("perfetto")) {
+    if (in.out.perfetto) {
         perfetto_session = StartProcessTracing("code_forensics");
     }
 
@@ -219,10 +236,9 @@ auto main(int argc, const char** argv) -> int {
     auto config = UPtr<walker_config>(new walker_config{
         // Full process parallelization
         .use_threading = walker_config::async,
-        .repo          = in.repo,
-        .heads         = fmt(".git/refs/heads/{}", in.branch),
-        .db_path       = in.outfile,
-        .branch        = in.branch,
+        .repo          = in.repo.path,
+        .heads         = fmt(".git/refs/heads/{}", in.repo.branch),
+        .branch        = in.repo.branch,
         .allow_path    = [](CR<Str> path) -> bool { return true; },
         .allow_sample  = [](CR<PTime> date, CR<Str> author, CR<Str> id)
             -> bool { return true; }});
@@ -239,7 +255,7 @@ auto main(int argc, const char** argv) -> int {
                    << "' does not exist, aborting analysis";
         return 1;
     } else if (!fs::exists(heads_path)) {
-        LOG(ERROR) << "The branch '" << in.branch
+        LOG(ERROR) << "The branch '" << in.repo.branch
                    << "' does not exist in the repository at path "
                    << config->repo << " the full path " << heads_path
                    << " does not exist";
@@ -279,9 +295,9 @@ auto main(int argc, const char** argv) -> int {
 
     LOG(INFO) << "Finished execution, DB written successfully";
 
-    if (out.contains("text_dump")) {
+    if (in.out.text_dump) {
         LOG(INFO) << "Text dump option specified, writing debug";
-        std::ofstream file{out["text_dump"].get<std::string>()};
+        std::ofstream file{*in.out.text_dump};
         for (auto const& [id, value] :
              state->content->multi.store<ir::FileTrack>().pairs()) {
             file << "File\n";
@@ -317,8 +333,7 @@ auto main(int argc, const char** argv) -> int {
     }
 
 
-    std::string db_path = out["db_path"].get<std::string>();
-    fs::path    db_file = db_path;
+    fs::path db_file{in.out.db_path};
     if (fs::exists(db_file)) {
         fs::remove(db_file);
     }
@@ -326,7 +341,8 @@ auto main(int argc, const char** argv) -> int {
     SQLite::Database db(
         db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     CreateTables(db);
-    LOG(INFO) << "Inserting data content, specified db path " << db_path;
+    LOG(INFO) << "Inserting data content, specified db path "
+              << in.out.db_path;
     db.exec("BEGIN");
     auto& m = state->content->multi;
     InsertFileTrackSections(db, m.store<ir::FileTrackSection>());
@@ -340,8 +356,8 @@ auto main(int argc, const char** argv) -> int {
 
     LOG(INFO) << "Completed DB write";
 
-    if (out.contains("perfetto")) {
-        fs::path out_path{out["perfetto"].get<std::string>()};
+    if (in.out.perfetto) {
+        fs::path out_path{*in.out.perfetto};
         LOG(INFO) << std::format("Perfetto output {}", out_path);
         StopTracing(std::move(perfetto_session), out_path);
     }
