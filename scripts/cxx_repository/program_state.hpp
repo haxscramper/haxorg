@@ -43,8 +43,9 @@ struct cli_repo_config {
     DECL_FIELDS(
         cli_repo_config,
         (),
-        ((Vec<std::string>), debug_commits, {}),
+        /// Absolute path to input directory
         ((std::string), path, ""),
+        /// Which branch to analyze
         ((std::string), branch, ""));
 };
 
@@ -52,11 +53,32 @@ struct cli_out_config {
     DECL_FIELDS(
         cli_out_config,
         (),
+        /// Mandatory option, path for the sqlite database to write to
         ((std::string), db_path, ""),
+        /// Redirect internal logging into the specified file
         ((Opt<std::string>), log_file, std::nullopt),
+        /// Dump file version representation at the end of the processing
+        /// run.
         ((Opt<std::string>), text_dump, std::nullopt),
+        /// Write an analyzed commit graph of the repository into the file
         ((Opt<std::string>), graphviz, std::nullopt),
+        /// Enable perfetto profiling and write trace results into a file.
         ((Opt<std::string>), perfetto, std::nullopt));
+};
+
+struct cli_config_config {
+    DECL_FIELDS(
+        cli_config_config,
+        (),
+        /// Enable internal data consistency check and verbose logging of
+        /// the processes. NOTE: This is a debug option and it slows down
+        /// processing by a lot.
+        ((bool), verbose_consistency_checks, false),
+        /// Trigger verbose consistency file checks for these commits --
+        /// can be used for debugging issues in a larger repository where
+        /// enabling the full check sequence will make it impossible to
+        /// process in a reasonable time.
+        ((Vec<std::string>), debug_commits, {}));
 };
 
 struct cli_config {
@@ -64,7 +86,7 @@ struct cli_config {
         cli_config,
         (),
         ((cli_repo_config), repo, cli_repo_config{}),
-        ((bool), verbose_consistency_checks, false),
+        ((cli_config_config), config, cli_config_config{}),
         ((cli_out_config), out, cli_out_config{}));
 };
 
@@ -117,7 +139,7 @@ struct walker_state {
     }
 
     bool do_checks() const {
-        return config->cli.verbose_consistency_checks;
+        return config->cli.config.verbose_consistency_checks;
     }
 
     ir::CommitId get_id(CR<git_oid> oid) { return commit_ids.at(oid); }

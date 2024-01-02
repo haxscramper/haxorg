@@ -147,7 +147,9 @@ def run_forensics(
         "out": {
             "db_path": db,
         },
-        "verbose_consistency_checks": verbose_consistency_checks,
+        "config": {
+            "verbose_consistency_checks": verbose_consistency_checks,
+        },
     }, params, {
         "repo": {
             "path": str(dir),
@@ -364,7 +366,7 @@ def test_haxorg_forensics():
                 "db_path": "/tmp/haxorg_repo.sqlite",
                 "log_file": "/tmp/haxorg_repo_anal_log.log"
             },
-            "repo": {
+            "config": {
                 "debug_commits": [
                     "769735f96b398a3893bdff186572e28ff42b8e7d",
                     "734a9eccee96968865f18ba6753dcc41d4ea2a25",

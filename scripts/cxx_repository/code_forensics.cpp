@@ -248,10 +248,10 @@ auto main(int argc, const char** argv) -> int {
         .content = &content,
     });
 
-    if (config->cli.verbose_consistency_checks) {
+    if (config->cli.config.verbose_consistency_checks) {
         LOG(INFO) << std::format(
             "Verbose consistency check was set to {}",
-            config->cli.verbose_consistency_checks);
+            config->cli.config.verbose_consistency_checks);
     }
 
     git_oid oid;

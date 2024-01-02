@@ -843,7 +843,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
 
 
         if (state->do_checks()
-            || state->config->cli.repo.debug_commits.contains(
+            || state->config->cli.config.debug_commits.contains(
                 state->at(commit_actions.id).hash)) {
             git_tree_walk_lambda(
                 commit_actions.this_tree,
