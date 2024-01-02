@@ -4,43 +4,22 @@
 #ifndef PROGRAM_STATE_HPP
 #define PROGRAM_STATE_HPP
 
-#include <unordered_set>
-#include <algorithm>
 #include <chrono>
 
-#include <boost/log/trivial.hpp>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/describe.hpp>
 #include <boost/mp11.hpp>
 #include <hstd/system/Formatter.hpp>
 
-#include "git_interface.hpp"
 #include "git_ir.hpp"
 #include <hstd/system/reflection.hpp>
-
-using Logger = boost::log::sources::severity_logger<
-    boost::log::trivial::severity_level>;
 
 using Date         = boost::gregorian::date;
 using PTime        = boost::posix_time::ptime;
 using TimeDuration = boost::posix_time::time_duration;
 namespace stime    = std::chrono;
 namespace bd       = boost::describe;
-
-
-/// \brief Different modes of repository analytics enabled in the
-/// application. Mapped to the `--analytics` command line option
-enum class Analytics
-{
-    BlameBurndown, /// Use git blame for commits allowed by the
-    /// filter script
-    CommitDiffInfo, /// Which files where touched in each commit,
-    /// how many lines were edited
-    Commits /// Only information about commits
-};
-
-BOOST_DESCRIBE_ENUM(Analytics, BlameBurndown, Commits, CommitDiffInfo);
 
 template <>
 struct std::formatter<Date> : std::formatter<std::string> {
@@ -92,22 +71,7 @@ struct cli_config {
 
 /// \brief runtime configuration state object
 struct walker_config {
-    /// Analyse commits via subprocess launches or via libgit blame
-    /// execution
-    bool use_subprocess = true;
-    /// Which threading mode to use during application execution (mostly
-    /// for debugging purposes)
-    enum threading_mode
-    {
-        async,
-        defer,
-        sequential
-    };
-    threading_mode use_threading = threading_mode::async;
-    /// Which repository branch to use
-    Vec<Analytics> analytics;
-    bool           try_incremental;
-    cli_config     cli;
+    cli_config cli;
 
     fs::path    repo_path() const { return fs::path{cli.repo.path}; }
     std::string heads_path() const {
@@ -118,12 +82,6 @@ struct walker_config {
     Func<bool(CR<Str>)> allow_path;
     /// Check whether commits at the specified date should be analysed
     Func<bool(CR<PTime>, CR<Str>, CR<Str>)> allow_sample;
-
-    bool use_analytics(Analytics which) const {
-        return analytics.empty()
-            || std::find(analytics.begin(), analytics.end(), which)
-                   != analytics.end();
-    }
 };
 
 /// \brief stdlib time point alias
@@ -164,11 +122,7 @@ struct walker_state {
 
     ir::CommitId get_id(CR<git_oid> oid) { return commit_ids.at(oid); }
 
-    /// \brief common mutex for synchronizing content manager mutations
-    std::mutex           m;
     ir::content_manager* content;
-    /// \brief main application logger entry
-    SPtr<Logger> logger;
 
     template <dod::IsIdType Id>
     auto at(Id id) -> typename dod::value_type_t<Id>& {

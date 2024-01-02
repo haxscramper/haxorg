@@ -860,31 +860,18 @@ CommitId process_commit(git_oid commit_oid, walker_state* state) {
     SPtr<git_commit> commit = git::commit_lookup(
                                   state->repo.get(), &commit_oid)
                                   .value();
-    auto hash = oid_tostr(*git_commit_id(commit.get()));
+    auto hash      = oid_tostr(*git_commit_id(commit.get()));
+    auto signature = const_cast<git_signature*>(
+        git::commit_author(commit.get()));
 
-    if (state->config->try_incremental) {
-        for (auto& [id, commit] :
-             state->content->multi.store<Commit>().pairs()) {
-            if (commit->hash == hash) {
-                return id;
-            }
-        }
-    }
-
-    {
-        auto signature = const_cast<git_signature*>(
-            git::commit_author(commit.get()));
-
-        return state->content->add(Commit{
-            .author   = state->content->add(Author{
-                  .name  = Str{signature->name},
-                  .email = Str{signature->email}}),
-            .time     = git::commit_time(commit.get()),
-            .timezone = git::commit_time_offset(commit.get()),
-            .hash     = hash,
-            .message  = Str{git_commit_message(commit.get())},
-        });
-    }
+    return state->content->add(Commit{
+        .author   = state->content->add(Author{
+              .name = Str{signature->name}, .email = Str{signature->email}}),
+        .time     = git::commit_time(commit.get()),
+        .timezone = git::commit_time_offset(commit.get()),
+        .hash     = hash,
+        .message  = Str{git_commit_message(commit.get())},
+    });
 }
 
 

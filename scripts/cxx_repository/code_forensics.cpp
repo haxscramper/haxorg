@@ -188,9 +188,8 @@ auto main(int argc, const char** argv) -> int {
 
     auto config = UPtr<walker_config>(new walker_config{
         // Full process parallelization
-        .use_threading = walker_config::async,
-        .allow_path    = [](CR<Str> path) -> bool { return true; },
-        .allow_sample  = [](CR<PTime> date, CR<Str> author, CR<Str> id)
+        .allow_path   = [](CR<Str> path) -> bool { return true; },
+        .allow_sample = [](CR<PTime> date, CR<Str> author, CR<Str> id)
             -> bool { return true; }});
 
     {
