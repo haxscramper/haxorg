@@ -116,9 +116,11 @@ def run_command(
         else:
             raise Failure(f"Failed to execute the command {cmd}") from None
 
+
 @beartype
-def ui_notify(message: str):
-    local["notify-send"].run((message))
+def ui_notify(message: str, is_ok: bool = True):
+    local["notify-send"].run(
+        [message] if is_ok else ["--urgency=critical", "--expire-time=1000", message])
 
 
 TASK_DEPS: Dict[Callable, List[Callable]] = {}
@@ -134,9 +136,12 @@ def org_task(task_name: Optional[str] = None, pre: List[Callable] = []) -> Calla
         def wrapper(*args, **kwargs):
             name = task_name or func.__name__
             log.info(f"Running [yellow]{name}[/yellow] ...")
+            run_ok = False
             try:
                 with GlobCompleteEvent(f"task {name}", "build") as last:
                     result = func(*args, **kwargs)
+
+                run_ok = True
 
             finally:
                 log.info(
@@ -146,8 +151,8 @@ def org_task(task_name: Optional[str] = None, pre: List[Callable] = []) -> Calla
                 color = "green"
                 name_format = f"<span color='#{color}'>{name:^40}</span>"
                 if 1000 < last.dur:
-                    ui_notify(f"DONE [<b>{name:^40}</b>] in {last.dur / 10e2:05.1f}ms")
-
+                    ui_notify(f"DONE [<b>{name:^40}</b>] in {last.dur / 10e2:05.1f}ms",
+                              is_ok=run_ok)
 
                 GlobExportJson(get_build_root("task_build_time.json"))
 
@@ -216,7 +221,8 @@ def git_init_submodules(ctx: Context):
         log.info("Submodules were checked out")
     else:
         log.info("Submodules were not checked out, running update")
-        run_command(ctx, "git", ["submodule", "update", "--init", "--recursive", "--progress"])
+        run_command(ctx, "git",
+                    ["submodule", "update", "--init", "--recursive", "--progress"])
 
 
 @org_task()
@@ -665,6 +671,8 @@ def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None
                 "-ra",
                 "-s",
                 "--tb=short",
+                # "tests/python/repo/test_code_forensics.py::test_haxorg_forensics",
+                "tests/python/repo/test_code_forensics.py::test_repo_operations_example_4",
                 # "--hypothesis-show-statistics",
                 # "--hypothesis-seed=11335865684259357953579948907097829183"
             ],

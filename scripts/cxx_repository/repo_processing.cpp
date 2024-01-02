@@ -163,9 +163,12 @@ void maybe_file_rename(
 
         if (state->do_checks()) {
             LOG(INFO) << std::format(
-                "File rename from {} to {}",
+                "[actions] File rename from '{}' to '{}', ID mapping is: "
+                "new:{} -> old:{}",
                 delta->old_file.path,
-                delta->new_file.path);
+                delta->new_file.path,
+                new_path,
+                old_path);
         }
 
         actions.rename_action = FileRenameAction{
@@ -279,11 +282,13 @@ void file_name_actions(walker_state* state, CommitActions& result) {
 CommitActions get_commit_actions(
     walker_state*  state,
     CR<CommitTask> task) {
-    CommitActions    result{.id = task.id, .this_tree = task.this_tree};
-    git_diff_options diffopts      = GIT_DIFF_OPTIONS_INIT;
-    git_diff_find_options findopts = GIT_DIFF_FIND_OPTIONS_INIT;
-    // Assigned values are said to be 'default' in the libgit
-    // documentation
+    CommitActions result{.id = task.id, .this_tree = task.this_tree};
+    LOG_IF(INFO, state->should_debug_commit(task.id)) << std::format(
+        "[actions] Generating list of actions for commit {}",
+        state->str(task.id));
+
+    git_diff_options      diffopts         = GIT_DIFF_OPTIONS_INIT;
+    git_diff_find_options findopts         = GIT_DIFF_FIND_OPTIONS_INIT;
     findopts.rename_threshold              = 50;
     findopts.rename_from_rewrite_threshold = 50;
     findopts.copy_threshold                = 50;
@@ -309,8 +314,14 @@ CommitActions get_commit_actions(
                                     .value();
         const git_diff_delta* delta = git::patch_get_delta(patch.get());
         fs::path              path{delta->new_file.path};
+
+        bool should_debug_path = state->do_checks()
+                              && (state->should_check_file(path.native())
+                                  || state->should_debug_commit(task.id));
+
+
         if (result.directory_paths.contains(path.native())) {
-            LOG_IF(INFO, state->do_checks()) << std::format(
+            LOG_IF(INFO, should_debug_path) << std::format(
                 "Delta contained directory-related changes (submodule "
                 "addition) that were ignored. Path '{}' on commit {} with "
                 "delta kind {}.",
@@ -339,6 +350,12 @@ CommitActions get_commit_actions(
             result.directory_paths.contains(path.native()));
 
         auto& actions = result.actions.at(path_id);
+
+        LOG_IF(INFO, should_debug_path) << std::format(
+            "[actions] File '{}' change {} at commit '{}'",
+            path,
+            delta->status,
+            state->str(task.id));
 
         switch (delta->status) {
             case GIT_DELTA_DELETED: {
@@ -386,7 +403,7 @@ struct ChangeIterationState {
             track_history.push_back(target_path);
         }
 
-        if (state->do_checks()) {
+        if (state->do_checks() && state->should_check_file(path)) {
             LOG(INFO) << std::format(
                 "[state] File path ID {} '{}' resolved via {} to {} '{}' "
                 "has known track:{}",
@@ -412,7 +429,9 @@ struct ChangeIterationState {
         active_track_renames.insert_or_assign(
             rename.this_path, rename.prev_path);
 
-        if (state->do_checks()) {
+        if (state->do_checks()
+            && (state->should_check_file(rename.this_path)
+                || state->should_check_file(rename.prev_path))) {
             LOG(INFO) << std::format(
                 "[apply] File rename action, track renames: {}",
                 active_track_renames);
@@ -459,12 +478,13 @@ struct ChangeIterationState {
         ir::FileTrackSectionId section_id,
         ir::CommitId           commit_id,
         CR<AddAction>          add) {
-        if (state->do_checks()) {
+        ir::FileTrackSection& section = state->at(section_id);
+
+        if (state->do_checks() && state->should_check_file(section.path)) {
             LOG(INFO) << std::format("[apply] {}", add);
         }
 
-        ir::FileTrackSection& section = state->at(section_id);
-        int                   to_add  = add.added;
+        int to_add = add.added;
         LOG_IF(INFO, !(to_add <= section.lines.size()))
             << "[apply] Cannot add line at index " << to_add
             << " from section of size " << section.lines.size()
@@ -484,13 +504,14 @@ struct ChangeIterationState {
         ir::FileTrackSectionId section_id,
         ir::CommitId           commit_id,
         CR<RemoveAction>       remove) {
-        if (state->do_checks()) {
+
+        ir::FileTrackSection& section = state->at(section_id);
+        if (state->do_checks() && state->should_check_file(section.path)) {
             LOG(INFO) << std::format("[apply] {}", remove);
         }
 
-        int                   to_remove  = remove.removed;
-        ir::FileTrackSection& section    = state->at(section_id);
-        int                   lines_size = section.lines.size();
+        int to_remove  = remove.removed;
+        int lines_size = section.lines.size();
 
         CHECK(to_remove < lines_size)
             << "[apply] Cannot remove line index " << to_remove
@@ -530,7 +551,8 @@ struct ChangeIterationState {
         CHECK(!name.getPath().isNil());
         ir::FileTrackId track = which_track(name.getPath());
 
-        if (state->do_checks()) {
+        if (state->do_checks()
+            && state->should_check_file(name.getPath())) {
             LOG(INFO) << std::format(
                 "[apply] Applying name action, path name '{}' track {}",
                 state->str(name.getPath()),
@@ -619,6 +641,10 @@ void check_tree_entry_consistency(
         LOG(INFO) << "[state-verify] No file actions recorded for path "
                   << path << " on commit "
                   << state->at(commit_actions.id).hash;
+        return;
+    }
+
+    if (!state->should_check_file(path.native())) {
         return;
     }
 
@@ -754,15 +780,6 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
     };
 
     auto commit_ordering = g.commit_pairs();
-    if (state->do_checks()) {
-        for (auto const& [this_commit, prev_commit] : commit_ordering) {
-            LOG(INFO) << std::format(
-                "[mainloop] ordering commit pair {} {}",
-                g[this_commit].oid,
-                prev_commit ? fmt1(g[*prev_commit].oid) : "<no-prev>");
-        }
-    }
-
     // Mutable iteration state internally implements state machine that
     // keeps track of the current file track, relevant renames and
     // target file section
@@ -797,7 +814,8 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
             "hash",
             state->at(commit_actions.id).hash);
 
-        if (state->do_checks()) {
+        if (state->do_checks()
+            && state->should_debug_commit(commit_actions.id)) {
             LOG(INFO) << std::format(
                 "[mainloop] Processing commit {}",
                 state->at(commit_actions.id).hash);
@@ -809,7 +827,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
                 "Actions for file",
                 "path",
                 state->str(state->at(file_id).path));
-            if (state->do_checks()) {
+            if (state->do_checks() && state->should_check_file(file_id)) {
                 LOG(INFO) << std::format(
                     "[mainloop] New action on file {} {}",
                     file_id,
@@ -843,8 +861,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
 
 
         if (state->do_checks()
-            || state->config->cli.config.debug_commits.contains(
-                state->at(commit_actions.id).hash)) {
+            || state->should_debug_commit(commit_actions.id)) {
             git_tree_walk_lambda(
                 commit_actions.this_tree,
                 [&](char const* root, git_tree_entry const* entry) -> int {

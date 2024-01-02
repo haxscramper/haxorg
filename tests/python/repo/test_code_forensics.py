@@ -357,8 +357,8 @@ def test_fast_forward_merge():
         run_forensics(repo.git_dir(), db=str(repo.db))
 
 
-@pytest.mark.skip(
-    reason="Algorithm does not handle all the edge cases for the larger repo")
+# @pytest.mark.skip(
+#     reason="Algorithm does not handle all the edge cases for the larger repo")
 def test_haxorg_forensics():
     _, stdout, stderr = run_forensics(
         get_haxorg_repo_root_path(), {
@@ -367,11 +367,13 @@ def test_haxorg_forensics():
                 "log_file": "/tmp/haxorg_repo_anal_log.log"
             },
             "config": {
+                "verbose_consistency_checks":
+                    True,
+                "debug_paths": ["src/py_libs/pyhaxorg/pyhaxorg_manual_wrap.hpp"],
                 "debug_commits": [
                     "769735f96b398a3893bdff186572e28ff42b8e7d",
-                    "734a9eccee96968865f18ba6753dcc41d4ea2a25",
-                    "8f466f11907e69f8bbed82bd8e7d9aa5351b3585",
-                    "5ef62b9d5c067e7fe0125ef6fbe24a8c610a5554",
+                    "9d2e8ae80dc06fc9181d649d76fd020106af7223",
+                    "386908a22788f021712a2b61f405fff836cc446c"
                 ]
             },
         })
@@ -614,7 +616,7 @@ def multiple_files_strategy(draw):
     def sub_strategy(draw: st.DrawFn):
         return state.file_ops(draw)
 
-    return draw(st.lists(sub_strategy(), min_size=10))
+    return draw(st.lists(sub_strategy(), min_size=10, max_size=90))
 
 
 def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation]):
@@ -743,6 +745,62 @@ def test_repo_operations_example_2():
             GitOperation(operation=GitOperationKind.CREATE_FILE, filename='IPwllW', file_content=['GHte9uhs1xNPohXX'])
         ])
     # yapf:enable
+
+
+def test_repo_operations_example_3():
+    run_repo_operations_test([
+        GitOperation(GitOperationKind.CREATE_FILE,
+                     filename="manual_wrap.hpp",
+                     file_content=[
+                         "#ifndef PY_HAXORG_COMPILING",
+                         *(["SAME"] * 20),
+                         "",
+                         "",
+                     ]),
+        GitOperation(operation=GitOperationKind.REPO_COMMIT),
+        GitOperation(GitOperationKind.CREATE_FILE,
+                     filename="manual_wrap.hpp",
+                     file_content=[
+                         "#ifndef PY_HAXORG_COMPILING",
+                         *(["SAME"] * 20),
+                         "",
+                     ]),
+        GitOperation(operation=GitOperationKind.REPO_COMMIT),
+    ],
+                             fixed_dir="/tmp/test_repo_operations_example_3")
+
+
+def test_repo_operations_example_4():
+    file_1 = "manual_impl.cpp"
+    file_2 = "manual_wrap.hpp"
+    content_1 = [
+        "#ifndef PY_HAXORG_COMPILING",
+        *(["SAME"] * 20),
+        "",
+        "",
+    ]
+
+    content_2 = [
+        "#ifndef PY_HAXORG_COMPILING",
+        *(["WHATVRASDSA"] * 20),
+        "",
+    ]
+
+    run_repo_operations_test([
+        GitOperation(
+            GitOperationKind.CREATE_FILE, filename=file_1, file_content=content_1),
+        GitOperation(operation=GitOperationKind.REPO_COMMIT),
+        GitOperation(
+            operation=GitOperationKind.RENAME_FILE, filename=file_1, new_name=file_2),
+        GitOperation(operation=GitOperationKind.REPO_COMMIT),
+        GitOperation(
+            GitOperationKind.CREATE_FILE, filename=file_1, file_content=content_2),
+        GitOperation(operation=GitOperationKind.REPO_COMMIT),
+        GitOperation(operation=GitOperationKind.MODIFY_FILE,
+                     filename=file_2,
+                     file_content=content_1[:-3] + ["LINE1", "LINE2", "LINE3"])
+    ],
+                             fixed_dir="/tmp/test_repo_operations_example_4")
 
 
 @given(multiple_files_strategy())

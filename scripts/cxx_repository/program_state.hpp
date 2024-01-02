@@ -78,7 +78,11 @@ struct cli_config_config {
         /// can be used for debugging issues in a larger repository where
         /// enabling the full check sequence will make it impossible to
         /// process in a reasonable time.
-        ((Vec<std::string>), debug_commits, {}));
+        ((Vec<std::string>), debug_commits, {}),
+        /// If verbose consistency checks are enabled (either explicitly or
+        /// via debug commits), narrow down comparison verification to
+        /// paths in this list.
+        ((Vec<std::string>), debug_paths, {}));
 };
 
 struct cli_config {
@@ -142,6 +146,19 @@ struct walker_state {
         return config->cli.config.verbose_consistency_checks;
     }
 
+    bool should_check_file(Str const& path) {
+        return config->cli.config.debug_paths.empty()
+            || config->cli.config.debug_paths.contains(path);
+    }
+
+    bool should_check_file(ir::FilePathId id) {
+        return should_check_file(str(id));
+    }
+
+    bool should_debug_commit(ir::CommitId id) {
+        return config->cli.config.debug_commits.contains(at(id).hash);
+    }
+
     ir::CommitId get_id(CR<git_oid> oid) { return commit_ids.at(oid); }
 
     ir::content_manager* content;
@@ -151,6 +168,7 @@ struct walker_state {
         return this->content->at(id);
     }
 
+    Str const& str(ir::CommitId id) { return this->at(id).hash; }
     Str const& str(ir::StringId id) { return this->at(id).text; }
     Str const& str(ir::FilePathId id) {
         return this->str(content->at(id).path);
