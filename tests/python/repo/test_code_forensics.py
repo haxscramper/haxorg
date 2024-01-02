@@ -25,7 +25,7 @@ import io
 from py_scriptutils.auto_lldb import get_lldb_params
 
 from pydantic import BaseModel
-from beartype.typing import List, Optional, Literal, Set, Callable
+from beartype.typing import List, Optional, Literal, Set, Callable, Any
 from hypothesis import strategies as st, settings, given, assume, Verbosity, Phase, note, seed
 from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle, precondition, run_state_machine_as_test
 from py_scriptutils.script_logging import log
@@ -363,19 +363,20 @@ def test_haxorg_forensics():
     _, stdout, stderr = run_forensics(
         get_haxorg_repo_root_path(), {
             "out": {
-                "db_path": "/tmp/haxorg_repo.sqlite",
-                "log_file": "/tmp/haxorg_repo_anal_log.log"
+                "db_path": "/tmp/test_haxorg_forensics.sqlite",
+                "log_file": "/tmp/test_haxorg_forensics.log",
+                "perfetto": "/tmp/test_haxorg_forensics.pftrace",
             },
-            "config": {
-                "verbose_consistency_checks":
-                    True,
-                "debug_paths": ["src/py_libs/pyhaxorg/pyhaxorg_manual_wrap.hpp"],
-                "debug_commits": [
-                    "769735f96b398a3893bdff186572e28ff42b8e7d",
-                    "9d2e8ae80dc06fc9181d649d76fd020106af7223",
-                    "386908a22788f021712a2b61f405fff836cc446c"
-                ]
-            },
+            # "config": {
+            #     "verbose_consistency_checks":
+            #         True,
+            #     "debug_paths": ["src/py_libs/pyhaxorg/pyhaxorg_manual_wrap.hpp"],
+            #     "debug_commits": [
+            #         "769735f96b398a3893bdff186572e28ff42b8e7d",
+            #         "9d2e8ae80dc06fc9181d649d76fd020106af7223",
+            #         "386908a22788f021712a2b61f405fff836cc446c"
+            #     ]
+            # },
         })
 
 
@@ -674,26 +675,15 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
 
 def run_repo_operations_test(operations: List[GitOperation],
                              with_debugger: bool = False,
-                             fixed_dir: Optional[str] = None,
-                             verbose_consistency_checks: bool = False,
-                             log_file: Optional[str] = None,
-                             graphviz_file: Optional[str] = None):
+                             fixed_dir: Optional[str] = None, params: Dict[str, Any] = dict(),):
     with GitTestRepository({"init": "init"}, fixed_dir=fixed_dir) as repo:
         run_repo_operations(repo, operations)
         git_commit(repo.git_dir(), "final commit", allow_fail=True)
-        params = {}
-        if log_file:
-            params["log_file"] = log_file
-
-        if graphviz_file:
-            params["out"] = {}
-            params["out"]["graphviz"] = graphviz_file
 
         run_forensics(
             repo.git_dir(),
             db=str(repo.db),
             with_debugger=with_debugger,
-            verbose_consistency_checks=verbose_consistency_checks,
             params=params,
         )
         # engine = repo.get_engine()
@@ -713,12 +703,7 @@ def test_repo_operations_example_1():
         GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout='00001'),
         GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='00002', branch_to_merge='00001'),
         GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout='master', branch_to_merge='00002')
-    ],
-        fixed_dir="/tmp/test_repo_operations_example_1_dir",
-        verbose_consistency_checks=True,
-        log_file="/tmp/test_repo_operations_example_1.log",
-        graphviz_file="/tmp/graph.dot"
-    )
+    ])
     # yapf:enable
 
 
@@ -799,7 +784,14 @@ def test_repo_operations_example_4():
         GitOperation(operation=GitOperationKind.MODIFY_FILE,
                      filename=file_2,
                      file_content=content_1[:-3] + ["LINE1", "LINE2", "LINE3"])
-    ],
+    ], params={
+        "config": {
+            "verbose_consistency_checks": True
+        },
+        "out": {
+            "log_file": "/tmp/test_repo_operations_example_4.log"
+        }
+    },
                              fixed_dir="/tmp/test_repo_operations_example_4")
 
 

@@ -380,36 +380,17 @@ CommitActions get_commit_actions(
 }
 
 struct ChangeIterationState {
-    walker_state* state;
-
-
-    // Keep track of the mapping between file path and file track IDs.
-    // When a file is seen for the first time a track is created for,
-    // with later renames adding a layer of indirection.
-    // `path1->path2->path3` -- when changes are made to the `path3` in
-    // some commit, the corresponding file track should be the same as
-    // `path1` and `path2`.
+    walker_state*                                 state;
     UnorderedMap<ir::FilePathId, ir::FileTrackId> tracks;
-    UnorderedMap<ir::FilePathId, ir::FilePathId>  active_track_renames;
 
     ir::FileTrackId which_track(ir::FilePathId path) {
         ir::FilePathId target_path = path;
-
-        Vec<ir::FilePathId> track_history;
-        track_history.push_back(target_path);
-
-        while (active_track_renames.contains(target_path)) {
-            target_path = active_track_renames.at(target_path);
-            track_history.push_back(target_path);
-        }
-
         if (state->do_checks() && state->should_check_file(path)) {
             LOG(INFO) << std::format(
-                "[state] File path ID {} '{}' resolved via {} to {} '{}' "
+                "[state] File path ID {} '{}' resolved to {} '{}' "
                 "has known track:{}",
                 path,
                 state->str(path),
-                track_history,
                 target_path,
                 state->str(target_path),
                 tracks.contains(target_path));
@@ -426,15 +407,20 @@ struct ChangeIterationState {
     }
 
     void apply(ir::CommitId commit_id, CR<FileRenameAction> rename) {
-        active_track_renames.insert_or_assign(
-            rename.this_path, rename.prev_path);
+        ir::FileTrackId prev_track = tracks.at(rename.prev_path);
+        tracks.erase(rename.prev_path);
+        tracks.insert({rename.this_path, prev_track});
 
         if (state->do_checks()
             && (state->should_check_file(rename.this_path)
                 || state->should_check_file(rename.prev_path))) {
             LOG(INFO) << std::format(
-                "[apply] File rename action, track renames: {}",
-                active_track_renames);
+                "[apply] File rename action, track {} moved from path "
+                "'{}' "
+                "to '{}'",
+                prev_track,
+                state->str(rename.prev_path),
+                state->str(rename.this_path));
         }
     }
 
@@ -443,14 +429,7 @@ struct ChangeIterationState {
         // -- all historical context is dropped when a file is cleaned
         // up from the index. If a new file is added with the same
         // name, it will have a new file track history.
-        ir::FilePathId to_delete = del.path;
-        while (active_track_renames.contains(to_delete)) {
-            auto tmp  = to_delete;
-            to_delete = active_track_renames.at(to_delete);
-            active_track_renames.erase(tmp);
-        }
-
-        tracks.erase(to_delete);
+        tracks.erase(del.path);
     }
 
     std::string format_section_lines(ir::FileTrackSectionId section_id) {
@@ -481,7 +460,10 @@ struct ChangeIterationState {
         ir::FileTrackSection& section = state->at(section_id);
 
         if (state->do_checks() && state->should_check_file(section.path)) {
-            LOG(INFO) << std::format("[apply] {}", add);
+            LOG(INFO) << std::format(
+                "[apply] {} '{}'",
+                add,
+                state->str(state->at(add.id).content));
         }
 
         int to_add = add.added;

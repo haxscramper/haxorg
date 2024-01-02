@@ -672,7 +672,7 @@ def py_tests(ctx: Context, debug: bool = False, debug_test: Optional[str] = None
                 "-s",
                 "--tb=short",
                 # "tests/python/repo/test_code_forensics.py::test_haxorg_forensics",
-                "tests/python/repo/test_code_forensics.py::test_repo_operations_example_4",
+                # "tests/python/repo/test_code_forensics.py::test_repo_operations_example_4",
                 # "--hypothesis-show-statistics",
                 # "--hypothesis-seed=11335865684259357953579948907097829183"
             ],
