@@ -300,13 +300,16 @@ CommitActions get_commit_actions(
         "[actions] Generating list of actions for commit {}",
         state->str(task.id));
 
-    git_diff_options      diffopts         = GIT_DIFF_OPTIONS_INIT;
-    git_diff_find_options findopts         = GIT_DIFF_FIND_OPTIONS_INIT;
-    findopts.rename_threshold              = 50;
-    findopts.rename_from_rewrite_threshold = 50;
-    findopts.copy_threshold                = 50;
-    findopts.break_rewrite_threshold       = 60;
-    findopts.rename_limit                  = 1000;
+    auto const&           c_diff     = state->config->cli.config.diffopts;
+    git_diff_options      diffopts   = GIT_DIFF_OPTIONS_INIT;
+    git_diff_find_options findopts   = GIT_DIFF_FIND_OPTIONS_INIT;
+    findopts.rename_threshold        = c_diff.rename_threshold;
+    findopts.copy_threshold          = c_diff.copy_threshold;
+    findopts.break_rewrite_threshold = c_diff.break_rewrite_threshold;
+    findopts.rename_limit            = c_diff.rename_limit;
+
+    findopts.rename_from_rewrite_threshold = //
+        c_diff.rename_from_rewrite_threshold;
 
     file_name_actions(state, result);
 
@@ -460,7 +463,8 @@ struct ChangeIterationState {
     }
 
     void apply(ir::CommitId commit_id, CR<FileDeleteAction> del) {
-        // FIXME main repository has commit that deletes already deleted path
+        // FIXME main repository has commit that deletes already deleted
+        // path
         if (tracks.contains(del.path)) {
             state->at(commit_id).actions.push_back(ir::Commit::Action{
                 .kind  = ir::Commit::ActionKind::Delete,

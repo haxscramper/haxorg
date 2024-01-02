@@ -66,6 +66,17 @@ struct cli_out_config {
         ((Opt<std::string>), perfetto, std::nullopt));
 };
 
+struct cli_diff_config {
+    DECL_FIELDS(
+        cli_diff_config,
+        (),
+        ((int), rename_threshold, 50),
+        ((int), break_rewrite_threshold, 60),
+        ((int), copy_threshold, 50),
+        ((int), rename_limit, 1000),
+        ((int), rename_from_rewrite_threshold, 50));
+};
+
 struct cli_config_config {
     DECL_FIELDS(
         cli_config_config,
@@ -82,7 +93,8 @@ struct cli_config_config {
         /// If verbose consistency checks are enabled (either explicitly or
         /// via debug commits), narrow down comparison verification to
         /// paths in this list.
-        ((Vec<std::string>), debug_paths, {}));
+        ((Vec<std::string>), debug_paths, {}),
+        ((cli_diff_config), diffopts, cli_diff_config{}));
 };
 
 struct cli_config {
