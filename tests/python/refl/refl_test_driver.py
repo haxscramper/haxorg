@@ -24,6 +24,7 @@ import py_codegen.refl_extract as ex
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from pathlib import Path
 import json
+from plumbum import local
 
 from py_codegen.refl_wrapper_graph import TuWrap
 from py_scriptutils.script_logging import log
@@ -102,11 +103,17 @@ def is_dict_subset(expected: dict,
 
     return failures
 
+@beartype
+@dataclass
+class ReflProviderRunResult:
+    wraps: List[TuWrap]
+    code_dir: Path
+
 
 @beartype
 def run_provider(text: Union[str, Dict[str, str]],
                  code_dir: Path,
-                 print_reflection_run_fail_to_stdout: bool = False) -> List[TuWrap]:
+                 print_reflection_run_fail_to_stdout: bool = False) -> ReflProviderRunResult:
     assert code_dir.exists()
     with (NamedTemporaryFile(mode="w", suffix=".json") as compile_commands):
         if isinstance(text, str):
@@ -173,26 +180,26 @@ def run_provider(text: Union[str, Dict[str, str]],
             assert wrap
 
         assert wraps
-        return wraps
+        return ReflProviderRunResult(wraps=wraps, code_dir=code_dir)
 
 
 def get_struct(text: str, **kwargs) -> GenTuStruct:
     with TemporaryDirectory() as code_dir:
-        tu = run_provider(text, Path(code_dir), **kwargs)[0].tu
+        tu = run_provider(text, Path(code_dir), **kwargs).wraps[0].tu
         assert len(tu.structs) == 1
         return tu.structs[0]
 
 
 def get_enum(text: str, **kwargs) -> GenTuEnum:
     with TemporaryDirectory() as code_dir:
-        tu = run_provider(text, Path(code_dir), **kwargs)[0].tu
+        tu = run_provider(text, Path(code_dir), **kwargs).wraps[0].tu
         assert len(tu.enums) == 1
         return tu.enums[0]
 
 
 def get_function(text: str, **kwargs) -> GenTuFunction:
     with TemporaryDirectory() as code_dir:
-        tu = run_provider(text, Path(code_dir), **kwargs)[0].tu
+        tu = run_provider(text, Path(code_dir), **kwargs).wraps[0].tu
         assert len(tu.functions) == 1
         return tu.functions[0]
 
@@ -201,3 +208,34 @@ def get_nim_code(content: gen_nim.GenTuUnion) -> gen_nim.ConvRes:
     t = gen_nim.nim.TextLayout()
     builder = gen_nim.nim.ASTBuilder(t)
     return gen_nim.conv_res_to_nim(builder, content, gen_nim.NimOptions())
+
+def format_nim_code(refl: ReflProviderRunResult) -> Dict[str, str]:
+    graph: gen_nim.GenGraph() = gen_nim.GenGraph()
+    for wrap in refl.wraps:
+        graph.add_unit(wrap)
+
+    graph.connect_usages()
+    graph.group_connected_files()
+
+    def get_out_path(path: Path) -> Path:
+        return path.with_suffix(".nim")
+
+    mapped: Dict[str, str] = {}
+    for sub in graph.subgraphs:
+        code = gen_nim.to_nim(
+            graph=graph,
+            sub=sub,
+            conf=gen_nim.NimOptions(),
+            output_directory=refl.code_dir,
+            get_out_path=get_out_path
+        )
+
+        assert code
+        mapped[str(get_out_path(sub.original).relative_to(refl.code_dir))] = code
+
+    return mapped
+
+
+def compile_nim_code(file: Path):
+    cmd = local["nim"]
+    cmd.run(["check", str(file)])

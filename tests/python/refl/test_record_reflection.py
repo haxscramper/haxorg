@@ -39,7 +39,7 @@ def test_field_with_std_import():
     with TemporaryDirectory() as code_dir:
         tu = run_provider(
             "#include <vector>\nstruct Content { std::vector<int> items; };",
-            Path(code_dir))[0].tu
+            Path(code_dir)).wraps[0].tu
 
     assert len(tu.structs) == 1
     assert len(tu.enums) == 0
@@ -123,3 +123,4 @@ def test_nim_record_field_conversion():
     field = record.Fields[0]
     assert field.Name == "field"
     assert field.Type.Name == "cint"
+

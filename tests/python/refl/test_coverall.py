@@ -1,4 +1,4 @@
-from refl_test_driver import run_provider, STABLE_FILE_NAME, get_nim_code
+from refl_test_driver import run_provider, STABLE_FILE_NAME, get_nim_code, format_nim_code
 import pytest
 from pprint import pprint
 from more_itertools import first_true
@@ -10,10 +10,13 @@ INPUT = Path(__file__).parent.joinpath("test_coverall_input.cpp")
 
 def test_coverall_extract():
     value = run_provider({str(INPUT): INPUT.read_text()}, code_dir=INPUT.parent)
+    for path, content in format_nim_code(value).items():
+        print(path)
+        print(content)
 
 
 def test_coverall_nim():
-    value = run_provider({str(INPUT): INPUT.read_text()}, code_dir=INPUT.parent)[0].tu
+    value = run_provider({str(INPUT): INPUT.read_text()}, code_dir=INPUT.parent).wraps[0].tu
     for _enum in value.enums:
         get_nim_code(_enum)
 

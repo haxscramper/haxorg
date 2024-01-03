@@ -624,7 +624,6 @@ def org_coverage(ctx: Context):
 @org_task(pre=[cmake_haxorg, cmake_utils, python_protobuf_files])
 def py_tests(
     ctx: Context,
-    debug: bool = False,
     debug_test: Optional[str] = None,
     pytest_pass: List[str] = [],
 ):
@@ -640,7 +639,9 @@ def py_tests(
                 ))
     }
 
-    if debug:
+    log.info(preload)
+
+    if debug_test:
         debug_test: Path = Path(debug_test)
         if not debug_test.is_absolute():
             debug_test = get_script_root("tests").joinpath(debug_test)

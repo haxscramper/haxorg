@@ -423,7 +423,9 @@ def to_nim(graph: GenGraph, sub: GenGraph.Sub, conf: NimOptions,
         if gen is not None:
             depend_on.append(gen)
 
-    depend_on.append(to_nim_imports(graph, sub, get_out_path=get_out_path))
+    imports = to_nim_imports(graph, sub, get_out_path=get_out_path)
+    if 0 < len(imports.Imported):
+        depend_on.append(imports)
 
     for _id in sub.nodes:
         conv: ConvRes = conv_res_to_nim(builder, graph.id_to_entry[_id], conf)
@@ -460,5 +462,8 @@ def to_nim(graph: GenGraph, sub: GenGraph.Sub, conf: NimOptions,
 
         else:
             stacked = t.stack(header + [builder.sep_stack(procs)])
+
+        with open("/tmp/tree_repr.txt", "w") as file:
+            print(t.toTreeRepr(stacked), file=file)
 
         return t.toString(stacked, opts)

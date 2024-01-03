@@ -200,7 +200,7 @@ Layout::Ptr getStacked(const Vec<Layout::Ptr>& layouts) {
 ///   A Solution::Ptr object that lays out the solutions vertically,
 ///   separated by newlines, with the same left margin.
 Solution::Ptr vSumSolution(Vec<Solution::Ptr> solutions) {
-    assert(solutions.size() > 0);
+    CHECK(solutions.size() > 0);
 
     if (solutions.size() == 1) {
         return solutions[0];
@@ -506,7 +506,7 @@ Opt<Solution::Ptr> doOptLineLayout(
     }
 
     if (elementLines.size() > 1) {
-        assert(opts.formatPolicy != nullptr);
+        CHECK(opts.formatPolicy != nullptr);
         elementLines = opts.formatPolicy(store, elementLines);
     }
 
@@ -983,18 +983,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
     Func<void(const BlockId&, int)> aux;
 
     aux = [&](const BlockId& blId, int level) -> void {
-        std::string pref2 = repeat(" ", level * 2 + 2);
-        os << fmt1(pref2) << "ID:" << fmt1(blId) << " ";
-        if (id.isNil()) {
-            os << "<nil>";
-            return;
-        } else if (visited.contains(blId)) {
-            os << "<visited> " << fmt1(blId);
-            return;
-        } else {
-            visited.incl(blId);
-        }
-
+        std::string  pref2 = repeat(" ", level * 2 + 2);
         std::string  name;
         Block const& bl = store->at(blId);
         switch (bl.getKind()) {
@@ -1007,14 +996,29 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
             case Block::Kind::Empty: name = "Em"; break;
         }
 
-        os << right_aligned(name + " ", level * 2) << "brk: {"
-           << fmt1(bl.isBreaking) << "} "
+        os << fmt1(pref2) << name << ":" << fmt1(blId.getIndex()) << " ";
+        if (id.isNil()) {
+            os << "<nil>";
+            return;
+        } else if (visited.contains(blId)) {
+            os << "<visited> " << fmt1(blId);
+            return;
+        } else {
+            visited.incl(blId);
+        }
+
+
+        os << "brk: {" << fmt1(bl.isBreaking) << "} "
            << "mul: {" << fmt1(bl.breakMult) << "}";
 
         switch (bl.getKind()) {
             case Block::Kind::Line: {
-                os << (doRecurse ? "\n" : "");
+                if (bl.getLine().elements.empty()) {
+                    os << "[EMPTY]";
+                }
+
                 for (const auto& elem : bl.getLine().elements) {
+                    os << (doRecurse ? "\n" : "");
                     if (doRecurse) {
                         aux(elem, level + 1);
                     } else {
@@ -1024,8 +1028,12 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                 break;
             }
             case Block::Kind::Choice: {
-                os << (doRecurse ? "\n" : "");
+                if (bl.getChoice().elements.empty()) {
+                    os << "[EMPTY]";
+                }
+
                 for (const auto& elem : bl.getChoice().elements) {
+                    os << (doRecurse ? "\n" : "");
                     if (doRecurse) {
                         aux(elem, level + 1);
                     } else {
@@ -1035,8 +1043,12 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                 break;
             }
             case Block::Kind::Stack: {
-                os << (doRecurse ? "\n" : "");
+                if (bl.getStack().elements.empty()) {
+                    os << "[EMPTY]";
+                }
+
                 for (const auto& elem : bl.getStack().elements) {
+                    os << (doRecurse ? "\n" : "");
                     if (doRecurse) {
                         aux(elem, level + 1);
                     } else {
@@ -1046,8 +1058,8 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                 break;
             }
             case Block::Kind::Wrap: {
-                os << (doRecurse ? "\n" : "");
                 for (const auto& elem : bl.getWrap().wrapElements) {
+                    os << (doRecurse ? "\n" : "");
                     if (doRecurse) {
                         aux(elem, level + 1);
                     } else {
@@ -1061,7 +1073,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                 for (auto const& it : bl.getText().text.strs) {
                     text += str(it);
                 }
-                os << text;
+                os << " '" << text << "'";
                 break;
             }
 
@@ -1075,7 +1087,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                 for (const auto& line : bl.getVerb().textLines) {
                     os << pref2
                        << repeat("  ", std::clamp(level - 1, 0, INT_MAX))
-                       << "  〚" << fmt1(line) << "〛\n";
+                       << "  〚" << fmt("'{}'", line) << "〛\n";
                 }
                 break;
             }
