@@ -1,5 +1,22 @@
-from py_codegen.refl_read import ConvTu, GenTuStruct, GenTuEnum, GenTuFunction, QualType
-from beartype.typing import Optional, Any, TypeVar, Callable, Type, NamedTuple, List
+from py_codegen.refl_read import (
+    ConvTu,
+    GenTuStruct,
+    GenTuEnum,
+    GenTuFunction,
+    QualType,
+)
+from beartype.typing import (
+    Optional,
+    Any,
+    TypeVar,
+    Callable,
+    Type,
+    NamedTuple,
+    List,
+    Dict,
+    Union,
+)
+
 import enum
 from beartype import beartype
 
@@ -7,10 +24,13 @@ import py_codegen.refl_extract as ex
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from pathlib import Path
 import json
+
+from py_codegen.refl_wrapper_graph import TuWrap
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import interpolate_dictionary, get_haxorg_repo_root_path
 from pprint import pprint
 import py_codegen.wrapper_gen_nim as gen_nim
+from dataclasses import dataclass
 
 STABLE_FILE_NAME = "/tmp/cpp_stable.cpp"
 
@@ -22,12 +42,14 @@ class PathComponentKind(enum.Enum):
 
 
 @beartype
+@dataclass
 class PathComponent(NamedTuple):
     kind: PathComponentKind
     value: str
 
 
 @beartype
+@dataclass
 class PathFail(NamedTuple):
     path: List[PathComponent]
     message: str
@@ -82,67 +104,97 @@ def is_dict_subset(expected: dict,
 
 
 @beartype
-def run_provider(text: str,
-                 stable_cpp_file: Optional[str] = None,
-                 print_reflection_run_fail_to_stdout: bool = False) -> ConvTu:
-    with (
-            # TODO Delete only when test run is ok
-            open(stable_cpp_file, "w")
-            if stable_cpp_file else NamedTemporaryFile(mode="w", suffix=".cpp") as file,
-            NamedTemporaryFile(mode="w", suffix=".json") as compile_commands,
-    ):
-        tmp_parent = str(Path(file.name).parent)
+def run_provider(text: Union[str, Dict[str, str]],
+                 code_dir: Path,
+                 print_reflection_run_fail_to_stdout: bool = False) -> List[TuWrap]:
+    assert code_dir.exists()
+    with (NamedTemporaryFile(mode="w", suffix=".json") as compile_commands):
+        if isinstance(text, str):
+            text = {"automatic_provider_run_file.hpp": text}
+
+        text = {
+            file if Path(file).is_absolute() else str(code_dir.joinpath(file)): value
+            for file, value in text.items()
+        }
+
         base_dict = dict(
-            input=[file.name],
+            input=[str(file) for file in text.keys()],
             indexing_tool="{haxorg_root}/build/utils/reflection_tool",
             compilation_database=compile_commands.name,
             toolchain_include="{haxorg_root}/toolchain/llvm/lib/clang/17/include",
-            output_directory=tmp_parent,
-            directory_root=tmp_parent)
+            output_directory=str(code_dir),
+            directory_root=str(code_dir),
+        )
 
         conf = ex.TuOptions.model_validate(
             interpolate_dictionary(base_dict,
-                                   {"haxorg_root": get_haxorg_repo_root_path()}))
+                                   {"haxorg_root": str(get_haxorg_repo_root_path())}),)
 
         conf.print_reflection_run_fail_to_stdout = print_reflection_run_fail_to_stdout
         conf.reflection_run_verbose = True
 
-        compile_commands.write(
-            json.dumps([{
-                "directory": conf.directory_root,
-                "command": f"clang++ {file.name}",
-                "file": conf.input[0],
-                "output": str(Path(conf.input[0]).with_suffix(".o"))
-            }]))
+        compile_commands_content = [
+            ex.CompileCommand(
+                directory=conf.directory_root,
+                command=f"clang++ {file}",
+                file=file,
+                output=str(Path(file).with_suffix(".o")),
+            ) for file in text.keys()
+        ]
 
+        log.info(compile_commands_content)
+
+        compile_commands.write(
+            json.dumps([cmd.model_dump() for cmd in compile_commands_content]))
         compile_commands.flush()
 
-        file.write(text)
-        file.flush()
+        for file, content in text.items():
+            full = Path(code_dir).joinpath(file)
+            if full.exists():
+                if full.read_text() != content:
+                    full.write_text(content)
+
+            else:
+                full.write_text(content)
 
         mappings = ex.expand_input(conf)
         commands = ex.read_compile_cmmands(conf)
-        wrap = ex.run_collector_for_path(conf, mappings[0], commands)
-        assert wrap
-        return wrap.tu
+        wraps: List[TuWrap] = []
+        for mapping in mappings:
+            assert any([
+                cmd.file == str(mapping.path) for cmd in compile_commands_content
+            ]), "Full command list {}, mapping path {}".format(
+                [cmd.file for cmd in compile_commands_content],
+                mapping.path,
+            )
+
+            wrap = ex.run_collector_for_path(conf, mapping, commands)
+            wraps.append(wrap)
+            assert wrap
+
+        assert wraps
+        return wraps
 
 
 def get_struct(text: str, **kwargs) -> GenTuStruct:
-    tu = run_provider(text, **kwargs)
-    assert len(tu.structs) == 1
-    return tu.structs[0]
+    with TemporaryDirectory() as code_dir:
+        tu = run_provider(text, Path(code_dir), **kwargs)[0].tu
+        assert len(tu.structs) == 1
+        return tu.structs[0]
 
 
 def get_enum(text: str, **kwargs) -> GenTuEnum:
-    tu = run_provider(text, **kwargs)
-    assert len(tu.enums) == 1
-    return tu.enums[0]
+    with TemporaryDirectory() as code_dir:
+        tu = run_provider(text, Path(code_dir), **kwargs)[0].tu
+        assert len(tu.enums) == 1
+        return tu.enums[0]
 
 
 def get_function(text: str, **kwargs) -> GenTuFunction:
-    tu = run_provider(text, **kwargs)
-    assert len(tu.functions) == 1
-    return tu.functions[0]
+    with TemporaryDirectory() as code_dir:
+        tu = run_provider(text, Path(code_dir), **kwargs)[0].tu
+        assert len(tu.functions) == 1
+        return tu.functions[0]
 
 
 def get_nim_code(content: gen_nim.GenTuUnion) -> gen_nim.ConvRes:

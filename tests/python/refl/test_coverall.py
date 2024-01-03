@@ -7,11 +7,13 @@ from pathlib import Path
 
 INPUT = Path(__file__).parent.joinpath("test_coverall_input.cpp")
 
+
 def test_coverall_extract():
-    value = run_provider(INPUT.read_text())
+    value = run_provider({str(INPUT): INPUT.read_text()}, code_dir=INPUT.parent)
+
 
 def test_coverall_nim():
-    value = run_provider(INPUT.read_text())
+    value = run_provider({str(INPUT): INPUT.read_text()}, code_dir=INPUT.parent)[0].tu
     for _enum in value.enums:
         get_nim_code(_enum)
 

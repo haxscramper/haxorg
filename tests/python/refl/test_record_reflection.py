@@ -1,3 +1,6 @@
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
 from refl_test_driver import run_provider, STABLE_FILE_NAME, GenTuStruct, get_struct, get_nim_code
 import pytest
 from pprint import pprint
@@ -33,7 +36,10 @@ def test_anon_structure_fields():
 
 
 def test_field_with_std_import():
-    tu = run_provider("#include <vector>\nstruct Content { std::vector<int> items; };")
+    with TemporaryDirectory() as code_dir:
+        tu = run_provider(
+            "#include <vector>\nstruct Content { std::vector<int> items; };",
+            Path(code_dir))[0].tu
 
     assert len(tu.structs) == 1
     assert len(tu.enums) == 0
@@ -51,6 +57,7 @@ def test_field_with_std_import():
     assert field.type.Parameters[0].name == "int"
 
 
+@pytest.mark.xfail()
 def test_anon_struct_for_field():
     struct = get_struct("struct Main { struct { int nested; } field; };")
     assert struct.name.name == "Main"
@@ -65,7 +72,7 @@ def test_anon_struct_for_field():
     assert decl.fields[0].name == "nested"
 
 
-def test_anon_struct_for_field():
+def test_anon_struct_for_field_2():
     struct = get_struct("struct Main { struct Named { int nested; } field; };")
     assert struct.name.name == "Main"
     assert len(struct.nested) == 1
