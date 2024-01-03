@@ -36,15 +36,12 @@ class TraceCollector:
     def __init__(self) -> None:
         self.traceEvents: List[TraceEvent] = []
         self.metadata: Dict[str, Any] = {}
+        self.eventStack: List[TraceEvent] = []
 
     def get_last_event(self) -> Optional[TraceEvent]:
         return self.traceEvents and self.traceEvents[-1]
 
-    @contextmanager
-    def complete_event(self,
-                       name: str,
-                       category: str,
-                       args: Optional[Dict[str, Any]] = None) -> Iterator[TraceEvent]:
+    def push_complete_event(self, name: str, category: str, args: Optional[Dict[str, Any]] = None) -> TraceEvent:
         pid = os.getpid()
         tid = id(self)
         start_time = int(time.time() * 1e6)  # Convert to microseconds
@@ -60,13 +57,30 @@ class TraceCollector:
             args=args or {},
         )
 
+        self.eventStack.append(new_event)
+        return new_event
+
+    def pop_complete_event(self) -> TraceEvent:
+        new_event = self.eventStack.pop()
+        end_time = int(time.time() * 1e6)
+        new_event.dur = end_time - new_event.ts
+        self.traceEvents.append(new_event)
+
+        return new_event
+
+    @contextmanager
+    def complete_event(self,
+                       name: str,
+                       category: str,
+                       args: Optional[Dict[str, Any]] = None) -> Iterator[TraceEvent]:
+
+        new_event = self.push_complete_event(name, category, args)
         try:
             yield new_event
 
         finally:
-            end_time = int(time.time() * 1e6)
-            new_event.dur = end_time - start_time
-            self.traceEvents.append(new_event)
+            self.pop_complete_event()
+
 
     def set_metadata(self, key: str, value: Any):
         self.metadata[key] = value

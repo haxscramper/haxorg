@@ -22,7 +22,7 @@ def run_for(engine: Engine):
 
     # ORM-based SELECT query
     query = session.query(ViewFullFileSectionLines.line_commit_time,
-                          ViewFullFileSectionLines.section_commit_time).limit(10e6)
+                          ViewFullFileSectionLines.section_commit_time).limit(5000)
 
     line_time = "line_commit_time"
     sect_time = "section_commit_time"
@@ -92,4 +92,4 @@ def run_for(engine: Engine):
     # Adjust layout
     plt.tight_layout()
 
-    plt.show()
+    plt.savefig("/tmp/aaa.png")
