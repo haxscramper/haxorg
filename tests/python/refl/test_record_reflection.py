@@ -174,5 +174,6 @@ echo "method field", value.run_method()
 """
                          })
 
-        binary = local[str(code_dir.joinpath("file.bin"))]
+        binary = local[str(code_dir.joinpath("main.bin"))]
         retcode, stdout, stderr = binary.run()
+        assert stdout.split("\n")[0:3] == ['value field 0', '-- default constructor', 'method field24']
