@@ -71,6 +71,7 @@ class GenTuFunction:
     isConst: bool = False
     isStatic: bool = False
     isPureVirtual: bool = False
+    parentClass: Optional['GenTuStruct'] = None
 
     def format(self) -> str:
         return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(

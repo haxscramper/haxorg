@@ -1,9 +1,11 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from refl_test_driver import run_provider, STABLE_FILE_NAME, GenTuStruct, get_struct, get_nim_code
+from refl_test_driver import run_provider, STABLE_FILE_NAME, GenTuStruct, get_struct, get_nim_code, format_nim_code, \
+    compile_nim_code
 import pytest
 from pprint import pprint
+from plumbum import local
 
 
 def test_simple_structure_registration():
@@ -110,7 +112,7 @@ def test_nim_record_conversion():
     record = conv.types[0]
     assert record.Name == "Main"
     assert record.Exported == True
-    assert record.Pragmas[0].Name == "bycopy"
+    assert any(p.Name == "bycopy" for p in record.Pragmas)
 
 
 def test_nim_record_field_conversion():
@@ -124,3 +126,53 @@ def test_nim_record_field_conversion():
     assert field.Name == "field"
     assert field.Type.Name == "cint"
 
+
+def test_nim_record_with_compile():
+    with TemporaryDirectory() as dir:
+        code_dir = Path("/tmp/code_test")
+        value = run_provider(
+            {
+                "file.hpp":
+                    """
+            #include <cstdio>
+            
+            struct Test {
+                int field = 12;
+                int run_method() { puts("-- default constructor"); return 24; }
+            };
+            """
+            },
+            code_dir=code_dir)
+        tu = value.wraps[0].tu
+        assert len(tu.functions) == 0
+        assert len(tu.structs) == 1
+        assert len(tu.enums) == 0
+        assert len(tu.typedefs) == 0
+        s = tu.structs[0]
+        assert s.name.name == "Test"
+        assert len(s.methods) == 1
+        assert s.methods[0].name == "run_method"
+        assert len(s.fields) == 1
+        assert s.fields[0].type.name == "int"
+        assert s.methods[0].result.name == "int"
+
+        formatted = format_nim_code(value)
+
+        compile_nim_code(code_dir=code_dir,
+                         files={
+                             file: res.content for file, res in formatted.items()
+                         })
+
+        compile_nim_code(code_dir,
+                         files={
+                             "main.nim":
+                                 """
+import file
+let value = Test()
+echo "value field ", value.field
+echo "method field", value.run_method()
+"""
+                         })
+
+        binary = local[str(code_dir.joinpath("file.bin"))]
+        retcode, stdout, stderr = binary.run()

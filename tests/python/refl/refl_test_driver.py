@@ -103,6 +103,7 @@ def is_dict_subset(expected: dict,
 
     return failures
 
+
 @beartype
 @dataclass
 class ReflProviderRunResult:
@@ -111,10 +112,13 @@ class ReflProviderRunResult:
 
 
 @beartype
-def run_provider(text: Union[str, Dict[str, str]],
-                 code_dir: Path,
-                 print_reflection_run_fail_to_stdout: bool = False) -> ReflProviderRunResult:
-    assert code_dir.exists()
+def run_provider(
+        text: Union[str, Dict[str, str]],
+        code_dir: Path,
+        print_reflection_run_fail_to_stdout: bool = False) -> ReflProviderRunResult:
+    if not code_dir.exists():
+        code_dir.mkdir(parents=True)
+
     with (NamedTemporaryFile(mode="w", suffix=".json") as compile_commands):
         if isinstance(text, str):
             text = {"automatic_provider_run_file.hpp": text}
@@ -137,6 +141,7 @@ def run_provider(text: Union[str, Dict[str, str]],
             interpolate_dictionary(base_dict,
                                    {"haxorg_root": str(get_haxorg_repo_root_path())}),)
 
+        conf.cache_collector_runs = False
         conf.print_reflection_run_fail_to_stdout = print_reflection_run_fail_to_stdout
         conf.reflection_run_verbose = True
 
@@ -190,6 +195,7 @@ def get_struct(text: str, **kwargs) -> GenTuStruct:
         return tu.structs[0]
 
 
+@beartype
 def get_enum(text: str, **kwargs) -> GenTuEnum:
     with TemporaryDirectory() as code_dir:
         tu = run_provider(text, Path(code_dir), **kwargs).wraps[0].tu
@@ -197,6 +203,7 @@ def get_enum(text: str, **kwargs) -> GenTuEnum:
         return tu.enums[0]
 
 
+@beartype
 def get_function(text: str, **kwargs) -> GenTuFunction:
     with TemporaryDirectory() as code_dir:
         tu = run_provider(text, Path(code_dir), **kwargs).wraps[0].tu
@@ -204,12 +211,15 @@ def get_function(text: str, **kwargs) -> GenTuFunction:
         return tu.functions[0]
 
 
+@beartype
 def get_nim_code(content: gen_nim.GenTuUnion) -> gen_nim.ConvRes:
     t = gen_nim.nim.TextLayout()
     builder = gen_nim.nim.ASTBuilder(t)
-    return gen_nim.conv_res_to_nim(builder, content, gen_nim.NimOptions())
+    return gen_nim.conv_res_to_nim(builder, content, gen_nim.NimOptions(), Path("___placeholder.hpp"))
 
-def format_nim_code(refl: ReflProviderRunResult) -> Dict[str, str]:
+
+@beartype
+def format_nim_code(refl: ReflProviderRunResult) -> Dict[str, gen_nim.GenNimResult]:
     graph: gen_nim.GenGraph() = gen_nim.GenGraph()
     for wrap in refl.wraps:
         graph.add_unit(wrap)
@@ -220,15 +230,13 @@ def format_nim_code(refl: ReflProviderRunResult) -> Dict[str, str]:
     def get_out_path(path: Path) -> Path:
         return path.with_suffix(".nim")
 
-    mapped: Dict[str, str] = {}
+    mapped: Dict[str, gen_nim.GenNimResult] = {}
     for sub in graph.subgraphs:
-        code = gen_nim.to_nim(
-            graph=graph,
-            sub=sub,
-            conf=gen_nim.NimOptions(),
-            output_directory=refl.code_dir,
-            get_out_path=get_out_path
-        )
+        code = gen_nim.to_nim(graph=graph,
+                              sub=sub,
+                              conf=gen_nim.NimOptions(),
+                              output_directory=refl.code_dir,
+                              get_out_path=get_out_path)
 
         assert code
         mapped[str(get_out_path(sub.original).relative_to(refl.code_dir))] = code
@@ -236,6 +244,17 @@ def format_nim_code(refl: ReflProviderRunResult) -> Dict[str, str]:
     return mapped
 
 
-def compile_nim_code(file: Path):
+@beartype
+def compile_nim_path(file: Path, binary: Path):
     cmd = local["nim"]
-    cmd.run(["check", str(file)])
+    cmd.run(["cpp", f"-o={binary}", str(file)])
+
+
+@beartype
+def compile_nim_code(code_dir: Path, files: Dict[str, str]):
+    for file, content in files.items():
+        code_dir.joinpath(file).write_text(content)
+
+    for file in files.keys():
+        compile_nim_path(code_dir.joinpath(file),
+                         code_dir.joinpath(file).with_suffix(".bin"))

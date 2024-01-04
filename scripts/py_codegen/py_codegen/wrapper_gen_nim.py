@@ -10,11 +10,21 @@ from beartype.typing import Callable, List, NewType, Optional, Set, Union
 from py_scriptutils.files import file_relpath
 from py_textlayout.py_textlayout import TextLayout, TextOptions
 from pydantic import BaseModel, Field
+import itertools
 
 import py_codegen.astbuilder_nim as nim
-from py_codegen.gen_tu_cpp import (GenTuEnum, GenTuEnumField, GenTuField, GenTuFunction,
-                                   GenTuStruct, GenTuTypedef, QualType, QualTypeKind)
+from py_codegen.gen_tu_cpp import (
+    GenTuEnum,
+    GenTuEnumField,
+    GenTuField,
+    GenTuFunction,
+    GenTuStruct,
+    GenTuTypedef,
+    QualType,
+    QualTypeKind,
+)
 from py_codegen.refl_wrapper_graph import GenGraph, GenTuUnion
+from py_scriptutils.script_logging import log
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout import BlockId
@@ -32,6 +42,19 @@ class NimOptions(BaseModel):
         default=[], description="List of renaming rules for generated wrappers")
     universal_import: List[str] = Field(default=[],
                                         description="Import added to all generated files")
+
+    common_function_pragmas: List[str] = Field(
+        default=[],
+        description="List of pragma annotations added to every function",
+    )
+
+    with_header_imports: bool = Field(
+        default=True,
+        description="Add header pragma annotations to generated entry wraps",
+    )
+
+    def get_function_pragmas(self, func: GenTuFunction) -> List[nim.PragmaParams]:
+        return [nim.PragmaParams(pragma) for pragma in self.common_function_pragmas]
 
 
 @beartype
@@ -350,17 +373,24 @@ def field_to_nim(b: nim.ASTBuilder, f: GenTuField) -> nim.IdentParams:
 
 
 @beartype
-def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct) -> ConvRes:
-    return ConvRes(types=[
-        nim.ObjectParams(
-            Name=rec.name.name,
-            Pragmas=[
-                #  nim.PragmaParams("importc"),
-                nim.PragmaParams("bycopy"),
-                *([nim.PragmaParams("incompleteStruct")] if rec.IsForwardDecl else []),
-            ],
-            Fields=[field_to_nim(b, f) for f in rec.fields])
-    ])
+def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct, conf, original: Path) -> ConvRes:
+    return ConvRes(
+        types=[
+            nim.ObjectParams(
+                Name=rec.name.name,
+                Pragmas=[
+                    nim.PragmaParams("importc"),
+                    nim.PragmaParams("bycopy"),
+                    *([nim.PragmaParams("incompleteStruct")]
+                      if rec.IsForwardDecl else []),
+                ],
+                Fields=[field_to_nim(b, f) for f in rec.fields])
+        ],
+        procs=list(
+            itertools.chain(
+                *[function_to_nim(b, meth, conf, original).procs
+                  for meth in rec.methods])),
+    )
 
 
 @beartype
@@ -372,44 +402,79 @@ def typedef_to_nim(b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
 
 
 @beartype
-def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions) -> ConvRes:
+def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions,
+                    original: Path) -> ConvRes:
+    log.info(func)
+    arguments: List[nim.IdentParams] = []
+    if func.parentClass:
+        arguments.append(nim.IdentParams("self", type_to_nim(b, func.parentClass.name)))
+
+    for Arg in func.arguments:
+        arguments.append(nim.IdentParams(Arg.name, type_to_nim(b, Arg.type)))
+
+    pragmas: List[nim.PragmaParams] = []
+
+    pragmas += conf.get_function_pragmas(func)
+    if func.parentClass:
+        pragmas.append(nim.PragmaParams("importcpp", [
+            b.Lit(f"#.{func.name}(@)")
+        ]))
+
+    else:
+        pragmas.append(nim.PragmaParams("importc", [b.Lit(func.name)]))
+
+    if conf.with_header_imports:
+        pragmas.append(nim.PragmaParams("header", [b.Lit(str(original))]))
+
     return ConvRes(procs=[
-        nim.FunctionParams(Name=nim.sanitize_name(
-            apply_rename(func.name, conf.function_renames)),
-                           ReturnTy=type_to_nim(b, func.result),
-                           Pragmas=[
-                               nim.PragmaParams("git2Proc"),
-                               nim.PragmaParams("importc", [b.Lit(func.name)]),
-                           ],
-                           Arguments=[
-                               nim.IdentParams(Arg.name, type_to_nim(b, Arg.type))
-                               for Arg in func.arguments
-                           ])
+        nim.FunctionParams(
+            Name=nim.sanitize_name(apply_rename(func.name, conf.function_renames)),
+            ReturnTy=type_to_nim(b, func.result),
+            Pragmas=pragmas,
+            Arguments=arguments,
+        )
     ])
 
 
 @beartype
-def conv_res_to_nim(builder: nim.ASTBuilder, decl: GenTuUnion, conf: NimOptions):
+def conv_res_to_nim(
+    builder: nim.ASTBuilder,
+    decl: GenTuUnion,
+    conf: NimOptions,
+    original: Path,
+):
     match decl:
         case GenTuEnum():
             return enum_to_nim(builder, decl)
 
         case GenTuStruct():
-            return struct_to_nim(builder, decl)
+            return struct_to_nim(builder, decl, conf, original)
 
         case GenTuTypedef():
             return typedef_to_nim(builder, decl)
 
         case GenTuFunction():
-            return function_to_nim(builder, decl, conf)
+            return function_to_nim(builder, decl, conf, original)
 
         case _:
             assert False
 
 
 @beartype
-def to_nim(graph: GenGraph, sub: GenGraph.Sub, conf: NimOptions,
-           get_out_path: Callable[[Path], Path], output_directory: Path) -> Optional[str]:
+@dataclass
+class GenNimResult:
+    content: Optional[str]
+    conv: List[ConvRes]
+
+
+@beartype
+def to_nim(
+    graph: GenGraph,
+    sub: GenGraph.Sub,
+    conf: NimOptions,
+    get_out_path: Callable[[Path], Path],
+    output_directory: Path,
+) -> GenNimResult:
     t = TextLayout()
     builder = nim.ASTBuilder(t)
 
@@ -427,8 +492,17 @@ def to_nim(graph: GenGraph, sub: GenGraph.Sub, conf: NimOptions,
     if 0 < len(imports.Imported):
         depend_on.append(imports)
 
+    collected_conv_res: List[ConvRes] = []
+
     for _id in sub.nodes:
-        conv: ConvRes = conv_res_to_nim(builder, graph.id_to_entry[_id], conf)
+        conv: ConvRes = conv_res_to_nim(
+            builder,
+            graph.id_to_entry[_id],
+            conf,
+            sub.original,
+        )
+
+        collected_conv_res.append(conv)
 
         for proc in conv.procs:
             procs.append(builder.Function(proc))
@@ -463,7 +537,4 @@ def to_nim(graph: GenGraph, sub: GenGraph.Sub, conf: NimOptions,
         else:
             stacked = t.stack(header + [builder.sep_stack(procs)])
 
-        with open("/tmp/tree_repr.txt", "w") as file:
-            print(t.toTreeRepr(stacked), file=file)
-
-        return t.toString(stacked, opts)
+        return GenNimResult(content=t.toString(stacked, opts), conv=collected_conv_res)

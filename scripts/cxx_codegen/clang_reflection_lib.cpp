@@ -824,7 +824,7 @@ bool ReflASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl* Decl) {
 }
 
 bool ReflASTVisitor::VisitFunctionDecl(clang::FunctionDecl* Decl) {
-    if (shouldVisit(Decl)) {
+    if (shouldVisit(Decl) && !llvm::isa<clang::CXXMethodDecl>(Decl)) {
         log_visit(Decl);
         Function* func = out->add_functions();
         func->set_name(Decl->getNameAsString());

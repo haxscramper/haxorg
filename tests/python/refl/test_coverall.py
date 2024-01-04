@@ -10,13 +10,14 @@ INPUT = Path(__file__).parent.joinpath("test_coverall_input.cpp")
 
 def test_coverall_extract():
     value = run_provider({str(INPUT): INPUT.read_text()}, code_dir=INPUT.parent)
-    for path, content in format_nim_code(value).items():
-        print(path)
-        print(content)
+    formatted = format_nim_code(value)
+    assert len(formatted) == 1
 
 
 def test_coverall_nim():
-    value = run_provider({str(INPUT): INPUT.read_text()}, code_dir=INPUT.parent).wraps[0].tu
+    value = run_provider({
+        str(INPUT): INPUT.read_text()
+    }, code_dir=INPUT.parent).wraps[0].tu
     for _enum in value.enums:
         get_nim_code(_enum)
 

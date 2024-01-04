@@ -41,26 +41,39 @@ else:
 
 
 class TuOptions(BaseModel):
-    input: List[str] = Field(description="List of input files, directories or globs")
-    indexing_tool: str = Field(description="Path to the TU index generator tool")
-    compilation_database: str = Field(description="Path to the compilation database")
-    binary_tmp: str = Field(description="Path to store temporary binary artifacts",
-                            default="/tmp/tu_collector")
+    input: List[str] = Field(description="List of input files, directories or globs",)
+    indexing_tool: str = Field(description="Path to the TU index generator tool",)
+    compilation_database: str = Field(description="Path to the compilation database",)
+    binary_tmp: str = Field(
+        description="Path to store temporary binary artifacts",
+        default="/tmp/tu_collector",
+    )
     toolchain_include: str = Field(
-        description="Path to the toolchain that was used to compile indexing tool")
-    reflect_cache: str = Field(description="Store last reflection convert timestamps",
-                               default="/tmp/tu_collector/runs.json")
+        description="Path to the toolchain that was used to compile indexing tool",)
+    reflect_cache: str = Field(
+        description="Store last reflection convert timestamps",
+        default="/tmp/tu_collector/runs.json",
+    )
+
+    cache_collector_runs: bool = Field(
+        default=True,
+        description="Cache collector binary runs for files",
+    )
+
     directory_root: Optional[str] = Field(
         description="Root of the source header directory", default=None)
     path_suffixes: List[str] = Field(
         description="List of file suffixes used for dir list filtering",
         default=[".hpp", ".cpp", ".h", ".c", ".cxx"],
-        alias="path-suffixes")
+        alias="path-suffixes",
+    )
 
-    execution_trace: str = Field(description="Output path for the execution trace json",
-                                 default="/tmp/tu_collector_trace.json")
+    execution_trace: str = Field(
+        description="Output path for the execution trace json",
+        default="/tmp/tu_collector_trace.json",
+    )
 
-    output_directory: str = Field(description="Directory to write output wrapped files")
+    output_directory: str = Field(description="Directory to write output wrapped files",)
 
     convert_failure_log_dir: str = Field(
         default="/tmp/tu_collector/converter_fails",
@@ -76,14 +89,14 @@ class TuOptions(BaseModel):
     reflection_run_verbose: bool = Field(default=False)
     reflection_run_serialize: bool = Field(
         default=False,
-        description="Serialize result of the reflection collector run into a JSON file")
+        description="Serialize result of the reflection collector run into a JSON file",
+    )
     reflection_run_path: Optional[str] = Field(
         default=None,
         description=
         "Absolute path to the reflection run serialization output. If not specified but the "
         "reflection serialization itself is requested, script will will write JSON file "
-        "in the same output directory as the rest of the conversion."
-    )
+        "in the same output directory as the rest of the conversion.")
 
 
 @beartype
@@ -178,7 +191,8 @@ def run_collector(conf: TuOptions, input: Path,
     if conf.reflection_run_verbose:
         flags.append("--verbose")
 
-    if IsNewInput([str(input), conf.indexing_tool], tmp_output):
+    if not conf.cache_collector_runs or IsNewInput([str(input), conf.indexing_tool],
+                                                   tmp_output):
         with open(str(target_files), "w") as file:
             file.write(json.dumps([str(input)], indent=2))
 
@@ -285,8 +299,11 @@ def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: 
 
 
 @beartype
-def run_collector_for_path(conf: TuOptions, mapping: PathMapping,
-                           commands: List[CompileCommand]) -> Optional[TuWrap]:
+def run_collector_for_path(
+    conf: TuOptions,
+    mapping: PathMapping,
+    commands: List[CompileCommand],
+) -> Optional[TuWrap]:
     path = mapping.path
     tu: CollectorRunResult = run_collector(conf, path, path.with_suffix(".py"))
     if tu.success:
@@ -295,12 +312,12 @@ def run_collector_for_path(conf: TuOptions, mapping: PathMapping,
         if not relative.parent.exists():
             relative.parent.mkdir(parents=True)
 
-        path = relative.with_suffix(".json")
+        serialize_path = relative.with_suffix(".json")
         if conf.reflection_run_serialize:
-            out_path = conf.reflection_run_path or str(path)
+            out_path = conf.reflection_run_path or str(serialize_path)
             with open(out_path, "w") as file:
                 file.write(open_proto_file(str(tu.pb_path)).to_json(2))
-                log.info(f"Wrote dump to {path}")
+                log.info(f"Wrote dump to {serialize_path}")
 
         write_run_result_information(conf, tu, path, commands)
 

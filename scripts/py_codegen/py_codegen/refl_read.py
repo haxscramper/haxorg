@@ -113,20 +113,19 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
     for _field in record.fields:
         if _field.is_type_decl:
             result.fields.append(
-                GenTuField(
-                    type=None,
-                    name=_field.name,
-                    doc=conv_doc_comment(_field.doc),
-                    isTypeDecl=True, 
-                    decl=conv_proto_record(_field.type_decl)
-                )
-            )
+                GenTuField(type=None,
+                           name=_field.name,
+                           doc=conv_doc_comment(_field.doc),
+                           isTypeDecl=True,
+                           decl=conv_proto_record(_field.type_decl)))
 
         else:
             result.fields.append(
-                GenTuField(type=conv_proto_type(_field.type),
-                        name=_field.name,
-                        doc=conv_doc_comment(_field.doc)))
+                GenTuField(
+                    type=conv_proto_type(_field.type),
+                    name=_field.name,
+                    doc=conv_doc_comment(_field.doc),
+                ))
 
     for meth in record.methods:
         if meth.kind != pb.RecordMethodKind.Base:
@@ -140,7 +139,8 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
                 isConst=meth.is_const,
                 arguments=[
                     GenTuIdent(conv_proto_type(arg.type), arg.name) for arg in meth.args
-                ]))
+                ],
+                parentClass=result))
 
     for record in record.nested_rec:
         result.nested.append(conv_proto_record(record))
@@ -206,7 +206,9 @@ def open_proto_file(path: str) -> pb.TU:
 @beartype
 def conv_proto_file(path: str) -> ConvTu:
     unit = open_proto_file(path)
-    return ConvTu(structs=[conv_proto_record(rec) for rec in unit.records],
-                  enums=[conv_proto_enum(rec) for rec in unit.enums],
-                  typedefs=[conv_proto_typedef(rec) for rec in unit.typedefs],
-                  functions=[conv_proto_function(rec) for rec in unit.functions])
+    return ConvTu(
+        structs=[conv_proto_record(rec) for rec in unit.records],
+        enums=[conv_proto_enum(rec) for rec in unit.enums],
+        typedefs=[conv_proto_typedef(rec) for rec in unit.typedefs],
+        functions=[conv_proto_function(rec) for rec in unit.functions],
+    )
