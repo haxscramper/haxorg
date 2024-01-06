@@ -33,20 +33,7 @@ def model_options(f):
     return conf_provider.apply_options(f, conf_provider.options_from_model(TuOptions))
 
 
-@click.command()
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
-@model_options
-@click.pass_context
-def run(ctx: click.Context, config: str, **kwargs):
-    config_base = conf_provider.run_config_provider(
-        ([config] if config else
-         conf_provider.find_default_search_locations(CONFIG_FILE_NAME)), True)
-    conf: TuOptions = cast(
-        TuOptions, conf_provider.merge_cli_model(ctx, config_base, kwargs, TuOptions))
-
+def run_wrap_for_config(conf: TuOptions):
     paths: List[PathMapping] = expand_input(conf)  # [:10]
     wraps: List[TuWrap] = []
 
@@ -126,6 +113,23 @@ def run(ctx: click.Context, config: str, **kwargs):
 
     GlobExportJson(conf.execution_trace)
     log.info("Done all")
+
+
+@click.command()
+@click.option("--config",
+              type=click.Path(exists=True),
+              default=None,
+              help="Path to config file.")
+@model_options
+@click.pass_context
+def run(ctx: click.Context, config: str, **kwargs):
+    config_base = conf_provider.run_config_provider(
+        ([config] if config else
+         conf_provider.find_default_search_locations(CONFIG_FILE_NAME)), True)
+    conf: TuOptions = cast(
+        TuOptions, conf_provider.merge_cli_model(ctx, config_base, kwargs, TuOptions))
+
+    run_wrap_for_config(conf)
 
 
 if __name__ == "__main__":

@@ -290,6 +290,17 @@ files = [
 ]
 
 [[package]]
+name = "compdb"
+version = "0.2.0"
+description = "The compilation database Swiss army knife"
+optional = false
+python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*"
+files = [
+    {file = "compdb-0.2.0-py2.py3-none-any.whl", hash = "sha256:f63b87d36a50b984a654dea1c782066cf659cad66d9b37e2d06cede7d0737b91"},
+    {file = "compdb-0.2.0.tar.gz", hash = "sha256:73471badd01e5e69c816fb3a4e0d014f099c2826ee283df5716cd7b1902b79dd"},
+]
+
+[[package]]
 name = "configobj"
 version = "5.0.8"
 description = "Config file reading, writing and validation."
@@ -2384,4 +2395,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.0 <3.13"
-content-hash = "236ba62409c017daf216c89e7a6db812b5d84e23e34d741597c6089d055ca43d"
+content-hash = "bebc5e40f71f8a500cccf38a9b8314dbf980d94cf6981d757450de65e85e64cd"
