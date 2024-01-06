@@ -59,9 +59,8 @@ class TuOptions(BaseModel):
     source_root: Optional[str] = Field(
         description="Main project root where cmake is located", default=None)
 
-    header_root: Optional[str] = Field(
+    header_root: str = Field(
         description="Path to the header file directory wrapped",
-        default=None,
     )
 
     binary_tmp: str = Field(

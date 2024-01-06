@@ -137,6 +137,7 @@ def run_provider(
             toolchain_include="{haxorg_root}/toolchain/llvm/lib/clang/17/include",
             output_directory=str(code_dir),
             directory_root=str(code_dir),
+            header_root=str(code_dir),
         )
 
         conf = ex.TuOptions.model_validate(
