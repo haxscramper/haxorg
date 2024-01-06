@@ -532,9 +532,6 @@ void build_multi_labels(
         [](Label const& a, Label const& b) {
             return (a.span->len()) > (b.span->len());
         });
-
-    _dbg(labels.size());
-    _dbg(multi_labels.size());
 }
 
 void build_line_labels(
@@ -1018,8 +1015,6 @@ void Report::write_for_stream(Cache& cache, std::ostream& stream) {
             }
         }
     }
-
-    DLOG(INFO) << w.getBuffer().toString();
 }
 
 std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
@@ -1036,7 +1031,7 @@ std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
         }
         int         idx  = std::distance(lines.begin(), it);
         const Line& line = lines[idx];
-        assert(offset >= line.offset);
+        CHECK(offset >= line.offset);
         return OffsetLine{std::ref(line), idx, offset - line.offset};
     } else {
         return std::nullopt;

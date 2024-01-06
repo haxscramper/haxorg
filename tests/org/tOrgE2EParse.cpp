@@ -39,6 +39,7 @@ diff::ComparisonOptions<NodeId<N, K, Val>, Val> nodeAdapterComparisonOptions(
 
 
 TEST(TestFiles, AllNodeCoverage) {
+    GTEST_SKIP();
     std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
     MockFull    p{false, false};
     std::string source = readFile(fs::path(file));

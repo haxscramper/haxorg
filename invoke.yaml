@@ -1,5 +1,5 @@
 quiet: false
 debug: true
 instrument:
-  coverage: true
-  xray: true
+  coverage: false
+  xray: false

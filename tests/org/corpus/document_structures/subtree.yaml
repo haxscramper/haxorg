@@ -23,7 +23,7 @@ items:
       doParse: false
     tokens:
       - {kind: SubtreeStars, str: "*"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: ParagraphStart}
       - {kind: Word, str: "Subtree"}
       - {kind: ParagraphEnd}
@@ -96,6 +96,7 @@ items:
 
   - name: "Lorem ipsum subtree"
     debug:
+      doLex: false
       doParse: false
     file: org/lorem_ipsum_subtree.org
 

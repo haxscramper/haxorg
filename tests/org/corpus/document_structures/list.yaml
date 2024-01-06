@@ -267,7 +267,9 @@ items:
 
   - name: "Indent and dedent long list"
     debug:
+      doLex: false
       doParse: false
+      
     source: |
         - item1
         - item2

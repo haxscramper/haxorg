@@ -1,6 +1,5 @@
 #pragma once
 
-
 #define __INIT_REPORT(__subname, __str)                                   \
     (::OrgTokenizer::Report{                                              \
         .location = __CURRENT_FILE_PATH__,                                \

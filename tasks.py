@@ -498,6 +498,13 @@ def std_tests(ctx):
     run_command(ctx, test, [], cwd=str(dir))
 
 
+@org_task(pre=[cmake_haxorg])
+def org_tests(ctx):
+    "Execute standard library tests"
+    dir = get_build_root("haxorg")
+    test = dir / "tests_org"
+    run_command(ctx, test, [], cwd=str(dir))
+
 @beartype
 def binary_coverage(ctx: Context, test: Path):
     dir = test.parent
@@ -602,6 +609,17 @@ def xray_coverage(ctx: Context, test: Path):
             f"No XRay log files found in '{dir}', xray coverage enabled in settings {is_xray_coverage(ctx)}"
         )
 
+@org_task(pre=[cmake_haxorg])
+def org_test_perf(ctx: Context):
+    """Generate performance sampling profile for tests"""
+
+    tests = str(get_build_root("haxorg") / "tests_org")
+    run = local["perf"]
+
+    try:
+        run["record", "--call-graph", "dwarf", tests] & FG
+    except ProcessExecutionError:
+        pass
 
 @org_task(pre=[cmake_haxorg])
 def std_xray(ctx: Context):

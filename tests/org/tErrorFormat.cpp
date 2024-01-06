@@ -50,9 +50,6 @@ TEST(PrintError, MultipleFiles) {
             + ColText(
                 " is a number and can only be added to other numbers"))
         .write(sources, os);
-
-    DLOG(INFO) << "\n" << os.str();
-    DLOG(INFO) << "First error run complete complete";
 }
 
 TEST(PrintError, MultipleAnnotations) {
@@ -203,6 +200,4 @@ def multiline :: Str = match Some 5 in {
                          .with_tab_width(4))
         //.write(sources, os)
         ;
-
-    DLOG(INFO) << os.str();
 }
