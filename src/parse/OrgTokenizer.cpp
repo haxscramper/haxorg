@@ -10,6 +10,59 @@
 
 #include "OrgTokenizerMacros.hpp"
 
+namespace rep {
+struct Builder {
+    OrgTokenizer::Report report;
+
+    Builder& with_msg(Str const& msg) {
+        report.msg = msg;
+        return *this;
+    }
+
+    Builder& with_name(Str const& name) {
+        report.name = name;
+        return *this;
+    }
+
+
+    Builder(
+        BaseLexer&               lex,
+        OrgTokenizer::ReportKind kind,
+        fs::path   location = fs::path{__builtin_FILE_NAME()},
+        int        line     = __builtin_LINE(),
+        Str const& function = __builtin_FUNCTION()) {
+        this->report = OrgTokenizer::Report{
+            .location = location,
+            .line     = line,
+            .name     = function,
+            .lex      = &lex,
+            .kind     = kind,
+        };
+    }
+};
+
+#define x_trace(...)                                                      \
+    if (TraceState) {                                                     \
+        this->report(                                                     \
+            (::rep::Builder(lex, OrgTokenizer::ReportKind::Enter)         \
+                 __VA_ARGS__)                                             \
+                .report);                                                 \
+    }                                                                     \
+                                                                          \
+    finally CONCAT(close, __COUNTER__) = finally::init<Str>(              \
+        ([&](CR<Str> name) {                                              \
+            if (TraceState) {                                             \
+                this->report(                                             \
+                    (::rep::Builder(lex, OrgTokenizer::ReportKind::Leave) \
+                         .with_name(name) __VA_ARGS__)                    \
+                        .report);                                         \
+            }                                                             \
+        }),                                                               \
+        Str(__func__));
+
+
+} // namespace rep
+
 using ock = OrgCommandKind;
 using otk = OrgTokenKind;
 using obt = BaseTokenKind;
@@ -334,7 +387,6 @@ struct RecombineState {
 
     void map_hashtag() {
         LOG(INFO) << "Trace state " << TraceState;
-        __trace();
         if (lex.hasNext(+1)) {
             if (opt_equal_kind(lex.opt(+1), obt::DoubleHash)) {
                 pop_as(otk::HashTag);
@@ -377,7 +429,7 @@ struct RecombineState {
     }
 
     void map_interpreted_token() {
-        __trace();
+        x_trace(.with_msg(std::format("Current state: {}", state_top())));
         BaseTokenId        start = lex.pos;
         BaseToken const&   tok   = lex.tok();
         BaseFill const&    val   = tok.value;

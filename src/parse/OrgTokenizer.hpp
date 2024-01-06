@@ -60,6 +60,7 @@ struct OrgTokenizer
         int        line;
         Opt<Str>   subname;
         BaseLexer* lex;
+        Opt<Str>   msg;
     };
 
 

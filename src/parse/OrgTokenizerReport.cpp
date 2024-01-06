@@ -86,7 +86,7 @@ void OrgTokenizer::report(CR<Report> in) {
         case ReportKind::Leave: {
             os << (in.kind == ReportKind::Enter ? "> " : "< ") << fg::Green
                << getLoc() << in.name << os.end() << ":" << fg::Cyan
-               << in.line << os.end();
+               << fmt1(in.line) << os.end();
 
             if (in.subname.has_value()) {
                 os << " " << in.subname.value();
