@@ -53,6 +53,11 @@ class NimOptions(BaseModel):
         description="Add header pragma annotations to generated entry wraps",
     )
 
+    is_cpp_wrap: bool = Field(
+        default=False,
+        description="Generating wrappers for C++ or C code",
+    )
+
     def get_function_pragmas(self, func: GenTuFunction) -> List[nim.PragmaParams]:
         return [nim.PragmaParams(pragma) for pragma in self.common_function_pragmas]
 
@@ -390,7 +395,12 @@ def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct, conf: NimOptions) -> Conv
             nim.PragmaParams("header",
                              [b.Lit(conf.get_header_str_for_path(rec.original))]))
 
-    pragmas.append(nim.PragmaParams("importc"))
+    if conf.is_cpp_wrap:
+        pragmas.append(nim.PragmaParams("importcpp"))
+
+    else:
+        pragmas.append(nim.PragmaParams("importc"))
+
     pragmas.append(nim.PragmaParams("bycopy"))
 
     if rec.IsForwardDecl:
@@ -419,7 +429,7 @@ def typedef_to_nim(b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
 @beartype
 def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions) -> ConvRes:
     arguments: List[nim.IdentParams] = []
-    if func.parentClass:
+    if conf.is_cpp_wrap:
         arguments.append(nim.IdentParams("self", type_to_nim(b, func.parentClass.name)))
 
     for Arg in func.arguments:
@@ -428,7 +438,7 @@ def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions) ->
     pragmas: List[nim.PragmaParams] = []
 
     pragmas += conf.get_function_pragmas(func)
-    if func.parentClass:
+    if conf.is_cpp_wrap:
         pragmas.append(nim.PragmaParams("importcpp", [b.Lit(f"#.{func.name}(@)")]))
 
     else:

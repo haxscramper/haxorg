@@ -114,9 +114,10 @@ class ReflProviderRunResult:
 
 @beartype
 def run_provider(
-        text: Union[str, Dict[str, str]],
-        code_dir: Path,
-        print_reflection_run_fail_to_stdout: bool = False) -> ReflProviderRunResult:
+    text: Union[str, Dict[str, str]],
+    code_dir: Path,
+    print_reflection_run_fail_to_stdout: bool = False,
+) -> ReflProviderRunResult:
     if not code_dir.exists():
         code_dir.mkdir(parents=True)
 
@@ -220,7 +221,9 @@ def get_nim_code(content: gen_nim.GenTuUnion) -> gen_nim.ConvRes:
 
 
 @beartype
-def format_nim_code(refl: ReflProviderRunResult) -> Dict[str, gen_nim.GenNimResult]:
+def format_nim_code(refl: ReflProviderRunResult,
+                    is_cpp_wrap: bool = True,
+                    with_header_imports: bool = True) -> Dict[str, gen_nim.GenNimResult]:
     graph: gen_nim.GenGraph() = gen_nim.GenGraph()
     for wrap in refl.wraps:
         graph.add_unit(wrap)
@@ -236,7 +239,10 @@ def format_nim_code(refl: ReflProviderRunResult) -> Dict[str, gen_nim.GenNimResu
         code = gen_nim.to_nim(
             graph=graph,
             sub=sub,
-            conf=gen_nim.NimOptions(with_header_imports=True,),
+            conf=gen_nim.NimOptions(
+                with_header_imports=with_header_imports,
+                is_cpp_wrap=is_cpp_wrap,
+            ),
             output_directory=refl.code_dir,
             get_out_path=get_out_path,
         )
