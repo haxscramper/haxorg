@@ -8,6 +8,7 @@ from pathlib import Path
 from pprint import pformat, pprint
 from typing import TYPE_CHECKING
 import sys
+from plumbum import local
 
 import py_scriptutils.toml_config_profiler as conf_provider
 from beartype import beartype
@@ -43,13 +44,38 @@ else:
 class TuOptions(BaseModel):
     input: List[str] = Field(description="List of input files, directories or globs",)
     indexing_tool: str = Field(description="Path to the TU index generator tool",)
-    compilation_database: str = Field(description="Path to the compilation database",)
+
+    compilation_database: Optional[str] = Field(
+        description="Explicit path to the compilation database to use for analysis",
+        default=None)
+
+    build_root: Optional[str] = Field(
+        description="Path to the wrapped project build directory. For cmake projects"
+        "compile commands will be contructed automatically there if compilation "
+        "database json was not specified explicitly.",
+        default=None,
+    )
+
+    source_root: Optional[str] = Field(
+        description="Main project root where cmake is located", default=None)
+
+    header_root: Optional[str] = Field(
+        description="Path to the header file directory wrapped",
+        default=None,
+    )
+
     binary_tmp: str = Field(
         description="Path to store temporary binary artifacts",
         default="/tmp/tu_collector",
     )
+
+    cmake_configure_options: List[str] = Field(
+        description="Parameters for cmake run when creating compilation database",
+        default_factory=list)
+
     toolchain_include: str = Field(
         description="Path to the toolchain that was used to compile indexing tool",)
+
     reflect_cache: str = Field(
         description="Store last reflection convert timestamps",
         default="/tmp/tu_collector/runs.json",
@@ -58,11 +84,6 @@ class TuOptions(BaseModel):
     cache_collector_runs: bool = Field(
         default=True,
         description="Cache collector binary runs for files",
-    )
-
-    directory_root: Optional[str] = Field(
-        description="Root of the source header directory",
-        default=None,
     )
 
     path_suffixes: List[str] = Field(
@@ -115,7 +136,7 @@ def expand_input(conf: TuOptions) -> List[PathMapping]:
     Generate list of file mappings based on input configuration options -- individual
     files, globs or recursive directories. 
     """
-    directory_root = conf.directory_root and Path(conf.directory_root)
+    directory_root = conf.header_root and Path(conf.header_root)
     result: List[PathMapping] = []
     for item in conf.input:
         path = Path(item)
@@ -246,11 +267,52 @@ class CompileCommand(BaseModel):
 
 @beartype
 def read_compile_cmmands(conf: TuOptions):
-    assert Path(conf.compilation_database).exists(), conf.compilation_database
-    return [
-        CompileCommand.model_validate(d)
-        for d in json.load(open(conf.compilation_database))
-    ]
+    lg = log("refl.cli.read")
+    if conf.compilation_database:
+        lg.info(
+            f"Using provided compilation database file {conf.compilation_database}")
+        assert Path(conf.compilation_database).exists(), conf.compilation_database
+        database = Path(conf.compilation_database)
+
+    else:
+        log("refl.cli.read").info("Constructing compilation database from build+source")
+        assert conf.build_root
+        assert conf.source_root
+        comp = "compile_commands.json"
+
+        build = Path(conf.build_root)
+        source = Path(conf.source_root)
+
+        if not build.joinpath(comp).exists():
+            lg.info(f"'{build.joinpath(comp)}' does not exist, using cmake to generate")
+            cmake = local["cmake"]
+            cmake.run([
+                *conf.cmake_configure_options,
+                "-B",
+                str(conf.build_root),
+                "-S",
+                str(conf.source_root),
+                "-DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE",
+            ])
+
+        if not source.joinpath(comp).exists():
+            lg.info(f"'{source.joinpath(comp)}' does not exist, using compdb to generate")
+            compdb = local["poetry"]
+            _, stdout, _ = compdb.run([
+                "run",
+                "compdb",
+                "-p",
+                str(conf.build_root),
+                "list"
+            ])
+
+            source.joinpath(comp).write_text(stdout)
+
+        database = source.joinpath(comp)
+
+    assert database.exists()
+
+    return [CompileCommand.model_validate(d) for d in json.loads(database.read_text())]
 
 
 @beartype

@@ -90,7 +90,7 @@ def run_wrap_for_config(
         return out_map[path]
 
     def get_header_path(path: Path) -> str:
-        return "<" + str(path.relative_to(Path(conf.directory_root))) + ">"
+        return "<" + str(path.relative_to(Path(conf.header_root))) + ">"
 
     with wrap_time_trace.complete_event("Write wrapper output", "write"):
         for sub in graph.subgraphs:

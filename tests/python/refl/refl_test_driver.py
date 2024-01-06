@@ -149,7 +149,7 @@ def run_provider(
 
         compile_commands_content = [
             ex.CompileCommand(
-                directory=conf.directory_root,
+                directory=conf.header_root,
                 command=f"clang++ {file}",
                 file=file,
                 output=str(Path(file).with_suffix(".o")),

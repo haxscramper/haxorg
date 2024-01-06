@@ -20,7 +20,9 @@ def test_libgit2_conv():
         start = dict(
             input=["{config_dir}/include"],
             indexing_tool="{tool_dir}/build/utils_debug/reflection_tool",
-            compilation_database="{config_dir}/compile_commands.json",
+            build_root="{config_dir}/build",
+            source_root="{config_dir}",
+            header_root="{config_dir}/include",
             toolchain_include="{tool_dir}/toolchain/llvm/lib/clang/17/include",
             output_directory=str(code_dir),
             execution_trace=str(code_dir.joinpath("run_trace.json")),
@@ -30,8 +32,15 @@ def test_libgit2_conv():
                     dict(original="git_odb_write_pack", renamed="git_odb_write_pack_fn")
                 ],
             ),
-            directory_root="{config_dir}/include",
         )
+
+        dep = get_haxorg_repo_root_path().joinpath("thirdparty/libgit2")
+        comp = "compile_commands.json"
+        if dep.joinpath(comp).exists():
+            dep.joinpath(comp).unlink()
+
+        if dep.joinpath("build").joinpath(comp).exists():
+            dep.joinpath("build").joinpath(comp).unlink()
 
         conf = TuOptions(**interpolate_dictionary(
             start,
@@ -44,7 +53,11 @@ def test_libgit2_conv():
     run_wrap_for_config(conf, trace)
     trace.export_to_json(code_dir.joinpath("trace.json"))
 
-    importall = "\n".join(f"import \"{file.relative_to(code_dir)}\""
-                          for file in code_dir.joinpath("git2").glob("*.nim"))
+    relative = [str(file.relative_to(code_dir)) for file in code_dir.joinpath("git2").glob("*.nim")]
+
+    importall = "\n".join(f"import \"{it}\"" for it in relative)
+    assert "git2/commit.nim" in relative
+    assert "git2/refspec.nim" in relative
+    assert "git2/revert.nim" in relative
 
     compile_nim_code(code_dir, {"main.nim": importall})
