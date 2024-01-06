@@ -1,10 +1,11 @@
+from copy import copy
+
 import py_codegen.proto_lib.reflection_defs as pb
 import re
 
 from beartype import beartype
 from py_codegen.gen_tu_cpp import *
-from pprint import pprint
-import itertools
+from pathlib import Path
 
 
 @beartype
@@ -105,9 +106,10 @@ def conv_proto_type(typ: pb.QualType, is_anon_name: bool = False) -> QualType:
 
 
 @beartype
-def conv_proto_record(record: pb.Record) -> GenTuStruct:
+def conv_proto_record(record: pb.Record, original: Path) -> GenTuStruct:
     result = GenTuStruct(conv_proto_type(record.name, is_anon_name=not record.has_name),
                          GenTuDoc(""))
+    result.original = copy(original)
     result.IsForwardDecl = record.is_forward_decl
     result.has_name = record.has_name
     for _field in record.fields:
@@ -117,7 +119,7 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
                            name=_field.name,
                            doc=conv_doc_comment(_field.doc),
                            isTypeDecl=True,
-                           decl=conv_proto_record(_field.type_decl)))
+                           decl=conv_proto_record(_field.type_decl, original)))
 
         else:
             result.fields.append(
@@ -137,24 +139,26 @@ def conv_proto_record(record: pb.Record) -> GenTuStruct:
                 name=meth.name,
                 doc=conv_doc_comment(meth.doc),
                 isConst=meth.is_const,
+                original=original,
                 arguments=[
                     GenTuIdent(conv_proto_type(arg.type), arg.name) for arg in meth.args
                 ],
                 parentClass=result))
 
     for record in record.nested_rec:
-        result.nested.append(conv_proto_record(record))
+        result.nested.append(conv_proto_record(record, original))
 
     for _enum in record.nested_enum:
-        result.nested.append(conv_proto_enum(_enum))
+        result.nested.append(conv_proto_enum(_enum, original))
 
     return result
 
 
 @beartype
-def conv_proto_enum(en: pb.Enum) -> GenTuEnum:
+def conv_proto_enum(en: pb.Enum, original: Path) -> GenTuEnum:
     result = GenTuEnum(conv_proto_type(en.name), GenTuDoc(""), [])
     result.IsForwardDecl = en.is_forward_decl
+    result.original = copy(original)
     for _field in en.fields:
         result.fields.append(GenTuEnumField(_field.name, GenTuDoc(""),
                                             value=_field.value))
@@ -168,18 +172,22 @@ def conv_proto_arg(arg: pb.Arg) -> GenTuIdent:
 
 
 @beartype
-def conv_proto_function(rec: pb.Function) -> GenTuFunction:
-    return GenTuFunction(result=conv_proto_type(rec.result_ty),
-                         name=rec.name,
-                         arguments=[conv_proto_arg(arg) for arg in rec.arguments],
-                         doc=GenTuDoc(""))
+def conv_proto_function(rec: pb.Function, original: Path) -> GenTuFunction:
+    return GenTuFunction(
+        result=conv_proto_type(rec.result_ty),
+        name=rec.name,
+        arguments=[conv_proto_arg(arg) for arg in rec.arguments],
+        doc=GenTuDoc(""),
+        original=copy(original),
+    )
 
 
 @beartype
-def conv_proto_typedef(rec: pb.Typedef) -> GenTuTypedef:
+def conv_proto_typedef(rec: pb.Typedef, original: Path) -> GenTuTypedef:
     return GenTuTypedef(
         name=conv_proto_type(rec.name),
         base=conv_proto_type(rec.base_type),
+        original=original,
     )
 
 
@@ -204,11 +212,11 @@ def open_proto_file(path: str) -> pb.TU:
 
 
 @beartype
-def conv_proto_file(path: str) -> ConvTu:
+def conv_proto_file(path: str, original: Path) -> ConvTu:
     unit = open_proto_file(path)
     return ConvTu(
-        structs=[conv_proto_record(rec) for rec in unit.records],
-        enums=[conv_proto_enum(rec) for rec in unit.enums],
-        typedefs=[conv_proto_typedef(rec) for rec in unit.typedefs],
-        functions=[conv_proto_function(rec) for rec in unit.functions],
+        structs=[conv_proto_record(rec, original) for rec in unit.records],
+        enums=[conv_proto_enum(rec, original) for rec in unit.enums],
+        typedefs=[conv_proto_typedef(rec, original) for rec in unit.typedefs],
+        functions=[conv_proto_function(rec, original) for rec in unit.functions],
     )

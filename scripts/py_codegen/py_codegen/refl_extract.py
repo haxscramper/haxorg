@@ -219,7 +219,7 @@ def run_collector(conf: TuOptions, input: Path,
         )
 
     else:
-        tu = conv_proto_file(str(tmp_output))
+        tu = conv_proto_file(str(tmp_output), original=input)
         refl[str(input)] = time.time()
         with open(conf.reflect_cache, "w") as file:
             file.write(json.dumps(refl, indent=2))

@@ -216,8 +216,7 @@ def get_function(text: str, **kwargs) -> GenTuFunction:
 def get_nim_code(content: gen_nim.GenTuUnion) -> gen_nim.ConvRes:
     t = gen_nim.nim.TextLayout()
     builder = gen_nim.nim.ASTBuilder(t)
-    return gen_nim.conv_res_to_nim(builder, content, gen_nim.NimOptions(),
-                                   Path("___placeholder.hpp"))
+    return gen_nim.conv_res_to_nim(builder, content, gen_nim.NimOptions())
 
 
 @beartype
@@ -234,11 +233,13 @@ def format_nim_code(refl: ReflProviderRunResult) -> Dict[str, gen_nim.GenNimResu
 
     mapped: Dict[str, gen_nim.GenNimResult] = {}
     for sub in graph.subgraphs:
-        code = gen_nim.to_nim(graph=graph,
-                              sub=sub,
-                              conf=gen_nim.NimOptions(),
-                              output_directory=refl.code_dir,
-                              get_out_path=get_out_path)
+        code = gen_nim.to_nim(
+            graph=graph,
+            sub=sub,
+            conf=gen_nim.NimOptions(with_header_imports=True,),
+            output_directory=refl.code_dir,
+            get_out_path=get_out_path,
+        )
 
         assert code
         mapped[str(get_out_path(sub.original).relative_to(refl.code_dir))] = code

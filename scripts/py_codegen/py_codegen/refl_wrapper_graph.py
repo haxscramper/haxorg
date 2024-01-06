@@ -1,5 +1,5 @@
 import itertools
-from copy import deepcopy
+from copy import deepcopy, copy
 from dataclasses import dataclass, field
 from pathlib import Path
 from pprint import pformat
@@ -25,7 +25,7 @@ def hash_qual_type(t: QualType) -> int:
     pointers and other elements. This function is primarily used to map
     declared entries to some simpler value for ID.
     """
-    parts: List[str] = [hash(t.Kind)]
+    parts: List[str | int] = [hash(t.Kind)]
     match t.Kind:
         case QualTypeKind.FunctionPtr:
             parts.append(hash_qual_type(t.func.ReturnTy))
@@ -255,6 +255,10 @@ class GenGraph:
             if _field.name not in stored_fields:
                 stored.fields.append(deepcopy(_field))
 
+        stored.IsForwardDecl = stored.IsForwardDecl and added.IsForwardDecl
+        if stored.IsForwardDecl and not added.IsForwardDecl:
+            stored.original = copy(added.original)
+
     def merge_enums(self, stored: GenTuEnum, added: GenTuEnum):
         pass
 
@@ -277,6 +281,7 @@ class GenGraph:
         if _id in self.id_to_entry:
             if isinstance(entry, GenTuStruct) or isinstance(entry, GenTuEnum):
                 olddef = self.id_to_entry[_id]
+                log.info(f"Adding struct {entry.name.name} {olddef.original} -> {entry.original}")
                 if olddef.IsForwardDecl and not entry.IsForwardDecl:
                     # Previously added declaration was a forward declaration and it needs to be removed from
                     # all subgraphs since there is not a proper definition present in the graph
@@ -287,6 +292,7 @@ class GenGraph:
                     # New subgraph properly introduces type definition and it should contain
                     # the content instead.
                     sub.nodes.add(_id)
+                    olddef.original = entry.original
 
                 elif not olddef.IsForwardDecl and entry.IsForwardDecl:
                     # Newly introduced type is a forward declaration and should not be added to a new subgraph
@@ -321,6 +327,7 @@ class GenGraph:
         _id = self.add_entry(struct, sub)
 
         merge = self.id_to_entry[_id]
+
         self.merge_structs(merge, struct)
 
         self.graph.vs[_id]["label"] = struct.name.format()

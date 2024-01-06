@@ -1,8 +1,13 @@
+import itertools
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from pprint import pprint
+from more_itertools import first_true
 
 from refl_test_driver import (run_provider, STABLE_FILE_NAME, GenTuStruct, get_struct, get_nim_code, format_nim_code, \
-    compile_nim_code, verify_nim_code)
+    compile_nim_code, verify_nim_code, )
+
+import py_codegen.wrapper_gen_nim as gen_nim
 
 import pytest
 
@@ -128,7 +133,8 @@ def test_nim_record_field_conversion():
 
 def test_nim_record_with_compile():
     with TemporaryDirectory() as dir:
-        code_dir = Path("/tmp/code_test")
+        code_dir = Path(dir)
+        code_dir = Path("/tmp/code_dir")
         value = run_provider(
             {
                 "file.hpp":
@@ -167,3 +173,56 @@ echo "method field", value.run_method()
         assert stdout.split("\n")[0:3] == [
             'value field 0', '-- default constructor', 'method field24'
         ]
+
+
+def test_type_cross_dependency():
+    with TemporaryDirectory() as dir:
+        code_dir = Path(dir)
+        value = run_provider(
+            {
+                "a.hpp": "struct B; struct A { B* field; };",
+                "b.hpp": "struct A; struct B { A* field; };"
+            },
+            code_dir=code_dir)
+
+        assert len(value.wraps) == 2
+        a = first_true(value.wraps, pred=lambda it: it.name == "a")
+        b = first_true(value.wraps, pred=lambda it: it.name == "b")
+        assert a
+        assert b
+        assert a.name == "a"
+        assert b.name == "b"
+
+        assert all([it.original == code_dir.joinpath("a.hpp") for it in a.tu.structs])
+        assert all([it.original == code_dir.joinpath("b.hpp") for it in b.tu.structs])
+
+        assert len(a.tu.functions) == 0
+        assert len(b.tu.functions) == 0
+        assert len(a.tu.structs) == 2
+        assert len(b.tu.structs) == 2
+        assert a.tu.structs[0].IsForwardDecl
+        assert b.tu.structs[0].IsForwardDecl
+        assert a.tu.structs[0].name.name == "B", [s.name.name for s in a.tu.structs]
+        assert b.tu.structs[0].name.name == "A", [s.name.name for s in b.tu.structs]
+
+        formatted = format_nim_code(value)
+        assert "a.nim" in formatted
+        res = formatted["a.nim"]
+        assert len(res.conv) == 2
+
+        types = list(itertools.chain(*[conv.types for conv in res.conv]))
+
+        a_wrap: gen_nim.nim.ObjectParams = first_true(types,
+                                                      pred=lambda it: it.Name == "A")
+        b_wrap: gen_nim.nim.ObjectParams = first_true(types,
+                                                      pred=lambda it: it.Name == "B")
+        assert a_wrap
+        assert b_wrap
+
+        assert a_wrap.Fields[0].Name == "field"
+        assert a_wrap.Fields[0].Type.Name == "ptr"
+        assert b_wrap.Fields[0].Type.Name == "ptr"
+        assert a_wrap.Fields[0].Type.Parameters[0].Name == "B"
+        assert b_wrap.Fields[0].Type.Parameters[0].Name == "A"
+
+        verify_nim_code(code_dir, formatted, "import a; echo A(), B()")

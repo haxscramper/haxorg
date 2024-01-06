@@ -56,6 +56,15 @@ class NimOptions(BaseModel):
     def get_function_pragmas(self, func: GenTuFunction) -> List[nim.PragmaParams]:
         return [nim.PragmaParams(pragma) for pragma in self.common_function_pragmas]
 
+    path_resolution_impl: Callable[[Path], str] = None
+
+    def get_header_str_for_path(self, path: Path) -> str:
+        if self.path_resolution_impl:
+            return self.path_resolution_impl(path)
+
+        else:
+            return str(path)
+
 
 @beartype
 def apply_rename(name: str, renames: List[WrapRenameRule]) -> str:
@@ -373,23 +382,29 @@ def field_to_nim(b: nim.ASTBuilder, f: GenTuField) -> nim.IdentParams:
 
 
 @beartype
-def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct, conf, original: Path) -> ConvRes:
+def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct, conf: NimOptions) -> ConvRes:
+    pragmas: List[nim.PragmaParams] = []
+
+    if conf.with_header_imports:
+        pragmas.append(
+            nim.PragmaParams("header",
+                             [b.Lit(conf.get_header_str_for_path(rec.original))]))
+
+    pragmas.append(nim.PragmaParams("importc"))
+    pragmas.append(nim.PragmaParams("bycopy"))
+
+    if rec.IsForwardDecl:
+        pragmas.append(nim.PragmaParams("incompleteStruct"))
+
     return ConvRes(
         types=[
-            nim.ObjectParams(
-                Name=rec.name.name,
-                Pragmas=[
-                    nim.PragmaParams("importc"),
-                    nim.PragmaParams("bycopy"),
-                    *([nim.PragmaParams("incompleteStruct")]
-                      if rec.IsForwardDecl else []),
-                ],
-                Fields=[field_to_nim(b, f) for f in rec.fields])
+            nim.ObjectParams(Name=rec.name.name,
+                             Pragmas=pragmas,
+                             Fields=[field_to_nim(b, f) for f in rec.fields])
         ],
         procs=list(
             itertools.chain(
-                *[function_to_nim(b, meth, conf, original).procs
-                  for meth in rec.methods])),
+                *[function_to_nim(b, meth, conf).procs for meth in rec.methods])),
     )
 
 
@@ -402,9 +417,7 @@ def typedef_to_nim(b: nim.ASTBuilder, typdef: GenTuTypedef) -> ConvRes:
 
 
 @beartype
-def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions,
-                    original: Path) -> ConvRes:
-    log.info(func)
+def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions) -> ConvRes:
     arguments: List[nim.IdentParams] = []
     if func.parentClass:
         arguments.append(nim.IdentParams("self", type_to_nim(b, func.parentClass.name)))
@@ -416,15 +429,15 @@ def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions,
 
     pragmas += conf.get_function_pragmas(func)
     if func.parentClass:
-        pragmas.append(nim.PragmaParams("importcpp", [
-            b.Lit(f"#.{func.name}(@)")
-        ]))
+        pragmas.append(nim.PragmaParams("importcpp", [b.Lit(f"#.{func.name}(@)")]))
 
     else:
         pragmas.append(nim.PragmaParams("importc", [b.Lit(func.name)]))
 
     if conf.with_header_imports:
-        pragmas.append(nim.PragmaParams("header", [b.Lit(str(original))]))
+        pragmas.append(
+            nim.PragmaParams("header",
+                             [b.Lit(conf.get_header_str_for_path(func.original))]))
 
     return ConvRes(procs=[
         nim.FunctionParams(
@@ -437,24 +450,19 @@ def function_to_nim(b: nim.ASTBuilder, func: GenTuFunction, conf: NimOptions,
 
 
 @beartype
-def conv_res_to_nim(
-    builder: nim.ASTBuilder,
-    decl: GenTuUnion,
-    conf: NimOptions,
-    original: Path,
-):
+def conv_res_to_nim(builder: nim.ASTBuilder, decl: GenTuUnion, conf: NimOptions):
     match decl:
         case GenTuEnum():
             return enum_to_nim(builder, decl)
 
         case GenTuStruct():
-            return struct_to_nim(builder, decl, conf, original)
+            return struct_to_nim(builder, decl, conf)
 
         case GenTuTypedef():
             return typedef_to_nim(builder, decl)
 
         case GenTuFunction():
-            return function_to_nim(builder, decl, conf, original)
+            return function_to_nim(builder, decl, conf)
 
         case _:
             assert False
@@ -495,12 +503,7 @@ def to_nim(
     collected_conv_res: List[ConvRes] = []
 
     for _id in sub.nodes:
-        conv: ConvRes = conv_res_to_nim(
-            builder,
-            graph.id_to_entry[_id],
-            conf,
-            sub.original,
-        )
+        conv: ConvRes = conv_res_to_nim(builder, graph.id_to_entry[_id], conf)
 
         collected_conv_res.append(conv)
 

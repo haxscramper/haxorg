@@ -3,6 +3,7 @@ from py_codegen.astbuilder_cpp import *
 from beartype.typing import Sequence, List
 from beartype import beartype
 from py_textlayout.py_textlayout import *
+from pathlib import Path
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
@@ -34,6 +35,7 @@ class GenTuDoc:
 class GenTuTypedef:
     name: QualType
     base: QualType
+    original: Optional[Path] = None
 
 
 @beartype
@@ -53,6 +55,7 @@ class GenTuEnum:
     base: Optional[str] = "short int"
     refl: bool = False
     IsForwardDecl: bool = False
+    original: Optional[Path] = None
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "enum " + self.name.format(dbgOrigin=dbgOrigin)
@@ -72,6 +75,7 @@ class GenTuFunction:
     isStatic: bool = False
     isPureVirtual: bool = False
     parentClass: Optional['GenTuStruct'] = None
+    original: Optional[Path] = None
 
     def format(self) -> str:
         return "function %s %s(%s)" % (self.result.format(), self.name, ", ".join(
@@ -127,6 +131,7 @@ class GenTuStruct:
     concreteKind: bool = True
     IsForwardDecl: bool = False
     has_name: bool = True
+    original: Optional[Path] = field(default=None)
 
     def format(self, dbgOrigin: bool = False) -> str:
         return "record " + self.name.format(dbgOrigin=dbgOrigin)
