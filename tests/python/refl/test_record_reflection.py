@@ -1,11 +1,10 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from refl_test_driver import run_provider, STABLE_FILE_NAME, GenTuStruct, get_struct, get_nim_code, format_nim_code, \
-    compile_nim_code
+from refl_test_driver import (run_provider, STABLE_FILE_NAME, GenTuStruct, get_struct, get_nim_code, format_nim_code, \
+    compile_nim_code, verify_nim_code)
+
 import pytest
-from pprint import pprint
-from plumbum import local
 
 
 def test_simple_structure_registration():
@@ -157,23 +156,14 @@ def test_nim_record_with_compile():
         assert s.methods[0].result.name == "int"
 
         formatted = format_nim_code(value)
-
-        compile_nim_code(code_dir=code_dir,
-                         files={
-                             file: res.content for file, res in formatted.items()
-                         })
-
-        compile_nim_code(code_dir,
-                         files={
-                             "main.nim":
-                                 """
+        _, stdout, _ = verify_nim_code(
+            code_dir, formatted, """
 import file
 let value = Test()
 echo "value field ", value.field
 echo "method field", value.run_method()
-"""
-                         })
+""")
 
-        binary = local[str(code_dir.joinpath("main.bin"))]
-        retcode, stdout, stderr = binary.run()
-        assert stdout.split("\n")[0:3] == ['value field 0', '-- default constructor', 'method field24']
+        assert stdout.split("\n")[0:3] == [
+            'value field 0', '-- default constructor', 'method field24'
+        ]

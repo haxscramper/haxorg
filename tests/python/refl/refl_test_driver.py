@@ -15,6 +15,7 @@ from beartype.typing import (
     List,
     Dict,
     Union,
+    Tuple,
 )
 
 import enum
@@ -215,7 +216,8 @@ def get_function(text: str, **kwargs) -> GenTuFunction:
 def get_nim_code(content: gen_nim.GenTuUnion) -> gen_nim.ConvRes:
     t = gen_nim.nim.TextLayout()
     builder = gen_nim.nim.ASTBuilder(t)
-    return gen_nim.conv_res_to_nim(builder, content, gen_nim.NimOptions(), Path("___placeholder.hpp"))
+    return gen_nim.conv_res_to_nim(builder, content, gen_nim.NimOptions(),
+                                   Path("___placeholder.hpp"))
 
 
 @beartype
@@ -258,3 +260,18 @@ def compile_nim_code(code_dir: Path, files: Dict[str, str]):
     for file in files.keys():
         compile_nim_path(code_dir.joinpath(file),
                          code_dir.joinpath(file).with_suffix(".bin"))
+
+
+@beartype
+def verify_nim_code(code_dir: Path, formatted: Dict[str, gen_nim.GenNimResult],
+                    test_text: str) -> Tuple[int, str, str]:
+    compile_nim_code(code_dir=code_dir,
+                     files={
+                         file: res.content for file, res in formatted.items()
+                     })
+
+    compile_nim_code(code_dir, files={"main.nim": test_text})
+
+    binary = local[str(code_dir.joinpath("main.bin"))]
+    retcode, stdout, stderr = binary.run()
+    return (retcode, stdout, stderr)
