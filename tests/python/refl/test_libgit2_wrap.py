@@ -26,6 +26,7 @@ def test_libgit2_conv():
             toolchain_include="{tool_dir}/toolchain/llvm/lib/clang/17/include",
             output_directory=str(code_dir),
             execution_trace=str(code_dir.joinpath("run_trace.json")),
+            cmake_configure_options=["-DBULD_TEST=OFF"],
             nim=dict(
                 universal_imports="libgit2_config.nim",
                 function_renames=[
@@ -53,7 +54,10 @@ def test_libgit2_conv():
     run_wrap_for_config(conf, trace)
     trace.export_to_json(code_dir.joinpath("trace.json"))
 
-    relative = [str(file.relative_to(code_dir)) for file in code_dir.joinpath("git2").glob("*.nim")]
+    relative = [
+        str(file.relative_to(code_dir))
+        for file in code_dir.joinpath("git2").glob("*.nim")
+    ]
 
     importall = "\n".join(f"import \"{it}\"" for it in relative)
     assert "git2/commit.nim" in relative

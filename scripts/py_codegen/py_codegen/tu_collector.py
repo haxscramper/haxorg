@@ -129,7 +129,7 @@ def run_wrap_for_config(
                     with open(str(result), "w") as file:
                         file.write(json.dumps(info.model_dump(), indent=2))
 
-    log().info("Done all")
+    log("refl.cli.read").info("Done all")
 
 
 @click.command()
@@ -140,6 +140,8 @@ def run_wrap_for_config(
 @model_options
 @click.pass_context
 def run(ctx: click.Context, config: str, **kwargs):
+    assert Path(config).exists()
+    config = str(Path(config).resolve())
     config_base = conf_provider.run_config_provider(
         ([config] if config else
          conf_provider.find_default_search_locations(CONFIG_FILE_NAME)), True)

@@ -47,7 +47,7 @@ class TuOptions(BaseModel):
 
     compilation_database: Optional[str] = Field(
         description="Explicit path to the compilation database to use for analysis",
-        default=None)
+        default=None,)
 
     build_root: Optional[str] = Field(
         description="Path to the wrapped project build directory. For cmake projects"
@@ -157,6 +157,48 @@ def expand_input(conf: TuOptions) -> List[PathMapping]:
 
     return result
 
+@beartype
+def get_compile_commands(conf: TuOptions) -> Path:
+    lg = log("refl.cli.read")
+    if conf.compilation_database:
+        lg.info(f"Using provided compilation database file {conf.compilation_database}")
+        assert Path(conf.compilation_database).exists(), conf.compilation_database
+        database = Path(conf.compilation_database)
+
+    else:
+        assert conf.build_root
+        assert conf.source_root
+        comp = "compile_commands.json"
+
+        build = Path(conf.build_root)
+        source = Path(conf.source_root)
+
+        if not build.joinpath(comp).exists():
+            lg.info(f"'{build.joinpath(comp)}' does not exist, using cmake to generate")
+            cmake = local["cmake"]
+            cmake.run([
+                *conf.cmake_configure_options,
+                "-B",
+                str(conf.build_root),
+                "-S",
+                str(conf.source_root),
+                "-DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE",
+            ])
+
+        if not source.joinpath(comp).exists():
+            lg.info(f"'{source.joinpath(comp)}' does not exist, using compdb to generate")
+            compdb = local["poetry"]
+            _, stdout, _ = compdb.run(
+                ["run", "compdb", "-p",
+                 str(conf.build_root), "list"])
+
+            source.joinpath(comp).write_text(stdout)
+
+        database = source.joinpath(comp)
+
+    assert database.exists()
+    return database
+
 
 @beartype
 @dataclass
@@ -203,9 +245,11 @@ def run_collector(conf: TuOptions, input: Path,
     tmp_output = tmp.joinpath(md5(str(output).encode("utf-8")).hexdigest() + ".pb")
     target_files = tmp_output.with_suffix(".json")
 
+    database = get_compile_commands(conf)
+
     flags = [
-        f"-p={conf.compilation_database}",
-        f"--compilation-database={conf.compilation_database}",
+        f"-p={database}",
+        f"--compilation-database={database}",
         f"--out={str(tmp_output)}",
         f"--toolchain-include={conf.toolchain_include}",
         f"--target-files={target_files}",
@@ -266,58 +310,18 @@ class CompileCommand(BaseModel):
 
 
 @beartype
-def read_compile_cmmands(conf: TuOptions):
-    lg = log("refl.cli.read")
-    if conf.compilation_database:
-        lg.info(
-            f"Using provided compilation database file {conf.compilation_database}")
-        assert Path(conf.compilation_database).exists(), conf.compilation_database
-        database = Path(conf.compilation_database)
-
-    else:
-        log("refl.cli.read").info("Constructing compilation database from build+source")
-        assert conf.build_root
-        assert conf.source_root
-        comp = "compile_commands.json"
-
-        build = Path(conf.build_root)
-        source = Path(conf.source_root)
-
-        if not build.joinpath(comp).exists():
-            lg.info(f"'{build.joinpath(comp)}' does not exist, using cmake to generate")
-            cmake = local["cmake"]
-            cmake.run([
-                *conf.cmake_configure_options,
-                "-B",
-                str(conf.build_root),
-                "-S",
-                str(conf.source_root),
-                "-DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE",
-            ])
-
-        if not source.joinpath(comp).exists():
-            lg.info(f"'{source.joinpath(comp)}' does not exist, using compdb to generate")
-            compdb = local["poetry"]
-            _, stdout, _ = compdb.run([
-                "run",
-                "compdb",
-                "-p",
-                str(conf.build_root),
-                "list"
-            ])
-
-            source.joinpath(comp).write_text(stdout)
-
-        database = source.joinpath(comp)
-
-    assert database.exists()
-
+def read_compile_cmmands(conf: TuOptions) -> List[CompileCommand]:
+    database = get_compile_commands(conf)
     return [CompileCommand.model_validate(d) for d in json.loads(database.read_text())]
 
 
 @beartype
-def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: Path,
-                                 commands: List[CompileCommand]):
+def write_run_result_information(
+    conf: TuOptions,
+    tu: CollectorRunResult,
+    path: Path,
+    commands: List[CompileCommand],
+):
     debug_dir = Path(conf.convert_failure_log_dir)
     # if debug_dir.exists():
     #     shutil.rmtree(str(debug_dir))
@@ -356,7 +360,7 @@ def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: 
     if conf.print_reflection_run_fail_to_stdout:
         buffer = io.StringIO()
         write_reflection_stats(buffer)
-        log.error(buffer.getvalue())
+        log().error(buffer.getvalue())
 
     else:
         with open(debug_dir.joinpath(sanitized), "w") as file:

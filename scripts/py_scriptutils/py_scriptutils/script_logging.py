@@ -3,7 +3,7 @@ import logging
 
 logging.basicConfig(
     level="NOTSET",
-    format="%(message)s",
+    format="%(name)s - %(message)s",
     datefmt="[%X]",
     handlers=[
         RichHandler(
@@ -20,6 +20,9 @@ for name in logging.root.manager.loggerDict:
     logger.setLevel(logging.WARNING)
 
 
-def log(category="rich"):
+def log(category="rich") -> logging.Logger:
     log = logging.getLogger(category)
     return log
+
+log("graphviz._tools").setLevel(logging.ERROR)
+log("matplotlib").setLevel(logging.WARNING)

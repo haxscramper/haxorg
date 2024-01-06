@@ -154,18 +154,19 @@ def find_default_search_locations(config_file_name: str) -> List[str]:
 
 
 @beartype
-def find_config_files(withTrace: bool, potential_paths: List[str]) -> List[str]:
+def find_config_files(with_trace: bool, potential_paths: List[str]) -> List[str]:
     """Search for the config file in a list of default locations."""
     # Check each path, return the first that exists.
     result: List[str] = []
     for path in potential_paths:
         if os.path.exists(path):
-            if withTrace:
-                log().debug(f"Trying {path} for config -- file exists, using it")
+            if with_trace:
+                # TODO replace 'with trace' by a nested logger name
+                log("org.cli").debug(f"Trying {path} for config -- file exists, using it")
             result.append(path)
 
-        elif withTrace:
-            log().debug(f"Trying {path} for config -- file does not exist, skipping")
+        elif with_trace:
+            log("org.cli").debug(f"Trying {path} for config -- file does not exist, skipping")
 
     return result
 
@@ -196,7 +197,7 @@ def interpolate_dictionary(base: Dict, substitution: Dict[str, str]) -> Dict:
                 return d
 
             case str():
-                return d.format_map(SafeDict(**substitution))
+                return d.format_map(substitution)
 
             case list():
                 return [rec_rewrite(it) for it in d]
@@ -211,11 +212,14 @@ def interpolate_dictionary(base: Dict, substitution: Dict[str, str]) -> Dict:
 
 
 @beartype
-def run_config_provider(search_paths: List[str],
-                        withTrace: bool,
-                        content_value_substitution: Dict[str, str] = {}) -> dict:
+def run_config_provider(
+    search_paths: List[str],
+    with_trace: bool,
+    content_value_substitution: Dict[str, str] = {},
+) -> dict:
     try:
-        file_paths = find_config_files(withTrace=withTrace, potential_paths=search_paths)
+        file_paths = find_config_files(with_trace=with_trace,
+                                       potential_paths=search_paths)
 
         if (not file_paths):
             return {}
@@ -225,10 +229,13 @@ def run_config_provider(search_paths: List[str],
             if os.path.exists(path):
                 configs.append(
                     interpolate_dictionary(
-                        toml.load(path), content_value_substitution +
-                        dict(config_path=path,
-                             config_dir=os.path.dirname(path),
-                             haxorg_root=get_haxorg_repo_root_path())))
+                        toml.load(path),
+                        merge_dicts([
+                            content_value_substitution,
+                            dict(config_path=path,
+                                 config_dir=os.path.dirname(path),
+                                 haxorg_root=str(get_haxorg_repo_root_path()))
+                        ])))
 
         return merge_dicts(configs)
 
