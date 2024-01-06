@@ -3,23 +3,29 @@ from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 
+
 def IdColumn():
     return Column(Integer, primary_key=True, autoincrement=True)
+
 
 def ForeignId(name: str, nullable: bool = False):
     return Column(Integer, ForeignKey(name), nullable=nullable)
 
+
 def IntColumn(nullable: bool = False):
     return Column(Integer, nullable=nullable)
 
+
 def StrColumn(nullable: bool = False):
     return Column(String, nullable=nullable)
+
 
 # Table Definitions
 class FilePath(Base):
     __tablename__ = 'FilePath'
     id = IdColumn()
     file_path = StrColumn()
+
 
 class GitCommit(Base):
     __tablename__ = 'GitCommit'
@@ -29,6 +35,7 @@ class GitCommit(Base):
     timezone = IntColumn()
     hash = StrColumn()
     message = StrColumn()
+
 
 class GitCommitActions(Base):
     __tablename__ = 'GitCommitActions'
@@ -42,6 +49,7 @@ class GitCommitActions(Base):
     added = IntColumn()
     removed = IntColumn()
 
+
 class FileTrackSection(Base):
     __tablename__ = 'FileTrackSection'
     id = IdColumn()
@@ -49,9 +57,11 @@ class FileTrackSection(Base):
     path_id = ForeignId('FilePath.id')
     track = ForeignId('FilePath.id')
 
+
 class FileTrack(Base):
     __tablename__ = 'FileTrack'
     id = IdColumn()
+
 
 class Directory(Base):
     __tablename__ = 'Directory'
@@ -59,10 +69,12 @@ class Directory(Base):
     parent = ForeignId('Directory.id')
     name = StrColumn()
 
+
 class GitString(Base):
     __tablename__ = 'String'
     id = IdColumn()
     text = StrColumn()
+
 
 class Author(Base):
     __tablename__ = 'Author'
@@ -70,11 +82,13 @@ class Author(Base):
     name = StrColumn()
     email = StrColumn()
 
+
 class LineData(Base):
     __tablename__ = 'LineData'
     id = IdColumn()
     content = ForeignId('String.id')
     commit_id = ForeignId('GitCommit.id')
+
 
 class FileSectionLines(Base):
     __tablename__ = 'FileSectionLines'
@@ -82,6 +96,7 @@ class FileSectionLines(Base):
     section = ForeignId('FileTrackSection.id', nullable=False)
     line_index = IntColumn()
     line_id = ForeignId('LineData.id')
+
 
 # ORM Model for ViewJoinedFileSectionLines
 class ViewJoinedFileSectionLines(Base):
@@ -92,6 +107,7 @@ class ViewJoinedFileSectionLines(Base):
     text = StrColumn()
     line_commit = IntColumn()
     section_commit = IntColumn()
+
 
 # ORM Model for ViewFullFileSectionLines
 class ViewFullFileSectionLines(Base):

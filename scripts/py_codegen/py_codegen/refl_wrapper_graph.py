@@ -281,7 +281,9 @@ class GenGraph:
         if _id in self.id_to_entry:
             if isinstance(entry, GenTuStruct) or isinstance(entry, GenTuEnum):
                 olddef = self.id_to_entry[_id]
-                log("refl.cli.read").info(f"Adding struct {entry.name.name} {olddef.original} -> {entry.original}")
+                log("refl.cli.read").info(
+                    f"Adding struct {entry.name.name} {olddef.original} -> {entry.original}"
+                )
                 if olddef.IsForwardDecl and not entry.IsForwardDecl:
                     # Previously added declaration was a forward declaration and it needs to be removed from
                     # all subgraphs since there is not a proper definition present in the graph
@@ -459,8 +461,9 @@ class GenGraph:
             new_grouped.append(result)
 
             if 1 < len(group):
-                log("refl.cli.read").info("Merging strongly connected files %s" %
-                         (", ".join([f"[green]{g.original}[/green]" for g in group])))
+                log("refl.cli.read").info(
+                    "Merging strongly connected files %s" %
+                    (", ".join([f"[green]{g.original}[/green]" for g in group])))
 
         self.subgraphs = new_grouped + ungrouped_sets
 
