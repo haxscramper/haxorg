@@ -239,7 +239,6 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
         return nim.sanitize_name(f.name)
 
     def c_enum_field(idx: int, f: GenTuEnumField) -> nim.EnumFieldParams:
-        value: str = ""
         if f.value == idx:
             value = str(f.value)
 
@@ -254,25 +253,22 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
 
         return nim.EnumFieldParams(Name="c_" + f_name(f), Value=b.string(value))
 
+    fields: List[GenTuEnumField] = []
+
+    for key, group in itertools.groupby(
+            sorted(enum.fields, key=lambda f: f.value),
+            key=lambda f: f.value,
+    ):
+        group: List[GenTuEnumField] = list(group)
+        fields.append(group[0])
+        if 1 < len(group):
+            log("refl.nim").debug(
+                f"More than one enum field for value {key}: [{[it.name for it in group]}]"
+            )
+
     to_cint_name = "toCInt"
 
-    for expr, name in [
-            # Implicit conversion of the C enum value to cint type
-        ("cint(ord(arg))", c_name),
-            # Implicit conversion of the Nim enum values to the cint type
-        (f"cint(ord(to_{c_name}(arg)))", enum.name.name),
-    ]:
-        result.procs.append(
-            nim.FunctionParams(
-                Kind=nim.FunctionKind.CONVERTER,
-                Name=to_cint_name,
-                Arguments=[nim.IdentParams(Name="arg", Type=nim.Type(name))],
-                ReturnTy=nim.Type("cint"),
-                Implementation=b.string(expr),
-                OneLineImpl=True,
-            ))
-
-    w = max([len(f_name(f)) for f in enum.fields] + [0])
+    w = max([len(f_name(f)) for f in fields] + [0])
     for config in [
             dict(kind=nim.FunctionKind.CONVERTER,
                  in_name=c_name,
@@ -297,9 +293,24 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
                             b.string(f"of c_{f_name(f).ljust(w)}: {f_name(f).ljust(w)}"
                                      if config["is_c"] else
                                      f"of {f_name(f).ljust(w)}: c_{f_name(f).ljust(w)}")
-                            for f in enum.fields
+                            for f in fields
                         ]))
                 ]),
+            ))
+
+    for expr, name in [
+            # Implicit conversion of the C enum value to cint type
+        ("cint(ord(arg))", c_name),
+            # Implicit conversion of the Nim enum values to the cint type
+        (f"cint(ord(to_{c_name}(arg)))", enum.name.name),
+    ]:
+        result.procs.append(
+            nim.FunctionParams(
+                Kind=nim.FunctionKind.CONVERTER,
+                Name=to_cint_name,
+                Arguments=[nim.IdentParams(Name="arg", Type=nim.Type(name))],
+                ReturnTy=nim.Type("cint"),
+                Implementation=b.string(expr),
                 OneLineImpl=True,
             ))
 
@@ -323,7 +334,7 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
                         2, *[
                             b.string(
                                 f"of {f_name(f).ljust(w)}: result = cint(result or {f.value})"
-                            ) for f in enum.fields
+                            ) for f in fields
                         ]),
                 ),
             )))
@@ -350,27 +361,27 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
                     OneLineImpl=True,
                 ))
 
-    fields: List[GenTuEnumField] = []
-
-    for key, group in itertools.groupby(sorted(enum.fields, key=lambda f: f.value),
-                                        key=lambda f: f.value):
-        fields.append(list(group)[0])
+    result.types.append(
+        nim.EnumParams(
+            Name=c_name,
+            Exported=True,
+            Pragmas=[
+                nim.PragmaParams(Name="size", Arguments=[
+                    b.string("sizeof(cint)"),
+                ]),
+            ],
+            Fields=[c_enum_field(idx, f) for idx, f in enumerate(fields)],
+        ))
 
     result.types.append(
-        nim.EnumParams(Name=c_name,
-                       Exported=True,
-                       Pragmas=[
-                           nim.PragmaParams(Name="size",
-                                            Arguments=[
-                                                b.string("sizeof(cint)"),
-                                            ])
-                       ],
-                       Fields=[c_enum_field(idx, f) for idx, f in enumerate(fields)]))
-
-    result.types.append(
-        nim.EnumParams(Name=enum.name.name,
-                       Exported=True,
-                       Fields=[nim.EnumFieldParams(Name=f_name(f)) for f in enum.fields]))
+        nim.EnumParams(
+            Name=enum.name.name,
+            Exported=True,
+            Fields=[
+                nim.EnumFieldParams(Name=f_name(f), Value=b.string(str(idx)))
+                for idx, f in enumerate(fields)
+            ],
+        ))
 
     return result
 
@@ -401,10 +412,11 @@ def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct, conf: NimOptions) -> Conv
     else:
         pragmas.append(nim.PragmaParams("importc"))
 
-    pragmas.append(nim.PragmaParams("bycopy"))
-
     if rec.IsForwardDecl:
         pragmas.append(nim.PragmaParams("incompleteStruct"))
+
+    else:
+        pragmas.append(nim.PragmaParams("bycopy"))
 
     return ConvRes(
         types=[

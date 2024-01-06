@@ -1,3 +1,4 @@
+import logging
 from tempfile import TemporaryDirectory
 
 from py_codegen.tu_collector import run_wrap_for_config, TuOptions
@@ -6,6 +7,9 @@ from py_scriptutils.files import get_haxorg_repo_root_path
 from pathlib import Path
 from py_scriptutils.tracer import TraceCollector
 from refl_test_driver import compile_nim_code
+from py_scriptutils.script_logging import log
+
+log("refl.nim").setLevel(logging.DEBUG)
 
 
 def test_libgit2_conv():
@@ -38,8 +42,9 @@ def test_libgit2_conv():
 
     trace = TraceCollector()
     run_wrap_for_config(conf, trace)
-
-    files = list(code_dir.joinpath("git2").glob("*.nim"))
-    print(files)
-
     trace.export_to_json(code_dir.joinpath("trace.json"))
+
+    importall = "\n".join(f"import \"{file.relative_to(code_dir)}\""
+                          for file in code_dir.joinpath("git2").glob("*.nim"))
+
+    compile_nim_code(code_dir, {"main.nim": importall})
