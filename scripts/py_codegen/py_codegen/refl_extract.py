@@ -39,6 +39,7 @@ if TYPE_CHECKING:
 else:
     BlockId = NewType('BlockId', int)
 
+
 class TuOptions(BaseModel):
     input: List[str] = Field(description="List of input files, directories or globs",)
     indexing_tool: str = Field(description="Path to the TU index generator tool",)
@@ -60,16 +61,19 @@ class TuOptions(BaseModel):
     )
 
     directory_root: Optional[str] = Field(
-        description="Root of the source header directory", default=None)
+        description="Root of the source header directory",
+        default=None,
+    )
+
     path_suffixes: List[str] = Field(
         description="List of file suffixes used for dir list filtering",
         default=[".hpp", ".cpp", ".h", ".c", ".cxx"],
         alias="path-suffixes",
     )
 
-    execution_trace: str = Field(
+    execution_trace: Optional[str] = Field(
         description="Output path for the execution trace json",
-        default="/tmp/tu_collector_trace.json",
+        default=None,
     )
 
     output_directory: str = Field(description="Directory to write output wrapped files",)

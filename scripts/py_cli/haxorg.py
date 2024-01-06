@@ -25,17 +25,20 @@ arg_outroot = click.option("--out-root",
 
 
 def make_trace_options(kind: str) -> List[click.option]:
-    return (click.option(
-        f"--{kind}.traceDir",
-        f"{kind}_traceDir",
-        type=click.Path(),
-        default=None,
-        help=f"Output directory for the {kind} trace (if not specified print to stdout)"),
-            click.option(f"--{kind}.trace",
-                         f"{kind}_trace",
-                         type=click.BOOL,
-                         default=False,
-                         help=f"Whether to trace {kind} execution"))
+    return [
+        click.option(
+            f"--{kind}.traceDir",
+            f"{kind}_traceDir",
+            type=click.Path(),
+            default=None,
+            help=
+            f"Output directory for the {kind} trace (if not specified print to stdout)"),
+        click.option(f"--{kind}.trace",
+                     f"{kind}_trace",
+                     type=click.BOOL,
+                     default=False,
+                     help=f"Whether to trace {kind} execution"),
+    ]
 
 
 def common_trace(f):

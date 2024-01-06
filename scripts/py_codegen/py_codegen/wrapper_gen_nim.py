@@ -551,3 +551,6 @@ def to_nim(
             stacked = t.stack(header + [builder.sep_stack(procs)])
 
         return GenNimResult(content=t.toString(stacked, opts), conv=collected_conv_res)
+
+    else:
+        return GenNimResult(content=None, conv=[])
