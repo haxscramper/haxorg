@@ -166,7 +166,7 @@ def convert_profiling_data(file_path: str) -> List[RunRecord]:
 
         if force_convert or IsNewInput(pgo_tmp_file, pgo_output_file):
             with tracer.GlobCompleteEvent(CAT, "convert profile data to json"):
-                log.info(f"Converting PGO data for {pgo_output_file}...")
+                log().info(f"Converting PGO data for {pgo_output_file}...")
                 llvm_cov = local["llvm-cov"][
                     "export",
                     base_binary,
@@ -179,7 +179,7 @@ def convert_profiling_data(file_path: str) -> List[RunRecord]:
         xray_output_file = os.path.join(directory, f"{xray_file}.json")
         if force_convert or IsNewInput(xray_file, xray_output_file):
             with tracer.GlobCompleteEvent(CAT, "convert xray data"):
-                log.info(f"Converting Xray data for {xray_output_file}...")
+                log().info(f"Converting Xray data for {xray_output_file}...")
                 llvm_xray = local["llvm-xray"][
                     "convert",
                     "-symbolize",
@@ -379,6 +379,6 @@ if __name__ == "__main__":
             [f for _, f in cover.files.items() if "Tokenizer" in f.path])
         with open("/tmp/result.html", "w") as file:
             file.write(page)
-            log.info("Wrote HTML table")
+            log().info("Wrote HTML table")
 
     tracer.GlobExportJson("/tmp/profile_converter.json")

@@ -120,18 +120,18 @@ def parse_input(file: List[str], opts: CliRootOptions) -> org.OrgContext:
 
         if os.path.exists(cache_file) and os.path.getmtime(path) <= os.path.getmtime(
                 cache_file):
-            log.info(
+            log().info(
                 f"Found an up-to-date cache file at {cache_file}, using it to parse {path}"
             )
             ctx.loadStore(cache_file)
 
         else:
-            log.info(f"No up-to-date cache file at {cache_file}, parsing new {path}")
+            log().info(f"No up-to-date cache file at {cache_file}, parsing new {path}")
             ctx.parseFile(path)
             ctx.writeStore(cache_file)
 
     else:
-        log.info(f"Parsing {path}, no cache dir specified")
+        log().info(f"Parsing {path}, no cache dir specified")
         ctx.parseFile(path)
 
     return ctx
@@ -140,7 +140,7 @@ def parse_input(file: List[str], opts: CliRootOptions) -> org.OrgContext:
 def finalize_trace(tr: tracer.TraceCollector, opts: CliRootOptions):
     if opts.trace_path:
         tr.export_to_json(opts.trace_path)
-        log.info(f"Wrote execution trace to {opts.trace_path}")
+        log().info(f"Wrote execution trace to {opts.trace_path}")
 
 
 @beartype
@@ -181,13 +181,13 @@ def export_tex(
     from py_exporters.export_tex import ExporterLatex
     from py_textlayout.py_textlayout import TextOptions
 
-    log.info("Exporting to latex")
+    log().info("Exporting to latex")
     tex = ExporterLatex()
     res = tex.exp.evalTop(ctx.getNode())
     with open(out_file, "w") as out:
         out.write(tex.t.toString(res, TextOptions()))
 
-    log.info(f"Wrote latex export to {out_file}")
+    log().info(f"Wrote latex export to {out_file}")
 
 
 export.add_command(export_tex)
@@ -207,7 +207,7 @@ def export_sem_tree(ctx: click.Context, file: List[str], out_file: str, out_root
     opts = org.ExporterTreeOpts()
     opts.withColor = False
     sem.toFile(ctx.getNode(), out_file, opts)
-    log.info(f"Wrote sem tree export to {out_file}")
+    log().info(f"Wrote sem tree export to {out_file}")
 
 
 export.add_command(export_sem_tree)
@@ -226,7 +226,7 @@ def export_json(ctx: click.Context, file: List[str], out_file: str, out_root: st
     sem = org.OrgExporterJson()
     sem.visitNode(ctx.getNode())
     sem.exportToFile(out_file)
-    log.info(f"Wrote json export to {out_file}")
+    log().info(f"Wrote json export to {out_file}")
 
 
 export.add_command(export_json)
@@ -252,7 +252,7 @@ def export_yaml(ctx: click.Context, file: List[str], out_file: str, out_root: st
     with tra.complete_event("export yaml to file"):
         sem.exportToFile(out_file)
 
-    log.info(f"Wrote yaml export to {out_file}")
+    log().info(f"Wrote yaml export to {out_file}")
     finalize_trace(tra, ctx.obj["cli"])
 
 
@@ -279,7 +279,7 @@ def export_yaml(ctx: click.Context, file: List[str], out_file: str, out_root: st
 
     print(exp.count)
 
-    log.info(f"Wrote yaml export to {out_file}")
+    log().info(f"Wrote yaml export to {out_file}")
     finalize_trace(tra, ctx.obj["cli"])
 
 

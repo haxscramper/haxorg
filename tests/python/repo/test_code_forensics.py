@@ -129,9 +129,9 @@ def git_commit(
         ("commit", f"--author={author} <{email}>", "-m", message), retcode=None)
 
     if code != 0 and not allow_fail:
-        log.warning("Failed to commit")
-        log.warning(stdout)
-        log.warning(stderr)
+        log().warning("Failed to commit")
+        log().warning(stdout)
+        log().warning(stderr)
 
 
 @beartype
@@ -164,9 +164,9 @@ def run_forensics(
         code, stdout, stderr = local["lldb"].run(tuple(run_parameters))
         print(run_parameters)
         if code != 0:
-            log.warning(f"{tool_path} run failed")
-            log.warning(stdout)
-            log.warning(stderr)
+            log().warning(f"{tool_path} run failed")
+            log().warning(stdout)
+            log().warning(stderr)
 
         return code, stdout, stderr
 

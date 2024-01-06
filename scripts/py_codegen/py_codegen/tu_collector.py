@@ -54,14 +54,14 @@ def run_wrap_for_config(conf: TuOptions):
                         out_map[wrap.original] = wrap.mapping
 
             else:
-                log.warning(f"No compile commands for {mapping.path}")
+                log("refl.cli.read").warning(f"No compile commands for {mapping.path}")
 
     with GlobCompleteEvent("Merge graph information", "build"):
         graph: GenGraph = GenGraph()
         for wrap in wraps:
             graph.add_unit(wrap)
 
-        log.info("Finished conversion")
+        log("refl.cli.read").info("Finished conversion")
 
     with GlobCompleteEvent("Build graph edges", "build"):
         graph.connect_usages()
@@ -95,7 +95,7 @@ def run_wrap_for_config(conf: TuOptions):
                         file.write(code)
 
                 else:
-                    log.warning(f"No declarations found for {sub.original}")
+                    log().warning(f"No declarations found for {sub.original}")
 
     with GlobCompleteEvent("Write translation unit information", "write"):
         for sub in graph.subgraphs:
@@ -112,7 +112,7 @@ def run_wrap_for_config(conf: TuOptions):
                         file.write(json.dumps(info.model_dump(), indent=2))
 
     GlobExportJson(conf.execution_trace)
-    log.info("Done all")
+    log().info("Done all")
 
 
 @click.command()

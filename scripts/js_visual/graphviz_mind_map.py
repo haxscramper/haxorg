@@ -287,7 +287,7 @@ def format_node(dot: gv.Digraph, node: Node, entry_links: Set[Tuple[str, int,
 @dot.command("dot")
 @click.argument("file", type=click.Path())
 def export_dot(file: str):
-    log.info(f"Reading input file {file}")
+    log().info(f"Reading input file {file}")
     with open(file) as f:
         data = json.load(f)
 
@@ -346,7 +346,7 @@ def export_dot(file: str):
 
     dot.render(directory="/tmp")
 
-    log.info("Export done")
+    log().info("Export done")
 
 
 if __name__ == "__main__":

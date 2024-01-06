@@ -156,7 +156,7 @@ def run_provider(
             ) for file in text.keys()
         ]
 
-        log.info(compile_commands_content)
+        log().info(compile_commands_content)
 
         compile_commands.write(
             json.dumps([cmd.model_dump() for cmd in compile_commands_content]))

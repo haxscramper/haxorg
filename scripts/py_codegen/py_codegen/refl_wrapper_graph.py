@@ -144,7 +144,7 @@ class GenGraph:
         _id = self.id_from_hash(hash_qual_type(typ))
         if not (typ.isPrimitive() or typ.isArray() or
                 typ.isFunction()) and _id not in self.id_to_entry:
-            log.warning(f"No known declaration of the [red]{typ.format()}[/red]")
+            log().warning(f"No known declaration of the [red]{typ.format()}[/red]")
 
         return self.get_sub(_id)
 
@@ -281,7 +281,7 @@ class GenGraph:
         if _id in self.id_to_entry:
             if isinstance(entry, GenTuStruct) or isinstance(entry, GenTuEnum):
                 olddef = self.id_to_entry[_id]
-                log.info(f"Adding struct {entry.name.name} {olddef.original} -> {entry.original}")
+                log("refl.cli.read").info(f"Adding struct {entry.name.name} {olddef.original} -> {entry.original}")
                 if olddef.IsForwardDecl and not entry.IsForwardDecl:
                     # Previously added declaration was a forward declaration and it needs to be removed from
                     # all subgraphs since there is not a proper definition present in the graph
@@ -304,7 +304,7 @@ class GenGraph:
                     pass
 
                 elif not olddef.IsForwardDecl and not entry.IsForwardDecl:
-                    log.error(
+                    log("refl.cli.read").error(
                         f"Two full definitions of the same entry {entry.format(dbgOrigin=True)} == {olddef.format(dbgOrigin=True)} in the code"
                     )
 
@@ -459,7 +459,7 @@ class GenGraph:
             new_grouped.append(result)
 
             if 1 < len(group):
-                log.info("Merging strongly connected files %s" %
+                log("refl.cli.read").info("Merging strongly connected files %s" %
                          (", ".join([f"[green]{g.original}[/green]" for g in group])))
 
         self.subgraphs = new_grouped + ungrouped_sets

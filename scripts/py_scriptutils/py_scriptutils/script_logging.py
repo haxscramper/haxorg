@@ -19,5 +19,6 @@ for name in logging.root.manager.loggerDict:
     logger = logging.getLogger(name)
     logger.setLevel(logging.WARNING)
 
-log = logging.getLogger("rich")
-log.setLevel(logging.DEBUG)
+def log(category="rich"):
+    log = logging.getLogger(category)
+    return log

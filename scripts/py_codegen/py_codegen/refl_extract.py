@@ -39,7 +39,6 @@ if TYPE_CHECKING:
 else:
     BlockId = NewType('BlockId', int)
 
-
 class TuOptions(BaseModel):
     input: List[str] = Field(description="List of input files, directories or globs",)
     indexing_tool: str = Field(description="Path to the TU index generator tool",)
@@ -126,7 +125,7 @@ def expand_input(conf: TuOptions) -> List[PathMapping]:
 
         else:
             if "*" not in item and "?" not in item:
-                log.warning(f"{item} is not a file or directory, treating as glob")
+                log().warning(f"{item} is not a file or directory, treating as glob")
 
             for sub in Path().glob(item):
                 result.append(PathMapping(sub, directory_root))
@@ -196,19 +195,19 @@ def run_collector(conf: TuOptions, input: Path,
         with open(str(target_files), "w") as file:
             file.write(json.dumps([str(input)], indent=2))
 
-        log.info(f"Running collector on {input}")
+        log("refl.cli.read").info(f"Running collector on {input}")
 
         res_code, res_stdout, res_stderr = cast(Tuple[int, str, str],
                                                 tool.run(flags, retcode=None))
 
     else:
-        log.info(f"Using cache for {input}")
+        log("refl.cli.read").info(f"Using cache for {input}")
         res_code = 0
         res_stdout = ""
         res_stderr = ""
 
     if res_code != 0:
-        log.warning(f"Failed to run collector for {input}")
+        log("refl.cli.read").warning(f"Failed to run collector for {input}")
         return CollectorRunResult(
             None,
             None,
@@ -262,7 +261,7 @@ def write_run_result_information(conf: TuOptions, tu: CollectorRunResult, path: 
 
     if not tu.success or conf.reflection_run_verbose:
         if not conf.print_reflection_run_fail_to_stdout:
-            log.warning(
+            log().warning(
                 f"{'Executed' if tu.success else 'Failed to run'} conversion for [green]{path}[/green], wrote to {debug_dir}/{sanitized}"
             )
 
@@ -317,7 +316,7 @@ def run_collector_for_path(
             out_path = conf.reflection_run_path or str(serialize_path)
             with open(out_path, "w") as file:
                 file.write(open_proto_file(str(tu.pb_path)).to_json(2))
-                log.info(f"Wrote dump to {serialize_path}")
+                log().info(f"Wrote dump to {serialize_path}")
 
         write_run_result_information(conf, tu, path, commands)
 

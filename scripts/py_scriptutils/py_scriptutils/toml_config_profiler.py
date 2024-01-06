@@ -161,11 +161,11 @@ def find_config_files(withTrace: bool, potential_paths: List[str]) -> List[str]:
     for path in potential_paths:
         if os.path.exists(path):
             if withTrace:
-                log.debug(f"Trying {path} for config -- file exists, using it")
+                log().debug(f"Trying {path} for config -- file exists, using it")
             result.append(path)
 
         elif withTrace:
-            log.debug(f"Trying {path} for config -- file does not exist, skipping")
+            log().debug(f"Trying {path} for config -- file does not exist, skipping")
 
     return result
 

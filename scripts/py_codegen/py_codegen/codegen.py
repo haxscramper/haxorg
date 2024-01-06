@@ -1186,7 +1186,7 @@ if __name__ == "__main__":
             directory = os.path.dirname(path)
             if not os.path.exists(directory):
                 os.makedirs(directory)
-                log.info(f"Created dir for {path}")
+                log().info(f"Created dir for {path}")
 
             opts = TextOptions()
             opts.rightMargin = 160
@@ -1201,10 +1201,10 @@ if __name__ == "__main__":
                 if oldCode != newCode:
                     with open(path, "w") as out:
                         out.write(newCode)
-                    log.info(f"[red]Updated code[/red] in {define.path}")
+                    log().info(f"[red]Updated code[/red] in {define.path}")
                 else:
-                    log.info(f"[green]No changes[/green] on {define.path}")
+                    log().info(f"[green]No changes[/green] on {define.path}")
             else:
                 with open(path, "w") as out:
                     out.write(newCode)
-                log.info(f"[red]Wrote[/red] to {define.path}")
+                log().info(f"[red]Wrote[/red] to {define.path}")
