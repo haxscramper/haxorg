@@ -195,11 +195,7 @@ struct ColText : Vec<ColRune> {
     }
 
     ColText() = default;
-    ColText(CR<ColStyle> style, CR<std::string> text) {
-        for (const auto& ch : text) {
-            push_back(ColRune(ch, style));
-        }
-    }
+    ColText(CR<ColStyle> style, CR<std::string> text);
 
     ColText(CR<std::string> text) : ColText(ColStyle{}, text) {}
 

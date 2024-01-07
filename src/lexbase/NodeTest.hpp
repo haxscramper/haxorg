@@ -49,6 +49,7 @@ struct ParseSpec {
             /// Test should run lex/parse/sem stages
             ((bool), doParse, true),
             ((bool), doLex, true),
+            ((bool), doLexBase, true),
             ((bool), doSem, true),
             /// Print sem/lex/parse output debug information to the file
             ((bool), printLexedToFile, false),

@@ -1160,18 +1160,22 @@ Str repeat(CR<Str> str, int count) {
 }
 
 Str left_aligned(CR<Str> str, int n, char c) {
-    auto s = str;
-    if (s.size() < n) {
-        s.append(Str(c).repeated(n - s.size()));
+    auto s         = str;
+    int  rune_size = rune_length(str);
+    if (rune_size < n) {
+        s.append(Str(c).repeated(n - rune_size));
     }
     return s;
 }
 
 Str right_aligned(CR<Str> str, int n, char c) {
     Str res;
-    if (str.size() < n) {
-        res.append(Str(c).repeated(n - str.size()));
+    int rune_size = rune_length(str);
+
+    if (rune_size < n) {
+        res.append(Str(c).repeated(n - rune_size));
     }
+
     res.append(str);
     return res;
 }
@@ -1197,4 +1201,57 @@ Str escape_for_write(const Str& str, bool quote) {
         res += "\"";
     }
     return res;
+}
+
+int rune_length(const std::string& str) {
+    int count = 0;
+    for (int i = 0; i < str.size();) {
+        unsigned char byte = static_cast<unsigned char>(str.at(i));
+        if (byte <= 127) {
+            i += 1;
+        } else if ((byte >> 5) == 0b110) {
+            i += 2;
+        } else if ((byte >> 4) == 0b1110) {
+            i += 3;
+        } else if ((byte >> 3) == 0b11110) {
+            i += 4;
+        } else if ((byte >> 2) == 0b111110) {
+            i += 5;
+        } else if ((byte >> 1) == 0b1111110) {
+            i += 6;
+        } else {
+            i += 1;
+        }
+        count++;
+    }
+    return count;
+}
+
+// This is mostly for fancy rendering, so should be ok as it is, but really
+// it ought to be a generator of string view slices.
+std::vector<std::string> rune_chunks(const std::string& str) {
+    std::vector<std::string> runes;
+    for (int i = 0; i < str.size();) {
+        int           len  = 0;
+        unsigned char byte = static_cast<unsigned char>(str.at(i));
+        if (byte <= 127) {
+            len = 1;
+        } else if ((byte >> 5) == 0b110) {
+            len = 2;
+        } else if ((byte >> 4) == 0b1110) {
+            len = 3;
+        } else if ((byte >> 3) == 0b11110) {
+            len = 4;
+        } else if ((byte >> 2) == 0b111110) {
+            len = 5;
+        } else if ((byte >> 1) == 0b1111110) {
+            len = 6;
+        } else {
+            len = 1; // Invalid UTF-8 sequence, treat as single byte
+        }
+
+        runes.push_back(str.substr(i, len));
+        i += len;
+    }
+    return runes;
 }

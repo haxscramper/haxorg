@@ -21,7 +21,14 @@ items:
     source: "* Subtree"
     debug:
       doParse: false
-      
+
+    base_tokens:
+      - {kind: SubtreeStars, str: {text: "*"}}
+      - {kind: Whitespace, str: {text: " "}}
+      - {kind: Word, str: {text: Subtree}}
+      - {kind: EndOfFile, str: {text: ""}}
+
+
     tokens:
       - {kind: SubtreeStars, str: "*"}
       - {kind: Space, str: " "}

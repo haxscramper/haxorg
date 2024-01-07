@@ -1,5 +1,6 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 std::string ansiEsc(const TermColorFg8Bit& col) {
     if ((u8)col <= 7) { // Regular colors
@@ -144,4 +145,10 @@ ColStream& hshow(ColStream& os, CR<Str> value, CR<HDisplayOpts> opts) {
     }
 
     return os;
+}
+
+ColText::ColText(CR<ColStyle> style, CR<std::string> text) {
+    for (const auto& ch : rune_chunks(text)) {
+        push_back(ColRune(ch, style));
+    }
 }

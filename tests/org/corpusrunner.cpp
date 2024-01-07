@@ -528,30 +528,29 @@ CorpusRunner::RunResult::LexCompare compareTokens(
                     opts.flags.incl(HDisplayFlag::UseAscii);
                 }
 
-                std::string pattern = useQFormat()
-                                        ? (isLhs ? "${kind} \"${text}\" <"
-                                                 : "> \"${text}\" ${kind}")
-                                        : "${index} ${kind} ${text}";
+                std::string pattern = //
+                    useQFormat()
+                        ? (isLhs ? "${kind} \"${text}\" <"
+                                 : "> \"${text}\" ${kind}")
+                        : "${index} ${kind} ${text}";
+
+                std::string text = escape_literal(
+                    hshow(get_token_text(tok), opts).toString(false));
 
                 std::string result = //
                     pattern
                     % fold_format_pairs({
                         {"index", fmt1(id)},
                         {"kind", fmt1(tok.kind)},
-                        {"text",
-                         hshow(get_token_text(tok), opts).toString(false)},
-                        // {tok.hasData()},
+                        {"text", text},
+                        {"size", fmt1(rune_length(text))},
                     });
 
                 auto indexFmt = Str(std::format("[{}]", id));
                 return useQFormat()
-                         ? (isLhs ? indexFmt
-                                        + right_aligned(
-                                            result,
-                                            lhsSize - indexFmt.size())
-                                  : left_aligned(
-                                        result, rhsSize - indexFmt.size())
-                                        + indexFmt)
+                         ? (isLhs
+                                ? indexFmt + right_aligned(result, lhsSize)
+                                : left_aligned(result, rhsSize) + indexFmt)
                          : result;
             },
             lhsSize,

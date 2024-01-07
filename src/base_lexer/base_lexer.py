@@ -3,13 +3,14 @@
 import yaml
 from yaml.loader import SafeLoader
 from pydantic import BaseModel, Field
-from beartype.typing import List, Optional
+from beartype.typing import List, Optional, Literal
 from beartype import beartype
 import os
 
 
 class Action(BaseModel):
-    do: str
+    # When token is matched, what to do
+    do: Literal["push", "pop", "set", "raw", "token"]
     to: Optional[str] = None
     from_: Optional[str] = Field(alias="from", default=None)
     raw: Optional[str] = None
@@ -31,6 +32,7 @@ class State(BaseModel):
 
 
 class RxMacro(BaseModel):
+    # Substitute `{name}` in the regex pattern with a common string replacement
     name: str
     value: str
     line: Optional[int] = None
@@ -41,9 +43,11 @@ class TokenDesc(BaseModel):
 
 
 class Configuration(BaseModel):
-    states: List[State]
-    rules: List[Rule]
-    tokens: List[TokenDesc] = Field(default_factory=list)
+    states: List[State] # List of states that lexer can transition between
+    rules: List[Rule] # Regex/literal matching rules
+    # Explicitly specified list of tokens to be added to whatever was detected in the 'rules'
+    tokens: List[TokenDesc] = Field(default_factory=list) 
+    # Regular expression macros to save on re-typing the same thing
     rx_macros: List[RxMacro] = Field(default_factory=list)
 
 
@@ -91,17 +95,26 @@ def rule_to_reflex_code(rule: Rule, macros: dict[str, str]) -> str:
 
     if rule.actions:
         for action in rule.actions:
-            if action.do == "push":
-                actions.append(f"push_expect({action.from_}, {action.to});")
+            match action.do:
+                case "push":
+                    actions.append(f"push_expect({action.from_}, {action.to});")
 
-            elif action.do == "pop":
-                actions.append(f"pop_expect({action.from_}, {action.to});")
+                case "pop":
+                    actions.append(f"pop_expect({action.from_}, {action.to});")
 
-            elif action.do == "set":
-                actions.append(f"start({action.to});")
+                case "set":
+                    actions.append(f"start({action.to});")
 
-            elif action.do == "raw":
-                actions.append(action.raw)
+                case "raw":
+                    actions.append(action.raw)
+
+                case "token":
+                    actions.append(f"impl.add({ENUM_NAME}::{action.to});")
+
+                case _:
+                    raise ValueError(f"Unexpected action 'do' value: {action.do}")
+
+                
 
     actions_code = " ".join(actions)
     content = " ".join([

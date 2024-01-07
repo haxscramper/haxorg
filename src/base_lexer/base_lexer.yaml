@@ -311,6 +311,14 @@ rules:
     token: MediumNewline
   - re: "\\n"
     token: Newline
+
+  - re: "<<EOF>>"
+    token: EndOfFile
+    states: [SUBTREE_HEAD]
+    actions: 
+    - { do: pop, from: SUBTREE_HEAD, to: INITIAL }
+    - { do: raw, raw: "return 0;" }
+
   - re: "<<EOF>>"
     token: "EndOfFile"
     actions: [{ do: raw, raw: "return 0;" }]

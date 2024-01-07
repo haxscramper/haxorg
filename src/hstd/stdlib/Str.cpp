@@ -1,4 +1,5 @@
 #include "Str.hpp"
+#include <hstd/stdlib/strutils.hpp>
 
 Str Str::dropPrefix(CR<Str> prefix) const {
     if (this->starts_with(prefix)) {
@@ -83,26 +84,4 @@ Str Str::repeated(int N) const {
     return result;
 }
 
-int Str::runeLen() const {
-    int count = 0;
-    for (int i = 0; i < length();) {
-        unsigned char byte = static_cast<unsigned char>(at(i));
-        if (byte <= 127) {
-            i += 1;
-        } else if ((byte >> 5) == 0b110) {
-            i += 2;
-        } else if ((byte >> 4) == 0b1110) {
-            i += 3;
-        } else if ((byte >> 3) == 0b11110) {
-            i += 4;
-        } else if ((byte >> 2) == 0b111110) {
-            i += 5;
-        } else if ((byte >> 1) == 0b1111110) {
-            i += 6;
-        } else {
-            i += 1;
-        }
-        count++;
-    }
-    return count;
-}
+int Str::runeLen() const { return rune_length(*this); }
