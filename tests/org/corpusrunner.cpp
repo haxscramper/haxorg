@@ -481,8 +481,6 @@ CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
     return cmp;
 }
 
-bool useQFormat() { return getenv("IN_QT_RUN") == std::string("true"); }
-
 template <typename K, typename V>
 CorpusRunner::RunResult::LexCompare compareTokens(
     CR<TokenGroup<K, V>>       lexed,

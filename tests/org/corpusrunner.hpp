@@ -8,6 +8,11 @@
 #include <lexbase/NodeTest.hpp>
 #include <hstd/wrappers/textlayouter.hpp>
 
+inline bool useQFormat() {
+    return getenv("IN_QT_RUN")
+        && getenv("IN_QT_RUN") == std::string("true");
+}
+
 class CorpusRunner {
   public:
     // Define environment variable in the QT app run environment to get

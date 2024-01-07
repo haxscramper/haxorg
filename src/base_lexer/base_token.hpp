@@ -17,7 +17,8 @@ class AbstractLexer;
 
 template <>
 struct enum_serde<BaseTokenKind> {
-    static std::string to_string(BaseTokenKind const& value);
+    static std::string        to_string(BaseTokenKind const& value);
+    static Opt<BaseTokenKind> from_string(std::string const& value);
 };
 
 

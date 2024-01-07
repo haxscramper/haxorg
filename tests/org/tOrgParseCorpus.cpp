@@ -175,6 +175,9 @@ TEST_P(ParseFile, CorpusAll) {
                 [&](RunResult::SemCompare const& node) {
                     os = node.failDescribe;
                 },
+                [&](RunResult::BaseLexCompare const& node) {
+                    os = node.failDescribe;
+                },
                 [&](RunResult::ExportCompare const& node) {
                     for (auto const& exp : node.run) {
                         os.append(exp.failDescribe);
@@ -193,7 +196,7 @@ TEST_P(ParseFile, CorpusAll) {
             "--gtest_filter='CorpusAllParametrized/ParseFile.CorpusAll/"
                 + params.testName() + "'");
 
-        if (runner.useQFormat()) {
+        if (useQFormat()) {
             FAIL() << params.fullName() << "failed, wrote debug to"
                    << spec.debug.debugOutDir << "\n"
                    << os.toString(false);
