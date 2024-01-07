@@ -36,10 +36,15 @@ void OrgTokenizer::report(CR<Report> in) {
     };
 
     auto printString = [&]() {
+        if (in.msg) {
+            os << " [" << in.msg.value() << "]";
+        }
+
+        os << " ";
         in.lex->print(
             os,
             [](ColStream& os, BaseToken const& t) {
-                os << os.yellow() << escape_for_write(t.value.text)
+                os << " " << os.yellow() << escape_for_write(t.value.text)
                    << os.end();
             },
             BaseLexer::PrintParams{});

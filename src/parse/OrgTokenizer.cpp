@@ -52,10 +52,11 @@ struct Builder {
     finally CONCAT(close, __COUNTER__) = finally::init<Str>(              \
         ([&](CR<Str> name) {                                              \
             if (TraceState) {                                             \
-                this->report(                                             \
-                    (::rep::Builder(lex, OrgTokenizer::ReportKind::Leave) \
-                         .with_name(name))                                \
-                        .report);                                         \
+                this->report(((::rep::Builder(                            \
+                                   lex, OrgTokenizer::ReportKind::Leave)  \
+                                   __VA_ARGS__)                           \
+                                  .with_name(name))                       \
+                                 .report);                                \
             }                                                             \
         }),                                                               \
         Str(__func__));
@@ -362,8 +363,12 @@ struct RecombineState {
     }
 
     void maybe_paragraph_start() {
-        __trace();
-        if (state_top() == State::None) {
+        bool matching_state = state_top() == State::None
+                           || state_top() == State::Subtree;
+
+        x_trace(.with_msg(fmt("match:{}", matching_state)));
+
+        if (matching_state) {
             (void)add_fake(otk::ParagraphStart);
             state_push(State::Paragraph);
         }
@@ -429,7 +434,7 @@ struct RecombineState {
     }
 
     void map_interpreted_token() {
-        x_trace(.with_msg(std::format("Current state: {}", state_top())));
+        x_trace(.with_msg(std::format("state: {}", state)));
         BaseTokenId        start = lex.pos;
         BaseToken const&   tok   = lex.tok();
         BaseFill const&    val   = tok.value;
@@ -478,6 +483,10 @@ struct RecombineState {
                             (void)add_fake(otk::ParagraphEnd);
                             break;
                         }
+                        case State::Subtree: {
+                            (void)add_fake(otk::SubtreeEnd);
+                            break;
+                        }
                         case State::None: {
                             break;
                         }
@@ -514,6 +523,7 @@ struct RecombineState {
             }
 
             case obt::SubtreeStars: {
+                state_push(State::Subtree);
                 pop_as(otk::SubtreeStars);
                 break;
             }

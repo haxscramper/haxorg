@@ -19,9 +19,6 @@ items:
 
   - name: "Regular subtree"
     source: "* Subtree"
-    debug:
-      doParse: false
-
     base_tokens:
       - {kind: SubtreeStars, str: "*"}
       - {kind: Whitespace, str: " "}
