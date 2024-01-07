@@ -145,6 +145,10 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {{
     }}
 }}
 
+Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& value) {{
+{from_string}
+}}
+
 """.format(
         mappings="\n".join([
             f"        case {idx + 1}: return \"{state.name}\";"
@@ -152,7 +156,11 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {{
         ]),
         values="\n".join([
             f"        case BaseTokenKind::{name}: return \"{name}\";" for name in tokens
-        ]))
+        ]),
+        from_string="\n".join([
+            f"  if (value == \"{name}\") {{ return BaseTokenKind::{name}; }} else"
+            for name in tokens
+        ] + ["  { return std::nullopt; }"]),)
 
 
 @beartype

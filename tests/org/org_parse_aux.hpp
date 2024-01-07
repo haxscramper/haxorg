@@ -86,6 +86,7 @@ struct MockFull {
     Lexer<OrgTokenKind, OrgFill> lex;
     SPtr<OrgParser>              parser;
     UPtr<OrgSpec>                spec;
+    BaseTokenGroup               baseTokens;
 
     MockFull(bool tracedParser, bool tracedLexer)
         : tokenizer(), nodes(nullptr), lex(&tokens) {
@@ -105,8 +106,8 @@ struct MockFull {
     OrgNodeKind k(int idx) { return n(idx).kind; }
 
     void tokenize(CR<std::string> content) {
-        BaseTokenGroup tokens = ::tokenize(content.data(), content.size());
-        tokenizer->convert(tokens);
+        baseTokens = ::tokenize(content.data(), content.size());
+        tokenizer->convert(baseTokens);
     }
 
     void parse() { (void)parser->parseFull(lex); }

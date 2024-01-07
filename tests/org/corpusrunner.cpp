@@ -9,7 +9,7 @@
 #include <exporters/exporteryaml.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/diffs.hpp>
-
+#include <cstdlib>
 
 struct DiffItem {
     DECL_DESCRIBED_ENUM(Op, Replace, Remove, Add);
@@ -291,6 +291,7 @@ bool isSimple(json const& j) {
         case json::value_t::number_float:
         case json::value_t::number_integer:
         case json::value_t::boolean:
+        case json::value_t::null:
         case json::value_t::string: return true;
         default: return false;
     }
@@ -316,6 +317,12 @@ void writeSimple(ColStream& os, json const& j) {
             os << "\"" << os.yellow() << j.get<std::string>() << os.end()
                << "\"";
             break;
+        }
+        case json::value_t::null: {
+            os << os.cyan() << "null" << os.end();
+            break;
+        }
+        default: {
         }
     }
 };
@@ -474,27 +481,20 @@ CorpusRunner::RunResult::ExportCompare::Run CorpusRunner::compareExport(
     return cmp;
 }
 
-CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
-    CR<OrgTokenGroup>          lexed,
-    CR<OrgTokenGroup>          expected,
-    ParseSpec::Conf::MatchMode match) {
+bool useQFormat() { return getenv("IN_QT_RUN") == std::string("true"); }
+
+template <typename K, typename V>
+CorpusRunner::RunResult::LexCompare compareTokens(
+    CR<TokenGroup<K, V>>       lexed,
+    CR<TokenGroup<K, V>>       expected,
+    ParseSpec::Conf::MatchMode match,
+    auto                       token_eq,
+    auto                       get_token_text) {
+
+    using Tok                    = Token<K, V>;
     using Mode                   = ParseSpec::Conf::MatchMode;
-    BacktrackRes tokenSimilarity = longestCommonSubsequence<OrgToken>(
-        lexed.tokens.content,
-        expected.tokens.content,
-        [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
-            if (lhs.kind != rhs.kind) {
-                return false;
-            } else if (lhs->base.has_value() != rhs->base.has_value()) {
-                return false;
-            } else if (
-                lhs->base.has_value()
-                && lhs->getText() != rhs->getText()) {
-                return false;
-            } else {
-                return true;
-            }
-        })[0];
+    BacktrackRes tokenSimilarity = longestCommonSubsequence<Tok>(
+        lexed.tokens.content, expected.tokens.content, token_eq)[0];
 
     if ((match == Mode::Full
          && tokenSimilarity.lhsIndex.size() == lexed.size()
@@ -506,7 +506,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
         ShiftedDiff tokenDiff{
             tokenSimilarity, lexed.size(), expected.size()};
 
-        Func<Str(CR<OrgToken>)> conv = [](CR<OrgToken> tok) -> Str {
+        Func<Str(CR<Tok>)> conv = [](CR<Tok> tok) -> Str {
             return std::format("{}", tok);
         };
 
@@ -530,17 +530,18 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::compareTokens(
                     opts.flags.incl(HDisplayFlag::UseAscii);
                 }
 
+                std::string pattern = useQFormat()
+                                        ? (isLhs ? "${kind} \"${text}\" <"
+                                                 : "> \"${text}\" ${kind}")
+                                        : "${index} ${kind} ${text}";
+
                 std::string result = //
-                    std::string(
-                        useQFormat()
-                            ? (isLhs ? "${kind} \"${text}\" <"
-                                     : "> \"${text}\" ${kind}")
-                            : "${index} ${kind} ${text}")
+                    pattern
                     % fold_format_pairs({
                         {"index", fmt1(id)},
                         {"kind", fmt1(tok.kind)},
                         {"text",
-                         hshow(tok->getText(), opts).toString(false)},
+                         hshow(get_token_text(tok), opts).toString(false)},
                         // {tok.hasData()},
                     });
 
@@ -711,12 +712,16 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
                 }
                 break;
             }
+            case json::value_t::null:
             case json::value_t::number_float:
             case json::value_t::number_integer:
             case json::value_t::boolean:
             case json::value_t::string: {
                 writeSimple(os, j);
                 break;
+            }
+
+            default: {
             }
         }
     };
@@ -767,13 +772,53 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             }
         }
 
+
+        if (spec.base_tokens.has_value()) {
+            Str                   buffer;
+            RunResult::LexCompare result = compareTokens(
+                p.baseTokens,
+                fromFlatTokens<BaseTokenKind, BaseFill>(
+                    spec.base_tokens.value(), buffer),
+                spec.conf.tokenMatch,
+                [](CR<BaseToken> lhs, CR<BaseToken> rhs) -> bool {
+                    if (lhs.kind != rhs.kind) {
+                        return false;
+                    } else if (lhs.value.text != rhs.value.text) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                },
+                [](CR<BaseToken> tok) { return tok.value.text; });
+
+            if (!result.isOk) {
+                return RunResult(result);
+            }
+        }
+
         if (spec.tokens.has_value()) {
             Str                   buffer;
             RunResult::LexCompare result = compareTokens(
                 p.tokens,
                 fromFlatTokens<OrgTokenKind, OrgFill>(
                     spec.tokens.value(), buffer),
-                spec.conf.tokenMatch);
+                spec.conf.tokenMatch,
+                [](CR<OrgToken> lhs, CR<OrgToken> rhs) -> bool {
+                    if (lhs.kind != rhs.kind) {
+                        return false;
+                    } else if (
+                        lhs->base.has_value() != rhs->base.has_value()) {
+                        return false;
+                    } else if (
+                        lhs->base.has_value()
+                        && lhs->getText() != rhs->getText()) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                },
+                [](CR<OrgToken> tok) { return tok->getText(); });
+
             if (!result.isOk) {
                 return RunResult(result);
             }

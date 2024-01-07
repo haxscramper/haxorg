@@ -54,7 +54,7 @@ struct Builder {
             if (TraceState) {                                             \
                 this->report(                                             \
                     (::rep::Builder(lex, OrgTokenizer::ReportKind::Leave) \
-                         .with_name(name) __VA_ARGS__)                    \
+                         .with_name(name))                                \
                         .report);                                         \
             }                                                             \
         }),                                                               \

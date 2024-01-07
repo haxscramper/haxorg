@@ -284,14 +284,36 @@ def cmake_utils(ctx: Context):
     log().info("CMake utils build ok")
 
 
+REFLEX_PATH = "toolchain/RE-flex/build/reflex"
+
+
 @org_task(pre=[base_environment])
+def reflex_lexer_generator(ctx: Context):
+    "Build reflex lexer generator"
+    expected = get_script_root(REFLEX_PATH)
+    if not expected.exists():
+        run_command(ctx, "cmake", [
+            "-B",
+            expected.parent,
+            "-S",
+            get_script_root("toolchain/RE-flex"),
+            "-DCMAKE_BUILD_TYPE=Release",
+        ])
+
+        run_command(ctx, "cmake", [
+            "--build",
+            expected.parent,
+        ])
+
+
+@org_task(pre=[base_environment, reflex_lexer_generator])
 def haxorg_base_lexer(ctx: Context):
     "Generate base lexer file definitions and compile them to C code"
     log().info("Generating base lexer for haxorg")
     run_command(ctx, "poetry", ["run", "src/base_lexer/base_lexer.py"])
     run_command(
         ctx,
-        get_script_root("toolchain/RE-flex/build/reflex"),
+        get_script_root(REFLEX_PATH),
         [
             "--fast",
             "--nodefault",
@@ -505,6 +527,7 @@ def org_tests(ctx):
     test = dir / "tests_org"
     run_command(ctx, test, [], cwd=str(dir))
 
+
 @beartype
 def binary_coverage(ctx: Context, test: Path):
     dir = test.parent
@@ -609,6 +632,7 @@ def xray_coverage(ctx: Context, test: Path):
             f"No XRay log files found in '{dir}', xray coverage enabled in settings {is_xray_coverage(ctx)}"
         )
 
+
 @org_task(pre=[cmake_haxorg])
 def org_test_perf(ctx: Context):
     """Generate performance sampling profile for tests"""
@@ -620,6 +644,7 @@ def org_test_perf(ctx: Context):
         run["record", "--call-graph", "dwarf", tests] & FG
     except ProcessExecutionError:
         pass
+
 
 @org_task(pre=[cmake_haxorg])
 def std_xray(ctx: Context):

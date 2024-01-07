@@ -2,7 +2,7 @@
 
 #include "org_parse_aux.hpp"
 
-#include <cstdlib>
+
 #include <string>
 
 #include <lexbase/NodeTest.hpp>
@@ -12,7 +12,7 @@ class CorpusRunner {
   public:
     // Define environment variable in the QT app run environment to get
     // better-formatted test diff output.
-    bool useQFormat() { return getenv("IN_QT_RUN") == "true"; }
+
 
     void writeFileOrStdout(
         const fs::path&    target,
@@ -64,6 +64,11 @@ class CorpusRunner {
             ColText failDescribe;
         };
 
+        struct BaseLexCompare {
+            bool    isOk = false;
+            ColText failDescribe;
+        };
+
         struct SemCompare {
             bool    isOk = false;
             ColText failDescribe;
@@ -96,6 +101,7 @@ class CorpusRunner {
             NodeCompare,
             LexCompare,
             SemCompare,
+            BaseLexCompare,
             ExportCompare);
 
         RunResult() {}
@@ -109,16 +115,13 @@ class CorpusRunner {
                     [](CR<LexCompare> n) { return n.isOk; },
                     [](CR<SemCompare> n) { return n.isOk; },
                     [](CR<ExportCompare> e) { return e.isOk(); },
+                    [](CR<BaseLexCompare> e) { return e.isOk; },
                     [](CR<None> n) { return true; },
                 },
                 data);
         }
     };
 
-    RunResult::LexCompare compareTokens(
-        CR<OrgTokenGroup>          lexed,
-        CR<OrgTokenGroup>          expected,
-        ParseSpec::Conf::MatchMode match);
 
     RunResult::NodeCompare compareNodes(
         CR<OrgNodeGroup> parsed,

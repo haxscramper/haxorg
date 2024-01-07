@@ -124,6 +124,7 @@ struct ParseSpec {
         ((Dbg), debug, Dbg{}),
         ((Conf), conf, Conf{}),
         ((Opt<yaml>), subnodes, std::nullopt),
+        ((Opt<yaml>), base_tokens, std::nullopt),
         ((Opt<yaml>), tokens, std::nullopt),
         ((Opt<json>), sem, std::nullopt),
         ((Str), source, ""),
