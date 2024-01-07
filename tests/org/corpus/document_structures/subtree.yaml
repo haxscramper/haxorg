@@ -23,11 +23,10 @@ items:
       doParse: false
 
     base_tokens:
-      - {kind: SubtreeStars, str: {text: "*"}}
-      - {kind: Whitespace, str: {text: " "}}
-      - {kind: Word, str: {text: Subtree}}
-      - {kind: EndOfFile, str: {text: ""}}
-
+      - {kind: SubtreeStars, str: "*"}
+      - {kind: Whitespace, str: " "}
+      - {kind: Word, str: Subtree}
+      - {kind: EndOfFile, str: ""}
 
     tokens:
       - {kind: SubtreeStars, str: "*"}

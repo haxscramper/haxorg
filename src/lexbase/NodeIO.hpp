@@ -84,7 +84,93 @@ struct convert<typename ::Token<K, V>> {
         return true;
     }
 };
+
+template <>
+struct convert<BaseFill> {
+    static Node encode(BaseFill const& str) {
+        Node result;
+        result["text"] = str.text;
+        result["line"] = str.line;
+        result["col"]  = str.col;
+        return result;
+    }
+    static bool decode(Node const& in, BaseFill& out) {
+        if (in["text"]) {
+            out.text = in["text"].as<Str>();
+        }
+
+        if (in["line"]) {
+            out.line = in["line"].as<int>();
+        }
+
+        if (in["col"]) {
+            out.col = in["col"].as<int>();
+        }
+
+        return true;
+    }
+};
+
+template <>
+struct convert<OrgFill> {
+    static Node encode(OrgFill const& str) {
+        Node result;
+        if (str.base) {
+            result["base"] = convert<BaseFill>::encode(*str.base);
+        }
+        return result;
+    }
+    static bool decode(Node const& in, OrgFill& out) {
+        if (in["str"]) {
+            out.base = BaseFill{.text = in["str"].as<Str>()};
+        } else if (in["base"]) {
+            out.base = in["base"].as<BaseFill>();
+        }
+        return true;
+    }
+};
+
+template <>
+struct convert<OrgToken> {
+    static Node encode(OrgToken const& str) {
+        Node result;
+        result["kind"] = fmt1(str.kind);
+        result["str"]  = str->base->text;
+        return result;
+    }
+    static bool decode(Node const& in, OrgToken& out) {
+        if (in["str"]) {
+            out->base = BaseFill{.text = in["str"].as<Str>()};
+        }
+        out.kind = enum_serde<OrgTokenKind>::from_string(
+                       in["kind"].as<std::string>())
+                       .value();
+        return true;
+    }
+};
+
+template <>
+struct convert<BaseToken> {
+    static Node encode(BaseToken const& str) {
+        Node result;
+        result["kind"] = fmt1(str.kind);
+        result["str"]  = str.value.text;
+        return result;
+    }
+    static bool decode(Node const& in, BaseToken& out) {
+        if (in["str"]) {
+            out.value.text = in["str"].as<Str>();
+        }
+
+        out.kind = enum_serde<BaseTokenKind>::from_string(
+                       in["kind"].as<std::string>())
+                       .value();
+        return true;
+    }
+};
+
 } // namespace YAML
+
 
 template <typename K, typename V>
 yaml yamlRepr(
