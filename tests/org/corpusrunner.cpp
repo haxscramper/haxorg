@@ -760,6 +760,17 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             return RunResult{};
         }
 
+        if (spec.debug.printBaseLexed) {
+            auto content = std::format("{}", yamlRepr(p.baseTokens));
+
+            if (spec.debug.printBaseLexedToFile) {
+                writeFile(
+                    spec.debugFile("base_lexed.yaml"), content + "\n");
+            } else {
+                std::cout << content << std::endl;
+            }
+        }
+
         if (spec.debug.printLexed) {
             auto content = std::format("{}", yamlRepr(p.tokens));
 

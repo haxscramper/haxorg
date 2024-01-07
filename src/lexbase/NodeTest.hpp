@@ -42,6 +42,7 @@ struct ParseSpec {
             ((bool), semToFile, false),
             /// Print lex/parse/sem/source values for processing
             ((bool), printLexed, false),
+            ((bool), printBaseLexed, false),
             ((bool), printParsed, false),
             ((bool), printSem, false),
             ((bool), printSource, false),
@@ -51,6 +52,7 @@ struct ParseSpec {
             ((bool), doSem, true),
             /// Print sem/lex/parse output debug information to the file
             ((bool), printLexedToFile, false),
+            ((bool), printBaseLexedToFile, false),
             ((bool), printParsedToFile, false),
             ((bool), printSemToFile, false),
             /// directory to write debug files to

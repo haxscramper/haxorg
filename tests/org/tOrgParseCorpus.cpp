@@ -140,19 +140,21 @@ TEST_P(ParseFile, CorpusAll) {
         SUCCEED();
     } else {
         spec.debug = ParseSpec::Dbg{
-            .debugOutDir       = "/tmp/corpus_runs/" + params.testName(),
-            .traceLex          = true,
-            .traceParse        = true,
-            .traceSem          = true,
-            .lexToFile         = true,
-            .parseToFile       = true,
-            .semToFile         = true,
-            .printLexed        = true,
-            .printParsed       = true,
-            .printSource       = true,
-            .printLexedToFile  = true,
-            .printParsedToFile = true,
-            .printSemToFile    = true,
+            .debugOutDir      = "/tmp/corpus_runs/" + params.testName(),
+            .traceLex         = true,
+            .traceParse       = true,
+            .traceSem         = true,
+            .lexToFile        = true,
+            .parseToFile      = true,
+            .semToFile        = true,
+            .printLexed       = true,
+            .printBaseLexed   = true,
+            .printParsed      = true,
+            .printSource      = true,
+            .printLexedToFile = true,
+            .printBaseLexedToFile = true,
+            .printParsedToFile    = true,
+            .printSemToFile       = true,
         };
 
         for (auto& exporter : spec.exporters) {
