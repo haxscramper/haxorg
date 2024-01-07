@@ -168,16 +168,7 @@ TEST_P(ParseFile, CorpusAll) {
 
         std::visit(
             overloaded{
-                [&](RunResult::NodeCompare const& node) {
-                    os = node.failDescribe;
-                },
-                [&](RunResult::LexCompare const& node) {
-                    os = node.failDescribe;
-                },
-                [&](RunResult::SemCompare const& node) {
-                    os = node.failDescribe;
-                },
-                [&](RunResult::BaseLexCompare const& node) {
+                [&](CR<RunResult::CompareBase> node) {
                     os = node.failDescribe;
                 },
                 [&](RunResult::ExportCompare const& node) {

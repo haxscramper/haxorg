@@ -1748,6 +1748,7 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
     token(org::RawText, pop(lex, otk::SubtreeStars)); // 0
     parseSubtreeTodo(lex);                            // 1
     parseSubtreeUrgency(lex);                         // 2
+    space(lex);                                       //
     parseSubtreeTitle(lex);                           // 3
     parseSubtreeCompletion(lex);                      // 4
     parseSubtreeTags(lex);                            // 5
@@ -2261,4 +2262,3 @@ void OrgParser::extendAttachedTrails(OrgId position) {
         position = aux(position);
     }
 }
-

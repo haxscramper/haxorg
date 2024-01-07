@@ -499,7 +499,7 @@ CorpusRunner::RunResult::LexCompare compareTokens(
          && tokenSimilarity.rhsIndex.size() == expected.size())
         || (match == Mode::ExpectedSubset
             && tokenSimilarity.rhsIndex.size() == expected.size())) {
-        return {.isOk = true};
+        return {{.isOk = true}};
     } else {
         ShiftedDiff tokenDiff{
             tokenSimilarity, lexed.size(), expected.size()};
@@ -557,7 +557,7 @@ CorpusRunner::RunResult::LexCompare compareTokens(
             rhsSize,
             useQFormat());
 
-        return {.isOk = false, .failDescribe = os.getBuffer()};
+        return {{.isOk = false, .failDescribe = os.getBuffer()}};
     }
 }
 
@@ -585,7 +585,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
 
     if (nodeSimilarity.lhsIndex.size() == parsed.size()
         && nodeSimilarity.rhsIndex.size() == expected.size()) {
-        return {.isOk = true};
+        return {{.isOk = true}};
     } else {
         ShiftedDiff nodeDiff{
             nodeSimilarity, parsed.size(), expected.size()};
@@ -619,7 +619,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                            : "ext=" + fmt1(node.getExtent()));
         });
 
-        return {.isOk = false, .failDescribe = os.getBuffer()};
+        return {{.isOk = false, .failDescribe = os.getBuffer()}};
     }
 }
 
@@ -729,9 +729,9 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
         os << "\nexpected:\n";
         aux(expected, 0, json::json_pointer{});
 
-        return {.isOk = false, .failDescribe = os.getBuffer()};
+        return {{.isOk = false, .failDescribe = os.getBuffer()}};
     } else {
-        return {.isOk = true};
+        return {{.isOk = true}};
     }
 }
 

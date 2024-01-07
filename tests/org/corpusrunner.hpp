@@ -59,25 +59,15 @@ class CorpusRunner {
 
 
     struct RunResult {
-        struct NodeCompare {
+        struct CompareBase {
             bool    isOk = false;
             ColText failDescribe;
         };
 
-        struct LexCompare {
-            bool    isOk = false;
-            ColText failDescribe;
-        };
-
-        struct BaseLexCompare {
-            bool    isOk = false;
-            ColText failDescribe;
-        };
-
-        struct SemCompare {
-            bool    isOk = false;
-            ColText failDescribe;
-        };
+        struct NodeCompare : CompareBase {};
+        struct LexCompare : CompareBase {};
+        struct BaseLexCompare : CompareBase {};
+        struct SemCompare : CompareBase {};
 
         struct ExportCompare {
             struct Run {
@@ -116,11 +106,8 @@ class CorpusRunner {
         bool isOk() const {
             return std::visit(
                 overloaded{
-                    [](CR<NodeCompare> n) { return n.isOk; },
-                    [](CR<LexCompare> n) { return n.isOk; },
-                    [](CR<SemCompare> n) { return n.isOk; },
+                    [](CR<CompareBase> n) { return n.isOk; },
                     [](CR<ExportCompare> e) { return e.isOk(); },
-                    [](CR<BaseLexCompare> e) { return e.isOk; },
                     [](CR<None> n) { return true; },
                 },
                 data);
