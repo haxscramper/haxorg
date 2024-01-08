@@ -440,6 +440,11 @@ struct RecombineState {
             direct(obt::AnyPunct, otk::Punctuation);
             direct(obt::Newline, otk::Newline);
             direct(obt::Comment, otk::Comment);
+            direct(obt::Indent, otk::Indent);
+            direct(obt::Dedent, otk::Dedent);
+            direct(obt::SameIndent, otk::SameIndent);
+            direct(obt::ListStart, otk::ListStart);
+            direct(obt::ListEnd, otk::ListEnd);
 
             case obt::HashIdent: {
                 maybe_paragraph_start();
@@ -527,6 +532,11 @@ struct RecombineState {
                 break;
             }
 
+            case obt::LeadingSpace: {
+                lex.next();
+                break;
+            }
+
             default: {
                 DLOG(ERROR) << std::format(
                     "Unhanled kind for token conversion, got {}:{} {} "
@@ -589,6 +599,25 @@ struct LineToken {
     Span<BaseToken> tokens;
     int             indent = 0;
     Kind            kind;
+
+    LineToken(CR<Span<BaseToken>> tokens) : tokens(tokens) {
+        CR<BaseToken> first = tokens.at(0);
+        switch (first.kind) {
+            case obt::LeadingSpace:
+                indent = first->text.length();
+                if (auto next = tokens.get(1);
+                    next && next->get().kind == obt::Minus) {
+                    kind = LineToken::Kind::ListItem;
+                } else {
+                    kind = LineToken::Kind::IndentedLine;
+                }
+                break;
+            case obt::LeadingMinus:
+            case obt::LeadingPlus: kind = LineToken::Kind::ListItem; break;
+
+            default: break;
+        }
+    }
 };
 
 struct GroupToken {
@@ -603,6 +632,8 @@ struct GroupToken {
 
     Span<LineToken> lines;
     Kind            kind;
+
+    int indent() const { return lines.at(0).indent; }
 };
 
 template <std::random_access_iterator Iter>
@@ -613,41 +644,18 @@ auto make_span(Iter begin, Iter end) -> Span<typename Iter::value_type> {
 
 Vec<LineToken> to_lines(BaseLexer& lex) {
     Vec<LineToken> lines;
-    {
-        auto const& tokens = lex.in;
-        auto        start  = tokens->begin();
+    auto const&    tokens = lex.in;
+    auto           start  = tokens->begin();
 
-        for (auto it = tokens->begin(); it != tokens->end(); ++it) {
-            if (it->kind == BaseTokenKind::Newline) {
-                lines.push_back(LineToken{make_span(start, it)});
-                start = std::next(it);
-            }
-        }
-
-        if (start != tokens->end()) {
-            lines.push_back(LineToken{make_span(start, tokens->end())});
+    for (auto it = tokens->begin(); it != tokens->end(); ++it) {
+        if (it->kind == BaseTokenKind::Newline) {
+            lines.push_back(LineToken{make_span(start, it)});
+            start = std::next(it);
         }
     }
 
-    for (auto& gr : lines) {
-        CR<BaseToken> first = gr.tokens.at(0);
-        switch (first.kind) {
-            case obt::LeadingSpace:
-                gr.indent = first->text.length();
-                if (auto next = gr.tokens.get(1);
-                    next && next->get().kind == obt::Minus) {
-                    gr.kind = LineToken::Kind::ListItem;
-                } else {
-                    gr.kind = LineToken::Kind::IndentedLine;
-                }
-                break;
-            case obt::LeadingMinus:
-            case obt::LeadingPlus:
-                gr.kind = LineToken::Kind::ListItem;
-                break;
-
-            default: break;
-        }
+    if (start != tokens->end()) {
+        lines.push_back(LineToken{make_span(start, tokens->end())});
     }
 
     return lines;
@@ -669,7 +677,9 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
             case LK::Line: {
                 while (it != end && it->kind == LK::Line) { ++it; }
                 groups.push_back({make_span(start, it), GK::Line});
+                break;
             }
+
             case LK::ListItem: {
                 while (it != end && it->kind == LK::IndentedLine
                        && start->indent <= it->indent) {
@@ -700,12 +710,33 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
     // and 'same indent' tokens.
     Vec<LineToken>  lines  = to_lines(lex);
     Vec<GroupToken> groups = to_groups(lines);
-
-
-    BaseTokenGroup regroup;
+    BaseTokenGroup  regroup;
+    Vec<int>        indentStack{};
     regroup.tokens.reserve(lex.in->size());
-    for (CR<GroupToken> gr : groups) {
-        for (CR<LineToken> line : gr.lines) {
+    for (auto gr = groups.begin(); gr != groups.end(); ++gr) {
+        if (gr->kind == GK::ListItem) {
+            if (indentStack.empty()) {
+                regroup.add(BaseToken{obt::ListStart});
+                regroup.add(BaseToken{obt::Indent});
+                indentStack.push_back(gr->indent());
+            } else if (indentStack.back() < gr->indent()) {
+                regroup.add(BaseToken{obt::Indent});
+                indentStack.push_back(gr->indent());
+            } else if (gr->indent() < indentStack.back()) {
+                regroup.add(BaseToken{obt::Dedent});
+                indentStack.pop_back();
+            } else if (indentStack.back() == gr->indent()) {
+                regroup.add(BaseToken{obt::SameIndent});
+            }
+
+        } else if (!indentStack.empty()) {
+            for (auto const& _ : indentStack) {
+                regroup.add(BaseToken{obt::Dedent});
+            }
+            regroup.add(BaseToken{obt::ListEnd});
+        }
+
+        for (CR<LineToken> line : gr->lines) {
             for (CR<BaseToken> tok : line.tokens) {
                 switch (tok.kind) {
                     default: {
@@ -715,6 +746,7 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
             }
         }
     }
+
 
     Lexer<obt, BaseFill> relex{&regroup};
     RecombineState       recombine_state{this, relex};

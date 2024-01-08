@@ -47,6 +47,8 @@ enum class BaseTokenKind : unsigned short int {
   LeftCurly,
   LeftPar,
   LineCommand,
+  ListEnd,
+  ListStart,
   LongNewline,
   MacroBegin,
   MacroEnd,

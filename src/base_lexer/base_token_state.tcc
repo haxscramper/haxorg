@@ -47,6 +47,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::Colon: return "Colon";
         case BaseTokenKind::Comment: return "Comment";
         case BaseTokenKind::Date: return "Date";
+        case BaseTokenKind::Dedent: return "Dedent";
         case BaseTokenKind::Digit: return "Digit";
         case BaseTokenKind::Dollar: return "Dollar";
         case BaseTokenKind::DoubleHash: return "DoubleHash";
@@ -60,6 +61,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::Exclamation: return "Exclamation";
         case BaseTokenKind::ForwardSlash: return "ForwardSlash";
         case BaseTokenKind::HashIdent: return "HashIdent";
+        case BaseTokenKind::Indent: return "Indent";
         case BaseTokenKind::LeadingMinus: return "LeadingMinus";
         case BaseTokenKind::LeadingNumber: return "LeadingNumber";
         case BaseTokenKind::LeadingPlus: return "LeadingPlus";
@@ -68,6 +70,8 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::LeftCurly: return "LeftCurly";
         case BaseTokenKind::LeftPar: return "LeftPar";
         case BaseTokenKind::LineCommand: return "LineCommand";
+        case BaseTokenKind::ListEnd: return "ListEnd";
+        case BaseTokenKind::ListStart: return "ListStart";
         case BaseTokenKind::LongNewline: return "LongNewline";
         case BaseTokenKind::MacroBegin: return "MacroBegin";
         case BaseTokenKind::MacroEnd: return "MacroEnd";
@@ -83,6 +87,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::RightAngle: return "RightAngle";
         case BaseTokenKind::RightCurly: return "RightCurly";
         case BaseTokenKind::RightPar: return "RightPar";
+        case BaseTokenKind::SameIndent: return "SameIndent";
         case BaseTokenKind::Semicolon: return "Semicolon";
         case BaseTokenKind::SingleQuote: return "SingleQuote";
         case BaseTokenKind::SrcContent: return "SrcContent";
@@ -136,6 +141,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "Colon") { return BaseTokenKind::Colon; } else
   if (value == "Comment") { return BaseTokenKind::Comment; } else
   if (value == "Date") { return BaseTokenKind::Date; } else
+  if (value == "Dedent") { return BaseTokenKind::Dedent; } else
   if (value == "Digit") { return BaseTokenKind::Digit; } else
   if (value == "Dollar") { return BaseTokenKind::Dollar; } else
   if (value == "DoubleHash") { return BaseTokenKind::DoubleHash; } else
@@ -149,6 +155,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "Exclamation") { return BaseTokenKind::Exclamation; } else
   if (value == "ForwardSlash") { return BaseTokenKind::ForwardSlash; } else
   if (value == "HashIdent") { return BaseTokenKind::HashIdent; } else
+  if (value == "Indent") { return BaseTokenKind::Indent; } else
   if (value == "LeadingMinus") { return BaseTokenKind::LeadingMinus; } else
   if (value == "LeadingNumber") { return BaseTokenKind::LeadingNumber; } else
   if (value == "LeadingPlus") { return BaseTokenKind::LeadingPlus; } else
@@ -157,6 +164,8 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "LeftCurly") { return BaseTokenKind::LeftCurly; } else
   if (value == "LeftPar") { return BaseTokenKind::LeftPar; } else
   if (value == "LineCommand") { return BaseTokenKind::LineCommand; } else
+  if (value == "ListEnd") { return BaseTokenKind::ListEnd; } else
+  if (value == "ListStart") { return BaseTokenKind::ListStart; } else
   if (value == "LongNewline") { return BaseTokenKind::LongNewline; } else
   if (value == "MacroBegin") { return BaseTokenKind::MacroBegin; } else
   if (value == "MacroEnd") { return BaseTokenKind::MacroEnd; } else
@@ -172,6 +181,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "RightAngle") { return BaseTokenKind::RightAngle; } else
   if (value == "RightCurly") { return BaseTokenKind::RightCurly; } else
   if (value == "RightPar") { return BaseTokenKind::RightPar; } else
+  if (value == "SameIndent") { return BaseTokenKind::SameIndent; } else
   if (value == "Semicolon") { return BaseTokenKind::Semicolon; } else
   if (value == "SingleQuote") { return BaseTokenKind::SingleQuote; } else
   if (value == "SrcContent") { return BaseTokenKind::SrcContent; } else

@@ -142,7 +142,7 @@ enum class {enum} : unsigned short int {{
 
 @beartype
 def generate_state(config: Configuration) -> str:
-    tokens = sorted(set([rule.token for rule in config.rules]))
+    tokens = sorted(set([rule.token for rule in config.rules] + [tok.name for tok in config.tokens]))
     return """
 std::string BaseLexerImpl::state_name(int state) {{
     switch(state) {{

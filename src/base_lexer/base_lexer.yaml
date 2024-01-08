@@ -27,6 +27,8 @@ tokens:
   - { name: "Indent" }
   - { name: "Dedent" }
   - { name: "SameIndent" }
+  - { name: "ListStart" }
+  - { name: "ListEnd" }
 
 rules:
   - lit: "#+"
