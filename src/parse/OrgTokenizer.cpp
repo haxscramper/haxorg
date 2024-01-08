@@ -68,12 +68,6 @@ using ock = OrgCommandKind;
 using otk = OrgTokenKind;
 using obt = BaseTokenKind;
 
-void OrgTokenizer::rewriteIndents(BaseLexer& lex) {
-    while (lex.hasNext()) {
-        lex.next();
-    }
-}
-
 template <typename T>
 bool opt_equal(CR<Opt<T>> opt, CR<T> value) {
     return opt.has_value() && opt.value() == value;
@@ -181,7 +175,7 @@ struct RecombineState {
 
     // Finalize the markup token pair
     Opt<Mark> mark_pop(MarkKind value, OrgTokenKind __to) {
-        (void)add_as(__to);
+        add_as(__to);
         lex.next();
         CHECK(!mark.empty())
             << "Expected the markup stack to not be empty";
@@ -221,7 +215,7 @@ struct RecombineState {
     }
 
     void pop_as(OrgTokenKind __to) {
-        (void)add_as(__to);
+        add_as(__to);
         lex.next();
     }
 
@@ -369,7 +363,7 @@ struct RecombineState {
         x_trace(.with_msg(fmt("match:{}", matching_state)));
 
         if (matching_state) {
-            (void)add_fake(otk::ParagraphStart);
+            add_fake(otk::ParagraphStart);
             state_push(State::Paragraph);
         }
     }
@@ -377,7 +371,7 @@ struct RecombineState {
     void maybe_paragraph_end() {
         __trace();
         if (state_top() == State::Paragraph) {
-            (void)add_fake(otk::ParagraphEnd);
+            add_fake(otk::ParagraphEnd);
             state_pop();
         }
     }
@@ -480,11 +474,11 @@ struct RecombineState {
                 while (!state.empty()) {
                     switch (state_top()) {
                         case State::Paragraph: {
-                            (void)add_fake(otk::ParagraphEnd);
+                            add_fake(otk::ParagraphEnd);
                             break;
                         }
                         case State::Subtree: {
-                            (void)add_fake(otk::SubtreeEnd);
+                            add_fake(otk::SubtreeEnd);
                             break;
                         }
                         case State::None: {
@@ -525,6 +519,11 @@ struct RecombineState {
             case obt::SubtreeStars: {
                 state_push(State::Subtree);
                 pop_as(otk::SubtreeStars);
+                break;
+            }
+
+            case obt::LeadingMinus: {
+                pop_as(otk::ListStart);
                 break;
             }
 
@@ -576,9 +575,150 @@ struct RecombineState {
 
 } // namespace
 
+struct LineToken {
+    DECL_DESCRIBED_ENUM(
+        Kind,
+        Line,
+        ListItem,
+        Subtree,
+        BlockOpen,
+        BlockClose,
+        IndentedLine,
+        Property);
+
+    Span<BaseToken> tokens;
+    int             indent = 0;
+    Kind            kind;
+};
+
+struct GroupToken {
+    DECL_DESCRIBED_ENUM(
+        Kind,
+        Line,
+        ListItem,
+        Block,
+        Content,
+        Subtree,
+        Properties);
+
+    Span<LineToken> lines;
+    Kind            kind;
+};
+
+template <std::random_access_iterator Iter>
+auto make_span(Iter begin, Iter end) -> Span<typename Iter::value_type> {
+    return Span<typename Iter::value_type>{
+        &*begin, static_cast<int>(std::distance(begin, end))};
+}
+
+Vec<LineToken> to_lines(BaseLexer& lex) {
+    Vec<LineToken> lines;
+    {
+        auto const& tokens = lex.in;
+        auto        start  = tokens->begin();
+
+        for (auto it = tokens->begin(); it != tokens->end(); ++it) {
+            if (it->kind == BaseTokenKind::Newline) {
+                lines.push_back(LineToken{make_span(start, it)});
+                start = std::next(it);
+            }
+        }
+
+        if (start != tokens->end()) {
+            lines.push_back(LineToken{make_span(start, tokens->end())});
+        }
+    }
+
+    for (auto& gr : lines) {
+        CR<BaseToken> first = gr.tokens.at(0);
+        switch (first.kind) {
+            case obt::LeadingSpace:
+                gr.indent = first->text.length();
+                if (auto next = gr.tokens.get(1);
+                    next && next->get().kind == obt::Minus) {
+                    gr.kind = LineToken::Kind::ListItem;
+                } else {
+                    gr.kind = LineToken::Kind::IndentedLine;
+                }
+                break;
+            case obt::LeadingMinus:
+            case obt::LeadingPlus:
+                gr.kind = LineToken::Kind::ListItem;
+                break;
+
+            default: break;
+        }
+    }
+
+    return lines;
+}
+
+using LK = LineToken::Kind;
+using GK = GroupToken::Kind;
+
+Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
+    Vec<GroupToken> groups;
+
+
+    auto it  = lines.begin();
+    auto end = lines.end();
+    while (it != lines.end()) {
+        auto start = it;
+        ++it;
+        switch (start->kind) {
+            case LK::Line: {
+                while (it != end && it->kind == LK::Line) { ++it; }
+                groups.push_back({make_span(start, it), GK::Line});
+            }
+            case LK::ListItem: {
+                while (it != end && it->kind == LK::IndentedLine
+                       && start->indent <= it->indent) {
+                    ++it;
+                }
+
+                groups.push_back({make_span(start, it), GK::ListItem});
+
+                break;
+            }
+
+            case LK::BlockOpen: {
+                while (it != end && it->kind != LK::BlockClose) { ++it; }
+                groups.push_back({make_span(start, it), GK::Block});
+                break;
+            }
+        }
+
+        CHECK(start != it)
+            << fmt("No movement on the line kind {}", it->kind);
+    }
+
+    return groups;
+}
+
 void OrgTokenizer::recombine(BaseLexer& lex) {
-    RecombineState state{this, lex};
-    state.recombine_impl();
+    // Convert stream of leading space indentations into indent, dedent
+    // and 'same indent' tokens.
+    Vec<LineToken>  lines  = to_lines(lex);
+    Vec<GroupToken> groups = to_groups(lines);
+
+
+    BaseTokenGroup regroup;
+    regroup.tokens.reserve(lex.in->size());
+    for (CR<GroupToken> gr : groups) {
+        for (CR<LineToken> line : gr.lines) {
+            for (CR<BaseToken> tok : line.tokens) {
+                switch (tok.kind) {
+                    default: {
+                        regroup.add(tok);
+                    }
+                }
+            }
+        }
+    }
+
+    Lexer<obt, BaseFill> relex{&regroup};
+    RecombineState       recombine_state{this, relex};
+    recombine_state.recombine_impl();
 }
 
 void OrgTokenizer::convert(BaseTokenGroup& input) {
@@ -587,7 +727,6 @@ void OrgTokenizer::convert(BaseTokenGroup& input) {
 }
 
 void OrgTokenizer::convert(BaseLexer& lex) {
-    rewriteIndents(lex);
     lex.pos = TokenId<BaseTokenKind, BaseFill>::FromValue(1);
     recombine(lex);
 }

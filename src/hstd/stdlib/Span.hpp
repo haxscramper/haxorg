@@ -6,6 +6,7 @@
 #include <span>
 #include <absl/log/log.h>
 #include <absl/log/check.h>
+#include <optional>
 
 template <typename T>
 class Span : public std::span<T> {
@@ -116,6 +117,45 @@ class Span : public std::span<T> {
     Span<T> at(CR<HSlice<A, B>> s, bool checkRange = true) const {
         const auto [start, end] = getSpan(size(), s, checkRange);
         return Span<T>(this->data() + start, end - start + 1);
+    }
+
+    /// \brief Check if vector has enough elements to access index \arg idx
+    bool has(int idx) const { return 0 <= idx && idx < size(); }
+    bool has(BackwardsIndex idx) const { return has(size() - idx.value); }
+
+
+    /// \brief Get reference wrapper to a value at specified index or empty
+    /// option if the index is out of range
+    std::optional<Rw<T>> get(int index) {
+        if (has(index)) {
+            return at(index);
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    /// \brief Overload for constant vector
+    std::optional<CRw<T>> get(int index) const {
+        if (has(index)) {
+            return at(index);
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    int index(BackwardsIndex idx) const {
+        return this->size() - idx.value;
+    }
+
+    /// \brief Get reference wrapper to a value at specified index or empty
+    /// option if the index is out of range
+    std::optional<Rw<T>> get(BackwardsIndex idx) {
+        return get(index(idx));
+    }
+
+    /// \brief Overload for constant vector
+    std::optional<CRw<T>> get(BackwardsIndex idx) const {
+        return get(index(idx));
     }
 
     template <typename A, typename B>

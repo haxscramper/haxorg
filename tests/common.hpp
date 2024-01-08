@@ -20,19 +20,19 @@ namespace testing {
 //// issue but https://github.com/google/googletest/blob/main/docs/advanced.md#teaching-googletest-how-to-print-your-values
 //// this still needs to be investigated.
 ///// \internal
-//template <>
-//inline ::std::string PrintToString(const std::string& str) {
-//    std::string        result;
-//    std::ostringstream escaped_str;
-//    for (char c : str) {
-//        if (c == '\n') {
-//            result += "\\n";
-//        } else if (c == '\t') {
-//            result += "\\t";
-//        } else {
-//            result += std::string(1, c);
-//        }
-//    }
+// template <>
+// inline ::std::string PrintToString(const std::string& str) {
+//     std::string        result;
+//     std::ostringstream escaped_str;
+//     for (char c : str) {
+//         if (c == '\n') {
+//             result += "\\n";
+//         } else if (c == '\t') {
+//             result += "\\t";
+//         } else {
+//             result += std::string(1, c);
+//         }
+//     }
 
 //    return result;
 //}
@@ -40,5 +40,6 @@ namespace testing {
 template <>
 inline ::std::string PrintToString(const Str& str) {
     PrintToString(str.toBase());
+    return "";
 }
 } // namespace testing

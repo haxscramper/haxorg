@@ -82,10 +82,6 @@ struct OrgTokenizer
     OrgTokenizer(OrgTokenGroup* out)
         : Tokenizer<OrgTokenKind, OrgFill>(out) {}
 
-    /// Convert stream of leading space indentations into indent, dedent
-    /// and 'same indent' tokens.
-    void rewriteIndents(BaseLexer& lex);
-
     /// Rewrite stream of base lexer tokens to the org token stream, adding
     /// boundaries for the paragraph elements, closing unterminated
     /// elements that can be detected on this stage.

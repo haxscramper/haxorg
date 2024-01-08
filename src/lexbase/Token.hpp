@@ -25,7 +25,7 @@ template <
     typename V,
     typename IdBase   = u64,
     typename MaskType = IdBase>
-struct [[nodiscard]] TokenId
+struct TokenId
     : dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
     using value_type = Token<K, V>;
     static auto Nil() -> TokenId { return FromValue(0); };
@@ -126,17 +126,13 @@ struct TokenGroup {
 
     Vec<IdT> add(CR<Vec<TokenT>> tok) {
         Vec<IdT> result;
-        for (const auto& t : tok) {
-            result.push_back(tokens.add(t));
-        }
+        for (const auto& t : tok) { result.push_back(tokens.add(t)); }
         return result;
     }
 
     Vec<IdT> add(CR<std::span<TokenT>> tok) {
         Vec<IdT> result;
-        for (const auto& t : tok) {
-            result.push_back(tokens.add(t));
-        }
+        for (const auto& t : tok) { result.push_back(tokens.add(t)); }
         return result;
     }
 
@@ -415,9 +411,7 @@ struct LexerCommon {
     Vec<TokenId<K, V>> pop(int count) {
         assert(0 <= count);
         Vec<TokenId<K, V>> result;
-        for (int i = 0; i < count; ++i) {
-            result.push_back(pop());
-        }
+        for (int i = 0; i < count; ++i) { result.push_back(pop()); }
         return result;
     }
 
@@ -431,9 +425,7 @@ struct LexerCommon {
             return false;
         } else {
             for (const auto& [idx, kind] : enumerate(kind)) {
-                if (tok(idx + offset).kind != kind) {
-                    return false;
-                }
+                if (tok(idx + offset).kind != kind) { return false; }
             }
             return true;
         }
@@ -445,9 +437,7 @@ struct LexerCommon {
 
     int find(CR<IntSet<K>> skip, CR<IntSet<K>> target) const {
         int offset = 0;
-        while (at(skip, offset)) {
-            ++offset;
-        }
+        while (at(skip, offset)) { ++offset; }
 
         if (at(target, offset)) {
             return offset;
@@ -492,15 +482,11 @@ struct LexerCommon {
     void skip(T kind)
         requires IsAnyOf<std::remove_cvref_t<T>, K, IntSet<K>>
     {
-        if (expect(kind)) {
-            next();
-        }
+        if (expect(kind)) { next(); }
     }
 
     void trySkip(K kind) {
-        if (at(kind)) {
-            next();
-        }
+        if (at(kind)) { next(); }
     }
 
     bool finished() const { return !hasNext(0); }
@@ -518,17 +504,13 @@ struct LexerCommon {
                 ++offset;
             }
         }
-        if (!hasNext(offset)) {
-            return -1;
-        }
+        if (!hasNext(offset)) { return -1; }
     }
 
     Vec<TokenId<K, V>> getInside(IntSet<K> start, IntSet<K> finish) {
         Vec<TokenId<K, V>> result;
         int                count = 0;
-        while (start.contains(kind())) {
-            next();
-        }
+        while (start.contains(kind())) { next(); }
         count++;
         while (0 < count) {
             if (start.contains(kind())) {

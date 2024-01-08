@@ -52,7 +52,7 @@ struct NodeId {
     inline NodeId() : Offset(InvalidNodeOffset) {}
     inline NodeId(int Offset) : Offset(Offset) {}
 
-    inline operator int() const { return Offset; }
+    inline         operator int() const { return Offset; }
     inline NodeId& operator++() { return ++Offset, *this; }
     inline NodeId& operator--() { return --Offset, *this; }
     /// Support defining iterators on NodeId.
@@ -1318,7 +1318,7 @@ Mapping ASTDiff<Id, Val>::matchTopDown() const {
     return M;
 }
 
-inline template <typename Id, typename Val>
+template <typename Id, typename Val>
 Mapping ASTDiff<Id, Val>::greedyMatchTopDown() const {
     Mapping                    M(src.getSize() + dst.getSize());
     Func<void(NodeId, NodeId)> aux;

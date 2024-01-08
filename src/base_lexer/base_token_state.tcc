@@ -60,6 +60,9 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::Exclamation: return "Exclamation";
         case BaseTokenKind::ForwardSlash: return "ForwardSlash";
         case BaseTokenKind::HashIdent: return "HashIdent";
+        case BaseTokenKind::LeadingMinus: return "LeadingMinus";
+        case BaseTokenKind::LeadingNumber: return "LeadingNumber";
+        case BaseTokenKind::LeadingPlus: return "LeadingPlus";
         case BaseTokenKind::LeadingSpace: return "LeadingSpace";
         case BaseTokenKind::LeftAngle: return "LeftAngle";
         case BaseTokenKind::LeftCurly: return "LeftCurly";
@@ -146,6 +149,9 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "Exclamation") { return BaseTokenKind::Exclamation; } else
   if (value == "ForwardSlash") { return BaseTokenKind::ForwardSlash; } else
   if (value == "HashIdent") { return BaseTokenKind::HashIdent; } else
+  if (value == "LeadingMinus") { return BaseTokenKind::LeadingMinus; } else
+  if (value == "LeadingNumber") { return BaseTokenKind::LeadingNumber; } else
+  if (value == "LeadingPlus") { return BaseTokenKind::LeadingPlus; } else
   if (value == "LeadingSpace") { return BaseTokenKind::LeadingSpace; } else
   if (value == "LeftAngle") { return BaseTokenKind::LeftAngle; } else
   if (value == "LeftCurly") { return BaseTokenKind::LeftCurly; } else

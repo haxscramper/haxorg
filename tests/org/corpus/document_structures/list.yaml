@@ -98,11 +98,35 @@ items:
   - name: "Nested list with two items"
     debug:
       doParse: false
+      
     source: |
       - Item1
         - Nested1
         - Nested2
       - Item2
+
+    base_tokens:
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
+      - {kind: Word, str: Item1}
+      - {kind: Newline, str: "\n"}
+      - {kind: LeadingSpace, str: "  "}
+      - {kind: Minus, str: "-"}
+      - {kind: Whitespace, str: " "}
+      - {kind: Word, str: Nested1}
+      - {kind: Newline, str: "\n"}
+      - {kind: LeadingSpace, str: "  "}
+      - {kind: Minus, str: "-"}
+      - {kind: Whitespace, str: " "}
+      - {kind: Word, str: Nested2}
+      - {kind: Newline, str: "\n"}
+      - {kind: LeadingMinus, str: "-"}
+      - {kind: Whitespace, str: " "}
+      - {kind: Word, str: Item2}
+      - {kind: Newline, str: "\n"}
+      - {kind: EndOfFile, str: ""}
+
+
 
     tokens:
       - {kind: ListStart}
