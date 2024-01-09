@@ -12,9 +12,7 @@ Str join(CR<Str> sep, generator<T>& list) {
     Str os;
     int index = 0;
     for (const auto& it : list) {
-        if (0 < index) {
-            os += sep;
-        }
+        if (0 < index) { os += sep; }
         os += std::format("{}", it);
         ++index;
     }
@@ -63,6 +61,24 @@ enum class AsciiStyle
     ItalicBoldSansSerif = 13,
     Monospace           = 14
 };
+
+BOOST_DESCRIBE_ENUM(
+    AsciiStyle,
+    Regular,
+    Inverted,
+    Fraktur,
+    BoldFraktur,
+    DoubleStruck,
+    Bold,
+    Italic,
+    BoldItalic,
+    Script,
+    BoldScript,
+    SansSerif,
+    BoldSansSerif,
+    ItalicSansSerif,
+    ItalicBoldSansSerif,
+    Monospace);
 
 
 template <>

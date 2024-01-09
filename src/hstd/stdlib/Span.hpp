@@ -7,6 +7,7 @@
 #include <absl/log/log.h>
 #include <absl/log/check.h>
 #include <optional>
+#include <hstd/system/Formatter.hpp>
 
 template <typename T>
 class Span : public std::span<T> {
@@ -191,7 +192,14 @@ class Span : public std::span<T> {
 template <typename T>
 struct std::formatter<Span<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(const Span<T>& p, FormatContext& ctx) {
-        return "[" << join(", ", p) << "]";
+    FormatContext::iterator format(const Span<T>& p, FormatContext& ctx)
+        const {
+        fmt_ctx("[", ctx);
+        for (int i = 0; i < p.size(); ++i) {
+            if (0 < i) { fmt_ctx(", ", ctx); }
+            fmt_ctx(p.at(i), ctx);
+        }
+
+        return fmt_ctx("]", ctx);
     }
 };

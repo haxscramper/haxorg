@@ -138,10 +138,6 @@ constexpr Slice<T> slice(CR<T> first, CR<T> last) {
                     + std::to_string(static_cast<u64>(last)) + "'");
             }
 
-        } else if constexpr (requires { fmt1(first); }) {
-            throw RangeError(
-                "Expected first <= last but got first='" + fmt1(first)
-                + "' last='" + fmt1(last) + "'");
         } else {
             throw RangeError(
                 "Expected first <= last but got <unformattable type>");

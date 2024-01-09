@@ -97,8 +97,8 @@ items:
       - {kind: ListEnd}
   - name: "Nested list with two items"
     debug:
-      printParsed: true
-      printParsedToFile: true
+      printSem: true
+      printSemToFile: true
       
     source: |
       - Item1
@@ -189,6 +189,43 @@ items:
       - {kind: ListItemEnd}
       # End of the whole list
       - {kind: ListEnd}
+
+    sem:
+      kind: Document
+      options:
+        brokenLinks: Mark
+        initialVisibility: ShowEverything
+      subnodes:
+        - kind: List
+          subnodes:
+            - kind: ListItem
+              subnodes:
+                - kind: Paragraph
+                  subnodes:
+                    - {kind: Word, text: Item1}
+                    - {kind: Newline, text: "\n"}
+            - kind: List
+              subnodes:
+                - kind: ListItem
+                  subnodes:
+                    - kind: Paragraph
+                      subnodes:
+                        - {kind: Word, text: Nested1}
+                        - {kind: Newline, text: "\n"}
+                - kind: ListItem
+                  subnodes:
+                    - kind: Paragraph
+                      subnodes:
+                        - {kind: Word, text: Nested2}
+                        - {kind: Newline, text: "\n"}
+            - kind: ListItem
+              subnodes:
+                - kind: Paragraph
+                  subnodes:
+                    - {kind: Word, text: Item2}
+                    - {kind: Newline, text: "\n"}
+
+
   - name: "List with space in the nested content"
     debug:
       doParse: false

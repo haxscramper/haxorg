@@ -743,6 +743,32 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
         __print((fmt("[{}] token {}", idx.getIndex(), tok)));             \
     }
 
+    if (TraceState) {
+        std::stringstream ss;
+        for (int gr_index = 0; gr_index < groups.size(); ++gr_index) {
+            auto const& gr = groups.at(gr_index);
+            ss << fmt("[{}] group {}\n", gr_index, gr.kind);
+            for (int line_index = 0; line_index < gr.lines.size();
+                 ++line_index) {
+                auto const& line = gr.lines.at(line_index);
+                ss << fmt(
+                    "  [{}] {} indent={}\n",
+                    line_index,
+                    line.kind,
+                    line.indent);
+                for (int token_idx = 0; token_idx < line.tokens.size();
+                     ++token_idx) {
+                    ss << fmt(
+                        "    [{}] {}\n",
+                        token_idx,
+                        line.tokens.at(token_idx));
+                }
+            }
+        }
+
+        __print("\n" + ss.str());
+    }
+
     for (auto gr_index = 0; gr_index < groups.size(); ++gr_index) {
         auto const& gr = groups.at(gr_index);
 
@@ -771,6 +797,7 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
             for (auto const& _ : indentStack) {
                 add_fake(obt::StmtListClose);
                 add_fake(obt::ListItemEnd);
+                indentStack.pop_back();
             }
             add_fake(obt::ListEnd);
         }
@@ -825,6 +852,7 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
         for (auto const& _ : indentStack) {
             add_fake(obt::StmtListClose);
             add_fake(obt::ListItemEnd);
+            indentStack.pop_back();
         }
         add_fake(obt::ListEnd);
     }
