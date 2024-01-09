@@ -821,6 +821,14 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
         }
     }
 
+    if (!indentStack.empty()) {
+        for (auto const& _ : indentStack) {
+            add_fake(obt::StmtListClose);
+            add_fake(obt::ListItemEnd);
+        }
+        add_fake(obt::ListEnd);
+    }
+
 
     Lexer<obt, BaseFill> relex{&regroup};
     RecombineState       recombine_state{this, relex};

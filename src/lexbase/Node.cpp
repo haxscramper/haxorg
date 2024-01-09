@@ -88,9 +88,7 @@ int NodeGroup<N, K, V>::size(Id node) const {
     if (auto pair = subnodesOf(node)) {
         auto [begin, end] = *pair;
         int result        = 0;
-        for (; begin != end; ++begin) {
-            ++result;
-        }
+        for (; begin != end; ++begin) { ++result; }
         return result;
 
     } else {
@@ -106,9 +104,7 @@ typename NodeGroup<N, K, V>::Id NodeGroup<N, K, V>::subnode(
         auto [begin, end] = *pair;
         int i             = 0;
         for (; begin != end; ++begin, ++i) {
-            if (i == index) {
-                return *begin;
-            }
+            if (i == index) { return *begin; }
         }
 
         throw RangeError(
@@ -129,33 +125,20 @@ void NodeGroup<N, K, V>::treeRepr(
     CR<TreeReprConf> conf,
     int              subnodeIdx) const {
 
-    os << repeat("  ", level);
-
-    os << std::format("{}", at(node).kind);
-    if (conf.withSubnodeIdx) {
-        os << "[" << subnodeIdx << "]";
-    }
-
-    if (conf.withTreeMask) {
-        os << " MASK:" << fmt1(node.getMask());
-    }
-
-    if (conf.withTreeId) {
-        os << " ID:" << fmt1(node.getUnmasked());
-    }
+    os << repeat("  ", level) << std::format("{}", at(node).kind);
+    if (conf.withSubnodeIdx) { os << fmt("[{}]", subnodeIdx); }
+    if (conf.withTreeMask) { os << fmt(" MASK:{}", node.getMask()); }
+    if (conf.withTreeId) { os << fmt(" ID:{}", node.getUnmasked()); }
 
     if (at(node).isTerminal()) {
         auto tok = at(node).getToken();
         if (tok.isNil()) {
             os << " # <nil>";
         } else {
-            CHECK(false) << "TODO";
-            // os << std::format("# {} {}", tok, at(tok));
+            os << std::format("# {} {}", tok, at(tok));
         }
     } else {
-        if (conf.withExt) {
-            os << " EXT: " << fmt1(at(node).getExtent());
-        }
+        if (conf.withExt) { os << fmt(" EXT:{}", at(node).getExtent()); }
 
         auto [begin, end] = subnodesOf(node).value();
         int  idx          = 0;
@@ -166,15 +149,11 @@ void NodeGroup<N, K, V>::treeRepr(
             CHECK(id == end.id);
             CHECK(begin.id != end.id);
             CHECK(begin.id <= end.id);
-            if (conf.flushEach) {
-                os.flush();
-            }
+            if (conf.flushEach) { os.flush(); }
             os << "\n";
             treeRepr(os, *begin, level + 1, conf, idx);
 
-            if (conf.flushEach) {
-                os.flush();
-            }
+            if (conf.flushEach) { os.flush(); }
             ++idx;
             Id before = begin.id;
             ++begin;
@@ -197,9 +176,7 @@ void NodeGroup<N, K, V>::treeRepr(
         }
     }
 
-    if (conf.flushEach) {
-        os.flush();
-    }
+    if (conf.flushEach) { os.flush(); }
 }
 
 template <typename N, typename K, typename V>
