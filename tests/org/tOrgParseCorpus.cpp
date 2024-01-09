@@ -81,9 +81,7 @@ Vec<TestParams> generateTestRuns() {
             } else {
                 int matchRes = fnmatch(
                     corpusGlob.c_str(), p.c_str(), FNM_EXTMATCH);
-                if (!(matchRes == FNM_NOMATCH)) {
-                    addSpecs(path);
-                }
+                if (!(matchRes == FNM_NOMATCH)) { addSpecs(path); }
             }
         }
     }
@@ -121,6 +119,101 @@ std::string getTestName(
     return info.param.testName();
 }
 
+template <typename T>
+struct YamlSchemaBuilder;
+
+template <>
+struct YamlSchemaBuilder<bool> {
+    static yaml get() { return yaml{"bool"}; }
+};
+
+template <>
+struct YamlSchemaBuilder<std::string> {
+    static yaml get() { return yaml{"str"}; }
+};
+
+template <>
+struct YamlSchemaBuilder<Str> {
+    static yaml get() { return yaml{"str"}; }
+};
+
+template <>
+struct YamlSchemaBuilder<yaml> {
+    static yaml get() { return yaml{"any"}; }
+};
+
+template <>
+struct YamlSchemaBuilder<json> {
+    static yaml get() { return yaml{"any"}; }
+};
+
+template <>
+struct YamlSchemaBuilder<YAML::Mark> {
+    static yaml get() { return yaml{"any"}; }
+};
+
+
+template <typename T>
+struct YamlSchemaBuilder<Opt<T>> {
+    static yaml get() { return YamlSchemaBuilder<T>::get(); }
+};
+
+template <DescribedEnum T>
+struct YamlSchemaBuilder<T> {
+    static yaml get() {
+        yaml values;
+        for (auto const& name : enumerator_names<T>()) {
+            values.push_back(name);
+        }
+
+        yaml result;
+        result["type"] = "str";
+        result["enum"] = values;
+
+        return result;
+    }
+};
+
+template <typename T>
+struct YamlSchemaBuilder<Vec<T>> {
+    static yaml get() {
+        yaml values;
+        values.push_back(YamlSchemaBuilder<T>::get());
+        yaml result;
+        result["type"] = "seq";
+        result["enum"] = values;
+
+        return result;
+    }
+};
+
+template <DescribedRecord T>
+struct YamlSchemaBuilder<T> {
+    static yaml get() {
+        yaml map_content;
+        for_each_field_with_bases<T>([&](auto const& field) {
+            map_content[field.name] = YamlSchemaBuilder<
+                std::remove_cvref_t<
+                    decltype(std::declval<T>().*field.pointer)>>::get();
+        });
+
+        yaml result;
+        result["type"]    = "map";
+        result["mapping"] = map_content;
+
+        return result;
+    }
+};
+
+TEST(ParseFileAux, GenerateYamlSchema) {
+    auto root   = __CURRENT_FILE_DIR__.parent_path().parent_path();
+    auto canary = root / "tasks.py";
+    CHECK(fs::is_regular_file(canary))
+        << fmt("{} does not contains tasks.py", root);
+    std::stringstream ss;
+    ss << YamlSchemaBuilder<ParseSpec>::get();
+    writeFile(root / "corpus_schema.yaml", ss.str());
+}
 
 TEST_P(ParseFile, CorpusAll) {
     TestParams params      = GetParam();

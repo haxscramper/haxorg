@@ -96,6 +96,10 @@ items:
       - {kind: ListItemEnd}
       - {kind: ListEnd}
   - name: "Nested list with two items"
+    debug:
+      printParsed: true
+      printParsedToFile: true
+      
     source: |
       - Item1
         - Nested1
