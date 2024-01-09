@@ -71,6 +71,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::LeftPar: return "LeftPar";
         case BaseTokenKind::LineCommand: return "LineCommand";
         case BaseTokenKind::ListEnd: return "ListEnd";
+        case BaseTokenKind::ListItemEnd: return "ListItemEnd";
         case BaseTokenKind::ListStart: return "ListStart";
         case BaseTokenKind::LongNewline: return "LongNewline";
         case BaseTokenKind::MacroBegin: return "MacroBegin";
@@ -94,6 +95,8 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::SrcContentEnd: return "SrcContentEnd";
         case BaseTokenKind::SrcTangleClose: return "SrcTangleClose";
         case BaseTokenKind::SrcTangleOpen: return "SrcTangleOpen";
+        case BaseTokenKind::StmtListClose: return "StmtListClose";
+        case BaseTokenKind::StmtListOpen: return "StmtListOpen";
         case BaseTokenKind::SubtreePriority: return "SubtreePriority";
         case BaseTokenKind::SubtreeStars: return "SubtreeStars";
         case BaseTokenKind::TblAssign: return "TblAssign";
@@ -165,6 +168,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "LeftPar") { return BaseTokenKind::LeftPar; } else
   if (value == "LineCommand") { return BaseTokenKind::LineCommand; } else
   if (value == "ListEnd") { return BaseTokenKind::ListEnd; } else
+  if (value == "ListItemEnd") { return BaseTokenKind::ListItemEnd; } else
   if (value == "ListStart") { return BaseTokenKind::ListStart; } else
   if (value == "LongNewline") { return BaseTokenKind::LongNewline; } else
   if (value == "MacroBegin") { return BaseTokenKind::MacroBegin; } else
@@ -188,6 +192,8 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "SrcContentEnd") { return BaseTokenKind::SrcContentEnd; } else
   if (value == "SrcTangleClose") { return BaseTokenKind::SrcTangleClose; } else
   if (value == "SrcTangleOpen") { return BaseTokenKind::SrcTangleOpen; } else
+  if (value == "StmtListClose") { return BaseTokenKind::StmtListClose; } else
+  if (value == "StmtListOpen") { return BaseTokenKind::StmtListOpen; } else
   if (value == "SubtreePriority") { return BaseTokenKind::SubtreePriority; } else
   if (value == "SubtreeStars") { return BaseTokenKind::SubtreeStars; } else
   if (value == "TblAssign") { return BaseTokenKind::TblAssign; } else

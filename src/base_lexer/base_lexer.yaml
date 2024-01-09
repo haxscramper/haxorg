@@ -29,6 +29,9 @@ tokens:
   - { name: "SameIndent" }
   - { name: "ListStart" }
   - { name: "ListEnd" }
+  - { name: StmtListOpen }
+  - { name: StmtListClose }
+  - { name: ListItemEnd }
 
 rules:
   - lit: "#+"

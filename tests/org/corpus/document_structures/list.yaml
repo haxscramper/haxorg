@@ -95,10 +95,7 @@ items:
       - {kind: StmtListClose}
       - {kind: ListItemEnd}
       - {kind: ListEnd}
-  - name: "Nested list with two items"
-    debug:
-      doParse: false
-      
+  - name: "Nested list with two items"     
     source: |
       - Item1
         - Nested1
@@ -133,7 +130,7 @@ items:
 
       # First list
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
 
       ## Content of the first list
       - {kind: StmtListOpen}
@@ -150,7 +147,7 @@ items:
 
       # Start of the second list item
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
 
       # Second list item content
       - {kind: StmtListOpen}
@@ -166,7 +163,7 @@ items:
       - {kind: SameIndent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: Nested2}
@@ -178,7 +175,7 @@ items:
       # Decrease list item indentation, return on one level up
       - {kind: Dedent}
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: Item2}
@@ -469,6 +466,12 @@ items:
       - {kind: StmtListClose}
       - {kind: ListItemEnd}
       - {kind: ListEnd}
+
+  - name: "Source code block as list item"
+    source: |
+      - #+begin_src xml
+        <Thing>
+        #+end_src
 
   - name: "Indent and dedent long list, subset"
     debug:

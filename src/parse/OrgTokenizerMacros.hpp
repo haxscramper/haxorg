@@ -15,6 +15,7 @@
             .location = __CURRENT_FILE_PATH__,                            \
             .line     = __LINE__,                                         \
             .subname  = __text,                                           \
+            .name     = __FUNCTION__,                                     \
         });                                                               \
     }
 

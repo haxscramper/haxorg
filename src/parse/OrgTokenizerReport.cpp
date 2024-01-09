@@ -1,30 +1,20 @@
 #include <parse/OrgTokenizer.hpp>
 
 void OrgTokenizer::report(CR<Report> in) {
-    if (!TraceState) {
-        return;
-    }
+    if (!TraceState) { return; }
 
-    if (reportHook) {
-        reportHook(in);
-    }
+    if (reportHook) { reportHook(in); }
 
-    if (traceUpdateHook) {
-        traceUpdateHook(in, TraceState, true);
-    }
+    if (traceUpdateHook) { traceUpdateHook(in, TraceState, true); }
 
     if (!TraceState) {
-        if (traceUpdateHook) {
-            traceUpdateHook(in, TraceState, false);
-        }
+        if (traceUpdateHook) { traceUpdateHook(in, TraceState, false); }
         return;
     }
 
 
     using fg = TermColorFg8Bit;
-    if (in.kind == ReportKind::Enter) {
-        ++depth;
-    }
+    if (in.kind == ReportKind::Enter) { ++depth; }
 
     ColStream os = getStream();
     os << repeat("  ", depth);
@@ -36,23 +26,24 @@ void OrgTokenizer::report(CR<Report> in) {
     };
 
     auto printString = [&]() {
-        if (in.msg) {
-            os << " [" << in.msg.value() << "]";
-        }
+        if (in.msg) { os << " [" << in.msg.value() << "]"; }
 
-        os << " ";
-        in.lex->print(
-            os,
-            [](ColStream& os, BaseToken const& t) {
-                os << " " << os.yellow() << escape_for_write(t.value.text)
-                   << os.end();
-            },
-            BaseLexer::PrintParams{});
+        if (in.lex) {
+            os << " ";
+            in.lex->print(
+                os,
+                [](ColStream& os, BaseToken const& t) {
+                    os << " " << os.yellow()
+                       << escape_for_write(t.value.text) << os.end();
+                },
+                BaseLexer::PrintParams{});
+        }
     };
 
     switch (in.kind) {
         case ReportKind::Print: {
-            os << "  " << in.line << getLoc() << ":" << in.subname.value();
+            os << "  " << fmt("{}:{}", in.name, in.line) << getLoc() << ":"
+               << in.subname.value();
             printString();
             break;
         }
@@ -106,11 +97,7 @@ void OrgTokenizer::report(CR<Report> in) {
 
     endStream(os);
 
-    if (in.kind == ReportKind::Leave) {
-        --depth;
-    }
+    if (in.kind == ReportKind::Leave) { --depth; }
 
-    if (traceUpdateHook) {
-        traceUpdateHook(in, TraceState, false);
-    }
+    if (traceUpdateHook) { traceUpdateHook(in, TraceState, false); }
 }

@@ -445,6 +445,16 @@ struct RecombineState {
             direct(obt::SameIndent, otk::SameIndent);
             direct(obt::ListStart, otk::ListStart);
             direct(obt::ListEnd, otk::ListEnd);
+            direct(obt::StmtListOpen, otk::StmtListOpen);
+            direct(obt::ListItemEnd, otk::ListItemEnd);
+
+
+            case obt::Colon: map_colon(); break;
+            case obt::BraceOpen: map_open_brace(); break;
+            case obt::LeadingMinus: pop_as(otk::ListItemStart); break;
+            case obt::LeadingSpace: lex.next(); break;
+            case obt::Minus: pop_as(otk::Punctuation); break;
+
 
             case obt::HashIdent: {
                 maybe_paragraph_start();
@@ -452,10 +462,6 @@ struct RecombineState {
                 break;
             }
 
-            case obt::Colon: {
-                map_colon();
-                break;
-            }
 
             case obt::ForwardSlash:
             case obt::Equals:
@@ -472,6 +478,30 @@ struct RecombineState {
                     state_push(State::RawMonospace);
                 }
                 lex.next();
+                break;
+            }
+
+            case obt::StmtListClose: {
+                switch (state_top()) {
+                    case State::Paragraph: {
+                        add_fake(otk::ParagraphEnd);
+                        state_pop();
+                        break;
+                    }
+
+                    case State::None: {
+                        break;
+                    }
+
+                    default: {
+                        LOG(INFO)
+                            << fmt("Unexpected top state when statement "
+                                   "list was closed {}",
+                                   state_top());
+                    }
+                }
+
+                pop_as(otk::StmtListClose);
                 break;
             }
 
@@ -516,10 +546,6 @@ struct RecombineState {
                 break;
             }
 
-            case obt::BraceOpen: {
-                map_open_brace();
-                break;
-            }
 
             case obt::SubtreeStars: {
                 state_push(State::Subtree);
@@ -527,15 +553,6 @@ struct RecombineState {
                 break;
             }
 
-            case obt::LeadingMinus: {
-                pop_as(otk::ListStart);
-                break;
-            }
-
-            case obt::LeadingSpace: {
-                lex.next();
-                break;
-            }
 
             default: {
                 DLOG(ERROR) << std::format(
@@ -649,7 +666,7 @@ Vec<LineToken> to_lines(BaseLexer& lex) {
 
     for (auto it = tokens->begin(); it != tokens->end(); ++it) {
         if (it->kind == BaseTokenKind::Newline) {
-            lines.push_back(LineToken{make_span(start, it)});
+            lines.push_back(LineToken{make_span(start, std::next(it))});
             start = std::next(it);
         }
     }
@@ -713,34 +730,91 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
     BaseTokenGroup  regroup;
     Vec<int>        indentStack{};
     regroup.tokens.reserve(lex.in->size());
-    for (auto gr = groups.begin(); gr != groups.end(); ++gr) {
-        if (gr->kind == GK::ListItem) {
+
+#define add_fake(kind)                                                    \
+    {                                                                     \
+        auto idx = regroup.add(BaseToken{kind});                          \
+        __print((fmt("[{}] fake {}", idx.getIndex(), kind)));             \
+    }
+
+#define add_base(tok)                                                     \
+    {                                                                     \
+        auto idx = regroup.add(tok);                                      \
+        __print((fmt("[{}] token {}", idx.getIndex(), tok)));             \
+    }
+
+    for (auto gr_index = 0; gr_index < groups.size(); ++gr_index) {
+        auto const& gr = groups.at(gr_index);
+
+
+        if (gr.kind == GK::ListItem) {
             if (indentStack.empty()) {
-                regroup.add(BaseToken{obt::ListStart});
-                regroup.add(BaseToken{obt::Indent});
-                indentStack.push_back(gr->indent());
-            } else if (indentStack.back() < gr->indent()) {
-                regroup.add(BaseToken{obt::Indent});
-                indentStack.push_back(gr->indent());
-            } else if (gr->indent() < indentStack.back()) {
-                regroup.add(BaseToken{obt::Dedent});
+                add_fake(obt::ListStart);
+                indentStack.push_back(gr.indent());
+            } else if (indentStack.back() < gr.indent()) {
+                add_fake(obt::StmtListClose);
+                add_fake(obt::ListItemEnd);
+                add_fake(obt::Indent);
+                indentStack.push_back(gr.indent());
+            } else if (gr.indent() < indentStack.back()) {
+                add_fake(obt::StmtListClose);
+                add_fake(obt::ListItemEnd);
+                add_fake(obt::Dedent);
                 indentStack.pop_back();
-            } else if (indentStack.back() == gr->indent()) {
-                regroup.add(BaseToken{obt::SameIndent});
+            } else if (indentStack.back() == gr.indent()) {
+                add_fake(obt::StmtListClose);
+                add_fake(obt::ListItemEnd);
+                add_fake(obt::SameIndent);
             }
 
         } else if (!indentStack.empty()) {
             for (auto const& _ : indentStack) {
-                regroup.add(BaseToken{obt::Dedent});
+                add_fake(obt::StmtListClose);
+                add_fake(obt::ListItemEnd);
             }
-            regroup.add(BaseToken{obt::ListEnd});
+            add_fake(obt::ListEnd);
         }
 
-        for (CR<LineToken> line : gr->lines) {
-            for (CR<BaseToken> tok : line.tokens) {
+        for (CR<LineToken> line : gr.lines) {
+            auto const& tokens = line.tokens;
+            for (int tok_idx = 0; tok_idx < tokens.size(); ++tok_idx) {
+                auto const& tok = tokens.at(tok_idx);
                 switch (tok.kind) {
+                    case obt::Minus: {
+                        if (auto prev = tokens.get(tok_idx - 1);
+                            prev //
+                            && prev->get().kind == obt::LeadingSpace
+                            && gr.kind == GK::ListItem) {
+                            add_base(
+                                (BaseToken{obt::LeadingMinus, tok.value}));
+
+                            if (auto next = tokens.get(tok_idx + 1);
+                                next->get().kind == obt::Whitespace) {
+                                add_base(next->get());
+                                ++tok_idx;
+                            }
+
+                            add_fake(obt::StmtListOpen);
+                        } else {
+                            add_base(tok);
+                        }
+                        break;
+                    }
+                    case obt::LeadingMinus: {
+                        add_base(tok);
+                        if (auto next = tokens.get(tok_idx + 1);
+                            next->get().kind == obt::Whitespace) {
+                            add_base(next->get());
+                            ++tok_idx;
+                        }
+
+                        if (gr.kind == GK::ListItem) {
+                            add_fake(obt::StmtListOpen);
+                        }
+                        break;
+                    }
                     default: {
-                        regroup.add(tok);
+                        add_base(tok);
                     }
                 }
             }
