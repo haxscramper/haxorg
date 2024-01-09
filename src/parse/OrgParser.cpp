@@ -13,16 +13,12 @@ using ock = OrgCommandKind;
 
 
 void space(OrgLexer& lex) {
-    while (lex.at(otk::Space) || lex.at(otk::SkipSpace)) {
-        lex.next();
-    }
+    while (lex.at(otk::Space) || lex.at(otk::SkipSpace)) { lex.next(); }
 }
 
 
 void skipSpace(OrgLexer& lex) {
-    while (lex.at(otk::SkipSpace)) {
-        lex.next();
-    }
+    while (lex.at(otk::SkipSpace) || lex.at(otk::Space)) { lex.next(); }
 }
 
 
@@ -82,9 +78,7 @@ void OrgParser::parseCSVArguments(OrgLexer& lex) {
         __skip(lex, otk::ParOpen);
         while (lex.at(otk::RawText)) {
             token(org::RawText, pop(lex, otk::RawText));
-            if (lex.at(otk::Comma)) {
-                lex.next();
-            }
+            if (lex.at(otk::Comma)) { lex.next(); }
         }
         __skip(lex, otk::ParClose);
     }
@@ -537,9 +531,7 @@ OrgId OrgParser::parseHashTag(OrgLexer& lex) {
             __skip(lex, otk::HashTagOpen);
             while (!lex.finished() && !lex.at(otk::HashTagClose)) {
                 parseHashTag(lex);
-                if (lex.at(otk::Comma)) {
-                    lex.next();
-                }
+                if (lex.at(otk::Comma)) { lex.next(); }
             }
             __skip(lex, otk::HashTagClose);
         }
@@ -1140,9 +1132,7 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
                     }
                 }
             }
-            if (lex.at(otk::Newline)) {
-                lex.next();
-            }
+            if (lex.at(otk::Newline)) { lex.next(); }
             __end(); // finish code line
         }
 
@@ -1259,13 +1249,9 @@ OrgId OrgParser::parseList(OrgLexer& lex) {
     __trace();
     __skip(lex, otk::ListStart);
     const auto nested = lex.at(otk::Indent);
-    if (nested) {
-        __skip(lex, otk::Indent);
-    }
+    if (nested) { __skip(lex, otk::Indent); }
     auto result = parseNestedList(lex);
-    if (nested) {
-        __skip(lex, otk::Dedent);
-    }
+    if (nested) { __skip(lex, otk::Dedent); }
     __skip(lex, otk::ListEnd);
     return result;
 }
@@ -1465,9 +1451,7 @@ OrgId OrgParser::parseSubtreeLogbookListEntry(OrgLexer& lex) {
 
         __skip(lex, otk::ParagraphEnd);
 
-        while (!lex.at(otk::StmtListClose)) {
-            parseToplevelItem(lex);
-        }
+        while (!lex.at(otk::StmtListClose)) { parseToplevelItem(lex); }
 
         __skip(lex, otk::StmtListClose);
         __skip(lex, otk::ListItemEnd);
@@ -1503,9 +1487,7 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
                 __skip(lex, otk::Indent);
                 while (lex.at(otk::ListItemStart)) {
                     parseSubtreeLogbookListEntry(lex);
-                    if (lex.at(otk::SameIndent)) {
-                        lex.next();
-                    }
+                    if (lex.at(otk::SameIndent)) { lex.next(); }
                 }
                 __skip(lex, otk::Dedent);
                 __skip(lex, otk::ListEnd);
@@ -2032,9 +2014,7 @@ void OrgParser::skipLineCommand(OrgLexer& lex) {
     skip(lex, otk::CommandPrefix);
     skip(lex, otk::LineCommand);
     skip(lex, otk::Colon);
-    while (lex.at(otk::SkipSpace)) {
-        lex.next();
-    }
+    while (lex.at(otk::SkipSpace)) { lex.next(); }
 }
 
 bool OrgParser::at(CR<OrgLexer> lex, CR<OrgExpectable> item) {
@@ -2053,9 +2033,7 @@ bool OrgParser::at(CR<OrgLexer> lex, CR<OrgExpectable> item) {
 }
 
 void OrgParser::expect(CR<OrgLexer> lex, CR<OrgExpectable> item) {
-    if (!(at(lex, item))) {
-        throw UnexpectedToken(lex, {item});
-    }
+    if (!(at(lex, item))) { throw UnexpectedToken(lex, {item}); }
 }
 
 void assertValidStructure(OrgNodeGroup* group, OrgId id) {
@@ -2065,9 +2043,7 @@ void assertValidStructure(OrgNodeGroup* group, OrgId id) {
     aux = [&](Id top) {
         auto& g = *group;
         CHECK(g.nodes.contains(top));
-        if (g.at(top).isTerminal() || g.at(top).isMono()) {
-            return;
-        }
+        if (g.at(top).isTerminal() || g.at(top).isMono()) { return; }
 
         CHECK(g.at(top).kind != org::Empty);
 
@@ -2256,7 +2232,5 @@ void OrgParser::extendAttachedTrails(OrgId position) {
         return id;
     };
 
-    while (position < group->nodes.back()) {
-        position = aux(position);
-    }
+    while (position < group->nodes.back()) { position = aux(position); }
 }

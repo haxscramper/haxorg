@@ -95,7 +95,7 @@ items:
       - {kind: StmtListClose}
       - {kind: ListItemEnd}
       - {kind: ListEnd}
-  - name: "Nested list with two items"     
+  - name: "Nested list with two items"
     source: |
       - Item1
         - Nested1
