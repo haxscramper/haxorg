@@ -477,9 +477,7 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
         }
 
         if (one(a, N::Clock).kind() != org::Empty) {
-            if (!datetime.empty()) {
-                datetime += " ";
-            }
+            if (!datetime.empty()) { datetime += " "; }
             datetime += one(a, N::Clock).val().getText();
         }
 
@@ -620,9 +618,7 @@ SemIdT<StmtList> OrgConverter::convertStmtList(__args) {
     __trace();
     auto stmt = Sem<StmtList>(p, a);
 
-    for (OrgAdapter const& sub : a) {
-        stmt.push_back(convert(stmt, sub));
-    }
+    for (OrgAdapter const& sub : a) { stmt.push_back(convert(stmt, sub)); }
 
     return stmt;
 }
@@ -694,9 +690,7 @@ SemIdT<List> OrgConverter::convertList(__args) {
     __perf_trace("convert", "convertList");
     __trace();
     auto list = Sem<List>(p, a);
-    for (const auto& it : a) {
-        list.push_back(convert(list, it));
-    }
+    for (const auto& it : a) { list.push_back(convert(list, it)); }
 
     return list;
 }
@@ -919,6 +913,13 @@ SemIdT<CmdArguments> OrgConverter::convertCmdArguments(__args) {
     return result;
 }
 
+SemIdT<Code> OrgConverter::convertCode(__args) {
+    SemIdT<Code> result = Sem<Code>(p, a);
+    LOG(INFO) << a.treeRepr(false);
+
+    return result;
+}
+
 
 Vec<SemId> OrgConverter::flatConvertAttached(__args) {
     Vec<SemId>             result;
@@ -979,6 +980,7 @@ SemId OrgConverter::convert(__args) {
         CASE(TextSeparator);
         CASE(AtMention);
         CASE(Underline);
+        case org::SrcCode: return convertCode(p, a);
         case org::InlineFootnote: return convertFootnote(p, a);
         case org::BlockExport: return convertExport(p, a);
         case org::Macro: return convertMacro(p, a);
@@ -1017,9 +1019,7 @@ SemId OrgConverter::convert(__args) {
         case org::CommandCaption: {
             // TODO update parent nodes after restructuring
             Vec<SemId> nested = flatConvertAttached(p, a);
-            for (const auto& it : nested) {
-                CHECK(!it.isNil());
-            }
+            for (const auto& it : nested) { CHECK(!it.isNil()); }
 
             CHECK(!nested.empty()) << "nested command wrap"
                                    << "Nested command result had size 0";
@@ -1057,9 +1057,7 @@ SemId OrgConverter::convert(__args) {
 }
 
 void fillDocumentOptions(SemIdT<DocumentOptions> opts, OrgAdapter a) {
-    if (opts->isGenerated()) {
-        opts->original = a;
-    }
+    if (opts->isGenerated()) { opts->original = a; }
 
     for (OrgAdapter const& item : a) {
         Str value = item.val().getText();

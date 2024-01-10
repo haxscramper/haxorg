@@ -1956,25 +1956,28 @@ OrgId OrgParser::parseToplevelItem(OrgLexer& lex) {
             return token(org::SkipSpace, pop(lex, otk::SkipSpace));
         case otk::SkipNewline:
             return token(org::SkipNewline, pop(lex, otk::SkipNewline));
+        case otk::Newline:
+            return token(org::Newline, pop(lex, otk::Newline));
         case otk::TextSeparator:
             return token(org::TextSeparator, pop(lex, otk::TextSeparator));
 
         case otk::CommandPrefix: {
-#if false
-            const auto kind = classifyCommand(lex.strVal(1));
-            switch (kind) {
-                case ock::BeginSrc: return parseSrc(lex);
-                case ock::BeginExample: return parseExample(lex);
-                case ock::BeginExport: return parseBlockExport(lex);
-                case ock::BeginQuote:
-                case ock::BeginCenter:
-                case ock::BeginAdmonition:
-                    return parseTextWrapCommand(lex, kind);
-
-                default: return parseLineCommand(lex);
+            auto const& kind = lex.tok(1)->getText();
+            if (kind == "begin_src") {
+                return parseSrc(lex);
+            } else if (kind == "begin_example") {
+                return parseExample(lex);
+            } else if (kind == "begin_export") {
+                parseBlockExport(lex);
+            } else if (kind == "begin_quote") {
+                return parseTextWrapCommand(lex, ock::BeginQuote);
+            } else if (kind == "begin_center") {
+                return parseTextWrapCommand(lex, ock::BeginCenter);
+            } else if (kind == "begin_admonition") {
+                return parseTextWrapCommand(lex, ock::BeginAdmonition);
+            } else {
+                return parseLineCommand(lex);
             }
-            break;
-#endif
         }
         default: {
             throw UnhandledToken(lex);

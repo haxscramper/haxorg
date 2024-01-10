@@ -186,6 +186,7 @@ struct OrgConverter : public OperationsTracer {
     SemIdT<Export>          convertExport(Up, In);
     SemIdT<CmdArgument>     convertCmdArgument(Up, In);
     SemIdT<CmdArguments>    convertCmdArguments(Up, In);
+    SemIdT<Code>            convertCode(Up, In);
 
     Vec<SemId> flatConvertAttached(Up, In);
 
@@ -194,9 +195,7 @@ struct OrgConverter : public OperationsTracer {
     SemIdT<T> convertAllSubnodes(Up p, In a) {
         SemIdT<T> res = Sem<T>(p, a);
 
-        for (const auto& sub : a) {
-            res->push_back(convert(res, sub));
-        }
+        for (const auto& sub : a) { res->push_back(convert(res, sub)); }
 
         return res;
     }

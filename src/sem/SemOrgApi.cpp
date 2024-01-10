@@ -46,9 +46,7 @@ Org::Org(SemId parent, CVec<SemId> subnodes)
 
 Vec<SemId> SemId::getParentChain(bool withSelf) const {
     Vec<SemId> result;
-    if (withSelf) {
-        result.push_back(*this);
-    }
+    if (withSelf) { result.push_back(*this); }
     result.append(get()->getParentChain());
 
     return result;
@@ -78,17 +76,13 @@ Opt<SemId> Link::resolve(Document const& doc) const {
     switch (getLinkKind()) {
         case Link::Kind::Id: {
             Opt<SemId> target = doc.idTable.get(getId().text);
-            if (target) {
-                return target.value();
-            }
+            if (target) { return target.value(); }
             break;
         }
 
         case Link::Kind::Footnote: {
             auto target = doc.footnoteTable.get(getFootnote().target);
-            if (target) {
-                return target.value();
-            }
+            if (target) { return target.value(); }
             break;
         }
     }
@@ -116,22 +110,18 @@ void visitField(CR<SemId::SubnodeVisitor>, CR<T>) {}
 
 
 void visitField(CR<SemId::SubnodeVisitor> visitor, SemId node) {
-    eachSubnodeRecImpl(visitor, node, true);
+    if (!node.isNil()) { eachSubnodeRecImpl(visitor, node, true); }
 }
 
 template <typename T>
 void visitField(CR<SemId::SubnodeVisitor> visitor, CVec<T> value) {
-    for (const auto& it : value) {
-        visitField(visitor, it);
-    }
+    for (const auto& it : value) { visitField(visitor, it); }
 }
 
 
 template <typename T>
 void visitField(CR<SemId::SubnodeVisitor> visitor, CR<Opt<T>> value) {
-    if (value) {
-        visitField(visitor, *value);
-    }
+    if (value) { visitField(visitor, *value); }
 }
 
 template <typename T>
@@ -139,9 +129,7 @@ void recVisitOrgNodesImpl(
     CR<SemId::SubnodeVisitor> visitor,
     sem::SemIdT<T>            tree,
     bool                      originalBase) {
-    if (originalBase) {
-        visitor(tree);
-    }
+    if (originalBase) { visitor(tree); }
     using Bd = describe_bases<T, mod_any_access>;
     using Md = describe_members<T, mod_any_access>;
     mp_for_each<Bd>([&](auto Base) {
@@ -210,9 +198,7 @@ Vec<Property> Subtree::getProperties(Property::Kind kind, CR<Str> subkind)
     const {
     Vec<Property> result;
     for (const auto& prop : properties) {
-        if (prop.matches(kind, subkind)) {
-            result.push_back(prop);
-        }
+        if (prop.matches(kind, subkind)) { result.push_back(prop); }
     }
     return result;
 }
@@ -259,14 +245,10 @@ bool HashTag::prefixMatch(CR<Vec<Str>> prefix) const {
         return false;
     } else {
         Vec<Str> tmp;
-        for (const auto& it : prefix[slice(1, 1_B)]) {
-            tmp.push_back(it);
-        }
+        for (const auto& it : prefix[slice(1, 1_B)]) { tmp.push_back(it); }
 
         for (const auto& sub : subtags) {
-            if (sub->prefixMatch(tmp)) {
-                return true;
-            }
+            if (sub->prefixMatch(tmp)) { return true; }
         }
         return false;
     }
@@ -289,9 +271,7 @@ Opt<Property> Subtree::getContextualProperty(
                 for (const auto& it : props) {
                     Property::ExportOptions const& tmp = it.getExportOptions();
                     for (auto const& [k, v] : tmp.values) {
-                        if (!res.values.contains(k)) {
-                            res.values[k] = v;
-                        }
+                        if (!res.values.contains(k)) { res.values[k] = v; }
                     }
                 }
                 return Property(res);
@@ -327,9 +307,7 @@ Vec<Subtree::Property> DocumentOptions::getProperties(
     CR<Str>                 subkind) const {
     Vec<Subtree::Property> result;
     for (const auto& prop : properties) {
-        if (prop.matches(kind, subkind)) {
-            result.push_back(prop);
-        }
+        if (prop.matches(kind, subkind)) { result.push_back(prop); }
     }
     return result;
 }
@@ -381,9 +359,7 @@ Opt<SemId> Document::resolve(CR<SemId> node) const {
 bool List::isDescriptionList() const {
     for (const auto& sub : subnodes) {
         if (sub->is(osk::ListItem)) {
-            if (sub.as<ListItem>()->isDescriptionItem()) {
-                return true;
-            }
+            if (sub.as<ListItem>()->isDescriptionItem()) { return true; }
         }
     }
     return false;
@@ -391,9 +367,7 @@ bool List::isDescriptionList() const {
 
 Opt<SemId> Stmt::getAttached(OrgSemKind kind) {
     for (const auto& sub : attached) {
-        if (sub->getKind() == kind) {
-            return sub;
-        }
+        if (sub->getKind() == kind) { return sub; }
     }
 
     return std::nullopt;

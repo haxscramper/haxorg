@@ -316,6 +316,9 @@ items:
   - name: "List with unindented source code block"
     debug:
       printSemToFile: true
+      traceParse: true
+      parseToFile: true
+
     source: |
       - Item1
         #+begin_src nim
