@@ -744,7 +744,9 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
 
     { // Lexing
-        if (spec.debug.doLex) {
+        if (spec.debug.doLexBase && !spec.debug.doLex) {
+            p.tokenize(spec.source, false);
+        } else if (spec.debug.doLex) {
             p.tokenizer->TraceState = spec.debug.traceLex;
             if (spec.debug.lexToFile) {
                 p.tokenizer->setTraceFile(spec.debugFile("trace_lex.txt"));

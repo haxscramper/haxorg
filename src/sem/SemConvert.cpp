@@ -915,7 +915,7 @@ SemIdT<CmdArguments> OrgConverter::convertCmdArguments(__args) {
 
 SemIdT<Code> OrgConverter::convertCode(__args) {
     SemIdT<Code> result = Sem<Code>(p, a);
-    LOG(INFO) << a.treeRepr(false);
+    auto         body   = one(a, N::Body);
 
     return result;
 }

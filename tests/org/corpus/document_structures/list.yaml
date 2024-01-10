@@ -547,9 +547,35 @@ items:
 
   - name: "Source code block as list item"
     source: |
-      - #+begin_src xml
+      - 
+        #+begin_src xml
         <Thing>
         #+end_src
+
+    tokens:
+      - {kind: ListStart, str: ""}
+      - {kind: ListItemStart, str: "-"}
+      - {kind: Space, str: " "}
+      - {kind: StmtListOpen, str: ""}
+      - {kind: Newline, str: "\n"}
+      - {kind: CommandPrefix, str: "#+"}
+      - {kind: CommandBegin, str: begin_src}
+      - {kind: CommandArgumentsBegin, str: ""}
+      - {kind: Word, str: xml}
+      - {kind: CommandArgumentsEnd, str: ""}
+      - {kind: CommandContentStart, str: ""}
+      - {kind: CodeContentBegin, str: ""}
+      - {kind: CodeText, str: "  <Thing>"}
+      - {kind: Newline, str: "\n"}
+      - {kind: CodeContentEnd, str: "  #+end_src"}
+      - {kind: CommandContentEnd, str: ""}
+      - {kind: CommandPrefix, str: ""}
+      - {kind: CommandEnd, str: ""}
+      - {kind: Newline, str: "\n"}
+      - {kind: StmtListClose, str: ""}
+      - {kind: ListItemEnd, str: ""}
+      - {kind: ListEnd, str: ""}
+
 
   - name: "Indent and dedent long list, subset"
     debug:
