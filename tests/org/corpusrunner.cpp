@@ -229,11 +229,11 @@ void describeDiff(
     os << "  ";
     switch (it.op) {
         case DiffItem::Op::Remove: {
-            os << os.red() << "missing entry";
+            os << os.red() << "converted has extra entry";
             break;
         }
         case DiffItem::Op::Add: {
-            os << os.green() << "unexpected entry";
+            os << os.green() << "export missing entry";
             break;
         }
         case DiffItem::Op::Replace: {
@@ -314,8 +314,8 @@ void writeSimple(ColStream& os, json const& j) {
             break;
         }
         case json::value_t::string: {
-            os << "\"" << os.yellow() << j.get<std::string>() << os.end()
-               << "\"";
+            os << os.yellow() << escape_literal(j.get<std::string>())
+               << os.end();
             break;
         }
         case json::value_t::null: {
@@ -643,7 +643,6 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
 
 
     for (auto const& it : diff) {
-        ops[it.path] = it;
         json::json_pointer path{it.path};
         if (!path.empty() && it.op == DiffItem::Op::Remove) {
             continue;
@@ -651,6 +650,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
             ++failCount;
         }
 
+        ops[it.path] = it;
         describeDiff(os, it, expected, converted);
         os << "\n";
     }

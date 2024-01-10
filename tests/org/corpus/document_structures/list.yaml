@@ -192,9 +192,6 @@ items:
 
     sem:
       kind: Document
-      options:
-        brokenLinks: Mark
-        initialVisibility: ShowEverything
       subnodes:
         - kind: List
           subnodes:
