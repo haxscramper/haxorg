@@ -9,7 +9,7 @@ items:
     tokens:
       - {kind: ListStart}
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: item}
@@ -19,8 +19,9 @@ items:
       - {kind: ListEnd}
 
   - name: "List with two items"
-    debug:
-      doParse: false
+    debug: 
+      printSemToFile: true
+
     source: |
       - Item1
       - Item2
@@ -30,7 +31,7 @@ items:
 
       # First list item
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: Item1}
@@ -44,7 +45,7 @@ items:
 
       # Second list item
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: Item2}
@@ -55,9 +56,28 @@ items:
 
       - {kind: ListEnd}
 
+    sem:
+      kind: Document
+      subnodes:
+        - kind: List
+          subnodes:
+            - kind: ListItem
+              subnodes:
+                - kind: Paragraph
+                  subnodes:
+                    - {kind: Word, text: Item1}
+                    - {kind: Newline, text: "\n"}
+            - kind: ListItem
+              subnodes:
+                - kind: Paragraph
+                  subnodes:
+                    - {kind: Word, text: Item2}
+                    - {kind: Newline, text: "\n"}
+
+
   - name: "List with two adjacent items, first one is multiline"
     debug:
-      doParse: false
+      printSemToFile: true
     source: |
       - Item1
         Line1
@@ -66,16 +86,13 @@ items:
     tokens:
       - {kind: ListStart}
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
 
       # First content block in the input
       - {kind: Word, str: "Item1"}
       - {kind: Newline, str: "\n"}
-      # Leading indentation is not stripped during lexing, it can be
-      # removed in the parser later on
-      - {kind: Space, str: "  "}
       - {kind: Word, str: "Line1"}
       - {kind: Newline, str: "\n"}
 
@@ -84,7 +101,7 @@ items:
       - {kind: ListItemEnd}
       - {kind: SameIndent}
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       # Second item
@@ -95,6 +112,28 @@ items:
       - {kind: StmtListClose}
       - {kind: ListItemEnd}
       - {kind: ListEnd}
+
+    sem:
+      kind: Document
+      subnodes:
+        - kind: List
+          subnodes:
+            - kind: ListItem
+              subnodes:
+                - kind: Paragraph
+                  subnodes:
+                    - {kind: Word, text: Item1}
+                    - {kind: Newline, text: "\n"}
+                    - {kind: Word, text: Line1}
+                    - {kind: Newline, text: "\n"}
+            - kind: ListItem
+              subnodes:
+                - kind: Paragraph
+                  subnodes:
+                    - {kind: Word, text: Item2}
+                    - {kind: Newline, text: "\n"}
+
+
   - name: "Nested list with two items"
     debug:
       printSem: true
@@ -236,7 +275,7 @@ items:
     tokens:
       - {kind: ListStart}
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "Item1"}
@@ -246,7 +285,7 @@ items:
       - {kind: ListItemEnd}
       - {kind: Indent}
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
 
       # Second level of list nesting contains more than one paragraph of
       # text
@@ -273,6 +312,7 @@ items:
       - {kind: ListItemEnd}
       - {kind: Dedent}
       - {kind: ListEnd}
+      
   - name: "List with unindented source code block"
     debug:
       doParse: false
@@ -286,7 +326,7 @@ items:
     tokens:
       - {kind: ListStart}
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
 
       # First paragraph of text in the list
@@ -299,7 +339,7 @@ items:
       # Source code block in the resulting text
       - {kind: CommandPrefix, str: "#+"}
       - {kind: CommandBegin, str: "begin_src"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: CommandArgumentsBegin}
       - {kind: Word, str: "nim"}
       - {kind: CommandArgumentsEnd}
@@ -348,7 +388,7 @@ items:
       - {kind: ListStart}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item1"}
@@ -359,7 +399,7 @@ items:
       - {kind: SameIndent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item2"}
@@ -370,7 +410,7 @@ items:
       - {kind: Indent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item11"}
@@ -381,7 +421,7 @@ items:
       - {kind: Indent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item111"}
@@ -392,7 +432,7 @@ items:
       - {kind: SameIndent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item112"}
@@ -403,7 +443,7 @@ items:
       - {kind: Dedent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item12"}
@@ -414,7 +454,7 @@ items:
       - {kind: SameIndent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item13"}
@@ -425,7 +465,7 @@ items:
       - {kind: Indent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item131"}
@@ -436,7 +476,7 @@ items:
       - {kind: Indent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item1311"}
@@ -448,7 +488,7 @@ items:
       - {kind: Dedent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item14"}
@@ -459,7 +499,7 @@ items:
       - {kind: Indent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item141"}
@@ -470,7 +510,7 @@ items:
       - {kind: Indent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item1411"}
@@ -481,7 +521,7 @@ items:
       - {kind: Indent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item14111"}
@@ -495,7 +535,7 @@ items:
       - {kind: Dedent}
 
       - {kind: ListItemStart, str: "-"}
-      - {kind: SkipSpace, str: " "}
+      - {kind: Space, str: " "}
       - {kind: StmtListOpen}
       - {kind: ParagraphStart}
       - {kind: Word, str: "item3"}

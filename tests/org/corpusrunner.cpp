@@ -755,7 +755,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             return RunResult{};
         }
 
-        if (spec.debug.printBaseLexed) {
+        if (spec.debug.printBaseLexed || spec.debug.printBaseLexedToFile) {
             auto content = std::format("{}", yamlRepr(p.baseTokens));
 
             if (spec.debug.printBaseLexedToFile) {
@@ -766,7 +766,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             }
         }
 
-        if (spec.debug.printLexed) {
+        if (spec.debug.printLexed || spec.debug.printLexedToFile) {
             auto content = std::format("{}", yamlRepr(p.tokens));
 
             if (spec.debug.printLexedToFile) {
@@ -885,7 +885,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                 OrgAdapter(&p.nodes, OrgId(0)));
 
 
-            if (spec.debug.printSem) {
+            if (spec.debug.printSem || spec.debug.printSemToFile) {
                 ExporterYaml exporter;
                 exporter.skipNullFields  = true;
                 exporter.skipFalseFields = true;
