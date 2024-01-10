@@ -315,7 +315,7 @@ items:
       
   - name: "List with unindented source code block"
     debug:
-      doParse: false
+      printSemToFile: true
     source: |
       - Item1
         #+begin_src nim
@@ -333,13 +333,11 @@ items:
       - {kind: ParagraphStart}
       - {kind: Word, str: Item1}
       - {kind: Newline, str: "\n"}
-      - {kind: Space, str: "  "}
       - {kind: ParagraphEnd}
 
       # Source code block in the resulting text
       - {kind: CommandPrefix, str: "#+"}
       - {kind: CommandBegin, str: "begin_src"}
-      - {kind: Space, str: " "}
       - {kind: CommandArgumentsBegin}
       - {kind: Word, str: "nim"}
       - {kind: CommandArgumentsEnd}
@@ -351,14 +349,13 @@ items:
       - {kind: Newline, str: "\n"}
       - {kind: CodeText, str: "  two_lines"}
       - {kind: Newline, str: "\n"}
-      - {kind: CodeText, str: " "}
-      - {kind: CodeContentEnd}
+      - {kind: CodeContentEnd, str: "  #+end_src"}
 
       - {kind: CommandContentEnd}
 
-      - {kind: CommandPrefix, str: "#+"}
-      - {kind: CommandEnd, str: "end_src"}
-      - {kind: SkipNewline, str: "\n"}
+      - {kind: CommandPrefix}
+      - {kind: CommandEnd}
+      - {kind: Newline, str: "\n"}
 
       - {kind: StmtListClose}
       - {kind: ListItemEnd}

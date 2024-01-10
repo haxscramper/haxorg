@@ -98,7 +98,11 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     None,
     Paragraph,
     RawMonospace,
-    Subtree);
+    Subtree,
+    CmdArguments,
+    CmdContent,
+    CmdSrcContent);
+
 DECL_DESCRIBED_ENUM_STANDALONE(
     MarkKind,
     Bold,
@@ -158,6 +162,14 @@ struct RecombineState {
 
     State state_pop() {
         return state.empty() ? State::None : state.pop_back_v();
+    };
+
+    State state_pop(State expected) {
+        CHECK(state_top() == expected)
+            << fmt("Expected to drop top state {} but got {}",
+                   expected,
+                   state_top());
+        return state_pop();
     };
 
     // Push new markup token from the current lexer position and
@@ -436,9 +448,7 @@ struct RecombineState {
 
         switch (lex.kind()) {
             direct(obt::Ampersand, otk::Punctuation);
-            direct(obt::Whitespace, otk::Space);
             direct(obt::AnyPunct, otk::Punctuation);
-            direct(obt::Newline, otk::Newline);
             direct(obt::Comment, otk::Comment);
             direct(obt::Indent, otk::Indent);
             direct(obt::Dedent, otk::Dedent);
@@ -447,6 +457,7 @@ struct RecombineState {
             direct(obt::ListEnd, otk::ListEnd);
             direct(obt::StmtListOpen, otk::StmtListOpen);
             direct(obt::ListItemEnd, otk::ListItemEnd);
+            direct(obt::SrcContent, otk::CodeText);
 
 
             case obt::Colon: map_colon(); break;
@@ -455,10 +466,69 @@ struct RecombineState {
             case obt::LeadingSpace: lex.next(); break;
             case obt::Minus: pop_as(otk::Punctuation); break;
 
+            case obt::Whitespace: {
+                if (state_top() == State::CmdArguments) {
+                    lex.next();
+                } else {
+                    pop_as(otk::Space);
+                }
+                break;
+            }
+
+            case obt::Newline: {
+                switch (state_top()) {
+                    case State::CmdArguments: {
+                        lex.next();
+                        state_pop();
+                        add_fake(otk::CommandArgumentsEnd);
+                        state_push(State::CmdContent);
+                        add_fake(otk::CommandContentStart);
+                        state_push(State::CmdSrcContent);
+                        add_fake(otk::CodeContentBegin);
+                        break;
+                    }
+                    default: {
+                        pop_as(otk::Newline);
+                    }
+                }
+
+                break;
+            }
+
+            case obt::LineCommand: {
+                maybe_paragraph_end();
+                if (lex.at(obt::CmdSrcBegin, +1)) {
+                    pop_as(otk::CommandPrefix);
+                }
+                break;
+            }
+
+            case obt::CmdSrcBegin: {
+                pop_as(otk::CommandBegin);
+                add_fake(otk::CommandArgumentsBegin);
+                state_push(State::CmdArguments);
+                break;
+            }
+
+            case obt::SrcContentEnd: {
+                state_pop(State::CmdSrcContent);
+                pop_as(otk::CodeContentEnd);
+                state_pop(State::CmdContent);
+                add_fake(otk::CommandContentEnd);
+                add_fake(otk::CommandPrefix);
+                add_fake(otk::CommandEnd);
+                break;
+            }
+
 
             case obt::HashIdent: {
                 maybe_paragraph_start();
                 map_hashtag();
+                break;
+            }
+
+            case obt::CmdIdent: {
+                pop_as(otk::Word);
                 break;
             }
 
