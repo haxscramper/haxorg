@@ -81,10 +81,11 @@ struct BaseLexerImpl {
 
 
     struct PushInfo {
-        int         stateId;
-        int         line;
-        int         column;
-        std::string matched;
+        int         stateId; /// Name of the state pushed into stack
+        int         line;    /// Line in the source where state triggered
+        int         column;  /// code column
+        int         rule;    /// Line in the rule file
+        std::string matched; /// matched text content
     };
 
     Vec<PushInfo> states;

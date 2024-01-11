@@ -97,10 +97,10 @@ def rule_to_reflex_code(rule: Rule, macros: dict[str, str]) -> str:
         for action in rule.actions:
             match action.do:
                 case "push":
-                    actions.append(f"push_expect({action.from_}, {action.to});")
+                    actions.append(f"push_expect({action.from_}, {action.to}, {rule.line});")
 
                 case "pop":
-                    actions.append(f"pop_expect({action.from_}, {action.to});")
+                    actions.append(f"pop_expect({action.from_}, {action.to}, {rule.line});")
 
                 case "set":
                     actions.append(f"start({action.to});")
@@ -194,8 +194,8 @@ def generate_reflex_code(config: Configuration) -> str:
 #include <absl/log/check.h>
 #include "base_token.hpp"
 
-#define pop_expect(current, next) impl.pop_expect_impl(current, next, __LINE__)
-#define push_expect(current, next) impl.push_expect_impl(current, next, __LINE__)
+#define pop_expect(current, next, line) impl.pop_expect_impl(current, next, line)
+#define push_expect(current, next, line) impl.push_expect_impl(current, next, line)
 %}}
 
 %option fast freespace unicode

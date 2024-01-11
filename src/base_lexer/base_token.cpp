@@ -27,7 +27,7 @@ void BaseLexerImpl::add(BaseTokenKind token) {
 
 void BaseLexerImpl::pop_expect_impl(int current, int next, int line) {
     CHECK(impl->start() == current) << std::format(
-        "Expected current state to be {} at {} but got {} '{}'",
+        "Expected current state to be {} line:{} but got {} '{}'",
         state_name(current),
         line,
         state_name(impl->start()),
@@ -35,7 +35,7 @@ void BaseLexerImpl::pop_expect_impl(int current, int next, int line) {
 
     impl->pop_state();
     CHECK(impl->start() == next) << std::format(
-        "After popping {} expected next state to be {} at {} but got "
+        "After popping {} expected next state to be {} line:{} but got "
         "{} '{}'",
         state_name(current),
         state_name(next),
@@ -58,7 +58,7 @@ void BaseLexerImpl::pop_expect_impl(int current, int next, int line) {
 
 void BaseLexerImpl::push_expect_impl(int current, int next, int line) {
     CHECK(impl->start() == current) << std::format(
-        "Expected current state to be {} at {} but got {} when "
+        "Expected current state to be {} line:{} but got {} when "
         "transitioning to {} at '{}'",
         state_name(current),
         line,
@@ -71,6 +71,7 @@ void BaseLexerImpl::push_expect_impl(int current, int next, int line) {
         .line    = static_cast<int>(impl->lineno()),
         .column  = static_cast<int>(impl->columno()),
         .matched = impl->str(),
+        .rule    = line,
     });
 
     if (traceStream) {
@@ -89,7 +90,7 @@ void BaseLexerImpl::before(
     const char*   pattern) {
     if (traceStream) {
         (*traceStream) << std::format(
-            "> {:>4} {} for {}", line, escape_for_write(pattern), view())
+            "> {:>4}   {} {}", line, escape_for_write(pattern), view())
                        << std::endl;
     }
 }
@@ -112,15 +113,16 @@ std::string BaseLexerImpl::view() {
 
     for (PushInfo const& state : this->states) {
         states += std::format(
-            " <'{}':{}:{}:{}>",
+            " <'{}':{}:{}:{}:RULE{}>",
             state.matched,
             state_name(state.stateId),
             state.line,
-            state.column);
+            state.column,
+            state.rule);
     }
 
     return std::format(
-        "{}:{} in state {} ({}) >{}< (code {}), line:{}, states:{}",
+        "{}:{} {} ({}) {} (INT:{}) {} {}",
         impl->lineno(),
         impl->columno(),
         state_name(impl->start()),

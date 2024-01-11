@@ -360,6 +360,20 @@ rules:
     states: [LEAD]
     token: Newline
     actions: [{ do: pop, from: LEAD, to: INITIAL }]
+
+  - re: "\\n{space}*\\n({space}*\\n)+"
+    states: [SUBTREE_HEAD]
+    token: LongNewline
+    actions: [{ do: pop, from: SUBTREE_HEAD, to: INITIAL }]
+  - re: "\\n{space}*\\n"
+    states: [SUBTREE_HEAD]
+    token: MediumNewline
+    actions: [{ do: pop, from: SUBTREE_HEAD, to: INITIAL }]
+  - re: "\\n"
+    states: [SUBTREE_HEAD]
+    token: Newline
+    actions: [{ do: pop, from: SUBTREE_HEAD, to: INITIAL }]
+
   - re: "\\n{space}*\\n({space}*\\n)+"
     token: LongNewline
   - re: "\\n{space}*\\n"
