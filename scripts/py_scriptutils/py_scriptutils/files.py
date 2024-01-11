@@ -131,8 +131,8 @@ class FileOperation:
         return (self.output or []) + ([self.stamp_path] if self.stamp_path else [])
 
     def should_run(self) -> bool:
-        return IsNewInput(self.input,
-                          self.get_output_files()) or self.stamp_content_is_new()
+        return IsNewInput(self.input, self.get_output_files()) or bool(
+            self.stamp_path and self.stamp_content_is_new())
 
     def explain(self, name: str) -> str:
         if self.should_run():
@@ -140,7 +140,7 @@ class FileOperation:
             if self.stamp_path and not self.stamp_path.exists():
                 why += " output stamp file is missing "
 
-            if self.stamp_content_is_new():
+            if self.stamp_path and self.stamp_content_is_new():
                 why += (
                     f" stamp content value changed, was [red]{self.stamp_path.read_text()}[/red], "
                     + f"now [green]{self.stamp_content}[/green]")

@@ -10,6 +10,7 @@ states:
   - { kind: state, name: PROPERTY_LEAD }
   - { kind: state, name: LOGBOOK_LEAD }
 
+
   - { kind: xstate, name: COMMAND }
   - { kind: xstate, name: COMMAND_EXAMPLE }
   - { kind: xstate, name: COMMAND_COLUMNS }

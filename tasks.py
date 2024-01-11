@@ -127,7 +127,9 @@ TASK_DEPS: Dict[Callable, List[Callable]] = {}
 
 
 @beartype
-def org_task(task_name: Optional[str] = None, pre: List[Callable] = []) -> Callable:
+def org_task(task_name: Optional[str] = None,
+             pre: List[Callable] = [],
+             force_notify: bool = False) -> Callable:
 
     def org_inner(func: Callable) -> Callable:
         TASK_DEPS[func] = pre
@@ -150,7 +152,7 @@ def org_task(task_name: Optional[str] = None, pre: List[Callable] = []) -> Calla
 
                 color = "green"
                 name_format = f"<span color='#{color}'>{name:^40}</span>"
-                if 1000 < last.dur:
+                if 1000 < last.dur or force_notify:
                     ui_notify(f"DONE [<b>{name:^40}</b>] in {last.dur / 10e2:05.1f}ms",
                               is_ok=run_ok)
 
@@ -306,24 +308,32 @@ def reflex_lexer_generator(ctx: Context):
         ])
 
 
-@org_task(pre=[base_environment, reflex_lexer_generator])
+@org_task(pre=[base_environment, reflex_lexer_generator], force_notify=True)
 def haxorg_base_lexer(ctx: Context):
     "Generate base lexer file definitions and compile them to C code"
-    log().info("Generating base lexer for haxorg")
-    run_command(ctx, "poetry", ["run", "src/base_lexer/base_lexer.py"])
-    run_command(
-        ctx,
-        get_script_root(REFLEX_PATH),
-        [
-            "--fast",
-            "--nodefault",
-            "--case-insensitive",
-            f"--outfile={get_script_root('src/base_lexer/base_lexer_gen.cpp')}",
-            "--namespace=base_lexer",
-            get_script_root("src/base_lexer/base_lexer.l"),
-        ],
-        env={"LD_LIBRARY_PATH": str(get_script_root("toolchain/RE-flex/lib"))},
-    )
+    py_file = get_script_root("src/base_lexer/base_lexer.py")
+    gen_lexer = get_script_root("src/base_lexer/base_lexer.l")
+    with FileOperation.InOut(input=[py_file, py_file.with_suffix(".yaml")],
+                             output=[gen_lexer]) as op:
+        if op.should_run():
+            log().info("Generating base lexer for haxorg")
+            run_command(ctx, "poetry", ["run", py_file])
+            run_command(
+                ctx,
+                get_script_root(REFLEX_PATH),
+                [
+                    "--fast",
+                    "--nodefault",
+                    "--case-insensitive",
+                    f"--outfile={get_script_root('src/base_lexer/base_lexer_gen.cpp')}",
+                    "--namespace=base_lexer",
+                    gen_lexer,
+                ],
+                env={"LD_LIBRARY_PATH": str(get_script_root("toolchain/RE-flex/lib"))},
+            )
+
+        else:
+            log().info("No changes in base lexer config")
 
 
 @org_task()
