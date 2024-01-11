@@ -118,10 +118,10 @@ def rule_to_reflex_code(rule: Rule, macros: dict[str, str]) -> str:
 
     actions_code = " ".join(actions)
     content = " ".join([
-        "impl.before(__LINE__);",
+        f"impl.before({rule.line}, {ENUM_NAME}::{rule.token}, R\"raw({rule.re or rule.lit})raw\");",
         f"impl.add({ENUM_NAME}::{rule.token});",
         actions_code,
-        "impl.after(__LINE__);",
+        f"impl.after({rule.line});",
     ])
     return f"{state_prefix} {{ /*{rule.line:<4}*/ {content} }}"
 
@@ -215,9 +215,10 @@ def generate_reflex_code(config: Configuration) -> str:
 
 %%
 
-TokenGroup<BaseTokenKind, BaseFill> tokenize(const char* input, int size) {{
+TokenGroup<BaseTokenKind, BaseFill> tokenize(const char* input, int size, std::ostream* traceStream) {{
     base_lexer::Lexer lex(input);
     lex.impl.impl = &lex;
+    lex.impl.traceStream = traceStream;
     lex.impl.tokens.tokens.reserve(size / 3);
     lex.lex();
     return lex.impl.tokens;

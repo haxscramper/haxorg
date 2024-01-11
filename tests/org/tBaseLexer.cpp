@@ -11,9 +11,7 @@
 TEST(BaseLexTest, WriteOut) {
     std::ifstream inFile("/home/haxscramper/tmp/doc2.org");
 
-    if (!inFile.is_open()) {
-        FAIL() << "Failed to open input.txt\n";
-    }
+    if (!inFile.is_open()) { FAIL() << "Failed to open input.txt\n"; }
 
     DLOG(INFO) << "Reading file";
     std::stringstream buffer;
@@ -22,7 +20,8 @@ TEST(BaseLexTest, WriteOut) {
     //    std::cout << std::format("Content:\n--->{}<---\n", content);
 
     DLOG(INFO) << "Tokenizing string";
-    BaseTokenGroup tokens = tokenize(content.data(), content.size());
+    BaseTokenGroup tokens = tokenize(
+        content.data(), content.size(), nullptr);
     {
         DLOG(INFO) << "Constructing JSON object";
         json out = json::array();

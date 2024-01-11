@@ -34,17 +34,17 @@ void BaseLexerImpl::pop_expect_impl(int current, int next, int line) {
         state_name(impl->start()),
         view());
     states.pop_back();
-    if (!states.empty()) {
-        CHECK(states.back().stateId == next);
-    }
+    if (!states.empty()) { CHECK(states.back().stateId == next); }
 
-    //    std::cout << std::format(
-    //        "Move {} -> {} at {} with {}",
-    //        state_name(current),
-    //        state_name(next),
-    //        line,
-    //        view())
-    //              << std::endl;
+    if (traceStream) {
+
+        (*traceStream) << std::format(
+            "  - {} -> {} at {} with {}",
+            state_name(current),
+            state_name(next),
+            line,
+            view()) << std::endl;
+    }
 }
 
 void BaseLexerImpl::push_expect_impl(int current, int next, int line) {
@@ -64,24 +64,33 @@ void BaseLexerImpl::push_expect_impl(int current, int next, int line) {
         .matched = impl->str(),
     });
 
-    //    std::cout << std::format(
-    //        "Move {} -> {} at {} with {}",
-    //        state_name(current),
-    //        state_name(next),
-    //        line,
-    //        view())
-    //              << std::endl;
+    if (traceStream) {
+        (*traceStream) << std::format(
+            "  + {} -> {} at {} with '{}'",
+            state_name(current),
+            state_name(next),
+            line,
+            view()) << std::endl;
+    }
 }
 
-void BaseLexerImpl::before(int line) {
-    //    std::cout << "Trigger line " << line << " -- " << view() << "\n";
+void BaseLexerImpl::before(
+    int           line,
+    BaseTokenKind kind,
+    const char*   pattern) {
+    if (traceStream) {
+        (*traceStream) << std::format(
+            "> {} '{}' for {}", line, pattern, view())
+                       << std::endl;
+    }
 }
 
 void BaseLexerImpl::after(int line) {
-    //    std::cout << std::format(
-    //        "End line trigger {} in state {}\n",
-    //        line,
-    //        state_name(impl->start()));
+    if (traceStream) {
+        (*traceStream) << std::format(
+            "< {} state {}", line, state_name(impl->start()))
+                       << std::endl;
+    }
 }
 
 std::string BaseLexerImpl::view() {
@@ -101,19 +110,17 @@ std::string BaseLexerImpl::view() {
             state.column);
     }
 
-    return "";
-#warning FIXME FIX TOKEN
-    // return std::format(
-    //     "{}:{} in state {} ({}) >{}< (code {}) span: '{}', states:{}",
-    //     impl->lineno(),
-    //     impl->columno(),
-    //     state_name(impl->start()),
-    //     impl->start(),
-    //     escape_for_write(text),
-    //     (uint32_t)codepoint,
-    //     escape_for_write(
-    //         span.substr(impl->columno(), span.length() - 1), false),
-    //     states);
+    return std::format(
+        "{}:{} in state {} ({}) >{}< (code {}) span: '{}', states:{}",
+        impl->lineno(),
+        impl->columno(),
+        state_name(impl->start()),
+        impl->start(),
+        escape_for_write(text).toBase(),
+        (uint32_t)codepoint,
+        escape_for_write(
+            span.substr(impl->columno(), span.length() - 1), false),
+        states);
 }
 
 void BaseLexerImpl::unknown() {

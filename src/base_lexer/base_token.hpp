@@ -66,13 +66,20 @@ struct std::formatter<BaseFill> : std::formatter<std::string> {
 };
 
 
-BaseTokenGroup tokenize(const char* input, int size);
+BaseTokenGroup tokenize(
+    const char*   input,
+    int           size,
+    std::ostream* traceStream);
 
 
 struct BaseLexerImpl {
     reflex::AbstractLexer<reflex::Matcher>* impl;
-    int                                     maxUnknown     = 20;
-    int                                     visitedUnknown = 0;
+
+    int           maxUnknown     = 20;
+    int           visitedUnknown = 0;
+    std::ostream* traceStream;
+
+
     struct PushInfo {
         int         stateId;
         int         line;
@@ -90,6 +97,6 @@ struct BaseLexerImpl {
 
     void pop_expect_impl(int current, int next, int line);
     void push_expect_impl(int current, int next, int line);
-    void before(int line);
+    void before(int line, BaseTokenKind kind, char const* pattern);
     void after(int line);
 };

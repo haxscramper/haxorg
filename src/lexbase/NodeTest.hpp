@@ -34,6 +34,7 @@ struct ParseSpec {
             (),
             /// Do trace for lex/parse/sem
             ((bool), traceLex, false),
+            ((bool), traceLexBase, false),
             ((bool), traceParse, false),
             ((bool), traceSem, false),
             /// Output trace to the file

@@ -35,8 +35,12 @@ struct MockFull {
     OrgToken&   t(int idx) { return tokens.at(OrgTokenId(idx)); }
     OrgNodeKind k(int idx) { return n(idx).kind; }
 
-    void tokenize(CR<std::string> content, bool full = true) {
-        baseTokens = ::tokenize(content.data(), content.size());
+    void tokenize(
+        CR<std::string> content,
+        bool            full  = true,
+        std::ostream*   trace = nullptr) {
+
+        baseTokens = ::tokenize(content.data(), content.size(), trace);
         if (full) { tokenizer->convert(baseTokens); }
     }
 
