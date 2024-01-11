@@ -4,13 +4,13 @@ from dataclasses import dataclass, field, replace
 import itertools
 from typing import *
 
-import astbuilder_py as pya
-import setup_imports
-from astbuilder_cpp import *
-from gen_tu_cpp import *
-from org_codegen_data import *
+import py_codegen.astbuilder_py as pya
+from py_codegen.astbuilder_cpp import *
+from py_codegen.gen_tu_cpp import *
+from py_codegen.org_codegen_data import *
 from py_textlayout.py_textlayout import TextLayout, TextOptions
-from refl_read import conv_proto_file, ConvTu
+from py_codegen.refl_read import conv_proto_file, ConvTu
+from py_scriptutils.script_logging import log
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout import BlockId

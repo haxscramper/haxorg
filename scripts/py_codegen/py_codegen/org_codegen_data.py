@@ -3,11 +3,9 @@ from copy import deepcopy
 from beartype.typing import *
 from enum import Enum
 
-import setup_imports
-
 # Now you should be able to import your C++ library
-from astbuilder_cpp import *
-from gen_tu_cpp import *
+from py_codegen.astbuilder_cpp import *
+from py_codegen.gen_tu_cpp import *
 
 
 @beartype

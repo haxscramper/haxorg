@@ -15,6 +15,8 @@ import logging
 from pprint import pprint
 import textwrap
 import json
+import sys
+import traceback
 
 graphviz_logger = logging.getLogger("graphviz._tools")
 graphviz_logger.setLevel(logging.WARNING)
@@ -24,6 +26,23 @@ import graphviz
 # value, only as constant to avoid typing the same thing all over.
 LLVM_MAJOR = "17"
 LLVM_VERSION = f"{LLVM_MAJOR}.0.6"
+
+
+def custom_traceback_handler(exc_type, exc_value, exc_traceback):
+    """
+    Custom traceback handler that filters and prints stack traces
+    only for frames that originate from 'tasks.py'.
+    """
+    print("tasks traceback ----------------------")
+    for frame in traceback.extract_tb(exc_traceback):
+        if 'haxorg/tasks.py' in frame.filename:
+            # Print the formatted representation of the stack frame
+            print("File \"{}\", line {}, in {}  {}".format(frame.filename, frame.lineno,
+                                                           frame.name, frame.line))
+
+
+# Register the custom traceback handler
+sys.excepthook = custom_traceback_handler
 
 
 def get_script_root(relative: Optional[str] = None) -> Path:
@@ -504,31 +523,41 @@ def update_py_haxorg_reflection(ctx: Context):
     log().info("Updated reflection")
 
 
+LD_PRELOAD_ASAN = {
+    "LD_PRELOAD":
+        str(
+            get_llvm_root(
+                f"lib/clang/{LLVM_MAJOR}/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"
+            ))
+}
+
+
 # TODO Make compiled reflection generation build optional
-@org_task(pre=[cmake_utils, update_py_haxorg_reflection])
+@org_task(pre=[
+    cmake_utils,
+    # update_py_haxorg_reflection
+])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     "Update auto-generated source files"
     # TODO source file generation should optionally overwrite the target OR
     # compare the new and old source code (to avoid breaking the subsequent
     # compilation of the source)
     log().info("Executing haxorg code generation step.")
-    run_command(
-        ctx,
-        "poetry",
-        [
-            "run",
-            "scripts/py_codegen/codegen.py",
-            get_build_root(),
-            get_script_root(),
-        ],
-    )
+    run_command(ctx,
+                "poetry", [
+                    "run",
+                    get_script_root("scripts/py_codegen/py_codegen/codegen.py"),
+                    get_build_root(),
+                    get_script_root(),
+                ],
+                env=LD_PRELOAD_ASAN)
 
     log().info("Updated code definitions")
 
 
 @org_task(pre=[cmake_haxorg])
 def std_tests(ctx):
-    "Execute standard library tests"
+    """Execute standard library tests"""
     dir = get_build_root("haxorg")
     test = dir / "tests_hstd"
     run_command(ctx, test, [], cwd=str(dir))
@@ -536,7 +565,7 @@ def std_tests(ctx):
 
 @org_task(pre=[cmake_haxorg])
 def org_tests(ctx):
-    "Execute standard library tests"
+    """Execute standard library tests"""
     dir = get_build_root("haxorg")
     test = dir / "tests_org"
     run_command(ctx, test, [], cwd=str(dir))
@@ -688,15 +717,8 @@ def py_tests(
     Execute the whole python test suite or run a single test file in non-interactive
     LLDB debugger to work on compiled component issues. 
     """
-    preload = {
-        "LD_PRELOAD":
-            str(
-                get_llvm_root(
-                    f"lib/clang/{LLVM_MAJOR}/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so"
-                ))
-    }
 
-    log().info(preload)
+    log().info(LD_PRELOAD_ASAN)
 
     if debug_test:
         debug_test: Path = Path(debug_test)
@@ -720,7 +742,7 @@ def py_tests(
                 "python",
             ],
             allow_fail=True,
-            env=preload,
+            env=LD_PRELOAD_ASAN,
         )
 
     else:
@@ -735,7 +757,7 @@ def py_tests(
                 # "--hypothesis-seed=11335865684259357953579948907097829183"
             ],
             allow_fail=True,
-            env=preload,
+            env=LD_PRELOAD_ASAN,
         )
     if retcode != 0:
         exit(1)
