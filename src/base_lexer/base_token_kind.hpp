@@ -21,6 +21,7 @@ enum class BaseTokenKind : unsigned short int {
   CmdRawArg,
   CmdSrcBegin,
   CmdTblfm,
+  CmdTitle,
   Colon,
   Comment,
   Date,
@@ -91,6 +92,7 @@ enum class BaseTokenKind : unsigned short int {
   TreePropertyProperties,
   TreePropertyText,
   TripleBacktick,
+  Unknown,
   Whitespace,
   Word,
 };

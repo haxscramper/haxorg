@@ -6,13 +6,19 @@
 #include "base_token_state.tcc"
 
 void BaseLexerImpl::add(BaseTokenKind token) {
-    (void)tokens.add(BaseToken{
+    auto id = tokens.add(BaseToken{
         token,
         BaseFill{
             impl->matcher().str(),
             static_cast<int>(impl->lineno()),
             static_cast<int>(impl->columno()),
         }});
+
+    if (traceStream) {
+        (*traceStream) << std::format(
+            "  @[{:4}] at {}", id.getIndex(), token)
+                       << std::endl;
+    }
 }
 
 
@@ -80,17 +86,17 @@ void BaseLexerImpl::before(
     const char*   pattern) {
     if (traceStream) {
         (*traceStream) << std::format(
-            "> {} '{}' for {}", line, pattern, view())
+            "> [{:>4}] {} for {}", line, escape_literal(pattern), view())
                        << std::endl;
     }
 }
 
 void BaseLexerImpl::after(int line) {
-    if (traceStream) {
-        (*traceStream) << std::format(
-            "< {} state {}", line, state_name(impl->start()))
-                       << std::endl;
-    }
+    // if (traceStream) {
+    //     (*traceStream) << std::format(
+    //         "< {} state {}", line, state_name(impl->start()))
+    //                    << std::endl;
+    // }
 }
 
 std::string BaseLexerImpl::view() {
@@ -124,7 +130,12 @@ std::string BaseLexerImpl::view() {
 }
 
 void BaseLexerImpl::unknown() {
-    std::cerr << "Unknown " << view() << std::endl;
+    if (traceStream) {
+        (*traceStream) << "X unknown " << view() << std::endl;
+    } else {
+        LOG(ERROR) << "Unknown " << view();
+    }
+
     CHECK(++visitedUnknown < maxUnknown)
         << std::format("Max {} visited {}", maxUnknown, visitedUnknown);
 }

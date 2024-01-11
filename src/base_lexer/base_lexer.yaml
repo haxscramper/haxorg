@@ -33,6 +33,7 @@ tokens:
   - { name: StmtListOpen }
   - { name: StmtListClose }
   - { name: ListItemEnd }
+  - { name: Unknown }
 
 rules:
   - lit: "#+"
@@ -40,6 +41,11 @@ rules:
     token: LineCommand
     actions:
       - { do: pop, to: INITIAL, from: LEAD }
+      - { do: push, to: COMMAND, from: INITIAL }
+
+  - re: "^#\\+"
+    token: LineCommand
+    actions:
       - { do: push, to: COMMAND, from: INITIAL }
 
   # Document columns command
@@ -142,6 +148,12 @@ rules:
     actions:
       - { do: pop, from: COMMAND_TEXT, to: COMMAND }
       - { do: pop, from: COMMAND, to: INITIAL }
+
+  # Title command
+  - lit: "title"
+    states: [COMMAND]
+    token: CmdTitle
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
 
   # Latex header
   - lit: "latex_header:"

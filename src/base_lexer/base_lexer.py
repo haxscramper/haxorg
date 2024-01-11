@@ -180,6 +180,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
 def generate_reflex_code(config: Configuration) -> str:
     macros = {m.name: m.value for m in config.rx_macros}
     rules = "\n".join([rule_to_reflex_code(rule, macros) for rule in config.rules])
+    errtok = ENUM_NAME + "::Unknown"
 
     return """
 
@@ -210,7 +211,7 @@ def generate_reflex_code(config: Configuration) -> str:
 
 {rules}  
 
-(.|\\n) {{ impl.unknown(); }}
+(.|\\n) {{ impl.before(__LINE__, {errtok}, ".|\\n"); impl.unknown(); impl.after(__LINE__); }}
 {unknowns}
 
 %%
@@ -227,9 +228,10 @@ TokenGroup<BaseTokenKind, BaseFill> tokenize(const char* input, int size, std::o
     """.format(
         rules=rules,
         unknowns="\n".join([
-            f"<{state.name}>(.|\\n) {{ impl.unknown(); }}" for state in config.states
+            f"<{state.name}>(.|\\n) {{ impl.before(__LINE__, {errtok}, \".|\\n\"); impl.unknown(); impl.after(__LINE__); }}" for state in config.states
             if (state.kind == "xstate" and state.name not in ["BODY_SRC"])
         ]),
+        errtok=errtok,
         states="\n".join(
             [f"%{state.kind} {state.name}".format() for state in config.states]))
 

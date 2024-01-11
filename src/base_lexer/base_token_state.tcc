@@ -44,6 +44,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::CmdRawArg: return "CmdRawArg";
         case BaseTokenKind::CmdSrcBegin: return "CmdSrcBegin";
         case BaseTokenKind::CmdTblfm: return "CmdTblfm";
+        case BaseTokenKind::CmdTitle: return "CmdTitle";
         case BaseTokenKind::Colon: return "Colon";
         case BaseTokenKind::Comment: return "Comment";
         case BaseTokenKind::Date: return "Date";
@@ -114,6 +115,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::TreePropertyProperties: return "TreePropertyProperties";
         case BaseTokenKind::TreePropertyText: return "TreePropertyText";
         case BaseTokenKind::TripleBacktick: return "TripleBacktick";
+        case BaseTokenKind::Unknown: return "Unknown";
         case BaseTokenKind::Whitespace: return "Whitespace";
         case BaseTokenKind::Word: return "Word";
     }
@@ -141,6 +143,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "CmdRawArg") { return BaseTokenKind::CmdRawArg; } else
   if (value == "CmdSrcBegin") { return BaseTokenKind::CmdSrcBegin; } else
   if (value == "CmdTblfm") { return BaseTokenKind::CmdTblfm; } else
+  if (value == "CmdTitle") { return BaseTokenKind::CmdTitle; } else
   if (value == "Colon") { return BaseTokenKind::Colon; } else
   if (value == "Comment") { return BaseTokenKind::Comment; } else
   if (value == "Date") { return BaseTokenKind::Date; } else
@@ -211,6 +214,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "TreePropertyProperties") { return BaseTokenKind::TreePropertyProperties; } else
   if (value == "TreePropertyText") { return BaseTokenKind::TreePropertyText; } else
   if (value == "TripleBacktick") { return BaseTokenKind::TripleBacktick; } else
+  if (value == "Unknown") { return BaseTokenKind::Unknown; } else
   if (value == "Whitespace") { return BaseTokenKind::Whitespace; } else
   if (value == "Word") { return BaseTokenKind::Word; } else
   { return std::nullopt; }

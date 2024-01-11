@@ -118,9 +118,11 @@ class FileOperation:
     def InTmp(self,
               input: SomePaths,
               stamp_path: Path,
-              stamp_content: Optional[str] = None) -> 'FileOperation':
+              stamp_content: Optional[str] = None,
+              output: List[Path] = []) -> 'FileOperation':
         return FileOperation(normalize_paths(input),
                              stamp_path=stamp_path,
+                             output=output,
                              stamp_content=stamp_content)
 
     def stamp_content_is_new(self) -> bool:

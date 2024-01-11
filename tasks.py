@@ -313,22 +313,26 @@ def haxorg_base_lexer(ctx: Context):
     "Generate base lexer file definitions and compile them to C code"
     py_file = get_script_root("src/base_lexer/base_lexer.py")
     gen_lexer = get_script_root("src/base_lexer/base_lexer.l")
-    with FileOperation.InOut(input=[py_file, py_file.with_suffix(".yaml")],
-                             output=[gen_lexer]) as op:
+    reflex_run_params = [
+        "--fast",
+        "--nodefault",
+        # "--debug",
+        "--case-insensitive",
+        f"--outfile={get_script_root('src/base_lexer/base_lexer_gen.cpp')}",
+        "--namespace=base_lexer",
+        gen_lexer,
+    ]
+    with FileOperation.InTmp(input=[py_file, py_file.with_suffix(".yaml")],
+                             output=[gen_lexer],
+                             stamp_path=get_task_stamp("haxorg_base_lexer"),
+                             stamp_content=str(reflex_run_params)) as op:
         if op.should_run():
             log().info("Generating base lexer for haxorg")
             run_command(ctx, "poetry", ["run", py_file])
             run_command(
                 ctx,
                 get_script_root(REFLEX_PATH),
-                [
-                    "--fast",
-                    "--nodefault",
-                    "--case-insensitive",
-                    f"--outfile={get_script_root('src/base_lexer/base_lexer_gen.cpp')}",
-                    "--namespace=base_lexer",
-                    gen_lexer,
-                ],
+                reflex_run_params,
                 env={"LD_LIBRARY_PATH": str(get_script_root("toolchain/RE-flex/lib"))},
             )
 
