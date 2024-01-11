@@ -1,5 +1,6 @@
 states:
   - { kind: state, name: COMMAND_TEXT }
+  - { kind: state, name: COMMAND_RAW }
   - { kind: state, name: SUBTREE_HEAD }
   - { kind: state, name: PROPERTY_ANY }
   - { kind: state, name: LEAD }
@@ -36,16 +37,16 @@ tokens:
   - { name: Unknown }
 
 rules:
+  - re: "^#\\+"
+    token: LineCommand
+    actions:
+      - { do: push, to: COMMAND, from: INITIAL }
+
   - lit: "#+"
     states: [LEAD]
     token: LineCommand
     actions:
       - { do: pop, to: INITIAL, from: LEAD }
-      - { do: push, to: COMMAND, from: INITIAL }
-
-  - re: "^#\\+"
-    token: LineCommand
-    actions:
       - { do: push, to: COMMAND, from: INITIAL }
 
   # Document columns command
@@ -142,6 +143,7 @@ rules:
     states: [COMMAND]
     token: CmdCaption
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+    
   - re: "\\n"
     token: Newline
     states: [COMMAND_TEXT]
@@ -150,10 +152,41 @@ rules:
       - { do: pop, from: COMMAND, to: INITIAL }
 
   # Title command
-  - lit: "title"
+  - lit: "title:"
     states: [COMMAND]
     token: CmdTitle
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  # property command 
+  - lit: "property:"
+    states: [COMMAND]
+    token: CmdProperty 
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+
+  # Options
+  - lit: "options:"
+    states: [COMMAND]
+    token: CmdFiletags
+    # Full options parsing is deferred to the sem stage
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  # File tags command
+  - lit: "filetags:"
+    states: [COMMAND]
+    token: CmdFiletags
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: ".*"
+    states: [COMMAND_RAW]
+    token: RawText
+
+
+  - re: "\\n"
+    token: Newline
+    states: [COMMAND_RAW]
+    actions:
+      - { do: pop, from: COMMAND_RAW, to: COMMAND }
+      - { do: pop, from: COMMAND, to: INITIAL }
 
   # Latex header
   - lit: "latex_header:"

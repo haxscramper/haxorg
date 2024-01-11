@@ -75,7 +75,7 @@ BaseTokenGroup tokenize(
 struct BaseLexerImpl {
     reflex::AbstractLexer<reflex::Matcher>* impl;
 
-    int           maxUnknown     = 20;
+    int           maxUnknown     = 100;
     int           visitedUnknown = 0;
     std::ostream* traceStream;
 

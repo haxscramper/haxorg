@@ -16,7 +16,10 @@ void BaseLexerImpl::add(BaseTokenKind token) {
 
     if (traceStream) {
         (*traceStream) << std::format(
-            "  @[{:4}] at {}", id.getIndex(), token)
+            "  [{:0>4}] = {} {}",
+            id.getIndex(),
+            token,
+            escape_for_write(impl->matcher().str()))
                        << std::endl;
     }
 }
@@ -72,7 +75,7 @@ void BaseLexerImpl::push_expect_impl(int current, int next, int line) {
 
     if (traceStream) {
         (*traceStream) << std::format(
-            "  + {} -> {} at {} with '{}'",
+            "  + {} -> {} at {} with {}",
             state_name(current),
             state_name(next),
             line,
@@ -86,7 +89,7 @@ void BaseLexerImpl::before(
     const char*   pattern) {
     if (traceStream) {
         (*traceStream) << std::format(
-            "> [{:>4}] {} for {}", line, escape_literal(pattern), view())
+            "> {:>4} {} for {}", line, escape_for_write(pattern), view())
                        << std::endl;
     }
 }
@@ -104,8 +107,8 @@ std::string BaseLexerImpl::view() {
     std::string    text      = impl->matcher().str();
     std::u32string utf32_str = conv.from_bytes(text);
     char32_t       codepoint = utf32_str[0];
-    std::string    span      = std::string(impl->matcher().span());
     std::string    states;
+    std::string    line = impl->matcher().line();
 
     for (PushInfo const& state : this->states) {
         states += std::format(
@@ -117,21 +120,20 @@ std::string BaseLexerImpl::view() {
     }
 
     return std::format(
-        "{}:{} in state {} ({}) >{}< (code {}) span: '{}', states:{}",
+        "{}:{} in state {} ({}) >{}< (code {}), line:{}, states:{}",
         impl->lineno(),
         impl->columno(),
         state_name(impl->start()),
         impl->start(),
         escape_for_write(text).toBase(),
         (uint32_t)codepoint,
-        escape_for_write(
-            span.substr(impl->columno(), span.length() - 1), false),
+        escape_for_write(line.substr(impl->columno(), line.length() - 1)),
         states);
 }
 
 void BaseLexerImpl::unknown() {
     if (traceStream) {
-        (*traceStream) << "X unknown " << view() << std::endl;
+        (*traceStream) << "  X unknown " << view() << std::endl;
     } else {
         LOG(ERROR) << "Unknown " << view();
     }
