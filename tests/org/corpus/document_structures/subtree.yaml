@@ -101,10 +101,11 @@ items:
   - name: "Lorem ipsum subtree"
     debug:
       traceLexBase: true
+      lexToFile: true
       printLexedToFile: true
       printParsedToFile: true
       printBaseLexedToFile: true
       printSemToFile: true
-      doParse: false
+      
     file: org/lorem_ipsum_subtree.org
 

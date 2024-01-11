@@ -497,8 +497,21 @@ struct RecombineState {
 
             case obt::LineCommand: {
                 maybe_paragraph_end();
-                if (lex.at(obt::CmdSrcBegin, +1)) {
-                    pop_as(otk::CommandPrefix);
+                switch (lex.tok(+1).kind) {
+                    case obt::CmdSrcBegin:
+                        pop_as(otk::CommandPrefix);
+                        break;
+
+                    // case obt::CmdTitle: {
+                    //     pop_as(otk::CommandTitle);
+                    //     break;
+                    // }
+
+                    default: {
+                        CHECK(false) << fmt(
+                            "Unhandled line command conversion rules {}",
+                            lex.tok(+1));
+                    }
                 }
                 break;
             }
@@ -672,9 +685,11 @@ struct RecombineState {
 
 } // namespace
 
+
 struct LineToken {
     DECL_DESCRIBED_ENUM(
         Kind,
+        None,
         Line,
         ListItem,
         Subtree,
@@ -685,27 +700,74 @@ struct LineToken {
 
     Span<BaseToken> tokens;
     int             indent = 0;
-    Kind            kind;
+    Kind            kind   = Kind::None;
+
+    void setLeadingSpaceKind(CR<Span<BaseToken>> tokens) {
+        if (auto next = tokens.get(1); next) {
+            switch (next->get().kind) {
+                case obt::Minus: kind = Kind::ListItem; break;
+
+                case obt::TreePropertyEnd:
+                case obt::TreePropertyText:
+                case obt::TreePropertyProperties:
+                case obt::TreePropertyLiteral:
+                    kind = Kind::Property;
+                    break;
+
+                default:
+                    LOG(INFO) << fmt1(tokens);
+                    kind = Kind::IndentedLine;
+                    break;
+            }
+        } else {
+            kind = Kind::IndentedLine;
+        }
+    }
 
     LineToken(CR<Span<BaseToken>> tokens) : tokens(tokens) {
         CR<BaseToken> first = tokens.at(0);
         switch (first.kind) {
-            case obt::LeadingSpace:
+            case obt::LeadingSpace: {
                 indent = first->text.length();
-                if (auto next = tokens.get(1);
-                    next && next->get().kind == obt::Minus) {
-                    kind = LineToken::Kind::ListItem;
-                } else {
-                    kind = LineToken::Kind::IndentedLine;
-                }
+                setLeadingSpaceKind(tokens);
                 break;
-            case obt::LeadingMinus:
-            case obt::LeadingPlus: kind = LineToken::Kind::ListItem; break;
+            }
 
-            default: break;
+            case obt::LeadingMinus:
+            case obt::LeadingPlus: {
+                kind = Kind::ListItem;
+                break;
+            }
+
+            case obt::LineCommand: {
+                CR<BaseToken> next = tokens.at(1);
+                switch (next.kind) {
+                    case obt::CmdTitle:
+                    case obt::CmdCaption:
+                    case obt::CmdColumns:
+                    case obt::CmdProperty:
+                    case obt::CmdFiletags: kind = Kind::Line; break;
+                    case obt::CmdSrcBegin: kind = Kind::BlockOpen; break;
+                    default: {
+                        CHECK(false) << fmt(
+                            "Unknown line command kind mapping {}, {}",
+                            next.kind,
+                            tokens);
+                        break;
+                    }
+                }
+
+                break;
+            }
+
+            default: {
+                kind = Kind::Line;
+                break;
+            }
         }
     }
 };
+
 
 struct GroupToken {
     DECL_DESCRIBED_ENUM(
@@ -722,6 +784,9 @@ struct GroupToken {
 
     int indent() const { return lines.at(0).indent; }
 };
+
+using LK = LineToken::Kind;
+using GK = GroupToken::Kind;
 
 template <std::random_access_iterator Iter>
 auto make_span(Iter begin, Iter end) -> Span<typename Iter::value_type> {
@@ -748,8 +813,6 @@ Vec<LineToken> to_lines(BaseLexer& lex) {
     return lines;
 }
 
-using LK = LineToken::Kind;
-using GK = GroupToken::Kind;
 
 Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
     Vec<GroupToken> groups;
@@ -782,6 +845,17 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
                 while (it != end && it->kind != LK::BlockClose) { ++it; }
                 groups.push_back({make_span(start, it), GK::Block});
                 break;
+            }
+
+            case LK::Property: {
+                while (it != end && it->kind == LK::Property) { ++it; }
+                groups.push_back({make_span(start, it), GK::Block});
+                break;
+            }
+
+            default: {
+                CHECK(false) << fmt(
+                    "Unhandled line kind {} {}", start->kind, it->tokens);
             }
         }
 
