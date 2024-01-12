@@ -66,12 +66,7 @@ rules:
   - { lit: ":", token: Colon, states: [COMMAND_COLUMNS] }
   - { re: "{space}+", token: Whitespace, states: [COMMAND_COLUMNS] }
 
-  - re: "\\n"
-    token: Newline
-    states: [COMMAND_COLUMNS]
-    actions:
-      - { do: pop, from: COMMAND_COLUMNS, to: COMMAND }
-      - { do: pop, from: COMMAND, to: INITIAL }
+
 
   # Quote block command
   - lit: "begin_quote"
@@ -144,12 +139,7 @@ rules:
     token: CmdCaption
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
     
-  - re: "\\n"
-    token: Newline
-    states: [COMMAND_TEXT]
-    actions:
-      - { do: pop, from: COMMAND_TEXT, to: COMMAND }
-      - { do: pop, from: COMMAND, to: INITIAL }
+
 
   # Title command
   - lit: "title:"
@@ -181,24 +171,12 @@ rules:
     token: RawText
 
 
-  - re: "\\n"
-    token: Newline
-    states: [COMMAND_RAW]
-    actions:
-      - { do: pop, from: COMMAND_RAW, to: COMMAND }
-      - { do: pop, from: COMMAND, to: INITIAL }
-
   # Latex header
   - lit: "latex_header:"
     states: [COMMAND]
     token: CmdLatexHeader
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-  - re: "\\n"
-    token: Newline
-    states: [COMMAND_ARGS]
-    actions:
-      - { do: pop, from: COMMAND_ARGS, to: COMMAND }
-      - { do: pop, from: COMMAND, to: INITIAL }
+
 
   # Table formulas
   - lit: "tblfm:"
@@ -211,12 +189,6 @@ rules:
   - { re: "{space}+", states: [COMMAND_TBLFM], token: Whitespace }
   - { re: "[-]", states: [COMMAND_TBLFM], token: TblOperator }
 
-  - re: "\\n"
-    token: Newline
-    states: [COMMAND_TBLFM]
-    actions:
-      - { do: pop, from: COMMAND_TBLFM, to: COMMAND }
-      - { do: pop, from: COMMAND, to: INITIAL }
 
   # Subtree
   - re: "^\\*+"
@@ -228,11 +200,6 @@ rules:
     token: SubtreePriority
     states: [SUBTREE_HEAD]
 
-  - re: "\\n"
-    token: Newline
-    states: [SUBTREE_HEAD]
-    actions:
-      - { do: pop, from: SUBTREE_HEAD, to: INITIAL }
 
   # - { lit: "# -*- ", token: FileVarComment }
   - { re: "^[0-9]+", token: LeadingNumber }
@@ -259,9 +226,6 @@ rules:
       - { do: pop, from: LEAD, to: INITIAL }
       - { do: push, from: INITIAL, to: PROPERTIES }
 
-  - re: "\\n"
-    token: Newline
-    states: [PROPERTIES]
 
   - re: "^{space}+"
     token: LeadingSpace
@@ -293,9 +257,19 @@ rules:
 
   - re: "\\n"
     token: Newline
+    states: [PROPERTIES]
+
+  - re: "\\n"
+    token: Newline
     states: [PROPERTY_LITERAL]
     actions:
       - { do: pop, from: PROPERTY_LITERAL, to: PROPERTIES }
+
+  - re: "\\n"
+    token: Newline
+    states: [PROPERTY_ANY]
+    actions:
+      - { do: pop, from: PROPERTY_ANY, to: PROPERTIES }
 
   # Properties with text content
   - re: ":(created|origin|blocker):"
@@ -305,11 +279,7 @@ rules:
       - { do: pop, from: PROPERTY_LEAD, to: PROPERTIES }
       - { do: push, from: PROPERTIES, to: PROPERTY_ANY }
 
-  - re: "\\n"
-    token: Newline
-    states: [PROPERTY_ANY]
-    actions:
-      - { do: pop, from: PROPERTY_ANY, to: PROPERTIES }
+
 
   - re: ":\\w+:"
     token: TreePropertyName
@@ -356,22 +326,45 @@ rules:
   - { re: "\\w+", token: Word }
   - { re: "\\$", token: Dollar }
   - { re: "[\\x{{0256}}-\\x{{10FFFF}}]|©", token: MiscUnicode }
+
+
+  # * Newline transition handlers
+
   - re: "\\n"
     states: [LEAD]
     token: Newline
     actions: [{ do: pop, from: LEAD, to: INITIAL }]
 
   - re: "\\n{space}*\\n({space}*\\n)+"
-    states: [SUBTREE_HEAD]
     token: LongNewline
+    states: [COMMAND_COLUMNS, COMMAND_TEXT, COMMAND_RAW, COMMAND_ARGS, COMMAND_TBLFM]
+    actions:
+      - { do: pop, to: COMMAND }
+      - { do: pop, from: COMMAND, to: INITIAL }
+  - re: "\\n{space}*\\n"
+    token: MediumNewline
+    states: [COMMAND_COLUMNS, COMMAND_TEXT, COMMAND_RAW, COMMAND_ARGS, COMMAND_TBLFM]
+    actions:
+      - { do: pop, to: COMMAND }
+      - { do: pop, from: COMMAND, to: INITIAL }
+  - re: "\\n"
+    token: Newline
+    states: [COMMAND_COLUMNS, COMMAND_TEXT, COMMAND_RAW, COMMAND_ARGS, COMMAND_TBLFM]
+    actions:
+      - { do: pop, to: COMMAND }
+      - { do: pop, from: COMMAND, to: INITIAL }
+
+  - re: "\\n{space}*\\n({space}*\\n)+"
+    token: LongNewline
+    states: [SUBTREE_HEAD]
     actions: [{ do: pop, from: SUBTREE_HEAD, to: INITIAL }]
   - re: "\\n{space}*\\n"
-    states: [SUBTREE_HEAD]
     token: MediumNewline
+    states: [SUBTREE_HEAD]
     actions: [{ do: pop, from: SUBTREE_HEAD, to: INITIAL }]
   - re: "\\n"
-    states: [SUBTREE_HEAD]
     token: Newline
+    states: [SUBTREE_HEAD]
     actions: [{ do: pop, from: SUBTREE_HEAD, to: INITIAL }]
 
   - re: "\\n{space}*\\n({space}*\\n)+"
@@ -380,6 +373,8 @@ rules:
     token: MediumNewline
   - re: "\\n"
     token: Newline
+
+  # * End of file handler
 
   - re: "<<EOF>>"
     token: EndOfFile

@@ -769,6 +769,7 @@ enum class OrgTokenKind : short int {
   FootnoteEnd,
   /// \brief Regular word in the paragraph
   Word,
+  Number,
   /// \brief Escaped character in plain text - `\*`, `\/` etc. Escaped characters and sequences thereof are treated like a regular plain text.
   Escaped,
   /// \brief Put at the end of the lexer first logbook line to separate the  note, otherwise is treated as standalone escaped slash.

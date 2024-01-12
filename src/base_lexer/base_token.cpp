@@ -26,14 +26,17 @@ void BaseLexerImpl::add(BaseTokenKind token) {
 
 
 void BaseLexerImpl::pop_expect_impl(int current, int next, int line) {
-    CHECK(impl->start() == current) << std::format(
-        "Expected current state to be {} line:{} but got {} '{}'",
-        state_name(current),
-        line,
-        state_name(impl->start()),
-        view());
+    if (current != -1) {
+        CHECK(impl->start() == current) << std::format(
+            "Expected current state to be {} line:{} but got {} '{}'",
+            state_name(current),
+            line,
+            state_name(impl->start()),
+            view());
+    }
 
     impl->pop_state();
+
     CHECK(impl->start() == next) << std::format(
         "After popping {} expected next state to be {} line:{} but got "
         "{} '{}'",
@@ -42,6 +45,7 @@ void BaseLexerImpl::pop_expect_impl(int current, int next, int line) {
         line,
         state_name(impl->start()),
         view());
+
     states.pop_back();
     if (!states.empty()) { CHECK(states.back().stateId == next); }
 

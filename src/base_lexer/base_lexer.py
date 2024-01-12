@@ -97,10 +97,10 @@ def rule_to_reflex_code(rule: Rule, macros: dict[str, str]) -> str:
         for action in rule.actions:
             match action.do:
                 case "push":
-                    actions.append(f"push_expect({action.from_}, {action.to}, {rule.line});")
+                    actions.append(f"push_expect({action.from_ or '-1'}, {action.to}, {rule.line});")
 
                 case "pop":
-                    actions.append(f"pop_expect({action.from_}, {action.to}, {rule.line});")
+                    actions.append(f"pop_expect({action.from_ or '-1'}, {action.to}, {rule.line});")
 
                 case "set":
                     actions.append(f"start({action.to});")

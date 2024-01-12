@@ -809,6 +809,7 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "FootnoteStart") { return OrgTokenKind::FootnoteStart; } else
   if (value == "FootnoteEnd") { return OrgTokenKind::FootnoteEnd; } else
   if (value == "Word") { return OrgTokenKind::Word; } else
+  if (value == "Number") { return OrgTokenKind::Number; } else
   if (value == "Escaped") { return OrgTokenKind::Escaped; } else
   if (value == "DoubleSlash") { return OrgTokenKind::DoubleSlash; } else
   if (value == "Newline") { return OrgTokenKind::Newline; } else
@@ -1037,6 +1038,7 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::FootnoteStart: return "FootnoteStart";
     case OrgTokenKind::FootnoteEnd: return "FootnoteEnd";
     case OrgTokenKind::Word: return "Word";
+    case OrgTokenKind::Number: return "Number";
     case OrgTokenKind::Escaped: return "Escaped";
     case OrgTokenKind::DoubleSlash: return "DoubleSlash";
     case OrgTokenKind::Newline: return "Newline";

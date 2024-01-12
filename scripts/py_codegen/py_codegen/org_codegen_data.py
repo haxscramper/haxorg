@@ -1433,6 +1433,7 @@ def get_types() -> Sequence[GenTuStruct]:
 
 def get_enums():
     return [
+        #tag org placement kind
         GenTuEnum(
             t("OrgSemPlacement"),
             GenTuDoc("Semantic location of the sem org node in the parent tree"),
@@ -1471,6 +1472,7 @@ def get_enums():
                 GenTuEnumField("ovdBottom", GenTuDoc("Bottom")),
             ],
         ),
+        #tag Org spec name
         GenTuEnum(
             t("OrgSpecName"),
             GenTuDoc(""),
@@ -2146,6 +2148,7 @@ def get_enums():
                 GenTuEnumField("StructWhile", GenTuDoc("")),
             ],
         ),
+        #region Org token kind
         GenTuEnum(
             t("OrgTokenKind"),
             GenTuDoc(""),
@@ -2164,7 +2167,9 @@ def get_enums():
                         "`#+begin` part of the multiline command. `begin_<block-type>` is split into two tokens - `begin_` prefix and `ockBegin<block-type>` section."
                     ),
                 ),
+                #region Commands
                 GenTuEnumField("CommandEnd", GenTuDoc("")),
+                #tag Line-commands
                 GenTuEnumField("CmdTitle", GenTuDoc("#+title: line command token")),
                 GenTuEnumField("CmdCaption", GenTuDoc("#+caption")),
                 GenTuEnumField("CmdFiletags", GenTuDoc("#+filetags")),
@@ -2172,6 +2177,32 @@ def get_enums():
                 GenTuEnumField("CmdProperty", GenTuDoc("#+property")),
                 GenTuEnumField("CmdOptions", GenTuDoc("#+options")),
                 GenTuEnumField("DoubleColon", GenTuDoc("")),
+                #tag Source-commands
+                GenTuEnumField("CommandContentStart", GenTuDoc("")),
+                GenTuEnumField("CommandContentEnd", GenTuDoc("")),
+                GenTuEnumField("CodeContent",
+                               GenTuDoc("Block of code inside `#+begin_src`")),
+                GenTuEnumField("CodeContentBegin",
+                               GenTuDoc("Start of the expanded code content")),
+                GenTuEnumField("CodeContentEnd",
+                               GenTuDoc("End of the expanded code content")),
+                #tag Command-arguments
+                GenTuEnumField("CommandArgumentsBegin",
+                               GenTuDoc("List of command arguments")),
+                GenTuEnumField("CommandArgumentsEnd",
+                               GenTuDoc("End of the command arguments list")),
+                GenTuEnumField("CommandKey", GenTuDoc("")),
+                GenTuEnumField("CommandValue", GenTuDoc("")),
+                GenTuEnumField("CommandFlag", GenTuDoc("")),
+                GenTuEnumField("CommandBracket", GenTuDoc("`#+results[HASH...]`")),                               
+                #endregion
+                GenTuEnumField(
+                    "CodeText",
+                    GenTuDoc(
+                        "Uninterrupted text span without newlines - either a whole line or sub subsection of it if callout or tangle elements were detected"
+                    ),
+                ),
+
                 GenTuEnumField("Text", GenTuDoc("")),
                 GenTuEnumField(
                     "StmtList",
@@ -2183,6 +2214,7 @@ def get_enums():
                                GenTuDoc("Start of the expanded statement list content")),
                 GenTuEnumField("StmtListClose",
                                GenTuDoc("End of the expanded statement list content")),
+                #tag List-items
                 GenTuEnumField("ListStart", GenTuDoc("Start of the list token group")),
                 GenTuEnumField("ListItemStart",
                                GenTuDoc("Start of the list item element")),
@@ -2199,6 +2231,7 @@ def get_enums():
                 GenTuEnumField("ListEnd",
                                GenTuDoc("Complete end of the list token group")),
                 GenTuEnumField("Checkbox", GenTuDoc("List or subtree checkbox")),
+                #tag Subtree
                 GenTuEnumField("SubtreeTodoState", GenTuDoc("")),
                 GenTuEnumField("SubtreeUrgency", GenTuDoc("Subtree importance marker")),
                 GenTuEnumField("SubtreeCompletion",
@@ -2207,6 +2240,7 @@ def get_enums():
                 GenTuEnumField("SubtreeTagSeparator", GenTuDoc("")),
                 GenTuEnumField("SubtreeTime", GenTuDoc("")),
                 GenTuEnumField("SubtreeEnd", GenTuDoc("")),
+                #tag Time
                 GenTuEnumField(
                     "ImplicitTime",
                     GenTuDoc(
@@ -2251,14 +2285,7 @@ def get_enums():
                     "ListDoubleColon",
                     GenTuDoc("Double colon between description list tag and body"),
                 ),
-                GenTuEnumField("CommandArgumentsBegin",
-                               GenTuDoc("List of command arguments")),
-                GenTuEnumField("CommandArgumentsEnd",
-                               GenTuDoc("End of the command arguments list")),
-                GenTuEnumField("CommandKey", GenTuDoc("")),
-                GenTuEnumField("CommandValue", GenTuDoc("")),
-                GenTuEnumField("CommandFlag", GenTuDoc("")),
-                GenTuEnumField("CommandBracket", GenTuDoc("`#+results[HASH...]`")),
+                #tag Subtree-properties
                 GenTuEnumField("ColonLiteral", GenTuDoc("Literal block with `:`")),
                 GenTuEnumField(
                     "ColonIdent",
@@ -2278,20 +2305,6 @@ def get_enums():
                 GenTuEnumField("LogbookEnd", GenTuDoc("")),
                 GenTuEnumField("RawProperty", GenTuDoc("")),
                 GenTuEnumField("Link", GenTuDoc("Any kind of link")),
-                GenTuEnumField("CommandContentStart", GenTuDoc("")),
-                GenTuEnumField("CommandContentEnd", GenTuDoc("")),
-                GenTuEnumField("CodeContent",
-                               GenTuDoc("Block of code inside `#+begin_src`")),
-                GenTuEnumField("CodeContentBegin",
-                               GenTuDoc("Start of the expanded code content")),
-                GenTuEnumField("CodeContentEnd",
-                               GenTuDoc("End of the expanded code content")),
-                GenTuEnumField(
-                    "CodeText",
-                    GenTuDoc(
-                        "Uninterrupted text span without newlines - either a whole line or sub subsection of it if callout or tangle elements were detected"
-                    ),
-                ),
                 GenTuEnumField("TableContent",
                                GenTuDoc("Block of text inside `#+table`")),
                 GenTuEnumField("QuoteContent", GenTuDoc("`#+quote` content")),
@@ -2386,7 +2399,9 @@ def get_enums():
                 GenTuEnumField("ParagraphEnd", GenTuDoc("")),
                 GenTuEnumField("FootnoteStart", GenTuDoc("")),
                 GenTuEnumField("FootnoteEnd", GenTuDoc("")),
+                #tag Paragraph-structure
                 GenTuEnumField("Word", GenTuDoc("Regular word in the paragraph")),
+                GenTuEnumField("Number", GenTuDoc("")),
                 GenTuEnumField(
                     "Escaped",
                     GenTuDoc(
@@ -2536,6 +2551,7 @@ def get_enums():
                 ),
             ],
         ),
+        #endregion
         GenTuEnum(
             t("OrgCommandKind"),
             GenTuDoc(""),

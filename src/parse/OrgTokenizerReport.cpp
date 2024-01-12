@@ -69,13 +69,15 @@ void OrgTokenizer::report(CR<Report> in) {
 
         case ReportKind::Push: {
             if (in.id.isNil()) {
-                os << "  + buffer token " << getLoc()
+                os << "  + buffer token " << fmt1(getLoc())
                    << std::format("{}", in.tok.kind);
             } else {
-                os << "  + add token " << getLoc() << in.id.getIndex()
-                   << " " << std::format("{}", at(in.id).kind);
+                os << "  + add token " << fmt1(getLoc())
+                   << fmt1(in.id.getIndex()) << " "
+                   << std::format("{}", at(in.id).kind);
             }
-            os << " at " << fg::Cyan << in.line << os.end();
+            os << " at " << fg::Cyan << fmt1(in.line) << os.end();
+            if (in.msg) { os << " " << *in.msg; }
             break;
         }
         case ReportKind::Enter:

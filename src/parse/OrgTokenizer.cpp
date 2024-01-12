@@ -24,6 +24,16 @@ struct Builder {
         return *this;
     }
 
+    Builder& with_line(int const& line) {
+        report.line = line;
+        return *this;
+    }
+
+    Builder& with_id(OrgTokenId const& id) {
+        report.id = id;
+        return *this;
+    }
+
 
     Builder(
         BaseLexer&               lex,
@@ -40,6 +50,14 @@ struct Builder {
         };
     }
 };
+
+#define x_report(kind, ...)                                               \
+    if (TraceState) {                                                     \
+        this->report((::rep::Builder(lex, OrgTokenizer::ReportKind::kind) \
+                          __VA_ARGS__)                                    \
+                         .report);                                        \
+    }
+
 
 #define x_trace(...)                                                      \
     if (TraceState) {                                                     \
@@ -222,17 +240,31 @@ struct RecombineState {
         }
     }
 
-    OrgTokenId add_as(OrgTokenKind __to) {
-        return d->out->add(OrgToken{__to, fill(lex)});
+    OrgTokenId add_as(OrgTokenKind __to, int line = __builtin_LINE()) {
+        auto res = d->out->add(OrgToken{__to, fill(lex)});
+        x_report(
+            Push,
+            .with_id(res).with_line(line).with_msg(
+                fmt("add {} from {}", __to, lex.tok())));
+        return res;
     }
 
-    void pop_as(OrgTokenKind __to) {
-        add_as(__to);
+    void pop_as(OrgTokenKind __to, int line = __builtin_LINE()) {
+        auto res = d->out->add(OrgToken{__to, fill(lex)});
+        x_report(
+            Push,
+            .with_id(res).with_line(line).with_msg(
+                fmt("pop {} from {}", __to, lex.tok())));
         lex.next();
     }
 
-    OrgTokenId add_fake(OrgTokenKind __to) {
-        return d->out->add(OrgToken{__to});
+    OrgTokenId add_fake(OrgTokenKind __to, int line = __builtin_LINE()) {
+        auto res = d->out->add(OrgToken{__to});
+        x_report(
+            Push,
+            .with_id(res).with_line(line).with_msg(
+                fmt("fake {} from {}", __to, lex.tok())));
+        return res;
     }
 
     void recombine_markup() {
@@ -320,13 +352,23 @@ struct RecombineState {
 
 
     void map_open_brace() {
+        __trace();
         if (lex.hasNext(-1)) {
             switch (lex.tok(-1).kind) {
                 case obt::HashIdent: pop_as(otk::HashTagOpen); break;
                 default: pop_as(otk::Punctuation);
             }
-            // } else if (lex.at(obt::BraceOpen, +1)) {
-
+        } else if (auto next = lex.opt(+1);
+                   next && next->get().kind == obt::Date) {
+            pop_as(otk::InactiveTimeBegin);
+            if (lex.at(obt::Date)) { pop_as(otk::StaticTimeDatePart); }
+            if (!lex.at(obt::BraceClose)) {
+                lex.skip(obt::Whitespace);
+                if (lex.at(obt::Time)) {
+                    pop_as(otk::StaticTimeClockPart);
+                }
+            }
+            pop_as(otk::InactiveTimeEnd);
         } else {
             pop_as(otk::Punctuation);
         }
@@ -345,8 +387,6 @@ struct RecombineState {
                              return tree_tags.contains(t.kind);
                          })
                        | rs::to<std::vector>;
-
-            LOG(INFO) << fmt("Tokens ahead for subtree {}", ahead);
 
             if (line_end.contains((lex.begin() + ahead.size())->kind)) {
                 while (!line_end.contains(lex.kind())) {
@@ -458,7 +498,15 @@ struct RecombineState {
             direct(obt::StmtListOpen, otk::StmtListOpen);
             direct(obt::ListItemEnd, otk::ListItemEnd);
             direct(obt::SrcContent, otk::CodeText);
-
+            direct(obt::TreePropertyProperties, otk::ColonProperties);
+            direct(obt::TreePropertyEnd, otk::ColonEnd);
+            direct(obt::RawText, otk::RawText);
+            // On top level, base tokens like `2020-01-10` are not
+            // registered as proper timestamp elements and are converted to
+            // the regular words.
+            direct(obt::Number, otk::Number);
+            direct(obt::Date, otk::Word);
+            direct(obt::CmdRawArg, otk::CmdArguments);
 
             case obt::Colon: map_colon(); break;
             case obt::BraceOpen: map_open_brace(); break;
@@ -497,9 +545,11 @@ struct RecombineState {
 
             case obt::LineCommand: {
                 maybe_paragraph_end();
-                switch (lex.tok(+1).kind) {
+                auto next = lex.tok(+1);
+                pop_as(otk::CommandPrefix);
+                switch (next.kind) {
                     case obt::CmdSrcBegin:
-                        pop_as(otk::CommandPrefix);
+                        pop_as(otk::CommandBegin);
                         break;
 
                     case obt::CmdTitle: pop_as(otk::CmdTitle); break;
@@ -640,7 +690,7 @@ struct RecombineState {
 
 
             default: {
-                DLOG(ERROR) << std::format(
+                CHECK(false) << std::format(
                     "Unhanled kind for token conversion, got {}:{} {} "
                     "\"{}\", top state was {}, lexer context {}",
                     val.line,
