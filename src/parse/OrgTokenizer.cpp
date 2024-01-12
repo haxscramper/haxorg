@@ -284,18 +284,18 @@ struct RecombineState {
                 switch (lex.kind()) {
                     case obt::Asterisk:
                         mark  = MarkKind::Bold;
-                        open  = otk::BoldClose;
-                        close = otk::BoldClose;
+                        open  = otk::BoldBegin;
+                        close = otk::BoldEnd;
                         break;
                     case obt::ForwardSlash:
                         mark  = MarkKind::Italic;
-                        open  = otk::ItalicOpen;
-                        close = otk::ItalicClose;
+                        open  = otk::ItalicBegin;
+                        close = otk::ItalicEnd;
                         break;
                     case obt::Equals:
                         mark  = MarkKind::Verbatim;
-                        open  = otk::VerbatimOpen;
-                        close = otk::VerbatimClose;
+                        open  = otk::VerbatimBegin;
+                        close = otk::VerbatimEnd;
                         break;
                     default: break;
                 }
@@ -355,7 +355,7 @@ struct RecombineState {
         __trace();
         if (lex.hasNext(-1)) {
             switch (lex.tok(-1).kind) {
-                case obt::HashIdent: pop_as(otk::HashTagOpen); break;
+                case obt::HashIdent: pop_as(otk::HashTagBegin); break;
                 default: pop_as(otk::Punctuation);
             }
         } else if (auto next = lex.opt(+1);
@@ -415,7 +415,7 @@ struct RecombineState {
         x_trace(.with_msg(fmt("match:{}", matching_state)));
 
         if (matching_state) {
-            add_fake(otk::ParagraphStart);
+            add_fake(otk::ParagraphBegin);
             state_push(State::Paragraph);
         }
     }
@@ -455,10 +455,10 @@ struct RecombineState {
                 for (auto const& tok : while_tag) {
                     switch (lex.kind()) {
                         case obt::BraceOpen:
-                            pop_as(otk::HashTagOpen);
+                            pop_as(otk::HashTagBegin);
                             break;
                         case obt::BraceClose:
-                            pop_as(otk::HashTagClose);
+                            pop_as(otk::HashTagEnd);
                             break;
                         case obt::Word: pop_as(otk::HashTag); break;
                         case obt::DoubleHash:
@@ -493,9 +493,9 @@ struct RecombineState {
             direct(obt::Indent, otk::Indent);
             direct(obt::Dedent, otk::Dedent);
             direct(obt::SameIndent, otk::SameIndent);
-            direct(obt::ListStart, otk::ListStart);
+            direct(obt::ListStart, otk::ListBegin);
             direct(obt::ListEnd, otk::ListEnd);
-            direct(obt::StmtListOpen, otk::StmtListOpen);
+            direct(obt::StmtListOpen, otk::StmtListBegin);
             direct(obt::ListItemEnd, otk::ListItemEnd);
             direct(obt::SrcContent, otk::CodeText);
             direct(obt::TreePropertyProperties, otk::ColonProperties);
@@ -510,7 +510,7 @@ struct RecombineState {
 
             case obt::Colon: map_colon(); break;
             case obt::BraceOpen: map_open_brace(); break;
-            case obt::LeadingMinus: pop_as(otk::ListItemStart); break;
+            case obt::LeadingMinus: pop_as(otk::ListItemBegin); break;
             case obt::LeadingSpace: lex.next(); break;
             case obt::Minus: pop_as(otk::Punctuation); break;
 
@@ -528,11 +528,11 @@ struct RecombineState {
                     case State::CmdArguments: {
                         lex.next();
                         state_pop();
-                        add_fake(otk::CommandArgumentsEnd);
+                        add_fake(otk::CmdArgumentsEnd);
                         state_push(State::CmdContent);
-                        add_fake(otk::CommandContentStart);
+                        add_fake(otk::CmdContentBegin);
                         state_push(State::CmdSrcContent);
-                        add_fake(otk::CodeContentBegin);
+                        add_fake(otk::CmdContentBegin);
                         break;
                     }
                     default: {
@@ -546,12 +546,9 @@ struct RecombineState {
             case obt::LineCommand: {
                 maybe_paragraph_end();
                 auto next = lex.tok(+1);
-                pop_as(otk::CommandPrefix);
+                pop_as(otk::CmdPrefix);
                 switch (next.kind) {
-                    case obt::CmdSrcBegin:
-                        pop_as(otk::CommandBegin);
-                        break;
-
+                    case obt::CmdSrcBegin: pop_as(otk::CmdBegin); break;
                     case obt::CmdTitle: pop_as(otk::CmdTitle); break;
                     case obt::CmdCaption: pop_as(otk::CmdCaption); break;
                     case obt::CmdFiletags: pop_as(otk::CmdFiletags); break;
@@ -569,19 +566,18 @@ struct RecombineState {
             }
 
             case obt::CmdSrcBegin: {
-                pop_as(otk::CommandBegin);
-                add_fake(otk::CommandArgumentsBegin);
+                pop_as(otk::CmdSrcBegin);
+                add_fake(otk::CmdArgumentsBegin);
                 state_push(State::CmdArguments);
                 break;
             }
 
             case obt::SrcContentEnd: {
                 state_pop(State::CmdSrcContent);
-                pop_as(otk::CodeContentEnd);
                 state_pop(State::CmdContent);
-                add_fake(otk::CommandContentEnd);
-                add_fake(otk::CommandPrefix);
-                add_fake(otk::CommandEnd);
+                pop_as(otk::CmdContentEnd);
+                add_fake(otk::CmdPrefix);
+                add_fake(otk::ColonEnd);
                 break;
             }
 
@@ -636,7 +632,7 @@ struct RecombineState {
                     }
                 }
 
-                pop_as(otk::StmtListClose);
+                pop_as(otk::StmtListEnd);
                 break;
             }
 

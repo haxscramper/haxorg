@@ -37,25 +37,6 @@ tokens:
   - { name: Unknown }
 
 rules:
-  - re: "^#\\+"
-    token: LineCommand
-    actions:
-      - { do: push, to: COMMAND, from: INITIAL }
-
-  - lit: "#+"
-    states: [LEAD]
-    token: LineCommand
-    actions:
-      - { do: pop, to: INITIAL, from: LEAD }
-      - { do: push, to: COMMAND, from: INITIAL }
-
-  # Document columns command
-  - lit: "columns"
-    token: CmdColumns
-    states: [COMMAND]
-    actions:
-      - { do: push, from: COMMAND, to: COMMAND_COLUMNS }
-
   - { lit: "%", token: Percent, states: [COMMAND_COLUMNS] }
   - { re: "\\d+", token: Digit, states: [COMMAND_COLUMNS] }
   - { re: "[a-zA-Z_]+", token: CmdIdent, states: [COMMAND_COLUMNS] }
@@ -67,8 +48,8 @@ rules:
   - { re: "{space}+", token: Whitespace, states: [COMMAND_COLUMNS] }
 
 
-
-  # Quote block command
+  #region Blocks
+  #tag Quote block command
   - lit: "begin_quote"
     states: [COMMAND]
     token: CmdQuoteBegin
@@ -79,7 +60,7 @@ rules:
     token: CmdQuoteEnd
     actions: [{ do: pop, to: INITIAL, from: COMMAND }]
 
-  # Example literal command
+  #tag Example literal command
   - lit: "begin_example"
     states: [COMMAND]
     token: CmdExampleBegin
@@ -100,7 +81,7 @@ rules:
     states: [COMMAND_EXAMPLE]
     token: Newline
 
-  # Source code block command
+  #tag Source code block command
   - re: "begin_src"
     states: [COMMAND]
     token: CmdSrcBegin
@@ -122,6 +103,7 @@ rules:
   - { lit: ">>", states: [BODY_SRC], token: SrcTangleClose }
   - { re: ".+", states: [BODY_SRC], token: SrcContent }
   - { re: "\\n", states: [BODY_SRC], token: Newline }
+  #endregion
 
   # Command with parameters
   - { re: ":\\w+", states: [COMMAND_ARGS, COMMAND_SRC], token: CmdColonIdent }
@@ -133,7 +115,27 @@ rules:
       token: CmdRawArg,
     }
 
-  # Caption command
+  #region Line-commands
+  - re: "^#\\+"
+    token: LineCommand
+    actions:
+      - { do: push, to: COMMAND, from: INITIAL }
+
+  - lit: "#+"
+    states: [LEAD]
+    token: LineCommand
+    actions:
+      - { do: pop, to: INITIAL, from: LEAD }
+      - { do: push, to: COMMAND, from: INITIAL }
+
+  #tag Columns
+  - lit: "columns"
+    token: CmdColumns
+    states: [COMMAND]
+    actions:
+      - { do: push, from: COMMAND, to: COMMAND_COLUMNS }
+
+  #tag Caption command
   - lit: "caption"
     states: [COMMAND]
     token: CmdCaption
@@ -141,26 +143,26 @@ rules:
     
 
 
-  # Title command
+  #tag Title command
   - lit: "title:"
     states: [COMMAND]
     token: CmdTitle
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
 
-  # property command 
+  #tag property command 
   - lit: "property:"
     states: [COMMAND]
     token: CmdProperty 
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
-  # Options
+  #tag Options
   - lit: "options:"
     states: [COMMAND]
     token: CmdFiletags
     # Full options parsing is deferred to the sem stage
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
-  # File tags command
+  #tag File tags command
   - lit: "filetags:"
     states: [COMMAND]
     token: CmdFiletags
@@ -171,14 +173,14 @@ rules:
     token: RawText
 
 
-  # Latex header
+  #tag Latex header
   - lit: "latex_header:"
     states: [COMMAND]
     token: CmdLatexHeader
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
 
-  # Table formulas
+  #tag Table formulas
   - lit: "tblfm:"
     states: [COMMAND]
     token: CmdTblfm
@@ -188,9 +190,9 @@ rules:
   - { re: "@-?\\d+", states: [COMMAND_TBLFM], token: TblRelativeColumnRef }
   - { re: "{space}+", states: [COMMAND_TBLFM], token: Whitespace }
   - { re: "[-]", states: [COMMAND_TBLFM], token: TblOperator }
+  #endregion
 
-
-  # Subtree
+  #tag Subtree
   - re: "^\\*+"
     token: SubtreeStars
     actions:
@@ -218,6 +220,7 @@ rules:
   - { re: "#{space}+.*?$", token: Comment }
   - { lit: ":LOGBOOK:", token: TreePropertyLogbook }
 
+  #region Properties
   ## Subtree property lexing
   - lit: ":PROPERTIES:"
     token: TreePropertyProperties
@@ -284,7 +287,9 @@ rules:
   - re: ":\\w+:"
     token: TreePropertyName
     states: [PROPERTIES]
+  #endregion
 
+  #region Text-elements
   - { lit: "CLOCK:", token: TreeClock }
   - { lit: "&", token: Ampersand }
   - { lit: "!", token: Exclamation }
@@ -326,9 +331,9 @@ rules:
   - { re: "\\w+", token: Word }
   - { re: "\\$", token: Dollar }
   - { re: "[\\x{{0256}}-\\x{{10FFFF}}]|©", token: MiscUnicode }
+  #endregion
 
-
-  # * Newline transition handlers
+  #region Newline-highlevel
 
   - re: "\\n"
     states: [LEAD]
@@ -374,7 +379,7 @@ rules:
   - re: "\\n"
     token: Newline
 
-  # * End of file handler
+  #endregion
 
   - re: "<<EOF>>"
     token: EndOfFile

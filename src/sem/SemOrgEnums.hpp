@@ -563,15 +563,14 @@ enum class OrgTokenKind : short int {
   None,
   Eof,
   /// \brief Start of the tokenizer token group
-  GroupStart,
+  GroupBegin,
   /// \brief Tokenizer token group end
   GroupEnd,
   ErrorTerminator,
-  CommandPrefix,
-  LineCommand,
-  /// \brief `#+begin` part of the multiline command. `begin_<block-type>` is split into two tokens - `begin_` prefix and `ockBegin<block-type>` section.
-  CommandBegin,
-  CommandEnd,
+  /// \brief `#+` prefix token for the command
+  CmdPrefix,
+  /// \brief Generic line command
+  CmdLine,
   /// \brief #+title: line command token
   CmdTitle,
   /// \brief #+caption
@@ -584,32 +583,98 @@ enum class OrgTokenKind : short int {
   CmdProperty,
   /// \brief #+options
   CmdOptions,
-  DoubleColon,
+  /// \brief List of command arguments
+  CmdArgumentsBegin,
+  /// \brief End of the command arguments list
+  CmdArgumentsEnd,
+  CmdKey,
+  CmdValue,
+  CmdFlag,
+  /// \brief `#+results[HASH...]`
+  CmdBracket,
+  /// \brief `#+begin` part of generic multiline command.
+  CmdBegin,
+  CmdEnd,
+  CmdSrcBegin,
+  CmdSrcEnd,
+  CmdQuoteBegin,
+  CmdQuoteEnd,
+  CmdCenterBegin,
+  CmdCenterEnd,
+  CmdTableBegin,
+  CmdTableEnd,
+  /// \brief `#+quote` content
+  QuoteContent,
+  /// \brief Backend-specific passthrough
+  CmdBackendPass,
+  /// \brief Content wrapper for the block commands
+  CmdContentBegin,
+  /// \brief End of content wrapper
+  CmdContentEnd,
+  /// \brief Block of code inside `#+begin_src`
+  CmdSrcCodeContent,
+  /// \brief Source code block language name
+  CmdSrcLangName,
+  /// \brief Code before noweb placeholder. Requires separate token to handle `##<<commented>>` - prefix comment should be duplicated for each line of the placeholder expansion.
+  CmdSrcTextBlock,
+  /// \brief Block of text inside `#+table`
+  TblContent,
+  TblBegin,
+  TblEnd,
+  /// \brief Unformatted table cell body
+  TblCellBody,
+  /// \brief `#+row` command together with parameters
+  TblRowSpec,
+  /// \brief `#+cell` command with parameters
+  TblCellSpec,
+  TblPipeBegin,
+  /// \brief Vertical pipe (`|`) cell separator
+  TblPipeSeparator,
+  TblPipeEnd,
+  TblPipeCellBegin,
+  /// \brief Horizontal dash (`---`, `:---`, `---:` or `:---:`) row separator
+  TblDashSeparator,
+  /// \brief Corner plus (`+`)
+  TblCornerPlus,
+  /// \brief Start of the table cell content section
+  TblCellContentBegin,
+  /// \brief End of the table cell content section
+  TblCellContentEnd,
+  /// \brief Uninterrupted text span without newlines - either a whole line or sub subsection of it if callout or tangle elements were detected
+  CodeText,
   Text,
   /// \brief Unlexed group of statements - used in the list content to enable secondary parsing.
   StmtList,
   /// \brief Start of the expanded statement list content
-  StmtListOpen,
+  StmtListBegin,
   /// \brief End of the expanded statement list content
-  StmtListClose,
+  StmtListEnd,
+  /// \brief Increase in indentation
+  Indent,
+  /// \brief Decrease in indentation
+  Dedent,
+  SameIndent,
+  NoIndent,
   /// \brief Start of the list token group
-  ListStart,
+  ListBegin,
   /// \brief Start of the list item element
-  ListItemStart,
+  ListItemBegin,
   /// \brief `CLOCK:` entry at the start of the logbook entry list
   ListClock,
   ListPlus,
   ListStar,
   /// \brief Start of the description list key,
-  ListDescOpen,
+  ListDescBegin,
   /// \brief End of the description list key `::`
-  ListDescClose,
+  ListDescEnd,
   /// \brief End of the list item
   ListItemEnd,
   /// \brief Complete end of the list token group
   ListEnd,
   /// \brief List or subtree checkbox
   Checkbox,
+  /// \brief Double colon between description list tag and body
+  ListDoubleColon,
   SubtreeTodoState,
   /// \brief Subtree importance marker
   SubtreeUrgency,
@@ -620,6 +685,24 @@ enum class OrgTokenKind : short int {
   SubtreeTagSeparator,
   SubtreeTime,
   SubtreeEnd,
+  /// \brief Logbook including content
+  LogBook,
+  /// \brief Drawer including content
+  Drawer,
+  /// \brief Literal block with `:`
+  ColonLiteral,
+  /// \brief Drawer or source code block wrappers with colon-wrapped identifiers. `:results:`, `:end:` etc.
+  ColonIdent,
+  /// \brief Start of the `:PROPERTIES:` block drawer block
+  ColonProperties,
+  /// \brief Start of the `:description:` drawer block
+  ColonDescription,
+  ColonEnd,
+  ColonLogbook,
+  RawLogbook,
+  LogbookBegin,
+  LogbookEnd,
+  RawProperty,
   /// \brief You can write time ranges without any additional formatting for
   ///    subtrees that have a diary timestamps. For example, you have a
   ///    complex date predicate, but event occurs for `18:00-21:00`, so you
@@ -649,102 +732,63 @@ enum class OrgTokenKind : short int {
   TimeArrow,
   /// \brief line or inline comment
   Comment,
-  /// \brief Double colon between description list tag and body
-  ListDoubleColon,
-  /// \brief List of command arguments
-  CommandArgumentsBegin,
-  /// \brief End of the command arguments list
-  CommandArgumentsEnd,
-  CommandKey,
-  CommandValue,
-  CommandFlag,
-  /// \brief `#+results[HASH...]`
-  CommandBracket,
-  /// \brief Literal block with `:`
-  ColonLiteral,
-  /// \brief Drawer or source code block wrappers with colon-wrapped identifiers. `:results:`, `:end:` etc.
-  ColonIdent,
-  /// \brief Start of the `:PROPERTIES:` block drawer block
-  ColonProperties,
-  /// \brief Start of the `:description:` drawer block
-  ColonDescription,
-  ColonEnd,
-  ColonLogbook,
-  RawLogbook,
-  LogbookStart,
-  LogbookEnd,
-  RawProperty,
   /// \brief Any kind of link
   Link,
-  CommandContentStart,
-  CommandContentEnd,
-  /// \brief Block of code inside `#+begin_src`
-  CodeContent,
-  /// \brief Start of the expanded code content
-  CodeContentBegin,
-  /// \brief End of the expanded code content
-  CodeContentEnd,
-  /// \brief Uninterrupted text span without newlines - either a whole line or sub subsection of it if callout or tangle elements were detected
-  CodeText,
-  /// \brief Block of text inside `#+table`
-  TableContent,
-  /// \brief `#+quote` content
-  QuoteContent,
-  /// \brief Backend-specific passthrough
-  BackendPass,
-  /// \brief Logbook including content
-  LogBook,
-  /// \brief Drawer including content
-  Drawer,
-  /// \brief Increase in indentation
-  Indent,
-  /// \brief Decrease in indentation
-  Dedent,
-  SameIndent,
-  NoIndent,
-  BoldOpen,
-  BoldClose,
+  BoldBegin,
+  BoldEnd,
   BoldInline,
-  BoldInlineOpen,
-  BoldInlineClose,
-  ItalicOpen,
-  ItalicClose,
+  BoldInlineBegin,
+  BoldInlineEnd,
+  ItalicBegin,
+  ItalicEnd,
   ItalicInline,
-  ItalicInlineOpen,
-  ItalicInlineClose,
-  VerbatimOpen,
-  VerbatimClose,
+  ItalicInlineBegin,
+  ItalicInlineEnd,
+  VerbatimBegin,
+  VerbatimEnd,
   VerbatimInline,
-  VerbatimInlineOpen,
-  VerbatimInlineClose,
-  MonospaceOpen,
-  MonospaceClose,
+  VerbatimInlineBegin,
+  VerbatimInlineEnd,
+  MonospaceBegin,
+  MonospaceEnd,
   MonospaceInline,
-  MonospaceInlineOpen,
-  MonospaceInlineClose,
-  BacktickOpen,
-  BacktickClose,
+  MonospaceInlineBegin,
+  MonospaceInlineEnd,
+  BacktickBegin,
+  BacktickEnd,
   BacktickInline,
-  BacktickInlineOpen,
-  BacktickInlineClose,
-  UnderlineOpen,
-  UnderlineClose,
+  BacktickInlineBegin,
+  BacktickInlineEnd,
+  UnderlineBegin,
+  UnderlineEnd,
   UnderlineInline,
-  UnderlineInlineOpen,
-  UnderlineInlineClose,
-  StrikeOpen,
-  StrikeClose,
+  UnderlineInlineBegin,
+  UnderlineInlineEnd,
+  StrikeBegin,
+  StrikeEnd,
   StrikeInline,
-  StrikeInlineOpen,
-  StrikeInlineClose,
-  QuoteOpen,
-  QuoteClose,
+  StrikeInlineBegin,
+  StrikeInlineEnd,
+  QuoteBegin,
+  QuoteEnd,
   Punctuation,
-  LinkOpen,
-  LinkClose,
+  /// \brief Placeholder Begin
+  AngleBegin,
+  /// \brief Placeholder End
+  AngleEnd,
+  /// \brief `<<` - open for noweb or anchor placeholder
+  DoubleAngleBegin,
+  /// \brief `>>` - close for noweb or anchor placeholder
+  DoubleAngleEnd,
+  /// \brief `<<<` - radio target Begin
+  TripleAngleBegin,
+  /// \brief `>>>` - radio target End
+  TripleAngleEnd,
+  LinkBegin,
+  LinkEnd,
   RawUrl,
-  LinkTargetOpen,
-  LinkTargetClose,
+  LinkTargetBegin,
+  LinkTargetEnd,
   /// \brief No protocol is used in the link, it is targeting some internal named entry.
   LinkInternal,
   /// \brief Protocol used by the link - `file:`, `https:` etc.
@@ -759,16 +803,17 @@ enum class OrgTokenKind : short int {
   LinkExtraSeparator,
   /// \brief Additional parametrization for the link search
   LinkExtra,
-  LinkDescriptionOpen,
-  LinkDescriptionClose,
+  LinkDescriptionBegin,
+  LinkDescriptionEnd,
   TextSeparator,
   /// \brief Fake token inserted by the lexer to delimit start of the paragraph
-  ParagraphStart,
+  ParagraphBegin,
   ParagraphEnd,
-  FootnoteStart,
+  FootnoteBegin,
   FootnoteEnd,
   /// \brief Regular word in the paragraph
   Word,
+  DoubleColon,
   Number,
   /// \brief Escaped character in plain text - `\*`, `\/` etc. Escaped characters and sequences thereof are treated like a regular plain text.
   Escaped,
@@ -786,37 +831,27 @@ enum class OrgTokenKind : short int {
   BigIdent,
   /// \brief Unparsed raw text, either as a part of paragraph or some embedded construction such as link address.
   RawText,
-  /// \brief Start of an inline source code block: `src_nim[]{}`
-  InlineSrc,
-  /// \brief Start of an inline call block: `call_name[]{}`
-  InlineCall,
-  /// \brief Start of the curly section of an inline source/call
-  CurlyStart,
-  /// \brief End of the curly section of an inline source/call
-  CurlyEnd,
-  /// \brief Unquoted `\symbol` directly in the text
-  SymbolStart,
   Ident,
+  /// \brief Unquoted `\symbol` directly in the text
+  SymbolBegin,
   /// \brief Opening dollar inline latex math
-  DollarOpen,
+  DollarBegin,
   /// \brief Closing dollar for inline latex math
-  DollarClose,
+  DollarEnd,
   /// \brief Opening `$` for inline latex
-  DoubleDollarOpen,
+  DoubleDollarBegin,
   /// \brief Closing `$` for inline latex
-  DoubleDollarClose,
+  DoubleDollarEnd,
   /// \brief Opening `\(` for inline latex math
-  LatexParOpen,
+  LatexParBegin,
   /// \brief Closing `\)` for inline latex math
-  LatexParClose,
+  LatexParEnd,
   /// \brief Opening `\[` for inline display latex equation
-  LatexBraceOpen,
+  LatexBraceBegin,
   /// \brief Closing `\]` for inline display latex equation
-  LatexBraceClose,
+  LatexBraceEnd,
   /// \brief Content of the brace/par-enclosed math
   LatexInlineRaw,
-  /// \brief Inline backend passthrough `@@`
-  DoubleAt,
   /// \brief Inline annotation
   AtBracket,
   /// \brief `@user` mention in the text
@@ -826,81 +861,50 @@ enum class OrgTokenKind : short int {
   /// \brief Nested hashtag separator
   HashTagSub,
   /// \brief Start of the nested hashtag grop bracket
-  HashTagOpen,
+  HashTagBegin,
   /// \brief End of the nested hashtag group separator
-  HashTagClose,
+  HashTagEnd,
   /// \brief Comma - punctuation or a syntax element (e.g. for macro arguments)
   Comma,
   /// \brief Paren open - punctuation or a syntax element
-  ParOpen,
+  ParBegin,
   /// \brief Paren close - punctuation or a syntax element
-  ParClose,
+  ParEnd,
   Colon,
   /// \brief `^` possible superscript in the text
   Circumflex,
   /// \brief Start of the macro call `{{{`
-  MacroOpen,
+  MacroBegin,
   /// \brief Close of the macro call `}}}`
-  MacroClose,
-  MetaBraceOpen,
+  MacroEnd,
+  MetaBraceBegin,
   MetaBraceBody,
-  MetaBraceClose,
-  MetaArgsOpen,
+  MetaBraceEnd,
+  MetaArgsBegin,
   MetaArgsBody,
-  MetaArgsClose,
-  SrcOpen,
+  MetaArgsEnd,
+  /// \brief Start of an inline source code block: `src_nim[]{}`
+  InlineSrc,
+  /// \brief Start of an inline call block: `call_name[]{}`
+  InlineCall,
+  /// \brief Start of the curly section of an inline source/call
+  CurlyStart,
+  /// \brief End of the curly section of an inline source/call
+  CurlyEnd,
+  /// \brief Inline backend passthrough `@@`
+  DoubleAt,
+  SrcBegin,
   SrcName,
   SrcArgs,
   SrcBody,
-  SrcClose,
-  CallOpen,
+  SrcEnd,
+  CallBegin,
   CallName,
   CallInsideHeader,
   CallArgs,
   EndHeader,
-  CallClose,
+  CallEnd,
   CmdArguments,
-  TableBegin,
-  TableEnd,
-  /// \brief Unformatted table cell body
-  CellBody,
-  /// \brief `#+row` command together with parameters
-  RowSpec,
-  /// \brief `#+cell` command with parameters
-  CellSpec,
-  /// \brief Temporary token created during initial content lexing
-  Content,
-  /// \brief Start of the table cell content section
-  ContentStart,
-  /// \brief End of the table cell content section
-  ContentEnd,
-  PipeOpen,
-  /// \brief Vertical pipe (`|`) cell separator
-  PipeSeparator,
-  PipeClose,
-  PipeCellOpen,
-  /// \brief Horizontal dash (`---`, `:---`, `---:` or `:---:`) row separator
-  DashSeparator,
-  /// \brief Corner plus (`+`)
-  CornerPlus,
-  Command,
-  CommandArgs,
-  Body,
-  LangName,
-  /// \brief `<<` - open for noweb or anchor placeholder
-  DoubleAngleOpen,
-  /// \brief `>>` - close for noweb or anchor placeholder
-  DoubleAngleClose,
-  /// \brief `<<<` - radio target open
-  TripleAngleOpen,
-  /// \brief `>>>` - radio target close
-  TripleAngleClose,
-  /// \brief Placeholder open
-  AngleOpen,
-  /// \brief Placeholder close
-  AngleClose,
-  /// \brief Code before noweb placeholder. Requires separate token to handle `##<<commented>>` - prefix comment should be duplicated for each line of the placeholder expansion.
-  TextBlock,
 };
 template <>
 struct enum_serde<OrgTokenKind> {
@@ -911,7 +915,7 @@ struct enum_serde<OrgTokenKind> {
 template <>
 struct value_domain<OrgTokenKind> : public value_domain_ungapped<OrgTokenKind,
                                                                  OrgTokenKind::None,
-                                                                 OrgTokenKind::TextBlock> {};
+                                                                 OrgTokenKind::CmdArguments> {};
 
 enum class OrgCommandKind : short int {
   None,

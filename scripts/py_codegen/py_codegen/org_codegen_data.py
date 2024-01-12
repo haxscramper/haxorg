@@ -1431,6 +1431,386 @@ def get_types() -> Sequence[GenTuStruct]:
     ]
 
 
+def get_org_token_kind() -> GenTuEnum:
+    fields = [
+        GenTuEnumField("None", GenTuDoc("")),
+        GenTuEnumField("Eof", GenTuDoc("")),
+        GenTuEnumField("GroupBegin", GenTuDoc("Start of the tokenizer token group")),
+        GenTuEnumField("GroupEnd", GenTuDoc("Tokenizer token group end")),
+        GenTuEnumField("ErrorTerminator", GenTuDoc("")),
+        GenTuEnumField("CmdPrefix", GenTuDoc("`#+` prefix token for the command")),
+        #region Commands
+        #region Line-commands
+        GenTuEnumField("CmdLine", GenTuDoc("Generic line command")),
+        GenTuEnumField("CmdTitle", GenTuDoc("#+title: line command token")),
+        GenTuEnumField("CmdCaption", GenTuDoc("#+caption")),
+        GenTuEnumField("CmdFiletags", GenTuDoc("#+filetags")),
+        GenTuEnumField("CmdColumns", GenTuDoc("#+columns")),
+        GenTuEnumField("CmdProperty", GenTuDoc("#+property")),
+        GenTuEnumField("CmdOptions", GenTuDoc("#+options")),
+        #endregion
+        #region Command-arguments
+        GenTuEnumField("CmdArgumentsBegin", GenTuDoc("List of command arguments")),
+        GenTuEnumField("CmdArgumentsEnd",
+                       GenTuDoc("End of the command arguments list")),
+        GenTuEnumField("CmdKey", GenTuDoc("")),
+        GenTuEnumField("CmdValue", GenTuDoc("")),
+        GenTuEnumField("CmdFlag", GenTuDoc("")),
+        GenTuEnumField("CmdBracket", GenTuDoc("`#+results[HASH...]`")),
+        #endregion
+        #region Block-commands
+        #tag begin-end
+        GenTuEnumField("CmdBegin", GenTuDoc("`#+begin` part of generic multiline command.")),
+        GenTuEnumField("CmdEnd", GenTuDoc("")),
+        GenTuEnumField("CmdSrcBegin", GenTuDoc("")),
+        GenTuEnumField("CmdSrcEnd", GenTuDoc("")),
+        GenTuEnumField("CmdQuoteBegin", GenTuDoc("")),
+        GenTuEnumField("CmdQuoteEnd", GenTuDoc("")),
+        GenTuEnumField("CmdCenterBegin", GenTuDoc("")),
+        GenTuEnumField("CmdCenterEnd", GenTuDoc("")),
+        GenTuEnumField("CmdTableBegin", GenTuDoc("")),
+        GenTuEnumField("CmdTableEnd", GenTuDoc("")),
+        #tag Inner
+        GenTuEnumField("QuoteContent", GenTuDoc("`#+quote` content")),
+        GenTuEnumField("CmdBackendPass", GenTuDoc("Backend-specific passthrough")),
+        GenTuEnumField("CmdContentBegin", GenTuDoc("Content wrapper for the block commands")),
+        GenTuEnumField("CmdContentEnd", GenTuDoc("End of content wrapper")),
+        GenTuEnumField("CmdSrcCodeContent", GenTuDoc("Block of code inside `#+begin_src`")),
+        GenTuEnumField("CmdSrcLangName", GenTuDoc("Source code block language name")),
+        GenTuEnumField(
+            "CmdSrcTextBlock",
+            GenTuDoc(
+                "Code before noweb placeholder. Requires separate token to handle `##<<commented>>` - prefix comment should be duplicated for each line of the placeholder expansion."
+            ),
+        ),
+        #endregion
+        #region Table
+        GenTuEnumField("TblContent", GenTuDoc("Block of text inside `#+table`")),
+        GenTuEnumField("TblBegin", GenTuDoc("")),
+        GenTuEnumField("TblEnd", GenTuDoc("")),
+        GenTuEnumField("TblCellBody", GenTuDoc("Unformatted table cell body")),
+        GenTuEnumField("TblRowSpec", GenTuDoc("`#+row` command together with parameters")),
+        GenTuEnumField("TblCellSpec", GenTuDoc("`#+cell` command with parameters")),
+        GenTuEnumField("TblPipeBegin", GenTuDoc("")),
+        GenTuEnumField("TblPipeSeparator", GenTuDoc("Vertical pipe (`|`) cell separator")),
+        GenTuEnumField("TblPipeEnd", GenTuDoc("")),
+        GenTuEnumField("TblPipeCellBegin", GenTuDoc("")),
+        GenTuEnumField(
+            "TblDashSeparator",
+            GenTuDoc("Horizontal dash (`---`, `:---`, `---:` or `:---:`) row separator"),
+        ),
+        GenTuEnumField("TblCornerPlus", GenTuDoc("Corner plus (`+`)")),
+        GenTuEnumField("TblCellContentBegin", GenTuDoc("Start of the table cell content section")),
+        GenTuEnumField("TblCellContentEnd", GenTuDoc("End of the table cell content section")),
+        #endregion
+        #endregion
+        GenTuEnumField(
+            "CodeText",
+            GenTuDoc(
+                "Uninterrupted text span without newlines - either a whole line or sub subsection of it if callout or tangle elements were detected"
+            ),
+        ),
+        GenTuEnumField("Text", GenTuDoc("")),
+        GenTuEnumField(
+            "StmtList",
+            GenTuDoc(
+                "Unlexed group of statements - used in the list content to enable secondary parsing."
+            ),
+        ),
+        GenTuEnumField("StmtListBegin",
+                       GenTuDoc("Start of the expanded statement list content")),
+        GenTuEnumField("StmtListEnd",
+                       GenTuDoc("End of the expanded statement list content")),
+        #region List-items
+        GenTuEnumField("Indent", GenTuDoc("Increase in indentation")),
+        GenTuEnumField("Dedent", GenTuDoc("Decrease in indentation")),
+        GenTuEnumField("SameIndent", GenTuDoc("")),
+        GenTuEnumField("NoIndent", GenTuDoc("")),
+        GenTuEnumField("ListBegin", GenTuDoc("Start of the list token group")),
+        GenTuEnumField("ListItemBegin", GenTuDoc("Start of the list item element")),
+        GenTuEnumField("ListClock",
+                       GenTuDoc("`CLOCK:` entry at the start of the logbook entry list")),
+        GenTuEnumField("ListPlus", GenTuDoc("")),
+        GenTuEnumField("ListStar", GenTuDoc("")),
+        GenTuEnumField("ListDescBegin", GenTuDoc("Start of the description list key,")),
+        GenTuEnumField("ListDescEnd", GenTuDoc("End of the description list key `::`")),
+        GenTuEnumField("ListItemEnd", GenTuDoc("End of the list item")),
+        GenTuEnumField("ListEnd", GenTuDoc("Complete end of the list token group")),
+        GenTuEnumField("Checkbox", GenTuDoc("List or subtree checkbox")),
+        GenTuEnumField(
+            "ListDoubleColon",
+            GenTuDoc("Double colon between description list tag and body"),
+        ),
+        #endregion
+        #region Subtree
+        GenTuEnumField("SubtreeTodoState", GenTuDoc("")),
+        GenTuEnumField("SubtreeUrgency", GenTuDoc("Subtree importance marker")),
+        GenTuEnumField("SubtreeCompletion", GenTuDoc("Subtree completion marker")),
+        GenTuEnumField("SubtreeStars", GenTuDoc("Subtree prefix")),
+        GenTuEnumField("SubtreeTagSeparator", GenTuDoc("")),
+        GenTuEnumField("SubtreeTime", GenTuDoc("")),
+        GenTuEnumField("SubtreeEnd", GenTuDoc("")),
+        #region Subtree-properties
+        GenTuEnumField("LogBook", GenTuDoc("Logbook including content")),
+        GenTuEnumField("Drawer", GenTuDoc("Drawer including content")),
+        GenTuEnumField("ColonLiteral", GenTuDoc("Literal block with `:`")),
+        GenTuEnumField(
+            "ColonIdent",
+            GenTuDoc(
+                "Drawer or source code block wrappers with colon-wrapped identifiers. `:results:`, `:end:` etc."
+            ),
+        ),
+        GenTuEnumField("ColonProperties",
+                       GenTuDoc("Start of the `:PROPERTIES:` block drawer block")),
+        GenTuEnumField("ColonDescription",
+                       GenTuDoc("Start of the `:description:` drawer block")),
+        GenTuEnumField("ColonEnd", GenTuDoc("")),
+        GenTuEnumField("ColonLogbook", GenTuDoc("")),
+        GenTuEnumField("RawLogbook", GenTuDoc("")),
+        GenTuEnumField("LogbookBegin", GenTuDoc("")),
+        GenTuEnumField("LogbookEnd", GenTuDoc("")),
+        GenTuEnumField("RawProperty", GenTuDoc("")),
+        #endregion
+        #endregion
+        #region Time
+        GenTuEnumField(
+            "ImplicitTime",
+            GenTuDoc("""You can write time ranges without any additional formatting for
+   subtrees that have a diary timestamps. For example, you have a
+   complex date predicate, but event occurs for `18:00-21:00`, so you
+   write it in the random place in the subtree."""),
+        ),
+        GenTuEnumField(
+            "TimeDuration",
+            GenTuDoc(
+                "Time duration for the `effort` property or time range length evaluation"
+            ),
+        ),
+        GenTuEnumField(
+            "InactiveTimeBegin",
+            GenTuDoc("Start of the inactive timestamp (`[2022-03-12]`)"),
+        ),
+        GenTuEnumField("InactiveTimeEnd", GenTuDoc("")),
+        GenTuEnumField("ActiveTimeBegin",
+                       GenTuDoc("Start of the active timestamp `<2030-02-03>`")),
+        GenTuEnumField("ActiveTimeEnd", GenTuDoc("")),
+        GenTuEnumField("DynamicTimeContent", GenTuDoc("Dynamic time content")),
+        GenTuEnumField("StaticTimeDatePart",
+                       GenTuDoc("year-month-day part of the timestamp")),
+        GenTuEnumField("StaticTimeDayPart", GenTuDoc("weekday part of the timestamp")),
+        GenTuEnumField("StaticTimeClockPart", GenTuDoc("Clock part of the timestamp")),
+        GenTuEnumField("StaticTimeRepeater",
+                       GenTuDoc("Type of the time repeater: `+`, `++`, `.+`")),
+        GenTuEnumField(
+            "TimeDash",
+            GenTuDoc(
+                "Separator dash between two periods in the time range (`<start>--<finish.`)"
+            ),
+        ),
+        GenTuEnumField("TimeArrow",
+                       GenTuDoc("Time range evaluation arrow `[from]--[to] =>`")),
+        #endregion
+        #region Text
+        GenTuEnumField("Comment", GenTuDoc("line or inline comment")),
+
+        GenTuEnumField("Link", GenTuDoc("Any kind of link")),
+        #tag Markup
+        GenTuEnumField("BoldBegin", GenTuDoc("")),
+        GenTuEnumField("BoldEnd", GenTuDoc("")),
+        GenTuEnumField("BoldInline", GenTuDoc("")),
+        GenTuEnumField("BoldInlineBegin", GenTuDoc("")),
+        GenTuEnumField("BoldInlineEnd", GenTuDoc("")),
+        GenTuEnumField("ItalicBegin", GenTuDoc("")),
+        GenTuEnumField("ItalicEnd", GenTuDoc("")),
+        GenTuEnumField("ItalicInline", GenTuDoc("")),
+        GenTuEnumField("ItalicInlineBegin", GenTuDoc("")),
+        GenTuEnumField("ItalicInlineEnd", GenTuDoc("")),
+        GenTuEnumField("VerbatimBegin", GenTuDoc("")),
+        GenTuEnumField("VerbatimEnd", GenTuDoc("")),
+        GenTuEnumField("VerbatimInline", GenTuDoc("")),
+        GenTuEnumField("VerbatimInlineBegin", GenTuDoc("")),
+        GenTuEnumField("VerbatimInlineEnd", GenTuDoc("")),
+        GenTuEnumField("MonospaceBegin", GenTuDoc("")),
+        GenTuEnumField("MonospaceEnd", GenTuDoc("")),
+        GenTuEnumField("MonospaceInline", GenTuDoc("")),
+        GenTuEnumField("MonospaceInlineBegin", GenTuDoc("")),
+        GenTuEnumField("MonospaceInlineEnd", GenTuDoc("")),
+        GenTuEnumField("BacktickBegin", GenTuDoc("")),
+        GenTuEnumField("BacktickEnd", GenTuDoc("")),
+        GenTuEnumField("BacktickInline", GenTuDoc("")),
+        GenTuEnumField("BacktickInlineBegin", GenTuDoc("")),
+        GenTuEnumField("BacktickInlineEnd", GenTuDoc("")),
+        GenTuEnumField("UnderlineBegin", GenTuDoc("")),
+        GenTuEnumField("UnderlineEnd", GenTuDoc("")),
+        GenTuEnumField("UnderlineInline", GenTuDoc("")),
+        GenTuEnumField("UnderlineInlineBegin", GenTuDoc("")),
+        GenTuEnumField("UnderlineInlineEnd", GenTuDoc("")),
+        GenTuEnumField("StrikeBegin", GenTuDoc("")),
+        GenTuEnumField("StrikeEnd", GenTuDoc("")),
+        GenTuEnumField("StrikeInline", GenTuDoc("")),
+        GenTuEnumField("StrikeInlineBegin", GenTuDoc("")),
+        GenTuEnumField("StrikeInlineEnd", GenTuDoc("")),
+        GenTuEnumField("QuoteBegin", GenTuDoc("")),
+        GenTuEnumField("QuoteEnd", GenTuDoc("")),
+        GenTuEnumField("Punctuation", GenTuDoc("")),
+        #tag Link
+        GenTuEnumField("AngleBegin", GenTuDoc("Placeholder Begin")),
+        GenTuEnumField("AngleEnd", GenTuDoc("Placeholder End")),
+        GenTuEnumField("DoubleAngleBegin", GenTuDoc("`<<` - open for noweb or anchor placeholder")),
+        GenTuEnumField("DoubleAngleEnd", GenTuDoc("`>>` - close for noweb or anchor placeholder")),
+        GenTuEnumField("TripleAngleBegin", GenTuDoc("`<<<` - radio target Begin")),
+        GenTuEnumField("TripleAngleEnd", GenTuDoc("`>>>` - radio target End")),
+        GenTuEnumField("LinkBegin", GenTuDoc("")),
+        GenTuEnumField("LinkEnd", GenTuDoc("")),
+        GenTuEnumField("RawUrl", GenTuDoc("")),
+        GenTuEnumField("LinkTargetBegin", GenTuDoc("")),
+        GenTuEnumField("LinkTargetEnd", GenTuDoc("")),
+        GenTuEnumField(
+            "LinkInternal",
+            GenTuDoc(
+                "No protocol is used in the link, it is targeting some internal named entry."
+            ),
+        ),
+        GenTuEnumField("LinkProtocol",
+                       GenTuDoc("Protocol used by the link - `file:`, `https:` etc.")),
+        GenTuEnumField(
+            "LinkFull",
+            GenTuDoc(
+                "Full token for the link, used in cases where it does not make sense to fracture the token - regular https URLs etc."
+            ),
+        ),
+        GenTuEnumField("LinkPath", GenTuDoc("Link path for searches in file")),
+        GenTuEnumField(
+            "LinkTarget",
+            GenTuDoc(
+                "Target of the link protocol that does not follow regular URI encoding scheme - for example `id:`, `elisp`, or `shell` links."
+            ),
+        ),
+        GenTuEnumField(
+            "LinkExtraSeparator",
+            GenTuDoc("Separator of the extra content in the link, `::`"),
+        ),
+        GenTuEnumField("LinkExtra",
+                       GenTuDoc("Additional parametrization for the link search")),
+        GenTuEnumField("LinkDescriptionBegin", GenTuDoc("")),
+        GenTuEnumField("LinkDescriptionEnd", GenTuDoc("")),
+        #tag Paragraph
+        GenTuEnumField("TextSeparator", GenTuDoc("")),
+        GenTuEnumField(
+            "ParagraphBegin",
+            GenTuDoc(
+                "Fake token inserted by the lexer to delimit start of the paragraph"),
+        ),
+        GenTuEnumField("ParagraphEnd", GenTuDoc("")),
+        GenTuEnumField("FootnoteBegin", GenTuDoc("")),
+        GenTuEnumField("FootnoteEnd", GenTuDoc("")),
+        #tag Paragraph-tokens
+        GenTuEnumField("Word", GenTuDoc("Regular word in the paragraph")),
+        GenTuEnumField("DoubleColon", GenTuDoc("")),
+        GenTuEnumField("Number", GenTuDoc("")),
+        GenTuEnumField(
+            "Escaped",
+            GenTuDoc(
+                "Escaped character in plain text - `\\*`, `\\/` etc. Escaped characters and sequences thereof are treated like a regular plain text."
+            ),
+        ),
+        GenTuEnumField(
+            "DoubleSlash",
+            GenTuDoc(
+                "Put at the end of the lexer first logbook line to separate the  note, otherwise is treated as standalone escaped slash."
+            ),
+        ),
+        GenTuEnumField("Newline", GenTuDoc("Explicit newline a paragraph")),
+        GenTuEnumField("SkipSpace", GenTuDoc("")),
+        GenTuEnumField("SkipNewline", GenTuDoc("")),
+        GenTuEnumField("SkipAny", GenTuDoc("")),
+        GenTuEnumField("MaybeWord", GenTuDoc("")),
+        GenTuEnumField("Space", GenTuDoc("Space in the paragraph")),
+        GenTuEnumField("BigIdent",
+                       GenTuDoc("`TODO`, `NOTE` and similar capitalized words")),
+        GenTuEnumField(
+            "RawText",
+            GenTuDoc(
+                "Unparsed raw text, either as a part of paragraph or some embedded construction such as link address."
+            ),
+        ),
+        GenTuEnumField("Ident", GenTuDoc("")),
+        #tag Latex
+        GenTuEnumField("SymbolBegin",
+                GenTuDoc("Unquoted `\\symbol` directly in the text")),
+        GenTuEnumField("DollarBegin", GenTuDoc("Opening dollar inline latex math")),
+        GenTuEnumField("DollarEnd", GenTuDoc("Closing dollar for inline latex math")),
+        GenTuEnumField("DoubleDollarBegin", GenTuDoc("Opening `$` for inline latex")),
+        GenTuEnumField("DoubleDollarEnd", GenTuDoc("Closing `$` for inline latex")),
+        GenTuEnumField("LatexParBegin", GenTuDoc("Opening `\\(` for inline latex math")),
+        GenTuEnumField("LatexParEnd", GenTuDoc("Closing `\\)` for inline latex math")),
+        GenTuEnumField("LatexBraceBegin",
+                       GenTuDoc("Opening `\\[` for inline display latex equation")),
+        GenTuEnumField("LatexBraceEnd",
+                       GenTuDoc("Closing `\\]` for inline display latex equation")),
+        GenTuEnumField("LatexInlineRaw",
+                       GenTuDoc("Content of the brace/par-enclosed math")),
+        #tag Hashtag
+        GenTuEnumField("AtBracket", GenTuDoc("Inline annotation")),
+        GenTuEnumField("AtMention", GenTuDoc("`@user` mention in the text")),
+        GenTuEnumField("HashTag", GenTuDoc("Start of the inline hashtag `#tag`")),
+        GenTuEnumField("HashTagSub", GenTuDoc("Nested hashtag separator")),
+        GenTuEnumField("HashTagBegin",
+                       GenTuDoc("Start of the nested hashtag grop bracket")),
+        GenTuEnumField("HashTagEnd",
+                       GenTuDoc("End of the nested hashtag group separator")),
+        #tag Punctuation
+        GenTuEnumField(
+            "Comma",
+            GenTuDoc(
+                "Comma - punctuation or a syntax element (e.g. for macro arguments)"),
+        ),
+        GenTuEnumField("ParBegin",
+                       GenTuDoc("Paren open - punctuation or a syntax element")),
+        GenTuEnumField("ParEnd",
+                       GenTuDoc("Paren close - punctuation or a syntax element")),
+        GenTuEnumField("Colon", GenTuDoc("")),
+        GenTuEnumField("Circumflex", GenTuDoc("`^` possible superscript in the text")),
+        #tag Macro
+        GenTuEnumField("MacroBegin", GenTuDoc("Start of the macro call `{{{`")),
+        GenTuEnumField("MacroEnd", GenTuDoc("Close of the macro call `}}}`")),
+        GenTuEnumField("MetaBraceBegin", GenTuDoc("")),
+        GenTuEnumField("MetaBraceBody", GenTuDoc("")),
+        GenTuEnumField("MetaBraceEnd", GenTuDoc("")),
+        GenTuEnumField("MetaArgsBegin", GenTuDoc("")),
+        GenTuEnumField("MetaArgsBody", GenTuDoc("")),
+        GenTuEnumField("MetaArgsEnd", GenTuDoc("")),
+        #region Inline-code
+        GenTuEnumField("InlineSrc",
+                       GenTuDoc("Start of an inline source code block: `src_nim[]{}`")),
+        GenTuEnumField("InlineCall",
+                       GenTuDoc("Start of an inline call block: `call_name[]{}`")),
+        GenTuEnumField("CurlyStart",
+                       GenTuDoc("Start of the curly section of an inline source/call")),
+        GenTuEnumField("CurlyEnd",
+                       GenTuDoc("End of the curly section of an inline source/call")),
+        GenTuEnumField("DoubleAt", GenTuDoc("Inline backend passthrough `@@`")),
+        #tag Inline-src
+        GenTuEnumField("SrcBegin", GenTuDoc("")),
+        GenTuEnumField("SrcName", GenTuDoc("")),
+        GenTuEnumField("SrcArgs", GenTuDoc("")),
+        GenTuEnumField("SrcBody", GenTuDoc("")),
+        GenTuEnumField("SrcEnd", GenTuDoc("")),
+        #tag Inline-call
+        GenTuEnumField("CallBegin", GenTuDoc("")),
+        GenTuEnumField("CallName", GenTuDoc("")),
+        GenTuEnumField("CallInsideHeader", GenTuDoc("")),
+        GenTuEnumField("CallArgs", GenTuDoc("")),
+        GenTuEnumField("EndHeader", GenTuDoc("")),
+        GenTuEnumField("CallEnd", GenTuDoc("")),
+        GenTuEnumField("CmdArguments", GenTuDoc("")),
+        #endregion
+        #endregion
+    ]
+
+    return GenTuEnum(t("OrgTokenKind"), GenTuDoc(""), fields)
+
+
 def get_enums():
     return [
         #tag org placement kind
@@ -2148,410 +2528,7 @@ def get_enums():
                 GenTuEnumField("StructWhile", GenTuDoc("")),
             ],
         ),
-        #region Org token kind
-        GenTuEnum(
-            t("OrgTokenKind"),
-            GenTuDoc(""),
-            [
-                GenTuEnumField("None", GenTuDoc("")),
-                GenTuEnumField("Eof", GenTuDoc("")),
-                GenTuEnumField("GroupStart",
-                               GenTuDoc("Start of the tokenizer token group")),
-                GenTuEnumField("GroupEnd", GenTuDoc("Tokenizer token group end")),
-                GenTuEnumField("ErrorTerminator", GenTuDoc("")),
-                GenTuEnumField("CommandPrefix", GenTuDoc("")),
-                GenTuEnumField("LineCommand", GenTuDoc("")),
-                GenTuEnumField(
-                    "CommandBegin",
-                    GenTuDoc(
-                        "`#+begin` part of the multiline command. `begin_<block-type>` is split into two tokens - `begin_` prefix and `ockBegin<block-type>` section."
-                    ),
-                ),
-                #region Commands
-                GenTuEnumField("CommandEnd", GenTuDoc("")),
-                #tag Line-commands
-                GenTuEnumField("CmdTitle", GenTuDoc("#+title: line command token")),
-                GenTuEnumField("CmdCaption", GenTuDoc("#+caption")),
-                GenTuEnumField("CmdFiletags", GenTuDoc("#+filetags")),
-                GenTuEnumField("CmdColumns", GenTuDoc("#+columns")),
-                GenTuEnumField("CmdProperty", GenTuDoc("#+property")),
-                GenTuEnumField("CmdOptions", GenTuDoc("#+options")),
-                GenTuEnumField("DoubleColon", GenTuDoc("")),
-                #tag Source-commands
-                GenTuEnumField("CommandContentStart", GenTuDoc("")),
-                GenTuEnumField("CommandContentEnd", GenTuDoc("")),
-                GenTuEnumField("CodeContent",
-                               GenTuDoc("Block of code inside `#+begin_src`")),
-                GenTuEnumField("CodeContentBegin",
-                               GenTuDoc("Start of the expanded code content")),
-                GenTuEnumField("CodeContentEnd",
-                               GenTuDoc("End of the expanded code content")),
-                #tag Command-arguments
-                GenTuEnumField("CommandArgumentsBegin",
-                               GenTuDoc("List of command arguments")),
-                GenTuEnumField("CommandArgumentsEnd",
-                               GenTuDoc("End of the command arguments list")),
-                GenTuEnumField("CommandKey", GenTuDoc("")),
-                GenTuEnumField("CommandValue", GenTuDoc("")),
-                GenTuEnumField("CommandFlag", GenTuDoc("")),
-                GenTuEnumField("CommandBracket", GenTuDoc("`#+results[HASH...]`")),                               
-                #endregion
-                GenTuEnumField(
-                    "CodeText",
-                    GenTuDoc(
-                        "Uninterrupted text span without newlines - either a whole line or sub subsection of it if callout or tangle elements were detected"
-                    ),
-                ),
-
-                GenTuEnumField("Text", GenTuDoc("")),
-                GenTuEnumField(
-                    "StmtList",
-                    GenTuDoc(
-                        "Unlexed group of statements - used in the list content to enable secondary parsing."
-                    ),
-                ),
-                GenTuEnumField("StmtListOpen",
-                               GenTuDoc("Start of the expanded statement list content")),
-                GenTuEnumField("StmtListClose",
-                               GenTuDoc("End of the expanded statement list content")),
-                #tag List-items
-                GenTuEnumField("ListStart", GenTuDoc("Start of the list token group")),
-                GenTuEnumField("ListItemStart",
-                               GenTuDoc("Start of the list item element")),
-                GenTuEnumField(
-                    "ListClock",
-                    GenTuDoc("`CLOCK:` entry at the start of the logbook entry list")),
-                GenTuEnumField("ListPlus", GenTuDoc("")),
-                GenTuEnumField("ListStar", GenTuDoc("")),
-                GenTuEnumField("ListDescOpen",
-                               GenTuDoc("Start of the description list key,")),
-                GenTuEnumField("ListDescClose",
-                               GenTuDoc("End of the description list key `::`")),
-                GenTuEnumField("ListItemEnd", GenTuDoc("End of the list item")),
-                GenTuEnumField("ListEnd",
-                               GenTuDoc("Complete end of the list token group")),
-                GenTuEnumField("Checkbox", GenTuDoc("List or subtree checkbox")),
-                #tag Subtree
-                GenTuEnumField("SubtreeTodoState", GenTuDoc("")),
-                GenTuEnumField("SubtreeUrgency", GenTuDoc("Subtree importance marker")),
-                GenTuEnumField("SubtreeCompletion",
-                               GenTuDoc("Subtree completion marker")),
-                GenTuEnumField("SubtreeStars", GenTuDoc("Subtree prefix")),
-                GenTuEnumField("SubtreeTagSeparator", GenTuDoc("")),
-                GenTuEnumField("SubtreeTime", GenTuDoc("")),
-                GenTuEnumField("SubtreeEnd", GenTuDoc("")),
-                #tag Time
-                GenTuEnumField(
-                    "ImplicitTime",
-                    GenTuDoc(
-                        """You can write time ranges without any additional formatting for
-   subtrees that have a diary timestamps. For example, you have a
-   complex date predicate, but event occurs for `18:00-21:00`, so you
-   write it in the random place in the subtree."""),
-                ),
-                GenTuEnumField(
-                    "TimeDuration",
-                    GenTuDoc(
-                        "Time duration for the `effort` property or time range length evaluation"
-                    ),
-                ),
-                GenTuEnumField(
-                    "InactiveTimeBegin",
-                    GenTuDoc("Start of the inactive timestamp (`[2022-03-12]`)"),
-                ),
-                GenTuEnumField("InactiveTimeEnd", GenTuDoc("")),
-                GenTuEnumField("ActiveTimeBegin",
-                               GenTuDoc("Start of the active timestamp `<2030-02-03>`")),
-                GenTuEnumField("ActiveTimeEnd", GenTuDoc("")),
-                GenTuEnumField("DynamicTimeContent", GenTuDoc("Dynamic time content")),
-                GenTuEnumField("StaticTimeDatePart",
-                               GenTuDoc("year-month-day part of the timestamp")),
-                GenTuEnumField("StaticTimeDayPart",
-                               GenTuDoc("weekday part of the timestamp")),
-                GenTuEnumField("StaticTimeClockPart",
-                               GenTuDoc("Clock part of the timestamp")),
-                GenTuEnumField("StaticTimeRepeater",
-                               GenTuDoc("Type of the time repeater: `+`, `++`, `.+`")),
-                GenTuEnumField(
-                    "TimeDash",
-                    GenTuDoc(
-                        "Separator dash between two periods in the time range (`<start>--<finish.`)"
-                    ),
-                ),
-                GenTuEnumField("TimeArrow",
-                               GenTuDoc("Time range evaluation arrow `[from]--[to] =>`")),
-                GenTuEnumField("Comment", GenTuDoc("line or inline comment")),
-                GenTuEnumField(
-                    "ListDoubleColon",
-                    GenTuDoc("Double colon between description list tag and body"),
-                ),
-                #tag Subtree-properties
-                GenTuEnumField("ColonLiteral", GenTuDoc("Literal block with `:`")),
-                GenTuEnumField(
-                    "ColonIdent",
-                    GenTuDoc(
-                        "Drawer or source code block wrappers with colon-wrapped identifiers. `:results:`, `:end:` etc."
-                    ),
-                ),
-                GenTuEnumField(
-                    "ColonProperties",
-                    GenTuDoc("Start of the `:PROPERTIES:` block drawer block")),
-                GenTuEnumField("ColonDescription",
-                               GenTuDoc("Start of the `:description:` drawer block")),
-                GenTuEnumField("ColonEnd", GenTuDoc("")),
-                GenTuEnumField("ColonLogbook", GenTuDoc("")),
-                GenTuEnumField("RawLogbook", GenTuDoc("")),
-                GenTuEnumField("LogbookStart", GenTuDoc("")),
-                GenTuEnumField("LogbookEnd", GenTuDoc("")),
-                GenTuEnumField("RawProperty", GenTuDoc("")),
-                GenTuEnumField("Link", GenTuDoc("Any kind of link")),
-                GenTuEnumField("TableContent",
-                               GenTuDoc("Block of text inside `#+table`")),
-                GenTuEnumField("QuoteContent", GenTuDoc("`#+quote` content")),
-                GenTuEnumField("BackendPass", GenTuDoc("Backend-specific passthrough")),
-                GenTuEnumField("LogBook", GenTuDoc("Logbook including content")),
-                GenTuEnumField("Drawer", GenTuDoc("Drawer including content")),
-                GenTuEnumField("Indent", GenTuDoc("Increase in indentation")),
-                GenTuEnumField("Dedent", GenTuDoc("Decrease in indentation")),
-                GenTuEnumField("SameIndent", GenTuDoc("")),
-                GenTuEnumField("NoIndent", GenTuDoc("")),
-                GenTuEnumField("BoldOpen", GenTuDoc("")),
-                GenTuEnumField("BoldClose", GenTuDoc("")),
-                GenTuEnumField("BoldInline", GenTuDoc("")),
-                GenTuEnumField("BoldInlineOpen", GenTuDoc("")),
-                GenTuEnumField("BoldInlineClose", GenTuDoc("")),
-                GenTuEnumField("ItalicOpen", GenTuDoc("")),
-                GenTuEnumField("ItalicClose", GenTuDoc("")),
-                GenTuEnumField("ItalicInline", GenTuDoc("")),
-                GenTuEnumField("ItalicInlineOpen", GenTuDoc("")),
-                GenTuEnumField("ItalicInlineClose", GenTuDoc("")),
-                GenTuEnumField("VerbatimOpen", GenTuDoc("")),
-                GenTuEnumField("VerbatimClose", GenTuDoc("")),
-                GenTuEnumField("VerbatimInline", GenTuDoc("")),
-                GenTuEnumField("VerbatimInlineOpen", GenTuDoc("")),
-                GenTuEnumField("VerbatimInlineClose", GenTuDoc("")),
-                GenTuEnumField("MonospaceOpen", GenTuDoc("")),
-                GenTuEnumField("MonospaceClose", GenTuDoc("")),
-                GenTuEnumField("MonospaceInline", GenTuDoc("")),
-                GenTuEnumField("MonospaceInlineOpen", GenTuDoc("")),
-                GenTuEnumField("MonospaceInlineClose", GenTuDoc("")),
-                GenTuEnumField("BacktickOpen", GenTuDoc("")),
-                GenTuEnumField("BacktickClose", GenTuDoc("")),
-                GenTuEnumField("BacktickInline", GenTuDoc("")),
-                GenTuEnumField("BacktickInlineOpen", GenTuDoc("")),
-                GenTuEnumField("BacktickInlineClose", GenTuDoc("")),
-                GenTuEnumField("UnderlineOpen", GenTuDoc("")),
-                GenTuEnumField("UnderlineClose", GenTuDoc("")),
-                GenTuEnumField("UnderlineInline", GenTuDoc("")),
-                GenTuEnumField("UnderlineInlineOpen", GenTuDoc("")),
-                GenTuEnumField("UnderlineInlineClose", GenTuDoc("")),
-                GenTuEnumField("StrikeOpen", GenTuDoc("")),
-                GenTuEnumField("StrikeClose", GenTuDoc("")),
-                GenTuEnumField("StrikeInline", GenTuDoc("")),
-                GenTuEnumField("StrikeInlineOpen", GenTuDoc("")),
-                GenTuEnumField("StrikeInlineClose", GenTuDoc("")),
-                GenTuEnumField("QuoteOpen", GenTuDoc("")),
-                GenTuEnumField("QuoteClose", GenTuDoc("")),
-                GenTuEnumField("Punctuation", GenTuDoc("")),
-                GenTuEnumField("LinkOpen", GenTuDoc("")),
-                GenTuEnumField("LinkClose", GenTuDoc("")),
-                GenTuEnumField("RawUrl", GenTuDoc("")),
-                GenTuEnumField("LinkTargetOpen", GenTuDoc("")),
-                GenTuEnumField("LinkTargetClose", GenTuDoc("")),
-                GenTuEnumField(
-                    "LinkInternal",
-                    GenTuDoc(
-                        "No protocol is used in the link, it is targeting some internal named entry."
-                    ),
-                ),
-                GenTuEnumField(
-                    "LinkProtocol",
-                    GenTuDoc("Protocol used by the link - `file:`, `https:` etc.")),
-                GenTuEnumField(
-                    "LinkFull",
-                    GenTuDoc(
-                        "Full token for the link, used in cases where it does not make sense to fracture the token - regular https URLs etc."
-                    ),
-                ),
-                GenTuEnumField("LinkPath", GenTuDoc("Link path for searches in file")),
-                GenTuEnumField(
-                    "LinkTarget",
-                    GenTuDoc(
-                        "Target of the link protocol that does not follow regular URI encoding scheme - for example `id:`, `elisp`, or `shell` links."
-                    ),
-                ),
-                GenTuEnumField(
-                    "LinkExtraSeparator",
-                    GenTuDoc("Separator of the extra content in the link, `::`"),
-                ),
-                GenTuEnumField(
-                    "LinkExtra",
-                    GenTuDoc("Additional parametrization for the link search")),
-                GenTuEnumField("LinkDescriptionOpen", GenTuDoc("")),
-                GenTuEnumField("LinkDescriptionClose", GenTuDoc("")),
-                GenTuEnumField("TextSeparator", GenTuDoc("")),
-                GenTuEnumField(
-                    "ParagraphStart",
-                    GenTuDoc(
-                        "Fake token inserted by the lexer to delimit start of the paragraph"
-                    ),
-                ),
-                GenTuEnumField("ParagraphEnd", GenTuDoc("")),
-                GenTuEnumField("FootnoteStart", GenTuDoc("")),
-                GenTuEnumField("FootnoteEnd", GenTuDoc("")),
-                #tag Paragraph-structure
-                GenTuEnumField("Word", GenTuDoc("Regular word in the paragraph")),
-                GenTuEnumField("Number", GenTuDoc("")),
-                GenTuEnumField(
-                    "Escaped",
-                    GenTuDoc(
-                        "Escaped character in plain text - `\\*`, `\\/` etc. Escaped characters and sequences thereof are treated like a regular plain text."
-                    ),
-                ),
-                GenTuEnumField(
-                    "DoubleSlash",
-                    GenTuDoc(
-                        "Put at the end of the lexer first logbook line to separate the  note, otherwise is treated as standalone escaped slash."
-                    ),
-                ),
-                GenTuEnumField("Newline", GenTuDoc("Explicit newline a paragraph")),
-                GenTuEnumField("SkipSpace", GenTuDoc("")),
-                GenTuEnumField("SkipNewline", GenTuDoc("")),
-                GenTuEnumField("SkipAny", GenTuDoc("")),
-                GenTuEnumField("MaybeWord", GenTuDoc("")),
-                GenTuEnumField("Space", GenTuDoc("Space in the paragraph")),
-                GenTuEnumField("BigIdent",
-                               GenTuDoc("`TODO`, `NOTE` and similar capitalized words")),
-                GenTuEnumField(
-                    "RawText",
-                    GenTuDoc(
-                        "Unparsed raw text, either as a part of paragraph or some embedded construction such as link address."
-                    ),
-                ),
-                GenTuEnumField(
-                    "InlineSrc",
-                    GenTuDoc("Start of an inline source code block: `src_nim[]{}`")),
-                GenTuEnumField(
-                    "InlineCall",
-                    GenTuDoc("Start of an inline call block: `call_name[]{}`")),
-                GenTuEnumField(
-                    "CurlyStart",
-                    GenTuDoc("Start of the curly section of an inline source/call")),
-                GenTuEnumField(
-                    "CurlyEnd",
-                    GenTuDoc("End of the curly section of an inline source/call")),
-                GenTuEnumField("SymbolStart",
-                               GenTuDoc("Unquoted `\\symbol` directly in the text")),
-                GenTuEnumField("Ident", GenTuDoc("")),
-                GenTuEnumField("DollarOpen",
-                               GenTuDoc("Opening dollar inline latex math")),
-                GenTuEnumField("DollarClose",
-                               GenTuDoc("Closing dollar for inline latex math")),
-                GenTuEnumField("DoubleDollarOpen",
-                               GenTuDoc("Opening `$` for inline latex")),
-                GenTuEnumField("DoubleDollarClose",
-                               GenTuDoc("Closing `$` for inline latex")),
-                GenTuEnumField("LatexParOpen",
-                               GenTuDoc("Opening `\\(` for inline latex math")),
-                GenTuEnumField("LatexParClose",
-                               GenTuDoc("Closing `\\)` for inline latex math")),
-                GenTuEnumField(
-                    "LatexBraceOpen",
-                    GenTuDoc("Opening `\\[` for inline display latex equation")),
-                GenTuEnumField(
-                    "LatexBraceClose",
-                    GenTuDoc("Closing `\\]` for inline display latex equation")),
-                GenTuEnumField("LatexInlineRaw",
-                               GenTuDoc("Content of the brace/par-enclosed math")),
-                GenTuEnumField("DoubleAt", GenTuDoc("Inline backend passthrough `@@`")),
-                GenTuEnumField("AtBracket", GenTuDoc("Inline annotation")),
-                GenTuEnumField("AtMention", GenTuDoc("`@user` mention in the text")),
-                GenTuEnumField("HashTag", GenTuDoc("Start of the inline hashtag `#tag`")),
-                GenTuEnumField("HashTagSub", GenTuDoc("Nested hashtag separator")),
-                GenTuEnumField("HashTagOpen",
-                               GenTuDoc("Start of the nested hashtag grop bracket")),
-                GenTuEnumField("HashTagClose",
-                               GenTuDoc("End of the nested hashtag group separator")),
-                GenTuEnumField(
-                    "Comma",
-                    GenTuDoc(
-                        "Comma - punctuation or a syntax element (e.g. for macro arguments)"
-                    ),
-                ),
-                GenTuEnumField("ParOpen",
-                               GenTuDoc("Paren open - punctuation or a syntax element")),
-                GenTuEnumField("ParClose",
-                               GenTuDoc("Paren close - punctuation or a syntax element")),
-                GenTuEnumField("Colon", GenTuDoc("")),
-                GenTuEnumField("Circumflex",
-                               GenTuDoc("`^` possible superscript in the text")),
-                GenTuEnumField("MacroOpen", GenTuDoc("Start of the macro call `{{{`")),
-                GenTuEnumField("MacroClose", GenTuDoc("Close of the macro call `}}}`")),
-                GenTuEnumField("MetaBraceOpen", GenTuDoc("")),
-                GenTuEnumField("MetaBraceBody", GenTuDoc("")),
-                GenTuEnumField("MetaBraceClose", GenTuDoc("")),
-                GenTuEnumField("MetaArgsOpen", GenTuDoc("")),
-                GenTuEnumField("MetaArgsBody", GenTuDoc("")),
-                GenTuEnumField("MetaArgsClose", GenTuDoc("")),
-                GenTuEnumField("SrcOpen", GenTuDoc("")),
-                GenTuEnumField("SrcName", GenTuDoc("")),
-                GenTuEnumField("SrcArgs", GenTuDoc("")),
-                GenTuEnumField("SrcBody", GenTuDoc("")),
-                GenTuEnumField("SrcClose", GenTuDoc("")),
-                GenTuEnumField("CallOpen", GenTuDoc("")),
-                GenTuEnumField("CallName", GenTuDoc("")),
-                GenTuEnumField("CallInsideHeader", GenTuDoc("")),
-                GenTuEnumField("CallArgs", GenTuDoc("")),
-                GenTuEnumField("EndHeader", GenTuDoc("")),
-                GenTuEnumField("CallClose", GenTuDoc("")),
-                GenTuEnumField("CmdArguments", GenTuDoc("")),
-                GenTuEnumField("TableBegin", GenTuDoc("")),
-                GenTuEnumField("TableEnd", GenTuDoc("")),
-                GenTuEnumField("CellBody", GenTuDoc("Unformatted table cell body")),
-                GenTuEnumField("RowSpec",
-                               GenTuDoc("`#+row` command together with parameters")),
-                GenTuEnumField("CellSpec", GenTuDoc("`#+cell` command with parameters")),
-                GenTuEnumField(
-                    "Content",
-                    GenTuDoc("Temporary token created during initial content lexing")),
-                GenTuEnumField("ContentStart",
-                               GenTuDoc("Start of the table cell content section")),
-                GenTuEnumField("ContentEnd",
-                               GenTuDoc("End of the table cell content section")),
-                GenTuEnumField("PipeOpen", GenTuDoc("")),
-                GenTuEnumField("PipeSeparator",
-                               GenTuDoc("Vertical pipe (`|`) cell separator")),
-                GenTuEnumField("PipeClose", GenTuDoc("")),
-                GenTuEnumField("PipeCellOpen", GenTuDoc("")),
-                GenTuEnumField(
-                    "DashSeparator",
-                    GenTuDoc(
-                        "Horizontal dash (`---`, `:---`, `---:` or `:---:`) row separator"
-                    ),
-                ),
-                GenTuEnumField("CornerPlus", GenTuDoc("Corner plus (`+`)")),
-                GenTuEnumField("Command", GenTuDoc("")),
-                GenTuEnumField("CommandArgs", GenTuDoc("")),
-                GenTuEnumField("Body", GenTuDoc("")),
-                GenTuEnumField("LangName", GenTuDoc("")),
-                GenTuEnumField("DoubleAngleOpen",
-                               GenTuDoc("`<<` - open for noweb or anchor placeholder")),
-                GenTuEnumField("DoubleAngleClose",
-                               GenTuDoc("`>>` - close for noweb or anchor placeholder")),
-                GenTuEnumField("TripleAngleOpen", GenTuDoc("`<<<` - radio target open")),
-                GenTuEnumField("TripleAngleClose",
-                               GenTuDoc("`>>>` - radio target close")),
-                GenTuEnumField("AngleOpen", GenTuDoc("Placeholder open")),
-                GenTuEnumField("AngleClose", GenTuDoc("Placeholder close")),
-                GenTuEnumField(
-                    "TextBlock",
-                    GenTuDoc(
-                        "Code before noweb placeholder. Requires separate token to handle `##<<commented>>` - prefix comment should be duplicated for each line of the placeholder expansion."
-                    ),
-                ),
-            ],
-        ),
-        #endregion
+        get_org_token_kind(),
         GenTuEnum(
             t("OrgCommandKind"),
             GenTuDoc(""),
