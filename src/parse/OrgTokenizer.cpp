@@ -233,7 +233,7 @@ struct RecombineState {
                 // unbalanced content, like `{[}` -- opening `[` will add
                 // something to the stack, but surrounding `{}` would not
                 // allow the proper tree to be formed.
-                CHECK(false) << "TODO FAIL";
+                LOG(FATAL) << "TODO FAIL";
             }
         } else {
             mark_push(value, to);
@@ -323,7 +323,7 @@ struct RecombineState {
                 break;
             }
             default: {
-                CHECK(false) << fmt(
+                LOG(FATAL) << fmt(
                     "Unexpected kind of the markup recombine input {}",
                     lex.kind());
             }
@@ -479,6 +479,24 @@ struct RecombineState {
         }
     }
 
+    void map_command_args() {
+        add_fake(otk::CmdArgumentsBegin);
+        while (!line_end.contains(lex.kind())) {
+            switch (lex.kind()) {
+                case obt::CmdColonIdent: pop_as(otk::CmdKey); break;
+                case obt::CmdRawArg:
+                case obt::CmdIdent: pop_as(otk::CmdValue); break;
+                case obt::Whitespace: lex.next(); break;
+                default: {
+                    LOG(FATAL) << fmt(
+                        "Unhandled command argument kind {}", lex.kind());
+                }
+            }
+        }
+
+        add_fake(otk::CmdArgumentsEnd);
+    }
+
     void map_interpreted_token() {
         x_trace(.with_msg(std::format("state: {}", state)));
         BaseTokenId        start = lex.pos;
@@ -505,8 +523,17 @@ struct RecombineState {
             // registered as proper timestamp elements and are converted to
             // the regular words.
             direct(obt::Number, otk::Number);
+            // FIXME why two tokens of the same kind?
+            direct(obt::Digit, otk::Number);
             direct(obt::Date, otk::Word);
-            direct(obt::CmdRawArg, otk::CmdArguments);
+            direct(obt::Percent, otk::Punctuation);
+            // FIXME Some weird name transitions here, cleanup later
+            direct(obt::LeftPar, otk::ParBegin);
+            direct(obt::RightPar, otk::ParEnd);
+            // When not used in the timestamps, these are just pieces of
+            // punctuation
+            direct(obt::BraceClose, otk::Punctuation);
+
 
             case obt::Colon: map_colon(); break;
             case obt::BraceOpen: map_open_brace(); break;
@@ -554,14 +581,20 @@ struct RecombineState {
                     case obt::CmdFiletags: pop_as(otk::CmdFiletags); break;
                     case obt::CmdColumns: pop_as(otk::CmdColumns); break;
                     case obt::CmdProperty: pop_as(otk::CmdProperty); break;
-
-
                     default: {
-                        CHECK(false) << fmt(
+                        LOG(FATAL) << fmt(
                             "Unhandled line command conversion rules {}",
                             lex.tok(+1));
                     }
                 }
+
+                switch (next.kind) {
+                    case obt::CmdExampleBegin:
+                    case obt::CmdSrcBegin:
+                    case obt::CmdProperty: map_command_args(); break;
+                    default:
+                }
+
                 break;
             }
 
@@ -651,7 +684,7 @@ struct RecombineState {
                             break;
                         }
                         default: {
-                            CHECK(false) << fmt(
+                            LOG(FATAL) << fmt(
                                 "Encountered end of file while state "
                                 "stack was not completely closed, the "
                                 "top element was {}. Expected 'none' "
@@ -686,7 +719,7 @@ struct RecombineState {
 
 
             default: {
-                CHECK(false) << std::format(
+                LOG(FATAL) << std::format(
                     "Unhanled kind for token conversion, got {}:{} {} "
                     "\"{}\", top state was {}, lexer context {}",
                     val.line,
@@ -797,7 +830,7 @@ struct LineToken {
                     case obt::CmdFiletags: kind = Kind::Line; break;
                     case obt::CmdSrcBegin: kind = Kind::BlockOpen; break;
                     default: {
-                        CHECK(false) << fmt(
+                        LOG(FATAL) << fmt(
                             "Unknown line command kind mapping {}, {}",
                             next.kind,
                             tokens);
@@ -902,7 +935,7 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
             }
 
             default: {
-                CHECK(false) << fmt(
+                LOG(FATAL) << fmt(
                     "Unhandled line kind {} {}", start->kind, it->tokens);
             }
         }

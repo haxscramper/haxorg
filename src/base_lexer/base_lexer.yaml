@@ -14,7 +14,6 @@ states:
 
   - { kind: xstate, name: COMMAND }
   - { kind: xstate, name: COMMAND_EXAMPLE }
-  - { kind: xstate, name: COMMAND_COLUMNS }
   - { kind: xstate, name: COMMAND_SRC }
   - { kind: xstate, name: COMMAND_ARGS }
   - { kind: xstate, name: COMMAND_TBLFM }
@@ -37,17 +36,6 @@ tokens:
   - { name: Unknown }
 
 rules:
-  - { lit: "%", token: Percent, states: [COMMAND_COLUMNS] }
-  - { re: "\\d+", token: Digit, states: [COMMAND_COLUMNS] }
-  - { re: "[a-zA-Z_]+", token: CmdIdent, states: [COMMAND_COLUMNS] }
-  - { lit: "(", token: LeftPar, states: [COMMAND_COLUMNS] }
-  - { lit: ")", token: RightPar, states: [COMMAND_COLUMNS] }
-  - { lit: "{", token: LeftCurly, states: [COMMAND_COLUMNS] }
-  - { lit: "}", token: RightCurly, states: [COMMAND_COLUMNS] }
-  - { lit: ":", token: Colon, states: [COMMAND_COLUMNS] }
-  - { re: "{space}+", token: Whitespace, states: [COMMAND_COLUMNS] }
-
-
   #region Blocks
   #tag Quote block command
   - lit: "begin_quote"
@@ -133,7 +121,7 @@ rules:
     token: CmdColumns
     states: [COMMAND]
     actions:
-      - { do: push, from: COMMAND, to: COMMAND_COLUMNS }
+      - { do: push, from: COMMAND, to: COMMAND_RAW }
 
   #tag Caption command
   - lit: "caption"
@@ -342,19 +330,19 @@ rules:
 
   - re: "\\n{space}*\\n({space}*\\n)+"
     token: LongNewline
-    states: [COMMAND_COLUMNS, COMMAND_TEXT, COMMAND_RAW, COMMAND_ARGS, COMMAND_TBLFM]
+    states: [COMMAND_TEXT, COMMAND_RAW, COMMAND_ARGS, COMMAND_TBLFM]
     actions:
       - { do: pop, to: COMMAND }
       - { do: pop, from: COMMAND, to: INITIAL }
   - re: "\\n{space}*\\n"
     token: MediumNewline
-    states: [COMMAND_COLUMNS, COMMAND_TEXT, COMMAND_RAW, COMMAND_ARGS, COMMAND_TBLFM]
+    states: [COMMAND_TEXT, COMMAND_RAW, COMMAND_ARGS, COMMAND_TBLFM]
     actions:
       - { do: pop, to: COMMAND }
       - { do: pop, from: COMMAND, to: INITIAL }
   - re: "\\n"
     token: Newline
-    states: [COMMAND_COLUMNS, COMMAND_TEXT, COMMAND_RAW, COMMAND_ARGS, COMMAND_TBLFM]
+    states: [COMMAND_TEXT, COMMAND_RAW, COMMAND_ARGS, COMMAND_TBLFM]
     actions:
       - { do: pop, to: COMMAND }
       - { do: pop, from: COMMAND, to: INITIAL }

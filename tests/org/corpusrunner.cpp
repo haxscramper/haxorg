@@ -745,26 +745,16 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
 
     { // Lexing
-        {
+        if (spec.debug.doLexBase) {
             SPtr<std::ofstream> fileTrace;
             if (spec.debug.traceLexBase) {
                 fileTrace = std::make_shared<std::ofstream>(
                     spec.debugFile("trace_lex_base.txt"));
             }
 
-            if (spec.debug.doLexBase && !spec.debug.doLex) {
-                p.tokenize(spec.source, false, fileTrace.get());
-            } else if (spec.debug.doLex) {
-                p.tokenizer->TraceState = spec.debug.traceLex;
-                if (spec.debug.lexToFile) {
-                    p.tokenizer->setTraceFile(
-                        spec.debugFile("trace_lex.txt"));
-                }
-
-                p.tokenize(spec.source, true, fileTrace.get());
-            } else {
-                return RunResult{};
-            }
+            p.tokenizeBase(spec.source, fileTrace.get());
+        } else {
+            return RunResult{};
         }
 
         if (spec.debug.printBaseLexed || spec.debug.printBaseLexedToFile) {
@@ -776,6 +766,17 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             } else {
                 std::cout << content << std::endl;
             }
+        }
+
+        if (spec.debug.doLex) {
+            p.tokenizer->TraceState = spec.debug.traceLex;
+            if (spec.debug.lexToFile) {
+                p.tokenizer->setTraceFile(spec.debugFile("trace_lex.txt"));
+            }
+
+            p.tokenizeConvert();
+        } else {
+            return RunResult{};
         }
 
         if (spec.debug.printLexed || spec.debug.printLexedToFile) {
