@@ -572,6 +572,18 @@ enum class OrgTokenKind : short int {
   /// \brief `#+begin` part of the multiline command. `begin_<block-type>` is split into two tokens - `begin_` prefix and `ockBegin<block-type>` section.
   CommandBegin,
   CommandEnd,
+  /// \brief #+title: line command token
+  CmdTitle,
+  /// \brief #+caption
+  CmdCaption,
+  /// \brief #+filetags
+  CmdFiletags,
+  /// \brief #+columns
+  CmdColumns,
+  /// \brief #+property
+  CmdProperty,
+  /// \brief #+options
+  CmdOptions,
   DoubleColon,
   Text,
   /// \brief Unlexed group of statements - used in the list content to enable secondary parsing.

@@ -502,10 +502,12 @@ struct RecombineState {
                         pop_as(otk::CommandPrefix);
                         break;
 
-                    // case obt::CmdTitle: {
-                    //     pop_as(otk::CommandTitle);
-                    //     break;
-                    // }
+                    case obt::CmdTitle: pop_as(otk::CmdTitle); break;
+                    case obt::CmdCaption: pop_as(otk::CmdCaption); break;
+                    case obt::CmdFiletags: pop_as(otk::CmdFiletags); break;
+                    case obt::CmdColumns: pop_as(otk::CmdColumns); break;
+                    case obt::CmdProperty: pop_as(otk::CmdProperty); break;
+
 
                     default: {
                         CHECK(false) << fmt(

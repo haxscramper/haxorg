@@ -676,6 +676,12 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "LineCommand") { return OrgTokenKind::LineCommand; } else
   if (value == "CommandBegin") { return OrgTokenKind::CommandBegin; } else
   if (value == "CommandEnd") { return OrgTokenKind::CommandEnd; } else
+  if (value == "CmdTitle") { return OrgTokenKind::CmdTitle; } else
+  if (value == "CmdCaption") { return OrgTokenKind::CmdCaption; } else
+  if (value == "CmdFiletags") { return OrgTokenKind::CmdFiletags; } else
+  if (value == "CmdColumns") { return OrgTokenKind::CmdColumns; } else
+  if (value == "CmdProperty") { return OrgTokenKind::CmdProperty; } else
+  if (value == "CmdOptions") { return OrgTokenKind::CmdOptions; } else
   if (value == "DoubleColon") { return OrgTokenKind::DoubleColon; } else
   if (value == "Text") { return OrgTokenKind::Text; } else
   if (value == "StmtList") { return OrgTokenKind::StmtList; } else
@@ -898,6 +904,12 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::LineCommand: return "LineCommand";
     case OrgTokenKind::CommandBegin: return "CommandBegin";
     case OrgTokenKind::CommandEnd: return "CommandEnd";
+    case OrgTokenKind::CmdTitle: return "CmdTitle";
+    case OrgTokenKind::CmdCaption: return "CmdCaption";
+    case OrgTokenKind::CmdFiletags: return "CmdFiletags";
+    case OrgTokenKind::CmdColumns: return "CmdColumns";
+    case OrgTokenKind::CmdProperty: return "CmdProperty";
+    case OrgTokenKind::CmdOptions: return "CmdOptions";
     case OrgTokenKind::DoubleColon: return "DoubleColon";
     case OrgTokenKind::Text: return "Text";
     case OrgTokenKind::StmtList: return "StmtList";

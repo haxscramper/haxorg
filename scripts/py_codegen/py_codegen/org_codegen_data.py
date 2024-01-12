@@ -2165,6 +2165,12 @@ def get_enums():
                     ),
                 ),
                 GenTuEnumField("CommandEnd", GenTuDoc("")),
+                GenTuEnumField("CmdTitle", GenTuDoc("#+title: line command token")),
+                GenTuEnumField("CmdCaption", GenTuDoc("#+caption")),
+                GenTuEnumField("CmdFiletags", GenTuDoc("#+filetags")),
+                GenTuEnumField("CmdColumns", GenTuDoc("#+columns")),
+                GenTuEnumField("CmdProperty", GenTuDoc("#+property")),
+                GenTuEnumField("CmdOptions", GenTuDoc("#+options")),
                 GenTuEnumField("DoubleColon", GenTuDoc("")),
                 GenTuEnumField("Text", GenTuDoc("")),
                 GenTuEnumField(
