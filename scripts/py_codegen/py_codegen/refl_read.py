@@ -106,9 +106,10 @@ def conv_proto_type(typ: pb.QualType, is_anon_name: bool = False) -> QualType:
 
 
 @beartype
-def conv_proto_record(record: pb.Record, original: Path) -> GenTuStruct:
+def conv_proto_record(record: pb.Record, original: Optional[Path]) -> GenTuStruct:
     result = GenTuStruct(conv_proto_type(record.name, is_anon_name=not record.has_name),
-                         GenTuDoc(""))
+                         GenTuDoc(""),)
+
     result.original = copy(original)
     result.IsForwardDecl = record.is_forward_decl
     result.has_name = record.has_name
@@ -155,7 +156,7 @@ def conv_proto_record(record: pb.Record, original: Path) -> GenTuStruct:
 
 
 @beartype
-def conv_proto_enum(en: pb.Enum, original: Path) -> GenTuEnum:
+def conv_proto_enum(en: pb.Enum, original: Optional[Path]) -> GenTuEnum:
     result = GenTuEnum(conv_proto_type(en.name), GenTuDoc(""), [])
     result.IsForwardDecl = en.is_forward_decl
     result.original = copy(original)
@@ -172,7 +173,7 @@ def conv_proto_arg(arg: pb.Arg) -> GenTuIdent:
 
 
 @beartype
-def conv_proto_function(rec: pb.Function, original: Path) -> GenTuFunction:
+def conv_proto_function(rec: pb.Function, original: Optional[Path]) -> GenTuFunction:
     return GenTuFunction(
         result=conv_proto_type(rec.result_ty),
         name=rec.name,
@@ -183,7 +184,7 @@ def conv_proto_function(rec: pb.Function, original: Path) -> GenTuFunction:
 
 
 @beartype
-def conv_proto_typedef(rec: pb.Typedef, original: Path) -> GenTuTypedef:
+def conv_proto_typedef(rec: pb.Typedef, original: Optional[Path]) -> GenTuTypedef:
     return GenTuTypedef(
         name=conv_proto_type(rec.name),
         base=conv_proto_type(rec.base_type),
@@ -212,7 +213,7 @@ def open_proto_file(path: str) -> pb.TU:
 
 
 @beartype
-def conv_proto_file(path: str, original: Path) -> ConvTu:
+def conv_proto_file(path: str, original: Optional[Path] = None) -> ConvTu:
     unit = open_proto_file(path)
     return ConvTu(
         structs=[conv_proto_record(rec, original) for rec in unit.records],

@@ -1080,7 +1080,8 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     return GenFiles([
         GenUnit(
             GenTu(
-                "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
+                # "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
+                "/tmp/pyhaxorg.pyi",
                 [GenTuPass(autogen_structs.build_typedef(pyast))],
             )),
         GenUnit(
@@ -1091,7 +1092,8 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                   get_exporter_methods(True, expanded))),
         GenUnit(
             GenTu(
-                "{base}/py_libs/pyhaxorg/pyhaxorg.cpp",
+                # "{base}/py_libs/pyhaxorg/pyhaxorg.cpp",
+                "/tmp/pyhaxorg.cpp",
                 [
                     GenTuPass("#undef slots"),
                     GenTuInclude("pybind11/pybind11.h", True),
