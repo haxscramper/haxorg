@@ -23,35 +23,35 @@ struct OperationsMsg {
     char const*      function = nullptr;
     int              line     = 0;
     int              column   = 0;
-    std::string      name;
 };
 
-template <typename Msg>
-struct OperationsMsgBulder {
+template <typename Derived, typename Msg>
+struct OperationsMsgBulder : CRTP_this_method<Derived> {
+    using CRTP_this_method<Derived>::_this;
     Msg report;
 
-    OperationsMsgBulder<Msg>& with_msg(Str const& msg) {
+    Derived& with_msg(Str const& msg) {
         report.msg = msg;
-        return *this;
+        return *_this();
     }
 
-    OperationsMsgBulder<Msg>& with_name(Str const& name) {
-        report.name = name;
-        return *this;
+    Derived& with_function(char const* function) {
+        report.function = function;
+        return *_this();
     }
 
-    OperationsMsgBulder<Msg>& with_line(int const& line) {
+    Derived& with_line(int const& line) {
         report.line = line;
-        return *this;
+        return *_this();
     }
 
-    OperationsMsgBulder<Msg>& with_location(
+    Derived& with_location(
         int const&  line,
         char const* function,
         char const* file) {
         report.line     = line;
         report.function = function;
         report.file     = file;
-        return *this;
+        return *_this();
     }
 };

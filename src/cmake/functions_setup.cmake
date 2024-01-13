@@ -1,5 +1,6 @@
 function(set_target_flags TARGET)
   add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-reorder-init-list")
+  add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
   add_target_property(${TARGET} COMPILE_OPTIONS "-Wno-deprecated-declarations")
   add_target_property(${TARGET} COMPILE_OPTIONS "-Qunused-arguments")
   # add_target_property(${TARGET} COMPILE_OPTIONS

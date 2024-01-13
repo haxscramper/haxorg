@@ -12,6 +12,13 @@
 
 #include <lexbase/TraceBase.hpp>
 
+#ifdef ORG_USE_PERFETTO
+#    define __perf_trace(name) TRACE_EVENT("lexing", name)
+#else
+#    define __perf_trace(a)
+#endif
+
+
 struct ImplementError : public std::runtime_error {
     explicit inline ImplementError(const std::string& message = "")
         : std::runtime_error(message) {}
@@ -54,9 +61,9 @@ struct OrgTokenizer
         bool       addBuffered = false;
         ReportKind kind;
         OrgToken   tok;
-        OrgTokenId id = OrgTokenId::Nil();
-        Opt<Str>   subname;
-        BaseLexer* lex;
+        OrgTokenId id      = OrgTokenId::Nil();
+        Opt<Str>   subname = std::nullopt;
+        BaseLexer* lex     = nullptr;
     };
 
 

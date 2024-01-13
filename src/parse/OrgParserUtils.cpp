@@ -39,3 +39,187 @@ Opt<LineCol> OrgParser::getLoc(CR<OrgLexer> lex) {
         return std::nullopt;
     }
 }
+
+struct Builder : OperationsMsgBulder<Builder, OrgParser::Report> {
+    Builder& with_node(OrgId const& node) {
+        report.node = node;
+        return *this;
+    }
+
+    Builder& with_kind(OrgParser::ReportKind const& kind) {
+        report.kind = kind;
+        return *this;
+    }
+
+    Builder& with_lex(OrgLexer& lex) {
+        report.lex = &lex;
+        return *this;
+    }
+
+    Builder(
+        OrgParser::ReportKind kind,
+        char const*           file     = __builtin_FILE_NAME(),
+        int                   line     = __builtin_LINE(),
+        char const*           function = __builtin_FUNCTION()) {
+        this->report = OrgParser::Report{
+            OperationsMsg{
+                .file     = file,
+                .line     = line,
+                .function = function,
+            },
+            .kind = kind,
+        };
+    }
+};
+
+OrgId OrgParser::start(OrgNodeKind kind, int line, const char* function) {
+    auto res = group->startTree(kind);
+    if (TraceState) {
+        report(
+            Builder(
+                OrgParser::ReportKind::StartNode, nullptr, line, function)
+                .with_node(res)
+                .report);
+    }
+    return res;
+}
+
+OrgId OrgParser::end(int line, const char* function) {
+    CHECK(0 <= group->treeDepth());
+    auto res = group->endTree();
+    if (TraceState) {
+        report(Builder(
+                   OrgParser::ReportKind::EndNode, nullptr, line, function)
+                   .with_node(res)
+                   .report);
+    }
+    return res;
+}
+
+OrgId OrgParser::fake(OrgNodeKind kind, int line, const char* function) {
+    auto res = group->token(
+        kind, group->tokens->add(OrgToken(OrgTokenKind::None)));
+    if (TraceState) {
+        report(
+            Builder(
+                OrgParser::ReportKind::AddToken, nullptr, line, function)
+                .with_node(res)
+                .report);
+    }
+    return res;
+}
+
+OrgId OrgParser::token(CR<OrgNode> node, int line, const char* function) {
+    auto res = group->token(node);
+    if (TraceState) {
+        report(
+            Builder(
+                OrgParser::ReportKind::AddToken, nullptr, line, function)
+                .with_node(res)
+                .report);
+    }
+    return res;
+}
+
+OrgId OrgParser::token(
+    OrgNodeKind kind,
+    OrgTokenId  tok,
+    int         line,
+    const char* function) {
+    auto res = group->token(kind, tok);
+
+    if (TraceState) {
+        report(
+            Builder(
+                OrgParser::ReportKind::AddToken, nullptr, line, function)
+                .with_node(res)
+                .report);
+    }
+    return res;
+}
+
+void OrgParser::expect(
+    CR<OrgLexer>      lex,
+    CR<OrgExpectable> item,
+    int               line,
+    char const*       function) {
+
+    if (!(at(lex, item))) {
+        if (TraceState) {
+            report(
+                Builder(
+                    OrgParser::ReportKind::Error, nullptr, line, function)
+                    .with_msg(
+                        fmt("{}: Expected token '{}' {} but got '{}",
+                            line,
+                            item,
+                            getLocMsg(lex),
+                            lex.kind()))
+                    .report);
+        }
+        throw UnexpectedToken(lex, {item});
+    }
+}
+
+OrgTokenId OrgParser::pop(
+    OrgLexer&         lex,
+    CR<OrgExpectable> tok,
+    int               line,
+    char const*       function) {
+    expect(lex, tok, line, function);
+    auto res = lex.pop();
+    if (TraceState) { print(fmt("pop {}", res), line, function, &lex); }
+    return res;
+}
+
+
+void OrgParser::skip(
+    OrgLexer&         lex,
+    CR<OrgExpectable> item,
+    int               line,
+    char const*       function) {
+
+    expect(lex, item, line, function);
+    if (TraceState) {
+        print(fmt("pop {}", lex.tok()), line, function, &lex);
+    }
+    lex.next();
+}
+
+finally OrgParser::trace(
+    Opt<std::string> msg,
+    int              line,
+    const char*      function) {
+    if (TraceState) {
+        report(
+            Builder(
+                OrgParser::ReportKind::EnterParse, nullptr, line, function)
+                .report);
+
+        return finally([line, function, this]() {
+            report(Builder(
+                       OrgParser::ReportKind::LeaveParse,
+                       nullptr,
+                       line,
+                       function)
+                       .report);
+        });
+
+    } else {
+        return finally{[]() {}};
+    }
+}
+
+void OrgParser::print(
+    const std::string& msg,
+    int                line,
+    const char*        function,
+    OrgLexer*          lexer) {
+    if (TraceState) {
+        report(
+            Builder(OrgParser::ReportKind::Print, nullptr, line, function)
+                .with_msg(msg)
+                .with_lex(*lexer)
+                .report);
+    }
+}

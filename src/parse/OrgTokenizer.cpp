@@ -9,8 +9,8 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/system/Formatter.hpp>
 
-namespace rep {
-struct Builder : OperationsMsgBulder<OrgTokenizer::Report> {
+
+struct Builder : OperationsMsgBulder<Builder, OrgTokenizer::Report> {
     Builder& with_id(OrgTokenId const& id) {
         report.id = id;
         return *this;
@@ -21,12 +21,12 @@ struct Builder : OperationsMsgBulder<OrgTokenizer::Report> {
         OrgTokenizer::ReportKind kind,
         char const*              file     = __builtin_FILE_NAME(),
         int                      line     = __builtin_LINE(),
-        Str const&               function = __builtin_FUNCTION()) {
+        char const*              function = __builtin_FUNCTION()) {
         this->report = OrgTokenizer::Report{
             OperationsMsg{
-                .file = file,
-                .line = line,
-                .name = function,
+                .file     = file,
+                .line     = line,
+                .function = function,
             },
             .lex  = &lex,
             .kind = kind,
@@ -36,34 +36,11 @@ struct Builder : OperationsMsgBulder<OrgTokenizer::Report> {
 
 #define x_report(kind, ...)                                               \
     if (TraceState) {                                                     \
-        this->report((::rep::Builder(lex, OrgTokenizer::ReportKind::kind) \
-                          __VA_ARGS__)                                    \
-                         .report);                                        \
+        this->report(                                                     \
+            (::Builder(lex, OrgTokenizer::ReportKind::kind) __VA_ARGS__)  \
+                .report);                                                 \
     }
 
-
-#define x_trace(...)                                                      \
-    if (TraceState) {                                                     \
-        this->report(                                                     \
-            (::rep::Builder(lex, OrgTokenizer::ReportKind::Enter)         \
-                 __VA_ARGS__)                                             \
-                .report);                                                 \
-    }                                                                     \
-                                                                          \
-    finally CONCAT(close, __COUNTER__) = finally::init<Str>(              \
-        ([&](CR<Str> name) {                                              \
-            if (TraceState) {                                             \
-                this->report(((::rep::Builder(                            \
-                                   lex, OrgTokenizer::ReportKind::Leave)  \
-                                   __VA_ARGS__)                           \
-                                  .with_name(name))                       \
-                                 .report);                                \
-            }                                                             \
-        }),                                                               \
-        Str(__func__));
-
-
-} // namespace rep
 
 using otk = OrgTokenKind;
 using obt = BaseTokenKind;
@@ -162,26 +139,26 @@ struct RecombineState {
     void report(OrgTokenizer::Report const& report) { d->report(report); }
 
     finally trace(
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION()) {
+        std::optional<std::string> msg      = std::nullopt,
+        int                        line     = __builtin_LINE(),
+        char const*                function = __builtin_FUNCTION()) {
         if (TraceState) {
             ::OrgTokenizer::Report rep;
             rep.line     = line;
             rep.function = function;
             rep.kind     = ::OrgTokenizer::ReportKind::Enter;
+            rep.msg      = msg;
             report(rep);
-        }
-
-        return finally(
-            [line, function, this, TraceState = this->TraceState]() {
-                if (TraceState) {
-                    ::OrgTokenizer::Report rep;
-                    rep.function = function;
-                    rep.line     = line;
-                    rep.kind     = ::OrgTokenizer::ReportKind::Leave;
-                    report(rep);
-                }
+            return finally([line, function, this]() {
+                ::OrgTokenizer::Report rep;
+                rep.function = function;
+                rep.line     = line;
+                rep.kind     = ::OrgTokenizer::ReportKind::Leave;
+                report(rep);
             });
+        } else {
+            return finally{[]() {}};
+        }
     }
 
 
@@ -467,7 +444,7 @@ struct RecombineState {
         bool matching_state = state_top() == State::None
                            || state_top() == State::Subtree;
 
-        x_trace(.with_msg(fmt("match:{}", matching_state)));
+        auto __trace = trace(fmt("match:{}", matching_state));
 
         if (matching_state) {
             add_fake(otk::ParagraphBegin);
@@ -562,10 +539,10 @@ struct RecombineState {
     }
 
     void map_interpreted_token() {
-        x_trace(.with_msg(std::format("state: {}", state)));
-        BaseTokenId        start = lex.pos;
-        BaseToken const&   tok   = lex.tok();
-        BaseFill const&    val   = tok.value;
+        auto             __trace = trace(std::format("state: {}", state));
+        BaseTokenId      start   = lex.pos;
+        BaseToken const& tok     = lex.tok();
+        BaseFill const&  val     = tok.value;
         std::string const& str   = tok.value.text;
 
         switch (lex.kind()) {

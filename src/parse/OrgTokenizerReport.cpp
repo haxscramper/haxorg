@@ -45,7 +45,8 @@ void OrgTokenizer::report(CR<Report> in) {
             os << "  ~ ";
             if (in.msg) { os << *in.msg; }
             if (in.subname) { os << ":" << *in.subname; }
-            os << fmt(" {}:{}", in.name, in.line) << getLoc();
+            os << fmt(" {}:{}", (in.function ? in.function : ""), in.line)
+               << getLoc();
             break;
         }
 
@@ -84,8 +85,8 @@ void OrgTokenizer::report(CR<Report> in) {
         case ReportKind::Enter:
         case ReportKind::Leave: {
             os << (in.kind == ReportKind::Enter ? "> " : "< ") << fg::Green
-               << getLoc() << in.name << os.end() << ":" << fg::Cyan
-               << fmt1(in.line) << os.end();
+               << getLoc() << (in.function ? in.function : "") << os.end()
+               << ":" << fg::Cyan << fmt1(in.line) << os.end();
 
             if (in.subname.has_value()) {
                 os << " " << in.subname.value();

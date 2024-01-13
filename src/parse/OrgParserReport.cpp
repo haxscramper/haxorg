@@ -40,18 +40,12 @@ const char* OrgParser::UnhandledToken::what() const noexcept {
 void OrgParser::report(CR<Report> in) {
     using fg = TermColorFg8Bit;
 
-    if (reportHook) {
-        reportHook(in);
-    }
+    if (reportHook) { reportHook(in); }
 
-    if (traceUpdateHook) {
-        traceUpdateHook(in, TraceState, true);
-    }
+    if (traceUpdateHook) { traceUpdateHook(in, TraceState, true); }
 
     if (!TraceState) {
-        if (traceUpdateHook) {
-            traceUpdateHook(in, TraceState, false);
-        }
+        if (traceUpdateHook) { traceUpdateHook(in, TraceState, false); }
 
         return;
     }
@@ -96,8 +90,7 @@ void OrgParser::report(CR<Report> in) {
         }
 
         case ReportKind::Print: {
-            os << std::format(
-                "  {} {}:{} ", in.line, getLoc(), in.subname.value());
+            os << std::format("  {} {} ", in.line, getLoc());
             printTokens();
             break;
         }
@@ -143,12 +136,8 @@ void OrgParser::report(CR<Report> in) {
                 "{} ~ {} ",
                 in.kind == ReportKind::EnterParse ? "> " : "< ",
                 treeDepth())
-               << fg::Green << fmt1(in.name.value()) << os.end() << ":"
-               << fg::Cyan << fmt1(in.line) << os.end();
-
-            if (in.subname.has_value()) {
-                os << " <@" << in.subname.value() << ">";
-            }
+               << fg::Green << fmt1(in.function ? in.function : "")
+               << os.end() << ":" << fg::Cyan << fmt1(in.line) << os.end();
 
             printTokens();
 
@@ -163,7 +152,5 @@ void OrgParser::report(CR<Report> in) {
         --depth;
     }
 
-    if (traceUpdateHook) {
-        traceUpdateHook(in, TraceState, false);
-    }
+    if (traceUpdateHook) { traceUpdateHook(in, TraceState, false); }
 }

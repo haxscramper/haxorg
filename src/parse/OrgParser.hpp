@@ -71,14 +71,10 @@ struct OrgParser : public OperationsTracer {
         Print
     };
 
-    struct Report {
+    struct Report : OperationsMsg {
         ReportKind kind;
-        fs::path   location;
-        int        line;
-        Opt<Str>   name;
-        Opt<Str>   subname;
-        Opt<OrgId> node;
-        OrgLexer*  lex = nullptr;
+        Opt<OrgId> node = OrgId::Nil();
+        OrgLexer*  lex  = nullptr;
     };
 
 
@@ -212,7 +208,7 @@ struct OrgParser : public OperationsTracer {
         int                          line     = __builtin_LINE(),
         char const*                  function = __builtin_FUNCTION());
 
-    void trace(
+    finally trace(
         Opt<std::string> msg      = std::nullopt,
         int              line     = __builtin_LINE(),
         char const*      function = __builtin_FUNCTION());
@@ -220,7 +216,8 @@ struct OrgParser : public OperationsTracer {
     void print(
         std::string const& msg,
         int                line     = __builtin_LINE(),
-        char const*        function = __builtin_FUNCTION());
+        char const*        function = __builtin_FUNCTION(),
+        OrgLexer*          lexer    = nullptr);
 
 
   public:
