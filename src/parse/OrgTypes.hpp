@@ -54,8 +54,7 @@ struct std::formatter<OrgFill> : std::formatter<std::string> {
                     "{}:{}:{}",
                     p.getLine(),
                     p.getCol(),
-                    escape_for_write(p.base->text.substr(
-                        std::min<int>(120, p.getText().size() - 1)))),
+                    escape_for_write(p.getText())),
                 ctx);
         }
     }

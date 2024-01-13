@@ -78,7 +78,7 @@ void OrgTokenizer::report(CR<Report> in) {
                    << fmt1(in.id.getIndex()) << " "
                    << std::format("{}", at(in.id).kind);
             }
-            os << " at " << fg::Cyan << fmt1(in.line) << os.end();
+            os << " @" << fg::Cyan << fmt1(in.line) << os.end();
             if (in.msg) { os << " " << *in.msg; }
             break;
         }

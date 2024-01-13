@@ -1015,13 +1015,13 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
     auto __trace = trace(lex);
     start(org::SrcCode);
     skip(lex, otk::CmdPrefix);
-    skip(lex, otk::CmdBegin);
+    skip(lex, otk::CmdSrcBegin);
     // header_args_lang
     {
         space(lex);
         skip(lex, otk::CmdArgumentsBegin);
 
-        const auto lang = pop(lex, otk::Word);
+        const auto lang = pop(lex, otk::CmdValue);
         if (lex.val().getText().empty()) {
             empty();
         } else {
@@ -1067,7 +1067,8 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
                         break;
                     }
                     default: {
-                        assert(false);
+                        LOG(FATAL) << fmt(
+                            "Unhandled code parse token {}", lex.tok());
                     }
                 }
             }
@@ -1081,7 +1082,7 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
     // eval_result
     { empty(); };
     skip(lex, otk::CmdPrefix);
-    skip(lex, otk::CmdEnd);
+    skip(lex, otk::CmdSrcEnd);
     return end();
 }
 
@@ -1449,61 +1450,32 @@ OrgId OrgParser::parseSubtreeProperties(OrgLexer& lex) {
     auto __trace = trace(lex);
     skip(lex, otk::ColonProperties);
     skip(lex, otk::Newline);
-    skip(lex, otk::GroupBegin);
-    skip(lex, otk::Space);
     start(org::PropertyList);
-    while (lex.at(otk::ColonIdent) || lex.at(otk::Punctuation)) {
+    while (!lex.at(otk::ColonEnd)) {
         trace(lex, "Parse single subtree property");
         start(org::Property);
-        // Optional exclusion rule description
-        if (lex.at(otk::Punctuation)) {
-            token(org::Punctuation, pop(lex, otk::Punctuation));
-        } else {
-            empty();
+        auto head = lex.kind();
+        auto name = token(org::RawText, pop(lex, head));
+        switch (head) {
+            case otk::PropRawKey: {
+                token(org::RawText, pop(lex, otk::RawText));
+                break;
+            }
+            case otk::PropTextKey: {
+                space(lex);
+                parseParagraph(lex, false);
+                break;
+            }
+            default: {
+                LOG(FATAL)
+                    << fmt("Unhandled property kind parse {}", head);
+            }
         }
-
-        // First ident
-        auto name = token(org::RawText, pop(lex, otk::ColonIdent));
-
-        // Set rule for main property specification
-        if (lex.at(otk::Punctuation)) {
-            token(org::Punctuation, pop(lex, otk::Punctuation));
-        } else {
-            empty();
-        }
-
-        // Optional sub-ident for the property name, like
-        // `:header-args:cpp:`
-        if (lex.at(otk::ColonIdent)) {
-            token(org::Ident, pop(lex, otk::ColonIdent));
-        } else {
-            empty();
-        }
-
-        // Set rule for sub-property specification
-        if (lex.at(otk::Punctuation)) {
-            token(org::Punctuation, pop(lex, otk::Punctuation));
-        } else {
-            empty();
-        }
-
-        skip(lex, otk::Space);
-
-        std::string strName = normalize(group->val(name).getText());
-
-        if (strName == "created") {
-            parseTimeStamp(lex);
-        } else {
-            token(org::RawText, pop(lex, otk::RawProperty));
-        }
-
-
         skip(lex, otk::Newline);
-        skip(lex, otk::Space);
         end();
     }
+
     skip(lex, otk::ColonEnd);
-    skip(lex, otk::GroupEnd);
     return end();
 }
 

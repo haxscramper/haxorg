@@ -848,7 +848,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
             p.parse();
 
-            if (spec.debug.printParsed) {
+            if (spec.debug.printParsed || spec.debug.printParsedToFile) {
                 writeFile(
                     spec.debugFile("parsed.yaml"),
                     std::format("{}", yamlRepr(p.nodes)) + "\n");

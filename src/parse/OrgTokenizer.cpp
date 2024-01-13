@@ -414,6 +414,7 @@ struct RecombineState {
                        | rs::to<std::vector>;
 
             if (line_end.contains((lex.begin() + ahead.size())->kind)) {
+                maybe_paragraph_end();
                 while (!line_end.contains(lex.kind())) {
                     switch (lex.kind()) {
                         case obt::Colon:
@@ -632,7 +633,7 @@ struct RecombineState {
                 auto next = lex.tok(+1);
                 pop_as(otk::CmdPrefix);
                 switch (next.kind) {
-                    case obt::CmdSrcBegin: pop_as(otk::CmdBegin); break;
+                    case obt::CmdSrcBegin: pop_as(otk::CmdSrcBegin); break;
                     case obt::CmdTitle: pop_as(otk::CmdTitle); break;
                     case obt::CmdCaption: pop_as(otk::CmdCaption); break;
                     case obt::CmdFiletags: pop_as(otk::CmdFiletags); break;
@@ -659,6 +660,7 @@ struct RecombineState {
                 switch (next.kind) {
                     case obt::CmdSrcBegin:
                         state_push(State::CmdContent);
+                        add_fake(otk::CmdContentBegin);
                         break;
                     default:
                 }
@@ -685,9 +687,9 @@ struct RecombineState {
 
             case obt::SrcContentEnd: {
                 state_pop(State::CmdContent);
-                pop_as(otk::CmdContentEnd);
+                add_fake(otk::CmdContentEnd);
                 add_fake(otk::CmdPrefix);
-                add_fake(otk::ColonEnd);
+                pop_as(otk::CmdSrcEnd);
                 break;
             }
 
@@ -1037,14 +1039,22 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
                         int           line     = __builtin_LINE(),
                         char const*   function = __builtin_FUNCTION()) {
         auto idx = regroup.add(BaseToken{kind});
-        print(fmt("[{}] fake {}", idx.getIndex(), kind), line, function);
+        print(
+            lex,
+            fmt("[{}] fake {}", idx.getIndex(), kind),
+            line,
+            function);
     };
 
     auto add_base = [&](BaseToken const& tok,
                         int              line     = __builtin_LINE(),
                         char const*      function = __builtin_FUNCTION()) {
         auto idx = regroup.add(tok);
-        print(fmt("[{}] token {}", idx.getIndex(), tok), line, function);
+        print(
+            lex,
+            fmt("[{}] token {}", idx.getIndex(), tok),
+            line,
+            function);
     };
 
     if (TraceState) {
@@ -1070,7 +1080,7 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
             }
         }
 
-        print("\n" + ss.str());
+        print(lex, "\n" + ss.str());
     }
 
     for (auto gr_index = 0; gr_index < groups.size(); ++gr_index) {
@@ -1176,6 +1186,18 @@ void OrgTokenizer::convert(BaseLexer& lex) {
 }
 
 void OrgTokenizer::print(
+    BaseLexer&         lex,
     const std::string& msg,
     int                line,
-    const char*        function) {}
+    const char*        function) {
+    if (TraceState) {
+        report(Builder(
+                   lex,
+                   OrgTokenizer::ReportKind::Print,
+                   __FILE__,
+                   line,
+                   function)
+                   .with_msg(msg)
+                   .report);
+    }
+}

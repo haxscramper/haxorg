@@ -97,6 +97,7 @@ struct OrgTokenizer
     void report(CR<Report> in);
 
     void print(
+        BaseLexer&         lex,
         const std::string& msg,
         int                line     = __builtin_LINE(),
         char const*        function = __builtin_FUNCTION());
