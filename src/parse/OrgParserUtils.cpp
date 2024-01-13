@@ -167,9 +167,10 @@ OrgTokenId OrgParser::pop(
     int               line,
     char const*       function) {
     expect(lex, tok, line, function);
-    auto res = lex.pop();
-    if (TraceState) { print(fmt("pop {}", res), line, function, &lex); }
-    return res;
+    if (TraceState) {
+        print(fmt("pop {}", lex.tok()), line, function, &lex);
+    }
+    return lex.pop();
 }
 
 
@@ -189,6 +190,7 @@ void OrgParser::skip(
 }
 
 finally OrgParser::trace(
+    OrgLexer&        lex,
     Opt<std::string> msg,
     int              line,
     const char*      function) {
@@ -196,14 +198,16 @@ finally OrgParser::trace(
         report(
             Builder(
                 OrgParser::ReportKind::EnterParse, nullptr, line, function)
+                .with_lex(lex)
                 .report);
 
-        return finally([line, function, this]() {
+        return finally([line, function, this, &lex]() {
             report(Builder(
                        OrgParser::ReportKind::LeaveParse,
                        nullptr,
                        line,
                        function)
+                       .with_lex(lex)
                        .report);
         });
 

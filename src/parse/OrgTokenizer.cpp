@@ -381,6 +381,7 @@ struct RecombineState {
             pop_as(otk::HashTagBegin);
         } else if (auto next = lex.opt(+1);
                    next && next->get().kind == obt::Date) {
+            maybe_paragraph_start();
             pop_as(otk::InactiveTimeBegin);
             if (lex.at(obt::Date)) { pop_as(otk::StaticTimeDatePart); }
             if (!lex.at(obt::BraceClose)) {
@@ -395,6 +396,7 @@ struct RecombineState {
 
             pop_as(otk::InactiveTimeEnd);
         } else {
+            maybe_paragraph_start();
             pop_as(otk::Punctuation);
         }
     }

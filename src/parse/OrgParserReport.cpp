@@ -91,8 +91,8 @@ void OrgParser::report(CR<Report> in) {
         }
 
         case ReportKind::Print: {
-            os << std::format("  {} {} ", in.line, getLoc());
-            if (in.msg) { os << " " << *in.msg; }
+            if (in.msg) { os << "  " << *in.msg; }
+            os << std::format(" @{} [src:{}]", in.line, getLoc());
             printTokens();
             break;
         }
@@ -100,7 +100,7 @@ void OrgParser::report(CR<Report> in) {
         case ReportKind::AddToken: {
             auto id = in.node.value();
             os << std::format(
-                "  # add [{}] {} at {} with {}",
+                "  add [{}] {} @{} with '{}'",
                 id.getIndex(),
                 group->at(id).kind,
                 in.line,
@@ -113,18 +113,11 @@ void OrgParser::report(CR<Report> in) {
         case ReportKind::StartNode:
         case ReportKind::EndNode: {
             auto id = in.node.value();
-            if (in.kind == ReportKind::StartNode) {
-                os << std::format(
-                    "+ started node, level is {}", treeDepth());
-            } else {
-                os << std::format(
-                    "- ended node, level is {}", treeDepth());
-            }
-
             os << std::format(
-                " [{}] {} at {}",
-                id.getIndex(),
+                "{} {} [{}] @{}",
+                (in.kind == ReportKind::StartNode ? "+" : "-"),
                 group->at(id).kind,
+                id.getIndex(),
                 in.line);
 
             if (in.kind == ReportKind::EndNode) {
@@ -138,7 +131,7 @@ void OrgParser::report(CR<Report> in) {
         case ReportKind::LeaveParse: {
             os << std::format(
                 "{} [{}] ",
-                in.kind == ReportKind::EnterParse ? "> " : "< ",
+                in.kind == ReportKind::EnterParse ? ">" : "<",
                 treeDepth())
                << fg::Green << fmt1(in.function ? in.function : "")
                << os.end() << ":" << fg::Cyan << fmt1(in.line) << os.end();

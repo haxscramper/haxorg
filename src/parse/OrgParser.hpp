@@ -217,6 +217,7 @@ struct OrgParser : public OperationsTracer {
         char const* function = __builtin_FUNCTION());
 
     finally trace(
+        OrgLexer&        lex,
         Opt<std::string> msg      = std::nullopt,
         int              line     = __builtin_LINE(),
         char const*      function = __builtin_FUNCTION());
