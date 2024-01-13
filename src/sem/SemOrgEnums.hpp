@@ -703,6 +703,10 @@ enum class OrgTokenKind : short int {
   LogbookBegin,
   LogbookEnd,
   RawProperty,
+  /// \brief Properties with raw string literal values
+  PropRawKey,
+  /// \brief Properties with text (paragraph) values
+  PropTextKey,
   /// \brief You can write time ranges without any additional formatting for
   ///    subtrees that have a diary timestamps. For example, you have a
   ///    complex date predicate, but event occurs for `18:00-21:00`, so you

@@ -756,6 +756,8 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "LogbookBegin") { return OrgTokenKind::LogbookBegin; } else
   if (value == "LogbookEnd") { return OrgTokenKind::LogbookEnd; } else
   if (value == "RawProperty") { return OrgTokenKind::RawProperty; } else
+  if (value == "PropRawKey") { return OrgTokenKind::PropRawKey; } else
+  if (value == "PropTextKey") { return OrgTokenKind::PropTextKey; } else
   if (value == "ImplicitTime") { return OrgTokenKind::ImplicitTime; } else
   if (value == "TimeDuration") { return OrgTokenKind::TimeDuration; } else
   if (value == "InactiveTimeBegin") { return OrgTokenKind::InactiveTimeBegin; } else
@@ -987,6 +989,8 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::LogbookBegin: return "LogbookBegin";
     case OrgTokenKind::LogbookEnd: return "LogbookEnd";
     case OrgTokenKind::RawProperty: return "RawProperty";
+    case OrgTokenKind::PropRawKey: return "PropRawKey";
+    case OrgTokenKind::PropTextKey: return "PropTextKey";
     case OrgTokenKind::ImplicitTime: return "ImplicitTime";
     case OrgTokenKind::TimeDuration: return "TimeDuration";
     case OrgTokenKind::InactiveTimeBegin: return "InactiveTimeBegin";

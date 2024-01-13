@@ -1570,6 +1570,8 @@ def get_org_token_kind() -> GenTuEnum:
         GenTuEnumField("LogbookBegin", GenTuDoc("")),
         GenTuEnumField("LogbookEnd", GenTuDoc("")),
         GenTuEnumField("RawProperty", GenTuDoc("")),
+        GenTuEnumField("PropRawKey", GenTuDoc("Properties with raw string literal values")),
+        GenTuEnumField("PropTextKey", GenTuDoc("Properties with text (paragraph) values")),
         #endregion
         #endregion
         #region Time

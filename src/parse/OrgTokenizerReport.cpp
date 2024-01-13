@@ -42,9 +42,10 @@ void OrgTokenizer::report(CR<Report> in) {
 
     switch (in.kind) {
         case ReportKind::Print: {
-            os << "  " << fmt("{}:{}", in.name, in.line) << getLoc() << ":"
-               << in.subname.value();
-            printString();
+            os << "  ~ ";
+            if (in.msg) { os << *in.msg; }
+            if (in.subname) { os << ":" << *in.subname; }
+            os << fmt(" {}:{}", in.name, in.line) << getLoc();
             break;
         }
 

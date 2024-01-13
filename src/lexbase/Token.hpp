@@ -289,12 +289,12 @@ struct LexerCommon {
         /// Get iterator pointing to the current token (if the lexer moves
         /// it will change)
         iterator current() {
-            return __this()->in->iterator(
+            return __this()->in->pos_iterator(
                 currentPos ? *currentPos : __this()->pos);
         }
 
         const_iterator current() const {
-            return __this()->in->iterator(
+            return __this()->in->pos_iterator(
                 currentPos ? *currentPos : __this()->pos);
         }
 
@@ -305,12 +305,12 @@ struct LexerCommon {
         const_iterator rend() const { return __this()->in->rend(); }
 
         iterator rcurrent() {
-            return __this()->in->riterator(
+            return __this()->in->rpos_iterator(
                 currentPos ? *currentPos : _this->pos);
         }
 
         const iterator rcurrent() const {
-            return __this()->in->riterator(
+            return __this()->in->rpos_iterator(
                 currentPos ? *currentPos : _this->pos);
         }
 
@@ -320,6 +320,14 @@ struct LexerCommon {
 
         rs::subrange<const_iterator> range() const {
             return rs::subrange(begin(), end());
+        }
+
+        rs::subrange<iterator> range_current() {
+            return rs::subrange(current(), end());
+        }
+
+        rs::subrange<const_iterator> range_current() const {
+            return rs::subrange(current(), end());
         }
 
         rs::subrange<iterator> rrange() {

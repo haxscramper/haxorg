@@ -7,6 +7,7 @@
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/system/Formatter.hpp>
 
 #include "OrgTokenizerMacros.hpp"
 
@@ -134,6 +135,35 @@ DECL_DESCRIBED_ENUM_STANDALONE(
 
 OrgFill fill(BaseLexer& lex) { return OrgFill{.base = lex.tok().value}; }
 
+template <typename T>
+struct std::formatter<std::reference_wrapper<T>>
+    : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        std::reference_wrapper<T> const& p,
+        FormatContext&                   ctx) const {
+        return fmt_ctx(p.get(), ctx);
+    }
+};
+
+template <typename T>
+struct std::formatter<rs::subrange<T>> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        rs::subrange<T> const& p,
+        FormatContext&         ctx) const {
+        fmt_ctx("[", ctx);
+        bool first = true;
+        for (auto begin = rs::begin(p); begin != rs::end(p);
+             begin      = std::next(begin)) {
+            if (!first) { fmt_ctx(", ", ctx); }
+            fmt_ctx(*begin, ctx);
+            first = false;
+        }
+        return fmt_ctx("]", ctx);
+    }
+};
+
 
 namespace {
 
@@ -172,22 +202,42 @@ struct RecombineState {
     };
 
 
-    void state_push(State value) { state.push_back(value); };
+    void state_push(State value, int line = __builtin_LINE()) {
+        x_report(
+            Print,
+            .with_line(line).with_msg(
+                fmt("state push {} from {}", value, lex.tok())));
+
+        state.push_back(value);
+    };
 
     State state_top() {
         return state.empty() ? State::None : state.back();
     };
 
-    State state_pop() {
-        return state.empty() ? State::None : state.pop_back_v();
+    State state_pop(int line = __builtin_LINE()) {
+        auto result = state.empty() ? State::None : state.pop_back_v();
+        x_report(
+            Print,
+            .with_line(line).with_msg(
+                fmt("state pop {} from {}", result, lex.tok())));
+        return result;
     };
 
-    State state_pop(State expected) {
+    State state_pop(State expected, int line = __builtin_LINE()) {
         CHECK(state_top() == expected)
             << fmt("Expected to drop top state {} but got {}",
                    expected,
                    state_top());
-        return state_pop();
+
+        auto result = state.empty() ? State::None : state.pop_back_v();
+
+        x_report(
+            Print,
+            .with_line(line).with_msg(
+                fmt("state pop {} from {}", result, lex.tok())));
+
+        return result;
     };
 
     // Push new markup token from the current lexer position and
@@ -353,21 +403,23 @@ struct RecombineState {
 
     void map_open_brace() {
         __trace();
-        if (lex.hasNext(-1)) {
-            switch (lex.tok(-1).kind) {
-                case obt::HashIdent: pop_as(otk::HashTagBegin); break;
-                default: pop_as(otk::Punctuation);
-            }
+        auto prev = lex.opt(-1);
+        if (prev && prev->get().kind == obt::HashIdent) {
+            pop_as(otk::HashTagBegin);
         } else if (auto next = lex.opt(+1);
                    next && next->get().kind == obt::Date) {
             pop_as(otk::InactiveTimeBegin);
             if (lex.at(obt::Date)) { pop_as(otk::StaticTimeDatePart); }
             if (!lex.at(obt::BraceClose)) {
                 lex.skip(obt::Whitespace);
-                if (lex.at(obt::Time)) {
-                    pop_as(otk::StaticTimeClockPart);
-                }
+                if (lex.at(obt::Word)) { lex.next(); }
             }
+
+            if (!lex.at(obt::BraceClose)) {
+                lex.skip(obt::Whitespace);
+                pop_as(otk::StaticTimeClockPart);
+            }
+
             pop_as(otk::InactiveTimeEnd);
         } else {
             pop_as(otk::Punctuation);
@@ -380,9 +432,7 @@ struct RecombineState {
         auto const& state_2 = state.get(2_B);
         if (state_1 && state_2 && state_1.value() == State::Paragraph
             && state_2.value() == State::Subtree) {
-
-
-            auto ahead = lex.whole_fixed().range()
+            auto ahead = lex.whole_fixed().range_current()
                        | rv::take_while([&](BaseToken const& t) -> bool {
                              return tree_tags.contains(t.kind);
                          })
@@ -418,6 +468,15 @@ struct RecombineState {
             add_fake(otk::ParagraphBegin);
             state_push(State::Paragraph);
         }
+    }
+
+    void newline_end() {
+        if (state_top() == State::Paragraph) {
+            add_fake(otk::ParagraphEnd);
+            state_pop();
+        }
+
+        if (state_top() == State::Subtree) { state_pop(); }
     }
 
     void maybe_paragraph_end() {
@@ -563,6 +622,7 @@ struct RecombineState {
                         break;
                     }
                     default: {
+                        newline_end();
                         pop_as(otk::Newline);
                     }
                 }
@@ -595,6 +655,16 @@ struct RecombineState {
                     default:
                 }
 
+                break;
+            }
+
+            case obt::TreePropertyLiteral: {
+                pop_as(otk::PropRawKey);
+                break;
+            }
+
+            case obt::TreePropertyText: {
+                pop_as(otk::PropTextKey);
                 break;
             }
 
@@ -705,11 +775,10 @@ struct RecombineState {
             }
 
             case obt::MediumNewline: {
-                maybe_paragraph_end();
+                newline_end();
                 pop_as(otk::SkipNewline);
                 break;
             }
-
 
             case obt::SubtreeStars: {
                 state_push(State::Subtree);
