@@ -73,7 +73,7 @@ SemId ParseUnitStore::create(
 #undef _case
     }
 
-    CHECK(false)
+    LOG(FATAL)
         << ("Unhandled node kind for automatic creation $#"
             % to_string_vec(kind));
 }

@@ -119,8 +119,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     RawMonospace,
     Subtree,
     CmdArguments,
-    CmdContent,
-    CmdSrcContent);
+    CmdContent);
 
 DECL_DESCRIBED_ENUM_STANDALONE(
     MarkKind,
@@ -445,7 +444,9 @@ struct RecombineState {
                             pop_as(otk::SubtreeTagSeparator);
                             break;
                         case obt::Word: pop_as(otk::HashTag); break;
-                        case obt::DoubleHash: pop_as(otk::HashTag); break;
+                        case obt::DoubleHash:
+                            pop_as(otk::HashTagSub);
+                            break;
                         default:
                     }
                 }
@@ -617,8 +618,6 @@ struct RecombineState {
                         add_fake(otk::CmdArgumentsEnd);
                         state_push(State::CmdContent);
                         add_fake(otk::CmdContentBegin);
-                        state_push(State::CmdSrcContent);
-                        add_fake(otk::CmdContentBegin);
                         break;
                     }
                     default: {
@@ -655,6 +654,13 @@ struct RecombineState {
                     default:
                 }
 
+                switch (next.kind) {
+                    case obt::CmdSrcBegin:
+                        state_push(State::CmdContent);
+                        break;
+                    default:
+                }
+
                 break;
             }
 
@@ -676,7 +682,6 @@ struct RecombineState {
             }
 
             case obt::SrcContentEnd: {
-                state_pop(State::CmdSrcContent);
                 state_pop(State::CmdContent);
                 pop_as(otk::CmdContentEnd);
                 add_fake(otk::CmdPrefix);

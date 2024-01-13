@@ -317,11 +317,11 @@ struct Block {
 
         template <typename T>
         std::size_t operator()(CR<Vec<T>> items) const {
-            CHECK(false) << "TODO";
+            LOG(FATAL) << "TODO";
         }
 
         std::size_t operator()(CR<Solution>) const {
-            CHECK(false) << "TODO";
+            LOG(FATAL) << "TODO";
         }
 
         template <typename T>

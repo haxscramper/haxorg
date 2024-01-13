@@ -381,7 +381,7 @@ Opt<SemIdT<Document>> Org::getDocument() const {
             return result;
         }
     }
-    CHECK(false);
+    LOG(FATAL);
     return std::nullopt;
 }
 

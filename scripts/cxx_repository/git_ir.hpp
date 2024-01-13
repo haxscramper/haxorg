@@ -199,7 +199,7 @@ struct content_manager {
     FilePathId getFilePath(CR<fs::path> file) {
         if (file.native().starts_with(" ")) {
             std::cerr << file << std::endl;
-            CHECK(false);
+            LOG(FATAL);
         }
 
 

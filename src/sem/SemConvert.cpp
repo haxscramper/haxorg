@@ -636,7 +636,7 @@ SemIdT<Footnote> OrgConverter::convertFootnote(__args) {
         if (a.size() == 1) {
             link->tag = a[0].val().getText();
         } else {
-            CHECK(false) << ("TODO");
+            LOG(FATAL) << ("TODO");
         }
 
         return link;
@@ -861,7 +861,7 @@ SemIdT<LatexBody> OrgConverter::convertMath(__args) {
     if (a.kind() == org::InlineMath) {
         return Sem<InlineMath>(p, a);
     } else {
-        CHECK(false) << "Unhanled kind for inline math TODO";
+        LOG(FATAL) << "Unhanled kind for inline math TODO";
     }
 }
 
@@ -929,7 +929,7 @@ Vec<SemId> OrgConverter::flatConvertAttached(__args) {
         switch (a.kind()) {
             case org::CommandCaption: res = convertCaption(p, a); break;
             default:
-                CHECK(false)
+                LOG(FATAL)
                     << "TODO unhandled kind $#" % to_string_vec(a.kind());
         }
 
@@ -1011,7 +1011,7 @@ SemId OrgConverter::convert(__args) {
             if (a.size() == 1) {
                 return convertLink(p, a);
             } else {
-                CHECK(false)
+                LOG(FATAL)
                     << "TODO implement conversion of nested footnote";
             }
         }
@@ -1135,11 +1135,11 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                 case org::LatexClassOptions: {
                     auto value = sub.at(0).val().getText();
                     if (value.starts_with('[')) {
-                        CHECK(false) << "TODO";
+                        LOG(FATAL) << "TODO";
                         // value.remove('[');
                     }
                     if (value.starts_with(']')) {
-                        CHECK(false) << "TODO";
+                        LOG(FATAL) << "TODO";
                         //  value = value.chopped(1);
                     }
 

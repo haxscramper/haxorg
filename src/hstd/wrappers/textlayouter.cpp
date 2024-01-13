@@ -854,7 +854,7 @@ void Block::add(CR<BlockId> other) {
             [&](Stack& w) { w.elements.push_back(other); },
             [&](Choice& w) { w.elements.push_back(other); },
             [&](Wrap& w) { w.wrapElements.push_back(other); },
-            [&](const auto&) { CHECK(false) << ("TODO ERRMSG"); },
+            [&](const auto&) { LOG(FATAL) << ("TODO ERRMSG"); },
         },
         data);
 }
@@ -866,7 +866,7 @@ void Block::add(CVec<BlockId> others) {
             [&](Stack& w) { w.elements.append(others); },
             [&](Choice& w) { w.elements.append(others); },
             [&](Wrap& w) { w.wrapElements.append(others); },
-            [&](const auto&) { CHECK(false) << ("TODO ERRMSG"); },
+            [&](const auto&) { LOG(FATAL) << ("TODO ERRMSG"); },
         },
         data);
 }

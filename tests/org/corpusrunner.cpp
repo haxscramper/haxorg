@@ -749,7 +749,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             SPtr<std::ofstream> fileTrace;
             if (spec.debug.traceLexBase) {
                 fileTrace = std::make_shared<std::ofstream>(
-                    spec.debugFile("trace_lex_base.txt"));
+                    spec.debugFile("trace_lex_base.log"));
             }
 
             p.tokenizeBase(spec.source, fileTrace.get());
@@ -771,7 +771,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         if (spec.debug.doLex) {
             p.tokenizer->TraceState = spec.debug.traceLex;
             if (spec.debug.lexToFile) {
-                p.tokenizer->setTraceFile(spec.debugFile("trace_lex.txt"));
+                p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
             }
 
             p.tokenizeConvert();
@@ -843,7 +843,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         if (spec.debug.doParse) {
             p.parser->TraceState = spec.debug.traceParse;
             if (spec.debug.parseToFile) {
-                p.parser->setTraceFile(spec.debugFile("trace_parse.txt"));
+                p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
             }
 
             p.parse();
@@ -891,7 +891,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
             converter.TraceState = spec.debug.traceSem;
             if (spec.debug.semToFile) {
-                converter.setTraceFile(spec.debugFile("trace_sem.txt"));
+                converter.setTraceFile(spec.debugFile("trace_sem.log"));
             }
 
             auto document = converter.toDocument(

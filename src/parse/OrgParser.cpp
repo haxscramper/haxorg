@@ -171,7 +171,7 @@ void OrgParser::textFold(OrgLexer& lex) {
                       getLocMsg(lex),                                     \
                       __LINE__);                                          \
             __print(msg);                                                 \
-            CHECK(false) << msg;                                          \
+            LOG(FATAL) << msg;                                          \
             fail(pop(lex, otk::Kind##End));                               \
         }                                                                 \
         break;                                                            \
@@ -1767,7 +1767,7 @@ OrgId OrgParser::parseOrgFile(OrgLexer& lex) {
 OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
     __perf_trace("parseLineCommand");
     __trace();
-    CHECK(false) << "TODO implement line command parse";
+    LOG(FATAL) << "TODO implement line command parse";
 #if false // TODO
     const auto kind = classifyCommand(lex.strVal(+1));
     switch (kind) {
