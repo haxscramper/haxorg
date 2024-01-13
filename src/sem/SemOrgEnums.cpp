@@ -22,40 +22,6 @@ std::string enum_serde<OrgSemPlacement>::to_string(OrgSemPlacement value) {
   }
 }
 
-Opt<OrgHorizontalDirection> enum_serde<OrgHorizontalDirection>::from_string(std::string value) {
-  if (value == "ohdNone") { return OrgHorizontalDirection::ohdNone; } else
-  if (value == "ohdLeft") { return OrgHorizontalDirection::ohdLeft; } else
-  if (value == "ohdRight") { return OrgHorizontalDirection::ohdRight; } else
-  if (value == "ohdCenter") { return OrgHorizontalDirection::ohdCenter; } else
-  { return std::nullopt; }
-}
-std::string enum_serde<OrgHorizontalDirection>::to_string(OrgHorizontalDirection value) {
-  switch (value) {
-    case OrgHorizontalDirection::ohdNone: return "ohdNone";
-    case OrgHorizontalDirection::ohdLeft: return "ohdLeft";
-    case OrgHorizontalDirection::ohdRight: return "ohdRight";
-    case OrgHorizontalDirection::ohdCenter: return "ohdCenter";
-    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
-  }
-}
-
-Opt<OrgVerticalDirection> enum_serde<OrgVerticalDirection>::from_string(std::string value) {
-  if (value == "ovdNone") { return OrgVerticalDirection::ovdNone; } else
-  if (value == "ovdTop") { return OrgVerticalDirection::ovdTop; } else
-  if (value == "ovdCenter") { return OrgVerticalDirection::ovdCenter; } else
-  if (value == "ovdBottom") { return OrgVerticalDirection::ovdBottom; } else
-  { return std::nullopt; }
-}
-std::string enum_serde<OrgVerticalDirection>::to_string(OrgVerticalDirection value) {
-  switch (value) {
-    case OrgVerticalDirection::ovdNone: return "ovdNone";
-    case OrgVerticalDirection::ovdTop: return "ovdTop";
-    case OrgVerticalDirection::ovdCenter: return "ovdCenter";
-    case OrgVerticalDirection::ovdBottom: return "ovdBottom";
-    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
-  }
-}
-
 Opt<OrgSpecName> enum_serde<OrgSpecName>::from_string(std::string value) {
   if (value == "Unnamed") { return OrgSpecName::Unnamed; } else
   if (value == "Result") { return OrgSpecName::Result; } else
@@ -476,57 +442,6 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
   }
 }
 
-Opt<OrgTextContext> enum_serde<OrgTextContext>::from_string(std::string value) {
-  if (value == "otcPlain") { return OrgTextContext::otcPlain; } else
-  if (value == "otcSubtree0") { return OrgTextContext::otcSubtree0; } else
-  if (value == "otcSubtree1") { return OrgTextContext::otcSubtree1; } else
-  if (value == "otcSubtree2") { return OrgTextContext::otcSubtree2; } else
-  if (value == "otcSubtree3") { return OrgTextContext::otcSubtree3; } else
-  if (value == "otcSubtree4") { return OrgTextContext::otcSubtree4; } else
-  if (value == "otcSubtree5") { return OrgTextContext::otcSubtree5; } else
-  if (value == "otcSubtree6") { return OrgTextContext::otcSubtree6; } else
-  if (value == "otcSubtree7") { return OrgTextContext::otcSubtree7; } else
-  if (value == "otcSubtree8") { return OrgTextContext::otcSubtree8; } else
-  if (value == "otcSubtree9") { return OrgTextContext::otcSubtree9; } else
-  if (value == "otcSubtree10") { return OrgTextContext::otcSubtree10; } else
-  if (value == "otcSubtree11") { return OrgTextContext::otcSubtree11; } else
-  if (value == "otcSubtree12") { return OrgTextContext::otcSubtree12; } else
-  if (value == "otcSubtreeOther") { return OrgTextContext::otcSubtreeOther; } else
-  if (value == "otcBold") { return OrgTextContext::otcBold; } else
-  if (value == "otcItalic") { return OrgTextContext::otcItalic; } else
-  if (value == "otcStrike") { return OrgTextContext::otcStrike; } else
-  if (value == "otcUnderline") { return OrgTextContext::otcUnderline; } else
-  if (value == "otcMonospaceInline") { return OrgTextContext::otcMonospaceInline; } else
-  if (value == "otcMonospaceBlock") { return OrgTextContext::otcMonospaceBlock; } else
-  { return std::nullopt; }
-}
-std::string enum_serde<OrgTextContext>::to_string(OrgTextContext value) {
-  switch (value) {
-    case OrgTextContext::otcPlain: return "otcPlain";
-    case OrgTextContext::otcSubtree0: return "otcSubtree0";
-    case OrgTextContext::otcSubtree1: return "otcSubtree1";
-    case OrgTextContext::otcSubtree2: return "otcSubtree2";
-    case OrgTextContext::otcSubtree3: return "otcSubtree3";
-    case OrgTextContext::otcSubtree4: return "otcSubtree4";
-    case OrgTextContext::otcSubtree5: return "otcSubtree5";
-    case OrgTextContext::otcSubtree6: return "otcSubtree6";
-    case OrgTextContext::otcSubtree7: return "otcSubtree7";
-    case OrgTextContext::otcSubtree8: return "otcSubtree8";
-    case OrgTextContext::otcSubtree9: return "otcSubtree9";
-    case OrgTextContext::otcSubtree10: return "otcSubtree10";
-    case OrgTextContext::otcSubtree11: return "otcSubtree11";
-    case OrgTextContext::otcSubtree12: return "otcSubtree12";
-    case OrgTextContext::otcSubtreeOther: return "otcSubtreeOther";
-    case OrgTextContext::otcBold: return "otcBold";
-    case OrgTextContext::otcItalic: return "otcItalic";
-    case OrgTextContext::otcStrike: return "otcStrike";
-    case OrgTextContext::otcUnderline: return "otcUnderline";
-    case OrgTextContext::otcMonospaceInline: return "otcMonospaceInline";
-    case OrgTextContext::otcMonospaceBlock: return "otcMonospaceBlock";
-    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
-  }
-}
-
 Opt<OrgBigIdentKind> enum_serde<OrgBigIdentKind>::from_string(std::string value) {
   if (value == "None") { return OrgBigIdentKind::None; } else
   if (value == "Must") { return OrgBigIdentKind::Must; } else
@@ -680,6 +595,24 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "CmdColumns") { return OrgTokenKind::CmdColumns; } else
   if (value == "CmdProperty") { return OrgTokenKind::CmdProperty; } else
   if (value == "CmdOptions") { return OrgTokenKind::CmdOptions; } else
+  if (value == "CmdSetupfile") { return OrgTokenKind::CmdSetupfile; } else
+  if (value == "CmdInclude") { return OrgTokenKind::CmdInclude; } else
+  if (value == "CmdAttrLatex") { return OrgTokenKind::CmdAttrLatex; } else
+  if (value == "CmdAttrImg") { return OrgTokenKind::CmdAttrImg; } else
+  if (value == "CmdAttrHtml") { return OrgTokenKind::CmdAttrHtml; } else
+  if (value == "CmdHtmlHead") { return OrgTokenKind::CmdHtmlHead; } else
+  if (value == "CmdLanguage") { return OrgTokenKind::CmdLanguage; } else
+  if (value == "CmdLatexClassOptions") { return OrgTokenKind::CmdLatexClassOptions; } else
+  if (value == "CmdLatexClass") { return OrgTokenKind::CmdLatexClass; } else
+  if (value == "CmdLatexCompiler") { return OrgTokenKind::CmdLatexCompiler; } else
+  if (value == "CmdAuthor") { return OrgTokenKind::CmdAuthor; } else
+  if (value == "CmdBind") { return OrgTokenKind::CmdBind; } else
+  if (value == "CmdCreator") { return OrgTokenKind::CmdCreator; } else
+  if (value == "CmdLatexHeader") { return OrgTokenKind::CmdLatexHeader; } else
+  if (value == "CmdResults") { return OrgTokenKind::CmdResults; } else
+  if (value == "CmdCall") { return OrgTokenKind::CmdCall; } else
+  if (value == "CmdName") { return OrgTokenKind::CmdName; } else
+  if (value == "CmdHeader") { return OrgTokenKind::CmdHeader; } else
   if (value == "CmdArgumentsBegin") { return OrgTokenKind::CmdArgumentsBegin; } else
   if (value == "CmdArgumentsEnd") { return OrgTokenKind::CmdArgumentsEnd; } else
   if (value == "CmdKey") { return OrgTokenKind::CmdKey; } else
@@ -696,6 +629,19 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "CmdCenterEnd") { return OrgTokenKind::CmdCenterEnd; } else
   if (value == "CmdTableBegin") { return OrgTokenKind::CmdTableBegin; } else
   if (value == "CmdTableEnd") { return OrgTokenKind::CmdTableEnd; } else
+  if (value == "CmdAdmonitionBegin") { return OrgTokenKind::CmdAdmonitionBegin; } else
+  if (value == "CmdAdmonitionEnd") { return OrgTokenKind::CmdAdmonitionEnd; } else
+  if (value == "CmdDynamicBegin") { return OrgTokenKind::CmdDynamicBegin; } else
+  if (value == "CmdDynamicEnd") { return OrgTokenKind::CmdDynamicEnd; } else
+  if (value == "CmdExampleBegin") { return OrgTokenKind::CmdExampleBegin; } else
+  if (value == "CmdExampleEnd") { return OrgTokenKind::CmdExampleEnd; } else
+  if (value == "CmdExportBegin") { return OrgTokenKind::CmdExportBegin; } else
+  if (value == "CmdExportEnd") { return OrgTokenKind::CmdExportEnd; } else
+  if (value == "CmdDetailsBegin") { return OrgTokenKind::CmdDetailsBegin; } else
+  if (value == "CmdDetailsEnd") { return OrgTokenKind::CmdDetailsEnd; } else
+  if (value == "CmdSummaryBegin") { return OrgTokenKind::CmdSummaryBegin; } else
+  if (value == "CmdSummaryEnd") { return OrgTokenKind::CmdSummaryEnd; } else
+  if (value == "CmdTblfm") { return OrgTokenKind::CmdTblfm; } else
   if (value == "QuoteContent") { return OrgTokenKind::QuoteContent; } else
   if (value == "CmdBackendPass") { return OrgTokenKind::CmdBackendPass; } else
   if (value == "CmdContentBegin") { return OrgTokenKind::CmdContentBegin; } else
@@ -913,6 +859,24 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::CmdColumns: return "CmdColumns";
     case OrgTokenKind::CmdProperty: return "CmdProperty";
     case OrgTokenKind::CmdOptions: return "CmdOptions";
+    case OrgTokenKind::CmdSetupfile: return "CmdSetupfile";
+    case OrgTokenKind::CmdInclude: return "CmdInclude";
+    case OrgTokenKind::CmdAttrLatex: return "CmdAttrLatex";
+    case OrgTokenKind::CmdAttrImg: return "CmdAttrImg";
+    case OrgTokenKind::CmdAttrHtml: return "CmdAttrHtml";
+    case OrgTokenKind::CmdHtmlHead: return "CmdHtmlHead";
+    case OrgTokenKind::CmdLanguage: return "CmdLanguage";
+    case OrgTokenKind::CmdLatexClassOptions: return "CmdLatexClassOptions";
+    case OrgTokenKind::CmdLatexClass: return "CmdLatexClass";
+    case OrgTokenKind::CmdLatexCompiler: return "CmdLatexCompiler";
+    case OrgTokenKind::CmdAuthor: return "CmdAuthor";
+    case OrgTokenKind::CmdBind: return "CmdBind";
+    case OrgTokenKind::CmdCreator: return "CmdCreator";
+    case OrgTokenKind::CmdLatexHeader: return "CmdLatexHeader";
+    case OrgTokenKind::CmdResults: return "CmdResults";
+    case OrgTokenKind::CmdCall: return "CmdCall";
+    case OrgTokenKind::CmdName: return "CmdName";
+    case OrgTokenKind::CmdHeader: return "CmdHeader";
     case OrgTokenKind::CmdArgumentsBegin: return "CmdArgumentsBegin";
     case OrgTokenKind::CmdArgumentsEnd: return "CmdArgumentsEnd";
     case OrgTokenKind::CmdKey: return "CmdKey";
@@ -929,6 +893,19 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::CmdCenterEnd: return "CmdCenterEnd";
     case OrgTokenKind::CmdTableBegin: return "CmdTableBegin";
     case OrgTokenKind::CmdTableEnd: return "CmdTableEnd";
+    case OrgTokenKind::CmdAdmonitionBegin: return "CmdAdmonitionBegin";
+    case OrgTokenKind::CmdAdmonitionEnd: return "CmdAdmonitionEnd";
+    case OrgTokenKind::CmdDynamicBegin: return "CmdDynamicBegin";
+    case OrgTokenKind::CmdDynamicEnd: return "CmdDynamicEnd";
+    case OrgTokenKind::CmdExampleBegin: return "CmdExampleBegin";
+    case OrgTokenKind::CmdExampleEnd: return "CmdExampleEnd";
+    case OrgTokenKind::CmdExportBegin: return "CmdExportBegin";
+    case OrgTokenKind::CmdExportEnd: return "CmdExportEnd";
+    case OrgTokenKind::CmdDetailsBegin: return "CmdDetailsBegin";
+    case OrgTokenKind::CmdDetailsEnd: return "CmdDetailsEnd";
+    case OrgTokenKind::CmdSummaryBegin: return "CmdSummaryBegin";
+    case OrgTokenKind::CmdSummaryEnd: return "CmdSummaryEnd";
+    case OrgTokenKind::CmdTblfm: return "CmdTblfm";
     case OrgTokenKind::QuoteContent: return "QuoteContent";
     case OrgTokenKind::CmdBackendPass: return "CmdBackendPass";
     case OrgTokenKind::CmdContentBegin: return "CmdContentBegin";
@@ -1129,210 +1106,6 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::EndHeader: return "EndHeader";
     case OrgTokenKind::CallEnd: return "CallEnd";
     case OrgTokenKind::CmdArguments: return "CmdArguments";
-    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
-  }
-}
-
-Opt<OrgCommandKind> enum_serde<OrgCommandKind>::from_string(std::string value) {
-  if (value == "None") { return OrgCommandKind::None; } else
-  if (value == "Include") { return OrgCommandKind::Include; } else
-  if (value == "Filetags") { return OrgCommandKind::Filetags; } else
-  if (value == "Setupfile") { return OrgCommandKind::Setupfile; } else
-  if (value == "Columns") { return OrgCommandKind::Columns; } else
-  if (value == "OtherProperty") { return OrgCommandKind::OtherProperty; } else
-  if (value == "BeginTable") { return OrgCommandKind::BeginTable; } else
-  if (value == "EndTable") { return OrgCommandKind::EndTable; } else
-  if (value == "Row") { return OrgCommandKind::Row; } else
-  if (value == "Cell") { return OrgCommandKind::Cell; } else
-  if (value == "BeginAdmonition") { return OrgCommandKind::BeginAdmonition; } else
-  if (value == "EndAdmonition") { return OrgCommandKind::EndAdmonition; } else
-  if (value == "BeginDynamic") { return OrgCommandKind::BeginDynamic; } else
-  if (value == "EndDynamic") { return OrgCommandKind::EndDynamic; } else
-  if (value == "BeginCenter") { return OrgCommandKind::BeginCenter; } else
-  if (value == "EndCenter") { return OrgCommandKind::EndCenter; } else
-  if (value == "BeginQuote") { return OrgCommandKind::BeginQuote; } else
-  if (value == "EndQuote") { return OrgCommandKind::EndQuote; } else
-  if (value == "BeginSrc") { return OrgCommandKind::BeginSrc; } else
-  if (value == "EndSrc") { return OrgCommandKind::EndSrc; } else
-  if (value == "BeginExport") { return OrgCommandKind::BeginExport; } else
-  if (value == "EndExport") { return OrgCommandKind::EndExport; } else
-  if (value == "BeginExample") { return OrgCommandKind::BeginExample; } else
-  if (value == "EndExample") { return OrgCommandKind::EndExample; } else
-  if (value == "BeginDetails") { return OrgCommandKind::BeginDetails; } else
-  if (value == "EndDetails") { return OrgCommandKind::EndDetails; } else
-  if (value == "BeginSummary") { return OrgCommandKind::BeginSummary; } else
-  if (value == "EndSummary") { return OrgCommandKind::EndSummary; } else
-  if (value == "LatexClassOptions") { return OrgCommandKind::LatexClassOptions; } else
-  if (value == "LatexClass") { return OrgCommandKind::LatexClass; } else
-  if (value == "LatexCompiler") { return OrgCommandKind::LatexCompiler; } else
-  if (value == "AttrLatex") { return OrgCommandKind::AttrLatex; } else
-  if (value == "AttrImg") { return OrgCommandKind::AttrImg; } else
-  if (value == "AttrHtml") { return OrgCommandKind::AttrHtml; } else
-  if (value == "HtmlHead") { return OrgCommandKind::HtmlHead; } else
-  if (value == "Language") { return OrgCommandKind::Language; } else
-  if (value == "Options") { return OrgCommandKind::Options; } else
-  if (value == "Title") { return OrgCommandKind::Title; } else
-  if (value == "Property") { return OrgCommandKind::Property; } else
-  if (value == "Author") { return OrgCommandKind::Author; } else
-  if (value == "Bind") { return OrgCommandKind::Bind; } else
-  if (value == "Creator") { return OrgCommandKind::Creator; } else
-  if (value == "LatexHeader") { return OrgCommandKind::LatexHeader; } else
-  if (value == "Results") { return OrgCommandKind::Results; } else
-  if (value == "Call") { return OrgCommandKind::Call; } else
-  if (value == "Name") { return OrgCommandKind::Name; } else
-  if (value == "Caption") { return OrgCommandKind::Caption; } else
-  if (value == "Header") { return OrgCommandKind::Header; } else
-  if (value == "TableFormula") { return OrgCommandKind::TableFormula; } else
-  { return std::nullopt; }
-}
-std::string enum_serde<OrgCommandKind>::to_string(OrgCommandKind value) {
-  switch (value) {
-    case OrgCommandKind::None: return "None";
-    case OrgCommandKind::Include: return "Include";
-    case OrgCommandKind::Filetags: return "Filetags";
-    case OrgCommandKind::Setupfile: return "Setupfile";
-    case OrgCommandKind::Columns: return "Columns";
-    case OrgCommandKind::OtherProperty: return "OtherProperty";
-    case OrgCommandKind::BeginTable: return "BeginTable";
-    case OrgCommandKind::EndTable: return "EndTable";
-    case OrgCommandKind::Row: return "Row";
-    case OrgCommandKind::Cell: return "Cell";
-    case OrgCommandKind::BeginAdmonition: return "BeginAdmonition";
-    case OrgCommandKind::EndAdmonition: return "EndAdmonition";
-    case OrgCommandKind::BeginDynamic: return "BeginDynamic";
-    case OrgCommandKind::EndDynamic: return "EndDynamic";
-    case OrgCommandKind::BeginCenter: return "BeginCenter";
-    case OrgCommandKind::EndCenter: return "EndCenter";
-    case OrgCommandKind::BeginQuote: return "BeginQuote";
-    case OrgCommandKind::EndQuote: return "EndQuote";
-    case OrgCommandKind::BeginSrc: return "BeginSrc";
-    case OrgCommandKind::EndSrc: return "EndSrc";
-    case OrgCommandKind::BeginExport: return "BeginExport";
-    case OrgCommandKind::EndExport: return "EndExport";
-    case OrgCommandKind::BeginExample: return "BeginExample";
-    case OrgCommandKind::EndExample: return "EndExample";
-    case OrgCommandKind::BeginDetails: return "BeginDetails";
-    case OrgCommandKind::EndDetails: return "EndDetails";
-    case OrgCommandKind::BeginSummary: return "BeginSummary";
-    case OrgCommandKind::EndSummary: return "EndSummary";
-    case OrgCommandKind::LatexClassOptions: return "LatexClassOptions";
-    case OrgCommandKind::LatexClass: return "LatexClass";
-    case OrgCommandKind::LatexCompiler: return "LatexCompiler";
-    case OrgCommandKind::AttrLatex: return "AttrLatex";
-    case OrgCommandKind::AttrImg: return "AttrImg";
-    case OrgCommandKind::AttrHtml: return "AttrHtml";
-    case OrgCommandKind::HtmlHead: return "HtmlHead";
-    case OrgCommandKind::Language: return "Language";
-    case OrgCommandKind::Options: return "Options";
-    case OrgCommandKind::Title: return "Title";
-    case OrgCommandKind::Property: return "Property";
-    case OrgCommandKind::Author: return "Author";
-    case OrgCommandKind::Bind: return "Bind";
-    case OrgCommandKind::Creator: return "Creator";
-    case OrgCommandKind::LatexHeader: return "LatexHeader";
-    case OrgCommandKind::Results: return "Results";
-    case OrgCommandKind::Call: return "Call";
-    case OrgCommandKind::Name: return "Name";
-    case OrgCommandKind::Caption: return "Caption";
-    case OrgCommandKind::Header: return "Header";
-    case OrgCommandKind::TableFormula: return "TableFormula";
-    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
-  }
-}
-
-Opt<OrgPropertyKind> enum_serde<OrgPropertyKind>::from_string(std::string value) {
-  if (value == "Title") { return OrgPropertyKind::Title; } else
-  if (value == "Author") { return OrgPropertyKind::Author; } else
-  if (value == "Date") { return OrgPropertyKind::Date; } else
-  if (value == "Email") { return OrgPropertyKind::Email; } else
-  if (value == "Language") { return OrgPropertyKind::Language; } else
-  if (value == "Url") { return OrgPropertyKind::Url; } else
-  if (value == "SourceUrl") { return OrgPropertyKind::SourceUrl; } else
-  if (value == "AttrImg") { return OrgPropertyKind::AttrImg; } else
-  if (value == "Toplevel") { return OrgPropertyKind::Toplevel; } else
-  if (value == "Blocker") { return OrgPropertyKind::Blocker; } else
-  if (value == "Created") { return OrgPropertyKind::Created; } else
-  if (value == "Unnumbered") { return OrgPropertyKind::Unnumbered; } else
-  if (value == "Trigger") { return OrgPropertyKind::Trigger; } else
-  if (value == "Ordered") { return OrgPropertyKind::Ordered; } else
-  if (value == "Noblocking") { return OrgPropertyKind::Noblocking; } else
-  if (value == "ExportOptions") { return OrgPropertyKind::ExportOptions; } else
-  if (value == "BackendExportOptions") { return OrgPropertyKind::BackendExportOptions; } else
-  if (value == "AttrBackend") { return OrgPropertyKind::AttrBackend; } else
-  if (value == "ColumnSpec") { return OrgPropertyKind::ColumnSpec; } else
-  if (value == "Name") { return OrgPropertyKind::Name; } else
-  if (value == "Caption") { return OrgPropertyKind::Caption; } else
-  if (value == "LinkAbbrev") { return OrgPropertyKind::LinkAbbrev; } else
-  if (value == "Filetags") { return OrgPropertyKind::Filetags; } else
-  if (value == "TagConf") { return OrgPropertyKind::TagConf; } else
-  if (value == "LatexHeader") { return OrgPropertyKind::LatexHeader; } else
-  if (value == "OtherProperty") { return OrgPropertyKind::OtherProperty; } else
-  if (value == "Id") { return OrgPropertyKind::Id; } else
-  { return std::nullopt; }
-}
-std::string enum_serde<OrgPropertyKind>::to_string(OrgPropertyKind value) {
-  switch (value) {
-    case OrgPropertyKind::Title: return "Title";
-    case OrgPropertyKind::Author: return "Author";
-    case OrgPropertyKind::Date: return "Date";
-    case OrgPropertyKind::Email: return "Email";
-    case OrgPropertyKind::Language: return "Language";
-    case OrgPropertyKind::Url: return "Url";
-    case OrgPropertyKind::SourceUrl: return "SourceUrl";
-    case OrgPropertyKind::AttrImg: return "AttrImg";
-    case OrgPropertyKind::Toplevel: return "Toplevel";
-    case OrgPropertyKind::Blocker: return "Blocker";
-    case OrgPropertyKind::Created: return "Created";
-    case OrgPropertyKind::Unnumbered: return "Unnumbered";
-    case OrgPropertyKind::Trigger: return "Trigger";
-    case OrgPropertyKind::Ordered: return "Ordered";
-    case OrgPropertyKind::Noblocking: return "Noblocking";
-    case OrgPropertyKind::ExportOptions: return "ExportOptions";
-    case OrgPropertyKind::BackendExportOptions: return "BackendExportOptions";
-    case OrgPropertyKind::AttrBackend: return "AttrBackend";
-    case OrgPropertyKind::ColumnSpec: return "ColumnSpec";
-    case OrgPropertyKind::Name: return "Name";
-    case OrgPropertyKind::Caption: return "Caption";
-    case OrgPropertyKind::LinkAbbrev: return "LinkAbbrev";
-    case OrgPropertyKind::Filetags: return "Filetags";
-    case OrgPropertyKind::TagConf: return "TagConf";
-    case OrgPropertyKind::LatexHeader: return "LatexHeader";
-    case OrgPropertyKind::OtherProperty: return "OtherProperty";
-    case OrgPropertyKind::Id: return "Id";
-    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
-  }
-}
-
-Opt<OrgUnnumberedKind> enum_serde<OrgUnnumberedKind>::from_string(std::string value) {
-  if (value == "Notoc") { return OrgUnnumberedKind::Notoc; } else
-  if (value == "True") { return OrgUnnumberedKind::True; } else
-  if (value == "False") { return OrgUnnumberedKind::False; } else
-  { return std::nullopt; }
-}
-std::string enum_serde<OrgUnnumberedKind>::to_string(OrgUnnumberedKind value) {
-  switch (value) {
-    case OrgUnnumberedKind::Notoc: return "Notoc";
-    case OrgUnnumberedKind::True: return "True";
-    case OrgUnnumberedKind::False: return "False";
-    default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
-  }
-}
-
-Opt<OrgBlockLexerState> enum_serde<OrgBlockLexerState>::from_string(std::string value) {
-  if (value == "None") { return OrgBlockLexerState::None; } else
-  if (value == "InHeader") { return OrgBlockLexerState::InHeader; } else
-  if (value == "InBody") { return OrgBlockLexerState::InBody; } else
-  if (value == "Ended") { return OrgBlockLexerState::Ended; } else
-  if (value == "Complete") { return OrgBlockLexerState::Complete; } else
-  { return std::nullopt; }
-}
-std::string enum_serde<OrgBlockLexerState>::to_string(OrgBlockLexerState value) {
-  switch (value) {
-    case OrgBlockLexerState::None: return "None";
-    case OrgBlockLexerState::InHeader: return "InHeader";
-    case OrgBlockLexerState::InBody: return "InBody";
-    case OrgBlockLexerState::Ended: return "Ended";
-    case OrgBlockLexerState::Complete: return "Complete";
     default: throw std::domain_error("Unexpected enum value -- cannot be converted to string");
   }
 }

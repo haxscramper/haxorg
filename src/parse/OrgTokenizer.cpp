@@ -83,7 +83,6 @@ struct Builder {
 
 } // namespace rep
 
-using ock = OrgCommandKind;
 using otk = OrgTokenKind;
 using obt = BaseTokenKind;
 

@@ -7,7 +7,6 @@
 
 using otk = OrgTokenKind;
 using org = OrgNodeKind;
-using ock = OrgCommandKind;
 
 #include "OrgParserMacros.hpp"
 
@@ -171,7 +170,7 @@ void OrgParser::textFold(OrgLexer& lex) {
                       getLocMsg(lex),                                     \
                       __LINE__);                                          \
             __print(msg);                                                 \
-            LOG(FATAL) << msg;                                          \
+            LOG(FATAL) << msg;                                            \
             fail(pop(lex, otk::Kind##End));                               \
         }                                                                 \
         break;                                                            \
@@ -977,13 +976,13 @@ OrgId OrgParser::parseSrcArguments(OrgLexer& lex) {
 }
 
 
-OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind) {
+OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
     __perf_trace("parseTextWrapCommand");
     __trace();
-    switch (kind) {
-        case ock::BeginCenter: __start(org::CenterBlock); break;
-        case ock::BeginQuote: __start(org::QuoteBlock); break;
-        case ock::BeginAdmonition: __start(org::AdmonitionBlock); break;
+    switch (lex.kind()) {
+        case otk::CmdCenterBegin: __start(org::CenterBlock); break;
+        case otk::CmdQuoteBegin: __start(org::QuoteBlock); break;
+        case otk::CmdAdmonitionBegin: __start(org::AdmonitionBlock); break;
         default: throw UnhandledToken(lex);
     }
 
@@ -1767,11 +1766,9 @@ OrgId OrgParser::parseOrgFile(OrgLexer& lex) {
 OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
     __perf_trace("parseLineCommand");
     __trace();
-    LOG(FATAL) << "TODO implement line command parse";
-#if false // TODO
-    const auto kind = classifyCommand(lex.strVal(+1));
-    switch (kind) {
-        case ock::Include: {
+    auto cmd_kind = lex.kind(+1);
+    switch (cmd_kind) {
+        case otk::CmdInclude: {
             skipLineCommand(lex);
             __skip(lex, otk::CmdArgumentsBegin);
             __start(org::CommandInclude);
@@ -1794,7 +1791,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-        case ock::AttrHtml: {
+        case otk::CmdAttrHtml: {
             skipLineCommand(lex);
             __skip(lex, otk::CmdArgumentsBegin);
             __start(org::CommandAttrHtml);
@@ -1803,14 +1800,14 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-        case ock::Title: {
+        case otk::CmdTitle: {
             skipLineCommand(lex);
             __start(org::CommandTitle);
             parseParagraph(lex, false);
             break;
         }
 
-        case ock::Caption: {
+        case otk::CmdCaption: {
             skipLineCommand(lex);
             __start(org::CommandCaption);
             __start(org::CommandArguments);
@@ -1819,41 +1816,37 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-        case ock::Creator:
-        case ock::Options:
-        case ock::Columns:
-        case ock::Author:
-        case ock::LatexHeader:
-        case ock::Language: {
-            OrgNodeKind newk;
-            switch (kind) {
-                case ock::Creator: newk = org::CommandCreator; break;
-                case ock::Language: newk = org::CommandLanguage; break;
-                case ock::Author: newk = org::CommandAuthor; break;
-                case ock::Options: newk = org::CommandOptions; break;
-                case ock::LatexHeader: newk = org::LatexHeader; break;
-                case ock::Columns: newk = org::Columns; break;
+        case otk::CmdCreator:
+        case otk::CmdOptions:
+        case otk::CmdColumns:
+        case otk::CmdAuthor:
+        case otk::CmdLatexHeader:
+        case otk::CmdLanguage: {
+            switch (cmd_kind) {
+                case otk::CmdCreator: __start(org::CommandCreator); break;
+                case otk::CmdLanguage:
+                    __start(org::CommandLanguage);
+                    break;
+                case otk::CmdAuthor: __start(org::CommandAuthor); break;
+                case otk::CmdOptions: __start(org::CommandOptions); break;
+                case otk::CmdLatexHeader: __start(org::LatexHeader); break;
+                case otk::CmdColumns: __start(org::Columns); break;
                 default: {
                 }
             }
 
-            __start(newk);
-            {
-                skipLineCommand(lex);
-                __skip(lex, otk::CmdArgumentsBegin);
-                while (lex.at(otk::RawText)) {
-                    token(org::RawText, pop(lex, otk::RawText));
-                    if (lex.at(otk::SkipSpace)) {
-                        skipSpace(lex);
-                    }
-                }
-                __skip(lex, otk::CmdArgumentsEnd);
+            skipLineCommand(lex);
+            __skip(lex, otk::CmdArgumentsBegin);
+            while (lex.at(otk::RawText)) {
+                token(org::RawText, pop(lex, otk::RawText));
+                if (lex.at(otk::SkipSpace)) { skipSpace(lex); }
             }
+            __skip(lex, otk::CmdArgumentsEnd);
 
             break;
         }
 
-        case ock::Filetags: {
+        case otk::CmdFiletags: {
             skipLineCommand(lex);
             __start(org::Filetags);
             while (lex.at(otk::SubtreeTagSeparator)
@@ -1864,7 +1857,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-        case ock::HtmlHead: {
+        case otk::CmdHtmlHead: {
             skipLineCommand(lex);
             __skip(lex, otk::CmdArgumentsBegin);
             __start(org::HtmlHead);
@@ -1873,7 +1866,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-        case ock::LatexClassOptions: {
+        case otk::CmdLatexClassOptions: {
             skipLineCommand(lex);
             __skip(lex, otk::CmdArgumentsBegin);
             __start(org::LatexClassOptions);
@@ -1882,25 +1875,26 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-        case ock::LatexClass:
-        case ock::LatexCompiler: {
-            OrgNodeKind newk = org::Empty;
-            switch (kind) {
-                case ock::LatexCompiler: newk = org::LatexCompiler; break;
-                case ock::LatexClass: newk = org::LatexClass; break;
+        case otk::CmdLatexClass:
+        case otk::CmdLatexCompiler: {
+            switch (cmd_kind) {
+                case otk::CmdLatexCompiler:
+                    __start(org::LatexCompiler);
+                    break;
+                case otk::CmdLatexClass: __start(org::LatexClass); break;
                 default: {
                 }
             }
+
             skipLineCommand(lex);
             __skip(lex, otk::CmdArgumentsBegin);
-            __start(newk);
             token(org::Ident, pop(lex, otk::Ident));
             __skip(lex, otk::CmdArgumentsEnd);
             break;
         }
 
 
-        case ock::Property: {
+        case otk::CmdProperty: {
             skipLineCommand(lex);
             __start(org::Property);
             token(org::RawText, pop(lex, otk::Ident));
@@ -1909,7 +1903,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-        case ock::TableFormula: {
+        case otk::CmdTblfm: {
             skipLineCommand(lex);
             __start(org::CommandTblfm);
             __skip(lex, otk::CmdArgumentsBegin);
@@ -1919,8 +1913,8 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         }
 
         default: {
-            throw wrapError(
-                UnhandledToken(lex, to_string(kind)), lex);
+            LOG(FATAL) << fmt(
+                "Unhandled token kind {} {}", lex.kind(+1), lex);
         }
     }
 
@@ -1929,7 +1923,6 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
     __end();
     // End main tree that was started in the case statement
     __end();
-#endif
 
     return back();
 }
@@ -1955,21 +1948,14 @@ OrgId OrgParser::parseToplevelItem(OrgLexer& lex) {
             return token(org::TextSeparator, pop(lex, otk::TextSeparator));
 
         case otk::CmdPrefix: {
-            auto const& kind = lex.tok(1)->getText();
-            if (kind == "begin_src") {
-                return parseSrc(lex);
-            } else if (kind == "begin_example") {
-                return parseExample(lex);
-            } else if (kind == "begin_export") {
-                parseBlockExport(lex);
-            } else if (kind == "begin_quote") {
-                return parseTextWrapCommand(lex, ock::BeginQuote);
-            } else if (kind == "begin_center") {
-                return parseTextWrapCommand(lex, ock::BeginCenter);
-            } else if (kind == "begin_admonition") {
-                return parseTextWrapCommand(lex, ock::BeginAdmonition);
-            } else {
-                return parseLineCommand(lex);
+            switch (lex.kind(+1)) {
+                case otk::CmdSrcBegin: return parseSrc(lex);
+                case otk::CmdExampleBegin: return parseExample(lex);
+                case otk::CmdExportBegin: return parseBlockExport(lex);
+                case otk::CmdCenterBegin:
+                case otk::CmdAdmonitionBegin:
+                case otk::CmdQuoteBegin: return parseTextWrapCommand(lex);
+                default: return parseLineCommand(lex);
             }
         }
         default: {

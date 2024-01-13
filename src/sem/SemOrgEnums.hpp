@@ -82,48 +82,6 @@ struct value_domain<OrgSemPlacement> : public value_domain_ungapped<OrgSemPlacem
                                                                     OrgSemPlacement::TreeTitle,
                                                                     OrgSemPlacement::DocBody> {};
 
-enum class OrgHorizontalDirection : short int {
-  /// \brief No specific positioning requirements
-  ohdNone,
-  /// \brief Align to the left
-  ohdLeft,
-  /// \brief Align to the right
-  ohdRight,
-  /// \brief Align to the center
-  ohdCenter,
-};
-template <>
-struct enum_serde<OrgHorizontalDirection> {
-  static Opt<OrgHorizontalDirection> from_string(std::string value);
-  static std::string to_string(OrgHorizontalDirection value);
-};
-
-template <>
-struct value_domain<OrgHorizontalDirection> : public value_domain_ungapped<OrgHorizontalDirection,
-                                                                           OrgHorizontalDirection::ohdNone,
-                                                                           OrgHorizontalDirection::ohdCenter> {};
-
-enum class OrgVerticalDirection : short int {
-  /// \brief No specific positioning
-  ovdNone,
-  /// \brief Align to the top
-  ovdTop,
-  /// \brief Center
-  ovdCenter,
-  /// \brief Bottom
-  ovdBottom,
-};
-template <>
-struct enum_serde<OrgVerticalDirection> {
-  static Opt<OrgVerticalDirection> from_string(std::string value);
-  static std::string to_string(OrgVerticalDirection value);
-};
-
-template <>
-struct value_domain<OrgVerticalDirection> : public value_domain_ungapped<OrgVerticalDirection,
-                                                                         OrgVerticalDirection::ovdNone,
-                                                                         OrgVerticalDirection::ovdBottom> {};
-
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Urgency, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, InheritanceMode, MainSetRule, SubSetRule, };
 template <>
 struct enum_serde<OrgSpecName> {
@@ -442,18 +400,6 @@ struct value_domain<OrgNodeKind> : public value_domain_ungapped<OrgNodeKind,
                                                                 OrgNodeKind::None,
                                                                 OrgNodeKind::Target> {};
 
-enum class OrgTextContext : short int { otcPlain, otcSubtree0, otcSubtree1, otcSubtree2, otcSubtree3, otcSubtree4, otcSubtree5, otcSubtree6, otcSubtree7, otcSubtree8, otcSubtree9, otcSubtree10, otcSubtree11, otcSubtree12, otcSubtreeOther, otcBold, otcItalic, otcStrike, otcUnderline, otcMonospaceInline, otcMonospaceBlock, };
-template <>
-struct enum_serde<OrgTextContext> {
-  static Opt<OrgTextContext> from_string(std::string value);
-  static std::string to_string(OrgTextContext value);
-};
-
-template <>
-struct value_domain<OrgTextContext> : public value_domain_ungapped<OrgTextContext,
-                                                                   OrgTextContext::otcPlain,
-                                                                   OrgTextContext::otcMonospaceBlock> {};
-
 enum class OrgBigIdentKind : short int {
   None,
   /// \brief MUST This word, or the terms "REQUIRED" or "SHALL", mean that the definition is an absolute requirement of the specification.
@@ -583,6 +529,38 @@ enum class OrgTokenKind : short int {
   CmdProperty,
   /// \brief #+options
   CmdOptions,
+  CmdSetupfile,
+  CmdInclude,
+  /// \brief `#+attr_latex:`
+  CmdAttrLatex,
+  /// \brief `#+attr_img:`
+  CmdAttrImg,
+  /// \brief `#+attr_html:`
+  CmdAttrHtml,
+  /// \brief `#+html_head:`
+  CmdHtmlHead,
+  /// \brief `#+language:`
+  CmdLanguage,
+  /// \brief `#+latex_class_options`
+  CmdLatexClassOptions,
+  CmdLatexClass,
+  CmdLatexCompiler,
+  /// \brief `#+author:`
+  CmdAuthor,
+  /// \brief `#+bind:`
+  CmdBind,
+  /// \brief `#+creator:`
+  CmdCreator,
+  /// \brief `#+latex_header`
+  CmdLatexHeader,
+  /// \brief `#+results:`
+  CmdResults,
+  /// \brief `#+call:`
+  CmdCall,
+  /// \brief `#+name:`
+  CmdName,
+  /// \brief `#+header:`
+  CmdHeader,
   /// \brief List of command arguments
   CmdArgumentsBegin,
   /// \brief End of the command arguments list
@@ -603,6 +581,25 @@ enum class OrgTokenKind : short int {
   CmdCenterEnd,
   CmdTableBegin,
   CmdTableEnd,
+  CmdAdmonitionBegin,
+  CmdAdmonitionEnd,
+  CmdDynamicBegin,
+  /// \brief `#+begin:`
+  CmdDynamicEnd,
+  CmdExampleBegin,
+  /// \brief `#+begin:`
+  CmdExampleEnd,
+  CmdExportBegin,
+  /// \brief `#+begin:`
+  CmdExportEnd,
+  CmdDetailsBegin,
+  /// \brief `#+begin:`
+  CmdDetailsEnd,
+  CmdSummaryBegin,
+  /// \brief `#+begin:`
+  CmdSummaryEnd,
+  /// \brief #+tblfm:
+  CmdTblfm,
   /// \brief `#+quote` content
   QuoteContent,
   /// \brief Backend-specific passthrough
@@ -920,131 +917,6 @@ template <>
 struct value_domain<OrgTokenKind> : public value_domain_ungapped<OrgTokenKind,
                                                                  OrgTokenKind::None,
                                                                  OrgTokenKind::CmdArguments> {};
-
-enum class OrgCommandKind : short int {
-  None,
-  Include,
-  Filetags,
-  Setupfile,
-  Columns,
-  OtherProperty,
-  BeginTable,
-  /// \brief `#+table`
-  EndTable,
-  /// \brief `#+row`
-  Row,
-  /// \brief `#+cell`
-  Cell,
-  BeginAdmonition,
-  EndAdmonition,
-  BeginDynamic,
-  /// \brief `#+begin:`
-  EndDynamic,
-  BeginCenter,
-  /// \brief `#+begin_center`
-  EndCenter,
-  BeginQuote,
-  /// \brief `#+quote`
-  EndQuote,
-  BeginSrc,
-  /// \brief `#+begin_src`
-  EndSrc,
-  BeginExport,
-  /// \brief `#+end_export`
-  EndExport,
-  BeginExample,
-  EndExample,
-  BeginDetails,
-  EndDetails,
-  BeginSummary,
-  EndSummary,
-  /// \brief `#+latex_class_options`
-  LatexClassOptions,
-  LatexClass,
-  LatexCompiler,
-  /// \brief `#+attr_latex:`
-  AttrLatex,
-  /// \brief `#+attr_img:`
-  AttrImg,
-  /// \brief `#+attr_html:`
-  AttrHtml,
-  /// \brief `#+html_head:`
-  HtmlHead,
-  /// \brief `#+language:`
-  Language,
-  /// \brief `#+options: `
-  Options,
-  /// \brief `#+title:`
-  Title,
-  /// \brief `#+property:`
-  Property,
-  /// \brief `#+author:`
-  Author,
-  /// \brief `#+bind:`
-  Bind,
-  /// \brief `#+creator:`
-  Creator,
-  /// \brief `#+latex_header`
-  LatexHeader,
-  /// \brief `#+results:`
-  Results,
-  /// \brief `#+call:`
-  Call,
-  /// \brief `#+name:`
-  Name,
-  /// \brief `#+caption:`
-  Caption,
-  /// \brief `#+header:`
-  Header,
-  /// \brief `#+tblfm:`
-  TableFormula,
-};
-template <>
-struct enum_serde<OrgCommandKind> {
-  static Opt<OrgCommandKind> from_string(std::string value);
-  static std::string to_string(OrgCommandKind value);
-};
-
-template <>
-struct value_domain<OrgCommandKind> : public value_domain_ungapped<OrgCommandKind,
-                                                                   OrgCommandKind::None,
-                                                                   OrgCommandKind::TableFormula> {};
-
-enum class OrgPropertyKind : short int { Title, Author, Date, Email, Language, Url, SourceUrl, AttrImg, Toplevel, Blocker, Created, Unnumbered, Trigger, Ordered, Noblocking, ExportOptions, BackendExportOptions, AttrBackend, ColumnSpec, Name, Caption, LinkAbbrev, Filetags, TagConf, LatexHeader, OtherProperty, Id, };
-template <>
-struct enum_serde<OrgPropertyKind> {
-  static Opt<OrgPropertyKind> from_string(std::string value);
-  static std::string to_string(OrgPropertyKind value);
-};
-
-template <>
-struct value_domain<OrgPropertyKind> : public value_domain_ungapped<OrgPropertyKind,
-                                                                    OrgPropertyKind::Title,
-                                                                    OrgPropertyKind::Id> {};
-
-enum class OrgUnnumberedKind : short int { Notoc, True, False, };
-template <>
-struct enum_serde<OrgUnnumberedKind> {
-  static Opt<OrgUnnumberedKind> from_string(std::string value);
-  static std::string to_string(OrgUnnumberedKind value);
-};
-
-template <>
-struct value_domain<OrgUnnumberedKind> : public value_domain_ungapped<OrgUnnumberedKind,
-                                                                      OrgUnnumberedKind::Notoc,
-                                                                      OrgUnnumberedKind::False> {};
-
-enum class OrgBlockLexerState : short int { None, InHeader, InBody, Ended, Complete, };
-template <>
-struct enum_serde<OrgBlockLexerState> {
-  static Opt<OrgBlockLexerState> from_string(std::string value);
-  static std::string to_string(OrgBlockLexerState value);
-};
-
-template <>
-struct value_domain<OrgBlockLexerState> : public value_domain_ungapped<OrgBlockLexerState,
-                                                                       OrgBlockLexerState::None,
-                                                                       OrgBlockLexerState::Complete> {};
 
 enum class OrgSemKind : short int { StmtList, Empty, Row, Table, HashTag, Footnote, Completion, Paragraph, Center, Caption, CommandGroup, Quote, Example, CmdArguments, CmdArgument, Export, AdmonitionBlock, Code, Time, TimeRange, Macro, Symbol, SubtreeLog, Subtree, InlineMath, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, List, ListItem, Link, Document, ParseError, FileTarget, TextSeparator, Include, DocumentOptions, DocumentGroup, };
 template <>

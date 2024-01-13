@@ -132,7 +132,7 @@ struct OrgParser : public OperationsTracer {
     OrgId parseTop(OrgLexer& lex);
 
     OrgId parseFull(OrgLexer& lex);
-    OrgId parseTextWrapCommand(OrgLexer& lex, OrgCommandKind kind);
+    OrgId parseTextWrapCommand(OrgLexer& lex);
     void  extendSubtreeTrails(OrgId position);
     void  extendAttachedTrails(OrgId position);
     void  parseCSVArguments(OrgLexer& lex);
