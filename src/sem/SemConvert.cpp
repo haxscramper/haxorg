@@ -454,11 +454,12 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
     } else if (
         a.kind() == org::StaticActiveTime
         || a.kind() == org::StaticInactiveTime) {
-        Str repeat      = one(a, N::Repeater).val().getText();
+
         using Mode      = Time::Repeat::Mode;
         Mode repeatMode = Mode::None;
 
-        if (0 < repeat.size()) {
+        if (one(a, N::Repeater).kind() != org::Empty) {
+            Str repeat = one(a, N::Repeater).val().getText();
             if (repeat.starts_with("++")) {
                 repeatMode = Mode::FirstMatch;
                 repeat     = repeat.dropPrefix("++");
@@ -1058,9 +1059,8 @@ SemId OrgConverter::convert(__args) {
 
 void fillDocumentOptions(SemIdT<DocumentOptions> opts, OrgAdapter a) {
     if (opts->isGenerated()) { opts->original = a; }
-
-    for (OrgAdapter const& item : a) {
-        Str value = item.val().getText();
+    auto item = a.at(0);
+    for (auto const& value : item.val().getText().split(' ')) {
         if (value.contains(':')) {
             auto split = value.split(':');
             auto head  = split[0];
@@ -1114,6 +1114,12 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     fillDocumentOptions(doc->options, sub);
                     break;
                 }
+                case org::Property: {
+                    LOG(WARNING)
+                        << "TODO handle property conversion for options";
+                    break;
+                }
+
                 case org::LatexClass: {
                     Prop::ExportLatexClass res{};
                     res.latexClass = sub.at(0).val().getText();

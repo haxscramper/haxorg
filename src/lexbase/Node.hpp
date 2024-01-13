@@ -72,6 +72,18 @@ struct std::formatter<NodeId<N, K, V>> : std::formatter<std::string> {
     }
 };
 
+
+template <>
+struct std::formatter<std::monostate> : std::formatter<std::string> {
+    template <typename FormatContext>
+    FormatContext::iterator format(
+        const std::monostate& p,
+        FormatContext&        ctx) const {
+        std::formatter<std::string> fmt;
+        return fmt_ctx("<std::monostate>", ctx);
+    }
+};
+
 template <typename N, typename K, typename V>
 struct Node {
     N                                                kind;
@@ -157,8 +169,9 @@ struct NodeGroup {
     int size() const { return nodes.size(); }
 
     V const& val(Id id) const {
-        assert(notNil(tokens));
-        assert(at(id).isTerminal());
+        CHECK(notNil(tokens));
+        CHECK(at(id).isTerminal())
+            << fmt("{}({})", at(id).kind, at(id).value);
         return tokens->at(at(id).getToken()).value;
     }
 
@@ -367,6 +380,9 @@ struct NodeAdapter {
 
     V const& val() const { return group->val(id); }
     N        kind() const { return group->at(id).kind; }
+    bool     isTerminal() const { return group->at(id).isTerminal(); }
+    bool     isMono() const { return group->at(id).isMono(); }
+    bool isNonTerminal() const { return group->at(id).isNonTerminal(); }
 
     CR<Node<N, K, V>> get() const { return group->at(id); }
 
