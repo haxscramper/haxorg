@@ -150,7 +150,7 @@ void OrgParser::expect(
                 Builder(
                     OrgParser::ReportKind::Error, nullptr, line, function)
                     .with_msg(
-                        fmt("{}: Expected token '{}' {} but got '{}",
+                        fmt("{}: Expected token {} {} but got '{}'",
                             line,
                             item,
                             getLocMsg(lex),
@@ -174,15 +174,17 @@ OrgTokenId OrgParser::pop(
 
 
 void OrgParser::skip(
-    OrgLexer&         lex,
-    CR<OrgExpectable> item,
-    int               line,
-    char const*       function) {
+    OrgLexer&          lex,
+    Opt<OrgExpectable> item,
+    int                line,
+    char const*        function) {
 
-    expect(lex, item, line, function);
+    if (item) { expect(lex, *item, line, function); }
+
     if (TraceState) {
-        print(fmt("pop {}", lex.tok()), line, function, &lex);
+        print(fmt("skip {}", lex.tok()), line, function, &lex);
     }
+
     lex.next();
 }
 
@@ -216,10 +218,14 @@ void OrgParser::print(
     const char*        function,
     OrgLexer*          lexer) {
     if (TraceState) {
-        report(
-            Builder(OrgParser::ReportKind::Print, nullptr, line, function)
-                .with_msg(msg)
-                .with_lex(*lexer)
-                .report);
+        auto build = Builder(
+                         OrgParser::ReportKind::Print,
+                         nullptr,
+                         line,
+                         function)
+                         .with_msg(msg);
+
+        if (lexer) { build.with_lex(*lexer); }
+        report(build.report);
     }
 }

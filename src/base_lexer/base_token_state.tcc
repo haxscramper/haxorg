@@ -3,21 +3,20 @@ std::string BaseLexerImpl::state_name(int state) {
     switch(state) {
         case 0: return "INITIAL";
         case 1: return "COMMAND_TEXT";
-        case 2: return "COMMAND_RAW";
-        case 3: return "SUBTREE_HEAD";
-        case 4: return "PROPERTY_ANY";
-        case 5: return "LEAD";
-        case 6: return "PROPERTY_LEAD";
-        case 7: return "LOGBOOK_LEAD";
-        case 8: return "COMMAND";
+        case 2: return "SUBTREE_HEAD";
+        case 3: return "PROPERTY_ANY";
+        case 4: return "LEAD";
+        case 5: return "PROPERTY_LEAD";
+        case 6: return "LOGBOOK_LEAD";
+        case 7: return "COMMAND";
+        case 8: return "COMMAND_RAW";
         case 9: return "COMMAND_EXAMPLE";
-        case 10: return "COMMAND_COLUMNS";
-        case 11: return "COMMAND_SRC";
-        case 12: return "COMMAND_ARGS";
-        case 13: return "COMMAND_TBLFM";
-        case 14: return "BODY_SRC";
-        case 15: return "PROPERTIES";
-        case 16: return "PROPERTY_LITERAL";
+        case 10: return "COMMAND_SRC";
+        case 11: return "COMMAND_ARGS";
+        case 12: return "COMMAND_TBLFM";
+        case 13: return "BODY_SRC";
+        case 14: return "PROPERTIES";
+        case 15: return "PROPERTY_LITERAL";
         default: return std::to_string(state);
     }
 }
@@ -41,6 +40,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::CmdFiletags: return "CmdFiletags";
         case BaseTokenKind::CmdIdent: return "CmdIdent";
         case BaseTokenKind::CmdLatexHeader: return "CmdLatexHeader";
+        case BaseTokenKind::CmdOptions: return "CmdOptions";
         case BaseTokenKind::CmdProperty: return "CmdProperty";
         case BaseTokenKind::CmdQuoteBegin: return "CmdQuoteBegin";
         case BaseTokenKind::CmdQuoteEnd: return "CmdQuoteEnd";
@@ -52,7 +52,6 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::Comment: return "Comment";
         case BaseTokenKind::Date: return "Date";
         case BaseTokenKind::Dedent: return "Dedent";
-        case BaseTokenKind::Digit: return "Digit";
         case BaseTokenKind::Dollar: return "Dollar";
         case BaseTokenKind::DoubleHash: return "DoubleHash";
         case BaseTokenKind::DoubleLeftAngle: return "DoubleLeftAngle";
@@ -142,6 +141,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "CmdFiletags") { return BaseTokenKind::CmdFiletags; } else
   if (value == "CmdIdent") { return BaseTokenKind::CmdIdent; } else
   if (value == "CmdLatexHeader") { return BaseTokenKind::CmdLatexHeader; } else
+  if (value == "CmdOptions") { return BaseTokenKind::CmdOptions; } else
   if (value == "CmdProperty") { return BaseTokenKind::CmdProperty; } else
   if (value == "CmdQuoteBegin") { return BaseTokenKind::CmdQuoteBegin; } else
   if (value == "CmdQuoteEnd") { return BaseTokenKind::CmdQuoteEnd; } else
@@ -153,7 +153,6 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "Comment") { return BaseTokenKind::Comment; } else
   if (value == "Date") { return BaseTokenKind::Date; } else
   if (value == "Dedent") { return BaseTokenKind::Dedent; } else
-  if (value == "Digit") { return BaseTokenKind::Digit; } else
   if (value == "Dollar") { return BaseTokenKind::Dollar; } else
   if (value == "DoubleHash") { return BaseTokenKind::DoubleHash; } else
   if (value == "DoubleLeftAngle") { return BaseTokenKind::DoubleLeftAngle; } else

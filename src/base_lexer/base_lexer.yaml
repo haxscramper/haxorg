@@ -1,6 +1,5 @@
 states:
   - { kind: state, name: COMMAND_TEXT }
-  - { kind: state, name: COMMAND_RAW }
   - { kind: state, name: SUBTREE_HEAD }
   - { kind: state, name: PROPERTY_ANY }
   - { kind: state, name: LEAD }
@@ -13,6 +12,7 @@ states:
 
 
   - { kind: xstate, name: COMMAND }
+  - { kind: xstate, name: COMMAND_RAW }
   - { kind: xstate, name: COMMAND_EXAMPLE }
   - { kind: xstate, name: COMMAND_SRC }
   - { kind: xstate, name: COMMAND_ARGS }
@@ -117,14 +117,14 @@ rules:
       - { do: push, to: COMMAND, from: INITIAL }
 
   #tag Columns
-  - lit: "columns"
+  - lit: "columns:{space}*"
     token: CmdColumns
     states: [COMMAND]
     actions:
       - { do: push, from: COMMAND, to: COMMAND_RAW }
 
   #tag Caption command
-  - lit: "caption"
+  - lit: "caption:{space}*"
     states: [COMMAND]
     token: CmdCaption
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
@@ -132,26 +132,26 @@ rules:
 
 
   #tag Title command
-  - lit: "title:"
+  - re: "title:{space}*"
     states: [COMMAND]
     token: CmdTitle
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
 
   #tag property command 
-  - lit: "property:"
+  - re: "property:{space}*"
     states: [COMMAND]
     token: CmdProperty 
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
   #tag Options
-  - lit: "options:"
+  - re: "options:{space}*"
     states: [COMMAND]
-    token: CmdFiletags
+    token: CmdOptions
     # Full options parsing is deferred to the sem stage
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
   #tag File tags command
-  - lit: "filetags:"
+  - re: "filetags:{space}*"
     states: [COMMAND]
     token: CmdFiletags
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
@@ -162,14 +162,14 @@ rules:
 
 
   #tag Latex header
-  - lit: "latex_header:"
+  - re: "latex_header:{space}*"
     states: [COMMAND]
     token: CmdLatexHeader
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
 
   #tag Table formulas
-  - lit: "tblfm:"
+  - re: "tblfm:{space}*"
     states: [COMMAND]
     token: CmdTblfm
     actions: [{ do: push, to: COMMAND_TBLFM, from: COMMAND }]

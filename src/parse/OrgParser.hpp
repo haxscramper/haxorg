@@ -136,8 +136,6 @@ struct OrgParser : public OperationsTracer {
 
 
   protected:
-    void skipLineCommand(OrgLexer& lex);
-
     CR<OrgNode> pending() const {
         CHECK(0 <= group->treeDepth());
         return group->lastPending();
@@ -203,10 +201,20 @@ struct OrgParser : public OperationsTracer {
         char const*                  function = __builtin_FUNCTION());
 
     void skip(
-        OrgLexer&                    lex,
-        CR<OrgParser::OrgExpectable> item,
-        int                          line     = __builtin_LINE(),
-        char const*                  function = __builtin_FUNCTION());
+        OrgLexer&                     lex,
+        Opt<OrgParser::OrgExpectable> item     = std::nullopt,
+        int                           line     = __builtin_LINE(),
+        char const*                   function = __builtin_FUNCTION());
+
+    void space(
+        OrgLexer&   lex,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
+    void newline(
+        OrgLexer&   lex,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
     finally trace(
         Opt<std::string> msg      = std::nullopt,
@@ -224,18 +232,13 @@ struct OrgParser : public OperationsTracer {
     int  depth = 0;
     void report(CR<Report> in);
 
-    Func<void(CR<Report>)>              reportHook;
-    Func<void(CR<Report>, bool&, bool)> traceUpdateHook;
-    OrgNodeGroup*                       group = nullptr;
+    Func<void(CR<Report>)> reportHook;
+    OrgNodeGroup*          group = nullptr;
     OrgParser(OrgNodeGroup* _group) : group(_group) {}
 
     void reserve(int size) { group->nodes.reserve(size); }
 
     void setReportHook(Func<void(CR<Report>)> in) { reportHook = in; }
-
-    void setTraceUpdateHook(Func<void(CR<Report>, bool&, bool)> in) {
-        traceUpdateHook = in;
-    }
 
     static Opt<LineCol> getLoc(CR<OrgLexer> lex);
 

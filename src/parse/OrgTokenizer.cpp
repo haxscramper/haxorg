@@ -360,13 +360,6 @@ struct RecombineState {
         }
     }
 
-#define direct(__from, __to)                                              \
-    case __from: {                                                        \
-        pop_as(__to);                                                     \
-        break;                                                            \
-    }
-
-
     const IntSet<BaseTokenKind> tree_tags{
         obt::Colon,
         obt::Word,
@@ -478,7 +471,6 @@ struct RecombineState {
     };
 
     void map_hashtag() {
-        LOG(INFO) << "Trace state " << TraceState;
         if (lex.hasNext(+1)) {
             if (opt_equal_kind(lex.opt(+1), obt::DoubleHash)) {
                 pop_as(otk::HashTag);
@@ -546,34 +538,59 @@ struct RecombineState {
         std::string const& str   = tok.value.text;
 
         switch (lex.kind()) {
-            direct(obt::Ampersand, otk::Punctuation);
-            direct(obt::AnyPunct, otk::Punctuation);
-            direct(obt::Comment, otk::Comment);
-            direct(obt::Indent, otk::Indent);
-            direct(obt::Dedent, otk::Dedent);
-            direct(obt::SameIndent, otk::SameIndent);
-            direct(obt::ListStart, otk::ListBegin);
-            direct(obt::ListEnd, otk::ListEnd);
-            direct(obt::StmtListOpen, otk::StmtListBegin);
-            direct(obt::ListItemEnd, otk::ListItemEnd);
-            direct(obt::SrcContent, otk::CodeText);
-            direct(obt::TreePropertyProperties, otk::ColonProperties);
-            direct(obt::TreePropertyEnd, otk::ColonEnd);
-            direct(obt::RawText, otk::RawText);
+            case obt::Ampersand:
+                maybe_paragraph_start();
+                pop_as(otk::Punctuation);
+                break;
+            case obt::AnyPunct:
+                maybe_paragraph_start();
+                pop_as(otk::Punctuation);
+                break;
+            case obt::Comment: pop_as(otk::Comment); break;
+            case obt::Indent: pop_as(otk::Indent); break;
+            case obt::Dedent: pop_as(otk::Dedent); break;
+            case obt::SameIndent: pop_as(otk::SameIndent); break;
+            case obt::ListStart: pop_as(otk::ListBegin); break;
+            case obt::ListEnd: pop_as(otk::ListEnd); break;
+            case obt::StmtListOpen: pop_as(otk::StmtListBegin); break;
+            case obt::ListItemEnd: pop_as(otk::ListItemEnd); break;
+            case obt::SrcContent: pop_as(otk::CodeText); break;
+            case obt::TreePropertyProperties:
+                pop_as(otk::ColonProperties);
+                break;
+            case obt::TreePropertyEnd: pop_as(otk::ColonEnd); break;
+            case obt::RawText: pop_as(otk::RawText); break;
             // On top level, base tokens like `2020-01-10` are not
             // registered as proper timestamp elements and are converted to
             // the regular words.
-            direct(obt::Number, otk::Number);
+            case obt::Number:
+                maybe_paragraph_start();
+                pop_as(otk::Word);
+                break;
             // FIXME why two tokens of the same kind?
-            direct(obt::Digit, otk::Number);
-            direct(obt::Date, otk::Word);
-            direct(obt::Percent, otk::Punctuation);
+            case obt::Date:
+                maybe_paragraph_start();
+                pop_as(otk::Word);
+                break;
+            case obt::Percent:
+                maybe_paragraph_start();
+                pop_as(otk::Punctuation);
+                break;
             // FIXME Some weird name transitions here, cleanup later
-            direct(obt::LeftPar, otk::ParBegin);
-            direct(obt::RightPar, otk::ParEnd);
+            case obt::LeftPar:
+                maybe_paragraph_start();
+                pop_as(otk::ParBegin);
+                break;
+            case obt::RightPar:
+                maybe_paragraph_start();
+                pop_as(otk::ParEnd);
+                break;
             // When not used in the timestamps, these are just pieces of
             // punctuation
-            direct(obt::BraceClose, otk::Punctuation);
+            case obt::BraceClose:
+                maybe_paragraph_start();
+                pop_as(otk::Punctuation);
+                break;
 
 
             case obt::Colon: map_colon(); break;
@@ -621,10 +638,11 @@ struct RecombineState {
                     case obt::CmdFiletags: pop_as(otk::CmdFiletags); break;
                     case obt::CmdColumns: pop_as(otk::CmdColumns); break;
                     case obt::CmdProperty: pop_as(otk::CmdProperty); break;
+                    case obt::CmdOptions: pop_as(otk::CmdOptions); break;
                     default: {
                         LOG(FATAL) << fmt(
                             "Unhandled line command conversion rules {}",
-                            lex.tok(+1));
+                            next);
                     }
                 }
 
@@ -632,6 +650,9 @@ struct RecombineState {
                     case obt::CmdExampleBegin:
                     case obt::CmdSrcBegin:
                     case obt::CmdProperty: map_command_args(); break;
+                    case obt::CmdTitle:
+                        while (lex.at(obt::Whitespace)) { lex.next(); }
+                        break;
                     default:
                 }
 
@@ -882,6 +903,7 @@ struct LineToken {
                     case obt::CmdCaption:
                     case obt::CmdColumns:
                     case obt::CmdProperty:
+                    case obt::CmdOptions:
                     case obt::CmdFiletags: kind = Kind::Line; break;
                     case obt::CmdSrcBegin: kind = Kind::BlockOpen; break;
                     default: {

@@ -42,14 +42,6 @@ void OrgParser::report(CR<Report> in) {
 
     if (reportHook) { reportHook(in); }
 
-    if (traceUpdateHook) { traceUpdateHook(in, TraceState, true); }
-
-    if (!TraceState) {
-        if (traceUpdateHook) { traceUpdateHook(in, TraceState, false); }
-
-        return;
-    }
-
     if (in.kind == ReportKind::EnterParse
         || in.kind == ReportKind::StartNode) {
         ++depth;
@@ -81,16 +73,26 @@ void OrgParser::report(CR<Report> in) {
         return res;
     };
 
+    auto printSourceLoc = [&]() {
+        if (in.function) { os << " " << in.function; }
+        os << fmt(":{}", in.line);
+    };
+
     CHECK(0 <= treeDepth()) << "Negative tree depth";
 
     switch (in.kind) {
         case ReportKind::Error: {
-            os << "  error";
+            os << "  ERR";
+            printSourceLoc();
+            if (in.lex) { os << " " << getLoc(); }
+            if (in.msg) { os << " " << *in.msg; }
+            printTokens();
             break;
         }
 
         case ReportKind::Print: {
             os << std::format("  {} {} ", in.line, getLoc());
+            if (in.msg) { os << " " << *in.msg; }
             printTokens();
             break;
         }
@@ -102,7 +104,9 @@ void OrgParser::report(CR<Report> in) {
                 id.getIndex(),
                 group->at(id).kind,
                 in.line,
-                escape_literal(group->val(id).getText()));
+                escape_literal(
+                    group->at(id).isMono() ? "<mono>"
+                                           : group->val(id).getText()));
             break;
         }
 
@@ -133,7 +137,7 @@ void OrgParser::report(CR<Report> in) {
         case ReportKind::EnterParse:
         case ReportKind::LeaveParse: {
             os << std::format(
-                "{} ~ {} ",
+                "{} [{}] ",
                 in.kind == ReportKind::EnterParse ? "> " : "< ",
                 treeDepth())
                << fg::Green << fmt1(in.function ? in.function : "")
@@ -151,6 +155,4 @@ void OrgParser::report(CR<Report> in) {
         || in.kind == ReportKind::EndNode) {
         --depth;
     }
-
-    if (traceUpdateHook) { traceUpdateHook(in, TraceState, false); }
 }
