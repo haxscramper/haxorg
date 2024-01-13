@@ -788,9 +788,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "Escaped") { return OrgTokenKind::Escaped; } else
   if (value == "DoubleSlash") { return OrgTokenKind::DoubleSlash; } else
   if (value == "Newline") { return OrgTokenKind::Newline; } else
-  if (value == "SkipSpace") { return OrgTokenKind::SkipSpace; } else
-  if (value == "SkipNewline") { return OrgTokenKind::SkipNewline; } else
-  if (value == "SkipAny") { return OrgTokenKind::SkipAny; } else
   if (value == "MaybeWord") { return OrgTokenKind::MaybeWord; } else
   if (value == "Space") { return OrgTokenKind::Space; } else
   if (value == "BigIdent") { return OrgTokenKind::BigIdent; } else
@@ -1052,9 +1049,6 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::Escaped: return "Escaped";
     case OrgTokenKind::DoubleSlash: return "DoubleSlash";
     case OrgTokenKind::Newline: return "Newline";
-    case OrgTokenKind::SkipSpace: return "SkipSpace";
-    case OrgTokenKind::SkipNewline: return "SkipNewline";
-    case OrgTokenKind::SkipAny: return "SkipAny";
     case OrgTokenKind::MaybeWord: return "MaybeWord";
     case OrgTokenKind::Space: return "Space";
     case OrgTokenKind::BigIdent: return "BigIdent";

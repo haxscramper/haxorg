@@ -822,9 +822,6 @@ enum class OrgTokenKind : short int {
   DoubleSlash,
   /// \brief Explicit newline a paragraph
   Newline,
-  SkipSpace,
-  SkipNewline,
-  SkipAny,
   MaybeWord,
   /// \brief Space in the paragraph
   Space,

@@ -499,9 +499,7 @@ struct RecombineState {
                         case obt::DoubleHash:
                             pop_as(otk::HashTagSub);
                             break;
-                        case obt::Whitespace:
-                            pop_as(otk::SkipSpace);
-                            break;
+                        case obt::Whitespace: pop_as(otk::Space); break;
                         default:
                     }
                 }
@@ -785,7 +783,7 @@ struct RecombineState {
 
             case obt::MediumNewline: {
                 newline_end();
-                pop_as(otk::SkipNewline);
+                pop_as(otk::Newline);
                 break;
             }
 
