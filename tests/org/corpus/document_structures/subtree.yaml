@@ -102,6 +102,8 @@ items:
     debug:
       traceLexBase: true
       lexToFile: true
+      traceParse: true
+      parseToFile: true
       printLexedToFile: true
       printParsedToFile: true
       printBaseLexedToFile: true

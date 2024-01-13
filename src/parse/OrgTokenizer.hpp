@@ -50,17 +50,13 @@ struct OrgTokenizer
         Error
     };
 
-    struct Report {
+    struct Report : OperationsMsg {
         bool       addBuffered = false;
         ReportKind kind;
-        Str        name;
         OrgToken   tok;
         OrgTokenId id = OrgTokenId::Nil();
-        fs::path   location;
-        int        line;
         Opt<Str>   subname;
         BaseLexer* lex;
-        Opt<Str>   msg;
     };
 
 
@@ -92,4 +88,9 @@ struct OrgTokenizer
 
     int  depth = 0;
     void report(CR<Report> in);
+
+    void print(
+        const std::string& msg,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION());
 };

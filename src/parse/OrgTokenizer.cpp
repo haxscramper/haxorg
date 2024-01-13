@@ -9,45 +9,27 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/system/Formatter.hpp>
 
-#include "OrgTokenizerMacros.hpp"
-
 namespace rep {
-struct Builder {
-    OrgTokenizer::Report report;
-
-    Builder& with_msg(Str const& msg) {
-        report.msg = msg;
-        return *this;
-    }
-
-    Builder& with_name(Str const& name) {
-        report.name = name;
-        return *this;
-    }
-
-    Builder& with_line(int const& line) {
-        report.line = line;
-        return *this;
-    }
-
+struct Builder : OperationsMsgBulder<OrgTokenizer::Report> {
     Builder& with_id(OrgTokenId const& id) {
         report.id = id;
         return *this;
     }
 
-
     Builder(
         BaseLexer&               lex,
         OrgTokenizer::ReportKind kind,
-        fs::path   location = fs::path{__builtin_FILE_NAME()},
-        int        line     = __builtin_LINE(),
-        Str const& function = __builtin_FUNCTION()) {
+        char const*              file     = __builtin_FILE_NAME(),
+        int                      line     = __builtin_LINE(),
+        Str const&               function = __builtin_FUNCTION()) {
         this->report = OrgTokenizer::Report{
-            .location = location,
-            .line     = line,
-            .name     = function,
-            .lex      = &lex,
-            .kind     = kind,
+            OperationsMsg{
+                .file = file,
+                .line = line,
+                .name = function,
+            },
+            .lex  = &lex,
+            .kind = kind,
         };
     }
 };
@@ -178,6 +160,29 @@ struct RecombineState {
     bool const& TraceState;
 
     void report(OrgTokenizer::Report const& report) { d->report(report); }
+
+    finally trace(
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        if (TraceState) {
+            ::OrgTokenizer::Report rep;
+            rep.line     = line;
+            rep.function = function;
+            rep.kind     = ::OrgTokenizer::ReportKind::Enter;
+            report(rep);
+        }
+
+        return finally(
+            [line, function, this, TraceState = this->TraceState]() {
+                if (TraceState) {
+                    ::OrgTokenizer::Report rep;
+                    rep.function = function;
+                    rep.line     = line;
+                    rep.kind     = ::OrgTokenizer::ReportKind::Leave;
+                    report(rep);
+                }
+            });
+    }
 
 
     RecombineState(OrgTokenizer* d, BaseLexer& lex)
@@ -316,7 +321,7 @@ struct RecombineState {
     }
 
     void recombine_markup() {
-        __trace();
+        auto tr = trace();
         // TODO Check if we are in the paragraph element or some other
         // place.
         auto prev = prev_token();
@@ -400,7 +405,7 @@ struct RecombineState {
 
 
     void map_open_brace() {
-        __trace();
+        auto tr   = trace();
         auto prev = lex.opt(-1);
         if (prev && prev->get().kind == obt::HashIdent) {
             pop_as(otk::HashTagBegin);
@@ -425,7 +430,7 @@ struct RecombineState {
     }
 
     void map_colon() {
-        __trace();
+        auto        tr      = trace();
         auto const& state_1 = state.get(1_B);
         auto const& state_2 = state.get(2_B);
         if (state_1 && state_2 && state_1.value() == State::Paragraph
@@ -480,7 +485,7 @@ struct RecombineState {
     }
 
     void maybe_paragraph_end() {
-        __trace();
+        auto tr = trace();
         if (state_top() == State::Paragraph) {
             add_fake(otk::ParagraphEnd);
             state_pop();
@@ -1029,17 +1034,19 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
     Vec<int>        indentStack{};
     regroup.tokens.reserve(lex.in->size());
 
-#define add_fake(kind)                                                    \
-    {                                                                     \
-        auto idx = regroup.add(BaseToken{kind});                          \
-        __print((fmt("[{}] fake {}", idx.getIndex(), kind)));             \
-    }
+    auto add_fake = [&](BaseTokenKind kind,
+                        int           line     = __builtin_LINE(),
+                        char const*   function = __builtin_FUNCTION()) {
+        auto idx = regroup.add(BaseToken{kind});
+        print(fmt("[{}] fake {}", idx.getIndex(), kind), line, function);
+    };
 
-#define add_base(tok)                                                     \
-    {                                                                     \
-        auto idx = regroup.add(tok);                                      \
-        __print((fmt("[{}] token {}", idx.getIndex(), tok)));             \
-    }
+    auto add_base = [&](BaseToken const& tok,
+                        int              line     = __builtin_LINE(),
+                        char const*      function = __builtin_FUNCTION()) {
+        auto idx = regroup.add(tok);
+        print(fmt("[{}] token {}", idx.getIndex(), tok), line, function);
+    };
 
     if (TraceState) {
         std::stringstream ss;
@@ -1064,13 +1071,11 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
             }
         }
 
-        __print("\n" + ss.str());
+        print("\n" + ss.str());
     }
 
     for (auto gr_index = 0; gr_index < groups.size(); ++gr_index) {
         auto const& gr = groups.at(gr_index);
-
-
         if (gr.kind == GK::ListItem) {
             if (indentStack.empty()) {
                 add_fake(obt::ListStart);
@@ -1170,3 +1175,8 @@ void OrgTokenizer::convert(BaseLexer& lex) {
     lex.pos = TokenId<BaseTokenKind, BaseFill>::FromValue(1);
     recombine(lex);
 }
+
+void OrgTokenizer::print(
+    const std::string& msg,
+    int                line,
+    const char*        function) {}

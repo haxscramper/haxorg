@@ -15,6 +15,7 @@ struct OrgParser : public OperationsTracer {
     struct TokenWithValue {
         OrgTokenKind kind;
         std::string  value;
+        BOOST_DESCRIBE_CLASS(TokenWithValue, (), (kind, value), (), ());
     };
 
     using OrgExpectable = Variant<
@@ -162,38 +163,64 @@ struct OrgParser : public OperationsTracer {
         return group->treeDepth();
     }
 
-    OrgId start(OrgNodeKind kind) { return group->startTree(kind); }
-    OrgId end() {
-        CHECK(0 <= group->treeDepth());
-        return group->endTree();
-    }
 
     OrgId   empty() { return token(getEmpty()); }
     OrgNode getEmpty() { return OrgNode::Mono(OrgNodeKind::Empty); }
-    OrgId   token(CR<OrgNode> node) { return group->token(node); }
-    OrgId   token(OrgNodeKind kind, OrgTokenId tok) {
-        return group->token(kind, tok);
-    }
-
-    OrgId fake(OrgNodeKind kind) {
-        return group->token(
-            kind, group->tokens->add(OrgToken(OrgTokenKind::None)));
-    }
-
 
     bool at(CR<OrgLexer> lex, CR<OrgParser::OrgExpectable> item);
 
-    void expect(CR<OrgLexer> lex, CR<OrgParser::OrgExpectable> item);
+    OrgId token(
+        CR<OrgNode> node,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
-    OrgTokenId pop(OrgLexer& lex, CR<OrgParser::OrgExpectable> tok) {
-        expect(lex, tok);
-        return lex.pop();
-    }
+    OrgId token(
+        OrgNodeKind kind,
+        OrgTokenId  tok,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
-    void skip(OrgLexer& lex, CR<OrgParser::OrgExpectable> item) {
-        expect(lex, item);
-        lex.next();
-    }
+    OrgId start(
+        OrgNodeKind kind,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
+    OrgId end(
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
+    OrgId fake(
+        OrgNodeKind kind,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
+    void expect(
+        CR<OrgLexer>                 lex,
+        CR<OrgParser::OrgExpectable> item,
+        int                          line     = __builtin_LINE(),
+        char const*                  function = __builtin_FUNCTION());
+
+    OrgTokenId pop(
+        OrgLexer&                    lex,
+        CR<OrgParser::OrgExpectable> tok,
+        int                          line     = __builtin_LINE(),
+        char const*                  function = __builtin_FUNCTION());
+
+    void skip(
+        OrgLexer&                    lex,
+        CR<OrgParser::OrgExpectable> item,
+        int                          line     = __builtin_LINE(),
+        char const*                  function = __builtin_FUNCTION());
+
+    void trace(
+        Opt<std::string> msg      = std::nullopt,
+        int              line     = __builtin_LINE(),
+        char const*      function = __builtin_FUNCTION());
+
+    void print(
+        std::string const& msg,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION());
 
 
   public:

@@ -12,10 +12,10 @@
 
 #define __INIT_REPORT(__subname, __lex)                                   \
     (Report{                                                              \
-        .location = __CURRENT_FILE_PATH__,                                \
-        .line     = __LINE__,                                             \
-        .subname  = __subname,                                            \
-        .lex      = &__lex,                                               \
+        .file    = __CURRENT_FILE_PATH__,                                 \
+        .line    = __LINE__,                                              \
+        .subname = __subname,                                             \
+        .lex     = &__lex,                                                \
     })
 
 #define __trace2(__subname, __lex)                                        \
@@ -50,11 +50,11 @@
 #define __print2(__text, __lex)                                           \
     if (TraceState) {                                                     \
         report(Report{                                                    \
-            .kind     = ReportKind::Print,                                \
-            .location = __CURRENT_FILE_PATH__,                            \
-            .line     = __LINE__,                                         \
-            .subname  = __text,                                           \
-            .lex      = __lex,                                            \
+            .kind    = ReportKind::Print,                                 \
+            .file    = __CURRENT_FILE_PATH__,                             \
+            .line    = __LINE__,                                          \
+            .subname = __text,                                            \
+            .lex     = __lex,                                             \
         });                                                               \
     }
 
@@ -100,7 +100,7 @@
     }
 
 
-#define __start2(__node, __subname) __start3(__node, __subname, lex)
+#define __start2(__node, __subname) __start3(__node, __subname,f lex)
 #define __start1(__node) __start3(__node, std::nullopt, lex);
 
 #define __start(...)                                                      \
@@ -126,13 +126,4 @@
         BOOST_PP_EMPTY())
 
 
-#define __skip(__lex, __kind)                                             \
-    if (TraceState) {                                                     \
-        if (!at(__lex, __kind)) {                                         \
-            __print(                                                      \
-                "!! $#: Expected token '$#' $# but got '$#'"              \
-                % to_string_vec(                                          \
-                    __LINE__, __kind, getLocMsg(__lex), __lex.kind()));   \
-        }                                                                 \
-    }                                                                     \
-    skip(__lex, __kind);
+#define __skip(__lex, __kind) skip(__lex, __kind);
