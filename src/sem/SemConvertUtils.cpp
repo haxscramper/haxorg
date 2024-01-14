@@ -15,13 +15,9 @@ OrgConverter::ConvertError OrgConverter::wrapError(
     ConvertError result{err};
     auto         loc = getLoc(adapter);
 
-    if (!result.getAdapter().has_value()) {
-        result.setAdapter(adapter);
-    }
+    if (!result.getAdapter().has_value()) { result.setAdapter(adapter); }
 
-    if (loc.has_value()) {
-        result.setLoc(loc.value());
-    }
+    if (loc.has_value()) { result.setLoc(loc.value()); }
 
     return result;
 }
@@ -36,12 +32,8 @@ Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
         for (int i : Vec{-1, 1}) {
             int idx = adapter.id.getIndex() + offset * i;
             if (0 <= idx && idx < g.size()) {
-                if (i == -1) {
-                    leftOk = true;
-                }
-                if (i == 1) {
-                    rightOk = true;
-                }
+                if (i == -1) { leftOk = true; }
+                if (i == 1) { rightOk = true; }
                 if (g.at(OrgId(idx)).isTerminal()) {
                     auto tok = g.tokens->at(g.at(OrgId(idx)).getToken());
                     if (!tok->isEmpty()) {
@@ -50,9 +42,7 @@ Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
                 }
             }
         }
-        if (!(leftOk || rightOk)) {
-            inRange = false;
-        }
+        if (!(leftOk || rightOk)) { inRange = false; }
         ++offset;
     }
 
@@ -62,9 +52,7 @@ Opt<LineCol> OrgConverter::getLoc(CR<OrgAdapter> adapter) {
 std::string OrgConverter::getLocMsg(CR<OrgAdapter> adapter) {
     Opt<LineCol>    loc = getLoc(adapter);
     Opt<OrgTokenId> tok;
-    if (adapter.get().isTerminal()) {
-        tok = adapter.get().getToken();
-    }
+    if (adapter.get().isTerminal()) { tok = adapter.get().getToken(); }
 
     return "$#:$# (node $#, token $#, pos $#)"
          % to_string_vec(
@@ -78,17 +66,11 @@ std::string OrgConverter::getLocMsg(CR<OrgAdapter> adapter) {
 void OrgConverter::report(CR<OrgConverter::Report> in) {
     using fg = TermColorFg8Bit;
 
-    if (reportHook) {
-        reportHook(in);
-    }
+    if (reportHook) { reportHook(in); }
 
-    if (traceUpdateHook) {
-        traceUpdateHook(in, TraceState, true);
-    }
+    if (traceUpdateHook) { traceUpdateHook(in, TraceState, true); }
     if (!TraceState) {
-        if (traceUpdateHook) {
-            traceUpdateHook(in, TraceState, false);
-        }
+        if (traceUpdateHook) { traceUpdateHook(in, TraceState, false); }
 
         return;
     }
@@ -116,12 +98,13 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
 
     switch (in.kind) {
         case ReportKind::EnterField: {
-            os << "@{ " << fmt1(in.field.value()) << " " << getLoc();
+            os << "{ " << fmt1(in.field.value()) << fmt(" @{}", in.line)
+               << " " << getLoc();
             break;
         }
 
         case ReportKind::LeaveField: {
-            os << "@} " << fmt1(in.field.value()) << " " << getLoc();
+            os << "} " << fmt1(in.field.value()) << " " << getLoc();
             break;
         }
 
@@ -130,10 +113,11 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
         }
 
         case ReportKind::Enter: {
-            os << "> " << in.name.value();
+            os << "> " << (in.function ? in.function : "")
+               << fmt(" @{}", in.line);
             if (in.node.has_value() && in.node->isValid()) {
                 os << " " << fmt1(in.node->kind())
-                   << " ID:" << in.node->id.getUnmasked();
+                   << " ID:" << fmt1(in.node->id.getUnmasked());
             }
 
             os << " " << getLoc();
@@ -144,8 +128,15 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
             break;
         }
         case ReportKind::Leave: {
-            os << "< " << in.name.value() << " " << getLoc();
+            os << "< " << (in.function ? in.function : "") << " "
+               << getLoc();
             break;
+        }
+
+        case ReportKind::Print: {
+            os << "  " << (in.function ? in.function : "")
+               << fmt(" @{}", in.line);
+            if (in.msg) { os << *in.msg; }
         }
     }
 
@@ -157,7 +148,124 @@ void OrgConverter::report(CR<OrgConverter::Report> in) {
         --depth;
     }
 
-    if (traceUpdateHook) {
-        traceUpdateHook(in, TraceState, false);
+    if (traceUpdateHook) { traceUpdateHook(in, TraceState, false); }
+}
+
+
+struct Builder : OperationsMsgBulder<Builder, OrgConverter::Report> {
+    Builder& with_sem(SemId sem) {
+        report.semResult = sem;
+        return *this;
+    }
+
+    Builder& with_node(OrgAdapter node) {
+        report.node = node;
+        return *this;
+    }
+
+    Builder& with_field(OrgSpecName field) {
+        report.field = field;
+        return *this;
+    }
+
+    Builder(
+        OrgConverter::ReportKind kind,
+        char const*              file     = __builtin_FILE_NAME(),
+        int                      line     = __builtin_LINE(),
+        char const*              function = __builtin_FUNCTION()) {
+        this->report = OrgConverter::Report{
+            OperationsMsg{
+                .file     = file,
+                .line     = line,
+                .function = function,
+            },
+            .kind = kind,
+        };
+    }
+};
+
+finally OrgConverter::trace(
+    In          adapter,
+    Opt<Str>    subname,
+    int         line,
+    const char* function) {
+    if (TraceState) {
+        report(
+            Builder(
+                OrgConverter::ReportKind::Enter, nullptr, line, function)
+                .with_node(adapter)
+                .with_msg(subname)
+                .report);
+
+        return finally{[this, line, function, adapter, subname]() {
+            report(Builder(
+                       OrgConverter::ReportKind::Leave,
+                       nullptr,
+                       line,
+                       function)
+                       .with_node(adapter)
+                       .with_msg(subname)
+                       .report);
+        }};
+
+    } else {
+        return finally{[]() {}};
+    }
+}
+
+
+finally OrgConverter::field(
+    OrgSpecName name,
+    In          adapter,
+    Opt<Str>    subname,
+    int         line,
+    const char* function) {
+    if (TraceState) {
+        report(Builder(
+                   OrgConverter::ReportKind::EnterField,
+                   nullptr,
+                   line,
+                   function)
+                   .with_node(adapter)
+                   .with_msg(subname)
+                   .with_field(name)
+                   .report);
+
+        return finally{[this, line, function, adapter, name, subname]() {
+            report(Builder(
+                       OrgConverter::ReportKind::LeaveField,
+                       nullptr,
+                       line,
+                       function)
+                       .with_node(adapter)
+                       .with_msg(subname)
+                       .with_field(name)
+                       .report);
+        }};
+
+    } else {
+        return finally{[]() {}};
+    }
+}
+
+void OrgConverter::print_json(
+    SemId       semResult,
+    int         line,
+    const char* function) {
+    if (TraceState) {
+        report(Builder(
+                   OrgConverter::ReportKind::Json, nullptr, line, function)
+                   .with_sem(semResult)
+                   .report);
+    }
+}
+
+void OrgConverter::print(std::string msg, int line, const char* function) {
+    if (TraceState) {
+        report(
+            Builder(
+                OrgConverter::ReportKind::Print, nullptr, line, function)
+                .with_msg(msg)
+                .report);
     }
 }

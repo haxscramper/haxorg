@@ -86,14 +86,11 @@ struct OrgConverter : public OperationsTracer {
         EnterField,
         LeaveField,
         Json,
+        Print,
     };
 
-    struct Report {
+    struct Report : OperationsMsg {
         ReportKind       kind;
-        fs::path         location;
-        int              line;
-        Opt<Str>         name;
-        Opt<Str>         subname;
         Opt<OrgAdapter>  node;
         Opt<OrgSpecName> field;
         SemId            semResult = SemId::Nil();
@@ -220,5 +217,28 @@ struct OrgConverter : public OperationsTracer {
 
     SemId            convert(Up, In);
     SemIdT<Document> toDocument(OrgAdapter tree);
+
+    finally trace(
+        In          adapter,
+        Opt<Str>    subname  = std::nullopt,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
+    finally field(
+        OrgSpecName name,
+        In          adapter,
+        Opt<Str>    subname  = std::nullopt,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
+    void print_json(
+        SemId       semResult,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
+    void print(
+        std::string msg,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 };
 }; // namespace sem

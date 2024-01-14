@@ -10,87 +10,6 @@
 #include <exporters/exportertree.hpp>
 #include <absl/log/log.h>
 
-#define __INIT_REPORT(__subname, __node)                                  \
-    (Report{                                                              \
-        .location = __CURRENT_FILE_PATH__,                                \
-        .line     = __LINE__,                                             \
-        .name     = __func__,                                             \
-        .subname  = __subname,                                            \
-        .node     = __node,                                               \
-    })
-
-#define __trace2(__subname, __lex)                                        \
-    {                                                                     \
-        Report rep = __INIT_REPORT(__subname, __lex);                     \
-        rep.kind   = ReportKind::Enter;                                   \
-        rep.name   = __func__;                                            \
-        report(rep);                                                      \
-    }                                                                     \
-                                                                          \
-    finally CONCAT(close, __COUNTER__) = finally::init<Str>(              \
-        ([&](CR<Str> name) {                                              \
-            Report rep = __INIT_REPORT(__subname, __lex);                 \
-            rep.kind   = ReportKind::Leave;                               \
-            rep.name   = name;                                            \
-            report(rep);                                                  \
-        }),                                                               \
-        Str(__func__));
-
-
-#define __trace1(__subname) __trace2(__subname, a)
-#define __trace0() __trace2(std::nullopt, a)
-
-#define __trace(...)                                                      \
-    BOOST_PP_CAT(                                                         \
-        BOOST_PP_OVERLOAD(__trace, __VA_ARGS__)(__VA_ARGS__),             \
-        BOOST_PP_EMPTY())
-
-
-#define __field3(__field, __subname, __lex)                               \
-    {                                                                     \
-        Report rep = __INIT_REPORT(__subname, __lex);                     \
-        rep.kind   = ReportKind::EnterField;                              \
-        rep.field  = __field;                                             \
-        report(rep);                                                      \
-    }                                                                     \
-                                                                          \
-    finally CONCAT(close, __COUNTER__) = finally::init<Str>(              \
-        ([&](CR<Str> name) {                                              \
-            Report rep = __INIT_REPORT(__subname, __lex);                 \
-            rep.kind   = ReportKind::LeaveField;                          \
-            rep.name   = name;                                            \
-            rep.field  = __field;                                         \
-            report(rep);                                                  \
-        }),                                                               \
-        Str(__func__));
-
-
-#define __field2(__field, __subname) __field3(__field, __subname, a)
-#define __field1(__field) __field3(__field, std::nullopt, a)
-
-#define __field(...)                                                      \
-    BOOST_PP_CAT(                                                         \
-        BOOST_PP_OVERLOAD(__field, __VA_ARGS__)(__VA_ARGS__),             \
-        BOOST_PP_EMPTY())
-
-
-#define __json3(__org_node, __subname, __a)                               \
-    {                                                                     \
-        Report rep    = __INIT_REPORT(__subname, __a);                    \
-        rep.kind      = ReportKind::Json;                                 \
-        rep.semResult = __org_node;                                       \
-        report(rep);                                                      \
-    }
-
-#define __json2(__org_node, __subname) __json3(__org_node, __subname, a);
-#define __json1(__org_node) __json3(__org_node, std::nullopt, a);
-
-#define __json(...)                                                       \
-    BOOST_PP_CAT(                                                         \
-        BOOST_PP_OVERLOAD(__json, __VA_ARGS__)(__VA_ARGS__),              \
-        BOOST_PP_EMPTY())
-
-
 #define __place(location)                                                 \
     PlacementScope CONCAT(locationScope, __COUNTER__) = PlacementScope(   \
         location, this);
@@ -153,8 +72,8 @@ OrgBigIdentKind parseBigIdent(std::string const& id) {
 
 SemIdT<Table> OrgConverter::convertTable(__args) {
     __perf_trace("convert", "convertTable");
-    __trace();
-    auto result = Sem<Table>(p, a);
+    auto __trace = trace(a);
+    auto result  = Sem<Table>(p, a);
 
     return result;
 };
@@ -162,10 +81,11 @@ SemIdT<Table> OrgConverter::convertTable(__args) {
 
 SemIdT<HashTag> OrgConverter::convertHashTag(__args) {
     __perf_trace("convert", "convertHashTag");
-    __trace();
-    auto                              result = Sem<HashTag>(p, a);
+    auto                              __trace = trace(a);
+    auto                              result  = Sem<HashTag>(p, a);
     Func<SemIdT<HashTag>(OrgAdapter)> aux;
     result->head = strip(a.at(0).val().getText(), CharSet{'#'}, CharSet{});
+
 
     aux = [p, &aux, this](OrgAdapter a) -> SemIdT<HashTag> {
         SemIdT<HashTag> result = Sem<HashTag>(p, a);
@@ -180,6 +100,7 @@ SemIdT<HashTag> OrgConverter::convertHashTag(__args) {
     };
 
     if (1 < a.size()) {
+        result->subtags = Vec<sem::SemIdT<sem::HashTag>>{};
         for (auto& node : a.at(slice(1, 1_B))) {
             result->subtags.push_back(aux(node));
         }
@@ -274,7 +195,7 @@ SemIdT<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
 
 void OrgConverter::convertSubtreeDrawer(SemIdT<Subtree>& tree, In a) {
     __perf_trace("convert", "convertSubtreeDrawer");
-    __trace();
+    auto __trace = trace(a);
     if (a.kind() != org::Empty) {
         for (const auto& group : a) {
             switch (group.kind()) {
@@ -307,10 +228,11 @@ void OrgConverter::convertSubtreeDrawer(SemIdT<Subtree>& tree, In a) {
 
 void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
     __perf_trace("convert", "convertPropertyList");
-    __trace();
+    auto __trace = trace(a);
 
-    std::string   name = normalize(strip(
+    std::string name = normalize(strip(
         one(a, N::Name).val().getText(), CharSet{':'}, CharSet{':'}));
+
     Opt<Property> result;
     if (name == "exportoptions") {
         Property::ExportOptions res;
@@ -361,7 +283,8 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
         result = Property(prop);
 
     } else {
-        LOG(ERROR) << "Unknown property name" << name << "\n"
+        LOG(ERROR) << "Unknown property name"
+                   << one(a, N::Name).val().getText() << "\n"
                    << a.treeRepr();
     }
 
@@ -393,33 +316,33 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
 
 SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
     __perf_trace("convert", "convertSubtree");
-    __trace();
-    auto tree = Sem<Subtree>(p, a);
+    auto __trace = trace(a);
+    auto tree    = Sem<Subtree>(p, a);
 
     tree->level = one(a, N::Prefix).val().getText().size();
 
     {
-        __field(N::Title);
+        auto __field = field(N::Title, a);
         __place(osp::TreeTitle);
         tree->title = convertParagraph(tree, one(a, N::Title));
     }
 
-    { __field(N::Todo); }
+    { auto __field = field(N::Todo, a); }
 
     {
-        __field(N::Tags);
+        auto __field = field(N::Tags, a);
         for (const auto& hash : one(a, N::Tags)) {
             tree->tags.push_back(convertHashTag(tree, hash));
         }
     }
 
     {
-        __field(N::Drawer);
+        auto __field = field(N::Drawer, a);
         convertSubtreeDrawer(tree, one(a, N::Drawer));
     }
 
     {
-        __field(N::Body);
+        auto __field = field(N::Body, a);
         __place(osp::TreeBody);
         for (auto const& sub : one(a, N::Body)) {
             auto subres = convert(tree, sub);
@@ -432,7 +355,7 @@ SemIdT<Subtree> OrgConverter::convertSubtree(__args) {
 
 SemIdT<Time> OrgConverter::convertTime(__args) {
     __perf_trace("convert", "convertTime");
-    __trace();
+    auto __trace = trace(a);
 
     bool cond = OrgSet{
                       org::DynamicActiveTime,
@@ -534,29 +457,29 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
         }
     }
 
-    __json(time);
+    print_json(time);
     return time;
 }
 
 SemIdT<TimeRange> OrgConverter::convertTimeRange(__args) {
     __perf_trace("convert", "convertTimeRange");
-    __trace();
-    auto range = Sem<TimeRange>(p, a);
+    auto __trace = trace(a);
+    auto range   = Sem<TimeRange>(p, a);
     {
-        __field(N::From);
-        range->from = convertTime(range, one(a, N::From));
+        auto __field = field(N::From, a);
+        range->from  = convertTime(range, one(a, N::From));
     }
     {
-        __field(N::To);
-        range->to = convertTime(range, one(a, N::To));
+        auto __field = field(N::To, a);
+        range->to    = convertTime(range, one(a, N::To));
     }
     return range;
 }
 
 SemIdT<Macro> OrgConverter::convertMacro(__args) {
     __perf_trace("convert", "convertMacro");
-    __trace();
-    auto macro = Sem<Macro>(p, a);
+    auto __trace = trace(a);
+    auto macro   = Sem<Macro>(p, a);
 
 
     return macro;
@@ -564,8 +487,8 @@ SemIdT<Macro> OrgConverter::convertMacro(__args) {
 
 SemIdT<Symbol> OrgConverter::convertSymbol(__args) {
     __perf_trace("convert", "convertSymbol");
-    __trace();
-    auto sym = Sem<Symbol>(p, a);
+    auto __trace = trace(a);
+    auto sym     = Sem<Symbol>(p, a);
 
     int idx = 0;
     for (const auto& sub : a) {
@@ -599,9 +522,9 @@ SemIdT<Paragraph> OrgConverter::convertParagraph(__args) {
     // first two starting elements for paragraph subnodes.
 
     __perf_trace("convert", "convertParagraph");
-    __trace();
-    auto par   = Sem<Paragraph>(p, a);
-    bool first = true;
+    auto __trace = trace(a);
+    auto par     = Sem<Paragraph>(p, a);
+    bool first   = true;
     for (const auto& item : a) {
         if (first && item.kind() == org::Footnote) {
             par.push_back(convertFootnote(par, item));
@@ -616,8 +539,8 @@ SemIdT<Paragraph> OrgConverter::convertParagraph(__args) {
 
 SemIdT<StmtList> OrgConverter::convertStmtList(__args) {
     __perf_trace("convert", "convertStmtList");
-    __trace();
-    auto stmt = Sem<StmtList>(p, a);
+    auto __trace = trace(a);
+    auto stmt    = Sem<StmtList>(p, a);
 
     for (OrgAdapter const& sub : a) { stmt.push_back(convert(stmt, sub)); }
 
@@ -627,7 +550,7 @@ SemIdT<StmtList> OrgConverter::convertStmtList(__args) {
 
 SemIdT<Footnote> OrgConverter::convertFootnote(__args) {
     __perf_trace("convert", "convertLink");
-    __trace();
+    auto __trace = trace(a);
     if (a.kind() == org::InlineFootnote) {
         auto note        = Sem<Footnote>(p, a);
         note->definition = convert(note, a[0]);
@@ -646,8 +569,8 @@ SemIdT<Footnote> OrgConverter::convertFootnote(__args) {
 
 SemIdT<Link> OrgConverter::convertLink(__args) {
     __perf_trace("convert", "convertLink");
-    __trace();
-    auto link = Sem<Link>(p, a);
+    auto __trace = trace(a);
+    auto link    = Sem<Link>(p, a);
     if (a.kind() == org::RawLink) {
         link->data = Link::Raw{.text = a.val().getText()};
 
@@ -689,8 +612,8 @@ SemIdT<Link> OrgConverter::convertLink(__args) {
 
 SemIdT<List> OrgConverter::convertList(__args) {
     __perf_trace("convert", "convertList");
-    __trace();
-    auto list = Sem<List>(p, a);
+    auto __trace = trace(a);
+    auto list    = Sem<List>(p, a);
     for (const auto& it : a) { list.push_back(convert(list, it)); }
 
     return list;
@@ -698,8 +621,8 @@ SemIdT<List> OrgConverter::convertList(__args) {
 
 SemIdT<ListItem> OrgConverter::convertListItem(__args) {
     __perf_trace("convert", "convertListItem");
-    __trace();
-    auto item = Sem<ListItem>(p, a);
+    auto __trace = trace(a);
+    auto item    = Sem<ListItem>(p, a);
     if (one(a, N::Header).kind() != org::Empty) {
         __place(osp::ListItemDesc);
         item->header = convertParagraph(item, one(a, N::Header));
@@ -717,7 +640,7 @@ SemIdT<ListItem> OrgConverter::convertListItem(__args) {
 
 SemIdT<Caption> OrgConverter::convertCaption(__args) {
     __perf_trace("convert", "convertCaption");
-    __trace();
+    auto __trace  = trace(a);
     auto caption  = Sem<Caption>(p, a);
     caption->text = convertParagraph(caption, one(a, N::Args)[0]);
 
@@ -726,18 +649,18 @@ SemIdT<Caption> OrgConverter::convertCaption(__args) {
 
 
 SemIdT<Word> OrgConverter::convertWord(__args) {
-    __trace();
+    auto __trace = trace(a);
     return SemLeaf<Word>(p, a);
 }
 
 SemIdT<Placeholder> OrgConverter::convertPlaceholder(__args) {
     __perf_trace("convert", "convertPlaceholder");
-    __trace();
+    auto __trace = trace(a);
     return SemLeaf<Placeholder>(p, a);
 }
 
 SemIdT<Newline> OrgConverter::convertNewline(__args) {
-    __trace();
+    auto __trace = trace(a);
     return SemLeaf<Newline>(p, a);
 }
 
@@ -754,13 +677,13 @@ SemIdT<RawText> OrgConverter::convertRawText(__args) {
 }
 
 SemIdT<Punctuation> OrgConverter::convertPunctuation(__args) {
-    __trace();
+    auto __trace = trace(a);
     return SemLeaf<Punctuation>(p, a);
 }
 
 SemIdT<BigIdent> OrgConverter::convertBigIdent(__args) {
     __perf_trace("convert", "convertBigIdent");
-    __trace();
+    auto __trace = trace(a);
     return SemLeaf<BigIdent>(p, a);
 }
 
@@ -771,49 +694,49 @@ SemIdT<sem::ParseError> OrgConverter::convertParseError(__args) {
 
 SemIdT<MarkQuote> OrgConverter::convertMarkQuote(__args) {
     __perf_trace("convert", "convertMarkQuote");
-    __trace();
+    auto __trace = trace(a);
     return convertAllSubnodes<MarkQuote>(p, a);
 }
 
 SemIdT<Verbatim> OrgConverter::convertVerbatim(__args) {
     __perf_trace("convert", "convertVerbatim");
-    __trace();
+    auto __trace = trace(a);
     return convertAllSubnodes<Verbatim>(p, a);
 }
 
 SemIdT<Bold> OrgConverter::convertBold(__args) {
     __perf_trace("convert", "convertBold");
-    __trace();
+    auto __trace = trace(a);
     return convertAllSubnodes<Bold>(p, a);
 }
 
 SemIdT<Monospace> OrgConverter::convertMonospace(__args) {
     __perf_trace("convert", "convertMonospace");
-    __trace();
+    auto __trace = trace(a);
     return convertAllSubnodes<Monospace>(p, a);
 }
 
 SemIdT<Strike> OrgConverter::convertStrike(__args) {
     __perf_trace("convert", "convertStrike");
-    __trace();
+    auto __trace = trace(a);
     return convertAllSubnodes<Strike>(p, a);
 }
 
 SemIdT<Par> OrgConverter::convertPar(__args) {
     __perf_trace("convert", "convertPar");
-    __trace();
+    auto __trace = trace(a);
     return convertAllSubnodes<Par>(p, a);
 }
 
 SemIdT<Italic> OrgConverter::convertItalic(__args) {
     __perf_trace("convert", "convertItalic");
-    __trace();
+    auto __trace = trace(a);
     return convertAllSubnodes<Italic>(p, a);
 }
 
 SemIdT<Underline> OrgConverter::convertUnderline(__args) {
     __perf_trace("convert", "convertUnderline");
-    __trace();
+    auto __trace = trace(a);
     return convertAllSubnodes<Underline>(p, a);
 }
 
@@ -948,7 +871,7 @@ Vec<SemId> OrgConverter::flatConvertAttached(__args) {
 
 
 SemId OrgConverter::convert(__args) {
-    __trace();
+    auto __trace = trace(a);
     if (!a.isValid()) {
         LOG(WARNING) << "Invalid node encountered during conversion"
                      << fmt1(a.id);

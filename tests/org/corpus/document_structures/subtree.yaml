@@ -104,6 +104,7 @@ items:
       lexToFile: true
       traceParse: true
       parseToFile: true
+      semToFile: true
       printLexedToFile: true
       printParsedToFile: true
       printBaseLexedToFile: true

@@ -30,7 +30,12 @@ struct OperationsMsgBulder : CRTP_this_method<Derived> {
     using CRTP_this_method<Derived>::_this;
     Msg report;
 
-    Derived& with_msg(Str const& msg) {
+    Derived& with_msg(std::string const& msg) {
+        report.msg = msg;
+        return *_this();
+    }
+
+    Derived& with_msg(Opt<std::string> const& msg) {
         report.msg = msg;
         return *_this();
     }
