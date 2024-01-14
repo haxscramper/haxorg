@@ -266,6 +266,8 @@ items:
     debug:
       doParse: false
       doLex: false
+      printBaseLexedToFile: true
+      traceLexBase: true
     source: |
       - Item1
         - Nested1

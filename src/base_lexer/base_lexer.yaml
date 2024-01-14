@@ -14,6 +14,7 @@ states:
   - { kind: xstate, name: COMMAND }
   - { kind: xstate, name: COMMAND_RAW }
   - { kind: xstate, name: COMMAND_EXAMPLE }
+  - { kind: xstate, name: COMMAND_EXPORT }
   - { kind: xstate, name: COMMAND_SRC }
   - { kind: xstate, name: COMMAND_ARGS }
   - { kind: xstate, name: COMMAND_TBLFM }
@@ -49,18 +50,28 @@ tokens:
 rules:
   #region Blocks
   #tag Quote block command
-  - lit: "begin_quote"
+  - re: "begin_quote"
     states: [COMMAND]
     token: CmdQuoteBegin
     actions: [{ do: pop, to: INITIAL, from: COMMAND }]
 
-  - lit: "end_quote"
+  - re: "end_quote"
     states: [COMMAND]
     token: CmdQuoteEnd
     actions: [{ do: pop, to: INITIAL, from: COMMAND }]
 
+  - re: "begin_center"
+    states: [COMMAND]
+    token: CmdCenterBegin
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
+  - re: "end_center"
+    states: [COMMAND]
+    token: CmdCenterEnd
+    actions: [{ do: pop, to: INITIAL, from: COMMAND }]
+
   #tag Example literal command
-  - lit: "begin_example"
+  - re: "begin_example"
     states: [COMMAND]
     token: CmdExampleBegin
     actions: [{ do: push, from: COMMAND, to: COMMAND_EXAMPLE }]
@@ -79,6 +90,30 @@ rules:
   - re: "\\n"
     states: [COMMAND_EXAMPLE]
     token: Newline
+
+  - re: "begin_export"
+    states: [COMMAND]
+    token: CmdExportBegin
+    actions: [{ do: push, from: COMMAND, to: COMMAND_EXPORT }]
+
+  - re: "^{space}*#\\+end_export{space}*$"
+    states: [COMMAND_EXPORT]
+    token: CmdExportEnd
+    actions:
+      - { do: pop, from: COMMAND_EXPORT, to: COMMAND }
+      - { do: pop, from: COMMAND, to: INITIAL }
+
+  - re: "^.*$"
+    states: [COMMAND_EXPORT]
+    token: CmdExportLine
+
+  - re: "\\n"
+    states: [COMMAND_EXPORT]
+    token: Newline
+    actions:
+      - { do: "pop", from: COMMAND_EXPORT, to: COMMAND }
+      - { do: "pop", from: COMMAND, to: INITIAL }
+      - { do: "push", to: BODY_SRC, from: INITIAL }
 
   #tag Source code block command
   - re: "begin_src"
@@ -105,12 +140,12 @@ rules:
   #endregion
 
   # Command with parameters
-  - { re: ":\\w+", states: [COMMAND_ARGS, COMMAND_SRC], token: CmdColonIdent }
-  - { re: "\\w+", states: [COMMAND_ARGS, COMMAND_SRC], token: CmdIdent }
-  - { re: "{space}+", states: [COMMAND_ARGS, COMMAND_SRC], token: Whitespace }
+  - { re: ":\\w+", states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT], token: CmdColonIdent }
+  - { re: "\\w+", states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT], token: CmdIdent }
+  - { re: "{space}+", states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT], token: Whitespace }
   - {
       re: "[\\H--[\\n]]+",
-      states: [COMMAND_ARGS, COMMAND_SRC],
+      states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT],
       token: CmdRawArg,
     }
 
@@ -128,19 +163,17 @@ rules:
       - { do: push, to: COMMAND, from: INITIAL }
 
   #tag Columns
-  - lit: "columns{prop_colon}"
+  - re: "columns{prop_colon}"
     token: CmdColumns
     states: [COMMAND]
     actions:
       - { do: push, from: COMMAND, to: COMMAND_RAW }
 
   #tag Caption command
-  - lit: "caption{prop_colon}"
+  - re: "caption{prop_colon}"
     states: [COMMAND]
     token: CmdCaption
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-    
-
 
   #tag Title command
   - re: "title{prop_colon}"
@@ -221,6 +254,8 @@ rules:
       - { do: push, to: LEAD, from: INITIAL }
 
   - { re: "{space}+", token: Whitespace }
+  - { lit: "[fn::", token: FootnoteInlineOpen }
+  - { lit: "[fn:", token: FootnoteLinkOpen }
   - { re: "\\[", token: BraceOpen }
   - { re: "\\]", token: BraceClose }
   - { re: "\\d{{4}}-\\d{{2}}-\\d{{2}}", token: Date }
@@ -370,16 +405,16 @@ rules:
 
   - re: "\\n{space}*\\n({space}*\\n)+"
     token: LongNewline
-    states: [SUBTREE_HEAD]
-    actions: [{ do: pop, from: SUBTREE_HEAD, to: INITIAL }]
+    states: [LEAD, SUBTREE_HEAD]
+    actions: [{ do: pop, to: INITIAL }]
   - re: "\\n{space}*\\n"
     token: MediumNewline
-    states: [SUBTREE_HEAD]
-    actions: [{ do: pop, from: SUBTREE_HEAD, to: INITIAL }]
+    states: [LEAD, SUBTREE_HEAD]
+    actions: [{ do: pop, to: INITIAL }]
   - re: "\\n"
     token: Newline
-    states: [SUBTREE_HEAD]
-    actions: [{ do: pop, from: SUBTREE_HEAD, to: INITIAL }]
+    states: [LEAD, SUBTREE_HEAD]
+    actions: [{ do: pop, to: INITIAL }]
 
   - re: "\\n{space}*\\n({space}*\\n)+"
     token: LongNewline

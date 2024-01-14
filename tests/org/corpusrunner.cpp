@@ -747,7 +747,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     { // Lexing
         if (spec.debug.doLexBase) {
             SPtr<std::ofstream> fileTrace;
-            if (spec.debug.traceLexBase) {
+            if (spec.debug.traceAll || spec.debug.traceLexBase) {
                 fileTrace = std::make_shared<std::ofstream>(
                     spec.debugFile("trace_lex_base.log"));
             }
@@ -757,10 +757,11 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             return RunResult{};
         }
 
-        if (spec.debug.printBaseLexed || spec.debug.printBaseLexedToFile) {
+        if (spec.debug.traceAll || spec.debug.printBaseLexed
+            || spec.debug.printBaseLexedToFile) {
             auto content = std::format("{}", yamlRepr(p.baseTokens));
 
-            if (spec.debug.printBaseLexedToFile) {
+            if (spec.debug.traceAll || spec.debug.printBaseLexedToFile) {
                 writeFile(
                     spec.debugFile("base_lexed.yaml"), content + "\n");
             } else {
@@ -770,7 +771,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
         if (spec.debug.doLex) {
             p.tokenizer->TraceState = spec.debug.traceLex;
-            if (spec.debug.lexToFile) {
+            if (spec.debug.traceAll || spec.debug.lexToFile) {
                 p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
             }
 
@@ -779,10 +780,11 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             return RunResult{};
         }
 
-        if (spec.debug.printLexed || spec.debug.printLexedToFile) {
+        if (spec.debug.traceAll || spec.debug.printLexed
+            || spec.debug.printLexedToFile) {
             auto content = std::format("{}", yamlRepr(p.tokens));
 
-            if (spec.debug.printLexedToFile) {
+            if (spec.debug.traceAll || spec.debug.printLexedToFile) {
                 writeFile(spec.debugFile("lexed.yaml"), content + "\n");
             } else {
                 std::cout << content << std::endl;
@@ -876,7 +878,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         if (spec.debug.doParse) {
             p.parser->TraceState = spec.debug.traceParse;
 
-            if (spec.debug.parseToFile) {
+            if (spec.debug.traceAll || spec.debug.parseToFile) {
                 p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
             }
 
@@ -889,7 +891,8 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
             p.parse();
 
-            if (spec.debug.printParsed || spec.debug.printParsedToFile) {
+            if (spec.debug.traceAll || spec.debug.printParsed
+                || spec.debug.printParsedToFile) {
                 writeFile(
                     spec.debugFile("parsed.yaml"),
                     std::format("{}", yamlRepr(p.nodes)) + "\n");
@@ -942,7 +945,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             sem::OrgConverter converter(&context);
 
             converter.TraceState = spec.debug.traceSem;
-            if (spec.debug.semToFile) {
+            if (spec.debug.traceAll || spec.debug.semToFile) {
                 converter.setTraceFile(spec.debugFile("trace_sem.log"));
             }
 
@@ -950,7 +953,8 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                 OrgAdapter(&p.nodes, OrgId(0)));
 
 
-            if (spec.debug.printSem || spec.debug.printSemToFile) {
+            if (spec.debug.traceAll || spec.debug.printSem
+                || spec.debug.printSemToFile) {
                 ExporterYaml exporter;
                 exporter.skipNullFields  = true;
                 exporter.skipFalseFields = true;
@@ -960,7 +964,7 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                 writeFileOrStdout(
                     spec.debugFile("sem.yaml"),
                     std::format("{}", exporter.evalTop(document)) + "\n",
-                    spec.debug.printSemToFile);
+                    spec.debug.traceAll || spec.debug.printSemToFile);
             }
 
             if (spec.sem.has_value()) {

@@ -32,6 +32,7 @@ struct ParseSpec {
         DECL_FIELDS(
             Dbg,
             (),
+            ((bool), traceAll, false),
             /// Do trace for lex/parse/sem
             ((bool), traceLex, false),
             ((bool), traceLexBase, false),

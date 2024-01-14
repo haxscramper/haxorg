@@ -2,6 +2,8 @@ items:
   - source: "#test##a"
     debug:
       doParse: false
+      traceLex: true
+      lexToFile: true
     tokens:
       - {kind: HashTag}
 

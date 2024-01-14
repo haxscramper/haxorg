@@ -345,7 +345,7 @@ def haxorg_base_lexer(ctx: Context):
                              output=[gen_lexer],
                              stamp_path=get_task_stamp("haxorg_base_lexer"),
                              stamp_content=str(reflex_run_params)) as op:
-        if True or op.should_run():
+        if op.should_run():
             log().info("Generating base lexer for haxorg")
             run_command(ctx, "poetry", ["run", py_file])
             run_command(

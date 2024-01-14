@@ -750,6 +750,11 @@ struct RecombineState {
                 break;
             }
 
+            case obt::DoubleHash: {
+                pop_as(otk::HashTagSub);
+                break;
+            }
+
             case obt::CmdIdent: {
                 pop_as(otk::Word);
                 break;

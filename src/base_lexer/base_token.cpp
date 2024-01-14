@@ -16,7 +16,7 @@ void BaseLexerImpl::add(BaseTokenKind token) {
 
     if (traceStream) {
         (*traceStream) << std::format(
-            "  [{:0>4}] = {} {}",
+            "   {:0>4}] = {} {}",
             id.getIndex(),
             token,
             escape_for_write(impl->matcher().str()))
@@ -52,7 +52,7 @@ void BaseLexerImpl::pop_expect_impl(int current, int next, int line) {
     if (traceStream) {
 
         (*traceStream) << std::format(
-            "  - {} -> {} at {} with {}",
+            "         - {} -> {} at {} with {}",
             state_name(current),
             state_name(next),
             line,
@@ -80,7 +80,7 @@ void BaseLexerImpl::push_expect_impl(int current, int next, int line) {
 
     if (traceStream) {
         (*traceStream) << std::format(
-            "  + {} -> {} at {} with {}",
+            "         + {} -> {} at {} with {}",
             state_name(current),
             state_name(next),
             line,
@@ -94,7 +94,7 @@ void BaseLexerImpl::before(
     const char*   pattern) {
     if (traceStream) {
         (*traceStream) << std::format(
-            "> {:>4}   {} {}", line, escape_for_write(pattern), view())
+            ">  {:0>4}]   {} {}", line, escape_for_write(pattern), view())
                        << std::endl;
     }
 }
@@ -117,8 +117,8 @@ std::string BaseLexerImpl::view() {
 
     for (PushInfo const& state : this->states) {
         states += std::format(
-            " <'{}':{}:{}:{}:RULE{}>",
-            state.matched,
+            " <{}:{}:{}:{}:RULE{}>",
+            escape_for_write(state.matched),
             state_name(state.stateId),
             state.line,
             state.column,
@@ -126,7 +126,7 @@ std::string BaseLexerImpl::view() {
     }
 
     return std::format(
-        "{}:{} {} ({}) {} (INT:{}) {} {}",
+        "{}:{} {} (ST:{}) {} (INT:{}) {} {}",
         impl->lineno(),
         impl->columno(),
         state_name(impl->start()),

@@ -11,12 +11,13 @@ std::string BaseLexerImpl::state_name(int state) {
         case 7: return "COMMAND";
         case 8: return "COMMAND_RAW";
         case 9: return "COMMAND_EXAMPLE";
-        case 10: return "COMMAND_SRC";
-        case 11: return "COMMAND_ARGS";
-        case 12: return "COMMAND_TBLFM";
-        case 13: return "BODY_SRC";
-        case 14: return "PROPERTIES";
-        case 15: return "PROPERTY_LITERAL";
+        case 10: return "COMMAND_EXPORT";
+        case 11: return "COMMAND_SRC";
+        case 12: return "COMMAND_ARGS";
+        case 13: return "COMMAND_TBLFM";
+        case 14: return "BODY_SRC";
+        case 15: return "PROPERTIES";
+        case 16: return "PROPERTY_LITERAL";
         default: return std::to_string(state);
     }
 }
@@ -32,11 +33,16 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::BraceOpen: return "BraceOpen";
         case BaseTokenKind::Circumflex: return "Circumflex";
         case BaseTokenKind::CmdCaption: return "CmdCaption";
+        case BaseTokenKind::CmdCenterBegin: return "CmdCenterBegin";
+        case BaseTokenKind::CmdCenterEnd: return "CmdCenterEnd";
         case BaseTokenKind::CmdColonIdent: return "CmdColonIdent";
         case BaseTokenKind::CmdColumns: return "CmdColumns";
         case BaseTokenKind::CmdExampleBegin: return "CmdExampleBegin";
         case BaseTokenKind::CmdExampleEnd: return "CmdExampleEnd";
         case BaseTokenKind::CmdExampleLine: return "CmdExampleLine";
+        case BaseTokenKind::CmdExportBegin: return "CmdExportBegin";
+        case BaseTokenKind::CmdExportEnd: return "CmdExportEnd";
+        case BaseTokenKind::CmdExportLine: return "CmdExportLine";
         case BaseTokenKind::CmdFiletags: return "CmdFiletags";
         case BaseTokenKind::CmdIdent: return "CmdIdent";
         case BaseTokenKind::CmdLatexHeader: return "CmdLatexHeader";
@@ -64,6 +70,8 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::Equals: return "Equals";
         case BaseTokenKind::EscapedChar: return "EscapedChar";
         case BaseTokenKind::Exclamation: return "Exclamation";
+        case BaseTokenKind::FootnoteInlineOpen: return "FootnoteInlineOpen";
+        case BaseTokenKind::FootnoteLinkOpen: return "FootnoteLinkOpen";
         case BaseTokenKind::ForwardSlash: return "ForwardSlash";
         case BaseTokenKind::HashIdent: return "HashIdent";
         case BaseTokenKind::Indent: return "Indent";
@@ -135,11 +143,16 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "BraceOpen") { return BaseTokenKind::BraceOpen; } else
   if (value == "Circumflex") { return BaseTokenKind::Circumflex; } else
   if (value == "CmdCaption") { return BaseTokenKind::CmdCaption; } else
+  if (value == "CmdCenterBegin") { return BaseTokenKind::CmdCenterBegin; } else
+  if (value == "CmdCenterEnd") { return BaseTokenKind::CmdCenterEnd; } else
   if (value == "CmdColonIdent") { return BaseTokenKind::CmdColonIdent; } else
   if (value == "CmdColumns") { return BaseTokenKind::CmdColumns; } else
   if (value == "CmdExampleBegin") { return BaseTokenKind::CmdExampleBegin; } else
   if (value == "CmdExampleEnd") { return BaseTokenKind::CmdExampleEnd; } else
   if (value == "CmdExampleLine") { return BaseTokenKind::CmdExampleLine; } else
+  if (value == "CmdExportBegin") { return BaseTokenKind::CmdExportBegin; } else
+  if (value == "CmdExportEnd") { return BaseTokenKind::CmdExportEnd; } else
+  if (value == "CmdExportLine") { return BaseTokenKind::CmdExportLine; } else
   if (value == "CmdFiletags") { return BaseTokenKind::CmdFiletags; } else
   if (value == "CmdIdent") { return BaseTokenKind::CmdIdent; } else
   if (value == "CmdLatexHeader") { return BaseTokenKind::CmdLatexHeader; } else
@@ -167,6 +180,8 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "Equals") { return BaseTokenKind::Equals; } else
   if (value == "EscapedChar") { return BaseTokenKind::EscapedChar; } else
   if (value == "Exclamation") { return BaseTokenKind::Exclamation; } else
+  if (value == "FootnoteInlineOpen") { return BaseTokenKind::FootnoteInlineOpen; } else
+  if (value == "FootnoteLinkOpen") { return BaseTokenKind::FootnoteLinkOpen; } else
   if (value == "ForwardSlash") { return BaseTokenKind::ForwardSlash; } else
   if (value == "HashIdent") { return BaseTokenKind::HashIdent; } else
   if (value == "Indent") { return BaseTokenKind::Indent; } else
