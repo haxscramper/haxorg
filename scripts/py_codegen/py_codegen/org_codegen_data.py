@@ -1445,7 +1445,9 @@ def get_org_token_kind() -> GenTuEnum:
         GenTuEnumField("CmdCaption", GenTuDoc("#+caption")),
         GenTuEnumField("CmdFiletags", GenTuDoc("#+filetags")),
         GenTuEnumField("CmdColumns", GenTuDoc("#+columns")),
-        GenTuEnumField("CmdProperty", GenTuDoc("#+property")),
+        GenTuEnumField("CmdPropertyArgs", GenTuDoc("#+property")),
+        GenTuEnumField("CmdPropertyText", GenTuDoc("#+property")),
+        GenTuEnumField("CmdPropertyRaw", GenTuDoc("#+property")),
         GenTuEnumField("CmdOptions", GenTuDoc("#+options")),
         GenTuEnumField("CmdSetupfile", GenTuDoc("")),
         GenTuEnumField("CmdInclude", GenTuDoc("")),
@@ -2349,13 +2351,11 @@ def get_enums():
                         "`#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis."
                     ),
                 ),
+                GenTuEnumField("CmdPropertyArgs", GenTuDoc( "`#+property:` command")),
+                GenTuEnumField("CmdPropertyText", GenTuDoc( "`#+property:` command")),
+                GenTuEnumField("CmdPropertyRaw", GenTuDoc( "`#+property:` command")),
                 GenTuEnumField("PropertyList", GenTuDoc("")),
-                GenTuEnumField(
-                    "Property",
-                    GenTuDoc(
-                        "Property entry, either in `#+property:` command, or in `:property:` drawer"
-                    ),
-                ),
+                GenTuEnumField("Property", GenTuDoc( "`:property:` drawer")),
                 GenTuEnumField(
                     "Placeholder",
                     GenTuDoc(

@@ -92,7 +92,7 @@ void OrgParser::report(CR<Report> in) {
 
         case ReportKind::Print: {
             if (in.msg) { os << "  " << *in.msg; }
-            os << std::format(" @{} [src:{}]", in.line, getLoc());
+            os << std::format(" @{}", in.line);
             printTokens();
             break;
         }
@@ -100,9 +100,9 @@ void OrgParser::report(CR<Report> in) {
         case ReportKind::AddToken: {
             auto id = in.node.value();
             os << std::format(
-                "  add [{}] {} @{} with '{}'",
-                id.getIndex(),
+                "  add {} ID:{} @{} with '{}'",
                 group->at(id).kind,
+                id.getUnmasked(),
                 in.line,
                 escape_literal(
                     group->at(id).isMono() ? "<mono>"
@@ -114,10 +114,10 @@ void OrgParser::report(CR<Report> in) {
         case ReportKind::EndNode: {
             auto id = in.node.value();
             os << std::format(
-                "{} {} [{}] @{}",
+                "{} {} ID:{} @{}",
                 (in.kind == ReportKind::StartNode ? "+" : "-"),
                 group->at(id).kind,
-                id.getIndex(),
+                id.getUnmasked(),
                 in.line);
 
             if (in.kind == ReportKind::EndNode) {

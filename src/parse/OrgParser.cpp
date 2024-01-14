@@ -1798,11 +1798,30 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-
-        case otk::CmdProperty: {
+        case otk::CmdPropertyRaw: {
             skip(lex, otk::CmdPrefix);
             skip(lex);
-            start(org::Property);
+            start(org::CmdPropertyRaw);
+            token(org::RawText, pop(lex, otk::RawText));
+            break;
+        }
+
+        case otk::CmdPropertyText: {
+            skip(lex, otk::CmdPrefix);
+            skip(lex);
+            start(org::CmdPropertyArgs);
+            skip(lex, otk::CmdArgumentsBegin);
+            token(org::RawText, pop(lex, otk::CmdValue));
+            parseCommandArguments(lex);
+            parseParagraph(lex, false);
+            skip(lex, otk::CmdArgumentsEnd);
+            break;
+        }
+
+        case otk::CmdPropertyArgs: {
+            skip(lex, otk::CmdPrefix);
+            skip(lex);
+            start(org::CmdPropertyArgs);
             skip(lex, otk::CmdArgumentsBegin);
             token(org::RawText, pop(lex, otk::CmdValue));
             parseCommandArguments(lex);

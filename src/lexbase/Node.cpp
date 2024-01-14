@@ -123,9 +123,31 @@ void NodeGroup<N, K, V>::treeRepr(
     Id               node,
     int              level,
     CR<TreeReprConf> conf,
-    int              subnodeIdx) const {
+    int              subnodeIdx,
+    Opt<Id>          parent) const {
+    using Pos = TreeReprConf::WritePos;
+    using Par = TreeReprConf::WriteParams;
+
+    Par par{
+        .os         = os,
+        .current    = node,
+        .parent     = parent,
+        .subnodeIdx = subnodeIdx,
+        .level      = level,
+    };
+
+    if (conf.customWrite) {
+        par.pos = Pos::LineStart;
+        conf.customWrite(par);
+    }
 
     os << repeat("  ", level) << std::format("{}", at(node).kind);
+
+    if (conf.customWrite) {
+        par.pos = Pos::AfterKind;
+        conf.customWrite(par);
+    }
+
     if (conf.withSubnodeIdx) { os << fmt("[{}]", subnodeIdx); }
     if (conf.withTreeMask) { os << fmt(" MASK:{}", node.getMask()); }
     if (conf.withTreeId) { os << fmt(" ID:{}", node.getUnmasked()); }
@@ -150,8 +172,12 @@ void NodeGroup<N, K, V>::treeRepr(
             CHECK(begin.id != end.id);
             CHECK(begin.id <= end.id);
             if (conf.flushEach) { os.flush(); }
+            if (conf.customWrite) {
+                par.pos = Pos::LineEnd;
+                conf.customWrite(par);
+            }
             os << "\n";
-            treeRepr(os, *begin, level + 1, conf, idx);
+            treeRepr(os, *begin, level + 1, conf, idx, node);
 
             if (conf.flushEach) { os.flush(); }
             ++idx;

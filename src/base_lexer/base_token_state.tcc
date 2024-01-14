@@ -41,7 +41,9 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::CmdIdent: return "CmdIdent";
         case BaseTokenKind::CmdLatexHeader: return "CmdLatexHeader";
         case BaseTokenKind::CmdOptions: return "CmdOptions";
-        case BaseTokenKind::CmdProperty: return "CmdProperty";
+        case BaseTokenKind::CmdPropertyArgs: return "CmdPropertyArgs";
+        case BaseTokenKind::CmdPropertyRaw: return "CmdPropertyRaw";
+        case BaseTokenKind::CmdPropertyText: return "CmdPropertyText";
         case BaseTokenKind::CmdQuoteBegin: return "CmdQuoteBegin";
         case BaseTokenKind::CmdQuoteEnd: return "CmdQuoteEnd";
         case BaseTokenKind::CmdRawArg: return "CmdRawArg";
@@ -142,7 +144,9 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "CmdIdent") { return BaseTokenKind::CmdIdent; } else
   if (value == "CmdLatexHeader") { return BaseTokenKind::CmdLatexHeader; } else
   if (value == "CmdOptions") { return BaseTokenKind::CmdOptions; } else
-  if (value == "CmdProperty") { return BaseTokenKind::CmdProperty; } else
+  if (value == "CmdPropertyArgs") { return BaseTokenKind::CmdPropertyArgs; } else
+  if (value == "CmdPropertyRaw") { return BaseTokenKind::CmdPropertyRaw; } else
+  if (value == "CmdPropertyText") { return BaseTokenKind::CmdPropertyText; } else
   if (value == "CmdQuoteBegin") { return BaseTokenKind::CmdQuoteBegin; } else
   if (value == "CmdQuoteEnd") { return BaseTokenKind::CmdQuoteEnd; } else
   if (value == "CmdRawArg") { return BaseTokenKind::CmdRawArg; } else

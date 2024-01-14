@@ -838,6 +838,30 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             if (!result.isOk) { return RunResult(result); }
         }
     }
+    using Pos = OrgNodeGroup::TreeReprConf::WritePos;
+
+    auto writeImpl = [&p](OrgNodeGroup::TreeReprConf::WriteParams const&
+                              par) {
+        switch (par.pos) {
+            case Pos::AfterKind: {
+                if (par.parent && par.subnodeIdx) {
+                    auto name = p.spec->fieldName(
+                        OrgAdapter(&p.nodes, *par.parent),
+                        *par.subnodeIdx);
+                    if (name) {
+                        par.os << fmt(" {}", *name);
+                    } else {
+                        LOG(FATAL) << fmt(
+                            "Missing field name for element {} of node {}",
+                            *par.subnodeIdx,
+                            OrgAdapter(&p.nodes, *par.parent).getKind());
+                    }
+                }
+                break;
+            }
+            default:
+        }
+    };
 
     { // Parsing
         if (spec.debug.doParse) {
@@ -853,9 +877,20 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                     spec.debugFile("parsed.yaml"),
                     std::format("{}", yamlRepr(p.nodes)) + "\n");
 
+                std::stringstream buffer;
+                ColStream         text{buffer};
+                text.colored = false;
+
+
+                OrgAdapter(&p.nodes, OrgId(0))
+                    .treeRepr(
+                        text,
+                        0,
+                        OrgNodeGroup::TreeReprConf{
+                            .customWrite = writeImpl});
+
                 writeFile(
-                    spec.debugFile("parsed.txt"),
-                    OrgAdapter(&p.nodes, OrgId(0)).treeRepr(false) + "\n");
+                    spec.debugFile("parsed.txt"), buffer.str() + "\n");
             }
         } else {
             return RunResult{};

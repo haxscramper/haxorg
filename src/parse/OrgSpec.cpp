@@ -12,6 +12,18 @@ using Range = astspec::AstRange<OrgSpecName>;
 using N = OrgSpecName;
 
 
+Field idxField(int idx, N name, OrgPattern const& pattern) {
+    return Field(Range(idx, name), pattern);
+}
+
+Field field1(int idx, N name, OrgNodeKind const& pattern) {
+    return Field(Range(idx, name), OrgPattern(pattern));
+}
+
+Field fieldN(int idx, N name, OrgSet const& pattern) {
+    return Field(Range(idx, name), OrgPattern(pattern));
+}
+
 std::unique_ptr<OrgSpec> getOrgSpec() {
     const IntSet<OrgNodeKind> anyTime{
         org::StaticActiveTime,
@@ -27,6 +39,23 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         Field(
             Range(3, N::Repeater), OrgPattern({org::RawText, org::Empty})),
     });
+
+    const OrgPattern rawTextCmdPattern = OrgPattern({
+        Field(Range(0, N::Name), OrgPattern(org::RawText)),
+        Field(Range(1, N::Args), OrgPattern(org::RawText)),
+    });
+
+    const OrgPattern parTextCmdPattern = OrgPattern({
+        Field(
+            Range(0, N::Args),
+            OrgPattern({OrgPattern({
+                Field(Range(0, N::Text), OrgPattern(org::Paragraph)),
+            })})),
+        Field(Range(1, N::Body), OrgPattern(org::StmtList)),
+    });
+
+    const OrgPattern anySubnodePattern = OrgPattern(
+        {Field(Range(slice(0, 1_B), N::Body))});
 
     return std::make_unique<OrgSpec>(Vec<SpecPair>{
         SpecPair{org::StaticActiveTime, timeSpecPattern},
@@ -123,6 +152,9 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     OrgPattern({org::Paragraph, org::Empty})),
             })},
 
+        SpecPair{org::StmtList, anySubnodePattern},
+        SpecPair{org::Paragraph, anySubnodePattern},
+        SpecPair{org::InlineStmtList, anySubnodePattern},
         // Subtree logbook components
         SpecPair{
             org::Logbook,
@@ -312,22 +344,18 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::TimeAssoc,
             OrgPattern({
-                Field(
-                    Range(0, N::Name),
-                    OrgPattern({org::BigIdent, org::Empty})),
-                Field(
-                    Range(1, N::Time),
-                    OrgPattern(
-                        anyTime + IntSet<OrgNodeKind>{org::TimeRange})),
+                fieldN(0, N::Name, {org::BigIdent, org::Empty}),
+                fieldN(
+                    1,
+                    N::Time,
+                    anyTime + IntSet<OrgNodeKind>{org::TimeRange}),
             })},
         SpecPair{
             org::TimeRange,
             OrgPattern({
-                Field(Range(0, N::From), OrgPattern(anyTime)),
-                Field(Range(1, N::To), OrgPattern(anyTime)),
-                Field(
-                    Range(2, N::Diff),
-                    OrgPattern({org::SimpleTime, org::Empty})),
+                fieldN(0, N::From, anyTime),
+                fieldN(1, N::To, anyTime),
+                fieldN(2, N::Diff, {org::SimpleTime, org::Empty}),
             })},
 
         SpecPair{
@@ -361,44 +389,26 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::Property,
             OrgPattern({
-                Field(
-                    Range(0, N::InheritanceMode),
-                    OrgPattern({org::Empty, org::Punctuation})),
-                Field(Range(1, N::Name), OrgPattern(org::RawText)),
-                Field(
-                    Range(2, N::MainSetRule),
-                    OrgPattern({org::Empty, org::Punctuation})),
-                Field(
-                    Range(3, N::Subname),
-                    OrgPattern({org::Empty, org::Ident})),
-                Field(
-                    Range(4, N::SubSetRule),
-                    OrgPattern({org::Empty, org::Punctuation})),
-                Field(Range(5, N::Values), OrgPattern(org::RawText)),
+                field1(0, N::Name, org::RawText),
+                field1(1, N::Values, org::RawText),
             })},
         SpecPair{
             org::MultilineCommand,
             OrgPattern(
-                {Field(Range(0, N::Name), OrgPattern(org::Ident)),
-                 Field(
-                     Range(1, N::Args),
-                     OrgPattern({org::CmdArguments, org::Empty})),
+                {field1(0, N::Name, org::Ident),
+                 fieldN(1, N::Args, {org::CmdArguments, org::Empty}),
                  Field(Range(2, N::Body))})},
         SpecPair{
             org::MetaSymbol,
             OrgPattern({
-                Field(Range(0, N::Name), OrgPattern(org::Ident)),
-                Field(
-                    Range(1, N::Args),
-                    OrgPattern({org::CmdArguments, org::Empty})),
-                Field(Range(2, N::Body), OrgPattern(org::RawText)),
+                field1(0, N::Name, org::Ident),
+                fieldN(1, N::Args, {org::CmdArguments, org::Empty}),
+                field1(2, N::Body, org::RawText),
             })},
         SpecPair{
             org::Table,
             OrgPattern({
-                Field(
-                    Range(0, N::Args),
-                    OrgPattern({org::CmdArguments, org::Empty})),
+                fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
                 Field(
                     Range(slice(1, 1_B), N::Rows),
                     OrgPattern(org::TableRow)),
@@ -406,66 +416,57 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::TableCell,
             OrgPattern({
+                fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
+                fieldN(1, N::Text, {org::Empty, org::StmtList}),
+            })},
+        SpecPair{org::CommandTitle, parTextCmdPattern},
+        SpecPair{org::CommandCaption, parTextCmdPattern},
+        SpecPair{
+            org::CmdPropertyText,
+            OrgPattern({
+                field1(0, N::Name, org::RawText),
                 Field(
-                    Range(0, N::Args),
-                    OrgPattern({org::CmdArguments, org::Empty})),
-                Field(
-                    Range(1, N::Text),
-                    OrgPattern({org::Empty, org::StmtList})),
+                    Range(1, N::Args),
+                    OrgPattern({OrgPattern({
+                        field1(0, N::Text, org::Paragraph),
+                    })})),
+                field1(2, N::Body, org::StmtList),
+            })},
+        SpecPair{
+            org::CmdPropertyArgs,
+            OrgPattern({
+                field1(0, N::Name, org::RawText),
+                fieldN(1, N::Args, {org::CmdArguments, org::Empty}),
+                field1(2, N::Body, org::StmtList),
             })},
         SpecPair{
             org::Command,
             OrgPattern({
-                Field(Range(0, N::Name), OrgPattern(org::Ident)),
-                Field(
-                    Range(1, N::Args),
-                    OrgPattern({org::CmdArguments, org::Empty})),
-            })},
-        SpecPair{
-            org::CommandCaption,
-            OrgPattern({
-                Field(
-                    Range(0, N::Args),
-                    OrgPattern({OrgPattern({
-                        Field(
-                            Range(0, N::Text), OrgPattern(org::Paragraph)),
-                    })})),
-                Field(Range(1, N::Body), OrgPattern(org::StmtList)),
+                field1(0, N::Name, org::Ident),
+                fieldN(1, N::Args, {org::CmdArguments, org::Empty}),
             })},
         SpecPair{
             org::BlockExport,
             OrgPattern({
-                Field(Range(0, N::Name), OrgPattern(org::Ident)),
-                Field(
-                    Range(1, N::Args),
-                    OrgPattern({org::Empty, org::CmdArguments})),
-                Field(Range(2, N::Body), OrgPattern(org::RawText)),
+                field1(0, N::Name, org::Ident),
+                fieldN(1, N::Args, {org::Empty, org::CmdArguments}),
+                field1(2, N::Body, org::RawText),
             })},
         SpecPair{
             org::CommandInclude,
             OrgPattern({Field(
                 Range(0, N::Args),
                 OrgPattern({OrgPattern({
-                    Field(Range(0, N::File), OrgPattern(org::File)),
-                    Field(
-                        Range(1, N::Kind),
-                        OrgPattern({org::Empty, org::Ident})),
-                    Field(
-                        Range(2, N::Lang),
-                        OrgPattern({org::Empty, org::Ident})),
-                    Field(
-                        Range(3, N::Args),
-                        OrgPattern({org::Empty, org::CmdArguments})),
+                    field1(0, N::File, org::File),
+                    fieldN(1, N::Kind, {org::Empty, org::Ident}),
+                    fieldN(2, N::Lang, {org::Empty, org::Ident}),
+                    fieldN(3, N::Args, {org::Empty, org::CmdArguments}),
                 })}))})},
         SpecPair{
             org::SrcCode,
             OrgPattern({
-                Field(
-                    Range(0, N::Lang),
-                    OrgPattern({org::Ident, org::Empty})),
-                Field(
-                    Range(1, N::HeaderArgs),
-                    OrgPattern({org::CmdArguments, org::Empty})),
+                fieldN(0, N::Lang, {org::Ident, org::Empty}),
+                fieldN(1, N::HeaderArgs, {org::CmdArguments, org::Empty}),
                 Field(
                     Range(2, N::Body),
                     OrgPattern(org::StmtList)

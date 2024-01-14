@@ -358,8 +358,14 @@ enum class OrgNodeKind : short int {
   HtmlHead,
   /// \brief `#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.
   Columns,
+  /// \brief `#+property:` command
+  CmdPropertyArgs,
+  /// \brief `#+property:` command
+  CmdPropertyText,
+  /// \brief `#+property:` command
+  CmdPropertyRaw,
   PropertyList,
-  /// \brief Property entry, either in `#+property:` command, or in `:property:` drawer
+  /// \brief `:property:` drawer
   Property,
   /// \brief Placeholder entry in text, usually writte like `<text to replace>`
   Placeholder,
@@ -526,7 +532,11 @@ enum class OrgTokenKind : short int {
   /// \brief #+columns
   CmdColumns,
   /// \brief #+property
-  CmdProperty,
+  CmdPropertyArgs,
+  /// \brief #+property
+  CmdPropertyText,
+  /// \brief #+property
+  CmdPropertyRaw,
   /// \brief #+options
   CmdOptions,
   CmdSetupfile,

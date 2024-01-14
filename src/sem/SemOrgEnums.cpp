@@ -275,6 +275,9 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "LatexClassOptions") { return OrgNodeKind::LatexClassOptions; } else
   if (value == "HtmlHead") { return OrgNodeKind::HtmlHead; } else
   if (value == "Columns") { return OrgNodeKind::Columns; } else
+  if (value == "CmdPropertyArgs") { return OrgNodeKind::CmdPropertyArgs; } else
+  if (value == "CmdPropertyText") { return OrgNodeKind::CmdPropertyText; } else
+  if (value == "CmdPropertyRaw") { return OrgNodeKind::CmdPropertyRaw; } else
   if (value == "PropertyList") { return OrgNodeKind::PropertyList; } else
   if (value == "Property") { return OrgNodeKind::Property; } else
   if (value == "Placeholder") { return OrgNodeKind::Placeholder; } else
@@ -420,6 +423,9 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::LatexClassOptions: return "LatexClassOptions";
     case OrgNodeKind::HtmlHead: return "HtmlHead";
     case OrgNodeKind::Columns: return "Columns";
+    case OrgNodeKind::CmdPropertyArgs: return "CmdPropertyArgs";
+    case OrgNodeKind::CmdPropertyText: return "CmdPropertyText";
+    case OrgNodeKind::CmdPropertyRaw: return "CmdPropertyRaw";
     case OrgNodeKind::PropertyList: return "PropertyList";
     case OrgNodeKind::Property: return "Property";
     case OrgNodeKind::Placeholder: return "Placeholder";
@@ -593,7 +599,9 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "CmdCaption") { return OrgTokenKind::CmdCaption; } else
   if (value == "CmdFiletags") { return OrgTokenKind::CmdFiletags; } else
   if (value == "CmdColumns") { return OrgTokenKind::CmdColumns; } else
-  if (value == "CmdProperty") { return OrgTokenKind::CmdProperty; } else
+  if (value == "CmdPropertyArgs") { return OrgTokenKind::CmdPropertyArgs; } else
+  if (value == "CmdPropertyText") { return OrgTokenKind::CmdPropertyText; } else
+  if (value == "CmdPropertyRaw") { return OrgTokenKind::CmdPropertyRaw; } else
   if (value == "CmdOptions") { return OrgTokenKind::CmdOptions; } else
   if (value == "CmdSetupfile") { return OrgTokenKind::CmdSetupfile; } else
   if (value == "CmdInclude") { return OrgTokenKind::CmdInclude; } else
@@ -854,7 +862,9 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::CmdCaption: return "CmdCaption";
     case OrgTokenKind::CmdFiletags: return "CmdFiletags";
     case OrgTokenKind::CmdColumns: return "CmdColumns";
-    case OrgTokenKind::CmdProperty: return "CmdProperty";
+    case OrgTokenKind::CmdPropertyArgs: return "CmdPropertyArgs";
+    case OrgTokenKind::CmdPropertyText: return "CmdPropertyText";
+    case OrgTokenKind::CmdPropertyRaw: return "CmdPropertyRaw";
     case OrgTokenKind::CmdOptions: return "CmdOptions";
     case OrgTokenKind::CmdSetupfile: return "CmdSetupfile";
     case OrgTokenKind::CmdInclude: return "CmdInclude";

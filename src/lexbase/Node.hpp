@@ -170,8 +170,8 @@ struct NodeGroup {
 
     V const& val(Id id) const {
         CHECK(notNil(tokens));
-        CHECK(at(id).isTerminal())
-            << fmt("{}({})", at(id).kind, at(id).value);
+        CHECK(at(id).isTerminal()) << fmt(
+            "ID:{} {}({})", id.getUnmasked(), at(id).kind, at(id).value);
         return tokens->at(at(id).getToken()).value;
     }
 
@@ -326,7 +326,16 @@ struct NodeGroup {
             LineEnd,
         };
 
-        Func<void(std::ostream&, Id, WritePos)> customWrite;
+        struct WriteParams {
+            ColStream& os;
+            Id         current;
+            WritePos   pos;
+            Opt<int>   subnodeIdx;
+            int        level;
+            Opt<Id>    parent;
+        };
+
+        Func<void(WriteParams const& params)> customWrite;
     };
 
     void lispRepr(
@@ -340,7 +349,8 @@ struct NodeGroup {
         Id               node,
         int              level,
         CR<TreeReprConf> conf       = TreeReprConf(),
-        int              subnodeIdx = 0) const;
+        int              subnodeIdx = 0,
+        Opt<Id>          parent     = std::nullopt) const;
 
     std::string treeRepr(Id node, CR<TreeReprConf> conf = TreeReprConf())
         const;

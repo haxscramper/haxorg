@@ -297,6 +297,18 @@ struct RecombineState {
         return res;
     }
 
+    OrgTokenId add_fake(
+        OrgTokenKind __to,
+        OrgFill      fill,
+        int          line = __builtin_LINE()) {
+        auto res = d->out->add(OrgToken{__to, fill});
+        x_report(
+            Push,
+            .with_id(res).with_line(line).with_msg(
+                fmt("fake {} from {}", __to, lex.tok())));
+        return res;
+    }
+
     void recombine_markup() {
         auto tr = trace();
         // TODO Check if we are in the paragraph element or some other
@@ -514,7 +526,6 @@ struct RecombineState {
     }
 
     void map_command_args() {
-        add_fake(otk::CmdArgumentsBegin);
         while (!line_end.contains(lex.kind())) {
             switch (lex.kind()) {
                 case obt::CmdColonIdent: pop_as(otk::CmdKey); break;
@@ -527,8 +538,6 @@ struct RecombineState {
                 }
             }
         }
-
-        add_fake(otk::CmdArgumentsEnd);
     }
 
     void map_interpreted_token() {
@@ -638,7 +647,26 @@ struct RecombineState {
                     case obt::CmdCaption: pop_as(otk::CmdCaption); break;
                     case obt::CmdFiletags: pop_as(otk::CmdFiletags); break;
                     case obt::CmdColumns: pop_as(otk::CmdColumns); break;
-                    case obt::CmdProperty: pop_as(otk::CmdProperty); break;
+                    case obt::CmdPropertyArgs: {
+                        auto split = next->text.split(' ');
+                        add_fake(
+                            otk::CmdPropertyArgs,
+                            OrgFill{
+                                .base = BaseFill{.text = split.at(0)}});
+                        add_fake(otk::CmdArgumentsBegin);
+                        add_fake(
+                            otk::CmdValue,
+                            OrgFill{
+                                .base = BaseFill{.text = split.at(1)}});
+                        lex.next();
+                        break;
+                    }
+                    case obt::CmdPropertyText:
+                        pop_as(otk::CmdPropertyText);
+                        break;
+                    case obt::CmdPropertyRaw:
+                        pop_as(otk::CmdPropertyRaw);
+                        break;
                     case obt::CmdOptions: pop_as(otk::CmdOptions); break;
                     default: {
                         LOG(FATAL) << fmt(
@@ -649,10 +677,32 @@ struct RecombineState {
 
                 switch (next.kind) {
                     case obt::CmdExampleBegin:
-                    case obt::CmdSrcBegin:
-                    case obt::CmdProperty: map_command_args(); break;
+                    case obt::CmdSrcBegin: {
+                        add_fake(otk::CmdArgumentsBegin);
+                        map_command_args();
+                        add_fake(otk::CmdArgumentsEnd);
+                        break;
+                    }
+
+                    case obt::CmdPropertyArgs: {
+                        map_command_args();
+                        add_fake(otk::CmdArgumentsEnd);
+                        break;
+                    }
+
+
                     case obt::CmdTitle:
                         while (lex.at(obt::Whitespace)) { lex.next(); }
+                        break;
+                    case obt::CmdPropertyText:
+                        add_fake(otk::CmdArgumentsBegin);
+                        pop_as(otk::CmdValue);
+                        add_fake(otk::ParagraphBegin);
+                        while (!lex.at(line_end)) {
+                            map_interpreted_token();
+                        }
+                        add_fake(otk::ParagraphEnd);
+                        pop_as(otk::CmdArgumentsEnd);
                         break;
                     default:
                 }
@@ -904,7 +954,9 @@ struct LineToken {
                     case obt::CmdTitle:
                     case obt::CmdCaption:
                     case obt::CmdColumns:
-                    case obt::CmdProperty:
+                    case obt::CmdPropertyArgs:
+                    case obt::CmdPropertyRaw:
+                    case obt::CmdPropertyText:
                     case obt::CmdOptions:
                     case obt::CmdFiletags: kind = Kind::Line; break;
                     case obt::CmdSrcBegin: kind = Kind::BlockOpen; break;

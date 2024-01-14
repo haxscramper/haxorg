@@ -23,6 +23,17 @@ states:
 
 rx_macros:
   - { name: space, value: "[\\h\\xA0]" }
+  # Group of built-in org-mode properties that can be statically identified
+  # and lexed to corresponding tokens. All unknown properties and directives
+  # will be converted to raw string literals and processed at later
+  # stages, mostly in sem layer
+  - { name: literal_properties, value: "id|effort" }
+  - { name: argument_properties, value: "header-args" }
+  - { name: text_properties, value: "description" }
+  # Property colon with optional text extension pattern an any number of 
+  # following spaces. Used both in line command directives and subtree
+  # properties
+  - { name: prop_colon, value: "\\+?:[\\h\\xA0]*" }
 
 tokens: 
   - { name: "Indent" }
@@ -117,14 +128,14 @@ rules:
       - { do: push, to: COMMAND, from: INITIAL }
 
   #tag Columns
-  - lit: "columns:{space}*"
+  - lit: "columns{prop_colon}"
     token: CmdColumns
     states: [COMMAND]
     actions:
       - { do: push, from: COMMAND, to: COMMAND_RAW }
 
   #tag Caption command
-  - lit: "caption:{space}*"
+  - lit: "caption{prop_colon}"
     states: [COMMAND]
     token: CmdCaption
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
@@ -132,26 +143,36 @@ rules:
 
 
   #tag Title command
-  - re: "title:{space}*"
+  - re: "title{prop_colon}"
     states: [COMMAND]
     token: CmdTitle
     actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
 
   #tag property command 
-  - re: "property:{space}*"
+  - re: "property{prop_colon}({argument_properties})"
     states: [COMMAND]
-    token: CmdProperty 
+    token: CmdPropertyArgs 
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
+  - re: "property{prop_colon}({text_properties})"
+    states: [COMMAND]
+    token: CmdPropertyText
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "property{prop_colon}"
+    states: [COMMAND]
+    token: CmdPropertyRaw
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
   #tag Options
-  - re: "options:{space}*"
+  - re: "options{prop_colon}"
     states: [COMMAND]
     token: CmdOptions
     # Full options parsing is deferred to the sem stage
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
   #tag File tags command
-  - re: "filetags:{space}*"
+  - re: "filetags{prop_colon}"
     states: [COMMAND]
     token: CmdFiletags
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
@@ -162,14 +183,14 @@ rules:
 
 
   #tag Latex header
-  - re: "latex_header:{space}*"
+  - re: "latex_header{prop_colon}"
     states: [COMMAND]
     token: CmdLatexHeader
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
 
   #tag Table formulas
-  - re: "tblfm:{space}*"
+  - re: "tblfm{prop_colon}"
     states: [COMMAND]
     token: CmdTblfm
     actions: [{ do: push, to: COMMAND_TBLFM, from: COMMAND }]
@@ -231,7 +252,7 @@ rules:
       - { do: pop, from: PROPERTY_LEAD, to: PROPERTIES }
       - { do: pop, from: PROPERTIES, to: INITIAL }
 
-  - re: ":(id|effort):"
+  - re: ":({literal_properties}):"
     token: TreePropertyLiteral
     states: [PROPERTY_LEAD]
     actions:
