@@ -840,8 +840,10 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     }
     using Pos = OrgNodeGroup::TreeReprConf::WritePos;
 
-    auto writeImpl = [&p](OrgNodeGroup::TreeReprConf::WriteParams const&
-                              par) {
+    UnorderedMap<OrgId, int> parseAddedOnLine;
+
+    auto writeImpl = [&](OrgNodeGroup::TreeReprConf::WriteParams const&
+                             par) {
         switch (par.pos) {
             case Pos::AfterKind: {
                 if (par.parent && par.subnodeIdx) {
@@ -859,6 +861,13 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
                 }
                 break;
             }
+            case Pos::LineEnd: {
+                if (parseAddedOnLine.contains(par.current)) {
+                    par.os
+                        << fmt(" @{}", parseAddedOnLine.at(par.current));
+                }
+                break;
+            }
             default:
         }
     };
@@ -866,9 +875,17 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
     { // Parsing
         if (spec.debug.doParse) {
             p.parser->TraceState = spec.debug.traceParse;
+
             if (spec.debug.parseToFile) {
                 p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
             }
+
+            p.parser->reportHook = [&](CR<OrgParser::Report> rep) {
+                if (rep.kind == OrgParser::ReportKind::AddToken
+                    || rep.kind == OrgParser::ReportKind::StartNode) {
+                    parseAddedOnLine.insert_or_assign(*rep.node, rep.line);
+                }
+            };
 
             p.parse();
 

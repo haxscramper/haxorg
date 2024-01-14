@@ -250,7 +250,9 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
 
     } else if (name == "created") {
         Property::Created created;
-        created.time = convertTime(tree, one(a, N::Values));
+        auto              par = convertParagraph(tree, one(a, N::Values));
+
+        created.time = par->at(0).as<sem::Time>();
         result       = Property(created);
 
     } else if (name == "origin") {
@@ -288,7 +290,7 @@ void OrgConverter::convertPropertyList(SemIdT<Subtree>& tree, In a) {
                    << a.treeRepr();
     }
 
-    if (result) {
+    if (false && result) {
         const auto inh = one(a, N::InheritanceMode).val().getText();
         if (inh == "!!") {
             result->inheritanceMode = Property::InheritanceMode::OnlyThis;
@@ -411,14 +413,12 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
         };
 
         Vec<Spec> formats = {
-            Spec{.pattern = "yyyy-MM-dd HH:mm:ss"},
-            Spec{.pattern = "yyyy/MM/dd HH:mm:ss"},
-            Spec{.pattern = "dd-MM-yyyy HH:mm:ss"},
-            Spec{.pattern = "dd/MM/yyyy HH:mm:ss"},
-            Spec{.pattern = "yyyy-MM-dd HH:mm"},
-            Spec{
-                .pattern = "yyyy-MM-dd",
-                .align   = UserTime::Alignment::Day},
+            Spec{.pattern = "%Y-%m-%d %H:%M:%S"},
+            Spec{.pattern = "%Y/%m/%d %H:%M:%S"},
+            Spec{.pattern = "%d-%m-%Y %H:%M:%S"},
+            Spec{.pattern = "%d/%m/%Y %H:%M:%S"},
+            Spec{.pattern = "%Y-%m-%d %H:%M"},
+            Spec{.pattern = "%Y-%m-%d", .align = UserTime::Alignment::Day},
             // Add other formats as needed
         };
 
@@ -428,8 +428,8 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
         for (const auto& format : formats) {
             std::string error;
             if (absl::ParseTime(
-                    datetime,
                     format.pattern,
+                    datetime,
                     absl::TimeZone(),
                     &parsedDateTime,
                     &error)) {
@@ -442,7 +442,8 @@ SemIdT<Time> OrgConverter::convertTime(__args) {
         if (!foundTime) {
             // TODO implement proper, non-fatal error reporting
             LOG(ERROR)
-                << ("Could not parse date time entry in format: $# at $#"
+                << ("Could not parse date time entry in format: '$#' at "
+                    "'$#'"
                     % to_string_vec(datetime, getLocMsg(a)));
         }
 
@@ -1037,7 +1038,10 @@ SemIdT<Document> OrgConverter::toDocument(OrgAdapter adapter) {
                     fillDocumentOptions(doc->options, sub);
                     break;
                 }
-                case org::Property: {
+
+                case org::CmdPropertyRaw:
+                case org::CmdPropertyText:
+                case org::CmdPropertyArgs: {
                     LOG(WARNING)
                         << "TODO handle property conversion for options";
                     break;
