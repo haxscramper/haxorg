@@ -380,3 +380,4 @@ docs/html
 .idea
 .trunk/tools
 corpus_schema.yaml
+vgcore.*

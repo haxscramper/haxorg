@@ -82,21 +82,7 @@ struct KindStore {
         SemId::StoreIndexT selfIndex,
         SemId              parent,
         Opt<OrgAdapter>    original,
-        ContextStore*      context) {
-        SemId result = SemId(
-            selfIndex,
-            T::staticKind,
-            static_cast<SemId::NodeIndexT>(values.size()),
-            context);
-
-        if (original) {
-            values.emplace_back(parent, *original);
-        } else {
-            values.emplace_back(parent);
-        }
-
-        return result;
-    }
+        ContextStore*      context);
 
     using StoreVisitor = Func<
         void(SemId::StoreIndexT selfIndex, KindStore<T>* store)>;
@@ -111,9 +97,7 @@ struct KindStore {
     }
 
     void eachNode(SemId::StoreIndexT selfIndex, CR<NodeVisitor> cb) {
-        for (const auto& id : nodes(selfIndex)) {
-            cb(id);
-        }
+        for (const auto& id : nodes(selfIndex)) { cb(id); }
     }
 };
 

@@ -25,15 +25,11 @@ void ParseUnitStore::eachNode(
 }
 
 void ContextStore::eachStore(ParseUnitStore::StoreVisitor cb) {
-    for (int i = 0; i < stores.size(); ++i) {
-        stores[i].eachStore(i, cb);
-    }
+    for (int i = 0; i < stores.size(); ++i) { stores[i].eachStore(i, cb); }
 }
 
 void ContextStore::eachNode(ParseUnitStore::NodeVisitor cb) {
-    for (int i = 0; i < stores.size(); ++i) {
-        stores[i].eachNode(i, cb);
-    }
+    for (int i = 0; i < stores.size(); ++i) { stores[i].eachNode(i, cb); }
 }
 
 Org* ParseUnitStore::get(OrgSemKind kind, SemId::NodeIndexT index) {
@@ -116,9 +112,7 @@ void ContextStore::ensureStoreForIndex(SemId::StoreIndexT index) {
     int diff = index - stores.size();
     CHECK(diff < 120000); // Debugging assertion
 
-    while (!(index < stores.size())) {
-        stores.emplace_back(this);
-    }
+    while (!(index < stores.size())) { stores.emplace_back(this); }
 }
 
 
@@ -138,3 +132,41 @@ SemId ContextStore::createInSame(
     Opt<OrgAdapter> original) {
     return createIn(existing.getStoreIndex(), kind, parent, original);
 }
+
+template <typename T>
+sem::SemId sem::KindStore<T>::create(
+    SemId::StoreIndexT selfIndex,
+    SemId              parent,
+    Opt<OrgAdapter>    original,
+    ContextStore*      context) {
+    SemId result = SemId(
+        selfIndex,
+        T::staticKind,
+        static_cast<SemId::NodeIndexT>(values.size()),
+        context);
+
+    if (original) {
+        values.push_back(T{parent, *original});
+    } else {
+        values.push_back(T{parent});
+    }
+
+    if (false /*T::staticKind == OrgSemKind::HashTag*/) {
+        LOG(INFO) << fmt(
+            "Push back of values {}, values:{:x}, this:{:x} data:{:x} "
+            "size:{} capacity:{}",
+            T::staticKind,
+            reinterpret_cast<u64>(&values),
+            reinterpret_cast<u64>(this),
+            reinterpret_cast<u64>(values.data()),
+            values.size(),
+            values.capacity());
+    }
+
+
+    return result;
+}
+
+#define forward_declare(__Kind) template class sem::KindStore<sem::__Kind>;
+EACH_SEM_ORG_KIND(forward_declare)
+#undef forward_declare
