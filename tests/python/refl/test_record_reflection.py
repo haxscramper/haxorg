@@ -3,6 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from pprint import pprint
 from more_itertools import first_true
+import py_scriptutils.script_logging
 
 from refl_test_driver import (run_provider, STABLE_FILE_NAME, GenTuStruct, get_struct, get_nim_code, format_nim_code, \
     compile_nim_code, verify_nim_code, )
@@ -63,9 +64,8 @@ def test_field_with_std_import():
     assert field.type.Parameters[0].name == "int"
 
 
-@pytest.mark.xfail()
 def test_anon_struct_for_field():
-    struct = get_struct("struct Main { struct { int nested; } field; };")
+    struct = get_struct("struct Main { struct { int nested; } field; };", code_dir_override=Path("/tmp/code_dir_override"))
     assert struct.name.name == "Main"
     assert len(struct.nested) == 0
     assert len(struct.fields) == 1

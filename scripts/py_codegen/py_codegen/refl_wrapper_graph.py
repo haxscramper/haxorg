@@ -226,8 +226,12 @@ class GenGraph:
                     use_rec_type(base)
 
                 for _field in decl.fields:
-                    assert _field.type, _field
-                    use_rec_type(_field.type)
+                    if _field.isTypeDecl:
+                        result += self.get_used_type(_field.decl)
+
+                    else:
+                        assert _field.type, _field
+                        use_rec_type(_field.type)
 
             case GenTuFunction():
                 for arg in decl.arguments:

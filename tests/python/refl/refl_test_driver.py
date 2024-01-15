@@ -147,6 +147,7 @@ def run_provider(
         conf.cache_collector_runs = False
         conf.print_reflection_run_fail_to_stdout = print_reflection_run_fail_to_stdout
         conf.reflection_run_verbose = True
+        conf.reflection_run_serialize = True
 
         compile_commands_content = [
             ex.CompileCommand(
@@ -191,9 +192,9 @@ def run_provider(
         return ReflProviderRunResult(wraps=wraps, code_dir=code_dir)
 
 
-def get_struct(text: str, **kwargs) -> GenTuStruct:
+def get_struct(text: str, code_dir_override: Optional[Path] = None, **kwargs) -> GenTuStruct:
     with TemporaryDirectory() as code_dir:
-        tu = run_provider(text, Path(code_dir), **kwargs).wraps[0].tu
+        tu = run_provider(text, code_dir_override or Path(code_dir), **kwargs).wraps[0].tu
         assert len(tu.structs) == 1
         return tu.structs[0]
 

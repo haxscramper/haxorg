@@ -90,9 +90,7 @@ std::string formatSourceLocation(
             std::vector<std::string> pathParts;
             std::istringstream       f(filePath);
             std::string              s;
-            while (getline(f, s, '/')) {
-                pathParts.push_back(s);
-            }
+            while (getline(f, s, '/')) { pathParts.push_back(s); }
 
             const int paths = 4;
 
@@ -251,15 +249,20 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 }
 
 
-#define log_visit(Decl)                                                   \
-    if (verbose) {                                                        \
-        Diag(                                                             \
-            DiagKind::Remark,                                             \
-            "Adding serialization information for %0 on %1, full "        \
-            "dump:\n%2",                                                  \
-            Decl->getLocation())                                          \
-            << Decl << __LINE__ << dump(Decl);                            \
+void ReflASTVisitor::log_visit(
+    clang::Decl const* Decl,
+    std::string const& msg,
+    int                line,
+    char const*        function) {
+    if (verbose) {
+        std::cout << std::format(
+            "\n--------------------------------------------------\n{}\n---"
+            "\n{}\n"
+            "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+            std::format("line:{} function:{} msg:{}", line, function, msg),
+            (Decl ? "\n" + dump(Decl) : ""));
     }
+}
 
 
 std::vector<QualType> ReflASTVisitor::getNamespaces(
@@ -516,19 +519,30 @@ void ReflASTVisitor::fillExpr(
 void ReflASTVisitor::fillFieldDecl(
     Record::Field*    sub,
     clang::FieldDecl* field) {
-    log_visit(field);
+    clang::QualType const&   Type    = field->getType();
+    clang::RecordType const* RecType = Type.getTypePtr()
+                                           ->getAs<clang::RecordType>();
+
+    log_visit(
+        field,
+        std::format(
+            "has_rec_type: {} name: {}",
+            RecType != nullptr,
+            field->getNameAsString()));
+
     sub->set_name(field->getNameAsString());
     auto doc = getDoc(field);
-    if (doc) {
-        sub->set_doc(*doc);
+    if (doc) { sub->set_doc(*doc); }
+
+    if (RecType && RecType->getDecl()) {
+        log_visit(
+            RecType->getDecl(),
+            std::format(
+                "Anon:{}", RecType->getDecl()->getNameAsString().empty()));
     }
 
-    clang::QualType const& Type = field->getType();
-    if (clang::RecordType const* RecType = Type.getTypePtr()
-                                               ->getAs<
-                                                   clang::RecordType>();
-        RecType != nullptr && RecType->getDecl()
-        && RecType->getDecl()->isAnonymousStructOrUnion()) {
+    if (RecType != nullptr && RecType->getDecl()
+        && RecType->getDecl()->getNameAsString().empty()) {
         clang::RecordDecl const* RecDecl = RecType->getDecl();
         log_visit(RecDecl);
         fillRecordDecl(sub->mutable_typedecl(), RecType->getDecl());
@@ -545,9 +559,7 @@ void ReflASTVisitor::fillParmVarDecl(
     const clang::ParmVarDecl* parm) {
     arg->set_name(parm->getNameAsString());
     auto doc = getDoc(parm);
-    if (doc) {
-        arg->set_doc(*doc);
-    }
+    if (doc) { arg->set_doc(*doc); }
     QualType* ArgType = arg->mutable_type();
     fillType(ArgType, parm->getType(), parm->getLocation());
 
@@ -589,9 +601,7 @@ void ReflASTVisitor::fillMethodDecl(
     }
 
     auto doc = getDoc(method);
-    if (doc) {
-        sub->set_doc(*doc);
-    }
+    if (doc) { sub->set_doc(*doc); }
 
     if (method->isCopyAssignmentOperator()) {
         sub->set_kind(Record_MethodKind_CopyAssignmentOperator);
@@ -697,9 +707,7 @@ void ReflASTVisitor::fillRecordDecl(Record* rec, clang::RecordDecl* Decl) {
 bool ReflASTVisitor::isRefl(clang::Decl* Decl) {
     for (clang::AnnotateAttr* Attr :
          Decl->specific_attrs<clang::AnnotateAttr>()) {
-        if (Attr->getAnnotation() == REFL_NAME) {
-            return true;
-        }
+        if (Attr->getAnnotation() == REFL_NAME) { return true; }
     }
     return false;
 }
@@ -771,11 +779,11 @@ void ReflASTVisitor::fillCxxRecordDecl(
                     // `struct { int field; }`
                     // -- not an implicit anon field
                     || FieldDecl->isImplicit()
-                           && SubRecord->isAnonymousStructOrUnion()
+                           && SubRecord->getNameAsString().empty()
                     // `struct Named { int a; } field;`
                     // -- not a joined field+name
                     || (!FieldDecl->isImplicit()
-                        && !SubRecord->isAnonymousStructOrUnion())) {
+                        && !SubRecord->getNameAsString().empty())) {
                     log_visit(SubRecord);
                     Record* sub_rec = rec->add_nestedrec();
                     fillCxxRecordDecl(sub_rec, SubRecord);

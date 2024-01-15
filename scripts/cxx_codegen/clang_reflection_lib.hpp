@@ -41,6 +41,14 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
   public:
     TU*  out;
     bool verbose = false;
+
+    void log_visit(
+        clang::Decl const* Decl,
+        std::string const& msg      = "",
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION());
+
+
     explicit ReflASTVisitor(
         clang::ASTContext* Context,
         TU*                tu,

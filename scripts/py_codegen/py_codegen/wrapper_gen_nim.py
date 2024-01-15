@@ -6,11 +6,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from beartype import beartype
-from beartype.typing import Callable, List, NewType, Optional, Set, Union
+from beartype.typing import Callable, List, NewType, Optional, Set, Union, Tuple
 from py_scriptutils.files import file_relpath
 from py_textlayout.py_textlayout import TextLayout, TextOptions
 from pydantic import BaseModel, Field
 import itertools
+from dataclasses import replace
 
 import py_codegen.astbuilder_nim as nim
 from py_codegen.gen_tu_cpp import (
@@ -57,6 +58,9 @@ class NimOptions(BaseModel):
         default=False,
         description="Generating wrappers for C++ or C code",
     )
+
+    importx_structs: bool = Field(
+        default=True, description="Generate 'importcpp' or 'import' for structures")
 
     def get_function_pragmas(self, func: GenTuFunction) -> List[nim.PragmaParams]:
         return [nim.PragmaParams(pragma) for pragma in self.common_function_pragmas]
@@ -387,14 +391,39 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
 
 
 @beartype
-def field_to_nim(b: nim.ASTBuilder, f: GenTuField) -> nim.IdentParams:
-    result = nim.IdentParams(Name=nim.sanitize_name(f.name),
-                             Exported=True,
-                             Type=type_to_nim(b, f.type))
-    # if result.Name != f.name:
-    #     result.Pragmas.append(nim.PragmaParams("importc", [b.Lit(f.name)]))
+def field_to_nim(
+    b: nim.ASTBuilder,
+    f: GenTuField,
+    rec: GenTuStruct,
+    conf: NimOptions,
+) -> Tuple[nim.IdentParams, Optional[ConvRes]]:
+    decl: Optional[ConvRes] = None
+    if f.isTypeDecl:
+        DeclType = f.decl.name.model_copy(update=dict(name=f"{rec.name.name}_{f.name}_field"))
+        match f.decl:
+            case GenTuStruct():
+                decl = struct_to_nim(b, replace(f.decl, name=DeclType), conf)
 
-    return result
+            case GenTuEnum():
+                decl = enum_to_nim(b, replace(f.decl, name=DeclType))
+
+        result = nim.IdentParams(
+            Name=nim.sanitize_name(f.name),
+            Exported=True,
+            Type=type_to_nim(b, DeclType),
+        )
+
+    else:
+        result = nim.IdentParams(
+            Name=nim.sanitize_name(f.name),
+            Exported=True,
+            Type=type_to_nim(b, f.type),
+        )
+
+    if result.Name != f.name:
+        result.Pragmas.append(nim.PragmaParams("importc", [b.Lit(f.name)]))
+
+    return (result, decl)
 
 
 @beartype
@@ -406,11 +435,12 @@ def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct, conf: NimOptions) -> Conv
             nim.PragmaParams("header",
                              [b.Lit(conf.get_header_str_for_path(rec.original))]))
 
-    if conf.is_cpp_wrap:
-        pragmas.append(nim.PragmaParams("importcpp"))
+    if conf.importx_structs:
+        if conf.is_cpp_wrap:
+            pragmas.append(nim.PragmaParams("importcpp"))
 
-    else:
-        pragmas.append(nim.PragmaParams("importc"))
+        else:
+            pragmas.append(nim.PragmaParams("importc"))
 
     if rec.IsForwardDecl:
         pragmas.append(nim.PragmaParams("incompleteStruct"))
@@ -418,15 +448,27 @@ def struct_to_nim(b: nim.ASTBuilder, rec: GenTuStruct, conf: NimOptions) -> Conv
     else:
         pragmas.append(nim.PragmaParams("bycopy"))
 
-    return ConvRes(
-        types=[
-            nim.ObjectParams(Name=rec.name.name,
-                             Pragmas=pragmas,
-                             Fields=[field_to_nim(b, f) for f in rec.fields])
-        ],
-        procs=list(
+    FieldDecls: List[nim.IdentParams] = []
+    SubConvs: List[ConvRes] = []
+    for f in rec.fields:
+        Ident, Decls = field_to_nim(b, f, rec=rec, conf=conf)
+        if Decls:
+            SubConvs.append(Decls)
+
+        FieldDecls.append(Ident)
+
+    NestedTypes = list(itertools.chain(*[Sub.types for Sub in SubConvs]))
+    Procs = list(
             itertools.chain(
-                *[function_to_nim(b, meth, conf).procs for meth in rec.methods])),
+                *[function_to_nim(b, meth, conf).procs for meth in rec.methods])) + list(itertools.chain(*[Sub.procs for Sub in SubConvs]))
+
+    return ConvRes(
+        types=[nim.ObjectParams(
+            Name=rec.name.name,
+            Pragmas=pragmas,
+            Fields=FieldDecls,
+        )] + NestedTypes,
+        procs=Procs,
     )
 
 
