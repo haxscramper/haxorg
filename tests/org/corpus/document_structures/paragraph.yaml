@@ -5,7 +5,7 @@ items:
   - name: "Paragraph"
     source: "word insert"
     tokens:
-      - {kind: ParagraphStart}
+      - {kind: ParagraphBegin}
       - {kind: Word, str: word}
       - {kind: Space, str: " "}
       - {kind: Word, str: insert}

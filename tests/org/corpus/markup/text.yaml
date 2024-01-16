@@ -5,10 +5,10 @@ items:
   - name: "Bold text"
     source: "*bold*"
     tokens:
-      - {kind: ParagraphStart}
-      - {kind: BoldOpen, str: "*"}
+      - {kind: ParagraphBegin}
+      - {kind: BoldBegin, str: "*"}
       - {kind: Word, str: "bold"}
-      - {kind: BoldClose, str: "*"}
+      - {kind: BoldEnd, str: "*"}
       - {kind: ParagraphEnd}
     subnodes:
       - {kind: Paragraph, extent: 2}
@@ -26,10 +26,10 @@ items:
 
   - source: "/italic/"
     tokens:
-      - {kind: ParagraphStart}
-      - {kind: ItalicOpen, str: "/"}
+      - {kind: ParagraphBegin}
+      - {kind: ItalicBegin, str: "/"}
       - {kind: Word, str: "italic"}
-      - {kind: ItalicClose, str: "/"}
+      - {kind: ItalicEnd, str: "/"}
       - {kind: ParagraphEnd}
 
   - source: "[[link][description]]"
@@ -70,13 +70,13 @@ items:
     debug:
       doLex: false
 
-  - name: "Multiple starts for tilda"
+  - name: "Multiple Begins for tilda"
     source: "~ssh-copy-id -i ~/.ssh/id_rsa.pub $E:VSC_TV_ACCESS~"
     debug:
       doParse: false
       doLex: false
 
-  - name: "Multiple joined starts for verbatim"
+  - name: "Multiple joined Begins for verbatim"
     source: "==Content="
     debug:
       doParse: false
@@ -106,14 +106,14 @@ items:
       doLex: false
       doParse: false
     tokens:
-      - {kind: ParagraphStart}
+      - {kind: ParagraphBegin}
       - {kind: Word, str: One}
       - {kind: Word, str: /}
       - {kind: Word, str: Another}
-      - {kind: ItalicClose, str: /}
-      - {kind: GroupStart}
-      - {kind: AngleOpen, str: <}
+      - {kind: ItalicEnd, str: /}
+      - {kind: GroupBegin}
+      - {kind: AngleBegin, str: <}
       - {kind: RawText, str: Placeholder}
-      - {kind: AngleClose, str: ">"}
+      - {kind: AngleEnd, str: ">"}
       - {kind: GroupEnd}
       - {kind: ParagraphEnd}

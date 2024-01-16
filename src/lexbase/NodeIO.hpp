@@ -19,16 +19,12 @@ yaml yamlRepr(
     for (const auto& [id, node] : group.nodes.pairs()) {
         yaml item;
         item["kind"] = fmt1(node->kind);
-        if (withId) {
-            item["id"] = id.getUnmasked();
-        }
+        if (withId) { item["id"] = id.getUnmasked(); }
 
         if (node->isTerminal()) {
             TokenId<K, V> tokenId = node->getToken();
             item["tok_idx"]       = tokenId.getIndex();
-            if (withStrings) {
-                item["str"] = group.val(id);
-            }
+            if (withStrings) { item["str"] = group.val(id); }
         } else {
             item["extent"] = node->getExtent();
         }
@@ -77,9 +73,7 @@ struct convert<typename ::Token<K, V>> {
         out.kind = enum_serde<K>::from_string(in["kind"].as<Str>())
                        .value();
 
-        if (in["value"]) {
-            out.value = in["value"].as<V>();
-        }
+        if (in["value"]) { out.value = in["value"].as<V>(); }
 
         return true;
     }
@@ -95,17 +89,11 @@ struct convert<BaseFill> {
         return result;
     }
     static bool decode(Node const& in, BaseFill& out) {
-        if (in["text"]) {
-            out.text = in["text"].as<Str>();
-        }
+        if (in["text"]) { out.text = in["text"].as<Str>(); }
 
-        if (in["line"]) {
-            out.line = in["line"].as<int>();
-        }
+        if (in["line"]) { out.line = in["line"].as<int>(); }
 
-        if (in["col"]) {
-            out.col = in["col"].as<int>();
-        }
+        if (in["col"]) { out.col = in["col"].as<int>(); }
 
         return true;
     }
@@ -130,6 +118,28 @@ struct convert<OrgFill> {
     }
 };
 
+template <DescribedEnum E>
+struct convert<E> {
+    static Node encode(E const& str) {
+        return enum_serde<E>::to_string(str);
+    }
+    static bool decode(Node const& in, E& out) {
+        auto   str  = in.as<std::string>();
+        Opt<E> conv = enum_serde<E>::from_string(str);
+        if (conv) {
+            out = conv.value();
+        } else {
+            throw YAML::RepresentationException(
+                in.Mark(),
+                fmt("Could not parse {} to {}",
+                    str,
+                    demangle(typeid(E).name())));
+        }
+
+        return true;
+    }
+};
+
 template <>
 struct convert<OrgToken> {
     static Node encode(OrgToken const& str) {
@@ -139,12 +149,8 @@ struct convert<OrgToken> {
         return result;
     }
     static bool decode(Node const& in, OrgToken& out) {
-        if (in["str"]) {
-            out->base = BaseFill{.text = in["str"].as<Str>()};
-        }
-        out.kind = enum_serde<OrgTokenKind>::from_string(
-                       in["kind"].as<std::string>())
-                       .value();
+        if (in["str"]) { out->base = BaseFill{in["str"].as<Str>()}; }
+        if (in["kind"]) { out.kind = in["kind"].as<OrgTokenKind>(); }
         return true;
     }
 };
@@ -158,13 +164,8 @@ struct convert<BaseToken> {
         return result;
     }
     static bool decode(Node const& in, BaseToken& out) {
-        if (in["str"]) {
-            out.value.text = in["str"].as<Str>();
-        }
-
-        out.kind = enum_serde<BaseTokenKind>::from_string(
-                       in["kind"].as<std::string>())
-                       .value();
+        if (in["str"]) { out.value.text = in["str"].as<Str>(); }
+        if (in["kind"]) { out.kind = in["kind"].as<BaseTokenKind>(); }
         return true;
     }
 };
@@ -178,9 +179,7 @@ yaml yamlRepr(
     Token<K, V> const&   token,
     bool                 withIdx = false) {
     yaml item = YAML::convert<Token<K, V>>::encode(token);
-    if (withIdx) {
-        item["idx"] = id.getIndex();
-    }
+    if (withIdx) { item["idx"] = id.getIndex(); }
 
     item.SetStyle(YAML::EmitterStyle::Flow);
     return item;
@@ -200,13 +199,9 @@ json jsonRepr(CR<TokenGroup<K, V>> group, bool withIdx = false) {
     json out = json::array();
     for (const auto& [id, token] : group.tokens.pairs()) {
         json item;
-        if (withIdx) {
-            item["idx"] = id.getIndex();
-        }
+        if (withIdx) { item["idx"] = id.getIndex(); }
         item["kind"] = to_string(token->kind);
-        if (token->hasData()) {
-            item["str"] = token->strVal().toBase();
-        }
+        if (token->hasData()) { item["str"] = token->strVal().toBase(); }
         out.push_back(item);
     }
     return out;
