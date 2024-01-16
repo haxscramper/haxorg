@@ -360,7 +360,7 @@ def enum_to_nim(b: nim.ASTBuilder, enum: GenTuEnum) -> ConvRes:
                     Kind=nim.FunctionKind.FUNC,
                     Name=op,
                     Arguments=arguments,
-                    ReturnTy=nim.Type("cint"),
+                    ReturnTy=nim.Type(c_name),
                     Implementation=b.string(f"cast[{c_name}](ord(arg) {op} offset)"),
                     OneLineImpl=True,
                 ))
@@ -574,7 +574,7 @@ def to_nim(
         for proc in conv.procs:
             procs.append(builder.Function(proc))
 
-        for _type in conv.types:
+        for _type in sorted(conv.types, key=lambda it: it.Name):
             if isinstance(_type, nim.EnumParams):
                 types.append(builder.Enum(_type))
 

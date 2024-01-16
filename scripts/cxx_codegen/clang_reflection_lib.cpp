@@ -798,7 +798,7 @@ void ReflASTVisitor::fillCxxRecordDecl(
                                  FieldDecl->isImplicit() ? "implicit"
                                                          : "not implicit")
                                        : "no field"),
-                            SubRecord->isAnonymousStructOrUnion());
+                            SubRecord->getNameAsString().empty());
                     }
                 }
             }
@@ -937,7 +937,7 @@ bool ReflASTVisitor::VisitRecordDecl(clang::RecordDecl* Decl) {
     clang::FieldDecl*   FieldDecl = findFieldForDecl(Decl, Ctx);
     if (Decl->getNameAsString().empty() && Typedef == nullptr) {
         return true;
-    } else if (Decl->isAnonymousStructOrUnion() && FieldDecl != nullptr) {
+    } else if (Decl->getNameAsString().empty() && FieldDecl != nullptr) {
         return true;
     } else if (shouldVisit(Decl)) {
         if (!llvm::isa<clang::CXXRecordDecl>(Decl)) {
