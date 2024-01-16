@@ -712,6 +712,7 @@ struct RecombineState {
                     case obt::CmdSrcBegin:
                         state_push(State::CmdContent);
                         add_fake(otk::CmdContentBegin);
+                        if (lex.at(line_end)) { lex.next(); }
                         break;
                     default:
                 }
@@ -736,7 +737,7 @@ struct RecombineState {
                 break;
             }
 
-            case obt::SrcContentEnd: {
+            case obt::CmdSrcEnd: {
                 state_pop(State::CmdContent);
                 add_fake(otk::CmdContentEnd);
                 add_fake(otk::CmdPrefix);
@@ -917,6 +918,42 @@ struct LineToken {
     int             indent = 0;
     Kind            kind   = Kind::None;
 
+    IntSet<BaseTokenKind> BlockClose{obt::CmdSrcEnd};
+
+    void setLineCommandKind(CR<Span<BaseToken>> tokens, int tokensOffset) {
+        CR<BaseToken> current = tokens.at(tokensOffset);
+        if (current.kind == obt::LineCommand) {
+            CR<BaseToken> next = tokens.at(tokensOffset + 1);
+            switch (next.kind) {
+                case obt::CmdTitle:
+                case obt::CmdCaption:
+                case obt::CmdColumns:
+                case obt::CmdPropertyArgs:
+                case obt::CmdPropertyRaw:
+                case obt::CmdPropertyText:
+                case obt::CmdOptions:
+                case obt::CmdFiletags: kind = Kind::Line; break;
+                case obt::CmdCenterBegin:
+                case obt::CmdExportBegin:
+                case obt::CmdExampleBegin:
+                case obt::CmdSrcBegin: kind = Kind::BlockOpen; break;
+                default: {
+                    LOG(FATAL)
+                        << fmt("Unknown line command kind mapping {}, {}",
+                               next.kind,
+                               tokens);
+                    break;
+                }
+            }
+        } else if (BlockClose.contains(current.kind)) {
+            kind = Kind::BlockOpen;
+        } else {
+            LOG(FATAL) << fmt(
+                "Expected line command or closing block, but got {}",
+                current.kind);
+        }
+    }
+
     void setLeadingSpaceKind(CR<Span<BaseToken>> tokens) {
         if (auto next = tokens.get(1); next) {
             switch (next->get().kind) {
@@ -929,10 +966,16 @@ struct LineToken {
                     kind = Kind::Property;
                     break;
 
-                default:
-                    LOG(INFO) << fmt1(tokens);
-                    kind = Kind::IndentedLine;
+                case obt::LineCommand:
+                    setLineCommandKind(tokens, 1);
                     break;
+
+                default: {
+                    kind = BlockClose.contains(next->get().kind)
+                             ? Kind::BlockClose
+                             : Kind::IndentedLine;
+                    break;
+                }
             }
         } else {
             kind = Kind::IndentedLine;
@@ -949,37 +992,12 @@ struct LineToken {
             }
 
             case obt::LeadingMinus:
-            case obt::LeadingPlus: {
-                kind = Kind::ListItem;
-                break;
-            }
-
-            case obt::LineCommand: {
-                CR<BaseToken> next = tokens.at(1);
-                switch (next.kind) {
-                    case obt::CmdTitle:
-                    case obt::CmdCaption:
-                    case obt::CmdColumns:
-                    case obt::CmdPropertyArgs:
-                    case obt::CmdPropertyRaw:
-                    case obt::CmdPropertyText:
-                    case obt::CmdOptions:
-                    case obt::CmdFiletags: kind = Kind::Line; break;
-                    case obt::CmdSrcBegin: kind = Kind::BlockOpen; break;
-                    default: {
-                        LOG(FATAL) << fmt(
-                            "Unknown line command kind mapping {}, {}",
-                            next.kind,
-                            tokens);
-                        break;
-                    }
-                }
-
-                break;
-            }
+            case obt::LeadingPlus: kind = Kind::ListItem; break;
+            case obt::LineCommand: setLineCommandKind(tokens, 0);
 
             default: {
-                kind = Kind::Line;
+                kind = BlockClose.contains(first.kind) ? Kind::BlockClose
+                                                       : Kind::Line;
                 break;
             }
         }
@@ -1061,6 +1079,7 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
 
             case LK::BlockOpen: {
                 while (it != end && it->kind != LK::BlockClose) { ++it; }
+                if (it != end) { ++it; }
                 groups.push_back({make_span(start, it), GK::Block});
                 break;
             }
@@ -1099,7 +1118,10 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
         auto idx = regroup.add(BaseToken{kind});
         print(
             lex,
-            fmt("[{}] fake {}", idx.getIndex(), kind),
+            fmt("[{:<3}] fake  {:<48} indents {}",
+                idx.getIndex(),
+                fmt1(kind),
+                indentStack),
             line,
             function);
     };
@@ -1110,7 +1132,10 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
         auto idx = regroup.add(tok);
         print(
             lex,
-            fmt("[{}] token {}", idx.getIndex(), tok),
+            fmt("[{:<3}] token {:<48} indents {}",
+                idx.getIndex(),
+                fmt1(tok),
+                indentStack),
             line,
             function);
     };
@@ -1119,7 +1144,11 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
         std::stringstream ss;
         for (int gr_index = 0; gr_index < groups.size(); ++gr_index) {
             auto const& gr = groups.at(gr_index);
-            ss << fmt("[{}] group {}\n", gr_index, gr.kind);
+            ss << fmt(
+                "[{}] group {} indent {}\n",
+                gr_index,
+                gr.kind,
+                gr.indent());
             for (int line_index = 0; line_index < gr.lines.size();
                  ++line_index) {
                 auto const& line = gr.lines.at(line_index);
@@ -1164,12 +1193,27 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
             }
 
         } else if (!indentStack.empty()) {
-            for (auto const& _ : indentStack) {
+            /* List item content can be indented like this, but
+             * it will still be added to the current list content.
+             * `indentStack.back() < gr.indent()` is not checked
+             *
+             * ```
+             * - List Item
+             *
+             *   #+begin_src
+             *
+             *   #+end_src
+             * ```
+             */
+
+            while (!indentStack.empty()
+                   && gr.indent() <= indentStack.back()) {
                 add_fake(obt::StmtListClose);
                 add_fake(obt::ListItemEnd);
                 indentStack.pop_back();
             }
-            add_fake(obt::ListEnd);
+
+            if (indentStack.empty()) { add_fake(obt::ListEnd); }
         }
 
         for (CR<LineToken> line : gr.lines) {

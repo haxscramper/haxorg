@@ -155,6 +155,13 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{org::StmtList, anySubnodePattern},
         SpecPair{org::Paragraph, anySubnodePattern},
         SpecPair{org::InlineStmtList, anySubnodePattern},
+        SpecPair{
+            org::List,
+            OrgPattern({
+                Field(
+                    Range(slice(0, 1_B), N::Body),
+                    OrgPattern({org::ListItem, org::LogbookClock})),
+            })},
         // Subtree logbook components
         SpecPair{
             org::Logbook,

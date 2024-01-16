@@ -35,8 +35,8 @@ items:
       - {kind: StmtListBegin}
       - {kind: ParagraphBegin}
       - {kind: Word, str: Item1}
-      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
+      - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
 
@@ -49,8 +49,8 @@ items:
       - {kind: StmtListBegin}
       - {kind: ParagraphBegin}
       - {kind: Word, str: Item2}
-      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
+      - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
 
@@ -66,13 +66,11 @@ items:
                 - kind: Paragraph
                   subnodes:
                     - {kind: Word, text: Item1}
-                    - {kind: Newline, text: "\n"}
             - kind: ListItem
               subnodes:
                 - kind: Paragraph
                   subnodes:
                     - {kind: Word, text: Item2}
-                    - {kind: Newline, text: "\n"}
 
 
   - name: "List with two adjacent items, first one is multiline"
@@ -92,11 +90,13 @@ items:
 
       # First content block in the input
       - {kind: Word, str: "Item1"}
+      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
+      - {kind: ParagraphBegin}
       - {kind: Word, str: "Line1"}
+      - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
 
-      - {kind: ParagraphEnd}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: SameIndent}
@@ -106,9 +106,9 @@ items:
       - {kind: ParagraphBegin}
       # Second item
       - {kind: Word, str: "Item2"}
-      - {kind: Newline, str: "\n"}
-
       - {kind: ParagraphEnd}
+
+      - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: ListEnd}
@@ -125,13 +125,13 @@ items:
                     - {kind: Word, text: Item1}
                     - {kind: Newline, text: "\n"}
                     - {kind: Word, text: Line1}
-                    - {kind: Newline, text: "\n"}
+                - {kind: Newline, text: "\n"}
             - kind: ListItem
               subnodes:
                 - kind: Paragraph
                   subnodes:
                     - {kind: Word, text: Item2}
-                    - {kind: Newline, text: "\n"}
+                - {kind: Newline, text: "\n"}
 
 
   - name: "Nested list with two items"
@@ -179,8 +179,8 @@ items:
       - {kind: StmtListBegin}
       - {kind: ParagraphBegin}
       - {kind: Word, str: Item1}
-      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
+      - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
 
       - {kind: ListItemEnd}
@@ -196,8 +196,8 @@ items:
       - {kind: StmtListBegin}
       - {kind: ParagraphBegin}
       - {kind: Word, str: Nested1}
-      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
+      - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
 
       - {kind: ListItemEnd}
@@ -210,8 +210,8 @@ items:
       - {kind: StmtListBegin}
       - {kind: ParagraphBegin}
       - {kind: Word, str: Nested2}
-      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
+      - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
 
@@ -222,8 +222,8 @@ items:
       - {kind: StmtListBegin}
       - {kind: ParagraphBegin}
       - {kind: Word, str: Item2}
-      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
+      - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       # End of the whole list
@@ -239,7 +239,7 @@ items:
                 - kind: Paragraph
                   subnodes:
                     - {kind: Word, text: Item1}
-                    - {kind: Newline, text: "\n"}
+                - {kind: Newline, text: "\n"}
             - kind: List
               subnodes:
                 - kind: ListItem
@@ -247,19 +247,19 @@ items:
                     - kind: Paragraph
                       subnodes:
                         - {kind: Word, text: Nested1}
-                        - {kind: Newline, text: "\n"}
+                    - {kind: Newline, text: "\n"}
                 - kind: ListItem
                   subnodes:
                     - kind: Paragraph
                       subnodes:
                         - {kind: Word, text: Nested2}
-                        - {kind: Newline, text: "\n"}
+                    - {kind: Newline, text: "\n"}
             - kind: ListItem
               subnodes:
                 - kind: Paragraph
                   subnodes:
                     - {kind: Word, text: Item2}
-                    - {kind: Newline, text: "\n"}
+                - {kind: Newline, text: "\n"}
 
 
   - name: "List with space in the nested content"
@@ -337,14 +337,14 @@ items:
       # First paragraph of text in the list
       - {kind: ParagraphBegin}
       - {kind: Word, str: Item1}
-      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
+      - {kind: Newline, str: "\n"}
 
       # Source code block in the resulting text
       - {kind: CmdPrefix, str: "#+"}
-      - {kind: CmdBegin, str: "begin_src"}
+      - {kind: CmdSrcBegin, str: "begin_src"}
       - {kind: CmdArgumentsBegin}
-      - {kind: Word, str: "nim"}
+      - {kind: CmdValue, str: "nim"}
       - {kind: CmdArgumentsEnd}
 
       - {kind: CmdContentBegin}
@@ -354,10 +354,10 @@ items:
       - {kind: CodeText, str: "  two_lines"}
       - {kind: Newline, str: "\n"}
 
-      - {kind: CmdContentEnd, str: "  #+end_src"}
+      - {kind: CmdContentEnd}
 
       - {kind: CmdPrefix}
-      - {kind: CmdEnd}
+      - {kind: CmdSrcEnd, str: "  #+end_src"}
       - {kind: Newline, str: "\n"}
 
       - {kind: StmtListEnd}

@@ -122,7 +122,7 @@ rules:
     actions: [{ do: "push", to: COMMAND_SRC, from: COMMAND }]
   - re: "^{space}*#\\+end_src{space}*$"
     states: [BODY_SRC]
-    token: SrcContentEnd
+    token: CmdSrcEnd
     actions:
       - { do: pop, from: BODY_SRC, to: INITIAL }
 

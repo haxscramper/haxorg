@@ -54,6 +54,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::CmdQuoteEnd: return "CmdQuoteEnd";
         case BaseTokenKind::CmdRawArg: return "CmdRawArg";
         case BaseTokenKind::CmdSrcBegin: return "CmdSrcBegin";
+        case BaseTokenKind::CmdSrcEnd: return "CmdSrcEnd";
         case BaseTokenKind::CmdTblfm: return "CmdTblfm";
         case BaseTokenKind::CmdTitle: return "CmdTitle";
         case BaseTokenKind::Colon: return "Colon";
@@ -105,7 +106,6 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::Semicolon: return "Semicolon";
         case BaseTokenKind::SingleQuote: return "SingleQuote";
         case BaseTokenKind::SrcContent: return "SrcContent";
-        case BaseTokenKind::SrcContentEnd: return "SrcContentEnd";
         case BaseTokenKind::SrcTangleClose: return "SrcTangleClose";
         case BaseTokenKind::SrcTangleOpen: return "SrcTangleOpen";
         case BaseTokenKind::StmtListClose: return "StmtListClose";
@@ -164,6 +164,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "CmdQuoteEnd") { return BaseTokenKind::CmdQuoteEnd; } else
   if (value == "CmdRawArg") { return BaseTokenKind::CmdRawArg; } else
   if (value == "CmdSrcBegin") { return BaseTokenKind::CmdSrcBegin; } else
+  if (value == "CmdSrcEnd") { return BaseTokenKind::CmdSrcEnd; } else
   if (value == "CmdTblfm") { return BaseTokenKind::CmdTblfm; } else
   if (value == "CmdTitle") { return BaseTokenKind::CmdTitle; } else
   if (value == "Colon") { return BaseTokenKind::Colon; } else
@@ -215,7 +216,6 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "Semicolon") { return BaseTokenKind::Semicolon; } else
   if (value == "SingleQuote") { return BaseTokenKind::SingleQuote; } else
   if (value == "SrcContent") { return BaseTokenKind::SrcContent; } else
-  if (value == "SrcContentEnd") { return BaseTokenKind::SrcContentEnd; } else
   if (value == "SrcTangleClose") { return BaseTokenKind::SrcTangleClose; } else
   if (value == "SrcTangleOpen") { return BaseTokenKind::SrcTangleOpen; } else
   if (value == "StmtListClose") { return BaseTokenKind::StmtListClose; } else

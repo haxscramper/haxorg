@@ -790,12 +790,37 @@ OrgId OrgParser::parseTable(OrgLexer& lex) {
 
 
 OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
+    // WHAT: Collect paragraph text content in the sub-lexer and then fold
+    // markup elements into structured tree based on the delimiters.
+    //
+    // WHY: Text parsing has too many possible irregularities to
+    // conveniently integrate it into the single parser pass, with things
+    // having ambiguous parsing logic etc, ATTW I think the sub-lexer
+    // solution has lesser cognitive load wrt. to implementation
     __perf_trace("parseParagraph");
     auto __trace = trace(lex);
     expect(lex, otk::ParagraphBegin);
-    const auto& paragraphTokens = lex.getInside(
-        IntSet<OrgTokenKind>{otk::ParagraphBegin},
-        IntSet<OrgTokenKind>{otk::ParagraphEnd});
+    Vec<OrgTokenId> paragraphTokens;
+
+    // WHY: lexer and tokenizer generate paragraph begin/end delimiters
+    // aggresively, to delinitate any possible boundaries between document
+    // elements. In case of multiple adjacent lines in a regular paragraph
+    // this results in content like `[Begin ... End]\n[Begin ... End]\n`
+    // for each line.
+    while (lex.at(otk::ParagraphBegin)) {
+        // begin and end elements are discarded from paragraph content in
+        // any case
+        lex.next();
+        while (!lex.at(otk::ParagraphEnd)) {
+            paragraphTokens.push_back(lex.pop());
+        }
+
+        lex.pop();
+        if (lex.at(otk::Newline) && lex.at(otk::ParagraphBegin, +1)) {
+            paragraphTokens.push_back(lex.pop());
+        }
+    }
+
 
     if (paragraphTokens.empty()) {
         start(org::Paragraph);
@@ -816,16 +841,22 @@ OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
         {otk::StrikeInline, true},
     });
 
-    for (const auto& tok : sub.tokens) {
-        auto kind = sub.tok(tok).kind;
-        if (lastClosing.contains(kind)) {
-            if (lastClosing.at(kind)) {
-                switch (kind) {
 #define MarkupBegin(Kind)                                                 \
     case otk::Kind##Inline:                                               \
         sub.tok(tok).kind = otk::Kind##InlineBegin;                       \
         break;
 
+#define MarkupEnd(Kind)                                                   \
+    case otk::Kind##Inline:                                               \
+        sub.tok(tok).kind = otk::Kind##InlineEnd;                         \
+        break;
+
+
+    for (const auto& tok : sub.tokens) {
+        auto kind = sub.tok(tok).kind;
+        if (lastClosing.contains(kind)) {
+            if (lastClosing.at(kind)) {
+                switch (kind) {
                     MarkupBegin(Bold);
                     MarkupBegin(Italic);
                     MarkupBegin(Verbatim);
@@ -833,18 +864,10 @@ OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
                     MarkupBegin(Backtick);
                     MarkupBegin(Underline);
                     MarkupBegin(Strike);
-
-#undef MarkupBegin
-                    default: {
-                    }
+                    default:
                 }
             } else {
                 switch (kind) {
-#define MarkupEnd(Kind)                                                   \
-    case otk::Kind##Inline:                                               \
-        sub.tok(tok).kind = otk::Kind##InlineEnd;                         \
-        break;
-
                     MarkupEnd(Bold);
                     MarkupEnd(Italic);
                     MarkupEnd(Verbatim);
@@ -852,15 +875,14 @@ OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
                     MarkupEnd(Backtick);
                     MarkupEnd(Underline);
                     MarkupEnd(Strike);
-
-#undef MarkupEnd
-                    default: {
-                    }
+                    default:
                 }
             }
         }
     }
 
+#undef MarkupBegin
+#undef MarkupEnd
 
     start(org::Paragraph);
     auto nodes = parseText(sub);
@@ -1720,7 +1742,6 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
         }
 
         case otk::CmdCreator:
-        case otk::CmdColumns:
         case otk::CmdAuthor:
         case otk::CmdLatexHeader:
         case otk::CmdLanguage: {
@@ -1837,15 +1858,20 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-        case otk::CmdTblfm: {
+        case otk::CmdTblfm:
+        case otk::CmdColumns: {
             skip(lex, otk::CmdPrefix);
             skip(lex);
+            switch (cmd_kind) {
+                case otk::CmdTblfm: start(org::CommandTblfm); break;
+                case otk::CmdColumns: start(org::Columns); break;
+                default: LOG(FATAL);
+            }
             start(org::CommandTblfm);
-            skip(lex, otk::CmdArgumentsBegin);
             token(org::RawText, pop(lex, otk::RawText));
-            skip(lex, otk::CmdArgumentsEnd);
             break;
         }
+
 
         default: {
             LOG(FATAL) << fmt(
