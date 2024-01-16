@@ -58,14 +58,12 @@ items:
     tokens:
       - {kind: SubtreeStars, str: "**"}
       - {kind: Space, str: " "}
-      - {kind: SubtreeTodoState, str: "CLI"}
-      - {kind: Space, str: " "}
       - {kind: ParagraphBegin}
+      - {kind: Word, str: "CLI"}
+      - {kind: Space, str: " "}
       - {kind: Word, str: "Tools"}
       - {kind: ParagraphEnd}
-      - {kind: Newline, str: "\n"}
-      - {kind: SubtreeEnd}
-      - {kind: Newline, str: "\n"}
+      - {kind: Newline, str: "\n\n"}
       - {kind: ParagraphBegin}
       - {kind: Word, str: Nested}
       - {kind: Space, str: " "}
@@ -84,8 +82,8 @@ items:
       - {kind: Word, str: Paragraph}
       - {kind: Space, str: " "}
       - {kind: Word, str: text}
-      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
+      - {kind: Newline, str: "\n"}
       - {kind: SubtreeStars, str: "*"}
       - {kind: Space, str: " "}
       - {kind: ParagraphBegin}
@@ -94,7 +92,6 @@ items:
       - {kind: Word, str: headline}
       - {kind: ParagraphEnd}
       - {kind: Newline, str: "\n"}
-      - {kind: SubtreeEnd}
 
 
 

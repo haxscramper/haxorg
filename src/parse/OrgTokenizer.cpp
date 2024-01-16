@@ -541,10 +541,11 @@ struct RecombineState {
     }
 
     void map_interpreted_token() {
-        auto             __trace = trace(std::format("state: {}", state));
-        BaseTokenId      start   = lex.pos;
-        BaseToken const& tok     = lex.tok();
-        BaseFill const&  val     = tok.value;
+        auto __trace = trace(
+            std::format("state: {}", state), __LINE__, "[map]");
+        BaseTokenId        start = lex.pos;
+        BaseToken const&   tok   = lex.tok();
+        BaseFill const&    val   = tok.value;
         std::string const& str   = tok.value.text;
 
         switch (lex.kind()) {
