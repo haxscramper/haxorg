@@ -382,3 +382,4 @@ docs/html
 corpus_schema.yaml
 vgcore.*
 .fleet
+test_detail.json

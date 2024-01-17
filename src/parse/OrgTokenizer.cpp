@@ -443,6 +443,8 @@ struct RecombineState {
             case obt::CmdQuoteEnd: pop_as(otk::CmdQuoteEnd); break;
             case obt::CmdExampleBegin: pop_as(otk::CmdExampleBegin); break;
             case obt::CmdExampleEnd: pop_as(otk::CmdExampleEnd); break;
+            case obt::CmdExportBegin: pop_as(otk::CmdExportBegin); break;
+            case obt::CmdExportEnd: pop_as(otk::CmdExportEnd); break;
             case obt::CmdPropertyArgs: {
                 auto split = next->text.split(' ');
                 add_fake(
@@ -466,6 +468,7 @@ struct RecombineState {
 
         switch (next.kind) {
             case obt::CmdExampleBegin:
+            case obt::CmdExportBegin:
             case obt::CmdSrcBegin: {
                 add_fake(otk::CmdArgumentsBegin);
                 map_command_args();
@@ -662,6 +665,7 @@ struct RecombineState {
             case obt::StmtListOpen: pop_as(otk::StmtListBegin); break;
             case obt::ListItemEnd: pop_as(otk::ListItemEnd); break;
             case obt::SrcContent: pop_as(otk::CodeText); break;
+            case obt::CmdExampleLine: pop_as(otk::RawText); break;
             case obt::Ampersand: par_as(otk::Punctuation); break;
             case obt::AnyPunct: par_as(otk::Punctuation); break;
             case obt::TreePropertyProperties:
@@ -722,6 +726,12 @@ struct RecombineState {
                 pop_as(otk::CmdSrcBegin);
                 add_fake(otk::CmdArgumentsBegin);
                 state_push(State::CmdArguments);
+                break;
+            }
+
+            case obt::CmdExampleEnd: {
+                add_fake(otk::CmdPrefix);
+                pop_as(otk::CmdSrcEnd);
                 break;
             }
 

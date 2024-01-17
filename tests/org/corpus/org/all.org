@@ -37,6 +37,10 @@ Par [fn:target]
 
 [fn:target] definition
 
+#+begin_src xml
+ xxx
+#+end_src
+
 #+caption: Caption
 #+begin_quote
 content
