@@ -597,28 +597,36 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
 
         FormattedDiff text{nodeDiff};
         ColStream     os;
-        format(os, text, [&](int id, bool isLhs) -> ColText {
-            auto node = isLhs ? parsed.nodes.content.at(id)
-                              : expected.nodes.content.at(id);
+        format(
+            os,
+            text,
+            [&](int id, bool isLhs) -> ColText {
+                auto node = isLhs ? parsed.nodes.content.at(id)
+                                  : expected.nodes.content.at(id);
 
-            auto group = isLhs ? &parsed : &expected;
+                auto group = isLhs ? &parsed : &expected;
 
-            return "$# $# $#($# $#)"
-                 % to_string_vec(
-                       id,
-                       node.kind,
-                       node.isTerminal() ? escape_literal(
-                           hshow(
-                               group->val(OrgId(id)),
-                               HDisplayOpts().excl(
-                                   HDisplayFlag::UseQuotes))
-                               .toString(false))
-                                         : std::string(""),
-                       node.kind,
-                       node.isTerminal()
-                           ? "tok=" + fmt1(node.getToken().getIndex())
-                           : "ext=" + fmt1(node.getExtent()));
-        });
+                return "$# $# $#($# $#)"
+                     % to_string_vec(
+                           id,
+                           node.kind,
+                           node.isTerminal() ? escape_literal(
+                               hshow(
+                                   group->val(OrgId(id)),
+                                   HDisplayOpts().excl(
+                                       HDisplayFlag::UseQuotes))
+                                   .toString(false))
+                                             : std::string(""),
+                           node.kind,
+                           node.isTerminal()
+                               ? "tok=" + fmt1(node.getToken().getIndex())
+                               : "ext=" + fmt1(node.getExtent()));
+            },
+            48,
+            16,
+            false,
+            false,
+            false);
 
         return {{.isOk = false, .failDescribe = os.getBuffer()}};
     }

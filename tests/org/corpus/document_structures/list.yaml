@@ -559,16 +559,16 @@ items:
       - {kind: StmtListBegin, str: ""}
       - {kind: Newline, str: "\n"}
       - {kind: CmdPrefix, str: "#+"}
-      - {kind: CmdBegin, str: begin_src}
+      - {kind: CmdSrcBegin, str: begin_src}
       - {kind: CmdArgumentsBegin, str: ""}
-      - {kind: Word, str: xml}
+      - {kind: CmdValue, str: xml}
       - {kind: CmdArgumentsEnd, str: ""}
       - {kind: CmdContentBegin, str: ""}
       - {kind: CodeText, str: "  <Thing>"}
       - {kind: Newline, str: "\n"}
-      - {kind: CmdContentEnd, str: "  #+end_src"}
+      - {kind: CmdContentEnd}
       - {kind: CmdPrefix, str: ""}
-      - {kind: CmdEnd, str: ""}
+      - {kind: CmdSrcEnd, str: "  #+end_src"}
       - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd, str: ""}
       - {kind: ListItemEnd, str: ""}

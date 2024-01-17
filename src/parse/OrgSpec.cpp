@@ -16,13 +16,21 @@ Field idxField(int idx, N name, OrgPattern const& pattern) {
     return Field(Range(idx, name), pattern);
 }
 
-Field field1(int idx, N name, OrgNodeKind const& pattern) {
-    return Field(Range(idx, name), OrgPattern(pattern));
+
+template <typename Idx>
+Field field1(Idx idx, N name, OrgNodeKind const& pattern, Str doc = "") {
+    return Field(Range(idx, name).doc(doc), OrgPattern(pattern));
 }
 
-Field fieldN(int idx, N name, OrgSet const& pattern) {
-    return Field(Range(idx, name), OrgPattern(pattern));
+template <typename Idx>
+Field fieldN(
+    Idx           idx,
+    N             name,
+    OrgSet const& pattern = OrgSet{},
+    Str           doc     = "") {
+    return Field(Range(idx, name).doc(doc), OrgPattern(pattern));
 }
+
 
 std::unique_ptr<OrgSpec> getOrgSpec() {
     const IntSet<OrgNodeKind> anyTime{
@@ -136,20 +144,15 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             })},
         SpecPair{
             org::SubtreeDescription,
-            OrgPattern(
-                {Field(Range(0, N::Text), OrgPattern(org::Paragraph))})},
+            OrgPattern({field1(0, N::Text, org::Paragraph)})},
         SpecPair{
             org::AnnotatedParagraph,
             OrgPattern({
-                Field(
-                    Range(0, N::Prefix),
-                    OrgPattern(
-                        {org::ListTag,
-                         org::Footnote,
-                         org::AdmonitionTag})),
-                Field(
-                    Range(1, N::Body),
-                    OrgPattern({org::Paragraph, org::Empty})),
+                fieldN(
+                    0,
+                    N::Prefix,
+                    {org::ListTag, org::Footnote, org::AdmonitionTag}),
+                fieldN(1, N::Body, {org::Paragraph, org::Empty}),
             })},
 
         SpecPair{org::StmtList, anySubnodePattern},
@@ -158,61 +161,63 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::List,
             OrgPattern({
-                Field(
-                    Range(slice(0, 1_B), N::Body),
-                    OrgPattern({org::ListItem, org::LogbookClock})),
+                fieldN(
+                    slice(0, 1_B),
+                    N::Body,
+                    {org::ListItem, org::LogbookClock}),
             })},
         // Subtree logbook components
         SpecPair{
             org::Logbook,
             OrgPattern({
-                Field(
-                    Range(slice(0, 1_B), N::Logs),
-                    OrgPattern({org::LogbookEntry, org::LogbookClock})),
+                fieldN(
+                    slice(0, 1_B),
+                    N::Logs,
+                    {org::LogbookEntry, org::LogbookClock}),
             })},
         // Time clocking
         SpecPair{
             org::LogbookClock,
             OrgPattern({
-                Field(
-                    Range(0, N::Time),
-                    OrgPattern(
-                        anyTime + IntSet<OrgNodeKind>{org::TimeRange})),
+                fieldN(
+                    0,
+                    N::Time,
+                    anyTime + IntSet<OrgNodeKind>{org::TimeRange}),
             })},
         // Additional annotation logs
-        SpecPair{
-            // Main wrapper for all entires
-            org::LogbookEntry,
-            OrgPattern({
-                Field(
-                    Range(0, N::Header).doc("Main logbook entry header"),
-                    OrgPattern({
-                        org::LogbookTagChange,
-                        org::LogbookNote,
-                        org::LogbookStateChange,
-                        org::LogbookRefile,
-                    })),
-                Field(
-                    Range(1, N::Description)
-                        .doc("Additional annotation or the description of "
-                             "the transition"),
-                    OrgPattern({
-                        org::StmtList,
-                        org::Empty,
-                    })),
-            })},
+        SpecPair{// Main wrapper for all entires
+                 org::LogbookEntry,
+                 OrgPattern({
+                     fieldN(
+                         0,
+                         N::Header,
+                         {
+                             org::LogbookTagChange,
+                             org::LogbookNote,
+                             org::LogbookStateChange,
+                             org::LogbookRefile,
+                         },
+                         "Main logbook entry header"),
+                     fieldN(
+                         1,
+                         N::Description,
+                         {
+                             org::StmtList,
+                             org::Empty,
+                         },
+                         "Additional annotation or the description of "
+                         "the transition"),
+                 })},
         SpecPair{
             org::LogbookTagChange,
             OrgPattern({
-                Field(
-                    Range(0, N::Tag).doc("Target tag"),
-                    OrgPattern(org::HashTag)),
-                Field(
-                    Range(1, N::State).doc("Tag change action name"),
-                    OrgPattern(org::Word)),
-                Field(
-                    Range(2, N::Time).doc("Time transition took place"),
-                    OrgPattern(org::StaticInactiveTime)),
+                field1(0, N::Tag, org::HashTag, "Target tag"),
+                field1(1, N::State, org::Word, "Tag change action name"),
+                field1(
+                    2,
+                    N::Time,
+                    org::StaticInactiveTime,
+                    "Time transition took place"),
             })},
         SpecPair{
             org::LogbookStateChange,
@@ -518,6 +523,13 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 {Field(Range(0, N::Protocol)),
                  Field(Range(1, N::Link)),
                  Field(Range(2, N::Desc))})}
+
+        ,
+        SpecPair{org::Bold, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
+        SpecPair{
+            org::Italic, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
+        SpecPair{
+            org::Underline, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
 
         //
     });

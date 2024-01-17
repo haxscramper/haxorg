@@ -97,15 +97,7 @@ items:
 
   - name: "Lorem ipsum subtree"
     debug:
-      traceLexBase: true
-      lexToFile: true
-      traceParse: true
-      parseToFile: true
-      semToFile: true
-      printLexedToFile: true
-      printParsedToFile: true
-      printBaseLexedToFile: true
-      printSemToFile: true
+      traceAll: true
       
     file: org/lorem_ipsum_subtree.org
 

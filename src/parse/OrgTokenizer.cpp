@@ -121,8 +121,16 @@ struct std::formatter<rs::subrange<T>> : std::formatter<std::string> {
     }
 };
 
+const IntSet<BaseTokenKind> line_end{
+    obt::Newline,
+    obt::MediumNewline,
+    obt::LongNewline,
+    obt::EndOfFile,
+};
+
 
 namespace {
+
 
 struct RecombineState {
     OrgTokenizer* d;
@@ -376,13 +384,6 @@ struct RecombineState {
         obt::Colon,
         obt::Word,
         obt::DoubleHash,
-    };
-
-    const IntSet<BaseTokenKind> line_end{
-        obt::Newline,
-        obt::MediumNewline,
-        obt::LongNewline,
-        obt::EndOfFile,
     };
 
 
@@ -918,35 +919,57 @@ struct LineToken {
     int             indent = 0;
     Kind            kind   = Kind::None;
 
-    IntSet<BaseTokenKind> BlockClose{obt::CmdSrcEnd};
+    BOOST_DESCRIBE_CLASS(LineToken, (), (kind, tokens, indent), (), ());
+
+    IntSet<BaseTokenKind> CmdBlockClose{
+        obt::CmdSrcEnd,
+    };
+
+    IntSet<BaseTokenKind> CmdBlockOpen{
+        obt::CmdCenterBegin,
+        obt::CmdExportBegin,
+        obt::CmdExampleBegin,
+        obt::CmdSrcBegin,
+    };
+
+    IntSet<BaseTokenKind> CmdBlockLine{
+        obt::CmdTitle,
+        obt::CmdCaption,
+        obt::CmdColumns,
+        obt::CmdPropertyArgs,
+        obt::CmdPropertyRaw,
+        obt::CmdPropertyText,
+        obt::CmdOptions,
+        obt::CmdFiletags,
+    };
+
+    Opt<Kind> whichBlockLineKind(obt kind) {
+        if (CmdBlockLine.contains(kind)) {
+            return Kind::Line;
+        } else if (CmdBlockOpen.contains(kind)) {
+            return Kind::BlockOpen;
+        } else {
+            return std::nullopt;
+        }
+    }
 
     void setLineCommandKind(CR<Span<BaseToken>> tokens, int tokensOffset) {
         CR<BaseToken> current = tokens.at(tokensOffset);
         if (current.kind == obt::LineCommand) {
-            CR<BaseToken> next = tokens.at(tokensOffset + 1);
-            switch (next.kind) {
-                case obt::CmdTitle:
-                case obt::CmdCaption:
-                case obt::CmdColumns:
-                case obt::CmdPropertyArgs:
-                case obt::CmdPropertyRaw:
-                case obt::CmdPropertyText:
-                case obt::CmdOptions:
-                case obt::CmdFiletags: kind = Kind::Line; break;
-                case obt::CmdCenterBegin:
-                case obt::CmdExportBegin:
-                case obt::CmdExampleBegin:
-                case obt::CmdSrcBegin: kind = Kind::BlockOpen; break;
-                default: {
-                    LOG(FATAL)
-                        << fmt("Unknown line command kind mapping {}, {}",
-                               next.kind,
-                               tokens);
-                    break;
-                }
+            if (auto next = whichBlockLineKind(
+                    tokens.at(tokensOffset + 1).kind);
+                next) {
+                kind = *next;
+            } else {
+                LOG(FATAL)
+                    << fmt("Unknown line command kind mapping {}, {}",
+                           tokens.at(tokensOffset + 1),
+                           tokens);
             }
-        } else if (BlockClose.contains(current.kind)) {
-            kind = Kind::BlockOpen;
+
+
+        } else if (CmdBlockClose.contains(current.kind)) {
+            kind = Kind::BlockClose;
         } else {
             LOG(FATAL) << fmt(
                 "Expected line command or closing block, but got {}",
@@ -967,11 +990,12 @@ struct LineToken {
                     break;
 
                 case obt::LineCommand:
+
                     setLineCommandKind(tokens, 1);
                     break;
 
                 default: {
-                    kind = BlockClose.contains(next->get().kind)
+                    kind = CmdBlockClose.contains(next->get().kind)
                              ? Kind::BlockClose
                              : Kind::IndentedLine;
                     break;
@@ -993,11 +1017,12 @@ struct LineToken {
 
             case obt::LeadingMinus:
             case obt::LeadingPlus: kind = Kind::ListItem; break;
-            case obt::LineCommand: setLineCommandKind(tokens, 0);
+            case obt::LineCommand: setLineCommandKind(tokens, 0); break;
 
             default: {
-                kind = BlockClose.contains(first.kind) ? Kind::BlockClose
-                                                       : Kind::Line;
+                kind = CmdBlockClose.contains(first.kind)
+                         ? Kind::BlockClose
+                         : Kind::Line;
                 break;
             }
         }
@@ -1018,6 +1043,8 @@ struct GroupToken {
     Span<LineToken> lines;
     Kind            kind;
 
+    BOOST_DESCRIBE_CLASS(GroupToken, (), (kind, lines), (), ());
+
     int indent() const { return lines.at(0).indent; }
 };
 
@@ -1036,7 +1063,7 @@ Vec<LineToken> to_lines(BaseLexer& lex) {
     auto           start  = tokens->begin();
 
     for (auto it = tokens->begin(); it != tokens->end(); ++it) {
-        if (it->kind == BaseTokenKind::Newline) {
+        if (line_end.contains(it->kind)) {
             lines.push_back(LineToken{make_span(start, std::next(it))});
             start = std::next(it);
         }
@@ -1057,11 +1084,12 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
     auto it  = lines.begin();
     auto end = lines.end();
     while (it != lines.end()) {
-        auto start = it;
-        ++it;
+        auto nextline = [&]() { ++it; };
+        auto start    = it;
+        nextline();
         switch (start->kind) {
             case LK::Line: {
-                while (it != end && it->kind == LK::Line) { ++it; }
+                while (it != end && it->kind == LK::Line) { nextline(); }
                 groups.push_back({make_span(start, it), GK::Line});
                 break;
             }
@@ -1069,7 +1097,7 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
             case LK::ListItem: {
                 while (it != end && it->kind == LK::IndentedLine
                        && start->indent <= it->indent) {
-                    ++it;
+                    nextline();
                 }
 
                 groups.push_back({make_span(start, it), GK::ListItem});
@@ -1078,14 +1106,18 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
             }
 
             case LK::BlockOpen: {
-                while (it != end && it->kind != LK::BlockClose) { ++it; }
-                if (it != end) { ++it; }
+                while (it != end && it->kind != LK::BlockClose) {
+                    nextline();
+                }
+                if (it != end) { nextline(); }
                 groups.push_back({make_span(start, it), GK::Block});
                 break;
             }
 
             case LK::Property: {
-                while (it != end && it->kind == LK::Property) { ++it; }
+                while (it != end && it->kind == LK::Property) {
+                    nextline();
+                }
                 groups.push_back({make_span(start, it), GK::Block});
                 break;
             }

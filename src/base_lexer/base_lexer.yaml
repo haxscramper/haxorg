@@ -235,7 +235,7 @@ rules:
   #endregion
 
   #tag Subtree
-  - re: "^\\*+"
+  - re: "^\\*+{space}+"
     token: SubtreeStars
     actions:
       - { do: push, from: INITIAL, to: SUBTREE_HEAD }
