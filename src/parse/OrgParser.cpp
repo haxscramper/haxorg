@@ -303,30 +303,12 @@ void OrgParser::textFold(OrgLexer& lex) {
 
             case otk::GroupBegin: {
                 switch (lex.kind(+1)) {
-                    case otk::LinkBegin: {
-                        (void)parseLink(lex);
-                        break;
-                    }
-                    case otk::FootnoteBegin: {
-                        (void)parseFootnote(lex);
-                        break;
-                    }
-                    case otk::AngleBegin: {
-                        (void)parsePlaceholder(lex);
-                        break;
-                    }
-                    case otk::LatexParBegin: {
-                        (void)parseLatex(lex);
-                        break;
-                    }
-                    case otk::SymbolBegin: {
-                        (void)parseSymbol(lex);
-                        break;
-                    }
-                    case otk::DoubleAngleBegin: {
-                        (void)parseTarget(lex);
-                        break;
-                    }
+                    case otk::LinkBegin: parseLink(lex); break;
+                    case otk::FootnoteBegin: parseFootnote(lex); break;
+                    case otk::AngleBegin: parsePlaceholder(lex); break;
+                    case otk::LatexParBegin: parseLatex(lex); break;
+                    case otk::SymbolBegin: parseSymbol(lex); break;
+                    case otk::DoubleAngleBegin: parseTarget(lex); break;
                     default: throw UnhandledToken(lex);
                 }
                 break;
@@ -376,7 +358,6 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
     __perf_trace("parseLink");
     auto __trace = trace(lex);
     start(org::Link);
-    skip(lex, otk::GroupBegin);
     skip(lex, otk::LinkBegin);
     skip(lex, otk::LinkTargetBegin);
     if (lex.at(otk::LinkInternal)) {
@@ -404,7 +385,6 @@ OrgId OrgParser::parseLink(OrgLexer& lex) {
     }
 
     skip(lex, otk::LinkEnd);
-    skip(lex, otk::GroupEnd);
     return end();
 }
 
@@ -956,29 +936,48 @@ OrgId OrgParser::parseSrcArguments(OrgLexer& lex) {
 
 OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
     __perf_trace("parseTextWrapCommand");
+    skip(lex, otk::CmdPrefix);
     auto __trace = trace(lex);
+
+    OrgTokenKind endTok;
     switch (lex.kind()) {
-        case otk::CmdCenterBegin: start(org::CenterBlock); break;
-        case otk::CmdQuoteBegin: start(org::QuoteBlock); break;
-        case otk::CmdAdmonitionBegin: start(org::AdmonitionBlock); break;
+        case otk::CmdCenterBegin:
+            start(org::CenterBlock);
+            endTok = otk::CmdCenterEnd;
+            break;
+        case otk::CmdQuoteBegin:
+            start(org::QuoteBlock);
+            endTok = otk::CmdQuoteEnd;
+            break;
+        case otk::CmdAdmonitionBegin:
+            start(org::AdmonitionBlock);
+            endTok = otk::CmdAdmonitionEnd;
+            break;
         default: throw UnhandledToken(lex);
     }
 
+    skip(lex);
+
+    if (lex.at(otk::CmdArgumentsBegin)) {
+        skip(lex, otk::CmdArgumentsBegin);
+        if (lex.at(otk::RawText)) {
+            skip(lex);
+        } else if (lex.at(otk::Ident)) {
+            skip(lex);
+        };
+        skip(lex, otk::CmdArgumentsEnd);
+    } else {
+        empty();
+    }
+
+    skip(lex, otk::Newline);
+
+    while (!lex.at(Vec<otk>{otk::CmdPrefix, endTok})) {
+        parseStmtListItem(lex);
+    }
+
     skip(lex, otk::CmdPrefix);
-    skip(lex, otk::CmdBegin);
-    space(lex);
-    skip(lex, otk::CmdArgumentsBegin);
-    if (lex.at(otk::RawText)) {
-        skip(lex);
-    } else if (lex.at(otk::Ident)) {
-        skip(lex);
-    };
-    skip(lex, otk::CmdArgumentsEnd);
-    skip(lex, otk::CmdContentBegin);
-    parseParagraph(lex, true);
-    skip(lex, otk::CmdContentEnd);
-    skip(lex, otk::CmdPrefix);
-    skip(lex, otk::CmdEnd);
+    skip(lex, endTok);
     return end();
 }
 

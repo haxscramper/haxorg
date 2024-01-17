@@ -68,12 +68,13 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::DoubleQuote: return "DoubleQuote";
         case BaseTokenKind::DoubleRightAngle: return "DoubleRightAngle";
         case BaseTokenKind::DoubleSlash: return "DoubleSlash";
+        case BaseTokenKind::DslLink: return "DslLink";
+        case BaseTokenKind::DslLinkBegin: return "DslLinkBegin";
         case BaseTokenKind::EndOfFile: return "EndOfFile";
         case BaseTokenKind::Equals: return "Equals";
         case BaseTokenKind::EscapedChar: return "EscapedChar";
         case BaseTokenKind::Exclamation: return "Exclamation";
-        case BaseTokenKind::FootnoteInlineOpen: return "FootnoteInlineOpen";
-        case BaseTokenKind::FootnoteLinkOpen: return "FootnoteLinkOpen";
+        case BaseTokenKind::FootnoteBegin: return "FootnoteBegin";
         case BaseTokenKind::ForwardSlash: return "ForwardSlash";
         case BaseTokenKind::HashIdent: return "HashIdent";
         case BaseTokenKind::Indent: return "Indent";
@@ -85,6 +86,8 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::LeftCurly: return "LeftCurly";
         case BaseTokenKind::LeftPar: return "LeftPar";
         case BaseTokenKind::LineCommand: return "LineCommand";
+        case BaseTokenKind::LinkBegin: return "LinkBegin";
+        case BaseTokenKind::LinkEnd: return "LinkEnd";
         case BaseTokenKind::ListEnd: return "ListEnd";
         case BaseTokenKind::ListItemEnd: return "ListItemEnd";
         case BaseTokenKind::ListStart: return "ListStart";
@@ -179,12 +182,13 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "DoubleQuote") { return BaseTokenKind::DoubleQuote; } else
   if (value == "DoubleRightAngle") { return BaseTokenKind::DoubleRightAngle; } else
   if (value == "DoubleSlash") { return BaseTokenKind::DoubleSlash; } else
+  if (value == "DslLink") { return BaseTokenKind::DslLink; } else
+  if (value == "DslLinkBegin") { return BaseTokenKind::DslLinkBegin; } else
   if (value == "EndOfFile") { return BaseTokenKind::EndOfFile; } else
   if (value == "Equals") { return BaseTokenKind::Equals; } else
   if (value == "EscapedChar") { return BaseTokenKind::EscapedChar; } else
   if (value == "Exclamation") { return BaseTokenKind::Exclamation; } else
-  if (value == "FootnoteInlineOpen") { return BaseTokenKind::FootnoteInlineOpen; } else
-  if (value == "FootnoteLinkOpen") { return BaseTokenKind::FootnoteLinkOpen; } else
+  if (value == "FootnoteBegin") { return BaseTokenKind::FootnoteBegin; } else
   if (value == "ForwardSlash") { return BaseTokenKind::ForwardSlash; } else
   if (value == "HashIdent") { return BaseTokenKind::HashIdent; } else
   if (value == "Indent") { return BaseTokenKind::Indent; } else
@@ -196,6 +200,8 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "LeftCurly") { return BaseTokenKind::LeftCurly; } else
   if (value == "LeftPar") { return BaseTokenKind::LeftPar; } else
   if (value == "LineCommand") { return BaseTokenKind::LineCommand; } else
+  if (value == "LinkBegin") { return BaseTokenKind::LinkBegin; } else
+  if (value == "LinkEnd") { return BaseTokenKind::LinkEnd; } else
   if (value == "ListEnd") { return BaseTokenKind::ListEnd; } else
   if (value == "ListItemEnd") { return BaseTokenKind::ListItemEnd; } else
   if (value == "ListStart") { return BaseTokenKind::ListStart; } else

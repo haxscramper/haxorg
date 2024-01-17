@@ -63,7 +63,12 @@ items:
       <G>: Some text
         Indentation
 
+    debug:
+      traceAll: true
+
   - name: "Multiple Begins for tilda"
+    debug:
+      traceAll: true
     source: "~ssh-copy-id -i ~/.ssh/id_rsa.pub $E:VSC_TV_ACCESS~"
   - name: "Multiple joined Begins for verbatim"
     source: "==Content="

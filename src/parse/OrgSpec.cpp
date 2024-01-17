@@ -155,6 +155,13 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             org::SubtreeDescription,
             OrgPattern({field1(0, N::Text, org::Paragraph)})},
         SpecPair{
+            org::CenterBlock,
+            OrgPattern({
+                fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
+                fieldN(
+                    slice(1, 1_B), N::Body, {org::Paragraph, org::Empty}),
+            })},
+        SpecPair{
             org::AnnotatedParagraph,
             OrgPattern({
                 fieldN(
@@ -529,12 +536,15 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                  Field(Range(2, N::Desc))})}
 
         ,
+        SpecPair{org::Angle, OrgPattern({fieldN(0, N::Body)})},
         SpecPair{org::Bold, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
         SpecPair{
             org::Italic, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
         SpecPair{
             org::Underline, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
-
+        SpecPair{
+            org::Monospace,
+            OrgPattern({field1(slice(0, 1_B), N::Body, org::RawText)})},
         //
     });
 }

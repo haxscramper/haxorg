@@ -31,6 +31,7 @@ rx_macros:
   - { name: literal_properties, value: "id|effort" }
   - { name: argument_properties, value: "header-args" }
   - { name: text_properties, value: "description" }
+  - { name: dsl_links, value: "file|attachment|id" }
   # Property colon with optional text extension pattern an any number of 
   # following spaces. Used both in line command directives and subtree
   # properties
@@ -245,17 +246,20 @@ rules:
     states: [SUBTREE_HEAD]
 
 
-  # - { lit: "# -*- ", token: FileVarComment }
-  - { re: "^[0-9]+", token: LeadingNumber }
+  - { re: "^[0-9]+(?={space}+)", token: LeadingNumber }
   - { re: "[0-9]+", token: Number }
   - re: "^{space}+"
     token: LeadingSpace
     actions:
       - { do: push, to: LEAD, from: INITIAL }
 
+  #tag Links and footnotes
   - { re: "{space}+", token: Whitespace }
-  - { lit: "[fn::", token: FootnoteInlineOpen }
-  - { lit: "[fn:", token: FootnoteLinkOpen }
+  - { lit: "[fn:", token: FootnoteBegin }
+  - { re: "\\[\\[({dsl_links}):.*?\\]\\]", token: DslLink}
+  - { re: "\\[\\[({dsl_links}):.*?\\]\\[", token: DslLinkBegin}
+  - { re: "\\[\\[\\w:", token: LinkBegin}
+  - { re: "\\]\\]", token: LinkEnd }
   - { re: "\\[", token: BraceOpen }
   - { re: "\\]", token: BraceClose }
   - { re: "\\d{{4}}-\\d{{2}}-\\d{{2}}", token: Date }
@@ -339,8 +343,8 @@ rules:
   - { lit: "!", token: Exclamation }
   - { lit: "/", token: ForwardSlash }
   - { re: "[\\.?]", token: AnyPunct }
-  - { re: "^\\-", token: LeadingMinus }
-  - { re: "^\\+", token: LeadingPlus }
+  - { re: "^\\-(?={space}+)", token: LeadingMinus }
+  - { re: "^\\+(?={space}+)", token: LeadingPlus }
 
   - { re: "\\+", token: Plus }
   - { re: "\\-", token: Minus }
@@ -368,7 +372,7 @@ rules:
   - { lit: "}", token: RightCurly }
   - { re: "\\\\.", token: EscapedChar }
   - { lit: "%", token: Percent }
-  - { lit: "@", token: At }
+  - { re: "@\\w+", token: At }
   - { lit: "|", token: Pipe }
   - { lit: "```", token: TripleBacktick }
   - { lit: "`", token: Backtick }

@@ -658,7 +658,7 @@ SemIdT<Word> OrgConverter::convertWord(__args) {
 SemIdT<Placeholder> OrgConverter::convertPlaceholder(__args) {
     __perf_trace("convert", "convertPlaceholder");
     auto __trace = trace(a);
-    return SemLeaf<Placeholder>(p, a);
+    return SemLeaf<Placeholder>(p, one(a, N::Body));
 }
 
 SemIdT<Newline> OrgConverter::convertNewline(__args) {
@@ -770,7 +770,11 @@ SemIdT<Export> OrgConverter::convertExport(__args) {
 }
 
 SemIdT<Center> OrgConverter::convertCenter(__args) {
-    return convertAllSubnodes<Center>(p, a);
+    SemIdT<Center> res = Sem<Center>(p, a);
+    for (const auto& sub : many(a, N::Body)) {
+        res->push_back(convert(res, sub));
+    }
+    return res;
 }
 
 SemIdT<AdmonitionBlock> OrgConverter::convertAdmonitionBlock(__args) {
@@ -933,6 +937,7 @@ SemId OrgConverter::convert(__args) {
         case org::Colon: return convertPunctuation(p, a);
         case org::CommandInclude: return convertInclude(p, a);
         case org::Symbol: return convertSymbol(p, a);
+        case org::Angle: return convertPlaceholder(p, a);
         case org::Footnote: {
             if (a.size() == 1) {
                 return convertLink(p, a);
