@@ -134,8 +134,7 @@ items:
 
   - name: "Nested list with two items"
     debug:
-      printSem: true
-      printSemToFile: true
+      traceAll: true
       
     source: |
       - Item1
@@ -238,27 +237,26 @@ items:
                   subnodes:
                     - {kind: Word, text: Item1}
                 - {kind: Newline, text: "\n"}
-            - kind: List
-              subnodes:
-                - kind: ListItem
+                - kind: List
                   subnodes:
-                    - kind: Paragraph
+                    - kind: ListItem
                       subnodes:
-                        - {kind: Word, text: Nested1}
-                    - {kind: Newline, text: "\n"}
-                - kind: ListItem
-                  subnodes:
-                    - kind: Paragraph
+                        - kind: Paragraph
+                          subnodes:
+                            - {kind: Word, text: Nested1}
+                        - {kind: Newline, text: "\n"}
+                    - kind: ListItem
                       subnodes:
-                        - {kind: Word, text: Nested2}
-                    - {kind: Newline, text: "\n"}
+                        - kind: Paragraph
+                          subnodes:
+                            - {kind: Word, text: Nested2}
+                        - {kind: Newline, text: "\n"}
             - kind: ListItem
               subnodes:
                 - kind: Paragraph
                   subnodes:
                     - {kind: Word, text: Item2}
                 - {kind: Newline, text: "\n"}
-
 
   - name: "List with space in the nested content"
     source: |
@@ -274,8 +272,8 @@ items:
       - {kind: StmtListBegin}
       - {kind: ParagraphBegin}
       - {kind: Word, str: "Item1"}
-      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
+      - {kind: Newline, str: "\n"}
       - {kind: StmtListEnd}
       - {kind: ListItemEnd}
       - {kind: Indent}
@@ -289,19 +287,17 @@ items:
       # List body contains two paragrapsh
       - {kind: ParagraphBegin}
       - {kind: Word, str: "Nested1"}
-      - {kind: Newline, str: "\n"} # Pargraph has one trailing line
       - {kind: ParagraphEnd}
-
-      - {kind: Newline, str: "\n"} # The other line is skipped on the
-                                       # list item level
+      - {kind: Newline, str: "\n\n"} 
 
       - {kind: ParagraphBegin}
-      - {kind: Space, str: "    "} # Leading indentation for paragraph is
-                                   # not stripped or implicitly discarded.
       - {kind: Word, str: "Nested2"}
-      - {kind: Newline, str: "\n"}
       - {kind: ParagraphEnd}
+      - {kind: Newline, str: "\n"}
 
+      - {kind: StmtListEnd}
+
+      - {kind: ListItemEnd}
       - {kind: StmtListEnd}
 
       - {kind: ListItemEnd}

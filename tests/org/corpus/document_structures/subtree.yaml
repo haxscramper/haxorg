@@ -25,7 +25,6 @@ items:
       - {kind: ParagraphBegin}
       - {kind: Word, str: "Subtree"}
       - {kind: ParagraphEnd}
-      - {kind: SubtreeEnd}
 
   - name: "Subtree with time annotations"
     source: "* [2023-03-05] Subtree title"
@@ -41,7 +40,6 @@ items:
       - {kind: Space, str: " "}
       - {kind: Word, str: title}
       - {kind: ParagraphEnd}
-      - {kind: SubtreeEnd}
 
   - name: "Subtree with nested content"
     source: "** CLI Tools\n\nNested content"
@@ -55,7 +53,6 @@ items:
       - {kind: Space, str: " "}
       - {kind: Word, str: "Tools"}
       - {kind: ParagraphEnd}
-      - {kind: SubtreeEnd, str: ""}
       - {kind: Newline, str: "\n\n"}
       - {kind: ParagraphBegin}
       - {kind: Word, str: Nested}
@@ -82,11 +79,12 @@ items:
       - {kind: Space, str: " "}
       - {kind: Word, str: headline}
       - {kind: ParagraphEnd}
-      - {kind: SubtreeEnd, str: ""}
       - {kind: Newline, str: "\n"}
 
 
 
   - name: "Lorem ipsum subtree"
+    debug:
+      traceAll: true
     file: org/lorem_ipsum_subtree.org
 

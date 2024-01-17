@@ -6,48 +6,6 @@
 #include <boost/mp11.hpp>
 
 
-json toJson(CR<yaml> node) {
-    switch (node.Type()) {
-        case YAML::NodeType::Undefined: {
-            return json();
-        }
-
-        case YAML::NodeType::Map: {
-            json res = json::object();
-            for (const auto& it : node) {
-                res[it.first.as<std::string>()] = toJson(it.second);
-            }
-            return res;
-        }
-
-        case YAML::NodeType::Sequence: {
-            json res = json::array();
-            for (const auto& it : node) {
-                res.push_back(toJson(it));
-            }
-            return res;
-        }
-
-        case YAML::NodeType::Null: {
-            return json();
-        }
-
-        case YAML::NodeType::Scalar: {
-            bool ok     = false;
-            Str  scalar = Str(node.Scalar());
-            try {
-                return scalar.toDouble();
-            } catch (std::invalid_argument&) {}
-
-            try {
-                return scalar.toInt();
-            } catch (std::invalid_argument&) {}
-
-            return node.Scalar();
-        }
-    }
-}
-
 namespace YAML {
 
 template <typename T>
@@ -258,5 +216,73 @@ ParseSpecGroup::ParseSpecGroup(
         auto tmp = ParseSpec(node, from, testRoot);
         validate(tmp);
         specs.push_back(tmp);
+    }
+}
+
+json toJson(CR<yaml> node) {
+    switch (node.Type()) {
+        case YAML::NodeType::Undefined: {
+            return json();
+        }
+
+        case YAML::NodeType::Map: {
+            json res = json::object();
+            for (const auto& it : node) {
+                res[it.first.as<std::string>()] = toJson(it.second);
+            }
+            return res;
+        }
+
+        case YAML::NodeType::Sequence: {
+            json res = json::array();
+            for (const auto& it : node) { res.push_back(toJson(it)); }
+            return res;
+        }
+
+        case YAML::NodeType::Null: {
+            return json();
+        }
+
+        case YAML::NodeType::Scalar: {
+            bool ok     = false;
+            Str  scalar = Str(node.Scalar());
+            try {
+                return scalar.toDouble();
+            } catch (std::invalid_argument&) {}
+
+            try {
+                return scalar.toInt();
+            } catch (std::invalid_argument&) {}
+
+            return node.Scalar();
+        }
+    }
+}
+
+yaml toYaml(CR<json> node) {
+    using vt = json::value_t;
+    switch (node.type()) {
+        case vt::number_float: return yaml{node.get<float>()};
+        case vt::number_unsigned: return yaml{node.get<u64>()};
+        case vt::number_integer: return yaml{node.get<long long int>()};
+        case vt::boolean: return yaml{node.get<bool>()};
+        case vt::string: return yaml{node.get<std::string>()};
+        case vt::null: return yaml{};
+        case vt::binary: return yaml{node.get<std::string>()};
+        case vt::discarded: return yaml{};
+
+        case vt::array: {
+            yaml result;
+            for (auto const& it : node) { result.push_back(toYaml(it)); }
+            return result;
+        }
+
+        case vt::object: {
+            yaml result;
+            for (auto const& [it, value] : node.items()) {
+                result[it] = toYaml(value);
+            }
+            return result;
+        }
     }
 }

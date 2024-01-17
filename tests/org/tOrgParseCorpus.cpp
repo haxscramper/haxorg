@@ -25,7 +25,11 @@ struct TestParams {
 
     std::string testName() const {
         std::string final;
-        for (char const& ch : fullName()) {
+        for (char const& ch :
+             fmt("{} at {}",
+                 spec.name.has_value() ? spec.name.value()
+                                       : std::string("<spec>"),
+                 file.stem())) {
             if (std::isalnum(ch) || ch == '_') {
                 final.push_back(ch);
             } else {
@@ -37,11 +41,13 @@ struct TestParams {
     }
 
     std::string fullName() const {
-        return "$# at $#"
+        return "$# at $#:$#:$#"
              % to_string_vec(
                    spec.name.has_value() ? spec.name.value()
                                          : std::string("<spec>"),
-                   file.stem());
+                   file.stem(),
+                   spec.specLocation.line,
+                   spec.specLocation.column);
     }
 
     // Provide a friend overload.
@@ -94,7 +100,8 @@ Vec<TestParams> generateTestRuns() {
 
         if (nameCounts.contains(spec.testName())) {
             LOG(ERROR) << fmt(
-                "Found test with duplicate name: '{}', name comes from '{}' "
+                "Found test with duplicate name: '{}', name comes from "
+                "'{}' "
                 "at {}:{}:{}",
                 spec.testName(),
                 spec.file.stem(),

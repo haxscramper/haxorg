@@ -157,8 +157,8 @@ void format(
     int                      lhsSize          = 48,
     int                      rhsSize          = 16,
     bool                     useQFormat       = false,
-    bool                     dropLeadingKeep  = true,
-    bool                     dropTrailingKeep = true) {
+    bool                     dropLeadingKeep  = false,
+    bool                     dropTrailingKeep = false) {
     if (text.isUnified()) {
         os << (ColText("Given") <<= lhsSize) << (ColText("Expected"))
            << "\n";
@@ -670,69 +670,38 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
         }
     };
 
-    Func<void(json, int, json::json_pointer const&)> aux;
-    aux = [&](json const& j, int level, json::json_pointer const& path) {
-        switch (j.type()) {
-            case json::value_t::array: {
-                for (int i = 0; i < j.size(); ++i) {
-                    if (isEmpty(j[i])) { continue; }
-                    os.indent(level * 2) << "-";
-                    if (isSimple(j[i])) {
-                        os << " ";
-                        writeSimple(os, j);
-                        os << " ";
-                        maybePathDiff(path / i);
-                        os << "\n";
-                    } else {
-                        maybePathDiff(path / i);
-                        os << "\n";
-                        aux(j[i], level + 1, path / i);
-                    }
-                }
-                break;
-            }
-            case json::value_t::object: {
-                for (json::const_iterator it = j.begin(); it != j.end();
-                     ++it) {
-                    if (it.key() == "id" || it.key() == "loc"
-                        || isEmpty(it.value())) {
-                        continue;
-                    }
-                    os.indent(level * 2) << it.key() << ":";
-                    json const& value = it.value();
-                    if (isSimple(value)) {
-                        os << " ";
-                        writeSimple(os, value);
-                        maybePathDiff(path / it.key());
-                        os << "\n";
-                    } else {
-                        maybePathDiff(path / it.key());
-                        os << "\n";
-                        aux(it.value(), level + 1, path / it.key());
-                        os << "\n";
-                    }
-                }
-                break;
-            }
-            case json::value_t::null:
-            case json::value_t::number_float:
-            case json::value_t::number_integer:
-            case json::value_t::boolean:
-            case json::value_t::string: {
-                writeSimple(os, j);
-                break;
-            }
-
-            default: {
-            }
-        }
-    };
-
     if (0 < failCount) {
-        os << "converted:\n";
-        aux(converted, 0, json::json_pointer{});
-        os << "\nexpected:\n";
-        aux(expected, 0, json::json_pointer{});
+        yaml converted_yaml  = toYaml(converted);
+        yaml expected_yaml   = toYaml(expected);
+        auto converted_lines = Str(fmt1(converted_yaml)).split('\n');
+        auto expected_lines  = Str(fmt1(expected_yaml)).split('\n');
+
+        BacktrackRes sem_lcs = longestCommonSubsequence<Str>(
+            converted_lines,
+            expected_lines,
+            [](CR<Str> lhs, CR<Str> rhs) -> bool {
+                return lhs == rhs;
+            })[0];
+
+        ShiftedDiff sem_diff{
+            sem_lcs, converted_lines.size(), expected_lines.size()};
+        FormattedDiff text{sem_diff};
+
+        format(
+            os,
+            text,
+            [&](int id, bool isLhs) -> ColText {
+                auto node = isLhs ? converted_lines.at(id)
+                                  : expected_lines.at(id);
+                return ColText{node};
+            },
+            rs::max(converted_lines | rv::transform([](CR<Str> s) {
+                        return s.size();
+                    })),
+            rs::max(expected_lines | rv::transform([](CR<Str> s) {
+                        return s.size();
+                    })));
+
 
         return {{.isOk = false, .failDescribe = os.getBuffer()}};
     } else {

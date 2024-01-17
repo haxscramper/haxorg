@@ -1505,8 +1505,6 @@ OrgId OrgParser::parseSubtreeCompletion(OrgLexer& lex) {
 
     } else {
         start(org::Completion);
-        LOG(INFO) << "Parse subtree completion ["
-                  << lex.printToString(tokenFormat) << "]";
         return end();
     }
 }
@@ -1609,7 +1607,8 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
     parseSubtreeCompletion(lex);                      // 4
     parseSubtreeTags(lex);                            // 5
 
-    if (!lex.at(otk::SubtreeEnd)) { // 6
+    if (lex.at(otk::Newline)) { newline(lex); }
+    if (false) { // 6 TODO
         skip(lex, otk::Newline);
         parseSubtreeTimes(lex);
         newline(lex);
@@ -1617,15 +1616,15 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
         empty();
     }
 
-    if (!lex.at(otk::SubtreeEnd)) { // 7
+    if (lex.at(otk::Newline)) { newline(lex); }
+
+    if (lex.at(otk::ColonProperties)) { // 7
         parseSubtreeDrawer(lex);
-        newline(lex);
     } else {
         empty();
     }
 
 
-    skip(lex, otk::SubtreeEnd);
     start(org::StmtList); // 8
     end();
     return end();

@@ -10,6 +10,7 @@
 
 
 json toJson(CR<yaml> node);
+yaml toYaml(CR<json> node);
 
 struct ParseSpec {
     std::string getLocMsg() const {

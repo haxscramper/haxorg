@@ -298,6 +298,7 @@ struct RecombineState {
     }
 
     void par_as(OrgTokenKind __to, int line = __builtin_LINE()) {
+        maybe_paragraph_start();
         pop_as(__to, line);
     }
 
@@ -560,10 +561,7 @@ struct RecombineState {
             state_pop();
         }
 
-        if (state_top() == State::Subtree) {
-            add_fake(otk::SubtreeEnd);
-            state_pop();
-        }
+        if (state_top() == State::Subtree) { state_pop(); }
     }
 
     void maybe_paragraph_end() {
@@ -805,7 +803,6 @@ struct RecombineState {
                             break;
                         }
                         case State::Subtree: {
-                            add_fake(otk::SubtreeEnd);
                             break;
                         }
                         case State::None: {
