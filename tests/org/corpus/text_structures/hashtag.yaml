@@ -1,5 +1,6 @@
 items:
-  - source: "#test##a"
+  - name: "Hashtag with single word subtag"
+    source: "#test##a"
     tokens:
       - {kind: ParagraphBegin, str: ""}
       - {kind: HashTag, str: "#test"}
@@ -8,8 +9,10 @@ items:
       - {kind: ParagraphEnd, str: ""}
 
 
-  - source: "#test##[a, b]"
-  - source: "#test"
+  - name: "Hashtag with two word subtags"
+    source: "#test##[a, b]"
+  - name: "Single hashtag"
+    source: "#test"
     subnodes:
       - {kind: HashTag, extent: 1}
       - {kind: RawText, tok_idx: 0, str: "#test"}

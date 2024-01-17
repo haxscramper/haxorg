@@ -37,13 +37,11 @@ struct TestParams {
     }
 
     std::string fullName() const {
-        return "$# at $#:$#:$#"
+        return "$# at $#"
              % to_string_vec(
                    spec.name.has_value() ? spec.name.value()
                                          : std::string("<spec>"),
-                   file.stem(),
-                   spec.specLocation.line,
-                   spec.specLocation.column);
+                   file.stem());
     }
 
     // Provide a friend overload.
@@ -86,10 +84,26 @@ Vec<TestParams> generateTestRuns() {
         }
     }
 
+    UnorderedMap<std::string, int> nameCounts;
+
     for (auto& spec : results) {
         if (spec.spec.debug.debugOutDir.size() == 0) {
             spec.spec.debug.debugOutDir = "/tmp/corpus_runs/"
                                         + spec.testName();
+        }
+
+        if (nameCounts.contains(spec.testName())) {
+            LOG(ERROR) << fmt(
+                "Found test with duplicate name: '{}', name comes from '{}' "
+                "at {}:{}:{}",
+                spec.testName(),
+                spec.file.stem(),
+                spec.spec.name,
+                spec.spec.specLocation.line,
+                spec.spec.specLocation.column);
+
+        } else {
+            nameCounts.insert_or_assign(spec.testName(), 1);
         }
     }
 

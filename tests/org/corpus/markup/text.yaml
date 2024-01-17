@@ -33,8 +33,10 @@ items:
       - {kind: ItalicEnd, str: "/"}
       - {kind: ParagraphEnd}
 
-  - source: "[[link][description]]"
-  - source: "\\symbol{}"
+  - name: "Link with description"
+    source: "[[link][description]]"
+  - name: "Symbol"
+    source: "\\symbol{}"
     sem:
       kind: Document
       subnodes:
@@ -44,7 +46,9 @@ items:
               name: "symbol"
               parameters: []
               positional: [{kind: Paragraph}]
-  - source: "\\symbol{\"Argument\"}"
+              
+  - name: "Symbol with argument"
+    source: "\\symbol{\"Argument\"}"
     sem:
       kind: Document
       subnodes:
@@ -59,7 +63,9 @@ items:
                     - {kind: Punctuation, text: "\""}
                     - {kind: Word, text: "Argument"}
                     - {kind: Punctuation, text: "\""}
-  - source: |
+
+  - name: "Placeholder with indentation"
+    source: |
       <G>: Some text
         Indentation
 
@@ -72,7 +78,8 @@ items:
     source: "~ssh-copy-id -i ~/.ssh/id_rsa.pub $E:VSC_TV_ACCESS~"
   - name: "Multiple joined Begins for verbatim"
     source: "==Content="
-  - source: |
+  - name: "Ambiguous bold formatting"
+    source: |
       *QUESTION: [19:43]*/"As a user,
 
   - name: "Standalone inline markup"

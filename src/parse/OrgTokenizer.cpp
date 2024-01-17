@@ -560,7 +560,10 @@ struct RecombineState {
             state_pop();
         }
 
-        if (state_top() == State::Subtree) { state_pop(); }
+        if (state_top() == State::Subtree) {
+            add_fake(otk::SubtreeEnd);
+            state_pop();
+        }
     }
 
     void maybe_paragraph_end() {

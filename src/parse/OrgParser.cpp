@@ -1624,6 +1624,8 @@ OrgId OrgParser::parseSubtree(OrgLexer& lex) {
         empty();
     }
 
+
+    skip(lex, otk::SubtreeEnd);
     start(org::StmtList); // 8
     end();
     return end();

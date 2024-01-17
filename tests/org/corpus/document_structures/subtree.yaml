@@ -45,6 +45,8 @@ items:
 
   - name: "Subtree with nested content"
     source: "** CLI Tools\n\nNested content"
+    debug:
+      traceAll: true
     tokens:
       - {kind: SubtreeStars, str: "**"}
       - {kind: Space, str: " "}
@@ -53,6 +55,7 @@ items:
       - {kind: Space, str: " "}
       - {kind: Word, str: "Tools"}
       - {kind: ParagraphEnd}
+      - {kind: SubtreeEnd, str: ""}
       - {kind: Newline, str: "\n\n"}
       - {kind: ParagraphBegin}
       - {kind: Word, str: Nested}
@@ -79,6 +82,7 @@ items:
       - {kind: Space, str: " "}
       - {kind: Word, str: headline}
       - {kind: ParagraphEnd}
+      - {kind: SubtreeEnd, str: ""}
       - {kind: Newline, str: "\n"}
 
 
