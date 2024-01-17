@@ -4,10 +4,6 @@ parse: "Full"
 items:
   - name: "Process all nodes"
     file: org/all.org
-    debug:
-      doLex: false
-      doParse: false
-      traceAll: true
     exporters:
       - name: "sexp"
       - name: "json"

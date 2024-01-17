@@ -58,6 +58,7 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::CmdTblfm: return "CmdTblfm";
         case BaseTokenKind::CmdTitle: return "CmdTitle";
         case BaseTokenKind::Colon: return "Colon";
+        case BaseTokenKind::Comma: return "Comma";
         case BaseTokenKind::Comment: return "Comment";
         case BaseTokenKind::Date: return "Date";
         case BaseTokenKind::Dedent: return "Dedent";
@@ -168,6 +169,7 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "CmdTblfm") { return BaseTokenKind::CmdTblfm; } else
   if (value == "CmdTitle") { return BaseTokenKind::CmdTitle; } else
   if (value == "Colon") { return BaseTokenKind::Colon; } else
+  if (value == "Comma") { return BaseTokenKind::Comma; } else
   if (value == "Comment") { return BaseTokenKind::Comment; } else
   if (value == "Date") { return BaseTokenKind::Date; } else
   if (value == "Dedent") { return BaseTokenKind::Dedent; } else

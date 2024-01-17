@@ -100,10 +100,8 @@ struct OrgParser : public OperationsTracer {
     OrgId parseSrcArguments(OrgLexer& lex);
     OrgId parseSrc(OrgLexer& lex);
     OrgId parseExample(OrgLexer& lex);
-    OrgId parseListItemBody(OrgLexer& lex);
     OrgId parseListItem(OrgLexer& lex);
     OrgId parseTarget(OrgLexer& lex);
-    OrgId parseNestedList(OrgLexer& lex);
     OrgId parseList(OrgLexer& lex);
     OrgId parseLatex(OrgLexer& lex);
     OrgId parseBlockExport(OrgLexer& lex);
@@ -125,7 +123,7 @@ struct OrgParser : public OperationsTracer {
 
     OrgId parseOrgFile(OrgLexer& lex);
     OrgId parseLineCommand(OrgLexer& lex);
-    OrgId parseToplevelItem(OrgLexer& lex);
+    OrgId parseStmtListItem(OrgLexer& lex);
     OrgId parseTop(OrgLexer& lex);
 
     OrgId parseFull(OrgLexer& lex);

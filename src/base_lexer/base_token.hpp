@@ -35,8 +35,8 @@ struct std::formatter<BaseTokenKind> : std::formatter<std::string> {
 
 struct BaseFill {
     Str text;
-    int line;
-    int col;
+    int line = -1;
+    int col  = -1;
 };
 
 using BaseToken      = Token<BaseTokenKind, BaseFill>;

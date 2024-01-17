@@ -1800,6 +1800,10 @@ def get_org_token_kind() -> GenTuEnum:
                        GenTuDoc("Paren open - punctuation or a syntax element")),
         GenTuEnumField("ParEnd",
                        GenTuDoc("Paren close - punctuation or a syntax element")),
+        GenTuEnumField("BraceBegin",
+                       GenTuDoc("`[`")),
+        GenTuEnumField("BraceEnd",
+                       GenTuDoc("`]`")),
         GenTuEnumField("Colon", GenTuDoc("")),
         GenTuEnumField("Circumflex", GenTuDoc("`^` possible superscript in the text")),
         #tag Macro

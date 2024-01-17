@@ -4,18 +4,12 @@ expected: "Flat"
 items:
   - name: "Trailing markup in subtree with tags"
     source: "**** COMPLETED Try =atmospace= :test##assesment##viability:"
-    debug:
-      doParse: false
 
   - name: "Trailing markup in subtree"
     source: "***** COMPLETED Update sizes of the setting grid element to use ~@scale~"
-    debug:
-      doParse: false
 
   - name: "Trailing colon for subtree name"
     source: "****** Pros:"
-    debug:
-      doLex: false
 
   - name: "Regular subtree"
     source: "* Subtree"
@@ -35,8 +29,6 @@ items:
 
   - name: "Subtree with time annotations"
     source: "* [2023-03-05] Subtree title"
-    debug:
-      doParse: false
     tokens:
       - {kind: SubtreeStars, str: "*"}
       - {kind: Space, str: " "}
@@ -53,8 +45,6 @@ items:
 
   - name: "Subtree with nested content"
     source: "** CLI Tools\n\nNested content"
-    debug:
-      doParse: false
     tokens:
       - {kind: SubtreeStars, str: "**"}
       - {kind: Space, str: " "}
@@ -71,8 +61,6 @@ items:
       - {kind: ParagraphEnd}
 
   - name: "Headline after paragraph"
-    debug:
-      doParse: false
     source: |
       Paragraph text
       * New headline
@@ -96,8 +84,5 @@ items:
 
 
   - name: "Lorem ipsum subtree"
-    debug:
-      traceAll: true
-      
     file: org/lorem_ipsum_subtree.org
 

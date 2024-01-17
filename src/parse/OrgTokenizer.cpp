@@ -410,7 +410,7 @@ struct RecombineState {
             pop_as(otk::InactiveTimeEnd);
         } else {
             maybe_paragraph_start();
-            pop_as(otk::Punctuation);
+            pop_as(otk::BraceBegin);
         }
     }
 
@@ -601,10 +601,11 @@ struct RecombineState {
             // punctuation
             case obt::BraceClose:
                 maybe_paragraph_start();
-                pop_as(otk::Punctuation);
+                pop_as(otk::BraceEnd);
                 break;
 
 
+            case obt::Comma: pop_as(otk::Comma); break;
             case obt::Colon: map_colon(); break;
             case obt::BraceOpen: map_open_brace(); break;
             case obt::LeadingMinus: pop_as(otk::ListItemBegin); break;
@@ -1031,14 +1032,7 @@ struct LineToken {
 
 
 struct GroupToken {
-    DECL_DESCRIBED_ENUM(
-        Kind,
-        Line,
-        ListItem,
-        Block,
-        Content,
-        Subtree,
-        Properties);
+    DECL_DESCRIBED_ENUM(Kind, Line, ListItem, Subtree, Properties);
 
     Span<LineToken> lines;
     Kind            kind;
@@ -1084,20 +1078,38 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
     auto it  = lines.begin();
     auto end = lines.end();
     while (it != lines.end()) {
-        auto nextline = [&]() { ++it; };
-        auto start    = it;
+        auto nextline   = [&]() { ++it; };
+        auto skip_block = [&]() {
+            while (it != end && it->kind != LK::BlockClose) { nextline(); }
+            if (it != end) { nextline(); }
+        };
+
+        IntSet<LK> regular_kinds{
+            LK::IndentedLine, LK::BlockClose, LK::BlockOpen};
+
+        auto start = it;
         nextline();
         switch (start->kind) {
             case LK::Line: {
-                while (it != end && it->kind == LK::Line) { nextline(); }
+                while (it != end && regular_kinds.contains(it->kind)) {
+                    if (it->kind == LK::BlockOpen) {
+                        skip_block();
+                    } else {
+                        nextline();
+                    }
+                }
                 groups.push_back({make_span(start, it), GK::Line});
                 break;
             }
 
             case LK::ListItem: {
-                while (it != end && it->kind == LK::IndentedLine
+                while (it != end && regular_kinds.contains(it->kind)
                        && start->indent <= it->indent) {
-                    nextline();
+                    if (it->kind == LK::BlockOpen) {
+                        skip_block();
+                    } else {
+                        nextline();
+                    }
                 }
 
                 groups.push_back({make_span(start, it), GK::ListItem});
@@ -1106,11 +1118,8 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
             }
 
             case LK::BlockOpen: {
-                while (it != end && it->kind != LK::BlockClose) {
-                    nextline();
-                }
-                if (it != end) { nextline(); }
-                groups.push_back({make_span(start, it), GK::Block});
+                skip_block();
+                groups.push_back({make_span(start, it), GK::Line});
                 break;
             }
 
@@ -1118,7 +1127,7 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
                 while (it != end && it->kind == LK::Property) {
                     nextline();
                 }
-                groups.push_back({make_span(start, it), GK::Block});
+                groups.push_back({make_span(start, it), GK::Properties});
                 break;
             }
 
@@ -1150,10 +1159,10 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
         auto idx = regroup.add(BaseToken{kind});
         print(
             lex,
-            fmt("[{:<3}] fake  {:<48} indents {}",
+            fmt("[{:<3}] fake  {:<48} indents {:<32}",
                 idx.getIndex(),
                 fmt1(kind),
-                indentStack),
+                fmt1(indentStack)),
             line,
             function);
     };
@@ -1164,10 +1173,10 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
         auto idx = regroup.add(tok);
         print(
             lex,
-            fmt("[{:<3}] token {:<48} indents {}",
+            fmt("[{:<3}] token {:<48} indents {:<32}",
                 idx.getIndex(),
                 fmt1(tok),
-                indentStack),
+                fmt1(indentStack)),
             line,
             function);
     };
@@ -1204,6 +1213,7 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
 
     for (auto gr_index = 0; gr_index < groups.size(); ++gr_index) {
         auto const& gr = groups.at(gr_index);
+        print(lex, fmt("GR:[{:<2}] indent={}", gr_index, gr.indent()));
         if (gr.kind == GK::ListItem) {
             if (indentStack.empty()) {
                 add_fake(obt::ListStart);
@@ -1214,10 +1224,13 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
                 add_fake(obt::Indent);
                 indentStack.push_back(gr.indent());
             } else if (gr.indent() < indentStack.back()) {
-                add_fake(obt::StmtListClose);
-                add_fake(obt::ListItemEnd);
-                add_fake(obt::Dedent);
-                indentStack.pop_back();
+                while (!indentStack.empty()
+                       && gr.indent() < indentStack.back()) {
+                    add_fake(obt::StmtListClose);
+                    add_fake(obt::ListItemEnd);
+                    add_fake(obt::Dedent);
+                    indentStack.pop_back();
+                }
             } else if (indentStack.back() == gr.indent()) {
                 add_fake(obt::StmtListClose);
                 add_fake(obt::ListItemEnd);

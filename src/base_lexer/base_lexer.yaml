@@ -338,7 +338,7 @@ rules:
   - { lit: "&", token: Ampersand }
   - { lit: "!", token: Exclamation }
   - { lit: "/", token: ForwardSlash }
-  - { re: "[,\\.?]", token: AnyPunct }
+  - { re: "[\\.?]", token: AnyPunct }
   - { re: "^\\-", token: LeadingMinus }
   - { re: "^\\+", token: LeadingPlus }
 
@@ -355,6 +355,7 @@ rules:
   - { lit: "=", token: Equals }
   - { lit: ";", token: Semicolon }
   - { lit: "*", token: Asterisk }
+  - { lit: ",", token: Comma }
   - { lit: "<<", token: DoubleLeftAngle }
   - { lit: ">>", token: DoubleRightAngle }
   - { lit: "<", token: LeftAngle }

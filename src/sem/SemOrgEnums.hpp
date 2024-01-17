@@ -878,6 +878,10 @@ enum class OrgTokenKind : short int {
   ParBegin,
   /// \brief Paren close - punctuation or a syntax element
   ParEnd,
+  /// \brief `[`
+  BraceBegin,
+  /// \brief `]`
+  BraceEnd,
   Colon,
   /// \brief `^` possible superscript in the text
   Circumflex,

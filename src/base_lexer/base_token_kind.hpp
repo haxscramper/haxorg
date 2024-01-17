@@ -34,6 +34,7 @@ enum class BaseTokenKind : unsigned short int {
   CmdTblfm,
   CmdTitle,
   Colon,
+  Comma,
   Comment,
   Date,
   Dedent,

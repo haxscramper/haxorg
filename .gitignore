@@ -381,3 +381,4 @@ docs/html
 .trunk/tools
 corpus_schema.yaml
 vgcore.*
+.fleet

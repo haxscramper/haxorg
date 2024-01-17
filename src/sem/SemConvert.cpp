@@ -93,7 +93,8 @@ SemIdT<HashTag> OrgConverter::convertHashTag(__args) {
             a.at(0).val().getText(), CharSet{'#'}, CharSet{});
         if (1 < a.size()) {
             for (auto& node : a.at(slice(1, 1_B))) {
-                result->subtags.push_back(aux(node));
+                auto conv = aux(node);
+                result->subtags.push_back(conv);
             }
         }
         return result;

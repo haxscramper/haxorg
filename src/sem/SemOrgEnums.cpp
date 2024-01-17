@@ -820,6 +820,8 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "Comma") { return OrgTokenKind::Comma; } else
   if (value == "ParBegin") { return OrgTokenKind::ParBegin; } else
   if (value == "ParEnd") { return OrgTokenKind::ParEnd; } else
+  if (value == "BraceBegin") { return OrgTokenKind::BraceBegin; } else
+  if (value == "BraceEnd") { return OrgTokenKind::BraceEnd; } else
   if (value == "Colon") { return OrgTokenKind::Colon; } else
   if (value == "Circumflex") { return OrgTokenKind::Circumflex; } else
   if (value == "MacroBegin") { return OrgTokenKind::MacroBegin; } else
@@ -1083,6 +1085,8 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::Comma: return "Comma";
     case OrgTokenKind::ParBegin: return "ParBegin";
     case OrgTokenKind::ParEnd: return "ParEnd";
+    case OrgTokenKind::BraceBegin: return "BraceBegin";
+    case OrgTokenKind::BraceEnd: return "BraceEnd";
     case OrgTokenKind::Colon: return "Colon";
     case OrgTokenKind::Circumflex: return "Circumflex";
     case OrgTokenKind::MacroBegin: return "MacroBegin";

@@ -778,7 +778,8 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
         }
 
         if (spec.debug.doLex) {
-            p.tokenizer->TraceState = spec.debug.traceLex;
+            p.tokenizer->TraceState = spec.debug.traceAll
+                                   || spec.debug.traceLex;
             if (spec.debug.traceAll || spec.debug.lexToFile) {
                 p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log"));
             }
@@ -884,7 +885,8 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
 
     { // Parsing
         if (spec.debug.doParse) {
-            p.parser->TraceState = spec.debug.traceParse;
+            p.parser->TraceState = spec.debug.traceAll
+                                || spec.debug.traceParse;
 
             if (spec.debug.traceAll || spec.debug.parseToFile) {
                 p.parser->setTraceFile(spec.debugFile("trace_parse.log"));
@@ -952,7 +954,8 @@ CorpusRunner::RunResult CorpusRunner::runSpec(
             sem::ContextStore context;
             sem::OrgConverter converter(&context);
 
-            converter.TraceState = spec.debug.traceSem;
+            converter.TraceState = spec.debug.traceAll
+                                || spec.debug.traceSem;
             if (spec.debug.traceAll || spec.debug.semToFile) {
                 converter.setTraceFile(spec.debugFile("trace_sem.log"));
             }

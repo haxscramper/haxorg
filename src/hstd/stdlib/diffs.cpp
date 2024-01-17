@@ -6,14 +6,12 @@ Vec<BacktrackRes> longestCommonSubsequence(
     Func<bool(int, int)>  itemCmp,
     Func<float(int, int)> itemEqualityMetric) {
 
-    if (lhsSize == 0 || rhsSize == 0) {
-        return {{}};
-    }
+    if (lhsSize == 0 || rhsSize == 0) { return {{}}; }
 
     UnorderedMap<Pair<int, int>, float> mem;
     Func<float(int, int)>               lcs;
     lcs = [&](int lhsIdx, int rhsIdx) -> float {
-        if (mem.count({lhsIdx, rhsIdx}) == 0) {
+        if (!mem.contains({lhsIdx, rhsIdx})) {
             if (lhsIdx == -1 || rhsIdx == -1) {
                 mem[{lhsIdx, rhsIdx}] = 0;
             } else if (itemCmp(lhsIdx, rhsIdx)) {
@@ -30,9 +28,10 @@ Vec<BacktrackRes> longestCommonSubsequence(
 
     Func<Vec<BacktrackRes>(int, int)> backtrack;
 
+    int cnt   = 0;
     backtrack = [&](int lhsIdx, int rhsIdx) -> Vec<BacktrackRes> {
         if (lcs(lhsIdx, rhsIdx) == 0) {
-            return {{}};
+            return {};
         } else if (lhsIdx == 0) {
             int rhsIdxRes = rhsIdx;
             while (true) {
@@ -77,7 +76,8 @@ Vec<BacktrackRes> longestCommonSubsequence(
             return backtrack(lhsIdx - 1, rhsIdx);
         } else {
             return backtrack(lhsIdx - 1, rhsIdx)
-                 + backtrack(lhsIdx - 1, rhsIdx);
+                // + backtrack(lhsIdx - 1, rhsIdx)
+                ;
         }
     };
 
