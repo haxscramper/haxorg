@@ -11,6 +11,7 @@ items:
       - {kind: BoldEnd, str: "*"}
       - {kind: ParagraphEnd}
     subnodes:
+      - {kind: StmtList, extent: 3}
       - {kind: Paragraph, extent: 2}
       - {kind: Bold, extent: 1}
       - {kind: Word, tok_idx: 2, str: "bold"}

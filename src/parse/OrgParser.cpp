@@ -491,6 +491,11 @@ OrgId OrgParser::parseHashTag(OrgLexer& lex) {
         if (lex.at(otk::HashTag)) {
             parseHashTag(lex);
 
+        } else if (lex.at(otk::Word)) {
+            start(org::HashTag);
+            token(org::RawText, pop(lex, otk::Word));
+            end();
+
         } else {
             skip(lex, otk::HashTagBegin);
             while (!lex.finished() && !lex.at(otk::HashTagEnd)) {

@@ -8,7 +8,7 @@
 #include <sem/SemConvert.hpp>
 #include <exporters/exporteryaml.hpp>
 
-TEST(BaseLexTest, WriteOut) {
+TEST(BaseLexTest, DISABLED_WriteOut) {
     std::ifstream inFile("/home/haxscramper/tmp/doc2.org");
 
     if (!inFile.is_open()) { FAIL() << "Failed to open input.txt\n"; }

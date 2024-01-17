@@ -31,7 +31,6 @@ Field fieldN(
     return Field(Range(idx, name).doc(doc), OrgPattern(pattern));
 }
 
-
 std::unique_ptr<OrgSpec> getOrgSpec() {
     const IntSet<OrgNodeKind> anyTime{
         org::StaticActiveTime,
@@ -41,16 +40,15 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
     };
 
     const OrgPattern timeSpecPattern = OrgPattern({
-        Field(Range(0, N::Year), OrgPattern({org::RawText, org::Empty})),
-        Field(Range(1, N::Day), OrgPattern({org::RawText, org::Empty})),
-        Field(Range(2, N::Clock), OrgPattern({org::RawText, org::Empty})),
-        Field(
-            Range(3, N::Repeater), OrgPattern({org::RawText, org::Empty})),
+        fieldN(0, N::Year, {org::RawText, org::Empty}),
+        fieldN(1, N::Day, {org::RawText, org::Empty}),
+        fieldN(2, N::Clock, {org::RawText, org::Empty}),
+        fieldN(3, N::Repeater, {org::RawText, org::Empty}),
     });
 
     const OrgPattern rawTextCmdPattern = OrgPattern({
-        Field(Range(0, N::Name), OrgPattern(org::RawText)),
-        Field(Range(1, N::Args), OrgPattern(org::RawText)),
+        field1(0, N::Name, org::RawText),
+        field1(1, N::Args, org::RawText),
     });
 
     const OrgPattern parTextCmdPattern = OrgPattern({
@@ -71,72 +69,83 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             org::Subtree,
             OrgPattern({
-                Field(
-                    Range(0, N::Prefix)
-                        .doc("Starting prefix of the subtree"),
-                    OrgPattern(org::RawText)),
-                Field(
-                    Range(1, N::Todo)
-                        .doc("Optional TODO state of the subtree"),
-                    OrgPattern({org::BigIdent, org::Empty})),
-                Field(
-                    Range(2, N::Urgency)
-                        .doc("Optional urgency marker for the subtree"),
-                    OrgPattern({org::UrgencyStatus, org::Empty})),
-                Field(
-                    Range(3, N::Title)
-                        .doc("Paragraph of text -- title of the subtree"),
-                    OrgPattern(org::Paragraph)),
-                Field(
-                    Range(4, N::Completion)
-                        .doc("Cumulative or direct completion of the "
-                             "nested "
-                             "tree elements"),
-                    OrgPattern({org::Completion, org::Empty})),
-                Field(
-                    Range(5, N::Tags).doc("Trailing list of hashtags"),
-                    OrgPattern({org::InlineStmtList, org::Empty})),
-                Field(
-                    Range(6, N::Times)
-                        .doc(
-                            "Scheduled, closed, and/or deadline times for "
-                            "the subtree"),
-                    OrgPattern(org::StmtList)),
-                Field(
-                    Range(7, N::Drawer)
-                        .doc("Logbook, properties, description"),
-                    OrgPattern(org::Drawer)),
-                Field(
-                    Range(8, N::Body)
-                        .doc("Statement list of the nested nodes"),
-                    OrgPattern(org::StmtList)),
+                field1(
+                    0,
+                    N::Prefix,
+                    org::RawText,
+                    "Starting prefix of the subtree"),
+                fieldN(
+                    1,
+                    N::Todo,
+                    {org::BigIdent, org::Empty},
+                    "Optional TODO state of the subtree"),
+                fieldN(
+                    2,
+                    N::Urgency,
+                    {org::UrgencyStatus, org::Empty},
+                    "Optional urgency marker for the subtree"),
+                field1(
+                    3,
+                    N::Title,
+                    org::Paragraph,
+                    "Paragraph of text -- title of the subtree"),
+                fieldN(
+                    4,
+                    N::Completion,
+                    {org::Completion, org::Empty},
+                    "Cumulative or direct completion of the "
+                    "nested "
+                    "tree elements"),
+                fieldN(
+                    5,
+                    N::Tags,
+                    {org::InlineStmtList, org::Empty},
+                    "Trailing list of hashtags"),
+                field1(
+                    6,
+                    N::Times,
+                    org::StmtList,
+                    "Scheduled, closed, and/or deadline times for "
+                    "the subtree"),
+                field1(
+                    7,
+                    N::Drawer,
+                    org::Drawer,
+                    "Logbook, properties, description"),
+                field1(
+                    8,
+                    N::Body,
+                    org::StmtList,
+                    "Statement list of the nested nodes"),
             })},
         SpecPair{
             org::HashTag,
             OrgPattern({
-                Field(
-                    Range(0, N::Head)
-                        .doc("First item in the hash tag name: #tag"),
-                    OrgPattern(org::BigIdent)),
-                Field(
-                    Range(slice(1, 1_B), N::Subnodes)
-                        .doc("Zero or more nested elements for nested tag "
-                             "path"),
-                    OrgPattern(org::HashTag)),
+                fieldN(
+                    0,
+                    N::Head,
+                    {org::BigIdent, org::Word, org::RawText},
+                    "First item in the hash tag name: #tag"),
+                field1(
+                    slice(1, 1_B),
+                    N::Subnodes,
+                    org::HashTag,
+                    "Zero or more nested elements for nested tag path"),
             })},
         SpecPair{
             org::Drawer,
             OrgPattern({
-                Field(
-                    Range(0, N::Properties)
-                        .doc("Optional list of properties"),
-                    OrgPattern({org::PropertyList, org::Empty})),
-                Field(
-                    Range(1, N::Logbook)
-                        .doc(
-                            "Optional list of log entries attached to the "
-                            "subtree"),
-                    OrgPattern({org::Logbook, org::Empty})),
+                fieldN(
+                    0,
+                    N::Properties,
+                    {org::PropertyList, org::Empty},
+                    "Optional list of properties"),
+                fieldN(
+                    1,
+                    N::Logbook,
+                    {org::Logbook, org::Empty},
+                    "Optional list of log entries attached to the "
+                    "subtree"),
                 Field(
                     Range(2, N::Description)
                         .doc("Optional subtree description paragraph"),
@@ -313,17 +322,13 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             })},
         SpecPair{
             org::CmdValue,
-            OrgPattern(
-                {Field(Range(0, N::Name)), Field(Range(1, N::Value))}),
-        },
+            OrgPattern({fieldN(0, N::Name), fieldN(1, N::Value)})},
         SpecPair{
             org::AssocStmtList,
-            OrgPattern(
-                {Field(Range(0, N::Assoc)), Field(Range(1, N::Main))})},
+            OrgPattern({fieldN(0, N::Assoc), fieldN(1, N::Main)})},
         SpecPair{
             org::Result,
-            OrgPattern(
-                {Field(Range(0, N::Hash)), Field(Range(1, N::Body))})},
+            OrgPattern({fieldN(0, N::Hash), fieldN(1, N::Body)})},
         SpecPair{
             org::ListItem,
             OrgPattern({
@@ -369,7 +374,6 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(1, N::To, anyTime),
                 fieldN(2, N::Diff, {org::SimpleTime, org::Empty}),
             })},
-
         SpecPair{
             org::PropertyList,
             OrgPattern({

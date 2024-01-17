@@ -1,11 +1,12 @@
 items:
   - source: "#test##a"
-    debug:
-      doParse: false
-      traceLex: true
-      lexToFile: true
     tokens:
-      - {kind: HashTag}
+      - {kind: ParagraphBegin, str: ""}
+      - {kind: HashTag, str: "#test"}
+      - {kind: HashTagSub, str: "##"}
+      - {kind: Word, str: a}
+      - {kind: ParagraphEnd, str: ""}
+
 
   - source: "#test##[a, b]"
     debug:
