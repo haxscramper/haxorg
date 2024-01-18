@@ -409,7 +409,7 @@ struct RecombineState {
         } else if (auto next = lex.opt(+1);
                    next && next->get().kind == obt::Date) {
             maybe_paragraph_start();
-            pop_as(otk::InactiveTimeBegin);
+            pop_as(otk::BraceBegin);
             if (lex.at(obt::Date)) { pop_as(otk::StaticTimeDatePart); }
             if (!lex.at(obt::BraceClose)) {
                 lex.skip(obt::Whitespace);
@@ -421,7 +421,7 @@ struct RecombineState {
                 pop_as(otk::StaticTimeClockPart);
             }
 
-            pop_as(otk::InactiveTimeEnd);
+            pop_as(otk::BraceEnd);
         } else {
             maybe_paragraph_start();
             pop_as(otk::BraceBegin);

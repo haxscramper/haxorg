@@ -716,12 +716,6 @@ enum class OrgTokenKind : short int {
   ImplicitTime,
   /// \brief Time duration for the `effort` property or time range length evaluation
   TimeDuration,
-  /// \brief Start of the inactive timestamp (`[2022-03-12]`)
-  InactiveTimeBegin,
-  InactiveTimeEnd,
-  /// \brief Start of the active timestamp `<2030-02-03>`
-  ActiveTimeBegin,
-  ActiveTimeEnd,
   /// \brief Dynamic time content
   DynamicTimeContent,
   /// \brief year-month-day part of the timestamp

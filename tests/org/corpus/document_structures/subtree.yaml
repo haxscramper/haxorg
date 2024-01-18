@@ -32,9 +32,9 @@ items:
       - {kind: SubtreeStars, str: "*"}
       - {kind: Space, str: " "}
       - {kind: ParagraphBegin}
-      - {kind: InactiveTimeBegin, str: "["}
+      - {kind: BraceBegin, str: "["}
       - {kind: StaticTimeDatePart, str: "2023-03-05"}
-      - {kind: InactiveTimeEnd, str: "]"}
+      - {kind: BraceEnd, str: "]"}
       - {kind: Space, str: " "}
       - {kind: Word, str: Subtree}
       - {kind: Space, str: " "}

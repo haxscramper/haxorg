@@ -190,7 +190,6 @@ void OrgParser::textFold(OrgLexer& lex) {
             CASE_SINGLE(Colon);
 
             case otk::BraceEnd:
-            case otk::BraceBegin:
             case otk::ParEnd:
             case otk::ParBegin:
             case otk::QuoteEnd:
@@ -205,8 +204,6 @@ void OrgParser::textFold(OrgLexer& lex) {
 
 
             case otk::SrcBegin: parseSrcInline(lex); break;
-            case otk::ActiveTimeBegin:
-            case otk::InactiveTimeBegin: parseTimeRange(lex); break;
             case otk::HashTag: parseHashTag(lex); break;
             case otk::LinkBegin: parseLink(lex); break;
             case otk::MacroBegin: parseMacro(lex); break;
@@ -218,6 +215,15 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::LatexParBegin:
             case otk::DoubleDollarBegin:
             case otk::LatexBraceBegin: parseInlineMath(lex); break;
+
+            case otk::BraceBegin: {
+                if (lex.at(otk::StaticTimeDatePart, +1)) {
+                    parseTimeRange(lex);
+                } else {
+                    token(org::Punctuation, pop(lex, lex.kind()));
+                }
+                break;
+            }
 
             case otk::AtMention: {
                 token(org::AtMention, pop(lex, otk::AtMention));
@@ -425,9 +431,9 @@ OrgId OrgParser::parseHashTag(OrgLexer& lex) {
 OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
     __perf_trace("parseTimeStamp");
     auto __trace = trace(lex);
-    expect(lex, OrgTokSet{otk::InactiveTimeBegin, otk::ActiveTimeBegin});
-    bool active = lex.at(otk::ActiveTimeBegin);
-    skip(lex, active ? otk::ActiveTimeBegin : otk::InactiveTimeBegin);
+    expect(lex, OrgTokSet{otk::BraceBegin, otk::AngleBegin});
+    bool active = lex.at(otk::AngleBegin);
+    skip(lex, active ? otk::AngleBegin : otk::BraceBegin);
     if (!lex.at(otk::DynamicTimeContent)) {
         if (active) {
             start(org::StaticActiveTime);
@@ -481,7 +487,7 @@ OrgId OrgParser::parseTimeStamp(OrgLexer& lex) {
         end();
     }
 
-    skip(lex, active ? otk::ActiveTimeEnd : otk::InactiveTimeEnd);
+    skip(lex, active ? otk::AngleEnd : otk::BraceEnd);
     return back();
 }
 
@@ -490,10 +496,10 @@ OrgId OrgParser::parseTimeRange(OrgLexer& lex) {
     __perf_trace("parseTimeRange");
     auto            __trace = trace(lex);
     const OrgTokSet times{
-        otk::InactiveTimeBegin,
-        otk::InactiveTimeEnd,
-        otk::ActiveTimeBegin,
-        otk::ActiveTimeEnd,
+        otk::BraceBegin,
+        otk::BraceEnd,
+        otk::AngleBegin,
+        otk::AngleEnd,
         otk::DynamicTimeContent,
         otk::StaticTimeDatePart,
         otk::StaticTimeDayPart,

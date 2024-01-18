@@ -10,24 +10,18 @@ struct MockParser {
         : nodes(nullptr), lex(&tokens) {
         parser       = std::make_shared<OrgParser>(&nodes);
         nodes.tokens = &tokens;
-        for (const auto k : kinds) {
-            (void)tokens.add(OrgToken(k));
-        }
+        for (const auto k : kinds) { (void)tokens.add(OrgToken(k)); }
     }
 
     void add(Vec<OrgTokenKind> kinds) {
-        for (const auto k : kinds) {
-            (void)tokens.add(OrgToken(k));
-        }
+        for (const auto k : kinds) { (void)tokens.add(OrgToken(k)); }
     }
 
     void         add(OrgTokenKind k) { (void)tokens.add(OrgToken(k)); }
     OrgNode&     operator[](int idx) { return nodes.at(OrgId(idx)); }
     Vec<OrgNode> flat() const {
         Vec<OrgNode> res;
-        for (const auto& n : nodes.nodes.items()) {
-            res.push_back(*n);
-        }
+        for (const auto& n : nodes.nodes.items()) { res.push_back(*n); }
         return res;
     }
 };
@@ -51,9 +45,7 @@ struct TmpTree {
     Vec<OrgNode> flatten() const {
         Vec<OrgNode> flatSub;
         flatSub.push_back(head);
-        for (const auto& s : sub) {
-            flatSub.append(s.flatten());
-        }
+        for (const auto& s : sub) { flatSub.append(s.flatten()); }
         if (flatSub[0].isNonTerminal()) {
             flatSub[0].extend(flatSub.size() - 1);
         }
@@ -74,23 +66,20 @@ class ParserTest : public ::testing::Test {
 };
 
 TEST_F(ParserTest, ParseSingleTimeEntry) {
-    p.add(
-        {otk::InactiveTimeBegin,
-         otk::StaticTimeDatePart,
-         otk::InactiveTimeEnd});
+    p.add({otk::BraceBegin, otk::StaticTimeDatePart, otk::BraceEnd});
     (void)p.parser->parseTimeStamp(p.lex);
     EXPECT_EQ(p[0], tok(org::StaticInactiveTime, 0));
 }
 
 TEST_F(ParserTest, ParseTimeRange) {
     p.add({
-        otk::InactiveTimeBegin,
+        otk::BraceBegin,
         otk::StaticTimeDatePart,
-        otk::InactiveTimeEnd,
+        otk::BraceEnd,
         otk::TimeDash,
-        otk::InactiveTimeBegin,
+        otk::BraceBegin,
         otk::StaticTimeDatePart,
-        otk::InactiveTimeEnd,
+        otk::BraceEnd,
     });
     (void)p.parser->parseTimeRange(p.lex);
     EXPECT_EQ(p[0].kind, org::TimeRange);

@@ -1617,14 +1617,6 @@ def get_org_token_kind() -> GenTuEnum:
                 "Time duration for the `effort` property or time range length evaluation"
             ),
         ),
-        GenTuEnumField(
-            "InactiveTimeBegin",
-            GenTuDoc("Start of the inactive timestamp (`[2022-03-12]`)"),
-        ),
-        GenTuEnumField("InactiveTimeEnd", GenTuDoc("")),
-        GenTuEnumField("ActiveTimeBegin",
-                       GenTuDoc("Start of the active timestamp `<2030-02-03>`")),
-        GenTuEnumField("ActiveTimeEnd", GenTuDoc("")),
         GenTuEnumField("DynamicTimeContent", GenTuDoc("Dynamic time content")),
         GenTuEnumField("StaticTimeDatePart",
                        GenTuDoc("year-month-day part of the timestamp")),

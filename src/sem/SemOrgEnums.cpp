@@ -711,10 +711,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "PropTextKey") { return OrgTokenKind::PropTextKey; } else
   if (value == "ImplicitTime") { return OrgTokenKind::ImplicitTime; } else
   if (value == "TimeDuration") { return OrgTokenKind::TimeDuration; } else
-  if (value == "InactiveTimeBegin") { return OrgTokenKind::InactiveTimeBegin; } else
-  if (value == "InactiveTimeEnd") { return OrgTokenKind::InactiveTimeEnd; } else
-  if (value == "ActiveTimeBegin") { return OrgTokenKind::ActiveTimeBegin; } else
-  if (value == "ActiveTimeEnd") { return OrgTokenKind::ActiveTimeEnd; } else
   if (value == "DynamicTimeContent") { return OrgTokenKind::DynamicTimeContent; } else
   if (value == "StaticTimeDatePart") { return OrgTokenKind::StaticTimeDatePart; } else
   if (value == "StaticTimeDayPart") { return OrgTokenKind::StaticTimeDayPart; } else
@@ -952,10 +948,6 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::PropTextKey: return "PropTextKey";
     case OrgTokenKind::ImplicitTime: return "ImplicitTime";
     case OrgTokenKind::TimeDuration: return "TimeDuration";
-    case OrgTokenKind::InactiveTimeBegin: return "InactiveTimeBegin";
-    case OrgTokenKind::InactiveTimeEnd: return "InactiveTimeEnd";
-    case OrgTokenKind::ActiveTimeBegin: return "ActiveTimeBegin";
-    case OrgTokenKind::ActiveTimeEnd: return "ActiveTimeEnd";
     case OrgTokenKind::DynamicTimeContent: return "DynamicTimeContent";
     case OrgTokenKind::StaticTimeDatePart: return "StaticTimeDatePart";
     case OrgTokenKind::StaticTimeDayPart: return "StaticTimeDayPart";
