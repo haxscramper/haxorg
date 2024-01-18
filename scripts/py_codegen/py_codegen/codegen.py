@@ -295,8 +295,6 @@ def py_type_bind(Typ: QualType) -> pya.PyType:
 
 @beartype
 def py_type(Typ: QualType) -> pya.PyType:
-
-    name = ""
     flat = [N for N in flat_scope(Typ) if N != "sem"]
     match flat:
         case ["Vec"]:

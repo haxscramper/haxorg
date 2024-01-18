@@ -1,4 +1,5 @@
 /* clang-format off */
+#if false
 #undef slots
 #include <pybind11/pybind11.h>
 #include <sem/SemOrg.hpp>
@@ -1781,3 +1782,4 @@ return state.)RAW")
     ;
 }
 /* clang-format on */
+#endif

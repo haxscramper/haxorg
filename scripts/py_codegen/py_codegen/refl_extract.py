@@ -356,6 +356,9 @@ def write_run_result_information(
         sep("Flags:")
         file.write(" ^\n    ".join([conf.indexing_tool] + tu.flags))
 
+        sep("Serialized data:")
+        file.write(open_proto_file(str(tu.pb_path)).to_json(2))
+
     if conf.print_reflection_run_fail_to_stdout:
         buffer = io.StringIO()
         write_reflection_stats(buffer)

@@ -228,7 +228,7 @@ def create_graph(call_map: Dict[Callable, List[Callable]]) -> graphviz.Digraph:
 
 @org_task()
 def org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot"):
-    "Generate graphviz for task graph"
+    """Generate graphviz for task graph"""
     graph = create_graph(TASK_DEPS)
     with open(dot_file, "w") as file:
         file.write(graph.source)
@@ -237,7 +237,7 @@ def org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot"):
 
 @org_task()
 def git_init_submodules(ctx: Context):
-    "Init submodules if missing"
+    """Init submodules if missing"""
     if get_script_root().joinpath("thirdparty/mp11").exists():
         log().info("Submodules were checked out")
     else:
@@ -248,7 +248,7 @@ def git_init_submodules(ctx: Context):
 
 @org_task()
 def download_llvm(ctx: Context):
-    "Download LLVM toolchain if missing"
+    """Download LLVM toolchain if missing"""
     llvm_dir = get_script_root("toolchain/llvm")
     if not os.path.isdir(llvm_dir):
         log().info("LLVM not found. Downloading...")
@@ -271,7 +271,7 @@ def download_llvm(ctx: Context):
 
 @org_task(pre=[git_init_submodules, download_llvm])
 def base_environment(ctx: Context):
-    "Ensure base dependencies are installed"
+    """Ensure base dependencies are installed"""
     pass
 
 
@@ -310,7 +310,7 @@ REFLEX_PATH = "toolchain/RE-flex/build/reflex"
 
 @org_task(pre=[base_environment])
 def reflex_lexer_generator(ctx: Context):
-    "Build reflex lexer generator"
+    """Build reflex lexer generator"""
     expected = get_script_root(REFLEX_PATH)
     if not expected.exists():
         run_command(ctx, "cmake", [
@@ -329,7 +329,7 @@ def reflex_lexer_generator(ctx: Context):
 
 @org_task(pre=[base_environment, reflex_lexer_generator], force_notify=True)
 def haxorg_base_lexer(ctx: Context):
-    "Generate base lexer file definitions and compile them to C code"
+    """Generate base lexer file definitions and compile them to C code"""
     py_file = get_script_root("src/base_lexer/base_lexer.py")
     gen_lexer = get_script_root("src/base_lexer/base_lexer.l")
     reflex_run_params = [
@@ -361,7 +361,7 @@ def haxorg_base_lexer(ctx: Context):
 
 @org_task()
 def python_protobuf_files(ctx: Context):
-    "Generate new python code from the protobuf reflection files"
+    """Generate new python code from the protobuf reflection files"""
     proto_config = get_script_root("scripts/cxx_codegen/reflection_defs.proto")
     with FileOperation.InTmp(
         [proto_config],
@@ -430,7 +430,7 @@ def cmake_configure_haxorg(ctx: Context):
 
 @org_task(pre=[cmake_configure_haxorg])
 def cmake_haxorg(ctx: Context):
-    "Compile main set of libraries and binaries for org-mode parser"
+    """Compile main set of libraries and binaries for org-mode parser"""
     build_dir = f'build/haxorg_{"debug" if is_debug(ctx) else "release"}'
     with FileOperation.InTmp(
         [
@@ -494,7 +494,7 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
 
 @org_task(pre=[cmake_utils, python_protobuf_files])
 def update_py_haxorg_reflection(ctx: Context):
-    "Generate new source code reflection file for the python source code wrapper"
+    """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = local.path("build/haxorg/compile_commands.json")
     include_dir = local.path(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
     out_file = local.path("build/reflection.pb")

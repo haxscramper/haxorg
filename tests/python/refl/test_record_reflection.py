@@ -92,9 +92,8 @@ def test_anon_struct_for_field_2():
     assert field.type.name == "Named"
 
 
-@pytest.mark.xfail(reason="Namespace extraction for inner types is not implemented yet")
 def test_namespace_extraction_for_nested_struct():
-    struct = get_struct("struct Main { struct Nested {}; Nested field; }")
+    struct = get_struct("struct Main { struct Nested {}; Nested field; };", code_dir_override=Path("/tmp/test_namespace_extraction_for_nested_struct"))
     field = struct.fields[0]
     assert len(field.type.Spaces) == 1
     assert len(field.type.Spaces[0].name) == "Main"
@@ -115,7 +114,7 @@ def test_nim_record_conversion():
     assert len(conv.types) == 1
     record = conv.types[0]
     assert record.Name == "Main"
-    assert record.Exported == True
+    assert record.Exported
     assert any(p.Name == "bycopy" for p in record.Pragmas)
 
 
