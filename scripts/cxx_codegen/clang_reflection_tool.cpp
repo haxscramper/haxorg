@@ -70,9 +70,7 @@ std::vector<std::string> parseTargetFiles(std::string path) {
     }
 
     llvm::json::Array* arr = parsed->getAsArray();
-    if (!arr) {
-        throw std::domain_error("JSON is not an array");
-    }
+    if (!arr) { throw std::domain_error("JSON is not an array"); }
 
     std::vector<std::string> result;
     for (auto& val : *arr) {
@@ -86,7 +84,9 @@ std::vector<std::string> parseTargetFiles(std::string path) {
 }
 
 
-std::ostream& LOG_CERR() { return std::cerr << "[clang-reflect] "; }
+std::ostream& LOG_CERR(int line = __builtin_LINE()) {
+    return std::cerr << std::format("[clang-reflect] {} ", line);
+}
 
 
 class ReflFrontendAction : public clang::ASTFrontendAction {
@@ -125,20 +125,35 @@ class ReflFrontendAction : public clang::ASTFrontendAction {
 clang::tooling::CommandLineArguments dropReflectionPLugin(
     const clang::tooling::CommandLineArguments& Args,
     llvm::StringRef                             Filename) {
-
     clang::tooling::CommandLineArguments filteredArgs;
+
+    auto push = [&](std::string const& value,
+                    int                line = __builtin_LINE()) {
+        LOG_CERR(line) << "+++ Adding " << value << std::endl;
+        filteredArgs.push_back(value);
+    };
+
     for (size_t i = 0; i < Args.size(); ++i) {
+        auto drop = [&](int line = __builtin_LINE()) {
+            LOG_CERR(line) << "!!! Discarding " << Args[i] << std::endl;
+        };
+
         // Skip unwanted arguments
         if (Args[i] == "-Xclang" && (i + 1 < Args.size())
             && (Args[i + 1] == "-add-plugin"
                 || Args[i + 1] == "refl-plugin"
                 || Args[i + 1].starts_with("out=")
                 || Args[i + 1] == "-plugin-arg-refl-plugin")) {
+
             i++;
+            drop();
         } else if (Args[i].find("-fplugin=") != std::string::npos) {
+            drop();
         } else if (Args[i].starts_with("@")) {
+            drop();
         } else if (
             Args[i].starts_with("-W") && !Args[i].starts_with("-Wno")) {
+            drop();
         } else if (
             (i + 3 < Args.size())   //
             && Args[i] == "-Xclang" //
@@ -147,23 +162,63 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
             && Args[i + 2] == "-Xclang"       //
             && (Args[i + 3].ends_with("pch")
                 || Args[i + 3].find("cmake_pch") != std::string::npos)) {
-            i += 3;
+            drop();
+            ++i;
+            drop();
+            ++i;
+            drop();
+            ++i;
+            drop();
 
         } else {
-            filteredArgs.push_back(Args[i]);
+            push(Args[i]);
         }
     }
 
     // TODO Redirect warnings and other diagnostics into a temporary
     // location Use serif output.
-    filteredArgs.push_back("-Wno-everything");
-    filteredArgs.push_back("-isystem");
-    filteredArgs.push_back(ToolchainInclude);
+    push("-Wno-everything");
+    push("-v");
+    push("-I" + ToolchainInclude);
+    /*
+     * Clang with custom LLVM toolchain is able to find toolchain include
+     * correctly and append it to the path, but with this separate tool the
+     * order of includes is wrong. It puts `ToolchainInclude` first and
+     * then there are duplicates of C++-specific include headers.
+     *
+     * The desired order is -- doing it the other way around triggers
+     * explicit ordering guards in the cstddef.
+     *
+     * ```
+     * llvm/include/c++/v1
+     * llvm/include/x86_64-unknown-linux-gnu/c++/v1
+     * llvm/lib/clang/17/include
+     * ```
+     *
+     * The ordering above satisfies check from c++/v1/cstddef:43
+     *
+     * ```
+     * #include <stddef.h>
+     * #ifndef _LIBCPP_STDDEF_H
+     * #   error <cstddef> tried including <stddef.h> but didn't find libc++'s <stddef.h> header. \
+     * #endif
+     * ```
+     *
+     * I have a high confidence that the whole approach of CLI argument
+     * rewriting here is not correct and instead I need to convince the
+     * reflection tool to actually construct the default stdinc++ path
+     * correctly right away, but at the moment whatever I wrote also works.
+     */
+    push("-nostdinc++");
 
     LOG_CERR() << "Filtered command line arguments\n";
     for (auto const& arg : filteredArgs) {
         LOG_CERR() << "[ ] " << arg << "\n";
     }
+
+    LOG_CERR() << ":: ";
+    for (auto const& arg : filteredArgs) { std::cerr << " " << arg; }
+    std::cerr << "\n";
 
     return filteredArgs;
 }
@@ -192,6 +247,9 @@ int main(int argc, const char** argv) {
                    << std::endl;
         LOG_CERR() << ErrorMessage;
         return 1;
+    } else {
+        LOG_CERR() << "Using compilation database " << CompilationDB
+                   << "\n";
     }
 
     clang::tooling::ArgumentsAdjustingCompilations adjustedCompilations(
@@ -210,6 +268,9 @@ int main(int argc, const char** argv) {
             return 1;
         }
     }
+
+    LOG_CERR() << "Using toolchain include " << ToolchainInclude
+               << std::endl;
 
     LOG_CERR() << "Configuration parse OK, running tool\n";
     int result = tool.run(

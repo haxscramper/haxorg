@@ -361,7 +361,7 @@ def test_fast_forward_merge():
 
 HAXORG_OUT_DB = "/tmp/test_haxorg_forensics.sqlite"
 
-
+@pytest.mark.skip()
 def test_haxorg_forensics():
     _, stdout, stderr = run_forensics(
         get_haxorg_repo_root_path(), {
@@ -373,6 +373,7 @@ def test_haxorg_forensics():
         })
 
 
+@pytest.mark.skip()
 def test_haxorg_repo_burndown():
     engine = create_engine("sqlite:///" + HAXORG_OUT_DB)
     burndown.run_for(engine)

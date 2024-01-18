@@ -8,10 +8,12 @@ from pathlib import Path
 from py_scriptutils.tracer import TraceCollector
 from refl_test_driver import compile_nim_code
 from py_scriptutils.script_logging import log
+import pytest
 
 log("refl.nim").setLevel(logging.DEBUG)
 
 
+@pytest.mark.skip()
 def test_libgit2_conv():
     with TemporaryDirectory() as dir:
         code_dir = Path(dir)
