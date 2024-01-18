@@ -96,7 +96,7 @@ def test_namespace_extraction_for_nested_struct():
     struct = get_struct("struct Main { struct Nested {}; Nested field; };", code_dir_override=Path("/tmp/test_namespace_extraction_for_nested_struct"))
     field = struct.fields[0]
     assert len(field.type.Spaces) == 1
-    assert len(field.type.Spaces[0].name) == "Main"
+    assert field.type.Spaces[0].name == "Main"
 
 
 def test_namespace_extraction():

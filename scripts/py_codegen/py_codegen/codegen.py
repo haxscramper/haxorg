@@ -1045,8 +1045,6 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 else:
                     seen_types.add(T)
 
-                print(f"Formatting type {T.format()} {T}")
-
                 if T.name == "Vec":
                     stdvec_t = QualType.ForName("vector",
                                                 Spaces=[QualType.ForName("std")],

@@ -83,6 +83,12 @@ void add_debug(
     it->mutable_dbgorigin()->append(std::format(" [{}]{}", line, msg));
 }
 
+std::ostream& errs(
+    int         line     = __builtin_LINE(),
+    char const* function = __builtin_FUNCTION()) {
+    return std::cerr << std::format("[refl-lib] [{}:{}] ", function, line);
+}
+
 std::string formatSourceLocation(
     const clang::SourceLocation& loc,
     clang::SourceManager&        srcMgr) {
@@ -234,12 +240,22 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 std::vector<QualType> ReflASTVisitor::getNamespaces(
     clang::Decl*                                Decl,
     const std::optional<clang::SourceLocation>& Loc) {
-    llvm::SmallVector<clang::NamespaceDecl*> spaces;
-    clang::DeclContext*                      dc = Decl->getDeclContext();
+    llvm::SmallVector<
+        std::variant<clang::NamespaceDecl*, clang::CXXRecordDecl*>>
+                        spaces;
+    clang::DeclContext* dc = Decl->getDeclContext();
     while (dc) {
         if (clang::NamespaceDecl* ns = llvm::dyn_cast<
                 clang::NamespaceDecl>(dc)) {
             spaces.push_back(ns);
+        } else if (
+            clang::CXXRecordDecl* ns = llvm::dyn_cast<
+                clang::CXXRecordDecl>(dc)) {
+            spaces.push_back(ns);
+        }
+        if (llvm::dyn_cast<clang::TranslationUnitDecl>(dc)) {
+        } else {
+            errs() << dc->getDeclKindName() << "\n";
         }
         dc = dc->getParent();
     }
@@ -247,12 +263,22 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 
     std::vector<QualType> result;
 
-    for (auto const* nns : spaces) {
-        if (!nns->isAnonymousNamespace() && !nns->isInlineNamespace()) {
-            auto space = &result.emplace_back();
-            add_debug(space, "regular type namespaces");
-            space->set_name(nns->getNameAsString());
-            space->set_isnamespace(true);
+    for (auto const& space : spaces) {
+        if (space.index() == 0) {
+            auto const* nns = std::get<0>(space);
+            if (!nns->isAnonymousNamespace()
+                && !nns->isInlineNamespace()) {
+                auto space = &result.emplace_back();
+                add_debug(space, "regular type namespaces");
+                space->set_name(nns->getNameAsString());
+                space->set_isnamespace(true);
+            }
+        } else if (space.index() == 1) {
+            auto const* rec   = std::get<1>(space);
+            auto        space = &result.emplace_back();
+            add_debug(space, "type namespace");
+            space->set_name(rec->getNameAsString());
+            space->set_isnamespace(false);
         }
     }
 
@@ -410,13 +436,7 @@ void ReflASTVisitor::fillType(
 
         } else if (In->isRecordType()) {
             applyNamespaces(Out, getNamespaces(In, Loc));
-
-            add_debug(
-                Out,
-                "record type filler "
-                    + formatSourceLocation(
-                        Loc.value(), Ctx->getSourceManager()));
-
+            add_debug(Out, " >record");
             Out->set_name(In->getAs<clang::RecordType>()
                               ->getDecl()
                               ->getNameAsString());
