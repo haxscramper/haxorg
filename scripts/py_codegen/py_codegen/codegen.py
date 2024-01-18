@@ -1032,9 +1032,10 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 def rec_drop(T: QualType) -> QualType:
                     return T.model_copy(
                         update=dict(isConst=False,
-                                    isRef=False,
-                                    isPtr=False,
+                                    RefKind=ReferenceKind.NotRef,
+                                    ptrCount=0,
                                     isNamespace=False,
+                                    meta=dict(),
                                     Spaces=[rec_drop(S) for S in T.Spaces],
                                     Parameters=[rec_drop(P) for P in T.Parameters]))
 
@@ -1045,6 +1046,8 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
 
                 else:
                     seen_types.add(T)
+
+                print(f"Formatting type {T.format()} {T}")
 
                 if T.name == "Vec":
                     stdvec_t = QualType.ForName("vector",
@@ -1092,8 +1095,8 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                   get_exporter_methods(True, expanded))),
         GenUnit(
             GenTu(
-                # "{base}/py_libs/pyhaxorg/pyhaxorg.cpp",
-                "/tmp/pyhaxorg.cpp",
+                "{base}/py_libs/pyhaxorg/pyhaxorg.cpp",
+                # "/tmp/pyhaxorg.cpp",
                 [
                     GenTuPass("#undef slots"),
                     GenTuInclude("pybind11/pybind11.h", True),
