@@ -669,6 +669,7 @@ struct RecombineState {
             case obt::CmdExampleLine: pop_as(otk::RawText); break;
             case obt::Ampersand: par_as(otk::Punctuation); break;
             case obt::AnyPunct: par_as(otk::Punctuation); break;
+            case obt::Symbol: par_as(otk::SymbolBegin); break;
             case obt::TreePropertyProperties:
                 pop_as(otk::ColonProperties);
                 break;
@@ -692,6 +693,7 @@ struct RecombineState {
             case obt::MacroEnd: par_as(otk::MacroEnd); break;
             case obt::At: par_as(otk::AtMention); break;
             case obt::FootnoteBegin: par_as(otk::FootnoteBegin); break;
+            case obt::TextSeparator: pop_as(otk::TextSeparator); break;
 
 
             case obt::Whitespace: {
@@ -732,7 +734,13 @@ struct RecombineState {
 
             case obt::CmdExampleEnd: {
                 add_fake(otk::CmdPrefix);
-                pop_as(otk::CmdSrcEnd);
+                pop_as(otk::CmdExampleEnd);
+                break;
+            }
+
+            case obt::CmdExportEnd: {
+                add_fake(otk::CmdPrefix);
+                pop_as(otk::CmdExportEnd);
                 break;
             }
 
@@ -974,6 +982,7 @@ struct LineToken {
         obt::CmdCenterEnd,
         obt::CmdExampleEnd,
         obt::CmdQuoteEnd,
+        obt::CmdExportEnd,
     };
 
     IntSet<BaseTokenKind> CmdBlockOpen{
@@ -1001,7 +1010,7 @@ struct LineToken {
         } else if (CmdBlockOpen.contains(kind)) {
             return Kind::BlockOpen;
         } else if (CmdBlockClose.contains(kind)) {
-            return Kind::BlockOpen;
+            return Kind::BlockClose;
         } else {
             return std::nullopt;
         }
@@ -1131,10 +1140,15 @@ Vec<GroupToken> to_groups(Vec<LineToken>& lines) {
     auto it  = lines.begin();
     auto end = lines.end();
     while (it != lines.end()) {
-        auto nextline   = [&]() { ++it; };
+        auto nextline = [&]() {
+            // LOG(INFO) << fmt(">> {}", *it);
+            ++it;
+        };
         auto skip_block = [&]() {
+            // LOG(INFO) << "SKIP BEGIN";
             while (it != end && it->kind != LK::BlockClose) { nextline(); }
             if (it != end) { nextline(); }
+            // LOG(INFO) << "SKIP END";
         };
 
         IntSet<LK> regular_kinds{
@@ -1212,7 +1226,7 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
         auto idx = regroup.add(BaseToken{kind});
         print(
             lex,
-            fmt("[{:<3}] fake  {:<48} indents {:<32}",
+            fmt("    [{:<3}] fake  {:<48} indents {:<32}",
                 idx.getIndex(),
                 fmt1(kind),
                 fmt1(indentStack)),
@@ -1226,7 +1240,7 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
         auto idx = regroup.add(tok);
         print(
             lex,
-            fmt("[{:<3}] token {:<48} indents {:<32}",
+            fmt("    [{:<3}] token {:<48} indents {:<32}",
                 idx.getIndex(),
                 fmt1(tok),
                 fmt1(indentStack)),
@@ -1266,7 +1280,13 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
 
     for (auto gr_index = 0; gr_index < groups.size(); ++gr_index) {
         auto const& gr = groups.at(gr_index);
-        print(lex, fmt("GR:[{:<2}] indent={}", gr_index, gr.indent()));
+        print(
+            lex,
+            fmt("GROUP [{:<2}] indent={} kind={}",
+                gr_index,
+                gr.indent(),
+                gr.kind));
+
         if (gr.kind == GK::ListItem) {
             if (indentStack.empty()) {
                 add_fake(obt::ListStart);
@@ -1309,12 +1329,20 @@ void OrgTokenizer::recombine(BaseLexer& lex) {
                 add_fake(obt::StmtListClose);
                 add_fake(obt::ListItemEnd);
                 indentStack.pop_back();
-            }
 
-            if (indentStack.empty()) { add_fake(obt::ListEnd); }
+                if (indentStack.empty()) {
+                    add_fake(obt::ListEnd);
+                } else {
+                    add_fake(obt::Dedent);
+                }
+            }
         }
 
         for (CR<LineToken> line : gr.lines) {
+            print(
+                lex,
+                fmt("  LINE: indent={} kind={}", line.indent, line.kind));
+
             auto const& tokens = line.tokens;
             for (int tok_idx = 0; tok_idx < tokens.size(); ++tok_idx) {
                 auto const& tok = tokens.at(tok_idx);

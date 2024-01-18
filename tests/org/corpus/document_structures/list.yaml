@@ -17,9 +17,6 @@ items:
       - {kind: ListEnd}
 
   - name: "List with two items"
-    debug: 
-      printSemToFile: true
-
     source: |
       - Item1
       - Item2
@@ -72,8 +69,6 @@ items:
 
 
   - name: "List with two adjacent items, first one is multiline"
-    debug:
-      printSemToFile: true
     source: |
       - Item1
         Line1
@@ -133,9 +128,6 @@ items:
 
 
   - name: "Nested list with two items"
-    debug:
-      traceAll: true
-      
     source: |
       - Item1
         - Nested1
@@ -298,18 +290,13 @@ items:
       - {kind: StmtListEnd}
 
       - {kind: ListItemEnd}
+      - {kind: Dedent}
       - {kind: StmtListEnd}
 
       - {kind: ListItemEnd}
-      - {kind: Dedent}
       - {kind: ListEnd}
       
   - name: "List with unindented source code block"
-    debug:
-      printSemToFile: true
-      traceParse: true
-      parseToFile: true
-
     source: |
       - Item1
         #+begin_src nim
@@ -571,14 +558,6 @@ items:
   - name: "Indent and dedent long list, subset"
     conf:
       tokenMatch: "ExpectedSubset"
-    # debug:
-    #   print_lexed: true
-    #   print_lexed_to_file: true
-      # print_source: true
-      # trace_lex: true
-      # trace_parse: true
-      # lex_to_file: true
-
     source: |
         - item1
         - item2

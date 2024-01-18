@@ -16,8 +16,9 @@ std::string BaseLexerImpl::state_name(int state) {
         case 12: return "COMMAND_ARGS";
         case 13: return "COMMAND_TBLFM";
         case 14: return "BODY_SRC";
-        case 15: return "PROPERTIES";
-        case 16: return "PROPERTY_LITERAL";
+        case 15: return "BODY_EXPORT";
+        case 16: return "PROPERTIES";
+        case 17: return "PROPERTY_LITERAL";
         default: return std::to_string(state);
     }
 }
@@ -116,10 +117,12 @@ std::string enum_serde<BaseTokenKind>::to_string(const BaseTokenKind &value) {
         case BaseTokenKind::StmtListOpen: return "StmtListOpen";
         case BaseTokenKind::SubtreePriority: return "SubtreePriority";
         case BaseTokenKind::SubtreeStars: return "SubtreeStars";
+        case BaseTokenKind::Symbol: return "Symbol";
         case BaseTokenKind::TblAssign: return "TblAssign";
         case BaseTokenKind::TblColumnRef: return "TblColumnRef";
         case BaseTokenKind::TblOperator: return "TblOperator";
         case BaseTokenKind::TblRelativeColumnRef: return "TblRelativeColumnRef";
+        case BaseTokenKind::TextSeparator: return "TextSeparator";
         case BaseTokenKind::Tilda: return "Tilda";
         case BaseTokenKind::Time: return "Time";
         case BaseTokenKind::TimeArrow: return "TimeArrow";
@@ -230,10 +233,12 @@ Opt<BaseTokenKind> enum_serde<BaseTokenKind>::from_string(std::string const& val
   if (value == "StmtListOpen") { return BaseTokenKind::StmtListOpen; } else
   if (value == "SubtreePriority") { return BaseTokenKind::SubtreePriority; } else
   if (value == "SubtreeStars") { return BaseTokenKind::SubtreeStars; } else
+  if (value == "Symbol") { return BaseTokenKind::Symbol; } else
   if (value == "TblAssign") { return BaseTokenKind::TblAssign; } else
   if (value == "TblColumnRef") { return BaseTokenKind::TblColumnRef; } else
   if (value == "TblOperator") { return BaseTokenKind::TblOperator; } else
   if (value == "TblRelativeColumnRef") { return BaseTokenKind::TblRelativeColumnRef; } else
+  if (value == "TextSeparator") { return BaseTokenKind::TextSeparator; } else
   if (value == "Tilda") { return BaseTokenKind::Tilda; } else
   if (value == "Time") { return BaseTokenKind::Time; } else
   if (value == "TimeArrow") { return BaseTokenKind::TimeArrow; } else

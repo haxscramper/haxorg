@@ -632,6 +632,25 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
     }
 }
 
+void filterFields(
+    json&                           j,
+    const std::vector<std::string>& fieldsToRemove) {
+    if (j.is_object()) {
+        for (auto it = j.begin(); it != j.end();) {
+            if (std::find(
+                    fieldsToRemove.begin(), fieldsToRemove.end(), it.key())
+                != fieldsToRemove.end()) {
+                it = j.erase(it);
+            } else {
+                filterFields(*it, fieldsToRemove);
+                ++it;
+            }
+        }
+    } else if (j.is_array()) {
+        for (json& el : j) { filterFields(el, fieldsToRemove); }
+    }
+}
+
 CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     CR<ParseSpec> spec,
     sem::SemId    node,
@@ -643,7 +662,8 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
         exporterVisit<ExporterJson>(trace, ev);
     };
 
-    json          converted = exporter.evalTop(node);
+    json converted = exporter.evalTop(node);
+    filterFields(converted, {"loc", "placementContext"});
     Vec<DiffItem> diff      = json_diff(converted, expected);
     int           failCount = 0;
     ColStream     os;
@@ -697,10 +717,12 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
             },
             rs::max(converted_lines | rv::transform([](CR<Str> s) {
                         return s.size();
-                    })),
+                    }))
+                + 8,
             rs::max(expected_lines | rv::transform([](CR<Str> s) {
                         return s.size();
-                    })));
+                    }))
+                + 8);
 
 
         return {{.isOk = false, .failDescribe = os.getBuffer()}};

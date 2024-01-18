@@ -10,7 +10,6 @@ states:
   - { kind: state, name: PROPERTY_LEAD }
   - { kind: state, name: LOGBOOK_LEAD }
 
-
   - { kind: xstate, name: COMMAND }
   - { kind: xstate, name: COMMAND_RAW }
   - { kind: xstate, name: COMMAND_EXAMPLE }
@@ -19,6 +18,7 @@ states:
   - { kind: xstate, name: COMMAND_ARGS }
   - { kind: xstate, name: COMMAND_TBLFM }
   - { kind: xstate, name: BODY_SRC }
+  - { kind: xstate, name: BODY_EXPORT }
   - { kind: xstate, name: PROPERTIES }
   - { kind: xstate, name: PROPERTY_LITERAL }
 
@@ -32,12 +32,12 @@ rx_macros:
   - { name: argument_properties, value: "header-args" }
   - { name: text_properties, value: "description" }
   - { name: dsl_links, value: "file|attachment|id" }
-  # Property colon with optional text extension pattern an any number of 
+  # Property colon with optional text extension pattern an any number of
   # following spaces. Used both in line command directives and subtree
   # properties
   - { name: prop_colon, value: "\\+?:[\\h\\xA0]*" }
 
-tokens: 
+tokens:
   - { name: "Indent" }
   - { name: "Dedent" }
   - { name: "SameIndent" }
@@ -50,7 +50,7 @@ tokens:
 
 rules:
   #region Blocks
-  #tag Quote block command
+  #tag begin_quote
   - re: "begin_quote"
     states: [COMMAND]
     token: CmdQuoteBegin
@@ -61,6 +61,7 @@ rules:
     token: CmdQuoteEnd
     actions: [{ do: pop, to: INITIAL, from: COMMAND }]
 
+  #tag begin_center
   - re: "begin_center"
     states: [COMMAND]
     token: CmdCenterBegin
@@ -71,7 +72,7 @@ rules:
     token: CmdCenterEnd
     actions: [{ do: pop, to: INITIAL, from: COMMAND }]
 
-  #tag Example literal command
+  #region begin_example
   - re: "begin_example"
     states: [COMMAND]
     token: CmdExampleBegin
@@ -92,17 +93,19 @@ rules:
     states: [COMMAND_EXAMPLE]
     token: Newline
 
+  #endregion
+
+  #region begin_export
   - re: "begin_export"
     states: [COMMAND]
     token: CmdExportBegin
     actions: [{ do: push, from: COMMAND, to: COMMAND_EXPORT }]
 
   - re: "^{space}*#\\+end_export{space}*$"
-    states: [COMMAND_EXPORT]
+    states: [BODY_EXPORT]
     token: CmdExportEnd
     actions:
-      - { do: pop, from: COMMAND_EXPORT, to: COMMAND }
-      - { do: pop, from: COMMAND, to: INITIAL }
+      - { do: pop, from: BODY_EXPORT, to: INITIAL }
 
   - re: "^.*$"
     states: [COMMAND_EXPORT]
@@ -114,9 +117,11 @@ rules:
     actions:
       - { do: "pop", from: COMMAND_EXPORT, to: COMMAND }
       - { do: "pop", from: COMMAND, to: INITIAL }
-      - { do: "push", to: BODY_SRC, from: INITIAL }
+      - { do: "push", to: BODY_EXPORT, from: INITIAL }
 
-  #tag Source code block command
+  #endregion
+
+  #region begin_src
   - re: "begin_src"
     states: [COMMAND]
     token: CmdSrcBegin
@@ -139,18 +144,34 @@ rules:
   - { re: ".+", states: [BODY_SRC], token: SrcContent }
   - { re: "\\n", states: [BODY_SRC], token: Newline }
   #endregion
+  #endregion
 
-  # Command with parameters
-  - { re: ":\\w+", states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT], token: CmdColonIdent }
-  - { re: "\\w+", states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT], token: CmdIdent }
-  - { re: "{space}+", states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT], token: Whitespace }
+  #region Command-parameters
+  - {
+      re: ":\\w+",
+      states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT],
+      token: CmdColonIdent,
+    }
+  - {
+      re: "\\w+",
+      states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT],
+      token: CmdIdent,
+    }
+  - {
+      re: "{space}+",
+      states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT],
+      token: Whitespace,
+    }
   - {
       re: "[\\H--[\\n]]+",
       states: [COMMAND_ARGS, COMMAND_SRC, COMMAND_EXPORT],
       token: CmdRawArg,
     }
 
+  #endregion
+
   #region Line-commands
+  #tag Prefix
   - re: "^#\\+"
     token: LineCommand
     actions:
@@ -163,67 +184,39 @@ rules:
       - { do: pop, to: INITIAL, from: LEAD }
       - { do: push, to: COMMAND, from: INITIAL }
 
-  #tag Columns
+  #region DSL-commands
   - re: "columns{prop_colon}"
     token: CmdColumns
     states: [COMMAND]
     actions:
       - { do: push, from: COMMAND, to: COMMAND_RAW }
 
-  #tag Caption command
-  - re: "caption{prop_colon}"
+  - re: "latex_header{prop_colon}"
     states: [COMMAND]
-    token: CmdCaption
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-
-  #tag Title command
-  - re: "title{prop_colon}"
-    states: [COMMAND]
-    token: CmdTitle
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-
-  #tag property command 
-  - re: "property{prop_colon}({argument_properties})"
-    states: [COMMAND]
-    token: CmdPropertyArgs 
+    token: CmdLatexHeader
     actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
 
-  - re: "property{prop_colon}({text_properties})"
-    states: [COMMAND]
-    token: CmdPropertyText
-    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
-
-  - re: "property{prop_colon}"
-    states: [COMMAND]
-    token: CmdPropertyRaw
-    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
-
-  #tag Options
   - re: "options{prop_colon}"
     states: [COMMAND]
     token: CmdOptions
     # Full options parsing is deferred to the sem stage
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
-  #tag File tags command
   - re: "filetags{prop_colon}"
     states: [COMMAND]
     token: CmdFiletags
+    actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
+
+  - re: "property{prop_colon}"
+    states: [COMMAND]
+    token: CmdPropertyRaw
     actions: [{ do: push, to: COMMAND_RAW, from: COMMAND }]
 
   - re: ".*"
     states: [COMMAND_RAW]
     token: RawText
 
-
-  #tag Latex header
-  - re: "latex_header{prop_colon}"
-    states: [COMMAND]
-    token: CmdLatexHeader
-    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
-
-
-  #tag Table formulas
+  #region Table-command
   - re: "tblfm{prop_colon}"
     states: [COMMAND]
     token: CmdTblfm
@@ -235,7 +228,35 @@ rules:
   - { re: "[-]", states: [COMMAND_TBLFM], token: TblOperator }
   #endregion
 
-  #tag Subtree
+  #endregion
+
+  #region Text-commands
+  - re: "caption{prop_colon}"
+    states: [COMMAND]
+    token: CmdCaption
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "property{prop_colon}({text_properties})"
+    states: [COMMAND]
+    token: CmdPropertyText
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+
+  - re: "title{prop_colon}"
+    states: [COMMAND]
+    token: CmdTitle
+    actions: [{ do: push, to: COMMAND_TEXT, from: COMMAND }]
+  #endregion
+
+  #region Argument-commands
+  - re: "property{prop_colon}({argument_properties})"
+    states: [COMMAND]
+    token: CmdPropertyArgs
+    actions: [{ do: push, to: COMMAND_ARGS, from: COMMAND }]
+  #endregion
+
+  #endregion
+
+  #region Subtree
   - re: "^\\*+(?={space}+)"
     token: SubtreeStars
     actions:
@@ -245,7 +266,6 @@ rules:
     token: SubtreePriority
     states: [SUBTREE_HEAD]
 
-
   - { re: "^[0-9]+(?={space}+)", token: LeadingNumber }
   - { re: "[0-9]+", token: Number }
   - re: "^{space}+"
@@ -253,30 +273,14 @@ rules:
     actions:
       - { do: push, to: LEAD, from: INITIAL }
 
-  #tag Links and footnotes
-  - { re: "{space}+", token: Whitespace }
-  - { lit: "[fn:", token: FootnoteBegin }
-  - { re: "\\[\\[({dsl_links}):.*?\\]\\]", token: DslLink}
-  - { re: "\\[\\[({dsl_links}):.*?\\]\\[", token: DslLinkBegin}
-  - { re: "\\[\\[\\w:", token: LinkBegin}
-  - { re: "\\]\\]", token: LinkEnd }
-  - { re: "\\[", token: BraceOpen }
-  - { re: "\\]", token: BraceClose }
-  - { re: "\\d{{4}}-\\d{{2}}-\\d{{2}}", token: Date }
-  - { re: "\\d{{2}}:\\d{{2}}:\\d{{2}}", token: Time }
-  - { re: "=>", token: TimeArrow }
-  - { re: "#{space}+.*?$", token: Comment }
-  - { lit: ":LOGBOOK:", token: TreePropertyLogbook }
-
   #region Properties
-  ## Subtree property lexing
+  - { lit: ":LOGBOOK:", token: TreePropertyLogbook }
   - lit: ":PROPERTIES:"
     token: TreePropertyProperties
     states: [LEAD]
     actions:
       - { do: pop, from: LEAD, to: INITIAL }
       - { do: push, from: INITIAL, to: PROPERTIES }
-
 
   - re: "^{space}+"
     token: LeadingSpace
@@ -330,15 +334,33 @@ rules:
       - { do: pop, from: PROPERTY_LEAD, to: PROPERTIES }
       - { do: push, from: PROPERTIES, to: PROPERTY_ANY }
 
-
-
   - re: ":\\w+:"
     token: TreePropertyName
     states: [PROPERTIES]
   #endregion
 
+  #endregion
+
   #region Text-elements
+  #region Links and footnotes
+  - { re: "{space}+", token: Whitespace }
+  - { lit: "[fn:", token: FootnoteBegin }
+  - { re: "\\[\\[({dsl_links}):.*?\\]\\]", token: DslLink }
+  - { re: "\\[\\[({dsl_links}):.*?\\]\\[", token: DslLinkBegin }
+  - { re: "\\[\\[\\w:", token: LinkBegin }
+  - { re: "\\]\\]", token: LinkEnd }
+  #endregion
+
+  - { re: "\\[", token: BraceOpen }
+  - { re: "\\]", token: BraceClose }
+  - { re: "\\d{{4}}-\\d{{2}}-\\d{{2}}", token: Date }
+  - { re: "\\d{{2}}:\\d{{2}}:\\d{{2}}", token: Time }
+  - { re: "=>", token: TimeArrow }
+  - { re: "#{space}+.*?$", token: Comment }
+
   - { lit: "CLOCK:", token: TreeClock }
+
+  #region Punctuation
   - { lit: "&", token: Ampersand }
   - { lit: "!", token: Exclamation }
   - { lit: "/", token: ForwardSlash }
@@ -347,6 +369,7 @@ rules:
   - { re: "^\\+(?={space}+)", token: LeadingPlus }
 
   - { re: "\\+", token: Plus }
+  - { re: "^\\-{{5,}}", token: TextSeparator }
   - { re: "\\-", token: Minus }
   - { re: "\\\"", token: DoubleQuote }
   - { re: "\\'", token: SingleQuote }
@@ -370,6 +393,8 @@ rules:
   - { lit: "}}}", token: MacroEnd }
   - { lit: "{", token: LeftCurly }
   - { lit: "}", token: RightCurly }
+
+  - { re: "\\\\\\w+", token: Symbol }
   - { re: "\\\\.", token: EscapedChar }
   - { lit: "%", token: Percent }
   - { re: "@\\w+", token: At }
@@ -381,9 +406,9 @@ rules:
   - { re: "\\$", token: Dollar }
   - { re: "[\\x{{0256}}-\\x{{10FFFF}}]|©", token: MiscUnicode }
   #endregion
+  #endregion
 
   #region Newline-highlevel
-
   - re: "\\n"
     states: [LEAD]
     token: Newline
@@ -427,15 +452,14 @@ rules:
     token: MediumNewline
   - re: "\\n"
     token: Newline
-
   #endregion
 
   - re: "<<EOF>>"
     token: EndOfFile
     states: [SUBTREE_HEAD]
-    actions: 
-    - { do: pop, from: SUBTREE_HEAD, to: INITIAL }
-    - { do: raw, raw: "return 0;" }
+    actions:
+      - { do: pop, from: SUBTREE_HEAD, to: INITIAL }
+      - { do: raw, raw: "return 0;" }
 
   - re: "<<EOF>>"
     token: "EndOfFile"

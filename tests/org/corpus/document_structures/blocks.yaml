@@ -3,8 +3,6 @@ parse: "Top"
 expected: "Flat"
 items:
   - name: "Link in center"
-    debug:
-      traceAll: true
     source: |
       #+begin_center
       [[file:../../fic.images/images_20220622-173100_screenshot.png]]

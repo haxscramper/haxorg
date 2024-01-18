@@ -43,8 +43,6 @@ items:
 
   - name: "Subtree with nested content"
     source: "** CLI Tools\n\nNested content"
-    debug:
-      traceAll: true
     tokens:
       - {kind: SubtreeStars, str: "**"}
       - {kind: Space, str: " "}
@@ -84,7 +82,5 @@ items:
 
 
   - name: "Lorem ipsum subtree"
-    debug:
-      traceAll: true
     file: org/lorem_ipsum_subtree.org
 

@@ -492,29 +492,27 @@ SemIdT<Symbol> OrgConverter::convertSymbol(__args) {
     auto __trace = trace(a);
     auto sym     = Sem<Symbol>(p, a);
 
-    int idx = 0;
-    for (const auto& sub : a) {
-        if (idx == 0) {
-            sym->name = sub.val().getText();
-        } else if (sub.kind() == org::RawText) {
-            auto params = sub.val().getText().split(" ");
-            for (int i = 0; i < params.size();) {
-                if (params.at(i).starts_with(":")
-                    && (i + 1) < params.size()) {
-                    sym->parameters.push_back(Symbol::Param{
-                        .key = params.at(i), .value = params.at(i + 1)});
-                    i += 2;
-                } else {
-                    sym->parameters.push_back(
-                        Symbol::Param{.value = params.at(i)});
-                    i += 1;
-                }
+    int idx   = 0;
+    sym->name = one(a, N::Name).val().getText().substr(1);
+    for (const auto& sub : one(a, N::Args)) {
+        auto params = sub.val().getText().split(" ");
+        for (int i = 0; i < params.size();) {
+            if (params.at(i).starts_with(":") && (i + 1) < params.size()) {
+                sym->parameters.push_back(Symbol::Param{
+                    .key = params.at(i), .value = params.at(i + 1)});
+                i += 2;
+            } else {
+                sym->parameters.push_back(
+                    Symbol::Param{.value = params.at(i)});
+                i += 1;
             }
-        } else {
-            sym->positional.push_back(convert(sym, sub));
         }
-        ++idx;
     }
+
+    for (const auto& sub : one(a, N::Body)) {
+        sym->positional.push_back(convert(sym, sub));
+    }
+
     return sym;
 }
 
@@ -764,7 +762,9 @@ SemIdT<Export> OrgConverter::convertExport(__args) {
 
     eexport->exporter   = one(a, N::Name).val().getText();
     eexport->parameters = values;
-    eexport->content    = one(a, N::Body).val().getText();
+    for (auto const& item : many(a, N::Body)) {
+        eexport->content = item.val().getText();
+    }
 
     return eexport;
 }

@@ -31,6 +31,11 @@ Field fieldN(
     return Field(Range(idx, name).doc(doc), OrgPattern(pattern));
 }
 
+template <typename Idx>
+Field fieldN(Idx idx, N name, OrgPattern const& pattern, Str doc = "") {
+    return Field(Range(idx, name).doc(doc), pattern);
+}
+
 std::unique_ptr<OrgSpec> getOrgSpec() {
     const IntSet<OrgNodeKind> anyTime{
         org::StaticActiveTime,
@@ -160,6 +165,19 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
                 fieldN(
                     slice(1, 1_B), N::Body, {org::Paragraph, org::Empty}),
+            })},
+        SpecPair{
+            org::QuoteBlock,
+            OrgPattern({
+                fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
+                fieldN(
+                    slice(1, 1_B), N::Body, {org::Paragraph, org::Empty}),
+            })},
+        SpecPair{
+            org::Example,
+            OrgPattern({
+                fieldN(0, N::Args, {org::CmdArguments, org::Empty}),
+                fieldN(slice(1, 1_B), N::Body, {org::RawText, org::Empty}),
             })},
         SpecPair{
             org::AnnotatedParagraph,
@@ -501,6 +519,18 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     OrgPattern({org::RawText, org::Empty})),
             })},
         SpecPair{
+            org::CommandArguments,
+            OrgPattern({
+                fieldN(
+                    slice(0, 1_B),
+                    N::Args,
+                    {org::CmdKey,
+                     org::CmdValue,
+                     org::RawText,
+                     org::Empty}),
+            })},
+
+        SpecPair{
             org::Footnote,
             OrgPattern(
                 {Field(Range(0, N::Name)),
@@ -536,10 +566,46 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                  Field(Range(2, N::Desc))})}
 
         ,
+        SpecPair{
+            org::Symbol,
+            OrgPattern({
+                field1(0, N::Name, org::Ident),
+                fieldN(
+                    1,
+                    N::Args,
+                    OrgPattern(
+                        {field1(slice(0, 1_B), N::Args, org::RawText)})),
+                fieldN(
+                    2,
+                    N::Body,
+                    OrgPattern(
+                        {field1(slice(0, 1_B), N::Args, org::Paragraph)})),
+            })},
+        SpecPair{
+            org::Macro,
+            OrgPattern({
+                fieldN(0, N::Name),
+                // fieldN(
+                //     1,
+                //     N::Args,
+                //     OrgPattern(
+                //         {field1(slice(0, 1_B), N::Args,
+                //         org::RawText)})),
+                // fieldN(
+                //     2,
+                //     N::Body,
+                //     OrgPattern(
+                //         {field1(slice(0, 1_B), N::Args,
+                //         org::Paragraph)})),
+            })},
         SpecPair{org::Angle, OrgPattern({fieldN(0, N::Body)})},
         SpecPair{org::Bold, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
         SpecPair{
             org::Italic, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
+        SpecPair{
+            org::Verbatim, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
+        SpecPair{
+            org::Strike, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
         SpecPair{
             org::Underline, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
         SpecPair{
