@@ -176,24 +176,6 @@ void OrgParser::textFold(OrgLexer& lex) {
         break;                                                            \
     }
 
-#define CASE_INLINE(Kind)                                                 \
-    case otk::Kind##InlineBegin: {                                        \
-        start(org::Kind);                                                 \
-        skip(lex);                                                        \
-        textFold(lex);                                                    \
-        break;                                                            \
-    }                                                                     \
-                                                                          \
-    case otk::Kind##InlineEnd: {                                          \
-        if (pending().kind == org::Kind) {                                \
-            end();                                                        \
-            skip(lex);                                                    \
-        } else {                                                          \
-            fail(pop(lex, otk::Kind##InlineEnd));                         \
-        }                                                                 \
-        break;                                                            \
-    }
-
 
     while (!lex.finished()) {
         switch (lex.kind()) {
@@ -214,10 +196,6 @@ void OrgParser::textFold(OrgLexer& lex) {
             CASE_SINGLE(BigIdent);
             CASE_SINGLE(Punctuation);
             CASE_SINGLE(Colon);
-
-            CASE_INLINE(Bold);
-            CASE_INLINE(Italic);
-            CASE_INLINE(Backtick);
 
             case otk::BraceEnd:
             case otk::BraceBegin:
@@ -266,19 +244,6 @@ void OrgParser::textFold(OrgLexer& lex) {
                 token(org::RadioTarget, pop(lex, otk::RawText));
                 skip(lex, otk::TripleAngleEnd);
                 break;
-            }
-
-            case otk::BoldInline:
-            case otk::ItalicInline:
-            case otk::VerbatimInline:
-            case otk::MonospaceInline:
-            case otk::BacktickInline:
-            case otk::UnderlineInline:
-            case otk::StrikeInline: {
-                throw UnhandledToken(
-                    lex,
-                    "Non-directional inline markup token incountered "
-                    "during text parsing");
             }
 
             case otk::GroupBegin: {
@@ -773,7 +738,6 @@ OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
         }
     }
 
-
     if (paragraphTokens.empty()) {
         start(org::Paragraph);
         end();
@@ -782,59 +746,6 @@ OrgId OrgParser::parseParagraph(OrgLexer& lex, bool onToplevel) {
 
     SubLexer<OrgTokenKind, OrgFill> sub = SubLexer<OrgTokenKind, OrgFill>(
         lex.in, paragraphTokens);
-
-    UnorderedMap<OrgTokenKind, bool> lastClosing({
-        {otk::BoldInline, true},
-        {otk::ItalicInline, true},
-        {otk::VerbatimInline, true},
-        {otk::MonospaceInline, true},
-        {otk::BacktickInline, true},
-        {otk::UnderlineInline, true},
-        {otk::StrikeInline, true},
-    });
-
-#define MarkupBegin(Kind)                                                 \
-    case otk::Kind##Inline:                                               \
-        sub.tok(tok).kind = otk::Kind##InlineBegin;                       \
-        break;
-
-#define MarkupEnd(Kind)                                                   \
-    case otk::Kind##Inline:                                               \
-        sub.tok(tok).kind = otk::Kind##InlineEnd;                         \
-        break;
-
-
-    for (const auto& tok : sub.tokens) {
-        auto kind = sub.tok(tok).kind;
-        if (lastClosing.contains(kind)) {
-            if (lastClosing.at(kind)) {
-                switch (kind) {
-                    MarkupBegin(Bold);
-                    MarkupBegin(Italic);
-                    MarkupBegin(Verbatim);
-                    MarkupBegin(Monospace);
-                    MarkupBegin(Backtick);
-                    MarkupBegin(Underline);
-                    MarkupBegin(Strike);
-                    default:
-                }
-            } else {
-                switch (kind) {
-                    MarkupEnd(Bold);
-                    MarkupEnd(Italic);
-                    MarkupEnd(Verbatim);
-                    MarkupEnd(Monospace);
-                    MarkupEnd(Backtick);
-                    MarkupEnd(Underline);
-                    MarkupEnd(Strike);
-                    default:
-                }
-            }
-        }
-    }
-
-#undef MarkupBegin
-#undef MarkupEnd
 
     start(org::Paragraph);
     auto nodes = parseText(sub);

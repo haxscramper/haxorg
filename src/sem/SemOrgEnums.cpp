@@ -729,39 +729,18 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "Link") { return OrgTokenKind::Link; } else
   if (value == "BoldBegin") { return OrgTokenKind::BoldBegin; } else
   if (value == "BoldEnd") { return OrgTokenKind::BoldEnd; } else
-  if (value == "BoldInline") { return OrgTokenKind::BoldInline; } else
-  if (value == "BoldInlineBegin") { return OrgTokenKind::BoldInlineBegin; } else
-  if (value == "BoldInlineEnd") { return OrgTokenKind::BoldInlineEnd; } else
   if (value == "ItalicBegin") { return OrgTokenKind::ItalicBegin; } else
   if (value == "ItalicEnd") { return OrgTokenKind::ItalicEnd; } else
-  if (value == "ItalicInline") { return OrgTokenKind::ItalicInline; } else
-  if (value == "ItalicInlineBegin") { return OrgTokenKind::ItalicInlineBegin; } else
-  if (value == "ItalicInlineEnd") { return OrgTokenKind::ItalicInlineEnd; } else
   if (value == "VerbatimBegin") { return OrgTokenKind::VerbatimBegin; } else
   if (value == "VerbatimEnd") { return OrgTokenKind::VerbatimEnd; } else
-  if (value == "VerbatimInline") { return OrgTokenKind::VerbatimInline; } else
-  if (value == "VerbatimInlineBegin") { return OrgTokenKind::VerbatimInlineBegin; } else
-  if (value == "VerbatimInlineEnd") { return OrgTokenKind::VerbatimInlineEnd; } else
   if (value == "MonospaceBegin") { return OrgTokenKind::MonospaceBegin; } else
   if (value == "MonospaceEnd") { return OrgTokenKind::MonospaceEnd; } else
-  if (value == "MonospaceInline") { return OrgTokenKind::MonospaceInline; } else
-  if (value == "MonospaceInlineBegin") { return OrgTokenKind::MonospaceInlineBegin; } else
-  if (value == "MonospaceInlineEnd") { return OrgTokenKind::MonospaceInlineEnd; } else
   if (value == "BacktickBegin") { return OrgTokenKind::BacktickBegin; } else
   if (value == "BacktickEnd") { return OrgTokenKind::BacktickEnd; } else
-  if (value == "BacktickInline") { return OrgTokenKind::BacktickInline; } else
-  if (value == "BacktickInlineBegin") { return OrgTokenKind::BacktickInlineBegin; } else
-  if (value == "BacktickInlineEnd") { return OrgTokenKind::BacktickInlineEnd; } else
   if (value == "UnderlineBegin") { return OrgTokenKind::UnderlineBegin; } else
   if (value == "UnderlineEnd") { return OrgTokenKind::UnderlineEnd; } else
-  if (value == "UnderlineInline") { return OrgTokenKind::UnderlineInline; } else
-  if (value == "UnderlineInlineBegin") { return OrgTokenKind::UnderlineInlineBegin; } else
-  if (value == "UnderlineInlineEnd") { return OrgTokenKind::UnderlineInlineEnd; } else
   if (value == "StrikeBegin") { return OrgTokenKind::StrikeBegin; } else
   if (value == "StrikeEnd") { return OrgTokenKind::StrikeEnd; } else
-  if (value == "StrikeInline") { return OrgTokenKind::StrikeInline; } else
-  if (value == "StrikeInlineBegin") { return OrgTokenKind::StrikeInlineBegin; } else
-  if (value == "StrikeInlineEnd") { return OrgTokenKind::StrikeInlineEnd; } else
   if (value == "QuoteBegin") { return OrgTokenKind::QuoteBegin; } else
   if (value == "QuoteEnd") { return OrgTokenKind::QuoteEnd; } else
   if (value == "Punctuation") { return OrgTokenKind::Punctuation; } else
@@ -994,39 +973,18 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::Link: return "Link";
     case OrgTokenKind::BoldBegin: return "BoldBegin";
     case OrgTokenKind::BoldEnd: return "BoldEnd";
-    case OrgTokenKind::BoldInline: return "BoldInline";
-    case OrgTokenKind::BoldInlineBegin: return "BoldInlineBegin";
-    case OrgTokenKind::BoldInlineEnd: return "BoldInlineEnd";
     case OrgTokenKind::ItalicBegin: return "ItalicBegin";
     case OrgTokenKind::ItalicEnd: return "ItalicEnd";
-    case OrgTokenKind::ItalicInline: return "ItalicInline";
-    case OrgTokenKind::ItalicInlineBegin: return "ItalicInlineBegin";
-    case OrgTokenKind::ItalicInlineEnd: return "ItalicInlineEnd";
     case OrgTokenKind::VerbatimBegin: return "VerbatimBegin";
     case OrgTokenKind::VerbatimEnd: return "VerbatimEnd";
-    case OrgTokenKind::VerbatimInline: return "VerbatimInline";
-    case OrgTokenKind::VerbatimInlineBegin: return "VerbatimInlineBegin";
-    case OrgTokenKind::VerbatimInlineEnd: return "VerbatimInlineEnd";
     case OrgTokenKind::MonospaceBegin: return "MonospaceBegin";
     case OrgTokenKind::MonospaceEnd: return "MonospaceEnd";
-    case OrgTokenKind::MonospaceInline: return "MonospaceInline";
-    case OrgTokenKind::MonospaceInlineBegin: return "MonospaceInlineBegin";
-    case OrgTokenKind::MonospaceInlineEnd: return "MonospaceInlineEnd";
     case OrgTokenKind::BacktickBegin: return "BacktickBegin";
     case OrgTokenKind::BacktickEnd: return "BacktickEnd";
-    case OrgTokenKind::BacktickInline: return "BacktickInline";
-    case OrgTokenKind::BacktickInlineBegin: return "BacktickInlineBegin";
-    case OrgTokenKind::BacktickInlineEnd: return "BacktickInlineEnd";
     case OrgTokenKind::UnderlineBegin: return "UnderlineBegin";
     case OrgTokenKind::UnderlineEnd: return "UnderlineEnd";
-    case OrgTokenKind::UnderlineInline: return "UnderlineInline";
-    case OrgTokenKind::UnderlineInlineBegin: return "UnderlineInlineBegin";
-    case OrgTokenKind::UnderlineInlineEnd: return "UnderlineInlineEnd";
     case OrgTokenKind::StrikeBegin: return "StrikeBegin";
     case OrgTokenKind::StrikeEnd: return "StrikeEnd";
-    case OrgTokenKind::StrikeInline: return "StrikeInline";
-    case OrgTokenKind::StrikeInlineBegin: return "StrikeInlineBegin";
-    case OrgTokenKind::StrikeInlineEnd: return "StrikeInlineEnd";
     case OrgTokenKind::QuoteBegin: return "QuoteBegin";
     case OrgTokenKind::QuoteEnd: return "QuoteEnd";
     case OrgTokenKind::Punctuation: return "Punctuation";
