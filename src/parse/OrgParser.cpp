@@ -104,12 +104,9 @@ OrgId OrgParser::parseRawUrl(OrgLexer& lex) {
 OrgId OrgParser::parsePlaceholder(OrgLexer& lex) {
     __perf_trace("parsePlaceholder");
     auto __trace = trace(lex);
-    skip(lex, otk::GroupBegin);
     skip(lex, otk::AngleBegin);
     auto tok = token(org::Placeholder, pop(lex, otk::RawText));
     skip(lex, otk::AngleEnd);
-    skip(lex, otk::GroupEnd);
-
     return tok;
 }
 
@@ -117,12 +114,9 @@ OrgId OrgParser::parsePlaceholder(OrgLexer& lex) {
 OrgId OrgParser::parseTarget(OrgLexer& lex) {
     __perf_trace("parseTarget");
     auto __trace = trace(lex);
-    skip(lex, otk::GroupBegin);
     skip(lex, otk::DoubleAngleBegin);
     auto tok = token(org::Target, pop(lex, otk::RawText));
     skip(lex, otk::DoubleAngleEnd);
-    skip(lex, otk::GroupEnd);
-
     return tok;
 }
 
@@ -130,11 +124,9 @@ OrgId OrgParser::parseTarget(OrgLexer& lex) {
 OrgId OrgParser::parseLatex(OrgLexer& lex) {
     __perf_trace("parseLatex");
     auto __trace = trace(lex);
-    skip(lex, otk::GroupBegin);
     skip(lex, otk::LatexParBegin);
     auto tok = token(org::InlineMath, pop(lex, otk::LatexInlineRaw));
     skip(lex, otk::LatexParEnd);
-    skip(lex, otk::GroupEnd);
     return tok;
 }
 
@@ -243,19 +235,6 @@ void OrgParser::textFold(OrgLexer& lex) {
                 skip(lex, otk::TripleAngleBegin);
                 token(org::RadioTarget, pop(lex, otk::RawText));
                 skip(lex, otk::TripleAngleEnd);
-                break;
-            }
-
-            case otk::GroupBegin: {
-                switch (lex.kind(+1)) {
-                    case otk::LinkBegin: parseLink(lex); break;
-                    case otk::FootnoteBegin: parseFootnote(lex); break;
-                    case otk::AngleBegin: parsePlaceholder(lex); break;
-                    case otk::LatexParBegin: parseLatex(lex); break;
-                    case otk::SymbolBegin: parseSymbol(lex); break;
-                    case otk::DoubleAngleBegin: parseTarget(lex); break;
-                    default: throw UnhandledToken(lex);
-                }
                 break;
             }
 
@@ -1271,7 +1250,6 @@ OrgId OrgParser::parseSubtreeLogbook(OrgLexer& lex) {
     start(org::Logbook);
     skip(lex, otk::ColonLogbook);
     newline(lex);
-    skip(lex, otk::GroupBegin);
     skip(lex, otk::LogbookBegin);
 
     space(lex);
@@ -1443,10 +1421,7 @@ OrgId OrgParser::parseSubtreeTimes(OrgLexer& lex) {
     __perf_trace("parseSubtreeTimes");
     auto __trace = trace(lex);
     start(org::StmtList);
-    if (lex.ahead(
-            OrgTokSet{otk::Space, otk::GroupBegin},
-            OrgTokSet{otk::SubtreeTime})) {
-        skip(lex, otk::GroupBegin);
+    if (lex.ahead(OrgTokSet{otk::Space}, OrgTokSet{otk::SubtreeTime})) {
         skip(lex, otk::Space);
 
         while (lex.at(otk::SubtreeTime)) {
@@ -1463,7 +1438,6 @@ OrgId OrgParser::parseSubtreeTimes(OrgLexer& lex) {
         }
 
         newline(lex);
-        skip(lex, otk::GroupEnd);
     } else {
         print("No subtree time");
     }

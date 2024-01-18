@@ -590,9 +590,6 @@ std::string enum_serde<OrgBigIdentKind>::to_string(OrgBigIdentKind value) {
 Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "None") { return OrgTokenKind::None; } else
   if (value == "Eof") { return OrgTokenKind::Eof; } else
-  if (value == "GroupBegin") { return OrgTokenKind::GroupBegin; } else
-  if (value == "GroupEnd") { return OrgTokenKind::GroupEnd; } else
-  if (value == "ErrorTerminator") { return OrgTokenKind::ErrorTerminator; } else
   if (value == "CmdPrefix") { return OrgTokenKind::CmdPrefix; } else
   if (value == "CmdLine") { return OrgTokenKind::CmdLine; } else
   if (value == "CmdTitle") { return OrgTokenKind::CmdTitle; } else
@@ -834,9 +831,6 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
   switch (value) {
     case OrgTokenKind::None: return "None";
     case OrgTokenKind::Eof: return "Eof";
-    case OrgTokenKind::GroupBegin: return "GroupBegin";
-    case OrgTokenKind::GroupEnd: return "GroupEnd";
-    case OrgTokenKind::ErrorTerminator: return "ErrorTerminator";
     case OrgTokenKind::CmdPrefix: return "CmdPrefix";
     case OrgTokenKind::CmdLine: return "CmdLine";
     case OrgTokenKind::CmdTitle: return "CmdTitle";

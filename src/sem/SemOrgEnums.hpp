@@ -514,11 +514,6 @@ struct value_domain<OrgBigIdentKind> : public value_domain_ungapped<OrgBigIdentK
 enum class OrgTokenKind : short int {
   None,
   Eof,
-  /// \brief Start of the tokenizer token group
-  GroupBegin,
-  /// \brief Tokenizer token group end
-  GroupEnd,
-  ErrorTerminator,
   /// \brief `#+` prefix token for the command
   CmdPrefix,
   /// \brief Generic line command

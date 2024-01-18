@@ -1434,9 +1434,6 @@ def get_org_token_kind() -> GenTuEnum:
     fields = [
         GenTuEnumField("None", GenTuDoc("")),
         GenTuEnumField("Eof", GenTuDoc("")),
-        GenTuEnumField("GroupBegin", GenTuDoc("Start of the tokenizer token group")),
-        GenTuEnumField("GroupEnd", GenTuDoc("Tokenizer token group end")),
-        GenTuEnumField("ErrorTerminator", GenTuDoc("")),
         GenTuEnumField("CmdPrefix", GenTuDoc("`#+` prefix token for the command")),
         #region Commands
         #region Line-commands
