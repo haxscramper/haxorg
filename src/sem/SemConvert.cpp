@@ -938,6 +938,7 @@ SemId OrgConverter::convert(__args) {
         case org::CommandInclude: return convertInclude(p, a);
         case org::Symbol: return convertSymbol(p, a);
         case org::Angle: return convertPlaceholder(p, a);
+        case org::Empty: return Sem<Empty>(p, a);
         case org::Footnote: {
             if (a.size() == 1) {
                 return convertLink(p, a);

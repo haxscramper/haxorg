@@ -67,9 +67,7 @@ class Vec : public std::vector<T> {
     bool operator==(CR<Indexable> other) const {
         if (this->size() == other.size()) {
             for (int i = 0; i < size(); ++i) {
-                if (at(i) != other.at(i)) {
-                    return false;
-                }
+                if (at(i) != other.at(i)) { return false; }
             }
             return true;
         } else {
@@ -143,6 +141,14 @@ class Vec : public std::vector<T> {
         }
     }
 
+    std::optional<T> get_copy(int index) const {
+        if (has(index)) {
+            return at(index);
+        } else {
+            return std::nullopt;
+        }
+    }
+
     /// \brief Get reference wrapper to a value at specified index or empty
     /// option if the index is out of range
     std::optional<Rw<T>> get(BackwardsIndex idx) {
@@ -152,6 +158,10 @@ class Vec : public std::vector<T> {
     /// \brief Overload for constant vector
     std::optional<CRw<T>> get(BackwardsIndex idx) const {
         return get(index(idx));
+    }
+
+    std::optional<T> get_copy(BackwardsIndex idx) const {
+        return get_copy(index(idx));
     }
 
     template <typename A, typename B>

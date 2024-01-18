@@ -347,8 +347,9 @@ rules:
   - { lit: "[fn:", token: FootnoteBegin }
   - { re: "\\[\\[({dsl_links}):.*?\\]\\]", token: DslLink }
   - { re: "\\[\\[({dsl_links}):.*?\\]\\[", token: DslLinkBegin }
-  - { re: "\\[\\[\\w:", token: LinkBegin }
+  - { re: "\\[\\[\\w+:", token: LinkBegin }
   - { re: "\\]\\]", token: LinkEnd }
+  - { re: "\\]\\[", token: LinkSplit }
   #endregion
 
   - { re: "\\[", token: BraceOpen }

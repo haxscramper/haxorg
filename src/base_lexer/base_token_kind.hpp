@@ -64,6 +64,7 @@ enum class BaseTokenKind : unsigned short int {
   LineCommand,
   LinkBegin,
   LinkEnd,
+  LinkSplit,
   ListEnd,
   ListItemEnd,
   ListStart,

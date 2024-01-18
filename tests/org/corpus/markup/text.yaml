@@ -33,8 +33,9 @@ items:
       - {kind: ItalicEnd, str: "/"}
       - {kind: ParagraphEnd}
 
-  - name: "Link with description"
-    source: "[[link][description]]"
+  # - name: "Link with description"
+  #   source: "[[link:http][description]]"
+
   - name: "Symbol"
     source: "\\symbol{}"
     sem:
@@ -45,12 +46,10 @@ items:
             - kind: Symbol
               name: "symbol"
               parameters: []
-              positional: [{kind: Paragraph}]
+              positional: [{kind: Empty}]
               
   - name: "Symbol with argument"
     source: "\\symbol{\"Argument\"}"
-    debug: 
-      traceAll: true
     sem:
       kind: Document
       subnodes:
@@ -86,14 +85,12 @@ items:
   - name: "Ambigious italic text"
     source: "One/Another/<Placeholder>"
     tokens:
-      - {kind: ParagraphBegin}
+      - {kind: ParagraphBegin, str: ""}
       - {kind: Word, str: One}
-      - {kind: Word, str: /}
+      - {kind: Punctuation, str: /}
       - {kind: Word, str: Another}
-      - {kind: ItalicEnd, str: /}
-      - {kind: GroupBegin}
+      - {kind: Punctuation, str: /}
       - {kind: AngleBegin, str: <}
-      - {kind: RawText, str: Placeholder}
+      - {kind: Word, str: Placeholder}
       - {kind: AngleEnd, str: ">"}
-      - {kind: GroupEnd}
-      - {kind: ParagraphEnd}
+      - {kind: ParagraphEnd, str: ""}

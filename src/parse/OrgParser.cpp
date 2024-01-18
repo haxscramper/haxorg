@@ -219,6 +219,8 @@ void OrgParser::textFold(OrgLexer& lex) {
             CASE_INLINE(Italic);
             CASE_INLINE(Backtick);
 
+            case otk::BraceEnd:
+            case otk::BraceBegin:
             case otk::ParEnd:
             case otk::ParBegin:
             case otk::QuoteEnd:
@@ -422,11 +424,17 @@ OrgId OrgParser::parseSymbol(OrgLexer& lex) {
 
     start(org::InlineStmtList);
     while (lex.at(otk::CurlyStart)) {
-        auto sub = SubLexer(
-            lex.in, lex.getInside({otk::CurlyStart}, {otk::CurlyEnd}));
-        start(org::Paragraph);
-        parseText(sub);
-        end();
+        if (lex.at(Vec{otk::CurlyStart, otk::CurlyEnd})) {
+            empty();
+            skip(lex, otk::CurlyStart);
+            skip(lex, otk::CurlyEnd);
+        } else {
+            auto sub = SubLexer(
+                lex.in, lex.getInside({otk::CurlyStart}, {otk::CurlyEnd}));
+            start(org::Paragraph);
+            parseText(sub);
+            end();
+        }
     }
     end();
 

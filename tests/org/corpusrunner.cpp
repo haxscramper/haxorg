@@ -612,7 +612,11 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                            node.kind,
                            node.isTerminal() ? escape_literal(
                                hshow(
-                                   group->val(OrgId(id)),
+                                   group->tokens->tokens.content
+                                       .get_copy(
+                                           node.getToken().getIndex())
+                                       .value_or(OrgToken{})
+                                       ->getText(),
                                    HDisplayOpts().excl(
                                        HDisplayFlag::UseQuotes))
                                    .toString(false))
