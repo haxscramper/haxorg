@@ -1558,17 +1558,11 @@ def get_org_token_kind() -> GenTuEnum:
         GenTuEnumField("ListItemBegin", GenTuDoc("Start of the list item element")),
         GenTuEnumField("ListClock",
                        GenTuDoc("`CLOCK:` entry at the start of the logbook entry list")),
-        GenTuEnumField("ListPlus", GenTuDoc("")),
-        GenTuEnumField("ListStar", GenTuDoc("")),
         GenTuEnumField("ListDescBegin", GenTuDoc("Start of the description list key,")),
         GenTuEnumField("ListDescEnd", GenTuDoc("End of the description list key `::`")),
         GenTuEnumField("ListItemEnd", GenTuDoc("End of the list item")),
         GenTuEnumField("ListEnd", GenTuDoc("Complete end of the list token group")),
         GenTuEnumField("Checkbox", GenTuDoc("List or subtree checkbox")),
-        GenTuEnumField(
-            "ListDoubleColon",
-            GenTuDoc("Double colon between description list tag and body"),
-        ),
         #endregion
         #region Subtree
         GenTuEnumField("SubtreeTodoState", GenTuDoc("")),
@@ -1680,19 +1674,12 @@ def get_org_token_kind() -> GenTuEnum:
                 "Full token for the link, used in cases where it does not make sense to fracture the token - regular https URLs etc."
             ),
         ),
-        GenTuEnumField("LinkPath", GenTuDoc("Link path for searches in file")),
         GenTuEnumField(
             "LinkTarget",
             GenTuDoc(
                 "Target of the link protocol that does not follow regular URI encoding scheme - for example `id:`, `elisp`, or `shell` links."
             ),
         ),
-        GenTuEnumField(
-            "LinkExtraSeparator",
-            GenTuDoc("Separator of the extra content in the link, `::`"),
-        ),
-        GenTuEnumField("LinkExtra",
-                       GenTuDoc("Additional parametrization for the link search")),
         GenTuEnumField("LinkDescriptionBegin", GenTuDoc("")),
         GenTuEnumField("LinkDescriptionEnd", GenTuDoc("")),
         #tag Paragraph
@@ -1704,7 +1691,6 @@ def get_org_token_kind() -> GenTuEnum:
         ),
         GenTuEnumField("ParagraphEnd", GenTuDoc("")),
         GenTuEnumField("FootnoteBegin", GenTuDoc("")),
-        GenTuEnumField("FootnoteEnd", GenTuDoc("")),
         #tag Paragraph-tokens
         GenTuEnumField("Word", GenTuDoc("Regular word in the paragraph")),
         GenTuEnumField("DoubleColon", GenTuDoc("")),
@@ -1732,7 +1718,6 @@ def get_org_token_kind() -> GenTuEnum:
                 "Unparsed raw text, either as a part of paragraph or some embedded construction such as link address."
             ),
         ),
-        GenTuEnumField("Ident", GenTuDoc("")),
         #tag Latex
         GenTuEnumField("SymbolBegin",
                 GenTuDoc("Unquoted `\\symbol` directly in the text")),
@@ -1749,7 +1734,6 @@ def get_org_token_kind() -> GenTuEnum:
         GenTuEnumField("LatexInlineRaw",
                        GenTuDoc("Content of the brace/par-enclosed math")),
         #tag Hashtag
-        GenTuEnumField("AtBracket", GenTuDoc("Inline annotation")),
         GenTuEnumField("AtMention", GenTuDoc("`@user` mention in the text")),
         GenTuEnumField("HashTag", GenTuDoc("Start of the inline hashtag `#tag`")),
         GenTuEnumField("HashTagSub", GenTuDoc("Nested hashtag separator")),
@@ -1776,12 +1760,6 @@ def get_org_token_kind() -> GenTuEnum:
         #tag Macro
         GenTuEnumField("MacroBegin", GenTuDoc("Start of the macro call `{{{`")),
         GenTuEnumField("MacroEnd", GenTuDoc("Close of the macro call `}}}`")),
-        GenTuEnumField("MetaBraceBegin", GenTuDoc("")),
-        GenTuEnumField("MetaBraceBody", GenTuDoc("")),
-        GenTuEnumField("MetaBraceEnd", GenTuDoc("")),
-        GenTuEnumField("MetaArgsBegin", GenTuDoc("")),
-        GenTuEnumField("MetaArgsBody", GenTuDoc("")),
-        GenTuEnumField("MetaArgsEnd", GenTuDoc("")),
         #region Inline-code
         GenTuEnumField("InlineSrc",
                        GenTuDoc("Start of an inline source code block: `src_nim[]{}`")),
@@ -1902,6 +1880,7 @@ def get_enums():
         ),
         GenTuEnum(
             t("OrgNodeKind"),
+            #region OrgNodeKind
             GenTuDoc(""),
             [
                 GenTuEnumField("None",
@@ -2354,6 +2333,7 @@ def get_enums():
                 GenTuEnumField("RadioTarget", GenTuDoc("`<<<RADIO>>>`")),
                 GenTuEnumField("Target", GenTuDoc("`<<TARGET>>`")),
             ],
+            #endregion
         ),
         GenTuEnum(
             t("OrgBigIdentKind"),

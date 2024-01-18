@@ -68,8 +68,7 @@ Vec<OrgTokenId> strip(
 void OrgParser::parseCSVArguments(OrgLexer& lex) {
     __perf_trace("parseCSVArguments");
     auto __trace = trace(lex);
-    auto tok     = token(
-        org::Ident, pop(lex, OrgTokSet{otk::Ident, otk::Word}));
+    auto tok     = token(org::Ident, pop(lex, OrgTokSet{otk::Word}));
 
     if (lex.at(otk::ParBegin)) {
         skip(lex, otk::ParBegin);
@@ -558,8 +557,7 @@ OrgId OrgParser::parseFootnote(OrgLexer& lex) {
 OrgId OrgParser::parseIdent(OrgLexer& lex) {
     __perf_trace("parseIdent");
     auto __trace = trace(lex);
-    auto tok     = token(
-        org::Ident, pop(lex, OrgTokSet{otk::Ident, otk::Word}));
+    auto tok     = token(org::Ident, pop(lex, otk::Word));
     return tok;
 }
 
@@ -824,7 +822,7 @@ OrgId OrgParser::parseTextWrapCommand(OrgLexer& lex) {
         skip(lex, otk::CmdArgumentsBegin);
         if (lex.at(otk::RawText)) {
             skip(lex);
-        } else if (lex.at(otk::Ident)) {
+        } else if (lex.at(otk::Word)) {
             skip(lex);
         };
         skip(lex, otk::CmdArgumentsEnd);
@@ -937,10 +935,10 @@ OrgId OrgParser::parseSrc(OrgLexer& lex) {
                     }
                     case otk::ParBegin: {
                         skip(lex, otk::ParBegin);
-                        skip(lex, otk::Ident);
+                        skip(lex, otk::Word);
                         skip(lex, otk::Colon);
                         start(org::CodeCallout);
-                        token(org::Ident, pop(lex, otk::Ident));
+                        token(org::Ident, pop(lex, otk::Word));
                         end();
                         skip(lex, otk::ParEnd);
                         break;
@@ -1635,7 +1633,7 @@ OrgId OrgParser::parseLineCommand(OrgLexer& lex) {
             }
 
             skip(lex, otk::CmdArgumentsBegin);
-            token(org::Ident, pop(lex, otk::Ident));
+            token(org::Ident, pop(lex, otk::Word));
             skip(lex, otk::CmdArgumentsEnd);
             break;
         }

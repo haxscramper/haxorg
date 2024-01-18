@@ -673,14 +673,11 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "ListBegin") { return OrgTokenKind::ListBegin; } else
   if (value == "ListItemBegin") { return OrgTokenKind::ListItemBegin; } else
   if (value == "ListClock") { return OrgTokenKind::ListClock; } else
-  if (value == "ListPlus") { return OrgTokenKind::ListPlus; } else
-  if (value == "ListStar") { return OrgTokenKind::ListStar; } else
   if (value == "ListDescBegin") { return OrgTokenKind::ListDescBegin; } else
   if (value == "ListDescEnd") { return OrgTokenKind::ListDescEnd; } else
   if (value == "ListItemEnd") { return OrgTokenKind::ListItemEnd; } else
   if (value == "ListEnd") { return OrgTokenKind::ListEnd; } else
   if (value == "Checkbox") { return OrgTokenKind::Checkbox; } else
-  if (value == "ListDoubleColon") { return OrgTokenKind::ListDoubleColon; } else
   if (value == "SubtreeTodoState") { return OrgTokenKind::SubtreeTodoState; } else
   if (value == "SubtreeUrgency") { return OrgTokenKind::SubtreeUrgency; } else
   if (value == "SubtreeCompletion") { return OrgTokenKind::SubtreeCompletion; } else
@@ -744,17 +741,13 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "LinkInternal") { return OrgTokenKind::LinkInternal; } else
   if (value == "LinkProtocol") { return OrgTokenKind::LinkProtocol; } else
   if (value == "LinkFull") { return OrgTokenKind::LinkFull; } else
-  if (value == "LinkPath") { return OrgTokenKind::LinkPath; } else
   if (value == "LinkTarget") { return OrgTokenKind::LinkTarget; } else
-  if (value == "LinkExtraSeparator") { return OrgTokenKind::LinkExtraSeparator; } else
-  if (value == "LinkExtra") { return OrgTokenKind::LinkExtra; } else
   if (value == "LinkDescriptionBegin") { return OrgTokenKind::LinkDescriptionBegin; } else
   if (value == "LinkDescriptionEnd") { return OrgTokenKind::LinkDescriptionEnd; } else
   if (value == "TextSeparator") { return OrgTokenKind::TextSeparator; } else
   if (value == "ParagraphBegin") { return OrgTokenKind::ParagraphBegin; } else
   if (value == "ParagraphEnd") { return OrgTokenKind::ParagraphEnd; } else
   if (value == "FootnoteBegin") { return OrgTokenKind::FootnoteBegin; } else
-  if (value == "FootnoteEnd") { return OrgTokenKind::FootnoteEnd; } else
   if (value == "Word") { return OrgTokenKind::Word; } else
   if (value == "DoubleColon") { return OrgTokenKind::DoubleColon; } else
   if (value == "Number") { return OrgTokenKind::Number; } else
@@ -765,7 +758,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "Space") { return OrgTokenKind::Space; } else
   if (value == "BigIdent") { return OrgTokenKind::BigIdent; } else
   if (value == "RawText") { return OrgTokenKind::RawText; } else
-  if (value == "Ident") { return OrgTokenKind::Ident; } else
   if (value == "SymbolBegin") { return OrgTokenKind::SymbolBegin; } else
   if (value == "DollarBegin") { return OrgTokenKind::DollarBegin; } else
   if (value == "DollarEnd") { return OrgTokenKind::DollarEnd; } else
@@ -776,7 +768,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "LatexBraceBegin") { return OrgTokenKind::LatexBraceBegin; } else
   if (value == "LatexBraceEnd") { return OrgTokenKind::LatexBraceEnd; } else
   if (value == "LatexInlineRaw") { return OrgTokenKind::LatexInlineRaw; } else
-  if (value == "AtBracket") { return OrgTokenKind::AtBracket; } else
   if (value == "AtMention") { return OrgTokenKind::AtMention; } else
   if (value == "HashTag") { return OrgTokenKind::HashTag; } else
   if (value == "HashTagSub") { return OrgTokenKind::HashTagSub; } else
@@ -791,12 +782,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "Circumflex") { return OrgTokenKind::Circumflex; } else
   if (value == "MacroBegin") { return OrgTokenKind::MacroBegin; } else
   if (value == "MacroEnd") { return OrgTokenKind::MacroEnd; } else
-  if (value == "MetaBraceBegin") { return OrgTokenKind::MetaBraceBegin; } else
-  if (value == "MetaBraceBody") { return OrgTokenKind::MetaBraceBody; } else
-  if (value == "MetaBraceEnd") { return OrgTokenKind::MetaBraceEnd; } else
-  if (value == "MetaArgsBegin") { return OrgTokenKind::MetaArgsBegin; } else
-  if (value == "MetaArgsBody") { return OrgTokenKind::MetaArgsBody; } else
-  if (value == "MetaArgsEnd") { return OrgTokenKind::MetaArgsEnd; } else
   if (value == "InlineSrc") { return OrgTokenKind::InlineSrc; } else
   if (value == "InlineCall") { return OrgTokenKind::InlineCall; } else
   if (value == "CurlyStart") { return OrgTokenKind::CurlyStart; } else
@@ -909,14 +894,11 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::ListBegin: return "ListBegin";
     case OrgTokenKind::ListItemBegin: return "ListItemBegin";
     case OrgTokenKind::ListClock: return "ListClock";
-    case OrgTokenKind::ListPlus: return "ListPlus";
-    case OrgTokenKind::ListStar: return "ListStar";
     case OrgTokenKind::ListDescBegin: return "ListDescBegin";
     case OrgTokenKind::ListDescEnd: return "ListDescEnd";
     case OrgTokenKind::ListItemEnd: return "ListItemEnd";
     case OrgTokenKind::ListEnd: return "ListEnd";
     case OrgTokenKind::Checkbox: return "Checkbox";
-    case OrgTokenKind::ListDoubleColon: return "ListDoubleColon";
     case OrgTokenKind::SubtreeTodoState: return "SubtreeTodoState";
     case OrgTokenKind::SubtreeUrgency: return "SubtreeUrgency";
     case OrgTokenKind::SubtreeCompletion: return "SubtreeCompletion";
@@ -980,17 +962,13 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::LinkInternal: return "LinkInternal";
     case OrgTokenKind::LinkProtocol: return "LinkProtocol";
     case OrgTokenKind::LinkFull: return "LinkFull";
-    case OrgTokenKind::LinkPath: return "LinkPath";
     case OrgTokenKind::LinkTarget: return "LinkTarget";
-    case OrgTokenKind::LinkExtraSeparator: return "LinkExtraSeparator";
-    case OrgTokenKind::LinkExtra: return "LinkExtra";
     case OrgTokenKind::LinkDescriptionBegin: return "LinkDescriptionBegin";
     case OrgTokenKind::LinkDescriptionEnd: return "LinkDescriptionEnd";
     case OrgTokenKind::TextSeparator: return "TextSeparator";
     case OrgTokenKind::ParagraphBegin: return "ParagraphBegin";
     case OrgTokenKind::ParagraphEnd: return "ParagraphEnd";
     case OrgTokenKind::FootnoteBegin: return "FootnoteBegin";
-    case OrgTokenKind::FootnoteEnd: return "FootnoteEnd";
     case OrgTokenKind::Word: return "Word";
     case OrgTokenKind::DoubleColon: return "DoubleColon";
     case OrgTokenKind::Number: return "Number";
@@ -1001,7 +979,6 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::Space: return "Space";
     case OrgTokenKind::BigIdent: return "BigIdent";
     case OrgTokenKind::RawText: return "RawText";
-    case OrgTokenKind::Ident: return "Ident";
     case OrgTokenKind::SymbolBegin: return "SymbolBegin";
     case OrgTokenKind::DollarBegin: return "DollarBegin";
     case OrgTokenKind::DollarEnd: return "DollarEnd";
@@ -1012,7 +989,6 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::LatexBraceBegin: return "LatexBraceBegin";
     case OrgTokenKind::LatexBraceEnd: return "LatexBraceEnd";
     case OrgTokenKind::LatexInlineRaw: return "LatexInlineRaw";
-    case OrgTokenKind::AtBracket: return "AtBracket";
     case OrgTokenKind::AtMention: return "AtMention";
     case OrgTokenKind::HashTag: return "HashTag";
     case OrgTokenKind::HashTagSub: return "HashTagSub";
@@ -1027,12 +1003,6 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::Circumflex: return "Circumflex";
     case OrgTokenKind::MacroBegin: return "MacroBegin";
     case OrgTokenKind::MacroEnd: return "MacroEnd";
-    case OrgTokenKind::MetaBraceBegin: return "MetaBraceBegin";
-    case OrgTokenKind::MetaBraceBody: return "MetaBraceBody";
-    case OrgTokenKind::MetaBraceEnd: return "MetaBraceEnd";
-    case OrgTokenKind::MetaArgsBegin: return "MetaArgsBegin";
-    case OrgTokenKind::MetaArgsBody: return "MetaArgsBody";
-    case OrgTokenKind::MetaArgsEnd: return "MetaArgsEnd";
     case OrgTokenKind::InlineSrc: return "InlineSrc";
     case OrgTokenKind::InlineCall: return "InlineCall";
     case OrgTokenKind::CurlyStart: return "CurlyStart";

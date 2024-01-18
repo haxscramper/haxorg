@@ -658,8 +658,6 @@ enum class OrgTokenKind : short int {
   ListItemBegin,
   /// \brief `CLOCK:` entry at the start of the logbook entry list
   ListClock,
-  ListPlus,
-  ListStar,
   /// \brief Start of the description list key,
   ListDescBegin,
   /// \brief End of the description list key `::`
@@ -670,8 +668,6 @@ enum class OrgTokenKind : short int {
   ListEnd,
   /// \brief List or subtree checkbox
   Checkbox,
-  /// \brief Double colon between description list tag and body
-  ListDoubleColon,
   SubtreeTodoState,
   /// \brief Subtree importance marker
   SubtreeUrgency,
@@ -769,14 +765,8 @@ enum class OrgTokenKind : short int {
   LinkProtocol,
   /// \brief Full token for the link, used in cases where it does not make sense to fracture the token - regular https URLs etc.
   LinkFull,
-  /// \brief Link path for searches in file
-  LinkPath,
   /// \brief Target of the link protocol that does not follow regular URI encoding scheme - for example `id:`, `elisp`, or `shell` links.
   LinkTarget,
-  /// \brief Separator of the extra content in the link, `::`
-  LinkExtraSeparator,
-  /// \brief Additional parametrization for the link search
-  LinkExtra,
   LinkDescriptionBegin,
   LinkDescriptionEnd,
   TextSeparator,
@@ -784,7 +774,6 @@ enum class OrgTokenKind : short int {
   ParagraphBegin,
   ParagraphEnd,
   FootnoteBegin,
-  FootnoteEnd,
   /// \brief Regular word in the paragraph
   Word,
   DoubleColon,
@@ -802,7 +791,6 @@ enum class OrgTokenKind : short int {
   BigIdent,
   /// \brief Unparsed raw text, either as a part of paragraph or some embedded construction such as link address.
   RawText,
-  Ident,
   /// \brief Unquoted `\symbol` directly in the text
   SymbolBegin,
   /// \brief Opening dollar inline latex math
@@ -823,8 +811,6 @@ enum class OrgTokenKind : short int {
   LatexBraceEnd,
   /// \brief Content of the brace/par-enclosed math
   LatexInlineRaw,
-  /// \brief Inline annotation
-  AtBracket,
   /// \brief `@user` mention in the text
   AtMention,
   /// \brief Start of the inline hashtag `#tag`
@@ -852,12 +838,6 @@ enum class OrgTokenKind : short int {
   MacroBegin,
   /// \brief Close of the macro call `}}}`
   MacroEnd,
-  MetaBraceBegin,
-  MetaBraceBody,
-  MetaBraceEnd,
-  MetaArgsBegin,
-  MetaArgsBody,
-  MetaArgsEnd,
   /// \brief Start of an inline source code block: `src_nim[]{}`
   InlineSrc,
   /// \brief Start of an inline call block: `call_name[]{}`
