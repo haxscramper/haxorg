@@ -1505,7 +1505,6 @@ def get_org_token_kind() -> GenTuEnum:
         GenTuEnumField("CmdContentBegin", GenTuDoc("Content wrapper for the block commands")),
         GenTuEnumField("CmdContentEnd", GenTuDoc("End of content wrapper")),
         GenTuEnumField("CmdSrcCodeContent", GenTuDoc("Block of code inside `#+begin_src`")),
-        GenTuEnumField("CmdSrcLangName", GenTuDoc("Source code block language name")),
         GenTuEnumField(
             "CmdSrcTextBlock",
             GenTuDoc(
@@ -2185,9 +2184,6 @@ def get_enums():
                 GenTuEnumField("Escaped",
                                GenTuDoc("Escaped formatting character in the text")),
                 GenTuEnumField("Newline", GenTuDoc("")),
-                GenTuEnumField("SkipNewline", GenTuDoc("")),
-                GenTuEnumField("SkipSpace", GenTuDoc("")),
-                GenTuEnumField("SkipAny", GenTuDoc("")),
                 GenTuEnumField("RawLink",
                                GenTuDoc("Raw unwrapped link that was pasted in text")),
                 GenTuEnumField(

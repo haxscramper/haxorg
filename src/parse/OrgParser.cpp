@@ -1739,8 +1739,7 @@ OrgId OrgParser::parseStmtListItem(OrgLexer& lex) {
             return result;
         }
 
-        case otk::Space:
-            return token(org::SkipSpace, pop(lex, otk::Space));
+        case otk::Space: return token(org::Space, pop(lex, otk::Space));
         case otk::Newline:
             return token(org::Newline, pop(lex, otk::Newline));
         case otk::TextSeparator:

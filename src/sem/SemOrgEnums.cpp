@@ -239,9 +239,6 @@ Opt<OrgNodeKind> enum_serde<OrgNodeKind>::from_string(std::string value) {
   if (value == "Word") { return OrgNodeKind::Word; } else
   if (value == "Escaped") { return OrgNodeKind::Escaped; } else
   if (value == "Newline") { return OrgNodeKind::Newline; } else
-  if (value == "SkipNewline") { return OrgNodeKind::SkipNewline; } else
-  if (value == "SkipSpace") { return OrgNodeKind::SkipSpace; } else
-  if (value == "SkipAny") { return OrgNodeKind::SkipAny; } else
   if (value == "RawLink") { return OrgNodeKind::RawLink; } else
   if (value == "Link") { return OrgNodeKind::Link; } else
   if (value == "Macro") { return OrgNodeKind::Macro; } else
@@ -387,9 +384,6 @@ std::string enum_serde<OrgNodeKind>::to_string(OrgNodeKind value) {
     case OrgNodeKind::Word: return "Word";
     case OrgNodeKind::Escaped: return "Escaped";
     case OrgNodeKind::Newline: return "Newline";
-    case OrgNodeKind::SkipNewline: return "SkipNewline";
-    case OrgNodeKind::SkipSpace: return "SkipSpace";
-    case OrgNodeKind::SkipAny: return "SkipAny";
     case OrgNodeKind::RawLink: return "RawLink";
     case OrgNodeKind::Link: return "Link";
     case OrgNodeKind::Macro: return "Macro";
@@ -652,7 +646,6 @@ Opt<OrgTokenKind> enum_serde<OrgTokenKind>::from_string(std::string value) {
   if (value == "CmdContentBegin") { return OrgTokenKind::CmdContentBegin; } else
   if (value == "CmdContentEnd") { return OrgTokenKind::CmdContentEnd; } else
   if (value == "CmdSrcCodeContent") { return OrgTokenKind::CmdSrcCodeContent; } else
-  if (value == "CmdSrcLangName") { return OrgTokenKind::CmdSrcLangName; } else
   if (value == "CmdSrcTextBlock") { return OrgTokenKind::CmdSrcTextBlock; } else
   if (value == "TblContent") { return OrgTokenKind::TblContent; } else
   if (value == "TblBegin") { return OrgTokenKind::TblBegin; } else
@@ -889,7 +882,6 @@ std::string enum_serde<OrgTokenKind>::to_string(OrgTokenKind value) {
     case OrgTokenKind::CmdContentBegin: return "CmdContentBegin";
     case OrgTokenKind::CmdContentEnd: return "CmdContentEnd";
     case OrgTokenKind::CmdSrcCodeContent: return "CmdSrcCodeContent";
-    case OrgTokenKind::CmdSrcLangName: return "CmdSrcLangName";
     case OrgTokenKind::CmdSrcTextBlock: return "CmdSrcTextBlock";
     case OrgTokenKind::TblContent: return "TblContent";
     case OrgTokenKind::TblBegin: return "TblBegin";

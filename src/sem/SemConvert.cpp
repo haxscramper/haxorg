@@ -927,11 +927,6 @@ SemId OrgConverter::convert(__args) {
         case org::StaticInactiveTime:
         case org::DynamicActiveTime:
         case org::DynamicInactiveTime: return convertTime(p, a);
-        case org::SkipSpace: return convertSpace(p, a);
-        // NOTE not sure what to do with this node kind when it reaches
-        // this point
-        case org::SkipAny: return convertSpace(p, a);
-        case org::SkipNewline: return convertNewline(p, a);
         case org::Quote: return convertMarkQuote(p, a);
         case org::QuoteBlock: return convertQuote(p, a);
         case org::Colon: return convertPunctuation(p, a);

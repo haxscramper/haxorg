@@ -273,9 +273,6 @@ enum class OrgNodeKind : short int {
   /// \brief Escaped formatting character in the text
   Escaped,
   Newline,
-  SkipNewline,
-  SkipSpace,
-  SkipAny,
   /// \brief Raw unwrapped link that was pasted in text
   RawLink,
   /// \brief External or internal link. Consists of one or two elements - target
@@ -615,8 +612,6 @@ enum class OrgTokenKind : short int {
   CmdContentEnd,
   /// \brief Block of code inside `#+begin_src`
   CmdSrcCodeContent,
-  /// \brief Source code block language name
-  CmdSrcLangName,
   /// \brief Code before noweb placeholder. Requires separate token to handle `##<<commented>>` - prefix comment should be duplicated for each line of the placeholder expansion.
   CmdSrcTextBlock,
   /// \brief Block of text inside `#+table`
