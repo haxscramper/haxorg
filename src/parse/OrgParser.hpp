@@ -12,16 +12,10 @@ using ParseCb = std::function<OrgId(OrgLexer&)>;
 struct OrgParser : public OperationsTracer {
   public:
     bool TraceState = false;
-    struct TokenWithValue {
-        OrgTokenKind kind;
-        std::string  value;
-        BOOST_DESCRIBE_CLASS(TokenWithValue, (), (kind, value), (), ());
-    };
 
     using OrgExpectable = Variant<
         OrgTokenKind,
         OrgTokSet,
-        TokenWithValue,
         Vec<OrgTokenKind>>;
 
     // TODO Move out of the parser base

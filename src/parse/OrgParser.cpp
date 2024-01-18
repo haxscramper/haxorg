@@ -1066,7 +1066,6 @@ OrgId OrgParser::parseSubtreeLogbookListEntry(OrgLexer& lex) {
     __perf_trace("parseSubtreeLogbookListEntry");
     auto __trace = trace(lex);
     start(org::LogbookEntry);
-    using V = TokenWithValue;
 
     skip(lex, otk::ListItemBegin);
     space(lex);
@@ -1791,13 +1790,13 @@ bool OrgParser::at(CR<OrgLexer> lex, CR<OrgExpectable> item) {
         return true;
     } else if (item.index() == 1 && lex.at(std::get<1>(item))) {
         return true;
-    } else if (
-        item.index() == 2 //
-        && lex.at(std::get<2>(item).kind)
-        && lex.tok()->getText() == std::get<2>(item).value) {
-        return true;
     } else {
-        return false;
+        auto const& tokens = std::get<Vec<OrgTokenKind>>(item);
+        for (int i = 0; i < tokens.size(); ++i) {
+            if (!lex.at(tokens.at(i), i)) { return false; }
+        }
+
+        return true;
     }
 }
 

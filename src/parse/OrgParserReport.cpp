@@ -14,12 +14,7 @@ const char* OrgParser::UnexpectedToken::what() const noexcept {
         "Expected $#, but got $# at $# ($#)"
         % to_string_vec(
             std::visit(
-                overloaded{
-                    [](CR<TokenWithValue> it) {
-                        return "$# ('$#')"
-                             % to_string_vec(it.kind, it.value);
-                    },
-                    [](auto const& it) { return std::format("{}", it); }},
+                [](auto const& it) { return std::format("{}", it); },
                 wanted),
             this->token,
             getLocMsg(),
