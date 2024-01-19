@@ -2,11 +2,7 @@ import pytest
 from pathlib import Path
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 import os
-
-root = get_haxorg_repo_root_path()
-ld_preload = root.joinpath("toolchain/llvm/lib/clang/17/lib/x86_64-unknown-linux-gnu/libclang_rt.asan.so")
-os.environ["LD_PRELOAD"] = str(ld_preload)
-os.environ["ASAN_OPTIONS"] = "detect_leaks=0"
+import subprocess
 
 from py_scriptutils.tracer import TraceCollector
 
@@ -18,7 +14,6 @@ def get_trace_collector():
         trace_collector = TraceCollector()
 
     return trace_collector
-
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -41,3 +36,43 @@ def trace_test(request):
     get_trace_collector().push_complete_event(test_name, "test")
     yield
     get_trace_collector().pop_complete_event()
+
+def parse_google_tests(binary_path: str) -> list[str]:
+    result = subprocess.run([binary_path, "--gtest_list_tests"],
+                            capture_output=True, text=True)
+    tests = []
+    current_suite = None
+
+    for line in result.stdout.splitlines():
+        if line.endswith('.'):
+            current_suite = line[:-1]
+        else:
+            test_name = line.strip().split(' ')[0]
+            tests.append(f"{current_suite}.{test_name}")
+
+    return tests
+
+
+binary_path = get_haxorg_repo_root_path().joinpath("build/haxorg_debug/tests_org") 
+
+def pytest_collect_file(parent, path):
+    if path.basename == "test_integrate_cxx_org.py":
+        return GTestFile.from_parent(parent, fspath=path)
+
+
+class GTestFile(pytest.File):
+    def collect(self):
+        for test in parse_google_tests(binary_path):
+            yield GTestItem.from_parent(self, name=test)
+
+
+class GTestItem(pytest.Item):
+    def __init__(self, name, parent):
+        super(GTestItem, self).__init__(name, parent)
+
+    def runtest(self):
+        subprocess.run([binary_path, f"--gtest_filter={self.name}"])
+
+    def repr_failure(self, exception):
+        return f"Google Test failed: {exception.value}"
+
