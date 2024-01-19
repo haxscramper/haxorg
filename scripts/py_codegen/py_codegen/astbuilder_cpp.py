@@ -91,7 +91,7 @@ class QualType(BaseModel, extra="forbid"):
         ]
 
     @beartype
-    class Function(BaseModel):
+    class Function(BaseModel, extra="forbid"):
         ReturnTy: 'QualType'
         Args: List['QualType']
         Ident: str = ""
@@ -119,15 +119,17 @@ class QualType(BaseModel, extra="forbid"):
 
         origin = self.dbg_origin if dbgOrigin else ""
 
+        spaces = "".join([S.format(dbgOrigin) + "::" for S in self.Spaces])
+
         match self.Kind:
             case QualTypeKind.FunctionPtr:
-                return "F:[{}({})]".format(
+                return spaces + "F:[{}({})]".format(
                     self.func.ReturnTy.format(),
                     ", ".join([T.format() for T in self.func.Args]),
                 )
 
             case QualTypeKind.Array:
-                return "A:[{first}[{expr}]{cvref}{origin}]".format(
+                return spaces + "A:[{first}[{expr}]{cvref}{origin}]".format(
                     first=self.Parameters[0].format(),
                     expr=self.Parameters[1].format() if 1 < len(self.Parameters) else "",
                     cvref=cvref,
@@ -135,7 +137,7 @@ class QualType(BaseModel, extra="forbid"):
                 )
 
             case QualTypeKind.RegularType:
-                return "R:[{name}{args}{cvref}{origin}]".format(
+                return spaces + "R:[{name}{args}{cvref}{origin}]".format(
                     name=self.name,
                     args=("<" + ", ".join([T.format() for T in self.Parameters]) +
                           ">") if self.Parameters else "",
@@ -1076,58 +1078,72 @@ class ASTBuilder(base.AstbuilderBase):
         ])
 
     def Type(self, type_: QualType, noQualifiers: bool = False) -> BlockId:
-        if type_.func:
-            pointer_type = [self.Type(type_.func.Class),
-                            self.string("::")] if type_.func.Class else []
+        if noQualifiers:
+            qualifiers = ""
 
-            return self.b.line([
-                self.Type(type_.func.ReturnTy),
-                self.pars(self.b.line(pointer_type + [self.string("*")])),
-                self.pars(self.csv([self.Type(T) for T in type_.func.Args])),
-                self.string(" const" if type_.func.IsConst else ""),
-            ])
         else:
-            type_scopes = [
-                self.Type(Space, noQualifiers=noQualifiers) for Space in type_.Spaces
-            ] + [self.string(type_.name)]
+            qualifiers = ""
+            if type_.isConst:
+                qualifiers += " const"
 
-            if len(type_.Parameters) == 0:
-                template_parameters = self.string("")
+            qualifiers += "*" * type_.ptrCount
+            match type_.RefKind:
+                case ReferenceKind.LValue:
+                    qualifiers += "&"
 
-            else:
-                template_parameters = self.b.line([
-                    self.string("<"),
-                    self.b.join(
-                        [
-                            self.Type(in_, noQualifiers=noQualifiers)
-                            for in_ in type_.Parameters
-                        ],
-                        self.string(", "),
-                        not type_.verticalParamList,
-                    ),
-                    self.string(">")
+                case ReferenceKind.RValue:
+                    qualifiers += "&&"
+
+        match type_.Kind:
+            case QualTypeKind.FunctionPtr:
+                pointer_type = [self.Type(type_.func.Class),
+                                self.string("::")] if type_.func.Class else []
+
+                return self.b.line([
+                    self.Type(type_.func.ReturnTy),
+                    self.pars(self.b.line(pointer_type + [self.string("*")])),
+                    self.pars(self.csv([self.Type(T) for T in type_.func.Args])),
+                    self.string(" const" if type_.func.IsConst else ""),
                 ])
 
-            if noQualifiers:
-                qualifiers = ""
+            case QualTypeKind.TypeExpr:
+                return self.string(type_.expr)
 
-            else:
-                qualifiers = ""
-                if type_.isConst:
-                    qualifiers += " const"
+            case QualTypeKind.Array:
+                return self.b.line([
+                    self.Type(type_.Parameters[0]),
+                    self.string("["),
+                    self.Type(type_.Parameters[1]),
+                    self.string("]"),
+                    self.string(qualifiers)
+                ])
 
-                qualifiers += "*" * type_.ptrCount
-                match type_.RefKind:
-                    case ReferenceKind.LValue:
-                        qualifiers += "&"
+            case QualTypeKind.RegularType:
+                type_scopes = [
+                    self.Type(Space, noQualifiers=noQualifiers) for Space in type_.Spaces
+                ] + [self.string(type_.name)]
 
-                    case ReferenceKind.RValue:
-                        qualifiers += "&&"
+                if len(type_.Parameters) == 0:
+                    template_parameters = self.string("")
 
-            return self.b.line([
-                self.b.join(type_scopes, self.string("::")), template_parameters,
-                self.string(qualifiers)
-            ])
+                else:
+                    template_parameters = self.b.line([
+                        self.string("<"),
+                        self.b.join(
+                            [
+                                self.Type(in_, noQualifiers=noQualifiers)
+                                for in_ in type_.Parameters
+                            ],
+                            self.string(", "),
+                            not type_.verticalParamList,
+                        ),
+                        self.string(">")
+                    ])
+
+                return self.b.line([
+                    self.b.join(type_scopes, self.string("::")), template_parameters,
+                    self.string(qualifiers),
+                ])
 
     def Dot(self, lhs: BlockId, rhs: BlockId) -> BlockId:
         return self.b.line([lhs, self.string("."), rhs])
