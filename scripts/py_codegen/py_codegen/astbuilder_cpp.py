@@ -10,9 +10,9 @@ from pydantic import BaseModel, Field
 
 if not TYPE_CHECKING:
     BlockId = NewType('BlockId', int)
-    from py_textlayout.py_textlayout import *
+    from py_textlayout.py_textlayout_wrap import *
 else:
-    from py_textlayout.py_textlayout import BlockId
+    from py_textlayout.py_textlayout_wrap import BlockId
 
 import logging
 from rich.logging import RichHandler

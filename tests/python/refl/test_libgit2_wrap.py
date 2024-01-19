@@ -1,3 +1,4 @@
+from py_scriptutils import configure_asan
 import logging
 from tempfile import TemporaryDirectory
 

@@ -16,6 +16,7 @@ from contextlib import contextmanager
 import traceback
 from types import GeneratorType
 from dataclasses import dataclass, field
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
 
 T = TypeVar('T')
 
@@ -23,12 +24,7 @@ SomePath: TypeAlias = Union[str, Path, GeneratorType]
 SomePaths: TypeAlias = Union[SomePath, List[SomePath]]
 
 
-def get_haxorg_repo_root_path() -> Path:
-    result = Path(__file__).parent.parent.parent.parent
-    assert result.exists(), result
-    assert result.is_dir(), result
-    assert result.joinpath("tasks.py").exists(), result
-    return result
+
 
 
 @beartype

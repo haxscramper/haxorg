@@ -1,5 +1,5 @@
 import py_haxorg.pyhaxorg as org
-from py_textlayout.py_textlayout import *
+from py_textlayout.py_textlayout_wrap import *
 from py_haxorg.pyhaxorg import OrgSemKind as osk
 
 from beartype.typing import *

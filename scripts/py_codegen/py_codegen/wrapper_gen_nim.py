@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from beartype import beartype
 from beartype.typing import Callable, List, NewType, Optional, Set, Union, Tuple
 from py_scriptutils.files import file_relpath
-from py_textlayout.py_textlayout import TextLayout, TextOptions
+from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
 from pydantic import BaseModel, Field
 import itertools
 from dataclasses import replace
@@ -28,7 +28,7 @@ from py_codegen.refl_wrapper_graph import GenGraph, GenTuUnion
 from py_scriptutils.script_logging import log
 
 if TYPE_CHECKING:
-    from py_textlayout.py_textlayout import BlockId
+    from py_textlayout.py_textlayout_wrap import BlockId
 else:
     BlockId = NewType('BlockId', int)
 

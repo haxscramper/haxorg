@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from beartype import beartype
 from beartype.typing import Optional, List
 
-import py_haxorg.pyhaxorg as org
+import py_haxorg.pyhaxorg_wrap as org
 import py_scriptutils.py_scriptutils.tracer as tracer
 from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import make_config_provider, run_config_provider, apply_options
@@ -182,7 +182,7 @@ def export_tex(
     """Export"""
     ctx = parse_input(file, ctx.obj["cli"])
     from py_exporters.export_tex import ExporterLatex
-    from py_textlayout.py_textlayout import TextOptions
+    from py_textlayout.py_textlayout_wrap_wrap import TextOptions
 
     log().info("Exporting to latex")
     tex = ExporterLatex()

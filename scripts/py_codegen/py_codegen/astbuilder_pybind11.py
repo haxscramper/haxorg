@@ -23,7 +23,7 @@ def maybe_list(it: Any) -> Any:
 
 
 if TYPE_CHECKING:
-    from py_textlayout.py_textlayout import BlockId
+    from py_textlayout.py_textlayout_wrap import BlockId
 
 else:
     BlockId = NewType('BlockId', int)

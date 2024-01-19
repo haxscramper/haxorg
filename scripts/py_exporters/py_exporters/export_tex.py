@@ -1,5 +1,5 @@
 import py_haxorg.pyhaxorg as org
-from py_textlayout.py_textlayout import TextLayout
+from py_textlayout.py_textlayout_wrap import TextLayout
 from py_haxorg.pyhaxorg import OrgSemKind as osk
 
 from beartype.typing import List, Optional
@@ -12,7 +12,7 @@ from py_exporters.export_base import ExporterBase
 from py_exporters.export_ultraplain import ExporterUltraplain
 
 if TYPE_CHECKING:
-    from py_textlayout.py_textlayout import BlockId
+    from py_textlayout.py_textlayout_wrap import BlockId
 else:
     BlockId = NewType('BlockId', int)
 

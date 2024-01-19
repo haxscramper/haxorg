@@ -1,3 +1,4 @@
+from py_scriptutils import configure_asan
 from refl_test_driver import run_provider, STABLE_FILE_NAME, get_nim_code, format_nim_code
 import pytest
 from pprint import pprint

@@ -6,7 +6,7 @@ from typing import *
 
 import py_codegen.astbuilder_py as pya
 from py_codegen.org_codegen_data import *
-from py_textlayout.py_textlayout import TextLayout, TextOptions
+from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
 from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
 from py_scriptutils.script_logging import log
 from py_codegen.astbuilder_pybind11 import (
@@ -22,7 +22,7 @@ from py_codegen.astbuilder_pybind11 import (
 )
 
 if TYPE_CHECKING:
-    from py_textlayout.py_textlayout import BlockId
+    from py_textlayout.py_textlayout_wrap import BlockId
 
 else:
     BlockId = NewType('BlockId', int)

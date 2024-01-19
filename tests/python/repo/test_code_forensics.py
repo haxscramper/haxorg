@@ -1,3 +1,5 @@
+from py_scriptutils import configure_asan
+
 import enum
 from copy import copy
 from pprint import pprint

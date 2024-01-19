@@ -1,9 +1,10 @@
+from py_scriptutils import configure_asan
 import itertools
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from pprint import pprint
 from more_itertools import first_true
-import py_scriptutils.script_logging
+# import py_scriptutils.script_logging
 
 from refl_test_driver import (run_provider, STABLE_FILE_NAME, GenTuStruct, get_struct, get_nim_code, format_nim_code, \
     compile_nim_code, verify_nim_code, )

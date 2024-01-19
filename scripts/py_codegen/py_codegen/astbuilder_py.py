@@ -1,4 +1,4 @@
-from py_textlayout.py_textlayout import TextLayout
+from py_textlayout.py_textlayout_wrap import TextLayout
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, NewType
 from beartype.typing import List
@@ -6,7 +6,7 @@ from beartype import beartype
 import py_codegen.astbuilder_base as base
 
 if TYPE_CHECKING:
-    from py_textlayout.py_textlayout import BlockId
+    from py_textlayout.py_textlayout_wrap import BlockId
 else:
     BlockId = NewType('BlockId', int)
 

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from py_codegen.astbuilder_cpp import *
 from beartype.typing import Sequence, List
 from beartype import beartype
-from py_textlayout.py_textlayout import *
+from py_textlayout.py_textlayout_wrap import *
 from pathlib import Path
 
 if not TYPE_CHECKING:

@@ -3,11 +3,11 @@ from typing import TYPE_CHECKING, NewType
 
 from beartype import beartype
 from beartype.typing import List, Optional, Union, overload
-from py_textlayout.py_textlayout import TextLayout
+from py_textlayout.py_textlayout_wrap import TextLayout
 import itertools
 
 if TYPE_CHECKING:
-    from py_textlayout.py_textlayout import BlockId
+    from py_textlayout.py_textlayout_wrap import BlockId
 else:
     BlockId = NewType('BlockId', int)
 

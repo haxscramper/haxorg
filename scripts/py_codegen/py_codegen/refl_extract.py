@@ -37,7 +37,7 @@ from py_codegen.refl_read import ConvTu, conv_proto_file, open_proto_file
 from py_codegen.refl_wrapper_graph import GenGraph, TuWrap
 
 if TYPE_CHECKING:
-    from py_textlayout.py_textlayout import BlockId
+    from py_textlayout.py_textlayout_wrap import BlockId
 else:
     BlockId = NewType('BlockId', int)
 

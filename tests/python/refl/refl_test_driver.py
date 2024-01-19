@@ -1,3 +1,4 @@
+from py_scriptutils import configure_asan
 from py_codegen.refl_read import (
     ConvTu,
     GenTuStruct,
@@ -5,6 +6,7 @@ from py_codegen.refl_read import (
     GenTuFunction,
     QualType,
 )
+
 from beartype.typing import (
     Optional,
     Any,

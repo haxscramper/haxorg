@@ -1,4 +1,5 @@
-from py_textlayout.py_textlayout import TextLayout, TextOptions
+from py_scriptutils import configure_asan
+from py_textlayout.py_textlayout_wrap import TextLayout, TextOptions
 from refl_test_driver import (
     run_provider,
     STABLE_FILE_NAME,

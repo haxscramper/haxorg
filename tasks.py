@@ -107,7 +107,7 @@ def run_command(
 
     args_repr = " ".join((str(s) for s in args))
 
-    log().debug(f"Running [red]{cmd}[/red] [cyan]{args_repr}[/cyan]")
+    log("tasks").debug(f"Running [red]{cmd}[/red] [cyan]{args_repr}[/cyan]")
 
     run = local[cmd]
     if env:
@@ -156,7 +156,7 @@ def org_task(task_name: Optional[str] = None,
         @wraps(func)
         def wrapper(*args, **kwargs):
             name = task_name or func.__name__
-            log().info(f"Running [yellow]{name}[/yellow] ...")
+            log("tasks").info(f"Running [yellow]{name}[/yellow] ...")
             run_ok = False
             try:
                 with GlobCompleteEvent(f"task {name}", "build") as last:
@@ -165,7 +165,7 @@ def org_task(task_name: Optional[str] = None,
                 run_ok = True
 
             finally:
-                log().info(
+                log("tasks").info(
                     f"Completed [green]{name}[/green] in [blue]{last.dur / 10e3:5.1f}[/blue]ms"
                 )
 
@@ -232,16 +232,16 @@ def org_task_graph(ctx: Context, dot_file: str = "/tmp/graph.dot"):
     graph = create_graph(TASK_DEPS)
     with open(dot_file, "w") as file:
         file.write(graph.source)
-        log().info(f"Wrote graph to {dot_file}")
+        log("tasks").info(f"Wrote graph to {dot_file}")
 
 
 @org_task()
 def git_init_submodules(ctx: Context):
     """Init submodules if missing"""
     if get_script_root().joinpath("thirdparty/mp11").exists():
-        log().info("Submodules were checked out")
+        log("tasks").info("Submodules were checked out")
     else:
-        log().info("Submodules were not checked out, running update")
+        log("tasks").info("Submodules were not checked out, running update")
         run_command(ctx, "git",
                     ["submodule", "update", "--init", "--recursive", "--progress"])
 
@@ -251,7 +251,7 @@ def download_llvm(ctx: Context):
     """Download LLVM toolchain if missing"""
     llvm_dir = get_script_root("toolchain/llvm")
     if not os.path.isdir(llvm_dir):
-        log().info("LLVM not found. Downloading...")
+        log("tasks").info("LLVM not found. Downloading...")
         # curl = local["curl"]
         # version = "17.0.6"
         # wget = local["wget"]
@@ -264,9 +264,9 @@ def download_llvm(ctx: Context):
 
         # ctx.run(f"tar -xf llvm.tar.xz -C toolchain && mv toolchain/clang+llvm-{version}-x86_64-linux-gnu-ubuntu-22.04 toolchain/llvm")
         # os.remove("llvm.tar.xz")
-        # log().info("LLVM downloaded and unpacked successfully!")
+        # log("tasks").info("LLVM downloaded and unpacked successfully!")
     else:
-        log().info("LLVM already exists. Skipping download.")
+        log("tasks").info("LLVM already exists. Skipping download.")
 
 
 @org_task(pre=[git_init_submodules, download_llvm])
@@ -278,7 +278,7 @@ def base_environment(ctx: Context):
 @org_task(pre=[base_environment])
 def cmake_configure_utils(ctx: Context):
     """Execute configuration for utility binary compilation"""
-    log().info("Configuring cmake utils build")
+    log("tasks").info("Configuring cmake utils build")
     build_dir = "build/utils_debug" if is_debug(ctx) else "build/utils_release"
     run_command(
         ctx,
@@ -299,10 +299,10 @@ def cmake_configure_utils(ctx: Context):
 @org_task(task_name="Build cmake utils", pre=[cmake_configure_utils])
 def cmake_utils(ctx: Context):
     """Compile libraries and binaries for utils"""
-    log().info("Building build utils")
+    log("tasks").info("Building build utils")
     build_dir = "build/utils_debug" if is_debug(ctx) else "build/utils_release"
     run_command(ctx, "cmake", ["--build", get_script_root(build_dir)])
-    log().info("CMake utils build ok")
+    log("tasks").info("CMake utils build ok")
 
 
 REFLEX_PATH = "toolchain/RE-flex/build/reflex"
@@ -346,7 +346,7 @@ def haxorg_base_lexer(ctx: Context):
                              stamp_path=get_task_stamp("haxorg_base_lexer"),
                              stamp_content=str(reflex_run_params)) as op:
         if op.should_run():
-            log().info("Generating base lexer for haxorg")
+            log("tasks").info("Generating base lexer for haxorg")
             run_command(ctx, "poetry", ["run", py_file])
             run_command(
                 ctx,
@@ -356,7 +356,7 @@ def haxorg_base_lexer(ctx: Context):
             )
 
         else:
-            log().info("No changes in base lexer config")
+            log("tasks").info("No changes in base lexer config")
 
 
 @org_task()
@@ -368,12 +368,12 @@ def python_protobuf_files(ctx: Context):
             stamp_path=get_task_stamp("python-protobuf-files"),
     ) as op:
         if op.should_run():
-            log().info(f"Running protc {op.explain('python protobuf')}")
+            log("tasks").info(f"Running protc {op.explain('python protobuf')}")
             _, stdout, _ = run_command(ctx,
                                        "poetry", ["env", "info", "--path"],
                                        capture=True)
             stdout = stdout.strip()
-            log().info(f"Using protoc plugin path '{stdout}'")
+            log("tasks").info(f"Using protoc plugin path '{stdout}'")
             protoc_plugin = Path(stdout).joinpath("bin/protoc-gen-python_betterproto")
 
             if not protoc_plugin.exists():
@@ -413,9 +413,9 @@ def cmake_configure_haxorg(ctx: Context):
             stamp_path=get_task_stamp("cmake_configure_haxorg"),
             stamp_content=str(get_cmake_defines(ctx)),
     ) as op:
-        log().info(op.explain("cmake configuration"))
+        log("tasks").info(op.explain("cmake configuration"))
         if op.should_run():
-            log().info("running haxorg cmake configuration")
+            log("tasks").info("running haxorg cmake configuration")
             build_dir = "build/haxorg_debug" if is_debug(ctx) else "build/haxorg_release"
             pass_flags = [
                 "-B",
@@ -441,9 +441,9 @@ def cmake_haxorg(ctx: Context):
             stamp_path=get_task_stamp("cmake_haxorg"),
             stamp_content=str(get_cmake_defines(ctx)),
     ) as op:
-        log().info(op.explain("Main C++"))
+        log("tasks").info(op.explain("Main C++"))
         if op.should_run():
-            log().info('Running cmake haxorg build')
+            log("tasks").info('Running cmake haxorg build')
             run_command(ctx,
                         "cmake", ["--build", build_dir],
                         env={'NINJA_FORCE_COLOR': '1'})
@@ -520,7 +520,7 @@ def update_py_haxorg_reflection(ctx: Context):
         log.error("Reflection tool failed: %s", e)
         raise
 
-    log().info("Updated reflection")
+    log("tasks").info("Updated reflection")
 
 
 LD_PRELOAD_ASAN = {
@@ -542,7 +542,7 @@ def haxorg_codegen(ctx: Context, as_diff: bool = False):
     # TODO source file generation should optionally overwrite the target OR
     # compare the new and old source code (to avoid breaking the subsequent
     # compilation of the source)
-    log().info("Executing haxorg code generation step.")
+    log("tasks").info("Executing haxorg code generation step.")
     run_command(ctx,
                 "poetry", [
                     "run",
@@ -552,7 +552,7 @@ def haxorg_codegen(ctx: Context, as_diff: bool = False):
                 ],
                 env=LD_PRELOAD_ASAN)
 
-    log().info("Updated code definitions")
+    log("tasks").info("Updated code definitions")
 
 
 @org_task(pre=[cmake_haxorg])
@@ -603,7 +603,7 @@ def binary_coverage(ctx: Context, test: Path):
             "-output-dir=" + str(coverage_dir),
         ])
 
-        log().info(f"Generated coverage to {coverage_dir}")
+        log("tasks").info(f"Generated coverage to {coverage_dir}")
 
     else:
         raise Failure(
@@ -623,7 +623,7 @@ def xray_coverage(ctx: Context, test: Path):
     for file in dir.glob("*.profdata"):
         file.unlink()
 
-    log().info(f"Running XRAY log agregation for directory {dir}")
+    log("tasks").info(f"Running XRAY log agregation for directory {dir}")
     run_command(
         ctx,
         test, [],
@@ -637,7 +637,7 @@ def xray_coverage(ctx: Context, test: Path):
                        key=os.path.getmtime,
                        reverse=True)
     if log_files:
-        log().info(f"Latest XRay log file '{log_files[0]}'")
+        log("tasks").info(f"Latest XRay log file '{log_files[0]}'")
         logfile = log_files[0]
 
         # Process log file with llvm-xray and llvm-profdata
@@ -718,7 +718,7 @@ def py_tests(
     LLDB debugger to work on compiled component issues. 
     """
 
-    log().info(LD_PRELOAD_ASAN)
+    log("tasks").info(LD_PRELOAD_ASAN)
 
     if debug_test:
         debug_test: Path = Path(debug_test)
@@ -767,7 +767,7 @@ def py_tests(
 def build_cxx_docs(ctx: Context):
     "Build Doxygen docunentation for the project"
     run_command(ctx, "doxygen", [str(get_script_root("Doxyfile"))])
-    log().info("Completed CXX docs build")
+    log("tasks").info("Completed CXX docs build")
 
 
 @org_task()
