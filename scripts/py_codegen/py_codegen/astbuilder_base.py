@@ -76,6 +76,10 @@ class AstbuilderBase:
                               AstIndentCtx]] = field(default_factory=list)
     last_result: Optional[BlockId] = None
 
+    def __repr__(self):
+        # Beartype cannot run default repr because it fails with missing context state value.
+        return "astbuilder-base"
+
     def Spatial(self, stack: bool):
         if stack:
             return self.Stack()

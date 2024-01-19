@@ -433,6 +433,9 @@ class ASTBuilder(base.AstbuilderBase):
     def __init__(self, in_b: TextLayout):
         self.b = in_b
 
+    def __repr__(self):
+        return "cpp.ASTBuilder()"
+
     def CaseStmt(self, params: CaseStmtParams) -> BlockId:
         head = self.string("default:") if params.IsDefault else self.b.line(
             [self.string("case "), params.Expr or self.string(""),

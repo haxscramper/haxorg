@@ -329,6 +329,22 @@ class Py11Class:
     InitImpls: List[Py11Method] = field(default_factory=list)
     PyBases: List[QualType] = field(default_factory=list)
 
+    @staticmethod
+    def FromGenTu(value: GenTuStruct, pyNameOveride: Optional[str] = None) -> 'Py11Class':
+        res = Py11Class(PyName=pyNameOveride or py_type(value.name).Name, Class=value.name)
+        res.InitDefault()
+
+        for base in value.bases:
+            res.Bases.append(base)
+
+        for meth in value.methods:
+            res.Methods.append(Py11Method.FromGenTu(meth))
+
+        for _field in value.fields:
+            res.Fields.append(Py11Field.FromGenTu(_field))
+
+        return res
+
     def InitDefault(self):
         self.InitImpls.append(Py11Method("", "", QualType.ForName("")))
 

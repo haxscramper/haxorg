@@ -1,3 +1,4 @@
+from py_textlayout.py_textlayout import TextLayout, TextOptions
 from refl_test_driver import (
     run_provider,
     STABLE_FILE_NAME,
@@ -8,6 +9,9 @@ from refl_test_driver import (
 )
 import pytest
 from py_codegen.gen_tu_cpp import ReferenceKind
+import py_codegen.astbuilder_pybind11 as py11
+import py_codegen.astbuilder_py as py
+import py_codegen.astbuilder_cpp as cpp
 
 
 def test_function_extract_0_args():
@@ -45,4 +49,10 @@ def test_method_const_ref():
     assert t.name == "int"
     assert t.isConst
     assert t.RefKind == ReferenceKind.LValue
+
+    wrap: py11.Py11Class = py11.Py11Class.FromGenTu(struct)
+    lyt = TextLayout()
+    builder = cpp.ASTBuilder(lyt)
+    bind = wrap.Methods[0].build_bind(struct.name, builder)
+    assert "static_cast<void(S::*)(int const&)>(&S::enable_file_trace)" in lyt.toString(bind, TextOptions())
 

@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, NewType
 from beartype.typing import List
 from beartype import beartype
-import astbuilder_base as base
+import py_codegen.astbuilder_base as base
 
 if TYPE_CHECKING:
     from py_textlayout.py_textlayout import BlockId
