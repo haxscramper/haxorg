@@ -9,7 +9,7 @@ from py_codegen.astbuilder_cpp import *
 from py_codegen.gen_tu_cpp import *
 from py_codegen.org_codegen_data import *
 from py_textlayout.py_textlayout import TextLayout, TextOptions
-from py_codegen.refl_read import conv_proto_file, ConvTu
+from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
 from py_scriptutils.script_logging import log
 
 if TYPE_CHECKING:
@@ -369,22 +369,20 @@ class Py11Method:
 
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
         b = ast.b
-
-        call_pass: BlockId = None
         if self.Body is None:
+            function_type = QualType(func=QualType.Function(
+                ReturnTy=self.ResultTy,
+                Args=[A.type for A in self.Args],
+                Class=Class,
+                IsConst=self.IsConst,
+            ), Kind=QualTypeKind.FunctionPtr)
             call_pass = ast.XCall(
                 "static_cast",
                 args=[ast.Addr(ast.Scoped(Class, ast.string(self.CxxName)))],
-                Params=[
-                    QualType(func=QualType.Function(
-                        ReturnTy=self.ResultTy,
-                        Args=[A.type for A in self.Args],
-                        Class=Class,
-                        IsConst=self.IsConst,
-                    ))
-                ])
+                Params=[function_type])
 
         else:
+            function_type = None
             call_pass = ast.Lambda(
                 LambdaParams(
                     ResultTy=self.ResultTy,
@@ -393,16 +391,23 @@ class Py11Method:
                     Body=self.Body,
                 ))
 
+        argument_binder = [
+            ast.XCall("pybind11::arg", [ast.Literal(Arg.name)]) if Arg.value is None else
+            ast.XCall("pybind11::arg_v",
+                      [ast.Literal(Arg.name), b.text(Arg.value)]) for Arg in self.Args
+        ]
+
+        doc_comment = [ast.StringLiteral(self.Doc.brief, forceRawStr=True)
+                      ] if self.Doc.brief else []
+
         return ast.XCall(
             ".def",
             [
-                ast.Literal(self.PyName), call_pass, *[
-                    ast.XCall("pybind11::arg", [ast.Literal(Arg.name)])
-                    if Arg.value is None else ast.XCall(
-                        "pybind11::arg_v",
-                        [ast.Literal(Arg.name), b.text(Arg.value)]) for Arg in self.Args
-                ], *([ast.StringLiteral(self.Doc.brief, forceRawStr=True)]
-                     if self.Doc.brief else [])
+                ast.Literal(self.PyName),
+                ast.Comment([str(function_type.format()) if function_type else "????"]),
+                call_pass,
+                *argument_binder,
+                *doc_comment,
             ],
             Line=len(self.Args) == 0,
         )
@@ -1003,6 +1008,9 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     with open("/tmp/reflection_data.py", "w") as file:
         pprint(tu.structs, width=200, stream=file)
         pprint(tu.enums, width=200, stream=file)
+
+    with open("/tmp/reflection_data.json", "w") as file:
+        file.write(open_proto_file(reflection_path).to_json(2))
 
     global org_type_names
     org_type_names = [Typ.name for Typ in expanded]

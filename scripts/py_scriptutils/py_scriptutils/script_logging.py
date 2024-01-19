@@ -4,6 +4,9 @@ from rich.console import Console
 import sys
 import traceback
 
+import os
+import sys
+
 logging.basicConfig(
     level="NOTSET",
     format="%(name)s - %(message)s",

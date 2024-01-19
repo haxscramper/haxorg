@@ -47,7 +47,8 @@ class TuOptions(BaseModel):
 
     compilation_database: Optional[str] = Field(
         description="Explicit path to the compilation database to use for analysis",
-        default=None,)
+        default=None,
+    )
 
     build_root: Optional[str] = Field(
         description="Path to the wrapped project build directory. For cmake projects"
@@ -59,9 +60,7 @@ class TuOptions(BaseModel):
     source_root: Optional[str] = Field(
         description="Main project root where cmake is located", default=None)
 
-    header_root: str = Field(
-        description="Path to the header file directory wrapped",
-    )
+    header_root: str = Field(description="Path to the header file directory wrapped",)
 
     binary_tmp: str = Field(
         description="Path to store temporary binary artifacts",
@@ -155,6 +154,7 @@ def expand_input(conf: TuOptions) -> List[PathMapping]:
                 result.append(PathMapping(sub, directory_root))
 
     return result
+
 
 @beartype
 def get_compile_commands(conf: TuOptions) -> Path:
@@ -370,6 +370,23 @@ def write_run_result_information(
 
 
 @beartype
+def remove_dbgOrigin(json_str: str) -> str:
+
+    def remove_field(obj):
+        if isinstance(obj, dict):
+            obj.pop("dbgOrigin", None)
+            for key, value in list(obj.items()):
+                obj[key] = remove_field(value)
+        elif isinstance(obj, list):
+            obj = [remove_field(item) for item in obj]
+        return obj
+
+    data = json.loads(json_str)
+    cleaned_data = remove_field(data)
+    return json.dumps(cleaned_data, indent=2, sort_keys=True)
+
+
+@beartype
 def run_collector_for_path(
     conf: TuOptions,
     mapping: PathMapping,
@@ -387,7 +404,7 @@ def run_collector_for_path(
         if conf.reflection_run_serialize:
             out_path = conf.reflection_run_path or str(serialize_path)
             with open(out_path, "w") as file:
-                file.write(open_proto_file(str(tu.pb_path)).to_json(2))
+                file.write(remove_dbgOrigin(open_proto_file(str(tu.pb_path)).to_json()))
                 log().info(f"Wrote dump to {serialize_path}")
 
         write_run_result_information(conf, tu, path, commands)
