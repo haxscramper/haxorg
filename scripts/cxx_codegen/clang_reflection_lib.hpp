@@ -133,11 +133,13 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         clang::Expr const*                          In,
         std::optional<clang::SourceLocation> const& Loc);
 
-    void fillFieldDecl(Record::Field* sub, clang::FieldDecl* field);
+    void fillFieldDecl(Record::Field* sub, const clang::FieldDecl* field);
 
     void fillParmVarDecl(Arg* arg, clang::ParmVarDecl const* parm);
 
-    void fillMethodDecl(Record::Method* sub, clang::CXXMethodDecl* method);
+    void fillMethodDecl(
+        Record::Method*             sub,
+        const clang::CXXMethodDecl* method);
     void fillRecordDecl(Record* rec, clang::RecordDecl* Decl);
     void fillCxxRecordDecl(Record* rec, const clang::CXXRecordDecl* Decl);
 
@@ -148,10 +150,10 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     bool VisitRecordDecl(clang::RecordDecl* Decl);
     bool IndirectFieldDecl(clang::IndirectFieldDecl* Decl);
 
-    bool                       isRefl(clang::Decl* Decl);
+    bool                       isRefl(const clang::Decl* Decl);
     std::optional<std::string> getDoc(const clang::Decl* Decl);
 
-    bool shouldVisit(clang::Decl* Decl);
+    bool shouldVisit(const clang::Decl* Decl);
 
     /// List of absolute paths for files whose declarations must be added
     /// to the information about the translation units.

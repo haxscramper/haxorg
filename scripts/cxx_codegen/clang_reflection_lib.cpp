@@ -55,7 +55,7 @@ clang::FieldDecl* findFieldForDecl(
     return nullptr;
 }
 
-std::string getAbsoluteDeclLocation(clang::Decl* Decl) {
+std::string getAbsoluteDeclLocation(clang::Decl const* Decl) {
     clang::SourceLocation       loc           = Decl->getLocation();
     const clang::ASTContext&    astContext    = Decl->getASTContext();
     clang::SourceManager const& sourceManager = astContext
@@ -533,8 +533,8 @@ void ReflASTVisitor::fillExpr(
 }
 
 void ReflASTVisitor::fillFieldDecl(
-    Record::Field*    sub,
-    clang::FieldDecl* field) {
+    Record::Field*          sub,
+    clang::FieldDecl const* field) {
     clang::QualType const&   Type    = field->getType();
     clang::RecordType const* RecType = Type.getTypePtr()
                                            ->getAs<clang::RecordType>();
@@ -579,19 +579,6 @@ void ReflASTVisitor::fillParmVarDecl(
     QualType* ArgType = arg->mutable_type();
     fillType(ArgType, parm->getType(), parm->getLocation());
 
-    //    if (parm->getNameAsString() == "path") {
-    //        Diag(
-    //            DiagKind::Warning,
-    //            "Adding serialization information for %0 %1 %2\n",
-    //            parm->getLocation())
-    //            << parm
-    //            << std::format(
-    //                   "Ref {} Const {}\n",
-    //                   parm->getType()->isReferenceType(),
-    //                   parm->getType().isConstQualified())
-    //            << dump(parm->getType());
-    //    }
-
     if (parm->hasDefaultArg()) {
         fillExpr(
             arg->mutable_default_(),
@@ -601,8 +588,8 @@ void ReflASTVisitor::fillParmVarDecl(
 }
 
 void ReflASTVisitor::fillMethodDecl(
-    Record::Method*       sub,
-    clang::CXXMethodDecl* method) {
+    Record::Method*             sub,
+    clang::CXXMethodDecl const* method) {
 
 
     sub->set_name(method->getNameAsString());
@@ -635,15 +622,19 @@ void ReflASTVisitor::fillMethodDecl(
             sub->set_kind(Record_MethodKind_MoveConstructor);
         } else if (constr->isDefaultConstructor()) {
             sub->set_kind(Record_MethodKind_DefaultConstructor);
+        } else {
+            errs() << "Unknown constructor kind";
         }
     } else {
         sub->set_kind(Record_MethodKind_Base);
     }
 
-    fillType(
-        sub->mutable_returnty(),
-        method->getReturnType(),
-        method->getLocation());
+    if (!llvm::isa<clang::CXXConstructorDecl>(method)) {
+        fillType(
+            sub->mutable_returnty(),
+            method->getReturnType(),
+            method->getLocation());
+    }
 
     for (clang::ParmVarDecl const* parm : method->parameters()) {
         fillParmVarDecl(sub->add_args(), parm);
@@ -719,7 +710,7 @@ void ReflASTVisitor::fillRecordDecl(Record* rec, clang::RecordDecl* Decl) {
 }
 
 
-bool ReflASTVisitor::isRefl(clang::Decl* Decl) {
+bool ReflASTVisitor::isRefl(clang::Decl const* Decl) {
     for (clang::AnnotateAttr* Attr :
          Decl->specific_attrs<clang::AnnotateAttr>()) {
         if (Attr->getAnnotation() == REFL_NAME) { return true; }
@@ -742,7 +733,7 @@ std::optional<std::string> ReflASTVisitor::getDoc(
     }
 }
 
-bool ReflASTVisitor::shouldVisit(clang::Decl* Decl) {
+bool ReflASTVisitor::shouldVisit(clang::Decl const* Decl) {
     switch (visitMode) {
         case VisitMode::AllAnnotated: {
             return isRefl(Decl);
@@ -764,19 +755,9 @@ void ReflASTVisitor::fillCxxRecordDecl(
         Decl->getASTContext().getRecordType(Decl),
         Decl->getLocation());
 
-    for (clang::FieldDecl* field : Decl->fields()) {
-        if (shouldVisit(field) && !field->isImplicit()) {
-            fillFieldDecl(rec->add_fields(), field);
-        }
-    }
-
-    for (clang::CXXMethodDecl* method : Decl->methods()) {
-        if (shouldVisit(method)) {
-            fillMethodDecl(rec->add_methods(), method);
-        }
-    }
-
     for (clang::Decl const* SubDecl : Decl->decls()) {
+        if (!shouldVisit(SubDecl)) { continue; }
+
         if (clang::CXXRecordDecl const* SubRecord = llvm::dyn_cast<
                 clang::CXXRecordDecl>(SubDecl);
             SubRecord != nullptr) {
@@ -785,7 +766,6 @@ void ReflASTVisitor::fillCxxRecordDecl(
             if (!SubRecord->isImplicit()) {
                 clang::FieldDecl* FieldDecl = findFieldForDecl(
                     SubRecord, Ctx);
-
 
                 if (
                     // `struct something { int a; };`
@@ -818,9 +798,42 @@ void ReflASTVisitor::fillCxxRecordDecl(
                 }
             }
 
+        } else if (clang::CXXMethodDecl const* sub = llvm::dyn_cast<
+                       clang::CXXMethodDecl>(SubDecl);
+                   sub != nullptr) {
+
+            fillMethodDecl(rec->add_methods(), sub);
+
+        } else if (clang::CXXConstructorDecl const* sub = llvm::dyn_cast<
+                       clang::CXXConstructorDecl>(SubDecl);
+                   sub != nullptr) {
+
+            fillMethodDecl(rec->add_methods(), sub);
+
+        } else if (clang::CXXDestructorDecl const* sub = llvm::dyn_cast<
+                       clang::CXXDestructorDecl>(SubDecl);
+                   sub != nullptr) {
+
+            fillMethodDecl(rec->add_methods(), sub);
+
+        } else if (clang::FieldDecl const* sub = llvm::dyn_cast<
+                       clang::FieldDecl>(SubDecl);
+                   sub != nullptr) {
+
+            if (!sub->isImplicit()) {
+                fillFieldDecl(rec->add_fields(), sub);
+            }
+
+        } else if (clang::CXXMethodDecl const* sub = llvm::dyn_cast<
+                       clang::CXXMethodDecl>(SubDecl);
+                   sub != nullptr) {
+
+            fillMethodDecl(rec->add_methods(), sub);
+
         } else if (
             llvm::isa<clang::IndirectFieldDecl>(SubDecl)
-            || llvm::isa<clang::FieldDecl>(SubDecl)) {
+            || llvm::isa<clang::UsingDecl>(SubDecl)
+            || llvm::isa<clang::UsingShadowDecl>(SubDecl)) {
             // pass
         } else {
             Diag(
