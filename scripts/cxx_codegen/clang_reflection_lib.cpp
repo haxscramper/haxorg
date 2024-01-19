@@ -365,6 +365,24 @@ void ReflASTVisitor::fillType(
     const clang::QualType&                      In,
     const std::optional<clang::SourceLocation>& Loc) {
 
+    if (In.isConstQualified() || In->isPointerType()) {
+        auto cvq = Out->add_qualifiers();
+        if (In.isConstQualified()) {
+            cvq->set_isconst(true);
+            add_debug(Out, " T-const");
+        }
+
+        if (In->isPointerType()) {
+            cvq->set_ispointer(true);
+            add_debug(Out, " T-pointer");
+        }
+
+        if (In.isVolatileQualified()) {
+            cvq->set_isvolatile(true);
+            add_debug(Out, " T-volatile");
+        }
+    }
+
     if (const clang::TypedefType* tdType = In->getAs<
                                            clang::TypedefType>()) {
         clang::TypedefNameDecl* tdDecl = tdType->getDecl();
@@ -377,25 +395,6 @@ void ReflASTVisitor::fillType(
 
         applyNamespaces(Out, getNamespaces(tdDecl, Loc));
     } else {
-        if (In.isConstQualified() || In->isPointerType()) {
-            auto cvq = Out->add_qualifiers();
-            if (In.isConstQualified()) {
-                cvq->set_isconst(true);
-                add_debug(Out, " T-const");
-            }
-
-            if (In->isPointerType()) {
-                cvq->set_ispointer(true);
-                add_debug(Out, " T-pointer");
-            }
-
-            if (In.isVolatileQualified()) {
-                cvq->set_isvolatile(true);
-                add_debug(Out, " T-volatile");
-            }
-        }
-
-
         if (In->isReferenceType()) {
             Out->set_refkind(ReferenceKind::LValue);
             add_debug(Out, " T-reference");

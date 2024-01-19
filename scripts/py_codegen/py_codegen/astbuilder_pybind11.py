@@ -9,6 +9,9 @@ from py_codegen.gen_tu_cpp import (GenTuFunction, GenTuIdent, GenTuDoc, QualType
                                    QualTypeKind)
 import py_codegen.astbuilder_py as pya
 import itertools
+from rich.pretty import pprint
+
+from py_scriptutils.script_logging import pprint_to_file
 
 
 @beartype
@@ -125,6 +128,9 @@ class Py11Method:
                   Body: Optional[List[BlockId]] = None,
                   pySideOverride: Optional[str] = None) -> 'Py11Method':
 
+        if meth.name == "enableFileTrace":
+            pprint_to_file(meth, "/tmp/enableFileTrace_FromGenTu.py")
+
         return Py11Method(PyName=meth.name if pySideOverride is None else pySideOverride,
                           Body=Body,
                           ResultTy=meth.result,
@@ -141,6 +147,9 @@ class Py11Method:
             IsStub=True))
 
     def build_bind(self, Class: QualType, ast: ASTBuilder) -> BlockId:
+        if self.CxxName == "enableFileTrace":
+            pprint_to_file(self, "/tmp/enableFileTrace_build_bind.py")
+
         b = ast.b
         if self.Body is None:
             function_type = QualType(func=QualType.Function(
@@ -178,9 +187,6 @@ class Py11Method:
             ".def",
             [
                 ast.Literal(self.PyName),
-                ast.Comment([
-                    str(function_type.format(dbgOrigin=True)) if function_type else "????"
-                ]),
                 call_pass,
                 *argument_binder,
                 *doc_comment,

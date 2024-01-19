@@ -535,7 +535,7 @@ LD_PRELOAD_ASAN = {
 # TODO Make compiled reflection generation build optional
 @org_task(pre=[
     cmake_utils,
-    #    update_py_haxorg_reflection
+       update_py_haxorg_reflection
 ])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     """Update auto-generated source files"""

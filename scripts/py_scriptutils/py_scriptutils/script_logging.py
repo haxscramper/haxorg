@@ -1,11 +1,16 @@
 from rich.logging import RichHandler
 import logging
 from rich.console import Console
-import sys
 import traceback
-
-import os
+from rich.pretty import pprint
 import sys
+
+def pprint_to_file(value, path: str):
+    # Built-in python pprint is too broken for regular uses -- output is not
+    # always rendered to the max column limit is the biggest problem and I could
+    # not find any way to print converted translation unit safely.
+    with open(path, "w") as file:
+        pprint(value, console=Console(file=file, force_terminal=True, color_system=None))
 
 logging.basicConfig(
     level="NOTSET",
@@ -63,3 +68,4 @@ sys.excepthook = custom_traceback_handler
 
 log("graphviz._tools").setLevel(logging.ERROR)
 log("matplotlib").setLevel(logging.WARNING)
+

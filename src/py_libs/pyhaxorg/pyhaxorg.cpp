@@ -51,7 +51,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Stmt> _self) -> Vec<sem::SemId> { return _self->attached; },
                   [](sem::SemIdT<sem::Stmt> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
     .def("getAttached",
-         /* ???? */,
          [](sem::SemIdT<sem::Stmt> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
          pybind11::arg("kind"))
     ;
@@ -76,7 +75,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Table> _self) -> Vec<sem::SemId> { return _self->attached; },
                   [](sem::SemIdT<sem::Table> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
     .def("getAttached",
-         /* ???? */,
          [](sem::SemIdT<sem::Table> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
          pybind11::arg("kind"))
     ;
@@ -89,7 +87,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::HashTag> _self) -> Vec<sem::SemIdT<sem::HashTag>> { return _self->subtags; },
                   [](sem::SemIdT<sem::HashTag> _self, Vec<sem::SemIdT<sem::HashTag>> subtags) { _self->subtags = subtags; })
     .def("prefixMatch",
-         /* ???? */,
          [](sem::SemIdT<sem::HashTag> _self, Vec<Str> const& prefix) -> bool { return _self->prefixMatch(prefix); },
          pybind11::arg("prefix"),
          R"RAW(Check if list of tag names is a prefix for either of the nested hash tags in this one)RAW")
@@ -120,9 +117,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("attached",
                   [](sem::SemIdT<sem::Paragraph> _self) -> Vec<sem::SemId> { return _self->attached; },
                   [](sem::SemIdT<sem::Paragraph> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
-    .def("isFootnoteDefinition", /* ???? */, [](sem::SemIdT<sem::Paragraph> _self) -> bool { return _self->isFootnoteDefinition(); }, R"RAW(Check if paragraph defines footnote)RAW")
+    .def("isFootnoteDefinition", [](sem::SemIdT<sem::Paragraph> _self) -> bool { return _self->isFootnoteDefinition(); }, R"RAW(Check if paragraph defines footnote)RAW")
     .def("getAttached",
-         /* ???? */,
          [](sem::SemIdT<sem::Paragraph> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
          pybind11::arg("kind"))
     ;
@@ -156,7 +152,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::CommandGroup> _self) -> Vec<sem::SemId> { return _self->attached; },
                   [](sem::SemIdT<sem::CommandGroup> _self, Vec<sem::SemId> attached) { _self->attached = attached; })
     .def("getAttached",
-         /* ???? */,
          [](sem::SemIdT<sem::CommandGroup> _self, OrgSemKind kind) -> Opt<sem::SemId> { return _self->getAttached(kind); },
          pybind11::arg("kind"))
     ;
@@ -181,7 +176,6 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::CmdArguments> _self) -> UnorderedMap<Str, sem::SemIdT<sem::CmdArgument>> { return _self->named; },
                   [](sem::SemIdT<sem::CmdArguments> _self, UnorderedMap<Str, sem::SemIdT<sem::CmdArgument>> named) { _self->named = named; })
     .def("popArg",
-         /* ???? */,
          [](sem::SemIdT<sem::CmdArguments> _self, Str key) -> Opt<sem::SemIdT<sem::CmdArgument>> { return _self->popArg(key); },
          pybind11::arg("key"),
          R"RAW(Remove argument value from the map and return it if present)RAW")
@@ -194,9 +188,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("value",
                   [](sem::SemIdT<sem::CmdArgument> _self) -> Str { return _self->value; },
                   [](sem::SemIdT<sem::CmdArgument> _self, Str value) { _self->value = value; })
-    .def("getInt", /* ???? */, [](sem::SemIdT<sem::CmdArgument> _self) -> Opt<int> { return _self->getInt(); }, R"RAW(Parse argument as integer value)RAW")
-    .def("getBool", /* ???? */, [](sem::SemIdT<sem::CmdArgument> _self) -> Opt<bool> { return _self->getBool(); }, R"RAW(Get argument as bool)RAW")
-    .def("getString", /* ???? */, [](sem::SemIdT<sem::CmdArgument> _self) -> Str { return _self->getString(); }, R"RAW(Get original string)RAW")
+    .def("getInt", [](sem::SemIdT<sem::CmdArgument> _self) -> Opt<int> { return _self->getInt(); }, R"RAW(Parse argument as integer value)RAW")
+    .def("getBool", [](sem::SemIdT<sem::CmdArgument> _self) -> Opt<bool> { return _self->getBool(); }, R"RAW(Get argument as bool)RAW")
+    .def("getString", [](sem::SemIdT<sem::CmdArgument> _self) -> Str { return _self->getString(); }, R"RAW(Get original string)RAW")
     ;
   pybind11::class_<sem::SemIdT<sem::Export>, sem::SemId>(m, "SemExport")
     .def(pybind11::init([]() -> sem::SemIdT<sem::Export> { return sem::SemIdT<sem::Export>::Nil(); }))
@@ -258,12 +252,12 @@ PYBIND11_MODULE(pyhaxorg, m) {
   pybind11::class_<sem::Code::Switch>(m, "CodeSwitch")
     .def(pybind11::init<>())
     .def_readwrite("data", &sem::Code::Switch::data)
-    .def("getLineStart", /* F:[R:[sem]::R:[Code]::R:[Switch]::R:[LineStart&]()] */, static_cast<sem::Code::Switch::LineStart&(sem::Code::Switch::*)()>(&sem::Code::Switch::getLineStart))
-    .def("getCalloutFormat", /* F:[R:[sem]::R:[Code]::R:[Switch]::R:[CalloutFormat&]()] */, static_cast<sem::Code::Switch::CalloutFormat&(sem::Code::Switch::*)()>(&sem::Code::Switch::getCalloutFormat))
-    .def("getRemoveCallout", /* F:[R:[sem]::R:[Code]::R:[Switch]::R:[RemoveCallout&]()] */, static_cast<sem::Code::Switch::RemoveCallout&(sem::Code::Switch::*)()>(&sem::Code::Switch::getRemoveCallout))
-    .def("getEmphasizeLine", /* F:[R:[sem]::R:[Code]::R:[Switch]::R:[EmphasizeLine&]()] */, static_cast<sem::Code::Switch::EmphasizeLine&(sem::Code::Switch::*)()>(&sem::Code::Switch::getEmphasizeLine))
-    .def("getDedent", /* F:[R:[sem]::R:[Code]::R:[Switch]::R:[Dedent&]()] */, static_cast<sem::Code::Switch::Dedent&(sem::Code::Switch::*)()>(&sem::Code::Switch::getDedent))
-    .def("getKind", /* F:[R:[sem]::R:[Code]::R:[Switch]::R:[Kind]()] */, static_cast<sem::Code::Switch::Kind(sem::Code::Switch::*)() const>(&sem::Code::Switch::getKind))
+    .def("getLineStart", static_cast<sem::Code::Switch::LineStart&(sem::Code::Switch::*)()>(&sem::Code::Switch::getLineStart))
+    .def("getCalloutFormat", static_cast<sem::Code::Switch::CalloutFormat&(sem::Code::Switch::*)()>(&sem::Code::Switch::getCalloutFormat))
+    .def("getRemoveCallout", static_cast<sem::Code::Switch::RemoveCallout&(sem::Code::Switch::*)()>(&sem::Code::Switch::getRemoveCallout))
+    .def("getEmphasizeLine", static_cast<sem::Code::Switch::EmphasizeLine&(sem::Code::Switch::*)()>(&sem::Code::Switch::getEmphasizeLine))
+    .def("getDedent", static_cast<sem::Code::Switch::Dedent&(sem::Code::Switch::*)()>(&sem::Code::Switch::getDedent))
+    .def("getKind", static_cast<sem::Code::Switch::Kind(sem::Code::Switch::*)() const>(&sem::Code::Switch::getKind))
     ;
   pybind11::class_<sem::Code::Switch::LineStart>(m, "CodeSwitchLineStart")
     .def(pybind11::init<>())
@@ -313,9 +307,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("time",
                   [](sem::SemIdT<sem::Time> _self) -> sem::Time::TimeVariant { return _self->time; },
                   [](sem::SemIdT<sem::Time> _self, sem::Time::TimeVariant time) { _self->time = time; })
-    .def("getStatic", /* ???? */, [](sem::SemIdT<sem::Time> _self) -> sem::Time::Static& { return _self->getStatic(); })
-    .def("getDynamic", /* ???? */, [](sem::SemIdT<sem::Time> _self) -> sem::Time::Dynamic& { return _self->getDynamic(); })
-    .def("getTimeKind", /* ???? */, [](sem::SemIdT<sem::Time> _self) -> sem::Time::TimeKind { return _self->getTimeKind(); })
+    .def("getStatic", [](sem::SemIdT<sem::Time> _self) -> sem::Time::Static& { return _self->getStatic(); })
+    .def("getDynamic", [](sem::SemIdT<sem::Time> _self) -> sem::Time::Dynamic& { return _self->getDynamic(); })
+    .def("getTimeKind", [](sem::SemIdT<sem::Time> _self) -> sem::Time::TimeKind { return _self->getTimeKind(); })
     ;
   pybind11::class_<sem::Time::Repeat>(m, "TimeRepeat")
     .def(pybind11::init<>())
@@ -394,16 +388,15 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::LogEntry { return _self->log; },
                   [](sem::SemIdT<sem::SubtreeLog> _self, sem::SubtreeLog::LogEntry log) { _self->log = log; })
     .def("setDescription",
-         /* ???? */,
          [](sem::SemIdT<sem::SubtreeLog> _self, sem::SemIdT<sem::StmtList> desc) -> void { return _self->setDescription(desc); },
          pybind11::arg("desc"))
-    .def("getPriority", /* ???? */, [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Priority& { return _self->getPriority(); })
-    .def("getNote", /* ???? */, [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Note& { return _self->getNote(); })
-    .def("getRefile", /* ???? */, [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Refile& { return _self->getRefile(); })
-    .def("getClock", /* ???? */, [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Clock& { return _self->getClock(); })
-    .def("getState", /* ???? */, [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::State& { return _self->getState(); })
-    .def("getTag", /* ???? */, [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Tag& { return _self->getTag(); })
-    .def("getLogKind", /* ???? */, [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Kind { return _self->getLogKind(); })
+    .def("getPriority", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Priority& { return _self->getPriority(); })
+    .def("getNote", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Note& { return _self->getNote(); })
+    .def("getRefile", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Refile& { return _self->getRefile(); })
+    .def("getClock", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Clock& { return _self->getClock(); })
+    .def("getState", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::State& { return _self->getState(); })
+    .def("getTag", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Tag& { return _self->getTag(); })
+    .def("getLogKind", [](sem::SemIdT<sem::SubtreeLog> _self) -> sem::SubtreeLog::Kind { return _self->getLogKind(); })
     ;
   pybind11::class_<sem::SubtreeLog::DescribedLog>(m, "SubtreeLogDescribedLog")
     .def(pybind11::init<>())
@@ -493,26 +486,21 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Subtree> _self) -> Opt<sem::SemIdT<sem::Time>> { return _self->scheduled; },
                   [](sem::SemIdT<sem::Subtree> _self, Opt<sem::SemIdT<sem::Time>> scheduled) { _self->scheduled = scheduled; })
     .def("getTimePeriods",
-         /* ???? */,
          [](sem::SemIdT<sem::Subtree> _self, IntSet<sem::Subtree::Period::Kind> kinds) -> Vec<sem::Subtree::Period> { return _self->getTimePeriods(kinds); },
          pybind11::arg("kinds"))
     .def("getProperties",
-         /* ???? */,
          [](sem::SemIdT<sem::Subtree> _self, sem::Subtree::Property::Kind kind, Str const& subkind) -> Vec<sem::Subtree::Property> { return _self->getProperties(kind, subkind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", ""))
     .def("getProperty",
-         /* ???? */,
          [](sem::SemIdT<sem::Subtree> _self, sem::Subtree::Property::Kind kind, Str const& subkind) -> Opt<sem::Subtree::Property> { return _self->getProperty(kind, subkind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", ""))
     .def("getContextualProperties",
-         /* ???? */,
          [](sem::SemIdT<sem::Subtree> _self, sem::Subtree::Property::Kind kind, Str const& subkind) -> Vec<sem::Subtree::Property> { return _self->getContextualProperties(kind, subkind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", ""))
     .def("getContextualProperty",
-         /* ???? */,
          [](sem::SemIdT<sem::Subtree> _self, sem::Subtree::Property::Kind kind, Str const& subkind) -> Opt<sem::Subtree::Property> { return _self->getContextualProperty(kind, subkind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subkind", ""))
@@ -520,8 +508,8 @@ PYBIND11_MODULE(pyhaxorg, m) {
   pybind11::class_<sem::Subtree::Period>(m, "SubtreePeriod")
     .def(pybind11::init<>())
     .def_readwrite("kind", &sem::Subtree::Period::kind, R"RAW(Time period kind -- not associated with point/range distinction)RAW")
-    .def("getTime", /* F:[R:[sem]::R:[SemIdT<R:[sem]::R:[Time]>]()] */, static_cast<sem::SemIdT<sem::Time>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTime), R"RAW(Get associated time point)RAW")
-    .def("getTimeRange", /* F:[R:[sem]::R:[SemIdT<R:[sem]::R:[Time]>]()] */, static_cast<sem::SemIdT<sem::Time>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTimeRange), R"RAW(Get associated time period)RAW")
+    .def("getTime", static_cast<sem::SemIdT<sem::Time>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTime), R"RAW(Get associated time point)RAW")
+    .def("getTimeRange", static_cast<sem::SemIdT<sem::Time>(sem::Subtree::Period::*)()>(&sem::Subtree::Period::getTimeRange), R"RAW(Get associated time period)RAW")
     ;
   pybind11::enum_<sem::Subtree::Period::Kind>(m, "SubtreePeriodKind")
     .value("Clocked", sem::Subtree::Period::Kind::Clocked, R"RAW(Time period of the task execution.)RAW")
@@ -538,21 +526,21 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_readwrite("subSetRule", &sem::Subtree::Property::subSetRule)
     .def_readwrite("inheritanceMode", &sem::Subtree::Property::inheritanceMode)
     .def_readwrite("data", &sem::Subtree::Property::data)
-    .def("getNonblocking", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[Nonblocking&]()] */, static_cast<sem::Subtree::Property::Nonblocking&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getNonblocking))
-    .def("getTrigger", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[Trigger&]()] */, static_cast<sem::Subtree::Property::Trigger&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getTrigger))
-    .def("getOrigin", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[Origin&]()] */, static_cast<sem::Subtree::Property::Origin&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getOrigin))
-    .def("getExportLatexClass", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[ExportLatexClass&]()] */, static_cast<sem::Subtree::Property::ExportLatexClass&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportLatexClass))
-    .def("getExportLatexClassOptions", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[ExportLatexClassOptions&]()] */, static_cast<sem::Subtree::Property::ExportLatexClassOptions&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportLatexClassOptions))
-    .def("getExportLatexHeader", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[ExportLatexHeader&]()] */, static_cast<sem::Subtree::Property::ExportLatexHeader&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportLatexHeader))
-    .def("getExportLatexCompiler", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[ExportLatexCompiler&]()] */, static_cast<sem::Subtree::Property::ExportLatexCompiler&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportLatexCompiler))
-    .def("getOrdered", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[Ordered&]()] */, static_cast<sem::Subtree::Property::Ordered&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getOrdered))
-    .def("getEffort", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[Effort&]()] */, static_cast<sem::Subtree::Property::Effort&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getEffort))
-    .def("getVisibility", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[Visibility&]()] */, static_cast<sem::Subtree::Property::Visibility&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getVisibility))
-    .def("getExportOptions", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[ExportOptions&]()] */, static_cast<sem::Subtree::Property::ExportOptions&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportOptions))
-    .def("getBlocker", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[Blocker&]()] */, static_cast<sem::Subtree::Property::Blocker&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getBlocker))
-    .def("getUnnumbered", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[Unnumbered&]()] */, static_cast<sem::Subtree::Property::Unnumbered&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getUnnumbered))
-    .def("getCreated", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[Created&]()] */, static_cast<sem::Subtree::Property::Created&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getCreated))
-    .def("getKind", /* F:[R:[sem]::R:[Subtree]::R:[Property]::R:[Kind]()] */, static_cast<sem::Subtree::Property::Kind(sem::Subtree::Property::*)() const>(&sem::Subtree::Property::getKind))
+    .def("getNonblocking", static_cast<sem::Subtree::Property::Nonblocking&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getNonblocking))
+    .def("getTrigger", static_cast<sem::Subtree::Property::Trigger&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getTrigger))
+    .def("getOrigin", static_cast<sem::Subtree::Property::Origin&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getOrigin))
+    .def("getExportLatexClass", static_cast<sem::Subtree::Property::ExportLatexClass&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportLatexClass))
+    .def("getExportLatexClassOptions", static_cast<sem::Subtree::Property::ExportLatexClassOptions&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportLatexClassOptions))
+    .def("getExportLatexHeader", static_cast<sem::Subtree::Property::ExportLatexHeader&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportLatexHeader))
+    .def("getExportLatexCompiler", static_cast<sem::Subtree::Property::ExportLatexCompiler&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportLatexCompiler))
+    .def("getOrdered", static_cast<sem::Subtree::Property::Ordered&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getOrdered))
+    .def("getEffort", static_cast<sem::Subtree::Property::Effort&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getEffort))
+    .def("getVisibility", static_cast<sem::Subtree::Property::Visibility&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getVisibility))
+    .def("getExportOptions", static_cast<sem::Subtree::Property::ExportOptions&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getExportOptions))
+    .def("getBlocker", static_cast<sem::Subtree::Property::Blocker&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getBlocker))
+    .def("getUnnumbered", static_cast<sem::Subtree::Property::Unnumbered&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getUnnumbered))
+    .def("getCreated", static_cast<sem::Subtree::Property::Created&(sem::Subtree::Property::*)()>(&sem::Subtree::Property::getCreated))
+    .def("getKind", static_cast<sem::Subtree::Property::Kind(sem::Subtree::Property::*)() const>(&sem::Subtree::Property::getKind))
     ;
   pybind11::enum_<sem::Subtree::Property::SetMode>(m, "SubtreePropertySetMode")
     .value("Override", sem::Subtree::Property::SetMode::Override)
@@ -741,7 +729,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
     ;
   pybind11::class_<sem::SemIdT<sem::List>, sem::SemId>(m, "SemList")
     .def(pybind11::init([]() -> sem::SemIdT<sem::List> { return sem::SemIdT<sem::List>::Nil(); }))
-    .def("isDescriptionList", /* ???? */, [](sem::SemIdT<sem::List> _self) -> bool { return _self->isDescriptionList(); })
+    .def("isDescriptionList", [](sem::SemIdT<sem::List> _self) -> bool { return _self->isDescriptionList(); })
     ;
   pybind11::class_<sem::SemIdT<sem::ListItem>, sem::SemId>(m, "SemListItem")
     .def(pybind11::init([]() -> sem::SemIdT<sem::ListItem> { return sem::SemIdT<sem::ListItem>::Nil(); }))
@@ -751,7 +739,7 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("header",
                   [](sem::SemIdT<sem::ListItem> _self) -> Opt<sem::SemIdT<sem::Paragraph>> { return _self->header; },
                   [](sem::SemIdT<sem::ListItem> _self, Opt<sem::SemIdT<sem::Paragraph>> header) { _self->header = header; })
-    .def("isDescriptionItem", /* ???? */, [](sem::SemIdT<sem::ListItem> _self) -> bool { return _self->isDescriptionItem(); })
+    .def("isDescriptionItem", [](sem::SemIdT<sem::ListItem> _self) -> bool { return _self->isDescriptionItem(); })
     ;
   pybind11::enum_<sem::ListItem::Checkbox>(m, "ListItemCheckbox")
     .value("None", sem::ListItem::Checkbox::None)
@@ -768,16 +756,15 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Link> _self) -> sem::Link::Data { return _self->data; },
                   [](sem::SemIdT<sem::Link> _self, sem::Link::Data data) { _self->data = data; })
     .def("resolve",
-         /* ???? */,
          [](sem::SemIdT<sem::Link> _self, sem::Document const& doc) -> Opt<sem::SemId> { return _self->resolve(doc); },
          pybind11::arg("doc"))
-    .def("resolve", /* ???? */, [](sem::SemIdT<sem::Link> _self) -> Opt<sem::SemId> { return _self->resolve(); })
-    .def("getRaw", /* ???? */, [](sem::SemIdT<sem::Link> _self) -> sem::Link::Raw& { return _self->getRaw(); })
-    .def("getId", /* ???? */, [](sem::SemIdT<sem::Link> _self) -> sem::Link::Id& { return _self->getId(); })
-    .def("getPerson", /* ???? */, [](sem::SemIdT<sem::Link> _self) -> sem::Link::Person& { return _self->getPerson(); })
-    .def("getFootnote", /* ???? */, [](sem::SemIdT<sem::Link> _self) -> sem::Link::Footnote& { return _self->getFootnote(); })
-    .def("getFile", /* ???? */, [](sem::SemIdT<sem::Link> _self) -> sem::Link::File& { return _self->getFile(); })
-    .def("getLinkKind", /* ???? */, [](sem::SemIdT<sem::Link> _self) -> sem::Link::Kind { return _self->getLinkKind(); })
+    .def("resolve", [](sem::SemIdT<sem::Link> _self) -> Opt<sem::SemId> { return _self->resolve(); })
+    .def("getRaw", [](sem::SemIdT<sem::Link> _self) -> sem::Link::Raw& { return _self->getRaw(); })
+    .def("getId", [](sem::SemIdT<sem::Link> _self) -> sem::Link::Id& { return _self->getId(); })
+    .def("getPerson", [](sem::SemIdT<sem::Link> _self) -> sem::Link::Person& { return _self->getPerson(); })
+    .def("getFootnote", [](sem::SemIdT<sem::Link> _self) -> sem::Link::Footnote& { return _self->getFootnote(); })
+    .def("getFile", [](sem::SemIdT<sem::Link> _self) -> sem::Link::File& { return _self->getFile(); })
+    .def("getLinkKind", [](sem::SemIdT<sem::Link> _self) -> sem::Link::Kind { return _self->getLinkKind(); })
     ;
   pybind11::class_<sem::Link::Raw>(m, "LinkRaw")
     .def(pybind11::init<>())
@@ -843,20 +830,16 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::Document> _self) -> Opt<Str> { return _self->exportFileName; },
                   [](sem::SemIdT<sem::Document> _self, Opt<Str> exportFileName) { _self->exportFileName = exportFileName; })
     .def("resolve",
-         /* ???? */,
          [](sem::SemIdT<sem::Document> _self, sem::SemId const& node) -> Opt<sem::SemId> { return _self->resolve(node); },
          pybind11::arg("node"))
     .def("getSubtree",
-         /* ???? */,
          [](sem::SemIdT<sem::Document> _self, Str const& id) -> Opt<sem::SemIdT<sem::Subtree>> { return _self->getSubtree(id); },
          pybind11::arg("id"))
     .def("getProperties",
-         /* ???? */,
          [](sem::SemIdT<sem::Document> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Vec<sem::Subtree::Property> { return _self->getProperties(kind, subKind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", ""))
     .def("getProperty",
-         /* ???? */,
          [](sem::SemIdT<sem::Document> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Opt<sem::Subtree::Property> { return _self->getProperty(kind, subKind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", ""))
@@ -893,11 +876,11 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("data",
                   [](sem::SemIdT<sem::Include> _self) -> sem::Include::Data { return _self->data; },
                   [](sem::SemIdT<sem::Include> _self, sem::Include::Data data) { _self->data = data; })
-    .def("getExample", /* ???? */, [](sem::SemIdT<sem::Include> _self) -> sem::Include::Example& { return _self->getExample(); })
-    .def("getExport", /* ???? */, [](sem::SemIdT<sem::Include> _self) -> sem::Include::Export& { return _self->getExport(); })
-    .def("getSrc", /* ???? */, [](sem::SemIdT<sem::Include> _self) -> sem::Include::Src& { return _self->getSrc(); })
-    .def("getOrgDocument", /* ???? */, [](sem::SemIdT<sem::Include> _self) -> sem::Include::OrgDocument& { return _self->getOrgDocument(); })
-    .def("getIncludeKind", /* ???? */, [](sem::SemIdT<sem::Include> _self) -> sem::Include::Kind { return _self->getIncludeKind(); })
+    .def("getExample", [](sem::SemIdT<sem::Include> _self) -> sem::Include::Example& { return _self->getExample(); })
+    .def("getExport", [](sem::SemIdT<sem::Include> _self) -> sem::Include::Export& { return _self->getExport(); })
+    .def("getSrc", [](sem::SemIdT<sem::Include> _self) -> sem::Include::Src& { return _self->getSrc(); })
+    .def("getOrgDocument", [](sem::SemIdT<sem::Include> _self) -> sem::Include::OrgDocument& { return _self->getOrgDocument(); })
+    .def("getIncludeKind", [](sem::SemIdT<sem::Include> _self) -> sem::Include::Kind { return _self->getIncludeKind(); })
     ;
   pybind11::class_<sem::Include::Example>(m, "IncludeExample")
     .def(pybind11::init<>())
@@ -969,12 +952,10 @@ PYBIND11_MODULE(pyhaxorg, m) {
                   [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->exportWithCreator; },
                   [](sem::SemIdT<sem::DocumentOptions> _self, bool exportWithCreator) { _self->exportWithCreator = exportWithCreator; })
     .def("getProperties",
-         /* ???? */,
          [](sem::SemIdT<sem::DocumentOptions> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Vec<sem::Subtree::Property> { return _self->getProperties(kind, subKind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", ""))
     .def("getProperty",
-         /* ???? */,
          [](sem::SemIdT<sem::DocumentOptions> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Opt<sem::Subtree::Property> { return _self->getProperty(kind, subKind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", ""))
@@ -1635,14 +1616,12 @@ PYBIND11_MODULE(pyhaxorg, m) {
   pybind11::class_<OrgExporterJson>(m, "OrgExporterJson")
     .def(pybind11::init<>())
     .def("visitNode",
-         /* F:[R:[void](R:[semFROM:[ [206] [332]Elaborated type namespace]]::R:[SemIdFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<void(OrgExporterJson::*)(sem::SemId)>(&OrgExporterJson::visitNode),
          pybind11::arg("node"),
          R"RAW(Visit top-level node of the exporter, filling in the internal
 return state.)RAW")
-    .def("exportToString", /* F:[R:[std]::R:[string]()] */, static_cast<std::string(OrgExporterJson::*)()>(&OrgExporterJson::exportToString))
+    .def("exportToString", static_cast<std::string(OrgExporterJson::*)()>(&OrgExporterJson::exportToString))
     .def("exportToFile",
-         /* F:[R:[void](R:[stdFROM:[ [206] [272]regular type namespaces]]::R:[stringFROM:[ [372] typedef type __fwd/string.h:48:7]])] */,
          static_cast<void(OrgExporterJson::*)(std::string)>(&OrgExporterJson::exportToFile),
          pybind11::arg("path"))
     ;
@@ -1658,12 +1637,10 @@ return state.)RAW")
   pybind11::class_<OrgExporterTree>(m, "OrgExporterTree")
     .def(pybind11::init<>())
     .def("toString",
-         /* F:[R:[std]::R:[string](R:[semFROM:[ [206] [332]Elaborated type namespace]]::R:[SemIdFROM:[ [433] >elaborated [439] >record]], R:[ExporterTreeOptsFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<std::string(OrgExporterTree::*)(sem::SemId, ExporterTreeOpts)>(&OrgExporterTree::toString),
          pybind11::arg("node"),
          pybind11::arg("opts"))
     .def("toFile",
-         /* F:[R:[void](R:[semFROM:[ [206] [332]Elaborated type namespace]]::R:[SemIdFROM:[ [433] >elaborated [439] >record]], R:[stdFROM:[ [206] [272]regular type namespaces]]::R:[stringFROM:[ [372] typedef type __fwd/string.h:48:7]], R:[ExporterTreeOptsFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<void(OrgExporterTree::*)(sem::SemId, std::string, ExporterTreeOpts)>(&OrgExporterTree::toFile),
          pybind11::arg("node"),
          pybind11::arg("path"),
@@ -1672,152 +1649,121 @@ return state.)RAW")
   pybind11::class_<OrgExporterYaml>(m, "OrgExporterYaml")
     .def(pybind11::init<>())
     .def("visitNode",
-         /* F:[R:[void](R:[semFROM:[ [206] [332]Elaborated type namespace]]::R:[SemIdFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<void(OrgExporterYaml::*)(sem::SemId)>(&OrgExporterYaml::visitNode),
          pybind11::arg("node"),
          R"RAW(Visit top-level node of the exporter, filling in the internal
 return state.)RAW")
-    .def("exportToString", /* F:[R:[std]::R:[string]()] */, static_cast<std::string(OrgExporterYaml::*)()>(&OrgExporterYaml::exportToString))
+    .def("exportToString", static_cast<std::string(OrgExporterYaml::*)()>(&OrgExporterYaml::exportToString))
     .def("exportToFile",
-         /* F:[R:[void](R:[stdFROM:[ [206] [272]regular type namespaces]]::R:[stringFROM:[ [372] typedef type __fwd/string.h:48:7]])] */,
          static_cast<void(OrgExporterYaml::*)(std::string)>(&OrgExporterYaml::exportToFile),
          pybind11::arg("path"))
     ;
   pybind11::class_<OrgContext>(m, "OrgContext")
     .def(pybind11::init<>())
     .def("parseFile",
-         /* F:[R:[void](R:[stdFROM:[ [206] [272]regular type namespaces]]::R:[stringFROM:[ [372] typedef type __fwd/string.h:48:7]])] */,
          static_cast<void(OrgContext::*)(std::string)>(&OrgContext::parseFile),
          pybind11::arg("file"))
     .def("parseString",
-         /* F:[R:[void](R:[stdFROM:[ [206] [272]regular type namespaces]]::R:[stringFROM:[ [372] typedef type __fwd/string.h:48:7]])] */,
          static_cast<void(OrgContext::*)(std::string)>(&OrgContext::parseString),
          pybind11::arg("text"))
-    .def("getNode", /* F:[R:[sem]::R:[SemIdT<R:[sem]::R:[Document]>]()] */, static_cast<sem::SemIdT<sem::Document>(OrgContext::*)()>(&OrgContext::getNode))
+    .def("getNode", static_cast<sem::SemIdT<sem::Document>(OrgContext::*)()>(&OrgContext::getNode))
     ;
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init<>())
     .def("enablePyStreamTrace",
-         /* F:[R:[void](R:[pybind11FROM:[ [206] [138]Namespace visitation of 'pybind11']]::R:[objectFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<void(ExporterPython::*)(pybind11::object)>(&ExporterPython::enablePyStreamTrace),
          pybind11::arg("stream"))
-    .def("enableBufferTrace", /* F:[R:[void]()] */, static_cast<void(ExporterPython::*)()>(&ExporterPython::enableBufferTrace))
-    .def("getTraceBuffer", /* F:[R:[std]::R:[string]()] */, static_cast<std::string(ExporterPython::*)() const>(&ExporterPython::getTraceBuffer))
+    .def("enableBufferTrace", static_cast<void(ExporterPython::*)()>(&ExporterPython::enableBufferTrace))
+    .def("getTraceBuffer", static_cast<std::string(ExporterPython::*)() const>(&ExporterPython::getTraceBuffer))
     .def("enableFileTrace",
-         /* F:[R:[void](R:[stdFROM:[ [206] [272]regular type namespaces]]::R:[string&FROM:[ [401] T-reference [407] >ref/ptr [372] typedef type __fwd/string.h:48:7]])] */,
-         static_cast<void(ExporterPython::*)(std::string&)>(&ExporterPython::enableFileTrace),
+         static_cast<void(ExporterPython::*)(std::string const&)>(&ExporterPython::enableFileTrace),
          pybind11::arg("path"))
     .def("setVisitAnyIdAround",
-         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyIdAround),
          pybind11::arg("cb"))
     .def("setVisitAnyIdIn",
-         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyIdIn),
          pybind11::arg("cb"))
     .def("setVisitAnyField",
-         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyField),
          pybind11::arg("cb"))
     .def("setEvalTopCb",
-         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setEvalTopCb),
          pybind11::arg("cb"))
     .def("setVisitIdAround",
-         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitIdAround),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalIdAround",
-         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setEvalIdAround),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitIdInCb",
-         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitIdInCb),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalIdIn",
-         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setEvalIdIn),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitLeafField",
-         /* F:[R:[void](R:[LeafFieldTypeFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(LeafFieldType, ExporterPython::PyFunc)>(&ExporterPython::setVisitLeafField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalLeafField",
-         /* F:[R:[void](R:[LeafFieldTypeFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(LeafFieldType, ExporterPython::PyFunc)>(&ExporterPython::setEvalLeafField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitOrgField",
-         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitOrgField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalOrgField",
-         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setEvalOrgField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setSelf",
-         /* F:[R:[void](R:[pybind11FROM:[ [206] [138]Namespace visitation of 'pybind11']]::R:[objectFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<void(ExporterPython::*)(pybind11::object)>(&ExporterPython::setSelf),
          pybind11::arg("val"))
     .def("setNewOrgRes",
-         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setNewOrgRes),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setNewAnyOrgRes",
-         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setNewAnyOrgRes),
          pybind11::arg("cb"))
     .def("setNewLeafRes",
-         /* F:[R:[void](R:[LeafFieldTypeFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(LeafFieldType, ExporterPython::PyFunc)>(&ExporterPython::setNewLeafRes),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setNewAnyLeafRes",
-         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setNewAnyLeafRes),
          pybind11::arg("cb"))
     .def("setPushVisitAnyId",
-         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setPushVisitAnyId),
          pybind11::arg("cb"))
     .def("setPopVisitAnyId",
-         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setPopVisitAnyId),
          pybind11::arg("cb"))
     .def("setPushVisitId",
-         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setPushVisitId),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setPopVisitIdCb",
-         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setPopVisitIdCb),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitAnyHookCb",
-         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyHookCb),
          pybind11::arg("cb"))
     .def("setVisitIdHook",
-         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitIdHook),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("evalTop",
-         /* F:[R:[ExporterPython]::R:[Res](R:[semFROM:[ [206] [332]Elaborated type namespace]]::R:[SemIdFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId)>(&ExporterPython::evalTop),
          pybind11::arg("org"))
     .def("eval",
-         /* F:[R:[ExporterPython]::R:[Res](R:[semFROM:[ [206] [332]Elaborated type namespace]]::R:[SemIdFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId)>(&ExporterPython::eval),
          pybind11::arg("org"))
     ;
