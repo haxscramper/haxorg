@@ -144,6 +144,14 @@ def run_provider(
             interpolate_dictionary(base_dict,
                                    {"haxorg_root": str(get_haxorg_repo_root_path())}),)
 
+        BASE = get_haxorg_repo_root_path()
+        # reflection wrapper does not use implicit standard library include locations
+        # so the setup part of the main cmake file needs to be duplicated here
+        # in order to allow includes like <vector> etc.
+        LLVM_DIR = BASE.joinpath("toolchain/llvm")
+        LLVM_GNU_INCLUDE = LLVM_DIR.joinpath("include/x86_64-unknown-linux-gnu/c++/v1")
+        LLVM_STD_INCLUDE = LLVM_DIR.joinpath("include/c++/v1")
+
         conf.cache_collector_runs = False
         conf.print_reflection_run_fail_to_stdout = print_reflection_run_fail_to_stdout
         conf.reflection_run_verbose = True
@@ -152,7 +160,7 @@ def run_provider(
         compile_commands_content = [
             ex.CompileCommand(
                 directory=conf.header_root,
-                command=f"clang++ {file}",
+                command=f"clang++ {file} -I{LLVM_GNU_INCLUDE} -I{LLVM_STD_INCLUDE}",
                 file=file,
                 output=str(Path(file).with_suffix(".o")),
             ) for file in text.keys()
@@ -192,7 +200,9 @@ def run_provider(
         return ReflProviderRunResult(wraps=wraps, code_dir=code_dir)
 
 
-def get_struct(text: str, code_dir_override: Optional[Path] = None, **kwargs) -> GenTuStruct:
+def get_struct(text: str,
+               code_dir_override: Optional[Path] = None,
+               **kwargs) -> GenTuStruct:
     with TemporaryDirectory() as code_dir:
         tu = run_provider(text, code_dir_override or Path(code_dir), **kwargs).wraps[0].tu
         assert len(tu.structs) == 1

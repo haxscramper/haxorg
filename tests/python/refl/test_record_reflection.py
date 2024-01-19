@@ -43,10 +43,12 @@ def test_anon_structure_fields():
 
 
 def test_field_with_std_import():
-    with TemporaryDirectory() as code_dir:
+    with TemporaryDirectory() as dir:
+        code_dir = Path(dir)
+        code_dir = Path("/tmp/test_field_with_std_import")
         tu = run_provider(
             "#include <vector>\nstruct Content { std::vector<int> items; };",
-            Path(code_dir)).wraps[0].tu
+            code_dir).wraps[0].tu
 
     assert len(tu.structs) == 1
     assert len(tu.enums) == 0
@@ -65,7 +67,8 @@ def test_field_with_std_import():
 
 
 def test_anon_struct_for_field():
-    struct = get_struct("struct Main { struct { int nested; } field; };", code_dir_override=Path("/tmp/code_dir_override"))
+    struct = get_struct("struct Main { struct { int nested; } field; };",
+                        code_dir_override=Path("/tmp/code_dir_override"))
     assert struct.name.name == "Main"
     assert len(struct.nested) == 0
     assert len(struct.fields) == 1
@@ -93,7 +96,9 @@ def test_anon_struct_for_field_2():
 
 
 def test_namespace_extraction_for_nested_struct():
-    struct = get_struct("struct Main { struct Nested {}; Nested field; };", code_dir_override=Path("/tmp/test_namespace_extraction_for_nested_struct"))
+    struct = get_struct(
+        "struct Main { struct Nested {}; Nested field; };",
+        code_dir_override=Path("/tmp/test_namespace_extraction_for_nested_struct"))
     field = struct.fields[0]
     assert len(field.type.Spaces) == 1
     assert field.type.Spaces[0].name == "Main"
@@ -133,7 +138,6 @@ def test_nim_record_field_conversion():
 def test_nim_record_with_compile():
     with TemporaryDirectory() as dir:
         code_dir = Path(dir)
-        code_dir = Path("/tmp/code_dir")
         value = run_provider(
             {
                 "file.hpp":

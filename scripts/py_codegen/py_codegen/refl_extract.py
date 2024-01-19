@@ -1,5 +1,6 @@
 import io
 import json
+import os.path
 import time
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -357,7 +358,8 @@ def write_run_result_information(
         file.write(" ^\n    ".join([conf.indexing_tool] + tu.flags))
 
         sep("Serialized data:")
-        file.write(open_proto_file(str(tu.pb_path)).to_json(2))
+        if tu.pb_path and tu.pb_path.exists():
+            file.write(open_proto_file(str(tu.pb_path)).to_json(2))
 
     if conf.print_reflection_run_fail_to_stdout:
         buffer = io.StringIO()

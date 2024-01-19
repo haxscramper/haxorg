@@ -383,3 +383,4 @@ corpus_schema.yaml
 vgcore.*
 .fleet
 test_detail.json
+test_coverall_input.json
