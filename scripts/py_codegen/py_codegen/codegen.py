@@ -404,7 +404,7 @@ class Py11Method:
             ".def",
             [
                 ast.Literal(self.PyName),
-                ast.Comment([str(function_type.format()) if function_type else "????"]),
+                ast.Comment([str(function_type.format(dbgOrigin=True)) if function_type else "????"]),
                 call_pass,
                 *argument_binder,
                 *doc_comment,
@@ -996,18 +996,51 @@ def update_namespace_annotations(expanded: List[GenTuStruct]):
 
     iterate_object_tree(GenTuNamespace("sem", expanded), callback, iterate_context)
 
+def to_base_types(obj):
+    def aux(obj, seen):
+        if isinstance(obj, Enum):
+            return obj.name
+
+        elif isinstance(obj, (str, int, float, bool)) or obj is None:
+            return obj
+
+        obj_id = id(obj)
+        if obj_id in seen:
+            return 'recursive - {}'.format(type(obj).__name__)
+
+        seen.add(obj_id)
+
+        if isinstance(obj, dict):
+            return {k: aux(v, seen) for k, v in obj.items()}
+
+        elif isinstance(obj, list):
+            return [aux(i, seen) for i in obj]
+
+        elif hasattr(obj, '__dict__'):
+            return aux(obj.__dict__, seen)
+
+        elif hasattr(obj, '__iter__') and not isinstance(obj, str):
+            return [aux(i, seen) for i in obj]
+
+        else:
+            return 'Type({}) - {}'.format(type(obj).__name__, str(obj))
+
+
+
+    seen = set()
+    return aux(obj, seen)
 
 @beartype
 def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:
     expanded = expand_type_groups(ast, get_types())
     update_namespace_annotations(expanded)
+    import yaml
 
     full_enums = get_enums() + [get_osk_enum(expanded)]
     tu: ConvTu = conv_proto_file(reflection_path)
 
-    with open("/tmp/reflection_data.py", "w") as file:
-        pprint(tu.structs, width=200, stream=file)
-        pprint(tu.enums, width=200, stream=file)
+    with open("/tmp/reflection_data.yaml", "w") as file:
+        yaml.safe_dump(to_base_types(tu), stream=file)
 
     with open("/tmp/reflection_data.json", "w") as file:
         file.write(open_proto_file(reflection_path).to_json(2))

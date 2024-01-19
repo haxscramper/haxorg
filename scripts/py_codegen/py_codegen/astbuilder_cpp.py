@@ -117,7 +117,7 @@ class QualType(BaseModel, extra="forbid"):
             }[self.RefKind],
         )
 
-        origin = self.dbg_origin if dbgOrigin else ""
+        origin = f"FROM:[{self.dbg_origin}]" if dbgOrigin else ""
 
         spaces = "".join([S.format(dbgOrigin) + "::" for S in self.Spaces])
 
@@ -125,13 +125,13 @@ class QualType(BaseModel, extra="forbid"):
             case QualTypeKind.FunctionPtr:
                 return spaces + "F:[{}({})]".format(
                     self.func.ReturnTy.format(),
-                    ", ".join([T.format() for T in self.func.Args]),
+                    ", ".join([T.format(dbgOrigin) for T in self.func.Args]),
                 )
 
             case QualTypeKind.Array:
                 return spaces + "A:[{first}[{expr}]{cvref}{origin}]".format(
-                    first=self.Parameters[0].format(),
-                    expr=self.Parameters[1].format() if 1 < len(self.Parameters) else "",
+                    first=self.Parameters[0].format(dbgOrigin),
+                    expr=self.Parameters[1].format(dbgOrigin) if 1 < len(self.Parameters) else "",
                     cvref=cvref,
                     origin=origin,
                 )

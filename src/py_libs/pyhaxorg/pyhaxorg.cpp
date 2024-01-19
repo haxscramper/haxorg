@@ -1635,14 +1635,14 @@ PYBIND11_MODULE(pyhaxorg, m) {
   pybind11::class_<OrgExporterJson>(m, "OrgExporterJson")
     .def(pybind11::init<>())
     .def("visitNode",
-         /* F:[R:[void](R:[sem]::R:[SemId])] */,
+         /* F:[R:[void](R:[semFROM:[ [206] [332]Elaborated type namespace]]::R:[SemIdFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<void(OrgExporterJson::*)(sem::SemId)>(&OrgExporterJson::visitNode),
          pybind11::arg("node"),
          R"RAW(Visit top-level node of the exporter, filling in the internal
 return state.)RAW")
     .def("exportToString", /* F:[R:[std]::R:[string]()] */, static_cast<std::string(OrgExporterJson::*)()>(&OrgExporterJson::exportToString))
     .def("exportToFile",
-         /* F:[R:[void](R:[std]::R:[string])] */,
+         /* F:[R:[void](R:[stdFROM:[ [206] [272]regular type namespaces]]::R:[stringFROM:[ [372] typedef type __fwd/string.h:48:7]])] */,
          static_cast<void(OrgExporterJson::*)(std::string)>(&OrgExporterJson::exportToFile),
          pybind11::arg("path"))
     ;
@@ -1658,12 +1658,12 @@ return state.)RAW")
   pybind11::class_<OrgExporterTree>(m, "OrgExporterTree")
     .def(pybind11::init<>())
     .def("toString",
-         /* F:[R:[std]::R:[string](R:[sem]::R:[SemId], R:[ExporterTreeOpts])] */,
+         /* F:[R:[std]::R:[string](R:[semFROM:[ [206] [332]Elaborated type namespace]]::R:[SemIdFROM:[ [433] >elaborated [439] >record]], R:[ExporterTreeOptsFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<std::string(OrgExporterTree::*)(sem::SemId, ExporterTreeOpts)>(&OrgExporterTree::toString),
          pybind11::arg("node"),
          pybind11::arg("opts"))
     .def("toFile",
-         /* F:[R:[void](R:[sem]::R:[SemId], R:[std]::R:[string], R:[ExporterTreeOpts])] */,
+         /* F:[R:[void](R:[semFROM:[ [206] [332]Elaborated type namespace]]::R:[SemIdFROM:[ [433] >elaborated [439] >record]], R:[stdFROM:[ [206] [272]regular type namespaces]]::R:[stringFROM:[ [372] typedef type __fwd/string.h:48:7]], R:[ExporterTreeOptsFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<void(OrgExporterTree::*)(sem::SemId, std::string, ExporterTreeOpts)>(&OrgExporterTree::toFile),
          pybind11::arg("node"),
          pybind11::arg("path"),
@@ -1672,25 +1672,25 @@ return state.)RAW")
   pybind11::class_<OrgExporterYaml>(m, "OrgExporterYaml")
     .def(pybind11::init<>())
     .def("visitNode",
-         /* F:[R:[void](R:[sem]::R:[SemId])] */,
+         /* F:[R:[void](R:[semFROM:[ [206] [332]Elaborated type namespace]]::R:[SemIdFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<void(OrgExporterYaml::*)(sem::SemId)>(&OrgExporterYaml::visitNode),
          pybind11::arg("node"),
          R"RAW(Visit top-level node of the exporter, filling in the internal
 return state.)RAW")
     .def("exportToString", /* F:[R:[std]::R:[string]()] */, static_cast<std::string(OrgExporterYaml::*)()>(&OrgExporterYaml::exportToString))
     .def("exportToFile",
-         /* F:[R:[void](R:[std]::R:[string])] */,
+         /* F:[R:[void](R:[stdFROM:[ [206] [272]regular type namespaces]]::R:[stringFROM:[ [372] typedef type __fwd/string.h:48:7]])] */,
          static_cast<void(OrgExporterYaml::*)(std::string)>(&OrgExporterYaml::exportToFile),
          pybind11::arg("path"))
     ;
   pybind11::class_<OrgContext>(m, "OrgContext")
     .def(pybind11::init<>())
     .def("parseFile",
-         /* F:[R:[void](R:[std]::R:[string])] */,
+         /* F:[R:[void](R:[stdFROM:[ [206] [272]regular type namespaces]]::R:[stringFROM:[ [372] typedef type __fwd/string.h:48:7]])] */,
          static_cast<void(OrgContext::*)(std::string)>(&OrgContext::parseFile),
          pybind11::arg("file"))
     .def("parseString",
-         /* F:[R:[void](R:[std]::R:[string])] */,
+         /* F:[R:[void](R:[stdFROM:[ [206] [272]regular type namespaces]]::R:[stringFROM:[ [372] typedef type __fwd/string.h:48:7]])] */,
          static_cast<void(OrgContext::*)(std::string)>(&OrgContext::parseString),
          pybind11::arg("text"))
     .def("getNode", /* F:[R:[sem]::R:[SemIdT<R:[sem]::R:[Document]>]()] */, static_cast<sem::SemIdT<sem::Document>(OrgContext::*)()>(&OrgContext::getNode))
@@ -1698,126 +1698,126 @@ return state.)RAW")
   pybind11::class_<ExporterPython>(m, "ExporterPython")
     .def(pybind11::init<>())
     .def("enablePyStreamTrace",
-         /* F:[R:[void](R:[pybind11]::R:[object])] */,
+         /* F:[R:[void](R:[pybind11FROM:[ [206] [138]Namespace visitation of 'pybind11']]::R:[objectFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<void(ExporterPython::*)(pybind11::object)>(&ExporterPython::enablePyStreamTrace),
          pybind11::arg("stream"))
     .def("enableBufferTrace", /* F:[R:[void]()] */, static_cast<void(ExporterPython::*)()>(&ExporterPython::enableBufferTrace))
     .def("getTraceBuffer", /* F:[R:[std]::R:[string]()] */, static_cast<std::string(ExporterPython::*)() const>(&ExporterPython::getTraceBuffer))
     .def("enableFileTrace",
-         /* F:[R:[void](R:[std]::R:[string&])] */,
+         /* F:[R:[void](R:[stdFROM:[ [206] [272]regular type namespaces]]::R:[string&FROM:[ [401] T-reference [407] >ref/ptr [372] typedef type __fwd/string.h:48:7]])] */,
          static_cast<void(ExporterPython::*)(std::string&)>(&ExporterPython::enableFileTrace),
          pybind11::arg("path"))
     .def("setVisitAnyIdAround",
-         /* F:[R:[void](R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyIdAround),
          pybind11::arg("cb"))
     .def("setVisitAnyIdIn",
-         /* F:[R:[void](R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyIdIn),
          pybind11::arg("cb"))
     .def("setVisitAnyField",
-         /* F:[R:[void](R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyField),
          pybind11::arg("cb"))
     .def("setEvalTopCb",
-         /* F:[R:[void](R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setEvalTopCb),
          pybind11::arg("cb"))
     .def("setVisitIdAround",
-         /* F:[R:[void](R:[OrgSemKind], R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitIdAround),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalIdAround",
-         /* F:[R:[void](R:[OrgSemKind], R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setEvalIdAround),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitIdInCb",
-         /* F:[R:[void](R:[OrgSemKind], R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitIdInCb),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalIdIn",
-         /* F:[R:[void](R:[OrgSemKind], R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setEvalIdIn),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitLeafField",
-         /* F:[R:[void](R:[LeafFieldType], R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[LeafFieldTypeFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(LeafFieldType, ExporterPython::PyFunc)>(&ExporterPython::setVisitLeafField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalLeafField",
-         /* F:[R:[void](R:[LeafFieldType], R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[LeafFieldTypeFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(LeafFieldType, ExporterPython::PyFunc)>(&ExporterPython::setEvalLeafField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitOrgField",
-         /* F:[R:[void](R:[OrgSemKind], R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitOrgField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setEvalOrgField",
-         /* F:[R:[void](R:[OrgSemKind], R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setEvalOrgField),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setSelf",
-         /* F:[R:[void](R:[pybind11]::R:[object])] */,
+         /* F:[R:[void](R:[pybind11FROM:[ [206] [138]Namespace visitation of 'pybind11']]::R:[objectFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<void(ExporterPython::*)(pybind11::object)>(&ExporterPython::setSelf),
          pybind11::arg("val"))
     .def("setNewOrgRes",
-         /* F:[R:[void](R:[OrgSemKind], R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setNewOrgRes),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setNewAnyOrgRes",
-         /* F:[R:[void](R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setNewAnyOrgRes),
          pybind11::arg("cb"))
     .def("setNewLeafRes",
-         /* F:[R:[void](R:[LeafFieldType], R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[LeafFieldTypeFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(LeafFieldType, ExporterPython::PyFunc)>(&ExporterPython::setNewLeafRes),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setNewAnyLeafRes",
-         /* F:[R:[void](R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setNewAnyLeafRes),
          pybind11::arg("cb"))
     .def("setPushVisitAnyId",
-         /* F:[R:[void](R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setPushVisitAnyId),
          pybind11::arg("cb"))
     .def("setPopVisitAnyId",
-         /* F:[R:[void](R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setPopVisitAnyId),
          pybind11::arg("cb"))
     .def("setPushVisitId",
-         /* F:[R:[void](R:[OrgSemKind], R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setPushVisitId),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setPopVisitIdCb",
-         /* F:[R:[void](R:[OrgSemKind], R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setPopVisitIdCb),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("setVisitAnyHookCb",
-         /* F:[R:[void](R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(ExporterPython::PyFunc)>(&ExporterPython::setVisitAnyHookCb),
          pybind11::arg("cb"))
     .def("setVisitIdHook",
-         /* F:[R:[void](R:[OrgSemKind], R:[ExporterPython]::R:[PyFunc])] */,
+         /* F:[R:[void](R:[OrgSemKindFROM:[ [433] >elaborated [444] >enum]], R:[ExporterPythonFROM:[ [206] [279]type namespace]]::R:[PyFuncFROM:[ [372] typedef type pyhaxorg/pyhaxorg_manual_impl.hpp:228:11]])] */,
          static_cast<void(ExporterPython::*)(OrgSemKind, ExporterPython::PyFunc)>(&ExporterPython::setVisitIdHook),
          pybind11::arg("kind"),
          pybind11::arg("cb"))
     .def("evalTop",
-         /* F:[R:[ExporterPython]::R:[Res](R:[sem]::R:[SemId])] */,
+         /* F:[R:[ExporterPython]::R:[Res](R:[semFROM:[ [206] [332]Elaborated type namespace]]::R:[SemIdFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId)>(&ExporterPython::evalTop),
          pybind11::arg("org"))
     .def("eval",
-         /* F:[R:[ExporterPython]::R:[Res](R:[sem]::R:[SemId])] */,
+         /* F:[R:[ExporterPython]::R:[Res](R:[semFROM:[ [206] [332]Elaborated type namespace]]::R:[SemIdFROM:[ [433] >elaborated [439] >record]])] */,
          static_cast<ExporterPython::Res(ExporterPython::*)(sem::SemId)>(&ExporterPython::eval),
          pybind11::arg("org"))
     ;

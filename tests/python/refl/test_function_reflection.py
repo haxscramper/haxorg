@@ -35,3 +35,14 @@ def test_function_const_ref():
     assert t.name == "int"
     assert t.isConst
     assert t.RefKind == ReferenceKind.LValue
+
+def test_method_const_ref():
+    struct = get_struct("struct S { void enable_file_trace(int const&); };")
+    assert len(struct.methods) == 1
+    func = struct.methods[0]
+    assert func.name == "enable_file_trace"
+    t = func.arguments[0].type
+    assert t.name == "int"
+    assert t.isConst
+    assert t.RefKind == ReferenceKind.LValue
+
