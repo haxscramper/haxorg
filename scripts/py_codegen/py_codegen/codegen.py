@@ -676,8 +676,8 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                   get_exporter_methods(True, expanded))),
         GenUnit(
             GenTu(
-                # "{base}/py_libs/pyhaxorg/pyhaxorg.cpp",
-                "/tmp/pyhaxorg.cpp",
+                "{base}/py_libs/pyhaxorg/pyhaxorg.cpp",
+                # "/tmp/pyhaxorg.cpp",
                 [
                     GenTuPass("#undef slots"),
                     GenTuInclude("pybind11/pybind11.h", True),

@@ -240,32 +240,12 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
 std::vector<QualType> ReflASTVisitor::getNamespaces(
     clang::Decl*                                Decl,
     const std::optional<clang::SourceLocation>& Loc) {
-    llvm::SmallVector<
-        std::variant<clang::NamespaceDecl*, clang::CXXRecordDecl*>>
-                        spaces;
-    clang::DeclContext* dc = Decl->getDeclContext();
-    while (dc) {
-        if (clang::NamespaceDecl* ns = llvm::dyn_cast<
-                clang::NamespaceDecl>(dc)) {
-            spaces.push_back(ns);
-        } else if (
-            clang::CXXRecordDecl* ns = llvm::dyn_cast<
-                clang::CXXRecordDecl>(dc)) {
-            spaces.push_back(ns);
-        }
-        if (llvm::dyn_cast<clang::TranslationUnitDecl>(dc)) {
-        } else {
-            errs() << dc->getDeclKindName() << "\n";
-        }
-        dc = dc->getParent();
-    }
-    std::reverse(spaces.begin(), spaces.end());
-
+    clang::DeclContext*   dc = Decl->getDeclContext();
     std::vector<QualType> result;
 
-    for (auto const& space : spaces) {
-        if (space.index() == 0) {
-            auto const* nns = std::get<0>(space);
+    while (dc) {
+        if (clang::NamespaceDecl* nns = llvm::dyn_cast<
+                clang::NamespaceDecl>(dc)) {
             if (!nns->isAnonymousNamespace()
                 && !nns->isInlineNamespace()) {
                 auto space = &result.emplace_back();
@@ -273,15 +253,21 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
                 space->set_name(nns->getNameAsString());
                 space->set_isnamespace(true);
             }
-        } else if (space.index() == 1) {
-            auto const* rec   = std::get<1>(space);
-            auto        space = &result.emplace_back();
+        } else if (
+            clang::CXXRecordDecl* rec = llvm::dyn_cast<
+                clang::CXXRecordDecl>(dc)) {
+            auto space = &result.emplace_back();
             add_debug(space, "type namespace");
             space->set_name(rec->getNameAsString());
             space->set_isnamespace(false);
+        } else if (llvm::dyn_cast<clang::TranslationUnitDecl>(dc)) {
+        } else {
+            errs() << dc->getDeclKindName() << "\n";
         }
+        dc = dc->getParent();
     }
 
+    std::reverse(result.begin(), result.end());
     return result;
 }
 
