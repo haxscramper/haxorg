@@ -52,7 +52,14 @@ struct TestParams {
 
     // Provide a friend overload.
     friend void PrintTo(const TestParams& point, std::ostream* os) {
-        *os << point.fullName();
+        json loc;
+        loc["path"] = point.file.native();
+        loc["line"] = point.spec.specLocation.line;
+        loc["col"]  = point.spec.specLocation.column;
+        json dump;
+        dump["loc"]  = loc;
+        dump["name"] = point.spec.name ? json{*point.spec.name} : json{};
+        *os << dump.dump();
     }
 };
 

@@ -6,6 +6,7 @@ import re
 from beartype.typing import Tuple, Optional
 from beartype import beartype
 from dataclasses import dataclass
+import json
 
 from py_scriptutils.tracer import TraceCollector
 
@@ -50,7 +51,22 @@ class GTestParams():
     class_name: str
     test_name: str
     parameter_name: Optional[str] = None
-    parameter_desc: Optional[str] = None
+    parameter_desc: Optional[dict] = None
+
+    def get_source_file(self) -> str:
+        if self.parameter_desc and "loc" in self.parameter_desc:
+            test_absolute = Path(self.parameter_desc["loc"]["path"])
+            return str(test_absolute.relative_to(get_haxorg_repo_root_path()))
+
+        else:
+            return ""
+
+    def get_source_line(self) -> Optional[int]:
+        if self.parameter_desc and "loc" in self.parameter_desc:
+            return self.parameter_desc["loc"]["line"]
+
+        else:
+            return None
 
     def group_name(self):
         if self.parameter_name:
@@ -88,7 +104,7 @@ def parse_google_tests(binary_path: str) -> list[GTestParams]:
                         class_name=current_suite,
                         test_name=main_name,
                         parameter_name=parameter_name,
-                        parameter_desc=line.strip().split('# GetParam() = ')[1],
+                        parameter_desc=json.loads(line.strip().split('# GetParam() = ')[1]),
                     ))
 
             else:
@@ -139,7 +155,7 @@ class GTestItem(pytest.Function):
     @property
     def location(self) -> Tuple[str, Optional[int], str]:
         # vscode python plugin has a check for `if testfunc and fullname != testfunc + parameterized:`
-        return ("", None, self.gtest.fullname())
+        return (self.gtest.get_source_file(), self.gtest.get_source_line(), self.gtest.fullname())
 
     def _getobj(self):
         # Return a dummy function
