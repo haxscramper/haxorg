@@ -69,9 +69,6 @@ set_target_properties(reflection_tool PROPERTIES CXX_STANDARD 20)
 # as absl::lts_20230125 (yes, this is a common issue, but no working solution).
 # ATTW the 'solved' responses indicate that it has something to do with new
 # dependency on abseil library in the protobuf, but it did not work here.
-#
-# Also TODO: Use conan package to integrate dependency on protobuf here,
-# instead of using system-provided version.
 target_link_options(reflection_tool PRIVATE "-Wl,--copy-dt-needed-entries")
 target_link_libraries(reflection_tool PRIVATE
     reflection_lib

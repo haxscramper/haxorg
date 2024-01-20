@@ -15,6 +15,11 @@ set_target_flags(haxorg)
 
 find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
 find_library(GRAPHVIZ_GVC_LIBRARY gvc)
+find_package(Protobuf REQUIRED)
+
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS "${BASE}/src/sem/SemOrgSerde.proto")
+get_filename_component(PROTO_HDR_DIR ${PROTO_HDRS} DIRECTORY)
+target_sources(haxorg PRIVATE "${PROTO_SRCS}")
 
 if (${ORG_USE_PCH})
     target_precompile_headers(haxorg PRIVATE
@@ -43,8 +48,8 @@ target_link_libraries(haxorg PUBLIC
 )
 
 target_link_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/lib")
-target_include_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/include")
-
+target_include_directories(haxorg PUBLIC "${BASE}/toolchain/RE-flex/include" "${PROTO_HDR_DIR}")
+target_link_options(haxorg PRIVATE "-Wl,--copy-dt-needed-entries")
 
 add_executable(tests_org)
 target_link_libraries(tests_org PUBLIC haxorg)

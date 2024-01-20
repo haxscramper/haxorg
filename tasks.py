@@ -511,7 +511,7 @@ def update_py_haxorg_reflection(ctx: Context):
             output=[out_file],
             stamp_path=get_task_stamp("update_py_haxorg_reflection"),
     ) as op:
-        if op.should_run():
+        if op.should_run() and not ctx.config.get("tasks")["skip_python_refl"]:
             try:
                 run_command(
                     ctx,

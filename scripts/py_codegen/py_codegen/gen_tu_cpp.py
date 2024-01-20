@@ -100,7 +100,7 @@ class GenTuPass:
 class GenTuField:
     type: Optional[QualType]
     name: str
-    doc: GenTuDoc
+    doc: GenTuDoc = field(default_factory=lambda: GenTuDoc(""))
     decl: Optional[Union['GenTuStruct', 'GenTuEnum']] = None
     value: Optional[Union[str, BlockId]] = None
     isConst: bool = False

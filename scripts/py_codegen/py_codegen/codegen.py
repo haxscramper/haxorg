@@ -576,11 +576,11 @@ def to_base_types(obj):
 
 @beartype
 def build_protobuf_writer(expanded: List[GenTuStruct],
-                          ast: ASTBuilder) -> List[FunctionParams]:
+                          ast: ASTBuilder) -> List[RecordParams]:
     t = ast.b
     base_map = get_base_map(expanded)
 
-    def aux_item(it: GenTuUnion) -> FunctionParams:
+    def aux_item(it: GenTuUnion) -> RecordParams:
         match it:
             case GenTuStruct():
                 out = t.text("out")
@@ -589,30 +589,44 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
                 for field in get_type_base_fields(it, base_map) + it.fields:
                     opc = "add_" + field.name
                     Body.append(
-                        ast.XCall(
-                            "protobuf_write",
+                        ast.CallStatic(
+                            QualType(name="proto_serde", Parameters=[field.type]),
+                            "write",
                             [ast.XCallPtr(out, opc),
                              ast.Dot(_in, t.text(field.name))],
-                            Params=[field.type],
                             Stmt=True,
                         ))
 
-                return FunctionParams(
-                    Name="protobuf_write",
-                    Args=[
-                        ParmVarParams(name="in",
-                                      type=it.name.withExtraSpace(
-                                          QualType(name="sem")).asConstRef()),
-                        ParmVarParams(name="out", type=it.name.asPtr())
-                    ],
-                    Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
+                writer = MethodDeclParams(
+                    Params=FunctionParams(
+                        Name="write",
+                        Args=[
+                            ParmVarParams(name="out", type=it.name.asPtr()),
+                            ParmVarParams(name="in",
+                                          type=it.name.withExtraSpace(
+                                              QualType(name="sem")).asConstRef()),
+                        ],
+                        doc=DocParams(""),
+                        Body=Body,
+                    ),
+                    isStatic=False,
+                )
+
+                return RecordParams(
+                    name="proto_serde",
                     doc=DocParams(""),
-                    Body=Body)
+                    NameParams=[it.name],
+                    members=[writer],
+                    Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
+                )
 
     return list(
-        itertools.filterfalse(lambda it: not it, [aux_item(it) for it in get_enums()] +
-                              [aux_item(it) for it in expanded]))
+        itertools.filterfalse(lambda it: not it, [aux_item(it) for it in get_protobuf_wrapped(expanded)]))
 
+
+@beartype
+def get_protobuf_wrapped(expanded: List[GenTuStruct]) -> List[GenTuUnion]:
+    return get_enums() + [get_osk_enum(expanded)] + expanded
 
 @beartype
 def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
@@ -634,6 +648,9 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
             case "Str":
                 return "string"
 
+            case "int":
+                return "int32"
+
             case "Opt":
                 if it.Parameters[0].name == "Vec":
                     return aux_type(it.Parameters[0])
@@ -651,10 +668,11 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
                 return it.name
 
     def aux_field(it: GenTuField, idx: int) -> BlockId:
-        return t.text(f"{aux_type(it.type):<32} {it.name:<32} = {idx};")
+        return t.text(f"{aux_type(it.type):<32} {it.name:<32} = {idx + 1};")
 
-    def aux_enum(it: GenTuEnumField, idx: int) -> BlockId:
-        return t.text(f"{it.name:<32} = {idx};")
+    def aux_enum(parent: GenTuEnum, it: GenTuEnumField, idx: int) -> BlockId:
+        name = parent.name.name + "_" + it.name
+        return t.text(f"{name:<32} = {idx};")
 
     def aux_item(it: GenTuUnion | GenTuField) -> BlockId:
         match it:
@@ -671,7 +689,7 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
 
             case GenTuEnum():
                 return braced("enum " + it.name.name,
-                              [aux_enum(sub, idx) for idx, sub in enumerate(it.fields)])
+                              [aux_enum(it, sub, idx) for idx, sub in enumerate(it.fields)])
 
             case GenTuPass():
                 return t.text("")
@@ -679,9 +697,13 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
             case _:
                 assert False, type(it)
 
-    declared_types = [aux_item(it) for it in expanded]
+    any_node = braced("message AnyNode", [
+        braced("oneof kind", [
+            aux_field(GenTuField(name=rec.name.name.lower(), type=rec.name), idx) for idx, rec in enumerate(expanded)
+        ])
+    ])
 
-    return t.stack([aux_item(it) for it in get_enums()] + declared_types)
+    return t.stack([aux_item(it) for it in get_protobuf_wrapped(expanded)] + [any_node])
 
 
 @beartype
@@ -690,15 +712,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     update_namespace_annotations(expanded)
 
     protobuf = build_protobuf(expanded, ast.b)
-    with open("/tmp/result.proto", "w") as file:
-        file.write(ast.b.toString(protobuf, TextOptions()))
-
     protobuf_writer = build_protobuf_writer(expanded, ast)
-    with open("/tmp/result.cpp", "w") as file:
-        for item in protobuf_writer:
-            if item:
-                file.write(ast.b.toString(ast.Function(item), TextOptions()))
-                file.write("\n\n")
 
     import yaml
 
@@ -790,10 +804,18 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 "/tmp/pyhaxorg.pyi",
                 [GenTuPass(autogen_structs.build_typedef(pyast))],
             )),
-        # GenUnit(GenTu("{base}/sem/SemOrg.proto", [GenTuPass(protobuf)])),
+        GenUnit(GenTu("{base}/sem/SemOrgProto.proto", [
+            GenTuPass('syntax = "proto3";'),
+            GenTuPass('import "SemOrgProtoManual.proto";'),
+            GenTuPass(protobuf),
+        ])),
+        GenUnit(
+            GenTu("{base}/sem/SemOrgSerde.cpp", [
+                GenTuPass("#include <sem/SemOrgSerde.hpp>"),
+            ] + [GenTuPass(ast.Record(rec)) for rec in protobuf_writer],)),
         GenUnit(
             GenTu("{base}/exporters/Exporter.tcc", get_exporter_methods(False,
-                                                                        expanded))),
+                                                                        expanded)),),
         GenUnit(
             GenTu("{base}/exporters/ExporterMethods.tcc",
                   get_exporter_methods(True, expanded))),
