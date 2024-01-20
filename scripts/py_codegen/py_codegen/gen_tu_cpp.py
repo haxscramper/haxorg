@@ -115,6 +115,7 @@ GenTuEntry = Union[
     GenTuFunction,
     "GenTuNamespace",
     GenTuInclude,
+    GenTuTypedef,
     GenTuPass,
 ]
 
@@ -242,6 +243,9 @@ class GenConverter:
         decls.append(self.ast.Comment(["clang-format on"]))
 
         return self.ast.TranslationUnit(decls)
+
+    def convertTypedef(self, typedef: GenTuTypedef) -> BlockId:
+        return self.ast.Using(UsingParams(newName=typedef.name.name, baseType=typedef.base))
 
     def convertStruct(self, record: GenTuStruct) -> BlockId:
         params = RecordParams(
@@ -527,6 +531,9 @@ class GenConverter:
                     decls.append(self.ast.string(entry.what))
                 else:
                     decls.append(entry.what)
+
+            case GenTuTypedef():
+                decls.append(self.convertTypedef(entry))
 
             case GenTuNamespace():
                 decls.append(self.convertNamespace(entry))

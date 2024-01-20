@@ -386,7 +386,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
     def rec_expand_group(
         record: GenTuTypeGroup,
         context: List[QualType],
-    ) -> List[Union[GenTuStruct, GenTuEnum, GenTuField, GenTuFunction, GenTuPass]]:
+    ) -> List[GenTuEntry | GenTuField]:
         result = []
         for item in record.types:
             result.append(rec_expand_type(item, context))
@@ -411,12 +411,9 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
         if record.variantName and record.enumName:
             result.append(
-                GenTuPass(
-                    ast.Using(
-                        UsingParams(newName=record.variantName,
-                                    baseType=QualType(name="variant",
-                                                      Spaces=[QualType.ForName("std")],
-                                                      Parameters=typeNames)))))
+                GenTuTypedef(
+                    name=QualType.ForName(record.variantName),
+                    base=QualType(name="variant", Spaces=[QualType.ForName("std")], Parameters=typeNames)))
 
             result.append(
                 GenTuEnum(
@@ -658,6 +655,9 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
                 else:
                     return "optional " + aux_type(it.Parameters[0])
 
+            case "UnorderedMap":
+                return f"map<{aux_type(it.Parameters[0])}, {aux_type(it.Parameters[1])}>"
+
             case "SemId":
                 return "AnyNode"
 
@@ -674,6 +674,9 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
         name = parent.name.name + "_" + it.name
         return t.text(f"{name:<32} = {idx};")
 
+    def aux_field_list(fields: Iterable[GenTuField]) -> List[BlockId]:
+        return [aux_field(field, idx) for idx, field in enumerate(fields)]
+
     def aux_item(it: GenTuUnion | GenTuField) -> BlockId:
         match it:
             case GenTuStruct():
@@ -681,10 +684,7 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
                     "message " + it.name.name,
                     itertools.chain(
                         [aux_item(sub) for sub in it.nested],
-                        [
-                            aux_field(sub, idx) for idx, sub in enumerate(
-                                get_type_base_fields(it, base_map) + it.fields)
-                        ],
+                        aux_field_list(get_type_base_fields(it, base_map) + it.fields),
                     ))
 
             case GenTuEnum():
@@ -694,13 +694,24 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
             case GenTuPass():
                 return t.text("")
 
+            case GenTuTypedef():
+                match it.base:
+                    case QualType(name="variant"):
+                        return braced("message " + it.name.name, [
+                            braced("oneof kind", aux_field_list(
+                                GenTuField(name=par.name.lower(), type=par) for par in it.base.Parameters
+                            ))
+                        ])
+
+                return t.text("")
+
             case _:
                 assert False, type(it)
 
     any_node = braced("message AnyNode", [
-        braced("oneof kind", [
-            aux_field(GenTuField(name=rec.name.name.lower(), type=rec.name), idx) for idx, rec in enumerate(expanded)
-        ])
+        braced("oneof kind", aux_field_list(
+            GenTuField(name=rec.name.name.lower(), type=rec.name) for rec in expanded)
+        )
     ])
 
     return t.stack([aux_item(it) for it in get_protobuf_wrapped(expanded)] + [any_node])

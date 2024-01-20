@@ -168,7 +168,7 @@ def org_task(task_name: Optional[str] = None,
 
             finally:
                 log("tasks").info(
-                    f"Completed [green]{name}[/green] in [blue]{last.dur / 10e3:5.1f}[/blue]ms"
+                    f"Completed [green]{name}[/green] in [blue]{last.dur / 10e2:5.1f}[/blue]ms"
                 )
 
                 color = "green"
