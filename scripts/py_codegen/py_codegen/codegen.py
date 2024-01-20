@@ -575,9 +575,131 @@ def to_base_types(obj):
 
 
 @beartype
+def build_protobuf_writer(expanded: List[GenTuStruct],
+                          ast: ASTBuilder) -> List[FunctionParams]:
+    t = ast.b
+    base_map = get_base_map(expanded)
+
+    def aux_item(it: GenTuUnion) -> FunctionParams:
+        match it:
+            case GenTuStruct():
+                out = t.text("out")
+                _in = t.text("in")
+                Body: List[BlockId] = []
+                for field in get_type_base_fields(it, base_map) + it.fields:
+                    opc = "add_" + field.name
+                    Body.append(
+                        ast.XCall(
+                            "protobuf_write",
+                            [ast.XCallPtr(out, opc),
+                             ast.Dot(_in, t.text(field.name))],
+                            Params=[field.type],
+                            Stmt=True,
+                        ))
+
+                return FunctionParams(
+                    Name="protobuf_write",
+                    Args=[
+                        ParmVarParams(name="in",
+                                      type=it.name.withExtraSpace(
+                                          QualType(name="sem")).asConstRef()),
+                        ParmVarParams(name="out", type=it.name.asPtr())
+                    ],
+                    Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
+                    doc=DocParams(""),
+                    Body=Body)
+
+    return list(
+        itertools.filterfalse(lambda it: not it, [aux_item(it) for it in get_enums()] +
+                              [aux_item(it) for it in expanded]))
+
+
+@beartype
+def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
+    base_map = get_base_map(expanded)
+
+    def braced(name: str, content: Iterable[BlockId]) -> BlockId:
+        return t.stack([
+            t.text(f"{name} {{"),
+            t.indent(2, t.stack(list(content))),
+            t.text("}"),
+            t.text(""),
+        ])
+
+    def aux_type(it: QualType) -> str:
+        match it.name:
+            case "Vec":
+                return "repeated " + aux_type(it.Parameters[0])
+
+            case "Str":
+                return "string"
+
+            case "Opt":
+                if it.Parameters[0].name == "Vec":
+                    return aux_type(it.Parameters[0])
+
+                else:
+                    return "optional " + aux_type(it.Parameters[0])
+
+            case "SemId":
+                return "AnyNode"
+
+            case "SemIdT":
+                return aux_type(it.Parameters[0])
+
+            case _:
+                return it.name
+
+    def aux_field(it: GenTuField, idx: int) -> BlockId:
+        return t.text(f"{aux_type(it.type):<32} {it.name:<32} = {idx};")
+
+    def aux_enum(it: GenTuEnumField, idx: int) -> BlockId:
+        return t.text(f"{it.name:<32} = {idx};")
+
+    def aux_item(it: GenTuUnion | GenTuField) -> BlockId:
+        match it:
+            case GenTuStruct():
+                return braced(
+                    "message " + it.name.name,
+                    itertools.chain(
+                        [aux_item(sub) for sub in it.nested],
+                        [
+                            aux_field(sub, idx) for idx, sub in enumerate(
+                                get_type_base_fields(it, base_map) + it.fields)
+                        ],
+                    ))
+
+            case GenTuEnum():
+                return braced("enum " + it.name.name,
+                              [aux_enum(sub, idx) for idx, sub in enumerate(it.fields)])
+
+            case GenTuPass():
+                return t.text("")
+
+            case _:
+                assert False, type(it)
+
+    declared_types = [aux_item(it) for it in expanded]
+
+    return t.stack([aux_item(it) for it in get_enums()] + declared_types)
+
+
+@beartype
 def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:
     expanded = expand_type_groups(ast, get_types())
     update_namespace_annotations(expanded)
+
+    protobuf = build_protobuf(expanded, ast.b)
+    with open("/tmp/result.proto", "w") as file:
+        file.write(ast.b.toString(protobuf, TextOptions()))
+
+    protobuf_writer = build_protobuf_writer(expanded, ast)
+    with open("/tmp/result.cpp", "w") as file:
+        for item in protobuf_writer:
+            if item:
+                file.write(ast.b.toString(ast.Function(item), TextOptions()))
+                file.write("\n\n")
+
     import yaml
 
     full_enums = get_enums() + [get_osk_enum(expanded)]
@@ -668,6 +790,7 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 "/tmp/pyhaxorg.pyi",
                 [GenTuPass(autogen_structs.build_typedef(pyast))],
             )),
+        # GenUnit(GenTu("{base}/sem/SemOrg.proto", [GenTuPass(protobuf)])),
         GenUnit(
             GenTu("{base}/exporters/Exporter.tcc", get_exporter_methods(False,
                                                                         expanded))),

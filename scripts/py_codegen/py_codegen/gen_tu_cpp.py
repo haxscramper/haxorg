@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from py_codegen.astbuilder_cpp import *
-from beartype.typing import Sequence, List
+from beartype.typing import Sequence, List, TypeAlias
 from beartype import beartype
 from py_textlayout.py_textlayout_wrap import *
 from pathlib import Path
@@ -161,6 +161,9 @@ class GenTuNamespace:
 class GenTu:
     path: str
     entries: Sequence[GenTuEntry]
+
+
+GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction]
 
 
 @beartype

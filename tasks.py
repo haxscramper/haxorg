@@ -40,6 +40,8 @@ def custom_traceback_handler(exc_type, exc_value, exc_traceback):
             print("File \"{}\", line {}, in {}  {}".format(frame.filename, frame.lineno,
                                                            frame.name, frame.line))
 
+    print(exc_type, exc_value)
+
 
 # Register the custom traceback handler
 sys.excepthook = custom_traceback_handler
@@ -495,30 +497,40 @@ def haxorg_code_forensics(ctx: Context, debug: bool = False):
 @org_task(pre=[cmake_utils, python_protobuf_files])
 def update_py_haxorg_reflection(ctx: Context):
     """Generate new source code reflection file for the python source code wrapper"""
-    compile_commands = local.path("build/haxorg/compile_commands.json")
-    include_dir = local.path(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
-    out_file = local.path("build/reflection.pb")
+    compile_commands = get_script_root("build/haxorg/compile_commands.json")
+    include_dir = get_script_root(f"toolchain/llvm/lib/clang/{LLVM_MAJOR}/include")
+    out_file = get_script_root("build/reflection.pb")
     src_file = "src/py_libs/pyhaxorg/pyhaxorg.cpp"
 
-    try:
-        run_command(
-            ctx,
-            "build/utils/reflection_tool",
-            [
-                "-p",
-                compile_commands,
-                "--compilation-database",
-                compile_commands,
-                "--toolchain-include",
-                include_dir,
-                "--out",
-                out_file,
-                src_file,
+    with FileOperation.InTmp(
+            input=[
+                Path(path).rglob(glob)
+                for path in ["src"]
+                for glob in ["*.hpp", "*.cppm"]
             ],
-        )
-    except ProcessExecutionError as e:
-        log.error("Reflection tool failed: %s", e)
-        raise
+            output=[out_file],
+            stamp_path=get_task_stamp("update_py_haxorg_reflection"),
+    ) as op:
+        if op.should_run():
+            try:
+                run_command(
+                    ctx,
+                    "build/utils/reflection_tool",
+                    [
+                        "-p",
+                        compile_commands,
+                        "--compilation-database",
+                        compile_commands,
+                        "--toolchain-include",
+                        include_dir,
+                        "--out",
+                        out_file,
+                        src_file,
+                    ],
+                )
+            except ProcessExecutionError as e:
+                log.error("Reflection tool failed: %s", e)
+                raise
 
     log("tasks").info("Updated reflection")
 
@@ -533,10 +545,7 @@ LD_PRELOAD_ASAN = {
 
 
 # TODO Make compiled reflection generation build optional
-@org_task(pre=[
-    cmake_utils,
-       update_py_haxorg_reflection
-])
+@org_task(pre=[cmake_utils, update_py_haxorg_reflection])
 def haxorg_codegen(ctx: Context, as_diff: bool = False):
     """Update auto-generated source files"""
     # TODO source file generation should optionally overwrite the target OR

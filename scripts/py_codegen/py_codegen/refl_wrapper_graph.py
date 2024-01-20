@@ -15,8 +15,6 @@ from py_codegen.gen_tu_cpp import (GenTuEnum, GenTuEnumField, GenTuField, GenTuF
                                    GenTuStruct, GenTuTypedef, QualType, QualTypeKind)
 from py_codegen.refl_read import ConvTu
 
-GenTuUnion: TypeAlias = Union[GenTuStruct, GenTuEnum, GenTuTypedef, GenTuFunction]
-
 
 @beartype
 def hash_qual_type(t: QualType) -> int:
@@ -463,8 +461,9 @@ class GenGraph:
 
             if 1 < len(group):
                 log("refl.cli.read").info(
-                    "Merging strongly connected files %s" %
-                    (", ".join([f"[green]{g.original.name}[/green]" for g in group if g.original])))
+                    "Merging strongly connected files %s" % (", ".join([
+                        f"[green]{g.original.name}[/green]" for g in group if g.original
+                    ])))
 
         self.subgraphs = new_grouped + ungrouped_sets
 

@@ -74,6 +74,15 @@ class QualType(BaseModel, extra="forbid"):
     def ForName(name: str, **args) -> 'QualType':
         return QualType(name=name, **args)
 
+    def asConstRef(self) -> 'QualType':
+        return self.model_copy(update=dict(isConst=True, RefKind=ReferenceKind.LValue))
+
+    def asPtr(self, ptrCount: int = 1) -> 'QualType':
+        return self.model_copy(update=dict(ptrCount=ptrCount))
+
+    def withExtraSpace(self, name: 'QualType') -> 'QualType':
+        return self.model_copy(update=dict(Spaces=[name] + self.Spaces))
+
     def isArray(self) -> bool:
         return self.Kind == QualTypeKind.Array
 
@@ -131,7 +140,8 @@ class QualType(BaseModel, extra="forbid"):
             case QualTypeKind.Array:
                 return spaces + "A:[{first}[{expr}]{cvref}{origin}]".format(
                     first=self.Parameters[0].format(dbgOrigin),
-                    expr=self.Parameters[1].format(dbgOrigin) if 1 < len(self.Parameters) else "",
+                    expr=self.Parameters[1].format(dbgOrigin)
+                    if 1 < len(self.Parameters) else "",
                     cvref=cvref,
                     origin=origin,
                 )
@@ -1144,7 +1154,8 @@ class ASTBuilder(base.AstbuilderBase):
                     ])
 
                 return self.b.line([
-                    self.b.join(type_scopes, self.string("::")), template_parameters,
+                    self.b.join(type_scopes, self.string("::")),
+                    template_parameters,
                     self.string(qualifiers),
                 ])
 
