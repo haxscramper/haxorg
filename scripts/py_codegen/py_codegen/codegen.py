@@ -200,7 +200,7 @@ def get_concrete_types(expanded: List[GenTuStruct]) -> Sequence[GenTuStruct]:
 
 org_type_names: List[str] = []
 
-from copy import deepcopy
+from copy import deepcopy, copy
 
 
 @beartype
@@ -677,16 +677,17 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
     field_type_width = 32
     enum_field_width = field_name_width + field_type_width
 
-    def aux_field(it: GenTuField, idx: int, indent: int) -> BlockId:
+    def aux_field(it: GenTuField, indexer: Generator[int], indent: int) -> BlockId:
         if it.type.name == "Variant":
             return t.stack([
                 braced(f"oneof {it.name}_kind",
-                    aux_field_list((GenTuField(name=sanitize_ident(aux_type(sub)), type=sub) for sub in it.type.Parameters), indent=indent + 1)
+                    aux_field_list((GenTuField(name=sanitize_ident(aux_type(sub)), type=sub) for sub in it.type.Parameters), indexer=indexer, indent=indent + 1,)
                 )
             ])
 
         else:
             type_width = field_type_width - (2 * indent)
+            idx = next(indexer)
             return t.text(f"{aux_type(it.type):<{type_width}} {it.name:<{field_name_width}} = {idx + 1};")
 
     def aux_enum(parent: GenTuEnum, it: GenTuEnumField, idx: int, indent: int) -> BlockId:
@@ -694,17 +695,28 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
         enum_width = enum_field_width - 2 * indent
         return t.text(f"{name:<{enum_width}}  = {idx};")
 
-    def aux_field_list(fields: Iterable[GenTuField], indent: int) -> Iterable[BlockId]:
-        return (aux_field(field, idx, indent=indent) for idx, field in enumerate(fields))
+    def aux_field_list(fields: Iterable[GenTuField], indexer: Generator[int], indent: int) -> Iterable[BlockId]:
+        return (aux_field(field, indexer, indent=indent) for field in fields)
+
+    def make_full_enumerator() -> Generator[int]:
+        def full_enumerator() -> Generator[int]:
+            value = 0
+            while True:
+                yield value
+                value += 1
+
+        return full_enumerator()
 
     def aux_item(it: GenTuUnion | GenTuField, indent: int) -> Optional[BlockId]:
         match it:
             case GenTuStruct():
+
+
                 return braced(
                     "message " + it.name.name,
                     itertools.chain(
                         drop_none(aux_item(sub, indent=indent + 1) for sub in it.nested),
-                        aux_field_list((get_type_base_fields(it, base_map) + it.fields), indent=indent),
+                        aux_field_list((get_type_base_fields(it, base_map) + it.fields), indexer=make_full_enumerator(), indent=indent),
                     ))
 
             case GenTuEnum():
@@ -720,6 +732,7 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
                         return braced("message " + it.name.name, [
                             braced("oneof kind", aux_field_list(
                                 (GenTuField(name=par.name.lower(), type=par) for par in it.base.Parameters),
+                                indexer=make_full_enumerator(),
                                 indent=indent + 1
                             ))
                         ])
@@ -733,7 +746,8 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
     any_node = braced("message AnyNode", [
         braced("oneof kind", aux_field_list(
             (GenTuField(name=rec.name.name.lower(), type=rec.name) for rec in expanded),
-            indent=0
+            indent=0,
+            indexer=make_full_enumerator()
             ),
         )
     ])
