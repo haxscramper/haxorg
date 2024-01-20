@@ -378,6 +378,11 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
 
     return res
 
+T = TypeVar('T')
+
+@beartype
+def drop_none(items: Iterable[T]) -> Iterable[T]:
+    return itertools.filterfalse(lambda it: not it, items)
 
 @beartype
 def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuStruct]:
@@ -573,7 +578,7 @@ def to_base_types(obj):
 
 @beartype
 def build_protobuf_writer(expanded: List[GenTuStruct],
-                          ast: ASTBuilder) -> List[RecordParams]:
+                          ast: ASTBuilder) -> Iterable[RecordParams]:
     t = ast.b
     base_map = get_base_map(expanded)
 
@@ -617,8 +622,7 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
                     Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
                 )
 
-    return list(
-        itertools.filterfalse(lambda it: not it, [aux_item(it) for it in get_protobuf_wrapped(expanded)]))
+    return drop_none(aux_item(it) for it in get_protobuf_wrapped(expanded))
 
 
 @beartype
@@ -634,7 +638,6 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
             t.text(f"{name} {{"),
             t.indent(2, t.stack(list(content))),
             t.text("}"),
-            t.text(""),
         ])
 
     def aux_type(it: QualType) -> str:
@@ -667,54 +670,75 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
             case _:
                 return it.name
 
-    def aux_field(it: GenTuField, idx: int) -> BlockId:
-        return t.text(f"{aux_type(it.type):<32} {it.name:<32} = {idx + 1};")
+    def sanitize_ident(ident: str) -> str:
+        return ident.lower().replace(" ", "_")
 
-    def aux_enum(parent: GenTuEnum, it: GenTuEnumField, idx: int) -> BlockId:
+    field_name_width = 32
+    field_type_width = 32
+    enum_field_width = field_name_width + field_type_width
+
+    def aux_field(it: GenTuField, idx: int, indent: int) -> BlockId:
+        if it.type.name == "Variant":
+            return t.stack([
+                braced(f"oneof {it.name}_kind",
+                    aux_field_list((GenTuField(name=sanitize_ident(aux_type(sub)), type=sub) for sub in it.type.Parameters), indent=indent + 1)
+                )
+            ])
+
+        else:
+            type_width = field_type_width - (2 * indent)
+            return t.text(f"{aux_type(it.type):<{type_width}} {it.name:<{field_name_width}} = {idx + 1};")
+
+    def aux_enum(parent: GenTuEnum, it: GenTuEnumField, idx: int, indent: int) -> BlockId:
         name = parent.name.name + "_" + it.name
-        return t.text(f"{name:<32} = {idx};")
+        enum_width = enum_field_width - 2 * indent
+        return t.text(f"{name:<{enum_width}}  = {idx};")
 
-    def aux_field_list(fields: Iterable[GenTuField]) -> List[BlockId]:
-        return [aux_field(field, idx) for idx, field in enumerate(fields)]
+    def aux_field_list(fields: Iterable[GenTuField], indent: int) -> Iterable[BlockId]:
+        return (aux_field(field, idx, indent=indent) for idx, field in enumerate(fields))
 
-    def aux_item(it: GenTuUnion | GenTuField) -> BlockId:
+    def aux_item(it: GenTuUnion | GenTuField, indent: int) -> Optional[BlockId]:
         match it:
             case GenTuStruct():
                 return braced(
                     "message " + it.name.name,
                     itertools.chain(
-                        [aux_item(sub) for sub in it.nested],
-                        aux_field_list(get_type_base_fields(it, base_map) + it.fields),
+                        drop_none(aux_item(sub, indent=indent + 1) for sub in it.nested),
+                        aux_field_list((get_type_base_fields(it, base_map) + it.fields), indent=indent),
                     ))
 
             case GenTuEnum():
                 return braced("enum " + it.name.name,
-                              [aux_enum(it, sub, idx) for idx, sub in enumerate(it.fields)])
+                              [aux_enum(it, sub, idx, indent) for idx, sub in enumerate(it.fields)])
 
             case GenTuPass():
-                return t.text("")
+                return None
 
             case GenTuTypedef():
                 match it.base:
                     case QualType(name="variant"):
                         return braced("message " + it.name.name, [
                             braced("oneof kind", aux_field_list(
-                                GenTuField(name=par.name.lower(), type=par) for par in it.base.Parameters
+                                (GenTuField(name=par.name.lower(), type=par) for par in it.base.Parameters),
+                                indent=indent + 1
                             ))
                         ])
 
-                return t.text("")
+                    case _:
+                        return None
 
             case _:
                 assert False, type(it)
 
     any_node = braced("message AnyNode", [
         braced("oneof kind", aux_field_list(
-            GenTuField(name=rec.name.name.lower(), type=rec.name) for rec in expanded)
+            (GenTuField(name=rec.name.name.lower(), type=rec.name) for rec in expanded),
+            indent=0
+            ),
         )
     ])
 
-    return t.stack([aux_item(it) for it in get_protobuf_wrapped(expanded)] + [any_node])
+    return t.stack(list(drop_none(aux_item(it, indent=0) for it in get_protobuf_wrapped(expanded))) + [any_node])
 
 
 @beartype
