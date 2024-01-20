@@ -1,8 +1,9 @@
 import pytest
 from pathlib import Path
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-import os
 import subprocess
+import re
+from beartype.typing import Tuple, Optional
 
 from py_scriptutils.tracer import TraceCollector
 
@@ -14,7 +15,6 @@ def get_trace_collector():
         trace_collector = TraceCollector()
 
     return trace_collector
-
 
 @pytest.fixture(scope="session", autouse=True)
 def trace_session():
@@ -53,7 +53,7 @@ def parse_google_tests(binary_path: str) -> list[str]:
     return tests
 
 
-binary_path = get_haxorg_repo_root_path().joinpath("build/haxorg_debug/tests_org") 
+binary_path: str = str(get_haxorg_repo_root_path().joinpath("build/haxorg_debug/tests_org"))
 
 def pytest_collect_file(parent, path):
     if path.basename == "test_integrate_cxx_org.py":
@@ -63,16 +63,19 @@ def pytest_collect_file(parent, path):
 class GTestFile(pytest.File):
     def collect(self):
         for test in parse_google_tests(binary_path):
-            yield GTestItem.from_parent(self, name=test)
+            def prototype(options):
+                pass
+
+            yield GTestItem.from_parent(self, name=re.sub(r"[\./]", "_", test), callobj=prototype)
 
 
-class GTestItem(pytest.Item):
-    def __init__(self, name, parent):
-        super(GTestItem, self).__init__(name, parent)
-
+class GTestItem(pytest.Function):
     def runtest(self):
         subprocess.run([binary_path, f"--gtest_filter={self.name}"])
 
-    def repr_failure(self, exception):
-        return f"Google Test failed: {exception.value}"
+    @property
+    def location(self) -> Tuple[str, Optional[int], str]:
+        # vscode python plugin has a check for `if testfunc and fullname != testfunc + parameterized:`
+        return ("", None, self.name)
+
 
