@@ -79,6 +79,25 @@ def get_type_base_fields(value: GenTuStruct,
     return fields
 
 
+def get_base_list(value: GenTuStruct, base_map: Mapping[str,
+                                                        GenTuStruct]) -> List[QualType]:
+    fields = []
+
+    def aux(typ: QualType) -> List[QualType]:
+        result: List[QualType] = [typ]
+        base = base_map.get(typ.name)
+        if base:
+            for it in base.bases:
+                result.extend(aux(it))
+
+        return result
+
+    for base_sym in value.bases:
+        fields.extend(aux(base_sym))
+
+    return fields
+
+
 @beartype
 def get_base_map(expanded: List[GenTuStruct]) -> Mapping[str, GenTuStruct]:
     base_map: Mapping[str, GenTuStruct] = {}
@@ -418,15 +437,17 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
             result.append(GenTuPass(ast.Macro(iteratorMacro)))
 
         if record.variantName and record.enumName:
+            enum_type = QualType.ForName(record.enumName, Spaces=context)
+            variant_type = QualType.ForName(record.variantName, Spaces=context)
             result.append(
-                GenTuTypedef(name=QualType.ForName(record.variantName),
+                GenTuTypedef(name=variant_type,
                              base=QualType(name="variant",
                                            Spaces=[QualType.ForName("std")],
                                            Parameters=typeNames)))
 
             result.append(
                 GenTuEnum(
-                    name=QualType.ForName(record.enumName),
+                    name=enum_type,
                     doc=GenTuDoc(""),
                     fields=[GenTuEnumField(N.name, GenTuDoc("")) for N in typeNames]))
 
@@ -444,8 +465,7 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                                 ast.XCall("std::get", [ast.string(record.variantField)],
                                           Params=[QualType.ForName(str(idx))]))))
 
-            enum_type = QualType.ForName(record.enumName, Spaces=context)
-            variant_type = QualType.ForName(record.variantName, Spaces=context)
+
 
             result.append(
                 GenTuFunction(isStatic=True,
@@ -585,18 +605,45 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
                           ast: ASTBuilder) -> Iterable[RecordParams]:
     t = ast.b
     base_map = get_base_map(expanded)
+    types_list = get_protobuf_wrapped(expanded)
+    enum_type_list: List[QualType] = []
+
+    def find_enums(obj):
+        if isinstance(obj, GenTuEnum):
+            enum_type_list.append(obj.name)
+
+    iterate_object_tree(types_list, find_enums, [])
 
     def aux_item(it: GenTuUnion) -> RecordParams:
         match it:
             case GenTuStruct():
                 out = t.text("out")
                 _in = t.text("in")
-                out_type: Final = it.name.withExtraSpace(QualType(name="orgproto")).withGlobalSpace()
-                in_type: Final = it.name.withExtraSpace(QualType(name="sem")) if hasattr(it, "isOrgType") else it.name
+                out_type: Final = it.name.withExtraSpace(
+                    QualType(name="orgproto")).withGlobalSpace()
+                in_type: Final = it.name.withExtraSpace(QualType(
+                    name="sem")) if hasattr(it, "isOrgType") else it.name
 
                 Body: List[BlockId] = []
-                for field in get_type_base_fields(it, base_map) + it.fields:
-                    enum_types = ["OrgSemPlacement", "OrgSemKind"]
+                for base in get_base_list(it, base_map):
+                    Body.append(
+                        ast.CallStatic(
+                            QualType(name="proto_serde", Parameters=[out_type, base]),
+                            "write",
+                            [out, _in],
+                            Stmt=True,
+                        ))
+
+                for field in it.fields:
+                    if field.name == "staticKind":
+                        continue
+
+                    enum_types = [
+                        "OrgSemPlacement",
+                        "OrgSemKind",
+                        "Format",  # `sem::Export::Format`
+                        "Exports",  # `sem::Code::Exports`
+                    ]
                     dot_field: Final = ast.Dot(_in, t.text(field.name))
 
                     if field.type.name in ["Opt"]:
@@ -611,38 +658,59 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
                         field_read = dot_field
                         field_type = field.type
 
-                    if field_type.name == "SemId":
-                        field_proto_type = QualType.ForName("AnyNode").withExtraSpace("orgproto")
+                    def rewrite_for_proto_type(typ: QualType) -> QualType:
+                        match typ:
+                            case QualType(name="SemId") | QualType(name="SemIdT"):
+                                return QualType.ForName("AnyNode").withExtraSpace(
+                                    "orgproto")
 
-                    else:
-                        field_proto_type = field_type.withExtraSpace("orgproto").withGlobalSpace()
+                            case QualType(name="bool"):
+                                return typ
 
-                    if field_type.name in ["int", "string"] + enum_types:
+                            case QualType(name="Str"):
+                                return QualType.ForName("string").withExtraSpace("std")
+
+                            case _:
+                                if typ.name == "Format":
+                                    log("codegen").info(f"{typ.format()} {[it.format() for it in enum_type_list]}")
+
+                                if any(typ.eqQualified(it) for it in enum_type_list):
+                                    return QualType.ForName(typ.flatQualName())
+
+                                else:
+                                    return typ.model_copy(update=dict(Parameters=[
+                                        rewrite_for_proto_type(p) for p in typ.Parameters
+                                    ]))
+
+                    field_proto_type = rewrite_for_proto_type(field_type)
+
+                    if field_type.name in ["int", "string", "bool"] + enum_types:
                         if field_type.name in enum_types:
-                            field_read = ast.XCall("static_cast", args=[field_read], Params=[field_proto_type])
+                            field_read = ast.XCall("static_cast",
+                                                   args=[field_read],
+                                                   Params=[field_proto_type])
 
-                        write_op = ast.XCallPtr(out, "set_" + field.name.lower(), [field_read], Stmt=True)
+                        write_op = ast.XCallPtr(out,
+                                                "set_" + field.name.lower(), [field_read],
+                                                Stmt=True)
 
                     else:
-                        if field.type.name in ["Vec"]:
-                            opc = "mutable_" + field.name.lower()
-                        else:
-                            opc = "add_" + field.name
+                        opc = "mutable_" + field.name.lower()
 
                         write_op = ast.CallStatic(
-                            QualType(name="proto_serde", Parameters=[field_proto_type, field_type]),
+                            QualType(name="proto_serde",
+                                     Parameters=[field_proto_type, field_type]),
                             "write",
-                            [
-                                ast.XCallPtr(out, opc),
-                                field_read
-                            ],
+                            [ast.XCallPtr(out, opc), field_read],
                             Stmt=True,
                         )
 
                     if field.type.name in ["Opt"]:
-                        Body.append(ast.IfStmt(IfStmtParams([
-                            IfStmtParams.Branch(Cond=dot_field, Then=write_op)
-                        ])))
+                        Body.append(
+                            ast.IfStmt(
+                                IfStmtParams(
+                                    [IfStmtParams.Branch(Cond=dot_field,
+                                                         Then=write_op)])))
 
                     else:
                         Body.append(write_op)
@@ -674,7 +742,7 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
                     Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
                 )
 
-    return drop_none(aux_item(it) for it in get_protobuf_wrapped(expanded))
+    return drop_none(aux_item(it) for it in types_list)
 
 
 @beartype
