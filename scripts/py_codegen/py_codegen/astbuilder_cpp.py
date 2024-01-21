@@ -72,10 +72,6 @@ class QualType(BaseModel, extra="forbid"):
 
     meta: Dict[str, Any] = Field(default={})
 
-    def eqQualified(self, other: 'QualType'):
-        return self.name == other.name and len(self.Spaces) == len(other.Spaces) and all(
-            [lhs.eqQualified(rhs) for lhs, rhs in zip(self.Spaces, other.Spaces)])
-
     @staticmethod
     def ForName(name: str, **args) -> 'QualType':
         return QualType(name=name, **args)

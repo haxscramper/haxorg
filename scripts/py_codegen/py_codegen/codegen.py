@@ -517,33 +517,36 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
         methods: List[GenTuFunction] = []
         fields: List[GenTuField] = []
         for item in typ.nested:
-            if isinstance(item, GenTuStruct):
-                converted.append(rec_expand_type(item, context + [item.name]))
+            match item:
+                case GenTuStruct():
+                    converted.append(rec_expand_type(item, context + [item.name]))
 
-            elif isinstance(item, GenTuTypeGroup):
-                for res in rec_expand_group(item, context):
-                    if isinstance(res, GenTuField):
-                        fields.append(res)
+                case GenTuTypeGroup():
+                    for res in rec_expand_group(item, context):
+                        if isinstance(res, GenTuField):
+                            fields.append(res)
 
-                    elif isinstance(res, GenTuFunction):
-                        methods.append(res)
+                        elif isinstance(res, GenTuFunction):
+                            methods.append(res)
 
-                    else:
-                        converted.append(res)
+                        else:
+                            converted.append(res)
 
-            elif isinstance(item, GenTuPass) or isinstance(item, GenTuEnum):
-                converted.append(item)
+                case GenTuEnum():
+                    converted.append(replace(item, name=item.name.model_copy(update=dict(Spaces=context))))
 
-            else:
-                assert False, type(item)
+                case GenTuPass():
+                    converted.append(item)
+
+                case _:
+                    assert False, type(item)
 
         result = replace(typ,
+                         name=typ.name.model_copy(update=dict(Spaces=context)),
                          nested=converted,
                          methods=typ.methods + methods,
                          fields=typ.fields + fields)
 
-        if hasattr(typ, "isNested"):
-            setattr(result, "isNested", getattr(typ, "isNested"))
 
         if hasattr(typ, "isOrgType"):
             setattr(result, "isOrgType", getattr(typ, "isOrgType"))
@@ -551,20 +554,6 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
         return result
 
     return [rec_expand_type(T, [QualType.ForName("sem"), T.name]) for T in types]
-
-
-@beartype
-def update_namespace_annotations(expanded: List[GenTuStruct]):
-    iterate_context: Sequence[GenTuStruct] = []
-
-    def callback(value):
-        nonlocal iterate_context
-        if isinstance(value, QualType):
-            if "isNested" in value.meta:
-                value.Spaces = filter_walk_scope(iterate_context) + value.Spaces
-
-    iterate_object_tree(GenTuNamespace("sem", expanded), callback, iterate_context)
-
 
 def to_base_types(obj):
 
@@ -613,7 +602,6 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
             enum_type_list.append(obj.name)
 
     iterate_object_tree(types_list, find_enums, [])
-
     def aux_item(it: GenTuUnion) -> RecordParams:
         match it:
             case GenTuStruct():
@@ -621,8 +609,7 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
                 _in = t.text("in")
                 out_type: Final = it.name.withExtraSpace(
                     QualType(name="orgproto")).withGlobalSpace()
-                in_type: Final = it.name.withExtraSpace(QualType(
-                    name="sem")) if hasattr(it, "isOrgType") else it.name
+                in_type: Final = it.name
 
                 Body: List[BlockId] = []
                 for base in get_base_list(it, base_map):
@@ -644,7 +631,8 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
                         "Format",  # `sem::Export::Format`
                         "Exports",  # `sem::Code::Exports`
                     ]
-                    dot_field: Final = ast.Dot(_in, t.text(field.name))
+
+                    dot_field = ast.Dot(_in, t.text(field.name))
 
                     if field.type.name in ["Opt"]:
                         field_read = t.line([t.text("*"), dot_field])
@@ -671,11 +659,8 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
                                 return QualType.ForName("string").withExtraSpace("std")
 
                             case _:
-                                if typ.name == "Format":
-                                    log("codegen").info(f"{typ.format()} {[it.format() for it in enum_type_list]}")
-
-                                if any(typ.eqQualified(it) for it in enum_type_list):
-                                    return QualType.ForName(typ.flatQualName())
+                                if any(typ.flatQualName() == it.flatQualName() for it in enum_type_list):
+                                    return QualType.ForName("_".join(typ.flatQualName()))
 
                                 else:
                                     return typ.model_copy(update=dict(Parameters=[
@@ -896,7 +881,6 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
 @beartype
 def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> GenFiles:
     expanded = expand_type_groups(ast, get_types())
-    update_namespace_annotations(expanded)
 
     protobuf = build_protobuf(expanded, ast.b)
     protobuf_writer = build_protobuf_writer(expanded, ast)
