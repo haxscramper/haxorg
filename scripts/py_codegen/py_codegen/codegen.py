@@ -415,14 +415,13 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
         context: List[QualType],
     ) -> List[GenTuEntry | GenTuField]:
         result = []
-        for item in record.types:
-            result.append(rec_expand_type(item, context))
-
         typeNames: List[QualType] = []
 
         for item in record.types:
+            expanded = rec_expand_type(item, context)
+            result.append(expanded)
             if item.concreteKind:
-                typeNames.append(item.name)
+                typeNames.append(expanded.name)
 
         if record.iteratorMacroName:
             iteratorMacro = MacroParams(
@@ -453,7 +452,8 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                 GenTuEnum(
                     name=enum_type,
                     doc=GenTuDoc(""),
-                    fields=[GenTuEnumField(N.name, GenTuDoc("")) for N in typeNames]))
+                    fields=[GenTuEnumField(N.name, GenTuDoc("")) for N in typeNames],
+                ))
 
             for idx, T in enumerate(typeNames):
                 for isConst in [True, False]:
@@ -476,17 +476,19 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                         ))
 
             result.append(
-                GenTuFunction(isStatic=True,
-                              doc=GenTuDoc(""),
-                              name=record.kindGetter,
-                              result=enum_type,
-                              arguments=[GenTuIdent(t_cr(variant_type), "__input")],
-                              impl=ast.Return(
-                                  ast.XCall(
-                                      "static_cast",
-                                      args=[ast.XCallRef(ast.string("__input"), "index")],
-                                      Params=[enum_type],
-                                  ))))
+                GenTuFunction(
+                    isStatic=True,
+                    doc=GenTuDoc(""),
+                    name=record.kindGetter,
+                    result=enum_type,
+                    arguments=[GenTuIdent(t_cr(variant_type), "__input")],
+                    impl=ast.Return(
+                        ast.XCall(
+                            "static_cast",
+                            args=[ast.XCallRef(ast.string("__input"), "index")],
+                            Params=[enum_type],
+                        )),
+                ))
 
             result.append(
                 GenTuFunction(
@@ -554,11 +556,13 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
                 case _:
                     assert False, type(item)
 
-        result = replace(typ,
-                         name=typ.name.model_copy(update=dict(Spaces=context[:1])),
-                         nested=converted,
-                         methods=typ.methods + methods,
-                         fields=typ.fields + fields)
+        result = replace(
+            typ,
+            name=typ.name.model_copy(update=dict(Spaces=context[:1])),
+            nested=converted,
+            methods=typ.methods + methods,
+            fields=typ.fields + fields,
+        )
 
         if hasattr(typ, "isOrgType"):
             setattr(result, "isOrgType", getattr(typ, "isOrgType"))
@@ -605,15 +609,52 @@ def to_base_types(obj):
 def in_type_list(typ: QualType, enum_type_list: List[QualType]) -> bool:
     return any(typ.flatQualName() == it.flatQualName() for it in enum_type_list)
 
+
 @beartype
-def rewrite_for_proto_type(typ: QualType, enum_type_list: List[QualType]) -> QualType:
+def rewrite_for_proto_grammar(it: QualType) -> str:
+    match it.name:
+        case "Vec":
+            return "repeated " + rewrite_for_proto_grammar(it.Parameters[0])
+
+        case "Str" | "string":
+            return "string"
+
+        case "int":
+            return "int32"
+
+        case "Opt":
+            if it.Parameters[0].name == "Vec":
+                return rewrite_for_proto_grammar(it.Parameters[0])
+
+            else:
+                return "optional " + rewrite_for_proto_grammar(it.Parameters[0])
+
+        case "UnorderedMap":
+            return "map<{}, {}>".format(
+                rewrite_for_proto_grammar(it.Parameters[0]),
+                rewrite_for_proto_grammar(it.Parameters[1]),
+            )
+
+        case "SemId":
+            return "AnyNode"
+
+        case "SemIdT":
+            return rewrite_for_proto_grammar(it.Parameters[0])
+
+        case _:
+            spaces = [s.name for s in it.Spaces if s.name != "sem"]
+            return ".".join(spaces + [it.name])
+
+
+@beartype
+def rewrite_for_proto_serde(typ: QualType, enum_type_list: List[QualType]) -> QualType:
+
     def aux_parameters(typ) -> List[QualType]:
-        return [rewrite_for_proto_type(p, enum_type_list) for p in typ.Parameters]
+        return [rewrite_for_proto_serde(p, enum_type_list) for p in typ.Parameters]
 
     match typ:
         case QualType(name="SemId") | QualType(name="SemIdT"):
-            return QualType.ForName("AnyNode").withExtraSpace(
-                "orgproto")
+            return QualType.ForName("AnyNode").withExtraSpace("orgproto")
 
         case QualType(name="bool"):
             return typ
@@ -625,23 +666,24 @@ def rewrite_for_proto_type(typ: QualType, enum_type_list: List[QualType]) -> Qua
             return typ.model_copy(update=dict(
                 Parameters=aux_parameters(typ),
                 name="RepeatedPtrField",
-                Spaces=[QualType.ForName("google"), QualType.ForName("protobuf")],
-                isGlobalNamespace=True
+                Spaces=[QualType.ForName("google"),
+                        QualType.ForName("protobuf")],
+                isGlobalNamespace=True,
             ))
 
         case QualType(name="UnorderedMap"):
             return typ.model_copy(update=dict(
                 Parameters=aux_parameters(typ),
                 name="Map",
-                Spaces=[QualType.ForName("google"), QualType.ForName("protobuf")],
-                isGlobalNamespace=True
+                Spaces=[QualType.ForName("google"),
+                        QualType.ForName("protobuf")],
+                isGlobalNamespace=True,
             ))
 
         case _:
             if in_type_list(typ, enum_type_list):
                 return QualType.ForName("_".join(
-                    typ.withoutSpace("sem").flatQualName())
-                ).withExtraSpace("orgproto")
+                    typ.withoutSpace("sem").flatQualName())).withExtraSpace("orgproto")
 
             else:
                 result = typ.model_copy(update=dict(Parameters=aux_parameters(typ)))
@@ -650,6 +692,120 @@ def rewrite_for_proto_type(typ: QualType, enum_type_list: List[QualType]) -> Qua
 
                 return result
 
+
+@beartype
+def build_protobuf_cxx_field_read(
+    field: GenTuField,
+    ast: ASTBuilder,
+    dot_field: BlockId,
+    enum_type_list: List[QualType],
+) -> Tuple[BlockId, QualType, QualType]:
+    if field.type.name in ["Opt"]:
+        field_read = t.line([t.text("*"), dot_field])
+        field_type = field.type.Parameters[0]
+
+    else:
+        field_read = dot_field
+        field_type = field.type
+
+    field_proto_type = rewrite_for_proto_serde(field_type, enum_type_list)
+    is_enum_field = in_type_list(field_type, enum_type_list)
+
+    if is_enum_field:
+        field_read = ast.XCall(
+            "static_cast",
+            args=[field_read],
+            Params=[field_proto_type],
+        )
+
+    return (field_read, field_type, field_proto_type)
+
+
+@beartype
+def build_protobuf_writer_for_field(
+    field: GenTuField,
+    ast: ASTBuilder,
+    enum_type_list: List[QualType],
+    variant_type_list: Dict[Tuple[str, ...], GenTuTypedef],
+) -> BlockId:
+    t = ast.b
+    out = t.text("out")
+    dot_field = ast.Dot(t.text("in"), t.text(field.name))
+
+    def get_field_write_op(field: GenTuField, dot_field: BlockId) -> BlockId:
+        field_read, field_type, field_proto_type = build_protobuf_cxx_field_read(
+            field,
+            ast,
+            dot_field,
+            enum_type_list=enum_type_list,
+        )
+
+        is_enum_field = in_type_list(field_type, enum_type_list)
+
+        if field_type.name in ["int", "string", "bool"] or is_enum_field:
+            write_op = ast.XCallPtr(
+                out,
+                "set_" + field.name.lower(),
+                [field_read],
+                Stmt=True,
+            )
+
+        else:
+            opc = "mutable_" + field.name.lower()
+
+            write_op = ast.CallStatic(
+                QualType(name="proto_serde", Parameters=[field_proto_type, field_type]),
+                "write",
+                [ast.XCallPtr(out, opc), field_read],
+                Stmt=True,
+            )
+
+        if field.type.name in ["Opt"]:
+            return ast.IfStmt(
+                IfStmtParams([IfStmtParams.Branch(Cond=dot_field, Then=write_op)]))
+
+        else:
+            return write_op
+
+    if tuple(field.type.flatQualName()) in variant_type_list:
+        typedef = variant_type_list[tuple(field.type.flatQualName())]
+        variant_switch = SwitchStmtParams(Expr=t.line([dot_field, t.text(".index()")]))
+        for idx, var_field in enumerate(build_protobuf_fields_for_variant(typedef.base)):
+            var_dot = t.line([t.text(f"std::get<{idx}>("), dot_field, t.text(")")])
+
+            var_field_read, var_field_type, var_field_proto_type = build_protobuf_cxx_field_read(
+                var_field,
+                ast,
+                var_dot,
+                enum_type_list=enum_type_list,
+            )
+
+            variant_switch.Cases.append(
+                CaseStmtParams(
+                    Expr=t.text(str(idx)),
+                    Body=[get_field_write_op(var_field, var_dot)],
+                    OneLine=True,
+                    Compound=False,
+                    Autobreak=True,
+                ))
+
+        return ast.SwitchStmt(variant_switch)
+
+    else:
+        return get_field_write_op(field, dot_field)
+
+
+@beartype
+def sanitize_ident_for_protobuf(ident: str) -> str:
+    return ident.lower().replace(" ", "_")
+
+
+@beartype
+def build_protobuf_fields_for_variant(typ: QualType) -> Iterable[GenTuField]:
+    return (GenTuField(name=sanitize_ident_for_protobuf(rewrite_for_proto_grammar(sub)),
+                       type=sub) for sub in typ.Parameters)
+
+
 @beartype
 def build_protobuf_writer(expanded: List[GenTuStruct],
                           ast: ASTBuilder) -> Iterable[RecordParams]:
@@ -657,10 +813,15 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
     base_map = get_base_map(expanded)
     types_list = get_protobuf_wrapped(expanded)
     enum_type_list: List[QualType] = []
+    variant_type_list: Dict[Tuple[str, ...], GenTuTypedef] = {}
 
     def find_enums(obj):
         if isinstance(obj, GenTuEnum):
             enum_type_list.append(obj.name)
+
+        elif isinstance(obj, GenTuTypedef):
+            if obj.base.name == "variant":
+                variant_type_list[tuple(obj.name.flatQualName())] = obj
 
     iterate_object_tree(types_list, find_enums, [])
 
@@ -687,54 +848,13 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
                     if field.name == "staticKind":
                         continue
 
-                    dot_field = ast.Dot(_in, t.text(field.name))
-
-                    if field.type.name in ["Opt"]:
-                        field_read = t.line([t.text("*"), dot_field])
-                        field_type = field.type.Parameters[0]
-                        
-                    else:
-                        field_read = dot_field
-                        field_type = field.type
-
-                    field_proto_type = rewrite_for_proto_type(field_type, enum_type_list)
-                    is_enum_field = in_type_list(field_type, enum_type_list)
-
-                    if field_type.name in ["int", "string", "bool"] or is_enum_field:
-                        if is_enum_field:
-                            field_read = ast.XCall(
-                                "static_cast",
-                                args=[field_read],
-                                Params=[field_proto_type],
-                            )
-
-                        write_op = ast.XCallPtr(
-                            out,
-                            "set_" + field.name.lower(),
-                            [field_read],
-                            Stmt=True,
-                        )
-
-                    else:
-                        opc = "mutable_" + field.name.lower()
-
-                        write_op = ast.CallStatic(
-                            QualType(name="proto_serde",
-                                     Parameters=[field_proto_type, field_type]),
-                            "write",
-                            [ast.XCallPtr(out, opc), field_read],
-                            Stmt=True,
-                        )
-
-                    if field.type.name in ["Opt"]:
-                        Body.append(
-                            ast.IfStmt(
-                                IfStmtParams(
-                                    [IfStmtParams.Branch(Cond=dot_field,
-                                                         Then=write_op)])))
-
-                    else:
-                        Body.append(write_op)
+                    Body.append(
+                        build_protobuf_writer_for_field(
+                            field,
+                            ast,
+                            enum_type_list=enum_type_list,
+                            variant_type_list=variant_type_list,
+                        ))
 
                 writer = MethodDeclParams(
                     Params=FunctionParams(
@@ -782,40 +902,6 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
             t.text("}"),
         ])
 
-    def aux_type(it: QualType) -> str:
-        match it.name:
-            case "Vec":
-                return "repeated " + aux_type(it.Parameters[0])
-
-            case "Str" | "string":
-                return "string"
-
-            case "int":
-                return "int32"
-
-            case "Opt":
-                if it.Parameters[0].name == "Vec":
-                    return aux_type(it.Parameters[0])
-
-                else:
-                    return "optional " + aux_type(it.Parameters[0])
-
-            case "UnorderedMap":
-                return f"map<{aux_type(it.Parameters[0])}, {aux_type(it.Parameters[1])}>"
-
-            case "SemId":
-                return "AnyNode"
-
-            case "SemIdT":
-                return aux_type(it.Parameters[0])
-
-            case _:
-                spaces = [s.name for s in it.Spaces if s.name != "sem"]
-                return ".".join(spaces + [it.name])
-
-    def sanitize_ident(ident: str) -> str:
-        return ident.lower().replace(" ", "_")
-
     field_name_width = 32
     field_type_width = 48
     enum_field_width = field_name_width + field_type_width
@@ -826,8 +912,7 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
                 braced(
                     f"oneof {it.name}_kind",
                     aux_field_list(
-                        (GenTuField(name=sanitize_ident(aux_type(sub)), type=sub)
-                         for sub in it.type.Parameters),
+                        build_protobuf_fields_for_variant(it.type),
                         indexer=indexer,
                         indent=indent + 1,
                     ))
@@ -837,7 +922,7 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
             type_width = field_type_width - (2 * indent)
             idx = next(indexer)
             return t.text(
-                f"{aux_type(it.type):<{type_width}} {it.name:<{field_name_width}} = {idx + 1};"
+                f"{rewrite_for_proto_grammar(it.type):<{type_width}} {it.name:<{field_name_width}} = {idx + 1};"
             )
 
     def aux_enum(parent: GenTuEnum, it: GenTuEnumField, idx: int, indent: int) -> BlockId:

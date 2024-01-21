@@ -481,7 +481,7 @@ class ASTBuilder(base.AstbuilderBase):
                 return self.b.line(
                     [head,
                      self.string(" "),
-                     self.b.join(params.Body, self.string(" "))])
+                     self.b.join(Body, self.string(" "))])
             else:
                 return self.b.stack([head, self.b.indent(2, self.b.stack(Body))])
 
