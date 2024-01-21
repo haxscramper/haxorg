@@ -96,6 +96,9 @@ class QualType(BaseModel, extra="forbid"):
         assert isinstance(added, QualType), type(added)
         return self.model_copy(update=dict(Spaces=[added] + self.Spaces))
 
+    def withoutSpace(self, name: str) -> 'QualType':
+        return self.model_copy(update=dict(Spaces=[S for S in self.Spaces if S.name != name]))
+
     def withChangedSpace(self, name: Union['QualType', str]) -> 'QualType':
         added: QualType = QualType(name=name) if isinstance(name, str) else name
         assert isinstance(added, QualType), type(added)
