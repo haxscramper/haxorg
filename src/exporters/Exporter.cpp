@@ -28,11 +28,4 @@ void Exporter<V, R>::visit(R& res, CR<UserTime> time) {
     //    visitVariants(res, time.getKind(), time.time);
 }
 
-template <typename V, typename R>
-void Exporter<V, R>::visit(
-    R&                                  res,
-    CR<sem::DocumentOptions::TocExport> prop) {
-    visitVariants(res, static_cast<int>(prop.index()), prop);
-}
-
 #include "Exporter.tcc"

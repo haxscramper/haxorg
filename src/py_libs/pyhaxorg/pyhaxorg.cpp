@@ -951,6 +951,9 @@ PYBIND11_MODULE(pyhaxorg, m) {
     .def_property("exportWithCreator",
                   [](sem::SemIdT<sem::DocumentOptions> _self) -> bool { return _self->exportWithCreator; },
                   [](sem::SemIdT<sem::DocumentOptions> _self, bool exportWithCreator) { _self->exportWithCreator = exportWithCreator; })
+    .def_property("data",
+                  [](sem::SemIdT<sem::DocumentOptions> _self) -> sem::DocumentOptions::TocExport { return _self->data; },
+                  [](sem::SemIdT<sem::DocumentOptions> _self, sem::DocumentOptions::TocExport data) { _self->data = data; })
     .def("getProperties",
          [](sem::SemIdT<sem::DocumentOptions> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Vec<sem::Subtree::Property> { return _self->getProperties(kind, subKind); },
          pybind11::arg("kind"),
@@ -959,6 +962,22 @@ PYBIND11_MODULE(pyhaxorg, m) {
          [](sem::SemIdT<sem::DocumentOptions> _self, sem::Subtree::Property::Kind kind, Str const& subKind) -> Opt<sem::Subtree::Property> { return _self->getProperty(kind, subKind); },
          pybind11::arg("kind"),
          pybind11::arg_v("subKind", ""))
+    .def("getDoExport", [](sem::SemIdT<sem::DocumentOptions> _self) -> sem::DocumentOptions::DoExport& { return _self->getDoExport(); })
+    .def("getExportFixed", [](sem::SemIdT<sem::DocumentOptions> _self) -> sem::DocumentOptions::ExportFixed& { return _self->getExportFixed(); })
+    .def("getTocExportKind", [](sem::SemIdT<sem::DocumentOptions> _self) -> sem::DocumentOptions::TocExportKind { return _self->getTocExportKind(); })
+    ;
+  pybind11::class_<sem::DocumentOptions::DoExport>(m, "DocumentOptionsDoExport")
+    .def(pybind11::init<>())
+    .def_readwrite("exportToc", &sem::DocumentOptions::DoExport::exportToc)
+    ;
+  pybind11::class_<sem::DocumentOptions::ExportFixed>(m, "DocumentOptionsExportFixed")
+    .def(pybind11::init<>())
+    .def_readwrite("exportLevels", &sem::DocumentOptions::ExportFixed::exportLevels)
+    ;
+  pybind11::enum_<sem::DocumentOptions::TocExportKind>(m, "DocumentOptionsTocExportKind")
+    .value("DoExport", sem::DocumentOptions::TocExportKind::DoExport)
+    .value("ExportFixed", sem::DocumentOptions::TocExportKind::ExportFixed)
+    .export_values()
     ;
   pybind11::enum_<sem::DocumentOptions::BrokenLinks>(m, "DocumentOptionsBrokenLinks")
     .value("Raise", sem::DocumentOptions::BrokenLinks::Raise)

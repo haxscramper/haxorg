@@ -709,6 +709,9 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Include::OrgDocument const& object) {  }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::DocumentOptions::TocExport const& object) { visitVariants(res, sem::DocumentOptions::getTocExportKind(object), object); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> object) {
   __visit_specific_kind(res, object);
   __org_field(res, object, brokenLinks);
@@ -727,9 +730,16 @@ void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> objec
   __org_field(res, object, exportBrokenLinks);
   __org_field(res, object, exportWithClock);
   __org_field(res, object, exportWithCreator);
+  __org_field(res, object, data);
   __org_field(res, object, placementContext);
   __org_field(res, object, subnodes);
 }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::DocumentOptions::DoExport const& object) { __obj_field(res, object, exportToc); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::DocumentOptions::ExportFixed const& object) { __obj_field(res, object, exportLevels); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visitDocumentGroup(R& res, In<sem::DocumentGroup> object) {

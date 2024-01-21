@@ -60,9 +60,7 @@ struct Exporter {
     VisitEventCb visitEventCb;
 
     void visitEvent(VisitEvent const& ev) {
-        if (visitEventCb) {
-            visitEventCb(ev);
-        }
+        if (visitEventCb) { visitEventCb(ev); }
     }
 
     static void writeEvent(OperationsTracer& ot, VisitEvent const& ev) {
@@ -232,8 +230,6 @@ struct Exporter {
     void visitVariants(R& res, Kind kind, CR<T> var);
 
     void visit(R& res, CR<UserTime> time);
-    void visit(R& res, CR<sem::DocumentOptions::TocExport> prop);
-
     void visit(
         R&                                             res,
         CR<Variant<In<sem::Time>, In<sem::TimeRange>>> range);

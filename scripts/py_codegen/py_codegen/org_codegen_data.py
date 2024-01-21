@@ -1377,7 +1377,15 @@ def get_types() -> Sequence[GenTuStruct]:
                 ),
             ],
             nested=[
-                GenTuPass("using TocExport = Variant<bool, int>;"),
+                GenTuTypeGroup(
+                  [
+                      GenTuStruct(t("DoExport"), GenTuDoc(""), fields=[GenTuField(t_bool(), "exportToc", GenTuDoc(""))]),
+                      GenTuStruct(t("ExportFixed"), GenTuDoc(""), fields=[GenTuField(t_int(), "exportLevels", GenTuDoc(""))]),
+                  ],
+                  variantName="TocExport",
+                  enumName="TocExportKind",
+                  kindGetter="getTocExportKind",
+                ),
                 d_simple_enum("BrokenLinks", GenTuDoc(""), "Raise", "Ignore", "Mark"),
                 d_simple_enum(
                     "Visibility",
@@ -1406,7 +1414,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 GenTuField(t_nest(t("TocExport")),
                            "tocExport",
                            GenTuDoc(""),
-                           value="false"),
+                           value="DoExport{false}"),
                 GenTuField(t_vec(t_space("Property", ["sem", "Subtree"])), "properties",
                            GenTuDoc("")),
                 GenTuField(t_bool(), "smartQuotes", GenTuDoc(""), value="false"),

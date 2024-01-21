@@ -645,7 +645,7 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
             case "Vec":
                 return "repeated " + aux_type(it.Parameters[0])
 
-            case "Str":
+            case "Str" | "string":
                 return "string"
 
             case "int":
@@ -668,13 +668,14 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
                 return aux_type(it.Parameters[0])
 
             case _:
-                return it.name
+                spaces = [s.name for s in it.Spaces if s.name != "sem"]
+                return ".".join(spaces + [it.name])
 
     def sanitize_ident(ident: str) -> str:
         return ident.lower().replace(" ", "_")
 
     field_name_width = 32
-    field_type_width = 32
+    field_type_width = 48
     enum_field_width = field_name_width + field_type_width
 
     def aux_field(it: GenTuField, indexer: Generator[int], indent: int) -> BlockId:
@@ -710,8 +711,6 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
     def aux_item(it: GenTuUnion | GenTuField, indent: int) -> Optional[BlockId]:
         match it:
             case GenTuStruct():
-
-
                 return braced(
                     "message " + it.name.name,
                     itertools.chain(

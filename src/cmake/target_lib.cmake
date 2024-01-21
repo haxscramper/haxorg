@@ -17,8 +17,10 @@ find_library(GRAPHVIZ_CGRAPH_LIBRARY cgraph)
 find_library(GRAPHVIZ_GVC_LIBRARY gvc)
 find_package(Protobuf REQUIRED)
 
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS "${BASE}/src/sem/SemOrgSerde.proto")
-get_filename_component(PROTO_HDR_DIR ${PROTO_HDRS} DIRECTORY)
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS "${BASE}/src/sem/SemOrgProto.proto" "${BASE}/src/sem/SemOrgProtoManual.proto")
+list(GET PROTO_HDRS 0 PROTO_HDR_FIRST)
+get_filename_component(PROTO_HDR_DIR ${PROTO_HDR_FIRST} DIRECTORY)
+message("PROTO_HDR_DIR = '${PROTO_HDR_DIR}' PROTO_HDR_FIRST = '${PROTO_HDR_FIRST}' PROTO_HDRS = '${PROTO_HDRS}'")
 target_sources(haxorg PRIVATE "${PROTO_SRCS}")
 
 if (${ORG_USE_PCH})

@@ -108,6 +108,9 @@ void visit(R& res, sem::Include::Example const& object);
 void visit(R& res, sem::Include::Export const& object);
 void visit(R& res, sem::Include::Src const& object);
 void visit(R& res, sem::Include::OrgDocument const& object);
+void visit(R& res, sem::DocumentOptions::TocExport const& object);
 void visitDocumentOptions(R& res, In<sem::DocumentOptions> object);
+void visit(R& res, sem::DocumentOptions::DoExport const& object);
+void visit(R& res, sem::DocumentOptions::ExportFixed const& object);
 void visitDocumentGroup(R& res, In<sem::DocumentGroup> object);
 /* clang-format on */

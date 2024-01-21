@@ -1000,11 +1000,11 @@ void fillDocumentOptions(SemIdT<DocumentOptions> opts, OrgAdapter a) {
                 }
             } else if (head == "toc") {
                 if (tail == "t") {
-                    opts->tocExport = true;
+                    opts->tocExport = DocumentOptions::DoExport{true};
                 } else if (tail == "nil") {
-                    opts->tocExport = false;
+                    opts->tocExport = DocumentOptions::DoExport{false};
                 } else if ('0' <= tail[0] && tail[0] <= '9') {
-                    opts->tocExport = tail.toInt();
+                    opts->tocExport = DocumentOptions::ExportFixed{tail.toInt()};
                 }
             }
 
