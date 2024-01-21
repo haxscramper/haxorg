@@ -64,6 +64,8 @@ class QualType(BaseModel, extra="forbid"):
     dbg_origin: str = Field(default="", exclude=True)
     verticalParamList: bool = Field(default=False, exclude=True)
     isBuiltin: bool = Field(default=False)
+    #: Prefix the type with leading `::` to refer to the global namespace
+    isGlobalNamespace: bool = Field(default=False)
 
     expr: Optional[str] = None
     Kind: QualTypeKind = QualTypeKind.RegularType
@@ -80,8 +82,13 @@ class QualType(BaseModel, extra="forbid"):
     def asPtr(self, ptrCount: int = 1) -> 'QualType':
         return self.model_copy(update=dict(ptrCount=ptrCount))
 
-    def withExtraSpace(self, name: 'QualType') -> 'QualType':
-        return self.model_copy(update=dict(Spaces=[name] + self.Spaces))
+    def withGlobalSpace(self) -> 'QualType':
+        return self.model_copy(update=dict(isGlobalNamespace=True))
+
+    def withExtraSpace(self, name: Union['QualType', str]) -> 'QualType':
+        added: QualType = QualType(name=name) if isinstance(name, str) else name
+        assert isinstance(added, QualType), type(added)
+        return self.model_copy(update=dict(Spaces=[added] + self.Spaces))
 
     def isArray(self) -> bool:
         return self.Kind == QualTypeKind.Array
@@ -778,10 +785,10 @@ class ASTBuilder(base.AstbuilderBase):
                 self.string("if " if first else (
                     "} else if " if Branch.Cond else "} else "))
             ]) if not p.LookupIfStructure else self.b.line(
-                [self.string("if" if Branch.Cond else "")])
+                [self.string("if " if Branch.Cond else "")])
 
             if Branch.Cond:
-                self.b.add_at(head, self.string(" ("))
+                self.b.add_at(head, self.string("("))
                 self.b.add_at(head, Branch.Cond)
                 self.b.add_at(head, self.string(") "))
 
@@ -1132,9 +1139,15 @@ class ASTBuilder(base.AstbuilderBase):
                 ])
 
             case QualTypeKind.RegularType:
-                type_scopes = [
-                    self.Type(Space, noQualifiers=noQualifiers) for Space in type_.Spaces
-                ] + [self.string(type_.name)]
+                type_scopes: List[BlockId] = []
+                if type_.isGlobalNamespace:
+                    # Double colon is added by join later on
+                    type_scopes.append(self.string(""))
+
+                for Space in type_.Spaces:
+                    type_scopes.append(self.Type(Space, noQualifiers=noQualifiers))
+
+                type_scopes.append(self.string(type_.name))
 
                 if len(type_.Parameters) == 0:
                     template_parameters = self.string("")

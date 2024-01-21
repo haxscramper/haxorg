@@ -93,7 +93,7 @@ def get_base_map(expanded: List[GenTuStruct]) -> Mapping[str, GenTuStruct]:
         QualType.ForName("Org"),
         GenTuDoc(""),
         [
-            GenTuField(QualType.ForName("OrgSemPlacement"), "placementContext",
+            GenTuField(t_opt(QualType.ForName("OrgSemPlacement")), "placementContext",
                        GenTuDoc("")),
             GenTuField(t_vec(t_id()), "subnodes", GenTuDoc("")),
         ],
@@ -378,11 +378,14 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
 
     return res
 
+
 T = TypeVar('T')
+
 
 @beartype
 def drop_none(items: Iterable[T]) -> Iterable[T]:
     return itertools.filterfalse(lambda it: not it, items)
+
 
 @beartype
 def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuStruct]:
@@ -416,9 +419,10 @@ def expand_type_groups(ast: ASTBuilder, types: List[GenTuStruct]) -> List[GenTuS
 
         if record.variantName and record.enumName:
             result.append(
-                GenTuTypedef(
-                    name=QualType.ForName(record.variantName),
-                    base=QualType(name="variant", Spaces=[QualType.ForName("std")], Parameters=typeNames)))
+                GenTuTypedef(name=QualType.ForName(record.variantName),
+                             base=QualType(name="variant",
+                                           Spaces=[QualType.ForName("std")],
+                                           Parameters=typeNames)))
 
             result.append(
                 GenTuEnum(
@@ -587,37 +591,85 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
             case GenTuStruct():
                 out = t.text("out")
                 _in = t.text("in")
+                out_type: Final = it.name.withExtraSpace(QualType(name="orgproto")).withGlobalSpace()
+                in_type: Final = it.name.withExtraSpace(QualType(name="sem")) if hasattr(it, "isOrgType") else it.name
+
                 Body: List[BlockId] = []
                 for field in get_type_base_fields(it, base_map) + it.fields:
-                    opc = "add_" + field.name
-                    Body.append(
-                        ast.CallStatic(
-                            QualType(name="proto_serde", Parameters=[field.type]),
+                    enum_types = ["OrgSemPlacement", "OrgSemKind"]
+                    dot_field: Final = ast.Dot(_in, t.text(field.name))
+
+                    if field.type.name in ["Opt"]:
+                        field_read = t.line([t.text("*"), dot_field])
+                        field_type = field.type.Parameters[0]
+
+                    elif field.type.name in ["Vec"]:
+                        field_read = dot_field
+                        field_type = field.type.Parameters[0]
+
+                    else:
+                        field_read = dot_field
+                        field_type = field.type
+
+                    if field_type.name == "SemId":
+                        field_proto_type = QualType.ForName("AnyNode").withExtraSpace("orgproto")
+
+                    else:
+                        field_proto_type = field_type.withExtraSpace("orgproto").withGlobalSpace()
+
+                    if field_type.name in ["int", "string"] + enum_types:
+                        if field_type.name in enum_types:
+                            field_read = ast.XCall("static_cast", args=[field_read], Params=[field_proto_type])
+
+                        write_op = ast.XCallPtr(out, "set_" + field.name.lower(), [field_read], Stmt=True)
+
+                    else:
+                        if field.type.name in ["Vec"]:
+                            opc = "mutable_" + field.name.lower()
+                        else:
+                            opc = "add_" + field.name
+
+                        write_op = ast.CallStatic(
+                            QualType(name="proto_serde", Parameters=[field_proto_type, field_type]),
                             "write",
-                            [ast.XCallPtr(out, opc),
-                             ast.Dot(_in, t.text(field.name))],
+                            [
+                                ast.XCallPtr(out, opc),
+                                field_read
+                            ],
                             Stmt=True,
-                        ))
+                        )
+
+                    if field.type.name in ["Opt"]:
+                        Body.append(ast.IfStmt(IfStmtParams([
+                            IfStmtParams.Branch(Cond=dot_field, Then=write_op)
+                        ])))
+
+                    else:
+                        Body.append(write_op)
 
                 writer = MethodDeclParams(
                     Params=FunctionParams(
                         Name="write",
                         Args=[
-                            ParmVarParams(name="out", type=it.name.asPtr()),
-                            ParmVarParams(name="in",
-                                          type=it.name.withExtraSpace(
-                                              QualType(name="sem")).asConstRef()),
+                            ParmVarParams(
+                                name="out",
+                                type=out_type.asPtr(),
+                            ),
+                            ParmVarParams(
+                                name="in",
+                                type=in_type.asConstRef(),
+                            ),
                         ],
                         doc=DocParams(""),
                         Body=Body,
                     ),
-                    isStatic=False,
+                    isStatic=True,
                 )
 
                 return RecordParams(
                     name="proto_serde",
                     doc=DocParams(""),
-                    NameParams=[it.name],
+                    NameParams=[out_type, in_type],
                     members=[writer],
                     Template=TemplateParams(Stacks=[TemplateGroup(Params=[])]),
                 )
@@ -628,6 +680,7 @@ def build_protobuf_writer(expanded: List[GenTuStruct],
 @beartype
 def get_protobuf_wrapped(expanded: List[GenTuStruct]) -> List[GenTuUnion]:
     return get_enums() + [get_osk_enum(expanded)] + expanded
+
 
 @beartype
 def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
@@ -681,25 +734,35 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
     def aux_field(it: GenTuField, indexer: Generator[int], indent: int) -> BlockId:
         if it.type.name == "Variant":
             return t.stack([
-                braced(f"oneof {it.name}_kind",
-                    aux_field_list((GenTuField(name=sanitize_ident(aux_type(sub)), type=sub) for sub in it.type.Parameters), indexer=indexer, indent=indent + 1,)
-                )
+                braced(
+                    f"oneof {it.name}_kind",
+                    aux_field_list(
+                        (GenTuField(name=sanitize_ident(aux_type(sub)), type=sub)
+                         for sub in it.type.Parameters),
+                        indexer=indexer,
+                        indent=indent + 1,
+                    ))
             ])
 
         else:
             type_width = field_type_width - (2 * indent)
             idx = next(indexer)
-            return t.text(f"{aux_type(it.type):<{type_width}} {it.name:<{field_name_width}} = {idx + 1};")
+            return t.text(
+                f"{aux_type(it.type):<{type_width}} {it.name:<{field_name_width}} = {idx + 1};"
+            )
 
     def aux_enum(parent: GenTuEnum, it: GenTuEnumField, idx: int, indent: int) -> BlockId:
-        name = parent.name.name + "_" + it.name
+        # _f suffix to avoid clashes with OrgSpecName_Name method generated by protoc
+        name = f"{parent.name.name}_{it.name}_f"
         enum_width = enum_field_width - 2 * indent
         return t.text(f"{name:<{enum_width}}  = {idx};")
 
-    def aux_field_list(fields: Iterable[GenTuField], indexer: Generator[int], indent: int) -> Iterable[BlockId]:
+    def aux_field_list(fields: Iterable[GenTuField], indexer: Generator[int],
+                       indent: int) -> Iterable[BlockId]:
         return (aux_field(field, indexer, indent=indent) for field in fields)
 
     def make_full_enumerator() -> Generator[int]:
+
         def full_enumerator() -> Generator[int]:
             value = 0
             while True:
@@ -715,12 +778,15 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
                     "message " + it.name.name,
                     itertools.chain(
                         drop_none(aux_item(sub, indent=indent + 1) for sub in it.nested),
-                        aux_field_list((get_type_base_fields(it, base_map) + it.fields), indexer=make_full_enumerator(), indent=indent),
+                        aux_field_list((get_type_base_fields(it, base_map) + it.fields),
+                                       indexer=make_full_enumerator(),
+                                       indent=indent),
                     ))
 
             case GenTuEnum():
-                return braced("enum " + it.name.name,
-                              [aux_enum(it, sub, idx, indent) for idx, sub in enumerate(it.fields)])
+                return braced(
+                    "enum " + it.name.name,
+                    [aux_enum(it, sub, idx, indent) for idx, sub in enumerate(it.fields)])
 
             case GenTuPass():
                 return None
@@ -729,11 +795,13 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
                 match it.base:
                     case QualType(name="variant"):
                         return braced("message " + it.name.name, [
-                            braced("oneof kind", aux_field_list(
-                                (GenTuField(name=par.name.lower(), type=par) for par in it.base.Parameters),
-                                indexer=make_full_enumerator(),
-                                indent=indent + 1
-                            ))
+                            braced(
+                                "oneof kind",
+                                aux_field_list(
+                                    (GenTuField(name=par.name.lower(), type=par)
+                                     for par in it.base.Parameters),
+                                    indexer=make_full_enumerator(),
+                                    indent=indent + 1))
                         ])
 
                     case _:
@@ -743,15 +811,18 @@ def build_protobuf(expanded: List[GenTuStruct], t: TextLayout) -> BlockId:
                 assert False, type(it)
 
     any_node = braced("message AnyNode", [
-        braced("oneof kind", aux_field_list(
-            (GenTuField(name=rec.name.name.lower(), type=rec.name) for rec in expanded),
-            indent=0,
-            indexer=make_full_enumerator()
-            ),
+        braced(
+            "oneof kind",
+            aux_field_list((GenTuField(name=rec.name.name.lower(), type=rec.name)
+                            for rec in expanded),
+                           indent=0,
+                           indexer=make_full_enumerator()),
         )
     ])
 
-    return t.stack(list(drop_none(aux_item(it, indent=0) for it in get_protobuf_wrapped(expanded))) + [any_node])
+    return t.stack(
+        list(drop_none(aux_item(it, indent=0) for it in get_protobuf_wrapped(expanded))) +
+        [any_node])
 
 
 @beartype
@@ -852,15 +923,20 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
                 "/tmp/pyhaxorg.pyi",
                 [GenTuPass(autogen_structs.build_typedef(pyast))],
             )),
-        GenUnit(GenTu("{base}/sem/SemOrgProto.proto", [
-            GenTuPass('syntax = "proto3";'),
-            GenTuPass('import "SemOrgProtoManual.proto";'),
-            GenTuPass(protobuf),
-        ])),
         GenUnit(
-            GenTu("{base}/sem/SemOrgSerde.cpp", [
-                GenTuPass("#include <sem/SemOrgSerde.hpp>"),
-            ] + [GenTuPass(ast.Record(rec)) for rec in protobuf_writer],)),
+            GenTu("{base}/sem/SemOrgProto.proto", [
+                GenTuPass('syntax = "proto3";'),
+                GenTuPass("package orgproto;"),
+                GenTuPass('import "SemOrgProtoManual.proto";'),
+                GenTuPass(protobuf),
+            ])),
+        GenUnit(
+            GenTu(
+                "{base}/sem/SemOrgSerde.cpp",
+                [
+                    GenTuPass("#include <sem/SemOrgSerde.hpp>"),
+                ] + [GenTuPass(ast.Record(rec)) for rec in protobuf_writer],
+            )),
         GenUnit(
             GenTu("{base}/exporters/Exporter.tcc", get_exporter_methods(False,
                                                                         expanded)),),
