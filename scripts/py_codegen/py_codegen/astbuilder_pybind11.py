@@ -226,13 +226,10 @@ class Py11Enum:
     Doc: GenTuDoc
 
     @staticmethod
-    def FromGenTu(Enum: GenTuEnum,
-                  Scope: List[QualType] = [],
-                  pyNameOverride: Optional[str] = None) -> 'Py11Enum':
+    def FromGenTu(Enum: GenTuEnum, PyName: str) -> 'Py11Enum':
         return Py11Enum(
-            PyName="".join(flat_scope(QualType.ForName(Enum.name.name, Spaces=Scope)))
-            if pyNameOverride is None else pyNameOverride,
-            Enum=QualType.ForName(Enum.name.name, Spaces=Scope),
+            PyName=PyName,
+            Enum=Enum.name,
             Doc=Enum.doc,
             Fields=[Py11EnumField.FromGenTu(F) for F in Enum.fields],
         )

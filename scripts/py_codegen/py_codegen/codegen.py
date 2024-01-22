@@ -19,6 +19,7 @@ from py_codegen.astbuilder_pybind11 import (
     flat_scope,
     id_self,
     py_type_bind,
+    py_type,
 )
 
 if TYPE_CHECKING:
@@ -285,10 +286,8 @@ def pybind_org_id(ast: ASTBuilder, b: TextLayout, typ: GenTuStruct,
 
 
 @beartype
-def pybind_nested_type(value: GenTuStruct, scope: List[QualType]) -> Py11Class:
-    name = "".join([typ.name for typ in scope if typ.name != "sem"] + [value.name.name])
-
-    res = Py11Class(PyName=name, Class=QualType.ForName(value.name.name, Spaces=scope))
+def pybind_nested_type(value: GenTuStruct) -> Py11Class:
+    res = Py11Class(PyName=py_type(value.name).Name, Class=value.name)
     res.InitDefault()
 
     for meth in value.methods:
@@ -368,38 +367,27 @@ def get_bind_methods(ast: ASTBuilder, expanded: List[GenTuStruct]) -> Py11Module
     iterate_object_tree(GenTuNamespace("sem", expanded), baseCollectorCallback,
                         iterate_context)
 
-    iterate_context = []
-
     def codegenConstructCallback(value: Any) -> None:
-        nonlocal iterate_context
-        scope: List[QualType] = filter_walk_scope(iterate_context)
-
         if isinstance(value, GenTuStruct):
             if hasattr(value, "isOrgType"):
                 res.Decls.append(pybind_org_id(ast, b, value, base_map))
 
             else:
-                new = pybind_nested_type(value, scope)
+                new = pybind_nested_type(value)
                 res.Decls.append(new)
 
         elif isinstance(value, GenTuEnum):
-            PyName = "".join([
-                N for N in flat_scope(QualType.ForName(value.name.name, Spaces=scope))
-                if N != "sem"
-            ])
-            res.Decls.append(Py11Enum.FromGenTu(value, scope, pyNameOverride=PyName))
+            res.Decls.append(Py11Enum.FromGenTu(value, PyName=py_type(value.name).Name))
 
-    iterate_object_tree(GenTuNamespace("sem", expanded), codegenConstructCallback,
-                        iterate_context)
+    iterate_object_tree(GenTuNamespace("sem", expanded), codegenConstructCallback, [])
 
     for item in get_enums() + [get_osk_enum(expanded)]:
-        res.Decls.append(Py11Enum.FromGenTu(item, []))
+        res.Decls.append(Py11Enum.FromGenTu(item, py_type(item.name).Name))
 
     return res
 
 
 T = TypeVar('T')
-
 
 @beartype
 def drop_none(items: Iterable[T]) -> Iterable[T]:
@@ -1086,10 +1074,10 @@ def gen_value(ast: ASTBuilder, pyast: pya.ASTBuilder, reflection_path: str) -> G
     autogen_structs = get_bind_methods(ast, expanded)
 
     for _struct in tu.structs:
-        autogen_structs.Decls.append(pybind_nested_type(_struct, []))
+        autogen_structs.Decls.append(pybind_nested_type(_struct))
 
     for _enum in tu.enums:
-        autogen_structs.Decls.append(Py11Enum.FromGenTu(_enum, []))
+        autogen_structs.Decls.append(Py11Enum.FromGenTu(_enum, py_type(_enum.name).Name))
 
     opaque_declarations: List[BlockId] = []
     specialization_calls: List[BlockId] = []
